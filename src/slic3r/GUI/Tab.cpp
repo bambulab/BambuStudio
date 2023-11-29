@@ -1886,7 +1886,7 @@ void TabPrint::build()
 
     auto page = add_options_page(L("Quality"), "empty");
         auto optgroup = page->new_optgroup(L("Layer height"), L"param_layer_height");
-        optgroup->append_single_option_line("layer_height");
+    optgroup->append_single_option_line("layer_height", "layer-height");
         optgroup->append_single_option_line("initial_layer_print_height");
 
         optgroup = page->new_optgroup(L("Line width"), L"param_line_width");
@@ -1910,7 +1910,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("enable_arc_fitting", "acr-move");
         optgroup->append_single_option_line("xy_hole_compensation", "xy-hole-contour-compensation");
         optgroup->append_single_option_line("xy_contour_compensation", "xy-hole-contour-compensation");
-        optgroup->append_single_option_line("elefant_foot_compensation");
+        optgroup->append_single_option_line("elefant_foot_compensation", "parameter/elephant-foot");
 
         optgroup = page->new_optgroup(L("Ironing"), L"param_ironing");
         optgroup->append_single_option_line("ironing_type", "parameter/ironing");
@@ -2102,7 +2102,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("spiral_mode", "spiral-vase");
         optgroup->append_single_option_line("timelapse_type", "Timelapse");
 
-        optgroup->append_single_option_line("fuzzy_skin");
+        optgroup->append_single_option_line("fuzzy_skin", "parameter/fuzzy-skin");
         optgroup->append_single_option_line("fuzzy_skin_point_distance");
         optgroup->append_single_option_line("fuzzy_skin_thickness");
 
@@ -3781,19 +3781,19 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
 
             //BBS: don't show retract related config menu in machine page
             optgroup = page->new_optgroup(L("Retraction"), L"param_retraction");
-            optgroup->append_single_option_line("retraction_length", "", extruder_idx);
-            optgroup->append_single_option_line("z_hop", "", extruder_idx);
-            optgroup->append_single_option_line("retract_lift_above", "", extruder_idx);
-            optgroup->append_single_option_line("retract_lift_below", "", extruder_idx);
-            optgroup->append_single_option_line("z_hop_types", "", extruder_idx);
-            optgroup->append_single_option_line("retraction_speed", "", extruder_idx);
-            optgroup->append_single_option_line("deretraction_speed", "", extruder_idx);
+            optgroup->append_single_option_line("retraction_length", "parameter/retraction#length", extruder_idx);
+            optgroup->append_single_option_line("z_hop", "parameter/retraction#z-hop-when-retracting", extruder_idx);
+            optgroup->append_single_option_line("retract_lift_above", "parameter/retraction#z-hop-upper-and-lower-boundary", extruder_idx);
+            optgroup->append_single_option_line("retract_lift_below", "parameter/retraction#z-hop-upper-and-lower-boundary", extruder_idx);
+            optgroup->append_single_option_line("z_hop_types", "parameter/retraction#z-hop-type", extruder_idx);
+            optgroup->append_single_option_line("retraction_speed", "parameter/retraction#retraction-speed", extruder_idx);
+            optgroup->append_single_option_line("deretraction_speed", "parameter/retraction#deretraction-speed", extruder_idx);
             //optgroup->append_single_option_line("retract_restart_extra", "", extruder_idx);
-            optgroup->append_single_option_line("retraction_minimum_travel", "", extruder_idx);
-            optgroup->append_single_option_line("retract_when_changing_layer", "", extruder_idx);
-            optgroup->append_single_option_line("wipe", "", extruder_idx);
-            optgroup->append_single_option_line("wipe_distance", "", extruder_idx);
-            optgroup->append_single_option_line("retract_before_wipe", "", extruder_idx);
+            optgroup->append_single_option_line("retraction_minimum_travel", "parameter/retraction#travel-distance-threshold", extruder_idx);
+            optgroup->append_single_option_line("retract_when_changing_layer", "parameter/retraction#retract-on-layer-change", extruder_idx);
+            optgroup->append_single_option_line("wipe", "parameter/retraction#wipe-while-retracting", extruder_idx);
+            optgroup->append_single_option_line("wipe_distance", "parameter/retraction#wipe-distance", extruder_idx);
+            optgroup->append_single_option_line("retract_before_wipe", "parameter/retraction#retract-amount-before-wipe", extruder_idx);
 
             optgroup = page->new_optgroup(L("Retraction when switching material"), L"param_retraction", -1, true);
             optgroup->append_single_option_line("retract_length_toolchange", "", extruder_idx);
