@@ -10487,7 +10487,7 @@ msgstr ""
 msgid "wiki"
 msgstr ""
 
-msgid "Improt Preset"
+msgid "Import Preset"
 msgstr "导入预设"
 
 msgid "Create Type"
@@ -11312,7 +11312,7 @@ msgstr ""
 #~ "Did you change your nozzle lately ? "
 #~ msgstr "预设中的喷嘴直径与记忆中的喷嘴直径不一致。您最近更换了喷嘴吗？"
 
-#~ msgid "Improt Presets"
+#~ msgid "Import Presets"
 #~ msgstr "导入预设"
 
 #~ msgid ""

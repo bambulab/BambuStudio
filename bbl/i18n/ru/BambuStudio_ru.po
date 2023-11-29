@@ -11360,7 +11360,7 @@ msgstr ""
 msgid "wiki"
 msgstr "Wiki-страница"
 
-msgid "Improt Preset"
+msgid "Import Preset"
 msgstr "Импорт профиля"
 
 msgid "Create Type"
