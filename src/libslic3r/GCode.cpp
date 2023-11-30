@@ -1801,7 +1801,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                         }
                     }
                     //BBS: find the non-support filament extruder of object
-                    if (has_non_support_filament)
+                    if (has_non_support_filament) {
+                        bool find_initial_non_support_filament = false;
                         for (LayerTools layer_tools : tool_ordering.layer_tools()) {
                             if (!layer_tools.has_object)
                                 continue;
@@ -1809,9 +1810,14 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                                 if (print.config().filament_is_support.get_at(extruder))
                                     continue;
                                 initial_non_support_extruder_id = extruder;
+                                find_initial_non_support_filament = true;
                                 break;
                             }
+
+                            if (find_initial_non_support_filament)
+                                break;
                         }
+                    }
                 }
 
                 break;
@@ -1856,7 +1862,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                     }
                 }
                 //BBS: find the non-support filament extruder of object
-                if (has_non_support_filament)
+                if (has_non_support_filament){
+                    bool find_initial_non_support_filament = false;
                     for (LayerTools layer_tools : tool_ordering.layer_tools()) {
                         if (!layer_tools.has_object)
                             continue;
@@ -1864,9 +1871,14 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                             if (print.config().filament_is_support.get_at(extruder))
                                 continue;
                             initial_non_support_extruder_id = extruder;
+                            find_initial_non_support_filament = true;
                             break;
                         }
+
+                        if (find_initial_non_support_filament)
+                            break;
                     }
+                }
             }
         }
 
