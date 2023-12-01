@@ -45,7 +45,8 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const w
     m_label_stat->SetForegroundColour(wxColour("#323A3C"));
 #if !BBL_RELEASE_TO_PUBLIC
     m_media_ctrl->Bind(EVT_MEDIA_CTRL_STAT, [this](auto & e) {
-        m_label_stat->SetLabel(e.GetString());
+        wxSize size = m_media_ctrl->GetVideoSize();
+        m_label_stat->SetLabel(e.GetString() + wxString::Format(" VS:%ix%i", size.x, size.y));
     });
 #endif
 
