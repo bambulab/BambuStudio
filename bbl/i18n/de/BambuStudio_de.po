@@ -4568,7 +4568,7 @@ msgstr "Automatische Wiederherstellung bei Positionsverlust (Schrittverlust)"
 msgid "Allow Prompt Sound"
 msgstr ""
 
-msgid "Fliament Tangle Detect"
+msgid "Filament Tangle Detect"
 msgstr ""
 
 msgid "Global"

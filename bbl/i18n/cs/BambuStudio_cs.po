@@ -4527,7 +4527,7 @@ msgstr "Automatické obnovení po ztrátě kroku"
 msgid "Allow Prompt Sound"
 msgstr ""
 
-msgid "Fliament Tangle Detect"
+msgid "Filament Tangle Detect"
 msgstr ""
 
 msgid "Global"

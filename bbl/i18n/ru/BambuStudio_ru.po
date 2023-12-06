@@ -4642,7 +4642,7 @@ msgid "Allow Prompt Sound"
 msgstr "Разрешить звуковые уведомления"
 
 # ??? Обнаружение перехлеста прутка на катушке
-msgid "Fliament Tangle Detect"
+msgid "Filament Tangle Detect"
 msgstr "Обнаружение запутывания прутка"
 
 msgid "Global"

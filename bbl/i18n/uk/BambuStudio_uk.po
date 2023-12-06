@@ -4589,7 +4589,7 @@ msgstr "Автоматичне відновлення після втрати к
 msgid "Allow Prompt Sound"
 msgstr "Дозволити звук підказки"
 
-msgid "Fliament Tangle Detect"
+msgid "Filament Tangle Detect"
 msgstr "Виявлення заплутаного філаменту"
 
 msgid "Global"

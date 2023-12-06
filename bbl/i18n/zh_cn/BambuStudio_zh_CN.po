@@ -4398,7 +4398,7 @@ msgstr "自动从丢步中恢复"
 msgid "Allow Prompt Sound"
 msgstr "支持提示音"
 
-msgid "Fliament Tangle Detect"
+msgid "Filament Tangle Detect"
 msgstr "缠料检测"
 
 msgid "Global"

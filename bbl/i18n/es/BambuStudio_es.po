@@ -4538,7 +4538,7 @@ msgstr "Recuperación automática de la pérdida de pasos"
 msgid "Allow Prompt Sound"
 msgstr ""
 
-msgid "Fliament Tangle Detect"
+msgid "Filament Tangle Detect"
 msgstr ""
 
 msgid "Global"
