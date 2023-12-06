@@ -3,7 +3,6 @@
 #include <numeric>
 #include <vector>
 #include <string>
-#include <regex>
 #include <future>
 #include <GL/glew.h>
 #include <boost/algorithm/string.hpp>
@@ -1907,11 +1906,14 @@ void PartPlate::set_plate_name(const std::string &name)
 {
 	// compare if name equal to m_name, case sensitive
 	if (boost::equals(m_name, name)) return;
+	if (Plater::has_illegal_filename_characters(name)) {
+		if(m_plater)
+			Plater::show_illegal_characters_warning(m_plater);
+		return;
+	}
 	if (m_plater)
 		m_plater->take_snapshot("set_plate_name");
 	m_name = remove_invisible_ascii(name);
-	std::regex reg("[\\\\/:*?\"<>|\\0]");
-	m_name= regex_replace(m_name, reg, "");
 	m_name_change = true;
 	if (m_plater) {
 		ObjectList *obj_list = wxGetApp().obj_list();
