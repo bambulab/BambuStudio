@@ -1030,12 +1030,16 @@ void PresetUpdater::priv::sync_printer_config(std::string http_url)
     auto                    cache_folder = data_dir_path / "ota" / "printers";
 
     try {
-        boost::filesystem::load_string_file(config_folder / "version.txt", curr_version);
-        boost::algorithm::trim(curr_version);
+        if (fs::exists(config_folder / "version.txt")) {
+            fs::load_string_file(config_folder / "version.txt", curr_version);
+            boost::algorithm::trim(curr_version);
+        }
     } catch (...) {}
     try {
-        boost::filesystem::load_string_file(cache_folder / "version.txt", cached_version);
-        boost::algorithm::trim(cached_version);
+        if (fs::exists(cache_folder / "version.txt")) {
+            fs::load_string_file(cache_folder / "version.txt", cached_version);
+            boost::algorithm::trim(cached_version);
+        }
     } catch (...) {}
     if (!cached_version.empty()) {
         bool   need_delete_cache = false;
@@ -1068,9 +1072,11 @@ void PresetUpdater::priv::sync_printer_config(std::string http_url)
 
     bool result = false;
     try {
-        boost::filesystem::load_string_file(cache_folder / "version.txt", cached_version);
-        boost::algorithm::trim(cached_version);
-        result = true;
+        if (fs::exists(cache_folder / "version.txt")) {
+            fs::load_string_file(cache_folder / "version.txt", cached_version);
+            boost::algorithm::trim(cached_version);
+            result = true;
+        }
     } catch (...) {}
     if (result) {
         BOOST_LOG_TRIVIAL(info) << format("[BBL Updater] found new printer config: %1%, prompt to update", cached_version);
@@ -1187,12 +1193,16 @@ Updates PresetUpdater::priv::get_printer_config_updates(bool update) const
     std::string             curr_version;
     std::string             resc_version;
     try {
-        boost::filesystem::load_string_file(resc_folder / "version.txt", resc_version);
-        boost::algorithm::trim(resc_version);
+        if (fs::exists(resc_folder / "version.txt")) {
+            fs::load_string_file(resc_folder / "version.txt", resc_version);
+            boost::algorithm::trim(resc_version);
+        }
     } catch (...) {}
     try {
-        boost::filesystem::load_string_file(config_folder / "version.txt", curr_version);
-        boost::algorithm::trim(curr_version);
+        if (fs::exists(config_folder / "version.txt")) {
+            fs::load_string_file(config_folder / "version.txt", curr_version);
+            boost::algorithm::trim(curr_version);
+        }
     } catch (...) {}
 
     if (!curr_version.empty()) {
