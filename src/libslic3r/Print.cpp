@@ -1137,6 +1137,12 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 
             // BBS: remove obsolete logics and _L()
             if (has_custom_layering) {
+                std::vector<std::vector<coordf_t>> layer_z_series;
+                layer_z_series.assign(m_objects.size(), std::vector<coordf_t>());
+                for (size_t idx_object = 0; idx_object < m_objects.size(); ++idx_object) {
+                    layer_z_series[idx_object] = generate_object_layers(m_objects[idx_object]->slicing_parameters(), layer_height_profiles[idx_object]);
+                }
+
                 for (size_t idx_object = 0; idx_object < m_objects.size(); ++idx_object) {
                     if (idx_object == tallest_object_idx) continue;
                     // Check that the layer height profiles are equal. This will happen when one object is
@@ -1146,11 +1152,11 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                     size_t         i   = 0;
                     const coordf_t eps = 0.5 * EPSILON; // layers closer than EPSILON will be merged later. Let's make
                     // this check a bit more sensitive to make sure we never consider two different layers as one.
-                    while (i < layer_height_profiles[idx_object].size() && i < layer_height_profiles[tallest_object_idx].size()) {
+                    while (i < layer_z_series[idx_object].size() && i < layer_z_series[tallest_object_idx].size()) {
                         // BBS: remove the break condition, because a variable layer height object and a new object will not be checked when slicing
                         //if (i % 2 == 0 && layer_height_profiles[tallest_object_idx][i] > layer_height_profiles[idx_object][layer_height_profiles[idx_object].size() - 2])
                         //    break;
-                        if (std::abs(layer_height_profiles[idx_object][i] - layer_height_profiles[tallest_object_idx][i]) > eps)
+                        if (std::abs(layer_z_series[idx_object][i] - layer_z_series[tallest_object_idx][i]) > eps)
                             return {L("The prime tower is only supported if all objects have the same variable layer height")};
                         ++i;
                     }
