@@ -1,0 +1,15 @@
+{
+    "type": "process",
+    "name": "0.06mm High Quality @BBL A1M 0.2 nozzle",
+    "inherits": "fdm_process_bbl_0.06_nozzle_0.2",
+    "from": "system",
+    "setting_id": "GP117",
+    "instantiation": "true",
+    "default_acceleration": "3000",
+    "outer_wall_acceleration": "2000",
+    "outer_wall_speed": "60",
+    "travel_speed": "700",
+    "compatible_printers": [
+        "Bambu Lab A1 mini 0.2 nozzle"
+    ]
+}
