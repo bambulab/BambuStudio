@@ -103,9 +103,13 @@ function HandleModelList( pVal )
 		
 		let CoverImage="../../image/printer/"+OneModel['model']+"_cover.png";
 		let	CoverImage2="../../../profiles/"+strVendor+"/"+OneModel['model']+"_cover.png";
+		let CoverImage3=pVal['configpath']+"/system/"+strVendor+"/"+OneModel['model']+"_cover.png";
+		
+		//alert( 'FinalCover: '+FinalCover );
 		ModelHtml[strVendor]+='<div class="PrinterBlock">'+
-'	<div class="PImg"><img src="'+CoverImage+'" onerror="ShowPrinterThumb(this,\''+CoverImage2+'\')" /></div>'+
-'    <div class="PName">'+OneModel['model']+'</div>'+ HtmlNozzel +'</div>';
+        '	<div class="PImg"><img src="'+CoverImage3+'" onerror="ShowPrinterThumb(this,\''+CoverImage2+'\')" /></div>'+
+        '    <div class="PName">'+OneModel['model']+'</div>'+ HtmlNozzel +'</div>';
+		
 	}
 	
 	//Update Nozzel Html Append
