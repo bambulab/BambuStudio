@@ -17,6 +17,7 @@
 #include <boost/config.hpp>
 #include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/log/trivial.hpp>
 #include <boost/nowide/cenv.hpp>
 #include <boost/nowide/iostream.hpp>
 #include <boost/nowide/fstream.hpp>
