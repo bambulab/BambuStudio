@@ -1468,6 +1468,7 @@ namespace DoExport {
 	    print_statistics.clear();
         print_statistics.total_toolchanges = std::max(0, wipe_tower_data.number_of_toolchanges);
 	    if (! extruders.empty()) {
+            // moved to HEADER_BLOCK
 	        //std::pair<std::string, unsigned int> out_filament_used_mm ("; filament used [mm] = ", 0);
 	        //std::pair<std::string, unsigned int> out_filament_used_cm3("; filament used [cm3] = ", 0);
 	        //std::pair<std::string, unsigned int> out_filament_used_g  ("; filament used [g] = ", 0);
@@ -1668,6 +1669,16 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Estimated_Printing_Time_Placeholder).c_str());
     //BBS: total layer number
     file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Total_Layer_Number_Placeholder).c_str());
+
+    //BBS: total filament used in mm
+    file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Total_Filament_Used_Mm_Placeholder))
+    //BBS: total filament used in cm3
+    file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Total_Filament_Used_Cm3_Placeholder))
+    //BBS: total filament used in g
+    file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Total_Filament_Used_G_Placeholder))
+    //BBS: total filament cost
+    file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Total_Filament_Cost_Placeholder))
+
     //BBS: judge whether support skipping, if yes, list all label_object_id with sorted order here
     if (print.num_object_instances() <= g_max_label_object && //Don't support too many objects on one plate
         print.calib_params().mode == CalibMode::Calib_None) { //Don't support skipping in cali mode
