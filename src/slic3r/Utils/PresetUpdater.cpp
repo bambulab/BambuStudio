@@ -747,6 +747,26 @@ void PresetUpdater::priv::sync_config(std::string http_url, const VendorMap vend
                             }
                         }
                     }
+                    json software = j.at("software");
+                    if (software.is_object() && !software.empty()) {
+                        Semver cloud_version;
+                        for (auto iter = software.begin(); iter != software.end(); iter++) {
+                            if (boost::iequals(iter.key(), "version")) {
+                                cloud_version = *(Semver::parse(iter.value()));
+                                GUI::wxGetApp().app_config->set("app", "cloud_version",cloud_version.to_string());
+                                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Bambu Studio has newer version and the version is: " << cloud_version.to_string();
+                            } else if (boost::iequals(iter.key(), "url")) {
+                                std::string url = iter.value();
+                                GUI::wxGetApp().app_config->set("app", "cloud_software_url", url);
+                                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Bambu Studio has newer version and download url is: " << url;
+                            }
+                        }
+                    } else {
+                        GUI::wxGetApp().app_config->erase("app", "cloud_version");
+                        GUI::wxGetApp().app_config->erase("app", "cloud_software_url");
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Bambu Studio is newest version.";
+                    }
+                    GUI::wxGetApp().CallAfter([]() { GUI::wxGetApp().app_config->save(); });
                 }
                 else {
                     BOOST_LOG_TRIVIAL(error) << "[BBL Updater]: get version of settings failed, body=" << body;
