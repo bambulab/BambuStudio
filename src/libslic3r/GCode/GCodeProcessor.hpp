@@ -277,6 +277,7 @@ namespace Slic3r {
             Total_Layer_Number_Placeholder,
             Wipe_Tower_Start,
             Wipe_Tower_End,
+            Used_Filament_Weight_Placeholder
         };
 
         static const std::string& reserved_tag(ETags tag) { return Reserved_Tags[static_cast<unsigned char>(tag)]; }
@@ -477,9 +478,6 @@ namespace Slic3r {
 
             void reset();
 
-            // post process the file with the given filename to add remaining time lines M73
-            // and updates moves' gcode ids accordingly
-            void post_process(const std::string& filename, std::vector<GCodeProcessorResult::MoveVertex>& moves, std::vector<size_t>& lines_ends, size_t total_layer_num);
         };
 
         struct UsedFilaments  // filaments per ColorChange
@@ -514,6 +512,16 @@ namespace Slic3r {
             friend class GCodeProcessor;
         };
 
+        struct PostProcessor
+        {
+            const std::vector<Extruder>* p_extruders=nullptr;
+            TimeProcessor* p_time_processor = nullptr;
+            UsedFilaments* p_used_filaments = nullptr;
+            void reset() { p_time_processor = nullptr; p_used_filaments = nullptr; p_extruders=nullptr;}
+            // post process the file with the given filename to add remaining time lines M73
+            // and updates moves' gcode ids accordingly
+            void post_process(const std::string& filename, std::vector<GCodeProcessorResult::MoveVertex>& moves, std::vector<size_t>& lines_ends, size_t total_layer_num) const;
+        };
     public:
         class SeamsDetector
         {
@@ -726,6 +734,7 @@ namespace Slic3r {
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 
     public:
+        PostProcessor m_post_processor;
         GCodeProcessor();
 
         void apply_config(const PrintConfig& config);
