@@ -64,7 +64,8 @@ const std::vector<std::string> GCodeProcessor::Reserved_Tags = {
     "_GP_TOTAL_FILAMENT_USED_G_PLACEHOLDER",
     "_GP_TOTAL_FILAMENT_COST_PLACEHOLDER",
     " WIPE_TOWER_START",
-    " WIPE_TOWER_END"
+    " WIPE_TOWER_END",
+    "_GP_FILAMENT_USED_WEIGHT_PLACEHOLDER"
 };
 
 const std::string GCodeProcessor::Flush_Start_Tag = " FLUSH_START";
@@ -371,7 +372,7 @@ void GCodeProcessor::TimeProcessor::reset()
     machines[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].enabled = true;
 }
 
-void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, std::vector<GCodeProcessorResult::MoveVertex>& moves, std::vector<size_t>& lines_ends, size_t total_layer_num)
+void GCodeProcessor::PostProcessor::post_process(const std::string& filename, std::vector<GCodeProcessorResult::MoveVertex>& moves, std::vector<size_t>& lines_ends, size_t total_layer_num) const
 {
     FilePtr in{ boost::nowide::fopen(filename.c_str(), "rb") };
     if (in.f == nullptr)
@@ -432,13 +433,13 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
     // keeps track of last exported pair <percent, remaining time>
     std::array<std::pair<int, int>, static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count)> last_exported_main;
     for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
-        last_exported_main[i] = { 0, time_in_minutes(machines[i].time) };
+        last_exported_main[i] = { 0, time_in_minutes(p_time_processor->machines[i].time) };
     }
 
     // keeps track of last exported remaining time to next printer stop
     std::array<int, static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count)> last_exported_stop;
     for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
-        last_exported_stop[i] = time_in_minutes(machines[i].time);
+        last_exported_stop[i] = time_in_minutes(p_time_processor->machines[i].time);
     }
 
     // buffer line to export only when greater than 64K to reduce writing calls
@@ -457,7 +458,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
             line = line.substr(1);
             if (line == reserved_tag(ETags::First_Line_M73_Placeholder) || line == reserved_tag(ETags::Last_Line_M73_Placeholder)) {
                 for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
-                    const TimeMachine& machine = machines[i];
+                    const TimeMachine& machine = p_time_processor->machines[i];
                     if (machine.enabled) {
                         // export pair <percent, remaining time>
                         ret += format_line_M73_main(machine.line_m73_main_mask.c_str(),
@@ -477,7 +478,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
             }
             else if (line == reserved_tag(ETags::Estimated_Printing_Time_Placeholder)) {
                 for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
-                    const TimeMachine& machine = machines[i];
+                    const TimeMachine& machine = p_time_processor->machines[i];
                     PrintEstimatedStatistics::ETimeMode mode = static_cast<PrintEstimatedStatistics::ETimeMode>(i);
                     if (mode == PrintEstimatedStatistics::ETimeMode::Normal || machine.enabled) {
                         char buf[128];
@@ -495,6 +496,30 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
             else if (line == reserved_tag(ETags::Total_Layer_Number_Placeholder)) {
                 char buf[128];
                 sprintf(buf, "; total layer number: %zd\n", total_layer_num);
+                ret += buf;
+            }
+            else if (line == reserved_tag(ETags::Used_Filament_Weight_Placeholder)) {
+                std::map<size_t, double>weight_per_extruder;
+                auto extruders = *p_extruders;
+                auto calc_filament_weight = [&weight_per_extruder,&extruders](const std::map<size_t, double>& vol_per_extruder) {
+                    for (auto volume : vol_per_extruder) {
+                        size_t extruder_id = volume.first;
+                        auto extruder = std::find_if(extruders.begin(), extruders.end(), [extruder_id](const Extruder& extr) { return extr.id() == extruder_id; });
+                        if (extruder == extruders.end())
+                            continue;
+                        double weight = volume.second * extruder->filament_density() * 0.001;
+                        weight_per_extruder[volume.first] += weight;
+                    }
+                };
+ 
+                calc_filament_weight(p_used_filaments->volumes_per_extruder);
+                calc_filament_weight(p_used_filaments->wipe_tower_volume_per_extruder);
+                calc_filament_weight(p_used_filaments->flush_per_filament);
+
+                std::string buf = "; total filament weight [g] : ";
+                int idx = 0;
+                for (auto item : weight_per_extruder)
+                    buf += (idx++ == 0 ? std::to_string(item.second) : "," + std::to_string(item.second));
                 ret += buf;
             }
         }
@@ -520,8 +545,8 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
     };
 
     // Iterators for the normal and silent cached time estimate entry recently processed, used by process_line_G1.
-    auto g1_times_cache_it = Slic3r::reserve_vector<std::vector<TimeMachine::G1LinesCacheItem>::const_iterator>(machines.size());
-    for (const auto& machine : machines)
+    auto g1_times_cache_it = Slic3r::reserve_vector<std::vector<TimeMachine::G1LinesCacheItem>::const_iterator>(p_time_processor->machines.size());
+    for (const auto& machine : p_time_processor->machines)
         g1_times_cache_it.emplace_back(machine.g1_times_cache.begin());
 
     // add lines M73 to exported gcode
@@ -536,7 +561,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
         (const size_t g1_lines_counter) {
         unsigned int exported_lines_count = 0;
         for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
-            const TimeMachine& machine = self.machines[i];
+            const TimeMachine& machine = self.p_time_processor->machines[i];
             if (machine.enabled) {
                 // export pair <percent, remaining time>
                 // Skip all machine.g1_times_cache below g1_lines_counter.
@@ -1351,6 +1376,7 @@ void GCodeProcessor::reset()
 
     m_time_processor.reset();
     m_used_filaments.reset();
+    m_post_processor.reset();
 
     m_result.reset();
     m_result.id = ++s_result_id;
@@ -1514,8 +1540,10 @@ void GCodeProcessor::finalize(bool post_process)
     m_height_compare.output();
     m_width_compare.output();
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
-    if (post_process){
-        m_time_processor.post_process(m_result.filename, m_result.moves, m_result.lines_ends, m_layer_id);
+    if (post_process) {
+        m_post_processor.p_time_processor = &m_time_processor;
+        m_post_processor.p_used_filaments = &m_used_filaments;
+        m_post_processor.post_process(m_result.filename, m_result.moves, m_result.lines_ends, m_layer_id);
     }
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_result.time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_start_time).count();
