@@ -1676,8 +1676,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Total_Filament_Used_Cm3_Placeholder))
     //BBS: total filament used in g
     file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Total_Filament_Used_G_Placeholder))
-    //BBS: total filament cost
-    file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Total_Filament_Cost_Placeholder))
 
     //BBS: judge whether support skipping, if yes, list all label_object_id with sorted order here
     if (print.num_object_instances() <= g_max_label_object && //Don't support too many objects on one plate
