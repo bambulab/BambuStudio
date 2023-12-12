@@ -517,11 +517,11 @@ void GCodeProcessor::PostProcessor::post_process(const std::string& filename, st
                 calc_filament_weight(p_used_filaments->wipe_tower_volume_per_extruder);
                 calc_filament_weight(p_used_filaments->flush_per_filament);
 
-                std::string buf = "; total filament weight [g] : ";
+                std::string buf = "; total filament weight [g]: ";
                 int idx = 0;
                 for (auto item : weight_per_extruder)
                     buf += (idx++ == 0 ? std::to_string(item.second) : "," + std::to_string(item.second));
-                ret += buf;
+                ret += buf += "\n";
             }
         }
 
