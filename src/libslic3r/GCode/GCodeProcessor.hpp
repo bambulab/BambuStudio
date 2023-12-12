@@ -277,7 +277,9 @@ namespace Slic3r {
             Total_Layer_Number_Placeholder,
             Wipe_Tower_Start,
             Wipe_Tower_End,
-            Used_Filament_Weight_Placeholder
+            Used_Filament_Weight_Placeholder,
+						Used_Filament_Length_Placeholder,
+						Used_Filament_Volume_Placeholder,
         };
 
         static const std::string& reserved_tag(ETags tag) { return Reserved_Tags[static_cast<unsigned char>(tag)]; }

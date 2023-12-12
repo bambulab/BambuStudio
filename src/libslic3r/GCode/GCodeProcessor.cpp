@@ -64,7 +64,9 @@ const std::vector<std::string> GCodeProcessor::Reserved_Tags = {
     "_GP_TOTAL_FILAMENT_USED_G_PLACEHOLDER",
     " WIPE_TOWER_START",
     " WIPE_TOWER_END",
-    "_GP_FILAMENT_USED_WEIGHT_PLACEHOLDER"
+		"_GP_FILAMENT_USED_LENGTH_PLACEHOLDER",
+		"_GP_FILAMENT_USED_VOLUME_PLACEHOLDER",
+		"_GP_FILAMENT_USED_WEIGHT_PLACEHOLDER"
 };
 
 const std::string GCodeProcessor::Flush_Start_Tag = " FLUSH_START";
