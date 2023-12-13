@@ -29,6 +29,8 @@
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
 
+#include "format.hpp"
+
 //BBS: add json support
 #include "nlohmann/json.hpp"
 
@@ -1287,7 +1289,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                 }
 
                 StringObjectException except;
-                except.string = format(L("Plate %d: %s does not support filament %s"), this->get_plate_index() + 1, L(bed_type_name), extruder_id + 1);
+                except.string = Slic3r::format(L("Plate %d: %s does not support filament %s"), this->get_plate_index() + 1, L(bed_type_name), extruder_id + 1);
                 except.string += "\n";
                 except.type   = STRING_EXCEPT_FILAMENT_NOT_MATCH_BED_TYPE;
                 except.params.push_back(std::to_string(this->get_plate_index() + 1));
