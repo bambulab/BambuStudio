@@ -38,6 +38,8 @@
 
 namespace pt = boost::property_tree;
 
+#include <tbb/blocked_range.h>
+#include <tbb/parallel_for.h>
 #include <tbb/parallel_reduce.h>
 
 #include <expat.h>
