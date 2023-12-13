@@ -322,46 +322,12 @@ Transform3d assemble_transform(const Vec3d& translation, const Vec3d& rotation, 
 
 Vec3d extract_euler_angles(const Eigen::Matrix<double, 3, 3, Eigen::DontAlign>& rotation_matrix)
 {
-    // reference: http://www.gregslabaugh.net/publications/euler.pdf
-    Vec3d angles1 = Vec3d::Zero();
-    Vec3d angles2 = Vec3d::Zero();
-    // BBS: rotation_matrix(2, 0) may be slighterly larger than 1 due to numerical accuracy
-    if (std::abs(std::abs(rotation_matrix(2, 0)) - 1.0) < 1e-5 || std::abs(rotation_matrix(2, 0))>1)
-    {
-        angles1(2) = 0.0;
-        if (rotation_matrix(2, 0) < 0.0) // == -1.0
-        {
-            angles1(1) = 0.5 * (double)PI;
-            angles1(0) = angles1(2) + ::atan2(rotation_matrix(0, 1), rotation_matrix(0, 2));
-        }
-        else // == 1.0
-        {
-            angles1(1) = - 0.5 * (double)PI;
-            angles1(0) = - angles1(2) + ::atan2(- rotation_matrix(0, 1), - rotation_matrix(0, 2));
-        }
-        angles2 = angles1;
-    }
-    else
-    {
-        angles1(1) = -::asin(rotation_matrix(2, 0));
-        double inv_cos1 = 1.0 / ::cos(angles1(1));
-        angles1(0) = ::atan2(rotation_matrix(2, 1) * inv_cos1, rotation_matrix(2, 2) * inv_cos1);
-        angles1(2) = ::atan2(rotation_matrix(1, 0) * inv_cos1, rotation_matrix(0, 0) * inv_cos1);
-
-        angles2(1) = (double)PI - angles1(1);
-        double inv_cos2 = 1.0 / ::cos(angles2(1));
-        angles2(0) = ::atan2(rotation_matrix(2, 1) * inv_cos2, rotation_matrix(2, 2) * inv_cos2);
-        angles2(2) = ::atan2(rotation_matrix(1, 0) * inv_cos2, rotation_matrix(0, 0) * inv_cos2);
-    }
-
-    // The following euristic is the best found up to now (in the sense that it works fine with the greatest number of edge use-cases)
-    // but there are other use-cases were it does not
-    // We need to improve it
-    double min_1 = angles1.cwiseAbs().minCoeff();
-    double min_2 = angles2.cwiseAbs().minCoeff();
-    bool use_1 = (min_1 < min_2) || (is_approx(min_1, min_2) && (angles1.norm() <= angles2.norm()));
-
-    return use_1 ? angles1 : angles2;
+    // The extracted "rotation" is a triplet of numbers such that Geometry::rotation_transform
+    // returns the original transform. Because of the chosen order of rotations, the triplet
+    // is not equivalent to Euler angles in the usual sense.
+    Vec3d angles = rotation_matrix.eulerAngles(2, 1, 0);
+    std::swap(angles(0), angles(2));
+    return angles;
 }
 
 Vec3d extract_euler_angles(const Transform3d& transform)
@@ -601,7 +567,7 @@ void Transformation::set_from_transform(const Transform3d& transform)
     m3x3.col(2).normalize();
 
     // rotation
-    set_rotation(extract_euler_angles(m3x3));
+    set_rotation(Geometry::extract_euler_angles(m3x3));
 
     // forces matrix recalculation matrix
     m_matrix = get_matrix();
