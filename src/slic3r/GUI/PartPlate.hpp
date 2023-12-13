@@ -628,6 +628,8 @@ public:
 
             void update_buffer();
             void reset();
+        private:
+            void release_vbo();
         };
         std::vector<TexturePart> parts;
         void                     reset();
