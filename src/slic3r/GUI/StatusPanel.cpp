@@ -3160,6 +3160,7 @@ void StatusPanel::on_set_bed_temp()
                 BOOST_LOG_TRIVIAL(info) << "can not set over limit = " << limit << ", set temp = " << bed_temp;
                 bed_temp = limit;
                 m_tempCtrl_bed->SetTagTemp(wxString::Format("%d", bed_temp));
+                m_tempCtrl_bed->Warning(false);
             }
             obj->command_set_bed(bed_temp);
         }
@@ -3175,6 +3176,11 @@ void StatusPanel::on_set_nozzle_temp()
         long nozzle_temp;
         if (str.ToLong(&nozzle_temp) && obj) {
             set_hold_count(m_temp_nozzle_timeout);
+            if (nozzle_temp > m_tempCtrl_nozzle->get_max_temp()) {
+                nozzle_temp = m_tempCtrl_nozzle->get_max_temp();
+                m_tempCtrl_nozzle->SetTagTemp(wxString::Format("%d", nozzle_temp));
+                m_tempCtrl_nozzle->Warning(false);
+            }
             obj->command_set_nozzle(nozzle_temp);
         }
     } catch (...) {
@@ -3189,6 +3195,11 @@ void StatusPanel::on_set_chamber_temp()
         long chamber_temp;
         if (str.ToLong(&chamber_temp) && obj) {
             set_hold_count(m_temp_chamber_timeout);
+            if (chamber_temp > m_tempCtrl_chamber->get_max_temp()) {
+                chamber_temp = m_tempCtrl_chamber->get_max_temp();
+                m_tempCtrl_chamber->SetTagTemp(wxString::Format("%d", chamber_temp));
+                m_tempCtrl_chamber->Warning(false);
+            }
             obj->command_set_chamber(chamber_temp);
         }
     }
@@ -3932,6 +3943,7 @@ void StatusPanel::set_default()
     m_ams_control_box->Hide();
     m_ams_control->Reset();
     error_info_reset();
+    SetFocus();
 }
 
 void StatusPanel::show_status(int status)
