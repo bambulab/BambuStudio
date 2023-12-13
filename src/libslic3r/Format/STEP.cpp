@@ -9,6 +9,9 @@
 #include <boost/nowide/iostream.hpp>
 #include <boost/nowide/fstream.hpp>
 
+#include <tbb/blocked_range.h>
+#include <tbb/parallel_for.h>
+
 #ifdef _WIN32
 #define DIR_SEPARATOR '\\'
 #else
