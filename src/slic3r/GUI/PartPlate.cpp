@@ -659,7 +659,7 @@ void PartPlate::render_logo(bool bottom, bool render_cali) const
 				// starts generating the main texture, compression will run asynchronously
 				GLint max_tex_size = OpenGLManager::get_gl_info().get_max_tex_size();
 				GLint logo_tex_size = (max_tex_size < 2048) ? max_tex_size : 2048;
-				if (!m_partplate_list->m_logo_texture.load_from_svg_file(m_partplate_list->m_logo_texture_filename, true, true, true, logo_tex_size)) {
+				if (!m_partplate_list->m_logo_texture.load_from_svg_file(m_partplate_list->m_logo_texture_filename, true, false, false, logo_tex_size)) {
 					BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": load logo texture from %1% failed!") % m_partplate_list->m_logo_texture_filename;
 					return;
 				}
@@ -5299,10 +5299,7 @@ void PartPlateList::BedTextureInfo::TexturePart::update_buffer()
 		buffer = new GeometryBuffer();
 
 	if (buffer->set_from_triangles(triangulate_expolygon_2f(poly, NORMALS_UP), GROUND_Z + 0.02f)) {
-		if (vbo_id != 0) {
-			glsafe(::glDeleteBuffers(1, &vbo_id));
-			vbo_id = 0;
-		}
+		release_vbo();
 		unsigned int* vbo_id_ptr = const_cast<unsigned int*>(&vbo_id);
 		glsafe(::glGenBuffers(1, vbo_id_ptr));
 		glsafe(::glBindBuffer(GL_ARRAY_BUFFER, *vbo_id_ptr));
@@ -5319,8 +5316,18 @@ void PartPlateList::BedTextureInfo::TexturePart::reset()
         texture->reset();
         delete texture;
     }
-    if (buffer)
+    if (buffer) {
+        release_vbo();
         delete buffer;
+    }
+}
+
+void PartPlateList::BedTextureInfo::TexturePart::release_vbo()
+{
+    if (vbo_id != 0) {
+        glsafe(::glDeleteBuffers(1, &vbo_id));
+        vbo_id = 0;
+    }
 }
 
 void PartPlateList::BedTextureInfo::reset()
@@ -5382,7 +5389,7 @@ void PartPlateList::load_bedtype_textures()
 			std::string filename = resources_dir() + "/images/" + bed_texture_info[i].parts[j].filename;
 			if (boost::filesystem::exists(filename)) {
 				PartPlateList::bed_texture_info[i].parts[j].texture = new GLTexture();
-				if (!PartPlateList::bed_texture_info[i].parts[j].texture->load_from_svg_file(filename, true, true, true, logo_tex_size)) {
+				if (!PartPlateList::bed_texture_info[i].parts[j].texture->load_from_svg_file(filename, true, false, false, logo_tex_size)) {
 					BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": load logo texture from %1% failed!") % filename;
 				}
 			} else {
@@ -5415,7 +5422,7 @@ void PartPlateList::load_cali_textures()
 			std::string filename = resources_dir() + "/images/" + cali_texture_info.parts[j].filename;
 			if (boost::filesystem::exists(filename)) {
 				PartPlateList::cali_texture_info.parts[j].texture = new GLTexture();
-				if (!PartPlateList::cali_texture_info.parts[j].texture->load_from_svg_file(filename, true, true, true, logo_tex_size)) {
+				if (!PartPlateList::cali_texture_info.parts[j].texture->load_from_svg_file(filename, true, false, false, logo_tex_size)) {
 					BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": load cali texture from %1% failed!") % filename;
 				}
 			}
