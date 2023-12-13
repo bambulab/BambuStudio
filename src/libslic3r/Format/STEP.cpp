@@ -5,6 +5,7 @@
 #include "STEP.hpp"
 
 #include <string>
+#include <boost/nowide/cstdio.hpp>
 #include <boost/nowide/iostream.hpp>
 #include <boost/nowide/fstream.hpp>
 
