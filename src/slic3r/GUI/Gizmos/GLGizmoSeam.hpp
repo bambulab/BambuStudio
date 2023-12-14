@@ -22,6 +22,7 @@ protected:
     wchar_t  m_current_tool = 0;
     void on_render_input_window(float x, float y, float bottom_limit) override;
     std::string on_get_name() const override;
+    std::string on_get_name_str() override { return "Seam painting"; }
     PainterGizmoType get_painter_type() const override;
 
     void render_triangles(const Selection &selection) const override;

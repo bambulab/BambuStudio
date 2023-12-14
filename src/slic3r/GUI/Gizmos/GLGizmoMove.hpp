@@ -44,6 +44,7 @@ public:
 protected:
     virtual bool on_init() override;
     virtual std::string on_get_name() const override;
+    std::string on_get_name_str() override { return "Move"; }
     virtual bool on_is_activable() const override;
     virtual void on_start_dragging() override;
     virtual void on_stop_dragging() override;

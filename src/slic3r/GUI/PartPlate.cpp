@@ -3002,6 +3002,39 @@ void PartPlate::print() const
 	return;
 }
 
+std::map<std::string, std::string> PartPlate::get_diff_object_setting()
+{
+	std::map<std::string, std::string> out;
+	for (auto it = obj_to_instance_set.cbegin(); it != obj_to_instance_set.cend(); ++it) {
+		const ModelConfigObject& different_object_config = m_model->objects[it->first]->config;
+		for (auto iter = different_object_config.cbegin(); iter != different_object_config.cend(); ++iter) {
+			std::string config_name = iter->first;
+			std::string config_value = iter->second->serialize();
+			if (out.find(config_name) == out.end()) {
+				out[config_name] = config_value;
+			}
+		}
+	}
+	return out;
+}
+
+std::map<std::string, std::string> PartPlate::get_diff_plate_setting()
+{
+	std::map<std::string, std::string> out;
+	for (auto it = m_config.cbegin(); it != m_config.cend(); ++it) {
+		std::string diff_config_name = it->first;
+		std::string diff_config_value;
+		if (diff_config_name == "first_layer_print_sequence") {
+			diff_config_value = "cutomize";
+		}
+		else {
+			diff_config_value = it->second->serialize();
+		}
+		out[diff_config_name] = diff_config_value;
+	}
+	return out;
+}
+
 /* PartPlate List related functions*/
 PartPlateList::PartPlateList(int width, int depth, int height, Plater* platerObj, Model* modelObj, PrinterTechnology tech)
 	:m_plate_width(width), m_plate_depth(depth), m_plate_height(height), m_plater(platerObj), m_model(modelObj), printer_technology(tech),

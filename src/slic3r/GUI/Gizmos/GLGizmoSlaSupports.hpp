@@ -136,6 +136,7 @@ protected:
     void on_render_input_window(float x, float y, float bottom_limit) override;
 
     std::string on_get_name() const override;
+    std::string on_get_name_str() override { return "SLA Support Points"; }
     bool on_is_activable() const override;
     bool on_is_selectable() const override;
     virtual CommonGizmosDataID on_get_requirements() const override;
