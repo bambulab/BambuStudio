@@ -96,6 +96,39 @@ GLToolbarItem::GLToolbarItem(GLToolbarItem::EType type, const GLToolbarItem::Dat
     render_left_pos = 0.0f;
 }
 
+void GLToolbarItem::set_state(EState state)
+{
+    if (m_data.name == "arrange" || m_data.name == "layersediting" || m_data.name == "assembly_view") {
+        if (m_state == Hover && state == HoverPressed) {
+            start = std::chrono::system_clock::now();
+        }
+        else if ((m_state == HoverPressed && state == Hover) ||
+                 (m_state == Pressed && state == Normal) ||
+                 (m_state == HoverPressed && state == Normal)) {
+            if (m_data.name != "assembly_view") {
+                std::chrono::system_clock::time_point end = std::chrono::system_clock::now();
+                std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+                float times = duration.count();
+
+                NetworkAgent* agent = GUI::wxGetApp().getAgent();
+                if (agent) {
+                    std::string name = m_data.name + "_duration";
+                    std::string value = "";
+                    float existing_time = 0;
+
+                    agent->track_get_property(name, value);
+                    if (value != "") {
+                        existing_time = std::stof(value);
+                    }
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " tool name:" << name << " duration: " << times + existing_time;
+                    agent->track_update_property(name, std::to_string(times + existing_time));
+                }
+            }
+        }
+    }
+    m_state = state;
+}
+
 bool GLToolbarItem::update_visibility()
 {
     bool visible = m_data.visibility_callback();

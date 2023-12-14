@@ -97,6 +97,7 @@ protected:
     virtual CommonGizmosDataID on_get_requirements() const override;
 
     std::string on_get_name() const override;
+    virtual std::string on_get_name_str() override { return "Hollow and drill"; }
     bool on_is_activable() const override;
     bool on_is_selectable() const override;
     void on_load(cereal::BinaryInputArchive& ar) override;

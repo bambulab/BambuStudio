@@ -114,6 +114,7 @@ public:
 protected:
     bool on_init() override;
     std::string on_get_name() const override;
+    std::string on_get_name_str() override { return "Rotate"; }
     void on_set_state() override
     {
         for (GLGizmoRotate& g : m_gizmos)

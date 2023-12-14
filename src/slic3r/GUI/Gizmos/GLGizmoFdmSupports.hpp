@@ -30,6 +30,7 @@ public:
 protected:
     void on_render_input_window(float x, float y, float bottom_limit) override;
     std::string on_get_name() const override;
+    std::string on_get_name_str() override { return "Supports Painting"; }
 
     // BBS
     void render_triangles(const Selection& selection) const override;

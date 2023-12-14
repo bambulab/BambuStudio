@@ -1294,6 +1294,10 @@ void MenuFactory::update()
 
 wxMenu* MenuFactory::default_menu()
 {
+    {
+        NetworkAgent* agent = GUI::wxGetApp().getAgent();
+        if (agent) agent->track_update_property("default_menu", std::to_string(++default_menu_count));
+    }
     return &m_default_menu;
 }
 
@@ -1303,6 +1307,10 @@ wxMenu* MenuFactory::object_menu()
     append_menu_items_flush_options(&m_object_menu);
     append_menu_item_invalidate_cut_info(&m_object_menu);
     append_menu_item_change_filament(&m_object_menu);
+    {
+        NetworkAgent* agent = GUI::wxGetApp().getAgent();
+        if (agent) agent->track_update_property("object_menu", std::to_string(++object_menu_count));
+    }
     return &m_object_menu;
 }
 
@@ -1311,7 +1319,10 @@ wxMenu* MenuFactory::sla_object_menu()
     append_menu_items_convert_unit(&m_sla_object_menu);
     append_menu_item_settings(&m_sla_object_menu);
     //update_menu_items_instance_manipulation(mtObjectSLA);
-
+    {
+        NetworkAgent* agent = GUI::wxGetApp().getAgent();
+        if (agent) agent->track_update_property("sla_object_menu", std::to_string(++sla_obj_menu_count));
+    }
     return &m_sla_object_menu;
 }
 
@@ -1320,16 +1331,28 @@ wxMenu* MenuFactory::part_menu()
     append_menu_items_convert_unit(&m_part_menu);
     append_menu_item_change_filament(&m_part_menu);
     append_menu_item_per_object_settings(&m_part_menu);
+    {
+        NetworkAgent* agent = GUI::wxGetApp().getAgent();
+        if (agent) agent->track_update_property("part_menu", std::to_string(++part_menu_count));
+    }
     return &m_part_menu;
 }
 
 wxMenu* MenuFactory::instance_menu()
 {
+    {
+        NetworkAgent* agent = GUI::wxGetApp().getAgent();
+        if (agent) agent->track_update_property("instance_menu", std::to_string(++instance_menu_count));
+    }
     return &m_instance_menu;
 }
 
 wxMenu* MenuFactory::layer_menu()
 {
+    {
+        NetworkAgent* agent = GUI::wxGetApp().getAgent();
+        if (agent) agent->track_update_property("layer_menu", std::to_string(++layer_menu_count));
+    }
     MenuWithSeparators* menu = new MenuWithSeparators();
     append_menu_item_settings(menu);
 
@@ -1392,6 +1415,11 @@ wxMenu* MenuFactory::multi_selection_menu()
                 []() { return plater()->can_split(true); }, m_parent);
         }
     }
+
+    {
+        NetworkAgent* agent = GUI::wxGetApp().getAgent();
+        if (agent) agent->track_update_property("multi_selection_menu", std::to_string(++multi_selection_menu_count));
+    }
     return menu;
 }
 
@@ -1412,6 +1440,10 @@ wxMenu* MenuFactory::assemble_multi_selection_menu()
     append_menu_item_delete(menu);
     menu->AppendSeparator();
     append_menu_item_change_extruder(menu);
+    {
+        NetworkAgent* agent = GUI::wxGetApp().getAgent();
+        if (agent) agent->track_update_property("asseble_mulit_selection_menu", std::to_string(++assemble_mulit_selection_menu_count));
+    }
     return menu;
 }
 
@@ -1421,6 +1453,10 @@ wxMenu* MenuFactory::plate_menu()
 {
     append_menu_item_locked(&m_plate_menu);
     append_menu_item_plate_name(&m_plate_menu);
+    {
+        NetworkAgent* agent = GUI::wxGetApp().getAgent();
+        if (agent) agent->track_update_property("plate_menu", std::to_string(++plate_menu_count));
+    }
     return &m_plate_menu;
 }
 
@@ -1441,6 +1477,10 @@ wxMenu* MenuFactory::assemble_object_menu()
     append_menu_item_change_extruder(menu);
     //// Enter per object parameters
     //append_menu_item_per_object_settings(menu);
+    {
+        NetworkAgent* agent = GUI::wxGetApp().getAgent();
+        if (agent) agent->track_update_property("assemble_object_menu", std::to_string(++assemble_object_menu_ocunt));
+    }
     return menu;
 }
 
@@ -1455,6 +1495,10 @@ wxMenu* MenuFactory::assemble_part_menu()
 
     append_menu_item_change_extruder(menu);
     //append_menu_item_per_object_settings(menu);
+    {
+        NetworkAgent* agent = GUI::wxGetApp().getAgent();
+        if (agent) agent->track_update_property("assemble_part_menu", std::to_string(++assemble_part_menu_count));
+    }
     return menu;
 }
 

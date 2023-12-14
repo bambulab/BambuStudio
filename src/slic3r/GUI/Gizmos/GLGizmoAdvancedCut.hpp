@@ -225,6 +225,7 @@ protected:
     virtual void on_save(cereal::BinaryOutputArchive &ar) const override;
     virtual void data_changed(bool is_serializing) override;
     virtual std::string on_get_name() const;
+    virtual std::string on_get_name_str() override { return "Cut"; }
     virtual void on_set_state();
     virtual bool on_is_activable() const;
     virtual CommonGizmosDataID on_get_requirements() const override;

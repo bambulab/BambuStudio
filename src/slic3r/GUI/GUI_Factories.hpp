@@ -93,7 +93,18 @@ private:
     MenuWithSeparators m_plate_menu;
     MenuWithSeparators m_assemble_object_menu;
     MenuWithSeparators m_assemble_part_menu;
-   
+
+    int object_menu_count{ 0 };
+    int part_menu_count{ 0 };
+    int sla_obj_menu_count{ 0 };
+    int default_menu_count{ 0 };
+    int instance_menu_count{ 0 };
+    int plate_menu_count{ 0 };
+    int layer_menu_count{ 0 };
+    int multi_selection_menu_count{ 0 };
+    int assemble_object_menu_ocunt{ 0 };
+    int assemble_part_menu_count{ 0 };
+    int assemble_mulit_selection_menu_count{ 0 };
 
     // Removed/Prepended Items according to the view mode
     std::array<wxMenuItem*, mtCount> items_increase;

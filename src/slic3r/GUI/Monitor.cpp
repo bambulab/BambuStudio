@@ -171,6 +171,26 @@ MonitorPanel::~MonitorPanel()
             m_media_file_panel->SwitchStorage(title == _L("SD Card"));
         }
         page->SetFocus();
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " select :" << m_tabpanel->GetPageText(m_tabpanel->GetSelection());
+        NetworkAgent* agent = GUI::wxGetApp().getAgent();
+        if (agent) {
+            std::string name = m_tabpanel->GetPageText(m_tabpanel->GetSelection()).ToStdString();
+            if (name != "") {
+                std::string value = "";
+                agent->track_get_property(name, value);
+                int count = 0;
+                if (value != "") {
+                    try {
+                        count = std::stoi(value);
+                    }
+                    catch (...) {
+                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << __LINE__ << " String to integer error!";
+                        count = 0;
+                    }
+                }
+                agent->track_update_property(name, std::to_string(++count));
+            }
+        }
     }, m_tabpanel->GetId());
 
     //m_status_add_machine_panel = new AddMachinePanel(m_tabpanel);

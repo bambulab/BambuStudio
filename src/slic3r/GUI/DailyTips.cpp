@@ -84,6 +84,12 @@ void DailyTipsDataRenderer::open_wiki() const
     if (!m_data.wiki_url.empty())
     {
         wxGetApp().open_browser_with_warning_dialog(m_data.wiki_url);
+        NetworkAgent* agent = wxGetApp().getAgent();
+        if (agent) {
+            json j;
+            j["dayil_tips"] = m_data.wiki_url;
+            agent->track_event("dayil_tips", j.dump());
+        }
     }
 }
 

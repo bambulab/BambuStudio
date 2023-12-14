@@ -482,6 +482,9 @@ public:
 
     void print() const;
 
+    std::map<std::string, std::string> get_diff_object_setting();
+    std::map<std::string, std::string> get_diff_plate_setting();
+
     friend class cereal::access;
     friend class UndoRedo::StackImpl;
 
