@@ -529,6 +529,104 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
                 j["assembly_view"] = value;
 
                 agent->track_event("key_func", j.dump());
+
+                j.clear();
+                value = "";
+                agent->track_get_property("arrange_duration", value);
+                j["auto_arrange"] = value;
+                value = "";
+                agent->track_get_property("layersediting_duration", value);
+                j["custom_height"] = value;
+
+                value = "";
+                agent->track_get_property("Move_duration", value);
+                j["move"] = value;
+                value = "";
+                agent->track_get_property("Rotate_duration", value);
+                j["rotate"] = value;
+                agent->track_get_property("Scale_duration", value);
+                j["scale"] = value;
+                agent->track_get_property("Lay on face_duration", value);
+                j["flatten"] = value;
+                value = "";
+                agent->track_get_property("Cut_duration", value);
+                j["cut"] = value;
+                value = "";
+                agent->track_get_property("Mesh Boolean_duration", value);
+                j["mesh_boolean"] = value;
+                value = "";
+                agent->track_get_property("Supports Painting_duration", value);
+                j["custom_support"] = value;
+                value = "";
+                agent->track_get_property("Seam painting_duration", value);
+                j["custom_seam"] = value;
+                value = "";
+                agent->track_get_property("Text shape_duration", value);
+                j["text_shape"] = value;
+                value = "";
+                agent->track_get_property("Color Painting_duration", value);
+                j["color_painting"] = value;
+                value = "";
+                agent->track_get_property("assembly_view_duration", value);
+                j["assembly_view"] = value;
+
+                agent->track_event("key_func_duration", j.dump());
+
+                j.clear();
+                value = "";
+                agent->track_get_property("default_menu", value);
+                j["default_menu"] = value;
+                value = "";
+                agent->track_get_property("object_menu", value);
+                j["object_menu"] = value;
+                value = "";
+                agent->track_get_property("sla_object_menu", value);
+                j["sla_object_menu"] = value;
+                value = "";
+                agent->track_get_property("part_menu", value);
+                j["part_menu"] = value;
+                value = "";
+                agent->track_get_property("instance_menu", value);
+                j["instance_menu"] = value;
+                value = "";
+                agent->track_get_property("layer_menu", value);
+                j["layer_menu"] = value;
+                value = "";
+                agent->track_get_property("multi_selection_menu", value);
+                j["multi_selection_menu"] = value;
+                value = "";
+                agent->track_get_property("plate_menu", value);
+                j["plate_menu"] = value;
+                value = "";
+                agent->track_get_property("assemble_object_menu", value);
+                j["assemble_object_menu"] = value;
+                value = "";
+                agent->track_get_property("assemble_part_menu", value);
+                j["assemble_part_menu"] = value;
+                value = "";
+                agent->track_get_property("assemble_mulit_selection_menu", value);
+                j["assemble_mulit_selection_menu"] = value;
+                value = "";
+                agent->track_event("menu_click", j.dump());
+
+                j.clear();
+                value = "";
+                agent->track_get_property("select_device_page", value);
+                j["device_page"] = value;
+                value = "";
+                agent->track_get_property("Status", value);
+                j["status"] = value;
+                value = "";
+                agent->track_get_property("MicroSD Card", value);
+                j["MicroSD_card"] = value;
+                value = "";
+                agent->track_get_property("Update", value);
+                j["update"] = value;
+                value = "";
+                agent->track_get_property("HMS", value);
+                j["HMS"] = value;
+                value = "";
+                agent->track_event("device_ctrl", j.dump());
             }
 
         }
@@ -1070,6 +1168,9 @@ void MainFrame::init_tabpanel()
         //    m_param_panel->OnActivate();
         else if (panel == m_monitor) {
             //monitor
+            NetworkAgent* agent = GUI::wxGetApp().getAgent();
+            if (agent)
+                agent->track_update_property("select_device_page", std::to_string(++select_device_page_count));
         }
 #ifndef __APPLE__
         if (sel == tp3DEditor) {

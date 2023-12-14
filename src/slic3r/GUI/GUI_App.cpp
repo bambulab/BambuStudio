@@ -3964,6 +3964,11 @@ std::string GUI_App::handle_web_request(std::string cmd)
                     boost::optional<std::string> path      = data_node.get_optional<std::string>("url");
                     if (path.has_value()) {
                         wxLaunchDefaultBrowser(path.value());
+                        if (m_agent) {
+                            json j;
+                            j["user_guide"] = path.value();
+                            m_agent->track_event("user_guide", j.dump());
+                        }
                     }
                 }
             }

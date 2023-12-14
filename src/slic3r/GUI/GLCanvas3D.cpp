@@ -2984,7 +2984,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 
     //BBS: add orient deactivate logic
     if (keyCode == WXK_ESCAPE
-        && (_deactivate_arrange_menu() || _deactivate_orient_menu()))
+        && (_deactivate_arrange_menu() || _deactivate_orient_menu() || _deactivate_layersediting_menu()))
         return;
 
     if (m_gizmos.on_char(evt))
@@ -6242,6 +6242,7 @@ bool GLCanvas3D::_init_main_toolbar()
         return res;
     };
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_layers_editing(); };
+    item.left.toggable = true;
     if (!m_main_toolbar.add_item(item))
         return false;
 
@@ -7802,6 +7803,27 @@ void GLCanvas3D::_render_return_toolbar() const
             wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_3D));
         const_cast<GLGizmosManager*>(&m_gizmos)->reset_all_states();
         wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager().reset_all_states();
+        {
+            GLCanvas3D* view_3d = wxGetApp().plater()->get_view3D_canvas3D();
+            GLToolbarItem* assembly_item = view_3d->m_assemble_view_toolbar.get_item("assembly_view");
+            std::chrono::system_clock::time_point end = std::chrono::system_clock::now();
+            std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>>(end - assembly_item->get_start_time_point());
+            float times = duration.count();
+
+            NetworkAgent* agent = GUI::wxGetApp().getAgent();
+            if (agent) {
+                std::string name = assembly_item->get_name() + "_duration";
+                std::string value = "";
+                float existing_time = 0;
+
+                agent->track_get_property(name, value);
+                if (value != "") {
+                    existing_time = std::stof(value);
+                }
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " tool name:" << name << " duration: " << times + existing_time;
+                agent->track_update_property(name, std::to_string(times + existing_time));
+            }
+        }
     }
     ImGui::PopStyleColor(5);
     ImGui::PopStyleVar(1);

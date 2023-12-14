@@ -89,6 +89,7 @@ public:
 protected:
     virtual bool on_init() override;
     virtual std::string on_get_name() const override;
+    virtual std::string on_get_name_str() override { return "Text shape"; }
     virtual bool on_is_activable() const override;
     virtual void on_render() override;
     virtual void on_render_for_picking() override;

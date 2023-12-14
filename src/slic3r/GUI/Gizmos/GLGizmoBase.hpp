@@ -128,6 +128,8 @@ protected:
 
     bool m_is_dark_mode = false;
 
+    std::chrono::system_clock::time_point start;
+
 public:
     GLGizmoBase(GLCanvas3D& parent,
                 const std::string& icon_filename,
@@ -145,8 +147,7 @@ public:
     void set_group_id(int id) { m_group_id = id; }
 
     EState get_state() const { return m_state; }
-    void set_state(EState state) { m_state = state; on_set_state(); }
-
+    void set_state(EState state);
     int get_shortcut_key() const { return m_shortcut_key; }
 
     const std::string& get_icon_filename() const { return m_icon_filename; }
@@ -195,7 +196,6 @@ public:
     /// </summary>
     virtual void data_changed(bool is_serializing){};
     int get_count() { return ++count; }
-    std::string get_gizmo_name() { return on_get_name(); }
 
 protected:
     float last_input_window_width = 0;
@@ -203,6 +203,7 @@ protected:
     virtual void on_load(cereal::BinaryInputArchive& ar) {}
     virtual void on_save(cereal::BinaryOutputArchive& ar) const {}
     virtual std::string on_get_name() const = 0;
+    virtual std::string on_get_name_str() { return ""; }
     virtual void on_set_state() {}
     virtual void on_set_hover_id() {}
     virtual bool on_is_activable() const { return true; }

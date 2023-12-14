@@ -2039,6 +2039,7 @@ struct Plater::priv
     bool m_need_update{false};
     //BBS: add popup object table logic
     //ObjectTableDialog* m_popup_table{ nullptr };
+    std::chrono::system_clock::time_point start;
 
 #if ENABLE_ENVIRONMENT_MAP
     GLTexture environment_texture;
@@ -4080,6 +4081,31 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         if (!is_user_cancel) {
             MessageDialog msg(wxGetApp().mainframe, _L("The file does not contain any geometry data."), _L("Warning"), wxYES | wxICON_WARNING);
             if (msg.ShowModal() == wxID_YES) {}
+        }
+    }
+    std::chrono::system_clock::time_point default_time;
+    if (start == default_time) {
+        start = std::chrono::system_clock::now();
+    }
+    NetworkAgent* agent = wxGetApp().getAgent();
+    if (agent) {
+        if (!input_files.empty()) {
+            auto path = input_files.front();
+            std::string extension = path.extension().string();
+
+            std::string value = "";
+            agent->track_get_property("file_type", value);
+            if (value == "") {
+                value = extension;
+                agent->track_update_property("file_type", value);
+            }
+
+            if (model.model_info == nullptr) {
+                agent->track_update_property("is_mw", "false");
+            }
+            else {
+                agent->track_update_property("is_mw", "true");
+            }
         }
     }
     return obj_idxs;
@@ -8142,9 +8168,90 @@ void Plater::priv::record_start_print_preset(std::string action) {
             j["process_preset"] = print_preset.config.opt_string("inherits");
         }
 
+        json j_system;
+        if (background_process.fff_print()) {
+            const DynamicPrintConfig& full_config = background_process.fff_print()->full_print_config();
+            if (full_config.has("different_settings_to_system")) {
+                std::vector<std::string> different_values = full_config.option<ConfigOptionStrings>("different_settings_to_system")->values;
+                std::vector<std::string> values;
+                boost::split(values, different_values.front(), boost::is_any_of(";"));
+                for (int i = 0; i < values.size(); ++i) {
+                    std::string str = values[i];
+                    const ConfigOption* config = full_config.option(str);
+                    j_system[str] = config->serialize();
+                }
+            }
+        }
+        j["global_diff"] = j_system;
+
+        PartPlate* curr_plate = partplate_list.get_curr_plate();
+
+        json j_object;
+        if (action == "print_plate") {
+            std::map<std::string, std::string> modify_object_setting = curr_plate->get_diff_object_setting();
+            for (auto it = modify_object_setting.cbegin(); it != modify_object_setting.cend(); ++it) {
+                j_object[it->first] = it->second;
+            }
+        }
+        else {
+            for (int i = 0; i < model.objects.size(); ++i) {
+                const ModelConfigObject& diff_object_config = model.objects[i]->config;
+                for (auto it = diff_object_config.cbegin(); it != diff_object_config.cend(); ++it) {
+                    std::string config_name = it->first;
+                    std::string config_value = it->second->serialize();
+                    if (j_object.find(config_name) == j_object.end()) {
+                        j_object[config_name] = config_value;
+                    }
+                }
+            }
+        }
+        j["object_diff"] = j_object;
+
+        json j_plate;
+        if (action == "print_plate") {
+            std::map<std::string, std::string> diff_plate_setting = curr_plate->get_diff_plate_setting();
+            for (auto it = diff_plate_setting.cbegin(); it != diff_plate_setting.cend(); ++it) {
+                j_plate["plate_" + std::to_string(curr_plate->get_index())][it->first] = it->second;
+            }
+        }
+        else {
+            for (int i = 0; i < plate_count; ++i) {
+                std::string key = "plate_" + std::to_string(i);
+                DynamicPrintConfig* diff_plate_config = partplate_list.get_plate(i)->config();
+                for (auto it = diff_plate_config->cbegin(); it != diff_plate_config->cend(); ++it) {
+                    std::string diff_config_name = it->first;
+                    std::string diff_config_value;
+                    if (diff_config_name == "first_layer_print_sequence") {
+                        diff_config_value = "cutomize";
+                    }
+                    else {
+                        diff_config_value = it->second->serialize();
+                    }
+                    j_plate[key][diff_config_name] = diff_config_value;
+                }
+            }
+        }
+        j["plate_diff"] = j_plate;
+
+        json j_workflow_debug;
+        std::chrono::system_clock::time_point end = std::chrono::system_clock::now();
+        std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+        float times = duration.count();
+        j_workflow_debug["duration"] = times;
+
         j["record_event"] = action;
         NetworkAgent* agent = wxGetApp().getAgent();
-        if (agent) agent->track_event("user_start_print", j.dump());
+        if (agent) {
+            std::string value = "";
+            agent->track_get_property("file_type", value);
+            j_workflow_debug["file_type"] = value;
+            value = "";
+            agent->track_get_property("is_mw", value);
+            j_workflow_debug["is_mw"] = value;
+
+            agent->track_event("user_start_print", j.dump());
+            agent->track_event("workflow_debug", j_workflow_debug.dump());
+        }
     }
     catch (...) {
         return;
@@ -11318,8 +11425,10 @@ void Plater::record_slice_preset(std::string action)
 
         j["record_event"] = action;
         NetworkAgent* agent = wxGetApp().getAgent();
-        if (agent)
+        if (agent) {
             agent->track_event("slice_completed", j.dump());
+            agent->track_update_property("different_settings_to_system", j["different_set_to_system"]);
+        }
     }
     catch (...)
     {

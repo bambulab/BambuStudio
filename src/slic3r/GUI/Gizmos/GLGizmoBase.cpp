@@ -166,6 +166,38 @@ GLGizmoBase::GLGizmoBase(GLCanvas3D& parent, const std::string& icon_filename, u
     m_cylinder.init_from(its_make_cylinder(1., 1., 2 * PI / 24.));
 }
 
+void GLGizmoBase::set_state(EState state)
+{
+    std::string name = on_get_name_str();
+    if (name != "") {
+        if (m_state == Off && state == On) {
+            start = std::chrono::system_clock::now();
+        }
+        else if (m_state == On && state == Off) {
+            std::chrono::system_clock::time_point end = std::chrono::system_clock::now();
+            std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+            float times = duration.count();
+
+            NetworkAgent* agent = GUI::wxGetApp().getAgent();
+            if (agent) {
+                std::string full_name = name + "_duration";
+                std::string value = "";
+                float existing_time = 0;
+
+                agent->track_get_property(full_name, value);
+                if (value != "") {
+                    existing_time = std::stof(value);
+                }
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " tool name:" << full_name << " duration: " << times + existing_time;
+                agent->track_update_property(full_name, std::to_string(times + existing_time));
+            }
+        }
+    }
+
+    m_state = state;
+    on_set_state();
+}
+
 void GLGizmoBase::set_icon_filename(const std::string &filename) {
     m_icon_filename = filename;
 }
