@@ -1043,6 +1043,8 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionInt,                skirt_loops))
     ((ConfigOptionInts,               slow_down_layer_time))
     ((ConfigOptionBool,               spiral_mode))
+    ((ConfigOptionBool,               spiral_mode_smooth))
+    ((ConfigOptionFloatOrPercent,     spiral_mode_max_xy_smoothing))
     ((ConfigOptionInt,                standby_temperature_delta))
     ((ConfigOptionInts,               nozzle_temperature))
     ((ConfigOptionInts,               chamber_temperatures))
