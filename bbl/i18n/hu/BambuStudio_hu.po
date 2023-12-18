@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-13 10:26+0800\n"
+"POT-Creation-Date: 2023-12-18 17:44+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -366,12 +366,6 @@ msgstr "Flip"
 
 msgid "After cut"
 msgstr "After cut"
-
-msgid "A"
-msgstr ""
-
-msgid "B"
-msgstr ""
 
 msgid "Cut to parts"
 msgstr "Részekre darabolás"
@@ -2112,14 +2106,8 @@ msgstr "Asztalhőmérséklet"
 msgid "Max volumetric speed"
 msgstr "Max. volumetrikus sebesség"
 
-msgid "℃"
-msgstr ""
-
 msgid "Bed temperature"
 msgstr "Asztalhőmérséklet"
-
-msgid "mm³"
-msgstr "mm³"
 
 msgid "Start calibration"
 msgstr "Start"
@@ -2779,18 +2767,6 @@ msgstr ""
 msgid "Nozzle clog pause"
 msgstr ""
 
-msgid "MC"
-msgstr "MC"
-
-msgid "MainBoard"
-msgstr "MainBoard"
-
-msgid "TH"
-msgstr "TH"
-
-msgid "XCam"
-msgstr "XCam"
-
 msgid "Unknown"
 msgstr "Ismeretlen"
 
@@ -3318,12 +3294,6 @@ msgstr "Felbontás"
 
 msgid "Show \"Live Video\" guide page."
 msgstr "Az „Élő videó” útmutató oldal megjelenítése."
-
-msgid "720p"
-msgstr "720p"
-
-msgid "1080p"
-msgstr "1080p"
 
 msgid "ConnectPrinter(LAN)"
 msgstr "Nyomtató csatlakoztatása (LAN)"
@@ -4074,9 +4044,6 @@ msgstr "Folytatás"
 msgid "Stop"
 msgstr "Állj"
 
-msgid "0"
-msgstr "0"
-
 msgid "Layer: N/A"
 msgstr "Layer: N/A"
 
@@ -4300,9 +4267,6 @@ msgstr "Állapot"
 
 msgid "Update"
 msgstr "Frissítés"
-
-msgid "HMS"
-msgstr "HMS"
 
 msgid "Don't show again"
 msgstr "Ne mutasd újra"
@@ -6658,12 +6622,6 @@ msgstr "Objektumok listája"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 
-msgid "⌘+Shift+G"
-msgstr "⌘+Shift+G"
-
-msgid "Ctrl+Shift+G"
-msgstr "Ctrl+Shift+G"
-
 msgid "Copy to clipboard"
 msgstr "Másolás a vágólapra"
 
@@ -6715,32 +6673,17 @@ msgstr "Shift+Tab"
 msgid "Collapse/Expand the sidebar"
 msgstr "Az oldalsáv összecsukása/kinyitása"
 
-msgid "⌘+Any arrow"
-msgstr "⌘+Bármilyen nyíl gomb"
+msgid "Any arrow"
+msgstr ""
 
 msgid "Movement in camera space"
 msgstr "Mozgás a kameratérben"
 
-msgid "⌥+Left mouse button"
-msgstr "⌥+Bal egérgomb"
-
 msgid "Select a part"
 msgstr "Válassz egy tárgyat"
 
-msgid "⌘+Left mouse button"
-msgstr "⌘+Bal egérgomb"
-
 msgid "Select multiple objects"
 msgstr "Több objektum kijelölése"
-
-msgid "Ctrl+Any arrow"
-msgstr "Ctrl+Bármelyik nyílgomb"
-
-msgid "Alt+Left mouse button"
-msgstr "Alt+bal egérgomb"
-
-msgid "Ctrl+Left mouse button"
-msgstr "Ctrl+Bal egérgomb"
 
 msgid "Shift+Left mouse button"
 msgstr "Shift+Bal egérgomb"
@@ -6777,9 +6720,6 @@ msgstr "Shift+Bármelyik nyílgomb"
 
 msgid "Movement step set to 1 mm"
 msgstr "Mozgatás lépéstávolsága 1mm-re állítva"
-
-msgid "Esc"
-msgstr "Esc"
 
 msgid "keyboard 1-9: set filament for object/part"
 msgstr "filament hozzárendelése az objektumhoz/tárgyhoz"
@@ -6949,9 +6889,6 @@ msgid ""
 msgstr ""
 "2. lépés: Ha az alábbi IP és hozzáférési kód eltér a nyomtatón láthatótól, "
 "kérjük, javítsd ki őket."
-
-msgid "IP"
-msgstr "IP"
 
 msgid "Access Code"
 msgstr "Hozzáférési kód"
@@ -7608,9 +7545,6 @@ msgstr ""
 "Az asztal hőmérséklete a kezdőréteg kivételével. A 0 érték azt jelenti, hogy "
 "a filament nem támogatja a Cool Plate-re történő nyomtatást"
 
-msgid "°C"
-msgstr "°C"
-
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
 "filament does not support to print on the Engineering Plate"
@@ -7898,9 +7832,6 @@ msgid ""
 msgstr ""
 "Ez az alapértelmezett gyorsulás mind a normál nyomtatáshoz, mind az első "
 "réteg utáni mozgáshoz."
-
-msgid "mm/s²"
-msgstr "mm/s²"
 
 msgid "Default filament profile"
 msgstr "Alapértelmezett filament profil"
@@ -8258,6 +8189,9 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "Minimális tisztítás a törlőtoronyban"
 
+msgid "mm³"
+msgstr "mm³"
+
 msgid "Filament load time"
 msgstr "Filament betöltési idő"
 
@@ -8604,18 +8538,6 @@ msgid "Printer structure"
 msgstr ""
 
 msgid "The physical arrangement and components of a printing device"
-msgstr ""
-
-msgid "CoreXY"
-msgstr ""
-
-msgid "I3"
-msgstr ""
-
-msgid "Hbot"
-msgstr ""
-
-msgid "Delta"
 msgstr ""
 
 msgid "Best object position"
@@ -10469,12 +10391,6 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr ""
 
-msgid "- ℃"
-msgstr ""
-
-msgid " ℃"
-msgstr ""
-
 msgid "Plate Type"
 msgstr "Plate Type"
 
@@ -10579,24 +10495,6 @@ msgstr ""
 msgid "Temperature calibration"
 msgstr ""
 
-msgid "PLA"
-msgstr ""
-
-msgid "ABS/ASA"
-msgstr ""
-
-msgid "PETG"
-msgstr ""
-
-msgid "TPU"
-msgstr ""
-
-msgid "PA-CF"
-msgstr ""
-
-msgid "PET-CF"
-msgstr ""
-
 msgid "Filament type"
 msgstr ""
 
@@ -10607,6 +10505,9 @@ msgid "End temp: "
 msgstr ""
 
 msgid "Temp step: "
+msgstr ""
+
+msgid "Supported range: 180°C - 350°C"
 msgstr ""
 
 msgid ""
@@ -10655,9 +10556,6 @@ msgstr ""
 msgid "End retraction length: "
 msgstr ""
 
-msgid "mm/mm"
-msgstr ""
-
 msgid "Network lookup"
 msgstr ""
 
@@ -10699,9 +10597,6 @@ msgid "Simulate"
 msgstr ""
 
 msgid "Print host upload queue"
-msgstr ""
-
-msgid "ID"
 msgstr ""
 
 msgid "Progress"
@@ -10982,12 +10877,6 @@ msgid "Rectangle"
 msgstr ""
 
 msgid "Printable Space"
-msgstr ""
-
-msgid "X"
-msgstr ""
-
-msgid "Y"
 msgstr ""
 
 msgid "Hot Bed STL"
@@ -11698,6 +11587,66 @@ msgid ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
 msgstr ""
+
+#~ msgid "MC"
+#~ msgstr "MC"
+
+#~ msgid "MainBoard"
+#~ msgstr "MainBoard"
+
+#~ msgid "TH"
+#~ msgstr "TH"
+
+#~ msgid "XCam"
+#~ msgstr "XCam"
+
+#~ msgid "720p"
+#~ msgstr "720p"
+
+#~ msgid "1080p"
+#~ msgstr "1080p"
+
+#~ msgid "0"
+#~ msgstr "0"
+
+#~ msgid "HMS"
+#~ msgstr "HMS"
+
+#~ msgid "⌘+Shift+G"
+#~ msgstr "⌘+Shift+G"
+
+#~ msgid "Ctrl+Shift+G"
+#~ msgstr "Ctrl+Shift+G"
+
+#~ msgid "⌘+Any arrow"
+#~ msgstr "⌘+Bármilyen nyíl gomb"
+
+#~ msgid "⌥+Left mouse button"
+#~ msgstr "⌥+Bal egérgomb"
+
+#~ msgid "⌘+Left mouse button"
+#~ msgstr "⌘+Bal egérgomb"
+
+#~ msgid "Ctrl+Any arrow"
+#~ msgstr "Ctrl+Bármelyik nyílgomb"
+
+#~ msgid "Alt+Left mouse button"
+#~ msgstr "Alt+bal egérgomb"
+
+#~ msgid "Ctrl+Left mouse button"
+#~ msgstr "Ctrl+Bal egérgomb"
+
+#~ msgid "Esc"
+#~ msgstr "Esc"
+
+#~ msgid "IP"
+#~ msgstr "IP"
+
+#~ msgid "°C"
+#~ msgstr "°C"
+
+#~ msgid "mm/s²"
+#~ msgstr "mm/s²"
 
 #~ msgid "Project Inside Preset"
 #~ msgstr "Projekt a beállításon belül"

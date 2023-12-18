@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-13 10:26+0800\n"
+"POT-Creation-Date: 2023-12-18 17:44+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -368,12 +368,6 @@ msgid "Flip"
 msgstr ""
 
 msgid "After cut"
-msgstr ""
-
-msgid "A"
-msgstr ""
-
-msgid "B"
 msgstr ""
 
 msgid "Cut to parts"
@@ -2014,13 +2008,7 @@ msgstr ""
 msgid "Max volumetric speed"
 msgstr ""
 
-msgid "℃"
-msgstr ""
-
 msgid "Bed temperature"
-msgstr ""
-
-msgid "mm³"
 msgstr ""
 
 msgid "Start calibration"
@@ -2582,18 +2570,6 @@ msgstr ""
 msgid "Nozzle clog pause"
 msgstr ""
 
-msgid "MC"
-msgstr ""
-
-msgid "MainBoard"
-msgstr ""
-
-msgid "TH"
-msgstr ""
-
-msgid "XCam"
-msgstr ""
-
 msgid "Unknown"
 msgstr ""
 
@@ -3108,12 +3084,6 @@ msgid "Resolution"
 msgstr ""
 
 msgid "Show \"Live Video\" guide page."
-msgstr ""
-
-msgid "720p"
-msgstr ""
-
-msgid "1080p"
 msgstr ""
 
 msgid "ConnectPrinter(LAN)"
@@ -3851,9 +3821,6 @@ msgstr ""
 msgid "Stop"
 msgstr ""
 
-msgid "0"
-msgstr ""
-
 msgid "Layer: N/A"
 msgstr ""
 
@@ -4074,9 +4041,6 @@ msgid "Status"
 msgstr ""
 
 msgid "Update"
-msgstr ""
-
-msgid "HMS"
 msgstr ""
 
 msgid "Don't show again"
@@ -6250,12 +6214,6 @@ msgstr ""
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr ""
 
-msgid "⌘+Shift+G"
-msgstr ""
-
-msgid "Ctrl+Shift+G"
-msgstr ""
-
 msgid "Copy to clipboard"
 msgstr ""
 
@@ -6304,31 +6262,16 @@ msgstr ""
 msgid "Collapse/Expand the sidebar"
 msgstr ""
 
-msgid "⌘+Any arrow"
+msgid "Any arrow"
 msgstr ""
 
 msgid "Movement in camera space"
 msgstr ""
 
-msgid "⌥+Left mouse button"
-msgstr ""
-
 msgid "Select a part"
 msgstr ""
 
-msgid "⌘+Left mouse button"
-msgstr ""
-
 msgid "Select multiple objects"
-msgstr ""
-
-msgid "Ctrl+Any arrow"
-msgstr ""
-
-msgid "Alt+Left mouse button"
-msgstr ""
-
-msgid "Ctrl+Left mouse button"
 msgstr ""
 
 msgid "Shift+Left mouse button"
@@ -6365,9 +6308,6 @@ msgid "Shift+Any arrow"
 msgstr ""
 
 msgid "Movement step set to 1 mm"
-msgstr ""
-
-msgid "Esc"
 msgstr ""
 
 msgid "keyboard 1-9: set filament for object/part"
@@ -6527,9 +6467,6 @@ msgstr ""
 msgid ""
 "Step 2, if the IP and Access Code below are different from the actual values "
 "on your printer, please correct them."
-msgstr ""
-
-msgid "IP"
 msgstr ""
 
 msgid "Access Code"
@@ -7101,9 +7038,6 @@ msgid ""
 "filament does not support to print on the Cool Plate"
 msgstr ""
 
-msgid "°C"
-msgstr ""
-
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
 "filament does not support to print on the Engineering Plate"
@@ -7338,9 +7272,6 @@ msgstr ""
 msgid ""
 "The default acceleration of both normal printing and travel except initial "
 "layer"
-msgstr ""
-
-msgid "mm/s²"
 msgstr ""
 
 msgid "Default filament profile"
@@ -7655,6 +7586,9 @@ msgstr ""
 msgid "Minimal purge on wipe tower"
 msgstr ""
 
+msgid "mm³"
+msgstr ""
+
 msgid "Filament load time"
 msgstr ""
 
@@ -7964,18 +7898,6 @@ msgid "Printer structure"
 msgstr ""
 
 msgid "The physical arrangement and components of a printing device"
-msgstr ""
-
-msgid "CoreXY"
-msgstr ""
-
-msgid "I3"
-msgstr ""
-
-msgid "Hbot"
-msgstr ""
-
-msgid "Delta"
 msgstr ""
 
 msgid "Best object position"
@@ -9606,12 +9528,6 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr ""
 
-msgid "- ℃"
-msgstr ""
-
-msgid " ℃"
-msgstr ""
-
 msgid "Plate Type"
 msgstr ""
 
@@ -9716,24 +9632,6 @@ msgstr ""
 msgid "Temperature calibration"
 msgstr ""
 
-msgid "PLA"
-msgstr ""
-
-msgid "ABS/ASA"
-msgstr ""
-
-msgid "PETG"
-msgstr ""
-
-msgid "TPU"
-msgstr ""
-
-msgid "PA-CF"
-msgstr ""
-
-msgid "PET-CF"
-msgstr ""
-
 msgid "Filament type"
 msgstr ""
 
@@ -9744,6 +9642,9 @@ msgid "End temp: "
 msgstr ""
 
 msgid "Temp step: "
+msgstr ""
+
+msgid "Supported range: 180°C - 350°C"
 msgstr ""
 
 msgid ""
@@ -9792,9 +9693,6 @@ msgstr ""
 msgid "End retraction length: "
 msgstr ""
 
-msgid "mm/mm"
-msgstr ""
-
 msgid "Network lookup"
 msgstr ""
 
@@ -9836,9 +9734,6 @@ msgid "Simulate"
 msgstr ""
 
 msgid "Print host upload queue"
-msgstr ""
-
-msgid "ID"
 msgstr ""
 
 msgid "Progress"
@@ -10119,12 +10014,6 @@ msgid "Rectangle"
 msgstr ""
 
 msgid "Printable Space"
-msgstr ""
-
-msgid "X"
-msgstr ""
-
-msgid "Y"
 msgstr ""
 
 msgid "Hot Bed STL"

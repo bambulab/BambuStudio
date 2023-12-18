@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-13 10:26+0800\n"
+"POT-Creation-Date: 2023-12-18 17:44+0800\n"
 "PO-Revision-Date: 2023-11-09 09:14+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -369,12 +369,6 @@ msgstr "翻转"
 
 msgid "After cut"
 msgstr "切割后"
-
-msgid "A"
-msgstr ""
-
-msgid "B"
-msgstr ""
 
 msgid "Cut to parts"
 msgstr "切割为零件"
@@ -2038,14 +2032,8 @@ msgstr "热床温度"
 msgid "Max volumetric speed"
 msgstr "最大体积速度"
 
-msgid "℃"
-msgstr ""
-
 msgid "Bed temperature"
 msgstr "床温"
-
-msgid "mm³"
-msgstr "mm³"
 
 msgid "Start calibration"
 msgstr "开始"
@@ -2665,18 +2653,6 @@ msgstr "首层扫描异常暂停"
 msgid "Nozzle clog pause"
 msgstr "堵头暂停"
 
-msgid "MC"
-msgstr ""
-
-msgid "MainBoard"
-msgstr "主板"
-
-msgid "TH"
-msgstr ""
-
-msgid "XCam"
-msgstr ""
-
 msgid "Unknown"
 msgstr "未定义"
 
@@ -3205,12 +3181,6 @@ msgstr "分辨率"
 
 msgid "Show \"Live Video\" guide page."
 msgstr "显示\"直播视频流\"指南。"
-
-msgid "720p"
-msgstr ""
-
-msgid "1080p"
-msgstr ""
 
 msgid "ConnectPrinter(LAN)"
 msgstr "连接打印机（局域网）"
@@ -3956,9 +3926,6 @@ msgstr "继续"
 msgid "Stop"
 msgstr "停止"
 
-msgid "0"
-msgstr ""
-
 msgid "Layer: N/A"
 msgstr "层： N/A"
 
@@ -4188,9 +4155,6 @@ msgstr "设备状态"
 
 msgid "Update"
 msgstr "固件更新"
-
-msgid "HMS"
-msgstr ""
 
 msgid "Don't show again"
 msgstr "不再显示"
@@ -6442,12 +6406,6 @@ msgstr "对象列表"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr "从STL/STEP/3MF/OBJ/AMF文件中导入几何数据"
 
-msgid "⌘+Shift+G"
-msgstr ""
-
-msgid "Ctrl+Shift+G"
-msgstr ""
-
 msgid "Copy to clipboard"
 msgstr "复制到剪贴板"
 
@@ -6498,32 +6456,17 @@ msgstr ""
 msgid "Collapse/Expand the sidebar"
 msgstr "收起/展开 侧边栏"
 
-msgid "⌘+Any arrow"
-msgstr "⌘+方向键"
+msgid "Any arrow"
+msgstr "方向键"
 
 msgid "Movement in camera space"
 msgstr "沿相机视角移动对象"
 
-msgid "⌥+Left mouse button"
-msgstr "⌥+鼠标左键"
-
 msgid "Select a part"
 msgstr "选择单个零件"
 
-msgid "⌘+Left mouse button"
-msgstr "⌘+鼠标左键"
-
 msgid "Select multiple objects"
 msgstr "选择多个对象"
-
-msgid "Ctrl+Any arrow"
-msgstr "Ctrl+方向键"
-
-msgid "Alt+Left mouse button"
-msgstr "Alt+鼠标左键"
-
-msgid "Ctrl+Left mouse button"
-msgstr "Ctrl+鼠标左键"
 
 msgid "Shift+Left mouse button"
 msgstr "Shift+鼠标左键"
@@ -6560,9 +6503,6 @@ msgstr "Shift+方向键"
 
 msgid "Movement step set to 1 mm"
 msgstr "沿X、Y轴以1mm为步进移动对象"
-
-msgid "Esc"
-msgstr ""
 
 msgid "keyboard 1-9: set filament for object/part"
 msgstr "按键1-9：设置对象/零件的耗材丝"
@@ -6722,9 +6662,6 @@ msgid ""
 "Step 2, if the IP and Access Code below are different from the actual values "
 "on your printer, please correct them."
 msgstr "第2步，如果下方的IP和访问代码与打印机上的实际值不同,请更正。"
-
-msgid "IP"
-msgstr ""
 
 msgid "Access Code"
 msgstr "访问码"
@@ -7321,9 +7258,6 @@ msgid ""
 "filament does not support to print on the Cool Plate"
 msgstr "非首层热床温度。0值表示这个耗材丝不支持低温打印热床"
 
-msgid "°C"
-msgstr "°C"
-
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
 "filament does not support to print on the Engineering Plate"
@@ -7578,9 +7512,6 @@ msgid ""
 "The default acceleration of both normal printing and travel except initial "
 "layer"
 msgstr "除首层之外的默认的打印和空驶的加速度"
-
-msgid "mm/s²"
-msgstr "mm/s²"
 
 msgid "Default filament profile"
 msgstr "默认耗材配置"
@@ -7919,6 +7850,9 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "擦拭塔上的最小清理量"
 
+msgid "mm³"
+msgstr "mm³"
+
 msgid "Filament load time"
 msgstr "加载耗材丝的时间"
 
@@ -8234,18 +8168,6 @@ msgstr "打印机结构"
 
 msgid "The physical arrangement and components of a printing device"
 msgstr "打印设备的物理排列和组件"
-
-msgid "CoreXY"
-msgstr ""
-
-msgid "I3"
-msgstr ""
-
-msgid "Hbot"
-msgstr ""
-
-msgid "Delta"
-msgstr ""
 
 msgid "Best object position"
 msgstr "最佳对象位置"
@@ -10033,12 +9955,6 @@ msgstr "将打印一份测试模型。在校准之前，请清理打印平台并
 msgid "Printing Parameters"
 msgstr "打印参数"
 
-msgid "- ℃"
-msgstr ""
-
-msgid " ℃"
-msgstr ""
-
 msgid "Plate Type"
 msgstr "热床类型"
 
@@ -10150,24 +10066,6 @@ msgstr ""
 msgid "Temperature calibration"
 msgstr "温度标定"
 
-msgid "PLA"
-msgstr ""
-
-msgid "ABS/ASA"
-msgstr ""
-
-msgid "PETG"
-msgstr ""
-
-msgid "TPU"
-msgstr ""
-
-msgid "PA-CF"
-msgstr ""
-
-msgid "PET-CF"
-msgstr ""
-
 msgid "Filament type"
 msgstr "材料类型"
 
@@ -10179,6 +10077,9 @@ msgstr "结束温度值"
 
 msgid "Temp step: "
 msgstr "温度值步长"
+
+msgid "Supported range: 180°C - 350°C"
+msgstr ""
 
 msgid ""
 "Please input valid values:\n"
@@ -10236,9 +10137,6 @@ msgstr "起始回抽长度"
 msgid "End retraction length: "
 msgstr "结束回抽长度"
 
-msgid "mm/mm"
-msgstr ""
-
 msgid "Network lookup"
 msgstr "网络寻找"
 
@@ -10281,9 +10179,6 @@ msgstr ""
 
 msgid "Print host upload queue"
 msgstr "打印主机上传队列"
-
-msgid "ID"
-msgstr ""
 
 msgid "Progress"
 msgstr "进度"
@@ -10568,12 +10463,6 @@ msgstr "矩形"
 
 msgid "Printable Space"
 msgstr "可打印形状"
-
-msgid "X"
-msgstr ""
-
-msgid "Y"
-msgstr ""
 
 msgid "Hot Bed STL"
 msgstr "热床STL模型"
@@ -11295,6 +11184,33 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid "MainBoard"
+#~ msgstr "主板"
+
+#~ msgid "⌘+Any arrow"
+#~ msgstr "⌘+方向键"
+
+#~ msgid "⌥+Left mouse button"
+#~ msgstr "⌥+鼠标左键"
+
+#~ msgid "⌘+Left mouse button"
+#~ msgstr "⌘+鼠标左键"
+
+#~ msgid "Ctrl+Any arrow"
+#~ msgstr "Ctrl+方向键"
+
+#~ msgid "Alt+Left mouse button"
+#~ msgstr "Alt+鼠标左键"
+
+#~ msgid "Ctrl+Left mouse button"
+#~ msgstr "Ctrl+鼠标左键"
+
+#~ msgid "°C"
+#~ msgstr "°C"
+
+#~ msgid "mm/s²"
+#~ msgstr "mm/s²"
 
 #~ msgid "The beginning of the vendor can not be a number. Please re-enter."
 #~ msgstr "自定义供应商的开头不能是数字。请重新输入。"
@@ -13321,9 +13237,6 @@ msgstr ""
 #~ msgstr "当完全在填充区域内部空驶时不会抽，即便渗出滴料也是不可见的。"
 
 #~ msgid "sdfsadf Any arrow"
-#~ msgstr "方向键"
-
-#~ msgid "Any arrow"
 #~ msgstr "方向键"
 
 #~ msgid "Ctrl + Left mouse button"

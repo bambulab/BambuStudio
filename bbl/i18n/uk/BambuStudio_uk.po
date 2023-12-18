@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-13 10:26+0800\n"
+"POT-Creation-Date: 2023-12-18 17:44+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -368,12 +368,6 @@ msgstr "Переверніть"
 
 msgid "After cut"
 msgstr "Після вирізування"
-
-msgid "A"
-msgstr "A"
-
-msgid "B"
-msgstr "B"
 
 msgid "Cut to parts"
 msgstr "Розрізати на частини"
@@ -2113,14 +2107,8 @@ msgstr "Температура столу"
 msgid "Max volumetric speed"
 msgstr "Максимальна об'ємна швидкість"
 
-msgid "℃"
-msgstr "℃"
-
 msgid "Bed temperature"
 msgstr "Температура столу"
-
-msgid "mm³"
-msgstr "мм³"
 
 msgid "Start calibration"
 msgstr "Почати калібрування"
@@ -2803,18 +2791,6 @@ msgstr "Пауза через помилку першого шару"
 msgid "Nozzle clog pause"
 msgstr "Пауза через засмічення сопла"
 
-msgid "MC"
-msgstr "MC"
-
-msgid "MainBoard"
-msgstr "Основна плата"
-
-msgid "TH"
-msgstr "TH"
-
-msgid "XCam"
-msgstr "XCam"
-
 msgid "Unknown"
 msgstr "Невідомий"
 
@@ -3354,12 +3330,6 @@ msgstr "Дозвіл нарізки"
 
 msgid "Show \"Live Video\" guide page."
 msgstr "Показати \\Пряме відео\\ сторінку посібника."
-
-msgid "720p"
-msgstr "720p"
-
-msgid "1080p"
-msgstr "1080p"
 
 msgid "ConnectPrinter(LAN)"
 msgstr "Підключити принтер (локальна мережа)"
@@ -4125,9 +4095,6 @@ msgstr "Продовжити"
 msgid "Stop"
 msgstr "Стоп"
 
-msgid "0"
-msgstr "0"
-
 msgid "Layer: N/A"
 msgstr "Шар: немає даних"
 
@@ -4369,9 +4336,6 @@ msgstr "Статус"
 
 msgid "Update"
 msgstr "Оновлення"
-
-msgid "HMS"
-msgstr "HMS"
 
 msgid "Don't show again"
 msgstr "Більше не показувати"
@@ -6776,12 +6740,6 @@ msgstr "Список об'єктів"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr "Імпорт геометричних даних із файлів STL/STEP/3MF/OBJ/AMF"
 
-msgid "⌘+Shift+G"
-msgstr "⌘+Shift+G"
-
-msgid "Ctrl+Shift+G"
-msgstr "Ctrl+Shift+G"
-
 msgid "Copy to clipboard"
 msgstr "Копіювати в буфер обміну"
 
@@ -6833,32 +6791,17 @@ msgstr "Shift+Tab"
 msgid "Collapse/Expand the sidebar"
 msgstr "Згорнути/розгорнути бічну панель"
 
-msgid "⌘+Any arrow"
-msgstr "⌘+будь-яка стрілка"
+msgid "Any arrow"
+msgstr ""
 
 msgid "Movement in camera space"
 msgstr "Рух у просторі камери"
 
-msgid "⌥+Left mouse button"
-msgstr "⌥+Ліва кнопка миші"
-
 msgid "Select a part"
 msgstr "Виберіть частину"
 
-msgid "⌘+Left mouse button"
-msgstr "⌘+Ліва кнопка миші"
-
 msgid "Select multiple objects"
 msgstr "Вибрати кілька об'єктів"
-
-msgid "Ctrl+Any arrow"
-msgstr "Ctrl+будь-яка стрілка"
-
-msgid "Alt+Left mouse button"
-msgstr "Alt+Ліва кнопка миші"
-
-msgid "Ctrl+Left mouse button"
-msgstr "Ctrl+Ліва кнопка миші"
 
 msgid "Shift+Left mouse button"
 msgstr "Shift+Ліва кнопка миші"
@@ -6895,9 +6838,6 @@ msgstr "Shift+будь-яка стрілка"
 
 msgid "Movement step set to 1 mm"
 msgstr "Крок переміщення встановлено на 1 мм"
-
-msgid "Esc"
-msgstr "Esc"
 
 msgid "keyboard 1-9: set filament for object/part"
 msgstr "клавіатура 1-9: встановити філамент для об'єкта/деталі"
@@ -7063,9 +7003,6 @@ msgid ""
 msgstr ""
 "Крок 2, якщо IP-адреса та код доступу нижче відрізняються від фактичних "
 "значень вашому принтері, будь ласка, виправте їх."
-
-msgid "IP"
-msgstr "IP"
 
 msgid "Access Code"
 msgstr "Код доступу"
@@ -7714,9 +7651,6 @@ msgstr ""
 "Температура шару для всіх шарів, крім першого. Значення 0 означає філаментне "
 "підтримує друк на Cool Plate"
 
-msgid "°C"
-msgstr "°C"
-
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
 "filament does not support to print on the Engineering Plate"
@@ -8008,9 +7942,6 @@ msgid ""
 msgstr ""
 "Прискорення за умовчанням як для звичайного друку, так і для переміщення за "
 "виключенням початкового шару"
-
-msgid "mm/s²"
-msgstr "мм/с²"
 
 msgid "Default filament profile"
 msgstr "Профіль стандартного філаменту"
@@ -8392,6 +8323,9 @@ msgstr "мм³/с"
 msgid "Minimal purge on wipe tower"
 msgstr "Мінімальна очистка на вежу очищення"
 
+msgid "mm³"
+msgstr "мм³"
+
 msgid "Filament load time"
 msgstr "Час завантаження філаменту"
 
@@ -8749,18 +8683,6 @@ msgstr "Структура принтера"
 
 msgid "The physical arrangement and components of a printing device"
 msgstr "Фізична структура та компоненти пристрою для друку"
-
-msgid "CoreXY"
-msgstr "CoreXY"
-
-msgid "I3"
-msgstr "I3"
-
-msgid "Hbot"
-msgstr "Hbot"
-
-msgid "Delta"
-msgstr "Delta"
 
 msgid "Best object position"
 msgstr "Найкраще положення об’єкта"
@@ -10745,12 +10667,6 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr "Параметри друку"
 
-msgid "- ℃"
-msgstr "- ℃"
-
-msgid " ℃"
-msgstr " ℃"
-
 msgid "Plate Type"
 msgstr "Тип стільця"
 
@@ -10862,24 +10778,6 @@ msgstr ""
 msgid "Temperature calibration"
 msgstr "Калібрування температури"
 
-msgid "PLA"
-msgstr "PLA"
-
-msgid "ABS/ASA"
-msgstr "ABS/ASA"
-
-msgid "PETG"
-msgstr "PETG"
-
-msgid "TPU"
-msgstr "TPU"
-
-msgid "PA-CF"
-msgstr "PA-CF"
-
-msgid "PET-CF"
-msgstr "PET-CF"
-
 msgid "Filament type"
 msgstr "Тип філаменту"
 
@@ -10891,6 +10789,9 @@ msgstr "Кінцева температура: "
 
 msgid "Temp step: "
 msgstr "Крок температури: "
+
+msgid "Supported range: 180°C - 350°C"
+msgstr ""
 
 msgid ""
 "Please input valid values:\n"
@@ -10948,9 +10849,6 @@ msgstr "Початкова довжина ретракту: "
 msgid "End retraction length: "
 msgstr "Кінцева довжина ретракту: "
 
-msgid "mm/mm"
-msgstr "мм/мм"
-
 msgid "Network lookup"
 msgstr "Мережевий пошук"
 
@@ -10995,9 +10893,6 @@ msgstr "Запустити симуляцію"
 
 msgid "Print host upload queue"
 msgstr "Черга завантаження на хост друку"
-
-msgid "ID"
-msgstr "Ідентифікатор"
 
 msgid "Progress"
 msgstr "Прогрес"
@@ -11295,12 +11190,6 @@ msgstr "Прямокутник"
 
 msgid "Printable Space"
 msgstr "Простір для друку"
-
-msgid "X"
-msgstr "X"
-
-msgid "Y"
-msgstr "Y"
 
 msgid "Hot Bed STL"
 msgstr "STL файл для гарячого столу"
@@ -12100,6 +11989,123 @@ msgstr ""
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як "
 "ABS, відповідне підвищення температури гарячого ліжка може зменшити "
 "ймовірність деформації."
+
+#~ msgid "A"
+#~ msgstr "A"
+
+#~ msgid "B"
+#~ msgstr "B"
+
+#~ msgid "℃"
+#~ msgstr "℃"
+
+#~ msgid "MC"
+#~ msgstr "MC"
+
+#~ msgid "MainBoard"
+#~ msgstr "Основна плата"
+
+#~ msgid "TH"
+#~ msgstr "TH"
+
+#~ msgid "XCam"
+#~ msgstr "XCam"
+
+#~ msgid "720p"
+#~ msgstr "720p"
+
+#~ msgid "1080p"
+#~ msgstr "1080p"
+
+#~ msgid "0"
+#~ msgstr "0"
+
+#~ msgid "HMS"
+#~ msgstr "HMS"
+
+#~ msgid "⌘+Shift+G"
+#~ msgstr "⌘+Shift+G"
+
+#~ msgid "Ctrl+Shift+G"
+#~ msgstr "Ctrl+Shift+G"
+
+#~ msgid "⌘+Any arrow"
+#~ msgstr "⌘+будь-яка стрілка"
+
+#~ msgid "⌥+Left mouse button"
+#~ msgstr "⌥+Ліва кнопка миші"
+
+#~ msgid "⌘+Left mouse button"
+#~ msgstr "⌘+Ліва кнопка миші"
+
+#~ msgid "Ctrl+Any arrow"
+#~ msgstr "Ctrl+будь-яка стрілка"
+
+#~ msgid "Alt+Left mouse button"
+#~ msgstr "Alt+Ліва кнопка миші"
+
+#~ msgid "Ctrl+Left mouse button"
+#~ msgstr "Ctrl+Ліва кнопка миші"
+
+#~ msgid "Esc"
+#~ msgstr "Esc"
+
+#~ msgid "IP"
+#~ msgstr "IP"
+
+#~ msgid "°C"
+#~ msgstr "°C"
+
+#~ msgid "mm/s²"
+#~ msgstr "мм/с²"
+
+#~ msgid "CoreXY"
+#~ msgstr "CoreXY"
+
+#~ msgid "I3"
+#~ msgstr "I3"
+
+#~ msgid "Hbot"
+#~ msgstr "Hbot"
+
+#~ msgid "Delta"
+#~ msgstr "Delta"
+
+#~ msgid "- ℃"
+#~ msgstr "- ℃"
+
+#~ msgid " ℃"
+#~ msgstr " ℃"
+
+#~ msgid "PLA"
+#~ msgstr "PLA"
+
+#~ msgid "ABS/ASA"
+#~ msgstr "ABS/ASA"
+
+#~ msgid "PETG"
+#~ msgstr "PETG"
+
+#~ msgid "TPU"
+#~ msgstr "TPU"
+
+#~ msgid "PA-CF"
+#~ msgstr "PA-CF"
+
+#~ msgid "PET-CF"
+#~ msgstr "PET-CF"
+
+#~ msgid "mm/mm"
+#~ msgstr "мм/мм"
+
+#~ msgid "ID"
+#~ msgstr "Ідентифікатор"
+
+#~ msgid "X"
+#~ msgstr "X"
+
+#~ msgid "Y"
+#~ msgstr "Y"
 
 #~ msgid "The beginning of the vendor can not be a number. Please re-enter."
 #~ msgstr ""
