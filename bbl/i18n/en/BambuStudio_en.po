@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-13 10:26+0800\n"
+"POT-Creation-Date: 2023-12-18 17:44+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -363,12 +363,6 @@ msgstr "Flip"
 
 msgid "After cut"
 msgstr "After cut"
-
-msgid "A"
-msgstr ""
-
-msgid "B"
-msgstr ""
 
 msgid "Cut to parts"
 msgstr "Cut to parts"
@@ -2081,14 +2075,8 @@ msgstr "Bed Temperature"
 msgid "Max volumetric speed"
 msgstr "Max volumetric speed"
 
-msgid "℃"
-msgstr ""
-
 msgid "Bed temperature"
 msgstr "Bed temperature"
-
-msgid "mm³"
-msgstr "mm³"
 
 msgid "Start calibration"
 msgstr "Start"
@@ -2745,18 +2733,6 @@ msgstr ""
 msgid "Nozzle clog pause"
 msgstr ""
 
-msgid "MC"
-msgstr "MC"
-
-msgid "MainBoard"
-msgstr "MainBoard"
-
-msgid "TH"
-msgstr "TH"
-
-msgid "XCam"
-msgstr "XCam"
-
 msgid "Unknown"
 msgstr "Unknown"
 
@@ -3284,12 +3260,6 @@ msgstr "Resolution"
 
 msgid "Show \"Live Video\" guide page."
 msgstr "Show \"Live Video\" guide page."
-
-msgid "720p"
-msgstr "720p"
-
-msgid "1080p"
-msgstr "1080p"
 
 msgid "ConnectPrinter(LAN)"
 msgstr "Connect Printer (LAN)"
@@ -4038,9 +4008,6 @@ msgstr "Resume"
 msgid "Stop"
 msgstr "Stop"
 
-msgid "0"
-msgstr "0"
-
 msgid "Layer: N/A"
 msgstr "Layer: N/A"
 
@@ -4264,9 +4231,6 @@ msgstr "Status"
 
 msgid "Update"
 msgstr "Update"
-
-msgid "HMS"
-msgstr "HMS"
 
 msgid "Don't show again"
 msgstr "Don't show again"
@@ -6599,12 +6563,6 @@ msgstr "Objects list"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 
-msgid "⌘+Shift+G"
-msgstr "⌘+Shift+G"
-
-msgid "Ctrl+Shift+G"
-msgstr "Ctrl+Shift+G"
-
 msgid "Copy to clipboard"
 msgstr "Copy to clipboard"
 
@@ -6656,32 +6614,17 @@ msgstr "Shift+Tab"
 msgid "Collapse/Expand the sidebar"
 msgstr "Collapse/Expand the sidebar"
 
-msgid "⌘+Any arrow"
-msgstr "⌘+Any arrow"
+msgid "Any arrow"
+msgstr ""
 
 msgid "Movement in camera space"
 msgstr "Movement in camera space"
 
-msgid "⌥+Left mouse button"
-msgstr "⌥+Left mouse button"
-
 msgid "Select a part"
 msgstr "Select a part"
 
-msgid "⌘+Left mouse button"
-msgstr "⌘+Left mouse button"
-
 msgid "Select multiple objects"
 msgstr "Select multiple objects"
-
-msgid "Ctrl+Any arrow"
-msgstr "Ctrl+Any arrow"
-
-msgid "Alt+Left mouse button"
-msgstr "Alt+Left mouse button"
-
-msgid "Ctrl+Left mouse button"
-msgstr "Ctrl+Left mouse button"
 
 msgid "Shift+Left mouse button"
 msgstr "Shift+Left mouse button"
@@ -6718,9 +6661,6 @@ msgstr "Shift+Any arrow"
 
 msgid "Movement step set to 1 mm"
 msgstr "Movement step set to 1mm"
-
-msgid "Esc"
-msgstr "Esc"
 
 msgid "keyboard 1-9: set filament for object/part"
 msgstr "Keyboard 1-9: set filament for object/part"
@@ -6885,9 +6825,6 @@ msgid ""
 msgstr ""
 "Step 2, if the IP and Access Code below are different from the actual values "
 "on your printer, please correct them."
-
-msgid "IP"
-msgstr "IP"
 
 msgid "Access Code"
 msgstr "Access Code"
@@ -7524,9 +7461,6 @@ msgstr ""
 "This is the bed temperature for layers except for the first one. A value of "
 "0 means the filament does not support printing on the Cool Plate."
 
-msgid "°C"
-msgstr "°C"
-
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
 "filament does not support to print on the Engineering Plate"
@@ -7812,9 +7746,6 @@ msgid ""
 msgstr ""
 "This is the default acceleration for both normal printing and travel after "
 "the first layer."
-
-msgid "mm/s²"
-msgstr "mm/s²"
 
 msgid "Default filament profile"
 msgstr "Default filament profile"
@@ -8169,6 +8100,9 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "Minimal purge on wipe tower"
 
+msgid "mm³"
+msgstr "mm³"
+
 msgid "Filament load time"
 msgstr "Filament load time"
 
@@ -8513,18 +8447,6 @@ msgid "Printer structure"
 msgstr ""
 
 msgid "The physical arrangement and components of a printing device"
-msgstr ""
-
-msgid "CoreXY"
-msgstr ""
-
-msgid "I3"
-msgstr ""
-
-msgid "Hbot"
-msgstr ""
-
-msgid "Delta"
 msgstr ""
 
 msgid "Best object position"
@@ -10354,12 +10276,6 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr ""
 
-msgid "- ℃"
-msgstr ""
-
-msgid " ℃"
-msgstr ""
-
 msgid "Plate Type"
 msgstr "Plate Type"
 
@@ -10464,24 +10380,6 @@ msgstr ""
 msgid "Temperature calibration"
 msgstr ""
 
-msgid "PLA"
-msgstr ""
-
-msgid "ABS/ASA"
-msgstr ""
-
-msgid "PETG"
-msgstr ""
-
-msgid "TPU"
-msgstr ""
-
-msgid "PA-CF"
-msgstr ""
-
-msgid "PET-CF"
-msgstr ""
-
 msgid "Filament type"
 msgstr ""
 
@@ -10492,6 +10390,9 @@ msgid "End temp: "
 msgstr ""
 
 msgid "Temp step: "
+msgstr ""
+
+msgid "Supported range: 180°C - 350°C"
 msgstr ""
 
 msgid ""
@@ -10540,9 +10441,6 @@ msgstr ""
 msgid "End retraction length: "
 msgstr ""
 
-msgid "mm/mm"
-msgstr ""
-
 msgid "Network lookup"
 msgstr ""
 
@@ -10584,9 +10482,6 @@ msgid "Simulate"
 msgstr ""
 
 msgid "Print host upload queue"
-msgstr ""
-
-msgid "ID"
 msgstr ""
 
 msgid "Progress"
@@ -10867,12 +10762,6 @@ msgid "Rectangle"
 msgstr ""
 
 msgid "Printable Space"
-msgstr ""
-
-msgid "X"
-msgstr ""
-
-msgid "Y"
 msgstr ""
 
 msgid "Hot Bed STL"
@@ -11582,6 +11471,66 @@ msgid ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
 msgstr ""
+
+#~ msgid "MC"
+#~ msgstr "MC"
+
+#~ msgid "MainBoard"
+#~ msgstr "MainBoard"
+
+#~ msgid "TH"
+#~ msgstr "TH"
+
+#~ msgid "XCam"
+#~ msgstr "XCam"
+
+#~ msgid "720p"
+#~ msgstr "720p"
+
+#~ msgid "1080p"
+#~ msgstr "1080p"
+
+#~ msgid "0"
+#~ msgstr "0"
+
+#~ msgid "HMS"
+#~ msgstr "HMS"
+
+#~ msgid "⌘+Shift+G"
+#~ msgstr "⌘+Shift+G"
+
+#~ msgid "Ctrl+Shift+G"
+#~ msgstr "Ctrl+Shift+G"
+
+#~ msgid "⌘+Any arrow"
+#~ msgstr "⌘+Any arrow"
+
+#~ msgid "⌥+Left mouse button"
+#~ msgstr "⌥+Left mouse button"
+
+#~ msgid "⌘+Left mouse button"
+#~ msgstr "⌘+Left mouse button"
+
+#~ msgid "Ctrl+Any arrow"
+#~ msgstr "Ctrl+Any arrow"
+
+#~ msgid "Alt+Left mouse button"
+#~ msgstr "Alt+Left mouse button"
+
+#~ msgid "Ctrl+Left mouse button"
+#~ msgstr "Ctrl+Left mouse button"
+
+#~ msgid "Esc"
+#~ msgstr "Esc"
+
+#~ msgid "IP"
+#~ msgstr "IP"
+
+#~ msgid "°C"
+#~ msgstr "°C"
+
+#~ msgid "mm/s²"
+#~ msgstr "mm/s²"
 
 #~ msgid "Project Inside Preset"
 #~ msgstr "Project Inside Preset"

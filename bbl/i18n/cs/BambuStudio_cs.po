@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-13 10:26+0800\n"
+"POT-Creation-Date: 2023-12-18 17:44+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -372,12 +372,6 @@ msgstr "Otočit"
 
 msgid "After cut"
 msgstr "Po řezu"
-
-msgid "A"
-msgstr ""
-
-msgid "B"
-msgstr ""
 
 msgid "Cut to parts"
 msgstr "Rozřezat na díly"
@@ -2104,14 +2098,8 @@ msgstr "Teplota Podložky"
 msgid "Max volumetric speed"
 msgstr "Maximální objemová rychlost"
 
-msgid "℃"
-msgstr "℃"
-
 msgid "Bed temperature"
 msgstr "Teplota podložky"
-
-msgid "mm³"
-msgstr "mm³"
 
 msgid "Start calibration"
 msgstr "Spustit kalibraci"
@@ -2769,18 +2757,6 @@ msgstr ""
 msgid "Nozzle clog pause"
 msgstr ""
 
-msgid "MC"
-msgstr "MC"
-
-msgid "MainBoard"
-msgstr "Základní deska"
-
-msgid "TH"
-msgstr "TH"
-
-msgid "XCam"
-msgstr "XCam"
-
 msgid "Unknown"
 msgstr "Neznámý"
 
@@ -3311,12 +3287,6 @@ msgstr "Rozlišení"
 
 msgid "Show \"Live Video\" guide page."
 msgstr "Zobrazit stránku průvodce \" Živé video \" ."
-
-msgid "720p"
-msgstr "720p"
-
-msgid "1080p"
-msgstr "1080p"
 
 msgid "ConnectPrinter(LAN)"
 msgstr "Připojit tiskárnu (LAN)"
@@ -4080,9 +4050,6 @@ msgstr "Pokračovat"
 msgid "Stop"
 msgstr "Zastavit"
 
-msgid "0"
-msgstr "0"
-
 msgid "Layer: N/A"
 msgstr "Vrstva: N/A"
 
@@ -4306,9 +4273,6 @@ msgstr "Stav"
 
 msgid "Update"
 msgstr "Aktualizovat"
-
-msgid "HMS"
-msgstr "HMS"
 
 msgid "Don't show again"
 msgstr "Znovu Nezobrazovat"
@@ -6652,12 +6616,6 @@ msgstr "Seznam objektů"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr "Import geometrických dat ze souborů STL/STEP/3MF/OBJ/AMF"
 
-msgid "⌘+Shift+G"
-msgstr "⌘+Shift+G"
-
-msgid "Ctrl+Shift+G"
-msgstr "Ctrl+Shift+G"
-
 msgid "Copy to clipboard"
 msgstr "Kopírovat do schránky"
 
@@ -6709,32 +6667,17 @@ msgstr "Shift+Tab"
 msgid "Collapse/Expand the sidebar"
 msgstr "Sbalit/Rozbalit postranní panel"
 
-msgid "⌘+Any arrow"
-msgstr "⌘+libovolná šipka"
+msgid "Any arrow"
+msgstr ""
 
 msgid "Movement in camera space"
 msgstr "Posun výběru v ortogonálním prostoru kamery"
 
-msgid "⌥+Left mouse button"
-msgstr "⌥+levé tlačítko myši"
-
 msgid "Select a part"
 msgstr "Vyberte část"
 
-msgid "⌘+Left mouse button"
-msgstr "⌘+levé tlačítko myši"
-
 msgid "Select multiple objects"
 msgstr "Vyberte více objektů"
-
-msgid "Ctrl+Any arrow"
-msgstr "Ctrl+libovolná šipka"
-
-msgid "Alt+Left mouse button"
-msgstr "Alt+levé tlačítko myši"
-
-msgid "Ctrl+Left mouse button"
-msgstr "Ctrl+levé tlačítko myši"
 
 msgid "Shift+Left mouse button"
 msgstr "Shift+levé tlačítko myši"
@@ -6771,9 +6714,6 @@ msgstr "Shift+libovolná šipka"
 
 msgid "Movement step set to 1 mm"
 msgstr "Krok pro posun výběru o velikosti 1 mm"
-
-msgid "Esc"
-msgstr "Esc"
 
 msgid "keyboard 1-9: set filament for object/part"
 msgstr "klávesnice 1-9: nastavení filamentu pro objekt/díl"
@@ -6938,9 +6878,6 @@ msgid ""
 msgstr ""
 "Krok 2, pokud se IP a přístupový kód níže liší od skutečných hodnot na "
 "tiskárně, opravte je."
-
-msgid "IP"
-msgstr "IP"
 
 msgid "Access Code"
 msgstr "Přístupový kód"
@@ -7576,9 +7513,6 @@ msgstr ""
 "Toto je teplota podložky pro vrstvy kromě první. Hodnota 0 znamená, že "
 "filament nepodporuje tisk na Cool Podložku"
 
-msgid "°C"
-msgstr "°C"
-
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
 "filament does not support to print on the Engineering Plate"
@@ -7859,9 +7793,6 @@ msgid ""
 "The default acceleration of both normal printing and travel except initial "
 "layer"
 msgstr "Výchozí zrychlení normálního tisku i pohybu kromě počáteční vrstvy"
-
-msgid "mm/s²"
-msgstr "mm/s²"
 
 msgid "Default filament profile"
 msgstr "Výchozí profil filamentu"
@@ -8228,6 +8159,9 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "Minimální vytlačený objem na čistící věži"
 
+msgid "mm³"
+msgstr "mm³"
+
 msgid "Filament load time"
 msgstr "Doba zavádění filamentu"
 
@@ -8570,18 +8504,6 @@ msgid "Printer structure"
 msgstr ""
 
 msgid "The physical arrangement and components of a printing device"
-msgstr ""
-
-msgid "CoreXY"
-msgstr ""
-
-msgid "I3"
-msgstr ""
-
-msgid "Hbot"
-msgstr ""
-
-msgid "Delta"
 msgstr ""
 
 msgid "Best object position"
@@ -10488,12 +10410,6 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr "Parametry tisku"
 
-msgid "- ℃"
-msgstr "- ℃"
-
-msgid " ℃"
-msgstr " ℃"
-
 msgid "Plate Type"
 msgstr "Typ Podložky"
 
@@ -10606,24 +10522,6 @@ msgstr ""
 msgid "Temperature calibration"
 msgstr "Kalibrace teploty"
 
-msgid "PLA"
-msgstr "PLA"
-
-msgid "ABS/ASA"
-msgstr "ABS/ASA"
-
-msgid "PETG"
-msgstr "PETG"
-
-msgid "TPU"
-msgstr "TPU"
-
-msgid "PA-CF"
-msgstr "PA-CF"
-
-msgid "PET-CF"
-msgstr "PET-CF"
-
 msgid "Filament type"
 msgstr "Typ Filamentu"
 
@@ -10635,6 +10533,9 @@ msgstr "Koncová teplota: "
 
 msgid "Temp step: "
 msgstr "Teplotní krok: "
+
+msgid "Supported range: 180°C - 350°C"
+msgstr ""
 
 msgid ""
 "Please input valid values:\n"
@@ -10692,9 +10593,6 @@ msgstr "Délka retrakce na začátku: "
 msgid "End retraction length: "
 msgstr "Délka retrakce na konci: "
 
-msgid "mm/mm"
-msgstr "mm/mm"
-
 msgid "Network lookup"
 msgstr "Vyhledávání v síti"
 
@@ -10737,9 +10635,6 @@ msgstr "Simulovat"
 
 msgid "Print host upload queue"
 msgstr "Fronta nahrávání tiskového serveru"
-
-msgid "ID"
-msgstr "ID"
 
 msgid "Progress"
 msgstr "Postup"
@@ -11019,12 +10914,6 @@ msgid "Rectangle"
 msgstr ""
 
 msgid "Printable Space"
-msgstr ""
-
-msgid "X"
-msgstr ""
-
-msgid "Y"
 msgstr ""
 
 msgid "Hot Bed STL"
@@ -11737,6 +11626,99 @@ msgid ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
 msgstr ""
+
+#~ msgid "℃"
+#~ msgstr "℃"
+
+#~ msgid "MC"
+#~ msgstr "MC"
+
+#~ msgid "MainBoard"
+#~ msgstr "Základní deska"
+
+#~ msgid "TH"
+#~ msgstr "TH"
+
+#~ msgid "XCam"
+#~ msgstr "XCam"
+
+#~ msgid "720p"
+#~ msgstr "720p"
+
+#~ msgid "1080p"
+#~ msgstr "1080p"
+
+#~ msgid "0"
+#~ msgstr "0"
+
+#~ msgid "HMS"
+#~ msgstr "HMS"
+
+#~ msgid "⌘+Shift+G"
+#~ msgstr "⌘+Shift+G"
+
+#~ msgid "Ctrl+Shift+G"
+#~ msgstr "Ctrl+Shift+G"
+
+#~ msgid "⌘+Any arrow"
+#~ msgstr "⌘+libovolná šipka"
+
+#~ msgid "⌥+Left mouse button"
+#~ msgstr "⌥+levé tlačítko myši"
+
+#~ msgid "⌘+Left mouse button"
+#~ msgstr "⌘+levé tlačítko myši"
+
+#~ msgid "Ctrl+Any arrow"
+#~ msgstr "Ctrl+libovolná šipka"
+
+#~ msgid "Alt+Left mouse button"
+#~ msgstr "Alt+levé tlačítko myši"
+
+#~ msgid "Ctrl+Left mouse button"
+#~ msgstr "Ctrl+levé tlačítko myši"
+
+#~ msgid "Esc"
+#~ msgstr "Esc"
+
+#~ msgid "IP"
+#~ msgstr "IP"
+
+#~ msgid "°C"
+#~ msgstr "°C"
+
+#~ msgid "mm/s²"
+#~ msgstr "mm/s²"
+
+#~ msgid "- ℃"
+#~ msgstr "- ℃"
+
+#~ msgid " ℃"
+#~ msgstr " ℃"
+
+#~ msgid "PLA"
+#~ msgstr "PLA"
+
+#~ msgid "ABS/ASA"
+#~ msgstr "ABS/ASA"
+
+#~ msgid "PETG"
+#~ msgstr "PETG"
+
+#~ msgid "TPU"
+#~ msgstr "TPU"
+
+#~ msgid "PA-CF"
+#~ msgstr "PA-CF"
+
+#~ msgid "PET-CF"
+#~ msgstr "PET-CF"
+
+#~ msgid "mm/mm"
+#~ msgstr "mm/mm"
+
+#~ msgid "ID"
+#~ msgstr "ID"
 
 #~ msgid "Project Inside Preset"
 #~ msgstr "Projekt uvnitř přednastavení"

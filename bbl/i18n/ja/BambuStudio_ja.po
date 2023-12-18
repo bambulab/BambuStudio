@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-13 10:26+0800\n"
+"POT-Creation-Date: 2023-12-18 17:44+0800\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -362,12 +362,6 @@ msgstr "Flip"
 
 msgid "After cut"
 msgstr "After cut"
-
-msgid "A"
-msgstr ""
-
-msgid "B"
-msgstr ""
 
 msgid "Cut to parts"
 msgstr "パーツに割り切る"
@@ -2060,14 +2054,8 @@ msgstr "ベッド温度"
 msgid "Max volumetric speed"
 msgstr "最大体積速度"
 
-msgid "℃"
-msgstr ""
-
 msgid "Bed temperature"
 msgstr "ベッド温度"
-
-msgid "mm³"
-msgstr "mm³"
 
 msgid "Start calibration"
 msgstr "開始"
@@ -2684,18 +2672,6 @@ msgstr ""
 msgid "Nozzle clog pause"
 msgstr ""
 
-msgid "MC"
-msgstr "MC"
-
-msgid "MainBoard"
-msgstr "メインボード"
-
-msgid "TH"
-msgstr "TH"
-
-msgid "XCam"
-msgstr "XCam"
-
 msgid "Unknown"
 msgstr "不明"
 
@@ -3219,12 +3195,6 @@ msgstr "分解能"
 
 msgid "Show \"Live Video\" guide page."
 msgstr "「ライブビュー」ガイドを表示"
-
-msgid "720p"
-msgstr "720p"
-
-msgid "1080p"
-msgstr "1080p"
 
 msgid "ConnectPrinter(LAN)"
 msgstr "プリンターとの接続（LAN）"
@@ -3965,9 +3935,6 @@ msgstr "再開"
 msgid "Stop"
 msgstr "中止"
 
-msgid "0"
-msgstr "0"
-
 msgid "Layer: N/A"
 msgstr "Layer: N/A"
 
@@ -4191,9 +4158,6 @@ msgstr "デバイス状態"
 
 msgid "Update"
 msgstr "更新"
-
-msgid "HMS"
-msgstr "HMS"
 
 msgid "Don't show again"
 msgstr "次回から表示しない"
@@ -6465,12 +6429,6 @@ msgstr "オブジェクト一覧"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 
-msgid "⌘+Shift+G"
-msgstr "⌘+Shift+G"
-
-msgid "Ctrl+Shift+G"
-msgstr "Ctrl+Shift+G"
-
 msgid "Copy to clipboard"
 msgstr "コピー"
 
@@ -6519,32 +6477,17 @@ msgstr "Shift+Tab"
 msgid "Collapse/Expand the sidebar"
 msgstr "サイドバーを展開/隠す"
 
-msgid "⌘+Any arrow"
-msgstr "⌘+↑↓←→"
+msgid "Any arrow"
+msgstr ""
 
 msgid "Movement in camera space"
 msgstr "オブジェクト移動"
 
-msgid "⌥+Left mouse button"
-msgstr "⌥+マウス左ボタン"
-
 msgid "Select a part"
 msgstr "パーツを選択"
 
-msgid "⌘+Left mouse button"
-msgstr "⌘+マウス左ボタン"
-
 msgid "Select multiple objects"
 msgstr "複数のオブジェクトを選択"
-
-msgid "Ctrl+Any arrow"
-msgstr "Ctrl+↑↓←→"
-
-msgid "Alt+Left mouse button"
-msgstr "Alt+マウス左ボタン"
-
-msgid "Ctrl+Left mouse button"
-msgstr "Ctrl+マウス左ボタン"
 
 msgid "Shift+Left mouse button"
 msgstr "Shift + マウス左ボタン"
@@ -6581,9 +6524,6 @@ msgstr "Shift + ↑↓←→"
 
 msgid "Movement step set to 1 mm"
 msgstr "移動ステップを1mmに設定"
-
-msgid "Esc"
-msgstr "Esc"
 
 msgid "keyboard 1-9: set filament for object/part"
 msgstr "キー1-9: オブジェクト/パーツのフィラメントを設定"
@@ -6746,9 +6686,6 @@ msgid ""
 "Step 2, if the IP and Access Code below are different from the actual values "
 "on your printer, please correct them."
 msgstr "２下記IPアドレスやアクセスコードが一致していない場合修正してください。"
-
-msgid "IP"
-msgstr "IP"
 
 msgid "Access Code"
 msgstr "アクセスコード"
@@ -7352,9 +7289,6 @@ msgstr ""
 "ベッドの温度です（1層目以外）。値が0の場合、フィラメントが常温プレートで使用"
 "できないという意味です。"
 
-msgid "°C"
-msgstr "°C"
-
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
 "filament does not support to print on the Engineering Plate"
@@ -7628,9 +7562,6 @@ msgid ""
 "The default acceleration of both normal printing and travel except initial "
 "layer"
 msgstr "造形と移動時のデフォルト加速度です。"
-
-msgid "mm/s²"
-msgstr "mm/s²"
 
 msgid "Default filament profile"
 msgstr "デフォルト フィラメント プロファイル"
@@ -7966,6 +7897,9 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "プライムタワー上最小フラッシュ量"
 
+msgid "mm³"
+msgstr "mm³"
+
 msgid "Filament load time"
 msgstr "フィラメントロード時間"
 
@@ -8290,18 +8224,6 @@ msgid "Printer structure"
 msgstr ""
 
 msgid "The physical arrangement and components of a printing device"
-msgstr ""
-
-msgid "CoreXY"
-msgstr ""
-
-msgid "I3"
-msgstr ""
-
-msgid "Hbot"
-msgstr ""
-
-msgid "Delta"
 msgstr ""
 
 msgid "Best object position"
@@ -10065,12 +9987,6 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr ""
 
-msgid "- ℃"
-msgstr ""
-
-msgid " ℃"
-msgstr ""
-
 msgid "Plate Type"
 msgstr "Plate Type"
 
@@ -10175,24 +10091,6 @@ msgstr ""
 msgid "Temperature calibration"
 msgstr ""
 
-msgid "PLA"
-msgstr ""
-
-msgid "ABS/ASA"
-msgstr ""
-
-msgid "PETG"
-msgstr ""
-
-msgid "TPU"
-msgstr ""
-
-msgid "PA-CF"
-msgstr ""
-
-msgid "PET-CF"
-msgstr ""
-
 msgid "Filament type"
 msgstr ""
 
@@ -10203,6 +10101,9 @@ msgid "End temp: "
 msgstr ""
 
 msgid "Temp step: "
+msgstr ""
+
+msgid "Supported range: 180°C - 350°C"
 msgstr ""
 
 msgid ""
@@ -10251,9 +10152,6 @@ msgstr ""
 msgid "End retraction length: "
 msgstr ""
 
-msgid "mm/mm"
-msgstr ""
-
 msgid "Network lookup"
 msgstr ""
 
@@ -10295,9 +10193,6 @@ msgid "Simulate"
 msgstr ""
 
 msgid "Print host upload queue"
-msgstr ""
-
-msgid "ID"
 msgstr ""
 
 msgid "Progress"
@@ -10578,12 +10473,6 @@ msgid "Rectangle"
 msgstr ""
 
 msgid "Printable Space"
-msgstr ""
-
-msgid "X"
-msgstr ""
-
-msgid "Y"
 msgstr ""
 
 msgid "Hot Bed STL"
@@ -11266,6 +11155,66 @@ msgid ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
 msgstr ""
+
+#~ msgid "MC"
+#~ msgstr "MC"
+
+#~ msgid "MainBoard"
+#~ msgstr "メインボード"
+
+#~ msgid "TH"
+#~ msgstr "TH"
+
+#~ msgid "XCam"
+#~ msgstr "XCam"
+
+#~ msgid "720p"
+#~ msgstr "720p"
+
+#~ msgid "1080p"
+#~ msgstr "1080p"
+
+#~ msgid "0"
+#~ msgstr "0"
+
+#~ msgid "HMS"
+#~ msgstr "HMS"
+
+#~ msgid "⌘+Shift+G"
+#~ msgstr "⌘+Shift+G"
+
+#~ msgid "Ctrl+Shift+G"
+#~ msgstr "Ctrl+Shift+G"
+
+#~ msgid "⌘+Any arrow"
+#~ msgstr "⌘+↑↓←→"
+
+#~ msgid "⌥+Left mouse button"
+#~ msgstr "⌥+マウス左ボタン"
+
+#~ msgid "⌘+Left mouse button"
+#~ msgstr "⌘+マウス左ボタン"
+
+#~ msgid "Ctrl+Any arrow"
+#~ msgstr "Ctrl+↑↓←→"
+
+#~ msgid "Alt+Left mouse button"
+#~ msgstr "Alt+マウス左ボタン"
+
+#~ msgid "Ctrl+Left mouse button"
+#~ msgstr "Ctrl+マウス左ボタン"
+
+#~ msgid "Esc"
+#~ msgstr "Esc"
+
+#~ msgid "IP"
+#~ msgstr "IP"
+
+#~ msgid "°C"
+#~ msgstr "°C"
+
+#~ msgid "mm/s²"
+#~ msgstr "mm/s²"
 
 #~ msgid "Project Inside Preset"
 #~ msgstr "プロジェクト プリセット"
