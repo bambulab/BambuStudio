@@ -768,6 +768,7 @@ arrangement::ArrangeParams init_arrange_params(Plater *p)
     params.clearance_height_to_lid             = print_config.extruder_clearance_height_to_lid.value;
     params.cleareance_radius                   = print_config.extruder_clearance_max_radius.value;
     params.printable_height                    = print_config.printable_height.value;
+    params.nozzle_height                       = print.config().nozzle_height.value;
     params.align_center                        = print_config.best_object_pos.value;
     params.allow_rotations                     = settings.enable_rotation;
     params.allow_multi_materials_on_same_plate = settings.allow_multi_materials_on_same_plate;
@@ -788,7 +789,6 @@ arrangement::ArrangeParams init_arrange_params(Plater *p)
     }
 
     if (params.is_seq_print) {
-        params.min_obj_distance = std::max(params.min_obj_distance, scaled(params.cleareance_radius + 0.001)); // +0.001mm to avoid clearance check fail due to rounding error
         params.bed_shrink_x = BED_SHRINK_SEQ_PRINT;
         params.bed_shrink_y = BED_SHRINK_SEQ_PRINT;
     }
