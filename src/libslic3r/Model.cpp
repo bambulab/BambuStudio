@@ -89,6 +89,9 @@ Model& Model::assign_copy(const Model &rhs)
     this->stl_design_id = rhs.stl_design_id;
     this->profile_info = rhs.profile_info;
 
+    this->mk_name = rhs.mk_name;
+    this->mk_version = rhs.mk_version;
+
     return *this;
 }
 
@@ -117,6 +120,8 @@ Model& Model::assign_copy(Model &&rhs)
     //BBS: add auxiliary path logic
     // BBS: backup, all in one temp dir
     this->stl_design_id = rhs.stl_design_id;
+    this->mk_name = rhs.mk_name;
+    this->mk_version = rhs.mk_version;
     this->backup_path = std::move(rhs.backup_path);
     this->object_backup_id_map = std::move(rhs.object_backup_id_map);
     this->next_object_backup_id = rhs.next_object_backup_id;
@@ -917,6 +922,8 @@ void Model::load_from(Model& model)
     stl_design_id = model.stl_design_id;
     model_info  = model.model_info;
     profile_info  = model.profile_info;
+    mk_name = model.mk_name;
+    mk_version = model.mk_version;
     model.design_info.reset();
     model.model_info.reset();
     model.profile_info.reset();
@@ -1723,7 +1730,7 @@ indexed_triangle_set ModelObject::get_connector_mesh(CutConnectorAttributes conn
         break;
     }
 
-    if (connector_attributes.type == CutConnectorType::Snap) 
+    if (connector_attributes.type == CutConnectorType::Snap)
         connector_mesh = its_make_snap(1.0, 1.0, para.snap_space_proportion, para.snap_bulge_proportion);
     else if(connector_attributes.style == CutConnectorStyle::Prizm)
         connector_mesh = its_make_cylinder(1.0, 1.0, (2 * PI / sectorCount));
