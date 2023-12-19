@@ -2658,7 +2658,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("extruder_type", coEnums);
     def->label = L("Type");
-    def->tooltip = ("This setting is only used for initial value of manual calibration of presure advance. Bowden extruder usually has larger pa value. This setting doesn't influence normal slicing");
+    def->tooltip = ("This setting is only used for initial value of manual calibration of pressure advance. Bowden extruder usually has larger pa value. This setting doesn't influence normal slicing");
     def->enum_keys_map = &ConfigOptionEnum<ExtruderType>::get_enum_values();
     def->enum_values.push_back("DirectDrive");
     def->enum_values.push_back("Bowden");
