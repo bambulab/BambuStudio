@@ -59,6 +59,9 @@
     "overhang_fan_threshold": [
         "10%"
     ],
+    "slow_down_layer_time": [
+        "12"
+    ],
     "textured_plate_temp": [
         "70"
     ],
