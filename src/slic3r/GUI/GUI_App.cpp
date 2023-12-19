@@ -1025,6 +1025,9 @@ void GUI_App::post_init()
         // BOOST_LOG_TRIVIAL(info) << "Loading user presets...";
         // scrn->SetText(_L("Loading user presets..."));
         if (m_agent) { start_sync_user_preset(); }
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync_user_preset: true";
+    } else {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync_user_preset: false";
     }
 
     bool switch_to_3d = false;
