@@ -1283,6 +1283,7 @@ wxWindow* PreferencesDialog::create_debug_page()
                 }
 
 
+                wxGetApp().update_publish_status();
 
                 AppConfig* config = GUI::wxGetApp().app_config;
                 std::string country_code = config->get_country_code();
