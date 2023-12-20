@@ -45,7 +45,6 @@ wxDEFINE_EVENT(EVT_CLEAR_IPADDRESS, wxCommandEvent);
 
 static wxString task_canceled_text = _L("Task canceled");
 
-
 std::string get_print_status_info(PrintDialogStatus status)
 {
     switch(status) {
@@ -4447,9 +4446,10 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
      Fit();
  }
 
- void ThumbnailPanel::set_thumbnail(wxImage img)
+ void ThumbnailPanel::set_thumbnail(wxImage &img)
  {
-     m_bitmap = img;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+     m_brightness_value = get_brightness_value(img);
+     m_bitmap = img;
      //Paint the background bitmap to the thumbnail bitmap with wxMemoryDC
      wxMemoryDC dc;
      bitmap_with_background.Create(wxSize(m_bitmap.GetWidth(), m_bitmap.GetHeight()));
@@ -4468,7 +4468,7 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
 
  void ThumbnailPanel::render(wxDC& dc) {
      
-     if (wxGetApp().dark_mode()) {
+     if (wxGetApp().dark_mode() && m_brightness_value < SHOW_BACKGROUND_BITMAP_PIXEL_THRESHOLD) {
          #ifdef __WXMSW__
              wxMemoryDC memdc;
              wxBitmap bmp(GetSize());

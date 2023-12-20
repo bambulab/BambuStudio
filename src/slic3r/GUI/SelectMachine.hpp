@@ -62,6 +62,30 @@ enum PrintFromType {
     FROM_SDCARD_VIEW,
 };
 
+static int get_brightness_value(wxImage image) {
+    wxImage grayImage = image.ConvertToGreyscale();
+
+    int width = grayImage.GetWidth();
+    int height = grayImage.GetHeight();
+
+    int totalLuminance = 0;
+    unsigned char alpha;
+    int num_none_transparent = 0;
+    for (int y = 0; y < height; y+=2) {
+
+        for (int x = 0; x < width; x+=2) {
+
+            alpha = image.GetAlpha(x, y);
+            if (alpha != 0) {
+                wxColour pixelColor = grayImage.GetRed(x, y);
+                totalLuminance += pixelColor.Red();
+                num_none_transparent = num_none_transparent + 1;
+            }
+        }
+    }
+    return totalLuminance / num_none_transparent;
+}
+
 class Material
 {
 public:
@@ -513,12 +537,12 @@ public:
     void OnPaint(wxPaintEvent &event);
     void PaintBackground(wxDC &dc);
     void OnEraseBackground(wxEraseEvent &event);
-    void set_thumbnail(wxImage img);
+    void set_thumbnail(wxImage &img);
     void render(wxDC &dc);
 private:
     ScalableBitmap m_background_bitmap;
     wxBitmap bitmap_with_background;
-    
+    int m_brightness_value{ -1 };
 };
 
 }} // namespace Slic3r::GUI
