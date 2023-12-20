@@ -93,7 +93,10 @@ void wxMediaCtrl2::Load(wxURI url)
                     [dll_path] {
                     int res = wxMessageBox(_L("BambuSource has not correctly been registered for media playing! Press Yes to re-register it."), _L("Error"), wxYES_NO | wxICON_ERROR);
                     if (res == wxYES) {
-                        SHELLEXECUTEINFO info{sizeof(info), 0, NULL, L"open", L"regsvr32", dll_path.wstring().c_str(), SW_HIDE };
+                        auto path = dll_path.wstring();
+                        if (path.find(L' ') != std::wstring::npos)
+                            path = L"\"" + path + L"\"";
+                        SHELLEXECUTEINFO info{sizeof(info), 0, NULL, L"open", L"regsvr32", path.c_str(), SW_HIDE };
                         ::ShellExecuteEx(&info);
                     }
                 });
@@ -114,7 +117,10 @@ void wxMediaCtrl2::Load(wxURI url)
             if (!notified) CallAfter([dll_path] {
                 int res = wxMessageBox(_L("Using a BambuSource from a different install, video play may not work correctly! Press Yes to fix it."), _L("Warning"), wxYES_NO | wxICON_WARNING);
                 if (res == wxYES) {
-                    SHELLEXECUTEINFO info{sizeof(info), 0, NULL, L"open", L"regsvr32", dll_path.wstring().c_str(), SW_HIDE};
+                    auto path = dll_path.wstring();
+                    if (path.find(L' ') != std::wstring::npos)
+                        path = L"\"" + path + L"\"";
+                    SHELLEXECUTEINFO info{sizeof(info), 0, NULL, L"open", L"regsvr32", path.c_str(), SW_HIDE};
                     ::ShellExecuteEx(&info);
                 }
             });
