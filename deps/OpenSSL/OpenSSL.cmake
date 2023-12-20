@@ -38,12 +38,17 @@ else()
     endif ()
 endif()
 
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+set(url_str "https://github.com/openssl/openssl/archive/OpenSSL_1_1_1k.tar.gz")
+set(url_hash "SHA256=b92f9d3d12043c02860e5e602e50a73ed21a69947bcc74d391f41148e9f6aa95")
+else()
+set(url_str "https://github.com/openssl/openssl/archive/refs/tags/openssl-3.1.2.tar.gz")
+set(url_hash "SHA256=8c776993154652d0bb393f506d850b811517c8bd8d24b1008aef57fbe55d3f31")
+endif()
 ExternalProject_Add(dep_OpenSSL
     #EXCLUDE_FROM_ALL ON
-    #URL "https://github.com/openssl/openssl/archive/OpenSSL_1_1_1k.tar.gz"
-    URL "https://github.com/openssl/openssl/archive/refs/tags/openssl-3.1.2.tar.gz"
-    #URL_HASH SHA256=b92f9d3d12043c02860e5e602e50a73ed21a69947bcc74d391f41148e9f6aa95
-    URL_HASH SHA256=8c776993154652d0bb393f506d850b811517c8bd8d24b1008aef57fbe55d3f31
+    URL ${url_str}
+    URL_HASH ${url_hash}
     DOWNLOAD_DIR ${DEP_DOWNLOAD_DIR}/OpenSSL
 	CONFIGURE_COMMAND ${_conf_cmd} ${_cross_arch}
         "--openssldir=${DESTDIR}/usr/local"
