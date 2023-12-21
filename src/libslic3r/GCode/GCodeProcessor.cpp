@@ -16,6 +16,7 @@
 
 #include <float.h>
 #include <assert.h>
+#include <regex>
 
 #if __has_include(<charconv>)
     #include <charconv>
