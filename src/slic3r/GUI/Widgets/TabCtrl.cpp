@@ -1,3 +1,4 @@
+#include <wx/dc.h>
 #include "TabCtrl.hpp"
 
 wxDEFINE_EVENT( wxEVT_TAB_SEL_CHANGING, wxCommandEvent );

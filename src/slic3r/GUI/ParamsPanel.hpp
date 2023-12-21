@@ -23,7 +23,9 @@
 #include <wx/sizer.h>
 #include <wx/statline.h>
 #include <wx/scrolwin.h>
+#include <wx/timer.h>
 #include <wx/panel.h>
+#include <wx/wupdlock.h>
 
 #include "wxExtensions.hpp"
 #include "GUI_Utils.hpp"

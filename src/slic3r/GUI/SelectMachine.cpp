@@ -17,6 +17,7 @@
 #include <wx/progdlg.h>
 #include <wx/clipbrd.h>
 #include <wx/dcgraph.h>
+#include <wx/mstream.h>
 #include <miniz.h>
 #include <algorithm>
 #include "Plater.hpp"

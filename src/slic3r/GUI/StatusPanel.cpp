@@ -17,6 +17,8 @@
 #include "RecenterDialog.hpp"
 #include "CalibUtils.hpp"
 #include <slic3r/GUI/Widgets/ProgressDialog.hpp>
+#include <wx/display.h>
+#include <wx/mstream.h>
 #include <wx/sstream.h>
 #include <wx/zstream.h>
 

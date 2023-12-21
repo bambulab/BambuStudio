@@ -3,6 +3,8 @@
 #include <string>
 const int CUSTOM_COLOR_COUNT = 16;
 
+#include <tuple>
+
 std::tuple<int, int, int> rgb_to_yuv(float r, float g, float b);
 double PivotRGB(double n);
 double PivotXYZ(double n);

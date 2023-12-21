@@ -3,6 +3,7 @@
 
 #include <string>
 #include <functional>
+#include <wx/string.h>
 
 namespace Slic3r {
 

@@ -1,6 +1,7 @@
 #include "Button.hpp"
 #include "Label.hpp"
 
+#include <wx/dcclient.h>
 #include <wx/dcgraph.h>
 
 BEGIN_EVENT_TABLE(Button, StaticBox)

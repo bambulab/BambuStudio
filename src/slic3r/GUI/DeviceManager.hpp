@@ -2,6 +2,7 @@
 #define slic3r_DeviceManager_hpp_
 
 #include <map>
+#include <mutex>
 #include <vector>
 #include <string>
 #include <memory>

@@ -2,6 +2,7 @@
 #include "Label.hpp"
 #include "TextCtrl.h"
 
+#include <wx/dcclient.h>
 #include <wx/dcgraph.h>
 
 BEGIN_EVENT_TABLE(TextInput, wxPanel)

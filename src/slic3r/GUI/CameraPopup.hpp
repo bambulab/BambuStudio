@@ -8,6 +8,7 @@
 #include <wx/bitmap.h>
 #include <wx/image.h>
 #include <wx/sizer.h>
+#include <wx/timer.h>
 #include <wx/gbsizer.h>
 #include <wx/webrequest.h>
 #include <wx/hyperlink.h>

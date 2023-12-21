@@ -1,6 +1,8 @@
 #ifndef slic3r_GUI_ObjectDataViewModel_hpp_
 #define slic3r_GUI_ObjectDataViewModel_hpp_
 
+#include <boost/log/trivial.hpp>
+
 #include <wx/dataview.h>
 #include <vector>
 #include <map>

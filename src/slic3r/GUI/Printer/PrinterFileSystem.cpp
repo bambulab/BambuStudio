@@ -8,8 +8,12 @@
 #include "../BitmapCache.hpp"
 
 #include <boost/algorithm/hex.hpp>
+#include <boost/endian/conversion.hpp>
+#include <boost/log/trivial.hpp>
 #include <boost/uuid/detail/md5.hpp>
 #include <boost/regex.hpp>
+
+#include <wx/mstream.h>
 
 #include "nlohmann/json.hpp"
 
