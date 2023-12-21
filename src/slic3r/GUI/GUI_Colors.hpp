@@ -2,6 +2,7 @@
 #define slic3r_GUI_Colors_hpp_
 
 #include "imgui/imgui.h"
+#include <array>
 
 enum RenderCol_ {
     RenderCol_3D_Background = 0,

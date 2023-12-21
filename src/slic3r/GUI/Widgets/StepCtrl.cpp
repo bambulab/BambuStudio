@@ -1,3 +1,6 @@
+#include <wx/dc.h>
+#include <wx/pen.h>
+
 #include "StepCtrl.hpp"
 #include "Label.hpp"
 
