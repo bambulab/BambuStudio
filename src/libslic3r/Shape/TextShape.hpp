@@ -1,9 +1,9 @@
 #ifndef slic3r_Text_Shape_hpp_
 #define slic3r_Text_Shape_hpp_
 
-namespace Slic3r {
-class TriangleMesh;
+#include "libslic3r/TriangleMesh.hpp"
 
+namespace Slic3r {
 struct TextResult
 {
     TriangleMesh text_mesh;

@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+#include <boost/log/trivial.hpp>
+
 #include "Standard_TypeDef.hxx"
 #include "STEPCAFControl_Reader.hxx"
 #include "BRepMesh_IncrementalMesh.hxx"

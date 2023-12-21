@@ -3,6 +3,8 @@
 
 #include <cfloat>
 
+#include <boost/log/trivial.hpp>
+
 namespace Slic3r {
 
 // Add or remove support modifier ModelVolumes from model_object_dst to match the ModelVolumes of model_object_new

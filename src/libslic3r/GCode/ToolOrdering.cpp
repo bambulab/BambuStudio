@@ -1,6 +1,7 @@
 #include "Print.hpp"
 #include "ToolOrdering.hpp"
 #include "Layer.hpp"
+#include "ClipperUtils.hpp"
 
 // #define SLIC3R_DEBUG
 

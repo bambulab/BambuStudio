@@ -1,3 +1,4 @@
+#include "clipper/clipper_z.hpp"
 #include "ClipperUtils.hpp"
 #include "ExtrusionEntityCollection.hpp"
 #include "Layer.hpp"

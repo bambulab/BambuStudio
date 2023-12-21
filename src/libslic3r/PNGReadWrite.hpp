@@ -1,9 +1,12 @@
 #ifndef PNGREAD_HPP
 #define PNGREAD_HPP
 
+#include <cstdint>
 #include <vector>
 #include <string>
 #include <istream>
+
+#include <boost/format.hpp>
 
 namespace Slic3r { namespace png {
 
