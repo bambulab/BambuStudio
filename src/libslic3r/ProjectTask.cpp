@@ -10,6 +10,7 @@
 
 #include <boost/random.hpp>
 #include <boost/generator_iterator.hpp>
+#include <boost/log/trivial.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>

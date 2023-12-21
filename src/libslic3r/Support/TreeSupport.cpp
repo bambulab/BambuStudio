@@ -19,6 +19,10 @@
 #include "BuildVolume.hpp"
 #include "ClipperUtils.hpp"
 
+#include <boost/log/trivial.hpp>
+#include <tbb/blocked_range.h>
+#include <tbb/parallel_for.h>
+
 #ifndef M_PI
 #define M_PI 3.1415926535897932384626433832795
 #endif

@@ -24,6 +24,10 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/format.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/nowide/fstream.hpp>
+
+#include <tbb/blocked_range.h>
+#include <tbb/parallel_for.h>
 
 //BBS: add json support
 #include "nlohmann/json.hpp"
