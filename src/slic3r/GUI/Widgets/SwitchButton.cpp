@@ -5,7 +5,9 @@
 #include "../wxExtensions.hpp"
 #include "../Utils/MacDarkMode.hpp"
 
+#include <wx/dcclient.h>
 #include <wx/dcgraph.h>
+#include <wx/dcmemory.h>
 
 SwitchButton::SwitchButton(wxWindow* parent, wxWindowID id)
 	: wxBitmapToggleButton(parent, id, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE | wxBU_EXACTFIT)

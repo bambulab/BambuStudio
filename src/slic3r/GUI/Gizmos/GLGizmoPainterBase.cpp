@@ -3,6 +3,8 @@
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmosCommon.hpp"
 
+#include <boost/log/trivial.hpp>
+
 #include <GL/glew.h>
 
 #include "slic3r/GUI/GUI_App.hpp"

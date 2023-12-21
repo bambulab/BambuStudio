@@ -6,6 +6,7 @@
 #include "GUI_Utils.hpp"
 #include "DeviceManager.hpp"
 #include "wx/clrpicker.h"
+#include "wx/colourdata.h"
 #include "Widgets/RadioBox.hpp"
 #include "Widgets/Button.hpp"
 #include "Widgets/RoundedRectangle.hpp"
