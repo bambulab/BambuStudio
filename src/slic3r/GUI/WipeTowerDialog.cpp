@@ -11,9 +11,6 @@
 #include "slic3r/Utils/ColorSpaceConvert.hpp"
 #include "MainFrame.hpp"
 
-#include <wx/sizer.h>
-
-
 using namespace Slic3r::GUI;
 
 int scale(const int val) { return val * Slic3r::GUI::wxGetApp().em_unit() / 10; }

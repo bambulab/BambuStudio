@@ -2,6 +2,7 @@
 #include "GUI_App.hpp"
 
 #include <wx/wx.h>
+#include <wx/mstream.h>
 #include <wx/sizer.h>
 #include <wx/statbox.h>
 #include "wx/evtloop.h"
