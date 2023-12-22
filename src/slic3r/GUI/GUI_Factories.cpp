@@ -1237,11 +1237,15 @@ void MenuFactory::create_plate_menu()
         [](wxCommandEvent&) {
             PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
             assert(plate);
-            plater()->set_prepare_state(Job::PREPARE_STATE_MENU);
-            plater()->arrange();
+
+            if (!plate->get_objects().empty() && !plater()->is_background_process_slicing())
+            {
+                plater()->set_prepare_state(Job::PREPARE_STATE_MENU);
+                plater()->arrange();
+            }
         }, "", nullptr,
         []() {
-            return !plater()->get_partplate_list().get_selected_plate()->get_objects().empty();
+            return !plater()->get_partplate_list().get_selected_plate()->get_objects().empty() && !plater()->is_background_process_slicing();
         },
         m_parent);
 
@@ -1250,12 +1254,15 @@ void MenuFactory::create_plate_menu()
         [](wxCommandEvent&) {
             PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
             assert(plate);
-            //BBS TODO call auto rotate for current plate
-            plater()->set_prepare_state(Job::PREPARE_STATE_MENU);
-            plater()->orient();
+            if (!plate->get_objects().empty() && !plater()->is_background_process_slicing())
+            {
+                //BBS TODO call auto rotate for current plate
+                plater()->set_prepare_state(Job::PREPARE_STATE_MENU);
+                plater()->orient();
+            }
         }, "", nullptr,
         []() {
-            return !plater()->get_partplate_list().get_selected_plate()->get_objects().empty();
+            return !plater()->get_partplate_list().get_selected_plate()->get_objects().empty() && !plater()->is_background_process_slicing();
         }, m_parent);
 
     // delete current plate
