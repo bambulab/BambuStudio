@@ -423,7 +423,7 @@ void GLGizmoMeshBoolean::generate_new_volume(bool delete_input, const TriangleMe
     new_volume->config.apply(old_volume->config);
     new_volume->set_type(old_volume->type());
     new_volume->set_material_id(old_volume->material_id());
-    new_volume->set_offset(old_volume->get_transformation().get_offset());
+    //new_volume->set_offset(old_volume->get_transformation().get_offset());
     //Vec3d translate_z = { 0,0, (new_volume->source.mesh_offset - old_volume->source.mesh_offset).z() };
     //new_volume->translate(new_volume->get_transformation().get_matrix(true) * translate_z);
     //new_volume->supported_facets.assign(old_volume->supported_facets);
@@ -441,9 +441,7 @@ void GLGizmoMeshBoolean::generate_new_volume(bool delete_input, const TriangleMe
         wxGetApp().obj_list()->delete_from_model_and_list(items);
     }
 
-    //bool sinking = curr_model_object->bounding_box().min.z() < SINKING_Z_THRESHOLD;
-    //if (!sinking)
-    //    curr_model_object->ensure_on_bed();
+    curr_model_object->ensure_on_bed();
     //curr_model_object->sort_volumes(true);
 
     wxGetApp().plater()->update();
