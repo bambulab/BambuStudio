@@ -3927,7 +3927,7 @@ msgid "Information"
 msgstr "Information"
 
 msgid "Playing..."
-msgstr "En jouant..."
+msgstr "En cours..."
 
 #, c-format, boost-format
 msgid "Load failed [%d]!"
