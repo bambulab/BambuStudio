@@ -8065,7 +8065,7 @@ bool Plater::priv::can_split_to_volumes() const
 
 bool Plater::priv::can_arrange() const
 {
-    return !model.objects.empty() && !m_ui_jobs.is_any_running();
+    return !model.objects.empty() && !m_ui_jobs.is_any_running() && !q->is_background_process_slicing();
 }
 
 bool Plater::priv::layers_height_allowed() const
@@ -8790,7 +8790,6 @@ void Plater::load_project(wxString const& filename2,
     wxString const& originfile)
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "filename is: " << filename2 << "and originfile is: " << originfile;
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__;
     auto filename = filename2;
     auto check = [&filename, this] (bool yes_or_no) {
         if (!yes_or_no && !wxGetApp().check_and_save_current_preset_changes(_L("Load project"),
@@ -13475,36 +13474,42 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
     }
     else if ((action == 2)&&(!right_click))
     {
-        //arrange the plate
-        //take_snapshot("select_orient partplate");
-        ret = select_plate(plate_index);
-        if (!ret)
+        if (!p->partplate_list.get_plate(plate_index)->get_objects().empty() && !is_background_process_slicing())
         {
-            set_prepare_state(Job::PREPARE_STATE_MENU);
-            orient();
-        }
-        else
-        {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "can not select plate %1%" << plate_index;
-            ret = -1;
+            //arrange the plate
+            //take_snapshot("select_orient partplate");
+            ret = select_plate(plate_index);
+            if (!ret)
+            {
+                set_prepare_state(Job::PREPARE_STATE_MENU);
+                orient();
+            }
+            else
+            {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "can not select plate %1%" << plate_index;
+                ret = -1;
+            }
         }
     }
     else if ((action == 3)&&(!right_click))
     {
-        //arrange the plate
-        //take_snapshot("select_arrange partplate");
-        ret = select_plate(plate_index);
-        if (!ret)
+        if (!p->partplate_list.get_plate(plate_index)->get_objects().empty() && !is_background_process_slicing())
         {
-            if (last_arrange_job_is_finished()) {
-                set_prepare_state(Job::PREPARE_STATE_MENU);
-                arrange();
+            //arrange the plate
+            //take_snapshot("select_arrange partplate");
+            ret = select_plate(plate_index);
+            if (!ret)
+            {
+                if (last_arrange_job_is_finished()) {
+                    set_prepare_state(Job::PREPARE_STATE_MENU);
+                    arrange();
+                }
             }
-        }
-        else
-        {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "can not select plate %1%" << plate_index;
-            ret = -1;
+            else
+            {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "can not select plate %1%" << plate_index;
+                ret = -1;
+            }
         }
     }
     else if ((action == 4)&&(!right_click))
