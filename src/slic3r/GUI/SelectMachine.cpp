@@ -3446,15 +3446,16 @@ void SelectMachineDialog::update_show_status()
         }
     }
 
-    if (has_timelapse_warning()) {
-        show_status(PrintDialogStatus::PrintStatusTimelapseWarning);
-        return;
-    }
-
     // no ams
     if (!obj_->has_ams() || !m_checkbox_list["use_ams"]->GetValue()) {
-        if (!has_tips(obj_))
-            show_status(PrintDialogStatus::PrintStatusReadingFinished);
+        if (!has_tips(obj_)) {
+            if (has_timelapse_warning()) {
+                show_status(PrintDialogStatus::PrintStatusTimelapseWarning);
+            }
+            else {
+                show_status(PrintDialogStatus::PrintStatusReadingFinished);
+            }
+        }
         return;
     }
 
@@ -3462,7 +3463,14 @@ void SelectMachineDialog::update_show_status()
         if (!m_checkbox_list["use_ams"]->GetValue()) {
             m_ams_mapping_result.clear();
             sync_ams_mapping_result(m_ams_mapping_result);
-            show_status(PrintDialogStatus::PrintStatusDisableAms);
+
+            if (has_timelapse_warning()) {
+                show_status(PrintDialogStatus::PrintStatusTimelapseWarning);
+            }
+            else {
+                show_status(PrintDialogStatus::PrintStatusDisableAms);
+            }
+
             return;
         }
     }
@@ -3481,7 +3489,14 @@ void SelectMachineDialog::update_show_status()
             show_status(PrintDialogStatus::PrintStatusNeedUpgradingAms, params);
         } else {
             if (obj_->is_valid_mapping_result(m_ams_mapping_result)) {
-                show_status(PrintDialogStatus::PrintStatusAmsMappingByOrder);
+
+                if (has_timelapse_warning()) {
+                    show_status(PrintDialogStatus::PrintStatusTimelapseWarning);
+                }
+                else {
+                    show_status(PrintDialogStatus::PrintStatusAmsMappingByOrder);
+                }
+                
             } else {
                 int mismatch_index = -1;
                 for (int i = 0; i < m_ams_mapping_result.size(); i++) {
@@ -3502,20 +3517,31 @@ void SelectMachineDialog::update_show_status()
     }
 
     if (m_ams_mapping_res) {
-        show_status(PrintDialogStatus::PrintStatusAmsMappingSuccess);
+        if (has_timelapse_warning()) {
+            show_status(PrintDialogStatus::PrintStatusTimelapseWarning);
+        }
+        else {
+            show_status(PrintDialogStatus::PrintStatusAmsMappingSuccess);
+        }
         return;
     }
     else {
         if (obj_->is_valid_mapping_result(m_ams_mapping_result)) {
-            if (!has_tips(obj_))
-                show_status(PrintDialogStatus::PrintStatusAmsMappingValid);
-            return;
+            if (!has_tips(obj_)){
+                if (has_timelapse_warning()) {
+                    show_status(PrintDialogStatus::PrintStatusTimelapseWarning);
+                }
+                else {
+                    show_status(PrintDialogStatus::PrintStatusAmsMappingValid);
+                }
+                return;
+            }       
         }
         else {
             show_status(PrintDialogStatus::PrintStatusAmsMappingInvalid);
             return;
         }
-    }
+    } 
 }
 
 bool SelectMachineDialog::has_timelapse_warning()
