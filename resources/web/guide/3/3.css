@@ -34,6 +34,11 @@
         background: #EDEDED;
 }
 
+#Title div
+{
+	font-size:20px;
+}
+
 #C_List li
 {
 	margin-left: 4em;

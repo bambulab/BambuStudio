@@ -5,7 +5,7 @@ var LangText={
         "t3": "User Agreement",
         "t4": "Disagree",
         "t5": "Agree",
-        "t6": "We kindly request your help to improve<br/> everyone's printing",
+        "t6": "We kindly request your help to improve everyone's printing.<br/>Come and Join our Customer Experience Improvement Program",
         "t7": "Join our Customer Experience Improvement Program",
         "t8": "Back",
         "t9": "Next",
@@ -102,7 +102,9 @@ var LangText={
 		"t108":"MORE",
 		"t109":"System Filaments",
 		"t110":"Custom Filaments",
-		"t111":"Create New"
+		"t111":"Create New",
+		"t112":"Join the Program",
+		"t113":"You may change your choice in preference anytime."
     },
     "zh_CN": {
         "t1": "欢迎使用Bambu Studio",
@@ -110,7 +112,7 @@ var LangText={
         "t3": "用户使用协议",
         "t4": "拒绝",
         "t5": "同意",
-        "t6": "帮助提升Bambu Studio性能",
+        "t6": "帮助提升Bambu Studio性能<br/>欢迎加入我们的客户体验改善计划",
         "t7": "允许发送匿名数据",
         "t8": "上一步",
         "t9": "下一步",
@@ -208,6 +210,8 @@ var LangText={
 		"t109":"系统材料",
 		"t110":"自建材料",
 		"t111":"新建",	
+		"t112":"加入该计划",
+		"t113":"您可以随时更改您的偏好。",
         "wk1": "快速入门指南",
         "wk2": "本文介绍了Bambu Studio的最基本用法。它指导用户配置软件，创建项目，并逐步完成第一个打印任务。",
         "wk3": "基于项目的工作流",
@@ -231,7 +235,7 @@ var LangText={
         "t3": "利用規約",
         "t4": "同意しない",
         "t5": "同意",
-        "t6": "ユーザ体験向上プログラム",
+        "t6": "ユーザ体験向上プログラム<br/>デルのカスタマーエクスペリエンス改善プログラムへようこそ",
         "t7": "匿名で送信することを許容",
         "t8": "戻る",
         "t9": "次へ",
@@ -328,7 +332,9 @@ var LangText={
 		"t108":"もっと",
 		"t109":"システムフィラメント",
 		"t110":"カスタムフィラメント",
-		"t111":"新規作成"
+		"t111":"新規作成",
+		"t112":"この計画に参加する",
+		"t113":"好みはいつでも変更できます."		
     },
 	"it_IT": {
 		"t1": "Benvenuti allo Studio Bambu",
@@ -336,7 +342,7 @@ var LangText={
 		"t3": "Accordo dell'utente",
 		"t4": "Non accetto",
 		"t5": "Accetto",
-		"t6": "Chiediamo gentilmente il tuo aiuto per migliorare<br/> la stampa di tutti",
+		"t6": "Chiediamo gentilmente il tuo aiuto per migliorare la stampa di tutti. Vieni a partecipare al nostro programma di miglioramento della customer experience",
 		"t7": "Partecipa al nostro programma di miglioramento dell'esperienza cliente",
 		"t8": "Indietro",
 		"t9": "Avanti",
@@ -433,7 +439,9 @@ var LangText={
 		"t108": "più",
 		"t109":"Filamenti di Sistema", 
 		"t110":"Filamenti Personalizzati", 
-		"t111":"Crea Nuovo"
+		"t111":"Crea Nuovo",
+		"t112":"Partecipa al programma",
+		"t113":"Puoi cambiare la tua scelta in qualsiasi momento."			
 	},
 	"fr_FR": {
 		"t1": "Bienvenue chez Bambu Studio",
@@ -441,7 +449,7 @@ var LangText={
 		"t3": "Contrat d'utilisateur",
 		"t4": "Désaccord",
 		"t5": "Accord",
-		"t6": "Nous sollicitons votre aide pour améliorer l'impression de chacun",
+		"t6": "Nous sollicitons votre aide pour améliorer l'impression de chacun. Bienvenue dans notre programme d'amélioration de l'expérience client",
 		"t7": "Rejoignez notre programme d'amélioration de l'expérience client",
 		"t8": "Retour",
 		"t9": "Suivant",
@@ -538,7 +546,9 @@ var LangText={
 		"t108": "plus",
 		"t109":"Filaments Système",
 		"t110":"Filaments Personnalisés",
-		"t111":"Créer Nouveau"
+		"t111":"Créer Nouveau",
+		"t112":"Rejoignez le programme",
+		"t113":"Vous pouvez modifier vos préférences à tout moment."			
 	},
 	"de_DE": {
 		"t1": "Willkommen im Bambu Studio",
@@ -546,7 +556,7 @@ var LangText={
 		"t3": "Nutzervereinbarung",
 		"t4": "Nicht einverstanden",
 		"t5": "Einverstanden",
-		"t6": "Wir bitten um Ihre Hilfe, um den Druck für alle zu verbessern",
+		"t6": "Wir bitten um Ihre Hilfe, um den Druck für alle zu verbessern. Kommen Sie und nehmen Sie an unserem Programm zur Verbesserung der Kundenerfahrung teil",
 		"t7": "Treten Sie unserem Kundenverbesserungsprogramm bei",
 		"t8": "Zurück",
 		"t9": "Weiter",
@@ -643,7 +653,9 @@ var LangText={
 		"t108": "mehr",
 		"t109":"System-Filamente",
 		"t110":"Benutzerdefinierte Filamente",
-		"t111":"Neu erstellen"		
+		"t111":"Neu erstellen",
+		"t112":"Teilnahme am Programm",
+		"t113":"Sie können Ihre Wahl jederzeit ändern."			
 	},
 	"hu_HU": {
 		"t1": "Üdvözöljük a Bambu Stúdióban",
@@ -651,7 +663,7 @@ var LangText={
 		"t3": "Felhasználási feltételek",
 		"t4": "Nem értek egyet",
 		"t5": "Egyetértek",
-		"t6": "Kérem, segítsen nekünk a nyomtatás minőségének javításában<br/> Mindenkinek jó lesz",
+		"t6": "Kérem, segítsen nekünk a nyomtatás minőségének javításában Mindenkinek jó lesz. Jöjjön és csatlakozzon az ügyfélélélmény fejlesztési programhoz",
 		"t7": "Csatlakozzon az Ügyfélmegelégedettség javítási programunkhoz",
 		"t8": "Vissza",
 		"t9": "Tovább",
@@ -748,7 +760,9 @@ var LangText={
 		"t108": "több",
 		"t109":"Rendszer Filamentek",
 		"t110":"Egyedi Filamentek",
-		"t111":"Új Létrehozása"			
+		"t111":"Új Létrehozása",
+		"t112":"Csatlakozás a programhoz",
+		"t113":"Bármikor megváltoztathatja a preferenciáját."			
 	},
 	"es_ES": {
 		"t1": "Bienvenido a Bambu Studio",
@@ -756,7 +770,7 @@ var LangText={
 		"t3": "Acuerdo de usuario",
 		"t4": "No estoy de acuerdo",
 		"t5": "Estoy de acuerdo",
-		"t6": "Le pedimos amablemente su ayuda para mejorar la<br/> impresión de todos",
+		"t6": "Le pedimos amablemente su ayuda para mejorar la impresión de todos. Bienvenido a nuestro programa de mejora de la experiencia del cliente",
 		"t7": "Únase a nuestro Programa de Mejora de la Experiencia del Cliente",
 		"t8": "Volver",
 		"t9": "Siguiente",
@@ -853,7 +867,9 @@ var LangText={
 		"t108": "más",
 		"t109":"Filamenti di Sistema",
 		"t110":"Filamenti Personalizzati",
-		"t111":"Crea Nuovo"			
+		"t111":"Crea Nuovo",
+		"t112":"Unirse al programa",
+		"t113":"Puede cambiar sus preferencias en cualquier momento."			
 	},
 	"sv_SE": {
 		"t1": "Välkommen till Bambu Studio",
@@ -861,7 +877,7 @@ var LangText={
 		"t3": "Användaravtal",
 		"t4": "Oenig",
 		"t5": "Enig",
-		"t6": "Vi ber om din hjälp för att förbättra<br/> allas utskrifter",
+		"t6": "Vi ber om din hjälp för att förbättra allas utskrifter. Kom och gå med i vårt program för förbättring av kundupplevelsen",
 		"t7": "Gå med i vårt Customer Experience Improvement Program",
 		"t8": "Tillbaka",
 		"t9": "Nästa",
@@ -958,7 +974,9 @@ var LangText={
 		"t108": "mer",
 		"t109":"Systemfilament",
 		"t110":"Anpassade filament",
-		"t111":"Skapa ny"		
+		"t111":"Skapa ny",
+		"t112":"Gå med i programmet",
+		"t113":"Du kan ändra ditt val när som helst."		
 	},
 	"cs_CZ": {
         "t1": "Vítejte v Bambu Studio",
@@ -966,7 +984,7 @@ var LangText={
         "t3": "Uživatelská dohoda",
         "t4": "Nesouhlasím",
         "t5": "Souhlasím",
-        "t6": "Vřele žádáme o vaši pomoc pro zlepšení tisku pro všechny",
+        "t6": "Vřele žádáme o vaši pomoc pro zlepšení tisku pro všechny. Přijďte a připojte se k našemu programu zlepšování zkušeností zákazníků",
         "t7": "Zapojte se do našeho programu pro zlepšení zákaznického zážitku",
         "t8": "Zpět",
         "t9": "Dále",
@@ -1059,7 +1077,13 @@ var LangText={
 		"t104":"Název profilu",
 		"t105":"Autor profilu",
 		"t106":"Popis profilu",
-		"t107":"Online modely"
+		"t107":"Online modely",
+		"t108":"více",
+		"t109":"Systémové materiály",
+		"t110":"Samostatné materiály",
+		"t111":"Nové",	
+		"t112":"Připojte se k programu",
+		"t113":"Své preference můžete kdykoliv změnit.",		
     },
 	"nl_NL": {
 		"t1": "Welkom bij Bambu Studio",
@@ -1067,7 +1091,7 @@ var LangText={
 		"t3": "Gebruikersovereenkomst",
 		"t4": "Oneens",
 		"t5": "Akkoord",
-		"t6": "We vragen vriendelijk uw hulp om de<br/> printervaring van iedereen te verbeteren",
+		"t6": "We vragen vriendelijk uw hulp om de printervaring van iedereen te verbeteren. Kom en doe mee met ons programma voor verbetering van de klantervaring",
 		"t7": "Doe mee aan ons programma voor het verbeteren van de klantervaring",
 		"t8": "Terug",
 		"t9": "Volgende",
@@ -1164,7 +1188,9 @@ var LangText={
 		"t108": "meer",
 		"t109":"Systeemfilamenten",
 		"t110":"Aangepaste filamenten",
-		"t111":"Nieuw maken"
+		"t111":"Nieuw maken",
+		"t112":"Deelnemen aan het programma",
+		"t113":"U kunt uw keuze op elk gewenst moment wijzigen."		
     },
     "ru_RU": {
         "t1": "Приветствуем в Bambu Studio!",
@@ -1172,7 +1198,7 @@ var LangText={
         "t3": "Пользовательское соглашение",
         "t4": "Отказаться",
         "t5": "Принять",
-        "t6": "Мы просим вашей помощи, <br/>чтобы улучшить печать",
+        "t6": "Мы просим вашей помощи, чтобы улучшить печать. Добро пожаловать в нашу программу улучшения качества обслуживания клиентов",
         "t7": "Разрешить отправку анонимных данных для совершенствования программы",
         "t8": "Назад",
         "t9": "Далее",
@@ -1269,7 +1295,9 @@ var LangText={
 		"t108":"Больше",
 		"t109":"Системные прутки",
 		"t110":"Пользовательские прутки",
-		"t111":"Создать новый"	
+		"t111":"Создать новый",
+		"t112":"Присоединяйтесь к программе",
+		"t113":"Вы можете изменить свои предпочтения в любое время."		
 	}	
 };
 
