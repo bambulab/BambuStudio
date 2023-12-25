@@ -544,8 +544,20 @@ void GLGizmoAdvancedCut::on_set_state()
 
 bool GLGizmoAdvancedCut::on_is_activable() const
 {
-    const Selection& selection = m_parent.get_selection();
-    return selection.is_single_full_instance() && !selection.is_wipe_tower();
+    const Selection &selection  = m_parent.get_selection();
+    const int        object_idx = selection.get_object_idx();
+    if (object_idx < 0 || selection.is_wipe_tower()) 
+        return false;
+
+    if (const ModelObject *mo = wxGetApp().plater()->model().objects[object_idx]; mo->is_cut() && mo->volumes.size() == 1) {
+        const ModelVolume *volume = mo->volumes[0];
+        if (volume->is_cut_connector() && volume->cut_info.connector_type == CutConnectorType::Dowel) 
+            return false;
+    }
+
+    // This is assumed in GLCanvas3D::do_rotate, do not change this
+    // without updating that function too.
+    return selection.is_single_full_instance() && !m_parent.is_layers_editing_enabled();
 }
 
 CommonGizmosDataID GLGizmoAdvancedCut::on_get_requirements() const
