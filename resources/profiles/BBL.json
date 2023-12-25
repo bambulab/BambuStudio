@@ -682,6 +682,10 @@
             "sub_path": "filament/PolyLite PETG @base.json"
         },
         {
+            "name": "Bambu PETG Translucent @base",
+            "sub_path": "filament/Bambu PETG Translucent @base.json"
+        },
+        {
             "name": "Bambu ABS @base",
             "sub_path": "filament/Bambu ABS @base.json"
         },
@@ -1552,6 +1556,30 @@
         {
             "name": "PolyLite PETG @BBL A1 0.2 nozzle",
             "sub_path": "filament/PolyLite PETG @BBL A1 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Translucent @BBL X1C",
+            "sub_path": "filament/Bambu PETG Translucent @BBL X1C.json"
+        },
+        {
+            "name": "Bambu PETG Translucent @BBL X1C 0.8 nozzle",
+            "sub_path": "filament/Bambu PETG Translucent @BBL X1C 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Translucent @BBL A1M",
+            "sub_path": "filament/Bambu PETG Translucent @BBL A1M.json"
+        },
+        {
+            "name": "Bambu PETG Translucent @BBL A1M 0.8 nozzle",
+            "sub_path": "filament/Bambu PETG Translucent @BBL A1M 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Translucent @BBL A1 0.8 nozzle",
+            "sub_path": "filament/Bambu PETG Translucent @BBL A1 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Translucent @BBL A1",
+            "sub_path": "filament/Bambu PETG Translucent @BBL A1.json"
         },
         {
             "name": "Bambu ABS @BBL X1C",
