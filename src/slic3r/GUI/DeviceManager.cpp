@@ -1148,8 +1148,8 @@ std::string MachineObject::get_lifecycle_type_str()
     else if (lifecycle == PrinterFirmwareType::FIRMWARE_TYPE_PRODUCTION)
         return "product";
 
-    // return engineer by default;
-    return "engineer";
+    // return product by default;
+    return "product";
 }
 
 bool MachineObject::is_in_upgrading()
