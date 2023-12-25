@@ -1644,7 +1644,7 @@ void Selection::render_sidebar_hints(const std::string& sidebar_field, bool unif
             glsafe(::glTranslated(center(0), center(1), center(2)));
             if (!boost::starts_with(sidebar_field, "position")) {
                 Transform3d orient_matrix = Transform3d::Identity();
-                if (boost::starts_with(sidebar_field, "scale"))
+                if (boost::starts_with(sidebar_field, "scale") || boost::starts_with(sidebar_field, "size"))
                     orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
                 else if (boost::starts_with(sidebar_field, "rotation")) {
                     if (boost::ends_with(sidebar_field, "x"))
