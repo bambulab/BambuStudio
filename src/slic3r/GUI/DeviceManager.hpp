@@ -566,7 +566,7 @@ public:
     int upgrade_display_state = 0;           // 0 : upgrade unavailable, 1: upgrade idle, 2: upgrading, 3: upgrade_finished
     int upgrade_display_hold_count = 0;
     PrinterFirmwareType       firmware_type; // engineer|production
-    PrinterFirmwareType       lifecycle { PrinterFirmwareType::FIRMEARE_TYPE_UKNOWN };
+    PrinterFirmwareType       lifecycle { PrinterFirmwareType::FIRMWARE_TYPE_PRODUCTION };
     std::string upgrade_progress;
     std::string upgrade_message;
     std::string upgrade_status;
