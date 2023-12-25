@@ -1,0 +1,19 @@
+{
+    "type": "filament",
+    "name": "Generic PLA @Troodon",
+    "inherits": "fdm_filament_pla",
+    "from": "system",
+    "filament_id": "GFL99",
+    "setting_id": "GFSL99_Troodon_00",
+    "instantiation": "true",
+    "filament_flow_ratio": [
+        "0.98"
+    ],
+    "slow_down_layer_time": [
+        "8"
+    ],
+    "compatible_printers": [
+        "Troodon 2.0 Klipper 0.4 nozzle",
+        "Troodon 2.0 RRF 0.4 nozzle"
+    ]
+}
