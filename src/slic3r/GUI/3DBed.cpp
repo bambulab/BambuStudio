@@ -714,7 +714,7 @@ void Bed3D::render_default(bool bottom) const
         if (!has_model && !bottom) {
             // draw background
             glsafe(::glDepthMask(GL_FALSE));
-            glsafe(::glColor4fv(picking ? PICKING_MODEL_COLOR.data() : DEFAULT_MODEL_COLOR.data()));
+            glsafe(::glColor4fv(picking ? PICKING_MODEL_COLOR.data() : (m_is_dark ? DEFAULT_MODEL_COLOR_DARK.data() : DEFAULT_MODEL_COLOR.data())));
             glsafe(::glNormal3d(0.0f, 0.0f, 1.0f));
             glsafe(::glVertexPointer(3, GL_FLOAT, default_triangles.get_vertex_data_size(), (GLvoid*)default_triangles.get_vertices_data()));
             glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)triangles_vcount));
