@@ -2672,7 +2672,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     q->SetSizer(hsizer);
 
-    menus.init(q);
+    menus.init(main_frame);
 
 
     // Events:
