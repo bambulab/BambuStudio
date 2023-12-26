@@ -8,6 +8,7 @@
     "nozzle_diameter": [
         "0.4"
     ],
+    "nozzle_height": "4.2",
     "printer_model": "Bambu Lab X1 Carbon",
     "printer_variant": "0.4",
     "bed_exclude_area": [

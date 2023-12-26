@@ -53,7 +53,8 @@
     ],
     "machine_unload_filament_time": "29",
     "nozzle_type": "stainless_steel",
-    "nozzle_volume": "117",
+    "nozzle_volume": "117",   
+    "nozzle_height": "4.76",
     "printable_height": "256",
     "printer_structure": "i3",
     "retract_lift_below": [
