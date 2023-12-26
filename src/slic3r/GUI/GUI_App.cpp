@@ -1030,6 +1030,7 @@ void GUI_App::post_init()
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync_user_preset: false";
     }
 
+    std::string open_method = "studio";
     bool switch_to_3d = false;
     if (!this->init_params->input_files.empty()) {
 
@@ -1047,15 +1048,14 @@ void GUI_App::post_init()
                 if ( boost::starts_with(input_str, "http://") ||  boost::starts_with(input_str, "https://")) {
                     download_url = input_str;
                 }
-
             }
 
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("download_url %1%") % download_url;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", download_url %1%") % download_url;
 
             if (!download_url.empty()) {
                 m_download_file_url = from_u8(download_url);
             }
-
+            open_method = "makerworld";
         }
         else {
             switch_to_3d = true;
@@ -1063,6 +1063,7 @@ void GUI_App::post_init()
                 mainframe->select_tab(size_t(MainFrame::tp3DEditor));
                 plater_->select_view_3D("3D");
                 this->plater()->load_gcode(from_u8(this->init_params->input_files.front()));
+                open_method = "gcode";
             }
             else {
                 mainframe->select_tab(size_t(MainFrame::tp3DEditor));
@@ -1073,9 +1074,30 @@ void GUI_App::post_init()
                 }
                 this->plater()->set_project_filename(_L("Untitled"));
                 this->plater()->load_files(input_files);
+                try {
+                    if (!input_files.empty()) {
+                        std::string file_path = input_files.front().ToStdString();
+                        std::filesystem::path path(file_path);
+                        open_method = "file_" + path.extension().string();
+                    }
+                }
+                catch (...) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ", file path exception!";
+                    open_method = "file";
+                }
             }
         }
     }
+
+    try {
+        NetworkAgent* agent = wxGetApp().getAgent();
+        json j;
+        j["open_method"] = open_method;
+        if (agent) {
+            agent->track_event("open_method", j.dump());
+        }
+    }
+    catch (...) {}
 
 //#if BBL_HAS_FIRST_PAGE
     bool slow_bootup = false;
