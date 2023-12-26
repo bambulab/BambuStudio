@@ -1005,6 +1005,14 @@ wxWindow* PreferencesDialog::create_general_page()
 
     std::vector<wxString> Units         = {_L("Metric") + " (mm, g)", _L("Imperial") + " (in, oz)"};
     auto item_currency = create_item_combobox(_L("Units"), page, _L("Units"), "use_inches", Units);
+    auto item_single_instance = create_item_checkbox(_L("Keep only one BambuStudio instance"), page, 
+#if __APPLE__
+        _L("On OSX there is always only one instance of app running by default. However it is allowed to run multiple instances "
+			  "of same app from the command line. In such case this settings will allow only one instance."), 
+#else
+        _L("If this is enabled, when starting BambuStudio and another instance of the same BambuStudio is already running, that instance will be reactivated instead."), 
+#endif
+        50, "single_instance");
 
     auto item_mouse_zoom_settings = create_item_checkbox(_L("Zoom to mouse position"), page, _L("Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."), 50, "zoom_to_mouse");
     auto item_bed_type_follow_preset = create_item_checkbox(_L("Auto Bed Type"), page,
@@ -1073,6 +1081,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_language, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_region, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_currency, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_single_instance, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_mouse_zoom_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_bed_type_follow_preset, 0, wxTOP, FromDIP(3));
     //sizer_page->Add(item_hints, 0, wxTOP, FromDIP(3));
