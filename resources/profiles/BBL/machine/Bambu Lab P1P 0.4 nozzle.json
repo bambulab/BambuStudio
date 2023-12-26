@@ -27,6 +27,7 @@
     "machine_load_filament_time": "29",
     "machine_unload_filament_time": "28",
     "nozzle_type": "stainless_steel",
+    "nozzle_height": "4.2",
     "scan_first_layer": "0",
     "upward_compatible_machine": [
         "Bambu Lab P1S 0.4 nozzle",
