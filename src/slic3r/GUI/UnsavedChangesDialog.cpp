@@ -1434,6 +1434,7 @@ void UnsavedChangesDialog::update_list()
 {
     std::map<wxString, std::vector<PresetItem>> class_g_list;
     std::map<wxString, std::vector<wxString>>   class_c_list;
+    std::vector<wxString>                       category_list;
 
     // group
     for (auto i = 0; i < m_presetitems.size(); i++) {
@@ -1453,6 +1454,7 @@ void UnsavedChangesDialog::update_list()
             std::vector<wxString> vp;
             vp.push_back(m_presetitems[i].group_name);
             class_c_list.emplace(m_presetitems[i].category_name, vp);
+            category_list.push_back(m_presetitems[i].category_name);
         } else {
             /*for (auto iter = class_c_list.begin(); iter != class_c_list.end(); iter++)
                 iter->second.push_back(m_presetitems[i].group_name);*/
@@ -1468,8 +1470,8 @@ void UnsavedChangesDialog::update_list()
 
 
     auto m_listsizer = new wxBoxSizer(wxVERTICAL);
-    for (auto iter = class_c_list.begin(); iter != class_c_list.end(); iter++) {
-
+    for (auto category : category_list) {
+        auto iter = class_c_list.find(category);
         //category
         auto panel_category = new wxPanel(m_scrolledWindow, wxID_ANY, wxDefaultPosition, wxSize(-1, UNSAVE_CHANGE_DIALOG_ITEM_HEIGHT), wxTAB_TRAVERSAL);
         panel_category->SetBackgroundColour(GREY300);
