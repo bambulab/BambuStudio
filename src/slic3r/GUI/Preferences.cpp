@@ -622,7 +622,12 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
     m_sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
 
     auto checkbox = new ::CheckBox(parent);
-    checkbox->SetValue((app_config->get(param) == "true") ? true : false);
+    if (param == "privacyuse") {
+        checkbox->SetValue((app_config->get("firstguide", param) == "true") ? true : false);
+    }
+    else {
+        checkbox->SetValue((app_config->get(param) == "true") ? true : false);
+    }
 
     m_sizer_checkbox->Add(checkbox, 0, wxALIGN_CENTER, 0);
     m_sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, 8);
@@ -639,8 +644,14 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
 
      //// save config
     checkbox->Bind(wxEVT_TOGGLEBUTTON, [this, checkbox, param](wxCommandEvent &e) {
-        app_config->set_bool(param, checkbox->GetValue());
-        app_config->save();
+        if (param == "privacyuse") {
+            app_config->set("firstguide", param, checkbox->GetValue());
+            app_config->save();
+        }
+        else {
+            app_config->set_bool(param, checkbox->GetValue());
+            app_config->save();
+        }
 
         if (param == "staff_pick_switch") {
             bool pbool = app_config->get("staff_pick_switch") == "true";
@@ -1048,6 +1059,12 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_darkmode = create_item_darkmode_checkbox(_L("Enable Dark mode"), page,_L("Enable Dark mode"), 50, "dark_color_mode");
 #endif
 
+    auto title_user_experience = create_item_title(_L("User Experience"), page, _L("User Experience"));
+    auto item_priv_policy = create_item_checkbox(_L("Join Customer Experience Improvement Program."), page, _L(""), 50, "privacyuse");
+    wxHyperlinkCtrl* hyperlink = new wxHyperlinkCtrl(page, wxID_ANY, "What data would be collected?", "https://bambulab.com/en/policies/privacy");
+    hyperlink->SetFont(Label::Head_13);
+    item_priv_policy->Add(hyperlink, 0, wxALIGN_CENTER, 0);
+
     auto title_develop_mode = create_item_title(_L("Develop mode"), page, _L("Develop mode"));
     auto item_develop_mode  = create_item_checkbox(_L("Develop mode"), page, _L("Develop mode"), 50, "developer_mode");
     auto item_skip_ams_blacklist_check  = create_item_checkbox(_L("Skip AMS blacklist check"), page, _L("Skip AMS blacklist check"), 50, "skip_ams_blacklist_check");
@@ -1096,6 +1113,9 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(title_darkmode, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_darkmode, 0, wxEXPAND, FromDIP(3));
 #endif
+
+    sizer_page->Add(title_user_experience, 0, wxTOP | wxEXPAND, FromDIP(20));
+    sizer_page->Add(item_priv_policy, 0, wxTOP, FromDIP(3));
 
     sizer_page->Add(title_develop_mode, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_develop_mode, 0, wxTOP, FromDIP(3));
