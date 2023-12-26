@@ -6007,6 +6007,12 @@ void GUI_App::open_mall_page_dialog()
        link_url = host_url + model_url;
     }
 
+    if (link_url.find("?") != std::string::npos) {
+        link_url += "&from=bambustudio";
+    } else {
+        link_url += "?from=bambustudio";
+    }
+
     wxLaunchDefaultBrowser(link_url);
 }
 
