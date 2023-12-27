@@ -1870,6 +1870,14 @@ std::string& Sidebar::get_search_line()
     return p->searcher.search_string();
 }
 
+void Sidebar::set_is_gcode_file(bool flag)
+{
+    m_is_gcode_file = flag;
+    if (m_is_gcode_file) {
+        wxGetApp().plater()->force_update_all_plate_thumbnails();
+    }
+}
+
 void Sidebar::auto_calc_flushing_volumes(const int modify_id) {
     auto& project_config = wxGetApp().preset_bundle->project_config;
     auto& printer_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
@@ -5802,7 +5810,7 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
         }
     }
     else {
-        preview->get_canvas3d()->enable_select_plate_toolbar(false);
+        preview->get_canvas3d()->clear_select_plate_toolbar_render_flag();
     }
 
     if (current_panel == panel)
@@ -9453,6 +9461,7 @@ void Plater::force_update_all_plate_thumbnails()
         invalid_all_plate_thumbnails();
         update_all_plate_thumbnails(true);
     }
+    get_preview_canvas3D()->clear_select_plate_toolbar_render_flag();
     get_preview_canvas3D()->update_plate_thumbnails();
 }
 
