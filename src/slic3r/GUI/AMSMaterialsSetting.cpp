@@ -8,12 +8,12 @@
 #include <wx/colordlg.h>
 #include <wx/dcgraph.h>
 #include "CalibUtils.hpp"
-
+#include "../Utils/ColorSpaceConvert.hpp"
 namespace Slic3r { namespace GUI {
 
 wxDEFINE_EVENT(EVT_SELECTED_COLOR, wxCommandEvent);
 
-AMSMaterialsSetting::AMSMaterialsSetting(wxWindow *parent, wxWindowID id) 
+AMSMaterialsSetting::AMSMaterialsSetting(wxWindow *parent, wxWindowID id)
     : DPIDialog(parent, id, _L("AMS Materials Setting"), wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
     , m_color_picker_popup(ColorPickerPopup(this))
 {
@@ -1392,11 +1392,22 @@ ColorPickerPopup::ColorPickerPopup(wxWindow* parent)
 
 void ColorPickerPopup::on_custom_clr_picker(wxMouseEvent& event)
 {
+    std::vector<std::string> colors = wxGetApp().app_config->get_custom_color_from_config();
+    for (int i = 0; i < colors.size(); i++) {
+        m_clrData->SetCustomColour(i, string_to_wxColor(colors[i]));
+    }
     auto clr_dialog = new wxColourDialog(nullptr, m_clrData);
     wxColour picker_color;
 
     if (clr_dialog->ShowModal() == wxID_OK) {
         m_clrData = &(clr_dialog->GetColourData());
+        if (colors.size() != CUSTOM_COLOR_COUNT) {
+            colors.resize(CUSTOM_COLOR_COUNT);
+        }
+        for (int i = 0; i < CUSTOM_COLOR_COUNT; i++) {
+            colors[i] = color_to_string(m_clrData->GetCustomColour(i));
+        }
+        wxGetApp().app_config->save_custom_color_to_config(colors);
 
         picker_color = wxColour(
             m_clrData->GetColour().Red(),
