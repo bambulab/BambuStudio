@@ -175,7 +175,7 @@ public:
     std::vector<PlaterPresetComboBox*>&   combos_filament();
     Search::OptionsSearcher&        get_searcher();
     std::string&                    get_search_line();
-    void                            set_is_gcode_file(bool flag) { m_is_gcode_file = flag; }
+    void                            set_is_gcode_file(bool flag);
     void                            update_soft_first_start_state() { m_soft_first_start = false; }
     void                            cancel_update_3d_state() { m_update_3d_state = false; }
     bool                            get_update_3d_state() { return m_update_3d_state; }

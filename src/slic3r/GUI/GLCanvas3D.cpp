@@ -1650,6 +1650,11 @@ void GLCanvas3D::enable_select_plate_toolbar(bool enable)
     m_sel_plate_toolbar.set_enabled(enable);
 }
 
+void GLCanvas3D::clear_select_plate_toolbar_render_flag()
+{
+    m_sel_plate_toolbar.is_render_finish = false;
+}
+
 void GLCanvas3D::enable_assemble_view_toolbar(bool enable)
 {
     m_assemble_view_toolbar.set_enabled(enable);
