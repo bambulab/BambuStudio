@@ -5778,11 +5778,12 @@ void ObjectList::reload_all_plates(bool notify_partplate)
         ++obj_idx;
     }
 
-    update_selections();
-
 #ifdef __WXOSX__
     AssociateModel(m_objects_model);
 #endif
+
+    update_selections();
+
     m_prevent_canvas_selection_update = false;
 
     // update scene
