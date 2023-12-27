@@ -776,12 +776,14 @@ void do_boolean(McutMesh& srcMesh, const McutMesh& cutMesh, const std::string& b
     // But we can force it to work by spliting the src mesh into disconnected components,
     // and do booleans seperately, then merge all the results.
     indexed_triangle_set all_its;
+    std::vector<bool> has_been_merged(cut_parts.size(), false);
     if (boolean_opts == "UNION" || boolean_opts == "A_NOT_B") {
         for (size_t i = 0; i < src_parts.size(); i++) {
             auto src_part = triangle_mesh_to_mcut(src_parts[i]);
             for (size_t j = 0; j < cut_parts.size(); j++) {
+                if (has_been_merged[j]) continue;  // assume union is done first, then we can safely skip the merged parts for A_NOT_B
                 auto cut_part = triangle_mesh_to_mcut(cut_parts[j]);
-                bool success = do_boolean_single(*src_part, *cut_part, boolean_opts);
+                has_been_merged[j] = do_boolean_single(*src_part, *cut_part, boolean_opts);
             }
             TriangleMesh tri_part = mcut_to_triangle_mesh(*src_part);
             its_merge(all_its, tri_part.its);
