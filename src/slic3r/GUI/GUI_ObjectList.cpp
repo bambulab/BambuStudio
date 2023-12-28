@@ -2083,7 +2083,7 @@ static TriangleMesh create_mesh(const std::string& type_name, const BoundingBoxf
         // Sitting on the print bed, left front front corner at (0, 0).
         mesh = TriangleMesh(its_make_cube(bb.size().x() * 1.5, bb.size().y() * 1.5, bb.size().z() * 0.5));
     else if (type_name == "Cone")
-        mesh = TriangleMesh(its_make_cone(0.5 * side, side));
+        mesh.ReadSTLFile((Slic3r::resources_dir() + "/model/cone.stl").c_str(), true, nullptr);
     else if (type_name == "Disc")
         mesh.ReadSTLFile((Slic3r::resources_dir() + "/model/Disc.stl").c_str(), true, nullptr);
     else if (type_name == "Torus")
