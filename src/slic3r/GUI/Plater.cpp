@@ -8182,11 +8182,16 @@ void Plater::priv::record_start_print_preset(std::string action) {
             if (full_config.has("different_settings_to_system")) {
                 std::vector<std::string> different_values = full_config.option<ConfigOptionStrings>("different_settings_to_system")->values;
                 std::vector<std::string> values;
-                boost::split(values, different_values.front(), boost::is_any_of(";"));
-                for (int i = 0; i < values.size(); ++i) {
-                    std::string str = values[i];
-                    const ConfigOption* config = full_config.option(str);
-                    j_system[str] = config->serialize();
+                for (int i = 0; i < different_values.size(); ++i) {
+                    if (different_values[i] == "")
+                        continue;
+                    boost::split(values, different_values[i], boost::is_any_of(";"));
+                    for (int k = 0; k < values.size(); ++k) {
+                        std::string str = values[k];
+                        const ConfigOption* config = full_config.option(str);
+                        if (config)
+                            j_system[str] = config->serialize();
+                    }
                 }
             }
         }
@@ -11436,7 +11441,7 @@ void Plater::record_slice_preset(std::string action)
         NetworkAgent* agent = wxGetApp().getAgent();
         if (agent) {
             agent->track_event("slice_completed", j.dump());
-            agent->track_update_property("different_settings_to_system", j["different_set_to_system"]);
+            agent->track_update_property("different_settings_to_system", j["different_settings_to_system"].dump());
         }
     }
     catch (...)
