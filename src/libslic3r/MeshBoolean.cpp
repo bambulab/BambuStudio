@@ -810,7 +810,9 @@ void make_boolean(const TriangleMesh &src_mesh, const TriangleMesh &cut_mesh, st
     triangle_mesh_to_mcut(cut_mesh, cutMesh);
     //dst_mesh = make_boolean(srcMesh, cutMesh, boolean_opts);
     do_boolean(srcMesh, cutMesh, boolean_opts);
-    dst_mesh.push_back(mcut_to_triangle_mesh(srcMesh));
+    TriangleMesh tri_src = mcut_to_triangle_mesh(srcMesh);
+    if (!tri_src.empty())
+        dst_mesh.push_back(std::move(tri_src));
 }
 
 } // namespace mcut
