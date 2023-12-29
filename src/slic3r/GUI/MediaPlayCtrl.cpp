@@ -297,7 +297,7 @@ void MediaPlayCtrl::Stop(wxString const &msg)
             SetStatus(_L("Stopped [%d]!"), true);
         else
             SetStatus(_L("Stopped."), false);
-        if (!m_auto_retry || m_failed_code >= 100) // not keep retry on local error
+        if (!m_auto_retry || m_failed_code >= 100 || m_failed_code == 1) // not keep retry on local error or EOS
             m_next_retry = wxDateTime();
     } else if (!msg.IsEmpty()) {
         SetStatus(msg, false);
