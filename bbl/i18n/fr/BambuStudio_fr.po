@@ -4019,7 +4019,7 @@ msgid "Show all files, recent first."
 msgstr "Afficher tous les fichiers, les plus récents en premier."
 
 msgid "Timelapse"
-msgstr "Laps de temps"
+msgstr "Timelapse"
 
 msgid "Switch to timelapse files."
 msgstr "Passez aux fichiers timelapse."
