@@ -2110,6 +2110,7 @@ void ImGuiWrapper::init_font(bool compress)
             throw Slic3r::RuntimeError("ImGui: Could not load deafult font");
         }
     }
+    default_font->Scale = 1.5f;
 
     if (m_is_korean)
         bold_font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "NotoSansKR-Bold.ttf").c_str(), m_font_size, &cfg, ranges.Data);
@@ -2119,6 +2120,7 @@ void ImGuiWrapper::init_font(bool compress)
         bold_font = io.Fonts->AddFontDefault();
         if (bold_font == nullptr) { throw Slic3r::RuntimeError("ImGui: Could not load deafult font"); }
     }
+    bold_font->Scale = 1.5f;
 
 #ifdef __APPLE__
     ImFontConfig config;
