@@ -1797,7 +1797,7 @@ msgstr "已发送完成，即将自动跳转到设备页面（%s秒）"
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
-msgstr "已成功发送。将自动跳转到%ss中的下一页。"
+msgstr "已成功发送。即将自动跳转到下一页（%s秒）。"
 
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr "需要插入SD卡后方可发送局域网打印"
