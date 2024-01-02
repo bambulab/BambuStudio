@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio v1.8.0 Beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-18 17:44+0800\n"
+"POT-Creation-Date: 2024-01-02 15:37+0800\n"
 "PO-Revision-Date: 2023-11-12 22:00+0700\n"
 "Last-Translator: Andylg <andylg@yandex.ru>\n"
 "Language-Team: \n"
@@ -15,8 +15,8 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
 "X-Generator: Poedit 3.4.1\n"
 
 msgid "Supports Painting"
@@ -170,6 +170,12 @@ msgstr "Треугольник"
 
 msgid "Height Range"
 msgstr "Диапазон высоты слоёв"
+
+msgid "Vertical"
+msgstr ""
+
+msgid "Horizontal"
+msgstr ""
 
 msgid "Remove painted color"
 msgstr "Удаление окрашенного участка"
@@ -2552,6 +2558,19 @@ msgid "Bed Shape"
 msgstr "Форма стола"
 
 msgid ""
+"The recommended minimum temperature is less than 190 degree or the "
+"recommended maximum temperature is greater than 300 degree.\n"
+msgstr ""
+
+msgid ""
+"The recommended minimum temperature cannot be higher than the recommended "
+"minimum temperature.\n"
+msgstr ""
+
+msgid "Please check.\n"
+msgstr ""
+
+msgid ""
 "Nozzle may be blocked when the temperature is out of recommended range.\n"
 "Please make sure whether to use the temperature to print.\n"
 "\n"
@@ -3373,6 +3392,9 @@ msgstr "Автозапись мониторинга"
 msgid "Go Live"
 msgstr "Запустить трансляцию"
 
+msgid "Liveview Retry"
+msgstr ""
+
 msgid "Resolution"
 msgstr "Разрешение"
 
@@ -4030,6 +4052,9 @@ msgstr "Файлы отсутствуют [%d]"
 msgid "Load failed [%d]"
 msgstr "Ошибка загрузки [%d]"
 
+msgid "Initialize failed (Storage unavailable, insert SD card.)!"
+msgstr ""
+
 #, c-format, boost-format
 msgid "You are going to delete %u file from printer. Are you sure to continue?"
 msgid_plural ""
@@ -4416,6 +4441,36 @@ msgstr "Информация %s"
 msgid "Skip"
 msgstr "Пропустить"
 
+msgid "Newer 3mf version"
+msgstr "Новая версия 3mf"
+
+msgid ""
+"The 3mf file version is in Beta and it is newer than the current Bambu "
+"Studio version."
+msgstr ""
+
+msgid "If you would like to try Bambu Studio Beta, you may click to"
+msgstr ""
+
+msgid "Download Beta Version"
+msgstr ""
+
+msgid "The 3mf file version is newer than the current Bambu Studio version."
+msgstr ""
+
+msgid ""
+"Update your Bambu Studio could enable all functionality in the 3mf file."
+msgstr ""
+
+msgid "Current Version: "
+msgstr ""
+
+msgid "Latest Version: "
+msgstr ""
+
+msgid "Not for new"
+msgstr ""
+
 msgid "3D Mouse disconnected."
 msgstr "3D-мышь отключена."
 
@@ -4788,38 +4843,8 @@ msgstr ""
 "Этот 3mf создан в старой версии Bambu Studio, поэтому загрузятся только "
 "данные геометрии."
 
-#, c-format, boost-format
-msgid "This slicer file version %s is newer than %s's version:"
-msgstr "Эта версия нарезанного файла %s новее, чем версия %s:"
-
-msgid ""
-"Would you like to update your Bambu Studio software to enable all "
-"functionality in this slicer file?\n"
+msgid "Found following keys unrecognized:\n"
 msgstr ""
-"Хотите обновить программное обеспечение Bambu Studio, чтобы включить все "
-"функции этого нарезанного файла?\n"
-
-msgid "Newer 3mf version"
-msgstr "Новая версия 3mf"
-
-msgid ""
-"you can always update Bambu Studio at your convenience. The slicer file will "
-"now be loaded without full functionality."
-msgstr ""
-"Вы всегда сможете обновить Bambu Studio в удобное для вас время. Нарезанный "
-"файл загрузится, но без поддержки полной функциональности."
-
-#, c-format, boost-format
-msgid ""
-"This slicer file version %s is newer than %s's version.\n"
-"\n"
-"Would you like to update your Bambu Studio software to enable all "
-"functionality in this slicer file?"
-msgstr ""
-"Эта версия нарезанного файла %s новее, чем версия %s.\n"
-"\n"
-"Хотите обновить программное обеспечение Bambu Studio, чтобы включить "
-"поддержку всех функции в этом нарезанном файле?"
 
 msgid "Invalid values found in the 3mf:"
 msgstr "В файле 3mf найдены недопустимые значения:"
@@ -5408,6 +5433,12 @@ msgstr "Тёмная тема"
 
 msgid "Enable Dark mode"
 msgstr "Включить тёмную тему"
+
+msgid "User Experience"
+msgstr ""
+
+msgid "Join Customer Experience Improvement Program."
+msgstr ""
 
 msgid "Develop mode"
 msgstr "Режим разработчика"
@@ -6042,8 +6073,8 @@ msgid ""
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 "Перед использованием устройства Bambu Lab ознакомьтесь с правилами и "
-"условиями. Нажимая на кнопку \"Согласие на использование устройства Bambu Lab"
-"\", вы соглашаетесь соблюдать Политику конфиденциальности и Условия "
+"условиями. Нажимая на кнопку \"Согласие на использование устройства Bambu "
+"Lab\", вы соглашаетесь соблюдать Политику конфиденциальности и Условия "
 "использования (далее - \"Условия\"). Если вы не соблюдаете или не согласны с "
 "Политикой конфиденциальности Bambu Lab, пожалуйста, не пользуйтесь "
 "оборудованием и услугами Bambu Lab."
@@ -6202,8 +6233,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "При записи таймлапса без видимости головы рекомендуется добавить «Черновая "
 "башня таймлапса». \n"
@@ -7485,6 +7516,9 @@ msgid ""
 msgstr ""
 "Режим «Спиральная ваза» не работает, когда модель печатается несколькими "
 "материалами."
+
+msgid "Variable layer height is not supported with Organic supports."
+msgstr ""
 
 msgid ""
 "Different nozzle diameters and different filament diameters is not allowed "
@@ -11253,6 +11287,13 @@ msgid ""
 "You have not selected a printer or preset yet. Please select at least one."
 msgstr "Выберите хотя бы один принтер или профиль."
 
+#, c-format, boost-format
+msgid ""
+"The Filament name %s you created already exists. \n"
+"If you continue creating, the preset created will be displayed with its full "
+"name. Do you want to continue?"
+msgstr ""
+
 # ???
 msgid "Some existing presets have failed to be created, as follows:\n"
 msgstr ""
@@ -11266,8 +11307,8 @@ msgstr ""
 "Хотите перезаписать его?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "Мы переименуем профиль в \"Производитель Тип Серия @выбранный принтер\".\n"
@@ -12082,6 +12123,36 @@ msgstr ""
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как "
 "ABS, повышение температуры подогреваемого стола может снизить вероятность "
 "коробления?"
+
+#, c-format, boost-format
+#~ msgid "This slicer file version %s is newer than %s's version:"
+#~ msgstr "Эта версия нарезанного файла %s новее, чем версия %s:"
+
+#~ msgid ""
+#~ "Would you like to update your Bambu Studio software to enable all "
+#~ "functionality in this slicer file?\n"
+#~ msgstr ""
+#~ "Хотите обновить программное обеспечение Bambu Studio, чтобы включить все "
+#~ "функции этого нарезанного файла?\n"
+
+#~ msgid ""
+#~ "you can always update Bambu Studio at your convenience. The slicer file "
+#~ "will now be loaded without full functionality."
+#~ msgstr ""
+#~ "Вы всегда сможете обновить Bambu Studio в удобное для вас время. "
+#~ "Нарезанный файл загрузится, но без поддержки полной функциональности."
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "This slicer file version %s is newer than %s's version.\n"
+#~ "\n"
+#~ "Would you like to update your Bambu Studio software to enable all "
+#~ "functionality in this slicer file?"
+#~ msgstr ""
+#~ "Эта версия нарезанного файла %s новее, чем версия %s.\n"
+#~ "\n"
+#~ "Хотите обновить программное обеспечение Bambu Studio, чтобы включить "
+#~ "поддержку всех функции в этом нарезанном файле?"
 
 #~ msgid "A"
 #~ msgstr " A"
