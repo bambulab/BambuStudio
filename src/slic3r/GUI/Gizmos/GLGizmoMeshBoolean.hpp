@@ -67,7 +67,7 @@ protected:
     virtual void on_set_state() override;
     virtual CommonGizmosDataID on_get_requirements() const override;
     virtual void on_render_input_window(float x, float y, float bottom_limit);
-
+    virtual void render_input_window_warning(const std::string &text);
     void on_load(cereal::BinaryInputArchive &ar) override;
     void on_save(cereal::BinaryOutputArchive &ar) const override;
 
@@ -77,6 +77,7 @@ private:
     MeshBooleanSelectingState m_selecting_state;
     bool m_diff_delete_input = false;
     bool m_inter_delete_input = false;
+    std::string m_warning_text;
     VolumeInfo m_src;
     VolumeInfo m_tool;
 
