@@ -104,7 +104,7 @@ private:
     int multi_selection_menu_count{ 0 };
     int assemble_object_menu_ocunt{ 0 };
     int assemble_part_menu_count{ 0 };
-    int assemble_mulit_selection_menu_count{ 0 };
+    int assemble_multi_selection_menu_count{ 0 };
 
     // Removed/Prepended Items according to the view mode
     std::array<wxMenuItem*, mtCount> items_increase;

@@ -1641,7 +1641,8 @@ int MachineObject::command_control_fan(FanType fan_type, bool on_off)
     std::string gcode = (boost::format("M106 P%1% S%2% \n") % (int)fan_type % (on_off ? 255 : 0)).str();
     try {
         json j;
-        j["fan_control"] =  "fan_control";
+        j["crtl_type"] = get_string_from_fantype(fan_type);
+        j["value"] = on_off ? (int)1 : (int)0;
 
         NetworkAgent* agent = GUI::wxGetApp().getAgent();
         if (agent) agent->track_event("printer_control", j.dump());
@@ -1656,7 +1657,8 @@ int MachineObject::command_control_fan_val(FanType fan_type, int val)
     std::string gcode = (boost::format("M106 P%1% S%2% \n") % (int)fan_type % (val)).str();
     try {
         json j;
-        j["fan_control"] = "fan_control_val";
+        j["ctrl_type"] = get_string_from_fantype(fan_type);
+        j["value"] = val;
 
         NetworkAgent* agent = GUI::wxGetApp().getAgent();
         if (agent) agent->track_event("printer_control", j.dump());
@@ -1714,7 +1716,8 @@ int MachineObject::command_set_bed(int temp)
     std::string gcode_str = (boost::format("M140 S%1%\n") % temp).str();
     try {
         json j;
-        j["temp_control"] = "bed_temp";
+        j["ctrl_type"] = "bed_temp";
+        j["value"] = temp;
 
         NetworkAgent* agent = GUI::wxGetApp().getAgent();
         if (agent) agent->track_event("printer_control", j.dump());
@@ -1729,7 +1732,8 @@ int MachineObject::command_set_nozzle(int temp)
     std::string gcode_str = (boost::format("M104 S%1%\n") % temp).str();
     try {
         json j;
-        j["temp_control"] = "nozzle_temp";
+        j["ctrl_type"] = "nozzle_temp";
+        j["value"] = temp;
 
         NetworkAgent* agent = GUI::wxGetApp().getAgent();
         if (agent) agent->track_event("printer_control", j.dump());
@@ -4091,6 +4095,7 @@ int MachineObject::parse_json(std::string payload)
                         json t;
                         t["dev_id"] = this->dev_id;
                         t["signal"] = this->wifi_signal;
+                        t["gcode"] = j.dump();
                         m_agent->track_event("ack_cmd_gcode_line", t.dump());
                     }
                 } else if (jj["command"].get<std::string>() == "project_prepare") {
@@ -4597,6 +4602,7 @@ int MachineObject::publish_gcode(std::string gcode_str)
         json t;
         t["dev_id"] = this->dev_id;
         t["signal"] = this->wifi_signal;
+        t["gcode"] = j.dump();
         m_agent->track_event("cmd_gcode_line", t.dump());
     }
     return publish_json(j.dump());
@@ -4901,6 +4907,21 @@ void MachineObject::get_firmware_info()
 bool MachineObject::is_firmware_info_valid()
 {
     return m_firmware_valid;
+}
+
+std::string MachineObject::get_string_from_fantype(FanType type)
+{
+    switch (type) {
+    case FanType::COOLING_FAN:
+        return "cooling_fan";
+    case FanType::BIG_COOLING_FAN:
+        return "big_cooling_fan";
+    case FanType::CHAMBER_FAN:
+        return "chamber_fan";
+    default:
+        return "";
+    }
+    return "";
 }
 
 DeviceManager::DeviceManager(NetworkAgent* agent)

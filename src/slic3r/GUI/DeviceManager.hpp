@@ -942,6 +942,7 @@ public:
     bool m_firmware_thread_started { false };
     void get_firmware_info();
     bool is_firmware_info_valid();
+    std::string get_string_from_fantype(FanType type);
 };
 
 class DeviceManager

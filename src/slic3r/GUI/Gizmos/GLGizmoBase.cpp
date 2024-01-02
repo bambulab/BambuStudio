@@ -220,19 +220,23 @@ void GLGizmoBase::set_state(EState state)
         }
         else if (m_state == On && state == Off) {
             std::chrono::system_clock::time_point end = std::chrono::system_clock::now();
-            std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
-            float times = duration.count();
+            std::chrono::duration<int> duration = std::chrono::duration_cast<std::chrono::duration<int>>(end - start);
+            int times = duration.count();
 
             NetworkAgent* agent = GUI::wxGetApp().getAgent();
             if (agent) {
                 std::string full_name = name + "_duration";
                 std::string value = "";
-                float existing_time = 0;
+                int existing_time = 0;
 
                 agent->track_get_property(full_name, value);
-                if (value != "") {
-                    existing_time = std::stof(value);
+                try {
+                    if (value != "") {
+                        existing_time = std::stoi(value);
+                    }
                 }
+                catch (...) {}
+
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " tool name:" << full_name << " duration: " << times + existing_time;
                 agent->track_update_property(full_name, std::to_string(times + existing_time));
             }

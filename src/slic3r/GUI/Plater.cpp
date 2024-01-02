@@ -8339,8 +8339,8 @@ void Plater::priv::record_start_print_preset(std::string action) {
 
         json j_workflow_debug;
         std::chrono::system_clock::time_point end = std::chrono::system_clock::now();
-        std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
-        float times = duration.count();
+        std::chrono::duration<int> duration = std::chrono::duration_cast<std::chrono::duration<int>>(end - start);
+        int times = duration.count();
         j_workflow_debug["duration"] = times;
 
         j["record_event"] = action;
