@@ -14,18 +14,19 @@
 namespace Slic3r {
 namespace GUI {
 
-static const std::string warning_text = _u8L("Unable to perform boolean operation on selected parts");
+static const std::string warning_text_common       = _u8L("Unable to perform boolean operation on selected parts");
+static const std::string warning_text_intersection = _u8L("Performed boolean intersection fails \n because the selected parts have no intersection");
 
 GLGizmoMeshBoolean::GLGizmoMeshBoolean(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoBase(parent, icon_filename, sprite_id)
 {
 }
 
-GLGizmoMeshBoolean::~GLGizmoMeshBoolean() 
+GLGizmoMeshBoolean::~GLGizmoMeshBoolean()
 {
 }
 
-bool GLGizmoMeshBoolean::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down) 
+bool GLGizmoMeshBoolean::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down)
 {
     if (action == SLAGizmoEventType::LeftDown) {
         const ModelObject* mo = m_c->selection_info()->model_object();
@@ -139,6 +140,7 @@ void GLGizmoMeshBoolean::on_render()
 
 void GLGizmoMeshBoolean::on_set_state()
 {
+    m_warning_text = "";
     if (m_state == EState::On) {
         m_src.reset();
         m_tool.reset();
@@ -154,7 +156,6 @@ void GLGizmoMeshBoolean::on_set_state()
         bool m_inter_delete_input = false;
         m_operation_mode = MeshBooleanOperation::Undef;
         m_selecting_state = MeshBooleanSelectingState::Undef;
-        wxGetApp().notification_manager()->close_plater_warning_notification(warning_text);
     }
 }
 
@@ -321,10 +322,10 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
             Slic3r::MeshBoolean::mcut::make_boolean(temp_src_mesh, temp_tool_mesh, temp_mesh_resuls, "UNION");
             if (temp_mesh_resuls.size() != 0) {
                 generate_new_volume(true, *temp_mesh_resuls.begin());
-                wxGetApp().notification_manager()->close_plater_warning_notification(warning_text);
+                m_warning_text = "";
             }
             else {
-                wxGetApp().notification_manager()->push_plater_warning_notification(warning_text);
+                m_warning_text = warning_text_common;
             }
         }
     }
@@ -339,10 +340,10 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
             Slic3r::MeshBoolean::mcut::make_boolean(temp_src_mesh, temp_tool_mesh, temp_mesh_resuls, "A_NOT_B");
             if (temp_mesh_resuls.size() != 0) {
                 generate_new_volume(m_diff_delete_input, *temp_mesh_resuls.begin());
-                wxGetApp().notification_manager()->close_plater_warning_notification(warning_text);
+                m_warning_text = "";
             }
             else {
-                wxGetApp().notification_manager()->push_plater_warning_notification(warning_text);
+                m_warning_text = warning_text_common;
             }
         }
     }
@@ -357,13 +358,14 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
             Slic3r::MeshBoolean::mcut::make_boolean(temp_src_mesh, temp_tool_mesh, temp_mesh_resuls, "INTERSECTION");
             if (temp_mesh_resuls.size() != 0) {
                 generate_new_volume(m_inter_delete_input, *temp_mesh_resuls.begin());
-                wxGetApp().notification_manager()->close_plater_warning_notification(warning_text);
+                m_warning_text = "";
             }
             else {
-                wxGetApp().notification_manager()->push_plater_warning_notification(warning_text);
+                m_warning_text = warning_text_intersection;
             }
         }
     }
+    render_input_window_warning(m_warning_text);
 
     float win_w = ImGui::GetWindowWidth();
     if (last_w != win_w || last_y != y) {
@@ -379,6 +381,12 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
 
     GizmoImguiEnd();
     ImGuiWrapper::pop_toolbar_style();
+}
+
+void GLGizmoMeshBoolean::render_input_window_warning(const std::string &text) {
+    if (text.size() > 0) {
+        m_imgui->text(_L("Warning") + ": " + _L(text));
+    }
 }
 
 void GLGizmoMeshBoolean::on_load(cereal::BinaryInputArchive &ar)
