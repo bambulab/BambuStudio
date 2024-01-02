@@ -2,10 +2,10 @@
 Name=BambuStudio
 GenericName=3D Printing Software
 Icon=BambuStudio
-Exec=bambu-studio %F
+Exec=bambu-studio %U
 Terminal=false
 Type=Application
-MimeType=model/stl;model/3mf;application/vnd.ms-3mfdocument;application/prs.wavefront-obj;application/x-amf;
+MimeType=model/stl;model/3mf;application/vnd.ms-3mfdocument;application/prs.wavefront-obj;application/x-amf;x-scheme-handler/bambustudio;
 Categories=Graphics;3DGraphics;Engineering;
 Keywords=3D;Printing;Slicer;slice;3D;printer;convert;gcode;stl;obj;amf;SLA
 StartupNotify=false
