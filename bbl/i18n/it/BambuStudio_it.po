@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-18 17:44+0800\n"
+"POT-Creation-Date: 2024-01-02 15:37+0800\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -160,6 +160,12 @@ msgstr "Triangolo."
 
 msgid "Height Range"
 msgstr "Interv. altezza"
+
+msgid "Vertical"
+msgstr ""
+
+msgid "Horizontal"
+msgstr ""
 
 msgid "Remove painted color"
 msgstr "Rimuovi colore dipinto"
@@ -2509,6 +2515,19 @@ msgid "Bed Shape"
 msgstr "Forma Piano"
 
 msgid ""
+"The recommended minimum temperature is less than 190 degree or the "
+"recommended maximum temperature is greater than 300 degree.\n"
+msgstr ""
+
+msgid ""
+"The recommended minimum temperature cannot be higher than the recommended "
+"minimum temperature.\n"
+msgstr ""
+
+msgid "Please check.\n"
+msgstr ""
+
+msgid ""
 "Nozzle may be blocked when the temperature is out of recommended range.\n"
 "Please make sure whether to use the temperature to print.\n"
 "\n"
@@ -3303,6 +3322,9 @@ msgstr "Monitora registrazione automatica"
 msgid "Go Live"
 msgstr "Vai in diretta"
 
+msgid "Liveview Retry"
+msgstr ""
+
 msgid "Resolution"
 msgstr "Risoluzione"
 
@@ -3958,6 +3980,9 @@ msgstr "No files [%d]"
 msgid "Load failed [%d]"
 msgstr "Caricamento non riuscito [%d]"
 
+msgid "Initialize failed (Storage unavailable, insert SD card.)!"
+msgstr ""
+
 #, c-format, boost-format
 msgid "You are going to delete %u file from printer. Are you sure to continue?"
 msgid_plural ""
@@ -4311,6 +4336,36 @@ msgstr "%s informazioni"
 
 msgid "Skip"
 msgstr "Salta"
+
+msgid "Newer 3mf version"
+msgstr "Versione 3mf più recente"
+
+msgid ""
+"The 3mf file version is in Beta and it is newer than the current Bambu "
+"Studio version."
+msgstr ""
+
+msgid "If you would like to try Bambu Studio Beta, you may click to"
+msgstr ""
+
+msgid "Download Beta Version"
+msgstr ""
+
+msgid "The 3mf file version is newer than the current Bambu Studio version."
+msgstr ""
+
+msgid ""
+"Update your Bambu Studio could enable all functionality in the 3mf file."
+msgstr ""
+
+msgid "Current Version: "
+msgstr ""
+
+msgid "Latest Version: "
+msgstr ""
+
+msgid "Not for new"
+msgstr ""
 
 msgid "3D Mouse disconnected."
 msgstr "Mouse 3D disconnesso."
@@ -4674,29 +4729,7 @@ msgstr ""
 "Il 3mf è stato generato da una vecchia versione di Bambu Studio, caricando "
 "solo i dati geometrici."
 
-#, c-format, boost-format
-msgid "This slicer file version %s is newer than %s's version:"
-msgstr ""
-
-msgid ""
-"Would you like to update your Bambu Studio software to enable all "
-"functionality in this slicer file?\n"
-msgstr ""
-
-msgid "Newer 3mf version"
-msgstr "Versione 3mf più recente"
-
-msgid ""
-"you can always update Bambu Studio at your convenience. The slicer file will "
-"now be loaded without full functionality."
-msgstr ""
-
-#, c-format, boost-format
-msgid ""
-"This slicer file version %s is newer than %s's version.\n"
-"\n"
-"Would you like to update your Bambu Studio software to enable all "
-"functionality in this slicer file?"
+msgid "Found following keys unrecognized:\n"
 msgstr ""
 
 msgid "Invalid values found in the 3mf:"
@@ -5271,6 +5304,12 @@ msgstr "Modalità Scura"
 
 msgid "Enable Dark mode"
 msgstr "Attiva modalità Scura"
+
+msgid "User Experience"
+msgstr ""
+
+msgid "Join Customer Experience Improvement Program."
+msgstr ""
 
 msgid "Develop mode"
 msgstr "Modalità sviluppatore"
@@ -6045,8 +6084,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Quando si registra un timelapse senza testa di satmpa, si consiglia di "
 "aggiungere un \"Timelapse Torre di pulizia\"\n"
@@ -6989,8 +7028,8 @@ msgid ""
 msgstr ""
 "È stato rilevato un aggiornamento importante che deve essere eseguito prima "
 "che la stampa possa continuare. Si desidera aggiornare ora? È possibile "
-"effettuare l'aggiornamento anche in un secondo momento da \"Aggiorna firmware"
-"\"."
+"effettuare l'aggiornamento anche in un secondo momento da \"Aggiorna "
+"firmware\"."
 
 msgid ""
 "The firmware version is abnormal. Repairing and updating are required before "
@@ -7313,6 +7352,9 @@ msgid ""
 msgstr ""
 "La modalità Spirale (vaso) non funziona quando un oggetto contiene più di un "
 "materiale."
+
+msgid "Variable layer height is not supported with Organic supports."
+msgstr ""
 
 msgid ""
 "Different nozzle diameters and different filament diameters is not allowed "
@@ -10886,6 +10928,13 @@ msgid ""
 "You have not selected a printer or preset yet. Please select at least one."
 msgstr ""
 
+#, c-format, boost-format
+msgid ""
+"The Filament name %s you created already exists. \n"
+"If you continue creating, the preset created will be displayed with its full "
+"name. Do you want to continue?"
+msgstr ""
+
 msgid "Some existing presets have failed to be created, as follows:\n"
 msgstr ""
 
@@ -10895,8 +10944,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 
@@ -13312,8 +13361,8 @@ msgstr ""
 #~ "Quando si registra un timelapse senza testa di satmpa, si consiglia di "
 #~ "aggiungere un \"Timelapse Torre di pulizia\"\n"
 #~ "facendo clic con il pulsante destro del mouse sulla posizione vuota del "
-#~ "piatto e scegli \"Aggiungi primitiva\" ->\"Timelapse Torre di pulizia"
-#~ "\"».\n"
+#~ "piatto e scegli \"Aggiungi primitiva\" ->\"Timelapse Torre di "
+#~ "pulizia\"».\n"
 
 #~ msgid ""
 #~ "When sparse infill density is low, the internal solid infill or internal "

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-18 17:44+0800\n"
+"POT-Creation-Date: 2024-01-02 15:37+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -162,6 +162,12 @@ msgstr "Háromszög"
 
 msgid "Height Range"
 msgstr "Magasságtartomány"
+
+msgid "Vertical"
+msgstr ""
+
+msgid "Horizontal"
+msgstr ""
 
 msgid "Remove painted color"
 msgstr "Festett szín eltávolítása"
@@ -2498,6 +2504,19 @@ msgid "Bed Shape"
 msgstr "Asztal alakja"
 
 msgid ""
+"The recommended minimum temperature is less than 190 degree or the "
+"recommended maximum temperature is greater than 300 degree.\n"
+msgstr ""
+
+msgid ""
+"The recommended minimum temperature cannot be higher than the recommended "
+"minimum temperature.\n"
+msgstr ""
+
+msgid "Please check.\n"
+msgstr ""
+
+msgid ""
 "Nozzle may be blocked when the temperature is out of recommended range.\n"
 "Please make sure whether to use the temperature to print.\n"
 "\n"
@@ -3289,6 +3308,9 @@ msgstr "Automatikus felügyelet"
 msgid "Go Live"
 msgstr "Streamelés indítása"
 
+msgid "Liveview Retry"
+msgstr ""
+
 msgid "Resolution"
 msgstr "Felbontás"
 
@@ -3944,6 +3966,9 @@ msgstr "No files [%d]"
 msgid "Load failed [%d]"
 msgstr "Load failed [%d]"
 
+msgid "Initialize failed (Storage unavailable, insert SD card.)!"
+msgstr ""
+
 #, c-format, boost-format
 msgid "You are going to delete %u file from printer. Are you sure to continue?"
 msgid_plural ""
@@ -4297,6 +4322,36 @@ msgstr "%s információ"
 
 msgid "Skip"
 msgstr "Kihagyás"
+
+msgid "Newer 3mf version"
+msgstr "Újabb 3mf verzió"
+
+msgid ""
+"The 3mf file version is in Beta and it is newer than the current Bambu "
+"Studio version."
+msgstr ""
+
+msgid "If you would like to try Bambu Studio Beta, you may click to"
+msgstr ""
+
+msgid "Download Beta Version"
+msgstr ""
+
+msgid "The 3mf file version is newer than the current Bambu Studio version."
+msgstr ""
+
+msgid ""
+"Update your Bambu Studio could enable all functionality in the 3mf file."
+msgstr ""
+
+msgid "Current Version: "
+msgstr ""
+
+msgid "Latest Version: "
+msgstr ""
+
+msgid "Not for new"
+msgstr ""
 
 msgid "3D Mouse disconnected."
 msgstr "3D Mouse csatlakoztatva."
@@ -4661,29 +4716,7 @@ msgstr ""
 "A 3mf a Bambu Studio egy régebbi verziójával lett létrehozva, csak a "
 "geometriai adatok kerülnek betöltésre."
 
-#, c-format, boost-format
-msgid "This slicer file version %s is newer than %s's version:"
-msgstr ""
-
-msgid ""
-"Would you like to update your Bambu Studio software to enable all "
-"functionality in this slicer file?\n"
-msgstr ""
-
-msgid "Newer 3mf version"
-msgstr "Újabb 3mf verzió"
-
-msgid ""
-"you can always update Bambu Studio at your convenience. The slicer file will "
-"now be loaded without full functionality."
-msgstr ""
-
-#, c-format, boost-format
-msgid ""
-"This slicer file version %s is newer than %s's version.\n"
-"\n"
-"Would you like to update your Bambu Studio software to enable all "
-"functionality in this slicer file?"
+msgid "Found following keys unrecognized:\n"
 msgstr ""
 
 msgid "Invalid values found in the 3mf:"
@@ -5254,6 +5287,12 @@ msgstr "Sötét mód"
 
 msgid "Enable Dark mode"
 msgstr "Sötét mód engedélyezése"
+
+msgid "User Experience"
+msgstr ""
+
+msgid "Join Customer Experience Improvement Program."
+msgstr ""
 
 msgid "Develop mode"
 msgstr "Fejlesztői mód"
@@ -6021,8 +6060,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Ha a nyomtatófej nélküli timelapse engedélyezve van, javasoljuk, hogy "
 "helyezz el a tálcán egy „Timelapse törlőtornyot“. Ehhez kattints jobb "
@@ -7284,6 +7323,9 @@ msgid ""
 msgstr ""
 "A spirál (váza) mód nem működik, ha egy objektum egynél több anyagot "
 "tartalmaz."
+
+msgid "Variable layer height is not supported with Organic supports."
+msgstr ""
 
 msgid ""
 "Different nozzle diameters and different filament diameters is not allowed "
@@ -10820,6 +10862,13 @@ msgid ""
 "You have not selected a printer or preset yet. Please select at least one."
 msgstr ""
 
+#, c-format, boost-format
+msgid ""
+"The Filament name %s you created already exists. \n"
+"If you continue creating, the preset created will be displayed with its full "
+"name. Do you want to continue?"
+msgstr ""
+
 msgid "Some existing presets have failed to be created, as follows:\n"
 msgstr ""
 
@@ -10829,8 +10878,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 
