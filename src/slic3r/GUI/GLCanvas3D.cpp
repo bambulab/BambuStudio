@@ -7819,19 +7819,23 @@ void GLCanvas3D::_render_return_toolbar() const
             GLCanvas3D* view_3d = wxGetApp().plater()->get_view3D_canvas3D();
             GLToolbarItem* assembly_item = view_3d->m_assemble_view_toolbar.get_item("assembly_view");
             std::chrono::system_clock::time_point end = std::chrono::system_clock::now();
-            std::chrono::duration<double> duration = std::chrono::duration_cast<std::chrono::duration<double>>(end - assembly_item->get_start_time_point());
-            float times = duration.count();
+            std::chrono::duration<int> duration = std::chrono::duration_cast<std::chrono::duration<int>>(end - assembly_item->get_start_time_point());
+            int times = duration.count();
 
             NetworkAgent* agent = GUI::wxGetApp().getAgent();
             if (agent) {
                 std::string name = assembly_item->get_name() + "_duration";
                 std::string value = "";
-                float existing_time = 0;
+                int existing_time = 0;
 
                 agent->track_get_property(name, value);
-                if (value != "") {
-                    existing_time = std::stof(value);
+                try {
+                    if (value != "") {
+                        existing_time = std::stoi(value);
+                    }
                 }
+                catch (...) {}
+
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " tool name:" << name << " duration: " << times + existing_time;
                 agent->track_update_property(name, std::to_string(times + existing_time));
             }

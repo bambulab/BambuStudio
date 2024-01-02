@@ -1446,7 +1446,7 @@ wxMenu* MenuFactory::assemble_multi_selection_menu()
     append_menu_item_change_extruder(menu);
     {
         NetworkAgent* agent = GUI::wxGetApp().getAgent();
-        if (agent) agent->track_update_property("asseble_mulit_selection_menu", std::to_string(++assemble_mulit_selection_menu_count));
+        if (agent) agent->track_update_property("asseble_multi_selection_menu", std::to_string(++assemble_multi_selection_menu_count));
     }
     return menu;
 }
