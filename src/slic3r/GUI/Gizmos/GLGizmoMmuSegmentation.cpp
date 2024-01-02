@@ -393,8 +393,11 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
 
     // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:
     const float space_size = m_imgui->get_style_scaling() * 8;
-    const float clipping_slider_left  = std::max(m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x + m_imgui->scaled(1.5f),
+    float clipping_slider_left  = std::max(m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x + m_imgui->scaled(1.5f),
         m_imgui->calc_text_size(m_desc.at("reset_direction")).x + m_imgui->scaled(1.5f) + ImGui::GetStyle().FramePadding.x * 2);
+    float rotate_horizontal_text= m_imgui->calc_text_size(_L("Rotate horizontally")).x + m_imgui->scaled(1.5f);
+    clipping_slider_left        = std::max(rotate_horizontal_text, clipping_slider_left);
+
     const float cursor_slider_left = m_imgui->calc_text_size(m_desc.at("cursor_size")).x + m_imgui->scaled(1.5f);
     const float smart_fill_slider_left = m_imgui->calc_text_size(m_desc.at("smart_fill_angle")).x + m_imgui->scaled(1.5f);
     const float edge_detect_slider_left = m_imgui->calc_text_size(m_desc.at("edge_detection")).x + m_imgui->scaled(1.f);
@@ -441,6 +444,9 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     draw_list->AddRectFilled({pos.x - 10.0f, pos.y - 7.0f}, {pos.x + window_width + ImGui::GetFrameHeight(), pos.y + color_button_high}, ImGui::GetColorU32(ImGuiCol_FrameBgActive, 1.0f), 5.0f);
 
     float color_button = ImGui::GetCursorPos().y;
+
+    float textbox_width       = 1.5 * slider_icon_width;
+    SliderInputLayout slider_input_layout = {clipping_slider_left, sliders_width, drag_left_width + circle_max_width, textbox_width};
 
     m_imgui->text(m_desc.at("filaments"));
 
@@ -712,17 +718,49 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         ImGui::BBLDragFloat("##gap_area_input", &TriangleSelectorPatch::gap_area, 0.05f, 0.0f, 0.0f, "%.2f");
     }
     ImGui::Separator();
-    if (m_imgui->bbl_checkbox(_L("Vertical"), m_vertical_only)) {
-        if (m_vertical_only) {
-            m_horizontal_only = false;
+    if (m_current_tool == ImGui::CircleButtonIcon || m_current_tool == ImGui::SphereButtonIcon) {
+        float vertical_text_width   = m_imgui->calc_button_size(_L("Vertical")).x;
+        float horizontal_text_width = m_imgui->calc_button_size(_L("Horizontal")).x;
+        if (!wxGetApp().plater()->get_camera().is_looking_front()) {
+            m_is_front_view = false;
         }
-    }
-    if (m_imgui->bbl_checkbox(_L("Horizontal"), m_horizontal_only)) {
-        if (m_horizontal_only) {
-            m_vertical_only = false;
+        auto vertical_only = m_vertical_only;
+        if (m_imgui->bbl_checkbox(_L("Vertical"), vertical_only)) {
+            m_vertical_only = vertical_only;
+            if (m_vertical_only) {
+                m_horizontal_only = false;
+                m_is_front_view   = true;
+                change_camera_view_angle(m_front_view_radian);
+            }
         }
-    }
 
+        ImGui::SameLine(vertical_text_width * 2.0);
+        ImGui::PushItemWidth(horizontal_text_width * 2.0);
+        auto horizontal_only = m_horizontal_only;
+        if (m_imgui->bbl_checkbox(_L("Horizontal"), horizontal_only)) {
+            m_horizontal_only = horizontal_only;
+            if (m_horizontal_only) {
+                m_vertical_only = false;
+                m_is_front_view = true;
+                change_camera_view_angle(m_front_view_radian);
+            }
+        }
+
+        auto is_front_view = m_is_front_view;
+        m_imgui->bbl_checkbox(_L("View: keep horizontal"), is_front_view);
+        if (m_is_front_view != is_front_view) {
+            m_is_front_view = is_front_view;
+            if (m_is_front_view) {
+                change_camera_view_angle(m_front_view_radian);
+            }
+        }
+        m_imgui->disabled_begin(!m_is_front_view);
+
+        if (render_slider_double_input_by_format(slider_input_layout, _u8L("Rotate horizontally"), m_front_view_radian, 0.f, 360.f, 0, DoubleShowType::DEGREE)) {
+            change_camera_view_angle(m_front_view_radian);
+        }
+        m_imgui->disabled_end();
+    }
     ImGui::Separator();
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 10.0f));
     float get_cur_y = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;

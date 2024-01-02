@@ -129,6 +129,25 @@ protected:
     bool m_is_dark_mode = false;
 
     std::chrono::system_clock::time_point start;
+    enum DoubleShowType {
+        Normal, // origin data
+        PERCENTAGE,
+        DEGREE,//input must is radian
+    };
+    struct SliderInputLayout
+    {
+        float sliders_left_width;
+        float sliders_width;
+        float input_left_width;
+        float input_width;
+    };
+    bool render_slider_double_input_by_format(const SliderInputLayout &    layout,
+                                              const std::string &          label,
+                                              float &                      value_in,
+                                              float                        value_min,
+                                              float                        value_max,
+                                              int                          keep_digit ,
+                                              DoubleShowType               show_type = DoubleShowType::Normal);
 
 public:
     GLGizmoBase(GLCanvas3D& parent,

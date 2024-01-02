@@ -305,9 +305,10 @@ protected:
     static constexpr float SmartFillAngleStep = 1.f;
 
     // BBL: paint behavior enchancement
-    bool m_vertical_only   = false;
-    bool m_horizontal_only = false;
-
+    bool  m_vertical_only   = false;
+    bool  m_horizontal_only = false;
+    bool  m_is_front_view   = false;
+    float m_front_view_radian = 0;
     // It stores the value of the previous mesh_id to which the seed fill was applied.
     // It is used to detect when the mouse has moved from one volume to another one.
     int      m_seed_fill_last_mesh_id     = -1;
@@ -328,7 +329,8 @@ protected:
 
     TriangleSelector::ClippingPlane get_clipping_plane_in_volume_coordinates(const Transform3d &trafo) const;
 
-private:
+    void change_camera_view_angle(float front_view_radian);
+ private:
     std::vector<std::vector<ProjectedMousePosition>> get_projected_mouse_positions(const Vec2d &mouse_position, double resolution, const std::vector<Transform3d> &trafo_matrices) const;
 
     std::vector<ProjectedHeightRange> get_projected_height_range(const Vec2d& mouse_position, double resolution, const std::vector<const ModelVolume*>& part_volumes, const std::vector<Transform3d>& trafo_matrices) const;

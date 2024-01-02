@@ -201,9 +201,11 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
 
     // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:
     const float space_size = m_imgui->get_style_scaling() * 8;
-    const float clipping_slider_left = std::max(m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x,
-                                                m_imgui->calc_text_size(m_desc.at("reset_direction")).x + ImGui::GetStyle().FramePadding.x * 2)
-                                           + m_imgui->scaled(1.5f);
+    float clipping_slider_left = std::max(m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x,
+                                                m_imgui->calc_text_size(m_desc.at("reset_direction")).x + ImGui::GetStyle().FramePadding.x * 2) +
+                                       m_imgui->scaled(1.5f);
+    float rotate_horizontal_text = m_imgui->calc_text_size(_L("Rotate horizontally")).x + m_imgui->scaled(1.5f);
+    clipping_slider_left         = std::max(rotate_horizontal_text, clipping_slider_left);
     const float cursor_size_slider_left = m_imgui->calc_text_size(m_desc.at("cursor_size")).x + m_imgui->scaled(1.f);
     const float empty_button_width      = m_imgui->calc_button_size("").x;
 
@@ -221,6 +223,9 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     const float drag_left_width = ImGui::GetStyle().WindowPadding.x + sliders_left_width + sliders_width - space_size;
 
     const float max_tooltip_width = ImGui::GetFontSize() * 20.0f;
+
+    float             textbox_width       = 1.5 * slider_icon_width;
+    SliderInputLayout slider_input_layout = {sliders_left_width, sliders_width, drag_left_width, textbox_width};
 
     ImGui::AlignTextToFramePadding();
     m_imgui->text(m_desc.at("cursor_type"));
@@ -313,8 +318,31 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     if (slider_clp_dist || b_clp_dist_input) { m_c->object_clipper()->set_position(clp_dist, true); }
 
     ImGui::Separator();
-    m_imgui->bbl_checkbox(_L("Vertical"), m_vertical_only);
 
+    if (!wxGetApp().plater()->get_camera().is_looking_front()){
+        m_is_front_view = false;
+    }
+    auto vertical_only = m_vertical_only;
+    if (m_imgui->bbl_checkbox(_L("Vertical"), vertical_only)) {
+        m_vertical_only = vertical_only;
+        if (m_vertical_only) {
+            m_is_front_view = true;
+            change_camera_view_angle(m_front_view_radian);
+        }
+    }
+    auto is_front_view = m_is_front_view;
+    m_imgui->bbl_checkbox(_L("View: keep horizontal"), is_front_view);
+    if (m_is_front_view != is_front_view) { 
+        m_is_front_view = is_front_view;
+        if (m_is_front_view) { 
+            change_camera_view_angle(m_front_view_radian);
+        }
+    }
+    m_imgui->disabled_begin(!m_is_front_view);
+    if (render_slider_double_input_by_format(slider_input_layout, _u8L("Rotate horizontally"), m_front_view_radian, 0.f, 360.f, 0, DoubleShowType::DEGREE)) { 
+       change_camera_view_angle(m_front_view_radian);
+    }
+    m_imgui->disabled_end();
     ImGui::Separator();
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 10.0f));
     float get_cur_y = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;

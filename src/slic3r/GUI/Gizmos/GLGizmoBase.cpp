@@ -145,7 +145,52 @@ void GLGizmoBase::Grabber::render(float size, const std::array<float, 4>& render
 }
 
 
-GLGizmoBase::GLGizmoBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
+bool GLGizmoBase::render_slider_double_input_by_format(
+    const SliderInputLayout &layout, const std::string &label, float &value_in, float value_min, float value_max, int keep_digit, DoubleShowType show_type)
+{
+    ImGui::AlignTextToFramePadding();
+    m_imgui->text(label);
+    ImGui::SameLine(layout.sliders_left_width);
+    ImGui::PushItemWidth(layout.sliders_width);
+
+    float       old_val    = value_in; // (show_type == DoubleShowType::Normal)
+    float       value      = value_in; // (show_type == DoubleShowType::Normal)
+    std::string format     = "%." + std::to_string(keep_digit) + "f";
+    if (show_type == DoubleShowType::PERCENTAGE) {
+        format  = "%." + std::to_string(keep_digit) + "f %%";
+        old_val = value_in;
+        value   = value_in * 100;
+    } else if (show_type == DoubleShowType::DEGREE) {
+        format  = "%." + std::to_string(keep_digit) + "f " + _u8L("°");
+        old_val = value_in;
+        value   = Geometry::rad2deg(value_in);
+    }
+
+    if (m_imgui->bbl_slider_float_style(("##" + label).c_str(), &value, value_min, value_max, format.c_str())) {
+        if (show_type == DoubleShowType::PERCENTAGE) {
+            value_in = value * 0.01f;
+        } else if (show_type == DoubleShowType::DEGREE) {
+            value_in = Geometry::deg2rad(value);
+        } else { //(show_type == DoubleShowType::Normal)
+            value_in = value;
+        }
+    }
+
+    ImGui::SameLine(layout.input_left_width);
+    ImGui::PushItemWidth(layout.input_width);
+    if (ImGui::BBLDragFloat(("##input_" + label).c_str(), &value, 0.05f, value_min, value_max, format.c_str())) {
+        if (show_type == DoubleShowType::PERCENTAGE) {
+            value_in = value * 0.01f;
+        } else if (show_type == DoubleShowType::DEGREE) {
+            value_in = Geometry::deg2rad(value);
+        } else { //(show_type == DoubleShowType::Normal)
+            value_in = value;
+        }
+    }
+    return !is_approx(old_val, value_in);
+}
+
+GLGizmoBase::GLGizmoBase(GLCanvas3D &parent, const std::string &icon_filename, unsigned int sprite_id)
     : m_parent(parent)
     , m_group_id(-1)
     , m_state(Off)
