@@ -28,8 +28,6 @@ GLGizmoPainterBase::GLGizmoPainterBase(GLCanvas3D& parent, const std::string& ic
     // Make sphere and save it into a vertex buffer.
     m_vbo_sphere.load_its_flat_shading(its_make_sphere(1., (2*M_PI)/24.));
     m_vbo_sphere.finalize_geometry(true);
-    m_vertical_only   = false;
-    m_horizontal_only = false;
 }
 
 void GLGizmoPainterBase::set_painter_gizmo_data(const Selection& selection)
@@ -1094,6 +1092,10 @@ void GLGizmoPainterBase::on_set_state()
         //camera.recover_from_free_camera();
     }
     m_old_state = m_state;
+    m_vertical_only     = false;
+    m_horizontal_only   = false;
+    m_is_front_view     = false;
+    m_front_view_radian = 0;
 }
 
 
@@ -1125,6 +1127,14 @@ TriangleSelector::ClippingPlane GLGizmoPainterBase::get_clipping_plane_in_volume
     auto offset_transformed          = float(point_on_plane_transformed.dot(normal_transformed));
 
     return TriangleSelector::ClippingPlane({float(normal_transformed.x()), float(normal_transformed.y()), float(normal_transformed.z()), offset_transformed});
+}
+
+void GLGizmoPainterBase::change_camera_view_angle(float front_view_radian)
+{
+    wxGetApp().plater()->get_camera().select_view("front");
+    const Selection &selection     = m_parent.get_selection();
+    auto             rotate_target = selection.get_bounding_box().center();
+    wxGetApp().plater()->get_camera().rotate_local_with_target(Vec3d(0, front_view_radian, 0), rotate_target);
 }
 
 std::array<float, 4> TriangleSelectorGUI::get_seed_fill_color(const std::array<float, 4> &base_color)
