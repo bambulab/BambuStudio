@@ -1061,7 +1061,7 @@ wxWindow* PreferencesDialog::create_general_page()
 
     auto title_user_experience = create_item_title(_L("User Experience"), page, _L("User Experience"));
     auto item_priv_policy = create_item_checkbox(_L("Join Customer Experience Improvement Program."), page, _L(""), 50, "privacyuse");
-    wxHyperlinkCtrl* hyperlink = new wxHyperlinkCtrl(page, wxID_ANY, "What data would be collected?", "https://bambulab.com/en/policies/privacy");
+    wxHyperlinkCtrl* hyperlink = new wxHyperlinkCtrl(page, wxID_ANY, _L("What data would be collected?"), "https://bambulab.com/en/policies/privacy");
     hyperlink->SetFont(Label::Head_13);
     item_priv_policy->Add(hyperlink, 0, wxALIGN_CENTER, 0);
 
