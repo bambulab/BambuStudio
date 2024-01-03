@@ -5089,7 +5089,7 @@ void GLCanvas3D::update_sequential_clearance()
             [&](PrintObject* obj) { return obj->height() < scale_(fff_print()->config().nozzle_height.value - MARGIN_HEIGHT); });
         float shrink_factor;
         if (all_objects_are_short)
-            shrink_factor = scale_(0.5 * MAX_OUTER_NOZZLE_DIAMETER - 0.1);
+            shrink_factor = scale_(0.5 * MAX_OUTER_NOZZLE_RADIUS - 0.1);
         else
             shrink_factor = static_cast<float>(scale_(0.5 * fff_print()->config().extruder_clearance_max_radius.value - EPSILON));
 
