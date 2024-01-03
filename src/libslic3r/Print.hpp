@@ -36,7 +36,7 @@ class TreeSupportData;
 class TreeSupport;
 
 #define MARGIN_HEIGHT   1.5
-#define MAX_OUTER_NOZZLE_DIAMETER   4
+#define MAX_OUTER_NOZZLE_RADIUS   4
 // BBS: move from PrintObjectSlice.cpp
 struct VolumeSlices
 {
