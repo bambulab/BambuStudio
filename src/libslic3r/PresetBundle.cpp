@@ -3235,7 +3235,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
     PresetCollection         *presets = nullptr;
     size_t                   presets_loaded = 0;
 
-    auto parse_subfile = [path, vendor_name, presets_loaded, current_vendor_profile](\
+    auto parse_subfile = [this, path, vendor_name, presets_loaded, current_vendor_profile](\
         ConfigSubstitutionContext& substitution_context,
         PresetsConfigSubstitutions& substitutions,
         LoadConfigBundleAttributes& flags,
@@ -3407,8 +3407,10 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
         }
         if (alias_name.empty())
             loaded.alias = preset_name;
-        else
+        else {
             loaded.alias = std::move(alias_name);
+            filaments.set_printer_hold_alias(loaded.alias, loaded);
+        }
         loaded.renamed_from = std::move(renamed_from);
         if (! substitution_context.empty())
             substitutions.push_back({
