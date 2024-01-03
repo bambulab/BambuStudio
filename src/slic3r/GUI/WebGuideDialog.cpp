@@ -574,9 +574,9 @@ int GuideFrame::SaveProfile()
 {
     //privacy
     if (PrivacyUse == true) {
-        m_MainPtr->app_config->set(std::string(m_SectionName.mb_str()), "privacyuse", "1");
+        m_MainPtr->app_config->set(std::string(m_SectionName.mb_str()), "privacyuse", true);
     } else
-        m_MainPtr->app_config->set(std::string(m_SectionName.mb_str()), "privacyuse", "0");
+        m_MainPtr->app_config->set(std::string(m_SectionName.mb_str()), "privacyuse", false);
 
     m_MainPtr->app_config->set("region", m_Region);
 
