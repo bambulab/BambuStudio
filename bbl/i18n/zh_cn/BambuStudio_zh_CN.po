@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-03 14:17+0800\n"
+"POT-Creation-Date: 2024-01-04 10:49+0800\n"
 "PO-Revision-Date: 2024-01-02 15:59+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -5140,6 +5140,9 @@ msgstr "用户体验"
 msgid "Join Customer Experience Improvement Program."
 msgstr "加入用户体验改进计划。"
 
+msgid "What data would be collected?"
+msgstr "将收集哪些数据？"
+
 msgid "Develop mode"
 msgstr "开发者模式"
 
@@ -7785,6 +7788,12 @@ msgid ""
 "Clearance radius around extruder. Used for collision avoidance in by-object "
 "printing."
 msgstr "挤出机四周的避让半径。用于在逐件打印中避免碰撞。"
+
+msgid "Nozzle height"
+msgstr "喷嘴高度"
+
+msgid "The height of nozzle tip."
+msgstr "喷嘴尖端的高度。"
 
 msgid "Max Radius"
 msgstr "最大半径"
