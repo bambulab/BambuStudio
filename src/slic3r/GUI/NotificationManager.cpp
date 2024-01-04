@@ -1252,7 +1252,7 @@ void NotificationManager::UpdatedItemsInfoNotification::add_type(InfoItemType ty
 		if ((*it).second == 0)
 			continue;
 		switch ((*it).first) {
-		case InfoItemType::CustomSupports:      text += format(_L_PLURAL("%1$d Object has custom supports.",		"%1$d Objects have custom supports.",		(*it).second), (*it).second) + "\n"; break;
+		case InfoItemType::CustomSupports:      text += format(_L_PLURAL("%1$d Object has custom support.",		"%1$d Objects have custom support.",		(*it).second), (*it).second) + "\n"; break;
 		// BBS
 		//case InfoItemType::CustomSeam:          text += format(("%1$d Object has custom seam.",			"%1$d Objects have custom seam.",			(*it).second), (*it).second) + "\n"; break;
 		case InfoItemType::MmuSegmentation:     text += format(_L_PLURAL("%1$d Object has color painting.",			"%1$d Objects have color painting.",(*it).second), (*it).second) + "\n"; break;

@@ -2037,8 +2037,8 @@ bool CreatePrinterPresetDialog::load_system_and_user_presets_with_curr_model(Pre
         }
     }
     if (m_printer_preset_vendor_selected.id.empty() || m_printer_preset_model_selected.id.empty()) {
-        BOOST_LOG_TRIVIAL(info) << "selected id is not find";
-        MessageDialog dlg(this, _L("Preset path is not find, please reselect vendor."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
+        BOOST_LOG_TRIVIAL(info) << "selected id is not found";
+        MessageDialog dlg(this, _L("Preset path is not found, please reselect vendor."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
         dlg.ShowModal();
         return false;
     }
@@ -2058,8 +2058,8 @@ bool CreatePrinterPresetDialog::load_system_and_user_presets_with_curr_model(Pre
         }
 
         if (preset_path.empty()) {
-            BOOST_LOG_TRIVIAL(info) << "Preset path is not find";
-            MessageDialog dlg(this, _L("Preset path is not find, please reselect vendor."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
+            BOOST_LOG_TRIVIAL(info) << "Preset path is not found";
+            MessageDialog dlg(this, _L("Preset path is not found, please reselect vendor."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
                               wxYES_NO | wxYES_DEFAULT | wxCENTRE);
             dlg.ShowModal();
             return false;
@@ -2122,8 +2122,8 @@ bool CreatePrinterPresetDialog::load_system_and_user_presets_with_curr_model(Pre
             preset_path = (boost::filesystem::path(Slic3r::resources_dir()) / PRESET_PROFILES_TEMOLATE_DIR).string();
         }
         if (preset_path.empty()) {
-            BOOST_LOG_TRIVIAL(info) << "Preset path is not find";
-            MessageDialog dlg(this, _L("Preset path is not find, please reselect vendor."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
+            BOOST_LOG_TRIVIAL(info) << "Preset path is not found";
+            MessageDialog dlg(this, _L("Preset path is not found, please reselect vendor."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
                               wxYES_NO | wxYES_DEFAULT | wxCENTRE);
             dlg.ShowModal();
             return false;
@@ -2834,7 +2834,7 @@ bool CreatePrinterPresetDialog::data_init()
         if (iterator != vendors.end()) {
             m_printer_preset_vendor_selected = iterator->second;
         } else {
-            MessageDialog dlg(this, _L("Vendor is not find, please reselect."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
+            MessageDialog dlg(this, _L("Vendor is not found, please reselect."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
             dlg.ShowModal();
             return;
         }
@@ -3204,7 +3204,7 @@ CreatePresetSuccessfulDialog::CreatePresetSuccessfulDialog(wxWindow *parent, con
         break;
     case FILAMENT: 
         success_text = new wxStaticText(this, wxID_ANY, _L("Filament Created")); 
-        next_step_text = new wxStaticText(this, wxID_ANY, _L("Please go to filament setting to edit your presets if you need.\nPlease note that nozzle temperature, hot bed temperature, and maximum volumetric speed have a significant impact on printing quality. Please set them carefully.")); 
+        next_step_text = new wxStaticText(this, wxID_ANY, _L("Please go to filament setting to edit your presets if you need.\nPlease note that nozzle temperature, hot bed temperature, and maximum volumetric speed has a significant impact on printing quality. Please set them carefully.")); 
         break;
     }
     success_text->SetFont(Label::Head_18);
@@ -3532,7 +3532,7 @@ wxBoxSizer *ExportConfigsDialog::create_export_config_item(wxWindow *parent)
 
     radioBoxSizer->Add(create_radio_item(m_exprot_type.preset_bundle, parent, wxEmptyString, m_export_type_btns), 0, wxEXPAND | wxALL, 0);
     radioBoxSizer->Add(0, 0, 0, wxTOP, FromDIP(6));
-    wxStaticText *static_export_printer_preset_bundle_text = new wxStaticText(parent, wxID_ANY, _L("Printer and all the filament&process presets that belongs to the printer. \nCan be shared with others."), wxDefaultPosition, wxDefaultSize);
+    wxStaticText *static_export_printer_preset_bundle_text = new wxStaticText(parent, wxID_ANY, _L("Printer and all the filament&process presets that belong to the printer. \nCan be shared with others."), wxDefaultPosition, wxDefaultSize);
     static_export_printer_preset_bundle_text->SetFont(Label::Body_12);
     static_export_printer_preset_bundle_text->SetForegroundColour(wxColour("#6B6B6B"));
     radioBoxSizer->Add(static_export_printer_preset_bundle_text, 0, wxEXPAND | wxLEFT, FromDIP(22));

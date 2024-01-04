@@ -2488,7 +2488,7 @@ bool ObjectList::del_from_cut_object(bool is_cut_connector, bool is_model_part/*
                       (_L("This action will break a cut correspondence.\n"
                          "After that model consistency can't be guaranteed .\n"
                          "\n"
-                         "To manipulate with solid parts or negative volumes you have to invalidate cut infornation first.") + msg_end ),
+                         "To manipulate solid parts or negative volumes you have to invalidate cut information first.") + msg_end ),
                       false, buttons_style | wxCANCEL_DEFAULT | wxICON_WARNING);
 
     dialog.SetButtonLabel(wxID_YES, _L("Invalidate cut info"));
@@ -2597,7 +2597,7 @@ void ObjectList::split()
     const ConfigOptionStrings* filament_colors = config.option<ConfigOptionStrings>("filament_colour", false);
     const auto filament_cnt = (filament_colors == nullptr) ? size_t(1) : filament_colors->size();
     if (!volume->is_splittable()) {
-        wxMessageBox(_(L("The target object contains only one part and can not be splited.")));
+        wxMessageBox(_(L("The target object contains only one part and can not be split.")));
         return;
     }
 
@@ -4893,11 +4893,11 @@ bool ObjectList::check_last_selection(wxString& msg_str)
 
         if (m_selection_mode == smInstance) {
             msg_str = wxString::Format(_(L("Selection conflicts")) + "\n\n" +
-                _(L("If first selected item is an object, the second one should also be object.")) + "\n");
+                _(L("If the first selected item is an object, the second one should also be an object.")) + "\n");
         }
         else {
             msg_str = wxString::Format(_(L("Selection conflicts")) + "\n\n" +
-                _(L("If first selected item is a part, the second one should be part in the same object.")) + "\n");
+                _(L("If the first selected item is a part, the second one should be part of the same object.")) + "\n");
         }
 
         // Unselect last selected item, if selection is without SHIFT
@@ -5459,7 +5459,7 @@ void ObjectList::fix_through_netfabb()
         msg += "\n\n";
     }
     if (!failed_models.empty()) {
-        msg += _L_PLURAL("Failed to repair folowing model object", "Failed to repair folowing model objects", failed_models.size()) + ":\n";
+        msg += _L_PLURAL("Failed to repair the following model object", "Failed to repair the following model object", failed_models.size()) + ":\n";
         for (auto& model : failed_models)
             msg += bullet_suf + from_u8(model.first) + ": " + _(model.second);
     }
