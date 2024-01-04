@@ -6563,7 +6563,7 @@ void GLCanvas3D::_picking_pass()
         glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
         //BBS: only render plate in view 3D
-        if (m_canvas_type == ECanvasType::CanvasView3D) {
+        if (m_canvas_type == ECanvasType::CanvasView3D && m_gizmos.get_current_type() == GLGizmosManager::EType::Undefined) {
             _render_plates_for_picking();
         }
 
