@@ -10878,7 +10878,6 @@ TriangleMesh Plater::combine_mesh_fff(const ModelObject& mo, int instance_id, st
 }
 
 // BBS export with/without boolean, however, stil merge mesh
-#define EXPORT_WITH_BOOLEAN 0
 void Plater::export_stl(bool extended, bool selection_only, bool multi_stls)
 {
     if (p->model.objects.empty()) { return; }
@@ -10898,21 +10897,39 @@ void Plater::export_stl(bool extended, bool selection_only, bool multi_stls)
 
     wxBusyCursor wait;
     const auto& selection = p->get_selection();
-    const auto obj_idx = selection.get_object_idx();
-
-#if EXPORT_WITH_BOOLEAN
-    if (selection_only && (obj_idx == -1 || selection.is_wipe_tower()))
-        return;
-#else
     // BBS support selecting multiple objects
-    if (selection_only && selection.is_wipe_tower()) return;
-
-    // BBS
-    if (selection_only) {
-        // only support selection single full object and mulitiple full object
-        if (!selection.is_single_full_object() && !selection.is_multiple_full_object()) return;
+    if (selection_only && selection.is_wipe_tower())
+        return;
+    const auto obj_idx = selection.get_object_idx();
+    if (obj_idx == -1) 
+        return;
+    //confirm export_with_boolean
+    bool  exist_negive_volume = false;
+    bool  export_with_boolean = false;
+    const ModelObject *cur_model_object = p->model.objects[obj_idx];
+    for (auto v : cur_model_object->volumes) {
+        if (v->type() == ModelVolumeType::NEGATIVE_VOLUME) {
+            exist_negive_volume=true;
+            break;
+        }
+    }
+    if (exist_negive_volume) {
+        MessageDialog dlg(this, _L("Negative parts detected. Would you like to perform mesh boolean before exporting?"),  _L("Message"),
+                          wxICON_QUESTION | wxYES_NO);
+        int answer = dlg.ShowModal();
+        if (answer == wxID_YES) {
+            export_with_boolean = true;
+        }
     }
 
+    if (!export_with_boolean) {
+        // BBS
+        if (selection_only) {
+            // only support selection single full object and mulitiple full object
+            if (!selection.is_single_full_object() && !selection.is_multiple_full_object())
+                return;
+        }
+    }
     // Following lambda generates a combined mesh for export with normals pointing outwards.
     auto mesh_to_export_fff_no_boolean = [](const ModelObject &mo, int instance_id) {
         TriangleMesh mesh;
@@ -10934,7 +10951,6 @@ void Plater::export_stl(bool extended, bool selection_only, bool multi_stls)
             mesh.transform(mo.instances[instance_id]->get_matrix(), true);
         return mesh;
     };
-#endif
     auto mesh_to_export_sla = [&, this](const ModelObject& mo, int instance_id) {
         TriangleMesh mesh;
 
@@ -11005,13 +11021,14 @@ void Plater::export_stl(bool extended, bool selection_only, bool multi_stls)
     std::function<TriangleMesh(const ModelObject& mo, int instance_id)>
         mesh_to_export;
 
-    if (p->printer_technology == ptFFF)
-#if EXPORT_WITH_BOOLEAN
-        mesh_to_export = [this](const ModelObject& mo, int instance_id) {return Plater::combine_mesh_fff(mo, instance_id,
-            [this](const std::string& msg) {return get_notification_manager()->push_plater_error_notification(msg); }); };
-#else
-        mesh_to_export = mesh_to_export_fff_no_boolean;
-#endif
+    if (p->printer_technology == ptFFF){
+        if (export_with_boolean) {
+             mesh_to_export = [this](const ModelObject& mo, int instance_id) {return Plater::combine_mesh_fff(mo, instance_id,
+                  [this](const std::string& msg) {return get_notification_manager()->push_plater_error_notification(msg); }); };
+        } else {
+             mesh_to_export = mesh_to_export_fff_no_boolean;
+        }
+    }
     else
         mesh_to_export = mesh_to_export_sla;
 
