@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-03 14:17+0800\n"
+"POT-Creation-Date: 2024-01-04 10:49+0800\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -5375,6 +5375,9 @@ msgstr "User Experience"
 msgid "Join Customer Experience Improvement Program."
 msgstr "Join Customer Experience Improvement Program."
 
+msgid "What data would be collected?"
+msgstr ""
+
 msgid "Develop mode"
 msgstr "Fejlesztői mód"
 
@@ -8251,6 +8254,12 @@ msgid ""
 msgstr ""
 "Az extruder körüli szabadon hagyott terület sugara. Objektumonként történő "
 "nyomtatás során az ütközések elkerülésére szolgál."
+
+msgid "Nozzle height"
+msgstr "Nozzle height"
+
+msgid "The height of nozzle tip."
+msgstr "The height of nozzle tip."
 
 msgid "Max Radius"
 msgstr "Max. sugár"
@@ -13077,9 +13086,6 @@ msgstr ""
 #~ msgid "Nozzle HRC"
 #~ msgstr "Fúvóka HRC értéke"
 
-#~ msgid "Nozzle height"
-#~ msgstr "Nozzle height"
-
 #~ msgid ""
 #~ "One object has empty initial layer and can't be printed. Please Cut the "
 #~ "bottom or enable supports."
@@ -13611,9 +13617,6 @@ msgstr ""
 #~ msgstr ""
 #~ "Az öblítési mennyiség kisebb, mint a minimális érték, ezért a rendszer "
 #~ "automatikusan a minimális értékre állítja be."
-
-#~ msgid "The height of nozzle tip."
-#~ msgstr "The height of nozzle tip."
 
 #~ msgid ""
 #~ "The model has overlapping or self-intersecting facets. I tried to repair "

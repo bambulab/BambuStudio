@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-03 14:17+0800\n"
+"POT-Creation-Date: 2024-01-04 10:49+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -5008,6 +5008,9 @@ msgstr ""
 msgid "Join Customer Experience Improvement Program."
 msgstr ""
 
+msgid "What data would be collected?"
+msgstr ""
+
 msgid "Develop mode"
 msgstr ""
 
@@ -7536,6 +7539,12 @@ msgstr ""
 msgid ""
 "Clearance radius around extruder. Used for collision avoidance in by-object "
 "printing."
+msgstr ""
+
+msgid "Nozzle height"
+msgstr ""
+
+msgid "The height of nozzle tip."
 msgstr ""
 
 msgid "Max Radius"

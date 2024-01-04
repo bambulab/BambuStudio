@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio v1.8.0 Beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-03 14:17+0800\n"
+"POT-Creation-Date: 2024-01-04 10:49+0800\n"
 "PO-Revision-Date: 2023-11-12 22:00+0700\n"
 "Last-Translator: Andylg <andylg@yandex.ru>\n"
 "Language-Team: \n"
@@ -5446,6 +5446,9 @@ msgstr ""
 msgid "Join Customer Experience Improvement Program."
 msgstr ""
 
+msgid "What data would be collected?"
+msgstr ""
+
 msgid "Develop mode"
 msgstr "Режим разработчика"
 
@@ -8338,6 +8341,12 @@ msgid ""
 msgstr ""
 "Безопасное расстояние вокруг экструдера. Используется для предотвращения "
 "столкновений при печати отдельно стоящих моделей."
+
+msgid "Nozzle height"
+msgstr ""
+
+msgid "The height of nozzle tip."
+msgstr ""
 
 msgid "Max Radius"
 msgstr "Макс. радиус"

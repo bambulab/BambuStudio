@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-03 14:17+0800\n"
+"POT-Creation-Date: 2024-01-04 10:49+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -5387,6 +5387,9 @@ msgstr ""
 msgid "Join Customer Experience Improvement Program."
 msgstr ""
 
+msgid "What data would be collected?"
+msgstr ""
+
 msgid "Develop mode"
 msgstr "Режим розробки"
 
@@ -8238,6 +8241,12 @@ msgid ""
 msgstr ""
 "Радіус вільного простору навколо екструдера. Використовується для уникнення "
 "зіткнення під час друку за об’єктами."
+
+msgid "Nozzle height"
+msgstr ""
+
+msgid "The height of nozzle tip."
+msgstr ""
 
 msgid "Max Radius"
 msgstr "Максимальний радіус"

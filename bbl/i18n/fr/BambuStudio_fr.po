@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-03 14:17+0800\n"
+"POT-Creation-Date: 2024-01-04 10:49+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -5412,6 +5412,9 @@ msgstr "User Experience"
 msgid "Join Customer Experience Improvement Program."
 msgstr "Join Customer Experience Improvement Program."
 
+msgid "What data would be collected?"
+msgstr ""
+
 msgid "Develop mode"
 msgstr "Mode Développeur"
 
@@ -8350,6 +8353,12 @@ msgid ""
 msgstr ""
 "Rayon de dégagement autour de l'extrudeuse : utilisé pour éviter les "
 "collisions lors de l'impression par objets."
+
+msgid "Nozzle height"
+msgstr "Nozzle height"
+
+msgid "The height of nozzle tip."
+msgstr "The height of nozzle tip."
 
 msgid "Max Radius"
 msgstr "Rayon maximum"
@@ -13256,9 +13265,6 @@ msgstr ""
 #~ msgid "Nozzle HRC"
 #~ msgstr "Dureté HRC buse"
 
-#~ msgid "Nozzle height"
-#~ msgstr "Nozzle height"
-
 #~ msgid ""
 #~ "One object has empty initial layer and can't be printed. Please Cut the "
 #~ "bottom or enable supports."
@@ -13806,9 +13812,6 @@ msgstr ""
 #~ msgstr ""
 #~ "Le volume de rinçage est inférieur à la valeur minimale et sera "
 #~ "automatiquement réglé à la valeur minimale par défaut."
-
-#~ msgid "The height of nozzle tip."
-#~ msgstr "The height of nozzle tip."
 
 #~ msgid ""
 #~ "The model has overlapping or self-intersecting facets. I tried to repair "

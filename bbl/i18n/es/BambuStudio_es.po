@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-03 14:17+0800\n"
+"POT-Creation-Date: 2024-01-04 10:49+0800\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -5417,6 +5417,9 @@ msgstr "User Experience"
 msgid "Join Customer Experience Improvement Program."
 msgstr "Join Customer Experience Improvement Program."
 
+msgid "What data would be collected?"
+msgstr ""
+
 msgid "Develop mode"
 msgstr "Modo de desarrollo"
 
@@ -8320,6 +8323,12 @@ msgid ""
 msgstr ""
 "Radio de separación alrededor del extrusor: se utiliza para evitar "
 "colisiones en la impresión por objetos."
+
+msgid "Nozzle height"
+msgstr "Nozzle height"
+
+msgid "The height of nozzle tip."
+msgstr "The height of nozzle tip."
 
 msgid "Max Radius"
 msgstr "Radio máximo"
@@ -13186,9 +13195,6 @@ msgstr ""
 #~ msgid "Nozzle HRC"
 #~ msgstr "Boquilla HRC"
 
-#~ msgid "Nozzle height"
-#~ msgstr "Nozzle height"
-
 #~ msgid ""
 #~ "One object has empty initial layer and can't be printed. Please Cut the "
 #~ "bottom or enable supports."
@@ -13733,9 +13739,6 @@ msgstr ""
 #~ msgstr ""
 #~ "El volumen de purga es inferior al valor mínimo y se establecerá "
 #~ "automáticamente en el valor mínimo."
-
-#~ msgid "The height of nozzle tip."
-#~ msgstr "The height of nozzle tip."
 
 #~ msgid ""
 #~ "The model has overlapping or self-intersecting facets. I tried to repair "
