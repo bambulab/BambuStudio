@@ -1342,6 +1342,9 @@ GUI_App::GUI_App()
 {
 	//app config initializes early becasuse it is used in instance checking in BambuStudio.cpp
     this->init_app_config();
+    if (app_config) {
+        ::Label::initSysFont(app_config->get_language_code(), false);
+    }
     this->init_download_path();
 
     reset_to_active();
