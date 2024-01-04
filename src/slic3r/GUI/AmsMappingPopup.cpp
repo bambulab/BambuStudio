@@ -828,7 +828,7 @@ AmsHumidityTipPopup::AmsHumidityTipPopup(wxWindow* parent)
     m_staticText1->SetFont(::Label::Head_13);
    
 
-    m_staticText2 = new Label(this, _L("Green means that AMS humidity is normal, orange represent humidity is high, red represent humidity is too high.(Hygrometer: lower the better.)"));
+    m_staticText2 = new Label(this, _L("Green means that AMS humidity is normal, orange represents humidity is high, red represents humidity is too high.(Hygrometer: lower the better.)"));
     m_staticText2->SetFont(::Label::Body_13);
     m_staticText2->SetSize(wxSize(FromDIP(357), -1));
     m_staticText2->SetMinSize(wxSize(FromDIP(357), -1));
