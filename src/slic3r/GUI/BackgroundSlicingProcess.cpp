@@ -77,7 +77,7 @@ std::pair<std::string, std::vector<size_t>> SlicingProcessCompletedEvent::format
 	try {
 		this->rethrow_exception();
     } catch (const std::bad_alloc &ex) {
-        wxString errmsg = GUI::from_u8(boost::format(_utf8(L("A error occurred. Maybe memory of system is not enough or it's a bug "
+        wxString errmsg = GUI::from_u8(boost::format(_utf8(L("An error occurred. Maybe memory of system is not enough or it's a bug "
 			                  "of the program"))).str());
         error = std::string(errmsg.ToUTF8()) + "\n" + std::string(ex.what());
     } catch (const HardCrash &ex) {

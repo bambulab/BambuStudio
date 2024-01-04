@@ -8416,7 +8416,7 @@ int Plater::new_project(bool skip_confirm, bool silent, const wxString &project_
     auto check = [&transfer_preset_changes](bool yes_or_no) {
         wxString header = _L("Some presets are modified.") + "\n" +
             (yes_or_no ? _L("You can keep the modified presets to the new project or discard them") :
-                _L("You can keep the modifield presets to the new project, discard or save changes as new presets."));
+                _L("You can keep the modified presets for the new project, discard or save changes as new presets."));
         using ab = UnsavedChangesDialog::ActionButtons;
         int act_buttons = ab::KEEP | ab::REMEMBER_CHOISE;
         if (!yes_or_no)

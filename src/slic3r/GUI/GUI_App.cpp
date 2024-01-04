@@ -2178,7 +2178,7 @@ void GUI_App::init_app_config()
         if (!error.empty()) {
             // Error while parsing config file. We'll customize the error message and rethrow to be displayed.
             throw Slic3r::RuntimeError(
-                _u8L("BambuStudio configuration file may be corrupted and is not abled to be parsed."
+                _u8L("BambuStudio configuration file may be corrupted and is not able to be parsed."
                      "Please delete the file and try again.") +
                 "\n\n" + app_config->config_path() + "\n\n" + error);
         }
@@ -3802,7 +3802,7 @@ void GUI_App::request_user_logout()
         /* delete old user settings */
         bool     transfer_preset_changes = false;
         wxString header = _L("Some presets are modified.") + "\n" +
-            _L("You can keep the modifield presets to the new project, discard or save changes as new presets.");
+            _L("You can keep the modified presets for the new project, discard or save changes as new presets.");
         using ab        = UnsavedChangesDialog::ActionButtons;
         wxGetApp().check_and_keep_current_preset_changes(_L("User logged out"), header, ab::KEEP | ab::SAVE, &transfer_preset_changes);
 

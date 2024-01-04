@@ -150,7 +150,7 @@ bool GLGizmoText::on_init()
 
     reset_text_info();
 
-    m_desc["rotate_text_caption"] = _L("Shift + Mouse move up or dowm");
+    m_desc["rotate_text_caption"] = _L("Shift + Mouse move up or down");
     m_desc["rotate_text"]         = _L("Rotate text");
 
     m_grabbers.push_back(Grabber());

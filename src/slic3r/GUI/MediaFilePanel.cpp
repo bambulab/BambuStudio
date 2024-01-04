@@ -518,7 +518,7 @@ void MediaFilePanel::doAction(size_t index, int action)
                         return;
                     if (result != 0) {
                         MessageDialog(this, 
-                            _L("Failed to fetching model infomations from printer."), 
+                            _L("Failed to fetch model information from printer."), 
                             _L("Error"), wxOK).ShowModal();
                         return;
                     }
@@ -530,7 +530,7 @@ void MediaFilePanel::doAction(size_t index, int action)
                     if (!Slic3r::load_gcode_3mf_from_stream(is, &config, &model, &plate_data_list, &file_version)
                             || plate_data_list.empty()) {
                         MessageDialog(this, 
-                            _L("Failed to parse model infomations."), 
+                            _L("Failed to parse model information."), 
                             _L("Error"), wxOK).ShowModal();
                         return;
                     }
@@ -549,7 +549,7 @@ void MediaFilePanel::doAction(size_t index, int action)
                         wxPostEvent(Slic3r::GUI::wxGetApp().plater(), SimpleEvent(EVT_PRINT_FROM_SDCARD_VIEW));
                     }
                     else {
-                        MessageDialog dlg(this, _L("The .gcode.3mf file contains no G-code data.Please slice it whthBambu Studio and export a new .gcode.3mf file."), wxEmptyString, wxICON_WARNING | wxOK);
+                        MessageDialog dlg(this, _L("The .gcode.3mf file contains no G-code data.Please slice it whth Bambu Studio and export a new .gcode.3mf file."), wxEmptyString, wxICON_WARNING | wxOK);
                         auto res = dlg.ShowModal();
                     }
                     

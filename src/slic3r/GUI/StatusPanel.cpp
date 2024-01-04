@@ -4621,7 +4621,7 @@ wxBoxSizer *ScoreDialog::get_button_sizer()
                         ++it;
                         break;
                     case BAMBU_NETWORK_ERR_PARSE_CONFIG_FAILED:
-                        error_info += need_upload.second + _L(" upload config prase failed\n").ToUTF8().data() + "\n";
+                        error_info += need_upload.second + _L(" upload config parse failed\n").ToUTF8().data() + "\n";
                         m_upload_status_code = StatusCode::UPLOAD_IMG_FAILED;
                         ++it;
                         break;
