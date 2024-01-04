@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-03 14:17+0800\n"
+"POT-Creation-Date: 2024-01-04 10:49+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -5284,6 +5284,9 @@ msgstr "User Experience"
 msgid "Join Customer Experience Improvement Program."
 msgstr "Join Customer Experience Improvement Program."
 
+msgid "What data would be collected?"
+msgstr ""
+
 msgid "Develop mode"
 msgstr "개발자 모드"
 
@@ -8053,6 +8056,12 @@ msgid ""
 "Clearance radius around extruder. Used for collision avoidance in by-object "
 "printing."
 msgstr "압출기 주변 안전 반경: 객체별 출력에서 충돌 방지를 위해 사용됩니다."
+
+msgid "Nozzle height"
+msgstr "Nozzle height"
+
+msgid "The height of nozzle tip."
+msgstr "The height of nozzle tip."
 
 msgid "Max Radius"
 msgstr "최대 반경"
@@ -12735,9 +12744,6 @@ msgstr ""
 #~ msgid "Nozzle HRC"
 #~ msgstr "노즐 HRC"
 
-#~ msgid "Nozzle height"
-#~ msgstr "Nozzle height"
-
 #~ msgid ""
 #~ "One object has empty initial layer and can't be printed. Please Cut the "
 #~ "bottom or enable supports."
@@ -13246,9 +13252,6 @@ msgstr ""
 #~ "The flush volume is less than the minimum value and will be automatically "
 #~ "set to the minimum value."
 #~ msgstr "짜내기 볼륨이 최소값보다 적으면 자동으로 최소값으로 설정됩니다."
-
-#~ msgid "The height of nozzle tip."
-#~ msgstr "The height of nozzle tip."
 
 #~ msgid ""
 #~ "The model has overlapping or self-intersecting facets. I tried to repair "
