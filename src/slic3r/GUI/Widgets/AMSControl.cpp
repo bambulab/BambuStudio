@@ -863,7 +863,7 @@ void AMSLib::render_generic_text(wxDC &dc)
     dc.SetFont(::Label::Body_13);
     dc.SetTextForeground(temp_text_colour);
     auto alpha = m_info.material_colour.Alpha();
-    if (alpha != 0 && alpha != 255) {
+    if (alpha != 0 && alpha != 255 && alpha != 254) {
         dc.SetTextForeground(*wxBLACK);
     }
 
@@ -1108,6 +1108,9 @@ void AMSLib::render_generic_lib(wxDC &dc)
     // selected
     if (m_selected) {
         dc.SetPen(wxPen(tmp_lib_colour, 2, wxSOLID));
+        if (tmp_lib_colour.Alpha() == 0) {
+            dc.SetPen(wxPen(wxColour(tmp_lib_colour.Red(), tmp_lib_colour.Green(),tmp_lib_colour.Blue(),128), 2, wxSOLID));
+        }
         dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
         if (m_radius == 0) {
             dc.DrawRectangle(0, 0, size.x, size.y);
@@ -1139,16 +1142,36 @@ void AMSLib::render_generic_lib(wxDC &dc)
     }
 
     //draw remain
+    auto alpha = m_info.material_colour.Alpha();
     int height = size.y - FromDIP(8);
-    int curr_height = height * float(m_info.material_remain * 1.0 / 100.0); dc.SetFont(::Label::Body_13);
+    int curr_height = height * float(m_info.material_remain * 1.0 / 100.0); 
+    dc.SetFont(::Label::Body_13);
 
     int top = height - curr_height;
 
     if (curr_height >= FromDIP(6)) {
 
         //transparent
-        auto alpha = m_info.material_colour.Alpha();
+        
         if (alpha == 0) {
+            dc.DrawBitmap(m_bitmap_transparent.bmp(), FromDIP(4), FromDIP(4));
+        }
+        else if (alpha != 255 && alpha != 254) {
+            if (transparent_changed) {
+                std::string rgb = (tmp_lib_colour.GetAsString(wxC2S_HTML_SYNTAX)).ToStdString();
+                if (rgb.size() == 9) {
+                    //delete alpha value
+                    rgb = rgb.substr(0, rgb.size() - 2);
+                }
+                float alpha_f = 0.7 * tmp_lib_colour.Alpha() / 255.0;
+                std::vector<std::string> replace;
+                replace.push_back(rgb);
+                std::string fill_replace = "fill-opacity=\"" + std::to_string(alpha_f);
+                replace.push_back(fill_replace);
+                m_bitmap_transparent = ScalableBitmap(this, "transparent_ams_lib", 68, false, false, true, replace);
+                transparent_changed = false;
+                
+            }
             dc.DrawBitmap(m_bitmap_transparent.bmp(), FromDIP(4), FromDIP(4));
         }
         //gradient
@@ -1206,34 +1229,29 @@ void AMSLib::render_generic_lib(wxDC &dc)
             }
         }
         else {
+            auto brush = dc.GetBrush();
+            if (alpha != 0 && alpha != 255 && alpha != 254) dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
 #ifdef __APPLE__
             dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(8), curr_height, m_radius);
 #else
             dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(8), curr_height, m_radius - 1);
-            if (alpha != 0 && alpha != 255) {
-                if (transparent_changed) {
-                    std::string rgb = (tmp_lib_colour.GetAsString(wxC2S_HTML_SYNTAX)).ToStdString();
-                    if (rgb.size() == 8) {
-                        //delete alpha value
-                        rgb= rgb.substr(0, rgb.size() - 2);
-                    }
-                    float alpha_f = 0.3 * tmp_lib_colour.Alpha() / 255.0;
-                    std::vector<std::string> replace;
-                    replace.push_back(rgb);
-                    std::string fill_replace = "fill-opacity=\"" + std::to_string(alpha_f);
-                    replace.push_back(fill_replace);
-                    m_bitmap_transparent = ScalableBitmap(this, "transparent_ams_lib", 68, false, false, true, replace);
-                    transparent_changed = false;
-                }
-                dc.DrawBitmap(m_bitmap_transparent.bmp(), FromDIP(4), FromDIP(4));
-            }
 #endif
+            dc.SetBrush(brush);
         }
     }
 
     if (top > 2) {
         if (curr_height >= FromDIP(6)) {
             dc.DrawRectangle(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(8), FromDIP(2));
+            if (alpha != 255 && alpha != 254) {
+                dc.SetPen(wxPen(*wxWHITE));
+                dc.SetBrush(wxBrush(*wxWHITE));
+#ifdef __APPLE__
+                dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4) , size.x - FromDIP(8), top, m_radius);
+#else
+                dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4) , size.x - FromDIP(8), top, m_radius - 1);
+#endif
+            }
             if (tmp_lib_colour.Red() > 238 && tmp_lib_colour.Green() > 238 && tmp_lib_colour.Blue() > 238) {
                 dc.SetPen(wxPen(wxColour(130, 129, 128), 1, wxSOLID));
                 dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
@@ -1295,7 +1313,7 @@ void AMSLib::Update(Caninfo info, bool refresh)
     if (dev->get_selected_machine() && dev->get_selected_machine() != m_obj) {
         m_obj = dev->get_selected_machine();
     }
-    if (info.material_colour.Alpha() != 0 && info.material_colour.Alpha() != 255 && m_info.material_colour != info.material_colour) {
+    if (info.material_colour.Alpha() != 0 && info.material_colour.Alpha() != 255 && info.material_colour.Alpha() != 254 && m_info.material_colour != info.material_colour) {
         transparent_changed = true;
     }
     m_info = info;
@@ -2612,6 +2630,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_vams_top_sizer->Add(m_vams_lib, 0, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, FromDIP(4));
     m_vams_top_sizer->Add(m_vams_road, 0, wxALL, 0);
 
+
     //extra road
 
     vams_panel->SetSizer(m_vams_top_sizer);
@@ -2889,6 +2908,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     CreateAms();
     SetSelection(0);
     EnterNoneAMSMode();
+
 }
 
 void AMSControl::on_retry()
