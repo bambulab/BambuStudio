@@ -598,7 +598,6 @@ wxBoxSizer *Newer3mfVersionDialog::get_btn_sizer()
     horizontal_sizer->Add(m_later_btn, 0, wxRIGHT, FromDIP(10));
     m_later_btn->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
         EndModal(wxID_OK);
-        e.Skip();
     });
     return horizontal_sizer;
 }
