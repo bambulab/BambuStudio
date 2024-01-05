@@ -7,7 +7,7 @@
 
 namespace Slic3r {
 
-
+const float CUT_TOLERANCE = 0.1f;
 struct Groove
 {
     float depth{0.f};
@@ -18,8 +18,8 @@ struct Groove
     float width_init{0.f};
     float flaps_angle_init{0.f};
     float angle_init{0.f};
-    float depth_tolerance{0.1f};
-    float width_tolerance{0.1f};
+    float depth_tolerance{CUT_TOLERANCE};
+    float width_tolerance{CUT_TOLERANCE};
 };
 
 class Cut {

@@ -395,9 +395,17 @@ void GLGizmoAdvancedCut::reset_cut_plane()
 void GLGizmoAdvancedCut::reset_all()
 {
     Plater::TakeSnapshot snapshot(wxGetApp().plater(), "reset cut");
-    reset_connectors();
+    if (m_cut_mode == CutMode::cutPlanar) {
+        reset_connectors();
+    } else if (m_cut_mode == CutMode::cutTongueAndGroove) {
+        m_groove.depth = m_groove.depth_init;
+        m_groove.width = m_groove.width_init;
+        m_groove.flaps_angle = m_groove.flaps_angle_init;
+        m_groove.angle = m_groove.angle_init;
+        m_groove.depth_tolerance = CUT_TOLERANCE;
+        m_groove.width_tolerance = CUT_TOLERANCE;
+    }
     reset_cut_plane();
-
     m_keep_upper = true;
     m_keep_lower = true;
     m_cut_to_parts = false;
