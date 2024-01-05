@@ -5354,7 +5354,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         mz_zip_archive archive;
         mz_zip_zero_struct(&archive);
 
-        auto filename = boost::format("3D/Objects/%s_%d.model") % object.name % obj_id;
+        auto filename = boost::format("3D/Objects/object_%d.model") % obj_id;
         std::string filepath = temp_path + "/" + filename.str();
         std::string filepath_tmp = filepath + ".tmp";
         boost::system::error_code ec;
@@ -6238,7 +6238,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     auto & object_data = object_it->second;
 
                     if (m_split_model) {
-                        auto filename = boost::format("3D/Objects/%s_%d.model") % obj->name % backup_id;
+                        auto filename = boost::format("3D/Objects/object_%d.model") % backup_id;
                         object_data.sub_path = "/" + filename.str();
                         object_paths.push_back(filename.str());
                     }
