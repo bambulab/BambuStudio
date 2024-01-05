@@ -6,6 +6,7 @@
     "setting_id": "GP102",
     "instantiation": "true",
     "default_acceleration": "4000",
+    "elefant_foot_compensation": "0.075",
     "gap_infill_speed": "210",
     "inner_wall_speed": "120",
     "internal_solid_infill_speed": "150",
