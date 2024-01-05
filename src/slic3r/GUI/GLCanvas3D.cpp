@@ -1510,8 +1510,17 @@ Camera& GLCanvas3D::get_camera()
     return camera;
 }
 
-void GLCanvas3D::set_color_by(const std::string& value)
+void GLCanvas3D::set_use_clipping_planes(bool use)
 {
+    if (m_gizmos.get_current_type() == GLGizmosManager::EType::Text) {
+        m_use_clipping_planes = false;
+    }
+    else{
+        m_use_clipping_planes = use;
+    }
+}
+
+void GLCanvas3D::set_color_by(const std::string &value) {
     m_color_by = value;
 }
 
