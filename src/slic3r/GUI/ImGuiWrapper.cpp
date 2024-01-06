@@ -2110,7 +2110,6 @@ void ImGuiWrapper::init_font(bool compress)
             throw Slic3r::RuntimeError("ImGui: Could not load deafult font");
         }
     }
-    default_font->Scale = 1.5f;
 
     if (m_is_korean)
         bold_font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "NotoSansKR-Bold.ttf").c_str(), m_font_size, &cfg, ranges.Data);
@@ -2120,7 +2119,15 @@ void ImGuiWrapper::init_font(bool compress)
         bold_font = io.Fonts->AddFontDefault();
         if (bold_font == nullptr) { throw Slic3r::RuntimeError("ImGui: Could not load deafult font"); }
     }
-    bold_font->Scale = 1.5f;
+
+#ifdef _WIN32
+    // Render the text a bit larger (see GLCanvas3D::_resize() and issue #3401), but only if the scale factor
+    // for the Display is greater than 300%.
+    if (wxGetApp().em_unit() > 30) {
+        default_font->Scale = 1.5f;
+        bold_font->Scale    = 1.5f;
+    }
+#endif
 
 #ifdef __APPLE__
     ImFontConfig config;
