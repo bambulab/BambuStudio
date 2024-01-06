@@ -3543,7 +3543,7 @@ static std::pair<float, float> extrude_branch(
             zmin = result.vertices.back().z();
             float angle = angle_step;
             std::pair<int, int> strip;
-            if (current.state.type == TreeSupport::NodeType::ePolygon) {
+            if (current.state.type == TreeNodeType::ePolygon) {
                 strip = discretize_polygon(p1.cast<float>(), current.influence_area, result.vertices);
                 prev_strip = strip;
                 strip = discretize_polygon(p2.cast<float>(), current.influence_area, result.vertices);
@@ -3571,7 +3571,7 @@ static std::pair<float, float> extrude_branch(
             angle_step = M_PI / (2. * nsteps);
             auto angle = float(M_PI / 2.);
             std::pair<int, int> strip;
-            if (current.state.type == TreeSupport::NodeType::ePolygon) {
+            if (current.state.type == TreeNodeType::ePolygon) {
                 strip = discretize_polygon(p2.cast<float>(), current.influence_area, result.vertices);
             }
             else {
@@ -3597,7 +3597,7 @@ static std::pair<float, float> extrude_branch(
             ncurrent = (v1 + v2).normalized();
             float radius = unscaled<float>(support_element_radius(config, current));
             std::pair<int, int> strip;
-            if (current.state.type == TreeSupport::NodeType::ePolygon) {
+            if (current.state.type == TreeNodeType::ePolygon) {
                 strip = discretize_polygon(p2.cast<float>(), current.influence_area, result.vertices);
             }
             else {
