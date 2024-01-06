@@ -31,14 +31,155 @@ struct LayerHeightData
     size_t   next_layer_nr = 0;
     LayerHeightData()      = default;
     LayerHeightData(coordf_t z, coordf_t h, size_t next_layer) : print_z(z), height(h), next_layer_nr(next_layer) {}
+    coordf_t bottom_z() {
+        return print_z - height;
+    }
 };
 
-struct TreeNode {
-    Vec3f pos;
-    std::vector<int> children;  // index of children in the storing vector
-    std::vector<int> parents;  // index of parents in the storing vector
-    TreeNode(Point pt, float z) {
-        pos = { float(unscale_(pt.x())),float(unscale_(pt.y())),z };
+enum TreeNodeType {
+    eCircle,
+    eSquare,
+    ePolygon
+};
+
+
+/*!
+ * \brief Represents the metadata of a node in the tree.
+ */
+struct SupportNode
+{
+    static constexpr SupportNode* NO_PARENT = nullptr;
+
+    SupportNode()
+        : distance_to_top(0)
+        , position(Point(0, 0))
+        , obj_layer_nr(0)
+        , support_roof_layers_below(0)
+        , to_buildplate(true)
+        , parent(nullptr)
+        , print_z(0.0)
+        , height(0.0)
+    {}
+
+    // when dist_mm_to_top_==0, new node's dist_mm_to_top=parent->dist_mm_to_top + parent->height;
+    SupportNode(const Point position, const int distance_to_top, const int obj_layer_nr, const int support_roof_layers_below, const bool to_buildplate, SupportNode* parent,
+        coordf_t     print_z_, coordf_t height_, coordf_t dist_mm_to_top_ = 0, coordf_t radius_ = 0)
+        : distance_to_top(distance_to_top)
+        , position(position)
+        , obj_layer_nr(obj_layer_nr)
+        , support_roof_layers_below(support_roof_layers_below)
+        , to_buildplate(to_buildplate)
+        , parent(parent)
+        , print_z(print_z_)
+        , height(height_)
+        , dist_mm_to_top(dist_mm_to_top_)
+        , radius(radius_)
+    {
+        if (parent) {
+            parents.push_back(parent);
+            type = parent->type;
+            overhang = parent->overhang;
+            if (dist_mm_to_top == 0)
+                dist_mm_to_top = parent->dist_mm_to_top + parent->height;
+            if (radius == 0)
+                radius = parent->radius + (dist_mm_to_top - parent->dist_mm_to_top) * diameter_angle_scale_factor;
+            parent->child = this;
+            for (auto& neighbor : parent->merged_neighbours) {
+                neighbor->child = this;
+                parents.push_back(neighbor);
+            }
+            is_sharp_tail = parent->is_sharp_tail;
+            skin_direction = parent->skin_direction;
+        }
+    }
+
+#ifdef DEBUG // Clear the delete node's data so if there's invalid access after, we may get a clue by inspecting that node.
+    ~SupportNode()
+    {
+        parent = nullptr;
+        merged_neighbours.clear();
+    }
+#endif // DEBUG
+
+    /*!
+     * \brief The number of layers to go to the top of this branch.
+     * Negative value means it's a virtual node between support and overhang, which doesn't need to be extruded.
+     */
+    int distance_to_top;
+    coordf_t dist_mm_to_top = 0;  // dist to bottom contact in mm
+
+    // all nodes will have same diameter_angle_scale_factor because it's defined by user
+    static double diameter_angle_scale_factor;
+
+    /*!
+     * \brief The position of this node on the layer.
+     */
+    Point          position;
+    Point          movement; // movement towards neighbor center or outline
+    mutable double radius          = 0.0;
+    mutable double max_move_dist   = 0.0;
+    TreeNodeType   type            = eCircle;
+    bool           is_corner       = false;
+    bool           is_processed    = false;
+    bool           need_extra_wall = false;
+    bool           is_sharp_tail   = false;
+    bool           valid = true;
+    ExPolygon      overhang; // when type==ePolygon, set this value to get original overhang area
+
+    /*!
+     * \brief The direction of the skin lines above the tip of the branch.
+     *
+     * This determines in which direction we should reduce the width of the
+     * branch.
+     */
+    Point skin_direction;
+
+    /*!
+     * \brief The number of support roof layers below this one.
+     *
+     * When a contact point is created, it is determined whether the mesh
+     * needs to be supported with support roof or not, since that is a
+     * per-mesh setting. This is stored in this variable in order to track
+     * how far we need to extend that support roof downwards.
+     */
+    int support_roof_layers_below;
+    int obj_layer_nr;
+
+    /*!
+     * \brief Whether to try to go towards the build plate.
+     *
+     * If the node is inside the collision areas, it has no choice but to go
+     * towards the model. If it is not inside the collision areas, it must
+     * go towards the build plate to prevent a scar on the surface.
+     */
+    bool to_buildplate;
+
+    /*!
+     * \brief The originating node for this one, one layer higher.
+     *
+     * In order to prune branches that can't have any support (because they
+     * can't be on the model and the path to the buildplate isn't clear),
+     * the entire branch needs to be known.
+     */
+    SupportNode* parent;
+    std::vector<SupportNode*> parents;
+    SupportNode* child = nullptr;
+
+    /*!
+    * \brief All neighbours (on the same layer) that where merged into this node.
+    *
+    * In order to prune branches that can't have any support (because they
+    * can't be on the model and the path to the buildplate isn't clear),
+    * the entire branch needs to be known.
+    */
+    std::list<SupportNode*> merged_neighbours;
+
+    coordf_t print_z;
+    coordf_t height;
+
+    bool operator==(const SupportNode& other) const
+    {
+        return position == other.position;
     }
 };
 
@@ -62,6 +203,9 @@ public:
      * \param collision_resolution
      */
     TreeSupportData(const PrintObject& object, coordf_t max_move, coordf_t radius_sample_resolution, coordf_t collision_resolution);
+    ~TreeSupportData() {
+        clear_nodes();
+    }
 
     TreeSupportData(TreeSupportData&&) = default;
     TreeSupportData& operator=(TreeSupportData&&) = default;
@@ -100,9 +244,13 @@ public:
     Polygons get_contours(size_t layer_nr) const;
     Polygons get_contours_with_holes(size_t layer_nr) const;
 
+    SupportNode* create_node(const Point position, const int distance_to_top, const int obj_layer_nr, const int support_roof_layers_below, const bool to_buildplate, SupportNode* parent,
+        coordf_t     print_z_, coordf_t height_, coordf_t dist_mm_to_top_ = 0, coordf_t radius_ = 0);
+    void clear_nodes();
+    void remove_invalid_nodes();
     std::vector<LayerHeightData> layer_heights;
 
-    std::vector<TreeNode> tree_nodes;
+    std::vector<SupportNode*> contact_nodes;
 
 private:
     /*!
@@ -148,6 +296,7 @@ private:
      */
     const ExPolygons& calculate_avoidance(const RadiusLayerPair& key) const;
 
+    tbb::spin_mutex                         									m_mutex;
 
 public:
     bool is_slim = false;
@@ -228,172 +377,6 @@ public:
 
     void detect_overhangs(bool detect_first_sharp_tail_only=false);
 
-    enum NodeType {
-        eCircle,
-        eSquare,
-        ePolygon
-    };
-
-    /*!
-     * \brief Represents the metadata of a node in the tree.
-     */
-    struct Node
-    {
-        static constexpr Node* NO_PARENT = nullptr;
-
-        Node()
-         : distance_to_top(0)
-         , position(Point(0, 0))
-         , obj_layer_nr(0)
-         , support_roof_layers_below(0)
-         , to_buildplate(true)
-         , parent(nullptr)
-         , print_z(0.0)
-         , height(0.0)
-        {}
-
-        // when dist_mm_to_top_==0, new node's dist_mm_to_top=parent->dist_mm_to_top + parent->height;
-        Node(const Point position, const int distance_to_top, const int obj_layer_nr, const int support_roof_layers_below, const bool to_buildplate, Node* parent,
-             coordf_t     print_z_, coordf_t height_, coordf_t dist_mm_to_top_=0)
-         : distance_to_top(distance_to_top)
-         , position(position)
-         , obj_layer_nr(obj_layer_nr)
-         , support_roof_layers_below(support_roof_layers_below)
-         , to_buildplate(to_buildplate)
-         , parent(parent)
-         , print_z(print_z_)
-         , height(height_)
-         , dist_mm_to_top(dist_mm_to_top_)
-        {
-            if (parent) {
-                parents.push_back(parent);
-                type     = parent->type;
-                overhang = parent->overhang;
-                if (dist_mm_to_top==0)
-                    dist_mm_to_top = parent->dist_mm_to_top + parent->height;
-                parent->child = this;
-                for (auto& neighbor : parent->merged_neighbours) {
-                    neighbor->child = this;
-                    parents.push_back(neighbor);
-                }
-            }
-        }
-
-#ifdef DEBUG // Clear the delete node's data so if there's invalid access after, we may get a clue by inspecting that node.
-        ~Node()
-        {
-            parent = nullptr;
-            merged_neighbours.clear();
-        }
-#endif // DEBUG
-
-        /*!
-         * \brief The number of layers to go to the top of this branch.
-         * Negative value means it's a virtual node between support and overhang, which doesn't need to be extruded.
-         */
-        int distance_to_top;
-        coordf_t dist_mm_to_top = 0;  // dist to bottom contact in mm
-
-        /*!
-         * \brief The position of this node on the layer.
-         */
-        Point            position;
-        Point            movement; // movement towards neighbor center or outline
-        mutable double   radius        = 0.0;
-        mutable double   max_move_dist = 0.0;
-        NodeType         type          = eCircle;
-        bool             is_corner     = false;
-        bool             is_processed  = false;
-        bool             need_extra_wall = false;
-        ExPolygon overhang; // when type==ePolygon, set this value to get original overhang area
-
-        /*!
-         * \brief The direction of the skin lines above the tip of the branch.
-         *
-         * This determines in which direction we should reduce the width of the
-         * branch.
-         */
-        bool skin_direction;
-
-        /*!
-         * \brief The number of support roof layers below this one.
-         *
-         * When a contact point is created, it is determined whether the mesh
-         * needs to be supported with support roof or not, since that is a
-         * per-mesh setting. This is stored in this variable in order to track
-         * how far we need to extend that support roof downwards.
-         */
-        int support_roof_layers_below;
-        int obj_layer_nr;
-
-        /*!
-         * \brief Whether to try to go towards the build plate.
-         *
-         * If the node is inside the collision areas, it has no choice but to go
-         * towards the model. If it is not inside the collision areas, it must
-         * go towards the build plate to prevent a scar on the surface.
-         */
-        bool to_buildplate;
-
-        /*!
-         * \brief The originating node for this one, one layer higher.
-         *
-         * In order to prune branches that can't have any support (because they
-         * can't be on the model and the path to the buildplate isn't clear),
-         * the entire branch needs to be known.
-         */
-        Node *parent;
-        std::vector<Node*> parents;
-        Node *child = nullptr;
-
-        /*!
-        * \brief All neighbours (on the same layer) that where merged into this node.
-        *
-        * In order to prune branches that can't have any support (because they
-        * can't be on the model and the path to the buildplate isn't clear),
-        * the entire branch needs to be known.
-        */
-        std::list<Node*> merged_neighbours;
-
-        coordf_t print_z;
-        coordf_t height;
-
-        bool operator==(const Node& other) const
-        {
-            return position == other.position;
-        }
-    };
-
-    struct SupportParams
-    {
-        Flow first_layer_flow;
-        Flow support_material_flow;
-        Flow support_material_interface_flow;
-        Flow support_material_bottom_interface_flow;
-        coordf_t support_extrusion_width;
-        // Is merging of regions allowed? Could the interface & base support regions be printed with the same extruder?
-        bool can_merge_support_regions;
-
-        coordf_t support_layer_height_min;
-        //	coordf_t	support_layer_height_max;
-
-        coordf_t gap_xy;
-
-        float    base_angle;
-        float    interface_angle;
-        coordf_t interface_spacing;
-        coordf_t interface_density;
-        coordf_t support_spacing;
-        coordf_t support_density;
-
-        InfillPattern base_fill_pattern;
-        InfillPattern interface_fill_pattern;
-        InfillPattern contact_fill_pattern;
-        bool          with_sheath;
-        bool independent_layer_height = false;
-        const double thresh_big_overhang = SQ(scale_(10));
-    };
-
     int  avg_node_per_layer = 0;
     float nodes_angle       = 0;
     bool  has_overhangs = false;
@@ -426,7 +409,7 @@ private:
     const PrintObjectConfig* m_object_config;
     SlicingParameters        m_slicing_params;
     // Various precomputed support parameters to be shared with external functions.
-    SupportParams   m_support_params;
+    SupportParameters   m_support_params;
     size_t          m_raft_layers = 0;
     size_t          m_highest_overhang_layer = 0;
     std::vector<std::vector<MinimumSpanningTree>> m_spanning_trees;
@@ -454,7 +437,7 @@ private:
      * save the resulting support polygons to.
      * \param contact_nodes The nodes to draw as support.
      */
-    void draw_circles(const std::vector<std::vector<Node*>>& contact_nodes);
+    void draw_circles(const std::vector<std::vector<SupportNode*>>& contact_nodes);
 
     /*!
      * \brief Drops down the nodes of the tree support towards the build plate.
@@ -468,18 +451,18 @@ private:
      * dropped down. The nodes are dropped to lower layers inside the same
      * vector of layers.
      */
-    void drop_nodes(std::vector<std::vector<Node *>> &contact_nodes);
+    void drop_nodes(std::vector<std::vector<SupportNode *>> &contact_nodes);
 
-    void smooth_nodes(std::vector<std::vector<Node *>> &contact_nodes);
+    void smooth_nodes(std::vector<std::vector<SupportNode *>> &contact_nodes);
 
-    void smooth_nodes(std::vector<std::vector<Node*>>& contact_nodes, const TreeSupport3D::TreeSupportSettings& config);
+    void smooth_nodes(std::vector<std::vector<SupportNode*>>& contact_nodes, const TreeSupport3D::TreeSupportSettings& config);
 
     /*! BBS: MusangKing: maximum layer height
      * \brief Optimize the generation of tree support by pre-planning the layer_heights
      * 
     */
 
-    std::vector<LayerHeightData> plan_layer_heights(std::vector<std::vector<Node *>> &contact_nodes);
+    std::vector<LayerHeightData> plan_layer_heights(std::vector<std::vector<SupportNode *>> &contact_nodes);
     /*!
      * \brief Creates points where support contacts the model.
      *
@@ -493,19 +476,16 @@ private:
      * \return For each layer, a list of points where the tree should connect
      * with the model.
      */
-    void generate_contact_points(std::vector<std::vector<Node*>>& contact_nodes, const std::vector<TreeSupport3D::SupportElements>& move_bounds);
+    void generate_contact_points(std::vector<std::vector<SupportNode*>>& contact_nodes, const std::vector<TreeSupport3D::SupportElements>& move_bounds);
 
     /*!
      * \brief Add a node to the next layer.
      *
      * If a node is already at that position in the layer, the nodes are merged.
      */
-    void insert_dropped_node(std::vector<Node*>& nodes_layer, Node* node);
+    void insert_dropped_node(std::vector<SupportNode*>& nodes_layer, SupportNode* node);
     void create_tree_support_layers();
     void generate_toolpaths();
-    Polygons spanning_tree_to_polygon(const std::vector<MinimumSpanningTree>& spanning_trees, Polygons layer_contours, int layer_nr);
-    Polygons contact_nodes_to_polygon(const std::vector<Node*>& contact_nodes, Polygons layer_contours, int layer_nr, std::vector<double>& radiis, std::vector<bool>& is_interface);
-    void clear_contact_nodes(std::vector<std::vector<Node*>>& contact_nodes);
     // get unscaled radius of node
     coordf_t calc_branch_radius(coordf_t base_radius, size_t layers_to_top, size_t tip_layers, double diameter_angle_scale_factor);
     // get unscaled radius(mm) of node based on the distance mm to top

@@ -141,6 +141,7 @@ struct SupportParameters {
     Flow 		support_material_flow;
     Flow 		support_material_interface_flow;
     Flow 		support_material_bottom_interface_flow;
+    coordf_t support_extrusion_width;
     // Is merging of regions allowed? Could the interface & base support regions be printed with the same extruder?
     bool 		can_merge_support_regions;
 
@@ -152,7 +153,7 @@ struct SupportParameters {
     float    				base_angle;
     float    				interface_angle;
     coordf_t 				interface_spacing;
-    coordf_t				support_expansion;
+    coordf_t				support_expansion=0;
     coordf_t 				interface_density;
     coordf_t 				support_spacing;
     coordf_t 				support_density;
@@ -161,5 +162,7 @@ struct SupportParameters {
     InfillPattern           interface_fill_pattern;
     InfillPattern 			contact_fill_pattern;
     bool                    with_sheath;
+    bool independent_layer_height = false;
+    const double thresh_big_overhang = Slic3r::sqr(scale_(10));
 };
 } // namespace Slic3r
