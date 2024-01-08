@@ -242,6 +242,7 @@ protected:
     void render_cursor_circle() const;
     void render_cursor_sphere(const Transform3d& trafo) const;
     // BBS
+    bool is_valid_height_range_cursor(float min_z, float max_z) const;
     void render_cursor_height_range(const Transform3d& trafo) const;
     //BBS: add logic to distinguish the first_time_update and later_update
     virtual void update_model_object() = 0;
@@ -371,14 +372,14 @@ protected:
         ObjectID object_id;
         int instance_idx{ -1 };
     };
-    mutable CutContours m_cut_contours;
+    mutable std::vector<CutContours> m_cut_contours;
     mutable float       m_cursor_z{0};
     mutable double      m_height_start_z_in_imgui{0};
     mutable bool        m_is_set_height_start_z_by_imgui{false};
     mutable Vec2i       m_height_start_pos{0, 0};
     mutable bool        m_is_cursor_in_imgui{false};
     BoundingBoxf3 bounding_box() const;
-    void          update_contours(const TriangleMesh &vol_mesh, float cursor_z, float max_z, float min_z, bool update_height_start_pos) const;
+    void          update_contours(int i, const TriangleMesh &vol_mesh, float cursor_z, float max_z, float min_z, bool update_height_start_pos) const;
     Vec2i         _3d_to_mouse(Vec3d pos_in_3d, const Camera &camera) const;
 protected:
     void on_set_state() override;
