@@ -128,7 +128,8 @@ list(APPEND _patch_command COMMAND git init && ${PATCH_CMD} ${CMAKE_CURRENT_LIST
 
 ExternalProject_Add(
     dep_Boost
-    URL "https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/boost_1_78_0.zip"
+    #URL "https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/boost_1_78_0.zip"
+    URL "https://github.com/bambulab/boost/releases/download/1.78.0/boost_1_78_0.zip"
     URL_HASH SHA256=f22143b5528e081123c3c5ed437e92f648fe69748e95fa6e2bd41484e2986cc3
     DOWNLOAD_DIR ${DEP_DOWNLOAD_DIR}/Boost
     CONFIGURE_COMMAND "${_bootstrap_cmd}"
