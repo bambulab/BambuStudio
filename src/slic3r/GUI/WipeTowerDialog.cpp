@@ -460,8 +460,42 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
         param_sizer->AddStretchSpacer(1);
         m_sizer_advanced->Add(param_sizer, 0, wxEXPAND | wxLEFT, TEXT_BEG_PADDING);
 
+        wxStaticText* suggest = new wxStaticText(m_page_advanced, wxID_ANY, wxString::Format(_L("The multiplier should be in range [%.2f, %.2f]."), g_min_flush_multiplier, g_max_flush_multiplier));
+        suggest->SetForegroundColour(g_text_color);
+        m_sizer_advanced->Add(suggest, 0, wxEXPAND | wxLEFT, TEXT_BEG_PADDING);
+        m_sizer_advanced->AddSpacer(5);
+
         m_flush_multiplier_ebox->Bind(wxEVT_TEXT_ENTER, on_apply_text_modify);
         m_flush_multiplier_ebox->Bind(wxEVT_KILL_FOCUS, on_apply_text_modify);
+        m_flush_multiplier_ebox->Bind(wxEVT_COMMAND_TEXT_UPDATED, [this](wxCommandEvent&) {
+            wxString str = m_flush_multiplier_ebox->GetValue();
+            float      multiplier = wxAtof(str);
+            if (multiplier < g_min_flush_multiplier || multiplier > g_max_flush_multiplier) {
+                str = wxString::Format(("%.2f"), multiplier < g_min_flush_multiplier ? g_min_flush_multiplier : g_max_flush_multiplier);
+                m_flush_multiplier_ebox->SetValue(str);
+                m_flush_multiplier_ebox->SetInsertionPointEnd();
+            }
+            });
+        m_flush_multiplier_ebox->Bind(wxEVT_CHAR, [this](wxKeyEvent& e) {
+            int keycode = e.GetKeyCode();
+
+            if (keycode == WXK_NONE)
+                return;
+
+            if (keycode == WXK_BACK || keycode == WXK_DELETE || keycode == WXK_RETURN ||
+                keycode == WXK_LEFT || keycode == WXK_RIGHT  ||
+                keycode == WXK_HOME || keycode == WXK_END) {
+                e.Skip();
+                return;
+            }
+
+            wxString input_char = wxString::Format("%c", keycode);
+            long value;
+            if (!input_char.ToLong(&value) && input_char != ".")
+                return;
+
+            e.Skip();
+            });
     }
     this->update_warning_texts();
 
