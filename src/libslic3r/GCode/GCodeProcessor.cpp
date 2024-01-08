@@ -64,9 +64,9 @@ const std::vector<std::string> GCodeProcessor::Reserved_Tags = {
     "_GP_TOTAL_FILAMENT_USED_G_PLACEHOLDER",
     " WIPE_TOWER_START",
     " WIPE_TOWER_END",
-		"_GP_FILAMENT_USED_LENGTH_PLACEHOLDER",
-		"_GP_FILAMENT_USED_VOLUME_PLACEHOLDER",
-		"_GP_FILAMENT_USED_WEIGHT_PLACEHOLDER"
+    "_GP_FILAMENT_USED_WEIGHT_PLACEHOLDER",
+    "_GP_FILAMENT_USED_VOLUME_PLACEHOLDER",
+    "_GP_FILAMENT_USED_LENGTH_PLACEHOLDER"
 };
 
 const std::string GCodeProcessor::Flush_Start_Tag = " FLUSH_START";
@@ -387,6 +387,8 @@ void GCodeProcessor::PostProcessor::post_process(const std::string& filename, st
         throw Slic3r::RuntimeError(std::string("Time estimator post process export failed.\nCannot open file for writing.\n"));
     }
 
+    auto& machines = p_time_processor->machines;
+
     auto time_in_minutes = [](float time_in_seconds) {
         assert(time_in_seconds >= 0.f);
         return int((time_in_seconds + 0.5f) / 60.0f);
@@ -451,6 +453,20 @@ void GCodeProcessor::PostProcessor::post_process(const std::string& filename, st
     auto process_placeholders = [&](std::string& gcode_line) {
         unsigned int extra_lines_count = 0;
 
+        auto format_filament_used_info = [](const std::string& info, std::map<size_t, double>val_per_extruder) {
+            auto double_to_fmt_string = [](double num) {
+                char buf[20];
+                sprintf(buf, "%.2f", num);
+                return std::string(buf);
+            };
+            std::string buf = "; " + info + " : ";
+            size_t idx = 0;
+            for (auto item : val_per_extruder)
+                buf += (idx++ == 0 ? double_to_fmt_string(item.second) : "," + double_to_fmt_string(item.second));
+            buf += '\n';
+            return buf;
+        };
+
         // remove trailing '\n'
         auto line = std::string_view(gcode_line).substr(0, gcode_line.length() - 1);
 
@@ -500,28 +516,63 @@ void GCodeProcessor::PostProcessor::post_process(const std::string& filename, st
                 ret += buf;
             }
             else if (line == reserved_tag(ETags::Used_Filament_Weight_Placeholder)) {
-                std::map<size_t, double>weight_per_extruder;
-                auto extruders = *p_extruders;
-                auto calc_filament_weight = [&weight_per_extruder,&extruders](const std::map<size_t, double>& vol_per_extruder) {
+                std::map<size_t, double>total_weight_per_extruder;
+                auto extruders = p_extruders;
+                auto calc_filament_weight = [&total_weight_per_extruder, &extruders](const std::map<size_t, double>& vol_per_extruder) {
                     for (auto volume : vol_per_extruder) {
                         size_t extruder_id = volume.first;
                         auto extruder = std::find_if(extruders.begin(), extruders.end(), [extruder_id](const Extruder& extr) { return extr.id() == extruder_id; });
                         if (extruder == extruders.end())
                             continue;
                         double weight = volume.second * extruder->filament_density() * 0.001;
-                        weight_per_extruder[volume.first] += weight;
+                        total_weight_per_extruder[volume.first] += weight;
                     }
                 };
- 
+
                 calc_filament_weight(p_used_filaments->volumes_per_extruder);
                 calc_filament_weight(p_used_filaments->wipe_tower_volume_per_extruder);
                 calc_filament_weight(p_used_filaments->flush_per_filament);
 
-                std::string buf = "; total filament weight [g]: ";
-                int idx = 0;
-                for (auto item : weight_per_extruder)
-                    buf += (idx++ == 0 ? std::to_string(item.second) : "," + std::to_string(item.second));
-                ret += buf += "\n";
+                ret+=format_filament_used_info("total filament weight [g]",total_weight_per_extruder);
+            }
+            else if (line == reserved_tag(ETags::Used_Filament_Volume_Placeholder)) {
+                std::map<size_t, double>total_volume_per_extruder;
+                auto extruders = p_extruders;
+                auto calc_filament_volume = [&total_volume_per_extruder, &extruders](const std::map<size_t, double>& vol_per_extruder) {
+                    for (auto volume : vol_per_extruder) {
+                        size_t extruder_id = volume.first;
+                        auto extruder = std::find_if(extruders.begin(), extruders.end(), [extruder_id](const Extruder& extr) { return extr.id() == extruder_id; });
+                        if (extruder == extruders.end())
+                            continue;
+                        total_volume_per_extruder[volume.first] += volume.second;
+                    }
+                };
+
+                calc_filament_volume(p_used_filaments->volumes_per_extruder);
+                calc_filament_volume(p_used_filaments->wipe_tower_volume_per_extruder);
+                calc_filament_volume(p_used_filaments->flush_per_filament);
+
+                ret += format_filament_used_info("total filament volume [cm^3]", total_volume_per_extruder);
+            }
+            else if (line == reserved_tag(ETags::Used_Filament_Length_Placeholder)) {
+                std::map<size_t, double>total_length_per_extruder;
+                auto extruders = p_extruders;
+                auto calc_filament_length = [&total_length_per_extruder, &extruders](const std::map<size_t, double>& vol_per_extruder) {
+                    for (auto volume : vol_per_extruder) {
+                        size_t extruder_id = volume.first;
+                        auto extruder = std::find_if(extruders.begin(), extruders.end(), [extruder_id](const Extruder& extr) { return extr.id() == extruder_id; });
+                        if (extruder == extruders.end())
+                            continue;
+                        double length = volume.second / (PI * sqr(0.5 * extruder->filament_diameter()));
+                        total_length_per_extruder[extruder_id] += length;
+                    }
+                };
+
+                calc_filament_length(p_used_filaments->volumes_per_extruder);
+                calc_filament_length(p_used_filaments->wipe_tower_volume_per_extruder);
+                calc_filament_length(p_used_filaments->flush_per_filament);
+
+                ret += format_filament_used_info("total filament length [mm]", total_length_per_extruder);
             }
         }
 
@@ -1354,6 +1405,7 @@ void GCodeProcessor::reset()
 
     m_extrusion_role = erNone;
     m_extruder_id = 0;
+    //TODO: use std::optional to replace it to prevent the issue where the index of the last extruder id is 0 during the first filament change
     m_last_extruder_id = 0;
     m_extruder_colors.resize(MIN_EXTRUDERS_COUNT);
     for (size_t i = 0; i < MIN_EXTRUDERS_COUNT; ++i) {
@@ -1542,8 +1594,7 @@ void GCodeProcessor::finalize(bool post_process)
     m_width_compare.output();
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
     if (post_process) {
-        m_post_processor.p_time_processor = &m_time_processor;
-        m_post_processor.p_used_filaments = &m_used_filaments;
+        m_post_processor.initialize(m_time_processor,m_used_filaments,m_extruders);
         m_post_processor.post_process(m_result.filename, m_result.moves, m_result.lines_ends, m_layer_id);
     }
 #if ENABLE_GCODE_VIEWER_STATISTICS

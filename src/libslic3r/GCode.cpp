@@ -1276,7 +1276,8 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
                 break;
         }
     }
-    m_processor.m_post_processor.p_extruders = &m_writer.extruders();
+
+    m_processor.set_extruders(m_writer.extruders());
     m_processor.finalize(true);
 //    DoExport::update_print_estimated_times_stats(m_processor, print->m_print_statistics);
     DoExport::update_print_estimated_stats(m_processor, m_writer.extruders(), print->m_print_statistics);
@@ -2326,6 +2327,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     //if (print.m_print_statistics.total_toolchanges > 0)
     //	file.write_format("; total filament change = %i\n", print.m_print_statistics.total_toolchanges);
     file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Used_Filament_Weight_Placeholder).c_str());
+    file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Used_Filament_Volume_Placeholder).c_str());
+    file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Used_Filament_Length_Placeholder).c_str());
 
     bool activate_air_filtration = false;
     for (const auto& extruder : m_writer.extruders())
