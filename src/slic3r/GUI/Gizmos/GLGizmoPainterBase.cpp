@@ -264,6 +264,14 @@ Vec2i GLGizmoPainterBase::_3d_to_mouse(Vec3d pos_in_3d, const Camera &camera) co
     return screen;
 }
 
+bool GLGizmoPainterBase::is_valid_height_range_cursor(float min_z, float max_z) const
+{
+    if (m_cursor_z + m_cursor_height <= min_z || m_cursor_z >= max_z) {
+        return false;
+    }
+    return true;
+}
+
 // BBS
 void GLGizmoPainterBase::render_cursor_height_range(const Transform3d& trafo) const
 {
@@ -321,7 +329,7 @@ void GLGizmoPainterBase::render_cursor_height_range(const Transform3d& trafo) co
         ImGui::SetNextWindowFocus();
     }
     if (btn_clicked) {
-        if (m_cursor_z >= min_z && m_cursor_z + m_cursor_height <= max_z) {
+        if (is_valid_height_range_cursor(min_z, max_z)) {
             m_is_set_height_start_z_by_imgui = true;
             const_cast<GLGizmoPainterBase &>(*this).gizmo_event(SLAGizmoEventType::LeftDown, Vec2d(0, 0), false, false, false);
             m_is_set_height_start_z_by_imgui = false;
@@ -333,7 +341,7 @@ void GLGizmoPainterBase::render_cursor_height_range(const Transform3d& trafo) co
     ImGui::PopStyleVar(3);
     ImGui::PopStyleColor(1);
 
-    if (m_cursor_z <= min_z || m_cursor_z + m_cursor_height >= max_z) {
+    if (!is_valid_height_range_cursor(min_z, max_z)) {
         return;
     }
     std::array<float, 2> zs = {m_cursor_z, std::clamp(m_cursor_z + m_cursor_height, min_z, max_z)};
@@ -351,14 +359,16 @@ void GLGizmoPainterBase::render_cursor_height_range(const Transform3d& trafo) co
         else {
             vol_mesh.transform(mi->get_transformation().get_matrix() * mv->get_matrix());
         }
-
+        if (m_cut_contours.size() != zs.size()) {
+            m_cut_contours.resize(zs.size());
+        }
         for (int i = 0; i < zs.size(); i++) {
-            update_contours(vol_mesh, zs[i], max_z, min_z, m_is_cursor_in_imgui? false:(i == 0 ? true : false));
+            update_contours(i, vol_mesh, zs[i], max_z, min_z, m_is_cursor_in_imgui? false:(i == 0 ? true : false));
 
             glsafe(::glPushMatrix());
-            glsafe(::glTranslated(m_cut_contours.shift.x(), m_cut_contours.shift.y(), m_cut_contours.shift.z()));
+            glsafe(::glTranslated(m_cut_contours[i].shift.x(), m_cut_contours[i].shift.y(), m_cut_contours[i].shift.z()));
             glsafe(::glLineWidth(2.0f));
-            m_cut_contours.contours.render();
+            m_cut_contours[i].contours.render();
             glsafe(::glPopMatrix());
         }
 
@@ -383,7 +393,7 @@ struct ScreenPosSort {
     Vec3d pos_3d;
 };
 
-void GLGizmoPainterBase::update_contours(const TriangleMesh& vol_mesh, float cursor_z, float max_z, float min_z, bool update_height_start_pos) const
+void GLGizmoPainterBase::update_contours(int i, const TriangleMesh &vol_mesh, float cursor_z, float max_z, float min_z, bool update_height_start_pos) const
 {
     const Selection& selection = m_parent.get_selection();
     const GLVolume* first_glvolume = selection.get_volume(*selection.get_volume_idxs().begin());
@@ -392,21 +402,21 @@ void GLGizmoPainterBase::update_contours(const TriangleMesh& vol_mesh, float cur
     const ModelObject* model_object = wxGetApp().model().objects[selection.get_object_idx()];
     const int instance_idx = selection.get_instance_idx();
 
-        if (min_z < cursor_z && cursor_z < max_z) {
-            if (m_cut_contours.cut_z != cursor_z || m_cut_contours.object_id != model_object->id() || m_cut_contours.instance_idx != instance_idx) {
-                m_cut_contours.cut_z = cursor_z;
+    if (min_z < cursor_z && cursor_z < max_z) {
+        if (m_cut_contours[i].cut_z != cursor_z || m_cut_contours[i].object_id != model_object->id() || m_cut_contours[i].instance_idx != instance_idx) {
+                m_cut_contours[i].cut_z = cursor_z;
 
-                m_cut_contours.mesh = vol_mesh;
+                m_cut_contours[i].mesh = vol_mesh;
 
-                m_cut_contours.position = box.center();
-                m_cut_contours.shift = Vec3d::Zero();
-                m_cut_contours.object_id = model_object->id();
-                m_cut_contours.instance_idx = instance_idx;
-                m_cut_contours.contours.reset();
+                m_cut_contours[i].position  = box.center();
+                m_cut_contours[i].shift     = Vec3d::Zero();
+                m_cut_contours[i].object_id = model_object->id();
+                m_cut_contours[i].instance_idx = instance_idx;
+                m_cut_contours[i].contours.reset();
 
                 MeshSlicingParams slicing_params;
                 slicing_params.trafo = Transform3d::Identity().matrix();
-                const Polygons polys = slice_mesh(m_cut_contours.mesh.its, cursor_z, slicing_params);
+                const Polygons polys = slice_mesh(m_cut_contours[i].mesh.its, cursor_z, slicing_params);
                 if (!polys.empty()) {
                     if (update_height_start_pos) {
                         const Camera &camera     = wxGetApp().plater()->get_camera();
@@ -438,16 +448,15 @@ void GLGizmoPainterBase::update_contours(const TriangleMesh& vol_mesh, float cur
                             m_height_start_pos[1] -= 10;
                         }
                     }
-                    m_cut_contours.contours.init_from(polys, static_cast<float>(cursor_z));
-                    m_cut_contours.contours.set_color(-1, { 1.0f, 1.0f, 1.0f, 1.0f });
+                    m_cut_contours[i].contours.init_from(polys, static_cast<float>(cursor_z));
+                    m_cut_contours[i].contours.set_color(-1, {1.0f, 1.0f, 1.0f, 1.0f});
                 }
-            }
-            else if (box.center() != m_cut_contours.position) {
-                m_cut_contours.shift = box.center() - m_cut_contours.position;
+            } else if (box.center() != m_cut_contours[i].position) {
+                 m_cut_contours[i].shift = box.center() - m_cut_contours[i].position;
             }
         }
         else
-            m_cut_contours.contours.reset();
+            m_cut_contours[i].contours.reset();
 }
 
 bool GLGizmoPainterBase::is_mesh_point_clipped(const Vec3d& point, const Transform3d& trafo) const
