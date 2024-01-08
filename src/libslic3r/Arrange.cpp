@@ -674,8 +674,7 @@ protected:
             bool first_object                 = extruder_ids.empty();
             // the two objects (previously packed items and the current item) are considered having same color if either one's colors are a subset of the other
             std::set<int> item_extruder_ids(item.extrude_ids.begin(), item.extrude_ids.end());
-            bool same_color_with_previous_items = std::includes(item_extruder_ids.begin(), item_extruder_ids.end(), extruder_ids.begin(), extruder_ids.end())
-                || std::includes(extruder_ids.begin(), extruder_ids.end(), item_extruder_ids.begin(), item_extruder_ids.end());
+            bool same_color_with_previous_items = std::includes(extruder_ids.begin(), extruder_ids.end(), item_extruder_ids.begin(), item_extruder_ids.end());
             if (!(first_object || same_color_with_previous_items)) score += LARGE_COST_TO_REJECT * 1.3;
         }
         // for layered printing, we want extruder change as few as possible
@@ -811,7 +810,15 @@ public:
                         (i1.height != i2.height ? (i1.height < i2.height) : (i1.area() > i2.area()));
             }
             else {
-                return i1.bed_temp != i2.bed_temp ? (i1.bed_temp > i2.bed_temp) :
+                // single color objects first, then objects with more colors
+                if (i1.extrude_ids.size() != i2.extrude_ids.size()){
+                    if (i1.extrude_ids.size() == 1 || i2.extrude_ids.size() == 1)
+                        return i1.extrude_ids.size() == 1;
+                    else 
+                        return i1.extrude_ids.size() > i2.extrude_ids.size();
+                }
+                else
+                    return i1.bed_temp != i2.bed_temp ? (i1.bed_temp > i2.bed_temp) :
                     (i1.extrude_ids != i2.extrude_ids ? (i1.extrude_ids.front() < i2.extrude_ids.front()) : (i1.area() > i2.area()));
             }
         };
