@@ -9,6 +9,9 @@
 #include "DownloadProgressDialog.hpp"
 
 #include <boost/filesystem/string_file.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/nowide/cstdio.hpp>
 #include <boost/nowide/utf8_codecvt.hpp>
 #undef pid_t
 #include <boost/process.hpp>
@@ -18,6 +21,8 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #endif
+
+#include <wx/clipbrd.h>
 
 namespace Slic3r {
 namespace GUI {

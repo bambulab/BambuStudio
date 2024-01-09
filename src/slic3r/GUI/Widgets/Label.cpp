@@ -2,6 +2,9 @@
 #include "Label.hpp"
 #include "StaticBox.hpp"
 
+#include <wx/dcclient.h>
+#include <wx/settings.h>
+
 wxFont Label::sysFont(int size, bool bold)
 {
 //#ifdef __linux__

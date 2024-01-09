@@ -2,6 +2,7 @@
 #define slic3r_GUI_TempInput_hpp_
 
 #include "../wxExtensions.hpp"
+#include <wx/stattext.h>
 #include <wx/textctrl.h>
 #include "StaticBox.hpp"
 
