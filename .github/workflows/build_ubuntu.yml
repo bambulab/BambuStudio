@@ -23,17 +23,8 @@ jobs:
       - name: Fix permissions
         shell: bash
         run: sudo chown $USER -R ./
-      - name: Build deps
-        id: cache_deps
-        uses: actions/cache@v3
-        env:
-          cache-name: ${{ runner.os }}-cache-bambustudio_deps_x64
-        with:
-          path: ${{ github.workspace }}/deps/build/destdir
-          key: build-${{ env.cache-name }}
 
-      - if: ${{ steps.cache_deps.outputs.cache-hit != 'true' }}
-        name: Build deps
+      - name: Build deps
         working-directory: ${{ github.workspace }}
         continue-on-error: true
         run: ./BuildLinux.sh -dsr
