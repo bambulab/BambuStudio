@@ -1,4 +1,4 @@
-set(_wx_git_tag v3.1.5)
+set(_wx_git_tag v3.2.4)
 
 set(_wx_toolkit "")
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
