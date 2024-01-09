@@ -1,6 +1,9 @@
 name: Build Linux
 
-on: [pull_request]
+on:
+  push:
+    branches:
+      - v1.8.2
 
 jobs:
   appimage-builder:
