@@ -25,6 +25,15 @@
 #include <wx/clipbrd.h>
 #include "wx/evtloop.h"
 
+static std::map<int, std::string> error_messages = {
+    {1, L("The device cannot handle more conversations. Please retry later.")},
+    {2, L("Player is malfunctioning. Please reinstall the system player.")},
+    {100, L("The player is not loaded, please click \"play\" button to retry.")},
+    {101, L("The player is not loaded, please click \"play\" button to retry.")},
+    {102, L("The player is not loaded, please click \"play\" button to retry.")},
+    {103, L("The player is not loaded, please click \"play\" button to retry.")}
+};
+
 namespace Slic3r {
 namespace GUI {
 
@@ -140,7 +149,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         m_lan_passwd.clear();
         m_dev_ver.clear();
         m_tutk_state.clear();
-        m_remote_support = true;
+        m_remote_support = false;
         m_device_busy = false;
     }
     Enable(obj && obj->is_connected() && obj->m_push_count > 0);
@@ -204,24 +213,23 @@ void MediaPlayCtrl::Play()
     }
     m_failed_code = 0;
     if (m_machine.empty()) {
-        Stop(_L("Initialize failed (No Device)!"));
+        Stop(_L("Please confirm if the printer is connected."));
         return;
     }
     if (!IsEnabled()) {
-        Stop(_L("Initialize failed (Device connection not ready)!"));
+        Stop(_L("Please confirm if the printer is connected."));
         return;
     }
     if (!m_camera_exists) {
-        Stop(_L("Initialize failed (No Camera Device)!"));
+        Stop(_L("Printer camera is malfunctioning."));
         return;
     }
     if (m_device_busy) {
-        Stop(_L("Printer is busy downloading, Please wait for the downloading to finish."));
+        Stop(_L("The printer is currently busy downloading. Please try again after it finishes."));
         m_failed_retry = 0;
         return;
     }
 
-    m_last_state = MEDIASTATE_INITIALIZING;
     m_button_play->SetIcon("media_stop");
     NetworkAgent *agent = wxGetApp().getAgent();
     std::string  agent_version = agent ? agent->get_version() : "";
@@ -241,25 +249,27 @@ void MediaPlayCtrl::Play()
         return;
     }
 
-    m_disable_lan = false;
-    if (m_lan_ip.empty())
-        m_failed_code = -1;
+    // m_lan_mode && m_lan_proto == LVL_None (x)
+    // !m_lan_mode && m_remote_support
+    // !m_lan_mode && !m_remote_support && m_lan_proto > LVL_None (use local tunnel)
+    // !m_lan_mode && !m_remote_support && m_lan_proto == LVL_None (x)
 
-    if (m_lan_mode) {
-        Stop(m_lan_proto < 0
-                ? _L("Initialize failed (Not supported on the current printer version)!")
-                : _L("Initialize failed (Not accessible in LAN-only mode)!"));
+    if (m_lan_proto == MachineObject::LVL_None && !m_remote_support) {
+        Stop(_L("Please update the printer firmware and try again."));
         return;
     }
+
+    m_disable_lan = false;
+    m_failed_code = 0;
+    m_last_state  = MEDIASTATE_INITIALIZING;
     
     if (!m_remote_support) { // not support tutk
-        Stop(m_lan_ip.empty() 
-            ? _L("Initialize failed (Missing LAN ip of printer)!") 
-            : _L("Initialize failed (Not supported on the current printer version)!"));
+        m_failed_code = -1;
+        m_url = "bambu:///local/";
+        Stop(_L("Please enter the IP of printer to connect."));
         return;
     }
 
-    m_failed_code = 0;
     SetStatus(_L("Initializing..."));
 
     if (agent) {
@@ -279,7 +289,7 @@ void MediaPlayCtrl::Play()
                 if (m_last_state == MEDIASTATE_INITIALIZING) {
                     if (url.empty() || !boost::algorithm::starts_with(url, "bambu:///")) {
                         m_failed_code = 3;
-                        Stop(wxString::Format(_L("Initialize failed (%s)!"), url.empty() ? _L("Network unreachable") : from_u8(url)));
+                        Stop(_L("Connection Failed. Please check the network and try again"));
                     } else {
                         load();
                     }
@@ -301,13 +311,21 @@ void MediaPlayCtrl::Stop(wxString const &msg)
         boost::unique_lock lock(m_mutex);
         m_tasks.push_back("<stop>");
         m_cond.notify_all();
-        m_last_state = MEDIASTATE_IDLE;
         if (!msg.IsEmpty())
-            SetStatus(msg, false);
-        else if (m_failed_code)
-            SetStatus(_L("Stopped [%d]!"), true);
-        else
+            SetStatus(msg);
+        else if (m_failed_code) {
+            auto iter = error_messages.find(m_failed_code);
+            auto msg2 = iter == error_messages.end()
+                ? _L("Please check the network and try again, You can restart or update the printer if the issue persists.")
+                : _L(iter->second.c_str());
+            if (m_failed_code == 1) {
+                if (m_last_state == wxMEDIASTATE_PLAYING)
+                    msg2 = _L("The printer has been logged out and cannot connect.");
+            }
+            SetStatus(msg2);
+        } else
             SetStatus(_L("Stopped."), false);
+        m_last_state = MEDIASTATE_IDLE;
         if (!m_auto_retry || m_failed_code >= 100 || m_failed_code == 1) // not keep retry on local error or EOS
             m_next_retry = wxDateTime();
     } else if (!msg.IsEmpty()) {
@@ -530,7 +548,7 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
         } else if (event.GetId()) {
             if (m_failed_code == 0)
                 m_failed_code = 2;
-            Stop(_L("Load failed [%d]!"));
+            Stop();
         }
     } else {
         m_last_state = state;
@@ -539,7 +557,12 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
 
 void MediaPlayCtrl::SetStatus(wxString const &msg2, bool hyperlink)
 {
-    auto msg = wxString::Format(msg2, m_failed_code);
+    auto msg = msg2;
+    if (m_failed_code != 0) {
+        int state2 = m_last_state >= MEDIASTATE_IDLE ? m_last_state - MEDIASTATE_IDLE :
+                                                       m_last_state + MEDIASTATE_BUFFERING - MEDIASTATE_IDLE;
+        msg += wxString::Format(" [%d:%d]", state2, m_failed_code);
+    }
     BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::SetStatus: " << msg.ToUTF8().data();
 #ifdef __WXMSW__
     OutputDebugStringA("MediaPlayCtrl::SetStatus: ");
