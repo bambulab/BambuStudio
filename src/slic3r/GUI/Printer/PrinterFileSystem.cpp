@@ -45,12 +45,12 @@ wxDEFINE_EVENT(EVT_FILE_CALLBACK, wxCommandEvent);
 static wxBitmap default_thumbnail;
 
 static std::map<int, std::string> error_messages = {
-    {PrinterFileSystem::ERROR_PIPE, L("Connection lost. Please retry.")},
-    {PrinterFileSystem::ERROR_RES_BUSY, L("The device cannot handle more conversations. Please retry later.")},
+    {PrinterFileSystem::ERROR_PIPE, L("The printer has been logged out and cannot connect.")},
+    {PrinterFileSystem::ERROR_RES_BUSY, L("Over 4 studio/handy are using remote access, you can close some and try again.")},
     {PrinterFileSystem::FILE_NO_EXIST, L("File does not exist.")},
     {PrinterFileSystem::FILE_CHECK_ERR, L("File checksum error. Please retry.")},
     {PrinterFileSystem::FILE_TYPE_ERR, L("Not supported on the current printer version.")},
-    {PrinterFileSystem::STORAGE_UNAVAILABLE, L("Storage unavailable, insert SD card.")}
+    {PrinterFileSystem::STORAGE_UNAVAILABLE, L("Please check if the SD card is inserted into the printer.\nIf it still cannot be read, you can try formatting the SD card.")}
 };
 
 struct StaticBambuLib : BambuLib {
@@ -1134,8 +1134,7 @@ void PrinterFileSystem::RecvMessageThread()
         if (n == 0) {
             HandleResponse(l, sample);
         } else if (n == Bambu_stream_end) {
-            if (m_status == ListSyncing)
-                m_stopped = true;
+            m_stopped = true;
             Reconnect(l, m_status == ListSyncing ? ERROR_RES_BUSY : ERROR_PIPE);
         } else if (n == Bambu_would_block) {
             m_cond.timed_wait(l, boost::posix_time::milliseconds(m_messages.empty() && m_callbacks.empty() ? 1000 : 20));
@@ -1275,6 +1274,9 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
                 m_session.tunnel = tunnel;
                 wxLogMessage("PrinterFileSystem::Reconnect Connected");
                 break;
+            } else if (ret == 1) {
+                m_stopped = true;
+                ret = ERROR_RES_BUSY;
             }
             if (tunnel) {
                 Bambu_Close(tunnel);
