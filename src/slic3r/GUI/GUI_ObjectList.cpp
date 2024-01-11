@@ -2254,8 +2254,9 @@ void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name
     Slic3r::save_object_mesh(*new_object);
 
     // BBS: find an empty cell to put the copied object
+    // Use the new object's size as step to avoid collision (only for duplicated object)
     auto start_point = wxGetApp().plater()->build_volume().bounding_volume2d().center();
-    auto empty_cell  = wxGetApp().plater()->canvas3D()->get_nearest_empty_cell({start_point(0), start_point(1)});
+    auto empty_cell = wxGetApp().plater()->canvas3D()->get_nearest_empty_cell({ start_point(0), start_point(1) }, { bb.size().x() + 1,bb.size().y() + 1 });
 
     new_object->instances[0]->set_offset(center ? to_3d(Vec2d(empty_cell(0), empty_cell(1)), -new_object->origin_translation.z()) : bb.center());
 
