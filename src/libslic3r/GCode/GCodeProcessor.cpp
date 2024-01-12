@@ -71,6 +71,8 @@ const std::string GCodeProcessor::Flush_End_Tag = " FLUSH_END";
 const float GCodeProcessor::Wipe_Width = 0.05f;
 const float GCodeProcessor::Wipe_Height = 0.05f;
 
+bool GCodeProcessor::s_IsBBLPrinter = true;
+
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
 const std::string GCodeProcessor::Mm3_Per_Mm_Tag = "MM3_PER_MM:";
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
@@ -478,7 +480,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                     PrintEstimatedStatistics::ETimeMode mode = static_cast<PrintEstimatedStatistics::ETimeMode>(i);
                     if (mode == PrintEstimatedStatistics::ETimeMode::Normal || machine.enabled) {
                         char buf[128];
-                        if (!print.is_BBL_Printer()) {
+                        if (!s_IsBBLPrinter) {
                             // Klipper estimator
                             sprintf(buf, "; estimated printing time (normal mode) = %s\n",
                                 get_time_dhms(machine.time));
