@@ -292,6 +292,8 @@ namespace Slic3r {
         static const float Wipe_Width;
         static const float Wipe_Height;
 
+        static bool s_IsBBLPrinter;
+
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
         static const std::string Mm3_Per_Mm_Tag;
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
