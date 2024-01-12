@@ -478,13 +478,18 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                     PrintEstimatedStatistics::ETimeMode mode = static_cast<PrintEstimatedStatistics::ETimeMode>(i);
                     if (mode == PrintEstimatedStatistics::ETimeMode::Normal || machine.enabled) {
                         char buf[128];
-                        //sprintf(buf, "; estimated printing time (%s mode) = %s\n",
-                        //    (mode == PrintEstimatedStatistics::ETimeMode::Normal) ? "normal" : "silent",
-                        //    get_time_dhms(machine.time).c_str());
-                        sprintf(buf, "; model printing time: %s; total estimated time: %s\n",
-                                get_time_dhms(machine.time - machine.prepare_time).c_str(),
-                                get_time_dhms(machine.time).c_str());
-                        ret += buf;
+                        if (!print.is_BBL_Printer()) {
+                            // Klipper estimator
+                            sprintf(buf, "; estimated printing time (normal mode) = %s\n",
+                                get_time_dhms(machine.time));
+                            ret += buf;
+                        } else {
+                            // BBS estimator
+                            sprintf(buf, "; model printing time: %s; total estimated time: %s\n",
+                                    get_time_dhms(machine.time - machine.prepare_time).c_str(),
+                                    get_time_dhms(machine.time).c_str());
+                            ret += buf;
+                        }
                     }
                 }
             }
