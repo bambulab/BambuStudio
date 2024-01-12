@@ -63,6 +63,9 @@
     "filament_diameter": [
         "1.75"
     ],
+    "filament_is_support": [
+        "0"
+    ],
     "filament_max_volumetric_speed": [
         "0"
     ],
@@ -122,6 +125,9 @@
     ],
     "fan_min_speed": [
         "35"
+    ],
+    "required_nozzle_HRC": [
+        "3"
     ],
     "slow_down_min_speed": [
         "10"
