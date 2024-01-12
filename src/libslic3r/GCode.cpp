@@ -1181,7 +1181,7 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
 
     BOOST_LOG_TRIVIAL(info) << boost::format("Will export G-code to %1% soon")%path;
 
-    GCodeProcessor::s_IsBBLPrinter = print->is_BBL_printer();
+    GCodeProcessor::s_IsBBLPrinter = print->is_BBL_Printer();
     
     print->set_started(psGCodeExport);
 
