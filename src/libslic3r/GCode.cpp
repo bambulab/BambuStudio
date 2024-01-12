@@ -1180,6 +1180,9 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
         return;
 
     BOOST_LOG_TRIVIAL(info) << boost::format("Will export G-code to %1% soon")%path;
+
+    GCodeProcessor::s_IsBBLPrinter = print->is_BBL_printer();
+    
     print->set_started(psGCodeExport);
 
     // check if any custom gcode contains keywords used by the gcode processor to
