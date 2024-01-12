@@ -4110,8 +4110,7 @@ int MachineObject::parse_json(std::string payload)
                 } else if (jj["command"].get<std::string>() == "project_file") {
                     //ack of project file
                     BOOST_LOG_TRIVIAL(debug) << "parse_json, ack of project_file = " << j.dump(4);
-
-                    if (m_agent && is_studio_cmd(sequence_id)) {
+                    if (m_agent) {
                         json t;
                         t["dev_id"] = this->dev_id;
                         t["signal"] = this->wifi_signal;
