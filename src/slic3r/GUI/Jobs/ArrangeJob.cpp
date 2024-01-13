@@ -477,7 +477,7 @@ void ArrangeJob::prepare()
     auto polys_to_draw = m_selected;
     for (auto it = polys_to_draw.begin(); it != polys_to_draw.end(); it++) {
         it->poly.translate(center);
-        bbox.merge(it->poly);
+        bbox.merge(get_extents(it->poly));
     }
     SVG svg("SVG/arrange_poly.svg", bbox);
     if (svg.is_opened()) {
@@ -510,9 +510,7 @@ void ArrangeJob::check_unprintable()
             m_unprintable.push_back(*it);
             it = m_selected.erase(it);
             if (it->poly.area() < 0.001) {
-                auto msg = (boost::format(
-                    _utf8("Object %s has zero size and can't be arranged."))
-                    % _utf8(it->name)).str();
+                auto msg = (boost::format(_u8L("Object %1% has zero size and can't be arranged.")) % it->name).str();
                 m_plater->get_notification_manager()->push_notification(NotificationType::BBLPlateInfo,
                     NotificationManager::NotificationLevel::WarningNotificationLevel, msg);
             }

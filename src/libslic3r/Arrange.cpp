@@ -131,10 +131,10 @@ void update_selected_items_inflation(ArrangePolygons& selected, const DynamicPri
 
 void update_unselected_items_inflation(ArrangePolygons& unselected, const DynamicPrintConfig* print_cfg, const ArrangeParams& params)
 {
-    float exclusion_gap = 1.f;
+    coord_t exclusion_gap = scale_(1.f);
     if (params.is_seq_print) {
         // bed_shrink_x is typically (-params.min_obj_distance / 2+5) for seq_print
-        exclusion_gap = std::max(exclusion_gap, params.min_obj_distance / 2 + params.bed_shrink_x + 1.f);  // +1mm gap so the exclusion region is not too close
+        exclusion_gap = std::max(exclusion_gap, params.min_obj_distance / 2 + scaled<coord_t>(params.bed_shrink_x + 1.f));  // +1mm gap so the exclusion region is not too close
         // dont forget to move the excluded region
         for (auto& region : unselected) {
             if (region.is_virt_object) region.poly.translate(scaled(params.bed_shrink_x), scaled(params.bed_shrink_y));
@@ -147,7 +147,7 @@ void update_unselected_items_inflation(ArrangePolygons& unselected, const Dynami
     // 其他物体的膨胀轮廓是可以跟它们重叠的。
     std::for_each(unselected.begin(), unselected.end(),
         [&](auto& ap) { ap.inflation = !ap.is_virt_object ? (params.min_obj_distance == 0 ? scaled(ap.brim_width) : params.min_obj_distance / 2)
-        : (ap.is_extrusion_cali_object ? 0 : scale_(exclusion_gap)); });
+        : (ap.is_extrusion_cali_object ? 0 : exclusion_gap); });
 }
 
 void update_selected_items_axis_align(ArrangePolygons& selected, const DynamicPrintConfig* print_cfg, const ArrangeParams& params)
