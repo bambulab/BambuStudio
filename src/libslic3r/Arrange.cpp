@@ -119,13 +119,6 @@ void update_selected_items_inflation(ArrangePolygons& selected, const DynamicPri
         // 3. otherwise, use each object's own brim width
         ap.inflation = params.min_obj_distance != 0 ? params.min_obj_distance / 2 :
             plate_has_tree_support ? scaled(brim_max / 2) : scaled(ap.brim_width);
-        BoundingBox apbb = ap.poly.contour.bounding_box();
-        auto        diffx = bedbb.size().x() - apbb.size().x() - 5;
-        auto        diffy = bedbb.size().y() - apbb.size().y() - 5;
-        if (diffx > 0 && diffy > 0) {
-            auto min_diff = std::min(diffx, diffy);
-            ap.inflation = std::min(min_diff / 2, ap.inflation);
-        }
         });
 }
 
@@ -295,6 +288,8 @@ void fill_config(PConf& pcfg, const ArrangeParams &params) {
         pcfg.rotations = {0., PI / 4., PI/2, 3. * PI / 4. };
     else
         pcfg.rotations = {0.};
+
+    pcfg.bed_shrink = { scale_(params.bed_shrink_x), scale_(params.bed_shrink_y) };
 
     // The accuracy of optimization.
     // Goes from 0.0 to 1.0 and scales performance as well

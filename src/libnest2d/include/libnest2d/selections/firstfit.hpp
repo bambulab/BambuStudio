@@ -182,7 +182,7 @@ public:
 
                 if(!was_packed){
                     if (this->unfitindicator_ && !placers.empty())
-                        this->unfitindicator_(it->get().name + ", height=" +std::to_string(it->get().height)
+                        this->unfitindicator_(it->get().name + " not fit! height=" +std::to_string(it->get().height)
                             + " ,plate_id=" + std::to_string(j-1)
                             + ", score=" + std::to_string(score)
                             + ", best_bed_id=" + std::to_string(best_bed_id)

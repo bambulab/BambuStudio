@@ -53,6 +53,9 @@ struct NfpPConfig {
 
     TPoint<RawShape> best_object_pos;
 
+    // scaled bed shrink in x and y direction
+    TPoint<RawShape> bed_shrink;
+
     /**
      * @brief A function object representing the fitting function in the
      * placement optimization process. (Optional)
@@ -168,9 +171,9 @@ template<class RawShape> class EdgeCache {
 
     void createCache(const RawShape& sh) {
         {   // For the contour
-            auto first = shapelike::cbegin(sh);
-            auto next = std::next(first);
-            auto endit = shapelike::cend(sh);
+            auto first = sl::cbegin(sh);
+            auto endit = sl::cend(sh);
+            auto next = first == endit ? endit : std::next(first);
 
             contour_.distances.reserve(shapelike::contourVertexCount(sh));
 
@@ -182,12 +185,12 @@ template<class RawShape> class EdgeCache {
         }
 
         for(auto& h : shapelike::holes(sh)) { // For the holes
-            auto first = h.begin();
-            auto next = std::next(first);
-            auto endit = h.end();
+            auto first = sl::cbegin(h);
+            auto endit = sl::cend(h);
+            auto next = first == endit ? endit :std::next(first);
 
             ContourCache hc;
-            hc.distances.reserve(endit - first);
+            hc.distances.reserve(sl::contourVertexCount(h));
 
             while(next != endit) {
                 hc.emap.emplace_back(*(first++), *(next++));
@@ -217,7 +220,6 @@ template<class RawShape> class EdgeCache {
         contour_.corners.reserve(N / S + 1);
         contour_.corners.emplace_back(0.0);
         auto N_1 = N-1;
-        contour_.corners.emplace_back(0.0);
         for(size_t i = 0; i < N_1; i += S) {
             contour_.corners.emplace_back(
                     contour_.distances.at(i) / contour_.full_distance);
@@ -349,12 +351,18 @@ inline void correctNfpPosition(nfp::NfpResult<RawShape>& nfp,
     // rightmost upper vertex of the nfp. No proof provided other than Jonas
     // Lindmark's reasoning about the reference vertex of nfp in his thesis
     // ("No fit polygon problem" - section 2.1.9)
-
+#if 0
     auto touch_sh = stationary.rightmostTopVertex();
     auto touch_other = orbiter.leftmostBottomVertex();
     auto dtouch = touch_sh - touch_other;
     auto top_other = orbiter.rightmostTopVertex() + dtouch;
     auto dnfp = top_other - nfp.second; // nfp.second is the nfp reference point
+#else
+    // move the nfp so that its leftmost bottom vertex touches that of the stationary
+    auto touch_sh = stationary.leftmostBottomVertex();
+    auto touch_nfp = nfp::leftmostBottomVertex(nfp.first);
+    auto dnfp = touch_sh - touch_nfp;
+#endif
     shapelike::translate(nfp.first, dnfp);
 }
 
@@ -363,11 +371,17 @@ inline void correctNfpPosition(nfp::NfpResult<RawShape>& nfp,
                                const RawShape& stationary,
                                const _Item<RawShape>& orbiter)
 {
+#if 0
     auto touch_sh = nfp::rightmostUpVertex(stationary);
     auto touch_other = orbiter.leftmostBottomVertex();
     auto dtouch = touch_sh - touch_other;
     auto top_other = orbiter.rightmostTopVertex() + dtouch;
     auto dnfp = top_other - nfp.second;
+#else
+    auto touch_sh = nfp::leftmostBottomVertex(stationary);
+    auto touch_nfp = nfp::leftmostBottomVertex(nfp.first);
+    auto dnfp = touch_sh - touch_nfp;
+#endif
     shapelike::translate(nfp.first, dnfp);
 }
 
@@ -609,7 +623,8 @@ private:
         });
 
         RawShape innerNfp = nfpInnerRectBed(bed, trsh.transformedShape()).first;
-        return nfp::subtract({innerNfp}, nfps);
+        Shapes finalNFP = nfp::subtract({ innerNfp }, nfps);
+        return finalNFP;
     }
 
     Shapes calcnfp(const RawShape &sliding, const Shapes &stationarys, const Box &bed, Lvl<nfp::NfpLevel::CONVEX_ONLY>)
@@ -731,6 +746,7 @@ private:
         bool first_object = std::all_of(items_.begin(), items_.end(), [&](const Item &rawShape) { return rawShape.is_virt_object && !rawShape.is_wipe_tower; });
 
         // item won't overlap with virtual objects if it's inside or touches NFP
+        // @return 1 if current item overlaps with virtual objects, 0 otherwise
         auto overlapWithVirtObject = [&]() -> double {
             if (items_.empty()) return 0;
             nfps   = calcnfp(item, binbb, Lvl<MaxNfpLevel::value>());
@@ -747,19 +763,28 @@ private:
             auto best_rot = item.rotation();
             best_overfit = overfit(item.transformedShape(), bin_) + overlapWithVirtObject();
 
-            for(auto rot : config_.rotations) {
-                item.translation(initial_tr);
-                item.rotation(initial_rot + rot);
-                setInitialPosition(item);
-                double of = 0.;
-                if ((of = overfit(item.transformedShape(), bin_)) + overlapWithVirtObject() < best_overfit) {
-                    best_overfit = of;
-                    best_tr = item.translation();
-                    best_rot = item.rotation();
+            // try normal inflation first, then 0 inflation if not fit. See STUDIO-5566.
+            // Note for by-object printing, bed is expanded by -config_.bed_shrink.x().
+            Coord inflation_back = item.inflation();
+            Coord inflations[2]={inflation_back, std::abs(config_.bed_shrink.x())};
+            for (size_t i = 0; i < 2; i++) {
+                item.inflation(inflations[i]);
+                for (auto rot : config_.rotations) {
+                    item.translation(initial_tr);
+                    item.rotation(initial_rot + rot);
+                    setInitialPosition(item);
+                    double of = overfit(item.transformedShape(), bin_);
+                    if (of + overlapWithVirtObject() < best_overfit) {
+                        best_overfit = of;
+                        best_tr = item.translation();
+                        best_rot = item.rotation();
+                    }
                 }
+                can_pack = best_overfit <= 0;
+                if(can_pack) break;
             }
-
-            can_pack = best_overfit <= 0;
+            item.inflation(inflation_back);
+            
             if (can_pack)
                 global_score = 0.2;
             item.rotation(best_rot);
@@ -967,14 +992,20 @@ private:
         svgwriter.setSize(binbb2);
         svgwriter.conf_.x0 = binbb.width();
         svgwriter.conf_.y0 = -binbb.height()/2; // origin is top left corner
+        svgwriter.add_comment("bed");
         svgwriter.writeShape(box2RawShape(binbb), "none", "black");
+        svgwriter.add_comment("nfps");
         for (int i = 0; i < nfps.size(); i++)
             svgwriter.writeShape(nfps[i], "none", "blue");
-        for (int i = 0; i < items_.size(); i++)
+        for (int i = 0; i < items_.size(); i++) {
+            svgwriter.add_comment(items_[i].get().name);
             svgwriter.writeItem(items_[i], "none", "black");
+        }
+        svgwriter.add_comment("merged_pile_");
         for (int i = 0; i < merged_pile_.size(); i++)
             svgwriter.writeShape(merged_pile_[i], "none", "yellow");
-        svgwriter.writeItem(item, "none", "red", 2);
+        svgwriter.add_comment("current item");
+        svgwriter.writeItem(item, "red", "red", 2);
 
         std::stringstream ss;
         ss.setf(std::ios::fixed | std::ios::showpoint);
@@ -987,7 +1018,7 @@ private:
         ss << "items.size=" << items_.size()
             << "-merged_pile.size=" << merged_pile_.size();
         svgwriter.draw_text(20, 40, ss.str(), "blue", 20);
-        svgwriter.save(boost::filesystem::path("SVG")/ ("nfpplacer_" + std::to_string(plate_id) + "_" + ss.str() + "_" + item.name + ".svg"));
+        svgwriter.save(boost::filesystem::path("C:/Users/arthur.tang/AppData/Roaming/BambuStudioInternal/SVG")/ ("nfpplacer_" + std::to_string(plate_id) + "_" + ss.str() + "_" + item.name + ".svg"));
 #endif
 
         if(can_pack) {
@@ -1115,27 +1146,32 @@ private:
 
         // BBS make sure the item won't clash with excluded regions
         // do we have wipe tower after arranging?
+        size_t n_objs = 0;
         std::set<int> extruders;
         for (const Item& item : items_) {
-            if (!item.is_virt_object) { extruders.insert(item.extrude_ids.begin(), item.extrude_ids.end()); }
+            if (!item.is_virt_object) {
+                extruders.insert(item.extrude_ids.begin(), item.extrude_ids.end());
+                n_objs++;
+            }
         }
         bool need_wipe_tower = extruders.size() > 1;
 
         std::vector<RawShape> objs,excludes;
-        for (const Item &item : items_) {
-            if (item.isFixed()) continue;
-            objs.push_back(item.transformedShape());
+        for (Item &item : items_) {
+            if (item.isFixed()) {
+                excludes.push_back(item.transformedShape());
+            }
+            else {
+                // better center a single large object without any inflation
+                if (n_objs == 1)
+                    item.inflation(0);
+                objs.push_back(item.transformedShape());
+            }
         }
         if (objs.empty())
             return;
         { // find a best position inside NFP of fixed items (excluded regions), so the center of pile is cloest to bed center
             RawShape objs_convex_hull = sl::convexHull(objs);
-            for (const Item &item : items_) {
-                if (item.isFixed()) {
-                    excludes.push_back(item.transformedShape());
-                }
-            }
-
             auto   nfps = calcnfp(objs_convex_hull, excludes, bbin, Lvl<MaxNfpLevel::value>());
             if (nfps.empty()) {
                 return;

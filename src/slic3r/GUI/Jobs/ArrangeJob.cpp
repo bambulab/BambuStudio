@@ -710,6 +710,12 @@ void ArrangeJob::finalize() {
     }
     m_plater->get_notification_manager()->close_notification_of_type(NotificationType::ArrangeOngoing);
 
+    // unlock the plates we just locked
+    for (int i : m_uncompatible_plates) {
+        PartPlate* plate = plate_list.get_plate(i);
+        if (plate) plate->lock(false);
+    }
+
     //BBS: reload all objects due to arrange
     if (only_on_partplate) {
         plate_list.rebuild_plates_after_arrangement(!only_on_partplate, true, current_plate_index);
@@ -717,10 +723,6 @@ void ArrangeJob::finalize() {
     else {
         plate_list.rebuild_plates_after_arrangement(!only_on_partplate, true);
     }
-
-    // unlock the plates we just locked
-    for (int i : m_uncompatible_plates)
-        plate_list.get_plate(i)->lock(false);
 
     // BBS: update slice context and gcode result.
     m_plater->update_slicing_context_to_current_partplate();
