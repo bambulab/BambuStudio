@@ -760,8 +760,9 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
             change_camera_view_angle(m_front_view_radian);
         }
         m_imgui->disabled_end();
+        ImGui::Separator();
     }
-    ImGui::Separator();
+
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 10.0f));
     float get_cur_y = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;
     show_tooltip_information(caption_max, x, get_cur_y);
