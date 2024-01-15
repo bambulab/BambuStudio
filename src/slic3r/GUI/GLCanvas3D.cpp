@@ -2113,6 +2113,7 @@ void GLCanvas3D::set_selected_visible(bool visible)
         volume->render_color[3] = volume->color[3];
         volume->force_native_color = !visible;
     }
+    m_dirty = true;
 }
 
 void GLCanvas3D::delete_selected()

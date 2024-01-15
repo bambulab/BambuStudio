@@ -1322,17 +1322,28 @@ void ObjectList::show_context_menu(const bool evt_context_menu)
             const ItemType type      = m_objects_model->GetItemType(item);
             if (!(type & (itPlate | itObject | itVolume | itInstance)))
                 return;
-
-            menu =  type & itPlate                                              ? plater->plate_menu() :
-                    type & itInstance                                           ? plater->instance_menu() :
-                    type & itVolume                                             ? plater->part_menu() :
-                    printer_technology() == ptFFF                               ? plater->object_menu() : plater->sla_object_menu();
-            plater->SetPlateIndexByRightMenuInLeftUI(-1);
-            if (type & itPlate) {
-                int            plate_idx = -1;
-                const ItemType type0      = m_objects_model->GetItemType(item, plate_idx);
-                if (plate_idx >= 0) { 
-                    plater->SetPlateIndexByRightMenuInLeftUI(plate_idx);
+            if (wxGetApp().plater()->get_current_canvas3D()->get_canvas_type() == GLCanvas3D::ECanvasType::CanvasAssembleView) {
+                if (type & itPlate) { return; }
+                if (type & itVolume){
+                    ModelVolumeType volume_type = m_objects_model->GetVolumeType(item);
+                    if (volume_type != ModelVolumeType::MODEL_PART)
+                        return;
+                }
+                menu = plater->assemble_multi_selection_menu();
+            }
+            else {
+                menu = type & itPlate                ? plater->plate_menu() :
+                       type & itInstance             ? plater->instance_menu() :
+                       type & itVolume               ? plater->part_menu() :
+                       printer_technology() == ptFFF ? plater->object_menu() :
+                                                       plater->sla_object_menu();
+                plater->SetPlateIndexByRightMenuInLeftUI(-1);
+                if (type & itPlate) {
+                    int            plate_idx = -1;
+                    const ItemType type0     = m_objects_model->GetItemType(item, plate_idx);
+                    if (plate_idx >= 0) {
+                        plater->SetPlateIndexByRightMenuInLeftUI(plate_idx);
+                    }
                 }
             }
         }
