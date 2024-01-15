@@ -201,7 +201,7 @@ MediaFilePanel::~MediaFilePanel()
 
 wxString hide_id_middle_string(wxString const &str, size_t offset = 0, size_t length = -1);
 
-    void MediaFilePanel::SetMachineObject(MachineObject* obj)
+void MediaFilePanel::SetMachineObject(MachineObject* obj)
 {
     std::string machine = obj ? obj->dev_id : "";
     if (obj) {
