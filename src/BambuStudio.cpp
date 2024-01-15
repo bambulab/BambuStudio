@@ -1048,7 +1048,7 @@ int CLI::run(int argc, char **argv)
     int arrange_option;
     int plate_to_slice = 0, filament_count = 0, duplicate_count = 0, real_duplicate_count = 0;
     bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true, duplicate_single_object = false, use_first_fila_as_default = false, minimum_save = false, enable_timelapse = false;
-    bool allow_rotations = true, skip_modified_gcodes = false, avoid_extrusion_cali_region = false;
+    bool allow_rotations = true, skip_modified_gcodes = false, avoid_extrusion_cali_region = false, skip_useless_pick = false;
     Semver file_version;
     std::map<size_t, bool> orients_requirement;
     std::vector<Preset*> project_presets;
@@ -1092,6 +1092,10 @@ int CLI::run(int argc, char **argv)
     ConfigOptionBool* skip_modified_gcodes_option = m_config.option<ConfigOptionBool>("skip_modified_gcodes");
     if (skip_modified_gcodes_option)
         skip_modified_gcodes = skip_modified_gcodes_option->value;
+
+    ConfigOptionBool* skip_useless_picks_option = m_config.option<ConfigOptionBool>("skip_useless_pick");
+    if (skip_useless_picks_option)
+        skip_useless_pick = skip_useless_picks_option->value;
 
     ConfigOptionBool* avoid_extrusion_cali_region_option = m_config.option<ConfigOptionBool>("avoid_extrusion_cali_region");
     if (avoid_extrusion_cali_region_option)
@@ -1144,8 +1148,8 @@ int CLI::run(int argc, char **argv)
     const std::vector<int>  clone_objects  = m_config.option<ConfigOptionInts>("clone_objects", true)->values;
     //when load objects from stl/obj, the total used filaments set
     std::set<int> used_filament_set;
-    BOOST_LOG_TRIVIAL(info) << boost::format("allow_multicolor_oneplate %1%, allow_rotations %2% skip_modified_gcodes %3% avoid_extrusion_cali_region %4% loaded_filament_ids size %5%, clone_objects size %6%")
-        %allow_multicolor_oneplate %allow_rotations %skip_modified_gcodes %avoid_extrusion_cali_region %loaded_filament_ids.size() %clone_objects.size();
+    BOOST_LOG_TRIVIAL(info) << boost::format("allow_multicolor_oneplate %1%, allow_rotations %2% skip_modified_gcodes %3% avoid_extrusion_cali_region %4% loaded_filament_ids size %5%, clone_objects size %6%, skip_useless_pick %7%")
+        %allow_multicolor_oneplate %allow_rotations %skip_modified_gcodes %avoid_extrusion_cali_region %loaded_filament_ids.size() %clone_objects.size() %skip_useless_pick;
     if (clone_objects.size() > 0)
     {
         if (clone_objects.size() != m_input_files.size())
@@ -3519,7 +3523,8 @@ int CLI::run(int argc, char **argv)
 
                     ap.apply();
                 }
-                partplate_list.rebuild_plates_after_arrangement(false, true, i);
+                //lock here
+                cur_plate->lock(true);
             }
             else {
                 size_t plate_obj_count = assemble_plate.loaded_obj_list.size();
@@ -3542,6 +3547,8 @@ int CLI::run(int argc, char **argv)
             Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate*)partplate_list.get_plate(i);
             cur_plate->lock(false);
         }
+
+        partplate_list.reload_all_objects(false, -1);
     }
     else if (need_arrange)
     {
@@ -4132,7 +4139,8 @@ int CLI::run(int argc, char **argv)
     bool no_check = false;
     std::string export_3mf_file, load_slice_data_dir, export_slice_data_dir;
     std::vector<ThumbnailData*> calibration_thumbnails;
-    int max_slicing_time_per_plate = 0, max_triangle_count_per_plate = 0;
+    std::vector<int> plate_object_count(partplate_list.get_plate_count(), 0);
+    int max_slicing_time_per_plate = 0, max_triangle_count_per_plate = 0, sliced_plate = -1;
     std::vector<bool> plate_has_skips(partplate_list.get_plate_count(), false);
     std::vector<std::vector<size_t>> plate_skipped_objects(partplate_list.get_plate_count());
 
@@ -4226,6 +4234,7 @@ int CLI::run(int argc, char **argv)
         } else if (opt_key == "slice") {
             //BBS: slice 0 means all plates, i means plate i;
             plate_to_slice = m_config.option<ConfigOptionInt>("slice")->value;
+            sliced_plate = plate_to_slice;
             bool pre_check = (plate_to_slice == 0)?true:false;
             bool finished = false;
 
@@ -4384,6 +4393,7 @@ int CLI::run(int argc, char **argv)
                             }
 
                             plate_triangle_counts[index] = triangle_count;
+                            plate_object_count[index] = printable_instances;
                             BOOST_LOG_TRIVIAL(info) << "plate "<< index+1<< ": load cached data success, go on.";
                         }
                         // BBS: TODO
@@ -4690,6 +4700,28 @@ int CLI::run(int argc, char **argv)
         std::vector<PlateBBoxData*> plate_bboxes;
         PlateDataPtrs plate_data_list;
         partplate_list.store_to_3mf_structure(plate_data_list);
+
+        if (sliced_plate == -1) {
+            for (int i = 0; i < plate_data_list.size(); i++) {
+                Slic3r::GUI::PartPlate *part_plate      = partplate_list.get_plate(i);
+                plate_object_count[i] = part_plate->printable_instance_size();
+            }
+        }
+        else if (sliced_plate == 0){
+            //slicing all
+            for (int i = 0; i < plate_data_list.size(); i++) {
+                if (skip_useless_pick && (plate_object_count[i] == 1)) {
+                    BOOST_LOG_TRIVIAL(info) << boost::format("only has 1 object,  set plate %1%'s is_label_object_enabled from %2% to false")%(i+1) % (plate_data_list[i]->is_label_object_enabled);
+                    plate_data_list[i]->is_label_object_enabled = false;
+                }
+            }
+        }
+        else {
+            if (skip_useless_pick && (plate_object_count[sliced_plate - 1] == 1)) {
+                BOOST_LOG_TRIVIAL(info) << boost::format("only has 1 object,  set plate %1%'s is_label_object_enabled from %2% to false")%sliced_plate % (plate_data_list[sliced_plate - 1]->is_label_object_enabled);
+                plate_data_list[sliced_plate - 1]->is_label_object_enabled = false;
+            }
+        }
 
         if (!outfile_dir.empty()) {
             export_3mf_file = outfile_dir + "/"+export_3mf_file;
@@ -5015,39 +5047,49 @@ int CLI::run(int argc, char **argv)
                                     unsigned int thumbnail_width = 512, thumbnail_height = 512;
                                     const ThumbnailsParams thumbnail_params = { {}, false, true, false, true, i };
 
-                                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%'s top/pick thumbnail missed, need to regenerate")%(i+1);
-
-                                    switch (Slic3r::GUI::OpenGLManager::get_framebuffers_type())
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%'s top/pick thumbnail missed, need to regenerate, objects count %2%, skip_useless_pick %3%")%(i+1) %plate_object_count[i] %skip_useless_pick;
+                                    if (skip_useless_pick && ((plate_object_count[i] <= 1) || (plate_object_count[i] > 64)))
                                     {
-                                    case Slic3r::GUI::OpenGLManager::EFramebufferType::Arb:
-                                            {
-                                                BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: ARB");
-                                                Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer(*top_thumbnail,
-                                                   thumbnail_width, thumbnail_height, thumbnail_params,
-                                                   partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho, true, false);
-                                                Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer(*picking_thumbnail,
-                                                   thumbnail_width, thumbnail_height, thumbnail_params,
-                                                   partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho, true, true);
-                                                break;
-                                            }
-                                    case Slic3r::GUI::OpenGLManager::EFramebufferType::Ext:
-                                            {
-                                                BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: EXT");
-                                                Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer_ext(*top_thumbnail,
-                                                   thumbnail_width, thumbnail_height, thumbnail_params,
-                                                   partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho, true, false);
-                                                Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer_ext(*picking_thumbnail,
-                                                   thumbnail_width, thumbnail_height, thumbnail_params,
-                                                   partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho, true, true);
-                                                break;
-                                            }
-                                    default:
-                                            BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: unknown");
-                                            break;
+                                        //don't render pick and top
+                                        part_plate->top_thumbnail_data.reset();
+                                        part_plate->pick_thumbnail_data.reset();
+                                        plate_data->top_file.clear();
+                                        plate_data->pick_file.clear();
+                                        BOOST_LOG_TRIVIAL(info) << boost::format("skip rendering for top&&pick");
                                     }
-                                    plate_data->top_file = "valid_top";
-                                    plate_data->pick_file = "valid_pick";
-                                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%'s top_thumbnail,finished rendering")%(i+1);
+                                    else {
+                                        switch (Slic3r::GUI::OpenGLManager::get_framebuffers_type())
+                                        {
+                                            case Slic3r::GUI::OpenGLManager::EFramebufferType::Arb:
+                                                {
+                                                    BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: ARB");
+                                                    Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer(*top_thumbnail,
+                                                       thumbnail_width, thumbnail_height, thumbnail_params,
+                                                       partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho, true, false);
+                                                    Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer(*picking_thumbnail,
+                                                       thumbnail_width, thumbnail_height, thumbnail_params,
+                                                       partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho, true, true);
+                                                    break;
+                                                }
+                                            case Slic3r::GUI::OpenGLManager::EFramebufferType::Ext:
+                                                {
+                                                    BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: EXT");
+                                                    Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer_ext(*top_thumbnail,
+                                                       thumbnail_width, thumbnail_height, thumbnail_params,
+                                                       partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho, true, false);
+                                                    Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer_ext(*picking_thumbnail,
+                                                       thumbnail_width, thumbnail_height, thumbnail_params,
+                                                       partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho, true, true);
+                                                    break;
+                                                }
+                                            default:
+                                                BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: unknown");
+                                                break;
+                                        }
+                                        plate_data->top_file = "valid_top";
+                                        plate_data->pick_file = "valid_pick";
+                                        BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%'s top_thumbnail,finished rendering")%(i+1);
+                                    }
                                 }
                             }
 
