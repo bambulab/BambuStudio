@@ -1210,10 +1210,6 @@ void PrinterFileSystem::HandleResponse(boost::unique_lock<boost::mutex> &l, Bamb
     }
 }
 
-namespace Slic3r { namespace GUI {
-    extern wxString hide_passwd(wxString url, std::vector<wxString> const &passwords);
-}}
-
 void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int result)
 {
     if (m_session.tunnel) {
@@ -1255,7 +1251,7 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
             wxLogMessage("PrinterFileSystem::Reconnect Initialize failed: %s", wxString::FromUTF8(url));
             m_last_error = atoi(url.c_str());
         } else {
-            wxLogMessage("PrinterFileSystem::Reconnect Initialized: %s", Slic3r::GUI::hide_passwd(wxString::FromUTF8(url), {"authkey=", "passwd="}));
+            wxLogInfo("PrinterFileSystem::Reconnect Initialized: %s", wxString::FromUTF8(url));
             l.unlock();
             m_status = Status::Connecting;
             wxLogMessage("PrinterFileSystem::Reconnect Connecting");
