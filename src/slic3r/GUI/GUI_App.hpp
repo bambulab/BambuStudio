@@ -449,6 +449,7 @@ public:
     void            set_skip_version(bool skip = true);
     void            no_new_version();
     static std::string format_display_version();
+    std::string     format_IP(const std::string& ip);
     void            show_dialog(wxString msg);
     void            reload_settings();
     void            remove_user_presets();
