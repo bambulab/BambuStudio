@@ -10901,37 +10901,41 @@ void Plater::export_stl(bool extended, bool selection_only, bool multi_stls)
 
     wxBusyCursor wait;
     const auto& selection = p->get_selection();
-    // BBS support selecting multiple objects
-    if (selection_only && selection.is_wipe_tower())
-        return;
-    const auto obj_idx = selection.get_object_idx();
-    if (obj_idx == -1) 
-        return;
+
     //confirm export_with_boolean
     bool  exist_negive_volume = false;
     bool  export_with_boolean = false;
-    const ModelObject *cur_model_object = p->model.objects[obj_idx];
-    for (auto v : cur_model_object->volumes) {
-        if (v->type() == ModelVolumeType::NEGATIVE_VOLUME) {
-            exist_negive_volume=true;
-            break;
+    if (selection_only) {
+        const auto obj_idx = selection.get_object_idx();
+        if (obj_idx == -1 ||selection.is_wipe_tower())
+            return;
+        // only support selection single full object and mulitiple full object
+        if (!selection.is_single_full_object() && !selection.is_multiple_full_object())
+            return;
+        const ModelObject *cur_model_object = p->model.objects[obj_idx];
+        for (auto v : cur_model_object->volumes) {
+            if (v->type() == ModelVolumeType::NEGATIVE_VOLUME) {
+                exist_negive_volume = true;
+                break;
+            }
+        }
+    } else {
+        for (auto cur_model_object : p->model.objects) {
+            for (auto v : cur_model_object->volumes) {
+                if (v->type() == ModelVolumeType::NEGATIVE_VOLUME) {
+                    exist_negive_volume = true;
+                    break;
+                }
+            }
         }
     }
+
     if (exist_negive_volume) {
         MessageDialog dlg(this, _L("Negative parts detected. Would you like to perform mesh boolean before exporting?"),  _L("Message"),
                           wxICON_QUESTION | wxYES_NO);
         int answer = dlg.ShowModal();
         if (answer == wxID_YES) {
             export_with_boolean = true;
-        }
-    }
-
-    if (!export_with_boolean) {
-        // BBS
-        if (selection_only) {
-            // only support selection single full object and mulitiple full object
-            if (!selection.is_single_full_object() && !selection.is_multiple_full_object())
-                return;
         }
     }
     // Following lambda generates a combined mesh for export with normals pointing outwards.
