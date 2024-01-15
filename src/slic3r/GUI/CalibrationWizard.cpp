@@ -641,11 +641,11 @@ void PressureAdvanceWizard::on_cali_start()
             cali_page->set_pa_cali_image(int(pa_cali_method));
             curr_obj->manual_pa_cali_method = pa_cali_method;
             
-            CalibUtils::calib_generic_PA(calib_info, wx_err_string);
-
-            if (!wx_err_string.empty()) {
-                MessageDialog msg_dlg(nullptr, wx_err_string, wxEmptyString, wxICON_WARNING | wxOK);
-                msg_dlg.ShowModal();
+            if (!CalibUtils::calib_generic_PA(calib_info, wx_err_string)) {
+                if (!wx_err_string.empty()) {
+                    MessageDialog msg_dlg(nullptr, wx_err_string, wxEmptyString, wxICON_WARNING | wxOK);
+                    msg_dlg.ShowModal();
+                }
                 return;
             }
 
@@ -1003,7 +1003,13 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
             calib_info.filament_prest = temp_filament_preset;
 
             if (cali_stage > 0) {
-                CalibUtils::calib_flowrate(cali_stage, calib_info, wx_err_string);
+                if (!CalibUtils::calib_flowrate(cali_stage, calib_info, wx_err_string)) {
+                    if (!wx_err_string.empty()) {
+                        MessageDialog msg_dlg(nullptr, wx_err_string, wxEmptyString, wxICON_WARNING | wxOK);
+                        msg_dlg.ShowModal();
+                    }
+                    return;
+                }
             }
             else {
                 wx_err_string = _L("Internal Error") + wxString(": Invalid calibration stage");
