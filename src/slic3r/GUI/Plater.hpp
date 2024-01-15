@@ -711,6 +711,7 @@ public:
     wxMenu* instance_menu();
     wxMenu* layer_menu();
     wxMenu* multi_selection_menu();
+    wxMenu* assemble_multi_selection_menu();
     int     GetPlateIndexByRightMenuInLeftUI();
     void    SetPlateIndexByRightMenuInLeftUI(int);
     static bool has_illegal_filename_characters(const wxString& name);

@@ -7020,7 +7020,9 @@ void Plater::priv::on_right_click(RBtnEvent& evt)
         if (evt.data.second) { // right button was clicked on empty space
             if (!get_selection().is_empty()) // several objects are selected in 3DScene
                 return;
-            menu = menus.default_menu();
+            if (current_panel != assemble_view) {
+                menu = menus.default_menu();
+            }
         }
         else {
             if (current_panel == assemble_view) {
@@ -13511,6 +13513,7 @@ wxMenu* Plater::default_menu()          { return p->menus.default_menu();       
 wxMenu* Plater::instance_menu()         { return p->menus.instance_menu();          }
 wxMenu* Plater::layer_menu()            { return p->menus.layer_menu();             }
 wxMenu* Plater::multi_selection_menu()  { return p->menus.multi_selection_menu();   }
+wxMenu *Plater::assemble_multi_selection_menu() { return p->menus.assemble_multi_selection_menu(); }
 int     Plater::GetPlateIndexByRightMenuInLeftUI() { return p->m_is_RightClickInLeftUI; }
 void    Plater::SetPlateIndexByRightMenuInLeftUI(int index) { p->m_is_RightClickInLeftUI = index; }
 SuppressBackgroundProcessingUpdate::SuppressBackgroundProcessingUpdate() :
