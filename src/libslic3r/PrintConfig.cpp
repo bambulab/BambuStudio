@@ -5553,6 +5553,12 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->cli_params = "option";
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("skip_useless_pick", coBool);
+    def->label = "Skip generating useless pick/top images into 3mf";
+    def->tooltip = "Skip generating useless pick/top images into 3mf";
+    def->cli_params = "option";
+    def->set_default_value(new ConfigOptionBool(true));
+
     def = this->add("makerlab_name", coString);
     def->label = "MakerLab name";
     def->tooltip = "MakerLab name to generate this 3mf";
