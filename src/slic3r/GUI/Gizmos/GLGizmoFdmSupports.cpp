@@ -904,7 +904,7 @@ void GLGizmoFdmSupports::run_thread()
         }
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished extrusionentity_to_verts, update status to 100%";
         print->set_status(100, L("Support Generated"));
-        
+
         record_timestamp();
     }
     catch (...) {
@@ -927,7 +927,7 @@ _finished:
 void GLGizmoFdmSupports::generate_support_volume()
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",before finalize_geometry";
-    m_support_volume->indexed_vertex_array.finalize_geometry(m_parent.is_initialized());
+    m_support_volume->indexed_vertex_array->finalize_geometry(m_parent.is_initialized());
 
     std::unique_lock<std::mutex> lck(m_mutex);
     m_volume_ready = true;
