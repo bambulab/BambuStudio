@@ -1443,7 +1443,7 @@ namespace DoExport {
 	                    output((boost::format("; thumbnail begin %dx%d %d\n") % data.width % data.height % encoded.size()).str().c_str());
 
 	                    unsigned int row_count = 0;
-	                    //BBS: optimize performance ,reduce too much memeory operation 
+	                    //BBS: optimize performance ,reduce too much memeory operation
 	                    size_t current_index = 0;
 	                    while(current_index<encoded.size()){
 	                        output((boost::format("; %s\n") % encoded.substr(current_index, max_row_length)).str().c_str());
@@ -1675,6 +1675,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Total_Layer_Number_Placeholder).c_str());
     //BBS: judge whether support skipping, if yes, list all label_object_id with sorted order here
     if (print.num_object_instances() <= g_max_label_object && //Don't support too many objects on one plate
+        (print.num_object_instances() > 1) && //Don't support skipping single object
         print.calib_params().mode == CalibMode::Calib_None) { //Don't support skipping in cali mode
         m_enable_label_object = true;
         m_label_objects_ids.clear();
@@ -3072,7 +3073,7 @@ GCode::LayerResult GCode::process_layer(
 
     if (print.calib_mode() == CalibMode::Calib_PA_Tower) {
         gcode += writer().set_pressure_advance(print.calib_params().start + static_cast<int>(print_z) * print.calib_params().step);
-    } 
+    }
     else if (print.calib_mode() == CalibMode::Calib_Temp_Tower) {
         auto offset = static_cast<unsigned int>(print_z / 10.001) * 5;
         gcode += writer().set_temperature(print.calib_params().start - offset);
