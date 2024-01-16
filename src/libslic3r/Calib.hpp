@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include "GCodeWriter.hpp"
 #include "PrintConfig.hpp"
 #include "BoundingBox.hpp"
@@ -129,13 +130,26 @@ public:
     int         confidence; // 0: success  1: uncertain  2: failed
 };
 
+struct DrawBoxOptArgs
+{
+    DrawBoxOptArgs(int num_perimeters, double height, double line_width, double speed) : num_perimeters{num_perimeters}, height{height}, line_width{line_width}, speed{speed} {};
+    DrawBoxOptArgs() = default;
+
+    bool   is_filled{false};
+    int    num_perimeters;
+    double height;
+    double line_width;
+    double speed;
+};
 class CalibPressureAdvance
 {
 public:
     static float find_optimal_PA_speed(const DynamicPrintConfig &config, double line_width, double layer_height, int filament_idx = 0);
 
 protected:
-    CalibPressureAdvance()  = default;
+    CalibPressureAdvance() = default;
+    CalibPressureAdvance(const DynamicPrintConfig &config) : m_config(config){};
+    CalibPressureAdvance(const FullPrintConfig &config) { m_config.apply(config); };
     ~CalibPressureAdvance() = default;
 
     enum class DrawDigitMode { Left_To_Right, Bottom_To_Top };
@@ -152,8 +166,16 @@ protected:
     std::string draw_number(
         double startx, double starty, double value, CalibPressureAdvance::DrawDigitMode mode, double line_width, double e_per_mm, double speed, GCodeWriter &writer);
 
-    Vec3d m_last_pos;
+    std::string draw_line(GCodeWriter &writer, Vec2d to_pt, double line_width, double layer_height, double speed, const std::string &comment = std::string());
+    std::string draw_box(GCodeWriter &writer, double min_x, double min_y, double size_x, double size_y, DrawBoxOptArgs opt_args);
 
+    double to_radians(double degrees) const { return degrees * M_PI / 180; };
+    double get_distance(Vec2d from, Vec2d to) const;
+
+    Vec3d              m_last_pos;
+    DynamicPrintConfig m_config;
+
+    const double                 m_encroachment{1. / 3.};
     DrawDigitMode                m_draw_digit_mode{DrawDigitMode::Left_To_Right};
     const double                 m_digit_segment_len{2};
     const double                 m_digit_gap_len{1};
@@ -175,6 +197,7 @@ public:
     }
 
     const double &line_width() { return m_line_width; };
+    const double &height_layer() { return m_height_layer; };
     bool          is_delta() const;
     bool &        draw_numbers() { return m_draw_numbers; }
 
@@ -188,10 +211,10 @@ private:
     double m_nozzle_diameter;
     double m_slow_speed, m_fast_speed;
 
-    const double m_height_layer{0.2};
-    const double m_line_width{0.6};
-    const double m_thin_line_width{0.44};
-    const double m_number_line_width{0.48};
+    double       m_height_layer{0.2};
+    double       m_line_width{0.6};
+    double       m_thin_line_width{0.44};
+    double       m_number_line_width{0.48};
     const double m_space_y{3.5};
 
     double m_length_short{20.0}, m_length_long{40.0};
@@ -211,7 +234,6 @@ struct SuggestedConfigCalibPAPattern
 
 class CalibPressureAdvancePattern : public CalibPressureAdvance
 {
-    friend struct DrawLineOptArgs;
     friend struct DrawBoxOptArgs;
 
 public:
@@ -236,28 +258,6 @@ protected:
     int    wall_count() const { return m_config.option<ConfigOptionInt>("wall_loops")->value; };
 
 private:
-    struct DrawLineOptArgs
-    {
-        DrawLineOptArgs(const CalibPressureAdvancePattern &p) : height{p.height_layer()}, line_width{p.line_width()}, speed{p.speed_adjust(p.speed_perimeter())} {};
-
-        double      height;
-        double      line_width;
-        double      speed;
-        std::string comment{"Print line"};
-    };
-
-    struct DrawBoxOptArgs
-    {
-        DrawBoxOptArgs(const CalibPressureAdvancePattern &p)
-            : num_perimeters{p.wall_count()}, height{p.height_first_layer()}, line_width{p.line_width_first_layer()}, speed{p.speed_adjust(p.speed_first_layer())} {};
-
-        bool   is_filled{false};
-        int    num_perimeters;
-        double height;
-        double line_width;
-        double speed;
-    };
-
     void refresh_setup(const DynamicPrintConfig &config, bool is_bbl_machine, const Model &model, const Vec3d &origin);
     void _refresh_starting_point(const Model &model);
     void _refresh_writer(bool is_bbl_machine, const Model &model, const Vec3d &origin);
@@ -265,12 +265,6 @@ private:
     double    height_first_layer() const { return m_config.option<ConfigOptionFloat>("initial_layer_print_height")->value; };
     double    height_layer() const { return m_config.option<ConfigOptionFloat>("layer_height")->value; };
     const int get_num_patterns() const { return std::ceil((m_params.end - m_params.start) / m_params.step + 1); }
-
-    std::string draw_line(Vec2d to_pt, DrawLineOptArgs opt_args);
-    std::string draw_box(double min_x, double min_y, double size_x, double size_y, DrawBoxOptArgs opt_args);
-
-    double to_radians(double degrees) const { return degrees * M_PI / 180; };
-    double get_distance(Vec2d from, Vec2d to) const;
 
     /*
     from slic3r documentation: spacing = extrusion_width - layer_height * (1 - PI/4)
@@ -295,11 +289,9 @@ private:
 
     const Calib_Params &m_params;
 
-    DynamicPrintConfig m_config;
-    GCodeWriter        m_writer;
-    bool               m_is_delta;
-    Vec3d              m_starting_point;
-    bool               m_is_start_point_fixed = false;
+    GCodeWriter m_writer;
+    Vec3d       m_starting_point;
+    bool        m_is_start_point_fixed = false;
 
     const double m_handle_xy_size{5};
     const double m_handle_spacing{2};
@@ -308,7 +300,6 @@ private:
     const double m_wall_side_length{30.0};
     const int    m_corner_angle{90};
     const int    m_pattern_spacing{2};
-    const double m_encroachment{1. / 3.};
 
     const double m_glyph_padding_horizontal{1};
     const double m_glyph_padding_vertical{1};
