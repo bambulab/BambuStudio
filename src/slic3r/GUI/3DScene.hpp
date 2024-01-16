@@ -287,7 +287,7 @@ public:
         HS_Deselect
     };
 
-    GLVolume(float r = 1.f, float g = 1.f, float b = 1.f, float a = 1.f);
+    GLVolume(float r = 1.f, float g = 1.f, float b = 1.f, float a = 1.f, bool create_index_data = true);
     GLVolume(const std::array<float, 4>& rgba) : GLVolume(rgba[0], rgba[1], rgba[2], rgba[3]) {}
     virtual ~GLVolume() = default;
 
@@ -400,7 +400,8 @@ public:
     EHoverState         	hover;
 
     // Interleaved triangles & normals with indexed triangles & quads.
-    GLIndexedVertexArray        indexed_vertex_array;
+    std::shared_ptr<GLIndexedVertexArray>        indexed_vertex_array;
+    const TriangleMesh * ori_mesh{nullptr};
     // BBS
     mutable std::vector<GLIndexedVertexArray> mmuseg_ivas;
     mutable ObjectBase::Timestamp       mmuseg_ts;
@@ -418,9 +419,9 @@ public:
     // Bounding box of this volume, in unscaled coordinates.
     BoundingBoxf3 bounding_box() const {
         BoundingBoxf3 out;
-        if (! this->indexed_vertex_array.bounding_box().isEmpty()) {
-            out.min = this->indexed_vertex_array.bounding_box().min().cast<double>();
-            out.max = this->indexed_vertex_array.bounding_box().max().cast<double>();
+        if (! this->indexed_vertex_array->bounding_box().isEmpty()) {
+            out.min = this->indexed_vertex_array->bounding_box().min().cast<double>();
+            out.max = this->indexed_vertex_array->bounding_box().max().cast<double>();
             out.defined = true;
         };
         return out;
@@ -517,7 +518,7 @@ public:
     // convex hull
     const TriangleMesh*  convex_hull() const { return m_convex_hull.get(); }
 
-    bool                empty() const { return this->indexed_vertex_array.empty(); }
+    bool                empty() const { return this->indexed_vertex_array->empty(); }
 
     void                set_range(double low, double high);
 
@@ -527,8 +528,8 @@ public:
     //BBS: add simple render function for thumbnail
     void simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_objects, std::vector<std::array<float, 4>>& extruder_colors) const;
 
-    void                finalize_geometry(bool opengl_initialized) { this->indexed_vertex_array.finalize_geometry(opengl_initialized); }
-    void                release_geometry() { this->indexed_vertex_array.release_geometry(); }
+    void                finalize_geometry(bool opengl_initialized) { this->indexed_vertex_array->finalize_geometry(opengl_initialized); }
+    void                release_geometry() { this->indexed_vertex_array->release_geometry(); }
 
     void                set_bounding_boxes_as_dirty() {
         m_transformed_bounding_box.reset();
@@ -546,10 +547,10 @@ public:
     // Return an estimate of the memory consumed by this class.
     size_t 				cpu_memory_used() const {
     	//FIXME what to do wih m_convex_hull?
-    	return sizeof(*this) - sizeof(this->indexed_vertex_array) + this->indexed_vertex_array.cpu_memory_used() + this->print_zs.capacity() * sizeof(coordf_t) + this->offsets.capacity() * sizeof(size_t);
+    	return sizeof(*this) - sizeof(*(this->indexed_vertex_array)) + this->indexed_vertex_array->cpu_memory_used() + this->print_zs.capacity() * sizeof(coordf_t) + this->offsets.capacity() * sizeof(size_t);
     }
     // Return an estimate of the memory held by GPU vertex buffers.
-    size_t 				gpu_memory_used() const { return this->indexed_vertex_array.gpu_memory_used(); }
+    size_t 				gpu_memory_used() const { return this->indexed_vertex_array->gpu_memory_used(); }
     size_t 				total_memory_used() const { return this->cpu_memory_used() + this->gpu_memory_used(); }
 };
 
@@ -677,7 +678,9 @@ public:
     // If OpenGL VBOs were allocated, an OpenGL context has to be active to release them.
     void release_geometry() { for (auto *v : volumes) v->release_geometry(); }
     // Clear the geometry
-    void clear() { for (auto *v : volumes) delete v; volumes.clear(); }
+    void clear();
+
+    void release_volume (GLVolume* volume);
 
     bool empty() const { return volumes.empty(); }
     void set_range(double low, double high) { for (GLVolume *vol : this->volumes) vol->set_range(low, high); }

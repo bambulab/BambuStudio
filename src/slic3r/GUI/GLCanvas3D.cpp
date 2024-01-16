@@ -2385,6 +2385,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 // BBS
                 if (volume->is_wipe_tower)
                     deleted_wipe_towers.emplace_back(volume, volume_id);
+                m_volumes.release_volume(volume);
                 delete volume;
             }
         }
@@ -2550,22 +2551,22 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                         GLVolume &volume = *m_volumes.volumes[it->volume_idx];
                         if (! volume.offsets.empty() && state.step[istep].timestamp != volume.offsets.front()) {
                         	// The backend either produced a new hollowed mesh, or it invalidated the one that the front end has seen.
-                            volume.indexed_vertex_array.release_geometry();
+                            volume.indexed_vertex_array->release_geometry();
                         	if (state.step[istep].state == PrintStateBase::DONE) {
                                 TriangleMesh mesh = print_object->get_mesh(slaposDrillHoles);
 	                            assert(! mesh.empty());
                                 mesh.transform(sla_print->sla_trafo(*m_model->objects[volume.object_idx()]).inverse());
 #if ENABLE_SMOOTH_NORMALS
-                                volume.indexed_vertex_array.load_mesh(mesh, true);
+                                volume.indexed_vertex_array->load_mesh(mesh, true);
 #else
-                                volume.indexed_vertex_array.load_mesh(mesh);
+                                volume.indexed_vertex_array->load_mesh(mesh);
 #endif // ENABLE_SMOOTH_NORMALS
                             } else {
 	                        	// Reload the original volume.
 #if ENABLE_SMOOTH_NORMALS
-                                volume.indexed_vertex_array.load_mesh(m_model->objects[volume.object_idx()]->volumes[volume.volume_idx()]->mesh(), true);
+                                volume.indexed_vertex_array->load_mesh(m_model->objects[volume.object_idx()]->volumes[volume.volume_idx()]->mesh(), true);
 #else
-                                volume.indexed_vertex_array.load_mesh(m_model->objects[volume.object_idx()]->volumes[volume.volume_idx()]->mesh());
+                                volume.indexed_vertex_array->load_mesh(m_model->objects[volume.object_idx()]->volumes[volume.volume_idx()]->mesh());
 #endif // ENABLE_SMOOTH_NORMALS
                             }
                             volume.finalize_geometry(true);
@@ -2752,14 +2753,14 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 static void reserve_new_volume_finalize_old_volume(GLVolume& vol_new, GLVolume& vol_old, bool gl_initialized, size_t prealloc_size = VERTEX_BUFFER_RESERVE_SIZE)
 {
 	// Assign the large pre-allocated buffers to the new GLVolume.
-	vol_new.indexed_vertex_array = std::move(vol_old.indexed_vertex_array);
+	*(vol_new.indexed_vertex_array) = std::move(*(vol_old.indexed_vertex_array));
 	// Copy the content back to the old GLVolume.
-	vol_old.indexed_vertex_array = vol_new.indexed_vertex_array;
+	*(vol_old.indexed_vertex_array) = *(vol_new.indexed_vertex_array);
 	// Clear the buffers, but keep them pre-allocated.
-	vol_new.indexed_vertex_array.clear();
+	vol_new.indexed_vertex_array->clear();
 	// Just make sure that clear did not clear the reserved memory.
 	// Reserving number of vertices (3x position + 3x color)
-	vol_new.indexed_vertex_array.reserve(prealloc_size / 6);
+	vol_new.indexed_vertex_array->reserve(prealloc_size / 6);
 	// Finalize the old geometry, possibly move data to the graphics card.
 	vol_old.finalize_geometry(gl_initialized);
 }
@@ -8514,19 +8515,19 @@ void GLCanvas3D::_load_print_toolpaths(const BuildVolume &build_volume)
     GLVolume *volume = m_volumes.new_toolpath_volume(color, VERTEX_BUFFER_RESERVE_SIZE);
     for (size_t i = 0; i < skirt_height; ++ i) {
         volume->print_zs.emplace_back(print_zs[i]);
-        volume->offsets.emplace_back(volume->indexed_vertex_array.quad_indices.size());
-        volume->offsets.emplace_back(volume->indexed_vertex_array.triangle_indices.size());
+        volume->offsets.emplace_back(volume->indexed_vertex_array->quad_indices.size());
+        volume->offsets.emplace_back(volume->indexed_vertex_array->triangle_indices.size());
         //BBS: usage of m_brim are deleted
         _3DScene::extrusionentity_to_verts(print->skirt(), print_zs[i], Point(0, 0), *volume);
         // Ensure that no volume grows over the limits. If the volume is too large, allocate a new one.
-        if (volume->indexed_vertex_array.vertices_and_normals_interleaved.size() > MAX_VERTEX_BUFFER_SIZE) {
+        if (volume->indexed_vertex_array->vertices_and_normals_interleaved.size() > MAX_VERTEX_BUFFER_SIZE) {
         	GLVolume &vol = *volume;
             volume = m_volumes.new_toolpath_volume(vol.color);
             reserve_new_volume_finalize_old_volume(*volume, vol, m_initialized);
         }
     }
-    volume->is_outside = ! build_volume.all_paths_inside_vertices_and_normals_interleaved(volume->indexed_vertex_array.vertices_and_normals_interleaved, volume->indexed_vertex_array.bounding_box());
-    volume->indexed_vertex_array.finalize_geometry(m_initialized);
+    volume->is_outside = ! build_volume.all_paths_inside_vertices_and_normals_interleaved(volume->indexed_vertex_array->vertices_and_normals_interleaved, volume->indexed_vertex_array->bounding_box());
+    volume->indexed_vertex_array->finalize_geometry(m_initialized);
 }
 
 void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, const BuildVolume& build_volume, const std::vector<std::string>& str_tool_colors, const std::vector<CustomGCode::Item>& color_print_values)
@@ -8725,7 +8726,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
             vols = { new_volume(ctxt.color_perimeters()), new_volume(ctxt.color_infill()), new_volume(ctxt.color_support()) };
         for (GLVolume *vol : vols)
 			// Reserving number of vertices (3x position + 3x color)
-        	vol->indexed_vertex_array.reserve(VERTEX_BUFFER_RESERVE_SIZE / 6);
+        	vol->indexed_vertex_array->reserve(VERTEX_BUFFER_RESERVE_SIZE / 6);
         for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
             const Layer *layer = ctxt.layers[idx_layer];
 
@@ -8751,8 +8752,8 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
             for (GLVolume *vol : vols)
                 if (vol->print_zs.empty() || vol->print_zs.back() != layer->print_z) {
                     vol->print_zs.emplace_back(layer->print_z);
-                    vol->offsets.emplace_back(vol->indexed_vertex_array.quad_indices.size());
-                    vol->offsets.emplace_back(vol->indexed_vertex_array.triangle_indices.size());
+                    vol->offsets.emplace_back(vol->indexed_vertex_array->quad_indices.size());
+                    vol->offsets.emplace_back(vol->indexed_vertex_array->triangle_indices.size());
                 }
             for (const PrintInstance &instance : *ctxt.shifted_copies) {
                 const Point &copy = instance.shift;
@@ -8799,16 +8800,16 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
             // Ensure that no volume grows over the limits. If the volume is too large, allocate a new one.
 	        for (size_t i = 0; i < vols.size(); ++i) {
 	            GLVolume &vol = *vols[i];
-	            if (vol.indexed_vertex_array.vertices_and_normals_interleaved.size() > MAX_VERTEX_BUFFER_SIZE) {
+	            if (vol.indexed_vertex_array->vertices_and_normals_interleaved.size() > MAX_VERTEX_BUFFER_SIZE) {
 	                vols[i] = new_volume(vol.color);
 	                reserve_new_volume_finalize_old_volume(*vols[i], vol, false);
 	            }
 	        }
         }
         for (GLVolume *vol : vols)
-        	// Ideally one would call vol->indexed_vertex_array.finalize() here to move the buffers to the OpenGL driver,
+        	// Ideally one would call vol->indexed_vertex_array->finalize() here to move the buffers to the OpenGL driver,
         	// but this code runs in parallel and the OpenGL driver is not thread safe.
-            vol->indexed_vertex_array.shrink_to_fit();
+            vol->indexed_vertex_array->shrink_to_fit();
     });
 
     BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - finalizing results" << m_volumes.log_memory_info() << log_memory_info();
@@ -8819,8 +8820,8 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         m_volumes.volumes.end());
     for (size_t i = volumes_cnt_initial; i < m_volumes.volumes.size(); ++i) {
         GLVolume* v = m_volumes.volumes[i];
-        v->is_outside = ! build_volume.all_paths_inside_vertices_and_normals_interleaved(v->indexed_vertex_array.vertices_and_normals_interleaved, v->indexed_vertex_array.bounding_box());
-        v->indexed_vertex_array.finalize_geometry(m_initialized);
+        v->is_outside = ! build_volume.all_paths_inside_vertices_and_normals_interleaved(v->indexed_vertex_array->vertices_and_normals_interleaved, v->indexed_vertex_array->bounding_box());
+        v->indexed_vertex_array->finalize_geometry(m_initialized);
     }
 
     BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - end" << m_volumes.log_memory_info() << log_memory_info();
@@ -8913,15 +8914,15 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const BuildVolume& build_volume, con
             vols = { new_volume(ctxt.color_support()) };
         for (GLVolume *volume : vols)
 			// Reserving number of vertices (3x position + 3x color)
-            volume->indexed_vertex_array.reserve(VERTEX_BUFFER_RESERVE_SIZE / 6);
+            volume->indexed_vertex_array->reserve(VERTEX_BUFFER_RESERVE_SIZE / 6);
         for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++idx_layer) {
             const std::vector<WipeTower::ToolChangeResult> &layer = ctxt.tool_change(idx_layer);
             for (size_t i = 0; i < vols.size(); ++i) {
                 GLVolume &vol = *vols[i];
                 if (vol.print_zs.empty() || vol.print_zs.back() != layer.front().print_z) {
                     vol.print_zs.emplace_back(layer.front().print_z);
-                    vol.offsets.emplace_back(vol.indexed_vertex_array.quad_indices.size());
-                    vol.offsets.emplace_back(vol.indexed_vertex_array.triangle_indices.size());
+                    vol.offsets.emplace_back(vol.indexed_vertex_array->quad_indices.size());
+                    vol.offsets.emplace_back(vol.indexed_vertex_array->triangle_indices.size());
                 }
             }
             for (const WipeTower::ToolChangeResult &extrusions : layer) {
@@ -8970,13 +8971,13 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const BuildVolume& build_volume, con
         }
         for (size_t i = 0; i < vols.size(); ++i) {
             GLVolume &vol = *vols[i];
-            if (vol.indexed_vertex_array.vertices_and_normals_interleaved.size() > MAX_VERTEX_BUFFER_SIZE) {
+            if (vol.indexed_vertex_array->vertices_and_normals_interleaved.size() > MAX_VERTEX_BUFFER_SIZE) {
                 vols[i] = new_volume(vol.color);
                 reserve_new_volume_finalize_old_volume(*vols[i], vol, false);
             }
         }
         for (GLVolume *vol : vols)
-            vol->indexed_vertex_array.shrink_to_fit();
+            vol->indexed_vertex_array->shrink_to_fit();
     });
 
     BOOST_LOG_TRIVIAL(debug) << "Loading wipe tower toolpaths in parallel - finalizing results" << m_volumes.log_memory_info() << log_memory_info();
@@ -8987,8 +8988,8 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const BuildVolume& build_volume, con
         m_volumes.volumes.end());
     for (size_t i = volumes_cnt_initial; i < m_volumes.volumes.size(); ++i) {
         GLVolume* v = m_volumes.volumes[i];
-        v->is_outside = ! build_volume.all_paths_inside_vertices_and_normals_interleaved(v->indexed_vertex_array.vertices_and_normals_interleaved, v->indexed_vertex_array.bounding_box());
-        v->indexed_vertex_array.finalize_geometry(m_initialized);
+        v->is_outside = ! build_volume.all_paths_inside_vertices_and_normals_interleaved(v->indexed_vertex_array->vertices_and_normals_interleaved, v->indexed_vertex_array->bounding_box());
+        v->indexed_vertex_array->finalize_geometry(m_initialized);
     }
 
     BOOST_LOG_TRIVIAL(debug) << "Loading wipe tower toolpaths in parallel - end" << m_volumes.log_memory_info() << log_memory_info();
@@ -9012,11 +9013,11 @@ void GLCanvas3D::_load_sla_shells()
         m_volumes.volumes.emplace_back(new GLVolume(color));
         GLVolume& v = *m_volumes.volumes.back();
 #if ENABLE_SMOOTH_NORMALS
-        v.indexed_vertex_array.load_mesh(mesh, true);
+        v.indexed_vertex_array->load_mesh(mesh, true);
 #else
-        v.indexed_vertex_array.load_mesh(mesh);
+        v.indexed_vertex_array->load_mesh(mesh);
 #endif // ENABLE_SMOOTH_NORMALS
-        v.indexed_vertex_array.finalize_geometry(m_initialized);
+        v.indexed_vertex_array->finalize_geometry(m_initialized);
         v.shader_outside_printer_detection_enabled = outside_printer_detection_enabled;
         v.composite_id.volume_id = volume_id;
         v.set_instance_offset(unscale(instance.shift.x(), instance.shift.y(), 0.0));

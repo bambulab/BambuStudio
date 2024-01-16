@@ -113,6 +113,8 @@ std::array<float, 4> adjust_color_for_rendering(const std::array<float, 4> &colo
 
 namespace Slic3r {
 
+static std::map<const TriangleMesh*, std::set<GLVolume*>> g_mesh_volumes_map;
+
 #if ENABLE_SMOOTH_NORMALS
 static void smooth_normals_corner(TriangleMesh& mesh, std::vector<stl_normal>& normals)
 {
@@ -436,7 +438,7 @@ void GLVolume::load_render_colors()
     RenderColor::colors[RenderCol_Model_Unprintable]= IMColor(GLVolume::UNPRINTABLE_COLOR);
 }
 
-GLVolume::GLVolume(float r, float g, float b, float a)
+GLVolume::GLVolume(float r, float g, float b, float a, bool create_index_data)
     : m_sla_shift_z(0.0)
     , m_sinking_contours(*this)
     // geometry_id == 0 -> invalid
@@ -465,6 +467,8 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     color = { r, g, b, a };
     set_render_color(color);
     mmuseg_ts = 0;
+    if (create_index_data)
+        indexed_vertex_array = std::make_shared<GLIndexedVertexArray>();
 }
 
 void GLVolume::set_color(const std::array<float, 4>& rgba)
@@ -640,9 +644,9 @@ const BoundingBoxf3& GLVolume::transformed_non_sinking_bounding_box() const
 void GLVolume::set_range(double min_z, double max_z)
 {
     this->qverts_range.first = 0;
-    this->qverts_range.second = this->indexed_vertex_array.quad_indices_size;
+    this->qverts_range.second = this->indexed_vertex_array->quad_indices_size;
     this->tverts_range.first = 0;
-    this->tverts_range.second = this->indexed_vertex_array.triangle_indices_size;
+    this->tverts_range.second = this->indexed_vertex_array->triangle_indices_size;
     if (! this->print_zs.empty()) {
         // The Z layer range is specified.
         // First test whether the Z span of this object is not out of (min_z, max_z) completely.
@@ -769,7 +773,7 @@ void GLVolume::render(bool with_outline) const
         }
         else {
             glsafe(::glMultMatrixd(world_matrix().data()));
-            this->indexed_vertex_array.render(this->tverts_range, this->qverts_range);
+            this->indexed_vertex_array->render(this->tverts_range, this->qverts_range);
         }
     };
 
@@ -796,7 +800,7 @@ void GLVolume::render(bool with_outline) const
             if (outline_shader == nullptr)
             {
                 glDisable(GL_STENCIL_TEST);
-                this->indexed_vertex_array.render(this->tverts_range, this->qverts_range);
+                this->indexed_vertex_array->render(this->tverts_range, this->qverts_range);
                 break;
             }
             shader->stop_using();
@@ -886,7 +890,7 @@ void GLVolume::render(bool with_outline) const
             Transform3d matrix = world_matrix();
             matrix.scale(scale);
             glsafe(::glMultMatrixd(matrix.data()));
-            this->indexed_vertex_array.render(this->tverts_range, this->qverts_range);
+            this->indexed_vertex_array->render(this->tverts_range, this->qverts_range);
             //BOOST_LOG_TRIVIAL(info) << boost::format(": %1%, outline render for body, shader name %2%")%__LINE__ %shader->get_name();
             shader->set_uniform("is_outline", false);
 
@@ -978,7 +982,7 @@ void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_obj
     }
     else {
         glsafe(::glMultMatrixd(world_matrix().data()));
-        this->indexed_vertex_array.render(this->tverts_range, this->qverts_range);
+        this->indexed_vertex_array->render(this->tverts_range, this->qverts_range);
     }
 
     glsafe(::glPopMatrix());
@@ -1035,19 +1039,19 @@ void GLWipeTowerVolume::render(bool with_outline) const
         }
         this->iva_per_colors[i].render();
     }
-    
+
     glsafe(::glPopMatrix());
     if (this->is_left_handed())
         glFrontFace(GL_CCW);
 }
 
-bool GLWipeTowerVolume::IsTransparent() { 
+bool GLWipeTowerVolume::IsTransparent() {
     for (size_t i = 0; i < m_colors.size(); i++) {
-        if (m_colors[i][3] < 1.0f) { 
+        if (m_colors[i][3] < 1.0f) {
             return true;
         }
     }
-    return false; 
+    return false;
 }
 
 std::vector<int> GLVolumeCollection::load_object(
@@ -1080,17 +1084,41 @@ int GLVolumeCollection::load_object_volume(
     const TriangleMesh  &mesh 		  = model_volume->mesh();
     std::array<float, 4> color = GLVolume::MODEL_COLOR[((color_by == "volume") ? volume_idx : obj_idx) % 4];
     color[3] = model_volume->is_model_part() ? 0.7f : 0.4f;
-    this->volumes.emplace_back(new GLVolume(color));
-    GLVolume& v = *this->volumes.back();
+    GLVolume* new_volume = new GLVolume(color[0], color[1], color[2], color[3], false);
+    this->volumes.emplace_back(new_volume);
+    GLVolume& v = *new_volume;
     v.set_color(color_from_model_volume(*model_volume));
     v.name = model_volume->name;
     v.is_text_shape = model_volume->get_text_info().m_text.empty();
+
+    const TriangleMesh* mesh_ptr = model_volume->mesh_ptr();
+    new_volume->ori_mesh = mesh_ptr;
+    std::map<const TriangleMesh*, std::set<GLVolume*>>::iterator iter = g_mesh_volumes_map.find(mesh_ptr);
+    if (iter != g_mesh_volumes_map.end()) {
+        std::set<GLVolume*> & volume_set = iter->second;
+
+        if (volume_set.empty()) {
+            new_volume->indexed_vertex_array = std::make_shared<GLIndexedVertexArray>();
+        }
+        else {
+            GLVolume* first_volume = *(volume_set.begin());
+            new_volume->indexed_vertex_array = first_volume->indexed_vertex_array;
+        }
+        volume_set.emplace(new_volume);
+    }
+    else {
+        new_volume->indexed_vertex_array = std::make_shared<GLIndexedVertexArray>();
+
+        std::set<GLVolume*> volume_set;
+        volume_set.emplace(new_volume);
+        g_mesh_volumes_map.emplace(mesh_ptr, std::move(volume_set));
+    }
 #if ENABLE_SMOOTH_NORMALS
-    v.indexed_vertex_array.load_mesh(mesh, true);
+    v.indexed_vertex_array->load_mesh(mesh, true);
 #else
-    v.indexed_vertex_array.load_mesh(mesh);
+    v.indexed_vertex_array->load_mesh(mesh);
 #endif // ENABLE_SMOOTH_NORMALS
-    v.indexed_vertex_array.finalize_geometry(opengl_initialized);
+    v.indexed_vertex_array->finalize_geometry(opengl_initialized);
     v.composite_id = GLVolume::CompositeID(obj_idx, volume_idx, instance_idx);
     if (model_volume->is_model_part())
     {
@@ -1115,6 +1143,33 @@ int GLVolumeCollection::load_object_volume(
         v.model_object_ID = instance->id().id;
 
     return int(this->volumes.size() - 1);
+}
+
+void GLVolumeCollection::clear()
+{
+    for (auto* v : volumes)
+    {
+        release_volume(v);
+        delete v;
+    }
+    volumes.clear();
+}
+
+void GLVolumeCollection::release_volume (GLVolume* volume)
+{
+    if (volume->ori_mesh) {
+        std::map<const TriangleMesh*, std::set<GLVolume*>>::iterator iter = g_mesh_volumes_map.find(volume->ori_mesh);
+        if (iter != g_mesh_volumes_map.end()) {
+            std::set<GLVolume*> & volume_set = iter->second;
+
+            volume_set.erase(volume);
+            if (volume_set.empty())
+                g_mesh_volumes_map.erase(iter);
+        }
+        else {
+            //should not happen
+        }
+    }
 }
 
 // Load SLA auxiliary GLVolumes (for support trees or pad).
@@ -1142,11 +1197,11 @@ void GLVolumeCollection::load_object_auxiliary(
         this->volumes.emplace_back(new GLVolume((milestone == slaposPad) ? GLVolume::SLA_PAD_COLOR : GLVolume::SLA_SUPPORT_COLOR));
         GLVolume& v = *this->volumes.back();
 #if ENABLE_SMOOTH_NORMALS
-        v.indexed_vertex_array.load_mesh(mesh, true);
+        v.indexed_vertex_array->load_mesh(mesh, true);
 #else
-        v.indexed_vertex_array.load_mesh(mesh);
+        v.indexed_vertex_array->load_mesh(mesh);
 #endif // ENABLE_SMOOTH_NORMALS
-        v.indexed_vertex_array.finalize_geometry(opengl_initialized);
+        v.indexed_vertex_array->finalize_geometry(opengl_initialized);
         v.composite_id = GLVolume::CompositeID(obj_idx, -int(milestone), (int)instance_idx.first);
         v.geometry_id = std::pair<size_t, size_t>(timestamp, model_instance.id().id);
         // Create a copy of the convex hull mesh for each instance. Use a move operator on the last instance.
@@ -1201,8 +1256,8 @@ int GLVolumeCollection::load_wipe_tower_preview(
         v.iva_per_colors[i].load_mesh(color_part);
         v.iva_per_colors[i].finalize_geometry(opengl_initialized);
     }
-    v.indexed_vertex_array.load_mesh(wipe_tower_shell);
-    v.indexed_vertex_array.finalize_geometry(opengl_initialized);
+    v.indexed_vertex_array->load_mesh(wipe_tower_shell);
+    v.indexed_vertex_array->finalize_geometry(opengl_initialized);
     v.set_convex_hull(wipe_tower_shell);
     v.set_volume_offset(Vec3d(pos_x, pos_y, 0.0));
     v.set_volume_rotation(Vec3d(0., 0., (M_PI / 180.) * rotation_angle));
@@ -1226,7 +1281,7 @@ GLVolume* GLVolumeCollection::new_nontoolpath_volume(const std::array<float, 4>&
 	GLVolume *out = new GLVolume(rgba);
 	out->is_extrusion_path = false;
 	// Reserving number of vertices (3x position + 3x color)
-	out->indexed_vertex_array.reserve(reserve_vbo_floats / 6);
+	out->indexed_vertex_array->reserve(reserve_vbo_floats / 6);
 	this->volumes.emplace_back(out);
 	return out;
 }
@@ -1240,10 +1295,10 @@ GLVolumeWithIdAndZList volumes_to_render(const GLVolumePtrs& volumes, GLVolumeCo
         GLVolume* volume = volumes[i];
         bool is_transparent = (volume->render_color[3] < 1.0f);
         auto tempGlwipeTowerVolume = dynamic_cast<GLWipeTowerVolume *>(volume);
-        if (tempGlwipeTowerVolume) { 
+        if (tempGlwipeTowerVolume) {
             is_transparent = tempGlwipeTowerVolume->IsTransparent();
         }
-        if (((type == GLVolumeCollection::ERenderType::Opaque && !is_transparent) || 
+        if (((type == GLVolumeCollection::ERenderType::Opaque && !is_transparent) ||
             (type == GLVolumeCollection::ERenderType::Transparent && is_transparent) ||
              type == GLVolumeCollection::ERenderType::All) &&
             (! filter_func || filter_func(*volume)))
@@ -1347,12 +1402,12 @@ void GLVolumeCollection::render(
             //use -1 ad a invalid type
             shader->set_uniform("print_volume.type", -1);
         }
-        
+
         bool  enable_support;
         int   support_threshold_angle = get_selection_support_threshold_angle(enable_support);
-    
+
         float normal_z  = -::cos(Geometry::deg2rad((float) support_threshold_angle));
-  
+
         shader->set_uniform("volume_world_matrix", volume.first->world_matrix());
         shader->set_uniform("slope.actived", m_slope.isGlobalActive && !volume.first->is_modifier && !volume.first->is_wipe_tower);
         shader->set_uniform("slope.volume_world_normal_matrix", static_cast<Matrix3f>(volume.first->world_matrix().matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>()));
@@ -1614,8 +1669,8 @@ void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig *con
         const Color& color = colors[extruder_id];
         if (!color.text.empty()) {
             for (int i = 0; i < 4; ++i) {
-                if (is_update_alpha == false) { 
-                    if (i < 3) { 
+                if (is_update_alpha == false) {
+                    if (i < 3) {
                         volume->color[i] = (float) color.rgba[i] * inv_255;
                     }
                     continue;
@@ -2192,7 +2247,7 @@ void _3DScene::thick_lines_to_verts(
     double                       top_z,
     GLVolume                    &volume)
 {
-    thick_lines_to_indexed_vertex_array(lines, widths, heights, closed, top_z, volume.indexed_vertex_array);
+    thick_lines_to_indexed_vertex_array(lines, widths, heights, closed, top_z, *(volume.indexed_vertex_array));
 }
 
 void _3DScene::thick_lines_to_verts(const Lines3& lines,
@@ -2201,7 +2256,7 @@ void _3DScene::thick_lines_to_verts(const Lines3& lines,
     bool closed,
     GLVolume& volume)
 {
-    thick_lines_to_indexed_vertex_array(lines, widths, heights, closed, volume.indexed_vertex_array);
+    thick_lines_to_indexed_vertex_array(lines, widths, heights, closed, *(volume.indexed_vertex_array));
 }
 
 static void thick_point_to_verts(const Vec3crd& point,
@@ -2209,7 +2264,7 @@ static void thick_point_to_verts(const Vec3crd& point,
     double height,
     GLVolume& volume)
 {
-    point_to_indexed_vertex_array(point, width, height, volume.indexed_vertex_array);
+    point_to_indexed_vertex_array(point, width, height, *(volume.indexed_vertex_array));
 }
 
 void _3DScene::extrusionentity_to_verts(const Polyline &polyline, float width, float height, float print_z, GLVolume& volume)

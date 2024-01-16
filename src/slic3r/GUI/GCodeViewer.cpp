@@ -3218,6 +3218,7 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
     while (true) {
         GLVolumePtrs::iterator it = std::find_if(m_shells.volumes.volumes.begin(), m_shells.volumes.volumes.end(), [](GLVolume* volume) { return volume->is_modifier; });
         if (it != m_shells.volumes.volumes.end()) {
+            m_shells.volumes.release_volume(*it);
             delete (*it);
             m_shells.volumes.volumes.erase(it);
         }
@@ -4120,7 +4121,7 @@ void GCodeViewer::render_shells()
     // before opengl has been initialized for the preview canvas.
     // when this happens, the volumes' data have not been sent to gpu yet.
     for (GLVolume* v : m_shells.volumes.volumes) {
-        if (!v->indexed_vertex_array.has_VBOs())
+        if (!v->indexed_vertex_array->has_VBOs())
             v->finalize_geometry(true);
     }
 
@@ -4163,7 +4164,7 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
     std::vector<float> filament_densities = gcode_result_list.front()->filament_densities;
     std::vector<Color> filament_colors = decode_colors(wxGetApp().plater()->get_extruder_colors_from_plater_config(gcode_result_list.back()));
 
-    for (int i = 0; i < filament_colors.size(); i++) { 
+    for (int i = 0; i < filament_colors.size(); i++) {
         filament_colors[i] = adjust_color_for_rendering(filament_colors[i]);
     }
 
@@ -5087,7 +5088,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             }
             i++;
         }
-        
+
         if (need_scrollable)
             ImGui::EndChild();
 
