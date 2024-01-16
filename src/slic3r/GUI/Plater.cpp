@@ -10783,7 +10783,17 @@ void Plater::export_gcode_3mf(bool export_all)
             output_path = into_path(dlg.GetPath());
             ext = output_path.extension().string();
             if (ext != ".3mf")
-                output_path = output_path.string() + ".3mf";
+                output_path = output_path.string() + ".gcode.3mf";
+            else {
+                std::string path = output_path.string();
+                path = path.substr(0, path.size() - 4);
+                if (path.size() < 6)
+                    output_path = output_path.replace_extension(".gcode.3mf");
+                else {
+                    std::string extension = path.substr(path.size() - 6);
+                    if (extension != ".gcode") output_path = output_path.replace_extension(".gcode.3mf");
+                }
+            }
         }
     }
 
