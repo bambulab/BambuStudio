@@ -6573,7 +6573,10 @@ void GLCanvas3D::_picking_pass()
         glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
         //BBS: only render plate in view 3D
-        if (m_canvas_type == ECanvasType::CanvasView3D && m_gizmos.get_current_type() == GLGizmosManager::EType::Undefined) {
+        bool is_paint_gizmo=(m_gizmos.get_current_type() == GLGizmosManager::EType::FdmSupports ||
+            m_gizmos.get_current_type() == GLGizmosManager::EType::MmuSegmentation ||
+             m_gizmos.get_current_type() == GLGizmosManager::EType::Seam);
+        if (m_canvas_type == ECanvasType::CanvasView3D && !is_paint_gizmo) {
             _render_plates_for_picking();
         }
 
