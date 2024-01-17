@@ -1030,7 +1030,7 @@ void GUI_App::post_init()
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync_user_preset: false";
     }
 
-    std::string open_method = "studio";
+    m_open_method = "double_click";
     bool switch_to_3d = false;
     if (!this->init_params->input_files.empty()) {
 
@@ -1055,7 +1055,7 @@ void GUI_App::post_init()
             if (!download_url.empty()) {
                 m_download_file_url = from_u8(download_url);
             }
-            open_method = "makerworld";
+            m_open_method = "makerworld";
         }
         else {
             switch_to_3d = true;
@@ -1063,7 +1063,7 @@ void GUI_App::post_init()
                 mainframe->select_tab(size_t(MainFrame::tp3DEditor));
                 plater_->select_view_3D("3D");
                 this->plater()->load_gcode(from_u8(this->init_params->input_files.front()));
-                open_method = "gcode";
+                m_open_method = "gcode";
             }
             else {
                 mainframe->select_tab(size_t(MainFrame::tp3DEditor));
@@ -1078,26 +1078,16 @@ void GUI_App::post_init()
                     if (!input_files.empty()) {
                         std::string file_path = input_files.front().ToStdString();
                         std::filesystem::path path(file_path);
-                        open_method = "file_" + path.extension().string();
+                        m_open_method = "file_" + path.extension().string();
                     }
                 }
                 catch (...) {
                     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ", file path exception!";
-                    open_method = "file";
+                    m_open_method = "file";
                 }
             }
         }
     }
-
-    try {
-        NetworkAgent* agent = wxGetApp().getAgent();
-        json j;
-        j["open_method"] = open_method;
-        if (agent) {
-            agent->track_event("open_method", j.dump());
-        }
-    }
-    catch (...) {}
 
 //#if BBL_HAS_FIRST_PAGE
     bool slow_bootup = false;
@@ -4228,6 +4218,7 @@ void GUI_App::check_track_enable()
         /* record studio start event */
         json j;
         j["user_mode"] = this->get_mode_str();
+        j["open_method"] = m_open_method;
         if (m_agent) {
             m_agent->track_event("studio_launch", j.dump());
         }
