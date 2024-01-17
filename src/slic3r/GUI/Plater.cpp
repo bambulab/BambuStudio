@@ -10881,11 +10881,22 @@ TriangleMesh Plater::combine_mesh_fff(const ModelObject& mo, int instance_id, st
     bool has_splitable_volume = csg::model_to_csgmesh(mo, Transform3d::Identity(), std::back_inserter(csgmesh),
         csg::mpartsPositive | csg::mpartsNegative);
 
-    if (csg::check_csgmesh_booleans(Range{ std::begin(csgmesh), std::end(csgmesh) }) == csgmesh.end()) {
+    std::string fail_msg = _u8L("Unable to perform boolean operation on model meshes. "
+        "Only positive parts will be kept. You may fix the meshes and try agian.");
+    if (auto fail_reason = csg::check_csgmesh_booleans(Range{ std::begin(csgmesh), std::end(csgmesh) }); fail_reason != csg::BooleanFailReason::OK) {
+        std::map<csg::BooleanFailReason, std::string> fail_reasons = {
+            {csg::BooleanFailReason::OK, "OK"},
+            {csg::BooleanFailReason::MeshEmpty, _u8L("Reason: mesh is empty.")},
+            {csg::BooleanFailReason::NotBoundAVolume, _u8L("Reason: mesh does not bound a volume.")},
+            {csg::BooleanFailReason::SelfIntersect, _u8L("Reason: mesh has self intersection.")},
+            {csg::BooleanFailReason::NoIntersection, _u8L("Reason: meshes have no intersection.")} };
+        fail_msg += " " + fail_reasons[fail_reason];
+    }
+    else {
         try {
             MeshBoolean::mcut::McutMeshPtr meshPtr = csg::perform_csgmesh_booleans_mcut(Range{ std::begin(csgmesh), std::end(csgmesh) });
             mesh = MeshBoolean::mcut::mcut_to_triangle_mesh(*meshPtr);
-            }
+        }
         catch (...) {}
 #if 0
         // if mcut fails, try again with CGAL
@@ -10893,7 +10904,7 @@ TriangleMesh Plater::combine_mesh_fff(const ModelObject& mo, int instance_id, st
             try {
                 auto meshPtr = csg::perform_csgmesh_booleans(Range{ std::begin(csgmesh), std::end(csgmesh) });
                 mesh = MeshBoolean::cgal::cgal_to_triangle_mesh(*meshPtr);
-                }
+            }
             catch (...) {}
         }
 #endif
@@ -10901,8 +10912,7 @@ TriangleMesh Plater::combine_mesh_fff(const ModelObject& mo, int instance_id, st
 
     if (mesh.empty()) {
         if (notify_func)
-            notify_func(_u8L("Unable to perform boolean operation on model meshes. "
-                "Only positive parts will be exported."));
+            notify_func(fail_msg);
 
         for (const ModelVolume* v : mo.volumes)
             if (v->is_model_part()) {
