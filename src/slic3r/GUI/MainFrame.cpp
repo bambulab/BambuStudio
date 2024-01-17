@@ -483,8 +483,8 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
                 agent->track_get_property("auto_arrange", value);
                 j["auto_arrange"] = value;
                 value = "";
-                agent->track_get_property("split_to_object", value);
-                j["split_to_object"] = value;
+                agent->track_get_property("split_to_objects", value);
+                j["split_to_objects"] = value;
                 value = "";
                 agent->track_get_property("split_to_part", value);
                 j["split_to_part"] = value;
