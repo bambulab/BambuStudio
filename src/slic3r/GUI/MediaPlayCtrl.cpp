@@ -615,6 +615,7 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
         m_failed_code = m_media_ctrl->GetLastError();
         if (size.GetWidth() >= 320) {
             m_last_state = state;
+            m_failed_code = 0;
             SetStatus(_L("Playing..."), false);
 
             // track event
@@ -638,7 +639,6 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
                 agent->track_event("start_liveview", j.dump());
 
             m_failed_retry = 0;
-            m_failed_code  = 0;
             m_disable_lan = false;
             boost::unique_lock lock(m_mutex);
             m_tasks.push_back("<play>");
