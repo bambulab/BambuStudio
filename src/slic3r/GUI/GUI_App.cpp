@@ -5323,7 +5323,7 @@ bool GUI_App::show_modal_ip_address_enter_dialog(wxString title)
             auto ip_address = selection_data_arr[0];
             auto access_code = selection_data_arr[1];
 
-            BOOST_LOG_TRIVIAL(info) << "User enter IP address is " << ip_address;
+            BOOST_LOG_TRIVIAL(info) << "User enter IP address is " << format_IP(ip_address.ToStdString());
             if (!ip_address.empty()) {
                 wxGetApp().app_config->set_str("ip_address", obj->dev_id, ip_address.ToStdString());
                 wxGetApp().app_config->save();
