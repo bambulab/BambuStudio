@@ -489,7 +489,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 
                 j["auto_orient"] = get_value("auto_orient");
                 j["auto_arrange"] = get_value("auto_arrange");
-                j["split_to_object"] = get_value("split_to_object");
+                j["split_to_objects"] = get_value("split_to_objects");
                 j["split_to_part"] = get_value("split_to_part");
                 j["custom_height"] = get_value("custom_height");
                 j["move"] = get_value(get_name_from_gizmo_etype(GLGizmosManager::EType::Move));
