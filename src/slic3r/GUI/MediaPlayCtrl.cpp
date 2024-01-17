@@ -233,7 +233,7 @@ void MediaPlayCtrl::Play()
         m_url += "&device=" + hide_id_middle_string(m_machine);
         m_url += "&version=" + agent_version;
         m_url += "&dev_ver=" + m_dev_ver;
-        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: " << hide_passwd(m_url, {m_lan_passwd} );
+        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: " << hide_passwd(hide_id_middle_string(m_url, m_url.find(m_lan_ip), m_lan_ip.length()), {m_lan_passwd});
         load();
         return;
     }
