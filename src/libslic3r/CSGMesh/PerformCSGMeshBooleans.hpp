@@ -11,6 +11,7 @@
 #include "libslic3r/MeshBoolean.hpp"
 
 namespace Slic3r { namespace csg {
+    enum class BooleanFailReason { OK, MeshEmpty, NotBoundAVolume, SelfIntersect, NoIntersection};
 
 // This method can be overriden when a specific CSGPart type supports caching
 // of the voxel grid
@@ -256,12 +257,12 @@ void perform_csgmesh_booleans_mcut(MeshBoolean::mcut::McutMeshPtr& mcutm,
 
 
 template<class It, class Visitor>
-It check_csgmesh_booleans(const Range<It> &csgrange, Visitor &&vfn)
+BooleanFailReason check_csgmesh_booleans(const Range<It> &csgrange, Visitor &&vfn)
 {
     using namespace detail_cgal;
-
+    BooleanFailReason fail_reason = BooleanFailReason::OK;
     std::vector<CGALMeshPtr> cgalmeshes(csgrange.size());
-    auto check_part = [&csgrange, &cgalmeshes](size_t i)
+    auto check_part = [&csgrange, &cgalmeshes,&fail_reason](size_t i)
     {
         auto it = csgrange.begin();
         std::advance(it, i);
@@ -277,16 +278,19 @@ It check_csgmesh_booleans(const Range<It> &csgrange, Visitor &&vfn)
         try {
             if (!m || MeshBoolean::cgal::empty(*m)) {
                 BOOST_LOG_TRIVIAL(info) << "check_csgmesh_booleans fails! mesh " << i << "/" << csgrange.size() << " is empty, cannot do boolean!";
+                fail_reason= BooleanFailReason::MeshEmpty;
                 return;
             }
 
             if (!MeshBoolean::cgal::does_bound_a_volume(*m)) {
                 BOOST_LOG_TRIVIAL(info) << "check_csgmesh_booleans fails! mesh "<<i<<"/"<<csgrange.size()<<" does_bound_a_volume is false, cannot do boolean!";
+                fail_reason= BooleanFailReason::NotBoundAVolume;
                 return;
             }
 
             if (MeshBoolean::cgal::does_self_intersect(*m)) {
                 BOOST_LOG_TRIVIAL(info) << "check_csgmesh_booleans fails! mesh " << i << "/" << csgrange.size() << " does_self_intersect is true, cannot do boolean!";
+                fail_reason= BooleanFailReason::SelfIntersect;
                 return;
             }
         }
@@ -296,31 +300,32 @@ It check_csgmesh_booleans(const Range<It> &csgrange, Visitor &&vfn)
     };
     execution::for_each(ex_tbb, size_t(0), csgrange.size(), check_part);
 
-    It ret = csgrange.end();
-    for (size_t i = 0; i < csgrange.size(); ++i) {
-        if (!cgalmeshes[i]) {
-            auto it = csgrange.begin();
-            std::advance(it, i);
-            vfn(it);
+    //It ret = csgrange.end();
+    //for (size_t i = 0; i < csgrange.size(); ++i) {
+    //    if (!cgalmeshes[i]) {
+    //        auto it = csgrange.begin();
+    //        std::advance(it, i);
+    //        vfn(it);
 
-            if (ret == csgrange.end())
-                ret = it;
-        }
-    }
+    //        if (ret == csgrange.end())
+    //            ret = it;
+    //    }
+    //}
 
-    return ret;
+    return fail_reason;
 }
 
 template<class It>
-It check_csgmesh_booleans(const Range<It> &csgrange, bool use_mcut=false)
+BooleanFailReason check_csgmesh_booleans(const Range<It> &csgrange, bool use_mcut=false)
 {
     if(!use_mcut)
         return check_csgmesh_booleans(csgrange, [](auto &) {});
     else {
         using namespace detail_mcut;
+        BooleanFailReason fail_reason = BooleanFailReason::OK;
 
         std::vector<McutMeshPtr> McutMeshes(csgrange.size());
-        auto check_part = [&csgrange, &McutMeshes](size_t i) {
+        auto check_part = [&csgrange, &McutMeshes,&fail_reason](size_t i) {
             auto it = csgrange.begin();
             std::advance(it, i);
             auto& csgpart = *it;
@@ -333,27 +338,17 @@ It check_csgmesh_booleans(const Range<It> &csgrange, bool use_mcut=false)
             }
 
             try {
-                if (!m || MeshBoolean::mcut::empty(*m))
+                if (!m || MeshBoolean::mcut::empty(*m)) {
+                    fail_reason=BooleanFailReason::MeshEmpty;
                     return;
+                }
             }
             catch (...) { return; }
 
             McutMeshes[i] = std::move(m);
         };
         execution::for_each(ex_tbb, size_t(0), csgrange.size(), check_part);
-
-        It ret = csgrange.end();
-        for (size_t i = 0; i < csgrange.size(); ++i) {
-            if (!McutMeshes[i]) {
-                auto it = csgrange.begin();
-                std::advance(it, i);
-
-                if (ret == csgrange.end())
-                    ret = it;
-            }
-        }
-
-        return ret;
+        return fail_reason;
     }
 }
 
