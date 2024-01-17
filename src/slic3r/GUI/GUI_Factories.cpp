@@ -687,7 +687,7 @@ wxMenuItem* MenuFactory::append_menu_item_fix_through_netfabb(wxMenu* menu)
 
 void MenuFactory::append_menu_item_export_stl(wxMenu* menu, bool is_mulity_menu)
 {
-    append_menu_item(menu, wxID_ANY, _L("Export as one STL") + dots, "",
+    append_menu_item(menu, wxID_ANY, _L("Export as one STL"), "",
         [](wxCommandEvent&) { plater()->export_stl(false, true); }, "", nullptr,
         [is_mulity_menu]() {
             const Selection& selection = plater()->canvas3D()->get_selection();

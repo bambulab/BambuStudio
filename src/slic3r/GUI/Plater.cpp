@@ -11090,7 +11090,10 @@ void Plater::export_stl(bool extended, bool selection_only, bool multi_stls)
                 mesh.transform(volume->get_volume_transformation().get_matrix(), true);
             }
 
-            if (model_object->instances.size() == 1) mesh.translate(-model_object->origin_translation.cast<float>());
+            if (model_object->instances.size() == 1) {
+                //coconut: make the mesh's origin=(0,0,0). origin_translation is useless here.
+                mesh.align_to_origin();//translate(- model_object->origin_translation.cast<float>());
+            }
         }
         else if (selection.is_multiple_full_object() && !multi_stls) {
             const std::set<std::pair<int, int>>& instances_idxs = p->get_selection().get_selected_object_instances();

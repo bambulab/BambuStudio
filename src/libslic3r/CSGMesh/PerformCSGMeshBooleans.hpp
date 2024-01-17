@@ -275,14 +275,20 @@ It check_csgmesh_booleans(const Range<It> &csgrange, Visitor &&vfn)
         }
 
         try {
-            if (!m || MeshBoolean::cgal::empty(*m))
+            if (!m || MeshBoolean::cgal::empty(*m)) {
+                BOOST_LOG_TRIVIAL(info) << "check_csgmesh_booleans fails! mesh " << i << "/" << csgrange.size() << " is empty, cannot do boolean!";
                 return;
+            }
 
-            if (!MeshBoolean::cgal::does_bound_a_volume(*m))
+            if (!MeshBoolean::cgal::does_bound_a_volume(*m)) {
+                BOOST_LOG_TRIVIAL(info) << "check_csgmesh_booleans fails! mesh "<<i<<"/"<<csgrange.size()<<" does_bound_a_volume is false, cannot do boolean!";
                 return;
+            }
 
-            if (MeshBoolean::cgal::does_self_intersect(*m))
+            if (MeshBoolean::cgal::does_self_intersect(*m)) {
+                BOOST_LOG_TRIVIAL(info) << "check_csgmesh_booleans fails! mesh " << i << "/" << csgrange.size() << " does_self_intersect is true, cannot do boolean!";
                 return;
+            }
         }
         catch (...) { return; }
 
