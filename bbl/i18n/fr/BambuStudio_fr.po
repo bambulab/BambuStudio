@@ -2234,7 +2234,7 @@ msgid ""
 "A desiccant status lower than two bars indicates that desiccant may be "
 "inactive. Please change the desiccant.(The bars: higher the better.)"
 msgstr ""
-"Un état du dessicant inférieur à deux barres indique que le dessicant est "
+"Un état du dessicateur inférieur à deux barres indique que le dessicateur est "
 "peut-être inactif. Veuillez changer le déshydratant. (Plus c'est élevé, "
 "mieux c'est.)"
 
