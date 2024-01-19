@@ -2118,6 +2118,8 @@ struct Plater::priv
     //BBS: add popup object table logic
     //ObjectTableDialog* m_popup_table{ nullptr };
     std::chrono::system_clock::time_point start;
+    std::string file_type;
+    std::string is_mw;
 
 #if ENABLE_ENVIRONMENT_MAP
     GLTexture environment_texture;
@@ -4166,25 +4168,15 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     if (start == default_time) {
         start = std::chrono::system_clock::now();
     }
-    NetworkAgent* agent = wxGetApp().getAgent();
-    if (agent) {
-        if (!input_files.empty()) {
-            auto path = input_files.front();
-            std::string extension = path.extension().string();
+    if (!input_files.empty()) {
+        auto path = input_files.front();
+        file_type = path.extension().string();
 
-            std::string value = "";
-            agent->track_get_property("file_type", value);
-            if (value == "") {
-                value = extension;
-                agent->track_update_property("file_type", value);
-            }
-
-            if (model.model_info == nullptr) {
-                agent->track_update_property("is_mw", "false");
-            }
-            else {
-                agent->track_update_property("is_mw", "true");
-            }
+        if (model.model_info == nullptr) {
+            is_mw = "false";
+        }
+        else {
+            is_mw = "true";
         }
     }
     return obj_idxs;
@@ -8369,12 +8361,8 @@ void Plater::priv::record_start_print_preset(std::string action) {
         j["record_event"] = action;
         NetworkAgent* agent = wxGetApp().getAgent();
         if (agent) {
-            std::string value = "";
-            agent->track_get_property("file_type", value);
-            j_workflow_debug["file_type"] = value;
-            value = "";
-            agent->track_get_property("is_mw", value);
-            j_workflow_debug["is_mw"] = value;
+            j_workflow_debug["file_type"] = file_type;
+            j_workflow_debug["is_mw"] = is_mw;
 
             agent->track_event("user_start_print", j.dump());
             agent->track_event("workflow_debug", j_workflow_debug.dump());
@@ -8670,7 +8658,7 @@ int Plater::save_project(bool saveAs)
         json j;
         boost::uintmax_t size = boost::filesystem::file_size(into_path(filename));
         j["file_size"] = size;
-        j["file_name"] = std::string(filename.mb_str());
+        j["file_name"] = into_path(filename).filename().string();
 
         NetworkAgent* agent = wxGetApp().getAgent();
         if (agent) agent->track_event("save_project", j.dump());

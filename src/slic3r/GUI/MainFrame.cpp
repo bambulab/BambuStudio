@@ -525,21 +525,20 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 
                 j.clear();
                 j["default_menu"] = get_value("default_menu");
-                j["object_menu"] = get_value("object_ment");
+                j["object_menu"] = get_value("object_menu");
                 j["part_menu"] = get_value("part_menu");
-                j["layer_menu"] = get_value("layer_menu");
                 j["multi_selection_menu"] = get_value("multi_selection_menu");
                 j["plate_menu"] = get_value("plate_menu");
                 j["assemble_object_menu"] = get_value("assemble_object_menu");
-                j["assemble_part_menu"] = get_value("assemble_part_menu");
                 j["assemble_multi_selection_menu"] = get_value("assemble_multi_selection_menu");
                 agent->track_event("menu_click", j.dump());
 
                 j.clear();
                 j["device_page"] = get_value("select_device_page");
-                j["status"] = get_value("Status");
-                j["MicroSD_card"] = get_value("MicroSD Card");
+                j["status"] = get_value("status");
+                j["sd_card"] = get_value("sd_card");
                 j["HMS"] = get_value("HMS");
+                j["update"] = get_value("update");
                 agent->track_event("device_ctrl", j.dump());
             }
         }
