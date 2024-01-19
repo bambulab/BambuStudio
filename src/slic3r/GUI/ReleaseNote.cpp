@@ -288,16 +288,6 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
     m_vebview_release_note->SetSize(wxSize(FromDIP(560), FromDIP(430)));
     m_vebview_release_note->SetMinSize(wxSize(FromDIP(560), FromDIP(430)));
     //m_vebview_release_note->SetMaxSize(wxSize(FromDIP(560), FromDIP(430)));
-    m_vebview_release_note->Bind(wxEVT_WEBVIEW_NAVIGATING,[=](wxWebViewEvent& event){
-        static bool load_url_first = false;
-        if(load_url_first){
-            wxLaunchDefaultBrowser(url_line);
-            event.Veto();
-        }else{
-            load_url_first = true;
-        }
-        
-    });
 
 	fs::path ph(data_dir());
 	ph /= "resources/tooltip/releasenote.html";
