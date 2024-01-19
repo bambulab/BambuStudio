@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-05 16:48+0800\n"
+"POT-Creation-Date: 2024-01-19 18:38+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -322,7 +322,7 @@ msgstr ""
 msgid "Cut"
 msgstr ""
 
-msgid "non-mainifold edges be caused by cut tool, do you want to fix it now?"
+msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
 msgstr ""
 
 msgid "Repairing model object"
@@ -462,7 +462,7 @@ msgstr ""
 
 msgid ""
 "Invalid state. \n"
-"No one part is selected for keep after cut"
+"No one part is selected to keep after cut"
 msgstr ""
 
 msgid "Plug"
@@ -530,7 +530,7 @@ msgstr ""
 msgid "%1%"
 msgstr ""
 
-msgid "Can't apply when proccess preview."
+msgid "Can't apply when process preview."
 msgstr ""
 
 msgid "Operation already cancelling. Please wait few seconds."
@@ -560,7 +560,7 @@ msgstr ""
 msgid "Remove selection"
 msgstr ""
 
-msgid "Shift + Mouse move up or dowm"
+msgid "Shift + Mouse move up or down"
 msgstr ""
 
 msgid "Rotate text"
@@ -683,8 +683,8 @@ msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr ""
 
 msgid ""
-"BambuStudio configuration file may be corrupted and is not abled to be "
-"parsed.Please delete the file and try again."
+"BambuStudio configuration file may be corrupted and is not able to be parsed."
+"Please delete the file and try again."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -737,7 +737,7 @@ msgid "Some presets are modified."
 msgstr ""
 
 msgid ""
-"You can keep the modifield presets to the new project, discard or save "
+"You can keep the modified presets for the new project, discard or save "
 "changes as new presets."
 msgstr ""
 
@@ -818,7 +818,7 @@ msgid "Bambu Studio GUI initialization failed"
 msgstr ""
 
 #, possible-boost-format
-msgid "Fatal error, exception catched: %1%"
+msgid "Fatal error, exception caught: %1%"
 msgstr ""
 
 msgid "Quality"
@@ -1086,12 +1086,6 @@ msgstr ""
 msgid "Auto orient the object to improve print quality."
 msgstr ""
 
-msgid "Split the selected object into mutiple objects"
-msgstr ""
-
-msgid "Split the selected object into mutiple parts"
-msgstr ""
-
 msgid "Select All"
 msgstr ""
 
@@ -1253,8 +1247,8 @@ msgid ""
 "This action will break a cut correspondence.\n"
 "After that model consistency can't be guaranteed .\n"
 "\n"
-"To manipulate with solid parts or negative volumes you have to invalidate "
-"cut infornation first."
+"To manipulate solid parts or negative volumes you have to invalidate cut "
+"information first."
 msgstr ""
 
 msgid "Delete all connectors"
@@ -1263,7 +1257,7 @@ msgstr ""
 msgid "Deleting the last solid part is not allowed."
 msgstr ""
 
-msgid "The target object contains only one part and can not be splited."
+msgid "The target object contains only one part and can not be split."
 msgstr ""
 
 msgid "Assembly"
@@ -1306,12 +1300,13 @@ msgid "Selection conflicts"
 msgstr ""
 
 msgid ""
-"If first selected item is an object, the second one should also be object."
+"If the first selected item is an object, the second one should also be an "
+"object."
 msgstr ""
 
 msgid ""
-"If first selected item is a part, the second one should be part in the same "
-"object."
+"If the first selected item is a part, the second one should be part of the "
+"same object."
 msgstr ""
 
 msgid "The type of the last solid object part is not to be changed."
@@ -1346,8 +1341,8 @@ msgid_plural "Following model objects have been repaired"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "Failed to repair folowing model object"
-msgid_plural "Failed to repair folowing model objects"
+msgid "Failed to repair the following model object"
+msgid_plural "Failed to repair the following model object"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -1594,7 +1589,7 @@ msgstr ""
 msgid "Calibrating AMS..."
 msgstr ""
 
-msgid "A problem occured during calibration. Click to view the solution."
+msgid "A problem occurred during calibration. Click to view the solution."
 msgstr ""
 
 msgid "Calibrate again"
@@ -1635,7 +1630,7 @@ msgstr ""
 
 msgid ""
 "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
-"load or unload filiament."
+"load or unload filaments."
 msgstr ""
 
 msgid "Edit"
@@ -1646,7 +1641,7 @@ msgid ""
 "We can not do auto-arrange on these objects."
 msgstr ""
 
-msgid "No arrangable objects are selected."
+msgid "No arrangeable objects are selected."
 msgstr ""
 
 msgid ""
@@ -1655,6 +1650,10 @@ msgid ""
 msgstr ""
 
 msgid "Arranging..."
+msgstr ""
+
+#, possible-boost-format
+msgid "Object %1% has zero size and can't be arranged."
 msgstr ""
 
 msgid ""
@@ -1776,7 +1775,7 @@ msgstr ""
 msgid "Service Unavailable"
 msgstr ""
 
-msgid "Unkown Error."
+msgid "Unknown Error."
 msgstr ""
 
 msgid "Sending print configuration"
@@ -2084,8 +2083,8 @@ msgid "Cabin humidity"
 msgstr ""
 
 msgid ""
-"Green means that AMS humidity is normal, orange represent humidity is high, "
-"red represent humidity is too high.(Hygrometer: lower the better.)"
+"Green means that AMS humidity is normal, orange represents humidity is high, "
+"red represents humidity is too high.(Hygrometer: lower the better.)"
 msgstr ""
 
 msgid "Desiccant status"
@@ -2162,7 +2161,7 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Note: if new filament is inserted during  printing, the AMS will not "
+"Note: if a new filament is inserted during  printing, the AMS will not "
 "automatically read any information until printing is completed."
 msgstr ""
 
@@ -2234,7 +2233,7 @@ msgid "Go Home"
 msgstr ""
 
 msgid ""
-"A error occurred. Maybe memory of system is not enough or it's a bug of the "
+"An error occurred. Maybe memory of system is not enough or it's a bug of the "
 "program"
 msgstr ""
 
@@ -2379,7 +2378,7 @@ msgstr ""
 
 msgid ""
 "Nozzle may be blocked when the temperature is out of recommended range.\n"
-"Please make sure whether to use the temperature to print.\n"
+"Please confirm whether to use the temperature for printing.\n"
 "\n"
 msgstr ""
 
@@ -2423,16 +2422,17 @@ msgid ""
 msgstr ""
 
 msgid ""
-"This setting is only used for model size tunning with small value in some "
+"This setting is only used for model size tuning with small value in some "
 "cases.\n"
-"For example, when model size has small error and hard to be assembled.\n"
-"For large size tuning, please use model scale function.\n"
+"For example, when the model size has slight errors and is difficult be "
+"assembled.\n"
+"For large size tuning, please use model scaling function.\n"
 "\n"
 "The value will be reset to 0."
 msgstr ""
 
 msgid ""
-"Too large elefant foot compensation is unreasonable.\n"
+"Too large elephant foot compensation is unreasonable.\n"
 "If really have serious elephant foot effect, please check other settings.\n"
 "For example, whether bed temperature is too high.\n"
 "\n"
@@ -2481,8 +2481,8 @@ msgstr ""
 
 msgid ""
 "Switch to rectilinear pattern?\n"
-"Yes - switch to rectilinear pattern automaticlly\n"
-"No  - reset density to default non 100% value automaticlly"
+"Yes - switch to rectilinear pattern automatically\n"
+"No  - reset density to default non 100% value automatically"
 msgstr ""
 
 msgid ""
@@ -3051,7 +3051,7 @@ msgstr ""
 msgid "A G-code path goes beyond the boundary of plate."
 msgstr ""
 
-msgid "Only the object being edit is visible."
+msgid "Only the object being edited is visible."
 msgstr ""
 
 msgid ""
@@ -3611,39 +3611,44 @@ msgstr ""
 msgid "Synchronization"
 msgstr ""
 
-msgid "Initialize failed (No Device)!"
+msgid "The device cannot handle more conversations. Please retry later."
 msgstr ""
 
-msgid "Initialize failed (Device connection not ready)!"
+msgid "Player is malfunctioning. Please reinstall the system player."
 msgstr ""
 
-msgid "Initialize failed (No Camera Device)!"
+msgid "The player is not loaded, please click \"play\" button to retry."
 msgstr ""
 
-msgid "Printer is busy downloading, Please wait for the downloading to finish."
+msgid "Please confirm if the printer is connected."
 msgstr ""
 
-msgid "Initialize failed (Not supported on the current printer version)!"
+msgid "Printer camera is malfunctioning."
 msgstr ""
 
-msgid "Initialize failed (Not accessible in LAN-only mode)!"
+msgid ""
+"The printer is currently busy downloading. Please try again after it "
+"finishes."
 msgstr ""
 
-msgid "Initialize failed (Missing LAN ip of printer)!"
+msgid "Please update the printer firmware and try again."
+msgstr ""
+
+msgid "Please enter the IP of printer to connect."
 msgstr ""
 
 msgid "Initializing..."
 msgstr ""
 
-#, possible-c-format, possible-boost-format
-msgid "Initialize failed (%s)!"
+msgid "Connection Failed. Please check the network and try again"
 msgstr ""
 
-msgid "Network unreachable"
+msgid ""
+"Please check the network and try again, You can restart or update the "
+"printer if the issue persists."
 msgstr ""
 
-#, possible-c-format, possible-boost-format
-msgid "Stopped [%d]!"
+msgid "The printer has been logged out and cannot connect."
 msgstr ""
 
 msgid "Stopped."
@@ -3670,14 +3675,13 @@ msgstr ""
 msgid "Virtual camera initialize failed (%s)!"
 msgstr ""
 
+msgid "Network unreachable"
+msgstr ""
+
 msgid "Information"
 msgstr ""
 
 msgid "Playing..."
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "Load failed [%d]!"
 msgstr ""
 
 msgid "Loading..."
@@ -3734,10 +3738,6 @@ msgstr ""
 msgid "No printers."
 msgstr ""
 
-#, possible-c-format, possible-boost-format
-msgid "Connect failed [%d]!"
-msgstr ""
-
 msgid "Loading file list..."
 msgstr ""
 
@@ -3749,7 +3749,12 @@ msgstr ""
 msgid "Load failed [%d]"
 msgstr ""
 
-msgid "Initialize failed (Storage unavailable, insert SD card.)!"
+msgid ""
+"Please check if the SD card is inserted into the printer.\n"
+"If it still cannot be read, you can try formatting the SD card."
+msgstr ""
+
+msgid "Problem occured. Please update the printer firmware and try again."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -3772,15 +3777,15 @@ msgstr ""
 msgid "Fetching model infomations ..."
 msgstr ""
 
-msgid "Failed to fetching model infomations from printer."
+msgid "Failed to fetch model information from printer."
 msgstr ""
 
-msgid "Failed to parse model infomations."
+msgid "Failed to parse model information."
 msgstr ""
 
 msgid ""
-"The .gcode.3mf file contains no G-code data.Please slice it whthBambu Studio "
-"and export a new .gcode.3mf file."
+"The .gcode.3mf file contains no G-code data.Please slice it whth Bambu "
+"Studio and export a new .gcode.3mf file."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -3803,22 +3808,18 @@ msgstr ""
 msgid "Downloading %d%%..."
 msgstr ""
 
-msgid "Connection lost. Please retry."
+msgid ""
+"Over 4 studio/handy are using remote access, you can close some and try "
+"again."
 msgstr ""
 
-msgid "The device cannot handle more conversations. Please retry later."
-msgstr ""
-
-msgid "File not exists."
+msgid "File does not exist."
 msgstr ""
 
 msgid "File checksum error. Please retry."
 msgstr ""
 
 msgid "Not supported on the current printer version."
-msgstr ""
-
-msgid "Storage unavailable, insert SD card."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -4013,7 +4014,7 @@ msgstr ""
 msgid " upload failed"
 msgstr ""
 
-msgid " upload config prase failed\n"
+msgid " upload config parse failed\n"
 msgstr ""
 
 msgid " No corresponding storage bucket\n"
@@ -4183,8 +4184,8 @@ msgid "Safely remove hardware."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "%1$d Object has custom supports."
-msgid_plural "%1$d Objects have custom supports."
+msgid "%1$d Object has custom support."
+msgid_plural "%1$d Objects have custom support."
 msgstr[0] ""
 msgstr[1] ""
 
@@ -4846,6 +4847,9 @@ msgid ""
 "to non zero."
 msgstr ""
 
+msgid "The current project has unsaved changes, save it before continuing?"
+msgstr ""
+
 msgid "Switching the language requires application restart.\n"
 msgstr ""
 
@@ -4906,6 +4910,21 @@ msgstr ""
 msgid "Units"
 msgstr ""
 
+msgid "Keep only one BambuStudio instance"
+msgstr ""
+
+msgid ""
+"On OSX there is always only one instance of app running by default. However "
+"it is allowed to run multiple instances of same app from the command line. "
+"In such case this settings will allow only one instance."
+msgstr ""
+
+msgid ""
+"If this is enabled, when starting BambuStudio and another instance of the "
+"same BambuStudio is already running, that instance will be reactivated "
+"instead."
+msgstr ""
+
 msgid "Zoom to mouse position"
 msgstr ""
 
@@ -4922,10 +4941,10 @@ msgid ""
 "model."
 msgstr ""
 
-msgid "Flushing volumes: Auto-calculate everytime the color changed."
+msgid "Flushing volumes: Auto-calculate every time when the color is changed."
 msgstr ""
 
-msgid "If enabled, auto-calculate everytime the color changed."
+msgid "If enabled, auto-calculate every time when the color is changed."
 msgstr ""
 
 msgid "Presets"
@@ -5202,7 +5221,7 @@ msgstr ""
 msgid "Jump to model publish web page"
 msgstr ""
 
-msgid "Note: The preparation may takes several minutes. Please be patiant."
+msgid "Note: The preparation may take several minutes. Please be patient."
 msgstr ""
 
 msgid "Publish"
@@ -5593,7 +5612,7 @@ msgstr ""
 msgid ""
 "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
 "device, please read the termsand conditions.By clicking to agree to use your "
-"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of "
+"Bambu Lab device, you agree to abide by the Privacy Policy and Terms of "
 "Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
@@ -5715,8 +5734,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 
 msgid "Line width"
@@ -6252,7 +6271,7 @@ msgstr ""
 msgid "Login"
 msgstr ""
 
-msgid "The configuration package is changed in previous Config Guide"
+msgid "The configuration package is changed to the previous Config Guide"
 msgstr ""
 
 msgid "Configuration package changed"
@@ -6665,7 +6684,7 @@ msgstr ""
 
 msgid ""
 "The following object(s) have empty initial layer and can't be printed. "
-"Please Cut the bottom or enable supports."
+"Please cut the bottom or enable supports."
 msgstr ""
 
 #, possible-boost-format
@@ -6936,7 +6955,7 @@ msgid "Too large line width"
 msgstr ""
 
 msgid ""
-"The prime tower requires that support has the same layer height with object."
+"The prime tower requires that support has the same layer height as object."
 msgstr ""
 
 msgid ""
@@ -7070,7 +7089,7 @@ msgstr ""
 msgid "Avoid crossing wall"
 msgstr ""
 
-msgid "Detour and avoid to travel across wall which may cause blob on surface"
+msgid "Detour and avoid traveling across wall which may cause blob on surface"
 msgstr ""
 
 msgid "Avoid crossing wall - Max detour length"
@@ -7078,7 +7097,7 @@ msgstr ""
 
 msgid ""
 "Maximum detour distance for avoiding crossing wall. Don't detour if the "
-"detour distance is large than this value. Detour length could be specified "
+"detour distance is larger than this value. Detour length could be specified "
 "either as an absolute value or as percentage (for example 50%) of a direct "
 "travel path. Zero to disable"
 msgstr ""
@@ -7158,10 +7177,10 @@ msgstr ""
 
 msgid ""
 "The number of bottom solid layers is increased when slicing if the thickness "
-"calculated by bottom shell layers is thinner than this value. This can avoid "
-"having too thin shell when layer height is small. 0 means that this setting "
-"is disabled and thickness of bottom shell is absolutely determained by "
-"bottom shell layers"
+"calculated by bottom shells layers is thinner than this value. This can "
+"avoid having too thin shell when layer height is small. 0 means that this "
+"setting is disabled and thickness of bottom shell is absolutely determained "
+"by bottom shell layers"
 msgstr ""
 
 msgid "Force cooling for overhang and bridge"
@@ -7176,7 +7195,7 @@ msgid "Fan speed for overhang"
 msgstr ""
 
 msgid ""
-"Force part cooling fan to be this speed when printing bridge or overhang "
+"Force part cooling fan to be at this speed when printing bridge or overhang "
 "wall which has large overhang degree. Forcing cooling for overhang and "
 "bridge can get better quality for these part"
 msgstr ""
@@ -7228,7 +7247,7 @@ msgstr ""
 
 msgid ""
 "Use only one wall on flat top surface, to give more space to the top infill "
-"pattern. Could be applyed on topmost surface or all top surface."
+"pattern. Could be applied on topmost surface or all top surface."
 msgstr ""
 
 msgid "Not apply"
@@ -7318,7 +7337,7 @@ msgstr ""
 msgid ""
 "Enable this option to slow printing speed down to make the final layer time "
 "not shorter than the layer time threshold in \"Max fan speed threshold\", so "
-"that layer can be cooled for longer time. This can improve the cooling "
+"that layer can be cooled for a longer time. This can improve the cooling "
 "quality for needle and small details"
 msgstr ""
 
@@ -7352,7 +7371,7 @@ msgid "Fan speed"
 msgstr ""
 
 msgid ""
-"Speed of exhuast fan during printing.This speed will overwrite the speed in "
+"Speed of exhaust fan during printing.This speed will overwrite the speed in "
 "filament custom gcode"
 msgstr ""
 
@@ -7374,7 +7393,7 @@ msgid "Don't support bridges"
 msgstr ""
 
 msgid ""
-"Don't support the whole bridge area which make support very large. Bridge "
+"Don't support the whole bridge area which makes support very large. Bridge "
 "usually can be printing directly without support if not very long"
 msgstr ""
 
@@ -7425,11 +7444,12 @@ msgid "Internal bridge support thickness"
 msgstr ""
 
 msgid ""
-"If enabled, Studio will generate support loops under the contours of "
-"internal bridges.These support loops could prevent internal bridges from "
-"extruding over the air and improve the top surface quality, especially when "
-"the sparse infill density is low.This value determines the thickness of the "
-"support loops. 0 means disable this feature"
+"When sparse infill density is low, the internal solid infill or internal "
+"bridge may have no archor at the end of line. This causes falling and bad "
+"quality when printing internal solid infill. When enable this feature, loop "
+"paths will be added to the sparse fill of the lower layers for specific "
+"thickness, so that better archor can be provided for internal bridge. 0 "
+"means disable this feature"
 msgstr ""
 
 msgid "Top surface pattern"
@@ -7606,8 +7626,8 @@ msgid "Keep fan always on"
 msgstr ""
 
 msgid ""
-"If enable this setting, part cooling fan will never be stoped and will run "
-"at least at minimum speed to reduce the frequency of starting and stoping"
+"If enable this setting, part cooling fan will never be stopped and will run "
+"at least at minimum speed to reduce the frequency of starting and stopping"
 msgstr ""
 
 msgid "Layer time"
@@ -7840,8 +7860,8 @@ msgid "Initial layer height"
 msgstr ""
 
 msgid ""
-"Height of initial layer. Making initial layer height to be thick slightly "
-"can improve build plate adhension"
+"Height of initial layer. Making initial layer height thick slightly can "
+"improve build plate adhension"
 msgstr ""
 
 msgid "Speed of initial layer except the solid infill part"
@@ -7891,7 +7911,7 @@ msgid "Fuzzy skin point distance"
 msgstr ""
 
 msgid ""
-"The average diatance between the random points introducded on each line "
+"The average distance between the random points introduced on each line "
 "segment"
 msgstr ""
 
@@ -7913,7 +7933,7 @@ msgstr ""
 
 msgid ""
 "Enable this to get a G-code file which has G2 and G3 moves. And the fitting "
-"tolerance is same with resolution"
+"tolerance is the same as resolution"
 msgstr ""
 
 msgid "Add line number"
@@ -8251,8 +8271,8 @@ msgid "Max"
 msgstr ""
 
 msgid ""
-"The largest printable layer height for extruder. Used tp limits the maximum "
-"layer hight when enable adaptive layer height"
+"The largest printable layer height for extruder. Used to limit the maximum "
+"layer height when enable adaptive layer height"
 msgstr ""
 
 msgid "Minimum speed for part cooling fan"
@@ -8260,7 +8280,7 @@ msgstr ""
 
 msgid ""
 "Speed of auxiliary part cooling fan. Auxiliary fan will run at this speed "
-"during printing except the first several layers which is defined by no "
+"during printing except the first several layers which are defined by no "
 "cooling layers"
 msgstr ""
 
@@ -8268,8 +8288,8 @@ msgid "Min"
 msgstr ""
 
 msgid ""
-"The lowest printable layer height for extruder. Used tp limits the minimum "
-"layer hight when enable adaptive layer height"
+"The lowest printable layer height for extruder. Used to limit the minimum "
+"layer height when enable adaptive layer height"
 msgstr ""
 
 msgid "Min print speed"
@@ -8301,7 +8321,7 @@ msgstr ""
 msgid "Start end points"
 msgstr ""
 
-msgid "The start and end points which is from cutter area to garbage can."
+msgid "The start and end points which are from cutter area to garbage can."
 msgstr ""
 
 msgid "Reduce infill retraction"
@@ -8382,8 +8402,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"G-code path is genereated after simplifing the contour of model to avoid too "
-"much points and gcode lines in gcode file. Smaller value means higher "
+"G-code path is generated after simplifying the contour of model to avoid too "
+"many points and gcode lines in the gcode file. Smaller value means higher "
 "resolution and more time to slice"
 msgstr ""
 
@@ -8425,7 +8445,7 @@ msgstr ""
 msgid ""
 "Whenever the retraction is done, the nozzle is lifted a little to create "
 "clearance between nozzle and the print. It prevents nozzle from hitting the "
-"print when travel move. Using spiral line to lift z can prevent stringing"
+"print when travel moves. Using spiral line to lift z can prevent stringing"
 msgstr ""
 
 msgid "Z hop lower boundary"
@@ -8472,7 +8492,7 @@ msgid "Deretraction Speed"
 msgstr ""
 
 msgid ""
-"Speed for reloading filament into extruder. Zero means same speed with "
+"Speed for reloading filament into extruder. Zero means the same speed as "
 "retraction"
 msgstr ""
 
@@ -8853,7 +8873,7 @@ msgstr ""
 msgid "Support wall loops"
 msgstr ""
 
-msgid "This setting specify the count of walls around support"
+msgid "This setting specifies the count of walls around support"
 msgstr ""
 
 msgid "Tree support brim width"
@@ -8942,14 +8962,15 @@ msgstr ""
 
 msgid ""
 "Move nozzle along the last extrusion path when retracting to clean leaked "
-"material on nozzle. This can minimize blob when print new part after travel"
+"material on nozzle. This can minimize blob when printing new part after "
+"travel"
 msgstr ""
 
 msgid "Wipe Distance"
 msgstr ""
 
 msgid ""
-"Discribe how long the nozzle will move along the last path when retracting"
+"Describe how long the nozzle will move along the last path when retracting"
 msgstr ""
 
 msgid ""
@@ -9502,20 +9523,20 @@ msgstr ""
 
 msgid ""
 "Only one of the results with the same name will be saved. Are you sure you "
-"want to overrides the other results?"
+"want to override the other results?"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid ""
 "There is already a historical calibration result with the same name: %s. "
 "Only one of the results with the same name is saved. Are you sure you want "
-"to overrides the historical result?"
+"to override the historical result?"
 msgstr ""
 
 msgid "Please find the best line on your plate"
 msgstr ""
 
-msgid "Please find the cornor with perfect degree of extrusion"
+msgid "Please find the corner with perfect degree of extrusion"
 msgstr ""
 
 msgid "Input Value"
@@ -10040,8 +10061,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 
@@ -10105,7 +10126,7 @@ msgstr ""
 msgid "Max Print Height"
 msgstr ""
 
-msgid "Preset path is not find, please reselect vendor."
+msgid "Preset path is not found, please reselect vendor."
 msgstr ""
 
 msgid "The printer model was not found, please reselect."
@@ -10167,7 +10188,7 @@ msgstr ""
 msgid "Create process presets failed. As follows:\n"
 msgstr ""
 
-msgid "Vendor is not find, please reselect."
+msgid "Vendor is not found, please reselect."
 msgstr ""
 
 msgid "Current vendor has no models, please reselect."
@@ -10212,7 +10233,7 @@ msgstr ""
 msgid ""
 "Please go to filament setting to edit your presets if you need.\n"
 "Please note that nozzle temperature, hot bed temperature, and maximum "
-"volumetric speed have a significant impact on printing quality. Please set "
+"volumetric speed has a significant impact on printing quality. Please set "
 "them carefully."
 msgstr ""
 
@@ -10264,7 +10285,7 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Printer and all the filament&process presets that belongs to the printer. \n"
+"Printer and all the filament&process presets that belong to the printer. \n"
 "Can be shared with others."
 msgstr ""
 
@@ -10357,6 +10378,9 @@ msgid "Copy preset from filament"
 msgstr ""
 
 msgid "The filament choice not find filament preset, please reselect it"
+msgstr ""
+
+msgid "[Delete Required]"
 msgstr ""
 
 msgid "Edit Preset"
