@@ -483,7 +483,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                         if (!s_IsBBLPrinter) {
                             // Klipper estimator
                             sprintf(buf, "; estimated printing time (normal mode) = %s\n",
-                                get_time_dhms(machine.time));
+                                get_time_dhms(machine.time).c_str());
                             ret += buf;
                         } else {
                             // BBS estimator
