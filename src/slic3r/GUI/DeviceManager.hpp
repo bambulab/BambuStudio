@@ -1034,6 +1034,8 @@ public:
     static std::string load_gcode(std::string type_str, std::string gcode_file);
 };
 
+// change the opacity
+void change_the_opacity(wxColour& colour);
 } // namespace Slic3r
 
 #endif //  slic3r_DeviceManager_hpp_
