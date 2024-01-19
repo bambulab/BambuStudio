@@ -171,10 +171,11 @@ MonitorPanel::~MonitorPanel()
             m_media_file_panel->SwitchStorage(title == _L("SD Card"));
         }
         page->SetFocus();
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " select :" << m_tabpanel->GetPageText(m_tabpanel->GetSelection());
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " select :" << get_string_from_tab(PrinterTab(m_tabpanel->GetSelection()))
+                                << " wxString:" << m_tabpanel->GetPageText(m_tabpanel->GetSelection()).ToStdString();
         NetworkAgent* agent = GUI::wxGetApp().getAgent();
         if (agent) {
-            std::string name = m_tabpanel->GetPageText(m_tabpanel->GetSelection()).ToStdString();
+            std::string name = get_string_from_tab(PrinterTab(m_tabpanel->GetSelection()));
             if (name != "") {
                 std::string value = "";
                 agent->track_get_property(name, value);
@@ -517,6 +518,26 @@ Freeze();
     Layout();
 Thaw();
 }
+
+std::string MonitorPanel::get_string_from_tab(PrinterTab tab)
+{
+    switch (tab) {
+    case PT_STATUS :
+        return "status";
+    case PT_MEDIA:
+        return "sd_card";
+    case PT_UPDATE:
+        return "update";
+    case PT_HMS:
+        return "HMS";
+    case PT_DEBUG:
+        return "debug";
+    default:
+        return "";
+    }
+    return "";
+}
+
 
 } // GUI
 } // Slic3r

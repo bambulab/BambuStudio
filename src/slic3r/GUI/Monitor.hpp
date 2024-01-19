@@ -146,6 +146,8 @@ public:
 	void update_side_panel();
     void show_status(int status);
 
+    std::string get_string_from_tab(PrinterTab tab);
+
     MachineObject *obj { nullptr };
     std::string last_conn_type = "undedefined";
 };
