@@ -1386,6 +1386,18 @@ std::string GUI_App::get_http_url(std::string country_code, std::string path)
     else if (country_code == "ENV_CN_PRE") {
         url = "https://api-pre.bambu-lab.com/";
     }
+    else if (country_code == "NEW_ENV_DEV_HOST")
+    {
+        url = "https://api-dev.bambulab.net/";
+    }
+    else if (country_code == "NEW_ENV_QAT_HOST")
+    {
+        url = "https://api-qa.bambulab.net/";
+    }
+    else if (country_code == "NEW_ENV_PRE_HOST")
+    {
+        url = "https://api-pre.bambulab.net/";
+    }
     else {
         url = "https://api.bambulab.com/";
     }
@@ -1411,6 +1423,18 @@ std::string GUI_App::get_model_http_url(std::string country_code)
     }
     else if (country_code == "ENV_CN_PRE") {
         url = "https://makerhub-pre.bambu-lab.com/";
+    }
+    else if (country_code == "NEW_ENV_DEV_HOST")
+    {
+        url = "https://makerhub-dev.bambulab.net/";
+    }
+    else if (country_code == "NEW_ENV_QAT_HOST")
+    {
+        url = "https://makerhub-qa.bambulab.net/";
+    }
+    else if (country_code == "NEW_ENV_PRE_HOST")
+    {
+        url = "https://makerhub-pre.bambulab.net/";
     }
     else {
         url = "https://makerworld.com/";
