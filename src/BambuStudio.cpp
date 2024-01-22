@@ -1462,6 +1462,12 @@ int CLI::run(int argc, char **argv)
         m_models.push_back(std::move(model));
     }
 
+    if (!is_bbl_3mf && plate_to_slice > 0)
+    {
+        BOOST_LOG_TRIVIAL(warning) << boost::format("%1%: not support to slice plate %2%, reset to 0")%__LINE__ %plate_to_slice;
+        plate_to_slice = 0;
+    }
+
     //load custom gcode file
     std::map<int, CustomGCode::Info> custom_gcodes_map;
     if (!custom_gcode_file.empty()) {
