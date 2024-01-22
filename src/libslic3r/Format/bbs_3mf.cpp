@@ -7842,7 +7842,6 @@ private:
     }
 
     void process_ui_task(Task& t, bool canceled = false) {
-        BOOST_LOG_TRIVIAL(info) << "process_ui_task" << t.to_string() << " and interval = " << m_interval;
         switch (t.type) {
             case Backup: {
                 if (canceled)
@@ -7886,12 +7885,12 @@ private:
     }
 
     void process_task(Task& t) {
-        BOOST_LOG_TRIVIAL(info) << "process_task" << t.to_string() << " and interval = " << m_interval;
         switch (t.type) {
             case Backup:
                 // do it in response
                 break;
             case AddObject: {
+                BOOST_LOG_TRIVIAL(info) << "process_task" << t.to_string();
                 {
                     CNumericLocalesSetter locales_setter;
                     _BBS_3MF_Exporter     e;
@@ -7901,12 +7900,14 @@ private:
                 break;
             }
             case RemoveObject: {
+                BOOST_LOG_TRIVIAL(info) << "process_task" << t.to_string();
                 boost::system::error_code ec;
                 boost::filesystem::remove(t.path + "/mesh_" + boost::lexical_cast<std::string>(t.id) + ".xml", ec);
                 t.type = None;
                 break;
             }
             case RemoveBackup: {
+                BOOST_LOG_TRIVIAL(info) << "process_task" << t.to_string();
                 try {
                     boost::system::error_code ec;
                     boost::filesystem::remove(t.path + "/.3mf", ec);
