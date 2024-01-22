@@ -7,9 +7,9 @@ else()
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    set(_glfw_use_wayland "-DGLFW_USE_WAYLAND=ON")
+	set(_glfw_use_wayland "-DGLFW_USE_WAYLAND=ON")
 else()
-    set(_glfw_use_wayland "-DGLFW_USE_WAYLAND=FF")
+	set(_glfw_use_wayland "-DGLFW_USE_WAYLAND=OFF")
 endif()
 
 bambustudio_add_cmake_project(GLFW
