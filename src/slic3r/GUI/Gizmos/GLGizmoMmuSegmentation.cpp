@@ -49,13 +49,13 @@ std::string GLGizmoMmuSegmentation::on_get_name() const
 bool GLGizmoMmuSegmentation::on_is_selectable() const
 {
     return (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptFFF
-            && /*wxGetApp().get_mode() != comSimple && */wxGetApp().filaments_cnt() > 1);
+            /*wxGetApp().get_mode() != comSimple && */);
 }
 
 bool GLGizmoMmuSegmentation::on_is_activable() const
 {
     const Selection& selection = m_parent.get_selection();
-    return !selection.is_empty() && (selection.is_single_full_instance() || selection.is_any_volume()) && wxGetApp().filaments_cnt() > 1;
+    return !selection.is_empty() && (selection.is_single_full_instance() || selection.is_any_volume());
 }
 
 //BBS: use the global one in 3DScene.cpp
@@ -90,7 +90,10 @@ static std::vector<int> get_extruder_id_for_volumes(const ModelObject &model_obj
 void GLGizmoMmuSegmentation::init_extruders_data()
 {
     m_extruders_colors = get_extruders_colors();
-    m_selected_extruder_idx = 0;
+    size_t n_extruder_colors = std::min((size_t) EnforcerBlockerType::ExtruderMax, m_extruders_colors.size());
+    if (n_extruder_colors == 2 || m_selected_extruder_idx >= n_extruder_colors) {
+        m_selected_extruder_idx = n_extruder_colors - 1;
+    }
 }
 
 bool GLGizmoMmuSegmentation::on_init()
@@ -167,7 +170,7 @@ void GLGizmoMmuSegmentation::set_painter_gizmo_data(const Selection &selection)
 {
     GLGizmoPainterBase::set_painter_gizmo_data(selection);
 
-    if (m_state != On || wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptFFF || wxGetApp().filaments_cnt() <= 1)
+    if (m_state != On || wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptFFF)
         return;
 
     ModelObject* model_object = m_c->selection_info()->model_object();
@@ -448,7 +451,33 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     float textbox_width       = 1.5 * slider_icon_width;
     SliderInputLayout slider_input_layout = {clipping_slider_left, sliders_width, drag_left_width + circle_max_width, textbox_width};
 
-    m_imgui->text(m_desc.at("filaments"));
+    {
+        m_imgui->text(m_desc.at("filaments"));
+        float text_offset = m_imgui->calc_text_size(m_desc.at("filaments")).x + m_imgui->scaled(1.5f);
+        ImGui::SameLine(text_offset);
+        float but1_offset = m_imgui->calc_button_size("+++").x;
+        ImGui::PushItemWidth(but1_offset);
+        std::wstring add_btn_name = (m_is_dark_mode ? ImGui::AddFilamentDarkIcon : ImGui::AddFilamentIcon) + boost::nowide::widen("");
+
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0);
+        ImGui::PushStyleColor(ImGuiCol_Button, m_is_dark_mode ? ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 0.00f) : ImVec4(0.86f, 0.99f, 0.91f, 0.00f)); // r, g, b, a
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, m_is_dark_mode ? ImVec4(150 / 255.0f, 150 / 255.0f, 150 / 255.0f, 1.00f) : ImVec4(0.86f, 0.99f, 0.91f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, m_is_dark_mode ? ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 1.00f) : ImVec4(0.86f, 0.99f, 0.91f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+
+        if (ImGui::Button(into_u8(add_btn_name).c_str())) {
+            wxQueueEvent(wxGetApp().plater(), new SimpleEvent(EVT_ADD_FILAMENT));
+        }
+        ImGui::SameLine(text_offset + but1_offset);
+        ImGui::PushItemWidth(but1_offset);
+        std::wstring del_btn_name = (m_is_dark_mode ? ImGui::DeleteFilamentDarkIcon : ImGui::DeleteFilamentIcon) + boost::nowide::widen("");
+        if (ImGui::Button(into_u8(del_btn_name).c_str())) {
+            wxQueueEvent(wxGetApp().plater(), new SimpleEvent(EVT_DEL_FILAMENT));
+        }
+
+        ImGui::PopStyleColor(4);
+        ImGui::PopStyleVar(1);
+    }
 
     float start_pos_x = ImGui::GetCursorPos().x;
     const ImVec2 max_label_size = ImGui::CalcTextSize("99", NULL, true);
@@ -921,8 +950,13 @@ std::array<float, 4> GLGizmoMmuSegmentation::get_cursor_hover_color() const
 void GLGizmoMmuSegmentation::on_set_state()
 {
     GLGizmoPainterBase::on_set_state();
-
-    if (get_state() == Off) {
+    if (get_state() == On) {
+        size_t n_extruder_colors = std::min((size_t) EnforcerBlockerType::ExtruderMax, m_extruders_colors.size());
+        if (n_extruder_colors>=2) { 
+            m_selected_extruder_idx = 1;
+        }
+    }
+    else if (get_state() == Off) {
         ModelObject* mo = m_c->selection_info()->model_object();
         if (mo) Slic3r::save_object_mesh(*mo);
         m_parent.post_event(SimpleEvent(EVT_GLCANVAS_FORCE_UPDATE));

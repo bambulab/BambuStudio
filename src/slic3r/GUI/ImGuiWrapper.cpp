@@ -76,6 +76,11 @@ static const std::map<const wchar_t, std::string> font_icons = {
     //{ImGui::PreferencesDarkButton      , "notification_preferences_dark"      },
     //{ImGui::PreferencesHoverDarkButton , "notification_preferences_hover_dark"},
 
+    {ImGui::AddFilamentIcon            , "add_filament"},
+    {ImGui::AddFilamentDarkIcon        , "add_filament_dark"},
+    {ImGui::DeleteFilamentIcon         , "delete_filament"},
+    {ImGui::DeleteFilamentDarkIcon     , "delete_filament_dark"},
+
     {ImGui::CircleButtonDarkIcon       , "circle_paint_dark"                  },
     {ImGui::TriangleButtonDarkIcon     , "triangle_paint_dark"                },
     {ImGui::FillButtonDarkIcon         , "fill_paint_dark"                    },

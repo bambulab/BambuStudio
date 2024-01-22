@@ -179,7 +179,8 @@ wxDEFINE_EVENT(EVT_PRINT_FROM_SDCARD_VIEW,          SimpleEvent);
 
 wxDEFINE_EVENT(EVT_CREATE_FILAMENT, SimpleEvent);
 wxDEFINE_EVENT(EVT_MODIFY_FILAMENT, SimpleEvent);
-
+wxDEFINE_EVENT(EVT_ADD_FILAMENT, SimpleEvent);
+wxDEFINE_EVENT(EVT_DEL_FILAMENT, SimpleEvent);
 bool Plater::has_illegal_filename_characters(const wxString& wxs_name)
 {
     std::string name = into_u8(wxs_name);
@@ -810,18 +811,7 @@ Sidebar::Sidebar(Plater *parent)
     ScalableButton* add_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "add_filament");
     add_btn->SetToolTip(_L("Add one filament"));
     add_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent& e){
-        // BBS: limit filament choices to 16
-        if (p->combos_filament.size() >= 16)
-            return;
-
-        int filament_count = p->combos_filament.size() + 1;
-        wxColour new_col = Plater::get_next_color_for_filament();
-        std::string new_color = new_col.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
-        wxGetApp().preset_bundle->set_num_filaments(filament_count, new_color);
-        wxGetApp().plater()->on_filaments_change(filament_count);
-        wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
-        wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
-        auto_calc_flushing_volumes(filament_count - 1);
+        add_filament();
     });
     p->m_bpButton_add_filament = add_btn;
 
@@ -831,22 +821,7 @@ Sidebar::Sidebar(Plater *parent)
     ScalableButton* del_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "delete_filament");
     del_btn->SetToolTip(_L("Remove last filament"));
     del_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent &e) {
-        if (p->combos_filament.size() <= 1)
-            return;
-
-        size_t filament_count = p->combos_filament.size() - 1;
-        if (wxGetApp().preset_bundle->is_the_only_edited_filament(filament_count) || (filament_count == 1)) {
-            wxGetApp().get_tab(Preset::TYPE_FILAMENT)->select_preset(wxGetApp().preset_bundle->filament_presets[0], false, "", true);
-        }
-
-        if (p->editing_filament >= filament_count) {
-            p->editing_filament = -1;
-        }
-
-        wxGetApp().preset_bundle->set_num_filaments(filament_count);
-        wxGetApp().plater()->on_filaments_change(filament_count);
-        wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
-        wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
+        delete_filament();
     });
     p->m_bpButton_del_filament = del_btn;
 
@@ -1566,6 +1541,38 @@ void Sidebar::on_filaments_change(size_t num_filaments)
     p->m_panel_filament_title->Refresh();
     update_ui_from_settings();
     dynamic_filament_list.update();
+}
+
+void Sidebar::add_filament() {
+    // BBS: limit filament choices to 16
+    if (p->combos_filament.size() >= 16) return;
+
+    int         filament_count = p->combos_filament.size() + 1;
+    wxColour    new_col        = Plater::get_next_color_for_filament();
+    std::string new_color      = new_col.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
+    wxGetApp().preset_bundle->set_num_filaments(filament_count, new_color);
+    wxGetApp().plater()->on_filaments_change(filament_count);
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
+    wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
+    auto_calc_flushing_volumes(filament_count - 1);
+}
+
+void Sidebar::delete_filament() {
+    if (p->combos_filament.size() <= 1) return;
+
+    size_t filament_count = p->combos_filament.size() - 1;
+    if (wxGetApp().preset_bundle->is_the_only_edited_filament(filament_count) || (filament_count == 1)) {
+        wxGetApp().get_tab(Preset::TYPE_FILAMENT)->select_preset(wxGetApp().preset_bundle->filament_presets[0], false, "", true);
+    }
+
+    if (p->editing_filament >= filament_count) {
+        p->editing_filament = -1;
+    }
+
+    wxGetApp().preset_bundle->set_num_filaments(filament_count);
+    wxGetApp().plater()->on_filaments_change(filament_count);
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
+    wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
 }
 
 void Sidebar::on_bed_type_change(BedType bed_type)
@@ -2479,6 +2486,8 @@ struct Plater::priv
     void on_action_layersediting(SimpleEvent&);
     void on_create_filament(SimpleEvent &);
     void on_modify_filament(SimpleEvent &);
+    void on_add_filament(SimpleEvent &);
+    void on_delete_filament(SimpleEvent &);
 
     void on_object_select(SimpleEvent&);
     void on_plate_name_change(SimpleEvent &);
@@ -2710,7 +2719,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     this->q->Bind(wxEVT_SYS_COLOUR_CHANGED, &priv::on_apple_change_color_mode, this);
     this->q->Bind(EVT_CREATE_FILAMENT, &priv::on_create_filament, this);
     this->q->Bind(EVT_MODIFY_FILAMENT, &priv::on_modify_filament, this);
-
+    this->q->Bind(EVT_ADD_FILAMENT, &priv::on_add_filament, this);
+    this->q->Bind(EVT_DEL_FILAMENT, &priv::on_delete_filament, this);
     view3D = new View3D(q, bed, &model, config, &background_process);
     //BBS: use partplater's gcode
     preview = new Preview(q, bed, &model, config, &background_process, partplate_list.get_current_slice_result(), [this]() { schedule_background_process(); });
@@ -7858,6 +7868,14 @@ void Plater::priv::on_modify_filament(SimpleEvent &evt)
         if (!need_edit_preset->is_compatible) tab->select_preset(need_edit_preset->name);
     }
 
+}
+
+void Plater::priv::on_add_filament(SimpleEvent &evt) {
+    sidebar->add_filament();
+}
+
+void Plater::priv::on_delete_filament(SimpleEvent &evt) {
+    sidebar->delete_filament();
 }
 
 void Plater::priv::enter_gizmos_stack()
