@@ -1440,6 +1440,10 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("PVA");
     def->enum_values.push_back("HIPS");
     def->enum_values.push_back("PLA-AERO");
+    def->enum_values.push_back("PPS");
+    def->enum_values.push_back("PPS-CF");
+    def->enum_values.push_back("PPA-CF");
+    def->enum_values.push_back("PPA-GF");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionStrings { "PLA" });
 
