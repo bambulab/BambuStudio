@@ -219,6 +219,11 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     Bind(wxEVT_CLOSE_WINDOW, &WebViewPanel::OnClose, this);
 
     m_LoginUpdateTimer = nullptr;
+
+    Bind(wxEVT_SHOW, [this](auto &e) {
+        if (e.IsShown() && m_has_pending_staff_pick)
+            SendDesignStaffpick(true);
+    });
  }
 
 WebViewPanel::~WebViewPanel()
@@ -437,6 +442,10 @@ void WebViewPanel::SendRecentList(int images)
 void WebViewPanel::SendDesignStaffpick(bool on)
 {
     if (on) {
+        if (!IsShownOnScreen()) {
+            m_has_pending_staff_pick = true;
+            return;
+        }
         get_design_staffpick(0, 60, [this](std::string body) {
             if (body.empty() || body.front() != '{') {
                 BOOST_LOG_TRIVIAL(warning) << "get_design_staffpick failed " + body;
@@ -453,6 +462,7 @@ void WebViewPanel::SendDesignStaffpick(bool on)
         body2.insert(1, "\"command\": \"modelmall_model_advise_get\", ");
         RunScript(wxString::Format("window.postMessage(%s)", body2));
     }
+    m_has_pending_staff_pick = false;
 }
 
 void WebViewPanel::OpenModelDetail(std::string id, NetworkAgent *agent)
