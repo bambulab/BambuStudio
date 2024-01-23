@@ -121,11 +121,15 @@ MediaPlayCtrl::~MediaPlayCtrl()
 
 wxString hide_id_middle_string(wxString const &str, size_t offset = 0, size_t length = -1)
 {
+#if BBL_RELEASE_TO_PUBLIC
     if (length == size_t(-1))
         length = str.Length() - offset;
     if (length <= 8)
         return str;
     return str.Left(offset + 4) + wxString(length - 8, '*') + str.Mid(offset + length - 4);
+#else
+    return str;
+#endif
 }
 
 void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
@@ -185,6 +189,7 @@ void MediaPlayCtrl::SetAutoRetry(bool b)
 
 wxString hide_passwd(wxString url, std::vector<wxString> const &passwords)
 {
+#if BBL_RELEASE_TO_PUBLIC
     for (auto &p : passwords) {
         auto i = url.find(p);
         if (i == wxString::npos)
@@ -199,6 +204,7 @@ wxString hide_passwd(wxString url, std::vector<wxString> const &passwords)
         if (j == url.length() || url[j] == '@' || url[j] == '&')
             url.replace(i, l, l, wxUniChar('*'));
     }
+#endif
     return url;
 }
 
@@ -270,6 +276,7 @@ void MediaPlayCtrl::Play()
         return;
     }
 
+    m_label_stat->SetLabel({});
     SetStatus(_L("Initializing..."));
 
     if (agent) {
@@ -279,7 +286,7 @@ void MediaPlayCtrl::Play()
                 url += "&version=" + v;
                 url += "&dev_ver=" + dv;
             }
-            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: " << hide_id_middle_string(hide_passwd(url, {"authkey=", "passwd="}), 9, 20);
+            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: " << hide_id_middle_string(hide_passwd(url, {"authkey=", "passwd="}), 9, 20) << "tutk_state: " << m_tutk_state;
             CallAfter([this, m, url] {
                 if (m != m_machine) {
                     BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl drop late ttcode for machine: " << m;
@@ -348,8 +355,11 @@ void MediaPlayCtrl::Stop(wxString const &msg)
         j["failed_retry"]   = m_failed_retry;
         j["tunnel"]         = remote ? "remote" : "local";
         j["code"]           = m_failed_code;
-        if (remote)
+        if (remote) {
+            if (m_url.size() > 30)
+                j["tutk_id"] = m_url.substr(9, 20).c_str();
             j["tutk_state"] = m_tutk_state;
+            }
         j["msg"]            = into_u8(msg);
         NetworkAgent *agent = wxGetApp().getAgent();
         if (agent)
@@ -563,13 +573,14 @@ void MediaPlayCtrl::SetStatus(wxString const &msg2, bool hyperlink)
                                                        m_last_state + MEDIASTATE_BUFFERING - MEDIASTATE_IDLE;
         msg += wxString::Format(" [%d:%d]", state2, m_failed_code);
     }
-    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::SetStatus: " << msg.ToUTF8().data();
+    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::SetStatus: " << msg.ToUTF8().data() << m_tutk_state;
 #ifdef __WXMSW__
     OutputDebugStringA("MediaPlayCtrl::SetStatus: ");
     OutputDebugStringA(msg.ToUTF8().data());
     OutputDebugStringA("\n");
 #endif // __WXMSW__
     m_label_status->SetLabel(msg);
+    m_label_status->Wrap(GetSize().GetWidth() - 120);
     long style = m_label_status->GetWindowStyle() & ~LB_HYPERLINK;
     if (hyperlink) {
         style |= LB_HYPERLINK;
