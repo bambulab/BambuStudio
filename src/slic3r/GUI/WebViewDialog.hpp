@@ -153,6 +153,8 @@ private:
     wxString m_javascript;
     wxString m_response_js;
 
+    bool m_has_pending_staff_pick { false };
+
     DECLARE_EVENT_TABLE()
 };
 
