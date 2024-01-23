@@ -69,7 +69,7 @@ void ConfigManipulation::check_nozzle_recommended_temperature_range(DynamicPrint
             need_check = true;
         }
         if (temperature_range_low > temperature_range_high) {
-            msg_text += _L("The recommended minimum temperature cannot be higher than the recommended minimum temperature.\n");
+            msg_text += _L("The recommended minimum temperature cannot be higher than the recommended maximum temperature.\n");
             need_check = true;
         }
         if (need_check) {
