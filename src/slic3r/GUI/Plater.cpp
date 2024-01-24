@@ -9010,7 +9010,8 @@ std::array<Vec3d, 4> get_cut_plane(const BoundingBoxf3 &bbox, const double &cut_
 void Plater::calib_pa(const Calib_Params &params)
 {
     const auto calib_pa_name = wxString::Format(L"Pressure Advance Test");
-    new_project(false, false, calib_pa_name);
+    if (new_project(false, false, calib_pa_name) == wxID_CANCEL)
+        return;
     wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
     switch (params.mode) {
         case CalibMode::Calib_PA_Line:
@@ -9239,7 +9240,9 @@ void Plater::calib_flowrate(int pass)
 void Plater::calib_temp(const Calib_Params &params)
 {
     const auto calib_temp_name = wxString::Format(L"Nozzle temperature test");
-    new_project(false, false, calib_temp_name);
+    if (new_project(false, false, calib_temp_name) == wxID_CANCEL)
+        return;
+
     wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
     if (params.mode != CalibMode::Calib_Temp_Tower) return;
 
@@ -9287,7 +9290,8 @@ void Plater::calib_temp(const Calib_Params &params)
 void Plater::calib_max_vol_speed(const Calib_Params &params)
 {
     const auto calib_vol_speed_name = wxString::Format(L"Max volumetric speed test");
-    new_project(false, false, calib_vol_speed_name);
+    if (new_project(false, false, calib_vol_speed_name) == wxID_CANCEL)
+        return;
     wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
     if (params.mode != CalibMode::Calib_Vol_speed_Tower) return;
 
@@ -9357,7 +9361,8 @@ void Plater::calib_max_vol_speed(const Calib_Params &params)
 void Plater::calib_retraction(const Calib_Params &params)
 {
     const auto calib_retraction_name = wxString::Format(L"Retraction test");
-    new_project(false, false, calib_retraction_name);
+    if (new_project(false, false, calib_retraction_name) == wxID_CANCEL)
+        return;
     wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
     if (params.mode != CalibMode::Calib_Retraction_tower) return;
 
@@ -9396,7 +9401,8 @@ void Plater::calib_retraction(const Calib_Params &params)
 void Plater::calib_VFA(const Calib_Params &params)
 {
     const auto calib_vfa_name = wxString::Format(L"VFA test");
-    new_project(false, false, calib_vfa_name);
+    if (new_project(false, false, calib_vfa_name) == wxID_CANCEL)
+        return;
     wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
     if (params.mode != CalibMode::Calib_VFA_Tower) return;
 
