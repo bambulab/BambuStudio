@@ -589,7 +589,6 @@ bool CaliPASaveManualPanel::get_result(PACalibResult& out_result) {
 bool CaliPASaveManualPanel::Show(bool show) {
     if (show) {
         if (m_obj) {
-            assert(m_obj->selected_cali_preset.size() <= 1);
             if (!m_obj->selected_cali_preset.empty()) {
                 wxString default_name = get_default_name(m_obj->selected_cali_preset[0].name, CalibMode::Calib_PA_Line);
                 set_default_name(default_name);
