@@ -1732,6 +1732,13 @@ void Selection::copy_to_clipboard()
 
     m_clipboard.reset();
 
+    // sort as the object list order
+    std::vector<unsigned int> selected_list;
+    selected_list.assign(m_list.begin(), m_list.end());
+    std::sort(selected_list.begin(), selected_list.end(), [this](unsigned int left, unsigned int right) {
+        return (*m_volumes)[left]->volume_idx() < (*m_volumes)[right]->volume_idx();
+    });
+
     for (const ObjectIdxsToInstanceIdxsMap::value_type& object : m_cache.content)
     {
         ModelObject* src_object = m_model->objects[object.first];
@@ -1751,7 +1758,7 @@ void Selection::copy_to_clipboard()
             dst_object->add_instance(*src_object->instances[i]);
         }
 
-        for (unsigned int i : m_list)
+        for (unsigned int i : selected_list)
         {
             // Copy the ModelVolumes only for the selected GLVolumes of the 1st selected instance.
             const GLVolume* volume = (*m_volumes)[i];
