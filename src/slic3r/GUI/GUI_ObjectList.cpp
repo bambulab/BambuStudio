@@ -2043,10 +2043,6 @@ void ObjectList::load_modifier(const wxArrayString& input_files, ModelObject& mo
         ModelVolume* new_volume = model_object.add_volume(std::move(mesh), type);
         new_volume->name = boost::filesystem::path(input_file).filename().string();
 
-        // BBS: object_mesh.get_init_shift() keep the relative position
-        TriangleMesh object_mesh = model_object.volumes[0]->mesh();
-        new_volume->set_offset(new_volume->mesh().get_init_shift() - object_mesh.get_init_shift());
-
         // set a default extruder value, since user can't add it manually
         // BBS
         int extruder_id = 0;
@@ -2069,6 +2065,8 @@ void ObjectList::load_modifier(const wxArrayString& input_files, ModelObject& mo
             const Vec3d offset = Vec3d(instance_bb.max.x(), instance_bb.min.y(), instance_bb.min.z()) + 0.5 * mesh_bb.size() - instance_offset;
             new_volume->set_offset(inv_inst_transform * offset);
         }
+        else
+            new_volume->set_offset(new_volume->source.mesh_offset - model_object.volumes.front()->source.mesh_offset);
 
         added_volumes.push_back(new_volume);
     }
