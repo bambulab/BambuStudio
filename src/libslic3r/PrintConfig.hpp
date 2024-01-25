@@ -137,6 +137,13 @@ enum SeamPosition {
     spNearest, spAligned, spRear, spRandom
 };
 
+// Orca
+enum class SeamScarfType {
+    None,
+    External,
+    All,
+};
+
 enum SLAMaterial {
     slamTough,
     slamFlex,
@@ -330,6 +337,7 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SupportMaterialInterfacePattern)
 // BBS
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SupportType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SeamPosition)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SeamScarfType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SLADisplayOrientation)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SLAPillarConnectionMode)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(BrimType)
@@ -821,7 +829,17 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat, initial_layer_flow_ratio))
     ((ConfigOptionFloat, filter_out_gap_fill))
     //calib
-    ((ConfigOptionFloat, print_flow_ratio)))
+    ((ConfigOptionFloat, print_flow_ratio))
+    // Orca: seam slopes
+    ((ConfigOptionEnum<SeamScarfType>,  seam_slope_type))
+    ((ConfigOptionBool,                 seam_slope_conditional))
+    ((ConfigOptionInt,                  scarf_angle_threshold))
+    ((ConfigOptionFloatOrPercent,       seam_slope_start_height))
+    ((ConfigOptionBool,                 seam_slope_entire_loop))
+    ((ConfigOptionFloat,                seam_slope_min_length))
+    ((ConfigOptionInt,                  seam_slope_steps))
+    ((ConfigOptionBool,                 seam_slope_inner_walls))
+)
 
 PRINT_CONFIG_CLASS_DEFINE(
     MachineEnvelopeConfig,
@@ -926,6 +944,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                accel_to_decel_enable))
     ((ConfigOptionPercent,             accel_to_decel_factor))
     ((ConfigOptionEnumsGeneric,        extruder_type))
+    //Orca
+    ((ConfigOptionBool,                has_scarf_joint_seam))
 )
 
 // This object is mapped to Perl as Slic3r::Config::Print.

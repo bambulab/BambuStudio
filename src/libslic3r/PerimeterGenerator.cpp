@@ -416,7 +416,7 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             // there's only one contour loop).
             loop_role = elrContourInternalPerimeter;
         } else {
-            loop_role = elrDefault;
+            loop_role = loop.is_contour? elrDefault: elrPerimeterHole;
         }
         
         // detect overhanging/bridging perimeters
@@ -961,7 +961,7 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
         // Append paths to collection.
         if (!paths.empty()) {
             if (extrusion->is_closed) {
-                ExtrusionLoop extrusion_loop(std::move(paths));
+                ExtrusionLoop extrusion_loop(std::move(paths), extrusion->is_contour()? elrDefault : elrPerimeterHole);
                 // Restore the orientation of the extrusion loop.
                 if (pg_extrusion.is_contour)
                     extrusion_loop.make_counter_clockwise();
