@@ -3914,6 +3914,68 @@ static std::unique_ptr<EdgeGrid::Grid> calculate_layer_edge_grid(const Layer& la
     return out;
 }
 
+static bool has_overhang_path_on_slope(const ExtrusionLoop &loop, double slope_length)
+{
+    double count_length = 0.0;
+    for (ExtrusionPath path : loop.paths) {
+        if (count_length > slope_length)
+            return false;
+
+        if (path.overhang_degree > 1)
+            return true;
+
+        count_length += path.length();
+    }
+
+    return false;
+}
+
+double GCode::get_path_speed(const ExtrusionPath &path)
+{
+    double min_speed = double(m_config.slow_down_min_speed.get_at(m_writer.extruder()->id()));
+    // set speed
+    double speed = 0;
+    if (path.role() == erPerimeter) {
+        speed = m_config.get_abs_value("inner_wall_speed");
+        if (m_config.enable_overhang_speed.value) {
+            double new_speed = 0;
+            new_speed        = get_overhang_degree_corr_speed(speed, path.overhang_degree);
+            speed            = new_speed == 0.0 ? speed : new_speed;
+        }
+    } else if (path.role() == erExternalPerimeter) {
+        speed = m_config.get_abs_value("outer_wall_speed");
+        if (m_config.enable_overhang_speed.value) {
+            double new_speed = 0;
+            new_speed        = get_overhang_degree_corr_speed(speed, path.overhang_degree);
+            speed            = new_speed == 0.0 ? speed : new_speed;
+        }
+    } else if (path.role() == erOverhangPerimeter || path.role() == erBridgeInfill || path.role() == erSupportTransition) {
+        speed = m_config.get_abs_value("bridge_speed");
+    }
+    auto _mm3_per_mm = path.mm3_per_mm * double(m_curr_print->calib_mode() == CalibMode::Calib_Flow_Rate ? this->config().print_flow_ratio.value : 1);
+
+    // BBS: if not set the speed, then use the filament_max_volumetric_speed directly
+    if (speed == 0) {
+        if (_mm3_per_mm > 0)
+            speed = EXTRUDER_CONFIG(filament_max_volumetric_speed) / _mm3_per_mm;
+        else
+            speed = EXTRUDER_CONFIG(filament_max_volumetric_speed) / path.mm3_per_mm;
+    }
+    if (this->on_first_layer()) {
+        // BBS: for solid infill of initial layer, speed can be higher as long as
+        // wall lines have be attached
+        if (path.role() != erBottomSurface) speed = m_config.get_abs_value("initial_layer_speed");
+    }
+
+    if (EXTRUDER_CONFIG(filament_max_volumetric_speed) > 0) {
+        double extrude_speed = EXTRUDER_CONFIG(filament_max_volumetric_speed) / path.mm3_per_mm;
+        if (_mm3_per_mm > 0) extrude_speed = EXTRUDER_CONFIG(filament_max_volumetric_speed) / _mm3_per_mm;
+
+        // cap speed with max_volumetric_speed anyway (even if user is not using autospeed)
+        speed = std::min(speed, extrude_speed);
+    }
+    return speed;
+}
 
 std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, double speed)
 {
@@ -3922,7 +3984,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
 
     // extrude all loops ccw
     bool was_clockwise = loop.make_counter_clockwise();
-
+    bool is_hole = loop.loop_role() == elrPerimeterHole;
     // find the point of the loop that is closest to the current extruder position
     // or randomize if requested
     Point last_pos = this->last_pos();
@@ -3933,14 +3995,25 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     } else
         loop.split_at(last_pos, false);
 
+    const auto seam_scarf_type   = m_config.seam_slope_type.value;
+    // BBS: not apply on fist layer, too small E has stick issue with hotend plate
+    bool enable_seam_slope = ((seam_scarf_type == SeamScarfType::External && !is_hole) ||
+                                    seam_scarf_type == SeamScarfType::All) &&
+                                    !m_config.spiral_mode &&
+                                    (loop.role() == erExternalPerimeter ||
+                                    (loop.role() == erPerimeter && m_config.seam_slope_inner_walls)) &&
+                                    !on_first_layer();
+
+    if (enable_seam_slope && m_config.seam_slope_conditional.value) {
+        enable_seam_slope = loop.is_smooth(m_config.scarf_angle_threshold.value * M_PI / 180., EXTRUDER_CONFIG(nozzle_diameter));
+    }
+
     // clip the path to avoid the extruder to get exactly on the first point of the loop;
     // if polyline was shorter than the clipping distance we'd get a null polyline, so
     // we discard it in that case
-    double clip_length = m_enable_loop_clipping ?
-        scale_(EXTRUDER_CONFIG(nozzle_diameter)) * ( m_config.seam_gap.value / 100 ) :
-        0;
-
-    // get paths
+    const double seam_gap    = scale_(EXTRUDER_CONFIG(nozzle_diameter)) * (m_config.seam_gap.value / 100);
+    const double clip_length = m_enable_loop_clipping && !enable_seam_slope ? seam_gap : 0;
+     // get paths
     ExtrusionPaths paths;
     loop.clip_end(clip_length, &paths);
     if (paths.empty()) return "";
@@ -3953,12 +4026,70 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     // extrude along the path
     std::string gcode;
     bool is_small_peri=false;
-    for (ExtrusionPaths::iterator path = paths.begin(); path != paths.end(); ++path) {
-//    description += ExtrusionLoop::role_to_string(loop.loop_role());
-//    description += ExtrusionEntity::role_to_string(path->role);
-    //BBS: Small perimeter has been considered in curva and overhang detection in speed generater.
-        is_small_peri=(small_peri_speed>0 && is_perimeter(path->role()) && !is_bridge(path->role()) && path->get_overhang_degree()==0);
-        gcode += this->_extrude(*path, description, is_small_peri?small_peri_speed:speed);
+
+    const auto  speed_for_path = [&speed, &small_peri_speed](const ExtrusionPath &path) {
+        // don't apply small perimeter setting for overhangs/bridges/non-perimeters
+        const bool is_small_peri = is_perimeter(path.role()) && !is_bridge(path.role()) && small_peri_speed > 0 &&
+                                   (path.get_overhang_degree() == 0 || path.get_overhang_degree() > 5);
+        return is_small_peri ? small_peri_speed : speed;
+    };
+
+    //BBS: avoid overhang on conditional scarf mode
+    bool slope_has_overhang = false;
+    if (enable_seam_slope) {
+        // Create seam slope
+        double start_slope_ratio;
+        if (m_config.seam_slope_start_height.percent) {
+            start_slope_ratio = m_config.seam_slope_start_height.value / 100.;
+        } else {
+            // Get the ratio against current layer height
+            double h          = paths.front().height;
+            start_slope_ratio = m_config.seam_slope_start_height.value / h;
+        }
+
+        double loop_length = 0.;
+        for (const auto &path : paths) {
+            loop_length += unscale_(path.length());
+        }
+        const bool   slope_entire_loop        = m_config.seam_slope_entire_loop;
+        const double slope_min_length         = slope_entire_loop ? loop_length : std::min(m_config.seam_slope_min_length.value, loop_length);
+        const int    slope_steps              = m_config.seam_slope_steps;
+        const double slope_max_segment_length = scale_(slope_min_length / slope_steps);
+        // BBS: check if has overhang on slope path
+        slope_has_overhang = has_overhang_path_on_slope(loop.paths, slope_min_length);
+        if (!slope_has_overhang) {
+            // Calculate the sloped loop
+            //BBS: should has smaller e at start to get better seam
+            ExtrusionLoopSloped new_loop(paths, seam_gap, slope_min_length, slope_max_segment_length, start_slope_ratio, loop.loop_role());
+
+            //BBS: clip end and start to get better seam
+            new_loop.clip_slope(seam_gap);
+            // BBS: slowdown speed to improve seam
+            new_loop.target_speed = get_path_speed(new_loop.starts.back());
+            new_loop.slowdown_slope_speed();
+            // Then extrude it
+            for (const auto &p : new_loop.get_all_paths()) {
+                gcode += this->_extrude(*p, description, speed_for_path(*p));
+            }
+
+            // Fix path for wipe
+            if (!new_loop.ends.empty()) {
+                paths.clear();
+                // The start slope part is ignored as it overlaps with the end part
+                paths.reserve(new_loop.paths.size() + new_loop.ends.size());
+                paths.insert(paths.end(), new_loop.paths.begin(), new_loop.paths.end());
+                paths.insert(paths.end(), new_loop.ends.begin(), new_loop.ends.end());
+            }
+        }
+    }
+
+    if (!enable_seam_slope || slope_has_overhang) {
+        if (enable_seam_slope)
+            paths.back().clip_end(seam_gap);
+
+        for (ExtrusionPaths::iterator path = paths.begin(); path != paths.end(); ++path) {
+            gcode += this->_extrude(*path, description, speed_for_path(*path));
+        }
     }
 
     //BBS: don't reset acceleration when printing first layer. During first layer, acceleration is always same value.
@@ -4271,21 +4402,28 @@ double GCode::get_overhang_degree_corr_speed(float normal_speed, double path_deg
     return speed_out;
 }
 
-std::string GCode::_extrude(const ExtrusionPath &path, std::string description, double speed)
+std::string GCode::_extrude(const ExtrusionPath &path, std::string description, double speed, bool is_first_slope)
 {
     std::string gcode;
 
     if (is_bridge(path.role()))
         description += " (bridge)";
 
+    const ExtrusionPathSloped *sloped = dynamic_cast<const ExtrusionPathSloped *>(&path);
+    const auto get_sloped_z = [&sloped, this](double z_ratio) {
+        const auto height = sloped->height; 
+        return lerp(m_nominal_z - height, m_nominal_z, z_ratio);
+    };
+
     // go to first point of extrusion path
     //BBS: path.first_point is 2D point. But in lazy raise case, lift z is done in travel_to function.
     //Add m_need_change_layer_lift_z when change_layer in case of no lift if m_last_pos is equal to path.first_point() by chance
-    if (!m_last_pos_defined || m_last_pos != path.first_point() || m_need_change_layer_lift_z) {
+    if (!m_last_pos_defined || m_last_pos != path.first_point() || m_need_change_layer_lift_z || (sloped != nullptr && !sloped->is_flat())) {
         gcode += this->travel_to(
             path.first_point(),
             path.role(),
-            "move to first " + description + " point"
+            "move to first " + description + " point",
+            sloped == nullptr ? DBL_MAX : get_sloped_z(sloped->slope_begin.z_ratio)
         );
         m_need_change_layer_lift_z = false;
     }
@@ -4499,7 +4637,9 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     }
 
     // F is mm per minute.
-    gcode += m_writer.set_speed(F, "", comment);
+    if (sloped == nullptr)
+        gcode += m_writer.set_speed(F, "", comment);
+
     double path_length = 0.;
     {
         std::string comment = GCodeWriter::full_gcode_comment ? description : "";
@@ -4507,14 +4647,30 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         //Attention: G2 and G3 is not supported in spiral_mode mode
         if (!m_config.enable_arc_fitting ||
             path.polyline.fitting_result.empty() ||
-            m_config.spiral_mode) {
-            for (const Line& line : path.polyline.lines()) {
+            m_config.spiral_mode ||
+            sloped != nullptr) {
+            double path_length  = 0.;
+            double total_length = sloped == nullptr ? 0. : path.polyline.length() * SCALING_FACTOR;
+            for (const Line &line : path.polyline.lines()) {
                 const double line_length = line.length() * SCALING_FACTOR;
                 path_length += line_length;
-                gcode += m_writer.extrude_to_xy(
-                    this->point_to_gcode(line.b),
-                    e_per_mm * line_length,
-                    comment);
+
+                if (sloped == nullptr) {
+                    gcode += m_writer.extrude_to_xy(
+                        this->point_to_gcode(line.b),
+                        e_per_mm * line_length,
+                        comment);
+                } else {
+                    // Sloped extrusion
+                    auto dE = e_per_mm * line_length;
+                    auto [z_ratio, e_ratio, slope_speed] = sloped->interpolate(path_length / total_length);
+                    gcode += m_writer.set_speed(slope_speed * 60, "", comment);
+                    Vec2d dest2d = this->point_to_gcode(line.b);
+                    Vec3d dest3d(dest2d(0), dest2d(1), get_sloped_z(z_ratio));
+                    //BBS: todo, should use small e at start to get good seam
+                    double slope_e = dE * e_ratio;
+                    gcode += m_writer.extrude_to_xyz(dest3d, slope_e);
+                }
             }
         } else {
             // BBS: start to generate gcode from arc fitting data which includes line and arc
@@ -4613,7 +4769,7 @@ std::string GCode::_encode_label_ids_to_base64(std::vector<size_t> ids)
 }
 
 // This method accepts &point in print coordinates.
-std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string comment)
+std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string comment, double z )
 {
     /*  Define the travel move as a line between current position and the taget point.
         This is expressed in print coordinates, so it will need to be translated by
@@ -4689,6 +4845,37 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
                 gcode += m_writer.travel_to_xyz(dest3d, comment);
             } else {
                 gcode += m_writer.travel_to_xy(this->point_to_gcode(travel.points[i]), comment);
+            }
+        }
+        if (m_spiral_vase) {
+            // No lazy z lift for spiral vase mode
+            for (size_t i = 1; i < travel.size(); ++i)
+                gcode += m_writer.travel_to_xy(this->point_to_gcode(travel.points[i]), comment);
+        } else {
+            if (travel.size() == 2) {
+                // No extra movements emitted by avoid_crossing_perimeters, simply move to the end point with z change
+                const auto &dest2d = this->point_to_gcode(travel.points.back());
+                Vec3d       dest3d(dest2d(0), dest2d(1), z == DBL_MAX ? m_nominal_z : z);
+                gcode += m_writer.travel_to_xyz(dest3d, comment);
+            } else {
+                // Extra movements emitted by avoid_crossing_perimeters, lift the z to normal height at the beginning, then apply the z
+                // ratio at the last point
+                for (size_t i = 1; i < travel.size(); ++i) {
+                    if (i == 1) {
+                        // Lift to normal z at beginning
+                        Vec2d dest2d = this->point_to_gcode(travel.points[i]);
+                        Vec3d dest3d(dest2d(0), dest2d(1), m_nominal_z);
+                        gcode += m_writer.travel_to_xyz(dest3d, comment);
+                    } else if (z != DBL_MAX && i == travel.size() - 1) {
+                        // Apply z_ratio for the very last point
+                        Vec2d dest2d = this->point_to_gcode(travel.points[i]);
+                        Vec3d dest3d(dest2d(0), dest2d(1), z);
+                        gcode += m_writer.travel_to_xyz(dest3d, comment);
+                    } else {
+                        // For all points in between, no z change
+                        gcode += m_writer.travel_to_xy(this->point_to_gcode(travel.points[i]), comment );
+                    }
+                }
             }
         }
         this->set_last_pos(travel.points.back());

@@ -1004,8 +1004,11 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
 
     const ConfigOptionBool* spiral_vase = config.option<ConfigOptionBool>("spiral_mode");
     if (spiral_vase != nullptr)
-        m_spiral_vase_active = spiral_vase->value;
+        m_detect_layer_based_on_tag  = spiral_vase->value;
 
+    const ConfigOptionBool *has_scarf_joint_seam = config.option<ConfigOptionBool>("has_scarf_joint_seam");
+    if (has_scarf_joint_seam != nullptr)
+        m_detect_layer_based_on_tag  = m_detect_layer_based_on_tag  || has_scarf_joint_seam->value;
 
 }
 
@@ -1286,7 +1289,11 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
 
     const ConfigOptionBool* spiral_vase = config.option<ConfigOptionBool>("spiral_mode");
     if (spiral_vase != nullptr)
-        m_spiral_vase_active = spiral_vase->value;
+        m_detect_layer_based_on_tag  = spiral_vase->value;
+
+    const ConfigOptionBool *has_scarf_joint_seam = config.option<ConfigOptionBool>("has_scarf_joint_seam");
+    if (has_scarf_joint_seam != nullptr)
+        m_detect_layer_based_on_tag = m_detect_layer_based_on_tag || has_scarf_joint_seam->value;
 
     const ConfigOptionEnumGeneric *bed_type = config.option<ConfigOptionEnumGeneric>("curr_bed_type");
     if (bed_type != nullptr)
@@ -1363,8 +1370,9 @@ void GCodeProcessor::reset()
 
     m_options_z_corrector.reset();
 
-    m_spiral_vase_active = false;
+    m_detect_layer_based_on_tag = false;
 
+    m_seams_count = 0;
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
     m_mm3_per_mm_compare.reset();
     m_height_compare.reset();
@@ -2222,12 +2230,12 @@ void GCodeProcessor::process_tags(const std::string_view comment, bool producers
     // layer change tag
     if (comment == reserved_tag(ETags::Layer_Change)) {
         ++m_layer_id;
-        if (m_spiral_vase_active) {
+        if (m_detect_layer_based_on_tag) {
             if (m_result.moves.empty() || m_result.spiral_vase_layers.empty())
                 // add a placeholder for layer height. the actual value will be set inside process_G1() method
                 m_result.spiral_vase_layers.push_back({ FLT_MAX, { 0, 0 } });
             else {
-                const size_t move_id = m_result.moves.size() - 1;
+                const size_t move_id = m_result.moves.size() - 1 - m_seams_count;
                 if (!m_result.spiral_vase_layers.empty())
                     m_result.spiral_vase_layers.back().second.second = move_id;
                 // add a placeholder for layer height. the actual value will be set inside process_G1() method
@@ -3090,6 +3098,15 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
             //BBS: m_result.moves.back().position has plate offset, must minus plate offset before calculate the real seam position
             const Vec3f real_first_pos = Vec3f(m_result.moves.back().position.x() - m_x_offset, m_result.moves.back().position.y() - m_y_offset, m_result.moves.back().position.z());
             m_seams_detector.set_first_vertex(real_first_pos - m_extruder_offsets[m_extruder_id]);
+        } else if (type == EMoveType::Extrude && m_extrusion_role == erExternalPerimeter && m_detect_layer_based_on_tag) {
+            const Vec3f real_last_pos = Vec3f(m_result.moves.back().position.x() - m_x_offset, m_result.moves.back().position.y() - m_y_offset,
+                                              m_result.moves.back().position.z());
+            const Vec3f new_pos       = real_last_pos - m_extruder_offsets[m_extruder_id];
+            // We may have sloped loop, drop any previous start pos if we have z increment
+            const std::optional<Vec3f> first_vertex = m_seams_detector.get_first_vertex();
+            if (new_pos.z() > first_vertex->z()) {
+                m_seams_detector.set_first_vertex(new_pos);
+            }
         }
         // check for seam ending vertex and store the resulting move
         else if ((type != EMoveType::Extrude || (m_extrusion_role != erExternalPerimeter && m_extrusion_role != erOverhangPerimeter)) && m_seams_detector.has_first_vertex()) {
@@ -3119,7 +3136,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
         m_seams_detector.set_first_vertex(m_result.moves.back().position - m_extruder_offsets[m_extruder_id] - plate_offset);
     }
 
-    if (m_spiral_vase_active && !m_result.spiral_vase_layers.empty()) {
+    if (m_detect_layer_based_on_tag && !m_result.spiral_vase_layers.empty()) {
         if (m_result.spiral_vase_layers.back().first == FLT_MAX && delta_pos[Z] > 0.0)
             // replace layer height placeholder with correct value
             m_result.spiral_vase_layers.back().first = static_cast<float>(m_end_position[Z]);
@@ -3508,6 +3525,13 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
         //BBS: check for seam starting vertex
         if (type == EMoveType::Extrude && m_extrusion_role == erExternalPerimeter && !m_seams_detector.has_first_vertex()) {
             m_seams_detector.set_first_vertex(m_result.moves.back().position - m_extruder_offsets[m_extruder_id] - plate_offset);
+        } else if (type == EMoveType::Extrude && m_extrusion_role == erExternalPerimeter && m_detect_layer_based_on_tag) {
+            const Vec3f real_last_pos = Vec3f(m_result.moves.back().position.x() - m_x_offset, m_result.moves.back().position.y() - m_y_offset,
+                                              m_result.moves.back().position.z());
+            const Vec3f new_pos       = real_last_pos - m_extruder_offsets[m_extruder_id];
+            // We may have sloped loop, drop any previous start pos if we have z increment
+            const std::optional<Vec3f> first_vertex = m_seams_detector.get_first_vertex();
+            if (new_pos.z() > first_vertex->z()) { m_seams_detector.set_first_vertex(new_pos); }
         }
         //BBS: check for seam ending vertex and store the resulting move
         else if ((type != EMoveType::Extrude || (m_extrusion_role != erExternalPerimeter && m_extrusion_role != erOverhangPerimeter)) && m_seams_detector.has_first_vertex()) {
@@ -4131,6 +4155,10 @@ void GCodeProcessor::store_move_vertex(EMoveType type, EMovePathType path_type)
         Vec3f(m_arc_center(0, 0) + m_x_offset, m_arc_center(1, 0) + m_y_offset, m_arc_center(2, 0)) + m_extruder_offsets[m_extruder_id],
         m_interpolation_points,
     });
+
+    if (type == EMoveType::Seam) {
+        m_seams_count++;
+    }
 
     // stores stop time placeholders for later use
     if (type == EMoveType::Color_change || type == EMoveType::Pause_Print) {
