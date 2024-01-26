@@ -465,13 +465,18 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
     NetworkAgent *agent = wxGetApp().getAgent();
     if (agent) {
         agent->get_camera_url(m_machine,
-            [this, wfs, m = m_machine, v = m_dev_ver](std::string url) {
+            [this, wfs, m = m_machine, v = agent->get_version(), dv = m_dev_ver](std::string url) {
+            if (boost::algorithm::starts_with(url, "bambu:///")) {
+                url += "&device=" + m;
+                url += "&version=" + v;
+                url += "&dev_ver=" + dv;
+            }
             BOOST_LOG_TRIVIAL(info) << "MediaFilePanel::fetchUrl: camera_url: " << hide_id_middle_string(hide_passwd(url, {"authkey=", "passwd="}), 9, 20);
             CallAfter([=] {
                 boost::shared_ptr fs(wfs.lock());
                 if (!fs || fs != m_image_grid->GetFileSystem()) return;
                 if (boost::algorithm::starts_with(url, "bambu:///")) {
-                    fs->SetUrl(url + "&device=" + m + "&dev_ver=" + v);
+                    fs->SetUrl(url);
                 } else {
                     m_image_grid->SetStatus(m_bmp_failed, _L("Connection Failed. Please check the network and try again"));
                     fs->SetUrl("3");
