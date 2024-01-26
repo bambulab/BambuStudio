@@ -159,7 +159,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         return;
     }
     m_machine = machine;
-    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl switch machine: " << hide_id_middle_string(m_machine);
+    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl switch machine: " << m_machine;
     m_disable_lan = false;
     m_failed_retry = 0;
     m_last_failed_codes.clear();
@@ -241,7 +241,7 @@ void MediaPlayCtrl::Play()
             m_url = "bambu:///rtsps___" + m_lan_user + ":" + m_lan_passwd + "@" + m_lan_ip + "/streaming/live/1?proto=rtsps";
         else if (m_lan_proto == MachineObject::LVL_Rtsp)
             m_url = "bambu:///rtsp___" + m_lan_user + ":" + m_lan_passwd + "@" + m_lan_ip + "/streaming/live/1?proto=rtsp";
-        m_url += "&device=" + hide_id_middle_string(m_machine);
+        m_url += "&device=" + m_machine;
         m_url += "&version=" + agent_version;
         m_url += "&dev_ver=" + m_dev_ver;
         BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: " << hide_passwd(hide_id_middle_string(m_url, m_url.find(m_lan_ip), m_lan_ip.length()), {m_lan_passwd});
@@ -275,7 +275,7 @@ void MediaPlayCtrl::Play()
     if (agent) {
         agent->get_camera_url(m_machine, [this, m = m_machine, v = agent_version, dv = m_dev_ver](std::string url) {
             if (boost::algorithm::starts_with(url, "bambu:///")) {
-                url += "&device=" + into_u8(hide_id_middle_string(m));
+                url += "&device=" + into_u8(m);
                 url += "&version=" + v;
                 url += "&dev_ver=" + dv;
             }
@@ -459,9 +459,9 @@ void MediaPlayCtrl::ToggleStream()
             url = "bambu:///rtsps___" + m_lan_user + ":" + m_lan_passwd + "@" + m_lan_ip + "/streaming/live/1?proto=rtsps";
         else if (m_lan_proto == MachineObject::LVL_Rtsp)
             url = "bambu:///rtsp___" + m_lan_user + ":" + m_lan_passwd + "@" + m_lan_ip + "/streaming/live/1?proto=rtsp";
-        url += "&device=" + into_u8(hide_id_middle_string(m_machine));
+        url += "&device=" + into_u8(m_machine);
         url += "&dev_ver=" + m_dev_ver;
-        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::ToggleStream: " << hide_passwd(url, {m_lan_passwd});
+        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::ToggleStream: " << hide_passwd(hide_id_middle_string(url, url.find(m_lan_ip), m_lan_ip.length()), {m_lan_passwd});
         std::string             file_url = data_dir() + "/cameratools/url.txt";
         boost::nowide::ofstream file(file_url);
         auto                    url2 = encode_path(url.c_str());
@@ -619,7 +619,7 @@ void MediaPlayCtrl::media_proc()
         }
         wxString url = m_tasks.front();
         if (m_tasks.size() >= 2 && !url.IsEmpty() && url[0] != '<' && m_tasks[1] == "<stop>") {
-            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: busy skip url: " << hide_id_middle_string(hide_passwd(url, {"authkey=", "passwd=", m_lan_passwd}), 9, 20);
+            BOOST_LOG_TRIVIAL(trace) << "MediaPlayCtrl: busy skip url: " << url;
             m_tasks.pop_front();
             m_tasks.pop_front();
             continue;
