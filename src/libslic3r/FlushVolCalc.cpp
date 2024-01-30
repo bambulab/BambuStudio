@@ -91,7 +91,7 @@ int FlushVolCalculator::calc_flush_vol(unsigned char src_a, unsigned char src_r,
     flush_volume = std::max(flush_volume, 60.f);
 
     //float flush_multiplier = std::atof(m_flush_multiplier_ebox->GetValue().c_str());
-    flush_volume += m_min_flush_vol;
+    flush_volume = flush_volume + m_min_flush_vol - 50.f;
     return std::min((int)flush_volume, m_max_flush_vol);
 }
 
