@@ -139,8 +139,14 @@ ObjectList::ObjectList(wxWindow* parent) :
 		// Workaround for entering the column editing mode on Windows. Simulate keyboard enter when another column of the active line is selected.
 		int new_selected_column = -1;
 #endif //__WXMSW__
-        if (wxGetKeyState(WXK_SHIFT))
-        {
+        if (wxGetKeyState(WXK_SHIFT)) {
+            GLGizmosManager &gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
+            if (gizmos_mgr.is_gizmo_activable_when_single_full_instance()) {
+                // selection will not be single_full_instance after shift_pressed,Caused exe crashed
+                UnselectAll();
+                Select(m_last_selected_item);
+                return;
+            }
             wxDataViewItemArray sels;
             GetSelections(sels);
             if (! sels.empty() && sels.front() == m_last_selected_item)
