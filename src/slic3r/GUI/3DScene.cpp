@@ -1094,6 +1094,7 @@ int GLVolumeCollection::load_object_volume(
     const TriangleMesh* mesh_ptr = model_volume->mesh_ptr();
     new_volume->ori_mesh = mesh_ptr;
     std::map<const TriangleMesh*, std::set<GLVolume*>>::iterator iter = g_mesh_volumes_map.find(mesh_ptr);
+    bool need_create_mesh = true;
     if (iter != g_mesh_volumes_map.end()) {
         std::set<GLVolume*> & volume_set = iter->second;
 
@@ -1103,6 +1104,7 @@ int GLVolumeCollection::load_object_volume(
         else {
             GLVolume* first_volume = *(volume_set.begin());
             new_volume->indexed_vertex_array = first_volume->indexed_vertex_array;
+            need_create_mesh = false;
         }
         volume_set.emplace(new_volume);
     }
@@ -1113,12 +1115,14 @@ int GLVolumeCollection::load_object_volume(
         volume_set.emplace(new_volume);
         g_mesh_volumes_map.emplace(mesh_ptr, std::move(volume_set));
     }
+    if (need_create_mesh) {
 #if ENABLE_SMOOTH_NORMALS
-    v.indexed_vertex_array->load_mesh(mesh, true);
+        v.indexed_vertex_array->load_mesh(mesh, true);
 #else
-    v.indexed_vertex_array->load_mesh(mesh);
+        v.indexed_vertex_array->load_mesh(mesh);
 #endif // ENABLE_SMOOTH_NORMALS
-    v.indexed_vertex_array->finalize_geometry(opengl_initialized);
+        v.indexed_vertex_array->finalize_geometry(opengl_initialized);
+    }
     v.composite_id = GLVolume::CompositeID(obj_idx, volume_idx, instance_idx);
     if (model_volume->is_model_part())
     {
