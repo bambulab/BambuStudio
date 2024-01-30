@@ -276,6 +276,7 @@ public:
 
     void set_painter_gizmo_data();
 
+    bool is_gizmo_activable_when_single_full_instance();
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position = Vec2d::Zero(), bool shift_down = false, bool alt_down = false, bool control_down = false);
     ClippingPlane get_clipping_plane() const;
     ClippingPlane get_assemble_view_clipping_plane() const;

@@ -210,8 +210,8 @@ namespace ImGui
 
     const wchar_t AddFilamentIcon          = 0x0844;
     const wchar_t AddFilamentDarkIcon      = 0x0845;
-    const wchar_t DeleteFilamentIcon       = 0x0845;
-    const wchar_t DeleteFilamentDarkIcon   = 0x0846;
+    const wchar_t DeleteFilamentIcon       = 0x0846;
+    const wchar_t DeleteFilamentDarkIcon   = 0x0847;
     //    void MyFunction(const char* name, const MyMatrix44& v);
 }
 
