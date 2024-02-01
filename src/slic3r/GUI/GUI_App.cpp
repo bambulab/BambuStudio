@@ -1903,12 +1903,12 @@ void GUI_App::init_networking_callbacks()
                 /* request_pushing */
                 MachineObject* obj = m_device_manager->get_my_machine(tunnel ? dev_id.substr(7) : dev_id);
                 if (obj) {
-#if !BBL_RELEASE_TO_PUBLIC && defined(__WINDOWS__)
-                    if (obj->is_tunnel_mqtt && !tunnel)
-                        boost::thread ping_thread = Slic3r::create_thread([] {
-                            start_ping_test();
-                        });
-#endif
+//#if !BBL_RELEASE_TO_PUBLIC && defined(__WINDOWS__)
+//                    if (obj->is_tunnel_mqtt && !tunnel)
+//                        boost::thread ping_thread = Slic3r::create_thread([] {
+//                            start_ping_test();
+//                        });
+//#endif
                     obj->is_tunnel_mqtt = tunnel;
                     obj->command_request_push_all(true);
                     obj->command_get_version();
