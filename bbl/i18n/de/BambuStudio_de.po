@@ -298,10 +298,10 @@ msgid "Plot cut plane"
 msgstr ""
 
 msgid "right click"
-msgstr ""
+msgstr "Rechtsklick"
 
 msgid "Assign the part to the other side"
-msgstr ""
+msgstr "Weisen Sie das Teil der anderen Seite zu"
 
 msgid "Cut"
 msgstr "Zerschneiden"
@@ -322,7 +322,7 @@ msgid "Dovetail"
 msgstr ""
 
 msgid "Mode"
-msgstr ""
+msgstr "Modus"
 
 msgid "Movement:"
 msgstr "Bewegung:"
@@ -346,7 +346,7 @@ msgid "Groove"
 msgstr ""
 
 msgid "Depth"
-msgstr ""
+msgstr "Tiefe"
 
 msgid "Width"
 msgstr "Breite"
@@ -355,7 +355,7 @@ msgid "Flap Angle"
 msgstr ""
 
 msgid "Keep orientation"
-msgstr ""
+msgstr "Orientierung behalten"
 
 msgid "Place on cut"
 msgstr "Auf den Schnitt legen"
@@ -421,7 +421,7 @@ msgid "Bulge"
 msgstr ""
 
 msgid "Gap"
-msgstr ""
+msgstr "Lücke"
 
 msgid "Confirm connectors"
 msgstr "Verbinder bestätigen"
@@ -735,7 +735,7 @@ msgid "Choose one file (3mf):"
 msgstr "Wählen Sie eine Datei (3mf):"
 
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
-msgstr ""
+msgstr "Wählen Sie eine oder mehrere Dateien (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
 
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr "Wählen Sie eine oder mehrere Dateien (3mf/step/stl/svg/obj/amf):"
@@ -778,7 +778,7 @@ msgid ""
 msgstr ""
 
 msgid "Sync user presets"
-msgstr ""
+msgstr "Benutzerprofil synchronisieren"
 
 msgid "Loading"
 msgstr "Lade"
@@ -962,10 +962,10 @@ msgid "Fix model"
 msgstr "Modell reparieren"
 
 msgid "Export as one STL"
-msgstr ""
+msgstr "Exportieren als eine STL"
 
 msgid "Export as STLs"
-msgstr ""
+msgstr "Exportieren als STLs"
 
 msgid "Reload from disk"
 msgstr "Von der Festplatte neu laden"
@@ -1176,7 +1176,7 @@ msgstr ""
 "Füllen des verbleibenden Bettbereich mit Kopien des ausgewählten Objekts"
 
 msgid "Edit Plate Name"
-msgstr ""
+msgstr "Plattenname bearbeiten"
 
 msgid "Name"
 msgstr "Name"
@@ -1249,7 +1249,7 @@ msgid "Error!"
 msgstr "Fehler!"
 
 msgid "Failed to get the model data in the current file."
-msgstr ""
+msgstr "Die Modelldaten in der aktuellen Datei konnten nicht abgerufen werden."
 
 msgid "Generic"
 msgstr "Generisch"
@@ -1657,7 +1657,7 @@ msgid "Cancel calibration"
 msgstr "Kalibration abbrechen"
 
 msgid "Idling..."
-msgstr ""
+msgstr "Leerlauf..."
 
 msgid "Heat the nozzle"
 msgstr "Düse aufheizen"
@@ -2271,7 +2271,7 @@ msgid "Group"
 msgstr "Gruppe"
 
 msgid "The printer does not currently support auto refill."
-msgstr ""
+msgstr "Der Drucker unterstützt derzeit keine automatische Nachfüllung."
 
 msgid ""
 "AMS filament backup is not enabled, please enable it in the AMS settings."
@@ -2528,7 +2528,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "The file exceeds %d MB, please import again."
-msgstr ""
+msgstr "Die Datei überschreitet %d MB, bitte importieren Sie erneut."
 
 msgid "Exception in obtaining file size, please import again."
 msgstr ""
