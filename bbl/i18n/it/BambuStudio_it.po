@@ -4610,7 +4610,7 @@ msgid "Set filaments to use"
 msgstr "Imposta filamenti da usare"
 
 msgid "Search plate, object and part."
-msgstr ""
+msgstr "Cerca piatto, oggetto e parte."
 
 msgid ""
 "No AMS filaments. Please select a printer in 'Device' page to load AMS info."
@@ -4625,8 +4625,7 @@ msgid ""
 "Sync filaments with AMS will drop all current selected filament presets and "
 "colors. Do you want to continue?"
 msgstr ""
-"La sincronizzazione filamenti con AMS eliminerà tutti i preset e i colori "
-"dei filamenti attualmente selezionati. Vuoi continuare?"
+"Vuoi continuare?"
 
 msgid ""
 "Already did a synchronization, do you want to sync only changes or resync "
@@ -5284,7 +5283,7 @@ msgid "Clear my choice on the unsaved projects."
 msgstr "Cancella la mia scelta sui progetti non salvati."
 
 msgid "No warnings when loading 3MF with modified G-codes"
-msgstr ""
+msgstr "Nessun avviso durante il caricamento di file 3MF con G-code modificati"
 
 msgid "Auto-Backup"
 msgstr "Backup automatico"
@@ -5443,7 +5442,7 @@ msgid "Select/Remove printers(system presets)"
 msgstr ""
 
 msgid "Create printer"
-msgstr ""
+msgstr "Crea"
 
 msgid "Incompatible"
 msgstr "Non compatibile"
@@ -5458,7 +5457,7 @@ msgid "Print sequence"
 msgstr "Sequenza di stampa"
 
 msgid "Customize"
-msgstr ""
+msgstr "Personalizza"
 
 msgid "First layer filament sequence"
 msgstr ""
@@ -5524,7 +5523,7 @@ msgid "User Preset"
 msgstr "Preset utente"
 
 msgid "Preset Inside Project"
-msgstr ""
+msgstr "Preset interno al Progetto"
 
 msgid "Name is invalid;"
 msgstr "Nome non valido"
@@ -5599,7 +5598,7 @@ msgid "(LAN)"
 msgstr "(LAN)"
 
 msgid "Search"
-msgstr ""
+msgstr "Cerca"
 
 msgid "My Device"
 msgstr "Mio dispositivo"
@@ -5635,13 +5634,13 @@ msgid "Bamabu Engineering Plate"
 msgstr "Bambu Engineering Plate"
 
 msgid "Bamabu Smooth PEI Plate"
-msgstr ""
+msgstr "Bambu Smooth PEI Plate"
 
 msgid "High temperature Plate"
-msgstr ""
+msgstr "Bambu High temperature Plate"
 
 msgid "Bamabu Textured PEI Plate"
-msgstr ""
+msgstr "Bambu Textured PEI Plate"
 
 msgid "Send print job to"
 msgstr "Invia stampa a"
@@ -5653,7 +5652,7 @@ msgid "Bed Leveling"
 msgstr "Livellamento piano"
 
 msgid "Flow Dynamics Calibration"
-msgstr ""
+msgstr "Calibrazione Flusso Dinamico"
 
 msgid "Click here if you can't connect to the printer"
 msgstr "Clicca qui se non riesci a connetterti alla stampante"
