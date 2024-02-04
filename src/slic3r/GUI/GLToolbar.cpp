@@ -528,11 +528,11 @@ std::string GLToolbar::get_tooltip() const
         if (item->is_hovered())
         {
             tooltip = item->get_tooltip();
-            if (!item->is_pressed())
+            if (!item->is_enabled())
             {
                 const std::string& additional_tooltip = item->get_additional_tooltip();
                 if (!additional_tooltip.empty())
-                    tooltip += "\n" + additional_tooltip;
+                    tooltip += ":\n" + additional_tooltip;
 
                 break;
             }

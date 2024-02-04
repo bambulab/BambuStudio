@@ -43,7 +43,11 @@ void GLGizmoMmuSegmentation::on_shutdown()
 
 std::string GLGizmoMmuSegmentation::on_get_name() const
 {
-    return _u8L("Color Painting");
+    if (!on_is_activable() && m_state == EState::Off) {
+        return _u8L("Color Painting") + _u8L(":\n") + _u8L("Please select single object.");
+    } else {
+        return _u8L("Color Painting");
+    }
 }
 
 bool GLGizmoMmuSegmentation::on_is_selectable() const

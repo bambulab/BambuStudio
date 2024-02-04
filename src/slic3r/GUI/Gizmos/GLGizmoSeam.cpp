@@ -57,7 +57,11 @@ GLGizmoSeam::GLGizmoSeam(GLCanvas3D& parent, const std::string& icon_filename, u
 
 std::string GLGizmoSeam::on_get_name() const
 {
-    return _u8L("Seam painting");
+    if (!on_is_activable() && m_state == EState::Off) {
+        return _u8L("Seam painting") + _u8L(":\nPlease select single object.");
+    } else {
+        return _u8L("Seam painting");
+    }
 }
 
 

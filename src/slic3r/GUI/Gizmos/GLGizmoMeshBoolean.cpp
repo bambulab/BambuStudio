@@ -93,6 +93,13 @@ bool GLGizmoMeshBoolean::on_init()
 
 std::string GLGizmoMeshBoolean::on_get_name() const
 {
+    if (!on_is_activable() && m_state == EState::Off) {
+        if (!m_parent.get_selection().is_single_full_instance()) {
+            return _u8L("Mesh Boolean") + _u8L(":\n") + _u8L("Please right click to assembly these objects.");
+        } else if (m_parent.get_selection().get_volume_idxs().size() <= 1){
+            return _u8L("Mesh Boolean") + _u8L(":\n") + _u8L("Please add at least one more object and select them together,\nthen right click to assembly these objects.");
+        }
+    }
     return _u8L("Mesh Boolean");
 }
 

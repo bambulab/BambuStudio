@@ -6234,6 +6234,8 @@ bool GLCanvas3D::_init_main_toolbar()
     item.name = "splitobjects";
     item.icon_filename = m_is_dark ? "split_objects_dark.svg" : "split_objects.svg";
     item.tooltip = _utf8(L("Split to objects"));
+    item.additional_tooltip = _u8L("Please select single object\n.") +
+        _u8L("And it is valid when there are at least two parts in object or stl has at least two meshes.");
     item.sprite_id++;
     item.left.render_callback = nullptr;
     item.left.action_callback = [this]() {
@@ -6252,6 +6254,8 @@ bool GLCanvas3D::_init_main_toolbar()
     item.name = "splitvolumes";
     item.icon_filename = m_is_dark ? "split_parts_dark.svg" : "split_parts.svg";
     item.tooltip = _utf8(L("Split to parts"));
+    item.additional_tooltip = _u8L("Please select single object\n.") +
+        _u8L("And it is valid when importing an stl with at least two meshes.");
     item.sprite_id++;
     item.left.action_callback = [this]() {
         if (m_canvas != nullptr) {
@@ -6268,6 +6272,7 @@ bool GLCanvas3D::_init_main_toolbar()
     item.name = "layersediting";
     item.icon_filename = m_is_dark ? "toolbar_variable_layer_height_dark.svg" : "toolbar_variable_layer_height.svg";
     item.tooltip = _utf8(L("Variable layer height"));
+    item.additional_tooltip = _u8L("Please select single object.");
     item.sprite_id++;
     item.left.action_callback = [this]() {
         if (m_canvas != nullptr) {
