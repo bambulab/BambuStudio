@@ -355,7 +355,11 @@ CommonGizmosDataID GLGizmoText::on_get_requirements() const
 
 std::string GLGizmoText::on_get_name() const
 {
-    return _u8L("Text shape");
+    if (!on_is_activable() && m_state == EState::Off) {
+        return _u8L("Text shape") + _u8L(":\n") + _u8L("Please select single object.");
+    } else {
+        return _u8L("Text shape");
+    }
 }
 
 bool GLGizmoText::on_is_activable() const

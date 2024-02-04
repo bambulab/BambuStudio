@@ -72,7 +72,11 @@ void GLGizmoFdmSupports::on_opening()
 
 std::string GLGizmoFdmSupports::on_get_name() const
 {
-    return _u8L("Supports Painting");
+    if (!on_is_activable() && m_state == EState::Off) {
+        return _u8L("Supports Painting") + _u8L(":\n") + _u8L("Please select single object.");
+    } else {
+        return _u8L("Supports Painting");
+    }
 }
 
 bool GLGizmoFdmSupports::on_init()
