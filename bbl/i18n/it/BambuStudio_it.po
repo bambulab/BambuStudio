@@ -1487,7 +1487,7 @@ msgid "Pause"
 msgstr "Pausa"
 
 msgid "Template"
-msgstr ""
+msgstr "Modello"
 
 msgid "Custom"
 msgstr "Personalizzato"
@@ -1545,7 +1545,7 @@ msgid "Change filament at the beginning of this layer."
 msgstr "Cambia filamento all'inizio di questo layer."
 
 msgid "Delete Pause"
-msgstr ""
+msgstr "Elimina Pausa"
 
 msgid "Delete Custom Template"
 msgstr "Elimina Template Personalizzato"
@@ -1563,7 +1563,7 @@ msgid "No printer"
 msgstr "Nessuna stampante"
 
 msgid "..."
-msgstr ""
+msgstr "..."
 
 msgid "Failed to connect to the server"
 msgstr "Connessione al server non riuscita"
@@ -1596,7 +1596,7 @@ msgid "?"
 msgstr " ?"
 
 msgid "/"
-msgstr ""
+msgstr "/"
 
 msgid "Empty"
 msgstr "Vuoto"
@@ -1697,7 +1697,7 @@ msgid ""
 "We can not do auto-arrange on this plate."
 msgstr ""
 "Il piatto è bloccato.\n"
-"Non puoi organizzare automaticamente questo piatto."
+"Non è possibile eseguire la disposizione automatica su questo piatto."
 
 msgid "Arranging..."
 msgstr "Disponendo..."
@@ -1754,7 +1754,7 @@ msgid "Orienting"
 msgstr "Orientamento"
 
 msgid "Filling"
-msgstr ""
+msgstr "Riempimento"
 
 msgid "Bed filling canceled."
 msgstr "Riempimento del piano annullato."
@@ -1854,6 +1854,7 @@ msgstr ""
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
 msgstr ""
+"Inviato con successo. Salterà automaticamente alla pagina successiva in %ss"
 
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr ""
@@ -2056,7 +2057,7 @@ msgid "Factors of Flow Dynamics Calibration"
 msgstr ""
 
 msgid "PA Profile"
-msgstr ""
+msgstr "Profilo PA"
 
 msgid "Factor K"
 msgstr "Fattore K"
@@ -2116,7 +2117,7 @@ msgid "Max volumetric speed"
 msgstr "Massima velocità volumetrica"
 
 msgid "℃"
-msgstr ""
+msgstr "°C"
 
 msgid "Bed temperature"
 msgstr "Temperatura piano"
@@ -2250,12 +2251,14 @@ msgid ""
 "When the current material run out, the printer will continue to print in the "
 "following order."
 msgstr ""
+"Quando il materiale attuale sarà esaurito, la stampante continuerà a stampare "
+"nell'ordine seguente."
 
 msgid "Group"
 msgstr "Gruppo"
 
 msgid "The printer does not currently support auto refill."
-msgstr ""
+msgstr "Attualmente la stampante non supporta la ricarica automatica."
 
 msgid ""
 "AMS filament backup is not enabled, please enable it in the AMS settings."
@@ -2267,6 +2270,10 @@ msgid ""
 "(Currently supporting automatic supply of consumables with the same brand, "
 "material type, and color)"
 msgstr ""
+"Qualora nell'AMS siano presenti due filamenti identici, verrà attivato il "
+"backup del filamento AMS. \n"
+"(Attualmente supporta la gestione automatica dei materiali di consumo con "
+"la stessa marca, stesso tipo di materiale e stesso colore) "
 
 msgid "AMS Settings"
 msgstr "Impostazioni AMS"
@@ -2402,10 +2409,10 @@ msgid "Divide by zero"
 msgstr "Dividi per zero"
 
 msgid "Overflow"
-msgstr "sovra-estrusione"
+msgstr "Sovra-estrusione"
 
 msgid "Underflow"
-msgstr "Sotto-estruso"
+msgstr "Sotto-estrusione"
 
 msgid "Floating reserved operand"
 msgstr "Floating reserved operand"
@@ -2551,6 +2558,9 @@ msgid ""
 "it may result in material softening and clogging.The maximum safe "
 "temperature for the material is %d"
 msgstr ""
+"Quando la temperatura attuale della camera è superiore alla temperatura di "
+"sicurezza del materiale, potrebbe verificarsi un ammorbidimento del materiale "
+"e un intasamento. La temperatura massima di sicurezza per il materiale è %d"."
 
 msgid ""
 "Too small layer height.\n"
@@ -2621,7 +2631,7 @@ msgstr ""
 "0 e il tipo di timelapse è tradizionale"
 
 msgid " But machines with I3 structure will not generate timelapse videos."
-msgstr ""
+msgstr " Ma le macchine con la struttura I3 non genereranno video timelapse."
 
 msgid ""
 "Change these settings automatically? \n"
