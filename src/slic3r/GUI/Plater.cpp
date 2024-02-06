@@ -2126,7 +2126,7 @@ struct Plater::priv
     //ObjectTableDialog* m_popup_table{ nullptr };
     std::chrono::system_clock::time_point start;
     std::string file_type;
-    std::string is_mw;
+    std::string is_mw{"false"};
 
 #if ENABLE_ENVIRONMENT_MAP
     GLTexture environment_texture;
@@ -4212,7 +4212,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         if (model.model_info == nullptr) {
             is_mw = "false";
         }
-        else {
+        else if(model.model_info->description != "") {
             is_mw = "true";
         }
     }

@@ -6281,6 +6281,11 @@ bool GLCanvas3D::_init_main_toolbar()
             if (agent) agent->track_update_property("custom_height", std::to_string(++custom_height_count));
         }
     };
+    item.right.action_callback = [this]() {
+        if (m_canvas != nullptr) {
+            wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING));
+        }
+    };
     item.visibility_callback = [this]()->bool {
         bool res = current_printer_technology() == ptFFF;
         // turns off if changing printer technology
@@ -9324,7 +9329,7 @@ bool GLCanvas3D::_deactivate_orient_menu()
 bool GLCanvas3D::_deactivate_layersediting_menu()
 {
     if (m_main_toolbar.is_item_pressed("layersediting")) {
-        m_main_toolbar.force_left_action(m_main_toolbar.get_item_id("layersediting"), *this);
+        m_main_toolbar.force_right_action(m_main_toolbar.get_item_id("layersediting"), *this);
         return true;
     }
 
