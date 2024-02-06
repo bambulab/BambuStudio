@@ -4063,26 +4063,26 @@ msgid "Downloading %d%%..."
 msgstr "Scaricamento %d%%..."
 
 msgid "Connection lost. Please retry."
-msgstr ""
+msgstr "Connessione persa. Riprovare."
 
 msgid "The device cannot handle more conversations. Please retry later."
-msgstr ""
+msgstr "Il dispositivo non può gestire altre conversazioni. Riprovare più tardi."
 
 msgid "File not exists."
-msgstr ""
+msgstr "File Inesistente"
 
 msgid "File checksum error. Please retry."
-msgstr ""
+msgstr "Errore nella checksum del file. Riprovare."
 
 msgid "Not supported on the current printer version."
-msgstr ""
+msgstr "Non supportato dalla versione attuale della stampante."
 
 msgid "Storage unavailable, insert SD card."
-msgstr ""
+msgstr "Spazio di archiviazione non disponibile, inserire la scheda SD."
 
 #, c-format, boost-format
 msgid "Error code: %d"
-msgstr ""
+msgstr "Codice di errore: %d"
 
 msgid "Speed:"
 msgstr "Velocità:"
@@ -4094,7 +4094,7 @@ msgid "Options:"
 msgstr "Opzioni:"
 
 msgid "Translation/Zoom"
-msgstr "Traduzione/Zoom"
+msgstr "Traslazione/Zoom"
 
 msgid "3Dconnexion settings"
 msgstr "Impostazioni 3D connexion"
@@ -4103,7 +4103,7 @@ msgid "Swap Y/Z axes"
 msgstr "Inverti assi Y/Z"
 
 msgid "Printing Progress"
-msgstr "Progresso di stampa"
+msgstr "Avanzamento della stampa"
 
 msgid "Resume"
 msgstr "Continua"
@@ -4115,7 +4115,7 @@ msgid "0"
 msgstr "0"
 
 msgid "Layer: N/A"
-msgstr "Layer: N/A"
+msgstr "Layer: N/D"
 
 msgid "Clear"
 msgstr "Cancella"
@@ -4126,7 +4126,7 @@ msgid ""
 msgstr ""
 
 msgid "How do you like this printing file?"
-msgstr ""
+msgstr "Che cosa ne pensi di questo file di stampa?"
 
 msgid ""
 "(The model has already been rated. Your rating will overwrite the previous "
@@ -4134,7 +4134,7 @@ msgid ""
 msgstr ""
 
 msgid "Rate"
-msgstr ""
+msgstr "Vota"
 
 msgid "Camera"
 msgstr "Camera"
