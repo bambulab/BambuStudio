@@ -4124,6 +4124,8 @@ msgid ""
 "You have completed printing the mall model, \n"
 "but the synchronization of rating information has failed."
 msgstr ""
+"La stampa del modello è stata completata, \n"
+"tuttavia la sincronizzazione delle informazioni di valutazione non è riuscita."
 
 msgid "How do you like this printing file?"
 msgstr "Che cosa ne pensi di questo file di stampa?"
@@ -4132,6 +4134,8 @@ msgid ""
 "(The model has already been rated. Your rating will overwrite the previous "
 "rating.)"
 msgstr ""
+"(Il modello è già stato valutato. La tua valutazione sovrascriverà "
+"la valutazione precedente.)"
 
 msgid "Rate"
 msgstr "Vota"
@@ -8165,22 +8169,22 @@ msgid ""
 msgstr "Imposta la soglia di lunghezza del perimetro piccolo. La soglia predefinita è 0 mm"
 
 msgid "Order of walls"
-msgstr ""
+msgstr "Ordine delle pareti"
 
 msgid "Print sequence of inner wall and outer wall. "
-msgstr ""
+msgstr "Indica la sequenza di stampa della parete interna e della parete esterna. "
 
 msgid "inner/outer"
-msgstr ""
+msgstr "interna/esterna"
 
 msgid "outer/inner"
-msgstr ""
+msgstr "esterna/interna"
 
 msgid "inner wall/outer wall/inner wall"
-msgstr ""
+msgstr "parete interna/parete esterna/parete interna"
 
 msgid "Print infill first"
-msgstr ""
+msgstr "Stampa prima riempimento"
 
 msgid "Order of wall/infill. false means print wall first. "
 msgstr ""
@@ -8877,7 +8881,7 @@ msgid "Print speed of ironing lines"
 msgstr "È la velocità di stampa per le linee di stiratura."
 
 msgid "ironing direction"
-msgstr ""
+msgstr "direzione stiratura"
 
 msgid ""
 "Angle for ironing, which controls the relative angle between the top surface "
