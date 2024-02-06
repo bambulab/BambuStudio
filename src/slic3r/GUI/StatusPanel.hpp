@@ -388,6 +388,7 @@ protected:
     wxStaticText*   m_staticText_calibration_caption;
     wxStaticText*   m_staticText_calibration_caption_top;
     wxStaticText*   m_calibration_text;
+    Button*         m_parts_btn;
     Button*         m_options_btn;
     Button*         m_calibration_btn;
     StepIndicator*  m_calibration_flow;
@@ -454,6 +455,7 @@ protected:
     std::shared_ptr<CameraPopup> m_camera_popup;
     std::set<int> rated_model_id;
     AMSSetting *m_ams_setting_dlg{nullptr};
+    PrinterPartsDialog*  print_parts_dlg { nullptr };
     PrintOptionsDialog*  print_options_dlg { nullptr };
     CalibrationDialog*   calibration_dlg {nullptr};
     AMSMaterialsSetting *m_filament_setting_dlg{nullptr};
@@ -568,6 +570,7 @@ protected:
     void on_auto_leveling(wxCommandEvent &event);
     void on_xyz_abs(wxCommandEvent &event);
 
+    void on_show_parts_options(wxCommandEvent& event);
     /* print options */
     void on_show_print_options(wxCommandEvent &event);
 
