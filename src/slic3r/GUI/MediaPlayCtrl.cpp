@@ -143,19 +143,6 @@ MediaPlayCtrl::~MediaPlayCtrl()
     }
 }
 
-wxString hide_id_middle_string(wxString const &str, size_t offset = 0, size_t length = -1)
-{
-#if BBL_RELEASE_TO_PUBLIC
-    if (length == size_t(-1))
-        length = str.Length() - offset;
-    if (length <= 8)
-        return str;
-    return str.Left(offset + 4) + wxString(length - 8, '*') + str.Mid(offset + length - 4);
-#else
-    return str;
-#endif
-}
-
 void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
 {
     std::string machine = obj ? obj->dev_id : "";
@@ -213,9 +200,15 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         SetStatus("", false);
 }
 
-void MediaPlayCtrl::SetAutoRetry(bool b)
+wxString hide_id_middle_string(wxString const &str, size_t offset = 0, size_t length = -1)
 {
-    m_auto_retry = b;
+#if BBL_RELEASE_TO_PUBLIC
+    if (length == size_t(-1)) length = str.Length() - offset;
+    if (length <= 8) return str;
+    return str.Left(offset + 4) + wxString(length - 8, '*') + str.Mid(offset + length - 4);
+#else
+    return str;
+#endif
 }
 
 wxString hide_passwd(wxString url, std::vector<wxString> const &passwords)
@@ -232,7 +225,9 @@ wxString hide_passwd(wxString url, std::vector<wxString> const &passwords)
             if (j == wxString::npos) j = url.length();
         }
         auto l = size_t(j - i);
-        if (j == url.length() || url[j] == '@' || url[j] == '&')
+        if (p[0] == '?' || p[0] == '&')
+            url = hide_id_middle_string(url, i, l);
+        else if (j == url.length() || url[j] == '@' || url[j] == '&')
             url.replace(i, l, l, wxUniChar('*'));
     }
 #endif
@@ -328,7 +323,8 @@ void MediaPlayCtrl::Play()
                 url += "&cli_id=" + wxGetApp().app_config->get("slicer_uuid");
                 url += "&cli_ver=" + std::string(SLIC3R_VERSION);
             }
-            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: " << hide_id_middle_string(hide_passwd(url, {"authkey=", "passwd="}), 9, 20) << "tutk_state: " << m_tutk_state;
+            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: " << hide_passwd(url, 
+                    {"?uid=", "authkey=", "passwd=", "license=", "token="});
             CallAfter([this, m, url] {
                 if (m != m_machine) {
                     BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl drop late ttcode for machine: " << m;
@@ -383,7 +379,8 @@ void MediaPlayCtrl::Stop(wxString const &msg)
         } else
             SetStatus(_L("Stopped."), false);
         m_last_state = MEDIASTATE_IDLE;
-        if (!m_auto_retry || m_failed_code >= 100 || m_failed_code == 1) // not keep retry on local error or EOS
+        bool auto_retry = wxGetApp().app_config->get("liveview", "auto_retry") != "false";
+        if (!auto_retry || m_failed_code >= 100 || m_failed_code == 1) // not keep retry on local error or EOS
             m_next_retry = wxDateTime();
     } else if (!msg.IsEmpty()) {
         SetStatus(msg, false);
@@ -561,7 +558,8 @@ void MediaPlayCtrl::ToggleStream()
             url += "&cli_id=" + wxGetApp().app_config->get("slicer_uuid");
             url += "&cli_ver=" + std::string(SLIC3R_VERSION);
         }
-        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::ToggleStream: " << hide_id_middle_string(hide_passwd(url, {"authkey=", "passwd="}), 9, 20);
+        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::ToggleStream: " << hide_passwd(url, 
+                {"?uid=", "authkey=", "passwd=", "license=", "token="});
         CallAfter([this, m, url] {
             if (m != m_machine) return;
             if (url.empty() || !boost::algorithm::starts_with(url, "bambu:///")) {
@@ -655,14 +653,14 @@ void MediaPlayCtrl::SetStatus(wxString const &msg2, bool hyperlink)
                                                        m_last_state + MEDIASTATE_BUFFERING - MEDIASTATE_IDLE;
         msg += wxString::Format(" [%d:%d]", state2, m_failed_code);
     }
-    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::SetStatus: " << msg.ToUTF8().data() << m_tutk_state;
+    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::SetStatus: " << msg.ToUTF8().data() << " tutk_state: " << m_tutk_state;
 #ifdef __WXMSW__
     OutputDebugStringA("MediaPlayCtrl::SetStatus: ");
     OutputDebugStringA(msg.ToUTF8().data());
     OutputDebugStringA("\n");
 #endif // __WXMSW__
     m_label_status->SetLabel(msg);
-    m_label_status->Wrap(GetSize().GetWidth() - 120);
+    m_label_status->Wrap(GetSize().GetWidth() - 120 - m_label_stat->GetSize().GetWidth());
     long style = m_label_status->GetWindowStyle() & ~LB_HYPERLINK;
     if (hyperlink) {
         style |= LB_HYPERLINK;
