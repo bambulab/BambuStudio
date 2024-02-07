@@ -345,16 +345,16 @@ msgid "Groove"
 msgstr ""
 
 msgid "Depth"
-msgstr ""
+msgstr "Profondità"
 
 msgid "Width"
 msgstr "Larghezza"
 
 msgid "Flap Angle"
-msgstr ""
+msgstr "Inverti Angolo"
 
 msgid "Keep orientation"
-msgstr ""
+msgstr "Mantieni orientamento"
 
 msgid "Place on cut"
 msgstr "Posiziona sul taglio"
@@ -733,7 +733,7 @@ msgid "Choose one file (3mf):"
 msgstr "Scegli file (3mf):"
 
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
-msgstr ""
+msgstr "Scegli uno o più file (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
 
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr "Scegli uno o più file (3mf/step/stl/svg/obj/amf):"
@@ -772,6 +772,8 @@ msgid ""
 "The number of user presets cached in the cloud has exceeded the upper limit, "
 "newly created user presets can only be used locally."
 msgstr ""
+"Il numero di preset utente memorizzati nella cache del cloud ha superato il limite massimo. "
+"I nuovi preset utente creati potranno essere utilizzati solo in locale."
 
 msgid "Sync user presets"
 msgstr ""
@@ -958,10 +960,10 @@ msgid "Fix model"
 msgstr "Correggi il modello"
 
 msgid "Export as one STL"
-msgstr ""
+msgstr "Esporta come unico STL"
 
 msgid "Export as STLs"
-msgstr ""
+msgstr "Esporta come più file STL"
 
 msgid "Reload from disk"
 msgstr "Ricarica da disco"
@@ -1034,10 +1036,10 @@ msgid "Assemble the selected objects to an object with single part"
 msgstr "Assembla gli oggetti selezionati in un oggetto con una singola parte"
 
 msgid "Mesh boolean"
-msgstr ""
+msgstr "Mesh booleana"
 
 msgid "Mesh boolean operations including union and subtraction"
-msgstr ""
+msgstr "Operazioni di mesh booleane, tra cui l'unione e la sottrazione."
 
 msgid "Along X axis"
 msgstr "Lungo l'asse X"
@@ -1169,7 +1171,7 @@ msgid "Fill the remaining area of bed with copies of the selected object"
 msgstr "Riempi l'area rimanente del piano con copie dell'oggetto selezionato"
 
 msgid "Edit Plate Name"
-msgstr ""
+msgstr "Modifica Nome Piatto"
 
 msgid "Name"
 msgstr "Nome"
@@ -1237,7 +1239,7 @@ msgid "Error!"
 msgstr "Errore!"
 
 msgid "Failed to get the model data in the current file."
-msgstr ""
+msgstr "Impossibile acquisire i dati del modello nel file corrente."
 
 msgid "Generic"
 msgstr "Generico"
@@ -1418,7 +1420,7 @@ msgid "Outside"
 msgstr "Esterno"
 
 msgid " "
-msgstr ""
+msgstr " "
 
 msgid "Layer height"
 msgstr "Altezza layer"
