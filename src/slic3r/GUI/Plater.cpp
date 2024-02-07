@@ -10987,14 +10987,15 @@ TriangleMesh Plater::combine_mesh_fff(const ModelObject& mo, int instance_id, st
 
     std::string fail_msg = _u8L("Unable to perform boolean operation on model meshes. "
         "Only positive parts will be kept. You may fix the meshes and try agian.");
-    if (auto fail_reason = csg::check_csgmesh_booleans(Range{ std::begin(csgmesh), std::end(csgmesh) }); fail_reason != csg::BooleanFailReason::OK) {
+    if (auto fail_reason_name = csg::check_csgmesh_booleans(Range{ std::begin(csgmesh), std::end(csgmesh) }); std::get<0>(fail_reason_name) != csg::BooleanFailReason::OK) {
+        std::string name = std::get<1>(fail_reason_name);
         std::map<csg::BooleanFailReason, std::string> fail_reasons = {
             {csg::BooleanFailReason::OK, "OK"},
-            {csg::BooleanFailReason::MeshEmpty, _u8L("Reason: mesh is empty.")},
-            {csg::BooleanFailReason::NotBoundAVolume, _u8L("Reason: mesh does not bound a volume.")},
-            {csg::BooleanFailReason::SelfIntersect, _u8L("Reason: mesh has self intersection.")},
-            {csg::BooleanFailReason::NoIntersection, _u8L("Reason: meshes have no intersection.")} };
-        fail_msg += " " + fail_reasons[fail_reason];
+            {csg::BooleanFailReason::MeshEmpty, Slic3r::format( _u8L("Reason: part \"%1%\" is empty."), name)},
+            {csg::BooleanFailReason::NotBoundAVolume, Slic3r::format(_u8L("Reason: part \"%1%\" does not bound a volume."), name)},
+            {csg::BooleanFailReason::SelfIntersect, Slic3r::format(_u8L("Reason: part \"%1%\" has self intersection."), name)},
+            {csg::BooleanFailReason::NoIntersection, Slic3r::format(_u8L("Reason: \"%1%\" and another part have no intersection."), name)} };
+        fail_msg += " " + fail_reasons[std::get<0>(fail_reason_name)];
     }
     else {
         try {
