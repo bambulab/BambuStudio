@@ -11446,7 +11446,7 @@ msgid "Unknown error occured"
 msgstr ""
 
 msgid "Wrong password"
-msgstr ""
+msgstr "Password errata"
 
 msgid "Could not get resources to create a new connection"
 msgstr ""
@@ -11487,25 +11487,27 @@ msgid "Could not connect to Prusa SLA"
 msgstr ""
 
 msgid "Connection to PrusaLink works correctly."
-msgstr ""
+msgstr "Connessione a PrusaLink correttamente funzionante."
 
 msgid "Could not connect to PrusaLink"
-msgstr ""
+msgstr "Impossibile connettersi a PrusaLink"
 
 msgid "Connection to Repetier works correctly."
-msgstr ""
+msgstr "Connessione a Repetier correttamente funzionante."
 
 msgid "Could not connect to Repetier"
-msgstr ""
+msgstr "Impossibile connettersi a Repetier"
 
 msgid "Note: Repetier version at least 0.90.0 is required."
-msgstr ""
+msgstr "Nota: è richiesta una versione di Repetier non inferiore a 0.90.0."
 
 #, boost-format
 msgid ""
 "HTTP status: %1%\n"
 "Message body: \"%2%\""
 msgstr ""
+"Stato HTTP: %1%\n"
+"Corpo del messaggio: \"%2%\""
 
 #, boost-format
 msgid ""
@@ -11513,6 +11515,9 @@ msgid ""
 "Message body: \"%1%\"\n"
 "Error: \"%2%\""
 msgstr ""
+"Analisi della risposta dell'host non riuscita.\n"
+"Corpo del messaggio: \"%1%\"\n"
+"Errore: \"%2%\""
 
 #, boost-format
 msgid ""
@@ -11520,6 +11525,9 @@ msgid ""
 "Message body: \"%1%\"\n"
 "Error: \"%2%\""
 msgstr ""
+"Enumerazione delle stampanti host fallita.\n"
+"Corpo del messaggio: \"%1%\"\n"
+"Errore: \"%2%\""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -11527,6 +11535,9 @@ msgid ""
 "Did you know that Bambu Studio offers a wide range of keyboard shortcuts and "
 "3D scene operations."
 msgstr ""
+"Come utilizzare le scorciatoie da tastiera\n"
+"Sapevi che Bambu Studio offre un'ampia gamma di scorciatoie da tastiera e  "
+"di operazioni sulle scene 3D."
 
 #: resources/data/hints.ini: [hint:Cut Tool]
 msgid ""
@@ -11736,8 +11747,8 @@ msgid ""
 msgstr ""
 "Stampa di filamento Silk (seta)\n"
 "Sapevi che il filamento seta richiede un'attenzione speciale per stampare "
-"con successo? Una temperatura più alta e una velocità inferiore sono sempre "
-"consigliate per ottenere i migliori risultati."
+"con successo? Per ottenere risultati ottimali, è sempre consigliabile una "
+"temperatura più elevata e una velocità inferiore."
 
 #: resources/data/hints.ini: [hint:Brim for better adhesion]
 msgid ""
