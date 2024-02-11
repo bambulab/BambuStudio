@@ -10121,7 +10121,7 @@ msgid "floating regions"
 msgstr "regioni galleggianti"
 
 msgid "floating cantilever"
-msgstr "cantilever galleggiante"
+msgstr "sbalzo fluttuante"
 
 msgid "large overhangs"
 msgstr "ampie sporgenze"
