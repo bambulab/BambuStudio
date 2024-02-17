@@ -1,6 +1,6 @@
 {
     "type": "filament",
-    "name": "Generic PLA",
+    "name": "H PLA",
     "inherits": "Generic PLA @base",
     "from": "system",
     "setting_id": "GFSL99",
