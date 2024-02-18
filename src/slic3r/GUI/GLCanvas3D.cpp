@@ -6234,7 +6234,7 @@ bool GLCanvas3D::_init_main_toolbar()
     item.name = "splitobjects";
     item.icon_filename = m_is_dark ? "split_objects_dark.svg" : "split_objects.svg";
     item.tooltip = _utf8(L("Split to objects"));
-    item.additional_tooltip = _u8L("Please select single object\n.") +
+    item.additional_tooltip = _u8L("Please select single object.") + "\n"+
         _u8L("And it is valid when there are at least two parts in object or stl has at least two meshes.");
     item.sprite_id++;
     item.left.render_callback = nullptr;
@@ -6254,7 +6254,7 @@ bool GLCanvas3D::_init_main_toolbar()
     item.name = "splitvolumes";
     item.icon_filename = m_is_dark ? "split_parts_dark.svg" : "split_parts.svg";
     item.tooltip = _utf8(L("Split to parts"));
-    item.additional_tooltip = _u8L("Please select single object\n.") +
+    item.additional_tooltip = _u8L("Please select single object.")+ "\n" +
         _u8L("And it is valid when importing an stl with at least two meshes.");
     item.sprite_id++;
     item.left.action_callback = [this]() {
@@ -7709,7 +7709,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
             ImGui::PushStyleColor(ImGuiCol_Border, button_active);
         }
         else {
-            if (ImGui::IsMouseHoveringRect(button_pos, button_pos + button_size)) {
+            if (ImGui::IsMouseHoveringRect(button_start_pos, button_start_pos + button_size)) {
                 ImGui::PushStyleColor(ImGuiCol_Border, button_hover);
             }
             else {

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-19 18:38+0800\n"
+"POT-Creation-Date: 2024-02-18 14:27+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,6 +19,9 @@ msgstr ""
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
 msgid "Supports Painting"
+msgstr ""
+
+msgid "Please select single object."
 msgstr ""
 
 msgid "Alt + Mouse wheel"
@@ -2079,27 +2082,14 @@ msgstr ""
 msgid "Print with the filament mounted on the back of chassis"
 msgstr ""
 
-msgid "Cabin humidity"
+msgid "Current Cabin humidity"
 msgstr ""
 
 msgid ""
-"Green means that AMS humidity is normal, orange represents humidity is high, "
-"red represents humidity is too high.(Hygrometer: lower the better.)"
-msgstr ""
-
-msgid "Desiccant status"
-msgstr ""
-
-msgid ""
-"A desiccant status lower than two bars indicates that desiccant may be "
-"inactive. Please change the desiccant.(The bars: higher the better.)"
-msgstr ""
-
-msgid ""
-"Note: When the lid is open or the desiccant pack is changed, it can take "
-"hours or a night to absorb the moisture. Low temperatures also slow down the "
-"process. During this time, the indicator may not represent the chamber "
-"accurately."
+"Please change the desiccant when it is too wet. The indicator may not "
+"represent accurately in following cases : when the lid is open or the "
+"desiccant pack is changed. it take hours to absorb the moisture, low "
+"temperatures also slow down the process."
 msgstr ""
 
 msgid ""
@@ -2147,6 +2137,12 @@ msgid ""
 "enabled. \n"
 "(Currently supporting automatic supply of consumables with the same brand, "
 "material type, and color)"
+msgstr ""
+
+msgid "DRY"
+msgstr ""
+
+msgid "WET"
 msgstr ""
 
 msgid "AMS Settings"
@@ -2370,7 +2366,7 @@ msgstr ""
 
 msgid ""
 "The recommended minimum temperature cannot be higher than the recommended "
-"minimum temperature.\n"
+"maximum temperature.\n"
 msgstr ""
 
 msgid "Please check.\n"
@@ -2997,7 +2993,15 @@ msgstr ""
 msgid "Split to objects"
 msgstr ""
 
+msgid ""
+"And it is valid when there are at least two parts in object or stl has at "
+"least two meshes."
+msgstr ""
+
 msgid "Split to parts"
+msgstr ""
+
+msgid "And it is valid when importing an stl with at least two meshes."
 msgstr ""
 
 msgid "Assembly View"
@@ -4768,7 +4772,19 @@ msgstr ""
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
-"will be exported."
+"will be kept. You may fix the meshes and try agian."
+msgstr ""
+
+msgid "Reason: mesh is empty."
+msgstr ""
+
+msgid "Reason: mesh does not bound a volume."
+msgstr ""
+
+msgid "Reason: mesh has self intersection."
+msgstr ""
+
+msgid "Reason: meshes have no intersection."
 msgstr ""
 
 msgid ""
@@ -4933,7 +4949,7 @@ msgid ""
 "2D window center."
 msgstr ""
 
-msgid "Auto Bed Type"
+msgid "Auto Plate Type"
 msgstr ""
 
 msgid ""
@@ -5713,8 +5729,8 @@ msgstr ""
 msgid ""
 "When using support material for the support interface, We recommend the "
 "following settings:\n"
-"0 top z distance, 0 interface spacing, concentric pattern and disable "
-"independent support layer height"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and "
+"disable independent support layer height"
 msgstr ""
 
 msgid ""
@@ -6524,6 +6540,9 @@ msgid "Skip this Version"
 msgstr ""
 
 msgid "Done"
+msgstr ""
+
+msgid "resume"
 msgstr ""
 
 msgid "Confirm and Update Nozzle"
@@ -9164,9 +9183,6 @@ msgstr ""
 msgid "Detect overhangs for auto-lift"
 msgstr ""
 
-msgid "Generating support"
-msgstr ""
-
 msgid "Checking support necessity"
 msgstr ""
 
@@ -9183,6 +9199,9 @@ msgstr ""
 msgid ""
 "It seems object %s has %s. Please re-orient the object or enable support "
 "generation."
+msgstr ""
+
+msgid "Generating support"
 msgstr ""
 
 msgid "Optimizing toolpath"
@@ -9862,6 +9881,14 @@ msgid ""
 msgstr ""
 
 msgid "Mesh Boolean"
+msgstr ""
+
+msgid "Please right click to assembly these objects."
+msgstr ""
+
+msgid ""
+"Please add at least one more object and select them together,\n"
+"then right click to assembly these objects."
 msgstr ""
 
 msgid "Union"
