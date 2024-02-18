@@ -827,7 +827,7 @@ static std::vector<std::string> s_Preset_print_options {
     "elefant_foot_compensation", "xy_contour_compensation", "xy_hole_compensation", "resolution", "enable_prime_tower",
     "prime_tower_width", "prime_tower_brim_width", "prime_volume",
     "wipe_tower_no_sparse_layers", "compatible_printers", "compatible_printers_condition", "inherits",
-    "flush_into_infill", "flush_into_objects", "flush_into_support",
+    "flush_into_infill", "flush_into_objects", "flush_into_support","process_notes",
     // BBS
      "tree_support_branch_angle", "tree_support_wall_count", "tree_support_branch_distance",
      "tree_support_branch_diameter","tree_support_brim_width",
@@ -871,7 +871,7 @@ static std::vector<std::string> s_Preset_filament_options {
     "filament_wipe_distance", "additional_cooling_fan_speed",
     "nozzle_temperature_range_low", "nozzle_temperature_range_high",
     //OrcaSlicer
-    "enable_pressure_advance", "pressure_advance", "chamber_temperatures"
+    "enable_pressure_advance", "pressure_advance", "chamber_temperatures","filament_notes"
 };
 
 static std::vector<std::string> s_Preset_machine_limits_options {
@@ -893,7 +893,7 @@ static std::vector<std::string> s_Preset_printer_options {
     // BBS
     "scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time", "machine_pause_gcode", "template_custom_gcode",
     "nozzle_type","auxiliary_fan", "nozzle_volume","upward_compatible_machine", "z_hop_types","support_chamber_temp_control","support_air_filtration","printer_structure","thumbnail_size",
-    "best_object_pos","head_wrap_detect_zone",
+    "best_object_pos","head_wrap_detect_zone","printer_notes",
     //OrcaSlicer
     "host_type", "print_host", "printhost_apikey",
     "print_host_webui",
