@@ -147,7 +147,9 @@ void GLGizmoMeshBoolean::on_render()
 
 void GLGizmoMeshBoolean::on_set_state()
 {
-    m_warning_text = "";
+    for (size_t i = 0; i < m_warning_texts.size(); i++) {
+        m_warning_texts[i] = "";
+    }
     if (m_state == EState::On) {
         m_src.reset();
         m_tool.reset();
@@ -318,6 +320,7 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
     }
 
     bool enable_button = m_src.mv && m_tool.mv;
+    int index =(int) m_operation_mode;
     if (m_operation_mode == MeshBooleanOperation::Union)
     {
         if (operate_button(_L("Union") + "##btn", enable_button)) {
@@ -329,10 +332,10 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
             Slic3r::MeshBoolean::mcut::make_boolean(temp_src_mesh, temp_tool_mesh, temp_mesh_resuls, "UNION");
             if (temp_mesh_resuls.size() != 0) {
                 generate_new_volume(true, *temp_mesh_resuls.begin());
-                m_warning_text = "";
+                m_warning_texts[index] = "";
             }
             else {
-                m_warning_text = warning_text_common;
+                m_warning_texts[index] = warning_text_common;
             }
         }
     }
@@ -347,10 +350,10 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
             Slic3r::MeshBoolean::mcut::make_boolean(temp_src_mesh, temp_tool_mesh, temp_mesh_resuls, "A_NOT_B");
             if (temp_mesh_resuls.size() != 0) {
                 generate_new_volume(m_diff_delete_input, *temp_mesh_resuls.begin());
-                m_warning_text = "";
+                m_warning_texts[index] = "";
             }
             else {
-                m_warning_text = warning_text_common;
+                m_warning_texts[index] = warning_text_common;
             }
         }
     }
@@ -365,14 +368,17 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
             Slic3r::MeshBoolean::mcut::make_boolean(temp_src_mesh, temp_tool_mesh, temp_mesh_resuls, "INTERSECTION");
             if (temp_mesh_resuls.size() != 0) {
                 generate_new_volume(m_inter_delete_input, *temp_mesh_resuls.begin());
-                m_warning_text = "";
+                m_warning_texts[index] = "";
             }
             else {
-                m_warning_text = warning_text_intersection;
+                m_warning_texts[index] = warning_text_intersection;
             }
         }
+        
     }
-    render_input_window_warning(m_warning_text);
+    if (index >= 0 && index < m_warning_texts.size()) {
+        render_input_window_warning(m_warning_texts[index]);
+    }
 
     float win_w = ImGui::GetWindowWidth();
     if (last_w != win_w || last_y != y) {
