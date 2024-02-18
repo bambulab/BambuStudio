@@ -1867,6 +1867,10 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
     cfg.erase("print_host_webui");
     cfg.erase("printhost_apikey");
     cfg.erase("printhost_cafile");
+    cfg.erase("printhost_user");
+    cfg.erase("printhost_password");
+    cfg.erase("printhost_port");
+
     const auto        &keys = cfg.keys();
     cfg.apply_only(combined_config, keys, true);
     std::string                 &inherits = Preset::inherits(cfg);
