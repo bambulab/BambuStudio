@@ -139,7 +139,7 @@ void GLGizmoSimplify::add_simplify_suggestion_notification(
 std::string GLGizmoSimplify::on_get_name() const
 {
     if (!on_is_activable()) {
-        return _u8L("Simplify") + _u8L(":\n") + _u8L("Please select single object.");
+        return _u8L("Simplify") + ":\n" + _u8L("Please select single object.");
     } else {
         return _u8L("Simplify");
     }
