@@ -16,7 +16,7 @@ enum class MeshBooleanSelectingState {
 
 };
 enum class MeshBooleanOperation{
-    Undef,
+    Undef =-1,
     Union,
     Difference,
     Intersection,
@@ -77,7 +77,7 @@ private:
     MeshBooleanSelectingState m_selecting_state;
     bool m_diff_delete_input = false;
     bool m_inter_delete_input = false;
-    std::string m_warning_text;
+    std::array<std::string,3> m_warning_texts;
     VolumeInfo m_src;
     VolumeInfo m_tool;
 
