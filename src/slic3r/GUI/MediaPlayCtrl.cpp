@@ -263,7 +263,7 @@ void MediaPlayCtrl::Play()
     m_button_play->SetIcon("media_stop");
     NetworkAgent *agent = wxGetApp().getAgent();
     std::string  agent_version = agent ? agent->get_version() : "";
-    if (m_lan_proto > MachineObject::LVL_None && (m_lan_mode || !m_remote_support) && !m_disable_lan && !m_lan_ip.empty()) {
+    if (m_lan_proto > MachineObject::LVL_Disable && (m_lan_mode || !m_remote_support) && !m_disable_lan && !m_lan_ip.empty()) {
         m_disable_lan = m_remote_support && !m_lan_mode; // try remote next time
         if (m_lan_proto == MachineObject::LVL_Local)
             m_url = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd;
@@ -279,13 +279,18 @@ void MediaPlayCtrl::Play()
         return;
     }
 
+    // m_lan_mode && m_lan_proto > LVL_Disable (use local tunnel)
+    // m_lan_mode && m_lan_proto == LVL_Disable (*)
     // m_lan_mode && m_lan_proto == LVL_None (x)
-    // !m_lan_mode && m_remote_support
+    // !m_lan_mode && m_remote_support (go on)
     // !m_lan_mode && !m_remote_support && m_lan_proto > LVL_None (use local tunnel)
+    // !m_lan_mode && !m_remote_support && m_lan_proto == LVL_Disable (*)
     // !m_lan_mode && !m_remote_support && m_lan_proto == LVL_None (x)
 
-    if (m_lan_proto == MachineObject::LVL_None && !m_remote_support) {
-        Stop(_L("Please update the printer firmware and try again."));
+    if (m_lan_proto <= MachineObject::LVL_Disable && (m_lan_mode || !m_remote_support)) {
+        Stop(m_lan_proto == MachineObject::LVL_None 
+            ? _L("Problem occured. Please update the printer firmware and try again.")
+            : _L("LAN Only Liveview is off. Please turn on the liveview on printer screen."));
         return;
     }
 
@@ -501,7 +506,7 @@ void MediaPlayCtrl::ToggleStream()
             wxGetApp().app_config->set("not_show_vcamera_stop_prev", "1");
         if (res == wxID_CANCEL) return;
     }
-    if (m_lan_proto > MachineObject::LVL_None && (m_lan_mode || !m_remote_support) && !m_disable_lan && !m_lan_ip.empty()) {
+    if (m_lan_proto > MachineObject::LVL_Disable && (m_lan_mode || !m_remote_support) && !m_disable_lan && !m_lan_ip.empty()) {
         std::string url;
         if (m_lan_proto == MachineObject::LVL_Local)
             url = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd;
