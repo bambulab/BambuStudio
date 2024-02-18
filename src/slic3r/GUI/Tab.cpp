@@ -2125,6 +2125,13 @@ void TabPrint::build()
         option.opt.height = 15;
         optgroup->append_single_option_line(option);
 
+        optgroup = page->new_optgroup(L("Notes"),"note");
+        optgroup->label_width = 0;
+        option = optgroup->get_option("process_notes");
+        option.opt.full_width = true;
+        option.opt.height = 25;
+        optgroup->append_single_option_line(option);
+
 #if 0
     //page = add_options_page(L("Dependencies"), "advanced.png");
     //    optgroup = page->new_optgroup(L("Profile dependencies"));
@@ -3074,6 +3081,7 @@ void TabFilament::build()
 #endif
 
         const int gcode_field_height = 15; // 150
+        const int notes_field_height = 25; // 250
 
     page = add_options_page(L("Advanced"), "advanced");
         optgroup = page->new_optgroup(L("Filament start G-code"), L"param_gcode", 0);
@@ -3095,6 +3103,15 @@ void TabFilament::build()
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;// 150;
         optgroup->append_single_option_line(option);
+
+    page = add_options_page(L("Notes"), "note");
+        optgroup = page->new_optgroup(L("Notes"),"note");
+        optgroup->label_width = 0;
+        option = optgroup->get_option("filament_notes");
+        option.opt.full_width = true;
+        option.opt.height = notes_field_height;
+        optgroup->append_single_option_line(option);
+
         //BBS
 #if 0
     //page = add_options_page(L("Dependencies"), "advanced");
@@ -3427,6 +3444,8 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("support_air_filtration");
 
     const int gcode_field_height = 15; // 150
+    const int notes_field_height = 25; // 250
+
     page = add_options_page(L("Machine gcode"), "cog");
         optgroup = page->new_optgroup(L("Machine start G-code"), L"param_gcode", 0);
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
@@ -3523,6 +3542,15 @@ void TabPrinter::build_fff()
 
     //    build_preset_description_line(optgroup.get());
 #endif
+
+    page = add_options_page(L("Notes"),"note");
+        optgroup = page->new_optgroup(L("Notes"),"note");
+        optgroup->label_width = 0;
+        option = optgroup->get_option("printer_notes");
+        option.opt.full_width = true;
+        option.opt.height = notes_field_height;
+        optgroup->append_single_option_line(option);
+
 
     build_unregular_pages(true);
 }
