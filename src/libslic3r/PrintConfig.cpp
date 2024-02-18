@@ -1340,6 +1340,34 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats{ 0.02 });
 
+
+    def = this->add("filament_notes",coString);
+    def->label= L("Filament notes");
+    def->tooltip = L("You can put your notes regarding the filament here.");
+    def->multiline = true;
+    def->full_width = true;
+    def->height = 13;
+    def->mode =comAdvanced;
+    def->set_default_value(new ConfigOptionString(""));
+
+    def = this->add("process_notes",coString);
+    def->label= L("Process notes");
+    def->tooltip = L("You can put your notes regarding the process here.");
+    def->multiline =true;
+    def->full_width = true;
+    def->height = 13;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionString(""));
+
+    def = this->add("printer_notes",coString);
+    def->label = L("Printer notes");
+    def->tooltip = L("You can put your notes regarding the printer here.");
+    def->multiline = true;
+    def->full_width=true;
+    def->height = 13;
+    def->mode=comAdvanced;
+    def->set_default_value(new ConfigOptionString(""));
+
     def = this->add("line_width", coFloat);
     def->label = L("Default");
     def->category = L("Quality");
