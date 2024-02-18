@@ -446,7 +446,7 @@ bool GLGizmoAdvancedCut::on_init()
 std::string GLGizmoAdvancedCut::on_get_name() const
 {
     if (!on_is_activable() && m_state == EState::Off) {
-        return _u8L("Cut") + _u8L(":\n") + _u8L("Please select single object.");
+        return _u8L("Cut") + ":\n" + _u8L("Please select single object.");
     } else {
         return _u8L("Cut");
     }
