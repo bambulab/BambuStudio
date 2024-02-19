@@ -1079,16 +1079,25 @@ void GUI_App::post_init()
 
             std::string download_url;
             for (auto input_str : input_str_arr) {
-                if ( boost::starts_with(input_str, "http://") ||  boost::starts_with(input_str, "https://")) {
+                if ( boost::starts_with(input_str, "http://makerworld") ||  boost::starts_with(input_str, "https://makerworld")) {
                     download_url = input_str;
                 }
             }
 
+            try
+            {
+                //filter relative directories
+                std::regex pattern("\\.\\.[\\/\\\\]|\\.\\.[\\/\\\\][\\/\\\\]|\\.\\/[\\/\\\\]|\\.[\\/\\\\]");
+                download_url = std::regex_replace(download_url, pattern, "");
+            }
+            catch (...){}
+            
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", download_url %1%") % download_url;
 
             if (!download_url.empty()) {
                 m_download_file_url = from_u8(download_url);
             }
+
             m_open_method = "makerworld";
         }
         else {
