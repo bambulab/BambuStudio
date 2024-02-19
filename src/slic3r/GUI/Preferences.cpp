@@ -646,6 +646,13 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
     checkbox->Bind(wxEVT_TOGGLEBUTTON, [this, checkbox, param](wxCommandEvent &e) {
         if (param == "privacyuse") {
             app_config->set("firstguide", param, checkbox->GetValue());
+            NetworkAgent* agent = GUI::wxGetApp().getAgent();
+            if (!checkbox->GetValue()) {
+                if (agent) {
+                    agent->track_enable(false);
+                    agent->track_remove_files();
+                }
+            }
             app_config->save();
         }
         else {
