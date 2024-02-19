@@ -582,7 +582,7 @@ wxBoxSizer *Newer3mfVersionDialog::get_btn_sizer()
     }
     
     if (!file_version_newer) {
-        m_later_btn = new Button(this, _L("Not for new"));
+        m_later_btn = new Button(this, _L("Not for now"));
         m_later_btn->SetBackgroundColor(btn_bg_white);
         m_later_btn->SetBorderColor(wxColour(38, 46, 48));
     } else {
