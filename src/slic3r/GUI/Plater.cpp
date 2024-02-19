@@ -8814,6 +8814,14 @@ void Plater::import_model_id(wxString download_info)
         {
             vecFiles.clear();
             wxString extension = fs::path(filename.wx_str()).extension().c_str();
+
+
+            //check file suffix 
+            if (!extension.Contains(".3mf")) {
+                msg = _L("Download failed, unknown file format.");
+                return;
+            }
+
             auto name = filename.substr(0, filename.length() - extension.length() - 1);
 
             for (const auto& iter : boost::filesystem::directory_iterator(target_path))
@@ -8861,17 +8869,35 @@ void Plater::import_model_id(wxString download_info)
         fs::path tmp_path = target_path;
         tmp_path += format(".%1%", ".download");
 
-
+        auto filesize = 0;
+        bool size_limit = false;
         auto http = Http::get(download_url.ToStdString());
 
         while (cont && retry_count < max_retries) {
             retry_count++;
-            http.on_progress([&percent, &cont, &msg](Http::Progress progress, bool& cancel) {
+            http.on_progress([&percent, &cont, &msg, &filesize, &size_limit](Http::Progress progress, bool& cancel) {
+                    
                     if (!cont) cancel = true;
                     if (progress.dltotal != 0) {
+                       
+                        if (filesize == 0) {
+                            filesize = progress.dltotal;
+                            double megabytes = static_cast<double>(progress.dltotal) / (1024 * 1024);
+                            //The maximum size of a 3mf file is 500mb 
+                            if (megabytes > 500) {
+                                cont = false;
+                                size_limit = true;
+                            }
+                        }
                         percent = progress.dlnow * 100 / progress.dltotal;
                     }
-                    msg = wxString::Format(_L("Project downloaded %d%%"), percent);
+
+                    if (size_limit) {
+                        msg = _L("Download failed, File size exception.");
+                    }
+                    else {
+                        msg = wxString::Format(_L("Project downloaded %d%%"), percent);
+                    }
                 })
                 .on_error([&msg, &cont, &retry_count, max_retries](std::string body, std::string error, unsigned http_status) {
                     (void)body;
