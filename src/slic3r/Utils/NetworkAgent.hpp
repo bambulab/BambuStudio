@@ -85,6 +85,7 @@ typedef int (*func_get_model_mall_home_url)(void *agent, std::string* url);
 typedef int (*func_get_model_mall_detail_url)(void *agent, std::string* url, std::string id);
 typedef int (*func_get_my_profile)(void *agent, std::string token, unsigned int *http_code, std::string *http_body);
 typedef int (*func_track_enable)(void *agent, bool enable);
+typedef int (*func_track_remove_files)(void *agent);
 typedef int (*func_track_event)(void *agent, std::string evt_key, std::string content);
 typedef int (*func_track_header)(void *agent, std::string header);
 typedef int (*func_track_update_property)(void *agent, std::string name, std::string value, std::string type);
@@ -188,6 +189,7 @@ public:
     int get_model_mall_detail_url(std::string* url, std::string id);
     int get_my_profile(std::string token, unsigned int* http_code, std::string* http_body);
     int track_enable(bool enable);
+    int track_remove_files();
     int track_event(std::string evt_key, std::string content);
     int track_header(std::string header);
     int track_update_property(std::string name, std::string value, std::string type = "string");
@@ -279,6 +281,7 @@ private:
     static func_get_model_mall_detail_url      get_model_mall_detail_url_ptr;
     static func_get_my_profile                 get_my_profile_ptr;
     static func_track_enable                   track_enable_ptr;
+    static func_track_remove_files             track_remove_files_ptr;
     static func_track_event                    track_event_ptr;
     static func_track_header                   track_header_ptr;
     static func_track_update_property          track_update_property_ptr;

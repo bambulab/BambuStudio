@@ -105,6 +105,7 @@ func_get_model_mall_detail_url      NetworkAgent::get_model_mall_detail_url_ptr 
 func_get_subtask                    NetworkAgent::get_subtask_ptr = nullptr;
 func_get_my_profile                 NetworkAgent::get_my_profile_ptr = nullptr;
 func_track_enable                   NetworkAgent::track_enable_ptr = nullptr;
+func_track_remove_files             NetworkAgent::track_remove_files_ptr = nullptr;
 func_track_event                    NetworkAgent::track_event_ptr = nullptr;
 func_track_header                   NetworkAgent::track_header_ptr = nullptr;
 func_track_update_property          NetworkAgent::track_update_property_ptr = nullptr;
@@ -264,6 +265,7 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     get_model_mall_detail_url_ptr     =  reinterpret_cast<func_get_model_mall_detail_url>(get_network_function("bambu_network_get_model_mall_detail_url"));
     get_my_profile_ptr                =  reinterpret_cast<func_get_my_profile>(get_network_function("bambu_network_get_my_profile"));
     track_enable_ptr                  =  reinterpret_cast<func_track_enable>(get_network_function("bambu_network_track_enable"));
+    track_remove_files_ptr            =  reinterpret_cast<func_track_remove_files>(get_network_function("bambu_network_track_remove_files"));
     track_event_ptr                   =  reinterpret_cast<func_track_event>(get_network_function("bambu_network_track_event"));
     track_header_ptr                  =  reinterpret_cast<func_track_header>(get_network_function("bambu_network_track_header"));
     track_update_property_ptr         = reinterpret_cast<func_track_update_property>(get_network_function("bambu_network_track_update_property"));
@@ -376,6 +378,7 @@ int NetworkAgent::unload_network_module()
     get_model_mall_detail_url_ptr     =  nullptr;
     get_my_profile_ptr                =  nullptr;
     track_enable_ptr                  =  nullptr;
+    track_remove_files_ptr            =  nullptr;
     track_event_ptr                   =  nullptr;
     track_header_ptr                  =  nullptr;
     track_update_property_ptr         =  nullptr;
@@ -1264,6 +1267,16 @@ int NetworkAgent::track_enable(bool enable)
         ret = track_enable_ptr(network_agent, enable);
         if (ret)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("error network_agnet=%1%, ret = %2%") % network_agent % ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::track_remove_files()
+{
+    int ret = 0;
+    if (network_agent && track_remove_files_ptr) {
+        ret = track_remove_files_ptr(network_agent);
+        if (ret) BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("error network_agnet=%1%, ret = %2%") % network_agent % ret;
     }
     return ret;
 }
