@@ -4248,6 +4248,11 @@ void GUI_App::check_track_enable()
             m_agent->track_event("studio_launch", j.dump());
         }
     }
+    else {
+        if (m_agent) {
+            m_agent->track_remove_files();
+        }
+    }
 }
 
 void GUI_App::on_user_login(wxCommandEvent &evt)
