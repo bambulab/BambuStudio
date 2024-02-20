@@ -74,6 +74,7 @@ protected:
 protected:
     PACalibResult m_new_result;
     std::vector<PACalibResult> m_history_results;
+    MachineObject *  curr_obj;
 
     TextInput *m_name_value{nullptr};
     TextInput *m_k_value{nullptr};
