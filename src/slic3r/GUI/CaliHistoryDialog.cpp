@@ -577,6 +577,8 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
     if (!obj)
         return;
 
+    curr_obj = obj;
+
     this->SetBackgroundColour(*wxWHITE);
     auto main_sizer = new wxBoxSizer(wxVERTICAL);
 
@@ -736,6 +738,17 @@ void NewCalibrationHistoryDialog::on_ok(wxCommandEvent &event)
             }
         }
     }
+
+    try {
+        json js;
+        js["cali_type"]     = "cali_new_pa";
+        js["nozzle_diameter"]     = m_new_result.nozzle_diameter;
+        js["filament_id"]         = m_new_result.filament_id;
+        js["printer_type"]        = curr_obj->printer_type;
+
+        NetworkAgent *agent = GUI::wxGetApp().getAgent();
+        if (agent) agent->track_event("cali", js.dump());
+    } catch (...) {}
 
     CalibUtils::set_PA_calib_result({m_new_result}, true);
 

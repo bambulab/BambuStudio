@@ -566,6 +566,32 @@ bool CalibUtils::calib_flowrate(int pass, const CalibInfo &calib_info, wxString 
     if (!process_and_store_3mf(&model, full_config, params, error_message))
         return false;
 
+    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) {
+        error_message = _L("Need select printer");
+        return false;
+    }
+
+    MachineObject *obj_ = dev->get_selected_machine();
+    if (obj_ == nullptr) {
+        error_message = _L("Need select printer");
+        return false;
+    }
+
+    try {
+        json js;
+        if (pass == 1)
+            js["cali_type"]   = "cali_flow_rate_1";
+        else if (pass == 2)
+            js["cali_type"]   = "cali_flow_rate_2";
+        js["nozzle_diameter"] = nozzle_diameter;
+        js["filament_id"]     = calib_info.filament_prest->filament_id;
+        js["printer_type"]    = obj_->printer_type;
+        NetworkAgent *agent   = GUI::wxGetApp().getAgent();
+        if (agent)
+            agent->track_event("cali", js.dump());
+    } catch (...) {}
+
     send_to_print(calib_info, error_message, pass);
     return true;
 }
@@ -656,6 +682,37 @@ bool CalibUtils::calib_generic_PA(const CalibInfo &calib_info, wxString &error_m
 
     if (!process_and_store_3mf(&model, full_config, params, error_message))
         return false;
+
+    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) {
+        error_message = _L("Need select printer");
+        return false;
+    }
+
+    MachineObject *obj_ = dev->get_selected_machine();
+    if (obj_ == nullptr) {
+        error_message = _L("Need select printer");
+        return false;
+    }
+
+    try {
+        json js;
+        if (params.mode == CalibMode::Calib_PA_Line)
+            js["cali_type"] = "cali_pa_line";
+        else if (params.mode == CalibMode::Calib_PA_Pattern)
+            js["cali_type"] = "cali_pa_pattern";
+
+        const ConfigOptionFloats *nozzle_diameter_config = printer_config.option<ConfigOptionFloats>("nozzle_diameter");
+        assert(nozzle_diameter_config->values.size() > 0);
+        float nozzle_diameter = nozzle_diameter_config->values[0];
+
+        js["nozzle_diameter"] = nozzle_diameter;
+        js["filament_id"]     = calib_info.filament_prest->filament_id;
+        js["printer_type"]    = obj_->printer_type;
+        NetworkAgent *agent   = GUI::wxGetApp().getAgent();
+        if (agent)
+            agent->track_event("cali", js.dump());
+    } catch (...) {}
 
     send_to_print(calib_info, error_message);
     return true;
