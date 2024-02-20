@@ -2124,6 +2124,7 @@ int MachineObject::command_start_pa_calibration(const X1CCalibInfos &pa_data, in
         j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(pa_data.calib_datas[0].nozzle_diameter);
         j["print"]["mode"]          = mode;
 
+        std::string filament_ids;
         for (int i = 0; i < pa_data.calib_datas.size(); ++i) {
             j["print"]["filaments"][i]["tray_id"]              = pa_data.calib_datas[i].tray_id;
             j["print"]["filaments"][i]["bed_temp"]             = pa_data.calib_datas[i].bed_temp;
@@ -2131,9 +2132,25 @@ int MachineObject::command_start_pa_calibration(const X1CCalibInfos &pa_data, in
             j["print"]["filaments"][i]["setting_id"]           = pa_data.calib_datas[i].setting_id;
             j["print"]["filaments"][i]["nozzle_temp"]          = pa_data.calib_datas[i].nozzle_temp;
             j["print"]["filaments"][i]["max_volumetric_speed"] = std::to_string(pa_data.calib_datas[i].max_volumetric_speed);
+
+            if (i > 0)
+                filament_ids += ",";
+            filament_ids += pa_data.calib_datas[i].filament_id;
         }
 
         BOOST_LOG_TRIVIAL(trace) << "extrusion_cali: " << j.dump();
+
+        try {
+            json js;
+            js["cali_type"] = "cali_pa_auto";
+            js["nozzle_diameter"] = pa_data.calib_datas[0].nozzle_diameter;
+            js["filament_id"]     = filament_ids;
+            js["printer_type"]    = this->printer_type;
+            NetworkAgent *agent = GUI::wxGetApp().getAgent();
+            if (agent)
+                agent->track_event("cali", js.dump());
+        } catch (...) {}
+
         return this->publish_json(j.dump());
     }
     return -1;
@@ -2247,6 +2264,7 @@ int MachineObject::command_start_flow_ratio_calibration(const X1CCalibInfos& cal
         j["print"]["tray_id"] = calib_data.calib_datas[0].tray_id;
         j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(calib_data.calib_datas[0].nozzle_diameter);
 
+        std::string filament_ids;
         for (int i = 0; i < calib_data.calib_datas.size(); ++i) {
             j["print"]["filaments"][i]["tray_id"]              = calib_data.calib_datas[i].tray_id;
             j["print"]["filaments"][i]["bed_temp"]             = calib_data.calib_datas[i].bed_temp;
@@ -2255,7 +2273,21 @@ int MachineObject::command_start_flow_ratio_calibration(const X1CCalibInfos& cal
             j["print"]["filaments"][i]["nozzle_temp"]          = calib_data.calib_datas[i].nozzle_temp;
             j["print"]["filaments"][i]["def_flow_ratio"]       = std::to_string(calib_data.calib_datas[i].flow_rate);
             j["print"]["filaments"][i]["max_volumetric_speed"] = std::to_string(calib_data.calib_datas[i].max_volumetric_speed);
+
+            if (i > 0)
+                filament_ids += ",";
+            filament_ids += calib_data.calib_datas[i].filament_id;
         }
+
+        try {
+            json js;
+            js["cali_type"]     = "cali_flow_rate_auto";
+            js["nozzle_diameter"] = calib_data.calib_datas[0].nozzle_diameter;
+            js["filament_id"]     = filament_ids;
+            js["printer_type"]    = this->printer_type;
+            NetworkAgent *agent = GUI::wxGetApp().getAgent();
+            if (agent) agent->track_event("cali", js.dump());
+        } catch (...) {}
 
         BOOST_LOG_TRIVIAL(trace) << "flowrate_cali: " << j.dump();
         return this->publish_json(j.dump());

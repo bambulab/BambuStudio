@@ -9053,6 +9053,23 @@ void Plater::calib_pa(const Calib_Params &params)
         default: break;
     }
 
+    try {
+        json js;
+        if (params.mode == CalibMode::Calib_PA_Line)
+            js["cali_type"]     = "third_cali_pa_line";
+        else if (params.mode == CalibMode::Calib_PA_Pattern)
+            js["cali_type"] = "third_cali_pa_pattern";
+        else if (params.mode == CalibMode::Calib_PA_Tower)
+            js["cali_type"] = "third_cali_pa_tower";
+
+        std::string filament_id = wxGetApp().preset_bundle->filaments.get_edited_preset().filament_id;
+        js["filament_id"]   = filament_id;
+
+        NetworkAgent *agent = GUI::wxGetApp().getAgent();
+        if (agent)
+            agent->track_event("third_cali", js.dump());
+    } catch (...) {}
+
     p->background_process.fff_print()->set_calib_params(params);
 }
 
@@ -9259,6 +9276,20 @@ void Plater::calib_flowrate(int pass)
     wxGetApp().get_tab(Preset::TYPE_FILAMENT)->reload_config();
     wxGetApp().get_tab(Preset::TYPE_PRINTER)->reload_config();
 
+    try {
+        json js;
+        if (pass == 1)
+            js["cali_type"] = "third_cali_flow_rate_1";
+        if (pass == 2)
+            js["cali_type"] = "third_cali_flow_rate_2";
+
+        std::string filament_id = wxGetApp().preset_bundle->filaments.get_edited_preset().filament_id;
+        js["filament_id"]       = filament_id;
+
+        NetworkAgent *agent = GUI::wxGetApp().getAgent();
+        if (agent) agent->track_event("third_cali", js.dump());
+    } catch (...) {}
+
     Calib_Params params;
     params.mode = CalibMode::Calib_Flow_Rate;
     p->background_process.fff_print()->set_calib_params(params);
@@ -9266,6 +9297,16 @@ void Plater::calib_flowrate(int pass)
 
 void Plater::calib_temp(const Calib_Params &params)
 {
+    try {
+        json js;
+        js["cali_type"] = "third_cali_temp";
+        std::string filament_id = wxGetApp().preset_bundle->filaments.get_edited_preset().filament_id;
+        js["filament_id"]       = filament_id;
+
+        NetworkAgent *agent = GUI::wxGetApp().getAgent();
+        if (agent) agent->track_event("third_cali", js.dump());
+    } catch (...) {}
+
     const auto calib_temp_name = wxString::Format(L"Nozzle temperature test");
     if (new_project(false, false, calib_temp_name) == wxID_CANCEL)
         return;
@@ -9316,6 +9357,16 @@ void Plater::calib_temp(const Calib_Params &params)
 
 void Plater::calib_max_vol_speed(const Calib_Params &params)
 {
+    try {
+        json js;
+        js["cali_type"] = "third_cali_max_flowrate";
+        std::string filament_id = wxGetApp().preset_bundle->filaments.get_edited_preset().filament_id;
+        js["filament_id"]       = filament_id;
+
+        NetworkAgent *agent = GUI::wxGetApp().getAgent();
+        if (agent) agent->track_event("third_cali", js.dump());
+    } catch (...) {}
+
     const auto calib_vol_speed_name = wxString::Format(L"Max volumetric speed test");
     if (new_project(false, false, calib_vol_speed_name) == wxID_CANCEL)
         return;
@@ -9387,6 +9438,16 @@ void Plater::calib_max_vol_speed(const Calib_Params &params)
 
 void Plater::calib_retraction(const Calib_Params &params)
 {
+    try {
+        json js;
+        js["cali_type"] = "third_cali_retraction";
+        std::string filament_id = wxGetApp().preset_bundle->filaments.get_edited_preset().filament_id;
+        js["filament_id"]       = filament_id;
+
+        NetworkAgent *agent   = GUI::wxGetApp().getAgent();
+        if (agent) agent->track_event("third_cali", js.dump());
+    } catch (...) {}
+
     const auto calib_retraction_name = wxString::Format(L"Retraction test");
     if (new_project(false, false, calib_retraction_name) == wxID_CANCEL)
         return;
@@ -9427,6 +9488,16 @@ void Plater::calib_retraction(const Calib_Params &params)
 
 void Plater::calib_VFA(const Calib_Params &params)
 {
+    try {
+        json js;
+        js["cali_type"] = "third_cali_VFA";
+        std::string filament_id = wxGetApp().preset_bundle->filaments.get_edited_preset().filament_id;
+        js["filament_id"]       = filament_id;
+
+        NetworkAgent *agent   = GUI::wxGetApp().getAgent();
+        if (agent) agent->track_event("third_cali", js.dump());
+    } catch (...) {}
+
     const auto calib_vfa_name = wxString::Format(L"VFA test");
     if (new_project(false, false, calib_vfa_name) == wxID_CANCEL)
         return;
