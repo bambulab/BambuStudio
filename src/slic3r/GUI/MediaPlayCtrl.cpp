@@ -250,13 +250,13 @@ void MediaPlayCtrl::Play()
         Stop(_L("Please confirm if the printer is connected."));
         return;
     }
-    if (!m_camera_exists) {
-        Stop(_L("Printer camera is malfunctioning."));
-        return;
-    }
     if (m_device_busy) {
         Stop(_L("The printer is currently busy downloading. Please try again after it finishes."));
         m_failed_retry = 0;
+        return;
+    }
+    if (!m_camera_exists) {
+        Stop(_L("Printer camera is malfunctioning."));
         return;
     }
 
