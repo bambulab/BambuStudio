@@ -1012,17 +1012,17 @@ wxWindow* PreferencesDialog::create_general_page()
 
     std::vector<wxString> Units         = {_L("Metric") + " (mm, g)", _L("Imperial") + " (in, oz)"};
     auto item_currency = create_item_combobox(_L("Units"), page, _L("Units"), "use_inches", Units);
-    auto item_single_instance = create_item_checkbox(_L("Keep only one BambuStudio instance"), page, 
+    auto item_single_instance = create_item_checkbox(_L("Keep only one Bambu Studio instance"), page,
 #if __APPLE__
         _L("On OSX there is always only one instance of app running by default. However it is allowed to run multiple instances "
-			  "of same app from the command line. In such case this settings will allow only one instance."), 
+			  "of same app from the command line. In such case this settings will allow only one instance."),
 #else
-        _L("If this is enabled, when starting BambuStudio and another instance of the same BambuStudio is already running, that instance will be reactivated instead."), 
+        _L("If this is enabled, when starting Bambu Studio and another instance of the same Bambu Studio is already running, that instance will be reactivated instead."),
 #endif
         50, "single_instance");
 
     auto item_mouse_zoom_settings = create_item_checkbox(_L("Zoom to mouse position"), page, _L("Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."), 50, "zoom_to_mouse");
-    auto item_bed_type_follow_preset = create_item_checkbox(_L("Auto Plate Type"), page,
+    auto item_bed_type_follow_preset = create_item_checkbox(_L("Auto plate type"), page,
                                                          _L("Studio will remember build plate selected last time for certain printer model."), 50,
                                                          "user_bed_type");
     //auto item_hints = create_item_checkbox(_L("Show \"Tip of the day\" notification after start"), page, _L("If enabled, useful hints are displayed at startup."), 50, "show_hints");
@@ -1035,15 +1035,15 @@ wxWindow* PreferencesDialog::create_general_page()
     });
 
 #ifdef _WIN32
-    auto title_associate_file = create_item_title(_L("Associate files to BambuStudio"), page, _L("Associate files to BambuStudio"));
+    auto title_associate_file = create_item_title(_L("Associate Files To Bambu Studio"), page, _L("Associate Files To Bambu Studio"));
 
     // associate file
-    auto item_associate_3mf  = create_item_checkbox(_L("Associate .3mf files to BambuStudio"), page,
-                                                        _L("If enabled, sets BambuStudio as default application to open .3mf files"), 50, "associate_3mf");
-    auto item_associate_stl  = create_item_checkbox(_L("Associate .stl files to BambuStudio"), page,
-                                                        _L("If enabled, sets BambuStudio as default application to open .stl files"), 50, "associate_stl");
-    auto item_associate_step = create_item_checkbox(_L("Associate .step/.stp files to BambuStudio"), page,
-                                                         _L("If enabled, sets BambuStudio as default application to open .step files"), 50, "associate_step");
+    auto item_associate_3mf  = create_item_checkbox(_L("Associate .3mf files to Bambu Studio"), page,
+                                                        _L("If enabled, sets Bambu Studio as default application to open .3mf files"), 50, "associate_3mf");
+    auto item_associate_stl  = create_item_checkbox(_L("Associate .stl files to Bambu Studio"), page,
+                                                        _L("If enabled, sets Bambu Studio as default application to open .stl files"), 50, "associate_stl");
+    auto item_associate_step = create_item_checkbox(_L("Associate .step/.stp files to Bambu Studio"), page,
+                                                         _L("If enabled, sets Bambu Studio as default application to open .step files"), 50, "associate_step");
 #endif // _WIN32
 
     auto title_modelmall = create_item_title(_L("Online Models"), page, _L("Online Models"));
@@ -1071,7 +1071,7 @@ wxWindow* PreferencesDialog::create_general_page()
     //dark mode
 #ifdef _WIN32
     auto title_darkmode = create_item_title(_L("Dark Mode"), page, _L("Dark Mode"));
-    auto item_darkmode = create_item_darkmode_checkbox(_L("Enable Dark mode"), page,_L("Enable Dark mode"), 50, "dark_color_mode");
+    auto item_darkmode = create_item_darkmode_checkbox(_L("Enable dark mode"), page,_L("Enable dark mode"), 50, "dark_color_mode");
 #endif
 
     auto title_user_experience = create_item_title(_L("User Experience"), page, _L("User Experience"));
@@ -1080,7 +1080,7 @@ wxWindow* PreferencesDialog::create_general_page()
     hyperlink->SetFont(Label::Head_13);
     item_priv_policy->Add(hyperlink, 0, wxALIGN_CENTER, 0);
 
-    auto title_develop_mode = create_item_title(_L("Develop mode"), page, _L("Develop mode"));
+    auto title_develop_mode = create_item_title(_L("Develop Mode"), page, _L("Develop Mode"));
     auto item_develop_mode  = create_item_checkbox(_L("Develop mode"), page, _L("Develop mode"), 50, "developer_mode");
     auto item_skip_ams_blacklist_check  = create_item_checkbox(_L("Skip AMS blacklist check"), page, _L("Skip AMS blacklist check"), 50, "skip_ams_blacklist_check");
 
