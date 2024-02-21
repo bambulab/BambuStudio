@@ -278,6 +278,14 @@ void AMSMaterialsSetting::create_panel_kn(wxWindow* parent)
     m_ratio_text->SetForegroundColour(wxColour(50, 58, 61));
     m_ratio_text->SetFont(Label::Head_14);
 
+    m_ratio_text->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND); });
+    m_ratio_text->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
+
+    m_ratio_text->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+        wxLaunchDefaultBrowser(wxT("https://wiki.bambulab.com/en/software/bambu-studio/calibration_pa"));
+    });
+
+
     wxBoxSizer *m_sizer_cali_resutl = new wxBoxSizer(wxHORIZONTAL);
     // pa profile
     m_title_pa_profile = new wxStaticText(parent, wxID_ANY, _L("PA Profile"), wxDefaultPosition, wxSize(AMS_MATERIALS_SETTING_LABEL_WIDTH, -1), 0);
