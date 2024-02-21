@@ -3725,7 +3725,17 @@ void StatusPanel::on_ams_selected(wxCommandEvent &event)
 
 void StatusPanel::on_ams_guide(wxCommandEvent& event)
 {
-    wxString ams_wiki_url = "https://wiki.bambulab.com/en/software/bambu-studio/use-ams-on-bambu-studio";
+    wxString ams_wiki_url;
+    if (m_ams_control && m_ams_control->m_is_none_ams_mode == AMSModel::GENERIC_AMS) {
+        ams_wiki_url = "https://wiki.bambulab.com/en/software/bambu-studio/use-ams-on-bambu-studio";
+    }
+    else if (m_ams_control && m_ams_control->m_is_none_ams_mode == AMSModel::EXTRA_AMS) {
+        ams_wiki_url = "https://wiki.bambulab.com/en/ams-lite";
+    }
+    else {
+        ams_wiki_url = "https://wiki.bambulab.com/en/software/bambu-studio/use-ams-on-bambu-studio";
+    }
+    
     wxLaunchDefaultBrowser(ams_wiki_url);
 }
 
