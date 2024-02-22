@@ -2,6 +2,7 @@
 #define slic3r_GLModel_hpp_
 
 #include "libslic3r/Point.hpp"
+#include "libslic3r/Color.hpp"
 #include "libslic3r/BoundingBox.hpp"
 #include <vector>
 #include <string>
