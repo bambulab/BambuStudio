@@ -424,7 +424,26 @@ void GLGizmoBase::render_input_window(float x, float y, float bottom_limit)
     }
 }
 
+void GLGizmoBase::render_glmodel(GLModel &model, const std::array<float, 4> &color, Transform3d view_model_matrix, bool for_picking, float emission_factor)
+{
+    glPushMatrix();
+    GLShaderProgram *shader = nullptr;
+    if (for_picking)
+        shader = wxGetApp().get_shader("cali");
+    else
+        shader = wxGetApp().get_shader("gouraud_light");
+    if (shader) {
+        shader->start_using();
+        shader->set_uniform("emission_factor", emission_factor);
+        glsafe(::glMultMatrixd(view_model_matrix.data()));
 
+        model.set_color(-1, color);
+        model.render();
+
+        shader->stop_using();
+    }
+    glPopMatrix();
+}
 
 std::string GLGizmoBase::get_name(bool include_shortcut) const
 {

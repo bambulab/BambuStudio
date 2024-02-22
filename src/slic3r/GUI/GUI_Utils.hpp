@@ -488,6 +488,15 @@ public:
     ~TaskTimer();
 };
 
+class KeyAutoRepeatFilter
+{
+    size_t m_count{0};
+
+public:
+    void increase_count() { ++m_count; }
+    void reset_count() { m_count = 0; }
+    bool is_first() const { return m_count == 0; }
+};
 
 /* Image Generator */
 #define _3MF_COVER_SIZE                  wxSize(240, 240)

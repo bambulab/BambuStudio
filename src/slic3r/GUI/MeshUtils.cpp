@@ -88,7 +88,7 @@ void MeshClipper::render_cut(const ColorRGBA &color, const std::vector<size_t> *
             if (ignore_idxs && std::binary_search(ignore_idxs->begin(), ignore_idxs->end(), i)) continue;
             auto isl = m_result->cut_islands[i];
             ColorRGBA  gray{0.5f, 0.5f, 0.5f, 1.f};
-            isl->model.set_color(-1, isl->disabled ? gray : color);
+            isl->model.set_color(-1, isl->disabled ? gray.get_data() : color.get_data());
             isl->model.render();
         }
         shader->stop_using();
@@ -114,7 +114,7 @@ void MeshClipper::render_contour(const ColorRGBA &color, const std::vector<size_
             if (ignore_idxs && std::binary_search(ignore_idxs->begin(), ignore_idxs->end(), i)) continue;
             auto isl = m_result->cut_islands[i];
             ColorRGBA  red{1.0f, 0.f, 0.f, 1.f};
-            isl->model_expanded.set_color(-1, isl->disabled ? red : color);
+            isl->model_expanded.set_color(-1, isl->disabled ? red.get_data() : color.get_data());
             isl->model_expanded.render();
         }
         shader->stop_using();
@@ -420,6 +420,13 @@ Vec3f MeshRaycaster::get_triangle_normal(size_t facet_idx) const
     return m_normals[facet_idx];
 }
 
+MeshRaycaster::MeshRaycaster(const TriangleMesh &mesh)
+    : m_emesh(mesh, true) // calculate epsilon for triangle-ray intersection from an average edge length
+    , m_normals(its_face_normals(mesh.its))
+{
+    ;
+}
+
 void MeshRaycaster::line_from_mouse_pos_static(const Vec2d &mouse_pos, const Transform3d &trafo, const Camera &camera, Vec3d &point, Vec3d &direction)
 {
     CameraUtils::ray_from_screen_pos(camera, mouse_pos, point, direction);
@@ -447,7 +454,7 @@ void MeshRaycaster::line_from_mouse_pos(const Vec2d& mouse_pos, const Transform3
     pt2 = inv * pt2;
 
     point = pt1;
-    direction = pt2-pt1;
+    direction = (pt2-pt1).normalized();
 }
 
 
@@ -555,6 +562,37 @@ std::vector<unsigned> MeshRaycaster::get_unobscured_idxs(const Geometry::Transfo
     return out;
 }
 
+bool MeshRaycaster::closest_hit(
+    const Vec2d &mouse_pos, const Transform3d &trafo, const Camera &camera, Vec3f &position, Vec3f &normal, const ClippingPlane *clipping_plane, size_t *facet_idx) const
+{
+    Vec3d point;
+    Vec3d direction;
+    line_from_mouse_pos(mouse_pos, trafo, camera, point, direction);
+
+    auto hits = m_emesh.query_ray_hits(point, direction.normalized());
+
+    if (hits.empty()) return false; // no intersection found
+
+    size_t hit_id = 0;
+    if (clipping_plane != nullptr) {
+        while (hit_id < hits.size() && clipping_plane->is_point_clipped(trafo * hits[hit_id].position())) { 
+            ++hit_id;
+        }
+    }
+
+    if (hit_id == hits.size())
+        return false; // all points are obscured or cut by the clipping plane.
+
+    auto &hit = hits[hit_id];
+
+    position = hit.position().cast<float>();
+    normal   = hit.normal().cast<float>();
+
+    if (facet_idx != nullptr)
+        *facet_idx = hit.face();
+
+    return true;
+}
 
 Vec3f MeshRaycaster::get_closest_point(const Vec3f& point, Vec3f* normal) const
 {

@@ -32,29 +32,12 @@ const int c_connectors_start_id = c_connectors_group_id - c_cube_z_move_id;
 const float UndefFloat = -999.f;
 
 // connector colors
-static const ColorRGBA BLACK() { return {0.0f, 0.0f, 0.0f, 1.0f}; }
-static const ColorRGBA BLUE() { return {0.0f, 0.0f, 1.0f, 1.0f}; }
-static const ColorRGBA BLUEISH() { return {0.5f, 0.5f, 1.0f, 1.0f}; }
-static const ColorRGBA CYAN() { return {0.0f, 1.0f, 1.0f, 1.0f}; }
-static const ColorRGBA DARK_GRAY() { return {0.25f, 0.25f, 0.25f, 1.0f}; }
-static const ColorRGBA DARK_YELLOW() { return {0.5f, 0.5f, 0.0f, 1.0f}; }
-static const ColorRGBA GRAY() { return {0.5f, 0.5f, 0.5f, 1.0f}; }
-static const ColorRGBA GREEN() { return {0.0f, 1.0f, 0.0f, 1.0f}; }
-static const ColorRGBA GREENISH() { return {0.5f, 1.0f, 0.5f, 1.0f}; }
-static const ColorRGBA LIGHT_GRAY() { return {0.75f, 0.75f, 0.75f, 1.0f}; }
-static const ColorRGBA MAGENTA() { return {1.0f, 0.0f, 1.0f, 1.0f}; }
-static const ColorRGBA ORANGE() { return {0.923f, 0.504f, 0.264f, 1.0f}; }
-static const ColorRGBA RED() { return {1.0f, 0.0f, 0.0f, 1.0f}; }
-static const ColorRGBA REDISH() { return {1.0f, 0.5f, 0.5f, 1.0f}; }
-static const ColorRGBA YELLOW() { return {1.0f, 1.0f, 0.0f, 1.0f}; }
-static const ColorRGBA WHITE() { return {1.0f, 1.0f, 1.0f, 1.0f}; }
-
-static const ColorRGBA PLAG_COLOR           = YELLOW();
-static const ColorRGBA DOWEL_COLOR          = DARK_YELLOW();
-static const ColorRGBA HOVERED_PLAG_COLOR   = CYAN();
+static const ColorRGBA PLAG_COLOR           = ColorRGBA::YELLOW();
+static const ColorRGBA DOWEL_COLOR          = ColorRGBA::DARK_YELLOW();
+static const ColorRGBA HOVERED_PLAG_COLOR   = ColorRGBA::CYAN();
 static const ColorRGBA HOVERED_DOWEL_COLOR  = {0.0f, 0.5f, 0.5f, 1.0f};
-static const ColorRGBA SELECTED_PLAG_COLOR  = GRAY();
-static const ColorRGBA SELECTED_DOWEL_COLOR = GRAY(); // DARK_GRAY();
+static const ColorRGBA SELECTED_PLAG_COLOR  = ColorRGBA::GRAY();
+static const ColorRGBA SELECTED_DOWEL_COLOR = ColorRGBA::GRAY(); // DARK_GRAY();
 static const ColorRGBA CONNECTOR_DEF_COLOR  = {1.0f, 1.0f, 1.0f, 0.5f};
 static const ColorRGBA CONNECTOR_ERR_COLOR  = {1.0f, 0.3f, 0.3f, 0.5f};
 static const ColorRGBA HOVERED_ERR_COLOR    = {1.0f, 0.3f, 0.3f, 1.0f};
@@ -62,8 +45,8 @@ static const ColorRGBA HOVERED_ERR_COLOR    = {1.0f, 0.3f, 0.3f, 1.0f};
 static const ColorRGBA CUT_PLANE_DEF_COLOR = {0.9f, 0.9f, 0.9f, 0.5f};
 static const ColorRGBA CUT_PLANE_ERR_COLOR = {1.0f, 0.8f, 0.8f, 0.5f};
 
-static const ColorRGBA UPPER_PART_COLOR = CYAN();
-static const ColorRGBA LOWER_PART_COLOR = MAGENTA();
+static const ColorRGBA UPPER_PART_COLOR = ColorRGBA::CYAN();
+static const ColorRGBA LOWER_PART_COLOR = ColorRGBA::MAGENTA();
 static const ColorRGBA MODIFIER_COLOR   = {0.75f, 0.75f, 0.75f, 0.5f};
 
 static Vec3d rotate_vec3d_around_vec3d_with_rotate_matrix(
@@ -349,27 +332,6 @@ bool GLGizmoAdvancedCut::unproject_on_cut_plane(const Vec2d &mouse_pos, Vec3d &p
     pos_world = hit;
 
     return true;
-}
-
-void GLGizmoAdvancedCut::render_glmodel(GLModel &model, const std::array<float, 4> &color, Transform3d view_model_matrix, bool for_picking)
-{
-    glPushMatrix();
-    GLShaderProgram *shader = nullptr;
-    if (for_picking)
-        shader = wxGetApp().get_shader("cali");
-    else
-        shader = wxGetApp().get_shader("gouraud_light");
-    if (shader) {
-        shader->start_using();
-
-        glsafe(::glMultMatrixd(view_model_matrix.data()));
-
-        model.set_color(-1, color);
-        model.render();
-
-        shader->stop_using();
-    }
-    glPopMatrix();
 }
 
 void GLGizmoAdvancedCut::reset_cut_plane()
@@ -1143,9 +1105,9 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
     bool      is_valid = can_perform_cut() && has_valid_groove();
     ColorRGBA cp_clr   = is_valid ? CUT_PLANE_DEF_COLOR : CUT_PLANE_ERR_COLOR;
     if (m_cut_mode == CutMode::cutTongueAndGroove) {
-        cp_clr[3] = cp_clr[3] - 0.1f; // cp_clr.a(cp_clr.a() - 0.1f);
+        cp_clr.a(cp_clr.a() - 0.1f);
     }
-    render_glmodel(m_plane, cp_clr, Geometry::translation_transform(m_plane_center) * m_rotate_matrix);
+    render_glmodel(m_plane, cp_clr.get_data(), Geometry::translation_transform(m_plane_center) * m_rotate_matrix);
 
     glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
     glsafe(::glEnable(GL_CULL_FACE));
@@ -1277,7 +1239,7 @@ void GLGizmoAdvancedCut::render_connectors()
 
         const Transform3d view_model_matrix = translate_tf * m_rotate_matrix * scale_tf;
 
-        render_glmodel(m_shapes[connector.attribs], render_color, view_model_matrix);
+        render_glmodel(m_shapes[connector.attribs], render_color.get_data(), view_model_matrix);
     }
 }
 
@@ -1878,13 +1840,12 @@ bool GLGizmoAdvancedCut::render_cut_mode_combo(double label_width, float item_wi
 
 void GLGizmoAdvancedCut::render_color_marker(float size, const ColorRGBA &color)
 {
-    auto to_ImU32 = [](const ColorRGBA &color) -> ImU32 { return ImGui::GetColorU32({color[0], color[1], color[2], color[3]}); };
     ImGui::SameLine();
     const float radius = 0.5f * size;
     ImVec2      pos    = ImGui::GetCurrentWindow()->DC.CursorPos;
     pos.x += 3 * m_imgui->scaled(1 / 15.0f);
     pos.y += 1.25f * radius;
-    ImGui::GetCurrentWindow()->DrawList->AddNgonFilled(pos, radius, to_ImU32(color), 6);
+    ImGui::GetCurrentWindow()->DrawList->AddNgonFilled(pos, radius, ImGuiWrapper::to_ImU32(color), 6);
 }
 
 void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float bottom_limit)
@@ -2699,7 +2660,7 @@ void PartSelection::part_render(const Vec3d *normal)
     for (size_t id = 0; id < m_cut_parts.size(); ++id) { // m_parts.size() test
         if (normal && ((is_looking_forward && m_cut_parts[id].is_up_part) || (!is_looking_forward && !m_cut_parts[id].is_up_part)))
             continue;
-        GLGizmoAdvancedCut::render_glmodel(m_cut_parts[id].glmodel, m_cut_parts[id].is_up_part ? UPPER_PART_COLOR : LOWER_PART_COLOR, m_cut_parts[id].trans);
+        GLGizmoBase::render_glmodel(m_cut_parts[id].glmodel, m_cut_parts[id].is_up_part ? UPPER_PART_COLOR.get_data() : LOWER_PART_COLOR.get_data(), m_cut_parts[id].trans);
     }
 }
 

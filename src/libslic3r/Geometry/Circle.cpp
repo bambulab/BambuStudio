@@ -108,30 +108,32 @@ Circled circle_taubin_newton(const Vec2ds& input, size_t cycles)
     return out;
 }
 
-Circled circle_ransac(const Vec2ds& input, size_t iterations)
+Circled circle_ransac(const Vec2ds &input, size_t iterations, double *min_error)
 {
     if (input.size() < 3)
         return Circled::make_invalid();
 
-    std::mt19937 rng;
+    std::mt19937       rng;
     std::vector<Vec2d> samples;
-    Circled circle_best = Circled::make_invalid();
-    double  err_min = std::numeric_limits<double>::max();
-    for (size_t iter = 0; iter < iterations; ++ iter) {
+    Circled            circle_best = Circled::make_invalid();
+    double             err_min     = std::numeric_limits<double>::max();
+    for (size_t iter = 0; iter < iterations; ++iter) {
         samples.clear();
         std::sample(input.begin(), input.end(), std::back_inserter(samples), 3, rng);
         Circled c;
         c.center = Geometry::circle_center(samples[0], samples[1], samples[2], EPSILON);
-        c.radius = std::accumulate(input.begin(), input.end(), 0., [&c](double acc, const Vec2d& pt) { return (pt - c.center).norm() + acc; });
+        c.radius = std::accumulate(input.begin(), input.end(), 0., [&c](double acc, const Vec2d &pt) { return (pt - c.center).norm() + acc; });
         c.radius /= double(input.size());
         double err = 0;
         for (const Vec2d &pt : input)
             err = std::max(err, std::abs((pt - c.center).norm() - c.radius));
         if (err < err_min) {
-            err_min = err;
+            err_min     = err;
             circle_best = c;
         }
     }
+    if (min_error)
+        *min_error = err_min;
     return circle_best;
 }
 

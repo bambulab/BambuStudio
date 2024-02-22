@@ -907,7 +907,14 @@ void Selection::move_to_center(const Vec3d& displacement, bool local)
     this->set_bounding_boxes_dirty();
 }
 
-void Selection::translate(const Vec3d& displacement, bool local)
+void Selection::setup_cache()
+{
+    if (!m_valid)
+        return;
+    set_caches();
+}
+
+void Selection::translate(const Vec3d &displacement, bool local)
 {
     if (!m_valid)
         return;

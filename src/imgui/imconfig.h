@@ -212,6 +212,8 @@ namespace ImGui
     const wchar_t AddFilamentDarkIcon      = 0x0845;
     const wchar_t DeleteFilamentIcon       = 0x0846;
     const wchar_t DeleteFilamentDarkIcon   = 0x0847;
+    const wchar_t ClipboardBtnIcon         = 0x0848;
+    const wchar_t ClipboardBtnDarkIcon     = 0x0849;
     //    void MyFunction(const char* name, const MyMatrix44& v);
 }
 
