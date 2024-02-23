@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-18 14:27+0800\n"
+"POT-Creation-Date: 2024-02-23 20:04+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3627,15 +3627,19 @@ msgstr ""
 msgid "Please confirm if the printer is connected."
 msgstr ""
 
-msgid "Printer camera is malfunctioning."
-msgstr ""
-
 msgid ""
 "The printer is currently busy downloading. Please try again after it "
 "finishes."
 msgstr ""
 
-msgid "Please update the printer firmware and try again."
+msgid "Printer camera is malfunctioning."
+msgstr ""
+
+msgid "Problem occured. Please update the printer firmware and try again."
+msgstr ""
+
+msgid ""
+"LAN Only Liveview is off. Please turn on the liveview on printer screen."
 msgstr ""
 
 msgid "Please enter the IP of printer to connect."
@@ -3739,18 +3743,27 @@ msgstr ""
 msgid "Batch manage files."
 msgstr ""
 
+msgid "Refresh"
+msgstr ""
+
+msgid "Reload file list from printer."
+msgstr ""
+
 msgid "No printers."
 msgstr ""
 
 msgid "Loading file list..."
 msgstr ""
 
-#, possible-c-format, possible-boost-format
-msgid "No files [%d]"
+msgid "No files"
 msgstr ""
 
-#, possible-c-format, possible-boost-format
-msgid "Load failed [%d]"
+msgid "Load failed"
+msgstr ""
+
+msgid ""
+"Browsing file in SD card is not supported in current firmware. Please update "
+"the printer firmware."
 msgstr ""
 
 msgid ""
@@ -3758,7 +3771,10 @@ msgid ""
 "If it still cannot be read, you can try formatting the SD card."
 msgstr ""
 
-msgid "Problem occured. Please update the printer firmware and try again."
+msgid "LAN Connection Failed (Failed to view sdcard)"
+msgstr ""
+
+msgid "Browsing file in SD card is not supported in LAN Only Mode."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -3794,6 +3810,12 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "File '%s' was lost! Please download it again."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid ""
+"File: %s\n"
+"Title: %s\n"
 msgstr ""
 
 msgid "Download waiting..."
@@ -3889,6 +3911,9 @@ msgid "Camera Setting"
 msgstr ""
 
 msgid "Control"
+msgstr ""
+
+msgid "Printer Parts"
 msgstr ""
 
 msgid "Print Options"
@@ -4136,7 +4161,7 @@ msgstr ""
 msgid "Latest Version: "
 msgstr ""
 
-msgid "Not for new"
+msgid "Not for now"
 msgstr ""
 
 msgid "3D Mouse disconnected."
@@ -4317,6 +4342,19 @@ msgid "Allow Prompt Sound"
 msgstr ""
 
 msgid "Filament Tangle Detect"
+msgstr ""
+
+msgid "Nozzle Type"
+msgstr ""
+
+msgid "Stainless Steel"
+msgstr ""
+
+msgid "Hardened Steel"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "%.1f"
 msgstr ""
 
 msgid "Global"
@@ -4926,7 +4964,7 @@ msgstr ""
 msgid "Units"
 msgstr ""
 
-msgid "Keep only one BambuStudio instance"
+msgid "Keep only one Bambu Studio instance"
 msgstr ""
 
 msgid ""
@@ -4936,8 +4974,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"If this is enabled, when starting BambuStudio and another instance of the "
-"same BambuStudio is already running, that instance will be reactivated "
+"If this is enabled, when starting Bambu Studio and another instance of the "
+"same Bambu Studio is already running, that instance will be reactivated "
 "instead."
 msgstr ""
 
@@ -4949,7 +4987,7 @@ msgid ""
 "2D window center."
 msgstr ""
 
-msgid "Auto Plate Type"
+msgid "Auto plate type"
 msgstr ""
 
 msgid ""
@@ -4981,25 +5019,26 @@ msgstr ""
 msgid "Clear my choice on the unsaved presets."
 msgstr ""
 
-msgid "Associate files to BambuStudio"
+msgid "Associate Files To Bambu Studio"
 msgstr ""
 
-msgid "Associate .3mf files to BambuStudio"
+msgid "Associate .3mf files to Bambu Studio"
 msgstr ""
 
-msgid "If enabled, sets BambuStudio as default application to open .3mf files"
+msgid "If enabled, sets Bambu Studio as default application to open .3mf files"
 msgstr ""
 
-msgid "Associate .stl files to BambuStudio"
+msgid "Associate .stl files to Bambu Studio"
 msgstr ""
 
-msgid "If enabled, sets BambuStudio as default application to open .stl files"
+msgid "If enabled, sets Bambu Studio as default application to open .stl files"
 msgstr ""
 
-msgid "Associate .step/.stp files to BambuStudio"
+msgid "Associate .step/.stp files to Bambu Studio"
 msgstr ""
 
-msgid "If enabled, sets BambuStudio as default application to open .step files"
+msgid ""
+"If enabled, sets Bambu Studio as default application to open .step files"
 msgstr ""
 
 msgid "Online Models"
@@ -5039,7 +5078,7 @@ msgstr ""
 msgid "Dark Mode"
 msgstr ""
 
-msgid "Enable Dark mode"
+msgid "Enable dark mode"
 msgstr ""
 
 msgid "User Experience"
@@ -5049,6 +5088,9 @@ msgid "Join Customer Experience Improvement Program."
 msgstr ""
 
 msgid "What data would be collected?"
+msgstr ""
+
+msgid "Develop Mode"
 msgstr ""
 
 msgid "Develop mode"
@@ -5384,9 +5426,6 @@ msgstr ""
 msgid "Send print job to"
 msgstr ""
 
-msgid "Refresh"
-msgstr ""
-
 msgid "Bed Leveling"
 msgstr ""
 
@@ -5467,7 +5506,10 @@ msgstr ""
 msgid "An SD card needs to be inserted before printing."
 msgstr ""
 
-msgid "The selected printer is incompatible with the chosen printer presets."
+#, possible-c-format, possible-boost-format
+msgid ""
+"The selected printer (%s) is incompatible with the chosen printer profile in "
+"the slicer (%s)."
 msgstr ""
 
 msgid "An SD card needs to be inserted to record timelapse."
@@ -5520,22 +5562,22 @@ msgid "nozzle memorized: %.1f %s"
 msgstr ""
 
 msgid ""
-"Your nozzle diameter in preset is not consistent with memorized nozzle "
-"diameter. Did you change your nozzle lately?"
+"Your nozzle diameter in sliced file is not consistent with memorized nozzle. "
+"If you changed your nozzle lately, please go to Device > Printer Parts to "
+"change settings."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "*Printing %s material with %s may cause nozzle damage"
+msgid ""
+"Printing high temperature material(%s material) with %s may cause nozzle "
+"damage"
+msgstr ""
+
+msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr ""
 
 msgid ""
 "Please click the confirm button if you still want to proceed with printing."
-msgstr ""
-
-msgid "Hardened Steel"
-msgstr ""
-
-msgid "Stainless Steel"
 msgstr ""
 
 msgid ""
@@ -5566,6 +5608,9 @@ msgid "Send to Printer SD card"
 msgstr ""
 
 msgid "Cannot send the print task when the upgrade is in progress"
+msgstr ""
+
+msgid "The selected printer is incompatible with the chosen printer presets."
 msgstr ""
 
 msgid "An SD card needs to be inserted before send to printer SD card."
@@ -9685,6 +9730,9 @@ msgstr ""
 msgid "Flow Dynamics Calibration Result"
 msgstr ""
 
+msgid "New"
+msgstr ""
+
 msgid "No History Result"
 msgstr ""
 
@@ -9698,6 +9746,15 @@ msgid "Action"
 msgstr ""
 
 msgid "Edit Flow Dynamics Calibration"
+msgstr ""
+
+msgid "New Flow Dynamics Calibration"
+msgstr ""
+
+msgid "Ok"
+msgstr ""
+
+msgid "The filament must be selected."
 msgstr ""
 
 msgid "PA Calibration"
@@ -10352,6 +10409,9 @@ msgstr ""
 msgid "Please select a type you want to export"
 msgstr ""
 
+msgid "Failed to create temporary folder, please try Export Configs again."
+msgstr ""
+
 msgid "Edit Filament"
 msgstr ""
 
@@ -10420,6 +10480,15 @@ msgid "Collapse"
 msgstr ""
 
 msgid "Daily Tips"
+msgstr ""
+
+msgid ""
+"Your nozzle diameter in preset is not consistent with memorized nozzle "
+"diameter. Did you change your nozzle lately?"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "*Printing %s material with %s may cause nozzle damage"
 msgstr ""
 
 msgid "Need select printer"

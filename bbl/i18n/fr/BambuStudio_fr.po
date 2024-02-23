@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-18 14:27+0800\n"
+"POT-Creation-Date: 2024-02-23 20:04+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3841,15 +3841,19 @@ msgstr ""
 msgid "Please confirm if the printer is connected."
 msgstr ""
 
-msgid "Printer camera is malfunctioning."
-msgstr ""
-
 msgid ""
 "The printer is currently busy downloading. Please try again after it "
 "finishes."
 msgstr ""
 
-msgid "Please update the printer firmware and try again."
+msgid "Printer camera is malfunctioning."
+msgstr ""
+
+msgid "Problem occured. Please update the printer firmware and try again."
+msgstr ""
+
+msgid ""
+"LAN Only Liveview is off. Please turn on the liveview on printer screen."
 msgstr ""
 
 msgid "Please enter the IP of printer to connect."
@@ -3960,26 +3964,38 @@ msgstr "Sélectionner"
 msgid "Batch manage files."
 msgstr "Gérer les fichiers par lots."
 
+msgid "Refresh"
+msgstr "Actualiser"
+
+msgid "Reload file list from printer."
+msgstr ""
+
 msgid "No printers."
 msgstr "Aucune imprimante"
 
 msgid "Loading file list..."
 msgstr "Chargement de la liste des fichiers..."
 
-#, c-format, boost-format
-msgid "No files [%d]"
-msgstr "Aucun fichier [%d]"
+msgid "No files"
+msgstr "Aucun fichier"
 
-#, c-format, boost-format
-msgid "Load failed [%d]"
-msgstr "Échec du chargement [%d]"
+msgid "Load failed"
+msgstr ""
+
+msgid ""
+"Browsing file in SD card is not supported in current firmware. Please update "
+"the printer firmware."
+msgstr ""
 
 msgid ""
 "Please check if the SD card is inserted into the printer.\n"
 "If it still cannot be read, you can try formatting the SD card."
 msgstr ""
 
-msgid "Problem occured. Please update the printer firmware and try again."
+msgid "LAN Connection Failed (Failed to view sdcard)"
+msgstr ""
+
+msgid "Browsing file in SD card is not supported in LAN Only Mode."
 msgstr ""
 
 #, c-format, boost-format
@@ -4016,6 +4032,12 @@ msgstr ""
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
 msgstr "Le fichier « %s » a été perdu ! Veuillez le télécharger à nouveau."
+
+#, c-format, boost-format
+msgid ""
+"File: %s\n"
+"Title: %s\n"
+msgstr ""
 
 msgid "Download waiting..."
 msgstr "Téléchargement en attente..."
@@ -4115,6 +4137,9 @@ msgstr "Réglage de la Caméra"
 
 msgid "Control"
 msgstr "Contrôle"
+
+msgid "Printer Parts"
+msgstr ""
 
 msgid "Print Options"
 msgstr "Options d'impression"
@@ -4381,8 +4406,8 @@ msgstr "Current Version: "
 msgid "Latest Version: "
 msgstr "Latest Version: "
 
-msgid "Not for new"
-msgstr "Not for new"
+msgid "Not for now"
+msgstr ""
 
 msgid "3D Mouse disconnected."
 msgstr "Souris 3D déconnectée."
@@ -4568,6 +4593,19 @@ msgstr "Allow Prompt Sound"
 
 msgid "Filament Tangle Detect"
 msgstr "Filament Tangle Detect"
+
+msgid "Nozzle Type"
+msgstr ""
+
+msgid "Stainless Steel"
+msgstr "Stainless Steel"
+
+msgid "Hardened Steel"
+msgstr "Hardened Steel"
+
+#, c-format, boost-format
+msgid "%.1f"
+msgstr ""
 
 msgid "Global"
 msgstr "Global"
@@ -5252,7 +5290,7 @@ msgstr "Impérial"
 msgid "Units"
 msgstr "Unités"
 
-msgid "Keep only one BambuStudio instance"
+msgid "Keep only one Bambu Studio instance"
 msgstr ""
 
 msgid ""
@@ -5262,8 +5300,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"If this is enabled, when starting BambuStudio and another instance of the "
-"same BambuStudio is already running, that instance will be reactivated "
+"If this is enabled, when starting Bambu Studio and another instance of the "
+"same Bambu Studio is already running, that instance will be reactivated "
 "instead."
 msgstr ""
 
@@ -5277,7 +5315,7 @@ msgstr ""
 "Zoomez sur la position du pointeur de la souris dans la vue 3D, plutôt que "
 "sur le centre de la fenêtre 2D."
 
-msgid "Auto Plate Type"
+msgid "Auto plate type"
 msgstr ""
 
 msgid ""
@@ -5313,32 +5351,27 @@ msgstr "Synchronisation du système"
 msgid "Clear my choice on the unsaved presets."
 msgstr "Efface mon choix sur les préréglages non enregistrés."
 
-msgid "Associate files to BambuStudio"
-msgstr "Associer des fichiers à BambuStudio"
-
-msgid "Associate .3mf files to BambuStudio"
-msgstr "Associer des fichiers .3mf à BambuStudio"
-
-msgid "If enabled, sets BambuStudio as default application to open .3mf files"
+msgid "Associate Files To Bambu Studio"
 msgstr ""
-"Si activé, définit BambuStudio comme application par défaut pour ouvrir les "
-"fichiers .3mf"
 
-msgid "Associate .stl files to BambuStudio"
-msgstr "Associer des fichiers .stl à BambuStudio"
-
-msgid "If enabled, sets BambuStudio as default application to open .stl files"
+msgid "Associate .3mf files to Bambu Studio"
 msgstr ""
-"Si activé, définit BambuStudio comme application par défaut pour ouvrir les "
-"fichiers .stl"
 
-msgid "Associate .step/.stp files to BambuStudio"
-msgstr "Lier les fichiers .step/.stp à Bambu Studio"
-
-msgid "If enabled, sets BambuStudio as default application to open .step files"
+msgid "If enabled, sets Bambu Studio as default application to open .3mf files"
 msgstr ""
-"Si activé, définit BambuStudio comme application par défaut pour ouvrir les "
-"fichiers .step"
+
+msgid "Associate .stl files to Bambu Studio"
+msgstr ""
+
+msgid "If enabled, sets Bambu Studio as default application to open .stl files"
+msgstr ""
+
+msgid "Associate .step/.stp files to Bambu Studio"
+msgstr ""
+
+msgid ""
+"If enabled, sets Bambu Studio as default application to open .step files"
+msgstr ""
 
 msgid "Online Models"
 msgstr "Modèles en ligne"
@@ -5380,8 +5413,8 @@ msgstr "Téléchargements"
 msgid "Dark Mode"
 msgstr "Mode Sombre"
 
-msgid "Enable Dark mode"
-msgstr "Activer le mode Sombre"
+msgid "Enable dark mode"
+msgstr ""
 
 msgid "User Experience"
 msgstr "User Experience"
@@ -5390,6 +5423,9 @@ msgid "Join Customer Experience Improvement Program."
 msgstr "Join Customer Experience Improvement Program."
 
 msgid "What data would be collected?"
+msgstr ""
+
+msgid "Develop Mode"
 msgstr ""
 
 msgid "Develop mode"
@@ -5731,9 +5767,6 @@ msgstr "Bamabu Textured PEI Plate"
 msgid "Send print job to"
 msgstr "Envoyer le travail d'impression à"
 
-msgid "Refresh"
-msgstr "Actualiser"
-
 msgid "Bed Leveling"
 msgstr "Mise à niveau du lit"
 
@@ -5838,10 +5871,11 @@ msgstr ""
 msgid "An SD card needs to be inserted before printing."
 msgstr "Une carte SD doit être insérée avant l'impression."
 
-msgid "The selected printer is incompatible with the chosen printer presets."
+#, c-format, boost-format
+msgid ""
+"The selected printer (%s) is incompatible with the chosen printer profile in "
+"the slicer (%s)."
 msgstr ""
-"L'imprimante sélectionnée est incompatible avec les préréglages d'imprimante "
-"choisis."
 
 msgid "An SD card needs to be inserted to record timelapse."
 msgstr "Une carte SD doit être insérée pour enregistrer un timelapse."
@@ -5905,24 +5939,24 @@ msgid "nozzle memorized: %.1f %s"
 msgstr "nozzle memorized: %.1f %s"
 
 msgid ""
-"Your nozzle diameter in preset is not consistent with memorized nozzle "
-"diameter. Did you change your nozzle lately?"
+"Your nozzle diameter in sliced file is not consistent with memorized nozzle. "
+"If you changed your nozzle lately, please go to Device > Printer Parts to "
+"change settings."
 msgstr ""
 
 #, c-format, boost-format
-msgid "*Printing %s material with %s may cause nozzle damage"
-msgstr "*Printing %s material with %s may cause nozzle damage"
+msgid ""
+"Printing high temperature material(%s material) with %s may cause nozzle "
+"damage"
+msgstr ""
+
+msgid "Please fix the error above, otherwise printing cannot continue."
+msgstr ""
 
 msgid ""
 "Please click the confirm button if you still want to proceed with printing."
 msgstr ""
 "Cliquez sur le bouton de confirmation si vous souhaitez continuer à imprimer."
-
-msgid "Hardened Steel"
-msgstr "Hardened Steel"
-
-msgid "Stainless Steel"
-msgstr "Stainless Steel"
 
 msgid ""
 "Connecting to the printer. Unable to cancel during the connection process."
@@ -5960,6 +5994,11 @@ msgid "Cannot send the print task when the upgrade is in progress"
 msgstr ""
 "Impossible d'envoyer la tâche d'impression lorsque la mise à niveau est en "
 "cours."
+
+msgid "The selected printer is incompatible with the chosen printer presets."
+msgstr ""
+"L'imprimante sélectionnée est incompatible avec les préréglages d'imprimante "
+"choisis."
 
 msgid "An SD card needs to be inserted before send to printer SD card."
 msgstr ""
@@ -10826,6 +10865,9 @@ msgstr "Vers la Vitesse Volumétrique"
 msgid "Flow Dynamics Calibration Result"
 msgstr "Résultat de la calibration du Flux Dynamique"
 
+msgid "New"
+msgstr ""
+
 msgid "No History Result"
 msgstr "Aucunes Données Historiques"
 
@@ -10840,6 +10882,15 @@ msgstr "Action"
 
 msgid "Edit Flow Dynamics Calibration"
 msgstr "Modifier la calibration du Flux Dynamique"
+
+msgid "New Flow Dynamics Calibration"
+msgstr ""
+
+msgid "Ok"
+msgstr ""
+
+msgid "The filament must be selected."
+msgstr ""
 
 msgid "PA Calibration"
 msgstr "Calibration PA"
@@ -11551,6 +11602,9 @@ msgstr "Please select at least one printer or filament."
 msgid "Please select a type you want to export"
 msgstr "Please select a type you want to export"
 
+msgid "Failed to create temporary folder, please try Export Configs again."
+msgstr ""
+
 msgid "Edit Filament"
 msgstr "Edit Filament"
 
@@ -11625,6 +11679,15 @@ msgstr "Collapse"
 
 msgid "Daily Tips"
 msgstr "Daily Tips"
+
+msgid ""
+"Your nozzle diameter in preset is not consistent with memorized nozzle "
+"diameter. Did you change your nozzle lately?"
+msgstr ""
+
+#, c-format, boost-format
+msgid "*Printing %s material with %s may cause nozzle damage"
+msgstr "*Printing %s material with %s may cause nozzle damage"
 
 msgid "Need select printer"
 msgstr "Need select printer"
@@ -12093,6 +12156,50 @@ msgstr ""
 "Did you know that when printing materials that are prone to warping such as "
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
+
+#, c-format, boost-format
+#~ msgid "No files [%d]"
+#~ msgstr "Aucun fichier [%d]"
+
+#, c-format, boost-format
+#~ msgid "Load failed [%d]"
+#~ msgstr "Échec du chargement [%d]"
+
+#~ msgid "Not for new"
+#~ msgstr "Not for new"
+
+#~ msgid "Associate files to BambuStudio"
+#~ msgstr "Associer des fichiers à BambuStudio"
+
+#~ msgid "Associate .3mf files to BambuStudio"
+#~ msgstr "Associer des fichiers .3mf à BambuStudio"
+
+#~ msgid ""
+#~ "If enabled, sets BambuStudio as default application to open .3mf files"
+#~ msgstr ""
+#~ "Si activé, définit BambuStudio comme application par défaut pour ouvrir "
+#~ "les fichiers .3mf"
+
+#~ msgid "Associate .stl files to BambuStudio"
+#~ msgstr "Associer des fichiers .stl à BambuStudio"
+
+#~ msgid ""
+#~ "If enabled, sets BambuStudio as default application to open .stl files"
+#~ msgstr ""
+#~ "Si activé, définit BambuStudio comme application par défaut pour ouvrir "
+#~ "les fichiers .stl"
+
+#~ msgid "Associate .step/.stp files to BambuStudio"
+#~ msgstr "Lier les fichiers .step/.stp à Bambu Studio"
+
+#~ msgid ""
+#~ "If enabled, sets BambuStudio as default application to open .step files"
+#~ msgstr ""
+#~ "Si activé, définit BambuStudio comme application par défaut pour ouvrir "
+#~ "les fichiers .step"
+
+#~ msgid "Enable Dark mode"
+#~ msgstr "Activer le mode Sombre"
 
 #~ msgid "Cabin humidity"
 #~ msgstr "Humidité dans l'AMS"
@@ -13719,9 +13826,6 @@ msgstr ""
 
 #~ msgid "NO AMS"
 #~ msgstr "PAS D'AMS"
-
-#~ msgid "No files"
-#~ msgstr "Aucun fichier"
 
 #~ msgid "Normative check"
 #~ msgstr "Contrôle normatif"

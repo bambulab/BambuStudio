@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-18 14:27+0800\n"
-"PO-Revision-Date: 2024-01-02 15:59+0800\n"
+"POT-Creation-Date: 2024-02-23 20:04+0800\n"
+"PO-Revision-Date: 2024-02-23 20:10+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Poedit 3.4.1\n"
+"X-Generator: Poedit 3.3.2\n"
 
 msgid "Supports Painting"
 msgstr "支撑绘制"
@@ -3085,7 +3085,8 @@ msgstr "拆分为对象"
 msgid ""
 "And it is valid when there are at least two parts in object or stl has at "
 "least two meshes."
-msgstr "并且当对象中存在至少两个零件或者stl中存在至少两个面网格，这个功能是有效的。"
+msgstr ""
+"并且当对象中存在至少两个零件或者stl中存在至少两个面网格，这个功能是有效的。"
 
 msgid "Split to parts"
 msgstr "拆分为零件"
@@ -3725,16 +3726,20 @@ msgstr "播放器未加载，请单击“播放”按钮重试。"
 msgid "Please confirm if the printer is connected."
 msgstr "请确认打印机是否已连接。"
 
-msgid "Printer camera is malfunctioning."
-msgstr "打印机摄像头出现故障。"
-
 msgid ""
 "The printer is currently busy downloading. Please try again after it "
 "finishes."
 msgstr "打印机当前正在下载。请在完成后重试"
 
-msgid "Please update the printer firmware and try again."
-msgstr "请更新打印机固件，然后重试。"
+msgid "Printer camera is malfunctioning."
+msgstr "打印机摄像头出现故障。"
+
+msgid "Problem occured. Please update the printer firmware and try again."
+msgstr "出现问题。请更新打印机固件，然后重试。"
+
+msgid ""
+"LAN Only Liveview is off. Please turn on the liveview on printer screen."
+msgstr ""
 
 msgid "Please enter the IP of printer to connect."
 msgstr "请输入要连接的打印机的IP。"
@@ -3840,19 +3845,28 @@ msgstr "选择"
 msgid "Batch manage files."
 msgstr "批量管理文件。"
 
+msgid "Refresh"
+msgstr "刷新"
+
+msgid "Reload file list from printer."
+msgstr ""
+
 msgid "No printers."
 msgstr "未选择打印机"
 
 msgid "Loading file list..."
 msgstr "加载文件列表..."
 
-#, c-format, boost-format
-msgid "No files [%d]"
-msgstr "文件列表为空[%d]"
+msgid "No files"
+msgstr "文件列表为空"
 
-#, c-format, boost-format
-msgid "Load failed [%d]"
-msgstr "加载失败 [%d]"
+msgid "Load failed"
+msgstr ""
+
+msgid ""
+"Browsing file in SD card is not supported in current firmware. Please update "
+"the printer firmware."
+msgstr ""
 
 msgid ""
 "Please check if the SD card is inserted into the printer.\n"
@@ -3861,8 +3875,11 @@ msgstr ""
 "请检查SD卡是否已插入打印机。\n"
 "如果仍然无法读取，您可以尝试格式化SD卡。"
 
-msgid "Problem occured. Please update the printer firmware and try again."
-msgstr "出现问题。请更新打印机固件，然后重试。"
+msgid "LAN Connection Failed (Failed to view sdcard)"
+msgstr ""
+
+msgid "Browsing file in SD card is not supported in LAN Only Mode."
+msgstr ""
 
 #, c-format, boost-format
 msgid "You are going to delete %u file from printer. Are you sure to continue?"
@@ -3899,6 +3916,12 @@ msgstr ""
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
 msgstr "文件%s丢失，请重新下载。"
+
+#, c-format, boost-format
+msgid ""
+"File: %s\n"
+"Title: %s\n"
+msgstr ""
 
 msgid "Download waiting..."
 msgstr "等待下载中..."
@@ -3994,6 +4017,9 @@ msgstr "相机设置"
 
 msgid "Control"
 msgstr "控制"
+
+msgid "Printer Parts"
+msgstr ""
 
 msgid "Print Options"
 msgstr "打印选项"
@@ -4248,7 +4274,7 @@ msgstr "当前版本："
 msgid "Latest Version: "
 msgstr "最新版本："
 
-msgid "Not for new"
+msgid "Not for now"
 msgstr ""
 
 msgid "3D Mouse disconnected."
@@ -4427,6 +4453,19 @@ msgstr "支持提示音"
 
 msgid "Filament Tangle Detect"
 msgstr "缠料检测"
+
+msgid "Nozzle Type"
+msgstr ""
+
+msgid "Stainless Steel"
+msgstr "不锈钢"
+
+msgid "Hardened Steel"
+msgstr "硬化钢"
+
+#, c-format, boost-format
+msgid "%.1f"
+msgstr ""
 
 msgid "Global"
 msgstr "全局"
@@ -5057,8 +5096,8 @@ msgstr "英制"
 msgid "Units"
 msgstr "单位"
 
-msgid "Keep only one BambuStudio instance"
-msgstr "当前项目有未保存的更改，是否保存后再继续？"
+msgid "Keep only one Bambu Studio instance"
+msgstr "只保留一个Bambu Studio实例"
 
 msgid ""
 "On OSX there is always only one instance of app running by default. However "
@@ -5069,12 +5108,12 @@ msgstr ""
 "应用程序的多个实例。在这种情况下，此设置将只允许一个实例。"
 
 msgid ""
-"If this is enabled, when starting BambuStudio and another instance of the "
-"same BambuStudio is already running, that instance will be reactivated "
+"If this is enabled, when starting Bambu Studio and another instance of the "
+"same Bambu Studio is already running, that instance will be reactivated "
 "instead."
 msgstr ""
-"在OSX上，默认情况下总是只有一个应用程序实例在运行。但是，允许从命令行运行同一"
-"应用程序的多个实例。在这种情况下，此设置将只允许一个实例。"
+"如果启用此选项，当启动Bambu Studio并且另一个Bambu Studio实例已经在运行时，该"
+"实例将被重新激活。"
 
 msgid "Zoom to mouse position"
 msgstr "放大到鼠标位置"
@@ -5084,7 +5123,7 @@ msgid ""
 "2D window center."
 msgstr "在3D视角放大到鼠标位置，而不是2D窗口的中心。"
 
-msgid "Auto Plate Type"
+msgid "Auto plate type"
 msgstr "自动打印板类型"
 
 msgid ""
@@ -5116,25 +5155,26 @@ msgstr "系统同步"
 msgid "Clear my choice on the unsaved presets."
 msgstr "清除我对未保存的预置的选择。"
 
-msgid "Associate files to BambuStudio"
+msgid "Associate Files To Bambu Studio"
 msgstr "Bambu Studio文件关联"
 
-msgid "Associate .3mf files to BambuStudio"
+msgid "Associate .3mf files to Bambu Studio"
 msgstr "使用Bambu Studio打开.3mf文件"
 
-msgid "If enabled, sets BambuStudio as default application to open .3mf files"
+msgid "If enabled, sets Bambu Studio as default application to open .3mf files"
 msgstr "开启后，将缺省使用Bambu Studio打开.3mf文件"
 
-msgid "Associate .stl files to BambuStudio"
+msgid "Associate .stl files to Bambu Studio"
 msgstr "使用Bambu Studio打开.stl文件"
 
-msgid "If enabled, sets BambuStudio as default application to open .stl files"
+msgid "If enabled, sets Bambu Studio as default application to open .stl files"
 msgstr "开启后，将缺省使用Bambu Studio打开.stl文件"
 
-msgid "Associate .step/.stp files to BambuStudio"
+msgid "Associate .step/.stp files to Bambu Studio"
 msgstr "使用Bambu Studio打开.step/.stp文件"
 
-msgid "If enabled, sets BambuStudio as default application to open .step files"
+msgid ""
+"If enabled, sets Bambu Studio as default application to open .step files"
 msgstr "开启后，将缺省使用Bambu Studio打开.step文件"
 
 msgid "Online Models"
@@ -5174,8 +5214,8 @@ msgstr "下载"
 msgid "Dark Mode"
 msgstr "深色模式"
 
-msgid "Enable Dark mode"
-msgstr "启用深色模式"
+msgid "Enable dark mode"
+msgstr "开启深色模式"
 
 msgid "User Experience"
 msgstr "用户体验"
@@ -5185,6 +5225,9 @@ msgstr "加入用户体验改进计划。"
 
 msgid "What data would be collected?"
 msgstr "将收集哪些数据？"
+
+msgid "Develop Mode"
+msgstr "开发者模式"
 
 msgid "Develop mode"
 msgstr "开发者模式"
@@ -5519,9 +5562,6 @@ msgstr "纹理PEI打印板"
 msgid "Send print job to"
 msgstr "发送打印任务至"
 
-msgid "Refresh"
-msgstr "刷新"
-
 msgid "Bed Leveling"
 msgstr "热床调平"
 
@@ -5609,8 +5649,11 @@ msgstr ""
 msgid "An SD card needs to be inserted before printing."
 msgstr "请在发起打印前插入SD卡"
 
-msgid "The selected printer is incompatible with the chosen printer presets."
-msgstr "所选打印机与选择的打印机预设不兼容。"
+#, c-format, boost-format
+msgid ""
+"The selected printer (%s) is incompatible with the chosen printer profile in "
+"the slicer (%s)."
+msgstr ""
 
 msgid "An SD card needs to be inserted to record timelapse."
 msgstr "开启延迟摄影功能需要插入SD卡"
@@ -5666,23 +5709,23 @@ msgid "nozzle memorized: %.1f %s"
 msgstr "记忆中的喷嘴：%.1f %s"
 
 msgid ""
-"Your nozzle diameter in preset is not consistent with memorized nozzle "
-"diameter. Did you change your nozzle lately?"
-msgstr "预设中的喷嘴直径与记忆的喷嘴直径不一致。您最近更换了喷嘴吗？"
+"Your nozzle diameter in sliced file is not consistent with memorized nozzle. "
+"If you changed your nozzle lately, please go to Device > Printer Parts to "
+"change settings."
+msgstr ""
 
 #, c-format, boost-format
-msgid "*Printing %s material with %s may cause nozzle damage"
-msgstr "*使用 %s 材料和 %s 打印可能会导致喷嘴损坏"
+msgid ""
+"Printing high temperature material(%s material) with %s may cause nozzle "
+"damage"
+msgstr ""
+
+msgid "Please fix the error above, otherwise printing cannot continue."
+msgstr "请修复上述错误，否则打印无法继续。"
 
 msgid ""
 "Please click the confirm button if you still want to proceed with printing."
 msgstr "如果您仍然想继续打印，请单击“确定”按钮。"
-
-msgid "Hardened Steel"
-msgstr "硬化钢"
-
-msgid "Stainless Steel"
-msgstr "不锈钢"
 
 msgid ""
 "Connecting to the printer. Unable to cancel during the connection process."
@@ -5713,6 +5756,9 @@ msgstr "发送到打印机的SD卡"
 
 msgid "Cannot send the print task when the upgrade is in progress"
 msgstr "设备升级中，无法发送打印任务"
+
+msgid "The selected printer is incompatible with the chosen printer presets."
+msgstr "所选打印机与选择的打印机预设不兼容。"
 
 msgid "An SD card needs to be inserted before send to printer SD card."
 msgstr "发送到打印机需要插入SD卡"
@@ -10113,6 +10159,9 @@ msgstr "至体积速度"
 msgid "Flow Dynamics Calibration Result"
 msgstr "动态流量校准结果"
 
+msgid "New"
+msgstr ""
+
 msgid "No History Result"
 msgstr "无历史结果"
 
@@ -10127,6 +10176,15 @@ msgstr "操作"
 
 msgid "Edit Flow Dynamics Calibration"
 msgstr "编辑动态流量校准"
+
+msgid "New Flow Dynamics Calibration"
+msgstr ""
+
+msgid "Ok"
+msgstr ""
+
+msgid "The filament must be selected."
+msgstr ""
 
 msgid "PA Calibration"
 msgstr "PA标定"
@@ -10331,7 +10389,8 @@ msgstr "请右键组合这些对象"
 msgid ""
 "Please add at least one more object and select them together,\n"
 "then right click to assembly these objects."
-msgstr "请增加至少一个对象并一起选中它们，\n"
+msgstr ""
+"请增加至少一个对象并一起选中它们，\n"
 "然后右键组合这些对象。"
 
 msgid "Union"
@@ -10819,6 +10878,9 @@ msgstr "请至少选择一种打印机或耗材丝。"
 msgid "Please select a type you want to export"
 msgstr "请选择一个你想导出的类型"
 
+msgid "Failed to create temporary folder, please try Export Configs again."
+msgstr ""
+
 msgid "Edit Filament"
 msgstr "编辑材料"
 
@@ -10890,6 +10952,15 @@ msgstr "收起"
 
 msgid "Daily Tips"
 msgstr "每日贴士"
+
+msgid ""
+"Your nozzle diameter in preset is not consistent with memorized nozzle "
+"diameter. Did you change your nozzle lately?"
+msgstr "预设中的喷嘴直径与记忆的喷嘴直径不一致。您最近更换了喷嘴吗？"
+
+#, c-format, boost-format
+msgid "*Printing %s material with %s may cause nozzle damage"
+msgstr "*使用 %s 材料和 %s 打印可能会导致喷嘴损坏"
 
 msgid "Need select printer"
 msgstr "需要选择打印机"
@@ -11310,6 +11381,17 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid "Please update the printer firmware and try again."
+#~ msgstr "请更新打印机固件，然后重试。"
+
+#, c-format, boost-format
+#~ msgid "No files [%d]"
+#~ msgstr "文件列表为空[%d]"
+
+#, c-format, boost-format
+#~ msgid "Load failed [%d]"
+#~ msgstr "加载失败 [%d]"
 
 #~ msgid "Cabin humidity"
 #~ msgstr "舱内湿度"
@@ -12918,9 +13000,6 @@ msgstr ""
 
 #~ msgid "Other color"
 #~ msgstr "其他颜色"
-
-#~ msgid "No files"
-#~ msgstr "文件列表为空"
 
 #~ msgid "Not accessible in LAN-only mode!"
 #~ msgstr "在局域网模式中不可访问！"

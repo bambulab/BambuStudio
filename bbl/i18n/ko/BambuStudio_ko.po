@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-18 14:27+0800\n"
+"POT-Creation-Date: 2024-02-23 20:04+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3765,15 +3765,19 @@ msgstr ""
 msgid "Please confirm if the printer is connected."
 msgstr ""
 
-msgid "Printer camera is malfunctioning."
-msgstr ""
-
 msgid ""
 "The printer is currently busy downloading. Please try again after it "
 "finishes."
 msgstr ""
 
-msgid "Please update the printer firmware and try again."
+msgid "Printer camera is malfunctioning."
+msgstr ""
+
+msgid "Problem occured. Please update the printer firmware and try again."
+msgstr ""
+
+msgid ""
+"LAN Only Liveview is off. Please turn on the liveview on printer screen."
 msgstr ""
 
 msgid "Please enter the IP of printer to connect."
@@ -3882,26 +3886,38 @@ msgstr "선택"
 msgid "Batch manage files."
 msgstr "일괄 관리 파일."
 
+msgid "Refresh"
+msgstr "새로고침"
+
+msgid "Reload file list from printer."
+msgstr ""
+
 msgid "No printers."
 msgstr "프린터 없음"
 
 msgid "Loading file list..."
 msgstr "파일 목록 불러오는 중..."
 
-#, c-format, boost-format
-msgid "No files [%d]"
-msgstr "파일 없음 [%d]"
+msgid "No files"
+msgstr "파일 없음"
 
-#, c-format, boost-format
-msgid "Load failed [%d]"
-msgstr "로드 실패 [%d]"
+msgid "Load failed"
+msgstr ""
+
+msgid ""
+"Browsing file in SD card is not supported in current firmware. Please update "
+"the printer firmware."
+msgstr ""
 
 msgid ""
 "Please check if the SD card is inserted into the printer.\n"
 "If it still cannot be read, you can try formatting the SD card."
 msgstr ""
 
-msgid "Problem occured. Please update the printer firmware and try again."
+msgid "LAN Connection Failed (Failed to view sdcard)"
+msgstr ""
+
+msgid "Browsing file in SD card is not supported in LAN Only Mode."
 msgstr ""
 
 #, c-format, boost-format
@@ -3937,6 +3953,12 @@ msgstr ""
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
 msgstr "파일 '%s'이(가) 손실되었습니다! 다시 다운로드하세요."
+
+#, c-format, boost-format
+msgid ""
+"File: %s\n"
+"Title: %s\n"
+msgstr ""
 
 msgid "Download waiting..."
 msgstr "다운로드 대기 중..."
@@ -4036,6 +4058,9 @@ msgstr "카메라 설정"
 
 msgid "Control"
 msgstr "컨트롤"
+
+msgid "Printer Parts"
+msgstr ""
 
 msgid "Print Options"
 msgstr "출력 옵션"
@@ -4302,8 +4327,8 @@ msgstr "Current Version: "
 msgid "Latest Version: "
 msgstr "Latest Version: "
 
-msgid "Not for new"
-msgstr "Not for new"
+msgid "Not for now"
+msgstr ""
 
 msgid "3D Mouse disconnected."
 msgstr "3D 마우스 연결이 끊겼습니다."
@@ -4486,6 +4511,19 @@ msgstr "Allow Prompt Sound"
 
 msgid "Filament Tangle Detect"
 msgstr "Filament Tangle Detect"
+
+msgid "Nozzle Type"
+msgstr ""
+
+msgid "Stainless Steel"
+msgstr "Stainless Steel"
+
+msgid "Hardened Steel"
+msgstr "Hardened Steel"
+
+#, c-format, boost-format
+msgid "%.1f"
+msgstr ""
 
 msgid "Global"
 msgstr "글로벌"
@@ -5150,7 +5188,7 @@ msgstr "인치법"
 msgid "Units"
 msgstr "단위"
 
-msgid "Keep only one BambuStudio instance"
+msgid "Keep only one Bambu Studio instance"
 msgstr ""
 
 msgid ""
@@ -5160,8 +5198,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"If this is enabled, when starting BambuStudio and another instance of the "
-"same BambuStudio is already running, that instance will be reactivated "
+"If this is enabled, when starting Bambu Studio and another instance of the "
+"same Bambu Studio is already running, that instance will be reactivated "
 "instead."
 msgstr ""
 
@@ -5173,7 +5211,7 @@ msgid ""
 "2D window center."
 msgstr "2D 창 중앙이 아닌 3D 보기에서 마우스 포인터의 위치를 향해 확대합니다."
 
-msgid "Auto Plate Type"
+msgid "Auto plate type"
 msgstr ""
 
 msgid ""
@@ -5207,29 +5245,27 @@ msgstr "시스템 동기화"
 msgid "Clear my choice on the unsaved presets."
 msgstr "저장되지 않은 프리셋에서 내 선택을 지웁니다."
 
-msgid "Associate files to BambuStudio"
-msgstr "파일을 뱀부 스튜디오에 연결"
-
-msgid "Associate .3mf files to BambuStudio"
-msgstr ".3mf 파일을 뱀부 스튜디오에 연결"
-
-msgid "If enabled, sets BambuStudio as default application to open .3mf files"
+msgid "Associate Files To Bambu Studio"
 msgstr ""
-"활성화하면 뱀부 스튜디오가 .3mf 파일을 여는 기본 프로그램으로 설정됩니다."
 
-msgid "Associate .stl files to BambuStudio"
-msgstr ".stl 파일을 뱀부 스튜디오에 연결"
-
-msgid "If enabled, sets BambuStudio as default application to open .stl files"
+msgid "Associate .3mf files to Bambu Studio"
 msgstr ""
-"활성화하면 뱀부 스튜디오가 .stl 파일을 여는 기본 프로그램으로 설정됩니다."
 
-msgid "Associate .step/.stp files to BambuStudio"
-msgstr ".step/.stp 파일을 뱀부 스튜디오에 연결"
-
-msgid "If enabled, sets BambuStudio as default application to open .step files"
+msgid "If enabled, sets Bambu Studio as default application to open .3mf files"
 msgstr ""
-"활성화하면 뱀부 스튜디오가 .step 파일을 여는 기본 프로그램으로 설정됩니다."
+
+msgid "Associate .stl files to Bambu Studio"
+msgstr ""
+
+msgid "If enabled, sets Bambu Studio as default application to open .stl files"
+msgstr ""
+
+msgid "Associate .step/.stp files to Bambu Studio"
+msgstr ""
+
+msgid ""
+"If enabled, sets Bambu Studio as default application to open .step files"
+msgstr ""
 
 msgid "Online Models"
 msgstr "온라인 모델"
@@ -5270,8 +5306,8 @@ msgstr "다운로드"
 msgid "Dark Mode"
 msgstr "다크 모드"
 
-msgid "Enable Dark mode"
-msgstr "다크 모드 사용"
+msgid "Enable dark mode"
+msgstr ""
 
 msgid "User Experience"
 msgstr "User Experience"
@@ -5280,6 +5316,9 @@ msgid "Join Customer Experience Improvement Program."
 msgstr "Join Customer Experience Improvement Program."
 
 msgid "What data would be collected?"
+msgstr ""
+
+msgid "Develop Mode"
 msgstr ""
 
 msgid "Develop mode"
@@ -5616,9 +5655,6 @@ msgstr "Bamabu Textured PEI Plate"
 msgid "Send print job to"
 msgstr "출력 작업 보내기"
 
-msgid "Refresh"
-msgstr "새로고침"
-
 msgid "Bed Leveling"
 msgstr "베드 레벨링"
 
@@ -5711,8 +5747,11 @@ msgstr "프린터 펌웨어는 필라멘트 => AMS 슬롯의 순차 매핑만 �
 msgid "An SD card needs to be inserted before printing."
 msgstr "출력 전에 MicroSD 카드를 삽입해야 합니다."
 
-msgid "The selected printer is incompatible with the chosen printer presets."
-msgstr "The selected printer is incompatible with the chosen printer presets."
+#, c-format, boost-format
+msgid ""
+"The selected printer (%s) is incompatible with the chosen printer profile in "
+"the slicer (%s)."
+msgstr ""
 
 msgid "An SD card needs to be inserted to record timelapse."
 msgstr "타임랩스를 녹화하려면 MicroSD 카드를 삽입해야 합니다."
@@ -5771,23 +5810,23 @@ msgid "nozzle memorized: %.1f %s"
 msgstr "nozzle memorized: %.1f %s"
 
 msgid ""
-"Your nozzle diameter in preset is not consistent with memorized nozzle "
-"diameter. Did you change your nozzle lately?"
+"Your nozzle diameter in sliced file is not consistent with memorized nozzle. "
+"If you changed your nozzle lately, please go to Device > Printer Parts to "
+"change settings."
 msgstr ""
 
 #, c-format, boost-format
-msgid "*Printing %s material with %s may cause nozzle damage"
-msgstr "*Printing %s material with %s may cause nozzle damage"
+msgid ""
+"Printing high temperature material(%s material) with %s may cause nozzle "
+"damage"
+msgstr ""
+
+msgid "Please fix the error above, otherwise printing cannot continue."
+msgstr ""
 
 msgid ""
 "Please click the confirm button if you still want to proceed with printing."
 msgstr "출력을 계속 진행하려면 확인 버튼을 클릭하십시오."
-
-msgid "Hardened Steel"
-msgstr "Hardened Steel"
-
-msgid "Stainless Steel"
-msgstr "Stainless Steel"
 
 msgid ""
 "Connecting to the printer. Unable to cancel during the connection process."
@@ -5821,6 +5860,9 @@ msgstr "프린터 MicroSD 카드로 보내기"
 
 msgid "Cannot send the print task when the upgrade is in progress"
 msgstr "업데이트 진행 중에는 출력 작업을 보낼 수 없습니다."
+
+msgid "The selected printer is incompatible with the chosen printer presets."
+msgstr "The selected printer is incompatible with the chosen printer presets."
 
 msgid "An SD card needs to be inserted before send to printer SD card."
 msgstr "프린터로 전송하기 전에 MicroSD 카드를 삽입해야 합니다."
@@ -10425,6 +10467,9 @@ msgstr "To Volumetric Speed"
 msgid "Flow Dynamics Calibration Result"
 msgstr "Flow Dynamics Calibration Result"
 
+msgid "New"
+msgstr ""
+
 msgid "No History Result"
 msgstr "No History Result"
 
@@ -10439,6 +10484,15 @@ msgstr "Action"
 
 msgid "Edit Flow Dynamics Calibration"
 msgstr "Edit Flow Dynamics Calibration"
+
+msgid "New Flow Dynamics Calibration"
+msgstr ""
+
+msgid "Ok"
+msgstr ""
+
+msgid "The filament must be selected."
+msgstr ""
 
 msgid "PA Calibration"
 msgstr "PA Calibration"
@@ -11145,6 +11199,9 @@ msgstr "Please select at least one printer or filament."
 msgid "Please select a type you want to export"
 msgstr "Please select a type you want to export"
 
+msgid "Failed to create temporary folder, please try Export Configs again."
+msgstr ""
+
 msgid "Edit Filament"
 msgstr "Edit Filament"
 
@@ -11218,6 +11275,15 @@ msgstr "Collapse"
 
 msgid "Daily Tips"
 msgstr "Daily Tips"
+
+msgid ""
+"Your nozzle diameter in preset is not consistent with memorized nozzle "
+"diameter. Did you change your nozzle lately?"
+msgstr ""
+
+#, c-format, boost-format
+msgid "*Printing %s material with %s may cause nozzle damage"
+msgstr "*Printing %s material with %s may cause nozzle damage"
 
 msgid "Need select printer"
 msgstr "Need select printer"
@@ -11674,6 +11740,47 @@ msgstr ""
 "Did you know that when printing materials that are prone to warping such as "
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
+
+#, c-format, boost-format
+#~ msgid "No files [%d]"
+#~ msgstr "파일 없음 [%d]"
+
+#, c-format, boost-format
+#~ msgid "Load failed [%d]"
+#~ msgstr "로드 실패 [%d]"
+
+#~ msgid "Not for new"
+#~ msgstr "Not for new"
+
+#~ msgid "Associate files to BambuStudio"
+#~ msgstr "파일을 뱀부 스튜디오에 연결"
+
+#~ msgid "Associate .3mf files to BambuStudio"
+#~ msgstr ".3mf 파일을 뱀부 스튜디오에 연결"
+
+#~ msgid ""
+#~ "If enabled, sets BambuStudio as default application to open .3mf files"
+#~ msgstr ""
+#~ "활성화하면 뱀부 스튜디오가 .3mf 파일을 여는 기본 프로그램으로 설정됩니다."
+
+#~ msgid "Associate .stl files to BambuStudio"
+#~ msgstr ".stl 파일을 뱀부 스튜디오에 연결"
+
+#~ msgid ""
+#~ "If enabled, sets BambuStudio as default application to open .stl files"
+#~ msgstr ""
+#~ "활성화하면 뱀부 스튜디오가 .stl 파일을 여는 기본 프로그램으로 설정됩니다."
+
+#~ msgid "Associate .step/.stp files to BambuStudio"
+#~ msgstr ".step/.stp 파일을 뱀부 스튜디오에 연결"
+
+#~ msgid ""
+#~ "If enabled, sets BambuStudio as default application to open .step files"
+#~ msgstr ""
+#~ "활성화하면 뱀부 스튜디오가 .step 파일을 여는 기본 프로그램으로 설정됩니다."
+
+#~ msgid "Enable Dark mode"
+#~ msgstr "다크 모드 사용"
 
 #~ msgid "Cabin humidity"
 #~ msgstr "내부 습도"
@@ -13201,9 +13308,6 @@ msgstr ""
 
 #~ msgid "NO AMS"
 #~ msgstr "AMS 없음"
-
-#~ msgid "No files"
-#~ msgstr "파일 없음"
 
 #~ msgid "Normative check"
 #~ msgstr "규범적 점검"
