@@ -210,7 +210,7 @@ enum BedType {
 };
 
 // BBS
-enum FirstLayerSeq {
+enum LayerSeq {
     flsAuto, 
     flsCutomize
 };
