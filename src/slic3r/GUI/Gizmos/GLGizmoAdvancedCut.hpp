@@ -5,7 +5,7 @@
 #include "GLGizmoRotate.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/CutUtils.hpp"
-#include "slic3r/GUI/MeshUtils.hpp"
+
 namespace Slic3r {
 enum class CutConnectorType : int;
 class ModelVolume;
