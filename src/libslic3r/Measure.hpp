@@ -30,10 +30,27 @@ public:
     SurfaceFeature(SurfaceFeatureType type, const Vec3d& pt1, const Vec3d& pt2, std::optional<Vec3d> pt3 = std::nullopt, double value = 0.0)
         : m_type(type), m_pt1(pt1), m_pt2(pt2), m_pt3(pt3), m_value(value) {}
 
-    explicit SurfaceFeature(const Vec3d& pt)
+    SurfaceFeature(const Vec3d& pt)
     : m_type{SurfaceFeatureType::Point}, m_pt1{pt} {}
 
+    SurfaceFeature(const SurfaceFeature& sf){
+        this->clone(sf);
+    }
+
+    void clone(const SurfaceFeature &sf)
+    {
+        m_type               = sf.get_type();
+        m_pt1                = sf.get_pt1();
+        m_pt2                = sf.get_pt2();
+        m_pt3                = sf.get_pt3();
+        m_value              = sf.get_value();
+        mesh                 = sf.mesh;
+        plane_indices        = sf.plane_indices;
+        world_tran           = sf.world_tran;
+        world_plane_features = sf.world_plane_features;
+    }
     void translate(const Vec3d& displacement);
+    void translate(const Transform3d& tran);
     // Get type of this feature.
     SurfaceFeatureType get_type() const { return m_type; }
 
@@ -74,6 +91,17 @@ public:
         return !operator == (other);
     }
 
+    indexed_triangle_set* mesh{nullptr};
+    std::vector<int>*    plane_indices{nullptr};
+    Transform3d                  world_tran;
+    std::vector<SurfaceFeature>* world_plane_features{nullptr};
+    std::shared_ptr<SurfaceFeature> origin_surface_feature{nullptr};
+
+    Vec3d get_pt1() const{ return m_pt1; }
+    Vec3d                       get_pt2() const { return m_pt2; }
+    const std::optional<Vec3d>& get_pt3() const { return m_pt3; }
+    double                      get_value() const { return m_value; }
+
 private:
     SurfaceFeatureType m_type{ SurfaceFeatureType::Undef };
     Vec3d m_pt1{ Vec3d::Zero() };
@@ -96,7 +124,7 @@ public:
 
     // Given a face_idx where the mouse cursor points, return a feature that
     // should be highlighted (if any).
-    std::optional<SurfaceFeature> get_feature(size_t face_idx, const Vec3d& point) const;
+    std::optional<SurfaceFeature> get_feature(size_t face_idx, const Vec3d& point, const Transform3d & world_tran) const;
 
     // Return total number of planes.
     int get_num_of_planes() const;
@@ -151,7 +179,7 @@ struct MeasurementResult {
 };
 
 // Returns distance/angle between two SurfaceFeatures.
-MeasurementResult get_measurement(const SurfaceFeature& a, const SurfaceFeature& b, const Measuring* measuring = nullptr);
+MeasurementResult get_measurement(const SurfaceFeature& a, const SurfaceFeature& b);
 
 inline Vec3d edge_direction(const Vec3d& from, const Vec3d& to) { return (to - from).normalized(); }
 inline Vec3d edge_direction(const std::pair<Vec3d, Vec3d>& e) { return edge_direction(e.first, e.second); }
