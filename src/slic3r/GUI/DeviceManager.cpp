@@ -20,6 +20,8 @@
 #include "fast_float/fast_float.h"
 
 #define CALI_DEBUG
+#define MINUTE_30 1800000    //ms
+#define TIME_OUT  5000       //ms
 
 namespace pt = boost::property_tree;
 
@@ -2770,8 +2772,74 @@ int MachineObject::parse_json(std::string payload)
         }
 
         uint64_t t_utc = j.value("t_utc", 0ULL);
-        if (t_utc > 0) 
+        if (t_utc > 0) {
             last_utc_time = std::chrono::system_clock::time_point(t_utc * 1ms);
+            std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+            auto millisec_since_epoch = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+            auto delay = millisec_since_epoch - t_utc;  //ms
+
+            std::string message_type = is_lan_mode_printer() ? "Local Mqtt" : is_tunnel_mqtt ? "Tunnel Mqtt" : "Cloud Mqtt";
+            if (!message_delay.empty()) {
+                auto [first_type, first_time_stamp, first_delay] = message_delay.front();
+                auto [last_type, last_time_stap, last_delay] = message_delay.back();
+                if (last_time_stap - first_time_stamp >= MINUTE_30) {
+                    // record, excluding current data
+                    int total = message_delay.size();
+                    int local_mqtt = 0;
+                    int tunnel_mqtt = 0;
+                    int cloud_mqtt = 0;
+
+                    int local_mqtt_timeout = 0;
+                    int tunnel_mqtt_timeout = 0;
+                    int cloud_mqtt_timeout = 0;
+
+                    for (auto [type, time_stamp, delay] : message_delay) {
+                        if (type == "Local Mqtt") {
+                            local_mqtt++;
+                            if (delay >= TIME_OUT) {
+                                local_mqtt_timeout++;
+                            }
+                        }
+                        else if (type == "Tunnel Mqtt") {
+                            tunnel_mqtt++;
+                            if (delay >= TIME_OUT) {
+                                tunnel_mqtt_timeout++;
+                            }
+                        }
+                        else if (type == "Cloud Mqtt"){
+                            cloud_mqtt_timeout++;
+                            if (delay >= TIME_OUT) {
+                                cloud_mqtt_timeout++;
+                            }
+                        }
+                    }
+                    message_delay.clear();
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", message total: " << total;
+                    try {
+                        if (m_agent) {
+                            json j_message;
+
+                            // Convert timestamp to time
+                            std::time_t t = time_t(last_time_stap / 1000);  //s
+                            std::tm* now_tm = std::localtime(&t);
+                            char buffer[80];
+                            std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", now_tm);
+
+                            std::string time_str = std::string(buffer);
+                            j_message["time"] = time_str;
+                            j_message["total"] = total;
+                            j_message["local_mqtt"] = std::to_string(local_mqtt_timeout) + "/" + std::to_string(local_mqtt);
+                            j_message["tunnel_mqtt"] = std::to_string(tunnel_mqtt_timeout) + "/" + std::to_string(tunnel_mqtt);
+                            j_message["cloud_mqtt"] = std::to_string(cloud_mqtt_timeout) + "/" + std::to_string(cloud_mqtt);
+
+                            m_agent->track_event("message_delay", j_message.dump());
+                        }
+                    }
+                    catch (...) {}
+                }
+            }
+            message_delay.push_back(std::make_tuple(message_type, t_utc, delay));
+        }
         else
             last_utc_time = last_update_time;
 

@@ -325,6 +325,9 @@ private:
     std::string access_code;
     std::string user_access_code;
 
+    // type, time stamp, delay
+    std::vector<std::tuple<std::string, uint64_t, uint64_t>> message_delay;
+
 public:
 
     enum LIGHT_EFFECT {
