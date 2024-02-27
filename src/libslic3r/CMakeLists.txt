@@ -215,6 +215,8 @@ set(lisbslic3r_sources
     MutablePriorityQueue.hpp
     ObjectID.cpp
     ObjectID.hpp
+	ParameterUtils.cpp
+    ParameterUtils.hpp
     PerimeterGenerator.cpp
     PerimeterGenerator.hpp
     PlaceholderParser.cpp
