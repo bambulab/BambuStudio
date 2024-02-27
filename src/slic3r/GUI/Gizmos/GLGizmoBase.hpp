@@ -6,6 +6,7 @@
 
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/GLModel.hpp"
+#include "slic3r/GUI/MeshUtils.hpp"
 
 #include <cereal/archives/binary.hpp>
 
@@ -114,6 +115,21 @@ protected:
     std::string m_icon_filename;
     unsigned int m_sprite_id;
     int m_hover_id;
+    enum GripperType {
+        UNDEFINE,
+        POINT,
+        EDGE,
+        CIRCLE,
+        CIRCLE_1,
+        CIRCLE_2,
+        PLANE,
+        PLANE_1,
+        PLANE_2,
+        SPHERE_1,
+        SPHERE_2,
+    };
+    std::map<GripperType, std::shared_ptr<PickRaycaster>> m_gripper_id_raycast_map;
+
     bool m_dragging;
     std::array<float, 4> m_base_color;
     std::array<float, 4> m_drag_color;
