@@ -165,6 +165,7 @@ int ComboBox::Append(const wxString &item,
 
 void ComboBox::DoClear()
 {
+    SetIcon("drop_down");
     texts.clear();
     tips.clear();
     icons.clear();
