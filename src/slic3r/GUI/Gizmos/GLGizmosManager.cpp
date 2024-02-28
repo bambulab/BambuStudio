@@ -647,6 +647,19 @@ bool GLGizmosManager::is_gizmo_activable_when_single_full_instance() {
     return false;
 }
 
+bool GLGizmosManager::is_gizmo_click_empty_not_exit()
+{
+   if (get_current_type() == GLGizmosManager::EType::Cut ||
+       get_current_type() == GLGizmosManager::EType::MeshBoolean ||
+       get_current_type() == GLGizmosManager::EType::Seam ||
+       get_current_type() == GLGizmosManager::EType::FdmSupports ||
+       get_current_type() == GLGizmosManager::EType::MmuSegmentation ||
+       get_current_type() == GLGizmosManager::EType::Measure) {
+        return true;
+    }
+    return false;
+}
+
 // Returns true if the gizmo used the event to do something, false otherwise.
 bool GLGizmosManager::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down)
 {
