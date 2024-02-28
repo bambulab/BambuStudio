@@ -491,7 +491,7 @@ void MeasuringImpl::extract_features(int plane_idx)
     Vec3d cog = Vec3d::Zero();
     size_t counter = 0;
     for (const std::vector<Vec3d>& b : plane.borders) {
-        for (size_t i = 1; i < b.size(); ++i) {
+        for (size_t i = 0; i < b.size(); ++i) {
             cog += b[i];
             ++counter;
         }
@@ -931,8 +931,6 @@ MeasurementResult get_measurement(const SurfaceFeature& a, const SurfaceFeature&
             result.distance_infinite = std::make_optional(DistAndPoints{it->dist, it->from, it->to});
     ///////////////////////////////////////////////////////////////////////////
         } else if (f2.get_type() == SurfaceFeatureType::Plane) {
-            assert(measuring != nullptr);
-
             const auto [from, to] = f1.get_edge();
             const auto [idx, normal, origin] = f2.get_plane();
 
@@ -1190,14 +1188,12 @@ MeasurementResult get_measurement(const SurfaceFeature& a, const SurfaceFeature&
                     }
                 }
 
-                info.sqrDistance = distance * distance + N0dD * N0dD;
+                info.sqrDistance = distance * distance;
             }
 
             result.distance_infinite = std::make_optional(DistAndPoints{ std::sqrt(candidates[0].sqrDistance), candidates[0].circle0Closest, candidates[0].circle1Closest }); // TODO
     ///////////////////////////////////////////////////////////////////////////
         } else if (f2.get_type() == SurfaceFeatureType::Plane) {
-            assert(measuring != nullptr);
-
             const auto [center, radius, normal1] = f1.get_circle();
             const auto [idx2, normal2, origin2] = f2.get_plane();
 
@@ -1289,12 +1285,46 @@ void SurfaceFeature::translate(const Transform3d &tran)
     }
     case Measure::SurfaceFeatureType::Plane: {
         // m_pt1 is normal;
-        m_pt2 = tran * m_pt2;
+        Vec3d temp_pt1 = m_pt2 + m_pt1;
+        temp_pt1       = tran * temp_pt1;
+        m_pt2          = tran * m_pt2;
+        m_pt1          = (temp_pt1 - m_pt2).normalized();
         break;
     }
     case Measure::SurfaceFeatureType::Circle: {
-        m_pt1 = tran * m_pt1;
+        // m_pt1 is center;
         // m_pt2 is normal;
+        auto  local_normal = m_pt2;
+        auto  local_center = m_pt1;
+        Vec3d temp_pt2     = local_normal + local_center;
+        temp_pt2       = tran * temp_pt2;
+        m_pt1          = tran * m_pt1;
+        auto world_center   = m_pt1;
+        m_pt2          = (temp_pt2 - m_pt1).normalized();
+        auto get_point_projection_to_plane = [](const Vec3d& pt, const Vec3d& plane_origin, const Vec3d& plane_normal,Vec3d& intersection_pt )->bool {
+            auto normal = plane_normal.normalized();
+            auto BA=plane_origin-pt;
+            auto length = BA.dot(normal);
+            intersection_pt = pt + length * normal;
+            return true;
+        };
+        auto calc_world_radius = [&local_center, &local_normal, &tran, &world_center, &get_point_projection_to_plane](const Vec3d &pt, double &value) {
+            Vec3d intersection_pt;
+            get_point_projection_to_plane(pt, local_center, local_normal, intersection_pt);
+            auto local_radius_pt = (intersection_pt - local_center).normalized() * value + local_center;
+            auto radius_pt       = tran * local_radius_pt;
+            value                = (radius_pt - world_center).norm();
+        };
+        //m_value is radius
+        float eps = 1e-2;
+        if ((local_normal-Vec3d(1,0,0)).norm()<1e-2) {
+            Vec3d new_pt = local_center + Vec3d(0, 1, 0);
+            calc_world_radius(new_pt, m_value);
+        }
+        else {
+           Vec3d new_pt= local_center + Vec3d(1, 0, 0);
+           calc_world_radius(new_pt,m_value);
+        }
         break;
     }
     default: break;
