@@ -337,6 +337,8 @@ void MediaPlayCtrl::Play()
     }
 }
 
+void start_ping_test();
+
 void MediaPlayCtrl::Stop(wxString const &msg)
 {
     int last_state = m_last_state;
@@ -358,6 +360,12 @@ void MediaPlayCtrl::Stop(wxString const &msg)
                 if (m_last_state == wxMEDIASTATE_PLAYING)
                     msg2 = _L("The printer has been logged out and cannot connect.");
             }
+#if !BBL_RELEASE_TO_PUBLIC && defined(__WINDOWS__)
+            if (m_failed_code < 0)
+                boost::thread ping_thread = Slic3r::create_thread([] {
+                    start_ping_test();
+                });
+#endif
             SetStatus(msg2);
         } else
             SetStatus(_L("Stopped."), false);
