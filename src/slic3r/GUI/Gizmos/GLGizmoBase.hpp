@@ -200,7 +200,7 @@ public:
     void set_common_data_pool(CommonGizmosDataPool* ptr) { m_c = ptr; }
 
     virtual bool apply_clipping_plane() { return true; }
-
+    virtual bool on_mouse(const wxMouseEvent &mouse_event) { return false; }
     unsigned int get_sprite_id() const { return m_sprite_id; }
 
     int get_hover_id() const { return m_hover_id; }
