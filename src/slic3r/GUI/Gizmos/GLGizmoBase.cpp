@@ -242,7 +242,7 @@ void GLGizmoBase::set_state(EState state)
             }
         }
     }
-
+    m_parent.enable_return_toolbar(state == On);
     m_state = state;
     on_set_state();
 }
