@@ -315,7 +315,8 @@ void MediaPlayCtrl::Play()
     SetStatus(_L("Initializing..."));
 
     if (agent) {
-        agent->get_camera_url(m_machine, [this, m = m_machine, v = agent_version, dv = m_dev_ver](std::string url) {
+        agent->get_camera_url(m_machine, 
+            [this, m = m_machine, v = agent_version, dv = m_dev_ver](std::string url) {
             if (boost::algorithm::starts_with(url, "bambu:///")) {
                 url += "&device=" + into_u8(m);
                 url += "&net_ver=" + v;
