@@ -1467,6 +1467,15 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("PPS-CF");
     def->enum_values.push_back("PPA-CF");
     def->enum_values.push_back("PPA-GF");
+    def->enum_values.push_back("PE");
+    def->enum_values.push_back("PP");
+    def->enum_values.push_back("EVA");
+    def->enum_values.push_back("PHA");
+    def->enum_values.push_back("BVOH");
+    def->enum_values.push_back("PE-CF");
+    def->enum_values.push_back("PP-CF");
+    def->enum_values.push_back("PP-GF");
+
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionStrings { "PLA" });
 
