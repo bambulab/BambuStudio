@@ -8026,11 +8026,11 @@ msgid "Fan speed"
 msgstr "Lüftergeschwindigkeit"
 
 msgid ""
-"Speed of exhuast fan during printing.This speed will overwrite the speed in "
+"Speed of exhaust fan during printing.This speed will overwrite the speed in "
 "filament custom gcode"
 msgstr ""
 
-msgid "Speed of exhuast fan after printing completes"
+msgid "Speed of exhaust fan after printing completes"
 msgstr ""
 
 msgid "No cooling for the first"

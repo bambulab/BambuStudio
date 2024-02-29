@@ -8034,13 +8034,13 @@ msgid "Fan speed"
 msgstr "Швидкість вентилятора"
 
 msgid ""
-"Speed of exhuast fan during printing.This speed will overwrite the speed in "
+"Speed of exhaust fan during printing.This speed will overwrite the speed in "
 "filament custom gcode"
 msgstr ""
 "Швидкість вентилятора відсмоктування під час друку. Ця швидкість перезапише "
 "швидкість у користувацькому G-коді філаменту"
 
-msgid "Speed of exhuast fan after printing completes"
+msgid "Speed of exhaust fan after printing completes"
 msgstr "Швидкість вентилятора відсмоктування після завершення друку"
 
 msgid "No cooling for the first"
