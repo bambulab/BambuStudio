@@ -7604,11 +7604,11 @@ msgid "Fan speed"
 msgstr "风扇速度"
 
 msgid ""
-"Speed of exhuast fan during printing.This speed will overwrite the speed in "
+"Speed of exhaust fan during printing.This speed will overwrite the speed in "
 "filament custom gcode"
 msgstr "打印过程中排风扇的速度。此速度将覆盖材料的自定义G代码中的速度。"
 
-msgid "Speed of exhuast fan after printing completes"
+msgid "Speed of exhaust fan after printing completes"
 msgstr "打印完成后排风扇的速度。"
 
 msgid "No cooling for the first"
