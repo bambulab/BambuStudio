@@ -272,16 +272,20 @@ void MediaPlayCtrl::Play()
     std::string  agent_version = agent ? agent->get_version() : "";
     if (m_lan_proto > MachineObject::LVL_Disable && (m_lan_mode || !m_remote_support) && !m_disable_lan && !m_lan_ip.empty()) {
         m_disable_lan = m_remote_support && !m_lan_mode; // try remote next time
+        std::string url;
         if (m_lan_proto == MachineObject::LVL_Local)
-            m_url = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd;
+            url = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd;
         else if (m_lan_proto == MachineObject::LVL_Rtsps)
-            m_url = "bambu:///rtsps___" + m_lan_user + ":" + m_lan_passwd + "@" + m_lan_ip + "/streaming/live/1?proto=rtsps";
+            url = "bambu:///rtsps___" + m_lan_user + ":" + m_lan_passwd + "@" + m_lan_ip + "/streaming/live/1?proto=rtsps";
         else if (m_lan_proto == MachineObject::LVL_Rtsp)
-            m_url = "bambu:///rtsp___" + m_lan_user + ":" + m_lan_passwd + "@" + m_lan_ip + "/streaming/live/1?proto=rtsp";
-        m_url += "&device=" + m_machine;
-        m_url += "&version=" + agent_version;
-        m_url += "&dev_ver=" + m_dev_ver;
-        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: " << hide_passwd(hide_id_middle_string(m_url, m_url.find(m_lan_ip), m_lan_ip.length()), {m_lan_passwd});
+            url = "bambu:///rtsp___" + m_lan_user + ":" + m_lan_passwd + "@" + m_lan_ip + "/streaming/live/1?proto=rtsp";
+        url += "&device=" + m_machine;
+        url += "&net_ver=" + agent_version;
+        url += "&dev_ver=" + m_dev_ver;
+        url += "&cli_id=" + wxGetApp().app_config->get("client_id");
+        url += "&cli_ver=" + std::string(SLIC3R_VERSION);
+        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: " << hide_passwd(hide_id_middle_string(url, url.find(m_lan_ip), m_lan_ip.length()), {m_lan_passwd});
+        m_url = url;
         load();
         return;
     }
@@ -319,8 +323,10 @@ void MediaPlayCtrl::Play()
         agent->get_camera_url(m_machine, [this, m = m_machine, v = agent_version, dv = m_dev_ver](std::string url) {
             if (boost::algorithm::starts_with(url, "bambu:///")) {
                 url += "&device=" + into_u8(m);
-                url += "&version=" + v;
+                url += "&net_ver=" + v;
                 url += "&dev_ver=" + dv;
+                url += "&cli_id=" + wxGetApp().app_config->get("client_id");
+                url += "&cli_ver=" + std::string(SLIC3R_VERSION);
             }
             BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: " << hide_id_middle_string(hide_passwd(url, {"authkey=", "passwd="}), 9, 20) << "tutk_state: " << m_tutk_state;
             CallAfter([this, m, url] {
@@ -328,12 +334,12 @@ void MediaPlayCtrl::Play()
                     BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl drop late ttcode for machine: " << m;
                     return;
                 }
-                m_url = url;
                 if (m_last_state == MEDIASTATE_INITIALIZING) {
                     if (url.empty() || !boost::algorithm::starts_with(url, "bambu:///")) {
                         m_failed_code = 3;
                         Stop(_L("Connection Failed. Please check the network and try again"));
                     } else {
+                        m_url = url;
                         load();
                     }
                 } else {
@@ -550,8 +556,10 @@ void MediaPlayCtrl::ToggleStream()
     agent->get_camera_url(m_machine, [this, m = m_machine, v = agent->get_version(), dv = m_dev_ver](std::string url) {
         if (boost::algorithm::starts_with(url, "bambu:///")) {
             url += "&device=" + m;
-            url += "&version=" + v;
+            url += "&net_ver=" + v;
             url += "&dev_ver=" + dv;
+            url += "&cli_id=" + wxGetApp().app_config->get("client_id");
+            url += "&cli_ver=" + std::string(SLIC3R_VERSION);
         }
         BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::ToggleStream: " << hide_id_middle_string(hide_passwd(url, {"authkey=", "passwd="}), 9, 20);
         CallAfter([this, m, url] {
