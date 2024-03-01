@@ -233,7 +233,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "prime_tower_brim_width"
             || opt_key == "first_layer_print_sequence"
             || opt_key == "other_layers_print_sequence"
-            || opt_key == "other_layers_print_sequence_nums" 
+            || opt_key == "other_layers_print_sequence_nums"
             //|| opt_key == "wipe_tower_bridging"
             || opt_key == "wipe_tower_no_sparse_layers"
             || opt_key == "flush_volumes_matrix"
@@ -783,7 +783,7 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
                     break;
                 }
             }
-            if (height < inst->print_object->height())
+            if (height < inst->print_object->max_z())
                 too_tall_instances[inst] = std::make_pair(print_instance_with_bounding_box[k].hull_polygon, unscaled<double>(height));
         }
 
@@ -1050,7 +1050,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             PrintObject::update_layer_height_profile(*print_object.model_object(), print_object.slicing_parameters(), profile);
         return profile;
     };
-	
+
 
     // Custom layering is not allowed for tree supports as of now.
     for (size_t print_object_idx = 0; print_object_idx < m_objects.size(); ++ print_object_idx)
