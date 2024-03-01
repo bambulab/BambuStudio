@@ -184,6 +184,13 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
     if (machine == m_machine) {
         if (m_last_state == MEDIASTATE_IDLE && IsEnabled())
             Play();
+        else if (m_last_state == MEDIASTATE_LOADING && m_tutk_state == "disable"
+                && m_last_user_play + wxTimeSpan::Seconds(3) < wxDateTime::Now()) {
+            // resend ttcode to printer
+            if (auto agent = wxGetApp().getAgent())
+                agent->get_camera_url(machine, [](auto) {});
+            m_last_user_play = wxDateTime::Now();
+        }
         return;
     }
     m_machine = machine;
@@ -374,12 +381,15 @@ void MediaPlayCtrl::Stop(wxString const &msg)
             m_next_retry = wxDateTime();
     } else if (!msg.IsEmpty()) {
         SetStatus(msg, false);
+        return;
     } else {
         m_failed_code = 0;
+        return;
     }
 
-
-    bool remote = m_url.find("/local/") == wxString::npos && m_url.find("/rtsp") == wxString::npos;
+    auto tunnel = m_url.empty() ? "" : into_u8(wxURI(m_url).GetPath()).substr(1);
+    if (auto n = tunnel.find_first_of('/_'); n != std::string::npos)
+        tunnel = tunnel.substr(0, n);
     if (last_state != wxMEDIASTATE_PLAYING && m_failed_code != 0 
             && m_last_failed_codes.find(m_failed_code) == m_last_failed_codes.end()
             && (m_user_triggered || m_failed_retry > 3)) {
@@ -390,13 +400,13 @@ void MediaPlayCtrl::Stop(wxString const &msg)
         j["result"]         = "failed";
         j["user_triggered"] = m_user_triggered;
         j["failed_retry"]   = m_failed_retry;
-        j["tunnel"]         = remote ? "remote" : "local";
+        j["tunnel"]         = tunnel;
         j["code"]           = m_failed_code;
-        if (remote) {
-            if (m_url.size() > 30)
-                j["tutk_id"] = m_url.substr(9, 20).c_str();
+        if (tunnel == "tutk") {
+            if (m_url.size() > 38)
+                j["tutk_id"] = m_url.substr(18, 20).c_str();
             j["tutk_state"] = m_tutk_state;
-            }
+        }
         j["msg"]            = into_u8(msg);
         NetworkAgent *agent = wxGetApp().getAgent();
         if (agent)
@@ -409,7 +419,7 @@ void MediaPlayCtrl::Stop(wxString const &msg)
         j["dev_id"]         = m_machine;
         j["dev_ip"]         = m_lan_ip;
         j["result"]         = m_failed_code ? "failed" : "success";
-        j["tunnel"]         = remote ? "remote" : "local";
+        j["tunnel"]         = tunnel;
         j["code"]           = m_failed_code;
         j["msg"]            = into_u8(msg);
         j["fps"]            = m_stat[0];
@@ -422,7 +432,9 @@ void MediaPlayCtrl::Stop(wxString const &msg)
 
     m_url.clear();
     ++m_failed_retry;
-    if (m_failed_code < 0 && last_state != wxMEDIASTATE_PLAYING && !remote && (m_failed_retry > 1 || m_user_triggered)) {
+    bool local = tunnel == "local" || tunnel == "rtsp" ||
+                 tunnel == "rtsps";
+    if (m_failed_code < 0 && last_state != wxMEDIASTATE_PLAYING && local && (m_failed_retry > 1 || m_user_triggered)) {
         m_next_retry = wxDateTime(); // stop retry
         if (wxGetApp().show_modal_ip_address_enter_dialog(_L("LAN Connection Failed (Failed to start liveview)"))) {
             m_failed_retry = 0;
@@ -598,7 +610,16 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
             j["dev_ip"] = m_lan_ip;
             j["result"] = "success";
             j["code"] = 0;
-            NetworkAgent* agent = wxGetApp().getAgent();
+            auto tunnel = into_u8(wxURI(m_url).GetPath()).substr(1);
+            if (auto n = tunnel.find_first_of('/_'); n != std::string::npos)
+                tunnel = tunnel.substr(0, n);
+            j["tunnel"]         = tunnel;
+            if (tunnel == "tutk") {
+                if (m_url.size() > 38)
+                    j["tutk_id"] = m_url.substr(18, 20).c_str();
+                j["tutk_state"] = m_tutk_state;
+            }
+            NetworkAgent *agent = wxGetApp().getAgent();
             if (agent)
                 agent->track_event("start_liveview", j.dump());
 
