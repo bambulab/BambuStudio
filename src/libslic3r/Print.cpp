@@ -855,12 +855,12 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
         Polygon& convex_hull = it_convex_hull->second;
         Polygons convex_hulls_temp;
         convex_hulls_temp.push_back(convex_hull);
-        if (!intersection(convex_hulls_other, convex_hulls_temp).empty()) {
+        /*if (!intersection(convex_hulls_other, convex_hulls_temp).empty()) {
             if (warning) {
                 warning->string = inst->model_instance->get_object()->name + L(" is too close to others, there may be collisions when printing.") + "\n";
                 warning->object = inst->model_instance->get_object();
             }
-        }
+        }*/
         if (!intersection(exclude_polys, convex_hull).empty()) {
             return {inst->model_instance->get_object()->name + L(" is too close to exclusion area, there may be collisions when printing.") + "\n", inst->model_instance->get_object()};
             /*if (warning) {
