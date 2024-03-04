@@ -260,16 +260,6 @@ void PrintObject::prepare_infill()
     this->detect_surfaces_type();
     m_print->throw_if_canceled();
 
-    // Decide what surfaces are to be filled.
-    // Here the stTop / stBottomBridge / stBottom infill is turned to just stInternal if zero top / bottom infill layers are configured.
-    // Also tiny stInternal surfaces are turned to stInternalSolid.
-    BOOST_LOG_TRIVIAL(info) << "Preparing fill surfaces..." << log_memory_info();
-    for (auto *layer : m_layers)
-        for (auto *region : layer->m_regions) {
-            region->prepare_fill_surfaces();
-            m_print->throw_if_canceled();
-        }
-
     // this will detect bridges and reverse bridges
     // and rearrange top/bottom/internal surfaces
     // It produces enlarged overlapping bridging areas.
@@ -315,6 +305,14 @@ void PrintObject::prepare_infill()
         } // for each layer
     } // for each region
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
+
+    // Also tiny stInternal surfaces are turned to stInternalSolid.
+    BOOST_LOG_TRIVIAL(info) << "Preparing fill surfaces..." << log_memory_info();
+    for (auto *layer : m_layers)
+        for (auto *region : layer->m_regions) {
+            region->prepare_fill_surfaces();
+            m_print->throw_if_canceled();
+        }
 
     // Only active if config->infill_only_where_needed. This step trims the sparse infill,
     // so it acts as an internal support. It maintains all other infill types intact.
@@ -1021,7 +1019,7 @@ void PrintObject::detect_surfaces_type()
             		((num_layers > 1) ? num_layers - 1 : num_layers) :
             		// In non-spiral vase mode, go over all layers.
             		m_layers.size()),
-            [this, region_id, interface_shells, &surfaces_new](const tbb::blocked_range<size_t>& range) {
+            [this, spiral_mode, region_id, interface_shells, &surfaces_new](const tbb::blocked_range<size_t>& range) {
                 // If we have soluble support material, don't bridge. The overhang will be squished against a soluble layer separating
                 // the support from the print.
                 // BBS: the above logic only applys for normal(auto) support. Complete logic:
@@ -1047,63 +1045,72 @@ void PrintObject::detect_surfaces_type()
                     // collapse very narrow parts (using the safety offset in the diff is not enough)
                     float        offset = layerm->flow(frExternalPerimeter).scaled_width() / 10.f;
 
+                    bool detect_top = spiral_mode || layerm->region().config().top_shell_layers;
+                    bool detect_bottom = spiral_mode || layerm->region().config().bottom_shell_layers;
+
                     // find top surfaces (difference between current surfaces
                     // of current layer and upper one)
                     Surfaces top;
-                    if (upper_layer) {
-                        ExPolygons upper_slices = interface_shells ?
-                            diff_ex(layerm->slices.surfaces, upper_layer->m_regions[region_id]->slices.surfaces, ApplySafetyOffset::Yes) :
-                            diff_ex(layerm->slices.surfaces, upper_layer->lslices, ApplySafetyOffset::Yes);
-                        surfaces_append(top, opening_ex(upper_slices, offset), stTop);
-                    } else {
-                        // if no upper layer, all surfaces of this one are solid
-                        // we clone surfaces because we're going to clear the slices collection
-                        top = layerm->slices.surfaces;
-                        for (Surface &surface : top)
-                            surface.surface_type = stTop;
+                    if (detect_top) {
+                        if (upper_layer) {
+                            ExPolygons upper_slices = interface_shells ?
+                                diff_ex(layerm->slices.surfaces, upper_layer->m_regions[region_id]->slices.surfaces, ApplySafetyOffset::Yes) :
+                                diff_ex(layerm->slices.surfaces, upper_layer->lslices, ApplySafetyOffset::Yes);
+                            surfaces_append(top, opening_ex(upper_slices, offset), stTop);
+                        }
+                        else {
+                            // if no upper layer, all surfaces of this one are solid
+                            // we clone surfaces because we're going to clear the slices collection
+                            top = layerm->slices.surfaces;
+                            for (Surface& surface : top)
+                                surface.surface_type = stTop;
+                        }
                     }
 
                     // Find bottom surfaces (difference between current surfaces of current layer and lower one).
                     Surfaces bottom;
-                    if (lower_layer) {
+                    if (detect_bottom) {
+                        if (lower_layer) {
 #if 0
-                        //FIXME Why is this branch failing t\multi.t ?
-                        Polygons lower_slices = interface_shells ?
-                            to_polygons(lower_layer->get_region(region_id)->slices.surfaces) :
-                            to_polygons(lower_layer->slices);
-                        surfaces_append(bottom,
-                            opening_ex(diff(layerm->slices.surfaces, lower_slices, true), offset),
-                            surface_type_bottom_other);
+                            //FIXME Why is this branch failing t\multi.t ?
+                            Polygons lower_slices = interface_shells ?
+                                to_polygons(lower_layer->get_region(region_id)->slices.surfaces) :
+                                to_polygons(lower_layer->slices);
+                            surfaces_append(bottom,
+                                opening_ex(diff(layerm->slices.surfaces, lower_slices, true), offset),
+                                surface_type_bottom_other);
 #else
-                        // Any surface lying on the void is a true bottom bridge (an overhang)
-                        surfaces_append(
-                            bottom,
-                            opening_ex(
-                                diff_ex(layerm->slices.surfaces, lower_layer->lslices, ApplySafetyOffset::Yes),
-                                offset),
-                            surface_type_bottom_other);
-                        // if user requested internal shells, we need to identify surfaces
-                        // lying on other slices not belonging to this region
-                        if (interface_shells) {
-                            // non-bridging bottom surfaces: any part of this layer lying
-                            // on something else, excluding those lying on our own region
+                            // Any surface lying on the void is a true bottom bridge (an overhang)
                             surfaces_append(
                                 bottom,
                                 opening_ex(
-                                    diff_ex(
-                                        intersection(layerm->slices.surfaces, lower_layer->lslices), // supported
-                                        lower_layer->m_regions[region_id]->slices.surfaces,
-                                        ApplySafetyOffset::Yes),
+                                    diff_ex(layerm->slices.surfaces, lower_layer->lslices, ApplySafetyOffset::Yes),
                                     offset),
-                                stBottom);
-                        }
+                                surface_type_bottom_other);
+                            // if user requested internal shells, we need to identify surfaces
+                            // lying on other slices not belonging to this region
+                            if (interface_shells) {
+                                // non-bridging bottom surfaces: any part of this layer lying
+                                // on something else, excluding those lying on our own region
+                                surfaces_append(
+                                    bottom,
+                                    opening_ex(
+                                        diff_ex(
+                                            intersection(layerm->slices.surfaces, lower_layer->lslices), // supported
+                                            lower_layer->m_regions[region_id]->slices.surfaces,
+                                            ApplySafetyOffset::Yes),
+                                        offset),
+                                    stBottom);
+                            }
 #endif
-                    } else {
-                        // if no lower layer, all surfaces of this one are solid
-                        // we clone surfaces because we're going to clear the slices collection
-                        bottom = layerm->slices.surfaces;
-                        for (Surface &surface : bottom)
-                            surface.surface_type = stBottom;
+                        }
+                        else {
+                            // if no lower layer, all surfaces of this one are solid
+                            // we clone surfaces because we're going to clear the slices collection
+                            bottom = layerm->slices.surfaces;
+                            for (Surface& surface : bottom)
+                                surface.surface_type = stBottom;
+                        }
                     }
 
                     // now, if the object contained a thin membrane, we could have overlapping bottom
