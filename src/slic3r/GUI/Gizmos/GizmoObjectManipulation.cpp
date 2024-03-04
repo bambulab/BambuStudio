@@ -12,7 +12,7 @@
 
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Geometry.hpp"
-#include "slic3r/GUI/Selection.hpp"
+
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
 
@@ -117,14 +117,34 @@ void GizmoObjectManipulation::update_settings_value(const Selection& selection)
         m_new_title_string = L("Object Operations");
     }
     else if (selection.is_single_modifier() || selection.is_single_volume()) {
-        // the selection contains a single volume
-        const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
-        m_new_position = volume->get_volume_offset();
-        m_new_rotation = volume->get_volume_rotation() * (180. / M_PI);
-        m_new_scale    = volume->get_volume_scaling_factor() * 100.;
-        m_new_size     = volume->get_instance_transformation().get_scaling_factor().cwiseProduct(volume->get_volume_transformation().get_scaling_factor().cwiseProduct(volume->bounding_box().size()));
+        const GLVolume *volume = selection.get_first_volume();
+        if (is_world_coordinates()) {
+            const Geometry::Transformation trafo(volume->world_matrix());
+
+            const Vec3d &offset = trafo.get_offset();
+
+            m_new_position            = offset;
+            m_new_rotate_label_string = L("Rotate (relative)");
+            m_new_scale_label_string  = L("Scale");
+            m_new_scale               = Vec3d(100.0, 100.0, 100.0);
+            m_new_rotation            = Vec3d::Zero();
+            m_new_size                = selection.get_bounding_box_in_current_reference_system().first.size();
+        } else if (is_local_coordinates()) {
+            m_new_move_label_string   = L("Translate (relative) [World]");
+            m_new_rotate_label_string = L("Rotate (relative)");
+            m_new_position            = Vec3d::Zero();
+            m_new_rotation            = Vec3d::Zero();
+            m_new_scale               = volume->get_volume_scaling_factor() * 100.0;
+            m_new_size                = selection.get_bounding_box_in_current_reference_system().first.size();
+        } else {
+            m_new_position            = volume->get_volume_offset();
+            m_new_rotate_label_string = L("Rotate (relative)");
+            m_new_rotation            = Vec3d::Zero();
+            m_new_scale_label_string  = L("Scale");
+            m_new_scale               = Vec3d(100.0, 100.0, 100.0);
+            m_new_size                = selection.get_bounding_box_in_current_reference_system().first.size();
+        }
         m_new_enabled = true;
-        m_new_title_string = L("Volume Operations");
     }
     else if (obj_list->multiple_selection() || obj_list->is_selected(itInstanceRoot)) {
         reset_settings_value();
@@ -445,13 +465,31 @@ void GizmoObjectManipulation::reset_scale_value()
 }
 
 void GizmoObjectManipulation::set_uniform_scaling(const bool use_uniform_scale)
-{ 
+{
     if (!use_uniform_scale)
         // Recalculate cached values at this panel, refresh the screen.
         this->UpdateAndShow(true);
 
     m_uniform_scale = use_uniform_scale;
     set_dirty();
+}
+
+void GizmoObjectManipulation::set_coordinates_type(ECoordinatesType type)
+{
+    if (wxGetApp().get_mode() == comSimple)
+        type = ECoordinatesType::World;
+
+    if (m_coordinates_type == type) return;
+
+    m_coordinates_type = type;
+    m_world_coordinates = type == ECoordinatesType::World ? true : false;
+    //m_word_local_combo->SetSelection((int) m_coordinates_type);
+    this->UpdateAndShow(true);
+    GLCanvas3D *canvas = wxGetApp().plater()->canvas3D();
+    canvas->get_gizmos_manager().update_data();
+    canvas->set_as_dirty();
+    canvas->request_extra_frame();
+
 }
 
 static const char* label_values[2][3] = {
