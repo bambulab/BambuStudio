@@ -509,8 +509,7 @@ void GLGizmoAdvancedCut::on_set_state()
         // be deleted prematurely.
         if (m_part_selection && m_part_selection->valid()) {
             wxGetApp().CallAfter([this]() {
-                delete_part_selection();
-                m_part_selection = new PartSelection();
+                m_part_selection.reset(new PartSelection());
             });
         }
     }
@@ -520,7 +519,7 @@ bool GLGizmoAdvancedCut::on_is_activable() const
 {
     const Selection &selection  = m_parent.get_selection();
     const int        object_idx = selection.get_object_idx();
-    if (object_idx < 0 || selection.is_wipe_tower()) 
+    if (object_idx < 0 || selection.is_wipe_tower())
         return false;
 
     if (const ModelObject *mo = wxGetApp().plater()->model().objects[object_idx]; mo->is_cut() && mo->volumes.size() == 1) {
@@ -864,12 +863,11 @@ void GLGizmoAdvancedCut::perform_cut(const Selection& selection)
 
         // This shall delete the part selection class and deallocate the memory.
         ScopeGuard part_selection_killer([this]() {
-            delete_part_selection();
-            m_part_selection = new PartSelection();
+            m_part_selection.reset(new PartSelection());
         });
 
         const bool cut_with_groove = m_cut_mode == CutMode::cutTongueAndGroove;
-        bool       cut_by_contour  = !cut_with_groove && !m_cut_to_parts && m_part_selection->valid();
+        bool       cut_by_contour  = false;//!cut_with_groove && !m_cut_to_parts && m_part_selection->valid();
 
         ModelObject *cut_mo = cut_by_contour ? m_part_selection->model_object() : nullptr;
         if (cut_mo)
@@ -1597,8 +1595,8 @@ void GLGizmoAdvancedCut::reset_cut_by_contours()
 {
     update_buffer_data();
     update_plane_normal();
-    delete_part_selection();
-    m_part_selection = new PartSelection();
+
+    m_part_selection.reset(new PartSelection());
 
     if (m_cut_mode == CutMode::cutTongueAndGroove) {
         if (m_dragging || m_groove_editing || !has_valid_groove())
@@ -1626,14 +1624,12 @@ void GLGizmoAdvancedCut::process_contours()
             Cut                    cut(model_objects[object_idx], instance_idx, get_cut_matrix(selection));
             const ModelObjectPtrs &new_objects = cut.perform_with_groove(m_groove, m_rotate_matrix, true);
             if (!new_objects.empty()) {
-                delete_part_selection();
-                m_part_selection = new PartSelection(new_objects.front(), instance_idx);
+                m_part_selection.reset(new PartSelection(new_objects.front(), instance_idx));
             }
         }
     } else {
         if (m_c->object_clipper()) {
-            delete_part_selection();
-            m_part_selection = new PartSelection(model_objects[object_idx], get_cut_matrix(selection), instance_idx, m_plane_center, m_plane_normal, *m_c->object_clipper());
+            m_part_selection.reset(new PartSelection(model_objects[object_idx], get_cut_matrix(selection), instance_idx, m_plane_center, m_plane_normal, *m_c->object_clipper()));
         }
     }
 
@@ -1649,13 +1645,6 @@ void GLGizmoAdvancedCut::toggle_model_objects_visibility(bool show_in_3d)
         const Selection &      selection     = m_parent.get_selection();
         const ModelObjectPtrs &model_objects = selection.get_model()->objects;
         m_parent.toggle_model_objects_visibility(true, model_objects[selection.get_object_idx()], selection.get_instance_idx());
-    }
-}
-
-void GLGizmoAdvancedCut::delete_part_selection()
-{
-    if (m_part_selection) {
-        delete m_part_selection;
     }
 }
 
