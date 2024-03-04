@@ -4182,6 +4182,7 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
     std::vector<double> wipe_tower_used_filaments_m_all_plates;
     std::vector<double> wipe_tower_used_filaments_g_all_plates;
     float total_time_all_plates = 0.0f;
+    float total_cost_all_plates = 0.0f;
     struct ColumnData {
         enum {
             Model = 1,
@@ -4290,6 +4291,10 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
             }
             const PrintEstimatedStatistics::Mode& plate_time_mode = plate_print_statistics.modes[static_cast<size_t>(m_time_estimate_mode)];
             total_time_all_plates += plate_time_mode.time;
+
+            Print* print;
+            plate->get_print((PrintBase**)&print, nullptr, nullptr);
+            total_cost_all_plates += print->print_statistics().total_cost;
         }
 
         for (auto it = model_volume_of_extruders_all_plates.begin(); it != model_volume_of_extruders_all_plates.end(); it++) {
@@ -4388,13 +4393,21 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
         ImGui::Dummy(ImVec2(0.0f, ImGui::GetFontSize() * 0.1));
         ImGui::Dummy({ window_padding, window_padding });
         ImGui::SameLine();
-        imgui.title(_u8L("Total Time Estimation"));
+        imgui.title(_u8L("Total Estimation"));
 
         ImGui::Dummy({ window_padding, window_padding });
         ImGui::SameLine();
         imgui.text(_u8L("Total time") + ":");
         ImGui::SameLine();
         imgui.text(short_time(get_time_dhms(total_time_all_plates)));
+
+        ImGui::Dummy({ window_padding, window_padding });
+        ImGui::SameLine();
+        imgui.text(_u8L("Total cost") + ":");
+        ImGui::SameLine();
+        char buf[64];
+        ::sprintf(buf, "%.2f", total_cost_all_plates);
+        imgui.text(buf);
     }
     ImGui::End();
     ImGui::PopStyleColor(6);
