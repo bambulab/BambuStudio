@@ -153,7 +153,7 @@ private:
     bool               m_was_cut_plane_dragged{false};
     bool               m_was_contour_selected{false};
     bool               m_is_dragging{false};
-    PartSelection *    m_part_selection{nullptr};
+    std::shared_ptr<PartSelection>    m_part_selection{nullptr};
     // dragging angel in hovered axes
     double             m_rotate_angle{0.0};
     bool               m_imperial_units{false};
@@ -312,7 +312,6 @@ private:
     void reset_cut_by_contours();
     void process_contours();
     void toggle_model_objects_visibility(bool show_in_3d = false);
-    void delete_part_selection();
     void deal_connector_pos_by_type(Vec3d &pos, float &height, CutConnectorType, CutConnectorStyle, bool looking_forward, bool is_edit, const Vec3d &clp_normal);
     void update_bb();
     void check_and_update_connectors_state();
