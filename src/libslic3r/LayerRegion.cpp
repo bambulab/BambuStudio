@@ -349,10 +349,11 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
 
     Surfaces new_surfaces;
     {
-        // Merge top and bottom in a single collection.
-        surfaces_append(top, std::move(bottom));
         // Intersect the grown surfaces with the actual fill boundaries.
         Polygons bottom_polygons = to_polygons(bottom);
+        // Merge top and bottom in a single collection.
+        surfaces_append(top, std::move(bottom));
+
         for (size_t i = 0; i < top.size(); ++ i) {
             Surface &s1 = top[i];
             if (s1.empty())
@@ -417,6 +418,7 @@ void LayerRegion::prepare_fill_surfaces()
     
     bool spiral_mode = this->layer()->object()->print()->config().spiral_mode;
 
+#if 0
     // if no solid layers are requested, turn top/bottom surfaces to internal
     if (! spiral_mode && this->region().config().top_shell_layers == 0) {
         for (Surface &surface : this->fill_surfaces.surfaces)
@@ -430,6 +432,7 @@ void LayerRegion::prepare_fill_surfaces()
             if (surface.is_bottom()) // (surface.surface_type == stBottom)
                 surface.surface_type = stInternal;
     }
+#endif
 
     // turn too small internal regions into solid regions according to the user setting
     if (! spiral_mode && this->region().config().sparse_infill_density.value > 0) {
