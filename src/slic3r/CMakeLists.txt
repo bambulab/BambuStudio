@@ -467,9 +467,9 @@ set(SLIC3R_GUI_SOURCES
     Utils/AstroBox.hpp
     Utils/Repetier.cpp
     Utils/Repetier.hpp
-
     Utils/CalibUtils.cpp
     Utils/CalibUtils.hpp
+    Utils/ProfileDescription.hpp
 )
 
 if (WIN32)
