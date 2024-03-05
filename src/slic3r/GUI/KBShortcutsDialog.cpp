@@ -190,11 +190,17 @@ void KBShortcutsDialog::fill_shortcuts()
             { ctrl + "C", L("Copy to clipboard") },
             { ctrl + "V", L("Paste from clipboard") },
             // Configuration
-            { ctrl + "P", L("Preferences") },
+            #ifdef __APPLE__
+                { ctrl + ",", L("Preferences") },
+            #else
+                { ctrl + "P", L("Preferences") },
+            #endif
             //3D control
             { ctrl + "M", L("Show/Hide 3Dconnexion devices settings dialog") },
             // Switch table page
-            { ctrl + "Tab", L("Switch table page")},
+            #ifndef __APPLE__
+                { ctrl + "Tab", L("Switch tab page")},
+            #endif
             //DEL
             #ifdef __APPLE__
                 {"fn+⌫", L("Delete selected")},
