@@ -9,7 +9,7 @@
     "bottom_shell_layers": "3",
     "bottom_shell_thickness": "0",
     "bridge_speed": "50",
-    "brim_object_gap": "0.1",
+    "brim_object_gap": "0",
     "compatible_printers_condition": "",
     "draft_shield": "disabled",
     "elefant_foot_compensation": "0",
