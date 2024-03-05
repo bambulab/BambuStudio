@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-23 20:04+0800\n"
+"POT-Creation-Date: 2024-03-05 14:55+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -233,8 +233,11 @@ msgstr "Poměry měřítka"
 msgid "Object Operations"
 msgstr "Operace s objektem"
 
-msgid "Volume Operations"
-msgstr "Operace s objemem"
+msgid "Rotate (relative)"
+msgstr ""
+
+msgid "Translate (relative) [World]"
+msgstr ""
 
 msgid "Translate"
 msgstr "Posunout"
@@ -551,6 +554,102 @@ msgstr "Rozpoznávání tváře"
 msgid "Perform Recognition"
 msgstr "Provést rozpoznávání"
 
+msgid "Vertex"
+msgstr ""
+
+msgid "Edge"
+msgstr ""
+
+msgid "Plane"
+msgstr ""
+
+msgid "Point on edge"
+msgstr ""
+
+msgid "Point on circle"
+msgstr ""
+
+msgid "Point on plane"
+msgstr ""
+
+msgid "Center of edge"
+msgstr ""
+
+msgid "Center of circle"
+msgstr ""
+
+msgid "Select feature"
+msgstr ""
+
+msgid "Select point"
+msgstr ""
+
+msgid "Delete"
+msgstr "Smazat"
+
+msgid "Restart selection"
+msgstr ""
+
+msgid "Esc"
+msgstr "Esc"
+
+msgid "Cancel a feature until exit"
+msgstr ""
+
+msgid "Measure"
+msgstr ""
+
+msgid "Edit to scale"
+msgstr ""
+
+msgctxt "Verb"
+msgid "Scale all"
+msgstr ""
+
+msgid "None"
+msgstr "Žádné"
+
+msgid "Diameter"
+msgstr "Průměr"
+
+msgid "Length"
+msgstr "Vzdálenost"
+
+msgid "Selection"
+msgstr ""
+
+msgid ""
+"Feature 1 has been reset, \n"
+"feature 2 has been feature 1"
+msgstr ""
+
+msgid "Copy to clipboard"
+msgstr "Kopírovat do schránky"
+
+msgid "Adsorbed onto the surface"
+msgstr ""
+
+msgid "modify x distance between objects"
+msgstr ""
+
+msgid "modify y distance between objects"
+msgstr ""
+
+msgid "Angle"
+msgstr "Úhel"
+
+msgid "Perpendicular distance"
+msgstr ""
+
+msgid "Distance"
+msgstr ""
+
+msgid "Direct distance"
+msgstr ""
+
+msgid "Distance XYZ"
+msgstr ""
+
 msgid "Brush size"
 msgstr "Velikost štětce"
 
@@ -592,9 +691,6 @@ msgstr "Vloženo"
 
 msgid "Text Gap"
 msgstr "Mezera v textu"
-
-msgid "Angle"
-msgstr "Úhel"
 
 msgid ""
 "Embeded\r\n"
@@ -817,9 +913,6 @@ msgstr "Vyberte soubor s G-kódem:"
 
 msgid "Import File"
 msgstr "Importovat soubor"
-
-msgid "Delete"
-msgstr "Smazat"
 
 msgid "Choose files"
 msgstr "Vyberte soubory"
@@ -2363,6 +2456,12 @@ msgstr "Plovoucí rezervovaný operand"
 msgid "Stack overflow"
 msgstr "Přetečení zásobníku"
 
+msgid "Running post-processing scripts"
+msgstr "Vykonávají se postprodukční skripty"
+
+msgid "Successfully executed post-processing script"
+msgstr ""
+
 msgid "Unknown error when export G-code."
 msgstr "Neznámá chyba při exportu G-kódu."
 
@@ -2376,13 +2475,6 @@ msgstr ""
 "Chybová zpráva: %1%.\n"
 "Zdrojový soubor %2%."
 
-#, boost-format
-msgid "Succeed to export G-code to %1%"
-msgstr "Úspěšný export G-kódu do %1%"
-
-msgid "Running post-processing scripts"
-msgstr "Vykonávají se postprodukční skripty"
-
 msgid "Copying of the temporary G-code to the output G-code failed"
 msgstr "Kopírování dočasného G-kódu do výstupního G-kódu selhalo"
 
@@ -2394,9 +2486,6 @@ msgstr ""
 
 msgid "Origin"
 msgstr "Počátek"
-
-msgid "Diameter"
-msgstr "Průměr"
 
 msgid "Size in X and Y of the rectangular plate."
 msgstr "Rozměr obdélníkové tiskové podložky v ose X a Y."
@@ -2559,26 +2648,6 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Spiral mode only works when wall loops is 1, support is disabled, top shell "
-"layers is 0, sparse infill density is 0 and timelapse type is traditional."
-msgstr ""
-"Spirálový režim funguje pouze tehdy, když je 1 smyčka na stěně, podpěry jsou "
-"deaktivovány, horní skořepina vrstvy jsou 0, hustota vnitřní výplně je 0 a "
-"typ časosběru je tradiční."
-
-msgid " But machines with I3 structure will not generate timelapse videos."
-msgstr ""
-
-msgid ""
-"Change these settings automatically? \n"
-"Yes - Change these settings and enable spiral mode automatically\n"
-"No  - Give up using spiral mode this time"
-msgstr ""
-"Změnit tato nastavení automaticky? \n"
-"Ano - Změňte tato nastavení a povolte režim spirála/váza automaticky\n"
-"Ne - zrušit povolení spirálového režimu"
-
-msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
 "Layer Height is on.\n"
 "Which do you want to keep?\n"
@@ -2629,6 +2698,26 @@ msgid ""
 msgstr ""
 "Během tisku podle objektu může extruder narazit na obrys.\n"
 "Takže resetujte vrstvu obrysu na 1, abyste tomu zabránili."
+
+msgid ""
+"Spiral mode only works when wall loops is 1, support is disabled, top shell "
+"layers is 0, sparse infill density is 0 and timelapse type is traditional."
+msgstr ""
+"Spirálový režim funguje pouze tehdy, když je 1 smyčka na stěně, podpěry jsou "
+"deaktivovány, horní skořepina vrstvy jsou 0, hustota vnitřní výplně je 0 a "
+"typ časosběru je tradiční."
+
+msgid " But machines with I3 structure will not generate timelapse videos."
+msgstr ""
+
+msgid ""
+"Change these settings automatically? \n"
+"Yes - Change these settings and enable spiral mode automatically\n"
+"No  - Give up using spiral mode this time"
+msgstr ""
+"Změnit tato nastavení automaticky? \n"
+"Ano - Změňte tato nastavení a povolte režim spirála/váza automaticky\n"
+"Ne - zrušit povolení spirálového režimu"
 
 msgid "Auto bed leveling"
 msgstr "Automatické vyrovnávání podložky"
@@ -2919,11 +3008,14 @@ msgstr "Celkem"
 msgid "Tower"
 msgstr ""
 
-msgid "Total Time Estimation"
-msgstr "Celkový odhad času"
+msgid "Total Estimation"
+msgstr "Celkový odhad"
 
 msgid "Total time"
 msgstr "Celkový čas"
+
+msgid "Total cost"
+msgstr ""
 
 msgid "up to"
 msgstr "až do"
@@ -3011,9 +3103,6 @@ msgstr "Tiskárna"
 
 msgid "Print settings"
 msgstr "Nastavení tisku"
-
-msgid "Total Estimation"
-msgstr "Celkový odhad"
 
 msgid "Time Estimation"
 msgstr "Časový odhad"
@@ -3329,8 +3418,8 @@ msgstr "Ne"
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "bude uzavřen před vytvořením nového modelu. Chcete pokračovat?"
 
-msgid "Share"
-msgstr ""
+msgid "Upload"
+msgstr "Nahrát"
 
 msgid "Slice plate"
 msgstr "Slicuj Podložku"
@@ -4218,7 +4307,7 @@ msgstr ""
 msgid "Get oss config failed."
 msgstr ""
 
-msgid "Upload Pictrues"
+msgid "Upload Pictures"
 msgstr ""
 
 msgid "Number of images successfully uploaded"
@@ -4950,8 +5039,14 @@ msgstr "Import modelu"
 msgid "prepare 3mf file..."
 msgstr "připravte soubor 3mf..."
 
+msgid "Download failed, unknown file format."
+msgstr ""
+
 msgid "downloading project ..."
 msgstr "stahuji projekt ..."
+
+msgid "Download failed, File size exception."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Project downloaded %d%%"
@@ -5041,16 +5136,20 @@ msgid ""
 "will be kept. You may fix the meshes and try agian."
 msgstr ""
 
-msgid "Reason: mesh is empty."
+#, boost-format
+msgid "Reason: part \"%1%\" is empty."
 msgstr ""
 
-msgid "Reason: mesh does not bound a volume."
+#, boost-format
+msgid "Reason: part \"%1%\" does not bound a volume."
 msgstr ""
 
-msgid "Reason: mesh has self intersection."
+#, boost-format
+msgid "Reason: part \"%1%\" has self intersection."
 msgstr ""
 
-msgid "Reason: meshes have no intersection."
+#, boost-format
+msgid "Reason: \"%1%\" and another part have no intersection."
 msgstr ""
 
 msgid ""
@@ -5472,14 +5571,35 @@ msgstr "Nekompatibilní"
 msgid "The selected preset is null!"
 msgstr "Vybrané přednastavení je nula!"
 
+msgid "End"
+msgstr ""
+
+msgid "Customize"
+msgstr ""
+
+msgid "Other layer filament sequence"
+msgstr ""
+
+msgid "Please input layer value (>= 2)."
+msgstr ""
+
 msgid "Same as Global Print Sequence"
 msgstr "Stejné jako globální tisková sekvence"
 
 msgid "Print sequence"
 msgstr "Tisková sekvence"
 
-msgid "Customize"
+msgid "Same as Global"
 msgstr ""
+
+msgid "Enable"
+msgstr "Zapnout"
+
+msgid "Disable"
+msgstr ""
+
+msgid "Spiral vase"
+msgstr "Spirálová váza"
 
 msgid "First layer filament sequence"
 msgstr ""
@@ -6157,6 +6277,9 @@ msgstr "Výstup G-kódu"
 msgid "Post-processing scripts"
 msgstr "Post-processing scripts"
 
+msgid "Notes"
+msgstr ""
+
 msgid "Frequent"
 msgstr "Časté"
 
@@ -6433,23 +6556,26 @@ msgstr "Nedefinováno"
 msgid "Unsaved Changes"
 msgstr "Neuložené změny"
 
-msgid "Transfer or discard changes"
+msgid "Actions For Unsaved Changes"
 msgstr ""
 
-msgid "Old Value"
-msgstr "Stará hodnota"
+msgid "Preset Value"
+msgstr ""
 
-msgid "New Value"
-msgstr "Nová hodnota"
+msgid "Modified Value"
+msgstr ""
 
-msgid "Transfer"
-msgstr "Přenést"
+msgid "Transfer Modified Value"
+msgstr ""
 
 msgid "Don't save"
 msgstr "Neukládat"
 
-msgid "Discard"
-msgstr "Zahodit"
+msgid "Use Preset Value"
+msgstr ""
+
+msgid "Save Modified Value"
+msgstr ""
 
 msgid "Click the right mouse button to display the full text."
 msgstr "Kliknutím pravým tlačítkem myši zobrazíte celý text."
@@ -6506,23 +6632,34 @@ msgstr ""
 "následující neuložené změny:"
 
 #, boost-format
-msgid ""
-"You have changed some settings of preset \"%1%\". \n"
-"Would you like to keep these changed settings (new value) after switching "
-"preset?"
+msgid "You have changed some settings of preset \"%1%\". "
 msgstr ""
-"Změnili jste některá nastavení předvolby \"%1%\" . \n"
-"Přejete si po přepnutí zachovat tato změněná nastavení (nová "
-"hodnota)přednastavení?"
 
 msgid ""
-"You have changed some preset settings. \n"
-"Would you like to keep these changed settings (new value) after switching "
-"preset?"
+"\n"
+"Would you like to save these changed settings(modified value)?"
 msgstr ""
-"Změnili jste některá přednastavená nastavení. \n"
-"Přejete si po přepnutí zachovat tato změněná nastavení (nová "
-"hodnota)přednastavení?"
+
+msgid ""
+"\n"
+"Would you like to keep these changed settings(modified value) after "
+"switching preset?"
+msgstr ""
+
+msgid ""
+"You have previously modified your settings and are about to overwrite them "
+"with new ones."
+msgstr ""
+
+msgid ""
+"\n"
+"Do you want to keep your current modified settings, or use preset settings?"
+msgstr ""
+
+msgid ""
+"\n"
+"Do you want to save your current modified settings?"
+msgstr ""
 
 msgid "Extruders count"
 msgstr "Počet extruderů"
@@ -6683,9 +6820,6 @@ msgstr "Seznam objektů"
 
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr "Import geometrických dat ze souborů STL/STEP/3MF/OBJ/AMF"
-
-msgid "Copy to clipboard"
-msgstr "Kopírovat do schránky"
 
 msgid "Paste from clipboard"
 msgstr "Vložit ze schránky"
@@ -7281,9 +7415,6 @@ msgstr "%1% je příliš blízko ostatním a může dojít ke kolizím."
 msgid "%1% is too tall, and collisions will be caused."
 msgstr "%1% je příliš vysoké a budou způsobeny kolize."
 
-msgid " is too close to others, there may be collisions when printing."
-msgstr " je příliš blízko ostatním, při tisku může docházet ke kolizím."
-
 msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr ""
 " je příliš blízko oblasti vyloučení, při tisku může docházet ke kolizím."
@@ -7637,6 +7768,15 @@ msgid "Bed types supported by the printer"
 msgstr "Typy podložek podporované tiskárnou"
 
 msgid "First layer print sequence"
+msgstr ""
+
+msgid "Other layers print sequence"
+msgstr ""
+
+msgid "The number of other layers print sequence"
+msgstr ""
+
+msgid "Other layers filament sequence"
 msgstr ""
 
 msgid "This G-code is inserted at every layer change before lifting z"
@@ -8151,6 +8291,24 @@ msgstr ""
 "Předstih tlaku (PA) (Klipper) AKA také známá jako faktor Linear advance "
 "(Marlin). Nepoužitelné pro tiskárny Bambu"
 
+msgid "Filament notes"
+msgstr ""
+
+msgid "You can put your notes regarding the filament here."
+msgstr ""
+
+msgid "Process notes"
+msgstr ""
+
+msgid "You can put your notes regarding the process here."
+msgstr ""
+
+msgid "Printer notes"
+msgstr ""
+
+msgid "You can put your notes regarding the printer here."
+msgstr ""
+
 msgid "Default line width if some line width is set to be zero"
 msgstr ""
 "Výchozí šířka extruze, pokud je některá šířka extruze nastavena na nulu"
@@ -8443,9 +8601,6 @@ msgid ""
 msgstr ""
 "Náhodné chvění při tisku na stěnu, takže povrch má hrubý vzhled. Toto "
 "nastavení řídí neostrou polohu"
-
-msgid "None"
-msgstr "Žádné"
 
 msgid "Contour"
 msgstr "Obrys"
@@ -8941,9 +9096,6 @@ msgstr ""
 "vytékání není vidět. To může zkrátit dobu retrakcí u složitého modelu a "
 "ušetřit čas tisku, ale zpomalit krájení a generování G-kódu"
 
-msgid "Enable"
-msgstr "Zapnout"
-
 msgid "Filename format"
 msgstr "Formát názvu souboru"
 
@@ -9046,9 +9198,6 @@ msgstr "Retrakce při změně vrstvy"
 
 msgid "Force a retraction when changes layer"
 msgstr "Vynutit retrakci při změně vrstvy"
-
-msgid "Length"
-msgstr "Vzdálenost"
 
 msgid "Retraction Length"
 msgstr "Vzdálenost retrakce"
@@ -9207,9 +9356,6 @@ msgstr "Šířka extruze pro vnitřní výplň"
 
 msgid "Speed of internal solid infill, not the top and bottom surface"
 msgstr "Rychlost vnitřní plné výplně, nikoli horní a spodní plochy"
-
-msgid "Spiral vase"
-msgstr "Spirálová váza"
 
 msgid ""
 "Spiralize smooths out the z moves of the outer contour. And turns a solid "
@@ -10661,9 +10807,6 @@ msgstr "Pokud je to nutné, použijte pro oddělení složek lomítko (/)."
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
 msgstr "Název nahrávaného souboru neskončí s \"%s\". Přejete si pokračovat?"
 
-msgid "Upload"
-msgstr "Nahrát"
-
 msgid "Simulate"
 msgstr "Simulovat"
 
@@ -11094,6 +11237,13 @@ msgid ""
 "Please note that nozzle temperature, hot bed temperature, and maximum "
 "volumetric speed has a significant impact on printing quality. Please set "
 "them carefully."
+msgstr ""
+
+msgid ""
+"Studio has detected that your user presets synchronization function is not "
+"enabled, which may result in unsuccessful Filament settings on the Device "
+"page. \n"
+"Click \"Sync user presets\" to enable the synchronization function."
 msgstr ""
 
 msgid "Printer Setting"
@@ -11696,6 +11846,50 @@ msgid ""
 "probability of warping."
 msgstr ""
 
+#~ msgid "Volume Operations"
+#~ msgstr "Operace s objemem"
+
+#, boost-format
+#~ msgid "Succeed to export G-code to %1%"
+#~ msgstr "Úspěšný export G-kódu do %1%"
+
+#~ msgid "Total Time Estimation"
+#~ msgstr "Celkový odhad času"
+
+#~ msgid "Old Value"
+#~ msgstr "Stará hodnota"
+
+#~ msgid "New Value"
+#~ msgstr "Nová hodnota"
+
+#~ msgid "Transfer"
+#~ msgstr "Přenést"
+
+#~ msgid "Discard"
+#~ msgstr "Zahodit"
+
+#, boost-format
+#~ msgid ""
+#~ "You have changed some settings of preset \"%1%\". \n"
+#~ "Would you like to keep these changed settings (new value) after switching "
+#~ "preset?"
+#~ msgstr ""
+#~ "Změnili jste některá nastavení předvolby \"%1%\" . \n"
+#~ "Přejete si po přepnutí zachovat tato změněná nastavení (nová "
+#~ "hodnota)přednastavení?"
+
+#~ msgid ""
+#~ "You have changed some preset settings. \n"
+#~ "Would you like to keep these changed settings (new value) after switching "
+#~ "preset?"
+#~ msgstr ""
+#~ "Změnili jste některá přednastavená nastavení. \n"
+#~ "Přejete si po přepnutí zachovat tato změněná nastavení (nová "
+#~ "hodnota)přednastavení?"
+
+#~ msgid " is too close to others, there may be collisions when printing."
+#~ msgstr " je příliš blízko ostatním, při tisku může docházet ke kolizím."
+
 #, c-format, boost-format
 #~ msgid "No files [%d]"
 #~ msgstr "Žádné soubory [%d]"
@@ -12268,9 +12462,6 @@ msgstr ""
 
 #~ msgid "Ctrl+Left mouse button"
 #~ msgstr "Ctrl+levé tlačítko myši"
-
-#~ msgid "Esc"
-#~ msgstr "Esc"
 
 #~ msgid "IP"
 #~ msgstr "IP"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-23 20:04+0800\n"
+"POT-Creation-Date: 2024-03-05 14:55+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -227,8 +227,11 @@ msgstr "스케일 비율"
 msgid "Object Operations"
 msgstr "객체 작업"
 
-msgid "Volume Operations"
-msgstr "볼륨 작업"
+msgid "Rotate (relative)"
+msgstr ""
+
+msgid "Translate (relative) [World]"
+msgstr ""
 
 msgid "Translate"
 msgstr "번역"
@@ -546,6 +549,102 @@ msgstr "얼굴 인식"
 msgid "Perform Recognition"
 msgstr "인식 실행"
 
+msgid "Vertex"
+msgstr ""
+
+msgid "Edge"
+msgstr ""
+
+msgid "Plane"
+msgstr ""
+
+msgid "Point on edge"
+msgstr ""
+
+msgid "Point on circle"
+msgstr ""
+
+msgid "Point on plane"
+msgstr ""
+
+msgid "Center of edge"
+msgstr ""
+
+msgid "Center of circle"
+msgstr ""
+
+msgid "Select feature"
+msgstr ""
+
+msgid "Select point"
+msgstr ""
+
+msgid "Delete"
+msgstr "삭제"
+
+msgid "Restart selection"
+msgstr ""
+
+msgid "Esc"
+msgstr "Esc"
+
+msgid "Cancel a feature until exit"
+msgstr ""
+
+msgid "Measure"
+msgstr ""
+
+msgid "Edit to scale"
+msgstr ""
+
+msgctxt "Verb"
+msgid "Scale all"
+msgstr ""
+
+msgid "None"
+msgstr "설정 안 함"
+
+msgid "Diameter"
+msgstr "직경"
+
+msgid "Length"
+msgstr "길이"
+
+msgid "Selection"
+msgstr ""
+
+msgid ""
+"Feature 1 has been reset, \n"
+"feature 2 has been feature 1"
+msgstr ""
+
+msgid "Copy to clipboard"
+msgstr "클립보드에 복사"
+
+msgid "Adsorbed onto the surface"
+msgstr ""
+
+msgid "modify x distance between objects"
+msgstr ""
+
+msgid "modify y distance between objects"
+msgstr ""
+
+msgid "Angle"
+msgstr "각도"
+
+msgid "Perpendicular distance"
+msgstr ""
+
+msgid "Distance"
+msgstr ""
+
+msgid "Direct distance"
+msgstr ""
+
+msgid "Distance XYZ"
+msgstr ""
+
 msgid "Brush size"
 msgstr "브러시 크기"
 
@@ -587,9 +686,6 @@ msgstr "음각"
 
 msgid "Text Gap"
 msgstr "글자 간격"
-
-msgid "Angle"
-msgstr "각도"
 
 msgid ""
 "Embeded\r\n"
@@ -813,9 +909,6 @@ msgstr "G 코드 파일 선택:"
 
 msgid "Import File"
 msgstr "파일 가져오기"
-
-msgid "Delete"
-msgstr "삭제"
 
 msgid "Choose files"
 msgstr "파일 선택"
@@ -2339,6 +2432,12 @@ msgstr "Floating reserved operand"
 msgid "Stack overflow"
 msgstr "Stack overflow"
 
+msgid "Running post-processing scripts"
+msgstr "포스트 프로세싱 스크립트 실행"
+
+msgid "Successfully executed post-processing script"
+msgstr ""
+
 msgid "Unknown error when export G-code."
 msgstr "G 코드 내보내기 시 알 수 없는 오류"
 
@@ -2352,13 +2451,6 @@ msgstr ""
 "오류 메시지: %1%.\n"
 "소스 파일 %2%."
 
-#, boost-format
-msgid "Succeed to export G-code to %1%"
-msgstr "성공! G 코드를 %1%로 내보냈습니다."
-
-msgid "Running post-processing scripts"
-msgstr "포스트 프로세싱 스크립트 실행"
-
 msgid "Copying of the temporary G-code to the output G-code failed"
 msgstr "임시 G 코드를 출력 G 코드로 복사하는데 실패했습니다."
 
@@ -2368,9 +2460,6 @@ msgstr "'%1%`로 업로드를 예약합니다. 창 -> 호스트 업로드 대기
 
 msgid "Origin"
 msgstr "원점"
-
-msgid "Diameter"
-msgstr "직경"
 
 msgid "Size in X and Y of the rectangular plate."
 msgstr "직사각형 베드의 X, Y 크기"
@@ -2533,25 +2622,6 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Spiral mode only works when wall loops is 1, support is disabled, top shell "
-"layers is 0, sparse infill density is 0 and timelapse type is traditional."
-msgstr ""
-"나선형 꽃병모드는 다음 경우에만 작동합니다. 벽 수 1, 서포트 비활성화, 상단 레"
-"이어 0, 내부채움 밀도 0, 타임랩스 유형 일반."
-
-msgid " But machines with I3 structure will not generate timelapse videos."
-msgstr " But machines with I3 structure will not generate timelapse videos."
-
-msgid ""
-"Change these settings automatically? \n"
-"Yes - Change these settings and enable spiral mode automatically\n"
-"No  - Give up using spiral mode this time"
-msgstr ""
-"이 설정을 자동으로 변경하시겠습니까?\n"
-"예 - 이 설정을 변경하고 나선형/꽃병 모드를 자동으로 활성화\n"
-"아니요 - 나선형 모드 활성화 취소"
-
-msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
 "Layer Height is on.\n"
 "Which do you want to keep?\n"
@@ -2602,6 +2672,25 @@ msgid ""
 msgstr ""
 "객체별로 출력하는 동안 압출기가 스커트와 충돌할 수 있습니다. \n"
 "따라서 충돌을 피하기 위해 스커트 레이어를 1로 재설정합니다."
+
+msgid ""
+"Spiral mode only works when wall loops is 1, support is disabled, top shell "
+"layers is 0, sparse infill density is 0 and timelapse type is traditional."
+msgstr ""
+"나선형 꽃병모드는 다음 경우에만 작동합니다. 벽 수 1, 서포트 비활성화, 상단 레"
+"이어 0, 내부채움 밀도 0, 타임랩스 유형 일반."
+
+msgid " But machines with I3 structure will not generate timelapse videos."
+msgstr " But machines with I3 structure will not generate timelapse videos."
+
+msgid ""
+"Change these settings automatically? \n"
+"Yes - Change these settings and enable spiral mode automatically\n"
+"No  - Give up using spiral mode this time"
+msgstr ""
+"이 설정을 자동으로 변경하시겠습니까?\n"
+"예 - 이 설정을 변경하고 나선형/꽃병 모드를 자동으로 활성화\n"
+"아니요 - 나선형 모드 활성화 취소"
 
 msgid "Auto bed leveling"
 msgstr "오토 베드레벨링"
@@ -2893,11 +2982,14 @@ msgstr "합계"
 msgid "Tower"
 msgstr "Tower"
 
-msgid "Total Time Estimation"
-msgstr "총 시간 예상"
+msgid "Total Estimation"
+msgstr "전체 예상치"
 
 msgid "Total time"
 msgstr "총 시간"
+
+msgid "Total cost"
+msgstr ""
 
 msgid "up to"
 msgstr "최대"
@@ -2985,9 +3077,6 @@ msgstr "프린터"
 
 msgid "Print settings"
 msgstr "출력 설정"
-
-msgid "Total Estimation"
-msgstr "전체 예상치"
 
 msgid "Time Estimation"
 msgstr "시간 예상"
@@ -3303,8 +3392,8 @@ msgstr "아니요"
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "새 모델을 생성하기 전에 닫힙니다. 계속하시겠습니까?"
 
-msgid "Share"
-msgstr "Share"
+msgid "Upload"
+msgstr "Upload"
 
 msgid "Slice plate"
 msgstr "플레이트 슬라이스"
@@ -4184,8 +4273,8 @@ msgstr "InFo"
 msgid "Get oss config failed."
 msgstr "Get oss config failed."
 
-msgid "Upload Pictrues"
-msgstr "Upload Pictrues"
+msgid "Upload Pictures"
+msgstr ""
 
 msgid "Number of images successfully uploaded"
 msgstr "Number of images successfully uploaded"
@@ -4936,8 +5025,14 @@ msgstr "모델 가져오기"
 msgid "prepare 3mf file..."
 msgstr "3mf 파일 준비 중..."
 
+msgid "Download failed, unknown file format."
+msgstr ""
+
 msgid "downloading project ..."
 msgstr "프로젝트 다운로드 중..."
+
+msgid "Download failed, File size exception."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Project downloaded %d%%"
@@ -5030,16 +5125,20 @@ msgid ""
 "will be kept. You may fix the meshes and try agian."
 msgstr ""
 
-msgid "Reason: mesh is empty."
+#, boost-format
+msgid "Reason: part \"%1%\" is empty."
 msgstr ""
 
-msgid "Reason: mesh does not bound a volume."
+#, boost-format
+msgid "Reason: part \"%1%\" does not bound a volume."
 msgstr ""
 
-msgid "Reason: mesh has self intersection."
+#, boost-format
+msgid "Reason: part \"%1%\" has self intersection."
 msgstr ""
 
-msgid "Reason: meshes have no intersection."
+#, boost-format
+msgid "Reason: \"%1%\" and another part have no intersection."
 msgstr ""
 
 msgid ""
@@ -5462,14 +5561,35 @@ msgstr "호환되지 않음"
 msgid "The selected preset is null!"
 msgstr "The selected preset is null!"
 
+msgid "End"
+msgstr ""
+
+msgid "Customize"
+msgstr "Customize"
+
+msgid "Other layer filament sequence"
+msgstr ""
+
+msgid "Please input layer value (>= 2)."
+msgstr ""
+
 msgid "Same as Global Print Sequence"
 msgstr "글로벌 출력 시퀀스와 동일"
 
 msgid "Print sequence"
 msgstr "출력 순서"
 
-msgid "Customize"
-msgstr "Customize"
+msgid "Same as Global"
+msgstr ""
+
+msgid "Enable"
+msgstr "활성화"
+
+msgid "Disable"
+msgstr ""
+
+msgid "Spiral vase"
+msgstr "나선형 꽃병모드"
 
 msgid "First layer filament sequence"
 msgstr "First layer filament sequence"
@@ -6142,6 +6262,9 @@ msgstr "G 코드 출력"
 msgid "Post-processing scripts"
 msgstr "후처리 스크립트"
 
+msgid "Notes"
+msgstr ""
+
 msgid "Frequent"
 msgstr "Frequent"
 
@@ -6414,23 +6537,26 @@ msgstr "정의되지 않음"
 msgid "Unsaved Changes"
 msgstr "저장 안 된 변경사항"
 
-msgid "Transfer or discard changes"
-msgstr "Transfer or discard changes"
+msgid "Actions For Unsaved Changes"
+msgstr ""
 
-msgid "Old Value"
-msgstr "이전 값"
+msgid "Preset Value"
+msgstr ""
 
-msgid "New Value"
-msgstr "새 값"
+msgid "Modified Value"
+msgstr ""
 
-msgid "Transfer"
-msgstr "전송"
+msgid "Transfer Modified Value"
+msgstr ""
 
 msgid "Don't save"
 msgstr "저장 안함"
 
-msgid "Discard"
-msgstr "삭제"
+msgid "Use Preset Value"
+msgstr ""
+
+msgid "Save Modified Value"
+msgstr ""
 
 msgid "Click the right mouse button to display the full text."
 msgstr "마우스 오른쪽 버튼을 클릭하면 전체 텍스트가 표시됩니다."
@@ -6487,21 +6613,34 @@ msgstr ""
 "은 변경 사항을 포함합니다:"
 
 #, boost-format
-msgid ""
-"You have changed some settings of preset \"%1%\". \n"
-"Would you like to keep these changed settings (new value) after switching "
-"preset?"
+msgid "You have changed some settings of preset \"%1%\". "
 msgstr ""
-"사전 설정 \"%1%\"의 일부 설정을 변경했습니다.\n"
-"사전 설정을 전환한 후 변경된 설정(새 값)을 유지하시겠습니까?"
 
 msgid ""
-"You have changed some preset settings. \n"
-"Would you like to keep these changed settings (new value) after switching "
-"preset?"
+"\n"
+"Would you like to save these changed settings(modified value)?"
 msgstr ""
-"일부 프리셋 설정을 변경했습니다. \n"
-"프리셋을 전환한 후에도 변경된 설정(새 값)을 유지하시겠습니까?"
+
+msgid ""
+"\n"
+"Would you like to keep these changed settings(modified value) after "
+"switching preset?"
+msgstr ""
+
+msgid ""
+"You have previously modified your settings and are about to overwrite them "
+"with new ones."
+msgstr ""
+
+msgid ""
+"\n"
+"Do you want to keep your current modified settings, or use preset settings?"
+msgstr ""
+
+msgid ""
+"\n"
+"Do you want to save your current modified settings?"
+msgstr ""
 
 msgid "Extruders count"
 msgstr "압출기 수"
@@ -6665,9 +6804,6 @@ msgstr "객체 목록"
 
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr "STL/STEP/3MF/OBJ/AMF 파일에서 형상 데이터를 가져옵니다."
-
-msgid "Copy to clipboard"
-msgstr "클립보드에 복사"
 
 msgid "Paste from clipboard"
 msgstr "클립보드에서 붙여넣기"
@@ -7260,9 +7396,6 @@ msgstr "%1%이(가) 다른 것들과 너무 가까워 충돌이 발생할 수 �
 msgid "%1% is too tall, and collisions will be caused."
 msgstr "%1%은(는) 너무 커서 충돌이 발생합니다."
 
-msgid " is too close to others, there may be collisions when printing."
-msgstr " 다른 제품과 너무 가까워서 출력 시 충돌이 발생할 수 있습니다."
-
 msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr "출력배제영역에 너무 가까워 출력시 충돌이 발생할 수 있습니다."
 
@@ -7617,6 +7750,15 @@ msgstr "프린터에서 지원되는 플레이트 유형"
 
 msgid "First layer print sequence"
 msgstr "First layer print sequence"
+
+msgid "Other layers print sequence"
+msgstr ""
+
+msgid "The number of other layers print sequence"
+msgstr ""
+
+msgid "Other layers filament sequence"
+msgstr ""
 
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "이 G 코드는 z를 들어 올리기 전에 모든 레이어 변경시 삽입됩니다."
@@ -8130,6 +8272,24 @@ msgstr ""
 "Pressure advance(Klipper) AKA Linear advance factor(Marlin). Useless for "
 "Bambu Printer"
 
+msgid "Filament notes"
+msgstr ""
+
+msgid "You can put your notes regarding the filament here."
+msgstr ""
+
+msgid "Process notes"
+msgstr ""
+
+msgid "You can put your notes regarding the process here."
+msgstr ""
+
+msgid "Printer notes"
+msgstr ""
+
+msgid "You can put your notes regarding the printer here."
+msgstr ""
+
 msgid "Default line width if some line width is set to be zero"
 msgstr "선폭이 0으로 설정된 경우의 기본 선폭"
 
@@ -8426,9 +8586,6 @@ msgid ""
 msgstr ""
 "이 설정은 벽을 인쇄하는 동안 헤드가 무작위로 왔다갔다 이동하여 거친 질감의 표"
 "면을 얻을 수 있습니다. 이 설정은 fuzzy 위치를 제어합니다."
-
-msgid "None"
-msgstr "설정 안 함"
 
 msgid "Contour"
 msgstr "윤곽"
@@ -8919,9 +9076,6 @@ msgstr ""
 "보이지 않기 때문입니다. 이렇게 하면 복잡한 모델의 리트랙션 시간을 줄이고 출"
 "력 시간을 절약할 수 있지만 슬라이싱 및 G 코드 생성 속도가 느려집니다."
 
-msgid "Enable"
-msgstr "활성화"
-
 msgid "Filename format"
 msgstr "파일 이름 형식"
 
@@ -9023,9 +9177,6 @@ msgstr "레이어 변경 시 리트랙션"
 
 msgid "Force a retraction when changes layer"
 msgstr "이렇게 하면 레이어 변경시 리트랙션이 진행됩니다"
-
-msgid "Length"
-msgstr "길이"
 
 msgid "Retraction Length"
 msgstr "리트랙션 길이"
@@ -9185,9 +9336,6 @@ msgstr "내부 솔리드 채움의 선폭"
 
 msgid "Speed of internal solid infill, not the top and bottom surface"
 msgstr "상단 또는 하단 표면을 제외한 내부 솔리드 채움 속도입니다."
-
-msgid "Spiral vase"
-msgstr "나선형 꽃병모드"
 
 msgid ""
 "Spiralize smooths out the z moves of the outer contour. And turns a solid "
@@ -10631,9 +10779,6 @@ msgstr "Use forward slashes ( / ) as a directory separator if needed."
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
 msgstr "Upload filename doesn't end with \"%s\". Do you wish to continue?"
 
-msgid "Upload"
-msgstr "Upload"
-
 msgid "Simulate"
 msgstr "Simulate"
 
@@ -11093,6 +11238,13 @@ msgid ""
 "Please note that nozzle temperature, hot bed temperature, and maximum "
 "volumetric speed has a significant impact on printing quality. Please set "
 "them carefully."
+msgstr ""
+
+msgid ""
+"Studio has detected that your user presets synchronization function is not "
+"enabled, which may result in unsuccessful Filament settings on the Device "
+"page. \n"
+"Click \"Sync user presets\" to enable the synchronization function."
 msgstr ""
 
 msgid "Printer Setting"
@@ -11740,6 +11892,57 @@ msgstr ""
 "Did you know that when printing materials that are prone to warping such as "
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
+
+#~ msgid "Volume Operations"
+#~ msgstr "볼륨 작업"
+
+#, boost-format
+#~ msgid "Succeed to export G-code to %1%"
+#~ msgstr "성공! G 코드를 %1%로 내보냈습니다."
+
+#~ msgid "Total Time Estimation"
+#~ msgstr "총 시간 예상"
+
+#~ msgid "Share"
+#~ msgstr "Share"
+
+#~ msgid "Upload Pictrues"
+#~ msgstr "Upload Pictrues"
+
+#~ msgid "Transfer or discard changes"
+#~ msgstr "Transfer or discard changes"
+
+#~ msgid "Old Value"
+#~ msgstr "이전 값"
+
+#~ msgid "New Value"
+#~ msgstr "새 값"
+
+#~ msgid "Transfer"
+#~ msgstr "전송"
+
+#~ msgid "Discard"
+#~ msgstr "삭제"
+
+#, boost-format
+#~ msgid ""
+#~ "You have changed some settings of preset \"%1%\". \n"
+#~ "Would you like to keep these changed settings (new value) after switching "
+#~ "preset?"
+#~ msgstr ""
+#~ "사전 설정 \"%1%\"의 일부 설정을 변경했습니다.\n"
+#~ "사전 설정을 전환한 후 변경된 설정(새 값)을 유지하시겠습니까?"
+
+#~ msgid ""
+#~ "You have changed some preset settings. \n"
+#~ "Would you like to keep these changed settings (new value) after switching "
+#~ "preset?"
+#~ msgstr ""
+#~ "일부 프리셋 설정을 변경했습니다. \n"
+#~ "프리셋을 전환한 후에도 변경된 설정(새 값)을 유지하시겠습니까?"
+
+#~ msgid " is too close to others, there may be collisions when printing."
+#~ msgstr " 다른 제품과 너무 가까워서 출력 시 충돌이 발생할 수 있습니다."
 
 #, c-format, boost-format
 #~ msgid "No files [%d]"
@@ -12873,9 +13076,6 @@ msgstr ""
 
 #~ msgid "Error at line %1%:\n"
 #~ msgstr "%1% 줄의 오류:\n"
-
-#~ msgid "Esc"
-#~ msgstr "Esc"
 
 #~ msgid "Export."
 #~ msgstr "내보내기"

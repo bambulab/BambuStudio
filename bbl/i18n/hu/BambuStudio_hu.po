@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-23 20:04+0800\n"
+"POT-Creation-Date: 2024-03-05 14:55+0800\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -224,8 +224,11 @@ msgstr "Méretarányok"
 msgid "Object Operations"
 msgstr "Objektum műveletek"
 
-msgid "Volume Operations"
-msgstr "Térfogat műveletek"
+msgid "Rotate (relative)"
+msgstr ""
+
+msgid "Translate (relative) [World]"
+msgstr ""
 
 msgid "Translate"
 msgstr "Fordítás"
@@ -546,6 +549,102 @@ msgstr "Arcfelismerés"
 msgid "Perform Recognition"
 msgstr "Felismerés"
 
+msgid "Vertex"
+msgstr ""
+
+msgid "Edge"
+msgstr ""
+
+msgid "Plane"
+msgstr ""
+
+msgid "Point on edge"
+msgstr ""
+
+msgid "Point on circle"
+msgstr ""
+
+msgid "Point on plane"
+msgstr ""
+
+msgid "Center of edge"
+msgstr ""
+
+msgid "Center of circle"
+msgstr ""
+
+msgid "Select feature"
+msgstr ""
+
+msgid "Select point"
+msgstr ""
+
+msgid "Delete"
+msgstr "Törlés"
+
+msgid "Restart selection"
+msgstr ""
+
+msgid "Esc"
+msgstr "Esc"
+
+msgid "Cancel a feature until exit"
+msgstr ""
+
+msgid "Measure"
+msgstr ""
+
+msgid "Edit to scale"
+msgstr ""
+
+msgctxt "Verb"
+msgid "Scale all"
+msgstr ""
+
+msgid "None"
+msgstr "Sehol"
+
+msgid "Diameter"
+msgstr "Átmérő"
+
+msgid "Length"
+msgstr "Hossz"
+
+msgid "Selection"
+msgstr ""
+
+msgid ""
+"Feature 1 has been reset, \n"
+"feature 2 has been feature 1"
+msgstr ""
+
+msgid "Copy to clipboard"
+msgstr "Másolás a vágólapra"
+
+msgid "Adsorbed onto the surface"
+msgstr ""
+
+msgid "modify x distance between objects"
+msgstr ""
+
+msgid "modify y distance between objects"
+msgstr ""
+
+msgid "Angle"
+msgstr "Szög"
+
+msgid "Perpendicular distance"
+msgstr ""
+
+msgid "Distance"
+msgstr ""
+
+msgid "Direct distance"
+msgstr ""
+
+msgid "Distance XYZ"
+msgstr ""
+
 msgid "Brush size"
 msgstr "Ecset mérete"
 
@@ -587,9 +686,6 @@ msgstr "Beágyazott"
 
 msgid "Text Gap"
 msgstr "Szövegköz"
-
-msgid "Angle"
-msgstr "Szög"
 
 msgid ""
 "Embeded\r\n"
@@ -821,9 +917,6 @@ msgstr "Válassz egy G-code fájlt:"
 
 msgid "Import File"
 msgstr "Fájl importálása"
-
-msgid "Delete"
-msgstr "Törlés"
 
 msgid "Choose files"
 msgstr "Fájlok kiválasztása"
@@ -2388,6 +2481,12 @@ msgstr "Lebegőpontos foglalt operandus"
 msgid "Stack overflow"
 msgstr "Verem túlcsordulás"
 
+msgid "Running post-processing scripts"
+msgstr "Utófeldolgozási szkriptek futtatása"
+
+msgid "Successfully executed post-processing script"
+msgstr ""
+
 msgid "Unknown error when export G-code."
 msgstr "Ismeretlen hiba a G-kód exportálásakor."
 
@@ -2401,13 +2500,6 @@ msgstr ""
 "Hibaüzenet: %1%.\n"
 "Forrás fájl: %2%."
 
-#, boost-format
-msgid "Succeed to export G-code to %1%"
-msgstr "G-kód sikeresen exportálva ide: %1%"
-
-msgid "Running post-processing scripts"
-msgstr "Utófeldolgozási szkriptek futtatása"
-
 msgid "Copying of the temporary G-code to the output G-code failed"
 msgstr "Nem sikerült az ideiglenes G-kódot a kimeneti G-kódba másolni."
 
@@ -2418,9 +2510,6 @@ msgstr ""
 
 msgid "Origin"
 msgstr "Origó"
-
-msgid "Diameter"
-msgstr "Átmérő"
 
 msgid "Size in X and Y of the rectangular plate."
 msgstr "A téglalap alakú tálca mérete X-ben és Y-ban."
@@ -2585,27 +2674,6 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Spiral mode only works when wall loops is 1, support is disabled, top shell "
-"layers is 0, sparse infill density is 0 and timelapse type is traditional."
-msgstr ""
-"A spirál mód csak akkor működik, ha a falak száma 1, a támaszok ki vannak "
-"kapcsolva, a felső rétegek száma 0 és a hiányos kitöltés sűrűsége 0 és a "
-"timelapse hagyományosra van állítva."
-
-msgid " But machines with I3 structure will not generate timelapse videos."
-msgstr " But machines with I3 structure will not generate timelapse videos."
-
-msgid ""
-"Change these settings automatically? \n"
-"Yes - Change these settings and enable spiral mode automatically\n"
-"No  - Give up using spiral mode this time"
-msgstr ""
-"Automatikusan megváltoztatod ezeket a beállításokat?\n"
-"Igen  - Módosítsa ezeket a beállításokat, és automatikusan engedélyezze a "
-"spirál mód használatát\n"
-"Nem - Ne használja a spirál módot ez alkalommal"
-
-msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
 "Layer Height is on.\n"
 "Which do you want to keep?\n"
@@ -2657,6 +2725,27 @@ msgid ""
 msgstr ""
 "A tárgy nyomtatása közben a fej beleütközhet a szoknyába.\n"
 "Ezért az ütközés elkerülése érdekében állítsd vissza a szoknyaréteget 1-re."
+
+msgid ""
+"Spiral mode only works when wall loops is 1, support is disabled, top shell "
+"layers is 0, sparse infill density is 0 and timelapse type is traditional."
+msgstr ""
+"A spirál mód csak akkor működik, ha a falak száma 1, a támaszok ki vannak "
+"kapcsolva, a felső rétegek száma 0 és a hiányos kitöltés sűrűsége 0 és a "
+"timelapse hagyományosra van állítva."
+
+msgid " But machines with I3 structure will not generate timelapse videos."
+msgstr " But machines with I3 structure will not generate timelapse videos."
+
+msgid ""
+"Change these settings automatically? \n"
+"Yes - Change these settings and enable spiral mode automatically\n"
+"No  - Give up using spiral mode this time"
+msgstr ""
+"Automatikusan megváltoztatod ezeket a beállításokat?\n"
+"Igen  - Módosítsa ezeket a beállításokat, és automatikusan engedélyezze a "
+"spirál mód használatát\n"
+"Nem - Ne használja a spirál módot ez alkalommal"
 
 msgid "Auto bed leveling"
 msgstr "Automatikus asztalszintezés"
@@ -2948,11 +3037,14 @@ msgstr "Összesen"
 msgid "Tower"
 msgstr "Tower"
 
-msgid "Total Time Estimation"
-msgstr "Teljes becsült idő"
+msgid "Total Estimation"
+msgstr "Összesített becslés"
 
 msgid "Total time"
 msgstr "Teljes idő"
+
+msgid "Total cost"
+msgstr ""
 
 msgid "up to"
 msgstr "legfeljebb"
@@ -3040,9 +3132,6 @@ msgstr "Nyomtató"
 
 msgid "Print settings"
 msgstr "Nyomtatási beállítások"
-
-msgid "Total Estimation"
-msgstr "Összesített becslés"
 
 msgid "Time Estimation"
 msgstr "Időbecslés"
@@ -3359,8 +3448,8 @@ msgstr "Nem"
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "bezáródik az új modell létrehozása előtt. Folytatod?"
 
-msgid "Share"
-msgstr "Share"
+msgid "Upload"
+msgstr "Feltöltés"
 
 msgid "Slice plate"
 msgstr "Tálca szeletelése"
@@ -4243,8 +4332,8 @@ msgstr "InFo"
 msgid "Get oss config failed."
 msgstr "Get oss config failed."
 
-msgid "Upload Pictrues"
-msgstr "Upload Pictrues"
+msgid "Upload Pictures"
+msgstr ""
 
 msgid "Number of images successfully uploaded"
 msgstr "Number of images successfully uploaded"
@@ -5004,8 +5093,14 @@ msgstr "Modell importálása"
 msgid "prepare 3mf file..."
 msgstr "3mf fájl előkészítése..."
 
+msgid "Download failed, unknown file format."
+msgstr ""
+
 msgid "downloading project ..."
 msgstr "projekt letöltése ..."
+
+msgid "Download failed, File size exception."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Project downloaded %d%%"
@@ -5098,16 +5193,20 @@ msgid ""
 "will be kept. You may fix the meshes and try agian."
 msgstr ""
 
-msgid "Reason: mesh is empty."
+#, boost-format
+msgid "Reason: part \"%1%\" is empty."
 msgstr ""
 
-msgid "Reason: mesh does not bound a volume."
+#, boost-format
+msgid "Reason: part \"%1%\" does not bound a volume."
 msgstr ""
 
-msgid "Reason: mesh has self intersection."
+#, boost-format
+msgid "Reason: part \"%1%\" has self intersection."
 msgstr ""
 
-msgid "Reason: meshes have no intersection."
+#, boost-format
+msgid "Reason: \"%1%\" and another part have no intersection."
 msgstr ""
 
 msgid ""
@@ -5535,14 +5634,35 @@ msgstr "Nem kompatibilis"
 msgid "The selected preset is null!"
 msgstr "A kiválasztott beállítás nulla!"
 
+msgid "End"
+msgstr ""
+
+msgid "Customize"
+msgstr "Customize"
+
+msgid "Other layer filament sequence"
+msgstr ""
+
+msgid "Please input layer value (>= 2)."
+msgstr ""
+
 msgid "Same as Global Print Sequence"
 msgstr "Ugyanaz, mint a globális nyomtatási sorrend"
 
 msgid "Print sequence"
 msgstr "Nyomtatás sorrendje"
 
-msgid "Customize"
-msgstr "Customize"
+msgid "Same as Global"
+msgstr ""
+
+msgid "Enable"
+msgstr "Engedélyezve"
+
+msgid "Disable"
+msgstr ""
+
+msgid "Spiral vase"
+msgstr "Spirál (váza)"
 
 msgid "First layer filament sequence"
 msgstr "First layer filament sequence"
@@ -6239,6 +6359,9 @@ msgstr "G-kód kimenet"
 msgid "Post-processing scripts"
 msgstr "Utófeldolgozási szkriptek"
 
+msgid "Notes"
+msgstr ""
+
 msgid "Frequent"
 msgstr "Gyakori"
 
@@ -6525,23 +6648,26 @@ msgstr "Nincs meghatározva"
 msgid "Unsaved Changes"
 msgstr "mentetlen változások"
 
-msgid "Transfer or discard changes"
-msgstr "Transfer or discard changes"
+msgid "Actions For Unsaved Changes"
+msgstr ""
 
-msgid "Old Value"
-msgstr "Régi érték"
+msgid "Preset Value"
+msgstr ""
 
-msgid "New Value"
-msgstr "Új érték"
+msgid "Modified Value"
+msgstr ""
 
-msgid "Transfer"
-msgstr "Átvitel"
+msgid "Transfer Modified Value"
+msgstr ""
 
 msgid "Don't save"
 msgstr "Ne mentsd"
 
-msgid "Discard"
-msgstr "Elvetés"
+msgid "Use Preset Value"
+msgstr ""
+
+msgid "Save Modified Value"
+msgstr ""
 
 msgid "Click the right mouse button to display the full text."
 msgstr "Kattints a jobb egérgombbal a teljes szöveg megjelenítéséhez."
@@ -6599,22 +6725,34 @@ msgstr ""
 "következő elmentetlen változásokat tartalmazza:"
 
 #, boost-format
-msgid ""
-"You have changed some settings of preset \"%1%\". \n"
-"Would you like to keep these changed settings (new value) after switching "
-"preset?"
+msgid "You have changed some settings of preset \"%1%\". "
 msgstr ""
-"Megváltoztattad a(z) \"%1%\" beállítás néhány beállítását.\n"
-"Szeretnéd ezeket a módosított beállításokat (új értéket) megtartani a másik "
-"beállításra való váltás után?"
 
 msgid ""
-"You have changed some preset settings. \n"
-"Would you like to keep these changed settings (new value) after switching "
-"preset?"
+"\n"
+"Would you like to save these changed settings(modified value)?"
 msgstr ""
-"Megváltoztattál néhány beállítást.\n"
-"Szeretnéd ezeket megtartani a másik beállításra való váltás után?"
+
+msgid ""
+"\n"
+"Would you like to keep these changed settings(modified value) after "
+"switching preset?"
+msgstr ""
+
+msgid ""
+"You have previously modified your settings and are about to overwrite them "
+"with new ones."
+msgstr ""
+
+msgid ""
+"\n"
+"Do you want to keep your current modified settings, or use preset settings?"
+msgstr ""
+
+msgid ""
+"\n"
+"Do you want to save your current modified settings?"
+msgstr ""
 
 msgid "Extruders count"
 msgstr "Extruderek száma"
@@ -6779,9 +6917,6 @@ msgstr "Objektumok listája"
 
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr "Geometriai adatok importálása STL/STEP/3MF/OBJ/AMF fájlokból"
-
-msgid "Copy to clipboard"
-msgstr "Másolás a vágólapra"
 
 msgid "Paste from clipboard"
 msgstr "Beillesztés a vágólapról"
@@ -7392,10 +7527,6 @@ msgstr ""
 msgid "%1% is too tall, and collisions will be caused."
 msgstr "%1% túl magas, a nyomtatás során előfordulhatnak ütközések."
 
-msgid " is too close to others, there may be collisions when printing."
-msgstr ""
-"túl közel van más tárgyakhoz, a nyomtatás során előfordulhatnak ütközések."
-
 msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr ""
 "túl közel van a tiltott területhez, a nyomtatás során előfordulhatnak "
@@ -7770,6 +7901,15 @@ msgstr "Nyomtató által támogatott asztaltípusok"
 
 msgid "First layer print sequence"
 msgstr "Az első réteg nyomtatási sorrendje"
+
+msgid "Other layers print sequence"
+msgstr ""
+
+msgid "The number of other layers print sequence"
+msgstr ""
+
+msgid "Other layers filament sequence"
+msgstr ""
 
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "Ez a G-kód minden rétegváltáshoz bekerül a Z tengely emelése előtt."
@@ -8302,6 +8442,24 @@ msgstr ""
 "Nyomáselőtolás (Klipper) vagy más néven lineáris előtolási tényező (Marlin). "
 "A Bambu nyomtatók számára ez a funkció haszontalan."
 
+msgid "Filament notes"
+msgstr ""
+
+msgid "You can put your notes regarding the filament here."
+msgstr ""
+
+msgid "Process notes"
+msgstr ""
+
+msgid "You can put your notes regarding the process here."
+msgstr ""
+
+msgid "Printer notes"
+msgstr ""
+
+msgid "You can put your notes regarding the printer here."
+msgstr ""
+
 msgid "Default line width if some line width is set to be zero"
 msgstr ""
 "Alapértelmezett vonalszélesség, ha valamilyen vonalszélesség nullára van "
@@ -8610,9 +8768,6 @@ msgid ""
 msgstr ""
 "A nyomtató véletlenszerűen vibrál a fal nyomtatása közben, így a felület "
 "durva megjelenésű lesz"
-
-msgid "None"
-msgstr "Sehol"
 
 msgid "Contour"
 msgstr "Kontúr"
@@ -9117,9 +9272,6 @@ msgstr ""
 "komplex modelleknél, de egyúttal lassabbá teszi a szeletelést és a G-kód "
 "generálást"
 
-msgid "Enable"
-msgstr "Engedélyezve"
-
 msgid "Filename format"
 msgstr "Fájlnév formátum"
 
@@ -9227,9 +9379,6 @@ msgstr "Visszahúzás rétegváltáskor"
 
 msgid "Force a retraction when changes layer"
 msgstr "Kényszeríti a visszahúzást minden rétegváltáskor"
-
-msgid "Length"
-msgstr "Hossz"
 
 msgid "Retraction Length"
 msgstr "Visszahúzás hossza"
@@ -9401,9 +9550,6 @@ msgid "Speed of internal solid infill, not the top and bottom surface"
 msgstr ""
 "A belső szilárd kitöltés sebessége, de az az érték nem vonatkozik a felső és "
 "alsó felületre"
-
-msgid "Spiral vase"
-msgstr "Spirál (váza)"
 
 msgid ""
 "Spiralize smooths out the z moves of the outer contour. And turns a solid "
@@ -10898,9 +11044,6 @@ msgstr "Ha szükséges, használj perjeleket ( / ) könyvtárelválasztóként."
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
 msgstr "A feltöltendő fájlnév nem végződik „%s”-ra. Folytatod?"
 
-msgid "Upload"
-msgstr "Feltöltés"
-
 msgid "Simulate"
 msgstr "Szimuláció"
 
@@ -11360,6 +11503,13 @@ msgid ""
 "Please note that nozzle temperature, hot bed temperature, and maximum "
 "volumetric speed has a significant impact on printing quality. Please set "
 "them carefully."
+msgstr ""
+
+msgid ""
+"Studio has detected that your user presets synchronization function is not "
+"enabled, which may result in unsuccessful Filament settings on the Device "
+"page. \n"
+"Click \"Sync user presets\" to enable the synchronization function."
 msgstr ""
 
 msgid "Printer Setting"
@@ -12012,6 +12162,59 @@ msgstr ""
 "Did you know that when printing materials that are prone to warping such as "
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
+
+#~ msgid "Volume Operations"
+#~ msgstr "Térfogat műveletek"
+
+#, boost-format
+#~ msgid "Succeed to export G-code to %1%"
+#~ msgstr "G-kód sikeresen exportálva ide: %1%"
+
+#~ msgid "Total Time Estimation"
+#~ msgstr "Teljes becsült idő"
+
+#~ msgid "Share"
+#~ msgstr "Share"
+
+#~ msgid "Upload Pictrues"
+#~ msgstr "Upload Pictrues"
+
+#~ msgid "Transfer or discard changes"
+#~ msgstr "Transfer or discard changes"
+
+#~ msgid "Old Value"
+#~ msgstr "Régi érték"
+
+#~ msgid "New Value"
+#~ msgstr "Új érték"
+
+#~ msgid "Transfer"
+#~ msgstr "Átvitel"
+
+#~ msgid "Discard"
+#~ msgstr "Elvetés"
+
+#, boost-format
+#~ msgid ""
+#~ "You have changed some settings of preset \"%1%\". \n"
+#~ "Would you like to keep these changed settings (new value) after switching "
+#~ "preset?"
+#~ msgstr ""
+#~ "Megváltoztattad a(z) \"%1%\" beállítás néhány beállítását.\n"
+#~ "Szeretnéd ezeket a módosított beállításokat (új értéket) megtartani a "
+#~ "másik beállításra való váltás után?"
+
+#~ msgid ""
+#~ "You have changed some preset settings. \n"
+#~ "Would you like to keep these changed settings (new value) after switching "
+#~ "preset?"
+#~ msgstr ""
+#~ "Megváltoztattál néhány beállítást.\n"
+#~ "Szeretnéd ezeket megtartani a másik beállításra való váltás után?"
+
+#~ msgid " is too close to others, there may be collisions when printing."
+#~ msgstr ""
+#~ "túl közel van más tárgyakhoz, a nyomtatás során előfordulhatnak ütközések."
 
 #, c-format, boost-format
 #~ msgid "No files [%d]"
@@ -13202,9 +13405,6 @@ msgstr ""
 
 #~ msgid "Error at line %1%:\n"
 #~ msgstr "Hiba a következő sorban %1%:\n"
-
-#~ msgid "Esc"
-#~ msgstr "Esc"
 
 #~ msgid "Export."
 #~ msgstr "Exportálás."

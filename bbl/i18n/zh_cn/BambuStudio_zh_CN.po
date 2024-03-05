@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-23 20:04+0800\n"
+"POT-Creation-Date: 2024-03-05 14:55+0800\n"
 "PO-Revision-Date: 2024-02-23 20:10+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -230,8 +230,11 @@ msgstr "缩放比例"
 msgid "Object Operations"
 msgstr "对象操作"
 
-msgid "Volume Operations"
-msgstr "零件操作"
+msgid "Rotate (relative)"
+msgstr "旋转（相对）"
+
+msgid "Translate (relative) [World]"
+msgstr "平移（相对）[世界]"
 
 msgid "Translate"
 msgstr "平移"
@@ -547,6 +550,102 @@ msgstr "外观面检测"
 msgid "Perform Recognition"
 msgstr "执行检测"
 
+msgid "Vertex"
+msgstr "点"
+
+msgid "Edge"
+msgstr "线"
+
+msgid "Plane"
+msgstr "面"
+
+msgid "Point on edge"
+msgstr "线上点"
+
+msgid "Point on circle"
+msgstr "圆上点"
+
+msgid "Point on plane"
+msgstr "平面点"
+
+msgid "Center of edge"
+msgstr "线中心"
+
+msgid "Center of circle"
+msgstr "圆心"
+
+msgid "Select feature"
+msgstr "选择特征"
+
+msgid "Select point"
+msgstr "选择点"
+
+msgid "Delete"
+msgstr "删除"
+
+msgid "Restart selection"
+msgstr "重新选择"
+
+msgid "Esc"
+msgstr "Esc"
+
+msgid "Cancel a feature until exit"
+msgstr "取消一个特征直到退出"
+
+msgid "Measure"
+msgstr "测量"
+
+msgid "Edit to scale"
+msgstr "编辑缩放"
+
+msgctxt "Verb"
+msgid "Scale all"
+msgstr "缩放全部"
+
+msgid "None"
+msgstr "无"
+
+msgid "Diameter"
+msgstr "直径"
+
+msgid "Length"
+msgstr "长度"
+
+msgid "Selection"
+msgstr "选择"
+
+msgid ""
+"Feature 1 has been reset, \n"
+"feature 2 has been feature 1"
+msgstr "特征1已经被重置，特征2变成特征1"
+
+msgid "Copy to clipboard"
+msgstr "复制到剪贴板"
+
+msgid "Adsorbed onto the surface"
+msgstr "吸附到表面"
+
+msgid "modify x distance between objects"
+msgstr "修改物体间x距离"
+
+msgid "modify y distance between objects"
+msgstr "修改物体间y距离"
+
+msgid "Angle"
+msgstr "角度"
+
+msgid "Perpendicular distance"
+msgstr "平行距离"
+
+msgid "Distance"
+msgstr "距离"
+
+msgid "Direct distance"
+msgstr "直线距离"
+
+msgid "Distance XYZ"
+msgstr "XYZ距离"
+
 msgid "Brush size"
 msgstr "画刷尺寸"
 
@@ -588,9 +687,6 @@ msgstr "嵌入的"
 
 msgid "Text Gap"
 msgstr "文字间距"
-
-msgid "Angle"
-msgstr "角度"
 
 msgid ""
 "Embeded\r\n"
@@ -810,9 +906,6 @@ msgstr "选择一个G-code文件："
 
 msgid "Import File"
 msgstr "导入文件"
-
-msgid "Delete"
-msgstr "删除"
 
 msgid "Choose files"
 msgstr "选择文件"
@@ -2301,6 +2394,12 @@ msgstr "浮点保留操作数"
 msgid "Stack overflow"
 msgstr "栈溢出"
 
+msgid "Running post-processing scripts"
+msgstr "运行后处理脚本"
+
+msgid "Successfully executed post-processing script"
+msgstr "成功执行后处理脚本"
+
 msgid "Unknown error when export G-code."
 msgstr "导出G-code文件发生未知错误。"
 
@@ -2314,13 +2413,6 @@ msgstr ""
 "错误信息：%1%。\n"
 "源文件 %2%."
 
-#, boost-format
-msgid "Succeed to export G-code to %1%"
-msgstr "成功导出G-code至 %1%"
-
-msgid "Running post-processing scripts"
-msgstr "运行后处理脚本"
-
 msgid "Copying of the temporary G-code to the output G-code failed"
 msgstr "将临时 G 代码复制到输出 G 代码失败"
 
@@ -2330,9 +2422,6 @@ msgstr "计划上传到 `%1%`。请参阅窗口-> 打印主机上传队列"
 
 msgid "Origin"
 msgstr "原点"
-
-msgid "Diameter"
-msgstr "直径"
 
 msgid "Size in X and Y of the rectangular plate."
 msgstr "矩形框在X和Y方向的尺寸。"
@@ -2496,25 +2585,6 @@ msgstr ""
 "这个数值将被重置为0。"
 
 msgid ""
-"Spiral mode only works when wall loops is 1, support is disabled, top shell "
-"layers is 0, sparse infill density is 0 and timelapse type is traditional."
-msgstr ""
-"旋转模式只能在外墙层数为1，关闭支撑，顶层层数为0，稀疏填充密度为0，传统延时摄"
-"影时有效。"
-
-msgid " But machines with I3 structure will not generate timelapse videos."
-msgstr "但是I3结构的机器将不会生成延时视频。"
-
-msgid ""
-"Change these settings automatically? \n"
-"Yes - Change these settings and enable spiral mode automatically\n"
-"No  - Give up using spiral mode this time"
-msgstr ""
-"自动调整这些设置？\n"
-"是 - 自动调整这些设置并开启旋转模式\n"
-"否 - 暂不使用旋转模式"
-
-msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
 "Layer Height is on.\n"
 "Which do you want to keep?\n"
@@ -2565,6 +2635,25 @@ msgid ""
 "While printing by Object, the extruder may collide skirt.\n"
 "Thus, reset the skirt layer to 1 to avoid that."
 msgstr "逐件打印时，挤出机可能与裙边碰撞。因此将裙边的层数重置为1。"
+
+msgid ""
+"Spiral mode only works when wall loops is 1, support is disabled, top shell "
+"layers is 0, sparse infill density is 0 and timelapse type is traditional."
+msgstr ""
+"旋转模式只能在外墙层数为1，关闭支撑，顶层层数为0，稀疏填充密度为0，传统延时摄"
+"影时有效。"
+
+msgid " But machines with I3 structure will not generate timelapse videos."
+msgstr "但是I3结构的机器将不会生成延时视频。"
+
+msgid ""
+"Change these settings automatically? \n"
+"Yes - Change these settings and enable spiral mode automatically\n"
+"No  - Give up using spiral mode this time"
+msgstr ""
+"自动调整这些设置？\n"
+"是 - 自动调整这些设置并开启旋转模式\n"
+"否 - 暂不使用旋转模式"
 
 msgid "Auto bed leveling"
 msgstr "自动热床调平"
@@ -2856,11 +2945,14 @@ msgstr "总计"
 msgid "Tower"
 msgstr "擦料塔"
 
-msgid "Total Time Estimation"
-msgstr "总时间预估"
+msgid "Total Estimation"
+msgstr "总预估"
 
 msgid "Total time"
 msgstr "总时间"
+
+msgid "Total cost"
+msgstr ""
 
 msgid "up to"
 msgstr "达到"
@@ -2948,9 +3040,6 @@ msgstr "打印机"
 
 msgid "Print settings"
 msgstr "打印设置"
-
-msgid "Total Estimation"
-msgstr "总预估"
 
 msgid "Time Estimation"
 msgstr "时间预估"
@@ -3264,8 +3353,8 @@ msgstr "否"
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "将会被关闭以创建新模型，是否继续?"
 
-msgid "Share"
-msgstr "分享"
+msgid "Upload"
+msgstr "上传"
 
 msgid "Slice plate"
 msgstr "切片单盘"
@@ -3718,42 +3807,42 @@ msgid "The device cannot handle more conversations. Please retry later."
 msgstr "设备无法处理更多的对话。请稍后重试。"
 
 msgid "Player is malfunctioning. Please reinstall the system player."
-msgstr "播放器出现故障。请重新安装系统播放器。"
+msgstr "播放器异常，请重新安装系统播放器。"
 
 msgid "The player is not loaded, please click \"play\" button to retry."
-msgstr "播放器未加载，请单击“播放”按钮重试。"
+msgstr "未能加载播放器，请重新点击“播放”按钮。"
 
 msgid "Please confirm if the printer is connected."
-msgstr "请确认打印机是否已连接。"
+msgstr "请确认打印机是否连接成功。"
 
 msgid ""
 "The printer is currently busy downloading. Please try again after it "
 "finishes."
-msgstr "打印机当前正在下载。请在完成后重试"
+msgstr "打印机正在忙于下载，请等下载完成后再尝试。"
 
 msgid "Printer camera is malfunctioning."
-msgstr "打印机摄像头出现故障。"
+msgstr "打印机摄像头异常。"
 
 msgid "Problem occured. Please update the printer firmware and try again."
-msgstr "出现问题。请更新打印机固件，然后重试。"
+msgstr "出现了一些问题。请更新打印机固件后重试。"
 
 msgid ""
 "LAN Only Liveview is off. Please turn on the liveview on printer screen."
-msgstr ""
+msgstr "局域网模式直播未开启，请前往打印机屏幕开启。"
 
 msgid "Please enter the IP of printer to connect."
-msgstr "请输入要连接的打印机的IP。"
+msgstr "请输入打印机IP后尝试连接。"
 
 msgid "Initializing..."
 msgstr "正在初始化……"
 
 msgid "Connection Failed. Please check the network and try again"
-msgstr "连接失败。请检查网络后重试"
+msgstr "链接失败。请检查网络后重试"
 
 msgid ""
 "Please check the network and try again, You can restart or update the "
 "printer if the issue persists."
-msgstr "请检查网络并重试。如果问题仍然存在，您可以重新启动或更新打印机。"
+msgstr "检查网络后重试。如仍未恢复，可重启或更新打印机。"
 
 msgid "The printer has been logged out and cannot connect."
 msgstr "打印机已注销，无法连接。"
@@ -3849,7 +3938,7 @@ msgid "Refresh"
 msgstr "刷新"
 
 msgid "Reload file list from printer."
-msgstr ""
+msgstr "从打印机重新加载文件列表。"
 
 msgid "No printers."
 msgstr "未选择打印机"
@@ -3861,25 +3950,23 @@ msgid "No files"
 msgstr "文件列表为空"
 
 msgid "Load failed"
-msgstr ""
+msgstr "加载失败"
 
 msgid ""
 "Browsing file in SD card is not supported in current firmware. Please update "
 "the printer firmware."
-msgstr ""
+msgstr "当前固件暂不支持查看SD卡中文件。请更新打印机固件后重试。"
 
 msgid ""
 "Please check if the SD card is inserted into the printer.\n"
 "If it still cannot be read, you can try formatting the SD card."
-msgstr ""
-"请检查SD卡是否已插入打印机。\n"
-"如果仍然无法读取，您可以尝试格式化SD卡。"
+msgstr "请检查打印机中SD卡是否已经插入，如果仍然不能读取，您可尝试格式化SD卡。"
 
 msgid "LAN Connection Failed (Failed to view sdcard)"
-msgstr ""
+msgstr "局域网连接失败（无法查看SD卡）"
 
 msgid "Browsing file in SD card is not supported in LAN Only Mode."
-msgstr ""
+msgstr "局域网模式下暂不支持查看SD卡内文件。"
 
 #, c-format, boost-format
 msgid "You are going to delete %u file from printer. Are you sure to continue?"
@@ -3942,7 +4029,7 @@ msgstr "下载中 %d%%..."
 msgid ""
 "Over 4 studio/handy are using remote access, you can close some and try "
 "again."
-msgstr "超过4个Studio/Handy正在使用远程访问，您可以关闭一些然后重试"
+msgstr "超过4个Studio和App在远程连接打印机，请关闭部分后重试。"
 
 msgid "File does not exist."
 msgstr "文件不存在。"
@@ -4019,7 +4106,7 @@ msgid "Control"
 msgstr "控制"
 
 msgid "Printer Parts"
-msgstr ""
+msgstr "打印机零件"
 
 msgid "Print Options"
 msgstr "打印选项"
@@ -4139,7 +4226,7 @@ msgstr "信息"
 msgid "Get oss config failed."
 msgstr "获取oss配置失败。"
 
-msgid "Upload Pictrues"
+msgid "Upload Pictures"
 msgstr "上传图片"
 
 msgid "Number of images successfully uploaded"
@@ -4455,7 +4542,7 @@ msgid "Filament Tangle Detect"
 msgstr "缠料检测"
 
 msgid "Nozzle Type"
-msgstr ""
+msgstr "喷嘴类型"
 
 msgid "Stainless Steel"
 msgstr "不锈钢"
@@ -4850,8 +4937,14 @@ msgstr "正在导入模型"
 msgid "prepare 3mf file..."
 msgstr "正在准备3mf文件..."
 
+msgid "Download failed, unknown file format."
+msgstr "下载失败，未知文件格式。"
+
 msgid "downloading project ..."
 msgstr "项目下载中..."
+
+msgid "Download failed, File size exception."
+msgstr "下载失败，文件大小异常。"
 
 #, c-format, boost-format
 msgid "Project downloaded %d%%"
@@ -4939,16 +5032,20 @@ msgid ""
 "will be kept. You may fix the meshes and try agian."
 msgstr ""
 
-msgid "Reason: mesh is empty."
+#, boost-format
+msgid "Reason: part \"%1%\" is empty."
 msgstr ""
 
-msgid "Reason: mesh does not bound a volume."
+#, boost-format
+msgid "Reason: part \"%1%\" does not bound a volume."
 msgstr ""
 
-msgid "Reason: mesh has self intersection."
+#, boost-format
+msgid "Reason: part \"%1%\" has self intersection."
 msgstr ""
 
-msgid "Reason: meshes have no intersection."
+#, boost-format
+msgid "Reason: \"%1%\" and another part have no intersection."
 msgstr ""
 
 msgid ""
@@ -5370,14 +5467,35 @@ msgstr "不兼容的预设"
 msgid "The selected preset is null!"
 msgstr "选择的预设为空！"
 
+msgid "End"
+msgstr ""
+
+msgid "Customize"
+msgstr "自定义"
+
+msgid "Other layer filament sequence"
+msgstr "其它层耗材打印顺序"
+
+msgid "Please input layer value (>= 2)."
+msgstr "请输入层号（>=2）。"
+
 msgid "Same as Global Print Sequence"
 msgstr "跟随全局打印顺序"
 
 msgid "Print sequence"
 msgstr "打印顺序"
 
-msgid "Customize"
-msgstr "自定义"
+msgid "Same as Global"
+msgstr "跟随全局"
+
+msgid "Enable"
+msgstr "开启"
+
+msgid "Disable"
+msgstr "禁用"
+
+msgid "Spiral vase"
+msgstr "旋转花瓶"
 
 msgid "First layer filament sequence"
 msgstr "首层耗材打印顺序"
@@ -5653,7 +5771,7 @@ msgstr "请在发起打印前插入SD卡"
 msgid ""
 "The selected printer (%s) is incompatible with the chosen printer profile in "
 "the slicer (%s)."
-msgstr ""
+msgstr "所选打印机（%s）与切片软件中选择的打印机配置文件（%s）不兼容。"
 
 msgid "An SD card needs to be inserted to record timelapse."
 msgstr "开启延迟摄影功能需要插入SD卡"
@@ -5713,12 +5831,14 @@ msgid ""
 "If you changed your nozzle lately, please go to Device > Printer Parts to "
 "change settings."
 msgstr ""
+"切片文件中的喷嘴直径与记忆的喷嘴不一致。如果您最近更换了喷嘴，请前往设备 > 打"
+"印机零件进行更改设置。"
 
 #, c-format, boost-format
 msgid ""
 "Printing high temperature material(%s material) with %s may cause nozzle "
 "damage"
-msgstr ""
+msgstr "用%s打印高温材料（%s材料）可能会导致喷嘴损坏"
 
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr "请修复上述错误，否则打印无法继续。"
@@ -6035,6 +6155,9 @@ msgstr "G-code 输出"
 msgid "Post-processing scripts"
 msgstr "后处理脚本"
 
+msgid "Notes"
+msgstr ""
+
 msgid "Frequent"
 msgstr "常用"
 
@@ -6295,23 +6418,26 @@ msgstr "未定义"
 msgid "Unsaved Changes"
 msgstr "未保存的更改"
 
-msgid "Transfer or discard changes"
-msgstr "迁移或者丢弃更改"
+msgid "Actions For Unsaved Changes"
+msgstr "未保存更改的操作"
 
-msgid "Old Value"
-msgstr "旧值"
+msgid "Preset Value"
+msgstr "预设值"
 
-msgid "New Value"
-msgstr "新值"
+msgid "Modified Value"
+msgstr "修改值"
 
-msgid "Transfer"
-msgstr "迁移"
+msgid "Transfer Modified Value"
+msgstr "迁移修改值"
 
 msgid "Don't save"
 msgstr "不保存"
 
-msgid "Discard"
-msgstr "放弃"
+msgid "Use Preset Value"
+msgstr "使用预设值"
+
+msgid "Save Modified Value"
+msgstr "保存修改值"
 
 msgid "Click the right mouse button to display the full text."
 msgstr "单击鼠标右键显示全文。"
@@ -6364,17 +6490,42 @@ msgid ""
 msgstr "预设“%1%”和新的工艺预设不兼容，并且它包含以下未保存的修改："
 
 #, boost-format
-msgid ""
-"You have changed some settings of preset \"%1%\". \n"
-"Would you like to keep these changed settings (new value) after switching "
-"preset?"
-msgstr "您已经更改了预设 \"%1%\"，是否在切换后要保留这些更改的预设参数？"
+msgid "You have changed some settings of preset \"%1%\". "
+msgstr "您已更改了预设 “%1%” 的一些设置。"
 
 msgid ""
-"You have changed some preset settings. \n"
-"Would you like to keep these changed settings (new value) after switching "
-"preset?"
-msgstr "您已经更改了预设参数，是否在切换后要保留这些更改的预设参数？"
+"\n"
+"Would you like to save these changed settings(modified value)?"
+msgstr ""
+"\n"
+"您想保存这些更改的设置（修改后的值）吗？"
+
+msgid ""
+"\n"
+"Would you like to keep these changed settings(modified value) after "
+"switching preset?"
+msgstr ""
+"\n"
+"您想在切换预设后保留这些更改的设置（修改后的值）吗？"
+
+msgid ""
+"You have previously modified your settings and are about to overwrite them "
+"with new ones."
+msgstr "您之前修改过您的设置，即将用新的设置覆盖它们。"
+
+msgid ""
+"\n"
+"Do you want to keep your current modified settings, or use preset settings?"
+msgstr ""
+"\n"
+"您想保留当前修改过的设置，还是使用预设的设置？"
+
+msgid ""
+"\n"
+"Do you want to save your current modified settings?"
+msgstr ""
+"\n"
+"您要保存当前修改的设置吗？"
 
 msgid "Extruders count"
 msgstr "挤出机数量"
@@ -6537,9 +6688,6 @@ msgstr "对象列表"
 
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr "从STL/STEP/3MF/OBJ/AMF文件中导入几何数据"
-
-msgid "Copy to clipboard"
-msgstr "复制到剪贴板"
 
 msgid "Paste from clipboard"
 msgstr "从剪切板粘贴"
@@ -7123,9 +7271,6 @@ msgstr "%1%离其它对象太近，可能会发生碰撞。"
 msgid "%1% is too tall, and collisions will be caused."
 msgstr "%1%太高，会发生碰撞。"
 
-msgid " is too close to others, there may be collisions when printing."
-msgstr "太靠近其他物体，打印时可能会有碰撞。"
-
 msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr "太靠近屏蔽区域，打印时可能会发生碰撞。"
 
@@ -7442,6 +7587,15 @@ msgstr "打印机所支持的打印板类型"
 
 msgid "First layer print sequence"
 msgstr "首层打印顺序"
+
+msgid "Other layers print sequence"
+msgstr "其他层打印顺序"
+
+msgid "The number of other layers print sequence"
+msgstr "其他层的打印顺序数量"
+
+msgid "Other layers filament sequence"
+msgstr "其他层的耗材打印顺序"
 
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "在每次换层抬升z高度之前插入这段G-code"
@@ -7789,7 +7943,7 @@ msgid "Hilbert Curve"
 msgstr "希尔伯特曲线"
 
 msgid "Archimedean Chords"
-msgstr "阿基米德和弦"
+msgstr "阿基米德螺旋"
 
 msgid "Octagram Spiral"
 msgstr "八角螺旋"
@@ -7939,6 +8093,24 @@ msgid ""
 msgstr ""
 "压力提前补偿（Klipper）也称为线性提前补偿因子（Marlin）。对于Bambu打印机无"
 "效。"
+
+msgid "Filament notes"
+msgstr ""
+
+msgid "You can put your notes regarding the filament here."
+msgstr ""
+
+msgid "Process notes"
+msgstr ""
+
+msgid "You can put your notes regarding the process here."
+msgstr ""
+
+msgid "Printer notes"
+msgstr ""
+
+msgid "You can put your notes regarding the printer here."
+msgstr ""
 
 msgid "Default line width if some line width is set to be zero"
 msgstr "当线宽设置为0时走线的默认线宽"
@@ -8217,9 +8389,6 @@ msgid ""
 "Randomly jitter while printing the wall, so that the surface has a rough "
 "look. This setting controls the fuzzy position"
 msgstr "打印外墙时随机抖动，使外表面产生绒效果。这个设置决定适用的位置。"
-
-msgid "None"
-msgstr "无"
 
 msgid "Contour"
 msgstr "轮廓"
@@ -8685,9 +8854,6 @@ msgstr ""
 "当空驶完全在填充区域内时不触发回抽。这意味着即使漏料也是不可见的。对于复杂模"
 "型，该设置能够减少回抽次数以及打印时长，但是会造成G-code生成变慢"
 
-msgid "Enable"
-msgstr "开启"
-
 msgid "Filename format"
 msgstr "文件名格式"
 
@@ -8786,9 +8952,6 @@ msgstr "换层时回抽"
 
 msgid "Force a retraction when changes layer"
 msgstr "强制在换层时回抽。"
-
-msgid "Length"
-msgstr "长度"
 
 msgid "Retraction Length"
 msgstr "回抽长度"
@@ -8941,9 +9104,6 @@ msgstr "内部实心填充的线宽"
 
 msgid "Speed of internal solid infill, not the top and bottom surface"
 msgstr "内部实心填充的速度，不是顶面和底面。"
-
-msgid "Spiral vase"
-msgstr "旋转花瓶"
 
 msgid ""
 "Spiralize smooths out the z moves of the outer contour. And turns a solid "
@@ -10329,9 +10489,6 @@ msgstr "如有需要，请使用正斜杠（/）作为目录分隔符。"
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
 msgstr "上传的文件名不以 \"%s\" 结尾。您是否希望继续？"
 
-msgid "Upload"
-msgstr "上传"
-
 msgid "Simulate"
 msgstr ""
 
@@ -10777,6 +10934,16 @@ msgid ""
 msgstr ""
 "如果需要，请转到灯丝设置以编辑您的预设。\n"
 "请注意喷嘴温度、热床温度和最大体积流量对打印质量有重大影响。请小心设置它们。"
+
+msgid ""
+"Studio has detected that your user presets synchronization function is not "
+"enabled, which may result in unsuccessful Filament settings on the Device "
+"page. \n"
+"Click \"Sync user presets\" to enable the synchronization function."
+msgstr ""
+"Studio 检测到您的用户预设同步功能未启用，这可能导致在设备页面上设置耗材时不成"
+"功。 \n"
+" 点击“同步用户预设”以启用同步功能。"
 
 msgid "Printer Setting"
 msgstr "打印机设置"
@@ -11381,6 +11548,58 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid ""
+#~ "Reconnecting the printer, the operation cannot be completed immediately, "
+#~ "please try again later."
+#~ msgstr "重新连接打印机，该操作无法立即完成，请稍后再试。"
+
+#~ msgid "Upload Pictrues"
+#~ msgstr "上传图片"
+
+#~ msgid "Volume Operations"
+#~ msgstr "零件操作"
+
+#, boost-format
+#~ msgid "Succeed to export G-code to %1%"
+#~ msgstr "成功导出G-code至 %1%"
+
+#~ msgid "Total Time Estimation"
+#~ msgstr "总时间预估"
+
+#~ msgid "Share"
+#~ msgstr "分享"
+
+#~ msgid "Transfer or discard changes"
+#~ msgstr "迁移或者丢弃更改"
+
+#~ msgid "Old Value"
+#~ msgstr "旧值"
+
+#~ msgid "New Value"
+#~ msgstr "新值"
+
+#~ msgid "Transfer"
+#~ msgstr "迁移"
+
+#~ msgid "Discard"
+#~ msgstr "放弃"
+
+#, boost-format
+#~ msgid ""
+#~ "You have changed some settings of preset \"%1%\". \n"
+#~ "Would you like to keep these changed settings (new value) after switching "
+#~ "preset?"
+#~ msgstr "您已经更改了预设 \"%1%\"，是否在切换后要保留这些更改的预设参数？"
+
+#~ msgid ""
+#~ "You have changed some preset settings. \n"
+#~ "Would you like to keep these changed settings (new value) after switching "
+#~ "preset?"
+#~ msgstr "您已经更改了预设参数，是否在切换后要保留这些更改的预设参数？"
+
+#~ msgid " is too close to others, there may be collisions when printing."
+#~ msgstr "太靠近其他物体，打印时可能会有碰撞。"
 
 #~ msgid "Please update the printer firmware and try again."
 #~ msgstr "请更新打印机固件，然后重试。"
@@ -12223,12 +12442,6 @@ msgstr ""
 
 #~ msgid "If enabled, useful hints are displayed at startup."
 #~ msgstr "如果启用，将在启动时显示有用的提示。"
-
-#~ msgid "Same as Global"
-#~ msgstr "跟随全局"
-
-#~ msgid "Disable"
-#~ msgstr "禁用"
 
 #~ msgid "test"
 #~ msgstr "测试"

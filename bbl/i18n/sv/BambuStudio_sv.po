@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-23 20:04+0800\n"
+"POT-Creation-Date: 2024-03-05 14:55+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -225,8 +225,11 @@ msgstr "Skalnings förhållande"
 msgid "Object Operations"
 msgstr "Objekt Åtgärder"
 
-msgid "Volume Operations"
-msgstr "Volym Åtgärder"
+msgid "Rotate (relative)"
+msgstr ""
+
+msgid "Translate (relative) [World]"
+msgstr ""
 
 msgid "Translate"
 msgstr "Översätt"
@@ -545,6 +548,102 @@ msgstr "Ansiktsigenkänning"
 msgid "Perform Recognition"
 msgstr "Utför igenkänning"
 
+msgid "Vertex"
+msgstr ""
+
+msgid "Edge"
+msgstr ""
+
+msgid "Plane"
+msgstr ""
+
+msgid "Point on edge"
+msgstr ""
+
+msgid "Point on circle"
+msgstr ""
+
+msgid "Point on plane"
+msgstr ""
+
+msgid "Center of edge"
+msgstr ""
+
+msgid "Center of circle"
+msgstr ""
+
+msgid "Select feature"
+msgstr ""
+
+msgid "Select point"
+msgstr ""
+
+msgid "Delete"
+msgstr "Radera"
+
+msgid "Restart selection"
+msgstr ""
+
+msgid "Esc"
+msgstr "Esc"
+
+msgid "Cancel a feature until exit"
+msgstr ""
+
+msgid "Measure"
+msgstr ""
+
+msgid "Edit to scale"
+msgstr ""
+
+msgctxt "Verb"
+msgid "Scale all"
+msgstr ""
+
+msgid "None"
+msgstr "Ingen"
+
+msgid "Diameter"
+msgstr "Diameter"
+
+msgid "Length"
+msgstr "Längd"
+
+msgid "Selection"
+msgstr ""
+
+msgid ""
+"Feature 1 has been reset, \n"
+"feature 2 has been feature 1"
+msgstr ""
+
+msgid "Copy to clipboard"
+msgstr "Kopiera till urklipp"
+
+msgid "Adsorbed onto the surface"
+msgstr ""
+
+msgid "modify x distance between objects"
+msgstr ""
+
+msgid "modify y distance between objects"
+msgstr ""
+
+msgid "Angle"
+msgstr "Vinkel"
+
+msgid "Perpendicular distance"
+msgstr ""
+
+msgid "Distance"
+msgstr ""
+
+msgid "Direct distance"
+msgstr ""
+
+msgid "Distance XYZ"
+msgstr ""
+
 msgid "Brush size"
 msgstr "Pensel storlek"
 
@@ -586,9 +685,6 @@ msgstr "Inbäddad"
 
 msgid "Text Gap"
 msgstr "Text mellanrum"
-
-msgid "Angle"
-msgstr "Vinkel"
 
 msgid ""
 "Embeded\r\n"
@@ -815,9 +911,6 @@ msgstr "Välj en G-kod fil:"
 
 msgid "Import File"
 msgstr "Importera fil"
-
-msgid "Delete"
-msgstr "Radera"
 
 msgid "Choose files"
 msgstr "Välj filer"
@@ -2366,6 +2459,12 @@ msgstr "Reservations operand med flytande värde"
 msgid "Stack overflow"
 msgstr "Lagra överflöde"
 
+msgid "Running post-processing scripts"
+msgstr "Kör efterbearbetnings skript"
+
+msgid "Successfully executed post-processing script"
+msgstr ""
+
 msgid "Unknown error when export G-code."
 msgstr "Okänt fel vid exportering av G-code."
 
@@ -2379,13 +2478,6 @@ msgstr ""
 "Felmeddelande: %1%.\n"
 "Source file %2%."
 
-#, boost-format
-msgid "Succeed to export G-code to %1%"
-msgstr "Success! G-code exporterades till %1%"
-
-msgid "Running post-processing scripts"
-msgstr "Kör efterbearbetnings skript"
-
 msgid "Copying of the temporary G-code to the output G-code failed"
 msgstr "Kopiering av den tillfälliga G-koden till utgången G-kod misslyckades."
 
@@ -2397,9 +2489,6 @@ msgstr ""
 
 msgid "Origin"
 msgstr "Ursprung"
-
-msgid "Diameter"
-msgstr "Diameter"
 
 msgid "Size in X and Y of the rectangular plate."
 msgstr "X & Y storlek av den rektangulära plattan."
@@ -2567,25 +2656,6 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Spiral mode only works when wall loops is 1, support is disabled, top shell "
-"layers is 0, sparse infill density is 0 and timelapse type is traditional."
-msgstr ""
-"Spiralläget fungerar endast när vägg varv är 1, support är inaktiverat, top "
-"skalets lager är 0, gles ifyllnad är 0 och timelapse typen är traditionell."
-
-msgid " But machines with I3 structure will not generate timelapse videos."
-msgstr " But machines with I3 structure will not generate timelapse videos."
-
-msgid ""
-"Change these settings automatically? \n"
-"Yes - Change these settings and enable spiral mode automatically\n"
-"No  - Give up using spiral mode this time"
-msgstr ""
-"Ändra dessa inställningar automatiskt? \n"
-"JA -Ändra dessa inställningar och möjliggör Spiral läge automatiskt\n"
-"NEJ  -Avbryt Spiral läge denna gång"
-
-msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
 "Layer Height is on.\n"
 "Which do you want to keep?\n"
@@ -2636,6 +2706,25 @@ msgid ""
 msgstr ""
 "Vid utskrift av objekt kan extrudern kollidera med en skirt.\n"
 "Återställ därför skirt lagret till 1 för att undvika kollisioner."
+
+msgid ""
+"Spiral mode only works when wall loops is 1, support is disabled, top shell "
+"layers is 0, sparse infill density is 0 and timelapse type is traditional."
+msgstr ""
+"Spiralläget fungerar endast när vägg varv är 1, support är inaktiverat, top "
+"skalets lager är 0, gles ifyllnad är 0 och timelapse typen är traditionell."
+
+msgid " But machines with I3 structure will not generate timelapse videos."
+msgstr " But machines with I3 structure will not generate timelapse videos."
+
+msgid ""
+"Change these settings automatically? \n"
+"Yes - Change these settings and enable spiral mode automatically\n"
+"No  - Give up using spiral mode this time"
+msgstr ""
+"Ändra dessa inställningar automatiskt? \n"
+"JA -Ändra dessa inställningar och möjliggör Spiral läge automatiskt\n"
+"NEJ  -Avbryt Spiral läge denna gång"
 
 msgid "Auto bed leveling"
 msgstr "Auto justera byggplattan"
@@ -2927,11 +3016,14 @@ msgstr "Totalt"
 msgid "Tower"
 msgstr "Tower"
 
-msgid "Total Time Estimation"
-msgstr "Total tidsuppskattning"
+msgid "Total Estimation"
+msgstr "Total Uppskattning"
 
 msgid "Total time"
 msgstr "Total tid"
+
+msgid "Total cost"
+msgstr ""
 
 msgid "up to"
 msgstr "upp till"
@@ -3019,9 +3111,6 @@ msgstr "Skrivare"
 
 msgid "Print settings"
 msgstr "Utskrifts inställningar"
-
-msgid "Total Estimation"
-msgstr "Total Uppskattning"
 
 msgid "Time Estimation"
 msgstr "Beräknad tid"
@@ -3337,8 +3426,8 @@ msgstr "Nej"
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "avslutas innan en ny modell skapas. Vill du fortsätta?"
 
-msgid "Share"
-msgstr "Share"
+msgid "Upload"
+msgstr "Ladda upp"
 
 msgid "Slice plate"
 msgstr "Bered plattan"
@@ -4221,8 +4310,8 @@ msgstr "InFo"
 msgid "Get oss config failed."
 msgstr "Get oss config failed."
 
-msgid "Upload Pictrues"
-msgstr "Upload Pictrues"
+msgid "Upload Pictures"
+msgstr ""
 
 msgid "Number of images successfully uploaded"
 msgstr "Number of images successfully uploaded"
@@ -4979,8 +5068,14 @@ msgstr "Importerar Modell"
 msgid "prepare 3mf file..."
 msgstr "förbereder 3mf-filen..."
 
+msgid "Download failed, unknown file format."
+msgstr ""
+
 msgid "downloading project ..."
 msgstr "laddar ner projekt ..."
+
+msgid "Download failed, File size exception."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Project downloaded %d%%"
@@ -5072,16 +5167,20 @@ msgid ""
 "will be kept. You may fix the meshes and try agian."
 msgstr ""
 
-msgid "Reason: mesh is empty."
+#, boost-format
+msgid "Reason: part \"%1%\" is empty."
 msgstr ""
 
-msgid "Reason: mesh does not bound a volume."
+#, boost-format
+msgid "Reason: part \"%1%\" does not bound a volume."
 msgstr ""
 
-msgid "Reason: mesh has self intersection."
+#, boost-format
+msgid "Reason: part \"%1%\" has self intersection."
 msgstr ""
 
-msgid "Reason: meshes have no intersection."
+#, boost-format
+msgid "Reason: \"%1%\" and another part have no intersection."
 msgstr ""
 
 msgid ""
@@ -5508,14 +5607,35 @@ msgstr "Inkompatibel"
 msgid "The selected preset is null!"
 msgstr "Den valda förinställningen är noll!"
 
+msgid "End"
+msgstr ""
+
+msgid "Customize"
+msgstr "Customize"
+
+msgid "Other layer filament sequence"
+msgstr ""
+
+msgid "Please input layer value (>= 2)."
+msgstr ""
+
 msgid "Same as Global Print Sequence"
 msgstr "Samma som Global Utskrifts Sekvens"
 
 msgid "Print sequence"
 msgstr "Utskrifts sekvens"
 
-msgid "Customize"
-msgstr "Customize"
+msgid "Same as Global"
+msgstr ""
+
+msgid "Enable"
+msgstr "Aktivera"
+
+msgid "Disable"
+msgstr ""
+
+msgid "Spiral vase"
+msgstr "Spiral vas"
 
 msgid "First layer filament sequence"
 msgstr "First layer filament sequence"
@@ -6211,6 +6331,9 @@ msgstr "G-kod utgång"
 msgid "Post-processing scripts"
 msgstr "Skript för efterbehandling"
 
+msgid "Notes"
+msgstr ""
+
 msgid "Frequent"
 msgstr "Återkommande"
 
@@ -6499,23 +6622,26 @@ msgstr "Oidentifierad"
 msgid "Unsaved Changes"
 msgstr "Ej sparade ändringar"
 
-msgid "Transfer or discard changes"
-msgstr "Transfer or discard changes"
+msgid "Actions For Unsaved Changes"
+msgstr ""
 
-msgid "Old Value"
-msgstr "Gammalt värde"
+msgid "Preset Value"
+msgstr ""
 
-msgid "New Value"
-msgstr "Nytt värde"
+msgid "Modified Value"
+msgstr ""
 
-msgid "Transfer"
-msgstr "Överför"
+msgid "Transfer Modified Value"
+msgstr ""
 
 msgid "Don't save"
 msgstr "Spara inte"
 
-msgid "Discard"
-msgstr "Överge"
+msgid "Use Preset Value"
+msgstr ""
+
+msgid "Save Modified Value"
+msgstr ""
 
 msgid "Click the right mouse button to display the full text."
 msgstr "Högerklicka för att se hela texten."
@@ -6572,22 +6698,34 @@ msgstr ""
 "innehåller följande osparade ändringar:"
 
 #, boost-format
-msgid ""
-"You have changed some settings of preset \"%1%\". \n"
-"Would you like to keep these changed settings (new value) after switching "
-"preset?"
+msgid "You have changed some settings of preset \"%1%\". "
 msgstr ""
-"Du har ändrat vissa inställningar för inställningen \"%1%\".\n"
-"Vill du behålla dessa inställningar (nytt värde) när du byter inställningar?"
 
 msgid ""
-"You have changed some preset settings. \n"
-"Would you like to keep these changed settings (new value) after switching "
-"preset?"
+"\n"
+"Would you like to save these changed settings(modified value)?"
 msgstr ""
-"Du har ändrat några inställningar.\n"
-"Vill du behålla ändrade inställningar (nytt värde) när du byter "
-"inställningar?"
+
+msgid ""
+"\n"
+"Would you like to keep these changed settings(modified value) after "
+"switching preset?"
+msgstr ""
+
+msgid ""
+"You have previously modified your settings and are about to overwrite them "
+"with new ones."
+msgstr ""
+
+msgid ""
+"\n"
+"Do you want to keep your current modified settings, or use preset settings?"
+msgstr ""
+
+msgid ""
+"\n"
+"Do you want to save your current modified settings?"
+msgstr ""
 
 msgid "Extruders count"
 msgstr "Extruder kalkylering"
@@ -6753,9 +6891,6 @@ msgstr "Objektlista"
 
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr "Importera geometri data från STL/STEP/3MF/OBJ/AMF filer"
-
-msgid "Copy to clipboard"
-msgstr "Kopiera till urklipp"
 
 msgid "Paste from clipboard"
 msgstr "Klistra in ifrån urklipp"
@@ -7351,9 +7486,6 @@ msgstr "%1% är för nära andra och kan orsaka kollisioner."
 msgid "%1% is too tall, and collisions will be caused."
 msgstr "%1% är för hög, och kollisioner kommer att uppstå."
 
-msgid " is too close to others, there may be collisions when printing."
-msgstr " är för nära andra; det kan uppstå kollisioner vid utskrift."
-
 msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr ""
 " är för nära undantagsområdet, det kan förekomma kollisioner vid utskrift."
@@ -7710,6 +7842,15 @@ msgstr "Byggplattans typ stöds av skrivaren"
 
 msgid "First layer print sequence"
 msgstr "Första lagrets utskrifts ordning"
+
+msgid "Other layers print sequence"
+msgstr ""
+
+msgid "The number of other layers print sequence"
+msgstr ""
+
+msgid "Other layers filament sequence"
+msgstr ""
 
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "Denna G-kod används för varje lager innan Z axis lyfts"
@@ -8236,6 +8377,24 @@ msgstr ""
 "Pressure advance(Klipper) AKA Linear advance factor(Marlin). Oanvändbar för "
 "Bambu-skrivare"
 
+msgid "Filament notes"
+msgstr ""
+
+msgid "You can put your notes regarding the filament here."
+msgstr ""
+
+msgid "Process notes"
+msgstr ""
+
+msgid "You can put your notes regarding the process here."
+msgstr ""
+
+msgid "Printer notes"
+msgstr ""
+
+msgid "You can put your notes regarding the printer here."
+msgstr ""
+
 msgid "Default line width if some line width is set to be zero"
 msgstr "Standard linjebredd för linjebredder är satt till 0"
 
@@ -8537,9 +8696,6 @@ msgstr ""
 "Inställningen gör att verktygshuvudet skakar slumpmässigt vid utskrift av "
 "väggar så att ytan får ett strävt utseende. Denna inställning styr fuzzy "
 "position"
-
-msgid "None"
-msgstr "Ingen"
 
 msgid "Contour"
 msgstr "Kontur"
@@ -9042,9 +9198,6 @@ msgstr ""
 "indragning för komplexa modeller och spara utskriftstid, men gör beredning "
 "och generering av G-kod långsammare."
 
-msgid "Enable"
-msgstr "Aktivera"
-
 msgid "Filename format"
 msgstr "Filnamns format"
 
@@ -9152,9 +9305,6 @@ msgstr "Retraktera vid lager byte"
 
 msgid "Force a retraction when changes layer"
 msgstr "Tvinga retraktion vid lager byte"
-
-msgid "Length"
-msgstr "Längd"
 
 msgid "Retraction Length"
 msgstr "Retraktions längd"
@@ -9317,9 +9467,6 @@ msgstr "Linjebredd med inre solid ifyllnad"
 
 msgid "Speed of internal solid infill, not the top and bottom surface"
 msgstr "Hastighet för inre solid ifyllnad, förrutom topp och botten ytorna"
-
-msgid "Spiral vase"
-msgstr "Spiral vas"
 
 msgid ""
 "Spiralize smooths out the z moves of the outer contour. And turns a solid "
@@ -10805,9 +10952,6 @@ msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
 msgstr ""
 "Filnamnet som ska laddas upp slutar inte med \"%s\". Vill du fortsätta?"
 
-msgid "Upload"
-msgstr "Ladda upp"
-
 msgid "Simulate"
 msgstr "Simulera"
 
@@ -11267,6 +11411,13 @@ msgid ""
 "Please note that nozzle temperature, hot bed temperature, and maximum "
 "volumetric speed has a significant impact on printing quality. Please set "
 "them carefully."
+msgstr ""
+
+msgid ""
+"Studio has detected that your user presets synchronization function is not "
+"enabled, which may result in unsuccessful Filament settings on the Device "
+"page. \n"
+"Click \"Sync user presets\" to enable the synchronization function."
 msgstr ""
 
 msgid "Printer Setting"
@@ -11918,6 +12069,59 @@ msgstr ""
 "Did you know that when printing materials that are prone to warping such as "
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
+
+#~ msgid "Volume Operations"
+#~ msgstr "Volym Åtgärder"
+
+#, boost-format
+#~ msgid "Succeed to export G-code to %1%"
+#~ msgstr "Success! G-code exporterades till %1%"
+
+#~ msgid "Total Time Estimation"
+#~ msgstr "Total tidsuppskattning"
+
+#~ msgid "Share"
+#~ msgstr "Share"
+
+#~ msgid "Upload Pictrues"
+#~ msgstr "Upload Pictrues"
+
+#~ msgid "Transfer or discard changes"
+#~ msgstr "Transfer or discard changes"
+
+#~ msgid "Old Value"
+#~ msgstr "Gammalt värde"
+
+#~ msgid "New Value"
+#~ msgstr "Nytt värde"
+
+#~ msgid "Transfer"
+#~ msgstr "Överför"
+
+#~ msgid "Discard"
+#~ msgstr "Överge"
+
+#, boost-format
+#~ msgid ""
+#~ "You have changed some settings of preset \"%1%\". \n"
+#~ "Would you like to keep these changed settings (new value) after switching "
+#~ "preset?"
+#~ msgstr ""
+#~ "Du har ändrat vissa inställningar för inställningen \"%1%\".\n"
+#~ "Vill du behålla dessa inställningar (nytt värde) när du byter "
+#~ "inställningar?"
+
+#~ msgid ""
+#~ "You have changed some preset settings. \n"
+#~ "Would you like to keep these changed settings (new value) after switching "
+#~ "preset?"
+#~ msgstr ""
+#~ "Du har ändrat några inställningar.\n"
+#~ "Vill du behålla ändrade inställningar (nytt värde) när du byter "
+#~ "inställningar?"
+
+#~ msgid " is too close to others, there may be collisions when printing."
+#~ msgstr " är för nära andra; det kan uppstå kollisioner vid utskrift."
 
 #, c-format, boost-format
 #~ msgid "No files [%d]"
@@ -13087,9 +13291,6 @@ msgstr ""
 
 #~ msgid "Error at line %1%:\n"
 #~ msgstr "Fel i linje %1%:\n"
-
-#~ msgid "Esc"
-#~ msgstr "Esc"
 
 #~ msgid "Export."
 #~ msgstr "Exportera."

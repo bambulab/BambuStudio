@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-23 20:04+0800\n"
+"POT-Creation-Date: 2024-03-05 14:55+0800\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -226,8 +226,11 @@ msgstr "Ratios de escala"
 msgid "Object Operations"
 msgstr "Operaciones con objetos"
 
-msgid "Volume Operations"
-msgstr "Operaciones de volumen"
+msgid "Rotate (relative)"
+msgstr ""
+
+msgid "Translate (relative) [World]"
+msgstr ""
 
 msgid "Translate"
 msgstr "Traducir"
@@ -547,6 +550,102 @@ msgstr "Reconocimiento facial"
 msgid "Perform Recognition"
 msgstr "Realizar el reconocimiento"
 
+msgid "Vertex"
+msgstr ""
+
+msgid "Edge"
+msgstr ""
+
+msgid "Plane"
+msgstr ""
+
+msgid "Point on edge"
+msgstr ""
+
+msgid "Point on circle"
+msgstr ""
+
+msgid "Point on plane"
+msgstr ""
+
+msgid "Center of edge"
+msgstr ""
+
+msgid "Center of circle"
+msgstr ""
+
+msgid "Select feature"
+msgstr ""
+
+msgid "Select point"
+msgstr ""
+
+msgid "Delete"
+msgstr "Borra"
+
+msgid "Restart selection"
+msgstr ""
+
+msgid "Esc"
+msgstr "Esc"
+
+msgid "Cancel a feature until exit"
+msgstr ""
+
+msgid "Measure"
+msgstr ""
+
+msgid "Edit to scale"
+msgstr ""
+
+msgctxt "Verb"
+msgid "Scale all"
+msgstr ""
+
+msgid "None"
+msgstr "Ninguno"
+
+msgid "Diameter"
+msgstr "Diámetro"
+
+msgid "Length"
+msgstr "Largo"
+
+msgid "Selection"
+msgstr ""
+
+msgid ""
+"Feature 1 has been reset, \n"
+"feature 2 has been feature 1"
+msgstr ""
+
+msgid "Copy to clipboard"
+msgstr "Copiar al portapapeles"
+
+msgid "Adsorbed onto the surface"
+msgstr ""
+
+msgid "modify x distance between objects"
+msgstr ""
+
+msgid "modify y distance between objects"
+msgstr ""
+
+msgid "Angle"
+msgstr "Ángulo:"
+
+msgid "Perpendicular distance"
+msgstr ""
+
+msgid "Distance"
+msgstr ""
+
+msgid "Direct distance"
+msgstr ""
+
+msgid "Distance XYZ"
+msgstr ""
+
 msgid "Brush size"
 msgstr "Grosor de trazo"
 
@@ -588,9 +687,6 @@ msgstr "Incrustado"
 
 msgid "Text Gap"
 msgstr "Brecha de texto"
-
-msgid "Angle"
-msgstr "Ángulo:"
 
 msgid ""
 "Embeded\r\n"
@@ -825,9 +921,6 @@ msgstr "Seleccione un archivo de código G:"
 
 msgid "Import File"
 msgstr "Importar el archivo"
-
-msgid "Delete"
-msgstr "Borra"
 
 msgid "Choose files"
 msgstr "Elija los archivos"
@@ -2401,6 +2494,12 @@ msgstr "Operando reservado flotante"
 msgid "Stack overflow"
 msgstr "Columna de Sobre Flujo"
 
+msgid "Running post-processing scripts"
+msgstr "Ejecución de scripts de posprocesamiento"
+
+msgid "Successfully executed post-processing script"
+msgstr ""
+
 msgid "Unknown error when export G-code."
 msgstr "Error desconocido al exportar el código G."
 
@@ -2414,13 +2513,6 @@ msgstr ""
 "Mensaje de error: %1%.\n"
 "Archivo fuente %2%."
 
-#, boost-format
-msgid "Succeed to export G-code to %1%"
-msgstr "Exportación de código G a %1% con éxito"
-
-msgid "Running post-processing scripts"
-msgstr "Ejecución de scripts de posprocesamiento"
-
 msgid "Copying of the temporary G-code to the output G-code failed"
 msgstr "No se pudo copiar el G-code temporal al G-code final."
 
@@ -2432,9 +2524,6 @@ msgstr ""
 
 msgid "Origin"
 msgstr "Origen"
-
-msgid "Diameter"
-msgstr "Diámetro"
 
 msgid "Size in X and Y of the rectangular plate."
 msgstr "Tamaño en X e Y de la placa rectangular."
@@ -2604,26 +2693,6 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Spiral mode only works when wall loops is 1, support is disabled, top shell "
-"layers is 0, sparse infill density is 0 and timelapse type is traditional."
-msgstr ""
-"El modo espiral solo funciona cuando los bucles de pared son 1, el soporte "
-"está desactivado, las capas superiores son 0, la densidad de relleno "
-"disperso es 0 y el tipo de timelapse es tradicional"
-
-msgid " But machines with I3 structure will not generate timelapse videos."
-msgstr " But machines with I3 structure will not generate timelapse videos."
-
-msgid ""
-"Change these settings automatically? \n"
-"Yes - Change these settings and enable spiral mode automatically\n"
-"No  - Give up using spiral mode this time"
-msgstr ""
-"¿Cambiar estos ajustes automáticamente? \n"
-"Sí - Cambiar estos ajustes y activar el modo espiral automáticamente\n"
-"No - Dejar de usar el modo espiral esta vez"
-
-msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
 "Layer Height is on.\n"
 "Which do you want to keep?\n"
@@ -2678,6 +2747,26 @@ msgstr ""
 "Durante la impresión por objeto, el extrusor puede colisionar con un "
 "faldón.\n"
 "Por lo tanto, reajuste la capa del faldón a 1 para evitar colisiones."
+
+msgid ""
+"Spiral mode only works when wall loops is 1, support is disabled, top shell "
+"layers is 0, sparse infill density is 0 and timelapse type is traditional."
+msgstr ""
+"El modo espiral solo funciona cuando los bucles de pared son 1, el soporte "
+"está desactivado, las capas superiores son 0, la densidad de relleno "
+"disperso es 0 y el tipo de timelapse es tradicional"
+
+msgid " But machines with I3 structure will not generate timelapse videos."
+msgstr " But machines with I3 structure will not generate timelapse videos."
+
+msgid ""
+"Change these settings automatically? \n"
+"Yes - Change these settings and enable spiral mode automatically\n"
+"No  - Give up using spiral mode this time"
+msgstr ""
+"¿Cambiar estos ajustes automáticamente? \n"
+"Sí - Cambiar estos ajustes y activar el modo espiral automáticamente\n"
+"No - Dejar de usar el modo espiral esta vez"
 
 msgid "Auto bed leveling"
 msgstr "Nivelación de cama automática"
@@ -2972,11 +3061,14 @@ msgstr "Total"
 msgid "Tower"
 msgstr "Tower"
 
-msgid "Total Time Estimation"
-msgstr "Estimación del tiempo total"
+msgid "Total Estimation"
+msgstr "Estimación total"
 
 msgid "Total time"
 msgstr "Tiempo total"
+
+msgid "Total cost"
+msgstr ""
 
 msgid "up to"
 msgstr "hasta"
@@ -3064,9 +3156,6 @@ msgstr "Impresora"
 
 msgid "Print settings"
 msgstr "Configuración de impresión"
-
-msgid "Total Estimation"
-msgstr "Estimación total"
 
 msgid "Time Estimation"
 msgstr "Estimación de tiempo"
@@ -3383,8 +3472,8 @@ msgstr "No"
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "se cerrará antes de crear un nuevo modelo. ¿Quieres continuar?"
 
-msgid "Share"
-msgstr "Share"
+msgid "Upload"
+msgstr "Subir"
 
 msgid "Slice plate"
 msgstr "Laminar placa"
@@ -4268,8 +4357,8 @@ msgstr "InFo"
 msgid "Get oss config failed."
 msgstr "Get oss config failed."
 
-msgid "Upload Pictrues"
-msgstr "Upload Pictrues"
+msgid "Upload Pictures"
+msgstr ""
 
 msgid "Number of images successfully uploaded"
 msgstr "Number of images successfully uploaded"
@@ -5037,8 +5126,14 @@ msgstr "Importando modelo"
 msgid "prepare 3mf file..."
 msgstr "preparando el archivo 3mf..."
 
+msgid "Download failed, unknown file format."
+msgstr ""
+
 msgid "downloading project ..."
 msgstr "descargando proyecto..."
+
+msgid "Download failed, File size exception."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Project downloaded %d%%"
@@ -5131,16 +5226,20 @@ msgid ""
 "will be kept. You may fix the meshes and try agian."
 msgstr ""
 
-msgid "Reason: mesh is empty."
+#, boost-format
+msgid "Reason: part \"%1%\" is empty."
 msgstr ""
 
-msgid "Reason: mesh does not bound a volume."
+#, boost-format
+msgid "Reason: part \"%1%\" does not bound a volume."
 msgstr ""
 
-msgid "Reason: mesh has self intersection."
+#, boost-format
+msgid "Reason: part \"%1%\" has self intersection."
 msgstr ""
 
-msgid "Reason: meshes have no intersection."
+#, boost-format
+msgid "Reason: \"%1%\" and another part have no intersection."
 msgstr ""
 
 msgid ""
@@ -5575,14 +5674,35 @@ msgstr "Incompatible"
 msgid "The selected preset is null!"
 msgstr "¡El ajuste preestablecido seleccionado es nulo!"
 
+msgid "End"
+msgstr ""
+
+msgid "Customize"
+msgstr "Customize"
+
+msgid "Other layer filament sequence"
+msgstr ""
+
+msgid "Please input layer value (>= 2)."
+msgstr ""
+
 msgid "Same as Global Print Sequence"
 msgstr "Igual que la secuencia de impresión general"
 
 msgid "Print sequence"
 msgstr "Secuencia de impresión"
 
-msgid "Customize"
-msgstr "Customize"
+msgid "Same as Global"
+msgstr ""
+
+msgid "Enable"
+msgstr "Habilitar"
+
+msgid "Disable"
+msgstr ""
+
+msgid "Spiral vase"
+msgstr "Jarrón en espiral"
 
 msgid "First layer filament sequence"
 msgstr "First layer filament sequence"
@@ -6289,6 +6409,9 @@ msgstr "Resultado gcode"
 msgid "Post-processing scripts"
 msgstr "Scripts de postprocesamiento"
 
+msgid "Notes"
+msgstr ""
+
 msgid "Frequent"
 msgstr "Frecuente"
 
@@ -6576,23 +6699,26 @@ msgstr "No definido"
 msgid "Unsaved Changes"
 msgstr "Cambios No guardados"
 
-msgid "Transfer or discard changes"
-msgstr "Transfer or discard changes"
+msgid "Actions For Unsaved Changes"
+msgstr ""
 
-msgid "Old Value"
-msgstr "Valor Antiguo"
+msgid "Preset Value"
+msgstr ""
 
-msgid "New Value"
-msgstr "Nuevo Valor"
+msgid "Modified Value"
+msgstr ""
 
-msgid "Transfer"
-msgstr "Transferir"
+msgid "Transfer Modified Value"
+msgstr ""
 
 msgid "Don't save"
 msgstr "No guardar"
 
-msgid "Discard"
-msgstr "Descartar"
+msgid "Use Preset Value"
+msgstr ""
+
+msgid "Save Modified Value"
+msgstr ""
 
 msgid "Click the right mouse button to display the full text."
 msgstr "Pulse el botón derecho del ratón para mostrar el texto completo."
@@ -6650,23 +6776,34 @@ msgstr ""
 "contiene los siguientes cambios no guardados:"
 
 #, boost-format
-msgid ""
-"You have changed some settings of preset \"%1%\". \n"
-"Would you like to keep these changed settings (new value) after switching "
-"preset?"
+msgid "You have changed some settings of preset \"%1%\". "
 msgstr ""
-"Ha cambiado algunos ajustes de la configuración por defecto\"%1%\".\n"
-"¿Desea conservar estos ajustes modificados (nuevo valor) después de cambiar "
-"el perfil de impresión?"
 
 msgid ""
-"You have changed some preset settings. \n"
-"Would you like to keep these changed settings (new value) after switching "
-"preset?"
+"\n"
+"Would you like to save these changed settings(modified value)?"
 msgstr ""
-"Ha cambiado algunos ajustes preestablecidos.\n"
-"Desea conservar estos ajustes modificados (nuevo valor) después de cambiar "
-"los ajustes?"
+
+msgid ""
+"\n"
+"Would you like to keep these changed settings(modified value) after "
+"switching preset?"
+msgstr ""
+
+msgid ""
+"You have previously modified your settings and are about to overwrite them "
+"with new ones."
+msgstr ""
+
+msgid ""
+"\n"
+"Do you want to keep your current modified settings, or use preset settings?"
+msgstr ""
+
+msgid ""
+"\n"
+"Do you want to save your current modified settings?"
+msgstr ""
 
 msgid "Extruders count"
 msgstr "Contador de extrusores"
@@ -6831,9 +6968,6 @@ msgstr "Lista de objetos"
 
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr "Importación de datos geométricos desde archivos STL/STEP/3MF/OBJ/AMF."
-
-msgid "Copy to clipboard"
-msgstr "Copiar al portapapeles"
 
 msgid "Paste from clipboard"
 msgstr "Pegar desde el portapapeles"
@@ -7446,11 +7580,6 @@ msgstr "%1% está demasiado cerca de otros, y pueden producirse colisiones."
 msgid "%1% is too tall, and collisions will be caused."
 msgstr "%1% es demasiado alto, y se producirán colisiones."
 
-msgid " is too close to others, there may be collisions when printing."
-msgstr ""
-" está demasiado cerca de otros objetos; pueden producirse colisiones al "
-"imprimir."
-
 msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr ""
 " está demasiado cerca del área de purga, pueden producirse colisiones al "
@@ -7829,6 +7958,15 @@ msgstr "Tipos de cama que admite la impresora"
 
 msgid "First layer print sequence"
 msgstr "Secuencia de impresión de la primera capa"
+
+msgid "Other layers print sequence"
+msgstr ""
+
+msgid "The number of other layers print sequence"
+msgstr ""
+
+msgid "Other layers filament sequence"
+msgstr ""
 
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "Este código G se inserta en cada cambio de capa antes de levantar z"
@@ -8369,6 +8507,24 @@ msgstr ""
 "Avance de presión (Klipper) también conocido como factor de avance lineal "
 "(Marlin). Inútil para impresoras Bambu"
 
+msgid "Filament notes"
+msgstr ""
+
+msgid "You can put your notes regarding the filament here."
+msgstr ""
+
+msgid "Process notes"
+msgstr ""
+
+msgid "You can put your notes regarding the process here."
+msgstr ""
+
+msgid "Printer notes"
+msgstr ""
+
+msgid "You can put your notes regarding the printer here."
+msgstr ""
+
 msgid "Default line width if some line width is set to be zero"
 msgstr "Ancho de línea por defecto si se ajusta algún ancho de línea es cero"
 
@@ -8679,9 +8835,6 @@ msgid ""
 msgstr ""
 "Se puede imprimir la pared de forma aleatoria, de modo que la superficie "
 "tenga un aspecto rugoso. Este ajuste controla la posición difusa"
-
-msgid "None"
-msgstr "Ninguno"
 
 msgid "Contour"
 msgstr "Contorno"
@@ -9192,9 +9345,6 @@ msgstr ""
 "impresión, pero hace que la segmentación y la generación del gcode sean más "
 "lentas."
 
-msgid "Enable"
-msgstr "Habilitar"
-
 msgid "Filename format"
 msgstr "Formato de los archivos"
 
@@ -9305,9 +9455,6 @@ msgstr "Retirada al cambiar de capa"
 
 msgid "Force a retraction when changes layer"
 msgstr "Forzar una retracción al cambiar de capa"
-
-msgid "Length"
-msgstr "Largo"
 
 msgid "Retraction Length"
 msgstr "Longitud de retracción"
@@ -9473,9 +9620,6 @@ msgstr "Ancho de línea del relleno sólido interno"
 msgid "Speed of internal solid infill, not the top and bottom surface"
 msgstr ""
 "Velocidad del relleno sólido interno, no la superficie superior e inferior"
-
-msgid "Spiral vase"
-msgstr "Jarrón en espiral"
 
 msgid ""
 "Spiralize smooths out the z moves of the outer contour. And turns a solid "
@@ -10989,9 +11133,6 @@ msgstr ""
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
 msgstr "El nombre del archivo a subir no termina en \"%s\". ¿Desea continuar?"
 
-msgid "Upload"
-msgstr "Subir"
-
 msgid "Simulate"
 msgstr "Simular"
 
@@ -11451,6 +11592,13 @@ msgid ""
 "Please note that nozzle temperature, hot bed temperature, and maximum "
 "volumetric speed has a significant impact on printing quality. Please set "
 "them carefully."
+msgstr ""
+
+msgid ""
+"Studio has detected that your user presets synchronization function is not "
+"enabled, which may result in unsuccessful Filament settings on the Device "
+"page. \n"
+"Click \"Sync user presets\" to enable the synchronization function."
 msgstr ""
 
 msgid "Printer Setting"
@@ -12103,6 +12251,61 @@ msgstr ""
 "Did you know that when printing materials that are prone to warping such as "
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
+
+#~ msgid "Volume Operations"
+#~ msgstr "Operaciones de volumen"
+
+#, boost-format
+#~ msgid "Succeed to export G-code to %1%"
+#~ msgstr "Exportación de código G a %1% con éxito"
+
+#~ msgid "Total Time Estimation"
+#~ msgstr "Estimación del tiempo total"
+
+#~ msgid "Share"
+#~ msgstr "Share"
+
+#~ msgid "Upload Pictrues"
+#~ msgstr "Upload Pictrues"
+
+#~ msgid "Transfer or discard changes"
+#~ msgstr "Transfer or discard changes"
+
+#~ msgid "Old Value"
+#~ msgstr "Valor Antiguo"
+
+#~ msgid "New Value"
+#~ msgstr "Nuevo Valor"
+
+#~ msgid "Transfer"
+#~ msgstr "Transferir"
+
+#~ msgid "Discard"
+#~ msgstr "Descartar"
+
+#, boost-format
+#~ msgid ""
+#~ "You have changed some settings of preset \"%1%\". \n"
+#~ "Would you like to keep these changed settings (new value) after switching "
+#~ "preset?"
+#~ msgstr ""
+#~ "Ha cambiado algunos ajustes de la configuración por defecto\"%1%\".\n"
+#~ "¿Desea conservar estos ajustes modificados (nuevo valor) después de "
+#~ "cambiar el perfil de impresión?"
+
+#~ msgid ""
+#~ "You have changed some preset settings. \n"
+#~ "Would you like to keep these changed settings (new value) after switching "
+#~ "preset?"
+#~ msgstr ""
+#~ "Ha cambiado algunos ajustes preestablecidos.\n"
+#~ "Desea conservar estos ajustes modificados (nuevo valor) después de "
+#~ "cambiar los ajustes?"
+
+#~ msgid " is too close to others, there may be collisions when printing."
+#~ msgstr ""
+#~ " está demasiado cerca de otros objetos; pueden producirse colisiones al "
+#~ "imprimir."
 
 #, c-format, boost-format
 #~ msgid "No files [%d]"
@@ -13309,9 +13512,6 @@ msgstr ""
 
 #~ msgid "Error at line %1%:\n"
 #~ msgstr "Error en la línea %1%:\n"
-
-#~ msgid "Esc"
-#~ msgstr "Esc"
 
 #~ msgid "Export."
 #~ msgstr "Exportar."
