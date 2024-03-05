@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-23 20:04+0800\n"
+"POT-Creation-Date: 2024-03-05 14:55+0800\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -225,8 +225,11 @@ msgstr "Schaalverhoudingen"
 msgid "Object Operations"
 msgstr "Objectbewerkingen"
 
-msgid "Volume Operations"
-msgstr "Volumebewerkingen"
+msgid "Rotate (relative)"
+msgstr ""
+
+msgid "Translate (relative) [World]"
+msgstr ""
 
 msgid "Translate"
 msgstr "Vertalen"
@@ -546,6 +549,102 @@ msgstr "Gezichtsherkenning"
 msgid "Perform Recognition"
 msgstr "Herkenning uitvoeren"
 
+msgid "Vertex"
+msgstr ""
+
+msgid "Edge"
+msgstr ""
+
+msgid "Plane"
+msgstr ""
+
+msgid "Point on edge"
+msgstr ""
+
+msgid "Point on circle"
+msgstr ""
+
+msgid "Point on plane"
+msgstr ""
+
+msgid "Center of edge"
+msgstr ""
+
+msgid "Center of circle"
+msgstr ""
+
+msgid "Select feature"
+msgstr ""
+
+msgid "Select point"
+msgstr ""
+
+msgid "Delete"
+msgstr "Verwijderen"
+
+msgid "Restart selection"
+msgstr ""
+
+msgid "Esc"
+msgstr "Esc"
+
+msgid "Cancel a feature until exit"
+msgstr ""
+
+msgid "Measure"
+msgstr ""
+
+msgid "Edit to scale"
+msgstr ""
+
+msgctxt "Verb"
+msgid "Scale all"
+msgstr ""
+
+msgid "None"
+msgstr "Geen"
+
+msgid "Diameter"
+msgstr "Diameter"
+
+msgid "Length"
+msgstr "Lengte"
+
+msgid "Selection"
+msgstr ""
+
+msgid ""
+"Feature 1 has been reset, \n"
+"feature 2 has been feature 1"
+msgstr ""
+
+msgid "Copy to clipboard"
+msgstr "Kopieer naar klembord"
+
+msgid "Adsorbed onto the surface"
+msgstr ""
+
+msgid "modify x distance between objects"
+msgstr ""
+
+msgid "modify y distance between objects"
+msgstr ""
+
+msgid "Angle"
+msgstr "Hoek"
+
+msgid "Perpendicular distance"
+msgstr ""
+
+msgid "Distance"
+msgstr ""
+
+msgid "Direct distance"
+msgstr ""
+
+msgid "Distance XYZ"
+msgstr ""
+
 msgid "Brush size"
 msgstr "Penseelgrootte"
 
@@ -587,9 +686,6 @@ msgstr "Ingesloten"
 
 msgid "Text Gap"
 msgstr "Tussenruimte in tekst"
-
-msgid "Angle"
-msgstr "Hoek"
 
 msgid ""
 "Embeded\r\n"
@@ -818,9 +914,6 @@ msgstr "Selecteer een G-code bestand:"
 
 msgid "Import File"
 msgstr "Bestand importeren"
-
-msgid "Delete"
-msgstr "Verwijderen"
 
 msgid "Choose files"
 msgstr "Kies bestanden"
@@ -2403,6 +2496,12 @@ msgstr "Zwevende gereserveerde operand"
 msgid "Stack overflow"
 msgstr "Stack overflow"
 
+msgid "Running post-processing scripts"
+msgstr "Het uitvoeren van post-processing scripts"
+
+msgid "Successfully executed post-processing script"
+msgstr ""
+
 msgid "Unknown error when export G-code."
 msgstr "Onbekende fout tijdens het exporteren van de G-code"
 
@@ -2416,13 +2515,6 @@ msgstr ""
 "Foutmelding: %1%.\n"
 "Bronbestand %2%."
 
-#, boost-format
-msgid "Succeed to export G-code to %1%"
-msgstr "Success! G-code geexporteerd naar %1%"
-
-msgid "Running post-processing scripts"
-msgstr "Het uitvoeren van post-processing scripts"
-
 msgid "Copying of the temporary G-code to the output G-code failed"
 msgstr ""
 "Het kopiëren van de tijdelijke G-code naar de G-uitvoercode is mislukt."
@@ -2433,9 +2525,6 @@ msgstr "Upload inplannen in `%1%`. Zie Venster -> Print Host Upload Queue"
 
 msgid "Origin"
 msgstr "Begin"
-
-msgid "Diameter"
-msgstr "Diameter"
 
 msgid "Size in X and Y of the rectangular plate."
 msgstr "Maat in X en Y van de vierkante printplaat."
@@ -2606,25 +2695,6 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Spiral mode only works when wall loops is 1, support is disabled, top shell "
-"layers is 0, sparse infill density is 0 and timelapse type is traditional."
-msgstr ""
-"De spiraalmodus werkt alleen met enkele wanden, support is uitgeschakeld, "
-"bovenste lagen 0, vuldichtheid 0 is en het timelapse type traditioneel is"
-
-msgid " But machines with I3 structure will not generate timelapse videos."
-msgstr " But machines with I3 structure will not generate timelapse videos."
-
-msgid ""
-"Change these settings automatically? \n"
-"Yes - Change these settings and enable spiral mode automatically\n"
-"No  - Give up using spiral mode this time"
-msgstr ""
-"Wilt u de voorgestelde instellingen automatisch aanpassen? \n"
-"Ja - Pas de instellingen aan en zet de vaas modus automatisch aan\n"
-"Nee - Pas de vaas modus deze keer niet toe"
-
-msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
 "Layer Height is on.\n"
 "Which do you want to keep?\n"
@@ -2676,6 +2746,25 @@ msgid ""
 msgstr ""
 "Tijdens het printen per object kan de extruder tegen een skirt botsen.\n"
 "Stel de skirtlaag dus terug naar 1 om botsingen te voorkomen."
+
+msgid ""
+"Spiral mode only works when wall loops is 1, support is disabled, top shell "
+"layers is 0, sparse infill density is 0 and timelapse type is traditional."
+msgstr ""
+"De spiraalmodus werkt alleen met enkele wanden, support is uitgeschakeld, "
+"bovenste lagen 0, vuldichtheid 0 is en het timelapse type traditioneel is"
+
+msgid " But machines with I3 structure will not generate timelapse videos."
+msgstr " But machines with I3 structure will not generate timelapse videos."
+
+msgid ""
+"Change these settings automatically? \n"
+"Yes - Change these settings and enable spiral mode automatically\n"
+"No  - Give up using spiral mode this time"
+msgstr ""
+"Wilt u de voorgestelde instellingen automatisch aanpassen? \n"
+"Ja - Pas de instellingen aan en zet de vaas modus automatisch aan\n"
+"Nee - Pas de vaas modus deze keer niet toe"
 
 msgid "Auto bed leveling"
 msgstr "Automatisch bed levellen"
@@ -2967,11 +3056,14 @@ msgstr "Totaal"
 msgid "Tower"
 msgstr "Tower"
 
-msgid "Total Time Estimation"
-msgstr "Schatting van de totale tijd"
+msgid "Total Estimation"
+msgstr "Schatting totaal"
 
 msgid "Total time"
 msgstr "Totale tijd"
+
+msgid "Total cost"
+msgstr ""
 
 msgid "up to"
 msgstr "tot"
@@ -3059,9 +3151,6 @@ msgstr "Printer"
 
 msgid "Print settings"
 msgstr "Print instellingen"
-
-msgid "Total Estimation"
-msgstr "Schatting totaal"
 
 msgid "Time Estimation"
 msgstr "Geschatte duur"
@@ -3378,8 +3467,8 @@ msgstr "Nee"
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "wordt gesloten voordat een nieuw model wordt gemaakt. Wil je doorgaan?"
 
-msgid "Share"
-msgstr "Share"
+msgid "Upload"
+msgstr "Uploaden"
 
 msgid "Slice plate"
 msgstr "Slice printbed"
@@ -4264,8 +4353,8 @@ msgstr "InFo"
 msgid "Get oss config failed."
 msgstr "Get oss config failed."
 
-msgid "Upload Pictrues"
-msgstr "Upload Pictrues"
+msgid "Upload Pictures"
+msgstr ""
 
 msgid "Number of images successfully uploaded"
 msgstr "Number of images successfully uploaded"
@@ -5039,8 +5128,14 @@ msgstr "Model importeren"
 msgid "prepare 3mf file..."
 msgstr "voorbereiden van 3mf bestand..."
 
+msgid "Download failed, unknown file format."
+msgstr ""
+
 msgid "downloading project ..."
 msgstr "project downloaden..."
+
+msgid "Download failed, File size exception."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Project downloaded %d%%"
@@ -5134,16 +5229,20 @@ msgid ""
 "will be kept. You may fix the meshes and try agian."
 msgstr ""
 
-msgid "Reason: mesh is empty."
+#, boost-format
+msgid "Reason: part \"%1%\" is empty."
 msgstr ""
 
-msgid "Reason: mesh does not bound a volume."
+#, boost-format
+msgid "Reason: part \"%1%\" does not bound a volume."
 msgstr ""
 
-msgid "Reason: mesh has self intersection."
+#, boost-format
+msgid "Reason: part \"%1%\" has self intersection."
 msgstr ""
 
-msgid "Reason: meshes have no intersection."
+#, boost-format
+msgid "Reason: \"%1%\" and another part have no intersection."
 msgstr ""
 
 msgid ""
@@ -5575,14 +5674,35 @@ msgstr "Niet geschikt"
 msgid "The selected preset is null!"
 msgstr "De geselecteerde preset is nul!"
 
+msgid "End"
+msgstr ""
+
+msgid "Customize"
+msgstr "Customize"
+
+msgid "Other layer filament sequence"
+msgstr ""
+
+msgid "Please input layer value (>= 2)."
+msgstr ""
+
 msgid "Same as Global Print Sequence"
 msgstr "Hetzelfde als de globale afdrukvolgorde"
 
 msgid "Print sequence"
 msgstr "Afdrukvolgorde"
 
-msgid "Customize"
-msgstr "Customize"
+msgid "Same as Global"
+msgstr ""
+
+msgid "Enable"
+msgstr "Inschakelen"
+
+msgid "Disable"
+msgstr ""
+
+msgid "Spiral vase"
+msgstr "Spiraalvaas"
 
 msgid "First layer filament sequence"
 msgstr "First layer filament sequence"
@@ -6294,6 +6414,9 @@ msgstr "G-code uitvoer"
 msgid "Post-processing scripts"
 msgstr "Scripts voor nabewerking"
 
+msgid "Notes"
+msgstr ""
+
 msgid "Frequent"
 msgstr "Veelgebruikt"
 
@@ -6581,23 +6704,26 @@ msgstr "Niet gedefinieerd"
 msgid "Unsaved Changes"
 msgstr "niet-opgeslagen wijzigingen"
 
-msgid "Transfer or discard changes"
-msgstr "Transfer or discard changes"
+msgid "Actions For Unsaved Changes"
+msgstr ""
 
-msgid "Old Value"
-msgstr "Oude waarde"
+msgid "Preset Value"
+msgstr ""
 
-msgid "New Value"
-msgstr "Nieuwe waarde"
+msgid "Modified Value"
+msgstr ""
 
-msgid "Transfer"
-msgstr "Overdracht"
+msgid "Transfer Modified Value"
+msgstr ""
 
 msgid "Don't save"
 msgstr "Niet opslaan"
 
-msgid "Discard"
-msgstr "Verwerpen"
+msgid "Use Preset Value"
+msgstr ""
+
+msgid "Save Modified Value"
+msgstr ""
 
 msgid "Click the right mouse button to display the full text."
 msgstr "Klik op de rechtermuisknop om de volledige tekst weer te geven."
@@ -6658,23 +6784,34 @@ msgstr ""
 "bevat de navolgende nog niet opgeslagen aanpassingen:"
 
 #, boost-format
-msgid ""
-"You have changed some settings of preset \"%1%\". \n"
-"Would you like to keep these changed settings (new value) after switching "
-"preset?"
+msgid "You have changed some settings of preset \"%1%\". "
 msgstr ""
-"U heeft enkele instellingen van voorinstelling \"%1%\" gewijzigd.\n"
-"Wilt u deze gewijzigde instellingen (nieuwe waarde) behouden na het wisselen "
-"van preset?"
 
 msgid ""
-"You have changed some preset settings. \n"
-"Would you like to keep these changed settings (new value) after switching "
-"preset?"
+"\n"
+"Would you like to save these changed settings(modified value)?"
 msgstr ""
-"Je hebt een aantal vooraf ingestelde instellingen gewijzigd. \n"
-"Wilt u deze gewijzigde instellingen (nieuwe waarde) behouden na het wisselen "
-"van presets?"
+
+msgid ""
+"\n"
+"Would you like to keep these changed settings(modified value) after "
+"switching preset?"
+msgstr ""
+
+msgid ""
+"You have previously modified your settings and are about to overwrite them "
+"with new ones."
+msgstr ""
+
+msgid ""
+"\n"
+"Do you want to keep your current modified settings, or use preset settings?"
+msgstr ""
+
+msgid ""
+"\n"
+"Do you want to save your current modified settings?"
+msgstr ""
 
 msgid "Extruders count"
 msgstr "Extruder aantal"
@@ -6843,9 +6980,6 @@ msgstr "Object lijst"
 
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr "Importeer geometrische data uit STL/STEP/3MF/OBJ/AMF bestanden"
-
-msgid "Copy to clipboard"
-msgstr "Kopieer naar klembord"
 
 msgid "Paste from clipboard"
 msgstr "Plakken vanuit klembord"
@@ -7456,11 +7590,6 @@ msgstr "%1% staat te dicht bij anderen en er kunnen botsingen ontstaan."
 msgid "%1% is too tall, and collisions will be caused."
 msgstr "%1% is te hoog en er kunnen botsingen ontstaan."
 
-msgid " is too close to others, there may be collisions when printing."
-msgstr ""
-"staat te dicht bij anderen; er kunnen botsingen optreden tijdens het "
-"afdrukken."
-
 msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr ""
 "is te dicht bij het uitsluitingsgebied, er botsingen optreden tijdens het "
@@ -7836,6 +7965,15 @@ msgstr "Printbedden ondersteund door de printer"
 
 msgid "First layer print sequence"
 msgstr "Afdrukvolgorde van de eerste laag"
+
+msgid "Other layers print sequence"
+msgstr ""
+
+msgid "The number of other layers print sequence"
+msgstr ""
+
+msgid "Other layers filament sequence"
+msgstr ""
 
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr ""
@@ -8379,6 +8517,24 @@ msgstr ""
 "Pressure advance (Klipper) AKA Linear advance factor (Marlin). Nutteloos "
 "voor Bambu-printers"
 
+msgid "Filament notes"
+msgstr ""
+
+msgid "You can put your notes regarding the filament here."
+msgstr ""
+
+msgid "Process notes"
+msgstr ""
+
+msgid "You can put your notes regarding the process here."
+msgstr ""
+
+msgid "Printer notes"
+msgstr ""
+
+msgid "You can put your notes regarding the printer here."
+msgstr ""
+
 msgid "Default line width if some line width is set to be zero"
 msgstr "Standaard lijn breedte als een lijn breedte is ingesteld op 0"
 
@@ -8689,9 +8845,6 @@ msgstr ""
 "Deze instelling zorgt ervoor dat de toolhead willekeurig schudt tijdens het "
 "printen van muren, zodat het oppervlak er ruw uitziet. Deze instelling "
 "regelt de \"fuzzy\" positie."
-
-msgid "None"
-msgstr "Geen"
 
 msgid "Contour"
 msgstr "Contour"
@@ -9201,9 +9354,6 @@ msgstr ""
 "voor complexe modellen verkorten en printtijd besparen, maar het segmenteren "
 "en het genereren van G-codes langzamer maken."
 
-msgid "Enable"
-msgstr "Inschakelen"
-
 msgid "Filename format"
 msgstr "Bestandsnaam formaat"
 
@@ -9316,9 +9466,6 @@ msgid "Force a retraction when changes layer"
 msgstr ""
 "Dit forceert retraction (terugtrekken van filament) als er gewisseld wordt "
 "van laag"
-
-msgid "Length"
-msgstr "Lengte"
 
 msgid "Retraction Length"
 msgstr "Terugtrek (retraction) lengte"
@@ -9487,9 +9634,6 @@ msgid "Speed of internal solid infill, not the top and bottom surface"
 msgstr ""
 "Dit is de snelheid voor de interne solide vulling (infill), bodem en "
 "bovenste oppervlakte zijn hiervan uitgezonderd"
-
-msgid "Spiral vase"
-msgstr "Spiraalvaas"
 
 msgid ""
 "Spiralize smooths out the z moves of the outer contour. And turns a solid "
@@ -11007,9 +11151,6 @@ msgstr ""
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
 msgstr "De te uploaden bestandsnaam eindigt niet op \"%s\". Wilt u doorgaan?"
 
-msgid "Upload"
-msgstr "Uploaden"
-
 msgid "Simulate"
 msgstr "Simuleren"
 
@@ -11469,6 +11610,13 @@ msgid ""
 "Please note that nozzle temperature, hot bed temperature, and maximum "
 "volumetric speed has a significant impact on printing quality. Please set "
 "them carefully."
+msgstr ""
+
+msgid ""
+"Studio has detected that your user presets synchronization function is not "
+"enabled, which may result in unsuccessful Filament settings on the Device "
+"page. \n"
+"Click \"Sync user presets\" to enable the synchronization function."
 msgstr ""
 
 msgid "Printer Setting"
@@ -12121,6 +12269,61 @@ msgstr ""
 "Did you know that when printing materials that are prone to warping such as "
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
+
+#~ msgid "Volume Operations"
+#~ msgstr "Volumebewerkingen"
+
+#, boost-format
+#~ msgid "Succeed to export G-code to %1%"
+#~ msgstr "Success! G-code geexporteerd naar %1%"
+
+#~ msgid "Total Time Estimation"
+#~ msgstr "Schatting van de totale tijd"
+
+#~ msgid "Share"
+#~ msgstr "Share"
+
+#~ msgid "Upload Pictrues"
+#~ msgstr "Upload Pictrues"
+
+#~ msgid "Transfer or discard changes"
+#~ msgstr "Transfer or discard changes"
+
+#~ msgid "Old Value"
+#~ msgstr "Oude waarde"
+
+#~ msgid "New Value"
+#~ msgstr "Nieuwe waarde"
+
+#~ msgid "Transfer"
+#~ msgstr "Overdracht"
+
+#~ msgid "Discard"
+#~ msgstr "Verwerpen"
+
+#, boost-format
+#~ msgid ""
+#~ "You have changed some settings of preset \"%1%\". \n"
+#~ "Would you like to keep these changed settings (new value) after switching "
+#~ "preset?"
+#~ msgstr ""
+#~ "U heeft enkele instellingen van voorinstelling \"%1%\" gewijzigd.\n"
+#~ "Wilt u deze gewijzigde instellingen (nieuwe waarde) behouden na het "
+#~ "wisselen van preset?"
+
+#~ msgid ""
+#~ "You have changed some preset settings. \n"
+#~ "Would you like to keep these changed settings (new value) after switching "
+#~ "preset?"
+#~ msgstr ""
+#~ "Je hebt een aantal vooraf ingestelde instellingen gewijzigd. \n"
+#~ "Wilt u deze gewijzigde instellingen (nieuwe waarde) behouden na het "
+#~ "wisselen van presets?"
+
+#~ msgid " is too close to others, there may be collisions when printing."
+#~ msgstr ""
+#~ "staat te dicht bij anderen; er kunnen botsingen optreden tijdens het "
+#~ "afdrukken."
 
 #, c-format, boost-format
 #~ msgid "No files [%d]"
@@ -13329,9 +13532,6 @@ msgstr ""
 
 #~ msgid "Error at line %1%:\n"
 #~ msgstr "Fout op laag %1%:\n"
-
-#~ msgid "Esc"
-#~ msgstr "Esc"
 
 #~ msgid "Export."
 #~ msgstr "Exporteer."

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio v1.8.0 Beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-23 20:04+0800\n"
+"POT-Creation-Date: 2024-03-05 14:55+0800\n"
 "PO-Revision-Date: 2023-11-12 22:00+0700\n"
 "Last-Translator: Andylg <andylg@yandex.ru>\n"
 "Language-Team: \n"
@@ -236,8 +236,11 @@ msgstr "Коэф. масштаба"
 msgid "Object Operations"
 msgstr "Операции с моделями"
 
-msgid "Volume Operations"
-msgstr "Булевы операции с объёмами"
+msgid "Rotate (relative)"
+msgstr ""
+
+msgid "Translate (relative) [World]"
+msgstr ""
 
 msgid "Translate"
 msgstr "Перемещение"
@@ -555,6 +558,102 @@ msgstr "Распознавание лицевых граней"
 msgid "Perform Recognition"
 msgstr "Выполнить распознавание"
 
+msgid "Vertex"
+msgstr ""
+
+msgid "Edge"
+msgstr ""
+
+msgid "Plane"
+msgstr ""
+
+msgid "Point on edge"
+msgstr ""
+
+msgid "Point on circle"
+msgstr ""
+
+msgid "Point on plane"
+msgstr ""
+
+msgid "Center of edge"
+msgstr ""
+
+msgid "Center of circle"
+msgstr ""
+
+msgid "Select feature"
+msgstr ""
+
+msgid "Select point"
+msgstr ""
+
+msgid "Delete"
+msgstr "Удалить"
+
+msgid "Restart selection"
+msgstr ""
+
+msgid "Esc"
+msgstr "Esc"
+
+msgid "Cancel a feature until exit"
+msgstr ""
+
+msgid "Measure"
+msgstr ""
+
+msgid "Edit to scale"
+msgstr ""
+
+msgctxt "Verb"
+msgid "Scale all"
+msgstr ""
+
+msgid "None"
+msgstr "Нет"
+
+msgid "Diameter"
+msgstr "Диаметр"
+
+msgid "Length"
+msgstr "Длина"
+
+msgid "Selection"
+msgstr ""
+
+msgid ""
+"Feature 1 has been reset, \n"
+"feature 2 has been feature 1"
+msgstr ""
+
+msgid "Copy to clipboard"
+msgstr "Скопировать в буфер обмена"
+
+msgid "Adsorbed onto the surface"
+msgstr ""
+
+msgid "modify x distance between objects"
+msgstr ""
+
+msgid "modify y distance between objects"
+msgstr ""
+
+msgid "Angle"
+msgstr "Угол"
+
+msgid "Perpendicular distance"
+msgstr ""
+
+msgid "Distance"
+msgstr ""
+
+msgid "Direct distance"
+msgstr ""
+
+msgid "Distance XYZ"
+msgstr ""
+
 msgid "Brush size"
 msgstr "Размер кисти"
 
@@ -598,9 +697,6 @@ msgid "Text Gap"
 msgstr ""
 "Межбуквенный \n"
 "интервал"
-
-msgid "Angle"
-msgstr "Угол"
 
 msgid ""
 "Embeded\r\n"
@@ -831,9 +927,6 @@ msgstr "Выберите файл G-кода:"
 
 msgid "Import File"
 msgstr "Импорт файла"
-
-msgid "Delete"
-msgstr "Удалить"
 
 msgid "Choose files"
 msgstr "Выберите файлы"
@@ -2415,6 +2508,12 @@ msgstr "Плавающий зарезервированный операнд"
 msgid "Stack overflow"
 msgstr "Переполнение стека"
 
+msgid "Running post-processing scripts"
+msgstr "Запуск скриптов постобработки"
+
+msgid "Successfully executed post-processing script"
+msgstr ""
+
 msgid "Unknown error when export G-code."
 msgstr "Неизвестная ошибка при экспорте G-кода."
 
@@ -2427,13 +2526,6 @@ msgstr ""
 "Не удалось сохранить файл G-кода.\n"
 "Сообщение об ошибке: %1%.\n"
 "Исходный файл %2%."
-
-#, boost-format
-msgid "Succeed to export G-code to %1%"
-msgstr "Файл G-кода экспортирован в %1%"
-
-msgid "Running post-processing scripts"
-msgstr "Запуск скриптов постобработки"
 
 msgid "Copying of the temporary G-code to the output G-code failed"
 msgstr ""
@@ -2448,9 +2540,6 @@ msgstr ""
 
 msgid "Origin"
 msgstr "Начало координат"
-
-msgid "Diameter"
-msgstr "Диаметр"
 
 msgid "Size in X and Y of the rectangular plate."
 msgstr "Размеры прямоугольного стола в XY координатах."
@@ -2620,31 +2709,6 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Spiral mode only works when wall loops is 1, support is disabled, top shell "
-"layers is 0, sparse infill density is 0 and timelapse type is traditional."
-msgstr ""
-"Для режима печати «Спиральная ваза» необходимо чтобы соблюдались следующие "
-"условия:\n"
-"- одностеночный периметр\n"
-"- отсутствие поддержки\n"
-"- отсутствие верхних сплошных слоёв\n"
-"- плотность заполнения 0%\n"
-"- отключено «Обнаружение тонких стенок»\n"
-"- Режим записи таймлапсов - обычный режим"
-
-msgid " But machines with I3 structure will not generate timelapse videos."
-msgstr " Но принтеры с кинематикой I3 не будут писать таймлапс."
-
-msgid ""
-"Change these settings automatically? \n"
-"Yes - Change these settings and enable spiral mode automatically\n"
-"No  - Give up using spiral mode this time"
-msgstr ""
-"Изменить эти настройки автоматически? \n"
-"Да - Изменить эти настройки и включить режим «Спиральная ваза»\n"
-"Нет - Отказаться от использования режима «Спиральная ваза»"
-
-msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
 "Layer Height is on.\n"
 "Which do you want to keep?\n"
@@ -2697,6 +2761,31 @@ msgid ""
 msgstr ""
 "При печати по очереди экструдер может столкнуться с юбкой.\n"
 "Чтобы избежать этого, сбросьте значение слоёв юбки до 1."
+
+msgid ""
+"Spiral mode only works when wall loops is 1, support is disabled, top shell "
+"layers is 0, sparse infill density is 0 and timelapse type is traditional."
+msgstr ""
+"Для режима печати «Спиральная ваза» необходимо чтобы соблюдались следующие "
+"условия:\n"
+"- одностеночный периметр\n"
+"- отсутствие поддержки\n"
+"- отсутствие верхних сплошных слоёв\n"
+"- плотность заполнения 0%\n"
+"- отключено «Обнаружение тонких стенок»\n"
+"- Режим записи таймлапсов - обычный режим"
+
+msgid " But machines with I3 structure will not generate timelapse videos."
+msgstr " Но принтеры с кинематикой I3 не будут писать таймлапс."
+
+msgid ""
+"Change these settings automatically? \n"
+"Yes - Change these settings and enable spiral mode automatically\n"
+"No  - Give up using spiral mode this time"
+msgstr ""
+"Изменить эти настройки автоматически? \n"
+"Да - Изменить эти настройки и включить режим «Спиральная ваза»\n"
+"Нет - Отказаться от использования режима «Спиральная ваза»"
 
 msgid "Auto bed leveling"
 msgstr "Автовыравнивание стола"
@@ -3000,11 +3089,14 @@ msgstr "Общее"
 msgid "Tower"
 msgstr "Башня"
 
-msgid "Total Time Estimation"
-msgstr "Оценка общего времени"
+msgid "Total Estimation"
+msgstr "Общая оценка"
 
 msgid "Total time"
 msgstr "Общее время печати"
+
+msgid "Total cost"
+msgstr ""
 
 msgid "up to"
 msgstr "до"
@@ -3092,9 +3184,6 @@ msgstr "Профиль принтера"
 
 msgid "Print settings"
 msgstr "Настройки печати"
-
-msgid "Total Estimation"
-msgstr "Общая оценка"
 
 msgid "Time Estimation"
 msgstr "Оценка времени"
@@ -3411,8 +3500,9 @@ msgstr "Нет"
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "будет закрыт перед созданием новой модели. Хотите продолжить?"
 
-msgid "Share"
-msgstr ""
+# ??? Встречается в двух местах в разных значениях, логичнее было бы тут в одном месте Share, в загрузке модели стола написать Load
+msgid "Upload"
+msgstr "Поделиться"
 
 msgid "Slice plate"
 msgstr "Нарезать стол"
@@ -4306,8 +4396,8 @@ msgstr ""
 "\n"
 "Ошибка получения конфигурации OSS."
 
-msgid "Upload Pictrues"
-msgstr "Отправка изображений"
+msgid "Upload Pictures"
+msgstr ""
 
 msgid "Number of images successfully uploaded"
 msgstr "Количество успешно загруженных изображений"
@@ -5075,8 +5165,14 @@ msgstr "Импортирование модели"
 msgid "prepare 3mf file..."
 msgstr "подготовка 3mf файла..."
 
+msgid "Download failed, unknown file format."
+msgstr ""
+
 msgid "downloading project ..."
 msgstr "скачивание проекта..."
+
+msgid "Download failed, File size exception."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Project downloaded %d%%"
@@ -5168,16 +5264,20 @@ msgid ""
 "will be kept. You may fix the meshes and try agian."
 msgstr ""
 
-msgid "Reason: mesh is empty."
+#, boost-format
+msgid "Reason: part \"%1%\" is empty."
 msgstr ""
 
-msgid "Reason: mesh does not bound a volume."
+#, boost-format
+msgid "Reason: part \"%1%\" does not bound a volume."
 msgstr ""
 
-msgid "Reason: mesh has self intersection."
+#, boost-format
+msgid "Reason: part \"%1%\" has self intersection."
 msgstr ""
 
-msgid "Reason: meshes have no intersection."
+#, boost-format
+msgid "Reason: \"%1%\" and another part have no intersection."
 msgstr ""
 
 msgid ""
@@ -5609,14 +5709,35 @@ msgstr "Несовместимы"
 msgid "The selected preset is null!"
 msgstr "Выбранный профиль пуст!"
 
+msgid "End"
+msgstr ""
+
+msgid "Customize"
+msgstr "Настроить"
+
+msgid "Other layer filament sequence"
+msgstr ""
+
+msgid "Please input layer value (>= 2)."
+msgstr ""
+
 msgid "Same as Global Print Sequence"
 msgstr "Аналогично глобальной последовательности печати"
 
 msgid "Print sequence"
 msgstr "Последовательность печати"
 
-msgid "Customize"
-msgstr "Настроить"
+msgid "Same as Global"
+msgstr ""
+
+msgid "Enable"
+msgstr "Включить"
+
+msgid "Disable"
+msgstr ""
+
+msgid "Spiral vase"
+msgstr "Спиральная ваза"
 
 msgid "First layer filament sequence"
 msgstr "Последовательность прутков на первом слое"
@@ -6319,6 +6440,9 @@ msgstr "Выходной G-код"
 msgid "Post-processing scripts"
 msgstr "Скрипты постобработки"
 
+msgid "Notes"
+msgstr ""
+
 msgid "Frequent"
 msgstr "Частые"
 
@@ -6609,23 +6733,26 @@ msgstr "Не задано"
 msgid "Unsaved Changes"
 msgstr "Несохранённые изменения"
 
-msgid "Transfer or discard changes"
+msgid "Actions For Unsaved Changes"
 msgstr ""
 
-msgid "Old Value"
-msgstr "Старое значение"
+msgid "Preset Value"
+msgstr ""
 
-msgid "New Value"
-msgstr "Новое значение"
+msgid "Modified Value"
+msgstr ""
 
-msgid "Transfer"
-msgstr "Перенести"
+msgid "Transfer Modified Value"
+msgstr ""
 
 msgid "Don't save"
 msgstr "Не сохранять"
 
-msgid "Discard"
-msgstr "Не сохранять"
+msgid "Use Preset Value"
+msgstr ""
+
+msgid "Save Modified Value"
+msgstr ""
 
 msgid "Click the right mouse button to display the full text."
 msgstr "Нажмите правой кнопкой мыши, чтобы отобразить полный текст."
@@ -6682,21 +6809,34 @@ msgstr ""
 "несохранённые изменения:"
 
 #, boost-format
-msgid ""
-"You have changed some settings of preset \"%1%\". \n"
-"Would you like to keep these changed settings (new value) after switching "
-"preset?"
+msgid "You have changed some settings of preset \"%1%\". "
 msgstr ""
-"Вы изменили некоторые параметры профиля \"%1%\". \n"
-"Хотите сохранить эти изменения (новые значения)?"
 
 msgid ""
-"You have changed some preset settings. \n"
-"Would you like to keep these changed settings (new value) after switching "
-"preset?"
+"\n"
+"Would you like to save these changed settings(modified value)?"
 msgstr ""
-"Вы изменили некоторые параметры профиля.\n"
-"Хотите сохранить эти изменения (новые значения)?"
+
+msgid ""
+"\n"
+"Would you like to keep these changed settings(modified value) after "
+"switching preset?"
+msgstr ""
+
+msgid ""
+"You have previously modified your settings and are about to overwrite them "
+"with new ones."
+msgstr ""
+
+msgid ""
+"\n"
+"Do you want to keep your current modified settings, or use preset settings?"
+msgstr ""
+
+msgid ""
+"\n"
+"Do you want to save your current modified settings?"
+msgstr ""
 
 msgid "Extruders count"
 msgstr "Количество экструдеров"
@@ -6861,9 +7001,6 @@ msgstr "Список моделей"
 
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr "Импорт геометрических данных из STL/STEP/3MF/OBJ/AMF файлов"
-
-msgid "Copy to clipboard"
-msgstr "Скопировать в буфер обмена"
 
 msgid "Paste from clipboard"
 msgstr "Вставить из буфера обмена"
@@ -7471,11 +7608,6 @@ msgstr ""
 msgid "%1% is too tall, and collisions will be caused."
 msgstr "%1% слишком высокий, что может привести к столкновению."
 
-msgid " is too close to others, there may be collisions when printing."
-msgstr ""
-" находится слишком близко к другим моделям, что может привести к "
-"столкновению при печати."
-
 msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr ""
 " находится слишком близко к области исключения, что может привести к "
@@ -7841,6 +7973,15 @@ msgstr "Типы столов, поддерживаемые принтером"
 
 msgid "First layer print sequence"
 msgstr "Последовательность печати первого слоя"
+
+msgid "Other layers print sequence"
+msgstr ""
+
+msgid "The number of other layers print sequence"
+msgstr ""
+
+msgid "Other layers filament sequence"
+msgstr ""
 
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr ""
@@ -8377,6 +8518,24 @@ msgstr ""
 "тоже что Linear advance в прошивке Marlin. Бесполезная функция для принтера "
 "Bambu."
 
+msgid "Filament notes"
+msgstr ""
+
+msgid "You can put your notes regarding the filament here."
+msgstr ""
+
+msgid "Process notes"
+msgstr ""
+
+msgid "You can put your notes regarding the process here."
+msgstr ""
+
+msgid "Printer notes"
+msgstr ""
+
+msgid "You can put your notes regarding the printer here."
+msgstr ""
+
 msgid "Default line width if some line width is set to be zero"
 msgstr ""
 "Ширина линии по умолчанию, если какая-либо ширина линии установлена равной "
@@ -8690,9 +8849,6 @@ msgstr ""
 "Случайное дрожание сопла при печати внешнего периметра для создания эффекта "
 "шероховатой поверхности. Эта настройка определяет положение нечетной "
 "оболочки."
-
-msgid "None"
-msgstr "Нет"
 
 msgid "Contour"
 msgstr "Внешний периметр"
@@ -9206,9 +9362,6 @@ msgstr ""
 "Это поможет снизить количество откатов при печати сложной модели и "
 "сэкономить время печати, но увеличит время нарезки и генерации G-кода."
 
-msgid "Enable"
-msgstr "Включить"
-
 msgid "Filename format"
 msgstr "Формат имени файла"
 
@@ -9318,9 +9471,6 @@ msgstr "Откат при смене слоя"
 
 msgid "Force a retraction when changes layer"
 msgstr "Эта опция включает принудительный откат при переходе со слоя на слой."
-
-msgid "Length"
-msgstr "Длина"
 
 msgid "Retraction Length"
 msgstr "Длина отката"
@@ -9486,9 +9636,6 @@ msgid "Speed of internal solid infill, not the top and bottom surface"
 msgstr ""
 "Скорость печати внутреннего сплошного заполнения, за исключением верхней и "
 "нижней поверхностей."
-
-msgid "Spiral vase"
-msgstr "Спиральная ваза"
 
 msgid ""
 "Spiralize smooths out the z moves of the outer contour. And turns a solid "
@@ -11009,10 +11156,6 @@ msgstr ""
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
 msgstr "Имя загружаемого файла не заканчивается на \"%s\". Хотите продолжить?"
 
-# ??? Встречается в двух местах в разных значениях, логичнее было бы тут в одном месте Share, в загрузке модели стола написать Load
-msgid "Upload"
-msgstr "Поделиться"
-
 msgid "Simulate"
 msgstr "Cэмулировать"
 
@@ -11471,6 +11614,13 @@ msgid ""
 "Please note that nozzle temperature, hot bed temperature, and maximum "
 "volumetric speed has a significant impact on printing quality. Please set "
 "them carefully."
+msgstr ""
+
+msgid ""
+"Studio has detected that your user presets synchronization function is not "
+"enabled, which may result in unsuccessful Filament settings on the Device "
+"page. \n"
+"Click \"Sync user presets\" to enable the synchronization function."
 msgstr ""
 
 msgid "Printer Setting"
@@ -12110,6 +12260,53 @@ msgstr ""
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как "
 "ABS, повышение температуры подогреваемого стола может снизить вероятность "
 "коробления?"
+
+#~ msgid "Volume Operations"
+#~ msgstr "Булевы операции с объёмами"
+
+#, boost-format
+#~ msgid "Succeed to export G-code to %1%"
+#~ msgstr "Файл G-кода экспортирован в %1%"
+
+#~ msgid "Total Time Estimation"
+#~ msgstr "Оценка общего времени"
+
+#~ msgid "Upload Pictrues"
+#~ msgstr "Отправка изображений"
+
+#~ msgid "Old Value"
+#~ msgstr "Старое значение"
+
+#~ msgid "New Value"
+#~ msgstr "Новое значение"
+
+#~ msgid "Transfer"
+#~ msgstr "Перенести"
+
+#~ msgid "Discard"
+#~ msgstr "Не сохранять"
+
+#, boost-format
+#~ msgid ""
+#~ "You have changed some settings of preset \"%1%\". \n"
+#~ "Would you like to keep these changed settings (new value) after switching "
+#~ "preset?"
+#~ msgstr ""
+#~ "Вы изменили некоторые параметры профиля \"%1%\". \n"
+#~ "Хотите сохранить эти изменения (новые значения)?"
+
+#~ msgid ""
+#~ "You have changed some preset settings. \n"
+#~ "Would you like to keep these changed settings (new value) after switching "
+#~ "preset?"
+#~ msgstr ""
+#~ "Вы изменили некоторые параметры профиля.\n"
+#~ "Хотите сохранить эти изменения (новые значения)?"
+
+#~ msgid " is too close to others, there may be collisions when printing."
+#~ msgstr ""
+#~ " находится слишком близко к другим моделям, что может привести к "
+#~ "столкновению при печати."
 
 #, c-format, boost-format
 #~ msgid "No files [%d]"
@@ -12843,9 +13040,6 @@ msgstr ""
 
 #~ msgid "Ctrl+Left mouse button"
 #~ msgstr "Ctrl + Левая кнопка мыши"
-
-#~ msgid "Esc"
-#~ msgstr "Esc"
 
 #~ msgid "IP"
 #~ msgstr "IP"

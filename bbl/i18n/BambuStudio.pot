@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-23 20:04+0800\n"
+"POT-Creation-Date: 2024-03-05 14:55+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -230,7 +230,10 @@ msgstr ""
 msgid "Object Operations"
 msgstr ""
 
-msgid "Volume Operations"
+msgid "Rotate (relative)"
+msgstr ""
+
+msgid "Translate (relative) [World]"
 msgstr ""
 
 msgid "Translate"
@@ -545,6 +548,102 @@ msgstr ""
 msgid "Perform Recognition"
 msgstr ""
 
+msgid "Vertex"
+msgstr ""
+
+msgid "Edge"
+msgstr ""
+
+msgid "Plane"
+msgstr ""
+
+msgid "Point on edge"
+msgstr ""
+
+msgid "Point on circle"
+msgstr ""
+
+msgid "Point on plane"
+msgstr ""
+
+msgid "Center of edge"
+msgstr ""
+
+msgid "Center of circle"
+msgstr ""
+
+msgid "Select feature"
+msgstr ""
+
+msgid "Select point"
+msgstr ""
+
+msgid "Delete"
+msgstr ""
+
+msgid "Restart selection"
+msgstr ""
+
+msgid "Esc"
+msgstr ""
+
+msgid "Cancel a feature until exit"
+msgstr ""
+
+msgid "Measure"
+msgstr ""
+
+msgid "Edit to scale"
+msgstr ""
+
+msgctxt "Verb"
+msgid "Scale all"
+msgstr ""
+
+msgid "None"
+msgstr ""
+
+msgid "Diameter"
+msgstr ""
+
+msgid "Length"
+msgstr ""
+
+msgid "Selection"
+msgstr ""
+
+msgid ""
+"Feature 1 has been reset, \n"
+"feature 2 has been feature 1"
+msgstr ""
+
+msgid "Copy to clipboard"
+msgstr ""
+
+msgid "Adsorbed onto the surface"
+msgstr ""
+
+msgid "modify x distance between objects"
+msgstr ""
+
+msgid "modify y distance between objects"
+msgstr ""
+
+msgid "Angle"
+msgstr ""
+
+msgid "Perpendicular distance"
+msgstr ""
+
+msgid "Distance"
+msgstr ""
+
+msgid "Direct distance"
+msgstr ""
+
+msgid "Distance XYZ"
+msgstr ""
+
 msgid "Brush size"
 msgstr ""
 
@@ -585,9 +684,6 @@ msgid "Embeded"
 msgstr ""
 
 msgid "Text Gap"
-msgstr ""
-
-msgid "Angle"
 msgstr ""
 
 msgid ""
@@ -800,9 +896,6 @@ msgid "Select a G-code file:"
 msgstr ""
 
 msgid "Import File"
-msgstr ""
-
-msgid "Delete"
 msgstr ""
 
 msgid "Choose files"
@@ -2263,6 +2356,12 @@ msgstr ""
 msgid "Stack overflow"
 msgstr ""
 
+msgid "Running post-processing scripts"
+msgstr ""
+
+msgid "Successfully executed post-processing script"
+msgstr ""
+
 msgid "Unknown error when export G-code."
 msgstr ""
 
@@ -2273,13 +2372,6 @@ msgid ""
 "Source file %2%."
 msgstr ""
 
-#, possible-boost-format
-msgid "Succeed to export G-code to %1%"
-msgstr ""
-
-msgid "Running post-processing scripts"
-msgstr ""
-
 msgid "Copying of the temporary G-code to the output G-code failed"
 msgstr ""
 
@@ -2288,9 +2380,6 @@ msgid "Scheduling upload to `%1%`. See Window -> Print Host Upload Queue"
 msgstr ""
 
 msgid "Origin"
-msgstr ""
-
-msgid "Diameter"
 msgstr ""
 
 msgid "Size in X and Y of the rectangular plate."
@@ -2436,20 +2525,6 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Spiral mode only works when wall loops is 1, support is disabled, top shell "
-"layers is 0, sparse infill density is 0 and timelapse type is traditional."
-msgstr ""
-
-msgid " But machines with I3 structure will not generate timelapse videos."
-msgstr ""
-
-msgid ""
-"Change these settings automatically? \n"
-"Yes - Change these settings and enable spiral mode automatically\n"
-"No  - Give up using spiral mode this time"
-msgstr ""
-
-msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
 "Layer Height is on.\n"
 "Which do you want to keep?\n"
@@ -2484,6 +2559,20 @@ msgstr ""
 msgid ""
 "While printing by Object, the extruder may collide skirt.\n"
 "Thus, reset the skirt layer to 1 to avoid that."
+msgstr ""
+
+msgid ""
+"Spiral mode only works when wall loops is 1, support is disabled, top shell "
+"layers is 0, sparse infill density is 0 and timelapse type is traditional."
+msgstr ""
+
+msgid " But machines with I3 structure will not generate timelapse videos."
+msgstr ""
+
+msgid ""
+"Change these settings automatically? \n"
+"Yes - Change these settings and enable spiral mode automatically\n"
+"No  - Give up using spiral mode this time"
 msgstr ""
 
 msgid "Auto bed leveling"
@@ -2768,10 +2857,13 @@ msgstr ""
 msgid "Tower"
 msgstr ""
 
-msgid "Total Time Estimation"
+msgid "Total Estimation"
 msgstr ""
 
 msgid "Total time"
+msgstr ""
+
+msgid "Total cost"
 msgstr ""
 
 msgid "up to"
@@ -2859,9 +2951,6 @@ msgid "Printer"
 msgstr ""
 
 msgid "Print settings"
-msgstr ""
-
-msgid "Total Estimation"
 msgstr ""
 
 msgid "Time Estimation"
@@ -3168,7 +3257,7 @@ msgstr ""
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr ""
 
-msgid "Share"
+msgid "Upload"
 msgstr ""
 
 msgid "Slice plate"
@@ -4034,7 +4123,7 @@ msgstr ""
 msgid "Get oss config failed."
 msgstr ""
 
-msgid "Upload Pictrues"
+msgid "Upload Pictures"
 msgstr ""
 
 msgid "Number of images successfully uploaded"
@@ -4724,7 +4813,13 @@ msgstr ""
 msgid "prepare 3mf file..."
 msgstr ""
 
+msgid "Download failed, unknown file format."
+msgstr ""
+
 msgid "downloading project ..."
+msgstr ""
+
+msgid "Download failed, File size exception."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -4813,16 +4908,20 @@ msgid ""
 "will be kept. You may fix the meshes and try agian."
 msgstr ""
 
-msgid "Reason: mesh is empty."
+#, possible-boost-format
+msgid "Reason: part \"%1%\" is empty."
 msgstr ""
 
-msgid "Reason: mesh does not bound a volume."
+#, possible-boost-format
+msgid "Reason: part \"%1%\" does not bound a volume."
 msgstr ""
 
-msgid "Reason: mesh has self intersection."
+#, possible-boost-format
+msgid "Reason: part \"%1%\" has self intersection."
 msgstr ""
 
-msgid "Reason: meshes have no intersection."
+#, possible-boost-format
+msgid "Reason: \"%1%\" and another part have no intersection."
 msgstr ""
 
 msgid ""
@@ -5234,13 +5333,34 @@ msgstr ""
 msgid "The selected preset is null!"
 msgstr ""
 
+msgid "End"
+msgstr ""
+
+msgid "Customize"
+msgstr ""
+
+msgid "Other layer filament sequence"
+msgstr ""
+
+msgid "Please input layer value (>= 2)."
+msgstr ""
+
 msgid "Same as Global Print Sequence"
 msgstr ""
 
 msgid "Print sequence"
 msgstr ""
 
-msgid "Customize"
+msgid "Same as Global"
+msgstr ""
+
+msgid "Enable"
+msgstr ""
+
+msgid "Disable"
+msgstr ""
+
+msgid "Spiral vase"
 msgstr ""
 
 msgid "First layer filament sequence"
@@ -5862,6 +5982,9 @@ msgstr ""
 msgid "Post-processing scripts"
 msgstr ""
 
+msgid "Notes"
+msgstr ""
+
 msgid "Frequent"
 msgstr ""
 
@@ -6112,22 +6235,25 @@ msgstr ""
 msgid "Unsaved Changes"
 msgstr ""
 
-msgid "Transfer or discard changes"
+msgid "Actions For Unsaved Changes"
 msgstr ""
 
-msgid "Old Value"
+msgid "Preset Value"
 msgstr ""
 
-msgid "New Value"
+msgid "Modified Value"
 msgstr ""
 
-msgid "Transfer"
+msgid "Transfer Modified Value"
 msgstr ""
 
 msgid "Don't save"
 msgstr ""
 
-msgid "Discard"
+msgid "Use Preset Value"
+msgstr ""
+
+msgid "Save Modified Value"
 msgstr ""
 
 msgid "Click the right mouse button to display the full text."
@@ -6177,16 +6303,33 @@ msgid ""
 msgstr ""
 
 #, possible-boost-format
-msgid ""
-"You have changed some settings of preset \"%1%\". \n"
-"Would you like to keep these changed settings (new value) after switching "
-"preset?"
+msgid "You have changed some settings of preset \"%1%\". "
 msgstr ""
 
 msgid ""
-"You have changed some preset settings. \n"
-"Would you like to keep these changed settings (new value) after switching "
-"preset?"
+"\n"
+"Would you like to save these changed settings(modified value)?"
+msgstr ""
+
+msgid ""
+"\n"
+"Would you like to keep these changed settings(modified value) after "
+"switching preset?"
+msgstr ""
+
+msgid ""
+"You have previously modified your settings and are about to overwrite them "
+"with new ones."
+msgstr ""
+
+msgid ""
+"\n"
+"Do you want to keep your current modified settings, or use preset settings?"
+msgstr ""
+
+msgid ""
+"\n"
+"Do you want to save your current modified settings?"
 msgstr ""
 
 msgid "Extruders count"
@@ -6345,9 +6488,6 @@ msgid "Objects list"
 msgstr ""
 
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
-msgstr ""
-
-msgid "Copy to clipboard"
 msgstr ""
 
 msgid "Paste from clipboard"
@@ -6922,9 +7062,6 @@ msgstr ""
 msgid "%1% is too tall, and collisions will be caused."
 msgstr ""
 
-msgid " is too close to others, there may be collisions when printing."
-msgstr ""
-
 msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr ""
 
@@ -7222,6 +7359,15 @@ msgid "Bed types supported by the printer"
 msgstr ""
 
 msgid "First layer print sequence"
+msgstr ""
+
+msgid "Other layers print sequence"
+msgstr ""
+
+msgid "The number of other layers print sequence"
+msgstr ""
+
+msgid "Other layers filament sequence"
 msgstr ""
 
 msgid "This G-code is inserted at every layer change before lifting z"
@@ -7683,6 +7829,24 @@ msgid ""
 "Bambu Printer"
 msgstr ""
 
+msgid "Filament notes"
+msgstr ""
+
+msgid "You can put your notes regarding the filament here."
+msgstr ""
+
+msgid "Process notes"
+msgstr ""
+
+msgid "You can put your notes regarding the process here."
+msgstr ""
+
+msgid "Printer notes"
+msgstr ""
+
+msgid "You can put your notes regarding the printer here."
+msgstr ""
+
 msgid "Default line width if some line width is set to be zero"
 msgstr ""
 
@@ -7949,9 +8113,6 @@ msgstr ""
 msgid ""
 "Randomly jitter while printing the wall, so that the surface has a rough "
 "look. This setting controls the fuzzy position"
-msgstr ""
-
-msgid "None"
 msgstr ""
 
 msgid "Contour"
@@ -8397,9 +8558,6 @@ msgid ""
 "model and save printing time, but make slicing and G-code generating slower"
 msgstr ""
 
-msgid "Enable"
-msgstr ""
-
 msgid "Filename format"
 msgstr ""
 
@@ -8490,9 +8648,6 @@ msgid "Retract when change layer"
 msgstr ""
 
 msgid "Force a retraction when changes layer"
-msgstr ""
-
-msgid "Length"
 msgstr ""
 
 msgid "Retraction Length"
@@ -8636,9 +8791,6 @@ msgid "Line width of internal solid infill"
 msgstr ""
 
 msgid "Speed of internal solid infill, not the top and bottom surface"
-msgstr ""
-
-msgid "Spiral vase"
 msgstr ""
 
 msgid ""
@@ -9886,9 +10038,6 @@ msgstr ""
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
 msgstr ""
 
-msgid "Upload"
-msgstr ""
-
 msgid "Simulate"
 msgstr ""
 
@@ -10319,6 +10468,13 @@ msgid ""
 "Please note that nozzle temperature, hot bed temperature, and maximum "
 "volumetric speed has a significant impact on printing quality. Please set "
 "them carefully."
+msgstr ""
+
+msgid ""
+"Studio has detected that your user presets synchronization function is not "
+"enabled, which may result in unsuccessful Filament settings on the Device "
+"page. \n"
+"Click \"Sync user presets\" to enable the synchronization function."
 msgstr ""
 
 msgid "Printer Setting"

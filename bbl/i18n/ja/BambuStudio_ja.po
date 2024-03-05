@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-23 20:04+0800\n"
+"POT-Creation-Date: 2024-03-05 14:55+0800\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -223,8 +223,11 @@ msgstr "倍率"
 msgid "Object Operations"
 msgstr "オブジェクト操作"
 
-msgid "Volume Operations"
-msgstr "操作"
+msgid "Rotate (relative)"
+msgstr ""
+
+msgid "Translate (relative) [World]"
+msgstr ""
 
 msgid "Translate"
 msgstr "移動"
@@ -542,6 +545,102 @@ msgstr "外観認識"
 msgid "Perform Recognition"
 msgstr "認識を実行"
 
+msgid "Vertex"
+msgstr ""
+
+msgid "Edge"
+msgstr ""
+
+msgid "Plane"
+msgstr ""
+
+msgid "Point on edge"
+msgstr ""
+
+msgid "Point on circle"
+msgstr ""
+
+msgid "Point on plane"
+msgstr ""
+
+msgid "Center of edge"
+msgstr ""
+
+msgid "Center of circle"
+msgstr ""
+
+msgid "Select feature"
+msgstr ""
+
+msgid "Select point"
+msgstr ""
+
+msgid "Delete"
+msgstr "削除"
+
+msgid "Restart selection"
+msgstr ""
+
+msgid "Esc"
+msgstr "Esc"
+
+msgid "Cancel a feature until exit"
+msgstr ""
+
+msgid "Measure"
+msgstr ""
+
+msgid "Edit to scale"
+msgstr ""
+
+msgctxt "Verb"
+msgid "Scale all"
+msgstr ""
+
+msgid "None"
+msgstr "無し"
+
+msgid "Diameter"
+msgstr "直径"
+
+msgid "Length"
+msgstr "長さ"
+
+msgid "Selection"
+msgstr ""
+
+msgid ""
+"Feature 1 has been reset, \n"
+"feature 2 has been feature 1"
+msgstr ""
+
+msgid "Copy to clipboard"
+msgstr "コピー"
+
+msgid "Adsorbed onto the surface"
+msgstr ""
+
+msgid "modify x distance between objects"
+msgstr ""
+
+msgid "modify y distance between objects"
+msgstr ""
+
+msgid "Angle"
+msgstr "Angle"
+
+msgid "Perpendicular distance"
+msgstr ""
+
+msgid "Distance"
+msgstr ""
+
+msgid "Direct distance"
+msgstr ""
+
+msgid "Distance XYZ"
+msgstr ""
+
 msgid "Brush size"
 msgstr "サイズ"
 
@@ -583,9 +682,6 @@ msgstr "Embedded"
 
 msgid "Text Gap"
 msgstr "Text Gap"
-
-msgid "Angle"
-msgstr "Angle"
 
 msgid ""
 "Embeded\r\n"
@@ -808,9 +904,6 @@ msgstr "G-codeファイルを選択"
 
 msgid "Import File"
 msgstr "Import File"
-
-msgid "Delete"
-msgstr "削除"
 
 msgid "Choose files"
 msgstr "ファイルを選択"
@@ -2318,6 +2411,12 @@ msgstr "Floating reserved operand"
 msgid "Stack overflow"
 msgstr "Stack Overflow"
 
+msgid "Running post-processing scripts"
+msgstr "後処理スクリプトを実行"
+
+msgid "Successfully executed post-processing script"
+msgstr ""
+
 msgid "Unknown error when export G-code."
 msgstr "不明なエラー: G-codeエクスポート"
 
@@ -2331,13 +2430,6 @@ msgstr ""
 "エラーメッセージ：%1%\n"
 "ソース ファイル %2%"
 
-#, boost-format
-msgid "Succeed to export G-code to %1%"
-msgstr "G-codeは %1%にエクスポートしました"
-
-msgid "Running post-processing scripts"
-msgstr "後処理スクリプトを実行"
-
 msgid "Copying of the temporary G-code to the output G-code failed"
 msgstr "G-codeの出力が失敗しました"
 
@@ -2349,9 +2441,6 @@ msgstr ""
 
 msgid "Origin"
 msgstr "原点"
-
-msgid "Diameter"
-msgstr "直径"
 
 msgid "Size in X and Y of the rectangular plate."
 msgstr "プレート上のサイズ"
@@ -2501,25 +2590,6 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Spiral mode only works when wall loops is 1, support is disabled, top shell "
-"layers is 0, sparse infill density is 0 and timelapse type is traditional."
-msgstr ""
-"Spiral mode only works when wall loops is 1, support is disabled, top shell "
-"layers is 0, sparse infill density is 0 and timelapse type is traditional."
-
-msgid " But machines with I3 structure will not generate timelapse videos."
-msgstr " But machines with I3 structure will not generate timelapse videos."
-
-msgid ""
-"Change these settings automatically? \n"
-"Yes - Change these settings and enable spiral mode automatically\n"
-"No  - Give up using spiral mode this time"
-msgstr ""
-"これらの設定を変更しますか？\n"
-"はい - 変更して、スパイラルモードを有効にします\n"
-"いいえ - 変更せず、スパイラルモードを有効しません"
-
-msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
 "Layer Height is on.\n"
 "Which do you want to keep?\n"
@@ -2570,6 +2640,25 @@ msgid ""
 msgstr ""
 "While printing by object, the extruder may collide with a skirt.\n"
 "Thus, reset the skirt layer to 1 to avoid collisions."
+
+msgid ""
+"Spiral mode only works when wall loops is 1, support is disabled, top shell "
+"layers is 0, sparse infill density is 0 and timelapse type is traditional."
+msgstr ""
+"Spiral mode only works when wall loops is 1, support is disabled, top shell "
+"layers is 0, sparse infill density is 0 and timelapse type is traditional."
+
+msgid " But machines with I3 structure will not generate timelapse videos."
+msgstr " But machines with I3 structure will not generate timelapse videos."
+
+msgid ""
+"Change these settings automatically? \n"
+"Yes - Change these settings and enable spiral mode automatically\n"
+"No  - Give up using spiral mode this time"
+msgstr ""
+"これらの設定を変更しますか？\n"
+"はい - 変更して、スパイラルモードを有効にします\n"
+"いいえ - 変更せず、スパイラルモードを有効しません"
 
 msgid "Auto bed leveling"
 msgstr "自動ベッドレベリング"
@@ -2860,11 +2949,14 @@ msgstr "合計"
 msgid "Tower"
 msgstr "Tower"
 
-msgid "Total Time Estimation"
-msgstr "Total Time Estimation"
+msgid "Total Estimation"
+msgstr "予測合計"
 
 msgid "Total time"
 msgstr "総時間"
+
+msgid "Total cost"
+msgstr ""
 
 msgid "up to"
 msgstr "最大"
@@ -2952,9 +3044,6 @@ msgstr "プリンター"
 
 msgid "Print settings"
 msgstr "造形設定"
-
-msgid "Total Estimation"
-msgstr "予測合計"
 
 msgid "Time Estimation"
 msgstr "予測時間"
@@ -3267,8 +3356,8 @@ msgstr "いいえ"
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "will be closed before creating a new model. Do you want to continue?"
 
-msgid "Share"
-msgstr "Share"
+msgid "Upload"
+msgstr "Upload"
 
 msgid "Slice plate"
 msgstr "スライス"
@@ -4144,8 +4233,8 @@ msgstr "InFo"
 msgid "Get oss config failed."
 msgstr "Get oss config failed."
 
-msgid "Upload Pictrues"
-msgstr "Upload Pictrues"
+msgid "Upload Pictures"
+msgstr ""
 
 msgid "Number of images successfully uploaded"
 msgstr "Number of images successfully uploaded"
@@ -4888,8 +4977,14 @@ msgstr "モデルをインポート"
 msgid "prepare 3mf file..."
 msgstr "3mfファイルを準備"
 
+msgid "Download failed, unknown file format."
+msgstr ""
+
 msgid "downloading project ..."
 msgstr "プロジェクトをダウンロード中"
+
+msgid "Download failed, File size exception."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Project downloaded %d%%"
@@ -4980,16 +5075,20 @@ msgid ""
 "will be kept. You may fix the meshes and try agian."
 msgstr ""
 
-msgid "Reason: mesh is empty."
+#, boost-format
+msgid "Reason: part \"%1%\" is empty."
 msgstr ""
 
-msgid "Reason: mesh does not bound a volume."
+#, boost-format
+msgid "Reason: part \"%1%\" does not bound a volume."
 msgstr ""
 
-msgid "Reason: mesh has self intersection."
+#, boost-format
+msgid "Reason: part \"%1%\" has self intersection."
 msgstr ""
 
-msgid "Reason: meshes have no intersection."
+#, boost-format
+msgid "Reason: \"%1%\" and another part have no intersection."
 msgstr ""
 
 msgid ""
@@ -5415,14 +5514,35 @@ msgstr "Incompatible"
 msgid "The selected preset is null!"
 msgstr "The selected preset is null!"
 
+msgid "End"
+msgstr ""
+
+msgid "Customize"
+msgstr "Customize"
+
+msgid "Other layer filament sequence"
+msgstr ""
+
+msgid "Please input layer value (>= 2)."
+msgstr ""
+
 msgid "Same as Global Print Sequence"
 msgstr "Same as Global Print Sequence"
 
 msgid "Print sequence"
 msgstr "造形シーケンス"
 
-msgid "Customize"
-msgstr "Customize"
+msgid "Same as Global"
+msgstr ""
+
+msgid "Enable"
+msgstr "有効化"
+
+msgid "Disable"
+msgstr ""
+
+msgid "Spiral vase"
+msgstr "スパイラル"
 
 msgid "First layer filament sequence"
 msgstr "First layer filament sequence"
@@ -6085,6 +6205,9 @@ msgstr "G-code出力"
 msgid "Post-processing scripts"
 msgstr "Post-processing scripts"
 
+msgid "Notes"
+msgstr ""
+
 msgid "Frequent"
 msgstr "よく使う"
 
@@ -6355,23 +6478,26 @@ msgstr "未定義"
 msgid "Unsaved Changes"
 msgstr "未保存の変更"
 
-msgid "Transfer or discard changes"
-msgstr "Transfer or discard changes"
+msgid "Actions For Unsaved Changes"
+msgstr ""
 
-msgid "Old Value"
-msgstr "古い値"
+msgid "Preset Value"
+msgstr ""
 
-msgid "New Value"
-msgstr "新しい値"
+msgid "Modified Value"
+msgstr ""
 
-msgid "Transfer"
-msgstr "流用"
+msgid "Transfer Modified Value"
+msgstr ""
 
 msgid "Don't save"
 msgstr "保存しない"
 
-msgid "Discard"
-msgstr "破棄"
+msgid "Use Preset Value"
+msgstr ""
+
+msgid "Save Modified Value"
+msgstr ""
 
 msgid "Click the right mouse button to display the full text."
 msgstr "マウスを右クリックして全文を表示します"
@@ -6424,19 +6550,34 @@ msgstr ""
 "存の変更があります"
 
 #, boost-format
-msgid ""
-"You have changed some settings of preset \"%1%\". \n"
-"Would you like to keep these changed settings (new value) after switching "
-"preset?"
+msgid "You have changed some settings of preset \"%1%\". "
 msgstr ""
-"プリセット %1% に変更があります。\n"
-"それらの変更を選択したプリセットに引き継ぎますか？"
 
 msgid ""
-"You have changed some preset settings. \n"
-"Would you like to keep these changed settings (new value) after switching "
-"preset?"
-msgstr "プリセットに変更がありあす。これらの変更を流用しますか？"
+"\n"
+"Would you like to save these changed settings(modified value)?"
+msgstr ""
+
+msgid ""
+"\n"
+"Would you like to keep these changed settings(modified value) after "
+"switching preset?"
+msgstr ""
+
+msgid ""
+"You have previously modified your settings and are about to overwrite them "
+"with new ones."
+msgstr ""
+
+msgid ""
+"\n"
+"Do you want to keep your current modified settings, or use preset settings?"
+msgstr ""
+
+msgid ""
+"\n"
+"Do you want to save your current modified settings?"
+msgstr ""
 
 msgid "Extruders count"
 msgstr "押出機台数"
@@ -6600,9 +6741,6 @@ msgstr "オブジェクト一覧"
 
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
 msgstr "Import geometry data from STL/STEP/3MF/OBJ/AMF files"
-
-msgid "Copy to clipboard"
-msgstr "コピー"
 
 msgid "Paste from clipboard"
 msgstr "貼り付け"
@@ -7188,9 +7326,6 @@ msgstr "%1% は他のオブジェクトと近すぎるため、衝突の可能�
 msgid "%1% is too tall, and collisions will be caused."
 msgstr "%1% は高すぎます、衝突の可能性があります。"
 
-msgid " is too close to others, there may be collisions when printing."
-msgstr "他のオブジェクトと近すぎます。オブジェクトと衝突の可能性があります。"
-
 msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr "が除外領域に近すぎます。衝突の可能性があります。"
 
@@ -7532,6 +7667,15 @@ msgstr "適応ベッド種類"
 
 msgid "First layer print sequence"
 msgstr "First layer print sequence"
+
+msgid "Other layers print sequence"
+msgstr ""
+
+msgid "The number of other layers print sequence"
+msgstr ""
+
+msgid "Other layers filament sequence"
+msgstr ""
 
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "積層が変わる直前に実行するG-codeです。"
@@ -8041,6 +8185,24 @@ msgstr ""
 "Pressure advance(Klipper) AKA Linear advance factor(Marlin). Useless for "
 "Bambu Printers"
 
+msgid "Filament notes"
+msgstr ""
+
+msgid "You can put your notes regarding the filament here."
+msgstr ""
+
+msgid "Process notes"
+msgstr ""
+
+msgid "You can put your notes regarding the process here."
+msgstr ""
+
+msgid "Printer notes"
+msgstr ""
+
+msgid "You can put your notes regarding the printer here."
+msgstr ""
+
 msgid "Default line width if some line width is set to be zero"
 msgstr "線幅が0に設定された時のデフォルト線幅"
 
@@ -8329,9 +8491,6 @@ msgid ""
 msgstr ""
 "この設定により、壁面を造形時にノズルがランダムで軽微な振動を加えます。これに"
 "より、表面にザラザラ感が出来上がります。"
-
-msgid "None"
-msgstr "無し"
 
 msgid "Contour"
 msgstr "Contour"
@@ -8813,9 +8972,6 @@ msgid ""
 msgstr ""
 "インフィル領域内の移動はリトラクションしません。造形時間を節約できます。"
 
-msgid "Enable"
-msgstr "有効化"
-
 msgid "Filename format"
 msgstr "ファイル名形式"
 
@@ -8920,9 +9076,6 @@ msgstr "積層変更時のリトラクション"
 
 msgid "Force a retraction when changes layer"
 msgstr "この設定により、積層を変更時にリトラクションを実行します。"
-
-msgid "Length"
-msgstr "長さ"
 
 msgid "Retraction Length"
 msgstr "リトラクション長さ"
@@ -9083,9 +9236,6 @@ msgstr "ソリッド インフィルの線幅"
 
 msgid "Speed of internal solid infill, not the top and bottom surface"
 msgstr "ソリッド インフィルの造形速度です。"
-
-msgid "Spiral vase"
-msgstr "スパイラル"
 
 msgid ""
 "Spiralize smooths out the z moves of the outer contour. And turns a solid "
@@ -10519,9 +10669,6 @@ msgstr "Use forward slashes ( / ) as a directory separator if needed."
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
 msgstr "Filename to upload doesn't end with \"%s\". Do you want to continue?"
 
-msgid "Upload"
-msgstr "Upload"
-
 msgid "Simulate"
 msgstr "Simulate"
 
@@ -10981,6 +11128,13 @@ msgid ""
 "Please note that nozzle temperature, hot bed temperature, and maximum "
 "volumetric speed has a significant impact on printing quality. Please set "
 "them carefully."
+msgstr ""
+
+msgid ""
+"Studio has detected that your user presets synchronization function is not "
+"enabled, which may result in unsuccessful Filament settings on the Device "
+"page. \n"
+"Click \"Sync user presets\" to enable the synchronization function."
 msgstr ""
 
 msgid "Printer Setting"
@@ -11605,6 +11759,56 @@ msgstr ""
 "Did you know that when printing materials that are prone to warping such as "
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
+
+#~ msgid "Volume Operations"
+#~ msgstr "操作"
+
+#, boost-format
+#~ msgid "Succeed to export G-code to %1%"
+#~ msgstr "G-codeは %1%にエクスポートしました"
+
+#~ msgid "Total Time Estimation"
+#~ msgstr "Total Time Estimation"
+
+#~ msgid "Share"
+#~ msgstr "Share"
+
+#~ msgid "Upload Pictrues"
+#~ msgstr "Upload Pictrues"
+
+#~ msgid "Transfer or discard changes"
+#~ msgstr "Transfer or discard changes"
+
+#~ msgid "Old Value"
+#~ msgstr "古い値"
+
+#~ msgid "New Value"
+#~ msgstr "新しい値"
+
+#~ msgid "Transfer"
+#~ msgstr "流用"
+
+#~ msgid "Discard"
+#~ msgstr "破棄"
+
+#, boost-format
+#~ msgid ""
+#~ "You have changed some settings of preset \"%1%\". \n"
+#~ "Would you like to keep these changed settings (new value) after switching "
+#~ "preset?"
+#~ msgstr ""
+#~ "プリセット %1% に変更があります。\n"
+#~ "それらの変更を選択したプリセットに引き継ぎますか？"
+
+#~ msgid ""
+#~ "You have changed some preset settings. \n"
+#~ "Would you like to keep these changed settings (new value) after switching "
+#~ "preset?"
+#~ msgstr "プリセットに変更がありあす。これらの変更を流用しますか？"
+
+#~ msgid " is too close to others, there may be collisions when printing."
+#~ msgstr ""
+#~ "他のオブジェクトと近すぎます。オブジェクトと衝突の可能性があります。"
 
 #, c-format, boost-format
 #~ msgid "No files [%d]"
@@ -12702,9 +12906,6 @@ msgstr ""
 
 #~ msgid "Error at line %1%:\n"
 #~ msgstr "%1%行目でエラー発生\n"
-
-#~ msgid "Esc"
-#~ msgstr "Esc"
 
 #~ msgid "Export."
 #~ msgstr "エクスポート"
