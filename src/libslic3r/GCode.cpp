@@ -1096,7 +1096,7 @@ bool GCode::is_BBL_Printer()
     return false;
 }
 
-//BBS : get the plate model's projection on first layer, contain plate offset
+//BBS : get the plate model's projection on first layer, contain plate offset,unscaled data
 BoundingBoxf GCode::first_layer_projection(const Print& print) const
 {
     // too slow
@@ -1947,13 +1947,39 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             {bbox.min.x() - plate_offset.x(),bbox.min.y() - plate_offset.y()},
             {bbox.max.x() - plate_offset.x(),bbox.max.y() - plate_offset.y()}
         };
-        BoundingBoxf bbox_head_wrap_zone (print.config().head_wrap_detect_zone.values);
 
         m_placeholder_parser.set("first_layer_print_convex_hull", pts.release());
         m_placeholder_parser.set("first_layer_print_min", new ConfigOptionFloats({ bbox_without_plate_offset.min.x(),bbox_without_plate_offset.min.y() }));
         m_placeholder_parser.set("first_layer_print_max", new ConfigOptionFloats({ bbox_without_plate_offset.max.x(),bbox_without_plate_offset.max.y() }));
         m_placeholder_parser.set("first_layer_print_size", new ConfigOptionFloats({ bbox.size().x(), bbox.size().y() }));
-        m_placeholder_parser.set("in_head_wrap_detect_zone",bbox_head_wrap_zone.overlap(bbox_without_plate_offset));
+
+        {   // BBS:deal with head wrap detect
+            // use first layer convex_hull union with each object's bbox to check whether in head detect zone
+            Polygons object_projections;
+            for (auto& obj : print.objects()) {
+                for (auto& instance : obj->instances()) {
+                    const auto& bbox = instance.get_bounding_box();
+                    Point min_p{ coord_t(scale_(bbox.min.x())),coord_t(scale_(bbox.min.y())) };
+                    Point max_p{ coord_t(scale_(bbox.max.x())),coord_t(scale_(bbox.max.y())) };
+                    Polygon instance_projection = {
+                        {min_p.x(),min_p.y()},
+                        {max_p.x(),min_p.y()},
+                        {max_p.x(),max_p.y()},
+                        {min_p.x(),max_p.y()}
+                    };
+                    object_projections.emplace_back(std::move(instance_projection));
+                }
+            }
+            object_projections.emplace_back(print.first_layer_convex_hull());
+
+            Polygons project_polys = union_(object_projections);
+            Polygon  head_wrap_detect_zone;
+            for (auto& point : print.config().head_wrap_detect_zone.values)
+                head_wrap_detect_zone.append(scale_(point).cast<coord_t>() + scale_(plate_offset).cast<coord_t>());
+
+            m_placeholder_parser.set("in_head_wrap_detect_zone", !intersection_pl(project_polys, {head_wrap_detect_zone}).empty());
+        }
+
         // get center without wipe tower
         BoundingBoxf bbox_wo_wt;// bounding box without wipe tower
         for (auto& objPtr : print.objects()) {
