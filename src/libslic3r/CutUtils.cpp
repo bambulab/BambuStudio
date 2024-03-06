@@ -320,9 +320,13 @@ const ModelObjectPtrs &Cut::perform_with_plane()
         mo->clone_for_cut(&upper);
 
     ModelObject *lower{nullptr};
-    if (m_attributes.has(ModelObjectCutAttribute::KeepLower) && !m_attributes.has(ModelObjectCutAttribute::CutToParts)) 
+    if (m_attributes.has(ModelObjectCutAttribute::KeepLower) && !m_attributes.has(ModelObjectCutAttribute::CutToParts))
         mo->clone_for_cut(&lower);
 
+    if (upper && lower &&!m_attributes.has(ModelObjectCutAttribute::CutToParts)) {
+        upper->name = upper->name + "_A";
+        lower->name = lower->name + "_B";
+    }
     std::vector<ModelObject *> dowels;
 
     // Because transformations are going to be applied to meshes directly,
