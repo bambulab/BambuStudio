@@ -66,6 +66,7 @@ struct SupportParameters {
             bridge_flow_ratio += region.config().bridge_flow;
         }
         this->gap_xy = object_config.support_object_xy_distance.value;
+        this->gap_xy_first_layer = object_config.support_object_first_layer_gap.value;
         bridge_flow_ratio /= object.num_printing_regions();
 
         this->support_material_bottom_interface_flow = slicing_params.soluble_interface || !object_config.thick_bridges ?
@@ -149,6 +150,7 @@ struct SupportParameters {
     //	coordf_t	support_layer_height_max;
 
     coordf_t	gap_xy;
+    coordf_t	gap_xy_first_layer;
 
     float    				base_angle;
     float    				interface_angle;
