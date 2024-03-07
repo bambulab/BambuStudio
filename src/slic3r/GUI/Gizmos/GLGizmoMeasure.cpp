@@ -649,9 +649,7 @@ void GLGizmoMeasure::on_render()
             Vec3f  hit                          = Vec3f::Zero();
             double closest_hit_squared_distance = std::numeric_limits<double>::max();
             for (auto item : m_gripper_id_raycast_map) {
-                if (!item.second->is_active()) {
-                    continue;
-                }
+
                 auto  world_tran = item.second->world_tran;
                 Vec3f normal_on_gripper;
                 if (item.second->mesh_raycaster->closest_hit(mouse_position, item.second->world_tran.get_matrix(), camera, hit, normal_on_gripper)) {
@@ -2234,8 +2232,6 @@ void GLGizmoMeasure::reset_gripper_pick(GripperType id, bool is_all)
         reset_gripper_pick(GripperType::CIRCLE);
         reset_gripper_pick(GripperType::CIRCLE_1);
         reset_gripper_pick(GripperType::CIRCLE_2);
-        reset_gripper_pick(GripperType::SPHERE_1);
-        reset_gripper_pick(GripperType::SPHERE_1);
     }
 }
 

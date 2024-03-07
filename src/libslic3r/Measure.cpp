@@ -1220,6 +1220,9 @@ MeasurementResult get_measurement(const SurfaceFeature& a, const SurfaceFeature&
                     result.distance_infinite = std::make_optional(DistAndPoints{ it->dist, it->from, it->to });
                 }
             }
+            else {
+                result.distance_strict = std::make_optional(DistAndPoints{0, center, origin2});
+            }
         }
     ///////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////
