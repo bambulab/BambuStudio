@@ -63,13 +63,23 @@ bool GLGizmoMove3D::on_init()
 
 std::string GLGizmoMove3D::on_get_name() const
 {
-    return _u8L("Move");
+    if (!on_is_activable() && m_state == EState::Off) {
+        return _u8L("Move") + ":\n" + _u8L("Please select at least one object.");
+    } else {
+        return _u8L("Move");
+    }
 }
 
 bool GLGizmoMove3D::on_is_activable() const
 {
     const Selection &selection = m_parent.get_selection();
     return !selection.is_any_cut_volume() && !selection.is_any_connector() && !selection.is_empty();
+}
+
+void GLGizmoMove3D::on_set_state() {
+    if (get_state() == On) {
+        m_object_manipulation->set_coordinates_type(ECoordinatesType::World);
+    }
 }
 
 void GLGizmoMove3D::on_start_dragging()

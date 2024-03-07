@@ -301,6 +301,7 @@ public:
     bool is_single_volume() const { return m_type == SingleVolume; }
     bool is_multiple_volume() const { return m_type == MultipleVolume; }
     bool is_any_volume() const { return is_single_volume() || is_multiple_volume(); }
+    bool is_single_volume_or_modifier() const { return is_single_volume() || is_single_modifier(); }
     bool is_any_connector() const;
     bool is_any_cut_volume() const;
     bool is_mixed() const { return m_type == Mixed; }
