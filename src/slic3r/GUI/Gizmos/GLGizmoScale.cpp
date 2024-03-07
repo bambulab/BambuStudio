@@ -95,13 +95,23 @@ bool GLGizmoScale3D::on_init()
 
 std::string GLGizmoScale3D::on_get_name() const
 {
-    return _u8L("Scale");
+    if (!on_is_activable() && m_state == EState::Off) {
+        return _u8L("Scale") + ":\n" + _u8L("Please select at least one object.");
+    } else {
+        return _u8L("Scale");
+    }
 }
 
 bool GLGizmoScale3D::on_is_activable() const
 {
     const Selection &selection = m_parent.get_selection();
     return !selection.is_empty() && !selection.is_wipe_tower() && !selection.is_any_cut_volume() && !selection.is_any_connector();
+}
+
+void GLGizmoScale3D::on_set_state() {
+    if (get_state() == On) {
+        m_object_manipulation->set_coordinates_type(ECoordinatesType::Local);
+    }
 }
 
 void GLGizmoScale3D::on_start_dragging()

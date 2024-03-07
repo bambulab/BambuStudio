@@ -61,6 +61,7 @@ protected:
     virtual std::string on_get_name() const override;
     virtual std::string on_get_name_str() override { return "Scale"; }
     virtual bool on_is_activable() const override;
+    virtual void on_set_state() override;
     virtual void on_start_dragging() override;
     virtual void on_update(const UpdateData& data) override;
     virtual void on_render() override;
