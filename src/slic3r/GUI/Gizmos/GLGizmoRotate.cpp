@@ -473,11 +473,24 @@ bool GLGizmoRotate3D::on_init()
 
 std::string GLGizmoRotate3D::on_get_name() const
 {
-    return _u8L("Rotate");
+    if (!on_is_activable() && m_state == EState::Off) {
+        return _u8L("Rotate") + ":\n" + _u8L("Please select at least one object.");
+    } else {
+        return _u8L("Rotate");
+    }
+}
+
+void GLGizmoRotate3D::on_set_state()
+{
+    for (GLGizmoRotate &g : m_gizmos)
+        g.set_state(m_state);
+    if (get_state() == On) {
+        m_object_manipulation->set_coordinates_type(ECoordinatesType::World);
+    }
 }
 
 bool GLGizmoRotate3D::on_is_activable() const
-{ 
+{
     const Selection &selection = m_parent.get_selection();
     return !selection.is_empty() && !selection.is_wipe_tower() // BBS: don't support rotate wipe tower
         &&!selection.is_any_cut_volume() && !selection.is_any_connector();
