@@ -575,7 +575,11 @@ void GLGizmoMeasure::on_set_state()
 
 std::string GLGizmoMeasure::on_get_name() const
 {
-    return _u8L("Measure");
+    if (!on_is_activable() && m_state == EState::Off) {
+        return _u8L("Measure") + ":\n" + _u8L("Please select at least one object.");
+    } else {
+        return _u8L("Measure");
+    }
 }
 
 bool GLGizmoMeasure::on_is_activable() const
@@ -1987,6 +1991,7 @@ void GLGizmoMeasure::on_render_input_window(float x, float y, float bottom_limit
         ImGui::PushItemWidth(feature_second_text_length);
         m_imgui->text(feature_second_text);
         if (m_selected_features.first.feature.has_value() && m_selected_features.second.feature.has_value()) {
+            m_show_reset_first_tip = false;
             ImGui::SameLine(selection_cap_length + feature_second_text_length + space_size * 2);
             ImGui::PushItemWidth(space_size * 2);
             ImGui::PushID("Reset2");
