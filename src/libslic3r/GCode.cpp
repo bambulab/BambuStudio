@@ -4259,10 +4259,10 @@ double GCode::get_overhang_degree_corr_speed(float normal_speed, double path_deg
     int upper_degree_bound = lower_degree_bound + 1;
 
     double lower_speed_bound = lower_degree_bound == 0 ? normal_speed : m_config.get_abs_value(overhang_speed_key_map[lower_degree_bound].c_str());
-    double upper_speed_bound = upper_speed_bound == 0 ? normal_speed : m_config.get_abs_value(overhang_speed_key_map[upper_degree_bound].c_str());
+    double upper_speed_bound = upper_degree_bound == 0 ? normal_speed : m_config.get_abs_value(overhang_speed_key_map[upper_degree_bound].c_str());
 
-    lower_speed_bound        = lower_speed_bound == 0 ? normal_speed : lower_speed_bound;
-    upper_speed_bound        = upper_speed_bound == 0 ? normal_speed : upper_speed_bound;
+    lower_speed_bound = lower_speed_bound == 0 ? normal_speed : lower_speed_bound;
+    upper_speed_bound = upper_speed_bound == 0 ? normal_speed : upper_speed_bound;
 
     double speed_out = lower_speed_bound + (upper_speed_bound - lower_speed_bound) * (path_degree - lower_degree_bound);
     return speed_out;
