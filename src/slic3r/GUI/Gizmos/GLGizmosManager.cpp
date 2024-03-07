@@ -1011,9 +1011,10 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             //wxGetApp().obj_manipul()->set_dirty();
             processed = true;
         }
-        else if (evt.RightUp() && (m_current == FdmSupports || m_current == Seam || m_current == MmuSegmentation || m_current == Cut)
-            && !m_parent.is_mouse_dragging()
-            && gizmo_event(SLAGizmoEventType::RightUp, mouse_pos, evt.ShiftDown(), evt.AltDown(), control_down)) {
+        else if (evt.RightUp() && (m_current == FdmSupports || m_current == Seam || m_current == MmuSegmentation || m_current == Cut 
+            || m_current == Measure || m_current == MeshBoolean)
+            && !m_parent.is_mouse_dragging() ) {
+            gizmo_event(SLAGizmoEventType::RightUp, mouse_pos, evt.ShiftDown(), evt.AltDown(), control_down);
             processed = true;
         }
         else if (evt.LeftUp()) {
