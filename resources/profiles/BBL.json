@@ -662,6 +662,14 @@
             "sub_path": "filament/fdm_filament_eva.json"
         },
         {
+            "name": "fdm_filament_pha",
+            "sub_path": "filament/fdm_filament_pha.json"
+        },
+        {
+            "name": "fdm_filament_bvoh",
+            "sub_path": "filament/fdm_filament_bvoh.json"
+        },
+        {
             "name": "Bambu PLA Matte @base",
             "sub_path": "filament/Bambu PLA Matte @base.json"
         },
@@ -910,6 +918,10 @@
             "sub_path": "filament/Generic PE @base.json"
         },
         {
+            "name": "Generic PE-CF @base",
+            "sub_path": "filament/Generic PE-CF @base.json"
+        },
+        {
             "name": "Generic PP @base",
             "sub_path": "filament/Generic PP @base.json"
         },
@@ -924,6 +936,14 @@
         {
             "name": "Generic EVA @base",
             "sub_path": "filament/Generic EVA @base.json"
+        },
+        {
+            "name": "Generic PHA @base",
+            "sub_path": "filament/Generic PHA @base.json"
+        },
+        {
+            "name": "Generic BVOH @base",
+            "sub_path": "filament/Generic BVOH @base.json"
         },
         {
             "name": "Bambu PLA Matte @BBL X1C",
@@ -2218,6 +2238,18 @@
             "sub_path": "filament/Generic PE @BBL A1M.json"
         },
         {
+            "name": "Generic PE-CF @BBL X1C",
+            "sub_path": "filament/Generic PE-CF @BBL X1C.json"
+        },
+        {
+            "name": "Generic PE-CF @BBL A1",
+            "sub_path": "filament/Generic PE-CF @BBL A1.json"
+        },
+        {
+            "name": "Generic PE-CF @BBL A1M",
+            "sub_path": "filament/Generic PE-CF @BBL A1M.json"
+        },
+        {
             "name": "Generic PP @BBL X1C",
             "sub_path": "filament/Generic PP @BBL X1C.json"
         },
@@ -2256,6 +2288,30 @@
         {
             "name": "Generic EVA @BBL A1M",
             "sub_path": "filament/Generic EVA @BBL A1M.json"
+        },
+        {
+            "name": "Generic PHA @BBL X1C",
+            "sub_path": "filament/Generic PHA @BBL X1C.json"
+        },
+        {
+            "name": "Generic PHA @BBL A1M",
+            "sub_path": "filament/Generic PHA @BBL A1M.json"
+        },
+        {
+            "name": "Generic PHA @BBL A1",
+            "sub_path": "filament/Generic PHA @BBL A1.json"
+        },
+        {
+            "name": "Generic BVOH @BBL X1C",
+            "sub_path": "filament/Generic BVOH @BBL X1C.json"
+        },
+        {
+            "name": "Generic BVOH @BBL A1M",
+            "sub_path": "filament/Generic BVOH @BBL A1M.json"
+        },
+        {
+            "name": "Generic BVOH @BBL A1",
+            "sub_path": "filament/Generic BVOH @BBL A1.json"
         },
         {
             "name": "PolyTerra PLA @BBL X1C 0.2 nozzle",
