@@ -98,6 +98,8 @@ typedef int (*func_put_rating_picture_oss)(
     void *agent, std::string &config, std::string &pic_oss_path, std::string model_id, int profile_id, unsigned int &http_code, std::string &http_error);
 typedef int (*func_get_model_mall_rating_result)(void *agent, int job_id, std::string &rating_result, unsigned int &http_code, std::string &http_error);
 
+typedef int (*func_get_mw_user_preference)(void *agent, std::function<void(std::string)> callback);
+typedef int (*func_get_mw_user_4ulist)(void *agent, int seed, int limit, std::function<void(std::string)> callback);
 
 //the NetworkAgent class
 class NetworkAgent
@@ -201,6 +203,10 @@ public:
     int put_rating_picture_oss(std::string &config, std::string &pic_oss_path, std::string model_id, int profile_id, unsigned int &http_code, std::string &http_error);
     int get_model_mall_rating_result(int job_id, std::string &rating_result, unsigned int &http_code, std::string &http_error);
     bool get_track_enable() { return enable_track; }
+
+    int get_mw_user_preference(std::function<void(std::string)> callback);
+    int get_mw_user_4ulist(int seed, int limit, std::function<void(std::string)> callback);
+
 private:
     bool enable_track = false;
     void*                   network_agent { nullptr };
@@ -293,6 +299,9 @@ private:
     static func_get_oss_config                 get_oss_config_ptr;
     static func_put_rating_picture_oss         put_rating_picture_oss_ptr;
     static func_get_model_mall_rating_result   get_model_mall_rating_result_ptr;
+
+    static func_get_mw_user_preference get_mw_user_preference_ptr;
+    static func_get_mw_user_4ulist     get_mw_user_4ulist_ptr;
 };
 
 }

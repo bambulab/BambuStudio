@@ -1,6 +1,8 @@
 var ModelSwiper=null;
 var ProfileSwiper=null;
 
+var m_ModelID=null;
+
 function OnInit()
 {	
 	console.log(" 页面加载完成 ");
@@ -153,7 +155,13 @@ function HandleStudio(pVal)
 	else if(strCmd=='clear_3mf_info')
 	{
 		ShowProjectInfo( null );
-	}	
+	}
+	else if(strCmd=='3mf_detail_set_modelid')		
+	{
+		let ModelID=pVal['model_id'];
+		
+		UpdateModelID( ModelID );
+	}
 }
 
 function ShowProjectInfo( p3MF )
@@ -166,11 +174,12 @@ function ShowProjectInfo( p3MF )
 	}
 	
 	//Check Data
+	let nModelID=p3MF.hasOwnProperty('model_id')?p3MF['model_id']:0;
 	let pModel=p3MF['model'];
 	let pFile=p3MF['file'];
 	let pProfile=p3MF['profile'];
 	
-	ShowModelInfo( pModel );
+	ShowModelInfo( pModel,nModelID );
     ShowFileInfo( pFile );
 	ShowProfilelInfo(pProfile);
 
@@ -197,7 +206,7 @@ function ShowProjectInfo( p3MF )
 	AddScrollEvent();
 }
 
-function ShowModelInfo( pModel )
+function ShowModelInfo( pModel, nID )
 {
 	//==========Model Info==========
 	let sModelName=decodeURIComponent(pModel.name);
@@ -205,6 +214,9 @@ function ShowModelInfo( pModel )
 	let UploadType=pModel.upload_type.toLowerCase();
 	let sLicence=pModel.license.toUpperCase();
 	let sModelDesc=decodeURIComponent(pModel.description);
+	
+	if( pModel.hasOwnProperty('model_id') )
+		UpdateModelID( pModel['model_id'] );
 	
 	SendWXDebugInfo("Model Name:  "+sModelName);
 	
@@ -580,9 +592,33 @@ function OnClickOpenImage( F_ID )
 	$("img#"+F_ID).click();
 }
 
+function UpdateModelID( ModelId )
+{
+    m_ModelID=ModelId;	
+	if( ModelId!='' )
+	{				
+		if( !$('#ModelName').hasClass('NameCanClick') )
+			$('#ModelName').addClass('NameCanClick');		
+	}
+	else
+	{
+		$('#ModelName').removeClass('NameCanClick');
+	}
+}
 
-
-
+function JumpToWeb()
+{
+	if(m_ModelID=='')
+		return;
+	
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="modelmall_model_open";
+	tSend['data']={};
+	tSend['data']['id']=m_ModelID+'';
+	
+	SendWXMessage( JSON.stringify(tSend) );			
+}
 
 
 

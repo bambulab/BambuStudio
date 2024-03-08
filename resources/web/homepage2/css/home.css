@@ -1,0 +1,63 @@
+/*------------------*/
+#DebugText
+{
+	height:30px;
+}
+
+/*------------------*/
+body
+{
+	display:flex;
+	flex-direction: column;
+	justify-content: flex-start;
+}
+
+/*------MakerLab-------*/
+#MakerlabArea
+{
+	display:none;
+}
+
+#LabList
+{
+	display:flex;
+	
+}
+
+.MakerlabImg img
+{
+	width: 100%;
+	aspect-radio: 16/9;
+	border-radius: 8px 8px 0px 0px;
+}
+
+.MakerlabTextBlock
+{
+	background-color: white;
+	padding: 0px 8px;
+}
+
+.MakerlabTextBlock div
+{
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;	
+}
+
+.MakerlabName
+{
+	color:#333333;
+	font-weight:700;
+}
+
+.MakerlabDesc
+{
+	color:#6B6B6B;
+	font-size: 10px;
+}
+
+.MakerlabAuthor
+{
+	font-size: 10px;
+	color: #ACACAC;
+}

@@ -3724,6 +3724,12 @@ void MainFrame::RunScript(wxString js)
         m_webview->RunScript(js);
 }
 
+void MainFrame::RunScriptLeft(wxString js) 
+{
+    if (m_webview != nullptr) 
+        m_webview->RunScriptLeft(js);
+}
+
 void MainFrame::technology_changed()
 {
     // upadte DiffDlg

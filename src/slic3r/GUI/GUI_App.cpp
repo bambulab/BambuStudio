@@ -3825,13 +3825,13 @@ void GUI_App::get_login_info()
         if (m_agent->is_user_login()) {
             std::string login_cmd = m_agent->build_login_cmd();
             wxString strJS = wxString::Format("window.postMessage(%s)", login_cmd);
-            GUI::wxGetApp().run_script(strJS);
+            GUI::wxGetApp().run_script_left(strJS);
         }
         else {
             m_agent->user_logout();
             std::string logout_cmd = m_agent->build_logout_cmd();
             wxString strJS = wxString::Format("window.postMessage(%s)", logout_cmd);
-            GUI::wxGetApp().run_script(strJS);
+            GUI::wxGetApp().run_script_left(strJS);
         }
     }
 }
@@ -3975,7 +3975,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
             else if (command_str.compare("modelmall_model_advise_get") == 0) {
                 if (mainframe && this->app_config->get("staff_pick_switch") == "true") {
                     if (mainframe->m_webview) {
-                        mainframe->m_webview->SendDesignStaffpick(has_model_mall());
+                            mainframe->m_webview->SendDesignStaffpick(has_model_mall());                                      
                     }
                 }
             }
@@ -4085,6 +4085,44 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 boost::optional<std::string> path      = root.get_optional<std::string>("url");
                 if (path.has_value()) {
                     wxLaunchDefaultBrowser(path.value());
+                }
+            } 
+            else if (command_str.compare("homepage_leftmenu_clicked") == 0) {
+                if (root.get_child_optional("menu") != boost::none) { 
+                    std::string strMenu = root.get_optional<std::string>("menu").value();
+                    int         nRefresh = root.get_child_optional("refresh") == boost::none ? 0 : root.get_optional<int>("refresh").value();
+                                            
+                    if (mainframe->m_webview) { 
+                        mainframe->m_webview->SwitchWebContent(strMenu, nRefresh);
+                    }
+                }
+            } 
+            else if (command_str.compare("homepage_leftmenu_switch") == 0) {
+                if (root.get_child_optional("menu") != boost::none) {
+                    std::string strMenu = root.get_optional<std::string>("menu").value();
+
+                    if (mainframe->m_webview) { mainframe->m_webview->SwitchLeftMenu(strMenu); }
+                }
+            }
+            else if (command_str.compare("homepage_makerlab_get") == 0) {
+                if (mainframe->m_webview) { mainframe->m_webview->SendMakerlabList(); }
+            }
+            else if (command_str.compare("homepage_makerlab_open") == 0) {
+                if (root.get_child_optional("url") != boost::none) {
+                    std::string strUrl = root.get_optional<std::string>("url").value();
+
+                    if (mainframe->m_webview) { mainframe->m_webview->OpenOneMakerlab(strUrl); }
+                }
+            } 
+            else if (command_str.compare("makerworld_model_open") == 0) 
+            {
+                if (root.get_child_optional("model") != boost::none) {
+                    pt::ptree                    data_node = root.get_child("model");
+                    boost::optional<std::string> path      = data_node.get_optional<std::string>("url");
+                    if (path.has_value()) 
+                    { 
+                        wxGetApp().request_model_download(path.value());
+                    }
                 }
             }
         }
@@ -6204,6 +6242,12 @@ void GUI_App::run_script(wxString js)
 {
     if (mainframe)
         return mainframe->RunScript(js);
+}
+
+void GUI_App::run_script_left(wxString js) 
+{
+    if (mainframe) 
+        return mainframe->RunScriptLeft(js);
 }
 
 Notebook* GUI_App::tab_panel() const
