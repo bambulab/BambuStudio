@@ -104,7 +104,10 @@ var LangText={
 		"t110":"Custom Filaments",
 		"t111":"Create New",
 		"t112":"Join the Program",
-		"t113":"You may change your choice in preference anytime."
+		"t113":"You may change your choice in preference anytime.",
+		"t114":"Home",
+		"t115":"Batch",
+		"t116":"Retry"
     },
     "zh_CN": {
         "t1": "欢迎使用Bambu Studio",
@@ -212,6 +215,9 @@ var LangText={
 		"t111":"新建",	
 		"t112":"加入该计划",
 		"t113":"您可以随时更改您的偏好。",
+		"t114":"首页",
+		"t115":"批量处理",
+		"t116": "重试",
         "wk1": "快速入门指南",
         "wk2": "本文介绍了Bambu Studio的最基本用法。它指导用户配置软件，创建项目，并逐步完成第一个打印任务。",
         "wk3": "基于项目的工作流",
@@ -334,7 +340,10 @@ var LangText={
 		"t110":"カスタムフィラメント",
 		"t111":"新規作成",
 		"t112":"この計画に参加する",
-		"t113":"好みはいつでも変更できます."		
+		"t113":"好みはいつでも変更できます.",
+		"t114":"トップページ",
+		"t115":"バッチ",
+		"t116": "[再試行]"
     },
 	"it_IT": {
 		"t1": "Benvenuti allo Studio Bambu",
@@ -441,7 +450,10 @@ var LangText={
 		"t110":"Filamenti Personalizzati", 
 		"t111":"Crea Nuovo",
 		"t112":"Partecipa al programma",
-		"t113":"Puoi cambiare la tua scelta in qualsiasi momento."			
+		"t113":"Puoi cambiare la tua scelta in qualsiasi momento.",
+		"t114":"Home",
+		"t115":"Lotto",
+		"t116":"Riprova"
 	},
 	"fr_FR": {
 		"t1": "Bienvenue chez Bambu Studio",
@@ -548,7 +560,10 @@ var LangText={
 		"t110":"Filaments Personnalisés",
 		"t111":"Créer Nouveau",
 		"t112":"Rejoignez le programme",
-		"t113":"Vous pouvez modifier vos préférences à tout moment."			
+		"t113":"Vous pouvez modifier vos préférences à tout moment.",
+		"t114":"Accueil",
+		"t115":"Un lot de",
+		"t116":"Retenter"
 	},
 	"de_DE": {
 		"t1": "Willkommen im Bambu Studio",
@@ -655,7 +670,10 @@ var LangText={
 		"t110":"Benutzerdefinierte Filamente",
 		"t111":"Neu erstellen",
 		"t112":"Teilnahme am Programm",
-		"t113":"Sie können Ihre Wahl jederzeit ändern."			
+		"t113":"Sie können Ihre Wahl jederzeit ändern.",
+		"t114":"Startseite",
+		"t115":"Charge",
+		"t116":"Erneut versuchen"
 	},
 	"hu_HU": {
 		"t1": "Üdvözöljük a Bambu Stúdióban",
@@ -762,7 +780,10 @@ var LangText={
 		"t110":"Egyedi Filamentek",
 		"t111":"Új Létrehozása",
 		"t112":"Csatlakozás a programhoz",
-		"t113":"Bármikor megváltoztathatja a preferenciáját."			
+		"t113":"Bármikor megváltoztathatja a preferenciáját.",
+		"t114":"honlap",
+		"t115":"Tétel",
+		"t116":"Újrapróbálkozás"
 	},
 	"es_ES": {
 		"t1": "Bienvenido a Bambu Studio",
@@ -869,7 +890,10 @@ var LangText={
 		"t110":"Filamenti Personalizzati",
 		"t111":"Crea Nuovo",
 		"t112":"Unirse al programa",
-		"t113":"Puede cambiar sus preferencias en cualquier momento."			
+		"t113":"Puede cambiar sus preferencias en cualquier momento.",
+		"t114":"Página de inicio",
+		"t115":"Un lote",
+		"t116":"Reintentar"
 	},
 	"sv_SE": {
 		"t1": "Välkommen till Bambu Studio",
@@ -976,7 +1000,10 @@ var LangText={
 		"t110":"Anpassade filament",
 		"t111":"Skapa ny",
 		"t112":"Gå med i programmet",
-		"t113":"Du kan ändra ditt val när som helst."		
+		"t113":"Du kan ändra ditt val när som helst.",
+		"t114":"startsida",
+		"t115":"Batch",
+		"t116":"Försök igen"
 	},
 	"cs_CZ": {
         "t1": "Vítejte v Bambu Studio",
@@ -1083,7 +1110,10 @@ var LangText={
 		"t110":"Samostatné materiály",
 		"t111":"Nové",	
 		"t112":"Připojte se k programu",
-		"t113":"Své preference můžete kdykoliv změnit.",		
+		"t113":"Své preference můžete kdykoliv změnit.",
+		"t114":"domovská stránka",
+		"t115":"Šarže",
+		"t116":"Zkuste to znovu"
     },
 	"nl_NL": {
 		"t1": "Welkom bij Bambu Studio",
@@ -1190,7 +1220,10 @@ var LangText={
 		"t110":"Aangepaste filamenten",
 		"t111":"Nieuw maken",
 		"t112":"Deelnemen aan het programma",
-		"t113":"U kunt uw keuze op elk gewenst moment wijzigen."		
+		"t113":"U kunt uw keuze op elk gewenst moment wijzigen.",
+		"t114":"startpagina",
+		"t115":"Batch",
+		"t116":"Probeer het opnieuw"
     },
     "ru_RU": {
         "t1": "Приветствуем в Bambu Studio!",
@@ -1297,7 +1330,10 @@ var LangText={
 		"t110":"Пользовательские прутки",
 		"t111":"Создать новый",
 		"t112":"Присоединяйтесь к программе",
-		"t113":"Вы можете изменить свои предпочтения в любое время."		
+		"t113":"Вы можете изменить свои предпочтения в любое время.",
+		"t114":"Главная страница",
+		"t115":"Одна партия",
+		"t116":"Повторить попытку"
 	}	
 };
 
@@ -1323,7 +1359,7 @@ function TranslatePage()
 	
 	if( !LangText.hasOwnProperty(strLang) )
 		strLang="en";
-	
+
     let AllNode=$(".trans");
 	let nTotal=AllNode.length;
 	for(let n=0;n<nTotal;n++)
@@ -1335,5 +1371,9 @@ function TranslatePage()
 		{
 			$(OneNode).html(LangText[strLang][tid]);
 		}
+		else if(strLang!='en' && LangText['en'].hasOwnProperty(tid) )
+		{
+			$(OneNode).html(LangText['en'][tid]);
+		}		
 	}
 }

@@ -1,0 +1,236 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="max-age=7200" />
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />	
+<title>homepage</title>
+<link rel="stylesheet" type="text/css" href="./css/common.css" />	
+<link rel="stylesheet" type="text/css" href="./css/rightcommon.css" />		
+<link rel="stylesheet" type="text/css" href="./css/online.css" />
+<link rel="stylesheet" type="text/css" href="./css/dark.css" />	
+
+<script type="text/javascript" src="../include/jquery-2.1.1.min.js"></script>
+<script type="text/javascript" src="../include/json2.js"></script>	
+<script type="text/javascript" src="../include/globalapi.js"></script>	
+
+<script type="text/javascript" src="../data/text.js"></script>		
+	
+<script type="text/javascript" src="js/home.js"></script>
+</head>
+<body class="ZScrol" onLoad="OnLineInit()">
+	<div id="HotModelArea">
+		<div id="Online_Models_Bar" class="Title_Bar">
+		  <div class="Title_Left_Area">
+			<img class="TitleSmallIcon" src="./img/fire.svg" />
+		    <div class="Content-Title trans TextS1" tid="t107">Online Models</div>
+		  </div>
+		  <div class="Right_Title_More" onClick="SwtichLeftMenu('online')"><span class="trans" tid="t108">MORE</span> ></div>
+		</div>
+		<div  id="ForU_Models_Bar" class="Title_Bar">
+		  <div class="Title_Left_Area">
+			<img class="TitleSmallIcon" src="./img/foru.svg" />
+		    <div class="Content-Title trans TextS1" tid="">For You</div>
+		  </div>
+		  <div class="Right_Title_More" onClick="SwtichLeftMenu('online')"><span class="trans" tid="t108">MORE</span> ></div>
+		</div>	
+		<div id="HotModelList">
+			<div class="HotModelPiece GuideBlock" onClick="OpenOneStaffPickModel(1)">
+				<div class="HotModel_PrevBlock">
+					<img class="HotModel_PrevImg" src="img/a.jpg" />
+				</div>
+				<div class="HotModel_Designer_Info">
+				  <div class="HotModel_Author_HeadIcon">
+				    <img src="img/a.jpg" />
+				  </div>
+				  <div class="HotModel_Right_1">
+				    <div class="HotModel_Name TextS1">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</div>
+				    <div class="HotModel_Right_1_2">
+				      <div class="HotModel_Author_Name TextS2">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxaaaaaaaaaaaaa</div>
+				      <div class="HotModel_click_info TextS2">
+				        <div class="Model_Click_Number"><img src="img/zan.svg"><span>1.7m</span></div>
+				        <div class="Model_Click_Number"><img src="img/xia.svg"><span>2.8k</span></div>
+					  </div>
+				    </div>
+				  </div>
+				</div>
+			</div>
+			<div class="HotModelPiece GuideBlock" onClick="OpenOneStaffPickModel(1)">
+				<div class="HotModel_PrevBlock">
+					<img class="HotModel_PrevImg" src="img/a.jpg" />
+				</div>
+				<div class="HotModel_Designer_Info">
+				  <div class="HotModel_Author_HeadIcon">
+				    <img src="img/a.jpg" />
+				  </div>
+				  <div class="HotModel_Right_1">
+				    <div class="HotModel_Name TextS1">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</div>
+				    <div class="HotModel_Right_1_2">
+				      <div class="HotModel_Author_Name TextS2">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxaaaaaaaaaaaaa</div>
+				      <div class="HotModel_click_info TextS2">
+				        <div class="Model_Click_Number"><img src="img/zan.svg"><span>1.7m</span></div>
+				        <div class="Model_Click_Number"><img src="img/xia.svg"><span>2.8k</span></div>
+					  </div>
+				    </div>
+				  </div>
+				</div>
+			</div>
+			<div class="HotModelPiece GuideBlock" onClick="OpenOneStaffPickModel(1)">
+				<div class="HotModel_PrevBlock">
+					<img class="HotModel_PrevImg" src="img/a.jpg" />
+				</div>
+				<div class="HotModel_Designer_Info">
+				  <div class="HotModel_Author_HeadIcon">
+				    <img src="img/a.jpg" />
+				  </div>
+				  <div class="HotModel_Right_1">
+				    <div class="HotModel_Name TextS1">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</div>
+				    <div class="HotModel_Right_1_2">
+				      <div class="HotModel_Author_Name TextS2">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxaaaaaaaaaaaaa</div>
+				      <div class="HotModel_click_info TextS2">
+				        <div class="Model_Click_Number"><img src="img/zan.svg"><span>1.7m</span></div>
+				        <div class="Model_Click_Number"><img src="img/xia.svg"><span>2.8k</span></div>
+					  </div>
+				    </div>
+				  </div>
+				</div>
+			</div>
+			<div class="HotModelPiece GuideBlock" onClick="OpenOneStaffPickModel(1)">
+				<div class="HotModel_PrevBlock">
+					<img class="HotModel_PrevImg" src="img/a.jpg" />
+				</div>
+				<div class="HotModel_Designer_Info">
+				  <div class="HotModel_Author_HeadIcon">
+				    <img src="img/a.jpg" />
+				  </div>
+				  <div class="HotModel_Right_1">
+				    <div class="HotModel_Name TextS1">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</div>
+				    <div class="HotModel_Right_1_2">
+				      <div class="HotModel_Author_Name TextS2">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxaaaaaaaaaaaaa</div>
+				      <div class="HotModel_click_info TextS2">
+				        <div class="Model_Click_Number"><img src="img/zan.svg"><span>1.7m</span></div>
+				        <div class="Model_Click_Number"><img src="img/xia.svg"><span>2.8k</span></div>
+					  </div>
+				    </div>
+				  </div>
+				</div>
+			</div>
+			<div class="HotModelPiece GuideBlock" onClick="OpenOneStaffPickModel(1)">
+				<div class="HotModel_PrevBlock">
+					<img class="HotModel_PrevImg" src="img/a.jpg" />
+				</div>
+				<div class="HotModel_Designer_Info">
+				  <div class="HotModel_Author_HeadIcon">
+				    <img src="img/a.jpg" />
+				  </div>
+				  <div class="HotModel_Right_1">
+				    <div class="HotModel_Name TextS1">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</div>
+				    <div class="HotModel_Right_1_2">
+				      <div class="HotModel_Author_Name TextS2">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxaaaaaaaaaaaaa</div>
+				      <div class="HotModel_click_info TextS2">
+				        <div class="Model_Click_Number"><img src="img/zan.svg"><span>1.7m</span></div>
+				        <div class="Model_Click_Number"><img src="img/xia.svg"><span>2.8k</span></div>
+					  </div>
+				    </div>
+				  </div>
+				</div>
+			</div>
+			<div class="HotModelPiece GuideBlock" onClick="OpenOneStaffPickModel(1)">
+				<div class="HotModel_PrevBlock">
+					<img class="HotModel_PrevImg" src="img/a.jpg" />
+				</div>
+				<div class="HotModel_Designer_Info">
+				  <div class="HotModel_Author_HeadIcon">
+				    <img src="img/a.jpg" />
+				  </div>
+				  <div class="HotModel_Right_1">
+				    <div class="HotModel_Name TextS1">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</div>
+				    <div class="HotModel_Right_1_2">
+				      <div class="HotModel_Author_Name TextS2">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxaaaaaaaaaaaaa</div>
+				      <div class="HotModel_click_info TextS2">
+				        <div class="Model_Click_Number"><img src="img/zan.svg"><span>1.7m</span></div>
+				        <div class="Model_Click_Number"><img src="img/xia.svg"><span>2.8k</span></div>
+					  </div>
+				    </div>
+				  </div>
+				</div>
+			</div>
+			<div class="HotModelPiece GuideBlock" onClick="OpenOneStaffPickModel(1)">
+				<div class="HotModel_PrevBlock">
+					<img class="HotModel_PrevImg" src="img/a.jpg" />
+				</div>
+				<div class="HotModel_Designer_Info">
+				  <div class="HotModel_Author_HeadIcon">
+				    <img src="img/a.jpg" />
+				  </div>
+				  <div class="HotModel_Right_1">
+				    <div class="HotModel_Name TextS1">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</div>
+				    <div class="HotModel_Right_1_2">
+				      <div class="HotModel_Author_Name TextS2">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxaaaaaaaaaaaaa</div>
+				      <div class="HotModel_click_info TextS2">
+				        <div class="Model_Click_Number"><img src="img/zan.svg"><span>1.7m</span></div>
+				        <div class="Model_Click_Number"><img src="img/xia.svg"><span>2.8k</span></div>
+					  </div>
+				    </div>
+				  </div>
+				</div>
+			</div>
+			<div class="HotModelPiece GuideBlock" onClick="OpenOneStaffPickModel(1)">
+				<div class="HotModel_PrevBlock">
+					<img class="HotModel_PrevImg" src="img/a.jpg" />
+				</div>
+				<div class="HotModel_Designer_Info">
+				  <div class="HotModel_Author_HeadIcon">
+				    <img src="img/a.jpg" />
+				  </div>
+				  <div class="HotModel_Right_1">
+				    <div class="HotModel_Name TextS1">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</div>
+				    <div class="HotModel_Right_1_2">
+				      <div class="HotModel_Author_Name TextS2">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxaaaaaaaaaaaaa</div>
+				      <div class="HotModel_click_info TextS2">
+				        <div class="Model_Click_Number"><img src="img/zan.svg"><span>1.7m</span></div>
+				        <div class="Model_Click_Number"><img src="img/xia.svg"><span>2.8k</span></div>
+					  </div>
+				    </div>
+				  </div>
+				</div>
+			</div>
+			<div class="HotModelPiece GuideBlock" onClick="OpenOneStaffPickModel(1)">
+				<div class="HotModel_PrevBlock">
+					<img class="HotModel_PrevImg" src="img/a.jpg" />
+				</div>
+				<div class="HotModel_Designer_Info">
+				  <div class="HotModel_Author_HeadIcon">
+				    <img src="img/a.jpg" />
+				  </div>
+				  <div class="HotModel_Right_1">
+				    <div class="HotModel_Name TextS1">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</div>
+				    <div class="HotModel_Right_1_2">
+				      <div class="HotModel_Author_Name TextS2">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxaaaaaaaaaaaaa</div>
+				      <div class="HotModel_click_info TextS2">
+				        <div class="Model_Click_Number"><img src="img/zan.svg"><span>1.7m</span></div>
+				        <div class="Model_Click_Number"><img src="img/xia.svg"><span>2.8k</span></div>
+					  </div>
+				    </div>
+				  </div>
+				</div>
+			</div>			
+		</div>
+	</div>	
+	
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+

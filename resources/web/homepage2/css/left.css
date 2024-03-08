@@ -1,0 +1,264 @@
+*
+{
+	padding:0px;
+	border: 0px;
+	margin: 0px;
+    font-family: "system-ui", "Segoe UI", Roboto, Oxygen, Ubuntu, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-sans;
+	border-color: #D7D7D7;
+	user-select: none;
+}
+
+html, body {
+	height: 100%;
+	width: 100%;
+    margin: 0px;
+    padding: 0px;
+	line-height: 20px;
+    font-size: 16px;	
+}
+
+.ZScrol::-webkit-scrollbar {/*滚动条整体样式*/
+    width: 12px;     /*高宽分别对应横竖滚动条的尺寸*/
+    height: 1px;
+	padding: 2px;
+}
+
+.ZScrol::-webkit-scrollbar-thumb {/*滚动条里面小方块*/
+    border-radius: 6px;
+    -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+	box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+    background-color: #AAAAAA;
+}
+
+.ZScrol::-webkit-scrollbar-track {/*滚动条里面轨道*/
+        -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+	    box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+        border-radius: 10px;
+        background: #EDEDED;
+}
+
+
+.RedFont
+{
+	font-size:12px;
+	color: #F07E4A;		
+}
+
+.LinkBtn
+{
+	font-size:12px;
+	color: #1200FF;	
+	cursor: pointer;
+}
+
+.LinkBtn:hover
+{
+	text-decoration:underline;
+}
+
+/*------------------*/
+#DebugText
+{
+	height:30px;
+}
+
+/*------------------*/
+body
+{
+	display:flex;
+	justify-content: flex-start;
+}
+
+#LeftBoard
+{
+	border-right-width: 1px;
+	border-right-style: solid;
+	width: 100%;
+	height: 100%;
+}
+
+#LoginArea
+{
+	height: 180px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	flex-wrap: nowrap;
+	position: relative;
+	width:100%;
+}
+
+
+#Login1
+{
+	height:36px;
+	line-height: 36px;
+	display: flex;
+	justify-content: center;
+	user-select: none;
+}
+
+#LoginBtn
+{
+	cursor:pointer;
+}
+
+#LoginBtn:hover
+{
+	font-size:17px;
+}
+
+
+#NoPluginTip
+{
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	bottom: 0px;
+	right: 0px;
+	z-index: 1;
+	display: none;
+	flex-direction: column;
+	justify-content: flex-end;
+	padding: 5px;
+}
+
+
+#DownloadBtn
+{
+	color:#0A00FF;
+}
+
+
+#Icon1
+{
+	margin-right: 10px;	
+}
+
+#BBLIcon
+{
+	height:36px;
+}
+
+#Login2
+{
+	display: none;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+	width: 100%;
+}
+
+#UserAvatarIcon
+{
+	height: 85px;
+}
+
+#UserName
+{
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	text-align: center;
+	overflow: hidden; 
+	width: 80%;
+}
+
+#LogoutBtn
+{
+	font-size: 14px;
+	height: 24px;
+	line-height: 24px;
+	color: #00B731;
+	border: 1px solid  #00AE42;
+	border-radius: 4px;
+	cursor: pointer;
+	margin-top: 5px;
+	padding: 0px 8px;
+}
+
+#LogoutBtn:hover
+{
+	background: #00B731;
+	color: #fff;
+}
+
+
+/*------------------*/
+#BtnArea
+{
+	
+}
+
+
+.BtnItem
+{
+    padding-left:30px;	
+	padding-right: 14px;
+	height:50px;
+	line-height: 50px;
+	display: flex;
+	justify-content:flex-start;
+	align-items: center;
+	cursor: pointer;
+	position: relative;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.BtnItem[menu="online"]
+{
+	display: none;
+}
+
+.BtnItem[menu="makerlab"]
+{
+	display: none;
+}
+
+.BtnItem:hover
+{
+	background-color: #E0FCEB;
+}
+
+.BtnItemSelected
+{
+	background-color: #E0FCEB;
+}
+
+.BtnIcon
+{
+	margin-right:6px;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+.BtnText
+{
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.LeftIcon
+{
+	width:24px;
+	height: 24px;
+}
+
+.BtnNewIcon
+{
+	height: 12px;
+	line-height: 12px;
+	font-size: 10px;
+	background-color: #00AE42;
+	color: white;
+	padding: 2px 4px;
+	position: absolute;
+	top: calc(50% - 8px);
+	right: 12px;
+	display: none;
+}
+

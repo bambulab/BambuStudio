@@ -342,6 +342,7 @@ public:
     bool        is_printer_view() const;
     void        refresh_plugin_tips();
     void RunScript(wxString js);
+    void RunScriptLeft(wxString js);
     void show_device(bool bBBLPrinter);
 
     // OrcaSlicer calibration

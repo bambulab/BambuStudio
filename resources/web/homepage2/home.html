@@ -1,0 +1,332 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="max-age=7200" />
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />	
+<title>homepage</title>
+<link rel="stylesheet" type="text/css" href="./css/common.css" />	
+<link rel="stylesheet" type="text/css" href="./css/rightcommon.css" />		
+<link rel="stylesheet" type="text/css" href="./css/recent.css" />
+<link rel="stylesheet" type="text/css" href="./css/online.css" />
+<link rel="stylesheet" type="text/css" href="./css/home.css" />
+<link rel="stylesheet" type="text/css" href="./css/dark.css" />	
+
+<script type="text/javascript" src="../include/jquery-2.1.1.min.js"></script>
+<script type="text/javascript" src="../include/json2.js"></script>	
+<script type="text/javascript" src="../include/globalapi.js"></script>	
+
+<script type="text/javascript" src="../data/text.js"></script>		
+
+<script type="text/javascript" src="js/test.js"></script>	
+<script type="text/javascript" src="js/home.js"></script>
+</head>
+<body class="ZScrol" onLoad="OnHomeInit()">
+
+	<!----------Project Menu---------->
+	<div id="MenuArea">
+		<div class="Menu_Btn Btn_White" onClick="OnClickOpenProject()">
+		    <img src="img/project_open.svg" /><span class="trans" tid='t33'>Open Project</span>
+		</div>
+		<div class="Menu_Btn Btn_Green" onClick="OnClickNewProject()">
+		    <img src="img/project_new.svg" /><span class="trans" tid='t32'>Create new project</span>
+		</div>
+	</div>
+	
+	<!----------Recent open---------->
+	<div id="RecentFileArea">
+		<div class="Title_Bar">
+		  <div class="Title_Left_Area">
+			<img class="TitleSmallIcon" src="./img/t2.svg" />
+		    <div id="HotModelTitle" class="Content-Title trans TextS1" tid="t35">Recent Files</div>
+		  </div>
+		  <div class="Right_Title_More TextS1" onClick="SwtichLeftMenu('recent')"><span class="trans" tid="t108">MORE</span> ></div>
+		</div>
+		<div id="FileList" class="SingleGuideBar">
+<!--		    <div class="FileItem GuideBlock" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
+				<a class="FileTip" title="d:\model\11.3mf"></a>
+				<div class="FileImg"><img src="img/wiki.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
+				<div class="FileDate TextS2">2021/12/27 09:22</div>
+			</div>
+		    <div class="FileItem GuideBlock" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
+				<a class="FileTip" title="d:\model\11.3mf"></a>
+				<div class="FileImg"><img src="img/wiki.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
+				<div class="FileDate TextS2">2021/12/27 09:22</div>
+			</div>
+		    <div class="FileItem GuideBlock" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
+				<a class="FileTip" title="d:\model\11.3mf"></a>
+				<div class="FileImg"><img src="img/wiki.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
+				<div class="FileDate TextS2">2021/12/27 09:22</div>
+			</div>
+		    <div class="FileItem GuideBlock" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
+				<a class="FileTip" title="d:\model\11.3mf"></a>
+				<div class="FileImg"><img src="img/wiki.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
+				<div class="FileDate TextS2">2021/12/27 09:22</div>
+			</div>
+		    <div class="FileItem GuideBlock" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
+				<a class="FileTip" title="d:\model\11.3mf"></a>
+				<div class="FileImg"><img src="img/wiki.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
+				<div class="FileDate TextS2">2021/12/27 09:22</div>
+			</div>
+		    <div class="FileItem GuideBlock" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
+				<a class="FileTip" title="d:\model\11.3mf"></a>
+				<div class="FileImg"><img src="img/wiki.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
+				<div class="FileDate TextS2">2021/12/27 09:22</div>
+			</div>	-->		
+		</div>
+	</div>
+	
+	<div id="recnet_context_menu">
+		<div id="CT_Delete_Bar" class="CT_Item" onClick="OnDeleteRecentFile()">
+			<div class="CT_Icon CT_Delete"></div>
+			<div class="CT_Text trans" tid="t88">clear</div>
+		</div>
+		<div id="CT_Folder_Bar" class="CT_Item " onClick="OnExploreRecentFile()" >
+			<div class="CT_Icon CT_Explore"></div>
+			<div class="CT_Text trans" tid="t89">open in explorer </div>
+		</div>				
+    </div>	
+	
+	<!----------Online Models--------->
+	<div id="HotModelArea">
+		<div id="Online_Models_Bar" class="Title_Bar">
+		  <div class="Title_Left_Area">
+			<img class="TitleSmallIcon" src="./img/fire.svg" />
+		    <div class="Content-Title trans TextS1" tid="t107">Online Models</div>
+		  </div>
+		  <div class="Right_Title_More TextS1" onClick="SwtichLeftMenu('online')"><span class="trans" tid="t108">MORE</span> ></div>
+		</div>
+		<div  id="ForU_Models_Bar" class="Title_Bar">
+		  <div class="Title_Left_Area">
+			<img class="TitleSmallIcon" src="./img/foru.svg" />
+		    <div class="Content-Title trans TextS1" tid="">For You</div>
+		  </div>
+		  <div class="Right_Title_More TextS1" onClick="SwtichLeftMenu('online')"><span class="trans" tid="t108">MORE</span> ></div>
+		</div>	
+		<div id="HotModelList" class="SingleGuideBar">
+<!--			<div class="HotModelPiece GuideBlock" onClick="OpenOneStaffPickModel(1)">
+				<div class="HotModel_PrevBlock">
+					<img class="HotModel_PrevImg" src="img/a.jpg" />
+				</div>
+				<div class="HotModel_Designer_Info">
+				  <div class="HotModel_Author_HeadIcon">
+				    <img src="img/a.jpg" />
+				  </div>
+				  <div class="HotModel_Right_1">
+				    <div class="HotModel_Name TextS1">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</div>
+				    <div class="HotModel_Right_1_2">
+				      <div class="HotModel_Author_Name TextS2">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxaaaaaaaaaaaaa</div>
+				      <div class="HotModel_click_info TextS2">
+				        <div class="Model_Click_Number"><img src="img/zan.svg"><span>1.7m</span></div>
+				        <div class="Model_Click_Number"><img src="img/xia.svg"><span>2.8k</span></div>
+					  </div>
+				    </div>
+				  </div>
+				</div>
+			</div>
+			<div class="HotModelPiece GuideBlock" onClick="OpenOneStaffPickModel(1)">
+				<div class="HotModel_PrevBlock">
+					<img class="HotModel_PrevImg" src="img/a.jpg" />
+				</div>
+				<div class="HotModel_Designer_Info">
+				  <div class="HotModel_Author_HeadIcon">
+				    <img src="img/a.jpg" />
+				  </div>
+				  <div class="HotModel_Right_1">
+				    <div class="HotModel_Name TextS1">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</div>
+				    <div class="HotModel_Right_1_2">
+				      <div class="HotModel_Author_Name TextS2">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxaaaaaaaaaaaaa</div>
+				      <div class="HotModel_click_info TextS2">
+				        <div class="Model_Click_Number"><img src="img/zan.svg"><span>1.7m</span></div>
+				        <div class="Model_Click_Number"><img src="img/xia.svg"><span>2.8k</span></div>
+					  </div>
+				    </div>
+				  </div>
+				</div>
+			</div>
+			<div class="HotModelPiece GuideBlock" onClick="OpenOneStaffPickModel(1)">
+				<div class="HotModel_PrevBlock">
+					<img class="HotModel_PrevImg" src="img/a.jpg" />
+				</div>
+				<div class="HotModel_Designer_Info">
+				  <div class="HotModel_Author_HeadIcon">
+				    <img src="img/a.jpg" />
+				  </div>
+				  <div class="HotModel_Right_1">
+				    <div class="HotModel_Name TextS1">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</div>
+				    <div class="HotModel_Right_1_2">
+				      <div class="HotModel_Author_Name TextS2">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxaaaaaaaaaaaaa</div>
+				      <div class="HotModel_click_info TextS2">
+				        <div class="Model_Click_Number"><img src="img/zan.svg"><span>1.7m</span></div>
+				        <div class="Model_Click_Number"><img src="img/xia.svg"><span>2.8k</span></div>
+					  </div>
+				    </div>
+				  </div>
+				</div>
+			</div>
+			<div class="HotModelPiece GuideBlock" onClick="OpenOneStaffPickModel(1)">
+				<div class="HotModel_PrevBlock">
+					<img class="HotModel_PrevImg" src="img/a.jpg" />
+				</div>
+				<div class="HotModel_Designer_Info">
+				  <div class="HotModel_Author_HeadIcon">
+				    <img src="img/a.jpg" />
+				  </div>
+				  <div class="HotModel_Right_1">
+				    <div class="HotModel_Name TextS1">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</div>
+				    <div class="HotModel_Right_1_2">
+				      <div class="HotModel_Author_Name TextS2">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxaaaaaaaaaaaaa</div>
+				      <div class="HotModel_click_info TextS2">
+				        <div class="Model_Click_Number"><img src="img/zan.svg"><span>1.7m</span></div>
+				        <div class="Model_Click_Number"><img src="img/xia.svg"><span>2.8k</span></div>
+					  </div>
+				    </div>
+				  </div>
+				</div>
+			</div>
+			<div class="HotModelPiece GuideBlock" onClick="OpenOneStaffPickModel(1)">
+				<div class="HotModel_PrevBlock">
+					<img class="HotModel_PrevImg" src="img/a.jpg" />
+				</div>
+				<div class="HotModel_Designer_Info">
+				  <div class="HotModel_Author_HeadIcon">
+				    <img src="img/a.jpg" />
+				  </div>
+				  <div class="HotModel_Right_1">
+				    <div class="HotModel_Name TextS1">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</div>
+				    <div class="HotModel_Right_1_2">
+				      <div class="HotModel_Author_Name TextS2">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxaaaaaaaaaaaaa</div>
+				      <div class="HotModel_click_info TextS2">
+				        <div class="Model_Click_Number"><img src="img/zan.svg"><span>1.7m</span></div>
+				        <div class="Model_Click_Number"><img src="img/xia.svg"><span>2.8k</span></div>
+					  </div>
+				    </div>
+				  </div>
+				</div>
+			</div>
+			<div class="HotModelPiece GuideBlock" onClick="OpenOneStaffPickModel(1)">
+				<div class="HotModel_PrevBlock">
+					<img class="HotModel_PrevImg" src="img/a.jpg" />
+				</div>
+				<div class="HotModel_Designer_Info">
+				  <div class="HotModel_Author_HeadIcon">
+				    <img src="img/a.jpg" />
+				  </div>
+				  <div class="HotModel_Right_1">
+				    <div class="HotModel_Name TextS1">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</div>
+				    <div class="HotModel_Right_1_2">
+				      <div class="HotModel_Author_Name TextS2">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxaaaaaaaaaaaaa</div>
+				      <div class="HotModel_click_info TextS2">
+				        <div class="Model_Click_Number"><img src="img/zan.svg"><span>1.7m</span></div>
+				        <div class="Model_Click_Number"><img src="img/xia.svg"><span>2.8k</span></div>
+					  </div>
+				    </div>
+				  </div>
+				</div>
+			</div>
+			<div class="HotModelPiece GuideBlock" onClick="OpenOneStaffPickModel(1)">
+				<div class="HotModel_PrevBlock">
+					<img class="HotModel_PrevImg" src="img/a.jpg" />
+				</div>
+				<div class="HotModel_Designer_Info">
+				  <div class="HotModel_Author_HeadIcon">
+				    <img src="img/a.jpg" />
+				  </div>
+				  <div class="HotModel_Right_1">
+				    <div class="HotModel_Name TextS1">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</div>
+				    <div class="HotModel_Right_1_2">
+				      <div class="HotModel_Author_Name TextS2">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxaaaaaaaaaaaaa</div>
+				      <div class="HotModel_click_info TextS2">
+				        <div class="Model_Click_Number"><img src="img/zan.svg"><span>1.7m</span></div>
+				        <div class="Model_Click_Number"><img src="img/xia.svg"><span>2.8k</span></div>
+					  </div>
+				    </div>
+				  </div>
+				</div>
+			</div>	-->		
+		</div>
+	</div>		
+	
+	<!----------Makerlab--------->
+	<div id="MakerlabArea">
+		<div id="RecentTitleBlock">
+			<div id="Recent_LEFT_Title">
+			<img class="TitleSmallIcon" src="./img/ml.svg" />
+		    <div id="RecentTitle" class="Content-Title trans TextS1" tid="">Makerlab</div>
+			</div>
+            <div class="Right_Title_More TextS1" onClick="SwtichLeftMenu('makerlab')"><span class="trans" tid="t108">MORE</span> ></div>	
+		</div>
+		<div id="LabList" class="SingleGuideBar">
+<!--		    <div class="FileItem GuideBlock" onClick="OnOpenOneMakerlab('aaaa')" >
+				<div class="MakerlabImg"><img src="img/ml1.jpg"/></div>
+				<div class="MakerlabTextBlock">
+				<div class="MakerlabName">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+				<div class="MakerlabDesc">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+				<div class="MakerlabAuthor">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+				</div>
+			</div>
+		    <div class="FileItem GuideBlock" onClick="OnOpenOneMakerlab('aaaa')" >
+				<div class="MakerlabImg"><img src="img/ml1.jpg"/></div>
+				<div class="MakerlabTextBlock">
+				<div class="MakerlabName">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+				<div class="MakerlabDesc">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+				<div class="MakerlabAuthor">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+				</div>
+			</div>
+		    <div class="FileItem GuideBlock" onClick="OnOpenOneMakerlab('aaaa')" >
+				<div class="MakerlabImg"><img src="img/ml1.jpg"/></div>
+				<div class="MakerlabTextBlock">
+				<div class="MakerlabName">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+				<div class="MakerlabDesc">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+				<div class="MakerlabAuthor">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+				</div>
+			</div>
+		    <div class="FileItem GuideBlock" onClick="OnOpenOneMakerlab('aaaa')" >
+				<div class="MakerlabImg"><img src="img/ml1.jpg"/></div>
+				<div class="MakerlabTextBlock">
+				<div class="MakerlabName">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+				<div class="MakerlabDesc">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+				<div class="MakerlabAuthor">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+				</div>
+			</div>
+		    <div class="FileItem GuideBlock" onClick="OnOpenOneMakerlab('aaaa')" >
+				<div class="MakerlabImg"><img src="img/ml1.jpg"/></div>
+				<div class="MakerlabTextBlock">
+				<div class="MakerlabName">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+				<div class="MakerlabDesc">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+				<div class="MakerlabAuthor">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+				</div>
+			</div>
+		    <div class="FileItem GuideBlock" onClick="OnOpenOneMakerlab('aaaa')" >
+				<div class="MakerlabImg"><img src="img/ml1.jpg"/></div>
+				<div class="MakerlabTextBlock">
+				<div class="MakerlabName">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+				<div class="MakerlabDesc">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+				<div class="MakerlabAuthor">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+				</div>
+			</div>	-->		
+		</div>
+	</div>	
+	
+	
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+

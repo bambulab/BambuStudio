@@ -66,6 +66,7 @@ public:
     void OnRedo(wxCommandEvent& evt);
     void OnMode(wxCommandEvent& evt);
     void RunScript(const wxString& javascript);
+    void RunScriptLeft(const wxString &javascript);
     void OnRunScriptString(wxCommandEvent& evt);
     void OnRunScriptInteger(wxCommandEvent& evt);
     void OnRunScriptDouble(wxCommandEvent& evt);
@@ -93,19 +94,43 @@ public:
     void OnFreshLoginStatus(wxTimerEvent &event);
 
 public:
+    void SwitchWebContent(std::string modelname, int refresh=0);
+    void SwitchLeftMenu(std::string strMenu);
+    void OpenOneMakerlab(std::string url);
+    
+    void CheckMenuNewTag();
+    void ShowMenuNewTag(std::string menuname, std::string show);
+    void SetLeftMenuShow(std::string menuname, int show);
+
     void SendRecentList(int images);
     void SendDesignStaffpick(bool on);
+    void SendMakerlabList();
     void OpenModelDetail(std::string id, NetworkAgent *agent);
     void SendLoginInfo();
     void ShowNetpluginTip();
 
     void get_design_staffpick(int offset, int limit, std::function<void(std::string)> callback);
+    void get_user_mw_4u_config(std::function<void(std::string)> callback);
+    void get_4u_staffpick(int seed, int limit, std::function<void(std::string)> callback);
+    void get_makerlab_list(std::function<void(std::string)> callback);
     int  get_model_mall_detail_url(std::string *url, std::string id);
+
+    void UpdateMakerworldLoginStatus();
+    void SetMakerworldPageLoginStatus(bool login, wxString ticket = "");
 
     void update_mode();
 private:
 
+    wxBoxSizer *topsizer;
+
+    wxBoxSizer* m_home_web;
     wxWebView* m_browser;
+    wxWebView* m_browserLeft;
+    wxWebView * m_browserMW;
+    std::string m_contentname;
+    bool        m_onlinefirst;
+    std::string m_online_spec_id;
+
     wxBoxSizer *bSizer_toolbar;
     wxButton *  m_button_back;
     wxButton *  m_button_forward;

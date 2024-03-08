@@ -125,7 +125,8 @@ body
 {
 	overflow:hidden;
 	white-space: nowrap;
-	text-overflow: ellipsis;	
+	text-overflow: ellipsis;
+	margin-left: 6px;
 }
 
 
@@ -239,6 +240,13 @@ body
 	display: flex;
 	justify-content: space-between;
 	align-items: flex-end;
+}
+
+.NameCanClick
+{
+	color: #00AE42;
+	text-decoration: underline;
+	cursor: pointer;
 }
 
 #Model_Preview_Image
