@@ -1192,7 +1192,7 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
 
 bool GLGizmosManager::on_key(wxKeyEvent& evt)
 {
-    const int keyCode = evt.GetKeyCode();
+    int keyCode = evt.GetKeyCode();
     bool processed = false;
 
     // todo: zhimin Each gizmo should handle key event in it own on_key() function
@@ -1281,6 +1281,9 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
         else if (m_current == MmuSegmentation) {
             GLGizmoMmuSegmentation* mmu_seg = dynamic_cast<GLGizmoMmuSegmentation*>(get_current());
             if (mmu_seg != nullptr) {
+                if (keyCode >= WXK_NUMPAD0 && keyCode <= WXK_NUMPAD9) {
+                    keyCode = keyCode- WXK_NUMPAD0+'0';
+                }
                 if (keyCode >= '0' && keyCode <= '9') {
                     if (keyCode == '1' && !m_timer_set_color.IsRunning()) {
                         m_timer_set_color.StartOnce(500);
