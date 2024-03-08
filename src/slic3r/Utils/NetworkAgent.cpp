@@ -116,6 +116,8 @@ func_get_oss_config                 NetworkAgent::get_oss_config_ptr = nullptr;
 func_put_rating_picture_oss         NetworkAgent::put_rating_picture_oss_ptr = nullptr;
 func_get_model_mall_rating_result   NetworkAgent::get_model_mall_rating_result_ptr  = nullptr;
 
+func_get_mw_user_preference         NetworkAgent::get_mw_user_preference_ptr = nullptr;
+func_get_mw_user_4ulist             NetworkAgent::get_mw_user_4ulist_ptr     = nullptr;
 
 NetworkAgent::NetworkAgent(std::string log_dir)
 {
@@ -257,8 +259,8 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     get_slice_info_ptr                =  reinterpret_cast<func_get_slice_info>(get_network_function("bambu_network_get_slice_info"));
     query_bind_status_ptr             =  reinterpret_cast<func_query_bind_status>(get_network_function("bambu_network_query_bind_status"));
     modify_printer_name_ptr           =  reinterpret_cast<func_modify_printer_name>(get_network_function("bambu_network_modify_printer_name"));
-    get_camera_url_ptr                = reinterpret_cast<func_get_camera_url>(get_network_function("bambu_network_get_camera_url"));
-    get_design_staffpick_ptr          = reinterpret_cast<func_get_design_staffpick>(get_network_function("bambu_network_get_design_staffpick"));
+    get_camera_url_ptr                =  reinterpret_cast<func_get_camera_url>(get_network_function("bambu_network_get_camera_url"));
+    get_design_staffpick_ptr          =  reinterpret_cast<func_get_design_staffpick>(get_network_function("bambu_network_get_design_staffpick"));
     start_publish_ptr                 =  reinterpret_cast<func_start_pubilsh>(get_network_function("bambu_network_start_publish"));
     get_profile_3mf_ptr               =  reinterpret_cast<func_get_profile_3mf>(get_network_function("bambu_network_get_profile_3mf"));
     get_model_publish_url_ptr         =  reinterpret_cast<func_get_model_publish_url>(get_network_function("bambu_network_get_model_publish_url"));
@@ -276,6 +278,9 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     get_oss_config_ptr                = reinterpret_cast<func_get_oss_config>(get_network_function("bambu_network_get_oss_config"));
     put_rating_picture_oss_ptr        = reinterpret_cast<func_put_rating_picture_oss>(get_network_function("bambu_network_put_rating_picture_oss"));
     get_model_mall_rating_result_ptr  = reinterpret_cast<func_get_model_mall_rating_result>(get_network_function("bambu_network_get_model_mall_rating"));
+
+    get_mw_user_preference_ptr = reinterpret_cast<func_get_mw_user_preference>(get_network_function("bambu_network_get_mw_user_preference"));
+    get_mw_user_4ulist_ptr     = reinterpret_cast<func_get_mw_user_4ulist>(get_network_function("bambu_network_get_mw_user_4ulist")); 
 
     return 0;
 }
@@ -390,6 +395,9 @@ int NetworkAgent::unload_network_module()
     put_rating_picture_oss_ptr        =  nullptr;
     put_model_mall_rating_url_ptr     =  nullptr;
     get_model_mall_rating_result_ptr  = nullptr;
+    
+    get_mw_user_preference_ptr        = nullptr;
+    get_mw_user_4ulist_ptr            = nullptr;
 
     return 0;
 }
@@ -1193,6 +1201,27 @@ int NetworkAgent::get_design_staffpick(int offset, int limit, std::function<void
         ret = get_design_staffpick_ptr(network_agent, offset, limit, callback);
         if (ret)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%")%network_agent %ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::get_mw_user_preference(std::function<void(std::string)> callback)
+{
+    int ret = 0;
+    if (network_agent && get_mw_user_preference_ptr) {
+        ret = get_mw_user_preference_ptr(network_agent,callback);
+        if (ret) BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
+    }
+    return ret;
+}
+
+
+int NetworkAgent::get_mw_user_4ulist(int seed, int limit, std::function<void(std::string)> callback)
+{
+    int ret = 0;
+    if (network_agent && get_mw_user_4ulist_ptr) {
+        ret = get_mw_user_4ulist_ptr(network_agent,seed, limit, callback);
+        if (ret) BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
     }
     return ret;
 }
