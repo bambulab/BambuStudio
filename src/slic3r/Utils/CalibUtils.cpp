@@ -149,10 +149,6 @@ static bool check_nozzle_diameter_and_type(const DynamicPrintConfig &full_config
         return false;
     }
 
-    // only check for X1 series printer
-    if (obj->get_printer_series() != PrinterSeries::SERIES_X1)
-        return true;
-
     // P1P/S
     if (obj->nozzle_type.empty())
         return true;
