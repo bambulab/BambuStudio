@@ -67,11 +67,11 @@ std::string AppConfig::get_hms_host()
     std::string host = "";
 #if !BBL_RELEASE_TO_PUBLIC
     if (sel == ENV_DEV_HOST)
-        host = "e-dev.bambu-lab.com";
+        host = "e-dev.bambulab.net";
     else if (sel == ENV_QAT_HOST)
-        host = "e-qa.bambu-lab.com";
+        host = "e-qa.bambulab.net";
     else if (sel == ENV_PRE_HOST)
-        host = "e-pre.bambu-lab.com";
+        host = "e-pre.bambulab.net";
     else if (sel == ENV_PRODUCT_HOST)
         host = "e.bambulab.com";
     return host;
