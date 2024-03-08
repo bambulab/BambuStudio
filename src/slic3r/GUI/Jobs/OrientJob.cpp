@@ -202,19 +202,15 @@ void OrientJob::process()
 
 void OrientJob::finalize() {
     // Ignore the arrange result if aborted.
-    if (was_canceled()) return;
+    if (!was_canceled()) {
+        for (OrientMesh& mesh : m_selected) {
+            mesh.apply();
+        }
+        m_plater->update();
 
-    for (OrientMesh& mesh : m_selected)
-    {
-        mesh.apply();
+        // BBS
+        //wxGetApp().obj_manipul()->set_dirty();
     }
-
-
-    m_plater->update();
-
-    // BBS
-    //wxGetApp().obj_manipul()->set_dirty();
-
     Job::finalize();
 }
 
