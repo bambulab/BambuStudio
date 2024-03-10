@@ -14,4 +14,4 @@ set(BBL_INTERNAL_TESTING "1")
 endif()
 
 # The build_version should start from 50 in master branch
-set(SLIC3R_VERSION "01.08.05.51")
+set(SLIC3R_VERSION "01.08.05.52")
