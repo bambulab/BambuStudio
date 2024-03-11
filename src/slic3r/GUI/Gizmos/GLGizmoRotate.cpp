@@ -484,7 +484,7 @@ void GLGizmoRotate3D::on_set_state()
 {
     for (GLGizmoRotate &g : m_gizmos)
         g.set_state(m_state);
-    if (get_state() == On) {
+    if (get_state() == On && m_object_manipulation) {
         m_object_manipulation->set_coordinates_type(ECoordinatesType::World);
     }
 }
