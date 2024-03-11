@@ -1219,6 +1219,10 @@ MeasurementResult get_measurement(const SurfaceFeature& a, const SurfaceFeature&
                         });
                     result.distance_infinite = std::make_optional(DistAndPoints{ it->dist, it->from, it->to });
                 }
+                else {
+                    const Eigen::Hyperplane<double, 3> plane(normal2, origin2);
+                    result.distance_infinite = std::make_optional(DistAndPoints{plane.absDistance(center), center, plane.projection(center)});
+                }
             }
             else {
                 result.distance_strict = std::make_optional(DistAndPoints{0, center, origin2});
