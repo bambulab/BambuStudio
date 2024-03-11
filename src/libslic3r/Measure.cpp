@@ -947,7 +947,7 @@ MeasurementResult get_measurement(const SurfaceFeature& a, const SurfaceFeature&
                 result.distance_infinite = std::make_optional(DistAndPoints{ it->dist, it->from, it->to });
             }
             else {
-                std::vector<SurfaceFeature>* plane_features = f2.world_plane_features;
+                auto plane_features = f2.world_plane_features;
                 std::vector<DistAndPoints> distances;
                 for (const SurfaceFeature& sf : *plane_features) {
                     if (sf.get_type() == SurfaceFeatureType::Edge) {
@@ -1199,7 +1199,7 @@ MeasurementResult get_measurement(const SurfaceFeature& a, const SurfaceFeature&
 
             const bool coplanar = are_parallel(normal1, normal2) && Eigen::Hyperplane<double, 3>(normal1, center).absDistance(origin2) < EPSILON;
             if (!coplanar) {
-                std::vector<SurfaceFeature>* plane_features = f2.world_plane_features;
+                auto                       plane_features = f2.world_plane_features;
                 std::vector<DistAndPoints> distances;
                 for (const SurfaceFeature& sf : *plane_features) {
                     if (sf.get_type() == SurfaceFeatureType::Edge) {

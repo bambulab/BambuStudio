@@ -35,6 +35,11 @@ public:
 
     SurfaceFeature(const SurfaceFeature& sf){
         this->clone(sf);
+        mesh                   = sf.mesh;
+        plane_indices          = sf.plane_indices;
+        world_tran             = sf.world_tran;
+        world_plane_features   = sf.world_plane_features;
+        origin_surface_feature = sf.origin_surface_feature;
     }
 
     void clone(const SurfaceFeature &sf)
@@ -44,10 +49,6 @@ public:
         m_pt2                = sf.get_pt2();
         m_pt3                = sf.get_pt3();
         m_value              = sf.get_value();
-        mesh                 = sf.mesh;
-        plane_indices        = sf.plane_indices;
-        world_tran           = sf.world_tran;
-        world_plane_features = sf.world_plane_features;
     }
     void translate(const Vec3d& displacement);
     void translate(const Transform3d& tran);
@@ -94,7 +95,7 @@ public:
     indexed_triangle_set* mesh{nullptr};
     std::vector<int>*    plane_indices{nullptr};
     Transform3d                  world_tran;
-    std::vector<SurfaceFeature>* world_plane_features{nullptr};
+    std::shared_ptr<std::vector<SurfaceFeature>> world_plane_features{nullptr};
     std::shared_ptr<SurfaceFeature> origin_surface_feature{nullptr};
 
     Vec3d get_pt1() const{ return m_pt1; }
