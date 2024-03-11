@@ -793,20 +793,7 @@ void GLGizmoMeasure::on_render()
                     break;
                 }
                 case Measure::SurfaceFeatureType::Plane: {
-                    const auto &[idx, normal, pt] = m_curr_feature->get_plane();
-                    m_curr_feature->plane_indices  = const_cast<std::vector<int>*>(&m_curr_measuring->get_plane_triangle_indices(idx));
-                    auto cur_plane_features = const_cast<std::vector<Measure::SurfaceFeature> *>(&m_curr_measuring->get_plane_features(idx));
-                    if (cur_plane_features) {
-                        if (!m_curr_feature->world_plane_features) {
-                            m_curr_feature->world_plane_features = new std::vector<Measure::SurfaceFeature>();
-                        }
-                        m_curr_feature->world_plane_features->clear(); // resize(cur_plane_features->size());
-                        for (size_t i = 0; i < cur_plane_features->size(); i++) {
-                            Measure::SurfaceFeature temp(cur_plane_features->at(i));
-                            temp.translate(m_curr_feature->world_tran);
-                            m_curr_feature->world_plane_features->push_back(std::move(temp));
-                        }
-                    }
+                    update_world_plane_features(m_curr_measuring.get(), *m_curr_feature);
                     m_curr_plane.plane_idx = -1;
                     init_plane_glmodel(GripperType::PLANE, *m_curr_feature, m_curr_plane);
                     break;
@@ -1347,49 +1334,28 @@ void GLGizmoMeasure::render_dimensioning()
                 const double ratio = new_value / old_value;
                 wxGetApp().plater()->take_snapshot(_u8L("Scale"));
 
-                struct TrafoData
-                {
-                    double ratio;
-                    Vec3d old_pivot;
-                    Vec3d new_pivot;
-                    Transform3d scale_matrix;
-
-                    TrafoData(double ratio, const Vec3d& old_pivot, const Vec3d& new_pivot) {
-                        this->ratio = ratio;
-                        this->scale_matrix = Geometry::scale_transform(ratio);
-                        this->old_pivot = old_pivot;
-                        this->new_pivot = new_pivot;
-                    }
-
-                    Vec3d transform(const Vec3d& point) const { return this->scale_matrix * (point - this->old_pivot) + this->new_pivot; }
-                };
-
-                auto scale_feature = [](Measure::SurfaceFeature& feature, const TrafoData& trafo_data) {
+                auto scale_feature = [this](Measure::SurfaceFeature& feature) {
+                    Measure::Measuring *cur_measuring = get_measuring_of_mesh(feature.mesh, feature.world_tran);
                     switch (feature.get_type())
                     {
                     case Measure::SurfaceFeatureType::Point:
-                    {
-                        feature = Measure::SurfaceFeature(trafo_data.transform(feature.get_point()));
-                        break;
-                    }
                     case Measure::SurfaceFeatureType::Edge:
-                    {
-                        const auto [from, to] = feature.get_edge();
-                        const std::optional<Vec3d> extra = feature.get_extra_point();
-                        const std::optional<Vec3d> new_extra = extra.has_value() ? trafo_data.transform(*extra) : extra;
-                        feature = Measure::SurfaceFeature(Measure::SurfaceFeatureType::Edge, trafo_data.transform(from), trafo_data.transform(to), new_extra);
-                        break;
-                    }
                     case Measure::SurfaceFeatureType::Circle:
-                    {
-                        const auto [center, radius, normal] = feature.get_circle();
-                        feature = Measure::SurfaceFeature(Measure::SurfaceFeatureType::Circle, trafo_data.transform(center), normal, std::nullopt, trafo_data.ratio * radius);
-                        break;
-                    }
                     case Measure::SurfaceFeatureType::Plane:
                     {
-                        const auto [idx, normal, origin] = feature.get_plane();
-                        feature = Measure::SurfaceFeature(Measure::SurfaceFeatureType::Plane, normal, trafo_data.transform(origin), std::nullopt, idx);
+                        feature.clone(*feature.origin_surface_feature);
+                        feature.translate(feature.world_tran);
+                        if (feature.get_type() == Measure::SurfaceFeatureType::Circle) {
+                            m_feature_circle_first.last_circle_feature = nullptr;
+                            m_feature_circle_first.inv_zoom            = 0;
+                            m_feature_circle_second.last_circle_feature = nullptr;
+                            m_feature_circle_second.inv_zoom            = 0;
+                        }
+                        if (feature.get_type() == Measure::SurfaceFeatureType::Plane) {
+                            if (cur_measuring) {
+                                update_world_plane_features(cur_measuring, feature);
+                            }
+                        }
                         break;
                     }
                     default: { break; }
@@ -1405,21 +1371,21 @@ void GLGizmoMeasure::render_dimensioning()
                 // scale selection
                 Selection& selection = m_parent.get_selection();
                 selection.setup_cache();
-                Vec3d old_center, new_center; 
+                Vec3d old_center, new_center;
                 if (scale_single_volume && m_hit_different_volumes.size()==1) {
-                    //todo
+                    //todo//update_single_mesh_world_tran
                 } else {
                     old_center = selection.get_bounding_box().center();
                     selection.scale(ratio * Vec3d::Ones(), type);
                     wxGetApp().plater()->canvas3D()->do_scale(""); // avoid storing another snapshot
                     new_center = selection.get_bounding_box().center();
+                    register_single_mesh_pick();
                 }
                 wxGetApp().obj_manipul()->set_dirty();
                 // scale dimensioning
-                const TrafoData trafo_data(ratio, old_center, new_center);
-                scale_feature(*m_selected_features.first.feature, trafo_data);
+                scale_feature(*m_selected_features.first.feature);
                 if (m_selected_features.second.feature.has_value())
-                    scale_feature(*m_selected_features.second.feature, trafo_data);
+                    scale_feature(*m_selected_features.second.feature);
                 // update measure on next call to data_changed()
                 m_pending_scale = true;
 
@@ -2339,6 +2305,39 @@ bool Slic3r::GUI::GLGizmoMeasure::is_two_volume_in_same_model_object()
         }
     }
     return false;
+}
+
+Measure::Measuring *GLGizmoMeasure::get_measuring_of_mesh(indexed_triangle_set *mesh, Transform3d &tran)
+{
+    for (auto glvolume:m_hit_order_volumes) {
+        auto ori_mesh = const_cast<TriangleMesh*>(glvolume->ori_mesh);
+        auto ori_triangle_set = const_cast<indexed_triangle_set*>(&ori_mesh->its);
+        if (ori_triangle_set == mesh) {
+            tran = m_mesh_raycaster_map[glvolume]->world_tran.get_matrix();
+            return m_mesh_measure_map[glvolume].get();
+        }
+    }
+    return nullptr;
+}
+
+void GLGizmoMeasure::update_world_plane_features(Measure::Measuring *cur_measuring, Measure::SurfaceFeature& feautre)
+{
+    if (cur_measuring) {
+        const auto &[idx, normal, pt] = feautre.get_plane();
+        feautre.plane_indices       = const_cast<std::vector<int> *>(&cur_measuring->get_plane_triangle_indices(idx));
+        auto cur_plane_features       = const_cast<std::vector<Measure::SurfaceFeature> *>(&cur_measuring->get_plane_features(idx));
+        if (cur_plane_features) {
+            if (!feautre.world_plane_features) {
+                feautre.world_plane_features = std::make_shared<std::vector<Measure::SurfaceFeature>>();
+            }
+            feautre.world_plane_features->clear(); // resize(cur_plane_features->size());
+            for (size_t i = 0; i < cur_plane_features->size(); i++) {
+                Measure::SurfaceFeature temp(cur_plane_features->at(i));
+                temp.translate(feautre.world_tran);
+                feautre.world_plane_features->push_back(std::move(temp));
+            }
+        }
+    }
 }
 
 } // namespace GUI

@@ -197,6 +197,8 @@ protected:
     void reset_feature1();
     void reset_feature2();
     bool is_two_volume_in_same_model_object();
+    Measure::Measuring* get_measuring_of_mesh(indexed_triangle_set *mesh, Transform3d &tran);
+    void update_world_plane_features(Measure::Measuring *cur_measuring, Measure::SurfaceFeature &feautre);
  private:
     // This map holds all translated description texts, so they can be easily referenced during layout calculations
     // etc. When language changes, GUI is recreated and this class constructed again, so the change takes effect.
