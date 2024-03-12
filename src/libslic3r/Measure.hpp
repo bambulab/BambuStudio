@@ -180,7 +180,7 @@ struct MeasurementResult {
 };
 
 // Returns distance/angle between two SurfaceFeatures.
-MeasurementResult get_measurement(const SurfaceFeature& a, const SurfaceFeature& b);
+MeasurementResult get_measurement(const SurfaceFeature& a, const SurfaceFeature& b,bool deal_circle_result =false);
 
 inline Vec3d edge_direction(const Vec3d& from, const Vec3d& to) { return (to - from).normalized(); }
 inline Vec3d edge_direction(const std::pair<Vec3d, Vec3d>& e) { return edge_direction(e.first, e.second); }
