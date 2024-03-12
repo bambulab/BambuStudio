@@ -807,7 +807,7 @@ static AngleAndEdges angle_plane_plane(const std::tuple<int, Vec3d, Vec3d>& p1, 
     return ret;
 }
 
-MeasurementResult get_measurement(const SurfaceFeature& a, const SurfaceFeature& b)
+MeasurementResult get_measurement(const SurfaceFeature &a, const SurfaceFeature &b, bool deal_circle_result)
 {
     assert(a.get_type() != SurfaceFeatureType::Undef && b.get_type() != SurfaceFeatureType::Undef);
 
@@ -824,7 +824,7 @@ MeasurementResult get_measurement(const SurfaceFeature& a, const SurfaceFeature&
         if (f2.get_type() == SurfaceFeatureType::Point) {
             Vec3d diff = (f2.get_point() - f1.get_point());
             result.distance_strict = std::make_optional(DistAndPoints{diff.norm(), f1.get_point(), f2.get_point()});
-            result.distance_xyz = diff.cwiseAbs();
+            result.distance_xyz = diff;
 
     ///////////////////////////////////////////////////////////////////////////
         } else if (f2.get_type() == SurfaceFeatureType::Edge) {
@@ -854,13 +854,18 @@ MeasurementResult get_measurement(const SurfaceFeature& a, const SurfaceFeature&
                 result.distance_strict = std::make_optional(DistAndPoints{ radius, c, p_on_circle });
             }
             else {
-                const Eigen::Hyperplane<double, 3> circle_plane(n, c);
-                const Vec3d proj = circle_plane.projection(f1.get_point());
-                const double dist = std::sqrt(std::pow((proj - c).norm() - radius, 2.) +
-                    (f1.get_point() - proj).squaredNorm());
+                if (deal_circle_result == false) {
+                    const Eigen::Hyperplane<double, 3> circle_plane(n, c);
+                    const Vec3d                        proj = circle_plane.projection(f1.get_point());
+                    const double                       dist = std::sqrt(std::pow((proj - c).norm() - radius, 2.) + (f1.get_point() - proj).squaredNorm());
 
-                const Vec3d p_on_circle = c + radius * (proj - c).normalized();
-                result.distance_strict = std::make_optional(DistAndPoints{ dist, f1.get_point(), p_on_circle }); // TODO
+                    const Vec3d p_on_circle = c + radius * (proj - c).normalized();
+                    result.distance_strict  = std::make_optional(DistAndPoints{dist, f1.get_point(), p_on_circle});
+                }
+                else {
+                    const double dist      = (f1.get_point() - c).norm();
+                    result.distance_strict = std::make_optional(DistAndPoints{dist, f1.get_point(), c});
+                }
             }
     ///////////////////////////////////////////////////////////////////////////
         } else if (f2.get_type() == SurfaceFeatureType::Plane) {
@@ -908,27 +913,29 @@ MeasurementResult get_measurement(const SurfaceFeature& a, const SurfaceFeature&
             result.angle = angle_edge_edge(f1.get_edge(), f2.get_edge());
     ///////////////////////////////////////////////////////////////////////////
         } else if (f2.get_type() == SurfaceFeatureType::Circle) {
-            const std::pair<Vec3d, Vec3d> e = f1.get_edge();
-            const auto& [center, radius, normal] = f2.get_circle();
-            const Vec3d e1e2 = (e.second - e.first);
-            const Vec3d e1e2_unit = e1e2.normalized();
+            const std::pair<Vec3d, Vec3d> e      = f1.get_edge();
+            const auto &[center, radius, normal] = f2.get_circle();
+            const Vec3d e1e2                     = (e.second - e.first);
+            const Vec3d e1e2_unit                = e1e2.normalized();
 
             std::vector<DistAndPoints> distances;
             distances.emplace_back(*get_measurement(SurfaceFeature(e.first), f2).distance_strict);
             distances.emplace_back(*get_measurement(SurfaceFeature(e.second), f2).distance_strict);
 
-            const Eigen::Hyperplane<double, 3> plane(e1e2_unit, center);
-            const Eigen::ParametrizedLine<double, 3> line = Eigen::ParametrizedLine<double, 3>::Through(e.first, e.second);
-            const Vec3d inter = line.intersectionPoint(plane);
-            const Vec3d e1inter = inter - e.first;
-            if (e1inter.dot(e1e2) >= 0.0 && e1inter.norm() < e1e2.norm())
-                distances.emplace_back(*get_measurement(SurfaceFeature(inter), f2).distance_strict);
+            const Eigen::Hyperplane<double, 3>       plane(e1e2_unit, center);
+            const Eigen::ParametrizedLine<double, 3> line    = Eigen::ParametrizedLine<double, 3>::Through(e.first, e.second);
+            const Vec3d                              inter   = line.intersectionPoint(plane);
+            const Vec3d                              e1inter = inter - e.first;
+            if (e1inter.dot(e1e2) >= 0.0 && e1inter.norm() < e1e2.norm()) distances.emplace_back(*get_measurement(SurfaceFeature(inter), f2).distance_strict);
 
-            auto it = std::min_element(distances.begin(), distances.end(),
-                [](const DistAndPoints& item1, const DistAndPoints& item2) {
-                    return item1.dist < item2.dist;
-                });
-            result.distance_infinite = std::make_optional(DistAndPoints{it->dist, it->from, it->to});
+            auto it = std::min_element(distances.begin(), distances.end(), [](const DistAndPoints &item1, const DistAndPoints &item2) { return item1.dist < item2.dist; });
+            if (deal_circle_result == false) {
+                result.distance_infinite = std::make_optional(DistAndPoints{it->dist, it->from, it->to});
+            }
+            else{
+                const double dist      = (it->from - center).norm();
+                result.distance_infinite = std::make_optional(DistAndPoints{dist, it->from, center});
+            }
     ///////////////////////////////////////////////////////////////////////////
         } else if (f2.get_type() == SurfaceFeatureType::Plane) {
             const auto [from, to] = f1.get_edge();
@@ -1190,8 +1197,14 @@ MeasurementResult get_measurement(const SurfaceFeature& a, const SurfaceFeature&
 
                 info.sqrDistance = distance * distance;
             }
-
-            result.distance_infinite = std::make_optional(DistAndPoints{ std::sqrt(candidates[0].sqrDistance), candidates[0].circle0Closest, candidates[0].circle1Closest }); // TODO
+            if (deal_circle_result == false) {
+                result.distance_infinite = std::make_optional(
+                    DistAndPoints{std::sqrt(candidates[0].sqrDistance), candidates[0].circle0Closest, candidates[0].circle1Closest}); // TODO
+            } else {
+                const double dist      = (c0 - c1).norm();
+                result.distance_strict = std::make_optional(DistAndPoints{dist, c0, c1});
+            }
+            
     ///////////////////////////////////////////////////////////////////////////
         } else if (f2.get_type() == SurfaceFeatureType::Plane) {
             const auto [center, radius, normal1] = f1.get_circle();
@@ -1237,13 +1250,26 @@ MeasurementResult get_measurement(const SurfaceFeature& a, const SurfaceFeature&
 
         if (are_parallel(normal1, normal2)) {
             // The planes are parallel, calculate distance.
-            const Eigen::Hyperplane<double, 3> plane(normal1, pt1);
-            result.distance_infinite = std::make_optional(DistAndPoints{ plane.absDistance(pt2), pt2, plane.projection(pt2) }); // TODO
+            const Eigen::Hyperplane<double, 3> plane(normal2, pt2);
+            result.distance_infinite = std::make_optional(DistAndPoints{ plane.absDistance(pt1), pt1, plane.projection(pt1) });
         }
         else
             result.angle = angle_plane_plane(f1.get_plane(), f2.get_plane());
     }
 
+    if (swap) {
+        auto swap_dist_and_points = [](DistAndPoints& dp) {
+            auto back   = dp.to;
+            dp.to       = dp.from;
+            dp.from     = back;
+        };
+        if (result.distance_infinite.has_value()) {
+            swap_dist_and_points(*result.distance_infinite);
+        }
+        if (result.distance_strict.has_value()) {
+            swap_dist_and_points(*result.distance_strict);
+        }
+    }
     return result;
 }
 

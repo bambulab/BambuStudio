@@ -1552,6 +1552,18 @@ void Selection::translate(unsigned int object_idx, unsigned int instance_idx, co
     this->set_bounding_boxes_dirty();
 }
 
+void Selection::translate(unsigned int object_idx, unsigned int instance_idx, unsigned int volume_idx, const Vec3d &displacement) {
+    if (!m_valid) return;
+
+    for (unsigned int i : m_list) {
+        GLVolume &v = *(*m_volumes)[i];
+        if (v.object_idx() == (int) object_idx && v.instance_idx() == (int) instance_idx && v.volume_idx() == (int) volume_idx)
+            v.set_volume_offset(v.get_volume_offset() + displacement);
+    }
+
+    this->set_bounding_boxes_dirty();
+}
+
 //BBS: add partplate related logic
 void Selection::notify_instance_update(int object_idx, int instance_idx)
 {

@@ -126,6 +126,7 @@ class GLGizmoMeasure : public GLGizmoBase
     //std::vector<std::shared_ptr<GLModel>>                 m_plane_models_cache;
     unsigned int                                          m_last_active_item_imgui{0};
     Vec3d                                                 m_buffered_distance;
+    Vec3d                                                 m_distance;
     // used to keep the raycasters for point/center spheres
     //std::vector<std::shared_ptr<PickRaycaster>> m_selected_sphere_raycasters;
     std::optional<Measure::SurfaceFeature> m_curr_feature;
@@ -192,6 +193,7 @@ protected:
     void reset_all_pick();
     void reset_gripper_pick(GripperType id,bool is_all = false);
     void register_single_mesh_pick();
+    void update_single_mesh_pick(GLVolume* v);
 
     void reset_all_feature();
     void reset_feature1();
@@ -199,6 +201,7 @@ protected:
     bool is_two_volume_in_same_model_object();
     Measure::Measuring* get_measuring_of_mesh(indexed_triangle_set *mesh, Transform3d &tran);
     void update_world_plane_features(Measure::Measuring *cur_measuring, Measure::SurfaceFeature &feautre);
+    void update_feature_by_tran(Measure::SurfaceFeature & feature);
  private:
     // This map holds all translated description texts, so they can be easily referenced during layout calculations
     // etc. When language changes, GUI is recreated and this class constructed again, so the change takes effect.

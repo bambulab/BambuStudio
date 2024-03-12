@@ -209,6 +209,9 @@ public:
     static const ImVec4 COL_BUTTON_ACTIVE;
 
     //BBS add more colors
+    static const ImVec4 COL_RED;
+    static const ImVec4 COL_GREEN;
+    static const ImVec4 COL_BLUE;
     static const ImVec4 COL_BLUE_LIGHT;
     static const ImVec4 COL_GREEN_LIGHT;
     static const ImVec4 COL_HOVER;

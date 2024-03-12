@@ -441,12 +441,18 @@ bool GLGizmoMeasure::on_mouse(const wxMouseEvent &mouse_event)
             m_imgui->set_requires_extra_frame();
 
             const Measure::MeasurementResult &measure = m_measurement_result;
+            m_distance  = Vec3d::Zero();
             if (measure.distance_xyz.has_value() && measure.distance_xyz->norm() > EPSILON) {
-                Vec3d distance = *measure.distance_xyz;
-                if (wxGetApp().app_config->get("use_inches") == "1")
-                    distance = GizmoObjectManipulation::mm_to_in * distance;
-                m_buffered_distance = distance;
+                m_distance = *measure.distance_xyz;
             }
+            else if (measure.distance_infinite.has_value()) {
+                m_distance = measure.distance_infinite->to - measure.distance_infinite->from;
+            } else if (measure.distance_strict.has_value()) {
+                m_distance = measure.distance_strict->to - measure.distance_strict->from;
+            }
+            if (wxGetApp().app_config->get("use_inches") == "1")
+                m_distance = GizmoObjectManipulation::mm_to_in * m_distance;
+            m_buffered_distance = m_distance;
             return true;
         }
         else
@@ -570,6 +576,7 @@ void GLGizmoMeasure::on_set_state()
         m_mode = EMode::FeatureSelection;
         m_hover_id = -1;
         m_show_reset_first_tip = false;
+        m_distance             = Vec3d::Zero();
     }
 }
 
@@ -700,41 +707,36 @@ void GLGizmoMeasure::on_render()
         }
         if (m_mouse_left_down_mesh_deal && m_hover_id >= 0) {
             m_mouse_left_down_mesh_deal = false;
-            if (m_selected_features.first.feature.has_value()) {
-                if (m_hit_order_volumes.size() == 0) {
-                    m_hit_order_volumes.push_back(m_last_hit_volume);
-                } else {
-                    m_hit_order_volumes[0] = m_last_hit_volume;
-                }
-            }
             if (m_selected_features.second.feature.has_value()) {
                 if (m_hit_order_volumes.size() == 1) {
                     m_hit_order_volumes.push_back(m_last_hit_volume);
                 } else {
                     m_hit_order_volumes[1] = m_last_hit_volume;
                 }
+                // deal hit_different_volumes
+                if (m_hit_different_volumes.size() >= 1) {
+                    if (m_last_hit_volume == m_hit_different_volumes[0]) {
+                        //do nothing
+                    } else  {
+                        if (m_hit_different_volumes.size() == 2) {
+                            m_hit_different_volumes[1] = m_last_hit_volume;
+                        } else {
+                            m_hit_different_volumes.push_back(m_last_hit_volume);
+                        }
+                    }
+                }
             }
-
-            auto is_two_volume_pick = [this, &camera]() {
-                if (m_mesh_raycaster_map.size() < 2) {
-                    return false;
+            else if (m_selected_features.first.feature.has_value()) {
+                if (m_hit_order_volumes.size() == 0) {
+                    m_hit_order_volumes.push_back(m_last_hit_volume);
+                } else {
+                    m_hit_order_volumes[0] = m_last_hit_volume;
                 }
-                auto hit_volume = m_last_hit_volume;
-                if (hit_volume) {
-                    if (m_hit_different_volumes.size() == 0) {
-                        m_hit_different_volumes.push_back(hit_volume);
-                        return true;
-                    }
-                    if (m_hit_different_volumes.size() == 1 && hit_volume == m_hit_different_volumes[0]) {
-                        return false;
-                    }
-                    m_hit_different_volumes.push_back(hit_volume);
-                    return true;
+                //deal hit_different_volumes
+                if (m_hit_different_volumes.size() == 0) {
+                    m_hit_different_volumes.push_back(m_last_hit_volume);
                 }
-                return false;
-            };
-
-            is_two_volume_pick();
+            }
         }
     }
     //const bool mouse_on_object = m_raycaster->unproject_on_mesh(mouse_position, Transform3d::Identity(), camera, position_on_model, normal_on_model, nullptr, &model_facet_idx);
@@ -1197,8 +1199,8 @@ void GLGizmoMeasure::render_dimensioning()
     if (shader == nullptr)
         return;
 
-    auto point_point = [this, &shader](const Vec3d& v1, const Vec3d& v2, float distance) {
-        if ((v2 - v1).squaredNorm() < 0.000001 || distance < 0.001f)
+    auto point_point = [this, &shader](const Vec3d &v1, const Vec3d &v2, float distance, const std::array<float, 4> &color, bool show_label = true, bool show_first_tri = true) {
+        if ((v2 - v1).squaredNorm() < 0.000001 || abs(distance) < 0.001f)
             return;
 
         const Camera& camera = wxGetApp().plater()->get_camera();
@@ -1249,7 +1251,7 @@ void GLGizmoMeasure::render_dimensioning()
         shader->set_uniform("view_model_matrix", overlap ?
             ss_to_ndc_matrix * Geometry::translation_transform(v1ss_3) * q12ss * Geometry::translation_transform(-2.0 * TRIANGLE_HEIGHT * Vec3d::UnitX()) * Geometry::scale_transform({ v12ss_len + 4.0 * TRIANGLE_HEIGHT, 1.0f, 1.0f }) :
             ss_to_ndc_matrix * Geometry::translation_transform(v1ss_3) * q12ss * Geometry::scale_transform({ v12ss_len, 1.0f, 1.0f }));
-        m_dimensioning.line.set_color(-1,ColorRGBA::WHITE().get_data());
+        m_dimensioning.line.set_color(-1, color);
         m_dimensioning.line.render();
 
 #if ENABLE_GL_CORE_PROFILE
@@ -1267,11 +1269,12 @@ void GLGizmoMeasure::render_dimensioning()
             glsafe(::glLineWidth(1.0f));
 
         // arrow 1
-        shader->set_uniform("view_model_matrix", overlap ?
-            ss_to_ndc_matrix * Geometry::translation_transform(v1ss_3) * q12ss :
-            ss_to_ndc_matrix * Geometry::translation_transform(v1ss_3) * q21ss);
-        m_dimensioning.triangle.render();
-
+        if (show_first_tri) {
+            shader->set_uniform("view_model_matrix", overlap ?
+                ss_to_ndc_matrix * Geometry::translation_transform(v1ss_3) * q12ss :
+                ss_to_ndc_matrix * Geometry::translation_transform(v1ss_3) * q21ss);
+            m_dimensioning.triangle.render();
+        }
         // arrow 2
         shader->set_uniform("view_model_matrix", overlap ?
             ss_to_ndc_matrix * Geometry::translation_transform(v2ss_3) * q21ss :
@@ -1290,7 +1293,7 @@ void GLGizmoMeasure::render_dimensioning()
         m_imgui->set_next_window_pos(label_position.x(), viewport[3] - label_position.y(), ImGuiCond_Always, 0.0f, 1.0f);
         m_imgui->set_next_window_bg_alpha(0.0f);
 
-        if (!m_editing_distance) {
+        if (!m_editing_distance && show_label) {
             ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
             ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 1.0f, 1.0f });
@@ -1333,35 +1336,6 @@ void GLGizmoMeasure::render_dimensioning()
 
                 const double ratio = new_value / old_value;
                 wxGetApp().plater()->take_snapshot(_u8L("Scale"));
-
-                auto scale_feature = [this](Measure::SurfaceFeature& feature) {
-                    Measure::Measuring *cur_measuring = get_measuring_of_mesh(feature.mesh, feature.world_tran);
-                    switch (feature.get_type())
-                    {
-                    case Measure::SurfaceFeatureType::Point:
-                    case Measure::SurfaceFeatureType::Edge:
-                    case Measure::SurfaceFeatureType::Circle:
-                    case Measure::SurfaceFeatureType::Plane:
-                    {
-                        feature.clone(*feature.origin_surface_feature);
-                        feature.translate(feature.world_tran);
-                        if (feature.get_type() == Measure::SurfaceFeatureType::Circle) {
-                            m_feature_circle_first.last_circle_feature = nullptr;
-                            m_feature_circle_first.inv_zoom            = 0;
-                            m_feature_circle_second.last_circle_feature = nullptr;
-                            m_feature_circle_second.inv_zoom            = 0;
-                        }
-                        if (feature.get_type() == Measure::SurfaceFeatureType::Plane) {
-                            if (cur_measuring) {
-                                update_world_plane_features(cur_measuring, feature);
-                            }
-                        }
-                        break;
-                    }
-                    default: { break; }
-                    }
-                  };
-
                 // apply scale
                 TransformationType type;
                 type.set_world();
@@ -1371,21 +1345,18 @@ void GLGizmoMeasure::render_dimensioning()
                 // scale selection
                 Selection& selection = m_parent.get_selection();
                 selection.setup_cache();
-                Vec3d old_center, new_center;
                 if (scale_single_volume && m_hit_different_volumes.size()==1) {
-                    //todo//update_single_mesh_world_tran
+                    //todo//update_single_mesh_pick(m_hit_different_volumes[0])
                 } else {
-                    old_center = selection.get_bounding_box().center();
                     selection.scale(ratio * Vec3d::Ones(), type);
                     wxGetApp().plater()->canvas3D()->do_scale(""); // avoid storing another snapshot
-                    new_center = selection.get_bounding_box().center();
                     register_single_mesh_pick();
                 }
                 wxGetApp().obj_manipul()->set_dirty();
                 // scale dimensioning
-                scale_feature(*m_selected_features.first.feature);
+                update_feature_by_tran(*m_selected_features.first.feature);
                 if (m_selected_features.second.feature.has_value())
-                    scale_feature(*m_selected_features.second.feature);
+                    update_feature_by_tran(*m_selected_features.second.feature);
                 // update measure on next call to data_changed()
                 m_pending_scale = true;
 
@@ -1742,7 +1713,17 @@ void GLGizmoMeasure::render_dimensioning()
         const Measure::DistAndPoints& dap = m_measurement_result.distance_infinite.has_value()
             ? *m_measurement_result.distance_infinite
             : *m_measurement_result.distance_strict;
-        point_point(dap.from, dap.to, dap.dist);
+        if (m_selected_features.second.feature.has_value()) {
+            auto x_to = dap.from;
+            x_to[0]   = dap.to[0];
+            point_point(dap.from, x_to, x_to[0] - dap.from[0], ColorRGBA::RED().get_data(), false, false);
+            auto y_to = x_to;
+            y_to[1]   = dap.to[1];
+            point_point(x_to, y_to, y_to[1] - x_to[1], ColorRGBA::GREEN().get_data(), false, false);
+            point_point(y_to, dap.to, dap.to[2] - y_to[2], ColorRGBA::BLUE().get_data(), false, false);
+        }
+
+        point_point(dap.from, dap.to, dap.dist, ColorRGBA::WHITE().get_data());
     }
 
     glsafe(::glEnable(GL_DEPTH_TEST));
@@ -1991,64 +1972,67 @@ void GLGizmoMeasure::on_render_input_window(float x, float y, float bottom_limit
             wxTheClipboard->Close();
         }
     };
-    auto add_edit_distance_xyz_box = [this, &current_active_id](Vec3d distance) {
+    auto add_edit_distance_xyz_box = [this, &current_active_id](Vec3d& distance) {
+        float buf_size_max = ImGui::CalcTextSize("-100.00").x * 1.2;
         ImGui::TableNextRow();
         ImGui::TableSetColumnIndex(0);
-        m_imgui->text_colored(ImGuiWrapper::COL_BAMBU, "X:");
+        m_imgui->text_colored(ImGuiWrapper::COL_RED, "X:");
         ImGui::TableSetColumnIndex(1);
+        ImGui::PushItemWidth(buf_size_max);
         ImGui::BBLInputDouble("##measure_distance_x", &m_buffered_distance[0], 0.0f, 0.0f, "%.2f");
 
         ImGui::TableNextRow();
         ImGui::TableSetColumnIndex(0);
-        m_imgui->text_colored(ImGuiWrapper::COL_BAMBU, "Y:");
+        m_imgui->text_colored(ImGuiWrapper::COL_GREEN, "Y:");
         ImGui::TableSetColumnIndex(1);
         ImGui::BBLInputDouble("##measure_distance_y", &m_buffered_distance[1], 0.0f, 0.0f, "%.2f");
+
         bool same_model_object = is_two_volume_in_same_model_object();
-        m_imgui->disabled_begin(same_model_object);
+        m_imgui->disabled_begin(!same_model_object);
         ImGui::TableNextRow();
         ImGui::TableSetColumnIndex(0);
-        m_imgui->text_colored(ImGuiWrapper::COL_BAMBU, "Z:");
+        m_imgui->text_colored(ImGuiWrapper::COL_BLUE, "Z:");
         ImGui::TableSetColumnIndex(1);
         ImGui::BBLInputDouble("##measure_distance_z", &m_buffered_distance[2], 0.0f, 0.0f, "%.2f");
+        m_imgui->disabled_end();
 
-        ImGui::TableNextRow();
+        /*ImGui::TableNextRow();
         if (m_imgui->button(_L("Adsorbed onto the surface"))) {
-            std::cout << "";
-        }
+            std::cout << "todo";
+        }*/
         m_imgui->disabled_end();
         if (m_last_active_item_imgui != current_active_id && m_hit_different_volumes.size() == 2) {
             auto selection         = const_cast<Selection*>(&m_parent.get_selection());
+            selection->setup_cache();
             Vec3d displacement = Vec3d::Zero();
-            auto  v                 = m_hit_different_volumes[1];
+            auto  v                = m_hit_different_volumes[1];
             if (std::abs(m_buffered_distance[0] - distance[0]) > EPSILON) {
-                if (same_model_object == false) {
-                    wxGetApp().plater()->take_snapshot(_u8L("modify x distance between objects"));
-                    displacement[0] = m_buffered_distance[0] - distance[0];
-                    auto  world_tran = v->get_instance_transformation() * v->get_volume_transformation();
-                    selection->translate(v->object_idx(), v->instance_idx(), displacement);
-                    distance[0] = m_buffered_distance[0];
-                }
+                wxGetApp().plater()->take_snapshot("modify x distance between objects");
+                displacement[0] = m_buffered_distance[0] - distance[0];
+                distance[0] = m_buffered_distance[0];
             } else if (std::abs(m_buffered_distance[1] - distance[1]) > EPSILON) {
-                if (same_model_object == false) {
-                    wxGetApp().plater()->take_snapshot(_u8L("modify y distance between objects"));
-                    displacement[1] = m_buffered_distance[1] - distance[1];
-                    selection->translate(v->object_idx(), v->instance_idx(), displacement);
-                    distance[1] = m_buffered_distance[1];
-                }
+                wxGetApp().plater()->take_snapshot("modify y distance between objects");
+                displacement[1] = m_buffered_distance[1] - distance[1];
+                distance[1] = m_buffered_distance[1];
             } else if (std::abs(m_buffered_distance[2] - distance[2]) > EPSILON) {
-                if (same_model_object == false) {
-                    wxGetApp().plater()->take_snapshot(_u8L("modify y distance between objects"));
-                    displacement[2] = m_buffered_distance[2] - distance[2];
-                    selection->translate(v->object_idx(), v->instance_idx(), displacement);
-                    distance[2] = m_buffered_distance[2];
-                }
+                wxGetApp().plater()->take_snapshot("modify z distance between objects");
+                displacement[2] = m_buffered_distance[2] - distance[2];
+                distance[2]     = m_buffered_distance[2];
             }
-            //m_measuring.reset();
-            update_if_needed();
-            std::future<void> resultFuture = std::async(std::launch::async, [this]() { this->register_single_mesh_pick(); });
-            //todo and undo:remember 2 featura to solve
-            m_selected_features.second.feature->translate(displacement);
-            update_measurement_result();
+            if (displacement.norm() > 0.0f) {
+                wxGetApp().plater()->take_snapshot(_u8L("MoveInMeasure"));// avoid storing another snapshot
+                selection->set_mode(same_model_object ? Selection::Volume : Selection::Instance);
+                auto llo = selection->get_mode();
+                if (same_model_object == false) {
+                    selection->translate(v->object_idx(), v->instance_idx(), displacement);
+                } else {
+                    selection->translate(v->object_idx(), v->instance_idx(), v->volume_idx(), displacement);
+                }
+                wxGetApp().plater()->canvas3D()->do_move("");
+                update_single_mesh_pick(v);
+                update_feature_by_tran(*m_selected_features.second.feature);
+                m_pending_scale = true;
+            }
         }
     };
     ImGui::Separator();
@@ -2101,6 +2085,9 @@ void GLGizmoMeasure::on_render_input_window(float x, float y, float bottom_limit
                     ImGui::PopID();
                 }
             }
+            if (m_distance.norm() >0.01 && m_hit_different_volumes.size() == 2) {
+                add_edit_distance_xyz_box(m_distance);
+            }
         }
         // add dummy rows to keep dialog size fixed
         /*for (unsigned int i = measure_row_count; i < max_measure_row_count; ++i) {
@@ -2144,7 +2131,7 @@ void GLGizmoMeasure::update_measurement_result()
     if (!m_selected_features.first.feature.has_value())
         m_measurement_result = Measure::MeasurementResult();
     else if (m_selected_features.second.feature.has_value())
-        m_measurement_result = Measure::get_measurement(*m_selected_features.first.feature, *m_selected_features.second.feature);
+        m_measurement_result = Measure::get_measurement(*m_selected_features.first.feature, *m_selected_features.second.feature,true);
     else if (!m_selected_features.second.feature.has_value() && m_selected_features.first.feature->get_type() == Measure::SurfaceFeatureType::Circle)
         m_measurement_result = Measure::get_measurement(*m_selected_features.first.feature, Measure::SurfaceFeature(std::get<0>(m_selected_features.first.feature->get_circle())));
 }
@@ -2221,14 +2208,21 @@ void GLGizmoMeasure::register_single_mesh_pick()
     }
 }
 
+void GLGizmoMeasure::update_single_mesh_pick(GLVolume *v)
+{
+    if (m_mesh_raycaster_map.find(v) != m_mesh_raycaster_map.end()) {
+        auto world_tran = v->get_instance_transformation() * v->get_volume_transformation();
+        m_mesh_raycaster_map[v]->world_tran.set_from_transform(world_tran.get_matrix());
+    }
+}
+
  void GLGizmoMeasure::reset_all_feature() {
      reset_feature2();
      reset_feature1();
      m_show_reset_first_tip = false;
      m_hit_different_volumes.clear();
-     m_hit_different_volumes.reserve(2);
      m_hit_order_volumes.clear();
-     m_hit_order_volumes.clear();
+     m_last_hit_volume = nullptr;
  }
 
 void GLGizmoMeasure::reset_feature1()
@@ -2248,12 +2242,10 @@ void GLGizmoMeasure::reset_feature1()
          m_selected_features.first.feature.reset();
          m_show_reset_first_tip = false;
          if (m_hit_different_volumes.size() == 1) {
-             m_hit_different_volumes[0] = m_hit_different_volumes[1];
-             m_hit_different_volumes.erase(m_hit_different_volumes.begin() + 0);
+             m_hit_different_volumes.clear();
          }
          if (m_hit_order_volumes.size() == 1) {
-             m_hit_order_volumes[0] = m_hit_order_volumes[1];
-             m_hit_order_volumes.erase(m_hit_order_volumes.begin() + 0);
+             m_hit_order_volumes.clear();
          }
          if (m_feature_plane_first.plane) {
              m_feature_plane_first.plane->reset();
@@ -2337,6 +2329,33 @@ void GLGizmoMeasure::update_world_plane_features(Measure::Measuring *cur_measuri
                 feautre.world_plane_features->push_back(std::move(temp));
             }
         }
+    }
+}
+
+void GLGizmoMeasure::update_feature_by_tran(Measure::SurfaceFeature &feature)
+{
+    Measure::Measuring *cur_measuring = get_measuring_of_mesh(feature.mesh, feature.world_tran);
+    switch (feature.get_type()) {
+    case Measure::SurfaceFeatureType::Point:
+    case Measure::SurfaceFeatureType::Edge:
+    case Measure::SurfaceFeatureType::Circle:
+    case Measure::SurfaceFeatureType::Plane: {
+        feature.clone(*feature.origin_surface_feature);
+        feature.translate(feature.world_tran);
+        if (feature.get_type() == Measure::SurfaceFeatureType::Circle) {
+            m_feature_circle_first.last_circle_feature  = nullptr;
+            m_feature_circle_first.inv_zoom             = 0;
+            m_feature_circle_second.last_circle_feature = nullptr;
+            m_feature_circle_second.inv_zoom            = 0;
+        }
+        if (feature.get_type() == Measure::SurfaceFeatureType::Plane) {
+            if (cur_measuring) { update_world_plane_features(cur_measuring, feature); }
+        }
+        break;
+    }
+    default: {
+        break;
+    }
     }
 }
 

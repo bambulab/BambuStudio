@@ -366,6 +366,7 @@ public:
 
     void translate(unsigned int object_idx, const Vec3d& displacement);
     void translate(unsigned int object_idx, unsigned int instance_idx, const Vec3d& displacement);
+    void translate(unsigned int object_idx, unsigned int instance_idx, unsigned int volume_idx, const Vec3d &displacement);
     //BBS: add partplate related logic
     void notify_instance_update(int object_idx, int instance_idx);
     // BBS
