@@ -4249,11 +4249,14 @@ static std::map<int, std::string> overhang_speed_key_map =
 
 double GCode::get_overhang_degree_corr_speed(float normal_speed, double path_degree) {
 
-    if (path_degree== 0)
+    //BBS: protection: overhang degree is float, make sure it not excess degree range
+    if (path_degree <= 0)
         return normal_speed;
 
-    int lower_degree_bound = int(path_degree);
+    if (path_degree >= 5 )
+        return m_config.get_abs_value(overhang_speed_key_map[5].c_str());
 
+    int lower_degree_bound = int(path_degree);
     if (path_degree==lower_degree_bound)
         return m_config.get_abs_value(overhang_speed_key_map[lower_degree_bound].c_str());
     int upper_degree_bound = lower_degree_bound + 1;
