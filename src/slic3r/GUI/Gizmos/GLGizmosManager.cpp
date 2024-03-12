@@ -666,6 +666,15 @@ bool GLGizmosManager::is_gizmo_click_empty_not_exit()
     return false;
 }
 
+bool GLGizmosManager::is_show_only_active_plate()
+{
+    if (get_current_type() == GLGizmosManager::EType::Cut ||
+        get_current_type() == GLGizmosManager::EType::Text) {
+        return true;
+    }
+    return false;
+}
+
 // Returns true if the gizmo used the event to do something, false otherwise.
 bool GLGizmosManager::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down)
 {

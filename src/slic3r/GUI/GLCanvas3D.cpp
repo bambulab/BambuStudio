@@ -1907,7 +1907,7 @@ void GLCanvas3D::render(bool only_init)
     //BBS add partplater rendering logic
     bool only_current = false, only_body = false, show_axes = true, no_partplate = false;
     GLGizmosManager::EType gizmo_type = m_gizmos.get_current_type();
-    if (!m_main_toolbar.is_enabled()) {
+    if (!m_main_toolbar.is_enabled() || m_gizmos.is_show_only_active_plate()) {
         //only_body = true;
         only_current = true;
     }
@@ -6865,7 +6865,7 @@ void GLCanvas3D::_render_bed(bool bottom, bool show_axes)
     */
     //bool show_texture = true;
     //BBS set axes mode
-    m_bed.set_axes_mode(m_main_toolbar.is_enabled());
+    m_bed.set_axes_mode(m_main_toolbar.is_enabled() && !m_gizmos.is_show_only_active_plate());
     m_bed.render(*this, bottom, scale_factor, show_axes);
 }
 
@@ -6994,6 +6994,12 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
                             return !volume.is_modifier && !volume.is_wipe_tower;
                         }
                         else {
+                            if (m_gizmos.is_show_only_active_plate()) {
+                                auto plate_box = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_plate_box();
+                                if (!plate_box.contains(volume.transformed_bounding_box())) {
+                                    return false;
+                                }
+                            }
                             return (m_render_sla_auxiliaries || volume.composite_id.volume_id >= 0);
                         }
                         }, with_outline);
