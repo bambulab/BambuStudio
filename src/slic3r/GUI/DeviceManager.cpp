@@ -2780,8 +2780,10 @@ int MachineObject::parse_json(std::string payload)
 
             std::string message_type = is_lan_mode_printer() ? "Local Mqtt" : is_tunnel_mqtt ? "Tunnel Mqtt" : "Cloud Mqtt";
             if (!message_delay.empty()) {
-                auto [first_type, first_time_stamp, first_delay] = message_delay.front();
-                auto [last_type, last_time_stap, last_delay] = message_delay.back();
+                const auto& [first_type, first_time_stamp, first_delay] = message_delay.front();
+                const auto& [last_type, last_time_stap, last_delay] = message_delay.back();
+
+                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ", message delay, last time stamp: " << last_time_stap;
                 if (last_time_stap - first_time_stamp >= MINUTE_30) {
                     // record, excluding current data
                     int total = message_delay.size();
@@ -2793,7 +2795,7 @@ int MachineObject::parse_json(std::string payload)
                     int tunnel_mqtt_timeout = 0;
                     int cloud_mqtt_timeout = 0;
 
-                    for (auto [type, time_stamp, delay] : message_delay) {
+                    for (const auto& [type, time_stamp, delay] : message_delay) {
                         if (type == "Local Mqtt") {
                             local_mqtt++;
                             if (delay >= TIME_OUT) {
@@ -2807,14 +2809,14 @@ int MachineObject::parse_json(std::string payload)
                             }
                         }
                         else if (type == "Cloud Mqtt"){
-                            cloud_mqtt_timeout++;
+                            cloud_mqtt++;
                             if (delay >= TIME_OUT) {
                                 cloud_mqtt_timeout++;
                             }
                         }
                     }
-                    message_delay.clear();
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", message total: " << total;
+
+                    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ", message delay, message total: " << total;
                     try {
                         if (m_agent) {
                             json j_message;
@@ -2836,6 +2838,9 @@ int MachineObject::parse_json(std::string payload)
                         }
                     }
                     catch (...) {}
+
+                    message_delay.clear();
+                    message_delay.shrink_to_fit();
                 }
             }
             message_delay.push_back(std::make_tuple(message_type, t_utc, delay));
