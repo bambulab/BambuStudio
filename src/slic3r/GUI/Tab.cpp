@@ -1892,14 +1892,14 @@ void TabPrint::build()
         optgroup->append_single_option_line("initial_layer_print_height");
 
         optgroup = page->new_optgroup(L("Line width"), L"param_line_width");
-        optgroup->append_single_option_line("line_width");
-        optgroup->append_single_option_line("initial_layer_line_width");
-        optgroup->append_single_option_line("outer_wall_line_width");
-        optgroup->append_single_option_line("inner_wall_line_width");
-        optgroup->append_single_option_line("top_surface_line_width");
-        optgroup->append_single_option_line("sparse_infill_line_width");
-        optgroup->append_single_option_line("internal_solid_infill_line_width");
-        optgroup->append_single_option_line("support_line_width");
+        optgroup->append_single_option_line("line_width","parameter/line-width");
+        optgroup->append_single_option_line("initial_layer_line_width","parameter/line-width");
+        optgroup->append_single_option_line("outer_wall_line_width","parameter/line-width");
+        optgroup->append_single_option_line("inner_wall_line_width","parameter/line-width");
+        optgroup->append_single_option_line("top_surface_line_width","parameter/line-width");
+        optgroup->append_single_option_line("sparse_infill_line_width","parameter/line-width");
+        optgroup->append_single_option_line("internal_solid_infill_line_width","parameter/line-width");
+        optgroup->append_single_option_line("support_line_width","parameter/line-width");
 
         optgroup = page->new_optgroup(L("Seam"), L"param_seam");
         optgroup->append_single_option_line("seam_position", "Seam");
@@ -1967,14 +1967,14 @@ void TabPrint::build()
         optgroup->append_single_option_line("filter_out_gap_fill");
 
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
-        optgroup->append_single_option_line("infill_wall_overlap");
-        optgroup->append_single_option_line("infill_direction");
-        optgroup->append_single_option_line("bridge_angle");
-        optgroup->append_single_option_line("minimum_sparse_infill_area");
-        optgroup->append_single_option_line("infill_combination");
-        optgroup->append_single_option_line("detect_narrow_internal_solid_infill");
-        optgroup->append_single_option_line("ensure_vertical_shell_thickness");
-        optgroup->append_single_option_line("internal_bridge_support_thickness");
+        optgroup->append_single_option_line("infill_wall_overlap","parameter/strength-advance-settings");
+        optgroup->append_single_option_line("infill_direction","parameter/strength-advance-settings");
+        optgroup->append_single_option_line("bridge_angle","parameter/strength-advance-settings");
+        optgroup->append_single_option_line("minimum_sparse_infill_area","parameter/strength-advance-settings");
+        optgroup->append_single_option_line("infill_combination","parameter/strength-advance-settings");
+        optgroup->append_single_option_line("detect_narrow_internal_solid_infill","parameter/strength-advance-settings");
+        optgroup->append_single_option_line("ensure_vertical_shell_thickness","parameter/strength-advance-settings");
+        optgroup->append_single_option_line("internal_bridge_support_thickness","parameter/strength-advance-settings");
 
     page = add_options_page(L("Speed"), "empty");
         optgroup = page->new_optgroup(L("Initial layer speed"), L"param_speed_first", 15);
