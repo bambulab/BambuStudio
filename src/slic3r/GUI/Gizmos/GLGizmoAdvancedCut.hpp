@@ -51,11 +51,13 @@ public:
 
     std::vector<Cut::Part> get_cut_parts();
     std::vector<PartPara> &get_parts() { return m_cut_parts; }
+    bool                   has_modified_cut_parts();
 
 private:
     Model                                                            m_model;
     int                                                              m_instance_idx;
     std::vector<PartPara>                                            m_cut_parts;
+    std::vector<bool>                                                m_back_cut_parts_state;
     bool                                                             m_valid = false;
     std::vector<std::pair<std::vector<size_t>, std::vector<size_t>>> m_contour_to_parts; // for each contour, there is a vector of parts above and a vector of parts below
     std::vector<size_t> m_ignored_contours; // contour that should not be rendered (the parts on both sides will both be parts of the same object)

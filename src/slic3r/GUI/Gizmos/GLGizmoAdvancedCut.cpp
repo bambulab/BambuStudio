@@ -573,6 +573,9 @@ void GLGizmoAdvancedCut::on_start_dragging()
 
 void GLGizmoAdvancedCut::on_stop_dragging()
 {
+    if (m_is_dragging ==false) {
+        return;
+    }
     m_is_dragging = false;
     if (m_hover_id == X || m_hover_id == Y || m_hover_id == Z) {
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Rotate cut plane");
@@ -867,7 +870,7 @@ void GLGizmoAdvancedCut::perform_cut(const Selection& selection)
         });
 
         const bool cut_with_groove = m_cut_mode == CutMode::cutTongueAndGroove;
-        bool       cut_by_contour  = false;//!cut_with_groove && !m_cut_to_parts && m_part_selection->valid();
+        bool       cut_by_contour  = !cut_with_groove && m_part_selection->valid() && m_part_selection->has_modified_cut_parts();
 
         ModelObject *cut_mo = cut_by_contour ? m_part_selection->model_object() : nullptr;
         if (cut_mo)
@@ -2577,6 +2580,10 @@ PartSelection::PartSelection(
         i++;
     }
 
+    m_back_cut_parts_state.resize(m_cut_parts.size());
+    for (size_t i = 0; i < m_cut_parts.size(); i++) {
+        m_back_cut_parts_state[i] = m_cut_parts[i].is_up_part;
+    }
     // Now go through the contours and create a map from contours to parts.
     m_contour_points.clear();
     m_contour_to_parts.clear();
@@ -2685,6 +2692,19 @@ std::vector<Cut::Part> PartSelection::get_cut_parts()
     std::vector<Cut::Part> parts;
     for (const auto &part : m_cut_parts) parts.push_back({part.is_up_part, false});
     return parts;
+}
+
+bool PartSelection::has_modified_cut_parts()
+{
+    if (m_back_cut_parts_state.size() == 0 || m_back_cut_parts_state.size() != m_cut_parts.size()) {
+        return false;
+    }
+    for (size_t i = 0; i < m_cut_parts.size(); i++) {
+        if (m_back_cut_parts_state[i] != m_cut_parts[i].is_up_part) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void PartSelection::toggle_selection(const Vec2d &mouse_pos)
