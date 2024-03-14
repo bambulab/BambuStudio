@@ -67,6 +67,7 @@ func_get_user_nickanme              NetworkAgent::get_user_nickanme_ptr = nullpt
 func_build_login_cmd                NetworkAgent::build_login_cmd_ptr = nullptr;
 func_build_logout_cmd               NetworkAgent::build_logout_cmd_ptr = nullptr;
 func_build_login_info               NetworkAgent::build_login_info_ptr = nullptr;
+func_get_model_id_from_desgin_id    NetworkAgent::get_model_id_from_desgin_id_ptr = nullptr;
 func_bind                           NetworkAgent::bind_ptr = nullptr;
 func_unbind                         NetworkAgent::unbind_ptr = nullptr;
 func_get_bambulab_host              NetworkAgent::get_bambulab_host_ptr = nullptr;
@@ -227,6 +228,7 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     build_login_cmd_ptr               =  reinterpret_cast<func_build_login_cmd>(get_network_function("bambu_network_build_login_cmd"));
     build_logout_cmd_ptr              =  reinterpret_cast<func_build_logout_cmd>(get_network_function("bambu_network_build_logout_cmd"));
     build_login_info_ptr              =  reinterpret_cast<func_build_login_info>(get_network_function("bambu_network_build_login_info"));
+    get_model_id_from_desgin_id_ptr   =  reinterpret_cast<func_get_model_id_from_desgin_id>(get_network_function("bambu_network_get_model_id_from_desgin_id"));
     bind_ptr                          =  reinterpret_cast<func_bind>(get_network_function("bambu_network_bind"));
     unbind_ptr                        =  reinterpret_cast<func_unbind>(get_network_function("bambu_network_unbind"));
     get_bambulab_host_ptr             =  reinterpret_cast<func_get_bambulab_host>(get_network_function("bambu_network_get_bambulab_host"));
@@ -341,6 +343,7 @@ int NetworkAgent::unload_network_module()
     build_login_cmd_ptr               =  nullptr;
     build_logout_cmd_ptr              =  nullptr;
     build_login_info_ptr              =  nullptr;
+    get_model_id_from_desgin_id_ptr   =  nullptr;
     bind_ptr                          =  nullptr;
     unbind_ptr                        =  nullptr;
     get_bambulab_host_ptr             =  nullptr;
@@ -856,6 +859,18 @@ std::string NetworkAgent::build_login_info()
     std::string ret;
     if (network_agent && build_login_info_ptr) {
         ret = build_login_info_ptr(network_agent);
+    }
+    return ret;
+}
+
+int NetworkAgent::get_model_id_from_desgin_id(std::string& desgin_id, std::string& model_id)
+{
+    int ret = 0;
+    if (network_agent && get_model_id_from_desgin_id_ptr) {
+        ret = get_model_id_from_desgin_id_ptr(network_agent, desgin_id, model_id);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, ping code=%3%")
+            % network_agent % ret % desgin_id;
     }
     return ret;
 }

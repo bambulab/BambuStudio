@@ -65,6 +65,7 @@ private:
     wxWebView* m_browser = {nullptr};
     wxString   m_project_home_url;
     wxString   m_root_dir;
+    std::map<std::string, std::string> m_model_id_map;
     static inline int m_sequence_id = 8000;
     
 
@@ -75,7 +76,7 @@ public:
     
     void onWebNavigating(wxWebViewEvent& evt);
     void on_reload(wxCommandEvent& evt);
-    void on_size(wxSizeEvent &event);
+    void on_size(wxSizeEvent& event);
     void on_navigated(wxWebViewEvent& event);
    
     void msw_rescale();
@@ -88,6 +89,7 @@ public:
 
     std::map<std::string, std::vector<json>> Reload(wxString aux_path);
     std::string formatBytes(unsigned long bytes);
+    std::string get_model_id(std::string desgin_id);
     wxString to_base64(std::string path);
 };
 
