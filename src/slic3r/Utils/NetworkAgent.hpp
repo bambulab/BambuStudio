@@ -47,6 +47,7 @@ typedef std::string (*func_get_user_nickanme)(void *agent);
 typedef std::string (*func_build_login_cmd)(void *agent);
 typedef std::string (*func_build_logout_cmd)(void *agent);
 typedef std::string (*func_build_login_info)(void *agent);
+typedef int (*func_get_model_id_from_desgin_id)(void *agent, std::string& desgin_id, std::string& model_id);
 typedef int (*func_bind)(void *agent, std::string dev_ip, std::string dev_id, std::string sec_link, std::string timezone, bool improved, OnUpdateStatusFn update_fn);
 typedef int (*func_unbind)(void *agent, std::string dev_id);
 typedef std::string (*func_get_bambulab_host)(void *agent);
@@ -151,7 +152,8 @@ public:
     std::string build_login_cmd();
     std::string build_logout_cmd();
     std::string build_login_info();
-    int bind(std::string dev_ip, std::string dev_id, std::string sec_link, std::string timezone,  bool improved, OnUpdateStatusFn update_fn);
+    int get_model_id_from_desgin_id(std::string& desgin_id, std::string& model_id);
+    int bind(std::string dev_ip, std::string dev_id, std::string sec_link, std::string timezone, bool improved, OnUpdateStatusFn update_fn);
     int unbind(std::string dev_id);
     std::string get_bambulab_host();
     std::string get_user_selected_machine();
@@ -243,6 +245,7 @@ private:
     static func_build_login_cmd                build_login_cmd_ptr;
     static func_build_logout_cmd               build_logout_cmd_ptr;
     static func_build_login_info               build_login_info_ptr;
+    static func_get_model_id_from_desgin_id    get_model_id_from_desgin_id_ptr;
     static func_bind                           bind_ptr;
     static func_unbind                         unbind_ptr;
     static func_get_bambulab_host              get_bambulab_host_ptr;

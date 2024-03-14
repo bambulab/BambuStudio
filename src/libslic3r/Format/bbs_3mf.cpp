@@ -116,6 +116,7 @@ const std::string BBL_MODEL_NAME_TAG                = "Title";
 const std::string BBL_ORIGIN_TAG                    = "Origin";
 const std::string BBL_DESIGNER_TAG                  = "Designer";
 const std::string BBL_DESIGNER_USER_ID_TAG          = "DesignerUserId";
+//const std::string BBL_DESIGNER_MODEL_ID_TAG         = "DesignModelId";
 const std::string BBL_DESIGNER_COVER_FILE_TAG       = "DesignerCover";
 const std::string BBL_DESCRIPTION_TAG               = "Description";
 const std::string BBL_COPYRIGHT_TAG                 = "CopyRight";
@@ -935,6 +936,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         std::string  m_model_id;
         std::string  m_contry_code;
         std::string  m_designer;
+        std::string  m_designer_id;
         std::string  m_designer_user_id;
         std::string  m_designer_cover;
         ModelInfo    model_info;
@@ -1356,6 +1358,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         if (!m_designer.empty()) {
             m_model->design_info                 = std::make_shared<ModelDesignInfo>();
+            m_model->design_info->DesignId       = m_designer_id;
             m_model->design_info->DesignerUserId = m_designer_user_id;
             m_model->design_info->Designer       = m_designer;
         }
@@ -1648,6 +1651,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         if (!m_designer.empty()) {
             m_model->design_info = std::make_shared<ModelDesignInfo>();
+            m_model->design_info->DesignId = m_designer_id;
             m_model->design_info->DesignerUserId = m_designer_user_id;
             m_model->design_info->Designer = m_designer;
         }
@@ -3581,7 +3585,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         } else if (m_curr_metadata_name == BBL_DESIGNER_USER_ID_TAG) {
             BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found designer_user_id = " << m_curr_characters;
             m_designer_user_id = xml_unescape(m_curr_characters);
-        } else if (m_curr_metadata_name == BBL_DESIGNER_COVER_FILE_TAG) {
+        }else if (m_curr_metadata_name == BBL_DESIGNER_MODEL_ID_TAG) {
+            BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found designer_model_id = " << m_curr_characters;
+            m_designer_id = xml_unescape(m_curr_characters);
+        }else if (m_curr_metadata_name == BBL_DESIGNER_COVER_FILE_TAG) {
             BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found designer_cover = " << m_curr_characters;
             model_info.cover_file = xml_unescape(m_curr_characters);
         } else if (m_curr_metadata_name == BBL_DESCRIPTION_TAG) {
