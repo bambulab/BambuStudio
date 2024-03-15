@@ -1079,13 +1079,22 @@ void GUI_App::post_init()
             std::string download_params_url = url_decode(this->init_params->input_files.front());
             auto input_str_arr = split_str(download_params_url, "file=");
 
+
             std::string download_url;
+#if BBL_RELEASE_TO_PUBLIC
             for (auto input_str : input_str_arr) {
-                if ( boost::starts_with(input_str, "http://makerworld") ||  boost::starts_with(input_str, "https://makerworld")) {
+                if (boost::starts_with(input_str, "http://makerworld") ||
+                    boost::starts_with(input_str, "https://makerworld") ||
+                    boost::algorithm::contains(input_str, "amazonaws.com") ||
+                    boost::algorithm::contains(input_str, "aliyuncs.com")) {
                     download_url = input_str;
                 }
             }
-
+#else
+            for (auto input_str : input_str_arr) {
+                download_url = input_str;
+            }
+#endif
             try
             {
                 //filter relative directories
