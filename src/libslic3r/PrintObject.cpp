@@ -260,6 +260,14 @@ void PrintObject::prepare_infill()
     this->detect_surfaces_type();
     m_print->throw_if_canceled();
 
+    // Also tiny stInternal surfaces are turned to stInternalSolid.
+    BOOST_LOG_TRIVIAL(info) << "Preparing fill surfaces..." << log_memory_info();
+    for (auto *layer : m_layers)
+        for (auto *region : layer->m_regions) {
+            region->prepare_fill_surfaces();
+            m_print->throw_if_canceled();
+        }
+
     // this will detect bridges and reverse bridges
     // and rearrange top/bottom/internal surfaces
     // It produces enlarged overlapping bridging areas.
@@ -306,13 +314,6 @@ void PrintObject::prepare_infill()
     } // for each region
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 
-    // Also tiny stInternal surfaces are turned to stInternalSolid.
-    BOOST_LOG_TRIVIAL(info) << "Preparing fill surfaces..." << log_memory_info();
-    for (auto *layer : m_layers)
-        for (auto *region : layer->m_regions) {
-            region->prepare_fill_surfaces();
-            m_print->throw_if_canceled();
-        }
 
     // Only active if config->infill_only_where_needed. This step trims the sparse infill,
     // so it acts as an internal support. It maintains all other infill types intact.
