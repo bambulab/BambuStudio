@@ -284,6 +284,8 @@ public:
     bool is_gizmo_activable_when_single_full_instance();
     bool is_gizmo_click_empty_not_exit();
     bool is_show_only_active_plate();
+    void check_object_located_outside_plate();
+    bool get_object_located_outside_plate() { return m_object_located_outside_plate; }
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position = Vec2d::Zero(), bool shift_down = false, bool alt_down = false, bool control_down = false);
     ClippingPlane get_clipping_plane() const;
     ClippingPlane get_assemble_view_clipping_plane() const;
@@ -326,7 +328,7 @@ public:
 
 private:
     void render_background(float left, float top, float right, float bottom, float border) const;
-    
+
     void do_render_overlay() const;
 
     bool generate_icons_texture() const;
@@ -334,6 +336,9 @@ private:
     void update_on_off_state(const Vec2d& mouse_pos);
     std::string update_hover_state(const Vec2d& mouse_pos);
     bool grabber_contains_mouse() const;
+
+private:
+    bool m_object_located_outside_plate{false};
 };
 
 std::string get_name_from_gizmo_etype(GLGizmosManager::EType type);
