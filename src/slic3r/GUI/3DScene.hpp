@@ -497,7 +497,7 @@ public:
     void set_convex_hull(TriangleMesh &&convex_hull) { m_convex_hull = std::make_shared<const TriangleMesh>(std::move(convex_hull)); }
 
     void set_offset_to_assembly(const Vec3d& offset) { m_offset_to_assembly = offset; set_bounding_boxes_as_dirty(); }
-    Vec3d get_offset_to_assembly() { return m_offset_to_assembly; }
+    const Vec3d& get_offset_to_assembly() { return m_offset_to_assembly; }
 
     int                 object_idx() const { return this->composite_id.object_id; }
     int                 volume_idx() const { return this->composite_id.volume_id; }
@@ -523,7 +523,8 @@ public:
     void                set_range(double low, double high);
 
     //BBS: add outline related logic and add virtual specifier
-    virtual void        render(bool with_outline = false) const;
+    virtual void render(bool                         with_outline = false,
+                        const std::array<float, 4> &body_color = {1.0f, 1.0f, 1.0f, 1.0f} ) const;
 
     //BBS: add simple render function for thumbnail
     void simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_objects, std::vector<std::array<float, 4>>& extruder_colors) const;
@@ -667,8 +668,11 @@ public:
     void render(ERenderType                           type,
                 bool                                  disable_cullface,
                 const Transform3d &                   view_matrix,
-                std::function<bool(const GLVolume &)> filter_func  = std::function<bool(const GLVolume &)>(),
-                bool with_outline = true) const;
+                std::function<bool(const GLVolume &)> filter_func   = std::function<bool(const GLVolume &)>(),
+                bool                                  with_outline = true,
+                const std::array<float, 4>&           body_color           = {1.0f, 1.0f, 1.0f, 1.0f},
+                bool                                  partly_inside_enable =true
+           ) const;
 
     // Finalize the initialization of the geometry & indices,
     // upload the geometry and indices to OpenGL VBO objects

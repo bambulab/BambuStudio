@@ -1071,10 +1071,13 @@ void Selection::translate(const Vec3d &displacement, bool local)
     else if (translation_type == Volume)
         synchronize_unselected_volumes();
 #endif // !DISABLE_INSTANCES_SYNCH
-
-    ensure_not_below_bed();
+    if (wxGetApp().plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasAssembleView) {
+        ensure_not_below_bed();
+    }
     set_bounding_boxes_dirty();
-    wxGetApp().plater()->canvas3D()->requires_check_outside_state();
+    if (wxGetApp().plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasAssembleView) {
+        wxGetApp().plater()->canvas3D()->requires_check_outside_state();
+    }
 }
 
 // Rotate an object around one of the axes. Only one rotation component is expected to be changing.
@@ -1188,7 +1191,9 @@ void Selection::rotate(const Vec3d& rotation, TransformationType transformation_
     }
 
     set_bounding_boxes_dirty();
-    wxGetApp().plater()->canvas3D()->requires_check_outside_state();
+    if (wxGetApp().plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasAssembleView) {
+        wxGetApp().plater()->canvas3D()->requires_check_outside_state();
+    }
 }
 
 void Selection::flattening_rotate(const Vec3d& normal)
@@ -1303,7 +1308,9 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
 
     ensure_on_bed();
     set_bounding_boxes_dirty();
-    wxGetApp().plater()->canvas3D()->requires_check_outside_state();
+    if (wxGetApp().plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasAssembleView) {
+        wxGetApp().plater()->canvas3D()->requires_check_outside_state();
+    }
 }
 
 #if ENABLE_ENHANCED_PRINT_VOLUME_FIT
