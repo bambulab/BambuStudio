@@ -678,7 +678,7 @@ void GLVolume::set_range(double min_z, double max_z)
 
 //BBS: add outline related logic
 //static unsigned char stencil_data[1284][2944];
-void GLVolume::render(bool with_outline) const
+void GLVolume::render(bool with_outline, const std::array<float, 4>& body_color) const
 {
     if (!is_active)
         return;
@@ -880,7 +880,6 @@ void GLVolume::render(bool with_outline) const
             glStencilFunc(GL_NOTEQUAL, 0xff, 0xFF);
             glStencilMask(0x00);
             float scale = 1.02f;
-            std::array<float, 4> body_color = { 1.0f, 1.0f, 1.0f, 1.0f }; //red
 
             shader->set_uniform("uniform_color", body_color);
             shader->set_uniform("is_outline", true);
@@ -1336,8 +1335,13 @@ int GLVolumeCollection::get_selection_support_threshold_angle(bool &enable_suppo
 }
 
 //BBS: add outline drawing logic
-void GLVolumeCollection::render(
-    GLVolumeCollection::ERenderType type, bool disable_cullface, const Transform3d &view_matrix, std::function<bool(const GLVolume &)> filter_func, bool with_outline) const
+void GLVolumeCollection::render(GLVolumeCollection::ERenderType       type,
+                                bool                                  disable_cullface,
+                                const Transform3d &                   view_matrix,
+                                std::function<bool(const GLVolume &)> filter_func,
+                                bool                                  with_outline,
+                                const std::array<float, 4> &          body_color, 
+                                bool                                  partly_inside_enable) const
 {
     GLVolumeWithIdAndZList to_render = volumes_to_render(volumes, type, view_matrix, filter_func);
     if (to_render.empty())
@@ -1396,7 +1400,7 @@ void GLVolumeCollection::render(
         //shader->set_uniform("print_volume.xy_data", m_render_volume.data);
         //shader->set_uniform("print_volume.z_data", m_render_volume.zs);
 
-        if (volume.first->partly_inside) {
+        if (volume.first->partly_inside && partly_inside_enable) {
             //only partly inside volume need to be painted with boundary check
             shader->set_uniform("print_volume.type", static_cast<int>(m_print_volume.type));
             shader->set_uniform("print_volume.xy_data", m_print_volume.data);
@@ -1427,7 +1431,7 @@ void GLVolumeCollection::render(
         glcheck();
 
         //BBS: add outline related logic
-        volume.first->render(with_outline && volume.first->selected);
+        volume.first->render(with_outline && volume.first->selected, body_color);
 
 #if ENABLE_ENVIRONMENT_MAP
         if (use_environment_texture)

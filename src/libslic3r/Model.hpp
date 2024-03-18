@@ -1276,13 +1276,14 @@ public:
         m_assemble_transformation.set_from_transform(transform);
     }
     void set_assemble_offset(const Vec3d& offset) { m_assemble_transformation.set_offset(offset); }
+    void set_assemble_rotation(const Vec3d &rotation) { m_assemble_transformation.set_rotation(rotation); }
     void rotate_assemble(double angle, const Vec3d& axis) {
         m_assemble_transformation.set_rotation(m_assemble_transformation.get_rotation() + Geometry::extract_euler_angles(Eigen::Quaterniond(Eigen::AngleAxisd(angle, axis)).toRotationMatrix()));
     }
 
     // BBS
     void set_offset_to_assembly(const Vec3d& offset) { m_offset_to_assembly = offset; }
-    Vec3d get_offset_to_assembly() const { return m_offset_to_assembly; }
+    const Vec3d& get_offset_to_assembly() const { return m_offset_to_assembly; }
 
     const Vec3d& get_offset() const { return m_transformation.get_offset(); }
     double get_offset(Axis axis) const { return m_transformation.get_offset(axis); }
