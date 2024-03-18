@@ -59,7 +59,9 @@ std::vector<size_t> GLGizmosManager::get_selectable_idxs() const
     std::vector<size_t> out;
     if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
         for (size_t i = 0; i < m_gizmos.size(); ++i)
-            if (m_gizmos[i]->get_sprite_id() == (unsigned int)MmuSegmentation)
+            if (m_gizmos[i]->get_sprite_id() == (unsigned int) Move ||
+                m_gizmos[i]->get_sprite_id() == (unsigned int) Rotate ||
+                m_gizmos[i]->get_sprite_id() == (unsigned int) MmuSegmentation)
                 out.push_back(i);
     }
     else {
@@ -877,9 +879,21 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
         }
         else if (is_dragging()) {
             switch (m_current) {
-            case Move:   { m_parent.do_move(("Tool-Move")); break; }
-            case Scale:  { m_parent.do_scale(("Tool-Scale")); break; }
-            case Rotate: { m_parent.do_rotate(("Tool-Rotate")); break; }
+            case Move:   {
+                wxGetApp().plater()->take_snapshot(_u8L("Tool-Move"), UndoRedo::SnapshotType::GizmoAction);
+                m_parent.do_move("");
+                break;
+            }
+            case Scale:  {
+                wxGetApp().plater()->take_snapshot(_u8L("Tool-Scale"), UndoRedo::SnapshotType::GizmoAction);
+                m_parent.do_scale("");
+                break;
+            }
+            case Rotate: {
+                wxGetApp().plater()->take_snapshot(_u8L("Tool-Rotate"), UndoRedo::SnapshotType::GizmoAction);
+                m_parent.do_rotate("");
+                break;
+            }
             default: break;
             }
 

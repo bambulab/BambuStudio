@@ -3,7 +3,7 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/Gizmos/GizmoObjectManipulation.hpp"
-
+#include "slic3r/Utils/UndoRedo.hpp"
 
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/MeasureUtils.hpp"
@@ -1322,7 +1322,8 @@ void GLGizmoMeasure::render_dimensioning()
             m_imgui->text(txt);
             if (m_hit_different_volumes.size() < 2) {
                 ImGui::SameLine();
-                if (m_imgui->image_button(ImGui::SliderFloatEditBtnIcon, _L("Edit to scale"))) {
+                if (m_imgui->image_button(ImGui::SliderFloatEditBtnIcon, _L("Edit to scale")) &&
+                    wxGetApp().plater()->canvas3D()->get_canvas_type() == GLCanvas3D::ECanvasType::CanvasView3D) {
                     m_editing_distance = true;
                     edit_value         = curr_value;
                     m_imgui->requires_extra_frame();
@@ -1345,7 +1346,7 @@ void GLGizmoMeasure::render_dimensioning()
                     return;
 
                 const double ratio = new_value / old_value;
-                wxGetApp().plater()->take_snapshot(_u8L("Scale"));
+                wxGetApp().plater()->take_snapshot(_u8L("Scale"), UndoRedo::SnapshotType::GizmoAction);
                 // apply scale
                 TransformationType type;
                 type.set_world();
@@ -2024,7 +2025,7 @@ void GLGizmoMeasure::on_render_input_window(float x, float y, float bottom_limit
                 distance[2]     = m_buffered_distance[2];
             }
             if (displacement.norm() > 0.0f) {
-                wxGetApp().plater()->take_snapshot(_u8L("MoveInMeasure"));// avoid storing another snapshot
+                wxGetApp().plater()->take_snapshot(_u8L("MoveInMeasure"), UndoRedo::SnapshotType::GizmoAction); // avoid storing another snapshot
                 selection->set_mode(same_model_object ? Selection::Volume : Selection::Instance);
                 auto llo = selection->get_mode();
                 if (same_model_object == false) {

@@ -17,7 +17,7 @@
 #include "GCodeViewer.hpp"
 #include "Camera.hpp"
 #include "IMToolbar.hpp"
-
+#include "slic3r/GUI/3DBed.hpp"
 #include "libslic3r/Slicing.hpp"
 
 #include <float.h>
@@ -53,7 +53,6 @@ namespace CustomGCode { struct Item; }
 
 namespace GUI {
 
-class Bed3D;
 class PartPlateList;
 
 #if ENABLE_RETINA_GL
@@ -609,8 +608,8 @@ private:
 
     PrinterTechnology current_printer_technology() const;
 
-
-
+    bool        m_show_world_axes{false};
+    Bed3D::Axes m_axes;
     //BBS:record key botton frequency
     int auto_orient_count = 0;
     int auto_arrange_count = 0;
@@ -773,6 +772,7 @@ public:
 
     void set_color_by(const std::string& value);
 
+    void set_show_world_axes(bool flag) { m_show_world_axes = flag; }
     void refresh_camera_scene_box();
 
     BoundingBoxf3 volumes_bounding_box() const;

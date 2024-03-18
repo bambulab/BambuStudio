@@ -14,7 +14,7 @@
 #include "libslic3r/Technologies.hpp"
 #include "libslic3r/Tesselate.hpp"
 #include "libslic3r/PresetBundle.hpp"
-#include "slic3r/GUI/3DBed.hpp"
+
 #include "slic3r/GUI/3DScene.hpp"
 #include "slic3r/GUI/BackgroundSlicingProcess.hpp"
 #include "slic3r/GUI/GLShader.hpp"
@@ -1946,6 +1946,9 @@ void GLCanvas3D::render(bool only_init)
     /* assemble render*/
     else if (m_canvas_type == ECanvasType::CanvasAssembleView) {
         //BBS: add outline logic
+        if (m_show_world_axes) {
+            m_axes.render();
+        }
         _render_objects(GLVolumeCollection::ERenderType::Opaque, !m_gizmos.is_running());
         //_render_bed(!camera.is_looking_downward(), show_axes);
         _render_plane();
@@ -4569,8 +4572,13 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
             // Move instances/volumes
             ModelObject* model_object = m_model->objects[object_idx];
             if (model_object != nullptr) {
-                if (selection_mode == Selection::Instance)
-                    model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
+                if (selection_mode == Selection::Instance) {
+                    if (m_canvas_type == GLCanvas3D::ECanvasType::CanvasAssembleView) {
+                        model_object->instances[instance_idx]->set_assemble_offset(v->get_instance_offset());
+                    } else {
+                        model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
+                    }
+                }
                 else if (selection_mode == Selection::Volume) {
                     if (model_object->volumes[volume_idx]->get_offset() != v->get_volume_offset()) {
                         model_object->volumes[volume_idx]->set_offset(v->get_volume_offset());
@@ -4677,8 +4685,13 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
         ModelObject* model_object = m_model->objects[object_idx];
         if (model_object != nullptr) {
             if (selection_mode == Selection::Instance) {
-                model_object->instances[instance_idx]->set_rotation(v->get_instance_rotation());
-                model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
+                if (m_canvas_type == GLCanvas3D::ECanvasType::CanvasAssembleView) {
+                    model_object->instances[instance_idx]->set_assemble_rotation(v->get_instance_rotation());
+                    model_object->instances[instance_idx]->set_assemble_offset(v->get_instance_offset());
+                } else {
+                    model_object->instances[instance_idx]->set_rotation(v->get_instance_rotation());
+                    model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
+                }
             }
             else if (selection_mode == Selection::Volume) {
                 if (model_object->volumes[volume_idx]->get_rotation() != v->get_volume_rotation()) {
@@ -6974,6 +6987,9 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
 
     GLShaderProgram* shader = wxGetApp().get_shader("gouraud");
     ECanvasType canvas_type = this->m_canvas_type;
+    std::array<float, 4> body_color  = canvas_type == ECanvasType::CanvasAssembleView ? std::array<float, 4>({1.0f, 1.0f, 0.0f, 1.0f}) ://yellow
+                                                                                        std::array<float, 4>({1.0f, 1.0f, 1.0f, 1.0f});//white
+    bool                 partly_inside_enable = canvas_type == ECanvasType::CanvasAssembleView ? false : true;
     if (shader != nullptr) {
         shader->start_using();
 
@@ -7009,7 +7025,8 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
                         else {
                             return (m_render_sla_auxiliaries || volume.composite_id.volume_id >= 0);
                         }
-                        }, with_outline);
+                        },
+                        with_outline, body_color, partly_inside_enable);
                 }
             }
             else {
@@ -7042,7 +7059,8 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
                 else {
                     return true;
                 }
-                }, with_outline);
+                },
+                with_outline, body_color, partly_inside_enable);
             if (m_canvas_type == CanvasAssembleView && m_gizmos.m_assemble_view_data->model_objects_clipper()->get_position() > 0) {
                 const GLGizmosManager& gm = get_gizmos_manager();
                 shader->stop_using();
@@ -7908,6 +7926,7 @@ void GLCanvas3D::_render_return_toolbar()
                 wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_3D));
             const_cast<GLGizmosManager *>(&m_gizmos)->reset_all_states();
             wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager().reset_all_states();
+            wxGetApp().plater()->get_view3D_canvas3D()->reload_scene(true);
             {
                 GLCanvas3D *                          view_3d       = wxGetApp().plater()->get_view3D_canvas3D();
                 GLToolbarItem *                       assembly_item = view_3d->m_assemble_view_toolbar.get_item("assembly_view");
