@@ -675,6 +675,38 @@ bool GLGizmosManager::is_show_only_active_plate()
     return false;
 }
 
+void GLGizmosManager::check_object_located_outside_plate() {
+    PartPlateList &plate_list       = wxGetApp().plater()->get_partplate_list();
+    auto           curr_plate_index = plate_list.get_curr_plate_index();
+    Selection &    selection        = m_parent.get_selection();
+    auto           idxs             = selection.get_volume_idxs();
+    m_object_located_outside_plate  = false;
+    if (idxs.size() > 0) {
+        const GLVolume *v          = selection.get_volume(*idxs.begin());
+        int             object_idx = v->object_idx();
+        const Model *   m_model    = m_parent.get_model();
+        if (0 <= object_idx && object_idx < (int) m_model->objects.size()) {
+            bool         find_object  = false;
+            ModelObject *model_object = m_model->objects[object_idx];
+            for (size_t i = 0; i < plate_list.get_plate_count(); i++) {
+                auto            plate   = plate_list.get_plate(i);
+                ModelObjectPtrs objects = plate->get_objects_on_this_plate();
+                for (auto object : objects) {
+                    if (model_object == object) {
+                        if (curr_plate_index != i) { // confirm selected model_object at corresponding plate
+                            wxGetApp().plater()->get_partplate_list().select_plate(i);
+                        }
+                        find_object = true;
+                    }
+                }
+            }
+            if (!find_object) {
+                m_object_located_outside_plate = true;
+            }
+        }
+    }
+}
+
 // Returns true if the gizmo used the event to do something, false otherwise.
 bool GLGizmosManager::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down)
 {
@@ -1738,6 +1770,9 @@ bool GLGizmosManager::activate_gizmo(EType type)
         //    wxGetApp().imgui()->load_fonts_texture();
         //}
         new_gizmo->set_state(GLGizmoBase::On);
+        if (is_show_only_active_plate()) {
+            check_object_located_outside_plate();
+        }
     }
     return true;
 }

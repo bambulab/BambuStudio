@@ -1559,7 +1559,13 @@ void GLGizmoText::load_from_text_info(const TextInfo &text_info)
 {
     m_font_name     = text_info.m_font_name;
     m_font_size     = text_info.m_font_size;
-    m_curr_font_idx = text_info.m_curr_font_idx;
+    // from other user's computer may exist case:font library size is different
+    if (text_info.m_curr_font_idx < m_font_names.size()) {
+        m_curr_font_idx = text_info.m_curr_font_idx;
+    }
+    else {
+        m_curr_font_idx = 0;
+    }
     m_bold          = text_info.m_bold;
     m_italic        = text_info.m_italic;
     m_thickness     = text_info.m_thickness;
