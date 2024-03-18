@@ -790,13 +790,17 @@ static std::string none{"none"};
 UnsavedChangesDialog::UnsavedChangesDialog(const wxString &caption, const wxString &header, const std::string &app_config_key, int act_buttons)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe),
                 wxID_ANY,
-                caption + ": " + _L("Unsaved Changes"),
+                caption + ": " + (caption == _L("Creating a new project") ? _L("Discard or Use Modified Value") :
+                              caption == _L("Load project")           ? _L("Save or Discard Modified Value") :
+                                                                        _L("Unsaved Changes")),
                 wxDefaultPosition,
                 wxDefaultSize,
                 wxCAPTION | wxCLOSE_BOX)
     , m_app_config_key(app_config_key)
     , m_buttons(act_buttons)
 {
+    if(caption == _L("Creating a new project"))
+        m_buttons &= ~ActionButtons::SAVE;
     build(Preset::TYPE_INVALID, nullptr, "", header);
     this->CenterOnScreen();
     wxGetApp().UpdateDlgDarkUI(this);
@@ -806,7 +810,12 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, PresetCollection *
     : m_new_selected_preset_name(new_selected_preset)
     , DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe),
                 wxID_ANY,
-                _L("Actions For Unsaved Changes"),
+                (!no_transfer && !new_selected_preset.empty() && dependent_presets) ?
+                    dependent_presets->type() == Preset::Type::TYPE_PRINT    ? _L("Use Modified Value of Process Preset") :
+                    dependent_presets->type() == Preset::Type::TYPE_FILAMENT ? _L("Use Modified Value of Filament Preset") :
+                    dependent_presets->type() == Preset::Type::TYPE_PRINTER  ? _L("Use Modified Value of Printer") :
+                                                                               _L("Save or Discard Modified Value") :
+                    _L("Save or Discard Modified Value"),
                 wxDefaultPosition,
                 wxDefaultSize,
                 wxCAPTION | wxCLOSE_BOX)
@@ -892,7 +901,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
     wxBoxSizer *top_title_oldv = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *top_title_oldv_h = new wxBoxSizer(wxHORIZONTAL);
 
-    static_oldv_title = new wxStaticText(m_panel_oldv, wxID_ANY, _L("Preset Value"), wxDefaultPosition, wxDefaultSize, 0);
+    static_oldv_title = new wxStaticText(m_panel_oldv, wxID_ANY, _L("Preset(Old)"), wxDefaultPosition, wxDefaultSize, 0);
     static_oldv_title->SetFont(::Label::Body_13);
     static_oldv_title->Wrap(-1);
     static_oldv_title->SetForegroundColour(*wxWHITE);
@@ -911,7 +920,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
     wxBoxSizer *top_title_newv = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *top_title_newv_h = new wxBoxSizer(wxHORIZONTAL);
 
-    static_newv_title = new wxStaticText(m_panel_newv, wxID_ANY, _L("Modified Value"), wxDefaultPosition, wxDefaultSize, 0);
+    static_newv_title = new wxStaticText(m_panel_newv, wxID_ANY, _L("Modified Value(New)"), wxDefaultPosition, wxDefaultSize, 0);
     static_newv_title->SetFont(::Label::Body_13);
     static_newv_title->Wrap(-1);
     static_newv_title->SetForegroundColour(*wxWHITE);
@@ -962,7 +971,6 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
     checkbox_text->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#323A3D")));
     m_sizer_button->Add(checkbox_sizer, 0, wxLEFT, FromDIP(22));
     checkbox_sizer->Show(bool(m_buttons & REMEMBER_CHOISE));
-
     m_sizer_button->Add(0, 0, 1, 0, 0);
 
      // Add Buttons
@@ -1001,25 +1009,25 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
         m_sizer_button->Add(*btn, 0, wxLEFT, 5);
     };
 
+    // "Save" button
+    if (ActionButtons::SAVE & m_buttons) add_btn(&m_save_btn, m_save_btn_id, "save", Action::Save, _L("Save Modified Value"), false);
+
+    { // "Don't save" / "Discard" button
+        std::string btn_icon  = (ActionButtons::DONT_SAVE & m_buttons) ? "" : (dependent_presets || (ActionButtons::KEEP & m_buttons)) ? "blank_16" : "exit";
+        wxString    btn_label = (ActionButtons::DONT_SAVE & m_buttons) ? _L("Don't save") : _L("Discard Modified Value");
+        add_btn(&m_discard_btn, m_continue_btn_id, btn_icon, Action::Discard, btn_label, false);
+    }
+
     // "Transfer" / "Keep" button
     if (ActionButtons::TRANSFER & m_buttons) {
         const PresetCollection* switched_presets = type == Preset::TYPE_INVALID ? nullptr : wxGetApp().get_tab(type)->get_presets();
         if (dependent_presets && switched_presets && (type == dependent_presets->type() ?
             dependent_presets->get_edited_preset().printer_technology() == dependent_presets->find_preset(new_selected_preset)->printer_technology() :
             switched_presets->get_edited_preset().printer_technology() == switched_presets->find_preset(new_selected_preset)->printer_technology()))
-            add_btn(&m_transfer_btn, m_move_btn_id, "menu_paste", Action::Transfer, /*switched_presets->get_edited_preset().name == new_selected_preset ? */_L("Transfer Modified Value"), true);
+            add_btn(&m_transfer_btn, m_move_btn_id, "menu_paste", Action::Transfer, /*switched_presets->get_edited_preset().name == new_selected_preset ? */_L("Use Modified Value"), true);
     }
     if (!m_transfer_btn && (ActionButtons::KEEP & m_buttons))
-        add_btn(&m_transfer_btn, m_move_btn_id, "menu_paste", Action::Transfer, _L("Transfer Modified Value"), true);
-
-    { // "Don't save" / "Discard" button
-        std::string btn_icon    = (ActionButtons::DONT_SAVE & m_buttons) ? "" : (dependent_presets || (ActionButtons::KEEP & m_buttons)) ? "blank_16" : "exit";
-        wxString    btn_label = (ActionButtons::DONT_SAVE & m_buttons) ? _L("Don't save") : _L("Use Preset Value");
-        add_btn(&m_discard_btn, m_continue_btn_id, btn_icon, Action::Discard, btn_label, false);
-    }
-
-    // "Save" button
-    if (ActionButtons::SAVE & m_buttons) add_btn(&m_save_btn, m_save_btn_id, "save", Action::Save, _L("Save Modified Value"), false);
+        add_btn(&m_transfer_btn, m_move_btn_id, "menu_paste", Action::Transfer, _L("Use Modified Value"), true);
 
     /* ScalableButton *cancel_btn = new ScalableButton(this, wxID_CANCEL, "cross", _L("Cancel"), wxDefaultSize, wxDefaultPosition, wxBORDER_DEFAULT, true, 24);
       buttons->Add(cancel_btn, 1, wxLEFT | wxRIGHT, 5);
@@ -1425,16 +1433,16 @@ void UnsavedChangesDialog::update(Preset::Type type, PresetCollection* dependent
     if (dependent_presets) {
         action_msg = format_wxstr(_L("You have changed some settings of preset \"%1%\". "), dependent_presets->get_edited_preset().name);
         if (!m_transfer_btn) {
-            action_msg += _L("\nWould you like to save these changed settings(modified value)?");
+            action_msg += _L("\nYou can save or discard the preset values you have modified.");
         } else {
-            action_msg += _L("\nWould you like to keep these changed settings(modified value) after switching preset?");
+            action_msg += _L("\nYou can save or discard the preset values you have modified, or choose to continue using the values you have modified on the new preset.");
         }
     } else {
-        action_msg = _L("You have previously modified your settings and are about to overwrite them with new ones.");
+        action_msg = _L("You have previously modified your settings.");
         if (m_transfer_btn)
-            action_msg += _L("\nDo you want to keep your current modified settings, or use preset settings?");
+            action_msg += _L("\nYou can discard the preset values you have modified, or choose to continue using the modified values in the new project");
         else
-            action_msg += _L("\nDo you want to save your current modified settings?");
+            action_msg += _L("\nYou can save or discard the preset values you have modified.");
     }
         
     m_action_line->SetLabel(action_msg);
