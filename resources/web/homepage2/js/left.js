@@ -24,6 +24,20 @@ function HandleStudio( pVal )
 	{
 		SetUserOffline();
 	}
+	else if( strCmd=="network_plugin_installtip" )
+	{
+		let nShow=pVal["show"]*1;
+		
+	    if(nShow==1)
+		{
+			$("#NoPluginTip").show();
+			$("#NoPluginTip").css("display","flex");
+		}
+		else
+		{
+			$("#NoPluginTip").hide();
+		}
+	}	
 	else if(strCmd=='homepage_leftmenu_clicked')
 	{						
 		let NewMenu=pVal['menu'];
@@ -52,7 +66,7 @@ function GotoMenu( strMenu )
 {
 	ShowMenuNewTag(strMenu,0);
 	
-	if(NowMenu==strMenu)
+	if(NowMenu==strMenu && strMenu!='makerlab')
 		return;
 	
 	NowMenu=strMenu;
@@ -184,6 +198,14 @@ function SendMsg_CheckNewTag()
 	SendWXMessage( JSON.stringify(tSend) );		
 }
 
+function BeginDownloadNetworkPlugin()
+{
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="begin_network_plugin_download";
+	
+	SendWXMessage( JSON.stringify(tSend) );		
+}
 
 //---------------Global-----------------
 window.postMessage = HandleStudio;
