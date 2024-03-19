@@ -766,6 +766,21 @@ std::string UrlDecode(const std::string &str)
 //    );
 //}
 
+bool WebViewPanel::GetJumpUrl(bool login, wxString ticket, wxString targeturl, wxString &finalurl)
+{
+    std::string h             = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
+
+    if (login) {
+        if (ticket == "") return false;
+
+        finalurl = wxString::Format("%sapi/sign-in/ticket?to=%s&ticket=%s", h, UrlEncode( std::string(targeturl.mb_str())), ticket);
+    } else {
+        finalurl = wxString::Format("%sapi/sign-out?to=%s", h, UrlEncode(std::string(targeturl.mb_str())));
+    }
+
+    return true;
+}
+
 void WebViewPanel::UpdateMakerworldLoginStatus()
 {
     NetworkAgent *agent = GUI::wxGetApp().getAgent();
@@ -785,15 +800,9 @@ void WebViewPanel::SetMakerworldPageLoginStatus(bool login ,wxString ticket)
     wxString mw_currenturl = m_browserMW->GetCurrentURL();
     wxString mw_jumpurl = "";
 
-    if ( login ) 
-    {
-        mw_jumpurl = wxString::Format("%sapi/sign-in/ticket?to=%s&ticket=%s", h, UrlEncode(std::string(mw_currenturl.mb_str())), ticket);
-    } 
-    else {
-        mw_jumpurl = wxString::Format("%sapi/sign-out?to=%s", h, UrlEncode(std::string(mw_currenturl.mb_str())));
-    }
-
-    m_browserMW->LoadURL(mw_jumpurl);
+    bool b = GetJumpUrl(login, ticket, mw_currenturl, mw_jumpurl);
+    if (b)
+        m_browserMW->LoadURL(mw_jumpurl);
 }
 
 
@@ -1271,7 +1280,16 @@ void WebViewPanel::SwitchWebContent(std::string modelname,int refresh)
         auto        host   = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
         std::string LabUrl = (boost::format("%1%makerlab?from=bambustudio") % host ).str();
 
-        wxLaunchDefaultBrowser(LabUrl);
+        wxString      FinalUrl = LabUrl;
+        NetworkAgent *agent = GUI::wxGetApp().getAgent();
+        if (agent && agent->is_user_login()) 
+        {
+            std::string newticket;
+            int         ret = agent->request_bind_ticket(&newticket);
+            if (ret == 0) GetJumpUrl(true, newticket, FinalUrl, FinalUrl);
+        }
+
+        wxLaunchDefaultBrowser(FinalUrl);
 
         //conf save
         wxGetApp().app_config->set_str("homepage", "makerlab_clicked", "1");
@@ -1344,7 +1362,15 @@ void WebViewPanel::OpenOneMakerlab(std::string url) {
     auto        host = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
     std::string LabUrl  = (boost::format("%1%%2%") % host % url).str();
 
-    wxLaunchDefaultBrowser(LabUrl);
+    wxString      FinalUrl = LabUrl;
+    NetworkAgent *agent    = GUI::wxGetApp().getAgent();
+    if (agent && agent->is_user_login()) {
+        std::string newticket;
+        int         ret = agent->request_bind_ticket(&newticket);
+        if (ret == 0) GetJumpUrl(true, newticket, FinalUrl, FinalUrl);
+    }
+
+    wxLaunchDefaultBrowser(FinalUrl);
 }
 
 

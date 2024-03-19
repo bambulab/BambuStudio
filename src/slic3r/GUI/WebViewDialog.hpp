@@ -118,6 +118,8 @@ public:
     void UpdateMakerworldLoginStatus();
     void SetMakerworldPageLoginStatus(bool login, wxString ticket = "");
 
+    bool GetJumpUrl(bool login, wxString ticket, wxString targeturl, wxString &finalurl);
+
     void update_mode();
 private:
 
