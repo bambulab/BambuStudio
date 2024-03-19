@@ -174,12 +174,11 @@ function ShowProjectInfo( p3MF )
 	}
 	
 	//Check Data
-	let nModelID=p3MF.hasOwnProperty('model_id')?p3MF['model_id']:0;
 	let pModel=p3MF['model'];
 	let pFile=p3MF['file'];
 	let pProfile=p3MF['profile'];
 	
-	ShowModelInfo( pModel,nModelID );
+	ShowModelInfo( pModel );
     ShowFileInfo( pFile );
 	ShowProfilelInfo(pProfile);
 
@@ -206,7 +205,7 @@ function ShowProjectInfo( p3MF )
 	AddScrollEvent();
 }
 
-function ShowModelInfo( pModel, nID )
+function ShowModelInfo( pModel )
 {
 	//==========Model Info==========
 	let sModelName=decodeURIComponent(pModel.name);
@@ -216,7 +215,10 @@ function ShowModelInfo( pModel, nID )
 	let sModelDesc=decodeURIComponent(pModel.description);
 	
 	if( pModel.hasOwnProperty('model_id') )
-		UpdateModelID( pModel['model_id'] );
+	{
+		let m_id=pModel['model_id']+'';
+		UpdateModelID( m_id.trim() );
+	}
 	
 	SendWXDebugInfo("Model Name:  "+sModelName);
 	
