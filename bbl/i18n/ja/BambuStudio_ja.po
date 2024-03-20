@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-05 16:04+0800\n"
+"POT-Creation-Date: 2024-03-20 14:36+0800\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -184,6 +184,9 @@ msgstr "フィラメント %1%でペイントします"
 msgid "Move"
 msgstr "移動"
 
+msgid "Please select at least one object."
+msgstr ""
+
 msgid "Rotate"
 msgstr "回転"
 
@@ -226,8 +229,8 @@ msgstr "オブジェクト操作"
 msgid "Rotate (relative)"
 msgstr ""
 
-msgid "Translate (relative) [World]"
-msgstr ""
+msgid "Volume Operations"
+msgstr "操作"
 
 msgid "Translate"
 msgstr "移動"
@@ -617,13 +620,7 @@ msgstr ""
 msgid "Copy to clipboard"
 msgstr "コピー"
 
-msgid "Adsorbed onto the surface"
-msgstr ""
-
-msgid "modify x distance between objects"
-msgstr ""
-
-msgid "modify y distance between objects"
+msgid "MoveInMeasure"
 msgstr ""
 
 msgid "Angle"
@@ -1016,6 +1013,9 @@ msgstr "Disc"
 
 msgid "Torus"
 msgstr "Torus"
+
+msgid "Rounded Rectangle"
+msgstr ""
 
 msgid "Bambu Cube"
 msgstr "Bambu Cube"
@@ -2976,6 +2976,9 @@ msgstr "時間"
 msgid "Percent"
 msgstr "％"
 
+msgid "Used filament"
+msgstr "フィラメント使用量"
+
 msgid "Layer Height (mm)"
 msgstr "積層ピッチ(mm)"
 
@@ -2996,9 +2999,6 @@ msgstr "流量 (mm³/s)"
 
 msgid "Layer Time (s)"
 msgstr "Layer Time (s)"
-
-msgid "Used filament"
-msgstr "フィラメント使用量"
 
 msgid "Travel"
 msgstr "移動"
@@ -3143,6 +3143,9 @@ msgstr "レイアウト設定"
 
 msgid "Spacing"
 msgstr "間隔"
+
+msgid "0 means auto spacing."
+msgstr ""
 
 msgid "Auto rotate for arrangement"
 msgstr "自動回転"
@@ -6475,28 +6478,40 @@ msgstr "プロセス設定"
 msgid "Undef"
 msgstr "未定義"
 
+msgid "Discard or Use Modified Value"
+msgstr ""
+
+msgid "Save or Discard Modified Value"
+msgstr ""
+
 msgid "Unsaved Changes"
 msgstr "未保存の変更"
 
-msgid "Actions For Unsaved Changes"
+msgid "Use Modified Value of Process Preset"
 msgstr ""
 
-msgid "Preset Value"
+msgid "Use Modified Value of Filament Preset"
 msgstr ""
 
-msgid "Modified Value"
+msgid "Use Modified Value of Printer"
 msgstr ""
 
-msgid "Transfer Modified Value"
+msgid "Preset(Old)"
+msgstr ""
+
+msgid "Modified Value(New)"
+msgstr ""
+
+msgid "Save Modified Value"
 msgstr ""
 
 msgid "Don't save"
 msgstr "保存しない"
 
-msgid "Use Preset Value"
+msgid "Discard Modified Value"
 msgstr ""
 
-msgid "Save Modified Value"
+msgid "Use Modified Value"
 msgstr ""
 
 msgid "Click the right mouse button to display the full text."
@@ -6555,28 +6570,22 @@ msgstr ""
 
 msgid ""
 "\n"
-"Would you like to save these changed settings(modified value)?"
+"You can save or discard the preset values you have modified."
 msgstr ""
 
 msgid ""
 "\n"
-"Would you like to keep these changed settings(modified value) after "
-"switching preset?"
+"You can save or discard the preset values you have modified, or choose to "
+"continue using the values you have modified on the new preset."
 msgstr ""
 
-msgid ""
-"You have previously modified your settings and are about to overwrite them "
-"with new ones."
-msgstr ""
-
-msgid ""
-"\n"
-"Do you want to keep your current modified settings, or use preset settings?"
+msgid "You have previously modified your settings."
 msgstr ""
 
 msgid ""
 "\n"
-"Do you want to save your current modified settings?"
+"You can discard the preset values you have modified, or choose to continue "
+"using the modified values in the new project"
 msgstr ""
 
 msgid "Extruders count"
@@ -6982,6 +6991,33 @@ msgid "Done"
 msgstr "Done"
 
 msgid "resume"
+msgstr ""
+
+msgid "Resume Printing"
+msgstr ""
+
+msgid "Resume Printing(defects acceptable)"
+msgstr ""
+
+msgid "Resume Printing(problem solved)"
+msgstr ""
+
+msgid "Stop Printing"
+msgstr ""
+
+msgid "Filament Extruded,Continue"
+msgstr ""
+
+msgid "Not Extruded Yet,Retry"
+msgstr ""
+
+msgid "Finished,Continue"
+msgstr ""
+
+msgid "Load Filament "
+msgstr ""
+
+msgid "OK "
 msgstr ""
 
 msgid "Confirm and Update Nozzle"
@@ -9336,6 +9372,12 @@ msgstr "水平間隔"
 msgid "XY separation between an object and its support"
 msgstr "オブジェクトとサポートのXY距離です。"
 
+msgid "Support/object first layer gap"
+msgstr ""
+
+msgid "XY separation between an object and its support at the first layer."
+msgstr ""
+
 msgid "Pattern angle"
 msgstr "パターン角度"
 
@@ -9965,39 +10007,8 @@ msgstr ""
 "painted.\n"
 "XY Size compensation can not be combined with color-painting."
 
-#, c-format, boost-format
-msgid "Support: generate toolpath at layer %d"
-msgstr "サポート: 積層%dのツールパスを生成"
-
-msgid "Support: detect overhangs"
-msgstr "サポート: オーバーハングを検出"
-
-msgid "Support: precalculate avoidance"
-msgstr "Support: precalculate avoidance"
-
-msgid "Support: generate contact points"
-msgstr "サポート: 接触点を生成"
-
-msgid "Support: propagate branches"
-msgstr "サポート: ブランチを生成"
-
-msgid "Support: draw polygons"
-msgstr "サポート: ポリゴンを作成"
-
-msgid "Support: generate toolpath"
-msgstr "サポート: ツールパスを生成"
-
-#, c-format, boost-format
-msgid "Support: generate polygons at layer %d"
-msgstr "サポート: 積層%dのポリゴンを生成"
-
-#, c-format, boost-format
-msgid "Support: fix holes at layer %d"
-msgstr "サポート: 積層%dの穴を修正"
-
-#, c-format, boost-format
-msgid "Support: propagate branches at layer %d"
-msgstr "サポート: 積層%dのブランチを生成"
+msgid "Generating supports"
+msgstr ""
 
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
@@ -10523,7 +10534,7 @@ msgstr "Action"
 msgid "Edit Flow Dynamics Calibration"
 msgstr "Edit Flow Dynamics Calibration"
 
-msgid "New Flow Dynamics Calibration"
+msgid "New Flow Dynamic Calibration"
 msgstr ""
 
 msgid "Ok"
@@ -11929,11 +11940,42 @@ msgstr ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
 
+#, c-format, boost-format
+#~ msgid "Support: generate toolpath at layer %d"
+#~ msgstr "サポート: 積層%dのツールパスを生成"
+
+#~ msgid "Support: detect overhangs"
+#~ msgstr "サポート: オーバーハングを検出"
+
+#~ msgid "Support: precalculate avoidance"
+#~ msgstr "Support: precalculate avoidance"
+
+#~ msgid "Support: generate contact points"
+#~ msgstr "サポート: 接触点を生成"
+
+#~ msgid "Support: propagate branches"
+#~ msgstr "サポート: ブランチを生成"
+
+#~ msgid "Support: draw polygons"
+#~ msgstr "サポート: ポリゴンを作成"
+
+#~ msgid "Support: generate toolpath"
+#~ msgstr "サポート: ツールパスを生成"
+
+#, c-format, boost-format
+#~ msgid "Support: generate polygons at layer %d"
+#~ msgstr "サポート: 積層%dのポリゴンを生成"
+
+#, c-format, boost-format
+#~ msgid "Support: fix holes at layer %d"
+#~ msgstr "サポート: 積層%dの穴を修正"
+
+#, c-format, boost-format
+#~ msgid "Support: propagate branches at layer %d"
+#~ msgstr "サポート: 積層%dのブランチを生成"
+
 #~ msgid "Switch table page"
 #~ msgstr "Switch table page"
-
-#~ msgid "Volume Operations"
-#~ msgstr "操作"
 
 #, boost-format
 #~ msgid "Succeed to export G-code to %1%"

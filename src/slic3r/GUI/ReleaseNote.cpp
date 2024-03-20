@@ -1092,12 +1092,12 @@ void PrintErrorDialog::init_button_list() {
         this->on_hide();
         });
     
-    init_button(LOAD_VIRTUAL_TRAY, _L("Load Virtual Tray"));
+    init_button(LOAD_VIRTUAL_TRAY, _L("Load Filament "));
     m_button_list[LOAD_VIRTUAL_TRAY]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
         //TODO
         });
 
-    init_button(OK_BUTTON, _L("OK"));
+    init_button(OK_BUTTON, _L("OK "));
     m_button_list[OK_BUTTON]->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
         wxCommandEvent evt(EVT_SECONDARY_CHECK_CONFIRM, GetId());
         e.SetEventObject(this);
