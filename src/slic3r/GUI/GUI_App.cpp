@@ -4121,7 +4121,8 @@ std::string GUI_App::handle_web_request(std::string cmd)
                     boost::optional<std::string> path      = data_node.get_optional<std::string>("url");
                     if (path.has_value()) 
                     { 
-                        wxGetApp().request_model_download(path.value());
+                        wxString realurl = from_u8(url_decode(path.value()));
+                        wxGetApp().request_model_download(realurl);
                     }
                 }
             }
