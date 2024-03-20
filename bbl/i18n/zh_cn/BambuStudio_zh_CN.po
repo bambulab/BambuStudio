@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-05 16:04+0800\n"
+"POT-Creation-Date: 2024-03-20 14:36+0800\n"
 "PO-Revision-Date: 2024-02-23 20:10+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -191,6 +191,9 @@ msgstr "绘制使用：耗材丝%1%"
 msgid "Move"
 msgstr "移动"
 
+msgid "Please select at least one object."
+msgstr "请至少选中一个对象。"
+
 msgid "Rotate"
 msgstr "旋转"
 
@@ -233,8 +236,8 @@ msgstr "对象操作"
 msgid "Rotate (relative)"
 msgstr "旋转（相对）"
 
-msgid "Translate (relative) [World]"
-msgstr "平移（相对）[世界]"
+msgid "Volume Operations"
+msgstr "零件操作"
 
 msgid "Translate"
 msgstr "平移"
@@ -622,14 +625,8 @@ msgstr "特征1已经被重置，特征2变成特征1"
 msgid "Copy to clipboard"
 msgstr "复制到剪贴板"
 
-msgid "Adsorbed onto the surface"
-msgstr "吸附到表面"
-
-msgid "modify x distance between objects"
-msgstr "修改物体间x距离"
-
-msgid "modify y distance between objects"
-msgstr "修改物体间y距离"
+msgid "MoveInMeasure"
+msgstr "在测量中平移"
 
 msgid "Angle"
 msgstr "角度"
@@ -1018,6 +1015,9 @@ msgstr "小圆片"
 
 msgid "Torus"
 msgstr "圆环"
+
+msgid "Rounded Rectangle"
+msgstr ""
 
 msgid "Bambu Cube"
 msgstr "Bambu方块"
@@ -2210,6 +2210,8 @@ msgid ""
 "desiccant pack is changed. it take hours to absorb the moisture, low "
 "temperatures also slow down the process."
 msgstr ""
+"当干燥剂过于潮湿时,请及时更换。以下几种情况下,指示器可能无法准确反映情况:盖子"
+"打开或干燥剂包被替换时。干燥剂需要数小时吸收潮气,低温也会延缓该过程。"
 
 msgid ""
 "Config which AMS slot should be used for a filament used in the print job"
@@ -2972,6 +2974,9 @@ msgstr "时间"
 msgid "Percent"
 msgstr "百分比"
 
+msgid "Used filament"
+msgstr "使用的耗材丝"
+
 msgid "Layer Height (mm)"
 msgstr "层高（mm）"
 
@@ -2992,9 +2997,6 @@ msgstr "体积流量速度（mm³/s）"
 
 msgid "Layer Time (s)"
 msgstr "层时间（s）"
-
-msgid "Used filament"
-msgstr "使用的耗材丝"
 
 msgid "Travel"
 msgstr "空驶"
@@ -3140,6 +3142,9 @@ msgstr "自动摆放选项"
 
 msgid "Spacing"
 msgstr "间距"
+
+msgid "0 means auto spacing."
+msgstr ""
 
 msgid "Auto rotate for arrangement"
 msgstr "自动旋转以优化自动摆放效果"
@@ -6415,29 +6420,41 @@ msgstr "工艺设置"
 msgid "Undef"
 msgstr "未定义"
 
+msgid "Discard or Use Modified Value"
+msgstr ""
+
+msgid "Save or Discard Modified Value"
+msgstr ""
+
 msgid "Unsaved Changes"
 msgstr "未保存的更改"
 
-msgid "Actions For Unsaved Changes"
-msgstr "未保存更改的操作"
+msgid "Use Modified Value of Process Preset"
+msgstr ""
 
-msgid "Preset Value"
-msgstr "预设值"
+msgid "Use Modified Value of Filament Preset"
+msgstr ""
 
-msgid "Modified Value"
-msgstr "修改值"
+msgid "Use Modified Value of Printer"
+msgstr ""
 
-msgid "Transfer Modified Value"
-msgstr "迁移修改值"
+msgid "Preset(Old)"
+msgstr ""
+
+msgid "Modified Value(New)"
+msgstr ""
+
+msgid "Save Modified Value"
+msgstr "保存修改值"
 
 msgid "Don't save"
 msgstr "不保存"
 
-msgid "Use Preset Value"
-msgstr "使用预设值"
+msgid "Discard Modified Value"
+msgstr ""
 
-msgid "Save Modified Value"
-msgstr "保存修改值"
+msgid "Use Modified Value"
+msgstr ""
 
 msgid "Click the right mouse button to display the full text."
 msgstr "单击鼠标右键显示全文。"
@@ -6495,37 +6512,23 @@ msgstr "您已更改了预设 “%1%” 的一些设置。"
 
 msgid ""
 "\n"
-"Would you like to save these changed settings(modified value)?"
+"You can save or discard the preset values you have modified."
 msgstr ""
-"\n"
-"您想保存这些更改的设置（修改后的值）吗？"
 
 msgid ""
 "\n"
-"Would you like to keep these changed settings(modified value) after "
-"switching preset?"
+"You can save or discard the preset values you have modified, or choose to "
+"continue using the values you have modified on the new preset."
 msgstr ""
-"\n"
-"您想在切换预设后保留这些更改的设置（修改后的值）吗？"
 
-msgid ""
-"You have previously modified your settings and are about to overwrite them "
-"with new ones."
-msgstr "您之前修改过您的设置，即将用新的设置覆盖它们。"
+msgid "You have previously modified your settings."
+msgstr ""
 
 msgid ""
 "\n"
-"Do you want to keep your current modified settings, or use preset settings?"
+"You can discard the preset values you have modified, or choose to continue "
+"using the modified values in the new project"
 msgstr ""
-"\n"
-"您想保留当前修改过的设置，还是使用预设的设置？"
-
-msgid ""
-"\n"
-"Do you want to save your current modified settings?"
-msgstr ""
-"\n"
-"您要保存当前修改的设置吗？"
 
 msgid "Extruders count"
 msgstr "挤出机数量"
@@ -6930,6 +6933,33 @@ msgstr "完成"
 
 msgid "resume"
 msgstr "继续"
+
+msgid "Resume Printing"
+msgstr "继续打印"
+
+msgid "Resume Printing(defects acceptable)"
+msgstr "继续打印（缺陷可接受）"
+
+msgid "Resume Printing(problem solved)"
+msgstr "继续打印（问题已解决）"
+
+msgid "Stop Printing"
+msgstr "停止打印"
+
+msgid "Filament Extruded,Continue"
+msgstr "耗材已挤出，继续"
+
+msgid "Not Extruded Yet,Retry"
+msgstr "耗材未挤出，重试"
+
+msgid "Finished,Continue"
+msgstr "已完成，继续"
+
+msgid "Load Filament "
+msgstr "进料"
+
+msgid "OK "
+msgstr "我知道了"
 
 msgid "Confirm and Update Nozzle"
 msgstr "确认并更新喷嘴"
@@ -9204,6 +9234,12 @@ msgstr "支撑/模型xy间距"
 msgid "XY separation between an object and its support"
 msgstr "模型和支撑之间XY分离距离"
 
+msgid "Support/object first layer gap"
+msgstr ""
+
+msgid "XY separation between an object and its support at the first layer."
+msgstr ""
+
 msgid "Pattern angle"
 msgstr "模式角度"
 
@@ -9809,39 +9845,8 @@ msgstr ""
 "对象的XY尺寸补偿不会生效，因为在此对象上做过涂色操作。\n"
 "XY尺寸补偿不能与涂色功能一起使用。"
 
-#, c-format, boost-format
-msgid "Support: generate toolpath at layer %d"
-msgstr "支撑：正在生成层%d的走线路径"
-
-msgid "Support: detect overhangs"
-msgstr "支撑：正在检测悬空面"
-
-msgid "Support: precalculate avoidance"
-msgstr "支持：预计算避让区域"
-
-msgid "Support: generate contact points"
-msgstr "支撑：正在生成接触点"
-
-msgid "Support: propagate branches"
-msgstr "支撑：正在生长树枝"
-
-msgid "Support: draw polygons"
-msgstr "支撑：正在生成多边形"
-
-msgid "Support: generate toolpath"
-msgstr "支撑：正在生成走线路径"
-
-#, c-format, boost-format
-msgid "Support: generate polygons at layer %d"
-msgstr "支撑：正在生成层%d的多边形"
-
-#, c-format, boost-format
-msgid "Support: fix holes at layer %d"
-msgstr "支撑：正在修补层%d的空洞"
-
-#, c-format, boost-format
-msgid "Support: propagate branches at layer %d"
-msgstr "支撑：正在生长层%d的树枝"
+msgid "Generating supports"
+msgstr ""
 
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
@@ -10320,7 +10325,7 @@ msgid "Flow Dynamics Calibration Result"
 msgstr "动态流量校准结果"
 
 msgid "New"
-msgstr ""
+msgstr "新建"
 
 msgid "No History Result"
 msgstr "无历史结果"
@@ -10337,14 +10342,14 @@ msgstr "操作"
 msgid "Edit Flow Dynamics Calibration"
 msgstr "编辑动态流量校准"
 
-msgid "New Flow Dynamics Calibration"
-msgstr ""
+msgid "New Flow Dynamic Calibration"
+msgstr "新建动态流量校准"
 
 msgid "Ok"
-msgstr ""
+msgstr "确认"
 
 msgid "The filament must be selected."
-msgstr ""
+msgstr "请选择材料"
 
 msgid "PA Calibration"
 msgstr "PA标定"
@@ -11282,89 +11287,224 @@ msgid ""
 "Error: \"%2%\""
 msgstr "主机打印机的枚举失败。消息体：\"%1%\"错误：\"%2%\""
 
-msgid "It has a small layer height, and results in almost negligible layer lines and high printing quality. It is suitable for most general printing cases."
-msgstr "0.2 mm 喷嘴的默认参数，层高小，层纹不明显，打印质量高，适合大部分常规打印场景。"
+msgid ""
+"It has a small layer height, and results in almost negligible layer lines "
+"and high printing quality. It is suitable for most general printing cases."
+msgstr ""
+"0.2 mm 喷嘴的默认参数，层高小，层纹不明显，打印质量高，适合大部分常规打印场"
+"景。"
 
-msgid "Compared with the default profile of a 0.2 mm nozzle, it has lower speeds and acceleration, and the sparse infill pattern is Gyroid. So, it results in much higher printing quality, but a much longer printing time."
-msgstr "此为高质量参数，相比于此喷嘴的默认参数，打印速度、加速度较低，稀疏填充图案为螺旋体，打印质量更高，但耗时更长。"
+msgid ""
+"Compared with the default profile of a 0.2 mm nozzle, it has lower speeds "
+"and acceleration, and the sparse infill pattern is Gyroid. So, it results in "
+"much higher printing quality, but a much longer printing time."
+msgstr ""
+"此为高质量参数，相比于此喷嘴的默认参数，打印速度、加速度较低，稀疏填充图案为"
+"螺旋体，打印质量更高，但耗时更长。"
 
-msgid "Compared with the default profile of a 0.2 mm nozzle, it has a slightly bigger layer height, and results in almost negligible layer lines, and slightly shorter printing time."
+msgid ""
+"Compared with the default profile of a 0.2 mm nozzle, it has a slightly "
+"bigger layer height, and results in almost negligible layer lines, and "
+"slightly shorter printing time."
 msgstr "相比于此喷嘴的默认参数，层高较大，层纹不明显，打印耗时稍短。"
 
-msgid "Compared with the default profile of a 0.2 mm nozzle, it has a bigger layer height, and results in slightly visible layer lines, but shorter printing time."
+msgid ""
+"Compared with the default profile of a 0.2 mm nozzle, it has a bigger layer "
+"height, and results in slightly visible layer lines, but shorter printing "
+"time."
 msgstr "相比于此喷嘴的默认参数，层高较大，层纹稍显现，打印耗时较短。"
 
-msgid "Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer height, and results in almost invisible layer lines and higher printing quality, but shorter printing time."
-msgstr "相比于此喷嘴的默认参数，层高较小，几乎不显层纹，打印质量较高，但打印耗时较长。"
+msgid ""
+"Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
+"height, and results in almost invisible layer lines and higher printing "
+"quality, but shorter printing time."
+msgstr ""
+"相比于此喷嘴的默认参数，层高较小，几乎不显层纹，打印质量较高，但打印耗时较"
+"长。"
 
-msgid "Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer lines, lower speeds and acceleration, and the sparse infill pattern is Gyroid. So, it results in almost invisible layer lines and much higher printing quality, but much longer printing time."
-msgstr "此为高质量参数，相比于此喷嘴的默认参数，层高较小，打印速度、加速度较低，稀疏填充图案为螺旋体，几乎不显层纹，打印质量非常高，但打印耗时很长。"
+msgid ""
+"Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
+"lines, lower speeds and acceleration, and the sparse infill pattern is "
+"Gyroid. So, it results in almost invisible layer lines and much higher "
+"printing quality, but much longer printing time."
+msgstr ""
+"此为高质量参数，相比于此喷嘴的默认参数，层高较小，打印速度、加速度较低，稀疏"
+"填充图案为螺旋体，几乎不显层纹，打印质量非常高，但打印耗时很长。"
 
-msgid "Compared with the default profile of 0.2 mm nozzle, it has a smaller layer height, and results in minimal layer lines and higher printing quality, but shorter printing time."
-msgstr "相比于此喷嘴的默认参数，层高较小，几乎不显层纹，打印质量较高，但打印耗时较长。"
+msgid ""
+"Compared with the default profile of 0.2 mm nozzle, it has a smaller layer "
+"height, and results in minimal layer lines and higher printing quality, but "
+"shorter printing time."
+msgstr ""
+"相比于此喷嘴的默认参数，层高较小，几乎不显层纹，打印质量较高，但打印耗时较"
+"长。"
 
-msgid "Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer lines, lower speeds and acceleration, and the sparse infill pattern is Gyroid. So, it results in minimal layer lines and much higher printing quality, but much longer printing time."
-msgstr "此为高质量参数，相比于此喷嘴的默认参数，层高较小，打印速度、加速度较低，稀疏填充图案为螺旋体，几乎不显层纹，打印质量非常高，但打印耗时很长。"
+msgid ""
+"Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer "
+"lines, lower speeds and acceleration, and the sparse infill pattern is "
+"Gyroid. So, it results in minimal layer lines and much higher printing "
+"quality, but much longer printing time."
+msgstr ""
+"此为高质量参数，相比于此喷嘴的默认参数，层高较小，打印速度、加速度较低，稀疏"
+"填充图案为螺旋体，几乎不显层纹，打印质量非常高，但打印耗时很长。"
 
-msgid "It has a general layer height, and results in general layer lines and printing quality. It is suitable for most general printing cases."
-msgstr "0.4 mm 喷嘴的默认参数，层高常规，层纹一般，打印质量常规，适合大部分常规打印场景。"
+msgid ""
+"It has a general layer height, and results in general layer lines and "
+"printing quality. It is suitable for most general printing cases."
+msgstr ""
+"0.4 mm 喷嘴的默认参数，层高常规，层纹一般，打印质量常规，适合大部分常规打印场"
+"景。"
 
-msgid "Compared with the default profile of a 0.4 mm nozzle, it has more wall loops and a higher sparse infill density. So, it results in higher strength of the prints, but more filament consumption and longer printing time."
-msgstr "此为强度参数，相比于此喷嘴的默认参数，墙层数较大，稀疏填充密度较高，打印件的强度更高，但耗材用量更大，耗时更长。"
+msgid ""
+"Compared with the default profile of a 0.4 mm nozzle, it has more wall loops "
+"and a higher sparse infill density. So, it results in higher strength of the "
+"prints, but more filament consumption and longer printing time."
+msgstr ""
+"此为强度参数，相比于此喷嘴的默认参数，墙层数较大，稀疏填充密度较高，打印件的"
+"强度更高，但耗材用量更大，耗时更长。"
 
-msgid "Compared with the default profile of a 0.4 mm nozzle, it has a bigger layer height, and results in more apparent layer lines and lower printing quality, but slightly shorter printing time."
-msgstr "相比于此喷嘴的默认参数，层高较大，层纹较明显，打印质量较低，部分模型的打印耗时稍短。"
+msgid ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a bigger layer "
+"height, and results in more apparent layer lines and lower printing quality, "
+"but slightly shorter printing time."
+msgstr ""
+"相比于此喷嘴的默认参数，层高较大，层纹较明显，打印质量较低，部分模型的打印耗"
+"时稍短。"
 
-msgid "Compared with the default profile of a 0.4 mm nozzle, it has a bigger layer height, and results in more apparent layer lines and lower printing quality, but shorter printing time."
-msgstr "相比于此喷嘴的默认参数，层高较大，层纹较明显，打印质量较低，部分模型的打印耗时较短。"
+msgid ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a bigger layer "
+"height, and results in more apparent layer lines and lower printing quality, "
+"but shorter printing time."
+msgstr ""
+"相比于此喷嘴的默认参数，层高较大，层纹较明显，打印质量较低，部分模型的打印耗"
+"时较短。"
 
-msgid "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer height, and results in less apparent layer lines and higher printing quality, but longer printing time."
-msgstr "相比于此喷嘴的默认参数，层高较小，层纹较不明显，打印质量较高，但打印耗时较长。"
+msgid ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
+"height, and results in less apparent layer lines and higher printing "
+"quality, but longer printing time."
+msgstr ""
+"相比于此喷嘴的默认参数，层高较小，层纹较不明显，打印质量较高，但打印耗时较"
+"长。"
 
-msgid "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer height, lower speeds and acceleration, and the sparse infill pattern is Gyroid. So, it results in less apparent layer lines and much higher printing quality, but much longer printing time."
-msgstr "此为高质量参数，相比于此喷嘴的默认参数，层高较小，打印速度、加速度较低，稀疏填充图案为螺旋体，层纹较不明显，打印质量较高，但打印耗时很长。"
+msgid ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
+"height, lower speeds and acceleration, and the sparse infill pattern is "
+"Gyroid. So, it results in less apparent layer lines and much higher printing "
+"quality, but much longer printing time."
+msgstr ""
+"此为高质量参数，相比于此喷嘴的默认参数，层高较小，打印速度、加速度较低，稀疏"
+"填充图案为螺旋体，层纹较不明显，打印质量较高，但打印耗时很长。"
 
-msgid "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer height, and results in almost negligible layer lines and higher printing quality, but longer printing time."
-msgstr "相比于此喷嘴的默认参数，层高较小，层纹更不明显，打印质量较高，但打印耗时较长。"
+msgid ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
+"height, and results in almost negligible layer lines and higher printing "
+"quality, but longer printing time."
+msgstr ""
+"相比于此喷嘴的默认参数，层高较小，层纹更不明显，打印质量较高，但打印耗时较"
+"长。"
 
-msgid "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer height, lower speeds and acceleration, and the sparse infill pattern is Gyroid. So, it results in almost negligible layer lines and much higher printing quality, but much longer printing time."
-msgstr "此为高质量参数，相比于此喷嘴的默认参数，层高较小，打印速度、加速度较低，稀疏填充图案为螺旋体，层纹更不明显，打印质量很高，但打印耗时很长。"
+msgid ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
+"height, lower speeds and acceleration, and the sparse infill pattern is "
+"Gyroid. So, it results in almost negligible layer lines and much higher "
+"printing quality, but much longer printing time."
+msgstr ""
+"此为高质量参数，相比于此喷嘴的默认参数，层高较小，打印速度、加速度较低，稀疏"
+"填充图案为螺旋体，层纹更不明显，打印质量很高，但打印耗时很长。"
 
-msgid "Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer height, and results in almost negligible layer lines and longer printing time."
-msgstr "相比于此喷嘴的默认参数，层高较小，层纹更不明显，打印质量较高，但打印耗时较长。"
+msgid ""
+"Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer "
+"height, and results in almost negligible layer lines and longer printing "
+"time."
+msgstr ""
+"相比于此喷嘴的默认参数，层高较小，层纹更不明显，打印质量较高，但打印耗时较"
+"长。"
 
-msgid "It has a big layer height, and results in apparent layer lines and ordinary printing quality and printing time."
-msgstr "0.6 mm 喷嘴的默认参数，层高较大，层纹明显，打印质量一般，打印耗时一般。"
+msgid ""
+"It has a big layer height, and results in apparent layer lines and ordinary "
+"printing quality and printing time."
+msgstr ""
+"0.6 mm 喷嘴的默认参数，层高较大，层纹明显，打印质量一般，打印耗时一般。"
 
-msgid "Compared with the default profile of a 0.6 mm nozzle, it has more wall loops and a higher sparse infill density. So, it results in higher strength of the prints, but more filament consumption and longer printing time."
-msgstr "此为强度参数，相比于此喷嘴的默认参数，墙层数较大，稀疏填充密度较高，打印件的强度更高，但耗材用量更大，耗时更长。"
+msgid ""
+"Compared with the default profile of a 0.6 mm nozzle, it has more wall loops "
+"and a higher sparse infill density. So, it results in higher strength of the "
+"prints, but more filament consumption and longer printing time."
+msgstr ""
+"此为强度参数，相比于此喷嘴的默认参数，墙层数较大，稀疏填充密度较高，打印件的"
+"强度更高，但耗材用量更大，耗时更长。"
 
-msgid "Compared with the default profile of a 0.6 mm nozzle, it has a bigger layer height, and results in more apparent layer lines and lower printing quality, but shorter printing time in some printing cases."
-msgstr "相比于此喷嘴的默认参数，层高较大，层纹较明显，打印质量较低，部分模型的打印耗时较短。"
+msgid ""
+"Compared with the default profile of a 0.6 mm nozzle, it has a bigger layer "
+"height, and results in more apparent layer lines and lower printing quality, "
+"but shorter printing time in some printing cases."
+msgstr ""
+"相比于此喷嘴的默认参数，层高较大，层纹较明显，打印质量较低，部分模型的打印耗"
+"时较短。"
 
-msgid "Compared with the default profile of a 0.6 mm nozzle, it has a bigger layer height, and results in much more apparent layer lines and much lower printing quality, but shorter printing time in some printing cases."
-msgstr "相比于此喷嘴的默认参数，层高较大，层纹很明显，打印质量较低，部分模型的打印耗时较短。"
+msgid ""
+"Compared with the default profile of a 0.6 mm nozzle, it has a bigger layer "
+"height, and results in much more apparent layer lines and much lower "
+"printing quality, but shorter printing time in some printing cases."
+msgstr ""
+"相比于此喷嘴的默认参数，层高较大，层纹很明显，打印质量较低，部分模型的打印耗"
+"时较短。"
 
-msgid "Compared with the default profile of a 0.6 mm nozzle, it has a smaller layer height, and results in less apparent layer lines and slight higher printing quality, but longer printing time."
-msgstr "相比于此喷嘴的默认参数，层高较小，层纹较不明显，打印质量稍微较高，部分模型的打印耗时较长。"
+msgid ""
+"Compared with the default profile of a 0.6 mm nozzle, it has a smaller layer "
+"height, and results in less apparent layer lines and slight higher printing "
+"quality, but longer printing time."
+msgstr ""
+"相比于此喷嘴的默认参数，层高较小，层纹较不明显，打印质量稍微较高，部分模型的"
+"打印耗时较长。"
 
-msgid "Compared with the default profile of a 0.6 mm nozzle, it has a smaller layer height, and results in less apparent layer lines and higher printing quality, but longer printing time."
-msgstr "相比于此喷嘴的默认参数，层高较小，层纹较不明显，打印质量较高，部分模型的打印耗时较长。"
+msgid ""
+"Compared with the default profile of a 0.6 mm nozzle, it has a smaller layer "
+"height, and results in less apparent layer lines and higher printing "
+"quality, but longer printing time."
+msgstr ""
+"相比于此喷嘴的默认参数，层高较小，层纹较不明显，打印质量较高，部分模型的打印"
+"耗时较长。"
 
-msgid "It has a very big layer height, and results in very apparent layer lines, low printing quality and general printing time."
-msgstr "0.8 mm 喷嘴的默认参数，层高较大，层纹很明显，打印质量低，打印耗时一般。"
+msgid ""
+"It has a very big layer height, and results in very apparent layer lines, "
+"low printing quality and general printing time."
+msgstr ""
+"0.8 mm 喷嘴的默认参数，层高较大，层纹很明显，打印质量低，打印耗时一般。"
 
-msgid "Compared with the default profile of a 0.8 mm nozzle, it has a bigger layer height, and results in very apparent layer lines and much lower printing quality, but shorter printing time in some printing cases."
-msgstr "相比于此喷嘴的默认参数，层高更大，层纹非常明显，打印质量较低，部分模型的打印耗时较短。"
+msgid ""
+"Compared with the default profile of a 0.8 mm nozzle, it has a bigger layer "
+"height, and results in very apparent layer lines and much lower printing "
+"quality, but shorter printing time in some printing cases."
+msgstr ""
+"相比于此喷嘴的默认参数，层高更大，层纹非常明显，打印质量较低，部分模型的打印"
+"耗时较短。"
 
-msgid "Compared with the default profile of a 0.8 mm nozzle, it has a much bigger layer height, and results in extremely apparent layer lines and much lower printing quality, but much shorter printing time in some printing cases."
-msgstr "相比于此喷嘴的默认参数，层高较大，层纹非常明显，打印质量较低，部分模型的打印耗时较短。"
+msgid ""
+"Compared with the default profile of a 0.8 mm nozzle, it has a much bigger "
+"layer height, and results in extremely apparent layer lines and much lower "
+"printing quality, but much shorter printing time in some printing cases."
+msgstr ""
+"相比于此喷嘴的默认参数，层高较大，层纹非常明显，打印质量较低，部分模型的打印"
+"耗时较短。"
 
-msgid "Compared with the default profile of a 0.8 mm nozzle, it has a slightly smaller layer height, and results in slightly less but still apparent layer lines and slightly higher printing quality, but longer printing time in some printing cases."
-msgstr "相比于此喷嘴的默认参数，层高较小，层纹较不明显，打印质量稍微较高，部分模型的打印耗时较长。"
+msgid ""
+"Compared with the default profile of a 0.8 mm nozzle, it has a slightly "
+"smaller layer height, and results in slightly less but still apparent layer "
+"lines and slightly higher printing quality, but longer printing time in some "
+"printing cases."
+msgstr ""
+"相比于此喷嘴的默认参数，层高较小，层纹较不明显，打印质量稍微较高，部分模型的"
+"打印耗时较长。"
 
-msgid "Compared with the default profile of a 0.8 mm nozzle, it has a smaller layer height, and results in less but still apparent layer lines and slightly higher printing quality, but longer printing time in some printing cases."
-msgstr "相比于此喷嘴的默认参数，层高较小，层纹较不明显，打印质量较高，部分模型的打印耗时较长。"
+msgid ""
+"Compared with the default profile of a 0.8 mm nozzle, it has a smaller layer "
+"height, and results in less but still apparent layer lines and slightly "
+"higher printing quality, but longer printing time in some printing cases."
+msgstr ""
+"相比于此喷嘴的默认参数，层高较小，层纹较不明显，打印质量较高，部分模型的打印"
+"耗时较长。"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -11633,6 +11773,102 @@ msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
 
+#~ msgid "Translate (relative) [World]"
+#~ msgstr "平移（相对）[世界]"
+
+#~ msgid "Adsorbed onto the surface"
+#~ msgstr "吸附到表面"
+
+#~ msgid "modify x distance between objects"
+#~ msgstr "修改物体间x距离"
+
+#~ msgid "modify y distance between objects"
+#~ msgstr "修改物体间y距离"
+
+#~ msgid "Actions For Unsaved Changes"
+#~ msgstr "未保存更改的操作"
+
+#~ msgid "Preset Value"
+#~ msgstr "预设值"
+
+#~ msgid "Modified Value"
+#~ msgstr "修改值"
+
+#~ msgid "Transfer Modified Value"
+#~ msgstr "迁移修改值"
+
+#~ msgid "Use Preset Value"
+#~ msgstr "使用预设值"
+
+#~ msgid ""
+#~ "\n"
+#~ "Would you like to save these changed settings(modified value)?"
+#~ msgstr ""
+#~ "\n"
+#~ "您想保存这些更改的设置（修改后的值）吗？"
+
+#~ msgid ""
+#~ "\n"
+#~ "Would you like to keep these changed settings(modified value) after "
+#~ "switching preset?"
+#~ msgstr ""
+#~ "\n"
+#~ "您想在切换预设后保留这些更改的设置（修改后的值）吗？"
+
+#~ msgid ""
+#~ "You have previously modified your settings and are about to overwrite "
+#~ "them with new ones."
+#~ msgstr "您之前修改过您的设置，即将用新的设置覆盖它们。"
+
+#~ msgid ""
+#~ "\n"
+#~ "Do you want to keep your current modified settings, or use preset "
+#~ "settings?"
+#~ msgstr ""
+#~ "\n"
+#~ "您想保留当前修改过的设置，还是使用预设的设置？"
+
+#~ msgid ""
+#~ "\n"
+#~ "Do you want to save your current modified settings?"
+#~ msgstr ""
+#~ "\n"
+#~ "您要保存当前修改的设置吗？"
+
+#, c-format, boost-format
+#~ msgid "Support: generate toolpath at layer %d"
+#~ msgstr "支撑：正在生成层%d的走线路径"
+
+#~ msgid "Support: detect overhangs"
+#~ msgstr "支撑：正在检测悬空面"
+
+#~ msgid "Support: precalculate avoidance"
+#~ msgstr "支持：预计算避让区域"
+
+#~ msgid "Support: generate contact points"
+#~ msgstr "支撑：正在生成接触点"
+
+#~ msgid "Support: propagate branches"
+#~ msgstr "支撑：正在生长树枝"
+
+#~ msgid "Support: draw polygons"
+#~ msgstr "支撑：正在生成多边形"
+
+#~ msgid "Support: generate toolpath"
+#~ msgstr "支撑：正在生成走线路径"
+
+#, c-format, boost-format
+#~ msgid "Support: generate polygons at layer %d"
+#~ msgstr "支撑：正在生成层%d的多边形"
+
+#, c-format, boost-format
+#~ msgid "Support: fix holes at layer %d"
+#~ msgstr "支撑：正在修补层%d的空洞"
+
+#, c-format, boost-format
+#~ msgid "Support: propagate branches at layer %d"
+#~ msgstr "支撑：正在生长层%d的树枝"
+
 #~ msgid "Switch table page"
 #~ msgstr "切换标签页"
 
@@ -11643,9 +11879,6 @@ msgstr ""
 
 #~ msgid "Upload Pictrues"
 #~ msgstr "上传图片"
-
-#~ msgid "Volume Operations"
-#~ msgstr "零件操作"
 
 #, boost-format
 #~ msgid "Succeed to export G-code to %1%"

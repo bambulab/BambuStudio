@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-05 16:04+0800\n"
+"POT-Creation-Date: 2024-03-20 14:36+0800\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -186,6 +186,9 @@ msgstr "Getekend met filament %1%"
 msgid "Move"
 msgstr "Verplaatsen"
 
+msgid "Please select at least one object."
+msgstr ""
+
 msgid "Rotate"
 msgstr "Roteren"
 
@@ -228,8 +231,8 @@ msgstr "Objectbewerkingen"
 msgid "Rotate (relative)"
 msgstr ""
 
-msgid "Translate (relative) [World]"
-msgstr ""
+msgid "Volume Operations"
+msgstr "Volumebewerkingen"
 
 msgid "Translate"
 msgstr "Vertalen"
@@ -621,13 +624,7 @@ msgstr ""
 msgid "Copy to clipboard"
 msgstr "Kopieer naar klembord"
 
-msgid "Adsorbed onto the surface"
-msgstr ""
-
-msgid "modify x distance between objects"
-msgstr ""
-
-msgid "modify y distance between objects"
+msgid "MoveInMeasure"
 msgstr ""
 
 msgid "Angle"
@@ -1026,6 +1023,9 @@ msgstr "Disc"
 
 msgid "Torus"
 msgstr "Torus"
+
+msgid "Rounded Rectangle"
+msgstr ""
 
 msgid "Bambu Cube"
 msgstr "Bambu Cube"
@@ -3083,6 +3083,9 @@ msgstr "Tijd"
 msgid "Percent"
 msgstr "Procent"
 
+msgid "Used filament"
+msgstr "Verbruikt filament"
+
 msgid "Layer Height (mm)"
 msgstr "Laaghoogte (mm)"
 
@@ -3103,9 +3106,6 @@ msgstr "Volumestroom (mm³/s)"
 
 msgid "Layer Time (s)"
 msgstr "Laagtijd(en)"
-
-msgid "Used filament"
-msgstr "Verbruikt filament"
 
 msgid "Travel"
 msgstr "Verplaatsen"
@@ -3250,6 +3250,9 @@ msgstr "Rangschik opties"
 
 msgid "Spacing"
 msgstr "Uitlijning"
+
+msgid "0 means auto spacing."
+msgstr ""
 
 msgid "Auto rotate for arrangement"
 msgstr "Automatisch roteren voor rankschikking"
@@ -6701,28 +6704,40 @@ msgstr "Procesinstellingen"
 msgid "Undef"
 msgstr "Niet gedefinieerd"
 
+msgid "Discard or Use Modified Value"
+msgstr ""
+
+msgid "Save or Discard Modified Value"
+msgstr ""
+
 msgid "Unsaved Changes"
 msgstr "niet-opgeslagen wijzigingen"
 
-msgid "Actions For Unsaved Changes"
+msgid "Use Modified Value of Process Preset"
 msgstr ""
 
-msgid "Preset Value"
+msgid "Use Modified Value of Filament Preset"
 msgstr ""
 
-msgid "Modified Value"
+msgid "Use Modified Value of Printer"
 msgstr ""
 
-msgid "Transfer Modified Value"
+msgid "Preset(Old)"
+msgstr ""
+
+msgid "Modified Value(New)"
+msgstr ""
+
+msgid "Save Modified Value"
 msgstr ""
 
 msgid "Don't save"
 msgstr "Niet opslaan"
 
-msgid "Use Preset Value"
+msgid "Discard Modified Value"
 msgstr ""
 
-msgid "Save Modified Value"
+msgid "Use Modified Value"
 msgstr ""
 
 msgid "Click the right mouse button to display the full text."
@@ -6789,28 +6804,22 @@ msgstr ""
 
 msgid ""
 "\n"
-"Would you like to save these changed settings(modified value)?"
+"You can save or discard the preset values you have modified."
 msgstr ""
 
 msgid ""
 "\n"
-"Would you like to keep these changed settings(modified value) after "
-"switching preset?"
+"You can save or discard the preset values you have modified, or choose to "
+"continue using the values you have modified on the new preset."
 msgstr ""
 
-msgid ""
-"You have previously modified your settings and are about to overwrite them "
-"with new ones."
-msgstr ""
-
-msgid ""
-"\n"
-"Do you want to keep your current modified settings, or use preset settings?"
+msgid "You have previously modified your settings."
 msgstr ""
 
 msgid ""
 "\n"
-"Do you want to save your current modified settings?"
+"You can discard the preset values you have modified, or choose to continue "
+"using the modified values in the new project"
 msgstr ""
 
 msgid "Extruders count"
@@ -7230,6 +7239,33 @@ msgid "Done"
 msgstr "Gereed"
 
 msgid "resume"
+msgstr ""
+
+msgid "Resume Printing"
+msgstr ""
+
+msgid "Resume Printing(defects acceptable)"
+msgstr ""
+
+msgid "Resume Printing(problem solved)"
+msgstr ""
+
+msgid "Stop Printing"
+msgstr ""
+
+msgid "Filament Extruded,Continue"
+msgstr ""
+
+msgid "Not Extruded Yet,Retry"
+msgstr ""
+
+msgid "Finished,Continue"
+msgstr ""
+
+msgid "Load Filament "
+msgstr ""
+
+msgid "OK "
 msgstr ""
 
 msgid "Confirm and Update Nozzle"
@@ -9744,6 +9780,12 @@ msgstr "Support/object XY afstand"
 msgid "XY separation between an object and its support"
 msgstr "Dit regelt de XY-afstand tussen een object en zijn support."
 
+msgid "Support/object first layer gap"
+msgstr ""
+
+msgid "XY separation between an object and its support at the first layer."
+msgstr ""
+
 msgid "Pattern angle"
 msgstr "Patroon hoek"
 
@@ -10430,39 +10472,8 @@ msgstr ""
 "kleur is geverfd.\n"
 "XY-formaatcompensatie kan niet worden gecombineerd met verven in kleur."
 
-#, c-format, boost-format
-msgid "Support: generate toolpath at layer %d"
-msgstr "Support: toolpad genereren op laag %d"
-
-msgid "Support: detect overhangs"
-msgstr "Support: detecteren van overhangende wanden"
-
-msgid "Support: precalculate avoidance"
-msgstr "Support: precalculate avoidance"
-
-msgid "Support: generate contact points"
-msgstr "Support: contactpunten genereren"
-
-msgid "Support: propagate branches"
-msgstr "Support: vertakkingen verspreiden"
-
-msgid "Support: draw polygons"
-msgstr "Support: polygonen tekenen"
-
-msgid "Support: generate toolpath"
-msgstr "Support: toolpath genereren"
-
-#, c-format, boost-format
-msgid "Support: generate polygons at layer %d"
-msgstr "Support: genereer polygonen op laag %d"
-
-#, c-format, boost-format
-msgid "Support: fix holes at layer %d"
-msgstr "Support: repareer gaten op laag %d"
-
-#, c-format, boost-format
-msgid "Support: propagate branches at layer %d"
-msgstr "Support: verspreid takken op laag %d"
+msgid "Generating supports"
+msgstr ""
 
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
@@ -11004,7 +11015,7 @@ msgstr "Actie"
 msgid "Edit Flow Dynamics Calibration"
 msgstr "Flow Dynamics-kalibratie bewerken"
 
-msgid "New Flow Dynamics Calibration"
+msgid "New Flow Dynamic Calibration"
 msgstr ""
 
 msgid "Ok"
@@ -12439,11 +12450,42 @@ msgstr ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
 
+#, c-format, boost-format
+#~ msgid "Support: generate toolpath at layer %d"
+#~ msgstr "Support: toolpad genereren op laag %d"
+
+#~ msgid "Support: detect overhangs"
+#~ msgstr "Support: detecteren van overhangende wanden"
+
+#~ msgid "Support: precalculate avoidance"
+#~ msgstr "Support: precalculate avoidance"
+
+#~ msgid "Support: generate contact points"
+#~ msgstr "Support: contactpunten genereren"
+
+#~ msgid "Support: propagate branches"
+#~ msgstr "Support: vertakkingen verspreiden"
+
+#~ msgid "Support: draw polygons"
+#~ msgstr "Support: polygonen tekenen"
+
+#~ msgid "Support: generate toolpath"
+#~ msgstr "Support: toolpath genereren"
+
+#, c-format, boost-format
+#~ msgid "Support: generate polygons at layer %d"
+#~ msgstr "Support: genereer polygonen op laag %d"
+
+#, c-format, boost-format
+#~ msgid "Support: fix holes at layer %d"
+#~ msgstr "Support: repareer gaten op laag %d"
+
+#, c-format, boost-format
+#~ msgid "Support: propagate branches at layer %d"
+#~ msgstr "Support: verspreid takken op laag %d"
+
 #~ msgid "Switch table page"
 #~ msgstr "Switch table page"
-
-#~ msgid "Volume Operations"
-#~ msgstr "Volumebewerkingen"
 
 #, boost-format
 #~ msgid "Succeed to export G-code to %1%"

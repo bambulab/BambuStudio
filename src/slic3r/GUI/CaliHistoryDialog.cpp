@@ -567,7 +567,7 @@ wxArrayString NewCalibrationHistoryDialog::get_all_filaments(const MachineObject
 }
 
 NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const std::vector<PACalibResult> history_results)
-    : DPIDialog(parent, wxID_ANY, _L("New Flow Dynamics Calibration"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
+    : DPIDialog(parent, wxID_ANY, _L("New Flow Dynamic Calibration"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
     , m_history_results(history_results)
 {
     Slic3r::DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
