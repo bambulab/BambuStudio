@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-05 16:04+0800\n"
+"POT-Creation-Date: 2024-03-20 14:36+0800\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -186,6 +186,9 @@ msgstr "Pitturato utilizzando: Filamento %1%"
 msgid "Move"
 msgstr "Sposta"
 
+msgid "Please select at least one object."
+msgstr ""
+
 msgid "Rotate"
 msgstr "Ruota"
 
@@ -228,8 +231,8 @@ msgstr "Operazioni sugli oggetti"
 msgid "Rotate (relative)"
 msgstr ""
 
-msgid "Translate (relative) [World]"
-msgstr ""
+msgid "Volume Operations"
+msgstr "Operazioni volume"
 
 msgid "Translate"
 msgstr "Traduci"
@@ -621,13 +624,7 @@ msgstr ""
 msgid "Copy to clipboard"
 msgstr "Copia negli appunti"
 
-msgid "Adsorbed onto the surface"
-msgstr ""
-
-msgid "modify x distance between objects"
-msgstr ""
-
-msgid "modify y distance between objects"
+msgid "MoveInMeasure"
 msgstr ""
 
 msgid "Angle"
@@ -1027,6 +1024,9 @@ msgstr "Disc"
 
 msgid "Torus"
 msgstr "Torus"
+
+msgid "Rounded Rectangle"
+msgstr ""
 
 msgid "Bambu Cube"
 msgstr "Bambu Cube"
@@ -3069,6 +3069,9 @@ msgstr "Tempo"
 msgid "Percent"
 msgstr "Percentuale"
 
+msgid "Used filament"
+msgstr "Filamento usato"
+
 msgid "Layer Height (mm)"
 msgstr "Altezza layer (mm)"
 
@@ -3089,9 +3092,6 @@ msgstr "Flusso volumetrico (mm³/s)"
 
 msgid "Layer Time (s)"
 msgstr "Layer Time (s)"
-
-msgid "Used filament"
-msgstr "Filamento usato"
 
 msgid "Travel"
 msgstr "Spostamento"
@@ -3236,6 +3236,9 @@ msgstr "Opzioni di disposizione"
 
 msgid "Spacing"
 msgstr "Spaziatura "
+
+msgid "0 means auto spacing."
+msgstr ""
 
 msgid "Auto rotate for arrangement"
 msgstr "Ruota automaticamente per disporre"
@@ -6656,28 +6659,40 @@ msgstr "Impostazioni processo"
 msgid "Undef"
 msgstr "Indefinito"
 
+msgid "Discard or Use Modified Value"
+msgstr ""
+
+msgid "Save or Discard Modified Value"
+msgstr ""
+
 msgid "Unsaved Changes"
 msgstr "Modifiche non salvate"
 
-msgid "Actions For Unsaved Changes"
+msgid "Use Modified Value of Process Preset"
 msgstr ""
 
-msgid "Preset Value"
+msgid "Use Modified Value of Filament Preset"
 msgstr ""
 
-msgid "Modified Value"
+msgid "Use Modified Value of Printer"
 msgstr ""
 
-msgid "Transfer Modified Value"
+msgid "Preset(Old)"
+msgstr ""
+
+msgid "Modified Value(New)"
+msgstr ""
+
+msgid "Save Modified Value"
 msgstr ""
 
 msgid "Don't save"
 msgstr "Non salvare"
 
-msgid "Use Preset Value"
+msgid "Discard Modified Value"
 msgstr ""
 
-msgid "Save Modified Value"
+msgid "Use Modified Value"
 msgstr ""
 
 msgid "Click the right mouse button to display the full text."
@@ -6741,28 +6756,22 @@ msgstr ""
 
 msgid ""
 "\n"
-"Would you like to save these changed settings(modified value)?"
+"You can save or discard the preset values you have modified."
 msgstr ""
 
 msgid ""
 "\n"
-"Would you like to keep these changed settings(modified value) after "
-"switching preset?"
+"You can save or discard the preset values you have modified, or choose to "
+"continue using the values you have modified on the new preset."
 msgstr ""
 
-msgid ""
-"You have previously modified your settings and are about to overwrite them "
-"with new ones."
-msgstr ""
-
-msgid ""
-"\n"
-"Do you want to keep your current modified settings, or use preset settings?"
+msgid "You have previously modified your settings."
 msgstr ""
 
 msgid ""
 "\n"
-"Do you want to save your current modified settings?"
+"You can discard the preset values you have modified, or choose to continue "
+"using the modified values in the new project"
 msgstr ""
 
 msgid "Extruders count"
@@ -7181,6 +7190,33 @@ msgid "Done"
 msgstr "Fine"
 
 msgid "resume"
+msgstr ""
+
+msgid "Resume Printing"
+msgstr ""
+
+msgid "Resume Printing(defects acceptable)"
+msgstr ""
+
+msgid "Resume Printing(problem solved)"
+msgstr ""
+
+msgid "Stop Printing"
+msgstr ""
+
+msgid "Filament Extruded,Continue"
+msgstr ""
+
+msgid "Not Extruded Yet,Retry"
+msgstr ""
+
+msgid "Finished,Continue"
+msgstr ""
+
+msgid "Load Filament "
+msgstr ""
+
+msgid "OK "
 msgstr ""
 
 msgid "Confirm and Update Nozzle"
@@ -9691,6 +9727,12 @@ msgstr "Distanza xy supporto/oggetto"
 msgid "XY separation between an object and its support"
 msgstr "Separazione XY tra un oggetto e il suo supporto"
 
+msgid "Support/object first layer gap"
+msgstr ""
+
+msgid "XY separation between an object and its support at the first layer."
+msgstr ""
+
 msgid "Pattern angle"
 msgstr "Angolo trama"
 
@@ -10375,39 +10417,8 @@ msgstr ""
 "La compensazione delle dimensioni XY non può essere combinata con la "
 "colorazione."
 
-#, c-format, boost-format
-msgid "Support: generate toolpath at layer %d"
-msgstr "Supporto: generazione percorso utensile al layer %d"
-
-msgid "Support: detect overhangs"
-msgstr "Supporto: rilevamento sporgenze"
-
-msgid "Support: precalculate avoidance"
-msgstr "Support: precalculate avoidance"
-
-msgid "Support: generate contact points"
-msgstr "Supporto: generazione punti di contatto"
-
-msgid "Support: propagate branches"
-msgstr "Supporto: propagazione rami"
-
-msgid "Support: draw polygons"
-msgstr "Supporto: disegno poligoni"
-
-msgid "Support: generate toolpath"
-msgstr "Supporto: generazione percorso utensile"
-
-#, c-format, boost-format
-msgid "Support: generate polygons at layer %d"
-msgstr "Supporto: generazione poligoni al layer %d"
-
-#, c-format, boost-format
-msgid "Support: fix holes at layer %d"
-msgstr "Supporto: correzione dei buchi nel layer %d"
-
-#, c-format, boost-format
-msgid "Support: propagate branches at layer %d"
-msgstr "Supporto: propagazione rami al layer %d"
+msgid "Generating supports"
+msgstr ""
 
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
@@ -10950,7 +10961,7 @@ msgstr "Azione"
 msgid "Edit Flow Dynamics Calibration"
 msgstr "Modifica la calibrazione dinamica del flusso"
 
-msgid "New Flow Dynamics Calibration"
+msgid "New Flow Dynamic Calibration"
 msgstr ""
 
 msgid "Ok"
@@ -12392,11 +12403,42 @@ msgstr ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
 
+#, c-format, boost-format
+#~ msgid "Support: generate toolpath at layer %d"
+#~ msgstr "Supporto: generazione percorso utensile al layer %d"
+
+#~ msgid "Support: detect overhangs"
+#~ msgstr "Supporto: rilevamento sporgenze"
+
+#~ msgid "Support: precalculate avoidance"
+#~ msgstr "Support: precalculate avoidance"
+
+#~ msgid "Support: generate contact points"
+#~ msgstr "Supporto: generazione punti di contatto"
+
+#~ msgid "Support: propagate branches"
+#~ msgstr "Supporto: propagazione rami"
+
+#~ msgid "Support: draw polygons"
+#~ msgstr "Supporto: disegno poligoni"
+
+#~ msgid "Support: generate toolpath"
+#~ msgstr "Supporto: generazione percorso utensile"
+
+#, c-format, boost-format
+#~ msgid "Support: generate polygons at layer %d"
+#~ msgstr "Supporto: generazione poligoni al layer %d"
+
+#, c-format, boost-format
+#~ msgid "Support: fix holes at layer %d"
+#~ msgstr "Supporto: correzione dei buchi nel layer %d"
+
+#, c-format, boost-format
+#~ msgid "Support: propagate branches at layer %d"
+#~ msgstr "Supporto: propagazione rami al layer %d"
+
 #~ msgid "Switch table page"
 #~ msgstr "Switch table page"
-
-#~ msgid "Volume Operations"
-#~ msgstr "Operazioni volume"
 
 #, boost-format
 #~ msgid "Succeed to export G-code to %1%"
