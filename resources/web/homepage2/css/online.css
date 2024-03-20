@@ -78,6 +78,7 @@
 	border-radius: 8px;
 	width: 100%;
 	aspect-ratio: 4/3;
+    object-fit: cover;
 }
 
 .HotModel_Designer_Info
