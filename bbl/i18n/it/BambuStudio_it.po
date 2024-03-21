@@ -10300,10 +10300,10 @@ msgid "Max Volumetric Speed"
 msgstr ""
 
 msgid "Please enter the name you want to save to printer."
-msgstr ""
+msgstr "Inserisci il nome che vuoi salvare sulla stampante."
 
 msgid "The name cannot exceed 40 characters."
-msgstr ""
+msgstr "Il nome non può superare i 40 caratteri."
 
 #, c-format, boost-format
 msgid ""
@@ -10313,38 +10313,43 @@ msgid ""
 "End value: > Start value\n"
 "Value step: >= %.3f)"
 msgstr ""
+"Inserisci valori validi:\n"
+"Valore Iniziale: >= %.1f\n"
+"Valore Finale: <= %.1f\n"
+"Valore Finale: > Valore Iniziale\n"
+"Incremento di Valore: >= %.3f)"
 
 msgid "The name cannot be empty."
-msgstr ""
+msgstr "Il nome non può essere vuoto."
 
 #, c-format, boost-format
 msgid "The selected preset: %s is not found."
 msgstr ""
 
 msgid "The name cannot be the same as the system preset name."
-msgstr ""
+msgstr "Il preset selezionato: %s non è stato trovato."
 
 msgid "The name is the same as another existing preset name"
-msgstr ""
+msgstr "Il nome è uguale a quello di un'altra preimpostazione esistente."
 
 msgid "create new preset failed."
-msgstr ""
+msgstr "Creazione di un nuovo preset non riuscita."
 
 msgid ""
 "Are you sure to cancel the current calibration and return to the home page?"
-msgstr ""
+msgstr "Sei sicuro di voler annullare la calibrazione corrente e tornare alla pagina iniziale?"
 
 msgid "No Printer Connected!"
-msgstr ""
+msgstr "Nessuna stampante connessa!"
 
 msgid "Printer is not connected yet."
-msgstr ""
+msgstr "La stampante non è ancora connessa."
 
 msgid "Please select filament to calibrate."
-msgstr ""
+msgstr "Seleziona il filamento da calibrare."
 
 msgid "The input value size must be 3."
-msgstr ""
+msgstr "La dimensione del valore di ingresso deve essere 3."
 
 msgid "Connecting to printer..."
 msgstr ""
