@@ -87,7 +87,7 @@ SavePresetDialog::Item::Item(Preset::Type type, const std::string &suffix, wxBox
     m_input_ctrl->SetBackgroundColor(input_bg);
     m_input_ctrl->Bind(wxEVT_TEXT, [this](wxCommandEvent &) {
         update();
-        if (m_can_save)
+        if (m_valid_type != NoValid)
             m_parent->m_confirm->Enable();
         else
             m_parent->m_confirm->Disable();
@@ -185,7 +185,6 @@ void SavePresetDialog::Item::update()
 
     m_valid_type = Valid;
     wxString info_line;
-    m_can_save                   = true;
     const char *unusable_symbols = "<>[]:/\\|?*\"";
 
     const std::string unusable_suffix = PresetCollection::get_suffix_modified(); //"(modified)";
@@ -193,7 +192,6 @@ void SavePresetDialog::Item::update()
         if (m_preset_name.find_first_of(unusable_symbols[i]) != std::string::npos) {
             info_line    = _L("Name is invalid;") + "\n" + _L("illegal characters:") + " " + unusable_symbols;
             m_valid_type = NoValid;
-            m_can_save   = false;
             break;
         }
     }
@@ -201,7 +199,6 @@ void SavePresetDialog::Item::update()
     if (m_valid_type == Valid && m_preset_name.find(unusable_suffix) != std::string::npos) {
         info_line    = _L("Name is invalid;") + "\n" + _L("illegal suffix:") + "\n\t" + from_u8(PresetCollection::get_suffix_modified());
         m_valid_type = NoValid;
-        m_can_save   = false;
     }
 
     if (m_valid_type == Valid &&
@@ -257,7 +254,7 @@ void SavePresetDialog::Item::update()
         m_radio_user->Disable();
         m_radio_project->Disable();
     } else {
-        if (m_can_save) {
+        if (m_valid_type != NoValid) {
             m_radio_user->Enable();
             m_radio_project->Enable();
         } else {
