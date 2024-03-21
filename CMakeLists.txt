@@ -538,6 +538,14 @@ foreach(po_file ${BBL_L10N_PO_FILES})
     )
 endforeach()
 
+# copy pt-BR/BamabuStudio.mo to pt_br/
+SET(PT_BR "${L10N_DIR}/pt-BR/BambuStudio.mo")
+SET(PT_BR_DST "${L10N_DIR}/pt_br/")
+add_custom_command(
+    TARGET gettext_po_to_mo POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PT_BR} ${PT_BR_DST}
+)
+
 find_package(NLopt 1.4 REQUIRED)
 
 
