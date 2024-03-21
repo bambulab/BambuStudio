@@ -899,7 +899,8 @@ static std::vector<std::string> s_Preset_printer_options {
     "print_host_webui",
     "printhost_cafile","printhost_port","printhost_authorization_type",
     "printhost_user", "printhost_password", "printhost_ssl_ignore_revoke",
-    "use_relative_e_distances", "extruder_type","use_firmware_retraction"
+    "use_relative_e_distances", "extruder_type","use_firmware_retraction",
+    "long_retraction_when_cut","retraction_distance_when_cut","enable_long_retraction_when_cut"
 };
 
 static std::vector<std::string> s_Preset_sla_print_options {
