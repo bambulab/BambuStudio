@@ -1363,7 +1363,7 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                         if (!zs.empty() && is_volume_sinking(painted, volume_trafo)) {
                             std::vector<float> zs_sinking = {0.f};
                             Slic3r::append(zs_sinking, zs);
-                            slice_mesh_slabs(painted, zs_sinking, volume_trafo, max_top_layers > 0 ? &top : nullptr, max_bottom_layers > 0 ? &bottom : nullptr, throw_on_cancel_callback);
+                            slice_mesh_slabs(painted, zs_sinking, volume_trafo, max_top_layers > 0 ? &top : nullptr, max_bottom_layers > 0 ? &bottom : nullptr, nullptr, throw_on_cancel_callback);
 
                             if (top.size() > 0)
                                 top.erase(top.begin());
@@ -1377,7 +1377,7 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                                 bottom[0] = union_(bottom[0], bottom_slice);
                             }
                         } else
-                            slice_mesh_slabs(painted, zs, volume_trafo, max_top_layers > 0 ? &top : nullptr, max_bottom_layers > 0 ? &bottom : nullptr, throw_on_cancel_callback);
+                            slice_mesh_slabs(painted, zs, volume_trafo, max_top_layers > 0 ? &top : nullptr, max_bottom_layers > 0 ? &bottom : nullptr, nullptr, throw_on_cancel_callback);
                         auto merge = [](std::vector<Polygons> &&src, std::vector<Polygons> &dst) {
                             auto it_src = find_if(src.begin(), src.end(), [](const Polygons &p){ return ! p.empty(); });
                             if (it_src != src.end()) {
