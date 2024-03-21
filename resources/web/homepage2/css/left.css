@@ -217,6 +217,18 @@ body
 	display: none;
 }
 
+.JumpIcon
+{
+	display: none;
+	margin-left:6px;
+	width: 12px;
+}
+
+.BtnItem[menu="makerlab"]:hover .JumpIcon
+{
+	display: inline;
+}
+
 .BtnItem:hover
 {
 	background-color: #E0FCEB;

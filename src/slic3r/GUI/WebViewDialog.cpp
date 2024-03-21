@@ -112,7 +112,11 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     m_onlinefirst = false;
     m_online_spec_id   = "";
     auto host = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
-    std::string mwurl  = (boost::format("%1%studio/webview?from=bambustudio") % host).str();
+
+
+    wxString language_code = wxGetApp().current_language_code().BeforeFirst('_');
+    language_code          = language_code.ToStdString();
+    std::string mwurl  = (boost::format("%1%%2%/studio/webview?from=bambustudio") % host % language_code.mb_str()).str();
     //std::string mwurl  = (boost::format("%1%?from=bambustudio") % host).str();
     m_browserMW       = WebView::CreateWebView(this, mwurl);
     if (m_browserMW == nullptr) {
@@ -269,6 +273,10 @@ WebViewPanel::~WebViewPanel()
     BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << " End";
 }
 
+void WebViewPanel::ResetWholePage() 
+{ 
+    if (m_browserLeft != nullptr) m_browserLeft->Reload();
+}
 
 void WebViewPanel::load_url(wxString& url)
 {
@@ -520,6 +528,7 @@ void WebViewPanel::SendDesignStaffpick(bool on)
                                     body2.insert(1, "\"command\": \"modelmall_model_advise_get\", ");
                                     RunScript(wxString::Format("window.postMessage(%s)", body2));
 
+                                    m_online_type = "browse";
                                     //Show Online Menu
                                     SetLeftMenuShow("online", 1);
                                 });
@@ -536,6 +545,7 @@ void WebViewPanel::SendDesignStaffpick(bool on)
                                     body2.insert(1, "\"command\": \"modelmall_model_customized_get\", ");
                                     RunScript(wxString::Format("window.postMessage(%s)", body2));
 
+                                    m_online_type = "recommend";
                                     //Show Online Menu
                                     SetLeftMenuShow("online", 1);
                                 });
@@ -558,6 +568,7 @@ void WebViewPanel::SendDesignStaffpick(bool on)
                         body2.insert(1, "\"command\": \"modelmall_model_advise_get\", ");
                         RunScript(wxString::Format("window.postMessage(%s)", body2));
 
+                        m_online_type = "browse";
                         //Show Online Menu
                         SetLeftMenuShow("online", 1);
                     });
@@ -567,6 +578,9 @@ void WebViewPanel::SendDesignStaffpick(bool on)
             std::string body2 = "{\"total\":0, \"hits\":[]}";
             body2.insert(1, "\"command\": \"modelmall_model_advise_get\", ");
             RunScript(wxString::Format("window.postMessage(%s)", body2));
+
+            m_online_type = "";
+            SetLeftMenuShow("online", 0);
         }
     } catch (nlohmann::detail::parse_error &err) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": parse got a nlohmann::detail::parse_error, reason = " << err.what();
@@ -796,6 +810,7 @@ void WebViewPanel::SetMakerworldPageLoginStatus(bool login ,wxString ticket)
     
     std::string h = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
     wxString mw_currenturl = m_browserMW->GetCurrentURL();
+    mw_currenturl.Replace("modelid=", "");
     wxString mw_jumpurl = "";
 
     bool b = GetJumpUrl(login, ticket, mw_currenturl, mw_jumpurl);
@@ -1236,7 +1251,7 @@ void WebViewPanel::OnError(wxWebViewEvent& evt)
         wxLogMessage("%s", "Error; url='" + evt.GetURL() + "', error='" + category + " (" + evt.GetString() + ")'");
 
         // Show the info bar with an error
-        m_info->ShowMessage(_L("An error occurred loading ") + evt.GetURL() + "\n" + "'" + category + "'", wxICON_ERROR);
+        //m_info->ShowMessage(_L("An error occurred loading ") + evt.GetURL() + "\n" + "'" + category + "'", wxICON_ERROR);
     }
 
     if (evt.GetInt() == wxWEBVIEW_NAV_ERR_CONNECTION && evt.GetId() == m_browserMW->GetId()) 
@@ -1300,10 +1315,16 @@ void WebViewPanel::SwitchWebContent(std::string modelname,int refresh)
         if (m_online_spec_id != "") 
         {
             auto host  = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
-            std::string mwurl = (boost::format("%1%studio/webview?modelid=%2%&from=bambustudio") % host % m_online_spec_id).str();
+
+            wxString language_code = wxGetApp().current_language_code().BeforeFirst('_');
+            language_code          = language_code.ToStdString();
+
+            std::string mwurl = (boost::format("%1%%2%/studio/webview?modelid=%3%&from=%4%") % host % language_code.mb_str() % m_online_spec_id % m_online_type.mb_str()).str();
 
             m_onlinefirst = true;
             m_browserMW->LoadURL(mwurl);
+            m_browserMW->Show();
+            m_browser->Hide();
 
             m_online_spec_id = "";
         } 
@@ -1326,7 +1347,7 @@ void WebViewPanel::SwitchWebContent(std::string modelname,int refresh)
         GetSizer()->Layout();
 
         // conf save
-        wxGetApp().app_config->set_str("homepage", "makerlab_clicked", "1");
+        wxGetApp().app_config->set_str("homepage", "online_clicked", "1");
         wxGetApp().app_config->save();
     }
     else if (modelname.compare("home") == 0 || modelname.compare("recent") == 0 || modelname.compare("manual") == 0 ) 
