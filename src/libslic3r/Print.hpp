@@ -844,6 +844,10 @@ public:
     // Unset types are just ignored.
     static int get_compatible_filament_type(const std::set<int>& types);
 
+    bool is_all_objects_are_short() const {
+        return std::all_of(this->objects().begin(), this->objects().end(), [&](PrintObject* obj) { return obj->height() < scale_(this->config().nozzle_height.value); });
+    }
+
 protected:
     // Invalidates the step, and its depending steps in Print.
     bool                invalidate_step(PrintStep step);
