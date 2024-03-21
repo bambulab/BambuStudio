@@ -907,6 +907,7 @@ void GLGizmoAdvancedCut::perform_cut(const Selection& selection)
         if (is_windows10()) {
             bool is_showed_dialog = false;
             bool user_fix_model   = false;
+            bool  all_break       = false;
             Plater::TakeSnapshot snapshot(plater, "RepairingModelObjectInCut");
             for (size_t i = 0; i < new_objects.size(); i++) {
                 for (size_t j = 0; j < new_objects[i]->volumes.size(); j++) {
@@ -942,8 +943,13 @@ void GLGizmoAdvancedCut::perform_cut(const Selection& selection)
                         if (!fix_and_update_progress(new_objects[i], j, model_name, progress_dlg, succes_models, failed_models)) {
                             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "run fix_and_update_progress error";
                             plater->take_snapshot("RepairingModelObjectInCut");
+                            all_break = true;
+                            break;
                         };
                     };
+                }
+                if (all_break) {
+                    break;
                 }
             }
         }
