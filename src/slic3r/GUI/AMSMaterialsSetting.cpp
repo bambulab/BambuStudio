@@ -455,7 +455,7 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
         }
 
         // set k / n value
-        if (obj->get_printer_series() != PrinterSeries::SERIES_X1) {
+        if (obj->cali_version <= -1 && obj->get_printer_series() == PrinterSeries::SERIES_P1P) {
             // set extrusion cali ratio
             int cali_tray_id = ams_id * 4 + tray_id;
 
@@ -573,7 +573,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
     wxString k_text = m_input_k_val->GetTextCtrl()->GetValue();
     wxString n_text = m_input_n_val->GetTextCtrl()->GetValue();
 
-    if ((obj->get_printer_series() != PrinterSeries::SERIES_X1) && !ExtrusionCalibration::check_k_validation(k_text)) {
+    if (obj->cali_version <= -1 && (obj->get_printer_series() != PrinterSeries::SERIES_X1) && !ExtrusionCalibration::check_k_validation(k_text)) {
         wxString k_tips = _L("Please input a valid value (K in 0~0.3)");
         wxString kn_tips = _L("Please input a valid value (K in 0~0.3, N in 0.6~2.0)");
         MessageDialog msg_dlg(nullptr, k_tips, wxEmptyString, wxICON_WARNING | wxOK);
@@ -598,7 +598,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
             ;
         }
 
-        if (obj->get_printer_series() == PrinterSeries::SERIES_X1) {
+        if (obj->cali_version >= 0) {
             PACalibIndexInfo select_index_info;
             select_index_info.tray_id = tray_id;
             select_index_info.nozzle_diameter = obj->nozzle_diameter;
@@ -637,7 +637,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
             ;
         }
 
-        if (obj->get_printer_series() == PrinterSeries::SERIES_X1) {
+        if (obj->cali_version >= -1) {
             PACalibIndexInfo select_index_info;
             select_index_info.tray_id = cali_tray_id;
             select_index_info.nozzle_diameter = obj->nozzle_diameter;
@@ -740,7 +740,7 @@ void AMSMaterialsSetting::update_widgets()
         else
             m_panel_normal->Hide();
         m_panel_kn->Show();
-    } else if (obj && (obj->ams_support_virtual_tray || (obj->get_printer_series() == PrinterSeries::SERIES_X1))) {
+    } else if (obj && (obj->ams_support_virtual_tray || obj->cali_version >= 0)) {
         m_panel_normal->Show();
         m_panel_kn->Show();
     } else {
@@ -895,7 +895,7 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
             m_readonly_filament->Hide();
         }
 
-        if (obj->get_printer_series() == PrinterSeries::SERIES_X1) {
+        if (obj->cali_version >= 0) {
             m_title_pa_profile->Show();
             m_comboBox_cali_result->Show();
             m_input_k_val->Disable();
@@ -1064,7 +1064,7 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
     m_pa_profile_items.clear();
     m_comboBox_cali_result->SetValue(wxEmptyString);
     
-    if (obj->get_printer_series() == PrinterSeries::SERIES_X1) {
+    if (obj->cali_version >= 0) {
         m_input_k_val->GetTextCtrl()->SetValue(wxEmptyString);
         std::vector<PACalibResult> cali_history = this->obj->pa_calib_tab;
         for (auto cali_item : cali_history) {
