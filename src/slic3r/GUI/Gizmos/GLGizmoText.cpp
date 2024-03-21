@@ -781,8 +781,7 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     ImGui::PushItemWidth(list_width);
     float old_value = m_thickness;
     ImGui::InputFloat("###text_thickness", &m_thickness, 0.0f, 0.0f, "%.2f");
-    if (m_thickness < 0.1f)
-        m_thickness = 0.1f;
+    m_thickness = ImClamp(m_thickness, m_thickness_min, m_thickness_max);
     if (old_value != m_thickness)
         m_need_update_text = true;
 
