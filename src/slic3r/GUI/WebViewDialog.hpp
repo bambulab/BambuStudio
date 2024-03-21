@@ -94,6 +94,8 @@ public:
     void OnFreshLoginStatus(wxTimerEvent &event);
 
 public:
+    void ResetWholePage();
+
     void SwitchWebContent(std::string modelname, int refresh=0);
     void SwitchLeftMenu(std::string strMenu);
     void OpenOneMakerlab(std::string url);
@@ -130,8 +132,9 @@ private:
     wxWebView* m_browserLeft;
     wxWebView * m_browserMW;
     std::string m_contentname;
-    bool        m_onlinefirst;
-    std::string m_online_spec_id;
+    bool        m_onlinefirst;        //Online Page First Load
+    std::string m_online_spec_id;     //Online Page Spec_ID
+    wxString    m_online_type;        //recommend & browse
 
     wxBoxSizer *bSizer_toolbar;
     wxButton *  m_button_back;
