@@ -4056,7 +4056,8 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         const int    slope_steps              = m_config.seam_slope_steps;
         const double slope_max_segment_length = scale_(slope_min_length / slope_steps);
         // BBS: check if has overhang on slope path
-        slope_has_overhang = has_overhang_path_on_slope(loop.paths, slope_min_length);
+        if (m_config.seam_slope_conditional.value)
+            slope_has_overhang = has_overhang_path_on_slope(loop.paths, slope_min_length);
         if (!slope_has_overhang) {
             // Calculate the sloped loop
             //BBS: should has smaller e at start to get better seam
@@ -4064,9 +4065,9 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
 
             //BBS: clip end and start to get better seam
             new_loop.clip_slope(seam_gap);
-            // BBS: slowdown speed to improve seam
-            new_loop.target_speed = get_path_speed(new_loop.starts.back());
-            new_loop.slowdown_slope_speed();
+            // BBS: slowdown speed to improve seam, to be fix, cooling need to be apply correctly
+            //new_loop.target_speed = get_path_speed(new_loop.starts.back());
+            //new_loop.slowdown_slope_speed();
             // Then extrude it
             for (const auto &p : new_loop.get_all_paths()) {
                 gcode += this->_extrude(*p, description, speed_for_path(*p));
@@ -4637,8 +4638,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     }
 
     // F is mm per minute.
-    if (sloped == nullptr)
-        gcode += m_writer.set_speed(F, "", comment);
+    //if (sloped == nullptr)
+    gcode += m_writer.set_speed(F, "", comment);
 
     double path_length = 0.;
     {
@@ -4664,7 +4665,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                     // Sloped extrusion
                     auto dE = e_per_mm * line_length;
                     auto [z_ratio, e_ratio, slope_speed] = sloped->interpolate(path_length / total_length);
-                    gcode += m_writer.set_speed(slope_speed * 60, "", comment);
+                    //FIX: cooling need to apply correctly
+                    //gcode += m_writer.set_speed(slope_speed * 60, "", comment);
                     Vec2d dest2d = this->point_to_gcode(line.b);
                     Vec3d dest3d(dest2d(0), dest2d(1), get_sloped_z(z_ratio));
                     //BBS: todo, should use small e at start to get good seam
