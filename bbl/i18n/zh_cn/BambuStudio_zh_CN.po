@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-20 14:36+0800\n"
+"POT-Creation-Date: 2024-03-21 10:52+0800\n"
 "PO-Revision-Date: 2024-02-23 20:10+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1017,7 +1017,7 @@ msgid "Torus"
 msgstr "圆环"
 
 msgid "Rounded Rectangle"
-msgstr ""
+msgstr "圆角矩形"
 
 msgid "Bambu Cube"
 msgstr "Bambu方块"
@@ -2954,7 +2954,7 @@ msgid "Total time"
 msgstr "总时间"
 
 msgid "Total cost"
-msgstr ""
+msgstr "总成本"
 
 msgid "up to"
 msgstr "达到"
@@ -3144,7 +3144,7 @@ msgid "Spacing"
 msgstr "间距"
 
 msgid "0 means auto spacing."
-msgstr ""
+msgstr "0 表示自动间距。"
 
 msgid "Auto rotate for arrangement"
 msgstr "自动旋转以优化自动摆放效果"
@@ -5036,22 +5036,23 @@ msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
 "will be kept. You may fix the meshes and try agian."
 msgstr ""
+"无法对模型网格执行布尔运算。只保留正体积部分。您可以修复网格后再试一次。"
 
 #, boost-format
 msgid "Reason: part \"%1%\" is empty."
-msgstr ""
+msgstr "原因：零件\"%1%\"为空。"
 
 #, boost-format
 msgid "Reason: part \"%1%\" does not bound a volume."
-msgstr ""
+msgstr "原因：零件\"%1%\"没有封闭一个体积。"
 
 #, boost-format
 msgid "Reason: part \"%1%\" has self intersection."
-msgstr ""
+msgstr "原因：零件\"%1%\"有自相交。"
 
 #, boost-format
 msgid "Reason: \"%1%\" and another part have no intersection."
-msgstr ""
+msgstr "原因：零件\"%1%\"与另一个零件没有交集。"
 
 msgid ""
 "Negative parts detected. Would you like to perform mesh boolean before "
@@ -6089,8 +6090,8 @@ msgstr "忽略"
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "在录制无工具头延时摄影视频时，建议添加“延时摄影擦料塔”\n"
 "右键单击打印板的空白位置，选择“添加标准模型”->“延时摄影擦料塔”。"
@@ -9082,6 +9083,66 @@ msgstr ""
 "为了减少闭环挤出中接缝的可见性，循环会被中断并缩短指定的长度。\n"
 "这个长度是当前挤出器直径的百分比。该参数的默认值为15。"
 
+msgid "Scarf joint seam (beta)"
+msgstr ""
+
+msgid "Use scarf joint to minimize seam visibility and increase seam strength."
+msgstr ""
+
+msgid "Conditional scarf joint"
+msgstr ""
+
+msgid ""
+"Apply scarf joints only to smooth perimeters where traditional seams do not "
+"conceal the seams at sharp corners effectively."
+msgstr ""
+
+msgid "Conditional angle threshold"
+msgstr ""
+
+msgid ""
+"This option sets the threshold angle for applying a conditional scarf joint "
+"seam.\n"
+"If the maximum angle within the perimeter loop exceeds this value "
+"(indicating the absence of sharp corners), a scarf joint seam will be used. "
+"The default value is 155°."
+msgstr ""
+
+msgid "Scarf start height"
+msgstr ""
+
+msgid ""
+"Start height of the scarf.\n"
+"This amount can be specified in millimeters or as a percentage of the "
+"current layer height. The default value for this parameter is 0."
+msgstr ""
+
+msgid "Scarf around entire wall"
+msgstr ""
+
+msgid "The scarf extends to the entire length of the wall."
+msgstr ""
+
+msgid "Scarf length"
+msgstr ""
+
+msgid ""
+"Length of the scarf. Setting this parameter to zero effectively disables the "
+"scarf."
+msgstr ""
+
+msgid "Scarf steps"
+msgstr ""
+
+msgid "Minimum number of segments of each scarf."
+msgstr ""
+
+msgid "Scarf joint for inner walls"
+msgstr ""
+
+msgid "Use scarf joint for inner walls as well."
+msgstr ""
+
 msgid "Wipe speed"
 msgstr "擦拭速度"
 
@@ -9235,10 +9296,10 @@ msgid "XY separation between an object and its support"
 msgstr "模型和支撑之间XY分离距离"
 
 msgid "Support/object first layer gap"
-msgstr ""
+msgstr "支撑/对象首层间距"
 
 msgid "XY separation between an object and its support at the first layer."
-msgstr ""
+msgstr "物体与其首层支撑之间的 XY 间隔。"
 
 msgid "Pattern angle"
 msgstr "模式角度"
@@ -9846,7 +9907,7 @@ msgstr ""
 "XY尺寸补偿不能与涂色功能一起使用。"
 
 msgid "Generating supports"
-msgstr ""
+msgstr "生成支撑"
 
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
@@ -10756,8 +10817,8 @@ msgstr ""
 "你想重写预设吗"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "我们会将预设重命名为“供应商 类型 系列 @您选择的打印机”。\n"
@@ -17232,8 +17293,8 @@ msgstr ""
 #~ msgstr "正在准备设置页"
 
 #~ msgid ""
-#~ "You have the following presets with saved options for \"Print Host upload"
-#~ "\""
+#~ "You have the following presets with saved options for \"Print Host "
+#~ "upload\""
 #~ msgstr "您的以下预设中包含未保存的选项“打印主机上传”"
 
 #~ msgid ""
