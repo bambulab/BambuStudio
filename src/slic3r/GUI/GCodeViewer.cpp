@@ -4604,8 +4604,17 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 if (title_columns[i].first == "") {
                     offsets.push_back(offsets.back() + max_width(title_columns[i - 1].second, "") + style.ItemSpacing.x);
                 }
+                else if (title_columns[i].first == _u8L("Display")) {
+                    float length = ImGui::CalcTextSize(title_columns[i - 2].first.c_str()).x;
+                    float offset = offsets.back() + max_width(title_columns[i - 1].second, title_columns[i - 1].first);
+                    size_t index = offsets.size() - 2;
+                    if (index >= 0) {
+                        offset = std::max(offset, length + offsets[index]);
+                    }
+                    offsets.push_back(offset + 2.0f * style.ItemSpacing.x);
+                }
                 else {
-                    offsets.push_back(offsets.back() + max_width(title_columns[i - 1].second, title_columns[i - 1].first) + style.ItemSpacing.x);
+                    offsets.push_back(offsets.back() + max_width(title_columns[i - 1].second, title_columns[i - 1].first) + 2.0f * style.ItemSpacing.x);
                 }
             }
 
