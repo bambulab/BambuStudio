@@ -349,7 +349,13 @@ bool GLGizmoMeasure::on_mouse(const wxMouseEvent &mouse_event)
                     switch (m_mode)
                     {
                     case EMode::FeatureSelection: { item = { false, m_curr_feature, m_curr_feature }; break; }
-                    case EMode::PointSelection:   { item = { false, m_curr_feature, Measure::SurfaceFeature(*m_curr_point_on_feature_position) }; break; }
+                    case EMode::PointSelection:   {
+                       item = { false, m_curr_feature, Measure::SurfaceFeature(*m_curr_point_on_feature_position)};
+                       auto local_pt = m_curr_feature->world_tran.inverse() * (*m_curr_point_on_feature_position);
+                       item.feature->origin_surface_feature = std::make_shared<Measure::SurfaceFeature>(local_pt);
+                       item.feature->world_tran             = m_curr_feature->world_tran;
+                       item.feature->mesh                   = m_curr_feature->mesh;
+                       break; }
                     }
                 }
                 return item;
@@ -1329,7 +1335,7 @@ void GLGizmoMeasure::render_dimensioning()
         ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 1.0f, 1.0f });
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 4.0f, 0.0f });
-        if (ImGui::BeginPopupModal("distance_popup", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration)) {
+        if (show_label && ImGui::BeginPopupModal("distance_popup", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration)) {
             auto perform_scale = [this](double new_value, double old_value,bool scale_single_volume) {
                 if (new_value == old_value || new_value <= 0.0)
                     return;
@@ -2349,7 +2355,9 @@ void GLGizmoMeasure::update_feature_by_tran(Measure::SurfaceFeature &feature)
             m_feature_circle_second.inv_zoom            = 0;
         }
         if (feature.get_type() == Measure::SurfaceFeatureType::Plane) {
-            if (cur_measuring) { update_world_plane_features(cur_measuring, feature); }
+            if (cur_measuring) {
+                update_world_plane_features(cur_measuring, feature);
+            }
         }
         break;
     }
