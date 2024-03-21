@@ -9,7 +9,8 @@
 	top: 0px;
 	bottom: 0px;
 	right: 0px;
-	left: 0px;	
+	left: 0px;
+	min-height: 100px;
 }
 
 #RecentTitleBlock

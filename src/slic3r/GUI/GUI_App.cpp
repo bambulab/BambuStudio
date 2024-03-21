@@ -3143,9 +3143,8 @@ void GUI_App::update_label_colours_from_appconfig()
 void GUI_App::update_publish_status()
 {
     mainframe->show_publish_button(has_model_mall());
-    if (app_config->get("staff_pick_switch") == "true") {
-        mainframe->m_webview->SendDesignStaffpick(has_model_mall());
-    }
+
+    mainframe->m_webview->ResetWholePage();
 }
 
 bool GUI_App::has_model_mall()
