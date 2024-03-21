@@ -72,7 +72,6 @@ class SavePresetDialog : public DPIDialog
         RadioBox *          m_radio_user{nullptr};
         RadioBox *          m_radio_project{nullptr};
         bool                m_save_to_project {false};
-        bool                m_can_save{true};
 
         void update();
     };
