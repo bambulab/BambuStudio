@@ -722,7 +722,9 @@ void GLGizmoMeasure::on_render()
                 // deal hit_different_volumes
                 if (m_hit_different_volumes.size() >= 1) {
                     if (m_last_hit_volume == m_hit_different_volumes[0]) {
-                        //do nothing
+                        if (m_hit_different_volumes.size() == 2) {//hit same volume
+                            m_hit_different_volumes.erase(m_hit_different_volumes.begin() + 1);
+                        }
                     } else  {
                         if (m_hit_different_volumes.size() == 2) {
                             m_hit_different_volumes[1] = m_last_hit_volume;
@@ -1884,7 +1886,8 @@ void GLGizmoMeasure::on_render_input_window(float x, float y, float bottom_limit
 
     const bool        use_inches = wxGetApp().app_config->get("use_inches") == "1";
     const std::string units = use_inches ? " " + _u8L("in") : " " + _u8L("mm");
-
+    const float       space_size     = ImGui::CalcTextSize("  ").x * 2;
+    float             input_size_max = ImGui::CalcTextSize("-100.00").x * 1.2;
     // Show selection
     {
         auto format_item_text = [this, use_inches, &units](const SelectedFeatures::Item& item) {
@@ -1911,7 +1914,6 @@ void GLGizmoMeasure::on_render_input_window(float x, float y, float bottom_limit
             return text;
         };
 
-        const float space_size      = ImGui::CalcTextSize("  ").x * 2;
         const float selection_cap_length = ImGui::CalcTextSize((_u8L("Selection") + " 1").c_str()).x * 1.2;
         auto feature_first_text= format_item_text(m_selected_features.first);
         const float feature_first_text_length = ImGui::CalcTextSize((_u8L(feature_first_text)).c_str()).x;
@@ -1978,34 +1980,31 @@ void GLGizmoMeasure::on_render_input_window(float x, float y, float bottom_limit
             wxTheClipboard->Close();
         }
     };
-    auto add_edit_distance_xyz_box = [this, &current_active_id](Vec3d& distance) {
-        float buf_size_max = ImGui::CalcTextSize("-100.00").x * 1.2;
-        ImGui::TableNextRow();
-        ImGui::TableSetColumnIndex(0);
-        m_imgui->text_colored(ImGuiWrapper::COL_RED, "X:");
-        ImGui::TableSetColumnIndex(1);
-        ImGui::PushItemWidth(buf_size_max);
-        ImGui::BBLInputDouble("##measure_distance_x", &m_buffered_distance[0], 0.0f, 0.0f, "%.2f");
+    bool same_model_object         = is_two_volume_in_same_model_object();
+    auto add_edit_distance_xyz_box = [this, &input_size_max, &same_model_object, &current_active_id](Vec3d &distance) {
+        m_imgui->disabled_begin(m_hit_different_volumes.size() == 1);
+        {
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            m_imgui->text_colored(ImGuiWrapper::COL_RED, "X:");
+            ImGui::TableSetColumnIndex(1);
+            ImGui::PushItemWidth(input_size_max);
+            ImGui::BBLInputDouble("##measure_distance_x", &m_buffered_distance[0], 0.0f, 0.0f, "%.2f");
 
-        ImGui::TableNextRow();
-        ImGui::TableSetColumnIndex(0);
-        m_imgui->text_colored(ImGuiWrapper::COL_GREEN, "Y:");
-        ImGui::TableSetColumnIndex(1);
-        ImGui::BBLInputDouble("##measure_distance_y", &m_buffered_distance[1], 0.0f, 0.0f, "%.2f");
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            m_imgui->text_colored(ImGuiWrapper::COL_GREEN, "Y:");
+            ImGui::TableSetColumnIndex(1);
+            ImGui::BBLInputDouble("##measure_distance_y", &m_buffered_distance[1], 0.0f, 0.0f, "%.2f");
 
-        bool same_model_object = is_two_volume_in_same_model_object();
-        m_imgui->disabled_begin(!same_model_object);
-        ImGui::TableNextRow();
-        ImGui::TableSetColumnIndex(0);
-        m_imgui->text_colored(ImGuiWrapper::COL_BLUE, "Z:");
-        ImGui::TableSetColumnIndex(1);
-        ImGui::BBLInputDouble("##measure_distance_z", &m_buffered_distance[2], 0.0f, 0.0f, "%.2f");
-        m_imgui->disabled_end();
-
-        /*ImGui::TableNextRow();
-        if (m_imgui->button(_L("Adsorbed onto the surface"))) {
-            std::cout << "todo";
-        }*/
+            m_imgui->disabled_begin(!same_model_object);
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            m_imgui->text_colored(ImGuiWrapper::COL_BLUE, "Z:");
+            ImGui::TableSetColumnIndex(1);
+            ImGui::BBLInputDouble("##measure_distance_z", &m_buffered_distance[2], 0.0f, 0.0f, "%.2f");
+            m_imgui->disabled_end();
+        }
         m_imgui->disabled_end();
         if (m_last_active_item_imgui != current_active_id && m_hit_different_volumes.size() == 2) {
             auto selection         = const_cast<Selection*>(&m_parent.get_selection());
@@ -2013,15 +2012,12 @@ void GLGizmoMeasure::on_render_input_window(float x, float y, float bottom_limit
             Vec3d displacement = Vec3d::Zero();
             auto  v                = m_hit_different_volumes[1];
             if (std::abs(m_buffered_distance[0] - distance[0]) > EPSILON) {
-                wxGetApp().plater()->take_snapshot("modify x distance between objects");
                 displacement[0] = m_buffered_distance[0] - distance[0];
                 distance[0] = m_buffered_distance[0];
             } else if (std::abs(m_buffered_distance[1] - distance[1]) > EPSILON) {
-                wxGetApp().plater()->take_snapshot("modify y distance between objects");
                 displacement[1] = m_buffered_distance[1] - distance[1];
                 distance[1] = m_buffered_distance[1];
             } else if (std::abs(m_buffered_distance[2] - distance[2]) > EPSILON) {
-                wxGetApp().plater()->take_snapshot("modify z distance between objects");
                 displacement[2] = m_buffered_distance[2] - distance[2];
                 distance[2]     = m_buffered_distance[2];
             }
@@ -2091,7 +2087,7 @@ void GLGizmoMeasure::on_render_input_window(float x, float y, float bottom_limit
                     ImGui::PopID();
                 }
             }
-            if (m_distance.norm() >0.01 && m_hit_different_volumes.size() == 2) {
+            if (m_distance.norm() >0.01) {
                 add_edit_distance_xyz_box(m_distance);
             }
         }
