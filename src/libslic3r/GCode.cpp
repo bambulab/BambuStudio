@@ -4838,17 +4838,6 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
         } else if (m_config.default_jerk.value > 0 && m_config.travel_jerk.value > 0 && !this->is_BBL_Printer())
                 gcode += m_writer.set_jerk_xy(m_config.travel_jerk.value);
 
-        for (size_t i = 1; i < travel.size(); ++ i) {
-            // BBS. Process lazy layer change, but don't do lazy layer change when enable spiral vase
-            Vec3d curr_pos = m_writer.get_position();
-            if (i == 1 && !m_spiral_vase) {
-                Vec2d dest2d = this->point_to_gcode(travel.points[i]);
-                Vec3d dest3d(dest2d(0), dest2d(1), m_nominal_z);
-                gcode += m_writer.travel_to_xyz(dest3d, comment);
-            } else {
-                gcode += m_writer.travel_to_xy(this->point_to_gcode(travel.points[i]), comment);
-            }
-        }
         if (m_spiral_vase) {
             // No lazy z lift for spiral vase mode
             for (size_t i = 1; i < travel.size(); ++i)
