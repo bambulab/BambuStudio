@@ -2823,7 +2823,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Contour"));
     def->enum_labels.push_back(L("Contour and hole"));
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionEnum<SeamScarfType>(SeamScarfType::All));
+    def->set_default_value(new ConfigOptionEnum<SeamScarfType>(SeamScarfType::None));
 
     def          = this->add("seam_slope_conditional", coBool);
     def->label   = L("Conditional scarf joint");
