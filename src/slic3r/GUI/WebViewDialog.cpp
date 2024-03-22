@@ -497,6 +497,9 @@ void WebViewPanel::SendDesignStaffpick(bool on)
 {
     try {
         if (on) {
+            std::string sguide = wxGetApp().app_config->get("firstguide", "finish");
+            if (sguide != "true") return;
+
             if (!IsShownOnScreen()) {
                 m_has_pending_staff_pick = true;
                 return;
@@ -597,6 +600,9 @@ void WebViewPanel::SendDesignStaffpick(bool on)
 void WebViewPanel::SendMakerlabList(  )
 {
     try {
+        std::string sguide = wxGetApp().app_config->get("firstguide", "finish");
+        if (sguide != "true") return;
+
         get_makerlab_list([this](std::string body) {
             if (body.empty() || body.front() != '{') {
                 BOOST_LOG_TRIVIAL(warning) << "get_makerlab_list failed " + body;
