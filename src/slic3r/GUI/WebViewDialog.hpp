@@ -111,6 +111,8 @@ public:
     void SendLoginInfo();
     void ShowNetpluginTip();
 
+    void SetWebviewShow(wxString name, bool show);
+
     void get_design_staffpick(int offset, int limit, std::function<void(std::string)> callback);
     void get_user_mw_4u_config(std::function<void(std::string)> callback);
     void get_4u_staffpick(int seed, int limit, std::function<void(std::string)> callback);
@@ -132,6 +134,7 @@ private:
     wxWebView* m_browserLeft;
     wxWebView * m_browserMW;
     std::string m_contentname;
+    bool        m_leftfirst;          //Left First Loaded
     bool        m_onlinefirst;        //Online Page First Load
     std::string m_online_spec_id;     //Online Page Spec_ID
     wxString    m_online_type;        //recommend & browse

@@ -4090,10 +4090,14 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 if (root.get_child_optional("menu") != boost::none) { 
                     std::string strMenu = root.get_optional<std::string>("menu").value();
                     int         nRefresh = root.get_child_optional("refresh") == boost::none ? 0 : root.get_optional<int>("refresh").value();
-                                            
-                    if (mainframe->m_webview) { 
-                        mainframe->m_webview->SwitchWebContent(strMenu, nRefresh);
+                     
+                    CallAfter([this,strMenu, nRefresh] {
+                        if (mainframe->m_webview) 
+                        { 
+                            mainframe->m_webview->SwitchWebContent(strMenu, nRefresh); 
+                        }
                     }
+                    );
                 }
             } 
             else if (command_str.compare("homepage_leftmenu_switch") == 0) {
