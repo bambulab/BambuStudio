@@ -91,8 +91,26 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     m_home_web = new wxBoxSizer(wxHORIZONTAL);
 
     // Create the webview
+    m_browser = WebView::CreateWebView(this, UrlRight);
+    if (m_browser == nullptr) {
+        wxLogError("Could not init m_browser");
+        return;
+    }
+    m_onlinefirst = false;
+    m_online_spec_id   = "";
+
+    auto host = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
+    std::string mwurl  = (boost::format("%1%studio/webview?from=bambustudio") % host ).str();
+    m_browserMW       = WebView::CreateWebView(this, mwurl);
+    if (m_browserMW == nullptr) {
+        wxLogError("Could not init  m_browserMW");
+        return;
+    } 
+    m_browserMW->Hide();
+
+    m_leftfirst   = false;
     m_browserLeft = WebView::CreateWebView(this, UrlLeft);
-    //m_browserRight->SetBackgroundColour(*wxYELLOW);
+    //m_browserLeft = WebView::CreateWebView(this, "https://www.163.com");
     if (m_browserLeft == nullptr) {
         wxLogError("Could not init m_browser");
         return;
@@ -100,32 +118,8 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     m_browserLeft->SetSize(wxSize(FromDIP(224), -1));
     m_browserLeft->SetMinSize(wxSize(FromDIP(224), -1));
     m_browserLeft->SetMaxSize(wxSize(FromDIP(224), -1));
-    //m_browser->Hide();
 
-    m_browser = WebView::CreateWebView(this, UrlRight);
-    //m_browserRight->SetBackgroundColour(*wxRED);
-    if (m_browser == nullptr) {
-        wxLogError("Could not init m_browser");
-        return;
-    }
-
-    m_onlinefirst = false;
-    m_online_spec_id   = "";
-    auto host = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
-
-
-    wxString language_code = wxGetApp().current_language_code().BeforeFirst('_');
-    language_code          = language_code.ToStdString();
-    std::string mwurl  = (boost::format("%1%%2%/studio/webview?from=bambustudio") % host % language_code.mb_str()).str();
-    //std::string mwurl  = (boost::format("%1%?from=bambustudio") % host).str();
-    m_browserMW       = WebView::CreateWebView(this, mwurl);
-    if (m_browserMW == nullptr) {
-        wxLogError("Could not init  m_browserMW");
-        return;
-    }
-   
-    m_browserMW->Hide();
-
+    this->SetBackgroundColour(*wxWHITE);
     m_home_web->Add(m_browserLeft, 0, wxEXPAND | wxALL, 0);
     m_home_web->Add(m_browser, 1, wxEXPAND | wxALL, 0);
     m_home_web->Add(m_browserMW, 1, wxEXPAND | wxALL, 0);
@@ -133,6 +127,7 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     topsizer->Add(m_home_web,1, wxEXPAND | wxALL, 0);
 
     SetSizer(topsizer);
+    Layout();
 
     // Create the Tools menu
     m_tools_menu = new wxMenu();
@@ -275,7 +270,7 @@ WebViewPanel::~WebViewPanel()
 
 void WebViewPanel::ResetWholePage() 
 { 
-    if (m_browserLeft != nullptr) m_browserLeft->Reload();
+    if (m_browserLeft != nullptr && m_leftfirst) m_browserLeft->Reload();
 }
 
 void WebViewPanel::load_url(wxString& url)
@@ -298,6 +293,8 @@ void WebViewPanel::load_url(wxString& url)
 void WebViewPanel::UpdateState()
 {
 #if !BBL_RELEASE_TO_PUBLIC
+    if (m_browser == nullptr) return;
+
     if (m_browser->CanGoBack()) {
         m_button_back->Enable(true);
     }
@@ -327,6 +324,8 @@ void WebViewPanel::UpdateState()
 void WebViewPanel::OnIdle(wxIdleEvent& WXUNUSED(evt))
 {
 #if !BBL_RELEASE_TO_PUBLIC
+    if (m_browser == nullptr) return;
+
     if (m_browser->IsBusy())
     {
         wxSetCursor(wxCURSOR_ARROWWAIT);
@@ -459,7 +458,7 @@ void WebViewPanel::OnFreshLoginStatus(wxTimerEvent &event)
 {
     static int loginstatus = -1;
 
-    wxString mwnow = m_browserMW->GetCurrentURL();
+    //wxString mwnow = m_browserMW->GetCurrentURL();
 
     auto mainframe = Slic3r::GUI::wxGetApp().mainframe;
     if (mainframe && mainframe->m_webview == this)
@@ -918,12 +917,12 @@ void WebViewPanel::OnNavigationRequest(wxWebViewEvent& evt)
     */
 void WebViewPanel::OnNavigationComplete(wxWebViewEvent& evt)
 {
-    if (evt.GetId() == m_browserMW->GetId()) { 
+    if (m_browserMW!=nullptr && evt.GetId() == m_browserMW->GetId()) { 
         m_onlinefirst = true;
         
         if (m_contentname == "online") { // conf save
-            m_browser->Hide();
-            m_browserMW->Show();
+            SetWebviewShow("right", false); 
+            SetWebviewShow("online", true);
         }
     }
 
@@ -942,13 +941,14 @@ void WebViewPanel::OnNavigationComplete(wxWebViewEvent& evt)
 void WebViewPanel::OnDocumentLoaded(wxWebViewEvent& evt)
 {
     BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << evt.GetTarget().ToUTF8().data();
+    wxString wurl = evt.GetURL();
     // Only notify if the document is the main frame, not a subframe
-    if (evt.GetURL() == m_browser->GetCurrentURL()) {
+    if (m_browser!=nullptr && evt.GetId() == m_browser->GetId()) {
         if (wxGetApp().get_mode() == comDevelop) wxLogMessage("%s", "Document loaded; url='" + evt.GetURL() + "'");
     } 
-    else if (evt.GetURL() == m_browserLeft->GetCurrentURL()) 
-    {
-    
+    else if (m_browserLeft!=nullptr && evt.GetId() == m_browserLeft->GetId()) 
+    {       
+        m_leftfirst = true;
     }
 
     UpdateState();
@@ -1250,9 +1250,9 @@ void WebViewPanel::OnError(wxWebViewEvent& evt)
     {
         wxLogMessage("%s", "Error; url='" + evt.GetURL() + "', error='" + category + " (" + evt.GetString() + ")'");
 
-        // Show the info bar with an error
-        //m_info->ShowMessage(_L("An error occurred loading ") + evt.GetURL() + "\n" + "'" + category + "'", wxICON_ERROR);
+        // Show the info bar with an error        
     }
+    m_info->ShowMessage(_L("An error occurred loading ") + evt.GetURL() + "\n" + "'" + category + "'", wxICON_ERROR);
 
     if (evt.GetInt() == wxWEBVIEW_NAV_ERR_CONNECTION && evt.GetId() == m_browserMW->GetId()) 
     {
@@ -1323,8 +1323,9 @@ void WebViewPanel::SwitchWebContent(std::string modelname,int refresh)
 
             m_onlinefirst = true;
             m_browserMW->LoadURL(mwurl);
-            m_browserMW->Show();
-            m_browser->Hide();
+
+            SetWebviewShow("online", true);
+            SetWebviewShow("right", false); 
 
             m_online_spec_id = "";
         } 
@@ -1338,8 +1339,8 @@ void WebViewPanel::SwitchWebContent(std::string modelname,int refresh)
                 if (refresh == 1)
                     m_browserMW->Reload();
                 else {
-                    m_browserMW->Show();
-                    m_browser->Hide();
+                    SetWebviewShow("online", true);
+                    SetWebviewShow("right", false); 
                 }
             }
         }
@@ -1358,8 +1359,9 @@ void WebViewPanel::SwitchWebContent(std::string modelname,int refresh)
 
         if (m_browser != NULL) m_browser->LoadURL(UrlRight);
 
-        m_browserMW->Hide();
-        m_browser->Show();       
+
+        SetWebviewShow("online", false);
+        SetWebviewShow("right", true);      
     }
 }
 
@@ -1437,6 +1439,24 @@ void WebViewPanel::SetLeftMenuShow(std::string menuname, int show)
     WebView::RunScript(m_browserLeft, strJS);
 }
 
+void WebViewPanel::SetWebviewShow(wxString name, bool show) 
+{ 
+    wxWebView *TmpWeb = nullptr;
+    if (name == "left")
+        TmpWeb = m_browserLeft;
+    else if (name == "right")
+        TmpWeb = m_browser;
+    else if (name == "online")
+        TmpWeb = m_browserMW;
+    
+    if (TmpWeb != nullptr) 
+    { 
+        if (show)
+            TmpWeb->Show();
+        else
+            TmpWeb->Hide();
+    }
+}
 
 SourceViewDialog::SourceViewDialog(wxWindow* parent, wxString source) :
                   wxDialog(parent, wxID_ANY, "Source Code",
