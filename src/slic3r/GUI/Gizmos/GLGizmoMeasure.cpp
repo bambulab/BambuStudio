@@ -354,7 +354,7 @@ bool GLGizmoMeasure::on_mouse(const wxMouseEvent &mouse_event)
                        auto local_pt = m_curr_feature->world_tran.inverse() * (*m_curr_point_on_feature_position);
                        item.feature->origin_surface_feature = std::make_shared<Measure::SurfaceFeature>(local_pt);
                        item.feature->world_tran             = m_curr_feature->world_tran;
-                       item.feature->mesh                   = m_curr_feature->mesh;
+                       item.feature->volume                 = m_curr_feature->volume;
                        break; }
                     }
                 }
@@ -627,6 +627,9 @@ void GLGizmoMeasure::init_circle_glmodel(GripperType gripper_type, const Measure
 
 void GLGizmoMeasure::init_plane_glmodel(GripperType gripper_type, const Measure::SurfaceFeature &feature, PlaneGLModel &plane_gl_model)
 {
+    if (!m_curr_feature->volume) { return;}
+    auto volume = static_cast<GLVolume*>(m_curr_feature->volume);
+    auto mesh   = const_cast<TriangleMesh *>(volume->ori_mesh);
     const auto &[idx, normal, pt] = feature.get_plane();
     if (plane_gl_model.plane_idx != idx) {
         plane_gl_model.plane.reset();
@@ -634,7 +637,7 @@ void GLGizmoMeasure::init_plane_glmodel(GripperType gripper_type, const Measure:
     if (!plane_gl_model.plane) {
         plane_gl_model.plane_idx    = idx;
         reset_gripper_pick(gripper_type);
-        plane_gl_model.plane     = init_plane_data(*feature.mesh, *feature.plane_indices);
+        plane_gl_model.plane = init_plane_data(mesh->its, *feature.plane_indices);
         if (plane_gl_model.plane) {
             if (auto mesh = plane_gl_model.plane->mesh) {
                 m_gripper_id_raycast_map[gripper_type] = std::make_shared<PickRaycaster>(mesh, PLANE_ID);
@@ -770,8 +773,7 @@ void GLGizmoMeasure::on_render()
                 reset_gripper_pick(GripperType::UNDEFINE, true);
 
                 m_curr_feature = curr_feature;
-                auto mesh  = const_cast<TriangleMesh *>(m_last_hit_volume->ori_mesh);
-                m_curr_feature->mesh = &mesh->its;
+                m_curr_feature->volume     = m_last_hit_volume;
                 m_curr_feature->world_tran = m_mesh_raycaster_map[m_last_hit_volume]->world_tran.get_matrix();
                 if (!m_curr_feature.has_value())
                     return;
@@ -2301,12 +2303,10 @@ bool Slic3r::GUI::GLGizmoMeasure::is_two_volume_in_same_model_object()
     return false;
 }
 
-Measure::Measuring *GLGizmoMeasure::get_measuring_of_mesh(indexed_triangle_set *mesh, Transform3d &tran)
+Measure::Measuring *GLGizmoMeasure::get_measuring_of_mesh(GLVolume *v, Transform3d &tran)
 {
     for (auto glvolume:m_hit_order_volumes) {
-        auto ori_mesh = const_cast<TriangleMesh*>(glvolume->ori_mesh);
-        auto ori_triangle_set = const_cast<indexed_triangle_set*>(&ori_mesh->its);
-        if (ori_triangle_set == mesh) {
+        if (glvolume == v) {
             tran = m_mesh_raycaster_map[glvolume]->world_tran.get_matrix();
             return m_mesh_measure_map[glvolume].get();
         }
@@ -2336,7 +2336,9 @@ void GLGizmoMeasure::update_world_plane_features(Measure::Measuring *cur_measuri
 
 void GLGizmoMeasure::update_feature_by_tran(Measure::SurfaceFeature &feature)
 {
-    Measure::Measuring *cur_measuring = get_measuring_of_mesh(feature.mesh, feature.world_tran);
+    if (!feature.volume) { return; }
+    auto  volume  = static_cast<GLVolume *>(feature.volume);
+    Measure::Measuring *cur_measuring = get_measuring_of_mesh(volume, feature.world_tran);
     switch (feature.get_type()) {
     case Measure::SurfaceFeatureType::Point:
     case Measure::SurfaceFeatureType::Edge:

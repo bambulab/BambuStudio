@@ -199,7 +199,7 @@ protected:
     void reset_feature1();
     void reset_feature2();
     bool is_two_volume_in_same_model_object();
-    Measure::Measuring* get_measuring_of_mesh(indexed_triangle_set *mesh, Transform3d &tran);
+    Measure::Measuring* get_measuring_of_mesh(GLVolume *v, Transform3d &tran);
     void update_world_plane_features(Measure::Measuring *cur_measuring, Measure::SurfaceFeature &feautre);
     void update_feature_by_tran(Measure::SurfaceFeature & feature);
  private:
