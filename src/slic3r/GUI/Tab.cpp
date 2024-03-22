@@ -2581,10 +2581,10 @@ void TabPrintPlate::build()
     auto page = add_options_page(L("Plate Settings"), "empty");
     auto optgroup = page->new_optgroup("");
     optgroup->append_single_option_line("curr_bed_type");
-    optgroup->append_single_option_line("print_sequence");
-    optgroup->append_single_option_line("spiral_mode");
-    optgroup->append_single_option_line("first_layer_sequence_choice");
-    optgroup->append_single_option_line("other_layers_sequence_choice");
+    optgroup->append_single_option_line("print_sequence", "sequent-print");
+    optgroup->append_single_option_line("spiral_mode", "spiral-vase");
+    optgroup->append_single_option_line("first_layer_sequence_choice", "parameter/filament-sequence-for-different-layers");
+    optgroup->append_single_option_line("other_layers_sequence_choice", "parameter/filament-sequence-for-different-layers");
 
     for (auto& line : const_cast<std::vector<Line>&>(optgroup->get_lines())) {
         line.undo_to_sys = true;
