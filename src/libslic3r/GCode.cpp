@@ -4081,13 +4081,14 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
                 paths.insert(paths.end(), new_loop.paths.begin(), new_loop.paths.end());
                 paths.insert(paths.end(), new_loop.ends.begin(), new_loop.ends.end());
             }
+        } else {
+            paths.clear();
+            loop.clip_end(clip_length, &paths);
+            if (paths.empty()) return "";
         }
     }
 
     if (!enable_seam_slope || slope_has_overhang) {
-        if (enable_seam_slope)
-            paths.back().clip_end(seam_gap);
-
         for (ExtrusionPaths::iterator path = paths.begin(); path != paths.end(); ++path) {
             gcode += this->_extrude(*path, description, speed_for_path(*path));
         }
