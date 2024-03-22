@@ -224,6 +224,38 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         apply(config, &new_conf);
         is_msg_dlg_already_exist = false;
     }
+
+    //BBS: limit scarf seam start height range
+    bool apply_scarf_seam = config->opt_enum<SeamScarfType>("seam_slope_type") != SeamScarfType::None;
+    if (apply_scarf_seam) {
+        // scarf seam start height shouldn't small than zero
+        double layer_height = config->opt_float("layer_height");
+        double scarf_seam_slope_height = config->option<ConfigOptionFloatOrPercent>("seam_slope_start_height")->get_abs_value(layer_height);
+
+        if (scarf_seam_slope_height < EPSILON) {
+            const wxString     msg_text = _(L("Too small scarf start height.\nReset to 50%"));
+            MessageDialog      dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
+            DynamicPrintConfig new_conf = *config;
+            is_msg_dlg_already_exist    = true;
+            dialog.ShowModal();
+            new_conf.set_key_value("seam_slope_start_height", new ConfigOptionFloatOrPercent(50, true));
+            apply(config, &new_conf);
+            is_msg_dlg_already_exist = false;
+        }
+
+        // scarf seam start height shouldn't bigger than layer height
+        if (scarf_seam_slope_height > config->opt_float("layer_height") + EPSILON) {
+            const wxString     msg_text = _(L("Too big scarf start height.\nReset to 50%"));
+            MessageDialog      dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
+            DynamicPrintConfig new_conf = *config;
+            is_msg_dlg_already_exist    = true;
+            dialog.ShowModal();
+            new_conf.set_key_value("seam_slope_start_height", new ConfigOptionFloatOrPercent(50, true));
+            apply(config, &new_conf);
+            is_msg_dlg_already_exist = false;
+        }
+    }
+
     //BBS: top_area_threshold showed if the top one wall function be applyed
     bool top_one_wall_apply = config->opt_enum<TopOneWallType>("top_one_wall_type") == TopOneWallType::None;
     toggle_line("top_area_threshold", !top_one_wall_apply);
