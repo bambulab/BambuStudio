@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-21 17:24+0800\n"
+"POT-Creation-Date: 2024-03-22 15:49+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -6204,6 +6204,13 @@ msgid "Ignore"
 msgstr ""
 
 msgid ""
+"Experimental feature: Retracting and cutting off the filament at a greater "
+"distance during filament changes to minimize flush.Although it can notably "
+"reduce flush, it may also elevate the risk of nozzle clogs or other printing "
+"complications."
+msgstr ""
+
+msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
 "by right-click the empty position of build plate and choose \"Add Primitive"
@@ -6571,7 +6578,7 @@ msgstr ""
 msgid "Use Modified Value of Filament Preset"
 msgstr ""
 
-msgid "Use Modified Value of Printer"
+msgid "Use Modified Value of Printer Preset"
 msgstr ""
 
 msgid "Preset(Old)"
@@ -7073,33 +7080,6 @@ msgid "Done"
 msgstr "Hotovo"
 
 msgid "resume"
-msgstr ""
-
-msgid "Resume Printing"
-msgstr ""
-
-msgid "Resume Printing(defects acceptable)"
-msgstr ""
-
-msgid "Resume Printing(problem solved)"
-msgstr ""
-
-msgid "Stop Printing"
-msgstr ""
-
-msgid "Filament Extruded,Continue"
-msgstr ""
-
-msgid "Not Extruded Yet,Retry"
-msgstr ""
-
-msgid "Finished,Continue"
-msgstr ""
-
-msgid "Load Filament "
-msgstr ""
-
-msgid "OK "
 msgstr ""
 
 msgid "Confirm and Update Nozzle"
@@ -9245,6 +9225,24 @@ msgstr ""
 "Některé množství materiálu v extruderu je staženo zpět, aby se zabránilo "
 "slizu při dlouhém pohybu. Nastavte nulu, abyste zablokovali retrakce"
 
+msgid "Long retraction when cut(experimental)"
+msgstr ""
+
+msgid ""
+"Experimental feature.Retracting and cutting off the filament at a longer "
+"distance during changes to minimize purge.While this reduces flush "
+"significantly, it may also raise the risk of nozzle clogs or other printing "
+"problems."
+msgstr ""
+
+msgid "Retraction distance when cut"
+msgstr ""
+
+msgid ""
+"Experimental feature.Retraction length before cutting off during filament "
+"change"
+msgstr ""
+
 msgid "Z hop when retract"
 msgstr "Z hop při retrakci"
 
@@ -9334,7 +9332,7 @@ msgstr ""
 "Tato hodnota je vyjádřena jako procento průměru aktuální trysky. Výchozí "
 "hodnota tohoto parametru je 15"
 
-msgid "Scarf joint seam (beta)"
+msgid "Scarf joint seam (experimental)"
 msgstr ""
 
 msgid "Use scarf joint to minimize seam visibility and increase seam strength."

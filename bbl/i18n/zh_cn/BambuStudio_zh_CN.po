@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-21 17:24+0800\n"
+"POT-Creation-Date: 2024-03-22 15:49+0800\n"
 "PO-Revision-Date: 2024-02-23 20:10+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -6088,6 +6088,15 @@ msgid "Ignore"
 msgstr "忽略"
 
 msgid ""
+"Experimental feature: Retracting and cutting off the filament at a greater "
+"distance during filament changes to minimize flush.Although it can notably "
+"reduce flush, it may also elevate the risk of nozzle clogs or other printing "
+"complications."
+msgstr ""
+"实验性选项。在更换耗材丝时，将耗材丝回抽一段距离后再切断以最小化冲刷。虽然这"
+"可以显著减少冲刷，但也可能增加喷嘴堵塞或其他打印问题的风险。"
+
+msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
 "by right-click the empty position of build plate and choose \"Add Primitive"
@@ -6162,7 +6171,7 @@ msgid "Post-processing scripts"
 msgstr "后处理脚本"
 
 msgid "Notes"
-msgstr ""
+msgstr "注释"
 
 msgid "Frequent"
 msgstr "常用"
@@ -6422,28 +6431,28 @@ msgid "Undef"
 msgstr "未定义"
 
 msgid "Discard or Use Modified Value"
-msgstr ""
+msgstr "丢弃或使用修改值"
 
 msgid "Save or Discard Modified Value"
-msgstr ""
+msgstr "保存或丢弃修改值"
 
 msgid "Unsaved Changes"
 msgstr "未保存的更改"
 
 msgid "Use Modified Value of Process Preset"
-msgstr ""
+msgstr "使用工艺预设的修改值"
 
 msgid "Use Modified Value of Filament Preset"
-msgstr ""
+msgstr "使用材料预设的修改值"
 
-msgid "Use Modified Value of Printer"
-msgstr ""
+msgid "Use Modified Value of Printer Preset"
+msgstr "使用机器预设的修改值"
 
 msgid "Preset(Old)"
-msgstr ""
+msgstr "预设（旧）"
 
 msgid "Modified Value(New)"
-msgstr ""
+msgstr "修改值（新）"
 
 msgid "Save Modified Value"
 msgstr "保存修改值"
@@ -6452,10 +6461,10 @@ msgid "Don't save"
 msgstr "不保存"
 
 msgid "Discard Modified Value"
-msgstr ""
+msgstr "丢弃修改值"
 
 msgid "Use Modified Value"
-msgstr ""
+msgstr "使用修改值"
 
 msgid "Click the right mouse button to display the full text."
 msgstr "单击鼠标右键显示全文。"
@@ -6515,21 +6524,25 @@ msgid ""
 "\n"
 "You can save or discard the preset values you have modified."
 msgstr ""
+"\n"
+"您可以保存或丢弃已经修改的预设值。"
 
 msgid ""
 "\n"
 "You can save or discard the preset values you have modified, or choose to "
 "continue using the values you have modified on the new preset."
-msgstr ""
+msgstr "\n您可以丢弃修改过的预设值，或选择在新项目中继续使用修改后的值。"
 
 msgid "You have previously modified your settings."
-msgstr ""
+msgstr "您已经修改了预设参数。"
 
 msgid ""
 "\n"
 "You can discard the preset values you have modified, or choose to continue "
 "using the modified values in the new project"
 msgstr ""
+"\n"
+"您可以丢弃修改过的预设值，或选择在新项目中继续使用修改后的值"
 
 msgid "Extruders count"
 msgstr "挤出机数量"
@@ -6934,33 +6947,6 @@ msgstr "完成"
 
 msgid "resume"
 msgstr "继续"
-
-msgid "Resume Printing"
-msgstr "继续打印"
-
-msgid "Resume Printing(defects acceptable)"
-msgstr "继续打印（缺陷可接受）"
-
-msgid "Resume Printing(problem solved)"
-msgstr "继续打印（问题已解决）"
-
-msgid "Stop Printing"
-msgstr "停止打印"
-
-msgid "Filament Extruded,Continue"
-msgstr "耗材已挤出，继续"
-
-msgid "Not Extruded Yet,Retry"
-msgstr "耗材未挤出，重试"
-
-msgid "Finished,Continue"
-msgstr "已完成，继续"
-
-msgid "Load Filament "
-msgstr "进料"
-
-msgid "OK "
-msgstr "我知道了"
 
 msgid "Confirm and Update Nozzle"
 msgstr "确认并更新喷嘴"
@@ -8129,19 +8115,19 @@ msgid "Filament notes"
 msgstr ""
 
 msgid "You can put your notes regarding the filament here."
-msgstr ""
+msgstr "你可以把材料的注释放在这里。"
 
 msgid "Process notes"
 msgstr ""
 
 msgid "You can put your notes regarding the process here."
-msgstr ""
+msgstr "你可以把工艺的注释放在这里。"
 
 msgid "Printer notes"
 msgstr ""
 
 msgid "You can put your notes regarding the printer here."
-msgstr ""
+msgstr "你可以把打印机的注释放在这里。"
 
 msgid "Default line width if some line width is set to be zero"
 msgstr "当线宽设置为0时走线的默认线宽"
@@ -8994,6 +8980,26 @@ msgstr ""
 "挤出机中的一些材料会被拉回特定长度，避免空驶较长时材料渗出。设置为0表示关闭回"
 "抽。"
 
+msgid "Long retraction when cut(experimental)"
+msgstr "切料时回抽（实验）"
+
+msgid ""
+"Experimental feature.Retracting and cutting off the filament at a longer "
+"distance during changes to minimize purge.While this reduces flush "
+"significantly, it may also raise the risk of nozzle clogs or other printing "
+"problems."
+msgstr ""
+"实验性选项。在更换耗材丝时，将耗材丝回抽一段距离后再切断以最小化冲刷。虽然这"
+"大大减少了冲刷，但也可能增加喷嘴堵塞或其他打印问题的风险。"
+
+msgid "Retraction distance when cut"
+msgstr "切料回抽距离"
+
+msgid ""
+"Experimental feature.Retraction length before cutting off during filament "
+"change"
+msgstr "实验性选项。在更换耗材丝时，切断前的回抽长度"
+
 msgid "Z hop when retract"
 msgstr "回抽时抬升Z"
 
@@ -9083,8 +9089,8 @@ msgstr ""
 "为了减少闭环挤出中接缝的可见性，循环会被中断并缩短指定的长度。\n"
 "这个长度是当前挤出器直径的百分比。该参数的默认值为15。"
 
-msgid "Scarf joint seam (beta)"
-msgstr "斜拼接缝（试验）"
+msgid "Scarf joint seam (experimental)"
+msgstr "斜拼接缝（实验）"
 
 msgid "Use scarf joint to minimize seam visibility and increase seam strength."
 msgstr "使用斜拼接缝来最小化接缝的可见性并增加接缝的强度。"
@@ -11838,6 +11844,39 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid "Use Modified Value of Printer"
+#~ msgstr "使用机器预设的修改值"
+
+#~ msgid "Scarf joint seam (beta)"
+#~ msgstr "斜拼接缝（试验）"
+
+#~ msgid "Resume Printing"
+#~ msgstr "继续打印"
+
+#~ msgid "Resume Printing(defects acceptable)"
+#~ msgstr "继续打印（缺陷可接受）"
+
+#~ msgid "Resume Printing(problem solved)"
+#~ msgstr "继续打印（问题已解决）"
+
+#~ msgid "Stop Printing"
+#~ msgstr "停止打印"
+
+#~ msgid "Filament Extruded,Continue"
+#~ msgstr "耗材已挤出，继续"
+
+#~ msgid "Not Extruded Yet,Retry"
+#~ msgstr "耗材未挤出，重试"
+
+#~ msgid "Finished,Continue"
+#~ msgstr "已完成，继续"
+
+#~ msgid "Load Filament "
+#~ msgstr "进料"
+
+#~ msgid "OK "
+#~ msgstr "我知道了"
 
 #~ msgid "Translate (relative) [World]"
 #~ msgstr "平移（相对）[世界]"
