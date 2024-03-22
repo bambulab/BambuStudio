@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-21 17:24+0800\n"
+"POT-Creation-Date: 2024-03-22 15:49+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -5916,6 +5916,13 @@ msgid "Ignore"
 msgstr ""
 
 msgid ""
+"Experimental feature: Retracting and cutting off the filament at a greater "
+"distance during filament changes to minimize flush.Although it can notably "
+"reduce flush, it may also elevate the risk of nozzle clogs or other printing "
+"complications."
+msgstr ""
+
+msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
 "by right-click the empty position of build plate and choose \"Add Primitive"
@@ -6250,7 +6257,7 @@ msgstr ""
 msgid "Use Modified Value of Filament Preset"
 msgstr ""
 
-msgid "Use Modified Value of Printer"
+msgid "Use Modified Value of Printer Preset"
 msgstr ""
 
 msgid "Preset(Old)"
@@ -6737,33 +6744,6 @@ msgid "Done"
 msgstr ""
 
 msgid "resume"
-msgstr ""
-
-msgid "Resume Printing"
-msgstr ""
-
-msgid "Resume Printing(defects acceptable)"
-msgstr ""
-
-msgid "Resume Printing(problem solved)"
-msgstr ""
-
-msgid "Stop Printing"
-msgstr ""
-
-msgid "Filament Extruded,Continue"
-msgstr ""
-
-msgid "Not Extruded Yet,Retry"
-msgstr ""
-
-msgid "Finished,Continue"
-msgstr ""
-
-msgid "Load Filament "
-msgstr ""
-
-msgid "OK "
 msgstr ""
 
 msgid "Confirm and Update Nozzle"
@@ -8694,6 +8674,24 @@ msgid ""
 "travel. Set zero to disable retraction"
 msgstr ""
 
+msgid "Long retraction when cut(experimental)"
+msgstr ""
+
+msgid ""
+"Experimental feature.Retracting and cutting off the filament at a longer "
+"distance during changes to minimize purge.While this reduces flush "
+"significantly, it may also raise the risk of nozzle clogs or other printing "
+"problems."
+msgstr ""
+
+msgid "Retraction distance when cut"
+msgstr ""
+
+msgid ""
+"Experimental feature.Retraction length before cutting off during filament "
+"change"
+msgstr ""
+
 msgid "Z hop when retract"
 msgstr ""
 
@@ -8779,7 +8777,7 @@ msgid ""
 "value for this parameter is 15"
 msgstr ""
 
-msgid "Scarf joint seam (beta)"
+msgid "Scarf joint seam (experimental)"
 msgstr ""
 
 msgid "Use scarf joint to minimize seam visibility and increase seam strength."

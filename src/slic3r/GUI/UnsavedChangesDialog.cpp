@@ -813,7 +813,7 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, PresetCollection *
                 (!no_transfer && !new_selected_preset.empty() && dependent_presets) ?
                     dependent_presets->type() == Preset::Type::TYPE_PRINT    ? _L("Use Modified Value of Process Preset") :
                     dependent_presets->type() == Preset::Type::TYPE_FILAMENT ? _L("Use Modified Value of Filament Preset") :
-                    dependent_presets->type() == Preset::Type::TYPE_PRINTER  ? _L("Use Modified Value of Printer") :
+                    dependent_presets->type() == Preset::Type::TYPE_PRINTER  ? _L("Use Modified Value of Printer Preset") :
                                                                                _L("Save or Discard Modified Value") :
                     _L("Save or Discard Modified Value"),
                 wxDefaultPosition,
