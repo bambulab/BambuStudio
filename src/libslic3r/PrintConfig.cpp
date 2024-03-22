@@ -2877,7 +2877,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm or %");
     def->min      = 0;
     def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionFloatOrPercent(0.1, false));
+    def->set_default_value(new ConfigOptionFloatOrPercent(50, true));
 
     def          = this->add("seam_slope_entire_loop", coBool);
     def->label   = L("Scarf around entire wall");
