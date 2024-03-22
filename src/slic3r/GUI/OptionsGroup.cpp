@@ -1270,7 +1270,11 @@ wxString OptionsGroup::get_url(const std::string& path_end)
         anchor.Replace(L" ", "-");
         str = str.Left(pos) + anchor;
     }
-    return wxString::Format(L"https://wiki.bambulab.com/%s/software/bambu-studio/%s", L"en", str);
+    std::string language = wxGetApp().app_config->get("language");
+    wxString    region    = L"en";
+    if (language.find("zh") == 0)
+        region = L"zh";
+    return wxString::Format(L"https://wiki.bambulab.com/%s/software/bambu-studio/%s", region, str);
 }
 
 bool OptionsGroup::launch_browser(const std::string& path_end)
