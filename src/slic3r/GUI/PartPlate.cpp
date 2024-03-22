@@ -283,6 +283,8 @@ void PartPlate::set_spiral_vase_mode(bool spiral_mode, bool as_global)
 		m_config.erase(key);
 	else {
 		if (spiral_mode) {
+			if (get_spiral_vase_mode())
+				return;
 			// Secondary confirmation
 			auto answer = static_cast<TabPrintPlate*>(wxGetApp().plate_tab)->show_spiral_mode_settings_dialog(false);
 			if (answer == wxID_YES) {
@@ -2359,16 +2361,30 @@ void PartPlate::set_vase_mode_related_object_config(int obj_id) {
 	}
 	else
 		obj_ptrs = get_objects_on_this_plate();
+
+	DynamicPrintConfig* global_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
+	DynamicPrintConfig new_conf;
+	new_conf.set_key_value("wall_loops", new ConfigOptionInt(1));
+	new_conf.set_key_value("top_shell_layers", new ConfigOptionInt(0));
+	new_conf.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
+	new_conf.set_key_value("enable_support", new ConfigOptionBool(false));
+	new_conf.set_key_value("enforce_support_layers", new ConfigOptionInt(0));
+	new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionBool(true));
+	new_conf.set_key_value("detect_thin_wall", new ConfigOptionBool(false));
+	new_conf.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
+	auto applying_keys = global_config->diff(new_conf);
+
 	for (ModelObject* object : obj_ptrs) {
 		ModelConfigObject& config = object->config;
-		config.set_key_value("wall_loops", new ConfigOptionInt(1));
-		config.set_key_value("top_shell_layers", new ConfigOptionInt(0));
-		config.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
-		config.set_key_value("enable_support", new ConfigOptionBool(false));
-		config.set_key_value("enforce_support_layers", new ConfigOptionInt(0));
-		config.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionBool(true));
-		config.set_key_value("detect_thin_wall", new ConfigOptionBool(false));
-		config.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
+
+		for (auto opt_key : applying_keys) {
+			config.set_key_value(opt_key, new_conf.option(opt_key)->clone());
+		}
+
+		applying_keys = config.get().diff(new_conf);
+		for (auto opt_key : applying_keys) {
+			config.set_key_value(opt_key, new_conf.option(opt_key)->clone());
+		}
 	}
 	//wxGetApp().obj_list()->update_selections();
 }
