@@ -322,7 +322,7 @@ void ExtrusionLoopSloped::clip_end(const double distance)
 {
     double clip_dist = distance;
     std::vector<ExtrusionPathSloped> &ends_slope = this->ends;
-    while (clip_dist > 0) {
+    while (clip_dist > 0 && !ends_slope.empty()) {
         ExtrusionPathSloped &last_path = ends_slope.back();
         double len = last_path.length();
         if (len <= clip_dist) {
@@ -345,7 +345,7 @@ void ExtrusionLoopSloped::clip_front(const double distance)
     std::vector<ExtrusionPathSloped> &start_slope = this->starts;
 
     Polyline front_inward;
-    while (distance > 0) {
+    while (distance > 0 && !start_slope.empty()) {
         ExtrusionPathSloped &first_path = start_slope.front();
         double len = first_path.length();
         if (len <= clip_dist) {
