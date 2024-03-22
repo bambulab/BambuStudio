@@ -35,7 +35,7 @@ public:
 
     SurfaceFeature(const SurfaceFeature& sf){
         this->clone(sf);
-        mesh                   = sf.mesh;
+        volume                 = sf.volume;
         plane_indices          = sf.plane_indices;
         world_tran             = sf.world_tran;
         world_plane_features   = sf.world_plane_features;
@@ -92,7 +92,7 @@ public:
         return !operator == (other);
     }
 
-    indexed_triangle_set* mesh{nullptr};
+    void* volume{nullptr};
     std::vector<int>*    plane_indices{nullptr};
     Transform3d                  world_tran;
     std::shared_ptr<std::vector<SurfaceFeature>> world_plane_features{nullptr};
