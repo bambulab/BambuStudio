@@ -1548,8 +1548,8 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         bool activate = boost::any_cast<bool>(value);
         if (activate) {
             MessageDialog dialog(wxGetApp().plater(), 
-            "Experimental feature: Retracting and cutting off the filament at a greater distance during filament changes to minimize flush."
-            "Although it can notably reduce flush, it may also elevate the risk of nozzle clogs or other printing complications.", "", wxICON_WARNING | wxOK);
+            _L("Experimental feature: Retracting and cutting off the filament at a greater distance during filament changes to minimize flush."
+            "Although it can notably reduce flush, it may also elevate the risk of nozzle clogs or other printing complications."), "", wxICON_WARNING | wxOK);
             dialog.ShowModal();
         }
         update_flush_volume();
