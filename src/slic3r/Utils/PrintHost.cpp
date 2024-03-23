@@ -20,6 +20,7 @@
 #include "Repetier.hpp"
 #include "MKS.hpp"
 #include "../GUI/PrintHostDialogs.hpp"
+#include "SimplyPrint.hpp"
 
 namespace fs = boost::filesystem;
 using boost::optional;
@@ -53,6 +54,7 @@ PrintHost* PrintHost::get_print_host(DynamicPrintConfig *config)
             case htRepetier:  return new Repetier(config);
             case htPrusaLink: return new PrusaLink(config);
             case htMKS:       return new MKS(config);
+            case htSimplyPrint: return new SimplyPrint(config);
             default:          return nullptr;
         }
     } else {

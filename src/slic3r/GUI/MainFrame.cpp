@@ -1682,7 +1682,7 @@ wxBoxSizer* MainFrame::create_side_tools()
             SidePopup* p = new SidePopup(this);
 
             if (wxGetApp().preset_bundle
-                && !wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle)) {
+                && !wxGetApp().preset_bundle->use_bbl_network()) {
                 // ThirdParty Buttons
                 SideButton* export_gcode_btn = new SideButton(p, _L("Export G-code file"), "");
                 export_gcode_btn->SetCornerRadius(0);
@@ -1981,7 +1981,7 @@ void MainFrame::update_side_button_style()
     m_slice_btn->SetExtraSize(wxSize(FromDIP(38), FromDIP(10)));
     m_slice_btn->SetBottomColour(wxColour(0x3B4446));*/
     StateColor m_btn_bg_enable = StateColor(
-        std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), 
+        std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
         std::pair<wxColour, int>(wxColour(48, 221, 112), StateColor::Hovered),
         std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal)
     );
@@ -2684,7 +2684,7 @@ void MainFrame::init_menubar_as_editor()
     wxWindowID bambu_studio_id_base = wxWindow::NewControlId(int(2));
     wxMenu* parent_menu = m_menubar->OSXGetAppleMenu();
     //auto preference_item = new wxMenuItem(parent_menu, BambuStudioMenuPreferences + bambu_studio_id_base, _L("Preferences") + "\tCtrl+,", "");
-        
+
         std::string app_items[] = {
             L("Services"),
             L("Hide BambuStudio"),
@@ -2902,7 +2902,7 @@ void MainFrame::init_menubar_as_editor()
             m_topbar->GetCalibMenu()->AppendSubMenu(advance_menu, _L("More..."));
         }
 
-        // help 
+        // help
         append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Tutorial"), _L("Calibration help"),
             [this](wxCommandEvent&) {
                 try {
@@ -3048,7 +3048,7 @@ void MainFrame::init_menubar_as_editor()
             ;
         },
         this);
-        
+
     m_menubar->Append(new wxMenu(), L("Window"));
     std::string window_items[] = {
         L("Minimize"),
@@ -3739,9 +3739,9 @@ void MainFrame::load_printer_url(wxString url)
 void MainFrame::load_printer_url()
 {
     PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
-    if (preset_bundle.printers.get_edited_preset().is_bbl_vendor_preset(&preset_bundle))
+    if (preset_bundle.use_bbl_network())
         return;
-    
+
     auto cfg = preset_bundle.printers.get_edited_preset().config;
     wxString url =
         cfg.opt_string("print_host_webui").empty() ? cfg.opt_string("print_host") : cfg.opt_string("print_host_webui");
@@ -3768,9 +3768,9 @@ void MainFrame::RunScript(wxString js)
         m_webview->RunScript(js);
 }
 
-void MainFrame::RunScriptLeft(wxString js) 
+void MainFrame::RunScriptLeft(wxString js)
 {
-    if (m_webview != nullptr) 
+    if (m_webview != nullptr)
         m_webview->RunScriptLeft(js);
 }
 

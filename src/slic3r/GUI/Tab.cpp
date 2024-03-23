@@ -1565,7 +1565,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     if (opt_key == "filament_long_retractions_when_cut"){
         unsigned char activate = boost::any_cast<unsigned char>(value);
         if (activate == 1) {
-            MessageDialog dialog(wxGetApp().plater(), 
+            MessageDialog dialog(wxGetApp().plater(),
             _L("Experimental feature: Retracting and cutting off the filament at a greater distance during filament changes to minimize flush."
             "Although it can notably reduce flush, it may also elevate the risk of nozzle clogs or other printing complications.Please use with the latest printer firmware."), "", wxICON_WARNING | wxOK);
             dialog.ShowModal();
@@ -3492,6 +3492,7 @@ void TabPrinter::build_fff()
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
         optgroup->append_single_option_line("printer_structure");
         optgroup->append_single_option_line("gcode_flavor");
+        optgroup->append_single_option_line("bbl_use_printhost");
 
         option =optgroup->get_option("thumbnail_size");
         option.opt.full_width=true;
@@ -4109,6 +4110,7 @@ void TabPrinter::toggle_options()
         toggle_option("support_chamber_temp_control",!is_BBL_printer);
         toggle_option("use_firmware_retraction", !is_BBL_printer);
         toggle_option("support_air_filtration",is_BBL_printer);
+        toggle_option("bbl_use_printhost", is_BBL_printer);
         auto flavor = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
         bool is_marlin_flavor = flavor == gcfMarlinLegacy || flavor == gcfMarlinFirmware;
         // Disable silent mode for non-marlin firmwares.
@@ -4602,7 +4604,7 @@ bool Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
                 delete_third_printer = true;
                 for (const Preset &preset : m_preset_bundle->filaments.get_presets()) {
                     if (preset.is_compatible && !preset.is_default) {
-                        if (preset.inherits() != "") 
+                        if (preset.inherits() != "")
                             filament_presets.push_front(preset);
                         else
                             filament_presets.push_back(preset);
@@ -5494,7 +5496,7 @@ wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
                         load_key_value("bed_custom_model", custom_model);
                         update_changed_ui();
                     }
-                
+
                 } else {
                     show_error(m_parent, _L("Invalid input."));
                 }

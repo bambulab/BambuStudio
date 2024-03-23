@@ -1161,11 +1161,13 @@ void Sidebar::update_all_preset_comboboxes()
     const auto print_tech = preset_bundle.printers.get_edited_preset().printer_technology();
 
     bool is_bbl_preset = preset_bundle.printers.get_edited_preset().is_bbl_vendor_preset(&preset_bundle);
+    const bool use_bbl_network = preset_bundle.use_bbl_network();
     auto cur_preset_name = preset_bundle.printers.get_edited_preset().name;
     auto p_mainframe = wxGetApp().mainframe;
+    auto cfg = preset_bundle.printers.get_edited_preset().config;
 
-    p_mainframe->show_device(is_bbl_preset);
-    if (is_bbl_preset) {
+    p_mainframe->show_device(use_bbl_network);
+    if (use_bbl_network) {
         //only show connection button for not-BBL printer
         connection_btn->Hide();
         //only show sync-ams button for BBL printer
@@ -1313,7 +1315,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
 
         Preset& printer_preset = wxGetApp().preset_bundle->printers.get_edited_preset();
 
-        bool isBBL = printer_preset.is_bbl_vendor_preset(wxGetApp().preset_bundle);
+        bool isBBL = preset_bundle.use_bbl_network();
         wxGetApp().mainframe->show_calibration_button(!isBBL);
 
         if (auto printer_structure_opt = printer_preset.config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure")) {
@@ -3961,14 +3963,14 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 std::vector<Preset *> project_presets;
                 bool                  is_xxx;
                 Semver                file_version;
-                
+
                 //ObjImportColorFn obj_color_fun=nullptr;
                 auto obj_color_fun = [this, &path](std::vector<RGBA> &input_colors, bool is_single_color, std::vector<unsigned char> &filament_ids,
                                                    unsigned char &first_extruder_id) {
                     if (!boost::iends_with(path.string(), ".obj")) { return; }
                     const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
                     ObjColorDialog                 color_dlg(nullptr, input_colors, is_single_color, extruder_colours, filament_ids, first_extruder_id);
-                    if (color_dlg.ShowModal() != wxID_OK) { 
+                    if (color_dlg.ShowModal() != wxID_OK) {
                         filament_ids.clear();
                     }
                 };
@@ -11288,7 +11290,7 @@ void Plater::export_stl(bool extended, bool selection_only, bool multi_stls)
         const auto obj_idx = selection.get_object_idx();
         if (obj_idx == -1 ||selection.is_wipe_tower())
             return;
-        // only support selection single full object 
+        // only support selection single full object
         if (!selection.is_single_full_object())
             return;
         const ModelObject *cur_model_object = p->model.objects[obj_idx];
