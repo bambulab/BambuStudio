@@ -1504,6 +1504,8 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("PPS-CF");
     def->enum_values.push_back("PPA-CF");
     def->enum_values.push_back("PPA-GF");
+    def->enum_values.push_back("ABS-GF");
+    def->enum_values.push_back("ASA-Aero");
     def->enum_values.push_back("PE");
     def->enum_values.push_back("PP");
     def->enum_values.push_back("EVA");
