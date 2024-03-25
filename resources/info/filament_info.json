@@ -12,7 +12,9 @@
         "PPS",
         "PPS-CF",
         "PPA-CF",
-        "PPA-GF"
+        "PPA-GF",
+        "ABS-GF",
+        "ASA-Aero"
     ],
     "low_temp_filament": [
         "PLA",
