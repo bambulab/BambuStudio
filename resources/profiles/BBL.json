@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.09.00.02",
+    "version": "01.09.00.03",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -766,6 +766,10 @@
             "sub_path": "filament/Bambu PLA Galaxy @base.json"
         },
         {
+            "name": "Bambu Support For PLA/PETG @base",
+            "sub_path": "filament/Bambu Support For PLA-PETG @base.json"
+        },
+        {
             "name": "Bambu TPU 95A @base",
             "sub_path": "filament/Bambu TPU 95A @base.json"
         },
@@ -826,6 +830,10 @@
             "sub_path": "filament/PolyLite ABS @base.json"
         },
         {
+            "name": "Bambu ABS-GF @base",
+            "sub_path": "filament/Bambu ABS-GF @base.json"
+        },
+        {
             "name": "Bambu PC @base",
             "sub_path": "filament/Bambu PC @base.json"
         },
@@ -844,6 +852,10 @@
         {
             "name": "PolyLite ASA @base",
             "sub_path": "filament/PolyLite ASA @base.json"
+        },
+        {
+            "name": "Bambu ASA-Aero @base",
+            "sub_path": "filament/Bambu ASA-Aero @base.json"
         },
         {
             "name": "Generic PVA @base",
@@ -1614,6 +1626,38 @@
             "sub_path": "filament/Bambu PLA Galaxy @BBL A1M 0.2 nozzle.json"
         },
         {
+            "name": "Bambu Support For PLA/PETG @BBL X1C",
+            "sub_path": "filament/Bambu Support For PLA-PETG @BBL X1C.json"
+        },
+        {
+            "name": "Bambu Support For PLA/PETG @BBL X1C 0.2 nozzle",
+            "sub_path": "filament/Bambu Support For PLA-PETG @BBL X1C 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu Support For PLA/PETG @BBL P1P",
+            "sub_path": "filament/Bambu Support For PLA-PETG @BBL P1P.json"
+        },
+        {
+            "name": "Bambu Support For PLA/PETG @BBL P1P 0.2 nozzle",
+            "sub_path": "filament/Bambu Support For PLA-PETG @BBL P1P 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu Support For PLA/PETG @BBL A1M",
+            "sub_path": "filament/Bambu Support For PLA-PETG @BBL A1M.json"
+        },
+        {
+            "name": "Bambu Support For PLA/PETG @BBL A1M 0.2 nozzle",
+            "sub_path": "filament/Bambu Support For PLA-PETG @BBL A1M 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu Support For PLA/PETG @BBL A1",
+            "sub_path": "filament/Bambu Support For PLA-PETG @BBL A1.json"
+        },
+        {
+            "name": "Bambu Support For PLA/PETG @BBL A1 0.2 nozzle",
+            "sub_path": "filament/Bambu Support For PLA-PETG @BBL A1 0.2 nozzle.json"
+        },
+        {
             "name": "Bambu TPU 95A @BBL X1C",
             "sub_path": "filament/Bambu TPU 95A @BBL X1C.json"
         },
@@ -1902,6 +1946,18 @@
             "sub_path": "filament/PolyLite ABS @BBL A1 0.2 nozzle.json"
         },
         {
+            "name": "Bambu ABS-GF @BBL X1C",
+            "sub_path": "filament/Bambu ABS-GF @BBL X1C.json"
+        },
+        {
+            "name": "Bambu ABS-GF @BBL P1P",
+            "sub_path": "filament/Bambu ABS-GF @BBL P1P.json"
+        },
+        {
+            "name": "Bambu ABS-GF @BBL A1",
+            "sub_path": "filament/Bambu ABS-GF @BBL A1.json"
+        },
+        {
             "name": "Bambu PC @BBL X1C",
             "sub_path": "filament/Bambu PC @BBL X1C.json"
         },
@@ -2028,6 +2084,18 @@
         {
             "name": "PolyLite ASA @BBL A1",
             "sub_path": "filament/PolyLite ASA @BBL A1.json"
+        },
+        {
+            "name": "Bambu ASA-Aero @BBL X1C",
+            "sub_path": "filament/Bambu ASA-Aero @BBL X1C.json"
+        },
+        {
+            "name": "Bambu ASA-Aero @BBL P1P",
+            "sub_path": "filament/Bambu ASA-Aero @BBL P1P.json"
+        },
+        {
+            "name": "Bambu ASA-Aero @BBL A1",
+            "sub_path": "filament/Bambu ASA-Aero @BBL A1.json"
         },
         {
             "name": "Generic PVA @0.2 nozzle",
