@@ -8,7 +8,7 @@ function OnInit()
     TranslatePage();
 
 	SendMsg_GetLoginInfo();
-	GotoMenu( 'home' );
+	GotoMenu( 'home' );    
 }
 
 function HandleStudio( pVal )

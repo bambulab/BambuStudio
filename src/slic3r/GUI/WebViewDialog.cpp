@@ -119,7 +119,6 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     m_browserLeft->SetMinSize(wxSize(FromDIP(224), -1));
     m_browserLeft->SetMaxSize(wxSize(FromDIP(224), -1));
 
-    this->SetBackgroundColour(*wxWHITE);
     m_home_web->Add(m_browserLeft, 0, wxEXPAND | wxALL, 0);
     m_home_web->Add(m_browser, 1, wxEXPAND | wxALL, 0);
     m_home_web->Add(m_browserMW, 1, wxEXPAND | wxALL, 0);
@@ -271,6 +270,10 @@ WebViewPanel::~WebViewPanel()
 void WebViewPanel::ResetWholePage() 
 { 
     if (m_browserLeft != nullptr && m_leftfirst) m_browserLeft->Reload();
+
+    auto host  = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
+    std::string mwurl = (boost::format("%1%studio/webview?from=bambustudio") % host).str();
+    m_browserMW->LoadURL(mwurl);
 }
 
 void WebViewPanel::load_url(wxString& url)
@@ -610,10 +613,19 @@ void WebViewPanel::SendMakerlabList(  )
             }
             CallAfter([this, body] {
                 auto body2 = from_u8(body);
-                body2.insert(1, "\"command\": \"homepage_makerlab_get\", ");
-                RunScript(wxString::Format("window.postMessage(%s)", body2));
 
-                SetLeftMenuShow("makerlab", 1);
+                json jLab = json::parse(body2);
+                if (jLab.contains("list")) 
+                { 
+                    int nSize = jLab["list"].size();
+                    if (nSize > 0) 
+                    {
+                        body2.insert(1, "\"command\": \"homepage_makerlab_get\", ");
+                        RunScript(wxString::Format("window.postMessage(%s)", body2));
+
+                        SetLeftMenuShow("makerlab", 1);                    
+                    }
+                }
             });
         });
     } catch (nlohmann::detail::parse_error &err) {
@@ -626,22 +638,6 @@ void WebViewPanel::SendMakerlabList(  )
         return;
     }
 }
-
-//void WebViewPanel::OpenModelDetail(std::string id, NetworkAgent *agent)
-//{
-//    std::string url;
-//    if ((agent ? agent->get_model_mall_detail_url(&url, id) : get_model_mall_detail_url(&url, id)) == 0) 
-//    {
-//        if (url.find("?") != std::string::npos) 
-//        { 
-//            url += "&from=bambustudio";
-//        } else {
-//            url += "?from=bambustudio";
-//        }
-//        
-//        wxLaunchDefaultBrowser(url); 
-//    }
-//}
 
 void WebViewPanel::OpenModelDetail(std::string id, NetworkAgent *agent) 
 { 
@@ -759,29 +755,6 @@ std::string UrlDecode(const std::string &str)
     }
     return strTemp;
 }
-
-//void WebViewPanel::UpdateMakerworldLoginStatus() {
-//    NetworkAgent *agent = GUI::wxGetApp().getAgent();
-//    if (agent == nullptr) return;
-//
-//    int ret = agent->get_login_ticket([this](std::string body) {
-//        if (body.empty() || body.front() != '{') {
-//            BOOST_LOG_TRIVIAL(warning) << "get_login_ticket failed " + body;
-//
-//            SetMakerworldPageLoginStatus(false);
-//
-//            return;
-//        }
-//        CallAfter([this, body] {
-//            json jticket = json::parse(body);
-//
-//            std::string ticket = jticket["ticket"];
-//
-//            SetMakerworldPageLoginStatus(true, ticket);
-//        });
-//    }
-//    );
-//}
 
 bool WebViewPanel::GetJumpUrl(bool login, wxString ticket, wxString targeturl, wxString &finalurl)
 {
