@@ -2878,33 +2878,35 @@ msgstr ""
 "selezionato
 
 msgid "Current flowrate cali param is invalid"
-msgstr ""
+msgstr "Il parametro di calibrazione della flusso non è valido"
 
 msgid "Selected diameter and machine diameter do not match"
 msgstr "Il diametro selezionato e il diametro della macchina non corrispondono"
 
 msgid "Failed to generate cali gcode"
-msgstr ""
+msgstr "Impossibile generare il gcode di calibrazione"
 
 msgid "Calibration error"
-msgstr ""
+msgstr "Errore di Calibrazione"
 
 msgid "TPU is not supported by AMS."
-msgstr ""
+msgstr "Il filamento TPU non è supportato dall'AMS."
 
 msgid "Bambu PET-CF/PA6-CF is not supported by AMS."
-msgstr ""
+msgstr "I filamenti Bambu PET-CF/PA6-CF non sono supportati dall'AMS."
 
 msgid ""
 "Damp PVA will become flexible and get stuck inside AMS,please take care to "
 "dry it before use."
 msgstr ""
+"Il PVA umido diventa flessibile e si blocca all'interno dell'AMS, quindi "
+"assicurati di asciugarlo prima dell'uso".
 
 msgid ""
 "CF/GF filaments are hard and brittle, It's easy to break or get stuck in "
 "AMS, please use with caution."
 msgstr ""
-"I filamenti F/GF sono duri e fragili, ed è facile che possano rompersi o incastrarsi "
+"I filamenti CF/GF sono duri e fragili, ed è facile che possano rompersi o incastrarsi "
 "nell'AMS; si consiglia di usarli con cautela."
 
 msgid "default"
@@ -2914,7 +2916,7 @@ msgid "parameter name"
 msgstr "nome parametro"
 
 msgid "N/A"
-msgstr "N/A"
+msgstr "N/D"
 
 #, c-format, boost-format
 msgid "%s can't be percentage"
