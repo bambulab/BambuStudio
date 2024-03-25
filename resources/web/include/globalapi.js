@@ -425,3 +425,16 @@ function ExecuteDarkMode( DarkCssPath )
 }
 
 SwitchDarkMode( "./css/dark.css" );
+
+/*-------KeyBoard------*/
+function DisableCtrlHotkey()
+{
+	document.onkeydown = function(event) {
+    event = event || window.event;
+    if (event.ctrlKey ) {
+        event.preventDefault();
+    }	
+    }
+}
+	
+DisableCtrlHotkey();
