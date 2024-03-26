@@ -135,7 +135,7 @@ function HandleStudio( pVal )
 	else if( strCmd=="modelmall_model_advise_get")
 	{
 		//alert('hot');
-		if( m_HotModelList!=null )
+		if( m_HotModelList!=null && pVal['hits'].length>0 )
 		{
 			let SS1=JSON.stringify(pVal['hits']);
 			let SS2=JSON.stringify(m_HotModelList);
@@ -143,17 +143,14 @@ function HandleStudio( pVal )
 			if( SS1==SS2 )
 				return;
 		}
-
-		$("#Online_Models_Bar").css('display','flex');
-		$("#ForU_Models_Bar").css('display','none');
 		
 	    m_HotModelList=pVal['hits'];		
 		ShowStaffPick( m_HotModelList );
 	}
 	else if( strCmd=="modelmall_model_customized_get")
 	{
-		//alert('hot');
-		if( m_ForUModelList!=null )
+		//alert('For U');
+		if( m_ForUModelList!=null && pVal['hits'].length>0 )
 		{
 			let SS1=JSON.stringify(pVal['hits']);
 			let SS2=JSON.stringify(m_ForUModelList);
@@ -161,9 +158,6 @@ function HandleStudio( pVal )
 			if( SS1==SS2 )
 				return;
 		}
-
-		$("#Online_Models_Bar").css('display','none');
-		$("#ForU_Models_Bar").css('display','flex');
 		
 	    m_ForUModelList=pVal['hits'];		
 		Show4UPick( m_ForUModelList );
@@ -574,6 +568,9 @@ function ShowStaffPick( ModelList )
 		return;
 	}
 	
+	$("#Online_Models_Bar").css('display','flex');
+	$("#ForU_Models_Bar").css('display','none');	
+	
 	let strPickHtml='';
 	for(let a=0;a<PickTotal;a++)
 	{
@@ -628,6 +625,9 @@ function Show4UPick( ModelList )
 		
 		return;
 	}
+	
+	$("#Online_Models_Bar").css('display','none');
+	$("#ForU_Models_Bar").css('display','flex');	
 	
 	let strPickHtml='';
 	for(let a=0;a<PickTotal;a++)
