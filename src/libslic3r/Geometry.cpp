@@ -500,6 +500,15 @@ void Transformation::set_rotation(Axis axis, double rotation)
     }
 }
 
+Transform3d Transformation::get_scaling_factor_matrix() const
+{
+    Transform3d scale = extract_scale(m_matrix);
+    scale(0, 0)       = std::abs(scale(0, 0));
+    scale(1, 1)       = std::abs(scale(1, 1));
+    scale(2, 2)       = std::abs(scale(2, 2));
+    return scale;
+}
+
 void Transformation::set_scaling_factor(const Vec3d& scaling_factor)
 {
     set_scaling_factor(X, scaling_factor(0));
