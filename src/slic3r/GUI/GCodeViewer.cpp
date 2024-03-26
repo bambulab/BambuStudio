@@ -262,31 +262,46 @@ void GCodeViewer::TBuffer::add_path(const GCodeProcessorResult::MoveVertex& move
         move.volumetric_rate(), move.layer_duration, move.extruder_id, move.cp_color_id, { { endpoint, endpoint } } });
 }
 
-GCodeViewer::Color GCodeViewer::Extrusions::Range::get_color_at(float value) const
+GCodeViewer::Color GCodeViewer::Extrusions::Range::get_color_at(float value, EType type) const
 {
-    // Input value scaled to the colors range
-    const float step = step_size();
-    const float global_t = (step != 0.0f) ? std::max(0.0f, value - min) / step : 0.0f; // lower limit of 0.0f
-
+    float       global_t = 0.0f;
+    const float step     = step_size(type);
+    if (step > 0.0f) {
+        switch (type) {
+        default:
+        case EType::Linear: {
+            global_t = (value > min) ? (value - min) / step : 0.0f;
+            break;
+        }
+        case EType::Logarithmic: {
+            global_t = (value > min && min > 0.0f) ? ::log(value / min) / step : 0.0f;
+            break;
+        }
+        }
+    }
     const size_t color_max_idx = Range_Colors.size() - 1;
 
     // Compute the two colors just below (low) and above (high) the input value
-    const size_t color_low_idx = std::clamp<size_t>(static_cast<size_t>(global_t), 0, color_max_idx);
+    const size_t color_low_idx  = std::clamp<size_t>(static_cast<size_t>(global_t), 0, color_max_idx);
     const size_t color_high_idx = std::clamp<size_t>(color_low_idx + 1, 0, color_max_idx);
 
     // Compute how far the value is between the low and high colors so that they can be interpolated
     const float local_t = std::clamp(global_t - static_cast<float>(color_low_idx), 0.0f, 1.0f);
-
     // Interpolate between the low and high colors to find exactly which color the input value should get
-    Color ret = { 0.0f, 0.0f, 0.0f, 1.0f };
-    for (unsigned int i = 0; i < 3; ++i) {
-        ret[i] = lerp(Range_Colors[color_low_idx][i], Range_Colors[color_high_idx][i], local_t);
-    }
-    return ret;
+    auto color = lerp(ColorRGBA(Range_Colors[color_low_idx]), ColorRGBA(Range_Colors[color_high_idx]), local_t);
+    return color.get_data();
 }
 
-float GCodeViewer::Extrusions::Range::step_size() const {
-    return (max - min) / (static_cast<float>(Range_Colors.size()) - 1.0f);
+float GCodeViewer::Extrusions::Range::step_size(EType type) const {
+    switch (type) {
+    default:
+    case EType::Linear: {
+        return (max > min) ? (max - min) / (static_cast<float>(Range_Colors.size()) - 1.0f) : 0.0f;
+    }
+    case EType::Logarithmic: {
+        return (max > min && min > 0.0f) ? ::log(max / min) / (static_cast<float>(Range_Colors.size()) - 1.0f) : 0.0f;
+    }
+    }
 }
 
 float GCodeViewer::Extrusions::Range::get_value_at_step(int step) const {
@@ -3260,7 +3275,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         case EViewType::Feedrate:       { color = m_extrusions.ranges.feedrate.get_color_at(path.feedrate); break; }
         case EViewType::FanSpeed:       { color = m_extrusions.ranges.fan_speed.get_color_at(path.fan_speed); break; }
         case EViewType::Temperature:    { color = m_extrusions.ranges.temperature.get_color_at(path.temperature); break; }
-        case EViewType::LayerTime:      { color = m_extrusions.ranges.layer_duration.get_color_at(path.layer_time); break; }
+        case EViewType::LayerTime:      { color = m_extrusions.ranges.layer_duration.get_color_at(path.layer_time, Extrusions::Range::EType::Logarithmic); break; }
         case EViewType::VolumetricRate: { color = m_extrusions.ranges.volumetric_rate.get_color_at(path.volumetric_rate); break; }
         case EViewType::Tool:           { color = m_tools.m_tool_colors[path.extruder_id]; break; }
         case EViewType::ColorPrint:     {
