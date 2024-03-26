@@ -4180,18 +4180,22 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
         //FIXME generating overhangs just for the first mesh of the group.
         assert(processing.second.size() == 1);
 
-        //print.set_status(55, _L("Support: detect overhangs"));
-#if 0
+#if 1
+        // use smart overhang detection
         std::vector<Polygons>        overhangs;
         tree_support->detect_overhangs();
         const int       num_raft_layers = int(config.raft_layers.size());
         const int       num_layers = int(print_object.layer_count()) + num_raft_layers;
         overhangs.resize(num_layers);
-        for (size_t i = 0; i < print_object.layer_count(); i++)
-        {
-            overhangs[i + num_raft_layers] = to_polygons(print_object.get_support_layer(i)->overhang_areas);
+        for (size_t i = 0; i < print_object.layer_count(); i++) {
+            for (ExPolygon& expoly : print_object.get_layer(i)->loverhangs) {
+                Polygons polys = to_polygons(expoly);
+                if (tree_support->overhang_types[&expoly] == TreeSupport::SharpTail) {
+                    polys = offset(to_polygons(expoly), scale_(0.2));
+                }
+                append(overhangs[i + num_raft_layers], polys);
+            }
         }
-        print_object.clear_support_layers();
 #else
         std::vector<Polygons>        overhangs = generate_overhangs(config, *print.get_object(processing.second.front()), throw_on_cancel);
 #endif
@@ -4274,7 +4278,7 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
 #endif // TREESUPPORT_DEBUG_SVG
 
             // ### Propagate the influence areas downwards. This is an inherently serial operation.
-            //print.set_status(60, _L("Support: propagate branches"));
+            print.set_status(60, _L("Generating support"));
             create_layer_pathing(volumes, config, move_bounds, throw_on_cancel);
             auto t_path = std::chrono::high_resolution_clock::now();
 
@@ -4331,7 +4335,7 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
         SupportGeneratorLayersPtr layers_sorted = generate_support_layers(print_object, raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers);
 
         // Don't fill in the tree supports, make them hollow with just a single sheath line.
-        //print.set_status(69, _L("Support: generate toolpath"));
+        print.set_status(69, _L("Generating support"));
         generate_support_toolpaths(print_object, print_object.support_layers(), print_object.config(), support_params, print_object.slicing_parameters(),
             raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers);
 

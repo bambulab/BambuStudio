@@ -269,11 +269,10 @@ public:
     ExPolygons                  support_islands;
     // Extrusion paths for the support base and for the support interface and contacts.
     ExtrusionEntityCollection   support_fills;
-    SupportInnerType          support_type = stInnerNormal;
+    SupportInnerType            support_type = stInnerNormal;
 
     // for tree supports
     ExPolygons base_areas;
-    ExPolygons                                overhang_areas;
 
 
     // Is there any valid extrusion assigned to this LayerRegion?
@@ -312,9 +311,7 @@ protected:
         bool need_extra_wall = false;
         AreaGroup(ExPolygon *a, int t, coordf_t d) : area(a), type(t), dist_to_top(d) {}
     };
-    enum OverhangType { Detected = 0, Enforced, SharpTail };
     std::vector<AreaGroup>                    area_groups;
-    std::map<const ExPolygon *, OverhangType> overhang_types;
 };
 
 template<typename LayerContainer>
