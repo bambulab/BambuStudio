@@ -396,6 +396,10 @@ class GCodeViewer
     {
         struct Range
         {
+            enum class EType : unsigned char {
+                Linear,
+                Logarithmic
+            };
             float min;
             float max;
             unsigned int count;
@@ -410,8 +414,8 @@ class GCodeViewer
             }
             void reset(bool log = false) { min = FLT_MAX; max = -FLT_MAX; count = 0; log_scale = log; }
 
-            float step_size() const;
-            Color get_color_at(float value) const;
+            float step_size(EType type = EType::Linear) const;
+            Color get_color_at(float value, EType type = EType::Linear) const;
             float get_value_at_step(int step) const;
 
         };
