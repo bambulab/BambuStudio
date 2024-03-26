@@ -1,6 +1,7 @@
 #include "ColorSpaceConvert.hpp"
 
 #include <algorithm>
+#include <boost/algorithm/string.hpp>
 #include <wx/colordlg.h>
 #include <cmath>
 

@@ -4,6 +4,7 @@
 #include <functional>
 #include <thread>
 #include <deque>
+#include <mutex>
 #include <sstream>
 #include <exception>
 #include <boost/filesystem/fstream.hpp>
