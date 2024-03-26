@@ -529,6 +529,8 @@ void WebViewPanel::SendDesignStaffpick(bool on)
                                     return;
                                 }
                                 CallAfter([this, body] {
+                                    if (!wxGetApp().has_model_mall()) return;
+
                                     auto body2 = from_u8(body);
                                     body2.insert(1, "\"command\": \"modelmall_model_advise_get\", ");
                                     RunScript(wxString::Format("window.postMessage(%s)", body2));
@@ -546,6 +548,8 @@ void WebViewPanel::SendDesignStaffpick(bool on)
                                     return;
                                 }
                                 CallAfter([this, body] {
+                                    if (!wxGetApp().has_model_mall()) return;
+
                                     auto body2 = from_u8(body);
                                     body2.insert(1, "\"command\": \"modelmall_model_customized_get\", ");
                                     RunScript(wxString::Format("window.postMessage(%s)", body2));
@@ -569,6 +573,8 @@ void WebViewPanel::SendDesignStaffpick(bool on)
                         return;
                     }
                     CallAfter([this, body] {
+                        if (!wxGetApp().has_model_mall()) return;
+
                         auto body2 = from_u8(body);
                         body2.insert(1, "\"command\": \"modelmall_model_advise_get\", ");
                         RunScript(wxString::Format("window.postMessage(%s)", body2));
@@ -1261,11 +1267,7 @@ void WebViewPanel::SwitchWebContent(std::string modelname,int refresh)
 { 
     m_contentname = modelname;
 
-    static bool bFirst = false;
-    if (bFirst == false) {
-        bFirst = true;
-        CheckMenuNewTag();
-    }
+    CheckMenuNewTag();
 
     wxString strlang = wxGetApp().current_language_code_safe();
 
@@ -1287,7 +1289,8 @@ void WebViewPanel::SwitchWebContent(std::string modelname,int refresh)
         //conf save
         wxGetApp().app_config->set_str("homepage", "makerlab_clicked", "1");
         wxGetApp().app_config->save();
-
+        wxGetApp().CallAfter([this] { ShowMenuNewTag("makerlab", "0"); });
+        
         return;
     } 
     else if (modelname.compare("online") == 0) {
@@ -1329,6 +1332,7 @@ void WebViewPanel::SwitchWebContent(std::string modelname,int refresh)
         // conf save
         wxGetApp().app_config->set_str("homepage", "online_clicked", "1");
         wxGetApp().app_config->save();
+        wxGetApp().CallAfter([this] { ShowMenuNewTag("online", "0"); });
     }
     else if (modelname.compare("home") == 0 || modelname.compare("recent") == 0 || modelname.compare("manual") == 0 ) 
     {
@@ -1377,10 +1381,17 @@ void WebViewPanel::OpenOneMakerlab(std::string url) {
 
 void WebViewPanel::CheckMenuNewTag() {
     std::string sClick = wxGetApp().app_config->get("homepage", "online_clicked");
-    ShowMenuNewTag("online", sClick);
+    if (sClick.compare("1")==0) 
+        ShowMenuNewTag("online", "0");
+    else
+        ShowMenuNewTag("online", "1");
+
 
     sClick = wxGetApp().app_config->get("homepage", "makerlab_clicked");
-    ShowMenuNewTag("makerlab", sClick);
+    if (sClick.compare("1") == 0)
+        ShowMenuNewTag("makerlab", "0");
+    else
+        ShowMenuNewTag("makerlab", "1");
 }
 
 void WebViewPanel::ShowMenuNewTag(std::string menuname, std::string show)
@@ -1395,7 +1406,7 @@ void WebViewPanel::ShowMenuNewTag(std::string menuname, std::string show)
     m_Res["menu"]           = menuname;
 
 
-    if (show != "1")         
+    if (show.compare("1") == 0)
         m_Res["show"] = 1;
     else 
         m_Res["show"] = 0;
