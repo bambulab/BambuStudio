@@ -406,6 +406,7 @@ public:
     void set_rotation(const Vec3d& rotation);
     void set_rotation(Axis axis, double rotation);
 
+    Transform3d  get_scaling_factor_matrix() const;
     const Vec3d& get_scaling_factor() const { return m_scaling_factor; }
     double get_scaling_factor(Axis axis) const { return m_scaling_factor(axis); }
 
@@ -421,6 +422,7 @@ public:
     void set_mirror(Axis axis, double mirror);
 
     void set_from_transform(const Transform3d& transform);
+    void set_matrix(const Transform3d &transform) { set_from_transform(transform); }
 
     void reset();
     void reset_offset() { set_offset(Vec3d::Zero()); }

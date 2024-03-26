@@ -973,7 +973,26 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
         case Rotate:
         {
             // Apply new temporary rotations
-            TransformationType transformation_type(TransformationType::World_Relative_Joint);
+            TransformationType transformation_type;
+            if (m_parent.get_selection().is_wipe_tower())
+                transformation_type = TransformationType::World_Relative_Joint;
+            else {
+                switch (wxGetApp().obj_manipul()->get_coordinates_type()) {
+                default:
+                case ECoordinatesType::World: {
+                    transformation_type = TransformationType::World_Relative_Joint;
+                    break;
+                }
+                case ECoordinatesType::Instance: {
+                    transformation_type = TransformationType::Instance_Relative_Joint;
+                    break;
+                }
+                case ECoordinatesType::Local: {
+                    transformation_type = TransformationType::Local_Relative_Joint;
+                    break;
+                }
+                }
+            }
             if (evt.AltDown())
                 transformation_type.set_independent();
             selection.rotate(get_rotation(), transformation_type);
