@@ -560,7 +560,7 @@ public:
 class GLWipeTowerVolume : public GLVolume {
 public:
     GLWipeTowerVolume(const std::vector<std::array<float, 4>>& colors);
-    virtual void render(bool with_outline = false) const;
+    virtual void render(bool with_outline = false, const std::array<float, 4> &body_color = {1.0f, 1.0f, 1.0f, 1.0f}) const;
 
     std::vector<GLIndexedVertexArray> iva_per_colors;
     bool                              IsTransparent();

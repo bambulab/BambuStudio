@@ -1016,7 +1016,7 @@ GLWipeTowerVolume::GLWipeTowerVolume(const std::vector<std::array<float, 4>>& co
     m_colors = colors;
 }
 
-void GLWipeTowerVolume::render(bool with_outline) const
+void GLWipeTowerVolume::render(bool with_outline,const std::array<float, 4> &body_color) const
 {
     if (!is_active)
         return;
