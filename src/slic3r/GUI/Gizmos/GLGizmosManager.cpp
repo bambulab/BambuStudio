@@ -61,6 +61,7 @@ std::vector<size_t> GLGizmosManager::get_selectable_idxs() const
         for (size_t i = 0; i < m_gizmos.size(); ++i)
             if (m_gizmos[i]->get_sprite_id() == (unsigned int) Move ||
                 m_gizmos[i]->get_sprite_id() == (unsigned int) Rotate ||
+                m_gizmos[i]->get_sprite_id() == (unsigned int) Measure ||
                 m_gizmos[i]->get_sprite_id() == (unsigned int) MmuSegmentation)
                 out.push_back(i);
     }

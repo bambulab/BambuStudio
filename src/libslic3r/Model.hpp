@@ -1275,6 +1275,7 @@ public:
         m_assemble_initialized = true;
         m_assemble_transformation.set_from_transform(transform);
     }
+    const Vec3d& get_assemble_offset() {return m_assemble_transformation.get_offset(); }
     void set_assemble_offset(const Vec3d& offset) { m_assemble_transformation.set_offset(offset); }
     void set_assemble_rotation(const Vec3d &rotation) { m_assemble_transformation.set_rotation(rotation); }
     void rotate_assemble(double angle, const Vec3d& axis) {

@@ -575,7 +575,12 @@ void GLGizmoMeasure::on_set_state()
 std::string GLGizmoMeasure::on_get_name() const
 {
     if (!on_is_activable() && m_state == EState::Off) {
-        return _u8L("Measure") + ":\n" + _u8L("Please select at least one object.");
+        if (wxGetApp().plater()->canvas3D()->get_canvas_type() == GLCanvas3D::ECanvasType::CanvasAssembleView) {
+            return _u8L("Measure") + ":\n" + _u8L("Please confirm explosion ratio = 1,and please select at least one object");
+        }
+        else {
+            return _u8L("Measure") + ":\n" + _u8L("Please select at least one object.");
+        }
     } else {
         return _u8L("Measure");
     }
@@ -584,7 +589,14 @@ std::string GLGizmoMeasure::on_get_name() const
 bool GLGizmoMeasure::on_is_activable() const
 {
     const Selection& selection = m_parent.get_selection();
-    return selection.volumes_count()>0;
+    if (wxGetApp().plater()->canvas3D()->get_canvas_type() == GLCanvas3D::ECanvasType::CanvasAssembleView) {
+        if (abs(m_parent.get_explosion_ratio() - 1.0f) < 1e-2 && selection.volumes_count() > 0) {
+            return true;
+        }
+        return false;
+    } else {
+        return selection.volumes_count() > 0;
+    }
 }
 
 void GLGizmoMeasure::init_circle_glmodel(GripperType gripper_type, const Measure::SurfaceFeature &feature, CircleGLModel &circle_gl_model,float inv_zoom)
