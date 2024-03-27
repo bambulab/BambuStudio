@@ -2943,6 +2943,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     //BBS
     wxGLCanvas* assemble_canvas = assemble_view->get_wxglcanvas();
     if (wxGetApp().is_editor()) {
+        assemble_canvas->Bind(EVT_GLCANVAS_INSTANCE_MOVED, [this](SimpleEvent &) { update(); });
+        assemble_canvas->Bind(EVT_GLCANVAS_INSTANCE_ROTATED, [this](SimpleEvent &) { update(); });
+
         assemble_canvas->Bind(EVT_GLTOOLBAR_FILLCOLOR, [q](IntEvent& evt) { q->fill_color(evt.get_data()); });
         assemble_canvas->Bind(EVT_GLCANVAS_OBJECT_SELECT, &priv::on_object_select, this);
         assemble_canvas->Bind(EVT_GLVIEWTOOLBAR_3D, [q](SimpleEvent&) { q->select_view_3D("3D"); });
