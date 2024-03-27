@@ -20,6 +20,7 @@
 #include "GCode/ThumbnailData.hpp"
 #include "libslic3r/ObjectID.hpp"
 
+#include <cfloat>
 #include <memory>
 #include <map>
 #include <set>

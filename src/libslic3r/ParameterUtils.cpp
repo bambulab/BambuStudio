@@ -1,5 +1,7 @@
 #include "ParameterUtils.hpp"
 
+#include <cassert>
+
 namespace Slic3r {
 
 std::vector<LayerPrintSequence> get_other_layers_print_sequence(int sequence_nums, const std::vector<int> &sequence)

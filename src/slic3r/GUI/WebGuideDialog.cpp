@@ -13,6 +13,7 @@
 #include <wx/textdlg.h>
 
 #include <wx/wx.h>
+#include <wx/display.h>
 #include <wx/fileconf.h>
 #include <wx/file.h>
 #include <wx/wfstream.h>
