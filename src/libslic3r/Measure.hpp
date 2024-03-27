@@ -25,7 +25,10 @@ enum class SurfaceFeatureType : int {
     Plane  = 1 << 3
 };
 
-class SurfaceFeature {
+bool get_point_projection_to_plane(const Vec3d &pt, const Vec3d &plane_origin, const Vec3d &plane_normal, Vec3d &intersection_pt);
+
+class SurfaceFeature
+{
 public:
     SurfaceFeature(SurfaceFeatureType type, const Vec3d& pt1, const Vec3d& pt2, std::optional<Vec3d> pt3 = std::nullopt, double value = 0.0)
         : m_type(type), m_pt1(pt1), m_pt2(pt2), m_pt3(pt3), m_value(value) {}
@@ -181,6 +184,22 @@ struct MeasurementResult {
 
 // Returns distance/angle between two SurfaceFeatures.
 MeasurementResult get_measurement(const SurfaceFeature& a, const SurfaceFeature& b,bool deal_circle_result =false);
+
+struct AssemblyAction
+{
+    bool                         can_set_to_parallel{false};
+    bool                         can_set_to_center_coincidence{false};
+    bool                         can_set_feature_1_reverse_rotation{false};
+    bool                         can_set_feature_2_reverse_rotation{false};
+    bool                         can_around_center_of_faces{false};
+    bool                         has_parallel_distance{false};
+    float                        parallel_distance;
+    float                        angle_radian{0};
+    Transform3d                  tran_for_parallel;
+    Transform3d                  tran_for_center_coincidence;
+    Transform3d                  tran_for_reverse_rotation;
+};
+AssemblyAction get_assembly_action(const SurfaceFeature &a, const SurfaceFeature &b);
 
 inline Vec3d edge_direction(const Vec3d& from, const Vec3d& to) { return (to - from).normalized(); }
 inline Vec3d edge_direction(const std::pair<Vec3d, Vec3d>& e) { return edge_direction(e.first, e.second); }

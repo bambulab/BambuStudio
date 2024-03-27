@@ -82,7 +82,7 @@ class GLGizmoMeasure : public GLGizmoBase
 
     EMode m_mode{ EMode::FeatureSelection };
     Measure::MeasurementResult m_measurement_result;
-
+    Measure::AssemblyAction    m_assembly_action;
     std::map<GLVolume*, std::shared_ptr<Measure::Measuring>> m_mesh_measure_map;
     std::shared_ptr<Measure::Measuring>                      m_curr_measuring{nullptr};
 
@@ -127,6 +127,8 @@ class GLGizmoMeasure : public GLGizmoBase
     unsigned int                                          m_last_active_item_imgui{0};
     Vec3d                                                 m_buffered_distance;
     Vec3d                                                 m_distance;
+    double                                                m_buffered_parallel_distance{0};
+    double                                                m_buffered_around_center{0};
     // used to keep the raycasters for point/center spheres
     //std::vector<std::shared_ptr<PickRaycaster>> m_selected_sphere_raycasters;
     std::optional<Measure::SurfaceFeature> m_curr_feature;
@@ -143,7 +145,8 @@ class GLGizmoMeasure : public GLGizmoBase
     KeyAutoRepeatFilter m_shift_kar_filter;
 
     SelectedFeatures m_selected_features;
-    bool m_pending_scale{ false };
+    int m_pending_scale{ 0 };
+    bool m_set_center_coincidence{false};
     bool m_editing_distance{ false };
     bool m_is_editing_distance_first_frame{ true };
 
@@ -186,6 +189,7 @@ protected:
     virtual void on_render_for_picking() override;
     virtual void on_render_input_window(float x, float y, float bottom_limit) override;
 
+    void render_input_window_warning(bool same_model_object);
     void remove_selected_sphere_raycaster(int id);
     void update_measurement_result();
 
@@ -202,6 +206,12 @@ protected:
     Measure::Measuring* get_measuring_of_mesh(GLVolume *v, Transform3d &tran);
     void update_world_plane_features(Measure::Measuring *cur_measuring, Measure::SurfaceFeature &feautre);
     void update_feature_by_tran(Measure::SurfaceFeature & feature);
+    void set_distance(bool same_model_object, const Vec3d &displacement, bool take_shot = true);
+    void set_to_parallel(bool same_model_object, bool take_shot = true);
+    void set_to_reverse_rotation(bool same_model_object,int feature_index);
+    void set_to_around_center_of_faces(bool same_model_object,float rotate_degree);
+    void set_to_center_coincidence(bool same_model_object);
+    void set_parallel_distance(bool same_model_object,float dist);
  private:
     // This map holds all translated description texts, so they can be easily referenced during layout calculations
     // etc. When language changes, GUI is recreated and this class constructed again, so the change takes effect.

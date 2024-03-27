@@ -17,6 +17,14 @@
 
 namespace Slic3r {
 namespace Measure {
+bool get_point_projection_to_plane(const Vec3d &pt, const Vec3d &plane_origin, const Vec3d &plane_normal, Vec3d &intersection_pt)
+{
+    auto normal     = plane_normal.normalized();
+    auto BA         = plane_origin - pt;
+    auto length     = BA.dot(normal);
+    intersection_pt = pt + length * normal;
+    return true;
+}
 
 
 constexpr double feature_hover_limit = 0.5; // how close to a feature the mouse must be to highlight it
@@ -1273,6 +1281,42 @@ MeasurementResult get_measurement(const SurfaceFeature &a, const SurfaceFeature 
     return result;
 }
 
+AssemblyAction get_assembly_action(const SurfaceFeature& a, const SurfaceFeature& b)
+{
+    AssemblyAction        action;
+    const SurfaceFeature &f1   = a;
+    const SurfaceFeature &f2   = b;
+    if (f1.get_type() == SurfaceFeatureType::Plane) {
+        action.can_set_feature_1_reverse_rotation = true;
+        if (f2.get_type() == SurfaceFeatureType::Plane) {
+            const auto [idx1, normal1, pt1] = f1.get_plane();
+            const auto [idx2, normal2, pt2] = f2.get_plane();
+            action.can_set_to_center_coincidence = true;
+            action.can_set_feature_2_reverse_rotation = true;
+            if (are_parallel(normal1, normal2)) {
+                action.can_set_to_parallel = false;
+                action.has_parallel_distance = true;
+                action.can_around_center_of_faces = true;
+                Vec3d proj_pt2;
+                Measure::get_point_projection_to_plane(pt2, pt1, normal1, proj_pt2);
+                action.parallel_distance = (pt2 - proj_pt2).norm();
+                if ((pt2 - proj_pt2).dot(normal1) < 0) {
+                    action.parallel_distance = -action.parallel_distance;
+                }
+                action.angle_radian          = 0;
+
+            } else {
+                action.can_set_to_parallel = true;
+                action.has_parallel_distance = false;
+                action.can_around_center_of_faces = false;
+                action.parallel_distance     = 0;
+                action.angle_radian = std::acos(std::clamp(normal2.dot(-normal1), -1.0, 1.0));
+            }
+        }
+    }
+    return action;
+}
+
 void SurfaceFeature::translate(const Vec3d& displacement) {
     switch (get_type()) {
     case Measure::SurfaceFeatureType::Point: {
@@ -1334,14 +1378,8 @@ void SurfaceFeature::translate(const Transform3d &tran)
         m_pt1          = tran * m_pt1;
         auto world_center   = m_pt1;
         m_pt2          = (temp_pt2 - m_pt1).normalized();
-        auto get_point_projection_to_plane = [](const Vec3d& pt, const Vec3d& plane_origin, const Vec3d& plane_normal,Vec3d& intersection_pt )->bool {
-            auto normal = plane_normal.normalized();
-            auto BA=plane_origin-pt;
-            auto length = BA.dot(normal);
-            intersection_pt = pt + length * normal;
-            return true;
-        };
-        auto calc_world_radius = [&local_center, &local_normal, &tran, &world_center, &get_point_projection_to_plane](const Vec3d &pt, double &value) {
+
+        auto calc_world_radius = [&local_center, &local_normal, &tran, &world_center](const Vec3d &pt, double &value) {
             Vec3d intersection_pt;
             get_point_projection_to_plane(pt, local_center, local_normal, intersection_pt);
             auto local_radius_pt = (intersection_pt - local_center).normalized() * value + local_center;
