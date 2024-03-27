@@ -4574,7 +4574,9 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
             if (model_object != nullptr) {
                 if (selection_mode == Selection::Instance) {
                     if (m_canvas_type == GLCanvas3D::ECanvasType::CanvasAssembleView) {
-                        model_object->instances[instance_idx]->set_assemble_offset(v->get_instance_offset());
+                        if ((model_object->instances[instance_idx]->get_assemble_offset() - v->get_instance_offset()).norm() > 1e-2) {
+                            model_object->instances[instance_idx]->set_assemble_offset(v->get_instance_offset());
+                        }
                     } else {
                         model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
                     }
