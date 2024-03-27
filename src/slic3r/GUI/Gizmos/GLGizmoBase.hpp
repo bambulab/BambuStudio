@@ -10,6 +10,9 @@
 
 #include <cereal/archives/binary.hpp>
 
+#include <wx/event.h>
+#include <wx/timer.h>
+
 #include <chrono>
 
 #define ENABLE_FIXED_GRABBER 1
