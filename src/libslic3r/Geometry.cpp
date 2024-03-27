@@ -804,5 +804,33 @@ Geometry::TransformationSVD::TransformationSVD(const Transform3d &trafo)
     } else
         skew = false;
 }
+
+ Transformation mat_around_a_point_rotate(const Transformation &InMat, const Vec3d &pt, const Vec3d &axis, float rotate_theta_radian)
+{
+    auto           xyz = InMat.get_offset();
+    Transformation left;
+    left.set_offset(-xyz); // at world origin
+    auto curMat = left * InMat;
+
+    auto qua = Eigen::Quaterniond(Eigen::AngleAxisd(rotate_theta_radian, axis));
+    qua.normalize();
+    Transform3d    cur_matrix;
+    Transformation rotateMat4;
+    rotateMat4.set_from_transform(cur_matrix.fromPositionOrientationScale(Vec3d(0., 0., 0.), qua, Vec3d(1., 1., 1.)));
+
+    curMat = rotateMat4 * curMat; // along_fix_axis
+    // rotate mat4 along fix pt
+    Transformation temp_world;
+    auto           qua_world = Eigen::Quaterniond(Eigen::AngleAxisd(0, axis));
+    qua_world.normalize();
+    Transform3d cur_matrix_world;
+    temp_world.set_from_transform(cur_matrix_world.fromPositionOrientationScale(pt, qua_world, Vec3d(1., 1., 1.)));
+    auto temp_xyz = temp_world.get_matrix().inverse() * xyz;
+    auto new_pos  = temp_world.get_matrix() * (rotateMat4.get_matrix() * temp_xyz);
+    curMat.set_offset(new_pos);
+
+    return curMat;
+}
+
 } // namespace Geometry
 } // namespace Slic3r
