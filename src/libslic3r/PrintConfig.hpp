@@ -760,6 +760,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     // OrcaSlicer
     ((ConfigOptionPercent,            seam_gap))
     ((ConfigOptionPercent,            wipe_speed))
+    ((ConfigOptionBool,               precise_z_height)) // BBS
 )
 
 // This object is mapped to Perl as Slic3r::Config::PrintRegion.
