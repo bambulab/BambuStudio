@@ -3491,7 +3491,7 @@ msgstr ""
 "yeni bir model oluşturulmadan önce kapatılacaktır. Devam etmek istiyor musun?"
 
 msgid "Upload"
-msgstr "Yükle"
+msgstr "Paylaş"
 
 msgid "Slice plate"
 msgstr "Plakayı dilimle"
