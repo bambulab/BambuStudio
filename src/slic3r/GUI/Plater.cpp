@@ -4575,7 +4575,11 @@ void Plater::priv::selection_changed()
     }
 
     // forces a frame render to update the view (to avoid a missed update if, for example, the context menu appears)
-    view3D->render();
+    if (get_current_canvas3D()->get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
+        assemble_view->render();
+    } else {
+        view3D->render();
+    }
 }
 
 void Plater::priv::object_list_changed()
@@ -6037,7 +6041,11 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
             Selection& view3d_selection = view3D->get_canvas3d()->get_selection();
             view3d_selection.clear();
             for (unsigned int idx : select_idxs) {
-                view3d_selection.add(idx, false);
+                auto v = assemble_canvas->get_selection().get_volume(idx);
+                auto real_idx = view3d_selection.query_real_volume_idx_from_other_view(v->object_idx(), v->instance_idx(), v->volume_idx());
+                if (real_idx >= 0) {
+                    view3d_selection.add(real_idx, false);
+                }
             }
         }
 
@@ -6125,7 +6133,11 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
             Selection& assemble_selection = assemble_view->get_canvas3d()->get_selection();
             assemble_selection.clear();
             for (unsigned int idx : select_idxs) {
-                assemble_selection.add(idx, false);
+                auto v        = view3D_canvas->get_selection().get_volume(idx);
+                auto real_idx = assemble_selection.query_real_volume_idx_from_other_view(v->object_idx(), v->instance_idx(), v->volume_idx());
+                if (real_idx >= 0) {
+                    assemble_selection.add(real_idx, false);
+                }
             }
         }
 
