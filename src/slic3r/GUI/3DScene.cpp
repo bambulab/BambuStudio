@@ -911,7 +911,7 @@ void GLVolume::render(bool with_outline, const std::array<float, 4>& body_color)
 }
 
 //BBS add render for simple case
-void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_objects, std::vector<std::array<float, 4>>& extruder_colors) const
+void GLVolume::simple_render(GLShaderProgram *shader, ModelObjectPtrs &model_objects, std::vector<std::array<float, 4>> &extruder_colors, bool ban_light) const
 {
     if (this->is_left_handed())
         glFrontFace(GL_CW);
@@ -959,6 +959,9 @@ void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_obj
                     int extruder_id = model_volume->extruder_id();
                     //to make black not too hard too see
                     std::array<float, 4> new_color = adjust_color_for_rendering(extruder_colors[extruder_id - 1]);
+                    if (ban_light) {
+                        new_color[3] = (255 - (extruder_id - 1))/255.0f;
+                    }
                     shader->set_uniform("uniform_color", new_color);
                 }
                 else {
@@ -966,12 +969,18 @@ void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_obj
                         //shader->set_uniform("uniform_color", extruder_colors[idx - 1]);
                         //to make black not too hard too see
                         std::array<float, 4> new_color = adjust_color_for_rendering(extruder_colors[idx - 1]);
+                        if (ban_light) {
+                            new_color[3] = (255 - (idx - 1))/255.0f;
+                        }
                         shader->set_uniform("uniform_color", new_color);
                     }
                     else {
                         //shader->set_uniform("uniform_color", extruder_colors[0]);
                         //to make black not too hard too see
                         std::array<float, 4> new_color = adjust_color_for_rendering(extruder_colors[0]);
+                        if (ban_light) {
+                            new_color[3] = (255 - 0) / 255.0f;
+                        }
                         shader->set_uniform("uniform_color", new_color);
                     }
                 }

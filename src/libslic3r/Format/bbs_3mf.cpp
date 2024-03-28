@@ -5271,6 +5271,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             std::vector<Preset*>& project_presets,
             const DynamicPrintConfig* config,
             const std::vector<ThumbnailData*>& thumbnail_data,
+            const std::vector<ThumbnailData *>& no_light_thumbnail_data,
             const std::vector<ThumbnailData*>& top_thumbnail_data,
             const std::vector<ThumbnailData*>& pick_thumbnail_data,
             Export3mfProgressFn proFn,
@@ -5357,7 +5358,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         boost::filesystem::remove(filename + ".tmp", ec);
 
         bool result = _save_model_to_file(filename + ".tmp", *store_params.model, store_params.plate_data_list, store_params.project_presets, store_params.config,
-            store_params.thumbnail_data, store_params.top_thumbnail_data, store_params.pick_thumbnail_data, store_params.proFn,
+                                          store_params.thumbnail_data, store_params.no_light_thumbnail_data, store_params.top_thumbnail_data, store_params.pick_thumbnail_data,
+                                          store_params.proFn,
             store_params.calibration_thumbnail_data, store_params.id_bboxes, store_params.project, store_params.export_plate_idx);
         if (result) {
             boost::filesystem::rename(filename + ".tmp", filename, ec);
@@ -5433,6 +5435,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         std::vector<Preset*>& project_presets,
         const DynamicPrintConfig* config,
         const std::vector<ThumbnailData*>& thumbnail_data,
+        const std::vector<ThumbnailData*>& no_light_thumbnail_data,
         const std::vector<ThumbnailData*>& top_thumbnail_data,
         const std::vector<ThumbnailData*>& pick_thumbnail_data,
         Export3mfProgressFn proFn,
@@ -5505,6 +5508,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     % thumbnail_data.size() %plate_data_list.size();
                 return false;
             }
+            if ((no_light_thumbnail_data.size() > 0) && (no_light_thumbnail_data.size() > plate_data_list.size())) {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", no_light_thumbnail_data size %1% > plate count %2%") %
+                    no_light_thumbnail_data.size() % plate_data_list.size();
+                return false;
+            }
             if ((top_thumbnail_data.size() > 0)&&(top_thumbnail_data.size() > plate_data_list.size())) {
                 BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", top_thumbnail_data size %1% > plate count %2%")
                     % top_thumbnail_data.size() %plate_data_list.size();
@@ -5540,6 +5548,16 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 }
             }
 
+            for (unsigned int index = 0; index < no_light_thumbnail_data.size(); index++) {
+                if (no_light_thumbnail_data[index]->is_valid()) {
+                    if (!_add_thumbnail_file_to_archive(archive, *no_light_thumbnail_data[index], "Metadata/plate_no_light", index)) {
+                        return false;
+                    }
+
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(",add no light thumbnail %1%'s data into 3mf") % (index + 1);
+                    thumbnail_status[index] = true;
+                }
+            }
             // Adds the file Metadata/top_i.png and Metadata/pick_i.png
             for (unsigned int index = 0; index < top_thumbnail_data.size(); index++)
             {

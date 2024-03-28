@@ -4196,6 +4196,7 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id, bool is_n
 		PartPlate* plate = m_plate_list[obj_id - 1000];
 		plate->update_slice_result_valid_state( false );
 		plate->thumbnail_data.reset();
+        plate->no_light_thumbnail_data.reset();
 		plate->top_thumbnail_data.reset();
 		plate->pick_thumbnail_data.reset();
 
@@ -4226,12 +4227,14 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id, bool is_n
 			plate->update_states();
 			plate->update_slice_result_valid_state();
 			plate->thumbnail_data.reset();
+            plate->no_light_thumbnail_data.reset();
 			plate->top_thumbnail_data.reset();
 			plate->pick_thumbnail_data.reset();
 			return 0;
 		}
 		plate->update_slice_result_valid_state();
 		plate->thumbnail_data.reset();
+        plate->no_light_thumbnail_data.reset();
 		plate->top_thumbnail_data.reset();
 		plate->pick_thumbnail_data.reset();
 	}
@@ -4293,6 +4296,7 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id, bool is_n
 
 			plate->update_slice_result_valid_state();
 			plate->thumbnail_data.reset();
+            plate->no_light_thumbnail_data.reset();
 			plate->top_thumbnail_data.reset();
 			plate->pick_thumbnail_data.reset();
 			BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": add it to new plate %1%") % i;
@@ -4330,6 +4334,7 @@ int PartPlateList::notify_instance_removed(int obj_id, int instance_id)
 		plate->remove_instance(obj_id, instance_to_delete);
 		plate->update_slice_result_valid_state();
 		plate->thumbnail_data.reset();
+        plate->no_light_thumbnail_data.reset();
 		plate->top_thumbnail_data.reset();
 		plate->pick_thumbnail_data.reset();
 	}

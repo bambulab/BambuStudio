@@ -443,6 +443,7 @@ protected:
     wxStaticBitmap *                    img_use_ams_tip{nullptr};
     wxStaticBitmap *                    img_ams_backup{nullptr};
     ScalableBitmap *                    enable_ams{nullptr};
+    ThumbnailData                       m_preview_thumbnail_data;//when ams map change
 
 public:
     SelectMachineDialog(Plater *plater = nullptr);
@@ -481,7 +482,11 @@ public:
     void on_set_finish_mapping(wxCommandEvent& evt);
     void on_print_job_cancel(wxCommandEvent& evt);
     void set_default();
-    void set_default_normal();
+    void reset_and_sync_ams_list();
+    void clone_thumbnail_data();
+    void updata_thumbnail_data_after_connected_printer();
+    void change_default_normal(int old_filament_id, wxColour temp_ams_color);
+    void set_default_normal(const ThumbnailData&);
     void set_default_from_sdcard();
     void update_page_turn_state(bool show);
     void on_timer(wxTimerEvent& event);

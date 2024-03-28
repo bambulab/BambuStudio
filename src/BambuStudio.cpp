@@ -4796,7 +4796,7 @@ int CLI::run(int argc, char **argv)
     global_begin_time = (long long)Slic3r::Utils::get_current_time_utc();
     if (export_to_3mf) {
         //BBS: export as bbl 3mf
-        std::vector<ThumbnailData *> thumbnails, top_thumbnails, pick_thumbnails;
+        std::vector<ThumbnailData *> thumbnails, no_light_thumbnails, top_thumbnails, pick_thumbnails;
         std::vector<PlateBBoxData*> plate_bboxes;
         PlateDataPtrs plate_data_list;
         partplate_list.store_to_3mf_structure(plate_data_list);
@@ -5136,9 +5136,11 @@ int CLI::run(int argc, char **argv)
                             else{
                                 ThumbnailData* top_thumbnail = &part_plate->top_thumbnail_data;
                                 ThumbnailData* picking_thumbnail = &part_plate->pick_thumbnail_data;
+                                ThumbnailData *no_light_thumbnail = &part_plate->no_light_thumbnail_data;
                                 if ((plate_to_slice != 0) && (plate_to_slice != (i + 1))) {
                                     BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: regenerate thumbnail, Skip plate %2%.")%__LINE__%(i+1);
                                     part_plate->top_thumbnail_data.reset();
+                                    part_plate->no_light_thumbnail_data.reset();
                                     part_plate->pick_thumbnail_data.reset();
                                     plate_data->top_file.clear();
                                     plate_data->pick_file.clear();
@@ -5151,6 +5153,7 @@ int CLI::run(int argc, char **argv)
                                     if (skip_useless_pick && ((plate_object_count[i] <= 1) || (plate_object_count[i] > 64)))
                                     {
                                         //don't render pick and top
+                                        part_plate->no_light_thumbnail_data.reset();
                                         part_plate->top_thumbnail_data.reset();
                                         part_plate->pick_thumbnail_data.reset();
                                         plate_data->top_file.clear();
@@ -5194,6 +5197,7 @@ int CLI::run(int argc, char **argv)
                             }
 
                             if (need_create_top_group) {
+                                no_light_thumbnails.push_back(&part_plate->no_light_thumbnail_data);
                                 top_thumbnails.push_back(&part_plate->top_thumbnail_data);
                                 pick_thumbnails.push_back(&part_plate->pick_thumbnail_data);
                                 BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%: add thumbnail data for top and pick into group")%(i+1);
@@ -5246,6 +5250,7 @@ int CLI::run(int argc, char **argv)
                 }
 
                 if (need_create_top_group) {
+                    no_light_thumbnails.push_back(&part_plate->no_light_thumbnail_data);
                     top_thumbnails.push_back(&part_plate->top_thumbnail_data);
                     pick_thumbnails.push_back(&part_plate->pick_thumbnail_data);
                     BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%: add thumbnail data for top and pick into group")%(i+1);
@@ -5390,7 +5395,7 @@ int CLI::run(int argc, char **argv)
             model.mk_version = makerlab_version;
             BOOST_LOG_TRIVIAL(info) << boost::format("mk_name %1%, mk_version %2%")%makerlab_name %makerlab_version;
         }
-        if (! this->export_project(&m_models[0], export_3mf_file, plate_data_list, project_presets, thumbnails, top_thumbnails, pick_thumbnails,
+        if (!this->export_project(&m_models[0], export_3mf_file, plate_data_list, project_presets, thumbnails, no_light_thumbnails, top_thumbnails, pick_thumbnails,
                                 calibration_thumbnails, plate_bboxes, &m_print_config, minimum_save, plate_to_slice - 1))
         {
             release_PlateData_list(plate_data_list);
@@ -5400,6 +5405,8 @@ int CLI::run(int argc, char **argv)
 
         for (unsigned int i = 0; i < thumbnails.size(); i++)
             thumbnails[i]->reset();
+        for (unsigned int i = 0; i < no_light_thumbnails.size(); i++)
+            no_light_thumbnails[i]->reset();
         for (unsigned int i = 0; i < top_thumbnails.size(); i++)
             top_thumbnails[i]->reset();
         for (unsigned int i = 0; i < pick_thumbnails.size(); i++)
@@ -5614,7 +5621,11 @@ bool CLI::export_models(IO::ExportFormat format)
 
 //BBS: add export_project function
 bool CLI::export_project(Model *model, std::string& path, PlateDataPtrs &partplate_data,
-    std::vector<Preset*>& project_presets, std::vector<ThumbnailData*>& thumbnails, std::vector<ThumbnailData*>& top_thumbnails, std::vector<ThumbnailData*>& pick_thumbnails,
+                         std::vector<Preset *> &       project_presets,
+                         std::vector<ThumbnailData *> &thumbnails,
+                         std::vector<ThumbnailData *> &no_light_thumbnails,
+                         std::vector<ThumbnailData *> &top_thumbnails,
+                         std::vector<ThumbnailData *> &pick_thumbnails,
     std::vector<ThumbnailData*>& calibration_thumbnails, std::vector<PlateBBoxData*>& plate_bboxes, const DynamicPrintConfig* config, bool minimum_save, int plate_to_export)
 {
     //const std::string path = this->output_filepath(*model, IO::TMF);
@@ -5627,6 +5638,7 @@ bool CLI::export_project(Model *model, std::string& path, PlateDataPtrs &partpla
     store_params.project_presets = project_presets;
     store_params.config = (DynamicPrintConfig*)config;
     store_params.thumbnail_data = thumbnails;
+    store_params.no_light_thumbnail_data    = no_light_thumbnails;
     store_params.top_thumbnail_data = top_thumbnails;
     store_params.pick_thumbnail_data = pick_thumbnails;
     store_params.calibration_thumbnail_data = calibration_thumbnails;

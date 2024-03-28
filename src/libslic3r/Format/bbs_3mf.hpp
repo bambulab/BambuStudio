@@ -213,6 +213,7 @@ struct StoreParams
     std::vector<Preset*> project_presets;
     DynamicPrintConfig* config;
     std::vector<ThumbnailData*> thumbnail_data;
+    std::vector<ThumbnailData*> no_light_thumbnail_data;
     std::vector<ThumbnailData*> top_thumbnail_data;
     std::vector<ThumbnailData*> pick_thumbnail_data;
     std::vector<ThumbnailData*> calibration_thumbnail_data;
