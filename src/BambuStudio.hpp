@@ -89,7 +89,10 @@ private:
     bool export_models(IO::ExportFormat format);
     //BBS: add export_project function
     bool export_project(Model *model, std::string& path, PlateDataPtrs &partplate_data, std::vector<Preset*>& project_presets,
-        std::vector<ThumbnailData*>& thumbnails, std::vector<ThumbnailData*>& top_thumbnails, std::vector<ThumbnailData*>& pick_thumbnails,
+                        std::vector<ThumbnailData *> &thumbnails,
+                        std::vector<ThumbnailData *> &no_light_thumbnails,
+                        std::vector<ThumbnailData *> &top_thumbnails,
+                        std::vector<ThumbnailData *> &pick_thumbnails,
         std::vector<ThumbnailData*>& calibration_thumbnails,
         std::vector<PlateBBoxData*>& plate_bboxes, const DynamicPrintConfig* config, bool minimum_save, int plate_to_export = -1);
 
