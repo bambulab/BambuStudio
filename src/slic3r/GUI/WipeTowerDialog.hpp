@@ -16,7 +16,7 @@ class WipingPanel : public wxPanel {
 public:
     // BBS
     WipingPanel(wxWindow* parent, const std::vector<float>& matrix, const std::vector<float>& extruders, const std::vector<std::string>& extruder_colours, Button* calc_button,
-        int extra_flush_volume, float flush_multiplier);
+        const std::vector<int>& extra_flush_volume, float flush_multiplier);
     std::vector<float> read_matrix_values();
     std::vector<float> read_extruders_values();
     void toggle_advanced(bool user_action = false);
@@ -36,7 +36,7 @@ public:
 private:
     void fill_in_matrix();
     bool advanced_matches_simple();
-    int calc_flushing_volume(const wxColour& from, const wxColour& to);
+    int calc_flushing_volume(const wxColour& from, const wxColour& to,int min_flush_volume);
     void update_warning_texts();
         
     std::vector<wxSpinCtrl*> m_old;
@@ -58,7 +58,7 @@ private:
     std::vector<wxButton *> icon_list1;
     std::vector<wxButton *> icon_list2;
 
-    const int m_min_flush_volume;
+    const std::vector<int> m_min_flush_volume;
     const int m_max_flush_volume;
 
     wxTextCtrl* m_flush_multiplier_ebox = nullptr;
@@ -75,7 +75,7 @@ class WipingDialog : public Slic3r::GUI::DPIDialog
 {
 public:
     WipingDialog(wxWindow* parent, const std::vector<float>& matrix, const std::vector<float>& extruders, const std::vector<std::string>& extruder_colours,
-        int extra_flush_volume, float flush_multiplier);
+        const std::vector<int>&extra_flush_volume,float flush_multiplier);
     std::vector<float> get_matrix() const    { return m_output_matrix; }
     std::vector<float> get_extruders() const { return m_output_extruders; }
     wxBoxSizer* create_btn_sizer(long flags);

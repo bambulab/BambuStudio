@@ -776,6 +776,7 @@ private:
     bool m_was_scheduled;
 };
 
+std::vector<int> get_min_flush_volumes();
 } // namespace GUI
 } // namespace Slic3r
 
