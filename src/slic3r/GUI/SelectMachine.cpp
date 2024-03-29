@@ -4127,9 +4127,28 @@ void SelectMachineDialog::change_default_normal(int old_filament_id, wxColour te
                 unsigned char *new_px        = (unsigned char *) m_preview_thumbnail_data.pixels.data() + 4 * (rr + c);
                 if (no_light_px[3] == (255 - old_filament_id)) {
                     new_px[3] = origin_px[3]; // alpha
-                    for (size_t i = 0; i < 3; i++) { 
-                        unsigned char cur_single_color = i == 0 ? ams_color.Red() : (i == 1 ? ams_color.Green() : ams_color.Blue());
-                        new_px[i]                      = std::clamp(cur_single_color + (origin_px[i] - no_light_px[i]),0,255);
+                    int origin_rgb = origin_px[0] + origin_px[1] + origin_px[2];
+                    int no_light_px_rgb   = no_light_px[0] + no_light_px[1] + no_light_px[2];
+                    unsigned char i               = 0;
+                    if (origin_rgb >= no_light_px_rgb) {//Brighten up
+                        unsigned char cur_single_color = ams_color.Red();
+                        new_px[i]                      = std::clamp(cur_single_color + (origin_px[i] - no_light_px[i]), 0, 255);
+                        i++;
+                        cur_single_color = ams_color.Green();
+                        new_px[i]                      = std::clamp(cur_single_color + (origin_px[i] - no_light_px[i]), 0, 255);
+                        i++;
+                        cur_single_color =  ams_color.Blue();
+                        new_px[i]                      = std::clamp(cur_single_color + (origin_px[i] - no_light_px[i]), 0, 255);
+                    } else {//Dimming
+                        float         ratio            = origin_rgb / (float) no_light_px_rgb;
+                        unsigned char cur_single_color = ams_color.Red();
+                        new_px[i]                      = std::clamp((int)(cur_single_color * ratio), 0, 255);
+                        i++;
+                        cur_single_color = ams_color.Green();
+                        new_px[i]        = std::clamp((int) (cur_single_color * ratio), 0, 255);
+                        i++;
+                        cur_single_color = ams_color.Blue();
+                        new_px[i]        = std::clamp((int) (cur_single_color * ratio), 0, 255);
                     }
                 }
             }
