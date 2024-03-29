@@ -871,7 +871,8 @@ static std::vector<std::string> s_Preset_filament_options {
     "filament_wipe_distance", "additional_cooling_fan_speed",
     "nozzle_temperature_range_low", "nozzle_temperature_range_high",
     //OrcaSlicer
-    "enable_pressure_advance", "pressure_advance", "chamber_temperatures","filament_notes"
+    "enable_pressure_advance", "pressure_advance", "chamber_temperatures","filament_notes",
+    "filament_long_retractions_when_cut","filament_retraction_distances_when_cut"
 };
 
 static std::vector<std::string> s_Preset_machine_limits_options {
@@ -894,13 +895,13 @@ static std::vector<std::string> s_Preset_printer_options {
     "scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time", "machine_pause_gcode", "template_custom_gcode",
     "nozzle_type","auxiliary_fan", "nozzle_volume","upward_compatible_machine", "z_hop_types","support_chamber_temp_control","support_air_filtration","printer_structure","thumbnail_size",
     "best_object_pos","head_wrap_detect_zone","printer_notes",
+    "enable_long_retraction_when_cut","long_retractions_when_cut","retraction_distances_when_cut",
     //OrcaSlicer
     "host_type", "print_host", "printhost_apikey",
     "print_host_webui",
     "printhost_cafile","printhost_port","printhost_authorization_type",
     "printhost_user", "printhost_password", "printhost_ssl_ignore_revoke",
-    "use_relative_e_distances", "extruder_type","use_firmware_retraction",
-    "long_retraction_when_cut","retraction_distance_when_cut","enable_long_retraction_when_cut"
+    "use_relative_e_distances", "extruder_type","use_firmware_retraction"
 };
 
 static std::vector<std::string> s_Preset_sla_print_options {
