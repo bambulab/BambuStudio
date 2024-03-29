@@ -3785,13 +3785,9 @@ ExportConfigsDialog::ExportCase ExportConfigsDialog::archive_preset_bundle_to_fi
             NetworkAgent *agent = wxGetApp().getAgent();
             std::string   clock = get_curr_timestmp();
             if (agent) {
-                bundle_structure["user_name"] = agent->get_user_name();
-                bundle_structure["user_id"]   = agent->get_user_id();
                 bundle_structure["version"]   = agent->get_version();
                 bundle_structure["bundle_id"] = agent->get_user_id() + "_" + printer_preset_name_ + "_" + clock;
             } else {
-                bundle_structure["user_name"] = "";
-                bundle_structure["user_id"]   = "";
                 bundle_structure["version"]   = "";
                 bundle_structure["bundle_id"] = "offline_" + printer_preset_name_ + "_" + clock;
             }
@@ -3908,13 +3904,9 @@ ExportConfigsDialog::ExportCase ExportConfigsDialog::archive_filament_bundle_to_
             NetworkAgent *agent = wxGetApp().getAgent();
             std::string   clock = get_curr_timestmp();
             if (agent) {
-                bundle_structure["user_name"] = agent->get_user_name();
-                bundle_structure["user_id"]   = agent->get_user_id();
                 bundle_structure["version"]   = agent->get_version();
                 bundle_structure["bundle_id"] = agent->get_user_id() + "_" + filament_name + "_" + clock;
             } else {
-                bundle_structure["user_name"] = "";
-                bundle_structure["user_id"]   = "";
                 bundle_structure["version"]   = "";
                 bundle_structure["bundle_id"] = "offline_" + filament_name + "_" + clock;
             }
