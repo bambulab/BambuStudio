@@ -39,6 +39,9 @@ static constexpr const Slic3r::ClipperLib::JoinType DefaultLineJoinType     = Sl
 // Miter limit is ignored for jtSquare.
 static constexpr const double                       DefaultLineMiterLimit   = 0.;
 
+// Decimation factor applied on input contour when doing offset, multiplied by the offset distance.
+static constexpr const double                       ClipperOffsetShortestEdgeFactor = 0.005;
+
 enum class ApplySafetyOffset {
     No,
     Yes
@@ -381,7 +384,8 @@ inline Slic3r::Polygons   shrink(const Slic3r::Polygons &polygons, const float d
     { assert(delta > 0); return offset(polygons, -delta, joinType, miterLimit); }
 inline Slic3r::ExPolygons shrink_ex(const Slic3r::Polygons &polygons, const float delta, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit) 
     { assert(delta > 0); return offset_ex(polygons, -delta, joinType, miterLimit); }
-
+inline Slic3r::ExPolygons shrink_ex(const Slic3r::ExPolygons &polygons, const float delta, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit) 
+{ assert(delta > 0); return offset_ex(polygons, -delta, joinType, miterLimit); }
 // Wherever applicable, please use the opening() / closing() variants instead, they convey their purpose better.
 // Input polygons for negative offset shall be "normalized": There must be no overlap / intersections between the input polygons.
 Slic3r::Polygons   offset2(const Slic3r::ExPolygons &expolygons, const float delta1, const float delta2, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
@@ -448,6 +452,7 @@ Slic3r::ExPolygons diff_ex(const Slic3r::Surfaces &subject, const Slic3r::ExPoly
 Slic3r::ExPolygons diff_ex(const Slic3r::ExPolygons &subject, const Slic3r::Surfaces &clip, ApplySafetyOffset do_safety_offset = ApplySafetyOffset::No);
 Slic3r::ExPolygons diff_ex(const Slic3r::Surfaces &subject, const Slic3r::Surfaces &clip, ApplySafetyOffset do_safety_offset = ApplySafetyOffset::No);
 Slic3r::ExPolygons diff_ex(const Slic3r::SurfacesPtr &subject, const Slic3r::Polygons &clip, ApplySafetyOffset do_safety_offset = ApplySafetyOffset::No);
+Slic3r::ExPolygons diff_ex(const Slic3r::SurfacesPtr &subject, const Slic3r::ExPolygons &clip, ApplySafetyOffset do_safety_offset = ApplySafetyOffset::No);
 Slic3r::Polylines  diff_pl(const Slic3r::Polyline& subject, const Slic3r::Polygons& clip);
 Slic3r::Polylines  diff_pl(const Slic3r::Polylines &subject, const Slic3r::Polygons &clip);
 Slic3r::Polylines  diff_pl(const Slic3r::Polyline &subject, const Slic3r::ExPolygon &clip);
