@@ -1980,6 +1980,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("detect_thin_wall");
 
         optgroup = page->new_optgroup(L("Top/bottom shells"), L"param_shell");
+        optgroup->append_single_option_line("interface_shells");
         optgroup->append_single_option_line("top_surface_pattern", "fill-patterns#Infill of the top surface and bottom surface");
         optgroup->append_single_option_line("top_shell_layers");
         optgroup->append_single_option_line("top_shell_thickness");
@@ -2002,7 +2003,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("minimum_sparse_infill_area","parameter/strength-advance-settings");
         optgroup->append_single_option_line("infill_combination","parameter/strength-advance-settings");
         optgroup->append_single_option_line("detect_narrow_internal_solid_infill","parameter/strength-advance-settings");
-        optgroup->append_single_option_line("ensure_vertical_shell_thickness","parameter/strength-advance-settings");
+        //optgroup->append_single_option_line("ensure_vertical_shell_thickness","parameter/strength-advance-settings");
         optgroup->append_single_option_line("internal_bridge_support_thickness","parameter/strength-advance-settings");
 
     page = add_options_page(L("Speed"), "empty");

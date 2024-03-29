@@ -280,7 +280,7 @@ static ClipperLib::Paths raw_offset(PathsProvider &&paths, float offset, Clipper
         co.ArcTolerance = miterLimit;
     else
         co.MiterLimit = miterLimit;
-    co.ShortestEdgeLength = double(std::abs(offset * CLIPPER_OFFSET_SHORTEST_EDGE_FACTOR));
+    co.ShortestEdgeLength = double(std::abs(offset * ClipperOffsetShortestEdgeFactor));
     for (const ClipperLib::Path &path : paths) {
         co.Clear();
         // Execute reorients the contours so that the outer most contour has a positive area. Thus the output
@@ -431,7 +431,7 @@ static int offset_expolygon_inner(const Slic3r::ExPolygon &expoly, const float d
             co.ArcTolerance = miterLimit;
         else
             co.MiterLimit = miterLimit;
-        co.ShortestEdgeLength = double(std::abs(delta * CLIPPER_OFFSET_SHORTEST_EDGE_FACTOR));
+        co.ShortestEdgeLength = double(std::abs(delta * ClipperOffsetShortestEdgeFactor));
         co.AddPath(expoly.contour.points, joinType, ClipperLib::etClosedPolygon);
         co.Execute(contours, delta);
     }
@@ -452,7 +452,7 @@ static int offset_expolygon_inner(const Slic3r::ExPolygon &expoly, const float d
                     co.ArcTolerance = miterLimit;
                 else
                     co.MiterLimit = miterLimit;
-                co.ShortestEdgeLength = double(std::abs(delta * CLIPPER_OFFSET_SHORTEST_EDGE_FACTOR));
+                co.ShortestEdgeLength = double(std::abs(delta * ClipperOffsetShortestEdgeFactor));
                 co.AddPath(hole.points, joinType, ClipperLib::etClosedPolygon);
                 ClipperLib::Paths out2;
                 // Execute reorients the contours so that the outer most contour has a positive area. Thus the output
@@ -751,6 +751,8 @@ Slic3r::ExPolygons diff_ex(const Slic3r::Surfaces &subject, const Slic3r::Surfac
     { return _clipper_ex(ClipperLib::ctDifference, ClipperUtils::SurfacesProvider(subject), ClipperUtils::SurfacesProvider(clip), do_safety_offset); }
 Slic3r::ExPolygons diff_ex(const Slic3r::SurfacesPtr &subject, const Slic3r::Polygons &clip, ApplySafetyOffset do_safety_offset)
     { return _clipper_ex(ClipperLib::ctDifference, ClipperUtils::SurfacesPtrProvider(subject), ClipperUtils::PolygonsProvider(clip), do_safety_offset); }
+Slic3r::ExPolygons diff_ex(const Slic3r::SurfacesPtr& subject, const Slic3r::ExPolygons& clip, ApplySafetyOffset do_safety_offset)
+    { return _clipper_ex(ClipperLib::ctDifference, ClipperUtils::SurfacesPtrProvider(subject), ClipperUtils::ExPolygonsProvider(clip), do_safety_offset);}
 // BBS
 inline Slic3r::ExPolygons diff_ex(const Slic3r::Polygon& subject, const Slic3r::Polygons& clip, ApplySafetyOffset do_safety_offset)
 {
@@ -1125,7 +1127,7 @@ ClipperLib::Path mittered_offset_path_scaled(const Points &contour, const std::v
 		};
 
 		// Minimum edge length, squared.
-		double lmin  = *std::max_element(deltas.begin(), deltas.end()) * CLIPPER_OFFSET_SHORTEST_EDGE_FACTOR;
+		double lmin  = *std::max_element(deltas.begin(), deltas.end()) * ClipperOffsetShortestEdgeFactor;
 		double l2min = lmin * lmin;
 		// Minimum angle to consider two edges to be parallel.
 		// Vojtech's estimate.

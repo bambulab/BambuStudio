@@ -55,6 +55,7 @@ using Points3        = std::vector<Vec3crd>;
 using Pointfs        = std::vector<Vec2d>;
 using Vec2ds         = std::vector<Vec2d>;
 using Pointf3s       = std::vector<Vec3d>;
+using VecOfPoints    = std::vector<Points>;
 
 using Matrix2f       = Eigen::Matrix<float,  2, 2, Eigen::DontAlign>;
 using Matrix2d       = Eigen::Matrix<double, 2, 2, Eigen::DontAlign>;
@@ -268,8 +269,20 @@ inline Point lerp(const Point &a, const Point &b, double t)
     return ((1. - t) * a.cast<double>() + t * b.cast<double>()).cast<coord_t>();
 }
 
+// if IncludeBoundary, then a bounding box is defined even for a single point.
+// otherwise a bounding box is only defined if it has a positive area.
+template<bool IncludeBoundary = false>
 BoundingBox get_extents(const Points &pts);
-BoundingBox get_extents(const std::vector<Points> &pts);
+extern template BoundingBox get_extents<false>(const Points &pts);
+extern template BoundingBox get_extents<true>(const Points &pts);
+
+// if IncludeBoundary, then a bounding box is defined even for a single point.
+// otherwise a bounding box is only defined if it has a positive area.
+template<bool IncludeBoundary = false>
+BoundingBox get_extents(const VecOfPoints &pts);
+extern template BoundingBox get_extents<false>(const VecOfPoints &pts);
+extern template BoundingBox get_extents<true>(const VecOfPoints &pts);
+
 BoundingBoxf get_extents(const std::vector<Vec2d> &pts);
 
 // Test for duplicate points in a vector of points.

@@ -403,6 +403,9 @@ set(lisbslic3r_sources
     Arachne/WallToolPaths.cpp
     Shape/TextShape.hpp
     Shape/TextShape.cpp
+    RegionExpansion.hpp
+    RegionExpansion.cpp
+    ClipperZUtils.hpp
 )
 
 if (APPLE)

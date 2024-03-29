@@ -2100,9 +2100,9 @@ void PrintConfigDef::init_fff_params()
     def = this->add("interface_shells", coBool);
     //def->label = L("Interface shells");
     def->label = "Interface shells";
-    //def->tooltip = L("Force the generation of solid shells between adjacent materials/volumes. "
-    //               "Useful for multi-extruder prints with translucent materials or manual soluble "
-    //               "support material");
+    def->tooltip = L("Force the generation of solid shells between adjacent materials/volumes. "
+                  "Useful for multi-extruder prints with translucent materials or manual soluble "
+                  "support material");
     def->category = L("Quality");
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
