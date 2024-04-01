@@ -3617,6 +3617,17 @@ wxBoxSizer *ExportConfigsDialog::create_radio_item(wxString title, wxWindow *par
     return horizontal_sizer;
 }
 
+std::string ExportConfigsDialog::create_structure_file(json & structure)
+{
+    if (structure.is_null()) return "";
+
+    ostringstream oss;
+    oss << std::setw(4) << structure << std::endl;
+    std::string bundle_structure = oss.str();
+
+    return bundle_structure;
+}
+
 mz_bool ExportConfigsDialog::initial_zip_archive(mz_zip_archive &zip_archive, const std::string &file_path)
 {
     mz_zip_zero_struct(&zip_archive);
@@ -3865,7 +3876,7 @@ ExportConfigsDialog::ExportCase ExportConfigsDialog::archive_preset_bundle_to_fi
             bundle_structure["filament_config"] = filament_configs;
             bundle_structure["process_config"]  = process_configs;
 
-            std::string bundle_structure_str = bundle_structure.dump();
+            std::string bundle_structure_str = create_structure_file(bundle_structure);
             status = mz_zip_writer_add_mem(&zip_archive, BUNDLE_STRUCTURE_JSON_NAME, bundle_structure_str.data(), bundle_structure_str.size(), MZ_DEFAULT_COMPRESSION);
             if (MZ_FALSE == status) {
                 BOOST_LOG_TRIVIAL(info) << " Failed to add file: " << BUNDLE_STRUCTURE_JSON_NAME;
@@ -3960,7 +3971,7 @@ ExportConfigsDialog::ExportCase ExportConfigsDialog::archive_filament_bundle_to_
                 bundle_structure["printer_vendor"].push_back(j);
             }
 
-            std::string bundle_structure_str = bundle_structure.dump();
+            std::string bundle_structure_str = create_structure_file(bundle_structure);
             status = mz_zip_writer_add_mem(&zip_archive, BUNDLE_STRUCTURE_JSON_NAME, bundle_structure_str.data(), bundle_structure_str.size(), MZ_DEFAULT_COMPRESSION);
             if (MZ_FALSE == status) {
                 BOOST_LOG_TRIVIAL(info) << " Failed to add file: " << BUNDLE_STRUCTURE_JSON_NAME;
