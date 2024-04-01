@@ -426,8 +426,8 @@ double ExtrusionLoop::min_mm3_per_mm() const
 }
 
 // Orca: This function is used to check if the loop is smooth(continuous) or not.
-// TODO: the main logic is largly copied from the calculate_polygon_angles_at_vertices function in SeamPlacer file. Need to refactor the code in the future.
-bool ExtrusionLoop::is_smooth(double angle_threshold, double min_arm_length) const
+//BBS: only check angle of seam point while the seam has been decided.
+bool ExtrusionLoop::check_seam_point_angle(double angle_threshold, double min_arm_length) const
 {
     // go through all the points in the loop and check if the angle between two segments(AB and BC) is less than the threshold
     size_t idx_prev = 0;
@@ -450,31 +450,19 @@ bool ExtrusionLoop::is_smooth(double angle_threshold, double min_arm_length) con
         distance_to_prev += lengths[idx_prev];
     }
 
-    for (size_t _i = 0; _i < points.size(); ++_i) {
-        // pull idx_prev to current as much as possible, while respecting the min_arm_length
-        while (distance_to_prev - lengths[idx_prev] > min_arm_length) {
-            distance_to_prev -= lengths[idx_prev];
-            idx_prev = Slic3r::next_idx_modulo(idx_prev, points.size());
-        }
+    // push idx_next forward as far as needed
+    while (distance_to_next < min_arm_length) {
+        distance_to_next += lengths[idx_next];
+        idx_next = Slic3r::next_idx_modulo(idx_next, points.size());
+    }
 
-        // push idx_next forward as far as needed
-        while (distance_to_next < min_arm_length) {
-            distance_to_next += lengths[idx_next];
-            idx_next = Slic3r::next_idx_modulo(idx_next, points.size());
-        }
-
-        // Calculate angle between idx_prev, idx_curr, idx_next.
-        const Point &p0 = points[idx_prev];
-        const Point &p1 = points[idx_curr];
-        const Point &p2 = points[idx_next];
-        const auto   a  = angle(p0 - p1, p2 - p1);
-        if (a > 0 ? a < angle_threshold : a > -angle_threshold) { return false; }
-
-        // increase idx_curr by one
-        float curr_distance = lengths[idx_curr];
-        idx_curr++;
-        distance_to_prev += curr_distance;
-        distance_to_next -= curr_distance;
+    // Calculate angle between idx_prev, idx_curr, idx_next.
+    const Point &p0 = points[idx_prev];
+    const Point &p1 = points[idx_curr];
+    const Point &p2 = points[idx_next];
+    const auto   a  = angle(p0 - p1, p2 - p1);
+    if (a > 0 ? a < angle_threshold : a > -angle_threshold) {
+        return false;
     }
 
     return true;
