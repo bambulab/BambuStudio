@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-03-22 15:49+0800\n"
-"PO-Revision-Date: 2024-03-27 02:40+0300\n"
+"PO-Revision-Date: 2024-04-01 23:03+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
 "Language: tr\n"
@@ -202,9 +202,9 @@ msgstr "Yönü optimize edin"
 msgid "Apply"
 msgstr "Uygula"
 
-#, fuzzy
+#, fuzzy		
 msgid "Scale"
-msgstr "Scale"
+msgstr "Ölçek"
 
 msgid "Error: Please close all toolbar menus first"
 msgstr "Hata: Lütfen önce tüm araç çubuğu menülerini kapatın"
@@ -325,7 +325,7 @@ msgid "Plot cut plane"
 msgstr "Kesim düzlemini çizin"
 
 msgid "right click"
-msgstr "Sağ tık"
+msgstr "sağ tık"
 
 msgid "Assign the part to the other side"
 msgstr "Parçayı diğer tarafa atayın"
@@ -1480,7 +1480,7 @@ msgstr[1] "Aşağıdaki model objeler onarıldı"
 msgid "Failed to repair the following model object"
 msgid_plural "Failed to repair the following model object"
 msgstr[0] "Aşağıdaki model nesnesi onarılamadı"
-msgstr[1] ""
+msgstr[1] "Aşağıdaki model nesnesi onarılamadı"
 
 msgid "Repairing was canceled"
 msgstr "Onarım iptal edildi"
@@ -1514,7 +1514,7 @@ msgid "Outside"
 msgstr "Dış"
 
 msgid " "
-msgstr ""
+msgstr " "
 
 msgid "Layer height"
 msgstr "Katman Yüksekliği"
@@ -1942,7 +1942,7 @@ msgid "Service Unavailable"
 msgstr "Hizmet kullanılamıyor"
 
 msgid "Unknown Error."
-msgstr "Bilinmeyen hata oluştu"
+msgstr "Bilinmeyen hata oluştu."
 
 msgid "Sending print configuration"
 msgstr "Yazdırma yapılandırması gönderiliyor"
@@ -2056,7 +2056,7 @@ msgid "License"
 msgstr "Lisans"
 
 msgid "Bambu Studio is licensed under "
-msgstr "Bambu Studio aşağıdaki lisanslara sahiptir"
+msgstr "Bambu Studio aşağıdaki lisanslara sahiptir "
 
 msgid "GNU Affero General Public License, version 3"
 msgstr "GNU Affero Genel Kamu Lisansı, sürüm 3"
@@ -3045,7 +3045,7 @@ msgid "Layer Time: "
 msgstr "Katman Süresi: "
 
 msgid "Fan Speed: "
-msgstr "Fan Hızı:"
+msgstr "Fan Hızı: "
 
 msgid "Temperature: "
 msgstr "Sıcaklık: "
@@ -4774,7 +4774,7 @@ msgstr "Yazıcı Ayarları"
 
 #, boost-format
 msgid " plate %1%: "
-msgstr " plaka %1%:"
+msgstr " plaka %1%: "
 
 msgid "Invalid name, the following characters are not allowed:"
 msgstr "Geçersiz ad, aşağıdaki karakterlere izin verilmiyor:"
@@ -5570,7 +5570,7 @@ msgid "Dark Mode"
 msgstr "Karanlık Mod"
 
 msgid "Enable dark mode"
-msgstr "Karanlık modu etkinleştirin."
+msgstr "Karanlık modu etkinleştirin"
 
 msgid "User Experience"
 msgstr "Kullanıcı Deneyimi"
@@ -6846,7 +6846,7 @@ msgstr ""
 
 #, boost-format
 msgid "You have changed some settings of preset \"%1%\". "
-msgstr "\"%1%\" ön ayarının bazı ayarlarını değiştirdiniz."
+msgstr "\"%1%\" ön ayarının bazı ayarlarını değiştirdiniz. "
 
 msgid ""
 "\n"
@@ -7453,7 +7453,7 @@ msgstr ""
 "etmeniz gerekir."
 
 msgid "Configuration package updated to "
-msgstr "Yapılandırma paketi şu şekilde güncellendi"
+msgstr "Yapılandırma paketi şu şekilde güncellendi "
 
 msgid "Open G-code file:"
 msgstr "G kodu dosyasını açın:"
@@ -8465,13 +8465,13 @@ msgid "Order of walls"
 msgstr "Duvarların sırası"
 
 msgid "Print sequence of inner wall and outer wall. "
-msgstr "İç duvar ve dış duvarın baskı sırası."
+msgstr "İç duvar ve dış duvarın baskı sırası. "
 
 msgid "inner/outer"
-msgstr "İç/Dış"
+msgstr "iç/dış"
 
 msgid "outer/inner"
-msgstr "Dış/İç"
+msgstr "dış/iç"
 
 msgid "inner wall/outer wall/inner wall"
 msgstr "iç duvar/dış duvar/iç duvar"
@@ -8480,7 +8480,7 @@ msgid "Print infill first"
 msgstr "Önce dolguyu yazdır"
 
 msgid "Order of wall/infill. false means print wall first. "
-msgstr "Duvar/dolgu sırası. false önce duvarı yazdır anlamına gelir."
+msgstr "Duvar/dolgu sırası. false önce duvarı yazdır anlamına gelir. "
 
 msgid "Height to rod"
 msgstr "Çubuğa kadar olan yükseklik"
@@ -8752,7 +8752,7 @@ msgstr "Dolgu yoğunluğu"
 
 #, c-format
 msgid "Density of internal sparse infill, 100% means solid throughout"
-msgstr ""
+msgstr "İç seyrek dolgu yoğunluğu, 100 yüz baştan sona katı anlamına gelir"
 
 msgid "Sparse infill pattern"
 msgstr "Dolgu deseni"
@@ -10488,7 +10488,7 @@ msgstr "--use-firmware-retraction, --wipe ile uyumlu değildir"
 
 #, c-format, boost-format
 msgid " doesn't work at 100%% density "
-msgstr " 100%% yoğunluğunda çalışmıyor"
+msgstr " 100%% yoğunluğunda çalışmıyor "
 
 msgid "Invalid value when spiral vase mode is enabled: "
 msgstr "Spiral vazo modu etkinleştirildiğinde geçersiz değer: "
