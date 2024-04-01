@@ -1445,7 +1445,7 @@ var LangText={
 		"t115":"Одна партия",
 		"t116":"Повторить попытку"
 	},
-    "tr": {
+    "tr_TR": {
         "t1": "Bambu Stüdyo'ya Hoş Geldiniz",
         "t2": "Bambu Studio birkaç adımda kurulacaktır. Hadi başlayalım!",
         "t3": "Kullanıcı Sözleşmesi",
