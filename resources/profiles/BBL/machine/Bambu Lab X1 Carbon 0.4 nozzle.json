@@ -23,7 +23,7 @@
     "extruder_offset": [
         "0x2"
     ],
-    "enable_long_retraction_when_cut" : "1",
+    "enable_long_retraction_when_cut" : "2",
     "machine_load_filament_time": "29",
     "machine_unload_filament_time": "28",
     "nozzle_height": "4.2",
