@@ -9,6 +9,7 @@
 <link rel="stylesheet" type="text/css" href="./css/rightcommon.css" />		
 <link rel="stylesheet" type="text/css" href="./css/recent.css" />
 <link rel="stylesheet" type="text/css" href="./css/online.css" />
+<link rel="stylesheet" type="text/css" href="./css/manual.css" />	
 <link rel="stylesheet" type="text/css" href="./css/home.css" />
 <link rel="stylesheet" type="text/css" href="./css/dark.css" />	
 
@@ -33,8 +34,11 @@
 		</div>
 	</div>
 	
+	
+	<div id="HomeFullArea">
+	
 	<!----------Recent open---------->
-	<div id="RecentFileArea">
+	<div id="MiniRecentFileArea">
 		<div class="Title_Bar">
 		  <div class="Title_Left_Area">
 			<img class="TitleSmallIcon" src="./img/t2.svg" />
@@ -42,7 +46,7 @@
 		  </div>
 		  <div class="Right_Title_More TextS1" onClick="SwtichLeftMenu('recent')"><span class="trans" tid="t108">MORE</span> ></div>
 		</div>
-		<div id="FileList" class="SingleGuideBar">
+		<div id="MiniFileList" class="SingleGuideBar">
 <!--		    <div class="FileItem GuideBlock" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
 				<a class="FileTip" title="d:\model\11.3mf"></a>
 				<div class="FileImg"><img src="img/wiki.png"/></div>
@@ -81,17 +85,6 @@
 			</div>	-->		
 		</div>
 	</div>
-	
-	<div id="recnet_context_menu">
-		<div id="CT_Delete_Bar" class="CT_Item" onClick="OnDeleteRecentFile()">
-			<div class="CT_Icon CT_Delete"></div>
-			<div class="CT_Text trans" tid="t88">clear</div>
-		</div>
-		<div id="CT_Folder_Bar" class="CT_Item " onClick="OnExploreRecentFile()" >
-			<div class="CT_Icon CT_Explore"></div>
-			<div class="CT_Text trans" tid="t89">open in explorer </div>
-		</div>				
-    </div>	
 	
 	<!----------Online Models--------->
 	<div id="HotModelArea">
@@ -313,6 +306,190 @@
 			</div>	-->		
 		</div>
 	</div>	
+	
+	</div>
+	
+	<!----------Recent Context Menu--------->
+	<div id="recnet_context_menu">
+		<div id="CT_Delete_Bar" class="CT_Item" onClick="OnDeleteRecentFile()">
+			<div class="CT_Icon CT_Delete"></div>
+			<div class="CT_Text trans" tid="t88">clear</div>
+		</div>
+		<div id="CT_Folder_Bar" class="CT_Item " onClick="OnExploreRecentFile()" >
+			<div class="CT_Icon CT_Explore"></div>
+			<div class="CT_Text trans" tid="t89">open in explorer </div>
+		</div>				
+    </div>	
+	
+	
+	<!----------Recent File Full Area--------->
+	<div id="RecentFileArea">
+		<div id="RecentTitleBlock">
+			<div id="Recent_LEFT_Title">
+				<img class="TitleSmallIcon" src="./img/t2.svg" />
+		    	<div id="RecentTitle" class="Content-Title trans TextS1" tid="t35">Recently opened</div>
+			</div>
+			<div id="Right_Title_Block">
+				<div id="Menu_Batch" class="Right_Title_Btn Btn_White" onClick="OnBatchDelete()">
+					<img class="Right_Title_Btn_Icon" src="img/batch.svg" /><span class="trans" tid="t115">Batch</span>
+				</div>
+                <div id="Menu_Clear" class="Right_Title_Btn Btn_White" onClick="OnDeleteAllRecentFiles()">
+					<img class="Right_Title_Btn_Icon" src="img/clear.svg" /><span class="trans" tid="t12">Clear</span>
+				</div>
+                <div id="Menu_Delete" class="Right_Title_Btn Btn_Green" onClick="OnMultiDelete()">
+					<img class="Right_Title_Btn_Icon" src="img/delete2.svg" /><span class="trans" tid="t88">Remove</span>
+				</div>	
+                <div id="Menu_Cancel" class="Right_Title_Btn Btn_White" onClick="OnCancelDelete()">
+					<img class="Right_Title_Btn_Icon" src="img/cancel.svg" /><span class="trans" tid="t38">Cancel</span>
+				</div>					
+			</div>
+		</div>
+		<div id="FileList">
+<!--		    <div class="FileItem GuideBlock" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
+				<a class="FileTip" title="d:\model\11.3mf"></a>
+				<div class="FileImg"><img src="img/wiki.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
+				<div class="FileDate">2021/12/27 09:22</div>
+				<div class="FileMask"></div>
+				<div class="FileCheckBox"></div>
+			</div>
+		    <div class="FileItem GuideBlock" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
+				<a class="FileTip" title="d:\model\11.3mf"></a>
+				<div class="FileImg"><img src="img/wiki3.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
+				<div class="FileDate">2021/12/27 09:22</div>
+				<div class="FileMask"></div>
+				<div class="FileCheckBox"></div>				
+			</div>
+		    <div class="FileItem GuideBlock" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
+				<a class="FileTip" title="d:\model\11.3mf"></a>
+				<div class="FileImg"><img src="img/wiki.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
+				<div class="FileDate">2021/12/27 09:22</div>
+				<div class="FileMask"></div>
+				<div class="FileCheckBox"></div>
+			</div>
+		    <div class="FileItem GuideBlock" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
+				<a class="FileTip" title="d:\model\11.3mf"></a>
+				<div class="FileImg"><img src="img/wiki3.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
+				<div class="FileDate">2021/12/27 09:22</div>
+				<div class="FileMask"></div>
+				<div class="FileCheckBox"></div>				
+			</div>
+		    <div class="FileItem GuideBlock" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
+				<a class="FileTip" title="d:\model\11.3mf"></a>
+				<div class="FileImg"><img src="img/wiki.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
+				<div class="FileDate">2021/12/27 09:22</div>
+				<div class="FileMask"></div>
+				<div class="FileCheckBox"></div>
+			</div>
+		    <div class="FileItem GuideBlock" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
+				<a class="FileTip" title="d:\model\11.3mf"></a>
+				<div class="FileImg"><img src="img/wiki3.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
+				<div class="FileDate">2021/12/27 09:22</div>
+				<div class="FileMask"></div>
+				<div class="FileCheckBox"></div>				
+			</div>
+		    <div class="FileItem GuideBlock" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
+				<a class="FileTip" title="d:\model\11.3mf"></a>
+				<div class="FileImg"><img src="img/wiki.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
+				<div class="FileDate">2021/12/27 09:22</div>
+				<div class="FileMask"></div>
+				<div class="FileCheckBox"></div>
+			</div>
+		    <div class="FileItem GuideBlock" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
+				<a class="FileTip" title="d:\model\11.3mf"></a>
+				<div class="FileImg"><img src="img/wiki3.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
+				<div class="FileDate">2021/12/27 09:22</div>
+				<div class="FileMask"></div>
+				<div class="FileCheckBox"></div>				
+			</div>
+		    <div class="FileItem GuideBlock" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
+				<a class="FileTip" title="d:\model\11.3mf"></a>
+				<div class="FileImg"><img src="img/wiki.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
+				<div class="FileDate">2021/12/27 09:22</div>
+				<div class="FileMask"></div>
+				<div class="FileCheckBox"></div>
+			</div>
+		    <div class="FileItem GuideBlock" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
+				<a class="FileTip" title="d:\model\11.3mf"></a>
+				<div class="FileImg"><img src="img/wiki3.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
+				<div class="FileDate">2021/12/27 09:22</div>
+				<div class="FileMask"></div>
+				<div class="FileCheckBox"></div>				
+			</div>
+		    <div class="FileItem GuideBlock" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
+				<a class="FileTip" title="d:\model\11.3mf"></a>
+				<div class="FileImg"><img src="img/wiki.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
+				<div class="FileDate">2021/12/27 09:22</div>
+				<div class="FileMask"></div>
+				<div class="FileCheckBox"></div>
+			</div>
+		    <div class="FileItem GuideBlock" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
+				<a class="FileTip" title="d:\model\11.3mf"></a>
+				<div class="FileImg"><img src="img/wiki3.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
+				<div class="FileDate">2021/12/27 09:22</div>
+				<div class="FileMask"></div>
+				<div class="FileCheckBox"></div>				
+			</div>	-->		
+		</div>
+	</div>	
+	
+		
+	<!----------User Manual--------->
+<div id="WikiGuideBoard" >
+	<div class="GuideBlock" onClick="OpenWikiUrl('https://wiki.bambulab.com/en/software/bambu-studio/studio-quick-start')">
+		<div class="UG_IMG"><img src="img/quick_start.png" /></div>
+		<div class="UG_TITLE trans TextS1" tid="wk1">Quick Start</div>
+		<div class="UG_DESC trans" tid="wk2">This article introduces the most basic usage of Bambu Studio. It guides users to configure software, create projects, and complete the first printing task step by step. </div>
+	</div>
+	<div class="GuideBlock" onClick="OpenWikiUrl('https://wiki.bambulab.com/en/software/bambu-studio/project-based-workflow')">
+		<div class="UG_IMG"><img src="img/project_based_workflow.png" /></div>
+		<div class="UG_TITLE trans TextS1" tid="wk3">Project Based Workflow</div>
+		<div class="UG_DESC trans" tid="wk4">Bambu Studio has put forward a leading workflow to truly achieve an “all in one” project. Based on the mainstream 3MF project format, it provides a series of revolutionary new features, such as Multi-Plate Support, a Project Resource Manager, and Assembly/Part View. It greatly improves the efficiency of both creators and regular users.</div>
+	</div>
+	<div class="GuideBlock" onClick="OpenWikiUrl('https://wiki.bambulab.com/en/software/bambu-studio/high-speed-print-at-quality')">
+		<div class="UG_IMG"><img src="img/high_speed_print_at_quality.png" /></div>
+		<div class="UG_TITLE trans TextS1" tid="wk5">High Speed Print at Quality</div>
+		<div class="UG_DESC trans" tid="wk6">It is challenging to print at high speed while maintaining high quality. Bambu Studio makes this happen.
+        "Arch Move" makes the toolhead move smoothly and reduces the machine's vibration. The smart cooling is based on fine-tuned cooling parameters for each filament type.
+        "Auto slow down" for overhang walls works to prevent deformation at high speeds.</div>
+	</div>
+	<div class="GuideBlock" onClick="OpenWikiUrl('https://wiki.bambulab.com/en/software/bambu-studio/multi-color-printing')">
+		<div class="UG_IMG"><img src="img/multi_color_printing.png" /></div>
+		<div class="UG_TITLE trans TextS1" tid="wk7">Multi-Color Printing</div>
+		<div class="UG_DESC trans" tid="wk8">Bambu Studio provides versatile colorizing tools to make a colorful model. You can freely add/remove filaments in a project and colorize your model with different brushes. Before printing, each filament will be auto-mapped to an AMS slot, not needing to manually change the spool placement in the AMS.</div>
+	</div>
+	<div class="GuideBlock" onClick="OpenWikiUrl('https://wiki.bambulab.com/en/software/bambu-studio/how-to-set-slicing-parameters')">
+		<div class="UG_IMG"><img src="img/setting_guide_of_slicing_parameters.png" /></div>
+		<div class="UG_TITLE trans TextS1" tid="wk9">Setting Guide of Slicing Parameters</div>
+		<div class="UG_DESC trans" tid="wk10">The parameter management features in Bambu Studio provide very flexible and powerful control over the slicing process. This article introduces the organization of parameters and provides some skills on taking full advantage of these capabilities.</div>
+	</div>
+	<div class="GuideBlock" onClick="OpenWikiUrl('https://wiki.bambulab.com/en/software/bambu-studio/remote-control')">
+		<div class="UG_IMG"><img src="img/remote_control_and_monitoring.png" /></div>
+		<div class="UG_TITLE trans TextS1" tid="wk11">Remote Control & Monitoring</div>
+		<div class="UG_DESC trans" tid="wk12">Bambu Studio support sending print job to your printer over WAN/LAN network, controlling & monitoring every aspect of your 3D printer and printing jobs. If you have more than one printer, you can easily switch between them in the device list.</div>
+	</div>
+	<div class="GuideBlock" onClick="OpenWikiUrl('https://wiki.bambulab.com/en/software/bambu-studio/step')">
+		<div class="UG_IMG"><img src="img/step.png" /></div>
+		<div class="UG_TITLE trans TextS1" tid="wk13">STEP Format</div>
+		<div class="UG_DESC trans" tid="wk14">Compared with STL, STEP brings more effective information. Thanks to the high accuracy of STEP, a lot of extrusion paths can be generated as arcs. STEP also includes the assembly relationship of each part of a model, which can be used to restore the assembly view after a model is split.</div>
+	</div>
+	<div class="GuideBlock" onClick="OpenWikiUrl('https://wiki.bambulab.com/en/software/bambu-studio/3d-text')">
+		<div class="UG_IMG"><img src="img/3d_text.png" /></div>
+		<div class="UG_TITLE trans TextS1" tid="wk15">3D Text</div>
+		<div class="UG_DESC trans" tid="wk16">With 3D Text tool, users can easily create various 3D text shapes in the project, making the model more personalized. Bambu Studio provides dozens of fonts and supports bold and italic styles to give text greater flexibility.</div>
+	</div>
+</div>	
 	
 	
 </body>
