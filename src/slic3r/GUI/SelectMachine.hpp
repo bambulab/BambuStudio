@@ -444,6 +444,8 @@ protected:
     wxStaticBitmap *                    img_ams_backup{nullptr};
     ScalableBitmap *                    enable_ams{nullptr};
     ThumbnailData                       m_preview_thumbnail_data;//when ams map change
+    std::vector<wxColour>               m_preview_colors_in_thumbnail;
+    std::vector<bool>                   m_edge_pixels;
 
 public:
     SelectMachineDialog(Plater *plater = nullptr);
@@ -484,6 +486,9 @@ public:
     void set_default();
     void reset_and_sync_ams_list();
     void clone_thumbnail_data();
+    void record_edge_pixels_data();
+    wxColour adjust_color_for_render(const wxColour& color);
+    void final_deal_edge_pixels_data(ThumbnailData& data);
     void updata_thumbnail_data_after_connected_printer();
     void change_default_normal(int old_filament_id, wxColour temp_ams_color);
     void set_default_normal(const ThumbnailData&);
