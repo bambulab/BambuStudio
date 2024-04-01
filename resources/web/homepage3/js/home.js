@@ -2,6 +2,10 @@
 
 var m_HotModelList=null;
 var m_ForUModelList=null;
+var timer_CheckNetwork_HotModel=null;
+
+var m_MakerlabList=null;
+var timer_CheckNetwork_Makerlab=null;
 
 function OnHomeInit()
 {
@@ -135,6 +139,12 @@ function HandleStudio( pVal )
 	else if( strCmd=="modelmall_model_advise_get")
 	{
 		//alert('hot');
+		if( timer_CheckNetwork_HotModel!=null )
+		{
+			clearInterval(timer_CheckNetwork_HotModel);
+			timer_CheckNetwork_HotModel=null;
+		}	
+		
 		if( m_HotModelList!=null && pVal['hits'].length>0 )
 		{
 			let SS1=JSON.stringify(pVal['hits']);
@@ -150,6 +160,12 @@ function HandleStudio( pVal )
 	else if( strCmd=="modelmall_model_customized_get")
 	{
 		//alert('For U');
+		if( timer_CheckNetwork_HotModel!=null )
+		{
+			clearInterval(timer_CheckNetwork_HotModel);
+			timer_CheckNetwork_HotModel=null;
+		}
+		
 		if( m_ForUModelList!=null && pVal['hits'].length>0 )
 		{
 			let SS1=JSON.stringify(pVal['hits']);
@@ -163,9 +179,69 @@ function HandleStudio( pVal )
 		Show4UPick( m_ForUModelList );
 	}
 	else if(strCmd=='homepage_makerlab_get')
-	{				
-		ShowMakerlabList(pVal['list']);
+	{		
+		if( timer_CheckNetwork_Makerlab!=null )
+		{
+			clearInterval(timer_CheckNetwork_Makerlab);
+			timer_CheckNetwork_Makerlab=null;
+		}
+		
+		if( m_MakerlabList!=null && pVal['list'].length>0 )
+		{
+			let SS1=JSON.stringify(pVal['list']);
+			let SS2=JSON.stringify(m_MakerlabList);
+			
+			if( SS1==SS2 )
+				return;
+		}
+		
+	    m_MakerlabList=pVal['list'];	
+				
+		ShowMakerlabList(m_MakerlabList);
 	}
+	else if(strCmd=='homepage_leftmenu_clicked')
+	{
+		let strName=pVal['menu'];
+		OnBoardChange(strName);
+	}
+	else if(strCmd=='homepage_rightarea_reset')
+	{
+		$('#HotModelList').html('');
+   	    $('#HotModelArea').hide();
+		m_HotModelList=null;
+		m_ForUModelList=null;
+		
+		$('#LabList').html('');
+	    $('#MakerlabArea').hide();
+		m_MakerlabList=null;
+		
+		OnHomeInit();
+	}
+}
+
+function OnBoardChange( strMenu )
+{
+	if( strMenu=='home' )
+	{
+		$('#MenuArea').css('display','flex');	
+		$('#HomeFullArea').css('display','inline');	
+		$('#RecentFileArea').css('display','none');		
+		$('#WikiGuideBoard').css('display','none');
+	}
+	else if(strMenu=='recent')
+	{
+		$('#MenuArea').css('display','flex');			
+		$('#HomeFullArea').css('display','none');		
+		$('#RecentFileArea').css('display','flex');		
+		$('#WikiGuideBoard').css('display','none');		
+	}
+	else if(strMenu=='manual')
+	{
+		$('#MenuArea').css('display','none');
+		$('#HomeFullArea').css('display','none');		
+		$('#RecentFileArea').css('display','none');		
+		$('#WikiGuideBoard').css('display','flex');			
+	}		
 }
 
 function SwtichLeftMenu( strMenu )
@@ -215,7 +291,8 @@ function ShowRecentFileList( pList )
 		strHtml+=TmpHtml;
 	}
 	
-	$("#FileList").html(strHtml);	
+	$("#FileList").html(strHtml);
+	$("#MiniFileList").html(strHtml);
 	
     Set_RecentFile_MouseRightBtn_Event();
 	UpdateRecentClearBtnDisplay();
@@ -348,7 +425,7 @@ function OnDeleteAllRecentFiles()
 
 function UpdateRecentClearBtnDisplay()
 {
-    let AllFile=$(".FileItem");
+    let AllFile=$("#RecentFileArea .FileItem");
 	let nFile=AllFile.length;	
 	if( nFile>0 )
 	{
@@ -384,19 +461,6 @@ function BeginDownloadNetworkPlugin()
 	SendWXMessage( JSON.stringify(tSend) );		
 }
 
-function OutputKey(keyCode, isCtrlDown, isShiftDown, isCmdDown) {
-	var tSend = {};
-	tSend['sequence_id'] = Math.round(new Date() / 1000);
-	tSend['command'] = "get_web_shortcut";
-	tSend['key_event'] = {};
-	tSend['key_event']['key'] = keyCode;
-	tSend['key_event']['ctrl'] = isCtrlDown;
-	tSend['key_event']['shift'] = isShiftDown;
-	tSend['key_event']['cmd'] = isCmdDown;
-
-	SendWXMessage(JSON.stringify(tSend));
-}
-
 function SendMsg_GetMakerlabList()
 {
 	var tSend={};
@@ -404,6 +468,10 @@ function SendMsg_GetMakerlabList()
 	tSend['command']="homepage_makerlab_get";
 	
 	SendWXMessage( JSON.stringify(tSend) );
+	
+	setTimeout("SendMsg_GetMakerlabList()",3600*1000*6);
+	if(timer_CheckNetwork_Makerlab==null)
+		timer_CheckNetwork_Makerlab=setInterval("SendMsg_GetMakerlabList()",60*1000);
 }
 
 function SwitchContent(strMenu)
@@ -532,7 +600,9 @@ function SendMsg_GetStaffPick()
 	
 	SendWXMessage( JSON.stringify(tSend) );
 	
-	setTimeout("SendMsg_GetStaffPick()",3600*1000*6);
+    setTimeout("SendMsg_GetStaffPick()",3600*1000*6);
+	if(timer_CheckNetwork_HotModel==null)
+		timer_CheckNetwork_HotModel=setInterval("SendMsg_GetStaffPick()",60*1000);	
 }
 
 function ExNumber( number )
