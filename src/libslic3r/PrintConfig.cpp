@@ -2863,7 +2863,7 @@ void PrintConfigDef::init_fff_params()
 
     def           = this->add("scarf_angle_threshold", coInt);
     def->label    = L("Conditional angle threshold");
-    def->tooltip  = L("This option sets the threshold angle for applying a conditional scarf joint seam.\nIf the maximum angle within the perimeter loop " "exceeds this value (indicating the absence of sharp corners), a scarf joint seam will be used. The default value is 155°.");
+    def->tooltip  = L("This option sets the threshold angle for applying a conditional scarf joint seam.\nIf the seam angle within the perimeter loop " "exceeds this value (indicating the absence of sharp corners), a scarf joint seam will be used. The default value is 155°.");
     def->mode     = comAdvanced;
     def->sidetext = L("°");
     def->min      = 0;
