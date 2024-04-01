@@ -436,5 +436,50 @@ function DisableCtrlHotkey()
     }	
     }
 }
+
+function OutputKey(keyCode, isCtrlDown, isShiftDown, isCmdDown) {
+	var tSend = {};
+	tSend['sequence_id'] = Math.round(new Date() / 1000);
+	tSend['command'] = "get_web_shortcut";
+	tSend['key_event'] = {};
+	tSend['key_event']['key'] = keyCode;
+	tSend['key_event']['ctrl'] = isCtrlDown;
+	tSend['key_event']['shift'] = isShiftDown;
+	tSend['key_event']['cmd'] = isCmdDown;
+
+	SendWXMessage(JSON.stringify(tSend));
+}
+
+function DisableHotkey( b_CtrlP )
+{
+    document.onkeydown = function (event) {
+		var e = event || window.event || arguments.callee.caller.arguments[0];
+
+		if (e.ctrlKey && e.metaKey)
+			OutputKey(e.keyCode, true, false, true);
+		else if (e.ctrlKey)
+            OutputKey(e.keyCode, true, false, false);
+		else if (e.metaKey)
+			OutputKey(e.keyCode, false, false, true);
+
+		if (e.shiftKey && e.ctrlKey)
+			OutputKey(e.keyCode, true, true, false);
+		
+		if (e.shiftKey && e.metaKey)
+			OutputKey(e.keyCode, false, true, true);
+
+		if (window.event) {
+			try { e.keyCode = 0; } catch (e) { }
+			e.returnValue = false;
+		}
+	};
+
+	window.addEventListener('mousewheel', function (event) {
+		if (event.ctrlKey === true || event.metaKey) {
+			event.preventDefault();
+		}
+	}, { passive: false });	
+}
 	
-DisableCtrlHotkey();
+DisableHotkey();
+

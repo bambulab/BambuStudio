@@ -1,9 +1,8 @@
 
 
-#RecentFileArea
+#RecentFileArea,#MiniRecentFileArea
 {
 	flex: 1;
-	display: flex;
 	flex-direction: column;
 	position: relative;
 	top: 0px;
@@ -11,6 +10,16 @@
 	right: 0px;
 	left: 0px;
 	min-height: 100px;
+}
+
+#MiniRecentFileArea
+{
+	display:flex;
+}
+
+#RecentFileArea
+{
+	display: none;	
 }
 
 #RecentTitleBlock
@@ -76,7 +85,7 @@
 	display:none;
 }
 
-#FileList
+#FileList,#MiniFileList
 {
 	flex: 1;
 	display: flex;
