@@ -2954,6 +2954,7 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
         auto ams_colour      = wxColour(wxAtoi(selection_data_arr[0]), wxAtoi(selection_data_arr[1]), wxAtoi(selection_data_arr[2]), wxAtoi(selection_data_arr[3]));
         int  old_filament_id = (int) wxAtoi(selection_data_arr[5]);
         change_default_normal(old_filament_id, ams_colour);
+        final_deal_edge_pixels_data(m_preview_thumbnail_data);
         set_default_normal(m_preview_thumbnail_data);//do't reset ams
 
         int ctype = 0;
@@ -4071,6 +4072,19 @@ void SelectMachineDialog::reset_and_sync_ams_list()
 }
 
 void SelectMachineDialog::clone_thumbnail_data() {
+    //record preview_colors
+    MaterialHash::iterator iter               = m_materialList.begin();
+    if (m_preview_colors_in_thumbnail.size() != m_materialList.size()) {
+        m_preview_colors_in_thumbnail.resize(m_materialList.size());
+    }
+    while (iter != m_materialList.end()) {
+        int           id   = iter->first;
+        Material *    item = iter->second;
+        MaterialItem *m    = item->item;
+        m_preview_colors_in_thumbnail[id] = m->m_material_coloul;
+        iter++;
+    }
+    //copy data
     ThumbnailData &data = m_plater->get_partplate_list().get_curr_plate()->thumbnail_data;
     m_preview_thumbnail_data.reset();
     m_preview_thumbnail_data.set(data.width, data.height);
@@ -4084,6 +4098,118 @@ void SelectMachineDialog::clone_thumbnail_data() {
                     new_px[i] = origin_px[i];
                 }
             }
+        }
+    }
+    //record_edge_pixels_data
+    record_edge_pixels_data();
+}
+
+void SelectMachineDialog::record_edge_pixels_data()
+{
+    auto is_not_in_preview_colors = [this](unsigned char r, unsigned char g , unsigned char b , unsigned char a) {
+        for (size_t i = 0; i < m_preview_colors_in_thumbnail.size(); i++) {
+            wxColour  render_color  = adjust_color_for_render(m_preview_colors_in_thumbnail[i]);
+            if (render_color.Red() == r && render_color.Green() == g && render_color.Blue() == b /*&& render_color.Alpha() == a*/) {
+                return false;
+            }
+        }
+        return true;
+    };
+    ThumbnailData &data = m_plater->get_partplate_list().get_curr_plate()->no_light_thumbnail_data;
+    ThumbnailData &origin_data = m_plater->get_partplate_list().get_curr_plate()->thumbnail_data;
+    if (data.width > 0 && data.height > 0) {
+        m_edge_pixels.resize(data.width * data.height);
+        for (unsigned int r = 0; r < data.height; ++r) {
+            unsigned int rr        = (data.height - 1 - r) * data.width;
+            for (unsigned int c = 0; c < data.width; ++c) {
+                unsigned char *no_light_px = (unsigned char *) data.pixels.data() + 4 * (rr + c);
+                unsigned char *origin_px          = (unsigned char *) origin_data.pixels.data() + 4 * (rr + c);
+                m_edge_pixels[r * data.width + c] = false;
+                if (origin_px[3] > 0) {
+                    if (is_not_in_preview_colors(no_light_px[0], no_light_px[1], no_light_px[2], origin_px[3])) {
+                        m_edge_pixels[r * data.width + c] = true;
+                    }
+                }
+            }
+        }
+    }
+}
+
+wxColour SelectMachineDialog::adjust_color_for_render(const wxColour &color)
+{
+    std::array<float, 4> _temp_color_color  = {color.Red() / 255.0f, color.Green() / 255.0f, color.Blue() / 255.0f, color.Alpha() / 255.0f};
+    auto                 _temp_color_color_ = adjust_color_for_rendering(_temp_color_color);
+    wxColour             render_color((int) (_temp_color_color_[0] * 255.0f), (int) (_temp_color_color_[1] * 255.0f), (int) (_temp_color_color_[2] * 255.0f),
+                          (int) (_temp_color_color_[3] * 255.0f));
+    return render_color;
+}
+
+void SelectMachineDialog::final_deal_edge_pixels_data(ThumbnailData &data)
+{
+    if (data.width > 0 && data.height > 0) {
+        for (unsigned int r = 0; r < data.height; ++r) {
+             unsigned int rr            = (data.height - 1 - r) * data.width;
+             bool         exist_rr_up   = r >= 1 ? true : false;
+             bool         exist_rr_down = r <= data.height - 2 ? true : false;
+             unsigned int rr_up         = exist_rr_up ? (data.height - 1 - (r - 1)) * data.width : 0;
+             unsigned int rr_down       = exist_rr_down ? (data.height - 1 - (r + 1)) * data.width : 0;
+             for (unsigned int c = 0; c < data.width; ++c) {
+                  bool         exist_c_left  = c >= 1 ? true : false;
+                  bool         exist_c_right = c <= data.width - 2 ? true : false;
+                  unsigned int c_left        = exist_c_left ? c - 1 : 0;
+                  unsigned int c_right       = exist_c_right ? c + 1 : 0;
+                  unsigned char *cur_px   = (unsigned char *) data.pixels.data() + 4 * (rr + c);
+                  unsigned char *relational_pxs[8] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
+                  if (exist_rr_up && exist_c_left) { relational_pxs[0] = (unsigned char *) data.pixels.data() + 4 * (rr_up + c_left); }
+                  if (exist_rr_up) { relational_pxs[1] = (unsigned char *) data.pixels.data() + 4 * (rr_up + c); }
+                  if (exist_rr_up && exist_c_right) { relational_pxs[2] = (unsigned char *) data.pixels.data() + 4 * (rr_up + c_right); }
+                  if (exist_c_left) { relational_pxs[3] = (unsigned char *) data.pixels.data() + 4 * (rr + c_left); }
+                  if (exist_c_right) { relational_pxs[4] = (unsigned char *) data.pixels.data() + 4 * (rr + c_right); }
+                  if (exist_rr_down && exist_c_left) { relational_pxs[5] = (unsigned char *) data.pixels.data() + 4 * (rr_down + c_left); }
+                  if (exist_rr_down) { relational_pxs[6] = (unsigned char *) data.pixels.data() + 4 * (rr_down + c); }
+                  if (exist_rr_down && exist_c_right) { relational_pxs[7] = (unsigned char *) data.pixels.data() + 4 * (rr_down + c_right); }
+                  if (cur_px[3] > 0 && m_edge_pixels[r * data.width + c]) {
+                       int rgba_sum[4] = {0, 0, 0, 0};
+                       int valid_count = 0;
+                       for (size_t k = 0; k < 8; k++) {
+                           if (relational_pxs[k]) {
+                               if (k == 0 && m_edge_pixels[(r - 1) * data.width + c_left]) {
+                                    continue;
+                                }
+                               if (k == 1 && m_edge_pixels[(r - 1) * data.width + c]) {
+                                    continue;
+                                }
+                                if (k == 2 && m_edge_pixels[(r - 1) * data.width + c_right]) {
+                                    continue;
+                                }
+                                if (k == 3 && m_edge_pixels[r * data.width + c_left]) {
+                                    continue;
+                                }
+                                if (k == 4 && m_edge_pixels[r * data.width + c_right]) {
+                                    continue;
+                                }
+                                if (k == 5 && m_edge_pixels[(r + 1) * data.width + c_left]) {
+                                    continue;
+                                }
+                                if (k == 6 && m_edge_pixels[(r + 1) * data.width + c]) {
+                                    continue;
+                                }
+                                if (k == 7 && m_edge_pixels[(r + 1) * data.width + c_right]) {
+                                    continue;
+                                }
+                                for (size_t m = 0; m < 4; m++) {
+                                    rgba_sum[m] += relational_pxs[k][m];
+                                }
+                                valid_count++;
+                           }
+                       }
+                       if (valid_count > 0) {
+                            for (size_t m = 0; m < 4; m++) {
+                                cur_px[m] = std::clamp(int(rgba_sum[m] / (float)valid_count), 0, 255);
+                            }
+                       }
+                  }
+             }
         }
     }
 }
@@ -4105,17 +4231,15 @@ void SelectMachineDialog::updata_thumbnail_data_after_connected_printer()
         change_default_normal(id, m->m_ams_coloul);
         iter++;
     }
-    if (is_connect_printer) {
+    if (is_connect_printer) { 
+        final_deal_edge_pixels_data(m_preview_thumbnail_data);
         set_default_normal(m_preview_thumbnail_data);
     }
 }
 
 void SelectMachineDialog::change_default_normal(int old_filament_id, wxColour temp_ams_color)
 {
-    std::array<float, 4> _temp_ams_color = {temp_ams_color.Red() / 255.0f, temp_ams_color.Green() / 255.0f, temp_ams_color.Blue() / 255.0f, temp_ams_color.Alpha() / 255.0f};
-    auto                 __temp_ams_color_ = adjust_color_for_rendering(_temp_ams_color);
-    wxColour             ams_color((int)(__temp_ams_color_[0] * 255.0f), (int) (__temp_ams_color_[1] * 255.0f),
-                             (int) (__temp_ams_color_[2] * 255.0f), (int)( __temp_ams_color_[3] * 255.0f));
+    wxColour             ams_color     = adjust_color_for_render(temp_ams_color);
     ThumbnailData& data =m_plater->get_partplate_list().get_curr_plate()->thumbnail_data;
     ThumbnailData& no_light_data = m_plater->get_partplate_list().get_curr_plate()->no_light_thumbnail_data;
     if (data.width > 0 && data.height > 0 && data.width == no_light_data.width && data.height == no_light_data.height) {
@@ -4125,7 +4249,7 @@ void SelectMachineDialog::change_default_normal(int old_filament_id, wxColour te
                 unsigned char *no_light_px   = (unsigned char *) no_light_data.pixels.data() + 4 * (rr + c);
                 unsigned char *origin_px = (unsigned char *) data.pixels.data() + 4 * (rr + c);
                 unsigned char *new_px        = (unsigned char *) m_preview_thumbnail_data.pixels.data() + 4 * (rr + c);
-                if (no_light_px[3] == (255 - old_filament_id)) {
+                if (no_light_px[3] == (255 - old_filament_id) && m_edge_pixels[r * data.width + c] == false) {
                     new_px[3] = origin_px[3]; // alpha
                     int origin_rgb = origin_px[0] + origin_px[1] + origin_px[2];
                     int no_light_px_rgb   = no_light_px[0] + no_light_px[1] + no_light_px[2];
