@@ -3165,13 +3165,11 @@ void Plater::priv::update(unsigned int flags)
         // Update the SLAPrint from the current Model, so that the reload_scene()
         // pulls the correct data.
         update_status = this->update_background_process(false, flags & (unsigned int)UpdateParams::POSTPONE_VALIDATION_ERROR_MESSAGE);
-    //BBS reload_scene
-    if (wxGetApp().plater() && wxGetApp().plater()->canvas3D()->get_canvas_type() == GLCanvas3D::ECanvasType::CanvasAssembleView) { // BBS assemble view
-        this->assemble_view->reload_scene(false, flags);
-    } else {
-        this->view3D->reload_scene(false, flags & (unsigned int) UpdateParams::FORCE_FULL_SCREEN_REFRESH);
-        this->preview->reload_print();
-    }
+    // BBS TODO reload_scene
+    this->view3D->reload_scene(false, flags & (unsigned int) UpdateParams::FORCE_FULL_SCREEN_REFRESH);
+    this->preview->reload_print();
+    // BBS assemble view
+    this->assemble_view->reload_scene(false, flags);
 
     if (current_panel && q->is_preview_shown()) {
         q->force_update_all_plate_thumbnails();

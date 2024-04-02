@@ -185,6 +185,7 @@ struct MeasurementResult {
 
 // Returns distance/angle between two SurfaceFeatures.
 MeasurementResult get_measurement(const SurfaceFeature& a, const SurfaceFeature& b,bool deal_circle_result =false);
+bool              can_set_xyz_distance(const SurfaceFeature &a, const SurfaceFeature &b);
 
 struct AssemblyAction
 {

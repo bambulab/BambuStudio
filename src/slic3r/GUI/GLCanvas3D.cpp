@@ -7928,6 +7928,7 @@ void GLCanvas3D::_render_return_toolbar()
                 wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_3D));
             const_cast<GLGizmosManager *>(&m_gizmos)->reset_all_states();
             wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager().reset_all_states();
+            GLVolume::explosion_ratio  = 1.0;//in 3D view  GLVolume::explosion_ratio  = 1.0
             wxGetApp().plater()->get_view3D_canvas3D()->reload_scene(true);
             {
                 GLCanvas3D *                          view_3d       = wxGetApp().plater()->get_view3D_canvas3D();
