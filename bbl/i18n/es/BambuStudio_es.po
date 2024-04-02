@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-22 15:49+0800\n"
+"POT-Creation-Date: 2024-04-02 14:51+0800\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -204,6 +204,15 @@ msgstr "Escalar"
 msgid "Error: Please close all toolbar menus first"
 msgstr ""
 "Error: Por favor, cierre primero todos los menús de la barra de herramientas"
+
+msgid "Tool-Move"
+msgstr ""
+
+msgid "Tool-Scale"
+msgstr ""
+
+msgid "Tool-Rotate"
+msgstr ""
 
 msgid "Tool-Lay on Face"
 msgstr "Herramienta-colocar sobre la cara"
@@ -598,6 +607,10 @@ msgstr ""
 msgid "Measure"
 msgstr ""
 
+msgid ""
+"Please confirm explosion ratio = 1,and please select at least one object"
+msgstr ""
+
 msgid "Edit to scale"
 msgstr ""
 
@@ -625,9 +638,6 @@ msgstr ""
 msgid "Copy to clipboard"
 msgstr "Copiar al portapapeles"
 
-msgid "MoveInMeasure"
-msgstr ""
-
 msgid "Angle"
 msgstr "Ángulo:"
 
@@ -641,6 +651,33 @@ msgid "Direct distance"
 msgstr ""
 
 msgid "Distance XYZ"
+msgstr ""
+
+msgid "Parallel"
+msgstr ""
+
+msgid "Center coincidence"
+msgstr ""
+
+msgid "Featue 1"
+msgstr ""
+
+msgid "Reverse rotation"
+msgstr ""
+
+msgid "Rotate around center:"
+msgstr ""
+
+msgid "Parallel_distance:"
+msgstr ""
+
+msgid "Featue 2"
+msgstr ""
+
+msgid ""
+"Due to ensuer_on_bed, assembly between \n"
+"different objects may not be correct in 3D view.\n"
+" It is recommended to assemble them together."
 msgstr ""
 
 msgid "Brush size"
@@ -2659,6 +2696,16 @@ msgstr ""
 "Reajustar a 0,2"
 
 msgid ""
+"Too small scarf start height.\n"
+"Reset to 50%"
+msgstr ""
+
+msgid ""
+"Too big scarf start height.\n"
+"Reset to 50%"
+msgstr ""
+
+msgid ""
 "Too small ironing spacing.\n"
 "Reset to 0.1"
 msgstr ""
@@ -2977,6 +3024,10 @@ msgstr "El valor %s está fuera de rango, ¿continuar?"
 
 msgid "Parameter validation"
 msgstr "Validación de parámetros"
+
+#, c-format, boost-format
+msgid "Value %s is out of range. The valid range is from %d to %d."
+msgstr ""
 
 msgid "Value is out of range."
 msgstr "El valor está fuera de rango."
@@ -4151,6 +4202,11 @@ msgstr "Descarga finalizada"
 #, c-format, boost-format
 msgid "Downloading %d%%..."
 msgstr "Descargando %d%%..."
+
+msgid ""
+"Reconnecting the printer, the operation cannot be completed immediately, "
+"please try again later."
+msgstr ""
 
 msgid ""
 "Over 4 studio/handy are using remote access, you can close some and try "
@@ -6337,8 +6393,15 @@ msgstr "Ignore"
 msgid ""
 "Experimental feature: Retracting and cutting off the filament at a greater "
 "distance during filament changes to minimize flush.Although it can notably "
+"reduce flush,  it may also elevate the risk of nozzle clogs or other "
+"printing complications."
+msgstr ""
+
+msgid ""
+"Experimental feature: Retracting and cutting off the filament at a greater "
+"distance during filament changes to minimize flush.Although it can notably "
 "reduce flush, it may also elevate the risk of nozzle clogs or other printing "
-"complications."
+"complications.Please use with the latest printer firmware."
 msgstr ""
 
 msgid ""
@@ -8896,6 +8959,15 @@ msgstr ""
 "Velocidad de relleno del hueco. El hueco suele tener una anchura de línea "
 "irregular y debe imprimirse más lentamente"
 
+msgid "Precise Z height"
+msgstr ""
+
+msgid ""
+"Enable this to get precise z height of object after slicing. It will get the "
+"precise object height by fine-tuning the layer heights of the last few "
+"layers. Note that this is an experimental parameter."
+msgstr ""
+
 msgid "Arc fitting"
 msgstr "Ajuste del arco"
 
@@ -9084,6 +9156,12 @@ msgstr ""
 
 msgid "Speed of internal sparse infill"
 msgstr "Velocidad del relleno interno disperso"
+
+msgid ""
+"Force the generation of solid shells between adjacent materials/volumes. "
+"Useful for multi-extruder prints with translucent materials or manual "
+"soluble support material"
+msgstr ""
 
 msgid "Maximum width of a segmented region"
 msgstr "Maximum width of a segmented region"
@@ -10508,9 +10586,6 @@ msgstr ""
 "está pintado de color.\n"
 "La compensación de tamaño XY no se puede combinar con la pintura en color."
 
-msgid "Generating supports"
-msgstr ""
-
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
 msgstr ""
@@ -10612,12 +10687,6 @@ msgstr "Velocidad de flujo"
 
 msgid "Max Volumetric Speed"
 msgstr "Velocidad volumétrica máxima"
-
-msgid "Please enter the name you want to save to printer."
-msgstr "Introduzca el nombre que desee guardar en la impresora."
-
-msgid "The name cannot exceed 40 characters."
-msgstr "El nombre no puede superar los 40 caracteres."
 
 #, c-format, boost-format
 msgid ""
@@ -10883,6 +10952,12 @@ msgstr ""
 
 msgid "Failed"
 msgstr "Error"
+
+msgid "Please enter the name you want to save to printer."
+msgstr "Introduzca el nombre que desee guardar en la impresora."
+
+msgid "The name cannot exceed 40 characters."
+msgstr "El nombre no puede superar los 40 caracteres."
 
 msgid ""
 "Only one of the results with the same name will be saved. Are you sure you "

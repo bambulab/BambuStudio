@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-22 15:49+0800\n"
+"POT-Creation-Date: 2024-04-02 14:51+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -207,6 +207,15 @@ msgid "Scale"
 msgstr ""
 
 msgid "Error: Please close all toolbar menus first"
+msgstr ""
+
+msgid "Tool-Move"
+msgstr ""
+
+msgid "Tool-Scale"
+msgstr ""
+
+msgid "Tool-Rotate"
 msgstr ""
 
 msgid "Tool-Lay on Face"
@@ -596,6 +605,10 @@ msgstr ""
 msgid "Measure"
 msgstr ""
 
+msgid ""
+"Please confirm explosion ratio = 1,and please select at least one object"
+msgstr ""
+
 msgid "Edit to scale"
 msgstr ""
 
@@ -623,9 +636,6 @@ msgstr ""
 msgid "Copy to clipboard"
 msgstr ""
 
-msgid "MoveInMeasure"
-msgstr ""
-
 msgid "Angle"
 msgstr ""
 
@@ -639,6 +649,33 @@ msgid "Direct distance"
 msgstr ""
 
 msgid "Distance XYZ"
+msgstr ""
+
+msgid "Parallel"
+msgstr ""
+
+msgid "Center coincidence"
+msgstr ""
+
+msgid "Featue 1"
+msgstr ""
+
+msgid "Reverse rotation"
+msgstr ""
+
+msgid "Rotate around center:"
+msgstr ""
+
+msgid "Parallel_distance:"
+msgstr ""
+
+msgid "Featue 2"
+msgstr ""
+
+msgid ""
+"Due to ensuer_on_bed, assembly between \n"
+"different objects may not be correct in 3D view.\n"
+" It is recommended to assemble them together."
 msgstr ""
 
 msgid "Brush size"
@@ -2496,6 +2533,16 @@ msgid ""
 msgstr ""
 
 msgid ""
+"Too small scarf start height.\n"
+"Reset to 50%"
+msgstr ""
+
+msgid ""
+"Too big scarf start height.\n"
+"Reset to 50%"
+msgstr ""
+
+msgid ""
 "Too small ironing spacing.\n"
 "Reset to 0.1"
 msgstr ""
@@ -2775,6 +2822,10 @@ msgid "Value %s is out of range, continue?"
 msgstr ""
 
 msgid "Parameter validation"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Value %s is out of range. The valid range is from %d to %d."
 msgstr ""
 
 msgid "Value is out of range."
@@ -3924,6 +3975,11 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "Downloading %d%%..."
+msgstr ""
+
+msgid ""
+"Reconnecting the printer, the operation cannot be completed immediately, "
+"please try again later."
 msgstr ""
 
 msgid ""
@@ -5918,8 +5974,15 @@ msgstr ""
 msgid ""
 "Experimental feature: Retracting and cutting off the filament at a greater "
 "distance during filament changes to minimize flush.Although it can notably "
+"reduce flush,  it may also elevate the risk of nozzle clogs or other "
+"printing complications."
+msgstr ""
+
+msgid ""
+"Experimental feature: Retracting and cutting off the filament at a greater "
+"distance during filament changes to minimize flush.Although it can notably "
 "reduce flush, it may also elevate the risk of nozzle clogs or other printing "
-"complications."
+"complications.Please use with the latest printer firmware."
 msgstr ""
 
 msgid ""
@@ -8169,6 +8232,15 @@ msgid ""
 "printed more slowly"
 msgstr ""
 
+msgid "Precise Z height"
+msgstr ""
+
+msgid ""
+"Enable this to get precise z height of object after slicing. It will get the "
+"precise object height by fine-tuning the layer heights of the last few "
+"layers. Note that this is an experimental parameter."
+msgstr ""
+
 msgid "Arc fitting"
 msgstr ""
 
@@ -8320,6 +8392,12 @@ msgid ""
 msgstr ""
 
 msgid "Speed of internal sparse infill"
+msgstr ""
+
+msgid ""
+"Force the generation of solid shells between adjacent materials/volumes. "
+"Useful for multi-extruder prints with translucent materials or manual "
+"soluble support material"
 msgstr ""
 
 msgid "Maximum width of a segmented region"
@@ -9524,9 +9602,6 @@ msgid ""
 "XY Size compensation can not be combined with color-painting."
 msgstr ""
 
-msgid "Generating supports"
-msgstr ""
-
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
 msgstr ""
@@ -9619,12 +9694,6 @@ msgid "Flow Rate"
 msgstr ""
 
 msgid "Max Volumetric Speed"
-msgstr ""
-
-msgid "Please enter the name you want to save to printer."
-msgstr ""
-
-msgid "The name cannot exceed 40 characters."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -9804,6 +9873,12 @@ msgid ""
 msgstr ""
 
 msgid "Failed"
+msgstr ""
+
+msgid "Please enter the name you want to save to printer."
+msgstr ""
+
+msgid "The name cannot exceed 40 characters."
 msgstr ""
 
 msgid ""

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-22 15:49+0800\n"
+"POT-Creation-Date: 2024-04-02 14:51+0800\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -203,6 +203,15 @@ msgstr "Schalen"
 
 msgid "Error: Please close all toolbar menus first"
 msgstr "Fout: sluit eerst alle openstaande gereedschap menu's"
+
+msgid "Tool-Move"
+msgstr ""
+
+msgid "Tool-Scale"
+msgstr ""
+
+msgid "Tool-Rotate"
+msgstr ""
 
 msgid "Tool-Lay on Face"
 msgstr "Gereedschap op zijde plaatsen"
@@ -597,6 +606,10 @@ msgstr ""
 msgid "Measure"
 msgstr ""
 
+msgid ""
+"Please confirm explosion ratio = 1,and please select at least one object"
+msgstr ""
+
 msgid "Edit to scale"
 msgstr ""
 
@@ -624,9 +637,6 @@ msgstr ""
 msgid "Copy to clipboard"
 msgstr "Kopieer naar klembord"
 
-msgid "MoveInMeasure"
-msgstr ""
-
 msgid "Angle"
 msgstr "Hoek"
 
@@ -640,6 +650,33 @@ msgid "Direct distance"
 msgstr ""
 
 msgid "Distance XYZ"
+msgstr ""
+
+msgid "Parallel"
+msgstr ""
+
+msgid "Center coincidence"
+msgstr ""
+
+msgid "Featue 1"
+msgstr ""
+
+msgid "Reverse rotation"
+msgstr ""
+
+msgid "Rotate around center:"
+msgstr ""
+
+msgid "Parallel_distance:"
+msgstr ""
+
+msgid "Featue 2"
+msgstr ""
+
+msgid ""
+"Due to ensuer_on_bed, assembly between \n"
+"different objects may not be correct in 3D view.\n"
+" It is recommended to assemble them together."
 msgstr ""
 
 msgid "Brush size"
@@ -2661,6 +2698,16 @@ msgstr ""
 "Teruggezet naar 0.2mm"
 
 msgid ""
+"Too small scarf start height.\n"
+"Reset to 50%"
+msgstr ""
+
+msgid ""
+"Too big scarf start height.\n"
+"Reset to 50%"
+msgstr ""
+
+msgid ""
 "Too small ironing spacing.\n"
 "Reset to 0.1"
 msgstr ""
@@ -2972,6 +3019,10 @@ msgstr "De %s waarde is buiten het bereik, doorgaan?"
 
 msgid "Parameter validation"
 msgstr "Parametervalidatie"
+
+#, c-format, boost-format
+msgid "Value %s is out of range. The valid range is from %d to %d."
+msgstr ""
 
 msgid "Value is out of range."
 msgstr "Waarde is buiten het bereik."
@@ -4147,6 +4198,11 @@ msgstr "Download voltooid"
 #, c-format, boost-format
 msgid "Downloading %d%%..."
 msgstr "%d%% downloaden..."
+
+msgid ""
+"Reconnecting the printer, the operation cannot be completed immediately, "
+"please try again later."
+msgstr ""
 
 msgid ""
 "Over 4 studio/handy are using remote access, you can close some and try "
@@ -6342,8 +6398,15 @@ msgstr "Ignore"
 msgid ""
 "Experimental feature: Retracting and cutting off the filament at a greater "
 "distance during filament changes to minimize flush.Although it can notably "
+"reduce flush,  it may also elevate the risk of nozzle clogs or other "
+"printing complications."
+msgstr ""
+
+msgid ""
+"Experimental feature: Retracting and cutting off the filament at a greater "
+"distance during filament changes to minimize flush.Although it can notably "
 "reduce flush, it may also elevate the risk of nozzle clogs or other printing "
-"complications."
+"complications.Please use with the latest printer firmware."
 msgstr ""
 
 msgid ""
@@ -8906,6 +8969,15 @@ msgstr ""
 "Dit is de snelheid voor het opvullen van gaten. Tussenruimtes hebben meestal "
 "een onregelmatige lijndikte en moeten daarom langzamer worden afgedrukt."
 
+msgid "Precise Z height"
+msgstr ""
+
+msgid ""
+"Enable this to get precise z height of object after slicing. It will get the "
+"precise object height by fine-tuning the layer heights of the last few "
+"layers. Note that this is an experimental parameter."
+msgstr ""
+
 msgid "Arc fitting"
 msgstr "Boog montage"
 
@@ -9093,6 +9165,12 @@ msgstr ""
 
 msgid "Speed of internal sparse infill"
 msgstr "Dit is de snelheid voor de dunne vulling (infill)"
+
+msgid ""
+"Force the generation of solid shells between adjacent materials/volumes. "
+"Useful for multi-extruder prints with translucent materials or manual "
+"soluble support material"
+msgstr ""
 
 msgid "Maximum width of a segmented region"
 msgstr "Maximum width of a segmented region"
@@ -10530,9 +10608,6 @@ msgstr ""
 "kleur is geverfd.\n"
 "XY-formaatcompensatie kan niet worden gecombineerd met verven in kleur."
 
-msgid "Generating supports"
-msgstr ""
-
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
 msgstr ""
@@ -10634,12 +10709,6 @@ msgstr "Flow Rate"
 
 msgid "Max Volumetric Speed"
 msgstr "Maximale volumetrische snelheid"
-
-msgid "Please enter the name you want to save to printer."
-msgstr "Voer de naam in die u op de printer wilt opslaan."
-
-msgid "The name cannot exceed 40 characters."
-msgstr "De naam mag niet langer zijn dan 40 tekens."
 
 #, c-format, boost-format
 msgid ""
@@ -10901,6 +10970,12 @@ msgstr ""
 
 msgid "Failed"
 msgstr "Mislukt"
+
+msgid "Please enter the name you want to save to printer."
+msgstr "Voer de naam in die u op de printer wilt opslaan."
+
+msgid "The name cannot exceed 40 characters."
+msgstr "De naam mag niet langer zijn dan 40 tekens."
 
 msgid ""
 "Only one of the results with the same name will be saved. Are you sure you "
