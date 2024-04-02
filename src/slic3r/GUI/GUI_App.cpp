@@ -1472,7 +1472,7 @@ std::string GUI_App::get_model_http_url(std::string country_code)
         url = "https://makerworld.com/";
     }
     else if (country_code == "CN") {
-        url = "https://makerworld.com/";
+        url = "https://makerworld.com.cn/";
     }
     else if (country_code == "ENV_CN_DEV") {
         url = "https://makerhub-dev.bambu-lab.com/";
