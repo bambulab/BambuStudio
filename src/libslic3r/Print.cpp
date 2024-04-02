@@ -179,7 +179,12 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "activate_air_filtration",
         "during_print_exhaust_fan_speed",
         "complete_print_exhaust_fan_speed",
-        "use_firmware_retraction"
+        "use_firmware_retraction",
+        "enable_long_retraction_when_cut",
+        "long_retractions_when_cut",
+        "retraction_distances_when_cut",
+        "filament_long_retractions_when_cut",
+        "filament_retraction_distances_when_cut"
     };
 
     static std::unordered_set<std::string> steps_ignore;
