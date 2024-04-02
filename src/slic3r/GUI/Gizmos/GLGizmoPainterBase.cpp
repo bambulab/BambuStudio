@@ -349,6 +349,12 @@ void GLGizmoPainterBase::render_cursor_height_range(const Transform3d& trafo) co
     const Selection& selection = m_parent.get_selection();
     const ModelObject* model_object = wxGetApp().model().objects[selection.get_object_idx()];
     const ModelInstance* mi = model_object->instances[selection.get_instance_idx()];
+
+    int volumes_count = model_object->volumes.size();
+    if (m_cut_contours.size() != volumes_count * 2) {
+        m_cut_contours.resize(volumes_count * 2);
+    }
+    m_volumes_index = 0;
     for (const ModelVolume* mv : model_object->volumes) {
         TriangleMesh vol_mesh = mv->mesh();
         if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
@@ -359,17 +365,16 @@ void GLGizmoPainterBase::render_cursor_height_range(const Transform3d& trafo) co
         else {
             vol_mesh.transform(mi->get_transformation().get_matrix() * mv->get_matrix());
         }
-        if (m_cut_contours.size() != zs.size()) {
-            m_cut_contours.resize(zs.size());
-        }
+
         for (int i = 0; i < zs.size(); i++) {
-            update_contours(i, vol_mesh, zs[i], max_z, min_z, m_is_cursor_in_imgui? false:(i == 0 ? true : false));
+            update_contours(m_volumes_index, vol_mesh, zs[i], max_z, min_z, m_is_cursor_in_imgui ? false : (i == 0 ? true : false));
 
             glsafe(::glPushMatrix());
-            glsafe(::glTranslated(m_cut_contours[i].shift.x(), m_cut_contours[i].shift.y(), m_cut_contours[i].shift.z()));
+            glsafe(::glTranslated(m_cut_contours[m_volumes_index].shift.x(), m_cut_contours[m_volumes_index].shift.y(), m_cut_contours[m_volumes_index].shift.z()));
             glsafe(::glLineWidth(2.0f));
-            m_cut_contours[i].contours.render();
+            m_cut_contours[m_volumes_index].contours.render();
             glsafe(::glPopMatrix());
+            m_volumes_index++;
         }
 
     }
