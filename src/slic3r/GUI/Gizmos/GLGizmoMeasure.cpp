@@ -372,6 +372,7 @@ bool GLGizmoMeasure::on_mouse(const wxMouseEvent &mouse_event)
             };
 
             if (m_selected_features.first.feature.has_value()) {
+                reset_feature2_render();
                 const SelectedFeatures::Item item = detect_current_item();
                 if (m_selected_features.first != item) {
                     bool processed = false;
@@ -434,6 +435,7 @@ bool GLGizmoMeasure::on_mouse(const wxMouseEvent &mouse_event)
             }
             else {
                 // 1st feature selection
+                reset_feature1_render();
                 const SelectedFeatures::Item item = detect_current_item();
                 m_selected_features.first = item;
                 if (requires_sphere_raycaster_for_picking(item)) {
@@ -625,8 +627,8 @@ void GLGizmoMeasure::init_circle_glmodel(GripperType gripper_type, const Measure
 
 void GLGizmoMeasure::init_plane_glmodel(GripperType gripper_type, const Measure::SurfaceFeature &feature, PlaneGLModel &plane_gl_model)
 {
-    if (!m_curr_feature->volume) { return;}
-    auto volume = static_cast<GLVolume*>(m_curr_feature->volume);
+    if (!feature.volume) { return; }
+    auto volume = static_cast<GLVolume *>(feature.volume);
     auto mesh   = const_cast<TriangleMesh *>(volume->ori_mesh);
     const auto &[idx, normal, pt] = feature.get_plane();
     if (plane_gl_model.plane_idx != idx) {
@@ -2084,7 +2086,8 @@ void GLGizmoMeasure::on_render_input_window(float x, float y, float bottom_limit
             add_strings_row_to_table(*m_imgui, " ", ImGuiWrapper::COL_BAMBU, " ", ImGui::GetStyleColorVec4(ImGuiCol_Text));
         }*/
         ImGui::EndTable();
-        if (m_hit_different_volumes.size() == 2) {
+        if (m_hit_different_volumes.size() == 2 && m_selected_features.first.feature->get_type() == Measure::SurfaceFeatureType::Plane &&
+            m_selected_features.second.feature->get_type() == Measure::SurfaceFeatureType::Plane) {
             ImGui::Separator();
             auto &action    = m_assembly_action;
             auto set_to_parallel_size           = m_imgui->calc_button_size(_L("Parallel")).x;
@@ -2322,8 +2325,35 @@ void GLGizmoMeasure::update_single_mesh_pick(GLVolume *v)
      m_last_hit_volume = nullptr;
  }
 
+void GLGizmoMeasure::reset_feature1_render()
+{
+    if (m_feature_plane_first.plane) {
+        m_feature_plane_first.plane->reset();
+        m_feature_plane_first.plane_idx = -1;
+    }
+    if (m_feature_circle_first.circle) {
+        m_feature_circle_first.circle->reset();
+        m_feature_circle_first.last_circle_feature = nullptr;
+        m_feature_circle_first.inv_zoom            = 0;
+    }
+}
+
+void GLGizmoMeasure::reset_feature2_render()
+{
+    if (m_feature_plane_second.plane) {
+        m_feature_plane_second.plane->reset();
+        m_feature_plane_second.plane_idx = -1;
+    }
+    if (m_feature_circle_second.circle) {
+        m_feature_circle_second.circle->reset();
+        m_feature_circle_second.last_circle_feature = nullptr;
+        m_feature_circle_second.inv_zoom            = 0;
+    }
+}
+
 void GLGizmoMeasure::reset_feature1()
- {
+{
+     reset_feature1_render();
      if (m_selected_features.second.feature.has_value()) {
          if (m_hit_different_volumes.size() == 2) {
              m_hit_different_volumes[0] = m_hit_different_volumes[1];
@@ -2344,15 +2374,6 @@ void GLGizmoMeasure::reset_feature1()
          if (m_hit_order_volumes.size() == 1) {
              m_hit_order_volumes.clear();
          }
-         if (m_feature_plane_first.plane) {
-             m_feature_plane_first.plane->reset();
-             m_feature_plane_first.plane_idx = -1;
-         }
-         if (m_feature_circle_first.circle) {
-             m_feature_circle_first.circle->reset();
-             m_feature_circle_first.last_circle_feature=nullptr;
-             m_feature_circle_first.inv_zoom = 0;
-         }
          reset_gripper_pick(GripperType::PLANE_1);
          reset_gripper_pick(GripperType::CIRCLE_1);
          reset_gripper_pick(GripperType::SPHERE_1);
@@ -2362,6 +2383,7 @@ void GLGizmoMeasure::reset_feature1()
 
 void GLGizmoMeasure::reset_feature2()
 {
+     reset_feature2_render();
      if (m_hit_different_volumes.size() == 2) {
          m_hit_different_volumes.erase(m_hit_different_volumes.begin() + 1);
      }
@@ -2374,15 +2396,7 @@ void GLGizmoMeasure::reset_feature2()
      reset_gripper_pick(GripperType::PLANE_2);
      reset_gripper_pick(GripperType::CIRCLE_2);
      reset_gripper_pick(GripperType::SPHERE_2);
-     if (m_feature_plane_second.plane) {
-         m_feature_plane_second.plane->reset();
-         m_feature_plane_second.plane_idx = -1;
-     }
-     if (m_feature_circle_second.circle) {
-         m_feature_circle_second.circle->reset();
-         m_feature_circle_second.last_circle_feature = nullptr;
-         m_feature_circle_second.inv_zoom            = 0;
-     }
+
      update_measurement_result();
 }
 
@@ -2546,16 +2560,11 @@ void GLGizmoMeasure::set_to_reverse_rotation(bool same_model_object, int feature
             plane_normal                    = normal2;
             plane_center                    = pt2;
         }
-
-        Vec3d dir(1,0,0);
-        float eps = 1e-2;
-        if ((plane_normal - dir).norm() < 1e-2) {
-            dir = Vec3d(0, 1, 0);
+        auto  new_pt = Measure::get_one_point_in_plane(plane_center, plane_normal);
+        Vec3d axis   = (new_pt - plane_center).normalized();
+        if (axis.norm() < 0.1) {
+            throw;
         }
-        Vec3d new_pt = plane_center + dir;
-        Vec3d intersection_pt;
-        Measure::get_point_projection_to_plane(new_pt, plane_center, plane_normal, intersection_pt);
-        Vec3d axis = (intersection_pt - plane_center).normalized();
         if (same_model_object == false) {
             Geometry::Transformation inMat(v->get_instance_transformation());
             Geometry::Transformation outMat = Geometry::mat_around_a_point_rotate(inMat, plane_center, axis, PI);

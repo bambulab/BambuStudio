@@ -26,6 +26,7 @@ enum class SurfaceFeatureType : int {
 };
 
 bool get_point_projection_to_plane(const Vec3d &pt, const Vec3d &plane_origin, const Vec3d &plane_normal, Vec3d &intersection_pt);
+Vec3d get_one_point_in_plane(const Vec3d &plane_origin, const Vec3d &plane_normal);
 
 class SurfaceFeature
 {
