@@ -26,6 +26,18 @@ bool get_point_projection_to_plane(const Vec3d &pt, const Vec3d &plane_origin, c
     return true;
 }
 
+Vec3d get_one_point_in_plane(const Vec3d &plane_origin, const Vec3d &plane_normal)
+{
+    Vec3d dir(1, 0, 0);
+    float eps = 1e-3;
+    if (abs(plane_normal.dot(dir)) > 1 - eps) {
+        dir = Vec3d(0, 1, 0);
+    }
+    auto new_pt = plane_origin + dir;
+    Vec3d retult;
+    get_point_projection_to_plane(new_pt, plane_origin, plane_normal, retult);
+    return retult;
+}
 
 constexpr double feature_hover_limit = 0.5; // how close to a feature the mouse must be to highlight it
 
@@ -1387,15 +1399,8 @@ void SurfaceFeature::translate(const Transform3d &tran)
             value                = (radius_pt - world_center).norm();
         };
         //m_value is radius
-        float eps = 1e-2;
-        if ((local_normal-Vec3d(1,0,0)).norm()<1e-2) {
-            Vec3d new_pt = local_center + Vec3d(0, 1, 0);
-            calc_world_radius(new_pt, m_value);
-        }
-        else {
-           Vec3d new_pt= local_center + Vec3d(1, 0, 0);
-           calc_world_radius(new_pt,m_value);
-        }
+        auto  new_pt = get_one_point_in_plane(local_center, local_normal);
+        calc_world_radius(new_pt, m_value);
         break;
     }
     default: break;

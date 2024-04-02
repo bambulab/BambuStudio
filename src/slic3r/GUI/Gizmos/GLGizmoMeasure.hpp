@@ -200,6 +200,8 @@ protected:
     void update_single_mesh_pick(GLVolume* v);
 
     void reset_all_feature();
+    void reset_feature1_render();
+    void reset_feature2_render();
     void reset_feature1();
     void reset_feature2();
     bool is_two_volume_in_same_model_object();
