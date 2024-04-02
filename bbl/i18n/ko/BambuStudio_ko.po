@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-22 15:49+0800\n"
+"POT-Creation-Date: 2024-04-02 14:51+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -205,6 +205,15 @@ msgstr "스케일"
 
 msgid "Error: Please close all toolbar menus first"
 msgstr "오류: 먼저 모든 도구 모음 메뉴를 닫으십시오."
+
+msgid "Tool-Move"
+msgstr ""
+
+msgid "Tool-Scale"
+msgstr ""
+
+msgid "Tool-Rotate"
+msgstr ""
 
 msgid "Tool-Lay on Face"
 msgstr "도구 - 선택면 바닥놓기"
@@ -597,6 +606,10 @@ msgstr ""
 msgid "Measure"
 msgstr ""
 
+msgid ""
+"Please confirm explosion ratio = 1,and please select at least one object"
+msgstr ""
+
 msgid "Edit to scale"
 msgstr ""
 
@@ -624,9 +637,6 @@ msgstr ""
 msgid "Copy to clipboard"
 msgstr "클립보드에 복사"
 
-msgid "MoveInMeasure"
-msgstr ""
-
 msgid "Angle"
 msgstr "각도"
 
@@ -640,6 +650,33 @@ msgid "Direct distance"
 msgstr ""
 
 msgid "Distance XYZ"
+msgstr ""
+
+msgid "Parallel"
+msgstr ""
+
+msgid "Center coincidence"
+msgstr ""
+
+msgid "Featue 1"
+msgstr ""
+
+msgid "Reverse rotation"
+msgstr ""
+
+msgid "Rotate around center:"
+msgstr ""
+
+msgid "Parallel_distance:"
+msgstr ""
+
+msgid "Featue 2"
+msgstr ""
+
+msgid ""
+"Due to ensuer_on_bed, assembly between \n"
+"different objects may not be correct in 3D view.\n"
+" It is recommended to assemble them together."
 msgstr ""
 
 msgid "Brush size"
@@ -2588,6 +2625,16 @@ msgstr ""
 "0.2로 재설정되었습니다"
 
 msgid ""
+"Too small scarf start height.\n"
+"Reset to 50%"
+msgstr ""
+
+msgid ""
+"Too big scarf start height.\n"
+"Reset to 50%"
+msgstr ""
+
+msgid ""
 "Too small ironing spacing.\n"
 "Reset to 0.1"
 msgstr ""
@@ -2898,6 +2945,10 @@ msgstr "%s 값이 범위를 벗어났습니다. 계속하시겠습니까?"
 
 msgid "Parameter validation"
 msgstr "매개변수 유효성 검사"
+
+#, c-format, boost-format
+msgid "Value %s is out of range. The valid range is from %d to %d."
+msgstr ""
 
 msgid "Value is out of range."
 msgstr "값이 범위를 벗어났습니다."
@@ -4067,6 +4118,11 @@ msgstr "다운로드 완료."
 #, c-format, boost-format
 msgid "Downloading %d%%..."
 msgstr "%d%% 다운로드 중..."
+
+msgid ""
+"Reconnecting the printer, the operation cannot be completed immediately, "
+"please try again later."
+msgstr ""
 
 msgid ""
 "Over 4 studio/handy are using remote access, you can close some and try "
@@ -6191,8 +6247,15 @@ msgstr "Ignore"
 msgid ""
 "Experimental feature: Retracting and cutting off the filament at a greater "
 "distance during filament changes to minimize flush.Although it can notably "
+"reduce flush,  it may also elevate the risk of nozzle clogs or other "
+"printing complications."
+msgstr ""
+
+msgid ""
+"Experimental feature: Retracting and cutting off the filament at a greater "
+"distance during filament changes to minimize flush.Although it can notably "
 "reduce flush, it may also elevate the risk of nozzle clogs or other printing "
-"complications."
+"complications.Please use with the latest printer firmware."
 msgstr ""
 
 msgid ""
@@ -8645,6 +8708,15 @@ msgstr ""
 "이것은 갭 채우기 속도입니다. 갭은 일반적으로 선폭이 불규칙하므로 느리게 출력"
 "되어야 합니다."
 
+msgid "Precise Z height"
+msgstr ""
+
+msgid ""
+"Enable this to get precise z height of object after slicing. It will get the "
+"precise object height by fine-tuning the layer heights of the last few "
+"layers. Note that this is an experimental parameter."
+msgstr ""
+
 msgid "Arc fitting"
 msgstr "아크 피팅"
 
@@ -8824,6 +8896,12 @@ msgstr ""
 
 msgid "Speed of internal sparse infill"
 msgstr "내부채움 속도입니다."
+
+msgid ""
+"Force the generation of solid shells between adjacent materials/volumes. "
+"Useful for multi-extruder prints with translucent materials or manual "
+"soluble support material"
+msgstr ""
 
 msgid "Maximum width of a segmented region"
 msgstr "Maximum width of a segmented region"
@@ -10179,9 +10257,6 @@ msgstr ""
 "개체의 XY 크기 보정은 색상으로 칠해져 있기 때문에 사용되지 않습니다.\n"
 "XY 크기 보정은 컬러 페인팅과 함께 사용할 수 없습니다."
 
-msgid "Generating supports"
-msgstr ""
-
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
 msgstr ""
@@ -10281,12 +10356,6 @@ msgstr "Flow Rate"
 
 msgid "Max Volumetric Speed"
 msgstr "Max Volumetric Speed"
-
-msgid "Please enter the name you want to save to printer."
-msgstr "Please enter the name you want to save to printer."
-
-msgid "The name cannot exceed 40 characters."
-msgstr "The name cannot exceed 40 characters."
 
 #, c-format, boost-format
 msgid ""
@@ -10533,6 +10602,12 @@ msgstr "*이름에 브랜드, 소재, 종류, 습도까지 추가하는 것을 �
 
 msgid "Failed"
 msgstr "실패"
+
+msgid "Please enter the name you want to save to printer."
+msgstr "Please enter the name you want to save to printer."
+
+msgid "The name cannot exceed 40 characters."
+msgstr "The name cannot exceed 40 characters."
 
 msgid ""
 "Only one of the results with the same name will be saved. Are you sure you "
