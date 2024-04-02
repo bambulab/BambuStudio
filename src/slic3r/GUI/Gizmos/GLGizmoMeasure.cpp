@@ -1320,10 +1320,9 @@ void GLGizmoMeasure::render_dimensioning()
                                      ImGuiWrapper::to_ImU32({1.0f, 1.0f, 1.0f, 0.5f}));
             ImGui::SetCursorScreenPos({ pos.x + style.FramePadding.x, pos.y });
             m_imgui->text(txt);
-            if (m_hit_different_volumes.size() < 2) {
+            if (m_hit_different_volumes.size() < 2 && wxGetApp().plater()->canvas3D()->get_canvas_type() == GLCanvas3D::ECanvasType::CanvasView3D) {
                 ImGui::SameLine();
-                if (m_imgui->image_button(ImGui::SliderFloatEditBtnIcon, _L("Edit to scale")) &&
-                    wxGetApp().plater()->canvas3D()->get_canvas_type() == GLCanvas3D::ECanvasType::CanvasView3D) {
+                if (m_imgui->image_button(ImGui::SliderFloatEditBtnIcon, _L("Edit to scale"))) {
                     m_editing_distance = true;
                     edit_value         = curr_value;
                     m_imgui->requires_extra_frame();
@@ -1987,6 +1986,7 @@ void GLGizmoMeasure::on_render_input_window(float x, float y, float bottom_limit
     auto add_edit_distance_xyz_box = [this, &input_size_max, &same_model_object, &current_active_id](Vec3d &distance) {
         m_imgui->disabled_begin(m_hit_different_volumes.size() == 1);
         {
+            m_imgui->disabled_begin(!m_can_set_xyz_distance);
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
             m_imgui->text_colored(ImGuiWrapper::COL_RED, "X:");
@@ -1999,8 +1999,9 @@ void GLGizmoMeasure::on_render_input_window(float x, float y, float bottom_limit
             m_imgui->text_colored(ImGuiWrapper::COL_GREEN, "Y:");
             ImGui::TableSetColumnIndex(1);
             ImGui::BBLInputDouble("##measure_distance_y", &m_buffered_distance[1], 0.0f, 0.0f, "%.2f");
+            m_imgui->disabled_end();
 
-            m_imgui->disabled_begin(!same_model_object);
+            m_imgui->disabled_begin(!(same_model_object && m_can_set_xyz_distance));
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
             m_imgui->text_colored(ImGuiWrapper::COL_BLUE, "Z:");
@@ -2212,10 +2213,11 @@ void GLGizmoMeasure::update_measurement_result()
     if (!m_selected_features.first.feature.has_value()) {
         m_measurement_result = Measure::MeasurementResult();
         m_assembly_action    = Measure::AssemblyAction();
-    } 
+    }
     else if (m_selected_features.second.feature.has_value()) {
         m_measurement_result = Measure::get_measurement(*m_selected_features.first.feature, *m_selected_features.second.feature, true);
         m_assembly_action    = Measure::get_assembly_action(*m_selected_features.first.feature, *m_selected_features.second.feature);
+        m_can_set_xyz_distance = Measure::can_set_xyz_distance(*m_selected_features.first.feature, *m_selected_features.second.feature);
         //update buffer
         const Measure::MeasurementResult &measure = m_measurement_result;
         m_distance                                = Vec3d::Zero();

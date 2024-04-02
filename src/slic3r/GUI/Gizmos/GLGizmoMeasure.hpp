@@ -149,7 +149,7 @@ class GLGizmoMeasure : public GLGizmoBase
     bool m_set_center_coincidence{false};
     bool m_editing_distance{ false };
     bool m_is_editing_distance_first_frame{ true };
-
+    bool m_can_set_xyz_distance{false};
     void update_if_needed();
 
     void disable_scene_raycasters();
