@@ -247,6 +247,10 @@ void AppConfig::set_defaults()
         set_bool("auto_calculate", true);
     }
 
+    if (get("auto_calculate_when_filament_change").empty()){
+        set_bool("auto_calculate_when_filament_change", true);
+    }
+
     if (get("show_home_page").empty()) {
         set_bool("show_home_page", true);
     }
