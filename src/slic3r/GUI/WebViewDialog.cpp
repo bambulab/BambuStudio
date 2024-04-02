@@ -912,8 +912,11 @@ void WebViewPanel::OnNavigationRequest(wxWebViewEvent& evt)
     */
 void WebViewPanel::OnNavigationComplete(wxWebViewEvent& evt)
 {
-    if (m_browserMW!=nullptr && evt.GetId() == m_browserMW->GetId()) { 
-        m_onlinefirst = true;
+    if (m_browserMW!=nullptr && evt.GetId() == m_browserMW->GetId()) 
+    { 
+        auto host = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
+        if(m_browserMW->GetCurrentURL().Contains(host))
+            m_onlinefirst = true;
         
         if (m_contentname == "online") { // conf save
             SetWebviewShow("right", false); 
@@ -1252,6 +1255,7 @@ void WebViewPanel::OnError(wxWebViewEvent& evt)
     if (evt.GetInt() == wxWEBVIEW_NAV_ERR_CONNECTION && evt.GetId() == m_browserMW->GetId()) 
     {
         m_onlinefirst = false;
+        m_online_LastUrl = m_browserMW->GetCurrentURL();
 
         if (m_contentname == "online") 
         { 
@@ -1264,9 +1268,10 @@ void WebViewPanel::OnError(wxWebViewEvent& evt)
                 UrlRight = wxString::Format("file://%s/web/homepage3/disconnect.html?lang=%s", from_u8(resources_dir()), strlang);
             }
 
-            m_browser->LoadURL(UrlRight);
-            m_browser->Show();
-            m_browserMW->Hide();            
+            m_browserMW->LoadURL(UrlRight);
+       
+            SetWebviewShow("online", true);
+            SetWebviewShow("right", false);
         }
     }
 
@@ -1319,10 +1324,14 @@ void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
             m_online_spec_id = "";
         } else {
             if (m_onlinefirst == false) {
-                m_onlinefirst = true;
                 refresh       = 1; // Force Refresh
 
-                m_browserMW->Reload();
+                if (m_online_LastUrl != "") { 
+                    m_browserMW->LoadURL(m_online_LastUrl); 
+                    m_online_LastUrl = "";                
+                } 
+                else
+                    m_browserMW->Reload();
             } else {
                 if (refresh == 1)
                     m_browserMW->Reload();
@@ -1352,8 +1361,10 @@ void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
 
         WebView::RunScript(m_browser, strJS);
 
-        SetWebviewShow("online", false);
-        SetWebviewShow("right", true);
+        CallAfter([this]{
+            SetWebviewShow("online", false);
+            SetWebviewShow("right", true);
+        });
     }
 }
 

@@ -36,8 +36,6 @@ function OnRecentInit()
 function OnLineInit()
 {
 	TranslatePage();
-
-	SendMsg_GetStaffPick();
 }
 
 //------最佳打开文件的右键菜单功能----------
