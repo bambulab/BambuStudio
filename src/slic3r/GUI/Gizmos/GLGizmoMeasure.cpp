@@ -2486,13 +2486,14 @@ void GLGizmoMeasure::set_distance(bool same_model_object, const Vec3d &displacem
         selection->set_mode(same_model_object ? Selection::Volume : Selection::Instance);
         m_pending_scale ++;
         if (same_model_object == false) {
-            selection->translate(v->object_idx(), v->instance_idx(), displacement);
-            wxGetApp().plater()->canvas3D()->do_move("");
-            register_single_mesh_pick();
+            selection->translate(v->object_idx(), v->instance_idx(), displacement);  
         } else {
             selection->translate(v->object_idx(), v->instance_idx(), v->volume_idx(), displacement);
-            wxGetApp().plater()->canvas3D()->do_move("");
-            update_single_mesh_pick(v);
+        }
+        wxGetApp().plater()->canvas3D()->do_move("");
+        register_single_mesh_pick();
+        if (same_model_object ) {
+            update_feature_by_tran(*m_selected_features.first.feature);
         }
         update_feature_by_tran(*m_selected_features.second.feature);
     }
@@ -2523,8 +2524,6 @@ void GLGizmoMeasure::set_to_parallel(bool same_model_object, bool take_shot)
                 Vec3d rotation         = Geometry::extract_euler_angles(new_rotation_tran);
                 v->set_instance_rotation(rotation);
                 selection->rotate(v->object_idx(), v->instance_idx(), v->get_instance_transformation().get_matrix());
-                wxGetApp().plater()->canvas3D()->do_rotate("");
-                register_single_mesh_pick();
             } else {
                 Geometry::Transformation world_tran(v->world_matrix());
                 auto        new_tran         = r_m * world_tran.get_rotation_matrix();
@@ -2532,8 +2531,11 @@ void GLGizmoMeasure::set_to_parallel(bool same_model_object, bool take_shot)
                 Vec3d       rotation             = Geometry::extract_euler_angles(volume_rotation_tran);
                 v->set_volume_rotation(rotation);
                 selection->rotate(v->object_idx(), v->instance_idx(), v->volume_idx(), v->get_volume_transformation().get_matrix());
-                wxGetApp().plater()->canvas3D()->do_rotate("");
-                update_single_mesh_pick(v);
+            }
+            wxGetApp().plater()->canvas3D()->do_rotate("");
+            register_single_mesh_pick();
+            if (same_model_object) {
+                update_feature_by_tran(*m_selected_features.first.feature);
             }
             update_feature_by_tran(*m_selected_features.second.feature);
         }
@@ -2571,20 +2573,23 @@ void GLGizmoMeasure::set_to_reverse_rotation(bool same_model_object, int feature
             Geometry::Transformation inMat(v->get_instance_transformation());
             Geometry::Transformation outMat = Geometry::mat_around_a_point_rotate(inMat, plane_center, axis, PI);
             selection->rotate(v->object_idx(), v->instance_idx(), outMat.get_matrix());
-            wxGetApp().plater()->canvas3D()->do_rotate("");
-            register_single_mesh_pick();
         } else {
             Geometry::Transformation inMat(v->world_matrix());
             Geometry::Transformation outMat      = Geometry::mat_around_a_point_rotate(inMat, plane_center, axis, PI);
             Transform3d volume_tran = v->get_instance_transformation().get_matrix().inverse() * outMat.get_matrix();
             selection->rotate(v->object_idx(), v->instance_idx(), v->volume_idx(), volume_tran);
-            wxGetApp().plater()->canvas3D()->do_rotate("");
-            update_single_mesh_pick(v);
         }
-        if (feature_index == 0) { // feature 1
+        wxGetApp().plater()->canvas3D()->do_rotate("");
+        register_single_mesh_pick();
+        if (same_model_object == false) {
+            if (feature_index == 0) { // feature 1
+                update_feature_by_tran(*m_selected_features.first.feature);
+            } else { // feature 2
+                update_feature_by_tran(*m_selected_features.second.feature);
+            }
+        }
+        else {
             update_feature_by_tran(*m_selected_features.first.feature);
-        }
-        else {// feature 2
             update_feature_by_tran(*m_selected_features.second.feature);
         }
     }
@@ -2612,15 +2617,16 @@ void GLGizmoMeasure::set_to_around_center_of_faces(bool same_model_object, float
             Geometry::Transformation inMat(v->get_instance_transformation());
             Geometry::Transformation outMat = Geometry::mat_around_a_point_rotate(inMat, plane_center, plane_normal, radian);
             selection->rotate(v->object_idx(), v->instance_idx(), outMat.get_matrix());
-            wxGetApp().plater()->canvas3D()->do_rotate("");
-            register_single_mesh_pick();
         } else {
             Geometry::Transformation inMat(v->world_matrix());
             Geometry::Transformation outMat      = Geometry::mat_around_a_point_rotate(inMat, plane_center, plane_normal, radian);
             Transform3d              volume_tran = v->get_instance_transformation().get_matrix().inverse() * outMat.get_matrix();
             selection->rotate(v->object_idx(), v->instance_idx(), v->volume_idx(), volume_tran);
-            wxGetApp().plater()->canvas3D()->do_rotate("");
-            update_single_mesh_pick(v);
+        }
+        wxGetApp().plater()->canvas3D()->do_rotate("");
+        register_single_mesh_pick();
+        if (same_model_object) {
+            update_feature_by_tran(*m_selected_features.first.feature);
         }
         update_feature_by_tran(*m_selected_features.second.feature);
     }
@@ -2659,12 +2665,13 @@ void GLGizmoMeasure::set_parallel_distance(bool same_model_object, float dist)
 
         if (same_model_object == false) {
             selection->translate(v->object_idx(), v->instance_idx(), displacement);
-            wxGetApp().plater()->canvas3D()->do_move("");
-            register_single_mesh_pick();
         } else {
             selection->translate(v->object_idx(), v->instance_idx(), v->volume_idx(), displacement);
-            wxGetApp().plater()->canvas3D()->do_move("");
-            update_single_mesh_pick(v);
+        }
+        wxGetApp().plater()->canvas3D()->do_move("");
+        register_single_mesh_pick();
+        if (same_model_object) {
+            update_feature_by_tran(*m_selected_features.first.feature);
         }
         update_feature_by_tran(*m_selected_features.second.feature);
     }
