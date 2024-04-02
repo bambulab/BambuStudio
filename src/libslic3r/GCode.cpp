@@ -4688,6 +4688,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             double total_length = sloped == nullptr ? 0. : path.polyline.length() * SCALING_FACTOR;
             for (const Line &line : path.polyline.lines()) {
                 const double line_length = line.length() * SCALING_FACTOR;
+                // BBS: extursion cmd should E0 on cmd line
+                if (line_length < EPSILON) continue;
                 path_length += line_length;
 
                 if (sloped == nullptr) {
@@ -4719,6 +4721,9 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                     for (size_t point_index = start_index + 1; point_index < end_index + 1; point_index++) {
                         const Line line = Line(path.polyline.points[point_index - 1], path.polyline.points[point_index]);
                         const double line_length = line.length() * SCALING_FACTOR;
+                        // BBS: extursion cmd should E0 on cmd line
+                        if (line_length < EPSILON)
+                            continue;
                         path_length += line_length;
                         gcode += m_writer.extrude_to_xy(
                             this->point_to_gcode(line.b),
@@ -4731,6 +4736,9 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 case EMovePathType::Arc_move_ccw: {
                     const ArcSegment& arc = fitting_result[fitting_index].arc_data;
                     const double arc_length = fitting_result[fitting_index].arc_data.length * SCALING_FACTOR;
+                    // BBS: extursion cmd should E0 on cmd line
+                    if (arc_length < EPSILON)
+                        continue;
                     const Vec2d center_offset = this->point_to_gcode(arc.center) - this->point_to_gcode(arc.start_point);
                     path_length += arc_length;
                     gcode += m_writer.extrude_arc_to_xy(
