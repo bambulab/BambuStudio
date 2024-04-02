@@ -112,6 +112,13 @@ enum SupportMaterialStyle {
     smsDefault, smsGrid, smsSnug, smsTreeSlim, smsTreeStrong, smsTreeHybrid, smsTreeOrganic
 };
 
+enum LongRectrationLevel
+{
+    Disabled=0,
+    EnableMachine,
+    EnableFilament
+};
+
 enum SupportMaterialInterfacePattern {
     smipAuto, smipRectilinear, smipConcentric, smipRectilinearInterlaced, smipGrid
 };
