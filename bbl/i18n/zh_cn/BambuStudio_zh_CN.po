@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-22 15:49+0800\n"
+"POT-Creation-Date: 2024-04-02 14:51+0800\n"
 "PO-Revision-Date: 2024-02-23 20:10+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -208,6 +208,15 @@ msgstr "缩放"
 
 msgid "Error: Please close all toolbar menus first"
 msgstr "错误：请先关闭所有工具栏菜单"
+
+msgid "Tool-Move"
+msgstr "工具-移动"
+
+msgid "Tool-Scale"
+msgstr "工具-缩放"
+
+msgid "Tool-Rotate"
+msgstr "工具-旋转"
 
 msgid "Tool-Lay on Face"
 msgstr "工具-选择底面"
@@ -598,6 +607,10 @@ msgstr "取消一个特征直到退出"
 msgid "Measure"
 msgstr "测量"
 
+msgid ""
+"Please confirm explosion ratio = 1,and please select at least one object"
+msgstr "请确保爆炸比例为1，且至少选择一个对象"
+
 msgid "Edit to scale"
 msgstr "编辑缩放"
 
@@ -625,9 +638,6 @@ msgstr "特征1已经被重置，特征2变成特征1"
 msgid "Copy to clipboard"
 msgstr "复制到剪贴板"
 
-msgid "MoveInMeasure"
-msgstr "在测量中平移"
-
 msgid "Angle"
 msgstr "角度"
 
@@ -642,6 +652,34 @@ msgstr "直线距离"
 
 msgid "Distance XYZ"
 msgstr "XYZ距离"
+
+msgid "Parallel"
+msgstr "平行"
+
+msgid "Center coincidence"
+msgstr "中心重合"
+
+msgid "Featue 1"
+msgstr "特征1"
+
+msgid "Reverse rotation"
+msgstr "反转方向"
+
+msgid "Rotate around center:"
+msgstr "绕中心旋转:"
+
+msgid "Parallel_distance:"
+msgstr "平行距离:"
+
+msgid "Featue 2"
+msgstr "特征2"
+
+msgid ""
+"Due to ensuer_on_bed, assembly between \n"
+"different objects may not be correct in 3D view.\n"
+" It is recommended to assemble them together."
+msgstr "由于对象必须在热床上，不同对象之间的 \n"
+"装配在3D视图也许不正确。推荐将它们组合在一起。"
 
 msgid "Brush size"
 msgstr "画刷尺寸"
@@ -2546,6 +2584,16 @@ msgid ""
 msgstr "层高过大。将重置为0.2"
 
 msgid ""
+"Too small scarf start height.\n"
+"Reset to 50%"
+msgstr "斜拼接缝起始高度过小，重设为50%。"
+
+msgid ""
+"Too big scarf start height.\n"
+"Reset to 50%"
+msgstr "斜拼接缝起始高度过大，重设为50%。"
+
+msgid ""
 "Too small ironing spacing.\n"
 "Reset to 0.1"
 msgstr "熨烫线距过小。将重置为0.1"
@@ -2863,6 +2911,10 @@ msgstr "值 %s 越界，是否继续？"
 
 msgid "Parameter validation"
 msgstr "参数验证"
+
+#, c-format, boost-format
+msgid "Value %s is out of range. The valid range is from %d to %d."
+msgstr "值 %s 超出了范围，有效的范围是从 %d 到 %d 。"
 
 msgid "Value is out of range."
 msgstr "值越界。"
@@ -4030,6 +4082,11 @@ msgstr "下载完成"
 #, c-format, boost-format
 msgid "Downloading %d%%..."
 msgstr "下载中 %d%%..."
+
+msgid ""
+"Reconnecting the printer, the operation cannot be completed immediately, "
+"please try again later."
+msgstr "重新连接打印机，该操作无法立即完成，请稍后再试。"
 
 msgid ""
 "Over 4 studio/handy are using remote access, you can close some and try "
@@ -6090,11 +6147,16 @@ msgstr "忽略"
 msgid ""
 "Experimental feature: Retracting and cutting off the filament at a greater "
 "distance during filament changes to minimize flush.Although it can notably "
+"reduce flush,  it may also elevate the risk of nozzle clogs or other "
+"printing complications."
+msgstr "实验性选项。在更换耗材丝时，将耗材丝回抽一段距离后再切断以最小化冲刷。虽然这可以显著减少冲刷，但也可能增加喷嘴堵塞或其他打印问题的风险。"
+
+msgid ""
+"Experimental feature: Retracting and cutting off the filament at a greater "
+"distance during filament changes to minimize flush.Although it can notably "
 "reduce flush, it may also elevate the risk of nozzle clogs or other printing "
-"complications."
-msgstr ""
-"实验性选项。在更换耗材丝时，将耗材丝回抽一段距离后再切断以最小化冲刷。虽然这"
-"可以显著减少冲刷，但也可能增加喷嘴堵塞或其他打印问题的风险。"
+"complications.Please use with the latest printer firmware."
+msgstr "实验性选项。在更换耗材丝时，将耗材丝回抽一段距离后再切断以最小化冲刷。虽然这可以显著减少冲刷，但也可能增加喷嘴堵塞或其他打印问题的风险。请配合打印机最新固件使用。"
 
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
@@ -6531,7 +6593,9 @@ msgid ""
 "\n"
 "You can save or discard the preset values you have modified, or choose to "
 "continue using the values you have modified on the new preset."
-msgstr "\n您可以丢弃修改过的预设值，或选择在新项目中继续使用修改后的值。"
+msgstr ""
+"\n"
+"您可以丢弃修改过的预设值，或选择在新项目中继续使用修改后的值。"
 
 msgid "You have previously modified your settings."
 msgstr "您已经修改了预设参数。"
@@ -8445,6 +8509,15 @@ msgid ""
 "printed more slowly"
 msgstr "填缝的速度。缝隙通常有不一致的线宽，应改用较慢速度打印。"
 
+msgid "Precise Z height"
+msgstr ""
+
+msgid ""
+"Enable this to get precise z height of object after slicing. It will get the "
+"precise object height by fine-tuning the layer heights of the last few "
+"layers. Note that this is an experimental parameter."
+msgstr ""
+
 msgid "Arc fitting"
 msgstr "圆弧拟合"
 
@@ -8611,6 +8684,12 @@ msgstr ""
 
 msgid "Speed of internal sparse infill"
 msgstr "内部稀疏填充的打印速度"
+
+msgid ""
+"Force the generation of solid shells between adjacent materials/volumes. "
+"Useful for multi-extruder prints with translucent materials or manual "
+"soluble support material"
+msgstr "强制在相邻材料/体积之间生成实体壳层。对于使用半透明材料或手动可溶性支撑材料的多挤出头打印非常有用。"
 
 msgid "Maximum width of a segmented region"
 msgstr "分段区域的最大宽度"
@@ -9917,9 +9996,6 @@ msgstr ""
 "对象的XY尺寸补偿不会生效，因为在此对象上做过涂色操作。\n"
 "XY尺寸补偿不能与涂色功能一起使用。"
 
-msgid "Generating supports"
-msgstr "生成支撑"
-
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
 msgstr "未知的文件格式。输入文件的扩展名必须为.stl、.obj 或 .amf（.xml）。"
@@ -10015,12 +10091,6 @@ msgstr "流量比例"
 
 msgid "Max Volumetric Speed"
 msgstr "最大容积速度"
-
-msgid "Please enter the name you want to save to printer."
-msgstr "请输入要保存到打印机的名称。"
-
-msgid "The name cannot exceed 40 characters."
-msgstr "名称不能超过40个字符。"
 
 #, c-format, boost-format
 msgid ""
@@ -10245,6 +10315,12 @@ msgstr "*我们建议您在名称中添加品牌、材料、类型，甚至湿�
 
 msgid "Failed"
 msgstr "失败"
+
+msgid "Please enter the name you want to save to printer."
+msgstr "请输入要保存到打印机的名称。"
+
+msgid "The name cannot exceed 40 characters."
+msgstr "名称不能超过40个字符。"
 
 msgid ""
 "Only one of the results with the same name will be saved. Are you sure you "
@@ -11845,6 +11921,21 @@ msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
 
+#~ msgid "MoveInMeasure"
+#~ msgstr "在测量中平移"
+
+#~ msgid ""
+#~ "Experimental feature: Retracting and cutting off the filament at a "
+#~ "greater distance during filament changes to minimize flush.Although it "
+#~ "can notably reduce flush, it may also elevate the risk of nozzle clogs or "
+#~ "other printing complications."
+#~ msgstr ""
+#~ "实验性选项。在更换耗材丝时，将耗材丝回抽一段距离后再切断以最小化冲刷。虽然"
+#~ "这可以显著减少冲刷，但也可能增加喷嘴堵塞或其他打印问题的风险。"
+
+#~ msgid "Generating supports"
+#~ msgstr "生成支撑"
+
 #~ msgid "Use Modified Value of Printer"
 #~ msgstr "使用机器预设的修改值"
 
@@ -11976,11 +12067,6 @@ msgstr ""
 
 #~ msgid "Switch table page"
 #~ msgstr "切换标签页"
-
-#~ msgid ""
-#~ "Reconnecting the printer, the operation cannot be completed immediately, "
-#~ "please try again later."
-#~ msgstr "重新连接打印机，该操作无法立即完成，请稍后再试。"
 
 #~ msgid "Upload Pictrues"
 #~ msgstr "上传图片"
@@ -15892,9 +15978,6 @@ msgstr ""
 #~ msgstr ""
 #~ "如果开启，桥接表面质量会变差但是能跨越更长的距离。如果关闭，桥接表面质量看"
 #~ "起来更好但是可跨越的距离会变短。"
-
-#~ msgid "Tool-Scale"
-#~ msgstr "工具-缩放"
 
 #~ msgid "Tool-MoveRotate"
 #~ msgstr "工具-移动和旋转"
