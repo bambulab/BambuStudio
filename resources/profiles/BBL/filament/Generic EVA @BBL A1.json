@@ -3,7 +3,7 @@
     "name": "Generic EVA @BBL A1",
     "inherits": "Generic EVA @base",
     "from": "system",
-    "setting_id": "SR99_01",
+    "setting_id": "GFSR99_01",
     "instantiation": "true",
     "compatible_printers": [
         "Bambu Lab A1 0.4 nozzle",

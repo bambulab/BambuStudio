@@ -3,7 +3,7 @@
     "name": "Generic PP-GF @BBL A1",
     "inherits": "Generic PP-GF @base",
     "from": "system",
-    "setting_id": "SP95_00",
+    "setting_id": "GFSP95_00",
     "instantiation": "true",
     "compatible_printers": [
         "Bambu Lab A1 0.4 nozzle",

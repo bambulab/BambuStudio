@@ -3,7 +3,7 @@
     "name": "Generic PP-CF @base",
     "inherits": "fdm_filament_pp",
     "from": "system",
-    "filament_id": "P96",
+    "filament_id": "GFP96",
     "instantiation": "false",
     "filament_cost": [
         "77.99"
