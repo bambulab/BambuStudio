@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-02 14:51+0800\n"
+"POT-Creation-Date: 2024-04-03 15:19+0800\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2930,21 +2930,30 @@ msgstr "Aggiornamento fallito"
 
 msgid ""
 "The current chamber temperature or the target chamber temperature exceeds "
-"45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
-"TPU) is not allowed to be loaded."
+"45\\u2103.In order to avoid extruder clogging,low temperature filament(PLA/"
+"PETG/TPU) is not allowed to be loaded."
 msgstr ""
+"The current chamber temperature or the target chamber temperature exceeds "
+"45\\u2103.In order to avoid extruder clogging,low temperature filament(PLA/"
+"PETG/TPU) is not allowed to be loaded."
 
 msgid ""
 "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
 "avoid extruder clogging,it is not allowed to set the chamber temperature "
-"above 45℃."
+"above 45\\u2103."
 msgstr ""
+"Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
+"avoid extruder clogging,it is not allowed to set the chamber temperature "
+"above 45\\u2103."
 
 msgid ""
-"When you set the chamber temperature below 40℃, the chamber temperature "
-"control will not be activated. And the target chamber temperature will "
-"automatically be set to 0℃."
+"When you set the chamber temperature below 40\\u2103, the chamber "
+"temperature control will not be activated. And the target chamber "
+"temperature will automatically be set to 0\\u2103."
 msgstr ""
+"When you set the chamber temperature below 40\\u2103, the chamber "
+"temperature control will not be activated. And the target chamber "
+"temperature will automatically be set to 0\\u2103."
 
 msgid "Failed to start printing job"
 msgstr "Impossibile avviare il processo di stampa"
@@ -3087,11 +3096,11 @@ msgstr "Display"
 msgid "Flushed"
 msgstr "Spurgo"
 
-msgid "Total"
-msgstr "Totale"
-
 msgid "Tower"
 msgstr "Tower"
+
+msgid "Total"
+msgstr "Totale"
 
 msgid "Total Estimation"
 msgstr "Stima totale"
@@ -3194,6 +3203,12 @@ msgstr "Tempo stimato"
 
 msgid "Normal mode"
 msgstr "Modalità normale"
+
+msgid "Total Filament"
+msgstr ""
+
+msgid "Model Filament"
+msgstr ""
 
 msgid "Prepare time"
 msgstr "Tempo preparazione"
@@ -6201,8 +6216,8 @@ msgstr "Termini e condizioni"
 msgid ""
 "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
 "device, please read the termsand conditions.By clicking to agree to use your "
-"Bambu Lab device, you agree to abide by the Privacy Policy and Terms of "
-"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab device, you agree to abide by the Privacy Policy and Terms of Use"
+"(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 
@@ -9652,9 +9667,9 @@ msgstr ""
 msgid ""
 "This option sets the threshold angle for applying a conditional scarf joint "
 "seam.\n"
-"If the maximum angle within the perimeter loop exceeds this value "
-"(indicating the absence of sharp corners), a scarf joint seam will be used. "
-"The default value is 155°."
+"If the seam angle within the perimeter loop exceeds this value (indicating "
+"the absence of sharp corners), a scarf joint seam will be used. The default "
+"value is 155°."
 msgstr ""
 
 msgid "Scarf start height"
@@ -11181,9 +11196,12 @@ msgstr "passo:"
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 step >= 0\n"
+"start > 0 \\step >= 0\n"
 "end > start + step)"
 msgstr ""
+"Inserisci valori validi:\n"
+"avvio > 0\\ step >= 0\n"
+"fine > inizio + passo)"
 
 msgid "VFA test"
 msgstr "Test VFA"
@@ -11196,9 +11214,12 @@ msgstr "Velocità finale:"
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 step >= 0\n"
+"start > 10 \\step >= 0\n"
 "end > start + step)"
 msgstr ""
+"Inserisci valori validi:\n"
+"avvio > 0\\ step >= 0\n"
+"fine > inizio + passo)"
 
 msgid "Start retraction length: "
 msgstr "Lunghezza iniziale retrazione:"
@@ -12536,7 +12557,6 @@ msgstr ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
 
-#, c-format, boost-format
 #~ msgid "Support: generate toolpath at layer %d"
 #~ msgstr "Supporto: generazione percorso utensile al layer %d"
 
@@ -12558,22 +12578,18 @@ msgstr ""
 #~ msgid "Support: generate toolpath"
 #~ msgstr "Supporto: generazione percorso utensile"
 
-#, c-format, boost-format
 #~ msgid "Support: generate polygons at layer %d"
 #~ msgstr "Supporto: generazione poligoni al layer %d"
 
-#, c-format, boost-format
 #~ msgid "Support: fix holes at layer %d"
 #~ msgstr "Supporto: correzione dei buchi nel layer %d"
 
-#, c-format, boost-format
 #~ msgid "Support: propagate branches at layer %d"
 #~ msgstr "Supporto: propagazione rami al layer %d"
 
 #~ msgid "Switch table page"
 #~ msgstr "Switch table page"
 
-#, boost-format
 #~ msgid "Succeed to export G-code to %1%"
 #~ msgstr "Successo! G-code esportato in %1%"
 
@@ -12601,7 +12617,6 @@ msgstr ""
 #~ msgid "Discard"
 #~ msgstr "Cancella"
 
-#, boost-format
 #~ msgid ""
 #~ "You have changed some settings of preset \"%1%\". \n"
 #~ "Would you like to keep these changed settings (new value) after switching "
@@ -12623,11 +12638,9 @@ msgstr ""
 #~ " è troppo vicino agli altri; potrebbero verificarsi delle collisioni "
 #~ "durante la stampa."
 
-#, c-format, boost-format
 #~ msgid "No files [%d]"
 #~ msgstr "No files [%d]"
 
-#, c-format, boost-format
 #~ msgid "Load failed [%d]"
 #~ msgstr "Caricamento non riuscito [%d]"
 
@@ -12753,7 +12766,6 @@ msgstr ""
 #~ "È possibile conservare i preset modificati per il nuovo progetto, "
 #~ "eliminarli o salvare le modifiche come nuovi preset."
 
-#, boost-format
 #~ msgid "Fatal error, exception catched: %1%"
 #~ msgstr "Errore irreversibile, eccezione: %1%"
 
@@ -12919,19 +12931,15 @@ msgstr ""
 #~ msgstr ""
 #~ "Inizializzazione fallita (indirizzo IP LAN della stampante mancante)!"
 
-#, c-format, boost-format
 #~ msgid "Initialize failed (%s)!"
 #~ msgstr "Inizializzazione fallita (%s)!"
 
-#, c-format, boost-format
 #~ msgid "Stopped [%d]!"
 #~ msgstr "Interrotto [%d]!"
 
-#, c-format, boost-format
 #~ msgid "Load failed [%d]!"
 #~ msgstr "Caricamento non riuscito [%d]!"
 
-#, c-format, boost-format
 #~ msgid "Connect failed [%d]!"
 #~ msgstr "Connessione non riuscita [%d]!"
 
@@ -12960,7 +12968,6 @@ msgstr ""
 #~ msgid " upload config prase failed\n"
 #~ msgstr " upload config prase failed\n"
 
-#, c-format, boost-format
 #~ msgid "%1$d Object has custom supports."
 #~ msgid_plural "%1$d Objects have custom supports."
 #~ msgstr[0] "%1$d L'oggetto ha supporti personalizzati."
@@ -13204,7 +13211,6 @@ msgstr ""
 #~ "Verrà salvato solo uno dei risultati con lo stesso nome. Sei sicuro di "
 #~ "voler sostituire gli altri risultati?"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "There is already a historical calibration result with the same name: %s. "
 #~ "Only one of the results with the same name is saved. Are you sure you "
@@ -13248,51 +13254,6 @@ msgstr ""
 
 #~ msgid "Enable this if printer support air filtration"
 #~ msgstr "Enable this if printer support air filtration"
-
-#~ msgid ""
-#~ "The current chamber temperature or the target chamber temperature exceeds "
-#~ "45\\u2103.In order to avoid extruder clogging,low temperature "
-#~ "filament(PLA/PETG/TPU) is not allowed to be loaded."
-#~ msgstr ""
-#~ "The current chamber temperature or the target chamber temperature exceeds "
-#~ "45\\u2103.In order to avoid extruder clogging,low temperature "
-#~ "filament(PLA/PETG/TPU) is not allowed to be loaded."
-
-#~ msgid ""
-#~ "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order "
-#~ "to avoid extruder clogging,it is not allowed to set the chamber "
-#~ "temperature above 45\\u2103."
-#~ msgstr ""
-#~ "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order "
-#~ "to avoid extruder clogging,it is not allowed to set the chamber "
-#~ "temperature above 45\\u2103."
-
-#~ msgid ""
-#~ "When you set the chamber temperature below 40\\u2103, the chamber "
-#~ "temperature control will not be activated. And the target chamber "
-#~ "temperature will automatically be set to 0\\u2103."
-#~ msgstr ""
-#~ "When you set the chamber temperature below 40\\u2103, the chamber "
-#~ "temperature control will not be activated. And the target chamber "
-#~ "temperature will automatically be set to 0\\u2103."
-
-#~ msgid ""
-#~ "Please input valid values:\n"
-#~ "start > 0 \\step >= 0\n"
-#~ "end > start + step)"
-#~ msgstr ""
-#~ "Inserisci valori validi:\n"
-#~ "avvio > 0\\ step >= 0\n"
-#~ "fine > inizio + passo)"
-
-#~ msgid ""
-#~ "Please input valid values:\n"
-#~ "start > 10 \\step >= 0\n"
-#~ "end > start + step)"
-#~ msgstr ""
-#~ "Inserisci valori validi:\n"
-#~ "avvio > 0\\ step >= 0\n"
-#~ "fine > inizio + passo)"
 
 #~ msgid ""
 #~ "\n"
