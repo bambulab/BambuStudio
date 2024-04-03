@@ -1962,7 +1962,7 @@ void TabPrint::build()
 
         optgroup = page->new_optgroup(L("Precision"), L"param_precision");
         optgroup->append_single_option_line("slice_closing_radius");
-        optgroup->append_single_option_line("resolution");
+        optgroup->append_single_option_line("resolution","acr-move");
         optgroup->append_single_option_line("enable_arc_fitting", "acr-move");
         optgroup->append_single_option_line("xy_hole_compensation", "xy-hole-contour-compensation");
         optgroup->append_single_option_line("xy_contour_compensation", "xy-hole-contour-compensation");
@@ -1989,8 +1989,8 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
         optgroup->append_single_option_line("wall_sequence");
         optgroup->append_single_option_line("is_infill_first");
-        optgroup->append_single_option_line("bridge_flow");
-        optgroup->append_single_option_line("thick_bridges");
+        optgroup->append_single_option_line("bridge_flow","parameter/bridge");
+        optgroup->append_single_option_line("thick_bridges","parameter/bridge");
         optgroup->append_single_option_line("top_solid_infill_flow_ratio");
         optgroup->append_single_option_line("initial_layer_flow_ratio");
         optgroup->append_single_option_line("top_one_wall_type");
@@ -2002,8 +2002,8 @@ void TabPrint::build()
 
     page = add_options_page(L("Strength"), "empty");
         optgroup = page->new_optgroup(L("Walls"), L"param_wall");
-        optgroup->append_single_option_line("wall_loops");
-        optgroup->append_single_option_line("detect_thin_wall");
+        optgroup->append_single_option_line("wall_loops","wall-generator");
+        optgroup->append_single_option_line("detect_thin_wall","wall-generator");
 
         optgroup = page->new_optgroup(L("Top/bottom shells"), L"param_shell");
         optgroup->append_single_option_line("interface_shells");
