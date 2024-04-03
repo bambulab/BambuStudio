@@ -42,7 +42,11 @@ private:
     mutable float m_snap_coarse_out_radius;
     mutable float m_snap_fine_in_radius;
     mutable float m_snap_fine_out_radius;
+    BoundingBoxf3 m_bounding_box;
+    Transform3d   m_orient_matrix{Transform3d::Identity()};
 
+    // emboss need to draw rotation gizmo in local coordinate systems
+    bool m_force_local_coordinate{false};
 public:
     GLGizmoRotate(GLCanvas3D& parent, Axis axis);
     GLGizmoRotate(const GLGizmoRotate& other);
@@ -54,6 +58,7 @@ public:
     std::string get_tooltip() const override;
 
     void set_center(const Vec3d &point) { m_custom_center = point; }
+    void set_force_local_coordinate(bool use) { m_force_local_coordinate = use; }
 
 protected:
     bool on_init() override;
@@ -75,6 +80,7 @@ private:
     void transform_to_local(const Selection& selection) const;
     // returns the intersection of the mouse ray with the plane perpendicular to the gizmo axis, in local coordinate
     Vec3d mouse_position_in_local_plane(const Linef3& mouse_ray, const Selection& selection) const;
+    void  init_data_from_selection(const Selection &selection);
 };
 
 class GLGizmoRotate3D : public GLGizmoBase
@@ -82,7 +88,7 @@ class GLGizmoRotate3D : public GLGizmoBase
 // BBS: change to protected for subclass access
 protected:
     std::vector<GLGizmoRotate> m_gizmos;
- 
+
     //BBS: add size adjust related
     GizmoObjectManipulation* m_object_manipulation;
 

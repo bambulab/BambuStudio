@@ -81,14 +81,8 @@ bool GLGizmoRotate::on_init()
 }
 
 void GLGizmoRotate::on_start_dragging()
-{
-    const BoundingBoxf3& box = m_parent.get_selection().get_bounding_box();
-    m_center = m_custom_center == Vec3d::Zero() ? box.center() : m_custom_center;
-    m_radius = Offset + box.radius();
-    m_snap_coarse_in_radius = m_radius / 3.0f;
-    m_snap_coarse_out_radius = 2.0f * m_snap_coarse_in_radius;
-    m_snap_fine_in_radius = m_radius;
-    m_snap_fine_out_radius = m_snap_fine_in_radius + m_radius * ScaleLongTooth;
+{ 
+    init_data_from_selection(m_parent.get_selection());
 }
 
 void GLGizmoRotate::on_update(const UpdateData& data)
@@ -132,15 +126,8 @@ void GLGizmoRotate::on_render()
         return;
 
     const Selection& selection = m_parent.get_selection();
-    const BoundingBoxf3& box = selection.get_bounding_box();
-
     if (m_hover_id != 0 && !m_grabbers[0].dragging) {
-        m_center = m_custom_center == Vec3d::Zero() ? box.center() : m_custom_center;
-        m_radius = Offset + box.radius();
-        m_snap_coarse_in_radius = m_radius / 3.0f;
-        m_snap_coarse_out_radius = 2.0f * m_snap_coarse_in_radius;
-        m_snap_fine_in_radius = m_radius;
-        m_snap_fine_out_radius = m_radius * (1.0f + ScaleLongTooth);
+        init_data_from_selection(selection);
     }
 
     glsafe(::glEnable(GL_DEPTH_TEST));
@@ -164,8 +151,8 @@ void GLGizmoRotate::on_render()
     if (m_hover_id != -1)
         render_angle();
 
-    render_grabber(box);
-    render_grabber_extension(box, false);
+    render_grabber(m_bounding_box);
+    render_grabber_extension(m_bounding_box, false);
 
     glsafe(::glPopMatrix());
 }
@@ -370,13 +357,12 @@ void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool pick
         shader->stop_using();
 }
 
-void GLGizmoRotate::transform_to_local(const Selection& selection) const
+void GLGizmoRotate::transform_to_local(const Selection &selection) const
 {
     glsafe(::glTranslated(m_center(0), m_center(1), m_center(2)));
 
     if (selection.is_single_volume() || selection.is_single_modifier() || selection.requires_local_axes()) {
-        Transform3d orient_matrix = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix(true, false, true, true);
-        glsafe(::glMultMatrixd(orient_matrix.data()));
+        glsafe(::glMultMatrixd(Geometry::Transformation(m_orient_matrix).get_matrix_no_offset().data()));
     }
 
     switch (m_axis)
@@ -404,38 +390,56 @@ void GLGizmoRotate::transform_to_local(const Selection& selection) const
 
 Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray, const Selection& selection) const
 {
-    double half_pi = 0.5 * (double)PI;
-
+    const double half_pi = 0.5 * double(PI);
     Transform3d m = Transform3d::Identity();
-
-    switch (m_axis)
-    {
-    case X:
-    {
+    switch (m_axis) {
+    case X: {
         m.rotate(Eigen::AngleAxisd(half_pi, Vec3d::UnitZ()));
         m.rotate(Eigen::AngleAxisd(-half_pi, Vec3d::UnitY()));
         break;
     }
-    case Y:
-    {
+    case Y: {
         m.rotate(Eigen::AngleAxisd(half_pi, Vec3d::UnitY()));
         m.rotate(Eigen::AngleAxisd(half_pi, Vec3d::UnitZ()));
         break;
     }
     default:
-    case Z:
-    {
+    case Z: {
         // no rotation applied
         break;
     }
     }
-
-    if (selection.is_single_volume() || selection.is_single_modifier() || selection.requires_local_axes())
-        m = m * selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix(true, false, true, true).inverse();
-
+    m = m * Geometry::Transformation(m_orient_matrix).get_matrix_no_offset().inverse();
     m.translate(-m_center);
+    const Linef3 local_mouse_ray = transform(mouse_ray, m);
+    if (std::abs(local_mouse_ray.vector().dot(Vec3d::UnitZ())) < EPSILON) {
+        // if the ray is parallel to the plane containing the circle
+        if (std::abs(local_mouse_ray.vector().dot(Vec3d::UnitY())) > 1.0 - EPSILON)
+            // if the ray is parallel to grabber direction
+            return Vec3d::UnitX();
+        else {
+            const Vec3d world_pos = (local_mouse_ray.a.x() >= 0.0) ? mouse_ray.a - m_center : mouse_ray.b - m_center;
+            m.translate(m_center);
+            return m * world_pos;
+        }
+    } else
+        return local_mouse_ray.intersect_plane(0.0);
+}
 
-    return transform(mouse_ray, m).intersect_plane(0.0);
+void GLGizmoRotate::init_data_from_selection(const Selection &selection) {
+    const auto [box, box_trafo]           = m_force_local_coordinate ? selection.get_bounding_box_in_reference_system(ECoordinatesType::Local) :
+                                                                       selection.get_bounding_box_in_current_reference_system();
+    m_bounding_box                        = box;
+    const std::pair<Vec3d, double> sphere = selection.get_bounding_sphere();
+    m_center                              = sphere.first;
+    m_radius                              = Offset + sphere.second;
+    m_orient_matrix                       = box_trafo;
+    m_orient_matrix.translation()         = m_center;
+    m_snap_coarse_in_radius               = m_radius / 3.0f;
+    m_snap_coarse_out_radius              = 2.0f * m_snap_coarse_in_radius;
+    m_snap_fine_in_radius                 = m_radius;
+    m_snap_fine_out_radius                = m_snap_fine_in_radius + m_radius * ScaleLongTooth;
+
 }
 
 //BBS: GUI refactor: add obj manipulation
