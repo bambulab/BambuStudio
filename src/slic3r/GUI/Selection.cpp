@@ -1128,6 +1128,75 @@ void Selection::translate(const Vec3d &displacement, bool local)
     }
 }
 
+void Selection::translate(const Vec3d &displacement, TransformationType transformation_type)
+{
+    if (!m_valid) return;
+
+    for (unsigned int i : m_list) {
+        GLVolume &         v           = *(*m_volumes)[i];
+        const VolumeCache &volume_data = m_cache.volumes_data[i];
+        if (m_mode == Instance && !is_wipe_tower()) {
+            assert(is_from_fully_selected_instance(i));
+            if (transformation_type.instance()) {
+                const Geometry::Transformation &inst_trafo = volume_data.get_instance_transform();
+                v.set_instance_offset(inst_trafo.get_offset() + inst_trafo.get_rotation_matrix() * displacement);
+            } else
+                transform_instance_relative(v, volume_data, transformation_type, Geometry::translation_transform(displacement), m_cache.dragging_center);
+        } else {
+            if (v.is_wipe_tower) {//in world cs
+                int           plate_idx           = v.object_idx() - 1000;
+                BoundingBoxf3 plate_bbox          = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx)->get_bounding_box();
+                Vec3d         tower_size          = v.bounding_box().size();
+                Vec3d         tower_origin        = m_cache.volumes_data[i].get_volume_position();
+                Vec3d         actual_displacement = displacement;
+                const double  margin              = WIPE_TOWER_MARGIN;
+
+                actual_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_instance_scale_matrix() *
+                                        m_cache.volumes_data[i].get_instance_mirror_matrix())
+                                            .inverse() *
+                                        displacement;
+                if (tower_origin(0) + actual_displacement(0) - margin < plate_bbox.min(0)) {
+                    actual_displacement(0) = plate_bbox.min(0) - tower_origin(0) + margin;
+                } else if (tower_origin(0) + actual_displacement(0) + tower_size(0) + margin > plate_bbox.max(0)) {
+                    actual_displacement(0) = plate_bbox.max(0) - tower_origin(0) - tower_size(0) - margin;
+                }
+
+                if (tower_origin(1) + actual_displacement(1) - margin < plate_bbox.min(1)) {
+                    actual_displacement(1) = plate_bbox.min(1) - tower_origin(1) + margin;
+                } else if (tower_origin(1) + actual_displacement(1) + tower_size(1) + margin > plate_bbox.max(1)) {
+                    actual_displacement(1) = plate_bbox.max(1) - tower_origin(1) - tower_size(1) - margin;
+                }
+
+                v.set_volume_offset(m_cache.volumes_data[i].get_volume_position() + actual_displacement);
+            }
+            else if (transformation_type.local() && transformation_type.absolute()) {
+                const Geometry::Transformation &vol_trafo  = volume_data.get_volume_transform();
+                const Geometry::Transformation &inst_trafo = volume_data.get_instance_transform();
+                v.set_volume_offset(vol_trafo.get_offset() + inst_trafo.get_scaling_factor_matrix().inverse() * vol_trafo.get_rotation_matrix() * displacement);
+            } else {
+                Vec3d relative_disp = displacement;
+                if (transformation_type.world() && transformation_type.instance())
+                    relative_disp = volume_data.get_instance_transform().get_scaling_factor_matrix().inverse() * relative_disp;
+
+                transform_volume_relative(v, volume_data, transformation_type, Geometry::translation_transform(relative_disp), m_cache.dragging_center);
+            }
+        }
+    }
+
+#if !DISABLE_INSTANCES_SYNCH
+    if (m_mode == Instance)
+        synchronize_unselected_instances(SYNC_ROTATION_NONE);
+    else if (m_mode == Volume)
+        synchronize_unselected_volumes();
+#endif // !DISABLE_INSTANCES_SYNCH
+    if (wxGetApp().plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasAssembleView) {
+        ensure_not_below_bed();
+    }
+    set_bounding_boxes_dirty();
+    if (wxGetApp().plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasAssembleView) {
+        wxGetApp().plater()->canvas3D()->requires_check_outside_state();
+    }
+}
 // Rotate an object around one of the axes. Only one rotation component is expected to be changing.
 void Selection::rotate(const Vec3d& rotation, TransformationType transformation_type)
 {

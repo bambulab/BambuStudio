@@ -976,7 +976,22 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
         case Move:
         {
             // Apply new temporary offset
-            selection.translate(get_displacement());
+            TransformationType trafo_type;
+            trafo_type.set_relative();
+            switch (wxGetApp().obj_manipul()->get_coordinates_type()) {
+                case ECoordinatesType::Instance: {
+                    trafo_type.set_instance();
+                    break;
+                }
+                case ECoordinatesType::Local: {
+                    trafo_type.set_local();
+                    break;
+                }
+                default: {
+                    break;
+                }
+            }
+            selection.translate(get_displacement(), trafo_type);
             // BBS
             //wxGetApp().obj_manipul()->set_dirty();
             break;

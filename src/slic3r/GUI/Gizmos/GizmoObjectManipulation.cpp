@@ -94,6 +94,7 @@ void GizmoObjectManipulation::update_settings_value(const Selection& selection)
 			m_new_scale    = m_new_size.cwiseProduct(selection.get_unscaled_instance_bounding_box().size().cwiseInverse()) * 100.;
 		}
         else {//if (is_local_coordinates()) {//for scale
+            m_new_position = Vec3d::Zero();
 			m_new_rotation = volume->get_instance_rotation() * (180. / M_PI);
 			m_new_size     = volume->get_instance_transformation().get_scaling_factor().cwiseProduct(wxGetApp().model().objects[volume->object_idx()]->raw_mesh_bounding_box().size());
 			m_new_scale    = volume->get_instance_scaling_factor() * 100.;
@@ -478,8 +479,8 @@ void GizmoObjectManipulation::set_uniform_scaling(const bool use_uniform_scale)
 
 void GizmoObjectManipulation::set_coordinates_type(ECoordinatesType type)
 {
-    if (wxGetApp().get_mode() == comSimple)
-        type = ECoordinatesType::World;
+    /*if (wxGetApp().get_mode() == comSimple)
+        type = ECoordinatesType::World;*/
 
     if (m_coordinates_type == type) return;
 
@@ -543,7 +544,23 @@ bool GizmoObjectManipulation::reset_button(ImGuiWrapper *imgui_wrapper, float ca
      return unit_size + 8.0;
  }
 
-void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper, std::string window_name, float x, float y, float bottom_limit)
+ bool GizmoObjectManipulation::bbl_checkbox(const wxString &label, bool &value)
+{
+     bool result;
+     bool b_value = value;
+     if (b_value) {
+         ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+         ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+         ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+     }
+     auto label_utf8 = into_u8(label);
+     result          = ImGui::BBLCheckbox(label_utf8.c_str(), &value);
+
+     if (b_value) { ImGui::PopStyleColor(3); }
+     return result;
+ }
+
+ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper, std::string window_name, float x, float y, float bottom_limit)
 {
     // BBS: GUI refactor: move gizmo to the right
     if (abs(last_move_input_window_width) > 0.01f) {
@@ -602,7 +619,12 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
     ImGui::AlignTextToFramePadding();
     unsigned int current_active_id = ImGui::GetActiveID();
     ImGui::PushItemWidth(caption_max);
-    imgui_wrapper->text(_L("World coordinates"));
+    if (m_use_object_cs) {
+        imgui_wrapper->text(_L("Object coordinates"));
+    }
+    else {
+        imgui_wrapper->text(_L("World coordinates"));
+    }
     ImGui::SameLine(caption_max + index * space_size);
     ImGui::PushItemWidth(unit_size);
     ImGui::TextAlignCenter("X");
@@ -628,6 +650,17 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
     ImGui::BBLInputDouble(label_values[0][2], &display_position[2], 0.0f, 0.0f, "%.2f");
     ImGui::SameLine(caption_max + (++index_unit) * unit_size + (++index) * space_size);
     imgui_wrapper->text(this->m_new_unit_string);
+
+    if (bbl_checkbox(_L("Object coordinates"), m_use_object_cs)) {
+        if (m_use_object_cs) {
+            set_coordinates_type(ECoordinatesType::Instance);
+        }
+        else {
+            set_coordinates_type(ECoordinatesType::World);
+        }
+        UpdateAndShow(true);
+        return;//avoid update(current_active_id, "position", original_position
+    }
 
     for (int i = 0;i<display_position.size();i++)
     {
