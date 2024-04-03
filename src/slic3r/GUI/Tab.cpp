@@ -2020,7 +2020,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("infill_combination","parameter/strength-advance-settings");
         optgroup->append_single_option_line("detect_narrow_internal_solid_infill","parameter/strength-advance-settings");
         optgroup->append_single_option_line("ensure_vertical_shell_thickness","parameter/strength-advance-settings");
-        optgroup->append_single_option_line("internal_bridge_support_thickness","parameter/strength-advance-settings");
+        //optgroup->append_single_option_line("internal_bridge_support_thickness","parameter/strength-advance-settings");
 
     page = add_options_page(L("Speed"), "empty");
         optgroup = page->new_optgroup(L("Initial layer speed"), L"param_speed_first", 15);
