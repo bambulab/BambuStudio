@@ -79,6 +79,7 @@ bool GLGizmoMove3D::on_is_activable() const
 void GLGizmoMove3D::on_set_state() {
     if (get_state() == On) {
         m_object_manipulation->set_coordinates_type(ECoordinatesType::World);
+        m_object_manipulation->set_use_object_cs(false);
     }
 }
 
@@ -87,7 +88,7 @@ void GLGizmoMove3D::on_start_dragging()
     if (m_hover_id != -1) {
         m_displacement = Vec3d::Zero();
         const BoundingBoxf3& box = m_parent.get_selection().get_bounding_box();
-        m_starting_drag_position = m_grabbers[m_hover_id].center;
+        m_starting_drag_position = m_orient_matrix *m_grabbers[m_hover_id].center;
         m_starting_box_center = box.center();
         m_starting_box_bottom_center = box.center();
         m_starting_box_bottom_center(2) = box.min(2);
@@ -116,17 +117,19 @@ void GLGizmoMove3D::on_render()
     glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    const BoundingBoxf3& box = selection.get_bounding_box();
-    const Vec3d& center = box.center();
+    const auto &[box, box_trafo]    = selection.get_bounding_box_in_current_reference_system();
+    m_bounding_box                  = box;
+    m_center                        = box_trafo.translation();
+    m_orient_matrix                 = box_trafo;
     float space_size = 20.f *INV_ZOOM;
 
 #if ENABLE_FIXED_GRABBER
     // x axis
-    m_grabbers[0].center = { box.max.x() + space_size, center.y(), center.z() };
+    m_grabbers[0].center = {m_bounding_box.max.x() + space_size, 0, 0};
     // y axis
-    m_grabbers[1].center = { center.x(), box.max.y() + space_size, center.z() };
+    m_grabbers[1].center = {0, m_bounding_box.max.y() + space_size,0};
     // z axis
-    m_grabbers[2].center = { center.x(), center.y(), box.max.z() + space_size };
+    m_grabbers[2].center = {0,0, m_bounding_box.max.z() + space_size};
 
     for (int i = 0; i < 3; ++i) {
         m_grabbers[i].color       = AXES_COLOR[i];
@@ -147,7 +150,8 @@ void GLGizmoMove3D::on_render()
 #endif
 
     glsafe(::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f));
-
+    glsafe(::glPushMatrix());
+    glsafe(::glMultMatrixd(Geometry::Transformation(m_orient_matrix).get_matrix().data()));
     // draw grabbers
     for (unsigned int i = 0; i < 3; ++i) {
         if (m_grabbers[i].enabled) render_grabber_extension((Axis) i, box, false);
@@ -161,20 +165,20 @@ void GLGizmoMove3D::on_render()
             glLineStipple(1, 0x0FFF);
             glEnable(GL_LINE_STIPPLE);
             ::glBegin(GL_LINES);
-            ::glVertex3dv(center.data());
+            ::glVertex3dv(origin.data());
             // use extension center
             ::glVertex3dv(m_grabbers[i].center.data());
             glsafe(::glEnd());
             glDisable(GL_LINE_STIPPLE);
         }
     }
+    glsafe(::glPopMatrix());
 }
 
 void GLGizmoMove3D::on_render_for_picking()
 {
     glsafe(::glDisable(GL_DEPTH_TEST));
 
-    const BoundingBoxf3& box = m_parent.get_selection().get_bounding_box();
     //BBS donot render base grabber for picking
     //render_grabbers_for_picking(box);
 
@@ -185,10 +189,12 @@ void GLGizmoMove3D::on_render_for_picking()
             m_grabbers[i].color        = color;
         }
     }
-
-    render_grabber_extension(X, box, true);
-    render_grabber_extension(Y, box, true);
-    render_grabber_extension(Z, box, true);
+    glsafe(::glPushMatrix());
+    glsafe(::glMultMatrixd(Geometry::Transformation(m_orient_matrix).get_matrix().data()));
+    render_grabber_extension(X, m_bounding_box, true);
+    render_grabber_extension(Y, m_bounding_box, true);
+    render_grabber_extension(Z, m_bounding_box, true);
+    glsafe(::glPopMatrix());
 }
 
 //BBS: add input window for move

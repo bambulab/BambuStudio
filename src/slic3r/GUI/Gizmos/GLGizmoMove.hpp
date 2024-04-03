@@ -16,7 +16,10 @@ class GLGizmoMove3D : public GLGizmoBase
     static const double Offset;
 
     Vec3d m_displacement;
-
+    Vec3d         origin = Vec3d::Zero();
+    Vec3d         m_center{Vec3d::Zero()};
+    BoundingBoxf3 m_bounding_box;
+    Transform3d   m_orient_matrix{Transform3d::Identity()};
     double m_snap_step;
 
     Vec3d m_starting_drag_position;

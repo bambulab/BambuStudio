@@ -385,7 +385,8 @@ public:
     const std::pair<Vec3d, double> get_bounding_sphere() const;
 
     void setup_cache();
-    void translate(const Vec3d& displacement, bool local = false);
+    void translate(const Vec3d &displacement, bool local = false);//old
+    void translate(const Vec3d &displacement, TransformationType transformation_type);//new
     void move_to_center(const Vec3d& displacement, bool local = false);
     void rotate(const Vec3d& rotation, TransformationType transformation_type);
     void flattening_rotate(const Vec3d& normal);
