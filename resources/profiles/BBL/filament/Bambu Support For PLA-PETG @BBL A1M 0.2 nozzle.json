@@ -5,6 +5,12 @@
     "from": "system",
     "setting_id": "GFSS05_05",
     "instantiation": "true",
+    "eng_plate_temp": [
+        "65"
+    ],
+    "eng_plate_temp_initial_layer": [
+        "65"
+    ],
     "filament_max_volumetric_speed": [
         "0.5"
     ],
