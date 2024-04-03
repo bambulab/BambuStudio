@@ -3,7 +3,7 @@
     "name": "Generic PE @BBL X1C",
     "inherits": "Generic PE @base",
     "from": "system",
-    "setting_id": "SP99_00",
+    "setting_id": "GFSP99_00",
     "instantiation": "true",
     "compatible_printers": [
         "Bambu Lab P1P 0.4 nozzle",

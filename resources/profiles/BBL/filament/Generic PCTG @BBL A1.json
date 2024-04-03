@@ -3,7 +3,7 @@
     "name": "Generic PCTG @BBL A1",
     "inherits": "Generic PCTG @base",
     "from": "system",
-    "setting_id": "SG97_01",
+    "setting_id": "GFSG97_01",
     "instantiation": "true",
     "compatible_printers": [
         "Bambu Lab A1 0.4 nozzle",
