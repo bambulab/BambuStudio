@@ -1306,14 +1306,6 @@ bool can_set_xyz_distance(const SurfaceFeature &a, const SurfaceFeature &b) {
         if (f2.get_type() == SurfaceFeatureType::Circle) {
             return true;
         }
-        else if (f2.get_type() == SurfaceFeatureType::Plane) {
-            return true;
-        }
-    }
-    else if (f1.get_type() == SurfaceFeatureType::Plane) {
-        if (f2.get_type() == SurfaceFeatureType::Plane) {
-            return true;
-        }
     }
     return false;
 }
