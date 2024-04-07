@@ -2,10 +2,8 @@
 
 var m_HotModelList=null;
 var m_ForUModelList=null;
-var timer_CheckNetwork_HotModel=null;
 
 var m_MakerlabList=null;
-var timer_CheckNetwork_Makerlab=null;
 
 function OnHomeInit()
 {
@@ -137,12 +135,6 @@ function HandleStudio( pVal )
 	else if( strCmd=="modelmall_model_advise_get")
 	{
 		//alert('hot');
-		if( timer_CheckNetwork_HotModel!=null )
-		{
-			clearInterval(timer_CheckNetwork_HotModel);
-			timer_CheckNetwork_HotModel=null;
-		}	
-		
 		if( m_HotModelList!=null && pVal['hits'].length>0 )
 		{
 			let SS1=JSON.stringify(pVal['hits']);
@@ -157,13 +149,7 @@ function HandleStudio( pVal )
 	}
 	else if( strCmd=="modelmall_model_customized_get")
 	{
-		//alert('For U');
-		if( timer_CheckNetwork_HotModel!=null )
-		{
-			clearInterval(timer_CheckNetwork_HotModel);
-			timer_CheckNetwork_HotModel=null;
-		}
-		
+		//alert('For U');	
 		if( m_ForUModelList!=null && pVal['hits'].length>0 )
 		{
 			let SS1=JSON.stringify(pVal['hits']);
@@ -177,13 +163,7 @@ function HandleStudio( pVal )
 		Show4UPick( m_ForUModelList );
 	}
 	else if(strCmd=='homepage_makerlab_get')
-	{		
-		if( timer_CheckNetwork_Makerlab!=null )
-		{
-			clearInterval(timer_CheckNetwork_Makerlab);
-			timer_CheckNetwork_Makerlab=null;
-		}
-		
+	{			
 		if( m_MakerlabList!=null && pVal['list'].length>0 )
 		{
 			let SS1=JSON.stringify(pVal['list']);
@@ -225,6 +205,12 @@ function OnBoardChange( strMenu )
 		$('#HomeFullArea').css('display','inline');	
 		$('#RecentFileArea').css('display','none');		
 		$('#WikiGuideBoard').css('display','none');
+		
+		if( (m_HotModelList==null || m_HotModelList.length==0) && (m_ForUModelList==null || m_ForUModelList.length==0))
+			SendMsg_GetStaffPick();
+		
+		if( m_MakerlabList==null || m_MakerlabList.length==0 )
+			SendMsg_GetMakerlabList();		
 	}
 	else if(strMenu=='recent')
 	{
@@ -468,8 +454,6 @@ function SendMsg_GetMakerlabList()
 	SendWXMessage( JSON.stringify(tSend) );
 	
 	setTimeout("SendMsg_GetMakerlabList()",3600*1000*6);
-	if(timer_CheckNetwork_Makerlab==null)
-		timer_CheckNetwork_Makerlab=setInterval("SendMsg_GetMakerlabList()",60*1000);
 }
 
 function SwitchContent(strMenu)
@@ -599,8 +583,6 @@ function SendMsg_GetStaffPick()
 	SendWXMessage( JSON.stringify(tSend) );
 	
     setTimeout("SendMsg_GetStaffPick()",3600*1000*6);
-	if(timer_CheckNetwork_HotModel==null)
-		timer_CheckNetwork_HotModel=setInterval("SendMsg_GetStaffPick()",60*1000);	
 }
 
 function ExNumber( number )
