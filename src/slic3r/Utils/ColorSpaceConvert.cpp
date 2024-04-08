@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <boost/algorithm/string.hpp>
 #include <wx/colordlg.h>
+#include <cmath>
+
 const static float param_13 = 1.0f / 3.0f;
 const static float param_16116 = 16.0f / 116.0f;
 const static float Xn = 0.950456f;
