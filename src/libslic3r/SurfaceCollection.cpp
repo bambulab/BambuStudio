@@ -45,9 +45,9 @@ void SurfaceCollection::group(std::vector<SurfacesPtr> *retval)
 SurfacesPtr SurfaceCollection::filter_by_type(const SurfaceType type)
 {
     SurfacesPtr ss;
-    for (Surfaces::iterator surface = this->surfaces.begin(); surface != this->surfaces.end(); ++surface) {
-        if (surface->surface_type == type) ss.push_back(&*surface);
-    }
+    for (Surface &surface : this->surfaces)
+        if (surface.surface_type == type)
+            ss.push_back(&surface);
     return ss;
 }
 
