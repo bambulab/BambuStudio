@@ -445,6 +445,7 @@ protected:
     ScalableBitmap *                    enable_ams{nullptr};
     ThumbnailData                       m_preview_thumbnail_data;//when ams map change
     std::vector<wxColour>               m_preview_colors_in_thumbnail;
+    std::vector<wxColour>               m_cur_colors_in_thumbnail;
     std::vector<bool>                   m_edge_pixels;
 
 public:
