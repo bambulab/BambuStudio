@@ -1156,7 +1156,19 @@ private:
     bool _render_orient_menu(float left, float right, float bottom, float top);
     bool _render_arrange_menu(float left, float right, float bottom, float top);
     // render thumbnail using the default framebuffer
-    void render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors, GLShaderProgram* shader, Camera::EType camera_type);
+    void render_thumbnail_legacy(ThumbnailData &                    thumbnail_data,
+                                 unsigned int                       w,
+                                 unsigned int                       h,
+                                 const ThumbnailsParams &           thumbnail_params,
+                                 PartPlateList &                    partplate_list,
+                                 ModelObjectPtrs &                  model_objects,
+                                 const GLVolumeCollection &         volumes,
+                                 std::vector<std::array<float, 4>> &extruder_colors,
+                                 GLShaderProgram *                  shader,
+                                 Camera::EType                      camera_type,
+                                 bool                               use_top_view = false,
+                                 bool                               for_picking  = false,
+                                 bool                               ban_light = false);
 
     void _update_volumes_hover_state();
 

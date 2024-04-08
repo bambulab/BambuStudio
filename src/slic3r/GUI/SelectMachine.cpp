@@ -4077,11 +4077,15 @@ void SelectMachineDialog::clone_thumbnail_data() {
     if (m_preview_colors_in_thumbnail.size() != m_materialList.size()) {
         m_preview_colors_in_thumbnail.resize(m_materialList.size());
     }
+    if (m_cur_colors_in_thumbnail.size() != m_materialList.size()) {
+        m_cur_colors_in_thumbnail.resize(m_materialList.size());
+    }
     while (iter != m_materialList.end()) {
         int           id   = iter->first;
         Material *    item = iter->second;
         MaterialItem *m    = item->item;
         m_preview_colors_in_thumbnail[id] = m->m_material_coloul;
+        m_cur_colors_in_thumbnail[id]     = m->m_ams_coloul;
         iter++;
     }
     //copy data
@@ -4228,10 +4232,10 @@ void SelectMachineDialog::updata_thumbnail_data_after_connected_printer()
             is_connect_printer = false;
             break;
         }
-        change_default_normal(id, m->m_ams_coloul);
         iter++;
     }
-    if (is_connect_printer) { 
+    if (is_connect_printer) {
+        change_default_normal(-1, wxColour());
         final_deal_edge_pixels_data(m_preview_thumbnail_data);
         set_default_normal(m_preview_thumbnail_data);
     }
@@ -4239,7 +4243,9 @@ void SelectMachineDialog::updata_thumbnail_data_after_connected_printer()
 
 void SelectMachineDialog::change_default_normal(int old_filament_id, wxColour temp_ams_color)
 {
-    wxColour             ams_color     = adjust_color_for_render(temp_ams_color);
+    if (old_filament_id >= 0) {
+        m_cur_colors_in_thumbnail[old_filament_id] = temp_ams_color;
+    }
     ThumbnailData& data =m_plater->get_partplate_list().get_curr_plate()->thumbnail_data;
     ThumbnailData& no_light_data = m_plater->get_partplate_list().get_curr_plate()->no_light_thumbnail_data;
     if (data.width > 0 && data.height > 0 && data.width == no_light_data.width && data.height == no_light_data.height) {
@@ -4249,7 +4255,14 @@ void SelectMachineDialog::change_default_normal(int old_filament_id, wxColour te
                 unsigned char *no_light_px   = (unsigned char *) no_light_data.pixels.data() + 4 * (rr + c);
                 unsigned char *origin_px = (unsigned char *) data.pixels.data() + 4 * (rr + c);
                 unsigned char *new_px        = (unsigned char *) m_preview_thumbnail_data.pixels.data() + 4 * (rr + c);
-                if (no_light_px[3] == (255 - old_filament_id) && m_edge_pixels[r * data.width + c] == false) {
+                if (origin_px[3]  > 0 && m_edge_pixels[r * data.width + c] == false) {
+                    auto filament_id = 255 - no_light_px[3];
+                    if (filament_id >= m_cur_colors_in_thumbnail.size()) {
+                        continue;
+                    }
+                    wxColour temp_ams_color_in_loop = m_cur_colors_in_thumbnail[filament_id];
+                    wxColour ams_color              = adjust_color_for_render(temp_ams_color_in_loop);
+                    //change color
                     new_px[3] = origin_px[3]; // alpha
                     int origin_rgb = origin_px[0] + origin_px[1] + origin_px[2];
                     int no_light_px_rgb   = no_light_px[0] + no_light_px[1] + no_light_px[2];
