@@ -1094,12 +1094,14 @@ void GLGizmoPainterBase::on_set_state()
         //camera.look_at(position, rotate_target, Vec3d::UnitZ());
     }
     if (m_state == Off && m_old_state != Off) { // the gizmo was just turned Off
+        if (m_c->object_clipper()) {
+            m_c->object_clipper()->set_position(0, true);
+        }
         // we are actually shutting down
         on_shutdown();
         m_old_mo_id = -1;
         //m_iva.release_geometry();
         m_triangle_selectors.clear();
-
         //Camera& camera = wxGetApp().plater()->get_camera();
         //camera.look_at(camera.get_position(), m_previous_target, Vec3d::UnitZ());
         //camera.set_target(m_previous_target);
