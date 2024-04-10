@@ -1468,6 +1468,10 @@ void GLCanvas3D::toggle_model_objects_visibility(bool visible, const ModelObject
                         vol->force_neutral_color = true;
                     else if (gizmo_type == GLGizmosManager::MmuSegmentation)
                         vol->is_active = false;
+                    else if (gizmo_type == GLGizmosManager::Text) {
+                        vol->force_native_color  = false;
+                        vol->force_neutral_color = false;
+                    }
                     else
                         vol->force_native_color = true;
                 }
