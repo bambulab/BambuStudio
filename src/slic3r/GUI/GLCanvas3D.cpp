@@ -5865,7 +5865,7 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
 
             std::array<float, 4> new_color = adjust_color_for_rendering(curr_color);
             if (ban_light) {
-                new_color[3] =(255 - vol->extruder_id)/255.0f;
+                new_color[3] =(255 - (vol->extruder_id -1))/255.0f;
             }
             shader->set_uniform("uniform_color", new_color);
             shader->set_uniform("volume_world_matrix", vol->world_matrix());
