@@ -795,7 +795,7 @@ function ShowMakerlabList( LabList )
 			continue;
 		
 		
-		strLabHtml+='<div class="FileItem GuideBlock" onClick="OnOpenOneMakerlab(\''+LabUrl+'\')" >'+
+		strLabHtml+='<div class="MakerlabItem GuideBlock" onClick="OnOpenOneMakerlab(\''+LabUrl+'\')" >'+
 				'<div class="MakerlabImg"><img src="'+LabImg+'"/></div>'+
 				'<div class="MakerlabTextBlock">'+
 				'<div class="MakerlabName">'+LabName+'</div>'+
