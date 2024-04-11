@@ -1840,7 +1840,7 @@ void print_ams_mapping_result(std::vector<FilamentInfo>& result)
 bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
 {
     if (!obj_) return false;
-
+    obj_->get_ams_colors(m_cur_colors_in_thumbnail);
     // try color and type mapping
     int result = obj_->ams_filament_mapping(m_filaments, m_ams_mapping_result);
     if (result == 0) {
@@ -4077,15 +4077,12 @@ void SelectMachineDialog::clone_thumbnail_data() {
     if (m_preview_colors_in_thumbnail.size() != m_materialList.size()) {
         m_preview_colors_in_thumbnail.resize(m_materialList.size());
     }
-    if (m_cur_colors_in_thumbnail.size() != m_materialList.size()) {
-        m_cur_colors_in_thumbnail.resize(m_materialList.size());
-    }
     while (iter != m_materialList.end()) {
         int           id   = iter->first;
         Material *    item = iter->second;
         MaterialItem *m    = item->item;
         m_preview_colors_in_thumbnail[id] = m->m_material_coloul;
-        m_cur_colors_in_thumbnail[id]     = m->m_ams_coloul;
+        m_cur_colors_in_thumbnail[item->id] = m->m_ams_coloul;
         iter++;
     }
     //copy data
@@ -4243,8 +4240,18 @@ void SelectMachineDialog::updata_thumbnail_data_after_connected_printer()
 
 void SelectMachineDialog::change_default_normal(int old_filament_id, wxColour temp_ams_color)
 {
+    if (m_cur_colors_in_thumbnail.size() == 0) {
+        BOOST_LOG_TRIVIAL(error) << "SelectMachineDialog::change_default_normal:error:m_cur_colors_in_thumbnail.size() == 0";
+        return;
+    }
     if (old_filament_id >= 0) {
-        m_cur_colors_in_thumbnail[old_filament_id] = temp_ams_color;
+        if (old_filament_id < m_cur_colors_in_thumbnail.size()) {
+            m_cur_colors_in_thumbnail[old_filament_id] = temp_ams_color;
+        }
+        else {
+            BOOST_LOG_TRIVIAL(error) << "SelectMachineDialog::change_default_normal:error:old_filament_id > m_cur_colors_in_thumbnail.size()";
+            return;
+        }
     }
     ThumbnailData& data =m_plater->get_partplate_list().get_curr_plate()->thumbnail_data;
     ThumbnailData& no_light_data = m_plater->get_partplate_list().get_curr_plate()->no_light_thumbnail_data;
