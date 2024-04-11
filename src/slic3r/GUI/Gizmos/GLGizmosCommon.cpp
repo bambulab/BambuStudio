@@ -468,8 +468,10 @@ void ObjectClipper::set_position(double pos, bool keep_normal)
     const ModelObject *mo          = get_pool()->selection_info()->model_object();
     int                active_inst = get_pool()->selection_info()->get_active_instance();
     double             z_shift     = get_pool()->selection_info()->get_sla_shift();
-
-    Vec3d        normal = (keep_normal && m_clp) ? m_clp->get_normal() : -wxGetApp().plater()->get_camera().get_dir_forward();
+    if (active_inst < 0) {
+        return;
+    }
+    Vec3d normal = (keep_normal && m_clp) ? m_clp->get_normal() : -wxGetApp().plater()->get_camera().get_dir_forward();
     Vec3d center;
     if (get_pool()->get_canvas()->get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
         const SelectionInfo *sel_info           = get_pool()->selection_info();
