@@ -4356,7 +4356,7 @@ msgid "Aux"
 msgstr "Yardımcı"
 
 msgid "Cham"
-msgstr "Cham"
+msgstr "Kabin"
 
 msgid "Bed"
 msgstr "Yatak"
@@ -4433,7 +4433,7 @@ msgid "Sport"
 msgstr "Spor"
 
 msgid "Ludicrous"
-msgstr "Gülünç"
+msgstr "Absürt"
 
 msgid "Can't start this without SD card."
 msgstr "SD kart olmadan başlatılamıyor."
