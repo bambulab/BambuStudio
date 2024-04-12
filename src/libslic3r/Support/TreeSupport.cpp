@@ -605,7 +605,7 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
     support_type = m_object_config->support_type;
     support_style = m_object_config->support_style;
     if (support_style == smsDefault)
-        support_style = smsTreeHybrid;
+        support_style = smsTreeOrganic;
     SupportMaterialPattern support_pattern  = m_object_config->support_base_pattern;
     if (support_style == smsTreeHybrid && support_pattern == smpDefault)
         support_pattern = smpRectilinear;
@@ -1056,16 +1056,18 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
             }
         }
 
+        if (layer_nr < blockers.size()) {
+            // Arthur: union_ is a must because after mirroring, the blocker polygons are in left-hand coordinates, ie clockwise, 
+            // which are not valid polygons, and will be removed by offset_ex. union_ can make these polygons right.
+            ExPolygons blocker = offset_ex(union_(blockers[layer_nr]), scale_(radius_sample_resolution));
+            layer->loverhangs = diff_ex(layer->loverhangs, blocker);
+            layer->cantilevers = diff_ex(layer->cantilevers, blocker);
+            sharp_tail_overhangs = diff_ex(sharp_tail_overhangs, blocker);
+        }
+
         if (support_critical_regions_only && is_auto(stype)) {
             layer->loverhangs.clear();  // remove oridinary overhangs, only keep cantilevers and sharp tails (added later)
             append(layer->loverhangs, layer->cantilevers);
-        }
-
-        if (layer_nr < blockers.size()) {
-            Polygons& blocker = blockers[layer_nr];
-            // Arthur: union_ is a must because after mirroring, the blocker polygons are in left-hand coordinates, ie clockwise, 
-            // which are not valid polygons, and will be removed by offset_ex. union_ can make these polygons right.
-            layer->loverhangs = diff_ex(layer->loverhangs, offset_ex(union_(blocker), scale_(radius_sample_resolution)));
         }
 
         if (max_bridge_length > 0 && layer->loverhangs.size() > 0 && lower_layer) {
