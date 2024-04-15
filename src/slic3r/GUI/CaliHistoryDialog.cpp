@@ -711,13 +711,14 @@ void NewCalibrationHistoryDialog::on_ok(wxCommandEvent &event)
             return item.name == m_new_result.name && item.filament_id == m_new_result.filament_id;
         });
 
-        if (iter != curr_obj->pa_calib_tab.end()) {
+        if (iter != m_history_results.end()) {
             MessageDialog msg_dlg(nullptr,
                                   wxString::Format(_L("There is already a historical calibration result with the same name: %s. Only one of the results with the same name "
                                                       "is saved. Are you sure you want to override the historical result?"),
                                                    m_new_result.name),
                                   wxEmptyString, wxICON_WARNING | wxYES_NO);
-            if (msg_dlg.ShowModal() != wxID_YES) return;
+            if (msg_dlg.ShowModal() != wxID_YES)
+                return;
         }
     }
 
