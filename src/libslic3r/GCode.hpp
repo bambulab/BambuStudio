@@ -342,6 +342,9 @@ private:
     std::string     extrude_multi_path(ExtrusionMultiPath multipath, std::string description = "", double speed = -1.);
     std::string     extrude_path(ExtrusionPath path, std::string description = "", double speed = -1.);
 
+    //smooth speed function
+    void            smooth_speed_discontinuity_area(ExtrusionPaths &paths);
+    ExtrusionPaths  merge_same_speed_paths(const ExtrusionPaths &paths);
     // Extruding multiple objects with soluble / non-soluble / combined supports
     // on a multi-material printer, trying to minimize tool switches.
     // Following structures sort extrusions by the extruder ID, by an order of objects and object islands.
@@ -514,8 +517,12 @@ private:
     int get_bed_temperature(const int extruder_id, const bool is_first_layer, const BedType bed_type) const;
 
     std::string _extrude(const ExtrusionPath &path, std::string description = "", double speed = -1, bool is_first_slope = false);
+    ExtrusionPaths set_speed_transition(ExtrusionPaths &paths);
+    ExtrusionPaths split_and_mapping_speed(double &other_path_v, double &final_v, ExtrusionPath &this_path, double max_smooth_length, bool split_from_left = true);
     double get_path_speed(const ExtrusionPath &path);
     double get_overhang_degree_corr_speed(float speed, double path_degree);
+    double mapping_speed(double dist);
+    double get_speed_coor_x(double speed);
     void print_machine_envelope(GCodeOutputStream &file, Print &print);
     void _print_first_layer_bed_temperature(GCodeOutputStream &file, Print &print, const std::string &gcode, unsigned int first_printing_extruder_id, bool wait);
     void _print_first_layer_extruder_temperatures(GCodeOutputStream &file, Print &print, const std::string &gcode, unsigned int first_printing_extruder_id, bool wait);
