@@ -3394,6 +3394,10 @@ int CLI::run(int argc, char **argv)
                     BOOST_LOG_TRIVIAL(info) << boost::format("Plate %1%: clear loaded thumbnail %2%.")%(index+1)%plate_data_src[index]->thumbnail_file;
                     plate_data_src[index]->thumbnail_file.clear();
                 }
+                if (!plate_data_src[index]->no_light_thumbnail_file.empty()) {
+                    BOOST_LOG_TRIVIAL(info) << boost::format("Plate %1%: clear loaded no_light_thumbnail %2%.")%(index+1)%plate_data_src[index]->no_light_thumbnail_file;
+                    plate_data_src[index]->no_light_thumbnail_file.clear();
+                }
                 if (!plate_data_src[index]->top_file.empty()) {
                     BOOST_LOG_TRIVIAL(info) << boost::format("Plate %1%: clear loaded top_thumbnail %2%.")%(index+1)%plate_data_src[index]->top_file;
                     plate_data_src[index]->top_file.clear();
@@ -4445,6 +4449,10 @@ int CLI::run(int argc, char **argv)
                                                     BOOST_LOG_TRIVIAL(info) << boost::format("Plate %1%: clear loaded thumbnail %2%.")%(index+1)%plate_data_src[index]->thumbnail_file;
                                                     plate_data_src[index]->thumbnail_file.clear();
                                                 }
+                                                if (!plate_data_src[index]->no_light_thumbnail_file.empty()) {
+                                                    BOOST_LOG_TRIVIAL(info) << boost::format("Plate %1%: clear loaded no_light_thumbnail %2%.")%(index+1)%plate_data_src[index]->no_light_thumbnail_file;
+                                                    plate_data_src[index]->no_light_thumbnail_file.clear();
+                                                }
                                                 if (!plate_data_src[index]->top_file.empty()) {
                                                     BOOST_LOG_TRIVIAL(info) << boost::format("Plate %1%: clear loaded top_thumbnail %2%.")%(index+1)%plate_data_src[index]->top_file;
                                                     plate_data_src[index]->top_file.clear();
@@ -4835,8 +4843,9 @@ int CLI::run(int argc, char **argv)
 #endif
 
         bool need_regenerate_thumbnail = oriented_or_arranged || regenerate_thumbnails;
+        bool need_regenerate_no_light_thumbnail = oriented_or_arranged || regenerate_thumbnails;
         bool need_regenerate_top_thumbnail = oriented_or_arranged || regenerate_thumbnails;
-        bool need_create_thumbnail_group = false,  need_create_top_group = false;
+        bool need_create_thumbnail_group = false, need_create_no_light_group = false, need_create_top_group = false;
 
         // get type and color for platedata
         auto* filament_types = dynamic_cast<const ConfigOptionStrings*>(m_print_config.option("filament_type"));
@@ -4893,6 +4902,27 @@ int CLI::run(int argc, char **argv)
                 }
             }
 
+            if (plate_data->no_light_thumbnail_file.empty()) {
+                if (!regenerate_thumbnails && (plate_data_src.size() > i)) {
+                    plate_data->no_light_thumbnail_file = plate_data_src[i]->no_light_thumbnail_file;
+                }
+                if (plate_data->no_light_thumbnail_file.empty() || (!boost::filesystem::exists(plate_data->no_light_thumbnail_file))) {
+                    BOOST_LOG_TRIVIAL(info) << boost::format("thumbnails stage: plate %1%'s no_light_thumbnail_file %2% also not there, need to regenerate")%(i+1)%plate_data->no_light_thumbnail_file;
+                    if (!skip_this_plate) {
+                        need_regenerate_no_light_thumbnail = true;
+                        need_create_no_light_group = true;
+                    }
+                }
+                else {
+                    if (regenerate_thumbnails) {
+                        BOOST_LOG_TRIVIAL(info) << boost::format("thumbnails stage: plate %1%'s no_light_thumbnail file %2% cleared, need to regenerate")%(i+1) %plate_data->no_light_thumbnail_file;
+                        plate_data->no_light_thumbnail_file.clear();
+                    }
+                    else
+                        BOOST_LOG_TRIVIAL(info) << boost::format("thumbnails stage: plate %1%'s no_light_thumbnail file exists, no need to regenerate")%(i+1);
+                }
+            }
+
             if (plate_data->top_file.empty() || plate_data->pick_file.empty()) {
                 if (!regenerate_thumbnails && (plate_data_src.size() > i)) {
                     plate_data->top_file = plate_data_src[i]->top_file;
@@ -4918,7 +4948,7 @@ int CLI::run(int argc, char **argv)
             }
         }
 
-        if (need_regenerate_thumbnail || need_regenerate_top_thumbnail) {
+        if (need_regenerate_thumbnail || need_regenerate_no_light_thumbnail || need_regenerate_top_thumbnail) {
             std::vector<std::string> colors;
             if (filament_color) {
                 colors= filament_color->vserialize();
@@ -5106,6 +5136,60 @@ int CLI::run(int argc, char **argv)
                                 BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%: add thumbnail data into group")%(i+1);
                             }
 
+                            //no light thumbnail
+                            if (!plate_data->no_light_thumbnail_file.empty() && (boost::filesystem::exists(plate_data->no_light_thumbnail_file)))
+                            {
+                                if ((plate_to_slice != 0) && (plate_to_slice != (i + 1))) {
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: regenerate thumbnail, clear plate %2%'s no_light_thumbnail_file path to empty.")%__LINE__%(i+1);
+                                    plate_data->no_light_thumbnail_file.clear();
+                                }
+                                else
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% has valid no_light_thumbnail_file extracted from 3mf, directly using it")%(i+1);
+                            }
+                            else{
+                                ThumbnailData *no_light_thumbnail = &part_plate->no_light_thumbnail_data;
+                                if ((plate_to_slice != 0) && (plate_to_slice != (i + 1))) {
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: regenerate thumbnail, Skip plate %2%.")%__LINE__%(i+1);
+                                    part_plate->no_light_thumbnail_data.reset();
+                                    plate_data->no_light_thumbnail_file.clear();
+                                }
+                                else {
+                                    unsigned int thumbnail_width = 512, thumbnail_height = 512;
+                                    const ThumbnailsParams thumbnail_params = { {}, false, true, false, true, i };
+
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%'s no_light_thumbnail_file missed, need to regenerate")%(i+1);
+                                    switch (Slic3r::GUI::OpenGLManager::get_framebuffers_type())
+                                    {
+                                        case Slic3r::GUI::OpenGLManager::EFramebufferType::Arb:
+                                            {
+                                                BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: ARB");
+                                                Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer(*no_light_thumbnail,
+                                                   thumbnail_width, thumbnail_height, thumbnail_params,
+                                                   partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho, false, false, true);
+                                                break;
+                                            }
+                                        case Slic3r::GUI::OpenGLManager::EFramebufferType::Ext:
+                                            {
+                                                BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: EXT");
+                                                Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer_ext(*no_light_thumbnail,
+                                                   thumbnail_width, thumbnail_height, thumbnail_params,
+                                                   partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho, false, false, true);
+                                                break;
+                                            }
+                                        default:
+                                            BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: unknown");
+                                            break;
+                                    }
+                                    plate_data->no_light_thumbnail_file = "valid_no_light";
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%'s no_light thumbnail,finished rendering")%(i+1);
+                                }
+                            }
+
+                            if (need_create_no_light_group) {
+                                no_light_thumbnails.push_back(&part_plate->no_light_thumbnail_data);
+                                BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%: add thumbnail data for no_light into group")%(i+1);
+                            }
+
                             //top thumbnails
                             /*if (part_plate->top_thumbnail_data.is_valid() && part_plate->pick_thumbnail_data.is_valid()) {
                                 if ((plate_to_slice != 0) && (plate_to_slice != (i + 1))) {
@@ -5136,11 +5220,9 @@ int CLI::run(int argc, char **argv)
                             else{
                                 ThumbnailData* top_thumbnail = &part_plate->top_thumbnail_data;
                                 ThumbnailData* picking_thumbnail = &part_plate->pick_thumbnail_data;
-                                ThumbnailData *no_light_thumbnail = &part_plate->no_light_thumbnail_data;
                                 if ((plate_to_slice != 0) && (plate_to_slice != (i + 1))) {
                                     BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: regenerate thumbnail, Skip plate %2%.")%__LINE__%(i+1);
                                     part_plate->top_thumbnail_data.reset();
-                                    part_plate->no_light_thumbnail_data.reset();
                                     part_plate->pick_thumbnail_data.reset();
                                     plate_data->top_file.clear();
                                     plate_data->pick_file.clear();
@@ -5153,7 +5235,6 @@ int CLI::run(int argc, char **argv)
                                     if (skip_useless_pick && ((plate_object_count[i] <= 1) || (plate_object_count[i] > 64)))
                                     {
                                         //don't render pick and top
-                                        part_plate->no_light_thumbnail_data.reset();
                                         part_plate->top_thumbnail_data.reset();
                                         part_plate->pick_thumbnail_data.reset();
                                         plate_data->top_file.clear();
@@ -5197,7 +5278,6 @@ int CLI::run(int argc, char **argv)
                             }
 
                             if (need_create_top_group) {
-                                no_light_thumbnails.push_back(&part_plate->no_light_thumbnail_data);
                                 top_thumbnails.push_back(&part_plate->top_thumbnail_data);
                                 pick_thumbnails.push_back(&part_plate->pick_thumbnail_data);
                                 BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%: add thumbnail data for top and pick into group")%(i+1);
@@ -5220,6 +5300,9 @@ int CLI::run(int argc, char **argv)
                     BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%'s all the thumbnails skipped, reset here")%(i+1);
                     plate_data->plate_thumbnail.reset();
                     plate_data->thumbnail_file.clear();
+                    part_plate->no_light_thumbnail_data.reset();
+                    plate_data->no_light_thumbnail_file.clear();
+
                     part_plate->top_thumbnail_data.reset();
                     part_plate->pick_thumbnail_data.reset();
                     plate_data->top_file.clear();
@@ -5249,8 +5332,12 @@ int CLI::run(int argc, char **argv)
                     BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%: add thumbnail data into group")%(i+1);
                 }
 
-                if (need_create_top_group) {
+                if (need_create_no_light_group) {
                     no_light_thumbnails.push_back(&part_plate->no_light_thumbnail_data);
+                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%: add thumbnail data into group")%(i+1);
+                }
+
+                if (need_create_top_group) {
                     top_thumbnails.push_back(&part_plate->top_thumbnail_data);
                     pick_thumbnails.push_back(&part_plate->pick_thumbnail_data);
                     BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%: add thumbnail data for top and pick into group")%(i+1);
