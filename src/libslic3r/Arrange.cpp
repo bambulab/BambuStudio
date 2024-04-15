@@ -635,17 +635,7 @@ protected:
         else {
             for (int i = 0; i < m_items.size(); i++) {
                 Item& p = m_items[i];
-                if (p.is_virt_object) {
-                    // Better not put items above wipe tower
-                    if (p.is_wipe_tower) {
-                        if (ibb.maxCorner().y() > p.boundingBox().maxCorner().y())
-                            score += 1;
-                        else if(m_pilebb.defined)
-                            score += norm(pl::distance(ibb.center(), m_pilebb.center()));
-                    }
-                    else
-                        continue;
-                } else {
+                if (!p.is_virt_object) {
                     // 高度接近的件尽量摆到一起
                     score += (1- std::abs(item.height - p.height) / params.printable_height)
                         * norm(pl::distance(ibb.center(), p.boundingBox().center()));
@@ -755,16 +745,8 @@ public:
 
             auto binbb = sl::boundingBox(m_bin);
 
-            auto starting_point = cfg.starting_point == PConfig::Alignment::BOTTOM_LEFT ? binbb.minCorner() : binbb.center();
-            // if we have wipe tower, items should be arranged around wipe tower
-            for (Item itm : items) {
-                if (itm.is_wipe_tower) {
-                    starting_point = itm.boundingBox().center();
-                    BOOST_LOG_TRIVIAL(debug) << "arrange we have wipe tower, change starting point to: " << starting_point;
-                    break;
-                }
-            }
-
+            auto starting_point = cfg.starting_point == PConfig::Alignment::BOTTOM_LEFT ? binbb.minCorner() :
+                cfg.starting_point == PConfig::Alignment::TOP_RIGHT ? binbb.maxCorner() : binbb.center();
             cfg.object_function = [this, binbb, starting_point](const Item &item, const ItemGroup &packed_items) {
                 return fixed_overfit(objfunc(item, starting_point), binbb);
             };
@@ -806,15 +788,17 @@ public:
             }
             else {
                 // single color objects first, then objects with more colors
-                if (i1.extrude_ids.size() != i2.extrude_ids.size()){
+                if (i1.extrude_ids.size() != i2.extrude_ids.size()) {
                     if (i1.extrude_ids.size() == 1 || i2.extrude_ids.size() == 1)
                         return i1.extrude_ids.size() == 1;
-                    else 
+                    else
                         return i1.extrude_ids.size() > i2.extrude_ids.size();
                 }
                 else
                     return i1.bed_temp != i2.bed_temp ? (i1.bed_temp > i2.bed_temp) :
-                    (i1.extrude_ids != i2.extrude_ids ? (i1.extrude_ids.front() < i2.extrude_ids.front()) : (i1.area() > i2.area()));
+                    i1.extrude_ids != i2.extrude_ids ? (i1.extrude_ids.front() < i2.extrude_ids.front()) :
+                    std::abs(i1.height/params.printable_height - i2.height/params.printable_height)>0.05 ? i1.height > i2.height:
+                    (i1.area() > i2.area());
             }
         };
 
