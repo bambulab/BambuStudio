@@ -249,7 +249,7 @@ PrintSequence PartPlate::get_real_print_seq(bool* plate_same_as_global) const
     if (curr_plate_seq == PrintSequence::ByDefault) {
 		curr_plate_seq = global_print_seq;
     }
-	
+
 	if(plate_same_as_global)
 		*plate_same_as_global = (curr_plate_seq == global_print_seq);
 
@@ -4280,7 +4280,7 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id, bool is_n
 		{
 			//found a new plate, add it to plate
 			plate->add_instance(obj_id, instance_id, false, &boundingbox);
-			
+
 			// spiral mode, update object setting
 			if (plate->config()->has("spiral_mode") && plate->config()->opt_bool("spiral_mode") && !is_object_config_compatible_with_spiral_vase(object)) {
 				if (!is_new) {
@@ -5264,6 +5264,8 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
 			%(i+1) %plate_data_item->plate_thumbnail.width %plate_data_item->plate_thumbnail.height %plate_data_item->plate_thumbnail.pixels.size();
 		plate_data_item->config.apply(*m_plate_list[i]->config());
 
+		if (m_plate_list[i]->no_light_thumbnail_data.is_valid())
+			plate_data_item->no_light_thumbnail_file = "valid_no_light";
 		if (m_plate_list[i]->top_thumbnail_data.is_valid())
 			plate_data_item->top_file = "valid_top";
 		if (m_plate_list[i]->pick_thumbnail_data.is_valid())
@@ -5376,6 +5378,13 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list)
 				m_plate_list[index]->load_thumbnail_data(plate_data_list[i]->thumbnail_file, m_plate_list[index]->thumbnail_data);
 				BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<boost::format(": plate %1% after load, width %2%, height %3%, size %4%!")
 					%(i+1) %m_plate_list[index]->thumbnail_data.width %m_plate_list[index]->thumbnail_data.height %m_plate_list[index]->thumbnail_data.pixels.size();
+			}
+		}
+
+		if (m_plater && !plate_data_list[i]->no_light_thumbnail_file.empty()) {
+			if (boost::filesystem::exists(plate_data_list[i]->no_light_thumbnail_file)) {
+				BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": plate %1%, load no_light_thumbnail_file from %2%.")%(i+1) %plate_data_list[i]->no_light_thumbnail_file;
+				m_plate_list[index]->load_thumbnail_data(plate_data_list[i]->no_light_thumbnail_file, m_plate_list[index]->no_light_thumbnail_data);
 			}
 		}
 

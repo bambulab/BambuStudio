@@ -284,6 +284,7 @@ static constexpr const char* OTHER_LAYERS_PRINT_SEQUENCE_NUMS_ATTR = "other_laye
 static constexpr const char* SPIRAL_VASE_MODE = "spiral_mode";
 static constexpr const char* GCODE_FILE_ATTR = "gcode_file";
 static constexpr const char* THUMBNAIL_FILE_ATTR = "thumbnail_file";
+static constexpr const char* NO_LIGHT_THUMBNAIL_FILE_ATTR = "thumbnail_no_light_file";
 static constexpr const char* TOP_FILE_ATTR = "top_file";
 static constexpr const char* PICK_FILE_ATTR = "pick_file";
 static constexpr const char* PATTERN_FILE_ATTR = "pattern_file";
@@ -1444,6 +1445,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 boost::algorithm::replace_all(plate->thumbnail_file, ".gcode", ".png");
             }
             //plate->pattern_file = it->second->pattern_file;
+            plate->no_light_thumbnail_file = it->second->no_light_thumbnail_file;
             plate->top_file = it->second->top_file;
             plate->pick_file = it->second->pick_file.empty();
             plate->pattern_bbox_file = it->second->pattern_bbox_file.empty();
@@ -1455,7 +1457,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     return mz_zip_reader_extract_to_mem(&archive, stat.m_file_index, pixels.data(), pixels.size(), 0);
                 });
 
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", plate %1%, thumbnail_file=%2%")%it->first %plate->thumbnail_file;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", plate %1%, thumbnail_file=%2%, no_light_thumbnail_file=%3%")%it->first %plate->thumbnail_file %plate->no_light_thumbnail_file;
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", top_thumbnail_file=%1%, pick_thumbnail_file=%2%")%plate->top_file %plate->pick_file;
             it++;
         }
@@ -2084,13 +2086,14 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate_data_list[it->first-1]->warnings = it->second->warnings;
             plate_data_list[it->first-1]->thumbnail_file = (m_load_restore || it->second->thumbnail_file.empty()) ? it->second->thumbnail_file : m_backup_path + "/" + it->second->thumbnail_file;
             //plate_data_list[it->first-1]->pattern_file = (m_load_restore || it->second->pattern_file.empty()) ? it->second->pattern_file : m_backup_path + "/" + it->second->pattern_file;
+            plate_data_list[it->first-1]->no_light_thumbnail_file = (m_load_restore || it->second->no_light_thumbnail_file.empty()) ? it->second->no_light_thumbnail_file : m_backup_path + "/" + it->second->no_light_thumbnail_file;
             plate_data_list[it->first-1]->top_file = (m_load_restore || it->second->top_file.empty()) ? it->second->top_file : m_backup_path + "/" + it->second->top_file;
             plate_data_list[it->first-1]->pick_file = (m_load_restore || it->second->pick_file.empty()) ? it->second->pick_file : m_backup_path + "/" + it->second->pick_file;
             plate_data_list[it->first-1]->pattern_bbox_file = (m_load_restore || it->second->pattern_bbox_file.empty()) ? it->second->pattern_bbox_file : m_backup_path + "/" + it->second->pattern_bbox_file;
             plate_data_list[it->first-1]->config = it->second->config;
 
             current_plate_data = plate_data_list[it->first - 1];
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", plate %1%, thumbnail_file=%2%")%it->first %plate_data_list[it->first-1]->thumbnail_file;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", plate %1%, thumbnail_file=%2%, no_light_thumbnail_file=%3%")%it->first %plate_data_list[it->first-1]->thumbnail_file %plate_data_list[it->first-1]->no_light_thumbnail_file;
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", top_thumbnail_file=%1%, pick_thumbnail_file=%2%")%plate_data_list[it->first-1]->top_file %plate_data_list[it->first-1]->pick_file;
             it++;
 
@@ -3926,6 +3929,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             {
                 m_curr_plater->thumbnail_file = value;
             }
+            else if (key == NO_LIGHT_THUMBNAIL_FILE_ATTR)
+            {
+                m_curr_plater->no_light_thumbnail_file = value;
+            }
             else if (key == TOP_FILE_ATTR)
             {
                 m_curr_plater->top_file = value;
@@ -5500,6 +5507,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         //BBS: add thumbnail for each plate
         if (!m_skip_static) {
             std::vector<bool> thumbnail_status(plate_data_list.size(), false);
+            std::vector<bool> no_light_thumbnail_status(plate_data_list.size(), false);
             std::vector<bool> top_thumbnail_status(plate_data_list.size(), false);
             std::vector<bool> pick_thumbnail_status(plate_data_list.size(), false);
 
@@ -5555,7 +5563,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     }
 
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(",add no light thumbnail %1%'s data into 3mf") % (index + 1);
-                    thumbnail_status[index] = true;
+                    no_light_thumbnail_status[index] = true;
                 }
             }
             // Adds the file Metadata/top_i.png and Metadata/pick_i.png
@@ -5589,6 +5597,16 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
                     if (!_add_file_to_archive(archive, dst_in_3mf, plate_data->thumbnail_file)) {
                         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", add thumbnail %1% from file %2% failed\n") % (i+1) %plate_data->thumbnail_file;
+                        return false;
+                    }
+                }
+
+                if (!no_light_thumbnail_status[i] && !plate_data->no_light_thumbnail_file.empty() && (boost::filesystem::exists(plate_data->no_light_thumbnail_file))){
+                    std::string dst_in_3mf = (boost::format("Metadata/plate_no_light_%1%.png") % (i + 1)).str();
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", add no light thumbnail %1% from file %2%") % (i+1) %plate_data->no_light_thumbnail_file;
+
+                    if (!_add_file_to_archive(archive, dst_in_3mf, plate_data->no_light_thumbnail_file)) {
+                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", add no light thumbnail %1% from file %2% failed\n") % (i+1) %plate_data->no_light_thumbnail_file;
                         return false;
                     }
                 }
@@ -7245,6 +7263,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 else if (!plate_data->thumbnail_file.empty() && (boost::filesystem::exists(plate_data->thumbnail_file))){
                     std::string thumbnail_file_in_3mf = (boost::format(THUMBNAIL_FILE_FORMAT) % (plate_data->plate_index + 1)).str();
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << THUMBNAIL_FILE_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << thumbnail_file_in_3mf << "\"/>\n";
+                }
+
+                if (!plate_data->no_light_thumbnail_file.empty()){
+                    std::string no_light_thumbnail_file_in_3mf = (boost::format(NO_LIGHT_THUMBNAIL_FILE_FORMAT) % (plate_data->plate_index + 1)).str();
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << NO_LIGHT_THUMBNAIL_FILE_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << no_light_thumbnail_file_in_3mf << "\"/>\n";
                 }
 
                 if (!plate_data->top_file.empty()) {
