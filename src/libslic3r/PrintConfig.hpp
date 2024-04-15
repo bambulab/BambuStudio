@@ -787,6 +787,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat, bottom_shell_thickness))
     ((ConfigOptionFloat, bridge_angle))
     ((ConfigOptionFloat, bridge_flow))
+    ((ConfigOptionFloat, overhang_totally_speed))
     ((ConfigOptionFloat, bridge_speed))
     ((ConfigOptionBool, ensure_vertical_shell_thickness))
     ((ConfigOptionEnum<InfillPattern>, top_surface_pattern))
@@ -817,6 +818,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat, ironing_speed))
     // Detect bridging perimeters
     ((ConfigOptionBool, detect_overhang_wall))
+    ((ConfigOptionBool, smooth_speed_discontinuity_area))
+    ((ConfigOptionFloat, smooth_coefficient))
     ((ConfigOptionInt, wall_filament))
     ((ConfigOptionFloat, inner_wall_line_width))
     ((ConfigOptionFloat, inner_wall_speed))
