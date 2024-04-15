@@ -879,11 +879,21 @@ void PrintConfigDef::init_fff_params()
     def->label = "[75%, 100%)";
     def->category = L("Speed");
     def->full_label = "[75%, 100%)";
-    //def->tooltip = L("Speed for line of wall which has degree of overhang between 75% and 100% line width. 0 means using original wall speed");
+    // def->tooltip = L("Speed for line of wall which has degree of overhang between 75% and 100% line width. 0 means using original wall speed");
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
+
+    def             = this->add("overhang_totally_speed", coFloat);
+    def->label      = "100% overhang wall (not bridge)";
+    def->category   = L("Speed");
+    def->tooltip = L("Speed for line of wall which has degree of overhang over 100% line width, but the wall is not a bridge wall.");
+    def->sidetext = L("mm/s");
+    def->min      = 0;
+    def->mode     = comAdvanced;
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloat{24});
 
     def = this->add("bridge_speed", coFloat);
     def->label = L("Bridge");
@@ -2540,6 +2550,20 @@ void PrintConfigDef::init_fff_params()
                      "For 100 percent overhang, bridge speed is used.");
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(true));
+
+    def = this->add("smooth_speed_discontinuity_area", coBool);
+    def->label = L("Smooth speed discontinuity area");
+    def->category = L("Quality");
+    def->tooltip  = L("Add the speed transition between discontinuity area.");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
+    def           = this->add("smooth_coefficient", coFloat);
+    def->label    = L("Smooth coefficient");
+    def->category = L("Quality");
+    def->tooltip  = L("The smaller the number, the longer the speed transition path.");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(80));
 
     def = this->add("wall_filament", coInt);
     //def->label = L("Walls");
