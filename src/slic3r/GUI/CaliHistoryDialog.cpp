@@ -55,9 +55,10 @@ static wxString get_preset_name_by_filament_id(std::string filament_id)
     return preset_name;
 }
 
-HistoryWindow::HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>& calib_results_history)
+HistoryWindow::HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>& calib_results_history, bool& show)
     : DPIDialog(parent, wxID_ANY, _L("Flow Dynamics Calibration Result"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
     , m_calib_results_history(calib_results_history)
+    , m_show_history_dialog(show)
 {
     this->SetBackgroundColour(*wxWHITE);
     auto main_sizer = new wxBoxSizer(wxVERTICAL);
@@ -138,11 +139,14 @@ HistoryWindow::HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>&
     m_refresh_timer->SetOwner(this);
     m_refresh_timer->Start(200);
     Bind(wxEVT_TIMER, &HistoryWindow::on_timer, this);
+
+    m_show_history_dialog = true;
 }
 
 HistoryWindow::~HistoryWindow()
 {
     m_refresh_timer->Stop();
+    m_show_history_dialog = false;
 }
 
 void HistoryWindow::sync_history_result(MachineObject* obj)
