@@ -11,7 +11,7 @@ namespace GUI {
 
 class HistoryWindow : public DPIDialog {
 public:
-    HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>& calib_results_history);
+    HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>& calib_results_history, bool& show);
     ~HistoryWindow();
     void on_dpi_changed(const wxRect& suggested_rect) {}
     void on_select_nozzle(wxCommandEvent& evt);
@@ -33,6 +33,7 @@ protected:
 
     wxTimer*                   m_refresh_timer { nullptr };
 
+    bool&                      m_show_history_dialog;
     std::vector<PACalibResult> m_calib_results_history;
     MachineObject*             curr_obj { nullptr };
     int                        history_version = -1;
