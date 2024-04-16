@@ -4294,7 +4294,7 @@ msgid "Aux"
 msgstr "Yardımcı"
 
 msgid "Cham"
-msgstr "Cham"
+msgstr "Kabin"
 
 msgid "Bed"
 msgstr "Yatak"
