@@ -4082,7 +4082,13 @@ void SelectMachineDialog::clone_thumbnail_data() {
         Material *    item = iter->second;
         MaterialItem *m    = item->item;
         m_preview_colors_in_thumbnail[id] = m->m_material_coloul;
-        m_cur_colors_in_thumbnail[item->id] = m->m_ams_coloul;
+        if (item->id < m_cur_colors_in_thumbnail.size()) {
+            m_cur_colors_in_thumbnail[item->id] = m->m_ams_coloul;
+        }
+        else {//exist empty or unrecognized type ams in machine
+            m_cur_colors_in_thumbnail.resize(item->id + 1);
+            m_cur_colors_in_thumbnail[item->id] = m->m_ams_coloul;
+        }
         iter++;
     }
     //copy data
