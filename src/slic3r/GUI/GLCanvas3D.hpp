@@ -17,7 +17,7 @@
 #include "GCodeViewer.hpp"
 #include "Camera.hpp"
 #include "IMToolbar.hpp"
-
+#include "slic3r/GUI/3DBed.hpp"
 #include "libslic3r/Slicing.hpp"
 
 #include <float.h>
@@ -53,7 +53,6 @@ namespace CustomGCode { struct Item; }
 
 namespace GUI {
 
-class Bed3D;
 class PartPlateList;
 
 #if ENABLE_RETINA_GL
@@ -182,6 +181,8 @@ wxDECLARE_EVENT(EVT_GLCANVAS_EDIT_COLOR_CHANGE, wxKeyEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_JUMP_TO, wxKeyEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_UNDO, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_REDO, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_SWITCH_TO_OBJECT, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_SWITCH_TO_GLOBAL, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_COLLAPSE_SIDEBAR, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_RELOAD_FROM_DISK, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_RENDER_TIMER, wxTimerEvent/*RenderTimerEvent*/);
@@ -512,6 +513,7 @@ private:
     unsigned int m_last_w, m_last_h;
     bool m_in_render;
     wxTimer m_timer;
+    wxTimer m_timer_set_color;
     LayersEditing m_layers_editing;
     Mouse m_mouse;
     GLGizmosManager m_gizmos;
@@ -606,27 +608,8 @@ private:
 
     PrinterTechnology current_printer_technology() const;
 
-    template<class Self>
-    static auto & get_arrange_settings(Self *self) {
-        PrinterTechnology ptech = self->current_printer_technology();
-
-        auto *ptr = &self->m_arrange_settings_fff;
-
-        if (ptech == ptSLA) {
-            ptr = &self->m_arrange_settings_sla;
-        } else if (ptech == ptFFF) {
-            auto co_opt = self->m_config->template option<ConfigOptionEnum<PrintSequence>>("print_sequence");
-            if (co_opt && (co_opt->value == PrintSequence::ByObject))
-                ptr = &self->m_arrange_settings_fff_seq_print;
-            else
-                ptr = &self->m_arrange_settings_fff;
-        }
-
-        return *ptr;
-    }
-
-
-
+    bool        m_show_world_axes{false};
+    Bed3D::Axes m_axes;
     //BBS:record key botton frequency
     int auto_orient_count = 0;
     int auto_arrange_count = 0;
@@ -650,7 +633,11 @@ public:
     }
 
     void load_arrange_settings();
-    ArrangeSettings& get_arrange_settings() { return get_arrange_settings(this); }
+    ArrangeSettings& get_arrange_settings();// { return get_arrange_settings(this); }
+    ArrangeSettings& get_arrange_settings(PrintSequence print_seq) {
+        return (print_seq == PrintSequence::ByObject) ? m_arrange_settings_fff_seq_print
+            : m_arrange_settings_fff;
+    }
 
     class SequentialPrintClearance
     {
@@ -724,6 +711,7 @@ public:
     bool init();
     void post_event(wxEvent &&event);
 
+    float get_explosion_ratio() { return m_explosion_ratio; }
     void reset_explosion_ratio() { m_explosion_ratio = 1.0; }
     void on_change_color_mode(bool is_dark, bool reinit = true);
     const bool get_dark_mode_status() { return m_is_dark; }
@@ -744,6 +732,7 @@ public:
     const GCodeViewer::SequentialView& get_gcode_sequential_view() const { return m_gcode_viewer.get_sequential_view(); }
     void update_gcode_sequential_view_current(unsigned int first, unsigned int last) { m_gcode_viewer.update_sequential_view_current(first, last); }
 
+    void toggle_selected_volume_visibility(bool selected_visible);
     void toggle_sla_auxiliaries_visibility(bool visible, const ModelObject* mo = nullptr, int instance_idx = -1);
     void toggle_model_objects_visibility(bool visible, const ModelObject* mo = nullptr, int instance_idx = -1, const ModelVolume* mv = nullptr);
     void update_instance_printable_state_for_object(size_t obj_idx);
@@ -777,13 +766,14 @@ public:
         }
     }
     void reset_clipping_planes_cache() { m_sla_caps[0].triangles.clear(); m_sla_caps[1].triangles.clear(); }
-    void set_use_clipping_planes(bool use) { m_use_clipping_planes = use; }
+    void set_use_clipping_planes(bool use);
 
     bool                                get_use_clipping_planes() const { return m_use_clipping_planes; }
     const std::array<ClippingPlane, 2> &get_clipping_planes() const { return m_clipping_planes; };
 
     void set_color_by(const std::string& value);
 
+    void set_show_world_axes(bool flag) { m_show_world_axes = flag; }
     void refresh_camera_scene_box();
 
     BoundingBoxf3 volumes_bounding_box() const;
@@ -810,6 +800,7 @@ public:
     void _update_select_plate_toolbar_stats_item(bool force_selected = false);
     void reset_select_plate_toolbar_selection();
     void enable_select_plate_toolbar(bool enable);
+    void clear_select_plate_toolbar_render_flag();
     void enable_assemble_view_toolbar(bool enable);
     void enable_return_toolbar(bool enable);
     void enable_separator_toolbar(bool enable);
@@ -924,6 +915,7 @@ public:
     void on_mouse_wheel(wxMouseEvent& evt);
     void on_timer(wxTimerEvent& evt);
     void on_render_timer(wxTimerEvent& evt);
+    void on_set_color_timer(wxTimerEvent& evt);
     void on_mouse(wxMouseEvent& evt);
     void on_gesture(wxGestureEvent& evt);
     void on_paint(wxPaintEvent& evt);
@@ -1023,17 +1015,6 @@ public:
 
     void highlight_toolbar_item(const std::string& item_name);
     void highlight_gizmo(const std::string& gizmo_name);
-
-    ArrangeSettings get_arrange_settings() const {
-        const ArrangeSettings &settings = get_arrange_settings(this);
-        ArrangeSettings ret = settings;
-        if (&settings == &m_arrange_settings_fff_seq_print) {
-            ret.distance = std::max(ret.distance,
-                                    float(min_object_distance(*m_config)));
-        }
-
-        return ret;
-    }
 
     // Timestamp for FPS calculation and notification fade-outs.
     static int64_t timestamp_now() {
@@ -1137,7 +1118,7 @@ private:
     void _render_main_toolbar();
     void _render_imgui_select_plate_toolbar();
     void _render_assemble_view_toolbar() const;
-    void _render_return_toolbar() const;
+    void _render_return_toolbar();
     void _render_separator_toolbar_right() const;
     void _render_separator_toolbar_left() const;
     void _render_collapse_toolbar() const;

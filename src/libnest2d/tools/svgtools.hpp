@@ -153,6 +153,12 @@ public:
         };
     }
 
+    void add_comment(const std::string comment)
+    {
+        if (svg_layers_.empty()) addLayer();
+        currentLayer() += "<!-- " + comment + " -->\n";
+    }
+
 private:
 
     std::string& currentLayer() { return svg_layers_.back(); }

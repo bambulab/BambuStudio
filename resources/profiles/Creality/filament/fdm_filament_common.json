@@ -42,6 +42,9 @@
     "filament_flow_ratio": [
         "1"
     ],
+    "filament_is_support": [
+        "0"
+    ],
     "filament_max_volumetric_speed": [
         "0"
     ],
@@ -113,6 +116,9 @@
     ],
     "reduce_fan_stop_start_freq": [
         "0"
+    ],
+    "required_nozzle_HRC": [
+        "3"
     ],
     "slow_down_for_layer_cooling": [
         "1"

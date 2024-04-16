@@ -76,9 +76,15 @@ std::string PrintJob::truncate_string(const std::string& str, size_t maxLength)
     }
 
     wxString local_str = wxString::FromUTF8(str);
-    wxString truncatedStr = local_str.Mid(0, maxLength - 3);
-    truncatedStr.append("...");
+    wxString truncatedStr;
 
+    for (auto i = 1; i < local_str.Length(); i++) {
+        wxString tagStr = local_str.Mid(0, i);
+        if (tagStr.ToUTF8().length() >= maxLength) {
+            truncatedStr = local_str.Mid(0, i - 1);
+            break;
+        }
+    }
     return truncatedStr.utf8_string();
 }
 
@@ -116,7 +122,7 @@ wxString PrintJob::get_http_error_msg(unsigned int status, std::string body)
             return _L("Service Unavailable");
         }
         else {
-            wxString unkown_text = _L("Unkown Error.");
+            wxString unkown_text = _L("Unknown Error.");
             unkown_text += wxString::Format("status=%u, body=%s", status, body);
             BOOST_LOG_TRIVIAL(error) << "http_error: status=" << status << ", code=" << code << ", error=" << error;
             return unkown_text;
@@ -280,15 +286,42 @@ void PrintJob::process()
         }
     }
 
+    params.stl_design_id = 0;
     if (!wxGetApp().model().stl_design_id.empty()) {
-       int stl_design_id = 0;
-        try {
-            stl_design_id = std::stoi(wxGetApp().model().stl_design_id);
+
+        auto country_code = wxGetApp().app_config->get_country_code();
+        bool match_code = false;
+
+        if (wxGetApp().model().stl_design_country == "DEV" && (country_code == "ENV_CN_DEV" || country_code == "NEW_ENV_DEV_HOST")) {
+            match_code = true;
         }
-        catch (const std::exception& e) {
-            stl_design_id = 0;
+
+        if (wxGetApp().model().stl_design_country == "QA" && (country_code == "ENV_CN_QA" || country_code == "NEW_ENV_QAT_HOST")) {
+            match_code = true;
         }
-        params.stl_design_id = stl_design_id;
+
+        if (wxGetApp().model().stl_design_country == "CN_PRE" && (country_code == "ENV_CN_PRE" || country_code == "NEW_ENV_PRE_HOST")) {
+            match_code = true;
+        }
+
+        if (wxGetApp().model().stl_design_country == "US_PRE" && country_code == "ENV_US_PRE") {
+            match_code = true;
+        }
+
+        if (country_code == wxGetApp().model().stl_design_country) {
+            match_code = true;
+        }
+
+        if (match_code) {
+            int stl_design_id = 0;
+            try {
+                stl_design_id = std::stoi(wxGetApp().model().stl_design_id);
+            }
+            catch (const std::exception& e) {
+                stl_design_id = 0;
+            }
+            params.stl_design_id = stl_design_id;
+        }
     }
 
     if (params.preset_name.empty() && m_print_type == "from_normal") { params.preset_name = wxString::Format("%s_plate_%d", m_project_name, curr_plate_idx).ToStdString(); }

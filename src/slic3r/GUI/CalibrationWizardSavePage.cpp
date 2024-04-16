@@ -261,11 +261,9 @@ void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cal
         static std::vector<PACalibResult> filtered_results;
         filtered_results.clear();
         for (auto history : history_result) {
-            for (auto& info : m_obj->selected_cali_preset) {
-                if (history.filament_id == info.filament_id) {
-                    filtered_results.push_back(history);
-                    selections.push_back(from_u8(history.name));
-                }
+            if (history.filament_id == item.filament_id) {
+                filtered_results.push_back(history);
+                selections.push_back(from_u8(history.name));
             }
         }
         comboBox_tray_name->Set(selections);
@@ -410,7 +408,7 @@ bool CaliPASaveAutoPanel::get_result(std::vector<PACalibResult>& out_result) {
         std::unordered_set<std::pair<std::string, std::string>, PACalibResult> set;
         for (auto& result : m_calib_results) {
             if (!set.insert({ result.second.name, result.second.filament_id }).second) {
-                MessageDialog msg_dlg(nullptr, _L("Only one of the results with the same name will be saved. Are you sure you want to overrides the other results?"), wxEmptyString, wxICON_WARNING | wxYES_NO);
+                MessageDialog msg_dlg(nullptr, _L("Only one of the results with the same name will be saved. Are you sure you want to override the other results?"), wxEmptyString, wxICON_WARNING | wxYES_NO);
                 if (msg_dlg.ShowModal() != wxID_YES) {
                     return false;
                 }
@@ -422,7 +420,7 @@ bool CaliPASaveAutoPanel::get_result(std::vector<PACalibResult>& out_result) {
         // Check for duplicate names from history
         for (auto& result : m_history_results) {
             if (!set.insert({ result.name, result.filament_id }).second) {
-                MessageDialog msg_dlg(nullptr, wxString::Format(_L("There is already a historical calibration result with the same name: %s. Only one of the results with the same name is saved. Are you sure you want to overrides the historical result?"), result.name), wxEmptyString, wxICON_WARNING | wxYES_NO);
+                MessageDialog msg_dlg(nullptr, wxString::Format(_L("There is already a historical calibration result with the same name: %s. Only one of the results with the same name is saved. Are you sure you want to override the historical result?"), result.name), wxEmptyString, wxICON_WARNING | wxYES_NO);
                 if (msg_dlg.ShowModal() != wxID_YES) {
                     return false;
                 }
@@ -531,7 +529,7 @@ void CaliPASaveManualPanel::set_pa_cali_method(ManualPaCaliMethod method)
         m_complete_text->SetLabel(_L("Please find the best line on your plate"));
         set_save_img();
     } else if (method == ManualPaCaliMethod::PA_PATTERN) {
-        m_complete_text->SetLabel(_L("Please find the cornor with perfect degree of extrusion"));
+        m_complete_text->SetLabel(_L("Please find the corner with perfect degree of extrusion"));
         if (wxGetApp().app_config->get_language_code() == "zh-cn") {
             m_picture_panel->set_bmp(ScalableBitmap(this, "fd_pattern_manual_result_CN", 350));
         } else {
@@ -554,16 +552,8 @@ bool CaliPASaveManualPanel::get_result(PACalibResult& out_result) {
     }
 
     wxString name = m_save_name_input->GetTextCtrl()->GetValue();
-    if (name.IsEmpty()) {
-        MessageDialog msg_dlg(nullptr, _L("Please enter the name you want to save to printer."), wxEmptyString, wxICON_WARNING | wxOK);
-        msg_dlg.ShowModal();
+    if (!CalibUtils::validate_input_name(name))
         return false;
-    }
-    else if (name.Length() > 40) {
-        MessageDialog msg_dlg(nullptr, _L("The name cannot exceed 40 characters."), wxEmptyString, wxICON_WARNING | wxOK);
-        msg_dlg.ShowModal();
-        return false;
-    }
 
     out_result.k_value = k;
     out_result.name = into_u8(name);
@@ -591,7 +581,6 @@ bool CaliPASaveManualPanel::get_result(PACalibResult& out_result) {
 bool CaliPASaveManualPanel::Show(bool show) {
     if (show) {
         if (m_obj) {
-            assert(m_obj->selected_cali_preset.size() <= 1);
             if (!m_obj->selected_cali_preset.empty()) {
                 wxString default_name = get_default_name(m_obj->selected_cali_preset[0].name, CalibMode::Calib_PA_Line);
                 set_default_name(default_name);
@@ -693,7 +682,7 @@ void CaliPASaveP1PPanel::set_pa_cali_method(ManualPaCaliMethod method)
         set_save_img();
     }
     else if (method == ManualPaCaliMethod::PA_PATTERN) {
-        m_complete_text->SetLabel(_L("Please find the cornor with perfect degree of extrusion"));
+        m_complete_text->SetLabel(_L("Please find the corner with perfect degree of extrusion"));
         if (wxGetApp().app_config->get_language_code() == "zh-cn") {
             m_picture_panel->set_bmp(ScalableBitmap(this, "fd_pattern_manual_result_CN", 350));
         } else {
@@ -876,11 +865,11 @@ void CalibrationPASavePage::show_panels(CalibrationMethod method, const PrinterS
         }
         m_p1p_panel->Show(false);
     }
-    else if (printer_ser == PrinterSeries::SERIES_P1P) {
+    else if (curr_obj->cali_version >= 0) {
         m_auto_panel->Show(false);
-        m_manual_panel->Show(false);
-        m_p1p_panel->set_pa_cali_method(curr_obj->manual_pa_cali_method);
-        m_p1p_panel->Show();
+        m_manual_panel->set_pa_cali_method(curr_obj->manual_pa_cali_method);
+        m_manual_panel->Show();
+        m_p1p_panel->Show(false);
     } else {
         m_auto_panel->Show(false);
         m_manual_panel->Show(false);

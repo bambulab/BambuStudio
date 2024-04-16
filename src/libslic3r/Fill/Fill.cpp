@@ -47,8 +47,6 @@ struct SurfaceFillParams
     float 			anchor_length     = 1000.f;
     float 			anchor_length_max = 1000.f;
     //BBS
-    bool            with_loop = false;
-
     // width, height of extrusion, nozzle diameter, is bridge
     // For the output, for fill generator.
     Flow 			flow;
@@ -60,7 +58,10 @@ struct SurfaceFillParams
 
 	// Index of this entry in a linear vector.
     size_t 			idx = 0;
-
+	// infill speed settings
+	float			sparse_infill_speed = 0;
+	float			top_surface_speed = 0;
+	float			solid_infill_speed = 0;
 
 	bool operator<(const SurfaceFillParams &rhs) const {
 #define RETURN_COMPARE_NON_EQUAL(KEY) if (this->KEY < rhs.KEY) return true; if (this->KEY > rhs.KEY) return false;
@@ -79,12 +80,15 @@ struct SurfaceFillParams
 //		RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, dont_adjust);
 		RETURN_COMPARE_NON_EQUAL(anchor_length);
 		RETURN_COMPARE_NON_EQUAL(anchor_length_max);
-		RETURN_COMPARE_NON_EQUAL(with_loop);
 		RETURN_COMPARE_NON_EQUAL(flow.width());
 		RETURN_COMPARE_NON_EQUAL(flow.height());
 		RETURN_COMPARE_NON_EQUAL(flow.nozzle_diameter());
 		RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, bridge);
 		RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, extrusion_role);
+		RETURN_COMPARE_NON_EQUAL(sparse_infill_speed);
+		RETURN_COMPARE_NON_EQUAL(top_surface_speed);
+		RETURN_COMPARE_NON_EQUAL(solid_infill_speed);
+
 		return false;
 	}
 
@@ -100,9 +104,11 @@ struct SurfaceFillParams
 //				this->dont_adjust   	== rhs.dont_adjust 		&&
 				this->anchor_length  	== rhs.anchor_length    &&
 				this->anchor_length_max == rhs.anchor_length_max &&
-				this->with_loop         == rhs.with_loop       &&
 				this->flow 				== rhs.flow 			&&
-				this->extrusion_role	== rhs.extrusion_role;
+				this->extrusion_role	== rhs.extrusion_role	&&
+				this->sparse_infill_speed	== rhs.sparse_infill_speed &&
+				this->top_surface_speed		== rhs.top_surface_speed &&
+				this->solid_infill_speed	== rhs.solid_infill_speed;
 	}
 };
 
@@ -151,8 +157,6 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		        params.extruder 	 = layerm.region().extruder(extrusion_role);
 		        params.pattern 		 = region_config.sparse_infill_pattern.value;
 		        params.density       = float(region_config.sparse_infill_density);
-				//BBS
-				params.with_loop     = surface.surface_type == stInternalWithLoop;
 
 				if (surface.is_solid()) {
 		            params.density = 100.f;
@@ -182,7 +186,15 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 					//BBS: always enable thick bridge for internal bridge
 					layerm.bridging_flow(extrusion_role, (surface.is_bridge() && !surface.is_external()) || object_config.thick_bridges) :
 					layerm.flow(extrusion_role, (surface.thickness == -1) ? layer.height : surface.thickness);
-
+				//BBS: record speed params
+                if (!params.bridge) {
+                    if (params.extrusion_role == erInternalInfill)
+                        params.sparse_infill_speed = region_config.sparse_infill_speed;
+                    else if (params.extrusion_role == erTopSolidInfill)
+                        params.top_surface_speed = region_config.top_surface_speed;
+                    else if (params.extrusion_role == erSolidInfill)
+                        params.solid_infill_speed = region_config.internal_solid_infill_speed;
+                }
 				// Calculate flow spacing for infill pattern generation.
 		        if (surface.is_solid() || is_bridge) {
 		            params.spacing = params.flow.spacing();
@@ -479,7 +491,6 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 		params.extrusion_role = surface_fill.params.extrusion_role;
 		params.using_internal_flow = using_internal_flow;
 		params.no_extrusion_overlap = surface_fill.params.overlap;
-		params.with_loop = surface_fill.params.with_loop;
 		if (surface_fill.params.pattern == ipGrid)
 			params.can_reverse = false;
 		LayerRegion* layerm = this->m_regions[surface_fill.region_id];
@@ -512,6 +523,100 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
     	    assert(dynamic_cast<ExtrusionEntityCollection*>(layerm->fills.entities[i]) != nullptr);
 #endif
 }
+
+Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive::Octree* support_fill_octree, FillLightning::Generator* lightning_generator) const
+{
+	std::vector<SurfaceFill>  surface_fills = group_fills(*this);
+	const Slic3r::BoundingBox bbox = this->object()->bounding_box();
+	const auto                resolution = this->object()->print()->config().resolution.value;
+
+	Polylines sparse_infill_polylines{};
+
+	for (SurfaceFill& surface_fill : surface_fills) {
+		if (surface_fill.surface.surface_type != stInternal) {
+			continue;
+		}
+
+		switch (surface_fill.params.pattern) {
+		case ipCount: continue; break;
+		case ipSupportBase: continue; break;
+		//case ipEnsuring: continue; break;
+		case ipLightning:
+		case ipAdaptiveCubic:
+		case ipSupportCubic:
+		case ipRectilinear:
+		case ipMonotonic:
+		case ipAlignedRectilinear:
+		case ipGrid:
+		case ipTriangles:
+		case ipStars:
+		case ipCubic:
+		case ipLine:
+		case ipConcentric:
+		case ipHoneycomb:
+		case ip3DHoneycomb:
+		case ipGyroid:
+		case ipHilbertCurve:
+		case ipArchimedeanChords:
+		case ipOctagramSpiral: break;
+		}
+
+		// Create the filler object.
+		std::unique_ptr<Fill> f = std::unique_ptr<Fill>(Fill::new_from_type(surface_fill.params.pattern));
+		f->set_bounding_box(bbox);
+		f->layer_id = this->id() - this->object()->get_layer(0)->id(); // We need to subtract raft layers.
+		f->z = this->print_z;
+		f->angle = surface_fill.params.angle;
+		f->adapt_fill_octree = (surface_fill.params.pattern == ipSupportCubic) ? support_fill_octree : adaptive_fill_octree;
+
+
+		if (surface_fill.params.pattern == ipLightning)
+			dynamic_cast<FillLightning::Filler*>(f.get())->generator = lightning_generator;
+
+		// calculate flow spacing for infill pattern generation
+		double link_max_length = 0.;
+		if (!surface_fill.params.bridge) {
+#if 0
+			link_max_length = layerm.region()->config().get_abs_value(surface.is_external() ? "external_fill_link_max_length" : "fill_link_max_length", flow.spacing());
+			//            printf("flow spacing: %f,  is_external: %d, link_max_length: %lf\n", flow.spacing(), int(surface.is_external()), link_max_length);
+#else
+			if (surface_fill.params.density > 80.) // 80%
+				link_max_length = 3. * f->spacing;
+#endif
+		}
+
+		// Maximum length of the perimeter segment linking two infill lines.
+		f->link_max_length = (coord_t)scale_(link_max_length);
+		// Used by the concentric infill pattern to clip the loops to create extrusion paths.
+		f->loop_clipping = coord_t(scale_(surface_fill.params.flow.nozzle_diameter()) * LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER);
+
+		LayerRegion& layerm = *m_regions[surface_fill.region_id];
+
+		// apply half spacing using this flow's own spacing and generate infill
+		FillParams params;
+		params.density = float(0.01 * surface_fill.params.density);
+		params.dont_adjust = false; //  surface_fill.params.dont_adjust;
+		params.anchor_length = surface_fill.params.anchor_length;
+		params.anchor_length_max = surface_fill.params.anchor_length_max;
+		params.resolution = resolution;
+		params.use_arachne = false;
+		params.layer_height = layerm.layer()->height;
+
+		for (ExPolygon& expoly : surface_fill.expolygons) {
+			// Spacing is modified by the filler to indicate adjustments. Reset it for each expolygon.
+			f->spacing = surface_fill.params.spacing;
+			surface_fill.surface.expolygon = std::move(expoly);
+			try {
+				Polylines polylines = f->fill_surface(&surface_fill.surface, params);
+				sparse_infill_polylines.insert(sparse_infill_polylines.end(), polylines.begin(), polylines.end());
+			}
+			catch (InfillFailedException&) {}
+		}
+	}
+
+	return sparse_infill_polylines;
+}
+
 
 // Create ironing extrusions over top surfaces.
 void Layer::make_ironing()
@@ -662,7 +767,7 @@ void Layer::make_ironing()
 					// Check whether there is any non-solid hole in the regions.
 					bool internal_infill_solid = region_config.sparse_infill_density.value > 95.;
 					for (const Surface &surface : ironing_params.layerm->fill_surfaces.surfaces)
-						if ((!internal_infill_solid && surface.surface_type == stInternal) || surface.surface_type == stInternalBridge || surface.surface_type == stInternalVoid || surface.surface_type==stInternalWithLoop) {
+						if ((!internal_infill_solid && surface.surface_type == stInternal) || surface.surface_type == stInternalBridge || surface.surface_type == stInternalVoid) {
 							// Some fill region is not quite solid. Don't iron over the whole surface.
 							iron_completely = false;
 							break;

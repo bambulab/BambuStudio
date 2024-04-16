@@ -101,12 +101,12 @@ public:
     BambuStudioTaskBarIcon(wxTaskBarIconType iconType = wxTBI_DEFAULT_TYPE) : wxTaskBarIcon(iconType) {}
     wxMenu *CreatePopupMenu() override {
         wxMenu *menu = new wxMenu;
-        //if (wxGetApp().app_config->get("single_instance") == "false") {
+        if (wxGetApp().app_config->get("single_instance") == "false") {
             // Only allow opening a new PrusaSlicer instance on OSX if "single_instance" is disabled,
             // as starting new instances would interfere with the locking mechanism of "single_instance" support.
             append_menu_item(menu, wxID_ANY, _L("New Window"), _L("Open a new window"),
             [](wxCommandEvent&) { start_new_slicer(); }, "", nullptr);
-        //}
+        }
 //        append_menu_item(menu, wxID_ANY, _L("G-code Viewer") + dots, _L("Open G-code Viewer"),
 //            [](wxCommandEvent&) { start_new_gcodeviewer_open_file(); }, "", nullptr);
         return menu;
@@ -477,60 +477,70 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             NetworkAgent* agent = GUI::wxGetApp().getAgent();
             if (agent) {
                 json j;
-                std::string value;
-                agent->track_get_property("auto_orient", value);
-                j["auto_orient"] = value;
-                value = "";
-                agent->track_get_property("auto_arrange", value);
-                j["auto_arrange"] = value;
-                value = "";
-                agent->track_get_property("split_to_object", value);
-                j["split_to_object"] = value;
-                value = "";
-                agent->track_get_property("split_to_part", value);
-                j["split_to_part"] = value;
-                value = "";
-                agent->track_get_property("custom_height", value);
-                j["custom_height"] = value;
-                value = "";
 
-                agent->track_get_property(get_name_from_gizmo_etype(GLGizmosManager::EType::Move), value);
-                j["move"] = value;
-                value = "";
-                agent->track_get_property(get_name_from_gizmo_etype(GLGizmosManager::EType::Rotate), value);
-                j["rotate"] = value;
-                value = "";
-                agent->track_get_property(get_name_from_gizmo_etype(GLGizmosManager::EType::Scale), value);
-                j["scale"] = value;
-                value = "";
-                agent->track_get_property(get_name_from_gizmo_etype(GLGizmosManager::EType::Flatten), value);
-                j["flatten"] = value;
-                value = "";
-                agent->track_get_property(get_name_from_gizmo_etype(GLGizmosManager::EType::Cut), value);
-                j["cut"] = value;
-                value = "";
-                agent->track_get_property(get_name_from_gizmo_etype(GLGizmosManager::EType::MeshBoolean), value);
-                j["meshboolean"] = value;
-                value = "";
-                agent->track_get_property(get_name_from_gizmo_etype(GLGizmosManager::EType::FdmSupports), value);
-                j["custom_support"] = value;
-                value = "";
-                agent->track_get_property(get_name_from_gizmo_etype(GLGizmosManager::EType::Seam), value);
-                j["custom_seam"] = value;
-                value = "";
-                agent->track_get_property(get_name_from_gizmo_etype(GLGizmosManager::EType::Text), value);
-                j["text_shape"] = value;
-                value = "";
-                agent->track_get_property(get_name_from_gizmo_etype(GLGizmosManager::EType::MmuSegmentation), value);
-                j["color_painting"] = value;
-                value = "";
+                auto get_value = [&agent](const std::string& name) -> std::string {
+                    std::string value = "";
+                    agent->track_get_property(name, value);
+                    if (value == "")
+                        value = "0";
 
-                agent->track_get_property("assembly_view", value);
-                j["assembly_view"] = value;
+                    return value;
+                };
+
+                j["auto_orient"] = get_value("auto_orient");
+                j["auto_arrange"] = get_value("auto_arrange");
+                j["split_to_objects"] = get_value("split_to_objects");
+                j["split_to_part"] = get_value("split_to_part");
+                j["custom_height"] = get_value("custom_height");
+                j["move"] = get_value(get_name_from_gizmo_etype(GLGizmosManager::EType::Move));
+                j["rotate"] = get_value(get_name_from_gizmo_etype(GLGizmosManager::EType::Rotate));
+                j["scale"] = get_value(get_name_from_gizmo_etype(GLGizmosManager::EType::Scale));
+                j["flatten"] = get_value(get_name_from_gizmo_etype(GLGizmosManager::EType::Flatten));
+                j["cut"] = get_value(get_name_from_gizmo_etype(GLGizmosManager::EType::Cut));
+                j["meshboolean"] = get_value(get_name_from_gizmo_etype(GLGizmosManager::EType::MeshBoolean));
+                j["custom_support"] = get_value(get_name_from_gizmo_etype(GLGizmosManager::EType::FdmSupports));
+                j["custom_seam"] = get_value(get_name_from_gizmo_etype(GLGizmosManager::EType::Seam));
+                j["text_shape"] = get_value(get_name_from_gizmo_etype(GLGizmosManager::EType::Text));
+                j["color_painting"] = get_value(get_name_from_gizmo_etype(GLGizmosManager::EType::MmuSegmentation));
+                j["assembly_view"] = get_value("assembly_view");
 
                 agent->track_event("key_func", j.dump());
-            }
 
+                j.clear();
+                j["auto_arrange_duration"] = get_value("arrange_duration");
+                j["custom_height_duration"] = get_value("layersediting_duration");
+                j["move_duration"] = get_value("Move_duration");
+                j["rotate_duration"] = get_value("Rotate_duration");
+                j["scale_duration"] = get_value("Scale_duration");
+                j["flatten_duration"] = get_value("Lay on face_duration");
+                j["cut_duration"] = get_value("Cut_duration");
+                j["meshboolean_duration"] = get_value("Mesh Boolean_duration");
+                j["custom_support_duration"] = get_value("Supports Painting_duration");
+                j["custom_seam_duration"] = get_value("Seam painting_duration");
+                j["text_shape_duration"] = get_value("Text shape_duration");
+                j["color_painting_duration"] = get_value("Color Painting_duration");
+                j["assembly_view_duration"] = get_value("assembly_view_duration");
+
+                agent->track_event("key_func_duration", j.dump());
+
+                j.clear();
+                j["default_menu"] = get_value("default_menu");
+                j["object_menu"] = get_value("object_menu");
+                j["part_menu"] = get_value("part_menu");
+                j["multi_selection_menu"] = get_value("multi_selection_menu");
+                j["plate_menu"] = get_value("plate_menu");
+                j["assemble_object_menu"] = get_value("assemble_object_menu");
+                j["assemble_multi_selection_menu"] = get_value("assemble_multi_selection_menu");
+                agent->track_event("menu_click", j.dump());
+
+                j.clear();
+                j["device_page"] = get_value("select_device_page");
+                j["status"] = get_value("status");
+                j["sd_card"] = get_value("sd_card");
+                j["HMS"] = get_value("HMS");
+                j["update"] = get_value("update");
+                agent->track_event("device_ctrl", j.dump());
+            }
         }
         catch (...) {}
 
@@ -906,7 +916,7 @@ void MainFrame::shutdown()
     // Stop the background thread of the removable drive manager, so that no new updates will be sent to the Plater.
     //wxGetApp().removable_drive_manager()->shutdown();
 	//stop listening for messages from other instances
-	//wxGetApp().other_instance_message_handler()->shutdown(this);
+	wxGetApp().other_instance_message_handler()->shutdown(this);
     // Save the slic3r.ini.Usually the ini file is saved from "on idle" callback,
     // but in rare cases it may not have been called yet.
     wxGetApp().app_config->save();
@@ -1070,6 +1080,9 @@ void MainFrame::init_tabpanel()
         //    m_param_panel->OnActivate();
         else if (panel == m_monitor) {
             //monitor
+            NetworkAgent* agent = GUI::wxGetApp().getAgent();
+            if (agent)
+                agent->track_update_property("select_device_page", std::to_string(++select_device_page_count));
         }
 #ifndef __APPLE__
         if (sel == tp3DEditor) {
@@ -1537,7 +1550,7 @@ wxBoxSizer* MainFrame::create_side_tools()
     m_slice_select = eSlicePlate;
     m_print_select = ePrintPlate;
 
-    m_publish_btn = new Button(this, _L("Share"), "bar_publish", 0, FromDIP(16));
+    m_publish_btn = new Button(this, _L("Upload"), "bar_publish", 0, FromDIP(16));
     m_slice_btn = new SideButton(this, _L("Slice plate"), "");
     m_slice_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, FromDIP(14));
     m_print_btn = new SideButton(this, _L("Print plate"), "");
@@ -2243,7 +2256,7 @@ void MainFrame::init_menubar_as_editor()
         // New Window
         append_menu_item(fileMenu, wxID_ANY, _L("New Window"), _L("Start a new window"),
                          [](wxCommandEvent&) { start_new_slicer(); }, "", nullptr,
-                         []{ return true; }, this);
+            [this] { return m_plater != nullptr && wxGetApp().app_config->get("app", "single_instance") == "false"; }, this);
 #endif
         // New Project
         append_menu_item(fileMenu, wxID_ANY, _L("New Project") + "\t" + ctrl + "N", _L("Start a new project"),
@@ -2854,7 +2867,15 @@ void MainFrame::init_menubar_as_editor()
 
         // help 
         append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Tutorial"), _L("Calibration help"),
-            [this](wxCommandEvent&) { wxLaunchDefaultBrowser("https://wiki.bambulab.com/e/en/staging/bambu-studio/Calibration", wxBROWSER_NEW_WINDOW); }, "", nullptr,
+            [this](wxCommandEvent&) {
+                try {
+                    json js;
+                    js["cali_type"] = "third_cali_tutorial";
+                    NetworkAgent *agent   = GUI::wxGetApp().getAgent();
+                    if (agent) agent->track_event("third_cali", js.dump());
+                } catch (...) {}
+                wxLaunchDefaultBrowser("https://wiki.bambulab.com/en/bambu-studio/Calibration", wxBROWSER_NEW_WINDOW);
+            }, "", nullptr,
             [this]() {return m_plater->is_view3D_shown();; }, this);
 
     }
@@ -2976,7 +2997,15 @@ void MainFrame::init_menubar_as_editor()
     // help
     append_menu_item(
         m_calib_menu, wxID_ANY, _L("Tutorial"), _L("Calibration help"),
-        [this](wxCommandEvent &) { wxLaunchDefaultBrowser("https://wiki.bambulab.com/en/bambu-studio/Calibration", wxBROWSER_NEW_WINDOW); }, "", nullptr,
+        [this](wxCommandEvent &) {
+            try {
+                json js;
+                js["cali_type"] = "third_cali_tutorial";
+                NetworkAgent *agent = GUI::wxGetApp().getAgent();
+                if (agent) agent->track_event("third_cali", js.dump());
+            } catch (...) {}
+            wxLaunchDefaultBrowser("https://wiki.bambulab.com/en/bambu-studio/Calibration", wxBROWSER_NEW_WINDOW);
+        }, "", nullptr,
         [this]() {
             return m_plater->is_view3D_shown();
             ;
@@ -3695,6 +3724,12 @@ void MainFrame::RunScript(wxString js)
         m_webview->RunScript(js);
 }
 
+void MainFrame::RunScriptLeft(wxString js) 
+{
+    if (m_webview != nullptr) 
+        m_webview->RunScriptLeft(js);
+}
+
 void MainFrame::technology_changed()
 {
     // upadte DiffDlg
@@ -3756,11 +3791,13 @@ void MainFrame::on_select_default_preset(SimpleEvent& evt)
         case wxID_YES: {
             wxGetApp().app_config->set_bool("sync_user_preset", true);
             wxGetApp().start_sync_user_preset(true);
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync_user_preset: true";
             break;
         }
         case wxID_NO:
             wxGetApp().app_config->set_bool("sync_user_preset", false);
             wxGetApp().stop_sync_user_preset();
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync_user_preset: false";
             break;
         default:
             break;

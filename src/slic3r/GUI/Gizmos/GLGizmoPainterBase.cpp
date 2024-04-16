@@ -264,6 +264,14 @@ Vec2i GLGizmoPainterBase::_3d_to_mouse(Vec3d pos_in_3d, const Camera &camera) co
     return screen;
 }
 
+bool GLGizmoPainterBase::is_valid_height_range_cursor(float min_z, float max_z) const
+{
+    if (m_cursor_z + m_cursor_height <= min_z || m_cursor_z >= max_z) {
+        return false;
+    }
+    return true;
+}
+
 // BBS
 void GLGizmoPainterBase::render_cursor_height_range(const Transform3d& trafo) const
 {
@@ -321,7 +329,7 @@ void GLGizmoPainterBase::render_cursor_height_range(const Transform3d& trafo) co
         ImGui::SetNextWindowFocus();
     }
     if (btn_clicked) {
-        if (m_cursor_z >= min_z && m_cursor_z + m_cursor_height <= max_z) {
+        if (is_valid_height_range_cursor(min_z, max_z)) {
             m_is_set_height_start_z_by_imgui = true;
             const_cast<GLGizmoPainterBase &>(*this).gizmo_event(SLAGizmoEventType::LeftDown, Vec2d(0, 0), false, false, false);
             m_is_set_height_start_z_by_imgui = false;
@@ -333,7 +341,7 @@ void GLGizmoPainterBase::render_cursor_height_range(const Transform3d& trafo) co
     ImGui::PopStyleVar(3);
     ImGui::PopStyleColor(1);
 
-    if (m_cursor_z <= min_z || m_cursor_z + m_cursor_height >= max_z) {
+    if (!is_valid_height_range_cursor(min_z, max_z)) {
         return;
     }
     std::array<float, 2> zs = {m_cursor_z, std::clamp(m_cursor_z + m_cursor_height, min_z, max_z)};
@@ -341,6 +349,12 @@ void GLGizmoPainterBase::render_cursor_height_range(const Transform3d& trafo) co
     const Selection& selection = m_parent.get_selection();
     const ModelObject* model_object = wxGetApp().model().objects[selection.get_object_idx()];
     const ModelInstance* mi = model_object->instances[selection.get_instance_idx()];
+
+    int volumes_count = model_object->volumes.size();
+    if (m_cut_contours.size() != volumes_count * 2) {
+        m_cut_contours.resize(volumes_count * 2);
+    }
+    m_volumes_index = 0;
     for (const ModelVolume* mv : model_object->volumes) {
         TriangleMesh vol_mesh = mv->mesh();
         if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
@@ -353,13 +367,14 @@ void GLGizmoPainterBase::render_cursor_height_range(const Transform3d& trafo) co
         }
 
         for (int i = 0; i < zs.size(); i++) {
-            update_contours(vol_mesh, zs[i], max_z, min_z, m_is_cursor_in_imgui? false:(i == 0 ? true : false));
+            update_contours(m_volumes_index, vol_mesh, zs[i], max_z, min_z, m_is_cursor_in_imgui ? false : (i == 0 ? true : false));
 
             glsafe(::glPushMatrix());
-            glsafe(::glTranslated(m_cut_contours.shift.x(), m_cut_contours.shift.y(), m_cut_contours.shift.z()));
+            glsafe(::glTranslated(m_cut_contours[m_volumes_index].shift.x(), m_cut_contours[m_volumes_index].shift.y(), m_cut_contours[m_volumes_index].shift.z()));
             glsafe(::glLineWidth(2.0f));
-            m_cut_contours.contours.render();
+            m_cut_contours[m_volumes_index].contours.render();
             glsafe(::glPopMatrix());
+            m_volumes_index++;
         }
 
     }
@@ -383,7 +398,7 @@ struct ScreenPosSort {
     Vec3d pos_3d;
 };
 
-void GLGizmoPainterBase::update_contours(const TriangleMesh& vol_mesh, float cursor_z, float max_z, float min_z, bool update_height_start_pos) const
+void GLGizmoPainterBase::update_contours(int i, const TriangleMesh &vol_mesh, float cursor_z, float max_z, float min_z, bool update_height_start_pos) const
 {
     const Selection& selection = m_parent.get_selection();
     const GLVolume* first_glvolume = selection.get_volume(*selection.get_volume_idxs().begin());
@@ -392,21 +407,21 @@ void GLGizmoPainterBase::update_contours(const TriangleMesh& vol_mesh, float cur
     const ModelObject* model_object = wxGetApp().model().objects[selection.get_object_idx()];
     const int instance_idx = selection.get_instance_idx();
 
-        if (min_z < cursor_z && cursor_z < max_z) {
-            if (m_cut_contours.cut_z != cursor_z || m_cut_contours.object_id != model_object->id() || m_cut_contours.instance_idx != instance_idx) {
-                m_cut_contours.cut_z = cursor_z;
+    if (min_z < cursor_z && cursor_z < max_z) {
+        if (m_cut_contours[i].cut_z != cursor_z || m_cut_contours[i].object_id != model_object->id() || m_cut_contours[i].instance_idx != instance_idx) {
+                m_cut_contours[i].cut_z = cursor_z;
 
-                m_cut_contours.mesh = vol_mesh;
+                m_cut_contours[i].mesh = vol_mesh;
 
-                m_cut_contours.position = box.center();
-                m_cut_contours.shift = Vec3d::Zero();
-                m_cut_contours.object_id = model_object->id();
-                m_cut_contours.instance_idx = instance_idx;
-                m_cut_contours.contours.reset();
+                m_cut_contours[i].position  = box.center();
+                m_cut_contours[i].shift     = Vec3d::Zero();
+                m_cut_contours[i].object_id = model_object->id();
+                m_cut_contours[i].instance_idx = instance_idx;
+                m_cut_contours[i].contours.reset();
 
                 MeshSlicingParams slicing_params;
                 slicing_params.trafo = Transform3d::Identity().matrix();
-                const Polygons polys = slice_mesh(m_cut_contours.mesh.its, cursor_z, slicing_params);
+                const Polygons polys = slice_mesh(m_cut_contours[i].mesh.its, cursor_z, slicing_params);
                 if (!polys.empty()) {
                     if (update_height_start_pos) {
                         const Camera &camera     = wxGetApp().plater()->get_camera();
@@ -438,16 +453,15 @@ void GLGizmoPainterBase::update_contours(const TriangleMesh& vol_mesh, float cur
                             m_height_start_pos[1] -= 10;
                         }
                     }
-                    m_cut_contours.contours.init_from(polys, static_cast<float>(cursor_z));
-                    m_cut_contours.contours.set_color(-1, { 1.0f, 1.0f, 1.0f, 1.0f });
+                    m_cut_contours[i].contours.init_from(polys, static_cast<float>(cursor_z));
+                    m_cut_contours[i].contours.set_color(-1, {1.0f, 1.0f, 1.0f, 1.0f});
                 }
-            }
-            else if (box.center() != m_cut_contours.position) {
-                m_cut_contours.shift = box.center() - m_cut_contours.position;
+            } else if (box.center() != m_cut_contours[i].position) {
+                 m_cut_contours[i].shift = box.center() - m_cut_contours[i].position;
             }
         }
         else
-            m_cut_contours.contours.reset();
+            m_cut_contours[i].contours.reset();
 }
 
 bool GLGizmoPainterBase::is_mesh_point_clipped(const Vec3d& point, const Transform3d& trafo) const
@@ -652,6 +666,7 @@ std::vector<GLGizmoPainterBase::ProjectedHeightRange> GLGizmoPainterBase::get_pr
 // concludes that the event was not intended for it, it should return false.
 bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down)
 {
+    Vec2d _mouse_position = mouse_position;
     if (action == SLAGizmoEventType::MouseWheelUp
      || action == SLAGizmoEventType::MouseWheelDown) {
         if (control_down) {
@@ -773,7 +788,7 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         // BBS
         if (m_tool_type == ToolType::BRUSH && m_cursor_type == TriangleSelector::CursorType::HEIGHT_RANGE)
         {
-            std::vector<ProjectedHeightRange> projected_height_range_by_mesh = get_projected_height_range(mouse_position, 1., part_volumes, trafo_matrices);
+            std::vector<ProjectedHeightRange> projected_height_range_by_mesh = get_projected_height_range(_mouse_position, 1., part_volumes, trafo_matrices);
             m_last_mouse_click = Vec2d::Zero();
 
             for (int i = 0; i < projected_height_range_by_mesh.size(); i++) {
@@ -800,13 +815,20 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                     m_triangle_splitting_enabled, m_paint_on_overhangs_only ? m_highlight_by_angle_threshold_deg : 0.f);
 
                 m_triangle_selectors[mesh_idx]->request_update_render_data(true);
-                m_last_mouse_click = mouse_position;
+                m_last_mouse_click = _mouse_position;
             }
 
             return true;
         }
 
-        std::vector<std::vector<ProjectedMousePosition>> projected_mouse_positions_by_mesh = get_projected_mouse_positions(mouse_position, 1., trafo_matrices);
+        if (action == SLAGizmoEventType::Dragging && m_tool_type == ToolType::BRUSH) {
+            if (m_vertical_only)
+                _mouse_position.x() = m_last_mouse_click.x();
+            else if (m_horizontal_only)
+                _mouse_position.y() = m_last_mouse_click.y();
+        }
+
+        std::vector<std::vector<ProjectedMousePosition>> projected_mouse_positions_by_mesh = get_projected_mouse_positions(_mouse_position, 1., trafo_matrices);
         m_last_mouse_click = Vec2d::Zero(); // only actual hits should be saved
 
         for (const std::vector<ProjectedMousePosition> &projected_mouse_positions : projected_mouse_positions_by_mesh) {
@@ -874,7 +896,7 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 
             m_triangle_selectors[mesh_idx]->request_update_render_data(true);
 
-            m_last_mouse_click = mouse_position;
+            m_last_mouse_click = _mouse_position;
         }
 
         return true;
@@ -912,7 +934,7 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             }
 
         // Now "click" into all the prepared points and spill paint around them.
-        update_raycast_cache(mouse_position, camera, trafo_matrices);
+        update_raycast_cache(_mouse_position, camera, trafo_matrices);
 
         auto seed_fill_unselect_all = [this]() {
             for (auto &triangle_selector : m_triangle_selectors) {
@@ -1072,18 +1094,24 @@ void GLGizmoPainterBase::on_set_state()
         //camera.look_at(position, rotate_target, Vec3d::UnitZ());
     }
     if (m_state == Off && m_old_state != Off) { // the gizmo was just turned Off
+        if (m_c->object_clipper()) {
+            m_c->object_clipper()->set_position(0, true);
+        }
         // we are actually shutting down
         on_shutdown();
         m_old_mo_id = -1;
         //m_iva.release_geometry();
         m_triangle_selectors.clear();
-
         //Camera& camera = wxGetApp().plater()->get_camera();
         //camera.look_at(camera.get_position(), m_previous_target, Vec3d::UnitZ());
         //camera.set_target(m_previous_target);
         //camera.recover_from_free_camera();
     }
     m_old_state = m_state;
+    m_vertical_only     = false;
+    m_horizontal_only   = false;
+    m_is_front_view     = false;
+    m_front_view_radian = 0;
 }
 
 
@@ -1115,6 +1143,14 @@ TriangleSelector::ClippingPlane GLGizmoPainterBase::get_clipping_plane_in_volume
     auto offset_transformed          = float(point_on_plane_transformed.dot(normal_transformed));
 
     return TriangleSelector::ClippingPlane({float(normal_transformed.x()), float(normal_transformed.y()), float(normal_transformed.z()), offset_transformed});
+}
+
+void GLGizmoPainterBase::change_camera_view_angle(float front_view_radian)
+{
+    wxGetApp().plater()->get_camera().select_view("front");
+    const Selection &selection     = m_parent.get_selection();
+    auto             rotate_target = selection.get_bounding_box().center();
+    wxGetApp().plater()->get_camera().rotate_local_with_target(Vec3d(0, front_view_radian, 0), rotate_target);
 }
 
 std::array<float, 4> TriangleSelectorGUI::get_seed_fill_color(const std::array<float, 4> &base_color)

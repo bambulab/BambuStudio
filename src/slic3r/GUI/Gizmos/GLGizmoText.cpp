@@ -150,7 +150,7 @@ bool GLGizmoText::on_init()
 
     reset_text_info();
 
-    m_desc["rotate_text_caption"] = _L("Shift + Mouse move up or dowm");
+    m_desc["rotate_text_caption"] = _L("Shift + Mouse move up or down");
     m_desc["rotate_text"]         = _L("Rotate text");
 
     m_grabbers.push_back(Grabber());
@@ -355,7 +355,11 @@ CommonGizmosDataID GLGizmoText::on_get_requirements() const
 
 std::string GLGizmoText::on_get_name() const
 {
-    return _u8L("Text shape");
+    if (!on_is_activable() && m_state == EState::Off) {
+        return _u8L("Text shape") + ":\n" + _u8L("Please select single object.");
+    } else {
+        return _u8L("Text shape");
+    }
 }
 
 bool GLGizmoText::on_is_activable() const
@@ -777,8 +781,7 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     ImGui::PushItemWidth(list_width);
     float old_value = m_thickness;
     ImGui::InputFloat("###text_thickness", &m_thickness, 0.0f, 0.0f, "%.2f");
-    if (m_thickness < 0.1f)
-        m_thickness = 0.1f;
+    m_thickness = ImClamp(m_thickness, m_thickness_min, m_thickness_max);
     if (old_value != m_thickness)
         m_need_update_text = true;
 
@@ -1114,10 +1117,8 @@ bool GLGizmoText::update_text_positions(const std::vector<std::string>& texts)
     Polygons polys = union_(temp_polys);
 
     auto point_in_line_rectange = [](const Line &line, const Point &point, double& distance) {
-        distance = abs((point.x() - line.a.x()) * (line.b.y() - line.a.y()) - (line.b.x() - line.a.x()) * (point.y() - line.a.y()));
-        bool   in_rectange = (std::min(line.a.x(), line.b.x()) - 1000) <= point.x() && point.x() <= (std::max(line.a.x(), line.b.x()) + 1000) &&
-                           (std::min(line.a.y(), line.b.y()) - 1000) <= point.y() && point.y() <= (std::max(line.a.y(), line.b.y()) + 1000);
-        return in_rectange;
+        distance = line.distance_to(point);
+        return distance < line.length() / 2;
     };
 
     int            index     = 0;
@@ -1555,7 +1556,13 @@ void GLGizmoText::load_from_text_info(const TextInfo &text_info)
 {
     m_font_name     = text_info.m_font_name;
     m_font_size     = text_info.m_font_size;
-    m_curr_font_idx = text_info.m_curr_font_idx;
+    // from other user's computer may exist case:font library size is different
+    if (text_info.m_curr_font_idx < m_font_names.size()) {
+        m_curr_font_idx = text_info.m_curr_font_idx;
+    }
+    else {
+        m_curr_font_idx = 0;
+    }
     m_bold          = text_info.m_bold;
     m_italic        = text_info.m_italic;
     m_thickness     = text_info.m_thickness;

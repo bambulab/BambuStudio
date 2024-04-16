@@ -18,6 +18,8 @@ public:
 };
 #endif
 
+wxDEFINE_EVENT(EVT_MEDIA_CTRL_STAT, wxCommandEvent);
+
 wxMediaCtrl2::wxMediaCtrl2(wxWindow *parent)
 {
 #ifdef __WIN32__
@@ -54,7 +56,8 @@ void wxMediaCtrl2::Load(wxURI url)
 {
 #ifdef __WIN32__
     if (m_imp == nullptr) {
-        CallAfter([] {
+        static bool notified = false;
+        if (!notified) CallAfter([] {
             auto res = wxMessageBox(_L("Windows Media Player is required for this task! Do you want to enable 'Windows Media Player' for your operation system?"), _L("Error"), wxOK | wxCANCEL);
             if (res == wxOK) {
                 wxString url = IsWindows10OrGreater() 
@@ -91,7 +94,10 @@ void wxMediaCtrl2::Load(wxURI url)
                     [dll_path] {
                     int res = wxMessageBox(_L("BambuSource has not correctly been registered for media playing! Press Yes to re-register it."), _L("Error"), wxYES_NO | wxICON_ERROR);
                     if (res == wxYES) {
-                        SHELLEXECUTEINFO info{sizeof(info), 0, NULL, L"open", L"regsvr32", dll_path.wstring().c_str(), SW_HIDE };
+                        auto path = dll_path.wstring();
+                        if (path.find(L' ') != std::wstring::npos)
+                            path = L"\"" + path + L"\"";
+                        SHELLEXECUTEINFO info{sizeof(info), 0, NULL, L"open", L"regsvr32", path.c_str(), SW_HIDE };
                         ::ShellExecuteEx(&info);
                     }
                 });
@@ -112,7 +118,10 @@ void wxMediaCtrl2::Load(wxURI url)
             if (!notified) CallAfter([dll_path] {
                 int res = wxMessageBox(_L("Using a BambuSource from a different install, video play may not work correctly! Press Yes to fix it."), _L("Warning"), wxYES_NO | wxICON_WARNING);
                 if (res == wxYES) {
-                    SHELLEXECUTEINFO info{sizeof(info), 0, NULL, L"open", L"regsvr32", dll_path.wstring().c_str(), SW_HIDE};
+                    auto path = dll_path.wstring();
+                    if (path.find(L' ') != std::wstring::npos)
+                        path = L"\"" + path + L"\"";
+                    SHELLEXECUTEINFO info{sizeof(info), 0, NULL, L"open", L"regsvr32", path.c_str(), SW_HIDE};
                     ::ShellExecuteEx(&info);
                 }
             });
@@ -208,7 +217,10 @@ wxSize wxMediaCtrl2::GetVideoSize() const
     // "Loading...".  Fake it out for now.
     return m_loaded ? wxSize(1280, 720) : wxSize{};
 #else
-    return m_imp ? m_imp->GetVideoSize() : wxSize(0, 0);
+    wxSize size = m_imp ? m_imp->GetVideoSize() : wxSize(0, 0);
+    if (size.GetWidth() > 0)
+        const_cast<wxSize&>(m_video_size) = size;
+    return size;
 #endif
 }
 
@@ -233,6 +245,11 @@ WXLRESULT wxMediaCtrl2::MSWWindowProc(WXUINT   nMsg,
                     if (msg.SubString(n + 1, msg.Length() - 2).ToLong(&val))
                         m_error = (int) val;
                 }
+            } else if (msg.Contains("stat_log")) {
+                wxCommandEvent evt(EVT_MEDIA_CTRL_STAT);
+                evt.SetEventObject(this);
+                evt.SetString(msg.Mid(msg.Find(' ') + 1));
+                wxPostEvent(this, evt);
             }
         }
         BOOST_LOG_TRIVIAL(info) << msg.ToUTF8().data();

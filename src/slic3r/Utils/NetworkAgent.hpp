@@ -47,6 +47,7 @@ typedef std::string (*func_get_user_nickanme)(void *agent);
 typedef std::string (*func_build_login_cmd)(void *agent);
 typedef std::string (*func_build_logout_cmd)(void *agent);
 typedef std::string (*func_build_login_info)(void *agent);
+typedef int (*func_get_model_id_from_desgin_id)(void *agent, std::string& desgin_id, std::string& model_id);
 typedef int (*func_bind)(void *agent, std::string dev_ip, std::string dev_id, std::string sec_link, std::string timezone, bool improved, OnUpdateStatusFn update_fn);
 typedef int (*func_unbind)(void *agent, std::string dev_id);
 typedef std::string (*func_get_bambulab_host)(void *agent);
@@ -85,6 +86,7 @@ typedef int (*func_get_model_mall_home_url)(void *agent, std::string* url);
 typedef int (*func_get_model_mall_detail_url)(void *agent, std::string* url, std::string id);
 typedef int (*func_get_my_profile)(void *agent, std::string token, unsigned int *http_code, std::string *http_body);
 typedef int (*func_track_enable)(void *agent, bool enable);
+typedef int (*func_track_remove_files)(void *agent);
 typedef int (*func_track_event)(void *agent, std::string evt_key, std::string content);
 typedef int (*func_track_header)(void *agent, std::string header);
 typedef int (*func_track_update_property)(void *agent, std::string name, std::string value, std::string type);
@@ -96,6 +98,8 @@ typedef int (*func_put_rating_picture_oss)(
     void *agent, std::string &config, std::string &pic_oss_path, std::string model_id, int profile_id, unsigned int &http_code, std::string &http_error);
 typedef int (*func_get_model_mall_rating_result)(void *agent, int job_id, std::string &rating_result, unsigned int &http_code, std::string &http_error);
 
+typedef int (*func_get_mw_user_preference)(void *agent, std::function<void(std::string)> callback);
+typedef int (*func_get_mw_user_4ulist)(void *agent, int seed, int limit, std::function<void(std::string)> callback);
 
 //the NetworkAgent class
 class NetworkAgent
@@ -150,7 +154,8 @@ public:
     std::string build_login_cmd();
     std::string build_logout_cmd();
     std::string build_login_info();
-    int bind(std::string dev_ip, std::string dev_id, std::string sec_link, std::string timezone,  bool improved, OnUpdateStatusFn update_fn);
+    int get_model_id_from_desgin_id(std::string& desgin_id, std::string& model_id);
+    int bind(std::string dev_ip, std::string dev_id, std::string sec_link, std::string timezone, bool improved, OnUpdateStatusFn update_fn);
     int unbind(std::string dev_id);
     std::string get_bambulab_host();
     std::string get_user_selected_machine();
@@ -188,6 +193,7 @@ public:
     int get_model_mall_detail_url(std::string* url, std::string id);
     int get_my_profile(std::string token, unsigned int* http_code, std::string* http_body);
     int track_enable(bool enable);
+    int track_remove_files();
     int track_event(std::string evt_key, std::string content);
     int track_header(std::string header);
     int track_update_property(std::string name, std::string value, std::string type = "string");
@@ -197,6 +203,10 @@ public:
     int put_rating_picture_oss(std::string &config, std::string &pic_oss_path, std::string model_id, int profile_id, unsigned int &http_code, std::string &http_error);
     int get_model_mall_rating_result(int job_id, std::string &rating_result, unsigned int &http_code, std::string &http_error);
     bool get_track_enable() { return enable_track; }
+
+    int get_mw_user_preference(std::function<void(std::string)> callback);
+    int get_mw_user_4ulist(int seed, int limit, std::function<void(std::string)> callback);
+
 private:
     bool enable_track = false;
     void*                   network_agent { nullptr };
@@ -241,6 +251,7 @@ private:
     static func_build_login_cmd                build_login_cmd_ptr;
     static func_build_logout_cmd               build_logout_cmd_ptr;
     static func_build_login_info               build_login_info_ptr;
+    static func_get_model_id_from_desgin_id    get_model_id_from_desgin_id_ptr;
     static func_bind                           bind_ptr;
     static func_unbind                         unbind_ptr;
     static func_get_bambulab_host              get_bambulab_host_ptr;
@@ -279,6 +290,7 @@ private:
     static func_get_model_mall_detail_url      get_model_mall_detail_url_ptr;
     static func_get_my_profile                 get_my_profile_ptr;
     static func_track_enable                   track_enable_ptr;
+    static func_track_remove_files             track_remove_files_ptr;
     static func_track_event                    track_event_ptr;
     static func_track_header                   track_header_ptr;
     static func_track_update_property          track_update_property_ptr;
@@ -287,6 +299,9 @@ private:
     static func_get_oss_config                 get_oss_config_ptr;
     static func_put_rating_picture_oss         put_rating_picture_oss_ptr;
     static func_get_model_mall_rating_result   get_model_mall_rating_result_ptr;
+
+    static func_get_mw_user_preference get_mw_user_preference_ptr;
+    static func_get_mw_user_4ulist     get_mw_user_4ulist_ptr;
 };
 
 }

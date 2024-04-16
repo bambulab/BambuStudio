@@ -2,6 +2,7 @@
 #define slic3r_MeshUtils_hpp_
 
 #include "libslic3r/Point.hpp"
+#include "libslic3r/Color.hpp"
 #include "libslic3r/Geometry.hpp"
 #include "libslic3r/SLA/IndexedMesh.hpp"
 #include "admesh/stl.h"
@@ -150,11 +151,7 @@ class MeshRaycaster {
 public:
     // The class references extern TriangleMesh, which must stay alive
     // during MeshRaycaster existence.
-    MeshRaycaster(const TriangleMesh& mesh)
-        : m_emesh(mesh, true) // calculate epsilon for triangle-ray intersection from an average edge length
-        , m_normals(its_face_normals(mesh.its))
-    {
-    }
+    MeshRaycaster(const TriangleMesh &mesh);
 
     static void line_from_mouse_pos_static(const Vec2d &mouse_pos, const Transform3d &trafo,
         const Camera &camera, Vec3d &point, Vec3d &direction);
@@ -188,6 +185,17 @@ public:
         const ClippingPlane* clipping_plane = nullptr // clipping plane (if active)
     ) const;
 
+    // Returns true if the ray, built from mouse position and camera direction, intersects the mesh.
+    // In this case, position and normal contain the position and normal, in model coordinates, of the intersection closest to the camera,
+    // depending on the position/orientation of the clipping_plane, if specified
+    bool closest_hit(const Vec2d &        mouse_pos,
+                     const Transform3d &  trafo,                    // how to get the mesh into world coords
+                     const Camera &       camera,                   // current camera position
+                     Vec3f &              position,                 // where to save the positibon of the hit (mesh coords)
+                     Vec3f &              normal,                   // normal of the triangle that was hit
+                     const ClippingPlane *clipping_plane = nullptr, // clipping plane (if active)
+                     size_t *             facet_idx      = nullptr  // index of the facet hit
+    ) const;
     // Given a point in world coords, the method returns closest point on the mesh.
     // The output is in mesh coords.
     // normal* can be used to also get normal of the respective triangle.
@@ -204,7 +212,41 @@ private:
     std::vector<stl_normal> m_normals;
 };
 
-    
+class PickRaycaster
+{
+public:
+    //PickRaycaster(TriangleMesh *mesh) {
+    //    mesh_raycaster = std::make_shared<MeshRaycaster>(*mesh);
+    //}
+    /*PickRaycaster(TriangleMesh *mesh, const Transform3d &tran) : PickRaycaster(mesh) {
+        set_transform(tran);
+    }*/
+    PickRaycaster(TriangleMesh *mesh,  int _id) 
+    {
+        mesh_raycaster = std::make_shared<MeshRaycaster>(*mesh);
+        m_id = _id;
+    }
+    PickRaycaster(TriangleMesh *mesh, int _id, const Transform3d &tran)
+    {
+        mesh_raycaster = std::make_shared<MeshRaycaster>(*mesh);
+        set_transform(tran);
+        m_id = _id;
+    }
+    void set_transform(const Transform3d &tran) {
+        world_tran.set_from_transform(tran);
+    }
+
+    std::shared_ptr<MeshRaycaster> mesh_raycaster{nullptr};
+    Geometry::Transformation       world_tran;
+
+    bool is_active() const { return m_active; }
+    void set_active(bool active) { m_active = active; }
+    int  get_id() { return m_id; }
+private:
+    bool  m_active{true};
+    int   m_id{-1};
+};
+
 } // namespace GUI
 } // namespace Slic3r
 

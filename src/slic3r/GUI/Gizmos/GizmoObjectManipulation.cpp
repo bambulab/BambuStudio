@@ -6,13 +6,13 @@
 //#include "I18N.hpp"
 #include "GLGizmosManager.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
-
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/Utils/UndoRedo.hpp"
 #include "libslic3r/AppConfig.hpp"
 
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Geometry.hpp"
-#include "slic3r/GUI/Selection.hpp"
+
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
 
@@ -81,21 +81,19 @@ void GizmoObjectManipulation::update_settings_value(const Selection& selection)
     m_new_rotate_label_string = L("Rotation");
     m_new_scale_label_string  = L("Scale ratios");
 
-    m_world_coordinates = true;
-
     ObjectList* obj_list = wxGetApp().obj_list();
     if (selection.is_single_full_instance()) {
         // all volumes in the selection belongs to the same instance, any of them contains the needed instance data, so we take the first one
         const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
         m_new_position = volume->get_instance_offset();
 
-        if (m_world_coordinates) {
+        if (is_world_coordinates()) {//for move and rotate
 			m_new_rotate_label_string = L("Rotate");
             m_new_rotation = volume->get_instance_rotation() * (180. / M_PI);
 			m_new_size     = selection.get_scaled_instance_bounding_box().size();
 			m_new_scale    = m_new_size.cwiseProduct(selection.get_unscaled_instance_bounding_box().size().cwiseInverse()) * 100.;
-		} 
-        else {
+		}
+        else {//if (is_local_coordinates()) {//for scale
 			m_new_rotation = volume->get_instance_rotation() * (180. / M_PI);
 			m_new_size     = volume->get_instance_transformation().get_scaling_factor().cwiseProduct(wxGetApp().model().objects[volume->object_idx()]->raw_mesh_bounding_box().size());
 			m_new_scale    = volume->get_instance_scaling_factor() * 100.;
@@ -117,12 +115,28 @@ void GizmoObjectManipulation::update_settings_value(const Selection& selection)
         m_new_title_string = L("Object Operations");
     }
     else if (selection.is_single_modifier() || selection.is_single_volume()) {
-        // the selection contains a single volume
-        const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
-        m_new_position = volume->get_volume_offset();
-        m_new_rotation = volume->get_volume_rotation() * (180. / M_PI);
-        m_new_scale    = volume->get_volume_scaling_factor() * 100.;
-        m_new_size     = volume->get_instance_transformation().get_scaling_factor().cwiseProduct(volume->get_volume_transformation().get_scaling_factor().cwiseProduct(volume->bounding_box().size()));
+        const GLVolume *volume = selection.get_first_volume();
+        if (is_world_coordinates()) {//for move and rotate
+            const Geometry::Transformation trafo(volume->world_matrix());
+            const Vec3d &offset = trafo.get_offset();
+            m_new_position            = offset;
+            m_new_rotation            = volume->get_volume_rotation() * (180. / M_PI);
+            m_new_scale               = volume->get_volume_scaling_factor() * 100.;
+            m_new_size                = selection.get_bounding_box_in_current_reference_system().first.size();
+        } else if (is_local_coordinates()) {//for scale
+            m_new_position            = Vec3d::Zero();
+            m_new_rotation            = Vec3d::Zero();
+            m_new_scale               = volume->get_volume_scaling_factor() * 100.0;
+            m_new_size                = volume->get_instance_transformation().get_scaling_factor().cwiseProduct(
+                volume->get_volume_transformation().get_scaling_factor().cwiseProduct(volume->bounding_box().size()));
+        } else {
+            m_new_position            = volume->get_volume_offset();
+            m_new_rotate_label_string = L("Rotate (relative)");
+            m_new_rotation            = Vec3d::Zero();
+            m_new_scale_label_string  = L("Scale");
+            m_new_scale               = Vec3d(100.0, 100.0, 100.0);
+            m_new_size                = selection.get_bounding_box_in_current_reference_system().first.size();
+        }
         m_new_enabled = true;
         m_new_title_string = L("Volume Operations");
     }
@@ -261,7 +275,8 @@ void GizmoObjectManipulation::change_position_value(int axis, double value)
     Selection& selection = m_glcanvas.get_selection();
     selection.start_dragging();
     selection.translate(position - m_cache.position, selection.requires_local_axes());
-    m_glcanvas.do_move(L("Set Position"));
+    wxGetApp().plater()->take_snapshot(_u8L("Set Position"), UndoRedo::SnapshotType::GizmoAction);
+    m_glcanvas.do_move("");
 
     m_cache.position = position;
 	m_cache.position_rounded(axis) = DBL_MAX;
@@ -281,7 +296,7 @@ void GizmoObjectManipulation::change_rotation_value(int axis, double value)
     TransformationType transformation_type(TransformationType::World_Relative_Joint);
     if (selection.is_single_full_instance() || selection.requires_local_axes())
 		transformation_type.set_independent();
-	if (selection.is_single_full_instance() && ! m_world_coordinates) {
+    if (selection.is_single_full_instance() && !is_world_coordinates()) {
         //FIXME Selection::rotate() does not process absoulte rotations correctly: It does not recognize the axis index, which was changed.
 		// transformation_type.set_absolute();
 		transformation_type.set_local();
@@ -289,9 +304,10 @@ void GizmoObjectManipulation::change_rotation_value(int axis, double value)
 
     selection.start_dragging();
 	selection.rotate(
-		(M_PI / 180.0) * (transformation_type.absolute() ? rotation : rotation - m_cache.rotation), 
+		(M_PI / 180.0) * (transformation_type.absolute() ? rotation : rotation - m_cache.rotation),
 		transformation_type);
-    m_glcanvas.do_rotate(L("Set Orientation"));
+    wxGetApp().plater()->take_snapshot(_u8L("Set Orientation"), UndoRedo::SnapshotType::GizmoAction);
+    m_glcanvas.do_rotate("");
 
     m_cache.rotation = rotation;
 	m_cache.rotation_rounded(axis) = DBL_MAX;
@@ -300,6 +316,8 @@ void GizmoObjectManipulation::change_rotation_value(int axis, double value)
 
 void GizmoObjectManipulation::change_scale_value(int axis, double value)
 {
+    if (value <= 0.0)
+        return;
     if (std::abs(m_cache.scale_rounded(axis) - value) < EPSILON)
         return;
 
@@ -321,6 +339,8 @@ void GizmoObjectManipulation::change_scale_value(int axis, double value)
 
 void GizmoObjectManipulation::change_size_value(int axis, double value)
 {
+    if (value <= 0.0)
+        return;
     if (std::abs(m_cache.size_rounded(axis) - value) < EPSILON)
         return;
 
@@ -336,7 +356,7 @@ void GizmoObjectManipulation::change_size_value(int axis, double value)
         ref_size = Vec3d(instance_scale[0] * ref_size[0], instance_scale[1] * ref_size[1], instance_scale[2] * ref_size[2]);
     }
     else if (selection.is_single_full_instance())
-		ref_size = m_world_coordinates ? 
+        ref_size = is_world_coordinates() ?
             selection.get_unscaled_instance_bounding_box().size() :
             wxGetApp().model().objects[selection.get_volume(*selection.get_volume_idxs().begin())->object_idx()]->raw_mesh_bounding_box().size();
 
@@ -355,7 +375,7 @@ void GizmoObjectManipulation::do_scale(int axis, const Vec3d &scale) const
     TransformationType transformation_type(TransformationType::World_Relative_Joint);
     if (selection.is_single_full_instance()) {
         transformation_type.set_absolute();
-        if (! m_world_coordinates)
+        if (!is_world_coordinates())
             transformation_type.set_local();
     }
 
@@ -404,7 +424,8 @@ void GizmoObjectManipulation::reset_position_value()
         return;
 
     // Copy position values from GLVolumes into Model (ModelInstance / ModelVolume), trigger background processing.
-    m_glcanvas.do_move(L("Reset Position"));
+    wxGetApp().plater()->take_snapshot(_u8L("Reset Position"), UndoRedo::SnapshotType::GizmoAction);
+    m_glcanvas.do_move("");
 
     UpdateAndShow(true);
 }
@@ -430,7 +451,8 @@ void GizmoObjectManipulation::reset_rotation_value()
     selection.synchronize_unselected_instances(Selection::SYNC_ROTATION_GENERAL);
     selection.synchronize_unselected_volumes();
     // Copy rotation values from GLVolumes into Model (ModelInstance / ModelVolume), trigger background processing.
-    m_glcanvas.do_rotate(L("Reset Rotation"));
+    wxGetApp().plater()->take_snapshot(_u8L("Reset Rotation"), UndoRedo::SnapshotType::GizmoAction);
+    m_glcanvas.do_rotate("");
 
     UpdateAndShow(true);
 }
@@ -444,28 +466,31 @@ void GizmoObjectManipulation::reset_scale_value()
     change_scale_value(2, 100.);
 }
 
-void GizmoObjectManipulation::set_uniform_scaling(const bool new_value)
-{ 
-    const Selection &selection = m_glcanvas.get_selection();
-	if (selection.is_single_full_instance() && m_world_coordinates && !new_value) {
-        // Verify whether the instance rotation is multiples of 90 degrees, so that the scaling in world coordinates is possible.
-        // all volumes in the selection belongs to the same instance, any of them contains the needed instance data, so we take the first one
-        const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
-        // Is the angle close to a multiple of 90 degrees?
+void GizmoObjectManipulation::set_uniform_scaling(const bool use_uniform_scale)
+{
+    if (!use_uniform_scale)
+        // Recalculate cached values at this panel, refresh the screen.
+        this->UpdateAndShow(true);
 
-		if (! Geometry::is_rotation_ninety_degrees(volume->get_instance_rotation())) {
-            // Cannot apply scaling in the world coordinate system.
-            // BBS: remove tilt prompt dialog
+    m_uniform_scale = use_uniform_scale;
+    set_dirty();
+}
 
-            // Bake the rotation into the meshes of the object.
-            wxGetApp().model().objects[volume->composite_id.object_id]->bake_xy_rotation_into_meshes(volume->composite_id.instance_id);
-            // Update the 3D scene, selections etc.
-            wxGetApp().plater()->update();
-            // Recalculate cached values at this panel, refresh the screen.
-            this->UpdateAndShow(true);
-        }
-    }
-    m_uniform_scale = new_value;
+void GizmoObjectManipulation::set_coordinates_type(ECoordinatesType type)
+{
+    if (wxGetApp().get_mode() == comSimple)
+        type = ECoordinatesType::World;
+
+    if (m_coordinates_type == type) return;
+
+    m_coordinates_type = type;
+    //m_word_local_combo->SetSelection((int) m_coordinates_type);
+    this->UpdateAndShow(true);
+    GLCanvas3D *canvas = wxGetApp().plater()->canvas3D();
+    canvas->get_gizmos_manager().update_data();
+    canvas->set_as_dirty();
+    canvas->request_extra_frame();
+
 }
 
 static const char* label_values[2][3] = {

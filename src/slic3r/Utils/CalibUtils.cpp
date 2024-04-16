@@ -6,6 +6,7 @@
 #include "../GUI/PartPlate.hpp"
 
 #include "libslic3r/Model.hpp"
+#include "../GUI/MsgDialog.hpp"
 
 
 namespace Slic3r {
@@ -118,7 +119,16 @@ static bool is_same_nozzle_type(const DynamicPrintConfig &full_config, const Mac
             std::string filament_type = full_config.opt_string("filament_type", 0);
             error_msg = wxString::Format(_L("*Printing %s material with %s may cause nozzle damage"), filament_type, to_wstring_name(obj->nozzle_type));
             error_msg += "\n";
-            return false;
+
+            MessageDialog msg_dlg(nullptr, error_msg, wxEmptyString, wxICON_WARNING | wxOK | wxCANCEL);
+            auto          result = msg_dlg.ShowModal();
+            if (result == wxID_OK) {
+                error_msg.clear();
+                return true;
+            } else {
+                error_msg.clear();
+                return false;
+            }
         }
     }
 
@@ -179,6 +189,24 @@ CalibMode CalibUtils::get_calib_mode_by_name(const std::string name, int& cali_s
     else if (name == "retration_tower_calib_mode")
         return CalibMode::Calib_Retraction_tower;
     return CalibMode::Calib_None;
+}
+
+bool CalibUtils::validate_input_name(wxString name)
+{
+    if (name.Length() > 40) {
+        MessageDialog msg_dlg(nullptr, _L("The name cannot exceed 40 characters."), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return false;
+    }
+
+    name.erase(std::remove(name.begin(), name.end(), L' '), name.end());
+    if (name.IsEmpty()) {
+        MessageDialog msg_dlg(nullptr, _L("The name cannot be empty."), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return false;
+    }
+
+    return true;
 }
 
 bool CalibUtils::validate_input_k_value(wxString k_text, float* output_value)
@@ -460,10 +488,10 @@ bool CalibUtils::get_flow_ratio_calib_results(std::vector<FlowRatioCalibResult>&
     return flow_ratio_calib_results.size() > 0;
 }
 
-void CalibUtils::calib_flowrate(int pass, const CalibInfo &calib_info, wxString &error_message)
+bool CalibUtils::calib_flowrate(int pass, const CalibInfo &calib_info, wxString &error_message)
 {
     if (pass != 1 && pass != 2)
-        return;
+        return false;
 
     Model       model;
     std::string input_file;
@@ -549,11 +577,37 @@ void CalibUtils::calib_flowrate(int pass, const CalibInfo &calib_info, wxString 
 
     Calib_Params params;
     params.mode = CalibMode::Calib_Flow_Rate;
-    process_and_store_3mf(&model, full_config, params, error_message);
-    if (!error_message.empty())
-        return;
+    if (!process_and_store_3mf(&model, full_config, params, error_message))
+        return false;
+
+    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) {
+        error_message = _L("Need select printer");
+        return false;
+    }
+
+    MachineObject *obj_ = dev->get_selected_machine();
+    if (obj_ == nullptr) {
+        error_message = _L("Need select printer");
+        return false;
+    }
+
+    try {
+        json js;
+        if (pass == 1)
+            js["cali_type"]   = "cali_flow_rate_1";
+        else if (pass == 2)
+            js["cali_type"]   = "cali_flow_rate_2";
+        js["nozzle_diameter"] = nozzle_diameter;
+        js["filament_id"]     = calib_info.filament_prest->filament_id;
+        js["printer_type"]    = obj_->printer_type;
+        NetworkAgent *agent   = GUI::wxGetApp().getAgent();
+        if (agent)
+            agent->track_event("cali", js.dump());
+    } catch (...) {}
 
     send_to_print(calib_info, error_message, pass);
+    return true;
 }
 
 void CalibUtils::calib_pa_pattern(const CalibInfo &calib_info, Model& model)
@@ -610,11 +664,11 @@ void CalibUtils::calib_pa_pattern(const CalibInfo &calib_info, Model& model)
     model.calib_pa_pattern = std::make_unique<CalibPressureAdvancePattern>(pa_pattern);
 }
 
-void CalibUtils::calib_generic_PA(const CalibInfo &calib_info, wxString &error_message)
+bool CalibUtils::calib_generic_PA(const CalibInfo &calib_info, wxString &error_message)
 {
     const Calib_Params &params = calib_info.params;
     if (params.mode != CalibMode::Calib_PA_Line && params.mode != CalibMode::Calib_PA_Pattern)
-        return;
+        return false;
 
     Model model;
     std::string input_file;
@@ -640,11 +694,42 @@ void CalibUtils::calib_generic_PA(const CalibInfo &calib_info, wxString &error_m
     full_config.apply(filament_config);
     full_config.apply(printer_config);
 
-    process_and_store_3mf(&model, full_config, params, error_message);
-    if (!error_message.empty())
-        return;
+    if (!process_and_store_3mf(&model, full_config, params, error_message))
+        return false;
+
+    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) {
+        error_message = _L("Need select printer");
+        return false;
+    }
+
+    MachineObject *obj_ = dev->get_selected_machine();
+    if (obj_ == nullptr) {
+        error_message = _L("Need select printer");
+        return false;
+    }
+
+    try {
+        json js;
+        if (params.mode == CalibMode::Calib_PA_Line)
+            js["cali_type"] = "cali_pa_line";
+        else if (params.mode == CalibMode::Calib_PA_Pattern)
+            js["cali_type"] = "cali_pa_pattern";
+
+        const ConfigOptionFloats *nozzle_diameter_config = printer_config.option<ConfigOptionFloats>("nozzle_diameter");
+        assert(nozzle_diameter_config->values.size() > 0);
+        float nozzle_diameter = nozzle_diameter_config->values[0];
+
+        js["nozzle_diameter"] = nozzle_diameter;
+        js["filament_id"]     = calib_info.filament_prest->filament_id;
+        js["printer_type"]    = obj_->printer_type;
+        NetworkAgent *agent   = GUI::wxGetApp().getAgent();
+        if (agent)
+            agent->track_event("cali", js.dump());
+    } catch (...) {}
 
     send_to_print(calib_info, error_message);
+    return true;
 }
 
 void CalibUtils::calib_temptue(const CalibInfo &calib_info, wxString &error_message)
@@ -927,7 +1012,7 @@ bool CalibUtils::get_pa_k_n_value_by_cali_idx(const MachineObject *obj, int cali
     return false;
 }
 
-void CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &full_config, const Calib_Params &params, wxString &error_message)
+bool CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &full_config, const Calib_Params &params, wxString &error_message)
 {
     Pointfs bedfs         = full_config.opt<ConfigOptionPoints>("printable_area")->values;
     double  print_height  = full_config.opt_float("printable_height");
@@ -944,7 +1029,7 @@ void CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &f
         int    count         = std::llround(std::ceil((params.end - params.start) / params.step)) + 1;
         if (count > max_line_nums) {
             error_message = _L("Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small");
-            return;
+            return false;
         }
     }
 
@@ -980,7 +1065,7 @@ void CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &f
     unsigned int count = model->update_print_volume_state(build_volume);
     if (count == 0) {
         error_message = _L("Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small");
-        return;
+        return false;
     }
 
     // apply the new print config
@@ -998,7 +1083,7 @@ void CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &f
     //}
 
     if (!check_nozzle_diameter_and_type(full_config, error_message))
-        return;
+        return false;
 
     fff_print->process();
     part_plate->update_slice_result_valid_state(true);
@@ -1089,6 +1174,7 @@ void CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &f
     success           = Slic3r::store_bbs_3mf(store_params);
 
     release_PlateData_list(plate_data_list);
+    return true;
 }
 
 void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_message, int flow_ratio_mode)

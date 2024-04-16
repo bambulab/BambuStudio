@@ -322,46 +322,12 @@ Transform3d assemble_transform(const Vec3d& translation, const Vec3d& rotation, 
 
 Vec3d extract_euler_angles(const Eigen::Matrix<double, 3, 3, Eigen::DontAlign>& rotation_matrix)
 {
-    // reference: http://www.gregslabaugh.net/publications/euler.pdf
-    Vec3d angles1 = Vec3d::Zero();
-    Vec3d angles2 = Vec3d::Zero();
-    // BBS: rotation_matrix(2, 0) may be slighterly larger than 1 due to numerical accuracy
-    if (std::abs(std::abs(rotation_matrix(2, 0)) - 1.0) < 1e-5 || std::abs(rotation_matrix(2, 0))>1)
-    {
-        angles1(2) = 0.0;
-        if (rotation_matrix(2, 0) < 0.0) // == -1.0
-        {
-            angles1(1) = 0.5 * (double)PI;
-            angles1(0) = angles1(2) + ::atan2(rotation_matrix(0, 1), rotation_matrix(0, 2));
-        }
-        else // == 1.0
-        {
-            angles1(1) = - 0.5 * (double)PI;
-            angles1(0) = - angles1(2) + ::atan2(- rotation_matrix(0, 1), - rotation_matrix(0, 2));
-        }
-        angles2 = angles1;
-    }
-    else
-    {
-        angles1(1) = -::asin(rotation_matrix(2, 0));
-        double inv_cos1 = 1.0 / ::cos(angles1(1));
-        angles1(0) = ::atan2(rotation_matrix(2, 1) * inv_cos1, rotation_matrix(2, 2) * inv_cos1);
-        angles1(2) = ::atan2(rotation_matrix(1, 0) * inv_cos1, rotation_matrix(0, 0) * inv_cos1);
-
-        angles2(1) = (double)PI - angles1(1);
-        double inv_cos2 = 1.0 / ::cos(angles2(1));
-        angles2(0) = ::atan2(rotation_matrix(2, 1) * inv_cos2, rotation_matrix(2, 2) * inv_cos2);
-        angles2(2) = ::atan2(rotation_matrix(1, 0) * inv_cos2, rotation_matrix(0, 0) * inv_cos2);
-    }
-
-    // The following euristic is the best found up to now (in the sense that it works fine with the greatest number of edge use-cases)
-    // but there are other use-cases were it does not
-    // We need to improve it
-    double min_1 = angles1.cwiseAbs().minCoeff();
-    double min_2 = angles2.cwiseAbs().minCoeff();
-    bool use_1 = (min_1 < min_2) || (is_approx(min_1, min_2) && (angles1.norm() <= angles2.norm()));
-
-    return use_1 ? angles1 : angles2;
+    // The extracted "rotation" is a triplet of numbers such that Geometry::rotation_transform
+    // returns the original transform. Because of the chosen order of rotations, the triplet
+    // is not equivalent to Euler angles in the usual sense.
+    Vec3d angles = rotation_matrix.eulerAngles(2, 1, 0);
+    std::swap(angles(0), angles(2));
+    return angles;
 }
 
 Vec3d extract_euler_angles(const Transform3d& transform)
@@ -377,36 +343,12 @@ Vec3d extract_euler_angles(const Transform3d& transform)
 
 void rotation_from_two_vectors(Vec3d from, Vec3d to, Vec3d& rotation_axis, double& phi, Matrix3d* rotation_matrix)
 {
-    double epsilon = 1e-5;
-    // note: a.isMuchSmallerThan(b,prec) compares a.abs().sum()<b*prec, so previously we set b=0 && prec=dummpy_prec() is wrong
-    if ((from + to).isMuchSmallerThan(1, epsilon))
-    {
-        rotation_axis << 1, 0, 0;
-        phi = M_PI;
-        if (rotation_matrix)
-            *rotation_matrix = -Matrix3d::Identity();
-    }
-    else if ((from - to).isMuchSmallerThan(1, epsilon)) {
-        rotation_axis << 1, 0, 0;
-        phi = 0;
-        if (rotation_matrix)
-            *rotation_matrix = Matrix3d::Identity();
-    }
-    else {
-        rotation_axis = from.cross(to);
-        double s = rotation_axis.norm(); // sin(phi)
-        double c = from.dot(to); // cos(phi)
-        auto& v = rotation_axis;
-        Matrix3d kmat;
-        kmat << 0, -v[2], v[1],
-            v[2], 0, -v[0],
-            -v[1], v[0], 0;
-
-        rotation_axis.normalize();
-        phi = acos(std::min(from.dot(to), 1.0));
-        if (rotation_matrix)
-            *rotation_matrix = Matrix3d::Identity() + kmat + kmat * kmat * ((1 - c) / (s * s));
-    }
+    const Matrix3d m = Eigen::Quaterniond().setFromTwoVectors(from, to).toRotationMatrix();
+    const Eigen::AngleAxisd aa(m);
+    rotation_axis = aa.axis();
+    phi           = aa.angle();
+    if (rotation_matrix)
+        *rotation_matrix = m;
 }
 
 Transform3d translation_transform(const Vec3d &translation)
@@ -534,6 +476,15 @@ void Transformation::set_rotation(Axis axis, double rotation)
     }
 }
 
+Transform3d Transformation::get_scaling_factor_matrix() const
+{
+    Transform3d scale = extract_scale(m_matrix);
+    scale(0, 0)       = std::abs(scale(0, 0));
+    scale(1, 1)       = std::abs(scale(1, 1));
+    scale(2, 2)       = std::abs(scale(2, 2));
+    return scale;
+}
+
 void Transformation::set_scaling_factor(const Vec3d& scaling_factor)
 {
     set_scaling_factor(X, scaling_factor(0));
@@ -601,7 +552,7 @@ void Transformation::set_from_transform(const Transform3d& transform)
     m3x3.col(2).normalize();
 
     // rotation
-    set_rotation(extract_euler_angles(m3x3));
+    set_rotation(Geometry::extract_euler_angles(m3x3));
 
     // forces matrix recalculation matrix
     m_matrix = get_matrix();
@@ -829,5 +780,33 @@ Geometry::TransformationSVD::TransformationSVD(const Transform3d &trafo)
     } else
         skew = false;
 }
+
+ Transformation mat_around_a_point_rotate(const Transformation &InMat, const Vec3d &pt, const Vec3d &axis, float rotate_theta_radian)
+{
+    auto           xyz = InMat.get_offset();
+    Transformation left;
+    left.set_offset(-xyz); // at world origin
+    auto curMat = left * InMat;
+
+    auto qua = Eigen::Quaterniond(Eigen::AngleAxisd(rotate_theta_radian, axis));
+    qua.normalize();
+    Transform3d    cur_matrix;
+    Transformation rotateMat4;
+    rotateMat4.set_from_transform(cur_matrix.fromPositionOrientationScale(Vec3d(0., 0., 0.), qua, Vec3d(1., 1., 1.)));
+
+    curMat = rotateMat4 * curMat; // along_fix_axis
+    // rotate mat4 along fix pt
+    Transformation temp_world;
+    auto           qua_world = Eigen::Quaterniond(Eigen::AngleAxisd(0, axis));
+    qua_world.normalize();
+    Transform3d cur_matrix_world;
+    temp_world.set_from_transform(cur_matrix_world.fromPositionOrientationScale(pt, qua_world, Vec3d(1., 1., 1.)));
+    auto temp_xyz = temp_world.get_matrix().inverse() * xyz;
+    auto new_pos  = temp_world.get_matrix() * (rotateMat4.get_matrix() * temp_xyz);
+    curMat.set_offset(new_pos);
+
+    return curMat;
+}
+
 } // namespace Geometry
 } // namespace Slic3r

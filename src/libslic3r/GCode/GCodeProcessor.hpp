@@ -22,6 +22,7 @@ namespace Slic3r {
 #define BED_TEMP_TOO_HIGH_THAN_FILAMENT                             "bed_temperature_too_high_than_filament"
 #define NOT_SUPPORT_TRADITIONAL_TIMELAPSE                           "not_support_traditional_timelapse"
 #define NOT_GENERATE_TIMELAPSE                                      "not_generate_timelapse"
+#define LONG_RETRACTION_WHEN_CUT                                    "activate_long_retraction_when_cut"
 
     enum class EMoveType : unsigned char
     {
@@ -74,6 +75,7 @@ namespace Slic3r {
         std::vector<double>                                 volumes_per_color_change;
         std::map<size_t, double>                            volumes_per_extruder;
         std::map<size_t, double>                            wipe_tower_volumes_per_extruder;
+        std::map<size_t, double>                            support_volumes_per_extruder;
         //BBS: the flush amount of every filament
         std::map<size_t, double>                            flush_per_filament;
         std::map<ExtrusionRole, std::pair<double, double>>  used_filaments_per_role;
@@ -195,6 +197,8 @@ namespace Slic3r {
         bool toolpath_outside;
         //BBS: add object_label_enabled
         bool label_object_enabled;
+        //BBS : extra retraction when change filament,experiment func
+        bool long_retraction_when_cut {0};
         int timelapse_warning_code {0};
         bool support_traditional_timelapse{true};
         float printable_height;
@@ -230,6 +234,7 @@ namespace Slic3r {
             bed_exclude_area = other.bed_exclude_area;
             toolpath_outside = other.toolpath_outside;
             label_object_enabled = other.label_object_enabled;
+            long_retraction_when_cut = other.long_retraction_when_cut;
             timelapse_warning_code = other.timelapse_warning_code;
             printable_height = other.printable_height;
             settings_ids = other.settings_ids;
@@ -495,6 +500,9 @@ namespace Slic3r {
             double wipe_tower_cache;
             std::map<size_t, double>wipe_tower_volume_per_extruder;
 
+            double support_volume_cache;
+            std::map<size_t, double>support_volume_per_extruder;
+
             //BBS: the flush amount of every filament
             std::map<size_t, double> flush_per_filament;
 
@@ -503,12 +511,15 @@ namespace Slic3r {
 
             void reset();
 
+            void increase_support_caches(double extruded_volume);
             void increase_model_caches(double extruded_volume);
             void increase_wipe_tower_caches(double extruded_volume);
 
             void process_color_change_cache();
             void process_model_cache(GCodeProcessor* processor);
             void process_wipe_tower_cache(GCodeProcessor* processor);
+            void process_support_cache(GCodeProcessor* processor);
+
             void update_flush_per_filament(size_t extrude_id, float flush_length);
             void process_role_cache(GCodeProcessor* processor);
             void process_caches(GCodeProcessor* processor);
@@ -693,7 +704,8 @@ namespace Slic3r {
         SeamsDetector m_seams_detector;
         OptionsZCorrector m_options_z_corrector;
         size_t m_last_default_color_id;
-        bool m_spiral_vase_active;
+        bool m_detect_layer_based_on_tag {false};
+        int m_seams_count;
 #if ENABLE_GCODE_VIEWER_STATISTICS
         std::chrono::time_point<std::chrono::high_resolution_clock> m_start_time;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -762,6 +774,11 @@ namespace Slic3r {
 
         //BBS: set offset for gcode writer
         void set_xy_offset(double x, double y) { m_x_offset = x; m_y_offset = y; }
+        // Orca: if true, only change new layer if ETags::Layer_Change occurs
+        // otherwise when we got a lift of z during extrusion, a new layer will be added
+        void detect_layer_based_on_tag(bool enabled) {
+            m_detect_layer_based_on_tag = enabled;
+        }
 
     private:
         void apply_config(const DynamicPrintConfig& config);

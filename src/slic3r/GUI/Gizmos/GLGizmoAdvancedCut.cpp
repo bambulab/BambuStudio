@@ -32,29 +32,12 @@ const int c_connectors_start_id = c_connectors_group_id - c_cube_z_move_id;
 const float UndefFloat = -999.f;
 
 // connector colors
-static const ColorRGBA BLACK() { return {0.0f, 0.0f, 0.0f, 1.0f}; }
-static const ColorRGBA BLUE() { return {0.0f, 0.0f, 1.0f, 1.0f}; }
-static const ColorRGBA BLUEISH() { return {0.5f, 0.5f, 1.0f, 1.0f}; }
-static const ColorRGBA CYAN() { return {0.0f, 1.0f, 1.0f, 1.0f}; }
-static const ColorRGBA DARK_GRAY() { return {0.25f, 0.25f, 0.25f, 1.0f}; }
-static const ColorRGBA DARK_YELLOW() { return {0.5f, 0.5f, 0.0f, 1.0f}; }
-static const ColorRGBA GRAY() { return {0.5f, 0.5f, 0.5f, 1.0f}; }
-static const ColorRGBA GREEN() { return {0.0f, 1.0f, 0.0f, 1.0f}; }
-static const ColorRGBA GREENISH() { return {0.5f, 1.0f, 0.5f, 1.0f}; }
-static const ColorRGBA LIGHT_GRAY() { return {0.75f, 0.75f, 0.75f, 1.0f}; }
-static const ColorRGBA MAGENTA() { return {1.0f, 0.0f, 1.0f, 1.0f}; }
-static const ColorRGBA ORANGE() { return {0.923f, 0.504f, 0.264f, 1.0f}; }
-static const ColorRGBA RED() { return {1.0f, 0.0f, 0.0f, 1.0f}; }
-static const ColorRGBA REDISH() { return {1.0f, 0.5f, 0.5f, 1.0f}; }
-static const ColorRGBA YELLOW() { return {1.0f, 1.0f, 0.0f, 1.0f}; }
-static const ColorRGBA WHITE() { return {1.0f, 1.0f, 1.0f, 1.0f}; }
-
-static const ColorRGBA PLAG_COLOR           = YELLOW();
-static const ColorRGBA DOWEL_COLOR          = DARK_YELLOW();
-static const ColorRGBA HOVERED_PLAG_COLOR   = CYAN();
+static const ColorRGBA PLAG_COLOR           = ColorRGBA::YELLOW();
+static const ColorRGBA DOWEL_COLOR          = ColorRGBA::DARK_YELLOW();
+static const ColorRGBA HOVERED_PLAG_COLOR   = ColorRGBA::CYAN();
 static const ColorRGBA HOVERED_DOWEL_COLOR  = {0.0f, 0.5f, 0.5f, 1.0f};
-static const ColorRGBA SELECTED_PLAG_COLOR  = GRAY();
-static const ColorRGBA SELECTED_DOWEL_COLOR = GRAY(); // DARK_GRAY();
+static const ColorRGBA SELECTED_PLAG_COLOR  = ColorRGBA::GRAY();
+static const ColorRGBA SELECTED_DOWEL_COLOR = ColorRGBA::GRAY(); // DARK_GRAY();
 static const ColorRGBA CONNECTOR_DEF_COLOR  = {1.0f, 1.0f, 1.0f, 0.5f};
 static const ColorRGBA CONNECTOR_ERR_COLOR  = {1.0f, 0.3f, 0.3f, 0.5f};
 static const ColorRGBA HOVERED_ERR_COLOR    = {1.0f, 0.3f, 0.3f, 1.0f};
@@ -62,8 +45,8 @@ static const ColorRGBA HOVERED_ERR_COLOR    = {1.0f, 0.3f, 0.3f, 1.0f};
 static const ColorRGBA CUT_PLANE_DEF_COLOR = {0.9f, 0.9f, 0.9f, 0.5f};
 static const ColorRGBA CUT_PLANE_ERR_COLOR = {1.0f, 0.8f, 0.8f, 0.5f};
 
-static const ColorRGBA UPPER_PART_COLOR = CYAN();
-static const ColorRGBA LOWER_PART_COLOR = MAGENTA();
+static const ColorRGBA UPPER_PART_COLOR = ColorRGBA::CYAN();
+static const ColorRGBA LOWER_PART_COLOR = ColorRGBA::MAGENTA();
 static const ColorRGBA MODIFIER_COLOR   = {0.75f, 0.75f, 0.75f, 0.5f};
 
 static Vec3d rotate_vec3d_around_vec3d_with_rotate_matrix(
@@ -351,27 +334,6 @@ bool GLGizmoAdvancedCut::unproject_on_cut_plane(const Vec2d &mouse_pos, Vec3d &p
     return true;
 }
 
-void GLGizmoAdvancedCut::render_glmodel(GLModel &model, const std::array<float, 4> &color, Transform3d view_model_matrix, bool for_picking)
-{
-    glPushMatrix();
-    GLShaderProgram *shader = nullptr;
-    if (for_picking)
-        shader = wxGetApp().get_shader("cali");
-    else
-        shader = wxGetApp().get_shader("gouraud_light");
-    if (shader) {
-        shader->start_using();
-
-        glsafe(::glMultMatrixd(view_model_matrix.data()));
-
-        model.set_color(-1, color);
-        model.render();
-
-        shader->stop_using();
-    }
-    glPopMatrix();
-}
-
 void GLGizmoAdvancedCut::reset_cut_plane()
 {
     m_transformed_bounding_box = transformed_bounding_box(m_bb_center);
@@ -395,9 +357,17 @@ void GLGizmoAdvancedCut::reset_cut_plane()
 void GLGizmoAdvancedCut::reset_all()
 {
     Plater::TakeSnapshot snapshot(wxGetApp().plater(), "reset cut");
-    reset_connectors();
+    if (m_cut_mode == CutMode::cutPlanar) {
+        reset_connectors();
+    } else if (m_cut_mode == CutMode::cutTongueAndGroove) {
+        m_groove.depth = m_groove.depth_init;
+        m_groove.width = m_groove.width_init;
+        m_groove.flaps_angle = m_groove.flaps_angle_init;
+        m_groove.angle = m_groove.angle_init;
+        m_groove.depth_tolerance = CUT_TOLERANCE;
+        m_groove.width_tolerance = CUT_TOLERANCE;
+    }
     reset_cut_plane();
-
     m_keep_upper = true;
     m_keep_lower = true;
     m_cut_to_parts = false;
@@ -437,7 +407,11 @@ bool GLGizmoAdvancedCut::on_init()
 
 std::string GLGizmoAdvancedCut::on_get_name() const
 {
-    return (_(L("Cut"))).ToUTF8().data();
+    if (!on_is_activable() && m_state == EState::Off) {
+        return _u8L("Cut") + ":\n" + _u8L("Please select single object.");
+    } else {
+        return _u8L("Cut");
+    }
 }
 
 void GLGizmoAdvancedCut::on_load(cereal::BinaryInputArchive &ar)
@@ -535,8 +509,7 @@ void GLGizmoAdvancedCut::on_set_state()
         // be deleted prematurely.
         if (m_part_selection && m_part_selection->valid()) {
             wxGetApp().CallAfter([this]() {
-                delete_part_selection();
-                m_part_selection = new PartSelection();
+                m_part_selection.reset(new PartSelection());
             });
         }
     }
@@ -544,8 +517,20 @@ void GLGizmoAdvancedCut::on_set_state()
 
 bool GLGizmoAdvancedCut::on_is_activable() const
 {
-    const Selection& selection = m_parent.get_selection();
-    return selection.is_single_full_instance() && !selection.is_wipe_tower();
+    const Selection &selection  = m_parent.get_selection();
+    const int        object_idx = selection.get_object_idx();
+    if (object_idx < 0 || selection.is_wipe_tower())
+        return false;
+
+    if (const ModelObject *mo = wxGetApp().plater()->model().objects[object_idx]; mo->is_cut() && mo->volumes.size() == 1) {
+        const ModelVolume *volume = mo->volumes[0];
+        if (volume->is_cut_connector() && volume->cut_info.connector_type == CutConnectorType::Dowel) 
+            return false;
+    }
+
+    // This is assumed in GLCanvas3D::do_rotate, do not change this
+    // without updating that function too.
+    return selection.is_single_full_instance() && !m_parent.is_layers_editing_enabled();
 }
 
 CommonGizmosDataID GLGizmoAdvancedCut::on_get_requirements() const
@@ -588,6 +573,9 @@ void GLGizmoAdvancedCut::on_start_dragging()
 
 void GLGizmoAdvancedCut::on_stop_dragging()
 {
+    if (m_is_dragging ==false) {
+        return;
+    }
     m_is_dragging = false;
     if (m_hover_id == X || m_hover_id == Y || m_hover_id == Z) {
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Rotate cut plane");
@@ -878,12 +866,11 @@ void GLGizmoAdvancedCut::perform_cut(const Selection& selection)
 
         // This shall delete the part selection class and deallocate the memory.
         ScopeGuard part_selection_killer([this]() {
-            delete_part_selection();
-            m_part_selection = new PartSelection();
+            m_part_selection.reset(new PartSelection());
         });
 
         const bool cut_with_groove = m_cut_mode == CutMode::cutTongueAndGroove;
-        bool       cut_by_contour  = !cut_with_groove && !m_cut_to_parts && m_part_selection->valid();
+        bool       cut_by_contour  = !cut_with_groove && m_part_selection->valid() && m_part_selection->has_modified_cut_parts();
 
         ModelObject *cut_mo = cut_by_contour ? m_part_selection->model_object() : nullptr;
         if (cut_mo)
@@ -920,12 +907,14 @@ void GLGizmoAdvancedCut::perform_cut(const Selection& selection)
         if (is_windows10()) {
             bool is_showed_dialog = false;
             bool user_fix_model   = false;
+            bool  all_break       = false;
+            Plater::TakeSnapshot snapshot(plater, "RepairingModelObjectInCut");
             for (size_t i = 0; i < new_objects.size(); i++) {
                 for (size_t j = 0; j < new_objects[i]->volumes.size(); j++) {
                     if (its_num_open_edges(new_objects[i]->volumes[j]->mesh().its) > 0) {
                         if (!is_showed_dialog) {
                             is_showed_dialog = true;
-                            MessageDialog dlg(nullptr, _L("non-mainifold edges be caused by cut tool, do you want to fix it now?"), "", wxYES | wxCANCEL);
+                            MessageDialog dlg(nullptr, _L("non-manifold edges be caused by cut tool, do you want to fix it now?"), "", wxYES | wxCANCEL);
                             int           ret = dlg.ShowModal();
                             if (ret == wxID_YES) {
                                 user_fix_model = true;
@@ -944,7 +933,8 @@ void GLGizmoAdvancedCut::perform_cut(const Selection& selection)
                             wxString msg = _L("Repairing model object");
                             msg += ": " + from_u8(model_name) + "\n";
                             std::string res;
-                            if (!fix_model_by_win10_sdk_gui(*model_object, vol_idx, progress_dlg, msg, res)) return false;
+                            if (!fix_model_by_win10_sdk_gui(*model_object, vol_idx, progress_dlg, msg, res))
+                                return false;
                             return true;
                         };
                         ProgressDialog progress_dlg(_L("Repairing model object"), "", 100, find_toplevel_parent(plater), wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT, true);
@@ -952,8 +942,14 @@ void GLGizmoAdvancedCut::perform_cut(const Selection& selection)
                         auto model_name = new_objects[i]->name;
                         if (!fix_and_update_progress(new_objects[i], j, model_name, progress_dlg, succes_models, failed_models)) {
                             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "run fix_and_update_progress error";
+                            plater->take_snapshot("RepairingModelObjectInCut");
+                            all_break = true;
+                            break;
                         };
                     };
+                }
+                if (all_break) {
+                    break;
                 }
             }
         }
@@ -1119,9 +1115,9 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
     bool      is_valid = can_perform_cut() && has_valid_groove();
     ColorRGBA cp_clr   = is_valid ? CUT_PLANE_DEF_COLOR : CUT_PLANE_ERR_COLOR;
     if (m_cut_mode == CutMode::cutTongueAndGroove) {
-        cp_clr[3] = cp_clr[3] - 0.1f; // cp_clr.a(cp_clr.a() - 0.1f);
+        cp_clr.a(cp_clr.a() - 0.1f);
     }
-    render_glmodel(m_plane, cp_clr, Geometry::translation_transform(m_plane_center) * m_rotate_matrix);
+    render_glmodel(m_plane, cp_clr.get_data(), Geometry::translation_transform(m_plane_center) * m_rotate_matrix);
 
     glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
     glsafe(::glEnable(GL_CULL_FACE));
@@ -1253,7 +1249,7 @@ void GLGizmoAdvancedCut::render_connectors()
 
         const Transform3d view_model_matrix = translate_tf * m_rotate_matrix * scale_tf;
 
-        render_glmodel(m_shapes[connector.attribs], render_color, view_model_matrix);
+        render_glmodel(m_shapes[connector.attribs], render_color.get_data(), view_model_matrix);
     }
 }
 
@@ -1610,8 +1606,9 @@ bool GLGizmoAdvancedCut::has_valid_contour() const
 void GLGizmoAdvancedCut::reset_cut_by_contours()
 {
     update_buffer_data();
-    delete_part_selection();
-    m_part_selection = new PartSelection();
+    update_plane_normal();
+
+    m_part_selection.reset(new PartSelection());
 
     if (m_cut_mode == CutMode::cutTongueAndGroove) {
         if (m_dragging || m_groove_editing || !has_valid_groove())
@@ -1639,14 +1636,12 @@ void GLGizmoAdvancedCut::process_contours()
             Cut                    cut(model_objects[object_idx], instance_idx, get_cut_matrix(selection));
             const ModelObjectPtrs &new_objects = cut.perform_with_groove(m_groove, m_rotate_matrix, true);
             if (!new_objects.empty()) {
-                delete_part_selection();
-                m_part_selection = new PartSelection(new_objects.front(), instance_idx);
+                m_part_selection.reset(new PartSelection(new_objects.front(), instance_idx));
             }
         }
     } else {
         if (m_c->object_clipper()) {
-            delete_part_selection();
-            m_part_selection = new PartSelection(model_objects[object_idx], get_cut_matrix(selection), instance_idx, m_plane_center, m_plane_normal, *m_c->object_clipper());
+            m_part_selection.reset(new PartSelection(model_objects[object_idx], get_cut_matrix(selection), instance_idx, m_plane_center, m_plane_normal, *m_c->object_clipper()));
         }
     }
 
@@ -1662,13 +1657,6 @@ void GLGizmoAdvancedCut::toggle_model_objects_visibility(bool show_in_3d)
         const Selection &      selection     = m_parent.get_selection();
         const ModelObjectPtrs &model_objects = selection.get_model()->objects;
         m_parent.toggle_model_objects_visibility(true, model_objects[selection.get_object_idx()], selection.get_instance_idx());
-    }
-}
-
-void GLGizmoAdvancedCut::delete_part_selection()
-{
-    if (m_part_selection) {
-        delete m_part_selection;
     }
 }
 
@@ -1853,13 +1841,12 @@ bool GLGizmoAdvancedCut::render_cut_mode_combo(double label_width, float item_wi
 
 void GLGizmoAdvancedCut::render_color_marker(float size, const ColorRGBA &color)
 {
-    auto to_ImU32 = [](const ColorRGBA &color) -> ImU32 { return ImGui::GetColorU32({color[0], color[1], color[2], color[3]}); };
     ImGui::SameLine();
     const float radius = 0.5f * size;
     ImVec2      pos    = ImGui::GetCurrentWindow()->DC.CursorPos;
     pos.x += 3 * m_imgui->scaled(1 / 15.0f);
     pos.y += 1.25f * radius;
-    ImGui::GetCurrentWindow()->DrawList->AddNgonFilled(pos, radius, to_ImU32(color), 6);
+    ImGui::GetCurrentWindow()->DrawList->AddNgonFilled(pos, radius, ImGuiWrapper::to_ImU32(color), 6);
 }
 
 void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float bottom_limit)
@@ -2051,8 +2038,8 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
     };
 
     m_imgui->text(_L("After cut") + ": ");
-    render_part_action_line( _L("A"), "##upper", m_keep_upper, m_place_on_cut_upper, m_rotate_upper);
-    render_part_action_line( _L("B"), "##lower", m_keep_lower, m_place_on_cut_lower, m_rotate_lower);
+    render_part_action_line( "A", "##upper", m_keep_upper, m_place_on_cut_upper, m_rotate_upper);
+    render_part_action_line( "B", "##lower", m_keep_lower, m_place_on_cut_lower, m_rotate_lower);
 
     m_imgui->disabled_begin(has_connectors || m_cut_mode == CutMode::cutTongueAndGroove);
     m_imgui->bbl_checkbox(_L("Cut to parts"), m_cut_to_parts);
@@ -2286,7 +2273,7 @@ void GLGizmoAdvancedCut::render_input_window_warning() const
         m_imgui->text(out);
     }
     if (!m_keep_upper && !m_keep_lower)
-        m_imgui->text(/*wxString(ImGui::WarningMarkerSmall)*/_L("Warning") + ": " + _L("Invalid state. \nNo one part is selected for keep after cut"));
+        m_imgui->text(/*wxString(ImGui::WarningMarkerSmall)*/_L("Warning") + ": " + _L("Invalid state. \nNo one part is selected to keep after cut"));
 }
 
 bool GLGizmoAdvancedCut::render_reset_button(const std::string &label_id, const std::string &tooltip) const
@@ -2374,9 +2361,12 @@ bool GLGizmoAdvancedCut::render_slider_double_input(const std::string &label, fl
     double slider_with          = 0.24 * m_editing_window_width;
     double item_in_gap          = 0.01 * m_editing_window_width;
     double item_out_gap         = 0.04 * m_editing_window_width;
-    double first_input_width    = 0.29  * m_editing_window_width;
-    double second_input_width   = 0.29  * m_editing_window_width;
-
+    double first_input_width    = 0.37  * m_editing_window_width;
+    double second_input_width   = 0.37  * m_editing_window_width;
+#ifdef __APPLE__
+    first_input_width = 0.5 * m_editing_window_width;
+    second_input_width   = 0.5  * m_editing_window_width;
+#endif
     ImGui::AlignTextToFramePadding();
     m_imgui->text(label);
     ImGui::SameLine(m_label_width);
@@ -2596,6 +2586,10 @@ PartSelection::PartSelection(
         i++;
     }
 
+    m_back_cut_parts_state.resize(m_cut_parts.size());
+    for (size_t i = 0; i < m_cut_parts.size(); i++) {
+        m_back_cut_parts_state[i] = m_cut_parts[i].is_up_part;
+    }
     // Now go through the contours and create a map from contours to parts.
     m_contour_points.clear();
     m_contour_to_parts.clear();
@@ -2671,7 +2665,7 @@ void PartSelection::part_render(const Vec3d *normal)
     for (size_t id = 0; id < m_cut_parts.size(); ++id) { // m_parts.size() test
         if (normal && ((is_looking_forward && m_cut_parts[id].is_up_part) || (!is_looking_forward && !m_cut_parts[id].is_up_part)))
             continue;
-        GLGizmoAdvancedCut::render_glmodel(m_cut_parts[id].glmodel, m_cut_parts[id].is_up_part ? UPPER_PART_COLOR : LOWER_PART_COLOR, m_cut_parts[id].trans);
+        GLGizmoBase::render_glmodel(m_cut_parts[id].glmodel, m_cut_parts[id].is_up_part ? UPPER_PART_COLOR.get_data() : LOWER_PART_COLOR.get_data(), m_cut_parts[id].trans);
     }
 }
 
@@ -2704,6 +2698,19 @@ std::vector<Cut::Part> PartSelection::get_cut_parts()
     std::vector<Cut::Part> parts;
     for (const auto &part : m_cut_parts) parts.push_back({part.is_up_part, false});
     return parts;
+}
+
+bool PartSelection::has_modified_cut_parts()
+{
+    if (m_back_cut_parts_state.size() == 0 || m_back_cut_parts_state.size() != m_cut_parts.size()) {
+        return false;
+    }
+    for (size_t i = 0; i < m_cut_parts.size(); i++) {
+        if (m_back_cut_parts_state[i] != m_cut_parts[i].is_up_part) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void PartSelection::toggle_selection(const Vec2d &mouse_pos)

@@ -52,6 +52,7 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, Ams *ams, bool remain_flag, boo
         if (it != ams->trayList.end() && it->second->is_exists) {
             if (it->second->is_tray_info_ready()) {
                 info.can_id        = it->second->id;
+                info.ctype         = it->second->ctype;
                 info.material_name = it->second->get_display_filament_type();
                 if (!it->second->color.empty()) {
                     info.material_colour = AmsTray::decode_color(it->second->color);
@@ -81,6 +82,7 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, Ams *ams, bool remain_flag, boo
             } else {
                 info.can_id = it->second->id;
                 info.material_name = "";
+                info.ctype = 0;
                 info.material_colour = AMS_TRAY_DEFAULT_COL;
                 info.material_state = AMSCanType::AMS_CAN_TYPE_THIRDBRAND;
                 wxColour(255, 255, 255);
@@ -754,6 +756,8 @@ void AMSLib::render(wxDC &dc)
 void AMSLib::render_extra_text(wxDC& dc)
 {
     auto tmp_lib_colour = m_info.material_colour;
+
+    change_the_opacity(tmp_lib_colour);
     auto temp_text_colour = AMS_CONTROL_GRAY800;
 
     if (tmp_lib_colour.GetLuminance() < 0.6) {
@@ -841,6 +845,8 @@ void AMSLib::render_generic_text(wxDC &dc)
     }
 
     auto tmp_lib_colour = m_info.material_colour;
+    change_the_opacity(tmp_lib_colour);
+
     auto temp_text_colour = AMS_CONTROL_GRAY800;
 
     if (tmp_lib_colour.GetLuminance() < 0.6) {
@@ -860,6 +866,10 @@ void AMSLib::render_generic_text(wxDC &dc)
 
     dc.SetFont(::Label::Body_13);
     dc.SetTextForeground(temp_text_colour);
+    auto alpha = m_info.material_colour.Alpha();
+    if (alpha != 0 && alpha != 255 && alpha != 254) {
+        dc.SetTextForeground(*wxBLACK);
+    }
 
     auto libsize = GetSize();
     if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_THIRDBRAND
@@ -905,6 +915,7 @@ void AMSLib::render_generic_text(wxDC &dc)
                 if (!m_show_kn) {
                     auto pot_top = wxPoint((libsize.x - line_top_tsize.x) / 2, (libsize.y - line_top_tsize.y) / 2 - line_top_tsize.y + FromDIP(6));
                     dc.DrawText(line_top, pot_top);
+
 
                     auto pot_bottom = wxPoint((libsize.x - line_bottom_tsize.x) / 2, (libsize.y - line_bottom_tsize.y) / 2 + FromDIP(4));
                     dc.DrawText(line_bottom, pot_bottom);
@@ -969,7 +980,9 @@ void AMSLib::render_extra_lib(wxDC& dc)
     ScalableBitmap tray_bitmap_selected = m_can_index <= 1 ? m_bitmap_extra_tray_left_selected : m_bitmap_extra_tray_right_selected;
 
 
-    auto   tmp_lib_colour = m_info.material_colour;
+    auto   tmp_lib_colour    = m_info.material_colour;
+    change_the_opacity(tmp_lib_colour);
+
     auto   temp_bitmap_third = m_bitmap_editable_light;
     auto   temp_bitmap_brand = m_bitmap_readonly_light;
 
@@ -1016,10 +1029,33 @@ void AMSLib::render_extra_lib(wxDC& dc)
     }
 
     dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
+    if (m_info.material_cols.size() > 1) {
+        int left = FromDIP(10);
+        int gwidth = std::round(size.x / (m_info.material_cols.size() - 1));
+        //gradient
+        if (m_info.ctype == 0) {
+            for (int i = 0; i < m_info.material_cols.size() - 1; i++) {
+                auto rect = wxRect(left, FromDIP(10), size.x - FromDIP(20), size.y - FromDIP(20));
+                dc.GradientFillLinear(rect, m_info.material_cols[i], m_info.material_cols[i + 1], wxEAST);
+                left += gwidth;
+            }
+        }
+        else {
+            int cols_size = m_info.material_cols.size();
+            for (int i = 0; i < cols_size; i++) {
+                dc.SetBrush(wxBrush(m_info.material_cols[i]));
+                float x = FromDIP(10) + ((float)size.x - FromDIP(20)) * i / cols_size;
+                dc.DrawRoundedRectangle(x, FromDIP(10), ((float)size.x - FromDIP(20)) / cols_size, size.y - FromDIP(20), 0);
+            }
+            dc.SetBrush(wxBrush(tmp_lib_colour));
+        }
+    }
+    else  {
+        dc.SetBrush(wxBrush(tmp_lib_colour));
+        dc.DrawRoundedRectangle(FromDIP(10), FromDIP(10), size.x - FromDIP(20), size.y - FromDIP(20), 0);
+    }
+    dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
     dc.SetBrush(wxBrush(tmp_lib_colour));
-    dc.DrawRoundedRectangle(FromDIP(10), FromDIP(10), size.x - FromDIP(20), size.y - FromDIP(20), 0);
-
-
     if (!m_disable_mode) {
         // edit icon
         if (m_info.material_state != AMSCanType::AMS_CAN_TYPE_EMPTY && m_info.material_state != AMSCanType::AMS_CAN_TYPE_NONE)
@@ -1048,6 +1084,8 @@ void AMSLib::render_generic_lib(wxDC &dc)
 {
     wxSize size = GetSize();
     auto   tmp_lib_colour = m_info.material_colour;
+    change_the_opacity(tmp_lib_colour);
+
     auto   temp_bitmap_third = m_bitmap_editable_light;
     auto   temp_bitmap_brand = m_bitmap_readonly_light;
 
@@ -1078,6 +1116,9 @@ void AMSLib::render_generic_lib(wxDC &dc)
     // selected
     if (m_selected) {
         dc.SetPen(wxPen(tmp_lib_colour, 2, wxSOLID));
+        if (tmp_lib_colour.Alpha() == 0) {
+            dc.SetPen(wxPen(wxColour(tmp_lib_colour.Red(), tmp_lib_colour.Green(),tmp_lib_colour.Blue(),128), 2, wxSOLID));
+        }
         dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
         if (m_radius == 0) {
             dc.DrawRectangle(0, 0, size.x, size.y);
@@ -1109,48 +1150,116 @@ void AMSLib::render_generic_lib(wxDC &dc)
     }
 
     //draw remain
+    auto alpha = m_info.material_colour.Alpha();
     int height = size.y - FromDIP(8);
-    int curr_height = height * float(m_info.material_remain * 1.0 / 100.0);
+    int curr_height = height * float(m_info.material_remain * 1.0 / 100.0); 
+    dc.SetFont(::Label::Body_13);
 
     int top = height - curr_height;
 
     if (curr_height >= FromDIP(6)) {
 
         //transparent
-        auto alpha = m_info.material_colour.Alpha();
+        
         if (alpha == 0) {
             dc.DrawBitmap(m_bitmap_transparent.bmp(), FromDIP(4), FromDIP(4));
         }
-
+        else if (alpha != 255 && alpha != 254) {
+            if (transparent_changed) {
+                std::string rgb = (tmp_lib_colour.GetAsString(wxC2S_HTML_SYNTAX)).ToStdString();
+                if (rgb.size() == 9) {
+                    //delete alpha value
+                    rgb = rgb.substr(0, rgb.size() - 2);
+                }
+                float alpha_f = 0.7 * tmp_lib_colour.Alpha() / 255.0;
+                std::vector<std::string> replace;
+                replace.push_back(rgb);
+                std::string fill_replace = "fill-opacity=\"" + std::to_string(alpha_f);
+                replace.push_back(fill_replace);
+                m_bitmap_transparent = ScalableBitmap(this, "transparent_ams_lib", 68, false, false, true, replace);
+                transparent_changed = false;
+                
+            }
+            dc.DrawBitmap(m_bitmap_transparent.bmp(), FromDIP(4), FromDIP(4));
+        }
         //gradient
         if (m_info.material_cols.size() > 1) {
             int left = FromDIP(4);
             float total_width = size.x - FromDIP(8);
             int gwidth = std::round(total_width / (m_info.material_cols.size() - 1));
+            //gradient
+            if (m_info.ctype == 0) {
+                for (int i = 0; i < m_info.material_cols.size() - 1; i++) {
 
-            for (int i = 0; i < m_info.material_cols.size() - 1; i++) {
+                    if ((left + gwidth) > (size.x - FromDIP(8))) {
+                        gwidth = (size.x - FromDIP(4)) - left;
+                    }
 
-                if ((left + gwidth) > (size.x - FromDIP(8))) {
-                    gwidth = (size.x - FromDIP(4)) - left;
+                    auto rect = wxRect(left, height - curr_height + FromDIP(4), gwidth, curr_height);
+                    dc.GradientFillLinear(rect, m_info.material_cols[i], m_info.material_cols[i + 1], wxEAST);
+                    left += gwidth;
                 }
-
-                auto rect = wxRect(left, height - curr_height + FromDIP(4), gwidth, curr_height);
-                dc.GradientFillLinear(rect, m_info.material_cols[i], m_info.material_cols[i + 1], wxEAST);
-                left += gwidth;
+            }
+            else {
+                //multicolour
+                gwidth = std::round(total_width / m_info.material_cols.size());
+                for (int i = 0; i < m_info.material_cols.size(); i++) {
+                    dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
+                    dc.SetBrush(wxBrush(m_info.material_cols[i]));
+                    if (i == 0 || i == m_info.material_cols.size() - 1) {
+#ifdef __APPLE__
+                        dc.DrawRoundedRectangle(left + gwidth * i, height - curr_height + FromDIP(4), gwidth, curr_height, m_radius);
+#else
+                        dc.DrawRoundedRectangle(left + gwidth * i, height - curr_height + FromDIP(4), gwidth, curr_height, m_radius - 1);
+#endif
+                        //add rectangle
+                        int dr_gwidth = std::round(gwidth * 0.6);
+                        if (i == 0) {
+                            dc.DrawRectangle(left + gwidth - dr_gwidth, height - curr_height + FromDIP(4), dr_gwidth, curr_height);
+                        }
+                        else {
+                            dc.DrawRectangle(left + gwidth*i, height - curr_height + FromDIP(4), dr_gwidth, curr_height);
+                        }
+                    }
+                    else {
+                        dc.DrawRectangle(left + gwidth * i, height - curr_height + FromDIP(4), gwidth, curr_height);
+                    }
+                }
+                //reset pen and brush
+                if (m_selected || m_hover) {
+                    dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
+                    dc.SetBrush(wxBrush(tmp_lib_colour));
+                }
+                else {
+                    dc.SetPen(wxPen(tmp_lib_colour, 1, wxSOLID));
+                    dc.SetBrush(wxBrush(tmp_lib_colour));
+                }
             }
         }
         else {
+            auto brush = dc.GetBrush();
+            if (alpha != 0 && alpha != 255 && alpha != 254) dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
 #ifdef __APPLE__
             dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(8), curr_height, m_radius);
 #else
             dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(8), curr_height, m_radius - 1);
 #endif
+            dc.SetBrush(brush);
         }
     }
 
     if (top > 2) {
         if (curr_height >= FromDIP(6)) {
             dc.DrawRectangle(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(8), FromDIP(2));
+            if (alpha != 255 && alpha != 254) {
+                dc.SetPen(wxPen(*wxWHITE));
+                dc.SetBrush(wxBrush(*wxWHITE));
+#ifdef __APPLE__
+                dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4) , size.x - FromDIP(8), top, m_radius);
+#else
+                dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4) , size.x - FromDIP(8), top, m_radius - 1);
+#endif
+            }
             if (tmp_lib_colour.Red() > 238 && tmp_lib_colour.Green() > 238 && tmp_lib_colour.Blue() > 238) {
                 dc.SetPen(wxPen(wxColour(130, 129, 128), 1, wxSOLID));
                 dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
@@ -1212,7 +1321,9 @@ void AMSLib::Update(Caninfo info, bool refresh)
     if (dev->get_selected_machine() && dev->get_selected_machine() != m_obj) {
         m_obj = dev->get_selected_machine();
     }
-
+    if (info.material_colour.Alpha() != 0 && info.material_colour.Alpha() != 255 && info.material_colour.Alpha() != 254 && m_info.material_colour != info.material_colour) {
+        transparent_changed = true;
+    }
     m_info = info;
     Layout();
     if (refresh) Refresh();
@@ -1277,13 +1388,22 @@ AMSRoad::AMSRoad(wxWindow *parent, wxWindowID id, Caninfo info, int canindex, in
         m_rode_mode = AMSRoadMode::AMS_ROAD_MODE_NONE_ANY_ROAD;
     }
 
-    ams_humidity_0 = ScalableBitmap(this, "ams_humidity_0", 20);
-    ams_humidity_1 = ScalableBitmap(this, "ams_humidity_1", 20);
-    ams_humidity_2 = ScalableBitmap(this, "ams_humidity_2", 20);
-    ams_humidity_3 = ScalableBitmap(this, "ams_humidity_3", 20);
-    ams_humidity_4 = ScalableBitmap(this, "ams_humidity_4", 20);
+    for (int i = 1; i <= 5; i++) {
+        ams_humidity_img.push_back(ScalableBitmap(this, "hum_level" + std::to_string(i) + "_light", 32));
+    }
 
-    create(parent, id, pos, size);
+    for (int i = 1; i <= 5; i++) {
+        ams_humidity_img.push_back(ScalableBitmap(this, "hum_level" + std::to_string(i) + "_dark", 32));
+    }
+    if (m_rode_mode != AMSRoadMode::AMS_ROAD_MODE_VIRTUAL_TRAY) {
+        create(parent, id, pos, size);
+    }
+    else {
+        wxSize virtual_size(size.x - 1, size.y + 2);
+        create(parent, id, pos, virtual_size);
+
+    }
+    
     Bind(wxEVT_PAINT, &AMSRoad::paintEvent, this);
     wxWindow::SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
 
@@ -1292,8 +1412,8 @@ AMSRoad::AMSRoad(wxWindow *parent, wxWindowID id, Caninfo info, int canindex, in
             auto mouse_pos = ClientToScreen(e.GetPosition());
             auto rect = ClientToScreen(wxPoint(0, 0));
 
-            if (mouse_pos.x > rect.x + GetSize().x - FromDIP(25) && 
-                mouse_pos.y > rect.y + GetSize().y - FromDIP(25)) {
+            if (mouse_pos.x > rect.x + GetSize().x - FromDIP(40) && 
+                mouse_pos.y > rect.y + GetSize().y - FromDIP(40)) {
                 wxCommandEvent show_event(EVT_AMS_SHOW_HUMIDITY_TIPS);
                 wxPostEvent(GetParent()->GetParent(), show_event);
 
@@ -1454,24 +1574,18 @@ void AMSRoad::doRender(wxDC &dc)
         if (m_amsinfo.ams_humidity >= 1 && m_amsinfo.ams_humidity <= 5) {m_show_humidity = true;}
         else {m_show_humidity = false;}
 
-        if (m_amsinfo.ams_humidity == 5) {
-            dc.DrawBitmap(ams_humidity_4.bmp(), wxPoint(size.x - ams_humidity_4.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_4.GetBmpSize().y - FromDIP(8)));
-        }
-        else if (m_amsinfo.ams_humidity == 4) {
-            dc.DrawBitmap(ams_humidity_3.bmp(), wxPoint(size.x - ams_humidity_3.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_3.GetBmpSize().y - FromDIP(8)));
-        }
-        else if (m_amsinfo.ams_humidity == 3) {
-    
-            dc.DrawBitmap(ams_humidity_2.bmp(), wxPoint(size.x - ams_humidity_2.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_2.GetBmpSize().y - FromDIP(8)));
-        }
-        else if (m_amsinfo.ams_humidity == 2) {
-            dc.DrawBitmap(ams_humidity_1.bmp(), wxPoint(size.x - ams_humidity_1.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_1.GetBmpSize().y - FromDIP(8)));
-        }
-        else if (m_amsinfo.ams_humidity == 1) {
-            dc.DrawBitmap(ams_humidity_0.bmp(), wxPoint(size.x - ams_humidity_0.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_0.GetBmpSize().y - FromDIP(8)));
+        if (m_amsinfo.ams_humidity >= 1 && m_amsinfo.ams_humidity <= 5) {
+
+            int hum_index = m_amsinfo.ams_humidity - 1;
+            if (wxGetApp().dark_mode()) {
+                hum_index += 5;
+            }
+
+            if (hum_index >= 0) {
+                dc.DrawBitmap(ams_humidity_img[hum_index].bmp(), wxPoint(size.x - FromDIP(33), size.y - FromDIP(33)));
+            }
         }
         else {
-            /*dc.DrawBitmap(ams_humidity_4.bmp(), wxPoint(size.x - ams_humidity_4.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_4.GetBmpSize().y - FromDIP(8)));*/
             //to do ...
         }
     }
@@ -1638,7 +1752,9 @@ void AMSItem::doRender(wxDC &dc)
         dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
 
         if (wxWindow::IsEnabled()) {
-            dc.SetBrush(wxBrush(iter->material_colour));
+            wxColour color = iter->material_colour;
+            change_the_opacity(color);
+            dc.SetBrush(wxBrush(color));
         } else {
             dc.SetBrush(AMS_CONTROL_DISABLE_COLOUR);
         }
@@ -1647,16 +1763,24 @@ void AMSItem::doRender(wxDC &dc)
             int fleft = left;
             float total_width = AMS_ITEM_CUBE_SIZE.x;
             int gwidth = std::round(total_width / (iter->material_cols.size() - 1));
+            if (iter->ctype == 0) {
+                for (int i = 0; i < iter->material_cols.size() - 1; i++) {
 
-            for (int i = 0; i < iter->material_cols.size() - 1; i++) {
+                    if ((fleft + gwidth) > (AMS_ITEM_CUBE_SIZE.x)) {
+                        gwidth = (fleft + AMS_ITEM_CUBE_SIZE.x) - fleft;
+                    }
 
-                if ((fleft + gwidth) > (AMS_ITEM_CUBE_SIZE.x)) {
-                    gwidth = (fleft + AMS_ITEM_CUBE_SIZE.x) - fleft;
+                    auto rect = wxRect(fleft, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, gwidth, AMS_ITEM_CUBE_SIZE.y);
+                    dc.GradientFillLinear(rect, iter->material_cols[i], iter->material_cols[i + 1], wxEAST);
+                    fleft += gwidth;
                 }
-
-                auto rect = wxRect(fleft, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, gwidth, AMS_ITEM_CUBE_SIZE.y);
-                dc.GradientFillLinear(rect, iter->material_cols[i], iter->material_cols[i + 1], wxEAST);
-                fleft += gwidth;
+            } else {
+                int cols_size = iter->material_cols.size();
+                for (int i = 0; i < cols_size; i++) {
+                    dc.SetBrush(wxBrush(iter->material_cols[i]));
+                    float x = left + total_width * i / cols_size;
+                    dc.DrawRoundedRectangle(x, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, total_width / cols_size, AMS_ITEM_CUBE_SIZE.y , 0);
+                }
             }
 
             dc.SetPen(wxPen(StateColor::darkModeColorFor(m_background_colour)));
@@ -1927,7 +2051,9 @@ void AmsCans::SelectCan(std::string canid)
 {
     for (auto i = 0; i < m_can_lib_list.GetCount(); i++) {
         CanLibs *lib = m_can_lib_list[i];
-        if (lib->canLib->m_info.can_id == canid) { m_canlib_selection = lib->canLib->m_can_index; }
+        if (lib->canLib->m_info.can_id == canid) { 
+            m_canlib_selection = lib->canLib->m_can_index; 
+        }
     }
 
     m_canlib_id = canid;
@@ -2448,6 +2574,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     if (wxGetApp().app_config->get("language") == "ja_JP") m_button_extruder_feed->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "sv_SE") m_button_extruder_feed->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "cs_CZ") m_button_extruder_feed->SetFont(Label::Body_9);
+    if (wxGetApp().app_config->get("language") == "uk_UA") m_button_extruder_feed->SetFont(Label::Body_9);
 
     m_button_extruder_back = new Button(m_button_area, _L("Unload Filament"));
     m_button_extruder_back->SetBackgroundColor(btn_bg_white);
@@ -2463,6 +2590,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     if (wxGetApp().app_config->get("language") == "ja_JP") m_button_extruder_back->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "sv_SE") m_button_extruder_back->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "cs_CZ") m_button_extruder_back->SetFont(Label::Body_9);
+    if (wxGetApp().app_config->get("language") == "uk_UA") m_button_extruder_back->SetFont(Label::Body_9);
 
     m_sizer_button_area->Add(0, 0, 1, wxEXPAND, 0);
     m_sizer_button_area->Add(m_button_extruder_back, 0, wxLEFT, FromDIP(6));
@@ -2509,9 +2637,9 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
         });
 
     Bind(EVT_AMS_UNSELETED_VAMS, [this](wxCommandEvent& e) {
-        if (m_current_ams == e.GetString().ToStdString()) {
+        /*if (m_current_ams == e.GetString().ToStdString()) {
             return;
-        }
+        }*/
         m_current_ams = e.GetString().ToStdString();
         SwitchAms(m_current_ams);
         m_vams_lib->UnSelected();
@@ -2524,6 +2652,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_vams_top_sizer->Add(0, 0, 0, wxEXPAND | wxTOP, AMS_REFRESH_SIZE.y);
     m_vams_top_sizer->Add(m_vams_lib, 0, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, FromDIP(4));
     m_vams_top_sizer->Add(m_vams_road, 0, wxALL, 0);
+
 
     //extra road
 
@@ -2644,6 +2773,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     if (wxGetApp().app_config->get("language") == "ja_JP") m_button_guide->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "sv_SE") m_button_guide->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "cs_CZ") m_button_guide->SetFont(Label::Body_9);
+    if (wxGetApp().app_config->get("language") == "uk_UA") m_button_guide->SetFont(Label::Body_9);
 
     m_button_guide->SetCornerRadius(FromDIP(12));
     m_button_guide->SetBorderColor(btn_bd_white);
@@ -2661,6 +2791,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     if (wxGetApp().app_config->get("language") == "ja_JP") m_button_retry->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "sv_SE") m_button_retry->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "cs_CZ") m_button_retry->SetFont(Label::Body_9);
+    if (wxGetApp().app_config->get("language") == "uk_UA") m_button_retry->SetFont(Label::Body_9);
 
     m_button_retry->SetCornerRadius(FromDIP(12));
     m_button_retry->SetBorderColor(btn_bd_white);
@@ -2721,7 +2852,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     wxBoxSizer *sizer_err_calibration_v = new wxBoxSizer(wxVERTICAL);
     m_hyperlink = new wxHyperlinkCtrl(m_calibration_err_panel, wxID_ANY, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
     m_hyperlink->SetVisitedColour(wxColour(31, 142, 234));
-    auto m_tip_calibration_err = new wxStaticText(m_calibration_err_panel, wxID_ANY, _L("A problem occured during calibration. Click to view the solution."), wxDefaultPosition,
+    auto m_tip_calibration_err = new wxStaticText(m_calibration_err_panel, wxID_ANY, _L("A problem occurred during calibration. Click to view the solution."), wxDefaultPosition,
                                                   wxDefaultSize, 0);
     m_tip_calibration_err->SetFont(::Label::Body_14);
     m_tip_calibration_err->SetForegroundColour(AMS_CONTROL_GRAY700);
@@ -2783,9 +2914,18 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     });
 
     Bind(EVT_AMS_SHOW_HUMIDITY_TIPS, [this](wxCommandEvent& evt) {
+        
         wxPoint img_pos = ClientToScreen(wxPoint(0, 0));
-        wxPoint popup_pos(img_pos.x - m_Humidity_tip_popup.GetSize().GetWidth() + FromDIP(150), img_pos.y);
+        wxPoint popup_pos(img_pos.x - m_Humidity_tip_popup.GetSize().GetWidth() + FromDIP(150), img_pos.y - FromDIP(80));
         m_Humidity_tip_popup.Position(popup_pos, wxSize(0, 0));
+        if (m_ams_info.size() > 0) {
+            for (auto i = 0; i < m_ams_info.size(); i++) {
+                if (m_ams_info[i].ams_id == m_current_show_ams) {
+                    m_Humidity_tip_popup.set_humidity_level(m_ams_info[i].ams_humidity);
+                }
+            }
+            
+        }
         m_Humidity_tip_popup.Popup();
     });
     
@@ -2800,6 +2940,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     CreateAms();
     SetSelection(0);
     EnterNoneAMSMode();
+
 }
 
 void AMSControl::on_retry()
@@ -3310,6 +3451,8 @@ void AMSControl::AddExtraAms(AMSinfo info)
 
 void AMSControl::SwitchAms(std::string ams_id)
 {
+    if(ams_id == m_current_show_ams){return;}
+
     if (ams_id != std::to_string(VIRTUAL_TRAY_ID)) {
         if (m_current_show_ams != ams_id) {
             m_current_show_ams = ams_id;
@@ -3323,17 +3466,41 @@ void AMSControl::SwitchAms(std::string ams_id)
             item->amsItem->OnSelected();
             m_current_senect = ams_id;
 
+            //bool ready_selected = false;
+            //for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
+            //    AmsCansWindow* ams = m_ams_cans_list[i];
+            //    if (ams->amsCans->m_info.ams_id == ams_id) {
+            //        //ams->amsCans->SetDefSelectCan();
+            //        //m_vams_lib->OnSelected();
+            //        if () {
+
+            //        }
+            //    }
+            //}
+
+            bool ready_selected = false;
             for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
                 AmsCansWindow* ams = m_ams_cans_list[i];
                 if (ams->amsCans->m_info.ams_id == ams_id) {
-                    ams->amsCans->SetDefSelectCan();
-                    m_vams_lib->UnSelected();
+                    for (auto lib : ams->amsCans->m_can_lib_list) {
+                        if (lib->canLib->is_selected()) {
+                            ready_selected = true;
+                        }
+                    }
                 }
+            }
+
+            if (!ready_selected) {
+                m_current_ams = std::to_string(VIRTUAL_TRAY_ID);
+                m_vams_lib->OnSelected();
+            }
+            else {
+                m_current_ams = ams_id;
+                m_vams_lib->UnSelected();
             }
 
         } else {
             item->amsItem->UnSelected();
-            //item->amsItem->HideHumidity();
         }
         m_sizer_top->Layout();
         m_panel_top->Fit();
@@ -3351,8 +3518,6 @@ void AMSControl::SwitchAms(std::string ams_id)
             }
         }
     }
-
-    m_current_ams = ams_id;
 
 
      // update extruder
@@ -3449,7 +3614,7 @@ void AMSControl::ShowFilamentTip(bool hasams)
     m_simplebook_right->SetSelection(0);
     if (hasams) {
         m_tip_right_top->Show();
-        m_tip_load_info->SetLabelText(_L("Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filiament."));
+        m_tip_load_info->SetLabelText(_L("Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."));
     } else {
         // m_tip_load_info->SetLabelText(_L("Before loading, please make sure the filament is pushed into toolhead."));
         m_tip_right_top->Hide();

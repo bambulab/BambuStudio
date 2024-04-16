@@ -89,10 +89,18 @@ void update_arrange_params(ArrangeParams& params, const DynamicPrintConfig* prin
     params.brim_skirt_distance = skirt_distance;
     params.bed_shrink_x += params.brim_skirt_distance;
     params.bed_shrink_y += params.brim_skirt_distance;
-    // for sequential print, we need to inflate the bed because cleareance_radius is so large
     if (params.is_seq_print) {
-        params.bed_shrink_x -= params.cleareance_radius / 2;
-        params.bed_shrink_y -= params.cleareance_radius / 2;
+        // set obj distance for auto seq_print
+        bool all_objects_are_short = std::all_of(selected.begin(), selected.end(), [&params](auto& ap) { return ap.height < params.nozzle_height; });
+        if (all_objects_are_short) {
+            params.min_obj_distance = std::max(params.min_obj_distance, scaled(MAX_OUTER_NOZZLE_RADIUS + 0.001));
+        }
+        else
+            params.min_obj_distance = std::max(params.min_obj_distance, scaled(params.cleareance_radius + 0.001)); // +0.001mm to avoid clearance check fail due to rounding error
+    
+        // for sequential print, we need to inflate the bed because cleareance_radius is so large
+        params.bed_shrink_x -= unscale_(params.min_obj_distance / 2);
+        params.bed_shrink_y -= unscale_(params.min_obj_distance / 2);
     }
 }
 
@@ -100,9 +108,6 @@ void update_selected_items_inflation(ArrangePolygons& selected, const DynamicPri
     // do not inflate brim_width. Objects are allowed to have overlapped brim.
     Points      bedpts = get_shrink_bedpts(print_cfg, params);
     BoundingBox bedbb = Polygon(bedpts).bounding_box();
-    // set obj distance for auto seq_print
-    if (params.min_obj_distance == 0 && params.is_seq_print)
-        params.min_obj_distance = scaled(params.cleareance_radius + 0.001);
     double brim_max = 0;
     bool plate_has_tree_support = false;
     std::for_each(selected.begin(), selected.end(), [&](ArrangePolygon& ap) {
@@ -114,22 +119,15 @@ void update_selected_items_inflation(ArrangePolygons& selected, const DynamicPri
         // 3. otherwise, use each object's own brim width
         ap.inflation = params.min_obj_distance != 0 ? params.min_obj_distance / 2 :
             plate_has_tree_support ? scaled(brim_max / 2) : scaled(ap.brim_width);
-        BoundingBox apbb = ap.poly.contour.bounding_box();
-        auto        diffx = bedbb.size().x() - apbb.size().x() - 5;
-        auto        diffy = bedbb.size().y() - apbb.size().y() - 5;
-        if (diffx > 0 && diffy > 0) {
-            auto min_diff = std::min(diffx, diffy);
-            ap.inflation = std::min(min_diff / 2, ap.inflation);
-        }
         });
 }
 
 void update_unselected_items_inflation(ArrangePolygons& unselected, const DynamicPrintConfig* print_cfg, const ArrangeParams& params)
 {
-    float exclusion_gap = 1.f;
+    coord_t exclusion_gap = scale_(1.f);
     if (params.is_seq_print) {
-        // bed_shrink_x is typically (-params.cleareance_radius / 2+5) for seq_print
-        exclusion_gap = std::max(exclusion_gap, params.cleareance_radius / 2 + params.bed_shrink_x + 1.f);  // +1mm gap so the exclusion region is not too close
+        // bed_shrink_x is typically (-params.min_obj_distance / 2+5) for seq_print
+        exclusion_gap = std::max(exclusion_gap, params.min_obj_distance / 2 + scaled<coord_t>(params.bed_shrink_x + 1.f));  // +1mm gap so the exclusion region is not too close
         // dont forget to move the excluded region
         for (auto& region : unselected) {
             if (region.is_virt_object) region.poly.translate(scaled(params.bed_shrink_x), scaled(params.bed_shrink_y));
@@ -142,7 +140,7 @@ void update_unselected_items_inflation(ArrangePolygons& unselected, const Dynami
     // 其他物体的膨胀轮廓是可以跟它们重叠的。
     std::for_each(unselected.begin(), unselected.end(),
         [&](auto& ap) { ap.inflation = !ap.is_virt_object ? (params.min_obj_distance == 0 ? scaled(ap.brim_width) : params.min_obj_distance / 2)
-        : (ap.is_extrusion_cali_object ? 0 : scale_(exclusion_gap)); });
+        : (ap.is_extrusion_cali_object ? 0 : exclusion_gap); });
 }
 
 void update_selected_items_axis_align(ArrangePolygons& selected, const DynamicPrintConfig* print_cfg, const ArrangeParams& params)
@@ -290,6 +288,8 @@ void fill_config(PConf& pcfg, const ArrangeParams &params) {
         pcfg.rotations = {0., PI / 4., PI/2, 3. * PI / 4. };
     else
         pcfg.rotations = {0.};
+
+    pcfg.bed_shrink = { scale_(params.bed_shrink_x), scale_(params.bed_shrink_y) };
 
     // The accuracy of optimization.
     // Goes from 0.0 to 1.0 and scales performance as well
@@ -669,8 +669,7 @@ protected:
             bool first_object                 = extruder_ids.empty();
             // the two objects (previously packed items and the current item) are considered having same color if either one's colors are a subset of the other
             std::set<int> item_extruder_ids(item.extrude_ids.begin(), item.extrude_ids.end());
-            bool same_color_with_previous_items = std::includes(item_extruder_ids.begin(), item_extruder_ids.end(), extruder_ids.begin(), extruder_ids.end())
-                || std::includes(extruder_ids.begin(), extruder_ids.end(), item_extruder_ids.begin(), item_extruder_ids.end());
+            bool same_color_with_previous_items = std::includes(extruder_ids.begin(), extruder_ids.end(), item_extruder_ids.begin(), item_extruder_ids.end());
             if (!(first_object || same_color_with_previous_items)) score += LARGE_COST_TO_REJECT * 1.3;
         }
         // for layered printing, we want extruder change as few as possible
@@ -806,7 +805,15 @@ public:
                         (i1.height != i2.height ? (i1.height < i2.height) : (i1.area() > i2.area()));
             }
             else {
-                return i1.bed_temp != i2.bed_temp ? (i1.bed_temp > i2.bed_temp) :
+                // single color objects first, then objects with more colors
+                if (i1.extrude_ids.size() != i2.extrude_ids.size()){
+                    if (i1.extrude_ids.size() == 1 || i2.extrude_ids.size() == 1)
+                        return i1.extrude_ids.size() == 1;
+                    else 
+                        return i1.extrude_ids.size() > i2.extrude_ids.size();
+                }
+                else
+                    return i1.bed_temp != i2.bed_temp ? (i1.bed_temp > i2.bed_temp) :
                     (i1.extrude_ids != i2.extrude_ids ? (i1.extrude_ids.front() < i2.extrude_ids.front()) : (i1.area() > i2.area()));
             }
         };

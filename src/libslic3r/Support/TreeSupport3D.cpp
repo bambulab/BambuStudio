@@ -209,7 +209,7 @@ static std::vector<std::pair<TreeSupportSettings, std::vector<size_t>>> group_me
 }
 #endif
 
-[[nodiscard]] static const std::vector<Polygons> generate_overhangs(const TreeSupportSettings &settings, const PrintObject &print_object, std::function<void()> throw_on_cancel)
+[[nodiscard]] static const std::vector<Polygons> generate_overhangs(const TreeSupportSettings &settings, PrintObject &print_object, std::function<void()> throw_on_cancel)
 {
     const size_t num_raft_layers   = settings.raft_layers.size();
     const size_t num_object_layers = print_object.layer_count();
@@ -231,11 +231,26 @@ static std::vector<std::pair<TreeSupportSettings, std::vector<size_t>>> group_me
     //FIXME this is a fudge constant!
     double support_tree_tip_diameter = 0.8;
     auto                     enforcer_overhang_offset = scaled<double>(support_tree_tip_diameter);
+    const coordf_t radius_sample_resolution = g_config_tree_support_collision_resolution;
+
+    // calc the extrudable expolygons of each layer
+    const coordf_t extrusion_width = config.line_width.value;
+    const coordf_t extrusion_width_scaled = scale_(extrusion_width);
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, print_object.layer_count()),
+        [&](const tbb::blocked_range<size_t>& range) {
+            for (size_t layer_nr = range.begin(); layer_nr < range.end(); layer_nr++) {
+                if (print_object.print()->canceled())
+                    break;
+                Layer* layer = print_object.get_layer(layer_nr);
+                // Filter out areas whose diameter that is smaller than extrusion_width, but we don't want to lose any details.
+                layer->lslices_extrudable = intersection_ex(layer->lslices, offset2_ex(layer->lslices, -extrusion_width_scaled / 2, extrusion_width_scaled));
+            }
+        });
 
     size_t num_overhang_layers = support_auto ? num_object_layers : std::min(num_object_layers, std::max(size_t(support_enforce_layers), enforcers_layers.size()));
     tbb::parallel_for(tbb::blocked_range<LayerIndex>(1, num_overhang_layers),
         [&print_object, &config, &print_config, &enforcers_layers, &blockers_layers, 
-         support_auto, support_enforce_layers, support_threshold_auto, tan_threshold, enforcer_overhang_offset, num_raft_layers, &throw_on_cancel, &out]
+         support_auto, support_enforce_layers, support_threshold_auto, tan_threshold, enforcer_overhang_offset, num_raft_layers, radius_sample_resolution, &throw_on_cancel, &out]
         (const tbb::blocked_range<LayerIndex> &range) {
         for (LayerIndex layer_id = range.begin(); layer_id < range.end(); ++ layer_id) {
             const Layer   &current_layer  = *print_object.get_layer(layer_id);
@@ -259,15 +274,14 @@ static std::vector<std::pair<TreeSupportSettings, std::vector<size_t>>> group_me
                     lower_layer_offset = float(0.5 * external_perimeter_width);
                 } else
                     lower_layer_offset = scaled<float>(lower_layer.height / tan_threshold);
-                overhangs = lower_layer_offset == 0 ?
-                    diff(current_layer.lslices, lower_layer.lslices) :
-                    diff(current_layer.lslices, offset(lower_layer.lslices, lower_layer_offset));
+                Polygons lower_layer_offseted = offset(lower_layer.lslices_extrudable, lower_layer_offset);
+                overhangs = diff(current_layer.lslices_extrudable, lower_layer_offseted);
                 if (lower_layer_offset == 0) {
                     raw_overhangs = overhangs;
                     raw_overhangs_calculated = true;
                 }
                 if (! (enforced_layer || blockers_layers.empty() || blockers_layers[layer_id].empty()))
-                    overhangs = diff(overhangs, blockers_layers[layer_id], ApplySafetyOffset::Yes);
+                    overhangs = diff(overhangs, offset_ex(union_(blockers_layers[layer_id]), scale_(radius_sample_resolution)), ApplySafetyOffset::Yes);
                 //if (config.bridge_no_support) {
                 //    for (const LayerRegion *layerm : current_layer.regions())
                 //        remove_bridges_from_contacts(print_config, lower_layer, *layerm, 
@@ -3543,7 +3557,7 @@ static std::pair<float, float> extrude_branch(
             zmin = result.vertices.back().z();
             float angle = angle_step;
             std::pair<int, int> strip;
-            if (current.state.type == TreeSupport::NodeType::ePolygon) {
+            if (current.state.type == TreeNodeType::ePolygon) {
                 strip = discretize_polygon(p1.cast<float>(), current.influence_area, result.vertices);
                 prev_strip = strip;
                 strip = discretize_polygon(p2.cast<float>(), current.influence_area, result.vertices);
@@ -3571,7 +3585,7 @@ static std::pair<float, float> extrude_branch(
             angle_step = M_PI / (2. * nsteps);
             auto angle = float(M_PI / 2.);
             std::pair<int, int> strip;
-            if (current.state.type == TreeSupport::NodeType::ePolygon) {
+            if (current.state.type == TreeNodeType::ePolygon) {
                 strip = discretize_polygon(p2.cast<float>(), current.influence_area, result.vertices);
             }
             else {
@@ -3597,7 +3611,7 @@ static std::pair<float, float> extrude_branch(
             ncurrent = (v1 + v2).normalized();
             float radius = unscaled<float>(support_element_radius(config, current));
             std::pair<int, int> strip;
-            if (current.state.type == TreeSupport::NodeType::ePolygon) {
+            if (current.state.type == TreeNodeType::ePolygon) {
                 strip = discretize_polygon(p2.cast<float>(), current.influence_area, result.vertices);
             }
             else {
@@ -4166,18 +4180,22 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
         //FIXME generating overhangs just for the first mesh of the group.
         assert(processing.second.size() == 1);
 
-        print.set_status(55, _L("Support: detect overhangs"));
-#if 0
+#if 1
+        // use smart overhang detection
         std::vector<Polygons>        overhangs;
         tree_support->detect_overhangs();
         const int       num_raft_layers = int(config.raft_layers.size());
         const int       num_layers = int(print_object.layer_count()) + num_raft_layers;
         overhangs.resize(num_layers);
-        for (size_t i = 0; i < print_object.layer_count(); i++)
-        {
-            overhangs[i + num_raft_layers] = to_polygons(print_object.get_support_layer(i)->overhang_areas);
+        for (size_t i = 0; i < print_object.layer_count(); i++) {
+            for (ExPolygon& expoly : print_object.get_layer(i)->loverhangs) {
+                Polygons polys = to_polygons(expoly);
+                if (tree_support->overhang_types[&expoly] == TreeSupport::SharpTail) {
+                    polys = offset(to_polygons(expoly), scale_(0.2));
+                }
+                append(overhangs[i + num_raft_layers], polys);
+            }
         }
-        print_object.clear_support_layers();
 #else
         std::vector<Polygons>        overhangs = generate_overhangs(config, *print.get_object(processing.second.front()), throw_on_cancel);
 #endif
@@ -4260,7 +4278,7 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
 #endif // TREESUPPORT_DEBUG_SVG
 
             // ### Propagate the influence areas downwards. This is an inherently serial operation.
-            print.set_status(60, _L("Support: propagate branches"));
+            print.set_status(60, _L("Generating support"));
             create_layer_pathing(volumes, config, move_bounds, throw_on_cancel);
             auto t_path = std::chrono::high_resolution_clock::now();
 
@@ -4269,18 +4287,19 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
             auto t_place = std::chrono::high_resolution_clock::now();
 
             // ### draw these points as circles
+#if 0
             indexed_triangle_set branches = draw_branches(*print.get_object(processing.second.front()), volumes, config, move_bounds, throw_on_cancel);
             // Reduce memory footprint. After this point only slice_branches() will use volumes and from that only collisions with zero radius will be used.
             volumes.clear_all_but_object_collision();
             slice_branches(*print.get_object(processing.second.front()), volumes, config, overhangs, move_bounds, branches,
                 bottom_contacts, top_contacts, intermediate_layers, layer_storage, throw_on_cancel);
-
-            // this new function may cause bad_function_call exception
-            //organic_draw_branches(
-            //    *print.get_object(processing.second.front()), volumes, config, move_bounds,
-            //    bottom_contacts, top_contacts, interface_placer, intermediate_layers, layer_storage,
-            //    throw_on_cancel);
-            
+#else
+            // this new function give correct result when raft is also enabled
+            organic_draw_branches(
+                *print.get_object(processing.second.front()), volumes, config, move_bounds,
+                bottom_contacts, top_contacts, interface_placer, intermediate_layers, layer_storage,
+                throw_on_cancel);
+#endif       
 
             remove_undefined_layers();
 
@@ -4316,7 +4335,7 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
         SupportGeneratorLayersPtr layers_sorted = generate_support_layers(print_object, raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers);
 
         // Don't fill in the tree supports, make them hollow with just a single sheath line.
-        print.set_status(69, _L("Support: generate toolpath"));
+        print.set_status(69, _L("Generating support"));
         generate_support_toolpaths(print_object, print_object.support_layers(), print_object.config(), support_params, print_object.slicing_parameters(),
             raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers);
 

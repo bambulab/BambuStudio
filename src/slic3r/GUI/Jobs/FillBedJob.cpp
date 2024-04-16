@@ -146,8 +146,7 @@ void FillBedJob::prepare()
 
     double sc = scaled<double>(1.) * scaled(1.);
 
-    const GLCanvas3D::ArrangeSettings& settings = static_cast<const GLCanvas3D*>(m_plater->canvas3D())->get_arrange_settings();
-    auto polys = offset_ex(m_selected.front().poly, scaled(settings.distance) / 2);
+    auto polys = offset_ex(m_selected.front().poly, params.min_obj_distance / 2);
     ExPolygon poly = polys.empty() ? m_selected.front().poly : polys.front();
     double poly_area = poly.area() / sc;
     double unsel_area = std::accumulate(m_unselected.begin(),
@@ -230,7 +229,21 @@ void FillBedJob::process()
     // final align用的是凸包，在有fixed item的情况下可能找到的参考点位置是错的，这里就不做了。见STUDIO-3265
     params.do_final_align = false;
 
-    arrangement::arrange(m_selected, m_unselected, m_bedpts, params);
+    if (m_selected.size() > 100){
+        // too many items, just find grid empty cells to put them
+        Vec2f step = unscaled<float>(get_extents(m_selected.front().poly).size()) + Vec2f(m_selected.front().brim_width, m_selected.front().brim_width);
+        std::vector<Vec2f> empty_cells = Plater::get_empty_cells(step);
+        size_t n=std::min(m_selected.size(), empty_cells.size());
+        for (size_t i = 0; i < n; i++) {
+            m_selected[i].translation = scaled<coord_t>(empty_cells[i]);
+            m_selected[i].bed_idx= 0;
+        }
+        for (size_t i = n; i < m_selected.size(); i++) {
+            m_selected[i].bed_idx = -1;
+        }
+    }
+    else
+        arrangement::arrange(m_selected, m_unselected, m_bedpts, params);
 
     // finalize just here.
     update_status(m_status_range, was_canceled() ?
@@ -273,10 +286,12 @@ void FillBedJob::finalize()
             else
                 ap.bed_idx = cur_plate;
 
-            ap.row = ap.bed_idx / plate_cols;
-            ap.col = ap.bed_idx % plate_cols;
-            ap.translation(X) += bed_stride_x(m_plater) * ap.col;
-            ap.translation(Y) -= bed_stride_y(m_plater) * ap.row;
+            if (m_selected.size() <= 100) {
+                ap.row = ap.bed_idx / plate_cols;
+                ap.col = ap.bed_idx % plate_cols;
+                ap.translation(X) += bed_stride_x(m_plater) * ap.col;
+                ap.translation(Y) -= bed_stride_y(m_plater) * ap.row;
+            }
 
             ap.apply();
 

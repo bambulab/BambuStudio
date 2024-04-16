@@ -137,6 +137,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Gizmos/GLGizmoMmuSegmentation.hpp
     GUI/Gizmos/GLGizmoFaceDetector.cpp
     GUI/Gizmos/GLGizmoFaceDetector.hpp
+    GUI/Gizmos/GLGizmoMeasure.cpp
+    GUI/Gizmos/GLGizmoMeasure.hpp
     GUI/Gizmos/GLGizmoSeam.cpp
     GUI/Gizmos/GLGizmoSeam.hpp
     GUI/Gizmos/GLGizmoText.cpp
@@ -360,8 +362,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/ObjectDataViewModel.hpp
     GUI/AuxiliaryDataViewModel.cpp
     GUI/AuxiliaryDataViewModel.hpp
-    #GUI/InstanceCheck.cpp
-    #GUI/InstanceCheck.hpp
+    GUI/InstanceCheck.cpp
+    GUI/InstanceCheck.hpp
     GUI/Search.cpp
     GUI/Search.hpp
     GUI/NotificationManager.cpp
@@ -465,9 +467,9 @@ set(SLIC3R_GUI_SOURCES
     Utils/AstroBox.hpp
     Utils/Repetier.cpp
     Utils/Repetier.hpp
-
     Utils/CalibUtils.cpp
     Utils/CalibUtils.hpp
+    Utils/ProfileDescription.hpp
 )
 
 if (WIN32)
@@ -487,8 +489,8 @@ if (APPLE)
             GUI/RemovableDriveManagerMM.mm
             GUI/RemovableDriveManagerMM.h
             GUI/Mouse3DHandlerMac.mm
-            #GUI/InstanceCheckMac.mm
-            #GUI/InstanceCheckMac.h
+            GUI/InstanceCheckMac.mm
+            GUI/InstanceCheckMac.h
             GUI/wxMediaCtrl2.mm
             GUI/wxMediaCtrl2.h
         )

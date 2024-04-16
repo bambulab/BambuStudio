@@ -332,15 +332,32 @@ class ObjectDataViewModel :public wxDataViewModel
     ObjectDataViewModelNode*                    m_plate_outside;
 
     wxDataViewCtrl*                             m_ctrl { nullptr };
-    std::vector<std::pair<ObjectDataViewModelNode*, wxString>> assembly_name_list;
-    std::vector<std::pair<ObjectDataViewModelNode*, wxString>> search_found_list;
+    std::vector<std::tuple<ObjectDataViewModelNode*, wxString, wxString>> assembly_name_list;
+    std::vector<std::tuple<ObjectDataViewModelNode*, wxString, wxString>> search_found_list;
+    std::map<int, int>                          m_ui_and_3d_volume_map;
 
 public:
     ObjectDataViewModel();
     ~ObjectDataViewModel();
 
     void Init();
-
+    std::map<int, int> &get_ui_and_3d_volume_map() { return m_ui_and_3d_volume_map; }
+    int                 get_real_volume_index_in_3d(int ui_value)
+    {
+        if (m_ui_and_3d_volume_map.find(ui_value) != m_ui_and_3d_volume_map.end()) { 
+            return m_ui_and_3d_volume_map[ui_value];
+        }
+        return ui_value;
+    }
+    int get_real_volume_index_in_ui(int _3d_value)
+    {
+        for (auto item: m_ui_and_3d_volume_map) {
+            if (item.second == _3d_value) {
+                return item.first;
+            }
+        }
+        return _3d_value;
+    }
     wxDataViewItem AddPlate(PartPlate* part_plate, wxString name = wxEmptyString, bool refresh = true);
     wxDataViewItem AddObject(ModelObject* model_object, std::string warning_bitmap, bool has_lock = false, bool refresh = true);
     wxDataViewItem AddVolumeChild(  const wxDataViewItem &parent_item,
@@ -492,9 +509,9 @@ public:
 
     void        assembly_name(ObjectDataViewModelNode* item, wxString name);
     void        assembly_name();
-    std::vector<std::pair<ObjectDataViewModelNode*, wxString>> get_assembly_name_list() { return assembly_name_list; }
+    std::vector<std::tuple<ObjectDataViewModelNode*, wxString, wxString>> get_assembly_name_list() const { return assembly_name_list; }
     void        search_object(wxString search_text);
-    std::vector<std::pair<ObjectDataViewModelNode*, wxString>> get_found_list() { return search_found_list; }
+    std::vector<std::tuple<ObjectDataViewModelNode*, wxString, wxString>> get_found_list() const { return search_found_list; }
 
     void        sys_color_changed();
 

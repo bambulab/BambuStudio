@@ -801,6 +801,9 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
             else if (boost::iequals(it.key(), BBL_JSON_KEY_FROM)) {
                 key_values.emplace(BBL_JSON_KEY_FROM, it.value());
             }
+            else if (boost::iequals(it.key(), BBL_JSON_KEY_DESCRIPTION)) {
+                key_values.emplace(BBL_JSON_KEY_DESCRIPTION, it.value());
+            }
             else if (boost::iequals(it.key(), BBL_JSON_KEY_INSTANTIATION)) {
                 key_values.emplace(BBL_JSON_KEY_INSTANTIATION, it.value());
             }
@@ -1350,6 +1353,18 @@ void ConfigBase::save_to_json(const std::string &file, const std::string &name, 
     //record all the key-values
     for (const std::string &opt_key : this->keys())
     {
+        if (from.compare("project") == 0) {
+            if (opt_key.compare("print_host") == 0
+                || opt_key.compare("print_host_webui") == 0
+                || opt_key.compare("printhost_apikey") == 0
+                || opt_key.compare("printhost_cafile") == 0
+                || opt_key.compare("printhost_user") == 0
+                || opt_key.compare("printhost_password") == 0
+                || opt_key.compare("printhost_port") == 0
+                ) {
+                continue;
+            }
+        }
         const ConfigOption* opt = this->option(opt_key);
         if ( opt->is_scalar() ) {
             if (opt->type() == coString)

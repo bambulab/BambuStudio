@@ -4,6 +4,7 @@
 #include <functional>
 #include <string>
 #include <vector>
+#include <chrono>
 
 #include "GLTexture.hpp"
 #include "Event.hpp"
@@ -55,7 +56,6 @@ wxDECLARE_EVENT(EVT_GLTOOLBAR_SELECT_SLICED_PLATE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_GLVIEWTOOLBAR_3D, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLVIEWTOOLBAR_PREVIEW, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLVIEWTOOLBAR_ASSEMBLE, SimpleEvent);
-
 
 
 class GLToolbarItem
@@ -172,14 +172,19 @@ private:
     Data m_data;
     EActionType m_last_action_type;
     EHighlightState m_highlight_state;
+    std::chrono::system_clock::time_point start;
+
 public:
+
     // remember left position for rendering menu
     mutable float render_left_pos;
+
+    std::chrono::system_clock::time_point get_start_time_point() const { return start; }
 
     GLToolbarItem(EType type, const Data& data);
 
     EState get_state() const { return m_state; }
-    void set_state(EState state) { m_state = state; }
+    void set_state(EState state);
 
     EHighlightState get_highlight() const { return m_highlight_state; }
     void set_highlight(EHighlightState state) { m_highlight_state = state; }

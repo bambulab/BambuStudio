@@ -126,12 +126,13 @@ struct ArrangeParams {
     bool  avoid_extrusion_cali_region         = true;
     bool  is_seq_print                        = false;
     bool  align_to_y_axis                     = false;
-    float bed_shrink_x = 1;
-    float bed_shrink_y = 1;
+    float bed_shrink_x = 0.1;
+    float bed_shrink_y = 0.1;
     float brim_skirt_distance = 0;
     float clearance_height_to_rod = 0;
     float clearance_height_to_lid = 0;
     float cleareance_radius = 0;
+    float nozzle_height = 0;
     float printable_height = 256.0;
     Vec2d align_center{ 0.5,0.5 };
 

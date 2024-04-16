@@ -8,6 +8,7 @@
 #include "OpenGLManager.hpp"
 #include "libslic3r/Preset.hpp"
 #include "libslic3r/PresetBundle.hpp"
+#include "libslic3r/Color.hpp"
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
 #include "slic3r/GUI/WebViewDialog.hpp"
@@ -34,6 +35,7 @@
 #define TIMEOUT_RESPONSE            15
 
 #define BE_UNACTED_ON               0x00200001
+#define SHOW_BACKGROUND_BITMAP_PIXEL_THRESHOLD 80
 #ifndef _MSW_DARK_MODE
     #define _MSW_DARK_MODE            1
 #endif // _MSW_DARK_MODE
@@ -129,6 +131,7 @@ enum CameraMenuIDs {
 
 class Tab;
 class ConfigWizard;
+class GizmoObjectManipulation;
 
 static wxString dots("...", wxConvUTF8);
 
@@ -264,10 +267,10 @@ private:
 
     std::unique_ptr<ImGuiWrapper> m_imgui;
     std::unique_ptr<PrintHostJobQueue> m_printhost_job_queue;
-	//std::unique_ptr <OtherInstanceMessageHandler> m_other_instance_message_handler;
-    //std::unique_ptr <wxSingleInstanceChecker> m_single_instance_checker;
-    //std::string m_instance_hash_string;
-	//size_t m_instance_hash_int;
+	std::unique_ptr <OtherInstanceMessageHandler> m_other_instance_message_handler;
+    std::unique_ptr <wxSingleInstanceChecker> m_single_instance_checker;
+    std::string m_instance_hash_string;
+	size_t m_instance_hash_int;
 
     //BBS
     bool m_is_closing {false};
@@ -448,6 +451,7 @@ public:
     void            set_skip_version(bool skip = true);
     void            no_new_version();
     static std::string format_display_version();
+    std::string     format_IP(const std::string& ip);
     void            show_dialog(wxString msg);
     void            reload_settings();
     void            remove_user_presets();
@@ -525,6 +529,7 @@ public:
 #endif /* __APPLE */
 
     Sidebar&             sidebar();
+    GizmoObjectManipulation *obj_manipul();
     ObjectSettings*      obj_settings();
     ObjectList*          obj_list();
     ObjectLayers*        obj_layers();
@@ -550,6 +555,7 @@ public:
     void            open_publish_page_dialog();
     void            remove_mall_system_dialog();
     void            run_script(wxString js);
+    void            run_script_left(wxString js);
     bool            is_adding_script_handler() { return m_adding_script_handler; }
     void            set_adding_script_handler(bool status) { m_adding_script_handler = status; }
 
@@ -574,19 +580,20 @@ public:
 
     // BBS
     int             filaments_cnt() const;
+    PrintSequence   global_print_sequence() const;
 
     std::vector<Tab *>      tabs_list;
     std::vector<Tab *>      model_tabs_list;
     Tab*                    plate_tab;
 
 	RemovableDriveManager* removable_drive_manager() { return m_removable_drive_manager.get(); }
-	//OtherInstanceMessageHandler* other_instance_message_handler() { return m_other_instance_message_handler.get(); }
-    //wxSingleInstanceChecker* single_instance_checker() {return m_single_instance_checker.get();}
+	OtherInstanceMessageHandler* other_instance_message_handler() { return m_other_instance_message_handler.get(); }
+    wxSingleInstanceChecker* single_instance_checker() {return m_single_instance_checker.get();}
 
-	//void        init_single_instance_checker(const std::string &name, const std::string &path);
-	//void        set_instance_hash (const size_t hash) { m_instance_hash_int = hash; m_instance_hash_string = std::to_string(hash); }
-    //std::string get_instance_hash_string ()           { return m_instance_hash_string; }
-	//size_t      get_instance_hash_int ()              { return m_instance_hash_int; }
+	void        init_single_instance_checker(const std::string &name, const std::string &path);
+	void        set_instance_hash (const size_t hash) { m_instance_hash_int = hash; m_instance_hash_string = std::to_string(hash); }
+    std::string get_instance_hash_string ()           { return m_instance_hash_string; }
+	size_t      get_instance_hash_int ()              { return m_instance_hash_int; }
 
     ImGuiWrapper* imgui() { return m_imgui.get(); }
 
@@ -653,6 +660,7 @@ private:
     bool                    m_datadir_redefined { false };
     std::string             m_older_data_dir_path;
     boost::optional<Semver> m_last_config_version;
+    std::string             m_open_method;
 };
 
 DECLARE_APP(GUI_App)

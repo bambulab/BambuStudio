@@ -236,11 +236,16 @@ static t_config_option_keys print_config_diffs(
             bool overriden = opt_new->overriden_by(opt_new_filament);
             if (overriden || *opt_old != *opt_new) {
                 auto opt_copy = opt_new->clone();
-                opt_copy->apply_override(opt_new_filament);
+                if (!((opt_key == "long_retractions_when_cut" || opt_key == "retraction_distances_when_cut")
+                    && new_full_config.option<ConfigOptionInt>("enable_long_retraction_when_cut")->value != LongRectrationLevel::EnableFilament)) // ugly code, remove it later if firmware supports
+                    opt_copy->apply_override(opt_new_filament);
                 bool changed = *opt_old != *opt_copy;
                 if (changed)
                     print_diff.emplace_back(opt_key);
                 if (changed || overriden) {
+                    if ((opt_key == "long_retractions_when_cut" || opt_key == "retraction_distances_when_cut")
+                        && new_full_config.option<ConfigOptionInt>("enable_long_retraction_when_cut")->value != LongRectrationLevel::EnableFilament)
+                        continue;
                     // filament_overrides will be applied to the placeholder parser, which layers these parameters over full_print_config.
                     filament_overrides.set_key_value(opt_key, opt_copy);
                 } else
@@ -1041,6 +1046,26 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         m_support_used = true;
     else
         m_support_used = false;
+
+    {
+        const auto &o = model.objects;
+        const auto opt_has_scarf_joint_seam = [](const DynamicConfig &c) {
+            return c.has("seam_slope_type") && c.opt_enum<SeamScarfType>("seam_slope_type") != SeamScarfType::None;
+        };
+        const bool has_scarf_joint_seam = std::any_of(o.begin(), o.end(), [&new_full_config, &opt_has_scarf_joint_seam](ModelObject *obj) {
+            return obj->get_config_value<ConfigOptionEnum<SeamScarfType>>(new_full_config, "seam_slope_type")->value != SeamScarfType::None ||
+                   std::any_of(obj->volumes.begin(), obj->volumes.end(),
+                               [&opt_has_scarf_joint_seam](const ModelVolume *v) { return opt_has_scarf_joint_seam(v->config.get()); }) ||
+                   std::any_of(obj->layer_config_ranges.begin(), obj->layer_config_ranges.end(),
+                               [&opt_has_scarf_joint_seam](const auto &r) { return opt_has_scarf_joint_seam(r.second.get()); });
+        });
+
+        if (has_scarf_joint_seam) {
+            new_full_config.set("has_scarf_joint_seam", true);
+        }
+
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", has_scarf_joint_seam:" << has_scarf_joint_seam;
+    }
 
     // Find modified keys of the various configs. Resolve overrides extruder retract values by filament profiles.
     DynamicPrintConfig   filament_overrides;

@@ -147,6 +147,40 @@ namespace GUI {
 
 class MainFrame;
 
+void start_ping_test()
+{
+    wxArrayString output;
+    wxExecute("ping www.amazon.com", output, wxEXEC_NODISABLE);
+
+    wxString output_i;
+    std::string output_temp;
+
+    for (int i = 0; i < output.size(); i++) {
+        output_i = output[i].To8BitData();
+        output_temp = output_i.ToStdString(wxConvUTF8);
+        BOOST_LOG_TRIVIAL(info) << "ping amazon:" << output_temp;
+
+    }
+    wxExecute("ping www.apple.com", output, wxEXEC_NODISABLE);
+    for (int i = 0; i < output.size(); i++) {
+        output_i = output[i].To8BitData();
+        output_temp = output_i.ToStdString(wxConvUTF8);
+        BOOST_LOG_TRIVIAL(info) << "ping www.apple.com:" << output_temp;
+    }
+    wxExecute("ping www.bambulab.com", output, wxEXEC_NODISABLE);
+    for (int i = 0; i < output.size(); i++) {
+        output_i = output[i].To8BitData();
+        output_temp = output_i.ToStdString(wxConvUTF8);
+        BOOST_LOG_TRIVIAL(info) << "ping bambulab:" << output_temp;
+    }
+    //Get GateWay IP
+    wxExecute("ping 192.168.0.1", output, wxEXEC_NODISABLE);
+    for (int i = 0; i < output.size(); i++) {
+        output_i = output[i].To8BitData();
+        output_temp = output_i.ToStdString(wxConvUTF8);
+        BOOST_LOG_TRIVIAL(info) << "ping 192.168.0.1:" << output_temp;
+    }
+}
 
 std::string VersionInfo::convert_full_version(std::string short_version)
 {
@@ -744,9 +778,11 @@ static const FileWildcards file_wildcards_by_type[FT_SIZE] = {
     /* FT_3MF */     { "3MF files"sv,       { ".3mf"sv } },
     /* FT_GCODE */   { "G-code files"sv,    { ".gcode"sv } },
 #ifdef __APPLE__
-    /* FT_MODEL */   { "Supported files"sv,     { ".3mf"sv, ".stl"sv, ".stp"sv, ".step"sv, ".svg"sv, ".amf"sv, ".obj"sv , ".usd"sv, ".usda"sv, ".usdc"sv, ".usdz"sv, ".abc"sv, ".ply"sv} },
+    /* FT_MODEL */
+    {"Supported files"sv, {".3mf"sv, ".stl"sv, ".oltp"sv, ".stp"sv, ".step"sv, ".svg"sv, ".amf"sv, ".obj"sv, ".usd"sv, ".usda"sv, ".usdc"sv, ".usdz"sv, ".abc"sv, ".ply"sv}},
 #else
-    /* FT_MODEL */   {"Supported files"sv,  {".3mf"sv, ".stl"sv, ".stp"sv, ".step"sv, ".svg"sv, ".amf"sv, ".obj"sv }},
+    /* FT_MODEL */
+    {"Supported files"sv, {".3mf"sv, ".stl"sv, ".oltp"sv, ".stp"sv, ".step"sv, ".svg"sv, ".amf"sv, ".obj"sv}},
 #endif
     /* FT_PROJECT */ { "Project files"sv,   { ".3mf"sv} },
     /* FT_GALLERY */ { "Known files"sv,     { ".stl"sv, ".obj"sv } },
@@ -923,15 +959,15 @@ static void register_win32_device_notification_event()
         return false;
     });
 
-	//wxWindow::MSWRegisterMessageHandler(WM_COPYDATA, [](wxWindow* win, WXUINT /* nMsg */, WXWPARAM wParam, WXLPARAM lParam) {
-	//	COPYDATASTRUCT* copy_data_structure = { 0 };
-	//	copy_data_structure = (COPYDATASTRUCT*)lParam;
-	//	if (copy_data_structure->dwData == 1) {
-	//		LPCWSTR arguments = (LPCWSTR)copy_data_structure->lpData;
-	//		Slic3r::GUI::wxGetApp().other_instance_message_handler()->handle_message(boost::nowide::narrow(arguments));
-	//	}
-	//	return true;
-	//	});
+	wxWindow::MSWRegisterMessageHandler(WM_COPYDATA, [](wxWindow* win, WXUINT /* nMsg */, WXWPARAM wParam, WXLPARAM lParam) {
+		COPYDATASTRUCT* copy_data_structure = { 0 };
+		copy_data_structure = (COPYDATASTRUCT*)lParam;
+		if (copy_data_structure->dwData == 1) {
+			LPCWSTR arguments = (LPCWSTR)copy_data_structure->lpData;
+			Slic3r::GUI::wxGetApp().other_instance_message_handler()->handle_message(boost::nowide::narrow(arguments));
+		}
+		return true;
+		});
 }
 #endif // WIN32
 
@@ -1025,8 +1061,12 @@ void GUI_App::post_init()
         // BOOST_LOG_TRIVIAL(info) << "Loading user presets...";
         // scrn->SetText(_L("Loading user presets..."));
         if (m_agent) { start_sync_user_preset(); }
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync_user_preset: true";
+    } else {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync_user_preset: false";
     }
 
+    m_open_method = "double_click";
     bool switch_to_3d = false;
     if (!this->init_params->input_files.empty()) {
 
@@ -1039,20 +1079,37 @@ void GUI_App::post_init()
             std::string download_params_url = url_decode(this->init_params->input_files.front());
             auto input_str_arr = split_str(download_params_url, "file=");
 
+
             std::string download_url;
+#if BBL_RELEASE_TO_PUBLIC
             for (auto input_str : input_str_arr) {
-                if ( boost::starts_with(input_str, "http://") ||  boost::starts_with(input_str, "https://")) {
+                if (boost::starts_with(input_str, "http://makerworld") ||
+                    boost::starts_with(input_str, "https://makerworld") ||
+                    boost::algorithm::contains(input_str, "amazonaws.com") ||
+                    boost::algorithm::contains(input_str, "aliyuncs.com")) {
                     download_url = input_str;
                 }
-
             }
-
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("download_url %1%") % download_url;
+#else
+            for (auto input_str : input_str_arr) {
+                download_url = input_str;
+            }
+#endif
+            try
+            {
+                //filter relative directories
+                std::regex pattern("\\.\\.[\\/\\\\]|\\.\\.[\\/\\\\][\\/\\\\]|\\.\\/[\\/\\\\]|\\.[\\/\\\\]");
+                download_url = std::regex_replace(download_url, pattern, "");
+            }
+            catch (...){}
+            
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", download_url %1%") % download_url;
 
             if (!download_url.empty()) {
                 m_download_file_url = from_u8(download_url);
             }
 
+            m_open_method = "makerworld";
         }
         else {
             switch_to_3d = true;
@@ -1060,6 +1117,7 @@ void GUI_App::post_init()
                 mainframe->select_tab(size_t(MainFrame::tp3DEditor));
                 plater_->select_view_3D("3D");
                 this->plater()->load_gcode(from_u8(this->init_params->input_files.front()));
+                m_open_method = "gcode";
             }
             else {
                 mainframe->select_tab(size_t(MainFrame::tp3DEditor));
@@ -1070,6 +1128,17 @@ void GUI_App::post_init()
                 }
                 this->plater()->set_project_filename(_L("Untitled"));
                 this->plater()->load_files(input_files);
+                try {
+                    if (!input_files.empty()) {
+                        std::string file_path = input_files.front().ToStdString();
+                        std::filesystem::path path(file_path);
+                        m_open_method = "file_" + path.extension().string();
+                    }
+                }
+                catch (...) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ", file path exception!";
+                    m_open_method = "file";
+                }
             }
         }
     }
@@ -1265,8 +1334,7 @@ void GUI_App::post_init()
         });
 
 
-    std::string filaments_blacklist_config_file = Slic3r::resources_dir() + "/printers/filaments_blacklist.json";
-    DeviceManager::load_filaments_blacklist_config(encode_path(filaments_blacklist_config_file.c_str()));
+    DeviceManager::load_filaments_blacklist_config();
 
     // remove old log files over LOG_FILES_MAX_NUM
     std::string log_addr = data_dir();
@@ -1301,11 +1369,10 @@ void GUI_App::post_init()
         }
     }
     BOOST_LOG_TRIVIAL(info) << "finished post_init";
-//BBS: remove the single instance currently
-/*#ifdef _WIN32
+#ifdef _WIN32
     // Sets window property to mainframe so other instances can indentify it.
     OtherInstanceMessageHandler::init_windows_properties(mainframe, m_instance_hash_int);
-#endif //WIN32*/
+#endif //WIN32
 }
 
 wxDEFINE_EVENT(EVT_ENTER_FORCE_UPGRADE, wxCommandEvent);
@@ -1324,10 +1391,13 @@ GUI_App::GUI_App()
     , m_imgui(new ImGuiWrapper())
     , hms_query(new HMSQuery())
 	, m_removable_drive_manager(std::make_unique<RemovableDriveManager>())
-	//, m_other_instance_message_handler(std::make_unique<OtherInstanceMessageHandler>())
+	, m_other_instance_message_handler(std::make_unique<OtherInstanceMessageHandler>())
 {
 	//app config initializes early becasuse it is used in instance checking in BambuStudio.cpp
     this->init_app_config();
+    if (app_config) {
+        ::Label::initSysFont(app_config->get_language_code(), false);
+    }
     this->init_download_path();
 
     reset_to_active();
@@ -1372,6 +1442,18 @@ std::string GUI_App::get_http_url(std::string country_code, std::string path)
     else if (country_code == "ENV_CN_PRE") {
         url = "https://api-pre.bambu-lab.com/";
     }
+    else if (country_code == "NEW_ENV_DEV_HOST")
+    {
+        url = "https://api-dev.bambulab.net/";
+    }
+    else if (country_code == "NEW_ENV_QAT_HOST")
+    {
+        url = "https://api-qa.bambulab.net/";
+    }
+    else if (country_code == "NEW_ENV_PRE_HOST")
+    {
+        url = "https://api-pre.bambulab.net/";
+    }
     else {
         url = "https://api.bambulab.com/";
     }
@@ -1397,6 +1479,18 @@ std::string GUI_App::get_model_http_url(std::string country_code)
     }
     else if (country_code == "ENV_CN_PRE") {
         url = "https://makerhub-pre.bambu-lab.com/";
+    }
+    else if (country_code == "NEW_ENV_DEV_HOST")
+    {
+        url = "https://makerhub-dev.bambulab.net/";
+    }
+    else if (country_code == "NEW_ENV_QAT_HOST")
+    {
+        url = "https://makerhub-qa.bambulab.net/";
+    }
+    else if (country_code == "NEW_ENV_PRE_HOST")
+    {
+        url = "https://makerhub-pre.bambulab.net/";
     }
     else {
         url = "https://makerworld.com/";
@@ -1863,6 +1957,12 @@ void GUI_App::init_networking_callbacks()
                 /* request_pushing */
                 MachineObject* obj = m_device_manager->get_my_machine(tunnel ? dev_id.substr(7) : dev_id);
                 if (obj) {
+//#if !BBL_RELEASE_TO_PUBLIC && defined(__WINDOWS__)
+//                    if (obj->is_tunnel_mqtt && !tunnel)
+//                        boost::thread ping_thread = Slic3r::create_thread([] {
+//                            start_ping_test();
+//                        });
+//#endif
                     obj->is_tunnel_mqtt = tunnel;
                     obj->command_request_push_all(true);
                     obj->command_get_version();
@@ -2147,7 +2247,7 @@ void GUI_App::init_app_config()
         if (!error.empty()) {
             // Error while parsing config file. We'll customize the error message and rethrow to be displayed.
             throw Slic3r::RuntimeError(
-                _u8L("BambuStudio configuration file may be corrupted and is not abled to be parsed."
+                _u8L("BambuStudio configuration file may be corrupted and is not able to be parsed."
                      "Please delete the file and try again.") +
                 "\n\n" + app_config->config_path() + "\n\n" + error);
         }
@@ -2201,7 +2301,7 @@ std::map<std::string, std::string> GUI_App::get_extra_header()
     extra_headers.insert(std::make_pair("X-BBL-OS-Version", os_version));
     if (app_config)
         extra_headers.insert(std::make_pair("X-BBL-Device-ID", app_config->get("slicer_uuid")));
-    extra_headers.insert(std::make_pair("X-BBL-Language", convert_studio_language_to_api(app_config->get("language"))));
+    extra_headers.insert(std::make_pair("X-BBL-Language", convert_studio_language_to_api(into_u8(current_language_code_safe()))));
     return extra_headers;
 }
 
@@ -2260,11 +2360,11 @@ std::string GUI_App::get_local_models_path()
     return local_path;
 }
 
-/*void GUI_App::init_single_instance_checker(const std::string &name, const std::string &path)
+void GUI_App::init_single_instance_checker(const std::string &name, const std::string &path)
 {
     BOOST_LOG_TRIVIAL(debug) << "init wx instance checker " << name << " "<< path;
     m_single_instance_checker = std::make_unique<wxSingleInstanceChecker>(boost::nowide::widen(name), boost::nowide::widen(path));
-}*/
+}
 
 bool GUI_App::OnInit()
 {
@@ -2357,9 +2457,6 @@ bool GUI_App::on_init_inner()
         for (auto d : dialogStack)
             d->EndModal(wxID_ABORT);
     });
-
-    std::map<std::string, std::string> extra_headers = get_extra_header();
-    Slic3r::Http::set_extra_headers(extra_headers);
 
     // Verify resources path
     const wxString resources_dir = from_u8(Slic3r::resources_dir());
@@ -2623,6 +2720,10 @@ bool GUI_App::on_init_inner()
 
     Bind(EVT_SHOW_IP_DIALOG, &GUI_App::show_ip_address_enter_dialog_handler, this);
 
+
+    std::map<std::string, std::string> extra_headers = get_extra_header();
+    Slic3r::Http::set_extra_headers(extra_headers);
+
     copy_network_if_available();
     on_init_network();
 
@@ -2718,9 +2819,9 @@ bool GUI_App::on_init_inner()
 
     update_mode(); // update view mode after fix of the object_list size
 
-//#ifdef __APPLE__
-//    other_instance_message_handler()->bring_instance_forward();
-//#endif //__APPLE__
+#ifdef __APPLE__
+    other_instance_message_handler()->bring_instance_forward();
+#endif //__APPLE__
 
     Bind(EVT_HTTP_ERROR, &GUI_App::on_http_error, this);
 
@@ -2797,7 +2898,7 @@ void GUI_App::copy_network_if_available()
 {
     if (app_config->get("update_network_plugin") != "true")
         return;
-    std::string network_library, player_library, network_library_dst, player_library_dst;
+    std::string network_library, player_library, live555_library, network_library_dst, player_library_dst, live555_library_dst;
     std::string data_dir_str = data_dir();
     boost::filesystem::path data_dir_path(data_dir_str);
     auto plugin_folder = data_dir_path / "plugins";
@@ -2805,19 +2906,25 @@ void GUI_App::copy_network_if_available()
     std::string changelog_file = cache_folder.string() + "/network_plugins.json";
 #if defined(_MSC_VER) || defined(_WIN32)
     network_library = cache_folder.string() + "/bambu_networking.dll";
-    player_library = cache_folder.string() + "/BambuSource.dll";
+    player_library      = cache_folder.string() + "/BambuSource.dll";
+    live555_library     = cache_folder.string() + "/live555.dll";
     network_library_dst = plugin_folder.string() + "/bambu_networking.dll";
-    player_library_dst = plugin_folder.string() + "/BambuSource.dll";
+    player_library_dst  = plugin_folder.string() + "/BambuSource.dll";
+    live555_library_dst = plugin_folder.string() + "/live555.dll";
 #elif defined(__WXMAC__)
     network_library = cache_folder.string() + "/libbambu_networking.dylib";
     player_library = cache_folder.string() + "/libBambuSource.dylib";
+    live555_library = cache_folder.string() + "/liblive555.dylib";
     network_library_dst = plugin_folder.string() + "/libbambu_networking.dylib";
     player_library_dst = plugin_folder.string() + "/libBambuSource.dylib";
+    live555_library_dst = plugin_folder.string() + "/liblive555.dylib";
 #else
     network_library = cache_folder.string() + "/libbambu_networking.so";
-    player_library = cache_folder.string() + "/libBambuSource.so";
+    player_library      = cache_folder.string() + "/libBambuSource.so";
+    live555_library     = cache_folder.string() + "/liblive555.so";
     network_library_dst = plugin_folder.string() + "/libbambu_networking.so";
-    player_library_dst = plugin_folder.string() + "/libBambuSource.so";
+    player_library_dst  = plugin_folder.string() + "/libBambuSource.so";
+    live555_library_dst = plugin_folder.string() + "/liblive555.so";
 #endif
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ": checking network_library " << network_library << ", player_library " << player_library;
@@ -2850,6 +2957,19 @@ void GUI_App::copy_network_if_available()
         fs::permissions(player_library_dst, perms);
         fs::remove(player_library);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ": Copying player library from" << player_library << " to " << player_library_dst<<" successfully.";
+    }
+
+    if (boost::filesystem::exists(live555_library)) {
+        CopyFileResult cfr = copy_file(live555_library, live555_library_dst, error_message, false);
+        if (cfr != CopyFileResult::SUCCESS) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": Copying failed(" << cfr << "): " << error_message;
+            return;
+        }
+
+        static constexpr const auto perms = fs::owner_read | fs::owner_write | fs::group_read | fs::others_read;
+        fs::permissions(live555_library_dst, perms);
+        fs::remove(live555_library);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ": Copying live555 library from" << live555_library << " to " << live555_library_dst<<" successfully.";
     }
     if (boost::filesystem::exists(changelog_file))
         fs::remove(changelog_file);
@@ -3023,9 +3143,8 @@ void GUI_App::update_label_colours_from_appconfig()
 void GUI_App::update_publish_status()
 {
     mainframe->show_publish_button(has_model_mall());
-    if (app_config->get("staff_pick_switch") == "true") {
-        mainframe->m_webview->SendDesignStaffpick(has_model_mall());
-    }
+
+    mainframe->m_webview->ResetWholePage();
 }
 
 bool GUI_App::has_model_mall()
@@ -3303,17 +3422,8 @@ void GUI_App::link_to_network_check()
     else if (country_code == "CN") {
         url = "https://status.bambulab.cn";
     }
-    else if (country_code == "ENV_CN_DEV") {
-        url = "https://status.bambu-lab.com";
-    }
-    else if (country_code == "ENV_CN_QA") {
-        url = "https://status.bambu-lab.com";
-    }
-    else if (country_code == "ENV_CN_PRE") {
-        url = "https://status.bambu-lab.com";
-    }
     else {
-        url = "https://status.bambu-lab.com";
+        url = "https://status.bambulab.com";
     }
     wxLaunchDefaultBrowser(url);
 }
@@ -3381,7 +3491,10 @@ void GUI_App::check_printer_presets()
 #endif
 }
 
-void GUI_App::recreate_GUI(const wxString& msg_name)
+void switch_window_pools();
+void release_window_pools();
+
+void GUI_App::recreate_GUI(const wxString &msg_name)
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "recreate_GUI enter";
     m_is_recreating_gui = true;
@@ -3389,12 +3502,18 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
     update_http_extra_header();
 
     mainframe->shutdown();
-
     ProgressDialog dlg(msg_name, msg_name, 100, nullptr, wxPD_AUTO_HIDE);
     dlg.Pulse();
     dlg.Update(10, _L("Rebuild") + dots);
 
     MainFrame *old_main_frame = mainframe;
+    struct ClientData : wxClientData
+    {
+        ~ClientData() { release_window_pools(); }
+    };
+    old_main_frame->SetClientObject(new ClientData);
+
+    switch_window_pools();
     mainframe = new MainFrame();
     if (is_editor())
         // hide settings tabs after first Layout
@@ -3463,6 +3582,7 @@ void GUI_App::ShowUserGuide() {
         if (res) {
             load_current_presets();
             update_publish_status();
+            mainframe->refresh_plugin_tips();
             // BBS: remove SLA related message
         }
     } catch (std::exception &e) {
@@ -3704,13 +3824,13 @@ void GUI_App::get_login_info()
         if (m_agent->is_user_login()) {
             std::string login_cmd = m_agent->build_login_cmd();
             wxString strJS = wxString::Format("window.postMessage(%s)", login_cmd);
-            GUI::wxGetApp().run_script(strJS);
+            GUI::wxGetApp().run_script_left(strJS);
         }
         else {
             m_agent->user_logout();
             std::string logout_cmd = m_agent->build_logout_cmd();
             wxString strJS = wxString::Format("window.postMessage(%s)", logout_cmd);
-            GUI::wxGetApp().run_script(strJS);
+            GUI::wxGetApp().run_script_left(strJS);
         }
     }
 }
@@ -3760,7 +3880,7 @@ void GUI_App::request_user_logout()
         /* delete old user settings */
         bool     transfer_preset_changes = false;
         wxString header = _L("Some presets are modified.") + "\n" +
-            _L("You can keep the modifield presets to the new project, discard or save changes as new presets.");
+            _L("You can keep the modified presets for the new project, discard or save changes as new presets.");
         using ab        = UnsavedChangesDialog::ActionButtons;
         wxGetApp().check_and_keep_current_preset_changes(_L("User logged out"), header, ab::KEEP | ab::SAVE, &transfer_preset_changes);
 
@@ -3854,7 +3974,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
             else if (command_str.compare("modelmall_model_advise_get") == 0) {
                 if (mainframe && this->app_config->get("staff_pick_switch") == "true") {
                     if (mainframe->m_webview) {
-                        mainframe->m_webview->SendDesignStaffpick(has_model_mall());
+                            mainframe->m_webview->SendDesignStaffpick(has_model_mall());                                      
                     }
                 }
             }
@@ -3941,6 +4061,11 @@ std::string GUI_App::handle_web_request(std::string cmd)
                     boost::optional<std::string> path      = data_node.get_optional<std::string>("url");
                     if (path.has_value()) {
                         wxLaunchDefaultBrowser(path.value());
+                        if (m_agent) {
+                            json j;
+                            j["user_guide"] = path.value();
+                            m_agent->track_event("user_guide", j.dump());
+                        }
                     }
                 }
             }
@@ -3959,6 +4084,49 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 boost::optional<std::string> path      = root.get_optional<std::string>("url");
                 if (path.has_value()) {
                     wxLaunchDefaultBrowser(path.value());
+                }
+            } 
+            else if (command_str.compare("homepage_leftmenu_clicked") == 0) {
+                if (root.get_child_optional("menu") != boost::none) { 
+                    std::string strMenu = root.get_optional<std::string>("menu").value();
+                    int         nRefresh = root.get_child_optional("refresh") == boost::none ? 0 : root.get_optional<int>("refresh").value();
+                     
+                    CallAfter([this,strMenu, nRefresh] {
+                        if (mainframe->m_webview) 
+                        { 
+                            mainframe->m_webview->SwitchWebContent(strMenu, nRefresh); 
+                        }
+                    }
+                    );
+                }
+            } 
+            else if (command_str.compare("homepage_leftmenu_switch") == 0) {
+                if (root.get_child_optional("menu") != boost::none) {
+                    std::string strMenu = root.get_optional<std::string>("menu").value();
+
+                    if (mainframe->m_webview) { mainframe->m_webview->SwitchLeftMenu(strMenu); }
+                }
+            }
+            else if (command_str.compare("homepage_makerlab_get") == 0) {
+                if (mainframe->m_webview) { mainframe->m_webview->SendMakerlabList(); }
+            }
+            else if (command_str.compare("homepage_makerlab_open") == 0) {
+                if (root.get_child_optional("url") != boost::none) {
+                    std::string strUrl = root.get_optional<std::string>("url").value();
+
+                    if (mainframe->m_webview) { mainframe->m_webview->OpenOneMakerlab(strUrl); }
+                }
+            } 
+            else if (command_str.compare("makerworld_model_open") == 0) 
+            {
+                if (root.get_child_optional("model") != boost::none) {
+                    pt::ptree                    data_node = root.get_child("model");
+                    boost::optional<std::string> path      = data_node.get_optional<std::string>("url");
+                    if (path.has_value()) 
+                    { 
+                        wxString realurl = from_u8(url_decode(path.value()));
+                        wxGetApp().request_model_download(realurl);
+                    }
                 }
             }
         }
@@ -4181,8 +4349,14 @@ void GUI_App::check_track_enable()
         /* record studio start event */
         json j;
         j["user_mode"] = this->get_mode_str();
+        j["open_method"] = m_open_method;
         if (m_agent) {
             m_agent->track_event("studio_launch", j.dump());
+        }
+    }
+    else {
+        if (m_agent) {
+            m_agent->track_remove_files();
         }
     }
 }
@@ -4455,6 +4629,24 @@ std::string GUI_App::format_display_version()
             ++j;
     }
     return version_display;
+}
+
+std::string GUI_App::format_IP(const std::string& ip)
+{
+    std::string format_ip = ip;
+    size_t pos_st = 0;
+    size_t pos_en = 0;
+
+    for (int i = 0; i < 2; i++) {
+        pos_en = format_ip.find('.', pos_st + 1);
+        if (pos_en == std::string::npos) {
+            return ip;
+        }
+        format_ip.replace(pos_st, pos_en - pos_st, "***");
+        pos_st = pos_en + 1;
+    }
+
+    return format_ip;
 }
 
 void GUI_App::show_dialog(wxString msg)
@@ -5258,7 +5450,7 @@ bool GUI_App::show_modal_ip_address_enter_dialog(wxString title)
             auto ip_address = selection_data_arr[0];
             auto access_code = selection_data_arr[1];
 
-            BOOST_LOG_TRIVIAL(info) << "User enter IP address is " << ip_address;
+            BOOST_LOG_TRIVIAL(info) << "User enter IP address is " << format_IP(ip_address.ToStdString());
             if (!ip_address.empty()) {
                 wxGetApp().app_config->set_str("ip_address", obj->dev_id, ip_address.ToStdString());
                 wxGetApp().app_config->save();
@@ -5799,7 +5991,7 @@ void GUI_App::OSXStoreOpenFiles(const wxArrayString &fileNames)
 
 void GUI_App::MacOpenURL(const wxString& url)
 {
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "get mac url " << url;
+    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << "get mac url " << url;
 
     if (!url.empty() && boost::starts_with(url, "bambustudioopen://")) {
         auto input_str_arr = split_str(url.ToStdString(), "bambustudioopen://");
@@ -5810,7 +6002,7 @@ void GUI_App::MacOpenURL(const wxString& url)
         }
 
         std::string download_file_url = url_decode(download_origin_url);
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << download_file_url;
+        BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << download_file_url;
         if (!download_file_url.empty() && (boost::starts_with(download_file_url, "http://") || boost::starts_with(download_file_url, "https://"))) {
 
             if (m_post_initialized) {
@@ -5826,7 +6018,8 @@ void GUI_App::MacOpenURL(const wxString& url)
 // wxWidgets override to get an event on open files.
 void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
 {
-    if (m_post_initialized) {
+    bool single_instance = app_config->get("app", "single_instance") == "true";
+    if (m_post_initialized && !single_instance) {
         bool has3mf = false;
         std::vector<wxString> names;
         for (auto & n : fileNames) {
@@ -5894,6 +6087,12 @@ void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
 Sidebar& GUI_App::sidebar()
 {
     return plater_->sidebar();
+}
+
+GizmoObjectManipulation *GUI_App::obj_manipul()
+{
+    // If this method is called before plater_ has been initialized, return nullptr (to avoid a crash)
+    return (plater_ != nullptr) ? &plater_->get_view3D_canvas3D()->get_gizmos_manager().get_object_manipulation() : nullptr;
 }
 
 ObjectSettings* GUI_App::obj_settings()
@@ -5979,6 +6178,12 @@ void GUI_App::open_mall_page_dialog()
        link_url = host_url + model_url;
     }
 
+    if (link_url.find("?") != std::string::npos) {
+        link_url += "&from=bambustudio";
+    } else {
+        link_url += "?from=bambustudio";
+    }
+
     wxLaunchDefaultBrowser(link_url);
 }
 
@@ -6043,6 +6248,12 @@ void GUI_App::run_script(wxString js)
         return mainframe->RunScript(js);
 }
 
+void GUI_App::run_script_left(wxString js) 
+{
+    if (mainframe) 
+        return mainframe->RunScriptLeft(js);
+}
+
 Notebook* GUI_App::tab_panel() const
 {
     if (mainframe)
@@ -6079,6 +6290,15 @@ int GUI_App::filaments_cnt() const
     return preset_bundle->filament_presets.size();
 }
 
+PrintSequence GUI_App::global_print_sequence() const
+{
+    PrintSequence global_print_seq = PrintSequence::ByDefault;
+    auto curr_preset_config = preset_bundle->prints.get_edited_preset().config;
+    if (curr_preset_config.has("print_sequence"))
+        global_print_seq = curr_preset_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence")->value;
+    return global_print_seq;
+}
+
 wxString GUI_App::current_language_code_safe() const
 {
 	// Translate the language code to a code, for which Prusa Research maintains translations.
@@ -6097,6 +6317,7 @@ wxString GUI_App::current_language_code_safe() const
 		{ "uk", 	"uk_UA", },
 		{ "zh", 	"zh_CN", },
 		{ "ru", 	"ru_RU", },
+        { "tr",     "tr_TR", },
 	};
 	wxString language_code = this->current_language_code().BeforeFirst('_');
 	auto it = mapping.find(language_code);
@@ -6152,6 +6373,7 @@ bool GUI_App::run_wizard(ConfigWizard::RunReason reason, ConfigWizard::StartPage
     if (res) {
         load_current_presets();
         update_publish_status();
+        mainframe->refresh_plugin_tips();
         // BBS: remove SLA related message
     }
 

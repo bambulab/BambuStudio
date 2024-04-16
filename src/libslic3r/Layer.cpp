@@ -178,7 +178,15 @@ void Layer::make_perimeters()
 		                && config.infill_wall_overlap              == other_config.infill_wall_overlap
                         && config.fuzzy_skin                  == other_config.fuzzy_skin
                         && config.fuzzy_skin_thickness        == other_config.fuzzy_skin_thickness
-                        && config.fuzzy_skin_point_distance       == other_config.fuzzy_skin_point_distance)
+                        && config.fuzzy_skin_point_distance       == other_config.fuzzy_skin_point_distance
+                        && config.seam_slope_type         == other_config.seam_slope_type
+                        && config.seam_slope_conditional == other_config.seam_slope_conditional
+                        && config.scarf_angle_threshold  == other_config.scarf_angle_threshold
+                        && config.seam_slope_start_height == other_config.seam_slope_start_height
+                        && config.seam_slope_entire_loop  == other_config.seam_slope_entire_loop
+                        && config.seam_slope_min_length   == other_config.seam_slope_min_length
+                        && config.seam_slope_steps        == other_config.seam_slope_steps
+                        && config.seam_slope_inner_walls  == other_config.seam_slope_inner_walls)
 		            {
 			 			other_layerm->perimeters.clear();
 			 			other_layerm->fills.clear();

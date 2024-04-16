@@ -23,8 +23,28 @@ function SendPrivacySelect()
 }
 
 
+function SendPrivacyValue( strVal )
+{
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="user_private_choice";
+	tSend['data']={};
+	tSend['data']['action']=strVal;
+	
+	SendWXMessage( JSON.stringify(tSend) );		
+}
+
+function GotoSkipPage()
+{
+	SendPrivacyValue('refuse');
+	
+	RequestProfile();
+}
+
 function GotoNextPage()
 {
+	SendPrivacyValue('agree');
+	
 	RequestProfile();	
 }
 

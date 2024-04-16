@@ -4,6 +4,7 @@
 #include <deque>
 #include <set>
 #include <unordered_map>
+#include <unordered_set>
 #include <functional>
 #include <mutex>
 #include <boost/filesystem/path.hpp>
@@ -242,6 +243,7 @@ public:
     std::string         base_id;         // base id of preset
     std::string         sync_info;       // enum: "delete", "create", "update", ""
     std::string         custom_defined;  // enum: "1", "0", ""
+    std::string         description;     // 
     long long           updated_time{0};    //last updated time
     std::map<std::string, std::string> key_values;
 
@@ -461,8 +463,7 @@ public:
     Preset&         load_preset(const std::string &path, const std::string &name, DynamicPrintConfig &&config, bool select = true, Semver file_version = Semver(), bool is_custom_defined = false);
 
     bool clone_presets(std::vector<Preset const *> const &presets, std::vector<std::string> &failures, std::function<void(Preset &, Preset::Type &)> modifier, bool force_rewritten = false);
-    bool clone_presets_for_printer(std::vector<Preset const *> const &presets, std::vector<std::string> &failures, std::string const &printer, bool force_rewritten = false);
-    bool create_presets_from_template_for_printer(
+    bool clone_presets_for_printer(
         std::vector<Preset const *> const &templates, std::vector<std::string> &failures, std::string const &printer, std::function <std::string(std::string)> create_filament_id, bool force_rewritten = false);
     bool clone_presets_for_filament(Preset const *const &     preset,
                                     std::vector<std::string> &failures,
@@ -558,6 +559,8 @@ public:
 
     const std::string& 		get_preset_name_by_alias(const std::string& alias) const;
 	const std::string*		get_preset_name_renamed(const std::string &old_name) const;
+    bool                    is_alias_exist(const std::string &alias, Preset* preset = nullptr);
+    void                    set_printer_hold_alias(const std::string &alias, Preset &preset);
 
 	// used to update preset_choice from Tab
 	const std::deque<Preset>&	get_presets() const	{ return m_presets; }
@@ -677,6 +680,7 @@ public:
     // Without force, the selection is only updated if the index changes.
     // With force, the changes are reverted if the new index is the same as the old index.
     bool            select_preset_by_name(const std::string &name, bool force);
+    bool is_base_preset(const Preset &preset) const { return preset.is_system || (preset.is_user() && preset.inherits().empty()); }
 
     // Generate a file path from a profile name. Add the ".ini" suffix if it is missing.
     std::string     path_from_name(const std::string &new_name, bool detach = false) const;
@@ -707,6 +711,8 @@ protected:
 
     // Update m_map_system_profile_renamed from loaded system profiles.
     void 			update_map_system_profile_renamed();
+
+    void            set_custom_preset_alias(Preset &preset);
 
 private:
     // Find a preset position in the sorted list of presets.
@@ -751,7 +757,8 @@ private:
     // so that the addresses of the presets don't change during resizing of the container.
     std::deque<Preset>      m_presets;
     // System profiles may have aliases. Map to the full profile name.
-    std::vector<std::pair<std::string, std::string>> m_map_alias_to_profile_name;
+    std::map<std::string, std::vector<std::string>> m_map_alias_to_profile_name;
+    std::unordered_map<std::string, std::unordered_set<std::string>> m_printer_hold_alias;
     // Map from old system profile name to a current system profile name.
     std::map<std::string, std::string> m_map_system_profile_renamed;
     // Initially this preset contains a copy of the selected preset. Later on, this copy may be modified by the user.

@@ -26,6 +26,8 @@ private:
     bool m_bold = true;
     bool m_italic = false;
     float m_thickness = 2.f;
+    float m_thickness_min = 0.f;
+    float m_thickness_max = 999.99f;
     float m_embeded_depth = 0.f;
     float m_rotate_angle = 0;
     float m_text_gap = 0.f;
@@ -89,6 +91,7 @@ public:
 protected:
     virtual bool on_init() override;
     virtual std::string on_get_name() const override;
+    virtual std::string on_get_name_str() override { return "Text shape"; }
     virtual bool on_is_activable() const override;
     virtual void on_render() override;
     virtual void on_render_for_picking() override;

@@ -133,6 +133,7 @@ enum ManualPaCaliMethod {
     PA_PATTERN,
 };
 
+
 struct RatingInfo {
     bool        request_successful;
     int         http_code;
@@ -193,6 +194,7 @@ public:
     std::string     nozzle_temp_min;
     std::string     xcam_info;
     std::string     uuid;
+    int             ctype = 0;
     float           k = 0.0f;       // k range: 0 ~ 0.5
     float           n = 0.0f;       // k range: 0.6 ~ 2.0
     int             cali_idx = 0;
@@ -288,6 +290,7 @@ public:
     unsigned        reserved;
     HMSMessageLevel msg_level = HMS_UNKNOWN;
     int             msg_code = 0;
+    bool            already_read = false;
     bool parse_hms_info(unsigned attr, unsigned code);
     std::string get_long_error_code();
 
@@ -321,6 +324,9 @@ private:
 
     std::string access_code;
     std::string user_access_code;
+
+    // type, time stamp, delay
+    std::vector<std::tuple<std::string, uint64_t, uint64_t>> message_delay;
 
 public:
 
@@ -451,6 +457,7 @@ public:
     std::string bind_user_id;
     std::string bind_state;     /* free | occupied */
     std::string bind_sec_link;
+    std::string bind_ssdp_version;
     bool is_avaliable() { return bind_state == "free"; }
     time_t last_alive;
     bool m_is_online;
@@ -462,6 +469,7 @@ public:
     int  parse_msg_count = 0;
     int  keep_alive_count = 0;
     std::chrono::system_clock::time_point   last_update_time;   /* last received print data from machine */
+    std::chrono::system_clock::time_point   last_utc_time;   /* last received print data from machine */
     std::chrono::system_clock::time_point   last_keep_alive;    /* last received print data from machine */
     std::chrono::system_clock::time_point   last_push_time;     /* last received print push from machine */
     std::chrono::system_clock::time_point   last_request_push;  /* last received print push from machine */
@@ -564,7 +572,7 @@ public:
     int upgrade_display_state = 0;           // 0 : upgrade unavailable, 1: upgrade idle, 2: upgrading, 3: upgrade_finished
     int upgrade_display_hold_count = 0;
     PrinterFirmwareType       firmware_type; // engineer|production
-    PrinterFirmwareType       lifecycle { PrinterFirmwareType::FIRMEARE_TYPE_UKNOWN };
+    PrinterFirmwareType       lifecycle { PrinterFirmwareType::FIRMWARE_TYPE_PRODUCTION };
     std::string upgrade_progress;
     std::string upgrade_message;
     std::string upgrade_status;
@@ -619,6 +627,7 @@ public:
     std::vector<CaliPresetInfo> selected_cali_preset;
     float                      cache_flow_ratio { 0.0 };
     bool                       cali_finished = true;
+    FlowRatioCalibrationType   flow_ratio_calibration_type = FlowRatioCalibrationType::COMPLETE_CALIBRATION;
 
     ManualPaCaliMethod         manual_pa_cali_method = ManualPaCaliMethod::PA_LINE;
     bool                       has_get_pa_calib_tab{ false };
@@ -691,6 +700,7 @@ public:
     std::string tutk_state;
     enum LiveviewLocal {
         LVL_None,
+        LVL_Disable,
         LVL_Local, 
         LVL_Rtsps,
         LVL_Rtsp
@@ -700,6 +710,8 @@ public:
     bool        file_remote{false};
     bool        file_model_download{false};
     bool        virtual_camera{false};
+
+    int nozzle_setting_hold_count = 0;
 
     bool xcam_ai_monitoring{ false };
     int  xcam_ai_monitoring_hold_count = 0;
@@ -878,8 +890,6 @@ public:
     int command_start_flow_ratio_calibration(const X1CCalibInfos& calib_data);
     int command_get_flow_ratio_calibration_result(float nozzle_diameter);
 
-    int command_unload_filament();
-
     // camera control
     int command_ipcam_record(bool on_off);
     int command_ipcam_timelapse(bool on_off);
@@ -939,6 +949,7 @@ public:
     bool m_firmware_thread_started { false };
     void get_firmware_info();
     bool is_firmware_info_valid();
+    std::string get_string_from_fantype(FanType type);
 };
 
 class DeviceManager
@@ -1025,11 +1036,13 @@ public:
     static bool        get_printer_is_enclosed(std::string type_str);
     static std::vector<std::string> get_resolution_supported(std::string type_str);
     static std::vector<std::string> get_compatible_machine(std::string type_str);
-    static bool load_filaments_blacklist_config(std::string config_file);
+    static bool load_filaments_blacklist_config();
     static void check_filaments_in_blacklist(std::string tag_vendor, std::string tag_type, bool& in_blacklist, std::string& ac, std::string& info);
     static std::string load_gcode(std::string type_str, std::string gcode_file);
 };
 
+// change the opacity
+void change_the_opacity(wxColour& colour);
 } // namespace Slic3r
 
 #endif //  slic3r_DeviceManager_hpp_

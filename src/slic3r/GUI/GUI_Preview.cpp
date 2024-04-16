@@ -75,6 +75,7 @@ bool View3D::init(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrintConfig
     m_canvas->enable_gizmos(true);
     m_canvas->enable_selection(true);
     m_canvas->enable_main_toolbar(true);
+    m_canvas->enable_return_toolbar(true);
     //BBS: GUI refactor: GLToolbar
     m_canvas->enable_select_plate_toolbar(false);
     m_canvas->enable_assemble_view_toolbar(true);
@@ -810,10 +811,10 @@ bool AssembleView::init(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrint
     m_canvas->enable_assemble_view_toolbar(false);
     m_canvas->enable_return_toolbar(true);
     m_canvas->enable_separator_toolbar(false);
-
+    //m_canvas->set_show_world_axes(true);//wait for GitHub users to see if they have this requirement
     // BBS: set volume_selection_mode to Volume
-    m_canvas->get_selection().set_volume_selection_mode(Selection::Volume);
-    m_canvas->get_selection().lock_volume_selection_mode();
+    //same to 3d //m_canvas->get_selection().set_volume_selection_mode(Selection::Instance);
+    //m_canvas->get_selection().lock_volume_selection_mode();
 
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
     main_sizer->Add(m_canvas_widget, 1, wxALL | wxEXPAND, 0);

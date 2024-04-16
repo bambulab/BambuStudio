@@ -24,6 +24,7 @@
 #include "slic3r/GUI/Gizmos/GLGizmoSimplify.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoText.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoMeshBoolean.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmoMeasure.hpp"
 
 #include "libslic3r/format.hpp"
 #include "libslic3r/Model.hpp"
@@ -50,6 +51,7 @@ GLGizmosManager::GLGizmosManager(GLCanvas3D& parent)
     //BBS: GUI refactor: add object manipulation in gizmo
     , m_object_manipulation(parent)
 {
+    m_timer_set_color.Bind(wxEVT_TIMER, &GLGizmosManager::on_set_color_timer, this);
 }
 
 std::vector<size_t> GLGizmosManager::get_selectable_idxs() const
@@ -57,7 +59,10 @@ std::vector<size_t> GLGizmosManager::get_selectable_idxs() const
     std::vector<size_t> out;
     if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
         for (size_t i = 0; i < m_gizmos.size(); ++i)
-            if (m_gizmos[i]->get_sprite_id() == (unsigned int)MmuSegmentation)
+            if (m_gizmos[i]->get_sprite_id() == (unsigned int) Move ||
+                m_gizmos[i]->get_sprite_id() == (unsigned int) Rotate ||
+                m_gizmos[i]->get_sprite_id() == (unsigned int) Measure ||
+                m_gizmos[i]->get_sprite_id() == (unsigned int) MmuSegmentation)
                 out.push_back(i);
     }
     else {
@@ -174,6 +179,9 @@ void GLGizmosManager::switch_gizmos_icon_filename()
         case(EType::MeshBoolean):
             gizmo->set_icon_filename(m_is_dark ? "toolbar_meshboolean_dark.svg" : "toolbar_meshboolean.svg");
             break;
+        case (EType::Measure):
+            gizmo->set_icon_filename(m_is_dark ? "toolbar_measure_dark.svg" : "toolbar_measure.svg");
+            break;
         }
 
     }
@@ -210,6 +218,7 @@ bool GLGizmosManager::init()
     m_gizmos.emplace_back(new GLGizmoSeam(m_parent, m_is_dark ? "toolbar_seam_dark.svg" : "toolbar_seam.svg", EType::Seam));
     m_gizmos.emplace_back(new GLGizmoText(m_parent, m_is_dark ? "toolbar_text_dark.svg" : "toolbar_text.svg", EType::Text));
     m_gizmos.emplace_back(new GLGizmoMmuSegmentation(m_parent, m_is_dark ? "mmu_segmentation_dark.svg" : "mmu_segmentation.svg", EType::MmuSegmentation));
+    m_gizmos.emplace_back(new GLGizmoMeasure(m_parent, m_is_dark ? "toolbar_measure_dark.svg" : "toolbar_measure.svg", EType::Measure));
     m_gizmos.emplace_back(new GLGizmoSimplify(m_parent, "reduce_triangles.svg", EType::Simplify));
     //m_gizmos.emplace_back(new GLGizmoSlaSupports(m_parent, "sla_supports.svg", sprite_id++));
     //m_gizmos.emplace_back(new GLGizmoFaceDetector(m_parent, "face recognition.svg", sprite_id++));
@@ -376,6 +385,7 @@ bool GLGizmosManager::check_gizmos_closed_except(EType type) const
 
 void GLGizmosManager::set_hover_id(int id)
 {
+    if (m_current == EType::Measure) { return; }
     if (!m_enabled || m_current == Undefined)
         return;
 
@@ -631,6 +641,75 @@ void GLGizmosManager::set_painter_gizmo_data()
     dynamic_cast<GLGizmoMmuSegmentation*>(m_gizmos[MmuSegmentation].get())->set_painter_gizmo_data(m_parent.get_selection());
 }
 
+bool GLGizmosManager::is_gizmo_activable_when_single_full_instance() {
+    if (get_current_type() == GLGizmosManager::EType::Flatten ||
+        get_current_type() == GLGizmosManager::EType::Cut ||
+        get_current_type() == GLGizmosManager::EType::MeshBoolean ||
+        get_current_type() == GLGizmosManager::EType::Text ||
+        get_current_type() == GLGizmosManager::EType::Seam ||
+        get_current_type() == GLGizmosManager::EType::FdmSupports ||
+        get_current_type() == GLGizmosManager::EType::MmuSegmentation ||
+        get_current_type() == GLGizmosManager::EType::Simplify
+        ) {
+        return true;
+    }
+    return false;
+}
+
+bool GLGizmosManager::is_gizmo_click_empty_not_exit()
+{
+   if (get_current_type() == GLGizmosManager::EType::Cut ||
+       get_current_type() == GLGizmosManager::EType::MeshBoolean ||
+       get_current_type() == GLGizmosManager::EType::Seam ||
+       get_current_type() == GLGizmosManager::EType::FdmSupports ||
+       get_current_type() == GLGizmosManager::EType::MmuSegmentation ||
+       get_current_type() == GLGizmosManager::EType::Measure) {
+        return true;
+    }
+    return false;
+}
+
+bool GLGizmosManager::is_show_only_active_plate()
+{
+    if (get_current_type() == GLGizmosManager::EType::Cut ||
+        get_current_type() == GLGizmosManager::EType::Text) {
+        return true;
+    }
+    return false;
+}
+
+void GLGizmosManager::check_object_located_outside_plate() {
+    PartPlateList &plate_list       = wxGetApp().plater()->get_partplate_list();
+    auto           curr_plate_index = plate_list.get_curr_plate_index();
+    Selection &    selection        = m_parent.get_selection();
+    auto           idxs             = selection.get_volume_idxs();
+    m_object_located_outside_plate  = false;
+    if (idxs.size() > 0) {
+        const GLVolume *v          = selection.get_volume(*idxs.begin());
+        int             object_idx = v->object_idx();
+        const Model *   m_model    = m_parent.get_model();
+        if (0 <= object_idx && object_idx < (int) m_model->objects.size()) {
+            bool         find_object  = false;
+            ModelObject *model_object = m_model->objects[object_idx];
+            for (size_t i = 0; i < plate_list.get_plate_count(); i++) {
+                auto            plate   = plate_list.get_plate(i);
+                ModelObjectPtrs objects = plate->get_objects_on_this_plate();
+                for (auto object : objects) {
+                    if (model_object == object) {
+                        if (curr_plate_index != i) { // confirm selected model_object at corresponding plate
+                            wxGetApp().plater()->get_partplate_list().select_plate(i);
+                        }
+                        find_object = true;
+                    }
+                }
+            }
+            if (!find_object) {
+                m_object_located_outside_plate = true;
+            }
+        }
+    }
+}
+
 // Returns true if the gizmo used the event to do something, false otherwise.
 bool GLGizmosManager::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down)
 {
@@ -649,6 +728,8 @@ bool GLGizmosManager::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_p
         return dynamic_cast<GLGizmoMmuSegmentation*>(m_gizmos[MmuSegmentation].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
     else if (m_current == Text)
         return dynamic_cast<GLGizmoText*>(m_gizmos[Text].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
+    else if (m_current == Measure)
+        return dynamic_cast<GLGizmoMeasure *>(m_gizmos[Measure].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
     else if (m_current == Cut)
         return dynamic_cast<GLGizmoAdvancedCut *>(m_gizmos[Cut].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
     else if (m_current == MeshBoolean)
@@ -781,7 +862,11 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
 
     // when control is down we allow scene pan and rotation even when clicking over some object
     bool control_down = evt.CmdDown();
-
+    if (m_current != Undefined) {
+        // check if gizmo override method could be slower than simple call virtual function
+        // &m_gizmos[m_current]->on_mouse != &GLGizmoBase::on_mouse &&
+        m_gizmos[m_current]->on_mouse(evt);
+    }
     // mouse anywhere
     if (evt.Moving()) {
         m_tooltip = update_hover_state(mouse_pos);
@@ -795,9 +880,21 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
         }
         else if (is_dragging()) {
             switch (m_current) {
-            case Move:   { m_parent.do_move(("Tool-Move")); break; }
-            case Scale:  { m_parent.do_scale(("Tool-Scale")); break; }
-            case Rotate: { m_parent.do_rotate(("Tool-Rotate")); break; }
+            case Move:   {
+                wxGetApp().plater()->take_snapshot(_u8L("Tool-Move"), UndoRedo::SnapshotType::GizmoAction);
+                m_parent.do_move("");
+                break;
+            }
+            case Scale:  {
+                wxGetApp().plater()->take_snapshot(_u8L("Tool-Scale"), UndoRedo::SnapshotType::GizmoAction);
+                m_parent.do_scale("");
+                break;
+            }
+            case Rotate: {
+                wxGetApp().plater()->take_snapshot(_u8L("Tool-Rotate"), UndoRedo::SnapshotType::GizmoAction);
+                m_parent.do_rotate("");
+                break;
+            }
             default: break;
             }
 
@@ -877,7 +974,26 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
         case Rotate:
         {
             // Apply new temporary rotations
-            TransformationType transformation_type(TransformationType::World_Relative_Joint);
+            TransformationType transformation_type;
+            if (m_parent.get_selection().is_wipe_tower())
+                transformation_type = TransformationType::World_Relative_Joint;
+            else {
+                switch (wxGetApp().obj_manipul()->get_coordinates_type()) {
+                default:
+                case ECoordinatesType::World: {
+                    transformation_type = TransformationType::World_Relative_Joint;
+                    break;
+                }
+                case ECoordinatesType::Instance: {
+                    transformation_type = TransformationType::Instance_Relative_Joint;
+                    break;
+                }
+                case ECoordinatesType::Local: {
+                    transformation_type = TransformationType::Local_Relative_Joint;
+                    break;
+                }
+                }
+            }
             if (evt.AltDown())
                 transformation_type.set_independent();
             selection.rotate(get_rotation(), transformation_type);
@@ -904,21 +1020,23 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
                 // the gizmo got the event and took some action, there is no need to do anything more
                 processed = true;
             else if (!selection.is_empty() && grabber_contains_mouse()) {
-                update_data();
-                selection.start_dragging();
-                start_dragging();
+                if (m_current != Measure) {
+                    update_data();
+                    selection.start_dragging();
+                    start_dragging();
 
-                // Let the plater know that the dragging started
-                m_parent.post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_STARTED));
+                    // Let the plater know that the dragging started
+                    m_parent.post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_STARTED));
 
-                if (m_current == Flatten) {
-                    // Rotate the object so the normal points downward:
-                    m_parent.do_flatten(get_flattening_normal(), L("Tool-Lay on Face"));
-                    // BBS
-                    //wxGetApp().obj_manipul()->set_dirty();
+                    if (m_current == Flatten) {
+                        // Rotate the object so the normal points downward:
+                        m_parent.do_flatten(get_flattening_normal(), L("Tool-Lay on Face"));
+                        // BBS
+                        // wxGetApp().obj_manipul()->set_dirty();
+                    }
+
+                    m_parent.set_as_dirty();
                 }
-
-                m_parent.set_as_dirty();
                 processed = true;
             }
         }
@@ -968,9 +1086,8 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             //wxGetApp().obj_manipul()->set_dirty();
             processed = true;
         }
-        else if (evt.RightUp() && (m_current == FdmSupports || m_current == Seam || m_current == MmuSegmentation || m_current == Cut)
-            && !m_parent.is_mouse_dragging()
-            && gizmo_event(SLAGizmoEventType::RightUp, mouse_pos, evt.ShiftDown(), evt.AltDown(), control_down)) {
+        else if (evt.RightUp() && m_current != EType::Undefined && !m_parent.is_mouse_dragging() ) {
+            gizmo_event(SLAGizmoEventType::RightUp, mouse_pos, evt.ShiftDown(), evt.AltDown(), control_down);
             processed = true;
         }
         else if (evt.LeftUp()) {
@@ -1050,9 +1167,10 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
         // key ESC
         case WXK_ESCAPE:
         {
-            if (m_current != Undefined)
-            {
-                if ((m_current != SlaSupports) || !gizmo_event(SLAGizmoEventType::DiscardChanges))
+            if (m_current != Undefined) {
+                if (m_current == Measure && gizmo_event(SLAGizmoEventType::Escape)) {
+                    // do nothing
+                } else if ((m_current != SlaSupports) || !gizmo_event(SLAGizmoEventType::DiscardChanges))
                     reset_all_states();
 
                 processed = true;
@@ -1087,13 +1205,11 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
 
 
         //case WXK_BACK:
-        //case WXK_DELETE:
-        //{
-        //    if ((m_current == SlaSupports || m_current == Hollow) && gizmo_event(SLAGizmoEventType::Delete))
-        //        processed = true;
-
-        //    break;
-        //}
+        case WXK_DELETE: {
+            if ((m_current == Cut || m_current == Measure) && gizmo_event(SLAGizmoEventType::Delete))
+                processed = true;
+            break;
+        }
         //case 'A':
         //case 'a':
         //{
@@ -1151,7 +1267,7 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
 
 bool GLGizmosManager::on_key(wxKeyEvent& evt)
 {
-    const int keyCode = evt.GetKeyCode();
+    int keyCode = evt.GetKeyCode();
     bool processed = false;
 
     // todo: zhimin Each gizmo should handle key event in it own on_key() function
@@ -1197,7 +1313,12 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
                 processed = true;
             }
         }
-
+        if (m_current == Measure) {
+            if (keyCode == WXK_CONTROL)
+                gizmo_event(SLAGizmoEventType::CtrlUp, Vec2d::Zero(), evt.ShiftDown(), evt.AltDown(), evt.CmdDown());
+            else if (keyCode == WXK_SHIFT)
+                gizmo_event(SLAGizmoEventType::ShiftUp, Vec2d::Zero(), evt.ShiftDown(), evt.AltDown(), evt.CmdDown());
+        }
 //        if (processed)
 //            m_parent.set_cursor(GLCanvas3D::Standard);
     }
@@ -1235,8 +1356,21 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
         else if (m_current == MmuSegmentation) {
             GLGizmoMmuSegmentation* mmu_seg = dynamic_cast<GLGizmoMmuSegmentation*>(get_current());
             if (mmu_seg != nullptr) {
-                if (keyCode > '0' && keyCode <= '9') {
-                    processed = mmu_seg->on_number_key_down(keyCode - '0');
+                if (keyCode >= WXK_NUMPAD0 && keyCode <= WXK_NUMPAD9) {
+                    keyCode = keyCode- WXK_NUMPAD0+'0';
+                }
+                if (keyCode >= '0' && keyCode <= '9') {
+                    if (keyCode == '1' && !m_timer_set_color.IsRunning()) {
+                        m_timer_set_color.StartOnce(500);
+                        processed = true;
+                    }
+                    else if (keyCode < '7' && m_timer_set_color.IsRunning()) {
+                        processed = mmu_seg->on_number_key_down(keyCode - '0'+10);
+                        m_timer_set_color.Stop();
+                    }
+                    else {
+                        processed = mmu_seg->on_number_key_down(keyCode - '0');
+                    }
                 }
                 else if (keyCode == 'F' || keyCode == 'T' || keyCode == 'S' || keyCode == 'C' || keyCode == 'H' || keyCode == 'G') {
                     processed = mmu_seg->on_key_down_select_tool_type(keyCode);
@@ -1266,6 +1400,11 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
                 // force extra frame to automatically update window size
                 wxGetApp().imgui()->set_requires_extra_frame();
             }
+        } else if (m_current == Measure) {
+            if (keyCode == WXK_CONTROL)
+                gizmo_event(SLAGizmoEventType::CtrlDown, Vec2d::Zero(), evt.ShiftDown(), evt.AltDown(), evt.CmdDown());
+            else if (keyCode == WXK_SHIFT)
+                gizmo_event(SLAGizmoEventType::ShiftDown, Vec2d::Zero(), evt.ShiftDown(), evt.AltDown(), evt.CmdDown());
         }
     }
 
@@ -1273,6 +1412,15 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
         m_parent.set_as_dirty();
 
     return processed;
+}
+
+void GLGizmosManager::on_set_color_timer(wxTimerEvent& evt)
+{
+    if (m_current == MmuSegmentation) {
+        GLGizmoMmuSegmentation* mmu_seg = dynamic_cast<GLGizmoMmuSegmentation*>(get_current());
+        mmu_seg->on_number_key_down(1);
+        m_parent.set_as_dirty();
+    }
 }
 
 void GLGizmosManager::update_after_undo_redo(const UndoRedo::Snapshot& snapshot)
@@ -1656,6 +1804,9 @@ bool GLGizmosManager::activate_gizmo(EType type)
         //    wxGetApp().imgui()->load_fonts_texture();
         //}
         new_gizmo->set_state(GLGizmoBase::On);
+        if (is_show_only_active_plate()) {
+            check_object_located_outside_plate();
+        }
     }
     return true;
 }

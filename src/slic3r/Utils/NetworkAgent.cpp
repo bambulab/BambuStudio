@@ -67,6 +67,7 @@ func_get_user_nickanme              NetworkAgent::get_user_nickanme_ptr = nullpt
 func_build_login_cmd                NetworkAgent::build_login_cmd_ptr = nullptr;
 func_build_logout_cmd               NetworkAgent::build_logout_cmd_ptr = nullptr;
 func_build_login_info               NetworkAgent::build_login_info_ptr = nullptr;
+func_get_model_id_from_desgin_id    NetworkAgent::get_model_id_from_desgin_id_ptr = nullptr;
 func_bind                           NetworkAgent::bind_ptr = nullptr;
 func_unbind                         NetworkAgent::unbind_ptr = nullptr;
 func_get_bambulab_host              NetworkAgent::get_bambulab_host_ptr = nullptr;
@@ -105,6 +106,7 @@ func_get_model_mall_detail_url      NetworkAgent::get_model_mall_detail_url_ptr 
 func_get_subtask                    NetworkAgent::get_subtask_ptr = nullptr;
 func_get_my_profile                 NetworkAgent::get_my_profile_ptr = nullptr;
 func_track_enable                   NetworkAgent::track_enable_ptr = nullptr;
+func_track_remove_files             NetworkAgent::track_remove_files_ptr = nullptr;
 func_track_event                    NetworkAgent::track_event_ptr = nullptr;
 func_track_header                   NetworkAgent::track_header_ptr = nullptr;
 func_track_update_property          NetworkAgent::track_update_property_ptr = nullptr;
@@ -114,6 +116,8 @@ func_get_oss_config                 NetworkAgent::get_oss_config_ptr = nullptr;
 func_put_rating_picture_oss         NetworkAgent::put_rating_picture_oss_ptr = nullptr;
 func_get_model_mall_rating_result   NetworkAgent::get_model_mall_rating_result_ptr  = nullptr;
 
+func_get_mw_user_preference         NetworkAgent::get_mw_user_preference_ptr = nullptr;
+func_get_mw_user_4ulist             NetworkAgent::get_mw_user_4ulist_ptr     = nullptr;
 
 NetworkAgent::NetworkAgent(std::string log_dir)
 {
@@ -226,6 +230,7 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     build_login_cmd_ptr               =  reinterpret_cast<func_build_login_cmd>(get_network_function("bambu_network_build_login_cmd"));
     build_logout_cmd_ptr              =  reinterpret_cast<func_build_logout_cmd>(get_network_function("bambu_network_build_logout_cmd"));
     build_login_info_ptr              =  reinterpret_cast<func_build_login_info>(get_network_function("bambu_network_build_login_info"));
+    get_model_id_from_desgin_id_ptr   =  reinterpret_cast<func_get_model_id_from_desgin_id>(get_network_function("bambu_network_get_model_id_from_desgin_id"));
     bind_ptr                          =  reinterpret_cast<func_bind>(get_network_function("bambu_network_bind"));
     unbind_ptr                        =  reinterpret_cast<func_unbind>(get_network_function("bambu_network_unbind"));
     get_bambulab_host_ptr             =  reinterpret_cast<func_get_bambulab_host>(get_network_function("bambu_network_get_bambulab_host"));
@@ -254,8 +259,8 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     get_slice_info_ptr                =  reinterpret_cast<func_get_slice_info>(get_network_function("bambu_network_get_slice_info"));
     query_bind_status_ptr             =  reinterpret_cast<func_query_bind_status>(get_network_function("bambu_network_query_bind_status"));
     modify_printer_name_ptr           =  reinterpret_cast<func_modify_printer_name>(get_network_function("bambu_network_modify_printer_name"));
-    get_camera_url_ptr                = reinterpret_cast<func_get_camera_url>(get_network_function("bambu_network_get_camera_url"));
-    get_design_staffpick_ptr          = reinterpret_cast<func_get_design_staffpick>(get_network_function("bambu_network_get_design_staffpick"));
+    get_camera_url_ptr                =  reinterpret_cast<func_get_camera_url>(get_network_function("bambu_network_get_camera_url"));
+    get_design_staffpick_ptr          =  reinterpret_cast<func_get_design_staffpick>(get_network_function("bambu_network_get_design_staffpick"));
     start_publish_ptr                 =  reinterpret_cast<func_start_pubilsh>(get_network_function("bambu_network_start_publish"));
     get_profile_3mf_ptr               =  reinterpret_cast<func_get_profile_3mf>(get_network_function("bambu_network_get_profile_3mf"));
     get_model_publish_url_ptr         =  reinterpret_cast<func_get_model_publish_url>(get_network_function("bambu_network_get_model_publish_url"));
@@ -264,6 +269,7 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     get_model_mall_detail_url_ptr     =  reinterpret_cast<func_get_model_mall_detail_url>(get_network_function("bambu_network_get_model_mall_detail_url"));
     get_my_profile_ptr                =  reinterpret_cast<func_get_my_profile>(get_network_function("bambu_network_get_my_profile"));
     track_enable_ptr                  =  reinterpret_cast<func_track_enable>(get_network_function("bambu_network_track_enable"));
+    track_remove_files_ptr            =  reinterpret_cast<func_track_remove_files>(get_network_function("bambu_network_track_remove_files"));
     track_event_ptr                   =  reinterpret_cast<func_track_event>(get_network_function("bambu_network_track_event"));
     track_header_ptr                  =  reinterpret_cast<func_track_header>(get_network_function("bambu_network_track_header"));
     track_update_property_ptr         = reinterpret_cast<func_track_update_property>(get_network_function("bambu_network_track_update_property"));
@@ -272,6 +278,9 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     get_oss_config_ptr                = reinterpret_cast<func_get_oss_config>(get_network_function("bambu_network_get_oss_config"));
     put_rating_picture_oss_ptr        = reinterpret_cast<func_put_rating_picture_oss>(get_network_function("bambu_network_put_rating_picture_oss"));
     get_model_mall_rating_result_ptr  = reinterpret_cast<func_get_model_mall_rating_result>(get_network_function("bambu_network_get_model_mall_rating"));
+
+    get_mw_user_preference_ptr = reinterpret_cast<func_get_mw_user_preference>(get_network_function("bambu_network_get_mw_user_preference"));
+    get_mw_user_4ulist_ptr     = reinterpret_cast<func_get_mw_user_4ulist>(get_network_function("bambu_network_get_mw_user_4ulist")); 
 
     return 0;
 }
@@ -339,6 +348,7 @@ int NetworkAgent::unload_network_module()
     build_login_cmd_ptr               =  nullptr;
     build_logout_cmd_ptr              =  nullptr;
     build_login_info_ptr              =  nullptr;
+    get_model_id_from_desgin_id_ptr   =  nullptr;
     bind_ptr                          =  nullptr;
     unbind_ptr                        =  nullptr;
     get_bambulab_host_ptr             =  nullptr;
@@ -376,6 +386,7 @@ int NetworkAgent::unload_network_module()
     get_model_mall_detail_url_ptr     =  nullptr;
     get_my_profile_ptr                =  nullptr;
     track_enable_ptr                  =  nullptr;
+    track_remove_files_ptr            =  nullptr;
     track_event_ptr                   =  nullptr;
     track_header_ptr                  =  nullptr;
     track_update_property_ptr         =  nullptr;
@@ -384,6 +395,9 @@ int NetworkAgent::unload_network_module()
     put_rating_picture_oss_ptr        =  nullptr;
     put_model_mall_rating_url_ptr     =  nullptr;
     get_model_mall_rating_result_ptr  = nullptr;
+    
+    get_mw_user_preference_ptr        = nullptr;
+    get_mw_user_4ulist_ptr            = nullptr;
 
     return 0;
 }
@@ -857,6 +871,18 @@ std::string NetworkAgent::build_login_info()
     return ret;
 }
 
+int NetworkAgent::get_model_id_from_desgin_id(std::string& desgin_id, std::string& model_id)
+{
+    int ret = 0;
+    if (network_agent && get_model_id_from_desgin_id_ptr) {
+        ret = get_model_id_from_desgin_id_ptr(network_agent, desgin_id, model_id);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, ping code=%3%")
+            % network_agent % ret % desgin_id;
+    }
+    return ret;
+}
+
 int NetworkAgent::bind(std::string dev_ip, std::string dev_id, std::string sec_link, std::string timezone,  bool improved, OnUpdateStatusFn update_fn)
 {
     int ret = 0;
@@ -1179,6 +1205,27 @@ int NetworkAgent::get_design_staffpick(int offset, int limit, std::function<void
     return ret;
 }
 
+int NetworkAgent::get_mw_user_preference(std::function<void(std::string)> callback)
+{
+    int ret = 0;
+    if (network_agent && get_mw_user_preference_ptr) {
+        ret = get_mw_user_preference_ptr(network_agent,callback);
+        if (ret) BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
+    }
+    return ret;
+}
+
+
+int NetworkAgent::get_mw_user_4ulist(int seed, int limit, std::function<void(std::string)> callback)
+{
+    int ret = 0;
+    if (network_agent && get_mw_user_4ulist_ptr) {
+        ret = get_mw_user_4ulist_ptr(network_agent,seed, limit, callback);
+        if (ret) BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
+    }
+    return ret;
+}
+
 int NetworkAgent::start_publish(PublishParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, std::string *out)
 {
     int ret = 0;
@@ -1264,6 +1311,16 @@ int NetworkAgent::track_enable(bool enable)
         ret = track_enable_ptr(network_agent, enable);
         if (ret)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("error network_agnet=%1%, ret = %2%") % network_agent % ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::track_remove_files()
+{
+    int ret = 0;
+    if (network_agent && track_remove_files_ptr) {
+        ret = track_remove_files_ptr(network_agent);
+        if (ret) BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("error network_agnet=%1%, ret = %2%") % network_agent % ret;
     }
     return ret;
 }
