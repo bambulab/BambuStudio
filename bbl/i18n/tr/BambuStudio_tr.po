@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-07 16:19+0800\n"
-"PO-Revision-Date: 2024-03-27 02:40+0300\n"
+"POT-Creation-Date: 2024-03-22 15:49+0800\n"
+"PO-Revision-Date: 2024-04-01 23:03+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
 "Language: tr\n"
@@ -202,21 +202,12 @@ msgstr "Yönü optimize edin"
 msgid "Apply"
 msgstr "Uygula"
 
-#, fuzzy
+#, fuzzy		
 msgid "Scale"
-msgstr "Scale"
+msgstr "Ölçek"
 
 msgid "Error: Please close all toolbar menus first"
 msgstr "Hata: Lütfen önce tüm araç çubuğu menülerini kapatın"
-
-msgid "Tool-Move"
-msgstr ""
-
-msgid "Tool-Scale"
-msgstr ""
-
-msgid "Tool-Rotate"
-msgstr ""
 
 msgid "Tool-Lay on Face"
 msgstr "Araç-Yüzeye Yatır"
@@ -225,7 +216,7 @@ msgid "Bottom:"
 msgstr "Alt:"
 
 msgid "in"
-msgstr "içinde"
+msgstr "inç"
 
 msgid "mm"
 msgstr "mm"
@@ -334,7 +325,7 @@ msgid "Plot cut plane"
 msgstr "Kesim düzlemini çizin"
 
 msgid "right click"
-msgstr "Sağ tık"
+msgstr "sağ tık"
 
 msgid "Assign the part to the other side"
 msgstr "Parçayı diğer tarafa atayın"
@@ -348,7 +339,7 @@ msgstr ""
 "istiyor musunuz?"
 
 msgid "Repairing model object"
-msgstr "Model nesnesini onarma"
+msgstr "Model nesnesi onarılıyor"
 
 msgid "Connector"
 msgstr "Bağlayıcı"
@@ -614,10 +605,6 @@ msgstr "Çıkışa kadar bir özelliği iptal etme"
 msgid "Measure"
 msgstr "Ölçüm"
 
-msgid ""
-"Please confirm explosion ratio = 1,and please select at least one object"
-msgstr ""
-
 msgid "Edit to scale"
 msgstr "Ölçeğe göre düzenleyin"
 
@@ -647,6 +634,9 @@ msgstr ""
 msgid "Copy to clipboard"
 msgstr "Panoya kopyala"
 
+msgid "MoveInMeasure"
+msgstr "ÖlçülüHareketEt"
+
 msgid "Angle"
 msgstr "Açı"
 
@@ -661,33 +651,6 @@ msgstr "Doğrudan mesafe"
 
 msgid "Distance XYZ"
 msgstr "Uzaklık XYZ"
-
-msgid "Parallel"
-msgstr ""
-
-msgid "Center coincidence"
-msgstr ""
-
-msgid "Featue 1"
-msgstr ""
-
-msgid "Reverse rotation"
-msgstr ""
-
-msgid "Rotate around center:"
-msgstr ""
-
-msgid "Parallel_distance:"
-msgstr ""
-
-msgid "Featue 2"
-msgstr ""
-
-msgid ""
-"Due to ensuer_on_bed, assembly between \n"
-"different objects may not be correct in 3D view.\n"
-" It is recommended to assemble them together."
-msgstr ""
 
 msgid "Brush size"
 msgstr "Fırça boyutu"
@@ -1517,7 +1480,7 @@ msgstr[1] "Aşağıdaki model objeler onarıldı"
 msgid "Failed to repair the following model object"
 msgid_plural "Failed to repair the following model object"
 msgstr[0] "Aşağıdaki model nesnesi onarılamadı"
-msgstr[1] ""
+msgstr[1] "Aşağıdaki model nesnesi onarılamadı"
 
 msgid "Repairing was canceled"
 msgstr "Onarım iptal edildi"
@@ -1551,7 +1514,7 @@ msgid "Outside"
 msgstr "Dış"
 
 msgid " "
-msgstr ""
+msgstr " "
 
 msgid "Layer height"
 msgstr "Katman Yüksekliği"
@@ -1979,7 +1942,7 @@ msgid "Service Unavailable"
 msgstr "Hizmet kullanılamıyor"
 
 msgid "Unknown Error."
-msgstr "Bilinmeyen hata oluştu"
+msgstr "Bilinmeyen hata oluştu."
 
 msgid "Sending print configuration"
 msgstr "Yazdırma yapılandırması gönderiliyor"
@@ -2016,13 +1979,13 @@ msgid "Import file"
 msgstr "Dosya İçe Aktar"
 
 msgid "Import model and profile"
-msgstr "Modeli ve profili içe aktarma"
+msgstr "Model ve profil içe aktar"
 
 msgid "Import profile only"
 msgstr "Yalnızca profili içe aktar"
 
 msgid "Import model only"
-msgstr "Modeli içe aktarma"
+msgstr "Modeli içe aktar"
 
 msgid "Accurate"
 msgstr "Doğru"
@@ -2093,7 +2056,7 @@ msgid "License"
 msgstr "Lisans"
 
 msgid "Bambu Studio is licensed under "
-msgstr "Bambu Studio aşağıdaki lisanslara sahiptir"
+msgstr "Bambu Studio aşağıdaki lisanslara sahiptir "
 
 msgid "GNU Affero General Public License, version 3"
 msgstr "GNU Affero Genel Kamu Lisansı, sürüm 3"
@@ -2691,16 +2654,6 @@ msgstr ""
 "0,2'ye sıfırlayın"
 
 msgid ""
-"Too small scarf start height.\n"
-"Reset to 50%"
-msgstr ""
-
-msgid ""
-"Too big scarf start height.\n"
-"Reset to 50%"
-msgstr ""
-
-msgid ""
 "Too small ironing spacing.\n"
 "Reset to 0.1"
 msgstr ""
@@ -3038,10 +2991,6 @@ msgstr "Değer %s aralık dışında, devam edilsin mi?"
 msgid "Parameter validation"
 msgstr "Parametre doğrulama"
 
-#, c-format, boost-format
-msgid "Value %s is out of range. The valid range is from %d to %d."
-msgstr ""
-
 msgid "Value is out of range."
 msgstr "Değer aralık dışında."
 
@@ -3096,7 +3045,7 @@ msgid "Layer Time: "
 msgstr "Katman Süresi: "
 
 msgid "Fan Speed: "
-msgstr "Fan Hızı:"
+msgstr "Fan Hızı: "
 
 msgid "Temperature: "
 msgstr "Sıcaklık: "
@@ -3119,11 +3068,11 @@ msgstr "Ekran"
 msgid "Flushed"
 msgstr "Temizlenmiş"
 
-msgid "Tower"
-msgstr "Kule"
-
 msgid "Total"
 msgstr "Toplam"
+
+msgid "Tower"
+msgstr "Kule"
 
 msgid "Total Estimation"
 msgstr "Toplam Tahmini"
@@ -3226,12 +3175,6 @@ msgstr "Zaman Tahmini"
 
 msgid "Normal mode"
 msgstr "Normal mod"
-
-msgid "Total Filament"
-msgstr ""
-
-msgid "Model Filament"
-msgstr ""
 
 msgid "Prepare time"
 msgstr "Hazırlık süresi"
@@ -4251,11 +4194,6 @@ msgid "Downloading %d%%..."
 msgstr "%d%% indiriliyor..."
 
 msgid ""
-"Reconnecting the printer, the operation cannot be completed immediately, "
-"please try again later."
-msgstr ""
-
-msgid ""
 "Over 4 studio/handy are using remote access, you can close some and try "
 "again."
 msgstr ""
@@ -4356,7 +4294,7 @@ msgid "Aux"
 msgstr "Yardımcı"
 
 msgid "Cham"
-msgstr "Kabin"
+msgstr "Cham"
 
 msgid "Bed"
 msgstr "Yatak"
@@ -4433,7 +4371,7 @@ msgid "Sport"
 msgstr "Spor"
 
 msgid "Ludicrous"
-msgstr "Absürt"
+msgstr "Gülünç"
 
 msgid "Can't start this without SD card."
 msgstr "SD kart olmadan başlatılamıyor."
@@ -4836,7 +4774,7 @@ msgstr "Yazıcı Ayarları"
 
 #, boost-format
 msgid " plate %1%: "
-msgstr " plaka %1%:"
+msgstr " plaka %1%: "
 
 msgid "Invalid name, the following characters are not allowed:"
 msgstr "Geçersiz ad, aşağıdaki karakterlere izin verilmiyor:"
@@ -5546,13 +5484,6 @@ msgid "If enabled, auto-calculate every time when the color is changed."
 msgstr ""
 "Etkinleştirilirse, renk her değiştirildiğinde otomatik olarak hesaplanır."
 
-msgid ""
-"Flushing volumes: Auto-calculate every time when the filament is changed."
-msgstr ""
-
-msgid "If enabled, auto-calculate every time when filament is changed"
-msgstr ""
-
 msgid "Presets"
 msgstr "Ön ayarlar"
 
@@ -5639,7 +5570,7 @@ msgid "Dark Mode"
 msgstr "Karanlık Mod"
 
 msgid "Enable dark mode"
-msgstr "Karanlık modu etkinleştirin."
+msgstr "Karanlık modu etkinleştirin"
 
 msgid "User Experience"
 msgstr "Kullanıcı Deneyimi"
@@ -6457,22 +6388,19 @@ msgstr "Atla"
 msgid ""
 "Experimental feature: Retracting and cutting off the filament at a greater "
 "distance during filament changes to minimize flush.Although it can notably "
-"reduce flush,  it may also elevate the risk of nozzle clogs or other "
-"printing complications."
-msgstr ""
-
-msgid ""
-"Experimental feature: Retracting and cutting off the filament at a greater "
-"distance during filament changes to minimize flush.Although it can notably "
 "reduce flush, it may also elevate the risk of nozzle clogs or other printing "
-"complications.Please use with the latest printer firmware."
+"complications."
 msgstr ""
+"Deneysel özellik: Yıkamayı en aza indirmek için filament değişimleri "
+"sırasında filamentin daha uzak bir mesafeden geri çekilmesi ve kesilmesi "
+"Yıkamayı önemli ölçüde azaltabilmesine rağmen, nozül tıkanması veya diğer "
+"baskı komplikasyonları riskini de artırabilir."
 
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Araç başlığı olmadan timelapse kaydederken, bir \"Timelapse Wipe Tower\" "
 "eklenmesi önerilir.\n"
@@ -6918,7 +6846,7 @@ msgstr ""
 
 #, boost-format
 msgid "You have changed some settings of preset \"%1%\". "
-msgstr "\"%1%\" ön ayarının bazı ayarlarını değiştirdiniz."
+msgstr "\"%1%\" ön ayarının bazı ayarlarını değiştirdiniz. "
 
 msgid ""
 "\n"
@@ -7051,9 +6979,12 @@ msgstr "Filament değişimi için temizleme hacmi"
 
 msgid ""
 "Studio would re-calculate your flushing volumes everytime the filaments "
-"color changed or filaments changed. You could disable the auto-calculate in "
-"Bambu Studio > Preferences"
+"color changed. You could disable the auto-calculate in Bambu Studio > "
+"Preferences"
 msgstr ""
+"Studio, filamentlerin rengi her değiştiğinde temizleme hacimlerinizi yeniden "
+"hesaplardı. Otomatik hesaplamayı Bambu Studio > Tercihler'den devre dışı "
+"bırakabilirsiniz"
 
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr "Her filament çifti için temizleme hacmi (mm³)."
@@ -7470,13 +7401,13 @@ msgid "Failed to initialize the WinRT library."
 msgstr "WinRT kitaplığı başlatılamadı."
 
 msgid "Exporting objects"
-msgstr "Nesneleri dışa aktarma"
+msgstr "Nesneler dışa aktarılıyor"
 
 msgid "Failed loading objects."
 msgstr "Nesneler yüklenemedi."
 
 msgid "Repairing object by Windows service"
-msgstr "Nesneyi Windows hizmetiyle onarma"
+msgstr "Nesneyi Windows hizmetiyle onarıyor"
 
 msgid "Repair failed."
 msgstr "Onarım başarısız oldu."
@@ -7522,7 +7453,7 @@ msgstr ""
 "etmeniz gerekir."
 
 msgid "Configuration package updated to "
-msgstr "Yapılandırma paketi şu şekilde güncellendi"
+msgstr "Yapılandırma paketi şu şekilde güncellendi "
 
 msgid "Open G-code file:"
 msgstr "G kodu dosyasını açın:"
@@ -7748,8 +7679,8 @@ msgid ""
 "Please select \"By object\" print sequence to print multiple objects in "
 "spiral vase mode."
 msgstr ""
-"Birden fazla nesneyi spiral vazo modunda yazdırmak için lütfen \"Nesneye göre"
-"\" yazdırma sırasını seçin."
+"Birden fazla nesneyi spiral vazo modunda yazdırmak için lütfen \"Nesneye "
+"göre\" yazdırma sırasını seçin."
 
 msgid ""
 "The spiral vase mode does not work when an object contains more than one "
@@ -8534,13 +8465,13 @@ msgid "Order of walls"
 msgstr "Duvarların sırası"
 
 msgid "Print sequence of inner wall and outer wall. "
-msgstr "İç duvar ve dış duvarın baskı sırası."
+msgstr "İç duvar ve dış duvarın baskı sırası. "
 
 msgid "inner/outer"
-msgstr "İç/Dış"
+msgstr "iç/dış"
 
 msgid "outer/inner"
-msgstr "Dış/İç"
+msgstr "dış/iç"
 
 msgid "inner wall/outer wall/inner wall"
 msgstr "iç duvar/dış duvar/iç duvar"
@@ -8549,7 +8480,7 @@ msgid "Print infill first"
 msgstr "Önce dolguyu yazdır"
 
 msgid "Order of wall/infill. false means print wall first. "
-msgstr "Duvar/dolgu sırası. false önce duvarı yazdır anlamına gelir."
+msgstr "Duvar/dolgu sırası. false önce duvarı yazdır anlamına gelir. "
 
 msgid "Height to rod"
 msgstr "Çubuğa kadar olan yükseklik"
@@ -8821,7 +8752,7 @@ msgstr "Dolgu yoğunluğu"
 
 #, c-format
 msgid "Density of internal sparse infill, 100% means solid throughout"
-msgstr ""
+msgstr "İç seyrek dolgu yoğunluğu, 100 yüz baştan sona katı anlamına gelir"
 
 msgid "Sparse infill pattern"
 msgstr "Dolgu deseni"
@@ -9012,15 +8943,6 @@ msgstr ""
 "Boşluk doldurma hızı. Boşluk genellikle düzensiz çizgi genişliğine sahiptir "
 "ve daha yavaş yazdırılmalıdır"
 
-msgid "Precise Z height"
-msgstr ""
-
-msgid ""
-"Enable this to get precise z height of object after slicing. It will get the "
-"precise object height by fine-tuning the layer heights of the last few "
-"layers. Note that this is an experimental parameter."
-msgstr ""
-
 msgid "Arc fitting"
 msgstr "Ark"
 
@@ -9208,15 +9130,6 @@ msgstr ""
 
 msgid "Speed of internal sparse infill"
 msgstr "İç seyrek dolgunun hızı"
-
-msgid "Interface shells"
-msgstr ""
-
-msgid ""
-"Force the generation of solid shells between adjacent materials/volumes. "
-"Useful for multi-extruder prints with translucent materials or manual "
-"soluble support material"
-msgstr ""
 
 msgid "Maximum width of a segmented region"
 msgstr "Bölümlere ayrılmış bir bölgenin maksimum genişliği"
@@ -9507,7 +9420,7 @@ msgstr "Dosya adı formatı"
 
 msgid "User can self-define the project file name when export"
 msgstr ""
-"Kullanıcı dışa aktarma sırasında proje dosyası adını kendisi tanımlayabilir"
+"Kullanıcı dışa aktarırken proje dosya adını kendisi tanımlayabilir"
 
 msgid "Detect overhang wall"
 msgstr "Çıkıntılı duvarı algıla"
@@ -9771,10 +9684,15 @@ msgstr "Koşullu açı eşiği"
 msgid ""
 "This option sets the threshold angle for applying a conditional scarf joint "
 "seam.\n"
-"If the seam angle within the perimeter loop exceeds this value (indicating "
-"the absence of sharp corners), a scarf joint seam will be used. The default "
-"value is 155°."
+"If the maximum angle within the perimeter loop exceeds this value "
+"(indicating the absence of sharp corners), a scarf joint seam will be used. "
+"The default value is 155°."
 msgstr ""
+"Bu seçenek, koşullu bir atkı eklem dikişi uygulamak için eşik açısını "
+"ayarlar.\n"
+"Çevre halkası içindeki maksimum açı bu değeri aşarsa (keskin köşelerin "
+"bulunmadığını gösterir), bir atkı birleştirme dikişi kullanılacaktır. "
+"Varsayılan değer 155°'dir."
 
 msgid "Scarf start height"
 msgstr "Atkı başlangıç ​​yüksekliği"
@@ -10570,7 +10488,7 @@ msgstr "--use-firmware-retraction, --wipe ile uyumlu değildir"
 
 #, c-format, boost-format
 msgid " doesn't work at 100%% density "
-msgstr " 100%% yoğunluğunda çalışmıyor"
+msgstr " 100%% yoğunluğunda çalışmıyor "
 
 msgid "Invalid value when spiral vase mode is enabled: "
 msgstr "Spiral vazo modu etkinleştirildiğinde geçersiz değer: "
@@ -10654,6 +10572,9 @@ msgstr ""
 "Bir nesnenin XY boyutu telafisi , aynı zamanda renkli boyalı olduğundan "
 "kullanılmayacaktır.\n"
 "XY Boyut telafisi  renkli boyamayla birleştirilemez."
+
+msgid "Generating supports"
+msgstr "Desteklerin oluşturulması"
 
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
@@ -10755,6 +10676,12 @@ msgstr "Akış hızı"
 
 msgid "Max Volumetric Speed"
 msgstr "Maksimum Hacimsel Hız"
+
+msgid "Please enter the name you want to save to printer."
+msgstr "Lütfen yazıcıya kaydetmek istediğiniz adı girin."
+
+msgid "The name cannot exceed 40 characters."
+msgstr "Ad 40 karakteri aşamaz."
 
 #, c-format, boost-format
 msgid ""
@@ -11008,12 +10935,6 @@ msgstr "*İsme marka, malzeme, tür ve hatta nem seviyesini eklemenizi öneririz
 
 msgid "Failed"
 msgstr "Başarısız"
-
-msgid "Please enter the name you want to save to printer."
-msgstr "Lütfen yazıcıya kaydetmek istediğiniz adı girin."
-
-msgid "The name cannot exceed 40 characters."
-msgstr "Ad 40 karakteri aşamaz."
 
 msgid ""
 "Only one of the results with the same name will be saved. Are you sure you "
@@ -11610,8 +11531,8 @@ msgstr ""
 "Yeniden yazmak ister misin?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "Ön ayarları \"Satıcı Tipi Seri @seçtiğiniz yazıcı\" olarak yeniden "
@@ -11859,7 +11780,7 @@ msgid "open zip written fail"
 msgstr "zip dosyasını açma başarısız"
 
 msgid "Export successful"
-msgstr "Dışa aktarma başarılı"
+msgstr "Dışa aktarım başarılı"
 
 #, c-format, boost-format
 msgid ""
@@ -12454,13 +12375,6 @@ msgstr ""
 "çizgileri ve biraz daha yüksek baskı kalitesi ile sonuçlanır, ancak bazı "
 "baskı durumlarında daha uzun baskı süresi sağlar."
 
-msgid ""
-"This is neither a commonly used filament, nor one of Bambu filaments, and it "
-"varies a lot from brand to brand. So, it's highly recommended to ask its "
-"vendor for suitable profile before printing and adjust some parameters "
-"according to its performances."
-msgstr ""
-
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -12755,42 +12669,3 @@ msgstr ""
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı "
 "sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını "
 "azaltabileceğini biliyor muydunuz?"
-
-#~ msgid ""
-#~ "Studio would re-calculate your flushing volumes everytime the filaments "
-#~ "color changed. You could disable the auto-calculate in Bambu Studio > "
-#~ "Preferences"
-#~ msgstr ""
-#~ "Studio, filamentlerin rengi her değiştiğinde temizleme hacimlerinizi "
-#~ "yeniden hesaplardı. Otomatik hesaplamayı Bambu Studio > Tercihler'den "
-#~ "devre dışı bırakabilirsiniz"
-
-#~ msgid ""
-#~ "This option sets the threshold angle for applying a conditional scarf "
-#~ "joint seam.\n"
-#~ "If the maximum angle within the perimeter loop exceeds this value "
-#~ "(indicating the absence of sharp corners), a scarf joint seam will be "
-#~ "used. The default value is 155°."
-#~ msgstr ""
-#~ "Bu seçenek, koşullu bir atkı eklem dikişi uygulamak için eşik açısını "
-#~ "ayarlar.\n"
-#~ "Çevre halkası içindeki maksimum açı bu değeri aşarsa (keskin köşelerin "
-#~ "bulunmadığını gösterir), bir atkı birleştirme dikişi kullanılacaktır. "
-#~ "Varsayılan değer 155°'dir."
-
-#~ msgid "MoveInMeasure"
-#~ msgstr "ÖlçülüHareketEt"
-
-#~ msgid ""
-#~ "Experimental feature: Retracting and cutting off the filament at a "
-#~ "greater distance during filament changes to minimize flush.Although it "
-#~ "can notably reduce flush, it may also elevate the risk of nozzle clogs or "
-#~ "other printing complications."
-#~ msgstr ""
-#~ "Deneysel özellik: Yıkamayı en aza indirmek için filament değişimleri "
-#~ "sırasında filamentin daha uzak bir mesafeden geri çekilmesi ve kesilmesi "
-#~ "Yıkamayı önemli ölçüde azaltabilmesine rağmen, nozül tıkanması veya diğer "
-#~ "baskı komplikasyonları riskini de artırabilir."
-
-#~ msgid "Generating supports"
-#~ msgstr "Desteklerin oluşturulması"
