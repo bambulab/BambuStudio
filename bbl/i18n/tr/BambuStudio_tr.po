@@ -216,7 +216,7 @@ msgid "Bottom:"
 msgstr "Alt:"
 
 msgid "in"
-msgstr "içinde"
+msgstr "inç"
 
 msgid "mm"
 msgstr "mm"
@@ -339,7 +339,7 @@ msgstr ""
 "istiyor musunuz?"
 
 msgid "Repairing model object"
-msgstr "Model nesnesini onarma"
+msgstr "Model nesnesi onarılıyor"
 
 msgid "Connector"
 msgstr "Bağlayıcı"
@@ -1979,13 +1979,13 @@ msgid "Import file"
 msgstr "Dosya İçe Aktar"
 
 msgid "Import model and profile"
-msgstr "Modeli ve profili içe aktarma"
+msgstr "Model ve profil içe aktar"
 
 msgid "Import profile only"
 msgstr "Yalnızca profili içe aktar"
 
 msgid "Import model only"
-msgstr "Modeli içe aktarma"
+msgstr "Modeli içe aktar"
 
 msgid "Accurate"
 msgstr "Doğru"
@@ -7401,13 +7401,13 @@ msgid "Failed to initialize the WinRT library."
 msgstr "WinRT kitaplığı başlatılamadı."
 
 msgid "Exporting objects"
-msgstr "Nesneleri dışa aktarma"
+msgstr "Nesneler dışa aktarılıyor"
 
 msgid "Failed loading objects."
 msgstr "Nesneler yüklenemedi."
 
 msgid "Repairing object by Windows service"
-msgstr "Nesneyi Windows hizmetiyle onarma"
+msgstr "Nesneyi Windows hizmetiyle onarıyor"
 
 msgid "Repair failed."
 msgstr "Onarım başarısız oldu."
@@ -9420,7 +9420,7 @@ msgstr "Dosya adı formatı"
 
 msgid "User can self-define the project file name when export"
 msgstr ""
-"Kullanıcı dışa aktarma sırasında proje dosyası adını kendisi tanımlayabilir"
+"Kullanıcı dışa aktarırken proje dosya adını kendisi tanımlayabilir"
 
 msgid "Detect overhang wall"
 msgstr "Çıkıntılı duvarı algıla"
@@ -11780,7 +11780,7 @@ msgid "open zip written fail"
 msgstr "zip dosyasını açma başarısız"
 
 msgid "Export successful"
-msgstr "Dışa aktarma başarılı"
+msgstr "Dışa aktarım başarılı"
 
 #, c-format, boost-format
 msgid ""
