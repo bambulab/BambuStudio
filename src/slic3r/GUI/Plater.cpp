@@ -127,6 +127,7 @@
 
 #include <wx/glcanvas.h>    // Needs to be last because reasons :-/
 #include "WipeTowerDialog.hpp"
+#include "ObjColorDialog.hpp"
 
 #include "libslic3r/CustomGCode.hpp"
 #include "libslic3r/Platform.hpp"
@@ -182,6 +183,7 @@ wxDEFINE_EVENT(EVT_CREATE_FILAMENT, SimpleEvent);
 wxDEFINE_EVENT(EVT_MODIFY_FILAMENT, SimpleEvent);
 wxDEFINE_EVENT(EVT_ADD_FILAMENT, SimpleEvent);
 wxDEFINE_EVENT(EVT_DEL_FILAMENT, SimpleEvent);
+wxDEFINE_EVENT(EVT_ADD_CUSTOM_FILAMENT, ColorEvent);
 bool Plater::has_illegal_filename_characters(const wxString& wxs_name)
 {
     std::string name = into_u8(wxs_name);
@@ -1609,15 +1611,8 @@ void Sidebar::on_filaments_change(size_t num_filaments)
 void Sidebar::add_filament() {
     // BBS: limit filament choices to 16
     if (p->combos_filament.size() >= 16) return;
-
-    int         filament_count = p->combos_filament.size() + 1;
     wxColour    new_col        = Plater::get_next_color_for_filament();
-    std::string new_color      = new_col.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
-    wxGetApp().preset_bundle->set_num_filaments(filament_count, new_color);
-    wxGetApp().plater()->on_filaments_change(filament_count);
-    wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
-    wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
-    auto_calc_flushing_volumes(filament_count - 1);
+    add_custom_filament(new_col);
 }
 
 void Sidebar::delete_filament() {
@@ -1636,6 +1631,18 @@ void Sidebar::delete_filament() {
     wxGetApp().plater()->on_filaments_change(filament_count);
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
+}
+
+void Sidebar::add_custom_filament(wxColour new_col) {
+    if (p->combos_filament.size() >= 16) return;
+
+    int         filament_count = p->combos_filament.size() + 1;
+    std::string new_color      = new_col.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
+    wxGetApp().preset_bundle->set_num_filaments(filament_count, new_color);
+    wxGetApp().plater()->on_filaments_change(filament_count);
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
+    wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
+    auto_calc_flushing_volumes(filament_count - 1);
 }
 
 void Sidebar::on_bed_type_change(BedType bed_type)
@@ -2552,6 +2559,7 @@ struct Plater::priv
     void on_modify_filament(SimpleEvent &);
     void on_add_filament(SimpleEvent &);
     void on_delete_filament(SimpleEvent &);
+    void on_add_custom_filament(ColorEvent &);
 
     void on_object_select(SimpleEvent&);
     void on_plate_name_change(SimpleEvent &);
@@ -2785,6 +2793,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     this->q->Bind(EVT_MODIFY_FILAMENT, &priv::on_modify_filament, this);
     this->q->Bind(EVT_ADD_FILAMENT, &priv::on_add_filament, this);
     this->q->Bind(EVT_DEL_FILAMENT, &priv::on_delete_filament, this);
+    this->q->Bind(EVT_ADD_CUSTOM_FILAMENT, &priv::on_add_custom_filament, this);
     view3D = new View3D(q, bed, &model, config, &background_process);
     //BBS: use partplater's gcode
     preview = new Preview(q, bed, &model, config, &background_process, partplate_list.get_current_slice_result(), [this]() { schedule_background_process(); });
@@ -3930,7 +3939,17 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 std::vector<Preset *> project_presets;
                 bool                  is_xxx;
                 Semver                file_version;
-
+                
+                //ObjImportColorFn obj_color_fun=nullptr;
+                auto obj_color_fun = [this, &path](std::vector<RGBA> &input_colors, bool is_single_color, std::vector<unsigned char> &filament_ids,
+                                                   unsigned char &first_extruder_id) {
+                    if (!boost::iends_with(path.string(), ".obj")) { return; }
+                    const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
+                    ObjColorDialog                 color_dlg(nullptr, input_colors, is_single_color, extruder_colours, filament_ids, first_extruder_id);
+                    if (color_dlg.ShowModal() != wxID_OK) { 
+                        filament_ids.clear();
+                    }
+                };
                 model = Slic3r::Model::read_from_file(
                     path.string(), nullptr, nullptr, strategy, &plate_data, &project_presets, &is_xxx, &file_version, nullptr,
                     [this, &dlg, real_filename, &progress_percent, &file_percent, INPUT_FILES_RATIO, total_files, i, &designer_model_id, &designer_country_code](int current, int total, bool &cancel, std::string &mode_id, std::string &code)
@@ -3960,7 +3979,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         if (!isUtf8StepFile)
                             Slic3r::GUI::show_info(nullptr, _L("Name of components inside step file is not UTF8 format!") + "\n\n" + _L("The name may show garbage characters!"),
                                                    _L("Attention!"));
-                    });
+                        },
+                    nullptr, 0, obj_color_fun);
 
 
                 if (designer_model_id.empty() && boost::algorithm::iends_with(path.string(), ".stl")) {
@@ -8037,6 +8057,11 @@ void Plater::priv::on_add_filament(SimpleEvent &evt) {
 
 void Plater::priv::on_delete_filament(SimpleEvent &evt) {
     sidebar->delete_filament();
+}
+
+void Plater::priv::on_add_custom_filament(ColorEvent &evt)
+{
+    sidebar->add_custom_filament(evt.data);
 }
 
 void Plater::priv::enter_gizmos_stack()
