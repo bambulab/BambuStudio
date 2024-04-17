@@ -2629,6 +2629,9 @@ void PrintObject::bridge_over_infill()
                             bridging_area          = closing(bridging_area, flow.scaled_spacing());
                             bridging_area          = intersection(bridging_area, limiting_area);
                             bridging_area          = intersection(bridging_area, total_fill_area);
+                            // BBS: open and close again to filter some narrow parts
+                            bridging_area          = opening(bridging_area, flow.scaled_spacing());
+                            bridging_area          = closing(bridging_area, flow.scaled_spacing());
                             expansion_area         = diff(expansion_area, bridging_area);
 
 #ifdef DEBUG_BRIDGE_OVER_INFILL
