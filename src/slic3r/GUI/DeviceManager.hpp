@@ -942,7 +942,7 @@ public:
     int publish_json(std::string json_str, int qos = 0);
     int cloud_publish_json(std::string json_str, int qos = 0);
     int local_publish_json(std::string json_str, int qos = 0);
-    int parse_json(std::string payload);
+    int parse_json(std::string payload, bool key_filed_only = false);
     int publish_gcode(std::string gcode_str);
 
     std::string setting_id_to_type(std::string setting_id, std::string tray_type);
@@ -963,8 +963,9 @@ class DeviceManager
 {
 private:
     NetworkAgent* m_agent { nullptr };
-
 public:
+    static bool   EnableMultiMachine;
+
     DeviceManager(NetworkAgent* agent = nullptr);
     ~DeviceManager();
     void set_agent(NetworkAgent* agent);
@@ -989,9 +990,14 @@ public:
 
     bool set_selected_machine(std::string dev_id,  bool need_disconnect = false);
     MachineObject* get_selected_machine();
+    void add_user_subscribe();
+    void del_user_subscribe();
+
+    void subscribe_device_list(std::vector<std::string> dev_list);
 
     /* return machine has access code and user machine if login*/
     std::map<std::string, MachineObject*> get_my_machine_list();
+    std::map<std::string, MachineObject*> get_my_cloud_machine_list();
     std::string get_first_online_user_machine();
     void modify_device_name(std::string dev_id, std::string dev_name);
     void update_user_machine_list_info();
@@ -1008,6 +1014,11 @@ public:
     std::map<std::string, MachineObject*> get_local_machine_list();
     void load_last_machine();
 
+    std::vector<std::string> subscribe_list_cache;
+
+    static void set_key_field_parsing(bool enable) { DeviceManager::key_field_only = enable; }
+
+    static bool key_field_only;
     static json function_table;
     static json filaments_blacklist;
 
