@@ -101,6 +101,8 @@ wxDECLARE_EVENT(EVT_CREATE_FILAMENT, SimpleEvent);
 wxDECLARE_EVENT(EVT_MODIFY_FILAMENT, SimpleEvent);
 wxDECLARE_EVENT(EVT_ADD_FILAMENT, SimpleEvent);
 wxDECLARE_EVENT(EVT_DEL_FILAMENT, SimpleEvent);
+using ColorEvent = Event<wxColour>;
+wxDECLARE_EVENT(EVT_ADD_CUSTOM_FILAMENT, ColorEvent);
 const wxString DEFAULT_PROJECT_NAME = "Untitled";
 
 class Sidebar : public wxPanel
@@ -136,6 +138,7 @@ public:
     void on_filaments_change(size_t num_filaments);
     void add_filament();
     void delete_filament();
+    void add_custom_filament(wxColour new_col);
     // BBS
     void on_bed_type_change(BedType bed_type);
     void load_ams_list(std::string const & device, MachineObject* obj);
