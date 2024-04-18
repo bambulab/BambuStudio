@@ -132,6 +132,8 @@ AddMachinePanel::~AddMachinePanel() {
         update_hms_tag();
         e.Skip();
     });
+
+    Bind(EVT_JUMP_TO_HMS, &MonitorPanel::jump_to_HMS, this);
 }
 
 MonitorPanel::~MonitorPanel()
@@ -574,6 +576,15 @@ std::string MonitorPanel::get_string_from_tab(PrinterTab tab)
         return "";
     }
     return "";
+}
+
+void MonitorPanel::jump_to_HMS(wxCommandEvent& e)
+{
+    if (!this->IsShown())
+        return;
+    auto page = m_tabpanel->GetCurrentPage();
+    if (page && page != m_hms_panel)
+        m_tabpanel->SetSelection(PT_HMS);
 }
 
 
