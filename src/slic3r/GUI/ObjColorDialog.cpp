@@ -263,9 +263,6 @@ ObjColorPanel::ObjColorPanel(wxWindow *                       parent,
         specify_cluster_sizer->Add(specify_color_cluster_title, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
 
         m_color_cluster_num_by_user_ebox = new wxTextCtrl(m_page_simple, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(25), -1), wxTE_PROCESS_ENTER);
-        if (m_color_num_recommend == 1) {
-            m_color_cluster_num_by_user_ebox->Enable(false);
-        }
         m_color_cluster_num_by_user_ebox->SetValue(std::to_string(m_color_cluster_num_by_algo).c_str());
         {//event
             auto on_apply_color_cluster_text_modify = [this](wxEvent &e) {
@@ -674,7 +671,7 @@ void ObjColorPanel::draw_table()
         m_gridsizer->Add(row_panel, 0, wxALIGN_LEFT | wxALL, FromDIP(HEADER_BORDER));
     }
     m_scrolledWindow->SetSizer(m_gridsizer);
-    int totalHeight = row_height *(row+1);
+    int totalHeight = row_height *(row+1) * 2;
     m_scrolledWindow->SetVirtualSize(MIN_OBJCOLOR_DIALOG_WIDTH, totalHeight);
     auto look = FIX_SCROLL_HEIGTH;
     if (totalHeight > FIX_SCROLL_HEIGTH) {
@@ -736,7 +733,7 @@ void ObjColorPanel::deal_add_btn()
     int new_index = m_colours.size() + 1;
     for (size_t i = 0; i < new_color_size; i++) {
         if (m_colours.size() + new_icons.size() >= g_max_color) {
-            m_warning_text->SetLabelText(_L("Waring:The count of newly added and current extruders exceeds 16."));
+            m_warning_text->SetLabelText(_L("Waring:The count of newly added and \n current extruders exceeds 16."));
             break;
         }
         wxColour cur_color = convert_to_wxColour(m_cluster_colors_from_algo[i]);

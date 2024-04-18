@@ -79,6 +79,7 @@ public:
         Text,
         MmuSegmentation,
         Measure,
+        Assembly,
         Simplify,
         SlaSupports,
         // BBS
