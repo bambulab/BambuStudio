@@ -492,6 +492,10 @@ set(SLIC3R_GUI_SOURCES
     Utils/CalibUtils.cpp
     Utils/CalibUtils.hpp
     Utils/ProfileDescription.hpp
+	Utils/FontConfigHelp.cpp
+	Utils/FontConfigHelp.hpp
+	Utils/FontUtils.cpp
+	Utils/FontUtils.hpp
 )
 
 if (WIN32)
