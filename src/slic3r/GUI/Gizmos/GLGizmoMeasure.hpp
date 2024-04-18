@@ -15,9 +15,66 @@ namespace Measure { class Measuring; }
 namespace GUI {
 
 enum class SLAGizmoEventType : unsigned char;
+enum class EMeasureMode : unsigned char {
+    ONLY_MEASURE,
+    ONLY_ASSEMBLY
+};
+enum class AssemblyMode : unsigned char {
+    FACE_FACE,
+    POINT_POINT,
+};
+static const Slic3r::ColorRGBA SELECTED_1ST_COLOR = {0.25f, 0.75f, 0.75f, 1.0f};
+static const Slic3r::ColorRGBA SELECTED_2ND_COLOR = {0.75f, 0.25f, 0.75f, 1.0f};
+static const Slic3r::ColorRGBA NEUTRAL_COLOR      = {0.5f, 0.5f, 0.5f, 1.0f};
+static const Slic3r::ColorRGBA HOVER_COLOR        = {0.0f, 1.0f, 0.0f, 1.0f}; // Green
+
+static const int POINT_ID        = 100;
+static const int EDGE_ID         = 200;
+static const int CIRCLE_ID       = 300;
+static const int PLANE_ID        = 400;
+static const int SEL_SPHERE_1_ID = 501;
+static const int SEL_SPHERE_2_ID = 502;
+
+static const float TRIANGLE_BASE   = 10.0f;
+static const float TRIANGLE_HEIGHT = TRIANGLE_BASE * 1.618033f;
+
+static const std::string CTRL_STR =
+#ifdef __APPLE__
+    "⌘"
+#else
+    "Ctrl"
+#endif //__APPLE__
+    ;
+
+class TransformHelper
+{
+    struct Cache
+    {
+        std::array<int, 4> viewport;
+        Matrix4d           ndc_to_ss_matrix;
+        Transform3d        ndc_to_ss_matrix_inverse;
+    };
+    static Cache s_cache;
+
+public:
+    static Vec3d             model_to_world(const Vec3d &model, const Transform3d &world_matrix);
+    static Vec4d             world_to_clip(const Vec3d &world, const Matrix4d &projection_view_matrix);
+    static Vec3d             clip_to_ndc(const Vec4d &clip);
+    static Vec2d             ndc_to_ss(const Vec3d &ndc, const std::array<int, 4> &viewport);
+    static Vec4d             model_to_clip(const Vec3d &model, const Transform3d &world_matrix, const Matrix4d &projection_view_matrix);
+    static Vec3d             model_to_ndc(const Vec3d &model, const Transform3d &world_matrix, const Matrix4d &projection_view_matrix);
+    static Vec2d             model_to_ss(const Vec3d &model, const Transform3d &world_matrix, const Matrix4d &projection_view_matrix, const std::array<int, 4> &viewport);
+    static Vec2d             world_to_ss(const Vec3d &world, const Matrix4d &projection_view_matrix, const std::array<int, 4> &viewport);
+    static const Matrix4d &  ndc_to_ss_matrix(const std::array<int, 4> &viewport);
+    static const Transform3d ndc_to_ss_matrix_inverse(const std::array<int, 4> &viewport);
+
+private:
+    static void update(const std::array<int, 4> &viewport);
+};
 
 class GLGizmoMeasure : public GLGizmoBase
 {
+protected:
     enum class EMode : unsigned char
     {
         FeatureSelection,
@@ -116,8 +173,6 @@ class GLGizmoMeasure : public GLGizmoBase
         GLModel arc;
     };
     Dimensioning m_dimensioning;
-    bool         m_show_reset_first_tip{false};
-
 
     std::map<GLVolume*, std::shared_ptr<PickRaycaster>>   m_mesh_raycaster_map;
     std::vector<GLVolume*>                                m_hit_different_volumes;
@@ -172,7 +227,7 @@ public:
 
     void data_changed(bool is_serializing) override;
 
-    bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
+    virtual bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
 
     bool wants_enter_leave_snapshots() const override { return true; }
     std::string get_gizmo_entering_text() const override { return _u8L("Entering Measure gizmo"); }
@@ -187,9 +242,14 @@ protected:
     void on_set_state() override;
 
     virtual void on_render_for_picking() override;
+    void         show_selection_ui();
+    void         show_distance_xyz_ui();
+    void         show_point_point_assembly();
+    void         show_face_face_assembly();
+    void         init_render_input_window();
     virtual void on_render_input_window(float x, float y, float bottom_limit) override;
 
-    void render_input_window_warning(bool same_model_object);
+    virtual void render_input_window_warning(bool same_model_object);
     void remove_selected_sphere_raycaster(int id);
     void update_measurement_result();
 
@@ -198,6 +258,14 @@ protected:
     void reset_gripper_pick(GripperType id,bool is_all = false);
     void register_single_mesh_pick();
     void update_single_mesh_pick(GLVolume* v);
+
+    std::string format_double(double value);
+    std::string format_vec3(const Vec3d &v);
+    std::string surface_feature_type_as_string(Measure::SurfaceFeatureType type);
+    std::string point_on_feature_type_as_string(Measure::SurfaceFeatureType type, int hover_id);
+    std::string center_on_feature_type_as_string(Measure::SurfaceFeatureType type);
+    bool is_feature_with_center(const Measure::SurfaceFeature &feature);
+    Vec3d get_feature_offset(const Measure::SurfaceFeature &feature);
 
     void reset_all_feature();
     void reset_feature1_render();
@@ -214,10 +282,23 @@ protected:
     void set_to_around_center_of_faces(bool same_model_object,float rotate_degree);
     void set_to_center_coincidence(bool same_model_object);
     void set_parallel_distance(bool same_model_object,float dist);
- private:
+
+    bool is_pick_meet_assembly_mode(const SelectedFeatures::Item& item);
+ protected:
     // This map holds all translated description texts, so they can be easily referenced during layout calculations
     // etc. When language changes, GUI is recreated and this class constructed again, so the change takes effect.
     std::map<std::string, wxString> m_desc;
+    bool                     m_show_reset_first_tip{false};
+    bool                     m_selected_wrong_feature_waring_tip{false};
+    EMeasureMode             m_measure_mode{EMeasureMode::ONLY_MEASURE};
+    AssemblyMode             m_assembly_mode{AssemblyMode::FACE_FACE};
+    bool                     m_flip_volume_2{false};
+    float                    m_space_size;
+    float                    m_input_size_max;
+    bool                     m_use_inches;
+    std::string              m_units;
+    mutable bool             m_same_model_object;
+    mutable unsigned int     m_current_active_imgui_id;
 };
 
 } // namespace GUI
