@@ -295,6 +295,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/ImGuiWrapper.cpp
     GUI/DeviceManager.hpp
     GUI/DeviceManager.cpp
+    GUI/UserManager.hpp
+    GUI/UserManager.cpp
     GUI/HttpServer.hpp
     GUI/HttpServer.cpp
     Config/Snapshot.cpp
