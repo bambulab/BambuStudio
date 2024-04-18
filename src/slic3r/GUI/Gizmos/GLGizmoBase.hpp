@@ -170,6 +170,8 @@ protected:
                                               float                        value_max,
                                               int                          keep_digit ,
                                               DoubleShowType               show_type = DoubleShowType::Normal);
+    bool render_combo(const std::string &label, const std::vector<std::string> &lines,
+        size_t &selection_idx, float label_width, float item_width);
 
 public:
     GLGizmoBase(GLCanvas3D& parent,

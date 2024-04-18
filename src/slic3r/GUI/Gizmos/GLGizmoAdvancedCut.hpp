@@ -333,7 +333,6 @@ private:
     bool render_reset_button(const std::string &label_id, const std::string &tooltip) const;
     bool render_connect_type_radio_button(CutConnectorType type);
 
-    bool render_combo(const std::string &label, const std::vector<std::string> &lines, size_t &selection_idx, float label_width, float item_width);
     bool render_slider_double_input(const std::string &label, float &value_in, float &tolerance_in);
     bool render_slider_double_input_by_format(const std::string &label, float &value_in, float value_min, float value_max, DoubleShowType show_type = DoubleShowType::Normal);
     bool cut_line_processing() const;
