@@ -1987,7 +1987,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<SupportNode*>>& con
     const bool with_lightning_infill = m_support_params.base_fill_pattern == ipLightning;
     coordf_t support_extrusion_width = m_support_params.support_extrusion_width;
     const coordf_t line_width_scaled = scale_(support_extrusion_width);
-    const float tree_brim_width = config.tree_support_brim_width.value;
+    const float tree_brim_width = config.raft_first_layer_expansion.value;
 
     if (m_object->support_layer_count() <= m_raft_layers)
         return;
