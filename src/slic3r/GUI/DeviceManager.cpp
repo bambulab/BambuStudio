@@ -3295,40 +3295,42 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                 catch (...) {}
                             }
                         }
-                        if (jj.contains("project_id")
-                            && jj.contains("profile_id")
-                            && jj.contains("subtask_id")
-                            ) {
-                            obj_subtask_id = jj["subtask_id"].get<std::string>();
+                    }
 
-                            int plate_index = -1;
-                            /* parse local plate_index from task */
-                            if (obj_subtask_id.compare("0") == 0 && jj["profile_id"].get<std::string>() != "0") {
-                                if (jj.contains("gcode_file")) {
-                                    m_gcode_file = jj["gcode_file"].get<std::string>();
-                                    int idx_start = m_gcode_file.find_last_of("_") + 1;
-                                    int idx_end = m_gcode_file.find_last_of(".");
-                                    if (idx_start > 0 && idx_end > idx_start) {
-                                        try {
-                                            plate_index = atoi(m_gcode_file.substr(idx_start, idx_end - idx_start).c_str());
-                                            this->m_plate_index = plate_index;
-                                        }
-                                        catch (...) {
-                                            ;
-                                        }
+                    if (jj.contains("project_id")
+                        && jj.contains("profile_id")
+                        && jj.contains("subtask_id")
+                        ) {
+                        obj_subtask_id = jj["subtask_id"].get<std::string>();
+
+                        int plate_index = -1;
+                        /* parse local plate_index from task */
+                        if (obj_subtask_id.compare("0") == 0 && jj["profile_id"].get<std::string>() != "0") {
+                            if (jj.contains("gcode_file")) {
+                                m_gcode_file = jj["gcode_file"].get<std::string>();
+                                int idx_start = m_gcode_file.find_last_of("_") + 1;
+                                int idx_end = m_gcode_file.find_last_of(".");
+                                if (idx_start > 0 && idx_end > idx_start) {
+                                    try {
+                                        plate_index = atoi(m_gcode_file.substr(idx_start, idx_end - idx_start).c_str());
+                                        this->m_plate_index = plate_index;
+                                    }
+                                    catch (...) {
+                                        ;
                                     }
                                 }
                             }
-                            update_slice_info(jj["project_id"].get<std::string>(), jj["profile_id"].get<std::string>(), jj["subtask_id"].get<std::string>(), plate_index);
-                            BBLSubTask* curr_task = get_subtask();
-                            if (curr_task) {
-                                curr_task->task_progress = mc_print_percent;
-                                curr_task->printing_status = print_status;
-                                curr_task->task_id = jj["subtask_id"].get<std::string>();
+                        }
+                        update_slice_info(jj["project_id"].get<std::string>(), jj["profile_id"].get<std::string>(), jj["subtask_id"].get<std::string>(), plate_index);
+                        BBLSubTask* curr_task = get_subtask();
+                        if (curr_task) {
+                            curr_task->task_progress = mc_print_percent;
+                            curr_task->printing_status = print_status;
+                            curr_task->task_id = jj["subtask_id"].get<std::string>();
 
-                            }
                         }
                     }
+
 #pragma endregion
 
 #pragma region status
@@ -3566,101 +3568,101 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     }
 
 #pragma region upgrade
-                    if (!key_field_only) {
-                        try {
-                            if (jj.contains("upgrade_state")) {
-                                if (jj["upgrade_state"].contains("status"))
-                                    upgrade_status = jj["upgrade_state"]["status"].get<std::string>();
-                                if (jj["upgrade_state"].contains("progress")) {
-                                    upgrade_progress = jj["upgrade_state"]["progress"].get<std::string>();
-                                } if (jj["upgrade_state"].contains("new_version_state"))
-                                    upgrade_new_version = jj["upgrade_state"]["new_version_state"].get<int>() == 1 ? true : false;
-                                if (jj["upgrade_state"].contains("ams_new_version_number"))
-                                    ams_new_version_number = jj["upgrade_state"]["ams_new_version_number"].get<std::string>();
-                                if (jj["upgrade_state"].contains("ota_new_version_number"))
-                                    ota_new_version_number = jj["upgrade_state"]["ota_new_version_number"].get<std::string>();
-                                if (jj["upgrade_state"].contains("ahb_new_version_number"))
-                                    ahb_new_version_number = jj["upgrade_state"]["ahb_new_version_number"].get<std::string>();
-                                if (jj["upgrade_state"].contains("module"))
-                                    upgrade_module = jj["upgrade_state"]["module"].get<std::string>();
-                                if (jj["upgrade_state"].contains("message"))
-                                    upgrade_message = jj["upgrade_state"]["message"].get<std::string>();
-                                if (jj["upgrade_state"].contains("consistency_request"))
-                                    upgrade_consistency_request = jj["upgrade_state"]["consistency_request"].get<bool>();
-                                if (jj["upgrade_state"].contains("force_upgrade"))
-                                    upgrade_force_upgrade = jj["upgrade_state"]["force_upgrade"].get<bool>();
-                                if (jj["upgrade_state"].contains("err_code"))
-                                    upgrade_err_code = jj["upgrade_state"]["err_code"].get<int>();
-                                if (jj["upgrade_state"].contains("dis_state")) {
-                                    if (upgrade_display_state != jj["upgrade_state"]["dis_state"].get<int>()
-                                        && jj["upgrade_state"]["dis_state"].get<int>() == 3) {
-                                        GUI::wxGetApp().CallAfter([this] {
-                                            this->command_get_version();
+                    try {
+                        if (jj.contains("upgrade_state")) {
+                            if (jj["upgrade_state"].contains("status"))
+                                upgrade_status = jj["upgrade_state"]["status"].get<std::string>();
+                            if (jj["upgrade_state"].contains("progress")) {
+                                upgrade_progress = jj["upgrade_state"]["progress"].get<std::string>();
+                            } if (jj["upgrade_state"].contains("new_version_state"))
+                                upgrade_new_version = jj["upgrade_state"]["new_version_state"].get<int>() == 1 ? true : false;
+                            if (jj["upgrade_state"].contains("ams_new_version_number"))
+                                ams_new_version_number = jj["upgrade_state"]["ams_new_version_number"].get<std::string>();
+                            if (jj["upgrade_state"].contains("ota_new_version_number"))
+                                ota_new_version_number = jj["upgrade_state"]["ota_new_version_number"].get<std::string>();
+                            if (jj["upgrade_state"].contains("ahb_new_version_number"))
+                                ahb_new_version_number = jj["upgrade_state"]["ahb_new_version_number"].get<std::string>();
+                            if (jj["upgrade_state"].contains("module"))
+                                upgrade_module = jj["upgrade_state"]["module"].get<std::string>();
+                            if (jj["upgrade_state"].contains("message"))
+                                upgrade_message = jj["upgrade_state"]["message"].get<std::string>();
+                            if (jj["upgrade_state"].contains("consistency_request"))
+                                upgrade_consistency_request = jj["upgrade_state"]["consistency_request"].get<bool>();
+                            if (jj["upgrade_state"].contains("force_upgrade"))
+                                upgrade_force_upgrade = jj["upgrade_state"]["force_upgrade"].get<bool>();
+                            if (jj["upgrade_state"].contains("err_code"))
+                                upgrade_err_code = jj["upgrade_state"]["err_code"].get<int>();
+                            if (jj["upgrade_state"].contains("dis_state")) {
+                                if (upgrade_display_state != jj["upgrade_state"]["dis_state"].get<int>()
+                                    && jj["upgrade_state"]["dis_state"].get<int>() == 3) {
+                                    GUI::wxGetApp().CallAfter([this] {
+                                        this->command_get_version();
                                         });
+                                }
+                                if (upgrade_display_hold_count > 0)
+                                    upgrade_display_hold_count--;
+                                else
+                                    upgrade_display_state = jj["upgrade_state"]["dis_state"].get<int>();
+                            }
+                            else {
+                                if (upgrade_display_hold_count > 0)
+                                    upgrade_display_hold_count--;
+                                else {
+                                    //BBS compatibility with old version
+                                    if (upgrade_status == "DOWNLOADING"
+                                        || upgrade_status == "FLASHING"
+                                        || upgrade_status == "UPGRADE_REQUEST"
+                                        || upgrade_status == "PRE_FLASH_START"
+                                        || upgrade_status == "PRE_FLASH_SUCCESS") {
+                                        upgrade_display_state = (int)UpgradingDisplayState::UpgradingInProgress;
                                     }
-                                    if (upgrade_display_hold_count > 0)
-                                        upgrade_display_hold_count--;
-                                    else
-                                        upgrade_display_state = jj["upgrade_state"]["dis_state"].get<int>();
-                                } else {
-                                    if (upgrade_display_hold_count > 0)
-                                        upgrade_display_hold_count--;
+                                    else if (upgrade_status == "UPGRADE_SUCCESS"
+                                        || upgrade_status == "DOWNLOAD_FAIL"
+                                        || upgrade_status == "FLASH_FAIL"
+                                        || upgrade_status == "PRE_FLASH_FAIL"
+                                        || upgrade_status == "UPGRADE_FAIL") {
+                                        upgrade_display_state = (int)UpgradingDisplayState::UpgradingFinished;
+                                    }
                                     else {
-                                        //BBS compatibility with old version
-                                        if (upgrade_status == "DOWNLOADING"
-                                            || upgrade_status == "FLASHING"
-                                            || upgrade_status == "UPGRADE_REQUEST"
-                                            || upgrade_status == "PRE_FLASH_START"
-                                            || upgrade_status == "PRE_FLASH_SUCCESS") {
-                                            upgrade_display_state = (int)UpgradingDisplayState::UpgradingInProgress;
-                                        }
-                                        else if (upgrade_status == "UPGRADE_SUCCESS"
-                                            || upgrade_status == "DOWNLOAD_FAIL"
-                                            || upgrade_status == "FLASH_FAIL"
-                                            || upgrade_status == "PRE_FLASH_FAIL"
-                                            || upgrade_status == "UPGRADE_FAIL") {
-                                            upgrade_display_state = (int)UpgradingDisplayState::UpgradingFinished;
+                                        if (upgrade_new_version) {
+                                            upgrade_display_state = (int)UpgradingDisplayState::UpgradingAvaliable;
                                         }
                                         else {
-                                            if (upgrade_new_version) {
-                                                upgrade_display_state = (int)UpgradingDisplayState::UpgradingAvaliable;
-                                            }
-                                            else {
-                                                upgrade_display_state = (int)UpgradingDisplayState::UpgradingUnavaliable;
-                                            }
+                                            upgrade_display_state = (int)UpgradingDisplayState::UpgradingUnavaliable;
                                         }
                                     }
-                                }
-                                // new ver list
-                                if (jj["upgrade_state"].contains("new_ver_list")) {
-                                    m_new_ver_list_exist = true;
-                                    new_ver_list.clear();
-                                    for (auto ver_item = jj["upgrade_state"]["new_ver_list"].begin(); ver_item != jj["upgrade_state"]["new_ver_list"].end(); ver_item++) {
-                                        ModuleVersionInfo ver_info;
-                                        if (ver_item->contains("name"))
-                                            ver_info.name = (*ver_item)["name"].get<std::string>();
-                                        else
-                                            continue;
-
-                                        if (ver_item->contains("cur_ver"))
-                                            ver_info.sw_ver = (*ver_item)["cur_ver"].get<std::string>();
-                                        if (ver_item->contains("new_ver"))
-                                            ver_info.sw_new_ver = (*ver_item)["new_ver"].get<std::string>();
-
-                                        if (ver_info.name == "ota") {
-                                            ota_new_version_number = ver_info.sw_new_ver;
-                                        }
-
-                                        new_ver_list.insert(std::make_pair(ver_info.name, ver_info));
-                                    }
-                                } else {
-                                    new_ver_list.clear();
                                 }
                             }
+                            // new ver list
+                            if (jj["upgrade_state"].contains("new_ver_list")) {
+                                m_new_ver_list_exist = true;
+                                new_ver_list.clear();
+                                for (auto ver_item = jj["upgrade_state"]["new_ver_list"].begin(); ver_item != jj["upgrade_state"]["new_ver_list"].end(); ver_item++) {
+                                    ModuleVersionInfo ver_info;
+                                    if (ver_item->contains("name"))
+                                        ver_info.name = (*ver_item)["name"].get<std::string>();
+                                    else
+                                        continue;
+
+                                    if (ver_item->contains("cur_ver"))
+                                        ver_info.sw_ver = (*ver_item)["cur_ver"].get<std::string>();
+                                    if (ver_item->contains("new_ver"))
+                                        ver_info.sw_new_ver = (*ver_item)["new_ver"].get<std::string>();
+
+                                    if (ver_info.name == "ota") {
+                                        ota_new_version_number = ver_info.sw_new_ver;
+                                    }
+
+                                    new_ver_list.insert(std::make_pair(ver_info.name, ver_info));
+                                }
+                            }
+                            else {
+                                new_ver_list.clear();
+                            }
                         }
-                        catch (...) {
-                            ;
-                        }
+                    }
+                    catch (...) {
+                        ;
                     }
 #pragma endregion
 
