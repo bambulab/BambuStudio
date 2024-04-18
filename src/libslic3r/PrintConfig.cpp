@@ -3495,16 +3495,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(0));
 
-    def = this->add("tree_support_brim_width", coFloat);
-    def->label = L("Tree support brim width");
-    def->category = L("Support");
-    def->tooltip = L("The brim width around tree support. 0 means auto.");
-    def->sidetext = L("mm");
-    def->min = 0;
-    def->max = 100;
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0));
-
     def = this->add("chamber_temperatures", coInts);
     def->label = L("Chamber temperature");
     def->tooltip = L("Higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength for high temperature materials like ABS, ASA, PC, PA and so on."
@@ -4718,6 +4708,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         // BBS
         , "support_sharp_tails","support_remove_small_overhangs", "support_with_sheath",
         "tree_support_branch_diameter_angle", "tree_support_collision_resolution", "tree_support_with_infill",
+        "tree_support_brim_width",
         "max_volumetric_speed", "max_print_speed",
         "support_closing_radius",
         "remove_freq_sweep", "remove_bed_leveling", "remove_extrusion_calibration",
