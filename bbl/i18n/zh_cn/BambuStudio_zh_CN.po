@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-07 16:19+0800\n"
+"POT-Creation-Date: 2024-04-19 14:24+0800\n"
 "PO-Revision-Date: 2024-02-23 20:10+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1122,8 +1122,8 @@ msgstr "缺省"
 msgid "Filament %d"
 msgstr "耗材丝%d"
 
-msgid "active"
-msgstr "活动的"
+msgid "current"
+msgstr "当前"
 
 msgid "Scale to build volume"
 msgstr "缩放到构建空间大小"
@@ -1280,9 +1280,6 @@ msgstr "更换耗材丝"
 
 msgid "Set Filament for selected items"
 msgstr "设置所选项的耗材丝"
-
-msgid "current"
-msgstr "当前"
 
 msgid "Unlock"
 msgstr "解锁"
@@ -1710,10 +1707,10 @@ msgstr "自动续料"
 msgid "AMS not connected"
 msgstr "AMS未连接"
 
-msgid "Load Filament"
-msgstr "进料"
+msgid "Load"
+msgstr "加载"
 
-msgid "Unload Filament"
+msgid "Unload"
 msgstr "退料"
 
 msgid "Ext Spool"
@@ -2369,6 +2366,14 @@ msgid ""
 "AMS will continue to another spool with the same properties of filament "
 "automatically when current filament runs out"
 msgstr "AMS料材丝耗尽后将自动切换到属性完全相同的耗材丝"
+
+msgid "Air Printing Detection"
+msgstr "空打检测"
+
+msgid ""
+"Detects clogging and filament grinding, halting printing immediately to "
+"conserve time and filament."
+msgstr "检测到堵塞和耗材丝碾磨，立即停止打印以节约时间和耗材丝"
 
 msgid "File"
 msgstr "文件"
@@ -3405,6 +3410,9 @@ msgstr "预览"
 msgid "Device"
 msgstr "设备"
 
+msgid "Multi-device"
+msgstr ""
+
 msgid "Project"
 msgstr "项目"
 
@@ -3440,6 +3448,9 @@ msgstr "导出单盘切片文件"
 
 msgid "Export all sliced file"
 msgstr "导出所有切片文件"
+
+msgid "Send to Multi-device"
+msgstr ""
 
 msgid "Print all"
 msgstr "打印所有盘"
@@ -4195,9 +4206,6 @@ msgstr "机箱"
 msgid "Bed"
 msgstr "热床"
 
-msgid "Unload"
-msgstr "退料"
-
 msgid "Debug Info"
 msgstr "调试信息"
 
@@ -4609,6 +4617,12 @@ msgstr "支持提示音"
 
 msgid "Filament Tangle Detect"
 msgstr "缠料检测"
+
+msgid "Nozzle Clumping Detection"
+msgstr "裹头检测"
+
+msgid "Check if the nozzle is clumping by filament or other foreign objects."
+msgstr "检查喷嘴是否被耗材丝或其他异物裹住"
 
 msgid "Nozzle Type"
 msgstr "喷嘴类型"
@@ -5311,6 +5325,14 @@ msgstr "冲刷体积：每一次更换材料时自动计算。"
 msgid "If enabled, auto-calculate every time when filament is changed"
 msgstr "如果启用，会在每一次更换材料时自动计算。"
 
+msgid "Multi-device Management(Take effect after restarting Studio)."
+msgstr ""
+
+msgid ""
+"With this option enabled, you can send a task to multiple devices at the "
+"same time and manage multiple devices."
+msgstr ""
+
 msgid "Presets"
 msgstr "预设"
 
@@ -5718,6 +5740,9 @@ msgstr "我的设备"
 msgid "Other Device"
 msgstr "其他设备"
 
+msgid "Bind with Pin Code"
+msgstr ""
+
 msgid "Online"
 msgstr "在线"
 
@@ -5998,6 +6023,26 @@ msgstr "接收登录报告超时"
 
 msgid "Unknown Failure"
 msgstr "发生错误"
+
+msgid ""
+"Please Find the ping code in Account page on printer screen,\n"
+" and type in the ping code below."
+msgstr ""
+
+msgid "Can't find pin code?"
+msgstr ""
+
+msgid "Pin Code"
+msgstr "Pin码"
+
+msgid "Binding..."
+msgstr ""
+
+msgid "Please confirm on the printer screen"
+msgstr ""
+
+msgid "Log in failed. Please check the pin code."
+msgstr ""
 
 msgid "Log in printer"
 msgstr "登录打印机"
@@ -6732,8 +6777,9 @@ msgid ""
 "Studio would re-calculate your flushing volumes everytime the filaments "
 "color changed or filaments changed. You could disable the auto-calculate in "
 "Bambu Studio > Preferences"
-msgstr "Studio 将会在每一次更换耗材或颜色时重新计算你的冲刷体积，你可以在"
-"Bambu Studio > 偏好设置 中关闭自动计算"
+msgstr ""
+"Studio 将会在每一次更换耗材或颜色时重新计算你的冲刷体积，你可以在Bambu "
+"Studio > 偏好设置 中关闭自动计算"
 
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr "在两个耗材丝间切换所需的冲刷量（mm³）"
@@ -7029,6 +7075,39 @@ msgstr "完成"
 
 msgid "resume"
 msgstr "继续"
+
+msgid "Resume Printing"
+msgstr "继续打印"
+
+msgid "Resume Printing(defects acceptable)"
+msgstr "继续打印（缺陷可接受）"
+
+msgid "Resume Printing(problem solved)"
+msgstr "继续打印（问题已解决）"
+
+msgid "Stop Printing"
+msgstr "停止打印"
+
+msgid "Check Assistant"
+msgstr "前往机器助手"
+
+msgid "Filament Extruded, Continue"
+msgstr "耗材已挤出，继续"
+
+msgid "Not Extruded Yet,Retry"
+msgstr "耗材未挤出，重试"
+
+msgid "Finished, Continue"
+msgstr "已完成，继续"
+
+msgid "Load Filament"
+msgstr "进料并前往进料页面"
+
+msgid "Filament Loaded, Resume"
+msgstr ""
+
+msgid "View Liveview"
+msgstr ""
 
 msgid "Confirm and Update Nozzle"
 msgstr "确认并更新喷嘴"
@@ -8392,6 +8471,9 @@ msgstr "支撑立方体"
 msgid "Lightning"
 msgstr "闪电"
 
+msgid "Cross Hatch"
+msgstr "交叉层叠"
+
 msgid ""
 "Acceleration of top surface infill. Using a lower value may improve top "
 "surface quality"
@@ -9319,6 +9401,22 @@ msgstr ""
 "沿着对象的外轮廓螺旋上升，将实体模型转变为只有底面实心层和侧面单层墙壁的打"
 "印。最后生成的打印件没有接缝。"
 
+msgid "Smooth Spiral"
+msgstr "平滑旋转花瓶"
+
+msgid ""
+"Smooth Spiral smoothes out X and Y moves as wellresulting in no visible seam "
+"at all, even in the XY directions on walls that are not vertical"
+msgstr "平滑花瓶模式在XY平面上作偏移以达到隐藏接缝的结果。"
+
+msgid "Max XY Smoothing"
+msgstr "最大XY平滑阈值"
+
+msgid ""
+"Maximum distance to move points in XY to try to achieve a smooth spiralIf "
+"expressed as a %, it will be computed over nozzle diameter"
+msgstr "最大的XY平面移动距离。当以%为单位时，基于喷嘴直径计算。"
+
 msgid ""
 "If smooth or traditional mode is selected, a timelapse video will be "
 "generated for each print. After each layer is printed, a snapshot is taken "
@@ -10163,6 +10261,17 @@ msgstr "请选择要校准的耗材丝。"
 msgid "The input value size must be 3."
 msgstr "输入值大小必须为3。"
 
+msgid ""
+"This machine type can only hold 16 history results per nozzle. You can "
+"delete the existing historical results and then start calibration. Or you "
+"can continue the calibration, but you cannot create new calibration "
+"historical results. \n"
+"Do you still want to continue the calibration?"
+msgstr""
+"该机型每个喷嘴最多只能保存16个历史结果。您可以删除先已有历史结果再开始校准。"
+"或者您可以直接开始校准，但是无法创建新的校准历史结果。"
+"您仍继续校准吗？"
+
 msgid "Connecting to printer..."
 msgstr "正在连接打印机..."
 
@@ -10171,6 +10280,21 @@ msgstr "测试失败的结果已被删除。"
 
 msgid "Flow Dynamics Calibration result has been saved to the printer"
 msgstr "动态流量校准的结果已保存至打印机。"
+
+#, c-format, boost-format
+msgid ""
+"There is already a historical calibration result with the same name: %s. "
+"Only one of the results with the same name is saved. Are you sure you want "
+"to override the historical result?"
+msgstr ""
+"已经存在一个具有相同名称的历史校准结果：%s。相同名称的结果只会保存一个。您确"
+"定要覆盖历史结果吗？"
+
+#, c-format, boost-format
+msgid ""
+"This machine type can only hold %d history results per nozzle. This result "
+"will not be saved."
+msgstr "该机型每个喷嘴最多只能保存%d个历史结果, 该结果将不会被保存"
 
 msgid "Internal Error"
 msgstr "内部错误"
@@ -10352,15 +10476,6 @@ msgid ""
 "want to override the other results?"
 msgstr "相同名称的结果只会保存一个。您确定要覆盖其他结果吗？"
 
-#, c-format, boost-format
-msgid ""
-"There is already a historical calibration result with the same name: %s. "
-"Only one of the results with the same name is saved. Are you sure you want "
-"to override the historical result?"
-msgstr ""
-"已经存在一个具有相同名称的历史校准结果：%s。相同名称的结果只会保存一个。您确"
-"定要覆盖历史结果吗？"
-
 msgid "Please find the best line on your plate"
 msgstr "请在您的打印板上找到最佳线条"
 
@@ -10511,6 +10626,10 @@ msgstr "刷新历史动态流量校准记录"
 
 msgid "Action"
 msgstr "操作"
+
+#, c-format, boost-format
+msgid "This machine type can only hold %d history results per nozzle."
+msgstr "该机型每个喷嘴最多只能保存%d个历史结果"
 
 msgid "Edit Flow Dynamics Calibration"
 msgstr "编辑动态流量校准"
@@ -11684,7 +11803,8 @@ msgid ""
 "varies a lot from brand to brand. So, it's highly recommended to ask its "
 "vendor for suitable profile before printing and adjust some parameters "
 "according to its performances."
-msgstr "此耗材较为小众，拓竹并未出售，且不同品牌的差异很大，故强烈建议打印前向厂家咨"
+msgstr ""
+"此耗材较为小众，拓竹并未出售，且不同品牌的差异很大，故强烈建议打印前向厂家咨"
 "询预设参数，并根据打印表现来调整打印参数。"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
@@ -11954,6 +12074,12 @@ msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
 
+#~ msgid "active"
+#~ msgstr "活动的"
+
+#~ msgid "Unload Filament"
+#~ msgstr "退料"
+
 #~ msgid ""
 #~ "The current chamber temperature or the target chamber temperature exceeds "
 #~ "45\\u2103.In order to avoid extruder clogging,low temperature "
@@ -12024,29 +12150,14 @@ msgstr ""
 #~ msgid "Scarf joint seam (beta)"
 #~ msgstr "斜拼接缝（试验）"
 
-#~ msgid "Resume Printing"
-#~ msgstr "继续打印"
-
-#~ msgid "Resume Printing(defects acceptable)"
-#~ msgstr "继续打印（缺陷可接受）"
-
-#~ msgid "Resume Printing(problem solved)"
-#~ msgstr "继续打印（问题已解决）"
-
-#~ msgid "Stop Printing"
-#~ msgstr "停止打印"
-
 #~ msgid "Filament Extruded,Continue"
 #~ msgstr "耗材已挤出，继续"
-
-#~ msgid "Not Extruded Yet,Retry"
-#~ msgstr "耗材未挤出，重试"
 
 #~ msgid "Finished,Continue"
 #~ msgstr "已完成，继续"
 
 #~ msgid "Load Filament "
-#~ msgstr "进料"
+#~ msgstr "进料并前往进料页面"
 
 #~ msgid "OK "
 #~ msgstr "我知道了"
@@ -12864,9 +12975,6 @@ msgstr ""
 
 #~ msgid "Closing in %ds"
 #~ msgstr "%d秒内关闭"
-
-#~ msgid "Load"
-#~ msgstr "加载"
 
 #~ msgid "Upper part"
 #~ msgstr "上半部分"

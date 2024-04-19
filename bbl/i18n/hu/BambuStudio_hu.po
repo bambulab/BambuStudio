@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-07 16:19+0800\n"
+"POT-Creation-Date: 2024-04-19 14:24+0800\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1131,8 +1131,8 @@ msgstr "Alapértelmezett"
 msgid "Filament %d"
 msgstr "Filament %d"
 
-msgid "active"
-msgstr "aktív"
+msgid "current"
+msgstr "jelenlegi"
 
 msgid "Scale to build volume"
 msgstr "Átméretezés a nyomtatótérhez"
@@ -1293,9 +1293,6 @@ msgstr "Filament csere"
 
 msgid "Set Filament for selected items"
 msgstr "Filament beállítása a kiválasztott tárgyakhoz"
-
-msgid "current"
-msgstr "jelenlegi"
 
 msgid "Unlock"
 msgstr "Feloldás"
@@ -1739,11 +1736,11 @@ msgstr "Auto Refill"
 msgid "AMS not connected"
 msgstr "Az AMS nincs csatlakoztatva"
 
-msgid "Load Filament"
-msgstr "Filament betöltés"
+msgid "Load"
+msgstr ""
 
-msgid "Unload Filament"
-msgstr "Filament kitöltése"
+msgid "Unload"
+msgstr "Kitöltés"
 
 msgid "Ext Spool"
 msgstr "Kül. tekercs"
@@ -2446,6 +2443,14 @@ msgid ""
 msgstr ""
 "Az AMS automatikusan egy másik, azonos tulajdonságú filamentre vált, ha az "
 "aktuális filament kifogy."
+
+msgid "Air Printing Detection"
+msgstr ""
+
+msgid ""
+"Detects clogging and filament grinding, halting printing immediately to "
+"conserve time and filament."
+msgstr ""
 
 msgid "File"
 msgstr "Fájl"
@@ -3496,6 +3501,9 @@ msgstr "Előnézet"
 msgid "Device"
 msgstr "Nyomtató"
 
+msgid "Multi-device"
+msgstr ""
+
 msgid "Project"
 msgstr "Projekt"
 
@@ -3531,6 +3539,9 @@ msgstr "Szeletelt tálca exportálása"
 
 msgid "Export all sliced file"
 msgstr "Minden szeletelt fájl exportálása"
+
+msgid "Send to Multi-device"
+msgstr ""
 
 msgid "Print all"
 msgstr "Összes nyomtatása"
@@ -4293,9 +4304,6 @@ msgstr "Cham"
 msgid "Bed"
 msgstr "Asztal"
 
-msgid "Unload"
-msgstr "Kitöltés"
-
 msgid "Debug Info"
 msgstr "Hibakeresési infó"
 
@@ -4729,6 +4737,12 @@ msgstr "Allow Prompt Sound"
 
 msgid "Filament Tangle Detect"
 msgstr "Filament Tangle Detect"
+
+msgid "Nozzle Clumping Detection"
+msgstr ""
+
+msgid "Check if the nozzle is clumping by filament or other foreign objects."
+msgstr ""
 
 msgid "Nozzle Type"
 msgstr ""
@@ -5468,6 +5482,14 @@ msgstr ""
 msgid "If enabled, auto-calculate every time when filament is changed"
 msgstr ""
 
+msgid "Multi-device Management(Take effect after restarting Studio)."
+msgstr ""
+
+msgid ""
+"With this option enabled, you can send a task to multiple devices at the "
+"same time and manage multiple devices."
+msgstr ""
+
 msgid "Presets"
 msgstr "Beállítások"
 
@@ -5880,6 +5902,9 @@ msgstr "Saját eszköz"
 msgid "Other Device"
 msgstr "Egyéb eszköz"
 
+msgid "Bind with Pin Code"
+msgstr ""
+
 msgid "Online"
 msgstr "Online"
 
@@ -6186,6 +6211,26 @@ msgstr "Időtúllépés a bejelentkezési válasz fogadásakor"
 
 msgid "Unknown Failure"
 msgstr "Ismeretlen hiba"
+
+msgid ""
+"Please Find the ping code in Account page on printer screen,\n"
+" and type in the ping code below."
+msgstr ""
+
+msgid "Can't find pin code?"
+msgstr ""
+
+msgid "Pin Code"
+msgstr ""
+
+msgid "Binding..."
+msgstr ""
+
+msgid "Please confirm on the printer screen"
+msgstr ""
+
+msgid "Log in failed. Please check the pin code."
+msgstr ""
 
 msgid "Log in printer"
 msgstr "Bejelentkezés a nyomtatóra"
@@ -7254,6 +7299,39 @@ msgid "Done"
 msgstr "Kész"
 
 msgid "resume"
+msgstr ""
+
+msgid "Resume Printing"
+msgstr ""
+
+msgid "Resume Printing(defects acceptable)"
+msgstr ""
+
+msgid "Resume Printing(problem solved)"
+msgstr ""
+
+msgid "Stop Printing"
+msgstr ""
+
+msgid "Check Assistant"
+msgstr ""
+
+msgid "Filament Extruded, Continue"
+msgstr ""
+
+msgid "Not Extruded Yet,Retry"
+msgstr ""
+
+msgid "Finished, Continue"
+msgstr ""
+
+msgid "Load Filament"
+msgstr "Filament betöltés"
+
+msgid "Filament Loaded, Resume"
+msgstr ""
+
+msgid "View Liveview"
 msgstr ""
 
 msgid "Confirm and Update Nozzle"
@@ -8751,6 +8829,9 @@ msgstr "Támasz kocka"
 msgid "Lightning"
 msgstr "Világítás"
 
+msgid "Cross Hatch"
+msgstr ""
+
 msgid ""
 "Acceleration of top surface infill. Using a lower value may improve top "
 "surface quality"
@@ -9745,6 +9826,22 @@ msgstr ""
 "nyomatokká alakítja, tömör alsó rétegekkel. A végső modellen nincsenek "
 "varratok"
 
+msgid "Smooth Spiral"
+msgstr ""
+
+msgid ""
+"Smooth Spiral smoothes out X and Y moves as wellresulting in no visible seam "
+"at all, even in the XY directions on walls that are not vertical"
+msgstr ""
+
+msgid "Max XY Smoothing"
+msgstr ""
+
+msgid ""
+"Maximum distance to move points in XY to try to achieve a smooth spiralIf "
+"expressed as a %, it will be computed over nozzle diameter"
+msgstr ""
+
 msgid ""
 "If smooth or traditional mode is selected, a timelapse video will be "
 "generated for each print. After each layer is printed, a snapshot is taken "
@@ -10670,6 +10767,14 @@ msgstr "Kérjük, válaszd ki a kalibrálandó filamenteket."
 msgid "The input value size must be 3."
 msgstr "A bemeneti értéknek 3-nak kell lennie."
 
+msgid ""
+"This machine type can only hold 16 history results per nozzle. You can "
+"delete the existing historical results and then start calibration. Or you "
+"can continue the calibration, but you cannot create new calibration "
+"historical results. \n"
+"Do you still want to continue the calibration?"
+msgstr ""
+
 msgid "Connecting to printer..."
 msgstr "Csatlakozás a nyomtatóhoz..."
 
@@ -10678,6 +10783,19 @@ msgstr "A sikertelen teszteredményt eltávolítottuk."
 
 msgid "Flow Dynamics Calibration result has been saved to the printer"
 msgstr "Az áramlásdinamikai kalibráció eredményeit elmentette a nyomtató."
+
+#, c-format, boost-format
+msgid ""
+"There is already a historical calibration result with the same name: %s. "
+"Only one of the results with the same name is saved. Are you sure you want "
+"to override the historical result?"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"This machine type can only hold %d history results per nozzle. This result "
+"will not be saved."
+msgstr ""
 
 msgid "Internal Error"
 msgstr "Belső hiba"
@@ -10890,13 +11008,6 @@ msgid ""
 "want to override the other results?"
 msgstr ""
 
-#, c-format, boost-format
-msgid ""
-"There is already a historical calibration result with the same name: %s. "
-"Only one of the results with the same name is saved. Are you sure you want "
-"to override the historical result?"
-msgstr ""
-
 msgid "Please find the best line on your plate"
 msgstr "Keresd meg a legjobb vonalat a tálcán."
 
@@ -11051,6 +11162,10 @@ msgstr "Refreshing the historical Flow Dynamics Calibration records"
 
 msgid "Action"
 msgstr "Művelet"
+
+#, c-format, boost-format
+msgid "This machine type can only hold %d history results per nozzle."
+msgstr ""
 
 msgid "Edit Flow Dynamics Calibration"
 msgstr "Áramlásdinamikai kalibráció szerkesztése"
@@ -12495,6 +12610,12 @@ msgstr ""
 "Did you know that when printing materials that are prone to warping such as "
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
+
+#~ msgid "active"
+#~ msgstr "aktív"
+
+#~ msgid "Unload Filament"
+#~ msgstr "Filament kitöltése"
 
 #~ msgid ""
 #~ "The current chamber temperature or the target chamber temperature exceeds "

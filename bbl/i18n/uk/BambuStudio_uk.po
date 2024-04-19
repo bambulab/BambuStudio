@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-07 16:19+0800\n"
+"POT-Creation-Date: 2024-04-19 14:24+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -1139,8 +1139,8 @@ msgstr "За замовчуванням"
 msgid "Filament %d"
 msgstr "Філамент %d"
 
-msgid "active"
-msgstr "активно"
+msgid "current"
+msgstr "поточний"
 
 msgid "Scale to build volume"
 msgstr "Масштабування для збільшення обсягу"
@@ -1297,9 +1297,6 @@ msgstr "Змінити філамент"
 
 msgid "Set Filament for selected items"
 msgstr "Встановити філамент для вибраних елементів"
-
-msgid "current"
-msgstr "поточний"
 
 msgid "Unlock"
 msgstr "Розблокувати"
@@ -1748,11 +1745,11 @@ msgstr "Автоматична заміна"
 msgid "AMS not connected"
 msgstr "АМС не підключено"
 
-msgid "Load Filament"
-msgstr "Завантажити"
+msgid "Load"
+msgstr ""
 
-msgid "Unload Filament"
-msgstr "Вивантажити"
+msgid "Unload"
+msgstr "Вивантаження"
 
 msgid "Ext Spool"
 msgstr "Котушка"
@@ -2465,6 +2462,14 @@ msgid ""
 msgstr ""
 "AMS автоматично перейде на іншу котушку з філаментом тих самих властивостей, "
 "коли поточний філамент закінчиться"
+
+msgid "Air Printing Detection"
+msgstr ""
+
+msgid ""
+"Detects clogging and filament grinding, halting printing immediately to "
+"conserve time and filament."
+msgstr ""
 
 msgid "File"
 msgstr "Файл"
@@ -3551,6 +3556,9 @@ msgstr "Попередній перегляд"
 msgid "Device"
 msgstr "Пристрій"
 
+msgid "Multi-device"
+msgstr ""
+
 msgid "Project"
 msgstr "Проект"
 
@@ -3586,6 +3594,9 @@ msgstr "Експортувати файл нарізки пластини"
 
 msgid "Export all sliced file"
 msgstr "Експортувати весь нарізаний файл"
+
+msgid "Send to Multi-device"
+msgstr ""
 
 msgid "Print all"
 msgstr "Роздрукувати все"
@@ -4380,9 +4391,6 @@ msgstr "Камера"
 msgid "Bed"
 msgstr "Стіл"
 
-msgid "Unload"
-msgstr "Вивантаження"
-
 msgid "Debug Info"
 msgstr "Налагоджувальна інформація"
 
@@ -4817,6 +4825,12 @@ msgstr "Дозволити звук підказки"
 
 msgid "Filament Tangle Detect"
 msgstr "Виявлення заплутування філаменту"
+
+msgid "Nozzle Clumping Detection"
+msgstr ""
+
+msgid "Check if the nozzle is clumping by filament or other foreign objects."
+msgstr ""
 
 msgid "Nozzle Type"
 msgstr "Тип насадки"
@@ -5574,6 +5588,14 @@ msgstr ""
 msgid "If enabled, auto-calculate every time when filament is changed"
 msgstr ""
 
+msgid "Multi-device Management(Take effect after restarting Studio)."
+msgstr ""
+
+msgid ""
+"With this option enabled, you can send a task to multiple devices at the "
+"same time and manage multiple devices."
+msgstr ""
+
 msgid "Presets"
 msgstr "Пресети"
 
@@ -5991,6 +6013,9 @@ msgstr "Мої пристрої"
 msgid "Other Device"
 msgstr "Інші пристрої"
 
+msgid "Bind with Pin Code"
+msgstr ""
+
 msgid "Online"
 msgstr "У мережі"
 
@@ -6298,6 +6323,26 @@ msgstr "Отримано звіт про вхід з перевищеним ча
 
 msgid "Unknown Failure"
 msgstr "Невідома помилка"
+
+msgid ""
+"Please Find the ping code in Account page on printer screen,\n"
+" and type in the ping code below."
+msgstr ""
+
+msgid "Can't find pin code?"
+msgstr ""
+
+msgid "Pin Code"
+msgstr ""
+
+msgid "Binding..."
+msgstr ""
+
+msgid "Please confirm on the printer screen"
+msgstr ""
+
+msgid "Log in failed. Please check the pin code."
+msgstr ""
 
 msgid "Log in printer"
 msgstr "Авторизуватися на принтері"
@@ -7380,6 +7425,39 @@ msgstr "Виконано"
 
 msgid "resume"
 msgstr "продовжити"
+
+msgid "Resume Printing"
+msgstr ""
+
+msgid "Resume Printing(defects acceptable)"
+msgstr ""
+
+msgid "Resume Printing(problem solved)"
+msgstr ""
+
+msgid "Stop Printing"
+msgstr ""
+
+msgid "Check Assistant"
+msgstr ""
+
+msgid "Filament Extruded, Continue"
+msgstr ""
+
+msgid "Not Extruded Yet,Retry"
+msgstr ""
+
+msgid "Finished, Continue"
+msgstr ""
+
+msgid "Load Filament"
+msgstr "Завантажити"
+
+msgid "Filament Loaded, Resume"
+msgstr ""
+
+msgid "View Liveview"
+msgstr ""
 
 msgid "Confirm and Update Nozzle"
 msgstr "Підтвердити і оновити сопло"
@@ -8900,6 +8978,9 @@ msgstr "Підтримуючий кубічний"
 msgid "Lightning"
 msgstr "Блискавка"
 
+msgid "Cross Hatch"
+msgstr ""
+
 msgid ""
 "Acceleration of top surface infill. Using a lower value may improve top "
 "surface quality"
@@ -9933,6 +10014,22 @@ msgstr ""
 "твердотільна модель в одностінний друк із суцільними нижніми шарами.Кінічна "
 "згенерована модель не має шва"
 
+msgid "Smooth Spiral"
+msgstr ""
+
+msgid ""
+"Smooth Spiral smoothes out X and Y moves as wellresulting in no visible seam "
+"at all, even in the XY directions on walls that are not vertical"
+msgstr ""
+
+msgid "Max XY Smoothing"
+msgstr ""
+
+msgid ""
+"Maximum distance to move points in XY to try to achieve a smooth spiralIf "
+"expressed as a %, it will be computed over nozzle diameter"
+msgstr ""
+
 msgid ""
 "If smooth or traditional mode is selected, a timelapse video will be "
 "generated for each print. After each layer is printed, a snapshot is taken "
@@ -10860,6 +10957,14 @@ msgstr "Будь ласка, виберіть філамент для каліб
 msgid "The input value size must be 3."
 msgstr "Розмір введеного значення повинен бути 3."
 
+msgid ""
+"This machine type can only hold 16 history results per nozzle. You can "
+"delete the existing historical results and then start calibration. Or you "
+"can continue the calibration, but you cannot create new calibration "
+"historical results. \n"
+"Do you still want to continue the calibration?"
+msgstr ""
+
 msgid "Connecting to printer..."
 msgstr "Підключення до принтера…"
 
@@ -10868,6 +10973,22 @@ msgstr "Неуспішний результат тесту було відхил
 
 msgid "Flow Dynamics Calibration result has been saved to the printer"
 msgstr "Результат калібрування динаміки потоку було збережено в принтері"
+
+#, c-format, boost-format
+msgid ""
+"There is already a historical calibration result with the same name: %s. "
+"Only one of the results with the same name is saved. Are you sure you want "
+"to override the historical result?"
+msgstr ""
+"Вже існує історичний результат калібрування з такою самою назвою: %s. "
+"Зберігається лише один з результатів з такою самою назвою. Ви впевнені, що "
+"хочете перезаписати історичний результат?"
+
+#, c-format, boost-format
+msgid ""
+"This machine type can only hold %d history results per nozzle. This result "
+"will not be saved."
+msgstr ""
 
 msgid "Internal Error"
 msgstr "Внутрішня помилка"
@@ -11090,16 +11211,6 @@ msgstr ""
 "Тільки один із результатів з однаковою назвою буде збережено. Ви впевнені, "
 "що хочете перезаписати інші результати?"
 
-#, c-format, boost-format
-msgid ""
-"There is already a historical calibration result with the same name: %s. "
-"Only one of the results with the same name is saved. Are you sure you want "
-"to override the historical result?"
-msgstr ""
-"Вже існує історичний результат калібрування з такою самою назвою: %s. "
-"Зберігається лише один з результатів з такою самою назвою. Ви впевнені, що "
-"хочете перезаписати історичний результат?"
-
 msgid "Please find the best line on your plate"
 msgstr "Будь ласка, знайдіть найкращу лінію на вашій пластині"
 
@@ -11255,6 +11366,10 @@ msgstr "Оновлення історичних записів калібрув�
 
 msgid "Action"
 msgstr "Дія"
+
+#, c-format, boost-format
+msgid "This machine type can only hold %d history results per nozzle."
+msgstr ""
 
 msgid "Edit Flow Dynamics Calibration"
 msgstr "Редагувати калібрування динаміки потоку"
@@ -12846,6 +12961,12 @@ msgstr ""
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як "
 "ABS, відповідне підвищення температури гарячого ліжка може зменшити "
 "ймовірність деформації."
+
+#~ msgid "active"
+#~ msgstr "активно"
+
+#~ msgid "Unload Filament"
+#~ msgstr "Вивантажити"
 
 #~ msgid ""
 #~ "Studio would re-calculate your flushing volumes everytime the filaments "

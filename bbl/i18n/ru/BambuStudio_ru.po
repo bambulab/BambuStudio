@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 1.9.0.70 Public Beta 3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-07 16:19+0800\n"
+"POT-Creation-Date: 2024-04-19 14:24+0800\n"
 "PO-Revision-Date: 2024-04-18 20:55+0700\n"
 "Last-Translator: Andylg <andylg@yandex.ru>\n"
 "Language-Team: \n"
@@ -15,8 +15,8 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
-"n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
 "X-Generator: Poedit 3.4.2\n"
 
 msgid "Supports Painting"
@@ -1160,8 +1160,8 @@ msgstr "По умолчанию"
 msgid "Filament %d"
 msgstr "Пруток %d"
 
-msgid "active"
-msgstr "активный"
+msgid "current"
+msgstr "текущий"
 
 msgid "Scale to build volume"
 msgstr "Отмасштабировать под область печати"
@@ -1319,9 +1319,6 @@ msgstr "Сменить пруток"
 
 msgid "Set Filament for selected items"
 msgstr "Задать пруток для выбранных элементов"
-
-msgid "current"
-msgstr "текущий"
 
 msgid "Unlock"
 msgstr "Разблокировать"
@@ -1776,13 +1773,11 @@ msgstr "Автодозаправка"
 msgid "AMS not connected"
 msgstr "АСПП не подключена"
 
-# кнопка в интерфейсе
-msgid "Load Filament"
-msgstr "Загрузить"
+msgid "Load"
+msgstr ""
 
-# кнопка в интерфейсе
-msgid "Unload Filament"
-msgstr "Выгрузить"
+msgid "Unload"
+msgstr "Выгруз."
 
 msgid "Ext Spool"
 msgstr "Внеш. катушка"
@@ -2511,6 +2506,14 @@ msgid ""
 msgstr ""
 "АСПП автоматически переключится на другую катушку с тем же типом материала, "
 "когда текущий закончится."
+
+msgid "Air Printing Detection"
+msgstr ""
+
+msgid ""
+"Detects clogging and filament grinding, halting printing immediately to "
+"conserve time and filament."
+msgstr ""
 
 msgid "File"
 msgstr "Файл"
@@ -3623,6 +3626,9 @@ msgstr "Предпросмотр нарезки"
 msgid "Device"
 msgstr "Принтер"
 
+msgid "Multi-device"
+msgstr ""
+
 msgid "Project"
 msgstr "Проект"
 
@@ -3658,6 +3664,9 @@ msgstr "Экспорт стола в файл проекта"
 
 msgid "Export all sliced file"
 msgstr "Экспорт всех столов в файл проекта"
+
+msgid "Send to Multi-device"
+msgstr ""
 
 msgid "Print all"
 msgstr "Распечатать все столы"
@@ -4463,9 +4472,6 @@ msgstr "Выдув"
 msgid "Bed"
 msgstr "Стол"
 
-msgid "Unload"
-msgstr "Выгруз."
-
 msgid "Debug Info"
 msgstr "Отладочная информация"
 
@@ -4907,6 +4913,12 @@ msgstr "Разрешить звуковые уведомления"
 
 msgid "Filament Tangle Detect"
 msgstr "Обнаружение запутывания прутка"
+
+msgid "Nozzle Clumping Detection"
+msgstr ""
+
+msgid "Check if the nozzle is clumping by filament or other foreign objects."
+msgstr ""
 
 msgid "Nozzle Type"
 msgstr "Тип сопла"
@@ -5676,6 +5688,14 @@ msgstr ""
 "Если включено, выполняется автоматический перерасчёт объёма очистки при "
 "каждой смене прутка."
 
+msgid "Multi-device Management(Take effect after restarting Studio)."
+msgstr ""
+
+msgid ""
+"With this option enabled, you can send a task to multiple devices at the "
+"same time and manage multiple devices."
+msgstr ""
+
 msgid "Presets"
 msgstr "Профили"
 
@@ -6101,6 +6121,9 @@ msgstr "Мой принтер"
 msgid "Other Device"
 msgstr "Другое устройство"
 
+msgid "Bind with Pin Code"
+msgstr ""
+
 msgid "Online"
 msgstr "В сети"
 
@@ -6418,6 +6441,26 @@ msgstr "Таймаут получения отчета о входе"
 msgid "Unknown Failure"
 msgstr "Неизвестная ошибка"
 
+msgid ""
+"Please Find the ping code in Account page on printer screen,\n"
+" and type in the ping code below."
+msgstr ""
+
+msgid "Can't find pin code?"
+msgstr ""
+
+msgid "Pin Code"
+msgstr ""
+
+msgid "Binding..."
+msgstr ""
+
+msgid "Please confirm on the printer screen"
+msgstr ""
+
+msgid "Log in failed. Please check the pin code."
+msgstr ""
+
 msgid "Log in printer"
 msgstr "Войти в принтер"
 
@@ -6441,8 +6484,8 @@ msgid ""
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 "Перед использованием устройства Bambu Lab ознакомьтесь с правилами и "
-"условиями. Нажимая на кнопку \"Согласие на использование устройства Bambu "
-"Lab\", вы соглашаетесь соблюдать Политику конфиденциальности и Условия "
+"условиями. Нажимая на кнопку \"Согласие на использование устройства Bambu Lab"
+"\", вы соглашаетесь соблюдать Политику конфиденциальности и Условия "
 "использования (далее - \"Условия\"). Если вы не соблюдаете или не согласны с "
 "Политикой конфиденциальности Bambu Lab, пожалуйста, не пользуйтесь "
 "оборудованием и услугами Bambu Lab."
@@ -6627,8 +6670,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "При записи таймлапса без видимости головы рекомендуется добавить «Черновая "
 "башня таймлапса». \n"
@@ -7535,6 +7578,40 @@ msgstr "Готово"
 
 msgid "resume"
 msgstr "Продолжить"
+
+msgid "Resume Printing"
+msgstr ""
+
+msgid "Resume Printing(defects acceptable)"
+msgstr ""
+
+msgid "Resume Printing(problem solved)"
+msgstr ""
+
+msgid "Stop Printing"
+msgstr ""
+
+msgid "Check Assistant"
+msgstr ""
+
+msgid "Filament Extruded, Continue"
+msgstr ""
+
+msgid "Not Extruded Yet,Retry"
+msgstr ""
+
+msgid "Finished, Continue"
+msgstr ""
+
+# кнопка в интерфейсе
+msgid "Load Filament"
+msgstr "Загрузить"
+
+msgid "Filament Loaded, Resume"
+msgstr ""
+
+msgid "View Liveview"
+msgstr ""
 
 msgid "Confirm and Update Nozzle"
 msgstr "Подтвердить и обновить сопло"
@@ -9083,6 +9160,9 @@ msgstr "Динам. куб. поддержка"
 msgid "Lightning"
 msgstr "Молния"
 
+msgid "Cross Hatch"
+msgstr ""
+
 msgid ""
 "Acceleration of top surface infill. Using a lower value may improve top "
 "surface quality"
@@ -10139,6 +10219,22 @@ msgstr ""
 "этом сопло движется вдоль периметра непрерывно постепенно поднимаясь, так "
 "получаются ровные красивые вазы без видимых швов."
 
+msgid "Smooth Spiral"
+msgstr ""
+
+msgid ""
+"Smooth Spiral smoothes out X and Y moves as wellresulting in no visible seam "
+"at all, even in the XY directions on walls that are not vertical"
+msgstr ""
+
+msgid "Max XY Smoothing"
+msgstr ""
+
+msgid ""
+"Maximum distance to move points in XY to try to achieve a smooth spiralIf "
+"expressed as a %, it will be computed over nozzle diameter"
+msgstr ""
+
 msgid ""
 "If smooth or traditional mode is selected, a timelapse video will be "
 "generated for each print. After each layer is printed, a snapshot is taken "
@@ -11096,6 +11192,14 @@ msgstr "Пожалуйста, выберите пруток для калибр�
 msgid "The input value size must be 3."
 msgstr "Размер входного значения должен быть равен 3."
 
+msgid ""
+"This machine type can only hold 16 history results per nozzle. You can "
+"delete the existing historical results and then start calibration. Or you "
+"can continue the calibration, but you cannot create new calibration "
+"historical results. \n"
+"Do you still want to continue the calibration?"
+msgstr ""
+
 msgid "Connecting to printer..."
 msgstr "Подключение к принтеру..."
 
@@ -11104,6 +11208,21 @@ msgstr "Результат неудачного теста был удалён."
 
 msgid "Flow Dynamics Calibration result has been saved to the printer"
 msgstr "Результат калибровки динамики потока был сохранён на принтере"
+
+#, c-format, boost-format
+msgid ""
+"There is already a historical calibration result with the same name: %s. "
+"Only one of the results with the same name is saved. Are you sure you want "
+"to override the historical result?"
+msgstr ""
+"Результат калибровки с таким именем уже с существует: %s. Вы уверены, что "
+"хотите перезаписать прошлый результат?"
+
+#, c-format, boost-format
+msgid ""
+"This machine type can only hold %d history results per nozzle. This result "
+"will not be saved."
+msgstr ""
 
 msgid "Internal Error"
 msgstr "Внутренняя ошибка"
@@ -11322,15 +11441,6 @@ msgstr ""
 "Можно сохранить только один результат с одинаковым именем. Вы уверены, что "
 "хотите перезаписать другие результаты?"
 
-#, c-format, boost-format
-msgid ""
-"There is already a historical calibration result with the same name: %s. "
-"Only one of the results with the same name is saved. Are you sure you want "
-"to override the historical result?"
-msgstr ""
-"Результат калибровки с таким именем уже с существует: %s. Вы уверены, что "
-"хотите перезаписать прошлый результат?"
-
 msgid "Please find the best line on your plate"
 msgstr "Пожалуйста, найдите лучшую линию на столе"
 
@@ -11484,6 +11594,10 @@ msgstr "Обновление записей истории калибровки 
 
 msgid "Action"
 msgstr "Действие"
+
+#, c-format, boost-format
+msgid "This machine type can only hold %d history results per nozzle."
+msgstr ""
 
 msgid "Edit Flow Dynamics Calibration"
 msgstr "Редактировать калибровку динамики потока"
@@ -11918,8 +12032,8 @@ msgstr ""
 "Хотите перезаписать его?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "Мы переименуем профиль в \"Производитель Тип Серия @выбранный принтер\".\n"
@@ -13063,3 +13177,10 @@ msgstr ""
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как "
 "ABS, повышение температуры подогреваемого стола может снизить вероятность "
 "коробления?"
+
+#~ msgid "active"
+#~ msgstr "активный"
+
+# кнопка в интерфейсе
+#~ msgid "Unload Filament"
+#~ msgstr "Выгрузить"
