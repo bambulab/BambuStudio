@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-07 16:19+0800\n"
+"POT-Creation-Date: 2024-04-19 14:24+0800\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1118,8 +1118,8 @@ msgstr "デフォルト"
 msgid "Filament %d"
 msgstr "フィラメント %d"
 
-msgid "active"
-msgstr "アクティブ"
+msgid "current"
+msgstr "現在"
 
 msgid "Scale to build volume"
 msgstr "ビルド容積に合わせる"
@@ -1276,9 +1276,6 @@ msgstr "フィラメントを変更"
 
 msgid "Set Filament for selected items"
 msgstr "選択した項目のフィラメントを設定"
-
-msgid "current"
-msgstr "現在"
 
 msgid "Unlock"
 msgstr "ロック解除"
@@ -1706,11 +1703,11 @@ msgstr "Auto Refill"
 msgid "AMS not connected"
 msgstr "AMS が接続されていません"
 
-msgid "Load Filament"
-msgstr "ロード"
+msgid "Load"
+msgstr ""
 
-msgid "Unload Filament"
-msgstr "アンロード"
+msgid "Unload"
+msgstr "ｱﾝﾛｰﾄﾞ"
 
 msgid "Ext Spool"
 msgstr "外部ｽﾌﾟｰﾙ"
@@ -2380,6 +2377,14 @@ msgid ""
 "AMS will continue to another spool with the same properties of filament "
 "automatically when current filament runs out"
 msgstr "使用中のフィラメントが切れた時に、同じ属性のフィラメントに切り替えます"
+
+msgid "Air Printing Detection"
+msgstr ""
+
+msgid ""
+"Detects clogging and filament grinding, halting printing immediately to "
+"conserve time and filament."
+msgstr ""
 
 msgid "File"
 msgstr "ファイル"
@@ -3404,6 +3409,9 @@ msgstr "プレビュー"
 msgid "Device"
 msgstr "デバイス"
 
+msgid "Multi-device"
+msgstr ""
+
 msgid "Project"
 msgstr "プロジェクト"
 
@@ -3439,6 +3447,9 @@ msgstr "エクスポート"
 
 msgid "Export all sliced file"
 msgstr "エクスポート (全プレート)"
+
+msgid "Send to Multi-device"
+msgstr ""
 
 msgid "Print all"
 msgstr "造形開始 (全プレート)"
@@ -4194,9 +4205,6 @@ msgstr "筐体"
 msgid "Bed"
 msgstr "ベッド"
 
-msgid "Unload"
-msgstr "ｱﾝﾛｰﾄﾞ"
-
 msgid "Debug Info"
 msgstr "デバッグ情報"
 
@@ -4623,6 +4631,12 @@ msgstr "Allow Prompt Sound"
 
 msgid "Filament Tangle Detect"
 msgstr "Filament Tangle Detect"
+
+msgid "Nozzle Clumping Detection"
+msgstr ""
+
+msgid "Check if the nozzle is clumping by filament or other foreign objects."
+msgstr ""
 
 msgid "Nozzle Type"
 msgstr ""
@@ -5351,6 +5365,14 @@ msgstr ""
 msgid "If enabled, auto-calculate every time when filament is changed"
 msgstr ""
 
+msgid "Multi-device Management(Take effect after restarting Studio)."
+msgstr ""
+
+msgid ""
+"With this option enabled, you can send a task to multiple devices at the "
+"same time and manage multiple devices."
+msgstr ""
+
 msgid "Presets"
 msgstr "Presets"
 
@@ -5760,6 +5782,9 @@ msgstr "私のデバイス"
 msgid "Other Device"
 msgstr "その他のデバイス"
 
+msgid "Bind with Pin Code"
+msgstr ""
+
 msgid "Online"
 msgstr "オンライン"
 
@@ -6042,6 +6067,26 @@ msgstr "Receive login report timeout"
 
 msgid "Unknown Failure"
 msgstr "不明な失敗"
+
+msgid ""
+"Please Find the ping code in Account page on printer screen,\n"
+" and type in the ping code below."
+msgstr ""
+
+msgid "Can't find pin code?"
+msgstr ""
+
+msgid "Pin Code"
+msgstr ""
+
+msgid "Binding..."
+msgstr ""
+
+msgid "Please confirm on the printer screen"
+msgstr ""
+
+msgid "Log in failed. Please check the pin code."
+msgstr ""
 
 msgid "Log in printer"
 msgstr "プリンターを登録"
@@ -7071,6 +7116,39 @@ msgid "Done"
 msgstr "Done"
 
 msgid "resume"
+msgstr ""
+
+msgid "Resume Printing"
+msgstr ""
+
+msgid "Resume Printing(defects acceptable)"
+msgstr ""
+
+msgid "Resume Printing(problem solved)"
+msgstr ""
+
+msgid "Stop Printing"
+msgstr ""
+
+msgid "Check Assistant"
+msgstr ""
+
+msgid "Filament Extruded, Continue"
+msgstr ""
+
+msgid "Not Extruded Yet,Retry"
+msgstr ""
+
+msgid "Finished, Continue"
+msgstr ""
+
+msgid "Load Filament"
+msgstr "ロード"
+
+msgid "Filament Loaded, Resume"
+msgstr ""
+
+msgid "View Liveview"
 msgstr ""
 
 msgid "Confirm and Update Nozzle"
@@ -8478,6 +8556,9 @@ msgstr "キュービックサポート"
 msgid "Lightning"
 msgstr "ライトニング"
 
+msgid "Cross Hatch"
+msgstr ""
+
 msgid ""
 "Acceleration of top surface infill. Using a lower value may improve top "
 "surface quality"
@@ -9430,6 +9511,22 @@ msgstr ""
 "スパイラルモードでは、輪郭面を一筆書きで造形します。Z方向の移動に段差がないの"
 "で、シームはありません。"
 
+msgid "Smooth Spiral"
+msgstr ""
+
+msgid ""
+"Smooth Spiral smoothes out X and Y moves as wellresulting in no visible seam "
+"at all, even in the XY directions on walls that are not vertical"
+msgstr ""
+
+msgid "Max XY Smoothing"
+msgstr ""
+
+msgid ""
+"Maximum distance to move points in XY to try to achieve a smooth spiralIf "
+"expressed as a %, it will be computed over nozzle diameter"
+msgstr ""
+
 msgid ""
 "If smooth or traditional mode is selected, a timelapse video will be "
 "generated for each print. After each layer is printed, a snapshot is taken "
@@ -10303,6 +10400,14 @@ msgstr "Please select filament to calibrate."
 msgid "The input value size must be 3."
 msgstr "The input value size must be 3."
 
+msgid ""
+"This machine type can only hold 16 history results per nozzle. You can "
+"delete the existing historical results and then start calibration. Or you "
+"can continue the calibration, but you cannot create new calibration "
+"historical results. \n"
+"Do you still want to continue the calibration?"
+msgstr ""
+
 msgid "Connecting to printer..."
 msgstr "Connecting to printer..."
 
@@ -10311,6 +10416,19 @@ msgstr "The failed test result has been removed."
 
 msgid "Flow Dynamics Calibration result has been saved to the printer"
 msgstr "Flow Dynamics Calibration results have been saved to the printer."
+
+#, c-format, boost-format
+msgid ""
+"There is already a historical calibration result with the same name: %s. "
+"Only one of the results with the same name is saved. Are you sure you want "
+"to override the historical result?"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"This machine type can only hold %d history results per nozzle. This result "
+"will not be saved."
+msgstr ""
 
 msgid "Internal Error"
 msgstr "Internal Error"
@@ -10516,13 +10634,6 @@ msgid ""
 "want to override the other results?"
 msgstr ""
 
-#, c-format, boost-format
-msgid ""
-"There is already a historical calibration result with the same name: %s. "
-"Only one of the results with the same name is saved. Are you sure you want "
-"to override the historical result?"
-msgstr ""
-
 msgid "Please find the best line on your plate"
 msgstr "Please find the best line on your plate."
 
@@ -10676,6 +10787,10 @@ msgstr "Refreshing the historical Flow Dynamics Calibration records"
 
 msgid "Action"
 msgstr "Action"
+
+#, c-format, boost-format
+msgid "This machine type can only hold %d history results per nozzle."
+msgstr ""
 
 msgid "Edit Flow Dynamics Calibration"
 msgstr "Edit Flow Dynamics Calibration"
@@ -12092,6 +12207,12 @@ msgstr ""
 "Did you know that when printing materials that are prone to warping such as "
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
+
+#~ msgid "active"
+#~ msgstr "アクティブ"
+
+#~ msgid "Unload Filament"
+#~ msgstr "アンロード"
 
 #~ msgid ""
 #~ "The current chamber temperature or the target chamber temperature exceeds "

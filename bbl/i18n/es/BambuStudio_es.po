@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-07 16:19+0800\n"
+"POT-Creation-Date: 2024-04-19 14:24+0800\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1135,8 +1135,8 @@ msgstr "Por defecto"
 msgid "Filament %d"
 msgstr "Filamento %d"
 
-msgid "active"
-msgstr "activo"
+msgid "current"
+msgstr "Actual"
 
 msgid "Scale to build volume"
 msgstr "Escala para la impresión del volumen"
@@ -1294,9 +1294,6 @@ msgstr "Cambiar el filamento"
 
 msgid "Set Filament for selected items"
 msgstr "Ajustar el filamento para los elementos seleccionados"
-
-msgid "current"
-msgstr "Actual"
 
 msgid "Unlock"
 msgstr "Desbloquear"
@@ -1744,11 +1741,11 @@ msgstr "Auto Refill"
 msgid "AMS not connected"
 msgstr "AMS no conectado"
 
-msgid "Load Filament"
-msgstr "Cargar"
+msgid "Load"
+msgstr ""
 
-msgid "Unload Filament"
-msgstr "Descargar"
+msgid "Unload"
+msgstr "Descarga"
 
 msgid "Ext Spool"
 msgstr "Bobina de salida"
@@ -2458,6 +2455,14 @@ msgid ""
 msgstr ""
 "AMS continuará con otra bobina con las mismas propiedades de filamento "
 "automáticamente cuando el filamento actual se agote."
+
+msgid "Air Printing Detection"
+msgstr ""
+
+msgid ""
+"Detects clogging and filament grinding, halting printing immediately to "
+"conserve time and filament."
+msgstr ""
 
 msgid "File"
 msgstr "Archivo"
@@ -3520,6 +3525,9 @@ msgstr "Previsualización"
 msgid "Device"
 msgstr "Dispositivo"
 
+msgid "Multi-device"
+msgstr ""
+
 msgid "Project"
 msgstr "Proyecto"
 
@@ -3555,6 +3563,9 @@ msgstr "Exportar la placa de impresión actual"
 
 msgid "Export all sliced file"
 msgstr "Exportar todas las placas"
+
+msgid "Send to Multi-device"
+msgstr ""
 
 msgid "Print all"
 msgstr "Imprimir todo"
@@ -4318,9 +4329,6 @@ msgstr "Cámara"
 msgid "Bed"
 msgstr "Cama"
 
-msgid "Unload"
-msgstr "Descarga"
-
 msgid "Debug Info"
 msgstr "Información de Depuración"
 
@@ -4755,6 +4763,12 @@ msgstr "Allow Prompt Sound"
 
 msgid "Filament Tangle Detect"
 msgstr "Filament Tangle Detect"
+
+msgid "Nozzle Clumping Detection"
+msgstr ""
+
+msgid "Check if the nozzle is clumping by filament or other foreign objects."
+msgstr ""
 
 msgid "Nozzle Type"
 msgstr ""
@@ -5507,6 +5521,14 @@ msgstr ""
 msgid "If enabled, auto-calculate every time when filament is changed"
 msgstr ""
 
+msgid "Multi-device Management(Take effect after restarting Studio)."
+msgstr ""
+
+msgid ""
+"With this option enabled, you can send a task to multiple devices at the "
+"same time and manage multiple devices."
+msgstr ""
+
 msgid "Presets"
 msgstr "Ajustes preestablecidos"
 
@@ -5924,6 +5946,9 @@ msgstr "Mi dispositivo"
 msgid "Other Device"
 msgstr "Otro dispositivo"
 
+msgid "Bind with Pin Code"
+msgstr ""
+
 msgid "Online"
 msgstr "En línea"
 
@@ -6231,6 +6256,26 @@ msgstr "Tiempo de espera agotado para recibir informe de inicio de sesión"
 
 msgid "Unknown Failure"
 msgstr "Error desconocido"
+
+msgid ""
+"Please Find the ping code in Account page on printer screen,\n"
+" and type in the ping code below."
+msgstr ""
+
+msgid "Can't find pin code?"
+msgstr ""
+
+msgid "Pin Code"
+msgstr ""
+
+msgid "Binding..."
+msgstr ""
+
+msgid "Please confirm on the printer screen"
+msgstr ""
+
+msgid "Log in failed. Please check the pin code."
+msgstr ""
 
 msgid "Log in printer"
 msgstr "Iniciar sesión en la impresora"
@@ -7308,6 +7353,39 @@ msgid "Done"
 msgstr "Listo"
 
 msgid "resume"
+msgstr ""
+
+msgid "Resume Printing"
+msgstr ""
+
+msgid "Resume Printing(defects acceptable)"
+msgstr ""
+
+msgid "Resume Printing(problem solved)"
+msgstr ""
+
+msgid "Stop Printing"
+msgstr ""
+
+msgid "Check Assistant"
+msgstr ""
+
+msgid "Filament Extruded, Continue"
+msgstr ""
+
+msgid "Not Extruded Yet,Retry"
+msgstr ""
+
+msgid "Finished, Continue"
+msgstr ""
+
+msgid "Load Filament"
+msgstr "Cargar"
+
+msgid "Filament Loaded, Resume"
+msgstr ""
+
+msgid "View Liveview"
 msgstr ""
 
 msgid "Confirm and Update Nozzle"
@@ -8814,6 +8892,9 @@ msgstr "Soporte cúbico"
 msgid "Lightning"
 msgstr "Iluminación"
 
+msgid "Cross Hatch"
+msgstr ""
+
 msgid ""
 "Acceleration of top surface infill. Using a lower value may improve top "
 "surface quality"
@@ -9815,6 +9896,22 @@ msgstr ""
 "modelo sólido en una impresión de una sola pared con capas inferiores "
 "sólidas. El modelo final generado no tiene costura"
 
+msgid "Smooth Spiral"
+msgstr ""
+
+msgid ""
+"Smooth Spiral smoothes out X and Y moves as wellresulting in no visible seam "
+"at all, even in the XY directions on walls that are not vertical"
+msgstr ""
+
+msgid "Max XY Smoothing"
+msgstr ""
+
+msgid ""
+"Maximum distance to move points in XY to try to achieve a smooth spiralIf "
+"expressed as a %, it will be computed over nozzle diameter"
+msgstr ""
+
 msgid ""
 "If smooth or traditional mode is selected, a timelapse video will be "
 "generated for each print. After each layer is printed, a snapshot is taken "
@@ -10750,6 +10847,14 @@ msgstr "Seleccione el filamento para calibrar."
 msgid "The input value size must be 3."
 msgstr "El tamaño del valor de entrada debe ser 3."
 
+msgid ""
+"This machine type can only hold 16 history results per nozzle. You can "
+"delete the existing historical results and then start calibration. Or you "
+"can continue the calibration, but you cannot create new calibration "
+"historical results. \n"
+"Do you still want to continue the calibration?"
+msgstr ""
+
 msgid "Connecting to printer..."
 msgstr "Conectando a la impresora..."
 
@@ -10760,6 +10865,19 @@ msgid "Flow Dynamics Calibration result has been saved to the printer"
 msgstr ""
 "Los resultados de la calibración de dinámica de flujo se han guardado en la "
 "impresora."
+
+#, c-format, boost-format
+msgid ""
+"There is already a historical calibration result with the same name: %s. "
+"Only one of the results with the same name is saved. Are you sure you want "
+"to override the historical result?"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"This machine type can only hold %d history results per nozzle. This result "
+"will not be saved."
+msgstr ""
 
 msgid "Internal Error"
 msgstr "Error interno"
@@ -10977,13 +11095,6 @@ msgid ""
 "want to override the other results?"
 msgstr ""
 
-#, c-format, boost-format
-msgid ""
-"There is already a historical calibration result with the same name: %s. "
-"Only one of the results with the same name is saved. Are you sure you want "
-"to override the historical result?"
-msgstr ""
-
 msgid "Please find the best line on your plate"
 msgstr "Por favor, encuentre la mejor línea en su placa."
 
@@ -11139,6 +11250,10 @@ msgstr "Refreshing the historical Flow Dynamics Calibration records"
 
 msgid "Action"
 msgstr "Acción"
+
+#, c-format, boost-format
+msgid "This machine type can only hold %d history results per nozzle."
+msgstr ""
 
 msgid "Edit Flow Dynamics Calibration"
 msgstr "Editar la calibración de la dinámica del flujo"
@@ -12584,6 +12699,12 @@ msgstr ""
 "Did you know that when printing materials that are prone to warping such as "
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
+
+#~ msgid "active"
+#~ msgstr "activo"
+
+#~ msgid "Unload Filament"
+#~ msgstr "Descargar"
 
 #~ msgid ""
 #~ "The current chamber temperature or the target chamber temperature exceeds "

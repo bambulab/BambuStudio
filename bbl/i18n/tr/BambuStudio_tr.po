@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-07 16:19+0800\n"
+"POT-Creation-Date: 2024-04-19 14:24+0800\n"
 "PO-Revision-Date: 2024-04-16 18:18+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -1144,8 +1144,8 @@ msgstr "Varsayılan"
 msgid "Filament %d"
 msgstr "Filament %d"
 
-msgid "active"
-msgstr "aktif"
+msgid "current"
+msgstr "geçerli"
 
 msgid "Scale to build volume"
 msgstr "Yapı hacmine göre ölçeklendir"
@@ -1302,9 +1302,6 @@ msgstr "Filamenti Değiştir"
 
 msgid "Set Filament for selected items"
 msgstr "Seçilen öğeler için Filamenti ayarla"
-
-msgid "current"
-msgstr "geçerli"
 
 msgid "Unlock"
 msgstr "Kilidi aç"
@@ -1746,11 +1743,11 @@ msgstr "Otomatik Doldurma"
 msgid "AMS not connected"
 msgstr "AMS bağlı değil"
 
-msgid "Load Filament"
-msgstr "Filament Yükle"
+msgid "Load"
+msgstr ""
 
-msgid "Unload Filament"
-msgstr "Filamenti Çıkarın"
+msgid "Unload"
+msgstr "Boşalt"
 
 msgid "Ext Spool"
 msgstr "Harici Makara"
@@ -2457,6 +2454,14 @@ msgid ""
 msgstr ""
 "AMS, mevcut filament bittiğinde otomatik olarak aynı özelliklere sahip başka "
 "bir makaraya devam edecektir"
+
+msgid "Air Printing Detection"
+msgstr ""
+
+msgid ""
+"Detects clogging and filament grinding, halting printing immediately to "
+"conserve time and filament."
+msgstr ""
 
 msgid "File"
 msgstr "Dosya"
@@ -3542,6 +3547,9 @@ msgstr "Ön İzleme"
 msgid "Device"
 msgstr "Yazıcı"
 
+msgid "Multi-device"
+msgstr ""
+
 msgid "Project"
 msgstr "Proje"
 
@@ -3578,6 +3586,9 @@ msgstr "Dilimlenmiş plaka dosyasını dışa aktar"
 
 msgid "Export all sliced file"
 msgstr "Tüm dilimlenmiş dosyayı dışa aktar"
+
+msgid "Send to Multi-device"
+msgstr ""
 
 msgid "Print all"
 msgstr "Tümünü yazdır"
@@ -4371,9 +4382,6 @@ msgstr "Kabin"
 msgid "Bed"
 msgstr "Yatak"
 
-msgid "Unload"
-msgstr "Boşalt"
-
 msgid "Debug Info"
 msgstr "Hata Ayıklama Bilgisi"
 
@@ -4809,6 +4817,12 @@ msgstr "Uyarı Sesine İzin Ver"
 
 msgid "Filament Tangle Detect"
 msgstr "Filament Dolaşma Tespiti"
+
+msgid "Nozzle Clumping Detection"
+msgstr ""
+
+msgid "Check if the nozzle is clumping by filament or other foreign objects."
+msgstr ""
 
 msgid "Nozzle Type"
 msgstr "Nozul tipi"
@@ -5566,6 +5580,14 @@ msgid "If enabled, auto-calculate every time when filament is changed"
 msgstr ""
 "Etkinleştirilirse, filament her değiştirildiğinde otomatik hesaplama yapar"
 
+msgid "Multi-device Management(Take effect after restarting Studio)."
+msgstr ""
+
+msgid ""
+"With this option enabled, you can send a task to multiple devices at the "
+"same time and manage multiple devices."
+msgstr ""
+
 msgid "Presets"
 msgstr "Ön ayarlar"
 
@@ -5981,6 +6003,9 @@ msgstr "Cihazım"
 msgid "Other Device"
 msgstr "Diğer Cihaz"
 
+msgid "Bind with Pin Code"
+msgstr ""
+
 msgid "Online"
 msgstr "Çevrimiçi"
 
@@ -6290,6 +6315,26 @@ msgstr "Giriş raporu alma zaman aşımı"
 msgid "Unknown Failure"
 msgstr "Bilinmeyen Arıza"
 
+msgid ""
+"Please Find the ping code in Account page on printer screen,\n"
+" and type in the ping code below."
+msgstr ""
+
+msgid "Can't find pin code?"
+msgstr ""
+
+msgid "Pin Code"
+msgstr ""
+
+msgid "Binding..."
+msgstr ""
+
+msgid "Please confirm on the printer screen"
+msgstr ""
+
+msgid "Log in failed. Please check the pin code."
+msgstr ""
+
 msgid "Log in printer"
 msgstr "Yazıcıda oturum aç"
 
@@ -6493,8 +6538,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Araç başlığı olmadan timelapse kaydederken, bir \"Timelapse Wipe Tower\" "
 "eklenmesi önerilir.\n"
@@ -7378,6 +7423,39 @@ msgstr "Tamamlandı"
 msgid "resume"
 msgstr "devam"
 
+msgid "Resume Printing"
+msgstr ""
+
+msgid "Resume Printing(defects acceptable)"
+msgstr ""
+
+msgid "Resume Printing(problem solved)"
+msgstr ""
+
+msgid "Stop Printing"
+msgstr ""
+
+msgid "Check Assistant"
+msgstr ""
+
+msgid "Filament Extruded, Continue"
+msgstr ""
+
+msgid "Not Extruded Yet,Retry"
+msgstr ""
+
+msgid "Finished, Continue"
+msgstr ""
+
+msgid "Load Filament"
+msgstr "Filament Yükle"
+
+msgid "Filament Loaded, Resume"
+msgstr ""
+
+msgid "View Liveview"
+msgstr ""
+
 msgid "Confirm and Update Nozzle"
 msgstr "Nozulu Onaylayın ve Güncelleyin"
 
@@ -7773,8 +7851,8 @@ msgid ""
 "Please select \"By object\" print sequence to print multiple objects in "
 "spiral vase mode."
 msgstr ""
-"Birden fazla nesneyi spiral vazo modunda yazdırmak için lütfen \"Nesneye "
-"göre\" yazdırma sırasını seçin."
+"Birden fazla nesneyi spiral vazo modunda yazdırmak için lütfen \"Nesneye göre"
+"\" yazdırma sırasını seçin."
 
 msgid ""
 "The spiral vase mode does not work when an object contains more than one "
@@ -8884,6 +8962,9 @@ msgstr "Destek kübik"
 msgid "Lightning"
 msgstr "Yıldırım"
 
+msgid "Cross Hatch"
+msgstr ""
+
 msgid ""
 "Acceleration of top surface infill. Using a lower value may improve top "
 "surface quality"
@@ -9919,6 +10000,22 @@ msgstr ""
 "katı alt katmanlara sahip tek duvarlı bir baskıya dönüştürür. Oluşturulan "
 "son modelde dikiş yok"
 
+msgid "Smooth Spiral"
+msgstr ""
+
+msgid ""
+"Smooth Spiral smoothes out X and Y moves as wellresulting in no visible seam "
+"at all, even in the XY directions on walls that are not vertical"
+msgstr ""
+
+msgid "Max XY Smoothing"
+msgstr ""
+
+msgid ""
+"Maximum distance to move points in XY to try to achieve a smooth spiralIf "
+"expressed as a %, it will be computed over nozzle diameter"
+msgstr ""
+
 msgid ""
 "If smooth or traditional mode is selected, a timelapse video will be "
 "generated for each print. After each layer is printed, a snapshot is taken "
@@ -10839,6 +10936,14 @@ msgstr "Lütfen kalibre edilecek filamenti seçin."
 msgid "The input value size must be 3."
 msgstr "Giriş değeri boyutu 3 olmalıdır."
 
+msgid ""
+"This machine type can only hold 16 history results per nozzle. You can "
+"delete the existing historical results and then start calibration. Or you "
+"can continue the calibration, but you cannot create new calibration "
+"historical results. \n"
+"Do you still want to continue the calibration?"
+msgstr ""
+
 msgid "Connecting to printer..."
 msgstr "Yazıcıya bağlanılıyor..."
 
@@ -10847,6 +10952,22 @@ msgstr "Başarısız olan test sonucu düşürüldü."
 
 msgid "Flow Dynamics Calibration result has been saved to the printer"
 msgstr "Akış Dinamiği Kalibrasyonu sonucu yazıcıya kaydedildi"
+
+#, c-format, boost-format
+msgid ""
+"There is already a historical calibration result with the same name: %s. "
+"Only one of the results with the same name is saved. Are you sure you want "
+"to override the historical result?"
+msgstr ""
+"Aynı ada sahip bir geçmiş kalibrasyon sonucu zaten var: %s. Aynı ada sahip "
+"sonuçlardan yalnızca biri kaydedilir. Geçmiş sonucu geçersiz kılmak "
+"istediğinizden emin misiniz?"
+
+#, c-format, boost-format
+msgid ""
+"This machine type can only hold %d history results per nozzle. This result "
+"will not be saved."
+msgstr ""
 
 msgid "Internal Error"
 msgstr "İç hata"
@@ -11057,16 +11178,6 @@ msgstr ""
 "Aynı ada sahip sonuçlardan yalnızca biri kaydedilecektir. Diğer sonuçları "
 "geçersiz kılmak istediğinizden emin misiniz?"
 
-#, c-format, boost-format
-msgid ""
-"There is already a historical calibration result with the same name: %s. "
-"Only one of the results with the same name is saved. Are you sure you want "
-"to override the historical result?"
-msgstr ""
-"Aynı ada sahip bir geçmiş kalibrasyon sonucu zaten var: %s. Aynı ada sahip "
-"sonuçlardan yalnızca biri kaydedilir. Geçmiş sonucu geçersiz kılmak "
-"istediğinizden emin misiniz?"
-
 msgid "Please find the best line on your plate"
 msgstr "Lütfen plakadaki en iyi çizgiyi bulun"
 
@@ -11219,6 +11330,10 @@ msgstr "Geçmiş Akış Dinamiği Kalibrasyon kayıtlarını yenileme"
 
 msgid "Action"
 msgstr "İşlem"
+
+#, c-format, boost-format
+msgid "This machine type can only hold %d history results per nozzle."
+msgstr ""
 
 msgid "Edit Flow Dynamics Calibration"
 msgstr "Akış Dinamiği Kalibrasyonunu Düzenle"
@@ -11645,8 +11760,8 @@ msgstr ""
 "Yeniden yazmak ister misin?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "Ön ayarları \"Satıcı Tipi Seri @seçtiğiniz yazıcı\" olarak yeniden "
@@ -12794,6 +12909,12 @@ msgstr ""
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı "
 "sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını "
 "azaltabileceğini biliyor muydunuz."
+
+#~ msgid "active"
+#~ msgstr "aktif"
+
+#~ msgid "Unload Filament"
+#~ msgstr "Filamenti Çıkarın"
 
 #~ msgid ""
 #~ "Studio would re-calculate your flushing volumes everytime the filaments "
