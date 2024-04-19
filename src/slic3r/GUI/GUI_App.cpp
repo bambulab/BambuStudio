@@ -4061,7 +4061,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 if (root.get_child_optional("data") != boost::none) {
                     pt::ptree data_node = root.get_child("data");
                     boost::optional<std::string> id = data_node.get_optional<std::string>("id");
-                    if (id.has_value() && mainframe->m_webview) {
+                    if (id.has_value() && mainframe && mainframe->m_webview) {
                         mainframe->m_webview->OpenModelDetail(id.value(), m_agent);
                     }
                 }
@@ -4171,7 +4171,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
                     int         nRefresh = root.get_child_optional("refresh") == boost::none ? 0 : root.get_optional<int>("refresh").value();
                      
                     CallAfter([this,strMenu, nRefresh] {
-                        if (mainframe->m_webview) 
+                        if (mainframe && mainframe->m_webview) 
                         { 
                             mainframe->m_webview->SwitchWebContent(strMenu, nRefresh); 
                         }
@@ -4183,17 +4183,17 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 if (root.get_child_optional("menu") != boost::none) {
                     std::string strMenu = root.get_optional<std::string>("menu").value();
 
-                    if (mainframe->m_webview) { mainframe->m_webview->SwitchLeftMenu(strMenu); }
+                    if (mainframe && mainframe->m_webview) { mainframe->m_webview->SwitchLeftMenu(strMenu); }
                 }
             }
             else if (command_str.compare("homepage_makerlab_get") == 0) {
-                //if (mainframe->m_webview) { mainframe->m_webview->SendMakerlabList(); }
+                if (mainframe && mainframe->m_webview) { mainframe->m_webview->SendMakerlabList(); }
             }
             else if (command_str.compare("homepage_makerlab_open") == 0) {
                 if (root.get_child_optional("url") != boost::none) {
                     std::string strUrl = root.get_optional<std::string>("url").value();
 
-                    if (mainframe->m_webview) { mainframe->m_webview->OpenOneMakerlab(strUrl); }
+                    if (mainframe && mainframe->m_webview) { mainframe->m_webview->OpenOneMakerlab(strUrl); }
                 }
             } 
             else if (command_str.compare("makerworld_model_open") == 0) 
