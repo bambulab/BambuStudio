@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-19 14:24+0800\n"
+"POT-Creation-Date: 2024-04-22 16:06+0800\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3448,14 +3448,14 @@ msgstr "エクスポート"
 msgid "Export all sliced file"
 msgstr "エクスポート (全プレート)"
 
-msgid "Send to Multi-device"
-msgstr ""
-
 msgid "Print all"
 msgstr "造形開始 (全プレート)"
 
 msgid "Send all"
 msgstr "送信 (全プレート)"
+
+msgid "Send to Multi-device"
+msgstr ""
 
 msgid "Keyboard Shortcuts"
 msgstr "ショートカット"
@@ -5782,9 +5782,6 @@ msgstr "私のデバイス"
 msgid "Other Device"
 msgstr "その他のデバイス"
 
-msgid "Bind with Pin Code"
-msgstr ""
-
 msgid "Online"
 msgstr "オンライン"
 
@@ -6015,6 +6012,9 @@ msgstr "Automatic flow calibration using the Micro Lidar"
 msgid "Modifying the device name"
 msgstr "デバイス名を変更"
 
+msgid "Bind with Pin Code"
+msgstr ""
+
 msgid "Send to Printer SD card"
 msgstr "プリンターのSDカードに送信"
 
@@ -6069,11 +6069,11 @@ msgid "Unknown Failure"
 msgstr "不明な失敗"
 
 msgid ""
-"Please Find the ping code in Account page on printer screen,\n"
-" and type in the ping code below."
+"Please Find the Pin Code in Account page on printer screen,\n"
+" and type in the Pin Code below."
 msgstr ""
 
-msgid "Can't find pin code?"
+msgid "Can't find Pin Code?"
 msgstr ""
 
 msgid "Pin Code"
@@ -6085,7 +6085,7 @@ msgstr ""
 msgid "Please confirm on the printer screen"
 msgstr ""
 
-msgid "Log in failed. Please check the pin code."
+msgid "Log in failed. Please check the Pin Code."
 msgstr ""
 
 msgid "Log in printer"
@@ -7136,7 +7136,7 @@ msgstr ""
 msgid "Filament Extruded, Continue"
 msgstr ""
 
-msgid "Not Extruded Yet,Retry"
+msgid "Not Extruded Yet, Retry"
 msgstr ""
 
 msgid "Finished, Continue"
@@ -10253,6 +10253,12 @@ msgstr ""
 "painted.\n"
 "XY Size compensation can not be combined with color-painting."
 
+msgid "Importing obj with png function is developing."
+msgstr ""
+
+msgid "Importing obj occurred an unknown error."
+msgstr ""
+
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
 msgstr ""
@@ -10273,6 +10279,9 @@ msgstr "Canceled"
 
 msgid "load_obj: failed to parse"
 msgstr "load_obj: failed to parse"
+
+msgid "load mtl in obj: failed to parse"
+msgstr ""
 
 msgid "The file contains polygons with more than 4 vertices."
 msgstr "The file contains polygons with more than 4 vertices."
@@ -11940,6 +11949,75 @@ msgid ""
 "varies a lot from brand to brand. So, it's highly recommended to ask its "
 "vendor for suitable profile before printing and adjust some parameters "
 "according to its performances."
+msgstr ""
+
+msgid "No AMS"
+msgstr ""
+
+msgid "Use External Spool"
+msgstr ""
+
+msgid "Use AMS"
+msgstr ""
+
+msgid "Select Printers"
+msgstr ""
+
+msgid "Device Name"
+msgstr ""
+
+msgid "Device Status"
+msgstr ""
+
+msgid "Ams Status"
+msgstr ""
+
+msgid "Unconnected device"
+msgstr ""
+
+msgid "Printing Options"
+msgstr ""
+
+msgid "Send Options"
+msgstr ""
+
+msgid ""
+"printers at the same time.(It depends on how many devices can undergo "
+"heating at the same time.)"
+msgstr ""
+
+msgid "Wait"
+msgstr ""
+
+msgid ""
+"minute each batch.(It depends on how long it takes to complete the heating.)"
+msgstr ""
+
+msgid "Task Sending"
+msgstr ""
+
+msgid "Task Sent"
+msgstr ""
+
+msgid "No task"
+msgstr ""
+
+msgid "Task Name"
+msgstr ""
+
+msgid "Actions"
+msgstr ""
+
+msgid "Task Status"
+msgstr ""
+
+msgid "Sent Time"
+msgstr ""
+
+msgid "There are no tasks to be sent!"
+msgstr ""
+
+msgid "No historical tasks!"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]

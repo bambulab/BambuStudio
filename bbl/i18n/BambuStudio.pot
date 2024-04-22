@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-19 14:24+0800\n"
+"POT-Creation-Date: 2024-04-22 16:06+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3349,13 +3349,13 @@ msgstr ""
 msgid "Export all sliced file"
 msgstr ""
 
-msgid "Send to Multi-device"
-msgstr ""
-
 msgid "Print all"
 msgstr ""
 
 msgid "Send all"
+msgstr ""
+
+msgid "Send to Multi-device"
 msgstr ""
 
 msgid "Keyboard Shortcuts"
@@ -5601,9 +5601,6 @@ msgstr ""
 msgid "Other Device"
 msgstr ""
 
-msgid "Bind with Pin Code"
-msgstr ""
-
 msgid "Online"
 msgstr ""
 
@@ -5821,6 +5818,9 @@ msgstr ""
 msgid "Modifying the device name"
 msgstr ""
 
+msgid "Bind with Pin Code"
+msgstr ""
+
 msgid "Send to Printer SD card"
 msgstr ""
 
@@ -5873,11 +5873,11 @@ msgid "Unknown Failure"
 msgstr ""
 
 msgid ""
-"Please Find the ping code in Account page on printer screen,\n"
-" and type in the ping code below."
+"Please Find the Pin Code in Account page on printer screen,\n"
+" and type in the Pin Code below."
 msgstr ""
 
-msgid "Can't find pin code?"
+msgid "Can't find Pin Code?"
 msgstr ""
 
 msgid "Pin Code"
@@ -5889,7 +5889,7 @@ msgstr ""
 msgid "Please confirm on the printer screen"
 msgstr ""
 
-msgid "Log in failed. Please check the pin code."
+msgid "Log in failed. Please check the Pin Code."
 msgstr ""
 
 msgid "Log in printer"
@@ -6885,7 +6885,7 @@ msgstr ""
 msgid "Filament Extruded, Continue"
 msgstr ""
 
-msgid "Not Extruded Yet,Retry"
+msgid "Not Extruded Yet, Retry"
 msgstr ""
 
 msgid "Finished, Continue"
@@ -9715,6 +9715,12 @@ msgid ""
 "XY Size compensation can not be combined with color-painting."
 msgstr ""
 
+msgid "Importing obj with png function is developing."
+msgstr ""
+
+msgid "Importing obj occurred an unknown error."
+msgstr ""
+
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
 msgstr ""
@@ -9732,6 +9738,9 @@ msgid "Canceled"
 msgstr ""
 
 msgid "load_obj: failed to parse"
+msgstr ""
+
+msgid "load mtl in obj: failed to parse"
 msgstr ""
 
 msgid "The file contains polygons with more than 4 vertices."
@@ -11245,6 +11254,75 @@ msgid ""
 "varies a lot from brand to brand. So, it's highly recommended to ask its "
 "vendor for suitable profile before printing and adjust some parameters "
 "according to its performances."
+msgstr ""
+
+msgid "No AMS"
+msgstr ""
+
+msgid "Use External Spool"
+msgstr ""
+
+msgid "Use AMS"
+msgstr ""
+
+msgid "Select Printers"
+msgstr ""
+
+msgid "Device Name"
+msgstr ""
+
+msgid "Device Status"
+msgstr ""
+
+msgid "Ams Status"
+msgstr ""
+
+msgid "Unconnected device"
+msgstr ""
+
+msgid "Printing Options"
+msgstr ""
+
+msgid "Send Options"
+msgstr ""
+
+msgid ""
+"printers at the same time.(It depends on how many devices can undergo "
+"heating at the same time.)"
+msgstr ""
+
+msgid "Wait"
+msgstr ""
+
+msgid ""
+"minute each batch.(It depends on how long it takes to complete the heating.)"
+msgstr ""
+
+msgid "Task Sending"
+msgstr ""
+
+msgid "Task Sent"
+msgstr ""
+
+msgid "No task"
+msgstr ""
+
+msgid "Task Name"
+msgstr ""
+
+msgid "Actions"
+msgstr ""
+
+msgid "Task Status"
+msgstr ""
+
+msgid "Sent Time"
+msgstr ""
+
+msgid "There are no tasks to be sent!"
+msgstr ""
+
+msgid "No historical tasks!"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
