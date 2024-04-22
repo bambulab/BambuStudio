@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-19 14:24+0800\n"
+"POT-Creation-Date: 2024-04-22 16:06+0800\n"
 "PO-Revision-Date: 2024-02-23 20:10+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1708,7 +1708,7 @@ msgid "AMS not connected"
 msgstr "AMS未连接"
 
 msgid "Load"
-msgstr "加载"
+msgstr "进料"
 
 msgid "Unload"
 msgstr "退料"
@@ -3411,7 +3411,7 @@ msgid "Device"
 msgstr "设备"
 
 msgid "Multi-device"
-msgstr ""
+msgstr "多设备"
 
 msgid "Project"
 msgstr "项目"
@@ -3449,14 +3449,14 @@ msgstr "导出单盘切片文件"
 msgid "Export all sliced file"
 msgstr "导出所有切片文件"
 
-msgid "Send to Multi-device"
-msgstr ""
-
 msgid "Print all"
 msgstr "打印所有盘"
 
 msgid "Send all"
 msgstr "发送所有盘"
+
+msgid "Send to Multi-device"
+msgstr "发送到多设备"
 
 msgid "Keyboard Shortcuts"
 msgstr "快捷键"
@@ -5326,12 +5326,12 @@ msgid "If enabled, auto-calculate every time when filament is changed"
 msgstr "如果启用，会在每一次更换材料时自动计算。"
 
 msgid "Multi-device Management(Take effect after restarting Studio)."
-msgstr ""
+msgstr "多设备管理（重启Studio后生效）"
 
 msgid ""
 "With this option enabled, you can send a task to multiple devices at the "
 "same time and manage multiple devices."
-msgstr ""
+msgstr "启用此选项后，您可以同时向多个设备发送任务并管理多个设备。"
 
 msgid "Presets"
 msgstr "预设"
@@ -5740,9 +5740,6 @@ msgstr "我的设备"
 msgid "Other Device"
 msgstr "其他设备"
 
-msgid "Bind with Pin Code"
-msgstr ""
-
 msgid "Online"
 msgstr "在线"
 
@@ -5973,6 +5970,9 @@ msgstr "使用微型激光雷达进行自动流量校准"
 msgid "Modifying the device name"
 msgstr "修改打印机名称"
 
+msgid "Bind with Pin Code"
+msgstr "通过Pin码绑定"
+
 msgid "Send to Printer SD card"
 msgstr "发送到打印机的SD卡"
 
@@ -6025,24 +6025,24 @@ msgid "Unknown Failure"
 msgstr "发生错误"
 
 msgid ""
-"Please Find the ping code in Account page on printer screen,\n"
-" and type in the ping code below."
-msgstr ""
+"Please Find the Pin Code in Account page on printer screen,\n"
+" and type in the Pin Code below."
+msgstr "请在打印机屏幕上的“帐户”页面中找到Pin码，然后在下面输入Pin码。"
 
-msgid "Can't find pin code?"
-msgstr ""
+msgid "Can't find Pin Code?"
+msgstr "无法找到Pin码？"
 
 msgid "Pin Code"
 msgstr "Pin码"
 
 msgid "Binding..."
-msgstr ""
+msgstr "绑定..."
 
 msgid "Please confirm on the printer screen"
-msgstr ""
+msgstr "请在打印机屏幕上确认。"
 
-msgid "Log in failed. Please check the pin code."
-msgstr ""
+msgid "Log in failed. Please check the Pin Code."
+msgstr "登录失败，请检查Pin码。"
 
 msgid "Log in printer"
 msgstr "登录打印机"
@@ -7094,7 +7094,7 @@ msgstr "前往机器助手"
 msgid "Filament Extruded, Continue"
 msgstr "耗材已挤出，继续"
 
-msgid "Not Extruded Yet,Retry"
+msgid "Not Extruded Yet, Retry"
 msgstr "耗材未挤出，重试"
 
 msgid "Finished, Continue"
@@ -7104,10 +7104,10 @@ msgid "Load Filament"
 msgstr "进料并前往进料页面"
 
 msgid "Filament Loaded, Resume"
-msgstr ""
+msgstr "耗材已加载，继续"
 
 msgid "View Liveview"
-msgstr ""
+msgstr "查看LiveView"
 
 msgid "Confirm and Update Nozzle"
 msgstr "确认并更新喷嘴"
@@ -10119,6 +10119,12 @@ msgstr ""
 "对象的XY尺寸补偿不会生效，因为在此对象上做过涂色操作。\n"
 "XY尺寸补偿不能与涂色功能一起使用。"
 
+msgid "Importing obj with png function is developing."
+msgstr ""
+
+msgid "Importing obj occurred an unknown error."
+msgstr ""
+
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
 msgstr "未知的文件格式。输入文件的扩展名必须为.stl、.obj 或 .amf（.xml）。"
@@ -10137,6 +10143,9 @@ msgstr "已取消"
 
 msgid "load_obj: failed to parse"
 msgstr "加载对象：无法分析"
+
+msgid "load mtl in obj: failed to parse"
+msgstr ""
 
 msgid "The file contains polygons with more than 4 vertices."
 msgstr "该文件包含顶点超过4个的多边形。"
@@ -10267,10 +10276,9 @@ msgid ""
 "can continue the calibration, but you cannot create new calibration "
 "historical results. \n"
 "Do you still want to continue the calibration?"
-msgstr""
+msgstr ""
 "该机型每个喷嘴最多只能保存16个历史结果。您可以删除先已有历史结果再开始校准。"
-"或者您可以直接开始校准，但是无法创建新的校准历史结果。"
-"您仍继续校准吗？"
+"或者您可以直接开始校准，但是无法创建新的校准历史结果。您仍继续校准吗？"
 
 msgid "Connecting to printer..."
 msgstr "正在连接打印机..."
@@ -11807,6 +11815,75 @@ msgstr ""
 "此耗材较为小众，拓竹并未出售，且不同品牌的差异很大，故强烈建议打印前向厂家咨"
 "询预设参数，并根据打印表现来调整打印参数。"
 
+msgid "No AMS"
+msgstr "没有AMS"
+
+msgid "Use External Spool"
+msgstr "使用外挂料卷"
+
+msgid "Use AMS"
+msgstr "使用AMS"
+
+msgid "Select Printers"
+msgstr "选择打印机"
+
+msgid "Device Name"
+msgstr "设备名"
+
+msgid "Device Status"
+msgstr "设备状态"
+
+msgid "Ams Status"
+msgstr "AMS状态"
+
+msgid "Unconnected device"
+msgstr "未连接设备"
+
+msgid "Printing Options"
+msgstr "打印选项"
+
+msgid "Send Options"
+msgstr "发送选项"
+
+msgid ""
+"printers at the same time.(It depends on how many devices can undergo "
+"heating at the same time.)"
+msgstr "打印机在同一时间。（这取决于有多少设备可以接受同时加热。）"
+
+msgid "Wait"
+msgstr "等待"
+
+msgid ""
+"minute each batch.(It depends on how long it takes to complete the heating.)"
+msgstr "分钟发送一次。（这取决于完成加热需要多长时间。）"
+
+msgid "Task Sending"
+msgstr "正在发送的任务"
+
+msgid "Task Sent"
+msgstr "已发送的任务"
+
+msgid "No task"
+msgstr "没有任务"
+
+msgid "Task Name"
+msgstr "任务名"
+
+msgid "Actions"
+msgstr "动作"
+
+msgid "Task Status"
+msgstr "任务状态"
+
+msgid "Sent Time"
+msgstr "发送时间"
+
+msgid "There are no tasks to be sent!"
+msgstr "没有任务正在发送！"
+
+msgid "No historical tasks!"
+msgstr "没有历史任务！"
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -12073,6 +12150,9 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid "Not Extruded Yet,Retry"
+#~ msgstr "耗材未挤出，重试"
 
 #~ msgid "active"
 #~ msgstr "活动的"

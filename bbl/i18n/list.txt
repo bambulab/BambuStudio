@@ -159,3 +159,7 @@ src/slic3r/Utils/MKS.cpp
 src/slic3r/Utils/OctoPrint.cpp
 src/slic3r/Utils/Repetier.cpp
 src/slic3r/Utils/ProfileDescription.hpp
+src/slic3r/GUI/SendMultiMachinePage.cpp
+src/slic3r/GUI/MultiMachinePage.cpp
+src/slic3r/GUI/MultiMachineManagerPage.cpp
+src/slic3r/GUI/MultiTaskManagerPage.cpp

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-19 14:24+0800\n"
+"POT-Creation-Date: 2024-04-22 16:06+0800\n"
 "PO-Revision-Date: 2024-04-16 18:18+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -3587,14 +3587,14 @@ msgstr "Dilimlenmiş plaka dosyasını dışa aktar"
 msgid "Export all sliced file"
 msgstr "Tüm dilimlenmiş dosyayı dışa aktar"
 
-msgid "Send to Multi-device"
-msgstr ""
-
 msgid "Print all"
 msgstr "Tümünü yazdır"
 
 msgid "Send all"
 msgstr "Hepsini gönder"
+
+msgid "Send to Multi-device"
+msgstr ""
 
 msgid "Keyboard Shortcuts"
 msgstr "Klavye kısayolları"
@@ -6003,9 +6003,6 @@ msgstr "Cihazım"
 msgid "Other Device"
 msgstr "Diğer Cihaz"
 
-msgid "Bind with Pin Code"
-msgstr ""
-
 msgid "Online"
 msgstr "Çevrimiçi"
 
@@ -6264,6 +6261,9 @@ msgstr "Mikro Lidar kullanarak otomatik akış kalibrasyonu"
 msgid "Modifying the device name"
 msgstr "Cihaz adını değiştir"
 
+msgid "Bind with Pin Code"
+msgstr ""
+
 msgid "Send to Printer SD card"
 msgstr "Yazıcı SD kartına gönder"
 
@@ -6316,11 +6316,11 @@ msgid "Unknown Failure"
 msgstr "Bilinmeyen Arıza"
 
 msgid ""
-"Please Find the ping code in Account page on printer screen,\n"
-" and type in the ping code below."
+"Please Find the Pin Code in Account page on printer screen,\n"
+" and type in the Pin Code below."
 msgstr ""
 
-msgid "Can't find pin code?"
+msgid "Can't find Pin Code?"
 msgstr ""
 
 msgid "Pin Code"
@@ -6332,7 +6332,7 @@ msgstr ""
 msgid "Please confirm on the printer screen"
 msgstr ""
 
-msgid "Log in failed. Please check the pin code."
+msgid "Log in failed. Please check the Pin Code."
 msgstr ""
 
 msgid "Log in printer"
@@ -7441,7 +7441,7 @@ msgstr ""
 msgid "Filament Extruded, Continue"
 msgstr ""
 
-msgid "Not Extruded Yet,Retry"
+msgid "Not Extruded Yet, Retry"
 msgstr ""
 
 msgid "Finished, Continue"
@@ -10787,6 +10787,12 @@ msgstr ""
 "kullanılmayacaktır.\n"
 "XY Boyut telafisi  renkli boyamayla birleştirilemez."
 
+msgid "Importing obj with png function is developing."
+msgstr ""
+
+msgid "Importing obj occurred an unknown error."
+msgstr ""
+
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
 msgstr ""
@@ -10809,6 +10815,9 @@ msgstr "İptal edildi"
 
 msgid "load_obj: failed to parse"
 msgstr "load_obj: ayrıştırılamadı"
+
+msgid "load mtl in obj: failed to parse"
+msgstr ""
 
 msgid "The file contains polygons with more than 4 vertices."
 msgstr "Dosya 4'ten fazla köşesi olan çokgenler içeriyor."
@@ -12614,6 +12623,75 @@ msgstr ""
 "değil, markadan markaya büyük farklılıklar gösterir. Bu nedenle, baskı "
 "öncesinde uygun profili sağlayan satıcıya başvurmanız ve performansına göre "
 "bazı parametreleri ayarlamanız şiddetle tavsiye edilir."
+
+msgid "No AMS"
+msgstr ""
+
+msgid "Use External Spool"
+msgstr ""
+
+msgid "Use AMS"
+msgstr ""
+
+msgid "Select Printers"
+msgstr ""
+
+msgid "Device Name"
+msgstr ""
+
+msgid "Device Status"
+msgstr ""
+
+msgid "Ams Status"
+msgstr ""
+
+msgid "Unconnected device"
+msgstr ""
+
+msgid "Printing Options"
+msgstr ""
+
+msgid "Send Options"
+msgstr ""
+
+msgid ""
+"printers at the same time.(It depends on how many devices can undergo "
+"heating at the same time.)"
+msgstr ""
+
+msgid "Wait"
+msgstr ""
+
+msgid ""
+"minute each batch.(It depends on how long it takes to complete the heating.)"
+msgstr ""
+
+msgid "Task Sending"
+msgstr ""
+
+msgid "Task Sent"
+msgstr ""
+
+msgid "No task"
+msgstr ""
+
+msgid "Task Name"
+msgstr ""
+
+msgid "Actions"
+msgstr ""
+
+msgid "Task Status"
+msgstr ""
+
+msgid "Sent Time"
+msgstr ""
+
+msgid "There are no tasks to be sent!"
+msgstr ""
+
+msgid "No historical tasks!"
+msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
