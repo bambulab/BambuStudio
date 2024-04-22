@@ -1552,6 +1552,7 @@ bool MainFrame::can_reslice() const
 
 wxBoxSizer* MainFrame::create_side_tools()
 {
+    enable_multi_machine = wxGetApp().is_enable_multi_machine();
     int em = em_unit();
     wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -1735,9 +1736,6 @@ wxBoxSizer* MainFrame::create_side_tools()
                 SideButton* export_all_sliced_file_btn = new SideButton(p, _L("Export all sliced file"), "");
                 export_all_sliced_file_btn->SetCornerRadius(0);
 
-                SideButton* print_multi_machine_btn = new SideButton(p, _L("Send to Multi-device"), "");
-                print_multi_machine_btn->SetCornerRadius(0);
-
                 print_plate_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
                     m_print_btn->SetLabel(_L("Print plate"));
                     m_print_select = ePrintPlate;
@@ -1796,23 +1794,25 @@ wxBoxSizer* MainFrame::create_side_tools()
                     p->Dismiss();
                     });
 
-                print_multi_machine_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
-                    m_print_btn->SetLabel(_L("Send to Multi-device"));
-                    m_print_select = ePrintMultiMachine;
-                    m_print_enable = get_enable_print_status();
-                    m_print_btn->Enable(m_print_enable);
-                    this->Layout();
-                    p->Dismiss();
-                });
-
                 p->append_button(print_plate_btn);
                 p->append_button(print_all_btn);
                 p->append_button(send_to_printer_btn);
                 p->append_button(send_to_printer_all_btn);
                 p->append_button(export_sliced_file_btn);
                 p->append_button(export_all_sliced_file_btn);
-                if (wxGetApp().is_enable_multi_machine())
+                if (enable_multi_machine) {
+                    SideButton* print_multi_machine_btn = new SideButton(p, _L("Send to Multi-device"), "");
+                    print_multi_machine_btn->SetCornerRadius(0);
+                    print_multi_machine_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
+                        m_print_btn->SetLabel(_L("Send to Multi-device"));
+                        m_print_select = ePrintMultiMachine;
+                        m_print_enable = get_enable_print_status();
+                        m_print_btn->Enable(m_print_enable);
+                        this->Layout();
+                        p->Dismiss();
+                        });
                     p->append_button(print_multi_machine_btn);
+                }
             }
 
             p->Popup(m_print_btn);
