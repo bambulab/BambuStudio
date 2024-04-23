@@ -160,7 +160,7 @@ msgid "Toggle Wireframe"
 msgstr "Activer Filaire"
 
 msgid "Rotate horizontally"
-msgstr ""
+msgstr "Tourner horizontalement"
 
 msgid "Shortcut Key "
 msgstr "Touche de raccourci"
@@ -178,7 +178,7 @@ msgid "Horizontal"
 msgstr "Horizontal"
 
 msgid "View: keep horizontal"
-msgstr ""
+msgstr "Vue: garder horizontale"
 
 msgid "Remove painted color"
 msgstr "Supprimer la couleur peinte"
@@ -191,7 +191,7 @@ msgid "Move"
 msgstr "Déplacer"
 
 msgid "Please select at least one object."
-msgstr ""
+msgstr "S'il vous plait sélectionné au moins un objet"
 
 msgid "Rotate"
 msgstr "Pivoter"
@@ -242,7 +242,7 @@ msgid "Object Operations"
 msgstr "Opérations sur les objets"
 
 msgid "Rotate (relative)"
-msgstr ""
+msgstr "Tourner (relatif)"
 
 msgid "Volume Operations"
 msgstr "Opérations sur les volumes"
@@ -578,7 +578,7 @@ msgid "Point on edge"
 msgstr ""
 
 msgid "Point on circle"
-msgstr ""
+msgstr "Point sur le cercle"
 
 msgid "Point on plane"
 msgstr ""
@@ -587,13 +587,13 @@ msgid "Center of edge"
 msgstr ""
 
 msgid "Center of circle"
-msgstr ""
+msgstr "Centre du cercle"
 
 msgid "Select feature"
 msgstr ""
 
 msgid "Select point"
-msgstr ""
+msgstr "Selectionner point"
 
 msgid "Delete"
 msgstr "Supprimer"
@@ -608,7 +608,7 @@ msgid "Cancel a feature until exit"
 msgstr ""
 
 msgid "Measure"
-msgstr ""
+msgstr "Mesurer"
 
 msgid ""
 "Please confirm explosion ratio = 1,and please select at least one object"
@@ -676,7 +676,7 @@ msgid "Angle"
 msgstr "Angle"
 
 msgid "Perpendicular distance"
-msgstr ""
+msgstr "Distance Perpendiculaire"
 
 msgid "Distance"
 msgstr ""
@@ -751,7 +751,7 @@ msgid "Remove selection"
 msgstr "Supprimer la sélection"
 
 msgid "Shift + Mouse move up or down"
-msgstr ""
+msgstr "Shift + Bouger la souris de haut en bas"
 
 msgid "Rotate text"
 msgstr "Faire pivoter le texte"
