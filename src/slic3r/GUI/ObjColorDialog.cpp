@@ -395,8 +395,9 @@ void ObjColorPanel::update_filament_ids()
 {
     if (m_is_add_filament) {
         for (auto c:m_new_add_colors) {
-            auto evt = new ColorEvent(EVT_ADD_CUSTOM_FILAMENT, c);
-            wxQueueEvent(wxGetApp().plater(), evt);
+            /*auto evt = new ColorEvent(EVT_ADD_CUSTOM_FILAMENT, c);
+            wxQueueEvent(wxGetApp().plater(), evt);*/
+            wxGetApp().sidebar().add_custom_filament(c);
         }
     }
    //deal m_filament_ids
@@ -725,15 +726,17 @@ void ObjColorPanel::deal_default_strategy()
 void ObjColorPanel::deal_add_btn()
 {
     if (m_colours.size() > g_max_color) { return; }
+    deal_reset_btn();
     std::vector<wxBitmap *> new_icons;
     auto  new_color_size = m_cluster_colors_from_algo.size();
     new_icons.reserve(new_color_size);
     m_new_add_colors.clear();
     m_new_add_colors.reserve(new_color_size);
     int new_index = m_colours.size() + 1;
+    bool is_exceed = false;
     for (size_t i = 0; i < new_color_size; i++) {
         if (m_colours.size() + new_icons.size() >= g_max_color) {
-            m_warning_text->SetLabelText(_L("Waring:The count of newly added and \n current extruders exceeds 16."));
+            is_exceed = true;
             break;
         }
         wxColour cur_color = convert_to_wxColour(m_cluster_colors_from_algo[i]);
@@ -752,6 +755,10 @@ void ObjColorPanel::deal_add_btn()
         item->bitmap_combox->SetSelection(new_index);
         m_cluster_map_filaments[i] = new_index;
         new_index++;
+    }
+    if (is_exceed) {
+        deal_approximate_match_btn();
+        m_warning_text->SetLabelText(_L("Waring:The count of newly added and \n current extruders exceeds 16."));
     }
     m_is_add_filament = true;
 }
