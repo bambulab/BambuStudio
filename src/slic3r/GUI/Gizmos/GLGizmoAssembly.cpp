@@ -31,13 +31,13 @@ std::string GLGizmoAssembly::on_get_name() const
 {
     if (!on_is_activable() && m_state == EState::Off) {
         if (wxGetApp().plater()->canvas3D()->get_canvas_type() == GLCanvas3D::ECanvasType::CanvasAssembleView) {
-            return _u8L("Assembly") + ":\n" + _u8L("Please confirm explosion ratio = 1 and select at least two volumes.");
+            return _u8L("Assemble") + ":\n" + _u8L("Please confirm explosion ratio = 1 and select at least two volumes.");
         }
         else {
-            return _u8L("Assembly") + ":\n" + _u8L("Please select at least two volumes.");
+            return _u8L("Assemble") + ":\n" + _u8L("Please select at least two volumes.");
         }
     } else {
-        return _u8L("Assembly");
+        return _u8L("Assemble");
     }
 }
 
@@ -85,9 +85,9 @@ void GLGizmoAssembly::on_render_input_window(float x, float y, float bottom_limi
     init_render_input_window();
 
     float moving_size = m_imgui->calc_text_size(_L("(Moving)")).x;
-    float combox_content_size = (m_imgui->calc_text_size(_L("Point and point")).x +ImGui::GetStyle().FramePadding.x * 2.0f);
+    float combox_content_size = (m_imgui->calc_text_size(_L("Point and point assembly")).x +ImGui::GetStyle().FramePadding.x * 2.0f);
     float caption_size = moving_size + 2 * m_space_size;
-    if (render_assembly_mode_combo(caption_size + 0.5 * m_space_size, 1.8 * combox_content_size)) {
+    if (render_assembly_mode_combo(caption_size + 0.5 * m_space_size, 2.0 * combox_content_size)) {
         ;
     }
     show_selection_ui();
@@ -141,7 +141,7 @@ bool GLGizmoAssembly::render_assembly_mode_combo(double label_width, float item_
 {
     ImGui::AlignTextToFramePadding();
     size_t                   selection_idx = int(m_assembly_mode);
-    std::vector<std::string> modes         = {_u8L("Face and face"), _u8L("Point and point")};
+    std::vector<std::string> modes         = {_u8L("Face and face assembly"), _u8L("Point and point assembly")};
     bool                     is_changed    = false;
 
     ImGuiWrapper::push_combo_style(m_parent.get_scale());
