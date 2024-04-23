@@ -192,6 +192,7 @@ include(JPEG/JPEG.cmake)
 include(TIFF/TIFF.cmake)
 include(wxWidgets/wxWidgets.cmake)
 include(OCCT/OCCT.cmake)
+include(OpenCV/OpenCV.cmake)
 include(FREETYPE/FREETYPE.cmake)
 
 set(_dep_list
@@ -203,6 +204,7 @@ set(_dep_list
     dep_NLopt
     dep_OpenVDB
     dep_OpenCSG
+    dep_OpenCV
     dep_CGAL
     dep_OpenSSL
     dep_GLFW
