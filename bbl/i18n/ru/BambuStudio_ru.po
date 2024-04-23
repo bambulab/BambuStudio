@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 1.9.0.70 Public Beta 3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-22 16:06+0800\n"
+"POT-Creation-Date: 2024-04-23 10:24+0800\n"
 "PO-Revision-Date: 2024-04-18 20:55+0700\n"
 "Last-Translator: Andylg <andylg@yandex.ru>\n"
 "Language-Team: \n"
@@ -643,12 +643,43 @@ msgstr "Длина"
 msgid "Selection"
 msgstr "Выделение"
 
+msgid " (Moving)"
+msgstr ""
+
+msgid ""
+"Select 2 faces on objects and \n"
+" make objects assemble together."
+msgstr ""
+
+msgid ""
+"Select 2 points or circles on objects and \n"
+" specify distance between them."
+msgstr ""
+
+msgid "Face"
+msgstr ""
+
+msgid " (Fixed)"
+msgstr ""
+
+msgid "Point"
+msgstr ""
+
 msgid ""
 "Feature 1 has been reset, \n"
 "feature 2 has been feature 1"
 msgstr ""
 "Выбор элемента 1 отменён,\n"
 "элемент 2 стал элементом 1."
+
+msgid "Warning:please select Plane's feature."
+msgstr ""
+
+msgid "Warning:please select Point's or Circle's feature."
+msgstr ""
+
+msgid "Warning:please select two different mesh."
+msgstr ""
 
 msgid "Copy to clipboard"
 msgstr "Скопировать в буфер обмена"
@@ -689,8 +720,23 @@ msgstr ""
 "Расстояние между \n"
 "параллельными гранями:"
 
-msgid "Featue 2"
-msgstr "Элемент 2"
+msgid "Flip by Face 2"
+msgstr ""
+
+msgid "Assemble"
+msgstr "Объединить в сборку"
+
+msgid "Please confirm explosion ratio = 1 and select at least two volumes."
+msgstr ""
+
+msgid "Please select at least two volumes."
+msgstr ""
+
+msgid "(Moving)"
+msgstr ""
+
+msgid "Point and point assembly"
+msgstr ""
 
 # ???
 msgid ""
@@ -701,6 +747,9 @@ msgstr ""
 "Поскольку объекты должны находиться на столе, \n"
 "сборка различных объектов может быть \n"
 "некорректной в 3D-виде. Рекомендуется объединить их."
+
+msgid "Face and face assembly"
+msgstr ""
 
 msgid "Brush size"
 msgstr "Размер кисти"
@@ -1195,9 +1244,6 @@ msgstr "Преобразовать размеры из метров"
 
 msgid "Restore to meter"
 msgstr "Восстановить размеры в метры"
-
-msgid "Assemble"
-msgstr "Объединить в сборку"
 
 msgid "Assemble the selected objects to an object with multiple parts"
 msgstr ""
@@ -7258,6 +7304,56 @@ msgstr "Обновления отсутствуют."
 msgid "The configuration is up to date."
 msgstr "Текущая конфигурация не требует обновления."
 
+msgid "Obj file Import color"
+msgstr ""
+
+msgid "Specify number of colors:"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The color count should be in range [%d, %d]."
+msgstr ""
+
+msgid "Recommended "
+msgstr ""
+
+msgid "Current filament colors:"
+msgstr ""
+
+msgid "Quick set:"
+msgstr ""
+
+msgid "Color match"
+msgstr ""
+
+msgid "Approximate color matching."
+msgstr ""
+
+msgid "Append"
+msgstr ""
+
+msgid "Add consumable extruder after existing extruders."
+msgstr ""
+
+msgid "Reset mapped extruders."
+msgstr ""
+
+msgid "Cluster colors"
+msgstr ""
+
+msgid "Map Filament"
+msgstr ""
+
+msgid ""
+"Note:The color has been selected, you can choose OK \n"
+" to continue or manually adjust it."
+msgstr ""
+
+msgid ""
+"Waring:The count of newly added and \n"
+" current extruders exceeds 16."
+msgstr ""
+
 msgid "Auto-Calc"
 msgstr "Авторасчёт"
 
@@ -13255,6 +13351,9 @@ msgstr ""
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как "
 "ABS, повышение температуры подогреваемого стола может снизить вероятность "
 "коробления?"
+
+#~ msgid "Featue 2"
+#~ msgstr "Элемент 2"
 
 #~ msgid "active"
 #~ msgstr "активный"
