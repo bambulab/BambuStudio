@@ -11,6 +11,7 @@ src/slic3r/GUI/Gizmos/GLGizmoAdvancedCut.cpp
 src/slic3r/GUI/Gizmos/GLGizmoSimplify.cpp
 src/slic3r/GUI/Gizmos/GLGizmoFaceDetector.cpp
 src/slic3r/GUI/Gizmos/GLGizmoMeasure.cpp
+src/slic3r/GUI/Gizmos/GLGizmoAssembly.cpp
 src/slic3r/GUI/Gizmos/GLGizmoSeam.cpp
 src/slic3r/GUI/Gizmos/GLGizmoSeam.hpp
 src/slic3r/GUI/Gizmos/GLGizmoText.cpp
@@ -104,6 +105,7 @@ src/slic3r/GUI/UnsavedChangesDialog.cpp
 src/slic3r/GUI/Auxiliary.cpp
 src/slic3r/GUI/UpdateDialogs.cpp
 src/slic3r/GUI/UnsavedChangesDialog.cpp
+src/slic3r/GUI/ObjColorDialog.cpp
 src/slic3r/GUI/WipeTowerDialog.cpp
 src/slic3r/GUI/wxExtensions.cpp
 src/slic3r/GUI/WebUserLoginDialog.cpp

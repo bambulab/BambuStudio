@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-22 16:06+0800\n"
+"POT-Creation-Date: 2024-04-23 10:24+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -633,9 +633,40 @@ msgstr "Longueur"
 msgid "Selection"
 msgstr ""
 
+msgid " (Moving)"
+msgstr ""
+
+msgid ""
+"Select 2 faces on objects and \n"
+" make objects assemble together."
+msgstr ""
+
+msgid ""
+"Select 2 points or circles on objects and \n"
+" specify distance between them."
+msgstr ""
+
+msgid "Face"
+msgstr ""
+
+msgid " (Fixed)"
+msgstr ""
+
+msgid "Point"
+msgstr ""
+
 msgid ""
 "Feature 1 has been reset, \n"
 "feature 2 has been feature 1"
+msgstr ""
+
+msgid "Warning:please select Plane's feature."
+msgstr ""
+
+msgid "Warning:please select Point's or Circle's feature."
+msgstr ""
+
+msgid "Warning:please select two different mesh."
 msgstr ""
 
 msgid "Copy to clipboard"
@@ -674,13 +705,31 @@ msgstr ""
 msgid "Parallel_distance:"
 msgstr ""
 
-msgid "Featue 2"
+msgid "Flip by Face 2"
+msgstr ""
+
+msgid "Assemble"
+msgstr "Assembler"
+
+msgid "Please confirm explosion ratio = 1 and select at least two volumes."
+msgstr ""
+
+msgid "Please select at least two volumes."
+msgstr ""
+
+msgid "(Moving)"
+msgstr ""
+
+msgid "Point and point assembly"
 msgstr ""
 
 msgid ""
 "Due to ensuer_on_bed, assembly between \n"
 "different objects may not be correct in 3D view.\n"
 " It is recommended to assemble them together."
+msgstr ""
+
+msgid "Face and face assembly"
 msgstr ""
 
 msgid "Brush size"
@@ -1175,9 +1224,6 @@ msgstr "Convertir en mètre"
 
 msgid "Restore to meter"
 msgstr "Restaurer au compteur"
-
-msgid "Assemble"
-msgstr "Assembler"
 
 msgid "Assemble the selected objects to an object with multiple parts"
 msgstr "Assembler les objets sélectionnés à un objet en plusieurs parties"
@@ -7051,6 +7097,56 @@ msgstr "Aucune mise à jour disponible."
 
 msgid "The configuration is up to date."
 msgstr "La configuration est à jour."
+
+msgid "Obj file Import color"
+msgstr ""
+
+msgid "Specify number of colors:"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The color count should be in range [%d, %d]."
+msgstr ""
+
+msgid "Recommended "
+msgstr ""
+
+msgid "Current filament colors:"
+msgstr ""
+
+msgid "Quick set:"
+msgstr ""
+
+msgid "Color match"
+msgstr ""
+
+msgid "Approximate color matching."
+msgstr ""
+
+msgid "Append"
+msgstr ""
+
+msgid "Add consumable extruder after existing extruders."
+msgstr ""
+
+msgid "Reset mapped extruders."
+msgstr ""
+
+msgid "Cluster colors"
+msgstr ""
+
+msgid "Map Filament"
+msgstr ""
+
+msgid ""
+"Note:The color has been selected, you can choose OK \n"
+" to continue or manually adjust it."
+msgstr ""
+
+msgid ""
+"Waring:The count of newly added and \n"
+" current extruders exceeds 16."
+msgstr ""
 
 msgid "Auto-Calc"
 msgstr "Auto-Calc"

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-22 16:06+0800\n"
+"POT-Creation-Date: 2024-04-23 10:24+0800\n"
 "PO-Revision-Date: 2024-02-23 20:10+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -630,10 +630,45 @@ msgstr "长度"
 msgid "Selection"
 msgstr "选择"
 
+msgid " (Moving)"
+msgstr "(活动的)"
+
+msgid ""
+"Select 2 faces on objects and \n"
+" make objects assemble together."
+msgstr ""
+"在两个物体上选择两个面 \n"
+"并将物体组合在一起。"
+
+msgid ""
+"Select 2 points or circles on objects and \n"
+" specify distance between them."
+msgstr ""
+"在两个物体上选择两个点或圆 \n"
+"并指定它们之间的距离。"
+
+msgid "Face"
+msgstr "面"
+
+msgid " (Fixed)"
+msgstr "(固定的)"
+
+msgid "Point"
+msgstr "点"
+
 msgid ""
 "Feature 1 has been reset, \n"
 "feature 2 has been feature 1"
 msgstr "特征1已经被重置，特征2变成特征1"
+
+msgid "Warning:please select Plane's feature."
+msgstr "警告:请选择面特征。"
+
+msgid "Warning:please select Point's or Circle's feature."
+msgstr "警告:请选择点或圆特征。"
+
+msgid "Warning:please select two different mesh."
+msgstr "警告:请选择两个不同的网格。"
 
 msgid "Copy to clipboard"
 msgstr "复制到剪贴板"
@@ -671,8 +706,23 @@ msgstr "绕中心旋转:"
 msgid "Parallel_distance:"
 msgstr "平行距离:"
 
-msgid "Featue 2"
-msgstr "特征2"
+msgid "Flip by Face 2"
+msgstr "通过面2翻转"
+
+msgid "Assemble"
+msgstr "装配"
+
+msgid "Please confirm explosion ratio = 1 and select at least two volumes."
+msgstr "请确保爆炸比例为1且至少选择两个网格。"
+
+msgid "Please select at least two volumes."
+msgstr "请至少选择两个网格。"
+
+msgid "(Moving)"
+msgstr "(活动的)"
+
+msgid "Point and point assembly"
+msgstr "点和点装配"
 
 msgid ""
 "Due to ensuer_on_bed, assembly between \n"
@@ -681,6 +731,9 @@ msgid ""
 msgstr ""
 "由于对象必须在热床上，不同对象之间的 \n"
 "装配在3D视图也许不正确。推荐将它们组合在一起。"
+
+msgid "Face and face assembly"
+msgstr "面和面装配"
 
 msgid "Brush size"
 msgstr "画刷尺寸"
@@ -1157,9 +1210,6 @@ msgstr "从米转换"
 
 msgid "Restore to meter"
 msgstr "恢复到米"
-
-msgid "Assemble"
-msgstr "组合"
 
 msgid "Assemble the selected objects to an object with multiple parts"
 msgstr "组合所选对象为一个多零件对象"
@@ -6764,6 +6814,60 @@ msgstr "没有可用的更新。"
 msgid "The configuration is up to date."
 msgstr "当前配置已经是最新版本。"
 
+msgid "Obj file Import color"
+msgstr "Obj文件导入颜色"
+
+msgid "Specify number of colors:"
+msgstr "指定颜色数量:"
+
+#, c-format, boost-format
+msgid "The color count should be in range [%d, %d]."
+msgstr "颜色数量范围应该是[%d, %d]。"
+
+msgid "Recommended "
+msgstr "推荐"
+
+msgid "Current filament colors:"
+msgstr "当前耗材丝颜色:"
+
+msgid "Quick set:"
+msgstr "快捷设置:"
+
+msgid "Color match"
+msgstr "颜色匹配"
+
+msgid "Approximate color matching."
+msgstr "近似的颜色匹配。"
+
+msgid "Append"
+msgstr "追加"
+
+msgid "Add consumable extruder after existing extruders."
+msgstr "近似的颜色匹配。"
+
+msgid "Reset mapped extruders."
+msgstr "重置匹配的耗材丝。"
+
+msgid "Cluster colors"
+msgstr "重置匹配的耗材丝"
+
+msgid "Map Filament"
+msgstr "匹配耗材丝"
+
+msgid ""
+"Note:The color has been selected, you can choose OK \n"
+" to continue or manually adjust it."
+msgstr ""
+"注意：颜色已经选好了，您可以选中确认 \n"
+" 继续或手动修改它。"
+
+msgid ""
+"Waring:The count of newly added and \n"
+" current extruders exceeds 16."
+msgstr ""
+"警告：新增追加耗材丝数量 \n"
+" 和已有耗材丝数量超过了16."
+
 msgid "Auto-Calc"
 msgstr "自动计算"
 
@@ -12150,6 +12254,9 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid "Featue 2"
+#~ msgstr "特征2"
 
 #~ msgid "Not Extruded Yet,Retry"
 #~ msgstr "耗材未挤出，重试"
