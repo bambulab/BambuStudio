@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-23 10:24+0800\n"
+"POT-Creation-Date: 2024-04-23 15:35+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1207,6 +1207,9 @@ msgstr "Convert from meter"
 
 msgid "Restore to meter"
 msgstr "Restore to meter"
+
+msgid "Combinate"
+msgstr ""
 
 msgid "Assemble the selected objects to an object with multiple parts"
 msgstr "Assemble the selected objects into an object with multiple parts"

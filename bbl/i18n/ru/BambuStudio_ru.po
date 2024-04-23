@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 1.9.0.70 Public Beta 3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-23 10:24+0800\n"
+"POT-Creation-Date: 2024-04-23 15:35+0800\n"
 "PO-Revision-Date: 2024-04-18 20:55+0700\n"
 "Last-Translator: Andylg <andylg@yandex.ru>\n"
 "Language-Team: \n"
@@ -1244,6 +1244,9 @@ msgstr "Преобразовать размеры из метров"
 
 msgid "Restore to meter"
 msgstr "Восстановить размеры в метры"
+
+msgid "Combinate"
+msgstr ""
 
 msgid "Assemble the selected objects to an object with multiple parts"
 msgstr ""
