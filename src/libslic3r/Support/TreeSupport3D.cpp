@@ -3556,15 +3556,8 @@ static std::pair<float, float> extrude_branch(
             result.vertices.emplace_back((p1 - nprev * radius).cast<float>());
             zmin = result.vertices.back().z();
             float angle = angle_step;
-            std::pair<int, int> strip;
-            if (current.state.type == TreeNodeType::ePolygon) {
-                strip = discretize_polygon(p1.cast<float>(), current.influence_area, result.vertices);
-                prev_strip = strip;
-                strip = discretize_polygon(p2.cast<float>(), current.influence_area, result.vertices);
-            }
-            else {
                 for (int i = 1; i < nsteps; ++i, angle += angle_step) {
-                    strip = discretize_circle((p1 - nprev * radius * cos(angle)).cast<float>(), nprev.cast<float>(), radius * sin(angle), eps, result.vertices);
+                std::pair<int, int> strip = discretize_circle((p1 - nprev * radius * cos(angle)).cast<float>(), nprev.cast<float>(), radius * sin(angle), eps, result.vertices);
                     if (i == 1)
                         triangulate_fan<false>(result, ifan, strip.first, strip.second);
                     else
@@ -3572,7 +3565,6 @@ static std::pair<float, float> extrude_branch(
                     //                sprintf(fname, "d:\\temp\\meshes\\tree-partial-%d.obj", ++ irun);
                     //                its_write_obj(result, fname);
                     prev_strip = strip;
-                }
             }
         }
         if (ipath + 1 == path.size()) {
@@ -3584,13 +3576,8 @@ static std::pair<float, float> extrude_branch(
             auto  nsteps = int(ceil(M_PI / (2. * angle_step)));
             angle_step = M_PI / (2. * nsteps);
             auto angle = float(M_PI / 2.);
-            std::pair<int, int> strip;
-            if (current.state.type == TreeNodeType::ePolygon) {
-                strip = discretize_polygon(p2.cast<float>(), current.influence_area, result.vertices);
-            }
-            else {
                 for (int i = 0; i < nsteps; ++i, angle -= angle_step) {
-                    strip = discretize_circle((p2 + ncurrent * radius * cos(angle)).cast<float>(), ncurrent.cast<float>(), radius * sin(angle), eps, result.vertices);
+                std::pair<int, int> strip = discretize_circle((p2 + ncurrent * radius * cos(angle)).cast<float>(), ncurrent.cast<float>(), radius * sin(angle), eps, result.vertices);
                     triangulate_strip(result, prev_strip.first, prev_strip.second, strip.first, strip.second);
                     //                sprintf(fname, "d:\\temp\\meshes\\tree-partial-%d.obj", ++ irun);
                     //                its_write_obj(result, fname);
@@ -3602,7 +3589,6 @@ static std::pair<float, float> extrude_branch(
                 triangulate_fan<true>(result, ifan, prev_strip.first, prev_strip.second);
                 //            sprintf(fname, "d:\\temp\\meshes\\tree-partial-%d.obj", ++ irun);
                 //            its_write_obj(result, fname);
-            }
         } else {
             const SupportElement &next = *path[ipath + 1];
             assert(current.state.layer_idx + 1 == next.state.layer_idx);
@@ -3610,13 +3596,7 @@ static std::pair<float, float> extrude_branch(
             v2 = (p3 - p2).normalized();
             ncurrent = (v1 + v2).normalized();
             float radius = unscaled<float>(support_element_radius(config, current));
-            std::pair<int, int> strip;
-            if (current.state.type == TreeNodeType::ePolygon) {
-                strip = discretize_polygon(p2.cast<float>(), current.influence_area, result.vertices);
-            }
-            else {
-                strip = discretize_circle(p2.cast<float>(), ncurrent.cast<float>(), radius, eps, result.vertices);
-            }
+            std::pair<int, int> strip = discretize_circle(p2.cast<float>(), ncurrent.cast<float>(), radius, eps, result.vertices);
             triangulate_strip(result, prev_strip.first, prev_strip.second, strip.first, strip.second);
             prev_strip = strip;
 //            sprintf(fname, "d:\\temp\\meshes\\tree-partial-%d.obj", ++irun);
@@ -4052,9 +4032,9 @@ indexed_triangle_set draw_branches(
                     // Triangulate the tube.
                     partial_mesh.clear();
                     extrude_branch(path, config, slicing_params, move_bounds, partial_mesh);
-#if 1
+#if 0
                     char fname[2048];
-                    sprintf(fname, "SVG\\tree-raw-%d.obj", ++ irun);
+                    sprintf(fname, "%s\\SVG\\tree-raw-%d.obj",data_dir().c_str(), ++irun);
                     its_write_obj(partial_mesh, fname);
 #if 0
                     temp_mesh.clear();
@@ -4561,7 +4541,7 @@ void organic_draw_branches(
     MeshSlicingParams mesh_slicing_params;
     mesh_slicing_params.mode = MeshSlicingParams::SlicingMode::Positive;
 
-    tbb::parallel_for(tbb::blocked_range<size_t>(0, trees.size(), trees.size()),
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, trees.size(), 1),
         [&trees, &volumes, &config, &slicing_params, &move_bounds, &mesh_slicing_params, &throw_on_cancel](const tbb::blocked_range<size_t>& range) {
             indexed_triangle_set    partial_mesh;
             std::vector<float>      slice_z;
