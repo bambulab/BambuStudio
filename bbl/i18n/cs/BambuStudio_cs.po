@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-23 10:24+0800\n"
+"POT-Creation-Date: 2024-04-23 15:35+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -1211,6 +1211,9 @@ msgstr "Převést z mm"
 
 msgid "Restore to meter"
 msgstr "Obnovit do mm"
+
+msgid "Combinate"
+msgstr ""
 
 msgid "Assemble the selected objects to an object with multiple parts"
 msgstr "Sestavte vybrané objekty do objektu s více částmi"

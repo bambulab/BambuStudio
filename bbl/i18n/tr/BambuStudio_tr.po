@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-23 10:24+0800\n"
+"POT-Creation-Date: 2024-04-23 15:35+0800\n"
 "PO-Revision-Date: 2024-04-16 18:18+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -1228,6 +1228,9 @@ msgstr "Metreden dönüştür"
 
 msgid "Restore to meter"
 msgstr "Metreye geri çevir"
+
+msgid "Combinate"
+msgstr ""
 
 msgid "Assemble the selected objects to an object with multiple parts"
 msgstr "Seçilen nesneleri birden çok parçalı bir nesneyle birleştirin"

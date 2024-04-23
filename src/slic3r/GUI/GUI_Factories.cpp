@@ -948,7 +948,7 @@ void MenuFactory::append_menu_items_convert_unit(wxMenu* menu)
 
 void MenuFactory::append_menu_item_merge_to_multipart_object(wxMenu* menu)
 {
-    append_menu_item(menu, wxID_ANY, _L("Assemble"), _L("Assemble the selected objects to an object with multiple parts"),
+    append_menu_item(menu, wxID_ANY, _L("Combinate"), _L("Assemble the selected objects to an object with multiple parts"),
         [](wxCommandEvent&) { obj_list()->merge(true); }, "", menu,
         []() { return obj_list()->can_merge_to_multipart_object(); }, m_parent);
 }
@@ -956,7 +956,7 @@ void MenuFactory::append_menu_item_merge_to_multipart_object(wxMenu* menu)
 void MenuFactory::append_menu_item_merge_to_single_object(wxMenu* menu)
 {
     menu->AppendSeparator();
-    append_menu_item(menu, wxID_ANY, _L("Assemble"), _L("Assemble the selected objects to an object with single part"),
+    append_menu_item(menu, wxID_ANY, _L("Combinate"), _L("Assemble the selected objects to an object with single part"),
         [](wxCommandEvent&) { obj_list()->merge(false); }, "", menu,
         []() { return obj_list()->can_merge_to_single_object(); }, m_parent);
 }
