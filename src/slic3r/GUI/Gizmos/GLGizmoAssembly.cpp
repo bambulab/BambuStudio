@@ -66,7 +66,7 @@ void GLGizmoAssembly::on_render_input_window(float x, float y, float bottom_limi
 
     if (m_editing_distance)
         return;
-    unsigned int current_active_id = ImGui::GetActiveID();
+    m_current_active_imgui_id      = ImGui::GetActiveID();
     // adjust window position to avoid overlap the view toolbar
     const float win_h = ImGui::GetWindowHeight();
     y = std::min(y, bottom_limit - win_h);
@@ -120,7 +120,7 @@ void GLGizmoAssembly::on_render_input_window(float x, float y, float bottom_limi
         last_selected_features = m_selected_features;
         m_imgui->set_requires_extra_frame();
     }
-    m_last_active_item_imgui = current_active_id;
+    m_last_active_item_imgui = m_current_active_imgui_id;
     GizmoImguiEnd();
     // Orca
     ImGuiWrapper::pop_toolbar_style();
