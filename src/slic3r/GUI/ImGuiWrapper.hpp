@@ -119,6 +119,7 @@ public:
     bool radio_button(const wxString &label, bool active);
 
     static ImU32           to_ImU32(const ColorRGBA &color);
+    static ImVec4          to_ImVec4(const ColorRGB &color);
     static ImVec4          to_ImVec4(const ColorRGBA &color);
     static ColorRGBA       from_ImU32(const ImU32 &color);
     static ColorRGBA       from_ImVec4(const ImVec4 &color);
@@ -142,6 +143,8 @@ public:
     void text(const char *label);
     void text(const std::string &label);
     void text(const wxString &label);
+    void warning_text(const char *all_text);
+    void warning_text(const wxString &all_text);
     void text_colored(const ImVec4& color, const char* label);
     void text_colored(const ImVec4& color, const std::string& label);
     void text_colored(const ImVec4& color, const wxString& label);
