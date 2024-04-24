@@ -131,7 +131,8 @@ void GLGizmoAssembly::render_input_window_warning(bool same_model_object)
     if (wxGetApp().plater()->canvas3D()->get_canvas_type() == GLCanvas3D::ECanvasType::CanvasView3D) {
         if (m_hit_different_volumes.size() == 2) {
             if (same_model_object == false) {
-                m_imgui->text(_L("Warning") + ": " + _L("Due to ensuer_on_bed, assembly between \ndifferent objects may not be correct in 3D view.\n It is recommended to assemble them together."));
+                m_imgui->warning_text(_L("Warning") + ": " +
+               _L("It is recommended to assemble the objects first,\nbecause the objects is restriced to bed \nand only parts can be lifted."));
             }
         }
     }
