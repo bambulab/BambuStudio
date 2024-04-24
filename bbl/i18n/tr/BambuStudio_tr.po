@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-07 16:19+0800\n"
-"PO-Revision-Date: 2024-04-16 18:18+0300\n"
+"POT-Creation-Date: 2024-04-23 15:35+0800\n"
+"PO-Revision-Date: 2024-04-24 08:05+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
 "Language: tr\n"
@@ -637,12 +637,47 @@ msgstr "Uzunluk"
 msgid "Selection"
 msgstr "Seçim"
 
+msgid " (Moving)"
+msgstr " (Hareket ediyor)"
+
+msgid ""
+"Select 2 faces on objects and \n"
+" make objects assemble together."
+msgstr ""
+"Nesnelerdeki 2 yüzeyi seçin ve\n"
+"nesneleri bir araya getirin."
+
+msgid ""
+"Select 2 points or circles on objects and \n"
+" specify distance between them."
+msgstr ""
+"Nesnelerdeki 2 noktayı veya daireyi seçin ve\n"
+" aralarındaki mesafeyi belirtin."
+
+msgid "Face"
+msgstr "Yüzey"
+
+msgid " (Fixed)"
+msgstr " (Sabit)"
+
+msgid "Point"
+msgstr "Nokta"
+
 msgid ""
 "Feature 1 has been reset, \n"
 "feature 2 has been feature 1"
 msgstr ""
 "Özellik 1 sıfırlandı,\n"
 "özellik 2, özellik 1 olmuştur"
+
+msgid "Warning:please select Plane's feature."
+msgstr "Uyarı: Lütfen Düzlemin özelliğini seçin."
+
+msgid "Warning:please select Point's or Circle's feature."
+msgstr "Uyarı: Lütfen Nokta'nın veya Daire'nin özelliğini seçin."
+
+msgid "Warning:please select two different mesh."
+msgstr "Uyarı: Lütfen farklı iki ağ yüzeyi seçin."
 
 msgid "Copy to clipboard"
 msgstr "Panoya kopyala"
@@ -680,8 +715,23 @@ msgstr "Merkez etrafında döndürün:"
 msgid "Parallel_distance:"
 msgstr "Paralel_mesafe:"
 
-msgid "Featue 2"
-msgstr "Özellik 2"
+msgid "Flip by Face 2"
+msgstr "Yüzey 2'ye Göre Çevir"
+
+msgid "Assemble"
+msgstr "Birleştir"
+
+msgid "Please confirm explosion ratio = 1 and select at least two volumes."
+msgstr "Lütfen patlama oranını 1 olarak onaylayın ve en az iki hacmi seçin."
+
+msgid "Please select at least two volumes."
+msgstr "Lütfen en az iki hacmi seçin."
+
+msgid "(Moving)"
+msgstr "(Hareket ediliyor)"
+
+msgid "Point and point assembly"
+msgstr "Nokta ve nokta montajı"
 
 msgid ""
 "Due to ensuer_on_bed, assembly between \n"
@@ -691,6 +741,9 @@ msgstr ""
 "Ensuer_on_bed nedeniyle, montaj\n"
 "farklı nesneler 3D görünümde doğru olmayabilir.\n"
 " Bunları bir araya getirmeniz önerilir."
+
+msgid "Face and face assembly"
+msgstr "Yüz ve yüz montajı"
 
 msgid "Brush size"
 msgstr "Fırça boyutu"
@@ -1144,8 +1197,8 @@ msgstr "Varsayılan"
 msgid "Filament %d"
 msgstr "Filament %d"
 
-msgid "active"
-msgstr "aktif"
+msgid "current"
+msgstr "geçerli"
 
 msgid "Scale to build volume"
 msgstr "Yapı hacmine göre ölçeklendir"
@@ -1180,8 +1233,8 @@ msgstr "Metreden dönüştür"
 msgid "Restore to meter"
 msgstr "Metreye geri çevir"
 
-msgid "Assemble"
-msgstr "Birleştir"
+msgid "Combinate"
+msgstr "Kombine"
 
 msgid "Assemble the selected objects to an object with multiple parts"
 msgstr "Seçilen nesneleri birden çok parçalı bir nesneyle birleştirin"
@@ -1302,9 +1355,6 @@ msgstr "Filamenti Değiştir"
 
 msgid "Set Filament for selected items"
 msgstr "Seçilen öğeler için Filamenti ayarla"
-
-msgid "current"
-msgstr "geçerli"
 
 msgid "Unlock"
 msgstr "Kilidi aç"
@@ -1746,11 +1796,11 @@ msgstr "Otomatik Doldurma"
 msgid "AMS not connected"
 msgstr "AMS bağlı değil"
 
-msgid "Load Filament"
-msgstr "Filament Yükle"
+msgid "Load"
+msgstr "Yükle"
 
-msgid "Unload Filament"
-msgstr "Filamenti Çıkarın"
+msgid "Unload"
+msgstr "Boşalt"
 
 msgid "Ext Spool"
 msgstr "Harici Makara"
@@ -2458,6 +2508,16 @@ msgstr ""
 "AMS, mevcut filament bittiğinde otomatik olarak aynı özelliklere sahip başka "
 "bir makaraya devam edecektir"
 
+msgid "Air Printing Detection"
+msgstr "Hava Baskısı Tespiti"
+
+msgid ""
+"Detects clogging and filament grinding, halting printing immediately to "
+"conserve time and filament."
+msgstr ""
+"Tıkanıklık ve filament aşınmasını algılar, zaman ve filament tasarrufu "
+"yapmak için baskıyı hemen durdurur."
+
 msgid "File"
 msgstr "Dosya"
 
@@ -2870,7 +2930,7 @@ msgid "Homing toolhead"
 msgstr "Baskı Kafası Home Pozisyonuna Getiriliyor"
 
 msgid "Cleaning nozzle tip"
-msgstr "Nozul temizleme ipucu"
+msgstr "Nozul ucunun temizlenmesi"
 
 msgid "Checking extruder temperature"
 msgstr "Ekstruder sıcaklığının kontrol edilmesi"
@@ -2885,7 +2945,7 @@ msgid "Calibrating the micro lida"
 msgstr "Mikro Lida'nın kalibre edilmesi"
 
 msgid "Calibrating extrusion flow"
-msgstr "Ekstrüzyon akışını kalibre et"
+msgstr "Ekstrüzyon akışını kalibre etme"
 
 msgid "Paused due to nozzle temperature malfunction"
 msgstr "Nozul sıcaklığı arızası nedeniyle duraklatıldı"
@@ -3542,6 +3602,9 @@ msgstr "Ön İzleme"
 msgid "Device"
 msgstr "Yazıcı"
 
+msgid "Multi-device"
+msgstr "Çoklu cihaz"
+
 msgid "Project"
 msgstr "Proje"
 
@@ -3584,6 +3647,9 @@ msgstr "Tümünü yazdır"
 
 msgid "Send all"
 msgstr "Hepsini gönder"
+
+msgid "Send to Multi-device"
+msgstr "Birden fazla 3D yazıcıya gönder"
 
 msgid "Keyboard Shortcuts"
 msgstr "Klavye kısayolları"
@@ -4371,9 +4437,6 @@ msgstr "Kabin"
 msgid "Bed"
 msgstr "Yatak"
 
-msgid "Unload"
-msgstr "Boşalt"
-
 msgid "Debug Info"
 msgstr "Hata Ayıklama Bilgisi"
 
@@ -4809,6 +4872,14 @@ msgstr "Uyarı Sesine İzin Ver"
 
 msgid "Filament Tangle Detect"
 msgstr "Filament Dolaşma Tespiti"
+
+msgid "Nozzle Clumping Detection"
+msgstr "Nozul Toplanması Tespiti"
+
+msgid "Check if the nozzle is clumping by filament or other foreign objects."
+msgstr ""
+"Nozulun filament veya diğer yabancı cisimler tarafından tıkanıp "
+"tıkanmadığını kontrol edin."
 
 msgid "Nozzle Type"
 msgstr "Nozul tipi"
@@ -5566,6 +5637,17 @@ msgid "If enabled, auto-calculate every time when filament is changed"
 msgstr ""
 "Etkinleştirilirse, filament her değiştirildiğinde otomatik hesaplama yapar"
 
+msgid "Multi-device Management(Take effect after restarting Studio)."
+msgstr ""
+"Çoklu cihaz yönetimi (Studio yeniden başlatıldıktan sonra etkili olacaktır)."
+
+msgid ""
+"With this option enabled, you can send a task to multiple devices at the "
+"same time and manage multiple devices."
+msgstr ""
+"Bu seçenek etkinleştirildiğinde, aynı anda birden fazla cihaza görev "
+"gönderebilir ve birden fazla cihazı yönetebilirsiniz."
+
 msgid "Presets"
 msgstr "Ön ayarlar"
 
@@ -6239,6 +6321,9 @@ msgstr "Mikro Lidar kullanarak otomatik akış kalibrasyonu"
 msgid "Modifying the device name"
 msgstr "Cihaz adını değiştir"
 
+msgid "Bind with Pin Code"
+msgstr "Pin Kodu ile Eşleştirme"
+
 msgid "Send to Printer SD card"
 msgstr "Yazıcı SD kartına gönder"
 
@@ -6289,6 +6374,27 @@ msgstr "Giriş raporu alma zaman aşımı"
 
 msgid "Unknown Failure"
 msgstr "Bilinmeyen Arıza"
+
+msgid ""
+"Please Find the Pin Code in Account page on printer screen,\n"
+" and type in the Pin Code below."
+msgstr ""
+"Lütfen yazıcı ekranındaki Hesap sayfasında Pin Kodunu bulun ve aşağıya girin."
+
+msgid "Can't find Pin Code?"
+msgstr "Pin Kodunu bulamıyor musunuz?"
+
+msgid "Pin Code"
+msgstr "Pin Kodu"
+
+msgid "Binding..."
+msgstr "Bağlanıyor..."
+
+msgid "Please confirm on the printer screen"
+msgstr "Lütfen yazıcı ekranında onaylayın"
+
+msgid "Log in failed. Please check the Pin Code."
+msgstr "Giriş başarısız oldu. Lütfen Pin Kodunu kontrol edin."
 
 msgid "Log in printer"
 msgstr "Yazıcıda oturum aç"
@@ -7062,6 +7168,60 @@ msgstr "Güncelleme mevcut değil."
 msgid "The configuration is up to date."
 msgstr "Yapılandırma güncel."
 
+msgid "Obj file Import color"
+msgstr "Obj dosyası renkli olarak içe aktar"
+
+msgid "Specify number of colors:"
+msgstr "Renk sayısını belirtin:"
+
+#, c-format, boost-format
+msgid "The color count should be in range [%d, %d]."
+msgstr "Renk sayısı aralıkta olmalıdır [%d, %d]."
+
+msgid "Recommended "
+msgstr "Tavsiye edilir "
+
+msgid "Current filament colors:"
+msgstr "Mevcut filament renkleri:"
+
+msgid "Quick set:"
+msgstr "Hızlı ayar:"
+
+msgid "Color match"
+msgstr "Renk uyumu"
+
+msgid "Approximate color matching."
+msgstr "Yaklaşık renk eşleşmesi."
+
+msgid "Append"
+msgstr "Ekle"
+
+msgid "Add consumable extruder after existing extruders."
+msgstr "Mevcut ekstrüderlerden sonra yeni sarf malzemesi ekstrüderi ekleyin."
+
+msgid "Reset mapped extruders."
+msgstr "Eşlenmiş ekstrüderleri sıfırlayın."
+
+msgid "Cluster colors"
+msgstr "Küme renkleri"
+
+msgid "Map Filament"
+msgstr "Filamenti Eşle"
+
+msgid ""
+"Note:The color has been selected, you can choose OK \n"
+" to continue or manually adjust it."
+msgstr ""
+"Not: Renk seçildi, devam etmek için Tamam'ı seçebilirsiniz\n"
+" veya manuel olarak ayarlayabilirsiniz."
+
+msgid ""
+"Waring:The count of newly added and \n"
+" current extruders exceeds 16."
+msgstr ""
+"Uyarı: Yeni eklenen ve\n"
+" mevcut ekstrüderlerin sayısı 16'yı aşıyor."
+
 msgid "Auto-Calc"
 msgstr "Otomatik Hesaplama"
 
@@ -7377,6 +7537,39 @@ msgstr "Tamamlandı"
 
 msgid "resume"
 msgstr "devam"
+
+msgid "Resume Printing"
+msgstr "Baskıya Devam Et"
+
+msgid "Resume Printing(defects acceptable)"
+msgstr "Baskıya Devam Et (kabul edilebilir kusurlar)"
+
+msgid "Resume Printing(problem solved)"
+msgstr "Baskıya Devam Et (sorun çözüldü)"
+
+msgid "Stop Printing"
+msgstr "Baskıyı durdur"
+
+msgid "Check Assistant"
+msgstr "Kontrol Asistanı"
+
+msgid "Filament Extruded, Continue"
+msgstr "Filament Ekstrüde Edildi, Devam Et"
+
+msgid "Not Extruded Yet, Retry"
+msgstr "Henüz Ekstrüde Edilmedi, Yeniden Dene"
+
+msgid "Finished, Continue"
+msgstr "Bitti, Devam"
+
+msgid "Load Filament"
+msgstr "Filament Yükle"
+
+msgid "Filament Loaded, Resume"
+msgstr "Filament Yüklendi, Devam"
+
+msgid "View Liveview"
+msgstr "Canlı Görüntüyü Göster"
 
 msgid "Confirm and Update Nozzle"
 msgstr "Nozulu Onaylayın ve Güncelleyin"
@@ -8884,6 +9077,9 @@ msgstr "Destek kübik"
 msgid "Lightning"
 msgstr "Yıldırım"
 
+msgid "Cross Hatch"
+msgstr "Çapraz Çizgi"
+
 msgid ""
 "Acceleration of top surface infill. Using a lower value may improve top "
 "surface quality"
@@ -9919,6 +10115,27 @@ msgstr ""
 "katı alt katmanlara sahip tek duvarlı bir baskıya dönüştürür. Oluşturulan "
 "son modelde dikiş yok"
 
+msgid "Smooth Spiral"
+msgstr "Düzgün Spiral"
+
+msgid ""
+"Smooth Spiral smoothes out X and Y moves as wellresulting in no visible seam "
+"at all, even in the XY directions on walls that are not vertical"
+msgstr ""
+"Düzgün Spiral\", X ve Y hareketlerini de yumuşatarak, dikey olmayan "
+"duvarlarda bile hiçbir görünür dikiş olmaksızın tamamen düzgün bir yüzey "
+"elde etmenizi sağlar"
+
+msgid "Max XY Smoothing"
+msgstr "Maksimum XY Düzgünleştirme"
+
+msgid ""
+"Maximum distance to move points in XY to try to achieve a smooth spiralIf "
+"expressed as a %, it will be computed over nozzle diameter"
+msgstr ""
+"XY'de düzgün bir spiral elde etmek için noktaların taşınabileceği maksimum "
+"mesafe. Yüzde olarak ifade edilirse, nozül çapı üzerinden hesaplanır"
+
 msgid ""
 "If smooth or traditional mode is selected, a timelapse video will be "
 "generated for each print. After each layer is printed, a snapshot is taken "
@@ -10690,6 +10907,12 @@ msgstr ""
 "kullanılmayacaktır.\n"
 "XY Boyut telafisi  renkli boyamayla birleştirilemez."
 
+msgid "Importing obj with png function is developing."
+msgstr "Png işlevi ile obj içe aktarma gelişiyor."
+
+msgid "Importing obj occurred an unknown error."
+msgstr "Obj içe aktarma sırasında bilinmeyen bir hata oluştu."
+
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
 msgstr ""
@@ -10712,6 +10935,9 @@ msgstr "İptal edildi"
 
 msgid "load_obj: failed to parse"
 msgstr "load_obj: ayrıştırılamadı"
+
+msgid "load mtl in obj: failed to parse"
+msgstr "obj içindeki mtl yüklenemedi: Ayrıştırma başarısız oldu"
 
 msgid "The file contains polygons with more than 4 vertices."
 msgstr "Dosya 4'ten fazla köşesi olan çokgenler içeriyor."
@@ -10839,6 +11065,19 @@ msgstr "Lütfen kalibre edilecek filamenti seçin."
 msgid "The input value size must be 3."
 msgstr "Giriş değeri boyutu 3 olmalıdır."
 
+msgid ""
+"This machine type can only hold 16 history results per nozzle. You can "
+"delete the existing historical results and then start calibration. Or you "
+"can continue the calibration, but you cannot create new calibration "
+"historical results. \n"
+"Do you still want to continue the calibration?"
+msgstr ""
+"Bu makine tipi, her nozul başına yalnızca 16 geçmiş sonuç saklayabilir. "
+"Mevcut geçmiş sonuçları silip ardından kalibrasyona başlayabilirsiniz. Ya da "
+"kalibrasyona devam edebilirsiniz, ancak yeni kalibrasyon geçmiş sonuçları "
+"oluşturamazsınız.\n"
+"Kalibrasyona devam etmek istiyor musunuz?"
+
 msgid "Connecting to printer..."
 msgstr "Yazıcıya bağlanılıyor..."
 
@@ -10847,6 +11086,24 @@ msgstr "Başarısız olan test sonucu düşürüldü."
 
 msgid "Flow Dynamics Calibration result has been saved to the printer"
 msgstr "Akış Dinamiği Kalibrasyonu sonucu yazıcıya kaydedildi"
+
+#, c-format, boost-format
+msgid ""
+"There is already a historical calibration result with the same name: %s. "
+"Only one of the results with the same name is saved. Are you sure you want "
+"to override the historical result?"
+msgstr ""
+"Aynı ada sahip bir geçmiş kalibrasyon sonucu zaten var: %s. Aynı ada sahip "
+"sonuçlardan yalnızca biri kaydedilir. Geçmiş sonucu geçersiz kılmak "
+"istediğinizden emin misiniz?"
+
+#, c-format, boost-format
+msgid ""
+"This machine type can only hold %d history results per nozzle. This result "
+"will not be saved."
+msgstr ""
+"Bu makine tipi nozul başına sadece %d geçmiş sonucu tutabilir. Bu sonuç "
+"kaydedilmeyecektir."
 
 msgid "Internal Error"
 msgstr "İç hata"
@@ -11057,16 +11314,6 @@ msgstr ""
 "Aynı ada sahip sonuçlardan yalnızca biri kaydedilecektir. Diğer sonuçları "
 "geçersiz kılmak istediğinizden emin misiniz?"
 
-#, c-format, boost-format
-msgid ""
-"There is already a historical calibration result with the same name: %s. "
-"Only one of the results with the same name is saved. Are you sure you want "
-"to override the historical result?"
-msgstr ""
-"Aynı ada sahip bir geçmiş kalibrasyon sonucu zaten var: %s. Aynı ada sahip "
-"sonuçlardan yalnızca biri kaydedilir. Geçmiş sonucu geçersiz kılmak "
-"istediğinizden emin misiniz?"
-
 msgid "Please find the best line on your plate"
 msgstr "Lütfen plakadaki en iyi çizgiyi bulun"
 
@@ -11219,6 +11466,10 @@ msgstr "Geçmiş Akış Dinamiği Kalibrasyon kayıtlarını yenileme"
 
 msgid "Action"
 msgstr "İşlem"
+
+#, c-format, boost-format
+msgid "This machine type can only hold %d history results per nozzle."
+msgstr "Bu makine tipi nozul başına yalnızca %d geçmiş sonucu tutabilir."
 
 msgid "Edit Flow Dynamics Calibration"
 msgstr "Akış Dinamiği Kalibrasyonunu Düzenle"
@@ -12500,6 +12751,79 @@ msgstr ""
 "öncesinde uygun profili sağlayan satıcıya başvurmanız ve performansına göre "
 "bazı parametreleri ayarlamanız şiddetle tavsiye edilir."
 
+msgid "No AMS"
+msgstr "AMS Yok"
+
+msgid "Use External Spool"
+msgstr "Harici Makara Kullanın"
+
+msgid "Use AMS"
+msgstr "AMS kullanın"
+
+msgid "Select Printers"
+msgstr "Yazıcıları Seçin"
+
+msgid "Device Name"
+msgstr "Cihaz Adı"
+
+msgid "Device Status"
+msgstr "Cihaz Durumu"
+
+msgid "Ams Status"
+msgstr "Ams Durumu"
+
+msgid "Unconnected device"
+msgstr "Bağlanmamış cihaz"
+
+msgid "Printing Options"
+msgstr "Yazdırma Seçenekleri"
+
+msgid "Send Options"
+msgstr "Gönderme Seçenekleri"
+
+msgid ""
+"printers at the same time.(It depends on how many devices can undergo "
+"heating at the same time.)"
+msgstr ""
+"aynı anda kaç yazıcının ısıtma işleminden geçebileceği, aynı anda "
+"ısıtılabilecek cihaz sayısına bağlıdır."
+
+msgid "Wait"
+msgstr "Bekleyin"
+
+msgid ""
+"minute each batch.(It depends on how long it takes to complete the heating.)"
+msgstr ""
+"her parti başına dakika. (Isıtmanın tamamlanması ne kadar sürerse buna "
+"bağlıdır.)"
+
+msgid "Task Sending"
+msgstr "Görev Gönderme"
+
+msgid "Task Sent"
+msgstr "Görev Gönderildi"
+
+msgid "No task"
+msgstr "Görev yok"
+
+msgid "Task Name"
+msgstr "Görev Adı"
+
+msgid "Actions"
+msgstr "İşlemler"
+
+msgid "Task Status"
+msgstr "Görev durumu"
+
+msgid "Sent Time"
+msgstr "Gönderilen Zaman"
+
+msgid "There are no tasks to be sent!"
+msgstr "Gönderilecek görev yok!"
+
+msgid "No historical tasks!"
+msgstr "Tarihi görevler yok!"
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -12794,6 +13118,15 @@ msgstr ""
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı "
 "sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını "
 "azaltabileceğini biliyor muydunuz."
+
+#~ msgid "Featue 2"
+#~ msgstr "Özellik 2"
+
+#~ msgid "active"
+#~ msgstr "aktif"
+
+#~ msgid "Unload Filament"
+#~ msgstr "Filamenti Çıkarın"
 
 #~ msgid ""
 #~ "Studio would re-calculate your flushing volumes everytime the filaments "
