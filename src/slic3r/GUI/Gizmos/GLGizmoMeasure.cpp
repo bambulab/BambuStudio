@@ -526,7 +526,7 @@ void GLGizmoMeasure::init_circle_glmodel(GripperType gripper_type, const Measure
         circle_gl_model.inv_zoom            = inv_zoom;
     }
 }
-
+const float MEASURE_PLNE_NORMAL_OFFSET = 0.05;
 void GLGizmoMeasure::init_plane_glmodel(GripperType gripper_type, const Measure::SurfaceFeature &feature, PlaneGLModel &plane_gl_model)
 {
     if (!feature.volume) { return; }
@@ -539,7 +539,7 @@ void GLGizmoMeasure::init_plane_glmodel(GripperType gripper_type, const Measure:
     if (!plane_gl_model.plane) {
         plane_gl_model.plane_idx    = idx;
         reset_gripper_pick(gripper_type);
-        plane_gl_model.plane = init_plane_data(mesh->its, *feature.plane_indices);
+        plane_gl_model.plane = init_plane_data(mesh->its, *feature.plane_indices, MEASURE_PLNE_NORMAL_OFFSET);
         if (plane_gl_model.plane) {
             if (auto mesh = plane_gl_model.plane->mesh) {
                 m_gripper_id_raycast_map[gripper_type] = std::make_shared<PickRaycaster>(mesh, PLANE_ID);
@@ -802,14 +802,10 @@ void GLGizmoMeasure::on_render()
     if (!m_curr_feature.has_value() && !m_selected_features.first.feature.has_value()) {
         return;
     }
-
-    const bool old_cullface = ::glIsEnabled(GL_CULL_FACE);
-
-    glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
     glsafe(::glEnable(GL_DEPTH_TEST));
-    glsafe(::glDisable(GL_CULL_FACE));
-
-    auto render_feature = [this](const Measure::SurfaceFeature& feature, const std::vector<ColorRGBA>& colors,
+    glDisable(GL_BLEND);
+    auto render_feature =
+        [this](const Measure::SurfaceFeature &feature, const std::vector<ColorRGBA> &colors,
         float inv_zoom, bool hover, bool update_raycasters_transform,int featura_index = -1) {
             switch (feature.get_type())
             {
@@ -1051,10 +1047,6 @@ void GLGizmoMeasure::on_render()
             render_glmodel(*m_sphere, color.get_data(), tran.get_matrix(), false, 0.5f);
         }
     }
-
-    if (old_cullface)
-        glsafe(::glEnable(GL_CULL_FACE));
-
     render_dimensioning();
 }
 
@@ -1862,12 +1854,12 @@ void GLGizmoMeasure::show_selection_ui()
         ImGui::PopStyleColor();
     }
 
-    m_imgui->disabled_begin(!m_selected_features.first.feature.has_value());
+    /*m_imgui->disabled_begin(!m_selected_features.first.feature.has_value());
     if (m_imgui->button(_L("Restart selection"))) {
         reset_all_feature();
         m_imgui->set_requires_extra_frame();
     }
-    m_imgui->disabled_end();
+    m_imgui->disabled_end();*/
 
     if (m_show_reset_first_tip) {
         m_imgui->text(_L("Feature 1 has been reset, \nfeature 2 has been feature 1"));
@@ -2016,64 +2008,52 @@ void GLGizmoMeasure::show_point_point_assembly()
 {
 }
 
-void GLGizmoMeasure::show_face_face_assembly()
-{
+void GLGizmoMeasure::show_face_face_assembly_common() {
     if (m_measure_mode == EMeasureMode::ONLY_ASSEMBLY && m_hit_different_volumes.size() == 2 &&
         m_selected_features.first.feature->get_type() == Measure::SurfaceFeatureType::Plane &&
         m_selected_features.second.feature->get_type() == Measure::SurfaceFeatureType::Plane) {
         auto &action                         = m_assembly_action;
         auto  set_to_parallel_size           = m_imgui->calc_button_size(_L("Parallel")).x;
         auto  set_to_center_coincidence_size = m_imgui->calc_button_size(_L("Center coincidence")).x;
-        auto  feature_text_size              = m_imgui->calc_button_size(_L("Featue 1")).x + m_imgui->calc_button_size(":").x;
-        auto  set_to_reverse_rotation_size   = m_imgui->calc_button_size(_L("Reverse rotation")).x;
-        auto  rotate_around_center_size      = m_imgui->calc_button_size(_L("Rotate around center:")).x;
-        auto  parallel_distance_size         = m_imgui->calc_button_size(_L("Parallel_distance:")).x;
-        // set_feature_1//keep code
-        //if (action.can_set_feature_1_reverse_rotation) {
-        //    m_imgui->text(_L("Featue 1") + ":");
-        //    {
-        //        ImGui::SameLine(feature_text_size + m_space_size);
-        //        ImGui::PushItemWidth(set_to_reverse_rotation_size);
-        //        if (m_imgui->button(_L("Reverse rotation"))) {
-        //            set_to_reverse_rotation(m_same_model_object, 0);
-        //        }
-        //        // ImGui::SameLine(set_to_reverse1_rotation_size + 2 * space_size);
-        //    }
-        //    ImGui::Separator();
-        //}
-        //m_imgui->text(_L("Featue 2") + ":");
+
         m_imgui->disabled_begin(!(action.can_set_to_center_coincidence));
         {
             ImGui::PushItemWidth(set_to_center_coincidence_size);
-            if (m_imgui->button(_L("Center coincidence"))) {
-                set_to_center_coincidence(m_same_model_object);
-            }
+            ImGui::PushStyleColor(ImGuiCol_Button, m_is_dark_mode ? ImVec4(0 / 255.0, 174 / 255.0, 66 / 255.0, 1.0) : ImVec4(0 / 255.0, 174 / 255.0, 66 / 255.0, 1.0));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                                  m_is_dark_mode ? ImVec4(50 / 255.0f, 238 / 255.0f, 61 / 255.0f, 1.00f) : ImVec4(50 / 255.0f, 238 / 255.0f, 61 / 255.0f, 1.00f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                                  m_is_dark_mode ? ImVec4(206 / 255.0f, 206 / 255.0f, 206 / 255.0f, 1.00f) : ImVec4(206 / 255.0f, 206 / 255.0f, 206 / 255.0f, 1.00f));
+            ImGui::PushStyleColor(ImGuiCol_Text,
+                                  m_is_dark_mode ? ImVec4(255 / 255.0f, 255 / 255.0f, 255 / 255.0f, 1.00f) : ImVec4(255 / 255.0f, 255 / 255.0f, 255 / 255.0f, 1.00f));
+            if (m_imgui->button(_L("Center coincidence"))) { set_to_center_coincidence(m_same_model_object); }
+            ImGui::PopStyleColor(4);
             ImGui::SameLine(set_to_center_coincidence_size + m_space_size * 2);
         }
         m_imgui->disabled_end();
 
         m_imgui->disabled_begin(!action.can_set_to_parallel);
         {
-            if (m_imgui->button(_L("Parallel"))) {
-                set_to_parallel(m_same_model_object);
-            }
+            if (m_imgui->button(_L("Parallel"))) { set_to_parallel(m_same_model_object); }
         }
         m_imgui->disabled_end();
+    }
+}
 
+void GLGizmoMeasure::show_face_face_assembly_senior()
+{
+    if (m_measure_mode == EMeasureMode::ONLY_ASSEMBLY && m_hit_different_volumes.size() == 2 &&
+        m_selected_features.first.feature->get_type() == Measure::SurfaceFeatureType::Plane &&
+        m_selected_features.second.feature->get_type() == Measure::SurfaceFeatureType::Plane) {
+        auto &action                         = m_assembly_action;
+        auto  feature_text_size              = m_imgui->calc_button_size(_L("Featue 1")).x + m_imgui->calc_button_size(":").x;
+        auto  set_to_reverse_rotation_size   = m_imgui->calc_button_size(_L("Reverse rotation")).x;
+        auto  rotate_around_center_size      = m_imgui->calc_button_size(_L("Rotate around center:")).x;
+        auto  parallel_distance_size         = m_imgui->calc_button_size(_L("Parallel_distance:")).x;
+       
         if (m_imgui->bbl_checkbox(_L("Flip by Face 2"), m_flip_volume_2)) {
             set_to_reverse_rotation(m_same_model_object, 1);
         }
-        /*ImGui::SameLine(feature_text_size + m_space_size);
-        m_imgui->disabled_begin(!action.can_set_feature_2_reverse_rotation);
-        {
-            ImGui::PushItemWidth(set_to_reverse_rotation_size);
-            ImGui::PushID("Featue2");
-            if (m_imgui->button(_L("Reverse rotation"))) {
-                set_to_reverse_rotation(m_same_model_object, 1);
-            }
-            ImGui::PopID();
-        }
-        m_imgui->disabled_end();*/
 
         if (action.has_parallel_distance) {
             m_imgui->text(_u8L("Parallel_distance:"));

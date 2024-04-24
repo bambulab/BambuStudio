@@ -245,7 +245,8 @@ protected:
     void         show_selection_ui();
     void         show_distance_xyz_ui();
     void         show_point_point_assembly();
-    void         show_face_face_assembly();
+    void         show_face_face_assembly_common();
+    void         show_face_face_assembly_senior();
     void         init_render_input_window();
     virtual void on_render_input_window(float x, float y, float bottom_limit) override;
 
