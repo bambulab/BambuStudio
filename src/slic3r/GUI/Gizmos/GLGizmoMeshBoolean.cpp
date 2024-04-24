@@ -398,7 +398,7 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
 
 void GLGizmoMeshBoolean::render_input_window_warning(const std::string &text) {
     if (text.size() > 0) {
-        m_imgui->text(_L("Warning") + ": " + _L(text));
+        m_imgui->warning_text(_L("Warning") + ": " + _L(text));
     }
 }
 
