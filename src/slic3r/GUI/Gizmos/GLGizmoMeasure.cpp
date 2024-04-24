@@ -669,7 +669,18 @@ void GLGizmoMeasure::on_render()
                                mouse_on_object ? m_curr_measuring->get_feature(model_facet_idx, position_on_model, m_mesh_raycaster_map[m_last_hit_volume]->world_tran.get_matrix()) :
                                                               std::nullopt;
             }
-
+            if (m_measure_mode == EMeasureMode::ONLY_ASSEMBLY) {
+                if (m_assembly_mode == AssemblyMode::FACE_FACE) {
+                    if (curr_feature->get_type() != Measure::SurfaceFeatureType::Plane) {
+                        curr_feature.reset();
+                    }
+                } else if (m_assembly_mode == AssemblyMode::POINT_POINT) {
+                    if (!(curr_feature->get_type() == Measure::SurfaceFeatureType::Point ||
+                        curr_feature->get_type() == Measure::SurfaceFeatureType::Circle)) {
+                        curr_feature.reset();
+                    }
+                }
+            }
             if (m_curr_feature != curr_feature ||
                 (curr_feature.has_value() && curr_feature->get_type() == Measure::SurfaceFeatureType::Circle && (m_curr_feature != curr_feature || m_last_inv_zoom != inv_zoom))) {
                 reset_gripper_pick(GripperType::UNDEFINE, true);
