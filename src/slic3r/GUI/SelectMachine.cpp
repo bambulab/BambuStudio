@@ -21,6 +21,7 @@
 #include <miniz.h>
 #include <algorithm>
 #include "Plater.hpp"
+#include "Notebook.hpp"
 #include "BitmapCache.hpp"
 #include "BindDialog.hpp"
 
@@ -1821,7 +1822,9 @@ void SelectMachineDialog::sync_ams_mapping_result(std::vector<FilamentInfo> &res
             iter++;
         }
     }
-    updata_thumbnail_data_after_connected_printer();
+    if ((MainFrame::TabPosition) dynamic_cast<Notebook *>(wxGetApp().tab_panel())->GetSelection() == MainFrame::TabPosition::tpPreview) {
+        updata_thumbnail_data_after_connected_printer();
+    }
 }
 
 void print_ams_mapping_result(std::vector<FilamentInfo>& result)
@@ -4153,7 +4156,7 @@ wxColour SelectMachineDialog::adjust_color_for_render(const wxColour &color)
 
 void SelectMachineDialog::final_deal_edge_pixels_data(ThumbnailData &data)
 {
-    if (data.width > 0 && data.height > 0) {
+    if (data.width > 0 && data.height > 0 && m_edge_pixels.size() >0 ) {
         for (unsigned int r = 0; r < data.height; ++r) {
              unsigned int rr            = (data.height - 1 - r) * data.width;
              bool         exist_rr_up   = r >= 1 ? true : false;
@@ -4385,7 +4388,7 @@ void SelectMachineDialog::set_default_from_sdcard()
         image = image.Rescale(FromDIP(256), FromDIP(256));
         m_thumbnailPanel->set_thumbnail(image);
     }
-
+   
     //for black list
     std::vector<std::string> materials;
     std::vector<std::string> brands;
