@@ -225,7 +225,7 @@ namespace GUI {
     // the origin of the torus is in its center
     GLModel::Geometry smooth_torus(unsigned int primary_resolution, unsigned int secondary_resolution, float radius, float thickness);
 
-    std::shared_ptr<GLModel> init_plane_data(const indexed_triangle_set &its, const std::vector<int> &triangle_indices);
+    std::shared_ptr<GLModel> init_plane_data(const indexed_triangle_set &its, const std::vector<int> &triangle_indices,float normal_offset = 0.0f);
     std::shared_ptr<GLModel> init_torus_data(unsigned int       primary_resolution,
                                              unsigned int       secondary_resolution,
                                              const Vec3f &      center,

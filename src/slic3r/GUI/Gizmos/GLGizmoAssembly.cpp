@@ -91,10 +91,10 @@ void GLGizmoAssembly::on_render_input_window(float x, float y, float bottom_limi
         ;
     }
     show_selection_ui();
-
+    show_face_face_assembly_common();
     ImGui::Separator();
+    show_face_face_assembly_senior();
     show_distance_xyz_ui();
-    show_face_face_assembly();
     render_input_window_warning(m_same_model_object);
     ImGui::Separator();
 
