@@ -8,7 +8,6 @@
 #include "MsgDialog.hpp"
 #include "DownloadProgressDialog.hpp"
 
-#include <boost/filesystem/string_file.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
@@ -777,8 +776,12 @@ bool MediaPlayCtrl::start_stream_service(bool *need_install)
     file_url2.Replace("\\", "/");
     file_url2 = wxURI(file_url2).BuildURI();
     try {
-        std::string configs;
-        boost::filesystem::load_string_file(file_ff_cfg, configs);
+        boost::filesystem::ifstream configfile(file_ff_cfg);
+        std::string configs(
+            (std::istreambuf_iterator<char>(configfile)),
+            (std::istreambuf_iterator<char>())
+        );
+        configfile.close();
         std::vector<std::string> configss;
         boost::algorithm::split(configss, configs, boost::algorithm::is_any_of("\r\n"));
         configss.erase(std::remove(configss.begin(), configss.end(), std::string()), configss.end());
