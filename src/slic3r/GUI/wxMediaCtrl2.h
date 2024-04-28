@@ -13,6 +13,17 @@
 
 wxDECLARE_EVENT(EVT_MEDIA_CTRL_STAT, wxCommandEvent);
 
+enum wxMediaState2
+{
+    MEDIASTATE_STOPPED,
+    MEDIASTATE_PAUSED,
+    MEDIASTATE_PLAYING,
+    MEDIASTATE_IDLE,
+    MEDIASTATE_INITIALIZING,
+    MEDIASTATE_LOADING,
+    MEDIASTATE_BUFFERING,
+};
+
 #ifdef __WXMAC__
 
 class wxMediaCtrl2 : public wxWindow
@@ -30,13 +41,11 @@ public:
 
     void SetIdleImage(wxString const & image);
 
-    wxMediaState GetState() const;
+    wxMediaState2 GetState() const;
 
     wxSize GetVideoSize() const;
 
     int GetLastError() const { return m_error; }
-
-    static constexpr wxMediaState MEDIASTATE_BUFFERING = (wxMediaState) 6;
 
 protected:
     void DoSetSize(int x, int y, int width, int height, int sizeFlags) override;
@@ -48,7 +57,7 @@ protected:
 private:
     void create_player();
     void * m_player = nullptr;
-    wxMediaState m_state = wxMEDIASTATE_STOPPED;
+    wxMediaState2 m_state = MEDIASTATE_STOPPED;
     int          m_error  = 0;
     wxSize       m_video_size{16, 9};
 };
