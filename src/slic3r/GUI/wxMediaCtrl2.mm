@@ -84,6 +84,11 @@ wxMediaCtrl2::wxMediaCtrl2(wxWindow * parent)
     };
     fullscreen_button->Bind(wxEVT_COMMAND_BUTTON_CLICKED, fullscreen_button_clicked);
 
+    auto double_click = [this](wxMouseEvent& e) {
+        toggle_fullscreen();
+    };
+    Bind(wxEVT_LEFT_DCLICK, double_click);
+
     wxSizer * hsizer = new wxBoxSizer(wxHORIZONTAL);
     hsizer->AddStretchSpacer();
     hsizer->Add(fullscreen_button);
