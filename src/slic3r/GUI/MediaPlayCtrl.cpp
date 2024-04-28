@@ -853,6 +853,7 @@ bool MediaPlayCtrl::get_stream_url(std::string *url)
 
 void wxMediaCtrl2::DoSetSize(int x, int y, int width, int height, int sizeFlags)
 {
+    // Ignore resize calls while in fullscreen mode
     if (IsFullScreen())
     {
         return;

@@ -98,10 +98,6 @@ wxMediaCtrl2::wxMediaCtrl2(wxWindow * parent)
 
 wxMediaCtrl2::~wxMediaCtrl2()
 {
-//    Disconnect(wxID_ANY, wxEVT_KEY_DOWN, wxKeyEventHandler(wxMediaCtrl2::onKeyDown),
-//                              (wxObject*) NULL,
-//                              this);
-
     BambuPlayer * player = (BambuPlayer *) m_player;
     [player dealloc];
 }
