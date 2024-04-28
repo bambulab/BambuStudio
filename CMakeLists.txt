@@ -338,6 +338,9 @@ if(SLIC3R_STATIC)
     set(Boost_USE_STATIC_LIBS ON)
     # Use boost libraries linked statically to the C++ runtime.
     # set(Boost_USE_STATIC_RUNTIME ON)
+
+    # Enable deprecated timer header (XXX replace header)
+    add_definitions(-DBOOST_TIMER_ENABLE_DEPRECATED)
 endif()
 #set(Boost_DEBUG ON)
 # set(Boost_COMPILER "-mgw81")
