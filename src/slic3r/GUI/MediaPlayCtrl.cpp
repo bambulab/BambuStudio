@@ -853,6 +853,10 @@ bool MediaPlayCtrl::get_stream_url(std::string *url)
 
 void wxMediaCtrl2::DoSetSize(int x, int y, int width, int height, int sizeFlags)
 {
+    if (IsFullScreen())
+    {
+        return;
+    }
 #ifdef __WXMAC__
     wxWindow::DoSetSize(x, y, width, height, sizeFlags);
 #else
