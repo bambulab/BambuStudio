@@ -2783,10 +2783,12 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
     m_button_retry = new Button(m_amswin, _L("Retry"));
     m_button_retry->SetFont(Label::Body_13);
+
     if (wxGetApp().app_config->get("language") == "de_DE") m_button_retry->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "fr_FR") m_button_retry->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "ru_RU") m_button_retry->SetLabel("Retry");
     if (wxGetApp().app_config->get("language") == "nl_NL") m_button_retry->SetLabel("Retry");
+    if (wxGetApp().app_config->get("language") == "tr_TR") m_button_retry->SetLabel("Retry");
     if (wxGetApp().app_config->get("language") == "hu_HU") m_button_retry->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "ja_JP") m_button_retry->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "sv_SE") m_button_retry->SetFont(Label::Body_9);
