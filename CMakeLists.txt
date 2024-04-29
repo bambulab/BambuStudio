@@ -496,6 +496,9 @@ find_package(GLEW REQUIRED)
 
 find_package(glfw3 REQUIRED)
 
+find_package(OpenCV REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIR})
+
 # Find the Cereal serialization library
 find_package(cereal REQUIRED)
 
