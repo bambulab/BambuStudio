@@ -151,7 +151,7 @@ void wxMediaCtrl2::NotifyStopped()
     }
 }
 
-wxMediaState wxMediaCtrl2::GetState() const
+wxMediaState2 wxMediaCtrl2::GetState() const
 {
     return m_state;
 }
