@@ -604,8 +604,17 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
     m_raft_layers = slicing_params.base_raft_layers + slicing_params.interface_raft_layers;
     support_type = m_object_config->support_type;
     support_style = m_object_config->support_style;
-    if (support_style == smsDefault)
-        support_style = smsTreeOrganic;
+    if (support_style == smsDefault) {
+        // organic support doesn't work with adaptive layer height
+        if (object.model_object()->layer_height_profile.empty()) {
+            BOOST_LOG_TRIVIAL(warning) << "tree support default to organic support";
+            support_style = smsTreeOrganic;
+        }
+        else {
+            BOOST_LOG_TRIVIAL(warning) << "Adaptive layer height is not supported for organic support, using hybrid tree support instead.";
+            support_style = smsTreeHybrid;
+        }
+    }
     SupportMaterialPattern support_pattern  = m_object_config->support_base_pattern;
     if (support_style == smsTreeHybrid && support_pattern == smpDefault)
         support_pattern = smpRectilinear;
