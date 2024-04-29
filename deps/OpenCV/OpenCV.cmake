@@ -5,8 +5,8 @@ else ()
 endif ()
 
 bambustudio_add_cmake_project(OpenCV
-    URL https://github.com/opencv/opencv/archive/refs/tags/4.6.0.tar.gz
-    URL_HASH SHA256=1ec1cba65f9f20fe5a41fda1586e01c70ea0c9a6d7b67c9e13edf0cfe2239277
+    URL https://github.com/opencv/opencv/archive/refs/tags/4.9.0.tar.gz
+    URL_HASH SHA256=ddf76f9dffd322c7c3cb1f721d0887f62d747b82059342213138dc190f28bc6c
     CMAKE_ARGS
     -DBUILD_SHARED_LIBS=0
        -DBUILD_PERE_TESTS=OFF
