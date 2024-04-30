@@ -715,6 +715,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         ImGui::PushItemWidth(1.5 * slider_icon_width);
         ImGui::BBLDragFloat("##cursor_height_input", &m_cursor_height, 0.05f, 0.0f, 0.0f, "%.2f");
 
+        m_imgui->bbl_checkbox(_L("Lock x value of bottom"), m_lock_x_for_height_bottom);
         ImGui::Separator();
         if (m_c->object_clipper()->get_position() == 0.f) {
             ImGui::AlignTextToFramePadding();

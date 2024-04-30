@@ -156,9 +156,10 @@ void GLGizmoPainterBase::render_cursor() const
     else {
         m_rr.mouse_position = m_parent.get_local_mouse_position();
     }
-    if (m_rr.mesh_id == -1) { 
+    if (m_rr.mesh_id == -1) {
         m_is_cursor_in_imgui = false;
-        return; 
+        m_x_for_height_input = -1;
+        return;
     }
 
     if (m_tool_type == ToolType::BRUSH) {
@@ -281,7 +282,8 @@ bool GLGizmoPainterBase::is_valid_height_range_cursor(float min_z, float max_z) 
 void GLGizmoPainterBase::render_cursor_height_range(const Transform3d& trafo) const
 {
     float buf_size= ImGui::CalcTextSize("-100.00").x + ImGui::GetStyle().FramePadding.x;
-
+    m_height_range_input_all_size[0]  = buf_size+ ImGui::CalcTextSize(_L("Bottom:").c_str()).x * 2 + ImGui::GetStyle().FramePadding.x;
+    m_height_range_input_all_size[1]  = ImGui::CalcTextSize(_L("Bottom:").c_str()).y *2;
     const BoundingBoxf3 box = bounding_box();
     Vec3d hit_world = trafo * Vec3d(m_rr.hit(0), m_rr.hit(1), m_rr.hit(2));
     float max_z = (float)box.max.z();
@@ -454,8 +456,23 @@ void GLGizmoPainterBase::update_contours(int i, const TriangleMesh &vol_mesh, fl
                         if(screen_pos_sorts.size() >= 1){
                             m_height_start_pos = screen_pos_sorts[0].pos_screen;
                             // make mouse to cover in a part of imgui
-                            m_height_start_pos[0] -= 10;
+                            if (m_lock_x_for_height_bottom) {
+                                if (m_x_for_height_input == -1) {
+                                    m_x_for_height_input = m_rr.mouse_position.x() + 10;
+                                }
+                                m_height_start_pos[0] = m_x_for_height_input;
+                            } else {
+                                m_height_start_pos[0] -= 10;
+                            }
                             m_height_start_pos[1] -= 10;
+                            const Camera &camera   = wxGetApp().plater()->get_camera();
+                            auto          viewport = camera.get_viewport();
+                            if (m_height_start_pos[0] + m_height_range_input_all_size[0] >= viewport[2]) {
+                                m_height_start_pos[0] = viewport[2] - m_height_range_input_all_size[0];
+                            }
+                            if (m_height_start_pos[1] + m_height_range_input_all_size[1] >= viewport[3]) {
+                                m_height_start_pos[1] = viewport[3] - m_height_range_input_all_size[1];
+                            }
                         }
                     }
                     m_cut_contours[i].contours.init_from(polys, static_cast<float>(cursor_z));
