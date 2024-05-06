@@ -30,6 +30,33 @@ echo -n "[9/9] Generating Linux app..."
     # copy Resources
     cp -Rf ../resources package/resources
     cp -f src/@SLIC3R_APP_CMD@ package/bin/@SLIC3R_APP_CMD@
+
+    #find webkit library
+    export WEBKIT_LIB=libwebkit2gtk-4.0.so
+    export WEBKIT_PATH=''
+    search_paths=(
+        /usr/lib
+        /usr/lib64
+        #/usr/local/lib
+        #/lib
+        #/lib64
+    )
+    for path in "${search_paths[@]}"; do
+        if [[ -d "$path" ]]; then
+            WEBKIT_PATH=$(find "$path" -name "$WEBKIT_LIB*" -type f -printf '%h\n' -quit 2>/dev/null)
+            if [[ -n "$WEBKIT_PATH" ]]; then
+                break
+            fi
+        fi
+    done
+    if [[ -n "$WEBKIT_PATH" ]]; then
+        echo "Found ${WEBKIT_LIB} directory at: $WEBKIT_PATH"
+        mkdir -p package/${WEBKIT_PATH}
+        echo "Copy /${WEBKIT_PATH}/${WEBKIT_LIB} to package/${WEBKIT_PATH}/"
+        cp /${WEBKIT_PATH}/${WEBKIT_LIB} package/${WEBKIT_PATH}/
+    else
+        echo "${WEBKIT_LIB} not found."
+    fi
     # remove unneeded po from resources
     ## find package/resources/localization -name "*.po" -type f -delete ## FIXME: DD - do we need this?
 
