@@ -2271,7 +2271,9 @@ void GUI_App::init_app_config()
                 boost::filesystem::create_directory(data_dir_path);
             set_data_dir(data_dir);
             // Change current dirtory of application
+#ifndef __linux__
             chdir(encode_path((data_dir + "/log").c_str()).c_str());
+#endif
     } else {
         m_datadir_redefined = true;
     }
