@@ -74,7 +74,7 @@ echo -n "[9/9] Generating Linux app..."
         do
             cp -aL ${WEBKIT_PATH}/${dep} package/${WEBKIT_PATH}/
         done
-	#find package/${WEBKIT_PATH}/ -name 'libwebkit*' -type f -exec sed -i -e "s|/usr|././|g" '{}' \;
+	find package/${WEBKIT_PATH}/ -name 'libwebkit*' -type f -exec sed -i -e "s|/usr|./usr|g" '{}' \;
     else
         echo "${WEBKIT_LIB} not found."
     fi
