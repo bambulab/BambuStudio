@@ -68,13 +68,13 @@ echo -n "[9/9] Generating Linux app..."
     done
     if [[ -n "$WEBKIT_PATH" ]]; then
         echo "Found ${WEBKIT_LIB} directory at: $WEBKIT_PATH"
-        mkdir -p package/${WEBKIT_PATH}
-        echo "Copy libraries from ${WEBKIT_PATH}/ to package/${WEBKIT_PATH}/"
+        mkdir -p package/lib/x86_64-linux-gnu
+        echo "Copy libraries from ${WEBKIT_PATH}/ to package/lib/x86_64-linux-gnu/"
 	for dep in "${WEBKIT_LIBS[@]}"
         do
-            cp -aL ${WEBKIT_PATH}/${dep} package/${WEBKIT_PATH}/
+            cp -aL ${WEBKIT_PATH}/${dep} package/lib/x86_64-linux-gnu/
         done
-	find package/${WEBKIT_PATH}/ -name 'libwebkit*' -type f -exec sed -i -e "s|/usr|./usr|g" '{}' \;
+	find package/lib/x86_64-linux-gnu/ -name 'libwebkit*' -type f -exec sed -i -e "s|/usr|././|g" '{}' \;
     else
         echo "${WEBKIT_LIB} not found."
     fi
@@ -85,7 +85,7 @@ echo -n "[9/9] Generating Linux app..."
 cat << EOF >@SLIC3R_APP_CMD@
 #!/bin/bash
 DIR=\$(readlink -f "\$0" | xargs dirname)
-export LD_LIBRARY_PATH="\$DIR/bin:\$DIR/$WEBKIT_PATH"
+export LD_LIBRARY_PATH="\$DIR/bin:\$DIR/lib/x86_64-linux-gnu"
 
 echo "LD_LIBRARY_PATH is \$LD_LIBRARY_PATH"
 
