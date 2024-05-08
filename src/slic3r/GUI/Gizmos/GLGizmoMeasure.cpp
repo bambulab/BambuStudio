@@ -2026,7 +2026,9 @@ void GLGizmoMeasure::show_face_face_assembly_common() {
                                   m_is_dark_mode ? ImVec4(206 / 255.0f, 206 / 255.0f, 206 / 255.0f, 1.00f) : ImVec4(206 / 255.0f, 206 / 255.0f, 206 / 255.0f, 1.00f));
             ImGui::PushStyleColor(ImGuiCol_Text,
                                   m_is_dark_mode ? ImVec4(255 / 255.0f, 255 / 255.0f, 255 / 255.0f, 1.00f) : ImVec4(255 / 255.0f, 255 / 255.0f, 255 / 255.0f, 1.00f));
-            if (m_imgui->button(_L("Center coincidence"))) { set_to_center_coincidence(m_same_model_object); }
+            if (m_imgui->button(_L("Center coincidence"))) {
+                set_to_center_coincidence(m_same_model_object);
+            }
             ImGui::PopStyleColor(4);
             ImGui::SameLine(set_to_center_coincidence_size + m_space_size * 2);
         }
@@ -2447,7 +2449,7 @@ void GLGizmoMeasure::set_distance(bool same_model_object, const Vec3d &displacem
     }
 }
 
-void GLGizmoMeasure::set_to_parallel(bool same_model_object, bool take_shot)
+void GLGizmoMeasure::set_to_parallel(bool same_model_object, bool take_shot, bool is_anti_parallel)
 {
     if (m_hit_different_volumes.size() == 2) {
         auto &action    = m_assembly_action;
@@ -2460,7 +2462,8 @@ void GLGizmoMeasure::set_to_parallel(bool same_model_object, bool take_shot)
         selection->set_mode(same_model_object ? Selection::Volume : Selection::Instance);
         const auto [idx1, normal1, pt1] = m_selected_features.first.feature->get_plane();
         const auto [idx2, normal2, pt2] = m_selected_features.second.feature->get_plane();
-        if (abs(normal1.dot(normal2) < 1 - 1e-3)) {
+        if ((is_anti_parallel && normal1.dot(normal2) > -1 + 1e-3) ||
+            (is_anti_parallel == false && (normal1.dot(normal2) < 1 - 1e-3))) {
             m_pending_scale ++;
             Vec3d    axis;
             double   angle;
@@ -2583,7 +2586,7 @@ void GLGizmoMeasure::set_to_around_center_of_faces(bool same_model_object, float
 void GLGizmoMeasure::set_to_center_coincidence(bool same_model_object) {
     auto v = m_hit_different_volumes[1];
     wxGetApp().plater()->take_snapshot("RotateThenMoveInMeasure", UndoRedo::SnapshotType::GizmoAction);
-    set_to_parallel(same_model_object, false);
+    set_to_parallel(same_model_object, false,true);
 
     const auto [idx1, normal1, pt1] = m_selected_features.first.feature->get_plane();
     const auto [idx2, normal2, pt2] = m_selected_features.second.feature->get_plane();

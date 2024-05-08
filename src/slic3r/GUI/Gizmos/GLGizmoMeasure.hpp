@@ -278,7 +278,7 @@ protected:
     void update_world_plane_features(Measure::Measuring *cur_measuring, Measure::SurfaceFeature &feautre);
     void update_feature_by_tran(Measure::SurfaceFeature & feature);
     void set_distance(bool same_model_object, const Vec3d &displacement, bool take_shot = true);
-    void set_to_parallel(bool same_model_object, bool take_shot = true);
+    void set_to_parallel(bool same_model_object, bool take_shot = true, bool is_anti_parallel = false);
     void set_to_reverse_rotation(bool same_model_object,int feature_index);
     void set_to_around_center_of_faces(bool same_model_object,float rotate_degree);
     void set_to_center_coincidence(bool same_model_object);
