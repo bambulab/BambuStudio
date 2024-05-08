@@ -128,8 +128,8 @@ static wxImage fail_image;
 static void market_model_scoring_page(int design_id)
 {
     std::string url;
-    std::string country_code   = GUI::wxGetApp().app_config->get_country_code();
-    std::string model_http_url = GUI::wxGetApp().get_model_http_url(country_code);
+    std::string country_code = GUI::wxGetApp().app_config->get_country_code();
+    url                      = GUI::wxGetApp().get_model_http_url(country_code);
     if (GUI::wxGetApp().getAgent()->get_model_mall_detail_url(&url, std::to_string(design_id)) == 0) {
         std::string user_id = GUI::wxGetApp().getAgent()->get_user_id();
         boost::algorithm::replace_first(url, "models", "u/" + user_id + "/rating");
