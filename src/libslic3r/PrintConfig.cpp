@@ -5406,8 +5406,13 @@ CLIActionsConfigDef::CLIActionsConfigDef()
 
     def = this->add("export_stl", coBool);
     def->label = "Export STL";
-    def->tooltip = "Export the objects as multiple STL.";
+    def->tooltip = "Export the objects as single STL.";
     def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("export_stls", coString);
+    def->label = "Export multiple stls";
+    def->tooltip = "Export the objects as multiple stls to directory";
+    def->set_default_value(new ConfigOptionString("stl_path"));
 
     /*def = this->add("export_gcode", coBool);
     def->label = L("Export G-code");
@@ -5686,6 +5691,12 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->label = "load uptodate filament settings when using uptodate";
     def->tooltip = "load uptodate filament settings from the specified file when using uptodate";
     def->cli_params = "\"filament1.json;filament2.json;...\"";
+    def->set_default_value(new ConfigOptionStrings());
+
+    def = this->add("downward_check", coStrings);
+    def->label = "downward machines check";
+    def->tooltip = "check whether current machine downward compatible with the machines in the list";
+    def->cli_params = "\"machine1.json;machine2.json;...\"";
     def->set_default_value(new ConfigOptionStrings());
 
     def = this->add("load_assemble_list", coString);
