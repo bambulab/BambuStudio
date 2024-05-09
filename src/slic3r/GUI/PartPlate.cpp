@@ -2216,6 +2216,28 @@ int PartPlate::remove_instance(int obj_id, int instance_id)
 	return result;
 }
 
+BoundingBoxf3 PartPlate::get_objects_bounding_box()
+{
+    BoundingBoxf3 bbox;
+    for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it)
+    {
+        int obj_id = it->first;
+        int instance_id = it->second;
+
+        if ((obj_id >= 0) && (obj_id < m_model->objects.size()))
+        {
+            ModelObject* object = m_model->objects[obj_id];
+            if ((instance_id >= 0) && (instance_id < object->instances.size()))
+            {
+                BoundingBoxf3 instance_bbox = object->instance_bounding_box(instance_id);
+                bbox.merge(instance_bbox);
+            }
+        }
+    }
+    return bbox;
+}
+
+
 //translate instance on the plate
 void PartPlate::translate_all_instance(Vec3d position)
 {
