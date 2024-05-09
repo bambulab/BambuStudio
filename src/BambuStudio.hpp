@@ -67,6 +67,28 @@ typedef struct _assemble_plate_info {
 }assemble_plate_info_t;
 
 
+typedef struct _printer_plate_info {
+    std::string         printer_name;
+    int                 printable_width{0};
+    int                 printable_depth{0};
+    int                 printable_height{0};
+
+    int                 exclude_width{0};
+    int                 exclude_depth{0};
+    int                 exclude_x{0};
+    int                 exclude_y{0};
+}printer_plate_info_t;
+
+typedef struct _plate_obj_size_info {
+    bool         has_wipe_tower{false};
+    float        wipe_x{0.f};
+    float        wipe_y{0.f};
+    float        wipe_width{0.f};
+    float        wipe_depth{0.f};
+    BoundingBoxf3 obj_bbox;
+}plate_obj_size_info_t;
+
+
 class CLI {
 public:
     int run(int argc, char **argv);
@@ -86,7 +108,7 @@ private:
     void print_help(bool include_print_options = false, PrinterTechnology printer_technology = ptAny) const;
 
     /// Exports loaded models to a file of the specified format, according to the options affecting output filename.
-    bool export_models(IO::ExportFormat format);
+    bool export_models(IO::ExportFormat format, std::string path = std::string());
     //BBS: add export_project function
     bool export_project(Model *model, std::string& path, PlateDataPtrs &partplate_data, std::vector<Preset*>& project_presets,
                         std::vector<ThumbnailData *> &thumbnails,
@@ -99,7 +121,7 @@ private:
     bool has_print_action() const { return m_config.opt_bool("export_gcode") || m_config.opt_bool("export_sla"); }
 
     std::string output_filepath(const Model &model, IO::ExportFormat format) const;
-    std::string output_filepath(const ModelObject &object, unsigned int index, IO::ExportFormat format) const;
+    std::string output_filepath(const ModelObject &object, unsigned int index, IO::ExportFormat format, std::string path_dir) const;
 };
 
 }

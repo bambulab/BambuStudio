@@ -304,6 +304,7 @@ public:
     ModelObjectPtrs get_objects() { return m_model->objects; }
     ModelObjectPtrs get_objects_on_this_plate();
     ModelInstance* get_instance(int obj_id, int instance_id);
+    BoundingBoxf3 get_objects_bounding_box();
 
     Vec3d get_origin() { return m_origin; }
     Vec3d estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double wipe_volume, int plate_extruder_size = 0, bool use_global_objects = false) const;
