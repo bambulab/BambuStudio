@@ -2993,7 +2993,7 @@ void TreeSupport::smooth_nodes(std::vector<std::vector<SupportNode *>> &contact_
                             branch[i]->is_processed = true;
                             if (branch[i]->parents.size()>1 || (branch[i]->movement.x() > max_move || branch[i]->movement.y() > max_move))
                                 branch[i]->need_extra_wall = true;
-                            BOOST_LOG_TRIVIAL(info) << "smooth_nodes: layer_nr=" << layer_nr << ", i=" << i << ", pt=" << pt << ", movement=" << branch[i]->movement << ", radius=" << branch[i]->radius;
+                            BOOST_LOG_TRIVIAL(trace) << "smooth_nodes: layer_nr=" << layer_nr << ", i=" << i << ", pt=" << pt << ", movement=" << branch[i]->movement << ", radius=" << branch[i]->radius;
                         }
                     }
                     if (k < iterations - 1) {
