@@ -3278,7 +3278,7 @@ int CLI::run(int argc, char **argv)
             }
             else
             {
-                BOOST_LOG_TRIVIAL(info) << "Before process command, no need to orient, object id :" << o->id().id<<std::endl;
+                BOOST_LOG_TRIVIAL(debug) << "Before process command, no need to orient, object id :" << o->id().id<<std::endl;
             }
         }
     }
@@ -4431,7 +4431,7 @@ int CLI::run(int argc, char **argv)
                                             if (vol->is_model_part()) {
                                                 size_t volume_triangle_count = vol->mesh().facets_count();
                                                 triangle_count += volume_triangle_count;
-                                                BOOST_LOG_TRIVIAL(info) << boost::format("volume triangle count %1%, total %2%")%volume_triangle_count %triangle_count;
+                                                BOOST_LOG_TRIVIAL(debug) << boost::format("volume triangle count %1%, total %2%")%volume_triangle_count %triangle_count;
                                                 if ((max_triangle_count_per_plate != 0) && (triangle_count > max_triangle_count_per_plate))
                                                 {
                                                     BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": triangle count " << triangle_count <<" exceeds the limit:" << max_triangle_count_per_plate;
