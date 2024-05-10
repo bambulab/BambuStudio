@@ -917,6 +917,56 @@ static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_
     return ret;
 }
 
+static void load_downward_settings_list_from_config(std::string config_file, std::string printer_name, std::string printer_model, std::vector<std::string>& downward_settings)
+{
+    std::map<std::string, std::string> printer_params;
+
+    boost::filesystem::path directory_path(config_file);
+
+    BOOST_LOG_TRIVIAL(info) << boost::format("%1%, will parse file %2% for printer mode %3%, printer name %4%")%__FUNCTION__ % config_file %printer_model %printer_name;
+    if (!fs::exists(directory_path)) {
+        BOOST_LOG_TRIVIAL(warning) << boost::format("file %1% not exist.")%config_file;
+    }
+    else {
+        try {
+            json root_json;
+            boost::nowide::ifstream ifs(config_file);
+            ifs >> root_json;
+            ifs.close();
+
+            if (root_json.contains("printer")) {
+                json printer_json = root_json["printer"];
+                if (!printer_model.empty() && printer_json.contains(printer_model)) {
+                    json printer_model_json = printer_json[printer_model];
+
+                    if (printer_model_json.contains("downward_check")) {
+                        json downward_check_json = printer_model_json["downward_check"];
+                        if (downward_check_json.contains(printer_name)) {
+                            downward_settings = downward_check_json[printer_name].get<std::vector<std::string>>();
+                            BOOST_LOG_TRIVIAL(info) << boost::format("got %1% downward settings of %2% in cli_config.json")%downward_settings.size() %printer_name;
+                        }
+                        else {
+                            BOOST_LOG_TRIVIAL(info) << boost::format("can not find  %1% in downward_check of %2% in cli_config.json")%printer_name %printer_model;
+                        }
+                    }
+                    else {
+                        BOOST_LOG_TRIVIAL(info) << boost::format("can not find downward_check for %1% in cli_config.json")%printer_model;
+                    }
+                }
+                else {
+                    BOOST_LOG_TRIVIAL(info) << boost::format("can not find printer_model %1% in the file")%printer_model;
+                }
+            }
+            else {
+                BOOST_LOG_TRIVIAL(warning) << boost::format("can not find key printer in the file");
+            }
+        }
+        catch (std::exception &err) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse file "<<config_file<<" got a generic exception, reason = " << err.what();
+        }
+    }
+}
+
 int CLI::run(int argc, char **argv)
 {
     // Mark the main thread for the debugger and for runtime checks.
@@ -994,7 +1044,7 @@ int CLI::run(int argc, char **argv)
             boost::algorithm::iends_with(boost::filesystem::path(argv[0]).filename().string(), "gcodeviewer");
 #endif // _WIN32*/
 
-    bool translate_old = false, regenerate_thumbnails = false, filament_color_changed = false;
+    bool translate_old = false, regenerate_thumbnails = false, filament_color_changed = false, downward_check = false;
     int current_printable_width, current_printable_depth, current_printable_height, shrink_to_new_bed = 0;
     int old_printable_height = 0, old_printable_width = 0, old_printable_depth = 0;
     Pointfs old_printable_area, old_exclude_area;
@@ -1004,7 +1054,7 @@ int CLI::run(int argc, char **argv)
     const std::vector<std::string>              &load_configs               = m_config.option<ConfigOptionStrings>("load_settings", true)->values;
     const std::vector<std::string>              &uptodate_configs          = m_config.option<ConfigOptionStrings>("uptodate_settings", true)->values;
     const std::vector<std::string>              &uptodate_filaments          = m_config.option<ConfigOptionStrings>("uptodate_filaments", true)->values;
-    const std::vector<std::string>              &downward_check          = m_config.option<ConfigOptionStrings>("downward_check", true)->values;
+    std::vector<std::string>                    downward_settings          = m_config.option<ConfigOptionStrings>("downward_settings", true)->values;
     std::vector<std::string> downward_compatible_machines;
     //BBS: always use ForwardCompatibilitySubstitutionRule::Enable
     //const ForwardCompatibilitySubstitutionRule   config_substitution_rule = m_config.option<ConfigOptionEnum<ForwardCompatibilitySubstitutionRule>>("config_compatibility", true)->value;
@@ -1018,7 +1068,11 @@ int CLI::run(int argc, char **argv)
     sliced_info_t sliced_info;
     std::map<std::string, std::string> record_key_values;
 
-    bool start_gui = m_actions.empty() && downward_check.empty();
+    ConfigOptionBool* downward_check_option = m_config.option<ConfigOptionBool>("downward_check");
+    if (downward_check_option)
+        downward_check = downward_check_option->value;
+
+    bool start_gui = m_actions.empty() && !downward_check;
     if (start_gui) {
         BOOST_LOG_TRIVIAL(info) << "no action, start gui directly" << std::endl;
         ::Label::initSysFont();
@@ -1095,7 +1149,7 @@ int CLI::run(int argc, char **argv)
     Semver file_version;
     std::map<size_t, bool> orients_requirement;
     std::vector<Preset*> project_presets;
-    std::string new_printer_name, current_printer_name, new_process_name, current_process_name, current_printer_system_name, current_process_system_name, new_process_system_name, new_printer_system_name, printer_model_id, printer_model;//, printer_inherits, print_inherits;
+    std::string new_printer_name, current_printer_name, new_process_name, current_process_name, current_printer_system_name, current_process_system_name, new_process_system_name, new_printer_system_name, printer_model_id, current_printer_model, printer_model;//, printer_inherits, print_inherits;
     std::vector<std::string> upward_compatible_printers, new_print_compatible_printers, current_print_compatible_printers, current_different_settings;
     std::vector<std::string> current_filaments_name, current_filaments_system_name, current_inherits_group;
     DynamicPrintConfig load_process_config, load_machine_config;
@@ -1330,6 +1384,7 @@ int CLI::run(int argc, char **argv)
                         }*/
                     current_printer_name = config.option<ConfigOptionString>("printer_settings_id")->value;
                     current_process_name = config.option<ConfigOptionString>("print_settings_id")->value;
+                    current_printer_model = config.option<ConfigOptionString>("printer_model", true)->value;
                     current_filaments_name = config.option<ConfigOptionStrings>("filament_settings_id")->values;
 
                     BOOST_LOG_TRIVIAL(info) << boost::format("current_printer_name %1%, current_process_name %2%")%current_printer_name %current_process_name;
@@ -2365,33 +2420,40 @@ int CLI::run(int argc, char **argv)
                         if (root_json.contains("printer")) {
                             json printer_json = root_json["printer"];
                             if (!printer_model.empty() && printer_json.contains(printer_model)) {
-                                json new_printer_json = printer_json[printer_model];
-                                printer_params = new_printer_json.get<std::map<std::string, std::string>>();
+                                json printer_model_json = printer_json[printer_model];
 
-                                for (auto param_iter = printer_params.begin(); param_iter != printer_params.end(); param_iter++)
-                                {
-                                    std::string key = param_iter->first;
-                                    //replace "cli_safe" with "machine_max"
-                                    key.replace(0, 8, "machine_max");
+                                if (printer_model_json.contains("machine_limits")) {
+                                    json machine_limits_json = printer_model_json["machine_limits"];
+                                    printer_params = machine_limits_json.get<std::map<std::string, std::string>>();
 
-                                    ConfigOptionFloats* option = m_print_config.option<ConfigOptionFloats>(key);
-                                    if (option) {
-                                        //de-serialize the values from param_iter->second, and do the compare here
-                                        unsigned int array_count = option->size();
-                                        ConfigOptionFloats new_option;
-                                        new_option.deserialize(param_iter->second);
-                                        unsigned int new_array_count = new_option.size();
-                                        for (unsigned int index = 0; index < array_count; index++)
-                                        {
-                                            if ((index < new_array_count) && new_option.values[index] != 0.f && (new_option.values[index] < option->values[index]))
+                                    for (auto param_iter = printer_params.begin(); param_iter != printer_params.end(); param_iter++)
+                                    {
+                                        std::string key = param_iter->first;
+                                        //replace "cli_safe" with "machine_max"
+                                        key.replace(0, 8, "machine_max");
+
+                                        ConfigOptionFloats* option = m_print_config.option<ConfigOptionFloats>(key);
+                                        if (option) {
+                                            //de-serialize the values from param_iter->second, and do the compare here
+                                            unsigned int array_count = option->size();
+                                            ConfigOptionFloats new_option;
+                                            new_option.deserialize(param_iter->second);
+                                            unsigned int new_array_count = new_option.size();
+                                            for (unsigned int index = 0; index < array_count; index++)
                                             {
-                                                BOOST_LOG_TRIVIAL(info) << boost::format("set key %1%  index %2%, from %3%  to %4%") % key %index %option->values[index] % new_option.values[index];
-                                                option->values[index] = new_option.values[index];
+                                                if ((index < new_array_count) && new_option.values[index] != 0.f && (new_option.values[index] < option->values[index]))
+                                                {
+                                                    BOOST_LOG_TRIVIAL(info) << boost::format("set key %1%  index %2%, from %3%  to %4%") % key %index %option->values[index] % new_option.values[index];
+                                                    option->values[index] = new_option.values[index];
+                                                }
                                             }
                                         }
+                                        else
+                                            BOOST_LOG_TRIVIAL(warning) << boost::format("can not find key %1% in config") %key;
                                     }
-                                    else
-                                        BOOST_LOG_TRIVIAL(warning) << boost::format("can not find key %1% in config") %key;
+                                }
+                                else {
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("can not find machine_limits for printer %1% in cli_config.json")%printer_model;
                                 }
                             }
                             else {
@@ -3160,44 +3222,56 @@ int CLI::run(int argc, char **argv)
     //doing downward_check
     std::vector<printer_plate_info_t> downward_check_printers;
     std::vector<bool> downward_check_status;
-    for (auto const &file : downward_check) {
-        DynamicPrintConfig  config;
-        std::string config_type, config_name, filament_id, config_from, downward_printer;
-        int ret = load_config_file(file, config, config_type, config_name, filament_id, config_from);
-        if (ret) {
-            record_exit_reson(outfile_dir, ret, 0, cli_errors[ret], sliced_info);
-            flush_and_exit(ret);
+    if (downward_check) {
+        bool use_default = false;
+        std::string default_path;
+        if (downward_settings.size() == 0) {
+            //parse from internal
+            std::string cli_config_file = resources_dir() + "/profiles/BBL/cli_config.json";
+            load_downward_settings_list_from_config(cli_config_file, current_printer_name, current_printer_model, downward_settings);
+            use_default = true;
+            default_path = resources_dir() + "/profiles/BBL/machine_full/";
         }
-        if ((config_type != "machine") || (config_from != "system")) {
-            BOOST_LOG_TRIVIAL(info) << boost::format("found invalid config type %1% or from %2% in file %3% when downward_check")%config_type %config_from %file;
-            record_exit_reson(outfile_dir, ret, 0, cli_errors[CLI_CONFIG_FILE_ERROR], sliced_info);
-            flush_and_exit(ret);
+        for (auto const &file : downward_settings) {
+            DynamicPrintConfig  config;
+            std::string config_type, config_name, filament_id, config_from, downward_printer;
+            std::string file_path = use_default?(default_path+file+".json"):file;
+            int ret = load_config_file(file_path, config, config_type, config_name, filament_id, config_from);
+            if (ret) {
+                record_exit_reson(outfile_dir, ret, 0, cli_errors[ret], sliced_info);
+                flush_and_exit(ret);
+            }
+            if ((config_type != "machine") || (config_from != "system")) {
+                BOOST_LOG_TRIVIAL(info) << boost::format("found invalid config type %1% or from %2% in file %3% when downward_check")%config_type %config_from %file_path;
+                record_exit_reson(outfile_dir, ret, 0, cli_errors[CLI_CONFIG_FILE_ERROR], sliced_info);
+                flush_and_exit(ret);
 
+            }
+            BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: loaded machine config %1%, from %2%")%config_name %file_path ;
+
+            printer_plate_info_t printer_plate;
+            Pointfs temp_printable_area, temp_exclude_area;
+
+            printer_plate.printer_name = config_name;
+
+            temp_printable_area = config.option<ConfigOptionPoints>("printable_area", true)->values;
+            temp_exclude_area = config.option<ConfigOptionPoints>("bed_exclude_area", true)->values;
+            if (temp_printable_area.size() >= 4) {
+                printer_plate.printable_width = (int)(temp_printable_area[2].x() - temp_printable_area[0].x());
+                printer_plate.printable_depth = (int)(temp_printable_area[2].y() - temp_printable_area[0].y());
+                printer_plate.printable_height = (int)(config.opt_float("printable_height"));
+            }
+            if (temp_exclude_area.size() >= 4) {
+                printer_plate.exclude_width = (int)(temp_exclude_area[2].x() - temp_exclude_area[0].x());
+                printer_plate.exclude_depth = (int)(temp_exclude_area[2].y() - temp_exclude_area[0].y());
+                printer_plate.exclude_x = (int)temp_exclude_area[0].x();
+                printer_plate.exclude_y = (int)temp_exclude_area[0].y();
+            }
+            BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: printable size{%1%,%2%, %3%}, exclude area{%4%, %5%: %6% x %7%}")
+                %printer_plate.printable_width %printer_plate.printable_depth %printer_plate.printable_height
+                %printer_plate.exclude_x %printer_plate.exclude_y %printer_plate.exclude_width %printer_plate.exclude_depth;
+            downward_check_printers.push_back(std::move(printer_plate));
         }
-        BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: loaded machine config %1%, from %2%")%config_name %file ;
-
-        printer_plate_info_t printer_plate;
-        Pointfs temp_printable_area, temp_exclude_area;
-
-        printer_plate.printer_name = config_name;
-
-        temp_printable_area = config.option<ConfigOptionPoints>("printable_area", true)->values;
-        temp_exclude_area = config.option<ConfigOptionPoints>("bed_exclude_area", true)->values;
-        if (temp_printable_area.size() >= 4) {
-            printer_plate.printable_width = (int)(temp_printable_area[2].x() - temp_printable_area[0].x());
-            printer_plate.printable_depth = (int)(temp_printable_area[2].y() - temp_printable_area[0].y());
-            printer_plate.printable_height = (int)(config.opt_float("printable_height"));
-        }
-        if (temp_exclude_area.size() >= 4) {
-            printer_plate.exclude_width = (int)(temp_exclude_area[2].x() - temp_exclude_area[0].x());
-            printer_plate.exclude_depth = (int)(temp_exclude_area[2].y() - temp_exclude_area[0].y());
-            printer_plate.exclude_x = (int)temp_exclude_area[0].x();
-            printer_plate.exclude_y = (int)temp_exclude_area[0].y();
-        }
-        BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: printable size{%1%,%2%, %3%}, exclude area{%4%, %5%: %6% x %7%}")
-            %printer_plate.printable_width %printer_plate.printable_depth %printer_plate.printable_height
-            %printer_plate.exclude_x %printer_plate.exclude_y %printer_plate.exclude_width %printer_plate.exclude_depth;
-        downward_check_printers.push_back(std::move(printer_plate));
     }
 
     int downward_check_size = downward_check_printers.size();
