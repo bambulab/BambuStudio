@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-07 11:56+0800\n"
+"POT-Creation-Date: 2024-05-10 20:42+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -4046,11 +4046,6 @@ msgstr ""
 msgid ""
 "Reconnecting the printer, the operation cannot be completed immediately, "
 "please try again later."
-msgstr ""
-
-msgid ""
-"Over 4 studio/handy are using remote access, you can close some and try "
-"again."
 msgstr ""
 
 msgid "File does not exist."
@@ -11347,6 +11342,12 @@ msgid ""
 msgstr ""
 
 msgid "No AMS"
+msgstr ""
+
+msgid "There is no device available to send printing."
+msgstr ""
+
+msgid "The number of printers in use simultaneously cannot be equal to 0."
 msgstr ""
 
 msgid "Use External Spool"

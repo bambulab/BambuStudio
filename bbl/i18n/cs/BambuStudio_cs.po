@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-07 11:56+0800\n"
+"POT-Creation-Date: 2024-05-10 20:42+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -4228,11 +4228,6 @@ msgstr "Stahování %d%%..."
 msgid ""
 "Reconnecting the printer, the operation cannot be completed immediately, "
 "please try again later."
-msgstr ""
-
-msgid ""
-"Over 4 studio/handy are using remote access, you can close some and try "
-"again."
 msgstr ""
 
 msgid "File does not exist."
@@ -12112,6 +12107,12 @@ msgid ""
 msgstr ""
 
 msgid "No AMS"
+msgstr ""
+
+msgid "There is no device available to send printing."
+msgstr ""
+
+msgid "The number of printers in use simultaneously cannot be equal to 0."
 msgstr ""
 
 msgid "Use External Spool"
