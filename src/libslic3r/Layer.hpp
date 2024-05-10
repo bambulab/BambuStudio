@@ -6,6 +6,8 @@
 #include "Flow.hpp"
 #include "SurfaceCollection.hpp"
 #include "ExtrusionEntityCollection.hpp"
+#include "RegionExpansion.hpp"
+
 
 namespace Slic3r {
 
@@ -330,6 +332,36 @@ inline std::vector<float> zs_from_layers(const LayerContainer &layers)
 
 extern BoundingBox get_extents(const LayerRegion &layer_region);
 extern BoundingBox get_extents(const LayerRegionPtrs &layer_regions);
+
+
+struct ExpansionZone {
+    ExPolygons expolygons;
+    Algorithm::RegionExpansionParameters parameters;
+    bool expanded_into = false;
+};
+
+/**
+* Extract bridging surfaces from "surfaces", expand them into "shells" using expansion_params,
+* detect bridges.
+* Trim "shells" by the expanded bridges.
+*/
+Surfaces expand_bridges_detect_orientations(
+    Surfaces &surfaces,
+    std::vector<ExpansionZone>& expansion_zones,
+    const float closing_radius
+);
+
+/**
+* Extract bridging surfaces from "surfaces", expand them into "shells" using expansion_params.
+* Trim "shells" by the expanded bridges.
+*/
+Surfaces expand_merge_surfaces(
+    Surfaces &surfaces,
+    SurfaceType surface_type,
+    std::vector<ExpansionZone>& expansion_zones,
+    const float closing_radius,
+    const double bridge_angle = -1
+);
 
 }
 
