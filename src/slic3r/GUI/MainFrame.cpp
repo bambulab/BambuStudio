@@ -2083,7 +2083,8 @@ void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
     m_param_panel->msw_rescale();
     m_project->msw_rescale();
     m_monitor->msw_rescale();
-    m_multi_machine->msw_rescale();
+    if (m_multi_machine)
+        m_multi_machine->msw_rescale();
     m_calibration->msw_rescale();
 
     // BBS
