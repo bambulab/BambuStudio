@@ -15,4 +15,4 @@ endif()
 
 # The build_version should start from 50 in master branch
 
-set(SLIC3R_VERSION "01.09.01.61")
+set(SLIC3R_VERSION "01.09.01.62")
