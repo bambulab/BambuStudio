@@ -5693,9 +5693,14 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->cli_params = "\"filament1.json;filament2.json;...\"";
     def->set_default_value(new ConfigOptionStrings());
 
-    def = this->add("downward_check", coStrings);
+    def = this->add("downward_check", coBool);
     def->label = "downward machines check";
-    def->tooltip = "check whether current machine downward compatible with the machines in the list";
+    def->tooltip = "if enabled, check whether current machine downward compatible with the machines in the list";
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("downward_settings", coStrings);
+    def->label = "downward machines settings";
+    def->tooltip = "the machine settings list need to do downward checking";
     def->cli_params = "\"machine1.json;machine2.json;...\"";
     def->set_default_value(new ConfigOptionStrings());
 
