@@ -590,6 +590,26 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
     expansion_zones.at(0).parameters = RegionExpansionParameters::build(expansion_top, expansion_step, max_nr_expansion_steps);
     Surfaces tops = expand_merge_surfaces(fill_surfaces.surfaces, stTop, expansion_zones, closing_radius);
 
+    //expansion_zone[0]: shell , expansion_zone[1]: sparse
+    //apply minimu sparse infill area logic, this should also be added in bridge_over_infill
+    if (!this->layer()->object()->print()->config().spiral_mode && this->region().config().sparse_infill_density.value > 0) {
+        auto &sparse=expansion_zones[1].expolygons;
+        auto &shells=expansion_zones[0].expolygons;
+        double min_area = scale_(scale_(this->region().config().minimum_sparse_infill_area.value));
+        ExPolygons areas_to_be_solid{};
+        sparse.erase(std::remove_if(sparse.begin(), sparse.end(), [min_area, &areas_to_be_solid](ExPolygon& expoly) {
+            if (expoly.area() <= min_area) {
+                areas_to_be_solid.push_back(expoly);
+                return true;
+            }
+            return false;
+        }), sparse.end());
+
+        if (!areas_to_be_solid.empty())
+            shells = union_ex(shells, areas_to_be_solid);
+    }
+
+
 //    m_fill_surfaces.remove_types({ stBottomBridge, stBottom, stTop, stInternal, stInternalSolid });
     fill_surfaces.clear();
     unsigned zones_expolygons_count = 0;
