@@ -12,6 +12,8 @@ namespace Slic3r {
 class Shader;
 class Model;
 class ModelObject;
+class ModelVolume;
+class ModelInstance;
 class GLVolume;
 class GLArrow;
 class GLCurvedArrow;
@@ -266,6 +268,7 @@ private:
     // BBS
     EMode m_volume_selection_mode{ Instance };
     bool m_volume_selection_locked { false };
+    std::vector<Transform3d> m_trafo_matrices;
 
 public:
     Selection();
@@ -299,6 +302,10 @@ public:
     void remove_volumes(EMode mode, const std::vector<unsigned int>& volume_idxs);
 
     //BBS
+    ModelVolume *                   get_selected_single_volume(int &out_object_idx, int &out_volume_idx);
+    ModelObject *                   get_selected_single_object(int &out_object_idx);
+    const ModelInstance *           get_selected_single_intance();
+    const std::vector<Transform3d> &get_all_tran_of_selected_volumes();
     void add_curr_plate();
     void add_object_from_idx(std::vector<int>& object_idxs);
     void remove_curr_plate();
