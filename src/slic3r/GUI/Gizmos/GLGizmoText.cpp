@@ -390,7 +390,7 @@ void GLGizmoText::on_set_state()
 {
     if (m_state == EState::On) {
         if (m_parent.get_selection().is_single_volume() || m_parent.get_selection().is_single_modifier()) {
-            ModelVolume *model_volume = get_selected_single_volume(m_object_idx, m_volume_idx);
+            ModelVolume *model_volume = m_parent.get_selection().get_selected_single_volume(m_object_idx, m_volume_idx);
             if (model_volume) {
                 TextInfo text_info = model_volume->get_text_info();
                 if (!text_info.m_text.empty()) {
@@ -434,7 +434,7 @@ bool GLGizmoText::on_is_activable() const
         return true;
 
     int obejct_idx, volume_idx;
-    ModelVolume *model_volume = get_selected_single_volume(obejct_idx, volume_idx);
+    ModelVolume *model_volume = m_parent.get_selection().get_selected_single_volume(obejct_idx, volume_idx);
     if (model_volume)
         return !model_volume->get_text_info().m_text.empty();
 
@@ -535,7 +535,7 @@ void GLGizmoText::on_render_for_picking()
     glsafe(::glDisable(GL_DEPTH_TEST));
 
     int          obejct_idx, volume_idx;
-    ModelVolume *model_volume = get_selected_single_volume(obejct_idx, volume_idx);
+    ModelVolume *model_volume = m_parent.get_selection().get_selected_single_volume(obejct_idx, volume_idx);
     if (model_volume && !model_volume->get_text_info().m_text.empty()) {
         if (m_grabbers.size() == 1) {
             ModelObject *mo = m_c->selection_info()->model_object();
@@ -721,9 +721,10 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
         }
     } else if (selection.is_single_volume() || selection.is_single_modifier()) {
         int object_idx, volume_idx;
-        ModelVolume *model_volume = get_selected_single_volume(object_idx, volume_idx);
+        ModelVolume *model_volume = m_parent.get_selection().get_selected_single_volume(object_idx, volume_idx);
         if ((object_idx != m_object_idx || (object_idx == m_object_idx && volume_idx != m_volume_idx))
             && model_volume) {
+            m_hit_in_text      = Vec3d::Zero();
             TextInfo text_info = model_volume->get_text_info();
             load_from_text_info(text_info);
             m_is_modify = true;
@@ -970,20 +971,6 @@ void GLGizmoText::show_tooltip_information(float x, float y)
         ImGui::EndTooltip();
     }
     ImGui::PopStyleVar(2);
-}
-
-ModelVolume *GLGizmoText::get_selected_single_volume(int &out_object_idx, int &out_volume_idx) const
-{
-    if (m_parent.get_selection().is_single_volume() || m_parent.get_selection().is_single_modifier()) {
-        const Selection &selection = m_parent.get_selection();
-        const GLVolume * gl_volume = selection.get_volume(*selection.get_volume_idxs().begin());
-        out_object_idx             = gl_volume->object_idx();
-        ModelObject *model_object  = selection.get_model()->objects[out_object_idx];
-        out_volume_idx             = gl_volume->volume_idx();
-        if (out_volume_idx < model_object->volumes.size())
-            return model_object->volumes[out_volume_idx];
-    }
-    return nullptr;
 }
 
 void GLGizmoText::reset_text_info()
@@ -1569,15 +1556,14 @@ void GLGizmoText::generate_text_volume(bool is_temp)
         return;
 
     TextInfo text_info = get_text_info();
+    const Selection &selection    = m_parent.get_selection();
+    ModelObject *    model_object = selection.get_model()->objects[m_object_idx];
     if (m_is_modify && m_need_update_text) {
         if (m_object_idx == -1 || m_volume_idx == -1) {
             BOOST_LOG_TRIVIAL(error) << boost::format("Text: selected object_idx = %1%, volume_idx = %2%") % m_object_idx % m_volume_idx;
             return;
         }
-
         plater->take_snapshot("Modify Text");
-        const Selection &selection        = m_parent.get_selection();
-        ModelObject *    model_object     = selection.get_model()->objects[m_object_idx];
         ModelVolume *    model_volume     = model_object->volumes[m_volume_idx];
         ModelVolume *    new_model_volume = model_object->add_volume(std::move(mesh));
         new_model_volume->set_text_info(text_info);
@@ -1587,12 +1573,21 @@ void GLGizmoText::generate_text_volume(bool is_temp)
         std::swap(model_object->volumes[m_volume_idx], model_object->volumes.back());
         model_object->delete_volume(model_object->volumes.size() - 1);
         plater->update();
+        auto cur_text_info = const_cast<TextInfo*> (&new_model_volume->get_text_info());
+        m_text_volume_tran = new_model_volume->get_matrix();
+        update_hit_in_text();
+        cur_text_info->m_hit_in_text = m_hit_in_text;
     } else {
         if (m_need_update_text)
             plater->take_snapshot("Add Text");
         ObjectList *obj_list = wxGetApp().obj_list();
         int volume_id = obj_list->load_mesh_part(mesh, "text_shape", text_info, is_temp);
         m_preview_text_volume_id = is_temp ? volume_id : -1;
+        ModelVolume *text_model_volume  = model_object->volumes[volume_id];
+        m_text_volume_tran = text_model_volume->get_matrix();
+        auto         cur_text_info     = const_cast<TextInfo *>(&text_model_volume->get_text_info());
+        update_hit_in_text();
+        cur_text_info->m_hit_in_text = m_hit_in_text;
     }
     m_need_update_text    = false;
 }
@@ -1626,6 +1621,7 @@ TextInfo GLGizmoText::get_text_info()
     text_info.m_thickness     = m_thickness;
     text_info.m_text          = m_text;
     text_info.m_rr            = m_rr;
+    text_info.m_hit_in_text     = m_hit_in_text;
     text_info.m_embeded_depth = m_embeded_depth;
     text_info.m_rotate_angle  = m_rotate_angle;
     text_info.m_text_gap      = m_text_gap;
@@ -1634,6 +1630,16 @@ TextInfo GLGizmoText::get_text_info()
     return text_info;
 }
 
+void GLGizmoText::update_hit_in_text() {
+    {
+        const std::vector<Transform3d> &trafo_matrices = m_parent.get_selection().get_all_tran_of_selected_volumes();
+        auto                            mi             = m_parent.get_selection().get_selected_single_intance();
+        if (mi && trafo_matrices.size() > 0) {
+            auto text_world_tran = mi->get_transformation().get_matrix() * m_text_volume_tran;
+            m_hit_in_text        = text_world_tran.inverse() * (trafo_matrices[m_rr.mesh_id] * m_rr.hit.cast<double>());
+        }
+    }
+}
 void GLGizmoText::load_from_text_info(const TextInfo &text_info)
 {
     m_font_name     = text_info.m_font_name;

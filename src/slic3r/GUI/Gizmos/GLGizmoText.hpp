@@ -34,6 +34,7 @@ private:
     bool m_is_surface_text = false;
     bool m_keep_horizontal = false;
     mutable RaycastResult    m_rr;
+    mutable Vec3d            m_hit_in_text;
 
     float m_combo_height = 0.0f;
     float m_combo_width = 0.0f;
@@ -81,6 +82,7 @@ private:
     // This map holds all translated description texts, so they can be easily referenced during layout calculations
     // etc. When language changes, GUI is recreated and this class constructed again, so the change takes effect.
     std::map<std::string, wxString> m_desc;
+    Transform3d                     m_text_volume_tran;
 
 public:
     GLGizmoText(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
@@ -112,8 +114,11 @@ protected:
     void show_tooltip_information(float x, float y);
 
 private:
+<<<<<<< HEAD   (ac285d FIX:return bar pos only been modified in 3d view)
     ModelVolume *get_selected_single_volume(int& out_object_idx, int& out_volume_idx) const;
     void update_font_status();
+=======
+>>>>>>> CHANGE (aef92c FIX:move text should update text info)
     void reset_text_info();
     bool update_text_positions(const std::vector<std::string>& texts);
     TriangleMesh get_text_mesh(const char* text_str, const Vec3d &position, const Vec3d &normal, const Vec3d &text_up_dir);
@@ -123,6 +128,7 @@ private:
     void delete_temp_preview_text_volume();
 
     TextInfo get_text_info();
+    void     update_hit_in_text();
     void     load_from_text_info(const TextInfo &text_info);
 };
 

@@ -407,6 +407,55 @@ void Selection::remove_volumes(EMode mode, const std::vector<unsigned int>& volu
     this->set_bounding_boxes_dirty();
 }
 
+ModelVolume *Selection::get_selected_single_volume(int &out_object_idx, int &out_volume_idx)
+{
+    if (is_single_volume() || is_single_modifier()) {
+        const GLVolume *gl_volume = get_volume(*get_volume_idxs().begin());
+        out_object_idx            = gl_volume->object_idx();
+        ModelObject *model_object = get_model()->objects[out_object_idx];
+        out_volume_idx            = gl_volume->volume_idx();
+        if (out_volume_idx < model_object->volumes.size())
+            return model_object->volumes[out_volume_idx];
+    }
+    return nullptr;
+}
+
+ModelObject *Selection::get_selected_single_object(int &out_object_idx)
+{
+    if (is_single_volume() || is_single_modifier()) {
+        const GLVolume *gl_volume = get_volume(*get_volume_idxs().begin());
+        out_object_idx            = gl_volume->object_idx();
+        return get_model()->objects[out_object_idx];
+    }
+    return nullptr;
+}
+
+const std::vector<Transform3d> &Selection::get_all_tran_of_selected_volumes()
+{
+    m_trafo_matrices.clear();
+    int  object_idx;
+    auto mo = get_selected_single_object(object_idx);
+    if (mo) {
+        const ModelInstance *mi = mo->instances[get_instance_idx()];
+        for (const ModelVolume *mv : mo->volumes) {
+            if (mv->is_model_part()) {
+                m_trafo_matrices.emplace_back(mi->get_transformation().get_matrix() * mv->get_matrix());
+            }
+        }
+    }
+    return m_trafo_matrices;
+}
+
+const ModelInstance *Selection::get_selected_single_intance()
+{
+    int  object_idx;
+    auto mo = get_selected_single_object(object_idx);
+    if (mo) {
+        return mo->instances[get_instance_idx()];
+    }
+    return nullptr;
+}
+
 void Selection::add_curr_plate()
 {
     if (!m_valid)

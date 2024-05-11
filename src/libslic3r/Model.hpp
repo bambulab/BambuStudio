@@ -823,7 +823,7 @@ struct TextInfo
     std::string m_text;
 
     RaycastResult m_rr;
-
+    Vec3d         m_hit_in_text; // for load use
     template<typename Archive> void serialize(Archive &ar) {
         ar(m_font_name, m_font_size, m_curr_font_idx, m_bold, m_italic, m_thickness, m_embeded_depth, m_rotate_angle, m_text_gap, m_is_surface_text, m_keep_horizontal, m_text, m_rr);
     }

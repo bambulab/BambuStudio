@@ -45,6 +45,7 @@ struct ThumbnailData;
 struct ThumbnailsParams;
 class ModelObject;
 class ModelInstance;
+class TextInfo;
 class PrintObject;
 class Print;
 class SLAPrint;
@@ -949,6 +950,8 @@ public:
     void set_tooltip(const std::string& tooltip);
 
     // the following methods add a snapshot to the undo/redo stack, unless the given string is empty
+    void generate_new_hit_in_text_info(ModelVolume *cur_mv, ModelObject *model_object,ModelInstance *mi,
+        const Transform3d &old_text_world_tran, const Transform3d &cur_text_world_tran, TextInfo *text_info,int type);
     void do_move(const std::string& snapshot_type);
     void do_rotate(const std::string& snapshot_type);
     void do_scale(const std::string& snapshot_type);
