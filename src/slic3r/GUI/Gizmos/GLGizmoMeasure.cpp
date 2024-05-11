@@ -677,7 +677,7 @@ void GLGizmoMeasure::on_render()
                 } else if (m_assembly_mode == AssemblyMode::POINT_POINT) {
                     if (!(curr_feature->get_type() == Measure::SurfaceFeatureType::Point ||
                         curr_feature->get_type() == Measure::SurfaceFeatureType::Circle ||
-                        (m_mode == EMode::PointSelection && curr_feature->get_type() == Measure::SurfaceFeatureType::Plane))) {
+                        (m_mode == EMode::PointSelection && (curr_feature->get_type() == Measure::SurfaceFeatureType::Plane || curr_feature->get_type() == Measure::SurfaceFeatureType::Edge)))) {
                         curr_feature.reset();
                     }
                 }
@@ -1990,7 +1990,7 @@ void GLGizmoMeasure::show_distance_xyz_ui()
                     ImGui::PopID();
                 }
             }
-            
+
             if (m_distance.norm() > 0.01) {
                 if (!(m_measure_mode == EMeasureMode::ONLY_ASSEMBLY && m_assembly_mode == AssemblyMode::FACE_FACE)) {
                     add_edit_distance_xyz_box(m_distance);
@@ -2053,7 +2053,7 @@ void GLGizmoMeasure::show_face_face_assembly_senior()
         auto  set_to_reverse_rotation_size   = m_imgui->calc_button_size(_L("Reverse rotation")).x;
         auto  rotate_around_center_size      = m_imgui->calc_button_size(_L("Rotate around center:")).x;
         auto  parallel_distance_size         = m_imgui->calc_button_size(_L("Parallel_distance:")).x;
-       
+
         if (m_imgui->bbl_checkbox(_L("Flip by Face 2"), m_flip_volume_2)) {
             set_to_reverse_rotation(m_same_model_object, 1);
         }
@@ -2437,7 +2437,7 @@ void GLGizmoMeasure::set_distance(bool same_model_object, const Vec3d &displacem
         selection->set_mode(same_model_object ? Selection::Volume : Selection::Instance);
         m_pending_scale ++;
         if (same_model_object == false) {
-            selection->translate(v->object_idx(), v->instance_idx(), displacement);  
+            selection->translate(v->object_idx(), v->instance_idx(), displacement);
         } else {
             selection->translate(v->object_idx(), v->instance_idx(), v->volume_idx(), displacement);
         }
