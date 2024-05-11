@@ -676,7 +676,8 @@ void GLGizmoMeasure::on_render()
                     }
                 } else if (m_assembly_mode == AssemblyMode::POINT_POINT) {
                     if (!(curr_feature->get_type() == Measure::SurfaceFeatureType::Point ||
-                        curr_feature->get_type() == Measure::SurfaceFeatureType::Circle)) {
+                        curr_feature->get_type() == Measure::SurfaceFeatureType::Circle ||
+                        (m_mode == EMode::PointSelection && curr_feature->get_type() == Measure::SurfaceFeatureType::Plane))) {
                         curr_feature.reset();
                     }
                 }
