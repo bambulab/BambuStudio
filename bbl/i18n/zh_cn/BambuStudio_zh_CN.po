@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-10 20:42+0800\n"
+"POT-Creation-Date: 2024-05-11 09:05+0800\n"
 "PO-Revision-Date: 2024-03-21 10:39+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -2893,26 +2893,26 @@ msgstr "更新失败。"
 
 msgid ""
 "The current chamber temperature or the target chamber temperature exceeds "
-"45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
-"TPU) is not allowed to be loaded."
+"45\\u2103.In order to avoid extruder clogging,low temperature filament(PLA/"
+"PETG/TPU) is not allowed to be loaded."
 msgstr ""
-"当前腔温或目标腔温超过了45℃。为了避免挤出机堵塞，不允许加载低温度的打印材料"
+"当前腔温或目标腔温超过了45度。为了避免挤出机堵塞，不允许加载低温度的打印材料"
 "（如PLA/PETG/TPU）"
 
 msgid ""
 "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
 "avoid extruder clogging,it is not allowed to set the chamber temperature "
-"above 45℃."
+"above 45\\u2103."
 msgstr ""
 "挤出机中加载了低温度的打印材料（如PLA/PETG/TPU）。为了避免挤出机堵塞，不允许"
-"将腔温设置高于45℃。"
+"将腔温设置高于45度。"
 
 msgid ""
-"When you set the chamber temperature below 40℃, the chamber temperature "
-"control will not be activated. And the target chamber temperature will "
-"automatically be set to 0℃."
+"When you set the chamber temperature below 40\\u2103, the chamber "
+"temperature control will not be activated. And the target chamber "
+"temperature will automatically be set to 0\\u2103."
 msgstr ""
-"当您设置的腔温低于40℃时，腔温控制将不会启动。并且目标腔温将自动设置为0℃。"
+"当您设置的腔温低于40度时，腔温控制将不会启动。并且目标腔温将自动设置为0度"
 
 msgid "Failed to start printing job"
 msgstr "发起打印任务失败"
@@ -6110,8 +6110,8 @@ msgstr "用户使用协议"
 msgid ""
 "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
 "device, please read the termsand conditions.By clicking to agree to use your "
-"Bambu Lab device, you agree to abide by the Privacy Policy and Terms of "
-"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab device, you agree to abide by the Privacy Policy and Terms of Use"
+"(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 "感谢您购买Bambu Lab设备，使用Bambu Lab设备前，请阅读一下条款，单击同意使用您"
@@ -10825,12 +10825,12 @@ msgstr "值步长"
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 step >= 0\n"
+"start > 0 \\step >= 0\n"
 "end > start + step)"
 msgstr ""
-"请输入有效值：\n"
-"起始值 > 0 且 步长 >= 0\n"
-"终止值 > 起始值 + 步长）"
+"请输入有效值:\n"
+"起始值 > 0 \\值步长 >= 0\n"
+"结束值 > 起始值 + 值步长)"
 
 msgid "VFA test"
 msgstr "VFA测试"
@@ -10843,12 +10843,12 @@ msgstr "结束速度"
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 step >= 0\n"
+"start > 10 \\step >= 0\n"
 "end > start + step)"
 msgstr ""
-"请输入有效值：\n"
-"起始值 > 10 且 步长 >= 0\n"
-"终止值 > 起始值 + 步长）"
+"请输入有效值:\n"
+"起始值 > 0 \\值步长 >= 0\n"
+"结束值 > 起始值 + 值步长)"
 
 msgid "Start retraction length: "
 msgstr "起始回抽长度"
@@ -12269,6 +12269,47 @@ msgstr ""
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
 
 #~ msgid ""
+#~ "The current chamber temperature or the target chamber temperature exceeds "
+#~ "45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
+#~ "TPU) is not allowed to be loaded."
+#~ msgstr ""
+#~ "当前腔温或目标腔温超过了45℃。为了避免挤出机堵塞，不允许加载低温度的打印材"
+#~ "料（如PLA/PETG/TPU）"
+
+#~ msgid ""
+#~ "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order "
+#~ "to avoid extruder clogging,it is not allowed to set the chamber "
+#~ "temperature above 45℃."
+#~ msgstr ""
+#~ "挤出机中加载了低温度的打印材料（如PLA/PETG/TPU）。为了避免挤出机堵塞，不允"
+#~ "许将腔温设置高于45℃。"
+
+#~ msgid ""
+#~ "When you set the chamber temperature below 40℃, the chamber temperature "
+#~ "control will not be activated. And the target chamber temperature will "
+#~ "automatically be set to 0℃."
+#~ msgstr ""
+#~ "当您设置的腔温低于40℃时，腔温控制将不会启动。并且目标腔温将自动设置为0℃。"
+
+#~ msgid ""
+#~ "Please input valid values:\n"
+#~ "start > 0 step >= 0\n"
+#~ "end > start + step)"
+#~ msgstr ""
+#~ "请输入有效值：\n"
+#~ "起始值 > 0 且 步长 >= 0\n"
+#~ "终止值 > 起始值 + 步长）"
+
+#~ msgid ""
+#~ "Please input valid values:\n"
+#~ "start > 10 step >= 0\n"
+#~ "end > start + step)"
+#~ msgstr ""
+#~ "请输入有效值：\n"
+#~ "起始值 > 10 且 步长 >= 0\n"
+#~ "终止值 > 起始值 + 步长）"
+
+#~ msgid ""
 #~ "Over 4 studio/handy are using remote access, you can close some and try "
 #~ "again."
 #~ msgstr "超过4个Studio和App在远程连接打印机，请关闭部分后重试。"
@@ -12334,53 +12375,12 @@ msgstr ""
 #~ msgstr "退料"
 
 #~ msgid ""
-#~ "The current chamber temperature or the target chamber temperature exceeds "
-#~ "45\\u2103.In order to avoid extruder clogging,low temperature "
-#~ "filament(PLA/PETG/TPU) is not allowed to be loaded."
-#~ msgstr ""
-#~ "当前腔温或目标腔温超过了45度。为了避免挤出机堵塞，不允许加载低温度的打印材"
-#~ "料（如PLA/PETG/TPU）"
-
-#~ msgid ""
-#~ "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order "
-#~ "to avoid extruder clogging,it is not allowed to set the chamber "
-#~ "temperature above 45\\u2103."
-#~ msgstr ""
-#~ "挤出机中加载了低温度的打印材料（如PLA/PETG/TPU）。为了避免挤出机堵塞，不允"
-#~ "许将腔温设置高于45度。"
-
-#~ msgid ""
-#~ "When you set the chamber temperature below 40\\u2103, the chamber "
-#~ "temperature control will not be activated. And the target chamber "
-#~ "temperature will automatically be set to 0\\u2103."
-#~ msgstr ""
-#~ "当您设置的腔温低于40度时，腔温控制将不会启动。并且目标腔温将自动设置为0度"
-
-#~ msgid ""
 #~ "Studio would re-calculate your flushing volumes everytime the filaments "
 #~ "color changed. You could disable the auto-calculate in Bambu Studio > "
 #~ "Preferences"
 #~ msgstr ""
 #~ "Studio 将会在每一次更换耗材颜色时重新计算你的冲刷体积， 你可以在 Bambu "
 #~ "Studio > 偏好设置 中关闭自动计算"
-
-#~ msgid ""
-#~ "Please input valid values:\n"
-#~ "start > 0 \\step >= 0\n"
-#~ "end > start + step)"
-#~ msgstr ""
-#~ "请输入有效值:\n"
-#~ "起始值 > 0 \\值步长 >= 0\n"
-#~ "结束值 > 起始值 + 值步长)"
-
-#~ msgid ""
-#~ "Please input valid values:\n"
-#~ "start > 10 \\step >= 0\n"
-#~ "end > start + step)"
-#~ msgstr ""
-#~ "请输入有效值:\n"
-#~ "起始值 > 0 \\值步长 >= 0\n"
-#~ "结束值 > 起始值 + 值步长)"
 
 #~ msgid "MoveInMeasure"
 #~ msgstr "在测量中平移"
@@ -12477,7 +12477,6 @@ msgstr ""
 #~ "\n"
 #~ "您要保存当前修改的设置吗？"
 
-#, c-format, boost-format
 #~ msgid "Support: generate toolpath at layer %d"
 #~ msgstr "支撑：正在生成层%d的走线路径"
 
@@ -12499,15 +12498,12 @@ msgstr ""
 #~ msgid "Support: generate toolpath"
 #~ msgstr "支撑：正在生成走线路径"
 
-#, c-format, boost-format
 #~ msgid "Support: generate polygons at layer %d"
 #~ msgstr "支撑：正在生成层%d的多边形"
 
-#, c-format, boost-format
 #~ msgid "Support: fix holes at layer %d"
 #~ msgstr "支撑：正在修补层%d的空洞"
 
-#, c-format, boost-format
 #~ msgid "Support: propagate branches at layer %d"
 #~ msgstr "支撑：正在生长层%d的树枝"
 
@@ -12517,7 +12513,6 @@ msgstr ""
 #~ msgid "Upload Pictrues"
 #~ msgstr "上传图片"
 
-#, boost-format
 #~ msgid "Succeed to export G-code to %1%"
 #~ msgstr "成功导出G-code至 %1%"
 
@@ -12542,7 +12537,6 @@ msgstr ""
 #~ msgid "Discard"
 #~ msgstr "放弃"
 
-#, boost-format
 #~ msgid ""
 #~ "You have changed some settings of preset \"%1%\". \n"
 #~ "Would you like to keep these changed settings (new value) after switching "
@@ -12561,11 +12555,9 @@ msgstr ""
 #~ msgid "Please update the printer firmware and try again."
 #~ msgstr "请更新打印机固件，然后重试。"
 
-#, c-format, boost-format
 #~ msgid "No files [%d]"
 #~ msgstr "文件列表为空[%d]"
 
-#, c-format, boost-format
 #~ msgid "Load failed [%d]"
 #~ msgstr "加载失败 [%d]"
 
@@ -12634,7 +12626,6 @@ msgstr ""
 #~ "changes as new presets."
 #~ msgstr "您可以保留未保存修改的预设应用到新项目中，或者选择忽略。"
 
-#, boost-format
 #~ msgid "Fatal error, exception catched: %1%"
 #~ msgstr "致命错误，捕获到异常：%1%"
 
@@ -12776,19 +12767,15 @@ msgstr ""
 #~ msgid "Initialize failed (Missing LAN ip of printer)!"
 #~ msgstr "初始化失败（未找到打印机的局域网地址）！"
 
-#, c-format, boost-format
 #~ msgid "Initialize failed (%s)!"
 #~ msgstr "初始化失败（%s）!"
 
-#, c-format, boost-format
 #~ msgid "Stopped [%d]!"
 #~ msgstr "已停止 [%d]!"
 
-#, c-format, boost-format
 #~ msgid "Load failed [%d]!"
 #~ msgstr "加载失败 [%d]！"
 
-#, c-format, boost-format
 #~ msgid "Connect failed [%d]!"
 #~ msgstr "连接失败 [%d]！"
 
@@ -12820,7 +12807,6 @@ msgstr ""
 #~ msgid " upload config prase failed\n"
 #~ msgstr "上传配置解析失败\n"
 
-#, c-format, boost-format
 #~ msgid "%1$d Object has custom supports."
 #~ msgid_plural "%1$d Objects have custom supports."
 #~ msgstr[0] "%1$d 模型有自定义支撑。"
@@ -13018,7 +13004,6 @@ msgstr ""
 #~ "you want to overrides the other results?"
 #~ msgstr "相同名称的结果只会保存一个。您确定要覆盖其他结果吗？"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "There is already a historical calibration result with the same name: %s. "
 #~ "Only one of the results with the same name is saved. Are you sure you "
