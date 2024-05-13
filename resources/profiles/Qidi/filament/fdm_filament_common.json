@@ -39,9 +39,6 @@
     "close_fan_the_first_x_layers": [
         "3"
     ],
-    "filament_end_gcode": [
-        "; filament end gcode \n"
-    ],
     "filament_flow_ratio": [
         "1"
     ],
@@ -62,9 +59,6 @@
     ],
     "filament_diameter": [
         "1.75"
-    ],
-    "filament_is_support" : [
-        "0"
     ],
     "filament_max_volumetric_speed": [
         "0"
@@ -106,13 +100,16 @@
         "PLA"
     ],
     "filament_vendor": [
-        "Generic"
+        "QIDI"
     ],
     "filament_wipe": [
         "nil"
     ],
     "filament_wipe_distance": [
         "nil"
+    ],
+    "bed_type": [
+        "Cool Plate"
     ],
     "nozzle_temperature_initial_layer": [
         "200"
@@ -126,22 +123,26 @@
     "fan_min_speed": [
         "35"
     ],
-    "required_nozzle_HRC": [
-        "3"
-    ],
     "slow_down_min_speed": [
         "10"
     ],
     "slow_down_layer_time": [
         "8"
     ],
-    "filament_start_gcode": [
-        "; Filament gcode\n"
-    ],
     "nozzle_temperature": [
         "200"
     ],
     "temperature_vitrification": [
         "100"
-    ]
+    ],
+    "during_print_exhaust_fan_speed":[
+         "100"
+    ],
+    "activate_air_filtration":[
+        "1"
+    ],
+    "activate_chamber_temp_control": [
+        "0"
+    ],
+    "compatible_printers": []
 }
