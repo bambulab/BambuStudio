@@ -44,7 +44,7 @@ jobs:
           path: './build/BambuStudio_ubu64.AppImage'
 
   appimage-builder-using-container:
-    name: Linux AppImage Build Ubuntu 20.04 using container
+    name: Linux AppImage Build Ubuntu  20.04 using container
 
     runs-on: ubuntu-latest
 
