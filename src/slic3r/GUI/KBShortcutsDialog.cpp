@@ -195,8 +195,13 @@ void KBShortcutsDialog::fill_shortcuts()
             #else
                 { ctrl + "P", L("Preferences") },
             #endif
-            //3D control
+            //3D control, for Apple, use Cmd-Shift-M instead of Ctrl/Cmd-M due
+            #ifndef __APPLE__
+            { ctrl + "Shift+M", L("Show/Hide 3Dconnexion devices settings dialog") },
+            #else
             { ctrl + "M", L("Show/Hide 3Dconnexion devices settings dialog") },
+            #endif
+
             // Switch table page
             #ifndef __APPLE__
                 { ctrl + "Tab", L("Switch tab page")},
