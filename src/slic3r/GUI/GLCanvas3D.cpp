@@ -7773,6 +7773,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
         ImGui::SetWindowFontScale(1.2f);
     }
 
+    ImVec4 error_text_clr = ImVec4(1, 0, 0, 1);
     for (int i = 0; i < m_sel_plate_toolbar.m_items.size(); i++) {
         IMToolbarItem* item = m_sel_plate_toolbar.m_items[i];
 
@@ -7835,18 +7836,24 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
         } else if (item->slice_state == IMToolbarItem::SliceState::SLICE_FAILED) {
             ImVec2 size    = ImVec2(button_width, button_height);
             ImVec2 end_pos = ImVec2(start_pos.x + size.x, start_pos.y + size.y);
-            ImGui::GetForegroundDrawList()->AddRectFilled(start_pos, end_pos, IM_COL32(40, 1, 1, 64));
+            ImGui::GetForegroundDrawList()->AddRectFilled(start_pos, end_pos, IM_COL32(250, 0, 0, 64));
             ImGui::GetForegroundDrawList()->AddRect(start_pos, end_pos, IM_COL32(208, 27, 27, 255), 0.0f, 0, 1.0f);
         } else if (item->slice_state == IMToolbarItem::SliceState::SLICED) {
             ImVec2 size = ImVec2(button_width, button_height);
             ImVec2 end_pos = ImVec2(start_pos.x + size.x, start_pos.y + size.y);
             ImGui::GetForegroundDrawList()->AddRectFilled(start_pos, end_pos, IM_COL32(0, 0, 0, 10));
         }
-
         // draw text
-        ImVec2 text_start_pos = ImVec2(start_pos.x + 10.0f, start_pos.y + 8.0f);
-        ImGui::RenderText(text_start_pos, std::to_string(i + 1).c_str());
+        if (item->slice_state == IMToolbarItem::SliceState::SLICE_FAILED) {
+            ImGui::PushStyleColor(ImGuiCol_Text, error_text_clr);
+            ImVec2 text_start_pos = ImVec2(start_pos.x + 10.0f, start_pos.y + 8.0f);
+            ImGui::RenderText(text_start_pos, std::to_string(i + 1).c_str());
+            ImGui::PopStyleColor();
 
+        } else {
+            ImVec2 text_start_pos = ImVec2(start_pos.x + 10.0f, start_pos.y + 8.0f);
+            ImGui::RenderText(text_start_pos, std::to_string(i + 1).c_str());
+        }
         ImGui::PopID();
     }
     ImGui::SetWindowFontScale(1.0f);
