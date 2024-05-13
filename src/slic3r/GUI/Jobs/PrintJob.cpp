@@ -1,4 +1,5 @@
 #include "PrintJob.hpp"
+#include <regex>
 #include "libslic3r/MTUtils.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PresetBundle.hpp"
