@@ -1,0 +1,36 @@
+{
+    "type": "filament",
+    "filament_id": "GFB99",
+    "setting_id": "GFSB99_Qidi_04",
+    "name": "Generic ABS @Qidi Q1 Pro 0.4 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "Generic ABS @Qidi",
+    "fan_max_speed": [
+        "80"
+    ],
+    "fan_min_speed": [
+        "10"
+    ],
+    "hot_plate_temp": [
+        "90"
+    ],
+    "hot_plate_temp_initial_layer": [
+        "90"
+    ],
+    "nozzle_temperature": [
+        "250"
+    ],
+    "overhang_fan_speed": [
+        "100"
+    ],
+    "slow_down_layer_time": [
+        "4"
+    ],
+    "slow_down_min_speed": [
+        "20"
+    ],
+    "compatible_printers": [
+        "Qidi Q1 Pro 0.4 nozzle"
+            ]
+}

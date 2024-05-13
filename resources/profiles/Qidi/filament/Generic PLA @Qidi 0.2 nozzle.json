@@ -1,0 +1,17 @@
+{
+    "type": "filament",
+    "filament_id": "GFL99",
+    "setting_id": "GFSL99_Qidi_01",
+    "name": "Generic PLA @Qidi 0.2 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "Generic PLA @Qidi",
+    "filament_max_volumetric_speed": [
+        "2"
+    ],
+	"compatible_printers": [
+		"Qidi X-Max 3 0.2 nozzle",
+        "Qidi X-Plus 3 0.2 nozzle",
+        "Qidi X-Smart 3 0.2 nozzle"
+	]
+}
