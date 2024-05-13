@@ -30,6 +30,54 @@ echo -n "[9/9] Generating Linux app..."
     # copy Resources
     cp -Rf ../resources package/resources
     cp -f src/@SLIC3R_APP_CMD@ package/bin/@SLIC3R_APP_CMD@
+
+    #find webkit library
+    WEBKIT_LIBS=(
+        webkit2gtk-4.*
+        libwebkit2gtk-4.*
+        libatomic.so*
+        libicudata.so*
+        libicui18n.so*
+        libicuuc.so*
+        libjavascriptcoregtk-4.*
+        libjpeg.so*
+        libwebp.so*
+        libwoff2dec.so*
+        libwoff2common.so*
+        libharfbuzz-icu.so*
+        libhyphen.so*
+        libsoup-2.4.so*
+        libspnav.so*
+    )
+    export WEBKIT_LIB=libwebkit2gtk-4.*
+    export WEBKIT_PATH=''
+    search_paths=(
+        /usr/lib
+        /usr/lib64
+        #/usr/local/lib
+        #/lib
+        #/lib64
+    )
+    for path in "${search_paths[@]}"; do
+        if [[ -d "$path" ]]; then
+            WEBKIT_PATH=$(find "$path" -name "$WEBKIT_LIB" -type f -printf '%h\n' -quit 2>/dev/null)
+            if [[ -n "$WEBKIT_PATH" ]]; then
+                break
+            fi
+        fi
+    done
+    if [[ -n "$WEBKIT_PATH" ]]; then
+        echo "Found ${WEBKIT_LIB} directory at: $WEBKIT_PATH"
+        mkdir -p package/lib/x86_64-linux-gnu
+        echo "Copy libraries from ${WEBKIT_PATH}/ to package/lib/x86_64-linux-gnu/"
+	for dep in "${WEBKIT_LIBS[@]}"
+        do
+            cp -aL ${WEBKIT_PATH}/${dep} package/lib/x86_64-linux-gnu/
+        done
+	find package/lib/x86_64-linux-gnu/ -name 'libwebkit*' -type f -exec sed -i -e "s|/usr|././|g" '{}' \;
+    else
+        echo "${WEBKIT_LIB} not found."
+    fi
     # remove unneeded po from resources
     ## find package/resources/localization -name "*.po" -type f -delete ## FIXME: DD - do we need this?
 
@@ -37,11 +85,17 @@ echo -n "[9/9] Generating Linux app..."
 cat << EOF >@SLIC3R_APP_CMD@
 #!/bin/bash
 DIR=\$(readlink -f "\$0" | xargs dirname)
-export LD_LIBRARY_PATH="\$DIR/bin"
+export LD_LIBRARY_PATH="\$DIR/bin:\$DIR/lib/x86_64-linux-gnu"
+
+echo "LD_LIBRARY_PATH is \$LD_LIBRARY_PATH"
 
 # FIXME: BambuStudio segfault workarounds
 # 1) BambuStudio will segfault on systems where locale info is not as expected (i.e. Holo-ISO arch-based distro)
 export LC_ALL=C
+
+# WORKAROUND: change CWD to appimage root, so webkit would be
+#             able to start itself using relative path
+cd \$DIR
 
 exec "\$DIR/bin/@SLIC3R_APP_CMD@" "\$@"
 EOF
