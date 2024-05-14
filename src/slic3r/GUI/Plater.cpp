@@ -11274,12 +11274,12 @@ void Plater::export_stl(bool extended, bool selection_only, bool multi_stls)
     //confirm export_with_boolean
     bool  exist_negive_volume = false;
     bool  export_with_boolean = false;
-    if (selection_only) {
+    if (selection_only && !selection.is_multiple_full_object()) {
         const auto obj_idx = selection.get_object_idx();
         if (obj_idx == -1 ||selection.is_wipe_tower())
             return;
-        // only support selection single full object and mulitiple full object
-        if (!selection.is_single_full_object() && !selection.is_multiple_full_object())
+        // only support selection single full object 
+        if (!selection.is_single_full_object())
             return;
         const ModelObject *cur_model_object = p->model.objects[obj_idx];
         for (auto v : cur_model_object->volumes) {
@@ -11288,7 +11288,7 @@ void Plater::export_stl(bool extended, bool selection_only, bool multi_stls)
                 break;
             }
         }
-    } else {
+    } else {//support mulitiple full object// from file mene to export
         for (auto cur_model_object : p->model.objects) {
             for (auto v : cur_model_object->volumes) {
                 if (v->type() == ModelVolumeType::NEGATIVE_VOLUME) {
