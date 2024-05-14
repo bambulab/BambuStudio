@@ -7991,13 +7991,15 @@ void GLCanvas3D::_render_return_toolbar()
     float window_pos_x = 30.0f;
     float window_pos_y = 14.0f;
     {//solve ui overlap issue
-        float       zoom     = (float) wxGetApp().plater()->get_camera().get_zoom();
-        float       left_pos = m_main_toolbar.get_item("add")->render_left_pos;
-        const float toolbar_x = 0.5 * canvas_w + left_pos * zoom;
-        const float margin    = 5;
-        if (toolbar_x < window_width + margin * 3) {
-            window_pos_x = 5.0f;
-            window_pos_y = m_main_toolbar.get_height() + 2.0f;
+        if (m_canvas_type == ECanvasType::CanvasView3D) {
+            float       zoom      = (float) wxGetApp().plater()->get_camera().get_zoom();
+            float       left_pos  = m_main_toolbar.get_item("add")->render_left_pos;
+            const float toolbar_x = 0.5 * canvas_w + left_pos * zoom;
+            const float margin    = 5;
+            if (toolbar_x < window_width + margin * 3) {
+                window_pos_x = 5.0f;
+                window_pos_y = m_main_toolbar.get_height() + 2.0f;
+            }
         }
     }
     imgui.set_next_window_pos(window_pos_x, window_pos_y, ImGuiCond_Always, 0, 0);
