@@ -45,6 +45,8 @@ std::vector<std::string> init_face_names()
     wxArrayString            facenames = wxFontEnumerator::GetFacenames(font_encoding);
     std::vector<wxString>    bad_fonts;
 
+    BOOST_LOG_TRIVIAL(info) << "init_fonts_names start";
+
     // validation lambda
     auto is_valid_font = [coding = font_encoding, bad = bad_fonts](const wxString &name) {
         if (name.empty())
@@ -70,7 +72,7 @@ std::vector<std::string> init_face_names()
             return false;
 
         return true;
-    };
+    };    
 
     std::sort(facenames.begin(), facenames.end());
     for (const wxString &name : facenames) {
@@ -82,6 +84,8 @@ std::vector<std::string> init_face_names()
         }
     }
     assert(std::is_sorted(bad_fonts.begin(), bad_fonts.end()));
+
+    BOOST_LOG_TRIVIAL(info) << "init_fonts_names end";
 
     return valid_font_names;
 }

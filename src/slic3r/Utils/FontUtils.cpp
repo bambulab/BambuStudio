@@ -160,7 +160,16 @@ bool load_hfont(void *hfont, DWORD &dwTable, DWORD &dwOffset, size_t &size, HDC 
     if (hdc == nullptr) {
         del_hdc = true;
         hdc     = ::CreateCompatibleDC(NULL);
-        if (hdc == NULL) return false;
+        if (hdc == NULL) {
+            DWORD  errorCode = GetLastError();
+            LPVOID lpMsgBuf;
+            FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, errorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                          (LPTSTR) &lpMsgBuf, 0, NULL);
+
+            BOOST_LOG_TRIVIAL(error) << "CreateCompatibleDC failed in load_hfont : "
+                                     << "Error: " << reinterpret_cast<LPTSTR>(lpMsgBuf);
+            return false;
+        }
     }
 
     // To retrieve the data from the beginning of the file for TrueType
@@ -177,9 +186,14 @@ bool load_hfont(void *hfont, DWORD &dwTable, DWORD &dwOffset, size_t &size, HDC 
     }
 
     if (size == 0 || size == GDI_ERROR) {
-        if (del_hdc) ::DeleteDC(hdc);
+        if (del_hdc)
+            ::DeleteDC(hdc);
         return false;
     }
+
+    if (del_hdc)
+        ::DeleteDC(hdc);
+
     return true;
 }
 
@@ -188,7 +202,13 @@ std::unique_ptr<FontFile> create_font_file(void *hfont)
     HDC hdc = ::CreateCompatibleDC(NULL);
     if (hdc == NULL) {
         assert(false);
-        BOOST_LOG_TRIVIAL(error) << "Can't create HDC by CreateCompatibleDC(NULL).";
+        DWORD  errorCode = GetLastError();
+        LPVOID lpMsgBuf;
+        FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+            NULL, errorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR) &lpMsgBuf, 0, NULL);
+
+        BOOST_LOG_TRIVIAL(error) << "CreateCompatibleDC failed in create_font_file : "
+                                 << "Error: " << reinterpret_cast<LPTSTR>(lpMsgBuf);
         return nullptr;
     }
 
