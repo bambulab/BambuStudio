@@ -1060,7 +1060,7 @@ int CLI::run(int argc, char **argv)
     std::vector<std::string> current_filaments_name, current_filaments_system_name, current_inherits_group;
     DynamicPrintConfig load_process_config, load_machine_config;
     bool new_process_config_is_system = true, new_printer_config_is_system = true;
-    std::string pipe_name, makerlab_name, makerlab_version;
+    std::string pipe_name, makerlab_name, makerlab_version, different_process_setting;
 
     // Read input file(s) if any.
     BOOST_LOG_TRIVIAL(info) << "Will start to read model file now, file count :" << m_input_files.size() << "\n";
@@ -1651,6 +1651,11 @@ int CLI::run(int argc, char **argv)
             config.set("print_settings_id", new_process_name, true);
             //print_inherits = config.option<ConfigOptionString>("inherits", true)->value;
             new_print_compatible_printers = config.option<ConfigOptionStrings>("compatible_printers", true)->values;
+
+            if (!is_bbl_3mf && config.option<ConfigOptionStrings>("different_settings_to_system")) {
+                std::vector<std::string> diff_settings = config.option<ConfigOptionStrings>("different_settings_to_system")->values;
+                different_process_setting = diff_settings[0];
+            }
             load_process_config = std::move(config);
             BOOST_LOG_TRIVIAL(info) << boost::format("loaded process config %1%, type %2%, name %3%, inherits %4%")%file %config_name %config_from % new_process_system_name;
         }
@@ -2246,6 +2251,9 @@ int CLI::run(int argc, char **argv)
     std::vector<std::string>& inherits_group = m_print_config.option<ConfigOptionStrings>("inherits_group", true)->values;
     inherits_group.resize(filament_count + 2, std::string());
     different_settings.resize(filament_count + 2, std::string());
+    if (!is_bbl_3mf && !different_process_setting.empty()) {
+        different_settings[0] = different_process_setting;
+    }
     //set the machine settings into print config
     if (!new_printer_name.empty() || up_config_to_date) {
         std::vector<std::string> different_keys;
