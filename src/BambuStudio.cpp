@@ -679,6 +679,23 @@ static int load_assemble_plate_list(std::string config_file, std::vector<assembl
                     assemble_object.print_params = object_json[JSON_ASSEMPLE_OBJECT_PRINT_PARAMS].get<std::map<std::string, std::string>>();
                     BOOST_LOG_TRIVIAL(debug) << boost::format("Plate %1%, object %2% has %3% print params") % (plate_index + 1) %assemble_object.path % assemble_object.print_params.size();
                 }
+                if (object_json.contains(JSON_ASSEMPLE_OBJECT_HEIGHT_RANGES)) {
+                    json height_range_json = object_json[JSON_ASSEMPLE_OBJECT_HEIGHT_RANGES];
+                    int range_count = height_range_json.size();
+
+                    BOOST_LOG_TRIVIAL(debug) << boost::format("Plate %1%, object %2% has %3% height ranges") % (plate_index + 1) %assemble_object.path % range_count;
+
+                    assemble_object.height_ranges.resize(range_count);
+                    for (int range_index = 0; range_index < range_count; range_index++)
+                    {
+                        height_range_info_t height_range;
+                        height_range.min_z = height_range_json[range_index][JSON_ASSEMPLE_OBJECT_MIN_Z];
+                        height_range.max_z = height_range_json[range_index][JSON_ASSEMPLE_OBJECT_MAX_Z];
+                        height_range.range_params = height_range_json[range_index][JSON_ASSEMPLE_OBJECT_RANGE_PARAMS].get<std::map<std::string, std::string>>();
+                        assemble_object.height_ranges.push_back(std::move(height_range));
+                    }
+                    BOOST_LOG_TRIVIAL(debug) << boost::format("Plate %1%, object %2% has %3% print params") % (plate_index + 1) %assemble_object.path % assemble_object.print_params.size();
+                }
             }
         }
     }
@@ -817,6 +834,21 @@ static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_
                 {
                     object->config.set_deserialize(param_iter->first, param_iter->second, config_substitutions);
                     BOOST_LOG_TRIVIAL(debug) << boost::format("Plate %1%, object %2% key %3%, value %4%") % (index + 1) % object_1_name % param_iter->first % param_iter->second;
+                }
+            }
+
+            if (!assemble_object.height_ranges.empty())
+            {
+                for (int range_index = 0; range_index < assemble_object.height_ranges.size(); range_index++)
+                {
+                    height_range_info_t& range = assemble_object.height_ranges[range_index];
+                    DynamicPrintConfig range_config;
+                    for (auto range_config_iter = range.range_params.begin(); range_config_iter != range.range_params.end(); range_config_iter++)
+                    {
+                        range_config.set_deserialize(range_config_iter->first, range_config_iter->second, config_substitutions);
+                        BOOST_LOG_TRIVIAL(debug) << boost::format("object %1%, height range %2% key %3%, value %4%") % object_1_name % range_index % range_config_iter->first % range_config_iter->second;
+                    }
+                    object->layer_config_ranges[{ range.min_z, range.max_z }].assign_config(std::move(range_config));
                 }
             }
 
