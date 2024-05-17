@@ -552,9 +552,6 @@ bool GLTexture::generate_from_text(const std::string &text_str, wxFont &font, wx
 
 bool GLTexture::generate_texture_from_text(const std::string& text_str, wxFont& font, int& ww, int& hh, int& hl, wxColor background, wxColor foreground)
 {
-    if(!can_generate_text_shape(text_str))
-        return false;
-
     if (text_str.empty())
     {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":no text string, should not happen\n";
