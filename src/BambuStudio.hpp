@@ -31,6 +31,17 @@ namespace IO {
 #define JSON_ASSEMPLE_OBJECT_ASSEMBLE_INDEX    "assemble_index"
 #define JSON_ASSEMPLE_OBJECT_PRINT_PARAMS      "print_params"
 
+#define JSON_ASSEMPLE_OBJECT_MIN_Z              "min_z"
+#define JSON_ASSEMPLE_OBJECT_MAX_Z              "max_z"
+#define JSON_ASSEMPLE_OBJECT_HEIGHT_RANGES      "height_ranges"
+#define JSON_ASSEMPLE_OBJECT_RANGE_PARAMS       "range_params"
+
+typedef struct _height_range_info {
+    float         min_z;
+    float         max_z;
+
+    std::map<std::string, std::string> range_params;
+}height_range_info_t;
 
 typedef struct _assemble_object_info {
     std::string         path;
@@ -42,6 +53,7 @@ typedef struct _assemble_object_info {
     std::vector<float>  pos_y;
     std::vector<float>  pos_z;
     std::map<std::string, std::string> print_params;
+    std::vector<height_range_info_t> height_ranges;
 }assemble_object_info_t;
 
 typedef struct _assemble_plate_info {
