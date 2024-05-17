@@ -83,7 +83,7 @@ fontinfo_opt load_font_info(const unsigned char *data, unsigned int index)
     stbtt_fontinfo font_info;
     if (stbtt_InitFont(&font_info, data, font_offset) == 0) {
         // Can't initialize font.
-        assert(false);
+        //assert(false);
         return {};
     }
     return font_info;
