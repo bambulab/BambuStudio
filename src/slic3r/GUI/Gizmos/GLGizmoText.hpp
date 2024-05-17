@@ -57,6 +57,11 @@ private:
 
     std::vector<std::string> m_font_names;
 
+    bool m_init_texture = false;
+    std::vector<bool> m_font_status;
+    std::mutex m_mutex;
+    std::thread m_thread;
+
     bool m_is_modify = false;
     bool m_need_update_text = false;
 
@@ -108,6 +113,7 @@ protected:
 
 private:
     ModelVolume *get_selected_single_volume(int& out_object_idx, int& out_volume_idx) const;
+    void update_font_status();
     void reset_text_info();
     bool update_text_positions(const std::vector<std::string>& texts);
     TriangleMesh get_text_mesh(const char* text_str, const Vec3d &position, const Vec3d &normal, const Vec3d &text_up_dir);
