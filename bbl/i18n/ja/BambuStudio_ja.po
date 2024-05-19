@@ -12452,11 +12452,11 @@ msgstr "Task Sent"
 msgid "Edit multiple printers"
 msgstr ""
 
-msgid "Select connected printetrs (0/6)"
+msgid "Select connected printers (0/6)"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Select Connected Printetrs (%d/6)"
+msgid "Select Connected printers (%d/6)"
 msgstr ""
 
 #, c-format, boost-format

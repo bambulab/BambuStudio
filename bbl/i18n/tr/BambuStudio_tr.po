@@ -12800,11 +12800,11 @@ msgstr "Görev Gönderildi"
 msgid "Edit multiple printers"
 msgstr "Birden fazla yazıcıyı düzenleme"
 
-msgid "Select connected printetrs (0/6)"
+msgid "Select connected printers (0/6)"
 msgstr "Bağlı yazıcıları seçin (0/6)"
 
 #, c-format, boost-format
-msgid "Select Connected Printetrs (%d/6)"
+msgid "Select Connected printers (%d/6)"
 msgstr "Bağlı Yazıcıları Seçin (%d/6)"
 
 #, c-format, boost-format

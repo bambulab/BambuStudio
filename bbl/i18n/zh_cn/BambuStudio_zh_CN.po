@@ -11966,11 +11966,11 @@ msgstr "已发送的任务"
 msgid "Edit multiple printers"
 msgstr "编辑多个打印机"
 
-msgid "Select connected printetrs (0/6)"
+msgid "Select connected printers (0/6)"
 msgstr "选择已连接的打印机 (0/6)"
 
 #, c-format, boost-format
-msgid "Select Connected Printetrs (%d/6)"
+msgid "Select Connected printers (%d/6)"
 msgstr "选择已连接的打印机 (%d/6)"
 
 #, c-format, boost-format
