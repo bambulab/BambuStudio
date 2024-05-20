@@ -4240,7 +4240,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 // we do not want to translate objects if the user just clicked on an object while pressing shift to remove it from the selection and then drag
                 if (m_selection.contains_volume(get_first_hover_volume_idx())) {
                     const Camera& camera = wxGetApp().plater()->get_camera();
-                    if (std::abs(camera.get_dir_forward()(2)) < EPSILON) {
+                    auto          camera_up_down_rad_limit = abs(asin(camera.get_dir_forward()(2) / 1.0f));
+                    if (camera_up_down_rad_limit < PI/20.0f) {
                         // side view -> move selected volumes orthogonally to camera view direction
                         Linef3 ray = mouse_ray(pos);
                         Vec3d dir = ray.unit_vector();
