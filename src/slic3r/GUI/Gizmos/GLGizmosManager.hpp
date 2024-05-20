@@ -275,7 +275,7 @@ public:
         else
             return nullptr;
     }
-
+    void  update_paint_base_camera_rotate_rad();
     Vec3d get_flattening_normal() const;
 
     void set_flattening_data(const ModelObject* model_object);

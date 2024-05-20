@@ -607,6 +607,14 @@ void GLGizmosManager::finish_cut_rotation()
     dynamic_cast<GLGizmoAdvancedCut*>(m_gizmos[Cut].get())->finish_rotation();
 }
 
+void GLGizmosManager::update_paint_base_camera_rotate_rad()
+{
+    if (m_current == MmuSegmentation || m_current == Seam) {
+        auto paint_gizmo = dynamic_cast<GLGizmoPainterBase*>(m_gizmos[m_current].get());
+        paint_gizmo->update_front_view_radian();
+    }
+}
+
 Vec3d GLGizmosManager::get_flattening_normal() const
 {
     if (!m_enabled || m_gizmos.empty())
@@ -1370,7 +1378,7 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
         // BBS
         else if (m_current == MmuSegmentation) {
             GLGizmoMmuSegmentation* mmu_seg = dynamic_cast<GLGizmoMmuSegmentation*>(get_current());
-            if (mmu_seg != nullptr) {
+            if (mmu_seg != nullptr && evt.ControlDown() == false) {
                 if (keyCode >= WXK_NUMPAD0 && keyCode <= WXK_NUMPAD9) {
                     keyCode = keyCode- WXK_NUMPAD0+'0';
                 }

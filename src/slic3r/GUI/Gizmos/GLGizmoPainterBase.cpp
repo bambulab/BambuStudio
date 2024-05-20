@@ -70,6 +70,11 @@ GLGizmoPainterBase::ClippingPlaneDataWrapper GLGizmoPainterBase::get_clipping_pl
     return clp_data_out;
 }
 
+void GLGizmoPainterBase::update_front_view_radian()
+{
+    wxGetApp().plater()->get_camera().calc_horizontal_rotate_rad(m_front_view_radian);
+}
+
 void GLGizmoPainterBase::render_triangles(const Selection& selection) const
 {
     auto* shader = wxGetApp().get_shader("gouraud");
