@@ -764,6 +764,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
             if (m_vertical_only) {
                 m_horizontal_only = false;
                 m_is_front_view   = true;
+                update_front_view_radian();
                 change_camera_view_angle(m_front_view_radian);
             }
         }
@@ -776,6 +777,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
             if (m_horizontal_only) {
                 m_vertical_only = false;
                 m_is_front_view = true;
+                update_front_view_radian();
                 change_camera_view_angle(m_front_view_radian);
             }
         }
@@ -785,12 +787,13 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         if (m_is_front_view != is_front_view) {
             m_is_front_view = is_front_view;
             if (m_is_front_view) {
+                update_front_view_radian();
                 change_camera_view_angle(m_front_view_radian);
             }
         }
         m_imgui->disabled_begin(!m_is_front_view);
 
-        if (render_slider_double_input_by_format(slider_input_layout, _u8L("Rotate horizontally"), m_front_view_radian, 0.f, 360.f, 0, DoubleShowType::DEGREE)) {
+        if (render_slider_double_input_by_format(slider_input_layout, _u8L("Rotate horizontally"), m_front_view_radian, -180.f, 180.f, 0, DoubleShowType::DEGREE)) {
             change_camera_view_angle(m_front_view_radian);
         }
         m_imgui->disabled_end();

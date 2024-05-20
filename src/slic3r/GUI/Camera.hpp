@@ -128,7 +128,7 @@ public:
     // BBS rotate the camera on a sphere having center == target
     void rotate_on_sphere_with_target(double delta_azimut_rad, double delta_zenit_rad, bool apply_limits, Vec3d target);
     void rotate_local_with_target(const Vec3d& rotation_rad, Vec3d target);
-
+    void calc_horizontal_rotate_rad(float &rotation_rad);
     // rotate the camera on a sphere having center == m_target and radius == m_distance
     // using the given variations of spherical coordinates
     // if apply_limits == true the camera stops rotating when its forward vector is parallel to the world Z axis
