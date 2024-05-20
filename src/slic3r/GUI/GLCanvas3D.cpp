@@ -3493,7 +3493,7 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                 else if (m_tab_down && keyCode == WXK_TAB && !evt.HasAnyModifiers()) {
                     // Enable switching between 3D and Preview with Tab
                     // m_canvas->HandleAsNavigationKey(evt);   // XXX: Doesn't work in some cases / on Linux
-                    //post_event(SimpleEvent(EVT_GLCANVAS_TAB));
+                    post_event(SimpleEvent(EVT_GLCANVAS_TAB));
                 }
                 else if (keyCode == WXK_SHIFT) {
                     translationProcessor.process(evt);
