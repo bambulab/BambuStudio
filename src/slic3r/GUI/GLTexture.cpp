@@ -518,6 +518,10 @@ bool GLTexture::generate_from_text(const std::string &text_str, wxFont &font, wx
     // prepare buffer
     std::vector<unsigned char> data(4 * m_width * m_height, 0);
     const unsigned char* src = image.GetData();
+    if (!src) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":font ConvertToImage error:\n" << text_str << "," << font.GetBaseFont().GetNativeFontInfoDesc().ToStdString();
+        return false;
+    }
     /* for debug use
     std::ofstream fout;
     fout.open(text_str+std::to_string(m_width)+"_"+std::to_string(m_height)+".rgb", std::ios::out);
@@ -596,6 +600,10 @@ bool GLTexture::generate_texture_from_text(const std::string& text_str, wxFont& 
     // prepare buffer
     std::vector<unsigned char> data(4 * m_width * m_height, 0);
     const unsigned char* src = image.GetData();
+    if (!src) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":font ConvertToImage error:\n" << text_str << "," << font.GetBaseFont().GetNativeFontInfoDesc().ToStdString();
+        return false;
+    }
     /* for debug use
     std::ofstream fout;
     fout.open(text_str+std::to_string(m_width)+"_"+std::to_string(m_height)+".rgb", std::ios::out);
@@ -724,6 +732,7 @@ bool GLTexture::load_from_png(const std::string& filename, bool use_mipmaps, ECo
     unsigned char* img_rgb = image.GetData();
     if (img_rgb == nullptr) {
         reset();
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":load_from_png error\n";
         return false;
     }
 
