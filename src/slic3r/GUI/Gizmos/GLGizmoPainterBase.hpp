@@ -235,6 +235,7 @@ public:
     virtual const float get_cursor_height_min() const { return CursorHeightMin; }
     virtual const float get_cursor_height_max() const { return CursorHeightMax; }
     virtual const float get_cursor_height_step() const { return CursorHeightStep; }
+    void update_front_view_radian();
 
 protected:
     virtual void render_triangles(const Selection& selection) const;

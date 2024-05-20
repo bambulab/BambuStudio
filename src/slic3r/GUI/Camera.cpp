@@ -333,6 +333,18 @@ void Camera::rotate_local_with_target(const Vec3d& rotation_rad, Vec3d target)
 	}
 }
 
+void Camera::calc_horizontal_rotate_rad(float &rotation_rad) {
+    if (is_looking_front()) {
+        auto right   = get_dir_right();
+        auto temp_rotation_rad = acos(right.dot(Vec3d(1, 0, 0)));
+        auto value = Vec3d(1, 0, 0).cross(right);
+        if (value.z() > 0.01) {
+            temp_rotation_rad = -temp_rotation_rad;
+        }
+        rotation_rad = temp_rotation_rad;
+    }
+}
+
 // Virtual trackball, rotate around an axis, where the eucledian norm of the axis gives the rotation angle in radians.
 void Camera::rotate_local_around_target(const Vec3d& rotation_rad)
 {

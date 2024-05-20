@@ -3569,16 +3569,32 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                             { select_view("bottom"); break; }
                         case '3':
                         case WXK_NUMPAD3: //3 on numpad
-                            { select_view("front"); break; }
+                        {
+                            select_view("front");
+                            m_gizmos.update_paint_base_camera_rotate_rad();
+                            break;
+                        }
                         case '4':
                         case WXK_NUMPAD4: //4 on numpad
-                            { select_view("rear"); break; }
+                        {
+                            select_view("rear");
+                            m_gizmos.update_paint_base_camera_rotate_rad();
+                            break;
+                        }
                         case '5':
                         case WXK_NUMPAD5: //5 on numpad
-                            { select_view("left"); break; }
+                        {
+                            select_view("left");
+                            m_gizmos.update_paint_base_camera_rotate_rad();
+                            break;
+                        }
                         case '6':
                         case WXK_NUMPAD6: //6 on numpad
-                            { select_view("right"); break; }
+                        {
+                            select_view("right");
+                            m_gizmos.update_paint_base_camera_rotate_rad();
+                            break;
+                        }
                         case '7':
                         case WXK_NUMPAD7: //7 on numpad
                             { select_plate(); break; }
