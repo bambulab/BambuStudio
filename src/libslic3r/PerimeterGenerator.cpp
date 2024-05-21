@@ -1671,7 +1671,7 @@ void PerimeterGenerator::process_arachne()
         }
 
         int remain_loops = -1;
-        if (this->object_config->top_one_wall_type == TopOneWallType::Alltop) {
+        if (loop_number > 0 && this->object_config->top_one_wall_type == TopOneWallType::Alltop) {
             if (this->upper_slices != nullptr)
                 remain_loops = loop_number - 1;
 
