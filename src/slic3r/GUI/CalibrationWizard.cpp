@@ -6,6 +6,7 @@
 #include "../../libslic3r/Calib.hpp"
 #include "Tabbook.hpp"
 #include "CaliHistoryDialog.hpp"
+#include "CalibUtils.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -15,8 +16,6 @@ wxDEFINE_EVENT(EVT_DEVICE_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_CALIBRATION_JOB_FINISHED, wxCommandEvent);
 
 static const wxString NA_STR = _L("N/A");
-static const float MIN_PA_K_VALUE = 0.0;
-static const float MAX_PA_K_VALUE = 0.3;
 static const float MIN_PA_K_VALUE_STEP = 0.001;
 static const int MAX_PA_HISTORY_RESULTS_NUMS = 16;
 
