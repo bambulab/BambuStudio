@@ -197,6 +197,9 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     //reset log level
     auto loglevel = wxGetApp().app_config->get("severity_level");
     Slic3r::set_logging_level(Slic3r::level_string_to_boost(loglevel));
+    std::map<std::string, int> wx_log_levels{{"fatal", wxLOG_FatalError}, {"error", wxLOG_FatalError}, {"warning", wxLOG_Warning},
+                                             {"info", wxLOG_Info},        {"debug", wxLOG_Debug},      {"trace", wxLOG_Trace}};
+    wxLog::SetLogLevel(wx_log_levels[loglevel]);
 
     // BBS
     m_recent_projects.SetMenuPathStyle(wxFH_PATH_SHOW_ALWAYS);
