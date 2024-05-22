@@ -581,6 +581,7 @@ static void unbind_events(wxEvtHandler *h)
 
 void free_window(wxWindow *win)
 {
+#if !defined(__WXGTK__)
     unbind_events(win);
     for (auto c : win->GetChildren())
         if (dynamic_cast<wxTextCtrl*>(c))
@@ -591,6 +592,9 @@ void free_window(wxWindow *win)
     win->Reparent(wxGetApp().mainframe);
     if (win->GetClientData())
         reinterpret_cast<std::deque<wxWindow *>*>(win->GetClientData())->push_back(win);
+#else
+    delete win;
+#endif
 }
 
 template<class T>
