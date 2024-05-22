@@ -604,8 +604,17 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
     m_raft_layers = slicing_params.base_raft_layers + slicing_params.interface_raft_layers;
     support_type = m_object_config->support_type;
     support_style = m_object_config->support_style;
-    if (support_style == smsDefault)
-        support_style = smsTreeOrganic;
+    if (support_style == smsDefault) {
+        // organic support doesn't work with adaptive layer height
+        if (object.model_object()->layer_height_profile.empty()) {
+            BOOST_LOG_TRIVIAL(warning) << "tree support default to organic support";
+            support_style = smsTreeOrganic;
+        }
+        else {
+            BOOST_LOG_TRIVIAL(warning) << "Adaptive layer height is not supported for organic support, using hybrid tree support instead.";
+            support_style = smsTreeHybrid;
+        }
+    }
     SupportMaterialPattern support_pattern  = m_object_config->support_base_pattern;
     if (support_style == smsTreeHybrid && support_pattern == smpDefault)
         support_pattern = smpRectilinear;
@@ -2984,7 +2993,7 @@ void TreeSupport::smooth_nodes(std::vector<std::vector<SupportNode *>> &contact_
                             branch[i]->is_processed = true;
                             if (branch[i]->parents.size()>1 || (branch[i]->movement.x() > max_move || branch[i]->movement.y() > max_move))
                                 branch[i]->need_extra_wall = true;
-                            BOOST_LOG_TRIVIAL(info) << "smooth_nodes: layer_nr=" << layer_nr << ", i=" << i << ", pt=" << pt << ", movement=" << branch[i]->movement << ", radius=" << branch[i]->radius;
+                            BOOST_LOG_TRIVIAL(trace) << "smooth_nodes: layer_nr=" << layer_nr << ", i=" << i << ", pt=" << pt << ", movement=" << branch[i]->movement << ", radius=" << branch[i]->radius;
                         }
                     }
                     if (k < iterations - 1) {

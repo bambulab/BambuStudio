@@ -811,12 +811,15 @@ ImFontAtlasCustomRect *ImGuiWrapper::GetTextureCustomRect(const wchar_t &tex_id)
     return (item != m_custom_glyph_rects_ids.end()) ? ImGui::GetIO().Fonts->GetCustomRectByIndex(m_custom_glyph_rects_ids[tex_id]) : nullptr;
 }
 
-ImU32 ImGuiWrapper::to_ImU32(const ColorRGBA &color) 
-{ 
-    return ImGui::GetColorU32({color.r(), color.g(), color.b(), color.a()});
+ImU32 ImGuiWrapper::to_ImU32(const ColorRGBA &color)
+{
+    return ImGui::GetColorU32({color.r(), color.g(), color.b(), color.a()}); }
+
+ImVec4 ImGuiWrapper::to_ImVec4(const ColorRGB &color) {
+    return {color.r(), color.g(), color.b(), 1.0};
 }
 
-ImVec4 ImGuiWrapper::to_ImVec4(const ColorRGBA &color) { 
+ImVec4 ImGuiWrapper::to_ImVec4(const ColorRGBA &color) {
     return {color.r(), color.g(), color.b(), color.a()};
 }
 
@@ -986,6 +989,19 @@ void ImGuiWrapper::text(const wxString &label)
 {
     auto label_utf8 = into_u8(label);
     this->text(label_utf8.c_str());
+}
+
+void ImGuiWrapper::warning_text(const char *label)
+{
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::to_ImVec4(ColorRGB::WARNING()));
+    this->text(label);
+    ImGui::PopStyleColor();
+}
+
+void ImGuiWrapper::warning_text(const wxString &all_text)
+{
+    auto label_utf8 = into_u8(all_text);
+    warning_text(label_utf8.c_str());
 }
 
 void ImGuiWrapper::text_colored(const ImVec4& color, const char* label)

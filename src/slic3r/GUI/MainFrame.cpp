@@ -1600,6 +1600,7 @@ wxBoxSizer* MainFrame::create_side_tools()
     m_slice_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
             //this->m_plater->select_view_3D("Preview");
+            m_plater->exit_gizmo();
             m_plater->update(true, true);
             if (m_slice_select == eSliceAll)
                 wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL));
@@ -2082,7 +2083,8 @@ void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
     m_param_panel->msw_rescale();
     m_project->msw_rescale();
     m_monitor->msw_rescale();
-    m_multi_machine->msw_rescale();
+    if (m_multi_machine)
+        m_multi_machine->msw_rescale();
     m_calibration->msw_rescale();
 
     // BBS
@@ -2398,7 +2400,7 @@ void MainFrame::init_menubar_as_editor()
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_gcode(false); }, "menu_export_gcode", nullptr,
             [this]() {return can_export_gcode(); }, this);
         append_menu_item(
-            export_menu, wxID_ANY, _L("Export &Configs") + dots /* + "\tCtrl+E"*/, _L("Export current configuration to files"),
+            export_menu, wxID_ANY, _L("Export Preset Bundle") + dots /* + "\tCtrl+E"*/, _L("Export current configuration to files"),
             [this](wxCommandEvent &) { export_config(); },
             "menu_export_config", nullptr,
             []() { return true; }, this);

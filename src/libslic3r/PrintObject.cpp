@@ -2540,11 +2540,15 @@ void PrintObject::bridge_over_infill()
                         Polygons lightning_area;
                         Polygons expansion_area;
                         Polygons total_fill_area;
+                        Polygons top_area;
+
                         for (LayerRegion *region : layer->regions()) {
                             Polygons internal_polys = to_polygons(region->fill_surfaces.filter_by_types({stInternal, stInternalSolid}));
                             expansion_area.insert(expansion_area.end(), internal_polys.begin(), internal_polys.end());
                             Polygons fill_polys = to_polygons(region->fill_expolygons);
                             total_fill_area.insert(total_fill_area.end(), fill_polys.begin(), fill_polys.end());
+                            Polygons top_polys = to_polygons(region->fill_surfaces.filter_by_type(stTop));
+                            top_area.insert(top_area.end(), top_polys.begin(), top_polys.end());
                             if (region->region().config().sparse_infill_pattern == ipLightning) {
                                 Polygons l = to_polygons(region->fill_surfaces.filter_by_type(stInternal));
                                 lightning_area.insert(lightning_area.end(), l.begin(), l.end());
@@ -2629,6 +2633,8 @@ void PrintObject::bridge_over_infill()
                             bridging_area          = closing(bridging_area, flow.scaled_spacing());
                             bridging_area          = intersection(bridging_area, limiting_area);
                             bridging_area          = intersection(bridging_area, total_fill_area);
+                            // BBS: substract top area
+                            bridging_area          = diff(bridging_area, top_area);
                             // BBS: open and close again to filter some narrow parts
                             bridging_area          = opening(bridging_area, flow.scaled_spacing());
                             bridging_area          = closing(bridging_area, flow.scaled_spacing());
@@ -2792,14 +2798,14 @@ PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig &defau
     } else {
         // default_or_parent_region_config contains parent PrintRegion config, which already contains ModelVolume's config.
     }
+    apply_to_print_region_config(config, volume.config.get());
+    if (! volume.material_id().empty())
+        apply_to_print_region_config(config, volume.material()->config.get());
     if (layer_range_config != nullptr) {
         // Not applicable to modifiers.
         assert(volume.is_model_part());
     	apply_to_print_region_config(config, *layer_range_config);
     }
-    apply_to_print_region_config(config, volume.config.get());
-    if (! volume.material_id().empty())
-        apply_to_print_region_config(config, volume.material()->config.get());
     // Clamp invalid extruders to the default extruder (with index 1).
     clamp_exturder_to_default(config.sparse_infill_filament,       num_extruders);
     clamp_exturder_to_default(config.wall_filament,    num_extruders);

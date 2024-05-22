@@ -1400,7 +1400,7 @@ GLModel::Geometry smooth_torus(unsigned int primary_resolution, unsigned int sec
     return data;
 }
 
-std::shared_ptr<GLModel> init_plane_data(const indexed_triangle_set &its, const std::vector<int> &triangle_indices)
+std::shared_ptr<GLModel> init_plane_data(const indexed_triangle_set &its, const std::vector<int> &triangle_indices,  float normal_offset)
 {
     GLModel::Geometry init_data;
     init_data.format = {GUI::GLModel::PrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3};
@@ -1408,11 +1408,15 @@ std::shared_ptr<GLModel> init_plane_data(const indexed_triangle_set &its, const 
     init_data.reserve_vertices(3 * triangle_indices.size());
     unsigned int i = 0;
     for (int idx : triangle_indices) {
-        const Vec3f &v0 = its.vertices[its.indices[idx][0]];
-        const Vec3f &v1 = its.vertices[its.indices[idx][1]];
-        const Vec3f &v2 = its.vertices[its.indices[idx][2]];
-
+        Vec3f v0 = its.vertices[its.indices[idx][0]];
+        Vec3f v1 = its.vertices[its.indices[idx][1]];
+        Vec3f v2 = its.vertices[its.indices[idx][2]];
         const Vec3f n = (v1 - v0).cross(v2 - v0).normalized();
+        if (std::abs(normal_offset) > 0.0) {
+            v0 = v0 + n * normal_offset;
+            v1 = v1 + n * normal_offset;
+            v2 = v2 + n * normal_offset;
+        }
         init_data.add_vertex(v0, n);
         init_data.add_vertex(v1, n);
         init_data.add_vertex(v2, n);
