@@ -1,6 +1,6 @@
 {
 	"type": "process",
-	"setting_id": "GP004",
+	"setting_id": "GP_Qidi_062",
 	"name": "0.25mm Draft @Qidi Q1 Pro",
 	"from": "system",
 	"inherits": "fdm_process_qidi_x3_common",

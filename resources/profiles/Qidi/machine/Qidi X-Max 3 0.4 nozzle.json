@@ -1,6 +1,6 @@
 {
 	"type": "machine",
-	"setting_id": "GM001",
+	"setting_id": "GM_Qidi_008",
 	"name": "Qidi X-Max 3 0.4 nozzle",
 	"from": "system",
 	"instantiation": "true",

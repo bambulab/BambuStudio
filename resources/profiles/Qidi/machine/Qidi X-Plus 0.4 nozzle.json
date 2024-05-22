@@ -1,6 +1,6 @@
 {
 	"type": "machine",
-	"setting_id": "GM001",
+	"setting_id": "GM_Qidi_011",
 	"name": "Qidi X-Plus 0.4 nozzle",
 	"from": "system",
 	"instantiation": "true",

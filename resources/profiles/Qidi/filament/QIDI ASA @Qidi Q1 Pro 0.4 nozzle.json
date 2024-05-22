@@ -1,7 +1,11 @@
-{"type": "filament",
-"filament_id": "GFB99",
-"setting_id": "GFSA04",
-"instantiation": "true",
+{
+    "type": "filament",
+    "filament_id": "GFB01",
+    "setting_id": "GFSB01_Qidi_03",
+    "name": "QIDI ASA @Qidi Q1 Pro 0.4 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "QIDI ASA",
     "activate_chamber_temp_control": [
         "0"
     ],
@@ -11,16 +15,6 @@
     "fan_cooling_layer_time": [
         "40"
     ],
-    "filament_max_volumetric_speed": [
-        "16"
-    ],
-    "filament_settings_id": [
-        "Qidi Generic ASA @Qidi Q1 Pro 0.4 nozzle"
-    ],
-    "from": "system",
-    "inherits": "QIDI ASA",
-    "is_custom_defined": "0",
-    "name": "QIDI ASA @Qidi Q1 Pro 0.4 nozzle",
     "nozzle_temperature": [
         "255"
     ],
@@ -38,5 +32,5 @@
     ],
     "compatible_printers": [
         "Qidi Q1 Pro 0.4 nozzle"
-            ]
+    ]
 }

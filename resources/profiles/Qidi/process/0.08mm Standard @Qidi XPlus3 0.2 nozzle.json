@@ -1,6 +1,6 @@
 {
   "type": "process",
-  "setting_id": "GP025",
+  "setting_id": "GP_Qidi_007",
   "name": "0.08mm Standard @Qidi XPlus3 0.2 nozzle",
   "from": "system",
   "instantiation": "true",

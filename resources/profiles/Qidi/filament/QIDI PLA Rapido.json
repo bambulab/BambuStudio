@@ -1,7 +1,7 @@
 {
     "type": "filament",
-	"filament_id": "GFL99",
-    "setting_id": "GFSL99",
+    "filament_id": "GFA00",
+    "setting_id": "GFSA00_Qidi_00",
     "name": "QIDI PLA Rapido",
     "from": "system",
     "instantiation": "true",
