@@ -1,6 +1,6 @@
 {
     "type": "machine",
-    "setting_id": "GM008",
+    "setting_id": "GM_Qidi_016",
     "name": "Qidi X-Smart 3 0.2 nozzle",
     "from": "system",
     "instantiation": "true",

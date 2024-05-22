@@ -1,6 +1,6 @@
 {
   "type": "process",
-  "setting_id": "GP035",
+  "setting_id": "GP_Qidi_108",
   "name": "0.56mm Standard @Qidi XSmart3 0.8 nozzle",
   "from": "system",
   "instantiation": "true",

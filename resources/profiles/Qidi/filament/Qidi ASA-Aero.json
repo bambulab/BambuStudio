@@ -1,8 +1,8 @@
 {
     "type": "filament",
-    "filament_id": "GFB99",
-    "setting_id": "GFSA04",
-    "name": "Qidi ASA-Aero",
+    "filament_id": "GFB01",
+    "setting_id": "GFSB01_Qidi_06",
+    "name": "QIDI ASA-Aero",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_asa",
@@ -14,11 +14,11 @@
     ],
     "nozzle_temperature_initial_layer": [
         "250"
-      ],
-      "nozzle_temperature": [
+    ],
+    "nozzle_temperature": [
         "270"
-      ],
-      "cool_plate_temp" : [
+    ],
+    "cool_plate_temp" : [
         "90"
     ],
     "eng_plate_temp" : [
@@ -42,7 +42,7 @@
     "textured_plate_temp_initial_layer" : [
         "90"
     ],  
-      "enable_pressure_advance": [
+    "enable_pressure_advance": [
         "1"
     ],
     "pressure_advance": [
