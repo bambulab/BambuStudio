@@ -660,8 +660,8 @@ void TextCtrl::BUILD() {
     static Builder<wxTextCtrl> builder1;
     static Builder<::TextInput> builder2;
     auto temp = m_opt.multiline
-        ? (wxWindow*)builder1.build(m_parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE)
-        : builder2.build(m_parent, "", "", "", wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+        ? (wxWindow*)builder1.build(m_parent, wxID_ANY, "", wxDefaultPosition, size, wxTE_MULTILINE)
+        : builder2.build(m_parent, "", "", "", wxDefaultPosition, size, wxTE_PROCESS_ENTER);
     temp->SetLabel(_L(m_opt.sidetext));
 	auto text_ctrl = m_opt.multiline ? (wxTextCtrl *)temp : ((TextInput *) temp)->GetTextCtrl();
     text_ctrl->SetLabel(text_value);
@@ -1010,7 +1010,7 @@ void SpinCtrl::BUILD() {
 	const int max_val = m_opt.max < 2147483647 ? m_opt.max : 2147483647;
 
     static Builder<SpinInput> builder;
-	auto temp = builder.build(m_parent, "", "", wxDefaultPosition, wxDefaultSize,
+	auto temp = builder.build(m_parent, "", "", wxDefaultPosition, size,
 		wxSP_ARROW_KEYS);
     temp->SetSize(size);
     temp->SetLabel(_L(m_opt.sidetext));
@@ -1199,7 +1199,7 @@ void Choice::BUILD()
             && m_list == nullptr) {
         m_is_editable = true;
         static Builder<choice_ctrl> builder1;
-        temp = builder1.build(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxTE_PROCESS_ENTER);
+        temp = builder1.build(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size, 0, nullptr, wxTE_PROCESS_ENTER);
     }
     else {
 #ifdef UNDEIFNED__WXOSX__ // __WXOSX__ // BBS
@@ -1212,7 +1212,7 @@ void Choice::BUILD()
         temp->Create(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size, 0, nullptr);
 #else
         static Builder<choice_ctrl> builder2;
-        temp = builder2.build(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
+        temp = builder2.build(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size, 0, nullptr, wxCB_READONLY);
 #endif //__WXOSX__
     }
     temp->SetSize(size);
