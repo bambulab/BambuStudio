@@ -330,11 +330,6 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     auto vertical_only = m_vertical_only;
     if (m_imgui->bbl_checkbox(_L("Vertical"), vertical_only)) {
         m_vertical_only = vertical_only;
-        if (m_vertical_only) {
-            m_is_front_view = true;
-           update_front_view_radian();
-            change_camera_view_angle(m_front_view_radian);
-        }
     }
     auto is_front_view = m_is_front_view;
     m_imgui->bbl_checkbox(_L("View: keep horizontal"), is_front_view);
