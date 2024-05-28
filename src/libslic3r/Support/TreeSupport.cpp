@@ -1152,7 +1152,7 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
 void TreeSupport::create_tree_support_layers()
 {
     int layer_id = 0;
-    { //create raft layers
+    if (m_raft_layers > 0) { //create raft layers
         coordf_t raft_print_z = 0.f;
         coordf_t raft_slice_z = 0.f;
         {
