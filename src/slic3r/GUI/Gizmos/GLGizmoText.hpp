@@ -26,7 +26,7 @@ private:
     bool m_bold = true;
     bool m_italic = false;
     float m_thickness = 2.f;
-    float m_thickness_min = 0.f;
+    float m_thickness_min = 0.01f;
     float m_thickness_max = 999.99f;
     float m_embeded_depth = 0.f;
     float m_rotate_angle = 0;
