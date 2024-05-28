@@ -1,28 +1,29 @@
 #include <math.h>
 #include <chrono>
+#include <math.h>
 
-#include "MinimumSpanningTree.hpp"
-#include "TreeSupport.hpp"
-#include "Print.hpp"
-#include "Layer.hpp"
-#include "Fill/FillBase.hpp"
-#include "Fill/FillConcentric.hpp"
-#include "CurveAnalyzer.hpp"
-#include "SVG.hpp"
-#include "ShortestPath.hpp"
-#include "I18N.hpp"
-#include <libnest2d/backends/libslic3r/geometries.hpp>
-#include <libnest2d/placers/nfpplacer.hpp>
-#include "TreeModelVolumes.hpp"
-#include "TreeSupport3D.hpp"
-#include "SupportMaterial.hpp"
-#include "Fill/FillBase.hpp"
 #include "BuildVolume.hpp"
 #include "ClipperUtils.hpp"
+#include "CurveAnalyzer.hpp"
+#include "Fill/FillBase.hpp"
+#include "Fill/FillBase.hpp"
+#include "Fill/FillConcentric.hpp"
+#include "I18N.hpp"
+#include "Layer.hpp"
+#include "MinimumSpanningTree.hpp"
+#include "Print.hpp"
+#include "ShortestPath.hpp"
+#include "SupportCommon.hpp"
+#include "SVG.hpp"
+#include "TreeSupportCommon.hpp"
+#include "TreeSupport.hpp"
+#include "TreeSupport3D.hpp"
+#include <libnest2d/backends/libslic3r/geometries.hpp>
+#include <libnest2d/placers/nfpplacer.hpp>
 
-#include <tbb/concurrent_vector.h>
-#include <tbb/concurrent_unordered_set.h>
 #include <tbb/blocked_range.h>
+#include <tbb/concurrent_unordered_set.h>
+#include <tbb/concurrent_vector.h>
 #include <tbb/parallel_for.h>
 #include <tbb/parallel_for_each.h>
 
@@ -618,21 +619,9 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
     SupportMaterialPattern support_pattern  = m_object_config->support_base_pattern;
     if (support_style == smsTreeHybrid && support_pattern == smpDefault)
         support_pattern = smpRectilinear;
-    m_support_params.base_fill_pattern =
-        support_pattern == smpLightning ? ipLightning :
-        support_pattern == smpHoneycomb ? ipHoneycomb :
-        m_support_params.support_density > 0.95 || m_support_params.with_sheath ? ipRectilinear : ipSupportBase;
 
-    m_support_params.interface_fill_pattern = (m_support_params.interface_density > 0.95 ? ipRectilinear : ipSupportBase);
-    if (m_object_config->support_interface_pattern == smipGrid)
-        m_support_params.contact_fill_pattern = ipGrid;
-    else if (m_object_config->support_interface_pattern == smipRectilinearInterlaced)
-        m_support_params.contact_fill_pattern = ipRectilinear;
-    else
-        m_support_params.contact_fill_pattern = (m_object_config->support_interface_pattern == smipAuto && m_slicing_params.soluble_interface) ||
-        m_object_config->support_interface_pattern == smipConcentric ?
-        ipConcentric :
-        (m_support_params.interface_density > 0.95 ? ipRectilinear : ipSupportBase);
+    if(support_pattern == smpLightning)
+        m_support_params.base_fill_pattern = ipLightning;
     m_support_params.support_extrusion_width = m_object_config->support_line_width.value > 0 ? m_object_config->support_line_width : m_object_config->line_width;
     // Check if set to zero, use default if so.
     if (m_support_params.support_extrusion_width <= 0.0) {
@@ -1657,8 +1646,6 @@ void deleteDirectoryContents(const std::filesystem::path& dir)
 
 void TreeSupport::generate()
 {
-    auto t_start = std::chrono::high_resolution_clock::now();
-
     if (support_style == smsTreeOrganic) {
         generate_tree_support_3D(*m_object, this, this->throw_on_cancel);
         return;
@@ -1675,9 +1662,6 @@ void TreeSupport::generate()
     create_tree_support_layers();
     m_ts_data = m_object->alloc_tree_support_preview_cache();
     m_ts_data->is_slim = is_slim;
-
-    // Generate contact points of tree support
-    std::vector<std::vector<SupportNode*>> contact_nodes(m_object->layers().size());
 
 #if USE_SUPPORT_3D
     std::vector<TreeSupport3D::SupportElements> move_bounds(m_highest_overhang_layer + 1);
@@ -1713,22 +1697,22 @@ void TreeSupport::generate()
         TreeSupport3D::generate_initial_areas(*m_object, *m_model_volumes.get(), tree_support_3d_config, overhangs, move_bounds, top_contacts, layer_storage, throw_on_cancel);
     }
 #endif
-    generate_contact_points(contact_nodes);
+    generate_contact_points();
     profiler.stage_finish(STAGE_GENERATE_CONTACT_NODES);
 
 
     //Drop nodes to lower layers.
     profiler.stage_start(STAGE_DROP_DOWN_NODES);
     m_object->print()->set_status(60, _u8L("Generating support"));
-    drop_nodes(contact_nodes);
+    drop_nodes();
     profiler.stage_finish(STAGE_DROP_DOWN_NODES);
 
-    smooth_nodes(contact_nodes);// , tree_support_3d_config);
+    smooth_nodes();// , tree_support_3d_config);
 
     //Generate support areas.
     profiler.stage_start(STAGE_DRAW_CIRCLES);
     m_object->print()->set_status(65, _u8L("Generating support"));
-    draw_circles(contact_nodes);
+    draw_circles();
     profiler.stage_finish(STAGE_DRAW_CIRCLES);
 
 
@@ -1775,7 +1759,6 @@ coordf_t TreeSupport::calc_branch_radius(coordf_t base_radius, coordf_t mm_to_to
     {
         radius = mm_to_top;// this is a 45 degree tip
     }
-
     radius = std::max(radius, MIN_BRANCH_RADIUS);
     radius = std::min(radius, MAX_BRANCH_RADIUS);
     // if have interface layers, radius should be larger
@@ -1943,7 +1926,7 @@ Polygons TreeSupport::get_trim_support_regions(
     return polygons_trimming;
 }
 
-void TreeSupport::draw_circles(const std::vector<std::vector<SupportNode*>>& contact_nodes)
+void TreeSupport::draw_circles()
 {
     const PrintObjectConfig &config = m_object->config();
     const Print* print = m_object->print();
@@ -2045,11 +2028,11 @@ void TreeSupport::draw_circles(const std::vector<std::vector<SupportNode*>>& con
                     }
                 };
 
-                BOOST_LOG_TRIVIAL(debug) << "circles at layer " << layer_nr << " contact nodes size=" << contact_nodes[layer_nr].size();
+                BOOST_LOG_TRIVIAL(debug) << "circles at layer " << layer_nr << " contact nodes size=" << curr_layer_nodes.size();
                 //Draw the support areas and add the roofs appropriately to the support roof instead of normal areas.
-                ts_layer->lslices.reserve(contact_nodes[layer_nr].size());
+                ts_layer->lslices.reserve(curr_layer_nodes.size());
                 ExPolygons area_poly;  // the polygon node area which will be printed as normal support
-                for (const SupportNode* p_node : contact_nodes[layer_nr])
+                for (const SupportNode* p_node : curr_layer_nodes)
                 {
                     if (print->canceled())
                         break;
@@ -2441,7 +2424,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<SupportNode*>>& con
 
 double SupportNode::diameter_angle_scale_factor;
 
-void TreeSupport::drop_nodes(std::vector<std::vector<SupportNode*>>& contact_nodes)
+void TreeSupport::drop_nodes()
 {
     const PrintObjectConfig &config = m_object->config();
     // Use Minimum Spanning Tree to connect the points on each layer and move them while dropping them down.
@@ -2477,7 +2460,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<SupportNode*>>& contact_nod
         return move_dist;
     };
 
-    m_ts_data->layer_heights = plan_layer_heights(contact_nodes);
+    m_ts_data->layer_heights = plan_layer_heights();
     std::vector<LayerHeightData> &layer_heights = m_ts_data->layer_heights;
     if (layer_heights.empty()) return;
 
@@ -2540,7 +2523,6 @@ void TreeSupport::drop_nodes(std::vector<std::vector<SupportNode*>>& contact_nod
         coordf_t height_next = layer_heights[layer_nr_next].height;
 
         std::deque<std::pair<size_t, SupportNode*>> unsupported_branch_leaves; // All nodes that are leaves on this layer that would result in unsupported ('mid-air') branches.
-        const Layer* ts_layer = m_object->get_support_layer(layer_nr);
 
         m_object->print()->set_status(60 + int(10 * (1 - float(layer_nr) / contact_nodes.size())), _u8L("Generating support"));// (boost::format(_u8L("Support: propagate branches at layer %d")) % layer_nr).str());
 
@@ -2803,7 +2785,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<SupportNode*>>& contact_nod
                 // 1. do not merge neighbors under 5mm
                 // 2. Only merge node with single neighbor in distance between [max_move_distance, 10mm/layer_height]
                 float dist2_to_first_neighbor = neighbours.empty() ? 0 : vsize2_with_unscale(neighbours[0] - node.position);
-                if (ts_layer->print_z > DO_NOT_MOVER_UNDER_MM &&
+                if (node.print_z > DO_NOT_MOVER_UNDER_MM &&
                     (neighbours.size() > 1 || (neighbours.size() == 1 && dist2_to_first_neighbor >= max_move_distance2))) // Only nodes that aren't about to collapse.
                 {
                     // Move towards the average position of all neighbours.
@@ -2819,7 +2801,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<SupportNode*>>& contact_nod
 
                         coordf_t branch_bottom_radius = calc_branch_radius(branch_radius, node.dist_mm_to_top + node.print_z, diameter_angle_scale_factor);
                         coordf_t neighbour_bottom_radius = calc_branch_radius(branch_radius, neighbour_node->dist_mm_to_top + neighbour_node->print_z, diameter_angle_scale_factor);
-                        double max_converge_distance = tan_angle * (ts_layer->print_z - DO_NOT_MOVER_UNDER_MM) + std::max(branch_bottom_radius, neighbour_bottom_radius);
+                        double max_converge_distance = tan_angle * (p_node->print_z - DO_NOT_MOVER_UNDER_MM) + std::max(branch_bottom_radius, neighbour_bottom_radius);
                         if (dist2_to_neighbor > max_converge_distance * max_converge_distance) continue;
 
                         if (is_line_cut_by_contour(node.position, neighbour)) continue;
@@ -2967,7 +2949,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<SupportNode*>>& contact_nod
 
 }
 
-void TreeSupport::smooth_nodes(std::vector<std::vector<SupportNode *>> &contact_nodes)
+void TreeSupport::smooth_nodes()
 {
     for (int layer_nr = 0; layer_nr < contact_nodes.size(); layer_nr++) {
         std::vector<SupportNode *> &curr_layer_nodes = contact_nodes[layer_nr];
@@ -3039,7 +3021,7 @@ void TreeSupport::smooth_nodes(std::vector<std::vector<SupportNode *>> &contact_
 }
 
 #if USE_SUPPORT_3D
-void TreeSupport::smooth_nodes(std::vector<std::vector<SupportNode*>>& contact_nodes, const TreeSupport3D::TreeSupportSettings& config)
+void TreeSupport::smooth_nodes(const TreeSupport3D::TreeSupportSettings& config)
 {
     const coordf_t branch_radius = m_object_config->tree_support_branch_diameter.value / 2;
     const coordf_t branch_radius_scaled = scale_(branch_radius);
@@ -3115,23 +3097,23 @@ void TreeSupport::smooth_nodes(std::vector<std::vector<SupportNode*>>& contact_n
         break;
 
 
-        std::vector<std::pair<Node*, int>> map_downwards_old;
-        std::vector<std::pair<Node*, int>> map_downwards_new;
+        std::vector<std::pair<SupportNode*, int>> map_downwards_old;
+        std::vector<std::pair<SupportNode*, int>> map_downwards_new;
         linear_data_layers.emplace_back(0);
         for (LayerIndex layer_idx = 0; layer_idx < LayerIndex(contact_nodes.size()); ++layer_idx) {
             std::sort(map_downwards_old.begin(), map_downwards_old.end(), [](auto& l, auto& r) { return l.first < r.first;  });
             auto& layer = contact_nodes[layer_idx];
             for (size_t elem_idx = 0; elem_idx < layer.size(); ++elem_idx) {
-                Node* node = layer[elem_idx];
+                SupportNode* node = layer[elem_idx];
                 int child = -1;
                 if (layer_idx > 0) {
-                    auto it = std::lower_bound(map_downwards_old.begin(), map_downwards_old.end(), node, [](auto& l, const Node* r) { return l.first < r; });
+                    auto it = std::lower_bound(map_downwards_old.begin(), map_downwards_old.end(), node, [](auto& l, const SupportNode* r) { return l.first < r; });
                     if (it != map_downwards_old.end() && it->first == node) {
                         child = it->second;
                         // Only one link points to a node above from below.
                         assert(!(++it != map_downwards_old.end() && it->first == node));
                     }
-                    const Node* pchild = child == -1 ? nullptr : contact_nodes[layer_idx - 1][child];
+                    const SupportNode* pchild = child == -1 ? nullptr : contact_nodes[layer_idx - 1][child];
                 }
                 TreeSupport3D::SupportElement* elem = &move_bounds[node2elemIdx[node]];
                 if (node->parent) {
@@ -3159,7 +3141,7 @@ void TreeSupport::smooth_nodes(std::vector<std::vector<SupportNode*>>& contact_n
 }
 #endif
 
-std::vector<LayerHeightData> TreeSupport::plan_layer_heights(std::vector<std::vector<SupportNode *>> &contact_nodes)
+std::vector<LayerHeightData> TreeSupport::plan_layer_heights()
 {
     std::vector<LayerHeightData> layer_heights(contact_nodes.size());
     std::map<int, std::pair<coordf_t,coordf_t>> bounds; // layer_nr:(print_z, height)
@@ -3257,7 +3239,7 @@ std::vector<LayerHeightData> TreeSupport::plan_layer_heights(std::vector<std::ve
     return layer_heights;
 }
 
-void TreeSupport::generate_contact_points(std::vector<std::vector<SupportNode*>>& contact_nodes)
+void TreeSupport::generate_contact_points()
 {
     const PrintObjectConfig &config = m_object->config();
     const coordf_t point_spread = scale_(config.tree_support_branch_distance.value);
@@ -3315,8 +3297,11 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<SupportNode*>>
     // fix bug of generating support for very thin objects
     if (m_object->layers().size() <= z_distance_top_layers + 1)
         return;
-    //if (m_object->support_layer_count() <= m_raft_layers)
-    //    return;
+
+    contact_nodes.clear();
+    contact_nodes.resize(m_object->layers().size());
+
+    tbb::spin_mutex mtx;
 
     int      nonempty_layers = 0;
     tbb::concurrent_vector<Slic3r::Vec3f> all_nodes;
