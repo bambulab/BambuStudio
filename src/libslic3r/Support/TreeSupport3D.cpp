@@ -19,7 +19,7 @@
 #include "Polygon.hpp"
 #include "Polyline.hpp"
 #include "MutablePolygon.hpp"
-#include "SupportMaterial.hpp"
+#include "SupportCommon.hpp"
 #include "TriangleMeshSlicer.hpp"
 #include "TreeSupport.hpp"
 #include "I18N.hpp"
@@ -62,16 +62,6 @@ namespace Slic3r
 
 namespace TreeSupport3D
 {
-
-enum class LineStatus
-{
-    INVALID,
-    TO_MODEL,
-    TO_MODEL_GRACIOUS,
-    TO_MODEL_GRACIOUS_SAFE,
-    TO_BP,
-    TO_BP_SAFE
-};
 
 using LineInformation = std::vector<std::pair<Point, LineStatus>>;
 using LineInformations = std::vector<LineInformation>;
@@ -348,6 +338,28 @@ static std::vector<std::pair<TreeSupportSettings, std::vector<size_t>>> group_me
         // The actual precalculation happens in TreeModelVolumes.
         volumes.precalculate(*print.get_object(object_ids.front()), max_layer, throw_on_cancel);
     return max_layer;
+}
+
+// picked from convert_lines_to_internal()
+[[nodiscard]] LineStatus get_avoidance_status(const Point& p, coord_t radius, LayerIndex layer_idx,
+    const TreeModelVolumes& volumes, const TreeSupportSettings& config)
+{
+    const bool min_xy_dist = config.xy_distance > config.xy_min_distance;
+
+    LineStatus type = LineStatus::INVALID;
+
+    if (!contains(volumes.getAvoidance(radius, layer_idx, TreeModelVolumes::AvoidanceType::FastSafe, false, min_xy_dist), p))
+        type = LineStatus::TO_BP_SAFE;
+    else if (!contains(volumes.getAvoidance(radius, layer_idx, TreeModelVolumes::AvoidanceType::Fast, false, min_xy_dist), p))
+        type = LineStatus::TO_BP;
+    else if (config.support_rests_on_model && !contains(volumes.getAvoidance(radius, layer_idx, TreeModelVolumes::AvoidanceType::FastSafe, true, min_xy_dist), p))
+        type = LineStatus::TO_MODEL_GRACIOUS_SAFE;
+    else if (config.support_rests_on_model && !contains(volumes.getAvoidance(radius, layer_idx, TreeModelVolumes::AvoidanceType::Fast, true, min_xy_dist), p))
+        type = LineStatus::TO_MODEL_GRACIOUS;
+    else if (config.support_rests_on_model && !contains(volumes.getCollision(radius, layer_idx, min_xy_dist), p))
+        type = LineStatus::TO_MODEL;
+
+    return type;
 }
 
 /*!
@@ -1201,15 +1213,6 @@ void sample_overhang_area(
     }
 }
 
-inline SupportGeneratorLayer& layer_allocate(
-    SupportGeneratorLayerStorage& layer_storage,
-    SupporLayerType                    layer_type,
-    const SlicingParameters           &slicing_params,
-    size_t                             layer_idx)
-{
-    auto& layer = layer_storage.allocate(layer_type);
-    return layer_initialize(layer, layer_type, slicing_params, layer_idx);
-}
 
 /*!
  * \brief Creates the initial influence areas (that can later be propagated down) by placing them below the overhang.
@@ -1932,7 +1935,7 @@ static void increase_areas_one_layer(
                 inc_wo_collision.clear();
                 if (!settings.no_error) { 
                     // ERROR CASE
-                    // if the area becomes for whatever reason something that clipper sees as a line, offset would stop working, so ensure that even if if wrongly would be a line, it still actually has an area that can be increased
+                    // if the area becomes for whatever reason something that clipper sees as a line, offset would stop working, so ensure that even if it would be a line wrongly, it still actually has an area that can be increased
                     Polygons lines_offset = offset(to_polylines(parent.influence_area), scaled<float>(0.005), jtMiter, 1.2);
                     Polygons base_error_area = union_(parent.influence_area, lines_offset);
                     result = increase_single_area(volumes, config, settings, layer_idx, parent, 
@@ -4097,7 +4100,7 @@ void slice_branches(
         if (! slices[layer_idx].empty()) {
             SupportGeneratorLayer *&l = intermediate_layers[layer_idx];
             if (l == nullptr)
-                l = &layer_allocate(layer_storage, SupporLayerType::sltBase, slicing_params, layer_idx);
+                l = &layer_allocate(layer_storage, SupporLayerType::sltBase, slicing_params, config, layer_idx);
             append(l->polygons, to_polygons(std::move(slices[layer_idx])));
         }
 
@@ -4312,7 +4315,7 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
 
         // Don't fill in the tree supports, make them hollow with just a single sheath line.
         print.set_status(69, _L("Generating support"));
-        generate_support_toolpaths(print_object, print_object.support_layers(), print_object.config(), support_params, print_object.slicing_parameters(),
+        generate_support_toolpaths(print_object.support_layers(), print_object.config(), support_params, print_object.slicing_parameters(),
             raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers);
 
  #if 0
@@ -4785,7 +4788,9 @@ void generate_tree_support_3D(PrintObject &print_object, TreeSupport* tree_suppo
     }
 
     Points bedpts = tree_support->m_machine_border.contour.points;
-    BuildVolume build_volume{ Pointfs{ unscaled(bedpts[0]), unscaled(bedpts[1]),unscaled(bedpts[2]),unscaled(bedpts[3])}, tree_support->m_print_config->printable_height };
+    Pointfs bedptsf;
+    std::transform(bedpts.begin(), bedpts.end(), std::back_inserter(bedptsf), [](const Point &p) { return unscale(p); });
+    BuildVolume build_volume{ bedptsf, tree_support->m_print_config->printable_height };
 
     TreeSupport3D::generate_support_areas(*print_object.print(), tree_support, build_volume, { idx }, throw_on_cancel);
 }

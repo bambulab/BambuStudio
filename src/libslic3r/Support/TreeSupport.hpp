@@ -378,7 +378,7 @@ public:
     void detect_overhangs(bool check_support_necessity = false);
 
     int  avg_node_per_layer = 0;
-    float nodes_angle       = 0;
+    float nodes_angle = 0;
     bool  has_sharp_tails = false;
     bool  has_cantilever = false;
     double max_cantilever_dist = 0;
@@ -405,6 +405,7 @@ private:
      * Lazily computes volumes as needed.
      *  \warning This class is NOT currently thread-safe and should not be accessed in OpenMP blocks
      */
+    std::vector<std::vector<SupportNode*>> contact_nodes;
     std::shared_ptr<TreeSupportData> m_ts_data;
     std::unique_ptr<TreeSupport3D::TreeModelVolumes> m_model_volumes;
     PrintObject    *m_object;
@@ -440,7 +441,7 @@ private:
      * save the resulting support polygons to.
      * \param contact_nodes The nodes to draw as support.
      */
-    void draw_circles(const std::vector<std::vector<SupportNode*>>& contact_nodes);
+    void draw_circles();
 
     /*!
      * \brief Drops down the nodes of the tree support towards the build plate.
@@ -454,18 +455,18 @@ private:
      * dropped down. The nodes are dropped to lower layers inside the same
      * vector of layers.
      */
-    void drop_nodes(std::vector<std::vector<SupportNode *>> &contact_nodes);
+    void drop_nodes();
 
-    void smooth_nodes(std::vector<std::vector<SupportNode *>> &contact_nodes);
+    void smooth_nodes();
 
-    void smooth_nodes(std::vector<std::vector<SupportNode*>>& contact_nodes, const TreeSupport3D::TreeSupportSettings& config);
+    void smooth_nodes(const TreeSupport3D::TreeSupportSettings& config);
 
     /*! BBS: MusangKing: maximum layer height
      * \brief Optimize the generation of tree support by pre-planning the layer_heights
      * 
     */
 
-    std::vector<LayerHeightData> plan_layer_heights(std::vector<std::vector<SupportNode *>> &contact_nodes);
+    std::vector<LayerHeightData> plan_layer_heights();
     /*!
      * \brief Creates points where support contacts the model.
      *
@@ -479,7 +480,7 @@ private:
      * \return For each layer, a list of points where the tree should connect
      * with the model.
      */
-    void generate_contact_points(std::vector<std::vector<SupportNode*>>& contact_nodes);
+    void generate_contact_points();
 
     /*!
      * \brief Add a node to the next layer.

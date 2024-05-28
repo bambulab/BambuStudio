@@ -281,6 +281,8 @@ set(lisbslic3r_sources
     SlicesToTriangleMesh.cpp
     SlicingAdaptive.cpp
     SlicingAdaptive.hpp
+    Support/SupportCommon.cpp
+    Support/SupportCommon.hpp
     Support/SupportMaterial.cpp
     Support/SupportMaterial.hpp
     Support/TreeSupport.hpp
@@ -290,6 +292,7 @@ set(lisbslic3r_sources
     Support/TreeModelVolumes.hpp
     Support/TreeModelVolumes.cpp
     Support/TreeSupportCommon.hpp
+    Support/SupportParameters.hpp
     MinimumSpanningTree.hpp
     MinimumSpanningTree.cpp
     Surface.cpp
