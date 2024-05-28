@@ -763,9 +763,6 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
             m_vertical_only = vertical_only;
             if (m_vertical_only) {
                 m_horizontal_only = false;
-                m_is_front_view   = true;
-                update_front_view_radian();
-                change_camera_view_angle(m_front_view_radian);
             }
         }
 
@@ -776,9 +773,6 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
             m_horizontal_only = horizontal_only;
             if (m_horizontal_only) {
                 m_vertical_only = false;
-                m_is_front_view = true;
-                update_front_view_radian();
-                change_camera_view_angle(m_front_view_radian);
             }
         }
 
