@@ -309,6 +309,9 @@ void CalibrationWizard::recover_preset_info(MachineObject *obj)
 
 void CalibrationWizard::back_preset_info(MachineObject *obj, bool cali_finish, bool back_cali_flag)
 {
+    if (!obj)
+        return;
+
     PrinterCaliInfo printer_cali_info;
     printer_cali_info.dev_id           = obj->dev_id;
     printer_cali_info.cali_finished    = cali_finish;
@@ -467,10 +470,10 @@ void PressureAdvanceWizard::on_cali_action(wxCommandEvent& evt)
 
 void PressureAdvanceWizard::update(MachineObject* obj)
 {
+    CalibrationWizard::update(obj);
+
     if (!obj)
         return;
-
-    CalibrationWizard::update(obj);
 
     if (!m_show_result_dialog) {
         if (obj->cali_version != -1 && obj->cali_version != cali_version) {
