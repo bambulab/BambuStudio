@@ -389,6 +389,7 @@ public:
     CutConnectors cut_connectors;
     CutObjectBase cut_id;
 
+    std::vector<const ModelVolume*> const_volumes() const {return std::vector<const ModelVolume*>(volumes.begin(), volumes.end());}
     Model*                  get_model() { return m_model; }
     const Model*            get_model() const { return m_model; }
     // BBS: production extension
