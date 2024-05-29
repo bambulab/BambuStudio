@@ -11561,6 +11561,29 @@ void Plater::export_core_3mf()
     export_3mf(path_u8, SaveStrategy::Silence);
 }
 
+// OK if fail_msg is empty
+std::string check_boolean_possible(const std::vector<const ModelVolume*>& volumes) {
+    std::string fail_msg;
+    std::vector<csg::CSGPart> csgmesh;
+    csgmesh.reserve(2 * volumes.size());
+    bool has_splitable_volume = csg::model_to_csgmesh(volumes, Transform3d::Identity(), std::back_inserter(csgmesh),
+        csg::mpartsPositive | csg::mpartsNegative);
+
+    if (auto fail_reason_name = csg::check_csgmesh_booleans(Range{ std::begin(csgmesh), std::end(csgmesh) }); std::get<0>(fail_reason_name) != csg::BooleanFailReason::OK) {
+        fail_msg = _u8L("Unable to perform boolean operation on model meshes. "
+            "You may fix the meshes and try agian.");
+        std::string name = std::get<1>(fail_reason_name);
+        std::map<csg::BooleanFailReason, std::string> fail_reasons = {
+            {csg::BooleanFailReason::OK, "OK"},
+            {csg::BooleanFailReason::MeshEmpty, Slic3r::format(_u8L("Reason: part \"%1%\" is empty."), name)},
+            {csg::BooleanFailReason::NotBoundAVolume, Slic3r::format(_u8L("Reason: part \"%1%\" does not bound a volume."), name)},
+            {csg::BooleanFailReason::SelfIntersect, Slic3r::format(_u8L("Reason: part \"%1%\" has self intersection."), name)},
+            {csg::BooleanFailReason::NoIntersection, Slic3r::format(_u8L("Reason: \"%1%\" and another part have no intersection."), name)} };
+        fail_msg += " " + fail_reasons[std::get<0>(fail_reason_name)];
+    }
+    return fail_msg;
+}
+
 // Following lambda generates a combined mesh for export with normals pointing outwards.
 TriangleMesh Plater::combine_mesh_fff(const ModelObject& mo, int instance_id, std::function<void(const std::string&)> notify_func)
 {
@@ -11568,22 +11591,11 @@ TriangleMesh Plater::combine_mesh_fff(const ModelObject& mo, int instance_id, st
 
     std::vector<csg::CSGPart> csgmesh;
     csgmesh.reserve(2 * mo.volumes.size());
-    bool has_splitable_volume = csg::model_to_csgmesh(mo, Transform3d::Identity(), std::back_inserter(csgmesh),
+    bool has_splitable_volume = csg::model_to_csgmesh(mo.const_volumes(), Transform3d::Identity(), std::back_inserter(csgmesh),
         csg::mpartsPositive | csg::mpartsNegative);
 
-    std::string fail_msg = _u8L("Unable to perform boolean operation on model meshes. "
-        "Only positive parts will be kept. You may fix the meshes and try agian.");
-    if (auto fail_reason_name = csg::check_csgmesh_booleans(Range{ std::begin(csgmesh), std::end(csgmesh) }); std::get<0>(fail_reason_name) != csg::BooleanFailReason::OK) {
-        std::string name = std::get<1>(fail_reason_name);
-        std::map<csg::BooleanFailReason, std::string> fail_reasons = {
-            {csg::BooleanFailReason::OK, "OK"},
-            {csg::BooleanFailReason::MeshEmpty, Slic3r::format( _u8L("Reason: part \"%1%\" is empty."), name)},
-            {csg::BooleanFailReason::NotBoundAVolume, Slic3r::format(_u8L("Reason: part \"%1%\" does not bound a volume."), name)},
-            {csg::BooleanFailReason::SelfIntersect, Slic3r::format(_u8L("Reason: part \"%1%\" has self intersection."), name)},
-            {csg::BooleanFailReason::NoIntersection, Slic3r::format(_u8L("Reason: \"%1%\" and another part have no intersection."), name)} };
-        fail_msg += " " + fail_reasons[std::get<0>(fail_reason_name)];
-    }
-    else {
+    std::string fail_msg = check_boolean_possible(mo.const_volumes());
+    if (fail_msg.empty()) {
         try {
             MeshBoolean::mcut::McutMeshPtr meshPtr = csg::perform_csgmesh_booleans_mcut(Range{ std::begin(csgmesh), std::end(csgmesh) });
             mesh = MeshBoolean::mcut::mcut_to_triangle_mesh(*meshPtr);
