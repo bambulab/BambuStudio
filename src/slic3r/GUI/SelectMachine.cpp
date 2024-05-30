@@ -2957,9 +2957,11 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
     if (selection_data_arr.size() == 6) {
         auto ams_colour      = wxColour(wxAtoi(selection_data_arr[0]), wxAtoi(selection_data_arr[1]), wxAtoi(selection_data_arr[2]), wxAtoi(selection_data_arr[3]));
         int  old_filament_id = (int) wxAtoi(selection_data_arr[5]);
-        change_default_normal(old_filament_id, ams_colour);
-        final_deal_edge_pixels_data(m_preview_thumbnail_data);
-        set_default_normal(m_preview_thumbnail_data);//do't reset ams
+        if (m_print_type == PrintFromType::FROM_NORMAL) {//todo:support sd card
+            change_default_normal(old_filament_id, ams_colour);
+            final_deal_edge_pixels_data(m_preview_thumbnail_data);
+            set_default_normal(m_preview_thumbnail_data); // do't reset ams
+        }
 
         int ctype = 0;
         std::vector<wxColour> material_cols;
@@ -3944,6 +3946,8 @@ void SelectMachineDialog::set_default()
         set_default_normal(m_plater->get_partplate_list().get_curr_plate()->thumbnail_data);
     }
     else if (m_print_type == PrintFromType::FROM_SDCARD_VIEW) {
+        //todo:unify_deal_thumbnail_data(input_data, no_light_data);this include m_print_type = PrintFromType::FROM_SDCARD_VIEW
+        //and notice update_page_turn_state(true)
         set_default_from_sdcard();
     }
 
@@ -4096,7 +4100,7 @@ void SelectMachineDialog::clone_thumbnail_data() {
         iter++;
     }
     //copy data
-    ThumbnailData &data = m_plater->get_partplate_list().get_curr_plate()->thumbnail_data;
+    auto &data   = m_cur_input_thumbnail_data;
     m_preview_thumbnail_data.reset();
     m_preview_thumbnail_data.set(data.width, data.height);
     if (data.width > 0 && data.height > 0) {
@@ -4126,8 +4130,8 @@ void SelectMachineDialog::record_edge_pixels_data()
         }
         return true;
     };
-    ThumbnailData &data = m_plater->get_partplate_list().get_curr_plate()->no_light_thumbnail_data;
-    ThumbnailData &origin_data = m_plater->get_partplate_list().get_curr_plate()->thumbnail_data;
+    ThumbnailData &data = m_cur_no_light_thumbnail_data;
+    ThumbnailData &origin_data = m_cur_input_thumbnail_data;
     if (data.width > 0 && data.height > 0) {
         m_edge_pixels.resize(data.width * data.height);
         for (unsigned int r = 0; r < data.height; ++r) {
@@ -4228,6 +4232,21 @@ void SelectMachineDialog::final_deal_edge_pixels_data(ThumbnailData &data)
 void SelectMachineDialog::updata_thumbnail_data_after_connected_printer()
 {
     // change thumbnail_data
+    ThumbnailData &input_data          = m_plater->get_partplate_list().get_curr_plate()->thumbnail_data;
+    ThumbnailData &no_light_data = m_plater->get_partplate_list().get_curr_plate()->no_light_thumbnail_data;
+    if (input_data.width == 0 || input_data.height == 0 || no_light_data.width == 0 || no_light_data.height == 0) {
+        wxGetApp().plater()->update_all_plate_thumbnails(false);
+    }
+    unify_deal_thumbnail_data(input_data, no_light_data);
+}
+
+void SelectMachineDialog::unify_deal_thumbnail_data(ThumbnailData &input_data, ThumbnailData &no_light_data) {
+    if (input_data.width == 0 || input_data.height == 0 || no_light_data.width == 0 || no_light_data.height == 0) {
+        BOOST_LOG_TRIVIAL(error) << "SelectMachineDialog::no_light_data is empty,error";
+        return;
+    }
+    m_cur_input_thumbnail_data    = input_data;
+    m_cur_no_light_thumbnail_data = no_light_data;
     clone_thumbnail_data();
     MaterialHash::iterator iter               = m_materialList.begin();
     bool                   is_connect_printer = true;
@@ -4263,8 +4282,8 @@ void SelectMachineDialog::change_default_normal(int old_filament_id, wxColour te
             return;
         }
     }
-    ThumbnailData& data =m_plater->get_partplate_list().get_curr_plate()->thumbnail_data;
-    ThumbnailData& no_light_data = m_plater->get_partplate_list().get_curr_plate()->no_light_thumbnail_data;
+    ThumbnailData& data = m_cur_input_thumbnail_data;
+    ThumbnailData& no_light_data = m_cur_no_light_thumbnail_data;
     if (data.width > 0 && data.height > 0 && data.width == no_light_data.width && data.height == no_light_data.height) {
         for (unsigned int r = 0; r < data.height; ++r) {
             unsigned int rr = (data.height - 1 - r) * data.width;
@@ -4307,6 +4326,9 @@ void SelectMachineDialog::change_default_normal(int old_filament_id, wxColour te
                 }
             }
         }
+    }
+    else {
+        BOOST_LOG_TRIVIAL(error) << "SelectMachineDialog::change_defa:no_light_data is empty,error";
     }
 }
 
