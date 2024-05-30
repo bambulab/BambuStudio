@@ -507,6 +507,7 @@ private:
     wxGLCanvas* m_canvas;
     wxGLContext* m_context;
     Bed3D &m_bed;
+    std::map<std::string, wxString> m_assembly_view_desc;
 #if ENABLE_RETINA_GL
     std::unique_ptr<RetinaHelper> m_retina_helper;
 #endif
@@ -1145,6 +1146,7 @@ private:
     // BBS
     //void _render_view_toolbar() const;
     void _render_paint_toolbar() const;
+    float _show_assembly_tooltip_information(float caption_max, float x, float y) const;
     void _render_assemble_control() const;
     void _render_assemble_info() const;
 #if ENABLE_SHOW_CAMERA_TARGET
