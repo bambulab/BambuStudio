@@ -168,7 +168,7 @@ public:
         std::string cmd=input;
         size_t read = 0;
 
-        while (cmd.size() >= 5)
+        while (cmd.find(',') != std::string::npos)
         {
             int pt = 0;
             for (pt = 0; pt < cmd.size(); pt++) {
