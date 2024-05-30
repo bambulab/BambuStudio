@@ -443,6 +443,8 @@ protected:
     wxStaticBitmap *                    img_use_ams_tip{nullptr};
     wxStaticBitmap *                    img_ams_backup{nullptr};
     ScalableBitmap *                    enable_ams{nullptr};
+    ThumbnailData                       m_cur_input_thumbnail_data;
+    ThumbnailData                       m_cur_no_light_thumbnail_data;
     ThumbnailData                       m_preview_thumbnail_data;//when ams map change
     std::vector<wxColour>               m_preview_colors_in_thumbnail;
     std::vector<wxColour>               m_cur_colors_in_thumbnail;
@@ -491,6 +493,7 @@ public:
     wxColour adjust_color_for_render(const wxColour& color);
     void final_deal_edge_pixels_data(ThumbnailData& data);
     void updata_thumbnail_data_after_connected_printer();
+    void unify_deal_thumbnail_data(ThumbnailData &input_data, ThumbnailData &no_light_data);
     void change_default_normal(int old_filament_id, wxColour temp_ams_color);
     void set_default_normal(const ThumbnailData&);
     void set_default_from_sdcard();
