@@ -1177,7 +1177,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D &bed)
     m_assembly_view_desc["object_selection_caption"] = _L("Left mouse button");
     m_assembly_view_desc["object_selection"]         = _L("object selection");
     m_assembly_view_desc["part_selection_caption"]   = "Alt +" + _L("Left mouse button");
-    m_assembly_view_desc["part_selection"]         = _L("part selectiont");
+    m_assembly_view_desc["part_selection"]         = _L("part selection");
     m_assembly_view_desc["number_key_caption"]       = "1~16 " + _L("number keys");
     m_assembly_view_desc["number_key"]       = _L("number keys can quickly change the color of objects");
 }
@@ -8309,7 +8309,7 @@ void GLCanvas3D::_render_assemble_control() const
             caption_max = std::max(caption_max, imgui->calc_text_size(m_assembly_view_desc.at(t + "_caption")).x);
         }
         const ImVec2 pos = ImGui::GetCursorScreenPos();
-        const float text_y =imgui->calc_text_size(_L("part_selection")).y;
+        const float text_y =imgui->calc_text_size(_L("part selection")).y;
         float get_cur_x = pos.x;
         float get_cur_y = pos.y - ImGui::GetFrameHeight() - 4 * text_y;
         tip_icon_size =_show_assembly_tooltip_information(caption_max, get_cur_x, get_cur_y);
