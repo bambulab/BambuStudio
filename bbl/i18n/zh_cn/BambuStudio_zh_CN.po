@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-31 09:27+0800\n"
+"POT-Creation-Date: 2024-05-31 17:44+0800\n"
 "PO-Revision-Date: 2024-03-21 10:39+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -10455,10 +10455,10 @@ msgid ""
 "printer will use the default compensation parameter for the filament during "
 "every filament switch which will have a good result in most cases.\n"
 "\n"
-"Please note there are a few cases that will make the calibration result not "
-"reliable: using a texture plate to do the calibration; the build plate does "
-"not have good adhesion (please wash the build plate or apply gluestick!) ..."
-"You can find more from our wiki.\n"
+"Please note that there are a few cases that can make the calibration results "
+"unreliable, such as insufficient adhesion on the build plate. Improving "
+"adhesion can be achieved by washing the build plate or applying glue. For "
+"more information on this topic, please refer to our Wiki.\n"
 "\n"
 "The calibration results have about 10 percent jitter in our test, which may "
 "cause the result not exactly the same in each calibration. We are still "
@@ -10471,8 +10471,8 @@ msgstr ""
 "多材料打印时，打印机将在每次换丝料时使用默认的补偿参数，这在大多数情况下会产"
 "生良好的效果。\n"
 "\n"
-"请注意，有几种情况会导致校准结果不可靠：使用纹理板进行校准；建模平台粘附效果"
-"不好（请清洗建模平台或涂抹胶棒）... 您可以在我们的wiki中找到更多信息。\n"
+"有几种情况可能导致校准结果不可靠，例如打印板的的附着力不足。清洗打印板或者使"
+"用胶水可以增强打印板附着力。您可以在我们的维基上找到更多相关信息。\n"
 "\n"
 "在我们的测试中，校准结果有约10%的波动，这可能导致每次校准的结果略有不同。我们"
 "仍在调查根本原因，并通过新的更新进行改进。"
@@ -11977,11 +11977,11 @@ msgstr "已发送的任务"
 msgid "Edit multiple printers"
 msgstr "编辑多个打印机"
 
-msgid "Select connected printetrs (0/6)"
+msgid "Select connected printers (0/6)"
 msgstr "选择已连接的打印机 (0/6)"
 
 #, c-format, boost-format
-msgid "Select Connected Printetrs (%d/6)"
+msgid "Select Connected Printers (%d/6)"
 msgstr "选择已连接的打印机 (%d/6)"
 
 #, c-format, boost-format
@@ -12011,6 +12011,45 @@ msgstr "没有任务正在发送！"
 
 msgid "No historical tasks!"
 msgstr "没有历史任务！"
+
+msgid "Upgrading"
+msgstr "升级中"
+
+msgid "syncing"
+msgstr "同步中"
+
+msgid "Printing Finish"
+msgstr "打印成功"
+
+msgid "Printing Failed"
+msgstr "打印失败"
+
+msgid "Printing Pause"
+msgstr "打印暂停"
+
+msgid "Pending"
+msgstr "等待中"
+
+msgid "Sending"
+msgstr "发送中"
+
+msgid "Sending Finish"
+msgstr "发送成功"
+
+msgid "Sending Cancel"
+msgstr "取消发送"
+
+msgid "Sending Failed"
+msgstr "发送失败"
+
+msgid "Print Success"
+msgstr "打印成功"
+
+msgid "Print Failed"
+msgstr "打印失败"
+
+msgid "Removed"
+msgstr "移除"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -12278,6 +12317,46 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid ""
+#~ "Please find the details of Flow Dynamics Calibration from our wiki.\n"
+#~ "\n"
+#~ "Usually the calibration is unnecessary. When you start a single color/"
+#~ "material print, with the \"flow dynamics calibration\" option checked in "
+#~ "the print start menu, the printer will follow the old way, calibrate the "
+#~ "filament before the print; When you start a multi color/material print, "
+#~ "the printer will use the default compensation parameter for the filament "
+#~ "during every filament switch which will have a good result in most "
+#~ "cases.\n"
+#~ "\n"
+#~ "Please note there are a few cases that will make the calibration result "
+#~ "not reliable: using a texture plate to do the calibration; the build "
+#~ "plate does not have good adhesion (please wash the build plate or apply "
+#~ "gluestick!) ...You can find more from our wiki.\n"
+#~ "\n"
+#~ "The calibration results have about 10 percent jitter in our test, which "
+#~ "may cause the result not exactly the same in each calibration. We are "
+#~ "still investigating the root cause to do improvements with new updates."
+#~ msgstr ""
+#~ "请从我们的wiki中找到动态流量校准的详细信息。\n"
+#~ "\n"
+#~ "通常情况下，校准是不必要的。当您开始单色/单材料打印，并在打印开始菜单中勾"
+#~ "选了“动态流量校准”选项时，打印机将按照旧的方式，在打印前校准丝料；当您开始"
+#~ "多色/多材料打印时，打印机将在每次换丝料时使用默认的补偿参数，这在大多数情"
+#~ "况下会产生良好的效果。\n"
+#~ "\n"
+#~ "请注意，有几种情况会导致校准结果不可靠：使用纹理板进行校准；建模平台粘附效"
+#~ "果不好（请清洗建模平台或涂抹胶棒）... 您可以在我们的wiki中找到更多信息。\n"
+#~ "\n"
+#~ "在我们的测试中，校准结果有约10%的波动，这可能导致每次校准的结果略有不同。"
+#~ "我们仍在调查根本原因，并通过新的更新进行改进。"
+
+#, c-format, boost-format
+#~ msgid "Select Connected Printetrs (%d/6)"
+#~ msgstr "选择已连接的打印机 (%d/6)"
+
+#~ msgid "Select connected printetrs (0/6)"
+#~ msgstr "选择已连接的打印机 (0/6)"
 
 #~ msgid "Please input a valid value (K in 0~0.3)"
 #~ msgstr "请输入有效的数值 (K的范围为0~0.3)"
@@ -14721,9 +14800,6 @@ msgstr ""
 #~ msgid "Upgrade firmware"
 #~ msgstr "升级固件"
 
-#~ msgid "Upgrading"
-#~ msgstr "升级中"
-
 #~ msgid "Upgrading failed"
 #~ msgstr "升级失败"
 
@@ -14933,9 +15009,6 @@ msgstr ""
 
 #~ msgid "Creating"
 #~ msgstr "正在创建"
-
-#~ msgid "Sending"
-#~ msgstr "发送中"
 
 #~ msgid "Please fill report first."
 #~ msgstr "请先填写报告。"
