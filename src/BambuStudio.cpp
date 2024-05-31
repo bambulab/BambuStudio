@@ -694,14 +694,42 @@ static int load_assemble_plate_list(std::string config_file, std::vector<assembl
                     assemble_object.height_ranges.resize(range_count);
                     for (int range_index = 0; range_index < range_count; range_index++)
                     {
-                        height_range_info_t height_range;
+                        height_range_info_t& height_range = assemble_object.height_ranges[range_index];
                         height_range.min_z = height_range_json[range_index][JSON_ASSEMPLE_OBJECT_MIN_Z];
                         height_range.max_z = height_range_json[range_index][JSON_ASSEMPLE_OBJECT_MAX_Z];
                         height_range.range_params = height_range_json[range_index][JSON_ASSEMPLE_OBJECT_RANGE_PARAMS].get<std::map<std::string, std::string>>();
-                        assemble_object.height_ranges.push_back(std::move(height_range));
                     }
-                    BOOST_LOG_TRIVIAL(debug) << boost::format("Plate %1%, object %2% has %3% print params") % (plate_index + 1) %assemble_object.path % assemble_object.print_params.size();
                 }
+            }
+            if (plate_json.contains(JSON_ASSEMPLE_ASSEMBLE_PARAMS)) {
+                json assemble_params_json = plate_json[JSON_ASSEMPLE_ASSEMBLE_PARAMS];
+                int assemble_count = assemble_params_json.size();
+                for (int i = 0; i < assemble_count; i++)
+                {
+                    assembled_param_info_t assembled_param;
+                    int assemble_index = assemble_params_json[i][JSON_ASSEMPLE_OBJECT_ASSEMBLE_INDEX];
+                    if (assemble_params_json[i].contains(JSON_ASSEMPLE_OBJECT_PRINT_PARAMS)) {
+                        assembled_param.print_params = assemble_params_json[i][JSON_ASSEMPLE_OBJECT_PRINT_PARAMS].get<std::map<std::string, std::string>>();
+                        BOOST_LOG_TRIVIAL(debug) << boost::format("Plate %1%, assemble object %2% has %3% print params") % (plate_index + 1) %i % assembled_param.print_params.size();
+                    }
+                    if (assemble_params_json[i].contains(JSON_ASSEMPLE_OBJECT_HEIGHT_RANGES)) {
+                        json height_range_json = assemble_params_json[i][JSON_ASSEMPLE_OBJECT_HEIGHT_RANGES];
+                        int range_count = height_range_json.size();
+
+                        BOOST_LOG_TRIVIAL(debug) << boost::format("Plate %1%, assemble object %2% has %3% height ranges") % (plate_index + 1) %i % range_count;
+
+                        assembled_param.height_ranges.resize(range_count);
+                        for (int range_index = 0; range_index < range_count; range_index++)
+                        {
+                            height_range_info_t& height_range = assembled_param.height_ranges[range_index];
+                            height_range.min_z = height_range_json[range_index][JSON_ASSEMPLE_OBJECT_MIN_Z];
+                            height_range.max_z = height_range_json[range_index][JSON_ASSEMPLE_OBJECT_MAX_Z];
+                            height_range.range_params = height_range_json[range_index][JSON_ASSEMPLE_OBJECT_RANGE_PARAMS].get<std::map<std::string, std::string>>();
+                        }
+                    }
+                    assemble_plate.assembled_param_list.emplace(assemble_index, std::move(assembled_param));
+                }
+                BOOST_LOG_TRIVIAL(debug) << boost::format("Plate %1%, has %2% plate params") % (plate_index + 1)  % assemble_plate.plate_params.size();
             }
         }
     }
@@ -899,6 +927,46 @@ static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_
 
                 BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": cloned object %1%, name %2%, pos_x %3% pos_y %4%, pos_z %5%")
                     %copy_index %object->name %assemble_object.pos_x[array_index] %assemble_object.pos_y[array_index] %assemble_object.pos_z[array_index];
+            }
+        }
+
+        size_t assemble_count = merged_objects.size();
+        if ((assemble_count > 0) && (assemble_plate_info.assembled_param_list.size() > 0))
+        {
+            for (auto& iter : merged_objects)
+            {
+                ModelObject* assemble_obj = iter.second;
+                int assemble_index = iter.first;
+
+                auto assemble_iter = assemble_plate_info.assembled_param_list.find(assemble_index);
+
+                if (assemble_iter != assemble_plate_info.assembled_param_list.end())
+                {
+                    assembled_param_info_t& assembled_param = assemble_iter->second;
+                    if (!assembled_param.print_params.empty())
+                    {
+                        for (auto param_iter = assembled_param.print_params.begin(); param_iter != assembled_param.print_params.end(); param_iter++)
+                        {
+                            assemble_obj->config.set_deserialize(param_iter->first, param_iter->second, config_substitutions);
+                            BOOST_LOG_TRIVIAL(debug) << boost::format("Plate %1%, assemble object %2% key %3%, value %4%") % (index + 1) % assemble_obj->name % param_iter->first % param_iter->second;
+                        }
+                    }
+
+                    if (!assembled_param.height_ranges.empty())
+                    {
+                        for (int range_index = 0; range_index < assembled_param.height_ranges.size(); range_index++)
+                        {
+                            height_range_info_t& range = assembled_param.height_ranges[range_index];
+                            DynamicPrintConfig range_config;
+                            for (auto range_config_iter = range.range_params.begin(); range_config_iter != range.range_params.end(); range_config_iter++)
+                            {
+                                range_config.set_deserialize(range_config_iter->first, range_config_iter->second, config_substitutions);
+                                BOOST_LOG_TRIVIAL(debug) << boost::format("assenble object %1%, height range %2% key %3%, value %4%") % assemble_obj->name % range_index % range_config_iter->first % range_config_iter->second;
+                            }
+                            assemble_obj->layer_config_ranges[{ range.min_z, range.max_z }].assign_config(std::move(range_config));
+                        }
+                    }
+                }
             }
         }
 
