@@ -165,3 +165,4 @@ src/slic3r/GUI/SendMultiMachinePage.cpp
 src/slic3r/GUI/MultiMachinePage.cpp
 src/slic3r/GUI/MultiMachineManagerPage.cpp
 src/slic3r/GUI/MultiTaskManagerPage.cpp
+src/slic3r/GUI/MultiMachine.cpp
