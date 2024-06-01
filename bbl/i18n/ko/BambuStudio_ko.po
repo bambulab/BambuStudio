@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-31 00:50+0800\n"
+"POT-Creation-Date: 2024-05-11 09:05+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1191,7 +1191,7 @@ msgid "Restore to meter"
 msgstr "미터 단위로 복원"
 
 msgid "Merge"
-msgstr ""
+msgstr "병합"
 
 msgid "Assemble the selected objects to an object with multiple parts"
 msgstr "선택한 객체들을 여러부품으로 이루어진 하나의 개체로 통합"
@@ -1507,7 +1507,7 @@ msgstr[0] "다음 모델 객체가 복구되었습니다."
 
 msgid "Failed to repair the following model object"
 msgid_plural "Failed to repair the following model object"
-msgstr[0] ""
+msgstr[0] "다음 모델 객체를 복구하지 못했습니다."
 
 msgid "Repairing was canceled"
 msgstr "오류수정이 취소되었습니다"
@@ -3120,7 +3120,7 @@ msgid "Allow multiple materials on same plate"
 msgstr "동일한 플레이트 상에 여러 재료 허용"
 
 msgid "Avoid extrusion calibration region"
-msgstr ""
+msgstr "압출 교정 영역을 피하십시오"
 
 msgid "Align to Y axis"
 msgstr "Y축에 정렬"
@@ -3499,7 +3499,7 @@ msgid "Export current plate as G-code"
 msgstr "현재 플레이트를 G 코드로 내보내기"
 
 msgid "Export Preset Bundle"
-msgstr ""
+msgstr "프리셋 번들 내보내기"
 
 msgid "Export current configuration to files"
 msgstr "현재 설정을 파일로 내보내기"
@@ -3732,7 +3732,7 @@ msgstr "디렉토리 선택"
 #, c-format, boost-format
 msgid "There is %d config exported. (Only non-system configs)"
 msgid_plural "There are %d configs exported. (Only non-system configs)"
-msgstr[0] ""
+msgstr[0] "내보낸 구성이 %d개 있습니다. (시스템 구성이 아닌 경우에만)"
 
 msgid "Export result"
 msgstr "결과 내보내기"
@@ -3743,7 +3743,7 @@ msgstr "불러올 프로파일 선택:"
 #, c-format, boost-format
 msgid "There is %d config imported. (Only non-system and compatible configs)"
 msgid_plural "There are %d configs imported. (Only non-system and compatible configs)"
-msgstr[0] ""
+msgstr[0] "가져온 구성이 %d개 있습니다. (비시스템 및 호환 구성만 해당)"
 
 msgid "Import result"
 msgstr "결과 가져오기"
@@ -3938,7 +3938,7 @@ msgstr "LAN 전용 모드에서는 SD 카드의 파일 탐색이 지원되지 �
 #, c-format, boost-format
 msgid "You are going to delete %u file from printer. Are you sure to continue?"
 msgid_plural "You are going to delete %u files from printer. Are you sure to continue?"
-msgstr[0] ""
+msgstr[0] "프린터에서 %u개의 파일을 삭제하려고 합니다. 계속하시겠습니까?"
 
 msgid "Delete files"
 msgstr "파일 삭제"
@@ -4366,7 +4366,7 @@ msgstr "하드웨어를 안전하게 제거합니다."
 #, c-format, boost-format
 msgid "%1$d Object has custom support."
 msgid_plural "%1$d Objects have custom support."
-msgstr[0] ""
+msgstr[0] "%1$d 개체에 맞춤 지원이 있습니다."
 
 #, c-format, boost-format
 msgid "%1$d Object has color painting."
@@ -4376,7 +4376,7 @@ msgstr[0] "%1$d 객체에 컬러 페인팅이 있습니다."
 #, c-format, boost-format
 msgid "%1$d object was loaded as a part of cut object."
 msgid_plural "%1$d objects were loaded as parts of cut object"
-msgstr[0] ""
+msgstr[0] "%1$d 개체가 잘라내기 개체의 일부로 로드되었습니다."
 
 msgid "ERROR"
 msgstr "오류"
@@ -4852,6 +4852,8 @@ msgid ""
 "Failed to save the project.\n"
 "Please check whether the folder exists online or if other programs open the project file or if there is enough disk space."
 msgstr ""
+"프로젝트를 저장하지 못했습니다.\n"
+"해당 폴더가 온라인에 존재하는지, 다른 프로그램에서 프로젝트 파일을 여는지, 디스크 공간이 충분한지 확인하시기 바랍니다."
 
 msgid "Save project"
 msgstr "프로젝트 저장"
@@ -6184,7 +6186,7 @@ msgstr "다른 프리셋에 상속된 프리셋은 삭제할 수 없습니다!"
 
 msgid "The following presets inherit this preset."
 msgid_plural "The following preset inherits this preset."
-msgstr[0] ""
+msgstr[0] "다음 사전 설정은 이 사전 설정을 상속합니다."
 
 #. TRN  Remove/Delete
 #, boost-format
@@ -7647,7 +7649,7 @@ msgid "Internal solid infill pattern"
 msgstr "내부채움 패턴"
 
 msgid "Line pattern of internal solid infill. if the detect narrow internal solid infill be enabled, the concentric pattern will be used for the small area."
-msgstr ""
+msgstr "내부 솔리드 채우기의 선 패턴입니다. 좁은 내부 솔리드 채우기 감지가 활성화된 경우 작은 영역에 동심원 패턴이 사용됩니다."
 
 msgid "Line width of outer wall"
 msgstr "외벽 선폭"
@@ -10616,10 +10618,10 @@ msgid "No AMS"
 msgstr "AMS 없음"
 
 msgid "There is no device available to send printing."
-msgstr ""
+msgstr "인쇄를 보낼 수 있는 장치가 없습니다."
 
 msgid "The number of printers in use simultaneously cannot be equal to 0."
-msgstr ""
+msgstr "동시에 사용 중인 프린터 수는 0이 될 수 없습니다."
 
 msgid "Use External Spool"
 msgstr "외부 스풀 사용"
@@ -10640,7 +10642,7 @@ msgid "Ams Status"
 msgstr "AMS 상태"
 
 msgid "Please select the devices you would like to manage here (up to 6 devices)"
-msgstr ""
+msgstr "여기에서 관리하려는 장치를 선택하세요(최대 6개 장치)."
 
 msgid "Printing Options"
 msgstr "인쇄 옵션"
@@ -10664,24 +10666,24 @@ msgid "Task Sent"
 msgstr "작업 전송됨"
 
 msgid "Edit multiple printers"
-msgstr ""
+msgstr "여러 프린터 편집"
 
 msgid "Select connected printetrs (0/6)"
-msgstr ""
+msgstr "연결된 프린터 선택 (0/6)"
 
 #, c-format, boost-format
 msgid "Select Connected Printetrs (%d/6)"
-msgstr ""
+msgstr "연결된 프린터 선택(%d/6)"
 
 #, c-format, boost-format
 msgid "The maximum number of printers that can be selected is %d"
-msgstr ""
+msgstr "선택할 수 있는 최대 프린터 수는 %d개입니다."
 
 msgid "No task"
 msgstr "작업 없음"
 
 msgid "Edit Printers"
-msgstr ""
+msgstr "프린터 편집"
 
 msgid "Task Name"
 msgstr "작업 이름"
@@ -10722,8 +10724,8 @@ msgid ""
 "Fix Model\n"
 "Did you know that you can fix a corrupted 3D model to avoid a lot of slicing problems on the Windows system?"
 msgstr ""
-"Fix Model\n"
-"Did you know that you can fix a corrupted 3D model to avoid a lot of slicing problems on the Windows system?"
+"모델 수정\n"
+"Windows 시스템에서 많은 슬라이싱 문제를 피하기 위해 손상된 3D 모델을 수정할 수 있다는 것을 알고 계셨습니까?"
 
 #: resources/data/hints.ini: [hint:Timelapse]
 msgid ""
