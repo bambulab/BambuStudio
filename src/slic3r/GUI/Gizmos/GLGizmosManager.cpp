@@ -1088,8 +1088,8 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
         }
         else if (evt.LeftUp()
             && (m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports || m_current == Seam || m_current == MmuSegmentation || m_current == Cut)
-            && !m_parent.is_mouse_dragging()
-            && gizmo_event(SLAGizmoEventType::LeftUp, mouse_pos, evt.ShiftDown(), evt.AltDown(), control_down)) {
+            && gizmo_event(SLAGizmoEventType::LeftUp, mouse_pos, evt.ShiftDown(), evt.AltDown(), control_down)
+            && !m_parent.is_mouse_dragging()) {
             // in case SLA/FDM gizmo is selected, we just pass the LeftUp event and stop processing - neither
             // object moving or selecting is suppressed in that case
             processed = true;
