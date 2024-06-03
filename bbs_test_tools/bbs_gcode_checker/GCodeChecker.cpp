@@ -7,7 +7,7 @@ namespace BambuStudio {
 
 //BBS: only check wodth when dE is longer than this value
 const double CHECK_WIDTH_E_THRESHOLD = 0.0025;
-const double WIDTH_THRESHOLD = 0.02;
+const double WIDTH_THRESHOLD = 0.05;
 const double RADIUS_THRESHOLD = 0.005;
 
 const double filament_diameter = 1.75;
