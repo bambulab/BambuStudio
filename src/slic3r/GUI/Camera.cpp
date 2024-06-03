@@ -56,7 +56,7 @@ void Camera::select_next_type()
 void Camera::translate(const Vec3d& displacement) {
     if (!displacement.isApprox(Vec3d::Zero())) {
         m_view_matrix.translate(-displacement);
-        update_target(); 
+        update_target();
     }
 }
 
@@ -104,6 +104,104 @@ void Camera::select_view(const std::string& direction)
         look_at(m_target - 0.707 * m_distance * Vec3d::UnitY() + 0.707 * m_distance * Vec3d::UnitZ(), m_target, Vec3d::UnitY() + Vec3d::UnitZ());
     else if (direction == "plate") {
         look_at(m_target - 0.707 * m_distance * Vec3d::UnitY() + 0.707 * m_distance * Vec3d::UnitZ(), m_target, Vec3d::UnitY() + Vec3d::UnitZ());
+    }
+}
+//how to use
+//BoundingBox bbox = mesh.aabb.transform(transform);
+//return camera_->getFrustum().intersects(bbox);
+void Camera::update_frustum()
+{
+    auto  eye_ = get_position().cast<float>();
+    auto  center_   = get_target().cast<float>();
+    auto  up_       = get_dir_up().cast<float>();
+    float  near_     = m_frustrum_zs.first;
+    float far_      = m_frustrum_zs.second;
+    float  aspect_   = m_viewport[2] /  (double)m_viewport[3];
+    float  fov_      = (float) Geometry::deg2rad(get_fov());
+    float  eps       = 0.01;
+    if (m_last_eye.isApprox(eye_) && m_last_center.isApprox(center_) && m_last_up.isApprox(up_) &&
+        abs(m_last_near - near_) > eps && abs(m_last_far - far_) > eps &&
+        abs(m_last_aspect - aspect_) > eps && abs(m_last_fov - fov_) > eps) {
+        return;
+    }
+    m_last_eye = eye_;
+    m_last_center = center_;
+    m_last_up     = up_;
+    m_last_near   = near_;
+    m_last_far    = far_;
+    m_last_aspect = aspect_;
+    m_last_fov    = fov_;
+    Vec3f forward((center_ - eye_).normalized());
+    Vec3f side((forward.cross(up_)).normalized());
+    Vec3f up((side.cross(forward)).normalized());
+
+    float nearHeightHalf = near_ * std::tan(fov_ / 2.f);
+    float farHeightHalf  = far_ * std::tan(fov_ / 2.f);
+    float nearWidthHalf  = nearHeightHalf * aspect_;
+    float farWidthHalf   = farHeightHalf * aspect_;
+
+    // near plane
+    Vec3f nearCenter = eye_ + forward * near_;
+    Vec3f nearNormal = forward;
+    m_frustum.planes[0].set(nearNormal, nearCenter);
+
+    // far plane
+    Vec3f farCenter = eye_ + forward * far_;
+    Vec3f farNormal = -forward;
+    m_frustum.planes[1].set(farNormal, farCenter);
+
+    // top plane
+    Vec3f topCenter = nearCenter + up * nearHeightHalf;
+    Vec3f topNormal = (topCenter - eye_).normalized().cross(side);
+    m_frustum.planes[2].set(topNormal, topCenter);
+
+    // bottom plane
+    Vec3f bottomCenter = nearCenter - up * nearHeightHalf;
+    Vec3f bottomNormal = side.cross((bottomCenter - eye_).normalized());
+    m_frustum.planes[3].set(bottomNormal, bottomCenter);
+
+    // left plane
+    Vec3f leftCenter = nearCenter - side * nearWidthHalf;
+    Vec3f leftNormal = (leftCenter - eye_).normalized().cross(up);
+    m_frustum.planes[4].set(leftNormal, leftCenter);
+
+    // right plane
+    Vec3f rightCenter = nearCenter + side * nearWidthHalf;
+    Vec3f rightNormal = up.cross((rightCenter - eye_).normalized());
+    m_frustum.planes[5].set(rightNormal, rightCenter);
+
+    //// 8 corners
+    Vec3f nearTopLeft     = nearCenter + up * nearHeightHalf - side * nearWidthHalf;
+    Vec3f nearTopRight    = nearCenter + up * nearHeightHalf + side * nearWidthHalf;
+    Vec3f nearBottomLeft  = nearCenter - up * nearHeightHalf - side * nearWidthHalf;
+    Vec3f nearBottomRight = nearCenter - up * nearHeightHalf + side * nearWidthHalf;
+
+    Vec3f farTopLeft     = farCenter + up * farHeightHalf - side * farWidthHalf;
+    Vec3f farTopRight    = farCenter + up * farHeightHalf + side * farWidthHalf;
+    Vec3f farBottomLeft  = farCenter - up * farHeightHalf - side * farWidthHalf;
+    Vec3f farBottomRight = farCenter - up * farHeightHalf + side * farWidthHalf;
+
+    m_frustum.corners[0] = nearTopLeft;
+    m_frustum.corners[1] = nearTopRight;
+    m_frustum.corners[2] = nearBottomLeft;
+    m_frustum.corners[3] = nearBottomRight;
+    m_frustum.corners[4] = farTopLeft;
+    m_frustum.corners[5] = farTopRight;
+    m_frustum.corners[6] = farBottomLeft;
+    m_frustum.corners[7] = farBottomRight;
+    // bounding box
+    auto double_min    = std::numeric_limits<double>::min();
+    auto double_max    = std::numeric_limits<double>::max();
+    m_frustum.bbox.min = Vec3d(double_max, double_max, double_max);
+    m_frustum.bbox.max = Vec3d(double_min, double_min, double_min);
+    for (auto &corner : m_frustum.corners) {
+        m_frustum.bbox.min[0] = std::min((float)m_frustum.bbox.min.x(), corner.x());
+        m_frustum.bbox.min[1] = std::min((float)m_frustum.bbox.min.y(), corner.y());
+        m_frustum.bbox.min[2] = std::min((float)m_frustum.bbox.min.z(), corner.z());
+
+        m_frustum.bbox.max[0] = std::max((float)m_frustum.bbox.max.x(), corner.x());
+        m_frustum.bbox.max[1] = std::max((float)m_frustum.bbox.max.y(), corner.y());
+        m_frustum.bbox.max[2] = std::max((float)m_frustum.bbox.max.z(), corner.z());
     }
 }
 
@@ -220,7 +318,7 @@ void Camera::zoom_to_volumes(const GLVolumePtrs& volumes, double margin_factor)
 }
 
 #if ENABLE_CAMERA_STATISTICS
-void Camera::debug_render() const
+void Camera::debug_render()
 {
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     imgui.begin(std::string("Camera statistics"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
@@ -520,7 +618,7 @@ void Camera::set_distance(double distance)
     if (m_distance != distance) {
         m_view_matrix.translate((distance - m_distance) * get_dir_forward());
         m_distance = distance;
-        
+
         update_target();
     }
 }
@@ -626,7 +724,7 @@ void Camera::update_target() {
     Vec3d temptarget = get_position() + m_distance * get_dir_forward();
     if (!(temptarget-m_target).isApprox(Vec3d::Zero())){
         m_target = temptarget;
-    }      
+    }
 }
 
 } // GUI

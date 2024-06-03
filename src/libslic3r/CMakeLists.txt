@@ -108,6 +108,8 @@ set(lisbslic3r_sources
     Fill/FillRectilinear.hpp
     Flow.cpp
     Flow.hpp
+    Frustum.cpp
+    Frustum.hpp
     FlushVolCalc.cpp
     FlushVolCalc.hpp
     format.hpp

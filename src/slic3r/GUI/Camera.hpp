@@ -2,6 +2,7 @@
 #define slic3r_Camera_hpp_
 
 #include "libslic3r/BoundingBox.hpp"
+#include "libslic3r/Frustum.hpp"
 #include "3DScene.hpp"
 #include <array>
 
@@ -55,6 +56,9 @@ private:
     std::pair<double, double> m_frustrum_zs;
 
     BoundingBoxf3 m_scene_box;
+    Frustum       m_frustum;
+    Vec3f         m_last_eye, m_last_center, m_last_up;
+    float         m_last_near, m_last_far, m_last_aspect, m_last_fov;
 
 public:
     Camera() { set_default_orientation(); }
@@ -69,7 +73,7 @@ public:
     void enable_update_config_on_type_change(bool enable) { m_update_config_on_type_change_enabled = enable; }
 
     void translate(const Vec3d& displacement);
-    const Vec3d& get_target()  { 
+    const Vec3d& get_target()  {
         update_target();
         return m_target; }
     void set_target(const Vec3d& target);
@@ -100,9 +104,9 @@ public:
     Vec3d get_dir_up() const { return m_view_matrix.matrix().block(0, 0, 3, 3).row(1); }
     Vec3d get_dir_forward() const { return -m_view_matrix.matrix().block(0, 0, 3, 3).row(2); }
 
-
     Vec3d get_position() const { return m_view_matrix.matrix().inverse().block(0, 3, 3, 1); }
-
+    const Frustum &                  getFrustum() const { return m_frustum; }
+    void                             update_frustum();
     double get_near_z() const { return m_frustrum_zs.first; }
     double get_far_z() const { return m_frustrum_zs.second; }
     const std::pair<double, double>& get_z_range() const { return m_frustrum_zs; }
@@ -119,7 +123,7 @@ public:
     void zoom_to_volumes(const GLVolumePtrs& volumes, double margin_factor = DefaultZoomToVolumesMarginFactor);
 
 #if ENABLE_CAMERA_STATISTICS
-    void debug_render() const;
+    void debug_render();
 #endif // ENABLE_CAMERA_STATISTICS
 
     // translate the camera in world space
