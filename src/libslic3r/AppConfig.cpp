@@ -172,6 +172,8 @@ void AppConfig::set_defaults()
 
     if (get("zoom_to_mouse").empty())
         set_bool("zoom_to_mouse", false);
+    if (get("enable_lod").empty())
+        set_bool("enable_lod", true);
     if (get("user_bed_type").empty())
         set_bool("user_bed_type", true);
     if (get("grabber_size_factor").empty())
@@ -306,7 +308,7 @@ void AppConfig::set_defaults()
     if (get("mouse_wheel").empty()) {
         set("mouse_wheel", "0");
     }
-    
+
     if (get("max_recent_count").empty()) {
         set("max_recent_count", "18");
     }

@@ -1991,7 +1991,7 @@ void GLCanvas3D::render(bool only_init)
 #if ENABLE_SHOW_CAMERA_TARGET
     _render_camera_target();
 #endif // ENABLE_SHOW_CAMERA_TARGET
-
+    camera.update_frustum();
     if (m_picking_enabled && m_rectangle_selection.is_dragging())
         m_rectangle_selection.render(*this);
 
