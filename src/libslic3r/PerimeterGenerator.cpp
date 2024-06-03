@@ -468,7 +468,14 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
         } else {
             loop_role = loop.is_contour? elrDefault: elrPerimeterHole;
         }
-        
+
+        if( loop.depth == 1 ) {
+            if (loop_role == elrDefault)
+                loop_role = elrSecondPerimeter;
+            else
+                loop_role = loop_role | elrSecondPerimeter;
+        }
+
         // detect overhanging/bridging perimeters
         ExtrusionPaths paths;
 
@@ -1436,13 +1443,22 @@ void PerimeterGenerator::process_classic()
             //BBS. adjust wall generate seq
             else if (this->object_config->wall_sequence == WallSequence::InnerOuterInner)
                 if (entities.entities.size() > 1){
-                    int              last_outer=0;
-                    int              outer = 0;
-                    for (; outer < entities.entities.size(); ++outer)
-                        if (entities.entities[outer]->role() == erExternalPerimeter && outer - last_outer > 1) {
-                            std::swap(entities.entities[outer], entities.entities[outer - 1]);
-                            last_outer = outer;
+                    int              second_wall = -1;
+                    ExtrusionEntitiesPtr      entities_reorder;
+                    ExtrusionEntitiesPtr entities_second_wall;
+                    for (int entity_idx = 0; entity_idx < entities.entities.size(); ++entity_idx) {
+                        ExtrusionLoop *eloop = static_cast<ExtrusionLoop *>(entities.entities[entity_idx]);
+                        if (eloop->loop_role() & elrSecondPerimeter) {
+                            entities_second_wall.push_back(entities.entities[entity_idx]);
+                        } else {
+                            entities_reorder.push_back(entities.entities[entity_idx]);
+                            if (entities.entities[entity_idx]->role() == erExternalPerimeter && !entities_second_wall.empty()) {
+                                entities_reorder.insert(entities_reorder.end(), entities_second_wall.begin(), entities_second_wall.end());
+                                entities_second_wall.clear();
+                            }
                         }
+                    }
+                    entities.entities = std::move( entities_reorder);
                 }
             // append perimeters for this slice as a collection
             if (! entities.empty())

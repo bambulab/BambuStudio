@@ -4009,7 +4009,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
 
     // extrude all loops ccw
     bool was_clockwise = loop.make_counter_clockwise();
-    bool is_hole = loop.loop_role() == elrPerimeterHole;
+    bool is_hole = loop.loop_role() & elrPerimeterHole;
     // find the point of the loop that is closest to the current extruder position
     // or randomize if requested
     Point last_pos = this->last_pos();
