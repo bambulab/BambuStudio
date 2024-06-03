@@ -5724,8 +5724,9 @@ void Plater::priv::reload_from_disk()
             if (color_dlg.ShowModal() != wxID_OK) { filament_ids.clear(); }
         };
         wxBusyCursor wait;
-        wxBusyInfo info(_L("Reload from:") + " " + from_u8(path), q->get_current_canvas3D()->get_wxglcanvas());
-
+        if (!boost::iends_with(path, ".obj")) {
+            wxBusyInfo info(_L("Reload from:") + " " + from_u8(path), q->get_current_canvas3D()->get_wxglcanvas());
+        }
         Model new_model;
         try
         {
