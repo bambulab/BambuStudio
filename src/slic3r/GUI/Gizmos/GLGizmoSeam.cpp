@@ -28,11 +28,12 @@ void GLGizmoSeam::on_shutdown()
 bool GLGizmoSeam::on_init()
 {
     m_shortcut_key = WXK_CONTROL_P;
-
-    m_desc["clipping_of_view_caption"] = _L("Alt + Mouse wheel");
+    const wxString ctrl                = GUI::shortkey_ctrl_prefix();
+    const wxString alt                 = GUI::shortkey_alt_prefix();
+    m_desc["clipping_of_view_caption"] = alt + _L("Mouse wheel");
     m_desc["clipping_of_view"] = _L("Section view");
     m_desc["reset_direction"]  = _L("Reset direction");
-    m_desc["cursor_size_caption"] = _L("Ctrl + Mouse wheel");
+    m_desc["cursor_size_caption"]= ctrl + _L("Mouse wheel");
     m_desc["cursor_size"]      = _L("Brush size");
     m_desc["cursor_type"]      = _L("Brush shape");
     m_desc["enforce_caption"]  = _L("Left mouse button");
