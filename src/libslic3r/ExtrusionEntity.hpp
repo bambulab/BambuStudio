@@ -43,11 +43,16 @@ enum ExtrusionRole : uint8_t {
 
 // Special flags describing loop
 enum ExtrusionLoopRole {
-    elrDefault,
-    elrContourInternalPerimeter,
-    elrSkirt,
-    elrPerimeterHole,
+    elrDefault                     = 1 << 0,
+    elrContourInternalPerimeter    = 1 << 1,
+    elrSkirt                       = 1 << 2,
+    elrPerimeterHole               = 1 << 3,
+    elrSecondPerimeter             = 1 << 4
 };
+
+inline ExtrusionLoopRole operator |(ExtrusionLoopRole a, ExtrusionLoopRole b) {
+    return static_cast<ExtrusionLoopRole>(static_cast<int>(a) | static_cast<int>(b));
+}
 
 
 inline bool is_perimeter(ExtrusionRole role)
