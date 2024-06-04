@@ -96,6 +96,7 @@ public:
 public:
     void ResetWholePage();
 
+    void SetMakerworldModelID(std::string ModelID) { m_online_spec_id = ModelID; }
     void SwitchWebContent(std::string modelname, int refresh=0);
     void SwitchLeftMenu(std::string strMenu);
     void OpenOneMakerlab(std::string url);
