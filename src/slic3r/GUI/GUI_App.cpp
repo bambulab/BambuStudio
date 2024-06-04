@@ -1088,6 +1088,8 @@ void GUI_App::post_init()
             for (auto input_str : input_str_arr) {
                 if (boost::starts_with(input_str, "http://makerworld") ||
                     boost::starts_with(input_str, "https://makerworld") ||
+                    boost::starts_with(input_str, "http://public-cdn.bblmw.com") ||
+                    boost::starts_with(input_str, "https://public-cdn.bblmw.com") ||
                     boost::algorithm::contains(input_str, "amazonaws.com") ||
                     boost::algorithm::contains(input_str, "aliyuncs.com")) {
                     download_url = input_str;
