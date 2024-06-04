@@ -3545,6 +3545,9 @@ GCode::LayerResult GCode::process_layer(
                     if (print.is_BBL_Printer()) {
                         start_str += ("M624 " + _encode_label_ids_to_base64({ instance_to_print.label_object_id }));
                         start_str += "\n";
+                    } else {
+                        // BBS: support octoprint exclude object
+                        start_str += std::string("; printing object ") + get_instance_name(&instance_to_print.print_object, inst.id) + "\n";
                     }
                     temp_start_str = start_str;
                     m_writer.set_object_start_str(start_str);
