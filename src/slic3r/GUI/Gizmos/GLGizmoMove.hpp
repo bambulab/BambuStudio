@@ -43,6 +43,7 @@ public:
     const Vec3d& get_displacement() const { return m_displacement; }
 
     std::string get_tooltip() const override;
+    void        data_changed(bool is_serializing) override;
 
 protected:
     virtual bool on_init() override;
@@ -61,6 +62,9 @@ protected:
 private:
     double calc_projection(const UpdateData& data) const;
     void render_grabber_extension(Axis axis, const BoundingBoxf3& box, bool picking) const;
+    void   change_cs_by_selection(); //cs mean Coordinate System
+private:
+    int m_last_selected_obejct_idx, m_last_selected_volume_idx;
 };
 
 
