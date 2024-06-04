@@ -4030,6 +4030,19 @@ std::string GUI_App::handle_web_request(std::string cmd)
                     });
             }
             else if (command_str.compare("homepage_login_or_register") == 0) {
+
+                if (root.get_child_optional("makerworld_model_id") != boost::none) {
+                    boost::optional<std::string> ModelID      = root.get_optional<std::string>("makerworld_model_id");
+                    if (ModelID.has_value()) {
+                        if (mainframe) {
+                            if (mainframe->m_webview) 
+                            { 
+                                mainframe->m_webview->SetMakerworldModelID(ModelID.value()); 
+                            }
+                        }
+                    }
+                }
+
                 CallAfter([this] {
                     this->request_login(true);
                 });

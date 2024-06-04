@@ -802,9 +802,22 @@ void WebViewPanel::SetMakerworldPageLoginStatus(bool login ,wxString ticket)
 { 
     if (m_browserMW == nullptr) return;
     
-    std::string h = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
-    wxString mw_currenturl = m_browserMW->GetCurrentURL();
-    mw_currenturl.Replace("modelid=", "");
+    wxString mw_currenturl;
+    if (m_online_spec_id != "") {
+        auto host = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
+
+        wxString language_code = wxGetApp().current_language_code().BeforeFirst('_');
+        language_code          = language_code.ToStdString();
+
+        mw_currenturl = (boost::format("%1%%2%/studio/webview?modelid=%3%&from=%4%") % host % language_code.mb_str() % m_online_spec_id % m_online_type.mb_str()).str();
+
+        m_onlinefirst = true;
+        m_online_spec_id = "";
+    } else {
+        mw_currenturl = m_browserMW->GetCurrentURL();
+    }
+
+    //mw_currenturl.Replace("modelid=", "");
     wxString mw_jumpurl = "";
 
     bool b = GetJumpUrl(login, ticket, mw_currenturl, mw_jumpurl);
