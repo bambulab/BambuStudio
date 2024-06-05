@@ -2815,7 +2815,7 @@ void SelectMachineDialog::on_send_print()
 
     m_print_job = std::make_shared<PrintJob>(m_status_bar, m_plater, m_printer_last_select);
     m_print_job->m_dev_ip = obj_->dev_ip;
-    m_print_job->m_ftp_folder = obj_->get_ftp_folder();
+    //m_print_job->m_ftp_folder = obj_->get_ftp_folder();
     m_print_job->m_access_code = obj_->get_access_code();
 #if !BBL_RELEASE_TO_PUBLIC
     m_print_job->m_local_use_ssl_for_ftp = wxGetApp().app_config->get("enable_ssl_for_ftp") == "true" ? true : false;
