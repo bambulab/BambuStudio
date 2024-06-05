@@ -250,15 +250,15 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
     };
 
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0);
-    if (selectable(_u8L("Union").c_str(), m_operation_mode == MeshBooleanOperation::Union, ImVec2(max_tab_length, 0.0f))) {
+    if (selectable(_u8L("Union"), m_operation_mode == MeshBooleanOperation::Union, ImVec2(max_tab_length, 0.0f))) {
         m_operation_mode = MeshBooleanOperation::Union;
     }
     ImGui::SameLine(0, 0);
-    if (selectable(_u8L("Difference").c_str(), m_operation_mode == MeshBooleanOperation::Difference, ImVec2(max_tab_length, 0.0f))) {
+    if (selectable(_u8L("Difference"), m_operation_mode == MeshBooleanOperation::Difference, ImVec2(max_tab_length, 0.0f))) {
         m_operation_mode = MeshBooleanOperation::Difference;
     }
     ImGui::SameLine(0, 0);
-    if (selectable(_u8L("Intersection").c_str(), m_operation_mode == MeshBooleanOperation::Intersection, ImVec2(max_tab_length, 0.0f))) {
+    if (selectable(_u8L("Intersection"), m_operation_mode == MeshBooleanOperation::Intersection, ImVec2(max_tab_length, 0.0f))) {
         m_operation_mode = MeshBooleanOperation::Intersection;
     }
     ImGui::PopStyleVar();
@@ -270,7 +270,7 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
     wxString select_src_str = m_src.mv ? "1 " + _u8L("selected") : _u8L("Select");
     select_src_str << "##select_source_volume";
     ImGui::PushItemWidth(select_btn_length);
-    if (selectable(select_src_str.c_str(), m_selecting_state == MeshBooleanSelectingState::SelectSource, ImVec2(select_btn_length, 0)))
+    if (selectable(select_src_str, m_selecting_state == MeshBooleanSelectingState::SelectSource, ImVec2(select_btn_length, 0)))
         m_selecting_state = MeshBooleanSelectingState::SelectSource;
     ImGui::PopItemWidth();
     if (m_src.mv) {
@@ -298,7 +298,7 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
     wxString select_tool_str = m_tool.mv ? "1 " + _u8L("selected") : _u8L("Select");
     select_tool_str << "##select_tool_volume";
     ImGui::PushItemWidth(select_btn_length);
-    if (selectable(select_tool_str.c_str(), m_selecting_state == MeshBooleanSelectingState::SelectTool, ImVec2(select_btn_length, 0)))
+    if (selectable(select_tool_str, m_selecting_state == MeshBooleanSelectingState::SelectTool, ImVec2(select_btn_length, 0)))
         m_selecting_state = MeshBooleanSelectingState::SelectTool;
     ImGui::PopItemWidth();
     if (m_tool.mv) {
