@@ -879,7 +879,7 @@ static std::vector<std::string> s_Preset_filament_options {
     "nozzle_temperature_range_low", "nozzle_temperature_range_high",
     //OrcaSlicer
     "enable_pressure_advance", "pressure_advance", "chamber_temperatures","filament_notes",
-    "filament_long_retractions_when_cut","filament_retraction_distances_when_cut"
+    "filament_long_retractions_when_cut","filament_retraction_distances_when_cut","filament_shrink"
 };
 
 static std::vector<std::string> s_Preset_machine_limits_options {

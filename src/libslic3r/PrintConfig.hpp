@@ -1118,6 +1118,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     // BBS: move from PrintObjectConfig
     ((ConfigOptionBool,               independent_support_layer_height))
     ((ConfigOptionBool,               exclude_object))
+    ((ConfigOptionPercents,            filament_shrink))
 )
 
 // This object is mapped to Perl as Slic3r::Config::Full.
