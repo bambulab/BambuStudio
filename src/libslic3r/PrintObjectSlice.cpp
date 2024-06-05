@@ -1016,6 +1016,21 @@ void PrintObject::slice_volumes()
         PrintObject::clip_multipart_objects,
         throw_on_cancel_callback);
 
+    // SuperSlicer: filament shrink
+    for (const std::unique_ptr<PrintRegion> &pr : m_shared_regions->all_regions) {
+        if (pr.get()) {
+            std::vector<ExPolygons> &region_polys = region_slices[pr->print_object_region_id()];
+            const size_t             extruder_id  = pr->extruder(FlowRole::frPerimeter) - 1;
+            double                   scale        = print->config().filament_shrink.values[extruder_id] * 0.01;
+            if (scale != 1) {
+                scale = 1 / scale;
+                for (ExPolygons &polys : region_polys)
+                    for (ExPolygon &poly : polys) poly.scale(scale);
+            }
+        }
+    }
+
+
     for (size_t region_id = 0; region_id < region_slices.size(); ++ region_id) {
         std::vector<ExPolygons> &by_layer = region_slices[region_id];
         for (size_t layer_id = 0; layer_id < by_layer.size(); ++ layer_id)

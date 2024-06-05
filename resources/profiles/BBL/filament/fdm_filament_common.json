@@ -174,6 +174,9 @@
     "filament_scarf_length":[
         "10"
     ],
+    "filament_shrink": [
+        "100%"
+    ],
     "compatible_printers": [],
     "filament_start_gcode": [
         "; Filament gcode\n{if activate_air_filtration[current_extruder] && support_air_filtration}\nM106 P3 S{during_print_exhaust_fan_speed_num[current_extruder]} \n{endif}"

@@ -3005,6 +3005,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("enable_pressure_advance");
         optgroup->append_single_option_line("pressure_advance");
         optgroup->append_single_option_line("filament_density");
+        optgroup->append_single_option_line("filament_shrink");
         optgroup->append_single_option_line("filament_cost");
 
         //BBS
