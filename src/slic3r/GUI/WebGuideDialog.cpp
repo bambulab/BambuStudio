@@ -485,6 +485,12 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             }
             else
                 InstallNetplugin = false;
+        } 
+        else if (strCmd == "common_openurl")
+        {
+            std::string strUrl = j["url"];
+
+            wxLaunchDefaultBrowser(strUrl);
         }
     } catch (std::exception &e) {
         // wxMessageBox(e.what(), "json Exception", MB_OK);
