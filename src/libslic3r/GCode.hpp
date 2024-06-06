@@ -332,6 +332,7 @@ private:
 
     //BBS
     void check_placeholder_parser_failed();
+    size_t cur_extruder_index() const;
 
     void            set_last_pos(const Point &pos) { m_last_pos = pos; m_last_pos_defined = true; }
     void            set_last_scarf_seam_flag(bool flag) { m_last_scarf_seam_flag = flag; }

@@ -168,9 +168,9 @@ void Layer::make_perimeters()
 		            const PrintRegionConfig &other_config = other_layerm->region().config();
 		            if (config.wall_filament             == other_config.wall_filament
 		                && config.wall_loops                  == other_config.wall_loops
-		                && config.inner_wall_speed             == other_config.inner_wall_speed
-		                && config.outer_wall_speed    == other_config.outer_wall_speed
-		                && config.gap_infill_speed.value == other_config.gap_infill_speed.value
+		                && config.inner_wall_speed.get_at(get_extruder_index(config.wall_filament))  == other_config.inner_wall_speed.get_at(get_extruder_index(config.wall_filament))
+		                && config.outer_wall_speed.get_at(get_extruder_index(config.wall_filament))  == other_config.outer_wall_speed.get_at(get_extruder_index(config.wall_filament))
+		                && config.gap_infill_speed.get_at(get_extruder_index(config.wall_filament))  == other_config.gap_infill_speed.get_at(get_extruder_index(config.wall_filament))
 		                && config.detect_overhang_wall                   == other_config.detect_overhang_wall
 		                && config.filter_out_gap_fill.value == other_config.filter_out_gap_fill.value
 		                && config.opt_serialize("inner_wall_line_width") == other_config.opt_serialize("inner_wall_line_width")

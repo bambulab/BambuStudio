@@ -11,7 +11,7 @@ float CalibPressureAdvance::find_optimal_PA_speed(const DynamicPrintConfig &conf
     const double general_suggested_min_speed   = 100.0;
     double       filament_max_volumetric_speed = config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(0);
     Flow         pattern_line                  = Flow(line_width, layer_height, config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0));
-    auto         pa_speed                      = std::min(std::max(general_suggested_min_speed, config.option<ConfigOptionFloat>("outer_wall_speed")->value),
+    auto         pa_speed                      = std::min(std::max(general_suggested_min_speed, config.option<ConfigOptionFloatsNullable>("outer_wall_speed")->get_at(get_extruder_index(filament_idx))),
                              filament_max_volumetric_speed / pattern_line.mm3_per_mm());
 
     return std::floor(pa_speed);

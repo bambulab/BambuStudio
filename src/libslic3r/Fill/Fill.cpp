@@ -189,11 +189,11 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 				//BBS: record speed params
                 if (!params.bridge) {
                     if (params.extrusion_role == erInternalInfill)
-                        params.sparse_infill_speed = region_config.sparse_infill_speed;
+                        params.sparse_infill_speed = region_config.sparse_infill_speed.get_at(get_extruder_index(params.extruder));
                     else if (params.extrusion_role == erTopSolidInfill)
-                        params.top_surface_speed = region_config.top_surface_speed;
+                        params.top_surface_speed = region_config.top_surface_speed.get_at(get_extruder_index(params.extruder));
                     else if (params.extrusion_role == erSolidInfill)
-                        params.solid_infill_speed = region_config.internal_solid_infill_speed;
+                        params.solid_infill_speed = region_config.internal_solid_infill_speed.get_at(get_extruder_index(params.extruder));
                 }
 				// Calculate flow spacing for infill pattern generation.
 		        if (surface.is_solid() || is_bridge) {
