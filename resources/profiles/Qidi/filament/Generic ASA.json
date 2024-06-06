@@ -6,6 +6,9 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_asa",
+    "chamber_temperatures" : [
+        "0"
+    ],
     "filament_max_volumetric_speed": [
         "16"
     ],

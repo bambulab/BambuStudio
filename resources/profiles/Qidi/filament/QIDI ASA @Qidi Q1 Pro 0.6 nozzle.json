@@ -6,9 +6,6 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "QIDI ASA",
-    "activate_chamber_temp_control": [
-        "0"
-    ],
     "fan_cooling_layer_time": [
         "40"
     ],

@@ -9,9 +9,6 @@
     "activate_chamber_temp_control": [
         "0"
     ],
-    "chamber_temperature": [
-        "55"
-    ],
     "filament_max_volumetric_speed": [
         "24.5"
     ],

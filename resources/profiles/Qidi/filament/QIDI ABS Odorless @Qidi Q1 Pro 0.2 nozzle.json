@@ -6,9 +6,6 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "QIDI ABS Odorless",
-    "activate_chamber_temp_control": [
-        "0"
-    ],
     "filament_max_volumetric_speed": [
         "2"
     ],

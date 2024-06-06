@@ -6,12 +6,6 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "Generic ASA",
-    "activate_chamber_temp_control": [
-        "0"
-    ],
-    "chamber_temperature": [
-        "55"
-    ],
     "fan_cooling_layer_time": [
         "40"
     ],

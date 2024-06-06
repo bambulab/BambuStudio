@@ -4,6 +4,9 @@
     "from": "system",
     "instantiation": "false",
     "inherits": "fdm_filament_common",
+    "chamber_temperatures" : [
+        "55"
+    ],
     "cool_plate_temp" : [
         "90"
     ],
