@@ -63,7 +63,7 @@
     "filament_density":[
         "1.03"
     ],
-    "chamber_temperature": [
+    "chamber_temperatures": [
         "60"
     ],
 	"compatible_printers": [

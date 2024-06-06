@@ -6,9 +6,6 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "QIDI ABS-GF25",
-    "chamber_temperature": [
-        "0"
-    ],
     "filament_max_volumetric_speed": [
         "22"
     ],
