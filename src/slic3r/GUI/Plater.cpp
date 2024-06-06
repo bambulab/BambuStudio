@@ -9789,8 +9789,9 @@ void Plater::calib_flowrate(int pass)
     Flow   infill_flow                   = Flow(nozzle_diameter * 1.2f, layer_height, nozzle_diameter);
     double filament_max_volumetric_speed = filament_config->option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(0);
     double max_infill_speed              = filament_max_volumetric_speed / (infill_flow.mm3_per_mm() * (pass == 1 ? 1.2 : 1));
-    double internal_solid_speed          = std::floor(std::min(print_config->opt_float("internal_solid_infill_speed"), max_infill_speed));
-    double top_surface_speed             = std::floor(std::min(print_config->opt_float("top_surface_speed"), max_infill_speed));
+    // todo multi_extruder:
+    double internal_solid_speed          = std::floor(std::min(print_config->opt_float("internal_solid_infill_speed", 0), max_infill_speed));
+    double top_surface_speed             = std::floor(std::min(print_config->opt_float("top_surface_speed", 0), max_infill_speed));
 
     // adjust parameters
     for (auto _obj : model().objects) {
