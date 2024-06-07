@@ -172,7 +172,7 @@ protected:
                                               DoubleShowType               show_type = DoubleShowType::Normal);
     bool render_combo(const std::string &label, const std::vector<std::string> &lines,
         size_t &selection_idx, float label_width, float item_width);
-
+    void render_cross_mark(const Vec3f& target,bool is_single =false);
 public:
     GLGizmoBase(GLCanvas3D& parent,
                 const std::string& icon_filename,

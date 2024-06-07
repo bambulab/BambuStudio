@@ -575,11 +575,13 @@ void Transformation::reset()
 void Transformation::reset_rotation() {
     const Geometry::TransformationSVD svd(*this);
     m_matrix = get_offset_matrix() * Transform3d(svd.v * svd.s * svd.v.transpose()) * svd.mirror_matrix();
+    m_rotation = Vec3d::Zero();
 }
 
 void Transformation::reset_scaling_factor() {
     const Geometry::TransformationSVD svd(*this);
     m_matrix = get_offset_matrix() * Transform3d(svd.u) * Transform3d(svd.v.transpose()) * svd.mirror_matrix();
+    m_scaling_factor = Vec3d::Ones();
 }
 
 void Transformation::reset_skew() {
@@ -589,6 +591,8 @@ void Transformation::reset_skew() {
 
     const Geometry::TransformationSVD svd(*this);
     m_matrix = get_offset_matrix() * Transform3d(svd.u) * scale_transform(new_scale_factor(svd.s)) * Transform3d(svd.v.transpose()) * svd.mirror_matrix();
+    const Transform3d scale_tran = extract_scale(m_matrix);
+    m_scaling_factor             = {std::abs(scale_tran(0, 0)), std::abs(scale_tran(1, 1)), std::abs(scale_tran(2, 2))};
 }
 
 const Transform3d& Transformation::get_matrix(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror) const
