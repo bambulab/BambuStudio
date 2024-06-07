@@ -72,7 +72,9 @@ bambustudio_add_cmake_project(CURL
     ${_curl_platform_flags}
 )
 
-add_dependencies(dep_CURL dep_OpenSSL)
+if (DEP_BUILD_OPENSSL AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  add_dependencies(dep_CURL ${OPENSSL_PKG})
+endif ()
 
 if (MSVC)
     add_debug_dep(dep_CURL)
