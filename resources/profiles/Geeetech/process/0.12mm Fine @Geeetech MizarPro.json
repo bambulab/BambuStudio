@@ -1,0 +1,11 @@
+{
+    "type": "process",
+    "name": "0.12mm Fine @Geeetech MizarPro",
+    "inherits": "fdm_process_geeetech_0.12",
+    "from": "system",
+    "setting_id": "GP_Geeetech MizarPro",
+    "instantiation": "true",
+    "compatible_printers": [
+		"Geeetech Mizar Pro 0.4 nozzle"
+    ]
+}

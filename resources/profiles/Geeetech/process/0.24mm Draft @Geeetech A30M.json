@@ -1,0 +1,13 @@
+{
+    "type": "process",
+    "name": "0.24mm Draft @Geeetech A30M",
+    "inherits": "fdm_process_geeetech_0.24",
+    "from": "system",
+    "setting_id": "GP_Geeetech A30M",
+    "instantiation": "true",
+    "infill_wall_overlap": "5%",
+    "travel_speed": "100",	
+    "compatible_printers": [
+		"Geeetech A30 M 0.4 nozzle"
+    ]
+}

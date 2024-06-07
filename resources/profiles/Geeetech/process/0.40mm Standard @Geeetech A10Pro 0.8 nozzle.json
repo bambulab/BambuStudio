@@ -1,0 +1,12 @@
+{
+    "type": "process",
+    "name": "0.40mm Standard @Geeetech A10Pro 0.8 nozzle",
+    "inherits": "fdm_process_geeetech_0.40_nozzle_0.8",
+    "from": "system",
+    "setting_id": "GP_Geeetech A10Pro",
+    "instantiation": "true",
+    "elefant_foot_compensation": "0.15",
+    "compatible_printers": [
+        "Geeetech A10 Pro 0.8 nozzle"
+    ]
+}

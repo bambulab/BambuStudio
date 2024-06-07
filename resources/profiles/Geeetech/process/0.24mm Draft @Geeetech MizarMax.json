@@ -1,0 +1,11 @@
+{
+    "type": "process",
+    "name": "0.24mm Draft @Geeetech MizarMax",
+    "inherits": "fdm_process_geeetech_0.24",
+    "from": "system",
+    "setting_id": "GP_Geeetech MizarMax",
+    "instantiation": "true",
+    "compatible_printers": [
+		"Geeetech Mizar Max 0.4 nozzle"
+    ]
+}

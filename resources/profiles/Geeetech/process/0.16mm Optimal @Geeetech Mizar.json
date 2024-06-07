@@ -1,0 +1,11 @@
+{
+    "type": "process",
+    "name": "0.16mm Optimal @Geeetech Mizar",
+    "inherits": "fdm_process_geeetech_0.16",
+    "from": "system",
+    "setting_id": "GP_Geeetech Mizar",
+    "instantiation": "true",
+    "compatible_printers": [
+        "Geeetech Mizar 0.4 nozzle"
+    ]
+}

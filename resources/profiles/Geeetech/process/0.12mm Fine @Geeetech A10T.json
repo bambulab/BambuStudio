@@ -1,0 +1,11 @@
+{
+    "type": "process",
+    "name": "0.12mm Fine @Geeetech A10T",
+    "inherits": "fdm_process_geeetech_0.12",
+    "from": "system",
+    "setting_id": "GP_Geeetech A10T",
+    "instantiation": "true",
+    "compatible_printers": [
+		"Geeetech A10 T 0.4 nozzle"
+    ]
+}

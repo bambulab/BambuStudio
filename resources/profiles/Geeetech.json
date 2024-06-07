@@ -1,0 +1,1366 @@
+{
+    "name": "Geeetech",
+    "version": "01.09.00.10",
+    "force_update": "0",
+    "description": "Geeetech configurations",
+    "machine_model_list": [
+        {
+            "name": "Geeetech Thunder",
+            "sub_path": "machine/Geeetech Thunder.json"
+        },
+		{
+            "name": "Geeetech Mizar M",
+            "sub_path": "machine/Geeetech Mizar M.json"
+        },
+		{
+            "name": "Geeetech Mizar S",
+            "sub_path": "machine/Geeetech Mizar S.json"
+        },
+		{
+            "name": "Geeetech Mizar Pro",
+            "sub_path": "machine/Geeetech Mizar Pro.json"
+        },
+       {
+            "name": "Geeetech Mizar Max",
+            "sub_path": "machine/Geeetech Mizar Max.json"
+        },		
+        {
+            "name": "Geeetech Mizar",
+            "sub_path": "machine/Geeetech Mizar.json"
+        },
+        {
+            "name": "Geeetech A10 Pro",
+            "sub_path": "machine/Geeetech A10 Pro.json"
+        },
+        {
+            "name": "Geeetech A10 M",
+            "sub_path": "machine/Geeetech A10 M.json"
+        },
+        {
+            "name": "Geeetech A10 T",
+            "sub_path": "machine/Geeetech A10 T.json"
+        },
+        {
+            "name": "Geeetech A20",
+            "sub_path": "machine/Geeetech A20.json"
+        },
+        {
+            "name": "Geeetech A20 M",
+            "sub_path": "machine/Geeetech A20 M.json"
+        },
+        {
+            "name": "Geeetech A20 T",
+            "sub_path": "machine/Geeetech A20 T.json"
+        },
+        {
+            "name": "Geeetech A30 Pro",
+            "sub_path": "machine/Geeetech A30 Pro.json"
+        },
+        {
+            "name": "Geeetech A30 M",
+            "sub_path": "machine/Geeetech A30 M.json"
+        },
+        {
+            "name": "Geeetech A30 T",
+            "sub_path": "machine/Geeetech A30 T.json"
+        }
+    ],
+    "process_list": [
+        {
+            "name": "fdm_process_common",
+            "sub_path": "process/fdm_process_common.json"
+        },
+        {
+            "name": "fdm_process_geeetech_common",
+            "sub_path": "process/fdm_process_geeetech_common.json"
+        },
+        {
+            "name": "fdm_process_Geeetech_HS",
+            "sub_path": "process/fdm_process_Geeetech_HS.json"
+        },
+        {
+            "name": "fdm_process_Geeetech_HS_0.08",
+            "sub_path": "process/fdm_process_Geeetech_HS_0.08.json"
+        },
+        {
+            "name": "fdm_process_Geeetech_HS_0.08_nozzle_0.2",
+            "sub_path": "process/fdm_process_Geeetech_HS_0.08_nozzle_0.2.json"
+        },
+        {
+            "name": "fdm_process_Geeetech_HS_0.10",
+            "sub_path": "process/fdm_process_Geeetech_HS_0.10.json"
+        },
+        {
+            "name": "fdm_process_Geeetech_HS_0.10_nozzle_0.2",
+            "sub_path": "process/fdm_process_Geeetech_HS_0.10_nozzle_0.2.json"
+        },
+        {
+            "name": "fdm_process_Geeetech_HS_0.12_nozzle_0.2",
+            "sub_path": "process/fdm_process_Geeetech_HS_0.12_nozzle_0.2.json"
+        },
+        {
+            "name": "fdm_process_Geeetech_HS_0.14_nozzle_0.2",
+            "sub_path": "process/fdm_process_Geeetech_HS_0.14_nozzle_0.2.json"
+        },
+        {
+            "name": "fdm_process_Geeetech_HS_0.16",
+            "sub_path": "process/fdm_process_Geeetech_HS_0.16.json"
+        },
+        {
+            "name": "fdm_process_Geeetech_HS_0.20",
+            "sub_path": "process/fdm_process_Geeetech_HS_0.20.json"
+        },
+        {
+            "name": "fdm_process_Geeetech_HS_0.24_nozzle_0.6",
+            "sub_path": "process/fdm_process_Geeetech_HS_0.24_nozzle_0.6.json"
+        },
+        {
+            "name": "fdm_process_Geeetech_HS_0.30_nozzle_0.6",
+            "sub_path": "process/fdm_process_Geeetech_HS_0.30_nozzle_0.6.json"
+        },
+        {
+            "name": "fdm_process_Geeetech_HS_0.25",
+            "sub_path": "process/fdm_process_Geeetech_HS_0.25.json"
+        },
+        {
+            "name": "fdm_process_Geeetech_HS_0.36_nozzle_0.6",
+            "sub_path": "process/fdm_process_Geeetech_HS_0.36_nozzle_0.6.json"
+        },
+        {
+            "name": "fdm_process_Geeetech_HS_0.36_nozzle_0.8",
+            "sub_path": "process/fdm_process_Geeetech_HS_0.36_nozzle_0.8.json"
+        },
+        {
+            "name": "fdm_process_Geeetech_HS_0.44_nozzle_0.8",
+            "sub_path": "process/fdm_process_Geeetech_HS_0.44_nozzle_0.8.json"
+        },
+        {
+            "name": "fdm_process_geeetech_0.06_nozzle_0.2",
+            "sub_path": "process/fdm_process_geeetech_0.06_nozzle_0.2.json"
+        },
+        {
+            "name": "fdm_process_geeetech_0.08",
+            "sub_path": "process/fdm_process_geeetech_0.08.json"
+        },
+        {
+            "name": "fdm_process_geeetech_0.08_nozzle_0.2",
+            "sub_path": "process/fdm_process_geeetech_0.08_nozzle_0.2.json"
+        },
+        {
+            "name": "fdm_process_geeetech_0.10_nozzle_0.2",
+            "sub_path": "process/fdm_process_geeetech_0.10_nozzle_0.2.json"
+        },
+        {
+            "name": "fdm_process_geeetech_0.12",
+            "sub_path": "process/fdm_process_geeetech_0.12.json"
+        },
+        {
+            "name": "fdm_process_geeetech_0.12_nozzle_0.2",
+            "sub_path": "process/fdm_process_geeetech_0.12_nozzle_0.2.json"
+        },
+        {
+            "name": "fdm_process_geeetech_0.14_nozzle_0.2",
+            "sub_path": "process/fdm_process_geeetech_0.14_nozzle_0.2.json"
+        },
+        {
+            "name": "fdm_process_geeetech_0.16",
+            "sub_path": "process/fdm_process_geeetech_0.16.json"
+        },
+        {
+            "name": "fdm_process_geeetech_0.18_nozzle_0.6",
+            "sub_path": "process/fdm_process_geeetech_0.18_nozzle_0.6.json"
+        },
+        {
+            "name": "fdm_process_geeetech_0.20",
+            "sub_path": "process/fdm_process_geeetech_0.20.json"
+        },
+        {
+            "name": "fdm_process_geeetech_0.24",
+            "sub_path": "process/fdm_process_geeetech_0.24.json"
+        },
+        {
+            "name": "fdm_process_geeetech_0.24_nozzle_0.6",
+            "sub_path": "process/fdm_process_geeetech_0.24_nozzle_0.6.json"
+        },
+        {
+            "name": "fdm_process_geeetech_0.24_nozzle_0.8",
+            "sub_path": "process/fdm_process_geeetech_0.24_nozzle_0.8.json"
+        },
+        {
+            "name": "fdm_process_geeetech_0.28",
+            "sub_path": "process/fdm_process_geeetech_0.28.json"
+        },
+        {
+            "name": "fdm_process_geeetech_0.30_nozzle_0.6",
+            "sub_path": "process/fdm_process_geeetech_0.30_nozzle_0.6.json"
+        },
+        {
+            "name": "fdm_process_geeetech_0.32_nozzle_0.8",
+            "sub_path": "process/fdm_process_geeetech_0.32_nozzle_0.8.json"
+        },
+        {
+            "name": "fdm_process_geeetech_0.36_nozzle_0.6",
+            "sub_path": "process/fdm_process_geeetech_0.36_nozzle_0.6.json"
+        },
+        {
+            "name": "fdm_process_geeetech_0.40_nozzle_0.8",
+            "sub_path": "process/fdm_process_geeetech_0.40_nozzle_0.8.json"
+        },
+        {
+            "name": "fdm_process_geeetech_0.42_nozzle_0.6",
+            "sub_path": "process/fdm_process_geeetech_0.42_nozzle_0.6.json"
+        },
+        {
+            "name": "fdm_process_geeetech_0.48_nozzle_0.8",
+            "sub_path": "process/fdm_process_geeetech_0.48_nozzle_0.8.json"
+        },
+        {
+            "name": "fdm_process_geeetech_0.56_nozzle_0.8",
+            "sub_path": "process/fdm_process_geeetech_0.56_nozzle_0.8.json"
+        },				
+        {
+            "name": "0.08mm Extra Fine @Geeetech Thunder",
+            "sub_path": "process/0.08mm Extra Fine @Geeetech Thunder.json"
+        },
+        {
+            "name": "0.08mm Optimal @Geeetech Thunder 0.2 nozzle",
+            "sub_path": "process/0.08mm Optimal @Geeetech Thunder 0.2 nozzle.json"
+        },		
+        {
+            "name": "0.10mm Fine @Geeetech Thunder",
+            "sub_path": "process/0.10mm Fine @Geeetech Thunder.json"
+        },
+        {
+            "name": "0.10mm Standard @Geeetech Thunder 0.2 nozzle",
+            "sub_path": "process/0.10mm Standard @Geeetech Thunder 0.2 nozzle.json"
+        },
+        {
+            "name": "0.12mm Draft @Geeetech Thunder 0.2 nozzle",
+            "sub_path": "process/0.12mm Draft @Geeetech Thunder 0.2 nozzle.json"
+        },
+        {
+            "name": "0.14mm Extra Draft @Geeetech Thunder 0.2 nozzle",
+            "sub_path": "process/0.14mm Extra Draft @Geeetech Thunder 0.2 nozzle.json"
+        },
+        {
+            "name": "0.16mm Optimal @Geeetech Thunder",
+            "sub_path": "process/0.16mm Optimal @Geeetech Thunder.json"
+        },
+        {
+            "name": "0.20mm Standard @Geeetech Thunder",
+            "sub_path": "process/0.20mm Standard @Geeetech Thunder.json"
+        },
+        {
+            "name": "0.24mm Optimal @Geeetech Thunder 0.6 nozzle",
+            "sub_path": "process/0.24mm Optimal @Geeetech Thunder 0.6 nozzle.json"
+        },
+        {
+            "name": "0.25mm Draft @Geeetech Thunder",
+            "sub_path": "process/0.25mm Draft @Geeetech Thunder.json"
+        },
+        {
+            "name": "0.30mm Standard @Geeetech Thunder 0.6 nozzle",
+            "sub_path": "process/0.30mm Standard @Geeetech Thunder 0.6 nozzle.json"
+        },
+        {
+            "name": "0.36mm Draft @Geeetech Thunder 0.6 nozzle",
+            "sub_path": "process/0.36mm Draft @Geeetech Thunder 0.6 nozzle.json"
+        },
+        {
+            "name": "0.36mm Optimal @Geeetech Thunder 0.8 nozzle",
+            "sub_path": "process/0.36mm Optimal @Geeetech Thunder 0.8 nozzle.json"
+        },
+        {
+            "name": "0.44mm Draft @Geeetech Thunder 0.8 nozzle",
+            "sub_path": "process/0.44mm Draft @Geeetech Thunder 0.8 nozzle.json"
+        },
+        {
+            "name": "0.06mm Fine @Geeetech Mizar 0.2 nozzle",
+            "sub_path": "process/0.06mm Fine @Geeetech Mizar 0.2 nozzle.json"
+        },
+        {
+            "name": "0.08mm Extra Fine @Geeetech Mizar",
+            "sub_path": "process/0.08mm Extra Fine @Geeetech Mizar.json"
+        },
+        {
+            "name": "0.08mm Optimal @Geeetech Mizar 0.2 nozzle",
+            "sub_path": "process/0.08mm Optimal @Geeetech Mizar 0.2 nozzle.json"
+        },
+        {
+            "name": "0.10mm Standard @Geeetech Mizar 0.2 nozzle",
+            "sub_path": "process/0.10mm Standard @Geeetech Mizar 0.2 nozzle.json"
+        },
+        {
+            "name": "0.12mm Draft @Geeetech Mizar 0.2 nozzle",
+            "sub_path": "process/0.12mm Draft @Geeetech Mizar 0.2 nozzle.json"
+        },
+        {
+            "name": "0.12mm Fine @Geeetech Mizar",
+            "sub_path": "process/0.12mm Fine @Geeetech Mizar.json"
+        },
+        {
+            "name": "0.14mm Extra Draft @Geeetech Mizar 0.2 nozzle",
+            "sub_path": "process/0.14mm Extra Draft @Geeetech Mizar 0.2 nozzle.json"
+        },
+        {
+            "name": "0.16mm Optimal @Geeetech Mizar",
+            "sub_path": "process/0.16mm Optimal @Geeetech Mizar.json"
+        },
+        {
+            "name": "0.18mm Fine @Geeetech Mizar 0.6 nozzle",
+            "sub_path": "process/0.18mm Fine @Geeetech Mizar 0.6 nozzle.json"
+        },
+        {
+            "name": "0.20mm Standard @Geeetech Mizar",
+            "sub_path": "process/0.20mm Standard @Geeetech Mizar.json"
+        },
+        {
+            "name": "0.20mm Strength @Geeetech Mizar",
+            "sub_path": "process/0.20mm Strength @Geeetech Mizar.json"
+        },
+        {
+            "name": "0.24mm Draft @Geeetech Mizar",
+            "sub_path": "process/0.24mm Draft @Geeetech Mizar.json"
+        },
+        {
+            "name": "0.24mm Fine @Geeetech Mizar 0.8 nozzle",
+            "sub_path": "process/0.24mm Fine @Geeetech Mizar 0.8 nozzle.json"
+        },
+        {
+            "name": "0.24mm Optimal @Geeetech Mizar 0.6 nozzle",
+            "sub_path": "process/0.24mm Optimal @Geeetech Mizar 0.6 nozzle.json"
+        },
+        {
+            "name": "0.28mm Extra Draft @Geeetech Mizar",
+            "sub_path": "process/0.28mm Extra Draft @Geeetech Mizar.json"
+        },
+        {
+            "name": "0.30mm Standard @Geeetech Mizar 0.6 nozzle",
+            "sub_path": "process/0.30mm Standard @Geeetech Mizar 0.6 nozzle.json"
+        },
+        {
+            "name": "0.30mm Strength @Geeetech Mizar 0.6 nozzle",
+            "sub_path": "process/0.30mm Strength @Geeetech Mizar 0.6 nozzle.json"
+        },
+        {
+            "name": "0.32mm Optimal @Geeetech Mizar 0.8 nozzle",
+            "sub_path": "process/0.32mm Optimal @Geeetech Mizar 0.8 nozzle.json"
+        },
+        {
+            "name": "0.36mm Draft @Geeetech Mizar 0.6 nozzle",
+            "sub_path": "process/0.36mm Draft @Geeetech Mizar 0.6 nozzle.json"
+        },
+        {
+            "name": "0.40mm Standard @Geeetech Mizar 0.8 nozzle",
+            "sub_path": "process/0.40mm Standard @Geeetech Mizar 0.8 nozzle.json"
+        },
+        {
+            "name": "0.42mm Extra Draft @Geeetech Mizar 0.6 nozzle",
+            "sub_path": "process/0.42mm Extra Draft @Geeetech Mizar 0.6 nozzle.json"
+        },
+        {
+            "name": "0.48mm Draft @Geeetech Mizar 0.8 nozzle",
+            "sub_path": "process/0.48mm Draft @Geeetech Mizar 0.8 nozzle.json"
+        },
+        {
+            "name": "0.56mm Extra Draft @Geeetech Mizar 0.8 nozzle",
+            "sub_path": "process/0.56mm Extra Draft @Geeetech Mizar 0.8 nozzle.json"
+        },
+        {
+            "name": "0.06mm Fine @Geeetech MizarS 0.2 nozzle",
+            "sub_path": "process/0.06mm Fine @Geeetech MizarS 0.2 nozzle.json"
+        },
+        {
+            "name": "0.08mm Extra Fine @Geeetech MizarS",
+            "sub_path": "process/0.08mm Extra Fine @Geeetech MizarS.json"
+        },
+        {
+            "name": "0.08mm Optimal @Geeetech MizarS 0.2 nozzle",
+            "sub_path": "process/0.08mm Optimal @Geeetech MizarS 0.2 nozzle.json"
+        },
+        {
+            "name": "0.10mm Standard @Geeetech MizarS 0.2 nozzle",
+            "sub_path": "process/0.10mm Standard @Geeetech MizarS 0.2 nozzle.json"
+        },
+        {
+            "name": "0.12mm Draft @Geeetech MizarS 0.2 nozzle",
+            "sub_path": "process/0.12mm Draft @Geeetech MizarS 0.2 nozzle.json"
+        },
+        {
+            "name": "0.12mm Fine @Geeetech MizarS",
+            "sub_path": "process/0.12mm Fine @Geeetech MizarS.json"
+        },
+        {
+            "name": "0.14mm Extra Draft @Geeetech MizarS 0.2 nozzle",
+            "sub_path": "process/0.14mm Extra Draft @Geeetech MizarS 0.2 nozzle.json"
+        },
+        {
+            "name": "0.16mm Optimal @Geeetech MizarS",
+            "sub_path": "process/0.16mm Optimal @Geeetech MizarS.json"
+        },
+        {
+            "name": "0.18mm Fine @Geeetech MizarS 0.6 nozzle",
+            "sub_path": "process/0.18mm Fine @Geeetech MizarS 0.6 nozzle.json"
+        },
+        {
+            "name": "0.20mm Standard @Geeetech MizarS",
+            "sub_path": "process/0.20mm Standard @Geeetech MizarS.json"
+        },
+        {
+            "name": "0.20mm Strength @Geeetech MizarS",
+            "sub_path": "process/0.20mm Strength @Geeetech MizarS.json"
+        },
+        {
+            "name": "0.24mm Draft @Geeetech MizarS",
+            "sub_path": "process/0.24mm Draft @Geeetech MizarS.json"
+        },
+        {
+            "name": "0.24mm Fine @Geeetech MizarS 0.8 nozzle",
+            "sub_path": "process/0.24mm Fine @Geeetech MizarS 0.8 nozzle.json"
+        },
+        {
+            "name": "0.24mm Optimal @Geeetech MizarS 0.6 nozzle",
+            "sub_path": "process/0.24mm Optimal @Geeetech MizarS 0.6 nozzle.json"
+        },
+        {
+            "name": "0.28mm Extra Draft @Geeetech MizarS",
+            "sub_path": "process/0.28mm Extra Draft @Geeetech MizarS.json"
+        },
+        {
+            "name": "0.30mm Standard @Geeetech MizarS 0.6 nozzle",
+            "sub_path": "process/0.30mm Standard @Geeetech MizarS 0.6 nozzle.json"
+        },
+        {
+            "name": "0.30mm Strength @Geeetech MizarS 0.6 nozzle",
+            "sub_path": "process/0.30mm Strength @Geeetech MizarS 0.6 nozzle.json"
+        },
+        {
+            "name": "0.32mm Optimal @Geeetech MizarS 0.8 nozzle",
+            "sub_path": "process/0.32mm Optimal @Geeetech MizarS 0.8 nozzle.json"
+        },
+        {
+            "name": "0.36mm Draft @Geeetech MizarS 0.6 nozzle",
+            "sub_path": "process/0.36mm Draft @Geeetech MizarS 0.6 nozzle.json"
+        },
+        {
+            "name": "0.40mm Standard @Geeetech MizarS 0.8 nozzle",
+            "sub_path": "process/0.40mm Standard @Geeetech MizarS 0.8 nozzle.json"
+        },
+        {
+            "name": "0.42mm Extra Draft @Geeetech MizarS 0.6 nozzle",
+            "sub_path": "process/0.42mm Extra Draft @Geeetech MizarS 0.6 nozzle.json"
+        },
+        {
+            "name": "0.48mm Draft @Geeetech MizarS 0.8 nozzle",
+            "sub_path": "process/0.48mm Draft @Geeetech MizarS 0.8 nozzle.json"
+        },
+        {
+            "name": "0.56mm Extra Draft @Geeetech MizarS 0.8 nozzle",
+            "sub_path": "process/0.56mm Extra Draft @Geeetech MizarS 0.8 nozzle.json"
+        },
+        {
+            "name": "0.06mm Fine @Geeetech MizarPro 0.2 nozzle",
+            "sub_path": "process/0.06mm Fine @Geeetech MizarPro 0.2 nozzle.json"
+        },
+        {
+            "name": "0.08mm Extra Fine @Geeetech MizarPro",
+            "sub_path": "process/0.08mm Extra Fine @Geeetech MizarPro.json"
+        },
+        {
+            "name": "0.08mm Optimal @Geeetech MizarPro 0.2 nozzle",
+            "sub_path": "process/0.08mm Optimal @Geeetech MizarPro 0.2 nozzle.json"
+        },
+        {
+            "name": "0.10mm Standard @Geeetech MizarPro 0.2 nozzle",
+            "sub_path": "process/0.10mm Standard @Geeetech MizarPro 0.2 nozzle.json"
+        },
+        {
+            "name": "0.12mm Draft @Geeetech MizarPro 0.2 nozzle",
+            "sub_path": "process/0.12mm Draft @Geeetech MizarPro 0.2 nozzle.json"
+        },
+        {
+            "name": "0.12mm Fine @Geeetech MizarPro",
+            "sub_path": "process/0.12mm Fine @Geeetech MizarPro.json"
+        },
+        {
+            "name": "0.14mm Extra Draft @Geeetech MizarPro 0.2 nozzle",
+            "sub_path": "process/0.14mm Extra Draft @Geeetech MizarPro 0.2 nozzle.json"
+        },
+        {
+            "name": "0.16mm Optimal @Geeetech MizarPro",
+            "sub_path": "process/0.16mm Optimal @Geeetech MizarPro.json"
+        },
+        {
+            "name": "0.18mm Fine @Geeetech MizarPro 0.6 nozzle",
+            "sub_path": "process/0.18mm Fine @Geeetech MizarPro 0.6 nozzle.json"
+        },
+        {
+            "name": "0.20mm Standard @Geeetech MizarPro",
+            "sub_path": "process/0.20mm Standard @Geeetech MizarPro.json"
+        },
+        {
+            "name": "0.20mm Strength @Geeetech MizarPro",
+            "sub_path": "process/0.20mm Strength @Geeetech MizarPro.json"
+        },
+        {
+            "name": "0.24mm Draft @Geeetech MizarPro",
+            "sub_path": "process/0.24mm Draft @Geeetech MizarPro.json"
+        },
+        {
+            "name": "0.24mm Fine @Geeetech MizarPro 0.8 nozzle",
+            "sub_path": "process/0.24mm Fine @Geeetech MizarPro 0.8 nozzle.json"
+        },
+        {
+            "name": "0.24mm Optimal @Geeetech MizarPro 0.6 nozzle",
+            "sub_path": "process/0.24mm Optimal @Geeetech MizarPro 0.6 nozzle.json"
+        },
+        {
+            "name": "0.28mm Extra Draft @Geeetech MizarPro",
+            "sub_path": "process/0.28mm Extra Draft @Geeetech MizarPro.json"
+        },
+        {
+            "name": "0.30mm Standard @Geeetech MizarPro 0.6 nozzle",
+            "sub_path": "process/0.30mm Standard @Geeetech MizarPro 0.6 nozzle.json"
+        },
+        {
+            "name": "0.30mm Strength @Geeetech MizarPro 0.6 nozzle",
+            "sub_path": "process/0.30mm Strength @Geeetech MizarPro 0.6 nozzle.json"
+        },
+        {
+            "name": "0.32mm Optimal @Geeetech MizarPro 0.8 nozzle",
+            "sub_path": "process/0.32mm Optimal @Geeetech MizarPro 0.8 nozzle.json"
+        },
+        {
+            "name": "0.36mm Draft @Geeetech MizarPro 0.6 nozzle",
+            "sub_path": "process/0.36mm Draft @Geeetech MizarPro 0.6 nozzle.json"
+        },
+        {
+            "name": "0.40mm Standard @Geeetech MizarPro 0.8 nozzle",
+            "sub_path": "process/0.40mm Standard @Geeetech MizarPro 0.8 nozzle.json"
+        },
+        {
+            "name": "0.42mm Extra Draft @Geeetech MizarPro 0.6 nozzle",
+            "sub_path": "process/0.42mm Extra Draft @Geeetech MizarPro 0.6 nozzle.json"
+        },
+        {
+            "name": "0.48mm Draft @Geeetech MizarPro 0.8 nozzle",
+            "sub_path": "process/0.48mm Draft @Geeetech MizarPro 0.8 nozzle.json"
+        },
+        {
+            "name": "0.56mm Extra Draft @Geeetech MizarPro 0.8 nozzle",
+            "sub_path": "process/0.56mm Extra Draft @Geeetech MizarPro 0.8 nozzle.json"
+        },
+        {
+            "name": "0.06mm Fine @Geeetech MizarMax 0.2 nozzle",
+            "sub_path": "process/0.06mm Fine @Geeetech MizarMax 0.2 nozzle.json"
+        },
+        {
+            "name": "0.08mm Extra Fine @Geeetech MizarMax",
+            "sub_path": "process/0.08mm Extra Fine @Geeetech MizarMax.json"
+        },
+        {
+            "name": "0.08mm Optimal @Geeetech MizarMax 0.2 nozzle",
+            "sub_path": "process/0.08mm Optimal @Geeetech MizarMax 0.2 nozzle.json"
+        },
+        {
+            "name": "0.10mm Standard @Geeetech MizarMax 0.2 nozzle",
+            "sub_path": "process/0.10mm Standard @Geeetech MizarMax 0.2 nozzle.json"
+        },
+        {
+            "name": "0.12mm Draft @Geeetech MizarMax 0.2 nozzle",
+            "sub_path": "process/0.12mm Draft @Geeetech MizarMax 0.2 nozzle.json"
+        },
+        {
+            "name": "0.12mm Fine @Geeetech MizarMax",
+            "sub_path": "process/0.12mm Fine @Geeetech MizarMax.json"
+        },
+        {
+            "name": "0.14mm Extra Draft @Geeetech MizarMax 0.2 nozzle",
+            "sub_path": "process/0.14mm Extra Draft @Geeetech MizarMax 0.2 nozzle.json"
+        },
+        {
+            "name": "0.16mm Optimal @Geeetech MizarMax",
+            "sub_path": "process/0.16mm Optimal @Geeetech MizarMax.json"
+        },
+        {
+            "name": "0.18mm Fine @Geeetech MizarMax 0.6 nozzle",
+            "sub_path": "process/0.18mm Fine @Geeetech MizarMax 0.6 nozzle.json"
+        },
+        {
+            "name": "0.20mm Standard @Geeetech MizarMax",
+            "sub_path": "process/0.20mm Standard @Geeetech MizarMax.json"
+        },
+        {
+            "name": "0.20mm Strength @Geeetech MizarMax",
+            "sub_path": "process/0.20mm Strength @Geeetech MizarMax.json"
+        },
+        {
+            "name": "0.24mm Draft @Geeetech MizarMax",
+            "sub_path": "process/0.24mm Draft @Geeetech MizarMax.json"
+        },
+        {
+            "name": "0.24mm Fine @Geeetech MizarMax 0.8 nozzle",
+            "sub_path": "process/0.24mm Fine @Geeetech MizarMax 0.8 nozzle.json"
+        },
+        {
+            "name": "0.24mm Optimal @Geeetech MizarMax 0.6 nozzle",
+            "sub_path": "process/0.24mm Optimal @Geeetech MizarMax 0.6 nozzle.json"
+        },
+        {
+            "name": "0.28mm Extra Draft @Geeetech MizarMax",
+            "sub_path": "process/0.28mm Extra Draft @Geeetech MizarMax.json"
+        },
+        {
+            "name": "0.30mm Standard @Geeetech MizarMax 0.6 nozzle",
+            "sub_path": "process/0.30mm Standard @Geeetech MizarMax 0.6 nozzle.json"
+        },
+        {
+            "name": "0.30mm Strength @Geeetech MizarMax 0.6 nozzle",
+            "sub_path": "process/0.30mm Strength @Geeetech MizarMax 0.6 nozzle.json"
+        },
+        {
+            "name": "0.32mm Optimal @Geeetech MizarMax 0.8 nozzle",
+            "sub_path": "process/0.32mm Optimal @Geeetech MizarMax 0.8 nozzle.json"
+        },
+        {
+            "name": "0.36mm Draft @Geeetech MizarMax 0.6 nozzle",
+            "sub_path": "process/0.36mm Draft @Geeetech MizarMax 0.6 nozzle.json"
+        },
+        {
+            "name": "0.40mm Standard @Geeetech MizarMax 0.8 nozzle",
+            "sub_path": "process/0.40mm Standard @Geeetech MizarMax 0.8 nozzle.json"
+        },
+        {
+            "name": "0.42mm Extra Draft @Geeetech MizarMax 0.6 nozzle",
+            "sub_path": "process/0.42mm Extra Draft @Geeetech MizarMax 0.6 nozzle.json"
+        },
+        {
+            "name": "0.48mm Draft @Geeetech MizarMax 0.8 nozzle",
+            "sub_path": "process/0.48mm Draft @Geeetech MizarMax 0.8 nozzle.json"
+        },
+        {
+            "name": "0.56mm Extra Draft @Geeetech MizarMax 0.8 nozzle",
+            "sub_path": "process/0.56mm Extra Draft @Geeetech MizarMax 0.8 nozzle.json"
+        },
+        {
+            "name": "0.08mm Extra Fine @Geeetech MizarM",
+            "sub_path": "process/0.08mm Extra Fine @Geeetech MizarM.json"
+        },
+        {
+            "name": "0.12mm Fine @Geeetech MizarM",
+            "sub_path": "process/0.12mm Fine @Geeetech MizarM.json"
+        },
+        {
+            "name": "0.16mm Optimal @Geeetech MizarM",
+            "sub_path": "process/0.16mm Optimal @Geeetech MizarM.json"
+        },
+        {
+            "name": "0.20mm Standard @Geeetech MizarM",
+            "sub_path": "process/0.20mm Standard @Geeetech MizarM.json"
+        },
+        {
+            "name": "0.20mm Strength @Geeetech MizarM",
+            "sub_path": "process/0.20mm Strength @Geeetech MizarM.json"
+        },
+        {
+            "name": "0.24mm Draft @Geeetech MizarM",
+            "sub_path": "process/0.24mm Draft @Geeetech MizarM.json"
+        },
+        {
+            "name": "0.28mm Extra Draft @Geeetech MizarM",
+            "sub_path": "process/0.28mm Extra Draft @Geeetech MizarM.json"
+        },
+        {
+            "name": "0.06mm Fine @Geeetech A10Pro 0.2 nozzle",
+            "sub_path": "process/0.06mm Fine @Geeetech A10Pro 0.2 nozzle.json"
+        },
+        {
+            "name": "0.08mm Extra Fine @Geeetech A10Pro",
+            "sub_path": "process/0.08mm Extra Fine @Geeetech A10Pro.json"
+        },
+        {
+            "name": "0.08mm Optimal @Geeetech A10Pro 0.2 nozzle",
+            "sub_path": "process/0.08mm Optimal @Geeetech A10Pro 0.2 nozzle.json"
+        },
+        {
+            "name": "0.10mm Standard @Geeetech A10Pro 0.2 nozzle",
+            "sub_path": "process/0.10mm Standard @Geeetech A10Pro 0.2 nozzle.json"
+        },
+        {
+            "name": "0.12mm Draft @Geeetech A10Pro 0.2 nozzle",
+            "sub_path": "process/0.12mm Draft @Geeetech A10Pro 0.2 nozzle.json"
+        },
+        {
+            "name": "0.12mm Fine @Geeetech A10Pro",
+            "sub_path": "process/0.12mm Fine @Geeetech A10Pro.json"
+        },
+        {
+            "name": "0.14mm Extra Draft @Geeetech A10Pro 0.2 nozzle",
+            "sub_path": "process/0.14mm Extra Draft @Geeetech A10Pro 0.2 nozzle.json"
+        },
+        {
+            "name": "0.16mm Optimal @Geeetech A10Pro",
+            "sub_path": "process/0.16mm Optimal @Geeetech A10Pro.json"
+        },
+        {
+            "name": "0.18mm Fine @Geeetech A10Pro 0.6 nozzle",
+            "sub_path": "process/0.18mm Fine @Geeetech A10Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "0.20mm Standard @Geeetech A10Pro",
+            "sub_path": "process/0.20mm Standard @Geeetech A10Pro.json"
+        },
+        {
+            "name": "0.20mm Strength @Geeetech A10Pro",
+            "sub_path": "process/0.20mm Strength @Geeetech A10Pro.json"
+        },
+        {
+            "name": "0.24mm Draft @Geeetech A10Pro",
+            "sub_path": "process/0.24mm Draft @Geeetech A10Pro.json"
+        },
+        {
+            "name": "0.24mm Fine @Geeetech A10Pro 0.8 nozzle",
+            "sub_path": "process/0.24mm Fine @Geeetech A10Pro 0.8 nozzle.json"
+        },
+        {
+            "name": "0.24mm Optimal @Geeetech A10Pro 0.6 nozzle",
+            "sub_path": "process/0.24mm Optimal @Geeetech A10Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "0.28mm Extra Draft @Geeetech A10Pro",
+            "sub_path": "process/0.28mm Extra Draft @Geeetech A10Pro.json"
+        },
+        {
+            "name": "0.30mm Standard @Geeetech A10Pro 0.6 nozzle",
+            "sub_path": "process/0.30mm Standard @Geeetech A10Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "0.30mm Strength @Geeetech A10Pro 0.6 nozzle",
+            "sub_path": "process/0.30mm Strength @Geeetech A10Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "0.32mm Optimal @Geeetech A10Pro 0.8 nozzle",
+            "sub_path": "process/0.32mm Optimal @Geeetech A10Pro 0.8 nozzle.json"
+        },
+        {
+            "name": "0.36mm Draft @Geeetech A10Pro 0.6 nozzle",
+            "sub_path": "process/0.36mm Draft @Geeetech A10Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "0.40mm Standard @Geeetech A10Pro 0.8 nozzle",
+            "sub_path": "process/0.40mm Standard @Geeetech A10Pro 0.8 nozzle.json"
+        },
+        {
+            "name": "0.42mm Extra Draft @Geeetech A10Pro 0.6 nozzle",
+            "sub_path": "process/0.42mm Extra Draft @Geeetech A10Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "0.48mm Draft @Geeetech A10Pro 0.8 nozzle",
+            "sub_path": "process/0.48mm Draft @Geeetech A10Pro 0.8 nozzle.json"
+        },
+        {
+            "name": "0.56mm Extra Draft @Geeetech A10Pro 0.8 nozzle",
+            "sub_path": "process/0.56mm Extra Draft @Geeetech A10Pro 0.8 nozzle.json"
+        },	
+        {
+            "name": "0.08mm Extra Fine @Geeetech A10M",
+            "sub_path": "process/0.08mm Extra Fine @Geeetech A10M.json"
+        },
+        {
+            "name": "0.12mm Fine @Geeetech A10M",
+            "sub_path": "process/0.12mm Fine @Geeetech A10M.json"
+        },
+        {
+            "name": "0.16mm Optimal @Geeetech A10M",
+            "sub_path": "process/0.16mm Optimal @Geeetech A10M.json"
+        },
+        {
+            "name": "0.20mm Standard @Geeetech A10M",
+            "sub_path": "process/0.20mm Standard @Geeetech A10M.json"
+        },
+        {
+            "name": "0.20mm Strength @Geeetech A10M",
+            "sub_path": "process/0.20mm Strength @Geeetech A10M.json"
+        },
+        {
+            "name": "0.24mm Draft @Geeetech A10M",
+            "sub_path": "process/0.24mm Draft @Geeetech A10M.json"
+        },
+        {
+            "name": "0.28mm Extra Draft @Geeetech A10M",
+            "sub_path": "process/0.28mm Extra Draft @Geeetech A10M.json"
+        },
+        {
+            "name": "0.08mm Extra Fine @Geeetech A10T",
+            "sub_path": "process/0.08mm Extra Fine @Geeetech A10T.json"
+        },
+        {
+            "name": "0.12mm Fine @Geeetech A10T",
+            "sub_path": "process/0.12mm Fine @Geeetech A10T.json"
+        },
+        {
+            "name": "0.16mm Optimal @Geeetech A10T",
+            "sub_path": "process/0.16mm Optimal @Geeetech A10T.json"
+        },
+        {
+            "name": "0.20mm Standard @Geeetech A10T",
+            "sub_path": "process/0.20mm Standard @Geeetech A10T.json"
+        },
+        {
+            "name": "0.20mm Strength @Geeetech A10T",
+            "sub_path": "process/0.20mm Strength @Geeetech A10T.json"
+        },
+        {
+            "name": "0.24mm Draft @Geeetech A10T",
+            "sub_path": "process/0.24mm Draft @Geeetech A10T.json"
+        },
+        {
+            "name": "0.28mm Extra Draft @Geeetech A10T",
+            "sub_path": "process/0.28mm Extra Draft @Geeetech A10T.json"
+        },
+        {
+            "name": "0.06mm Fine @Geeetech A20 0.2 nozzle",
+            "sub_path": "process/0.06mm Fine @Geeetech A20 0.2 nozzle.json"
+        },
+        {
+            "name": "0.08mm Extra Fine @Geeetech A20",
+            "sub_path": "process/0.08mm Extra Fine @Geeetech A20.json"
+        },
+        {
+            "name": "0.08mm Optimal @Geeetech A20 0.2 nozzle",
+            "sub_path": "process/0.08mm Optimal @Geeetech A20 0.2 nozzle.json"
+        },
+        {
+            "name": "0.10mm Standard @Geeetech A20 0.2 nozzle",
+            "sub_path": "process/0.10mm Standard @Geeetech A20 0.2 nozzle.json"
+        },
+        {
+            "name": "0.12mm Draft @Geeetech A20 0.2 nozzle",
+            "sub_path": "process/0.12mm Draft @Geeetech A20 0.2 nozzle.json"
+        },
+        {
+            "name": "0.12mm Fine @Geeetech A20",
+            "sub_path": "process/0.12mm Fine @Geeetech A20.json"
+        },
+        {
+            "name": "0.14mm Extra Draft @Geeetech A20 0.2 nozzle",
+            "sub_path": "process/0.14mm Extra Draft @Geeetech A20 0.2 nozzle.json"
+        },
+        {
+            "name": "0.16mm Optimal @Geeetech A20",
+            "sub_path": "process/0.16mm Optimal @Geeetech A20.json"
+        },
+        {
+            "name": "0.18mm Fine @Geeetech A20 0.6 nozzle",
+            "sub_path": "process/0.18mm Fine @Geeetech A20 0.6 nozzle.json"
+        },
+        {
+            "name": "0.20mm Standard @Geeetech A20",
+            "sub_path": "process/0.20mm Standard @Geeetech A20.json"
+        },
+        {
+            "name": "0.20mm Strength @Geeetech A20",
+            "sub_path": "process/0.20mm Strength @Geeetech A20.json"
+        },
+        {
+            "name": "0.24mm Draft @Geeetech A20",
+            "sub_path": "process/0.24mm Draft @Geeetech A20.json"
+        },
+        {
+            "name": "0.24mm Fine @Geeetech A20 0.8 nozzle",
+            "sub_path": "process/0.24mm Fine @Geeetech A20 0.8 nozzle.json"
+        },
+        {
+            "name": "0.24mm Optimal @Geeetech A20 0.6 nozzle",
+            "sub_path": "process/0.24mm Optimal @Geeetech A20 0.6 nozzle.json"
+        },
+        {
+            "name": "0.28mm Extra Draft @Geeetech A20",
+            "sub_path": "process/0.28mm Extra Draft @Geeetech A20.json"
+        },
+        {
+            "name": "0.30mm Standard @Geeetech A20 0.6 nozzle",
+            "sub_path": "process/0.30mm Standard @Geeetech A20 0.6 nozzle.json"
+        },
+        {
+            "name": "0.30mm Strength @Geeetech A20 0.6 nozzle",
+            "sub_path": "process/0.30mm Strength @Geeetech A20 0.6 nozzle.json"
+        },
+        {
+            "name": "0.32mm Optimal @Geeetech A20 0.8 nozzle",
+            "sub_path": "process/0.32mm Optimal @Geeetech A20 0.8 nozzle.json"
+        },
+        {
+            "name": "0.36mm Draft @Geeetech A20 0.6 nozzle",
+            "sub_path": "process/0.36mm Draft @Geeetech A20 0.6 nozzle.json"
+        },
+        {
+            "name": "0.40mm Standard @Geeetech A20 0.8 nozzle",
+            "sub_path": "process/0.40mm Standard @Geeetech A20 0.8 nozzle.json"
+        },
+        {
+            "name": "0.42mm Extra Draft @Geeetech A20 0.6 nozzle",
+            "sub_path": "process/0.42mm Extra Draft @Geeetech A20 0.6 nozzle.json"
+        },
+        {
+            "name": "0.48mm Draft @Geeetech A20 0.8 nozzle",
+            "sub_path": "process/0.48mm Draft @Geeetech A20 0.8 nozzle.json"
+        },
+        {
+            "name": "0.56mm Extra Draft @Geeetech A20 0.8 nozzle",
+            "sub_path": "process/0.56mm Extra Draft @Geeetech A20 0.8 nozzle.json"
+        },	
+        {
+            "name": "0.08mm Extra Fine @Geeetech A20M",
+            "sub_path": "process/0.08mm Extra Fine @Geeetech A20M.json"
+        },
+        {
+            "name": "0.12mm Fine @Geeetech A20M",
+            "sub_path": "process/0.12mm Fine @Geeetech A20M.json"
+        },
+        {
+            "name": "0.16mm Optimal @Geeetech A20M",
+            "sub_path": "process/0.16mm Optimal @Geeetech A20M.json"
+        },
+        {
+            "name": "0.20mm Standard @Geeetech A20M",
+            "sub_path": "process/0.20mm Standard @Geeetech A20M.json"
+        },
+        {
+            "name": "0.20mm Strength @Geeetech A20M",
+            "sub_path": "process/0.20mm Strength @Geeetech A20M.json"
+        },
+        {
+            "name": "0.24mm Draft @Geeetech A20M",
+            "sub_path": "process/0.24mm Draft @Geeetech A20M.json"
+        },
+        {
+            "name": "0.28mm Extra Draft @Geeetech A20M",
+            "sub_path": "process/0.28mm Extra Draft @Geeetech A20M.json"
+        },
+        {
+            "name": "0.08mm Extra Fine @Geeetech A20T",
+            "sub_path": "process/0.08mm Extra Fine @Geeetech A20T.json"
+        },
+        {
+            "name": "0.12mm Fine @Geeetech A20T",
+            "sub_path": "process/0.12mm Fine @Geeetech A20T.json"
+        },
+        {
+            "name": "0.16mm Optimal @Geeetech A20T",
+            "sub_path": "process/0.16mm Optimal @Geeetech A20T.json"
+        },
+        {
+            "name": "0.20mm Standard @Geeetech A20T",
+            "sub_path": "process/0.20mm Standard @Geeetech A20T.json"
+        },
+        {
+            "name": "0.20mm Strength @Geeetech A20T",
+            "sub_path": "process/0.20mm Strength @Geeetech A20T.json"
+        },
+        {
+            "name": "0.24mm Draft @Geeetech A20T",
+            "sub_path": "process/0.24mm Draft @Geeetech A20T.json"
+        },
+        {
+            "name": "0.28mm Extra Draft @Geeetech A20T",
+            "sub_path": "process/0.28mm Extra Draft @Geeetech A20T.json"
+        },
+        {
+            "name": "0.06mm Fine @Geeetech A30Pro 0.2 nozzle",
+            "sub_path": "process/0.06mm Fine @Geeetech A30Pro 0.2 nozzle.json"
+        },
+        {
+            "name": "0.08mm Extra Fine @Geeetech A30Pro",
+            "sub_path": "process/0.08mm Extra Fine @Geeetech A30Pro.json"
+        },
+        {
+            "name": "0.08mm Optimal @Geeetech A30Pro 0.2 nozzle",
+            "sub_path": "process/0.08mm Optimal @Geeetech A30Pro 0.2 nozzle.json"
+        },
+        {
+            "name": "0.10mm Standard @Geeetech A30Pro 0.2 nozzle",
+            "sub_path": "process/0.10mm Standard @Geeetech A30Pro 0.2 nozzle.json"
+        },
+        {
+            "name": "0.12mm Draft @Geeetech A30Pro 0.2 nozzle",
+            "sub_path": "process/0.12mm Draft @Geeetech A30Pro 0.2 nozzle.json"
+        },
+        {
+            "name": "0.12mm Fine @Geeetech A30Pro",
+            "sub_path": "process/0.12mm Fine @Geeetech A30Pro.json"
+        },
+        {
+            "name": "0.14mm Extra Draft @Geeetech A30Pro 0.2 nozzle",
+            "sub_path": "process/0.14mm Extra Draft @Geeetech A30Pro 0.2 nozzle.json"
+        },
+        {
+            "name": "0.16mm Optimal @Geeetech A30Pro",
+            "sub_path": "process/0.16mm Optimal @Geeetech A30Pro.json"
+        },
+        {
+            "name": "0.18mm Fine @Geeetech A30Pro 0.6 nozzle",
+            "sub_path": "process/0.18mm Fine @Geeetech A30Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "0.20mm Standard @Geeetech A30Pro",
+            "sub_path": "process/0.20mm Standard @Geeetech A30Pro.json"
+        },
+        {
+            "name": "0.20mm Strength @Geeetech A30Pro",
+            "sub_path": "process/0.20mm Strength @Geeetech A30Pro.json"
+        },
+        {
+            "name": "0.24mm Draft @Geeetech A30Pro",
+            "sub_path": "process/0.24mm Draft @Geeetech A30Pro.json"
+        },
+        {
+            "name": "0.24mm Fine @Geeetech A30Pro 0.8 nozzle",
+            "sub_path": "process/0.24mm Fine @Geeetech A30Pro 0.8 nozzle.json"
+        },
+        {
+            "name": "0.24mm Optimal @Geeetech A30Pro 0.6 nozzle",
+            "sub_path": "process/0.24mm Optimal @Geeetech A30Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "0.28mm Extra Draft @Geeetech A30Pro",
+            "sub_path": "process/0.28mm Extra Draft @Geeetech A30Pro.json"
+        },
+        {
+            "name": "0.30mm Standard @Geeetech A30Pro 0.6 nozzle",
+            "sub_path": "process/0.30mm Standard @Geeetech A30Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "0.30mm Strength @Geeetech A30Pro 0.6 nozzle",
+            "sub_path": "process/0.30mm Strength @Geeetech A30Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "0.32mm Optimal @Geeetech A30Pro 0.8 nozzle",
+            "sub_path": "process/0.32mm Optimal @Geeetech A30Pro 0.8 nozzle.json"
+        },
+        {
+            "name": "0.36mm Draft @Geeetech A30Pro 0.6 nozzle",
+            "sub_path": "process/0.36mm Draft @Geeetech A30Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "0.40mm Standard @Geeetech A30Pro 0.8 nozzle",
+            "sub_path": "process/0.40mm Standard @Geeetech A30Pro 0.8 nozzle.json"
+        },
+        {
+            "name": "0.42mm Extra Draft @Geeetech A30Pro 0.6 nozzle",
+            "sub_path": "process/0.42mm Extra Draft @Geeetech A30Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "0.48mm Draft @Geeetech A30Pro 0.8 nozzle",
+            "sub_path": "process/0.48mm Draft @Geeetech A30Pro 0.8 nozzle.json"
+        },
+        {
+            "name": "0.56mm Extra Draft @Geeetech A30Pro 0.8 nozzle",
+            "sub_path": "process/0.56mm Extra Draft @Geeetech A30Pro 0.8 nozzle.json"
+        },	
+        {
+            "name": "0.08mm Extra Fine @Geeetech A30M",
+            "sub_path": "process/0.08mm Extra Fine @Geeetech A30M.json"
+        },
+        {
+            "name": "0.12mm Fine @Geeetech A30M",
+            "sub_path": "process/0.12mm Fine @Geeetech A30M.json"
+        },
+        {
+            "name": "0.16mm Optimal @Geeetech A30M",
+            "sub_path": "process/0.16mm Optimal @Geeetech A30M.json"
+        },
+        {
+            "name": "0.20mm Standard @Geeetech A30M",
+            "sub_path": "process/0.20mm Standard @Geeetech A30M.json"
+        },
+        {
+            "name": "0.20mm Strength @Geeetech A30M",
+            "sub_path": "process/0.20mm Strength @Geeetech A30M.json"
+        },
+        {
+            "name": "0.24mm Draft @Geeetech A30M",
+            "sub_path": "process/0.24mm Draft @Geeetech A30M.json"
+        },
+        {
+            "name": "0.28mm Extra Draft @Geeetech A30M",
+            "sub_path": "process/0.28mm Extra Draft @Geeetech A30M.json"
+        },
+        {
+            "name": "0.08mm Extra Fine @Geeetech A30T",
+            "sub_path": "process/0.08mm Extra Fine @Geeetech A30T.json"
+        },
+        {
+            "name": "0.12mm Fine @Geeetech A30T",
+            "sub_path": "process/0.12mm Fine @Geeetech A30T.json"
+        },
+        {
+            "name": "0.16mm Optimal @Geeetech A30T",
+            "sub_path": "process/0.16mm Optimal @Geeetech A30T.json"
+        },
+        {
+            "name": "0.20mm Standard @Geeetech A30T",
+            "sub_path": "process/0.20mm Standard @Geeetech A30T.json"
+        },
+        {
+            "name": "0.20mm Strength @Geeetech A30T",
+            "sub_path": "process/0.20mm Strength @Geeetech A30T.json"
+        },
+        {
+            "name": "0.24mm Draft @Geeetech A30T",
+            "sub_path": "process/0.24mm Draft @Geeetech A30T.json"
+        },
+        {
+            "name": "0.28mm Extra Draft @Geeetech A30T",
+            "sub_path": "process/0.28mm Extra Draft @Geeetech A30T.json"
+        }
+    ],
+    "filament_list": [
+        {
+            "name": "fdm_filament_common",
+            "sub_path": "filament/fdm_filament_common.json"
+        },
+        {
+            "name": "fdm_filament_abs",
+            "sub_path": "filament/fdm_filament_abs.json"
+        },
+        {
+            "name": "fdm_filament_asa",
+            "sub_path": "filament/fdm_filament_asa.json"
+        },
+        {
+            "name": "fdm_filament_pa",
+            "sub_path": "filament/fdm_filament_pa.json"
+        },
+        {
+            "name": "fdm_filament_pc",
+            "sub_path": "filament/fdm_filament_pc.json"
+        },
+        {
+            "name": "fdm_filament_pet",
+            "sub_path": "filament/fdm_filament_pet.json"
+        },
+        {
+            "name": "fdm_filament_pva",
+            "sub_path": "filament/fdm_filament_pva.json"
+        },
+        {
+            "name": "fdm_filament_pla",
+            "sub_path": "filament/fdm_filament_pla.json"
+        },
+        {
+            "name": "fdm_filament_tpu",
+            "sub_path": "filament/fdm_filament_tpu.json"
+        },
+        {
+            "name": "Generic ABS @Geeetech",
+            "sub_path": "filament/Generic ABS @Geeetech.json"
+        },
+        {
+            "name": "Generic ASA @Geeetech",
+            "sub_path": "filament/Generic ASA @Geeetech.json"
+        },
+        {
+            "name": "Generic PA @Geeetech",
+            "sub_path": "filament/Generic PA @Geeetech.json"
+        },
+        {
+            "name": "Generic PC @Geeetech",
+            "sub_path": "filament/Generic PC @Geeetech.json"
+        },
+        {
+            "name": "Generic PETG @Geeetech",
+            "sub_path": "filament/Generic PETG @Geeetech.json"
+        },
+        {
+            "name": "Generic PLA @Geeetech",
+            "sub_path": "filament/Generic PLA @Geeetech.json"
+        },
+        {
+            "name": "Generic PLA @Geeetech_FastSpeed",
+            "sub_path": "filament/Generic PLA @Geeetech_FastSpeed.json"
+        },		
+        {
+            "name": "Generic PLA-CF @Geeetech",
+            "sub_path": "filament/Generic PLA-CF @Geeetech.json"
+        },
+        {
+            "name": "Generic PVA @Geeetech",
+            "sub_path": "filament/Generic PVA @Geeetech.json"
+        },
+        {
+            "name": "Generic TPU @Geeetech",
+            "sub_path": "filament/Generic TPU @Geeetech.json"
+        }
+    ],
+    "machine_list": [
+        {
+            "name": "fdm_machine_common",
+            "sub_path": "machine/fdm_machine_common.json"
+        },
+        {
+            "name": "fdm_geeetech_common",
+            "sub_path": "machine/fdm_geeetech_common.json"
+        },
+        {
+            "name": "fdm_Geeetech_HS_common",
+            "sub_path": "machine/fdm_Geeetech_HS_common.json"
+        },
+        {
+            "name": "Geeetech Thunder 0.2 nozzle",
+            "sub_path": "machine/Geeetech Thunder 0.2 nozzle.json"
+        },
+        {
+            "name": "Geeetech Thunder 0.4 nozzle",
+            "sub_path": "machine/Geeetech Thunder 0.4 nozzle.json"
+        },
+        {
+            "name": "Geeetech Thunder 0.6 nozzle",
+            "sub_path": "machine/Geeetech Thunder 0.6 nozzle.json"
+        },
+        {
+            "name": "Geeetech Thunder 0.8 nozzle",
+            "sub_path": "machine/Geeetech Thunder 0.8 nozzle.json"
+        },
+        {
+            "name": "Geeetech Mizar 0.2 nozzle",
+            "sub_path": "machine/Geeetech Mizar 0.2 nozzle.json"
+        },
+        {
+            "name": "Geeetech Mizar 0.4 nozzle",
+            "sub_path": "machine/Geeetech Mizar 0.4 nozzle.json"
+        },
+        {
+            "name": "Geeetech Mizar 0.6 nozzle",
+            "sub_path": "machine/Geeetech Mizar 0.6 nozzle.json"
+        },
+        {
+            "name": "Geeetech Mizar 0.8 nozzle",
+            "sub_path": "machine/Geeetech Mizar 0.8 nozzle.json"
+        },
+        {
+            "name": "Geeetech Mizar S 0.2 nozzle",
+            "sub_path": "machine/Geeetech Mizar S 0.2 nozzle.json"
+        },
+        {
+            "name": "Geeetech Mizar S 0.4 nozzle",
+            "sub_path": "machine/Geeetech Mizar S 0.4 nozzle.json"
+        },
+        {
+            "name": "Geeetech Mizar S 0.6 nozzle",
+            "sub_path": "machine/Geeetech Mizar S 0.6 nozzle.json"
+        },
+        {
+            "name": "Geeetech Mizar S 0.8 nozzle",
+            "sub_path": "machine/Geeetech Mizar S 0.8 nozzle.json"
+        },
+        {
+            "name": "Geeetech Mizar Pro 0.2 nozzle",
+            "sub_path": "machine/Geeetech Mizar Pro 0.2 nozzle.json"
+        },
+        {
+            "name": "Geeetech Mizar Pro 0.4 nozzle",
+            "sub_path": "machine/Geeetech Mizar Pro 0.4 nozzle.json"
+        },
+        {
+            "name": "Geeetech Mizar Pro 0.6 nozzle",
+            "sub_path": "machine/Geeetech Mizar Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "Geeetech Mizar Pro 0.8 nozzle",
+            "sub_path": "machine/Geeetech Mizar Pro 0.8 nozzle.json"
+        },
+        {
+            "name": "Geeetech Mizar Max 0.2 nozzle",
+            "sub_path": "machine/Geeetech Mizar Max 0.2 nozzle.json"
+        },
+        {
+            "name": "Geeetech Mizar Max 0.4 nozzle",
+            "sub_path": "machine/Geeetech Mizar Max 0.4 nozzle.json"
+        },
+        {
+            "name": "Geeetech Mizar Max 0.6 nozzle",
+            "sub_path": "machine/Geeetech Mizar Max 0.6 nozzle.json"
+        },
+        {
+            "name": "Geeetech Mizar Max 0.8 nozzle",
+            "sub_path": "machine/Geeetech Mizar Max 0.8 nozzle.json"
+        },
+        {
+            "name": "Geeetech Mizar M 0.4 nozzle",
+            "sub_path": "machine/Geeetech Mizar M 0.4 nozzle.json"
+        },
+        {
+            "name": "Geeetech A10 Pro 0.2 nozzle",
+            "sub_path": "machine/Geeetech A10 Pro 0.2 nozzle.json"
+        },
+        {
+            "name": "Geeetech A10 Pro 0.4 nozzle",
+            "sub_path": "machine/Geeetech A10 Pro 0.4 nozzle.json"
+        },
+        {
+            "name": "Geeetech A10 Pro 0.6 nozzle",
+            "sub_path": "machine/Geeetech A10 Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "Geeetech A10 Pro 0.8 nozzle",
+            "sub_path": "machine/Geeetech A10 Pro 0.8 nozzle.json"
+        },
+        {
+            "name": "Geeetech A10 M 0.4 nozzle",
+            "sub_path": "machine/Geeetech A10 M 0.4 nozzle.json"
+        },
+        {
+            "name": "Geeetech A10 T 0.4 nozzle",
+            "sub_path": "machine/Geeetech A10 T 0.4 nozzle.json"
+        },
+        {
+            "name": "Geeetech A20 0.2 nozzle",
+            "sub_path": "machine/Geeetech A20 0.2 nozzle.json"
+        },
+        {
+            "name": "Geeetech A20 0.4 nozzle",
+            "sub_path": "machine/Geeetech A20 0.4 nozzle.json"
+        },
+        {
+            "name": "Geeetech A20 0.6 nozzle",
+            "sub_path": "machine/Geeetech A20 0.6 nozzle.json"
+        },
+        {
+            "name": "Geeetech A20 0.8 nozzle",
+            "sub_path": "machine/Geeetech A20 0.8 nozzle.json"
+        },
+        {
+            "name": "Geeetech A20 M 0.4 nozzle",
+            "sub_path": "machine/Geeetech A20 M 0.4 nozzle.json"
+        },
+        {
+            "name": "Geeetech A20 T 0.4 nozzle",
+            "sub_path": "machine/Geeetech A20 T 0.4 nozzle.json"
+        },
+        {
+            "name": "Geeetech A30 Pro 0.2 nozzle",
+            "sub_path": "machine/Geeetech A30 Pro 0.2 nozzle.json"
+        },
+        {
+            "name": "Geeetech A30 Pro 0.4 nozzle",
+            "sub_path": "machine/Geeetech A30 Pro 0.4 nozzle.json"
+        },
+        {
+            "name": "Geeetech A30 Pro 0.6 nozzle",
+            "sub_path": "machine/Geeetech A30 Pro 0.6 nozzle.json"
+        },
+        {
+            "name": "Geeetech A30 Pro 0.8 nozzle",
+            "sub_path": "machine/Geeetech A30 Pro 0.8 nozzle.json"
+        },
+        {
+            "name": "Geeetech A30 M 0.4 nozzle",
+            "sub_path": "machine/Geeetech A30 M 0.4 nozzle.json"
+        },
+        {
+            "name": "Geeetech A30 T 0.4 nozzle",
+            "sub_path": "machine/Geeetech A30 T 0.4 nozzle.json"
+        }
+    ]
+}

@@ -1,0 +1,11 @@
+{
+    "type": "process",
+    "name": "0.42mm Extra Draft @Geeetech MizarPro 0.6 nozzle",
+    "inherits": "fdm_process_geeetech_0.42_nozzle_0.6",
+    "from": "system",
+    "setting_id": "GP_Geeetech MizarPro",
+    "instantiation": "true",
+    "compatible_printers": [
+        "Geeetech Mizar Pro 0.6 nozzle"
+    ]
+}

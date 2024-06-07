@@ -1,0 +1,11 @@
+{
+    "type": "process",
+    "name": "0.16mm Optimal @Geeetech A10Pro",
+    "inherits": "fdm_process_geeetech_0.16",
+    "from": "system",
+    "setting_id": "GP_Geeetech A10Pro",
+    "instantiation": "true",
+    "compatible_printers": [
+		"Geeetech A10 Pro 0.4 nozzle"
+    ]
+}

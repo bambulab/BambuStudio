@@ -1,0 +1,14 @@
+{
+    "type": "filament",
+    "filament_id": "GFU99",
+    "setting_id": "GFSA04",
+    "name": "Generic TPU @Geeetech",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_tpu",
+    "filament_max_volumetric_speed": [
+        "3.2"
+    ],
+    "compatible_printers": [
+    ]
+}

@@ -1,0 +1,13 @@
+{
+    "type": "process",
+    "name": "0.18mm Fine @Geeetech A30Pro 0.6 nozzle",
+    "inherits": "fdm_process_geeetech_0.18_nozzle_0.6",
+    "from": "system",
+    "setting_id": "GP_Geeetech A30Pro",
+    "instantiation": "true",
+    "infill_wall_overlap": "5%",
+    "travel_speed": "100",	
+    "compatible_printers": [
+		"Geeetech A30 Pro 0.6 nozzle"
+    ]
+}

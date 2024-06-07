@@ -1,0 +1,11 @@
+{
+    "type": "process",
+    "name": "0.16mm Optimal @Geeetech A20T",
+    "inherits": "fdm_process_geeetech_0.16",
+    "from": "system",
+    "setting_id": "GP_Geeetech A20T",
+    "instantiation": "true",
+    "compatible_printers": [
+		"Geeetech A20 T 0.4 nozzle"
+    ]
+}

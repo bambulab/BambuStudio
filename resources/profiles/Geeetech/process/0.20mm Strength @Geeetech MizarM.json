@@ -1,0 +1,14 @@
+{
+    "type": "process",
+    "name": "0.20mm Strength @Geeetech MizarM",
+    "inherits": "fdm_process_geeetech_0.20",
+    "from": "system",
+    "setting_id": "GP_Geeetech MizarM",
+    "instantiation": "true",
+	"outer_wall_speed": "25",
+    "sparse_infill_density": "25%",
+    "wall_loops": "6",
+    "compatible_printers": [
+		"Geeetech Mizar M 0.4 nozzle"
+    ]
+}
