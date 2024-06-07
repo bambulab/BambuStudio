@@ -17,7 +17,7 @@ msgid "Supports Painting"
 msgstr "サポートペイント"
 
 msgid "Please select single object."
-msgstr "Please select single object."
+msgstr "単一のオブジェクトを選択してください"
 
 msgid "Alt + Mouse wheel"
 msgstr "Alt + マウスホイール"
@@ -112,7 +112,7 @@ msgid ""
 "Filament count exceeds the maximum number that painting tool supports. only "
 "the first %1% filaments will be available in painting tool."
 msgstr ""
-"使用するフィラメント数は多いです。最初%1%個のフィラメントを使用できます"
+"フィラメント数が多すぎます。先頭%1%個のフィラメントのみ色塗りに使用できます。"
 
 msgid "Color Painting"
 msgstr "色塗り"
@@ -142,7 +142,7 @@ msgid "Brush"
 msgstr "ブラシ"
 
 msgid "Smart fill"
-msgstr "自動充填"
+msgstr "自動塗りつぶし"
 
 msgid "Bucket fill"
 msgstr "塗りつぶしバッチ処理"
@@ -157,7 +157,7 @@ msgid "Toggle Wireframe"
 msgstr "ワイヤフレームの表示/非表示"
 
 msgid "Rotate horizontally"
-msgstr "Rotate horizontally"
+msgstr "水平回転"
 
 msgid "Shortcut Key "
 msgstr "ショートカット"
@@ -169,13 +169,13 @@ msgid "Height Range"
 msgstr "高さ範囲"
 
 msgid "Vertical"
-msgstr "Vertical"
+msgstr "垂直"
 
 msgid "Horizontal"
-msgstr "Horizontal"
+msgstr "水平"
 
 msgid "View: keep horizontal"
-msgstr "View: keep horizontal"
+msgstr "ビュー: 水平維持"
 
 msgid "Remove painted color"
 msgstr "塗った色を消去"
@@ -188,7 +188,7 @@ msgid "Move"
 msgstr "移動"
 
 msgid "Please select at least one object."
-msgstr "Please select at least one object."
+msgstr "最低１つのオブジェクトを選択してください。"
 
 msgid "Rotate"
 msgstr "回転"
@@ -203,22 +203,22 @@ msgid "Scale"
 msgstr "スケール"
 
 msgid "Error: Please close all toolbar menus first"
-msgstr "エラー: ツールバーを閉じてください"
+msgstr "エラー: 全てのツールバーを閉じてください"
 
 msgid "Tool-Move"
-msgstr "Tool-Move"
+msgstr "ツール-移動"
 
 msgid "Tool-Scale"
-msgstr "Tool-Scale"
+msgstr "ツール-拡大縮小"
 
 msgid "Tool-Rotate"
-msgstr "Tool-Rotate"
+msgstr "ツール-回転"
 
 msgid "Tool-Lay on Face"
 msgstr "ツール 底面選択"
 
 msgid "Bottom:"
-msgstr "Bottom:"
+msgstr "ボトム:"
 
 msgid "in"
 msgstr "に"
@@ -239,7 +239,7 @@ msgid "Object Operations"
 msgstr "オブジェクト操作"
 
 msgid "Rotate (relative)"
-msgstr "Rotate (relative)"
+msgstr "回転（相対）"
 
 msgid "Volume Operations"
 msgstr "操作"
@@ -287,80 +287,80 @@ msgid "Object"
 msgstr "OBJ"
 
 msgid "Drag to move the cut plane"
-msgstr "Drag to move the cut plane"
+msgstr "ドラッグして切断面を移動"
 
 msgid ""
 "Drag to move the cut plane\n"
 "Right-click a part to assign it to the other side"
 msgstr ""
-"Drag to move the cut plane\n"
-"Right-click a part to assign it to the other side"
+"ドラッグして切断面を移動\n"
+"右クリックした個所を反対側に割り付け"
 
 msgid "Left click"
-msgstr "Left click"
+msgstr "左クリック"
 
 msgid "Add connector"
-msgstr "Add connector"
+msgstr "コネクタを追加"
 
 msgid "Right click"
-msgstr "Right click"
+msgstr "右クリック"
 
 msgid "Remove connector"
-msgstr "Remove connector"
+msgstr "コネクタを削除"
 
 msgid "Drag"
-msgstr "Drag"
+msgstr "ドラッグ"
 
 msgid "Move connector"
-msgstr "Move connector"
+msgstr "コネクタを移動"
 
 msgid "Add connector to selection"
-msgstr "Add connector to selection"
+msgstr "選択個所にコネクタを追加"
 
 msgid "Remove connector from selection"
-msgstr "Remove connector from selection"
+msgstr "選択個所からコネクタを削除"
 
 msgid "Select all connectors"
-msgstr "Select all connectors"
+msgstr "全てのコネクタを選択"
 
 msgid "Left drag"
-msgstr "Left drag"
+msgstr "左ドラッグ"
 
 msgid "Plot cut plane"
-msgstr "Plot cut plane"
+msgstr "切断面を指定"
 
 msgid "right click"
-msgstr "right click"
+msgstr "右クリック"
 
 msgid "Assign the part to the other side"
-msgstr "Assign the part to the other side"
+msgstr "反対側に割り付け"
 
 msgid "Cut"
 msgstr "カット"
 
 msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
-msgstr "Non-manifold edges be caused by cut tool: do you want to fix now?"
+msgstr "カットルールによってnon-manifoldなエッジ（穴や交差）が発生する可能性があります。修復しますか？"
 
 msgid "Repairing model object"
 msgstr "モデルオブジェクトを修復"
 
 msgid "Connector"
-msgstr "Connector"
+msgstr "コネクタ"
 
 msgid "Planar"
-msgstr "Planar"
+msgstr "Planar（同一面上）"
 
 msgid "Dovetail"
-msgstr "Dovetail"
+msgstr "Dovetail（燕尾継ぎ手）"
 
 msgid "Mode"
-msgstr "Mode"
+msgstr "モード"
 
 msgid "Movement:"
 msgstr "移動"
 
 msgid "Groove Angle"
-msgstr "Groove Angle"
+msgstr "溝の角度"
 
 msgid "Movement"
 msgstr "移動"
@@ -369,34 +369,34 @@ msgid "Height"
 msgstr "高度"
 
 msgid "Edit connectors"
-msgstr "Edit connectors"
+msgstr "コネクタの編集"
 
 msgid "Add connectors"
-msgstr "Add connectors"
+msgstr "コネクタの追加"
 
 msgid "Groove"
-msgstr "Groove"
+msgstr "溝"
 
 msgid "Depth"
-msgstr "Depth"
+msgstr "深さ"
 
 msgid "Width"
 msgstr "幅"
 
 msgid "Flap Angle"
-msgstr "Flap Angle"
+msgstr "フラップ角度"
 
 msgid "Keep orientation"
-msgstr "Keep orientation"
+msgstr "向きを維持"
 
 msgid "Place on cut"
-msgstr "Place on cut"
+msgstr "カット面に合わせる"
 
 msgid "Flip"
-msgstr "Flip"
+msgstr "フラップ"
 
 msgid "After cut"
-msgstr "After cut"
+msgstr "カット後"
 
 msgid "Cut to parts"
 msgstr "パーツに割り切る"
@@ -411,7 +411,7 @@ msgid "Reset"
 msgstr "リセット"
 
 msgid "Connectors"
-msgstr "Connectors"
+msgstr "コネクタ"
 
 msgid "Type"
 msgstr "タイプ"
@@ -426,19 +426,19 @@ msgid "Depth ratio"
 msgstr "Depth ratio"
 
 msgid "Remove connectors"
-msgstr "Remove connectors"
+msgstr "コネクタを削除"
 
 msgid "Prizm"
-msgstr "Prizm"
+msgstr "柱体"
 
 msgid "Frustum"
-msgstr "Frustum"
+msgstr "錐体"
 
 msgid "Square"
-msgstr "Square"
+msgstr "正方形"
 
 msgid "Hexagon"
-msgstr "Hexagon"
+msgstr "六角柱"
 
 msgid "Snap global parameters"
 msgstr "Snap global parameters"
@@ -459,22 +459,22 @@ msgid "Warning"
 msgstr "警告"
 
 msgid "Invalid connectors detected"
-msgstr "Invalid connectors detected"
+msgstr "不適切なコネクタが検出されました"
 
 msgid "connector is out of cut contour"
-msgstr "connector is out of cut contour"
+msgstr "コネクタが切断面の外側にあります"
 
 msgid "connectors are out of cut contour"
-msgstr "connectors are out of cut contour"
+msgstr "複数のコネクタが切断面の外側にあります"
 
 msgid "connector is out of object"
-msgstr "connector is out of object"
+msgstr "コネクタがオブジェクトの外側にあります"
 
 msgid "connectors is out of object"
-msgstr "Connectors must be on object surface."
+msgstr "複数のコネクタがオブジェクトの外側にあります"
 
 msgid "Some connectors are overlapped"
-msgstr "Some connectors are overlapped"
+msgstr "コネクタが重なっています"
 
 msgid ""
 "Invalid state. \n"
@@ -484,16 +484,16 @@ msgstr ""
 "No one part is selected to keep after cut"
 
 msgid "Plug"
-msgstr "Plug"
+msgstr "プラグ"
 
 msgid "Dowel"
-msgstr "Dowel"
+msgstr "ダボ（Dowel）"
 
 msgid "Snap"
-msgstr "Snap"
+msgstr "スナップ"
 
 msgid "Tolerance"
-msgstr "Tolerance"
+msgstr "許容値"
 
 msgid "Mesh name"
 msgstr "メッシュ名"
@@ -551,7 +551,7 @@ msgid "%1%"
 msgstr "%1%"
 
 msgid "Can't apply when process preview."
-msgstr "Can't apply when processing preview"
+msgstr "処理プレビュー時には適用できません。"
 
 msgid "Operation already cancelling. Please wait few seconds."
 msgstr "操作を取り消し中、少々お待ちください。"
@@ -563,40 +563,40 @@ msgid "Perform Recognition"
 msgstr "認識を実行"
 
 msgid "Vertex"
-msgstr "Vertex"
+msgstr "頂点"
 
 msgid "Edge"
-msgstr "Edge"
+msgstr "エッジ"
 
 msgid "Plane"
-msgstr "Plane"
+msgstr "面"
 
 msgid "Point on edge"
-msgstr "Point on edge"
+msgstr "エッジをポイント"
 
 msgid "Point on circle"
-msgstr "Point on circle"
+msgstr "円をポイント"
 
 msgid "Point on plane"
-msgstr "Point on plane"
+msgstr "面をポイント"
 
 msgid "Center of edge"
-msgstr "Center of edge"
+msgstr "エッジの中央"
 
 msgid "Center of circle"
-msgstr "Center of circle"
+msgstr "円の中央"
 
 msgid "Select feature"
-msgstr "Select feature"
+msgstr "フィーチャーを選択"
 
 msgid "Select point"
-msgstr "Select point"
+msgstr "点を選択"
 
 msgid "Delete"
 msgstr "削除"
 
 msgid "Restart selection"
-msgstr "Restart selection"
+msgstr "選択をやり直す"
 
 msgid "Esc"
 msgstr "Esc"
@@ -605,7 +605,7 @@ msgid "Cancel a feature until exit"
 msgstr "Cancel a feature until exit"
 
 msgid "Measure"
-msgstr "Measure"
+msgstr "測定"
 
 msgid ""
 "Please confirm explosion ratio = 1,and please select at least one object"
@@ -617,7 +617,7 @@ msgstr "Edit to scale"
 
 msgctxt "Verb"
 msgid "Scale all"
-msgstr "Scale all"
+msgstr "全て拡縮"
 
 msgid "None"
 msgstr "無し"
@@ -629,33 +629,30 @@ msgid "Length"
 msgstr "長さ"
 
 msgid "Selection"
-msgstr "Selection"
+msgstr "選択"
 
 msgid " (Moving)"
-msgstr " (Moving)"
+msgstr " (移動中)"
 
 msgid ""
 "Select 2 faces on objects and \n"
 " make objects assemble together."
-msgstr ""
-"Select 2 faces on objects and \n"
-" make objects assemble together."
+msgstr "オブジェクト上の2面を選択し結合する。"
 
 msgid ""
 "Select 2 points or circles on objects and \n"
 " specify distance between them."
-msgstr ""
-"Select 2 points or circles on objects and \n"
-" specify distance between them."
+msgstr "オブジェクト上の2点または円を選択し、\n"
+"その間の距離を特定する。"
 
 msgid "Face"
 msgstr "Face"
 
 msgid " (Fixed)"
-msgstr " (Fixed)"
+msgstr "（固定）"
 
 msgid "Point"
-msgstr "Point"
+msgstr "点"
 
 msgid ""
 "Feature 1 has been reset, \n"
@@ -677,13 +674,13 @@ msgid "Copy to clipboard"
 msgstr "コピー"
 
 msgid "Angle"
-msgstr "Angle"
+msgstr "角度"
 
 msgid "Perpendicular distance"
 msgstr "Perpendicular distance"
 
 msgid "Distance"
-msgstr "Distance"
+msgstr "距離"
 
 msgid "Direct distance"
 msgstr "Direct distance"
@@ -692,19 +689,19 @@ msgid "Distance XYZ"
 msgstr "Distance XYZ"
 
 msgid "Parallel"
-msgstr "Parallel"
+msgstr "平行"
 
 msgid "Center coincidence"
 msgstr "Center coincidence"
 
 msgid "Featue 1"
-msgstr "Feature 1"
+msgstr "フィーチャー1"
 
 msgid "Reverse rotation"
-msgstr "Reverse rotation"
+msgstr "回転方向を反転"
 
 msgid "Rotate around center:"
-msgstr "Rotate around center:"
+msgstr "中心付近で回転"
 
 msgid "Parallel_distance:"
 msgstr "Parallel_distance:"
@@ -722,7 +719,7 @@ msgid "Please select at least two volumes."
 msgstr "Please select at least two volumes."
 
 msgid "(Moving)"
-msgstr "(Moving)"
+msgstr "(移動中)"
 
 msgid "Point and point assembly"
 msgstr "Point and point assembly"
@@ -776,20 +773,19 @@ msgid "Embeded"
 msgstr "Embedded"
 
 msgid "Text Gap"
-msgstr "Text Gap"
+msgstr "文字間隔"
 
 msgid ""
 "Embeded\r\n"
 "depth"
 msgstr ""
-"Embedded\n"
-"depth"
+"埋没深度"
 
 msgid "Surface"
-msgstr "Surface"
+msgstr "表面に沿う"
 
 msgid "Horizontal text"
-msgstr "Horizontal text"
+msgstr "表面に水平"
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -831,7 +827,7 @@ msgid "Internal Version"
 msgstr "内部バージョン"
 
 msgid "Beta Version"
-msgstr "Beta Version"
+msgstr "ベータ版"
 
 msgid "V"
 msgstr "V"
@@ -880,9 +876,8 @@ msgstr "%s を接続できませんでした　[SN: %s、code = %s]"
 msgid ""
 "BambuStudio configuration file may be corrupted and is not able to be parsed."
 "Please delete the file and try again."
-msgstr ""
-"BambuStudio configuration file is not able to be parsed and may be "
-"corrupted. Please delete the file and try again."
+msgstr "BambuStudio設定ファイルが破損し読み込めません。"
+"当該ファイルを削除してやり直してください。"
 
 #, c-format, boost-format
 msgid ""
@@ -893,7 +888,7 @@ msgstr ""
 "続行しますか？"
 
 msgid "Remember my choice"
-msgstr "私の選択を保存する"
+msgstr "次回も同じ選択"
 
 msgid "Loading configuration"
 msgstr "構成を読込み中"
@@ -938,9 +933,8 @@ msgstr "プリセットが変更されました。"
 msgid ""
 "You can keep the modified presets for the new project, discard or save "
 "changes as new presets."
-msgstr ""
-"You can keep the modified presets for the new project, discard or save "
-"changes as new presets."
+msgstr "変更したプリセットを新規プロジェクトで使用するために保持、破棄、"
+"または新規プリセットとして保存できます。"
 
 msgid "User logged out"
 msgstr "ユーザがサインアウトしました"
@@ -955,21 +949,21 @@ msgid ""
 "The Bambu Studio version is too old to enable cloud service. Please download "
 "the latest version from Bambu Lab website."
 msgstr ""
-"The Bambu Studio version is too old to enable cloud service. Please download "
-"the latest version from Bambu Lab's website."
+"Bambu Studioのバージョンが古くクラウドサービスを利用するできません。"
+"Bambu Labウェブサイトから最新版をダウンロードしてください。"
 
 msgid "Privacy Policy Update"
-msgstr "Privacy Policy Update"
+msgstr "プライバシーポリシーの更新"
 
 msgid ""
 "The number of user presets cached in the cloud has exceeded the upper limit, "
 "newly created user presets can only be used locally."
 msgstr ""
-"The number of user presets cached in the cloud has exceeded the upper limit, "
-"newly created user presets can only be used locally."
+"クラウドに保持できるユーザプリセットの数を超過しました。"
+"以後作成したプリセットはローカルでのみ使用できます。"
 
 msgid "Sync user presets"
-msgstr "Sync user presets"
+msgstr "ユーザープリセットの同期"
 
 msgid "Loading"
 msgstr "ロード中"
@@ -1002,13 +996,13 @@ msgid "Select a G-code file:"
 msgstr "G-codeファイルを選択"
 
 msgid "Import File"
-msgstr "Import File"
+msgstr "ファイルをインポート"
 
 msgid "Choose files"
 msgstr "ファイルを選択"
 
 msgid "New Folder"
-msgstr "New Folder"
+msgstr "新規フォルダ"
 
 msgid "Open"
 msgstr "開く"
@@ -1021,7 +1015,7 @@ msgstr "GUI初期化に失敗した"
 
 #, boost-format
 msgid "Fatal error, exception caught: %1%"
-msgstr "Fatal error; exception caught: %1%"
+msgstr "重大エラー。例外%1%が発生しました。"
 
 msgid "Quality"
 msgstr "品質"
@@ -1111,13 +1105,13 @@ msgid "Cone"
 msgstr "コーン"
 
 msgid "Disc"
-msgstr "Disc"
+msgstr "ディスク"
 
 msgid "Torus"
-msgstr "Torus"
+msgstr "トーラス"
 
 msgid "Rounded Rectangle"
-msgstr "Rounded Rectangle"
+msgstr "四角形（角丸）"
 
 msgid "Bambu Cube"
 msgstr "Bambu Cube"
@@ -1153,10 +1147,10 @@ msgid "Fix model"
 msgstr "モデルを修復"
 
 msgid "Export as one STL"
-msgstr "Export as one STL"
+msgstr "単一STLとしてエクスポート"
 
 msgid "Export as STLs"
-msgstr "Export as STLs"
+msgstr "複数STLとしてエクスポート"
 
 msgid "Reload from disk"
 msgstr "ディスクから再読込み"
@@ -1229,10 +1223,10 @@ msgid "Assemble the selected objects to an object with single part"
 msgstr "選択したオブジェクトを一つオブジェクトに組み立てます（単パーツ）"
 
 msgid "Mesh boolean"
-msgstr "Mesh boolean"
+msgstr "メッシュ合成"
 
 msgid "Mesh boolean operations including union and subtraction"
-msgstr "Mesh boolean operations including union and subtraction"
+msgstr "結合、差分などのメッシュ合成操作"
 
 msgid "Along X axis"
 msgstr "X軸方向"
@@ -1316,7 +1310,7 @@ msgid "auto rotate current plate"
 msgstr "現在のプレートを自動回転させる"
 
 msgid "Delete Plate"
-msgstr "Delete Plate"
+msgstr "プレート削除"
 
 msgid "Remove the selected plate"
 msgstr "選択したプレートを削除"
@@ -1349,13 +1343,13 @@ msgid "Lock"
 msgstr "ロック"
 
 msgid "Fill bed with copies"
-msgstr "Fill bed with copies"
+msgstr "ベッド一杯にコピー"
 
 msgid "Fill the remaining area of bed with copies of the selected object"
-msgstr "Fill the remaining area of bed with copies of the selected object"
+msgstr "選択したオブジェクトのコピーをベッドの空き部分に作成する。"
 
 msgid "Edit Plate Name"
-msgstr "Edit Plate Name"
+msgstr "プレート名変更"
 
 msgid "Name"
 msgstr "名称"
@@ -1403,7 +1397,7 @@ msgid "Click the icon to edit color painting of the object"
 msgstr "オブジェクトに色塗りをします"
 
 msgid "Click the icon to shift this object to the bed"
-msgstr "Click the icon to shift this object to the bed"
+msgstr "このオブジェクトをベッド上に配置します"
 
 msgid "Loading file"
 msgstr "ファイルを読み込み中"
@@ -1412,7 +1406,7 @@ msgid "Error!"
 msgstr "エラー！"
 
 msgid "Failed to get the model data in the current file."
-msgstr "Failed to get the model data in the current file."
+msgstr "ファイルからモデルデータの取得に失敗しました。"
 
 msgid "Generic"
 msgstr "一般"
@@ -1459,13 +1453,13 @@ msgstr ""
 "information first."
 
 msgid "Delete all connectors"
-msgstr "Delete all connectors"
+msgstr "全てのコネクタを削除"
 
 msgid "Deleting the last solid part is not allowed."
 msgstr "最後のソリッドパーツは削除できません。"
 
 msgid "The target object contains only one part and can not be split."
-msgstr "The target object contains only one part and cannot be split."
+msgstr "指定オブジェクト内には単一パーツしか存在せず、分割できません。"
 
 msgid "Assembly"
 msgstr "アセンブリ"
@@ -1474,10 +1468,10 @@ msgid "Cut Connectors information"
 msgstr "Cut Connectors information"
 
 msgid "Object manipulation"
-msgstr "Object manipulation"
+msgstr "オブジェクト操作"
 
 msgid "Group manipulation"
-msgstr "Group manipulation"
+msgstr "グループ操作"
 
 msgid "Object Settings to modify"
 msgstr "Object Settings to Modify"
@@ -1510,15 +1504,15 @@ msgid ""
 "If the first selected item is an object, the second one should also be an "
 "object."
 msgstr ""
-"If the first selected item is an object, the second one should also be an "
+"最初に選択したのアイテムがオブジェクトの場合、2つ目もオブジェクトである必要があります。"
 "object."
 
 msgid ""
 "If the first selected item is a part, the second one should be part of the "
 "same object."
 msgstr ""
-"If the first selected item is a part, the second one should be part of the "
-"same object."
+"最初に選択したのアイテムがパーツの場合、2つ目は同一オブジェクト内のパーツである必要が"
+"あります。"
 
 msgid "The type of the last solid object part is not to be changed."
 msgstr "オブジェクトの最後のパーツはタイプを変更できません。"
@@ -1778,13 +1772,13 @@ msgid "AMS not connected"
 msgstr "AMS が接続されていません"
 
 msgid "Load"
-msgstr "Load"
+msgstr "ロード"
 
 msgid "Unload"
-msgstr "ｱﾝﾛｰﾄﾞ"
+msgstr "アンロード"
 
 msgid "Ext Spool"
-msgstr "外部ｽﾌﾟｰﾙ"
+msgstr "外部スプール"
 
 msgid "Tips"
 msgstr "ヒント"
@@ -1796,10 +1790,10 @@ msgid "Retry"
 msgstr "再試行"
 
 msgid "Calibrating AMS..."
-msgstr "AMS キャリブレーション"
+msgstr "AMSキャリブレーション中…"
 
 msgid "A problem occurred during calibration. Click to view the solution."
-msgstr "A problem occurred during calibration. Click to view the solution."
+msgstr "調整中に問題が発生しました。クリックして解決方法を確認してください。"
 
 msgid "Calibrate again"
 msgstr "再度キャリブレーションを行う"
@@ -1808,7 +1802,7 @@ msgid "Cancel calibration"
 msgstr "キャリブレーションを取消し"
 
 msgid "Idling..."
-msgstr "Idling..."
+msgstr "待機中…"
 
 msgid "Heat the nozzle"
 msgstr "ノズルを加熱"
@@ -1826,23 +1820,23 @@ msgid "Purge old filament"
 msgstr "古いフィラメントを排出"
 
 msgid "Feed Filament"
-msgstr "Feed Filament"
+msgstr "フィラメントを送出"
 
 msgid "Confirm extruded"
-msgstr "Confirm that filament has been extruded"
+msgstr "押し出しを確認"
 
 msgid "Check filament location"
-msgstr "Check filament location"
+msgstr "フィラメント位置を確認"
 
 msgid "Grab new filament"
-msgstr "Grab new filament"
+msgstr "新しいフィラメントをキャッチ"
 
 msgid ""
 "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
 "load or unload filaments."
 msgstr ""
-"Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
-"load or unload filament."
+"AMSスロットを選択し「ロード」または「アンロード」ボタンを押すとフィラメントが自動的に"
+"ロード／アンロードされます。"
 
 msgid "Edit"
 msgstr "編集"
@@ -1855,7 +1849,8 @@ msgstr ""
 "ん"
 
 msgid "No arrangeable objects are selected."
-msgstr "No arrangeable objects are selected."
+msgstr "レイアウトできるオブジェクトが選択されて"
+"いません。"
 
 msgid ""
 "This plate is locked,\n"
@@ -1867,7 +1862,7 @@ msgstr "レイアウト中"
 
 #, boost-format
 msgid "Object %1% has zero size and can't be arranged."
-msgstr "Object %1% has zero size and can't be arranged."
+msgstr "オブジェクト %1% はサイズが0の為レイアウトできません。"
 
 msgid ""
 "Arrange failed. Found some exceptions when processing object geometries."
@@ -1942,55 +1937,51 @@ msgid "Please check the printer network connection."
 msgstr "プリンターとのネットワーク接続をご確認ください"
 
 msgid "Abnormal print file data. Please slice again."
-msgstr "Abnormal print file data: please slice again."
+msgstr "異常な造形データ: 再度スライスしてください。"
 
 msgid "Task canceled."
-msgstr "Task canceled."
+msgstr "タスクは中止されました。"
 
 msgid "Upload task timed out. Please check the network status and try again."
-msgstr "Upload task timed out. Please check the network status and try again."
+msgstr "アップロードがタイムアウトしました。ネットワークを確認して再実行してください。"
 
 msgid "Cloud service connection failed. Please try again."
 msgstr "クラウドサービス接続できませんでした、もう一度お試しください"
 
 msgid "Print file not found. please slice again."
-msgstr "Print file not found; please slice again."
+msgstr "造形ファイルが見つかりません。再スライスしてください。"
 
 msgid ""
 "The print file exceeds the maximum allowable size (1GB). Please simplify the "
 "model and slice again."
 msgstr ""
-"The print file exceeds the maximum allowable size (1GB). Please simplify the "
-"model and slice again."
+"造形ファイルがサイズ制限(1GB)を超えました。モデルを単純化し再度スライスしてください。"
 
 msgid "Failed to send the print job. Please try again."
-msgstr "造形タスクを送信できませんでした、もう一度お試しください。"
+msgstr "造形タスクを送信できませんでした。もう一度お試しください。"
 
 msgid "Failed to upload file to ftp. Please try again."
-msgstr "Failed to upload file to ftp. Please try again."
+msgstr "ftpアップロードに失敗しました。もう一度お試しください。"
 
 msgid ""
 "Check the current status of the bambu server by clicking on the link above."
 msgstr ""
-"Check the current status of the Bambu Lab server by clicking on the link "
-"above."
+"上記リンクをクリックして、bambuサーバーの現在の状態を確認してください。"
 
 msgid ""
 "The size of the print file is too large. Please adjust the file size and try "
 "again."
 msgstr ""
-"The size of the print file is too large. Please adjust the file size and try "
-"again."
+"造形ファイルのサイズが大きすぎます。サイズを調整してやり直してください。"
 
 msgid "Print file not found, Please slice it again and send it for printing."
-msgstr "Print file not found; please slice it again and send it for printing."
+msgstr "印刷ファイルが見つかりません。再スライスして送信してください。"
 
 msgid ""
 "Failed to upload print file to FTP. Please check the network status and try "
 "again."
 msgstr ""
-"Failed to upload print file via FTP. Please check the network status and try "
-"again."
+"FTP経由のアップロードに失敗しました。ネットワークを確認して再実行してください。"
 
 msgid "Sending print job over LAN"
 msgstr "LAN経由で造形タスクを送信"
@@ -2005,7 +1996,7 @@ msgid "Service Unavailable"
 msgstr "サービスは利用できません"
 
 msgid "Unknown Error."
-msgstr "Unknown Error."
+msgstr "不明なエラー"
 
 msgid "Sending print configuration"
 msgstr "構成を送信"
@@ -2016,10 +2007,10 @@ msgstr "送信しました、%s秒後デバイスページへ移動します"
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
-msgstr "Successfully sent. Automatically jumping to the next page in %ss"
+msgstr "送信成功。 %ss 秒後に次ページに自動遷移します。"
 
 msgid "An SD card needs to be inserted before printing via LAN."
-msgstr "SDカードが必要です"
+msgstr "LAN経由の造形にはSDカードが挿入されている必要があります。"
 
 msgid "Sending gcode file over LAN"
 msgstr "LANでG-codeファイルを送信"
@@ -2029,63 +2020,62 @@ msgstr "G-codeファイルをSDカードに送信"
 
 #, c-format, boost-format
 msgid "Successfully sent. Close current page in %s s"
-msgstr "送信しました、%s秒後自動閉じます。"
+msgstr "送信しました。このページは%s秒後に閉じます。"
 
 msgid "An SD card needs to be inserted before sending to printer."
-msgstr "SDカードが必要です"
+msgstr "プリンター送信にはSDカードが挿入されている必要があります。"
 
 msgid "Choose SLA archive:"
-msgstr "Choose SLA archive:"
+msgstr "SLAアーカイブを選択:"
 
 msgid "Import file"
-msgstr "Import file"
+msgstr "ファイルをインポート"
 
 msgid "Import model and profile"
-msgstr "Import model and profile"
+msgstr "モデルとプロファイルをインポート"
 
 msgid "Import profile only"
-msgstr "Import profile only"
+msgstr "プロファイルのみインポート"
 
 msgid "Import model only"
-msgstr "Import model only"
+msgstr "モデルのみインポート"
 
 msgid "Accurate"
-msgstr "Accurate"
+msgstr "精密"
 
 msgid "Balanced"
-msgstr "Balanced"
+msgstr "バランス"
 
 msgid "Quick"
-msgstr "Quick"
+msgstr "クイック"
 
 msgid "Importing SLA archive"
-msgstr "Importing SLA archive"
+msgstr "SLAアーカイブをインポート"
 
 msgid ""
 "The SLA archive doesn't contain any presets. Please activate some SLA "
 "printer preset first before importing that SLA archive."
 msgstr ""
-"The SLA archive doesn't contain any presets. Please activate some SLA "
-"printer presets first before importing that SLA archive."
+"SLAアーカイブにプリセットが含まれていません。あらかじめSLAプリンタプリセットを"
+"有効化してください。"
 
 msgid "Importing canceled."
-msgstr "Importing canceled."
+msgstr "インポートを中止しました。"
 
 msgid "Importing done."
-msgstr "Importing done."
+msgstr "インポート完了しました。"
 
 msgid ""
 "The imported SLA archive did not contain any presets. The current SLA "
 "presets were used as fallback."
 msgstr ""
-"The imported SLA archive did not contain any presets. The current SLA "
-"presets were used as fallback."
+"SLAアーカイブにプリセットが含まれていません。代わりに現在のSLAプリセットを使用します。 "
 
 msgid "You cannot load SLA project with a multi-part object on the bed"
-msgstr "You cannot load an SLA project with a multi-part object on the bed"
+msgstr "マルチパートオブジェクトを含むSLAPプロジェクトをベッドにロードできません。"
 
 msgid "Please check your object list before preset changing."
-msgstr "Please check your object list before preset changing."
+msgstr "プリセットを変更する前にオブジェクトリストを確認してください。"
 
 msgid "Attention!"
 msgstr "注意！"
@@ -2138,7 +2128,7 @@ msgid ""
 "proprietary rights belong to their respective owners"
 msgstr ""
 "このソフトウェアは、著作権およびその他の所有権がそれぞれの所有者に属するオー"
-"プン ソース コンポーネントを使用しています。"
+"プンソースコンポーネントを使用しています。"
 
 #, c-format, boost-format
 msgid "About %s"
@@ -2328,7 +2318,7 @@ msgid "Print with the filament mounted on the back of chassis"
 msgstr "外部スプールホルダーのフィラメントで造形します"
 
 msgid "Current Cabin humidity"
-msgstr "Current Cabin humidity"
+msgstr "ケース内湿度"
 
 msgid ""
 "Please change the desiccant when it is too wet. The indicator may not "
@@ -2336,10 +2326,9 @@ msgid ""
 "desiccant pack is changed. it take hours to absorb the moisture, low "
 "temperatures also slow down the process."
 msgstr ""
-"Please change the desiccant when it is too wet. The indicator may not "
-"represent accurately in following cases: when the lid is open or the "
-"desiccant pack is changed. It takes a few hours to absorb the moisture, and "
-"low temperatures also slow down the process."
+"湿度が高すぎる時は除湿剤を交換してください。以下の場合、インジゲーターは正確に"
+"表示されません：カバーが開いている時、除湿剤を交換した時"
+"湿度の安定には数時間かかります。また室温が低い時はより時間がかかります。"
 
 msgid ""
 "Config which AMS slot should be used for a filament used in the print job"
@@ -2370,19 +2359,18 @@ msgid ""
 "When the current material run out, the printer will continue to print in the "
 "following order."
 msgstr ""
-"When the current material runs out, the printer will continue to print "
-"materials in the following order."
+"現在のマテリアルを使い切った場合、次の順序でマテリアルを使用し造形を続行します。"
 
 msgid "Group"
-msgstr "Group"
+msgstr "グループ"
 
 msgid "The printer does not currently support auto refill."
-msgstr "The printer does not currently support auto refill."
+msgstr "プリンターは現在自動リフィルをサポートしていません。"
 
 msgid ""
 "AMS filament backup is not enabled, please enable it in the AMS settings."
 msgstr ""
-"AMS filament backup is not enabled; please enable it in the AMS settings."
+"AMSフィラメントバックアップは有効化されていません。AMS設定から変更してください。"
 
 msgid ""
 "If there are two identical filaments in AMS, AMS filament backup will be "
@@ -2390,16 +2378,14 @@ msgid ""
 "(Currently supporting automatic supply of consumables with the same brand, "
 "material type, and color)"
 msgstr ""
-"If there are two identical filaments in an AMS, AMS filament backup will be "
-"enabled. \n"
-"(This currently supports automatic supply of consumables with the same "
-"brand, material type, and color)"
+"AMS内に同一フィラメントが存在する場合、AMSフィラメントバックアップが有効化されます。\n"
+"(現在この機能は同じブランド、材料タイプ、色のフィラメントでのみ機能します)"
 
 msgid "DRY"
-msgstr "DRY"
+msgstr "ドライDRY"
 
 msgid "WET"
-msgstr "WET"
+msgstr "ウェット"
 
 msgid "AMS Settings"
 msgstr "AMS 設定"
@@ -2418,8 +2404,8 @@ msgid ""
 "Note: if a new filament is inserted during  printing, the AMS will not "
 "automatically read any information until printing is completed."
 msgstr ""
-"Note: if a new filament is inserted during  printing, the AMS will not "
-"automatically read any information until printing is completed."
+"ノート: 造形中に新たなフィラメントをセットした場合、AMSは造形が完了する"
+"まで自動で情報を読み込みません。"
 
 msgid ""
 "When inserting a new filament, the AMS will not automatically read its "
@@ -2455,7 +2441,7 @@ msgstr ""
 "更新します。"
 
 msgid "AMS filament backup"
-msgstr "AMS filament backup"
+msgstr "AMSフィラメントバックアップ"
 
 msgid ""
 "AMS will continue to another spool with the same properties of filament "
@@ -2463,14 +2449,13 @@ msgid ""
 msgstr "使用中のフィラメントが切れた時に、同じ属性のフィラメントに切り替えます"
 
 msgid "Air Printing Detection"
-msgstr "Air Printing Detection"
+msgstr "空造形検知"
 
 msgid ""
 "Detects clogging and filament grinding, halting printing immediately to "
 "conserve time and filament."
 msgstr ""
-"Detects clogging and filament grinding, halting printing immediately to "
-"conserve time and filament."
+"詰まりや糸切れを検知したら印刷を停止し、時間と材料の無駄を防ぎます。"
 
 msgid "File"
 msgstr "ファイル"
@@ -2545,7 +2530,7 @@ msgid "Running post-processing scripts"
 msgstr "後処理スクリプトを実行"
 
 msgid "Successfully executed post-processing script"
-msgstr "Successfully executed post-processing script"
+msgstr "後処理スクリプトの実行に成功しました。"
 
 msgid "Unknown error when export G-code."
 msgstr "不明なエラー: G-codeエクスポート"
@@ -2681,9 +2666,8 @@ msgid ""
 "it may result in material softening and clogging.The maximum safe "
 "temperature for the material is %d"
 msgstr ""
-"Current chamber temperature is higher than the material's safe temperature; "
-"this may result in material softening and nozzle clogs.The maximum safe "
-"temperature for the material is %d"
+"チャンバー内の温度がマテリアルの安全温度を超えており、マテリアルの軟化やノズル詰まり"
+"の可能性があります。マテリアルの最大安全温度は%dです。"
 
 msgid ""
 "Too small layer height.\n"
@@ -2693,32 +2677,32 @@ msgstr "積層ピッチが小さすぎます、0.2にリセットされました
 msgid ""
 "Too large layer height.\n"
 "Reset to 0.2"
-msgstr "積層ピッチが大きいすぎます、0.2にリセットされました"
+msgstr "積層ピッチが大きすぎます、0.2にリセットされました"
 
 msgid ""
 "Too small scarf start height.\n"
 "Reset to 50%"
 msgstr ""
-"Too small scarf start height.\n"
-"Reset to 50%"
+"スカーフ開始高が小さすぎます。\n"
+"50%にリセットされました"
 
 msgid ""
 "Too big scarf start height.\n"
 "Reset to 50%"
 msgstr ""
-"Too big scarf start height.\n"
-"Reset to 50%"
+"スカーフ開始高が大きすぎます。\n"
+"50%にリセットされました"
 
 msgid ""
 "Too small ironing spacing.\n"
 "Reset to 0.1"
-msgstr "値が小さいです、0.1にリセットします"
+msgstr "アイロン余白が小さすぎます。0.1にリセットされました"
 
 msgid ""
 "Zero initial layer height is invalid.\n"
 "\n"
 "The first layer height will be reset to 0.2."
-msgstr "1層目の高さが無効です、0.2mmにリセットします"
+msgstr "1層目の高さが無効です、0.2mmにリセットされました"
 
 msgid ""
 "This setting is only used for model size tuning with small value in some "
@@ -3133,7 +3117,7 @@ msgid "Total time"
 msgstr "総時間"
 
 msgid "Total cost"
-msgstr "Total cost"
+msgstr "総コスト"
 
 msgid "up to"
 msgstr "最大"
@@ -3142,7 +3126,7 @@ msgid "above"
 msgstr "以上"
 
 msgid "from"
-msgstr "from"
+msgstr "から"
 
 msgid "Color Scheme"
 msgstr "配色スキーム"
@@ -3229,10 +3213,10 @@ msgid "Normal mode"
 msgstr "通常モード"
 
 msgid "Total Filament"
-msgstr "Total Filament"
+msgstr "総フィラメント"
 
 msgid "Model Filament"
-msgstr "Model Filament"
+msgstr "モデルフィラメント"
 
 msgid "Prepare time"
 msgstr "準備時間"
@@ -3340,7 +3324,7 @@ msgid "Spacing"
 msgstr "間隔"
 
 msgid "0 means auto spacing."
-msgstr "0 means auto spacing."
+msgstr "0で自動スペース調整"
 
 msgid "Auto rotate for arrangement"
 msgstr "自動回転"
@@ -3352,7 +3336,7 @@ msgid "Avoid extrusion calibration region"
 msgstr "押出しキャリブレーション領域を避ける"
 
 msgid "Align to Y axis"
-msgstr "Align to Y axis"
+msgstr "Y軸に合わせる"
 
 msgid "Add"
 msgstr "追加"
@@ -3459,10 +3443,10 @@ msgid "Bed leveling"
 msgstr "ベッドレベリング"
 
 msgid "Vibration compensation"
-msgstr "Vibration compensation"
+msgstr "振動補正"
 
 msgid "Motor noise cancellation"
-msgstr "Motor noise cancellation"
+msgstr "モーターノイズキャンセル"
 
 msgid "Calibration program"
 msgstr "キャリブレーション項目"
@@ -3557,10 +3541,10 @@ msgid "No"
 msgstr "いいえ"
 
 msgid "will be closed before creating a new model. Do you want to continue?"
-msgstr "will be closed before creating a new model. Do you want to continue?"
+msgstr "新規モデル作成の前に閉じられます。続行しますか？"
 
 msgid "Upload"
-msgstr "Upload"
+msgstr "アップロード"
 
 msgid "Slice plate"
 msgstr "スライス"
@@ -3590,7 +3574,7 @@ msgid "Send all"
 msgstr "送信 (全プレート)"
 
 msgid "Send to Multi-device"
-msgstr "Send to Multi-device"
+msgstr "複数デバイスに送信"
 
 msgid "Keyboard Shortcuts"
 msgstr "ショートカット"
@@ -3815,22 +3799,22 @@ msgid "Show &Overhang"
 msgstr "Show &Overhang"
 
 msgid "Show object overhang highlight in 3D scene"
-msgstr "Show object overhang highlight in 3D scene"
+msgstr "3Dシーンでオブジェクトのオーバーハングをハイライト"
 
 msgid "Services"
-msgstr "Services"
+msgstr "サービス"
 
 msgid "Hide BambuStudio"
-msgstr "Hide BambuStudio"
+msgstr "BambuStudioを隠す"
 
 msgid "Hide Others"
-msgstr "Hide Others"
+msgstr "他を隠す"
 
 msgid "Show All"
-msgstr "Show All"
+msgstr "全て表示"
 
 msgid "Quit BambuStudio"
-msgstr "Quit BambuStudio"
+msgstr "BambuStudioを終了"
 
 msgid "Preferences"
 msgstr "設定"
@@ -3842,31 +3826,31 @@ msgid "Help"
 msgstr "ヘルプ"
 
 msgid "Temperature Calibration"
-msgstr "Temperature Calibration"
+msgstr "温度キャリブレーション"
 
 msgid "Pass 1"
-msgstr "Pass 1"
+msgstr "パス 1"
 
 msgid "Flow rate test - Pass 1"
-msgstr "Flow rate test - Pass 1"
+msgstr "フローレートテスト - パス 1"
 
 msgid "Pass 2"
-msgstr "Pass 2"
+msgstr "パス 2"
 
 msgid "Flow rate test - Pass 2"
-msgstr "Flow rate test - Pass 2"
+msgstr "フローレートテスト - パス 2"
 
 msgid "Flow rate"
-msgstr "Flow rate"
+msgstr "フローレート"
 
 msgid "Pressure advance"
 msgstr "Pressure advance"
 
 msgid "Retraction test"
-msgstr "Retraction test"
+msgstr "リトラクションテスト"
 
 msgid "Max flowrate"
-msgstr "Max flowrate"
+msgstr "最大フローレート"
 
 msgid "VFA"
 msgstr "VFA"
@@ -3875,37 +3859,37 @@ msgid "More..."
 msgstr "More..."
 
 msgid "Tutorial"
-msgstr "Tutorial"
+msgstr "チュートリアル"
 
 msgid "Calibration help"
-msgstr "Calibration help"
+msgstr "キャリブレーションのヘルプ"
 
 msgid "More calibrations"
-msgstr "More calibrations"
+msgstr "詳細キャリブレーション"
 
 msgid "Window"
-msgstr "Window"
+msgstr "ウインドウ"
 
 msgid "Minimize"
-msgstr "Minimize"
+msgstr "最小化"
 
 msgid "Zoom"
 msgstr "ズーム"
 
 msgid "Tile Window to Left of Screen"
-msgstr "Tile Window to Left of Screen"
+msgstr "ウインドウを画面左側にタイル表示"
 
 msgid "Tile Window to Right of Screen"
-msgstr "Tile Window to Right of Screen"
+msgstr "ウインドウを画面右側にタイル表示"
 
 msgid "Replace Tiled Window"
-msgstr "Replace Tiled Window"
+msgstr "タイルされたウインドウを置換"
 
 msgid "Remove Window from Set"
 msgstr "Remove Window from Set"
 
 msgid "Bring All to Front"
-msgstr "Bring All to Front"
+msgstr "すべてを前面に"
 
 msgid "&Open G-code"
 msgstr "G-codeを開く"
@@ -3988,7 +3972,7 @@ msgid "Import result"
 msgstr "インポート結果"
 
 msgid "File is missing"
-msgstr "ﾌｧｲﾙが行方不明"
+msgstr "ファイルが行方不明"
 
 msgid "The project is no longer available."
 msgstr "プロジェクトは使用できなくなりました。"
@@ -4330,7 +4314,7 @@ msgid "Control"
 msgstr "コントロール"
 
 msgid "Printer Parts"
-msgstr "Printer Parts"
+msgstr "パーツ設定"
 
 msgid "Print Options"
 msgstr "造型オプション"
@@ -4784,13 +4768,13 @@ msgid "Check if the nozzle is clumping by filament or other foreign objects."
 msgstr "Check if the nozzle is clumping by filament or other foreign objects."
 
 msgid "Nozzle Type"
-msgstr "Nozzle Type"
+msgstr "ノズルタイプ"
 
 msgid "Stainless Steel"
-msgstr "Stainless Steel"
+msgstr "ステンレススチール"
 
 msgid "Hardened Steel"
-msgstr "Hardened Steel"
+msgstr "焼入れスチール"
 
 #, c-format, boost-format
 msgid "%.1f"
@@ -5263,7 +5247,7 @@ msgstr ""
 "現在のプロジェクトには未保存の変更があります。続行する前に保存しますか?"
 
 msgid "Remember my choice."
-msgstr "Remember my choice."
+msgstr "次回も同じ選択"
 
 msgid "Number of copies:"
 msgstr "複製数"
@@ -6097,16 +6081,15 @@ msgid "Errors"
 msgstr "エラー"
 
 msgid "Please check the following:"
-msgstr "Please check the following:"
+msgstr "次の内容をご確認ください:"
 
 msgid ""
 "The printer type selected when generating G-Code is not consistent with the "
 "currently selected printer. It is recommended that you use the same printer "
 "type for slicing."
 msgstr ""
-"The printer type selected when generating G-Code is not consistent with the "
-"currently selected printer. It is recommended that you use the same printer "
-"type for slicing."
+"G-Code生成に指定された機種は、現在の機種と異なります。"
+"スライスには同一機種を指定することが推奨されます。"
 
 msgid ""
 "There are some unknown filaments in the AMS mappings. Please check whether "
@@ -6147,12 +6130,12 @@ msgstr "Please fix the error above, otherwise printing cannot continue."
 msgid ""
 "Please click the confirm button if you still want to proceed with printing."
 msgstr ""
-"Please click the confirm button if you still want to proceed with printing."
+"それでも造形を続行する場合は「確認」ボタンをクリックしてください。"
 
 msgid ""
 "Connecting to the printer. Unable to cancel during the connection process."
 msgstr ""
-"Connecting to the printer. Unable to cancel during the connection process."
+"プリンターに接続試行中。接続プロセス中はキャンセルできません。"
 
 msgid "Preparing print job"
 msgstr "造形タスクを準備"
@@ -6161,7 +6144,7 @@ msgid "Abnormal print file data. Please slice again"
 msgstr "ファイルに異常があります、もう一度スライスしてください"
 
 msgid "The name length exceeds the limit."
-msgstr "The name length exceeds the limit."
+msgstr "名称の長さが制限を超えています。"
 
 msgid ""
 "Caution to use! Flow calibration on Textured PEI Plate may fail due to the "
@@ -6186,11 +6169,10 @@ msgid "Cannot send the print task when the upgrade is in progress"
 msgstr "アップデート中では造形タスクを送信できません"
 
 msgid "The selected printer is incompatible with the chosen printer presets."
-msgstr "The selected printer is incompatible with the chosen printer presets."
+msgstr "選択されているプリンターは、指定したプリンタープリセットと互換性がありません。"
 
 msgid "An SD card needs to be inserted before send to printer SD card."
-msgstr ""
-"A MicroSD card needs to be inserted before sending to the printer SD card."
+msgstr "プリンターに送信するには、SDカードが挿入されている必要があります。"
 
 msgid "The printer is required to be in the same LAN as Bambu Studio."
 msgstr ""
@@ -6206,25 +6188,25 @@ msgid "View all Daily tips"
 msgstr "View all Daily tips"
 
 msgid "Failed to create socket"
-msgstr "Failed to create socket"
+msgstr "ソケット生成に失敗"
 
 msgid "Failed to connect socket"
-msgstr "Failed to connect socket"
+msgstr "ソケット接続に失敗"
 
 msgid "Failed to publish login request"
-msgstr "Failed to publish login request"
+msgstr "ログイン要求の生成に失敗"
 
 msgid "Get ticket from device timeout"
-msgstr "Timeout getting ticket from device"
+msgstr "機器からのチケット取得に失敗"
 
 msgid "Get ticket from server timeout"
-msgstr "Timeout getting ticket from server"
+msgstr "サーバーからのチケット取得に失敗"
 
 msgid "Failed to post ticket to server"
-msgstr "Failed to post ticket to server"
+msgstr "サーバーへのチケット送信に失敗"
 
 msgid "Failed to parse login report reason"
-msgstr "Failed to parse login report reason"
+msgstr "ログインレポートの解析に失敗"
 
 msgid "Receive login report timeout"
 msgstr "Receive login report timeout"
@@ -6240,19 +6222,19 @@ msgstr ""
 " and type in the Pin Code below."
 
 msgid "Can't find Pin Code?"
-msgstr "Can't find Pin Code?"
+msgstr "PINコードがわかりませんか?"
 
 msgid "Pin Code"
-msgstr "Pin Code"
+msgstr "PINコード"
 
 msgid "Binding..."
 msgstr "Binding..."
 
 msgid "Please confirm on the printer screen"
-msgstr "Please confirm on the printer screen"
+msgstr "プリンター画面を確認してください。"
 
 msgid "Log in failed. Please check the Pin Code."
-msgstr "Log in failed. Please check the Pin Code."
+msgstr "ログイン失敗。PINコードを確認してください。"
 
 msgid "Log in printer"
 msgstr "プリンターを登録"
@@ -6261,7 +6243,7 @@ msgid "Would you like to log in this printer with current account?"
 msgstr "現在のアカウントでプリンターをサインインしますか？"
 
 msgid "Check the reason"
-msgstr "Check the reason"
+msgstr "理由を確認"
 
 msgid "Read and accept"
 msgstr "Read and accept"
@@ -6814,13 +6796,13 @@ msgid "Modified Value(New)"
 msgstr "Modified Value (New)"
 
 msgid "Save Modified Value"
-msgstr "Save Modified Value"
+msgstr "変更を保存"
 
 msgid "Don't save"
 msgstr "保存しない"
 
 msgid "Discard Modified Value"
-msgstr "Discard Modified Value"
+msgstr "変更を破棄"
 
 msgid "Use Modified Value"
 msgstr "Use Modified Value"
@@ -7361,43 +7343,43 @@ msgid "Skip this Version"
 msgstr "Skip this Version"
 
 msgid "Done"
-msgstr "Done"
+msgstr "完了"
 
 msgid "resume"
-msgstr "resume"
+msgstr "再開"
 
 msgid "Resume Printing"
-msgstr "Resume Printing"
+msgstr "造形を再開"
 
 msgid "Resume Printing(defects acceptable)"
-msgstr "Resume Printing (defects acceptable)"
+msgstr "造形を再開 (欠陥を容認)"
 
 msgid "Resume Printing(problem solved)"
-msgstr "Resume Printing (problem solved)"
+msgstr "造形を再開 (問題解決済み)"
 
 msgid "Stop Printing"
-msgstr "Stop Printing"
+msgstr "造形中止"
 
 msgid "Check Assistant"
 msgstr "Check Assistant"
 
 msgid "Filament Extruded, Continue"
-msgstr "Filament Extruded, Continue"
+msgstr "押し出されました。次へ"
 
 msgid "Not Extruded Yet, Retry"
-msgstr "Not Extruded Yet, Retry"
+msgstr "まだ押し出されません。再試行"
 
 msgid "Finished, Continue"
-msgstr "Finished, Continue"
+msgstr "引き出しました。次へ"
 
 msgid "Load Filament"
 msgstr "ロード"
 
 msgid "Filament Loaded, Resume"
-msgstr "Filament Loaded, Resume"
+msgstr "フィラメントをロードしました。再開"
 
 msgid "View Liveview"
-msgstr "View Liveview"
+msgstr "ライブビューを表示"
 
 msgid "Confirm and Update Nozzle"
 msgstr "Confirm and Update Nozzle"
@@ -7408,12 +7390,12 @@ msgstr "LAN接続失敗 (造形ファイル送信)"
 msgid ""
 "Step 1, please confirm Bambu Studio and your printer are in the same LAN."
 msgstr ""
-"１Bambu Studioとプリンターが同一のLANに繋いでいること確認してください。"
+"Step 1: Bambu Studioとプリンターが同一のLANに繋いでいること確認してください。"
 
 msgid ""
 "Step 2, if the IP and Access Code below are different from the actual values "
 "on your printer, please correct them."
-msgstr "２下記IPアドレスやアクセスコードが一致していない場合修正してください。"
+msgstr "Step 2: 下記IPアドレスやアクセスコードが一致していない場合修正してください。"
 
 msgid "Access Code"
 msgstr "アクセスコード"
@@ -7422,23 +7404,23 @@ msgid "Where to find your printer's IP and Access Code?"
 msgstr "どこでプリンターのIPアドレスとアクセスコードを確認できますか？"
 
 msgid "Step 3: Ping the IP address to check for packet loss and latency."
-msgstr "Step 3: Ping the IP address to check for packet loss and latency."
+msgstr "Step 3: IPアドレスにpingを送信し、パケットロスや遅延を確認します。"
 
 msgid "Test"
-msgstr "Test"
+msgstr "テスト"
 
 msgid "IP and Access Code Verified! You may close the window"
-msgstr "IP and Access Code Verified! You may close the window"
+msgstr "IPとアクセスコードが承認されました！ウインドウを閉じてください。"
 
 msgid "Connection failed, please double check IP and Access Code"
-msgstr "Connection failed, please double check IP and Access Code"
+msgstr "接続失敗。IPとアクセスコードを再確認してください。"
 
 msgid ""
 "Connection failed! If your IP and Access Code is correct, \n"
 "please move to step 3 for troubleshooting network issues"
 msgstr ""
-"Connection failed! If your IP and Access Code is correct, \n"
-"please move to step 3 for troubleshooting network issues"
+"接続失敗。IPとアクセスコードが間違っていない時は、\n"
+"ステップ3のネットワーク問題のトラブルシュートに進んでください。"
 
 msgid "Model:"
 msgstr "モデル"
@@ -7686,25 +7668,25 @@ msgid "allocation failed"
 msgstr "メモリ割り当て失敗"
 
 msgid "file open failed"
-msgstr "file open failed"
+msgstr "ファイルオープン失敗"
 
 msgid "file create failed"
-msgstr "file create failed"
+msgstr "ファイル作成失敗"
 
 msgid "file write failed"
-msgstr "file write failed"
+msgstr "ファイル書き込み失敗"
 
 msgid "file read failed"
-msgstr "file read failed"
+msgstr "ファイル読み込み失敗"
 
 msgid "file close failed"
-msgstr "file close failed"
+msgstr "ファイルクローズ失敗"
 
 msgid "file seek failed"
-msgstr "file seek failed"
+msgstr "ファイルシーク失敗"
 
 msgid "file stat failed"
-msgstr "file stat failed"
+msgstr "ファイル確認失敗"
 
 msgid "invalid parameter"
 msgstr "無効なパラメータ"
@@ -8090,16 +8072,16 @@ msgid "Bed types supported by the printer"
 msgstr "適応ベッド種類"
 
 msgid "First layer print sequence"
-msgstr "First layer print sequence"
+msgstr "第1層造形シークエンス"
 
 msgid "Other layers print sequence"
-msgstr "Other layers print sequence"
+msgstr "次層以降造形シークエンス"
 
 msgid "The number of other layers print sequence"
-msgstr "The number of other layers print sequence"
+msgstr "次層以降造形シークエンス数"
 
 msgid "Other layers filament sequence"
-msgstr "Other layers filament sequence"
+msgstr "次層以降フィラメントシークエンス"
 
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "積層が変わる直前に実行するG-codeです。"
@@ -8132,7 +8114,7 @@ msgstr ""
 "bottom shell layers."
 
 msgid "Force cooling for overhang and bridge"
-msgstr "ｵｰﾊﾞｰﾊﾝｸﾞとﾌﾞﾘｯｼﾞの冷却"
+msgstr "オーバーハングとブリッジの冷却"
 
 msgid ""
 "Enable this option to optimize part cooling fan speed for overhang and "
@@ -8364,7 +8346,7 @@ msgid ""
 "Close all cooling fan for the first certain layers. Cooling fan of the first "
 "layer used to be closed to get better build plate adhesion"
 msgstr ""
-"1層目をプリント時に全てのファンをオフにします。ベッドとの接着性を高めます"
+"1層目を造形時に全てのファンをオフにします。ベッドとの接着性を高めます"
 
 msgid "layers"
 msgstr "積層"
@@ -8501,7 +8483,7 @@ msgstr ""
 "外壁の造形速度です。普段は内壁より遅い速度を指定し、仕上がりが良くなります。"
 
 msgid "Small perimeters"
-msgstr "Small perimeters"
+msgstr "短い外周"
 
 msgid ""
 "This setting will affect the speed of perimeters having radius <= small "
@@ -8509,44 +8491,42 @@ msgid ""
 "80%) it will be calculated onthe outer wall speed setting above. Set to zero "
 "for auto."
 msgstr ""
-"This setting will affect the speed of perimeters having radius <= small "
-"perimeter threshold(usually holes). If expressed as percentage (for example: "
-"80%) it will be calculated onthe outer wall speed setting above. Set to zero "
-"for auto."
+"この設定は「小さな外周閾値」より小さな直径の外周分（通常は穴）のスピードに影響します。 "
+"パーセンテージで指定した場合（例：80%）、外壁造形速度を基準とします。"
+"0は自動を意味します。"
 
 msgid "mm/s or %"
 msgstr "mm/s or %"
 
 msgid "Small perimter threshold"
-msgstr "Small perimter threshold"
+msgstr "小さな外周閾値"
 
 msgid ""
 "This sets the threshold for small perimeter length. Default threshold is 0mm"
 msgstr ""
-"This sets the threshold for small perimeter length. Default threshold is 0mm"
+"小さな外周の長さをセットします。デフォルト閾値は0mm"
 
 msgid "Order of walls"
-msgstr "Order of walls"
+msgstr "壁造形順"
 
 msgid "Print sequence of inner wall and outer wall. "
-msgstr "Print sequence of inner wall and outer wall. "
+msgstr "外壁と内壁の造形順"
 
 msgid "inner/outer"
-msgstr "inner/outer"
+msgstr "内壁/外壁"
 
 msgid "outer/inner"
-msgstr "outer/inner"
+msgstr "外壁/内壁"
 
 msgid "inner wall/outer wall/inner wall"
-msgstr "inner wall/outer wall/inner wall"
+msgstr "内壁/外壁/内壁"
 
 msgid "Print infill first"
-msgstr "Print infill first"
+msgstr "インフィルから造形"
 
 msgid "Order of wall/infill. false means print wall first. "
 msgstr ""
-"Order of wall/infill. If this is unchecked, walls will be printed before "
-"infill."
+"壁とインフィルの造形順。チェックを外すと、壁が先に造形されます。"
 
 msgid "Height to rod"
 msgstr "レールまでの高さ"
@@ -8873,18 +8853,18 @@ msgstr ""
 "1層目の造形加速度です。遅くするとプレートとの接着を向上させることができます"
 
 msgid "Enable accel_to_decel"
-msgstr "Enable accel_to_decel"
+msgstr "加減速を有効化"
 
 msgid "Klipper's max_accel_to_decel will be adjusted automatically"
-msgstr "Klipper's max_accel_to_decel will be adjusted automatically"
+msgstr "Klipperの最大加減速度は自動調整されます。"
 
 msgid "accel_to_decel"
-msgstr "accel_to_decel"
+msgstr "加減速"
 
 msgid ""
 "Klipper's max_accel_to_decel will be adjusted to this percent of acceleration"
 msgstr ""
-"Klipper's max_accel_to_decel will be adjusted to this percent of acceleration"
+"Klipperの最大加減速度はこの加速パーセントに調整されます。"
 
 msgid "Default jerk"
 msgstr "Default jerk"
@@ -8949,10 +8929,10 @@ msgstr ""
 "より、表面にザラザラ感が出来上がります。"
 
 msgid "Contour"
-msgstr "Contour"
+msgstr "外壁"
 
 msgid "Contour and hole"
-msgstr "Contour and hole"
+msgstr "外壁と穴"
 
 msgid "All walls"
 msgstr "すべての壁"
@@ -8993,7 +8973,7 @@ msgstr ""
 "す。"
 
 msgid "Precise Z height"
-msgstr "Precise Z height"
+msgstr "精密なZ高さ"
 
 msgid ""
 "Enable this to get precise z height of object after slicing. It will get the "
@@ -9063,7 +9043,7 @@ msgid "The physical arrangement and components of a printing device"
 msgstr "The physical arrangement and components of a printing device"
 
 msgid "Best object position"
-msgstr "Best object position"
+msgstr "最適なオブジェクト位置"
 
 msgid "Best auto arranging position in range [0,1] w.r.t. bed shape."
 msgstr "Best auto arranging position in range [0,1] w.r.t. bed shape."
@@ -9092,7 +9072,7 @@ msgid "What kind of gcode the printer is compatible with"
 msgstr "プリンターが対応するG-code"
 
 msgid "Exclude objects"
-msgstr "Exclude objects"
+msgstr "除外オブジェクト"
 
 msgid ""
 "Enable this option to add EXCLUDE OBJECT command in g-code for klipper "
@@ -9139,7 +9119,7 @@ msgid "0 (no open anchors)"
 msgstr "0 (no open anchors)"
 
 msgid "1000 (unlimited)"
-msgstr "1000 (unlimited)"
+msgstr "1000 (無制限)"
 
 msgid "Maximum length of sparse infill anchor"
 msgstr "Maximum length of sparse infill anchor"
@@ -11446,7 +11426,7 @@ msgid "Test Storage Upload"
 msgstr "Test Storage Upload"
 
 msgid "Log Info"
-msgstr "Log Info"
+msgstr "ログ情報"
 
 msgid "Select filament preset"
 msgstr "Select filament preset"
@@ -11529,7 +11509,7 @@ msgstr "The vendor can not be a number; please re-enter."
 msgid ""
 "You have not selected a printer or preset yet. Please select at least one."
 msgstr ""
-"You have not selected a printer or preset yet. Please select at least one."
+"プリンタまたはプリセットを選択していません。最低1つ選択してください。"
 
 #, c-format, boost-format
 msgid ""
@@ -11549,7 +11529,7 @@ msgid ""
 "Do you want to rewrite it?"
 msgstr ""
 "\n"
-"Do you want to rewrite it?"
+"リライトしますか？"
 
 msgid ""
 "We would rename the presets as \"Vendor Type Serial @printer you selected"
@@ -11561,55 +11541,55 @@ msgstr ""
 "To add preset for more printers; please go to printer selection"
 
 msgid "Create Printer/Nozzle"
-msgstr "Create Printer/Nozzle"
+msgstr "プリンタ／ノズルを作成"
 
 msgid "Create Printer"
-msgstr "Create Printer"
+msgstr "プリンタを作成"
 
 msgid "Create Nozzle for Existing Printer"
-msgstr "Create Nozzle for Existing Printer"
+msgstr "既存プリンタのノズルを作成"
 
 msgid "Create from Template"
-msgstr "Create from Template"
+msgstr "テンプレートから作成"
 
 msgid "Create Based on Current Printer"
-msgstr "Create Based on Current Printer"
+msgstr "現在のプリンタを元に作成"
 
 msgid "wiki"
 msgstr "wiki"
 
 msgid "Import Preset"
-msgstr "Import Preset"
+msgstr "プリセットをインポート"
 
 msgid "Create Type"
 msgstr "Create Type"
 
 msgid "The model is not fond, place reselect vendor."
-msgstr "The model was not found; please reselect vendor."
+msgstr "モデルが見つかりません。メーカーを選択し直してください。"
 
 msgid "Select Model"
-msgstr "Select Model"
+msgstr "モデルを選択"
 
 msgid "Select Printer"
-msgstr "Select Printer"
+msgstr "プリンタを選択"
 
 msgid "Input Custom Model"
-msgstr "Input Custom Model"
+msgstr "モデル手動入力"
 
 msgid "Can't find my printer model"
-msgstr "Can't find my printer model"
+msgstr "私のプリンタが見付かりません"
 
 msgid "Rectangle"
-msgstr "Rectangle"
+msgstr "寸法"
 
 msgid "Printable Space"
-msgstr "Printable Space"
+msgstr "造形可能空間"
 
 msgid "Hot Bed STL"
-msgstr "Hot Bed STL"
+msgstr "ベッドSTL"
 
 msgid "Load stl"
-msgstr "Load stl"
+msgstr "stl読み込み"
 
 msgid "Hot Bed SVG"
 msgstr "Hot Bed SVG"
