@@ -281,6 +281,7 @@ void WebViewPanel::ResetWholePage()
     RunScript(strJS);
 
     //online
+    m_online_spec_id  = "";
     auto host  = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
     std::string mwurl = (boost::format("%1%studio/webview?from=bambustudio") % host).str();
     m_browserMW->LoadURL(mwurl);
@@ -815,6 +816,7 @@ void WebViewPanel::SetMakerworldPageLoginStatus(bool login ,wxString ticket)
         m_online_spec_id = "";
     } else {
         mw_currenturl = m_browserMW->GetCurrentURL();
+        mw_currenturl.Replace("modelid=", "");
     }
 
     //mw_currenturl.Replace("modelid=", "");
