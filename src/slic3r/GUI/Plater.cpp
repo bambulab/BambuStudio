@@ -11114,20 +11114,17 @@ void Plater::export_gcode_3mf(bool export_all)
     fs::path default_output_file;
     AppConfig& appconfig = *wxGetApp().app_config;
     std::string start_dir;
-    default_output_file = into_path(get_export_gcode_filename(".3mf", false, export_all));
+    default_output_file = into_path(get_export_gcode_filename(".gcode.3mf", false, export_all));
     if (default_output_file.empty()) {
         try {
             start_dir = appconfig.get_last_output_dir("", false);
-            wxString filename = get_export_gcode_filename(".3mf", true, export_all);
+            wxString filename = get_export_gcode_filename(".gcode.3mf", true, export_all);
             std::string full_filename = start_dir + "/" + filename.utf8_string();
             default_output_file = boost::filesystem::path(full_filename);
         } catch(...) {
             ;
         }
     }
-
-    //BBS replace gcode extension to .gcode.3mf
-    default_output_file = default_output_file.replace_extension(".gcode.3mf");
 
     //Get a last save path
     start_dir = appconfig.get_last_output_dir(default_output_file.parent_path().string(), false);
@@ -11136,25 +11133,18 @@ void Plater::export_gcode_3mf(bool export_all)
     {
         std::string ext = default_output_file.extension().string();
         wxFileDialog dlg(this, _L("Save Sliced file as:"),
-            start_dir,
-            from_path(default_output_file.filename()),
-            GUI::file_wildcards(FT_3MF, ext),
+            start_dir, from_path(default_output_file.filename()), GUI::file_wildcards(FT_GCODE_3MF, ""),
             wxFD_SAVE | wxFD_OVERWRITE_PROMPT
         );
         if (dlg.ShowModal() == wxID_OK) {
             output_path = into_path(dlg.GetPath());
-            ext = output_path.extension().string();
-            if (ext != ".3mf")
-                output_path = output_path.string() + ".gcode.3mf";
-            else {
+            if (boost::iends_with(output_path.string(), ".gcode")) {
                 std::string path = output_path.string();
-                path = path.substr(0, path.size() - 4);
-                if (path.size() < 6)
-                    output_path = output_path.replace_extension(".gcode.3mf");
-                else {
-                    std::string extension = path.substr(path.size() - 6);
-                    if (extension != ".gcode") output_path = output_path.replace_extension(".gcode.3mf");
-                }
+                path             = path.substr(0, path.size() - 6);
+                output_path      = path + ".gcode.3mf";
+            }
+            else if (!boost::iends_with(output_path.string(), ".gcode.3mf")) {
+                output_path = output_path.replace_extension(".gcode.3mf");
             }
         }
     }
