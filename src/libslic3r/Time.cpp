@@ -178,6 +178,15 @@ time_t get_current_time_utc()
     return clk::to_time_t(clk::now());
 }
 
+time_t get_current_milliseconds_time_utc()
+{
+    using clk = std::chrono::system_clock;
+    auto now = clk::now();
+    auto duration = now.time_since_epoch();
+    auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+    return static_cast<time_t>(milliseconds);
+}
+
 static std::string tm2str(const std::tm *tms, const char *fmt)
 {
     std::stringstream ss;
