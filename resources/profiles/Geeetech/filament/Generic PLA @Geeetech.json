@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "filament_id": "GFL99",
-    "setting_id": "GFSA04",
+    "setting_id": "GFSL99_Geeetech_00",
     "name": "Generic PLA @Geeetech",
     "from": "system",
     "instantiation": "true",

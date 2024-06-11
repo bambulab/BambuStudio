@@ -10,7 +10,7 @@
     "Generic PLA @Geeetech"
   ],
   "printer_variant": "0.2",
-  "default_print_profile": "0.10mm Standard @Geeetech MizarS 0.2 nozzle",
+  "default_print_profile": "0.10mm Standard @Geeetech common 0.2 nozzle",
   "nozzle_diameter": [
     "0.2"
   ],
