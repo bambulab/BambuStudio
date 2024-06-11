@@ -11,6 +11,9 @@
 
 namespace Slic3r {
 namespace GUI {
+const float MIN_PA_K_VALUE = 0.0;
+const float MAX_PA_K_VALUE = 1.0;
+
 std::shared_ptr<PrintJob> CalibUtils::print_job;
 wxString wxstr_temp_dir = fs::path(fs::temp_directory_path() / "calib").wstring();
 static const std::string temp_dir = wxstr_temp_dir.utf8_string();
@@ -226,7 +229,7 @@ bool CalibUtils::validate_input_k_value(wxString k_text, float* output_value)
         ;
     }
 
-    if (k_value < 0 || k_value > 0.3) {
+    if (k_value < MIN_PA_K_VALUE || k_value > MAX_PA_K_VALUE) {
         *output_value = default_k;
         return false;
     }

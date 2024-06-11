@@ -512,7 +512,12 @@ void PrintJob::process()
 
 
         //use ftp only
-        if (!wxGetApp().app_config->get("lan_mode_only").empty() && wxGetApp().app_config->get("lan_mode_only") == "1") {
+        if (m_print_type == "from_sdcard_view") {
+            BOOST_LOG_TRIVIAL(info) << "print_job: try to send with cloud, model is sdcard view";
+            this->update_status(curr_percent, _L("Sending print job through cloud service"));
+            result = m_agent->start_sdcard_print(params, update_fn, cancel_fn);
+        }
+        else if (!wxGetApp().app_config->get("lan_mode_only").empty() && wxGetApp().app_config->get("lan_mode_only") == "1") {
 
             if (params.password.empty() || params.dev_ip.empty()) {
                 error_text = wxString::Format("Access code:%s Ip address:%s", params.password, params.dev_ip);

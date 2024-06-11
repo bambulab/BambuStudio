@@ -45,6 +45,8 @@ std::vector<std::string> init_face_names()
     wxArrayString            facenames = wxFontEnumerator::GetFacenames(font_encoding);
     std::vector<wxString>    bad_fonts;
 
+    BOOST_LOG_TRIVIAL(info) << "init_fonts_names start";
+
     // validation lambda
     auto is_valid_font = [coding = font_encoding, bad = bad_fonts](const wxString &name) {
         if (name.empty())
@@ -70,7 +72,7 @@ std::vector<std::string> init_face_names()
             return false;
 
         return true;
-    };
+    };    
 
     std::sort(facenames.begin(), facenames.end());
     for (const wxString &name : facenames) {
@@ -82,6 +84,8 @@ std::vector<std::string> init_face_names()
         }
     }
     assert(std::is_sorted(bad_fonts.begin(), bad_fonts.end()));
+
+    BOOST_LOG_TRIVIAL(info) << "init_fonts_names end";
 
     return valid_font_names;
 }
@@ -186,6 +190,9 @@ GLGizmoText::GLGizmoText(GLCanvas3D& parent, const std::string& icon_filename, u
 
 GLGizmoText::~GLGizmoText()
 {
+    if (m_thread.joinable())
+        m_thread.join();
+
     for (int i = 0; i < m_textures.size(); i++) {
         if (m_textures[i].texture != nullptr)
             delete m_textures[i].texture;
@@ -194,10 +201,13 @@ GLGizmoText::~GLGizmoText()
 
 bool GLGizmoText::on_init()
 {
+    m_init_texture     = false;
     m_avail_font_names = init_face_names();
 
+    m_thread = std::thread(&GLGizmoText::update_font_status, this);
+
     //m_avail_font_names = init_occt_fonts();
-    update_font_texture();
+    //update_font_texture();
     m_scale = m_imgui->get_font_size();
     m_shortcut_key = WXK_CONTROL_T;
 
@@ -228,7 +238,8 @@ void GLGizmoText::update_font_texture()
         auto retina_scale = m_parent.get_scale();
         wxFont font { (int)round(retina_scale * FONT_SIZE), wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, face };
         int w, h, hl;
-        if (texture->generate_texture_from_text(m_avail_font_names[i], font, w, h, hl, FONT_TEXTURE_BG, FONT_TEXTURE_FG)) {
+        std::unique_lock<std::mutex> lock(m_mutex);
+        if (m_font_status[i] && texture->generate_texture_from_text(m_avail_font_names[i], font, w, h, hl, FONT_TEXTURE_BG, FONT_TEXTURE_FG)) {
             //if (h < m_imgui->scaled(2.f)) {
                 TextureInfo info;
                 info.texture = texture;
@@ -317,7 +328,7 @@ bool GLGizmoText::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_posit
             return true;
 
         Plater *plater = wxGetApp().plater();
-        if (!plater)
+        if (!plater || m_thickness <= 0)
             return true;
 
         ModelObject *model_object = selection.get_model()->objects[m_object_idx];
@@ -685,6 +696,11 @@ void GLGizmoText::pop_combo_style()
 // BBS
 void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
 {
+    if (!m_init_texture) {
+        update_font_texture();
+        m_init_texture = true;
+    }
+
     if (m_imgui->get_font_size() != m_scale) {
         m_scale = m_imgui->get_font_size();
         update_font_texture();
@@ -986,6 +1002,19 @@ void GLGizmoText::reset_text_info()
     m_keep_horizontal = false;
 
     m_is_modify = false;
+}
+
+void GLGizmoText::update_font_status() {
+    std::unique_lock<std::mutex> lock(m_mutex);
+    m_font_status.reserve(m_avail_font_names.size());
+    for (std::string font_name : m_avail_font_names) {
+        if (!can_generate_text_shape(font_name)) {
+            m_font_status.emplace_back(false);
+        }
+        else {
+            m_font_status.emplace_back(true);
+        }
+    }
 }
 
 bool GLGizmoText::update_text_positions(const std::vector<std::string>& texts)

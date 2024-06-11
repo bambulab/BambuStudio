@@ -528,7 +528,7 @@ public:
                         const std::array<float, 4> &body_color = {1.0f, 1.0f, 1.0f, 1.0f} ) const;
 
     //BBS: add simple render function for thumbnail
-    void simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_objects, std::vector<std::array<float, 4>>& extruder_colors) const;
+    void simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_objects, std::vector<std::array<float, 4>>& extruder_colors,bool ban_light =false) const;
 
     void                finalize_geometry(bool opengl_initialized) { this->indexed_vertex_array->finalize_geometry(opengl_initialized); }
     void                release_geometry() { this->indexed_vertex_array->release_geometry(); }

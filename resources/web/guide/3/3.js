@@ -1,9 +1,15 @@
 
+m_Region='US';
+
 function OnInit()
 {
 	TranslatePage();
 	
 	SendPrivacySelect();
+	
+	let strRegion=GetQueryString('region');
+	if( strRegion!=null )
+		m_Region=strRegion.toLowerCase();
 }
 
 
@@ -97,4 +103,20 @@ function HandleModelInfo( pVal )
 	}
 
 	window.location.href="../21/index.html";	
+}
+
+function OpenPrivacyPolicy()
+{
+	let PolicyUrl='';
+	if( m_Region=='china' )
+		PolicyUrl="https://bambulab.cn/policies/software-privacy";
+	else
+	    PolicyUrl="https://bambulab.com/policies/privacy";
+	
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="common_openurl";
+	tSend['url']=PolicyUrl;
+	
+	SendWXMessage( JSON.stringify(tSend) );		
 }

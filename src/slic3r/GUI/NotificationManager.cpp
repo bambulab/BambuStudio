@@ -436,7 +436,12 @@ void NotificationManager::PopNotification::count_spaces()
 	//}
 	m_window_width_offset = m_left_indentation + m_line_height * 3.f;
     if (m_data.level == NotificationLevel::ErrorNotificationLevel || m_data.level == NotificationLevel::SeriousWarningNotificationLevel) {
+
+#ifdef __APPLE__
+		m_left_indentation = 52 + m_line_height;
+#else
 		m_left_indentation = 32 + m_line_height;
+#endif // __APPLE__
 		m_window_width_offset = 90.f;
 	}
 	m_window_width = m_line_height * 25;

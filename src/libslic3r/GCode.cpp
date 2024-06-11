@@ -3504,7 +3504,7 @@ GCode::LayerResult GCode::process_layer(
         }
 
         // BBS
-        if (print.config().print_sequence == PrintSequence::ByObject && prime_extruder && first_layer && extruder_id == first_extruder_id) {
+        if (print.has_skirt() && print.config().print_sequence == PrintSequence::ByObject && prime_extruder && first_layer && extruder_id == first_extruder_id) {
             for (InstanceToPrint& instance_to_print : instances_to_print) {
                 if (this->m_objSupportsWithBrim.find(instance_to_print.print_object.id()) != this->m_objSupportsWithBrim.end() &&
                     print.m_supportBrimMap.at(instance_to_print.print_object.id()).entities.size() > 0)
@@ -3545,6 +3545,9 @@ GCode::LayerResult GCode::process_layer(
                     if (print.is_BBL_Printer()) {
                         start_str += ("M624 " + _encode_label_ids_to_base64({ instance_to_print.label_object_id }));
                         start_str += "\n";
+                    } else {
+                        // BBS: support octoprint exclude object
+                        start_str += std::string("; printing object ") + get_instance_name(&instance_to_print.print_object, inst.id) + "\n";
                     }
                     temp_start_str = start_str;
                     m_writer.set_object_start_str(start_str);
