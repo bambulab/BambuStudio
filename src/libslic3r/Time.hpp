@@ -9,6 +9,7 @@ namespace Utils {
 
 // Should be thread safe.
 time_t get_current_time_utc();
+time_t get_current_milliseconds_time_utc();
 
 enum class TimeZone { local, utc };
 enum class TimeFormat { gcode, iso8601Z };

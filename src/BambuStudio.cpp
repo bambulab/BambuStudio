@@ -1204,7 +1204,7 @@ int CLI::run(int argc, char **argv)
         }
     }
 
-    global_begin_time = (long long)Slic3r::Utils::get_current_time_utc();
+    global_begin_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
     BOOST_LOG_TRIVIAL(warning) << boost::format("cli mode, Current BambuStudio Version %1%")%SLIC3R_VERSION;
 
     //BBS: add plate data related logic
@@ -4630,7 +4630,7 @@ int CLI::run(int argc, char **argv)
     std::vector<bool> plate_has_skips(partplate_list.get_plate_count(), false);
     std::vector<std::vector<size_t>> plate_skipped_objects(partplate_list.get_plate_count());
 
-    global_current_time = (long long)Slic3r::Utils::get_current_time_utc();
+    global_current_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
     sliced_info.prepare_time = (size_t) (global_current_time - global_begin_time);
     global_begin_time = global_current_time;
 
@@ -4784,7 +4784,7 @@ int CLI::run(int argc, char **argv)
                         model.curr_plate_index = index;
                         BOOST_LOG_TRIVIAL(info) << boost::format("Plate %1%: pre_check %2%, start")%(index+1)%pre_check;
                         long long start_time = 0, end_time = 0, temp_time = 0, time_using_cache = 0;
-                        start_time = (long long)Slic3r::Utils::get_current_time_utc();
+                        start_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
                         //get the current partplate
                         Slic3r::GUI::PartPlate* part_plate = partplate_list.get_plate(index);
                         part_plate->get_print(&print, &gcode_result, &print_index);
@@ -5072,9 +5072,9 @@ int CLI::run(int argc, char **argv)
                                         part_plate->set_tmp_gcode_path(outfile);
                                     }
                                     BOOST_LOG_TRIVIAL(info) << "process finished, will export gcode temporily to " << outfile << std::endl;
-                                    temp_time = (long long)Slic3r::Utils::get_current_time_utc();
+                                    temp_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
                                     outfile = print_fff->export_gcode(outfile, gcode_result, nullptr);
-                                    time_using_cache = time_using_cache + ((long long)Slic3r::Utils::get_current_time_utc() - temp_time);
+                                    time_using_cache = time_using_cache + ((long long)Slic3r::Utils::get_current_milliseconds_time_utc() - temp_time);
                                     BOOST_LOG_TRIVIAL(info) << "export_gcode finished: time_using_cache update to " << time_using_cache << " secs.";
 
                                     //outfile_final = (dynamic_cast<Print*>(print))->print_statistics().finalize_output_path(outfile);
@@ -5117,7 +5117,7 @@ int CLI::run(int argc, char **argv)
                                         flush_and_exit(ret);
                                     }
                                 }
-                                end_time = (long long)Slic3r::Utils::get_current_time_utc();
+                                end_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
                                 sliced_plate_info.sliced_time = end_time - start_time;
                                 sliced_plate_info.sliced_time_with_cache = time_using_cache;
 
@@ -5191,7 +5191,7 @@ int CLI::run(int argc, char **argv)
         }
     }
 
-    global_begin_time = (long long)Slic3r::Utils::get_current_time_utc();
+    global_begin_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
     if (export_to_3mf) {
         //BBS: export as bbl 3mf
         std::vector<ThumbnailData *> thumbnails, no_light_thumbnails, top_thumbnails, pick_thumbnails;
@@ -5929,7 +5929,7 @@ int CLI::run(int argc, char **argv)
     }
     //BBS: flush logs
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", Finished" << std::endl;
-    global_current_time = (long long)Slic3r::Utils::get_current_time_utc();
+    global_current_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
     sliced_info.export_time = (size_t) (global_current_time - global_begin_time);
 
     //record the duplicate here
