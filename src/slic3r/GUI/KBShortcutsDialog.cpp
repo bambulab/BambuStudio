@@ -213,7 +213,11 @@ void KBShortcutsDialog::fill_shortcuts()
                 {L("Del"), L("Delete selected")},
             #endif
             // Help
-            { "?", L("Show keyboard shortcuts list") }
+#ifdef __WINDOWS__
+            { "Shift+Alt+?", L("Show keyboard shortcuts list") }
+#else
+            {"Shift+?", L("Show keyboard shortcuts list")}
+#endif
         };
         m_full_shortcuts.push_back({{_L("Global shortcuts"), ""}, global_shortcuts});
 
@@ -264,14 +268,8 @@ void KBShortcutsDialog::fill_shortcuts()
 
         Shortcuts gizmos_shortcuts = {
             {"Esc", L("Deselect all")},
-            {L("Shift+"), L("Move: press to snap by 1mm")},
-            #ifdef __APPLE__
-                {L("⌘+Mouse wheel"), L("Support/Color Painting: adjust pen radius")},
-                {L("⌥+Mouse wheel"), L("Support/Color Painting: adjust section position")},
-            #else
-		        {L("Ctrl+Mouse wheel"), L("Support/Color Painting: adjust pen radius")},
-                {L("Alt+Mouse wheel"), L("Support/Color Painting: adjust section position")},
-            #endif
+            {ctrl + L("Mouse wheel"), L("Support/Color Painting: adjust pen radius")},
+            {alt + L("Mouse wheel"), L("Support/Color Painting: adjust section position")},
         };
         m_full_shortcuts.push_back({{_L("Gizmo"), ""}, gizmos_shortcuts});
 
