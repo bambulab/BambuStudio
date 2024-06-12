@@ -2278,7 +2278,11 @@ std::vector<int> GLCanvas3D::load_object(const Model& model, int obj_idx)
 
 void GLCanvas3D::mirror_selection(Axis axis)
 {
-    m_selection.mirror(axis);
+    TransformationType transformation_type;
+    //transformation_type.set_world();
+    transformation_type.set_relative();
+    m_selection.setup_cache();
+    m_selection.mirror(axis, transformation_type);
     do_mirror(L("Mirror Object"));
     // BBS
     //wxGetApp().obj_manipul()->set_dirty();
@@ -4794,11 +4798,9 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
         if (model_object != nullptr) {
             if (selection_mode == Selection::Instance) {
                 if (m_canvas_type == GLCanvas3D::ECanvasType::CanvasAssembleView) {
-                    model_object->instances[instance_idx]->set_assemble_rotation(v->get_instance_rotation());
-                    model_object->instances[instance_idx]->set_assemble_offset(v->get_instance_offset());
+                    model_object->instances[instance_idx]->set_assemble_from_transform(v->get_instance_transformation().get_matrix());
                 } else {
-                    model_object->instances[instance_idx]->set_rotation(v->get_instance_rotation());
-                    model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
+                    model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
                 }
             }
             else if (selection_mode == Selection::Volume) {
@@ -4812,8 +4814,7 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
                         old_text_world_tran = mi->get_transformation().get_matrix() * cur_mv->get_matrix();
                     }
 
-                    cur_mv->set_rotation(v->get_volume_rotation());
-                    cur_mv->set_offset(v->get_volume_offset());
+                    cur_mv->set_transformation(v->get_volume_transformation());
                     if (is_text_mv) { // deal text_info
                         auto                     cur_text_world_tran = mi->get_transformation().get_matrix() * cur_mv->get_matrix();
                         generate_new_hit_in_text_info(cur_mv, model_object, mi, old_text_world_tran, cur_text_world_tran, text_info, 1);
@@ -4893,8 +4894,7 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
         ModelObject* model_object = m_model->objects[object_idx];
         if (model_object != nullptr) {
             if (selection_mode == Selection::Instance) {
-                model_object->instances[instance_idx]->set_scaling_factor(v->get_instance_scaling_factor());
-                model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
+                model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
             }
             else if (selection_mode == Selection::Volume) {
                 auto cur_mv = model_object->volumes[volume_idx];
@@ -4907,9 +4907,8 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
                         old_text_world_tran = mi->get_transformation().get_matrix() * cur_mv->get_matrix();
                     }
 
-                    model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
-                    cur_mv->set_scaling_factor(v->get_volume_scaling_factor());
-                    cur_mv->set_offset(v->get_volume_offset());
+                    model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
+                    cur_mv->set_transformation(v->get_volume_transformation());
 
                     if (is_text_mv) { // deal text_info
                         auto cur_text_world_tran = mi->get_transformation().get_matrix() * cur_mv->get_matrix();
@@ -5014,10 +5013,10 @@ void GLCanvas3D::do_mirror(const std::string& snapshot_type)
         ModelObject* model_object = m_model->objects[object_idx];
         if (model_object != nullptr) {
             if (selection_mode == Selection::Instance)
-                model_object->instances[instance_idx]->set_mirror(v->get_instance_mirror());
+                model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
             else if (selection_mode == Selection::Volume) {
-                if (model_object->volumes[volume_idx]->get_mirror() != v->get_volume_mirror()) {
-                    model_object->volumes[volume_idx]->set_mirror(v->get_volume_mirror());
+                if (model_object->volumes[volume_idx]->get_transformation() != v->get_volume_transformation()) {
+                    model_object->volumes[volume_idx]->set_transformation(v->get_volume_transformation());
                     // BBS: backup
                     Slic3r::save_object_mesh(*model_object);
                 }

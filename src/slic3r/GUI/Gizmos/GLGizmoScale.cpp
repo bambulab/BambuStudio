@@ -5,7 +5,7 @@
 
 #include <GL/glew.h>
 
-#include <wx/utils.h> 
+#include <wx/utils.h>
 
 namespace Slic3r {
 namespace GUI {
@@ -51,7 +51,7 @@ std::string GLGizmoScale3D::get_tooltip() const
         return "Y: " + format(scale(1), 4) + "%";
     else if (m_hover_id == 4 || m_hover_id == 5 || m_grabbers[4].dragging || m_grabbers[5].dragging)
         return "Z: " + format(scale(2), 4) + "%";
-    else if (m_hover_id == 6 || m_hover_id == 7 || m_hover_id == 8 || m_hover_id == 9 || 
+    else if (m_hover_id == 6 || m_hover_id == 7 || m_hover_id == 8 || m_hover_id == 9 ||
         m_grabbers[6].dragging || m_grabbers[7].dragging || m_grabbers[8].dragging || m_grabbers[9].dragging)
     {
         std::string tooltip = "X: " + format(scale(0), 2) + "%\n";
@@ -61,6 +61,11 @@ std::string GLGizmoScale3D::get_tooltip() const
     }
     else
         return "";
+}
+
+void GLGizmoScale3D::data_changed(bool is_serializing)
+{
+    change_cs_by_selection();
 }
 
 void GLGizmoScale3D::enable_ununiversal_scale(bool enable)
@@ -78,13 +83,6 @@ bool GLGizmoScale3D::on_init()
 
     double half_pi = 0.5 * (double)PI;
 
-    // x axis
-    m_grabbers[0].angles(1) = half_pi;
-    m_grabbers[1].angles(1) = half_pi;
-
-    // y axis
-    m_grabbers[2].angles(0) = half_pi;
-    m_grabbers[3].angles(0) = half_pi;
 
     // BBS
     m_grabbers[4].enabled = false;
@@ -110,28 +108,50 @@ bool GLGizmoScale3D::on_is_activable() const
 
 void GLGizmoScale3D::on_set_state() {
     if (get_state() == On) {
-        m_object_manipulation->set_coordinates_type(ECoordinatesType::Local);
+        m_last_selected_obejct_idx = -1;
+        m_last_selected_volume_idx = -1;
+        change_cs_by_selection();
     }
+}
+
+static int constraint_id(int grabber_id)
+{
+    static const std::vector<int> id_map = {1, 0, 3, 2, 5, 4, 8, 9, 6, 7};
+    return (0 <= grabber_id && grabber_id < (int) id_map.size()) ? id_map[grabber_id] : -1;
 }
 
 void GLGizmoScale3D::on_start_dragging()
 {
-    if (m_hover_id != -1)
-    {
-        m_starting.drag_position = m_grabbers[m_hover_id].center;
-        m_starting.plane_center = m_grabbers[4].center;
-        m_starting.plane_nromal = m_grabbers[5].center - m_grabbers[4].center;
+    if (m_hover_id != -1) {
+        auto grabbers_transform  = m_grabbers_tran.get_matrix();
+        m_starting.drag_position = grabbers_transform * m_grabbers[m_hover_id].center;
+        m_starting.plane_center  = grabbers_transform * m_grabbers[4].center; // plane_center = bottom center
+        m_starting.plane_nromal  = (grabbers_transform * m_grabbers[5].center - grabbers_transform * m_grabbers[4].center).normalized();
         m_starting.ctrl_down = wxGetKeyState(WXK_CONTROL);
-        m_starting.box = (m_starting.ctrl_down && (m_hover_id < 6)) ? m_box : m_parent.get_selection().get_bounding_box();
+        m_starting.box           = m_bounding_box;
 
-        const Vec3d& center = m_starting.box.center();
-        m_starting.pivots[0] = m_transform * Vec3d(m_starting.box.max(0), center(1), center(2));
-        m_starting.pivots[1] = m_transform * Vec3d(m_starting.box.min(0), center(1), center(2));
-        m_starting.pivots[2] = m_transform * Vec3d(center(0), m_starting.box.max(1), center(2));
-        m_starting.pivots[3] = m_transform * Vec3d(center(0), m_starting.box.min(1), center(2));
-        m_starting.pivots[4] = m_transform * Vec3d(center(0), center(1), m_starting.box.max(2));
-        m_starting.pivots[5] = m_transform * Vec3d(center(0), center(1), m_starting.box.min(2));
+        m_starting.center              = m_center;
+        m_starting.instance_center     = m_instance_center;
+
+        const Vec3d  box_half_size = 0.5 * m_bounding_box.size();
+
+        m_starting.local_pivots[0] = Vec3d(box_half_size.x(), 0.0, -box_half_size.z());
+        m_starting.local_pivots[1] = Vec3d(-box_half_size.x(), 0.0, -box_half_size.z());
+        m_starting.local_pivots[2] = Vec3d(0.0, box_half_size.y(), -box_half_size.z());
+        m_starting.local_pivots[3] = Vec3d(0.0, -box_half_size.y(), -box_half_size.z());
+        m_starting.local_pivots[4] = Vec3d(0.0, 0.0, box_half_size.z());
+        m_starting.local_pivots[5] = Vec3d(0.0, 0.0, -box_half_size.z());
+        for (size_t i = 0; i < 6; i++) {
+            m_starting.pivots[i] = grabbers_transform * m_starting.local_pivots[i]; // todo delete
+        }
+        m_starting.constraint_position = grabbers_transform * m_grabbers[constraint_id(m_hover_id)].center;
+        m_scale = m_starting.scale = Vec3d::Ones() ;
+        m_offset                   = Vec3d::Zero();
     }
+}
+
+void GLGizmoScale3D::on_stop_dragging()
+{
 }
 
 void GLGizmoScale3D::on_update(const UpdateData& data)
@@ -146,100 +166,83 @@ void GLGizmoScale3D::on_update(const UpdateData& data)
         do_scale_uniform(data);
 }
 
-void GLGizmoScale3D::on_render()
+void GLGizmoScale3D::update_grabbers_data()
 {
-    const Selection& selection = m_parent.get_selection();
+    const Selection &selection = m_parent.get_selection();
+    const auto &[box, box_trafo] = selection.get_bounding_box_in_current_reference_system();
+    m_bounding_box               = box;
+    m_center                     = box_trafo.translation();
+    m_grabbers_tran.set_matrix(box_trafo);
+    m_instance_center = (selection.is_single_full_instance() || selection.is_single_volume_or_modifier()) ? selection.get_first_volume()->get_instance_offset() : m_center;
+
+    const Vec3d box_half_size   = 0.5 * m_bounding_box.size();
+    bool        ctrl_down     = wxGetKeyState(WXK_CONTROL);
+
 
     bool single_instance = selection.is_single_full_instance();
-    bool single_volume = selection.is_single_modifier() || selection.is_single_volume();
+    bool single_volume   = selection.is_single_modifier() || selection.is_single_volume();
 
+    // x axis
+    m_grabbers[0].center = Vec3d(-(box_half_size.x()), 0.0, -box_half_size.z());
+    m_grabbers[0].color  = (ctrl_down && m_hover_id == 1) ? CONSTRAINED_COLOR : AXES_COLOR[0];
+    m_grabbers[1].center = Vec3d(box_half_size.x(), 0.0, -box_half_size.z());
+    m_grabbers[1].color  = (ctrl_down && m_hover_id == 0) ? CONSTRAINED_COLOR : AXES_COLOR[0];
+    // y axis
+    m_grabbers[2].center = Vec3d(0.0, -(box_half_size.y()), -box_half_size.z());
+    m_grabbers[2].color  = (ctrl_down && m_hover_id == 3) ? CONSTRAINED_COLOR : AXES_COLOR[1];
+    m_grabbers[3].center = Vec3d(0.0, box_half_size.y(), -box_half_size.z());
+    m_grabbers[3].color  = (ctrl_down && m_hover_id == 2) ? CONSTRAINED_COLOR : AXES_COLOR[1];
+    // z axis do not show 4
+    m_grabbers[4].center  = Vec3d(0.0, 0.0, -(box_half_size.z()));
+    m_grabbers[4].enabled = false;
+
+    m_grabbers[5].center = Vec3d(0.0, 0.0, box_half_size.z());
+    m_grabbers[5].color  = (ctrl_down && m_hover_id == 4) ? CONSTRAINED_COLOR : AXES_COLOR[2];
+    // uniform
+    m_grabbers[6].center = Vec3d(-box_half_size.x(), -box_half_size.y(), -box_half_size.z());
+    m_grabbers[6].color  = (ctrl_down && m_hover_id == 8) ? CONSTRAINED_COLOR : GRABBER_UNIFORM_COL;
+    m_grabbers[7].center = Vec3d(box_half_size.x(), -box_half_size.y(), -box_half_size.z());
+    m_grabbers[7].color  = (ctrl_down && m_hover_id == 9) ? CONSTRAINED_COLOR : GRABBER_UNIFORM_COL;
+    m_grabbers[8].center = Vec3d(box_half_size.x(), box_half_size.y(), -box_half_size.z());
+    m_grabbers[8].color  = (ctrl_down && m_hover_id == 6) ? CONSTRAINED_COLOR : GRABBER_UNIFORM_COL;
+    m_grabbers[9].center = Vec3d(-box_half_size.x(), box_half_size.y(), -box_half_size.z());
+    m_grabbers[9].color  = (ctrl_down && m_hover_id == 7) ? CONSTRAINED_COLOR : GRABBER_UNIFORM_COL;
+    for (int i = 0; i < 6; ++i) {
+        //m_grabbers[i].color       = AXES_COLOR[i / 2];
+        m_grabbers[i].hover_color = AXES_HOVER_COLOR[i / 2];
+    }
+    for (int i = 6; i < 10; ++i) {
+        //m_grabbers[i].color       = GRABBER_UNIFORM_COL;
+        m_grabbers[i].hover_color = GRABBER_UNIFORM_HOVER_COL;
+    }
+}
+
+
+void GLGizmoScale3D::change_cs_by_selection() {
+    int          obejct_idx, volume_idx;
+    ModelVolume *model_volume = m_parent.get_selection().get_selected_single_volume(obejct_idx, volume_idx);
+    if (m_last_selected_obejct_idx == obejct_idx && m_last_selected_volume_idx == volume_idx) { return; }
+    m_last_selected_obejct_idx = obejct_idx;
+    m_last_selected_volume_idx = volume_idx;
+    if (m_parent.get_selection().is_multiple_full_object()) {
+        m_object_manipulation->set_coordinates_type(ECoordinatesType::World);
+    } else if (model_volume) {
+        m_object_manipulation->set_coordinates_type(ECoordinatesType::Local);
+    }
+}
+
+void GLGizmoScale3D::on_render()
+{
     glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    m_box.reset();
-    m_transform = Transform3d::Identity();
-    // Transforms grabbers' offsets to world refefence system 
-    Transform3d offsets_transform = Transform3d::Identity();
-    m_offsets_transform = Transform3d::Identity();
-    Vec3d angles = Vec3d::Zero();
-
-    if (single_instance) {
-        // calculate bounding box in instance local reference system
-        const Selection::IndicesList& idxs = selection.get_volume_idxs();
-        for (unsigned int idx : idxs) {
-            const GLVolume* vol = selection.get_volume(idx);
-            m_box.merge(vol->bounding_box().transformed(vol->get_volume_transformation().get_matrix()));
-        }
-
-        // gets transform from first selected volume
-        const GLVolume* v = selection.get_volume(*idxs.begin());
-        m_transform = v->get_instance_transformation().get_matrix();
-        // gets angles from first selected volume
-        angles = v->get_instance_rotation();
-        // consider rotation+mirror only components of the transform for offsets
-        offsets_transform = Geometry::assemble_transform(Vec3d::Zero(), angles, Vec3d::Ones(), v->get_instance_mirror());
-        m_offsets_transform = offsets_transform;
-    }
-    else if (single_volume) {
-        const GLVolume* v = selection.get_volume(*selection.get_volume_idxs().begin());
-        m_box = v->bounding_box();
-        m_transform = v->world_matrix();
-        angles = Geometry::extract_euler_angles(m_transform);
-        // consider rotation+mirror only components of the transform for offsets
-        offsets_transform = Geometry::assemble_transform(Vec3d::Zero(), angles, Vec3d::Ones(), v->get_instance_mirror());
-        m_offsets_transform = Geometry::assemble_transform(Vec3d::Zero(), v->get_volume_rotation(), Vec3d::Ones(), v->get_volume_mirror());
-    }
-    else
-        m_box = selection.get_bounding_box();
-
-    const Vec3d& center = m_box.center();
-    Vec3d offset_x = offsets_transform * Vec3d((double)Offset, 0.0, 0.0);
-    Vec3d offset_y = offsets_transform * Vec3d(0.0, (double)Offset, 0.0);
-    Vec3d offset_z = offsets_transform * Vec3d(0.0, 0.0, (double)Offset);
-
-    bool ctrl_down = (m_dragging && m_starting.ctrl_down) || (!m_dragging && wxGetKeyState(WXK_CONTROL));
-
-    // x axis
-    m_grabbers[0].center = m_transform * Vec3d(m_box.min(0), center(1), m_box.min(2));
-    m_grabbers[1].center = m_transform * Vec3d(m_box.max(0), center(1), m_box.min(2));
-
-    // y axis
-    m_grabbers[2].center = m_transform * Vec3d(center(0), m_box.min(1), m_box.min(2));
-    m_grabbers[3].center = m_transform * Vec3d(center(0), m_box.max(1), m_box.min(2));
-
-    // z axis do not show 4
-    m_grabbers[4].center = m_transform * Vec3d(center(0), center(1), m_box.min(2));
-    m_grabbers[4].enabled = false;
-
-    m_grabbers[5].center = m_transform * Vec3d(center(0), center(1), m_box.max(2));
-
-    // uniform
-    m_grabbers[6].center = m_transform * Vec3d(m_box.min(0), m_box.min(1), m_box.min(2));
-    m_grabbers[7].center = m_transform * Vec3d(m_box.max(0), m_box.min(1), m_box.min(2));
-    m_grabbers[8].center = m_transform * Vec3d(m_box.max(0), m_box.max(1), m_box.min(2));
-    m_grabbers[9].center = m_transform * Vec3d(m_box.min(0), m_box.max(1), m_box.min(2));
-
-    for (int i = 0; i < 6; ++i) {
-        m_grabbers[i].color       = AXES_COLOR[i/2];
-        m_grabbers[i].hover_color = AXES_HOVER_COLOR[i/2];
-    }
-
-    for (int i = 6; i < 10; ++i) {
-        m_grabbers[i].color       = GRABBER_UNIFORM_COL;
-        m_grabbers[i].hover_color = GRABBER_UNIFORM_HOVER_COL;
-    }
-
-    // sets grabbers orientation
-    for (int i = 0; i < 10; ++i) {
-        m_grabbers[i].angles = angles;
-    }
+    update_grabbers_data();
 
     glsafe(::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f));
 
-    const BoundingBoxf3& selection_box = selection.get_bounding_box();
-
-    float grabber_mean_size = (float)((selection_box.size()(0) + selection_box.size()(1) + selection_box.size()(2)) / 3.0);
-
+    float grabber_mean_size = (float) ((m_bounding_box.size().x() + m_bounding_box.size().y() + m_bounding_box.size().z()) / 3.0);
+    glsafe(::glPushMatrix());
+    glsafe(::glMultMatrixd(m_grabbers_tran.get_matrix().data()));
      //draw connections
 
     // BBS: when select multiple objects, uniform scale can be deselected, display the connection(4,5)
@@ -260,12 +263,16 @@ void GLGizmoScale3D::on_render()
 
     // draw grabbers
     render_grabbers(grabber_mean_size);
+    glsafe(::glPopMatrix());
 }
 
 void GLGizmoScale3D::on_render_for_picking()
 {
     glsafe(::glDisable(GL_DEPTH_TEST));
+    glsafe(::glPushMatrix());
+    glsafe(::glMultMatrixd(m_grabbers_tran.get_matrix().data()));
     render_grabbers_for_picking(m_parent.get_selection().get_bounding_box());
+    glsafe(::glPopMatrix());
 }
 
 void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int id_2) const
@@ -296,22 +303,25 @@ void GLGizmoScale3D::do_scale_along_axis(Axis axis, const UpdateData& data)
     if (ratio > 0.0)
     {
         m_scale(axis) = m_starting.scale(axis) * ratio;
-        if (m_starting.ctrl_down)
-        {
+        if (m_starting.ctrl_down && abs(ratio-1.0f)>0.001) {
             double local_offset = 0.5 * (m_scale(axis) - m_starting.scale(axis)) * m_starting.box.size()(axis);
-            if (m_hover_id == 2 * axis)
+            if (m_hover_id == 2 * axis) {
                 local_offset *= -1.0;
-
+            }
             Vec3d local_offset_vec;
             switch (axis)
             {
             case X: { local_offset_vec = local_offset * Vec3d::UnitX(); break; }
-            case Y: { local_offset_vec = local_offset * Vec3d::UnitY(); break; }
-            case Z: { local_offset_vec = local_offset * Vec3d::UnitZ(); break; }
+            case Y: { local_offset_vec = local_offset * Vec3d::UnitY(); break;}
+            case Z: { local_offset_vec = local_offset * Vec3d::UnitZ(); break;
+            }
             default: break;
             }
-
-            m_offset = m_offsets_transform * local_offset_vec;
+            if (m_object_manipulation->is_world_coordinates()) {
+                m_offset = local_offset_vec;
+            } else {//if (m_object_manipulation->is_instance_coordinates())
+                m_offset = m_grabbers_tran.get_matrix_no_offset() *  local_offset_vec;
+            }
         }
         else
             m_offset = Vec3d::Zero();
@@ -332,7 +342,7 @@ double GLGizmoScale3D::calc_ratio(const UpdateData& data) const
 {
     double ratio = 0.0;
 
-    Vec3d pivot = (m_starting.ctrl_down && (m_hover_id < 6)) ? m_starting.pivots[m_hover_id] : m_starting.plane_center;
+    Vec3d  pivot       = (m_starting.ctrl_down && (m_hover_id < 6)) ? m_starting.constraint_position : m_starting.plane_center; // plane_center = bottom center
     Vec3d starting_vec = m_starting.drag_position - pivot;
     double len_starting_vec = starting_vec.norm();
     if (len_starting_vec != 0.0)
