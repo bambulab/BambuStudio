@@ -705,7 +705,7 @@ static bool need_wipe(const GCode          &gcodegen,
 {
     const ExPolygons               &lslices        = gcodegen.layer()->lslices;
     const std::vector<BoundingBox> &lslices_bboxes = gcodegen.layer()->lslices_bboxes;
-    bool z_lift_enabled = gcodegen.config().z_hop.get_at(gcodegen.writer().extruder()->id()) > 0.;
+    bool z_lift_enabled = gcodegen.config().z_hop.get_at(gcodegen.writer().extruder()->extruder_id()) > 0.;
     bool wipe_needed    = false;
 
     // If the original unmodified path doesn't have any intersection with boundary, then it is entirely inside the object otherwise is entirely
