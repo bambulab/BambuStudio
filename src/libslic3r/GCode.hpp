@@ -171,7 +171,11 @@ public:
     // throws std::runtime_exception on error,
     // throws CanceledException through print->throw_if_canceled().
     void            do_export(Print* print, const char* path, GCodeProcessorResult* result = nullptr, ThumbnailsGeneratorCallback thumbnail_cb = nullptr);
-
+    int             get_extruder_id(unsigned int) {
+        //TODO: get matched extruder
+        int extruder_id = -1;
+        return extruder_id;
+    };
     //BBS: set offset for gcode writer
     void set_gcode_offset(double x, double y) { m_writer.set_xy_offset(x, y); m_processor.set_xy_offset(x, y);}
 
@@ -527,7 +531,7 @@ private:
     double get_overhang_degree_corr_speed(float speed, double path_degree);
     double mapping_speed(double dist);
     double get_speed_coor_x(double speed);
-    void print_machine_envelope(GCodeOutputStream &file, Print &print);
+    void print_machine_envelope(GCodeOutputStream& file, Print& print, int extruder_id);
     void _print_first_layer_bed_temperature(GCodeOutputStream &file, Print &print, const std::string &gcode, unsigned int first_printing_extruder_id, bool wait);
     void _print_first_layer_extruder_temperatures(GCodeOutputStream &file, Print &print, const std::string &gcode, unsigned int first_printing_extruder_id, bool wait);
     // On the first printing layer. This flag triggers first layer speeds.
