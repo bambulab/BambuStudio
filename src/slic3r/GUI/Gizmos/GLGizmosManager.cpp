@@ -996,15 +996,19 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             //wxGetApp().obj_manipul()->set_dirty();
             break;
         }
-        case Scale:
-        {
+        case Scale: {
             // Apply new temporary scale factors
-            TransformationType transformation_type(TransformationType::Local_Absolute_Joint);
-            //if (evt.AltDown())
-            //    transformation_type.set_independent();
-            selection.scale(get_scale(), transformation_type);
-            if (control_down && m_gizmos[m_current].get()->get_hover_id() < 6)
-                selection.translate(get_scale_offset(), true);
+            TransformationType transformation_type;
+            if (wxGetApp().obj_manipul()->is_local_coordinates()) {
+                transformation_type.set_local();
+            } else if (wxGetApp().obj_manipul()->is_instance_coordinates())
+                transformation_type.set_instance();
+            transformation_type.set_relative();
+
+            if (evt.AltDown())
+                 transformation_type.set_independent();
+            selection.scale_and_translate(get_scale(), get_scale_offset(), transformation_type);
+
             // BBS
             //wxGetApp().obj_manipul()->set_dirty();
             break;

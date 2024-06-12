@@ -3348,6 +3348,11 @@ void ModelVolume::convert_from_meters()
     this->source.is_converted_from_meters = true;
 }
 
+const Transform3d &ModelVolume::get_matrix(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror) const
+{
+    return m_transformation.get_matrix(dont_translate, dont_rotate, dont_scale, dont_mirror);
+}
+
 void ModelInstance::transform_mesh(TriangleMesh* mesh, bool dont_translate) const
 {
     mesh->transform(get_matrix(dont_translate));
@@ -3400,6 +3405,11 @@ void ModelInstance::transform_polygon(Polygon* polygon) const
     polygon->rotate(get_rotation(Z)); // rotate around polygon origin
     // CHECK_ME -> Is the following correct ?
     polygon->scale(get_scaling_factor(X), get_scaling_factor(Y)); // scale around polygon origin
+}
+
+const Transform3d &ModelInstance::get_matrix(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror) const
+{
+    return m_transformation.get_matrix(dont_translate, dont_rotate, dont_scale, dont_mirror);
 }
 
 //BBS

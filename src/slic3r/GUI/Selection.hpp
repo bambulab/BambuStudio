@@ -29,7 +29,7 @@ using ModelObjectPtrs = std::vector<ModelObject*>;
 
 namespace GUI {
 enum ECoordinatesType : unsigned char {
-    World,
+    World = 0,
     Instance,
     Local
 };
@@ -249,7 +249,15 @@ private:
     // is useful for absolute scaling of tilted objects in world coordinate space.
     std::optional<BoundingBoxf3> m_unscaled_instance_bounding_box;
     std::optional<BoundingBoxf3> m_scaled_instance_bounding_box;
-
+    // Bounding box of a single full instance selection, in world coordinates, with no instance scaling applied.
+    // Modifiers are taken in account
+    std::optional<BoundingBoxf3> m_full_unscaled_instance_bounding_box;
+    // Bounding box of a single full instance selection, in world coordinates.
+    // Modifiers are taken in account
+    std::optional<BoundingBoxf3> m_full_scaled_instance_bounding_box;
+    // Bounding box of a single full instance selection, in local coordinates, with no instance scaling applied.
+    // Modifiers are taken in account
+    std::optional<BoundingBoxf3> m_full_unscaled_instance_local_bounding_box;
     // Bounding box aligned to the axis of the currently selected reference system (World/Object/Part)
     // and transform to place and orient it in world coordinates
     std::optional<std::pair<BoundingBoxf3, Transform3d>> m_bounding_box_in_current_reference_system;
@@ -377,7 +385,15 @@ public:
     // is useful for absolute scaling of tilted objects in world coordinate space.
     const BoundingBoxf3& get_unscaled_instance_bounding_box() const;
     const BoundingBoxf3& get_scaled_instance_bounding_box() const;
-
+    // Bounding box of a single full instance selection, in world coordinates, with no instance scaling applied.
+    // Modifiers are taken in account
+    const BoundingBoxf3 &get_full_unscaled_instance_bounding_box() const;
+    // Bounding box of a single full instance selection, in world coordinates.
+    // Modifiers are taken in account
+    const BoundingBoxf3 &get_full_scaled_instance_bounding_box() const;
+    // Bounding box of a single full instance selection, in local coordinates, with no instance scaling applied.
+    // Modifiers are taken in account
+    const BoundingBoxf3 &get_full_unscaled_instance_local_bounding_box() const;
     // Returns the bounding box aligned to the axes of the currently selected reference system (World/Object/Part)
     // and the transform to place and orient it in world coordinates
     const std::pair<BoundingBoxf3, Transform3d> &get_bounding_box_in_current_reference_system() const;
@@ -403,7 +419,8 @@ public:
 #else
     void scale_to_fit_print_volume(const DynamicPrintConfig& config);
 #endif // ENABLE_ENHANCED_PRINT_VOLUME_FIT
-    void mirror(Axis axis);
+    void scale_and_translate(const Vec3d &scale, const Vec3d &world_translation, TransformationType transformation_type);
+    void mirror(Axis axis, TransformationType transformation_type);
 
     void translate(unsigned int object_idx, const Vec3d& displacement);
     void translate(unsigned int object_idx, unsigned int instance_idx, const Vec3d& displacement);
@@ -468,6 +485,9 @@ private:
     void set_bounding_boxes_dirty() {
         m_bounding_box.reset();
         m_unscaled_instance_bounding_box.reset(); m_scaled_instance_bounding_box.reset();
+        m_full_unscaled_instance_bounding_box.reset();
+        m_full_scaled_instance_bounding_box.reset();
+        m_full_unscaled_instance_local_bounding_box.reset();
         m_bounding_box_in_current_reference_system.reset();
         m_bounding_sphere.reset();
     }
@@ -486,6 +506,8 @@ public:
         SYNC_ROTATION_NONE = 0,
         // Synchronize after rotation by an axis not parallel with Z.
         SYNC_ROTATION_GENERAL = 1,
+        // Synchronize after rotation reset.
+        SYNC_ROTATION_RESET = 2
     };
     void synchronize_unselected_instances(SyncRotationType sync_rotation_type);
     void synchronize_unselected_volumes();
