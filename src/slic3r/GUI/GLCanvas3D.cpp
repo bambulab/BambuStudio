@@ -3105,27 +3105,24 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         break;
 #ifdef __APPLE__
         case 'm':
-        case 'M':
-#else /* __APPLE__ */
-        case WXK_CONTROL_M:
+        case 'M': {
+            wxGetApp().mainframe->Iconize();
+            break;
+        }
+#endif /* __APPLE__ */
+#ifdef __APPLE__
+        case 'b':
+        case 'B':
+#else  /* __APPLE__ */
+        case WXK_CONTROL_B:
 #endif /* __APPLE__ */
         {
 #ifdef _WIN32
             if (wxGetApp().app_config->get("use_legacy_3DConnexion") == "true") {
 #endif //_WIN32
-#ifdef __APPLE__
-            // On OSX use Cmd+Shift+M to "Show/Hide 3Dconnexion devices settings dialog"
-            if ((evt.GetModifiers() & shiftMask) != 0) {
-#endif // __APPLE__
-                Mouse3DController& controller = wxGetApp().plater()->get_mouse3d_controller();
+                Mouse3DController &controller = wxGetApp().plater()->get_mouse3d_controller();
                 controller.show_settings_dialog(!controller.is_settings_dialog_shown());
                 m_dirty = true;
-#ifdef __APPLE__
-            }
-            else
-            // and Cmd+M to minimize application
-                wxGetApp().mainframe->Iconize();
-#endif // __APPLE__
 #ifdef _WIN32
             }
 #endif //_WIN32
@@ -3298,8 +3295,6 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                     post_event(SimpleEvent(EVT_GLCANVAS_ORIENT));
                 break;
             }
-        //case 'B':
-        //case 'b': { zoom_to_bed(); break; }
 #if !BBL_RELEASE_TO_PUBLIC
         case 'C':
         case 'c': { m_gcode_viewer.toggle_gcode_window_visibility(); m_dirty = true; request_extra_frame(); break; }
