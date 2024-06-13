@@ -1,4 +1,4 @@
-set(_wx_git_tag v3.1.5)
+set(_wx_git_tag v3.2.4)
 
 set(_wx_toolkit "")
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
@@ -28,7 +28,7 @@ bambustudio_add_cmake_project(wxWidgets
     GIT_REPOSITORY "https://github.com/wxWidgets/wxWidgets"
     GIT_TAG ${_wx_git_tag}
     PATCH_COMMAND ${_patch_cmd}
-    DEPENDS ${PNG_PKG} ${ZLIB_PKG} ${EXPAT_PKG} dep_TIFF dep_JPEG
+    DEPENDS ${PNG_PKG} ${ZLIB_PKG} ${EXPAT_PKG} dep_TIFF dep_JPEG dep_NanoSVG
     CMAKE_ARGS
         -DwxBUILD_PRECOMP=ON
         ${_wx_toolkit}
@@ -55,6 +55,8 @@ bambustudio_add_cmake_project(wxWidgets
         -DwxUSE_LIBJPEG=sys
         -DwxUSE_LIBTIFF=sys
         -DwxUSE_EXPAT=sys
+        -DwxUSE_NANOSVG=sys
+        -DwxUSE_NANOSVG_EXTERNAL=ON
 )
 
 if (MSVC)
