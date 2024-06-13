@@ -54,6 +54,12 @@ namespace Slic3r {
 #define L(s) (s)
 #define _(s) Slic3r::I18N::translate(s)
 
+size_t get_extruder_index(unsigned int filament_id)
+{
+    // todo multi_extruders:
+    return 0;
+}
+
 static t_config_enum_names enum_names_from_keys_map(const t_config_enum_values &enum_keys_map)
 {
     t_config_enum_names names;
@@ -5378,13 +5384,14 @@ bool DynamicPrintConfig::support_different_extruders(int& extruder_count)
         int size = nozzle_diameters_opt->size();
         extruder_count = size;
         auto extruder_variant_opt = dynamic_cast<const ConfigOptionStrings*>(this->option("extruder_variant_list"));
-        for (int index = 0; index < size; index++)
-        {
-            std::string variant = extruder_variant_opt->get_at(index);
-            std::vector<std::string> variants_list;
-            boost::split(variants_list, variant, boost::is_any_of(","), boost::token_compress_on);
-            if (!variants_list.empty())
-                variant_set.insert(variants_list.begin(), variants_list.end());
+        if (extruder_variant_opt != nullptr) {
+            for (int index = 0; index < size; index++) {
+                std::string variant = extruder_variant_opt->get_at(index);
+                std::vector<std::string> variants_list;
+                boost::split(variants_list, variant, boost::is_any_of(","), boost::token_compress_on);
+                if (!variants_list.empty())
+                    variant_set.insert(variants_list.begin(), variants_list.end());
+            }
         }
     }
 
