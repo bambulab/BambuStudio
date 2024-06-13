@@ -106,6 +106,7 @@ public:
     //BBS:
     void set_current_position_clear(bool clear) { m_is_current_pos_clear = clear; };
     bool is_current_position_clear() const { return m_is_current_pos_clear; };
+    void set_is_bbl_printer(bool is_bbl_printer) { m_is_bbl_printer = is_bbl_printer; };
     //BBS:
     static const bool full_gcode_comment;
     //Radian threshold of slope for lazy lift and spiral lift;
@@ -140,6 +141,8 @@ private:
     double          m_x_offset{ 0 };
     double          m_y_offset{ 0 };
     double           m_current_speed{ 0 };
+    bool            m_is_bbl_printer = false;
+
     std::string m_gcode_label_objects_start;
     std::string m_gcode_label_objects_end;
 
