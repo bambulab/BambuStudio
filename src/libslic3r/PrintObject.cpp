@@ -1912,15 +1912,21 @@ void PrintObject::bridge_over_infill()
         const LayerRegion *region;
         double             bridge_angle;
     };
+    constexpr bool BRIDGE_INFILL_USE_TBB = true;
 
     std::map<size_t, std::vector<CandidateSurface>> surfaces_by_layer;
 
     // SECTION to gather and filter surfaces for expanding, and then cluster them by layer
     {
         tbb::concurrent_vector<CandidateSurface> candidate_surfaces;
+#if BRIDGE_INFILL_USE_TBB
         tbb::parallel_for(tbb::blocked_range<size_t>(0, this->layers().size()), [po = static_cast<const PrintObject *>(this),
             &candidate_surfaces](tbb::blocked_range<size_t> r) {
                 for (size_t lidx = r.begin(); lidx < r.end(); lidx++) {
+#else
+        for(size_t lidx=0;lidx<this->layers().size();++lidx){
+            auto po = static_cast<const PrintObject*>(this);
+#endif
                     const Layer *layer = po->get_layer(lidx);
                     if (layer->lower_layer == nullptr) {
                         continue;
@@ -1983,7 +1989,9 @@ void PrintObject::bridge_over_infill()
                         }
                     }
                 }
+#if BRIDGE_INFILL_USE_TBB
             });
+#endif
 
         for (const CandidateSurface &c : candidate_surfaces) {
             surfaces_by_layer[c.layer_index].push_back(c);
@@ -2009,9 +2017,14 @@ void PrintObject::bridge_over_infill()
             backup_surfaces[lidx] = {};
         }
 
+#if BRIDGE_INFILL_USE_TBB
         tbb::parallel_for(tbb::blocked_range<size_t>(0, this->layers().size()), [po = this, &backup_surfaces,
             &surfaces_by_layer](tbb::blocked_range<size_t> r) {
                 for (size_t lidx = r.begin(); lidx < r.end(); lidx++) {
+#else
+                for(size_t lidx=0;lidx<this->layers().size();++lidx){
+                    auto po = this;
+#endif
                     if (surfaces_by_layer.find(lidx) == surfaces_by_layer.end())
                         continue;
 
@@ -2064,7 +2077,9 @@ void PrintObject::bridge_over_infill()
                         }
                     }
                 }
-            });
+#if BRIDGE_INFILL_USE_TBB
+    });
+#endif
 
         // Use the modified surfaces to generate expanded lightning anchors
         this->m_lightning_generator = this->prepare_lightning_infill_data();
@@ -2460,6 +2475,7 @@ void PrintObject::bridge_over_infill()
         return expanded_bridged_area;
         };
 
+#if BRIDGE_INFILL_USE_TBB
     tbb::parallel_for(tbb::blocked_range<size_t>(0, clustered_layers_for_threads.size()), [po = static_cast<const PrintObject *>(this),
         target_flow_height_factor, &surfaces_by_layer,
         &clustered_layers_for_threads,
@@ -2468,6 +2484,10 @@ void PrintObject::bridge_over_infill()
         construct_anchored_polygon](
             tbb::blocked_range<size_t> r) {
                 for (size_t cluster_idx = r.begin(); cluster_idx < r.end(); cluster_idx++) {
+#else
+        for(size_t cluster_idx=0;cluster_idx<clustered_layers_for_threads.size();++cluster_idx){
+            auto po = static_cast<const PrintObject*>(this);
+#endif
                     for (size_t job_idx = 0; job_idx < clustered_layers_for_threads[cluster_idx].size(); job_idx++) {
                         size_t       lidx  = clustered_layers_for_threads[cluster_idx][job_idx];
                         const Layer *layer = po->get_layer(lidx);
@@ -2563,12 +2583,14 @@ void PrintObject::bridge_over_infill()
                             const Flow &flow              = candidate.region->bridging_flow(frSolidInfill, true);
                             Polygons    area_to_be_bridge = expand(candidate.new_polys, flow.scaled_spacing());
                             area_to_be_bridge             = intersection(area_to_be_bridge, deep_infill_area);
-
-                            area_to_be_bridge.erase(std::remove_if(area_to_be_bridge.begin(), area_to_be_bridge.end(),
-                                [internal_unsupported_area](const Polygon &p) {
+                            ExPolygons area_to_be_bridge_ex = union_ex(area_to_be_bridge);
+                            area_to_be_bridge_ex.erase(std::remove_if(area_to_be_bridge_ex.begin(), area_to_be_bridge_ex.end(),
+                                [internal_unsupported_area](const ExPolygon &p) {
                                     return intersection({p}, internal_unsupported_area).empty();
                                 }),
-                                area_to_be_bridge.end());
+                                area_to_be_bridge_ex.end());
+
+                            area_to_be_bridge = to_polygons(area_to_be_bridge_ex);
 
                             Polygons limiting_area = union_(area_to_be_bridge, expansion_area);
 
@@ -2644,12 +2666,19 @@ void PrintObject::bridge_over_infill()
                         expanded_surfaces.clear();
                     }
                 }
+#if BRIDGE_INFILL_USE_TBB
         });
+#endif
 
     BOOST_LOG_TRIVIAL(info) << "Bridge over infill - Directions and expanded surfaces computed" << log_memory_info();
 
+#if BRIDGE_INFILL_USE_TBB
     tbb::parallel_for(tbb::blocked_range<size_t>(0, this->layers().size()), [po = this, &surfaces_by_layer](tbb::blocked_range<size_t> r) {
         for (size_t lidx = r.begin(); lidx < r.end(); lidx++) {
+#else
+        for(size_t lidx=0;lidx<this->layers().size();++lidx){
+            auto po = this;
+#endif
             if (surfaces_by_layer.find(lidx) == surfaces_by_layer.end() && surfaces_by_layer.find(lidx + 1) == surfaces_by_layer.end())
                 continue;
             Layer *layer = po->get_layer(lidx);
@@ -2721,7 +2750,9 @@ void PrintObject::bridge_over_infill()
                 region->fill_surfaces.append(new_surfaces);
             }
         }
+#if BRIDGE_INFILL_USE_TBB
         });
+#endif
 
     BOOST_LOG_TRIVIAL(info) << "Bridge over infill - End" << log_memory_info();
 
