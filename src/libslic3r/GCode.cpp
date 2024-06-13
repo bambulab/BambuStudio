@@ -1123,7 +1123,7 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     BOOST_LOG_TRIVIAL(info) << boost::format("Will export G-code to %1% soon")%path;
 
     GCodeProcessor::s_IsBBLPrinter = print->is_BBL_Printer();
-
+    m_writer.set_is_bbl_printer(print->is_BBL_Printer());
     print->set_started(psGCodeExport);
 
     // check if any custom gcode contains keywords used by the gcode processor to
@@ -5466,9 +5466,10 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z, bool b
         m_writer.reset_e();
     }
 
-    // We inform the writer about what is happening, but we may not use the resulting gcode.
+    //BBS: don't add T[next extruder] if there is no T cmd on filament change
+     //We inform the writer about what is happening, but we may not use the resulting gcode.
     std::string toolchange_command = m_writer.toolchange(extruder_id);
-    if (! custom_gcode_changes_tool(toolchange_gcode_parsed, m_writer.toolchange_prefix(), extruder_id))
+    if (!custom_gcode_changes_tool(toolchange_gcode_parsed, m_writer.toolchange_prefix(), extruder_id))
         gcode += toolchange_command;
     else {
         // user provided his own toolchange gcode, no need to do anything

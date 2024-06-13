@@ -956,6 +956,7 @@ namespace Slic3r {
         // Processes T line (Select Tool)
         void process_T(const GCodeReader::GCodeLine& line);
         void process_T(const std::string_view command);
+        void process_M1020(const GCodeReader::GCodeLine &line);
 
         //BBS: different path_type is only used for arc move
         void store_move_vertex(EMoveType type, EMovePathType path_type = EMovePathType::Noop_move);
