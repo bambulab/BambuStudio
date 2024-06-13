@@ -2175,7 +2175,7 @@ static wxMenu* generate_help_menu()
 #ifdef __WINDOWS__
     // shortcut key
     auto alt = GUI::shortkey_alt_prefix();
-    append_menu_item(helpMenu, wxID_ANY, _L("Keyboard Shortcuts") + sep + "& Shift+" + alt +"+?", _L("Show the list of the keyboard shortcuts"),
+    append_menu_item(helpMenu, wxID_ANY, _L("Keyboard Shortcuts") + sep + "& Shift+" + alt +"?", _L("Show the list of the keyboard shortcuts"),
         [](wxCommandEvent&) { wxGetApp().keyboard_shortcuts(); });
 #else
     append_menu_item(helpMenu, wxID_ANY, _L("Keyboard Shortcuts") + sep + "& Shift+?", _L("Show the list of the keyboard shortcuts"),
@@ -2664,6 +2664,25 @@ void MainFrame::init_menubar_as_editor()
                 m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT));
             },
             this, [this]() { return m_plater->is_view3D_shown(); }, [this]() { return m_plater->is_view3D_overhang_shown(); }, this);
+        viewMenu->AppendSeparator();
+        append_menu_item(
+            viewMenu, wxID_ANY, _L("Set 3DConnexion") + "\t" + ctrl + "B", _L("Set 3DConnexion mouse"),
+            [this](wxCommandEvent &) {
+#ifdef _WIN32
+                if (wxGetApp().app_config->get("use_legacy_3DConnexion") == "true") {
+#endif //_WIN32
+                    Mouse3DController &controller = wxGetApp().plater()->get_mouse3d_controller();
+                    controller.show_settings_dialog(!controller.is_settings_dialog_shown());
+#ifdef _WIN32
+                }
+#endif //_WIN32
+            },  "", nullptr, [this]() {
+                Mouse3DController &controller = wxGetApp().plater()->get_mouse3d_controller();
+                auto               tab_index  = (MainFrame::TabPosition) dynamic_cast<Notebook *>(wxGetApp().tab_panel())->GetSelection();
+                auto is_3d_view = tab_index == MainFrame::TabPosition::tp3DEditor || tab_index == MainFrame::TabPosition::tpPreview;
+                return is_3d_view && controller.connected();
+            },
+            this);
         /*viewMenu->AppendSeparator();
         append_menu_check_item(viewMenu, wxID_ANY, _L("Show &Wireframe") + "\tCtrl+Shift+Enter", _L("Show wireframes in 3D scene"),
             [this](wxCommandEvent&) { m_plater->toggle_show_wireframe(); m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT)); }, this,
