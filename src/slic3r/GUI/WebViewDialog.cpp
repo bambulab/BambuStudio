@@ -35,6 +35,8 @@ namespace GUI {
 WebViewPanel::WebViewPanel(wxWindow *parent)
         : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
  {
+    m_Region = wxGetApp().app_config->get_country_code();
+
     wxString UrlLeft = wxString::Format("file://%s/web/homepage3/left.html", from_u8(resources_dir()));
     wxString UrlRight = wxString::Format("file://%s/web/homepage3/home.html", from_u8(resources_dir()));
 
@@ -269,6 +271,11 @@ WebViewPanel::~WebViewPanel()
 
 void WebViewPanel::ResetWholePage() 
 { 
+    std::string tmp_Region = wxGetApp().app_config->get_country_code();
+    if (tmp_Region == m_Region) return;
+    
+    m_Region = tmp_Region;
+
     //left
     if (m_browserLeft != nullptr && m_leftfirst) m_browserLeft->Reload();
 
