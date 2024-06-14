@@ -127,6 +127,7 @@ public:
 
     void update_mode();
 private:
+    std::string m_Region;
 
     wxBoxSizer *topsizer;
 
