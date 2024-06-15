@@ -5,7 +5,7 @@
     "name": "Generic ASA @Qidi Q1 Pro 0.4 nozzle",
     "from": "system",
     "instantiation": "true",
-    "inherits": "Generic ASA",
+    "inherits": "Generic ASA @Qidi",
     "fan_cooling_layer_time": [
         "40"
     ],

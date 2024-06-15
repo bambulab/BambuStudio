@@ -5,7 +5,7 @@
     "name": "QIDI ABS Rapido @Qidi Q1 Pro 0.4 nozzle",
     "from": "system",
     "instantiation": "true",
-    "inherits": "QIDI ABS Rapido",
+    "inherits": "QIDI ABS Rapido @Qidi",
     "activate_chamber_temp_control": [
         "0"
     ],

@@ -5,7 +5,7 @@
     "name": "QIDI PLA Rapido @Qidi Q1 Pro 0.4 nozzle",
     "from": "system",
     "instantiation": "true",
-    "inherits": "QIDI PLA Rapido",
+    "inherits": "QIDI PLA Rapido @Qidi",
     "activate_air_filtration": [
         "1"
     ],

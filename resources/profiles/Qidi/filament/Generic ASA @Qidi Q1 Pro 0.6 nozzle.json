@@ -5,7 +5,7 @@
     "name": "Generic ASA @Qidi Q1 Pro 0.6 nozzle",
     "from": "system",
     "instantiation": "true",
-    "inherits": "Generic ASA",
+    "inherits": "Generic ASA @Qidi",
     "activate_chamber_temp_control": [
         "0"
     ],

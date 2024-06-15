@@ -5,7 +5,7 @@
     "name": "QIDI ABS Rapido @Qidi 0.2 nozzle",
     "from": "system",
     "instantiation": "true",
-    "inherits": "QIDI ABS Rapido",
+    "inherits": "QIDI ABS Rapido @Qidi",
     "filament_max_volumetric_speed": [
         "2"
     ],

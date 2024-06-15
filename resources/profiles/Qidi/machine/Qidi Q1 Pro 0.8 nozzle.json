@@ -1,6 +1,6 @@
 {
     "type": "machine",
-    "setting_id": "GM_Qidi_004",
+    "setting_id": "GM_Qidi_010",
     "name": "Qidi Q1 Pro 0.8 nozzle",
     "from": "system",
     "instantiation": "true",

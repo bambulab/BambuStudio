@@ -5,7 +5,7 @@
     "name": "QIDI ASA @Qidi 0.2 nozzle",
     "from": "system",
     "instantiation": "true",
-    "inherits": "QIDI ASA",
+    "inherits": "QIDI ASA @Qidi",
     "filament_max_volumetric_speed": [
         "2"
     ],

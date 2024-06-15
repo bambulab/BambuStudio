@@ -5,7 +5,7 @@
     "name": "Generic ABS @Qidi Q1 Pro 0.8 nozzle",
     "from": "system",
     "instantiation": "true",
-    "inherits": "Generic ABS",
+    "inherits": "Generic ABS @Qidi",
     "pressure_advance": [
         "0.011"
     ],

@@ -5,7 +5,7 @@
     "name": "QIDI PET-CF @Qidi Q1 Pro 0.6 nozzle",
     "from": "system",
     "instantiation": "true",
-    "inherits": "QIDI PET-CF",
+    "inherits": "QIDI PET-CF @Qidi",
     "fan_cooling_layer_time": [
         "10"
     ],

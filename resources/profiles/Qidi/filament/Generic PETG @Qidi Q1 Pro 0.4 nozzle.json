@@ -5,7 +5,7 @@
     "name": "Generic PETG @Qidi Q1 Pro 0.4 nozzle",
     "from": "system",
     "instantiation": "true",
-    "inherits": "Generic PETG",
+    "inherits": "Generic PETG @Qidi",
     "hot_plate_temp_initial_layer": [
         "80"
     ],
