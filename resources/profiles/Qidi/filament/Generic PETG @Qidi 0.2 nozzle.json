@@ -5,7 +5,7 @@
     "name": "Generic PETG @Qidi 0.2 nozzle",
     "from": "system",
     "instantiation": "true",
-    "inherits": "Generic PETG",
+    "inherits": "Generic PETG @Qidi",
     "slow_down_min_speed": [
         "10"
     ],

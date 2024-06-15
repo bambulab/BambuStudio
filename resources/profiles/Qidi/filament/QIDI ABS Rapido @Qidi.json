@@ -2,7 +2,7 @@
     "type": "filament",
     "filament_id": "GFB00",
     "setting_id": "GFSB00_Qidi_00",
-    "name": "QIDI ABS Rapido",
+    "name": "QIDI ABS Rapido @Qidi",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_abs",

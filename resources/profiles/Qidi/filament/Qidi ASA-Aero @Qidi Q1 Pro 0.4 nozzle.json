@@ -5,7 +5,7 @@
     "name": "QIDI ASA-Aero @Qidi Q1 Pro 0.4 nozzle",
     "from": "system",
     "instantiation": "true",
-    "inherits": "QIDI ASA-Aero",
+    "inherits": "QIDI ASA-Aero @Qidi",
     "fan_cooling_layer_time": [
         "40"
     ],

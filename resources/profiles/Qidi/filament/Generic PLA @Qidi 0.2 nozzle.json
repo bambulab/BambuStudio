@@ -5,7 +5,7 @@
     "name": "Generic PLA @Qidi 0.2 nozzle",
     "from": "system",
     "instantiation": "true",
-    "inherits": "Generic PLA",
+    "inherits": "Generic PLA @Qidi",
     "filament_max_volumetric_speed": [
         "2"
     ],

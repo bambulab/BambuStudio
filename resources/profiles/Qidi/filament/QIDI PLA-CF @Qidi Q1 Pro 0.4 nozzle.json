@@ -5,7 +5,7 @@
     "name": "QIDI PLA-CF @Qidi Q1 Pro 0.4 nozzle",
     "from": "system",
     "instantiation": "true",
-    "inherits": "QIDI PLA-CF",
+    "inherits": "QIDI PLA-CF @Qidi",
     "extrusion_multiplier": [
         "0.93"
     ],

@@ -5,7 +5,7 @@
     "name": "Generic ASA @Qidi 0.2 nozzle",
     "from": "system",
     "instantiation": "true",
-    "inherits": "Generic ASA",
+    "inherits": "Generic ASA @Qidi",
     "filament_flow_ratio": [
         "0.92"
     ],

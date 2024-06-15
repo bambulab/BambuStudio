@@ -5,7 +5,7 @@
     "name": "QIDI ABS Odorless @Qidi 0.8 nozzle",
     "from": "system",
     "instantiation": "true",
-    "inherits": "QIDI ABS Odorless",
+    "inherits": "QIDI ABS Odorless @Qidi",
     "nozzle_temperature": [
         "270"
     ],

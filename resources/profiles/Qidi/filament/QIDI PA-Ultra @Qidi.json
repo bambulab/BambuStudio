@@ -1,46 +1,34 @@
 {
     "type": "filament",
     "filament_id": "GFN04",
-    "setting_id": "GFSN04_Qidi_00",
-    "name": "QIDI PAHT-CF",
+    "setting_id": "GFSN04_Qidi_04",
+    "name": "QIDI PA-Ultra @Qidi",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pa",
-    "filament_type": [
-        "PA-CF"
+    "required_nozzle_HRC": [
+        "3"
     ],
     "nozzle_temperature_initial_layer": [
-        "310"
+        "280"
     ],
     "nozzle_temperature": [
-        "310"
+        "280"
     ],
     "filament_max_volumetric_speed": [
-        "14"
-    ],
-    "fan_max_speed": [
-        "40"
-    ],
-    "fan_min_speed": [
-        "20"
-    ],
-    "overhang_fan_threshold": [
-        "0%"
-    ],
-    "overhang_fan_speed": [
-        "40"
-    ],
-    "fan_cooling_layer_time": [
-        "5"
-    ],
-    "full_fan_speed_layer": [
-        "0"
+        "3"
     ],
     "enable_pressure_advance": [
         "1"
     ],
     "pressure_advance": [
-        "0.01"
+        "0.03"
+    ],
+    "max_fan_speed":[
+        "40"
+    ],
+    "min_fan_speed":[
+        "20"
     ],
     "hot_plate_temp_initial_layer" : [
         "80"
@@ -49,15 +37,15 @@
         "80"
     ],
     "slow_down_layer_time": [
-        "5"
+        "15"
     ],
     "filament_density":[
-        "1.20"
+        "1.21"
     ],
     "filament_flow_ratio": [
         "0.96"
     ],
-    "compatible_printers": [
+	  "compatible_printers": [
         "Qidi X-Plus 0.4 nozzle",
         "Qidi X-Max 0.4 nozzle",
         "Qidi X-CF Pro 0.4 nozzle",
@@ -75,5 +63,5 @@
         "Qidi X-Smart 3 0.8 nozzle",
         "Qidi X-Plus 3 0.8 nozzle",
         "Qidi X-Max 3 0.8 nozzle"
-    ]
+	]
 }

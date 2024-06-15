@@ -2,7 +2,7 @@
     "type": "filament",
     "filament_id": "GFT01",
     "setting_id": "GFST01_Qidi_00",
-    "name": "QIDI PET-CF",
+    "name": "QIDI PET-CF @Qidi",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pet",

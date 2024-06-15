@@ -1,37 +1,37 @@
 {
     "type": "filament",
-    "filament_id": "GFB98",
-    "setting_id": "GFSB98_Qidi_01",
-    "name": "Generic ASA",
+    "filament_id": "GFB99",
+    "setting_id": "GFSB99_Qidi_00",
+    "name": "Generic ABS @Qidi",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_filament_asa",
+    "inherits": "fdm_filament_abs",
     "chamber_temperatures" : [
         "0"
     ],
-    "filament_max_volumetric_speed": [
-        "16"
-    ],
     "filament_flow_ratio": [
-        "0.92"
+        "0.95"
     ],
-    "nozzle_temperature_initial_layer": [
-        "250"
-    ],
-    "nozzle_temperature": [
-        "270"
+    "filament_max_volumetric_speed": [
+        "17"
     ],
     "enable_pressure_advance": [
         "1"
     ],
+    "pressure_advance": [
+        "0.021"
+    ],
     "max_fan_speed":[
-        "50"
+        "80"
     ],
     "min_fan_speed":[
         "10"
     ],
-    "pressure_advance": [
-        "0.021"
+    "overhang_fan_speed": [
+        "100"
+    ],
+    "filament_density":[
+        "1.04"
     ],
 	"compatible_printers": [
         "Qidi X-Plus 0.2 nozzle",

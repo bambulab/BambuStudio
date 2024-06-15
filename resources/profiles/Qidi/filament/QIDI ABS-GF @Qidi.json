@@ -1,8 +1,8 @@
 {
     "type": "filament",
     "filament_id": "GFB00",
-    "setting_id": "GFSB00_Qidi_22",
-    "name": "QIDI ABS-GF25",
+    "setting_id": "GFSB00_Qidi_14",
+    "name": "QIDI ABS-GF @Qidi",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_abs",
@@ -39,6 +39,9 @@
     "overhang_fan_speed": [
         "100"
     ],
+    "filament_density":[
+        "1.15"
+    ],
 	"compatible_printers": [
         "Qidi X-Plus 0.4 nozzle",
         "Qidi X-Max 0.4 nozzle",
@@ -57,5 +60,6 @@
         "Qidi X-Smart 3 0.8 nozzle",
         "Qidi X-Plus 3 0.8 nozzle",
         "Qidi X-Max 3 0.8 nozzle"
+        
 	]
 }

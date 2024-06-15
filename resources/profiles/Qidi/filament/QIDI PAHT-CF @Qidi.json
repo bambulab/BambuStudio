@@ -1,16 +1,40 @@
 {
     "type": "filament",
-    "filament_id": "GFB00",
-    "setting_id": "GFSB00_Qidi_14",
-    "name": "QIDI ABS-GF",
+    "filament_id": "GFN04",
+    "setting_id": "GFSN04_Qidi_00",
+    "name": "QIDI PAHT-CF @Qidi",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_filament_abs",
-    "filament_flow_ratio": [
-        "0.95"
+    "inherits": "fdm_filament_pa",
+    "filament_type": [
+        "PA-CF"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "310"
+    ],
+    "nozzle_temperature": [
+        "310"
     ],
     "filament_max_volumetric_speed": [
-        "17"
+        "14"
+    ],
+    "fan_max_speed": [
+        "40"
+    ],
+    "fan_min_speed": [
+        "20"
+    ],
+    "overhang_fan_threshold": [
+        "0%"
+    ],
+    "overhang_fan_speed": [
+        "40"
+    ],
+    "fan_cooling_layer_time": [
+        "5"
+    ],
+    "full_fan_speed_layer": [
+        "0"
     ],
     "enable_pressure_advance": [
         "1"
@@ -18,37 +42,28 @@
     "pressure_advance": [
         "0.01"
     ],
-    "nozzle_temperature_initial_layer": [
-        "270"
-    ],
-    "nozzle_temperature": [
-        "270"
-    ],
-    "fan_max_speed": [
-        "20"
-    ],
-    "fan_min_speed": [
-        "20"
-    ],
     "hot_plate_temp_initial_layer" : [
-        "100"
+        "80"
     ],
     "hot_plate_temp" : [
-        "100"
+        "80"
     ],
-    "overhang_fan_speed": [
-        "100"
+    "slow_down_layer_time": [
+        "5"
     ],
     "filament_density":[
-        "1.15"
+        "1.20"
     ],
-	"compatible_printers": [
+    "filament_flow_ratio": [
+        "0.96"
+    ],
+    "compatible_printers": [
         "Qidi X-Plus 0.4 nozzle",
         "Qidi X-Max 0.4 nozzle",
         "Qidi X-CF Pro 0.4 nozzle",
-		"Qidi X-Smart 3 0.4 nozzle",
-		"Qidi X-Plus 3 0.4 nozzle",
-		"Qidi X-Max 3 0.4 nozzle",
+        "Qidi X-Smart 3 0.4 nozzle",
+        "Qidi X-Plus 3 0.4 nozzle",
+        "Qidi X-Max 3 0.4 nozzle",
         "Qidi X-Max 0.6 nozzle",
         "Qidi X-CF Pro 0.6 nozzle",
         "Qidi X-Smart 3 0.6 nozzle",
@@ -60,6 +75,5 @@
         "Qidi X-Smart 3 0.8 nozzle",
         "Qidi X-Plus 3 0.8 nozzle",
         "Qidi X-Max 3 0.8 nozzle"
-        
-	]
+    ]
 }

@@ -5,7 +5,7 @@
     "name": "QIDI PETG Tough @Qidi Q1 Pro 0.6 nozzle",
     "from": "system",
     "instantiation": "true",
-    "inherits": "QIDI PETG Tough",
+    "inherits": "QIDI PETG Tough @Qidi",
     "filament_max_volumetric_speed": [
         "13"
     ],

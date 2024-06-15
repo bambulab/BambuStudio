@@ -5,7 +5,7 @@
     "name": "Generic PETG @Qidi Q1 Pro 0.8 nozzle",
     "from": "system",
     "instantiation": "true",
-    "inherits": "Generic PETG",
+    "inherits": "Generic PETG @Qidi",
 	"compatible_printers": [
 		"Qidi Q1 Pro 0.8 nozzle"
 	]
