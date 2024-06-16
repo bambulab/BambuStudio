@@ -23,7 +23,6 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem/operations.hpp>
-#include <boost/filesystem/string_file.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/nowide/cstdio.hpp>
@@ -1238,12 +1237,19 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             m_backup_path = filename.substr(0, filename.size() - 5);
             model.set_backup_path(m_backup_path);
             try {
-                if (boost::filesystem::exists(model.get_backup_path() + "/origin.txt"))
-                    boost::filesystem::load_string_file(model.get_backup_path() + "/origin.txt", m_origin_file);
+                std::string filepath = model.get_backup_path() + "/origin.txt";
+                if (boost::filesystem::exists(filepath)) {
+                    boost::filesystem::ifstream originfile(filepath);
+                    m_origin_file.assign(
+                        (std::istreambuf_iterator<char>(originfile)),
+                        (std::istreambuf_iterator<char>())
+                    );
+                    originfile.close();
+                }
             } catch (...) {}
-            boost::filesystem::save_string_file(
-                model.get_backup_path() + "/lock.txt",
-                boost::lexical_cast<std::string>(get_current_pid()));
+            boost::filesystem::ofstream lockfile(model.get_backup_path() + "/lock.txt");
+            lockfile << boost::lexical_cast<std::string>(get_current_pid());
+            lockfile.close();
         }
         else {
             m_backup_path = model.get_backup_path();
@@ -1254,7 +1260,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             file_version = *m_bambuslicer_generator_version;
         // save for restore
         if (result && m_load_aux && !m_load_restore) {
-            boost::filesystem::save_string_file(model.get_backup_path() + "/origin.txt", filename);
+            boost::filesystem::ofstream originfile(model.get_backup_path() + "/origin.txt");
+            originfile << filename;
+            originfile.close();
         }
         if (m_load_restore && !result) // not clear failed backup data for later analyze
             model.set_backup_path("detach");
@@ -5363,6 +5371,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         boost::system::error_code ec;
         std::string filename = std::string(store_params.path);
         boost::filesystem::remove(filename + ".tmp", ec);
+        boost::filesystem::ofstream outputfile;
 
         bool result = _save_model_to_file(filename + ".tmp", *store_params.model, store_params.plate_data_list, store_params.project_presets, store_params.config,
                                           store_params.thumbnail_data, store_params.no_light_thumbnail_data, store_params.top_thumbnail_data, store_params.pick_thumbnail_data,
@@ -5376,7 +5385,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 return false;
             }
             if (!(store_params.strategy & SaveStrategy::Silence))
-                boost::filesystem::save_string_file(store_params.model->get_backup_path() + "/origin.txt", filename);
+                outputfile.open(store_params.model->get_backup_path() + "/origin.txt");
+                outputfile << filename;
+                outputfile.close();
         }
         return result;
     }
@@ -8205,9 +8216,14 @@ bool has_restore_data(std::string & path, std::string& origin)
         origin = "<lock>";
         return false;
     }
-    if (boost::filesystem::exists(path + "/lock.txt")) {
-        std::string pid;
-        boost::filesystem::load_string_file(path + "/lock.txt", pid);
+    const std::string lockfile_path = path + "/lock.txt";
+    if (boost::filesystem::exists(lockfile_path)) {
+        boost::filesystem::ifstream lockfile(lockfile_path);
+        std::string pid(
+            (std::istreambuf_iterator<char>(lockfile)),
+            (std::istreambuf_iterator<char>())
+        );
+        lockfile.close();
         try {
             if (get_process_name(boost::lexical_cast<int>(pid)) ==
                 get_process_name(0)) {
@@ -8223,8 +8239,14 @@ bool has_restore_data(std::string & path, std::string& origin)
     if (!boost::filesystem::exists(file3mf))
         return false;
     try {
-        if (boost::filesystem::exists(path + "/origin.txt"))
-            boost::filesystem::load_string_file(path + "/origin.txt", origin);
+        if (boost::filesystem::exists(path + "/origin.txt")) {
+            boost::filesystem::ifstream originfile(path + "/origin.txt");
+            origin.assign(
+                (std::istreambuf_iterator<char>(originfile)),
+                (std::istreambuf_iterator<char>())
+            );
+            originfile.close();
+        }
     }
     catch (...) {
     }

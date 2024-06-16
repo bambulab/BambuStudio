@@ -117,8 +117,8 @@ void wxMediaCtrl2::Play()
 	}
     BambuPlayer * player2 = (BambuPlayer *) m_player;
     [player2 play];
-    if (m_state != wxMEDIASTATE_PLAYING) {
-        m_state = wxMEDIASTATE_PLAYING;
+    if (m_state != MEDIASTATE_PLAYING) {
+        m_state = MEDIASTATE_PLAYING;
         wxMediaEvent event(wxEVT_MEDIA_STATECHANGED);
         event.SetId(GetId());
         event.SetEventObject(this);
@@ -142,8 +142,8 @@ void wxMediaCtrl2::Stop()
 
 void wxMediaCtrl2::NotifyStopped()
 {
-    if (m_state != wxMEDIASTATE_STOPPED) {
-        m_state = wxMEDIASTATE_STOPPED;
+    if (m_state != MEDIASTATE_STOPPED) {
+        m_state = MEDIASTATE_STOPPED;
         wxMediaEvent event(wxEVT_MEDIA_STATECHANGED);
         event.SetId(GetId());
         event.SetEventObject(this);
@@ -151,7 +151,7 @@ void wxMediaCtrl2::NotifyStopped()
     }
 }
 
-wxMediaState wxMediaCtrl2::GetState() const
+wxMediaState2 wxMediaCtrl2::GetState() const
 {
     return m_state;
 }

@@ -168,30 +168,3 @@ index d98acc0f..28eb8eb4 100644
  endforeach()
  
  if (BUILD_SAMPLES_QT)
-diff --git a/src/Font/Font_FTFont.cxx b/src/Font/Font_FTFont.cxx
-index 5ae9899f..0a17372b 100644
---- a/src/Font/Font_FTFont.cxx
-+++ b/src/Font/Font_FTFont.cxx
-@@ -103,9 +103,11 @@ bool Font_FTFont::Init (const Handle(NCollection_Buffer)& theData,
-   {
-     throw Standard_ProgramError ("Font_FTFont, Light and Normal hinting styles are mutually exclusive");
-   }
-+#ifdef HAVE_FREETYPE
-   setLoadFlag (FT_LOAD_TARGET_LIGHT,   (theParams.FontHinting & Font_Hinting_Light) != 0);
-   setLoadFlag (FT_LOAD_NO_HINTING,     (theParams.FontHinting & Font_Hinting_Normal) == 0
-                                     && (theParams.FontHinting & Font_Hinting_Light)  == 0);
-+#endif
- 
-   // manage native / autohinting
-   if ((theParams.FontHinting & Font_Hinting_ForceAutohint) != 0
-@@ -113,8 +115,10 @@ bool Font_FTFont::Init (const Handle(NCollection_Buffer)& theData,
-   {
-     throw Standard_ProgramError ("Font_FTFont, ForceAutohint and NoAutohint are mutually exclusive");
-   }
-+#ifdef HAVE_FREETYPE
-   setLoadFlag (FT_LOAD_FORCE_AUTOHINT, (theParams.FontHinting & Font_Hinting_ForceAutohint) != 0);
-   setLoadFlag (FT_LOAD_NO_AUTOHINT,    (theParams.FontHinting & Font_Hinting_NoAutohint) != 0);
-+#endif
- 
-   if (!myFTLib->IsValid())
-   {

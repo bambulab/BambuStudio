@@ -8,7 +8,6 @@
 #include "MsgDialog.hpp"
 #include "DownloadProgressDialog.hpp"
 
-#include <boost/filesystem/string_file.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
@@ -367,7 +366,7 @@ void MediaPlayCtrl::Stop(wxString const &msg)
                 ? _L("Please check the network and try again, You can restart or update the printer if the issue persists.")
                 : _L(iter->second.c_str());
             if (m_failed_code == 1) {
-                if (m_last_state == wxMEDIASTATE_PLAYING)
+                if (m_last_state == MEDIASTATE_PLAYING)
                     msg2 = _L("The printer has been logged out and cannot connect.");
             }
 #if !BBL_RELEASE_TO_PUBLIC && defined(__WINDOWS__)
@@ -394,7 +393,7 @@ void MediaPlayCtrl::Stop(wxString const &msg)
     auto tunnel = m_url.empty() ? "" : into_u8(wxURI(m_url).GetPath()).substr(1);
     if (auto n = tunnel.find_first_of('/_'); n != std::string::npos)
         tunnel = tunnel.substr(0, n);
-    if (last_state != wxMEDIASTATE_PLAYING && m_failed_code != 0 
+    if (last_state != MEDIASTATE_PLAYING && m_failed_code != 0 
             && m_last_failed_codes.find(m_failed_code) == m_last_failed_codes.end()
             && (m_user_triggered || m_failed_retry > 3)) {
         json j;
@@ -418,7 +417,7 @@ void MediaPlayCtrl::Stop(wxString const &msg)
         m_last_failed_codes.insert(m_failed_code);
     }
 
-    if (last_state == wxMEDIASTATE_PLAYING && m_stat.size() == 4) {
+    if (last_state == MEDIASTATE_PLAYING && m_stat.size() == 4) {
         json j;
         j["dev_id"]         = m_machine;
         j["dev_ip"]         = m_lan_ip;
@@ -438,7 +437,7 @@ void MediaPlayCtrl::Stop(wxString const &msg)
     ++m_failed_retry;
     bool local = tunnel == "local" || tunnel == "rtsp" ||
                  tunnel == "rtsps";
-    if (m_failed_code < 0 && last_state != wxMEDIASTATE_PLAYING && local && (m_failed_retry > 1 || m_user_triggered)) {
+    if (m_failed_code < 0 && last_state != MEDIASTATE_PLAYING && local && (m_failed_retry > 1 || m_user_triggered)) {
         m_next_retry = wxDateTime(); // stop retry
         if (wxGetApp().show_modal_ip_address_enter_dialog(_L("LAN Connection Failed (Failed to start liveview)"))) {
             m_failed_retry = 0;
@@ -603,13 +602,13 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
             return;
         }
     }
-    if ((last_state == MEDIASTATE_IDLE || last_state == MEDIASTATE_INITIALIZING) && state == wxMEDIASTATE_STOPPED) { return; }
-    if ((last_state == wxMEDIASTATE_PAUSED || last_state == wxMEDIASTATE_PLAYING) && state == wxMEDIASTATE_STOPPED) {
+    if ((last_state == MEDIASTATE_IDLE || last_state == MEDIASTATE_INITIALIZING) && state == MEDIASTATE_STOPPED) { return; }
+    if ((last_state == MEDIASTATE_PAUSED || last_state == MEDIASTATE_PLAYING) && state == MEDIASTATE_STOPPED) {
         m_failed_code = m_media_ctrl->GetLastError();
         Stop();
         return;
     }
-    if (last_state == MEDIASTATE_LOADING && (state == wxMEDIASTATE_STOPPED || state == wxMEDIASTATE_PAUSED)) {
+    if (last_state == MEDIASTATE_LOADING && (state == MEDIASTATE_STOPPED || state == MEDIASTATE_PAUSED)) {
         wxSize size = m_media_ctrl->GetVideoSize();
         BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: size: " << size.x << "x" << size.y;
         m_failed_code = m_media_ctrl->GetLastError();
@@ -777,8 +776,12 @@ bool MediaPlayCtrl::start_stream_service(bool *need_install)
     file_url2.Replace("\\", "/");
     file_url2 = wxURI(file_url2).BuildURI();
     try {
-        std::string configs;
-        boost::filesystem::load_string_file(file_ff_cfg, configs);
+        boost::filesystem::ifstream configfile(file_ff_cfg);
+        std::string configs(
+            (std::istreambuf_iterator<char>(configfile)),
+            (std::istreambuf_iterator<char>())
+        );
+        configfile.close();
         std::vector<std::string> configss;
         boost::algorithm::split(configss, configs, boost::algorithm::is_any_of("\r\n"));
         configss.erase(std::remove(configss.begin(), configss.end(), std::string()), configss.end());
@@ -790,7 +793,7 @@ bool MediaPlayCtrl::start_stream_service(bool *need_install)
             auto file_dll  = tools_dir + dll;
             auto file_dll2 = plugins_dir + dll;
             if (!boost::filesystem::exists(file_dll) || boost::filesystem::last_write_time(file_dll) != boost::filesystem::last_write_time(file_dll2))
-                boost::filesystem::copy_file(file_dll2, file_dll, boost::filesystem::copy_option::overwrite_if_exists);
+                boost::filesystem::copy_file(file_dll2, file_dll, boost::filesystem::copy_options::overwrite_existing);
         }
         boost::process::child process_source(file_source, file_url2.ToStdWstring(), boost::process::start_dir(tools_dir), 
                                              boost::process::windows::create_no_window, 

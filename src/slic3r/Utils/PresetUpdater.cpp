@@ -9,7 +9,6 @@
 #include <boost/format.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/filesystem/string_file.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/log/trivial.hpp>
@@ -877,10 +876,24 @@ void PresetUpdater::priv::sync_tooltip(std::string http_url, std::string languag
         std::string language_version = "00.00.00.00";
         fs::path cache_root = fs::path(data_dir()) / "resources/tooltip";
         try {
-            auto vf = cache_root / "common" / "version";
-            if (fs::exists(vf)) fs::load_string_file(vf, common_version);
+            fs::path vf = cache_root / "common" / "version";
+            if (fs::exists(vf)) {
+            	boost::filesystem::ifstream versionfile(vf);
+		        common_version.assign(
+		            (std::istreambuf_iterator<char>(versionfile)),
+		            (std::istreambuf_iterator<char>())
+		        );
+		        versionfile.close();
+	        }
             vf = cache_root / language / "version";
-            if (fs::exists(vf)) fs::load_string_file(vf, language_version);
+            if (fs::exists(vf)) {
+            	boost::filesystem::ifstream versionfile(vf);
+		        language_version.assign(
+		            (std::istreambuf_iterator<char>(versionfile)),
+		            (std::istreambuf_iterator<char>())
+		        );
+		        versionfile.close();
+            }
         } catch (...) {}
         std::map<std::string, Resource> resources
         {
@@ -1092,13 +1105,23 @@ void PresetUpdater::priv::sync_printer_config(std::string http_url)
 
     try {
         if (fs::exists(config_folder / "version.txt")) {
-            fs::load_string_file(config_folder / "version.txt", curr_version);
+        	boost::filesystem::ifstream filedata(config_folder / "version.txt");
+	        curr_version.assign(
+	            (std::istreambuf_iterator<char>(filedata)),
+	            (std::istreambuf_iterator<char>())
+	        );
+	        filedata.close();
             boost::algorithm::trim(curr_version);
         }
     } catch (...) {}
     try {
         if (fs::exists(cache_folder / "version.txt")) {
-            fs::load_string_file(cache_folder / "version.txt", cached_version);
+            boost::filesystem::ifstream filedata(cache_folder / "version.txt");
+	        cached_version.assign(
+	            (std::istreambuf_iterator<char>(filedata)),
+	            (std::istreambuf_iterator<char>())
+	        );
+	        filedata.close();
             boost::algorithm::trim(cached_version);
         }
     } catch (...) {}
@@ -1134,7 +1157,12 @@ void PresetUpdater::priv::sync_printer_config(std::string http_url)
     bool result = false;
     try {
         if (fs::exists(cache_folder / "version.txt")) {
-            fs::load_string_file(cache_folder / "version.txt", cached_version);
+        	boost::filesystem::ifstream filedata(cache_folder / "version.txt");
+	        cached_version.assign(
+	            (std::istreambuf_iterator<char>(filedata)),
+	            (std::istreambuf_iterator<char>())
+	        );
+	        filedata.close();
             boost::algorithm::trim(cached_version);
             result = true;
         }
@@ -1239,13 +1267,23 @@ Updates PresetUpdater::priv::get_printer_config_updates(bool update) const
     std::string             resc_version;
     try {
         if (fs::exists(resc_folder / "version.txt")) {
-            fs::load_string_file(resc_folder / "version.txt", resc_version);
+        	boost::filesystem::ifstream filedata(resc_folder / "version.txt");
+	        resc_version.assign(
+	            (std::istreambuf_iterator<char>(filedata)),
+	            (std::istreambuf_iterator<char>())
+	        );
+	        filedata.close();
             boost::algorithm::trim(resc_version);
         }
     } catch (...) {}
     try {
         if (fs::exists(config_folder / "version.txt")) {
-            fs::load_string_file(config_folder / "version.txt", curr_version);
+        	boost::filesystem::ifstream filedata(config_folder / "version.txt");
+	        curr_version.assign(
+	            (std::istreambuf_iterator<char>(filedata)),
+	            (std::istreambuf_iterator<char>())
+	        );
+	        filedata.close();
             boost::algorithm::trim(curr_version);
         }
     } catch (...) {}

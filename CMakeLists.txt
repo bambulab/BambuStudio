@@ -53,7 +53,7 @@ if (APPLE)
     if (CMAKE_MACOSX_BUNDLE)
         set(CMAKE_INSTALL_RPATH @executable_path/../Frameworks)
     endif()
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version" FORCE)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "11.3" CACHE STRING "Minimum OS X deployment version" FORCE)
 endif ()
 
 # Proposal for C++ unit tests and sandboxes
@@ -338,6 +338,9 @@ if(SLIC3R_STATIC)
     set(Boost_USE_STATIC_LIBS ON)
     # Use boost libraries linked statically to the C++ runtime.
     # set(Boost_USE_STATIC_RUNTIME ON)
+
+    # Enable deprecated timer header (XXX replace header)
+    add_definitions(-DBOOST_TIMER_ENABLE_DEPRECATED)
 endif()
 #set(Boost_DEBUG ON)
 # set(Boost_COMPILER "-mgw81")
@@ -492,6 +495,9 @@ endif()
 find_package(GLEW REQUIRED)
 
 find_package(glfw3 REQUIRED)
+
+find_package(OpenCV REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIR})
 
 # Find the Cereal serialization library
 find_package(cereal REQUIRED)
