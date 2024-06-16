@@ -78,7 +78,7 @@ jobs:
         if: inputs.os == 'macos-13'
         working-directory: ${{ github.workspace }}
         run: |
-          brew install cmake git gettext automake texinfo
+          brew install automake texinfo
           mkdir -p ${{ github.workspace }}/build_${{inputs.arch}}
           cd ${{ github.workspace }}/build_${{inputs.arch}}
           cmake ..  -DBBL_RELEASE_TO_PUBLIC=1 -DCMAKE_PREFIX_PATH="${{ github.workspace }}/deps/build_${{ inputs.arch }}/BambuStudio_dep_${{ inputs.arch }}/usr/local" -DCMAKE_INSTALL_PREFIX="../install_dir" -DCMAKE_BUILD_TYPE=Release -DCMAKE_MACOSX_RPATH=ON -DCMAKE_INSTALL_RPATH="${{ github.workspace }}/deps/build_${{ inputs.arch }}/BambuStudio_dep_${{ inputs.arch }}/usr/local" -DCMAKE_MACOSX_BUNDLE=on
