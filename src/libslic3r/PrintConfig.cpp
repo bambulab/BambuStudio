@@ -375,7 +375,7 @@ static const t_config_enum_values s_keys_map_ZHopType = {
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ZHopType)
 
 static const t_config_enum_values s_keys_map_ExtruderType = {
-    { "DirectDrive",   etDirectDrive },
+    { "Direct drive",   etDirectDrive },
     { "Bowden",        etBowden }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ExtruderType)
@@ -404,6 +404,7 @@ std::string get_extruder_variant_string(ExtruderType extruder_type, NozzleVolume
     variant_string = s_keys_names_ExtruderType[extruder_type];
     variant_string+= " ";
     variant_string+= s_keys_names_NozzleVolumeType[nozzle_volume_type];
+    return variant_string;
 }
 
 static void assign_printer_technology_to_unknown(t_optiondef_map &options, PrinterTechnology printer_technology)
@@ -3903,11 +3904,11 @@ void PrintConfigDef::init_fff_params()
                                                     280.f, 280.f,   0.f, 280.f,
                                                     280.f, 280.f, 280.f,   0.f });
 
-    def = this->add("flush_multiplier", coFloat);
+    def = this->add("flush_multiplier", coFloats);
     def->label = L("Flush multiplier");
     def->tooltip = L("The actual flushing volumes is equal to the flush multiplier multiplied by the flushing volumes in the table.");
     def->sidetext = "";
-    def->set_default_value(new ConfigOptionFloat(1.0));
+    def->set_default_value(new ConfigOptionFloats{1.0});
 
     // BBS
     def = this->add("prime_volume", coFloat);
@@ -5405,8 +5406,8 @@ int DynamicPrintConfig::get_index_for_extruder(int extruder_id, std::string id_n
     auto variant_opt = dynamic_cast<const ConfigOptionStrings*>(this->option(variant_name));
     auto id_opt = dynamic_cast<const ConfigOptionInts*>(this->option(id_name));
     if ((variant_opt != nullptr)&&(id_opt != nullptr)) {
-        int v_size = variant_opt->size();
-        int i_size = variant_opt->size();
+        int v_size = variant_opt->values.size();
+        int i_size = id_opt->values.size();
         std::string extruder_variant = get_extruder_variant_string(extruder_type, nozzle_volume_type);
         for (int index = 0; index < v_size; index++)
         {
