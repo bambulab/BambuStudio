@@ -831,14 +831,14 @@ namespace client
                         // Not a percent, just return the value.
                         output.set_d(opt_floats->get_at(index).value);
                     } else {
-                        // Resolve dependencies using the "ratio_over" link to a parent value.
-                        const ConfigOptionDef *opt_def = print_config_def.get(opt_key);
-                        assert(opt_def != nullptr);
-                        assert(opt_def->type() == coFloatsOrPercents);
 
                         FloatOrPercent opt_value = opt_floats->get_at(index);
                         double         v         = opt_value.value;
                         if (opt_value.percent) {
+                            // Resolve dependencies using the "ratio_over" link to a parent value.
+                            const ConfigOptionDef *opt_def = print_config_def.get(opt_key);
+                            assert(opt_def != nullptr);
+                            assert(opt_def->type == coFloatsOrPercents);
                             v *= 0.01;
                             while (true) {
                                 const ConfigOption *opt_parent = opt_def->ratio_over.empty() ? nullptr : ctx->resolve_symbol(opt_def->ratio_over);
