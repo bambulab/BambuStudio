@@ -5803,6 +5803,18 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->cli_params = "version";
     def->set_default_value(new ConfigOptionString());
 
+    def = this->add("metadata_name", coStrings);
+    def->label = "metadata name list";
+    def->tooltip = "matadata name list added into 3mf";
+    def->cli_params = "\"name1;name2;...\"";
+    def->set_default_value(new ConfigOptionStrings());
+
+    def = this->add("metadata_value", coStrings);
+    def->label = "metadata value list";
+    def->tooltip = "matadata value list added into 3mf";
+    def->cli_params = "\"value1;value2;...\"";
+    def->set_default_value(new ConfigOptionStrings());
+
     def = this->add("allow_newer_file", coBool);
     def->label = "Allow 3mf with newer version to be sliced";
     def->tooltip = "Allow 3mf with newer version to be sliced";
