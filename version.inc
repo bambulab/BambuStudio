@@ -5,12 +5,12 @@ set(SLIC3R_APP_NAME "BambuStudio")
 set(SLIC3R_APP_KEY "BambuStudio")
 
 if(NOT DEFINED BBL_RELEASE_TO_PUBLIC)
-set(BBL_RELEASE_TO_PUBLIC "0")
+set(BBL_RELEASE_TO_PUBLIC "1")
 endif()
 # Note that defining BBL_INTERNAL_TESTING will create a beta version
 # not an "internal testing" version (the default)
 if(NOT DEFINED BBL_INTERNAL_TESTING)
-set(BBL_INTERNAL_TESTING "1")
+set(BBL_INTERNAL_TESTING "0")
 endif()
 
 # The build_version should start from 50 in master branch
