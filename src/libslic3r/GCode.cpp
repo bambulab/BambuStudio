@@ -4390,12 +4390,11 @@ double GCode::get_overhang_degree_corr_speed(float normal_speed, double path_deg
     if (path_degree <= 0)
         return normal_speed;
 
-    if (path_degree >= 5 )
-        return m_config.get_abs_value(overhang_speed_key_map[5].c_str());
-
     int lower_degree_bound = int(path_degree);
-    if (path_degree==lower_degree_bound)
+    // BBS: use lower speed of 75%-100% for better cooling
+    if (path_degree >= 4 || path_degree == lower_degree_bound)
         return m_config.get_abs_value(overhang_speed_key_map[lower_degree_bound].c_str());
+
     int upper_degree_bound = lower_degree_bound + 1;
 
     double lower_speed_bound = lower_degree_bound == 0 ? normal_speed : m_config.get_abs_value(overhang_speed_key_map[lower_degree_bound].c_str());
