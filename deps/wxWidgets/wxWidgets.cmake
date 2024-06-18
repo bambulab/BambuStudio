@@ -1,5 +1,3 @@
-set(_wx_git_tag bambu)
-
 set(_wx_toolkit "")
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(_gtk_ver 2)
@@ -25,8 +23,8 @@ endif ()
 # endif ()
 
 bambustudio_add_cmake_project(wxWidgets
-    GIT_REPOSITORY "https://github.com/MackBambu/wxWidgets"
-    GIT_TAG ${_wx_git_tag}
+    GIT_REPOSITORY "https://github.com/bambulab/wxWidgets"
+    GIT_TAG master
     DEPENDS ${PNG_PKG} ${ZLIB_PKG} ${EXPAT_PKG} ${TIFF_PKG} ${JPEG_PKG}
     CMAKE_ARGS
         -DwxBUILD_PRECOMP=ON
