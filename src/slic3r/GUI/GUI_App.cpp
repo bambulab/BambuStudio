@@ -3237,8 +3237,8 @@ void GUI_App::update_publish_status()
 
 bool GUI_App::has_model_mall()
 {
-    if (auto cc = app_config->get_region(); cc == "CNH" || cc == "China" || cc == "")
-        return false;
+    /*if (auto cc = app_config->get_region(); cc == "CNH" || cc == "China" || cc == "")
+        return false;*/
     return true;
 }
 
