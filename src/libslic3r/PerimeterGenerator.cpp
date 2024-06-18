@@ -14,6 +14,7 @@ static const int overhang_sampling_number = 6;
 static const double narrow_loop_length_threshold = 10;
 static const double min_degree_gap = 0.1;
 static const int max_overhang_degree = overhang_sampling_number - 1;
+static const std::vector<double> non_uniform_degree_map = { 0, 10, 25, 50, 75, 100};
 //BBS: when the width of expolygon is smaller than
 //ext_perimeter_width + ext_perimeter_spacing  * (1 - SMALLER_EXT_INSET_OVERLAP_TOLERANCE),
 //we think it's small detail area and will generate smaller line width for it
@@ -350,29 +351,40 @@ static std::deque<PolylineWithDegree> detect_overahng_degree(Polygons        low
 
         Polyline polyline_with_insert_points;
         points_overhang.clear();
-        double last_degree = 0;
+        double last_terraced_overhang = 0;
         // BBS : calculate overhang dist
         for (size_t point_idx = 0; point_idx < middle_poly.points.size(); ++point_idx) {
             Point pt = middle_poly.points[point_idx];
 
             float overhang_dist = prev_layer_distancer->distance_from_perimeter(pt.cast<float>());
             overhang_dist       = overhang_dist > upper_bound ? upper_bound : overhang_dist;
-            // BBS : calculate overhang degree
-            int    max_overhang = max_overhang_degree;
-            int    min_overhang = 0;
-            double t            = (overhang_dist - lower_bound) / (upper_bound - lower_bound);
-            t = t > 1.0 ? 1: t;
-            t = t < EPSILON ? 0 : t;
-            double this_degree  = (1.0 - t) * min_overhang + t * max_overhang;
+            // BBS : calculate overhang degree -- overhang length / width
+            double this_degree  = (overhang_dist - lower_bound) / (upper_bound - lower_bound) *100;
+            // BBS: covert to terraced overhang
+            double terraced_overhang = 0;
+            if (this_degree >= 100)
+                terraced_overhang = max_overhang_degree;
+            else if (this_degree > EPSILON * 100) {
+                int upper_bound_idx = std::upper_bound(non_uniform_degree_map.begin(), non_uniform_degree_map.end(), this_degree) - non_uniform_degree_map.begin();
+                int lower_bound_idx = upper_bound_idx - 1;
+
+                if (this_degree == non_uniform_degree_map[lower_bound_idx])
+                    terraced_overhang = lower_bound_idx;
+                else {
+                    double t = (this_degree - non_uniform_degree_map[lower_bound_idx]) / (non_uniform_degree_map[upper_bound_idx] - non_uniform_degree_map[lower_bound_idx]);
+                    terraced_overhang = (1.0 - t) * lower_bound_idx + t * upper_bound_idx;
+                }
+            }
+
             // BBS: intert points
             if (point_idx > 0) {
-                insert_point_to_line(last_degree, middle_poly.points[point_idx - 1], this_degree, pt, points_overhang, polyline_with_insert_points,
+                insert_point_to_line(last_terraced_overhang, middle_poly.points[point_idx - 1], terraced_overhang, pt, points_overhang, polyline_with_insert_points,
                                      upper_bound - lower_bound);
             }
-            points_overhang.push_back(this_degree);
+            points_overhang.push_back(terraced_overhang);
 
             polyline_with_insert_points.append(pt);
-            last_degree = this_degree;
+            last_terraced_overhang = terraced_overhang;
 
         }
 
