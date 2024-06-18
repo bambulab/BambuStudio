@@ -72,7 +72,7 @@ bambustudio_add_cmake_project(CURL
     ${_curl_platform_flags}
 )
 
-if (DEP_BUILD_OPENSSL AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if (DEP_BUILD_OPENSSL)
   add_dependencies(dep_CURL ${OPENSSL_PKG})
 endif ()
 
