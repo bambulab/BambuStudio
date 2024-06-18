@@ -92,6 +92,8 @@ Model& Model::assign_copy(const Model &rhs)
 
     this->mk_name = rhs.mk_name;
     this->mk_version = rhs.mk_version;
+    this->md_name = rhs.md_name;
+    this->md_value = rhs.md_value;
 
     return *this;
 }
@@ -124,6 +126,8 @@ Model& Model::assign_copy(Model &&rhs)
     this->stl_design_country = rhs.stl_design_country;
     this->mk_name = rhs.mk_name;
     this->mk_version = rhs.mk_version;
+    this->md_name = rhs.md_name;
+    this->md_value = rhs.md_value;
     this->backup_path = std::move(rhs.backup_path);
     this->object_backup_id_map = std::move(rhs.object_backup_id_map);
     this->next_object_backup_id = rhs.next_object_backup_id;
@@ -962,6 +966,8 @@ void Model::load_from(Model& model)
     profile_info  = model.profile_info;
     mk_name = model.mk_name;
     mk_version = model.mk_version;
+    md_name = model.md_name;
+    md_value = model.md_value;
     model.design_info.reset();
     model.model_info.reset();
     model.profile_info.reset();
@@ -3497,7 +3503,7 @@ bool Model::obj_import_vertex_color_deal(const std::vector<unsigned char> &verte
                 case _3_SAME_COLOR: {
                     std::string result;
                     get_real_filament_id(filament_id0, result);
-                    volume->mmu_segmentation_facets.set_triangle_from_string(i, result); 
+                    volume->mmu_segmentation_facets.set_triangle_from_string(i, result);
                     break;
                 }
                 case _3_DIFF_COLOR: {
