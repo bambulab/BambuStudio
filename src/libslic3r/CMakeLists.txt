@@ -213,6 +213,7 @@ set(lisbslic3r_sources
     Arrange.cpp
     NormalUtils.cpp
     NormalUtils.hpp
+    ObjColorUtils.cpp
     ObjColorUtils.hpp
     Orient.hpp
     Orient.cpp
