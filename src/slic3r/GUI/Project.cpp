@@ -110,13 +110,15 @@ void ProjectPanel::on_reload(wxCommandEvent& evt)
         update_type = model.model_info->origin;
 
 
-        if (model.design_info && !model.design_info->DesignId.empty()) {
-            if (m_model_id_map.count(model.design_info->DesignId) > 0) {
-                model_id = m_model_id_map[model.design_info->DesignId];
+
+        if (model.design_info && !model.design_info->DesignerId.empty()) {
+
+            if (m_model_id_map.count(model.design_info->DesignerId) > 0) {
+                model_id = m_model_id_map[model.design_info->DesignerId];
             }
             else {
-                model_id = get_model_id(model.design_info->DesignId);
-                m_model_id_map[model.design_info->DesignId] = model_id;
+                model_id = get_model_id(model.design_info->DesignerId);
+                m_model_id_map[model.design_info->DesignerId] = model_id;
             }
         }
         

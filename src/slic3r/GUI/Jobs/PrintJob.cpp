@@ -297,6 +297,7 @@ void PrintJob::process()
     }
 
     params.stl_design_id = 0;
+
     if (!wxGetApp().model().stl_design_id.empty()) {
 
         auto country_code = wxGetApp().app_config->get_country_code();
@@ -327,12 +328,25 @@ void PrintJob::process()
             try {
                 stl_design_id = std::stoi(wxGetApp().model().stl_design_id);
             }
-            catch (const std::exception& e) {
+            catch (...) {
                 stl_design_id = 0;
             }
             params.stl_design_id = stl_design_id;
         }
     }
+
+
+    if (params.stl_design_id == 0 || !wxGetApp().model().design_id.empty()) {
+        try {
+            params.stl_design_id = std::stoi(wxGetApp().model().design_id);
+        }
+        catch (...)
+        {
+            params.stl_design_id = 0;
+        }
+    }
+
+    
 
     if (params.preset_name.empty() && m_print_type == "from_normal") { params.preset_name = wxString::Format("%s_plate_%d", m_project_name, curr_plate_idx).ToStdString(); }
     if (params.project_name.empty()) {params.project_name = m_project_name;}
