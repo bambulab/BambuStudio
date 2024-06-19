@@ -4900,14 +4900,14 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 Overhang_threshold_none : EXTRUDER_CONFIG(overhang_fan_threshold) - 1;
             if ((EXTRUDER_CONFIG(overhang_fan_threshold) == Overhang_threshold_none && path.role() == erExternalPerimeter)) {
                 gcode += ";_OVERHANG_FAN_START\n";
-                comment = ";_EXTRUDE_SET_SPEED";
             } else if (path.get_overhang_degree() > overhang_threshold ||
                 is_bridge(path.role()))
                 gcode += ";_OVERHANG_FAN_START\n";
-            else
-                comment = ";_EXTRUDE_SET_SPEED";
         }
-        else {
+
+        int overhang_boundary_for_cooling = EXTRUDER_CONFIG(overhang_threshold_participating_cooling);
+
+        if (!is_bridge(path.role()) && path.get_overhang_degree() <= overhang_boundary_for_cooling) {
             comment = ";_EXTRUDE_SET_SPEED";
         }
 

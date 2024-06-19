@@ -3133,6 +3133,7 @@ void TabFilament::build()
 
         optgroup->append_single_option_line("enable_overhang_bridge_fan", "auto-cooling");
         optgroup->append_single_option_line("overhang_fan_threshold", "auto-cooling");
+        optgroup->append_single_option_line("overhang_threshold_participating_cooling", "auto-cooling");
         optgroup->append_single_option_line("overhang_fan_speed", "auto-cooling");
 
         optgroup = page->new_optgroup(L("Auxiliary part cooling fan"), L"param_cooling_fan");

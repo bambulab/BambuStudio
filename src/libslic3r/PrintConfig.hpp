@@ -213,6 +213,15 @@ enum OverhangFanThreshold {
     Overhang_threshold_bridge
 };
 
+enum OverhangThresholdParticipatingCooling {
+    Overhang_threshold_participating_cooling_none = 0,
+    Overhang_threshold_participating_cooling_1_4,
+    Overhang_threshold_participating_cooling_2_4,
+    Overhang_threshold_participating_cooling_3_4,
+    Overhang_threshold_participating_cooling_4_4,
+    Overhang_threshold_participating_cooling_bridge
+};
+
 // BBS
 enum BedType {
     btDefault = 0,
@@ -991,6 +1000,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBools,              enable_overhang_bridge_fan))
     ((ConfigOptionInts,               overhang_fan_speed))
     ((ConfigOptionEnumsGeneric,       overhang_fan_threshold))
+    ((ConfigOptionEnumsGeneric,       overhang_threshold_participating_cooling))
     ((ConfigOptionEnum<PrintSequence>,print_sequence))
     ((ConfigOptionInts,               first_layer_print_sequence))
     ((ConfigOptionInts,               other_layers_print_sequence))
