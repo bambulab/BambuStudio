@@ -302,6 +302,17 @@ static const t_config_enum_values s_keys_map_OverhangFanThreshold = {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(OverhangFanThreshold)
 
+//BBS
+static const t_config_enum_values s_keys_map_OverhangThresholdParticipatingCooling = {
+    { "0%",         Overhang_threshold_participating_cooling_none },
+    { "10%",        Overhang_threshold_participating_cooling_1_4  },
+    { "25%",        Overhang_threshold_participating_cooling_2_4  },
+    { "50%",        Overhang_threshold_participating_cooling_3_4  },
+    { "75%",        Overhang_threshold_participating_cooling_4_4  },
+    { "95%",        Overhang_threshold_participating_cooling_bridge  }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(OverhangThresholdParticipatingCooling)
+
 // BBS
 static const t_config_enum_values s_keys_map_BedType = {
     { "Default Plate",      btDefault },
@@ -769,6 +780,28 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.emplace_back("75%");
     def->enum_labels.emplace_back("95%");
     def->set_default_value(new ConfigOptionEnumsGeneric{ (int)Overhang_threshold_bridge });
+
+    def = this->add("overhang_threshold_participating_cooling", coEnums);
+    def->label = L("Overhang threshold for participating cooling");
+    def->tooltip = L("Decide which overhang part join the cooling function to slow down the speed."
+                     "Expressed as percentage which indicides how much width of the line without support from lower layer. "
+                     "100% means forcing cooling for all outer wall no matter how much overhang degree");
+    def->sidetext = "";
+    def->enum_keys_map = &ConfigOptionEnum<OverhangThresholdParticipatingCooling>::get_enum_values();
+    def->mode = comAdvanced;
+    def->enum_values.emplace_back("0%");
+    def->enum_values.emplace_back("10%");
+    def->enum_values.emplace_back("25%");
+    def->enum_values.emplace_back("50%");
+    def->enum_values.emplace_back("75%");
+    def->enum_values.emplace_back("100%");
+    def->enum_labels.emplace_back("0%");
+    def->enum_labels.emplace_back("10%");
+    def->enum_labels.emplace_back("25%");
+    def->enum_labels.emplace_back("50%");
+    def->enum_labels.emplace_back("75%");
+    def->enum_labels.emplace_back("100%");
+    def->set_default_value(new ConfigOptionEnumsGeneric{(int) Overhang_threshold_participating_cooling_bridge});
 
     def = this->add("bridge_angle", coFloat);
     def->label = L("Bridge direction");
