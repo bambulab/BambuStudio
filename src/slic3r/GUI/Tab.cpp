@@ -3708,7 +3708,7 @@ void TabPrinter::extruders_count_changed(size_t extruders_count)
         is_count_changed = true;
     }
     // BBS
-#if 0
+#if 1
     else if (m_extruders_count == 1 &&
              m_preset_bundle->project_config.option<ConfigOptionFloats>("flush_volumes_matrix")->values.size()>1)
         m_preset_bundle->update_multi_material_filament_presets();
@@ -3840,51 +3840,41 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
         n_before_extruders++;
     size_t		n_after_single_extruder_MM = 2; //	Count of pages after single_extruder_multi_material page
 
-    //if (m_extruders_count_old == m_extruders_count ||
-    //    (m_has_single_extruder_MM_page && m_extruders_count == 1))
-    //{
-    //    // if we have a single extruder MM setup, add a page with configuration options:
-    //    for (size_t i = 0; i < m_pages.size(); ++i) // first make sure it's not there already
-    //        if (m_pages[i]->title().find(L("Single extruder MM setup")) != std::string::npos) {
-    //            m_pages.erase(m_pages.begin() + i);
-    //            break;
-    //        }
-    //    m_has_single_extruder_MM_page = false;
-    //}
+#if 0
+    if (m_extruders_count_old == m_extruders_count ||
+        (m_has_single_extruder_MM_page && m_extruders_count == 1))
+    {
+        // if we have a single extruder MM setup, add a page with configuration options:
+        for (size_t i = 0; i < m_pages.size(); ++i) // first make sure it's not there already
+            if (m_pages[i]->title().find(L("Single extruder MM setup")) != std::string::npos) {
+                m_pages.erase(m_pages.begin() + i);
+                break;
+            }
+        m_has_single_extruder_MM_page = false;
+    }
 
     //BBS: please add our single extruder multimaterial parameters here. Currently
     //comment this part because we have no such config in this page.
-#if 0
-    //if (from_initial_build ||
-    //    (m_extruders_count > 1 && m_config->opt_bool("single_extruder_multi_material") && !m_has_single_extruder_MM_page)) {
-    //    // create a page, but pretend it's an extruder page, so we can add it to m_pages ourselves
-    //    auto page = add_options_page(L("Single extruder MM setup"), "printer", true);
-    //    auto optgroup = page->new_optgroup(L("Single extruder multimaterial parameters"));
-    //
-    //    if (from_initial_build)
-    //        page->clear();
-    //    else {
-    //        m_pages.insert(m_pages.end() - n_after_single_extruder_MM, page);
-    //        m_has_single_extruder_MM_page = true;
-    //    }
-    //}
+    if (from_initial_build ||
+        (m_extruders_count > 1 && m_config->opt_bool("single_extruder_multi_material") && !m_has_single_extruder_MM_page)) {
+        // create a page, but pretend it's an extruder page, so we can add it to m_pages ourselves
+        auto page = add_options_page(L("Single extruder MM setup"), "printer", true);
+        auto optgroup = page->new_optgroup(L("Single extruder multimaterial parameters"));
+    
+        if (from_initial_build)
+            page->clear();
+        else {
+            m_pages.insert(m_pages.end() - n_after_single_extruder_MM, page);
+            m_has_single_extruder_MM_page = true;
+        }
+    }
 #endif
 
     // BBS. Just create one extruder page because BBL machine has only on physical extruder.
     // Build missed extruder pages
-    //for (auto extruder_idx = m_extruders_count_old; extruder_idx < m_extruders_count; ++extruder_idx)
-    auto extruder_idx = 0;
-    const wxString& page_name = (m_extruders_count > 1) ? wxString::Format("Extruder %d", int(extruder_idx + 1)) : wxString::Format("Extruder");
-    bool page_exist = false;
-    for (auto page_temp : m_pages) {
-        if (page_temp->title() == page_name) {
-            page_exist = true;
-            break;
-        }
-    }
+    for (auto extruder_idx = m_extruders_count_old; extruder_idx < m_extruders_count; ++extruder_idx) {
+        const wxString& page_name = (m_extruders_count > 1) ? wxString::Format("Extruder %d", int(extruder_idx + 1)) : wxString::Format("Extruder");
 
-    if (!page_exist)
-    {
         //# build page
         //const wxString& page_name = wxString::Format("Extruder %d", int(extruder_idx + 1));
         auto page = add_options_page(page_name, "empty", true);
@@ -3994,10 +3984,9 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
             //optgroup->append_line(line);
 #endif
     }
-
     // BBS. No extra extruder page for single physical extruder machine
     // # remove extra pages
-#if 0
+#if 1
     if (m_extruders_count < m_extruders_count_old)
         m_pages.erase(	m_pages.begin() + n_before_extruders + m_extruders_count,
                         m_pages.begin() + n_before_extruders + m_extruders_count_old);
@@ -4023,13 +4012,12 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
 void TabPrinter::on_preset_loaded()
 {
     // BBS
-#if 0
     // update the extruders count field
     auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"));
     size_t extruders_count = nozzle_diameter->values.size();
     // update the GUI field according to the number of nozzle diameters supplied
-    extruders_count_changed(extruders_count);
-#endif
+    if (m_extruders_count != extruders_count)
+        extruders_count_changed(extruders_count);
 }
 
 void TabPrinter::update_pages()
