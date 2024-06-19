@@ -303,17 +303,29 @@ static wxBoxSizer *create_preset_tree(wxWindow *parent, std::pair<std::string, s
     return sizer;
 }
 
-static std::string get_vendor_name(std::string& preset_name)
+static std::string get_vendor_name(const Preset *preset)
 {
-    if (preset_name.empty()) return "";
-    std::string vendor_name = preset_name.substr(preset_name.find_first_not_of(' ')); //remove the name prefix space
-    size_t index_at = vendor_name.find(" ");
-    if (std::string::npos == index_at) {
-        return vendor_name;
-    } else {
-        vendor_name = vendor_name.substr(0, index_at);
-        return vendor_name;
+    if (!preset) return "";
+    assert(preset->type == Preset::Type::TYPE_FILAMENT || preset->type == Preset::Type::TYPE_PRINTER);
+    if (preset->type != Preset::Type::TYPE_FILAMENT && preset->type != Preset::Type::TYPE_PRINTER) return "";
+
+    if (preset->type == Preset::Type::TYPE_FILAMENT) {
+        auto vender = preset->config.option<ConfigOptionStrings>("filament_vendor");
+        if (vender && vender->values.size()) return vender->values[0];
     }
+    
+    if (preset->type == Preset::Type::TYPE_PRINTER) {
+        auto vender = preset->config.option<ConfigOptionStrings>("printer_model");
+        if (vender && vender->values.size()) return vender->values[0];
+    }
+
+    assert(false);
+    auto preset_name = preset->name;
+    int  index       = preset_name.find_first_of(' ');
+    if (std::string::npos == index)
+        return preset_name;
+    else
+        return preset_name.substr(0, index);
 }
 
 static wxBoxSizer *create_select_filament_preset_checkbox(wxWindow *                                    parent,
@@ -3931,20 +3943,20 @@ ExportConfigsDialog::ExportCase ExportConfigsDialog::archive_filament_bundle_to_
                 continue;
             }
             std::set<std::pair<std::string, std::string>> vendor_to_filament_name;
-            for (std::pair<std::string, Preset *> printer_name_to_preset : iter->second) {
-                std::string printer_vendor = printer_name_to_preset.first;
-                if (printer_vendor.empty()) continue;
-                Preset *    filament_preset = printer_name_to_preset.second;
+            for (std::pair<std::string, Preset *> filament_vendor_to_preset : iter->second) {
+                std::string filament_vendor = filament_vendor_to_preset.first;
+                if (filament_vendor.empty()) continue;
+                Preset *filament_preset = filament_vendor_to_preset.second;
                 if (preset_is_not_compatible_bbl_printer(filament_preset)) continue;
-                if (vendor_to_filament_name.find(std::make_pair(printer_vendor, filament_preset->name)) != vendor_to_filament_name.end()) continue;
-                vendor_to_filament_name.insert(std::make_pair(printer_vendor, filament_preset->name));
+                if (vendor_to_filament_name.find(std::make_pair(filament_vendor, filament_preset->name)) != vendor_to_filament_name.end()) continue;
+                vendor_to_filament_name.insert(std::make_pair(filament_vendor, filament_preset->name));
                 std::string preset_path     = boost::filesystem::path(filament_preset->file).make_preferred().string();
                 if (preset_path.empty()) {
                     BOOST_LOG_TRIVIAL(info) << "Export printer preset: " << filament_preset->name << " skip because of the preset file path is empty.";
                     continue;
                 }
                 // Add a file to the ZIP file
-                std::string file_name = printer_vendor + "/" + filament_preset->name + ".json";
+                std::string file_name = filament_vendor + "/" + filament_preset->name + ".json";
                 status                = mz_zip_writer_add_file(&zip_archive, file_name.c_str(), encode_path(preset_path.c_str()).c_str(), NULL, 0, MZ_DEFAULT_COMPRESSION);
                 // status = mz_zip_writer_add_mem(&zip_archive, ("printer/" + printer_preset->name + ".json").c_str(), json_contents, strlen(json_contents), MZ_DEFAULT_COMPRESSION);
                 if (MZ_FALSE == status) {
@@ -3952,11 +3964,11 @@ ExportConfigsDialog::ExportCase ExportConfigsDialog::archive_filament_bundle_to_
                     mz_zip_writer_end(&zip_archive);
                     return ExportCase::ADD_FILE_FAIL;
                 }
-                std::unordered_map<std::string, json>::iterator iter = vendor_structure.find(printer_vendor);
+                std::unordered_map<std::string, json>::iterator iter = vendor_structure.find(filament_vendor);
                 if (vendor_structure.end() == iter) {
                     json j = json::array();
                     j.push_back(file_name);
-                    vendor_structure[printer_vendor] = j;
+                    vendor_structure[filament_vendor] = j;
                 } else {
                     iter->second.push_back(file_name);
                 }
@@ -3965,10 +3977,10 @@ ExportConfigsDialog::ExportCase ExportConfigsDialog::archive_filament_bundle_to_
             
             for (const std::pair<std::string, json>& vendor_name_to_json : vendor_structure) {
                 json j;
-                std::string printer_vendor = vendor_name_to_json.first;
-                j["vendor"]                = printer_vendor;
+                std::string filament_vendor = vendor_name_to_json.first;
+                j["vendor"]                 = filament_vendor;
                 j["filament_path"]         = vendor_name_to_json.second;
-                bundle_structure["printer_vendor"].push_back(j);
+                bundle_structure["filament_vendor"].push_back(j);
             }
 
             std::string bundle_structure_str = create_structure_file(bundle_structure);
@@ -4277,7 +4289,7 @@ void ExportConfigsDialog::data_init()
 
         std::string filament_preset_name = base_filament_preset->name;
         std::string machine_name         = get_machine_name(filament_preset_name);
-        m_filament_name_to_presets[get_filament_name(filament_preset_name)].push_back(std::make_pair(get_vendor_name(machine_name), new_filament_preset));
+        m_filament_name_to_presets[get_filament_name(filament_preset_name)].push_back(std::make_pair(get_vendor_name(new_filament_preset), new_filament_preset));
     }
 }
 
