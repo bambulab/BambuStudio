@@ -1467,7 +1467,7 @@ public:
 class ModelDesignInfo
 {
 public:
-    std::string DesignId;               // DisignId for Model
+    std::string DesignerId;             // DisignId for Model
     std::string Designer;               // Designer nickname in utf8
     std::string DesignerUserId;         // Designer user_id string
 };
@@ -1517,6 +1517,7 @@ public:
 
     // DesignInfo of Model
     std::string stl_design_id;
+    std::string design_id;
     std::string stl_design_country;
     std::shared_ptr<ModelDesignInfo> design_info = nullptr;
     std::shared_ptr<ModelInfo> model_info = nullptr;
