@@ -139,6 +139,8 @@ void PartPlate::init()
 
 	m_print_index = -1;
 	m_print = nullptr;
+
+	m_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true);
 }
 
 BedType PartPlate::get_bed_type(bool load_from_project) const
@@ -2827,6 +2829,53 @@ std::map<std::string, std::string> PartPlate::get_diff_plate_setting()
 	return out;
 }
 
+FilamentMapMode PartPlate::get_filament_map_mode()
+{
+	return m_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true)->value;
+}
+
+void PartPlate::set_filament_map_mode(FilamentMapMode& mode)
+{
+	m_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true)->value = mode;
+}
+
+std::vector<int> PartPlate::get_filament_maps()
+{
+    std::vector<int>& filament_maps = m_config.option<ConfigOptionInts>("filament_map", true)->values;
+
+    return filament_maps;
+}
+
+void PartPlate::set_filament_maps(std::vector<int>& f_maps)
+{
+    std::vector<int>& filament_maps = m_config.option<ConfigOptionInts>("filament_map", true)->values;
+
+    filament_maps = f_maps;
+}
+
+void PartPlate::set_filament_count(int filament_count)
+{
+    std::vector<int>& filament_maps = m_config.option<ConfigOptionInts>("filament_map", true)->values;
+    filament_maps.resize(filament_count, 1);
+}
+
+void PartPlate::on_filament_added()
+{
+    std::vector<int>& filament_maps = m_config.option<ConfigOptionInts>("filament_map", true)->values;
+    filament_maps.push_back(1);
+}
+
+
+void PartPlate::on_filament_deleted(int filament_count, int filament_id)
+{
+    std::vector<int>& filament_maps = m_config.option<ConfigOptionInts>("filament_map", true)->values;
+
+    filament_maps.erase(filament_maps.begin()+filament_id);
+
+    update_first_layer_print_sequence_when_delete_filament(filament_id);
+}
+
+
 /* PartPlate List related functions*/
 PartPlateList::PartPlateList(int width, int depth, int height, Plater* platerObj, Model* modelObj, PrinterTechnology tech)
 	:m_plate_width(width), m_plate_depth(depth), m_plate_height(height), m_plater(platerObj), m_model(modelObj), printer_technology(tech),
@@ -3521,8 +3570,10 @@ void PartPlateList::reset(bool do_init)
 
 	//m_plate_list.clear();
 
-	if (do_init)
+	if (do_init) {
 		init();
+		m_plate_list[0]->set_filament_count(m_filament_count);
+	}
 
 	return;
 }
@@ -3533,6 +3584,8 @@ void PartPlateList::reinit()
 	clear(true, true);
 
 	init();
+
+	m_plate_list[0]->set_filament_count(m_filament_count);
 
 	//reset plate 0's position
 	Vec2d pos = compute_shape_position(0, m_plate_cols);
@@ -3578,6 +3631,8 @@ int PartPlateList::create_plate(bool adjust_position)
 		plate->set_print(print, gcode, m_print_index);
 		m_print_index++;
 	}
+
+	plate->set_filament_count(m_filament_count);
 
 	plate->set_index(new_index);
 	Vec2d pos = compute_shape_position(new_index, cols);
@@ -5493,7 +5548,7 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
 	return ret;
 }
 
-int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list)
+int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list, int filament_count)
 {
 	int ret = 0;
 
@@ -5503,6 +5558,7 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list)
 		return -1;
 	}
 	clear(true, true);
+	set_filament_count(filament_count);
 	for (unsigned int i = 0; i < (unsigned int)plate_data_list.size(); ++i)
 	{
 		int index = create_plate(false);
@@ -5852,6 +5908,36 @@ void PartPlateList::load_cali_textures()
 		}
 	}
 	PartPlateList::is_load_cali_texture = true;
+}
+
+void PartPlateList::set_filament_count(int filament_count)
+{
+    m_filament_count = filament_count;
+    for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
+    {
+        m_plate_list[i]->set_filament_count(filament_count);
+    }
+    BOOST_LOG_TRIVIAL(info) << boost::format("%1%: filament_count=%2%")% __FUNCTION__ %filament_count;
+}
+
+void PartPlateList::on_filament_added(int filament_count)
+{
+    m_filament_count++;
+    for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
+    {
+        m_plate_list[i]->on_filament_added();
+    }
+    BOOST_LOG_TRIVIAL(info) << boost::format("%1%: filament_count=%2%")% __FUNCTION__ %filament_count;
+}
+
+void PartPlateList::on_filament_deleted(int filament_count, int filament_id)
+{
+    m_filament_count--;
+    for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
+    {
+        m_plate_list[i]->on_filament_deleted(filament_count, filament_id);
+    }
+    BOOST_LOG_TRIVIAL(info) << boost::format("%1%: filament_count=%2%, filament_id=%3%")% __FUNCTION__ %filament_count %filament_id;
 }
 
 }//end namespace GUI
