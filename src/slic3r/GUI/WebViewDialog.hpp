@@ -96,7 +96,7 @@ public:
 public:
     void ResetWholePage();
 
-    void SetMakerworldModelID(std::string ModelID) { m_online_spec_id = ModelID; }
+    void SetMakerworldModelID(std::string ModelID);
     void SwitchWebContent(std::string modelname, int refresh=0);
     void SwitchLeftMenu(std::string strMenu);
     void OpenOneMakerlab(std::string url);
@@ -131,6 +131,7 @@ private:
 
     wxBoxSizer *topsizer;
 
+    int         m_loginstatus;
     wxBoxSizer* m_home_web;
     wxWebView* m_browser;
     wxWebView* m_browserLeft;
@@ -138,7 +139,7 @@ private:
     std::string m_contentname;
     bool        m_leftfirst;          //Left First Loaded
     bool        m_onlinefirst;        //Online Page First Load
-    std::string m_online_spec_id;     //Online Page Spec_ID
+    //std::string m_online_spec_id;     // Online Page Spec_ID
     wxString    m_online_type;        //recommend & browse
     wxString    m_online_LastUrl;     //PageLastError Url
 
