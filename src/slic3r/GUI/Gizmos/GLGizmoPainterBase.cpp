@@ -156,6 +156,10 @@ void GLGizmoPainterBase::render_cursor() const
     else {
         m_rr.mouse_position = m_parent.get_local_mouse_position();
     }
+    if (is_mouse_hit_in_imgui()) {
+        m_rr.mesh_id = -1;
+        return;
+    }
     if (m_rr.mesh_id == -1) {
         m_is_cursor_in_imgui = false;
         m_x_for_height_input = -1;
@@ -689,6 +693,10 @@ std::vector<GLGizmoPainterBase::ProjectedHeightRange> GLGizmoPainterBase::get_pr
 bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down)
 {
     Vec2d _mouse_position = mouse_position;
+    if (is_mouse_hit_in_imgui()) {
+        m_rr.mesh_id = -1;
+        return false;
+    }
     if (action == SLAGizmoEventType::MouseWheelUp
      || action == SLAGizmoEventType::MouseWheelDown) {
         if (control_down) {
@@ -1098,6 +1106,14 @@ CommonGizmosDataID GLGizmoPainterBase::on_get_requirements() const
               | int(CommonGizmosDataID::ObjectClipper));
 }
 
+bool GLGizmoPainterBase::is_mouse_hit_in_imgui() const
+{
+    if (m_rr.mouse_position[0] >= m_imgui_start_pos[0] && m_rr.mouse_position[1] >= m_imgui_start_pos[1]&&
+        m_rr.mouse_position[0] <= m_imgui_end_pos[0] && m_rr.mouse_position[1] <= m_imgui_end_pos[1]) {
+        return true;
+    }
+    return false;
+}
 
 void GLGizmoPainterBase::on_set_state()
 {
