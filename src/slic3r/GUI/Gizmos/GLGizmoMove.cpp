@@ -32,6 +32,12 @@ GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent, const std::string& icon_filenam
     , m_object_manipulation(obj_manipulation)
 {
     m_vbo_cone.init_from(its_make_cone(1., 1., 2*PI/36));
+    try {
+        float value                             = std::stof(wxGetApp().app_config->get("grabber_size_factor"));
+        GLGizmoBase::Grabber::GrabberSizeFactor = value;
+    } catch (const std::invalid_argument &e) {
+        GLGizmoBase::Grabber::GrabberSizeFactor = 1.0f;
+    }
 }
 
 std::string GLGizmoMove3D::get_tooltip() const
@@ -131,7 +137,7 @@ void GLGizmoMove3D::on_render()
     }
     m_orient_matrix                 = box_trafo;
     float space_size = 20.f *INV_ZOOM;
-
+    space_size *= GLGizmoBase::Grabber::GrabberSizeFactor;
 #if ENABLE_FIXED_GRABBER
     // x axis
     m_grabbers[0].center = {m_bounding_box.max.x() + space_size, 0, 0};
@@ -183,7 +189,7 @@ void GLGizmoMove3D::on_render()
     }
     glsafe(::glPopMatrix());
 
-    if (!selection.is_multiple_full_object()) {
+    if (m_object_manipulation->is_instance_coordinates()) {
         glsafe(::glPushMatrix());
         Geometry::Transformation cur_tran;
         if (auto mi = m_parent.get_selection().get_selected_single_intance()) {
@@ -256,14 +262,8 @@ double GLGizmoMove3D::calc_projection(const UpdateData& data) const
 
 void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box, bool picking) const
 {
-#if ENABLE_FIXED_GRABBER
-    float mean_size = (float)(GLGizmoBase::Grabber::FixedGrabberSize);
-#else
-    float mean_size = (float)((box.size().x() + box.size().y() + box.size().z()) / 3.0);
-#endif
-
     double size = 0.75 * GLGizmoBase::Grabber::FixedGrabberSize * GLGizmoBase::INV_ZOOM;
-
+    size                       = size * GLGizmoBase::Grabber::GrabberSizeFactor;
     std::array<float, 4> color = m_grabbers[axis].color;
     if (!picking && m_hover_id != -1) {
         if (m_hover_id == axis) {

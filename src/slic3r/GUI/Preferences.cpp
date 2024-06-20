@@ -16,7 +16,7 @@
 #include "Widgets/TextInput.hpp"
 #include <wx/listimpl.cpp>
 #include <map>
-
+#include "Gizmos/GLGizmoBase.hpp"
 #ifdef __WINDOWS__
 #ifdef _MSW_DARK_MODE
 #include "dark_mode.hpp"
@@ -466,6 +466,63 @@ wxBoxSizer *PreferencesDialog::create_item_input(wxString title, wxString title2
         app_config->set(param, std::string(value.mb_str()));
         app_config->save();
         onchange(value);
+        e.Skip();
+    });
+
+    return sizer_input;
+}
+
+wxBoxSizer *PreferencesDialog::create_item_range_input(
+    wxString title, wxWindow *parent, wxString tooltip, std::string param, float range_min, float range_max, int keep_digital, std::function<void(wxString)> onchange)
+{
+    wxBoxSizer *sizer_input = new wxBoxSizer(wxHORIZONTAL);
+    auto        input_title = new wxStaticText(parent, wxID_ANY, title);
+    input_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    input_title->SetFont(::Label::Body_13);
+    input_title->SetToolTip(tooltip);
+    input_title->Wrap(-1);
+
+    auto float_value = std::atof(app_config->get(param).c_str());
+    if (float_value < range_min || float_value > range_max) {
+        float_value = range_min;
+        app_config->set(param, std::to_string(range_min));
+        app_config->save();
+    }
+    auto       input = new ::TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, DESIGN_INPUT_SIZE, wxTE_PROCESS_ENTER);
+    StateColor input_bg(std::pair<wxColour, int>(wxColour("#F0F0F1"), StateColor::Disabled), std::pair<wxColour, int>(*wxWHITE, StateColor::Enabled));
+    input->SetBackgroundColor(input_bg);
+    input->GetTextCtrl()->SetValue(app_config->get(param));
+    wxTextValidator validator(wxFILTER_NUMERIC);
+    input->GetTextCtrl()->SetValidator(validator);
+
+    sizer_input->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
+    sizer_input->Add(input_title, 0, wxALIGN_CENTER_VERTICAL | wxALL, 3);
+    sizer_input->Add(input, 0, wxALIGN_CENTER_VERTICAL, 0);
+    auto format_str=[](int keep_digital,float val){
+        std::stringstream ss;
+        ss << std::fixed << std::setprecision(keep_digital) << val;
+        return ss.str();
+    };
+    auto set_value_to_app = [this, param, onchange, input, range_min, range_max, format_str, keep_digital](float value, bool update_slider) {
+        if (value < range_min) { value = range_min; }
+        if (value > range_max) { value = range_max; }
+        auto str = format_str(keep_digital, value);
+        app_config->set(param, str);
+        app_config->save();
+        if (onchange) {
+            onchange(str);
+        }
+        input->GetTextCtrl()->SetValue(str);
+    };
+    input->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this, set_value_to_app, input](wxCommandEvent &e) {
+        auto value = std::atof(input->GetTextCtrl()->GetValue().c_str());
+        set_value_to_app(value,true);
+        e.Skip();
+    });
+
+    input->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [this, set_value_to_app, input](wxFocusEvent &e) {
+        auto value = std::atof(input->GetTextCtrl()->GetValue().c_str());
+        set_value_to_app(value, true);
         e.Skip();
     });
 
@@ -1039,7 +1096,6 @@ wxWindow* PreferencesDialog::create_general_page()
 #endif
         50, "single_instance");
 
-    auto item_mouse_zoom_settings = create_item_checkbox(_L("Zoom to mouse position"), page, _L("Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."), 50, "zoom_to_mouse");
     auto item_bed_type_follow_preset = create_item_checkbox(_L("Auto plate type"), page,
                                                          _L("Studio will remember build plate selected last time for certain printer model."), 50,
                                                          "user_bed_type");
@@ -1047,6 +1103,21 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_calc_mode = create_item_checkbox(_L("Flushing volumes: Auto-calculate every time when the color is changed."), page, _L("If enabled, auto-calculate every time when the color is changed."), 50, "auto_calculate");
     auto item_calc_in_long_retract = create_item_checkbox(_L("Flushing volumes: Auto-calculate every time when the filament is changed."), page, _L("If enabled, auto-calculate every time when filament is changed"), 50, "auto_calculate_when_filament_change");
     auto item_multi_machine = create_item_checkbox(_L("Multi-device Management(Take effect after restarting Studio)."), page, _L("With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."), 50, "enable_multi_machine");
+    auto _3d_settings    = create_item_title(_L("3D Settings"), page, _L("3D Settings"));
+    auto item_mouse_zoom_settings  = create_item_checkbox(_L("Zoom to mouse position"), page,
+                                                         _L("Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."), 50,
+                                                         "zoom_to_mouse");
+    float range_min = 1.0, range_max = 2.5;
+    auto item_grabber_size_settings = create_item_range_input(_L("Grabber scale"), page,
+                                                              _L("Set grabber size for move,rotate,scale tool.") + _L("Value range") + ":[" + std::to_string(range_min) + "," +
+                                                                  std::to_string(range_max) +
+                                                                  "]","grabber_size_factor", range_min, range_max, 1,
+        [](wxString value) {
+            double d_value = 0;
+            if (value.ToDouble(&d_value)) {
+                GLGizmoBase::Grabber::GrabberSizeFactor = d_value;
+            }
+        });
     auto title_presets = create_item_title(_L("Presets"), page, _L("Presets"));
     auto item_user_sync        = create_item_checkbox(_L("Auto sync user presets(Printer/Filament/Process)"), page, _L("User Sync"), 50, "sync_user_preset");
     auto item_system_sync        = create_item_checkbox(_L("Update built-in Presets automatically."), page, _L("System Sync"), 50, "sync_system_preset");
@@ -1110,12 +1181,14 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_region, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_currency, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_single_instance, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_mouse_zoom_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_bed_type_follow_preset, 0, wxTOP, FromDIP(3));
     //sizer_page->Add(item_hints, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_calc_mode, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_calc_in_long_retract, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_multi_machine, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(_3d_settings, 0, wxTOP | wxEXPAND, FromDIP(20));
+    sizer_page->Add(item_mouse_zoom_settings, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_grabber_size_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(title_presets, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_user_sync, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_system_sync, 0, wxTOP, FromDIP(3));

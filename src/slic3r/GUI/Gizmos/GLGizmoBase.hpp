@@ -61,13 +61,14 @@ public:
     static void update_render_colors();
     static void load_render_colors();
 
-protected:
+
     struct Grabber
     {
         static const float SizeFactor;
         static const float MinHalfSize;
         static const float DraggingScaleFactor;
         static const float FixedGrabberSize;
+        static float       GrabberSizeFactor;
         static const float FixedRadiusSize;
 
         Vec3d center;
