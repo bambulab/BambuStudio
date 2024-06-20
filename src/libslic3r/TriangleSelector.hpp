@@ -276,7 +276,10 @@ public:
     std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> serialize() const;
 
     // Load serialized data. Assumes that correct mesh is loaded.
-    void deserialize(const std::pair<std::vector<std::pair<int, int>>, std::vector<bool>>& data, bool needs_reset = true, EnforcerBlockerType max_ebt = EnforcerBlockerType::ExtruderMax);
+    void deserialize(const std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> &data,
+                     bool                                                                  needs_reset = true,
+                     EnforcerBlockerType                                                   max_ebt     = EnforcerBlockerType::ExtruderMax,
+                     EnforcerBlockerType                                                   to_delete_filament = EnforcerBlockerType::NONE);
 
     // For all triangles, remove the flag indicating that the triangle was selected by seed fill.
     void seed_fill_unselect_all_triangles();
