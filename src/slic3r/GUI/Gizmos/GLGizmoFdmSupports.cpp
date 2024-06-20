@@ -220,7 +220,8 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     init_print_instance();
     if (! m_c->selection_info()->model_object())
         return;
-
+    m_imgui_start_pos[0] = x;
+    m_imgui_start_pos[1] = y;
     // BBS
     wchar_t old_tool = m_current_tool;
 
@@ -494,7 +495,8 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         m_parent.set_as_dirty();
     }
     ImGui::PopStyleVar(2);
-
+    m_imgui_end_pos[0] = m_imgui_start_pos[0] + ImGui::GetWindowWidth();
+    m_imgui_end_pos[1] = m_imgui_start_pos[1] + ImGui::GetWindowHeight();
     GizmoImguiEnd();
 
     // BBS
