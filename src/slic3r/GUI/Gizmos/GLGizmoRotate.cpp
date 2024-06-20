@@ -315,8 +315,7 @@ void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
 void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool picking) const
 {
     double size = 0.75 * GLGizmoBase::Grabber::FixedGrabberSize * GLGizmoBase::INV_ZOOM;
-    //float mean_size = (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0);
-    //double size = m_dragging ? (double)m_grabbers[0].get_dragging_half_size(mean_size) : (double)m_grabbers[0].get_half_size(mean_size);
+    size        = size * GLGizmoBase::Grabber::GrabberSizeFactor;
 
     std::array<float, 4> color = m_grabbers[0].color;
     if (!picking && m_hover_id != -1) {

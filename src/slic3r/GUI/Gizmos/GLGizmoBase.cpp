@@ -18,6 +18,7 @@ const float GLGizmoBase::Grabber::SizeFactor = 0.05f;
 const float GLGizmoBase::Grabber::MinHalfSize = 4.0f;
 const float GLGizmoBase::Grabber::DraggingScaleFactor = 1.25f;
 const float GLGizmoBase::Grabber::FixedGrabberSize = 16.0f;
+float       GLGizmoBase::Grabber::GrabberSizeFactor   = 1.0f;
 const float GLGizmoBase::Grabber::FixedRadiusSize = 80.0f;
 
 
@@ -130,7 +131,7 @@ void GLGizmoBase::Grabber::render(float size, const std::array<float, 4>& render
     if (GLGizmoBase::INV_ZOOM > 0) {
         fullsize = FixedGrabberSize * GLGizmoBase::INV_ZOOM;
     }
-
+    fullsize = fullsize * Grabber::GrabberSizeFactor;
 
     const_cast<GLModel*>(&cube)->set_color(-1, render_color);
 
