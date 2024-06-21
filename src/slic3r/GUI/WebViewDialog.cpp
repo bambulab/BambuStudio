@@ -35,6 +35,9 @@ namespace GUI {
 WebViewPanel::WebViewPanel(wxWindow *parent)
         : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
  {
+    m_Region = wxGetApp().app_config->get_country_code();
+    m_loginstatus = -1;
+
     wxString UrlLeft = wxString::Format("file://%s/web/homepage3/left.html", from_u8(resources_dir()));
     wxString UrlRight = wxString::Format("file://%s/web/homepage3/home.html", from_u8(resources_dir()));
 
@@ -96,21 +99,18 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
         wxLogError("Could not init m_browser");
         return;
     }
-    m_onlinefirst = false;
-    m_online_spec_id   = "";
 
-    auto host = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
-    std::string mwurl  = (boost::format("%1%studio/webview?from=bambustudio") % host ).str();
-    m_browserMW       = WebView::CreateWebView(this, mwurl);
+    m_browserMW       = WebView::CreateWebView(this, "about:blank");
     if (m_browserMW == nullptr) {
         wxLogError("Could not init  m_browserMW");
         return;
     } 
     m_browserMW->Hide();
+    SetMakerworldModelID("");
+    m_onlinefirst    = false;
 
     m_leftfirst   = false;
     m_browserLeft = WebView::CreateWebView(this, UrlLeft);
-    //m_browserLeft = WebView::CreateWebView(this, "https://www.163.com");
     if (m_browserLeft == nullptr) {
         wxLogError("Could not init m_browser");
         return;
@@ -269,6 +269,11 @@ WebViewPanel::~WebViewPanel()
 
 void WebViewPanel::ResetWholePage() 
 { 
+    std::string tmp_Region = wxGetApp().app_config->get_country_code();
+    if (tmp_Region == m_Region) return;
+    
+    m_Region = tmp_Region;
+
     //left
     if (m_browserLeft != nullptr && m_leftfirst) m_browserLeft->Reload();
 
@@ -281,10 +286,8 @@ void WebViewPanel::ResetWholePage()
     RunScript(strJS);
 
     //online
-    m_online_spec_id  = "";
-    auto host  = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
-    std::string mwurl = (boost::format("%1%studio/webview?from=bambustudio") % host).str();
-    m_browserMW->LoadURL(mwurl);
+    SetMakerworldModelID("");
+    m_onlinefirst = false;
 }
 
 void WebViewPanel::load_url(wxString& url)
@@ -470,8 +473,6 @@ void WebViewPanel::OnClose(wxCloseEvent& evt)
 
 void WebViewPanel::OnFreshLoginStatus(wxTimerEvent &event)
 {
-    static int loginstatus = -1;
-
     //wxString mwnow = m_browserMW->GetCurrentURL();
 
     auto mainframe = Slic3r::GUI::wxGetApp().mainframe;
@@ -479,17 +480,19 @@ void WebViewPanel::OnFreshLoginStatus(wxTimerEvent &event)
         Slic3r::GUI::wxGetApp().get_login_info();
 
     if (wxGetApp().is_user_login()) { 
-        if (loginstatus != 1) 
+        if (m_loginstatus != 1) 
         { 
-            loginstatus = 1;
+            m_loginstatus = 1;
 
-            UpdateMakerworldLoginStatus();
+            if (m_onlinefirst)
+                UpdateMakerworldLoginStatus();
         }
     } else {
-        if (loginstatus != 0) {
-            loginstatus = 0;
+        if (m_loginstatus != 0) {
+            m_loginstatus = 0;
 
-            SetMakerworldPageLoginStatus(false);
+            if (m_onlinefirst)
+                SetMakerworldPageLoginStatus(false);
         }    
     }
 }
@@ -660,7 +663,7 @@ void WebViewPanel::OpenModelDetail(std::string id, NetworkAgent *agent)
 { 
     SwitchLeftMenu("online"); 
 
-    m_online_spec_id = id;
+    SetMakerworldModelID(id);
 }
 
 
@@ -804,16 +807,8 @@ void WebViewPanel::SetMakerworldPageLoginStatus(bool login ,wxString ticket)
     if (m_browserMW == nullptr) return;
     
     wxString mw_currenturl;
-    if (m_online_spec_id != "") {
-        auto host = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
-
-        wxString language_code = wxGetApp().current_language_code().BeforeFirst('_');
-        language_code          = language_code.ToStdString();
-
-        mw_currenturl = (boost::format("%1%%2%/studio/webview?modelid=%3%&from=%4%") % host % language_code.mb_str() % m_online_spec_id % m_online_type.mb_str()).str();
-
-        m_onlinefirst = true;
-        m_online_spec_id = "";
+    if (m_online_LastUrl != "") {
+        mw_currenturl = m_online_LastUrl;
     } else {
         mw_currenturl = m_browserMW->GetCurrentURL();
         mw_currenturl.Replace("modelid=", "");
@@ -823,8 +818,10 @@ void WebViewPanel::SetMakerworldPageLoginStatus(bool login ,wxString ticket)
     wxString mw_jumpurl = "";
 
     bool b = GetJumpUrl(login, ticket, mw_currenturl, mw_jumpurl);
-    if (b)
+    if (b) { 
         m_browserMW->LoadURL(mw_jumpurl);
+        m_online_LastUrl = "";
+    }
 }
 
 
@@ -928,11 +925,11 @@ void WebViewPanel::OnNavigationRequest(wxWebViewEvent& evt)
 void WebViewPanel::OnNavigationComplete(wxWebViewEvent& evt)
 {
     if (m_browserMW!=nullptr && evt.GetId() == m_browserMW->GetId()) 
-    { 
-        auto host = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
-        if(m_browserMW->GetCurrentURL().Contains(host))
-            m_onlinefirst = true;
-        
+    {    
+        std::string TmpNowUrl = m_browserMW->GetCurrentURL().ToStdString();
+        std::string mwHost    = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
+        if (TmpNowUrl.find(mwHost) != std::string::npos) m_onlinefirst = true;
+
         if (m_contentname == "online") { // conf save
             SetWebviewShow("right", false); 
             SetWebviewShow("online", true);
@@ -1239,6 +1236,8 @@ void WebViewPanel::OnSelectAll(wxCommandEvent& WXUNUSED(evt))
     */
 void WebViewPanel::OnError(wxWebViewEvent& evt)
 {
+    BOOST_LOG_TRIVIAL(info) << "HomePage OnError, Url = " << evt.GetURL() << " , Message: "<<evt.GetString();
+
 #define WX_ERROR_CASE(type) \
     case type: \
     category = #type; \
@@ -1268,8 +1267,7 @@ void WebViewPanel::OnError(wxWebViewEvent& evt)
     //m_info->ShowMessage(_L("An error occurred loading ") + evt.GetURL() + "\n" + "'" + category + "'", wxICON_ERROR);
 
     if (evt.GetInt() == wxWEBVIEW_NAV_ERR_CONNECTION && evt.GetId() == m_browserMW->GetId()) 
-    {
-        m_onlinefirst = false;
+    {        
         m_online_LastUrl = m_browserMW->GetCurrentURL();
 
         if (m_contentname == "online") 
@@ -1291,6 +1289,19 @@ void WebViewPanel::OnError(wxWebViewEvent& evt)
     }
 
     UpdateState();
+}
+
+void WebViewPanel::SetMakerworldModelID(std::string ModelID) 
+{
+    auto host = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
+
+    wxString language_code = wxGetApp().current_language_code().BeforeFirst('_');
+    language_code          = language_code.ToStdString();
+
+    if (ModelID != "")
+        m_online_LastUrl = (boost::format("%1%%2%/studio/webview?modelid=%3%&from=bambustudio") % host % language_code.mb_str() % ModelID).str();
+    else
+        m_online_LastUrl = (boost::format("%1%%2%/studio/webview?from=bambustudio") % host % language_code.mb_str()).str();
 }
 
 void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
@@ -1322,40 +1333,25 @@ void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
 
         return;
     } else if (modelname.compare("online") == 0) {
-        if (m_online_spec_id != "") {
-            auto host = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
 
-            wxString language_code = wxGetApp().current_language_code().BeforeFirst('_');
-            language_code          = language_code.ToStdString();
-
-            std::string mwurl = (boost::format("%1%%2%/studio/webview?modelid=%3%&from=%4%") % host % language_code.mb_str() % m_online_spec_id % m_online_type.mb_str()).str();
-
-            m_onlinefirst = true;
-            m_browserMW->LoadURL(mwurl);
-
-            SetWebviewShow("online", true);
-            SetWebviewShow("right", false);
-
-            m_online_spec_id = "";
-        } else {
-            if (m_onlinefirst == false) {
-                refresh       = 1; // Force Refresh
-
-                if (m_online_LastUrl != "") { 
-                    m_browserMW->LoadURL(m_online_LastUrl); 
-                    m_online_LastUrl = "";                
-                } 
-                else
-                    m_browserMW->Reload();
+        if (!m_onlinefirst) {
+            if (m_loginstatus == 1) {
+                UpdateMakerworldLoginStatus();
             } else {
-                if (refresh == 1)
-                    m_browserMW->Reload();
-                else {
-                    SetWebviewShow("online", true);
-                    SetWebviewShow("right", false);
-                }
+                SetMakerworldPageLoginStatus(false);
+            }
+        } else {
+            if (m_online_LastUrl != "") {
+                m_browserMW->LoadURL(m_online_LastUrl);
+
+                m_online_LastUrl = "";
+            } else {
+                //m_browserMW->Reload();
             }
         }
+
+        SetWebviewShow("online", true);
+        SetWebviewShow("right", false);
 
         GetSizer()->Layout();
 
