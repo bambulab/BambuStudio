@@ -262,7 +262,6 @@ void MediaPlayCtrl::Play()
         return;
     }
 
-    m_button_play->SetIcon("media_stop");
     NetworkAgent *agent = wxGetApp().getAgent();
     std::string  agent_version = agent ? agent->get_version() : "";
     if (m_lan_proto > MachineObject::LVL_Disable && (m_lan_mode || !m_remote_support) && !m_disable_lan && !m_lan_ip.empty()) {
@@ -282,6 +281,7 @@ void MediaPlayCtrl::Play()
         BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: " << hide_passwd(hide_id_middle_string(url, url.find(m_lan_ip), m_lan_ip.length()), {m_lan_passwd});
         m_url = url;
         load();
+        m_button_play->SetIcon("media_stop");
         return;
     }
 
@@ -303,6 +303,7 @@ void MediaPlayCtrl::Play()
     m_disable_lan = false;
     m_failed_code = 0;
     m_last_state  = MEDIASTATE_INITIALIZING;
+    m_button_play->SetIcon("media_stop");
     
     if (!m_remote_support) { // not support tutk
         m_failed_code = -1;
@@ -392,7 +393,7 @@ void MediaPlayCtrl::Stop(wxString const &msg)
     }
 
     auto tunnel = m_url.empty() ? "" : into_u8(wxURI(m_url).GetPath()).substr(1);
-    if (auto n = tunnel.find_first_of('/_'); n != std::string::npos)
+    if (auto n = tunnel.find_first_of("/_"); n != std::string::npos)
         tunnel = tunnel.substr(0, n);
     if (last_state != wxMEDIASTATE_PLAYING && m_failed_code != 0 
             && m_last_failed_codes.find(m_failed_code) == m_last_failed_codes.end()
@@ -626,7 +627,7 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
             j["result"] = "success";
             j["code"] = 0;
             auto tunnel = into_u8(wxURI(m_url).GetPath()).substr(1);
-            if (auto n = tunnel.find_first_of('/_'); n != std::string::npos)
+            if (auto n = tunnel.find_first_of("/_"); n != std::string::npos)
                 tunnel = tunnel.substr(0, n);
             j["tunnel"]         = tunnel;
             if (tunnel == "tutk") {
