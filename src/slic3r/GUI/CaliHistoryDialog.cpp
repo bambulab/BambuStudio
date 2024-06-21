@@ -279,6 +279,19 @@ void HistoryWindow::sync_history_data() {
     title_action->SetFont(Label::Head_14);
     gbSizer->Add(title_action, { 0, 3 }, { 1, 1 });
 
+    auto to_lower_case = [](const std::string &str) {
+        std::string lowerStr = str;
+        std::transform(lowerStr.begin(), lowerStr.end(), lowerStr.begin(), [](unsigned char c) {
+            return std::tolower(c);
+        });
+        return lowerStr;
+    };
+
+    std::sort(m_calib_results_history.begin(), m_calib_results_history.end(), [&to_lower_case](const PACalibResult &left, const PACalibResult &right) {
+        std::string left_str = to_lower_case(left.name);
+        std::string right_str = to_lower_case(right.name);
+        return left_str < right_str ? true : left_str > right_str ? false : (left_str < right_str);
+    });
     int i = 1;
     for (auto& result : m_calib_results_history) {
         auto name_value = new Label(m_history_data_panel, from_u8(result.name));
