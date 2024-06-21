@@ -80,7 +80,10 @@ public:
     //BBS: get vendor's current version
     Semver get_vendor_profile_version(std::string vendor_name);
 
+    // Whether using bbl network for print upload
     bool use_bbl_network();
+    // Whether using bbl's device tab
+    bool use_bbl_device_tab();
 
     //BBS: project embedded preset logic
     PresetsConfigSubstitutions load_project_embedded_presets(std::vector<Preset*> project_presets, ForwardCompatibilitySubstitutionRule substitution_rule);

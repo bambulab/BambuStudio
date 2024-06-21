@@ -20,6 +20,7 @@
 #include "Repetier.hpp"
 #include "MKS.hpp"
 #include "../GUI/PrintHostDialogs.hpp"
+#include "../GUI/MainFrame.hpp"
 #include "SimplyPrint.hpp"
 
 namespace fs = boost::filesystem;
@@ -265,6 +266,10 @@ void PrintHostJobQueue::priv::perform_job(PrintHostJob the_job)
 
     if (success) {
         emit_progress(100);
+        if (the_job.switch_to_device_tab) {
+            const auto mainframe = GUI::wxGetApp().mainframe;
+            mainframe->request_select_tab(MainFrame::TabPosition::tpMonitor);
+        }
     }
 }
 
