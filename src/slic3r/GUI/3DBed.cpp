@@ -637,7 +637,7 @@ GeometryBuffer Bed3D::update_bed_triangles() const
     (*model_offset_ptr)(2) = -0.41 + GROUND_Z;
 
     std::vector<Vec2d> origin_bed_shape;
-    for (size_t i = 0; i < m_bed_shape.size(); i++) { 
+    for (size_t i = 0; i < m_bed_shape.size(); i++) {
         origin_bed_shape.push_back(m_bed_shape[i] - m_bed_shape[0]);
     }
     std::vector<Vec2d> new_bed_shape; // offset to correct origin

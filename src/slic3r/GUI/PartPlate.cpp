@@ -70,8 +70,6 @@ std::array<unsigned char, 4>  PlateTextureForeground = {0x0, 0xae, 0x42, 0xff};
 namespace Slic3r {
 namespace GUI {
 
-class Bed3D;
-
 std::array<float, 4> PartPlate::SELECT_COLOR		= { 0.2666f, 0.2784f, 0.2784f, 1.0f }; //{ 0.4196f, 0.4235f, 0.4235f, 1.0f };
 std::array<float, 4> PartPlate::UNSELECT_COLOR		= { 0.82f, 0.82f, 0.82f, 1.0f };
 std::array<float, 4> PartPlate::UNSELECT_DARK_COLOR		= { 0.384f, 0.384f, 0.412f, 1.0f };
@@ -644,81 +642,78 @@ void PartPlate::render_logo_texture(GLTexture &logo_texture, const GeometryBuffe
 
 void PartPlate::render_logo(bool bottom, bool render_cali) const
 {
-	if (!m_partplate_list->render_bedtype_logo) {
-		// render third-party printer texture logo
-		if (m_partplate_list->m_logo_texture_filename.empty()) {
-			m_partplate_list->m_logo_texture.reset();
+	// render printer custom texture logo
+	if (m_partplate_list->m_logo_texture_filename.empty()) {
+		m_partplate_list->m_logo_texture.reset();
+    } else {
+        if (m_partplate_list->m_logo_texture.get_id() == 0 || m_partplate_list->m_logo_texture.get_source() != m_partplate_list->m_logo_texture_filename) {
+            m_partplate_list->m_logo_texture.reset();
+
+            if (boost::algorithm::iends_with(m_partplate_list->m_logo_texture_filename, ".svg")) {
+                /*// use higher resolution images if graphic card and opengl version allow
+                GLint max_tex_size = OpenGLManager::get_gl_info().get_max_tex_size();
+                if (temp_texture->get_id() == 0 || temp_texture->get_source() != m_texture_filename) {
+                    // generate a temporary lower resolution texture to show while no main texture levels have been compressed
+                    if (!temp_texture->load_from_svg_file(m_texture_filename, false, false, false, max_tex_size / 8)) {
+                        render_default(bottom, false);
+                        return;
+                    }
+                    canvas.request_extra_frame();
+                }*/
+
+                // starts generating the main texture, compression will run asynchronously
+                GLint max_tex_size  = OpenGLManager::get_gl_info().get_max_tex_size();
+                GLint logo_tex_size = (max_tex_size < 2048) ? max_tex_size : 2048;
+                if (!m_partplate_list->m_logo_texture.load_from_svg_file(m_partplate_list->m_logo_texture_filename, true, false, false, logo_tex_size)) {
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": load logo texture from %1% failed!") % m_partplate_list->m_logo_texture_filename;
+                    return;
+                }
+            } else if (boost::algorithm::iends_with(m_partplate_list->m_logo_texture_filename, ".png")) {
+                // generate a temporary lower resolution texture to show while no main texture levels have been compressed
+                /* if (temp_texture->get_id() == 0 || temp_texture->get_source() != m_logo_texture_filename) {
+                    if (!temp_texture->load_from_file(m_logo_texture_filename, false, GLTexture::None, false)) {
+                        render_default(bottom, false);
+                        return;
+                    }
+                    canvas.request_extra_frame();
+                }*/
+
+                // starts generating the main texture, compression will run asynchronously
+                if (!m_partplate_list->m_logo_texture.load_from_file(m_partplate_list->m_logo_texture_filename, true, GLTexture::MultiThreaded, true)) {
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": load logo texture from %1% failed!") % m_partplate_list->m_logo_texture_filename;
+                    return;
+                }
+            } else {
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__
+                                            << boost::format(": can not load logo texture from %1%, unsupported format") % m_partplate_list->m_logo_texture_filename;
+                return;
+            }
+        } else if (m_partplate_list->m_logo_texture.unsent_compressed_data_available()) {
+            // sends to gpu the already available compressed levels of the main texture
+            m_partplate_list->m_logo_texture.send_compressed_data_to_gpu();
+
+            // the temporary texture is not needed anymore, reset it
+            // if (temp_texture->get_id() != 0)
+            //    temp_texture->reset();
+
+            // canvas.request_extra_frame();
+        }
+
+        if (m_vbo_id == 0) {
+            unsigned int *vbo_id_ptr = const_cast<unsigned int *>(&m_vbo_id);
+            glsafe(::glGenBuffers(1, vbo_id_ptr));
+            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, *vbo_id_ptr));
+            glsafe(::glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr) m_logo_triangles.get_vertices_data_size(), (const GLvoid *) m_logo_triangles.get_vertices_data(),
+                                    GL_STATIC_DRAW));
+            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+        }
+        if (m_vbo_id != 0 && m_logo_triangles.get_vertices_count() > 0) {
+			render_logo_texture(m_partplate_list->m_logo_texture, m_logo_triangles, bottom, m_vbo_id);
+		}
+        if (!m_partplate_list->render_bedtype_logo) {
 			return;
 		}
-
-		//GLTexture* temp_texture = const_cast<GLTexture*>(&m_temp_texture);
-
-		if (m_partplate_list->m_logo_texture.get_id() == 0 || m_partplate_list->m_logo_texture.get_source() != m_partplate_list->m_logo_texture_filename) {
-			m_partplate_list->m_logo_texture.reset();
-
-			if (boost::algorithm::iends_with(m_partplate_list->m_logo_texture_filename, ".svg")) {
-				/*// use higher resolution images if graphic card and opengl version allow
-				GLint max_tex_size = OpenGLManager::get_gl_info().get_max_tex_size();
-				if (temp_texture->get_id() == 0 || temp_texture->get_source() != m_texture_filename) {
-					// generate a temporary lower resolution texture to show while no main texture levels have been compressed
-					if (!temp_texture->load_from_svg_file(m_texture_filename, false, false, false, max_tex_size / 8)) {
-						render_default(bottom, false);
-						return;
-					}
-					canvas.request_extra_frame();
-				}*/
-
-				// starts generating the main texture, compression will run asynchronously
-				GLint max_tex_size = OpenGLManager::get_gl_info().get_max_tex_size();
-				GLint logo_tex_size = (max_tex_size < 2048) ? max_tex_size : 2048;
-				if (!m_partplate_list->m_logo_texture.load_from_svg_file(m_partplate_list->m_logo_texture_filename, true, false, false, logo_tex_size)) {
-					BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": load logo texture from %1% failed!") % m_partplate_list->m_logo_texture_filename;
-					return;
-				}
-			}
-			else if (boost::algorithm::iends_with(m_partplate_list->m_logo_texture_filename, ".png")) {
-				// generate a temporary lower resolution texture to show while no main texture levels have been compressed
-				/* if (temp_texture->get_id() == 0 || temp_texture->get_source() != m_logo_texture_filename) {
-					if (!temp_texture->load_from_file(m_logo_texture_filename, false, GLTexture::None, false)) {
-						render_default(bottom, false);
-						return;
-					}
-					canvas.request_extra_frame();
-				}*/
-
-				// starts generating the main texture, compression will run asynchronously
-				if (!m_partplate_list->m_logo_texture.load_from_file(m_partplate_list->m_logo_texture_filename, true, GLTexture::MultiThreaded, true)) {
-					BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": load logo texture from %1% failed!") % m_partplate_list->m_logo_texture_filename;
-					return;
-				}
-			}
-			else {
-				BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": can not load logo texture from %1%, unsupported format") % m_partplate_list->m_logo_texture_filename;
-				return;
-			}
-		}
-		else if (m_partplate_list->m_logo_texture.unsent_compressed_data_available()) {
-			// sends to gpu the already available compressed levels of the main texture
-			m_partplate_list->m_logo_texture.send_compressed_data_to_gpu();
-
-			// the temporary texture is not needed anymore, reset it
-			//if (temp_texture->get_id() != 0)
-			//    temp_texture->reset();
-
-			//canvas.request_extra_frame();
-		}
-
-		if (m_vbo_id == 0) {
-			unsigned int* vbo_id_ptr = const_cast<unsigned int*>(&m_vbo_id);
-			glsafe(::glGenBuffers(1, vbo_id_ptr));
-			glsafe(::glBindBuffer(GL_ARRAY_BUFFER, *vbo_id_ptr));
-			glsafe(::glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)m_logo_triangles.get_vertices_data_size(), (const GLvoid*)m_logo_triangles.get_vertices_data(), GL_STATIC_DRAW));
-			glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-		}
-		if (m_vbo_id != 0 && m_logo_triangles.get_vertices_count() > 0)
-			render_logo_texture(m_partplate_list->m_logo_texture, m_logo_triangles, bottom, m_vbo_id);
-		return;
-	}
+    }
 
 	m_partplate_list->load_bedtype_textures();
 	m_partplate_list->load_cali_textures();
@@ -2506,10 +2501,10 @@ void PartPlate::generate_logo_polygon(ExPolygon &logo_polygon)
 		{
 			const Vec2d& p = m_shape[i];
 			if ((i  == 0) || (i  == 1)) {
-				logo_polygon.contour.append({ scale_(p(0)), scale_(p(1) - 12.f) });
+				logo_polygon.contour.append({ scale_(p(0)), scale_(p(1) - 10.f) });
 			}
 			else {
-				logo_polygon.contour.append({ scale_(p(0)), scale_(p(1)) });
+				logo_polygon.contour.append({scale_(p(0)), scale_(p(1) + 10.f)});
 			}
 		}
 	}
@@ -2517,6 +2512,40 @@ void PartPlate::generate_logo_polygon(ExPolygon &logo_polygon)
 		for (const Vec2d& p : m_shape) {
 			logo_polygon.contour.append({ scale_(p(0)), scale_(p(1)) });
 		}
+	}
+}
+
+void PartPlate::generate_logo_polygon(ExPolygon &logo_polygon, const BoundingBoxf3 &box) {
+    if (box.defined) {
+		{
+            Vec2d p(box.min.x(), box.min.y());
+            logo_polygon.contour.append({scale_(p(0)), scale_(p(1))});
+		}
+        {
+            Vec2d p(box.max.x(), box.min.y());
+            logo_polygon.contour.append({scale_(p(0)), scale_(p(1))});
+        }
+        {
+            Vec2d p(box.max.x(), box.max.y());
+            logo_polygon.contour.append({scale_(p(0)), scale_(p(1))});
+        }
+        {
+            Vec2d p(box.min.x(), box.max.y());
+            logo_polygon.contour.append({scale_(p(0)), scale_(p(1))});
+        }
+	}
+}
+
+void PartPlate::set_logo_box_by_bed(const BoundingBoxf3& box)
+{
+    if (box.defined) {
+        ExPolygon logo_poly;
+        generate_logo_polygon(logo_poly, box);
+        if (!m_logo_triangles.set_from_triangles(triangulate_expolygon_2f(logo_poly, NORMALS_UP), GROUND_Z + 0.02f)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":error :Unable to create logo triangles in set_logo_box_by_bed\n";
+            return;
+        }
+        m_partplate_list->m_logo_texture.reset();
 	}
 }
 
@@ -2689,6 +2718,9 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
 			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create logo triangles\n";
 		else {
 			;
+		}
+		if (m_partplate_list->m_bed3d && !m_partplate_list->m_bed3d->get_model_filename().empty()) {
+			set_logo_box_by_bed(m_partplate_list->m_bed3d->get_model().get_bounding_box());
 		}
 
 		ExPolygon poly;
@@ -3627,6 +3659,10 @@ void PartPlateList::reinit()
 	calc_bounding_boxes();
 
 	return;
+}
+
+void PartPlateList::set_bed3d(Bed3D *_bed3d) {
+	m_bed3d = _bed3d;
 }
 
 /*basic plate operations*/

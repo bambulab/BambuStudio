@@ -70,7 +70,7 @@ class Plater;
 class GLCanvas3D;
 struct Camera;
 class PartPlateList;
-
+class Bed3D;
 using GCodeResult = GCodeProcessorResult;
 
 class PartPlate : public ObjectBase
@@ -174,6 +174,7 @@ private:
     void generate_print_polygon(ExPolygon &print_polygon);
     void generate_exclude_polygon(ExPolygon &exclude_polygon);
     void generate_logo_polygon(ExPolygon &logo_polygon);
+    void generate_logo_polygon(ExPolygon &logo_polygon,const BoundingBoxf3& box);
     void calc_bounding_boxes() const;
     void calc_triangles(const ExPolygon& poly);
     void calc_exclude_triangles(const ExPolygon& poly);
@@ -240,6 +241,7 @@ public:
     void reset_bed_type();
     DynamicPrintConfig* config() { return &m_config; }
 
+    void set_logo_box_by_bed(const BoundingBoxf3& box);
     // set print sequence per plate
     //bool print_seq_same_global = true;
     void set_print_seq(PrintSequence print_seq = PrintSequence::ByDefault);
@@ -534,6 +536,7 @@ class PartPlateList : public ObjectBase
 {
     Plater* m_plater; //Plater reference, not own it
     Model* m_model; //Model reference, not own it
+    Bed3D *           m_bed3d{nullptr};
     PrinterTechnology  printer_technology;
 
     std::vector<PartPlate*> m_plate_list;
@@ -667,7 +670,7 @@ public:
 
     //reset partplate to init states
     void reinit();
-
+    void set_bed3d(Bed3D* _bed3d);
     //get the plate stride
     double plate_stride_x();
     double plate_stride_y();
