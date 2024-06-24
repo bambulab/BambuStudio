@@ -581,8 +581,7 @@ MachineObject::MachineObject(NetworkAgent* agent, std::string name, std::string 
     subtask_(nullptr),
     model_task(nullptr),
     slice_info(nullptr),
-    m_is_online(false),
-    vt_tray(std::to_string(VIRTUAL_TRAY_ID))
+    m_is_online(false)
 {
     m_agent = agent;
 
@@ -637,6 +636,10 @@ MachineObject::MachineObject(NetworkAgent* agent, std::string name, std::string 
     printing_speed_lvl   = PrintingSpeedLevel::SPEED_LEVEL_INVALID;
 
     has_ipcam = true; // default true
+
+
+    auto vslot = AmsTray(std::to_string(VIRTUAL_TRAY_MAIN_ID));
+    vt_slot.push_back(vslot);
 }
 
 MachineObject::~MachineObject()
@@ -755,8 +758,8 @@ Ams *MachineObject::get_curr_Ams()
 
 AmsTray *MachineObject::get_curr_tray()
 {
-    if (m_tray_now.compare(std::to_string(VIRTUAL_TRAY_ID)) == 0) {
-        return &vt_tray;
+    if (m_tray_now.compare(std::to_string(VIRTUAL_TRAY_MAIN_ID)) == 0) {
+        return &vt_slot[0];
     }
 
     Ams* curr_ams = get_curr_Ams();
@@ -1122,18 +1125,22 @@ bool MachineObject::is_valid_mapping_result(std::vector<FilamentInfo>& result, b
 
     for (int i = 0; i < result.size(); i++) {
         // invalid mapping result
-        if (result[i].tray_id < 0)
-            valid_ams_mapping_result = false;
-        else {
-            int ams_id = result[i].tray_id / 4;
-            auto ams_item = amsList.find(std::to_string(ams_id));
-            if (ams_item == amsList.end()) {
-                result[i].tray_id = -1;
+        if (result[i].tray_id < 0) {
+            if (result[i].ams_id.empty() && result[i].slot_id.empty()) {
                 valid_ams_mapping_result = false;
+            }
+        }
+        else {
+            auto ams_item = amsList.find(result[i].ams_id);
+            if (ams_item == amsList.end()) {
+                if ( (result[i].ams_id != std::to_string(VIRTUAL_TRAY_MAIN_ID))  && 
+                    (result[i].ams_id != std::to_string(VIRTUAL_TRAY_DEPUTY_ID))) {
+                    result[i].tray_id = -1;
+                    valid_ams_mapping_result = false;
+                }
             } else {
                 if (check_empty_slot) {
-                    int  tray_id   = result[i].tray_id % 4;
-                    auto tray_item = ams_item->second->trayList.find(std::to_string(tray_id));
+                    auto tray_item = ams_item->second->trayList.find(result[i].slot_id);
                     if (tray_item == ams_item->second->trayList.end()) {
                         result[i].tray_id        = -1;
                         valid_ams_mapping_result = false;
@@ -1882,7 +1889,7 @@ int MachineObject::command_ams_switch(int tray_index, int old_temp, int new_temp
             gcode = DeviceManager::load_gcode(printer_type, "ams_unload.gcode");
         }
         else {
-            // include VIRTUAL_TRAY_ID
+            // include VIRTUAL_TRAY_MAIN_ID
             gcode = DeviceManager::load_gcode(printer_type, "ams_load.gcode");
             boost::replace_all(gcode, "[next_extruder]", std::to_string(tray_index));
             boost::replace_all(gcode, "[new_filament_temp]", std::to_string(new_temp));
@@ -2648,7 +2655,14 @@ void MachineObject::reset()
     json empty_j;
     print_json.diff2all_base_reset(empty_j);
 
-    vt_tray.reset();
+    for (auto i = 0; i < vt_slot.size(); i++) {
+        vt_slot[i].reset();
+
+        if (i == 1) {
+            vt_slot.erase(vt_slot.begin() + 1);
+        }
+    }
+
 
     subtask_ = nullptr;
 
@@ -4162,7 +4176,9 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                                                 << __FUNCTION__ << " " << __LINE__ << " stoi error and ams_id: " << ams_id << " tray_id" << tray_id;
                                                         }
                                                     }
-                                                }
+                                                }*/
+
+
                                             } else {
                                                 curr_tray->setting_id = "";
                                                 curr_tray->type       = "";
@@ -4210,29 +4226,27 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                                 curr_tray->nozzle_temp_min = (*tray_it)["nozzle_temp_min"].get<std::string>();
                                             else
                                                 curr_tray->nozzle_temp_min = "";
-                                            if (curr_tray->setting_id.size() == 8 && curr_tray->setting_id[0] == 'P' && curr_tray->nozzle_temp_min != "" && curr_tray->nozzle_temp_max != "") {
-                                                if (m_checked_filament.find(vt_tray.setting_id) == m_checked_filament.end()) {
-                                                    need_checked_filament_id.insert(vt_tray.setting_id);
-                                                    try {
-                                                        std::string preset_setting_id;
-                                                        bool        is_equation = preset_bundle->check_filament_temp_equation_by_printer_type_and_nozzle_for_mas_tray(
-                                                            MachineObject::get_preset_printer_model_name(this->printer_type), nozzle_diameter_str, curr_tray->setting_id,
-                                                            curr_tray->tag_uid, curr_tray->nozzle_temp_min, curr_tray->nozzle_temp_max, preset_setting_id);
-                                                        if (!is_equation) {
-                                                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__
-                                                                                    << " ams filament is not match min max temp and reset, ams_id: " << ams_id
-                                                                                    << " tray_id" << tray_id << "filament_id: " << curr_tray->setting_id;
-                                                            command_ams_filament_settings(std::stoi(ams_id), std::stoi(tray_id), curr_tray->setting_id, preset_setting_id,
-                                                                                        curr_tray->color, curr_tray->type,
-                                                                                        std::stoi(curr_tray->nozzle_temp_min),
-                                                                                        std::stoi(curr_tray->nozzle_temp_max));
-                                                        }
-                                                        continue;
-                                                    } catch (...) {
-                                                        BOOST_LOG_TRIVIAL(info) << "check fail and curr_tray ams_id" << ams_id << " curr_tray tray_id"<<tray_id;
+
+                                            /*need for optimization*/
+                                            /*if (curr_tray->nozzle_temp_min != "" && curr_tray->nozzle_temp_max != "") {
+                                                try {
+                                                    std::string preset_setting_id;
+                                                    bool        is_equation = preset_bundle->check_filament_temp_equation_by_printer_type_and_nozzle_for_mas_tray(
+                                                        MachineObject::get_preset_printer_model_name(this->printer_type), nozzle_diameter_str, curr_tray->setting_id,
+                                                        curr_tray->tag_uid, curr_tray->nozzle_temp_min, curr_tray->nozzle_temp_max, preset_setting_id);
+                                                    if (!is_equation) {
+                                                        command_ams_filament_settings(std::stoi(ams_id), std::stoi(tray_id), curr_tray->setting_id, preset_setting_id,
+                                                                                      curr_tray->color, curr_tray->type,
+                                                                                      std::stoi(curr_tray->nozzle_temp_min),
+                                                                                      std::stoi(curr_tray->nozzle_temp_max));
                                                     }
+                                                } catch (...) {
+                                                    BOOST_LOG_TRIVIAL(info) << "check fail and curr_tray ams_id" << ams_id << " curr_tray tray_id"<<tray_id;
                                                 }
-                                            }
+                                            }*/
+
+
+
                                             if (tray_it->contains("xcam_info"))
                                                 curr_tray->xcam_info = (*tray_it)["xcam_info"].get<std::string>();
                                             else
@@ -4320,150 +4334,46 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     /* vitrual tray*/
                     if (!key_field_only) {
                         try {
-                            if (jj.contains("vt_tray")) {
-                                if (jj["vt_tray"].contains("id"))
-                                    vt_tray.id = jj["vt_tray"]["id"].get<std::string>();
-                                auto curr_time = std::chrono::system_clock::now();
-                                auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - extrusion_cali_set_hold_start);
-                                if (diff.count() > HOLD_TIMEOUT || diff.count() < 0
-                                    || extrusion_cali_set_tray_id != VIRTUAL_TRAY_ID) {
-                                    if (jj["vt_tray"].contains("k"))
-                                        vt_tray.k = jj["vt_tray"]["k"].get<float>();
-                                    if (jj["vt_tray"].contains("n"))
-                                        vt_tray.n = jj["vt_tray"]["n"].get<float>();
-                                }
-                                ams_support_virtual_tray = true;
+                            if (jj.contains("vir_slot") && jj["vir_slot"].is_array()) {
 
-                                if (vt_tray.hold_count > 0) {
-                                    vt_tray.hold_count--;
-                                } else {
-                                    if (jj["vt_tray"].contains("tag_uid"))
-                                        vt_tray.tag_uid = jj["vt_tray"]["tag_uid"].get<std::string>();
-                                    else
-                                        vt_tray.tag_uid = "0";
-                                    if (jj["vt_tray"].contains("tray_info_idx") && jj["vt_tray"].contains("tray_type")) {
-                                        vt_tray.setting_id = jj["vt_tray"]["tray_info_idx"].get<std::string>();
-                                        //std::string type = jj["vt_tray"]["tray_type"].get<std::string>();
-                                        std::string type = setting_id_to_type(vt_tray.setting_id, jj["vt_tray"]["tray_type"].get<std::string>());
-                                        if (vt_tray.setting_id == "GFS00") {
-                                            vt_tray.type = "PLA-S";
-                                        }
-                                        else if (vt_tray.setting_id == "GFS01") {
-                                            vt_tray.type = "PA-S";
+                                for (auto it = jj["vir_slot"].begin(); it != jj["vir_slot"].end(); it++) {
+                                    auto vslot = parse_vt_tray(it.value().get<json>());
+
+                                    if (vslot.id == std::to_string(VIRTUAL_TRAY_MAIN_ID)) {
+                                        auto it = std::next(vt_slot.begin(), 0);
+                                        if (it != vt_slot.end()) {
+                                            vt_slot[0] = vslot;
                                         }
                                         else {
-                                            vt_tray.type = type;
+                                            vt_slot.push_back(vslot);
+                                        }  
+                                    }
+                                    else if (vslot.id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
+                                        auto it = std::next(vt_slot.begin(), 1);
+                                        if (it != vt_slot.end()) {
+                                            vt_slot[1] = vslot;
                                         }
-                                        if (vt_tray.setting_id.size() == 8 && vt_tray.setting_id[0] == 'P' &&
-                                            m_filament_list.find(vt_tray.setting_id) == m_filament_list.end()) {
-                                            if (m_checked_filament.find(vt_tray.setting_id) == m_checked_filament.end()) {
-                                                need_checked_filament_id.insert(vt_tray.setting_id);
-                                                wxColour color = *wxWHITE;
-                                                char     col_buf[10];
-                                                sprintf(col_buf, "%02X%02X%02XFF", (int) color.Red(), (int) color.Green(), (int) color.Blue());
-                                                try {
-                                                    BOOST_LOG_TRIVIAL(info) << "vt_tray.setting_id is not exist in filament_list and reset vt_tray and the filament_id is: " << vt_tray.setting_id;
-                                                    this->command_ams_filament_settings(255, std::stoi(vt_tray.id), "", "", std::string(col_buf), "", 0, 0);
-                                                } catch (...) {
-                                                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << " stoi error and tray_id" << vt_tray.id;
-                                                }
-                                            }
+                                        else {
+                                            vt_slot.push_back(vslot);
                                         }
-                                    }
-                                    else {
-                                        vt_tray.setting_id = "";
-                                        vt_tray.type = "";
-                                    }
-                                    if (jj["vt_tray"].contains("tray_sub_brands"))
-                                        vt_tray.sub_brands = jj["vt_tray"]["tray_sub_brands"].get<std::string>();
-                                    else
-                                        vt_tray.sub_brands = "";
-                                    if (jj["vt_tray"].contains("tray_weight"))
-                                        vt_tray.weight = jj["vt_tray"]["tray_weight"].get<std::string>();
-                                    else
-                                        vt_tray.weight = "";
-                                    if (jj["vt_tray"].contains("tray_diameter"))
-                                        vt_tray.diameter = jj["vt_tray"]["tray_diameter"].get<std::string>();
-                                    else
-                                        vt_tray.diameter = "";
-                                    if (jj["vt_tray"].contains("tray_temp"))
-                                        vt_tray.temp = jj["vt_tray"]["tray_temp"].get<std::string>();
-                                    else
-                                        vt_tray.temp = "";
-                                    if (jj["vt_tray"].contains("tray_time"))
-                                        vt_tray.time = jj["vt_tray"]["tray_time"].get<std::string>();
-                                    else
-                                        vt_tray.time = "";
-                                    if (jj["vt_tray"].contains("bed_temp_type"))
-                                        vt_tray.bed_temp_type = jj["vt_tray"]["bed_temp_type"].get<std::string>();
-                                    else
-                                        vt_tray.bed_temp_type = "";
-                                    if (jj["vt_tray"].contains("bed_temp"))
-                                        vt_tray.bed_temp = jj["vt_tray"]["bed_temp"].get<std::string>();
-                                    else
-                                        vt_tray.bed_temp = "";
-                                    if (jj["vt_tray"].contains("tray_color")) {
-                                        auto color = jj["vt_tray"]["tray_color"].get<std::string>();
-                                        vt_tray.update_color_from_str(color);
-                                    } else {
-                                        vt_tray.color = "";
-                                    }
-                                    if (jj["vt_tray"].contains("nozzle_temp_max"))
-                                        vt_tray.nozzle_temp_max = jj["vt_tray"]["nozzle_temp_max"].get<std::string>();
-                                    else
-                                        vt_tray.nozzle_temp_max = "";
-                                    if (jj["vt_tray"].contains("nozzle_temp_min"))
-                                        vt_tray.nozzle_temp_min = jj["vt_tray"]["nozzle_temp_min"].get<std::string>();
-                                    else
-                                        vt_tray.nozzle_temp_min = "";
-                                    if (vt_tray.setting_id.size() == 8 && vt_tray.setting_id[0] == 'P' && vt_tray.nozzle_temp_min != "" && vt_tray.nozzle_temp_max != "") {
-                                        if (m_checked_filament.find(vt_tray.setting_id) == m_checked_filament.end()) {
-                                            need_checked_filament_id.insert(vt_tray.setting_id);
-                                            try {
-                                                std::string preset_setting_id;
-                                                bool        is_equation = preset_bundle->check_filament_temp_equation_by_printer_type_and_nozzle_for_mas_tray(
-                                                    MachineObject::get_preset_printer_model_name(this->printer_type), nozzle_diameter_str, vt_tray.setting_id, vt_tray.tag_uid,
-                                                    vt_tray.nozzle_temp_min, vt_tray.nozzle_temp_max, preset_setting_id);
-                                                if (!is_equation) {
-                                                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << " vt_tray filament is not match min max temp and reset, filament_id: " << vt_tray.setting_id;
-                                                    command_ams_filament_settings(255, std::stoi(vt_tray.id), vt_tray.setting_id, preset_setting_id, vt_tray.color, vt_tray.type,
-                                                                                  std::stoi(vt_tray.nozzle_temp_min), std::stoi(vt_tray.nozzle_temp_max));
-                                                }
-                                            } catch (...) {
-                                                BOOST_LOG_TRIVIAL(info) << "check fail and vt_tray.id" << vt_tray.id;
-                                            }
-                                        }
-                                    }
-                                    if (jj["vt_tray"].contains("xcam_info"))
-                                        vt_tray.xcam_info = jj["vt_tray"]["xcam_info"].get<std::string>();
-                                    else
-                                        vt_tray.xcam_info = "";
-                                    if (jj["vt_tray"].contains("tray_uuid"))
-                                        vt_tray.uuid = jj["vt_tray"]["tray_uuid"].get<std::string>();
-                                    else
-                                        vt_tray.uuid = "0";
-
-                                    if (jj["vt_tray"].contains("cali_idx"))
-                                        vt_tray.cali_idx = jj["vt_tray"]["cali_idx"].get<int>();
-                                    else
-                                        vt_tray.cali_idx = -1;
-                                    vt_tray.cols.clear();
-                                    if (jj["vt_tray"].contains("cols")) {
-                                        if (jj["vt_tray"].is_array()) {
-                                            for (auto it = jj["vt_tray"].begin(); it != jj["vt_tray"].end(); it++) {
-                                                vt_tray.cols.push_back(it.value().get<std::string>());
-                                            }
-                                        }
-                                    }
-
-                                    if (jj["vt_tray"].contains("remain")) {
-                                        vt_tray.remain = jj["vt_tray"]["remain"].get<int>();
-                                    }
-                                    else {
-                                        vt_tray.remain = -1;
                                     }
                                 }
-                            } else {
+
+                            }
+                            else if (jj.contains("vt_tray")) {
+                                auto main_slot = parse_vt_tray(jj.contains("vt_tray"));
+                                main_slot.id = std::to_string(VIRTUAL_TRAY_MAIN_ID);
+
+
+                                auto it = std::next(vt_slot.begin(), 0);
+                                if (it != vt_slot.end()) {
+                                    vt_slot[0] = main_slot;
+                                }
+                                else {
+                                    vt_slot.push_back(main_slot);
+                                }
+                            }
+                            else {
                                 ams_support_virtual_tray = false;
                                 is_support_extrusion_cali = false;
                             }
@@ -4529,16 +4439,16 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                         if (jj.contains("tray_id")) {
                             tray_id = jj["tray_id"].get<int>();
                         }
-                        if (ams_id == 255 && tray_id == VIRTUAL_TRAY_ID) {
+                        if (ams_id == 255 && tray_id == VIRTUAL_TRAY_MAIN_ID) {
                             BOOST_LOG_TRIVIAL(info) << "ams_filament_setting, parse tray info";
-                            vt_tray.nozzle_temp_max = std::to_string(jj["nozzle_temp_max"].get<int>());
-                            vt_tray.nozzle_temp_min = std::to_string(jj["nozzle_temp_min"].get<int>());
-                            vt_tray.color = jj["tray_color"].get<std::string>();
-                            vt_tray.setting_id = jj["tray_info_idx"].get<std::string>();
+                            vt_slot[0].nozzle_temp_max = std::to_string(jj["nozzle_temp_max"].get<int>());
+                            vt_slot[0].nozzle_temp_min = std::to_string(jj["nozzle_temp_min"].get<int>());
+                            vt_slot[0].color = jj["tray_color"].get<std::string>();
+                            vt_slot[0].setting_id = jj["tray_info_idx"].get<std::string>();
                             //vt_tray.type = jj["tray_type"].get<std::string>();
-                            vt_tray.type = setting_id_to_type(vt_tray.setting_id, jj["tray_type"].get<std::string>());
+                            vt_slot[0].type = setting_id_to_type(vt_slot[0].setting_id, jj["tray_type"].get<std::string>());
                             // delay update
-                            vt_tray.set_hold_count();
+                            vt_slot[0].set_hold_count();
                         } else {
                             auto ams_it = amsList.find(std::to_string(ams_id));
                             if (ams_it != amsList.end()) {
@@ -4669,7 +4579,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     if (jj.contains("tray_id")) {
                         try {
                             curr_tray_id = jj["tray_id"].get<int>();
-                            if (curr_tray_id == VIRTUAL_TRAY_ID)
+                            if (curr_tray_id == VIRTUAL_TRAY_MAIN_ID)
                                 tray_id = curr_tray_id;
                             else if (curr_tray_id >= 0 && curr_tray_id < 16){
                                 ams_id = curr_tray_id / 4;
@@ -4682,11 +4592,11 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                             ;
                         }
                     }
-                    if (tray_id == VIRTUAL_TRAY_ID) {
+                    if (tray_id == VIRTUAL_TRAY_MAIN_ID) {
                         if (jj.contains("k_value"))
-                            vt_tray.k = jj["k_value"].get<float>();
+                            vt_slot[0].k = jj["k_value"].get<float>();
                         if (jj.contains("n_coef"))
-                            vt_tray.n = jj["n_coef"].get<float>();
+                            vt_slot[0].n = jj["n_coef"].get<float>();
                     } else {
                         auto ams_item = this->amsList.find(std::to_string(ams_id));
                         if (ams_item != this->amsList.end()) {
@@ -4720,7 +4630,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     if (jj.contains("tray_id")) {
                         try {
                             curr_tray_id = jj["tray_id"].get<int>();
-                            if (curr_tray_id == VIRTUAL_TRAY_ID)
+                            if (curr_tray_id == VIRTUAL_TRAY_MAIN_ID)
                                 tray_id = curr_tray_id;
                             else if (curr_tray_id >= 0 && curr_tray_id < 16) {
                                 ams_id  = curr_tray_id / 4;
@@ -4732,10 +4642,10 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                             ;
                         }
                     }
-                    if (tray_id == VIRTUAL_TRAY_ID) {
+                    if (tray_id == VIRTUAL_TRAY_MAIN_ID) {
                         if (jj.contains("cali_idx")) {
-                            vt_tray.cali_idx = jj["cali_idx"].get<int>();
-                            vt_tray.set_hold_count();
+                            vt_slot[0].cali_idx = jj["cali_idx"].get<int>();
+                            vt_slot[0].set_hold_count();
                         }
                     } else {
                         auto ams_item = this->amsList.find(std::to_string(ams_id));
@@ -5389,92 +5299,157 @@ std::string MachineObject::get_string_from_fantype(FanType type)
     return "";
 }
 
-void MachineObject::update_filament_list()
+AmsTray MachineObject::parse_vt_tray(json vtray)
 {
-    PresetBundle *preset_bundle = Slic3r::GUI::wxGetApp().preset_bundle;
+    auto vt_tray = AmsTray(std::to_string(VIRTUAL_TRAY_MAIN_ID));
 
-    // custom filament
-    std::map<std::string, std::pair<int, int>> filament_list;
-    for (auto &preset : preset_bundle->filaments()) {
-        if (preset.is_user() && preset.inherits() == "") {
-            ConfigOption *       printer_opt  = const_cast<Preset&>(preset).config.option("compatible_printers");
-            ConfigOptionStrings *printer_strs = dynamic_cast<ConfigOptionStrings *>(printer_opt);
-            for (const std::string &printer_str : printer_strs->values) {
-                if (printer_str == m_printer_preset_name) {
-                    ConfigOption *opt_min  = const_cast<Preset &>(preset).config.option("nozzle_temperature_range_low");
-                    int           min_temp = -1;
-                    if (opt_min) {
-                        ConfigOptionInts *opt_min_ints = dynamic_cast<ConfigOptionInts *>(opt_min);
-                        min_temp                       = opt_min_ints->get_at(0);
-                    }
-                    ConfigOption *opt_max  = const_cast<Preset &>(preset).config.option("nozzle_temperature_range_high");
-                    int           max_temp = -1;
-                    if (opt_max) {
-                        ConfigOptionInts *opt_max_ints = dynamic_cast<ConfigOptionInts *>(opt_max);
-                        max_temp                       = opt_max_ints->get_at(0);
-                    }
-                    filament_list[preset.filament_id] = std::make_pair(min_temp, max_temp);
-                    break;
+    if (vtray.contains("id"))
+        vt_tray.id = vtray["id"].get<std::string>();
+    auto curr_time = std::chrono::system_clock::now();
+    auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - extrusion_cali_set_hold_start);
+    if (diff.count() > HOLD_TIMEOUT || diff.count() < 0
+        || extrusion_cali_set_tray_id != VIRTUAL_TRAY_MAIN_ID) {
+        if (vtray.contains("k"))
+            vt_tray.k = vtray["k"].get<float>();
+        if (vtray.contains("n"))
+            vt_tray.n = vtray["n"].get<float>();
+    }
+    ams_support_virtual_tray = true;
+
+    if (vt_tray.hold_count > 0) {
+        vt_tray.hold_count--;
+    }
+    else {
+        if (vtray.contains("tag_uid"))
+            vt_tray.tag_uid = vtray["tag_uid"].get<std::string>();
+        else
+            vt_tray.tag_uid = "0";
+        if (vtray.contains("tray_info_idx") && vtray.contains("tray_type")) {
+            vt_tray.setting_id = vtray["tray_info_idx"].get<std::string>();
+            //std::string type = vtray["tray_type"].get<std::string>();
+            std::string type = setting_id_to_type(vt_tray.setting_id, vtray["tray_type"].get<std::string>());
+            if (vt_tray.setting_id == "GFS00") {
+                vt_tray.type = "PLA-S";
+            }
+            else if (vt_tray.setting_id == "GFS01") {
+                vt_tray.type = "PA-S";
+            }
+            else {
+                vt_tray.type = type;
+            }
+
+            /*need for optimization*/
+            /*if (filament_list.find(vt_tray.setting_id) == filament_list.end()) {
+                wxColour color = *wxWHITE;
+                char     col_buf[10];
+                sprintf(col_buf, "%02X%02X%02XFF", (int)color.Red(), (int)color.Green(), (int)color.Blue());
+                try {
+                    BOOST_LOG_TRIVIAL(info) << "no filament_id in filament_list and reset vt_tray and the filament_id is: " << vt_tray.setting_id;
+                    this->command_ams_filament_settings(255, std::stoi(vt_tray.id), "", "", std::string(col_buf), "", 0, 0);
+                }
+                catch (...) {
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << " stoi error and tray_id" << vt_tray.id;
+                }
+            }*/
+        }
+        else {
+            vt_tray.setting_id = "";
+            vt_tray.type = "";
+        }
+        if (vtray.contains("tray_sub_brands"))
+            vt_tray.sub_brands = vtray["tray_sub_brands"].get<std::string>();
+        else
+            vt_tray.sub_brands = "";
+        if (vtray.contains("tray_weight"))
+            vt_tray.weight = vtray["tray_weight"].get<std::string>();
+        else
+            vt_tray.weight = "";
+        if (vtray.contains("tray_diameter"))
+            vt_tray.diameter = vtray["tray_diameter"].get<std::string>();
+        else
+            vt_tray.diameter = "";
+        if (vtray.contains("tray_temp"))
+            vt_tray.temp = vtray["tray_temp"].get<std::string>();
+        else
+            vt_tray.temp = "";
+        if (vtray.contains("tray_time"))
+            vt_tray.time = vtray["tray_time"].get<std::string>();
+        else
+            vt_tray.time = "";
+        if (vtray.contains("bed_temp_type"))
+            vt_tray.bed_temp_type = vtray["bed_temp_type"].get<std::string>();
+        else
+            vt_tray.bed_temp_type = "";
+        if (vtray.contains("bed_temp"))
+            vt_tray.bed_temp = vtray["bed_temp"].get<std::string>();
+        else
+            vt_tray.bed_temp = "";
+        if (vtray.contains("tray_color")) {
+            auto color = vtray["tray_color"].get<std::string>();
+            vt_tray.update_color_from_str(color);
+        }
+        else {
+            vt_tray.color = "";
+        }
+        if (vtray.contains("nozzle_temp_max"))
+            vt_tray.nozzle_temp_max = vtray["nozzle_temp_max"].get<std::string>();
+        else
+            vt_tray.nozzle_temp_max = "";
+        if (vtray.contains("nozzle_temp_min"))
+            vt_tray.nozzle_temp_min = vtray["nozzle_temp_min"].get<std::string>();
+        else
+            vt_tray.nozzle_temp_min = "";
+
+        /*need for optimization*/
+        /*if (vt_tray.nozzle_temp_min != "" && vt_tray.nozzle_temp_max != "") {
+            try {
+                std::string preset_setting_id;
+                bool        is_equation = preset_bundle->check_filament_temp_equation_by_printer_type_and_nozzle_for_mas_tray(
+                    MachineObject::get_preset_printer_model_name(this->printer_type), nozzle_diameter_str, vt_tray.setting_id, vt_tray.tag_uid,
+                    vt_tray.nozzle_temp_min, vt_tray.nozzle_temp_max, preset_setting_id);
+                if (!is_equation) {
+                    command_ams_filament_settings(255, std::stoi(vt_tray.id), vt_tray.setting_id, preset_setting_id, vt_tray.color, vt_tray.type,
+                        std::stoi(vt_tray.nozzle_temp_min), std::stoi(vt_tray.nozzle_temp_max));
+                }
+            }
+            catch (...) {
+                BOOST_LOG_TRIVIAL(info) << "check fail and vt_tray.id" << vt_tray.id;
+            }
+
+        }*/
+
+
+        if (vtray.contains("xcam_info"))
+            vt_tray.xcam_info = vtray["xcam_info"].get<std::string>();
+        else
+            vt_tray.xcam_info = "";
+        if (vtray.contains("tray_uuid"))
+            vt_tray.uuid = vtray["tray_uuid"].get<std::string>();
+        else
+            vt_tray.uuid = "0";
+
+        if (vtray.contains("cali_idx"))
+            vt_tray.cali_idx = vtray["cali_idx"].get<int>();
+        else
+            vt_tray.cali_idx = -1;
+        vt_tray.cols.clear();
+        if (vtray.contains("cols")) {
+            if (vtray.is_array()) {
+                for (auto it = vtray.begin(); it != vtray.end(); it++) {
+                    vt_tray.cols.push_back(it.value().get<std::string>());
                 }
             }
         }
-    }
 
-    for (auto it = filament_list.begin(); it != filament_list.end(); it++) {
-        if (m_filament_list.find(it->first) != m_filament_list.end()) {
-            assert(it->first.size() == 8 && it->first[0] == 'P');
-
-            if (it->second.first != m_filament_list[it->first].first) {
-                BOOST_LOG_TRIVIAL(info) << "old min temp is not equal to new min temp and filament id: " << it->first;
-                continue;
-            }
-
-            if (it->second.second != m_filament_list[it->first].second) {
-                BOOST_LOG_TRIVIAL(info) << "old max temp is not equal to new max temp and filament id: " << it->first;
-                continue;
-            }
-
-            m_filament_list.erase(it->first);
+        if (vtray.contains("remain")) {
+            vt_tray.remain = vtray["remain"].get<int>();
+        }
+        else {
+            vt_tray.remain = -1;
         }
     }
-
-    for (auto it = m_filament_list.begin(); it != m_filament_list.end(); it++) {
-        m_checked_filament.erase(it->first);
-    }
-
-    m_filament_list = filament_list;
-}
-
-int MachineObject::get_flag_bits(std::string str, int start, int count)
-{
-    int decimal_value = std::stoi(str, nullptr, 16);
-    int mask          = 0;
-    for (int i = 0; i < count; i++) { mask += 1 << (start + i); }
-
-    int flag = (decimal_value & (mask)) >> start;
-    return flag;
-}
-
-int MachineObject::get_flag_bits(int num, int start, int count)
-{
-    int decimal_value = num;
-    int mask          = 0;
-    for (int i = 0; i < count; i++) { mask += 1 << (start + i); }
-
-    int flag = (decimal_value & (mask)) >> start;
-    return flag;
-}
-
-void MachineObject::update_printer_preset_name(const std::string &nozzle_diameter_str)
-{
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << "start update preset_name";
-    auto preset_bundle = Slic3r::GUI::wxGetApp().preset_bundle;
-    if (!preset_bundle) return;
-    auto printer_set = preset_bundle->get_printer_names_by_printer_type_and_nozzle(MachineObject::get_preset_printer_model_name(this->printer_type), nozzle_diameter_str);
-    if (printer_set.size() > 0)
-        m_printer_preset_name = *printer_set.begin();
-    else
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << " update printer preset name failed ";
+    
+    return vt_tray;
 }
 
 bool DeviceManager::EnableMultiMachine = false;
