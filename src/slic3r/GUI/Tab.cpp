@@ -1565,7 +1565,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     if (opt_key == "filament_long_retractions_when_cut"){
         unsigned char activate = boost::any_cast<unsigned char>(value);
         if (activate == 1) {
-            MessageDialog dialog(wxGetApp().plater(), 
+            MessageDialog dialog(wxGetApp().plater(),
             _L("Experimental feature: Retracting and cutting off the filament at a greater distance during filament changes to minimize flush."
             "Although it can notably reduce flush, it may also elevate the risk of nozzle clogs or other printing complications.Please use with the latest printer firmware."), "", wxICON_WARNING | wxOK);
             dialog.ShowModal();
@@ -2748,7 +2748,7 @@ void TabPrintPlate::notify_changed(ObjectBase* object)
     for (auto item : items) {
         if (objects_list->GetModel()->GetItemType(item) == itPlate) {
             ObjectDataViewModelNode* node = static_cast<ObjectDataViewModelNode*>(item.GetID());
-            if (node) 
+            if (node)
                 node->set_action_icon(!m_all_keys.empty());
         }
     }
@@ -2756,7 +2756,7 @@ void TabPrintPlate::notify_changed(ObjectBase* object)
 
 void TabPrintPlate::update_custom_dirty()
 {
-    for (auto k : m_null_keys) 
+    for (auto k : m_null_keys)
         m_options_list[k] = 0;
     for (auto k : m_all_keys) {
         if (k == "first_layer_sequence_choice" || k == "other_layers_sequence_choice") {
@@ -3573,7 +3573,7 @@ void TabPrinter::build_fff()
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
         optgroup->append_single_option_line(option);
-        
+
         optgroup = page->new_optgroup(L("Time lapse G-code"), L"param_gcode", 0);
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
@@ -4600,13 +4600,13 @@ bool Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
         try {
             //BBS delete preset
             Preset &current_preset = m_presets->get_selected_preset();
-            
+
             // Obtain compatible filament and process presets for printers
             if (m_preset_bundle && m_presets->get_preset_base(current_preset) == &current_preset && printer_tab && !current_preset.is_system) {
                 delete_third_printer = true;
                 for (const Preset &preset : m_preset_bundle->filaments.get_presets()) {
                     if (preset.is_compatible && !preset.is_default) {
-                        if (preset.inherits() != "") 
+                        if (preset.inherits() != "")
                             filament_presets.push_front(preset);
                         else
                             filament_presets.push_back(preset);
@@ -4731,7 +4731,7 @@ bool Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
 
             });
         }
-        
+
     }
 
     if (technology_changed)
@@ -5483,22 +5483,47 @@ wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
 
     btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) {
             bool  is_configed_by_BBL = PresetUtils::system_printer_bed_model(m_preset_bundle->printers.get_edited_preset()).size() > 0;
+            ConfigOptionString custom_texture     = *m_config->option<ConfigOptionString>("bed_custom_texture");
+            PresetBundle &     preset_bundle      = *wxGetApp().preset_bundle;
+            auto               cur_preset_name    = preset_bundle.printers.get_edited_preset().name;
+            if (is_configed_by_BBL && wxGetApp().app_config->has_section("user_bbl_svg_list")) {
+                auto user_bbl_svg_list = wxGetApp().app_config->get_section("user_bbl_svg_list");
+                if (user_bbl_svg_list.size() > 0 && user_bbl_svg_list[cur_preset_name].size() > 0) {
+                    custom_texture = ConfigOptionString(user_bbl_svg_list[cur_preset_name]);
+                }
+            }
             BedShapeDialog dlg(this);
-            dlg.build_dialog(*m_config->option<ConfigOptionPoints>("printable_area"),
-                            *m_config->option<ConfigOptionString>("bed_custom_texture"),
+            dlg.build_dialog(*m_config->option<ConfigOptionPoints>("printable_area"), custom_texture,
                              *m_config->option<ConfigOptionString>("bed_custom_model") , !is_configed_by_BBL);
-            if (dlg.ShowModal() == wxID_OK && !is_configed_by_BBL) {
+            if (dlg.ShowModal() == wxID_OK) {
                 if (dlg.get_valid()) {
-                    const std::vector<Vec2d> &shape          = dlg.get_shape();
-                    const std::string &       custom_texture = dlg.get_custom_texture();
-                    const std::string &       custom_model   = dlg.get_custom_model();
-                    if (!shape.empty()) {
-                        load_key_value("printable_area", shape);
+                    if (is_configed_by_BBL) {
+                        std::string custom_texture = dlg.get_custom_texture();
+                        {//save to user_bbl_svg_list
+                            if (!wxGetApp().app_config->has_section("user_bbl_svg_list")) {
+                                std::map<std::string, std::string> data;
+                                data[cur_preset_name] = custom_texture;
+                                wxGetApp().app_config->set_section("user_bbl_svg_list", data);
+                            } else {
+                                auto data                       = wxGetApp().app_config->get_section("user_bbl_svg_list");
+                                auto data_modify                = const_cast<std::map<std::string, std::string> *>(&data);
+                                (*data_modify)[cur_preset_name] = custom_texture;
+                                wxGetApp().app_config->set_section("user_bbl_svg_list", *data_modify);
+                            }
+                        }
                         load_key_value("bed_custom_texture", custom_texture);
-                        load_key_value("bed_custom_model", custom_model);
                         update_changed_ui();
+                    } else {
+                        const std::vector<Vec2d> &shape          = dlg.get_shape();
+                        const std::string &       custom_texture = dlg.get_custom_texture();
+                        const std::string &       custom_model   = dlg.get_custom_model();
+                        if (!shape.empty()) {
+                            load_key_value("printable_area", shape);
+                            load_key_value("bed_custom_texture", custom_texture);
+                            load_key_value("bed_custom_model", custom_model);
+                            update_changed_ui();
+                        }
                     }
-                
                 } else {
                     show_error(m_parent, _L("Invalid input."));
                 }
