@@ -2797,6 +2797,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     this->q->Bind(EVT_DEL_FILAMENT, &priv::on_delete_filament, this);
     this->q->Bind(EVT_ADD_CUSTOM_FILAMENT, &priv::on_add_custom_filament, this);
     view3D = new View3D(q, bed, &model, config, &background_process);
+    partplate_list.set_bed3d(&bed);
     //BBS: use partplater's gcode
     preview = new Preview(q, bed, &model, config, &background_process, partplate_list.get_current_slice_result(), [this]() { schedule_background_process(); });
 
@@ -12495,8 +12496,22 @@ void Plater::set_bed_shape() const
     auto bundle = wxGetApp().preset_bundle;
     if (bundle != nullptr) {
         const Preset* curr = &bundle->printers.get_selected_preset();
-        if (curr->is_system)
+        if (curr->is_system) {
             texture_filename = PresetUtils::system_printer_bed_texture(*curr);
+            bool is_configed_by_BBL = PresetUtils::system_printer_bed_model(*curr).size() > 0;
+            if (is_configed_by_BBL && wxGetApp().app_config->has_section("user_bbl_svg_list")) {
+                auto cur_preset_name    = bundle->printers.get_edited_preset().name;
+                auto user_bbl_svg_list = wxGetApp().app_config->get_section("user_bbl_svg_list");
+                if (user_bbl_svg_list.size() > 0 && user_bbl_svg_list[cur_preset_name].size() > 0) {
+                    texture_filename = user_bbl_svg_list[cur_preset_name]; }
+                else {
+                    bool is_bbl_preset = bundle->printers.get_selected_preset().is_bbl_vendor_preset(bundle);
+                    if (is_bbl_preset) {
+                        texture_filename = "";
+                    }
+                }
+            }
+        }
         else {
             auto *printer_model = curr->config.opt<ConfigOptionString>("printer_model");
             if (printer_model != nullptr && ! printer_model->value.empty()) {
