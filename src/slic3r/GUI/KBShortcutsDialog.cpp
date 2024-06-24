@@ -196,10 +196,11 @@ void KBShortcutsDialog::fill_shortcuts()
                 { ctrl + "P", L("Preferences") },
             #endif
             //3Dconnexion control
-
-            { ctrl + "B", L("Show/Hide 3Dconnexion devices settings dialog") },
-
-
+#ifndef __APPLE__
+            {ctrl + "Shift+M", L("Show/Hide 3Dconnexion devices settings dialog")},
+#else
+            {ctrl + "M", L("Show/Hide 3Dconnexion devices settings dialog")},
+#endif
             // Switch table page
             #ifndef __APPLE__
                 { ctrl + "Tab", L("Switch tab page")},
@@ -298,7 +299,7 @@ void KBShortcutsDialog::fill_shortcuts()
         {L("Shift+Mouse wheel"), L("Move slider 5x faster")},
 		{L(ctrl+"Any arrow"), L("Move slider 5x faster")},
 		{L(ctrl+"Mouse wheel"), L("Move slider 5x faster")},
-        
+
     };
     m_full_shortcuts.push_back({ { _L("Preview"), "" }, preview_shortcuts });
 }
