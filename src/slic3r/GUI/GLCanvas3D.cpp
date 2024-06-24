@@ -1844,7 +1844,7 @@ void GLCanvas3D::render(bool only_init)
 
     if (!is_initialized() && !init())
         return;
-    if (m_canvas_type == ECanvasType::CanvasView3D  && m_gizmos.get_current_type() == GLGizmosManager::Undefined) { 
+    if (m_canvas_type == ECanvasType::CanvasView3D  && m_gizmos.get_current_type() == GLGizmosManager::Undefined) {
         enable_return_toolbar(false);
     }
     if (!m_main_toolbar.is_enabled())
@@ -3105,24 +3105,26 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         break;
 #ifdef __APPLE__
         case 'm':
-        case 'M': {
-            wxGetApp().mainframe->Iconize();
-            break;
-        }
-#endif /* __APPLE__ */
-#ifdef __APPLE__
-        case 'b':
-        case 'B':
+        case 'M':
 #else  /* __APPLE__ */
-        case WXK_CONTROL_B:
+        case WXK_CONTROL_M:
 #endif /* __APPLE__ */
         {
 #ifdef _WIN32
             if (wxGetApp().app_config->get("use_legacy_3DConnexion") == "true") {
 #endif //_WIN32
-                Mouse3DController &controller = wxGetApp().plater()->get_mouse3d_controller();
-                controller.show_settings_dialog(!controller.is_settings_dialog_shown());
-                m_dirty = true;
+#ifdef __APPLE__
+                // On OSX use Cmd+Shift+M to "Show/Hide 3Dconnexion devices settings dialog"
+                if ((evt.GetModifiers() & shiftMask) != 0) {
+#endif // __APPLE__
+                    Mouse3DController &controller = wxGetApp().plater()->get_mouse3d_controller();
+                    controller.show_settings_dialog(!controller.is_settings_dialog_shown());
+                    m_dirty = true;
+#ifdef __APPLE__
+                } else
+                    // and Cmd+M to minimize application
+                    wxGetApp().mainframe->Iconize();
+#endif // __APPLE__
 #ifdef _WIN32
             }
 #endif //_WIN32
@@ -3249,7 +3251,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case '3':
         case '4':
         case '5':
-        case '6': 
+        case '6':
         case '7':
         case '8':
         case '9': {
@@ -6218,7 +6220,7 @@ void GLCanvas3D::render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data,
 
 void GLCanvas3D::render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, PartPlateList &partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors, GLShaderProgram* shader, Camera::EType camera_type,
                                          bool                               use_top_view,
-                                         bool                               for_picking, 
+                                         bool                               for_picking,
                                          bool                               ban_light)
 {
     // check that thumbnail size does not exceed the default framebuffer size
