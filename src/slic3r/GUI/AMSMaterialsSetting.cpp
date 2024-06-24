@@ -462,7 +462,7 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
     if (obj) {
         // set filament
         if (is_virtual_tray()) {
-            obj->command_ams_filament_settings(255, VIRTUAL_TRAY_ID, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
+            obj->command_ams_filament_settings(255, VIRTUAL_TRAY_MAIN_ID, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
         }
         else if(m_is_third){
             obj->command_ams_filament_settings(ams_id, tray_id, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
@@ -576,7 +576,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
     // set filament
     if (m_is_third) {
         if (is_virtual_tray()) {
-            obj->command_ams_filament_settings(255, VIRTUAL_TRAY_ID, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
+            obj->command_ams_filament_settings(255, VIRTUAL_TRAY_MAIN_ID, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
         }
         else {
             obj->command_ams_filament_settings(ams_id, tray_id, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
@@ -630,7 +630,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
             CalibUtils::select_PA_calib_result(select_index_info);
         }
         else {
-            obj->command_extrusion_cali_set(VIRTUAL_TRAY_ID, "", "", k, n);
+            obj->command_extrusion_cali_set(VIRTUAL_TRAY_MAIN_ID, "", "", k, n);
         }
     }
     else {
@@ -741,7 +741,7 @@ void AMSMaterialsSetting::on_clr_picker(wxMouseEvent &event)
 
 bool AMSMaterialsSetting::is_virtual_tray()
 {
-    if (tray_id == VIRTUAL_TRAY_ID)
+    if (tray_id == VIRTUAL_TRAY_MAIN_ID)
         return true;
     return false;
 }
@@ -1126,44 +1126,19 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         }
 
         m_comboBox_cali_result->Set(items);
-        if (tray_id == VIRTUAL_TRAY_ID) {
-            if (from_printer && (*from_printer == 1)) {
-                AmsTray selected_tray = this->obj->vt_tray;
-                cali_select_idx       = CalibUtils::get_selected_calib_idx(m_pa_profile_items, selected_tray.cali_idx);
-                if (cali_select_idx >= 0) {
-                    m_comboBox_cali_result->SetSelection(cali_select_idx);
-                } else {
-                    m_comboBox_cali_result->SetSelection(0);
-                }
-            }
-            else {
-#ifdef __APPLE__
-                cali_select_idx = get_cali_index(m_comboBox_filament->GetValue().ToStdString());
-#else
-                cali_select_idx = get_cali_index(m_comboBox_filament->GetLabel().ToStdString());
-#endif
+        if (tray_id == VIRTUAL_TRAY_MAIN_ID) {
+            cali_select_idx = CalibUtils::get_selected_calib_idx(m_pa_profile_items,this->obj->vt_slot[0].cali_idx);
+            if (cali_select_idx >= 0) {
                 m_comboBox_cali_result->SetSelection(cali_select_idx);
             }
         }
         else {
-            if (from_printer && (*from_printer == 1)) {
-                Ams *selected_ams = this->obj->amsList[std::to_string(ams_id)];
-                if (!selected_ams) return;
-                AmsTray *selected_tray = selected_ams->trayList[std::to_string(tray_id)];
-                if (!selected_tray) return;
-                cali_select_idx = CalibUtils::get_selected_calib_idx(m_pa_profile_items, selected_tray->cali_idx);
-                if (cali_select_idx >= 0) {
-                    m_comboBox_cali_result->SetSelection(cali_select_idx);
-                } else {
-                    m_comboBox_cali_result->SetSelection(0);
-                }
-            }
-            else {
-#ifdef __APPLE__
-                cali_select_idx = get_cali_index(m_comboBox_filament->GetValue().ToStdString());
-#else
-                cali_select_idx = get_cali_index(m_comboBox_filament->GetLabel().ToStdString());
-#endif
+            Ams* selected_ams = this->obj->amsList[std::to_string(ams_id)];
+            if(!selected_ams) return;
+            AmsTray* selected_tray = selected_ams->trayList[std::to_string(tray_id)];
+            if(!selected_tray) return;
+            cali_select_idx = CalibUtils::get_selected_calib_idx(m_pa_profile_items, selected_tray->cali_idx);
+            if (cali_select_idx >= 0) {
                 m_comboBox_cali_result->SetSelection(cali_select_idx);
             }
         }
