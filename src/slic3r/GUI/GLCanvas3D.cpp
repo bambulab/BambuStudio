@@ -1572,6 +1572,10 @@ void GLCanvas3D::refresh_camera_scene_box()
     wxGetApp().plater()->get_camera().set_scene_box(scene_bounding_box());
 }
 
+BoundingBoxf3 GLCanvas3D::assembly_view_cur_bounding_box() const {
+    return m_model->bounding_box_in_assembly_view();
+}
+
 BoundingBoxf3 GLCanvas3D::volumes_bounding_box() const
 {
     BoundingBoxf3 bb;

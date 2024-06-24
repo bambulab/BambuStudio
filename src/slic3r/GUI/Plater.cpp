@@ -3535,7 +3535,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     const float INIT_MODEL_RATIO             = 0.75;
     const float CENTER_AROUND_ORIGIN_RATIO   = 0.8;
     const float LOAD_MODEL_RATIO             = 0.9;
-
+    bool        import_obj_or_stl            = false;
     for (size_t i = 0; i < input_files.size(); ++i) {
         int file_percent = 0;
 
@@ -4159,7 +4159,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             q->skip_thumbnail_invalid = false;
             return empty_result;
         }
-
+        if (boost::algorithm::iends_with(path.string(), ".stl") || boost::algorithm::iends_with(path.string(), ".obj")) {
+            import_obj_or_stl = true;
+        }
         if (one_by_one) {
             // BBS: add load_old_project logic
             if (type_3mf && !is_project_file && !load_old_project)
@@ -4174,7 +4176,11 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", before load_model_objects, count %1%")%model.objects.size();
             auto loaded_idxs = load_model_objects(model.objects, is_project_file);
             obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
-
+            if (import_obj_or_stl) {
+                for (int i = 0; i < loaded_idxs.size(); i++) {
+                    q->model().set_assembly_pos(q->model().objects[q->model().objects.size() - 1 - i]);
+                }
+            }
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", finished load_model_objects");
             wxString msg = wxString::Format(_L("Loading file: %s"), from_path(real_filename));
             dlg_cont     = dlg.Update(progress_percent, msg);
@@ -4209,6 +4215,11 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
         auto loaded_idxs = load_model_objects(new_model->objects);
         obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
+        if (import_obj_or_stl) {
+            for (int i = 0; i < loaded_idxs.size(); i++) {
+                q->model().set_assembly_pos(q->model().objects[q->model().objects.size() - 1 - i]);
+            }
+        }
     }
 
     if (new_model) delete new_model;
@@ -5828,7 +5839,7 @@ void Plater::priv::reload_from_disk()
                     new_volume = old_model_object->add_volume(*new_model_object->volumes[new_volume_idx]);
                     // new_volume = old_model_object->volumes.back();
                 }
-                
+
                 new_volume->set_new_unique_id();
                 new_volume->config.apply(old_volume->config);
                 new_volume->set_type(old_volume->type());
@@ -6252,7 +6263,7 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
 
         assemble_view->get_canvas3d()->bind_event_handlers();
         assemble_view->reload_scene(true);
-
+        assemble_view->get_canvas3d()->set_ignore_left_up();
         if (old_panel == view3D) {
             GLCanvas3D* view3D_canvas = view3D->get_canvas3d();
             Selection::IndicesList select_idxs = view3D_canvas->get_selection().get_volume_idxs();

@@ -57,7 +57,7 @@ static const Selection& scene_selection()
     //BBS AssembleView canvas has its own selection
     if (wxGetApp().plater()->get_current_canvas3D()->get_canvas_type() == GLCanvas3D::ECanvasType::CanvasAssembleView)
         return wxGetApp().plater()->get_assmeble_canvas3D()->get_selection();
-    
+
     return wxGetApp().plater()->get_view3D_canvas3D()->get_selection();
 }
 
@@ -140,7 +140,7 @@ ObjectList::ObjectList(wxWindow* parent) :
 		int new_selected_column = -1;
 #endif //__WXMSW__
         GLGizmosManager &gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
-        if ((wxGetKeyState(WXK_SHIFT) || wxGetKeyState(WXK_CONTROL)) 
+        if ((wxGetKeyState(WXK_SHIFT) || wxGetKeyState(WXK_CONTROL))
             && gizmos_mgr.is_gizmo_activable_when_single_full_instance()) {
             // selection will not be single_full_instance after shift_pressed,Caused exe crashed
             UnselectAll();
@@ -2281,8 +2281,7 @@ void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name
     new_object->ensure_on_bed();
 
     //BBS init assmeble transformation
-    Geometry::Transformation t = new_object->instances[0]->get_transformation();
-    new_object->instances[0]->set_assemble_transformation(t);
+    new_object->get_model()->set_assembly_pos(new_object);
 
     object_idxs.push_back(model.objects.size() - 1);
 #ifdef _DEBUG
@@ -2500,7 +2499,7 @@ bool ObjectList::del_from_cut_object(bool is_cut_connector, bool is_model_part/*
     const wxString title     = is_cut_connector   ? _L("Delete connector from object which is a part of cut") :
                                is_model_part      ? _L("Delete solid part from object which is a part of cut") :
                                is_negative_volume ? _L("Delete negative volume from object which is a part of cut") : "";
-                             
+
     const wxString msg_end   = is_cut_connector   ? ("\n" + _L("To save cut correspondence you can delete all connectors from all related objects.")) : "";
 
     InfoDialog dialog(wxGetApp().plater(), title,
@@ -5545,7 +5544,7 @@ void ObjectList::msw_rescale()
 void ObjectList::sys_color_changed()
 {
     wxGetApp().UpdateDVCDarkUI(this, true);
-    
+
     msw_rescale();
 
     if (m_objects_model) { m_objects_model->sys_color_changed(); }

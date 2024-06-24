@@ -452,6 +452,21 @@ ModelObject* Model::add_object(const ModelObject &other)
     return new_object;
 }
 
+void Model::set_assembly_pos(ModelObject *model_object)
+{
+    if (!model_object) {return;}
+    auto cur_assemble_scene_box = bounding_box_in_assembly_view();
+    if (cur_assemble_scene_box.defined) {
+        auto offset = cur_assemble_scene_box.center();
+        auto mo_box = model_object->bounding_box_in_assembly_view();
+        offset[0] += ((cur_assemble_scene_box.size()[0] / 2.0f + mo_box.size()[0] / 2.0f) * 1.2);
+        offset[2] = cur_assemble_scene_box.min[2] + mo_box.size()[2];
+        model_object->instances[0]->set_assemble_offset(offset);
+        offset[1] += cur_assemble_scene_box.center().y() - model_object->bounding_box_in_assembly_view().center().y();
+        model_object->instances[0]->set_assemble_offset(offset);
+    }
+}
+
 void Model::delete_object(size_t idx)
 {
     ModelObjectPtrs::iterator i = this->objects.begin() + idx;
@@ -600,6 +615,13 @@ BoundingBoxf3 Model::bounding_box() const
     BoundingBoxf3 bb;
     for (ModelObject *o : this->objects)
         bb.merge(o->bounding_box());
+    return bb;
+}
+
+BoundingBoxf3 Model::bounding_box_in_assembly_view() const {
+    BoundingBoxf3 bb;
+    for (ModelObject *o : this->objects)
+        bb.merge(o->bounding_box_in_assembly_view());
     return bb;
 }
 
@@ -1351,6 +1373,15 @@ const BoundingBoxf3& ModelObject::bounding_box() const
             m_bounding_box.merge(i->transform_bounding_box(raw_bbox));
     }
     return m_bounding_box;
+}
+
+const BoundingBoxf3 &ModelObject::bounding_box_in_assembly_view() const
+{
+    m_bounding_box_in_assembly_view.reset();
+    BoundingBoxf3 raw_bbox = this->raw_mesh_bounding_box();
+    for (const ModelInstance *i : this->instances)
+        m_bounding_box_in_assembly_view.merge(i->transform_bounding_box_in_assembly_view(raw_bbox));
+    return m_bounding_box_in_assembly_view;
 }
 
 // A mesh containing all transformed instances of this object.
@@ -3335,6 +3366,10 @@ BoundingBoxf3 ModelInstance::transform_mesh_bounding_box(const TriangleMesh& mes
 BoundingBoxf3 ModelInstance::transform_bounding_box(const BoundingBoxf3 &bbox, bool dont_translate) const
 {
     return bbox.transformed(get_matrix(dont_translate));
+}
+
+BoundingBoxf3 ModelInstance::transform_bounding_box_in_assembly_view(const BoundingBoxf3 &bbox, bool dont_translate) const {
+    return bbox.transformed(get_assemble_transformation().get_matrix());
 }
 
 Vec3d ModelInstance::transform_vector(const Vec3d& v, bool dont_translate) const
