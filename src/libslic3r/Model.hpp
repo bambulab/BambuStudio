@@ -427,6 +427,7 @@ public:
     // This bounding box is approximate and not snug.
     // This bounding box is being cached.
     const BoundingBoxf3& bounding_box() const;
+    const BoundingBoxf3& bounding_box_in_assembly_view() const;
     void invalidate_bounding_box() { m_bounding_box_valid = false; m_raw_bounding_box_valid = false; m_raw_mesh_bounding_box_valid = false; }
 
     // A mesh containing all transformed instances of this object.
@@ -647,6 +648,7 @@ private:
 
     // Bounding box, cached.
     mutable BoundingBoxf3 m_bounding_box;
+    mutable BoundingBoxf3 m_bounding_box_in_assembly_view;
     mutable bool          m_bounding_box_valid;
     mutable BoundingBoxf3 m_raw_bounding_box;
     mutable bool          m_raw_bounding_box_valid;
@@ -1278,7 +1280,7 @@ public:
         m_assemble_transformation.set_from_transform(transform);
     }
     const Vec3d& get_assemble_offset() {return m_assemble_transformation.get_offset(); }
-    void set_assemble_offset(const Vec3d& offset) { m_assemble_transformation.set_offset(offset); }
+    void         set_assemble_offset(const Vec3d &offset){ m_assemble_initialized = true;m_assemble_transformation.set_offset(offset);}
     void set_assemble_rotation(const Vec3d &rotation) { m_assemble_transformation.set_rotation(rotation); }
     void rotate_assemble(double angle, const Vec3d& axis) {
         m_assemble_transformation.set_rotation(m_assemble_transformation.get_rotation() + Geometry::extract_euler_angles(Eigen::Quaterniond(Eigen::AngleAxisd(angle, axis)).toRotationMatrix()));
@@ -1328,6 +1330,7 @@ public:
     BoundingBoxf3 transform_mesh_bounding_box(const TriangleMesh& mesh, bool dont_translate = false) const;
     // Transform an external bounding box.
     BoundingBoxf3 transform_bounding_box(const BoundingBoxf3 &bbox, bool dont_translate = false) const;
+    BoundingBoxf3 transform_bounding_box_in_assembly_view(const BoundingBoxf3 &bbox, bool dont_translate = false) const;
     // Transform an external vector.
     Vec3d transform_vector(const Vec3d& v, bool dont_translate = false) const;
     // To be called on an external polygon. It does not translate the polygon, only rotates and scales.
@@ -1602,6 +1605,7 @@ public:
     ModelObject* add_object(const char *name, const char *path, const TriangleMesh &mesh);
     ModelObject* add_object(const char *name, const char *path, TriangleMesh &&mesh);
     ModelObject* add_object(const ModelObject &other);
+    void         set_assembly_pos(ModelObject * model_object);
     void         delete_object(size_t idx);
     bool         delete_object(ObjectID id);
     bool         delete_object(ModelObject* object);
@@ -1624,6 +1628,7 @@ public:
     bool          add_default_instances();
     // Returns approximate axis aligned bounding box of this model
     BoundingBoxf3 bounding_box() const;
+    BoundingBoxf3 bounding_box_in_assembly_view() const;
     // Set the print_volume_state of PrintObject::instances,
     // return total number of printable objects.
     unsigned int  update_print_volume_state(const BuildVolume &build_volume);

@@ -416,7 +416,7 @@ class GLCanvas3D
         void render(const std::vector<const ModelInstance*>& sorted_instances) const;
     };
 
-  
+
     class Tooltip
     {
         std::string m_text;
@@ -502,6 +502,7 @@ public:
     };
 
     int GetHoverId();
+    void set_ignore_left_up() { m_mouse.ignore_left_up = true; }
 
 private:
     bool m_is_dark = false;
@@ -778,6 +779,7 @@ public:
     void set_show_world_axes(bool flag) { m_show_world_axes = flag; }
     void refresh_camera_scene_box();
 
+    BoundingBoxf3 assembly_view_cur_bounding_box() const;
     BoundingBoxf3 volumes_bounding_box() const;
     BoundingBoxf3 scene_bounding_box() const;
     BoundingBoxf3 plate_scene_bounding_box(int plate_idx) const;
@@ -1032,7 +1034,7 @@ public:
 
     bool is_overhang_shown() const { return m_slope.is_GlobalUsed(); }
     void show_overhang(bool show) { m_slope.globalUse(show); }
-    
+
     bool is_using_slope() const { return m_slope.is_used(); }
     void use_slope(bool use) { m_slope.use(use); }
     void set_slope_normal_angle(float angle_in_deg) { m_slope.set_normal_angle(angle_in_deg); }

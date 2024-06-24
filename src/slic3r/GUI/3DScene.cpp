@@ -1349,7 +1349,7 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType       type,
                                 const Transform3d &                   view_matrix,
                                 std::function<bool(const GLVolume &)> filter_func,
                                 bool                                  with_outline,
-                                const std::array<float, 4> &          body_color, 
+                                const std::array<float, 4> &          body_color,
                                 bool                                  partly_inside_enable) const
 {
     GLVolumeWithIdAndZList to_render = volumes_to_render(volumes, type, view_matrix, filter_func);
