@@ -4240,10 +4240,6 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
                     move_bounds, interface_placer, throw_on_cancel);
             auto t_gen = std::chrono::high_resolution_clock::now();
 
-            // save num of points to log
-            for (size_t i = 0; i < move_bounds.size(); i++)
-                BOOST_LOG_TRIVIAL(trace) << "Number of points in move_bound: " << move_bounds[i].size() << " in layer " << i;
-
 #ifdef TREESUPPORT_DEBUG_SVG
             for (size_t layer_idx = 0; layer_idx < move_bounds.size(); ++layer_idx) {
                 Polygons polys;
