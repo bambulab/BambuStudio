@@ -636,6 +636,7 @@ void Layer::make_ironing()
 		double 		height;
 		double 		speed;
 		double 		angle;
+		double 		inset;
 
 		bool operator<(const IroningParams &rhs) const {
 			if (this->extruder < rhs.extruder)
@@ -662,12 +663,16 @@ void Layer::make_ironing()
 				return true;
 			if (this->angle > rhs.angle)
 				return false;
+			if (this->inset < rhs.inset)
+				return true;
+			if (this->inset > rhs.inset)
+				return false;
 			return false;
 		}
 
 		bool operator==(const IroningParams &rhs) const {
 			return this->extruder == rhs.extruder && this->just_infill == rhs.just_infill &&
-				   this->line_spacing == rhs.line_spacing && this->height == rhs.height && this->speed == rhs.speed && this->angle == rhs.angle && this->pattern == rhs.pattern;
+				   this->line_spacing == rhs.line_spacing && this->height == rhs.height && this->speed == rhs.speed && this->angle == rhs.angle && this->pattern == rhs.pattern && this->inset == rhs.inset;
 		}
 
 		LayerRegion *layerm		= nullptr;
@@ -711,6 +716,7 @@ void Layer::make_ironing()
 				//TODO just_infill is currently not used.
 				ironing_params.just_infill 	= false;
 				ironing_params.line_spacing = config.ironing_spacing;
+				ironing_params.inset 		= config.ironing_inset;
 				ironing_params.height 		= default_layer_height * 0.01 * config.ironing_flow;
 				ironing_params.speed 		= config.ironing_speed;
 				ironing_params.angle 		= (int(config.ironing_direction.value+layerm->region().config().infill_direction.value)%180) * M_PI / 180.;
@@ -801,7 +807,9 @@ void Layer::make_ironing()
 				polys = union_safety_offset(polys);
 			}
 			// Trim the top surfaces with half the nozzle diameter.
-			ironing_areas = intersection_ex(polys, offset(this->lslices, - float(scale_(0.5 * nozzle_dmr))));
+			//BBS: ironing inset
+            double ironing_areas_offset = ironing_params.inset == 0 ? float(scale_(0.5 * nozzle_dmr)) : scale_(ironing_params.inset);
+			ironing_areas = intersection_ex(polys, offset(this->lslices, - ironing_areas_offset));
 		}
 
         // Create the filler object.
