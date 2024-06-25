@@ -317,6 +317,8 @@ void MonitorPanel::on_update_all(wxMouseEvent &event)
     set_default();
     update_all();
 
+    m_status_info_panel->last_cali_version.reset();
+
     MachineObject *obj_ = dev->get_selected_machine();
     if (obj_)
         GUI::wxGetApp().sidebar().load_ams_list(obj_->dev_id, obj_);
