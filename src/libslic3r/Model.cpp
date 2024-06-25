@@ -3169,12 +3169,18 @@ size_t ModelVolume::split(unsigned int max_extruders)
 
     unsigned int extruder_counter = 0;
     const Vec3d offset = this->get_offset();
-
+    std::vector<std::string> tris_split_strs;
+    auto face_count = m_mesh->its.indices.size();
+    tris_split_strs.reserve(face_count);
+    for (size_t i = 0; i < face_count; i++) {
+        tris_split_strs.emplace_back(mmu_segmentation_facets.get_triangle_as_string(i));
+    }
+    int last_all_mesh_face_count = 0;
     for (TriangleMesh &mesh : meshes) {
         if (mesh.empty())
             // Repair may have removed unconnected triangles, thus emptying the mesh.
             continue;
-
+        auto cur_face_count = mesh.its.indices.size();
         if (idx == 0) {
             this->set_mesh(std::move(mesh));
             this->calculate_convex_hull();
@@ -3189,10 +3195,20 @@ size_t ModelVolume::split(unsigned int max_extruders)
             this->exterior_facets.reset();
             this->supported_facets.reset();
             this->seam_facets.reset();
+            for (size_t i = 0; i < tris_split_strs.size(); i++) {
+                if (i < cur_face_count && tris_split_strs[i].size()>0) {
+                    mmu_segmentation_facets.set_triangle_from_string(i, tris_split_strs[i]);
+                }
+            }
+        } else {
+            auto new_mv =new ModelVolume(object, *this, std::move(mesh));
+            this->object->volumes.insert(this->object->volumes.begin() + (++ivolume), new_mv);
+            for (size_t i = last_all_mesh_face_count; i < tris_split_strs.size(); i++) {
+                if (i < last_all_mesh_face_count + cur_face_count && tris_split_strs[i].size() > 0) {
+                    new_mv->mmu_segmentation_facets.set_triangle_from_string(i - last_all_mesh_face_count, tris_split_strs[i]);
+                }
+            }
         }
-        else
-            this->object->volumes.insert(this->object->volumes.begin() + (++ivolume), new ModelVolume(object, *this, std::move(mesh)));
-
         this->object->volumes[ivolume]->set_offset(Vec3d::Zero());
         this->object->volumes[ivolume]->center_geometry_after_creation();
         this->object->volumes[ivolume]->translate(offset);
@@ -3202,6 +3218,7 @@ size_t ModelVolume::split(unsigned int max_extruders)
         //this->object->volumes[ivolume]->config.set("extruder", auto_extruder_id(max_extruders, extruder_counter));
         this->object->volumes[ivolume]->m_is_splittable = 0;
         ++ idx;
+        last_all_mesh_face_count += cur_face_count;
     }
 
     // discard volumes for which the convex hull was not generated or is degenerate

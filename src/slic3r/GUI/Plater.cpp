@@ -4933,6 +4933,11 @@ void Plater::priv::split_object()
     ModelObject* current_model_object = new_model.objects[obj_idx];
 
     wxBusyCursor wait;
+    if (current_model_object->volumes.size() == 1) {
+        split_volume();//keep color
+        new_model = model;
+        current_model_object = new_model.objects[obj_idx];
+    }
     ModelObjectPtrs new_objects;
     current_model_object->split(&new_objects);
     if (new_objects.size() == 1)
