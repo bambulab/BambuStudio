@@ -2226,12 +2226,22 @@ void PrintConfigDef::init_fff_params()
     def = this->add("ironing_spacing", coFloat);
     def->label = L("Ironing line spacing");
     def->category = L("Quality");
-    def->tooltip = L("The distance between the lines of ironing");
+    def->tooltip = L("The distance between the lines of ironing. 0 means not apply.");
     def->sidetext = L("mm");
     def->min = 0;
     def->max = 1;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0.1));
+    def->set_default_value(new ConfigOptionFloat(0));
+
+    def           = this->add("ironing_inset", coFloat);
+    def->label    = L("Ironing inset");
+    def->category = L("Quality");
+    def->tooltip  = L("The distance to keep the from the edges of ironing line");
+    def->sidetext = L("mm");
+    def->min      = 0;
+    def->max      = 100;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("ironing_speed", coFloat);
     def->label = L("Ironing speed");
