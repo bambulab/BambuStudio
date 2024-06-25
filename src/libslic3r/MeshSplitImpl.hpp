@@ -146,7 +146,7 @@ void its_split(const Its &m, OutputIt out_it)
         visitor.visit([&facets](size_t idx) { facets.emplace_back(idx); return true; });
         if (facets.empty())
             break;
-
+        std::sort(facets.begin(),facets.end());
         // Create a new mesh for the part that was just split off.
         indexed_triangle_set mesh;
         mesh.indices.reserve(facets.size());
