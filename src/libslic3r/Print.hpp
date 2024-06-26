@@ -446,6 +446,7 @@ public:
 
     // BBS: returns 1-based indices of extruders used to print the first layer wall of objects
     std::vector<int>            object_first_layer_wall_extruders;
+    bool             has_variable_layer_heights = false;
 
     // OrcaSlicer
     size_t get_klipper_object_id() const { return m_klipper_object_id; }
