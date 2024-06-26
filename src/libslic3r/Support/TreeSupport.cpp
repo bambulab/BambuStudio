@@ -605,13 +605,13 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
     support_type = m_object_config->support_type;
     support_style = m_object_config->support_style;
     if (support_style == smsDefault) {
-        // organic support doesn't work with adaptive layer height
-        if (object.model_object()->layer_height_profile.empty()) {
+        // organic support doesn't work with variable layer heights (including adaptive layer height and height range modifier, see #4313)
+        if (!m_object->has_variable_layer_heights) {
             BOOST_LOG_TRIVIAL(warning) << "tree support default to organic support";
             support_style = smsTreeOrganic;
         }
         else {
-            BOOST_LOG_TRIVIAL(warning) << "Adaptive layer height is not supported for organic support, using hybrid tree support instead.";
+            BOOST_LOG_TRIVIAL(warning) << "tree support default to hybrid tree due to adaptive layer height";
             support_style = smsTreeHybrid;
         }
     }
