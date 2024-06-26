@@ -49,6 +49,7 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const w
     SetLabel("MediaPlayCtrl");
     SetBackgroundColour(*wxWHITE);
     m_media_ctrl->Bind(wxEVT_MEDIA_STATECHANGED, &MediaPlayCtrl::onStateChanged, this);
+    m_media_ctrl->SetIdleImage(from_u8(resources_dir() + "/images/live_stream_default.png"));
 
     m_button_play = new Button(this, "", "media_play", wxBORDER_NONE);
     m_button_play->SetCanFocus(false);
@@ -332,7 +333,7 @@ void MediaPlayCtrl::Play()
     // !m_lan_mode && !m_remote_proto && m_lan_proto == LVL_None (x)
 
     if (m_lan_proto <= MachineObject::LVL_Disable && (m_lan_mode || !m_remote_proto)) {
-        Stop(m_lan_proto == MachineObject::LVL_None 
+        Stop(m_lan_proto == MachineObject::LVL_None
             ? _L("Problem occured. Please update the printer firmware and try again.")
             : _L("LAN Only Liveview is off. Please turn on the liveview on printer screen."));
         return;
@@ -366,7 +367,7 @@ void MediaPlayCtrl::Play()
                 url += "&cli_id=" + wxGetApp().app_config->get("slicer_uuid");
                 url += "&cli_ver=" + std::string(SLIC3R_VERSION);
             }
-            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: " << hide_passwd(url, 
+            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: " << hide_passwd(url,
                     {"?uid=", "authkey=", "passwd=", "license=", "token="});
             CallAfter([this, m, url] {
                 if (m != m_machine) {
@@ -436,7 +437,7 @@ void MediaPlayCtrl::Stop(wxString const &msg, wxString const &msg2)
     auto tunnel = m_url.empty() ? "" : into_u8(wxURI(m_url).GetPath()).substr(1);
     if (auto n = tunnel.find_first_of("/_"); n != std::string::npos)
         tunnel = tunnel.substr(0, n);
-    if (last_state != wxMEDIASTATE_PLAYING && m_failed_code != 0 
+    if (last_state != wxMEDIASTATE_PLAYING && m_failed_code != 0
             && m_last_failed_codes.find(m_failed_code) == m_last_failed_codes.end()
             && (m_user_triggered || m_failed_retry > 3)) {
         json j;
@@ -604,7 +605,7 @@ void MediaPlayCtrl::ToggleStream()
             url += "&cli_id=" + wxGetApp().app_config->get("slicer_uuid");
             url += "&cli_ver=" + std::string(SLIC3R_VERSION);
         }
-        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::ToggleStream: " << hide_passwd(url, 
+        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::ToggleStream: " << hide_passwd(url,
                 {"?uid=", "authkey=", "passwd=", "license=", "token="});
         CallAfter([this, m, url] {
             if (m != m_machine) return;
@@ -624,8 +625,8 @@ void MediaPlayCtrl::ToggleStream()
     });
 }
 
-void MediaPlayCtrl::msw_rescale() { 
-    m_button_play->Rescale(); 
+void MediaPlayCtrl::msw_rescale() {
+    m_button_play->Rescale();
 }
 
 void MediaPlayCtrl::jump_to_play()
@@ -841,15 +842,15 @@ bool MediaPlayCtrl::start_stream_service(bool *need_install)
             if (!boost::filesystem::exists(file_dll) || boost::filesystem::last_write_time(file_dll) != boost::filesystem::last_write_time(file_dll2))
                 boost::filesystem::copy_file(file_dll2, file_dll, boost::filesystem::copy_option::overwrite_if_exists);
         }
-        boost::process::child process_source(file_source, file_url2.ToStdWstring(), boost::process::start_dir(tools_dir), 
-                                             boost::process::windows::create_no_window, 
+        boost::process::child process_source(file_source, file_url2.ToStdWstring(), boost::process::start_dir(tools_dir),
+                                             boost::process::windows::create_no_window,
                                              boost::process::std_out > intermediate, boost::process::limit_handles);
-        boost::process::child process_ffmpeg(file_ffmpeg, configss, boost::process::windows::create_no_window, 
+        boost::process::child process_ffmpeg(file_ffmpeg, configss, boost::process::windows::create_no_window,
                                              boost::process::std_in < intermediate, boost::process::limit_handles);
 #else
         boost::filesystem::permissions(file_source, boost::filesystem::owner_exe | boost::filesystem::add_perms);
         boost::filesystem::permissions(file_ffmpeg, boost::filesystem::owner_exe | boost::filesystem::add_perms);
-        boost::process::child process_source(file_source, file_url2.data().AsInternal(), boost::process::start_dir(start_dir), 
+        boost::process::child process_source(file_source, file_url2.data().AsInternal(), boost::process::start_dir(start_dir),
                                              boost::process::std_out > intermediate, boost::process::limit_handles);
         boost::process::child process_ffmpeg(file_ffmpeg, configss, boost::process::std_in < intermediate, boost::process::limit_handles);
 #endif
@@ -914,25 +915,19 @@ static int SecondsSinceLastInput()
 
 }}
 
-void wxMediaCtrl2::DoSetSize(int x, int y, int width, int height, int sizeFlags)
+void wxMediaCtrl_OnSize(wxWindow * ctrl, wxSize const & videoSize, int width, int height)
 {
-#ifdef __WXMAC__
-    wxWindow::DoSetSize(x, y, width, height, sizeFlags);
-#else
-    wxMediaCtrl::DoSetSize(x, y, width, height, sizeFlags);
-#endif
-    if (sizeFlags & wxSIZE_USE_EXISTING) return;
-    wxSize size = m_video_size;
+    wxSize size = videoSize;
+    if (!size.IsFullySpecified()) size = {16, 9};
     int maxHeight = (width * size.GetHeight() + size.GetHeight() - 1) / size.GetWidth();
-    if (maxHeight != GetMaxHeight()) {
-        // BOOST_LOG_TRIVIAL(info) << "wxMediaCtrl2::DoSetSize: width: " << width << ", height: " << height << ", maxHeight: " << maxHeight;
-        SetMaxSize({-1, maxHeight});
-        CallAfter([this] {
-            if (auto p = GetParent()) {
+    if (maxHeight != ctrl->GetMaxHeight()) {
+        // BOOST_LOG_TRIVIAL(info) << "wxMediaCtrl_OnSize: width: " << width << ", height: " << height << ", maxHeight: " << maxHeight;
+        ctrl->SetMaxSize({-1, maxHeight});
+        ctrl->CallAfter([ctrl] {
+            if (auto p = ctrl->GetParent()) {
                 p->Layout();
                 p->Refresh();
             }
         });
     }
 }
-
