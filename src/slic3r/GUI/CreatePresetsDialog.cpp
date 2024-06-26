@@ -3445,7 +3445,7 @@ bool ExportConfigsDialog::preset_is_not_compatible_bbl_printer(Preset *preset)
     PresetBundle *      preset_bundle = wxGetApp().preset_bundle;
     vector<std::string> printers;
     get_filament_compatible_printer(preset, printers);
-    if (printers.empty()) return true;
+    if (printers.empty()) return false; // no compatable printer preset must be compatable bbl printer
     Preset *printer_preset = preset_bundle->printers.find_preset(printers[0], false);
     if (!printer_preset) return true;
     if (!printer_preset->is_bbl_vendor_preset(preset_bundle)) return true;
@@ -3947,7 +3947,7 @@ ExportConfigsDialog::ExportCase ExportConfigsDialog::archive_filament_bundle_to_
                 std::string filament_vendor = filament_vendor_to_preset.first;
                 if (filament_vendor.empty()) continue;
                 Preset *filament_preset = filament_vendor_to_preset.second;
-                if (preset_is_not_compatible_bbl_printer(filament_preset)) continue;
+                //if (preset_is_not_compatible_bbl_printer(filament_preset)) continue;
                 if (vendor_to_filament_name.find(std::make_pair(filament_vendor, filament_preset->name)) != vendor_to_filament_name.end()) continue;
                 vendor_to_filament_name.insert(std::make_pair(filament_vendor, filament_preset->name));
                 std::string preset_path     = boost::filesystem::path(filament_preset->file).make_preferred().string();
