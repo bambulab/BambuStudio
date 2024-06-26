@@ -1747,6 +1747,7 @@ unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns)
     std::vector<std::string> filament_presets;
     std::vector<std::string> filament_colors;
     ams_multi_color_filment.clear();
+    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": filament_ams_list size: %1%") % filament_ams_list.size();
     for (auto &entry : filament_ams_list) {
         auto & ams = entry.second;
         auto filament_id = ams.opt_string("filament_id", 0u);
