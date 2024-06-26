@@ -141,6 +141,7 @@ public:
 
     void add_filament();
     void delete_filament(size_t filament_id = size_t(-1));
+    void edit_filament();
     void add_custom_filament(wxColour new_col);
     // BBS
     void on_bed_type_change(BedType bed_type);
@@ -738,6 +739,7 @@ public:
     wxMenu* layer_menu();
     wxMenu* multi_selection_menu();
     wxMenu* assemble_multi_selection_menu();
+    wxMenu* filament_action_menu();
     int     GetPlateIndexByRightMenuInLeftUI();
     void    SetPlateIndexByRightMenuInLeftUI(int);
     static bool has_illegal_filename_characters(const wxString& name);

@@ -1361,6 +1361,20 @@ void MenuFactory::create_cut_cutter_menu()
     append_menu_item_change_type(menu);
 }
 
+void MenuFactory::create_filament_action_menu()
+{
+    wxMenu *menu = &m_filament_action_menu;
+
+    append_menu_item(
+        menu, wxID_ANY, _L("Edit"), "", [](wxCommandEvent &) {
+            plater()->sidebar().edit_filament(); }, "", nullptr, 
+        []() { return true; }, m_parent);
+    append_menu_item(
+        menu, wxID_ANY, _L("Delete"), _L("Delete this filament"), [](wxCommandEvent &) {
+            plater()->sidebar().delete_filament(-2); }, "menu_delete", nullptr,
+        []() { return plater()->sidebar().combos_filament().size() > 1; }, m_parent);
+}
+
 //BBS: add part plate related logic
 void MenuFactory::create_plate_menu()
 {
@@ -1463,6 +1477,8 @@ void MenuFactory::init(wxWindow* parent)
     create_cut_cutter_menu();
     //BBS: add part plate related logic
     create_plate_menu();
+
+    create_filament_action_menu();
 
     // create "Instance to Object" menu item
     append_menu_item_instance_to_object(&m_instance_menu);
@@ -1640,6 +1656,8 @@ wxMenu* MenuFactory::assemble_multi_selection_menu()
     }
     return menu;
 }
+
+wxMenu *MenuFactory::filament_action_menu() { return &m_filament_action_menu; }
 
 
 //BBS: add partplate related logic
