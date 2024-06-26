@@ -1,6 +1,6 @@
 {
     "type": "process",
-    "setting_id": "GP_Qidi_010",
+    "setting_id": "GP007",
     "name": "0.10mm Standard @Qidi XMax3 0.2 nozzle",
     "from": "system",
     "instantiation": "true",

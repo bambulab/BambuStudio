@@ -1,6 +1,6 @@
 {
   "type": "process",
-  "setting_id": "GP037",
+  "setting_id": "GP028",
   "name": "0.18mm Standard @Qidi Q1 Pro 0.6 nozzle",
   "from": "system",
   "instantiation": "true",
