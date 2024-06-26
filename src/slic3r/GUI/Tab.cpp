@@ -1597,7 +1597,8 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     }
 
     update();
-    m_active_page->update_visibility(m_mode, true);
+    if (m_active_page)
+        m_active_page->update_visibility(m_mode, true);
     m_page_view->GetParent()->Layout();
 }
 
