@@ -109,6 +109,7 @@ private:
     GCodeCheckResult parse_M82(const GCodeLine& gcode_line);
     GCodeCheckResult parse_M83(const GCodeLine& gcode_line);
     GCodeCheckResult parse_M104_M109(const GCodeLine &gcode_line);
+    GCodeCheckResult parse_M1020(const GCodeLine& gcode_line);
 
     GCodeCheckResult parse_comment(GCodeLine& gcode_line);
 
