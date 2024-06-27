@@ -232,6 +232,10 @@ GCodeCheckResult GCodeChecker::parse_command(GCodeLine& gcode_line)
                     ret = parse_M104_M109(gcode_line);
                     break;
                 } // Set to nozzle temperature
+                case 1020: {
+                    ret = parse_M1020(gcode_line);
+                    break;
+                }
                 default: { break; }
             }
             break;
@@ -467,6 +471,46 @@ GCodeCheckResult GCodeChecker::parse_M104_M109(const GCodeLine &gcode_line)
     }
 
     return GCodeCheckResult::Success;
+}
+
+GCodeCheckResult GCodeChecker::parse_M1020(const GCodeLine& gcode_line)
+{
+    const char* c = gcode_line.m_raw.c_str();
+    const char* rs = strchr(c, 'S');
+
+    if (rs != nullptr) {
+        std::string str = rs;
+        str = str.substr(1);
+        for (int i = 0; i < str.size(); i++) {
+            if (str[i] == ' ')
+                str = str.substr(0, i);
+        }
+
+        try {
+            int value = std::stoi(str);
+            if (value >= 0 && value <= filament_flow_ratio.size() - 1) {
+                filament_id = value;
+                flow_ratio = filament_flow_ratio[value];
+                return GCodeCheckResult::Success;
+            }
+            else {
+                return GCodeCheckResult::ParseFailed;
+            }
+        }
+        catch (std::invalid_argument&) {
+            std::cout << "Invalid argument: not a valid integer" << std::endl;
+            return GCodeCheckResult::ParseFailed;
+        }
+        catch (std::out_of_range&) {
+            std::cout << "Out of range: number is too large" << std::endl;
+            return GCodeCheckResult::ParseFailed;
+        }
+    }
+    else
+    {
+        std::cout << "Missing 'S' character in the G-code line!" << std::endl;
+        return GCodeCheckResult::ParseFailed;
+    }
 }
 
 double GCodeChecker::calculate_G1_width(const std::array<double, 3>& source,
