@@ -101,20 +101,23 @@ then
         echo -e "\nFind libgtk-3, installing: libgtk-3-dev libglew-dev libudev-dev libdbus-1-dev cmake git\n"
         apt install -y libgtk-3-dev libglew-dev libudev-dev libdbus-1-dev cmake git
     fi
-    # for ubuntu 22.04:
+    # for ubuntu:
     ubu_version="$(cat /etc/issue)" 
     if [[ $ubu_version == "Ubuntu 22.04"* ]]
     then
-        apt install -y curl libssl-dev libcurl4-openssl-dev m4
+        apt install -y curl libssl-dev libcurl4-openssl-dev m4 libwebkit2gtk-4.0-dev
     elif [[ $ubu_version == "Ubuntu 24.04"* ]]
     then
-        NEW_SOURCE="deb http://gb.archive.ubuntu.com/ubuntu jammy main"
-        if grep -qF -- "$NEW_SOURCE" /etc/apt/sources.list; then
-            echo "source exist: $NEW_SOURCE"
-        else
-            echo "$NEW_SOURCE" | sudo tee -a /etc/apt/sources.list > /dev/null
-        fi
-        apt update
+        # NEW_SOURCE="deb http://gb.archive.ubuntu.com/ubuntu jammy main"
+        # if grep -qF -- "$NEW_SOURCE" /etc/apt/sources.list; then
+        #     echo "source exist: $NEW_SOURCE"
+        # else
+        #     echo "$NEW_SOURCE" | sudo tee -a /etc/apt/sources.list > /dev/null
+        # fi
+        # apt update
+        apt install -y libwebkit2gtk-4.1-dev
+    else
+        apt install -y libwebkit2gtk-4.0-dev
     fi
     if [[ -n "$BUILD_DEBUG" ]]
     then
@@ -123,7 +126,7 @@ then
     fi
 
     # Addtional Dev packages for BambuStudio
-    export REQUIRED_DEV_PACKAGES="libgstreamerd-3-dev libsecret-1-dev libwebkit2gtk-4.0-dev libosmesa6-dev libssl-dev libcurl4-openssl-dev eglexternalplatform-dev libudev-dev libdbus-1-dev extra-cmake-modules"
+    export REQUIRED_DEV_PACKAGES="libgstreamerd-3-dev libsecret-1-dev libosmesa6-dev libssl-dev libcurl4-openssl-dev eglexternalplatform-dev libudev-dev libdbus-1-dev extra-cmake-modules"
     # libwebkit2gtk-4.1-dev ??
     export DEV_PACKAGES_COUNT=$(echo ${REQUIRED_DEV_PACKAGES} | wc -w)
     if [ $(dpkg --get-selections | grep -E "$(echo ${REQUIRED_DEV_PACKAGES} | tr ' ' '|')" | wc -l) -lt ${DEV_PACKAGES_COUNT} ]; then
