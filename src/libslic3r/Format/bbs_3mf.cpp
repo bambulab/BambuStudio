@@ -7324,8 +7324,13 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                         }
                         else if (obj){
                             inst =  obj->instances[inst_id];
-                            if (use_loaded_id && (inst->loaded_id > 0))
+                            if (use_loaded_id && (inst->loaded_id > 0)) {
                                 identify_id = inst->loaded_id;
+                                if (identify_id & 0xFF000000) {
+                                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", identify_id %1%, too big, limit the high bits to 0\n") % identify_id;
+                                    identify_id = identify_id & 0x00FFFFFF;
+                                }
+                            }
                             else
                                 identify_id = inst->id().id;
                         }
@@ -7514,8 +7519,13 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                             continue;
                         }
                         inst =  obj->instances[inst_id];
-                        if (m_use_loaded_id && (inst->loaded_id > 0))
+                        if (m_use_loaded_id && (inst->loaded_id > 0)) {
                             identify_id = inst->loaded_id;
+                            if (identify_id & 0xFF000000) {
+                                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", identify_id %1%, too big, limit the high bits to 0\n") % identify_id;
+                                identify_id = identify_id & 0x00FFFFFF;
+                            }
+                        }
                         else
                             identify_id = inst->id().id;
                         bool skipped = std::find(plate_data->skipped_objects.begin(), plate_data->skipped_objects.end(), identify_id) !=
