@@ -2719,7 +2719,7 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
 		else {
 			;
 		}
-		if (m_partplate_list->m_bed3d && !m_partplate_list->m_bed3d->get_model_filename().empty()) {
+		if (m_partplate_list && m_partplate_list->m_bed3d && !m_partplate_list->m_bed3d->get_model_filename().empty()) {
 			set_logo_box_by_bed(m_partplate_list->m_bed3d->get_model().get_bounding_box());
 		}
 
