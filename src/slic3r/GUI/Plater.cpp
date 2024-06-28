@@ -1521,7 +1521,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
                     if (boost::algorithm::contains(extruder_variants->values[index], extruder + " " + nozzle_volumes_def->enum_labels[i])) {
                         if (nozzle_volumes->values[index] == i)
                             select = box.GetCount();
-                        box.Append(_L(nozzle_volumes_def->enum_labels[i], {}, (void*)i));
+                        box.Append(_L(nozzle_volumes_def->enum_labels[i]), {}, (void*)i);
                     }
                 }
                 box.SetSelection(select);
