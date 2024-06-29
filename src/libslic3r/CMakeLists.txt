@@ -456,6 +456,13 @@ if (_opts)
     target_compile_options(libslic3r_cgal PRIVATE "${_opts_bad}")
 endif()
 
+if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 14.1)
+    set_property(TARGET libslic3r PROPERTY CXX_STANDARD 17)
+    set_property(TARGET libslic3r PROPERTY CXX_EXTENSIONS OFF)
+    set_property(TARGET libslic3r_cgal PROPERTY CXX_STANDARD 17)
+    set_property(TARGET libslic3r_cgal PROPERTY CXX_EXTENSIONS OFF)
+endif()
+
 target_link_libraries(libslic3r_cgal PRIVATE ${_cgal_tgt} libigl mcut)
 
 if (MSVC AND "${CMAKE_SIZEOF_VOID_P}" STREQUAL "4") # 32 bit MSVC workaround
