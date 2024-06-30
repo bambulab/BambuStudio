@@ -17,7 +17,7 @@ msgid "Supports Painting"
 msgstr "Pintando Soportes"
 
 msgid "Please select single object."
-msgstr "Please select single object."
+msgstr "Por favor seleccione un solo objeto."
 
 msgid "Alt + Mouse wheel"
 msgstr "Alt + Rueda del ratón"
@@ -38,7 +38,7 @@ msgid "Left mouse button"
 msgstr "Botón izquierdo del ratón"
 
 msgid "Enforce supports"
-msgstr "Imponer soportes"
+msgstr "Forzar soportes"
 
 msgid "Right mouse button"
 msgstr "Botón derecho del ratón"
@@ -47,7 +47,7 @@ msgid "Block supports"
 msgstr "Bloquear soportes"
 
 msgid "Shift + Left mouse button"
-msgstr "Mayús + botón izquierdo del ratón"
+msgstr "Mayús + Botón izquierdo del ratón"
 
 msgid "Erase"
 msgstr "Borrar"
@@ -190,13 +190,13 @@ msgid "Move"
 msgstr "Mover"
 
 msgid "Please select at least one object."
-msgstr "Please select at least one object."
+msgstr "Por favor selecciona al menos un objeto."
 
 msgid "Rotate"
 msgstr "Rotar"
 
 msgid "Optimize orientation"
-msgstr "Optimizar  orientación"
+msgstr "Optimizar orientación"
 
 msgid "Apply"
 msgstr "Aplicar"
@@ -209,16 +209,16 @@ msgstr ""
 "Error: Por favor, cierre primero todos los menús de la barra de herramientas"
 
 msgid "Tool-Move"
-msgstr "Tool-Move"
+msgstr "Herramienta-Mover"
 
 msgid "Tool-Scale"
-msgstr "Tool-Scale"
+msgstr "Herramienta-Escalar"
 
 msgid "Tool-Rotate"
-msgstr "Tool-Rotate"
+msgstr "Herramienta-Rotar"
 
 msgid "Tool-Lay on Face"
-msgstr "Herramienta-colocar sobre la cara"
+msgstr "Herramienta-Colocar sobre la cara"
 
 msgid "Bottom:"
 msgstr "Abajo:"
@@ -242,7 +242,7 @@ msgid "Object Operations"
 msgstr "Operaciones con objetos"
 
 msgid "Rotate (relative)"
-msgstr "Rotate (relative)"
+msgstr "Rotar (relativo)"
 
 msgid "Volume Operations"
 msgstr "Operaciones de volumen"
@@ -254,19 +254,19 @@ msgid "Group Operations"
 msgstr "Operaciones de grupo"
 
 msgid "Set Position"
-msgstr "Establecer Posición"
+msgstr "Establecer posición"
 
 msgid "Set Orientation"
-msgstr "Establecer Orientación"
+msgstr "Establecer orientación"
 
 msgid "Set Scale"
-msgstr "Establecer Escala"
+msgstr "Establecer escala"
 
 msgid "Reset Position"
-msgstr "Restablecer la posición"
+msgstr "Restablecer posición"
 
 msgid "Reset Rotation"
-msgstr "Restablecer la rotación"
+msgstr "Restablecer rotación"
 
 msgid "World coordinates"
 msgstr "Coordenadas mundiales"
@@ -303,13 +303,13 @@ msgid "Left click"
 msgstr "Clic izquierdo"
 
 msgid "Add connector"
-msgstr "Agregar conector"
+msgstr "Añadir conector"
 
 msgid "Right click"
 msgstr "Clic derecho"
 
 msgid "Remove connector"
-msgstr "Retire el conector"
+msgstr "Remover conector"
 
 msgid "Drag"
 msgstr "Arrastrar"
@@ -350,7 +350,7 @@ msgid "Repairing model object"
 msgstr "Reparación de un objeto modelo"
 
 msgid "Connector"
-msgstr "conector"
+msgstr "Conector"
 
 msgid "Planar"
 msgstr "Plano"
@@ -392,7 +392,7 @@ msgid "Flap Angle"
 msgstr "Ángulo de solapa"
 
 msgid "Keep orientation"
-msgstr "Mantener la orientación"
+msgstr "Mantener orientación"
 
 msgid "Place on cut"
 msgstr "Colocar en el corte"
@@ -431,7 +431,7 @@ msgid "Depth ratio"
 msgstr "Ratio de profundidad"
 
 msgid "Remove connectors"
-msgstr "Retire los conectores"
+msgstr "Remover conectores"
 
 msgid "Prizm"
 msgstr "Prizm"
@@ -452,7 +452,7 @@ msgid "Bulge"
 msgstr "Bulto"
 
 msgid "Gap"
-msgstr "Brecha"
+msgstr "Espacio"
 
 msgid "Confirm connectors"
 msgstr "Confirmar conectores"
@@ -473,10 +473,10 @@ msgid "connectors are out of cut contour"
 msgstr "los conectores están fuera del contorno de corte"
 
 msgid "connector is out of object"
-msgstr "el conector está fuera de objeto"
+msgstr "el conector debe estar en la superficie del objeto"
 
 msgid "connectors is out of object"
-msgstr "Los conectores deben estar en la superficie del objeto."
+msgstr "los conectores deben estar en la superficie del objeto"
 
 msgid "Some connectors are overlapped"
 msgstr "Algunos conectores están superpuestos"
@@ -558,7 +558,7 @@ msgid "%1%"
 msgstr "%1%"
 
 msgid "Can't apply when process preview."
-msgstr "No se puede aplicar al procesar la vista previa"
+msgstr "No se puede aplicar cuando se procesa la vista previa"
 
 msgid "Operation already cancelling. Please wait few seconds."
 msgstr "Operación ya cancelada. Por favor, espere unos segundos."
@@ -567,52 +567,52 @@ msgid "Face recognition"
 msgstr "Reconocimiento facial"
 
 msgid "Perform Recognition"
-msgstr "Realizar el reconocimiento"
+msgstr "Realizar reconocimiento"
 
 msgid "Vertex"
 msgstr "Vertex"
 
 msgid "Edge"
-msgstr "Edge"
+msgstr "Borde"
 
 msgid "Plane"
-msgstr "Plane"
+msgstr "Plano"
 
 msgid "Point on edge"
-msgstr "Point on edge"
+msgstr "Punto en borde"
 
 msgid "Point on circle"
-msgstr "Point on circle"
+msgstr "Punto en círculo"
 
 msgid "Point on plane"
-msgstr "Point on plane"
+msgstr "Punto en plano"
 
 msgid "Center of edge"
-msgstr "Center of edge"
+msgstr "Centro del borde"
 
 msgid "Center of circle"
-msgstr "Center of circle"
+msgstr "Centro del círculo"
 
 msgid "Select feature"
 msgstr "Select feature"
 
 msgid "Select point"
-msgstr "Select point"
+msgstr "Seleccionar punto"
 
 msgid "Delete"
-msgstr "Borra"
+msgstr "Borrar"
 
 msgid "Restart selection"
-msgstr "Restart selection"
+msgstr "Reiniciar selección"
 
 msgid "Esc"
 msgstr "Esc"
 
 msgid "Cancel a feature until exit"
-msgstr "Cancel a feature until exit"
+msgstr "Cancelar una función hasta salir"
 
 msgid "Measure"
-msgstr "Measure"
+msgstr "Medida"
 
 msgid ""
 "Please confirm explosion ratio = 1,and please select at least one object"
@@ -620,11 +620,11 @@ msgstr ""
 "Please confirm explosion ratio = 1, and please select at least one object"
 
 msgid "Edit to scale"
-msgstr "Edit to scale"
+msgstr "Editar para escalar"
 
 msgctxt "Verb"
 msgid "Scale all"
-msgstr "Scale all"
+msgstr "Escalar todo"
 
 msgid "None"
 msgstr "Ninguno"
@@ -636,10 +636,10 @@ msgid "Length"
 msgstr "Largo"
 
 msgid "Selection"
-msgstr "Selection"
+msgstr "Selección"
 
 msgid " (Moving)"
-msgstr " (Moving)"
+msgstr " (Moviendo)"
 
 msgid ""
 "Select 2 faces on objects and \n"
@@ -652,8 +652,8 @@ msgid ""
 "Select 2 points or circles on objects and \n"
 " specify distance between them."
 msgstr ""
-"Select 2 points or circles on objects and \n"
-" specify distance between them."
+"Selecciona 2 puntos o círculos en objetos y \n"
+" especifica la distancia entre ellos."
 
 msgid "Face"
 msgstr "Face"
@@ -662,7 +662,7 @@ msgid " (Fixed)"
 msgstr " (Fixed)"
 
 msgid "Point"
-msgstr "Point"
+msgstr "Punto"
 
 msgid ""
 "Feature 1 has been reset, \n"
@@ -687,19 +687,19 @@ msgid "Angle"
 msgstr "Ángulo:"
 
 msgid "Perpendicular distance"
-msgstr "Perpendicular distance"
+msgstr "Distance perpendicular"
 
 msgid "Distance"
-msgstr "Distance"
+msgstr "Distancia"
 
 msgid "Direct distance"
 msgstr "Direct distance"
 
 msgid "Distance XYZ"
-msgstr "Distance XYZ"
+msgstr "Distancie XYZ"
 
 msgid "Parallel"
-msgstr "Parallel"
+msgstr "Paralelo"
 
 msgid "Center coincidence"
 msgstr "Center coincidence"
@@ -711,10 +711,10 @@ msgid "Reverse rotation"
 msgstr "Reverse rotation"
 
 msgid "Rotate around center:"
-msgstr "Rotate around center:"
+msgstr "Rotar alrededor del centro:"
 
 msgid "Parallel_distance:"
-msgstr "Parallel_distance:"
+msgstr "Distancia paralela:"
 
 msgid "Flip by Face 2"
 msgstr "Flip by Face 2"
@@ -726,7 +726,7 @@ msgid "Please confirm explosion ratio = 1 and select at least two volumes."
 msgstr "Please confirm explosion ratio = 1 and select at least two volumes."
 
 msgid "Please select at least two volumes."
-msgstr "Please select at least two volumes."
+msgstr "Por favor selecciona al menos dos volúmenes."
 
 msgid "(Moving)"
 msgstr "(Moving)"
@@ -750,19 +750,19 @@ msgid "Brush shape"
 msgstr "Forma del trazo"
 
 msgid "Enforce seam"
-msgstr "Forzar la costura"
+msgstr "Forzar costura"
 
 msgid "Block seam"
 msgstr "Bloquear costura"
 
 msgid "Seam painting"
-msgstr "Pintar la costura"
+msgstr "Pintar costura"
 
 msgid "Remove selection"
 msgstr "Eliminar selección"
 
 msgid "Shift + Mouse move up or down"
-msgstr "Shift + Ratón mover hacia arriba o hacia abajo"
+msgstr "Shift + Mover ratón hacia arriba o hacia abajo"
 
 msgid "Rotate text"
 msgstr "Girar texto"
@@ -783,14 +783,14 @@ msgid "Embeded"
 msgstr "Incrustado"
 
 msgid "Text Gap"
-msgstr "Brecha de texto"
+msgstr "Espaciado de texto"
 
 msgid ""
 "Embeded\r\n"
 "depth"
 msgstr ""
-"Embedded\n"
-"depth"
+"Profundidad\n"
+"incrustada"
 
 msgid "Surface"
 msgstr "Superficie"
@@ -837,8 +837,8 @@ msgstr ""
 msgid ""
 "Configuration file \"%1%\" was loaded, but some values were not recognized."
 msgstr ""
-"Se ha cargado el archivo de configuración \"%1%\", pero no se han reconocido "
-"algunos valores."
+"Se ha cargado el archivo de configuración \"%1%\", pero algunos valores no fueron "
+"reconocidos."
 
 msgid "Internal Version"
 msgstr "Versión interna"
@@ -857,7 +857,7 @@ msgid ""
 "It will be appreciated if you report the issue to our team."
 msgstr ""
 "BambuStudio finalizará debido a que se quedará sin memoria. Puede ser un "
-"error. Le agradeceríamos mucho que informara el problema a nuestro equipo."
+"error. Le agradeceríamos mucho que informara del problema a nuestro equipo."
 
 msgid "Fatal error"
 msgstr "Error fatal"
@@ -919,7 +919,7 @@ msgstr ""
 "Haga clic para descargar la nueva versión en el navegador por defecto: %s"
 
 msgid "The Bambu Studio needs an upgrade"
-msgstr "Bambu Studio necesita una actualización"
+msgstr "Bambu Studio necesita actualizarse"
 
 msgid "This is the newest version."
 msgstr "Esta es la versión más reciente."
@@ -931,10 +931,10 @@ msgid "Rebuild"
 msgstr "Reconstruir"
 
 msgid "Loading current presets"
-msgstr "Carga de los preajustes actuales"
+msgstr "Cargando los preajustes actuales"
 
 msgid "Loading a mode view"
-msgstr "Cargar un modo de vista"
+msgstr "Cargando un modo de vista"
 
 msgid "Choose one file (3mf):"
 msgstr "Elija un archivo (3mf):"
@@ -949,7 +949,7 @@ msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
 msgstr "Elija un archivo (gcode/.gco/.g/.ngc/ngc):"
 
 msgid "Some presets are modified."
-msgstr "Algunos preajustes se modifican."
+msgstr "Algunos preajustes son modificados."
 
 msgid ""
 "You can keep the modified presets for the new project, discard or save "
@@ -973,8 +973,8 @@ msgid ""
 "The Bambu Studio version is too old to enable cloud service. Please download "
 "the latest version from Bambu Lab website."
 msgstr ""
-"The Bambu Studio version is too old to enable cloud service. Please download "
-"the latest version from Bambu Lab's website."
+"La versión de Bambu Studio is demasiado antigua para habilitar el servicio en la nuve. Por favor, descarga "
+"La última versión desde la página web de Bambu Lab."
 
 msgid "Privacy Policy Update"
 msgstr "Actualización de la política de privacidad"
@@ -1847,7 +1847,7 @@ msgid "Calibrate again"
 msgstr "Calibrar de nuevo"
 
 msgid "Cancel calibration"
-msgstr "Cancelar  calibración"
+msgstr "Cancelar calibración"
 
 msgid "Idling..."
 msgstr "Esperando..."
