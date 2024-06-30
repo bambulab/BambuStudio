@@ -45,8 +45,11 @@ protected:
     
     void NotifyStopped();
 
+    bool IsFullScreen() const;
+
 private:
     void create_player();
+    void toggle_fullscreen();
     void * m_player = nullptr;
     wxMediaState m_state = wxMEDIASTATE_STOPPED;
     int          m_error  = 0;
@@ -76,6 +79,8 @@ protected:
     wxSize DoGetBestSize() const override;
 
     void DoSetSize(int x, int y, int width, int height, int sizeFlags) override;
+
+    bool IsFullScreen() const { return false; }
 
 #ifdef __WIN32__
     WXLRESULT MSWWindowProc(WXUINT   nMsg,
