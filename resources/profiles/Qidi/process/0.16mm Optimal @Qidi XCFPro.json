@@ -1,6 +1,6 @@
 {
     "type": "process",
-    "setting_id": "GP_Qidi_007",
+    "setting_id": "GP_Qidi_031",
     "name": "0.16mm Optimal @Qidi XCFPro",
     "from": "system",
     "inherits": "fdm_process_qidi_common",

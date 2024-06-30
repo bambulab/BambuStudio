@@ -1,6 +1,6 @@
 {
     "type": "process",
-    "setting_id": "GP_Qidi_004",
+    "setting_id": "GP_Qidi_018",
     "name": "0.12mm Fine @Qidi XPlus",
     "from": "system",
     "inherits": "fdm_process_qidi_common",

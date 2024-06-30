@@ -1,6 +1,6 @@
 {
     "type": "process",
-    "setting_id": "GP_Qidi_019",
+    "setting_id": "GP_Qidi_063",
     "name": "0.25mm Draft @Qidi XCFPro",
     "from": "system",
     "inherits": "fdm_process_qidi_common",
