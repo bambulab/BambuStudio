@@ -44,7 +44,7 @@
         "60"
     ],
     "nozzle_temperature_initial_layer": [
-        "220"
+        "210"
     ],
     "reduce_fan_stop_start_freq": [
         "1"
@@ -65,7 +65,10 @@
         "50%"
     ],
     "close_fan_the_first_x_layers": [
-        "1"
+        "2"
+    ],
+        "full_fan_speed_layer": [
+        "0"
     ],
     "nozzle_temperature": [
         "220"
@@ -80,15 +83,12 @@
         "230"
     ],
     "slow_down_min_speed": [
-        "10"
+        "20"
     ],
     "slow_down_layer_time": [
-        "4"
+        "8"
     ],
     "additional_cooling_fan_speed": [
-        "70"
-    ],
-    "filament_start_gcode": [
-        "; filament start gcode\n"
+        "0"
     ]
 }

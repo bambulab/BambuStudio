@@ -1,0 +1,15 @@
+{
+    "type": "filament",
+    "filament_id": "GFB98",
+    "setting_id": "GFSB98_Qidi_03",
+    "name": "Generic ASA @Qidi Q1 Pro 0.2 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "Generic ASA @Qidi",
+    "filament_max_volumetric_speed": [
+        "2"
+    ],
+	"compatible_printers": [
+		"Qidi Q1 Pro 0.2 nozzle"
+	]
+}
