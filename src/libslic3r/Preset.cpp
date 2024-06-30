@@ -900,7 +900,8 @@ static std::vector<std::string> s_Preset_print_options {
     "print_flow_ratio",
     //Orca
     "exclude_object", /*"seam_slope_type",*/ "seam_slope_conditional", "scarf_angle_threshold", /*"seam_slope_start_height", */"seam_slope_entire_loop",/* "seam_slope_min_length",*/
-    "seam_slope_steps", "seam_slope_inner_walls", "role_base_wipe_speed"/*, "seam_slope_gap"*/};
+    "seam_slope_steps", "seam_slope_inner_walls", "role_base_wipe_speed"/*, "seam_slope_gap"*/,
+    "interlocking_beam", "interlocking_orientation", "interlocking_beam_layer_count", "interlocking_depth", "interlocking_boundary_avoidance", "interlocking_beam_width"};
 
 static std::vector<std::string> s_Preset_filament_options {
     /*"filament_colour", */ "default_filament_colour","required_nozzle_HRC","filament_diameter", "filament_type", "filament_soluble", "filament_is_support","filament_scarf_seam_type", "filament_scarf_height", "filament_scarf_gap","filament_scarf_length",

@@ -432,6 +432,12 @@ set(lisbslic3r_sources
     FilamentGroup.cpp
     GCode/ToolOrderUtils.hpp
     GCode/ToolOrderUtils.cpp
+    FlushVolPredictor.hpp
+    FlushVolPredictor.cpp
+    Interlocking/InterlockingGenerator.hpp
+    Interlocking/InterlockingGenerator.cpp
+    Interlocking/VoxelUtils.hpp
+    Interlocking/VoxelUtils.cpp
 )
 
 if (APPLE)

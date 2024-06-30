@@ -833,6 +833,14 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionPercent,            wipe_speed))
     ((ConfigOptionBool,               role_base_wipe_speed))
     ((ConfigOptionBool,               precise_z_height)) // BBS
+        
+    ((ConfigOptionBool, interlocking_beam))
+    ((ConfigOptionFloat,interlocking_beam_width))
+    ((ConfigOptionFloat,interlocking_orientation))
+    ((ConfigOptionInt,  interlocking_beam_layer_count))
+    ((ConfigOptionInt,  interlocking_depth))
+    ((ConfigOptionInt,  interlocking_boundary_avoidance))
+
 )
 
 // This object is mapped to Perl as Slic3r::Config::PrintRegion.

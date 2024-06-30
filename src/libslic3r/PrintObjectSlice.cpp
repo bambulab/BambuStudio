@@ -4,6 +4,7 @@
 #include "MultiMaterialSegmentation.hpp"
 #include "Print.hpp"
 #include "ClipperUtils.hpp"
+#include "Interlocking/InterlockingGenerator.hpp"
 //BBS
 #include "ShortestPath.hpp"
 
@@ -1069,6 +1070,9 @@ void PrintObject::slice_volumes()
         apply_mm_segmentation(*this, [print]() { print->throw_if_canceled(); });
     }
 
+
+    InterlockingGenerator::generate_interlocking_structure(this);
+    m_print->throw_if_canceled();
 
     BOOST_LOG_TRIVIAL(debug) << "Slicing volumes - make_slices in parallel - begin";
     {
