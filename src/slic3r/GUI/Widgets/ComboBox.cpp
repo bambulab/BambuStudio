@@ -89,7 +89,6 @@ void ComboBox::SetSelection(int n)
     else
         SetIcon("drop_down");
 }
-
 void ComboBox::SelectAndNotify(int n) {
     SetSelection(n);
     sendComboBoxEvent();
@@ -163,7 +162,6 @@ int ComboBox::Append(const wxString &item,
     tips.push_back(wxString{});
     icons.push_back(bitmap);
     datas.push_back(clientData);
-    types.push_back(wxClientData_None);
     SetClientDataType(wxClientData_Void);
     drop.Invalidate();
     return texts.size() - 1;
@@ -176,7 +174,6 @@ void ComboBox::DoClear()
     tips.clear();
     icons.clear();
     datas.clear();
-    types.clear();
     drop.Invalidate(true);
 }
 
@@ -187,7 +184,6 @@ void ComboBox::DoDeleteOneItem(unsigned int pos)
     tips.erase(tips.begin() + pos);
     icons.erase(icons.begin() + pos);
     datas.erase(datas.begin() + pos);
-    types.erase(types.begin() + pos);
     drop.Invalidate(true);
 }
 
@@ -238,7 +234,6 @@ int ComboBox::DoInsertItems(const wxArrayStringsAdapter &items,
         tips.insert(tips.begin() + pos, wxString{});
         icons.insert(icons.begin() + pos, wxNullBitmap);
         datas.insert(datas.begin() + pos, clientData ? clientData[i] : NULL);
-        types.insert(types.begin() + pos, type);
         ++pos;
     }
     drop.Invalidate(true);
