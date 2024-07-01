@@ -67,6 +67,9 @@
 #endif // _WIN32
 #include <slic3r/GUI/CreatePresetsDialog.hpp>
 
+#if defined(__WXGTK20__) || defined(__WXGTK3__)
+    #include <gtk/gtk.h>
+#endif
 
 namespace Slic3r {
 namespace GUI {
@@ -675,6 +678,11 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 #ifdef _MSW_DARK_MODE
     wxGetApp().UpdateDarkUIWin(this);
 #endif // _MSW_DARK_MODE
+
+#if defined(__LINUX__) && (defined(__WXGTK20__) || defined(__WXGTK3__))
+    bool is_dark = (wxGetApp().app_config->get("dark_color_mode") == "1" ? true : false);
+    g_object_set (gtk_settings_get_default (), "gtk-theme-name", (is_dark) ? "" : " ", NULL);
+#endif // __LINUX__ dark mode
 
     wxGetApp().persist_window_geometry(this, true);
     wxGetApp().persist_window_geometry(&m_settings_dialog, true);

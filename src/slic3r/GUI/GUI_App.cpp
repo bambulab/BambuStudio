@@ -2574,10 +2574,15 @@ bool GUI_App::on_init_inner()
 #ifdef _MSW_DARK_MODE
 
 #ifndef __WINDOWS__
-    wxSystemAppearance app = wxSystemSettings::GetAppearance();
-    GUI::wxGetApp().app_config->set("dark_color_mode", app.IsDark() ? "1" : "0");
-    GUI::wxGetApp().app_config->save();
-#endif // __APPLE__
+    #if defined(__LINUX__) && (defined(__WXGTK20__) || defined(__WXGTK3__)) // __LINUX__ dark mode
+        bool is_dark = (wxGetApp().app_config->get("dark_color_mode") == "1" ? true : false);
+        g_object_set (gtk_settings_get_default (), "gtk-theme-name", (is_dark) ? "" : " ", NULL);
+    #else
+        wxSystemAppearance app = wxSystemSettings::GetAppearance();
+        GUI::wxGetApp().app_config->set("dark_color_mode", app.IsDark() ? "1" : "0");
+        GUI::wxGetApp().app_config->save();
+    #endif
+#endif // __APPLE__ / __LINUX__
 
 
     bool init_dark_color_mode = dark_mode();
