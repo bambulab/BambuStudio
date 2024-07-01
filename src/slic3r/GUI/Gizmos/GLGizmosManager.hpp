@@ -287,6 +287,7 @@ public:
     bool is_gizmo_activable_when_single_full_instance();
     bool is_gizmo_click_empty_not_exit();
     bool is_show_only_active_plate();
+    bool get_gizmo_active_condition(GLGizmosManager::EType type);
     void check_object_located_outside_plate();
     bool get_object_located_outside_plate() { return m_object_located_outside_plate; }
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position = Vec2d::Zero(), bool shift_down = false, bool alt_down = false, bool control_down = false);
