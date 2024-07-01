@@ -1944,11 +1944,13 @@ void TabPrint::build()
         optgroup->append_single_option_line("seam_slope_conditional");
         optgroup->append_single_option_line("scarf_angle_threshold");
         optgroup->append_single_option_line("seam_slope_start_height");
+        optgroup->append_single_option_line("seam_slope_gap");
         optgroup->append_single_option_line("seam_slope_entire_loop");
         optgroup->append_single_option_line("seam_slope_min_length");
         optgroup->append_single_option_line("seam_slope_steps");
         optgroup->append_single_option_line("seam_slope_inner_walls");
         optgroup->append_single_option_line("wipe_speed", "Seam");
+        optgroup->append_single_option_line("role_base_wipe_speed", "Seam");
 
         optgroup = page->new_optgroup(L("Precision"), L"param_precision");
         optgroup->append_single_option_line("slice_closing_radius");
