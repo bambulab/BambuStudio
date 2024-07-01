@@ -12504,16 +12504,20 @@ void Plater::set_bed_shape() const
         if (curr->is_system) {
             texture_filename = PresetUtils::system_printer_bed_texture(*curr);
             bool is_configed_by_BBL = PresetUtils::system_printer_bed_model(*curr).size() > 0;
-            if (is_configed_by_BBL && wxGetApp().app_config->has_section("user_bbl_svg_list")) {
-                auto cur_preset_name    = bundle->printers.get_edited_preset().name;
-                auto user_bbl_svg_list = wxGetApp().app_config->get_section("user_bbl_svg_list");
-                if (user_bbl_svg_list.size() > 0 && user_bbl_svg_list[cur_preset_name].size() > 0) {
-                    texture_filename = user_bbl_svg_list[cur_preset_name]; }
-                else {
-                    bool is_bbl_preset = bundle->printers.get_selected_preset().is_bbl_vendor_preset(bundle);
-                    if (is_bbl_preset) {
-                        texture_filename = "";
+            if (is_configed_by_BBL) {
+                bool is_bbl_preset = bundle->printers.get_selected_preset().is_bbl_vendor_preset(bundle);
+                if (wxGetApp().app_config->has_section("user_bbl_svg_list")) {
+                    auto cur_preset_name   = bundle->printers.get_edited_preset().name;
+                    auto user_bbl_svg_list = wxGetApp().app_config->get_section("user_bbl_svg_list");
+                    if (user_bbl_svg_list.size() > 0 && user_bbl_svg_list[cur_preset_name].size() > 0) {
+                        texture_filename = user_bbl_svg_list[cur_preset_name];
+                    } else {
+                        if (is_bbl_preset) {
+                            texture_filename = "";
+                        }
                     }
+                } else if (is_bbl_preset) {
+                    texture_filename = "";
                 }
             }
         }
