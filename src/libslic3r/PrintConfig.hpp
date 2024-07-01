@@ -766,6 +766,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     // OrcaSlicer
     ((ConfigOptionPercent,            seam_gap))
     ((ConfigOptionPercent,            wipe_speed))
+    ((ConfigOptionBool,               role_base_wipe_speed))
     ((ConfigOptionBool,               precise_z_height)) // BBS
 )
 
@@ -845,6 +846,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                 seam_slope_conditional))
     ((ConfigOptionInt,                  scarf_angle_threshold))
     ((ConfigOptionFloatOrPercent,       seam_slope_start_height))
+    ((ConfigOptionFloatOrPercent,       seam_slope_gap))
     ((ConfigOptionBool,                 seam_slope_entire_loop))
     ((ConfigOptionFloat,                seam_slope_min_length))
     ((ConfigOptionInt,                  seam_slope_steps))

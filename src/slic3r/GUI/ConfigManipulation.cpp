@@ -745,6 +745,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_line("seam_slope_conditional", has_seam_slope);
     toggle_line("scarf_angle_threshold", has_seam_slope && config->opt_bool("seam_slope_conditional"));
     toggle_line("seam_slope_start_height", has_seam_slope);
+    toggle_line("seam_slope_gap", has_seam_slope);
     toggle_line("seam_slope_entire_loop", has_seam_slope);
     toggle_line("seam_slope_min_length", has_seam_slope);
     toggle_line("seam_slope_steps", has_seam_slope);

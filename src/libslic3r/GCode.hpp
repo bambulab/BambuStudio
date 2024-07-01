@@ -151,6 +151,7 @@ public:
         m_layer(nullptr),
         m_object_layer_over_raft(false),
         //m_volumetric_speed(0),
+        m_last_scarf_seam_flag(false),
         m_last_pos_defined(false),
         m_last_extrusion_role(erNone),
         m_last_width(0.0f),
@@ -179,6 +180,7 @@ public:
     void            set_origin(const Vec2d &pointf);
     void            set_origin(const coordf_t x, const coordf_t y) { this->set_origin(Vec2d(x, y)); }
     const Point&    last_pos() const { return m_last_pos; }
+    const bool&     last_scarf_seam_flag() const { return m_last_scarf_seam_flag; }
     Vec2d           point_to_gcode(const Point &point) const;
     Point           gcode_to_point(const Vec2d &point) const;
     const FullPrintConfig &config() const { return m_config; }
@@ -332,6 +334,7 @@ private:
     void check_placeholder_parser_failed();
 
     void            set_last_pos(const Point &pos) { m_last_pos = pos; m_last_pos_defined = true; }
+    void            set_last_scarf_seam_flag(bool flag) { m_last_scarf_seam_flag = flag; }
     bool            last_pos_defined() const { return m_last_pos_defined; }
     void            set_extruders(const std::vector<unsigned int> &extruder_ids);
     std::string     preamble();
@@ -476,7 +479,7 @@ private:
 
     Point                               m_last_pos;
     bool                                m_last_pos_defined;
-
+    bool                                m_last_scarf_seam_flag;
     std::unique_ptr<CoolingBuffer>      m_cooling_buffer;
     std::unique_ptr<SpiralVase>         m_spiral_vase;
 #ifdef HAS_PRESSURE_EQUALIZER

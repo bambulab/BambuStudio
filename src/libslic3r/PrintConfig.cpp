@@ -2906,6 +2906,14 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(50, true));
 
+    def           = this->add("seam_slope_gap", coFloatOrPercent);
+    def->label    = L("Slop gap");
+    def->tooltip  = L("In order to reduce the visibility of the seam in a closed loop extrusion, the loop is interrupted and shortened by a specified amount.\n" "This amount as a percentage of the current extruder diameter. The default value for this parameter is 15");
+    def->sidetext = L("mm or %");
+    def->min      = 0;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(15, true));
+
     def          = this->add("seam_slope_entire_loop", coBool);
     def->label   = L("Scarf around entire wall");
     def->tooltip = L("The scarf extends to the entire length of the wall.");
@@ -2940,6 +2948,12 @@ void PrintConfigDef::init_fff_params()
     def->min = 0.01;
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionPercent(80));
+
+    def          = this->add("role_base_wipe_speed", coBool);
+    def->label   = L("Role base wipe speed");
+    def->tooltip = L("The wipe speed is determined by speed of current extrusion role. " "e.g if a wip action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action.");
+    def->mode    = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("skirt_distance", coFloat);
     def->label = L("Skirt distance");

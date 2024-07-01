@@ -295,7 +295,9 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         /*  Reduce feedrate a bit; travel speed is often too high to move on existing material.
             Too fast = ripping of existing material; too slow = short wipe path, thus more blob.  */
         //OrcaSlicer
-        double wipe_speed = gcodegen.writer().config.travel_speed.value * gcodegen.config().wipe_speed.value / 100;
+        double wipe_speed = gcodegen.config().role_base_wipe_speed ? gcodegen.writer().get_current_speed() / 60 :
+            gcodegen.writer().config.travel_speed.value * gcodegen.config().wipe_speed.value / 100;
+
 
         // get the retraction length
         double length = toolchange
@@ -4062,6 +4064,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
 
     //BBS: avoid overhang on conditional scarf mode
     bool slope_has_overhang = false;
+    // update scarf seam
     if (enable_seam_slope) {
         // Create seam slope
         double start_slope_ratio;
@@ -4090,7 +4093,8 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
             ExtrusionLoopSloped new_loop(paths, seam_gap, slope_min_length, slope_max_segment_length, start_slope_ratio, loop.loop_role());
 
             //BBS: clip end and start to get better seam
-            new_loop.clip_slope(seam_gap);
+            const double slope_gap = m_config.seam_slope_gap.get_abs_value(scale_(EXTRUDER_CONFIG(nozzle_diameter)));
+            new_loop.clip_slope(slope_gap);
             // BBS: slowdown speed to improve seam, to be fix, cooling need to be apply correctly
             //new_loop.target_speed = get_path_speed(new_loop.starts.back());
             //new_loop.slowdown_slope_speed();
@@ -4101,6 +4105,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
             for (const auto &p : new_loop.get_all_paths()) {
                 gcode += this->_extrude(*p, description, speed_for_path(*p));
             }
+            set_last_scarf_seam_flag(true);
 
             // Fix path for wipe
             if (!new_loop.ends.empty()) {
@@ -4125,6 +4130,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         for (ExtrusionPaths::iterator path = paths.begin(); path != paths.end(); ++path) {
             gcode += this->_extrude(*path, description, speed_for_path(*path));
         }
+        set_last_scarf_seam_flag(false);
     }
 
     //BBS: don't reset acceleration when printing first layer. During first layer, acceleration is always same value.
@@ -5085,7 +5091,7 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
     // generate G-code for the travel move
     std::string gcode;
     if (needs_retraction) {
-        if (m_config.reduce_crossing_wall && could_be_wipe_disabled)
+        if (m_config.reduce_crossing_wall && could_be_wipe_disabled && !m_last_scarf_seam_flag)
             m_wipe.reset_path();
 
         Point last_post_before_retract = this->last_pos();
