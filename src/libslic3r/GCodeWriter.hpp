@@ -65,7 +65,8 @@ public:
     // printed with the same extruder.
     std::string toolchange_prefix() const;
     std::string toolchange(unsigned int extruder_id);
-    std::string set_speed(double F, const std::string &comment = std::string(), const std::string &cooling_marker = std::string()) const;
+    std::string set_speed(double F, const std::string &comment = std::string(), const std::string &cooling_marker = std::string());
+    double      get_current_speed() { return m_current_speed; };
     std::string travel_to_xy(const Vec2d &point, const std::string &comment = std::string());
     std::string travel_to_xyz(const Vec3d &point, const std::string &comment = std::string());
     std::string travel_to_z(double z, const std::string &comment = std::string());
@@ -138,7 +139,7 @@ private:
     //BBS: x, y offset for gcode generated
     double          m_x_offset{ 0 };
     double          m_y_offset{ 0 };
-
+    double           m_current_speed{ 0 };
     std::string m_gcode_label_objects_start;
     std::string m_gcode_label_objects_end;
 
