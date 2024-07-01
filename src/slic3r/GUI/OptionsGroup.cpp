@@ -678,7 +678,7 @@ void ConfigOptionsGroup::on_change_OG(const t_config_option_key& opt_id, const b
 
 		auto 				itOption  = it->second;
 		const std::string  &opt_key   = itOption.first;
-        int                 opt_index = get_extruder_idx(*m_config, itOption.first, itOption.second);
+        int                 opt_index = itOption.second;
 		this->change_opt_value(opt_key, value, opt_index == -1 ? 0 : opt_index);
 	}
 
@@ -737,7 +737,6 @@ void ConfigOptionsGroup::back_to_config_value(const DynamicPrintConfig& config, 
 		auto opt_id = m_opt_map.find(opt_key)->first;
 		std::string opt_short_key = m_opt_map.at(opt_id).first;
 		int opt_index = m_opt_map.at(opt_id).second;
-        opt_index = get_extruder_idx(*m_config, opt_short_key, opt_index);
 		value = get_config_value(config, opt_short_key, opt_index);
 	}
 
@@ -789,7 +788,7 @@ void ConfigOptionsGroup::reload_config()
 		// option key (may be scalar or vector)
 		const std::string &opt_key   = kvp.second.first;
 		// index in the vector option, zero for scalars
-        int 			   opt_index = get_extruder_idx(*m_config, kvp.second.first, kvp.second.second);
+        int 			   opt_index = kvp.second.second;
 		const ConfigOptionDef &option = m_options.at(opt_id).opt;
 #if 0
         // BBS
@@ -1304,9 +1303,6 @@ void ExtruderOptionsGroup::on_change_OG(const t_config_option_key& opt_id, const
         const std::string& opt_key = itOption.first;
 
         int opt_index = itOption.second;
-        if (printer_extruder_options.find(opt_key) == printer_extruder_options.end()) {
-            opt_index = get_extruder_idx(*m_config, itOption.first, itOption.second);
-        }
         this->change_opt_value(opt_key, value, opt_index == -1 ? 0 : opt_index);
     }
 
