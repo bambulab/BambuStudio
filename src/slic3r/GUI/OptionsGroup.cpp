@@ -1009,6 +1009,19 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
                 ret = double_to_string(val); }
             }
             break;
+        case coFloatsOrPercents: {
+            if (config.option(opt_key)->is_nil())
+                ret = _(L("N/A"));
+            else {
+                const auto& value = config.option<ConfigOptionFloatsOrPercentsNullable>(opt_key)->get_at(idx);
+                text_value = double_to_string(value.value);
+                if (value.percent)
+                    text_value += "%";
+
+                ret = text_value;
+            }
+            break;
+        }
         case coBools:
             ret = config.option<ConfigOptionBoolsNullable>(opt_key)->values[idx];
             break;
@@ -1157,7 +1170,20 @@ boost::any ConfigOptionsGroup::get_config_value2(const DynamicPrintConfig& confi
                     config.option<ConfigOptionPercentsNullable>(opt_key)->get_at(idx);
                 ret = val; }
         }
-                     break;
+            break;
+        case coFloatsOrPercents: {
+            if (config.option(opt_key)->is_nil())
+                ret = ConfigOptionFloatsOrPercentsNullable::nil_value();
+            else {
+                const auto& value = config.option<ConfigOptionFloatsOrPercentsNullable>(opt_key)->get_at(idx);
+                wxString text_value = double_to_string(value.value);
+                if (value.percent)
+                    text_value += "%";
+
+                ret = text_value;
+            }
+            break;
+        }
         case coBools:
             ret = config.option<ConfigOptionBoolsNullable>(opt_key)->values[idx];
             break;
