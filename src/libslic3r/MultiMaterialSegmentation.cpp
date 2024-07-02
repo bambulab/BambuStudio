@@ -1481,7 +1481,7 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
     };
     PrintConfig print_config = print_object.print()->config();
     float default_line_width = float(print_object.config().line_width.value);
-    auto layer_color_stat = [&layers = std::as_const(layers), print_config, default_line_width](const size_t layer_idx, const size_t color_idx) -> LayerColorStat {
+    auto layer_color_stat = [&layers = std::as_const(layers), print_config, default_line_width, &print_object](const size_t layer_idx, const size_t color_idx) -> LayerColorStat {
         LayerColorStat out;
         const Layer &layer = *layers[layer_idx];
         for (const LayerRegion *region : layer.regions())
@@ -1495,7 +1495,7 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                 out.extrusion_width     = std::max<float>(out.extrusion_width, outer_wall_line_width);
                 out.top_shell_layers    = std::max<int>(out.top_shell_layers, config.top_shell_layers);
                 out.bottom_shell_layers = std::max<int>(out.bottom_shell_layers, config.bottom_shell_layers);
-                out.small_region_threshold = config.gap_infill_speed.get_at(get_extruder_index(config.wall_filament - 1)) > 0 ?
+                out.small_region_threshold = config.gap_infill_speed.get_at(print_object.print()->get_extruder_id(config.wall_filament - 1)) > 0 ?
                                              // Gap fill enabled. Enable a single line of 1/2 extrusion width.
                                              0.5f * outer_wall_line_width :
                                              // Gap fill disabled. Enable two lines slightly overlapping.

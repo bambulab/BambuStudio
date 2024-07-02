@@ -82,7 +82,7 @@ void PlaceholderParser::update_timestamp(DynamicConfig &config)
     time_t rawtime;
     time(&rawtime);
     struct tm* timeinfo = localtime(&rawtime);
-    
+
     {
         std::ostringstream ss;
         ss << (1900 + timeinfo->tm_year);
@@ -199,7 +199,7 @@ namespace client
         explicit expr(double d, const Iterator &it_begin, const Iterator &it_end) : type(TYPE_DOUBLE), it_range(it_begin, it_end) { data.d = d; }
         explicit expr(const char *s) : type(TYPE_STRING) { data.s = new std::string(s); }
         explicit expr(const std::string &s) : type(TYPE_STRING) { data.s = new std::string(s); }
-        explicit expr(const std::string &s, const Iterator &it_begin, const Iterator &it_end) : 
+        explicit expr(const std::string &s, const Iterator &it_begin, const Iterator &it_end) :
             type(TYPE_STRING), it_range(it_begin, it_end) { data.s = new std::string(s); }
                  expr(const expr &rhs) : type(rhs.type), it_range(rhs.it_range)
             { if (rhs.type == TYPE_STRING) data.s = new std::string(*rhs.data.s); else data.set(rhs.data); }
@@ -209,7 +209,7 @@ namespace client
             { data.set(rhs.data); rhs.type = TYPE_EMPTY; }
         ~expr() { this->reset(); }
 
-        expr &operator=(const expr &rhs) 
+        expr &operator=(const expr &rhs)
         {
             //BBS: avoid memory leak when call operator= directly before call reset()
             if (this->type == TYPE_STRING && this->data.s) {
@@ -219,15 +219,15 @@ namespace client
 
             this->type      = rhs.type;
             this->it_range  = rhs.it_range;
-            if (rhs.type == TYPE_STRING) 
+            if (rhs.type == TYPE_STRING)
                 this->data.s = new std::string(*rhs.data.s);
-            else 
+            else
                 this->data.set(rhs.data);
-            return *this; 
+            return *this;
         }
 
-        expr &operator=(expr &&rhs) 
-        { 
+        expr &operator=(expr &&rhs)
+        {
             type            = rhs.type;
             this->it_range  = rhs.it_range;
             data.set(rhs.data);
@@ -235,7 +235,7 @@ namespace client
             return *this;
         }
 
-        void                reset()   
+        void                reset()
         {
             //BBS
             if (this->type == TYPE_STRING && this->data.s) {
@@ -261,14 +261,14 @@ namespace client
         const std::string&  s() const { return *data.s; }
         void                set_s(const std::string &s) { this->reset(); this->data.s = new std::string(s); this->type = TYPE_STRING; }
         void                set_s(std::string &&s) { this->reset(); this->data.s = new std::string(std::move(s)); this->type = TYPE_STRING; }
-        
-        std::string         to_string() const 
+
+        std::string         to_string() const
         {
             std::string out;
             switch (type) {
 			case TYPE_BOOL:   out = data.b ? "true" : "false"; break;
             case TYPE_INT:    out = std::to_string(data.i); break;
-            case TYPE_DOUBLE: 
+            case TYPE_DOUBLE:
 #if 0
                 // The default converter produces trailing zeros after the decimal point.
 				out = std::to_string(data.d);
@@ -317,12 +317,12 @@ namespace client
         boost::iterator_range<Iterator>  it_range;
 
         expr unary_minus(const Iterator start_pos) const
-        { 
+        {
             switch (this->type) {
             case TYPE_INT :
                 return expr<Iterator>(- this->i(), start_pos, this->it_range.end());
             case TYPE_DOUBLE:
-                return expr<Iterator>(- this->d(), start_pos, this->it_range.end()); 
+                return expr<Iterator>(- this->d(), start_pos, this->it_range.end());
             default:
                 this->throw_exception("Cannot apply unary minus operator.");
             }
@@ -332,12 +332,12 @@ namespace client
         }
 
         expr unary_integer(const Iterator start_pos) const
-        { 
+        {
             switch (this->type) {
             case TYPE_INT:
                 return expr<Iterator>(this->i(), start_pos, this->it_range.end());
             case TYPE_DOUBLE:
-                return expr<Iterator>(static_cast<int>(this->d()), start_pos, this->it_range.end()); 
+                return expr<Iterator>(static_cast<int>(this->d()), start_pos, this->it_range.end());
             default:
                 this->throw_exception("Cannot convert to integer.");
             }
@@ -347,7 +347,7 @@ namespace client
         }
 
         expr round(const Iterator start_pos) const
-        { 
+        {
             switch (this->type) {
             case TYPE_INT:
                 return expr<Iterator>(this->i(), start_pos, this->it_range.end());
@@ -362,7 +362,7 @@ namespace client
         }
 
         expr unary_not(const Iterator start_pos) const
-        { 
+        {
             switch (this->type) {
             case TYPE_BOOL:
                 return expr<Iterator>(! this->b(), start_pos, this->it_range.end());
@@ -375,7 +375,7 @@ namespace client
         }
 
         expr &operator+=(const expr &rhs)
-        { 
+        {
             if (this->type == TYPE_STRING) {
                 // Convert the right hand side to string and append.
                 *this->data.s += rhs.to_string();
@@ -399,7 +399,7 @@ namespace client
         }
 
         expr &operator-=(const expr &rhs)
-        { 
+        {
             const char *err_msg = "Cannot subtract non-numeric types.";
             this->throw_if_not_numeric(err_msg);
             rhs.throw_if_not_numeric(err_msg);
@@ -414,7 +414,7 @@ namespace client
         }
 
         expr &operator*=(const expr &rhs)
-        { 
+        {
             const char *err_msg = "Cannot multiply with non-numeric type.";
             this->throw_if_not_numeric(err_msg);
             rhs.throw_if_not_numeric(err_msg);
@@ -488,16 +488,16 @@ namespace client
                 // Both types are numeric.
                 switch (op) {
                     case '=':
-                        value = (lhs.type == TYPE_DOUBLE || rhs.type == TYPE_DOUBLE) ? 
+                        value = (lhs.type == TYPE_DOUBLE || rhs.type == TYPE_DOUBLE) ?
                             (std::abs(lhs.as_d() - rhs.as_d()) < 1e-8) : (lhs.i() == rhs.i());
                         break;
                     case '<':
-                        value = (lhs.type == TYPE_DOUBLE || rhs.type == TYPE_DOUBLE) ? 
+                        value = (lhs.type == TYPE_DOUBLE || rhs.type == TYPE_DOUBLE) ?
                             (lhs.as_d() < rhs.as_d()) : (lhs.i() < rhs.i());
                         break;
                     case '>':
                     default:
-                        value = (lhs.type == TYPE_DOUBLE || rhs.type == TYPE_DOUBLE) ? 
+                        value = (lhs.type == TYPE_DOUBLE || rhs.type == TYPE_DOUBLE) ?
                             (lhs.as_d() > rhs.as_d()) : (lhs.i() > rhs.i());
                         break;
                 }
@@ -509,7 +509,7 @@ namespace client
                 value = lhs.b() == rhs.b();
             } else if (lhs.type == TYPE_STRING || rhs.type == TYPE_STRING) {
                 // One type is string, the other could be converted to string.
-                value = (op == '=') ? (lhs.to_string() == rhs.to_string()) : 
+                value = (op == '=') ? (lhs.to_string() == rhs.to_string()) :
                         (op == '<') ? (lhs.to_string() < rhs.to_string()) : (lhs.to_string() > rhs.to_string());
             } else {
                 boost::throw_exception(qi::expectation_failure<Iterator>(
@@ -529,7 +529,7 @@ namespace client
         static void throw_if_not_numeric(const expr &param)
         {
             const char *err_msg = "Not a numeric type.";
-            param.throw_if_not_numeric(err_msg);            
+            param.throw_if_not_numeric(err_msg);
         }
 
         enum Function2ParamsType {
@@ -538,7 +538,7 @@ namespace client
         };
         // Store the result into param1.
         static void function_2params(expr &param1, expr &param2, Function2ParamsType fun)
-        { 
+        {
             throw_if_not_numeric(param1);
             throw_if_not_numeric(param2);
             if (param1.type == TYPE_DOUBLE || param2.type == TYPE_DOUBLE) {
@@ -567,7 +567,7 @@ namespace client
 
         // Store the result into param1.
         static void random(expr &param1, expr &param2, std::mt19937 &rng)
-        { 
+        {
             throw_if_not_numeric(param1);
             throw_if_not_numeric(param2);
             if (param1.type == TYPE_DOUBLE || param2.type == TYPE_DOUBLE) {
@@ -583,7 +583,7 @@ namespace client
         // param3 is optional
         template<bool leading_zeros>
         static void digits(expr &param1, expr &param2, expr &param3)
-        { 
+        {
             throw_if_not_numeric(param1);
             if (param2.type != TYPE_INT)
                 param2.throw_exception("digits: second parameter must be integer");
@@ -663,13 +663,13 @@ namespace client
             }
         }
 
-        void throw_exception(const char *message) const 
+        void throw_exception(const char *message) const
         {
             boost::throw_exception(qi::expectation_failure<Iterator>(
                 this->it_range.begin(), this->it_range.end(), spirit::info(std::string("*") + message)));
         }
 
-        void throw_if_not_numeric(const char *message) const 
+        void throw_if_not_numeric(const char *message) const
         {
             if (this->type != TYPE_INT && this->type != TYPE_DOUBLE)
                 this->throw_exception(message);
@@ -696,7 +696,7 @@ namespace client
     	const DynamicConfig     *external_config        = nullptr;
         const DynamicConfig     *config                 = nullptr;
         const DynamicConfig     *config_override        = nullptr;
-        size_t                   current_extruder_id    = 0;
+        size_t                   current_extruder_id    = 0;  // This is filament_id actually
         PlaceholderParser::ContextData *context_data    = nullptr;
         // If false, the macro_processor will evaluate a full macro.
         // If true, the macro processor will evaluate just a boolean condition using the full expressive power of the macro processor.
@@ -705,6 +705,14 @@ namespace client
 
         // Table to translate symbol tag to a human readable error message.
         static std::map<std::string, std::string> tag_to_error_message;
+
+        size_t get_extruder_id() const {
+            const ConfigOptionInts * filament_map_opt = external_config->option<ConfigOptionInts>("filament_map");
+            if (filament_map_opt && current_extruder_id < filament_map_opt->values.size()) {
+                return filament_map_opt->values[current_extruder_id];
+            }
+            return 0;
+        }
 
         static void             evaluate_full_macro(const MyContext *ctx, bool &result) { result = ! ctx->just_boolean_expression; }
 
@@ -724,7 +732,7 @@ namespace client
 
         template <typename Iterator>
         static void legacy_variable_expansion(
-            const MyContext                 *ctx, 
+            const MyContext                 *ctx,
             boost::iterator_range<Iterator> &opt_key,
             std::string                     &output)
         {
@@ -760,7 +768,7 @@ namespace client
 
         template <typename Iterator>
         static void legacy_variable_expansion2(
-            const MyContext                 *ctx, 
+            const MyContext                 *ctx,
             boost::iterator_range<Iterator> &opt_key,
             boost::iterator_range<Iterator> &opt_vector_index,
             std::string                     &output)
@@ -816,7 +824,7 @@ namespace client
                         output.set_d(static_cast<const ConfigOptionFloatsNullable *>(opt.opt)->get_at(0));
                     }
                     else {
-                        output.set_d(static_cast<const ConfigOptionFloatsNullable *>(opt.opt)->get_at(get_extruder_index(ctx->current_extruder_id)));
+                        output.set_d(static_cast<const ConfigOptionFloatsNullable *>(opt.opt)->get_at(ctx->get_extruder_id()));
                     }
                     break;
                 }
@@ -824,7 +832,7 @@ namespace client
                     const ConfigOptionFloatsOrPercentsNullable * opt_floats = static_cast<const ConfigOptionFloatsOrPercentsNullable *>(opt.opt);
                     size_t index = 0;  // old version only one value
                     if (opt_floats->size() > 1) {
-                        index = get_extruder_index(ctx->current_extruder_id);
+                        index = ctx->get_extruder_id();
                     }
                     std::string opt_key(opt.it_range.begin(), opt.it_range.end());
                     if (!opt_floats->get_at(index).percent) {
@@ -949,7 +957,7 @@ namespace client
         template <typename Iterator>
         static void evaluate_index(expr<Iterator> &expr_index, int &output)
         {
-            if (expr_index.type != expr<Iterator>::TYPE_INT)                
+            if (expr_index.type != expr<Iterator>::TYPE_INT)
                 expr_index.throw_exception("Non-integer index is not allowed to address a vector variable.");
             output = expr_index.i();
         }
@@ -1064,18 +1072,18 @@ namespace client
     // This parser is to be used inside a raw[] directive to accept a single valid UTF-8 character.
     // If an invalid UTF-8 sequence is encountered, a qi::expectation_failure is thrown.
     struct utf8_char_skipper_parser : qi::primitive_parser<utf8_char_skipper_parser>
-    { 
-        // Define the attribute type exposed by this parser component 
+    {
+        // Define the attribute type exposed by this parser component
         template <typename Context, typename Iterator>
         struct attribute
-        { 
+        {
             typedef wchar_t type;
         };
 
-        // This function is called during the actual parsing process 
+        // This function is called during the actual parsing process
         template <typename Iterator, typename Context , typename Skipper, typename Attribute>
-        bool parse(Iterator& first, Iterator const& last, Context& context, Skipper const& skipper, Attribute& attr) const 
-        { 
+        bool parse(Iterator& first, Iterator const& last, Context& context, Skipper const& skipper, Attribute& attr) const
+        {
             // The skipper shall always be empty, any white space will be accepted.
             // skip_over(first, last, skipper);
             if (first == last)
@@ -1119,7 +1127,7 @@ namespace client
         // This function is called during error handling to create a human readable string for the error context.
         template <typename Context>
         spirit::info what(Context&) const
-        { 
+        {
             return spirit::info("unicode_char");
         }
     };
@@ -1200,11 +1208,11 @@ namespace client
             // An if expression enclosed in {} (the outmost {} are already parsed by the caller).
             if_else_output =
                 eps[_b=true] >
-                bool_expr_eval(_r1)[_a=_1] > '}' > 
+                bool_expr_eval(_r1)[_a=_1] > '}' >
                     text_block(_r1)[px::bind(&expr<Iterator>::set_if, _a, _b, _1, _val)] > '{' >
-                *(kw["elsif"] > bool_expr_eval(_r1)[_a=_1] > '}' > 
+                *(kw["elsif"] > bool_expr_eval(_r1)[_a=_1] > '}' >
                     text_block(_r1)[px::bind(&expr<Iterator>::set_if, _a, _b, _1, _val)] > '{') >
-                -(kw["else"] > lit('}') > 
+                -(kw["else"] > lit('}') >
                     text_block(_r1)[px::bind(&expr<Iterator>::set_if, _b, _b, _1, _val)] > '{') >
                 kw["endif"];
             if_else_output.name("if_else_output");
@@ -1222,7 +1230,7 @@ namespace client
             legacy_variable_expansion =
                     (identifier >> &lit(']'))
                         [ px::bind(&MyContext::legacy_variable_expansion<Iterator>, _r1, _1, _val) ]
-                |   (identifier > lit('[') > identifier > ']') 
+                |   (identifier > lit('[') > identifier > ']')
                         [ px::bind(&MyContext::legacy_variable_expansion2<Iterator>, _r1, _1, _2, _val) ]
                 ;
             legacy_variable_expansion.name("legacy_variable_expansion");
@@ -1237,12 +1245,12 @@ namespace client
                 >> -('?' > conditional_expression(_r1) > ':' > conditional_expression(_r1)) [px::bind(&expr<Iterator>::ternary_op, _val, _1, _2)];
             conditional_expression.name("conditional_expression");
 
-            logical_or_expression = 
+            logical_or_expression =
                 logical_and_expression(_r1)                [_val = _1]
                 >> *(   ((kw["or"] | "||") > logical_and_expression(_r1) ) [px::bind(&expr<Iterator>::logical_or, _val, _1)] );
             logical_or_expression.name("logical_or_expression");
 
-            logical_and_expression = 
+            logical_and_expression =
                 equality_expression(_r1)                   [_val = _1]
                 >> *(   ((kw["and"] | "&&") > equality_expression(_r1) ) [px::bind(&expr<Iterator>::logical_and, _val, _1)] );
             logical_and_expression.name("logical_and_expression");
@@ -1262,7 +1270,7 @@ namespace client
             bool_expr_eval = conditional_expression(_r1) [ px::bind(&expr<Iterator>::evaluate_boolean, _1, _val) ];
             bool_expr_eval.name("bool_expr_eval");
 
-            relational_expression = 
+            relational_expression =
                     additive_expression(_r1)                [_val  = _1]
                 >> *(   ("<="     > additive_expression(_r1) ) [px::bind(&expr<Iterator>::leq,     _val, _1)]
                     |   (">="     > additive_expression(_r1) ) [px::bind(&expr<Iterator>::geq,     _val, _1)]
@@ -1316,11 +1324,11 @@ namespace client
                 |   (lit('-')  > unary_expression(_r1)           )  [ px::bind(&FactorActions::minus_,  _1,     _val) ]
                 |   (lit('+')  > unary_expression(_r1) > iter_pos)  [ px::bind(&FactorActions::expr_,   _1, _2, _val) ]
                 |   ((kw["not"] | '!') > unary_expression(_r1) > iter_pos) [ px::bind(&FactorActions::not_, _1, _val) ]
-                |   (kw["min"] > '(' > conditional_expression(_r1) [_val = _1] > ',' > conditional_expression(_r1) > ')') 
+                |   (kw["min"] > '(' > conditional_expression(_r1) [_val = _1] > ',' > conditional_expression(_r1) > ')')
                                                                     [ px::bind(&expr<Iterator>::min, _val, _2) ]
-                |   (kw["max"] > '(' > conditional_expression(_r1) [_val = _1] > ',' > conditional_expression(_r1) > ')') 
+                |   (kw["max"] > '(' > conditional_expression(_r1) [_val = _1] > ',' > conditional_expression(_r1) > ')')
                                                                     [ px::bind(&expr<Iterator>::max, _val, _2) ]
-                |   (kw["random"] > '(' > conditional_expression(_r1) [_val = _1] > ',' > conditional_expression(_r1) > ')') 
+                |   (kw["random"] > '(' > conditional_expression(_r1) [_val = _1] > ',' > conditional_expression(_r1) > ')')
                                                                     [ px::bind(&MyContext::random<Iterator>, _r1, _val, _2) ]
                 |   (kw["digits"] > '(' > conditional_expression(_r1) [_val = _1] > ',' > conditional_expression(_r1) > optional_parameter(_r1))
                                                                     [ px::bind(&expr<Iterator>::template digits<false>, _val, _2, _3) ]
@@ -1342,10 +1350,10 @@ namespace client
                 );
             optional_parameter.name("optional_parameter");
 
-            scalar_variable_reference = 
+            scalar_variable_reference =
                 variable_reference(_r1)[_a=_1] >>
                 (
-                        ('[' > additive_expression(_r1)[px::bind(&MyContext::evaluate_index<Iterator>, _1, _b)] > ']' > 
+                        ('[' > additive_expression(_r1)[px::bind(&MyContext::evaluate_index<Iterator>, _1, _b)] > ']' >
                             iter_pos[px::bind(&MyContext::vector_variable_reference<Iterator>, _r1, _a, _b, _1, _val)])
                     |   eps[px::bind(&MyContext::scalar_variable_reference<Iterator>, _r1, _a, _val)]
                 );

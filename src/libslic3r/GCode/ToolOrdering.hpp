@@ -214,6 +214,7 @@ private:
     std::unordered_map<uint32_t, std::vector<uint8_t>> m_tool_order_cache;
     const PrintConfig*         m_print_config_ptr = nullptr;
     const PrintObject*         m_print_object_ptr = nullptr;
+    Print*                     m_print;
 };
 
 } // namespace SLic3r

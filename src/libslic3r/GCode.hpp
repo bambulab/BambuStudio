@@ -86,7 +86,8 @@ public:
         m_plate_origin(plate_origin),
         m_single_extruder_multi_material(print_config.single_extruder_multi_material),
         m_enable_timelapse_print(print_config.timelapse_type.value == TimelapseType::tlSmooth),
-        m_is_first_print(true)
+        m_is_first_print(true),
+        m_print_config(&print_config)
     {}
 
     std::string prime(GCode &gcodegen);
@@ -129,6 +130,7 @@ private:
     bool                                                         m_single_extruder_multi_material;
     bool                                                         m_enable_timelapse_print;
     bool                                                         m_is_first_print;
+    const PrintConfig *                                          m_print_config;
 };
 
 class ColorPrintColors
@@ -332,6 +334,7 @@ private:
     //BBS
     void check_placeholder_parser_failed();
     size_t cur_extruder_index() const;
+    size_t get_extruder_id(unsigned int filament_id) const;
 
     void            set_last_pos(const Point &pos) { m_last_pos = pos; m_last_pos_defined = true; }
     void            set_last_scarf_seam_flag(bool flag) { m_last_scarf_seam_flag = flag; }
@@ -504,6 +507,8 @@ private:
     bool m_support_traditional_timelapse = true;
 
     bool m_silent_time_estimator_enabled;
+
+    Print *m_print{nullptr};
 
     // Processor
     GCodeProcessor m_processor;

@@ -375,7 +375,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         if (new_filament_id != -1 && new_filament_id != tcr.new_tool)
             throw Slic3r::InvalidArgument("Error: WipeTowerIntegration::append_tcr was asked to do a toolchange it didn't expect.");
 
-        int new_extruder_id = get_extruder_index(new_filament_id);
+        int new_extruder_id = get_extruder_index(*m_print_config, new_filament_id);
         std::string gcode;
 
         // Toolchangeresult.gcode assumes the wipe tower corner is at the origin (except for priming lines)
@@ -1217,7 +1217,7 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     bool activate_long_retraction_when_cut = false;
     for (const auto& extruder : m_writer.extruders())
         activate_long_retraction_when_cut |= (
-            m_config.long_retractions_when_cut.get_at(extruder.extruder_id()) 
+            m_config.long_retractions_when_cut.get_at(extruder.extruder_id())
          && m_config.retraction_distances_when_cut.get_at(extruder.extruder_id()) > 0
             );
 
@@ -1550,6 +1550,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 {
     PROFILE_FUNC();
 
+    m_print = &print;
+
     // modifies m_silent_time_estimator_enabled
     DoExport::init_gcode_processor(print.config(), m_processor, m_silent_time_estimator_enabled, m_writer.extruders());
     // resets analyzer's tracking data
@@ -1865,7 +1867,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_cooling_buffer = make_unique<CoolingBuffer>(*this);
     m_cooling_buffer->set_current_extruder(initial_extruder_id);
 
-    int extruder_id = get_extruder_index(initial_extruder_id);
+    int extruder_id = get_extruder_id(initial_extruder_id);
 
     // Emit machine envelope limits for the Marlin firmware.
     this->print_machine_envelope(file, print, initial_extruder_id);
@@ -2004,7 +2006,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 outer_wall_line_width = default_line_width == 0.0 ? m_config.nozzle_diameter.get_at(initial_non_support_extruder_id) : default_line_width;
             }
             Flow outer_wall_flow = Flow(outer_wall_line_width, m_config.layer_height, m_config.nozzle_diameter.get_at(initial_non_support_extruder_id));
-            float outer_wall_speed            = print.default_region_config().outer_wall_speed.get_at(get_extruder_index(initial_extruder_id));
+            float outer_wall_speed            = print.default_region_config().outer_wall_speed.get_at(get_extruder_id(initial_extruder_id));
             float outer_wall_volumetric_speed = outer_wall_speed * outer_wall_flow.mm3_per_mm();
             if (outer_wall_volumetric_speed > filament_max_volumetric_speed)
                 outer_wall_volumetric_speed = filament_max_volumetric_speed;
@@ -2382,7 +2384,19 @@ void GCode::check_placeholder_parser_failed()
 
 size_t GCode::cur_extruder_index() const
 {
-    return get_extruder_index(m_writer.extruder()->id());
+    return get_extruder_id(m_writer.extruder()->id());
+}
+
+size_t GCode::get_extruder_id(unsigned int filament_id) const
+{
+    if (m_print) {
+        std::vector<int> filament_maps = m_print->get_filament_maps();
+        if (filament_id < filament_maps.size()) {
+            return filament_maps[filament_id];
+        }
+    }
+
+    return 0;
 }
 
 // Process all layers of all objects (non-sequential mode) with a parallel pipeline:
@@ -5296,7 +5310,7 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType li
 
 std::string GCode::set_extruder(unsigned int filament_id, double print_z, bool by_object)
 {
-    int extruder_id = get_extruder_index(filament_id);
+    int extruder_id = get_extruder_id(filament_id);
     if (!m_writer.need_toolchange(filament_id))
         return "";
 
