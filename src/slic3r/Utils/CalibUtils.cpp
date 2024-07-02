@@ -118,7 +118,7 @@ static bool is_same_nozzle_diameters(const DynamicPrintConfig &full_config, cons
                 error_msg = _L("Your nozzle diameter in preset is not consistent with memorized nozzle diameter. Did you change your nozzle lately?") + "\n    " + nozzle_in_preset +
                             "\n    " + nozzle_in_printer + "\n";
                 return false;
-            } 
+            }
         }
 
     } catch (...) {}
@@ -557,8 +557,9 @@ bool CalibUtils::calib_flowrate(int pass, const CalibInfo &calib_info, wxString 
     Flow   infill_flow                   = Flow(nozzle_diameter * 1.2f, layer_height, nozzle_diameter);
     double filament_max_volumetric_speed = filament_config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(0);
     double max_infill_speed              = filament_max_volumetric_speed / (infill_flow.mm3_per_mm() * (pass == 1 ? 1.2 : 1));
-    double internal_solid_speed          = std::floor(std::min(print_config.opt_float("internal_solid_infill_speed", get_extruder_index(stoi(calib_info.filament_prest->filament_id))), max_infill_speed));
-    double top_surface_speed             = std::floor(std::min(print_config.opt_float("top_surface_speed", get_extruder_index(stoi(calib_info.filament_prest->filament_id))), max_infill_speed));
+    // todo multi_extruders:
+    double internal_solid_speed          = std::floor(std::min(print_config.opt_float("internal_solid_infill_speed", 0/*get_extruder_index(stoi(calib_info.filament_prest->filament_id))*/), max_infill_speed));
+    double top_surface_speed             = std::floor(std::min(print_config.opt_float("top_surface_speed", 0/*get_extruder_index(stoi(calib_info.filament_prest->filament_id))*/), max_infill_speed));
 
     // adjust parameters
     filament_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(calib_info.bed_type));
@@ -660,7 +661,7 @@ void CalibUtils::calib_pa_pattern(const CalibInfo &calib_info, Model& model)
         new ConfigOptionFloat(CalibPressureAdvance::find_optimal_PA_speed(
             full_config, print_config.get_abs_value("line_width"),
             print_config.get_abs_value("layer_height"), 0)));
-    
+
     for (const auto opt : SuggestedConfigCalibPAPattern().nozzle_ratio_pairs) {
         print_config.set_key_value(opt.first, new ConfigOptionFloat(nozzle_diameter * opt.second / 100));
     }
