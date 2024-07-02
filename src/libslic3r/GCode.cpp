@@ -2390,12 +2390,8 @@ size_t GCode::cur_extruder_index() const
 size_t GCode::get_extruder_id(unsigned int filament_id) const
 {
     if (m_print) {
-        std::vector<int> filament_maps = m_print->get_filament_maps();
-        if (filament_id < filament_maps.size()) {
-            return filament_maps[filament_id];
-        }
+        return m_print->get_extruder_id(filament_id);
     }
-
     return 0;
 }
 

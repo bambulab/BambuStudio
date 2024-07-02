@@ -1846,6 +1846,21 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
         if (this->config().print_sequence == PrintSequence::ByObject) {
             // Order object instances for sequential print.
             print_object_instances_ordering = sort_object_instances_by_model_order(*this);
+
+            // get recommended filament map
+            {
+                std::vector<std::vector<unsigned int>> all_filaments;
+                print_object_instance_sequential_active = print_object_instances_ordering.begin();
+                for (; print_object_instance_sequential_active != print_object_instances_ordering.end(); ++print_object_instance_sequential_active) {
+                    tool_ordering = ToolOrdering(*(*print_object_instance_sequential_active)->print_object, initial_extruder_id);
+                    for (const auto &layer_tool : tool_ordering.layer_tools()) { all_filaments.emplace_back(layer_tool.extruders); }
+                }
+
+                std::vector<int> recomended_maps = ToolOrdering::get_recommended_filament_maps(all_filaments, &config());
+                std::transform(recomended_maps.begin(), recomended_maps.end(), recomended_maps.begin(), [](int value) { return value + 1; });
+                update_filament_maps_to_config(recomended_maps);
+            }
+
             //        print_object_instances_ordering = sort_object_instances_by_max_z(print);
             print_object_instance_sequential_active = print_object_instances_ordering.begin();
             for (; print_object_instance_sequential_active != print_object_instances_ordering.end(); ++print_object_instance_sequential_active) {
@@ -2326,7 +2341,7 @@ size_t Print::get_extruder_id(unsigned int filament_id) const
 {
     std::vector<int> filament_map = get_filament_maps();
     if (filament_id < filament_map.size()) {
-        return filament_map[filament_id];
+        return filament_map[filament_id] - 1;
     }
     return 0;
 }
