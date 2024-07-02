@@ -640,7 +640,7 @@ void PartPlate::render_logo_texture(GLTexture &logo_texture, const GeometryBuffe
 	}
 }
 
-void PartPlate::render_logo(bool bottom, bool render_cali) const
+void PartPlate::render_logo(bool bottom, bool render_cali)
 {
 	// render printer custom texture logo
 	if (m_partplate_list->m_logo_texture_filename.empty()) {
@@ -706,6 +706,13 @@ void PartPlate::render_logo(bool bottom, bool render_cali) const
             glsafe(::glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr) m_logo_triangles.get_vertices_data_size(), (const GLvoid *) m_logo_triangles.get_vertices_data(),
                                     GL_STATIC_DRAW));
             glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+        }
+        if (m_partplate_list && m_partplate_list->m_bed3d && !m_partplate_list->m_bed3d->get_model_filename().empty()) {
+            auto cur_bed = m_partplate_list->m_bed3d;
+            auto cur_box = cur_bed->get_model().get_bounding_box().transformed(Geometry::translation_transform(m_origin));
+            if ((m_cur_bed_boundingbox.center() - cur_box.center()).norm() > 1.0f) {
+				set_logo_box_by_bed(cur_box);
+            }
         }
         if (m_vbo_id != 0 && m_logo_triangles.get_vertices_count() > 0) {
 			render_logo_texture(m_partplate_list->m_logo_texture, m_logo_triangles, bottom, m_vbo_id);
@@ -2539,6 +2546,7 @@ void PartPlate::generate_logo_polygon(ExPolygon &logo_polygon, const BoundingBox
 void PartPlate::set_logo_box_by_bed(const BoundingBoxf3& box)
 {
     if (box.defined) {
+        m_cur_bed_boundingbox = box;
         ExPolygon logo_poly;
         generate_logo_polygon(logo_poly, box);
         if (!m_logo_triangles.set_from_triangles(triangulate_expolygon_2f(logo_poly, NORMALS_UP), GROUND_Z + 0.02f)) {
@@ -2720,7 +2728,8 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
 			;
 		}
 		if (m_partplate_list && m_partplate_list->m_bed3d && !m_partplate_list->m_bed3d->get_model_filename().empty()) {
-			set_logo_box_by_bed(m_partplate_list->m_bed3d->get_model().get_bounding_box());
+            auto cur_bed = m_partplate_list->m_bed3d;
+            set_logo_box_by_bed(cur_bed->get_model().get_bounding_box().transformed(Geometry::translation_transform(m_origin)));
 		}
 
 		ExPolygon poly;

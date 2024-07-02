@@ -5513,6 +5513,9 @@ wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
                         }
                         load_key_value("bed_custom_texture", custom_texture);
                         update_changed_ui();
+                        if (custom_texture == "") {
+                            wxGetApp().plater()->get_partplate_list().update_logo_texture_filename("");
+                        }
                     } else {
                         const std::vector<Vec2d> &shape          = dlg.get_shape();
                         const std::string &       custom_texture = dlg.get_custom_texture();

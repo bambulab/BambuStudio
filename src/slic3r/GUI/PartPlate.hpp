@@ -121,6 +121,7 @@ private:
     Pointfs m_exclude_area;
     BoundingBoxf3 m_bounding_box;
     BoundingBoxf3 m_extended_bounding_box;
+    BoundingBoxf3 m_cur_bed_boundingbox;
     mutable std::vector<BoundingBoxf3> m_exclude_bounding_box;
     mutable BoundingBoxf3 m_grabber_box;
     Transform3d m_grabber_trans_matrix;
@@ -186,7 +187,7 @@ private:
     void calc_vertex_for_icons(int index, GeometryBuffer &buffer);
     void calc_vertex_for_icons_background(int icon_count, GeometryBuffer &buffer);
     void render_background(bool force_default_color = false) const;
-    void render_logo(bool bottom, bool render_cali = true) const;
+    void render_logo(bool bottom, bool render_cali = true);
     void render_logo_texture(GLTexture& logo_texture, const GeometryBuffer& logo_buffer, bool bottom, unsigned int vbo_id) const;
     void render_exclude_area(bool force_default_color) const;
     //void render_background_for_picking(const float* render_color) const;
