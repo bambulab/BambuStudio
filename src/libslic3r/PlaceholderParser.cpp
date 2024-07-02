@@ -971,6 +971,13 @@ namespace client
             expr<Iterator>::random(param1, param2, ctx->context_data->rng);
         }
 
+        template<typename Iterator>
+        static void filament_change(const MyContext* ctx, expr<Iterator>& param)
+        {
+            MyContext *context = const_cast<MyContext *>(ctx);
+            context->current_extruder_id = param.as_i();
+        }
+
         template <typename Iterator>
         static void throw_exception(const std::string &msg, const boost::iterator_range<Iterator> &it_range)
         {
@@ -1330,6 +1337,7 @@ namespace client
                                                                     [ px::bind(&expr<Iterator>::max, _val, _2) ]
                 |   (kw["random"] > '(' > conditional_expression(_r1) [_val = _1] > ',' > conditional_expression(_r1) > ')')
                                                                     [ px::bind(&MyContext::random<Iterator>, _r1, _val, _2) ]
+                |   (kw["filament_change"] > '(' > conditional_expression(_r1) > ')') [ px::bind(&MyContext::filament_change<Iterator>, _r1, _1) ]
                 |   (kw["digits"] > '(' > conditional_expression(_r1) [_val = _1] > ',' > conditional_expression(_r1) > optional_parameter(_r1))
                                                                     [ px::bind(&expr<Iterator>::template digits<false>, _val, _2, _3) ]
                 |   (kw["zdigits"] > '(' > conditional_expression(_r1) [_val = _1] > ',' > conditional_expression(_r1) > optional_parameter(_r1))
@@ -1380,6 +1388,7 @@ namespace client
                 ("min")
                 ("max")
                 ("random")
+                ("filament_change")
                 ("round")
                 ("not")
                 ("or")
