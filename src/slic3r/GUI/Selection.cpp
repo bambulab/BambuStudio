@@ -1158,10 +1158,12 @@ const std::pair<Vec3d, double> Selection::get_bounding_sphere() const
                 }
             }
 
-            Min_sphere   ms(points.begin(), points.end());
-            const float *center_x = ms.center_cartesian_begin();
-            (*sphere)->first      = {*center_x, *(center_x + 1), *(center_x + 2)};
-            (*sphere)->second     = ms.radius();
+            if (points.size() > 0) {
+                Min_sphere   ms(points.begin(), points.end());
+                const float* center_x = ms.center_cartesian_begin();
+                (*sphere)->first = { *center_x, *(center_x + 1), *(center_x + 2) };
+                (*sphere)->second = ms.radius();
+            }
         }
     }
 

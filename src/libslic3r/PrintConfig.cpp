@@ -945,6 +945,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Speed");
     def->tooltip = L("Enable this option to slow printing down for different overhang degree");
     def->mode = comAdvanced;
+    def->nullable = true;
     def->set_default_value(new ConfigOptionBoolsNullable{ true });
 
     def = this->add("overhang_1_4_speed", coFloats);
@@ -956,6 +957,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
+    def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable{0});
 
     def = this->add("overhang_2_4_speed", coFloats);
@@ -967,6 +969,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
+    def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable{0});
 
     def = this->add("overhang_3_4_speed", coFloats);
@@ -977,6 +980,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
+    def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable{0});
 
     def = this->add("overhang_4_4_speed", coFloats);
@@ -987,6 +991,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
+    def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable{0});
 
     def = this->add("overhang_totally_speed", coFloats);
@@ -1006,6 +1011,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
+    def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable{25});
 
     def = this->add("brim_width", coFloat);
@@ -1137,6 +1143,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = "mm/s²";
     def->min = 0;
     def->mode = comAdvanced;
+    def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable{500.0});
 
     def = this->add("default_filament_profile", coStrings);
@@ -1316,6 +1323,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
+    def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable{60});
 
 
@@ -1329,6 +1337,7 @@ void PrintConfigDef::init_fff_params()
     def->ratio_over = "outer_wall_speed";
     def->min = 0;
     def->mode = comAdvanced;
+    def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsOrPercentsNullable{FloatOrPercent(50, true)});
 
     def = this->add("small_perimeter_threshold", coFloats);
@@ -1338,6 +1347,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
+    def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable{0});
 
     def = this->add("wall_sequence", coEnum);
@@ -1829,6 +1839,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = "mm/s²";
     def->min = 0;
     def->mode = comAdvanced;
+    def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable{500});
 
     def = this->add("inner_wall_acceleration", coFloats);
@@ -1958,6 +1969,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
+    def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable{30});
 
     def = this->add("initial_layer_infill_speed", coFloats);
@@ -1966,6 +1978,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->min = 1;
     def->mode = comAdvanced;
+    def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable{60.0});
 
     def = this->add("nozzle_temperature_initial_layer", coInts);
@@ -2038,6 +2051,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
+    def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable{30});
 
     // BBS
@@ -2282,6 +2296,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
+    def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable{100});
 
     def = this->add("inherits", coString);
@@ -2784,6 +2799,7 @@ void PrintConfigDef::init_fff_params()
     def->aliases = { "perimeter_feed_rate" };
     def->min = 0;
     def->mode = comAdvanced;
+    def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable{60});
 
     def = this->add("wall_loops", coInt);
@@ -3265,6 +3281,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
+    def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable{100});
 
     def = this->add("spiral_mode", coBool);
@@ -3599,6 +3616,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->min = 1;
     def->mode = comAdvanced;
+    def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable{80});
 
     def = this->add("support_base_pattern", coEnum);
@@ -3665,6 +3683,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
+    def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable{ 80 });
 
     def = this->add("support_style", coEnum);
@@ -3840,6 +3859,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
+    def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable{100});
 
     def = this->add("top_shell_layers", coInt);
@@ -3869,6 +3889,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->min = 1;
     def->mode = comAdvanced;
+    def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable{120});
 
     def = this->add("travel_speed_z", coFloats);
@@ -3879,6 +3900,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comDevelop;
+    def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable{0.});
 
     def = this->add("use_relative_e_distances", coBool);
@@ -4966,6 +4988,9 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
             opt_key = "wall_sequence";
         }
     }
+    else if (opt_key == "extruder_type" && value == "DirectDrive") {
+        value = "Direct Drive";
+    }
 
     // Ignore the following obsolete configuration keys:
     static std::set<std::string> ignore = {
@@ -5723,6 +5748,83 @@ void DynamicPrintConfig::update_values_to_printer_extruders(DynamicPrintConfig& 
             }
         }
     }
+}
+
+void DynamicPrintConfig::update_non_diff_values_to_base_config(DynamicPrintConfig& new_config, const t_config_option_keys& keys, const std::set<std::string>& different_keys,
+    std::string extruder_id_name, std::string extruder_variant_name, std::set<std::string>& key_set1, std::set<std::string>& key_set2)
+{
+    std::vector<int> cur_extruder_ids, target_extruder_ids, variant_index;
+    std::vector<std::string> cur_extruder_variants, target_extruder_variants;
+
+    if (!extruder_id_name.empty()) {
+        if (this->option(extruder_id_name))
+            cur_extruder_ids = this->option<ConfigOptionInts>(extruder_id_name)->values;
+        if (new_config.option(extruder_id_name))
+            target_extruder_ids = new_config.option<ConfigOptionInts>(extruder_id_name)->values;
+    }
+    if (this->option(extruder_variant_name))
+        cur_extruder_variants = this->option<ConfigOptionStrings>(extruder_variant_name, true)->values;
+    if (new_config.option(extruder_variant_name))
+        target_extruder_variants = new_config.option<ConfigOptionStrings>(extruder_variant_name, true)->values;
+
+    int cur_variant_count = cur_extruder_variants.size();
+    int target_variant_count = target_extruder_variants.size();
+
+    variant_index.resize(target_variant_count, -1);
+    if (cur_variant_count == 0) {
+        variant_index[0] = 0;
+    }
+    else if ((cur_extruder_ids.size() > 0) && cur_variant_count != cur_extruder_ids.size()){
+        //should not happen
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" size of %1% = %2%, not equal to size of %3% = %4%")
+             %extruder_variant_name %cur_variant_count %extruder_id_name %cur_extruder_ids.size();
+    }
+    else if ((target_extruder_ids.size() > 0) && target_variant_count != target_extruder_ids.size()){
+        //should not happen
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" size of %1% = %2%, not equal to size of %3% = %4%")
+             %extruder_variant_name %target_variant_count %extruder_id_name %target_extruder_ids.size();
+    }
+    else {
+        for (int i = 0; i < target_variant_count; i++)
+        {
+            for (int j = 0; j < cur_variant_count; j++)
+            {
+                if ((target_extruder_variants[i] == cur_extruder_variants[j])
+                    &&(target_extruder_ids.empty() || (target_extruder_ids[i] == cur_extruder_ids[j])))
+                {
+                    variant_index[i] = j;
+                    break;
+                }
+            }
+        }
+    }
+
+    for (auto& opt : keys) {
+        ConfigOption *opt_src = this->option(opt);
+        const ConfigOption *opt_target = new_config.option(opt);
+        if (opt_src && opt_target && (*opt_src != *opt_target)) {
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" change key %1% from old_value %2% to inherit's value %3%")
+                    %opt %(opt_src->serialize()) %(opt_target->serialize());
+            if (different_keys.find(opt) == different_keys.end()) {
+                opt_src->set(opt_target);
+            }
+            else {
+                if (opt_target->is_scalar()
+                    || ((key_set1.find(opt) == key_set1.end()) && (key_set2.empty() || (key_set2.find(opt) == key_set2.end())))) {
+                    //nothing to do, keep the original one
+                }
+                else {
+                    ConfigOptionVectorBase* opt_vec_src = static_cast<ConfigOptionVectorBase*>(opt_src);
+                    const ConfigOptionVectorBase* opt_vec_dest = static_cast<const ConfigOptionVectorBase*>(opt_target);
+                    int stride = 1;
+                    if (key_set2.find(opt) != key_set2.end())
+                        stride = 2;
+                    opt_vec_src->set_with_keep(opt_vec_dest, variant_index, stride);
+                }
+            }
+        }
+    }
+    return;
 }
 
 bool DynamicPrintConfig::is_custom_defined()

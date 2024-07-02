@@ -2616,7 +2616,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                 else if (key != "compatible_printers" && key != "compatible_prints") {
                     for (size_t i = 0; i < configs.size(); ++i) {
                         if (process_multi_extruder && (filament_options_with_variant.find(key) != filament_options_with_variant.end())) {
-                            size_t next_index = (i < (configs.size() - 1)) ? filament_variant_index[i + 1] : extruder_variant_count - 1;
+                            size_t next_index = (i < (configs.size() - 1)) ? filament_variant_index[i + 1] : extruder_variant_count;
                             static_cast<ConfigOptionVectorBase*>(configs[i].option(key, false))->set(other_opt, filament_variant_index[i], next_index - filament_variant_index[i]);
                         }
                         else
