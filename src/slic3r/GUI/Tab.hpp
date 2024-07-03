@@ -568,7 +568,8 @@ public:
 	void		update_description_lines() override;
 	void		toggle_options() override;
 	void		update() override;
-	void		clear_pages() override;
+    void        init_options_list() override;
+    void        clear_pages() override;
 	bool 		supports_printer_technology(const PrinterTechnology tech) const override { return tech == ptFFF; }
 };
 
@@ -641,7 +642,6 @@ public:
 	void		reload_config() override;
 	void		toggle_options() override;
 	void		update() override;
-    void		init_options_list() override;
 	bool 		supports_printer_technology(const PrinterTechnology tech) const override { return tech == ptSLA; }
 };
 
