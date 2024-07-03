@@ -4290,6 +4290,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
                         // apply offset
                         cur_pos = m_mouse.drag.start_position_3D + projection_x * camera_right + projection_z * camera_up;
+                        cur_pos[2] = m_mouse.drag.start_position_3D(2);
                     }
                     else {
                         // Generic view
