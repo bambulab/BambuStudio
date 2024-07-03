@@ -1397,6 +1397,8 @@ void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
         CallAfter([this]{
             SetWebviewShow("online", false);
             SetWebviewShow("right", true);
+
+            GetSizer()->Layout();
         });
     }
 }
