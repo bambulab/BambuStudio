@@ -624,6 +624,7 @@ function(bambustudio_copy_dlls target config postfix output_dlls)
             ${CMAKE_PREFIX_PATH}/bin/swresample-4.dll
             ${CMAKE_PREFIX_PATH}/bin/swscale-6.dll
             ${CMAKE_PREFIX_PATH}/bin/avutil-57.dll
+            ${CMAKE_PREFIX_PATH}/bin/libwinpthread-1.dll
          DESTINATION ${_out_dir})
 
     set(${output_dlls}
@@ -663,6 +664,7 @@ function(bambustudio_copy_dlls target config postfix output_dlls)
         ${_out_dir}/swresample-4.dll
         ${_out_dir}/swscale-6.dll
         ${_out_dir}/avutil-57.dll
+	${_out_dir}/libwinpthread-1.dll
         PARENT_SCOPE
     )
 
