@@ -851,6 +851,9 @@ StatusBasePanel::StatusBasePanel(wxWindow *parent, wxWindowID id, const wxPoint 
     : wxScrolledWindow(parent, id, pos, size, wxHSCROLL | wxVSCROLL)
 {
     this->SetScrollRate(5, 5);
+    Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return;
+    obj = dev->get_selected_machine();
 
     init_bitmaps();
 
@@ -1155,7 +1158,7 @@ wxBoxSizer *StatusBasePanel::create_temp_axis_group(wxWindow *parent)
     content_sizer->Add(extruder_sizer, 0, wxEXPAND  | wxTOP | wxBOTTOM, FromDIP(12));
 
     box->SetSizer(content_sizer);
-    sizer->Add(box, 0, wxEXPAND | wxALL, FromDIP(9));
+    sizer->Add(box, 0, wxEXPAND | wxALL, FromDIP(0));
 
     return sizer;
 }
@@ -1566,7 +1569,7 @@ wxBoxSizer *StatusBasePanel::create_ams_group(wxWindow *parent)
     m_ams_control = new AMSControl(m_ams_control_box, wxID_ANY);
     //m_ams_control->SetMinSize(wxSize(FromDIP(510), FromDIP(286)));
     m_ams_control->SetDoubleBuffered(true);
-    sizer_box->Add(m_ams_control, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, FromDIP(10));
+    sizer_box->Add(m_ams_control, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, FromDIP(3));
 
     m_ams_control_box->SetBackgroundColour(*wxWHITE);
     m_ams_control_box->SetSizer(sizer_box);
@@ -1591,6 +1594,7 @@ void StatusBasePanel::show_ams_group(bool show)
         Fit();
     }
 }
+
 
 void StatusPanel::update_camera_state(MachineObject* obj)
 {
@@ -1752,6 +1756,7 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     Bind(EVT_AMS_ON_SELECTED, &StatusPanel::on_ams_selected, this);
     Bind(EVT_AMS_ON_FILAMENT_EDIT, &StatusPanel::on_filament_edit, this);
     Bind(EVT_VAMS_ON_FILAMENT_EDIT, &StatusPanel::on_ext_spool_edit, this);
+    //Bind(EVT_VAMS_ON_FILAMENT_EDIT, &StatusPanel::on_filament_edit, this);
     Bind(EVT_AMS_GUIDE_WIKI, &StatusPanel::on_ams_guide, this);
     Bind(EVT_AMS_RETRY, &StatusPanel::on_ams_retry, this);
     Bind(EVT_FAN_CHANGED, &StatusPanel::on_fan_changed, this);
@@ -2620,14 +2625,37 @@ void StatusPanel::update_ams(MachineObject *obj)
     if (m_filament_setting_dlg) m_filament_setting_dlg->update();
 
     std::vector<AMSinfo> ams_info;
+    ams_info.clear();
     for (auto ams = obj->amsList.begin(); ams != obj->amsList.end(); ams++) {
         AMSinfo info;
         info.ams_id = ams->first;
-        if (ams->second->is_exists && info.parse_ams_info(obj, ams->second, obj->ams_calibrate_remain_flag, obj->is_support_ams_humidity)) ams_info.push_back(info);
+        if (ams->second->is_exists && info.parse_ams_info(obj, ams->second, obj->ams_calibrate_remain_flag, obj->is_support_ams_humidity)) {
+            ams_info.push_back(info);
+        }
     }
+    std::vector<AMSinfo> ext_info;
+    ext_info.clear();
+    for (auto slot : obj->vt_slot) {
+        AMSinfo info;
+        info.ReadExtInfo(slot);
+        ext_info.push_back(info);
+    }
+    std::string dev_id = obj->dev_id;
+    //if (obj->ams_exist_bits != last_ams_exist_bits || obj->tray_exist_bits != last_tray_exist_bits || obj->tray_is_bbl_bits != last_tray_is_bbl_bits ||
+    //    obj->tray_read_done_bits != last_read_done_bits || obj->ams_version != last_ams_version) {
+    //    m_ams_control->UpdateAms(ams_info, false);
+    //    // select current ams
+    //    //if (!obj->m_ams_id.empty()) m_ams_control->SwitchAms(obj->m_ams_id);
+
+    //    last_tray_exist_bits  = obj->tray_exist_bits;
+    //    last_ams_exist_bits   = obj->ams_exist_bits;
+    //    last_tray_is_bbl_bits = obj->tray_is_bbl_bits;
+    //    last_read_done_bits   = obj->tray_read_done_bits;
+    //    last_ams_version      = obj->ams_version;
+    //}
 
     // must select a current can
-    m_ams_control->UpdateAms(ams_info, false);
+    m_ams_control->UpdateAms(ams_info, ext_info, dev_id, false);
 
     last_tray_exist_bits  = obj->tray_exist_bits;
     last_ams_exist_bits   = obj->ams_exist_bits;
@@ -3676,9 +3704,17 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
 
     if (obj) {
         m_filament_setting_dlg->obj = obj;
-        std::string ams_id          = m_ams_control->GetCurentAms();
+        std::string ams_id;
         int ams_id_int = 0;
         int tray_id_int = 0;
+        int tray_id = event.GetInt();
+        if (tray_id == VIRTUAL_TRAY_MAIN_ID || tray_id == VIRTUAL_TRAY_DEPUTY_ID) {
+            ams_id = std::to_string(tray_id);
+        }
+        else{
+            ams_id = std::to_string(tray_id / 4);
+        }
+
         if (ams_id.compare(std::to_string(VIRTUAL_TRAY_MAIN_ID)) == 0) {
             tray_id_int = VIRTUAL_TRAY_MAIN_ID;
             m_filament_setting_dlg->ams_id = ams_id_int;
@@ -3690,10 +3726,10 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
             m_filament_setting_dlg->Move(wxPoint(current_position_x, current_position_y));
             m_filament_setting_dlg->Popup(wxEmptyString, wxEmptyString, wxEmptyString, wxEmptyString, k_val, n_val);
         } else {
-            std::string tray_id = event.GetString().ToStdString(); // m_ams_control->GetCurrentCan(ams_id);
+            //std::string tray_id = event.GetString().ToStdString(); // m_ams_control->GetCurrentCan(ams_id);
             try {
-                ams_id_int = atoi(ams_id.c_str());
-                tray_id_int = atoi(tray_id.c_str());
+                ams_id_int = tray_id / 4;
+                tray_id_int = tray_id % 4;
                 m_filament_setting_dlg->ams_id = ams_id_int;
                 m_filament_setting_dlg->tray_id = tray_id_int;
 
@@ -3703,9 +3739,9 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
                 std::string temp_min;
                 wxString k_val;
                 wxString n_val;
-                auto it = obj->amsList.find(ams_id);
+                auto it = obj->amsList.find(std::to_string(ams_id_int));
                 if (it != obj->amsList.end()) {
-                    auto tray_it = it->second->trayList.find(tray_id);
+                    auto tray_it = it->second->trayList.find(std::to_string(tray_id));
                     if (tray_it != it->second->trayList.end()) {
                         k_val = wxString::Format("%.3f", tray_it->second->k);
                         n_val = wxString::Format("%.3f", tray_it->second->n);
@@ -3758,7 +3794,10 @@ void StatusPanel::on_ext_spool_edit(wxCommandEvent &event)
     current_position_y = current_position_y + m_filament_setting_dlg->GetSize().GetHeight() > drect ? drect - m_filament_setting_dlg->GetSize().GetHeight() : current_position_y;
 
     if (obj) {
+        int tray_id = event.GetInt();
+        int ams_id = tray_id / 4;
         m_filament_setting_dlg->obj = obj;
+        m_filament_setting_dlg->ams_id = ams_id;
         try {
             m_filament_setting_dlg->tray_id = VIRTUAL_TRAY_MAIN_ID;
             std::string sn_number;
