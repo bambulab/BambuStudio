@@ -314,6 +314,7 @@ enum PrintDialogStatus {
     PrintStatusAmsMappingSuccess,
     PrintStatusAmsMappingInvalid,
     PrintStatusAmsMappingU0Invalid,
+    PrintStatusAmsMappingMixInvalid,
     PrintStatusAmsMappingValid,
     PrintStatusAmsMappingByOrder,
     PrintStatusRefreshingMachineList,
@@ -366,6 +367,7 @@ private:
     std::vector<MachineObject*>         m_list;
     std::vector<FilamentInfo>           m_filaments;
     std::vector<FilamentInfo>           m_ams_mapping_result;
+    std::vector<int>                    m_filaments_map;
     std::shared_ptr<BBLStatusBarSend>   m_status_bar;
 
     Slic3r::DynamicPrintConfig          m_required_data_config;
@@ -536,6 +538,7 @@ public:
     bool Show(bool show);
     bool do_ams_mapping(MachineObject* obj_);
     bool get_ams_mapping_result(std::string& mapping_array_str, std::string& mapping_array_str2, std::string& ams_mapping_info);
+    bool is_two_nozzle_same();
 
     PrintFromType get_print_type() {return m_print_type;};
     wxString    format_steel_name(std::string name);
