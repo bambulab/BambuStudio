@@ -5095,7 +5095,7 @@ std::set<std::string> printer_options_with_variant_1 = {
 
 //options with silient mode
 std::set<std::string> printer_options_with_variant_2 = {
-    /*"machine_max_acceleration_x",
+    "machine_max_acceleration_x",
     "machine_max_acceleration_y",
     "machine_max_acceleration_z",
     "machine_max_acceleration_e",
@@ -5109,7 +5109,7 @@ std::set<std::string> printer_options_with_variant_2 = {
     "machine_max_jerk_x",
     "machine_max_jerk_y",
     "machine_max_jerk_z",
-    "machine_max_jerk_e",*/
+    "machine_max_jerk_e"
 };
 
 DynamicPrintConfig DynamicPrintConfig::full_print_config()
