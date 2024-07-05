@@ -2410,190 +2410,216 @@ void AmsCans::show_sn_value(bool show)
 Description:AMSControl
 **************************************************/
 // WX_DEFINE_OBJARRAY(AmsItemsHash);
+#define AMS_CANS_SIZE wxSize(FromDIP(284), -1)
+#define AMS_CANS_WINDOW_SIZE wxSize(FromDIP(264), -1)
 AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
     : wxSimplebook(parent, wxID_ANY, pos, size)
     , m_Humidity_tip_popup(AmsHumidityTipPopup(this))
     , m_ams_introduce_popup(AmsIntroducePopup(this))
 {
+    Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (dev) {
+        MachineObject *obj = dev->get_selected_machine();
+        parse_object(obj);
+    }
+
     SetBackgroundColour(*wxWHITE);
     // normal mode
-    //Freeze();
+    Freeze();
     wxBoxSizer *m_sizer_body = new wxBoxSizer(wxVERTICAL);
-    m_amswin                 = new wxWindow(this, wxID_ANY, wxDefaultPosition, wxSize(-1, AMS_CAN_ITEM_HEIGHT_SIZE));
+    m_amswin                 = new wxWindow(this, wxID_ANY);
     m_amswin->SetBackgroundColour(*wxWHITE);
-
-    // top - ams tag
-    m_simplebook_amsitems = new wxSimplebook(m_amswin, wxID_ANY);
-    m_simplebook_amsitems->SetSize(wxSize(-1, AMS_CAN_ITEM_HEIGHT_SIZE));
-    m_simplebook_amsitems->SetMinSize(wxSize(-1, AMS_CAN_ITEM_HEIGHT_SIZE));
-    auto m_sizer_amsitems = new wxBoxSizer(wxHORIZONTAL);
-    m_simplebook_amsitems->SetSizer(m_sizer_amsitems);
-    m_simplebook_amsitems->Layout();
-    m_sizer_amsitems->Fit(m_simplebook_amsitems);
-
-    m_panel_top = new wxPanel(m_simplebook_amsitems, wxID_ANY, wxDefaultPosition, wxSize(-1, AMS_CAN_ITEM_HEIGHT_SIZE));
-    m_sizer_top = new wxBoxSizer(wxHORIZONTAL);
-    m_panel_top->SetSizer(m_sizer_top);
-    m_panel_top->Layout();
-    m_sizer_top->Fit(m_panel_top);
-
-    auto m_panel_top_empty = new wxPanel(m_simplebook_amsitems, wxID_ANY, wxDefaultPosition, wxSize(-1, AMS_CAN_ITEM_HEIGHT_SIZE));
-    auto m_sizer_top_empty = new wxBoxSizer(wxHORIZONTAL);
-    m_panel_top_empty->SetSizer(m_sizer_top_empty);
-    m_panel_top_empty->Layout();
-    m_sizer_top_empty->Fit(m_panel_top_empty);
-
-    m_simplebook_amsitems->AddPage(m_panel_top_empty, wxEmptyString, false);
-    m_simplebook_amsitems->AddPage(m_panel_top, wxEmptyString, false);
+    //m_amswin->SetBackgroundColour(wxColour(0x00CED1));
+    m_amswin->SetSize(wxSize(FromDIP(578), -1));
+    m_amswin->SetMinSize(wxSize(FromDIP(578), -1));
 
 
-    wxBoxSizer *m_sizer_bottom = new wxBoxSizer(wxHORIZONTAL);
-    wxBoxSizer *m_sizer_left   = new wxBoxSizer(wxVERTICAL);
+    m_sizer_ams_items = new wxBoxSizer(wxHORIZONTAL);
+
+    /*right items*/
+    m_panel_items_left = new wxPanel(m_amswin, wxID_ANY);
+    m_panel_items_left->SetSize(AMS_ITEMS_PANEL_SIZE);
+    m_panel_items_left->SetMinSize(AMS_ITEMS_PANEL_SIZE);
+    //m_panel_items_left->SetBackgroundColour(0x4169E1);
+    m_panel_items_left->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
+    m_sizer_items_left = new wxBoxSizer(wxHORIZONTAL);
+    m_panel_items_left->SetSizer(m_sizer_items_left);
+    m_panel_items_left->Layout();
+    //m_sizer_items_left->Fit(m_panel_items_left);
+
+    /*right items*/
+    m_panel_items_right = new wxPanel(m_amswin, wxID_ANY);
+    m_panel_items_right->SetSize(AMS_ITEMS_PANEL_SIZE);
+    m_panel_items_right->SetMinSize(AMS_ITEMS_PANEL_SIZE);
+    //m_panel_items_right->SetBackgroundColour(0x4169E1);
+    m_panel_items_right->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
+    m_sizer_items_right = new wxBoxSizer(wxHORIZONTAL);
+    m_panel_items_right->SetSizer(m_sizer_items_right);
+    m_panel_items_right->Layout();
+    //m_sizer_items_right->Fit(m_panel_items_right);
+
+    /*m_sizer_ams_items->Add(m_panel_items_left, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(5));
+    m_sizer_ams_items->Add(m_panel_items_right, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(5));*/
+    m_sizer_ams_items->Add(m_panel_items_left, 0, wxLEFT, FromDIP(5));
+    m_sizer_ams_items->Add(m_panel_items_right, 0, wxLEFT, FromDIP(5));
+
+    //m_panel_items_right->Hide();
+
+    //m_sizer_ams_body = new wxBoxSizer(wxHORIZONTAL);
+
+    m_sizer_ams_body = new wxBoxSizer(wxHORIZONTAL);
 
     //ams tip
-    m_sizer_ams_tips = new wxBoxSizer(wxHORIZONTAL);
-    m_ams_tip = new Label(m_amswin, _L("AMS"));
-    m_ams_tip->SetFont(::Label::Body_12);
-    m_ams_tip->SetBackgroundColour(*wxWHITE);
-    m_img_amsmapping_tip = new wxStaticBitmap(m_amswin, wxID_ANY, create_scaled_bitmap("enable_ams", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
-    m_img_amsmapping_tip->SetBackgroundColour(*wxWHITE);
+//    m_sizer_ams_tips = new wxBoxSizer(wxHORIZONTAL);
+//    m_ams_tip = new Label(m_amswin, _L("AMS"));
+//    m_ams_tip->SetFont(::Label::Body_12);
+//    m_ams_tip->SetBackgroundColour(*wxWHITE);
+//    m_img_amsmapping_tip = new wxStaticBitmap(m_amswin, wxID_ANY, create_scaled_bitmap("enable_ams", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
+//    m_img_amsmapping_tip->SetBackgroundColour(*wxWHITE);
+//
+//    m_sizer_ams_tips->Add(m_ams_tip, 0, wxTOP, FromDIP(5));
+//    m_sizer_ams_tips->Add(m_img_amsmapping_tip, 0, wxALL, FromDIP(3));
+//
+//    m_img_amsmapping_tip->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {
+//         wxPoint img_pos = m_img_amsmapping_tip->ClientToScreen(wxPoint(0, 0));
+//         wxPoint popup_pos(img_pos.x, img_pos.y + m_img_amsmapping_tip->GetRect().height);
+//         m_ams_introduce_popup.set_mode(true);
+//         m_ams_introduce_popup.Position(popup_pos, wxSize(0, 0));
+//         m_ams_introduce_popup.Popup();
+//
+//#ifdef __WXMSW__
+//         wxCommandEvent close_event(EVT_CLEAR_SPEED_CONTROL);
+//         wxPostEvent(this, close_event);
+//#endif // __WXMSW__
+//    });
+//    m_img_amsmapping_tip->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {
+//         m_ams_introduce_popup.Dismiss();
+//    });
+//
+//
+   
 
-    m_sizer_ams_tips->Add(m_ams_tip, 0, wxTOP, FromDIP(5));
-    m_sizer_ams_tips->Add(m_img_amsmapping_tip, 0, wxALL, FromDIP(3));
+    //ams area
+    /*m_panel_left_ams_area = new StaticBox(m_amswin, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+    m_panel_left_ams_area->SetMaxSize(AMS_CANS_SIZE);
+    m_panel_left_ams_area->SetMinSize(AMS_CANS_SIZE);
+    m_panel_left_ams_area->SetCornerRadius(FromDIP(10));
+    m_panel_left_ams_area->SetBackgroundColor(StateColor(std::pair<wxColour, int>(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, StateColor::Normal)));
 
-    m_img_amsmapping_tip->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {
-         wxPoint img_pos = m_img_amsmapping_tip->ClientToScreen(wxPoint(0, 0));
-         wxPoint popup_pos(img_pos.x, img_pos.y + m_img_amsmapping_tip->GetRect().height);
-         m_ams_introduce_popup.set_mode(true);
-         m_ams_introduce_popup.Position(popup_pos, wxSize(0, 0));
-         m_ams_introduce_popup.Popup();
+    m_panel_right_ams_area = new StaticBox(m_amswin, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+    m_panel_right_ams_area->SetMaxSize(AMS_CANS_SIZE);
+    m_panel_right_ams_area->SetMinSize(AMS_CANS_SIZE);
+    m_panel_right_ams_area->SetCornerRadius(FromDIP(10));
+    m_panel_right_ams_area->SetBackgroundColor(StateColor(std::pair<wxColour, int>(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, StateColor::Normal)));*/
 
-#ifdef __WXMSW__
-         wxCommandEvent close_event(EVT_CLEAR_SPEED_CONTROL);
-         wxPostEvent(this, close_event);
-#endif // __WXMSW__
-    });
-    m_img_amsmapping_tip->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {
-         m_ams_introduce_popup.Dismiss();
-    });
+    m_sizer_ams_area_left = new wxBoxSizer(wxHORIZONTAL);
+    m_sizer_ams_area_right = new wxBoxSizer(wxHORIZONTAL);
+    m_sizer_down_road = new wxBoxSizer(wxHORIZONTAL);
 
+    m_simplebook_ams_left = new wxSimplebook(m_amswin, wxID_ANY, wxDefaultPosition, AMS_CANS_WINDOW_SIZE, 0);
+    m_simplebook_ams_left->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
+    m_sizer_ams_area_left->Add(m_simplebook_ams_left, 0, wxLEFT | wxRIGHT, FromDIP(10));
 
-    //backup tips
-    m_ams_backup_tip = new Label(m_amswin, _L("Auto Refill"));
-    m_ams_backup_tip->SetFont(::Label::Head_12);
-    m_ams_backup_tip->SetForegroundColour(wxColour(0x00AE42));
-    m_ams_backup_tip->SetBackgroundColour(*wxWHITE);
-    m_img_ams_backup = new wxStaticBitmap(m_amswin, wxID_ANY, create_scaled_bitmap("automatic_material_renewal", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
-    m_img_ams_backup->SetBackgroundColour(*wxWHITE);
+    m_simplebook_ams_right = new wxSimplebook(m_amswin, wxID_ANY, wxDefaultPosition, AMS_CANS_WINDOW_SIZE, 0);
+    m_simplebook_ams_right->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
+    m_sizer_ams_area_right->Add(m_simplebook_ams_right, 0, wxLEFT | wxRIGHT, FromDIP(10));
 
-    m_sizer_ams_tips->Add(0, 0, 1, wxEXPAND, 0);
-    m_sizer_ams_tips->Add(m_img_ams_backup, 0, wxALL, FromDIP(3));
-    m_sizer_ams_tips->Add(m_ams_backup_tip, 0, wxTOP, FromDIP(5));
+    m_panel_down_road = new wxPanel(m_amswin, wxID_ANY, wxDefaultPosition, AMS_DOWN_ROAD_SIZE, 0);
+    m_panel_down_road->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
 
-    m_ams_backup_tip->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND); });
-    m_img_ams_backup->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND); });
-
-    m_ams_backup_tip->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
-    m_img_ams_backup->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
-
-    m_ams_backup_tip->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {post_event(SimpleEvent(EVT_AMS_FILAMENT_BACKUP)); });
-    m_img_ams_backup->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {post_event(SimpleEvent(EVT_AMS_FILAMENT_BACKUP)); });
-
-
-    //ams cans
-    m_panel_can = new StaticBox(m_amswin, wxID_ANY, wxDefaultPosition, AMS_CANS_SIZE, wxBORDER_NONE);
-    m_panel_can->SetMinSize(AMS_CANS_SIZE);
-    m_panel_can->SetCornerRadius(FromDIP(10));
-    m_panel_can->SetBackgroundColor(StateColor(std::pair<wxColour, int>(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, StateColor::Normal)));
-
-    m_sizer_cans = new wxBoxSizer(wxHORIZONTAL);
-
-    m_simplebook_ams = new wxSimplebook(m_panel_can, wxID_ANY, wxDefaultPosition, AMS_CANS_WINDOW_SIZE, 0);
-    m_simplebook_ams->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
-    m_sizer_cans->Add(m_simplebook_ams, 0, wxLEFT | wxLEFT, FromDIP(10));
+    m_down_road = new AMSRoadDownPart(m_panel_down_road, wxID_ANY, wxDefaultPosition, AMS_DOWN_ROAD_SIZE);
+    m_sizer_down_road->Add(m_panel_down_road, 0, wxALIGN_CENTER, 0);
 
     // ams mode
-    m_simplebook_generic_cans = new wxSimplebook(m_simplebook_ams, wxID_ANY, wxDefaultPosition, AMS_CANS_WINDOW_SIZE, 0);
-    m_simplebook_generic_cans->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
+    //m_simplebook_ams_left = new wxSimplebook(m_simplebook_ams_left, wxID_ANY, wxDefaultPosition, AMS_CANS_WINDOW_SIZE, 0);
+    //m_simplebook_ams_left->SetBackgroundColour(*wxGREEN);
+    //m_simplebook_ams_left->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
+    //m_simplebook_ams_right = new wxSimplebook(m_simplebook_ams_right, wxID_ANY, wxDefaultPosition, AMS_CANS_WINDOW_SIZE, 0);
+    m_simplebook_ams_right->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
 
-    // none ams mode
-    m_none_ams_panel = new wxPanel(m_simplebook_ams, wxID_ANY, wxDefaultPosition, AMS_CANS_WINDOW_SIZE, 0);
-    m_none_ams_panel->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
-
-    auto m_tip_none_ams = new wxStaticText(m_none_ams_panel, wxID_ANY, _L("AMS not connected"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL);
-    m_tip_none_ams->SetMinSize(wxSize(AMS_CANS_SIZE.x - FromDIP(20), -1));
-    m_tip_none_ams->SetFont(::Label::Head_16);
-    m_tip_none_ams->SetForegroundColour(AMS_CONTROL_DISABLE_COLOUR);
-
-    wxBoxSizer *sizer_ams_panel_v = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer *sizer_ams_panel_h = new wxBoxSizer(wxHORIZONTAL);
-
-    sizer_ams_panel_v->Add(m_tip_none_ams, 0, wxALIGN_CENTER, 0);
-    sizer_ams_panel_h->Add(sizer_ams_panel_v, 0, wxALIGN_CENTER, 0);
-
-    m_none_ams_panel->SetSizer(sizer_ams_panel_h);
-    m_none_ams_panel->Layout();
 
     //extra ams mode
-    m_simplebook_extra_cans = new wxSimplebook(m_simplebook_ams, wxID_ANY, wxDefaultPosition, AMS_CANS_WINDOW_SIZE, 0);
-    m_simplebook_extra_cans->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
+    //m_simplebook_extra_cans_left = new wxSimplebook(m_simplebook_ams_left, wxID_ANY, wxDefaultPosition, AMS_CANS_WINDOW_SIZE, 0);
+    //m_simplebook_extra_cans_left->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
+   // m_simplebook_extra_cans_right = new wxSimplebook(m_simplebook_ams_right, wxID_ANY, wxDefaultPosition, AMS_CANS_WINDOW_SIZE, 0);
+    //m_simplebook_extra_cans_right->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
 
-    m_simplebook_ams->AddPage(m_none_ams_panel, wxEmptyString, false);
-    m_simplebook_ams->AddPage(m_simplebook_generic_cans, wxEmptyString, false);
-    m_simplebook_ams->AddPage(m_simplebook_extra_cans, wxEmptyString, false);
+    //m_simplebook_ams_left->AddPage(m_simplebook_ams_left, wxEmptyString, false);
+    //m_simplebook_ams_left->AddPage(m_simplebook_extra_cans_left, wxEmptyString, false);
+    //m_simplebook_ams_right->AddPage(m_simplebook_ams_right, wxEmptyString, false);
+    //m_simplebook_ams_right->AddPage(m_simplebook_extra_cans_right, wxEmptyString, false);
 
-    m_panel_can->SetSizer(m_sizer_cans);
-    m_panel_can->Layout();
-    m_sizer_cans->Fit(m_panel_can);
+    m_sizer_ams_area_left->Layout();
+    m_sizer_ams_area_right->Layout();
 
-    m_sizer_left->Add(m_sizer_ams_tips, 0, wxEXPAND, 0);
-    m_sizer_left->Add(m_panel_can, 1, wxEXPAND, 0);
 
-    wxBoxSizer *m_sizer_left_bottom = new wxBoxSizer(wxHORIZONTAL);
-    wxBoxSizer *sizer_sextruder     = new wxBoxSizer(wxVERTICAL);
+    m_sizer_ams_option = new wxBoxSizer(wxHORIZONTAL);
+    m_sizer_option_left = new wxBoxSizer(wxHORIZONTAL);
+    m_sizer_option_mid = new wxBoxSizer(wxHORIZONTAL);
+    m_sizer_option_right = new wxBoxSizer(wxHORIZONTAL);
 
-    auto extruder_pane = new wxPanel(m_amswin, wxID_ANY, wxDefaultPosition, AMS_EXTRUDER_SIZE);
-
-    extruder_pane->SetSizer(sizer_sextruder);
-    extruder_pane->Layout();
-
-    m_extruder = new AMSextruder(extruder_pane, wxID_ANY, wxDefaultPosition, AMS_EXTRUDER_SIZE);
-    sizer_sextruder->Add(m_extruder, 0, wxALIGN_CENTER, 0);
-
-    m_sizer_left_bottom->Add(extruder_pane, 0, wxALL,0);
-
-    //m_sizer_left_bottom->Add(0, 0, 0, wxEXPAND, 0);
+    /*m_sizer_option_left->SetMinSize( wxSize( AMS_CANS_SIZE.x,-1 ) );
+    m_sizer_option_right->SetMinSize( wxSize( AMS_CANS_SIZE.x,-1 ) );*/
+    /*m_sizer_option_left->SetMinSize(wxSize(FromDIP(239), -1));
+    m_sizer_option_right->SetMinSize(wxSize(FromDIP(239), -1));*/
+    m_sizer_option_left->SetMinSize(wxSize(FromDIP(180), -1));
+    //m_sizer_option_right->SetMinSize(wxSize(FromDIP(120), -1));
 
     StateColor btn_bg_green(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled),
-                            std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
-                            std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-                            std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+        std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+        std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
 
     StateColor btn_bg_white(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled),
-                            std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Pressed),
-                            std::pair<wxColour, int>(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, StateColor::Hovered),
-                            std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Normal));
+        std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Pressed),
+        std::pair<wxColour, int>(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, StateColor::Hovered),
+        std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Normal));
 
-    StateColor btn_bd_green(std::pair<wxColour, int>(wxColour(255,255,254), StateColor::Disabled),
-                            std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Enabled));
+    StateColor btn_bd_green(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled),
+        std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Enabled));
 
-    StateColor btn_bd_white(std::pair<wxColour, int>(wxColour(255,255,254), StateColor::Disabled),
-                            std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
+    StateColor btn_bd_white(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled),
+        std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
 
-    StateColor btn_text_green(std::pair<wxColour, int>(wxColour(255,255,254), StateColor::Disabled),
-                              std::pair<wxColour, int>(wxColour(255,255,254), StateColor::Enabled));
+    StateColor btn_text_green(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled),
+        std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Enabled));
 
     StateColor btn_text_white(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled),
-                              std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
-
-    m_button_area = new wxWindow(m_amswin, wxID_ANY);
-    m_button_area->SetBackgroundColour(m_amswin->GetBackgroundColour());
+        std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
 
 
-    wxBoxSizer *m_sizer_button = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer *m_sizer_button_area = new wxBoxSizer(wxHORIZONTAL);
+    /*option left*/
+    m_button_auto_refill = new Button(m_amswin, _L("Auto-refill"));
+    m_button_auto_refill->SetBackgroundColor(btn_bg_white);
+    m_button_auto_refill->SetBorderColor(btn_bd_white);
+    m_button_auto_refill->SetTextColor(btn_text_white);
+    m_button_auto_refill->SetFont(Label::Body_13);
+    // m_img_ams_backup = new wxStaticBitmap(m_amswin, wxID_ANY, create_scaled_bitmap("automatic_material_renewal", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
+    // m_img_ams_backup->SetBackgroundColour(*wxWHITE);
+    // m_img_ams_backup->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND); });
+    // m_img_ams_backup->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
+    // m_img_ams_backup->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {post_event(SimpleEvent(EVT_AMS_FILAMENT_BACKUP)); });
+    m_sizer_option_left->Add(m_button_auto_refill, 0, wxLEFT, 0);
 
-    m_button_extruder_feed = new Button(m_button_area, _L("Load"));
+    m_button_ams_setting_normal = ScalableBitmap(this, "ams_setting_normal", 24);
+    m_button_ams_setting_hover = ScalableBitmap(this, "ams_setting_hover", 24);
+    m_button_ams_setting_press = ScalableBitmap(this, "ams_setting_press", 24);
+
+    m_button_ams_setting = new wxStaticBitmap(m_amswin, wxID_ANY, m_button_ams_setting_normal.bmp(), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)));
+    m_button_ams_setting->SetBackgroundColour(m_amswin->GetBackgroundColour());
+    m_sizer_option_left->Add(m_button_ams_setting, 0, wxLEFT, FromDIP(5));
+
+
+    /*option mid*/
+    m_extruder = new AMSextruder(m_amswin, wxID_ANY, wxDefaultPosition, AMS_EXTRUDER_SIZE);
+    m_sizer_option_mid->Add( m_extruder, 0, wxALIGN_CENTER, 0 );
+
+
+    /*option right*/
+
+
+
+    m_button_extruder_feed = new Button(m_amswin, _L("Load"));
     m_button_extruder_feed->SetFont(Label::Body_13);
 
     m_button_extruder_feed->SetBackgroundColor(btn_bg_green);
@@ -2612,7 +2638,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     if (wxGetApp().app_config->get("language") == "uk_UA") m_button_extruder_feed->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "pt_BR") m_button_extruder_feed->SetLabel("Load");
 
-    m_button_extruder_back = new Button(m_button_area, _L("Unload"));
+    m_button_extruder_back = new Button(m_amswin, _L("Unload"));
     m_button_extruder_back->SetBackgroundColor(btn_bg_white);
     m_button_extruder_back->SetBorderColor(btn_bd_white);
     m_button_extruder_back->SetTextColor(btn_text_white);
@@ -2629,119 +2655,132 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     if (wxGetApp().app_config->get("language") == "uk_UA") m_button_extruder_back->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "pt_BR") m_button_extruder_back->SetLabel("Unload");
 
-    m_sizer_button_area->Add(0, 0, 1, wxEXPAND, 0);
-    m_sizer_button_area->Add(m_button_extruder_back, 0, wxLEFT, FromDIP(6));
-    m_sizer_button_area->Add(m_button_extruder_feed, 0, wxLEFT, FromDIP(6));
 
-    m_sizer_button->Add(m_sizer_button_area, 0, 1, wxEXPAND, 0);
+    //m_sizer_option_right->Add(0, 0, 1, wxEXPAND, 0);
+    m_sizer_option_right->Add(m_button_extruder_back, 0, wxLEFT, FromDIP(60));
+    m_sizer_option_right->Add(m_button_extruder_feed, 0, wxLEFT, FromDIP(5));
 
-    m_button_area->SetSizer(m_sizer_button);
-    m_button_area->Layout();
-    m_button_area->Fit();
 
-    m_sizer_left_bottom->Add(0, 0, 1, wxEXPAND, 0);
-    m_sizer_left_bottom->Add(m_button_area, 0, wxEXPAND | wxTOP, FromDIP(18));
-    m_sizer_left->Add(m_sizer_left_bottom, 0, wxEXPAND, 0);
+    m_sizer_ams_option->Add(m_sizer_option_left, 0, wxEXPAND, 0);
+    //m_sizer_ams_option->Add(m_sizer_option_mid, 1, wxEXPAND, 0);
+    m_sizer_ams_option->Add(m_sizer_option_mid, 1, wxEXPAND, 0);
+    //m_sizer_ams_option->Add(m_sizer_option_right, 0, wxEXPAND, 0);
+    m_sizer_ams_option->Add(m_sizer_option_right, 0, wxLEFT, 0);
+
 
 
     //virtual ams
-    m_panel_virtual = new StaticBox(m_amswin, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-    m_panel_virtual->SetBackgroundColor(StateColor(std::pair<wxColour, int>(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, StateColor::Normal)));
-    m_panel_virtual->SetMinSize(wxSize(AMS_CAN_LIB_SIZE.x + FromDIP(16), AMS_CANS_SIZE.y));
-    m_panel_virtual->SetMaxSize(wxSize(AMS_CAN_LIB_SIZE.x + FromDIP(16), AMS_CANS_SIZE.y));
+    //m_panel_virtual = new StaticBox(m_amswin, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+    //m_panel_virtual->SetBackgroundColor(StateColor(std::pair<wxColour, int>(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, StateColor::Normal)));
+    //m_panel_virtual->SetMinSize(wxSize(AMS_CAN_LIB_SIZE.x + FromDIP(16), AMS_CANS_SIZE.y));
+    //m_panel_virtual->SetMaxSize(wxSize(AMS_CAN_LIB_SIZE.x + FromDIP(16), AMS_CANS_SIZE.y));
 
-    m_vams_info.material_state = AMSCanType::AMS_CAN_TYPE_VIRTUAL;
-    m_vams_info.can_id = wxString::Format("%d", VIRTUAL_TRAY_MAIN_ID).ToStdString();
+    //m_vams_info.material_state = AMSCanType::AMS_CAN_TYPE_VIRTUAL;
+    //m_vams_info.can_id = wxString::Format("%d", VIRTUAL_TRAY_MAIN_ID).ToStdString();
 
-    auto vams_panel = new wxWindow(m_panel_virtual, wxID_ANY);
-    vams_panel->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
+    //auto vams_panel = new wxWindow(m_panel_virtual, wxID_ANY);
+    //vams_panel->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
 
-    m_vams_lib = new AMSLib(vams_panel, m_vams_info);
-    m_vams_road = new AMSRoad(vams_panel, wxID_ANY, m_vams_info, -1, -1, wxDefaultPosition, AMS_CAN_ROAD_SIZE);
+    //m_vams_lib = new AMSLib(vams_panel, m_vams_info);
+    //m_vams_road = new AMSRoad(vams_panel, wxID_ANY, m_vams_info, -1, -1, wxDefaultPosition, AMS_CAN_ROAD_SIZE);
 
-    m_vams_lib->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
-        //clear all selected
-        m_current_ams = m_vams_info.can_id;
-        m_vams_lib->OnSelected();
+    //m_vams_lib->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+    //    //clear all selected
+    //    m_current_ams = m_vams_info.can_id;
+    //    m_vams_lib->OnSelected();
 
-        SwitchAms(m_current_ams);
-        for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
-            AmsCansWindow* cans = m_ams_cans_list[i];
-            cans->amsCans->SelectCan(m_current_ams);
-        }
+    //    SwitchAms(m_current_ams);
+    //    for (auto i = 0; i < m_ams_item_list.GetCount(); i++) {
+    //        AmsCansWindow* cans = m_ams_item_list[i];
+    //        cans->amsCans->SelectCan(m_current_ams);
+    //    }
 
-        e.Skip();
-        });
+    //    e.Skip();
+    //    });
 
-    Bind(EVT_AMS_UNSELETED_VAMS, [this](wxCommandEvent& e) {
-        /*if (m_current_ams == e.GetString().ToStdString()) {
-            return;
-        }*/
-        m_current_ams = e.GetString().ToStdString();
-        SwitchAms(m_current_ams);
-        m_vams_lib->UnSelected();
-        e.Skip();
-    });
+    //Bind(EVT_AMS_UNSELETED_VAMS, [this](wxCommandEvent& e) {
+    //    /*if (m_current_ams == e.GetString().ToStdString()) {
+    //        return;
+    //    }*/
+    //    m_current_ams = e.GetString().ToStdString();
+    //    SwitchAms(m_current_ams);
+    //    m_vams_lib->UnSelected();
+    //    e.Skip();
+    //});
 
-    wxBoxSizer* m_vams_top_sizer = new wxBoxSizer(wxVERTICAL);
+    //wxBoxSizer* m_vams_top_sizer = new wxBoxSizer(wxVERTICAL);
 
-    m_vams_top_sizer->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(14));
-    m_vams_top_sizer->Add(0, 0, 0, wxEXPAND | wxTOP, AMS_REFRESH_SIZE.y);
-    m_vams_top_sizer->Add(m_vams_lib, 0, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, FromDIP(4));
-    m_vams_top_sizer->Add(m_vams_road, 0, wxALL, 0);
+    //m_vams_top_sizer->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(14));
+    //m_vams_top_sizer->Add(0, 0, 0, wxEXPAND | wxTOP, AMS_REFRESH_SIZE.y);
+    //m_vams_top_sizer->Add(m_vams_lib, 0, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, FromDIP(4));
+    //m_vams_top_sizer->Add(m_vams_road, 0, wxALL, 0);
 
+    //Bind(EVT_AMS_UNSELETED_VAMS, [this](wxCommandEvent& e) {
+    //    /*if (m_current_ams == e.GetString().ToStdString()) {
+    //        return;
+    //    }*/
+    //    m_current_ams = e.GetString().ToStdString();
+    //    SwitchAms(m_current_ams);
+    //    m_vams_lib->UnSelected();
+    //    e.Skip();
+    //});
 
-    //extra road
+    ////extra road
 
-    vams_panel->SetSizer(m_vams_top_sizer);
-    vams_panel->Layout();
-    vams_panel->Fit();
+    //vams_panel->SetSizer(m_vams_top_sizer);
+    //vams_panel->Layout();
+    //vams_panel->Fit();
 
-    wxBoxSizer* m_sizer_vams_panel = new wxBoxSizer(wxVERTICAL);
+    //wxBoxSizer* m_sizer_vams_panel = new wxBoxSizer(wxVERTICAL);
 
-    m_sizer_vams_panel->Add(vams_panel, 0, wxALIGN_CENTER_HORIZONTAL, 0);
-    m_panel_virtual->SetSizer(m_sizer_vams_panel);
-    m_panel_virtual->Layout();
-    m_panel_virtual->Fit();
+    //m_sizer_vams_panel->Add(vams_panel, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+    //m_panel_virtual->SetSizer(m_sizer_vams_panel);
+    //m_panel_virtual->Layout();
+    //m_panel_virtual->Fit();
 
-    m_vams_sizer =  new wxBoxSizer(wxVERTICAL);
-    m_sizer_vams_tips = new wxBoxSizer(wxHORIZONTAL);
+    //m_vams_sizer =  new wxBoxSizer(wxVERTICAL);
+    //m_sizer_vams_tips = new wxBoxSizer(wxHORIZONTAL);
 
-    auto m_vams_tip = new wxStaticText(m_amswin, wxID_ANY, _L("Ext Spool"), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
-    m_vams_tip->SetMaxSize(wxSize(FromDIP(66), -1));
-    m_vams_tip->SetFont(::Label::Body_12);
-    m_vams_tip->SetBackgroundColour(*wxWHITE);
-    m_img_vams_tip = new wxStaticBitmap(m_amswin, wxID_ANY, create_scaled_bitmap("enable_ams", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
-    m_img_vams_tip->SetBackgroundColour(*wxWHITE);
-    m_img_vams_tip->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {
-        wxPoint img_pos = m_img_vams_tip->ClientToScreen(wxPoint(0, 0));
-        wxPoint popup_pos(img_pos.x, img_pos.y + m_img_vams_tip->GetRect().height);
-        m_ams_introduce_popup.set_mode(false);
-        m_ams_introduce_popup.Position(popup_pos, wxSize(0, 0));
-        m_ams_introduce_popup.Popup();
+//    auto m_vams_tip = new wxStaticText(m_amswin, wxID_ANY, _L("Ext Spool"), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
+//    m_vams_tip->SetMaxSize(wxSize(FromDIP(66), -1));
+//    m_vams_tip->SetFont(::Label::Body_12);
+//    m_vams_tip->SetBackgroundColour(*wxWHITE);
+//    m_img_vams_tip = new wxStaticBitmap(m_amswin, wxID_ANY, create_scaled_bitmap("enable_ams", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
+//    m_img_vams_tip->SetBackgroundColour(*wxWHITE);
+//    m_img_vams_tip->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {
+//        wxPoint img_pos = m_img_vams_tip->ClientToScreen(wxPoint(0, 0));
+//        wxPoint popup_pos(img_pos.x, img_pos.y + m_img_vams_tip->GetRect().height);
+//        m_ams_introduce_popup.set_mode(false);
+//        m_ams_introduce_popup.Position(popup_pos, wxSize(0, 0));
+//        m_ams_introduce_popup.Popup();
+//
+//#ifdef __WXMSW__
+//        wxCommandEvent close_event(EVT_CLEAR_SPEED_CONTROL);
+//        wxPostEvent(this, close_event);
+//#endif // __WXMSW__
+//    });
+//
+//    m_img_vams_tip->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) {
+//        m_ams_introduce_popup.Dismiss();
+//    });
+//
+//    m_sizer_vams_tips->Add(m_vams_tip, 0, wxTOP, FromDIP(5));
+//    m_sizer_vams_tips->Add(m_img_vams_tip, 0, wxALL, FromDIP(3));
 
-#ifdef __WXMSW__
-        wxCommandEvent close_event(EVT_CLEAR_SPEED_CONTROL);
-        wxPostEvent(this, close_event);
-#endif // __WXMSW__
-    });
+    //m_vams_extra_road = new AMSVirtualRoad(m_amswin, wxID_ANY);
+    //m_vams_extra_road->SetMinSize(wxSize(m_panel_virtual->GetSize().x + FromDIP(16), -1));
 
-    m_img_vams_tip->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) {
-        m_ams_introduce_popup.Dismiss();
-    });
-
-    m_sizer_vams_tips->Add(m_vams_tip, 0, wxTOP, FromDIP(5));
-    m_sizer_vams_tips->Add(m_img_vams_tip, 0, wxALL, FromDIP(3));
-
-    m_vams_extra_road = new AMSVirtualRoad(m_amswin, wxID_ANY);
-    m_vams_extra_road->SetMinSize(wxSize(m_panel_virtual->GetSize().x + FromDIP(16), -1));
-
-    m_vams_sizer->Add(m_sizer_vams_tips, 0, wxALIGN_CENTER, 0);
-    m_vams_sizer->Add(m_panel_virtual, 0, wxALIGN_CENTER, 0);
-    m_vams_sizer->Add(m_vams_extra_road, 1, wxEXPAND, 0);
+    //m_vams_sizer->Add(m_sizer_vams_tips, 0, wxALIGN_CENTER, 0);
+    //m_vams_sizer->Add(m_panel_virtual, 0, wxALIGN_CENTER, 0);
+    //m_vams_sizer->Add(m_vams_extra_road, 1, wxEXPAND, 0);
 
 
     //Right
+    /*
+        addaddaddaddaddaaddaddaddadd
+    */
+
+     /*
     wxBoxSizer *m_sizer_right = new wxBoxSizer(wxVERTICAL);
     m_simplebook_right        = new wxSimplebook(m_amswin, wxID_ANY);
     m_simplebook_right->SetMinSize(wxSize(AMS_STEP_SIZE.x, AMS_STEP_SIZE.y + FromDIP(19)));
@@ -2792,13 +2831,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_simplebook_right->AddPage(m_filament_vt_load_step, wxEmptyString, false);
 
 
-    m_button_ams_setting_normal = ScalableBitmap(this, "ams_setting_normal", 24);
-    m_button_ams_setting_hover = ScalableBitmap(this, "ams_setting_hover", 24);
-    m_button_ams_setting_press = ScalableBitmap(this, "ams_setting_press", 24);
 
-    wxBoxSizer *m_sizer_right_bottom = new wxBoxSizer(wxHORIZONTAL);
-    m_button_ams_setting = new wxStaticBitmap(m_amswin, wxID_ANY, m_button_ams_setting_normal.bmp(), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)));
-    m_button_ams_setting->SetBackgroundColour(m_amswin->GetBackgroundColour());
 
     m_button_guide = new Button(m_amswin, _L("Guide"));
     m_button_guide->SetFont(Label::Body_13);
@@ -2811,7 +2844,6 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     if (wxGetApp().app_config->get("language") == "sv_SE") m_button_guide->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "cs_CZ") m_button_guide->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "uk_UA") m_button_guide->SetFont(Label::Body_9);
-    if (wxGetApp().app_config->get("language") == "pt_BR") m_button_guide->SetLabel("Guide");
 
     m_button_guide->SetCornerRadius(FromDIP(12));
     m_button_guide->SetBorderColor(btn_bd_white);
@@ -2832,7 +2864,6 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     if (wxGetApp().app_config->get("language") == "sv_SE") m_button_retry->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "cs_CZ") m_button_retry->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "uk_UA") m_button_retry->SetFont(Label::Body_9);
-    if (wxGetApp().app_config->get("language") == "pt_BR") m_button_retry->SetLabel("Retry");
 
     m_button_retry->SetCornerRadius(FromDIP(12));
     m_button_retry->SetBorderColor(btn_bd_white);
@@ -2843,101 +2874,44 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_sizer_right_bottom->Add(m_button_ams_setting, 0);
     m_sizer_right_bottom->Add(m_button_guide, 0, wxLEFT, FromDIP(10));
     m_sizer_right_bottom->Add(m_button_retry, 0, wxLEFT, FromDIP(10));
-    m_sizer_right->Add(m_sizer_right_bottom, 0, wxEXPAND | wxTOP, FromDIP(20));
+    m_sizer_right->Add(m_sizer_right_bottom, 0, wxEXPAND | wxTOP, FromDIP(20));*/
 
 
-    m_sizer_bottom->Add(m_vams_sizer, 0, wxEXPAND, 0);
-    m_sizer_bottom->Add(m_sizer_left, 0, wxEXPAND, 0);
-    m_sizer_bottom->Add(0, 0, 0, wxLEFT, FromDIP(15));
-    m_sizer_bottom->Add(m_sizer_right, 0, wxEXPAND, FromDIP(0));
+    /*
+        addaddaddaddaddaaddaddaddadd
+    */
 
-    m_sizer_body->Add(m_simplebook_amsitems, 0, wxEXPAND, 0);
-    m_sizer_body->Add(0, 0, 1, wxEXPAND | wxTOP, FromDIP(18));
-    m_sizer_body->Add(m_sizer_bottom, 0, wxEXPAND | wxLEFT, FromDIP(6));
+    m_sizer_ams_body->Add(m_sizer_ams_area_left, wxLEFT|wxRIGHT, FromDIP(5));
+    //m_sizer_ams_body->Add(0, 0, 0, wxLEFT, FromDIP(15));
+    m_sizer_ams_body->Add(m_sizer_ams_area_right, wxLEFT|wxRIGHT, FromDIP(5));
 
-    init_scaled_buttons();
+    //m_sizer_ams_body->Add(m_sizer_right, 0, wxEXPAND, FromDIP(0));
+
+    m_sizer_body->Add(m_sizer_ams_items, 0, wxALIGN_CENTER, 0);
+    m_sizer_body->Add(0, 0, 1, wxEXPAND | wxTOP, FromDIP(10));
+    m_sizer_body->Add(m_sizer_ams_body, 0, wxALIGN_CENTER, 0);
+    m_sizer_body->Add(m_sizer_down_road, 0, wxALIGN_CENTER, 0);
+    //m_sizer_body->Add(m_sizer_ams_body, 0, wxEXPAND, 0);
+    //m_sizer_body->Add(m_sizer_ams_option, 0, wxEXPAND, 0);
+    m_sizer_body->Add(m_sizer_ams_option, 0, wxALIGN_CENTER, 0);
+
     m_amswin->SetSizer(m_sizer_body);
     m_amswin->Layout();
     m_amswin->Fit();
-    //Thaw();
+    Thaw();
 
     SetSize(m_amswin->GetSize());
     SetMinSize(m_amswin->GetSize());
 
-    // calibration mode
-    m_simplebook_calibration = new wxSimplebook(this, wxID_ANY, wxDefaultPosition, m_amswin->GetSize(), wxTAB_TRAVERSAL);
 
-    auto m_in_calibration_panel = new wxWindow(m_simplebook_calibration, wxID_ANY, wxDefaultPosition, m_amswin->GetSize(), wxTAB_TRAVERSAL);
-    m_in_calibration_panel->SetBackgroundColour(AMS_CONTROL_WHITE_COLOUR);
-    wxBoxSizer *sizer_calibration_h = new wxBoxSizer(wxHORIZONTAL);
-    wxBoxSizer *sizer_calibration_v = new wxBoxSizer(wxVERTICAL);
-    auto        thumbnail           = new wxStaticBitmap(m_in_calibration_panel, wxID_ANY, create_scaled_bitmap("ams_icon", nullptr, 126), wxDefaultPosition, wxDefaultSize);
-    m_text_calibration_percent      = new wxStaticText(m_in_calibration_panel, wxID_ANY, wxT("0%"), wxDefaultPosition, wxDefaultSize, 0);
-    m_text_calibration_percent->SetFont(::Label::Head_16);
-    m_text_calibration_percent->SetForegroundColour(AMS_CONTROL_BRAND_COLOUR);
-    auto m_text_calibration_tip = new wxStaticText(m_in_calibration_panel, wxID_ANY, _L("Calibrating AMS..."), wxDefaultPosition, wxDefaultSize, 0);
-    m_text_calibration_tip->SetFont(::Label::Body_14);
-    m_text_calibration_tip->SetForegroundColour(AMS_CONTROL_GRAY700);
-    sizer_calibration_v->Add(thumbnail, 0, wxALIGN_CENTER, 0);
-    sizer_calibration_v->Add(0, 0, 0, wxTOP, FromDIP(16));
-    sizer_calibration_v->Add(m_text_calibration_percent, 0, wxALIGN_CENTER, 0);
-    sizer_calibration_v->Add(0, 0, 0, wxTOP, FromDIP(8));
-    sizer_calibration_v->Add(m_text_calibration_tip, 0, wxALIGN_CENTER, 0);
-    sizer_calibration_h->Add(sizer_calibration_v, 1, wxALIGN_CENTER, 0);
-    m_in_calibration_panel->SetSizer(sizer_calibration_h);
-    m_in_calibration_panel->Layout();
-
-    auto m_calibration_err_panel = new wxWindow(m_simplebook_calibration, wxID_ANY, wxDefaultPosition, m_amswin->GetSize(), wxTAB_TRAVERSAL);
-    m_calibration_err_panel->SetBackgroundColour(AMS_CONTROL_WHITE_COLOUR);
-    wxBoxSizer *sizer_err_calibration_h = new wxBoxSizer(wxHORIZONTAL);
-    wxBoxSizer *sizer_err_calibration_v = new wxBoxSizer(wxVERTICAL);
-    m_hyperlink = new wxHyperlinkCtrl(m_calibration_err_panel, wxID_ANY, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
-    m_hyperlink->SetVisitedColour(wxColour(31, 142, 234));
-    auto m_tip_calibration_err = new wxStaticText(m_calibration_err_panel, wxID_ANY, _L("A problem occurred during calibration. Click to view the solution."), wxDefaultPosition,
-                                                  wxDefaultSize, 0);
-    m_tip_calibration_err->SetFont(::Label::Body_14);
-    m_tip_calibration_err->SetForegroundColour(AMS_CONTROL_GRAY700);
-
-    wxBoxSizer *sizer_button = new wxBoxSizer(wxHORIZONTAL);
-
-    auto m_button_calibration_again = new Button(m_calibration_err_panel, _L("Calibrate again"));
-    m_button_calibration_again->SetBackgroundColor(btn_bg_green);
-    m_button_calibration_again->SetBorderColor(AMS_CONTROL_BRAND_COLOUR);
-    m_button_calibration_again->SetTextColor(AMS_CONTROL_WHITE_COLOUR);
-    m_button_calibration_again->SetMinSize(AMS_CONTRO_CALIBRATION_BUTTON_SIZE);
-    m_button_calibration_again->SetCornerRadius(FromDIP(12));
-    m_button_calibration_again->Bind(wxEVT_LEFT_DOWN, &AMSControl::on_clibration_again_click, this);
-
-    sizer_button->Add(m_button_calibration_again, 0, wxALL, 5);
-
-    auto       m_button_calibration_cancel = new Button(m_calibration_err_panel, _L("Cancel calibration"));
-    m_button_calibration_cancel->SetBackgroundColor(btn_bg_white);
-    m_button_calibration_cancel->SetBorderColor(AMS_CONTROL_GRAY700);
-    m_button_calibration_cancel->SetTextColor(AMS_CONTROL_GRAY800);
-    m_button_calibration_cancel->SetMinSize(AMS_CONTRO_CALIBRATION_BUTTON_SIZE);
-    m_button_calibration_cancel->SetCornerRadius(FromDIP(12));
-    m_button_calibration_cancel->Bind(wxEVT_LEFT_DOWN, &AMSControl::on_clibration_cancel_click, this);
-    sizer_button->Add(m_button_calibration_cancel, 0, wxALL, 5);
-
-    sizer_err_calibration_v->Add(m_hyperlink, 0, wxALIGN_CENTER, 0);
-    sizer_err_calibration_v->Add(0, 0, 0, wxTOP, FromDIP(6));
-    sizer_err_calibration_v->Add(m_tip_calibration_err, 0, wxALIGN_CENTER, 0);
-    sizer_err_calibration_v->Add(0, 0, 0, wxTOP, FromDIP(8));
-    sizer_err_calibration_v->Add(sizer_button, 0, wxALIGN_CENTER | wxTOP, FromDIP(18));
-    sizer_err_calibration_h->Add(sizer_err_calibration_v, 1, wxALIGN_CENTER, 0);
-    m_calibration_err_panel->SetSizer(sizer_err_calibration_h);
-    m_calibration_err_panel->Layout();
-
-    m_simplebook_calibration->AddPage(m_in_calibration_panel, wxEmptyString, false);
-    m_simplebook_calibration->AddPage(m_calibration_err_panel, wxEmptyString, false);
 
     AddPage(m_amswin, wxEmptyString, false);
-    AddPage(m_simplebook_calibration, wxEmptyString, false);
 
     UpdateStepCtrl(false);
 
     m_button_extruder_feed->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(AMSControl::on_filament_load), NULL, this);
     m_button_extruder_back->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(AMSControl::on_filament_unload), NULL, this);
+    m_button_auto_refill->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(AMSControl::auto_refill), NULL, this);
 
     m_button_ams_setting->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent& e) {
         m_button_ams_setting->SetBitmap(m_button_ams_setting_hover.bmp());
@@ -2971,16 +2945,16 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     });
 
 
-    m_button_guide->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
-        post_event(wxCommandEvent(EVT_AMS_GUIDE_WIKI));
-        });
-    m_button_retry->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
-        post_event(wxCommandEvent(EVT_AMS_RETRY));
-        });
+    /* m_button_guide->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
+         post_event(wxCommandEvent(EVT_AMS_GUIDE_WIKI));
+         });
+     m_button_retry->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
+         post_event(wxCommandEvent(EVT_AMS_RETRY));
+         });*/
 
-    CreateAms();
-    SetSelection(0);
-    EnterNoneAMSMode();
+    //CreateAms();
+    //CreateAmsNew();
+    //EnterNoneAMSMode();
 
 }
 
@@ -2989,12 +2963,9 @@ void AMSControl::on_retry()
     post_event(wxCommandEvent(EVT_AMS_RETRY));
 }
 
-void AMSControl::init_scaled_buttons()
-{
-    m_button_extruder_feed->SetMinSize(wxSize(-1, FromDIP(24)));
-    m_button_extruder_feed->SetCornerRadius(FromDIP(12));
-    m_button_extruder_back->SetMinSize(wxSize(-1, FromDIP(24)));
-    m_button_extruder_back->SetCornerRadius(FromDIP(12));
+AMSControl::~AMSControl() {
+    /*m_simplebook_ams_left->DeleteAllPages();
+    m_simplebook_ams_right->DeleteAllPages();*/
 }
 
 std::string AMSControl::GetCurentAms() { return m_current_ams; }
@@ -3003,15 +2974,16 @@ std::string AMSControl::GetCurentShowAms() { return m_current_show_ams; }
 std::string AMSControl::GetCurrentCan(std::string amsid)
 {
     std::string current_can;
-    for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
-        AmsCansWindow *ams = m_ams_cans_list[i];
-        if (ams->amsCans->m_info.ams_id == amsid) {
-            current_can = ams->amsCans->GetCurrentCan();
+    for (auto ams_item : m_ams_item_list) {
+        AmsItem* item = ams_item.second;
+        if (item->m_info.ams_id == amsid) {
+            current_can = item->GetCurrentCan();
             return current_can;
         }
     }
     return current_can;
 }
+
 
 wxColour AMSControl::GetCanColour(std::string amsid, std::string canid)
 {
@@ -3039,18 +3011,16 @@ void AMSControl::SetActionState(bool button_status[])
 
 void AMSControl::EnterNoneAMSMode()
 {
-    m_vams_lib->m_ams_model = m_ext_model;
+    //m_vams_lib->m_ams_model = m_ext_model;
     if(m_is_none_ams_mode == AMSModel::NO_AMS) return;
-    m_panel_top->Hide();
-    m_simplebook_amsitems->Hide();
-    m_simplebook_amsitems->SetSelection(0);
+    m_panel_items_left->Hide();
 
-    m_simplebook_ams->SetSelection(0);
+    m_simplebook_ams_left->SetSelection(0);
     m_extruder->no_ams_mode(true);
-    m_button_ams_setting->Hide();
-    m_button_guide->Hide();
-    m_button_extruder_feed->Show();
-    m_button_extruder_back->Show();
+    //m_button_ams_setting->Hide();
+    //m_button_guide->Hide();
+    //m_button_extruder_feed->Show();
+    //m_button_extruder_back->Show();
 
     ShowFilamentTip(false);
     m_amswin->Layout();
@@ -3061,27 +3031,25 @@ void AMSControl::EnterNoneAMSMode()
 
 void AMSControl::EnterGenericAMSMode()
 {
-    m_vams_lib->m_ams_model = m_ext_model;
+    //m_vams_lib->m_ams_model = m_ext_model;
     if(m_is_none_ams_mode == AMSModel::GENERIC_AMS) return;
-    m_panel_top->Show();
-    m_simplebook_amsitems->Show();
-    m_simplebook_amsitems->SetSelection(1);
+    //m_panel_items_left->Show();
 
-    m_vams_lib->m_ams_model = AMSModel::GENERIC_AMS;
-    m_ams_tip->SetLabel(_L("AMS"));
-    m_img_vams_tip->SetBitmap(create_scaled_bitmap("enable_ams", this, 16));
-    m_img_vams_tip->Enable();
-    m_img_amsmapping_tip->SetBitmap(create_scaled_bitmap("enable_ams", this, 16));
-    m_img_amsmapping_tip->Enable();
+    //m_vams_lib->m_ams_model = AMSModel::GENERIC_AMS;
+    //m_ams_tip->SetLabel(_L("AMS"));
+    //m_img_vams_tip->SetBitmap(create_scaled_bitmap("enable_ams", this, 16));
+    //m_img_vams_tip->Enable();
+    //m_img_amsmapping_tip->SetBitmap(create_scaled_bitmap("enable_ams", this, 16));
+    //m_img_amsmapping_tip->Enable();
 
-    m_simplebook_ams->SetSelection(1);
+    //m_simplebook_ams_left->SetSelection(0);
     m_extruder->no_ams_mode(false);
-    m_button_ams_setting->Show();
+    /*m_button_ams_setting->Show();
     m_button_guide->Show();
     m_button_retry->Show();
     m_button_extruder_feed->Show();
     m_button_extruder_back->Show();
-    ShowFilamentTip(true);
+    ShowFilamentTip(true);*/
     m_amswin->Layout();
     m_amswin->Fit();
     Layout();
@@ -3090,28 +3058,26 @@ void AMSControl::EnterGenericAMSMode()
 
 void AMSControl::EnterExtraAMSMode()
 {
-    m_vams_lib->m_ams_model = m_ext_model;
+    //m_vams_lib->m_ams_model = m_ext_model;
     if(m_is_none_ams_mode == AMSModel::EXTRA_AMS) return;
-    m_panel_top->Hide();
-    m_simplebook_amsitems->Show();
-    m_simplebook_amsitems->SetSelection(1);
+    m_panel_items_left->Hide();
 
 
-    m_vams_lib->m_ams_model = AMSModel::EXTRA_AMS;
-    m_ams_tip->SetLabel(wxEmptyString);
-    m_img_vams_tip->SetBitmap(create_scaled_bitmap("enable_ams_disable", this, 16));
-    m_img_vams_tip->Disable();
-    m_img_amsmapping_tip->SetBitmap(create_scaled_bitmap("enable_ams_disable", this, 16));
-    m_img_amsmapping_tip->Disable();
+    //m_vams_lib->m_ams_model = AMSModel::EXTRA_AMS;
+    //m_ams_tip->SetLabel(wxEmptyString);
+    //m_img_vams_tip->SetBitmap(create_scaled_bitmap("enable_ams_disable", this, 16));
+    //m_img_vams_tip->Disable();
+    //m_img_amsmapping_tip->SetBitmap(create_scaled_bitmap("enable_ams_disable", this, 16));
+    //m_img_amsmapping_tip->Disable();
 
-    m_simplebook_ams->SetSelection(2);
+    m_simplebook_ams_left->SetSelection(2);
     m_extruder->no_ams_mode(false);
-    m_button_ams_setting->Show();
+    /*m_button_ams_setting->Show();
     m_button_guide->Show();
     m_button_retry->Show();
     m_button_extruder_feed->Show();
     m_button_extruder_back->Show();
-    ShowFilamentTip(true);
+    ShowFilamentTip(true);*/
     m_amswin->Layout();
     m_amswin->Fit();
     Layout();
@@ -3120,48 +3086,23 @@ void AMSControl::EnterExtraAMSMode()
 
 }
 
-void AMSControl::EnterCalibrationMode(bool read_to_calibration)
-{
-    SetSelection(1);
-    if (read_to_calibration)
-        m_simplebook_calibration->SetSelection(0);
-    else
-        m_simplebook_calibration->SetSelection(1);
-}
-
-void AMSControl::ExitcClibrationMode() { SetSelection(0); }
-
-void AMSControl::SetClibrationpercent(int percent) { m_text_calibration_percent->SetLabelText(wxString::Format("%d%%", percent)); }
-
-void AMSControl::SetClibrationLink(wxString link)
-{
-    m_hyperlink->SetLabel(link);
-    m_hyperlink->SetURL(link);
-    m_hyperlink->Refresh();
-    m_hyperlink->Update();
-}
-
 void AMSControl::PlayRridLoading(wxString amsid, wxString canid)
 {
-    AmsCansHash::iterator iter             = m_ams_cans_list.begin();
-    auto                  count_item_index = 0;
+    auto iter = m_ams_item_list.find(amsid.ToStdString());
 
-    for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
-        AmsCansWindow *cans = m_ams_cans_list[i];
-        if (cans->amsCans->m_info.ams_id == amsid) { cans->amsCans->PlayRridLoading(canid); }
-        iter++;
+    if (iter != m_ams_item_list.end()) {
+        AmsItem* cans = iter->second;
+        cans->PlayRridLoading(canid);
     }
 }
 
 void AMSControl::StopRridLoading(wxString amsid, wxString canid)
 {
-    AmsCansHash::iterator iter             = m_ams_cans_list.begin();
-    auto                  count_item_index = 0;
+    auto iter = m_ams_item_list.find(amsid.ToStdString());
 
-    for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
-        AmsCansWindow *cans = m_ams_cans_list[i];
-        if (cans->amsCans->m_info.ams_id == amsid) { cans->amsCans->StopRridLoading(canid); }
-        iter++;
+    if (iter != m_ams_item_list.end()) {
+        AmsItem* cans = iter->second;
+        cans->StopRridLoading(canid);
     }
 }
 
@@ -3177,14 +3118,15 @@ void AMSControl::msw_rescale()
 
     m_button_extruder_feed->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_extruder_back->SetMinSize(wxSize(-1, FromDIP(24)));
+    m_button_auto_refill->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_ams_setting->SetMinSize(wxSize(FromDIP(25), FromDIP(24)));
     m_button_guide->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_retry->SetMinSize(wxSize(-1, FromDIP(24)));
     m_vams_lib->msw_rescale();
 
-    for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
-        AmsCansWindow *cans = m_ams_cans_list[i];
-        cans->amsCans->msw_rescale();
+
+    for (auto ams_item : m_ams_item_list) {
+        ams_item.second->msw_rescale();
     }
 
     Layout();
@@ -3193,7 +3135,7 @@ void AMSControl::msw_rescale()
 
 void AMSControl::UpdateStepCtrl(bool is_extrusion)
 {
-    wxString FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_COUNT] = {
+    /*wxString FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_COUNT] = {
             _L("Idling..."),
             _L("Heat the nozzle"),
             _L("Cut filament"),
@@ -3253,37 +3195,379 @@ void AMSControl::UpdateStepCtrl(bool is_extrusion)
         m_filament_unload_step->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_CHECK_POSITION]);
         m_filament_unload_step->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_CUT_FILAMENT]);
         m_filament_unload_step->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_PULL_CURR_FILAMENT]);
-    }
+    }*/
 }
+
+void AMSControl::UpdatePassRoad(string ams_id, AMSPassRoadType type, AMSPassRoadSTEP step) {
+    bool left = false;
+    int len = -1;
+    for (auto id : m_item_ids[0])
+    {
+        if (ams_id == id)
+        {
+            left = true;
+            break;
+        }
+    }
+    if (m_ams_item_list[ams_id]->m_info.cans.size() == 4)
+    {
+        len = 133;
+    }
+    else
+    {
+        for (auto pairId : pair_id)
+        {
+            if (pairId.first == ams_id) {
+                len = 72;
+                break;
+            }
+            if (pairId.second == ams_id)
+            {
+                len = 188;
+                break;
+            }
+        }
+    }
+    if (len == -1)
+    {
+        if (left)
+        {
+            len = 213;
+        }
+        else
+        {
+            len = 72;
+        }
+    }
+
+    //std::vector<int>                 m_item_nums = { 0, 0 };
+    //std::vector<std::vector<string>> m_item_ids = { {},{} };
+}
+
 
 void AMSControl::CreateAms()
 {
-    auto caninfo0_0 = Caninfo{"def_can_0", (""), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-    auto caninfo0_1 = Caninfo{"def_can_1", (""), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-    auto caninfo0_2 = Caninfo{"def_can_2", (""), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-    auto caninfo0_3 = Caninfo{"def_can_3", (""), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+    auto caninfo0_0 = Caninfo{"def_can_0", (""), *wxWHITE, AMSCanType::AMS_CAN_TYPE_VIRTUAL};
+    auto caninfo0_1 = Caninfo{"def_can_1", (""), *wxWHITE, AMSCanType::AMS_CAN_TYPE_VIRTUAL };
+    auto caninfo0_2 = Caninfo{"def_can_2", (""), *wxWHITE, AMSCanType::AMS_CAN_TYPE_VIRTUAL };
+    auto caninfo0_3 = Caninfo{"def_can_3", (""), *wxWHITE, AMSCanType::AMS_CAN_TYPE_VIRTUAL };
 
-    AMSinfo                        ams1 = AMSinfo{"0", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
-    AMSinfo                        ams2 = AMSinfo{"1", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
-    AMSinfo                        ams3 = AMSinfo{"2", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
-    AMSinfo                        ams4 = AMSinfo{"3", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
-    std::vector<AMSinfo>           ams_info{ams1, ams2, ams3, ams4};
+    auto caninfo1_0 = Caninfo{ "def_can_0", (""), *wxWHITE, AMSCanType::AMS_CAN_TYPE_VIRTUAL };
+    auto caninfo1_1 = Caninfo{ "def_can_1", (""), *wxWHITE, AMSCanType::AMS_CAN_TYPE_VIRTUAL };
+    auto caninfo1_2 = Caninfo{ "def_can_2", (""), *wxWHITE, AMSCanType::AMS_CAN_TYPE_VIRTUAL };
+    auto caninfo1_3 = Caninfo{ "def_can_3", (""), *wxWHITE, AMSCanType::AMS_CAN_TYPE_VIRTUAL };
+
+    AMSinfo                        ams1 = AMSinfo{"0", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}, 0};
+    AMSinfo                        ams2 = AMSinfo{"1", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}, 0 };
+    AMSinfo                        ams3 = AMSinfo{"2", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}, 0 };
+    AMSinfo                        ams4 = AMSinfo{"3", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}, 0 };
+
+    AMSinfo                        ams5 = AMSinfo{ "4", std::vector<Caninfo>{caninfo1_0, caninfo1_1, caninfo1_2, caninfo1_3}, 1 };
+    AMSinfo                        ams6 = AMSinfo{ "5", std::vector<Caninfo>{caninfo1_0, caninfo1_1, caninfo1_2, caninfo1_3}, 1 };
+    AMSinfo                        ams7 = AMSinfo{ "6", std::vector<Caninfo>{caninfo1_0, caninfo1_1, caninfo1_2, caninfo1_3}, 1 };
+    AMSinfo                        ams8 = AMSinfo{ "7", std::vector<Caninfo>{caninfo1_0, caninfo1_1, caninfo1_2, caninfo1_3}, 1 };
+    std::vector<AMSinfo>           ams_info{ams1, ams2, ams3, ams4, ams5, ams6, ams7, ams8 };
     std::vector<AMSinfo>::iterator it;
     Freeze();
     for (it = ams_info.begin(); it != ams_info.end(); it++) {
-        AddAmsItems(*it);
+        AddAmsPreview(*it, AMSModel::GENERIC_AMS);
         AddAms(*it);
-        AddExtraAms(*it);
+        //AddExtraAms(*it);
         m_ams_info.push_back(*it);
     }
-
-    m_sizer_top->Layout();
+    if (m_single_nozzle_no_ams)
+    {
+        m_simplebook_ams_left->Hide();
+    }
+    else {
+        m_sizer_items_left->Layout();
+        m_sizer_items_right->Layout();
+    }
     Thaw();
 }
 
+
+void AMSControl::ClearAms() {
+    m_simplebook_ams_right->DeleteAllPages();
+    m_simplebook_ams_left->DeleteAllPages();
+    m_simplebook_ams_right->DestroyChildren();
+    m_simplebook_ams_left->DestroyChildren();
+    m_simplebook_ams_right->Layout();
+    m_simplebook_ams_left->Layout();
+    m_simplebook_ams_right->Refresh();
+    m_simplebook_ams_left->Refresh();
+
+    m_ams_item_list.clear();
+    m_sizer_items_right->Clear();
+    m_sizer_items_left->Clear();
+}
+
+void AMSControl::CreateAmsNew()
+{
+    /*m_ams_item_list.clear();
+    m_ams_generic_item_list.clear();
+    m_ams_extra_item_list.clear();*/
+    AMSRoadShowMode left_init_mode = AMSRoadShowMode::AMS_ROAD_MODE_SINGLE;
+    AMSRoadShowMode right_init_mode = AMSRoadShowMode::AMS_ROAD_MODE_SINGLE;
+    bool first_left_page = true, first_right_page = true;
+
+    std::vector<AMSinfo> single_info_left;
+    std::vector<AMSinfo> single_info_right;
+
+    Freeze();
+    for (auto ams_info = m_ams_info.begin(); ams_info != m_ams_info.end(); ams_info++)
+    {
+
+        if (first_left_page && ams_info->nozzle_id == 1) {
+            first_left_page = false;
+            left_init_mode = ams_info->cans.size() == 4 ? AMSRoadShowMode::AMS_ROAD_MODE_FOUR : AMSRoadShowMode::AMS_ROAD_MODE_SINGLE;
+        }
+        if (ams_info->cans.size() == 4)
+        {
+            if (first_right_page && ams_info->nozzle_id == 0) {
+                first_right_page = false;
+                right_init_mode = AMSRoadShowMode::AMS_ROAD_MODE_FOUR;
+            }
+            if (first_left_page && ams_info->nozzle_id == 1) {
+                first_left_page = false;
+                left_init_mode = AMSRoadShowMode::AMS_ROAD_MODE_FOUR;
+            }
+            AddAmsPreview(*ams_info, ams_info->ams_type);
+            AddAms(*ams_info);
+        }
+        else if (ams_info->cans.size() == 1)
+        {
+            AddAmsPreview(*ams_info, ams_info->ams_type);
+            if (ams_info->nozzle_id == 0)
+            {
+                single_info_right.push_back(*ams_info);
+                if (single_info_right.size() == 2)
+                {
+                    if (first_right_page) {
+                        first_right_page = false;
+                        right_init_mode = AMSRoadShowMode::AMS_ROAD_MODE_DOUBLE;
+                    }
+                    AddAms(single_info_right);
+                    pair_id.push_back(std::make_pair(single_info_right[0].ams_id, single_info_right[1].ams_id));
+                    single_info_right.clear();
+                }
+            }
+            else if (ams_info->nozzle_id == 1)
+            {
+                single_info_left.push_back(*ams_info);
+                if (single_info_left.size() == 2)
+                {
+                    if (first_left_page) {
+                        first_left_page = false;
+                        left_init_mode = AMSRoadShowMode::AMS_ROAD_MODE_DOUBLE;
+                    }
+                    AddAms(single_info_left);
+                    pair_id.push_back(std::make_pair(single_info_left[0].ams_id, single_info_left[1].ams_id));
+                    single_info_left.clear();
+                }
+            }
+        }
+    }
+    if (m_ext_info.size() <= 1) {
+        BOOST_LOG_TRIVIAL(trace) << "vt_slot empty!";
+        return;
+    }
+    AMSinfo ext_info;
+    for (auto info : m_ext_info){
+        if (info.ams_id == std::to_string(VIRTUAL_TRAY_MAIN_ID)){
+            ext_info = info;
+        }
+    }
+    single_info_right.push_back(ext_info);
+    //wait add
+    if (single_info_right.size() == 2)
+    {
+        if (first_right_page) {
+            first_right_page = false;
+            right_init_mode = AMSRoadShowMode::AMS_ROAD_MODE_DOUBLE;
+        }
+        pair_id.push_back(std::make_pair(single_info_right[0].ams_id, single_info_right[1].ams_id));
+    }
+    AddAmsPreview(ext_info, AMSModel::NO_AMS);
+    AddAms(single_info_right);
+    single_info_right.clear();
+
+    for (auto info : m_ext_info) {
+        if (info.ams_id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
+            ext_info = info;
+        }
+    }
+    single_info_left.push_back(ext_info);
+    //wait add
+    if (single_info_left.size() == 2)
+    {
+        if (first_left_page) {
+            first_left_page = false;
+            left_init_mode = AMSRoadShowMode::AMS_ROAD_MODE_DOUBLE;
+        }
+        pair_id.push_back(std::make_pair(single_info_left[0].ams_id, single_info_left[1].ams_id));
+    }
+    AddAmsPreview(ext_info, AMSModel::NO_AMS);
+    AddAms(single_info_left);
+    single_info_left.clear();
+
+    if (m_nozzle_num <= 1)
+    {
+        m_simplebook_ams_left->Hide();
+        m_panel_items_left->Hide();
+    }
+    else if(m_nozzle_num > 1) {
+        m_sizer_items_left->Layout();
+        m_sizer_items_right->Layout();
+        m_simplebook_ams_left->Show();
+        m_panel_items_left->Show();
+        m_simplebook_ams_right->Show();
+        m_panel_items_right->Show();
+        m_simplebook_ams_left->SetSelection(0);
+        m_simplebook_ams_right->SetSelection(0);
+        m_down_road->UpdateLeft(2, left_init_mode);
+        m_down_road->UpdateRight(2, right_init_mode);
+    }
+    m_extruder->update(2);
+    //Refresh();
+    //Freeze();
+    Thaw();
+}
+
+void AMSControl::CreateAmsSingleNozzle()
+{
+    std::vector<int>m_item_nums{0,0};
+    std::vector<AMSinfo> single_info;
+
+    Freeze();
+
+    bool left = true;
+    AMSRoadShowMode left_init_mode = AMSRoadShowMode::AMS_ROAD_MODE_NONE;
+    AMSRoadShowMode right_init_mode = AMSRoadShowMode::AMS_ROAD_MODE_NONE;
+    for (auto ams_info = m_ams_info.begin(); ams_info != m_ams_info.end(); ams_info++){
+        if (ams_info->cans.size() == 4){
+            if (m_item_nums[0] <= m_item_nums[1]){
+                if (m_item_nums[0] == 0) left_init_mode = AMSRoadShowMode::AMS_ROAD_MODE_FOUR;
+                left = true;
+                m_item_ids[0].push_back(ams_info->ams_id);
+                m_item_nums[0]++;
+            }
+            else{
+                if (m_item_nums[1] == 0) right_init_mode = AMSRoadShowMode::AMS_ROAD_MODE_FOUR;
+                left = false;
+                m_item_ids[1].push_back(ams_info->ams_id);
+                m_item_nums[1]++;
+            }
+            AddAmsPreview(*ams_info, ams_info->ams_type);
+            AddAms(*ams_info, left);
+            //AddExtraAms(*ams_info);
+        }
+        else if (ams_info->cans.size() == 1){
+            AddAmsPreview(*ams_info, ams_info->ams_type);
+            single_info.push_back(*ams_info);
+            if (single_info.size() == 2){
+                if (m_item_nums[0] <= m_item_nums[1]){
+                    if (m_item_nums[0] == 0) left_init_mode = AMSRoadShowMode::AMS_ROAD_MODE_DOUBLE;
+                    left = true;
+                    m_item_ids[0].push_back(single_info[0].ams_id);
+                    m_item_ids[0].push_back(single_info[1].ams_id);
+                    m_item_nums[0]++;
+                }
+                else{
+                    if (m_item_nums[1] == 0) right_init_mode = AMSRoadShowMode::AMS_ROAD_MODE_DOUBLE;
+                    left = false;
+                    m_item_ids[1].push_back(single_info[0].ams_id);
+                    m_item_ids[1].push_back(single_info[1].ams_id);
+                    m_item_nums[1]++;
+                }
+                pair_id.push_back(std::make_pair(single_info[0].ams_id, single_info[1].ams_id));
+                AddAms(single_info, left);
+                single_info.clear();
+            }
+        }
+    }
+    //ext_info.cans[0].material_colour =
+    if (m_ext_info.size() <= 0){
+        BOOST_LOG_TRIVIAL(trace) << "vt_slot empty!";
+        return;
+    }
+    single_info.push_back(m_ext_info[0]);
+    if (m_item_nums[0] <= m_item_nums[1]){
+        if (m_item_nums[0] == 0){
+            if (single_info.size() == 2){
+                left_init_mode = AMSRoadShowMode::AMS_ROAD_MODE_DOUBLE;
+            }
+            else{
+                left_init_mode = AMSRoadShowMode::AMS_ROAD_MODE_SINGLE;
+            }
+        }
+        left = true;
+        for (auto it : single_info){
+            m_item_ids[0].push_back(it.ams_id);
+        }
+        m_item_nums[0]++;
+
+    }
+    else{
+        if (m_item_nums[1] == 0){
+            if (single_info.size() == 2){
+                right_init_mode = AMSRoadShowMode::AMS_ROAD_MODE_DOUBLE;
+            }
+            else{
+                right_init_mode = AMSRoadShowMode::AMS_ROAD_MODE_SINGLE;
+            }
+        }
+        left = false;
+        for (auto it : single_info){
+            m_item_ids[1].push_back(it.ams_id);
+        }
+        m_item_nums[1]++;
+    }
+    //wait add
+    if (single_info.size() == 2){
+        pair_id.push_back(std::make_pair(single_info[0].ams_id, single_info[1].ams_id));
+    }
+    AddAmsPreview(m_ext_info[0], AMSModel::NO_AMS);
+    AddAms(single_info, left);
+
+    m_panel_items_left->Hide();
+    if (!m_item_nums[0] || !m_item_nums[1]){
+        /*m_simplebook_ams_right->Hide();
+        m_panel_items_right->Hide();*/
+        //m_simplebook_ams_left->Hide();
+        m_simplebook_ams_right->Hide();
+        m_panel_items_right->Hide();
+        m_simplebook_ams_left->SetSelection(0);
+        m_down_road->UpdateLeft(1, left_init_mode);
+        m_down_road->UpdateRight(1, right_init_mode);
+    }
+    else {
+        m_sizer_items_left->Layout();
+        if (m_item_nums[0] <= 1 && m_item_nums[1] <= 1){
+            m_panel_items_right->Hide();
+        }
+        else{
+            m_panel_items_right->Show();
+        }
+        /*m_simplebook_ams_left->Show();
+        m_simplebook_ams_right->Show();*/
+        m_simplebook_ams_left->Show();
+        m_simplebook_ams_right->Show();
+
+        m_simplebook_ams_left->SetSelection(0);
+        m_simplebook_ams_right->SetSelection(0);
+        m_down_road->UpdateLeft(1, left_init_mode);
+        m_down_road->UpdateRight(1, right_init_mode);
+    }
+    m_extruder->update(1);
+    //Refresh();
+    Thaw();
+}
+
+
 void AMSControl::Reset()
 {
-    auto caninfo0_0 = Caninfo{"0", "", *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+    /*auto caninfo0_0 = Caninfo{"0", "", *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
     auto caninfo0_1 = Caninfo{"1", "", *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
     auto caninfo0_2 = Caninfo{"2", "", *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
     auto caninfo0_3 = Caninfo{"3", "", *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
@@ -3294,43 +3578,47 @@ void AMSControl::Reset()
     AMSinfo ams4 = AMSinfo{"3", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
 
     std::vector<AMSinfo>           ams_info{ams1, ams2, ams3, ams4};
-    std::vector<AMSinfo>::iterator it;
-    UpdateAms(ams_info, true);
+    std::vector<AMSinfo>::iterator it;*/
+
+    /*Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (dev) {
+        MachineObject* obj = dev->get_selected_machine();
+        parse_object(obj);
+    }
+
+    UpdateAms(m_ams_info, true);
     m_current_show_ams  = "";
     m_current_ams       = "";
-    m_current_senect    = "";
+    m_current_select    = "";*/
 }
 
 void AMSControl::show_noams_mode()
 {
     show_vams(true);
-    m_sizer_ams_tips->Show(true);
+    //m_sizer_ams_tips->Show(true);
 
-    if (m_ams_model == AMSModel::NO_AMS) {
+    /*if (m_ams_model == AMSModel::NO_AMS) {
         EnterNoneAMSMode();
     } else if(m_ams_model == AMSModel::GENERIC_AMS){
         EnterGenericAMSMode();
     } else if (m_ams_model == AMSModel::EXTRA_AMS) {
         EnterExtraAMSMode();
-    }
+    }*/
+    EnterGenericAMSMode();
 }
 
 void AMSControl::show_auto_refill(bool show)
 {
-    if (m_auto_reill_show != show) {
-        m_ams_backup_tip->Show(show);
-        m_img_ams_backup->Show(show);
-        m_amswin->Layout();
-        m_amswin->Fit();
-        m_auto_reill_show = show;
-    }
+    //m_img_ams_backup->Show(show);
+    m_amswin->Layout();
+    m_amswin->Fit();
 }
 
 void AMSControl::show_vams(bool show)
 {
-    m_panel_virtual->Show(show);
-    m_vams_sizer->Show(show);
-    m_vams_extra_road->Show(show);
+    //m_panel_virtual->Show(show);
+    //m_vams_sizer->Show(show);
+    //m_vams_extra_road->Show(show);
     m_extruder->has_ams(show);
     show_vams_kn_value(show);
     Layout();
@@ -3346,48 +3634,41 @@ void AMSControl::show_vams(bool show)
 
 void AMSControl::show_vams_kn_value(bool show)
 {
-    m_vams_lib->show_kn_value(show);
+    //m_vams_lib->show_kn_value(show);
 }
 
 void AMSControl::update_vams_kn_value(AmsTray tray, MachineObject* obj)
 {
-    auto last_k_value = m_vams_info.k;
-    auto last_n_value = m_vams_info.n;
-
-    m_vams_lib->m_obj = obj;
-    if (obj->cali_version >= 0) {
-        float k_value = 0;
-        float n_value = 0;
-        CalibUtils::get_pa_k_n_value_by_cali_idx(obj, tray.cali_idx, k_value, n_value);
-        m_vams_info.k        = k_value;
-        m_vams_info.n        = n_value;
-        m_vams_lib->m_info.k = k_value;
-        m_vams_lib->m_info.n = n_value;
-    }
-    else { // the remaining printer types
-        m_vams_info.k        = tray.k;
-        m_vams_info.n        = tray.n;
-        m_vams_lib->m_info.k = tray.k;
-        m_vams_lib->m_info.n = tray.n;
-    }
-
-    m_vams_info.material_name = tray.get_display_filament_type();
-    m_vams_info.material_colour = tray.get_color();
-    m_vams_info.cali_idx               = tray.cali_idx;
-    m_vams_info.filament_id            = tray.setting_id;
-    m_vams_lib->m_info.material_name = tray.get_display_filament_type();
-    m_vams_lib->m_info.material_colour = tray.get_color();
-    m_vams_lib->m_info.cali_idx        = tray.cali_idx;
-    m_vams_lib->m_info.filament_id     = tray.setting_id;
-
-    if (last_k_value != m_vams_info.k || last_n_value != m_vams_info.n) {
-        m_vams_lib->Refresh();
-    }
+    //m_vams_lib->m_obj = obj;
+    //if (obj->cali_version >= 0) {
+    //    float k_value = 0;
+    //    float n_value = 0;
+    //    CalibUtils::get_pa_k_n_value_by_cali_idx(obj, tray.cali_idx, k_value, n_value);
+    //    m_vams_info.k        = k_value;
+    //    m_vams_info.n        = n_value;
+    //    m_vams_lib->m_info.k = k_value;
+    //    m_vams_lib->m_info.n = n_value;
+    //}
+    //else { // the remaining printer types
+    //    m_vams_info.k        = tray.k;
+    //    m_vams_info.n        = tray.n;
+    //    m_vams_lib->m_info.k = tray.k;
+    //    m_vams_lib->m_info.n = tray.n;
+    //}
+    //m_vams_info.material_name = tray.get_display_filament_type();
+    //m_vams_info.material_colour = tray.get_color();
+    //m_vams_lib->m_info.material_name = tray.get_display_filament_type();
+    //auto col= tray.get_color();
+    //if (col.Alpha() != 0 && col.Alpha() != 255 && col.Alpha() != 254 && m_vams_lib->m_info.material_colour != col) {
+    //    m_vams_lib->transparent_changed = true;
+    //}
+    //m_vams_lib->m_info.material_colour = tray.get_color();
+    //m_vams_lib->Refresh();
 }
 
 void AMSControl::reset_vams()
 {
-    m_vams_lib->m_info.k = 0;
+    /*m_vams_lib->m_info.k = 0;
     m_vams_lib->m_info.n = 0;
     m_vams_lib->m_info.material_name = wxEmptyString;
     m_vams_lib->m_info.material_colour = AMS_CONTROL_WHITE_COLOUR;
@@ -3395,196 +3676,731 @@ void AMSControl::reset_vams()
     m_vams_lib->m_info.filament_id = "";
     m_vams_info.material_name = wxEmptyString;
     m_vams_info.material_colour = AMS_CONTROL_WHITE_COLOUR;
-    m_vams_info.cali_idx = -1;
-    m_vams_info.filament_id = "";
-    m_vams_lib->Refresh();
+    m_vams_lib->Refresh();*/
 }
 
 
-void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool is_reset)
+void AMSControl::ReadExtInfo(MachineObject* obj) {
+    m_ext_info.clear();
+    if (!obj){
+        return;
+    }
+    AMSinfo ext_info;
+    for (auto slot : obj->vt_slot){
+        ext_info.ams_id = slot.id;
+        Caninfo can;
+        can.can_id = std::to_string(0);
+        can.material_name = slot.filament_setting_id;
+        ext_info.cans.push_back(can);
+        if (slot.id == std::to_string(VIRTUAL_TRAY_MAIN_ID)){
+            ext_info.nozzle_id = 0;
+        }
+        else{
+            ext_info.nozzle_id = 1;
+        }
+        ext_info.cans[0].material_state = AMSCanType::AMS_CAN_TYPE_VIRTUAL;
+        ext_info.cans[0].material_colour = slot.decode_color(slot.color);
+        ext_info.cans[0].material_remain = slot.remain;
+        ext_info.cans[0].material_name = slot.type;
+
+        m_ext_info.push_back(ext_info);
+    }
+}
+
+void AMSControl::UpdateAms(std::vector<AMSinfo> ams_info, std::vector<AMSinfo>ext_info, std::string dev_id, bool is_reset, bool test)
 {
-    std::string curr_ams_id = GetCurentAms();
-    std::string curr_can_id = GetCurrentCan(curr_ams_id);
+    if (!test){
+        std::string curr_ams_id = GetCurentAms();
+        std::string curr_can_id = GetCurrentCan(curr_ams_id);
 
-    m_button_area->Layout();
-    m_button_area->Fit();
+        int nozzle_num = ext_info.size();
 
-    // update item
-
-    if (m_ams_model == AMSModel::GENERIC_AMS){
-        m_ams_cans_list = m_ams_generic_cans_list;
-    }
-    else if (m_ams_model == AMSModel::EXTRA_AMS) {
-        m_ams_cans_list = m_ams_extra_cans_list;
-    }
-
-    if (m_ams_info.size() != info.size()) {
-        if (info.size() > 1) {
-            m_simplebook_amsitems->Show();
-            m_amswin->Layout();
-            m_amswin->Fit();
-            SetSize(m_amswin->GetSize());
-            SetMinSize(m_amswin->GetSize());
-        } else {
-            m_simplebook_amsitems->Hide();
-            m_amswin->Layout();
-            m_amswin->Fit();
-            SetSize(m_amswin->GetSize());
-            SetMinSize(m_amswin->GetSize());
+        // update item
+        bool fresh = false;
+        if (m_ams_info.size() == ams_info.size() && m_nozzle_num == nozzle_num && m_dev_id == dev_id){
+            for (int i = 0; i < m_ams_info.size(); i++){
+                if (m_ams_info[i].ams_id != ams_info[i].ams_id){
+                    fresh = true;
+                }
+            }
         }
-    }
-
-    m_ams_info = info;
-
-    for (auto i = 0; i < m_ams_item_list.GetCount(); i++) {
-        AmsItems *item = m_ams_item_list[i];
-        if (i < info.size() && info.size() > 1) {
-            item->amsItem->Update(m_ams_info[i]);
-            item->amsItem->Open();
-        } else {
-            item->amsItem->Close();
+        else{
+            fresh = true;
         }
+        m_ams_info.clear();
+        m_ams_info = ams_info;
+        m_ext_info.clear();
+        m_ext_info = ext_info;
+        m_nozzle_num = nozzle_num;
+        m_dev_id = dev_id;
+        if (fresh){
+            //m_ams_generic_item_list.clear();
+            for (auto it : m_ams_preview_list){
+                delete it.second;
+            }
+            m_ams_preview_list.clear();
+            ClearAms();
+            m_left_page_index = 0;
+            m_right_page_index = 0;
+            if (m_nozzle_num >= 2){
+                CreateAmsNew();
+            }else{
+                /*m_panel_items_right->ClearBackground();
+                m_panel_items_left->ClearBackground();*/
+                m_item_ids = { {}, {} };
+                pair_id.clear();
+                CreateAmsSingleNozzle();
+            }
+            /*m_amswin->Layout();
+            m_amswin->Fit();
+            */
+            SetSize(wxSize(FromDIP(578), -1));
+            SetMinSize(wxSize(FromDIP(578), -1));
+
+
+        }
+        // update cans
+
+        for (auto ams_item : m_ams_item_list) {
+            std::string ams_id = ams_item.second->m_info.ams_id;
+            AmsItem* cans = ams_item.second;
+            if (cans->m_info.ams_id == std::to_string(VIRTUAL_TRAY_MAIN_ID) || cans->m_info.ams_id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)){
+                for (auto ifo : m_ext_info) {
+                    if (ifo.ams_id == ams_id) {
+                        cans->m_info = ifo;
+                        cans->Update(ifo);
+                        cans->show_sn_value(m_ams_model == AMSModel::EXTRA_AMS ? false : true);
+                    }
+                }
+            }
+            else{
+                for (auto ifo : m_ams_info) {
+                    if (ifo.ams_id == ams_id) {
+                        cans->m_info = ifo;
+                        cans->Update(ifo);
+                        cans->show_sn_value(m_ams_model == AMSModel::EXTRA_AMS ? false : true);
+                    }
+                }
+            }
+        }
+
+        if (m_current_show_ams.empty() && !is_reset) {
+            if (ext_info.size() > 0) {
+                SwitchAms(ext_info[0].ams_id);
+            }
+        }
+
+        //m_simplebook_ams_left->SetSelection(m_simplebook_ams_left->m_first);
     }
+    else
+    {
+        static bool first_time = true;
+        static std::vector<AMSinfo>ams_info;
+        int nozzle_num = 2;
+        if (first_time)
+        {
+            auto caninfo0_0 = Caninfo{ "def_can_0", (""), *wxRED, AMSCanType::AMS_CAN_TYPE_VIRTUAL };
+            auto caninfo0_1 = Caninfo{ "def_can_1", (""), *wxGREEN, AMSCanType::AMS_CAN_TYPE_VIRTUAL };
+            auto caninfo0_2 = Caninfo{ "def_can_2", (""), *wxBLUE, AMSCanType::AMS_CAN_TYPE_VIRTUAL };
+            auto caninfo0_3 = Caninfo{ "def_can_3", (""), *wxYELLOW, AMSCanType::AMS_CAN_TYPE_VIRTUAL };
 
-    // update cans
-    for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
-        AmsCansWindow *cans = m_ams_cans_list[i];
+            auto caninfo1_0 = Caninfo{ "def_can_0", (""), wxColour(255, 255, 0), AMSCanType::AMS_CAN_TYPE_VIRTUAL };
+            auto caninfo1_1 = Caninfo{ "def_can_1", (""), wxColour(255, 0, 255), AMSCanType::AMS_CAN_TYPE_VIRTUAL };
+            auto caninfo1_2 = Caninfo{ "def_can_2", (""), wxColour(0, 255, 255), AMSCanType::AMS_CAN_TYPE_VIRTUAL };
+            auto caninfo1_3 = Caninfo{ "def_can_3", (""), wxColour(200, 80, 150), AMSCanType::AMS_CAN_TYPE_VIRTUAL };
 
-        for (auto ifo : m_ams_info) {
-            if (ifo.ams_id == cans->amsIndex) {
-                cans->amsCans->m_info = ifo;
-                cans->amsCans->Update(ifo);
-                cans->amsCans->show_sn_value(m_ams_model == AMSModel::EXTRA_AMS?false:true);
+            AMSinfo                        ams1 = AMSinfo{ "0", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}, 0 };
+            AMSinfo                        ams2 = AMSinfo{ "1", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}, 0 };
+            AMSinfo                        ams3 = AMSinfo{ "2", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}, 0 };
+            AMSinfo                        ams4 = AMSinfo{ "3", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}, 0 };
+
+            AMSinfo                        singleams1 = AMSinfo{ "0", std::vector<Caninfo>{caninfo0_0}, 0 };
+            AMSinfo                        singleams2 = AMSinfo{ "1", std::vector<Caninfo>{caninfo0_1}, 0 };
+            AMSinfo                        singleams3 = AMSinfo{ "2", std::vector<Caninfo>{caninfo0_2}, 0 };
+            AMSinfo                        singleams4 = AMSinfo{ "3", std::vector<Caninfo>{caninfo0_3}, 0 };
+
+            AMSinfo                        ams5 = AMSinfo{ "4", std::vector<Caninfo>{caninfo1_0, caninfo1_1, caninfo1_2, caninfo1_3}, 1 };
+            AMSinfo                        ams6 = AMSinfo{ "5", std::vector<Caninfo>{caninfo1_0, caninfo1_1, caninfo1_2, caninfo1_3}, 1 };
+            AMSinfo                        ams7 = AMSinfo{ "6", std::vector<Caninfo>{caninfo1_0, caninfo1_1, caninfo1_2, caninfo1_3}, 1 };
+            AMSinfo                        ams8 = AMSinfo{ "7", std::vector<Caninfo>{caninfo1_0, caninfo1_1, caninfo1_2, caninfo1_3}, 1 };
+
+            AMSinfo                        singleams5 = AMSinfo{ "4", std::vector<Caninfo>{caninfo1_0}, 1 };
+            AMSinfo                        singleams6 = AMSinfo{ "5", std::vector<Caninfo>{caninfo1_1}, 1 };
+            AMSinfo                        singleams7 = AMSinfo{ "6", std::vector<Caninfo>{caninfo1_2}, 1 };
+            AMSinfo                        singleams8 = AMSinfo{ "7", std::vector<Caninfo>{caninfo1_3}, 1 };
+            std::vector<AMSinfo>generic_ams = { ams1, ams2, ams3, ams4, ams5, ams6, ams7, ams8 };
+            std::vector<AMSinfo>single_ams = { singleams1, singleams2, singleams3, singleams4, singleams5, singleams6, singleams7, singleams8 };
+            ams_info = { ams1, singleams1, ams3, singleams3, ams5, singleams5, ams7, singleams7 };
+            first_time = false;
+        }
+
+        Freeze();
+
+        // update item
+        bool fresh = false;
+        if (m_ams_info.size() == ams_info.size() && m_nozzle_num == nozzle_num){
+            for (int i = 0; i < m_ams_info.size(); i++)
+            {
+                if (m_ams_info[i].ams_id != ams_info[i].ams_id){
+                    fresh = true;
+                }
+            }
+        }
+        else{
+            fresh = true;
+        }
+        m_ams_info.clear();
+        m_ams_info = ams_info;
+        m_ext_info.clear();
+        m_ext_info.push_back(ext_info[0]);
+        m_ext_info.push_back(ext_info[0]);
+        m_ext_info[0].ams_id = std::to_string(VIRTUAL_TRAY_MAIN_ID);
+        m_ext_info[1].ams_id = std::to_string(VIRTUAL_TRAY_DEPUTY_ID);
+        m_nozzle_num = nozzle_num;
+        if (fresh){
+
+            for (auto it : m_ams_preview_list) {
+                delete it.second;
+            }
+            m_ams_preview_list.clear();
+            ClearAms();
+            m_left_page_index = 0;
+            m_right_page_index = 0;
+            if (m_nozzle_num >= 2) {
+                CreateAmsNew();
+            }
+            else {
+                /*m_panel_items_right->ClearBackground();
+                m_panel_items_left->ClearBackground();*/
+                m_item_ids = { {}, {} };
+                pair_id.clear();
+                CreateAmsSingleNozzle();
+            }
+            /*m_amswin->Layout();
+            m_amswin->Fit();
+            */
+            SetSize(wxSize(FromDIP(578), -1));
+            SetMinSize(wxSize(FromDIP(578), -1));
+        }
+        Thaw();
+
+        // update cans
+
+        for (auto ams_item : m_ams_item_list) {
+            std::string ams_id = ams_item.first;
+            AmsItem* cans = ams_item.second;
+            if (atoi(cans->m_info.ams_id.c_str()) >= VIRTUAL_TRAY_DEPUTY_ID) {
+                for (auto ifo : m_ext_info) {
+                    if (ifo.ams_id == ams_id) {
+                        cans->m_info = ifo;
+                        cans->Update(ifo);
+                        cans->show_sn_value(m_ams_model == AMSModel::EXTRA_AMS ? false : true);
+                    }
+                }
+            }
+            else {
+                for (auto ifo : m_ams_info) {
+                    if (ifo.ams_id == ams_id) {
+                        cans->m_info = ifo;
+                        cans->Update(ifo);
+                        cans->show_sn_value(m_ams_model == AMSModel::EXTRA_AMS ? false : true);
+                    }
+                }
+            }
+        }
+
+        if (m_current_show_ams.empty() && !is_reset) {
+            if (ams_info.size() > 0) {
+                SwitchAms(ams_info[0].ams_id);
             }
         }
     }
 
-    if ( m_current_show_ams.empty() && !is_reset ) {
-        if (info.size() > 0) {
-            SwitchAms(info[0].ams_id);
-        }
-    }
 
-    if (m_ams_model == AMSModel::NO_AMS && !m_vams_lib->is_selected()) {
-        m_vams_lib->OnSelected();
-    }
 }
 
-void AMSControl::AddAmsItems(AMSinfo info)
+void AMSControl::AddAmsPreview(AMSinfo info, AMSModel type)
 {
-    auto amsitem = new AMSItem(m_panel_top, wxID_ANY, info);
-    amsitem->Bind(wxEVT_LEFT_DOWN, [this, amsitem](wxMouseEvent& e) {
-        SwitchAms(amsitem->m_amsinfo.ams_id);
+    AMSPreview *ams_prv = nullptr;
+
+    if (info.nozzle_id == 0)
+    {
+        ams_prv = new AMSPreview(m_panel_items_right, wxID_ANY, info, type);
+        m_sizer_items_right->Add(ams_prv, 0, wxALIGN_CENTER | wxRIGHT, 6);
+    }
+    else if (info.nozzle_id == 1)
+    {
+        ams_prv = new AMSPreview(m_panel_items_left, wxID_ANY, info, type);
+        m_sizer_items_left->Add(ams_prv, 0, wxALIGN_CENTER | wxRIGHT, 6);
+    }
+    ams_prv->Bind(wxEVT_LEFT_DOWN, [this, ams_prv](wxMouseEvent& e) {
+        SwitchAms(ams_prv->m_amsinfo.ams_id);
         e.Skip();
         });
 
-    AmsItems* item = new AmsItems();
-    item->amsIndex = info.ams_id;
-    item->amsItem = amsitem;
+    m_ams_preview_list[info.ams_id] = ams_prv;
 
-    m_ams_item_list.Add(item);
-    m_sizer_top->Add(amsitem, 0, wxALIGN_CENTER | wxRIGHT, 6);
 }
 
-void AMSControl::AddAms(AMSinfo info)
+void AMSControl::AddAms(AMSinfo info, bool left)
 {
-    AmsCansWindow* canswin = new AmsCansWindow();
-    auto           amscans = new AmsCans(m_simplebook_generic_cans, info, AMSModel::GENERIC_AMS);
+    AmsItem* ams_item;
+    if (m_nozzle_num > 1)
+    {
+        if (info.nozzle_id == 0)
+        {
+            ams_item = new AmsItem(m_simplebook_ams_right, info, info.ams_type);
+            //m_simplebook_ams_right->RemovePage(m_right_page_index);
+            m_simplebook_ams_right->InsertPage(m_right_page_index, ams_item, wxEmptyString, true);
+            ams_item->m_selection = m_right_page_index;
+            m_right_page_index++;
+        }
+        else if (info.nozzle_id == 1)
+        {
+            ams_item = new AmsItem(m_simplebook_ams_left, info, info.ams_type);
+            //m_simplebook_ams_left->RemovePage(m_left_page_index);
+            m_simplebook_ams_left->InsertPage(m_left_page_index, ams_item, wxEmptyString, true);
+            ams_item->m_selection = m_left_page_index;
+            m_left_page_index++;
+        }
+    }
+    else if (m_nozzle_num == 1)
+    {
+        if (left)
+        {
+            ams_item = new AmsItem(m_simplebook_ams_left, info, info.ams_type);
+            //m_simplebook_ams_left->RemovePage(m_left_page_index);
+            m_simplebook_ams_left->InsertPage(m_left_page_index, ams_item, wxEmptyString, true);
+            ams_item->m_selection = m_left_page_index;
+            m_left_page_index++;
+        }
+        else {
+            ams_item = new AmsItem(m_simplebook_ams_right, info, info.ams_type);
+            //m_simplebook_ams_right->RemovePage(m_right_page_index);
+            m_simplebook_ams_right->InsertPage(m_right_page_index, ams_item, wxEmptyString, true);
+            ams_item->m_selection = m_right_page_index;
+            m_right_page_index++;
+            //if (m_item_nums[1] == 1) m_simplebook_ams_right->SetSelection(m_simplebook_ams_left->GetSelection());
+        }
+    }
+    m_ams_item_list[info.ams_id] = ams_item;
+    m_simplebook_ams_left->Layout();
+    m_simplebook_ams_right->Layout();
+    m_simplebook_ams_left->Refresh();
+    m_simplebook_ams_right->Refresh();
 
-    canswin->amsIndex = info.ams_id;
-    canswin->amsCans = amscans;
-    m_ams_generic_cans_list.Add(canswin);
-
-    m_simplebook_generic_cans->AddPage(amscans, wxEmptyString, false);
-    amscans->m_selection = m_simplebook_generic_cans->GetPageCount() - 1;
 }
 
-void AMSControl::AddExtraAms(AMSinfo info)
-{
-    AmsCansWindow* canswin = new AmsCansWindow();
-    auto           amscans = new AmsCans(m_simplebook_extra_cans, info, AMSModel::EXTRA_AMS);
+//void AMSControl::AddExtraAms(AMSinfo info)
+//{
+//    auto ams_item = new AmsItem(m_simplebook_extra_cans_left, info, AMSModel::EXTRA_AMS);
+//    m_ams_item_list[info.ams_id] = ams_item;
+//
+//    if (info.nozzle_id == 1)
+//    {
+//        m_simplebook_extra_cans_left->AddPage(ams_item, wxEmptyString, false);
+//        ams_item->m_selection = m_simplebook_extra_cans_left->GetPageCount() - 1;
+//    }
+//    else if (info.nozzle_id == 0)
+//    {
+//        m_simplebook_extra_cans_right->AddPage(ams_item, wxEmptyString, false);
+//        ams_item->m_selection = m_simplebook_extra_cans_right->GetPageCount() - 1;
+//    }
+//
+//}
 
-    canswin->amsIndex = info.ams_id;
-    canswin->amsCans = amscans;
-    m_ams_extra_cans_list.Add(canswin);
+void AMSControl::AddAms(std::vector<AMSinfo>single_info, bool left) {
+    AmsItem* ams_item;
+    AMSModel mode;
+    wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    m_simplebook_extra_cans->AddPage(amscans, wxEmptyString, false);
-    amscans->m_selection = m_simplebook_extra_cans->GetPageCount() - 1;
+    if (single_info.size() == 0){
+        return;
+    }
+    else if (single_info.size() == 1){
+        mode = AMSModel::NO_AMS;
+        int w = 30;
+        if (m_nozzle_num == 2)
+        {
+            if (single_info[0].nozzle_id == 0)
+            {
+                wxPanel*  book_panel = new wxPanel(m_simplebook_ams_right);
+                book_panel->SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
+                ams_item = new AmsItem(book_panel, single_info[0], mode);
+                sizer->Add(ams_item, 0, wxLEFT, FromDIP(30));
+                book_panel->SetSize(wxSize(FromDIP(264), FromDIP(150)));
+                book_panel->SetMinSize(wxSize(FromDIP(264), FromDIP(150)));
+                book_panel->SetSizer(sizer);
+                book_panel->Layout();
+                book_panel->Fit();
+                //m_simplebook_ams_right->RemovePage(m_right_page_index);
+                m_simplebook_ams_right->InsertPage(m_right_page_index, book_panel, wxEmptyString, true);
+                ams_item->m_selection = m_right_page_index;
+                m_right_page_index++;
+            }
+            else if (single_info[0].nozzle_id == 1)
+            {
+                wxPanel*  book_panel = new wxPanel(m_simplebook_ams_left);
+                book_panel->SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
+                ams_item = new AmsItem(book_panel, single_info[0], mode);
+                sizer->Add(ams_item, 0, wxLEFT, FromDIP(30));
+                book_panel->SetSize(wxSize(FromDIP(264), FromDIP(150)));
+                book_panel->SetMinSize(wxSize(FromDIP(264), FromDIP(150)));
+                book_panel->SetSizer(sizer);
+                book_panel->Layout();
+                book_panel->Fit();
+                //m_simplebook_ams_left->RemovePage(m_left_page_index);
+                m_simplebook_ams_left->InsertPage(m_left_page_index, book_panel, wxEmptyString, true);
+                ams_item->m_selection = m_left_page_index;
+                m_left_page_index++;
+            }
+        }
+        else if (m_nozzle_num == 1)
+        {
+            if (!left)
+            {
+                wxPanel*  book_panel = new wxPanel(m_simplebook_ams_right);
+                book_panel->SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
+                ams_item = new AmsItem(book_panel, single_info[0], mode);
+                sizer->Add(ams_item, 0, wxLEFT, FromDIP(30));
+                book_panel->SetSize(wxSize(FromDIP(264), FromDIP(150)));
+                book_panel->SetMinSize(wxSize(FromDIP(264), FromDIP(150)));
+                book_panel->SetSizer(sizer);
+                book_panel->Layout();
+                book_panel->Fit();
+                //m_simplebook_ams_right->RemovePage(m_right_page_index);
+                m_simplebook_ams_right->InsertPage(m_right_page_index, book_panel, wxEmptyString, true);
+                ams_item->m_selection = m_right_page_index;
+                m_right_page_index++;
+            }
+            else
+            {
+                wxPanel* book_panel = new wxPanel(m_simplebook_ams_left);
+                book_panel->SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
+                ams_item = new AmsItem(book_panel, single_info[0], mode);
+                sizer->Add(ams_item, 0, wxLEFT, FromDIP(30));
+                book_panel->SetSize(wxSize(FromDIP(264), FromDIP(150)));
+                book_panel->SetMinSize(wxSize(FromDIP(264), FromDIP(150)));
+                book_panel->SetSizer(sizer);
+                book_panel->Layout();
+                book_panel->Fit();
+                //m_simplebook_ams_left->RemovePage(m_left_page_index);
+                m_simplebook_ams_left->InsertPage(m_left_page_index, book_panel, wxEmptyString, true);
+                ams_item->m_selection = m_left_page_index;
+                m_left_page_index++;
+            }
+        }
+
+        ams_item->SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
+        m_ams_item_list[single_info[0].ams_id] = ams_item;
+    }
+    else if (single_info.size() == 2)
+    {
+        AmsItem* ext_item;
+        wxBoxSizer* book_sizer = new wxBoxSizer(wxVERTICAL);
+        if (single_info[1].ams_id == std::to_string(VIRTUAL_TRAY_MAIN_ID) || single_info[1].ams_id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID))
+        {
+            mode = AMSModel::NO_AMS;
+        }
+        else
+        {
+            mode = AMSModel::SINGLE_AMS;
+        }
+        if (m_nozzle_num == 2)
+        {
+            if (single_info[1].nozzle_id == 0)
+            {
+                wxPanel* book_panel = new wxPanel(m_simplebook_ams_right);
+                book_panel->SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
+                book_panel->SetSize(wxSize(FromDIP(264), FromDIP(150)));
+                book_panel->SetMinSize(wxSize(FromDIP(264), FromDIP(150)));
+                ams_item = new AmsItem(book_panel, single_info[0], AMSModel::SINGLE_AMS);
+                ext_item = new AmsItem(book_panel, single_info[1], mode);
+                book_sizer->Add(ams_item);
+                book_sizer->Add(ext_item);
+                book_panel->SetSizer(book_sizer);
+                book_panel->Layout();
+                book_panel->Fit();
+                //m_simplebook_ams_right->RemovePage(m_right_page_index);
+                m_simplebook_ams_right->InsertPage(m_right_page_index, book_panel, wxEmptyString, true);
+                ams_item->m_selection = m_right_page_index;
+                ext_item->m_selection = m_right_page_index;
+                m_right_page_index++;
+            }
+            else if (single_info[1].nozzle_id == 1)
+            {
+                wxPanel* book_panel = new wxPanel(m_simplebook_ams_left);
+                book_panel->SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
+                book_panel->SetSize(wxSize(FromDIP(264), FromDIP(150)));
+                book_panel->SetMinSize(wxSize(FromDIP(264), FromDIP(150)));
+                ams_item = new AmsItem(book_panel, single_info[0], AMSModel::SINGLE_AMS);
+                ext_item = new AmsItem(book_panel, single_info[1], mode);
+                book_sizer->Add(ams_item);
+                book_sizer->Add(ext_item);
+                book_panel->SetSizer(book_sizer);
+                //m_simplebook_ams_left->RemovePage(m_left_page_index);
+                m_simplebook_ams_left->InsertPage(m_left_page_index, book_panel, wxEmptyString, true);
+                ams_item->m_selection = m_left_page_index;
+                ext_item->m_selection = m_left_page_index;
+                m_left_page_index++;
+            }
+        }
+        else {
+            if (!left)
+            {
+                wxPanel* book_panel = new wxPanel(m_simplebook_ams_right);
+                book_panel->SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
+                book_panel->SetSize(wxSize(FromDIP(264), FromDIP(150)));
+                book_panel->SetMinSize(wxSize(FromDIP(264), FromDIP(150)));
+                ams_item = new AmsItem(book_panel, single_info[0], AMSModel::SINGLE_AMS);
+                ext_item = new AmsItem(book_panel, single_info[1], mode);
+                book_sizer->Add(ams_item);
+                book_sizer->Add(ext_item);
+                book_panel->SetSizer(book_sizer);
+                book_panel->Layout();
+                book_panel->Fit();
+                //m_simplebook_ams_right->RemovePage(m_right_page_index);
+                m_simplebook_ams_right->InsertPage(m_right_page_index, book_panel, wxEmptyString, true);
+                ams_item->m_selection = m_right_page_index;
+                ext_item->m_selection = m_right_page_index;
+                m_right_page_index++;
+            }
+            else
+            {
+                wxPanel* book_panel = new wxPanel(m_simplebook_ams_left);
+                book_panel->SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
+                book_panel->SetSize(wxSize(FromDIP(264), FromDIP(150)));
+                book_panel->SetMinSize(wxSize(FromDIP(264), FromDIP(150)));
+                ams_item = new AmsItem(book_panel, single_info[0], AMSModel::SINGLE_AMS);
+                ext_item = new AmsItem(book_panel, single_info[1], mode);
+                book_sizer->Add(ams_item);
+                book_sizer->Add(ext_item);
+                book_panel->SetSizer(book_sizer);
+                //m_simplebook_ams_left->RemovePage(m_left_page_index);
+                m_simplebook_ams_left->InsertPage(m_left_page_index, book_panel, wxEmptyString, true);
+                ams_item->m_selection = m_left_page_index;
+                ext_item->m_selection = m_left_page_index;
+                m_left_page_index++;
+            }
+        }
+
+        m_ams_item_list[single_info[0].ams_id] = ams_item;
+        m_ams_item_list[single_info[1].ams_id] = ext_item;
+    }
+    m_simplebook_ams_left->Layout();
+    m_simplebook_ams_right->Layout();
+    m_simplebook_ams_left->Refresh();
+    m_simplebook_ams_right->Refresh();
+}
+
+//void AMSControl::AddExtAms(int ams_id) {
+//    if (m_ams_item_list.find(std::to_string(ams_id)) != m_ams_item_list.end())
+//    {
+//        //mode = AMSModel::EXTRA_AMS;
+//        AmsItem* ams_item;
+//        AMSinfo ext_info;
+//
+//        if (ams_id == VIRTUAL_TRAY_MAIN_ID)
+//        {
+//            ext_info.ams_id = std::to_string(VIRTUAL_TRAY_MAIN_ID);
+//            ext_info.nozzle_id = 0;
+//            ams_item = new AmsItem(m_simplebook_ams_right, ext_info, AMSModel::EXTRA_AMS);
+//            m_simplebook_ams_right->AddPage(ams_item, wxEmptyString, false);
+//            ams_item->m_selection = m_simplebook_ams_right->GetPageCount() - 1;
+//        }
+//        else if (ams_id == VIRTUAL_TRAY_DEPUTY_ID)
+//        {
+//            ext_info.ams_id = std::to_string(VIRTUAL_TRAY_DEPUTY_ID);
+//            ext_info.nozzle_id = 1;
+//            ams_item = new AmsItem(m_simplebook_ams_left, ext_info, AMSModel::EXTRA_AMS);
+//            m_simplebook_ams_left->AddPage(ams_item, wxEmptyString, false);
+//            ams_item->m_selection = m_simplebook_ams_left->GetPageCount() - 1;
+//        }
+//        m_ams_generic_item_list[std::to_string(ams_id)] = ams_item;
+//    }
+//}
+
+void AMSControl::AddAmsPreview(std::vector<AMSinfo>single_info) {
+
 }
 
 void AMSControl::SwitchAms(std::string ams_id)
 {
     if(ams_id == m_current_show_ams){return;}
 
-    if (ams_id != std::to_string(VIRTUAL_TRAY_MAIN_ID)) {
+    if (m_current_show_ams != ams_id) {
+        m_current_show_ams = ams_id;
+        m_extruder->OnAmsLoading(false);
+    }
+
+    /*if (ams_id != std::to_string(VIRTUAL_TRAY_MAIN_ID)) {
         if (m_current_show_ams != ams_id) {
             m_current_show_ams = ams_id;
             m_extruder->OnAmsLoading(false);
         }
-    }
+    }*/
 
-    for (auto i = 0; i < m_ams_item_list.GetCount(); i++) {
-        AmsItems *item = m_ams_item_list[i];
-        if (item->amsItem->m_amsinfo.ams_id == m_current_show_ams) {
-            item->amsItem->OnSelected();
-            m_current_senect = ams_id;
-
-            //bool ready_selected = false;
-            //for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
-            //    AmsCansWindow* ams = m_ams_cans_list[i];
-            //    if (ams->amsCans->m_info.ams_id == ams_id) {
-            //        //ams->amsCans->SetDefSelectCan();
-            //        //m_vams_lib->OnSelected();
-            //        if () {
-
-            //        }
-            //    }
-            //}
+    for (auto prv_it : m_ams_preview_list) {
+        AMSPreview* prv = prv_it.second;
+        if (prv->m_amsinfo.ams_id == m_current_show_ams) {
+            prv->OnSelected();
+            m_current_select = ams_id;
 
             bool ready_selected = false;
-            for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
-                AmsCansWindow* ams = m_ams_cans_list[i];
-                if (ams->amsCans->m_info.ams_id == ams_id) {
-                    for (auto lib : ams->amsCans->m_can_lib_list) {
-                        if (lib->canLib->is_selected()) {
+            for (auto item_it : m_ams_item_list) {
+                AmsItem* item = item_it.second;
+                if (item->m_info.ams_id == ams_id) {
+                    for (auto lib_it : item->m_can_lib_list) {
+                        AMSLib* lib = lib_it.second;
+                        if (lib->is_selected()) {
                             ready_selected = true;
                         }
                     }
                 }
             }
 
-            if (!ready_selected) {
-                m_current_ams = std::to_string(VIRTUAL_TRAY_MAIN_ID);
-                m_vams_lib->OnSelected();
-            }
-            else {
-                m_current_ams = ams_id;
-                m_vams_lib->UnSelected();
-            }
+            //if (!ready_selected) {
+            //    m_current_ams = std::to_string(VIRTUAL_TRAY_MAIN_ID);
+            //    //m_vams_lib->OnSelected();
+            //}
+            //else {
+            //    m_current_ams = ams_id;
+            //    //m_vams_lib->UnSelected();
+            //}
+            m_current_ams = ams_id;
 
         } else {
-            item->amsItem->UnSelected();
+            prv->UnSelected();
         }
-        m_sizer_top->Layout();
-        m_panel_top->Fit();
+
+        if (prv->m_amsinfo.nozzle_id == 1) {
+            m_sizer_items_left->Layout();
+            m_panel_items_left->Fit();
+        }
+        else if (prv->m_amsinfo.nozzle_id == 0)
+        {
+            m_sizer_items_right->Layout();
+            m_panel_items_right->Fit();
+        }
+
     }
 
-    for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
-        AmsCansWindow *cans = m_ams_cans_list[i];
-        if (cans->amsCans->m_info.ams_id == ams_id) {
+    for (auto ams_item : m_ams_item_list) {
+        AmsItem* item = ams_item.second;
+        if (item->m_info.ams_id == ams_id) {
 
-            if (m_ams_model == AMSModel::GENERIC_AMS) {
-                m_simplebook_generic_cans->SetSelection(cans->amsCans->m_selection);
+            /*if (m_ams_model == AMSModel::GENERIC_AMS) {
+                if (item->m_info.nozzle_id == 1)
+                {
+                    m_simplebook_ams_left->SetSelection(item->m_selection);
+                }
+                else if (item->m_info.nozzle_id == 0)
+                {
+                    m_simplebook_ams_right->SetSelection(item->m_selection);
+                }
+
+            }*/
+            if (m_nozzle_num == 2) {
+                if (item->m_info.nozzle_id == 1)
+                {
+                    m_simplebook_ams_left->SetSelection(item->m_selection);
+                    if (item->m_info.cans.size() == 4)
+                    {
+                        m_down_road->UpdateLeft(m_nozzle_num, AMSRoadShowMode::AMS_ROAD_MODE_FOUR);
+                    }
+                    else {
+                        AMSRoadShowMode mode = AMSRoadShowMode::AMS_ROAD_MODE_SINGLE;
+                        for (auto it : pair_id)
+                        {
+                            if (it.first == ams_id || it.second == ams_id)
+                            {
+                                mode = AMSRoadShowMode::AMS_ROAD_MODE_DOUBLE;
+                                break;
+                            }
+                        }
+                        m_down_road->UpdateLeft(m_nozzle_num, mode);
+                    }
+
+                }
+                else if (item->m_info.nozzle_id == 0)
+                {
+                    m_simplebook_ams_right->SetSelection(item->m_selection);
+                    if (item->m_info.cans.size() == 4)
+                    {
+                        m_down_road->UpdateRight(m_nozzle_num, AMSRoadShowMode::AMS_ROAD_MODE_FOUR);
+                    }
+                    else {
+                        AMSRoadShowMode mode = AMSRoadShowMode::AMS_ROAD_MODE_SINGLE;
+                        for (auto it : pair_id)
+                        {
+                            if (it.first == ams_id || it.second == ams_id)
+                            {
+                                mode = AMSRoadShowMode::AMS_ROAD_MODE_DOUBLE;
+                                break;
+                            }
+                        }
+                        m_down_road->UpdateRight(m_nozzle_num, mode);
+                    }
+                }
+
             }
-            else if (m_ams_model == AMSModel::EXTRA_AMS) {
-                m_simplebook_extra_cans->SetSelection(cans->amsCans->m_selection);
+            else if (m_nozzle_num == 1) {
+                for (auto id : m_item_ids[0])
+                {
+                    if (id == item->m_info.ams_id)
+                    {
+                        m_simplebook_ams_left->SetSelection(item->m_selection);
+                        if (item->m_info.cans.size() == 4)
+                        {
+                            m_down_road->UpdateLeft(m_nozzle_num, AMSRoadShowMode::AMS_ROAD_MODE_FOUR);
+                        }
+                        else {
+                            AMSRoadShowMode mode = AMSRoadShowMode::AMS_ROAD_MODE_SINGLE;
+                            for (auto it : pair_id)
+                            {
+                                if (it.first == ams_id || it.second == ams_id)
+                                {
+                                    mode = AMSRoadShowMode::AMS_ROAD_MODE_DOUBLE;
+                                    break;
+                                }
+                            }
+                            m_down_road->UpdateLeft(m_nozzle_num, mode);
+                        }
+
+                    }
+
+                }
+                for (auto id : m_item_ids[1])
+                {
+                    if (id == item->m_info.ams_id)
+                    {
+                        m_simplebook_ams_right->SetSelection(item->m_selection);
+
+                        if (item->m_info.cans.size() == 4)
+                        {
+                            m_down_road->UpdateRight(m_nozzle_num, AMSRoadShowMode::AMS_ROAD_MODE_FOUR);
+                        }
+                        else {
+                            AMSRoadShowMode mode = AMSRoadShowMode::AMS_ROAD_MODE_SINGLE;
+                            for (auto it : pair_id)
+                            {
+                                if (it.first == ams_id || it.second == ams_id)
+                                {
+                                    mode = AMSRoadShowMode::AMS_ROAD_MODE_DOUBLE;
+                                    break;
+                                }
+                            }
+                            m_down_road->UpdateRight(m_nozzle_num, mode);
+                        }
+
+                    }
+                }
             }
         }
     }
 
 
-     // update extruder
-    //m_extruder->OnAmsLoading(false);
+    //update extruder
     for (auto i = 0; i < m_ams_info.size(); i++) {
         if (m_ams_info[i].ams_id == m_current_ams) {
             switch (m_ams_info[i].current_step) {
@@ -3601,7 +4417,7 @@ void AMSControl::SwitchAms(std::string ams_id)
 }
 
 void AMSControl::SetFilamentStep(int item_idx, FilamentStepType f_type)
-{
+{/*
     wxString FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_COUNT] = {
         _L("Idling..."),
         _L("Heat the nozzle"),
@@ -3669,12 +4485,12 @@ void AMSControl::SetFilamentStep(int item_idx, FilamentStepType f_type)
         else {
             m_filament_load_step->Idle();
         }
-    }
+    }*/
 }
 
 void AMSControl::ShowFilamentTip(bool hasams)
 {
-    m_simplebook_right->SetSelection(0);
+    //m_simplebook_right->SetSelection(0);
     if (hasams) {
         m_tip_right_top->Show();
         m_tip_load_info->SetLabelText(_L("Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."));
@@ -3691,18 +4507,19 @@ void AMSControl::ShowFilamentTip(bool hasams)
 
 bool AMSControl::Enable(bool enable)
 {
-    for (auto i = 0; i < m_ams_item_list.GetCount(); i++) {
-        AmsItems *item = m_ams_item_list[i];
-        item->amsItem->Enable(enable);
+    for (auto prv_it : m_ams_preview_list) {
+        AMSPreview* prv = prv_it.second;
+        prv->Enable(enable);
     }
 
-    for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
-        AmsCansWindow *cans = m_ams_cans_list[i];
-        cans->amsCans->Enable(enable);
+    for (auto item_it : m_ams_item_list) {
+        AmsItem* item = item_it.second;
+        item->Enable(enable);
     }
 
     m_button_extruder_feed->Enable(enable);
     m_button_extruder_back->Enable(enable);
+    m_button_auto_refill->Enable(enable);
     m_button_ams_setting->Enable(enable);
 
     m_filament_load_step->Enable(enable);
@@ -3711,6 +4528,10 @@ bool AMSControl::Enable(bool enable)
 
 void AMSControl::SetExtruder(bool on_off, bool is_vams, std::string ams_now, wxColour col)
 {
+    AmsItem* item = nullptr;
+    if (m_ams_item_list.find(ams_now) != m_ams_item_list.end()){
+        item = m_ams_item_list[ams_now];
+    }
     if (m_ams_model == AMSModel::GENERIC_AMS || m_ext_model == AMSModel::GENERIC_AMS ) {
         if (!on_off) {
             m_extruder->TurnOff();
@@ -3720,15 +4541,17 @@ void AMSControl::SetExtruder(bool on_off, bool is_vams, std::string ams_now, wxC
         }
         else {
             m_extruder->TurnOn(col);
-
-            if (ams_now != GetCurentShowAms()) {
-                m_extruder->OnAmsLoading(false, col);
-            } else {
-                m_extruder->OnAmsLoading(true, col);
+            if (item){
+                if (ams_now != GetCurentShowAms()) {
+                    m_extruder->OnAmsLoading(false, item->m_info.nozzle_id, col);
+                }
+                else {
+                    m_extruder->OnAmsLoading(true, item->m_info.nozzle_id, col);
+                }
             }
         }
 
-        if (is_vams && on_off) {
+        /*if (is_vams && on_off) {
             m_extruder->OnAmsLoading(false);
             m_vams_extra_road->OnVamsLoading(true, col);
             m_extruder->OnVamsLoading(true, col);
@@ -3738,96 +4561,261 @@ void AMSControl::SetExtruder(bool on_off, bool is_vams, std::string ams_now, wxC
             m_vams_extra_road->OnVamsLoading(false);
             m_extruder->OnVamsLoading(false);
             m_vams_road->OnVamsLoading(false);
-        }
+        }*/
     }
     else if (m_ams_model == AMSModel::EXTRA_AMS || m_ext_model == AMSModel::EXTRA_AMS) {
-        if (!is_vams && !on_off) {
+        if (!on_off) {
             m_extruder->TurnOff();
-            m_extruder->OnVamsLoading(false);
-            m_vams_extra_road->OnVamsLoading(false);
-            m_vams_road->OnVamsLoading(false);
+            m_extruder->OnAmsLoading(false);
+            /*m_vams_extra_road->OnVamsLoading(false);
+            m_vams_road->OnVamsLoading(false);*/
         }
         else {
             m_extruder->TurnOn(col);
-        }
-
-        if (is_vams && on_off) {
-            m_vams_extra_road->OnVamsLoading(true, col);
-            m_extruder->OnVamsLoading(true, col);
-            m_vams_road->OnVamsLoading(true, col);
-        }
-        else {
-            m_vams_extra_road->OnVamsLoading(false);
-            m_extruder->OnVamsLoading(false);
-            m_vams_road->OnVamsLoading(false);
+            m_extruder->OnAmsLoading(true, item->m_info.nozzle_id, col);
         }
     }
 }
 
+//void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadType type, AMSPassRoadSTEP step)
+//{
+//    AmsItem *cans = nullptr;
+//    auto cansit = m_ams_item_list.find(ams_id);
+//    bool           notfound = true;
+//
+//
+//    if (cansit != m_ams_item_list.end()) {
+//        cans =  cansit->second;
+//    }
+//    else {
+//        notfound = false;
+//    }
+//
+//
+//
+//    if (ams_id != m_last_ams_id || m_last_tray_id != canid) {
+//        SetAmsStep(m_last_ams_id, m_last_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+//        //m_down_road->UpdatePassRoad(m_last_ams_id, m_last_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+//        m_vams_extra_road->OnVamsLoading(false);
+//        m_extruder->OnVamsLoading(false);
+//        m_vams_road->OnVamsLoading(false);
+//    }
+//
+//    if (notfound) return;
+//    if (cans == nullptr) return;
+//
+//
+//    m_last_ams_id = ams_id;
+//    m_last_tray_id = canid;
+//
+//
+//    if (m_ams_model == AMSModel::GENERIC_AMS) {
+//        if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_NONE) {
+//            //cans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+//            m_extruder->OnAmsLoading(false);
+//        }
+//
+//        if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP1) {
+//            //cans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
+//            m_extruder->OnAmsLoading(false);
+//        }
+//
+//        if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2) {
+//            //cans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
+//            //cans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_2);
+//            if (m_current_show_ams == ams_id) {
+//                m_extruder->OnAmsLoading(true, cans->GetTagColr(canid));
+//            }
+//        }
+//
+//        if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3) {
+//            //cans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
+//            //cans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_2);
+//            //cans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
+//            m_extruder->OnAmsLoading(true, cans->GetTagColr(canid));
+//        }
+//    }
+//    else if (m_ams_model == AMSModel::EXTRA_AMS) {
+//        //cans->SetAmsStepExtra(canid, type, step);
+//        if (step != AMSPassRoadSTEP::AMS_ROAD_STEP_NONE) {
+//            m_extruder->OnAmsLoading(true, cans->GetTagColr(canid));
+//        }
+//        else {
+//            m_extruder->OnAmsLoading(false);
+//        }
+//    }
+//
+//    for (auto i = 0; i < m_ams_info.size(); i++) {
+//        if (m_ams_info[i].ams_id == ams_id) {
+//            m_ams_info[i].current_step   = step;
+//            m_ams_info[i].current_can_id = canid;
+//        }
+//    }
+//}
+
+
 void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadType type, AMSPassRoadSTEP step)
 {
-    AmsCansWindow *cans     = nullptr;
-    bool           notfound = true;
+    AmsItem* ams = nullptr;
+    auto amsit = m_ams_item_list.find(ams_id);
+    bool           notfound = false;
 
-    for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
-        cans = m_ams_cans_list[i];
-        if (cans->amsCans->m_info.ams_id == ams_id) {
-            notfound = false;
-            break;
-        }
+
+    if (amsit != m_ams_item_list.end()) {
+        ams = amsit->second;
+    }
+    else {
+        notfound = true;
     }
 
-
-    if (ams_id != m_last_ams_id || m_last_tray_id != canid) {
-        SetAmsStep(m_last_ams_id, m_last_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
-        m_vams_extra_road->OnVamsLoading(false);
-        m_extruder->OnVamsLoading(false);
-        m_vams_road->OnVamsLoading(false);
-    }
+    //if (ams_id != m_last_ams_id || m_last_tray_id != canid) {
+    //    m_down_road->UpdatePassRoad(m_last_ams_id, true, -1, ams->m_info, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+    //    m_down_road->UpdatePassRoad(m_last_ams_id, false, -1, ams->m_info, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+    //    //m_down_road->UpdatePassRoad(m_last_ams_id, m_last_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+    //    //m_vams_extra_road->OnVamsLoading(false);
+    //    m_extruder->OnVamsLoading(false);
+    //    //m_vams_road->OnVamsLoading(false);
+    //}
 
     if (notfound) return;
-    if (cans == nullptr) return;
+    if (ams == nullptr) return;
 
     m_last_ams_id = ams_id;
     m_last_tray_id = canid;
+    auto model = AMSModel::EXTRA_AMS;
 
-    if (m_ams_model == AMSModel::GENERIC_AMS) {
+    bool left = false;
+    for (auto id : m_item_ids[0]){
+        if (id == ams_id){
+            left = true;
+            break;
+        }
+    }
+    int length = -1;
+
+
+    if (ams->m_info.cans.size() == 4){
+        length = left ? 135 : 149;
+        model = ams->m_info.ams_type;
+    }
+    else if (ams->m_info.cans.size() == 1){
+        for (auto it : pair_id){
+            if (it.first == ams_id){
+                length = left ? 150 : 50;
+                break;
+            }
+            else if (it.second == ams_id){
+                length = left ? 50 : 150;
+                break;
+            }
+        }
+        model = AMSModel::SINGLE_AMS;
+    }
+    if (model == AMSModel::EXTRA_AMS){
+        length = left ? 150 : 50;
+    }
+
+
+    if (model == AMSModel::GENERIC_AMS || model == AMSModel::N3F_AMS || model == AMSModel::EXTRA_AMS) {
         if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_NONE) {
-            cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+            //cans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+            m_down_road->UpdatePassRoad(canid, true, -1, ams->m_info, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+            m_down_road->UpdatePassRoad(canid, false, -1, ams->m_info, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+            ams->SetAmsStep(ams_id, canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
             m_extruder->OnAmsLoading(false);
         }
 
         if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP1) {
-            cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
+            m_down_road->UpdatePassRoad(canid, left, length, ams->m_info, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
+            ams->SetAmsStep(ams_id, canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
             m_extruder->OnAmsLoading(false);
         }
 
         if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2) {
-            cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
-            cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_2);
-            if (m_current_show_ams == ams_id) { m_extruder->OnAmsLoading(true, cans->amsCans->GetTagColr(canid)); }
+            m_down_road->UpdatePassRoad(canid, left, length, ams->m_info, AMSPassRoadSTEP::AMS_ROAD_STEP_2);
+            ams->SetAmsStep(ams_id, canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_2);
+            if (m_current_show_ams == ams_id) {
+                m_extruder->OnAmsLoading(true, ams->m_info.nozzle_id, ams->GetTagColr(canid));
+            }
         }
 
         if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3) {
-            cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
-            cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_2);
-            cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
-            m_extruder->OnAmsLoading(true, cans->amsCans->GetTagColr(canid));
+            m_down_road->UpdatePassRoad(canid, left, length, ams->m_info, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
+            ams->SetAmsStep(ams_id, canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
+            m_extruder->OnAmsLoading(true, ams->m_info.nozzle_id, ams->GetTagColr(canid));
         }
     }
-    else if (m_ams_model == AMSModel::EXTRA_AMS) {
-        cans->amsCans->SetAmsStepExtra(canid, type, step);
-        if (step != AMSPassRoadSTEP::AMS_ROAD_STEP_NONE) {
-            m_extruder->OnAmsLoading(true, cans->amsCans->GetTagColr(canid));
-        }
-        else {
+    else if(model == AMSModel::NO_AMS || model == AMSModel::SINGLE_AMS) {
+        if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_NONE) {
+            //cans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+            m_down_road->UpdatePassRoad(canid, true, -1, ams->m_info, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+            m_down_road->UpdatePassRoad(canid, false, -1, ams->m_info, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+            ams->SetAmsStep(ams_id, canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
             m_extruder->OnAmsLoading(false);
+        }
+
+        if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP1) {
+            m_down_road->UpdatePassRoad(canid, left, length, ams->m_info, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
+            ams->SetAmsStep(ams_id, canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
+            m_extruder->OnAmsLoading(false);
+        }
+
+        if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2) {
+            m_down_road->UpdatePassRoad(canid, left, length, ams->m_info, AMSPassRoadSTEP::AMS_ROAD_STEP_2);
+            ams->SetAmsStep(ams_id, canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_2);
+            if (m_current_show_ams == ams_id) {
+                m_extruder->OnAmsLoading(true, ams->m_info.nozzle_id, ams->GetTagColr(canid));
+            }
+        }
+
+        if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3) {
+            m_down_road->UpdatePassRoad(canid, left, length, ams->m_info, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
+            ams->SetAmsStep(ams_id, canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
+            m_extruder->OnAmsLoading(true, ams->m_info.nozzle_id, ams->GetTagColr(canid));
         }
     }
 
+    //if (m_ams_model == AMSModel::GENERIC_AMS) {
+    //    if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_NONE) {
+    //        //cans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+    //        m_down_road->UpdatePassRoad(canid, true, -1, ams->m_info, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+    //        m_down_road->UpdatePassRoad(canid, false, -1, ams->m_info, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+    //        m_extruder->OnAmsLoading(false);
+    //    }
+
+    //    if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP1) {
+    //        //cans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
+    //        m_extruder->OnAmsLoading(false);
+    //    }
+
+    //    if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2) {
+    //        //cans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
+    //        //cans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_2);
+    //        if (m_current_show_ams == ams_id) {
+    //            m_extruder->OnAmsLoading(true, cans->GetTagColr(canid));
+    //        }
+    //    }
+
+    //    if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3) {
+    //        //cans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
+    //        //cans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_2);
+    //        //cans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
+    //        m_extruder->OnAmsLoading(true, cans->GetTagColr(canid));
+    //    }
+    //}
+    //else if (m_ams_model == AMSModel::EXTRA_AMS) {
+    //    //cans->SetAmsStepExtra(canid, type, step);
+    //    if (step != AMSPassRoadSTEP::AMS_ROAD_STEP_NONE) {
+    //        m_extruder->OnAmsLoading(true, cans->GetTagColr(canid));
+    //    }
+    //    else {
+    //        m_extruder->OnAmsLoading(false);
+    //    }
+    //}
+
     for (auto i = 0; i < m_ams_info.size(); i++) {
         if (m_ams_info[i].ams_id == ams_id) {
-            m_ams_info[i].current_step   = step;
+            m_ams_info[i].current_step = step;
             m_ams_info[i].current_can_id = canid;
         }
     }
@@ -3859,12 +4847,31 @@ void AMSControl::on_filament_unload(wxCommandEvent &event)
     post_event(SimpleEvent(EVT_AMS_UNLOAD));
 }
 
+void AMSControl::auto_refill(wxCommandEvent& event)
+{
+    post_event(SimpleEvent(EVT_AMS_FILAMENT_BACKUP));
+}
+
 void AMSControl::on_ams_setting_click(wxMouseEvent &event)
 {
     for (auto i = 0; i < m_ams_info.size(); i++) {
         if (m_ams_info[i].ams_id == m_current_ams) { m_ams_info[i].current_action = AMSAction::AMS_ACTION_CALI; }
     }
     post_event(SimpleEvent(EVT_AMS_SETTINGS));
+}
+
+void AMSControl::parse_object(MachineObject* obj) {
+    if (!obj || obj->amsList.size() == 0)
+    {
+        return;
+    }
+    m_ams_info.clear();
+    for (auto ams : obj->amsList)
+    {
+        AMSinfo info;
+        info.parse_ams_info(obj, ams.second);
+        m_ams_info.push_back(info);
+    }
 }
 
 void AMSControl::on_clibration_again_click(wxMouseEvent &event) { post_event(SimpleEvent(EVT_AMS_CLIBRATION_AGAIN)); }

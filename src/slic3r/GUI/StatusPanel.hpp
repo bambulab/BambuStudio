@@ -440,6 +440,7 @@ public:
 
     ~StatusBasePanel();
 
+    MachineObject* obj{ nullptr };
     void init_bitmaps();
     wxBoxSizer *create_monitoring_page();
     wxBoxSizer *create_machine_control_page(wxWindow *parent);
@@ -647,7 +648,6 @@ public:
         STATE_COUNT = 4
     };
 
-    MachineObject *obj {nullptr};
     BBLSubTask *   last_subtask{nullptr};
     std::string    last_profile_id;
     std::string    last_task_id;
