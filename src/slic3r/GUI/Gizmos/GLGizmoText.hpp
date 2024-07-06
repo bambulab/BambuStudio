@@ -114,11 +114,7 @@ protected:
     void show_tooltip_information(float x, float y);
 
 private:
-<<<<<<< HEAD   (ac285d FIX:return bar pos only been modified in 3d view)
-    ModelVolume *get_selected_single_volume(int& out_object_idx, int& out_volume_idx) const;
     void update_font_status();
-=======
->>>>>>> CHANGE (aef92c FIX:move text should update text info)
     void reset_text_info();
     bool update_text_positions(const std::vector<std::string>& texts);
     TriangleMesh get_text_mesh(const char* text_str, const Vec3d &position, const Vec3d &normal, const Vec3d &text_up_dir);
