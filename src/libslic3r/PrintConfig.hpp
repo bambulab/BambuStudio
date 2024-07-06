@@ -502,6 +502,7 @@ public:
 
     void update_non_diff_values_to_base_config(DynamicPrintConfig& new_config, const t_config_option_keys& keys, const std::set<std::string>& different_keys, std::string extruder_id_name, std::string extruder_variant_name,
         std::set<std::string>& key_set1, std::set<std::string>& key_set2 = std::set<std::string>());
+    void update_diff_values_to_child_config(DynamicPrintConfig& new_config, std::string extruder_id_name, std::string extruder_variant_name, std::set<std::string>& key_set1, std::set<std::string>& key_set2);
 
     bool is_custom_defined();
 };
@@ -510,6 +511,7 @@ extern std::set<std::string> print_options_with_variant;
 extern std::set<std::string> filament_options_with_variant;
 extern std::set<std::string> printer_options_with_variant_1;
 extern std::set<std::string> printer_options_with_variant_2;
+extern std::set<std::string> empty_options;
 
 void handle_legacy_sla(DynamicPrintConfig &config);
 
