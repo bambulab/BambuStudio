@@ -89,9 +89,13 @@ std::mutex g_mutex;
 
 struct form_file
 {
-    fs::ifstream ifs;
+    fs::ifstream                          ifs;
     boost::filesystem::ifstream::off_type init_offset;
     size_t                                content_length;
+
+    form_file(fs::path const& p, const boost::filesystem::ifstream::off_type offset, const size_t content_length)
+        : ifs(p, std::ios::in | std::ios::binary), init_offset(offset), content_length(content_length)
+    {}
 };
 
 struct Http::priv
@@ -314,7 +318,7 @@ void Http::priv::form_add_file(const char *name, const fs::path &path, const cha
 		filename = path.string().c_str();
 	}
 
-	form_files.emplace_back(form_file{{path, std::ios::in | std::ios::binary}, offset, length});
+	form_files.emplace_back(path, offset, length);
 	auto &f = form_files.back();
     size_t size = length;
     if (length == 0) {
