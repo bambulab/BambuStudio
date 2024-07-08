@@ -428,6 +428,8 @@ set(lisbslic3r_sources
     ClipperZUtils.hpp
     FlushVolPredictor.hpp
     FlushVolPredictor.cpp
+    FilamentGroup.hpp
+    FilamentGroup.cpp
 )
 
 if (APPLE)
