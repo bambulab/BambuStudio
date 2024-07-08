@@ -6,13 +6,12 @@
 
 
 namespace Slic3r {
-float CalibPressureAdvance::find_optimal_PA_speed(const DynamicPrintConfig &config, double line_width, double layer_height, int filament_idx)
+float CalibPressureAdvance::find_optimal_PA_speed(const DynamicPrintConfig &config, double line_width, double layer_height, int extruder_id, int filament_idx)
 {
     const double general_suggested_min_speed   = 100.0;
     double       filament_max_volumetric_speed = config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(filament_idx);
-    // todo multi_extruders:
-    Flow         pattern_line                  = Flow(line_width, layer_height, config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0/*get_extruder_index(filament_idx)*/));
-    auto         pa_speed                      = std::min(std::max(general_suggested_min_speed, config.option<ConfigOptionFloatsNullable>("outer_wall_speed")->get_at(0/*get_extruder_index(filament_idx)*/)),
+    Flow         pattern_line                  = Flow(line_width, layer_height, config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(extruder_id));
+    auto         pa_speed                      = std::min(std::max(general_suggested_min_speed, config.option<ConfigOptionFloatsNullable>("outer_wall_speed")->get_at(extruder_id)),
                              filament_max_volumetric_speed / pattern_line.mm3_per_mm());
 
     return std::floor(pa_speed);

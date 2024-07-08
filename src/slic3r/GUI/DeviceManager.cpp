@@ -667,7 +667,7 @@ bool MachineObject::is_extrusion_cali_finished()
     if (diff.count() < EXTRUSION_OMIT_TIME) {
         return false;
     }
-    
+
     if (boost::contains(m_gcode_file, "extrusion_cali")
         && this->mc_print_percent == 100)
         return true;
@@ -972,7 +972,7 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
                     }
                     continue;
                 }
-                    
+
                 if (distance_map[i][j].is_same_color
                     && distance_map[i][j].is_type_match) {
                     if (min_val > distance_map[i][j].distance) {
@@ -980,7 +980,7 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
                         min_val = distance_map[i][j].distance;
                         picked_src_idx = i;
                         picked_tar_idx = j;
-                    } 
+                    }
                     else if (min_val == distance_map[i][j].distance&& filaments[picked_src_idx].filament_id!= tray_filaments[picked_tar_idx].filament_id && filaments[i].filament_id == tray_filaments[j].filament_id) {
 
                         picked_src_idx = i;
@@ -1047,7 +1047,7 @@ bool MachineObject::is_valid_mapping_result(std::vector<FilamentInfo>& result, b
         else {
             auto ams_item = amsList.find(result[i].ams_id);
             if (ams_item == amsList.end()) {
-                if ( (result[i].ams_id != std::to_string(VIRTUAL_TRAY_MAIN_ID))  && 
+                if ( (result[i].ams_id != std::to_string(VIRTUAL_TRAY_MAIN_ID))  &&
                     (result[i].ams_id != std::to_string(VIRTUAL_TRAY_DEPUTY_ID))) {
                     result[i].tray_id = -1;
                     valid_ams_mapping_result = false;
@@ -1401,7 +1401,7 @@ void MachineObject::parse_status(int flag)
 
     is_support_air_print_detection = ((flag >> 29) & 0x1) != 0;
     ams_air_print_status = ((flag >> 28) & 0x1) != 0;
-    
+
     if (!is_support_p1s_plus) {
         auto supported_plus = ((flag >> 27) & 0x1) != 0;
         auto installed_plus = ((flag >> 26) & 0x1) != 0;
@@ -1532,7 +1532,7 @@ int MachineObject::command_get_access_code() {
     json j;
     j["system"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["system"]["command"] = "get_access_code";
-    
+
     return this->publish_json(j.dump());
 }
 
@@ -1772,7 +1772,7 @@ int MachineObject::command_set_nozzle(int temp)
 int MachineObject::command_set_chamber(int temp)
 {
     json j;
-    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++); 
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["command"] = "set_ctt";
     j["print"]["ctt_val"] = temp;
 
@@ -2119,7 +2119,7 @@ int MachineObject::command_axis_control(std::string axis, double unit, double in
     try {
         json j;
         j["axis_control"] = axis;
-      
+
         NetworkAgent* agent = GUI::wxGetApp().getAgent();
         if (agent) agent->track_event("printer_control", j.dump());
     }
@@ -2180,6 +2180,10 @@ int MachineObject::command_start_pa_calibration(const X1CCalibInfos &pa_data, in
         j["print"]["filaments"][i]["filament_id"]          = pa_data.calib_datas[i].filament_id;
         j["print"]["filaments"][i]["setting_id"]           = pa_data.calib_datas[i].setting_id;
         j["print"]["filaments"][i]["nozzle_temp"]          = pa_data.calib_datas[i].nozzle_temp;
+        j["print"]["filaments"][i]["ams_id"]               = pa_data.calib_datas[i].ams_id;
+        j["print"]["filaments"][i]["slot_id"]              = pa_data.calib_datas[i].slot_id;
+        j["print"]["filaments"][i]["nozzle_volume_type"]   = int(pa_data.calib_datas[i].nozzle_volume_type);
+        j["print"]["filaments"][i]["nozzle_diameter"]      = pa_data.calib_datas[i].nozzle_diameter;
         j["print"]["filaments"][i]["max_volumetric_speed"] = std::to_string(pa_data.calib_datas[i].max_volumetric_speed);
 
         if (i > 0) filament_ids += ",";
@@ -2217,6 +2221,10 @@ int MachineObject::command_set_pa_calibration(const std::vector<PACalibResult> &
             if (pa_calib_values[i].cali_idx >= 0)
                 j["print"]["filaments"][i]["cali_idx"] = pa_calib_values[i].cali_idx;
             j["print"]["filaments"][i]["tray_id"]     = pa_calib_values[i].tray_id;
+            j["print"]["filaments"][i]["extruder_id"] = pa_calib_values[i].extruder_id;
+            j["print"]["filaments"][i]["nozzle_volume_type"] = int(pa_calib_values[i].nozzle_volume_type);
+            j["print"]["filaments"][i]["ams_id"]      = pa_calib_values[i].ams_id;
+            j["print"]["filaments"][i]["slot_id"]     = pa_calib_values[i].slot_id;
             j["print"]["filaments"][i]["filament_id"] = pa_calib_values[i].filament_id;
             j["print"]["filaments"][i]["setting_id"]  = pa_calib_values[i].setting_id;
             j["print"]["filaments"][i]["name"]        = pa_calib_values[i].name;
@@ -2239,6 +2247,8 @@ int MachineObject::command_delete_pa_calibration(const PACalibIndexInfo& pa_cali
     json j;
     j["print"]["command"]         = "extrusion_cali_del";
     j["print"]["sequence_id"]     = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["extruder_id"]     = pa_calib.extruder_id;
+    j["print"]["nozzle_volume_type"]     = int(pa_calib.nozzle_volume_type);
     j["print"]["filament_id"]     = pa_calib.filament_id;
     j["print"]["cali_idx"]        = pa_calib.cali_idx;
     j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(pa_calib.nozzle_diameter);
@@ -2247,15 +2257,17 @@ int MachineObject::command_delete_pa_calibration(const PACalibIndexInfo& pa_cali
     return this->publish_json(j.dump());
 }
 
-int MachineObject::command_get_pa_calibration_tab(float nozzle_diameter, const std::string &filament_id)
+int MachineObject::command_get_pa_calibration_tab(const PACalibExtruderInfo &calib_info)
 {
     reset_pa_cali_history_result();
 
     json j;
     j["print"]["command"]         = "extrusion_cali_get";
     j["print"]["sequence_id"]     = std::to_string(MachineObject::m_sequence_id++);
-    j["print"]["filament_id"]     = filament_id;
-    j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(nozzle_diameter);
+    j["print"]["filament_id"]     = calib_info.filament_id;
+    j["print"]["extruder_id"]     = calib_info.extruder_id;
+    j["print"]["nozzle_volume_type"]    = int(calib_info.nozzle_volume_type);
+    j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(calib_info.nozzle_diameter);
 
     BOOST_LOG_TRIVIAL(trace) << "extrusion_cali_get: " << j.dump();
     return this->publish_json(j.dump());
@@ -2278,6 +2290,8 @@ int MachineObject::commnad_select_pa_calibration(const PACalibIndexInfo& pa_cali
     j["print"]["command"]         = "extrusion_cali_sel";
     j["print"]["sequence_id"]     = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["tray_id"]         = pa_calib_info.tray_id;
+    j["print"]["ams_id"]          = pa_calib_info.ams_id;
+    j["print"]["slot_id"]         = pa_calib_info.slot_id;
     j["print"]["cali_idx"]        = pa_calib_info.cali_idx;
     j["print"]["filament_id"]     = pa_calib_info.filament_id;
     j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(pa_calib_info.nozzle_diameter);
@@ -2780,7 +2794,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     else {
                         if (!printer_type.empty() && connection_type() == "lan")
                             print_json.load_compatible_settings(printer_type, "");
-                        print_json.diff2all_base_reset(j_pre); 
+                        print_json.diff2all_base_reset(j_pre);
                     }
                 }
             }
@@ -3567,7 +3581,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                     }
                                 }
 
-                            
+
                             }
                         }
                         catch(...) {
@@ -3764,7 +3778,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                 virtual_camera = ipcam.value<std::string>("virtual_camera", "disabled") == "enabled";
                                 if (ipcam.contains("rtsp_url")) {
                                     local_rtsp_url = ipcam["rtsp_url"].get<std::string>();
-                                    liveview_local = local_rtsp_url.empty() ? LVL_None : local_rtsp_url == "disable" 
+                                    liveview_local = local_rtsp_url.empty() ? LVL_None : local_rtsp_url == "disable"
                                             ? LVL_Disable : boost::algorithm::starts_with(local_rtsp_url, "rtsps") ? LVL_Rtsps : LVL_Rtsp;
                                 }
                                 if (ipcam.contains("tutk_server")) {
@@ -3962,7 +3976,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                     if (!it->contains("id")) continue;
                                     std::string ams_id = (*it)["id"].get<std::string>();
 
-                                    int nozzle_id = 0; // Default nozzle id 
+                                    int nozzle_id = 0; // Default nozzle id
                                     int type_id = 1;   // 0:dummy 1:ams 2:ams-lite 3:n3f 4:n3s
 
                                     if (it->contains("nozzle")) {
@@ -3972,7 +3986,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                     if (it->contains("type")) {
                                         type_id = (*it)["type"].get<int>();
                                     }
-                                   
+
                                     ams_id_set.erase(ams_id);
                                     Ams* curr_ams = nullptr;
                                     auto ams_it = amsList.find(ams_id);
@@ -4006,7 +4020,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                             ;
                                         }
                                     }
-                                
+
 
                                     if (it->contains("tray")) {
                                         std::set<std::string> tray_id_set;
@@ -4163,7 +4177,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                                     }
                                                 }
                                             }
-                                 
+
                                             if (tray_it->contains("remain")) {
                                                 curr_tray->remain = (*tray_it)["remain"].get<int>();
                                             } else {
@@ -4241,7 +4255,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                         }
                                         else {
                                             vt_slot.push_back(vslot);
-                                        }  
+                                        }
                                     }
                                     else if (vslot.id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
                                         auto it = std::next(vt_slot.begin(), 1);
@@ -4554,7 +4568,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                             }
                         }
                     }
-                }   
+                }
                 else if (jj["command"].get<std::string>() == "extrusion_cali_get") {
                     if (jj.contains("result") && jj.contains("reason")) {
                         if (jj["result"].get<std::string>() == "fail") {
@@ -4568,10 +4582,10 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
 
                     if (jj.contains("nozzle_diameter")) {
                         if (jj["nozzle_diameter"].is_number_float()) {
-                            pa_calib_tab_nozzle_dia = jj["nozzle_diameter"].get<float>();
+                            pa_calib_tab_info.pa_calib_tab_nozzle_dia = jj["nozzle_diameter"].get<float>();
                         }
                         else if (jj["nozzle_diameter"].is_string()) {
-                            pa_calib_tab_nozzle_dia = string_to_float(jj["nozzle_diameter"].get<std::string>());
+                            pa_calib_tab_info.pa_calib_tab_nozzle_dia = string_to_float(jj["nozzle_diameter"].get<std::string>());
                         }
                         else {
                             assert(false);
@@ -4579,6 +4593,14 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     }
                     else {
                         assert(false);
+                    }
+
+                    if (jj.contains("extruder_id")) {
+                        pa_calib_tab_info.extruder_id = jj["extruder_id"].get<int>();
+                    }
+
+                    if (jj.contains("nozzle_volume_type")) {
+                        pa_calib_tab_info.nozzle_volume_type = NozzleVolumeType(jj["nozzle_volume_type"].get<int>());
                     }
 
                     if (jj.contains("filaments") && jj["filaments"].is_array()) {
@@ -4655,6 +4677,30 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                     pa_calib_result.nozzle_diameter = string_to_float(jj["nozzle_diameter"].get<std::string>());
                                 }
 
+                                if (it->contains("ams_id")) {
+                                    pa_calib_result.ams_id = (*it)["ams_id"].get<int>();
+                                } else {
+                                    pa_calib_result.ams_id = 0;
+                                }
+
+                                if (it->contains("slot_id")) {
+                                    pa_calib_result.slot_id = (*it)["slot_id"].get<int>();
+                                } else {
+                                    pa_calib_result.slot_id = 0;
+                                }
+
+                                if (it->contains("extruder_id")) {
+                                    pa_calib_result.extruder_id = (*it)["extruder_id"].get<int>();
+                                } else {
+                                    pa_calib_result.extruder_id = -1;
+                                }
+
+                                if (it->contains("nozzle_volume_type")) {
+                                    pa_calib_result.nozzle_volume_type = NozzleVolumeType((*it)["nozzle_volume_type"].get<int>());
+                                } else {
+                                    pa_calib_result.nozzle_volume_type = NozzleVolumeType::nvtNormal;
+                                }
+
                                 if ((*it)["k_value"].is_number_float())
                                     pa_calib_result.k_value = (*it)["k_value"].get<float>();
                                 else if ((*it)["k_value"].is_string())
@@ -4704,7 +4750,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                 if (it->contains("confidence")) {
                                     flow_ratio_calib_result.confidence = (*it)["confidence"].get<int>();
                                 } else {
-                                    flow_ratio_calib_result.confidence = 0; 
+                                    flow_ratio_calib_result.confidence = 0;
                                 }
 
                                 flow_ratio_results.push_back(flow_ratio_calib_result);
@@ -4727,7 +4773,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
 
                 if (jj.contains("device")) {
                     json const & device = jj["device"];
-                    
+
                     if (device.contains("nozzle")) {
                         json const & nozzle = device["nozzle"];
 
@@ -5337,7 +5383,7 @@ AmsTray MachineObject::parse_vt_tray(json vtray)
             vt_tray.remain = -1;
         }
     }
-    
+
     return vt_tray;
 }
 
@@ -5473,7 +5519,7 @@ void DeviceManager::on_machine_alive(std::string json_str)
                         if(obj->dev_connection_name.empty()){obj->dev_connection_name = connection_name;}
                         obj->dev_ip = dev_ip;
                     }
-                    
+
                 }
                 /* ip changed reconnect mqtt */
             }
@@ -6154,7 +6200,7 @@ void DeviceManager::check_filaments_in_blacklist(std::string tag_vendor, std::st
     {
         {"TPU: not supported", _L("TPU is not supported by AMS.")},
         {"Bambu PET-CF/PA6-CF: not supported",  _L("Bambu PET-CF/PA6-CF is not supported by AMS.")},
-        {"PVA: flexible", _L("Damp PVA will become flexible and get stuck inside AMS,please take care to dry it before use.")}, 
+        {"PVA: flexible", _L("Damp PVA will become flexible and get stuck inside AMS,please take care to dry it before use.")},
         {"CF/GF: hard and brittle", _L("CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution.")}
     };
 
