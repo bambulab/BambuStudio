@@ -3926,6 +3926,7 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
                 //    }
                 //}
 
+                on_value_change(opt_key, value);
                 update_dirty();
                 update();
             };
@@ -5010,6 +5011,8 @@ bool Tab::tree_sel_change_delayed(wxCommandEvent& event)
         // update_undo_buttons();
         this->OnActivate();
         m_parent->set_active_tab(this);
+        m_main_sizer->Show(m_extruder_switch, !m_active_page->m_opt_id_map.empty());
+        GetParent()->Layout();
 
         m_page_view->Thaw();
         return false;
