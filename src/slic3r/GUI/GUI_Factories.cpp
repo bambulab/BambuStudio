@@ -484,7 +484,7 @@ wxMenu* MenuFactory::append_submenu_add_generic(wxMenu* menu, ModelVolumeType ty
 
     if (type != ModelVolumeType::INVALID) {
         append_menu_item(sub_menu, wxID_ANY, _L("Load..."), "",
-            [type](wxCommandEvent&) { obj_list()->load_subobject(type); }, "", menu);
+            [type](wxCommandEvent&) { obj_list()->load_subobject(type,true); }, "", menu);
         sub_menu->AppendSeparator();
     }
 
