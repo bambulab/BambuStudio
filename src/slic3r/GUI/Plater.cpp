@@ -9933,7 +9933,7 @@ void Plater::_calib_pa_pattern(const Calib_Params &params)
     print_config.set_key_value("outer_wall_speed",
         new ConfigOptionFloat(CalibPressureAdvance::find_optimal_PA_speed(
             wxGetApp().preset_bundle->full_config(), print_config.get_abs_value("line_width"),
-            print_config.get_abs_value("layer_height"), 0)));
+            print_config.get_abs_value("layer_height"), 0, 0)));
 
     for (const auto opt : SuggestedConfigCalibPAPattern().nozzle_ratio_pairs) {
         print_config.set_key_value(opt.first, new ConfigOptionFloat(nozzle_diameter * opt.second / 100));
@@ -9988,7 +9988,7 @@ void Plater::_calib_pa_tower(const Calib_Params &params)
     //print_config->set_key_value("inner_wall_jerk", new ConfigOptionFloat(1.0f));
     auto full_config = wxGetApp().preset_bundle->full_config();
     auto wall_speed  = CalibPressureAdvance::find_optimal_PA_speed(full_config, full_config.get_abs_value("line_width"),
-                                                                  full_config.get_abs_value("layer_height"), 0);
+                                                                  full_config.get_abs_value("layer_height"), 0, 0);
     print_config->set_key_value("outer_wall_speed", new ConfigOptionFloat(wall_speed));
     print_config->set_key_value("inner_wall_speed", new ConfigOptionFloat(wall_speed));
     // print_config->set_key_value("wall_generator", new ConfigOptionEnum<PerimeterGeneratorType>(PerimeterGeneratorType::Classic));

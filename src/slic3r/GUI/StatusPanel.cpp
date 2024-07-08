@@ -2575,7 +2575,9 @@ void StatusPanel::update_ams(MachineObject *obj)
 
     if (obj && (obj->last_cali_version != obj->cali_version)) {
         last_cali_version = obj->cali_version;
-        CalibUtils::emit_get_PA_calib_info(obj->nozzle_diameter, "");
+        PACalibExtruderInfo cali_info;
+        cali_info.nozzle_diameter = obj->nozzle_diameter;
+        CalibUtils::emit_get_PA_calib_info(cali_info);
     }
 
     bool is_support_virtual_tray    = obj->ams_support_virtual_tray;
@@ -3782,7 +3784,7 @@ void StatusPanel::on_ext_spool_edit(wxCommandEvent &event)
             else {
                 m_filament_setting_dlg->set_color(color);
             }
-            
+
             m_filament_setting_dlg->m_is_third = !MachineObject::is_bbl_filament(obj->vt_slot[0].tag_uid);
             if (!m_filament_setting_dlg->m_is_third) {
                 sn_number = obj->vt_slot[0].uuid;

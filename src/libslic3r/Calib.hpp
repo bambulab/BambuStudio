@@ -35,6 +35,7 @@ enum class CalibState {
 struct Calib_Params
 {
     Calib_Params() : mode(CalibMode::Calib_None){}
+    int extruder_id = 0;
     double start, end, step;
     bool print_numbers = false;
     CalibMode mode;
@@ -50,8 +51,12 @@ class X1CCalibInfos
 public:
     struct X1CCalibInfo
     {
+        int         extruder_id = -1;
         int         tray_id;
+        int         ams_id = 0;
+        int         slot_id = 0;
         int         bed_temp;
+        NozzleVolumeType    nozzle_volume_type = NozzleVolumeType::nvtNormal;
         int         nozzle_temp;
         float       nozzle_diameter;
         std::string filament_id;
@@ -100,7 +105,11 @@ public:
         CALI_RESULT_PROBLEM = 1,
         CALI_RESULT_FAILED  = 2,
     };
-    int         tray_id;
+    int         extruder_id = -1;
+    NozzleVolumeType nozzle_volume_type;
+    int         tray_id = 0;
+    int         ams_id = 0;
+    int         slot_id = 0;
     int         cali_idx = -1;
     float       nozzle_diameter;
     std::string filament_id;
@@ -113,10 +122,29 @@ public:
 
 struct PACalibIndexInfo
 {
-    int         tray_id;
+    int         extruder_id = -1;
+    NozzleVolumeType nozzle_volume_type;
+    int         tray_id = 0;
+    int         ams_id = 0;
+    int         slot_id = 0;
     int         cali_idx;
     float       nozzle_diameter;
     std::string filament_id;
+};
+
+struct PACalibExtruderInfo
+{
+    int              extruder_id;
+    NozzleVolumeType nozzle_volume_type;
+    float            nozzle_diameter;
+    std::string      filament_id = "";
+};
+
+struct PACalibTabInfo
+{
+    float pa_calib_tab_nozzle_dia;
+    int   extruder_id;
+    NozzleVolumeType nozzle_volume_type;
 };
 
 class FlowRatioCalibResult
@@ -144,7 +172,7 @@ struct DrawBoxOptArgs
 class CalibPressureAdvance
 {
 public:
-    static float find_optimal_PA_speed(const DynamicPrintConfig &config, double line_width, double layer_height, int filament_idx = 0);
+    static float find_optimal_PA_speed(const DynamicPrintConfig &config, double line_width, double layer_height, int extruder_id = 0, int filament_idx = 0);
 
 protected:
     CalibPressureAdvance() = default;
@@ -251,9 +279,8 @@ public:
     Vec3d get_start_offset();
 
 protected:
-    // todo multi_extruders:
-    double speed_first_layer() const { return m_config.option<ConfigOptionFloatsNullable>("initial_layer_speed")->get_at(0/*get_extruder_index(m_writer.extruder()->id())*/); };
-    double speed_perimeter() const { return m_config.option<ConfigOptionFloatsNullable>("outer_wall_speed")->get_at(0/*get_extruder_index(m_writer.extruder()->id())*/); };
+    double speed_first_layer() const { return m_config.option<ConfigOptionFloatsNullable>("initial_layer_speed")->get_at(m_params.extruder_id); };
+    double speed_perimeter() const { return m_config.option<ConfigOptionFloatsNullable>("outer_wall_speed")->get_at(m_params.extruder_id); };
     double line_width_first_layer() const { return m_config.get_abs_value("initial_layer_line_width"); };
     double line_width() const { return m_config.get_abs_value("line_width"); };
     int    wall_count() const { return m_config.option<ConfigOptionInt>("wall_loops")->value; };
