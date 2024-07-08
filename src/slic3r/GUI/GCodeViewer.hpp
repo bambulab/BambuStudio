@@ -720,6 +720,13 @@ public:
         std::vector<bool>  m_tool_visibles;
     };
 
+    struct ExtruderFilament
+    {
+        std::string   type;
+        std::string   hex_color;
+        unsigned char filament_id;
+    };
+
     enum class EViewType : unsigned char
     {
         FeatureType = 0,
@@ -752,9 +759,9 @@ private:
     std::vector<size_t> m_ssid_to_moveid_map;
 
     //BBS: extruder dispensing filament
-    //std::pair<TYPE, CLOUR>
-    std::vector<std::pair<std::string, std::string>> m_left_extruder_filament;
-    std::vector<std::pair<std::string, std::string>> m_right_extruder_filament;
+    std::vector<ExtruderFilament> m_left_extruder_filament;
+    std::vector<ExtruderFilament> m_right_extruder_filament;
+    size_t m_nozzle_nums;
 
     std::vector<TBuffer> m_buffers{ static_cast<size_t>(EMoveType::Extrude) };
     // bounding box of toolpaths
