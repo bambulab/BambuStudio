@@ -19,12 +19,12 @@ END_EVENT_TABLE()
 
 struct StaticBambuLib : BambuLib
 {
-    static StaticBambuLib &get();
+    static StaticBambuLib &get(BambuLib *);
 };
 
 wxMediaCtrl3::wxMediaCtrl3(wxWindow *parent)
     : wxWindow(parent, wxID_ANY)
-    , BambuLib(StaticBambuLib::get())
+    , BambuLib(StaticBambuLib::get(this))
     , m_thread([this] { PlayThread(); })
 {
     SetBackgroundColour(*wxBLACK);

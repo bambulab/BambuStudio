@@ -144,6 +144,11 @@
 using namespace std::literals;
 namespace pt = boost::property_tree;
 
+struct StaticBambuLib
+{
+    static void reset();
+};
+
 namespace Slic3r {
 namespace GUI {
 
@@ -1834,6 +1839,7 @@ void GUI_App::restart_networking()
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(" enter, mainframe %1%")%mainframe;
     on_init_network(true);
+    StaticBambuLib::reset();
     if(m_agent) {
         init_networking_callbacks();
         m_agent->set_on_ssdp_msg_fn(
@@ -4019,9 +4025,9 @@ std::string GUI_App::handle_web_request(std::string cmd)
                     boost::optional<std::string> ModelID      = root.get_optional<std::string>("makerworld_model_id");
                     if (ModelID.has_value()) {
                         if (mainframe) {
-                            if (mainframe->m_webview) 
-                            { 
-                                mainframe->m_webview->SetMakerworldModelID(ModelID.value()); 
+                            if (mainframe->m_webview)
+                            {
+                                mainframe->m_webview->SetMakerworldModelID(ModelID.value());
                             }
                         }
                     }
