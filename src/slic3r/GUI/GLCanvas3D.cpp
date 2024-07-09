@@ -701,9 +701,7 @@ void GLCanvas3D::Labels::render(const std::vector<const ModelInstance*>& sorted_
         return;
 
     Transform3d world_to_eye = camera.get_view_matrix();
-    Transform3d world_to_screen = camera.get_projection_matrix() * world_to_eye;
     const std::array<int, 4>& viewport = camera.get_viewport();
-
     struct Owner
     {
         int obj_idx;
@@ -782,17 +780,14 @@ void GLCanvas3D::Labels::render(const std::vector<const ModelInstance*>& sorted_
     ImGuiWrapper& imgui = *wxGetApp().imgui();
 
     // render info windows
+    Matrix4d world_to_screen = camera.get_projection_matrix().matrix() * world_to_eye.matrix();
     for (const Owner& owner : owners) {
-        Vec3d screen_box_center = world_to_screen * owner.world_box.center();
-        float x = 0.0f;
-        float y = 0.0f;
-        if (camera.get_type() == Camera::EType::Perspective) {
-            x = (0.5f + 0.001f * 0.5f * (float)screen_box_center(0)) * viewport[2];
-            y = (0.5f - 0.001f * 0.5f * (float)screen_box_center(1)) * viewport[3];
-        } else {
-            x = (0.5f + 0.5f * (float)screen_box_center(0)) * viewport[2];
-            y = (0.5f - 0.5f * (float)screen_box_center(1)) * viewport[3];
-        }
+        Vec4d temp_center(owner.world_box.center().x(), owner.world_box.center().y(), owner.world_box.center().z(), 1.0);
+        Vec4d temp_ndc = world_to_screen * temp_center;
+        Vec3d screen_box_center = Vec3d(temp_ndc.x(), temp_ndc.y(), temp_ndc.z()) / temp_ndc.w();
+
+        float x = 0.5f * (1 + screen_box_center(0)) * viewport[2];
+        float y  = 0.5f * (1 - screen_box_center(1)) * viewport[3];
 
         if (x < 0.0f || viewport[2] < x || y < 0.0f || viewport[3] < y)
             continue;
