@@ -2440,9 +2440,12 @@ void GLGizmoMeasure::set_distance(bool same_model_object, const Vec3d &displacem
         selection->set_mode(same_model_object ? Selection::Volume : Selection::Instance);
         m_pending_scale ++;
         if (same_model_object == false) {
-            selection->translate(v->object_idx(), v->instance_idx(), displacement);
+            auto object_displacement = v->get_instance_transformation().get_matrix_no_offset().inverse() * displacement;
+            selection->translate(v->object_idx(), v->instance_idx(), object_displacement);
         } else {
-            selection->translate(v->object_idx(), v->instance_idx(), v->volume_idx(), displacement);
+            Geometry::Transformation tran(v->world_matrix());
+            auto                     local_displacement = tran.get_matrix_no_offset().inverse() * displacement;
+            selection->translate(v->object_idx(), v->instance_idx(), v->volume_idx(), local_displacement);
         }
         wxGetApp().plater()->canvas3D()->do_move("");
         register_single_mesh_pick();
