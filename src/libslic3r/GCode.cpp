@@ -297,7 +297,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         //OrcaSlicer
         double cur_speed = gcodegen.writer().get_current_speed();
         double wipe_speed = gcodegen.config().role_base_wipe_speed && cur_speed > EPSILON ? cur_speed / 60 :
-            gcodegen.writer().config.travel_speed.get_at(get_extruder_index(gcodegen.writer().config, gcodegen.writer().filament()->id())) * gcodegen.config().wipe_speed.value / 100;
+            gcodegen.writer().config.travel_speed.get_at(get_extruder_index(gcodegen.writer().config, gcodegen.writer().extruder()->id())) * gcodegen.config().wipe_speed.value / 100;
 
 
         // get the retraction length
@@ -4883,7 +4883,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             int overhang_threshold = FILAMENT_CONFIG(overhang_fan_threshold) == Overhang_threshold_none ?
                 Overhang_threshold_none : FILAMENT_CONFIG(overhang_fan_threshold) - 1;
             if ((FILAMENT_CONFIG(overhang_fan_threshold) == Overhang_threshold_none && path.role() == erExternalPerimeter) || (path.get_overhang_degree() > overhang_threshold ||
-                is_bridge(path.role())))) {
+                is_bridge(path.role()))) {
                 gcode += ";_OVERHANG_FAN_START\n";
             }
         }
@@ -4995,7 +4995,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             int overhang_threshold = FILAMENT_CONFIG(overhang_fan_threshold) == Overhang_threshold_none ?
                 Overhang_threshold_none : FILAMENT_CONFIG(overhang_fan_threshold) - 1;
             if ((FILAMENT_CONFIG(overhang_fan_threshold) == Overhang_threshold_none && path.role() == erExternalPerimeter) || (path.get_overhang_degree() > overhang_threshold ||
-                is_bridge(path.role()))))
+                is_bridge(path.role())))
                 gcode += ";_OVERHANG_FAN_END\n";
         }
     }

@@ -13232,7 +13232,7 @@ void Plater::on_filaments_delete(size_t num_filaments, size_t filament_id)
     sidebar().obj_list()->update_objects_list_filament_column_when_delete_filament(filament_id, num_filaments);
 
     // update customize gcode
-    for (auto& item = p->model.plates_custom_gcodes.begin(); item != p->model.plates_custom_gcodes.end(); ++item) {
+    for (auto item = p->model.plates_custom_gcodes.begin(); item != p->model.plates_custom_gcodes.end(); ++item) {
         auto iter = std::remove_if(item->second.gcodes.begin(), item->second.gcodes.end(), [filament_id](const Item& gcode_item) {
             return (gcode_item.type == CustomGCode::Type::ToolChange && gcode_item.extruder == filament_id + 1);
         });

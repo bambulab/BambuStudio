@@ -502,7 +502,7 @@ public:
     void update_values_to_printer_extruders_for_multiple_filaments(DynamicPrintConfig& printer_config, std::set<std::string>& key_set, std::string id_name, std::string variant_name);
 
     void update_non_diff_values_to_base_config(DynamicPrintConfig& new_config, const t_config_option_keys& keys, const std::set<std::string>& different_keys, std::string extruder_id_name, std::string extruder_variant_name,
-        std::set<std::string>& key_set1, std::set<std::string>& key_set2 = std::set<std::string>());
+        std::set<std::string>& key_set1, std::set<std::string>& key_set2);
     void update_diff_values_to_child_config(DynamicPrintConfig& new_config, std::string extruder_id_name, std::string extruder_variant_name, std::set<std::string>& key_set1, std::set<std::string>& key_set2);
 
     bool is_custom_defined();
