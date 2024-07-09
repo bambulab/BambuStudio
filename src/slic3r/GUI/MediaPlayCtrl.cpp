@@ -21,6 +21,9 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #endif
+#ifdef __APPLE__
+#include <ApplicationServices/ApplicationServices.h>
+#endif
 
 #include <wx/clipbrd.h>
 #include "wx/evtloop.h"
@@ -36,6 +39,8 @@ static std::map<int, std::string> error_messages = {
 
 namespace Slic3r {
 namespace GUI {
+
+static int SecondsSinceLastInput();
 
 MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const wxPoint &pos, const wxSize &size)
     : wxPanel(parent, wxID_ANY, pos, size)
@@ -178,6 +183,10 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
                 agent->get_camera_url(machine, [](auto) {});
             m_last_user_play = wxDateTime::Now();
         }
+        if (m_last_state == wxMediaState::wxMEDIASTATE_PLAYING && SecondsSinceLastInput() > 900) { // 15 minutes
+            m_next_retry = wxDateTime();
+            Stop(_L("Temporarily closed because there is no operating for a long time."));
+        }
         return;
     }
     m_machine = machine;
@@ -303,7 +312,8 @@ void MediaPlayCtrl::Play()
     m_disable_lan = false;
     m_failed_code = 0;
     m_last_state  = MEDIASTATE_INITIALIZING;
-    
+    m_button_play->SetIcon("media_stop");
+
     if (!m_remote_support) { // not support tutk
         m_failed_code = -1;
         m_url = "bambu:///local/";
@@ -847,6 +857,20 @@ bool MediaPlayCtrl::get_stream_url(std::string *url)
     }
 #endif
     return url == nullptr;
+}
+
+static int SecondsSinceLastInput()
+{
+#ifdef _WIN32
+    LASTINPUTINFO lii;
+    lii.cbSize = sizeof(lii);
+    ::GetLastInputInfo(&lii);
+    return (::GetTickCount() - lii.dwTime) / 1000;
+#elif defined(__APPLE__)
+    return (int)CGEventSourceSecondsSinceLastEventType(kCGEventSourceStateHIDSystemState, kCGAnyInputEventType);
+#else
+    return 0;
+#endif
 }
 
 }}
