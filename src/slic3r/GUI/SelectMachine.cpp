@@ -1007,7 +1007,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_sizer_thumbnail_area->Add(m_panel_image, 0, wxALIGN_CENTER, 0);
     m_sizer_thumbnail_area->Layout();
-    
+
     /*basic info right*/
     auto  sizer_basic_right_info = new wxBoxSizer(wxVERTICAL);
 
@@ -1182,7 +1182,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_basicl_sizer->Add(m_sizer_thumbnail_area, 0, wxLEFT, 0);
     m_basicl_sizer->Add(0, 0, 0, wxLEFT, FromDIP(8));
     m_basicl_sizer->Add(sizer_basic_right_info, 0, wxLEFT, 0);
-    
+
 
 
     m_basic_panel->SetSizer(m_basicl_sizer);
@@ -1232,7 +1232,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     //wxBoxSizer* m_sizer_ams_mapping_tips = new wxBoxSizer(wxHORIZONTAL);
 
-   
+
 
     /* ams_mapping_help_icon      = new ScalableBitmap(this, "enable_ams", 16);
      img_amsmapping_tip = new wxStaticBitmap(this, wxID_ANY, ams_mapping_help_icon->bmp(), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
@@ -1256,7 +1256,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
          m_mapping_tutorial_popup.Dismiss();
          });
 
-     
+
 
 
      m_sizer_filament->Add(m_sizer_ams_mapping_tips, 0, wxALIGN_CENTER|wxLEFT, FromDIP(8));*/
@@ -1505,7 +1505,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     //m_sizer_scrollable_region->Add(m_sizer_material, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     //m_basic_panel_sizer->Add(m_sizer_material_area, 0, wxLEFT, FromDIP(10));
 
-    
+
 
 
     m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
@@ -2106,7 +2106,7 @@ bool SelectMachineDialog::get_ams_mapping_result(std::string &mapping_array_str,
             mapping_item["filamentId"] = "";
             mapping_item["filamentType"] = "";
 
-            
+
 
             for (int k = 0; k < m_ams_mapping_result.size(); k++) {
                 if (m_ams_mapping_result[k].id == i) {
@@ -4263,7 +4263,6 @@ void SelectMachineDialog::reset_and_sync_ams_list()
         iter++;
     }
 
-    m_sizer_material->Clear();
     m_sizer_ams_mapping->Clear();
     m_materialList.clear();
     m_filaments.clear();
@@ -4290,7 +4289,7 @@ void SelectMachineDialog::reset_and_sync_ams_list()
         MaterialItem* item = nullptr;
         if (use_double_extruder)
         {
-            
+
             if (m_filaments_map[extruder] == 1)
             {
                 item = new MaterialItem(m_filament_left_panel, colour_rgb, _L(display_materials[extruder]));
