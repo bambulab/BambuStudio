@@ -505,7 +505,6 @@ public:
         std::set<std::string>& key_set1, std::set<std::string>& key_set2);
     void update_diff_values_to_child_config(DynamicPrintConfig& new_config, std::string extruder_id_name, std::string extruder_variant_name, std::set<std::string>& key_set1, std::set<std::string>& key_set2);
 
-    bool is_custom_defined();
 };
 extern std::set<std::string> printer_extruder_options;
 extern std::set<std::string> print_options_with_variant;

@@ -5994,7 +5994,11 @@ void DynamicPrintConfig::update_diff_values_to_child_config(DynamicPrintConfig& 
     int cur_variant_count = cur_extruder_variants.size();
     int target_variant_count = target_extruder_variants.size();
 
-    variant_index.resize(cur_variant_count, -1);
+    if (cur_variant_count > 0)
+        variant_index.resize(cur_variant_count, -1);
+    else
+        variant_index.resize(1, 0);
+
     if (target_variant_count == 0) {
         variant_index[0] = 0;
     }
@@ -6048,16 +6052,6 @@ void DynamicPrintConfig::update_diff_values_to_child_config(DynamicPrintConfig& 
         }
     }
     return;
-}
-
-bool DynamicPrintConfig::is_custom_defined()
-{
-    auto* is_custom_defined = dynamic_cast<const ConfigOptionStrings*>(this->option("is_custom_defined"));
-    if (!is_custom_defined || is_custom_defined->empty())
-        return false;
-    if (is_custom_defined->get_at(0) == "1")
-        return true;
-    return false;
 }
 
 //BBS: pass map to recording all invalid valies
