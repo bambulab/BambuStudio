@@ -557,7 +557,6 @@ bool CalibUtils::calib_flowrate(int pass, const CalibInfo &calib_info, wxString 
     Flow   infill_flow                   = Flow(nozzle_diameter * 1.2f, layer_height, nozzle_diameter);
     double filament_max_volumetric_speed = filament_config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(0);
     double max_infill_speed              = filament_max_volumetric_speed / (infill_flow.mm3_per_mm() * (pass == 1 ? 1.2 : 1));
-    // todo multi_extruders:
     double internal_solid_speed          = std::floor(std::min(print_config.opt_float("internal_solid_infill_speed", calib_info.extruder_id), max_infill_speed));
     double top_surface_speed             = std::floor(std::min(print_config.opt_float("top_surface_speed", calib_info.extruder_id), max_infill_speed));
 
@@ -1303,6 +1302,9 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_mess
     print_job->task_ams_mapping = select_ams;
     print_job->task_ams_mapping_info = "";
     print_job->task_use_ams = select_ams == "[254]" ? false : true;
+
+    std::string new_ams_mapping = "[{\"ams_id\":" + std::to_string(calib_info.ams_id) + ", \"slot_id\":" + std::to_string(calib_info.slot_id) + "}]";
+    print_job->task_ams_mapping2 = new_ams_mapping;
 
     CalibMode cali_mode       = calib_info.params.mode;
     print_job->m_project_name = get_calib_mode_name(cali_mode, flow_ratio_mode);
