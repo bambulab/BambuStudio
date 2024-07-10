@@ -96,7 +96,8 @@ void GizmoObjectManipulation::update_ui_from_settings()
 void GizmoObjectManipulation::update_settings_value(const Selection& selection)
 {
 	m_new_move_label_string   = L("Position");
-    m_new_rotate_label_string = L("Rotation");
+    m_new_rotate_label_string = L("Rotate (relative)");
+    m_new_rotation            = Vec3d::Zero();
     m_new_scale_label_string  = L("Scale ratios");
 
     ObjectList* obj_list = wxGetApp().obj_list();
@@ -106,8 +107,6 @@ void GizmoObjectManipulation::update_settings_value(const Selection& selection)
         m_new_position = volume->get_instance_offset();
 
         if (is_world_coordinates()) {//for move and rotate
-			m_new_rotate_label_string = L("Rotate");
-            m_new_rotation = volume->get_instance_rotation() * (180. / M_PI);
             m_new_size     = selection.get_bounding_box_in_current_reference_system().first.size();
             m_unscale_size = selection.get_unscaled_instance_bounding_box().size();
             m_new_scale    = m_new_size.cwiseQuotient(m_unscale_size) * 100.0;
@@ -115,7 +114,6 @@ void GizmoObjectManipulation::update_settings_value(const Selection& selection)
         else {//if (is_local_coordinates()) {//for scale
             auto tran      = selection.get_first_volume()->get_instance_transformation();
             m_new_position = tran.get_matrix().inverse() * cs_center;
-			m_new_rotation = volume->get_instance_rotation() * (180. / M_PI);
             m_new_size  = selection.get_bounding_box_in_current_reference_system().first.size();
             m_unscale_size = selection.get_full_unscaled_instance_local_bounding_box().size();
             m_new_scale    = m_new_size.cwiseQuotient(m_unscale_size) * 100.0;
@@ -128,10 +126,8 @@ void GizmoObjectManipulation::update_settings_value(const Selection& selection)
     else if (selection.is_single_full_object() && obj_list->is_selected(itObject)) {
         const BoundingBoxf3& box = selection.get_bounding_box();
         m_new_position = box.center();
-        m_new_rotation = Vec3d::Zero();
         m_new_scale    = Vec3d(100., 100., 100.);
         m_new_size     = selection.get_bounding_box_in_current_reference_system().first.size();
-        m_new_rotate_label_string = L("Rotate");
 		m_new_scale_label_string  = L("Scale");
         m_new_enabled  = true;
         m_new_title_string = L("Object Operations");
@@ -141,20 +137,16 @@ void GizmoObjectManipulation::update_settings_value(const Selection& selection)
             const Geometry::Transformation trafo(volume->world_matrix());
             const Vec3d &offset = trafo.get_offset();
             m_new_position            = offset;
-            m_new_rotation            = Vec3d::Zero();
             m_new_scale               = Vec3d(100.0, 100.0, 100.0);
             m_unscale_size            = selection.get_bounding_box_in_current_reference_system().first.size();
             m_new_size                = selection.get_bounding_box_in_current_reference_system().first.size();
         } else if (is_local_coordinates()) {//for scale
             m_new_position            = Vec3d::Zero();
-            m_new_rotation            = Vec3d::Zero();
             m_new_scale               = volume->get_volume_scaling_factor() * 100.0;
             m_unscale_size            = selection.get_bounding_box_in_current_reference_system().first.size();
             m_new_size                = selection.get_bounding_box_in_current_reference_system().first.size();
         } else {
             m_new_position            = volume->get_volume_offset();
-            m_new_rotate_label_string = L("Rotate (relative)");
-            m_new_rotation            = Vec3d::Zero();
             m_new_scale_label_string  = L("Scale");
             m_new_scale               = Vec3d(100.0, 100.0, 100.0);
             m_unscale_size            = selection.get_bounding_box_in_current_reference_system().first.size();
@@ -165,7 +157,6 @@ void GizmoObjectManipulation::update_settings_value(const Selection& selection)
     } else if (obj_list->is_connectors_item_selected() || obj_list->multiple_selection() || obj_list->is_selected(itInstanceRoot)) {
         reset_settings_value();
 		m_new_move_label_string   = L("Translate");
-		m_new_rotate_label_string = L("Rotate");
 		m_new_scale_label_string  = L("Scale");
         m_unscale_size            = selection.get_bounding_box_in_current_reference_system().first.size();
         m_new_size                = selection.get_bounding_box_in_current_reference_system().first.size();
@@ -317,19 +308,17 @@ void GizmoObjectManipulation::change_rotation_value(int axis, double value)
 
     Selection& selection = m_glcanvas.get_selection();
 
-    TransformationType transformation_type(TransformationType::World_Relative_Joint);
-    if (selection.is_single_full_instance() || selection.requires_local_axes())
-		transformation_type.set_independent();
-    if (selection.is_single_full_instance() && !is_world_coordinates()) {
-        //FIXME Selection::rotate() does not process absoulte rotations correctly: It does not recognize the axis index, which was changed.
-		// transformation_type.set_absolute();
-		transformation_type.set_local();
-	}
+    TransformationType transformation_type;
+    transformation_type.set_relative();
+    if (selection.is_single_full_instance())
+        transformation_type.set_independent();
+    if (is_local_coordinates())
+        transformation_type.set_local();
+    if (is_instance_coordinates())
+        transformation_type.set_instance();
 
-    selection.start_dragging();
-	selection.rotate(
-		(M_PI / 180.0) * (transformation_type.absolute() ? rotation : rotation - m_cache.rotation),
-		transformation_type);
+    selection.setup_cache();
+    selection.rotate((M_PI / 180.0) * (transformation_type.absolute() ? rotation : rotation - m_cache.rotation), transformation_type);
     wxGetApp().plater()->take_snapshot(_u8L("Set Orientation"), UndoRedo::SnapshotType::GizmoAction);
     m_glcanvas.do_rotate("");
 
@@ -887,7 +876,7 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
     };
 
     float space_size    = imgui_wrapper->get_style_scaling() * 8;
-    float position_size = imgui_wrapper->calc_text_size(_L("Rotation")).x + space_size;
+    float position_size = imgui_wrapper->calc_text_size(_L("Rotate (relative)")).x + space_size;
     float World_size    = imgui_wrapper->calc_text_size(_L("World coordinates")).x + space_size;
     float caption_max   = std::max(position_size, World_size) + 2 * space_size;
     float end_text_size = imgui_wrapper->calc_text_size(this->m_new_unit_string).x;
@@ -925,7 +914,7 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
 
     // ImGui::PushItemWidth(unit_size * 2);
     ImGui::AlignTextToFramePadding();
-    imgui_wrapper->text(_L("Rotation"));
+    imgui_wrapper->text(_L("Rotate (relative)"));
     ImGui::SameLine(caption_max + index * space_size);
     ImGui::PushItemWidth(unit_size);
     ImGui::BBLInputDouble(label_values[1][0], &rotation[0], 0.0f, 0.0f, "%.2f");
