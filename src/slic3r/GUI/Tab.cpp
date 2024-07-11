@@ -499,8 +499,6 @@ void Tab::create_preset_tab()
         m_extruder_switch->Bind(wxEVT_TOGGLEBUTTON, [this] (auto & evt) {
             evt.Skip();
             dynamic_cast<TabPrint *>(this)->switch_excluder(evt.GetInt());
-            reload_config();
-            update_changed_ui();
         });
         m_main_sizer->Add(m_extruder_switch, 0, wxALIGN_CENTER | wxTOP, m_em_unit);
     }
@@ -1317,7 +1315,7 @@ void Tab::toggle_option(const std::string& opt_key, bool toggle, int opt_index/*
 {
     if (!m_active_page)
         return;
-    Field* field = m_active_page->get_field(opt_key, opt_index);
+    Field *field = m_active_page->get_field(opt_key, opt_index);
     if (field)
         field->toggle(toggle);
 }
@@ -1581,15 +1579,12 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         int extruder_idx = std::atoi(opt_key.substr(opt_key.find_last_of('#') + 1).c_str());
         for (auto tab : wxGetApp().tabs_list) {
             tab->update_extruder_variants(extruder_idx);
-            tab->reload_config();
         }
         if (auto tab = wxGetApp().plate_tab) {
             tab->update_extruder_variants(extruder_idx);
-            tab->reload_config();
         }
         for (auto tab : wxGetApp().model_tabs_list) {
             tab->update_extruder_variants(extruder_idx);
-            tab->reload_config();
         }
     }
 
@@ -2263,7 +2258,7 @@ void TabPrint::toggle_options()
         m_config_manipulation.set_is_BBL_Printer(is_BBL_printer);
     }
 
-    m_config_manipulation.toggle_print_fff_options(m_config, m_type < Preset::TYPE_COUNT);
+    m_config_manipulation.toggle_print_fff_options(m_config, int(intptr_t(m_extruder_switch->GetClientData())), m_type < Preset::TYPE_COUNT);
 
     Field *field = m_active_page->get_field("support_style");
     auto   support_type = m_config->opt_enum<SupportType>("support_type");
@@ -4401,15 +4396,13 @@ void Tab::load_current_preset()
     update();
 
     // Reload preset pages with the new configuration values.
-    update_extruder_variants();
+    update_extruder_variants(-1, false);
     if (m_type == Preset::TYPE_PRINT) {
         if (auto tab = wxGetApp().plate_tab) {
             tab->update_extruder_variants();
-            tab->reload_config();
         }
         for (auto tab : wxGetApp().model_tabs_list) {
             tab->update_extruder_variants();
-            tab->reload_config();
         }
     }
     reload_config();
@@ -5131,7 +5124,7 @@ bool Tab::tree_sel_change_delayed(wxCommandEvent& event)
         // update_undo_buttons();
         this->OnActivate();
         m_parent->set_active_tab(this);
-        m_main_sizer->Show(m_extruder_switch, !m_active_page->m_opt_id_map.empty());
+        m_main_sizer->Show(m_extruder_switch, m_extruder_switch->IsEnabled() && !m_active_page->m_opt_id_map.empty());
         GetParent()->Layout();
 
         m_page_view->Thaw();
@@ -5144,7 +5137,7 @@ bool Tab::tree_sel_change_delayed(wxCommandEvent& event)
 
     m_active_page = page;
     if (m_extruder_switch) {
-        m_main_sizer->Show(m_extruder_switch, !m_active_page->m_opt_id_map.empty());
+        m_main_sizer->Show(m_extruder_switch, m_extruder_switch->IsEnabled() && !m_active_page->m_opt_id_map.empty());
         GetParent()->Layout();
     }
 
@@ -5783,7 +5776,7 @@ void Tab::set_just_edit(bool just_edit)
 /// </summary>
 /// <param name="extruder_id"></param>
 
-void Tab::update_extruder_variants(int extruder_id)
+void Tab::update_extruder_variants(int extruder_id, bool reload)
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << extruder_id;
     if (m_extruder_switch) {
@@ -5801,19 +5794,16 @@ void Tab::update_extruder_variants(int extruder_id)
             m_extruder_switch->Enable();
         } else {
             m_extruder_switch->Enable(false);
-            m_main_sizer->Show(m_extruder_switch, false);
-            GetParent()->Layout();
-            return;
         }
     }
-    switch_excluder(extruder_id);
+    switch_excluder(extruder_id, reload);
     if (m_extruder_switch) {
-        m_main_sizer->Show(m_extruder_switch, m_active_page && !m_active_page->m_opt_id_map.empty());
+        m_main_sizer->Show(m_extruder_switch, m_extruder_switch->IsEnabled() && m_active_page && !m_active_page->m_opt_id_map.empty());
         GetParent()->Layout();
     }
 }
 
-void Tab::switch_excluder(int extruder_id)
+void Tab::switch_excluder(int extruder_id, bool reload)
 {
     Preset & printer_preset = wxGetApp().preset_bundle->printers.get_edited_preset();
     auto nozzle_volumes = printer_preset.config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
@@ -5824,7 +5814,7 @@ void Tab::switch_excluder(int extruder_id)
         {}, {"printer_extruder_id", "printer_extruder_variant"}, // Preset::TYPE_PRINTER
     };
     if (m_extruder_switch) {
-        int current_extruder = m_extruder_switch->GetValue() ? 1 : 0;
+        int current_extruder = m_extruder_switch->IsEnabled() && m_extruder_switch->GetValue() ? 1 : 0;
         if (extruder_id == -1)
             extruder_id = current_extruder;
         else if (extruder_id != current_extruder)
@@ -5836,6 +5826,7 @@ void Tab::switch_excluder(int extruder_id)
             ExtruderType(extruders->values[extruder_id]), NozzleVolumeType(nozzle_volumes->values[extruder_id]), variant_keys.second);
     };
     auto index = get_index_for_extruder(extruder_id == -1 ? 0 : extruder_id);
+    if (m_extruder_switch) m_extruder_switch->SetClientData((void*)(index));
     for (auto page : m_pages) {
         bool is_extruder = false;
         page->m_opt_id_map.clear();
@@ -5860,6 +5851,14 @@ void Tab::switch_excluder(int extruder_id)
                 }
             }
         }
+    }
+    if (reload) {
+        reload_config();
+        update_changed_ui();
+        toggle_options();
+        if (m_active_page)
+            m_active_page->update_visibility(m_mode, true);
+        m_page_view->GetParent()->Layout();
     }
 }
 
@@ -6024,8 +6023,12 @@ void Page::refresh()
 Field *Page::get_field(const t_config_option_key &opt_key, int opt_index /*= -1*/) const
 {
     Field *field = nullptr;
+    auto   opt_key2 = opt_key;
+    auto   iter     = m_opt_id_map.lower_bound(opt_key);
+    if (iter != m_opt_id_map.end() && iter->first.compare(0, opt_key.length(), opt_key) == 0)
+        opt_key2 = iter->second;
     for (auto opt : m_optgroups) {
-        field = opt->get_fieldc(opt_key, opt_index);
+        field = opt->get_fieldc(opt_key2, opt_index);
         if (field != nullptr) return field;
     }
     return field;
@@ -6034,8 +6037,12 @@ Field *Page::get_field(const t_config_option_key &opt_key, int opt_index /*= -1*
 Line *Page::get_line(const t_config_option_key &opt_key)
 {
     Line *line = nullptr;
+    auto   opt_key2 = opt_key;
+    auto   iter     = m_opt_id_map.lower_bound(opt_key);
+    if (iter != m_opt_id_map.end() && iter->first.compare(0, opt_key.length(), opt_key) == 0)
+        opt_key2 = iter->second;
     for (auto opt : m_optgroups) {
-        line = opt->get_line(opt_key);
+        line = opt->get_line(opt_key2);
         if (line != nullptr) return line;
     }
     return line;
