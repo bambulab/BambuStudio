@@ -29,7 +29,17 @@ GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent, const std::string& icon_filen
     , m_snap_step(0.05)
     //BBS: GUI refactor: add obj manipulation
     , m_object_manipulation(obj_manipulation)
+{}
+
+const Vec3d &GLGizmoScale3D::get_scale()
 {
+    if (m_object_manipulation) {
+        Vec3d cache_scale = m_object_manipulation->get_cache().scale.cwiseQuotient(Vec3d(100,100,100));
+        Vec3d temp_scale  = cache_scale.cwiseProduct(m_scale);
+        m_object_manipulation->limit_scaling_ratio(temp_scale);
+        m_scale = temp_scale.cwiseQuotient(cache_scale);
+    }
+    return m_scale;
 }
 
 std::string GLGizmoScale3D::get_tooltip() const
