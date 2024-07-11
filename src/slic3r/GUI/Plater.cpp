@@ -12522,10 +12522,8 @@ void Plater::set_bed_shape() const
             }
         }
         else {
-            auto *printer_model = curr->config.opt<ConfigOptionString>("printer_model");
-            if (printer_model != nullptr && ! printer_model->value.empty()) {
-                texture_filename = bundle->get_texture_for_printer_model(printer_model->value);
-            }
+            auto *bed_custom_texture = curr->config.opt<ConfigOptionString>("bed_custom_texture");
+            texture_filename         = bed_custom_texture->value;
         }
     }
     set_bed_shape(p->config->option<ConfigOptionPoints>("printable_area")->values,
