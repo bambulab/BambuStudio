@@ -224,13 +224,6 @@ jobs:
       #     max_releases: 1
 
   # Ubuntu
-      - name: Install dependencies
-        if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y autoconf build-essential cmake curl wget file git \
-          libgl1-mesa-dev libgtk-3-dev libxkbcommon-dev libunwind-dev libfuse2
-
       - name: Install dependencies from BuildLinux.sh
         if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
         shell: bash
