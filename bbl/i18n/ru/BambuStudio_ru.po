@@ -2,13 +2,13 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: 1.9.7.52 Public Official\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-18 15:33+0800\n"
-"PO-Revision-Date: 2024-09-27 23:58+0700\n"
+"POT-Creation-Date: 2024-07-11 10:13+0800\n"
+"PO-Revision-Date: 2023-08-11 09:11+0800\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
 "Language: ru\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
-"X-Generator: Poedit 3.5\n"
+"X-Generator: Poedit 3.4.2\n"
 
 msgid "Supports Painting"
 msgstr "Рисование поддержек"
@@ -25,8 +25,8 @@ msgstr "Рисование поддержек"
 msgid "Please select single object."
 msgstr "Пожалуйста, выберите один объект."
 
-msgid "Alt + Mouse wheel"
-msgstr "Alt + Колесо мыши"
+msgid "Mouse wheel"
+msgstr "Колесо мыши"
 
 msgid "Section view"
 msgstr "Отсечение вида"
@@ -158,8 +158,8 @@ msgstr "Заливка"
 msgid "Height range"
 msgstr "Диапазон высоты слоёв"
 
-msgid "Alt + Shift + Enter"
-msgstr "Alt + Shift + Enter"
+msgid "Shift + Enter"
+msgstr ""
 
 msgid "Toggle Wireframe"
 msgstr "Показать/скрыть каркас"
@@ -177,6 +177,9 @@ msgid "Height Range"
 msgstr ""
 "Диапазон \n"
 "высоты слоёв"
+
+msgid "Place input box of bottom near mouse"
+msgstr ""
 
 msgid "Vertical"
 msgstr "Вертикальная линия"
@@ -238,20 +241,26 @@ msgstr "дюйм"
 msgid "mm"
 msgstr "мм"
 
+msgid "Part selection"
+msgstr ""
+
+msgid "Fixed step drag"
+msgstr ""
+
+msgid "Single sided scaling"
+msgstr ""
+
 msgid "Position"
 msgstr "Позиция"
 
-msgid "Rotation"
-msgstr "Вращение"
+msgid "Rotate (relative)"
+msgstr "Поворот (относительный)"
 
 msgid "Scale ratios"
 msgstr "Коэф. масштаба"
 
 msgid "Object Operations"
 msgstr "Операции с моделями"
-
-msgid "Rotate (relative)"
-msgstr "Поворот (относительный)"
 
 msgid "Volume Operations"
 msgstr "Булевы операции с объёмами"
@@ -277,17 +286,23 @@ msgstr "Сброс позиции"
 msgid "Reset Rotation"
 msgstr "Сброс вращения"
 
+msgid "Object coordinates"
+msgstr ""
+
 msgid "World coordinates"
 msgstr "Мировая СК"
 
 msgid "°"
 msgstr "°"
 
-msgid "Size"
-msgstr "Размер"
+msgid "Part coordinates"
+msgstr ""
 
 msgid "%"
 msgstr "%"
+
+msgid "Size"
+msgstr "Размер"
 
 msgid "uniform scale"
 msgstr "Равномерное масштабирование"
@@ -377,6 +392,9 @@ msgstr "Перемещение:"
 
 msgid "Groove Angle"
 msgstr "Угол скоса"
+
+msgid "Rotation"
+msgstr "Вращение"
 
 msgid "Movement"
 msgstr "Перемещение"
@@ -2427,7 +2445,7 @@ msgstr "Отключить АСПП"
 msgid "Print with the filament mounted on the back of chassis"
 msgstr "Печать материалом, установленным на задней части корпуса."
 
-msgid "Current Cabin humidity"
+msgid "Current AMS humidity"
 msgstr "Текущая влажность внутри АСПП"
 
 msgid ""
@@ -4001,6 +4019,12 @@ msgstr "Показать &нависания"
 
 msgid "Show object overhang highlight in 3D scene"
 msgstr "Подсвечивать нависания у модели в окне подготовки"
+
+msgid "Set 3DConnexion"
+msgstr ""
+
+msgid "Set 3DConnexion mouse"
+msgstr ""
 
 msgid "Services"
 msgstr "Службы"
@@ -5812,6 +5836,28 @@ msgstr ""
 "Если включено, вы сможете управлять несколькими устройствами и отправлять "
 "задания на печать на несколько устройств одновременно."
 
+msgid "3D Settings"
+msgstr ""
+
+msgid "Zoom to mouse position"
+msgstr "Приближать к положению курсор"
+
+msgid ""
+"Zoom in towards the mouse pointer's position in the 3D view, rather than the "
+"2D window center."
+msgstr ""
+"Увеличивать масштаб по направлению к курсору в 3D-виде, а не к центру 2D-"
+"окна."
+
+msgid "Grabber scale"
+msgstr ""
+
+msgid "Set grabber size for move,rotate,scale tool."
+msgstr ""
+
+msgid "Value range"
+msgstr ""
+
 msgid "Presets"
 msgstr "Профили"
 
@@ -7547,9 +7593,6 @@ msgstr "Вращение камеры"
 msgid "Pan View"
 msgstr "Перемещение камеры"
 
-msgid "Mouse wheel"
-msgstr "Колесо мыши"
-
 msgid "Zoom View"
 msgstr "Масштабирование вида"
 
@@ -7673,26 +7716,11 @@ msgstr "Гизмо рисования шва (FDM)"
 msgid "Plater"
 msgstr "Печатная пластина"
 
-msgid "Move: press to snap by 1mm"
-msgstr "Перемещение: Фиксация перемещения на 1 мм"
-
-msgid "⌘+Mouse wheel"
-msgstr "⌘ + Колесо мыши"
-
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "Рисование поддержки/Шва/Покраски: регулировка радиуса кисти"
 
-msgid "⌥+Mouse wheel"
-msgstr "⌥ + Колесо мыши"
-
 msgid "Support/Color Painting: adjust section position"
 msgstr "Рисование поддержки/Шва/Покраски: регулировка положения сечения"
-
-msgid "Ctrl+Mouse wheel"
-msgstr "Ctrl + Колесо мыши"
-
-msgid "Alt+Mouse wheel"
-msgstr "Alt + Колесо мыши"
 
 msgid "Gizmo"
 msgstr "Гизмо"
@@ -8636,6 +8664,17 @@ msgstr ""
 "Выражается в процентах и показывает, насколько велика ширина периметра без "
 "поддержки со стороны нижнего слоя. 0% означает принудительное охлаждение "
 "всего внешнего периметра независимо от степени нависания."
+
+msgid "Overhang threshold for participating cooling"
+msgstr ""
+
+#, c-format
+msgid ""
+"Decide which overhang part join the cooling function to slow down the speed."
+"Expressed as percentage which indicides how much width of the line without "
+"support from lower layer. 100% means forcing cooling for all outer wall no "
+"matter how much overhang degree"
+msgstr ""
 
 msgid "Bridge direction"
 msgstr "Угол печати мостов"
@@ -9838,6 +9877,13 @@ msgstr "Расстояние между линиями разглаживани�
 msgid "The distance between the lines of ironing"
 msgstr "Расстояние между линиями разглаживания."
 
+msgid "Ironing inset"
+msgstr ""
+
+msgid ""
+"The distance to keep the from the edges of ironing line. 0 means not apply."
+msgstr ""
+
 msgid "Ironing speed"
 msgstr "Скорость разглаживания"
 
@@ -10388,6 +10434,9 @@ msgstr ""
 "Значение может быть задано в миллиметрах или в процентах от высоты текущего "
 "слоя. Значение по умолчанию - 0."
 
+msgid "Slop gap"
+msgstr ""
+
 msgid "Scarf around entire wall"
 msgstr "Клиновидный шов по всей стене"
 
@@ -10428,6 +10477,15 @@ msgstr ""
 "Скорость очистки определяется текущей настройкой. Если задано в процентах, "
 "то она вычисляться относительно скорости перемещения. 80% - значение по "
 "умолчанию."
+
+msgid "Role base wipe speed"
+msgstr ""
+
+msgid ""
+"The wipe speed is determined by speed of current extrusion role. e.g if a "
+"wip action is executed immediately following an outer wall extrusion, the "
+"speed of the outer wall extrusion will be utilized for the wipe action."
+msgstr ""
 
 msgid "Skirt distance"
 msgstr "Расстояние до юбки"
@@ -13615,6 +13673,85 @@ msgstr ""
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как "
 "ABS, повышение температуры подогреваемого стола может снизить эту "
 "вероятность?"
+
+#~ msgid "Alt + Mouse wheel"
+#~ msgstr "Alt + Колесо мыши"
+
+#~ msgid "Alt + Shift + Enter"
+#~ msgstr "Alt + Shift + Enter"
+
+# ???
+#~ msgid "Current Cabin humidity"
+#~ msgstr "Текущая влажность внутри АСПП"
+
+#~ msgid "Move: press to snap by 1mm"
+#~ msgstr "Перемещение: Фиксация перемещения на 1 мм"
+
+#~ msgid "⌘+Mouse wheel"
+#~ msgstr "⌘ + Колесо мыши"
+
+#~ msgid "⌥+Mouse wheel"
+#~ msgstr "⌥ + Колесо мыши"
+
+#~ msgid "Ctrl+Mouse wheel"
+#~ msgstr "Ctrl + Колесо мыши"
+
+#~ msgid "Alt+Mouse wheel"
+#~ msgstr "Alt + Колесо мыши"
+
+#~ msgid ""
+#~ "Please find the details of Flow Dynamics Calibration from our wiki.\n"
+#~ "\n"
+#~ "Usually the calibration is unnecessary. When you start a single color/"
+#~ "material print, with the \"flow dynamics calibration\" option checked in "
+#~ "the print start menu, the printer will follow the old way, calibrate the "
+#~ "filament before the print; When you start a multi color/material print, "
+#~ "the printer will use the default compensation parameter for the filament "
+#~ "during every filament switch which will have a good result in most "
+#~ "cases.\n"
+#~ "\n"
+#~ "Please note there are a few cases that will make the calibration result "
+#~ "not reliable: using a texture plate to do the calibration; the build "
+#~ "plate does not have good adhesion (please wash the build plate or apply "
+#~ "gluestick!) ...You can find more from our wiki.\n"
+#~ "\n"
+#~ "The calibration results have about 10 percent jitter in our test, which "
+#~ "may cause the result not exactly the same in each calibration. We are "
+#~ "still investigating the root cause to do improvements with new updates."
+#~ msgstr ""
+#~ "Подробную информацию про калибровку динамики потока можно найти на нашем "
+#~ "вики-сайте.\n"
+#~ "\n"
+#~ "При обычных обстоятельствах калибровка не требуется. \n"
+#~ "Если при запуске печати одним цветом/материалом в меню запуска печати "
+#~ "отмечена опция «Калибровка динамики потока», то калибровка пластиковой "
+#~ "нити будет производится старым способом. \n"
+#~ "При запуске печати несколькими цветами/материалами, принтер будет "
+#~ "использовать параметр компенсации по умолчанию для материала при каждой "
+#~ "его смене, что в большинстве случаев позволяет получить хороший "
+#~ "результат.\n"
+#~ "\n"
+#~ "Обратите внимание, что есть несколько случаев, когда результат калибровки "
+#~ "будет недостоверным. Это использование для калибровки текстурированной "
+#~ "печатной пластины и когда у печатной пластины плохая адгезия с "
+#~ "материалом. Более подробную информацию можно найти на нашем вики-сайте.\n"
+#~ "\n"
+#~ "По нашим тестам, результаты калибровки имеют погрешность примерно 10%, "
+#~ "что может приводить к разным результатам при каждой калибровке. Мы "
+#~ "продолжаем выяснять причину, чтобы улучшить ситуацию в новых обновлениях."
+
+#~ msgid "Please input a valid value (K in 0~0.3)"
+#~ msgstr "Пожалуйста, введите допустимое значение (K в диапазоне 0~0.3)"
+
+#~ msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
+#~ msgstr ""
+#~ "Пожалуйста, введите допустимое значение (K в диапазоне 0~0.3, N в "
+#~ "диапазоне 0.6~2.0)"
+
+#~ msgid "Printer local connection failed, please try again."
+#~ msgstr ""
+#~ "Не удалось установить локальное соединение с принтером, попробуйте ещё "
+#~ "раз."
 
 #~ msgid ""
 #~ "Embedded\n"

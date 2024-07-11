@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-18 15:33+0800\n"
+"POT-Creation-Date: 2024-07-11 10:13+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -19,8 +19,8 @@ msgstr "Támaszok festése"
 msgid "Please select single object."
 msgstr "Please select single object."
 
-msgid "Alt + Mouse wheel"
-msgstr "Alt + Egérgörgő"
+msgid "Mouse wheel"
+msgstr "Egérgörgő"
 
 msgid "Section view"
 msgstr "Keresztmetszet nézet"
@@ -151,8 +151,8 @@ msgstr "Vödör kitöltés"
 msgid "Height range"
 msgstr "Magasságtartomány"
 
-msgid "Alt + Shift + Enter"
-msgstr "Alt + Shift + Enter"
+msgid "Shift + Enter"
+msgstr ""
 
 msgid "Toggle Wireframe"
 msgstr "Drótváz-megjelenítés váltása"
@@ -168,6 +168,9 @@ msgstr "Háromszög"
 
 msgid "Height Range"
 msgstr "Magasságtartomány"
+
+msgid "Place input box of bottom near mouse"
+msgstr ""
 
 msgid "Vertical"
 msgstr "Függőleges"
@@ -227,20 +230,26 @@ msgstr "in"
 msgid "mm"
 msgstr "mm"
 
+msgid "Part selection"
+msgstr ""
+
+msgid "Fixed step drag"
+msgstr ""
+
+msgid "Single sided scaling"
+msgstr ""
+
 msgid "Position"
 msgstr "Pozíció"
 
-msgid "Rotation"
-msgstr "Forgatás"
+msgid "Rotate (relative)"
+msgstr "Rotate (relative)"
 
 msgid "Scale ratios"
 msgstr "Méretarányok"
 
 msgid "Object Operations"
 msgstr "Objektumműveletek"
-
-msgid "Rotate (relative)"
-msgstr "Rotate (relative)"
 
 msgid "Volume Operations"
 msgstr "Térfogatműveletek"
@@ -266,17 +275,23 @@ msgstr "Pozíció visszaállítása"
 msgid "Reset Rotation"
 msgstr "Forgatás visszaállítása"
 
+msgid "Object coordinates"
+msgstr ""
+
 msgid "World coordinates"
 msgstr "Világkoordináták"
 
 msgid "°"
 msgstr "°"
 
-msgid "Size"
-msgstr "Méret"
+msgid "Part coordinates"
+msgstr ""
 
 msgid "%"
 msgstr "%"
+
+msgid "Size"
+msgstr "Méret"
 
 msgid "uniform scale"
 msgstr "egységes méretarány"
@@ -362,6 +377,9 @@ msgstr "Mozgatás:"
 
 msgid "Groove Angle"
 msgstr "Horonyszög"
+
+msgid "Rotation"
+msgstr "Forgatás"
 
 msgid "Movement"
 msgstr "Mozgás"
@@ -2387,8 +2405,8 @@ msgstr "AMS kikapcsolása"
 msgid "Print with the filament mounted on the back of chassis"
 msgstr "Nyomtatás külső tartón lévő filamenttel"
 
-msgid "Current Cabin humidity"
-msgstr "Current Cabin humidity"
+msgid "Current AMS humidity"
+msgstr ""
 
 msgid ""
 "Please change the desiccant when it is too wet. The indicator may not "
@@ -3915,6 +3933,12 @@ msgstr "Túlnyúlás megjelenítése"
 
 msgid "Show object overhang highlight in 3D scene"
 msgstr "Objektum túlnyúlásainak kiemelése 3D-ben"
+
+msgid "Set 3DConnexion"
+msgstr ""
+
+msgid "Set 3DConnexion mouse"
+msgstr ""
 
 msgid "Services"
 msgstr "Szolgáltatások"
@@ -5620,14 +5644,6 @@ msgstr ""
 "same Bambu Studio is already running, that instance will be reactivated "
 "instead."
 
-msgid "Zoom to mouse position"
-msgstr "Nagyítás az egér pozíciójára"
-
-msgid ""
-"Zoom in towards the mouse pointer's position in the 3D view, rather than the "
-"2D window center."
-msgstr "Az egérmutatóra nagyít a 3D-nézetben, a 2D-ablak középpontja helyett."
-
 msgid "Auto plate type"
 msgstr "Auto plate type"
 
@@ -5663,6 +5679,26 @@ msgid ""
 msgstr ""
 "With this option enabled, you can send a task to multiple devices at the "
 "same time and manage multiple devices."
+
+msgid "3D Settings"
+msgstr ""
+
+msgid "Zoom to mouse position"
+msgstr "Nagyítás az egér pozíciójára"
+
+msgid ""
+"Zoom in towards the mouse pointer's position in the 3D view, rather than the "
+"2D window center."
+msgstr "Az egérmutatóra nagyít a 3D-nézetben, a 2D-ablak középpontja helyett."
+
+msgid "Grabber scale"
+msgstr ""
+
+msgid "Set grabber size for move,rotate,scale tool."
+msgstr ""
+
+msgid "Value range"
+msgstr ""
 
 msgid "Presets"
 msgstr "Beállítások"
@@ -6628,8 +6664,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Ha a nyomtatófej nélküli timelapse engedélyezve van, javasoljuk, hogy "
 "helyezz el a tálcán egy „Timelapse törlőtornyot“. Ehhez kattints jobb "
@@ -7353,9 +7389,6 @@ msgstr "Nézet elforgatása"
 msgid "Pan View"
 msgstr "Pásztázó nézet"
 
-msgid "Mouse wheel"
-msgstr "Egérgörgő"
-
 msgid "Zoom View"
 msgstr "Nagyítás nézet"
 
@@ -7479,26 +7512,11 @@ msgstr "Gizmo FDM paint-on seam"
 msgid "Plater"
 msgstr "Plater"
 
-msgid "Move: press to snap by 1mm"
-msgstr "Mozgatás: nyomd meg, hogy 1 mm-t mozduljon"
-
-msgid "⌘+Mouse wheel"
-msgstr "⌘+Egérgörgő"
-
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "Támasz/Színfestés: toll méretének beállítása"
 
-msgid "⌥+Mouse wheel"
-msgstr "⌥+Egérgörgő"
-
 msgid "Support/Color Painting: adjust section position"
 msgstr "Támasz/Színfestés: metszet pozíciójának beállítása"
-
-msgid "Ctrl+Mouse wheel"
-msgstr "Ctrl+Egérgörgő"
-
-msgid "Alt+Mouse wheel"
-msgstr "Alt+Egérgörgő"
 
 msgid "Gizmo"
 msgstr "Gizmo"
@@ -8444,6 +8462,17 @@ msgstr ""
 "ami azt jelzi, hogy a nyomtatott vonal hány százaléka maradhat az alsóbb "
 "rétegek alátámasztása nélkül. A 0%%-os érték bekapcsolja a hűtést a külső "
 "fal teljes szélességén, függetlenül a túlnyúlás mértékétől."
+
+msgid "Overhang threshold for participating cooling"
+msgstr ""
+
+#, c-format
+msgid ""
+"Decide which overhang part join the cooling function to slow down the speed."
+"Expressed as percentage which indicides how much width of the line without "
+"support from lower layer. 100% means forcing cooling for all outer wall no "
+"matter how much overhang degree"
+msgstr ""
 
 msgid "Bridge direction"
 msgstr "Áthidalás iránya"
@@ -9583,6 +9612,13 @@ msgstr "Vasalási vonalak közötti távolság"
 msgid "The distance between the lines of ironing"
 msgstr "A vasaláshoz használt vonalak közötti távolság"
 
+msgid "Ironing inset"
+msgstr ""
+
+msgid ""
+"The distance to keep the from the edges of ironing line. 0 means not apply."
+msgstr ""
+
 msgid "Ironing speed"
 msgstr "Vasalás sebessége"
 
@@ -10117,6 +10153,9 @@ msgstr ""
 "This amount can be specified in millimeters or as a percentage of the "
 "current layer height. The default value for this parameter is 0."
 
+msgid "Slop gap"
+msgstr ""
+
 msgid "Scarf around entire wall"
 msgstr "Scarf around entire wall"
 
@@ -10158,6 +10197,15 @@ msgstr ""
 "százalékban van megadva (pl. 80%), akkor azt a rendszer a mozgási "
 "sebességbeállítás alapján számítja ki. Ennek a paraméternek az "
 "alapértelmezett értéke 80%"
+
+msgid "Role base wipe speed"
+msgstr ""
+
+msgid ""
+"The wipe speed is determined by speed of current extrusion role. e.g if a "
+"wip action is executed immediately following an outer wall extrusion, the "
+"speed of the outer wall extrusion will be utilized for the wipe action."
+msgstr ""
 
 msgid "Skirt distance"
 msgstr "Szoknya távolsága"
@@ -11977,12 +12025,12 @@ msgstr ""
 "Szeretnéd felülírni?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more printers; please go to printer selection"
 
 msgid "Create Printer/Nozzle"
@@ -13237,6 +13285,30 @@ msgstr ""
 "Vetemedés elkerülése\n"
 "Tudtad, hogy a vetemedésre hajlamos anyagok (például ABS) nyomtatásakor a "
 "tárgyasztal hőmérsékletének növelése csökkentheti a vetemedés valószínűségét?"
+
+#~ msgid "Alt + Mouse wheel"
+#~ msgstr "Alt + Egérgörgő"
+
+#~ msgid "Alt + Shift + Enter"
+#~ msgstr "Alt + Shift + Enter"
+
+#~ msgid "Current Cabin humidity"
+#~ msgstr "Current Cabin humidity"
+
+#~ msgid "Move: press to snap by 1mm"
+#~ msgstr "Mozgatás: nyomd meg, hogy 1 mm-t mozduljon"
+
+#~ msgid "⌘+Mouse wheel"
+#~ msgstr "⌘+Egérgörgő"
+
+#~ msgid "⌥+Mouse wheel"
+#~ msgstr "⌥+Egérgörgő"
+
+#~ msgid "Ctrl+Mouse wheel"
+#~ msgstr "Ctrl+Egérgörgő"
+
+#~ msgid "Alt+Mouse wheel"
+#~ msgstr "Alt+Egérgörgő"
 
 #~ msgid ""
 #~ "The current chamber temperature or the target chamber temperature exceeds "

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-18 15:33+0800\n"
+"POT-Creation-Date: 2024-07-11 10:13+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -19,8 +19,8 @@ msgstr "Малювання підтримки"
 msgid "Please select single object."
 msgstr "Будь ласка, виберіть один об’єкт."
 
-msgid "Alt + Mouse wheel"
-msgstr "Alt + Коліщатко миші"
+msgid "Mouse wheel"
+msgstr "Колісок миші"
 
 msgid "Section view"
 msgstr "Вигляд у розрізі"
@@ -151,8 +151,8 @@ msgstr "Заливка відра"
 msgid "Height range"
 msgstr "Діапазон висот"
 
-msgid "Alt + Shift + Enter"
-msgstr "Alt + Shift + Enter"
+msgid "Shift + Enter"
+msgstr ""
 
 msgid "Toggle Wireframe"
 msgstr "Переключення каркасу"
@@ -168,6 +168,9 @@ msgstr "Трикутник"
 
 msgid "Height Range"
 msgstr "Переключити каркас"
+
+msgid "Place input box of bottom near mouse"
+msgstr ""
 
 msgid "Vertical"
 msgstr "Вертикально"
@@ -227,20 +230,26 @@ msgstr "in"
 msgid "mm"
 msgstr "мм"
 
+msgid "Part selection"
+msgstr ""
+
+msgid "Fixed step drag"
+msgstr ""
+
+msgid "Single sided scaling"
+msgstr ""
+
 msgid "Position"
 msgstr "Позиція"
 
-msgid "Rotation"
-msgstr "Обертання"
+msgid "Rotate (relative)"
+msgstr "Повернути (відносно)"
 
 msgid "Scale ratios"
 msgstr "Коефіцієнти масштабування"
 
 msgid "Object Operations"
 msgstr "Операції з об'єктами"
-
-msgid "Rotate (relative)"
-msgstr "Повернути (відносно)"
 
 msgid "Volume Operations"
 msgstr "Операції з об’ємом"
@@ -266,17 +275,23 @@ msgstr "Скинути позицію"
 msgid "Reset Rotation"
 msgstr "Скинути орієнтацію"
 
+msgid "Object coordinates"
+msgstr ""
+
 msgid "World coordinates"
 msgstr "Світові координати"
 
 msgid "°"
 msgstr "°"
 
-msgid "Size"
-msgstr "Розмір"
+msgid "Part coordinates"
+msgstr ""
 
 msgid "%"
 msgstr "%"
+
+msgid "Size"
+msgstr "Розмір"
 
 msgid "uniform scale"
 msgstr "єдина шкала"
@@ -364,6 +379,9 @@ msgstr "Рух:"
 
 msgid "Groove Angle"
 msgstr "Кут жолоба"
+
+msgid "Rotation"
+msgstr "Обертання"
 
 msgid "Movement"
 msgstr "Рух"
@@ -2375,8 +2393,8 @@ msgid "Print with the filament mounted on the back of chassis"
 msgstr ""
 "Друкуйте з використанням філаменту, встановленого на задній частині шасі"
 
-msgid "Current Cabin humidity"
-msgstr "Поточна вологість у кабіні"
+msgid "Current AMS humidity"
+msgstr ""
 
 msgid ""
 "Please change the desiccant when it is too wet. The indicator may not "
@@ -3906,6 +3924,12 @@ msgstr "Показати &Виступ"
 
 msgid "Show object overhang highlight in 3D scene"
 msgstr "Показати підсвічування виступу об'єкта у 3D сцені"
+
+msgid "Set 3DConnexion"
+msgstr ""
+
+msgid "Set 3DConnexion mouse"
+msgstr ""
 
 msgid "Services"
 msgstr "Послуги"
@@ -5631,15 +5655,6 @@ msgstr ""
 "екземпляр цього ж Bambu Studio вже працює, то активується цей інший "
 "екземпляр замість створення нового."
 
-msgid "Zoom to mouse position"
-msgstr "Збільшити до позиції миші"
-
-msgid ""
-"Zoom in towards the mouse pointer's position in the 3D view, rather than the "
-"2D window center."
-msgstr ""
-"Наблизьтеся до положення покажчика миші у 3D-виді, а не до центру 2D вікна."
-
 msgid "Auto plate type"
 msgstr "Автоматичний тип пластини"
 
@@ -5677,6 +5692,27 @@ msgid ""
 msgstr ""
 "З цією опцією ввімкненою, ви можете відправляти завдання на кілька пристроїв "
 "одночасно та керувати декількома пристроями."
+
+msgid "3D Settings"
+msgstr ""
+
+msgid "Zoom to mouse position"
+msgstr "Збільшити до позиції миші"
+
+msgid ""
+"Zoom in towards the mouse pointer's position in the 3D view, rather than the "
+"2D window center."
+msgstr ""
+"Наблизьтеся до положення покажчика миші у 3D-виді, а не до центру 2D вікна."
+
+msgid "Grabber scale"
+msgstr ""
+
+msgid "Set grabber size for move,rotate,scale tool."
+msgstr ""
+
+msgid "Value range"
+msgstr ""
 
 msgid "Presets"
 msgstr "Пресети"
@@ -6637,8 +6673,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "При записі таймлапсу без інструментальної головки рекомендується додати "
 "“Timelapse Wipe Tower” \n"
@@ -7360,9 +7396,6 @@ msgstr "Повернути вигляд"
 msgid "Pan View"
 msgstr "Панорамний вигляд"
 
-msgid "Mouse wheel"
-msgstr "Колісок миші"
-
 msgid "Zoom View"
 msgstr "Перегляд масштабу"
 
@@ -7486,26 +7519,11 @@ msgstr "Швид, що фарбується Gizmo FDM"
 msgid "Plater"
 msgstr "Тарілка"
 
-msgid "Move: press to snap by 1mm"
-msgstr "Переміщення: натисніть для переміщення на 1 мм"
-
-msgid "⌘+Mouse wheel"
-msgstr "⌘+Колесо миші"
-
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "Підтримка/Колірне малювання: регулювання радіуса пера"
 
-msgid "⌥+Mouse wheel"
-msgstr "⌥+Колесо миші"
-
 msgid "Support/Color Painting: adjust section position"
 msgstr "Підтримка/кольорове фарбування: регулювання положення секцій"
-
-msgid "Ctrl+Mouse wheel"
-msgstr "Ctrl+Колесо миші"
-
-msgid "Alt+Mouse wheel"
-msgstr "Alt+колесо миші"
 
 msgid "Gizmo"
 msgstr "Gizmo"
@@ -8430,6 +8448,17 @@ msgstr ""
 "відсотках, що вказують на ширину лінії без опори від нижнього шару. .0%% "
 "означає примусове охолодження всього зовнішнього периметра незалежно від "
 "ступеня звису"
+
+msgid "Overhang threshold for participating cooling"
+msgstr ""
+
+#, c-format
+msgid ""
+"Decide which overhang part join the cooling function to slow down the speed."
+"Expressed as percentage which indicides how much width of the line without "
+"support from lower layer. 100% means forcing cooling for all outer wall no "
+"matter how much overhang degree"
+msgstr ""
 
 msgid "Bridge direction"
 msgstr "Напрямок мосту"
@@ -9571,6 +9600,13 @@ msgstr "Крок лінії розглажування"
 msgid "The distance between the lines of ironing"
 msgstr "Відстань між лініями розглажування"
 
+msgid "Ironing inset"
+msgstr ""
+
+msgid ""
+"The distance to keep the from the edges of ironing line. 0 means not apply."
+msgstr ""
+
 msgid "Ironing speed"
 msgstr "Швидкість розглажування"
 
@@ -10105,6 +10141,9 @@ msgstr ""
 "Ця величина може бути вказана в міліметрах або як відсоток від поточної "
 "товщини шару. Значення за замовчуванням для цього параметра - 0."
 
+msgid "Slop gap"
+msgstr ""
+
 msgid "Scarf around entire wall"
 msgstr "Шарф навколо всієї стіни"
 
@@ -10145,6 +10184,15 @@ msgstr ""
 "данійконфігурації. Якщо це значення виражено у відсотках (наприклад, 80%), "
 "то воно буде розраховано на основі наведеної вище установки швидкості руху. "
 "За замовчуванням для цього параметра - 80%"
+
+msgid "Role base wipe speed"
+msgstr ""
+
+msgid ""
+"The wipe speed is determined by speed of current extrusion role. e.g if a "
+"wip action is executed immediately following an outer wall extrusion, the "
+"speed of the outer wall extrusion will be utilized for the wipe action."
+msgstr ""
 
 msgid "Skirt distance"
 msgstr "Відстань між спідницею/каймою"
@@ -11980,8 +12028,8 @@ msgstr ""
 "Чи бажаєте ви їх перезаписати?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "Ми перейменовуємо налаштування на “Виробник Тип Серійний номер @принтер, "
@@ -13274,39 +13322,29 @@ msgstr ""
 "ABS, відповідне підвищення температури гарячого ліжка може зменшити "
 "ймовірність деформації."
 
-#~ msgid "Stopped."
-#~ msgstr "Зупинено."
+#~ msgid "Alt + Mouse wheel"
+#~ msgstr "Alt + Коліщатко миші"
 
-#~ msgid ""
-#~ "\"Fix Model\" feature is currently only on Windows. Please repair the "
-#~ "model on Bambu Studio(windows) or CAD softwares."
-#~ msgstr ""
-#~ "Функція \\Fix Model\\ доступна лише у Windows. Будь ласка, відремонтуйте "
-#~ "модель \n"
-#~ "на Bambu Studio (Windows) або у програмах САПР."
+#~ msgid "Alt + Shift + Enter"
+#~ msgstr "Alt + Shift + Enter"
 
-#~ msgid "Downloads"
-#~ msgstr "Завантаження"
+#~ msgid "Current Cabin humidity"
+#~ msgstr "Поточна вологість у кабіні"
 
-#~ msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
-#~ msgstr ""
-#~ "3mf генерується старим слайсером Orca, завантажувати лише дані геометрії."
+#~ msgid "Move: press to snap by 1mm"
+#~ msgstr "Переміщення: натисніть для переміщення на 1 мм"
 
-#~ msgid "China"
-#~ msgstr "Китай"
+#~ msgid "⌘+Mouse wheel"
+#~ msgstr "⌘+Колесо миші"
 
-#~ msgid "Tree support brim width"
-#~ msgstr "Підтримка дерева із заповненням"
+#~ msgid "⌥+Mouse wheel"
+#~ msgstr "⌥+Колесо миші"
 
-#~ msgid "The brim width around tree support. 0 means auto."
-#~ msgstr "The brim width around tree support. 0 means auto."
+#~ msgid "Ctrl+Mouse wheel"
+#~ msgstr "Ctrl+Колесо миші"
 
-#~ msgid ""
-#~ "*We recommend you to add brand, materia, type, and even humidity level in "
-#~ "the Name"
-#~ msgstr ""
-#~ "*Ми рекомендуємо вам додати бренд, матеріал, тип і навіть рівень "
-#~ "вологості у назву"
+#~ msgid "Alt+Mouse wheel"
+#~ msgstr "Alt+колесо миші"
 
 #~ msgid ""
 #~ "Please find the details of Flow Dynamics Calibration from our wiki.\n"
