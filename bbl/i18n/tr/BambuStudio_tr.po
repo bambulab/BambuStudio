@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-18 15:33+0800\n"
-"PO-Revision-Date: 2024-09-29 02:13+0300\n"
+"POT-Creation-Date: 2024-07-11 10:13+0800\n"
+"PO-Revision-Date: 2024-06-12 16:40+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
 "Language: tr\n"
@@ -20,8 +20,8 @@ msgstr "Destek Boyama"
 msgid "Please select single object."
 msgstr "Lütfen tek bir nesne seçin."
 
-msgid "Alt + Mouse wheel"
-msgstr "Alt + Fare tekerleği"
+msgid "Mouse wheel"
+msgstr "Fare tekerleği"
 
 msgid "Section view"
 msgstr "Bölüm görünümü"
@@ -153,8 +153,8 @@ msgstr "Kova boya aracı"
 msgid "Height range"
 msgstr "Yükseklik aralığı"
 
-msgid "Alt + Shift + Enter"
-msgstr "Alt + Shift + Enter"
+msgid "Shift + Enter"
+msgstr ""
 
 msgid "Toggle Wireframe"
 msgstr "Wireframe Göster/Gizle"
@@ -170,6 +170,9 @@ msgstr "Üçgen"
 
 msgid "Height Range"
 msgstr "Yükseklik Aralığı"
+
+msgid "Place input box of bottom near mouse"
+msgstr ""
 
 msgid "Vertical"
 msgstr "Dikey"
@@ -229,20 +232,26 @@ msgstr "inç"
 msgid "mm"
 msgstr "mm"
 
+msgid "Part selection"
+msgstr ""
+
+msgid "Fixed step drag"
+msgstr ""
+
+msgid "Single sided scaling"
+msgstr ""
+
 msgid "Position"
 msgstr "Konum"
 
-msgid "Rotation"
-msgstr "Döndürme"
+msgid "Rotate (relative)"
+msgstr "Döndürme (göreceli)"
 
 msgid "Scale ratios"
 msgstr "Ölçek oranları"
 
 msgid "Object Operations"
 msgstr "Nesne İşlemleri"
-
-msgid "Rotate (relative)"
-msgstr "Döndürme (göreceli)"
 
 msgid "Volume Operations"
 msgstr "Hacim İşlemleri"
@@ -268,17 +277,23 @@ msgstr "Konumu Sıfırla"
 msgid "Reset Rotation"
 msgstr "Döndürmeyi Sıfırla"
 
+msgid "Object coordinates"
+msgstr ""
+
 msgid "World coordinates"
 msgstr "Dünya koordinatları"
 
 msgid "°"
 msgstr "°"
 
-msgid "Size"
-msgstr "Boyut"
+msgid "Part coordinates"
+msgstr ""
 
 msgid "%"
 msgstr "%"
+
+msgid "Size"
+msgstr "Boyut"
 
 msgid "uniform scale"
 msgstr "düzgün ölçek"
@@ -366,6 +381,9 @@ msgstr "Hareket:"
 
 msgid "Groove Angle"
 msgstr "Oluk Açısı"
+
+msgid "Rotation"
+msgstr "Döndürme"
 
 msgid "Movement"
 msgstr "Hareket"
@@ -2366,8 +2384,8 @@ msgstr "AMS'yi devre dışı bırak"
 msgid "Print with the filament mounted on the back of chassis"
 msgstr "Şasinin arkasına monte edilmiş filamentle yazdırma"
 
-msgid "Current Cabin humidity"
-msgstr "Mevcut Kabin nemi"
+msgid "Current AMS humidity"
+msgstr ""
 
 msgid ""
 "Please change the desiccant when it is too wet. The indicator may not "
@@ -3890,6 +3908,12 @@ msgstr "Çıkıntıyı Göster"
 
 msgid "Show object overhang highlight in 3D scene"
 msgstr "3B sahnede nesne çıkıntısı vurgusunu göster"
+
+msgid "Set 3DConnexion"
+msgstr ""
+
+msgid "Set 3DConnexion mouse"
+msgstr ""
 
 msgid "Services"
 msgstr "Hizmetler"
@@ -5616,16 +5640,6 @@ msgstr ""
 "başka bir örneği zaten çalışıyorsa, bunun yerine o örnek yeniden "
 "etkinleştirilir."
 
-msgid "Zoom to mouse position"
-msgstr "Fare konumuna yakınlaştır"
-
-msgid ""
-"Zoom in towards the mouse pointer's position in the 3D view, rather than the "
-"2D window center."
-msgstr ""
-"2B pencere merkezi yerine, 3B görünümde fare işaretçisinin konumuna doğru "
-"yakınlaştırın."
-
 msgid "Auto plate type"
 msgstr "Otomatik plaka tipi"
 
@@ -5665,6 +5679,28 @@ msgid ""
 msgstr ""
 "Bu seçenek etkinleştirildiğinde, aynı anda birden fazla cihaza görev "
 "gönderebilir ve birden fazla cihazı yönetebilirsiniz."
+
+msgid "3D Settings"
+msgstr ""
+
+msgid "Zoom to mouse position"
+msgstr "Fare konumuna yakınlaştır"
+
+msgid ""
+"Zoom in towards the mouse pointer's position in the 3D view, rather than the "
+"2D window center."
+msgstr ""
+"2B pencere merkezi yerine, 3B görünümde fare işaretçisinin konumuna doğru "
+"yakınlaştırın."
+
+msgid "Grabber scale"
+msgstr ""
+
+msgid "Set grabber size for move,rotate,scale tool."
+msgstr ""
+
+msgid "Value range"
+msgstr ""
 
 msgid "Presets"
 msgstr "Ön ayarlar"
@@ -7343,9 +7379,6 @@ msgstr "Görüntüyü döndür"
 msgid "Pan View"
 msgstr "Pan Görünümü"
 
-msgid "Mouse wheel"
-msgstr "Fare tekerleği"
-
 msgid "Zoom View"
 msgstr "Zoom Görünümü"
 
@@ -7469,26 +7502,11 @@ msgstr "Gizmo FDM boyalı dikiş"
 msgid "Plater"
 msgstr "Plakacı"
 
-msgid "Move: press to snap by 1mm"
-msgstr "Hareket Ettir: 1 mm kadar yaslamak için basın"
-
-msgid "⌘+Mouse wheel"
-msgstr "⌘+Fare tekerleği"
-
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "Destek/Renkli Boyama: kalem yarıçapını ayarlayın"
 
-msgid "⌥+Mouse wheel"
-msgstr "⌥+Fare tekerleği"
-
 msgid "Support/Color Painting: adjust section position"
 msgstr "Destek/Renkli Boyama: bölüm konumunu ayarlayın"
-
-msgid "Ctrl+Mouse wheel"
-msgstr "Ctrl+Fare tekerleği"
-
-msgid "Alt+Mouse wheel"
-msgstr "Alt+Fare tekerleği"
 
 msgid "Gizmo"
 msgstr "Gizmo"
@@ -8408,6 +8426,17 @@ msgstr ""
 "belirli bir hıza zorlar. Alt katmandan destek almadan çizginin ne kadar "
 "genişlediğini gösteren yüzde olarak ifade edilir. 0, çıkıntı derecesi ne "
 "kadar olursa olsun tüm dış duvar için soğutmayı zorlamak anlamına gelir"
+
+msgid "Overhang threshold for participating cooling"
+msgstr ""
+
+#, c-format
+msgid ""
+"Decide which overhang part join the cooling function to slow down the speed."
+"Expressed as percentage which indicides how much width of the line without "
+"support from lower layer. 100% means forcing cooling for all outer wall no "
+"matter how much overhang degree"
+msgstr ""
 
 msgid "Bridge direction"
 msgstr "Köprü yönü"
@@ -9538,6 +9567,13 @@ msgstr "Ütüleme çizgi aralığı"
 msgid "The distance between the lines of ironing"
 msgstr "Ütü çizgileri arasındaki mesafe"
 
+msgid "Ironing inset"
+msgstr ""
+
+msgid ""
+"The distance to keep the from the edges of ironing line. 0 means not apply."
+msgstr ""
+
 msgid "Ironing speed"
 msgstr "Ütüleme hızı"
 
@@ -10071,6 +10107,9 @@ msgstr ""
 "Bu miktar milimetre cinsinden veya geçerli katman yüksekliğinin yüzdesi "
 "olarak belirtilebilir. Bu parametrenin varsayılan değeri 0'dır."
 
+msgid "Slop gap"
+msgstr ""
+
 msgid "Scarf around entire wall"
 msgstr "Tüm duvarın etrafına atkıla"
 
@@ -10111,6 +10150,15 @@ msgstr ""
 "Temizleme hızı, bu konfigürasyonda belirtilen hız ayarına göre belirlenir. "
 "Değer yüzde olarak ifade edilirse (örn. %80), yukarıdaki ilerleme hızı "
 "ayarına göre hesaplanır. Bu parametrenin varsayılan değeri %80'dir"
+
+msgid "Role base wipe speed"
+msgstr ""
+
+msgid ""
+"The wipe speed is determined by speed of current extrusion role. e.g if a "
+"wip action is executed immediately following an outer wall extrusion, the "
+"speed of the outer wall extrusion will be utilized for the wipe action."
+msgstr ""
 
 msgid "Skirt distance"
 msgstr "Etek mesafesi"
@@ -13219,6 +13267,30 @@ msgstr ""
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı "
 "sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını "
 "azaltabileceğini biliyor muydunuz."
+
+#~ msgid "Alt + Mouse wheel"
+#~ msgstr "Alt + Fare tekerleği"
+
+#~ msgid "Alt + Shift + Enter"
+#~ msgstr "Alt + Shift + Enter"
+
+#~ msgid "Current Cabin humidity"
+#~ msgstr "Mevcut Kabin nemi"
+
+#~ msgid "Move: press to snap by 1mm"
+#~ msgstr "Hareket Ettir: 1 mm kadar yaslamak için basın"
+
+#~ msgid "⌘+Mouse wheel"
+#~ msgstr "⌘+Fare tekerleği"
+
+#~ msgid "⌥+Mouse wheel"
+#~ msgstr "⌥+Fare tekerleği"
+
+#~ msgid "Ctrl+Mouse wheel"
+#~ msgstr "Ctrl+Fare tekerleği"
+
+#~ msgid "Alt+Mouse wheel"
+#~ msgstr "Alt+Fare tekerleği"
 
 #~ msgid ""
 #~ "The current chamber temperature or the target chamber temperature exceeds "

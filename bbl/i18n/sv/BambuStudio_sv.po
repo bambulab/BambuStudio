@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-18 15:33+0800\n"
+"POT-Creation-Date: 2024-07-11 10:13+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -16,8 +16,8 @@ msgstr "Färgläggning av Support"
 msgid "Please select single object."
 msgstr "Please select single object."
 
-msgid "Alt + Mouse wheel"
-msgstr "Alt + mushjul"
+msgid "Mouse wheel"
+msgstr "Mus hjul"
 
 msgid "Section view"
 msgstr "Sektionsvy"
@@ -149,8 +149,8 @@ msgstr "Hinkfyllning"
 msgid "Height range"
 msgstr "Höjd intervall"
 
-msgid "Alt + Shift + Enter"
-msgstr "Alt + Skift + Enter"
+msgid "Shift + Enter"
+msgstr ""
 
 msgid "Toggle Wireframe"
 msgstr "Växla Wireframe"
@@ -166,6 +166,9 @@ msgstr "Triangel"
 
 msgid "Height Range"
 msgstr "Höjd intervall"
+
+msgid "Place input box of bottom near mouse"
+msgstr ""
 
 msgid "Vertical"
 msgstr "Vertikal"
@@ -225,20 +228,26 @@ msgstr "i"
 msgid "mm"
 msgstr "mm"
 
+msgid "Part selection"
+msgstr ""
+
+msgid "Fixed step drag"
+msgstr ""
+
+msgid "Single sided scaling"
+msgstr ""
+
 msgid "Position"
 msgstr "Position"
 
-msgid "Rotation"
-msgstr "Rotation"
+msgid "Rotate (relative)"
+msgstr "Rotate (relative)"
 
 msgid "Scale ratios"
 msgstr "Skalnings förhållande"
 
 msgid "Object Operations"
 msgstr "Åtgärder för objekt"
-
-msgid "Rotate (relative)"
-msgstr "Rotate (relative)"
 
 msgid "Volume Operations"
 msgstr "Volym Åtgärder"
@@ -264,17 +273,23 @@ msgstr "Återställ Position"
 msgid "Reset Rotation"
 msgstr "Återställ Rotation"
 
+msgid "Object coordinates"
+msgstr ""
+
 msgid "World coordinates"
 msgstr "Världskoordinater"
 
 msgid "°"
 msgstr "°"
 
-msgid "Size"
-msgstr "Storlek"
+msgid "Part coordinates"
+msgstr ""
 
 msgid "%"
 msgstr "%"
+
+msgid "Size"
+msgstr "Storlek"
 
 msgid "uniform scale"
 msgstr "enhetlig skala"
@@ -360,6 +375,9 @@ msgstr "Rörelse:"
 
 msgid "Groove Angle"
 msgstr "Spårvinkel"
+
+msgid "Rotation"
+msgstr "Rotation"
 
 msgid "Movement"
 msgstr "Rörelse"
@@ -2358,8 +2376,8 @@ msgstr "Inaktivera AMS"
 msgid "Print with the filament mounted on the back of chassis"
 msgstr "Skriv ut med filament på en extern spole"
 
-msgid "Current Cabin humidity"
-msgstr "Current Cabin humidity"
+msgid "Current AMS humidity"
+msgstr ""
 
 msgid ""
 "Please change the desiccant when it is too wet. The indicator may not "
@@ -3884,6 +3902,12 @@ msgstr "Visa & Överhäng"
 
 msgid "Show object overhang highlight in 3D scene"
 msgstr "Visa objektets överhäng i 3D-scen"
+
+msgid "Set 3DConnexion"
+msgstr ""
+
+msgid "Set 3DConnexion mouse"
+msgstr ""
 
 msgid "Services"
 msgstr "Tjänster"
@@ -5581,16 +5605,6 @@ msgstr ""
 "same Bambu Studio is already running, that instance will be reactivated "
 "instead."
 
-msgid "Zoom to mouse position"
-msgstr "Zooma till musens position"
-
-msgid ""
-"Zoom in towards the mouse pointer's position in the 3D view, rather than the "
-"2D window center."
-msgstr ""
-"Zooma in mot muspekarens position i 3D-vyn, istället för mot 2D-fönstrets "
-"mitt."
-
 msgid "Auto plate type"
 msgstr "Auto plate type"
 
@@ -5623,6 +5637,28 @@ msgid ""
 msgstr ""
 "With this option enabled, you can send a task to multiple devices at the "
 "same time and manage multiple devices."
+
+msgid "3D Settings"
+msgstr ""
+
+msgid "Zoom to mouse position"
+msgstr "Zooma till musens position"
+
+msgid ""
+"Zoom in towards the mouse pointer's position in the 3D view, rather than the "
+"2D window center."
+msgstr ""
+"Zooma in mot muspekarens position i 3D-vyn, istället för mot 2D-fönstrets "
+"mitt."
+
+msgid "Grabber scale"
+msgstr ""
+
+msgid "Set grabber size for move,rotate,scale tool."
+msgstr ""
+
+msgid "Value range"
+msgstr ""
 
 msgid "Presets"
 msgstr "Förinställningar"
@@ -6215,8 +6251,8 @@ msgstr ""
 msgid ""
 "Timelapse is not supported because Print sequence is set to \"By object\"."
 msgstr ""
-"Timelapse stöds inte eftersom utskrifts sekvensen är inställd på \"Per objekt"
-"\"."
+"Timelapse stöds inte eftersom utskrifts sekvensen är inställd på \"Per "
+"objekt\"."
 
 msgid "Errors"
 msgstr "Fel"
@@ -6583,8 +6619,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "När du spelar in timelapse utan verktygshuvud rekommenderas att du lägger "
 "till ett \"Timelapse Wipe Tower\".\n"
@@ -7309,9 +7345,6 @@ msgstr "Rotera vy"
 msgid "Pan View"
 msgstr "Panoreringsvy"
 
-msgid "Mouse wheel"
-msgstr "Mus hjul"
-
 msgid "Zoom View"
 msgstr "Zoomvy"
 
@@ -7435,26 +7468,11 @@ msgstr "Gizmo FDM målad söm"
 msgid "Plater"
 msgstr "Plätering/Förgyllning"
 
-msgid "Move: press to snap by 1mm"
-msgstr "Flytta: tryck för att låsa med 1mm"
-
-msgid "⌘+Mouse wheel"
-msgstr "⌘+Mushjul"
-
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "Support/Färgläggning: justera penn radie"
 
-msgid "⌥+Mouse wheel"
-msgstr "⌥+Mushjul"
-
 msgid "Support/Color Painting: adjust section position"
 msgstr "Support/Färgläggning:justera sektions positionen"
-
-msgid "Ctrl+Mouse wheel"
-msgstr "Ctrl+mushjul"
-
-msgid "Alt+Mouse wheel"
-msgstr "Alt+Mushjul"
 
 msgid "Gizmo"
 msgstr "Gizmo"
@@ -8357,6 +8375,17 @@ msgstr ""
 "objektets del överstiger detta värde. Detta uttrycks som en procentsats som "
 "anger hur mycket bredden på linjen utan stöd från det nedre lagret. 0%% "
 "betyder tvinga kylning för all yttervägg oavsett överhängs grad."
+
+msgid "Overhang threshold for participating cooling"
+msgstr ""
+
+#, c-format
+msgid ""
+"Decide which overhang part join the cooling function to slow down the speed."
+"Expressed as percentage which indicides how much width of the line without "
+"support from lower layer. 100% means forcing cooling for all outer wall no "
+"matter how much overhang degree"
+msgstr ""
 
 msgid "Bridge direction"
 msgstr "Bridge riktning"
@@ -9488,6 +9517,13 @@ msgstr "Strykning linjens mellanrum"
 msgid "The distance between the lines of ironing"
 msgstr "Avståndet mellan linjerna för strykning"
 
+msgid "Ironing inset"
+msgstr ""
+
+msgid ""
+"The distance to keep the from the edges of ironing line. 0 means not apply."
+msgstr ""
+
 msgid "Ironing speed"
 msgstr "Stryknings hastighet"
 
@@ -10018,6 +10054,9 @@ msgstr ""
 "This amount can be specified in millimeters or as a percentage of the "
 "current layer height. The default value for this parameter is 0."
 
+msgid "Slop gap"
+msgstr ""
+
 msgid "Scarf around entire wall"
 msgstr "Scarf around entire wall"
 
@@ -10059,6 +10098,15 @@ msgstr ""
 "konfiguration. Om värdet uttrycks i procent (t.ex. 80%), kommer det att "
 "beräknas baserat på inställningen för förflyttnings hastigheten ovan. "
 "Standardvärdet för denna parameter är 80%"
+
+msgid "Role base wipe speed"
+msgstr ""
+
+msgid ""
+"The wipe speed is determined by speed of current extrusion role. e.g if a "
+"wip action is executed immediately following an outer wall extrusion, the "
+"speed of the outer wall extrusion will be utilized for the wipe action."
+msgstr ""
 
 msgid "Skirt distance"
 msgstr "Skirt avstånd"
@@ -11867,12 +11915,12 @@ msgstr ""
 "Vill du skriva om det?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more printers; please go to printer selection"
 
 msgid "Create Printer/Nozzle"
@@ -13130,6 +13178,30 @@ msgstr ""
 "Visste du att när du skriver ut material som är benägna att vrida, såsom "
 "ABS, kan en lämplig ökning av värmebäddens temperatur minska sannolikheten "
 "för vridning."
+
+#~ msgid "Alt + Mouse wheel"
+#~ msgstr "Alt + mushjul"
+
+#~ msgid "Alt + Shift + Enter"
+#~ msgstr "Alt + Skift + Enter"
+
+#~ msgid "Current Cabin humidity"
+#~ msgstr "Current Cabin humidity"
+
+#~ msgid "Move: press to snap by 1mm"
+#~ msgstr "Flytta: tryck för att låsa med 1mm"
+
+#~ msgid "⌘+Mouse wheel"
+#~ msgstr "⌘+Mushjul"
+
+#~ msgid "⌥+Mouse wheel"
+#~ msgstr "⌥+Mushjul"
+
+#~ msgid "Ctrl+Mouse wheel"
+#~ msgstr "Ctrl+mushjul"
+
+#~ msgid "Alt+Mouse wheel"
+#~ msgstr "Alt+Mushjul"
 
 #~ msgid ""
 #~ "The current chamber temperature or the target chamber temperature exceeds "
@@ -15227,9 +15299,9 @@ msgstr ""
 #~ "Tack för att du har köpt en Bambu Lab enhet. Innan du använder din Bambu "
 #~ "Lab enhet ska du läsa villkoren. Genom att klicka för att godkänna "
 #~ "användningen av din Bambu Lab enhet godkänner du att följa "
-#~ "sekretesspolicyn och användningsvillkoren (gemensamt kallade \"Villkor"
-#~ "\"). Om du inte följer eller samtycker till Bambu Labs integritetspolicy "
-#~ "ska du inte använda Bambu Labs utrustning och tjänster."
+#~ "sekretesspolicyn och användningsvillkoren (gemensamt kallade "
+#~ "\"Villkor\"). Om du inte följer eller samtycker till Bambu Labs "
+#~ "integritetspolicy ska du inte använda Bambu Labs utrustning och tjänster."
 
 #~ msgid "The %s filament is too soft to be used with the AMS"
 #~ msgstr "Filament %s är för mjukt för att kunna användas med AMS"

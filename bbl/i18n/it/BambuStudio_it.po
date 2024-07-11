@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-18 15:33+0800\n"
+"POT-Creation-Date: 2024-07-11 10:13+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -19,8 +19,8 @@ msgstr "Supporti pittura"
 msgid "Please select single object."
 msgstr "Please select single object."
 
-msgid "Alt + Mouse wheel"
-msgstr "Alt + Rotella del mouse"
+msgid "Mouse wheel"
+msgstr "Rotella del mouse:"
 
 msgid "Section view"
 msgstr "Vista in sezione"
@@ -152,8 +152,8 @@ msgstr "Riempimento Secchio"
 msgid "Height range"
 msgstr "Intervallo altezza"
 
-msgid "Alt + Shift + Enter"
-msgstr "Alt + Maiusc + Invio"
+msgid "Shift + Enter"
+msgstr ""
 
 msgid "Toggle Wireframe"
 msgstr "Attiva Wireframe"
@@ -169,6 +169,9 @@ msgstr "Triangolo."
 
 msgid "Height Range"
 msgstr "Interv. altezza"
+
+msgid "Place input box of bottom near mouse"
+msgstr ""
 
 msgid "Vertical"
 msgstr "Verticale"
@@ -228,20 +231,26 @@ msgstr "in"
 msgid "mm"
 msgstr "mm"
 
+msgid "Part selection"
+msgstr ""
+
+msgid "Fixed step drag"
+msgstr ""
+
+msgid "Single sided scaling"
+msgstr ""
+
 msgid "Position"
 msgstr "Posizione"
 
-msgid "Rotation"
-msgstr "Rotazione"
+msgid "Rotate (relative)"
+msgstr "Rotate (relative)"
 
 msgid "Scale ratios"
 msgstr "Rapporti di scala"
 
 msgid "Object Operations"
 msgstr "Operazioni oggetti"
-
-msgid "Rotate (relative)"
-msgstr "Rotate (relative)"
 
 msgid "Volume Operations"
 msgstr "Operazioni volume"
@@ -267,17 +276,23 @@ msgstr "Resetta Posizione"
 msgid "Reset Rotation"
 msgstr "Resetta Rotazione"
 
+msgid "Object coordinates"
+msgstr ""
+
 msgid "World coordinates"
 msgstr "Coordinate globali"
 
 msgid "°"
 msgstr "°"
 
-msgid "Size"
-msgstr "Dimensione"
+msgid "Part coordinates"
+msgstr ""
 
 msgid "%"
 msgstr "%"
+
+msgid "Size"
+msgstr "Dimensione"
 
 msgid "uniform scale"
 msgstr "scala uniforme"
@@ -366,6 +381,9 @@ msgstr "Movimento:"
 
 msgid "Groove Angle"
 msgstr "Angolo Scanalatura"
+
+msgid "Rotation"
+msgstr "Rotazione"
 
 msgid "Movement"
 msgstr "Movimento"
@@ -2389,8 +2407,8 @@ msgstr "Disabilita AMS"
 msgid "Print with the filament mounted on the back of chassis"
 msgstr "Stampa con filamento su bobina esterna"
 
-msgid "Current Cabin humidity"
-msgstr "Current Cabin humidity"
+msgid "Current AMS humidity"
+msgstr ""
 
 msgid ""
 "Please change the desiccant when it is too wet. The indicator may not "
@@ -3928,6 +3946,12 @@ msgstr "Mostra sporgenze"
 
 msgid "Show object overhang highlight in 3D scene"
 msgstr "Mostra la sporgenza dell'oggetto evidenziata nella scena 3D"
+
+msgid "Set 3DConnexion"
+msgstr ""
+
+msgid "Set 3DConnexion mouse"
+msgstr ""
 
 msgid "Services"
 msgstr "Servizi"
@@ -5636,16 +5660,6 @@ msgstr ""
 "same Bambu Studio is already running, that instance will be reactivated "
 "instead."
 
-msgid "Zoom to mouse position"
-msgstr "Zoom posizione del mouse"
-
-msgid ""
-"Zoom in towards the mouse pointer's position in the 3D view, rather than the "
-"2D window center."
-msgstr ""
-"Ingrandisci verso la posizione del puntatore del mouse nella vista 3D, "
-"anziché verso il centro della finestra 2D."
-
 msgid "Auto plate type"
 msgstr "Auto plate type"
 
@@ -5680,6 +5694,28 @@ msgid ""
 msgstr ""
 "With this option enabled, you can send a task to multiple devices at the "
 "same time and manage multiple devices."
+
+msgid "3D Settings"
+msgstr ""
+
+msgid "Zoom to mouse position"
+msgstr "Zoom posizione del mouse"
+
+msgid ""
+"Zoom in towards the mouse pointer's position in the 3D view, rather than the "
+"2D window center."
+msgstr ""
+"Ingrandisci verso la posizione del puntatore del mouse nella vista 3D, "
+"anziché verso il centro della finestra 2D."
+
+msgid "Grabber scale"
+msgstr ""
+
+msgid "Set grabber size for move,rotate,scale tool."
+msgstr ""
+
+msgid "Value range"
+msgstr ""
 
 msgid "Presets"
 msgstr "Preset"
@@ -6645,8 +6681,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Quando si registra un timelapse senza testa di satmpa, si consiglia di "
 "aggiungere un \"Timelapse Torre di pulizia\"\n"
@@ -7377,9 +7413,6 @@ msgstr "Ruota vista"
 msgid "Pan View"
 msgstr "Vista panoramica"
 
-msgid "Mouse wheel"
-msgstr "Rotella del mouse:"
-
 msgid "Zoom View"
 msgstr "Vista Zoom"
 
@@ -7503,26 +7536,11 @@ msgstr "Gizmo FDM pittura giunzione"
 msgid "Plater"
 msgstr "Piano"
 
-msgid "Move: press to snap by 1mm"
-msgstr "Sposta: premi per muovere di 1 mm"
-
-msgid "⌘+Mouse wheel"
-msgstr "⌘+Rotella mouse"
-
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "Supporto/Pittura a colori: regolare il raggio della penna"
 
-msgid "⌥+Mouse wheel"
-msgstr "⌥+Rotella mouse"
-
 msgid "Support/Color Painting: adjust section position"
 msgstr "Supporto/Pittura a colori: regolare la posizione della sezione"
-
-msgid "Ctrl+Mouse wheel"
-msgstr "Ctrl+Rotellina del mouse"
-
-msgid "Alt+Mouse wheel"
-msgstr "Alt+Rotella del mouse"
 
 msgid "Gizmo"
 msgstr "Gizmo"
@@ -7730,8 +7748,8 @@ msgid ""
 msgstr ""
 "È stato rilevato un aggiornamento importante che deve essere eseguito prima "
 "che la stampa possa continuare. Vuoi effettuare l'aggiornamento adesso? Puoi "
-"effettuare l'aggiornamento anche in un secondo momento da \"Aggiorna firmware"
-"\"."
+"effettuare l'aggiornamento anche in un secondo momento da \"Aggiorna "
+"firmware\"."
 
 msgid ""
 "The firmware version is abnormal. Repairing and updating are required before "
@@ -8463,6 +8481,17 @@ msgstr ""
 "in percentuale ed indica la larghezza della linea senza il supporto dei "
 "layer inferiori. 0%% significa forzare il raffreddamento per tutta la parete "
 "esterna, indipendentemente dal grado di sporgenza."
+
+msgid "Overhang threshold for participating cooling"
+msgstr ""
+
+#, c-format
+msgid ""
+"Decide which overhang part join the cooling function to slow down the speed."
+"Expressed as percentage which indicides how much width of the line without "
+"support from lower layer. 100% means forcing cooling for all outer wall no "
+"matter how much overhang degree"
+msgstr ""
 
 msgid "Bridge direction"
 msgstr "Direzione bridge"
@@ -9612,6 +9641,13 @@ msgstr "Spaziatura linee di stiratura"
 msgid "The distance between the lines of ironing"
 msgstr "Distanza tra le linee di stiratura"
 
+msgid "Ironing inset"
+msgstr ""
+
+msgid ""
+"The distance to keep the from the edges of ironing line. 0 means not apply."
+msgstr ""
+
 msgid "Ironing speed"
 msgstr "Velocità stiratura"
 
@@ -10154,6 +10190,9 @@ msgstr ""
 "This amount can be specified in millimeters or as a percentage of the "
 "current layer height. The default value for this parameter is 0."
 
+msgid "Slop gap"
+msgstr ""
+
 msgid "Scarf around entire wall"
 msgstr "Scarf around entire wall"
 
@@ -10195,6 +10234,15 @@ msgstr ""
 "specificata in questa configurazione. Se il valore è espresso in percentuale "
 "(ad es. 80%), sarà calcolato in base all'impostazione di spostamento di cui "
 "sopra. Il valore predefinito per questo parametro è 80%."
+
+msgid "Role base wipe speed"
+msgstr ""
+
+msgid ""
+"The wipe speed is determined by speed of current extrusion role. e.g if a "
+"wip action is executed immediately following an outer wall extrusion, the "
+"speed of the outer wall extrusion will be utilized for the wipe action."
+msgstr ""
 
 msgid "Skirt distance"
 msgstr "Distanza Skirt"
@@ -12039,8 +12087,8 @@ msgstr ""
 "Vuoi riscriverlo?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "Rinomineremo i preset come \"Vendor Type Serial @printer selezionato\". \n"
@@ -13309,6 +13357,30 @@ msgstr ""
 "aumentare adeguatamente la temperatura del piano può ridurre la probabilità "
 "di deformazione."
 
+#~ msgid "Alt + Mouse wheel"
+#~ msgstr "Alt + Rotella del mouse"
+
+#~ msgid "Alt + Shift + Enter"
+#~ msgstr "Alt + Maiusc + Invio"
+
+#~ msgid "Current Cabin humidity"
+#~ msgstr "Current Cabin humidity"
+
+#~ msgid "Move: press to snap by 1mm"
+#~ msgstr "Sposta: premi per muovere di 1 mm"
+
+#~ msgid "⌘+Mouse wheel"
+#~ msgstr "⌘+Rotella mouse"
+
+#~ msgid "⌥+Mouse wheel"
+#~ msgstr "⌥+Rotella mouse"
+
+#~ msgid "Ctrl+Mouse wheel"
+#~ msgstr "Ctrl+Rotellina del mouse"
+
+#~ msgid "Alt+Mouse wheel"
+#~ msgstr "Alt+Rotella del mouse"
+
 #~ msgid ""
 #~ "The current chamber temperature or the target chamber temperature exceeds "
 #~ "45\\u2103.In order to avoid extruder clogging,low temperature "
@@ -13414,12 +13486,13 @@ msgstr ""
 #~ "wiki.\n"
 #~ "\n"
 #~ "Di solito la calibrazione non è necessaria. Quando si avvia una stampa a "
-#~ "singolo colore/materiale, con l'opzione \"calibrazione dinamica del flusso"
-#~ "\" selezionata nel menu di avvio della stampa, la stampante eseguirà la "
-#~ "vecchia procedura, calibrando il filamento prima della stampa; Quando si "
-#~ "avvia una stampa multicolore/materiale, la stampante utilizzerà il "
-#~ "parametro di compensazione predefinito del filamento durante ogni cambio, "
-#~ "che nella maggior parte dei casi avrà un buon risultato.\n"
+#~ "singolo colore/materiale, con l'opzione \"calibrazione dinamica del "
+#~ "flusso\" selezionata nel menu di avvio della stampa, la stampante "
+#~ "eseguirà la vecchia procedura, calibrando il filamento prima della "
+#~ "stampa; Quando si avvia una stampa multicolore/materiale, la stampante "
+#~ "utilizzerà il parametro di compensazione predefinito del filamento "
+#~ "durante ogni cambio, che nella maggior parte dei casi avrà un buon "
+#~ "risultato.\n"
 #~ "\n"
 #~ "Tieni presente che ci sono alcuni casi che renderanno il risultato della "
 #~ "calibrazione non affidabile: utilizzo di un piatto texture; il piatto non "
@@ -15908,8 +15981,8 @@ msgstr ""
 #~ "Quando si registra un timelapse senza testa di satmpa, si consiglia di "
 #~ "aggiungere un \"Timelapse Torre di pulizia\"\n"
 #~ "facendo clic con il pulsante destro del mouse sulla posizione vuota del "
-#~ "piatto e scegli \"Aggiungi primitiva\" ->\"Timelapse Torre di pulizia"
-#~ "\"».\n"
+#~ "piatto e scegli \"Aggiungi primitiva\" ->\"Timelapse Torre di "
+#~ "pulizia\"».\n"
 
 #~ msgid ""
 #~ "When sparse infill density is low, the internal solid infill or internal "

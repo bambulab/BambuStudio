@@ -2,12 +2,12 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-18 15:33+0800\n"
+"POT-Creation-Date: 2024-07-11 10:13+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -24,8 +24,8 @@ msgstr "Malování podpěr"
 msgid "Please select single object."
 msgstr ""
 
-msgid "Alt + Mouse wheel"
-msgstr "Alt + kolečko myši"
+msgid "Mouse wheel"
+msgstr "Kolečko myši"
 
 msgid "Section view"
 msgstr "Zobrazení sekce"
@@ -157,7 +157,7 @@ msgstr "Vylití barvou"
 msgid "Height range"
 msgstr "Rozsah výšky"
 
-msgid "Alt + Shift + Enter"
+msgid "Shift + Enter"
 msgstr ""
 
 msgid "Toggle Wireframe"
@@ -174,6 +174,9 @@ msgstr "Trojúhelník"
 
 msgid "Height Range"
 msgstr "Rozsah výš"
+
+msgid "Place input box of bottom near mouse"
+msgstr ""
 
 msgid "Vertical"
 msgstr ""
@@ -233,20 +236,26 @@ msgstr "v"
 msgid "mm"
 msgstr "mm"
 
+msgid "Part selection"
+msgstr ""
+
+msgid "Fixed step drag"
+msgstr ""
+
+msgid "Single sided scaling"
+msgstr ""
+
 msgid "Position"
 msgstr "Pozice"
 
-msgid "Rotation"
-msgstr "Otáčení"
+msgid "Rotate (relative)"
+msgstr ""
 
 msgid "Scale ratios"
 msgstr "Poměry měřítka"
 
 msgid "Object Operations"
 msgstr "Operace s objektem"
-
-msgid "Rotate (relative)"
-msgstr ""
 
 msgid "Volume Operations"
 msgstr "Operace s objemem"
@@ -272,17 +281,23 @@ msgstr "Resetovat pozici"
 msgid "Reset Rotation"
 msgstr "Výchozí Natočení"
 
+msgid "Object coordinates"
+msgstr ""
+
 msgid "World coordinates"
 msgstr "Světové souřadnice"
 
 msgid "°"
 msgstr "°"
 
-msgid "Size"
-msgstr "Rozměr"
+msgid "Part coordinates"
+msgstr ""
 
 msgid "%"
 msgstr "%"
+
+msgid "Size"
+msgstr "Rozměr"
 
 msgid "uniform scale"
 msgstr "jednotné měřítko"
@@ -366,6 +381,9 @@ msgstr "Přejezd:"
 
 msgid "Groove Angle"
 msgstr ""
+
+msgid "Rotation"
+msgstr "Otáčení"
 
 msgid "Movement"
 msgstr "Přejezd"
@@ -2338,7 +2356,7 @@ msgstr "Zakázat AMS"
 msgid "Print with the filament mounted on the back of chassis"
 msgstr "Tisk s filamentem namontovaným na zadní straně podvozku"
 
-msgid "Current Cabin humidity"
+msgid "Current AMS humidity"
 msgstr ""
 
 msgid ""
@@ -3806,6 +3824,12 @@ msgstr "Zobrazit &Převis"
 
 msgid "Show object overhang highlight in 3D scene"
 msgstr "Zobrazit zvýraznění převisů objektu ve 3D scéně"
+
+msgid "Set 3DConnexion"
+msgstr ""
+
+msgid "Set 3DConnexion mouse"
+msgstr ""
 
 msgid "Services"
 msgstr ""
@@ -5454,14 +5478,6 @@ msgid ""
 "instead."
 msgstr ""
 
-msgid "Zoom to mouse position"
-msgstr "Přiblížit na pozici myši"
-
-msgid ""
-"Zoom in towards the mouse pointer's position in the 3D view, rather than the "
-"2D window center."
-msgstr "Přiblížit se ke kurzoru myši ve 3D zobrazení, na místo středu 2D okna."
-
 msgid "Auto plate type"
 msgstr ""
 
@@ -5489,6 +5505,26 @@ msgstr ""
 msgid ""
 "With this option enabled, you can send a task to multiple devices at the "
 "same time and manage multiple devices."
+msgstr ""
+
+msgid "3D Settings"
+msgstr ""
+
+msgid "Zoom to mouse position"
+msgstr "Přiblížit na pozici myši"
+
+msgid ""
+"Zoom in towards the mouse pointer's position in the 3D view, rather than the "
+"2D window center."
+msgstr "Přiblížit se ke kurzoru myši ve 3D zobrazení, na místo středu 2D okna."
+
+msgid "Grabber scale"
+msgstr ""
+
+msgid "Set grabber size for move,rotate,scale tool."
+msgstr ""
+
+msgid "Value range"
 msgstr ""
 
 msgid "Presets"
@@ -6400,8 +6436,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Při nahrávání časosběru bez nástrojové hlavy se doporučuje přidat  "
 "\"Timelapse Wipe Tower\" \n"
@@ -7098,9 +7134,6 @@ msgstr "Otočit pohled"
 msgid "Pan View"
 msgstr "Zobrazení panorama"
 
-msgid "Mouse wheel"
-msgstr "Kolečko myši"
-
 msgid "Zoom View"
 msgstr "Zvětšit zobrazení"
 
@@ -7224,26 +7257,11 @@ msgstr "Gizmo FDM malování pozice švu"
 msgid "Plater"
 msgstr "Podložka"
 
-msgid "Move: press to snap by 1mm"
-msgstr "Posunout: stisknutím přitáhnete o 1 mm"
-
-msgid "⌘+Mouse wheel"
-msgstr "⌘+kolečko myši"
-
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "Podpěry/Barva: upravit poloměr pera"
 
-msgid "⌥+Mouse wheel"
-msgstr "⌥+kolečko myši"
-
 msgid "Support/Color Painting: adjust section position"
 msgstr "Podpěry/Barva: upravit polohu sekce"
-
-msgid "Ctrl+Mouse wheel"
-msgstr "Ctrl+kolečko myši"
-
-msgid "Alt+Mouse wheel"
-msgstr "Alt+kolečko myši"
 
 msgid "Gizmo"
 msgstr "Gizmo"
@@ -8127,6 +8145,17 @@ msgstr ""
 "tištěného dílu překročí tuto hodnotu. Vyjádřeno v procentech, které udává, "
 "jak velká šířka extruze bez podpěry spodní vrstvy. 0%% znamená vynucení "
 "chlazení pro celou vnější stěnu bez ohledu na míru převisu"
+
+msgid "Overhang threshold for participating cooling"
+msgstr ""
+
+#, c-format
+msgid ""
+"Decide which overhang part join the cooling function to slow down the speed."
+"Expressed as percentage which indicides how much width of the line without "
+"support from lower layer. 100% means forcing cooling for all outer wall no "
+"matter how much overhang degree"
+msgstr ""
 
 msgid "Bridge direction"
 msgstr "Směr mostu"
@@ -9192,6 +9221,13 @@ msgstr "Řádkování žehlení"
 msgid "The distance between the lines of ironing"
 msgstr "Vzdálenost mezi žehlicími linkami"
 
+msgid "Ironing inset"
+msgstr ""
+
+msgid ""
+"The distance to keep the from the edges of ironing line. 0 means not apply."
+msgstr ""
+
 msgid "Ironing speed"
 msgstr "Rychlost žehlení"
 
@@ -9679,6 +9715,9 @@ msgid ""
 "current layer height. The default value for this parameter is 0."
 msgstr ""
 
+msgid "Slop gap"
+msgstr ""
+
 msgid "Scarf around entire wall"
 msgstr ""
 
@@ -9718,6 +9757,15 @@ msgstr ""
 "konfiguraci. Pokud je hodnota vyjádřena v procentech (např. 80%), bude "
 "vypočítána na základě výše nastavené rychlosti jízdy. Výchozí hodnota pro "
 "tento parametr je 80%"
+
+msgid "Role base wipe speed"
+msgstr ""
+
+msgid ""
+"The wipe speed is determined by speed of current extrusion role. e.g if a "
+"wip action is executed immediately following an outer wall extrusion, the "
+"speed of the outer wall extrusion will be utilized for the wipe action."
+msgstr ""
 
 msgid "Skirt distance"
 msgstr "Vzdálenost Obrysu"
@@ -11454,8 +11502,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 
@@ -12322,8 +12370,8 @@ msgid ""
 msgstr ""
 "Plochou na podložku\n"
 "Věděli jste, že můžete rychle nastavit orientaci modelu tak, aby jedna z "
-"jeho stěn spočívala na tiskovém podloží? Vyberte funkci \"Plochou na podložku"
-"\" nebo stiskněte klávesu <b>F</b>."
+"jeho stěn spočívala na tiskovém podloží? Vyberte funkci \"Plochou na "
+"podložku\" nebo stiskněte klávesu <b>F</b>."
 
 #: resources/data/hints.ini: [hint:Object List]
 msgid ""
@@ -12542,39 +12590,23 @@ msgid ""
 "probability of warping."
 msgstr ""
 
-#~ msgid "Stopped."
-#~ msgstr "Zastaveno."
+#~ msgid "Alt + Mouse wheel"
+#~ msgstr "Alt + kolečko myši"
 
-#~ msgid ""
-#~ "\"Fix Model\" feature is currently only on Windows. Please repair the "
-#~ "model on Bambu Studio(windows) or CAD softwares."
-#~ msgstr ""
-#~ "Funkce  \"Opravit model\" je momentálně pouze v systému Windows. Opravte "
-#~ "prosím model na Bambu Studio (windows) nebo CAD software."
+#~ msgid "Move: press to snap by 1mm"
+#~ msgstr "Posunout: stisknutím přitáhnete o 1 mm"
 
-#~ msgid "Downloads"
-#~ msgstr "Stahování"
+#~ msgid "⌘+Mouse wheel"
+#~ msgstr "⌘+kolečko myši"
 
-#~ msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
-#~ msgstr ""
-#~ "3mf je generován starým Bambu Studio, načtěte pouze geometrická data."
+#~ msgid "⌥+Mouse wheel"
+#~ msgstr "⌥+kolečko myši"
 
-#~ msgid "China"
-#~ msgstr "Čína"
+#~ msgid "Ctrl+Mouse wheel"
+#~ msgstr "Ctrl+kolečko myši"
 
-#~ msgid "Tree support brim width"
-#~ msgstr "Šířka Limce podpěr stromů"
-
-#~ msgid "The brim width around tree support. 0 means auto."
-#~ msgstr ""
-#~ "Šířka límce kolem stromové podpěry. 0 znamená automatické nastavení."
-
-#~ msgid ""
-#~ "*We recommend you to add brand, materia, type, and even humidity level in "
-#~ "the Name"
-#~ msgstr ""
-#~ "*Doporučujeme přidat do názvu také značku, materiál, typ a dokonce i "
-#~ "úroveň vlhkosti"
+#~ msgid "Alt+Mouse wheel"
+#~ msgstr "Alt+kolečko myši"
 
 #~ msgid ""
 #~ "Please find the details of Flow Dynamics Calibration from our wiki.\n"
@@ -12599,12 +12631,12 @@ msgstr ""
 #~ "Najdete podrobnosti o kalibraci průtoku dynamiky v naší wiki.\n"
 #~ "\n"
 #~ "Obvykle kalibrace není potřebná. Při spuštění tisku s jednobarevným/"
-#~ "materiálovým filamentem a zaškrtnutou volbou \"kalibrace průtoku dynamiky"
-#~ "\" v menu spuštění tisku, tiskárna bude postupovat podle staré metody a "
-#~ "zkalibruje filament před tiskem. Při spuštění tisku s vícebarevným/"
-#~ "materiálovým filamentem bude tiskárna při každé změně filamentu používat "
-#~ "výchozí kompenzační parametr pro filament, což má většinou dobrý "
-#~ "výsledek.\n"
+#~ "materiálovým filamentem a zaškrtnutou volbou \"kalibrace průtoku "
+#~ "dynamiky\" v menu spuštění tisku, tiskárna bude postupovat podle staré "
+#~ "metody a zkalibruje filament před tiskem. Při spuštění tisku s "
+#~ "vícebarevným/materiálovým filamentem bude tiskárna při každé změně "
+#~ "filamentu používat výchozí kompenzační parametr pro filament, což má "
+#~ "většinou dobrý výsledek.\n"
 #~ "\n"
 #~ "Všimněte si, že existují některé případy, které mohou způsobit, že "
 #~ "výsledek kalibrace nebude spolehlivý: použití texturované podložky pro "

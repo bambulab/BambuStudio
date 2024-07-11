@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-18 15:33+0800\n"
+"POT-Creation-Date: 2024-07-11 10:13+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -19,8 +19,8 @@ msgstr "Onderteuning (Support) tekenen"
 msgid "Please select single object."
 msgstr "Selecteer een enkel object."
 
-msgid "Alt + Mouse wheel"
-msgstr "Alt + muiswiel"
+msgid "Mouse wheel"
+msgstr "Muiswiel"
 
 msgid "Section view"
 msgstr "Doorsnede"
@@ -152,8 +152,8 @@ msgstr "Emmer vullen"
 msgid "Height range"
 msgstr "Hoogtebereik"
 
-msgid "Alt + Shift + Enter"
-msgstr "Alt + Shift + Enter"
+msgid "Shift + Enter"
+msgstr ""
 
 msgid "Toggle Wireframe"
 msgstr "Schakel Wireframe in of uit"
@@ -169,6 +169,9 @@ msgstr "Driehoek"
 
 msgid "Height Range"
 msgstr "Hoogtebereik"
+
+msgid "Place input box of bottom near mouse"
+msgstr ""
 
 msgid "Vertical"
 msgstr "Verticaal"
@@ -228,20 +231,26 @@ msgstr "in"
 msgid "mm"
 msgstr "mm"
 
+msgid "Part selection"
+msgstr ""
+
+msgid "Fixed step drag"
+msgstr ""
+
+msgid "Single sided scaling"
+msgstr ""
+
 msgid "Position"
 msgstr "Positie"
 
-msgid "Rotation"
-msgstr "Rotatie"
+msgid "Rotate (relative)"
+msgstr "Roteren (relatief)"
 
 msgid "Scale ratios"
 msgstr "Schaalverhoudingen"
 
 msgid "Object Operations"
 msgstr "Objectbewerkingen"
-
-msgid "Rotate (relative)"
-msgstr "Roteren (relatief)"
 
 msgid "Volume Operations"
 msgstr "Volumebewerkingen"
@@ -267,17 +276,23 @@ msgstr "Positie herstellen"
 msgid "Reset Rotation"
 msgstr "Rotatie herstellen"
 
+msgid "Object coordinates"
+msgstr ""
+
 msgid "World coordinates"
 msgstr "Wereld coördinaten"
 
 msgid "°"
 msgstr "°"
 
-msgid "Size"
-msgstr "Maat"
+msgid "Part coordinates"
+msgstr ""
 
 msgid "%"
 msgstr "%"
+
+msgid "Size"
+msgstr "Maat"
 
 msgid "uniform scale"
 msgstr "uniform schalen"
@@ -366,6 +381,9 @@ msgstr "Beweging:"
 
 msgid "Groove Angle"
 msgstr "Groefhoek"
+
+msgid "Rotation"
+msgstr "Rotatie"
 
 msgid "Movement"
 msgstr "Beweging"
@@ -2406,8 +2424,8 @@ msgstr "AMS uitschakelen"
 msgid "Print with the filament mounted on the back of chassis"
 msgstr "Afdrukken met het filament gemonteerd op de achterkant van het chassis"
 
-msgid "Current Cabin humidity"
-msgstr "Current Cabin humidity"
+msgid "Current AMS humidity"
+msgstr ""
 
 msgid ""
 "Please change the desiccant when it is too wet. The indicator may not "
@@ -3941,6 +3959,12 @@ msgstr "Toon &Overhang"
 
 msgid "Show object overhang highlight in 3D scene"
 msgstr "Markeer overhangend object in 3D-scène"
+
+msgid "Set 3DConnexion"
+msgstr ""
+
+msgid "Set 3DConnexion mouse"
+msgstr ""
 
 msgid "Services"
 msgstr "Diensten"
@@ -5672,16 +5696,6 @@ msgstr ""
 "same Bambu Studio is already running, that instance will be reactivated "
 "instead."
 
-msgid "Zoom to mouse position"
-msgstr "Zoom naar muispositie"
-
-msgid ""
-"Zoom in towards the mouse pointer's position in the 3D view, rather than the "
-"2D window center."
-msgstr ""
-"Zoom in op de positie van de muisaanwijzer in de 3D-weergave in plaats van "
-"in het midden van het 2D-venster."
-
 msgid "Auto plate type"
 msgstr "Auto plate type"
 
@@ -5717,6 +5731,28 @@ msgid ""
 msgstr ""
 "With this option enabled, you can send a task to multiple devices at the "
 "same time and manage multiple devices."
+
+msgid "3D Settings"
+msgstr ""
+
+msgid "Zoom to mouse position"
+msgstr "Zoom naar muispositie"
+
+msgid ""
+"Zoom in towards the mouse pointer's position in the 3D view, rather than the "
+"2D window center."
+msgstr ""
+"Zoom in op de positie van de muisaanwijzer in de 3D-weergave in plaats van "
+"in het midden van het 2D-venster."
+
+msgid "Grabber scale"
+msgstr ""
+
+msgid "Set grabber size for move,rotate,scale tool."
+msgstr ""
+
+msgid "Value range"
+msgstr ""
 
 msgid "Presets"
 msgstr "Voorinstellingen"
@@ -6511,9 +6547,10 @@ msgstr ""
 "Bedankt voor uw aankoop van een Bambu Lab-apparaat. Lees de algemene "
 "voorwaarden voordat u uw Bambu Lab apparaat gebruikt. Door te klikken om "
 "akkoord te gaan met het gebruik van uw Bambu Lab apparaat, gaat u akkoord "
-"met het Privacybeleid en de Gebruiksvoorwaarden (gezamenlijk de \"Voorwaarden"
-"\"). Als u niet voldoet aan of akkoord gaat met het Privacybeleid van Bambu "
-"Lab, maak dan geen gebruik van Bambu Lab apparatuur en diensten."
+"met het Privacybeleid en de Gebruiksvoorwaarden (gezamenlijk de "
+"\"Voorwaarden\"). Als u niet voldoet aan of akkoord gaat met het "
+"Privacybeleid van Bambu Lab, maak dan geen gebruik van Bambu Lab apparatuur "
+"en diensten."
 
 msgid "and"
 msgstr "en"
@@ -6692,8 +6729,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Bij het opnemen van timelapse zonder toolhead is het aan te raden om een "
 "„Timelapse Wipe Tower” toe te voegen \n"
@@ -7426,9 +7463,6 @@ msgstr "Weergave roteren"
 msgid "Pan View"
 msgstr "Panweergave"
 
-msgid "Mouse wheel"
-msgstr "Muiswiel"
-
 msgid "Zoom View"
 msgstr "Zoom weergave"
 
@@ -7551,26 +7585,11 @@ msgstr "Gizmo FDM seam schilderen"
 msgid "Plater"
 msgstr "Plaat"
 
-msgid "Move: press to snap by 1mm"
-msgstr "Verplaatsen: druk om 1 mm te verplaatsen"
-
-msgid "⌘+Mouse wheel"
-msgstr "⌘+muiswiel"
-
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "Support/kleur intekenen: pas de pen diameter aan"
 
-msgid "⌥+Mouse wheel"
-msgstr "⌥+Muiswiel"
-
 msgid "Support/Color Painting: adjust section position"
 msgstr "Support/kleur intekenen: pas de sectie positie aan"
-
-msgid "Ctrl+Mouse wheel"
-msgstr "CTRL+muiswiel"
-
-msgid "Alt+Mouse wheel"
-msgstr "Alt+muiswiel"
 
 msgid "Gizmo"
 msgstr "Gizmo"
@@ -8508,6 +8527,17 @@ msgstr ""
 "percentage dat aangeeft hoe breed de lijn is zonder ondersteuning van de "
 "onderste laag. 0%% betekent dat koeling voor de hele buitenwand wordt "
 "geforceerd, ongeacht de mate van overhang."
+
+msgid "Overhang threshold for participating cooling"
+msgstr ""
+
+#, c-format
+msgid ""
+"Decide which overhang part join the cooling function to slow down the speed."
+"Expressed as percentage which indicides how much width of the line without "
+"support from lower layer. 100% means forcing cooling for all outer wall no "
+"matter how much overhang degree"
+msgstr ""
 
 msgid "Bridge direction"
 msgstr "Richting van de brug"
@@ -9657,6 +9687,13 @@ msgstr "Afstand tussen de strijklijnen"
 msgid "The distance between the lines of ironing"
 msgstr "De afstand tussen de strijklijnen"
 
+msgid "Ironing inset"
+msgstr ""
+
+msgid ""
+"The distance to keep the from the edges of ironing line. 0 means not apply."
+msgstr ""
+
 msgid "Ironing speed"
 msgstr "Snelheid tijdens het strijken"
 
@@ -10191,6 +10228,9 @@ msgstr ""
 "This amount can be specified in millimeters or as a percentage of the "
 "current layer height. The default value for this parameter is 0."
 
+msgid "Slop gap"
+msgstr ""
+
 msgid "Scarf around entire wall"
 msgstr "Scarf around entire wall"
 
@@ -10232,6 +10272,15 @@ msgstr ""
 "configuratie is opgegeven.Als de waarde wordt uitgedrukt als percentage "
 "(bijv. 80%), wordt deze berekend op basis van de bovenstaande instelling van "
 "de rijsnelheid.De standaardwaarde voor deze parameter is 80%."
+
+msgid "Role base wipe speed"
+msgstr ""
+
+msgid ""
+"The wipe speed is determined by speed of current extrusion role. e.g if a "
+"wip action is executed immediately following an outer wall extrusion, the "
+"speed of the outer wall extrusion will be utilized for the wipe action."
+msgstr ""
 
 msgid "Skirt distance"
 msgstr "Rand (skirt) afstand"
@@ -12065,12 +12114,12 @@ msgstr ""
 "Wil je het herschrijven?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more printers; please go to printer selection"
 
 msgid "Create Printer/Nozzle"
@@ -13331,6 +13380,30 @@ msgstr ""
 "Wist je dat bij het printen van materialen die gevoelig zijn voor "
 "kromtrekken, zoals ABS, een juiste verhoging van de temperatuur van het "
 "warmtebed de kans op kromtrekken kan verkleinen?"
+
+#~ msgid "Alt + Mouse wheel"
+#~ msgstr "Alt + muiswiel"
+
+#~ msgid "Alt + Shift + Enter"
+#~ msgstr "Alt + Shift + Enter"
+
+#~ msgid "Current Cabin humidity"
+#~ msgstr "Current Cabin humidity"
+
+#~ msgid "Move: press to snap by 1mm"
+#~ msgstr "Verplaatsen: druk om 1 mm te verplaatsen"
+
+#~ msgid "⌘+Mouse wheel"
+#~ msgstr "⌘+muiswiel"
+
+#~ msgid "⌥+Mouse wheel"
+#~ msgstr "⌥+Muiswiel"
+
+#~ msgid "Ctrl+Mouse wheel"
+#~ msgstr "CTRL+muiswiel"
+
+#~ msgid "Alt+Mouse wheel"
+#~ msgstr "Alt+muiswiel"
 
 #~ msgid ""
 #~ "The current chamber temperature or the target chamber temperature exceeds "

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-18 15:33+0800\n"
+"POT-Creation-Date: 2024-07-11 10:13+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -24,7 +24,7 @@ msgstr ""
 msgid "Please select single object."
 msgstr ""
 
-msgid "Alt + Mouse wheel"
+msgid "Mouse wheel"
 msgstr ""
 
 msgid "Section view"
@@ -154,7 +154,7 @@ msgstr ""
 msgid "Height range"
 msgstr ""
 
-msgid "Alt + Shift + Enter"
+msgid "Shift + Enter"
 msgstr ""
 
 msgid "Toggle Wireframe"
@@ -170,6 +170,9 @@ msgid "Triangle"
 msgstr ""
 
 msgid "Height Range"
+msgstr ""
+
+msgid "Place input box of bottom near mouse"
 msgstr ""
 
 msgid "Vertical"
@@ -230,19 +233,25 @@ msgstr ""
 msgid "mm"
 msgstr ""
 
+msgid "Part selection"
+msgstr ""
+
+msgid "Fixed step drag"
+msgstr ""
+
+msgid "Single sided scaling"
+msgstr ""
+
 msgid "Position"
 msgstr ""
 
-msgid "Rotation"
+msgid "Rotate (relative)"
 msgstr ""
 
 msgid "Scale ratios"
 msgstr ""
 
 msgid "Object Operations"
-msgstr ""
-
-msgid "Rotate (relative)"
 msgstr ""
 
 msgid "Volume Operations"
@@ -269,16 +278,22 @@ msgstr ""
 msgid "Reset Rotation"
 msgstr ""
 
+msgid "Object coordinates"
+msgstr ""
+
 msgid "World coordinates"
 msgstr ""
 
 msgid "°"
 msgstr ""
 
-msgid "Size"
+msgid "Part coordinates"
 msgstr ""
 
 msgid "%"
+msgstr ""
+
+msgid "Size"
 msgstr ""
 
 msgid "uniform scale"
@@ -362,6 +377,9 @@ msgid "Movement:"
 msgstr ""
 
 msgid "Groove Angle"
+msgstr ""
+
+msgid "Rotation"
 msgstr ""
 
 msgid "Movement"
@@ -2260,7 +2278,7 @@ msgstr ""
 msgid "Print with the filament mounted on the back of chassis"
 msgstr ""
 
-msgid "Current Cabin humidity"
+msgid "Current AMS humidity"
 msgstr ""
 
 msgid ""
@@ -3644,6 +3662,12 @@ msgid "Show &Overhang"
 msgstr ""
 
 msgid "Show object overhang highlight in 3D scene"
+msgstr ""
+
+msgid "Set 3DConnexion"
+msgstr ""
+
+msgid "Set 3DConnexion mouse"
 msgstr ""
 
 msgid "Services"
@@ -5223,14 +5247,6 @@ msgid ""
 "instead."
 msgstr ""
 
-msgid "Zoom to mouse position"
-msgstr ""
-
-msgid ""
-"Zoom in towards the mouse pointer's position in the 3D view, rather than the "
-"2D window center."
-msgstr ""
-
 msgid "Auto plate type"
 msgstr ""
 
@@ -5258,6 +5274,26 @@ msgstr ""
 msgid ""
 "With this option enabled, you can send a task to multiple devices at the "
 "same time and manage multiple devices."
+msgstr ""
+
+msgid "3D Settings"
+msgstr ""
+
+msgid "Zoom to mouse position"
+msgstr ""
+
+msgid ""
+"Zoom in towards the mouse pointer's position in the 3D view, rather than the "
+"2D window center."
+msgstr ""
+
+msgid "Grabber scale"
+msgstr ""
+
+msgid "Set grabber size for move,rotate,scale tool."
+msgstr ""
+
+msgid "Value range"
 msgstr ""
 
 msgid "Presets"
@@ -6117,8 +6153,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 
 msgid "Line width"
@@ -6772,9 +6808,6 @@ msgstr ""
 msgid "Pan View"
 msgstr ""
 
-msgid "Mouse wheel"
-msgstr ""
-
 msgid "Zoom View"
 msgstr ""
 
@@ -6895,25 +6928,10 @@ msgstr ""
 msgid "Plater"
 msgstr ""
 
-msgid "Move: press to snap by 1mm"
-msgstr ""
-
-msgid "⌘+Mouse wheel"
-msgstr ""
-
 msgid "Support/Color Painting: adjust pen radius"
 msgstr ""
 
-msgid "⌥+Mouse wheel"
-msgstr ""
-
 msgid "Support/Color Painting: adjust section position"
-msgstr ""
-
-msgid "Ctrl+Mouse wheel"
-msgstr ""
-
-msgid "Alt+Mouse wheel"
 msgstr ""
 
 msgid "Gizmo"
@@ -7713,6 +7731,17 @@ msgid ""
 "exceeds this value. Expressed as percentage which indicides how much width "
 "of the line without support from lower layer. 0% means forcing cooling for "
 "all outer wall no matter how much overhang degree"
+msgstr ""
+
+msgid "Overhang threshold for participating cooling"
+msgstr ""
+
+#, possible-c-format
+msgid ""
+"Decide which overhang part join the cooling function to slow down the speed."
+"Expressed as percentage which indicides how much width of the line without "
+"support from lower layer. 100% means forcing cooling for all outer wall no "
+"matter how much overhang degree"
 msgstr ""
 
 msgid "Bridge direction"
@@ -8673,6 +8702,13 @@ msgstr ""
 msgid "The distance between the lines of ironing"
 msgstr ""
 
+msgid "Ironing inset"
+msgstr ""
+
+msgid ""
+"The distance to keep the from the edges of ironing line. 0 means not apply."
+msgstr ""
+
 msgid "Ironing speed"
 msgstr ""
 
@@ -9131,6 +9167,9 @@ msgid ""
 "current layer height. The default value for this parameter is 0."
 msgstr ""
 
+msgid "Slop gap"
+msgstr ""
+
 msgid "Scarf around entire wall"
 msgstr ""
 
@@ -9165,6 +9204,15 @@ msgid ""
 "configuration.If the value is expressed as a percentage (e.g. 80%), it will "
 "be calculated based on the travel speed setting above.The default value for "
 "this parameter is 80%"
+msgstr ""
+
+msgid "Role base wipe speed"
+msgstr ""
+
+msgid ""
+"The wipe speed is determined by speed of current extrusion role. e.g if a "
+"wip action is executed immediately following an outer wall extrusion, the "
+"speed of the outer wall extrusion will be utilized for the wipe action."
 msgstr ""
 
 msgid "Skirt distance"
@@ -10711,8 +10759,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 

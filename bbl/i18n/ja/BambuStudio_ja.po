@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-18 15:33+0800\n"
+"POT-Creation-Date: 2024-07-11 10:13+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -19,8 +19,8 @@ msgstr "サポートペイント"
 msgid "Please select single object."
 msgstr "単一のオブジェクトを選択してください"
 
-msgid "Alt + Mouse wheel"
-msgstr "Alt + マウスホイール"
+msgid "Mouse wheel"
+msgstr "マウスホイール"
 
 msgid "Section view"
 msgstr "断面"
@@ -150,8 +150,8 @@ msgstr "塗りつぶしバッチ処理"
 msgid "Height range"
 msgstr "高さ範囲"
 
-msgid "Alt + Shift + Enter"
-msgstr "Alt + Shift + Enter"
+msgid "Shift + Enter"
+msgstr ""
 
 msgid "Toggle Wireframe"
 msgstr "ワイヤフレームの表示/非表示"
@@ -167,6 +167,9 @@ msgstr "三角形"
 
 msgid "Height Range"
 msgstr "高さ範囲"
+
+msgid "Place input box of bottom near mouse"
+msgstr ""
 
 msgid "Vertical"
 msgstr "垂直"
@@ -226,20 +229,26 @@ msgstr "に"
 msgid "mm"
 msgstr "mm"
 
+msgid "Part selection"
+msgstr ""
+
+msgid "Fixed step drag"
+msgstr ""
+
+msgid "Single sided scaling"
+msgstr ""
+
 msgid "Position"
 msgstr "位置"
 
-msgid "Rotation"
-msgstr "回転"
+msgid "Rotate (relative)"
+msgstr "回転（相対）"
 
 msgid "Scale ratios"
 msgstr "倍率"
 
 msgid "Object Operations"
 msgstr "オブジェクト操作"
-
-msgid "Rotate (relative)"
-msgstr "回転（相対）"
 
 msgid "Volume Operations"
 msgstr "操作"
@@ -265,17 +274,23 @@ msgstr "位置をリセット"
 msgid "Reset Rotation"
 msgstr "回転をリセット"
 
+msgid "Object coordinates"
+msgstr ""
+
 msgid "World coordinates"
 msgstr "空間座標"
 
 msgid "°"
 msgstr "°"
 
-msgid "Size"
-msgstr "サイズ"
+msgid "Part coordinates"
+msgstr ""
 
 msgid "%"
 msgstr "%"
+
+msgid "Size"
+msgstr "サイズ"
 
 msgid "uniform scale"
 msgstr "スケール"
@@ -363,6 +378,9 @@ msgstr "移動"
 
 msgid "Groove Angle"
 msgstr "溝の角度"
+
+msgid "Rotation"
+msgstr "回転"
 
 msgid "Movement"
 msgstr "移動"
@@ -2326,8 +2344,8 @@ msgstr "AMSを無効"
 msgid "Print with the filament mounted on the back of chassis"
 msgstr "外部スプールホルダーのフィラメントで造形します"
 
-msgid "Current Cabin humidity"
-msgstr "ケース内湿度"
+msgid "Current AMS humidity"
+msgstr ""
 
 msgid ""
 "Please change the desiccant when it is too wet. The indicator may not "
@@ -3811,6 +3829,12 @@ msgstr "Show &Overhang"
 
 msgid "Show object overhang highlight in 3D scene"
 msgstr "3Dシーンでオブジェクトのオーバーハングをハイライト"
+
+msgid "Set 3DConnexion"
+msgstr ""
+
+msgid "Set 3DConnexion mouse"
+msgstr ""
 
 msgid "Services"
 msgstr "サービス"
@@ -5486,16 +5510,6 @@ msgstr ""
 "same Bambu Studio is already running, that instance will be reactivated "
 "instead."
 
-msgid "Zoom to mouse position"
-msgstr "Zoom to mouse position"
-
-msgid ""
-"Zoom in towards the mouse pointer's position in the 3D view, rather than the "
-"2D window center."
-msgstr ""
-"Zoom in towards the mouse pointer's position in the 3D view, rather than the "
-"2D window center."
-
 msgid "Auto plate type"
 msgstr "Auto plate type"
 
@@ -5528,6 +5542,28 @@ msgid ""
 msgstr ""
 "With this option enabled, you can send a task to multiple devices at the "
 "same time and manage multiple devices."
+
+msgid "3D Settings"
+msgstr ""
+
+msgid "Zoom to mouse position"
+msgstr "Zoom to mouse position"
+
+msgid ""
+"Zoom in towards the mouse pointer's position in the 3D view, rather than the "
+"2D window center."
+msgstr ""
+"Zoom in towards the mouse pointer's position in the 3D view, rather than the "
+"2D window center."
+
+msgid "Grabber scale"
+msgstr ""
+
+msgid "Set grabber size for move,rotate,scale tool."
+msgstr ""
+
+msgid "Value range"
+msgstr ""
 
 msgid "Presets"
 msgstr "Presets"
@@ -6452,8 +6488,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "ヘッド無しのタイムラプスビデオを録画する時に、「タイムラプスプライムタワー」"
 "を追加してください。プレートで右クリックして、「プリミティブを追加」→「タイム"
@@ -7153,9 +7189,6 @@ msgstr "回転"
 msgid "Pan View"
 msgstr "移動"
 
-msgid "Mouse wheel"
-msgstr "マウスホイール"
-
 msgid "Zoom View"
 msgstr "ズーム"
 
@@ -7276,26 +7309,11 @@ msgstr "継ぎ目ペイント"
 msgid "Plater"
 msgstr "準備"
 
-msgid "Move: press to snap by 1mm"
-msgstr "1mm単位で移動"
-
-msgid "⌘+Mouse wheel"
-msgstr "⌘+マウスホイール"
-
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "サポート/色塗り: 半径のサイズ"
 
-msgid "⌥+Mouse wheel"
-msgstr "⌥+マウスホイール"
-
 msgid "Support/Color Painting: adjust section position"
 msgstr "サポート/色塗り: 断面の位置"
-
-msgid "Ctrl+Mouse wheel"
-msgstr "Ctrl+マウスホイール"
-
-msgid "Alt+Mouse wheel"
-msgstr "Alt+マウスホイール"
 
 msgid "Gizmo"
 msgstr "Gizmo"
@@ -8176,6 +8194,17 @@ msgstr ""
 "part exceeds this value. This is expressed as a percentage which indicates "
 "how much width of the line without support from lower layer. 0% means "
 "forcing cooling for all outer wall no matter the overhang degree."
+
+msgid "Overhang threshold for participating cooling"
+msgstr ""
+
+#, c-format
+msgid ""
+"Decide which overhang part join the cooling function to slow down the speed."
+"Expressed as percentage which indicides how much width of the line without "
+"support from lower layer. 100% means forcing cooling for all outer wall no "
+"matter how much overhang degree"
+msgstr ""
 
 msgid "Bridge direction"
 msgstr "ブリッジ方向"
@@ -9255,6 +9284,13 @@ msgstr "アイロン時にライン間隔"
 msgid "The distance between the lines of ironing"
 msgstr "アイロン時の線間隔です。"
 
+msgid "Ironing inset"
+msgstr ""
+
+msgid ""
+"The distance to keep the from the edges of ironing line. 0 means not apply."
+msgstr ""
+
 msgid "Ironing speed"
 msgstr "アイロン時の移動速度"
 
@@ -9774,6 +9810,9 @@ msgstr ""
 "This amount can be specified in millimeters or as a percentage of the "
 "current layer height. The default value for this parameter is 0."
 
+msgid "Slop gap"
+msgstr ""
+
 msgid "Scarf around entire wall"
 msgstr "Scarf around entire wall"
 
@@ -9815,6 +9854,15 @@ msgstr ""
 "configuration. If the value is expressed as a percentage (e.g. 80%), it will "
 "be calculated based on the travel speed setting above. The default value for "
 "this parameter is 80%."
+
+msgid "Role base wipe speed"
+msgstr ""
+
+msgid ""
+"The wipe speed is determined by speed of current extrusion role. e.g if a "
+"wip action is executed immediately following an outer wall extrusion, the "
+"speed of the outer wall extrusion will be utilized for the wipe action."
+msgstr ""
 
 msgid "Skirt distance"
 msgstr "スカート距離"
@@ -11567,12 +11615,12 @@ msgstr ""
 "リライトしますか？"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more printers; please go to printer selection"
 
 msgid "Create Printer/Nozzle"
@@ -12799,6 +12847,30 @@ msgstr ""
 "Did you know that when printing materials that are prone to warping such as "
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping?"
+
+#~ msgid "Alt + Mouse wheel"
+#~ msgstr "Alt + マウスホイール"
+
+#~ msgid "Alt + Shift + Enter"
+#~ msgstr "Alt + Shift + Enter"
+
+#~ msgid "Current Cabin humidity"
+#~ msgstr "ケース内湿度"
+
+#~ msgid "Move: press to snap by 1mm"
+#~ msgstr "1mm単位で移動"
+
+#~ msgid "⌘+Mouse wheel"
+#~ msgstr "⌘+マウスホイール"
+
+#~ msgid "⌥+Mouse wheel"
+#~ msgstr "⌥+マウスホイール"
+
+#~ msgid "Ctrl+Mouse wheel"
+#~ msgstr "Ctrl+マウスホイール"
+
+#~ msgid "Alt+Mouse wheel"
+#~ msgstr "Alt+マウスホイール"
 
 #~ msgid ""
 #~ "The current chamber temperature or the target chamber temperature exceeds "
