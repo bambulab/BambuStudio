@@ -1,0 +1,61 @@
+FOUND_GTK3=$(rpm -qa | grep -P '^gtk3' || true)
+
+REQUIRED_DEV_PACKAGES=(
+    autoconf
+    automake
+    cmake
+    dbus-devel
+    eglexternalplatform-devel
+    extra-cmake-modules
+    file
+    gcc
+    gcc-c++
+    gettext
+    git
+    perl
+    gstreamer1-devel
+    gstreamer1-plugins-base-devel
+    gstreamer1-plugin-openh264
+    gstreamermm-devel
+    gtk3-devel
+    libmspack-devel
+    libsecret-devel
+    libtool
+    m4
+    mesa-libGLU-devel
+    mesa-libOSMesa-devel
+    mesa-libGL-devel
+    ninja-build
+    openssl-devel
+    perl-FindBin
+    texinfo
+    wayland-devel
+    wayland-protocols-devel
+    libxkbcommon-devel
+    wget
+    libcurl-devel
+    libquadmath-devel
+)
+
+if [[ -n "$UPDATE_LIB" ]]
+then
+    NEEDED_PKGS=""
+    fedora_version=$(awk -F= '/^VERSION_ID=/ {print $2}' /etc/os-release)
+    if [ $fedora_version == "40" ]
+    then
+        REQUIRED_DEV_PACKAGES+=(webkit2gtk4.1-devel)
+    else
+        REQUIRED_DEV_PACKAGES+=(webkit2gtk4.0-devel)
+    fi
+    for PKG in ${REQUIRED_DEV_PACKAGES[@]}; do
+        rpm -q ${PKG} > /dev/null || NEEDED_PKGS+=" ${PKG}"
+    done
+
+    if [ -n "${NEEDED_PKGS}" ]; then
+        sudo dnf install -y ${NEEDED_PKGS}
+    fi
+    echo -e "done\n"
+    exit 0
+fi
+
+FOUND_GTK3_DEV=$(rpm -qa | grep -P '^gtk3-devel' || true)
