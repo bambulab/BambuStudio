@@ -120,8 +120,8 @@ bool ObjectSettings::update_settings_list()
                 wxGetApp().obj_list()->changed_object();
                 wxTheApp->CallAfter([this]() {
                     wxWindowUpdateLocker noUpdates(m_parent);
-                    update_settings_list(); 
-                    m_parent->Layout(); 
+                    update_settings_list();
+                    m_parent->Layout();
                 });
 			});
 			return btn;
@@ -145,7 +145,7 @@ bool ObjectSettings::update_settings_list()
                 if (ctrl == nullptr)
                     return;
                 ctrl->SetBitmap_(m_bmp_delete);
-                ctrl->SetBitmapFocus(m_bmp_delete_focus.bmp()); 
+                ctrl->SetBitmapFocus(m_bmp_delete_focus.bmp());
                 ctrl->SetBitmapHover(m_bmp_delete_focus.bmp());
             };
 
@@ -233,7 +233,7 @@ bool ObjectSettings::update_settings_list()
             is_object_settings = true;
             plate_configs.emplace(ppl.get_plate(plate_id), &cfg);
             object_configs.emplace(object, &object->config);
-        } 
+        }
         else if(type == itVolume){
             is_volume_settings = true;
             if (parent_object && parent_object != object)
@@ -278,7 +278,7 @@ bool ObjectSettings::update_settings_list()
         tab_volume->set_model_config({});
         tab_layer->set_model_config({});
         //m_tab_active = tab_object;
-    }   
+    }
     else if (is_volume_settings) {
         tab_plate->set_model_config(plate_configs);
         tab_object->set_model_config({ {parent_object, &parent_object->config} });
@@ -292,7 +292,7 @@ bool ObjectSettings::update_settings_list()
         tab_volume->set_model_config({});
         tab_layer->set_model_config(object_configs);
         //m_tab_active = tab_layer;
-    }    
+    }
     else {
         tab_plate->set_model_config({});
         tab_object->set_model_config({});
@@ -340,7 +340,7 @@ void ObjectSettings::update_config_values(ModelConfig* config)
     auto load_config = [this, config, &main_config]()
     {
         /* Additional check for overrided options.
-         * There is a case, when some options should to be added, 
+         * There is a case, when some options should to be added,
          * to avoid check loop in the next configuration update
          */
         bool is_added = add_missed_options(config, main_config);
@@ -396,7 +396,7 @@ void ObjectSettings::update_config_values(ModelConfig* config)
     {
         const int obj_idx = objects_model->GetObjectIdByItem(item);
         assert(obj_idx >= 0);
-        // for object's part first of all update konfiguration from object 
+        // for object's part first of all update konfiguration from object
         main_config.apply(wxGetApp().model().objects[obj_idx]->config.get(), true);
         // and then from its own config
     }
@@ -405,7 +405,7 @@ void ObjectSettings::update_config_values(ModelConfig* config)
     printer_technology == ptFFF  ?  config_manipulation.update_print_fff_config(&main_config) :
                                     config_manipulation.update_print_sla_config(&main_config) ;
 
-    printer_technology == ptFFF  ?  config_manipulation.toggle_print_fff_options(&main_config) :
+    printer_technology == ptFFF  ?  config_manipulation.toggle_print_fff_options(&main_config, 0) :
                                     config_manipulation.toggle_print_sla_options(&main_config) ;
 }
 
@@ -440,4 +440,4 @@ void ObjectSettings::sys_color_changed()
 }
 
 } //namespace GUI
-} //namespace Slic3r 
+} //namespace Slic3r
