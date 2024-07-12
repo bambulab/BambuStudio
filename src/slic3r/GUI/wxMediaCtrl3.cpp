@@ -27,7 +27,7 @@ wxMediaCtrl3::wxMediaCtrl3(wxWindow *parent)
     , BambuLib(StaticBambuLib::get(this))
     , m_thread([this] { PlayThread(); })
 {
-    SetBackgroundColour(*wxBLACK);
+    SetBackgroundColour("#000001ff");
 }
 
 wxMediaCtrl3::~wxMediaCtrl3()
