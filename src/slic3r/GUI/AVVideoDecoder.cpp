@@ -81,17 +81,16 @@ bool AVVideoDecoder::toWxImage(wxImage &image, wxSize const &size2)
                                     size.GetWidth(), size.GetHeight(), wxFmt,
                                     SWS_POINT, // SWS_FAST_BILINEAR //SWS_BICUBIC
                                     nullptr, nullptr, nullptr);
-    uint8_t *data = (uint8_t*)malloc(size.GetWidth() * size.GetHeight() * 3);
-    if (data == nullptr)
-        return false;
-    uint8_t * datas[]   = {data };
-    int      strides[] = {size.GetWidth() * 3};
+    int length = size.GetWidth() * size.GetHeight() * 3;
+    if (bits_.size() < length)
+        bits_.resize(length);
+    uint8_t * datas[]   = { bits_.data() };
+    int      strides[] = { size.GetWidth() * 3 };
     int      result_h = sws_scale(sws_ctx_, frame_->data, frame_->linesize, 0, frame_->height, datas, strides);
     if (result_h != size.GetHeight()) {
-        delete[] data;
         return false;
     }
-    image = wxImage(size.GetWidth(), size.GetHeight(), data);
+    image = wxImage(size.GetWidth(), size.GetHeight(), bits_.data());
     return true;
 }
 
@@ -111,16 +110,15 @@ bool AVVideoDecoder::toWxBitmap(wxBitmap &bitmap, wxSize const &size2)
                                     size.GetWidth(), size.GetHeight(), wxFmt,
                                     SWS_POINT, // SWS_FAST_BILINEAR //SWS_BICUBIC
                                     nullptr, nullptr, nullptr);
-    uint8_t *data      = (uint8_t*)malloc(size.GetWidth() * size.GetHeight() * 4);
-    if (data == nullptr)
-        return false;
-    uint8_t *datas[]   = {data};
-    int      strides[] = {size.GetWidth() * 4};
+    int length = size.GetWidth() * size.GetHeight() * 4;
+    if (bits_.size() < length)
+        bits_.resize(length);
+    uint8_t *datas[]   = { bits_.data() };
+    int      strides[] = { size.GetWidth() * 4 };
     int      result_h  = sws_scale(sws_ctx_, frame_->data, frame_->linesize, 0, frame_->height, datas, strides);
     if (result_h != size.GetHeight()) {
-        delete[] data;
         return false;
     }
-    bitmap = wxBitmap((char *) data, size.GetWidth(), size.GetHeight(), 32);
+    bitmap = wxBitmap((char const *) bits_.data(), size.GetWidth(), size.GetHeight(), 32);
     return true;
 }
