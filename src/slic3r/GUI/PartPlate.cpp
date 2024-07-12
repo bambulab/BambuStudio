@@ -2853,6 +2853,12 @@ void PartPlate::set_filament_maps(const std::vector<int>& f_maps)
     filament_maps = f_maps;
 }
 
+void PartPlate::on_extruder_count_changed(int extruder_count)
+{
+    std::vector<int>& filament_maps = m_config.option<ConfigOptionInts>("filament_map", true)->values;
+    std::fill(filament_maps.begin(), filament_maps.end(), 1);
+}
+
 void PartPlate::set_filament_count(int filament_count)
 {
     std::vector<int>& filament_maps = m_config.option<ConfigOptionInts>("filament_map", true)->values;
@@ -2864,7 +2870,6 @@ void PartPlate::on_filament_added()
     std::vector<int>& filament_maps = m_config.option<ConfigOptionInts>("filament_map", true)->values;
     filament_maps.push_back(1);
 }
-
 
 void PartPlate::on_filament_deleted(int filament_count, int filament_id)
 {
@@ -5909,6 +5914,14 @@ void PartPlateList::load_cali_textures()
 		}
 	}
 	PartPlateList::is_load_cali_texture = true;
+}
+
+void PartPlateList::on_extruder_count_changed(int extruder_count)
+{
+    for (unsigned int i = 0; i < (unsigned int) m_plate_list.size(); ++i) {
+        m_plate_list[i]->on_extruder_count_changed(extruder_count);
+    }
+    BOOST_LOG_TRIVIAL(info) << boost::format("%1%: extruder_count=%2%")% __FUNCTION__ %extruder_count;
 }
 
 void PartPlateList::set_filament_count(int filament_count)
