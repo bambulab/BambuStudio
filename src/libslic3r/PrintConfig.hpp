@@ -1174,6 +1174,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBool,               independent_support_layer_height))
     ((ConfigOptionBool,               exclude_object))
     ((ConfigOptionPercents,            filament_shrink))
+    ((ConfigOptionFloats,             grab_length))
 )
 
 // This object is mapped to Perl as Slic3r::Config::Full.
