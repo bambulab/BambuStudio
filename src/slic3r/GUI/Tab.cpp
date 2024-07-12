@@ -498,9 +498,16 @@ void Tab::create_preset_tab()
         m_extruder_switch->SetLabels(_L("Left"), _L("Right"));
         m_extruder_switch->Bind(wxEVT_TOGGLEBUTTON, [this] (auto & evt) {
             evt.Skip();
-            dynamic_cast<TabPrint *>(this)->switch_excluder(evt.GetInt());
+           switch_excluder(evt.GetInt());
         });
         m_main_sizer->Add(m_extruder_switch, 0, wxALIGN_CENTER | wxTOP, m_em_unit);
+    } else if (dynamic_cast<TabFilament *>(this)) {
+        m_variant_combo = new ComboBox(panel, wxID_ANY, "", wxDefaultPosition, {20 * m_em_unit, -1}, 0, {}, wxCB_READONLY);
+        m_variant_combo->Bind(wxEVT_COMBOBOX, [this](auto &evt) {
+            evt.Skip();
+            switch_excluder(evt.GetInt());
+        });
+        m_main_sizer->Add(m_variant_combo, 0, wxLEFT | wxTOP, m_em_unit);
     }
 
     this->SetSizer(m_main_sizer);
@@ -842,7 +849,7 @@ void Tab::update_changed_ui()
     if (m_postpone_update_ui)
         return;
 
-    const bool deep_compare = (m_type == Preset::TYPE_PRINTER || m_type == Preset::TYPE_PRINT
+    const bool deep_compare   = (m_type == Preset::TYPE_PRINTER || m_type == Preset::TYPE_PRINT || m_type == Preset::TYPE_FILAMENT
             || m_type == Preset::TYPE_SLA_MATERIAL || m_type == Preset::TYPE_MODEL);
     auto dirty_options = m_presets->current_dirty_options(deep_compare);
     auto nonsys_options = m_presets->current_different_from_parent_options(deep_compare);
@@ -1209,6 +1216,10 @@ void Tab::msw_rescale()
 
     if (m_mode_view)
         m_mode_view->Rescale();
+    if (m_extruder_switch)
+        m_extruder_switch->Rescale();
+    if (m_variant_combo)
+        m_variant_combo->Rescale();
 
     if (m_detach_preset_btn)
         m_detach_preset_btn->msw_rescale();
@@ -2981,7 +2992,7 @@ void TabFilament::add_filament_overrides_page()
     {
         Line line {"",""};
         //BBS
-        line = optgroup->create_single_option_line(optgroup->get_option(opt_key));
+        line = optgroup->create_single_option_line(optgroup->get_option(opt_key, 0));
 
         line.near_label_widget = [this, optgroup, opt_key, opt_index](wxWindow* parent) {
             wxCheckBox* check_box = new wxCheckBox(parent, wxID_ANY, "");
@@ -3141,8 +3152,8 @@ void TabFilament::build()
         optgroup->append_single_option_line("chamber_temperatures","chamber-temperature");
 
         line = { L("Nozzle"), L("Nozzle temperature when printing") };
-        line.append_option(optgroup->get_option("nozzle_temperature_initial_layer"));
-        line.append_option(optgroup->get_option("nozzle_temperature"));
+        line.append_option(optgroup->get_option("nozzle_temperature_initial_layer", 0));
+        line.append_option(optgroup->get_option("nozzle_temperature", 0));
         optgroup->append_line(line);
 
         line = {L("Bambu Cool Plate SuperTack"), L("Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Bambu Cool Plate SuperTack")};
@@ -3202,7 +3213,7 @@ void TabFilament::build()
 
         //BBS
         optgroup = page->new_optgroup(L("Volumetric speed limitation"), L"param_volumetric_speed");
-        optgroup->append_single_option_line("filament_max_volumetric_speed");
+        optgroup->append_single_option_line("filament_max_volumetric_speed", "", 0);
 
         // BBS
         optgroup = page->new_optgroup(L("Filament scarf seam settings"), L"param_volumetric_speed");
@@ -5126,8 +5137,10 @@ bool Tab::tree_sel_change_delayed(wxCommandEvent& event)
         // update_undo_buttons();
         this->OnActivate();
         m_parent->set_active_tab(this);
-        m_main_sizer->Show(m_extruder_switch, m_extruder_switch->IsEnabled() && !m_active_page->m_opt_id_map.empty());
-        GetParent()->Layout();
+        if (wxWindow *variant_ctrl = m_extruder_switch ? (wxWindow*)m_extruder_switch : m_variant_combo) {
+            m_main_sizer->Show(variant_ctrl, variant_ctrl->IsEnabled() && !m_active_page->m_opt_id_map.empty());
+            GetParent()->Layout();
+        }
 
         m_page_view->Thaw();
         return false;
@@ -5138,8 +5151,8 @@ bool Tab::tree_sel_change_delayed(wxCommandEvent& event)
         return false;
 
     m_active_page = page;
-    if (m_extruder_switch) {
-        m_main_sizer->Show(m_extruder_switch, m_extruder_switch->IsEnabled() && !m_active_page->m_opt_id_map.empty());
+    if (wxWindow *variant_ctrl = m_extruder_switch ? (wxWindow *) m_extruder_switch : m_variant_combo) {
+        m_main_sizer->Show(variant_ctrl, variant_ctrl->IsEnabled() && !m_active_page->m_opt_id_map.empty());
         GetParent()->Layout();
     }
 
@@ -5797,10 +5810,19 @@ void Tab::update_extruder_variants(int extruder_id, bool reload)
         } else {
             m_extruder_switch->Enable(false);
         }
+    } else if (m_variant_combo) {
+        if (extruder_id >= 0) // variant_combo did not depend on extruder
+            return;
+        auto variants = m_config->option<ConfigOptionStrings>("filament_extruder_variant");
+        int  n        = m_variant_combo->GetSelection();
+        m_variant_combo->Clear();
+        for (auto & v : variants->values)
+            m_variant_combo->Append(_L(v));
+        m_variant_combo->SetSelection(n < 0 || n >= m_variant_combo->GetCount() ? 0 : n);
     }
     switch_excluder(extruder_id, reload);
-    if (m_extruder_switch) {
-        m_main_sizer->Show(m_extruder_switch, m_extruder_switch->IsEnabled() && m_active_page && !m_active_page->m_opt_id_map.empty());
+    if (wxWindow *variant_ctrl = m_extruder_switch ? (wxWindow *) m_extruder_switch : m_variant_combo) {
+        m_main_sizer->Show(variant_ctrl, variant_ctrl->IsEnabled() && m_active_page && !m_active_page->m_opt_id_map.empty());
         GetParent()->Layout();
     }
 }
@@ -5821,18 +5843,26 @@ void Tab::switch_excluder(int extruder_id, bool reload)
             extruder_id = current_extruder;
         else if (extruder_id != current_extruder)
             return;
+    } else if (m_variant_combo) {
+        int current_variant = m_variant_combo->GetSelection();
+        if (extruder_id == -1)
+            extruder_id = current_variant;
+        else if (extruder_id != current_variant)
+            // assert(false)
+            return;
     }
     auto get_index_for_extruder =
             [this, &extruders, &nozzle_volumes, variant_keys = variant_keys[m_type >= Preset::TYPE_COUNT ? Preset::TYPE_PRINT : m_type]](int extruder_id) {
         return m_config->get_index_for_extruder(extruder_id + 1, variant_keys.first,
             ExtruderType(extruders->values[extruder_id]), NozzleVolumeType(nozzle_volumes->values[extruder_id]), variant_keys.second);
     };
-    auto index = get_index_for_extruder(extruder_id == -1 ? 0 : extruder_id);
-    if (m_extruder_switch) m_extruder_switch->SetClientData((void*)(index));
+    auto index = m_variant_combo ? extruder_id : get_index_for_extruder(extruder_id == -1 ? 0 : extruder_id);
+    if (m_extruder_switch) m_extruder_switch->SetClientData((void *) (index));
+    if (m_variant_combo) m_variant_combo->SetClientData((void *) (index));
     for (auto page : m_pages) {
         bool is_extruder = false;
         page->m_opt_id_map.clear();
-        if (m_extruder_switch == nullptr && page->title().StartsWith("Extruder ")) {
+        if (m_extruder_switch == nullptr && m_variant_combo == nullptr && page->title().StartsWith("Extruder ")) {
             int extruder_id2 = std::atoi(page->title().Mid(9).ToUTF8()) - 1;
             if (extruder_id >= 0 && extruder_id2 != extruder_id)
                 continue;
