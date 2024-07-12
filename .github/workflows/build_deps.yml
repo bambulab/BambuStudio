@@ -100,7 +100,7 @@ jobs:
         run: |
             sudo ./BuildLinux.sh -ur
             sudo chown $USER -R ./
-            ./BuildLinux.sh -dr
+            ./BuildLinux.sh -dfr
             cd deps/build
             tar -czvf BambuStudio_dep_${{ inputs.os }}_$(date +"%Y%m%d").tar.gz destdir
 
