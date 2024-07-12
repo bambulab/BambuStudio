@@ -34,6 +34,7 @@ private:
     AVFrame *       frame_     = nullptr;
     SwsContext *    sws_ctx_   = nullptr;
     bool got_frame_ = false;
+    std::vector<uint8_t> bits_;
 };
 
 #endif // AVVIDEODECODER_HPP
