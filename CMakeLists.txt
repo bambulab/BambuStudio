@@ -676,16 +676,24 @@ function(bambustudio_copy_sos target config postfix output_sos)
     message ("set out_dir to CMAKE_CURRENT_BINARY_DIR: ${_out_dir}")
 
     file(COPY ${CMAKE_PREFIX_PATH}/lib/libavcodec.so
+            ${CMAKE_PREFIX_PATH}/lib/libavcodec.so.61
             ${CMAKE_PREFIX_PATH}/lib/libavutil.so
+            ${CMAKE_PREFIX_PATH}/lib/libavutil.so.59
             ${CMAKE_PREFIX_PATH}/lib/libswscale.so
+            ${CMAKE_PREFIX_PATH}/lib/libswscale.so.8
             ${CMAKE_PREFIX_PATH}/lib/libswresample.so
+            ${CMAKE_PREFIX_PATH}/lib/libswresample.so.5
          DESTINATION ${_out_dir})
 
     set(${output_dlls}
         ${_out_dir}/libavcodec.so
+        ${_out_dir}/libavcodec.so.61
         ${_out_dir}/libavutil.so
+        ${_out_dir}/libavutil.so.59
         ${_out_dir}/libswscale.so
+        ${_out_dir}/libswscale.so.8
         ${_out_dir}/libswresample.so
+        ${_out_dir}/libswresample.so.5
         PARENT_SCOPE
     )
 endfunction()
