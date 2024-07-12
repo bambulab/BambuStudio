@@ -42,6 +42,7 @@
 #include "Widgets/TextInput.hpp"
 
 class TabCtrl;
+class ComboBox;
 
 namespace Slic3r {
 
@@ -300,6 +301,7 @@ public:
 
     SwitchButton *m_mode_view = nullptr;
     SwitchButton *m_extruder_switch = nullptr;
+	ComboBox	 *m_variant_combo = nullptr;
 
 public:
 	// BBS
