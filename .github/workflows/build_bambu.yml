@@ -238,7 +238,7 @@ jobs:
         if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
         shell: bash
         run: |
-          ./BuildLinux.sh -isr
+          ./BuildLinux.sh -isfr
           mv -n ./build/BambuStudio_ubu64.AppImage ./build/Bambu_Studio_${{inputs.os}}_${{ env.ver }}.AppImage
 
       # - name: Build orca_custom_preset_tests

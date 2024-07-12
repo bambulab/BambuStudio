@@ -27,6 +27,7 @@ function check_available_memory_and_disk() {
 function usage() {
     echo "Usage: ./BuildLinux.sh [-1][-b][-c][-d][-i][-r][-s][-u]"
     echo "   -1: limit builds to 1 core (where possible)"
+    echo "   -f: disable safe parallel number limit(By default, the maximum number of parallels is set to free memory/2.5)"
     echo "   -b: build in debug mode"
     echo "   -c: force a clean build"
     echo "   -d: build deps (optional)"
@@ -40,10 +41,13 @@ function usage() {
 }
 
 unset name
-while getopts ":1bcdghirsu" opt; do
+while getopts ":1fbcdghirsu" opt; do
   case ${opt} in
     1 )
         export CMAKE_BUILD_PARALLEL_LEVEL=1
+        ;;
+    f )
+        DISABLE_PARALLEL_LIMIT=1
         ;;
     b )
         BUILD_DEBUG="1"
@@ -110,6 +114,19 @@ echo "done"
 if ! [[ -n "${SKIP_RAM_CHECK}" ]]
 then
     check_available_memory_and_disk
+fi
+
+if ! [[ -n "${DISABLE_PARALLEL_LIMIT}" ]]
+then
+    FREE_MEM_GB=$(free -g -t | grep 'Mem' | rev | cut -d" " -f1 | rev)
+    MAX_THREADS=$(echo "scale=0; $FREE_MEM_GB / 2.5" | bc)
+    if [ "$MAX_THREADS" -lt 1 ]; then
+        export CMAKE_BUILD_PARALLEL_LEVEL=1
+    else
+        export CMAKE_BUILD_PARALLEL_LEVEL=${MAX_THREADS}
+    fi
+    echo "System free memory: ${FREE_MEM_GB} GB"
+    echo "Setting CMAKE_BUILD_PARALLEL_LEVEL: ${CMAKE_BUILD_PARALLEL_LEVEL}"
 fi
 
 if [[ -n "${BUILD_DEPS}" ]]
