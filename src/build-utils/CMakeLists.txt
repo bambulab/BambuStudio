@@ -1,5 +1,5 @@
 
-option(SLIC3R_ENC_CHECK "Verify encoding of source files" 1)
+option(SLIC3R_ENC_CHECK "Verify encoding of source files" 0)
 
 if (IS_CROSS_COMPILE)
     # Force disable due to cross compilation. This fact is already printed on cli for users
