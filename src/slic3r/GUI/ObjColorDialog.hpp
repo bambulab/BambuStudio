@@ -12,11 +12,7 @@
 class Button;
 class Label;
 class ComboBox;
-struct ColorDistValue
-{
-    int   id;
-    float distance;
-};
+
 class ObjColorPanel : public wxPanel
 {
 public:
