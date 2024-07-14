@@ -11353,7 +11353,7 @@ msgstr ""
 "resultado do teste com falha seria descartado."
 
 msgid ""
-"*We recommend you to add brand, materia, type, and even humidity level in "
+"*We recommend you to add brand, material, type, and even humidity level in "
 "the Name"
 msgstr ""
 "*Recomendamos que você adicione marca, material, tipo e até mesmo nível de "
