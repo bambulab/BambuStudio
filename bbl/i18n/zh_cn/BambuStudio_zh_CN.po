@@ -10573,7 +10573,7 @@ msgid ""
 msgstr "部分校准失败！您可以清洁打印平台并重试。未通过的测试结果将被丢弃。"
 
 msgid ""
-"*We recommend you to add brand, materia, type, and even humidity level in "
+"*We recommend you to add brand, material, type, and even humidity level in "
 "the Name"
 msgstr "*我们建议您在名称中添加品牌、材料、类型，甚至湿度水平。"
 

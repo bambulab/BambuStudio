@@ -167,7 +167,7 @@ void CaliPASaveAutoPanel::create_panel(wxWindow* parent)
 
     m_top_sizer->AddSpacer(FromDIP(10));
 
-    auto naming_hints = new Label(parent, _L("*We recommend you to add brand, materia, type, and even humidity level in the Name"));
+    auto naming_hints = new Label(parent, _L("*We recommend you to add brand, material, type, and even humidity level in the Name"));
     naming_hints->SetFont(Label::Body_14);
     naming_hints->SetForegroundColour(wxColour(157, 157, 157));
     m_top_sizer->Add(naming_hints, 0, wxEXPAND, 0);
@@ -502,7 +502,7 @@ void CaliPASaveManualPanel::create_panel(wxWindow* parent)
 
     m_top_sizer->AddSpacer(FromDIP(10));
 
-    auto naming_hints = new Label(parent, _L("*We recommend you to add brand, materia, type, and even humidity level in the Name"));
+    auto naming_hints = new Label(parent, _L("*We recommend you to add brand, material, type, and even humidity level in the Name"));
     naming_hints->SetFont(Label::Body_14);
     naming_hints->SetForegroundColour(wxColour(157, 157, 157));
     m_top_sizer->Add(naming_hints, 0, wxEXPAND, 0);
