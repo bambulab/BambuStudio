@@ -148,6 +148,7 @@ void ConfigManipulation::check_chamber_temperature(DynamicPrintConfig* config)
         {"PLA-CF",45},
         {"PVA",45},
         {"TPU",50},
+        {"TPU-AMS",50},
         {"PETG",55},
         {"PCTG",55},
         {"PETG-CF",55}

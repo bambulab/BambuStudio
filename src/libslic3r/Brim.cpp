@@ -593,8 +593,8 @@ double getadhesionCoeff(const PrintObject* printObject)
                     if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "PETG" ||
                         Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "PCTG") {
                         adhesionCoeff = 2;
-                    }
-                    else if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "TPU") {
+                    } else if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "TPU" ||
+                               Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "TPU-AMS") {
                         adhesionCoeff = 0.5;
                     }
             }

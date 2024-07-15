@@ -42,7 +42,7 @@ static const std::vector<std::string> filament_vendors = {"Polymaker", "OVERTURE
 
 static const std::vector<std::string> filament_types = {"PLA",    "PLA+",  "PLA Tough", "PETG",  "ABS",    "ASA",    "FLEX",        "HIPS",   "PA",     "PACF",
                                                         "NYLON",  "PVA",   "PC",        "PCABS", "PCTG",   "PCCF",   "PP",          "PEI",    "PET",    "PETG",
-                                                        "PETGCF", "PTBA",  "PTBA90A",   "PEEK",  "TPU93A", "TPU75D", "TPU",         "TPU92A", "TPU98A", "Misc",
+                                                        "PETGCF", "PTBA",  "PTBA90A",   "PEEK",  "TPU93A", "TPU75D", "TPU","TPU-AMS",       "TPU92A", "TPU98A", "Misc",
                                                         "TPE",    "GLAZE", "Nylon",     "CPE",   "METAL",  "ABST",   "Carbon Fiber"};
 
 static const std::vector<std::string> printer_vendors = {"Anycubic",  "Artillery", "BIBO",           "BIQU",     "Creality ENDER", "Creality CR", "Creality SERMOON",
