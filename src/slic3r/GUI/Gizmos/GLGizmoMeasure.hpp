@@ -297,6 +297,7 @@ protected:
     float                    m_space_size;
     float                    m_input_size_max;
     bool                     m_use_inches;
+    bool                     m_only_select_plane{false};
     std::string              m_units;
     mutable bool             m_same_model_object;
     mutable unsigned int     m_current_active_imgui_id;
