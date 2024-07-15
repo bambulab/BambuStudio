@@ -7,6 +7,7 @@
 #include "Clipper2Utils.hpp"
 #include "Arachne/WallToolPaths.hpp"
 #include "Line.hpp"
+#include "Layer.hpp"
 #include <cmath>
 #include <cassert>
 #include <random>
@@ -1162,6 +1163,7 @@ void PerimeterGenerator::process_classic()
         ExPolygons gaps;
         ExPolygons top_fills;
         ExPolygons fill_clip;
+        std::vector<std::pair<ExPolygon, bool>> outwall;
         if (loop_number >= 0) {
             // In case no perimeters are to be generated, loop_number will equal to -1.
             std::vector<PerimeterGeneratorLoops> contours(loop_number+1);    // depth => loops
@@ -1287,6 +1289,23 @@ void PerimeterGenerator::process_classic()
 
                     //BBS: save perimeter loop which use smaller width
                     if (i == 0) {
+                        //store outer wall
+
+                        //not loop
+                        for (const ThickPolyline &polyline : thin_walls) {
+                            ExPolygon contour_coll;
+                            contour_coll.contour.append(polyline.points);
+                            outwall.emplace_back(contour_coll, false);
+                        }
+
+                        //loop
+                        for (const ExPolygon &expolygon : offsets_with_smaller_width) {
+                            outwall.emplace_back(expolygon, true);
+                        }
+                        for (const ExPolygon &expolygon : offsets) {
+                            outwall.emplace_back(expolygon, true);
+                        }
+
                         for (const ExPolygon& expolygon : offsets_with_smaller_width) {
                             contours[i].emplace_back(PerimeterGeneratorLoop(expolygon.contour, i, true, fuzzify_contours, true));
                             if (!expolygon.holes.empty()) {
@@ -1463,6 +1482,41 @@ void PerimeterGenerator::process_classic()
                     }
                     entities.entities = std::move( entities_reorder);
                 }
+
+            //BBS: add node for loops
+            if (!outwall.empty() && this->layer_id > 0) {
+                entities.loop_node_range.first = this->loop_nodes->size();
+                if (outwall.size() == 1) {
+                    LoopNode node;
+                    node.node_id = this->loop_nodes->size();
+                    node.region_id = region_id;
+                    node.perimeter_id = this->loops->entities.size();
+                    node.exp = outwall.front();
+                    node.bbox = get_extents(node.exp.first);
+                    this->loop_nodes->push_back(node);
+                } else {
+                    int entity_idx = 0;
+                    for (std::pair<ExPolygon, bool> &exp : outwall) {
+                        LoopNode node;
+                        node.node_id      = this->loop_nodes->size();
+                        node.region_id    = region_id;
+                        node.perimeter_id = this->loops->entities.size();
+
+                        for (; entity_idx < entities.entities.size(); ++entity_idx) {
+                            if (exp.first.contains(entities.entities[entity_idx]->first_point())) {
+                                node.loop_id=entity_idx;
+                                node.exp=exp;
+                                node.bbox = get_extents(node.exp.first);
+                                this->loop_nodes->push_back(node);
+                                break;
+                            }
+                        }
+                    }
+                }
+                entities.loop_node_range.second = this->loop_nodes->size();
+            }
+
+
             // append perimeters for this slice as a collection
             if (! entities.empty())
                 this->loops->append(entities);

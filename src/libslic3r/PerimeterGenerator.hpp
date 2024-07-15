@@ -40,8 +40,9 @@ public:
     std::pair<double, double>   m_lower_overhang_dist_boundary;
     std::pair<double, double>   m_external_overhang_dist_boundary;
     std::pair<double, double>   m_smaller_external_overhang_dist_boundary;
+    std::vector<LoopNode>       *loop_nodes;
+    int                         region_id;
 
-    
     PerimeterGenerator(
         // Input:
         const SurfaceCollection*    slices, 
@@ -59,14 +60,20 @@ public:
         // Infills without the gap fills
         SurfaceCollection*          fill_surfaces,
         //BBS
-        ExPolygons*                 fill_no_overlap)
+        ExPolygons*                 fill_no_overlap,
+        int                         region_id,
+        std::vector<LoopNode>       *loop_nodes)
         : slices(slices), upper_slices(nullptr), lower_slices(nullptr), layer_height(layer_height),
             layer_id(-1), perimeter_flow(flow), ext_perimeter_flow(flow),
             overhang_flow(flow), solid_infill_flow(flow),
             config(config), object_config(object_config), print_config(print_config),
             m_spiral_vase(spiral_mode),
-            m_scaled_resolution(scaled<double>(print_config->resolution.value > EPSILON ? print_config->resolution.value : EPSILON)),
-            loops(loops), gap_fill(gap_fill), fill_surfaces(fill_surfaces), fill_no_overlap(fill_no_overlap),
+            m_scaled_resolution(scaled<double>(print_config->resolution.value > EPSILON ? print_config->resolution.value : EPSILON)), loops(loops),
+        gap_fill(gap_fill),
+        fill_surfaces(fill_surfaces),
+        fill_no_overlap(fill_no_overlap),
+        region_id(region_id),
+        loop_nodes(loop_nodes),
             m_ext_mm3_per_mm(-1), m_mm3_per_mm(-1), m_mm3_per_mm_overhang(-1), m_ext_mm3_per_mm_smaller_width(-1)
         {}
 
