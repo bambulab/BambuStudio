@@ -187,9 +187,8 @@ void CalibrationPAStartPage::update(MachineObject *obj)
             m_action_panel->bind_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, false);
         }
 
-        // is support auto cali
-        bool is_support_pa_auto = (obj->home_flag >> 16 & 1) == 1;
-        if (!is_support_pa_auto) {
+
+        if (!obj->is_support_pa_calibration) {
             m_action_panel->show_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, false);
         }
     }
@@ -346,8 +345,7 @@ void CalibrationFlowRateStartPage::update(MachineObject *obj)
     }
 
     //is support auto cali
-    bool is_support_flow_rate_auto = (obj->home_flag >> 15 & 1) == 1;
-    if (!is_support_flow_rate_auto) {
+    if (!obj->is_support_flow_calibration) {
         m_action_panel->show_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, false);
     }
 }

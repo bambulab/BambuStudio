@@ -539,7 +539,7 @@ void AmsMapingPopup::update_ams_data_multi_machines()
 
 void AmsMapingPopup::update(MachineObject* obj)
 {
-    BOOST_LOG_TRIVIAL(info) << "ams_mapping nozzle count  " << obj->m_np_nozzle_data.nozzle.size();
+    //BOOST_LOG_TRIVIAL(info) << "ams_mapping nozzle count  " << obj->m_nozzle_data.nozzle.size();
     BOOST_LOG_TRIVIAL(info) << "ams_mapping total count " << obj->amsList.size();
 
 
