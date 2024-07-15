@@ -39,7 +39,7 @@ public:
         bool           is_up_part;
         Transform3d    trans;
     };
-    void         part_render(const Vec3d *normal);
+    void         part_render(const Vec3d *cut_center, const Vec3d *normal);
     void         toggle_selection(const Vec2d &mouse_pos);
     void         toggle_selection(int id);
     void         turn_over_selection();
