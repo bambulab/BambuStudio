@@ -524,7 +524,7 @@ bool GLGizmoAdvancedCut::on_is_activable() const
 
     if (const ModelObject *mo = wxGetApp().plater()->model().objects[object_idx]; mo->is_cut() && mo->volumes.size() == 1) {
         const ModelVolume *volume = mo->volumes[0];
-        if (volume->is_cut_connector() && volume->cut_info.connector_type == CutConnectorType::Dowel) 
+        if (volume->is_cut_connector() && volume->cut_info.connector_type == CutConnectorType::Dowel)
             return false;
     }
 
@@ -674,9 +674,10 @@ void GLGizmoAdvancedCut::on_render()
 
     if (m_part_selection) {
         if (!m_connectors_editing) {
-            if (m_is_dragging == false) { m_part_selection->part_render(nullptr); }
-        } else
-            m_part_selection->part_render(&m_plane_normal);
+            if (m_is_dragging == false) { m_part_selection->part_render(nullptr,nullptr); }
+        } else {
+            m_part_selection->part_render(&m_plane_center, &m_plane_normal);
+        }
     }
     if (!m_connectors_editing) {
         render_cut_plane_and_grabbers();
@@ -2625,18 +2626,27 @@ PartSelection::PartSelection(const ModelObject *object, int instance_idx_in) : m
     m_valid = true;
 }
 
-void PartSelection::part_render(const Vec3d *normal)
+void PartSelection::part_render(const Vec3d *cut_center, const Vec3d *normal)
 {
     if (!valid())
         return;
 
     const Camera &camera             = wxGetApp().plater()->get_camera();
-    const bool    is_looking_forward = normal && camera.get_dir_forward().dot(*normal) < 0.05;
 
     glEnable(GL_DEPTH_TEST);
     for (size_t id = 0; id < m_cut_parts.size(); ++id) { // m_parts.size() test
-        if (normal && ((is_looking_forward && m_cut_parts[id].is_up_part) || (!is_looking_forward && !m_cut_parts[id].is_up_part)))
-            continue;
+        bool  is_looking_forward = true;
+        auto is_at_normal_dir  = false;
+        if (cut_center && normal) {
+            auto part_center =m_cut_parts[id].trans * m_cut_parts[id].glmodel.get_bounding_box().center();
+            is_at_normal_dir=(*cut_center - part_center).normalized().dot(*normal) > 0 ;
+            Vec3d valid_normal = is_at_normal_dir ? *normal : -*normal;
+            is_looking_forward = camera.get_dir_forward().dot(valid_normal) < 0.05;
+        }
+        if (cut_center) {
+            if (!is_looking_forward)
+                continue;
+        }
         GLGizmoBase::render_glmodel(m_cut_parts[id].glmodel, m_cut_parts[id].is_up_part ? UPPER_PART_COLOR.get_data() : LOWER_PART_COLOR.get_data(), m_cut_parts[id].trans);
     }
 }
