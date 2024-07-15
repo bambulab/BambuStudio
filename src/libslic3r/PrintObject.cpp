@@ -129,6 +129,63 @@ std::vector<std::reference_wrapper<const PrintRegion>> PrintObject::all_regions(
     return out;
 }
 
+void PrintObject::merge_layer_node(const size_t layer_id, int &max_merged_id, std::map<int, std::vector<std::pair<int, int>>> &node_record)
+{
+    Layer *this_layer = m_layers[layer_id];
+    std::vector<LoopNode> &loop_nodes = this_layer->loop_nodes;
+    for (size_t idx = 0; idx < loop_nodes.size(); ++idx) {
+        //new cool node
+        if (loop_nodes[idx].lower_node_id.empty()) {
+            max_merged_id++;
+            loop_nodes[idx].merged_id = max_merged_id;
+            std::vector<std::pair<int, int>> node_pos;
+            node_pos.emplace_back(layer_id, idx);
+            node_record.emplace(max_merged_id, node_pos);
+            continue;
+        }
+
+        //it should finds key in map
+        if (loop_nodes[idx].lower_node_id.size() == 1) {
+            loop_nodes[idx].merged_id = m_layers[layer_id - 1]->loop_nodes[loop_nodes[idx].lower_node_id.front()].merged_id;
+            node_record[loop_nodes[idx].merged_id].emplace_back(layer_id, idx);
+            continue;
+        }
+
+        //min index
+        int min_merged_id = -1;
+        std::vector<int> appear_id;
+        for (size_t lower_idx = 0; lower_idx < loop_nodes[idx].lower_node_id.size(); ++lower_idx) {
+            int id = m_layers[layer_id - 1]->loop_nodes[loop_nodes[idx].lower_node_id[lower_idx]].merged_id;
+            if (min_merged_id == -1 || min_merged_id > id)
+                min_merged_id = id;
+            appear_id.push_back(id);
+        }
+
+        loop_nodes[idx].merged_id = min_merged_id;
+        node_record[min_merged_id].emplace_back(layer_id, idx);
+
+        //update other node merged id
+        for (size_t appear_node_idx = 0; appear_node_idx < appear_id.size(); ++appear_node_idx) {
+            if (appear_id[appear_node_idx] == min_merged_id)
+                continue;
+
+            auto it = node_record.find(appear_id[appear_node_idx]);
+            std::vector<std::pair<int, int>> &appear_node_pos = it->second;
+
+            for (size_t node_idx = 0; node_idx < appear_node_pos.size(); ++node_idx) {
+                int node_layer = appear_node_pos[node_idx].first;
+                int node_pos = appear_node_pos[node_idx].second;
+
+                LoopNode &node = m_layers[node_layer]->loop_nodes[node_pos];
+
+                node.merged_id = min_merged_id;
+                node_record[min_merged_id].emplace_back(node_layer, node_pos);
+            }
+            node_record.erase(it);
+        }
+    }
+}
+
 // 1) Merges typed region slices into stInternal type.
 // 2) Increases an "extra perimeters" counter at region slices where needed.
 // 3) Generates perimeters, gap fills and fill regions (fill regions of type stInternal).
@@ -236,6 +293,33 @@ void PrintObject::make_perimeters()
     m_print->throw_if_canceled();
     BOOST_LOG_TRIVIAL(debug) << "Generating perimeters in parallel - end";
 
+    // BBS: get continuity of nodes
+    if (this->config().wall_generator == PerimeterGeneratorType::Classic) {
+        BOOST_LOG_TRIVIAL(debug) << "Calculating perimeters connection in parallel - start";
+        tbb::parallel_for(tbb::blocked_range<size_t>(0, m_layers.size()), [this](const tbb::blocked_range<size_t> &range) {
+            for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++layer_idx) {
+                m_print->throw_if_canceled();
+                if (layer_idx > 1) {
+                    Layer &prev_layer = *m_layers[layer_idx - 1];
+                    m_layers[layer_idx]->calculate_perimeter_continuity(m_layers[layer_idx - 1]->loop_nodes);
+                }
+            }
+        });
+
+        m_print->throw_if_canceled();
+        BOOST_LOG_TRIVIAL(debug) << "Calculating perimeters connection in parallel - end";
+
+        BOOST_LOG_TRIVIAL(debug) << "Calculating cooling nodes - start";
+
+        int max_merged_id = -1;
+        std::map<int,std::vector<std::pair<int, int>>> node_record;
+        for (size_t layer_idx = 1; layer_idx < m_layers.size(); ++layer_idx) {
+            m_print->throw_if_canceled();
+            merge_layer_node(layer_idx, max_merged_id, node_record);
+        }
+        m_print->throw_if_canceled();
+        BOOST_LOG_TRIVIAL(debug) << "Calculating cooling nodes - end";
+    }
     this->set_done(posPerimeters);
 }
 
@@ -917,7 +1001,9 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "sparse_infill_speed"
             || opt_key == "inner_wall_speed"
             || opt_key == "internal_solid_infill_speed"
-            || opt_key == "top_surface_speed") {
+            || opt_key == "top_surface_speed"
+            || opt_key == "z_direction_outwall_speed_continuous"
+            || opt_key == "layer_time_smoothing") {
             invalidated |= m_print->invalidate_step(psGCodeExport);
         } else if (
                opt_key == "flush_into_infill"

@@ -64,7 +64,7 @@ void LayerRegion::slices_to_fill_surfaces_clipped()
     }
 }
 
-void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollection* fill_surfaces, ExPolygons* fill_no_overlap)
+void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollection *fill_surfaces, ExPolygons *fill_no_overlap, int region_id, std::vector<LoopNode> &loop_nodes)
 {
     this->perimeters.clear();
     this->thin_fills.clear();
@@ -93,7 +93,9 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollec
         &this->thin_fills,
         fill_surfaces,
         //BBS
-        fill_no_overlap
+        fill_no_overlap,
+        region_id,
+        &loop_nodes
     );
     
     if (this->layer()->lower_layer != nullptr)

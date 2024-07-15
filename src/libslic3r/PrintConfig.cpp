@@ -571,6 +571,20 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("z_direction_outwall_speed_continuous", coBool);
+    def->label = L("Z direction outwall speed continuous");
+    def->category = L("Quality");
+    def->tooltip  = L("Smoothing outwall speed in z direction to get better surface quality. Print time will increases.");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
+    def           = this->add("layer_time_smoothing", coBool);
+    def->label    = L("Layer time smoothing");
+    def->category = L("Quality");
+    def->tooltip  = L("Smoothing layer time in z direction to get better surface quality. Print time will increases.");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("max_travel_detour_distance", coFloatOrPercent);
     def->label = L("Avoid crossing wall - Max detour length");
     def->category = L("Quality");
