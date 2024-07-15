@@ -3704,7 +3704,7 @@ double Model::getThermalLength(const ModelVolume* modelVolumePtr) {
         if (Model::extruderParamsMap.at(aa).materialName == "PC") {
             thermalLength = 40;
         }
-        if (Model::extruderParamsMap.at(aa).materialName == "TPU") {
+        if (Model::extruderParamsMap.at(aa).materialName == "TPU" || Model::extruderParamsMap.at(aa).materialName == "TPU-AMS") {
             thermalLength = 1000;
         }
 
@@ -3777,7 +3777,7 @@ double getadhesionCoeff(const ModelVolumePtrs objectVolumes)
                 Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "PCTG") {
                 adhesionCoeff = 2;
             }
-            else if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "TPU") {
+            else if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "TPU" || Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "TPU-AMS") {
                 adhesionCoeff = 0.5;
             }
     }
