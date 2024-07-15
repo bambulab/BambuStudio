@@ -179,6 +179,49 @@ Point Point::projection_onto(const Line &line) const
     return ((line.a - *this).cast<double>().squaredNorm() < (line.b - *this).cast<double>().squaredNorm()) ? line.a : line.b;
 }
 
+
+bool Point::is_in_lines(const Points &pts) const
+{
+    const Point check_point = *this;
+    for (int pt_idx = 1; pt_idx < pts.size(); pt_idx++) {
+        const Point pt      = pts[pt_idx];
+        const Point prev_pt = pts[pt_idx - 1];
+
+        // if on the endpoints
+        if ((check_point.x() == pt.x() && check_point.y() == pt.y()) || (check_point.x() == prev_pt.x() && check_point.y() == prev_pt.y()))
+            return true;
+
+        bool in_x_range = !(check_point.x() > pt.x() == check_point.x() > prev_pt.x());
+        bool in_y_range = !(check_point.y() > pt.y() == check_point.y() > prev_pt.y());
+
+        //on vert line
+        if (pt.x() == prev_pt.x()) {
+            if (in_y_range && pt.x() == check_point.x())
+                return true;
+            continue;
+        }
+
+        // on hori line
+        if (pt.y() == prev_pt.y()) {
+            if (in_x_range && pt.y() == check_point.y())
+                return true;
+            continue;
+        }
+
+        //not right range
+        if (!in_x_range || !in_y_range)
+            continue;
+
+        // check if in line
+        Line   line(prev_pt, pt);
+        double distance = line.distance_to(*this);
+        if (std::abs(distance) < SCALED_EPSILON)
+            return true;
+    }
+
+    return false;
+}
+
 bool has_duplicate_points(std::vector<Point> &&pts)
 {
     std::sort(pts.begin(), pts.end());

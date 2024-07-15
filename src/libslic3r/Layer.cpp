@@ -5,8 +5,10 @@
 #include "ShortestPath.hpp"
 #include "SVG.hpp"
 #include "BoundingBox.hpp"
-
+#include "libslic3r/AABBTreeLines.hpp"
 #include <boost/log/trivial.hpp>
+static const int Continuitious_length = scale_(0.01);
+static const int dist_scale_threshold = 1.2;
 
 namespace Slic3r {
 
@@ -195,7 +197,7 @@ void Layer::make_perimeters()
 
 	        if (layerms.size() == 1) {  // optimization
 	            (*layerm)->fill_surfaces.surfaces.clear();
-	            (*layerm)->make_perimeters((*layerm)->slices, &(*layerm)->fill_surfaces, &(*layerm)->fill_no_overlap_expolygons);
+	            (*layerm)->make_perimeters((*layerm)->slices, &(*layerm)->fill_surfaces, &(*layerm)->fill_no_overlap_expolygons, this->loop_nodes);
 	            (*layerm)->fill_expolygons = to_expolygons((*layerm)->fill_surfaces.surfaces);
 	        } else {
 	            SurfaceCollection new_slices;
@@ -219,7 +221,7 @@ void Layer::make_perimeters()
 	            SurfaceCollection fill_surfaces;
                 //BBS
                 ExPolygons fill_no_overlap;
-	            layerm_config->make_perimeters(new_slices, &fill_surfaces, &fill_no_overlap);
+                layerm_config->make_perimeters(new_slices, &fill_surfaces, &fill_no_overlap, this->loop_nodes);
 
 	            // assign fill_surfaces to each layer
 	            if (!fill_surfaces.surfaces.empty()) {
@@ -234,7 +236,146 @@ void Layer::make_perimeters()
 	            }
 	        }
 	    }
+
     BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id() << " - Done";
+}
+
+//BBS: use aabbtree to get distance
+class ContinuitiousDistancer
+{
+    std::vector<Linef>                lines;
+    AABBTreeIndirect::Tree<2, double> tree;
+
+public:
+    ContinuitiousDistancer(const Points &pts)
+    {
+        Lines pt_to_lines = to_lines(pts);
+        for (const auto &line : pt_to_lines)
+            lines.emplace_back(line.a.cast<double>(), line.b.cast<double>());
+
+        tree = AABBTreeLines::build_aabb_tree_over_indexed_lines(lines);
+    }
+
+    float distance_from_perimeter(const Vec2f &point) const
+    {
+        Vec2d  p = point.cast<double>();
+        size_t hit_idx_out{};
+        Vec2d  hit_point_out = Vec2d::Zero();
+        auto   distance      = AABBTreeLines::squared_distance_to_indexed_lines(lines, tree, p, hit_idx_out, hit_point_out);
+        if (distance < 0) {
+            return std::numeric_limits<float>::max();
+        }
+
+        distance          = sqrt(distance);
+        const Linef &line = lines[hit_idx_out];
+        Vec2d        v1   = line.b - line.a;
+        Vec2d        v2   = p - line.a;
+        if ((v1.x() * v2.y()) - (v1.y() * v2.x()) > 0.0) { distance *= -1; }
+        return distance;
+    }
+
+    Lines to_lines(const Points &pts)
+    {
+        Lines lines;
+        if (pts.size() >= 2) {
+            lines.reserve(pts.size() - 1);
+            for (Points::const_iterator it = pts.begin(); it != pts.end() - 1; ++it) { lines.push_back(Line(*it, *(it + 1))); }
+        }
+        return lines;
+    }
+};
+
+
+static double get_node_continuity_rang_limit(const std::vector<coord_t> &Prev_node_widths, int prev_pt_idx) {
+    double width = 0;
+    double prev_width = Prev_node_widths.front();
+    if (prev_pt_idx!=0 && prev_pt_idx < Prev_node_widths.size()) {
+            prev_width = static_cast<double>(Prev_node_widths[prev_pt_idx]);
+    }
+
+    width = prev_width * dist_scale_threshold;
+    return width;
+}
+
+void Layer::calculate_perimeter_continuity(std::vector<LoopNode> &prev_nodes) {
+    for (size_t node_pos = 0; node_pos < loop_nodes.size(); ++node_pos) {
+        LoopNode &node=loop_nodes[node_pos];
+        double width = 0;
+        ContinuitiousDistancer node_distancer(node.node_contour.pts);
+        for (size_t prev_pos = 0; prev_pos < prev_nodes.size(); ++prev_pos) {
+            LoopNode &prev_node = prev_nodes[prev_pos];
+
+            // no overlap or has diff speed
+            if (!node.bbox.overlap(prev_node.bbox))
+                continue;
+
+            //calculate dist, checkout the continuity
+            Polyline continuitious_pl;
+            //check start pt
+            size_t start = 0;
+            bool conntiouitious_flag = false;
+            int end = prev_node.node_contour.pts.size() - 1;
+
+            //if the countor is loop
+            if (prev_node.node_contour.is_loop) {
+                for (; end >= 0; --end) {
+                    if (continuitious_pl.length() >= Continuitious_length) {
+                        node.lower_node_id.push_back(prev_node.node_id);
+                        prev_node.upper_node_id.push_back(node.node_id);
+                        conntiouitious_flag = true;
+                        break;
+                    }
+
+                    Point pt   = prev_node.node_contour.pts[end];
+                    float dist = node_distancer.distance_from_perimeter(pt.cast<float>());
+                    // get corr width
+                    width = get_node_continuity_rang_limit(prev_node.node_contour.widths, end);
+
+                    if (dist < width && dist > -width)
+                        continuitious_pl.append_before(pt);
+                    else
+                        break;
+                }
+
+                if (conntiouitious_flag || end < 0)
+                    continue;
+            }
+
+            int last_pt_idx = end;
+            // line need to check end point
+            if (!prev_node.node_contour.is_loop)
+                last_pt_idx ++;
+
+            for (; start < last_pt_idx; ++start) {
+                Point pt   = prev_node.node_contour.pts[start];
+                float dist = node_distancer.distance_from_perimeter(pt.cast<float>());
+                //get corr width
+                width = get_node_continuity_rang_limit(prev_node.node_contour.widths, start);
+
+                if (dist < width && dist > -width) {
+                    continuitious_pl.append(pt);
+                    continue;
+                }
+
+                if (continuitious_pl.empty() || continuitious_pl.length() < Continuitious_length) {
+                    continuitious_pl.clear();
+                    continue;
+                }
+
+                node.lower_node_id.push_back(prev_node.node_id);
+                prev_node.upper_node_id.push_back(node.node_id);
+                continuitious_pl.clear();
+                break;
+
+            }
+
+            if (continuitious_pl.length() >= Continuitious_length) {
+                node.lower_node_id.push_back(prev_node.node_id);
+                prev_node.upper_node_id.push_back(node.node_id);
+            }
+        }
+    }
+
 }
 
 void Layer::export_region_slices_to_svg(const char *path) const

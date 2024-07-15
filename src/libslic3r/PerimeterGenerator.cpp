@@ -7,6 +7,7 @@
 #include "Clipper2Utils.hpp"
 #include "Arachne/WallToolPaths.hpp"
 #include "Line.hpp"
+#include "Layer.hpp"
 #include <cmath>
 #include <cassert>
 #include <random>
@@ -887,13 +888,32 @@ static void detect_brigde_wall_arachne(const PerimeterGenerator &perimeter_gener
 static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& perimeter_generator, std::vector<PerimeterGeneratorArachneExtrusion>& pg_extrusions)
 {
     ExtrusionEntityCollection extrusion_coll;
-    for (PerimeterGeneratorArachneExtrusion& pg_extrusion : pg_extrusions) {
+    if (perimeter_generator.print_config->z_direction_outwall_speed_continuous)
+         extrusion_coll.loop_node_range.first = perimeter_generator.loop_nodes->size();
+
+    for (PerimeterGeneratorArachneExtrusion &pg_extrusion : pg_extrusions) {
         Arachne::ExtrusionLine* extrusion = pg_extrusion.extrusion;
         if (extrusion->empty())
             continue;
-
+        //get extrusion date
         const bool    is_external = extrusion->inset_idx == 0;
-        ExtrusionRole role = is_external ? erExternalPerimeter : erPerimeter;
+        ExtrusionRole role        = is_external ? erExternalPerimeter : erPerimeter;
+
+        if (is_external && perimeter_generator.print_config->z_direction_outwall_speed_continuous) {
+            LoopNode    node;
+            NodeContour node_contour;
+            node_contour.is_loop = extrusion->is_closed;
+            for (size_t i = 0; i < extrusion->junctions.size(); i++) {
+                node_contour.pts.push_back(extrusion->junctions[i].p);
+                node_contour.widths.push_back(extrusion->junctions[i].w);
+            }
+            node.node_contour = node_contour;
+            node.node_id      = perimeter_generator.loop_nodes->size();
+            node.loop_id      = extrusion_coll.entities.size();
+            node.bbox         = get_extents(node.node_contour.pts);
+            node.bbox.offset(perimeter_generator.config->outer_wall_line_width/2);
+            perimeter_generator.loop_nodes->push_back(std::move(node));
+        }
 
         if (pg_extrusion.fuzzify)
             fuzzy_extrusion_line(*extrusion, scaled<float>(perimeter_generator.config->fuzzy_skin_thickness.value), scaled<float>(perimeter_generator.config->fuzzy_skin_point_distance.value));
@@ -1084,7 +1104,10 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
                 extrusion_coll.append(ExtrusionMultiPath(std::move(multi_path)));
             }
         }
+
     }
+    if (perimeter_generator.print_config->z_direction_outwall_speed_continuous)
+         extrusion_coll.loop_node_range.second = perimeter_generator.loop_nodes->size();
 
     return extrusion_coll;
 }
@@ -1166,6 +1189,7 @@ void PerimeterGenerator::process_classic()
         ExPolygons gaps;
         ExPolygons top_fills;
         ExPolygons fill_clip;
+        std::vector<NodeContour> outwall_paths;
         if (loop_number >= 0) {
             // In case no perimeters are to be generated, loop_number will equal to -1.
             std::vector<PerimeterGeneratorLoops> contours(loop_number+1);    // depth => loops
@@ -1291,6 +1315,35 @@ void PerimeterGenerator::process_classic()
 
                     //BBS: save perimeter loop which use smaller width
                     if (i == 0) {
+                        //store outer wall
+                        if (print_config->z_direction_outwall_speed_continuous) {
+                            // not loop
+                            for (const ThickPolyline &polyline : thin_walls) {
+                                NodeContour node_contour;
+                                node_contour.is_loop = false;
+                                node_contour.pts     = polyline.points;
+                                node_contour.widths.insert(node_contour.widths.end(), polyline.width.begin(), polyline.width.end());
+                                outwall_paths.push_back(node_contour);
+                            }
+
+                            // loop
+                            for (const Polyline &polyline : to_polylines(offsets_with_smaller_width)) {
+                                NodeContour node_contour;
+                                node_contour.is_loop = true;
+                                node_contour.pts     = polyline.points;
+                                node_contour.widths.push_back(scale_(this->smaller_ext_perimeter_flow.width()));
+                                outwall_paths.push_back(node_contour);
+                            }
+
+                            for (const Polyline &polyline : to_polylines(offsets)) {
+                                NodeContour node_contour;
+                                node_contour.is_loop = true;
+                                node_contour.pts     = polyline.points;
+                                node_contour.widths.push_back(scale_(this->ext_perimeter_flow.width()));
+                                outwall_paths.push_back(node_contour);
+                            }
+                        }
+
                         for (const ExPolygon& expolygon : offsets_with_smaller_width) {
                             contours[i].emplace_back(PerimeterGeneratorLoop(expolygon.contour, i, true, fuzzify_contours, true));
                             if (!expolygon.holes.empty()) {
@@ -1467,6 +1520,48 @@ void PerimeterGenerator::process_classic()
                     }
                     entities.entities = std::move( entities_reorder);
                 }
+
+            //BBS: add node for loops
+            if (!outwall_paths.empty() && this->layer_id > 0) {
+                entities.loop_node_range.first = this->loop_nodes->size();
+                if (outwall_paths.size() == 1) {
+                    LoopNode node;
+                    node.node_id      = this->loop_nodes->size();
+                    node.loop_id      = 0;
+                    node.node_contour = outwall_paths.front();
+                    node.bbox         = get_extents(node.node_contour.pts);
+                    node.bbox.offset(SCALED_EPSILON);
+                    this->loop_nodes->push_back(node);
+                } else {
+                    std::vector<bool> matched;
+                    matched.resize(outwall_paths.size(), false);
+                    for (int entity_idx = 0; entity_idx < entities.entities.size(); ++entity_idx) {
+                        //skip inner wall
+                        if(entities.entities[entity_idx]->role() == erPerimeter)
+                            continue;
+
+                        for (size_t lines_idx = 0; lines_idx < outwall_paths.size(); ++lines_idx) {
+                             if(matched[lines_idx])
+                                 continue;
+
+                             if (entities.entities[entity_idx]->first_point().is_in_lines(outwall_paths[lines_idx].pts)) {
+                                 matched[lines_idx] = true;
+                                 LoopNode node;
+                                 node.node_id      = this->loop_nodes->size();
+                                 node.loop_id      = entity_idx;
+                                 node.node_contour = outwall_paths[lines_idx];
+                                 node.bbox         = get_extents(node.node_contour.pts);
+                                 node.bbox.offset(SCALED_EPSILON);
+                                 this->loop_nodes->push_back(node);
+                                 break;
+                             }
+                        }
+                    }
+                }
+                entities.loop_node_range.second = this->loop_nodes->size();
+            }
+
+
             // append perimeters for this slice as a collection
             if (! entities.empty())
                 this->loops->append(entities);

@@ -9,7 +9,7 @@
 #include "PlaceholderParser.hpp"
 #include "PrintConfig.hpp"
 #include "GCode/AvoidCrossingPerimeters.hpp"
-#include "GCode/CoolingBuffer.hpp"
+#include "GCode/GCodeEditer.hpp"
 #include "GCode/RetractWhenCrossingPerimeters.hpp"
 #include "GCode/SpiralVase.hpp"
 #include "GCode/ToolOrdering.hpp"
@@ -303,7 +303,9 @@ private:
         // Should the cooling buffer content be flushed at the end of this layer?
         bool        cooling_buffer_flush { false };
         // the layer store pos of gcode
-        size_t      gcode_store_pos;
+        size_t      gcode_store_pos = 0;
+        //store each layer_time
+        float       layer_time = 0;
         LayerResult() = default;
         LayerResult(const std::string& gcode_, const size_t layer_id_, const bool spiral_vase_enable_, const bool cooling_buffer_flush_, const size_t gcode_store_pos_ = static_cast<size_t>(-1)) :
             gcode(gcode_), layer_id(layer_id_), spiral_vase_enable(spiral_vase_enable_), cooling_buffer_flush(cooling_buffer_flush_), gcode_store_pos(gcode_store_pos_){}
@@ -315,6 +317,7 @@ private:
             spiral_vase_enable = other.spiral_vase_enable;
             cooling_buffer_flush = other.cooling_buffer_flush;
             gcode_store_pos = other.gcode_store_pos;
+            layer_time = other.layer_time;
         }
 
         LayerResult& operator=(LayerResult&& other) noexcept {
@@ -324,6 +327,7 @@ private:
                 spiral_vase_enable = other.spiral_vase_enable;
                 cooling_buffer_flush = other.cooling_buffer_flush;
                 gcode_store_pos = other.gcode_store_pos;
+                layer_time = other.layer_time;
             }
             return *this;
         }
@@ -400,7 +404,7 @@ private:
                 ExtrusionEntitiesPtr perimeters;
             	// Non-owned references to LayerRegion::fills::entities
                 ExtrusionEntitiesPtr infills;
-
+                std::vector<const LoopNode*> merged_node;
                 std::vector<const WipingExtrusions::ExtruderPerCopy*> infills_overrides;
                 std::vector<const WipingExtrusions::ExtruderPerCopy*> perimeters_overrides;
 
@@ -514,7 +518,7 @@ private:
     Point                               m_last_pos;
     bool                                m_last_pos_defined;
     bool                                m_last_scarf_seam_flag;
-    std::unique_ptr<CoolingBuffer>      m_cooling_buffer;
+    std::unique_ptr<GCodeEditer>        m_gcode_editer;
     std::unique_ptr<SpiralVase>         m_spiral_vase;
 #ifdef HAS_PRESSURE_EQUALIZER
     std::unique_ptr<PressureEqualizer>  m_pressure_equalizer;

@@ -2041,6 +2041,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("smooth_coefficient","parameter/quality-advance-settings");
         optgroup->append_single_option_line("reduce_crossing_wall","parameter/quality-advance-settings");
         optgroup->append_single_option_line("max_travel_detour_distance","parameter/quality-advance-settings");
+        optgroup->append_single_option_line("z_direction_outwall_speed_continuous", "parameter/quality-advance-settings");
 
     page = add_options_page(L("Strength"), "empty");
         optgroup = page->new_optgroup(L("Walls"), L"param_wall");
