@@ -260,7 +260,7 @@ Temp_Calibration_Dlg::Temp_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plat
     SetSizer(v_sizer);
     wxBoxSizer* choice_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    wxString m_rbFilamentTypeChoices[] = {"PLA", "ABS/ASA", "PETG", "PCTG", "TPU", "PA-CF", "PET-CF", _L("Custom")};
+    wxString m_rbFilamentTypeChoices[] = {"PLA", "ABS/ASA", "PETG", "PCTG", "TPU", "TPU-AMS", "PA-CF", "PET-CF", _L("Custom")};
     int m_rbFilamentTypeNChoices = sizeof(m_rbFilamentTypeChoices) / sizeof(wxString);
     m_rbFilamentType = new wxRadioBox(this, wxID_ANY, _L("Filament type"), wxDefaultPosition, wxDefaultSize, m_rbFilamentTypeNChoices, m_rbFilamentTypeChoices, 2, wxRA_SPECIFY_COLS);
     m_rbFilamentType->SetSelection(0);

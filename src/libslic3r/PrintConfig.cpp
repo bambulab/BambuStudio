@@ -1533,6 +1533,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("PETG");
     def->enum_values.push_back("PCTG");
     def->enum_values.push_back("TPU");
+    def->enum_values.push_back("TPU-AMS");
     def->enum_values.push_back("PC");
     def->enum_values.push_back("PA");
     def->enum_values.push_back("PA-CF");
