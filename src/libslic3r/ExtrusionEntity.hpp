@@ -16,6 +16,24 @@ using ExPolygons = std::vector<ExPolygon>;
 class ExtrusionEntityCollection;
 class Extruder;
 
+struct LoopNode
+{
+    //store outer wall and mark if it's loop
+    std::pair<ExPolygon, bool> exp;
+    int       node_id;
+    int       region_id;
+    int       perimeter_id;
+    int       loop_id = 0;
+    BoundingBox bbox;
+    int       merged_id = -1;
+
+    //upper loop info
+    std::vector<int> upper_node_id;
+
+    //lower loop info
+    std::vector<int> lower_node_id;
+};
+
 // Each ExtrusionRole value identifies a distinct set of { extruder, speed }
 enum ExtrusionRole : uint8_t {
     erNone,

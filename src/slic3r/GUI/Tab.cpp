@@ -1956,6 +1956,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("smooth_speed_discontinuity_area");
         optgroup->append_single_option_line("smooth_coefficient");
         optgroup->append_single_option_line("reduce_crossing_wall");
+        optgroup->append_single_option_line("z_direction_outwall_speed_continuous");
+        optgroup->append_single_option_line("layer_time_smoothing");
         optgroup->append_single_option_line("max_travel_detour_distance");
 
     page = add_options_page(L("Strength"), "empty");
