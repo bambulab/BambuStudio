@@ -500,14 +500,29 @@ void Tab::create_preset_tab()
             evt.Skip();
            switch_excluder(evt.GetInt());
         });
-        m_main_sizer->Add(m_extruder_switch, 0, wxALIGN_CENTER | wxTOP, m_em_unit);
+        m_extruder_sync = new ScalableButton(panel, wxID_ANY, "ams_fila_sync");
+        m_extruder_sync->SetToolTip(_L("Synchronize the modification of parameters to the corresponding parameters of another extruder."));
+        m_extruder_sync->Bind(wxEVT_BUTTON, [this](auto &evt) {
+            evt.Skip();
+            sync_excluder();
+        });
+        m_variant_sizer  = new wxBoxSizer(wxHORIZONTAL);
+        auto right_sizer = new wxBoxSizer(wxHORIZONTAL);
+        m_variant_sizer->AddStretchSpacer(1);
+        m_variant_sizer->Add(m_extruder_switch, 0, wxALIGN_CENTER, 0);
+        m_variant_sizer->Add(right_sizer, 1, wxALIGN_CENTER);
+        right_sizer->AddStretchSpacer(1);
+        right_sizer->Add(m_extruder_sync, 0, wxALIGN_CENTER | wxRIGHT, m_em_unit);
+        m_main_sizer->Add(m_variant_sizer, 0, wxEXPAND | wxTOP, m_em_unit);
     } else if (dynamic_cast<TabFilament *>(this)) {
         m_variant_combo = new ComboBox(panel, wxID_ANY, "", wxDefaultPosition, {20 * m_em_unit, -1}, 0, {}, wxCB_READONLY);
         m_variant_combo->Bind(wxEVT_COMBOBOX, [this](auto &evt) {
             evt.Skip();
             switch_excluder(evt.GetInt());
         });
-        m_main_sizer->Add(m_variant_combo, 0, wxLEFT | wxTOP, m_em_unit);
+        m_variant_sizer  = new wxBoxSizer(wxHORIZONTAL);
+        m_variant_sizer->Add(m_variant_combo, 0, wxLEFT, m_em_unit);
+        m_main_sizer->Add(m_variant_sizer, 0, wxEXPAND | wxTOP, m_em_unit);
     }
 
     this->SetSizer(m_main_sizer);
@@ -1331,10 +1346,10 @@ void Tab::toggle_option(const std::string& opt_key, bool toggle, int opt_index/*
         field->toggle(toggle);
 }
 
-void Tab::toggle_line(const std::string &opt_key, bool toggle)
+void Tab::toggle_line(const std::string &opt_key, bool toggle, int opt_index)
 {
     if (!m_active_page) return;
-    Line *line = m_active_page->get_line(opt_key);
+    Line *line = m_active_page->get_line(opt_key, opt_index);
     if (line) line->toggle_visible = toggle;
 };
 
@@ -5137,8 +5152,9 @@ bool Tab::tree_sel_change_delayed(wxCommandEvent& event)
         // update_undo_buttons();
         this->OnActivate();
         m_parent->set_active_tab(this);
-        if (wxWindow *variant_ctrl = m_extruder_switch ? (wxWindow*)m_extruder_switch : m_variant_combo) {
-            m_main_sizer->Show(variant_ctrl, variant_ctrl->IsEnabled() && !m_active_page->m_opt_id_map.empty());
+        if (m_variant_sizer) {
+            wxWindow *variant_ctrl = m_extruder_switch ? (wxWindow *) m_extruder_switch : m_variant_combo;
+            m_main_sizer->Show(m_variant_sizer, variant_ctrl->IsThisEnabled() && !m_active_page->m_opt_id_map.empty());
             GetParent()->Layout();
         }
 
@@ -5151,8 +5167,9 @@ bool Tab::tree_sel_change_delayed(wxCommandEvent& event)
         return false;
 
     m_active_page = page;
-    if (wxWindow *variant_ctrl = m_extruder_switch ? (wxWindow *) m_extruder_switch : m_variant_combo) {
-        m_main_sizer->Show(variant_ctrl, variant_ctrl->IsEnabled() && !m_active_page->m_opt_id_map.empty());
+    if (m_variant_sizer) {
+        wxWindow *variant_ctrl = m_extruder_switch ? (wxWindow *) m_extruder_switch : m_variant_combo;
+        m_main_sizer->Show(m_variant_sizer, variant_ctrl->IsThisEnabled() && !m_active_page->m_opt_id_map.empty());
         GetParent()->Layout();
     }
 
@@ -5806,7 +5823,8 @@ void Tab::update_extruder_variants(int extruder_id, bool reload)
             }
             m_extruder_switch->SetLabels(wxString::Format(_L("Left: %s"), left), wxString::Format(_L("Right: %s"), right));
             m_extruder_switch->SetValue(extruder_id == 1);
-            m_extruder_switch->Enable();
+            m_extruder_switch->Enable(true);
+            assert(m_extruder_switch->IsEnabled());
         } else {
             m_extruder_switch->Enable(false);
         }
@@ -5821,8 +5839,9 @@ void Tab::update_extruder_variants(int extruder_id, bool reload)
         m_variant_combo->SetSelection(n < 0 || n >= m_variant_combo->GetCount() ? 0 : n);
     }
     switch_excluder(extruder_id, reload);
-    if (wxWindow *variant_ctrl = m_extruder_switch ? (wxWindow *) m_extruder_switch : m_variant_combo) {
-        m_main_sizer->Show(variant_ctrl, variant_ctrl->IsEnabled() && m_active_page && !m_active_page->m_opt_id_map.empty());
+    if (m_variant_sizer) {
+        wxWindow *variant_ctrl = m_extruder_switch ? (wxWindow *) m_extruder_switch : m_variant_combo;
+        m_main_sizer->Show(m_variant_sizer, variant_ctrl->IsThisEnabled() && m_active_page && !m_active_page->m_opt_id_map.empty());
         GetParent()->Layout();
     }
 }
@@ -5892,6 +5911,59 @@ void Tab::switch_excluder(int extruder_id, bool reload)
             m_active_page->update_visibility(m_mode, true);
         m_page_view->GetParent()->Layout();
     }
+}
+
+void Tab::sync_excluder()
+{
+    Preset & printer_preset = wxGetApp().preset_bundle->printers.get_edited_preset();
+    auto nozzle_volumes = printer_preset.config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+    auto extruders      = printer_preset.config.option<ConfigOptionEnumsGeneric>("extruder_type");
+    std::pair<std::string, std::string> variant_keys[]{
+        {}, {"print_extruder_id", "print_extruder_variant"},     // Preset::TYPE_PRINT
+        {}, {"", "filament_extruder_variant"},                   // Preset::TYPE_FILAMENT filament don't use id anymore
+        {}, {"printer_extruder_id", "printer_extruder_variant"}, // Preset::TYPE_PRINTER
+    };
+    auto get_index_for_extruder =
+            [this, &extruders, &nozzle_volumes, variant_keys = variant_keys[m_type >= Preset::TYPE_COUNT ? Preset::TYPE_PRINT : m_type]](int extruder_id) {
+        return m_config->get_index_for_extruder(extruder_id + 1, variant_keys.first,
+            ExtruderType(extruders->values[extruder_id]), NozzleVolumeType(nozzle_volumes->values[extruder_id]), variant_keys.second);
+    };
+    int left_index = get_index_for_extruder(0);
+    int right_index = get_index_for_extruder(1);
+    int active_index = int(intptr_t(m_extruder_switch->GetClientData()));
+    auto left_str = std::to_string(left_index);
+    auto right_str = std::to_string(right_index);
+    auto dirty_options = m_presets->current_dirty_options(true);
+    for (int i = 0; i < dirty_options.size(); ++i) {
+        auto &opt = dirty_options[i];
+        auto n= opt.find('#');
+        if (n == std::string::npos)
+            continue;
+        auto field = m_active_page->get_field(opt.substr(0, n), active_index + 256);
+        if (field == nullptr)
+            continue;
+        ++n;
+        bool left  = opt.substr(n) == left_str;
+        bool right = opt.substr(n) == right_str;
+        while (i + 1 < dirty_options.size() && dirty_options[i + 1].compare(0, n, opt, 0, n) == 0) {
+            left |= dirty_options[i + 1].substr(n) == left_str;
+            right |= dirty_options[i + 1].substr(n) == right_str;
+            ++i;
+        }
+        if (left == right)
+            continue;
+        auto option = dynamic_cast<ConfigOptionVectorBase*>(m_config->option(opt.substr(0, n - 1)));
+        if (left)
+            option->set_at(option, right_index, left_index);
+        else
+            option->set_at(option, left_index, right_index);
+    }
+    reload_config();
+    update_changed_ui();
+    toggle_options();
+    if (m_active_page)
+        m_active_page->update_visibility(m_mode, true);
+    m_page_view->GetParent()->Layout();
 }
 
 void Tab::compatible_widget_reload(PresetDependencies &deps)
@@ -6056,9 +6128,11 @@ Field *Page::get_field(const t_config_option_key &opt_key, int opt_index /*= -1*
 {
     Field *field = nullptr;
     auto   opt_key2 = opt_key;
-    auto   iter     = m_opt_id_map.lower_bound(opt_key);
-    if (iter != m_opt_id_map.end() && iter->first.compare(0, opt_key.length(), opt_key) == 0)
-        opt_key2 = iter->second;
+    if (opt_index >= 256) {
+        auto iter = m_opt_id_map.find(opt_key + '#' + std::to_string(opt_index - 256));
+        if (iter != m_opt_id_map.end())
+            opt_key2 = iter->second;
+    }
     for (auto opt : m_optgroups) {
         field = opt->get_fieldc(opt_key2, opt_index);
         if (field != nullptr) return field;
@@ -6066,13 +6140,15 @@ Field *Page::get_field(const t_config_option_key &opt_key, int opt_index /*= -1*
     return field;
 }
 
-Line *Page::get_line(const t_config_option_key &opt_key)
+Line *Page::get_line(const t_config_option_key &opt_key, int opt_index)
 {
     Line *line = nullptr;
     auto   opt_key2 = opt_key;
-    auto   iter     = m_opt_id_map.lower_bound(opt_key);
-    if (iter != m_opt_id_map.end() && iter->first.compare(0, opt_key.length(), opt_key) == 0)
-        opt_key2 = iter->second;
+    if (opt_index >= 256) {
+        auto iter = m_opt_id_map.find(opt_key + '#' + std::to_string(opt_index - 256));
+        if (iter != m_opt_id_map.end())
+            opt_key2 = iter->second;
+    }
     for (auto opt : m_optgroups) {
         line = opt->get_line(opt_key2);
         if (line != nullptr) return line;
@@ -6461,11 +6537,11 @@ ConfigManipulation Tab::get_config_manipulation()
     };
 
     auto cb_toggle_field = [this](const t_config_option_key& opt_key, bool toggle, int opt_index) {
-        return toggle_option(opt_key, toggle, opt_index);
+        return toggle_option(opt_key, toggle, opt_index >= 0 ? opt_index + 256 : opt_index);
     };
 
-    auto cb_toggle_line = [this](const t_config_option_key& opt_key, bool toggle) {
-        return toggle_line(opt_key, toggle);
+    auto cb_toggle_line = [this](const t_config_option_key &opt_key, bool toggle, int opt_index) {
+        return toggle_line(opt_key, toggle, opt_index >= 0 ? opt_index + 256 : opt_index);
     };
 
     auto cb_value_change = [this](const std::string& opt_key, const boost::any& value) {
