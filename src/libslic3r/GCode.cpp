@@ -67,6 +67,8 @@ using namespace std::literals::string_view_literals;
 #endif
 
 #include <assert.h>
+#include <libslic3r/GCode/Smoothing.hpp>
+#include <libslic3r/GCode/CoolingBuffer.hpp>
 
 namespace Slic3r {
 
@@ -1954,8 +1956,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     print.throw_if_canceled();
 
-    m_cooling_buffer = make_unique<CoolingBuffer>(*this);
-    m_cooling_buffer->set_current_extruder(initial_extruder_id);
+    m_gcode_editer = make_unique<GCodeEditer>(*this);
+    m_gcode_editer->set_current_extruder(initial_extruder_id);
 
     int extruder_id = get_extruder_id(initial_extruder_id);
 
@@ -2257,7 +2259,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 if (finished_objects > 0) {
                     // Move to the origin position for the copy we're going to print.
                     // This happens before Z goes down to layer 0 again, so that no collision happens hopefully.
-                    m_enable_cooling_markers = false; // we're not filtering these moves through CoolingBuffer
+                    m_enable_cooling_markers = false; // we're not filtering these moves through GCodeEditer
                     m_avoid_crossing_perimeters.use_external_mp_once();
                     // BBS. change tool before moving to origin point.
                     if (m_writer.need_toolchange(initial_extruder_id)) {
@@ -2285,8 +2287,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                     file.writeln(printing_by_object_gcode);
                 }
                 // Reset the cooling buffer internal state (the current position, feed rate, accelerations).
-                m_cooling_buffer->reset(this->writer().get_position());
-                m_cooling_buffer->set_current_extruder(initial_extruder_id);
+                m_gcode_editer->reset(this->writer().get_position());
+                m_gcode_editer->set_current_extruder(initial_extruder_id);
                 // Process all layers of a single object instance (sequential mode) with a parallel pipeline:
                 // Generate G-code, run the filters (vase mode, cooling buffer), run the G-code analyser
                 // and export G-code into file.
@@ -2564,8 +2566,17 @@ void GCode::process_layers(
     const std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>>   &layers_to_print,
     GCodeOutputStream                                                   &output_stream)
 {
-    // The pipeline is variable: The vase mode filter is optional.
+    //BBS: get object label id
     size_t layer_to_print_idx = 0;
+    std::vector<int> object_label;
+
+    for (const PrintInstance *instance : print_object_instances_ordering)
+        object_label.push_back(instance->model_instance->get_labeled_id());
+
+    std::vector<GCode::LayerResult> layers_results;
+    layers_results.resize(layers_to_print.size());
+
+    // The pipeline is variable: The vase mode filter is optional.
     const auto generator = tbb::make_filter<void, GCode::LayerResult>(slic3r_tbb_filtermode::serial_in_order,
         [this, &print, &tool_ordering, &print_object_instances_ordering, &layers_to_print, &layer_to_print_idx](tbb::flow_control& fc) -> GCode::LayerResult {
             if (layer_to_print_idx == layers_to_print.size()) {
@@ -2594,21 +2605,87 @@ void GCode::process_layers(
         slic3r_tbb_filtermode::serial_in_order, [&spiral_mode = *this->m_spiral_vase.get(), & layers_to_print](GCode::LayerResult in) -> GCode::LayerResult {
             spiral_mode.enable(in.spiral_vase_enable);
             bool last_layer = in.layer_id == layers_to_print.size() - 1;
-            return { spiral_mode.process_layer(std::move(in.gcode), last_layer), in.layer_id, in.spiral_vase_enable, in.cooling_buffer_flush};
+            return {spiral_mode.process_layer(std::move(in.gcode), last_layer), in.layer_id, in.spiral_vase_enable, in.cooling_buffer_flush, in.gcode_store_pos};
         });
-    const auto cooling = tbb::make_filter<GCode::LayerResult, std::string>(slic3r_tbb_filtermode::serial_in_order,
-        [&cooling_buffer = *this->m_cooling_buffer.get()](GCode::LayerResult in) -> std::string {
-            return cooling_buffer.process_layer(std::move(in.gcode), in.layer_id, in.cooling_buffer_flush);
-        });
-    const auto output = tbb::make_filter<std::string, void>(slic3r_tbb_filtermode::serial_in_order,
-        [&output_stream](std::string s) { output_stream.write(s); }
-    );
 
+    std::vector<std::vector<PerExtruderAdjustments>> layers_extruder_adjustments(layers_to_print.size());
+
+    const auto parsing = tbb::make_filter<GCode::LayerResult, GCode::LayerResult>(slic3r_tbb_filtermode::serial_in_order,
+    [&gcode_editer = *this->m_gcode_editer.get(), &layers_extruder_adjustments, object_label](GCode::LayerResult in) -> GCode::LayerResult{
+        //record gcode
+        in.gcode = gcode_editer.process_layer(std::move(in.gcode), in.layer_id, layers_extruder_adjustments[in.gcode_store_pos], object_label, in.cooling_buffer_flush, false);
+         return std::move(in);
+    });
+
+    //step2: cooling
+    std::vector<std::vector<OutwallCollection>> layers_wall_collection(layers_to_print.size());
+
+    CoolingBuffer cooling_processor;
+
+    const auto cooling = tbb::make_filter<GCode::LayerResult, GCode::LayerResult>(slic3r_tbb_filtermode::serial_in_order,
+    [&cooling_processor, &layers_extruder_adjustments](GCode::LayerResult in) -> GCode::LayerResult {
+        in.layer_time = cooling_processor.calculate_layer_slowdown(layers_extruder_adjustments[in.gcode_store_pos]);
+         return std::move(in);
+    });
+
+    // step 4.1: record node date
+    SmoothCalculator smooth_calculator(object_label.size());
+
+    const auto build_node = tbb::make_filter<GCode::LayerResult, void>(slic3r_tbb_filtermode::serial_in_order,
+    [&smooth_calculator, &layers_wall_collection, &layers_extruder_adjustments, object_label, &layers_results](GCode::LayerResult in){
+         smooth_calculator.build_node(layers_wall_collection[in.gcode_store_pos], object_label, layers_extruder_adjustments[in.gcode_store_pos]);
+         layers_results[in.gcode_store_pos] = std::move(in);
+         return;
+    });
+
+    // step 5: rewite
+    const auto write_gocde= tbb::make_filter<GCode::LayerResult, std::string>(slic3r_tbb_filtermode::serial_in_order,
+    [&gcode_editer = *this->m_gcode_editer.get(), &layers_extruder_adjustments](GCode::LayerResult in) -> std::string {
+         return gcode_editer.write_layer_gcode(std::move(in.gcode), in.layer_id, in.layer_time, layers_extruder_adjustments[in.gcode_store_pos]);
+    });
+
+    std::vector<GCode::LayerResult> gcode_res;
+
+    // BBS: apply new feedrate of outwall and recalculate layer time
+    int layer_idx = 0;
+     const auto calculate_layer_time= tbb::make_filter<void, GCode::LayerResult>(slic3r_tbb_filtermode::serial_in_order, [&layer_idx, &smooth_calculator, &layers_extruder_adjustments, &gcode_res](tbb::flow_control& fc) -> GCode::LayerResult {
+         if(layer_idx == gcode_res.size()){
+            fc.stop();
+            return{};
+        }else{
+             if (layer_idx > 0){
+                gcode_res[layer_idx].layer_time = smooth_calculator.recaculate_layer_time(layer_idx, layers_extruder_adjustments[gcode_res[layer_idx].gcode_store_pos]);
+             }
+             return gcode_res[layer_idx++];
+        }
+        });
+
+
+    const auto output = tbb::make_filter<std::string, void>(slic3r_tbb_filtermode::serial_in_order,
+    [&output_stream](std::string s) { output_stream.write(s); });
+
+    // BBS: apply cooling
     // The pipeline elements are joined using const references, thus no copying is performed.
     if (m_spiral_vase)
-        tbb::parallel_pipeline(12, generator & spiral_mode & cooling & output);
-    else
-        tbb::parallel_pipeline(12, generator & cooling & output);
+        tbb::parallel_pipeline(12, generator & spiral_mode & parsing & cooling & write_gocde & output);
+    else if (!m_config.z_direction_outwall_speed_continuous)
+        tbb::parallel_pipeline(12, generator & parsing & cooling & write_gocde & output);
+    else {
+        tbb::parallel_pipeline(12, generator & parsing & cooling & build_node);
+
+        //append data
+        for (const LayerResult &res : layers_results) {
+            //remove empty gcode layer caused by support independent layers
+            if (res.cooling_buffer_flush) {
+                smooth_calculator.append_data(layers_wall_collection[res.gcode_store_pos]);
+                gcode_res.push_back(std::move(res));
+            }
+        }
+
+        smooth_calculator.smooth_layer_speed();
+
+        tbb::parallel_pipeline(12, calculate_layer_time & write_gocde & output);
+    }
 }
 
 // Process all layers of a single object instance (sequential mode) with a parallel pipeline:
@@ -2623,8 +2700,21 @@ void GCode::process_layers(
     // BBS
     const bool                               prime_extruder)
 {
+    // the pipeline should be
+    // generatotr + (spira) + parse + (cooling) + (smoothing) + rewrite
+    // rewrite pipeline to get better schu
+
+    // BBS: get object label id
+    size_t           layer_to_print_idx = 0;
+    std::vector<int> object_label;
+    for (LayerToPrint layer : layers_to_print)
+        object_label.push_back(layer.original_object->instances()[single_object_idx].model_instance->get_labeled_id());
+
+    std::vector<GCode::LayerResult> layers_results;
+    layers_results.resize(layers_to_print.size());
+
+    //step 1: generator
     // The pipeline is variable: The vase mode filter is optional.
-    size_t layer_to_print_idx = 0;
     const auto generator = tbb::make_filter<void, GCode::LayerResult>(slic3r_tbb_filtermode::serial_in_order,
         [this, &print, &tool_ordering, &layers_to_print, &layer_to_print_idx, single_object_idx, prime_extruder](tbb::flow_control& fc) -> GCode::LayerResult {
             if (layer_to_print_idx == layers_to_print.size()) {
@@ -2636,7 +2726,9 @@ void GCode::process_layers(
                 //BBS
                 check_placeholder_parser_failed();
                 print.throw_if_canceled();
-                return this->process_layer(print, { std::move(layer) }, tool_ordering.tools_for_layer(layer.print_z()), &layer == &layers_to_print.back(), nullptr, single_object_idx, prime_extruder);
+                GCode::LayerResult res = this->process_layer(print, {std::move(layer)}, tool_ordering.tools_for_layer(layer.print_z()), &layer == &layers_to_print.back(), nullptr, single_object_idx, prime_extruder);
+                res.gcode_store_pos = layer_to_print_idx - 1;
+                return std::move(res);
             }
         });
     if (m_spiral_vase) {
@@ -2648,21 +2740,92 @@ void GCode::process_layers(
         slic3r_tbb_filtermode::serial_in_order, [&spiral_mode = *this->m_spiral_vase.get(), &layers_to_print](GCode::LayerResult in) -> GCode::LayerResult {
             spiral_mode.enable(in.spiral_vase_enable);
             bool last_layer = in.layer_id == layers_to_print.size() - 1;
-            return { spiral_mode.process_layer(std::move(in.gcode), last_layer), in.layer_id, in.spiral_vase_enable, in.cooling_buffer_flush };
+            return {spiral_mode.process_layer(std::move(in.gcode), last_layer), in.layer_id, in.spiral_vase_enable, in.cooling_buffer_flush, in.gcode_store_pos};
         });
-    const auto cooling = tbb::make_filter<GCode::LayerResult, std::string>(slic3r_tbb_filtermode::serial_in_order,
-        [&cooling_buffer = *this->m_cooling_buffer.get()](GCode::LayerResult in)->std::string {
-            return cooling_buffer.process_layer(std::move(in.gcode), in.layer_id, in.cooling_buffer_flush);
-        });
-    const auto output = tbb::make_filter<std::string, void>(slic3r_tbb_filtermode::serial_in_order,
-        [&output_stream](std::string s) { output_stream.write(s); }
-    );
 
+    //BBS: get objects and nodes info, for better arrange
+    const ConstPrintObjectPtrsAdaptor &objects = print.objects();
+
+    // step 2: parse
+    std::vector<std::vector<PerExtruderAdjustments>> layers_extruder_adjustments(layers_to_print.size());
+
+    const auto parsing = tbb::make_filter<GCode::LayerResult, GCode::LayerResult>(slic3r_tbb_filtermode::serial_in_order,
+    [&gcode_editer = *this->m_gcode_editer.get(), &layers_extruder_adjustments, object_label](GCode::LayerResult in) -> GCode::LayerResult{
+        //record gcode
+        in.gcode = gcode_editer.process_layer(std::move(in.gcode), in.layer_id, layers_extruder_adjustments[in.gcode_store_pos], object_label, in.cooling_buffer_flush, false);
+         return std::move(in);
+    });
+
+    // step 3: cooling
+    std::vector<std::vector<OutwallCollection>> layers_wall_collection(layers_to_print.size());
+    CoolingBuffer cooling_processor;
+
+    const auto cooling = tbb::make_filter<GCode::LayerResult, GCode::LayerResult>(slic3r_tbb_filtermode::serial_in_order,
+    [&cooling_processor, &layers_extruder_adjustments](GCode::LayerResult in) -> GCode::LayerResult {
+        in.layer_time = cooling_processor.calculate_layer_slowdown(layers_extruder_adjustments[in.gcode_store_pos]);
+         return std::move(in);
+    });
+
+    // step 4.1: record node date
+    SmoothCalculator smooth_calculator(object_label.size());
+
+    const auto build_node = tbb::make_filter<GCode::LayerResult, void>(slic3r_tbb_filtermode::serial_in_order,
+    [&smooth_calculator, &layers_wall_collection, &layers_extruder_adjustments, object_label, &layers_results](GCode::LayerResult in){
+         smooth_calculator.build_node(layers_wall_collection[in.gcode_store_pos], object_label, layers_extruder_adjustments[in.gcode_store_pos]);
+         layers_results[in.gcode_store_pos] = std::move(in);
+         return;
+    });
+
+    // step 5: rewite
+    const auto write_gocde= tbb::make_filter<GCode::LayerResult, std::string>(slic3r_tbb_filtermode::serial_in_order,
+    [&gcode_editer = *this->m_gcode_editer.get(), &layers_extruder_adjustments](GCode::LayerResult in) -> std::string {
+         return gcode_editer.write_layer_gcode(std::move(in.gcode), in.layer_id, in.layer_time, layers_extruder_adjustments[in.gcode_store_pos]);
+    });
+
+    std::vector<GCode::LayerResult> gcode_res;
+
+     // BBS: apply new feedrate of outwall and recalculate layer time
+     int layer_idx = 0;
+     //restart pipeline
+     const auto calculate_layer_time = tbb::make_filter<void, GCode::LayerResult>(slic3r_tbb_filtermode::serial_in_order, [&layer_idx, &gcode_res, &smooth_calculator, &layers_extruder_adjustments](tbb::flow_control& fc) -> GCode::LayerResult {
+         if(layer_idx == gcode_res.size()){
+            fc.stop();
+            return{};
+        }else{
+             if (layer_idx > 0) {
+                gcode_res[layer_idx].layer_time = smooth_calculator.recaculate_layer_time(layer_idx, layers_extruder_adjustments[gcode_res[layer_idx].gcode_store_pos]);
+             }
+             return gcode_res[layer_idx++];
+        }
+        });
+
+
+    const auto output = tbb::make_filter<std::string, void>(slic3r_tbb_filtermode::serial_in_order,
+    [&output_stream](std::string s) { output_stream.write(s); });
+
+    // BBS: apply cooling
     // The pipeline elements are joined using const references, thus no copying is performed.
     if (m_spiral_vase)
-        tbb::parallel_pipeline(12, generator & spiral_mode & cooling & output);
-    else
-        tbb::parallel_pipeline(12, generator & cooling & output);
+        tbb::parallel_pipeline(12, generator & spiral_mode & parsing & cooling & write_gocde & output);
+    else if (!m_config.z_direction_outwall_speed_continuous)
+        tbb::parallel_pipeline(12, generator & parsing & cooling & write_gocde & output);
+    else {
+        tbb::parallel_pipeline(12, generator & parsing & cooling & build_node);
+        // step 4.2: smoothing
+        // break pipeline and do z smoothing
+        // append data
+        for (const LayerResult &res : layers_results) {
+            // remove empty gcode layer caused by support independent layers
+            if (res.cooling_buffer_flush) {
+                smooth_calculator.append_data(layers_wall_collection[res.gcode_store_pos]);
+                gcode_res.push_back(res);
+            }
+        }
+
+        smooth_calculator.smooth_layer_speed();
+
+        tbb::parallel_pipeline(12, calculate_layer_time & write_gocde & output);
+    }
 }
 
 std::string GCode::placeholder_parser_process(const std::string &name, const std::string &templ, unsigned int current_filament_id, const DynamicConfig *config_override)
@@ -3526,7 +3689,8 @@ GCode::LayerResult GCode::process_layer(
                 // The process is almost the same for perimeters and infills - we will do it in a cycle that repeats twice:
                 std::vector<unsigned int> printing_extruders;
                 for (const ObjectByExtruder::Island::Region::Type entity_type : { ObjectByExtruder::Island::Region::INFILL, ObjectByExtruder::Island::Region::PERIMETERS }) {
-                    for (const ExtrusionEntity *ee : (entity_type == ObjectByExtruder::Island::Region::INFILL) ? layerm->fills.entities : layerm->perimeters.entities) {
+                    bool is_infill = entity_type == ObjectByExtruder::Island::Region::INFILL;
+                    for (const ExtrusionEntity *ee : is_infill ? layerm->fills.entities : layerm->perimeters.entities) {
                         // extrusions represents infill or perimeter extrusions of a single island.
                         assert(dynamic_cast<const ExtrusionEntityCollection*>(ee) != nullptr);
                         const auto *extrusions = static_cast<const ExtrusionEntityCollection*>(ee);
@@ -3579,6 +3743,15 @@ GCode::LayerResult GCode::process_layer(
                                     if (islands[island_idx].by_region.empty())
                                         islands[island_idx].by_region.assign(print.num_print_regions(), ObjectByExtruder::Island::Region());
                                     islands[island_idx].by_region[region.print_region_id()].append(entity_type, extrusions, entity_overrides);
+                                    int start = extrusions->loop_node_range.first;
+                                    int end   = extrusions->loop_node_range.second;
+                                    //BBS: add merged node infor
+                                    if (!is_infill) {
+                                        for (; start < end; ++start) {
+                                            const LoopNode *node = &layer.loop_nodes[start];
+                                            islands[island_idx].by_region[region.print_region_id()].merged_node.emplace_back(node);
+                                        }
+                                    }
                                     break;
                                 }
                             }
@@ -3713,6 +3886,8 @@ GCode::LayerResult GCode::process_layer(
                 if (m_config.reduce_crossing_wall)
                     m_avoid_crossing_perimeters.init_layer(*m_layer);
 
+                //BBS: label object id, prepare for cooling
+                gcode += "; OBJECT_ID: " + std::to_string(instance_to_print.label_object_id) + "\n";
                 std::string temp_start_str;
                 if (m_enable_label_object) {
                     std::string start_str = std::string("; start printing object, unique label id: ") + std::to_string(instance_to_print.label_object_id) + "\n";
@@ -3918,8 +4093,8 @@ GCode::LayerResult GCode::process_layer(
         gcode = m_spiral_vase->process_layer(std::move(gcode));
 
     // Apply cooling logic; this may alter speeds.
-    if (m_cooling_buffer)
-        gcode = m_cooling_buffer->process_layer(std::move(gcode), layer.id(),
+    if (m_gcode_editer)
+        gcode = m_gcode_editer->process_layer(std::move(gcode), layer.id(),
             // Flush the cooling buffer at each object layer or possibly at the last layer, even if it contains just supports (This should not happen).
             object_layer || last_layer);
 
@@ -4435,8 +4610,18 @@ std::string GCode::extrude_perimeters(const Print &print, const std::vector<Obje
         if (! region.perimeters.empty()) {
             m_config.apply(print.get_print_region(&region - &by_region.front()).config());
 
-            for (const ExtrusionEntity* ee : region.perimeters)
+            // BBS: output merged node id
+            int curr_node=0;
+
+            for (size_t perimeter_idx = 0; perimeter_idx < region.perimeters.size(); ++perimeter_idx) {
+                const ExtrusionEntity *ee = region.perimeters[perimeter_idx];
+                if (curr_node < region.merged_node.size() && perimeter_idx == region.merged_node[curr_node]->loop_id) {
+                    gcode += "; COOLING_NODE: " + std::to_string(region.merged_node[curr_node]->merged_id) + "\n";
+                    curr_node++;
+                }
+
                 gcode += this->extrude_entity(*ee, "perimeter", -1.);
+            }
         }
     return gcode;
 }

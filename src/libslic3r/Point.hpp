@@ -236,6 +236,7 @@ public:
     double ccw_angle(const Point &p1, const Point &p2) const;
     Point  projection_onto(const MultiPoint &poly) const;
     Point  projection_onto(const Line &line) const;
+    bool   is_in_lines(const Points &pts) const;
 };
 
 inline bool operator<(const Point &l, const Point &r)

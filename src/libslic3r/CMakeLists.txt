@@ -139,8 +139,8 @@ set(lisbslic3r_sources
     Format/svg.cpp
     GCode/ThumbnailData.cpp
     GCode/ThumbnailData.hpp
-    GCode/CoolingBuffer.cpp
-    GCode/CoolingBuffer.hpp
+    GCode/GCodeEditer.cpp
+    GCode/GCodeEditer.hpp
     GCode/PostProcessor.cpp
     GCode/PostProcessor.hpp
 #    GCode/PressureEqualizer.cpp
@@ -163,6 +163,10 @@ set(lisbslic3r_sources
     GCode/AvoidCrossingPerimeters.hpp
     GCode/ConflictChecker.cpp
     GCode/ConflictChecker.hpp
+    GCode/Smoothing.cpp
+    GCode/Smoothing.hpp
+    GCode/CoolingBuffer.cpp
+    GCode/CoolingBuffer.hpp
     GCode.cpp
     GCode.hpp
     GCodeReader.cpp
