@@ -543,23 +543,24 @@ Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Oc
 		//case ipEnsuring: continue; break;
 		case ipLightning:
 		case ipAdaptiveCubic:
-		case ipSupportCubic:
-		case ipRectilinear:
-		case ipMonotonic:
-		case ipAlignedRectilinear:
-		case ipGrid:
-		case ipTriangles:
-		case ipStars:
-		case ipCubic:
-		case ipLine:
-		case ipConcentric:
-		case ipHoneycomb:
-		case ip3DHoneycomb:
-		case ipGyroid:
-		case ipHilbertCurve:
-		case ipArchimedeanChords:
-		case ipOctagramSpiral: break;
-		}
+        case ipSupportCubic:
+        case ipRectilinear:
+        case ipMonotonic:
+        case ipAlignedRectilinear:
+        case ipGrid:
+        case ipTriangles:
+        case ipStars:
+        case ipCubic:
+        case ipLine:
+        case ipConcentric:
+        case ipHoneycomb:
+        case ip3DHoneycomb:
+        case ipGyroid:
+        case ipHilbertCurve:
+        case ipArchimedeanChords:
+        case ipOctagramSpiral:
+        case ipZigZag: break;
+        }
 
 		// Create the filler object.
 		std::unique_ptr<Fill> f = std::unique_ptr<Fill>(Fill::new_from_type(surface_fill.params.pattern));
