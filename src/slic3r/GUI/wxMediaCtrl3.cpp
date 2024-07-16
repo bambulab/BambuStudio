@@ -139,6 +139,8 @@ void wxMediaCtrl3::DoSetSize(int x, int y, int width, int height, int sizeFlags)
     wxWindow::DoSetSize(x, y, width, height, sizeFlags);
     if (sizeFlags & wxSIZE_USE_EXISTING) return;
     wxMediaCtrl_OnSize(this, m_video_size, width, height);
+    std::unique_lock<std::mutex> lk(m_mutex);
+    adjust_frame_size(m_frame_size, m_video_size, GetSize());
 }
 
 void wxMediaCtrl3::bambu_log(void *ctx, int level, tchar const *msg2)
@@ -232,10 +234,11 @@ void wxMediaCtrl3::PlayThread()
                     error = 1;
                     break;
                 }
+                auto frame_size = m_frame_size;
                 lk.unlock();
                 wxBitmap bm;
                 decoder.decode(sample);
-                decoder.toWxBitmap(bm, m_frame_size);
+                decoder.toWxBitmap(bm, frame_size);
                 lk.lock();
                 if (bm.IsOk())
                     m_frame = bm;

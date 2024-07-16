@@ -62,7 +62,7 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const w
     m_media_ctrl->Bind(EVT_MEDIA_CTRL_STAT, [this](auto & e) {
 #if !BBL_RELEASE_TO_PUBLIC
         wxSize size = m_media_ctrl->GetVideoSize();
-        m_label_stat->SetLabel(e.GetString() + wxString::Format(" VS:%ix%i LD:%i", size.x, size.y, m_load_duration));
+        m_label_stat->SetLabel(e.GetString() + wxString::Format(" VS:%ix%i IDLE:%i", size.x, size.y, SecondsSinceLastInput()));
 #endif
         wxString str = e.GetString();
         m_stat.clear();
