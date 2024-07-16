@@ -54,6 +54,8 @@ if (APPLE)
         set(CMAKE_INSTALL_RPATH @executable_path/../Frameworks)
     endif()
     set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version" FORCE)
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set(CMAKE_INSTALL_RPATH "$ORIGIN")
 endif ()
 
 # Proposal for C++ unit tests and sandboxes
@@ -677,23 +679,31 @@ function(bambustudio_copy_sos target config postfix output_sos)
 
     file(COPY ${CMAKE_PREFIX_PATH}/lib/libavcodec.so
             ${CMAKE_PREFIX_PATH}/lib/libavcodec.so.61
+            ${CMAKE_PREFIX_PATH}/lib/libavcodec.so.61.10.100
             ${CMAKE_PREFIX_PATH}/lib/libavutil.so
             ${CMAKE_PREFIX_PATH}/lib/libavutil.so.59
+            ${CMAKE_PREFIX_PATH}/lib/libavutil.so.59.28.100
             ${CMAKE_PREFIX_PATH}/lib/libswscale.so
             ${CMAKE_PREFIX_PATH}/lib/libswscale.so.8
+            ${CMAKE_PREFIX_PATH}/lib/libswscale.so.8.2.100
             ${CMAKE_PREFIX_PATH}/lib/libswresample.so
             ${CMAKE_PREFIX_PATH}/lib/libswresample.so.5
+            ${CMAKE_PREFIX_PATH}/lib/libswresample.so.5.2.100
          DESTINATION ${_out_dir})
 
     set(${output_dlls}
         ${_out_dir}/libavcodec.so
         ${_out_dir}/libavcodec.so.61
+        ${_out_dir}/libavcodec.so.61.10.100
         ${_out_dir}/libavutil.so
         ${_out_dir}/libavutil.so.59
+        ${_out_dir}/libavutil.so.59.28.100
         ${_out_dir}/libswscale.so
         ${_out_dir}/libswscale.so.8
+        ${_out_dir}/libswscale.so.8.2.100
         ${_out_dir}/libswresample.so
         ${_out_dir}/libswresample.so.5
+        ${_out_dir}/libswresample.so.5.2.100
         PARENT_SCOPE
     )
 endfunction()
@@ -750,6 +760,20 @@ elseif (CMAKE_MACOSX_BUNDLE)
 else ()
     install(FILES src/platform/unix/BambuStudio.desktop DESTINATION ${CMAKE_INSTALL_PREFIX}/resources/applications)
     install(DIRECTORY "${SLIC3R_RESOURCES_DIR}/" DESTINATION "${CMAKE_INSTALL_PREFIX}/resources")
+endif ()
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set(LIBRARY_FILES
+    ${LIBDIR_BIN}/libavcodec.so.61
+    ${LIBDIR_BIN}/libavcodec.so.61.10.100
+    ${LIBDIR_BIN}/libavutil.so.59
+    ${LIBDIR_BIN}/libavutil.so.59.28.100
+    ${LIBDIR_BIN}/libswresample.so.5
+    ${LIBDIR_BIN}/libswresample.so.5.2.100
+    ${LIBDIR_BIN}/libswscale.so.8
+    ${LIBDIR_BIN}/libswscale.so.8.2.100
+    )
+    install(FILES ${LIBRARY_FILES} DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
 endif ()
 
 configure_file(${LIBDIR}/platform/unix/fhs.hpp.in ${LIBDIR_BIN}/platform/unix/fhs.hpp)
