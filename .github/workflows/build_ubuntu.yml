@@ -113,5 +113,5 @@ jobs:
           podman rm bambu-studio-builder
       - uses: actions/upload-artifact@v4
         with:
-          name: BambuStudio_Linux_ubu64_using_container
+          name: BambuStudio_Linux_ubu64_use_container
           path: './BambuStudio_ubu64.AppImage'
