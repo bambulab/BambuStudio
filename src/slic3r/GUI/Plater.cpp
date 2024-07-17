@@ -142,6 +142,7 @@
 #include "DailyTips.hpp"
 #include "CreatePresetsDialog.hpp"
 #include "StepMeshDialog.hpp"
+#include "FilamentMapDialog.hpp"
 
 using boost::optional;
 namespace fs = boost::filesystem;
@@ -165,6 +166,7 @@ wxDEFINE_EVENT(EVT_IMPORT_MODEL_ID,                 wxCommandEvent);
 wxDEFINE_EVENT(EVT_DOWNLOAD_PROJECT,                wxCommandEvent);
 wxDEFINE_EVENT(EVT_PUBLISH,                         wxCommandEvent);
 wxDEFINE_EVENT(EVT_OPEN_PLATESETTINGSDIALOG,        wxCommandEvent);
+wxDEFINE_EVENT(EVT_OPEN_FILAMENT_MAP_SETTINGS_DIALOG, wxCommandEvent);
 // BBS: backup & restore
 wxDEFINE_EVENT(EVT_RESTORE_PROJECT,                 wxCommandEvent);
 wxDEFINE_EVENT(EVT_PRINT_FINISHED,                  wxCommandEvent);
@@ -3344,6 +3346,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_SEND_FINISHED, [q](wxCommandEvent& evt) { q->send_job_finished(evt); });
         q->Bind(EVT_PUBLISH_FINISHED, [q](wxCommandEvent& evt) { q->publish_job_finished(evt);});
         q->Bind(EVT_OPEN_PLATESETTINGSDIALOG, [q](wxCommandEvent& evt) { q->open_platesettings_dialog(evt);});
+        q->Bind(EVT_OPEN_FILAMENT_MAP_SETTINGS_DIALOG, [q](wxCommandEvent &evt) { q->open_filament_map_setting_dialog(evt); });
         //q->Bind(EVT_GLVIEWTOOLBAR_ASSEMBLE, [q](SimpleEvent&) { q->select_view_3D("Assemble"); });
     }
 
@@ -14321,6 +14324,18 @@ void Plater::open_platesettings_dialog(wxCommandEvent& evt) {
     dlg.ShowModal();
 }
 
+void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
+{
+    PartPlate* curr_plate = p->partplate_list.get_curr_plate();
+    FilamentMapDialog filament_dlg(this, config(), curr_plate->get_filament_maps(), curr_plate->get_filament_map_mode() == FilamentMapMode::fmmAuto);
+    if (filament_dlg.ShowModal() == wxID_OK) {
+        curr_plate->set_filament_maps(filament_dlg.get_filament_maps());
+        curr_plate->set_filament_map_mode(filament_dlg.is_auto() ? FilamentMapMode::fmmAuto : FilamentMapMode::fmmManual);
+    }
+    return;
+}
+
+
 //BBS: select Plate by hover_id
 int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModidyPlateName)
 {
@@ -14484,7 +14499,19 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
             ret = -1;
         }
     }
-    else if ((action == 6) && (!right_click)) {
+    else if ((action == PartPlate::PLATE_FILAMENT_MAP_ID) && (!right_click)) {
+        ret = select_plate(plate_index);
+        if (!ret) {
+            wxCommandEvent evt(EVT_OPEN_FILAMENT_MAP_SETTINGS_DIALOG);
+            evt.SetInt(plate_index);
+            evt.SetEventObject(this);
+            wxPostEvent(this, evt);
+        } else {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "can not select plate %1%" << plate_index;
+            ret = -1;
+        }
+    }
+    else if ((action == PartPlate::PLATE_NAME_ID) && (!right_click)) {
         // set the plate type
         ret = select_plate(plate_index);
         if (!ret) {
