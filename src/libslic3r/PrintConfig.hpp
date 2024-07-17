@@ -369,6 +369,10 @@ static std::string get_bed_temp_1st_layer_key(const BedType type)
     return "";
 }
 
+// for parse extruder_ams_count
+extern std::vector<std::map<int, int>> get_extruder_ams_count(const std::vector<std::string> &strs);
+extern std::vector<std::string> save_extruder_ams_count_to_string(const std::vector<std::map<int, int>> &extruder_ams_count);
+
 #define CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(NAME) \
     template<> const t_config_enum_names& ConfigOptionEnum<NAME>::get_enum_names(); \
     template<> const t_config_enum_values& ConfigOptionEnum<NAME>::get_enum_values();
@@ -1032,7 +1036,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionPercent,             accel_to_decel_factor))
     ((ConfigOptionEnumsGeneric,        extruder_type))
     ((ConfigOptionEnumsGeneric,        nozzle_volume_type))
-    ((ConfigOptionInts,                extruder_filament_count))
+    ((ConfigOptionStrings,             extruder_ams_count))
     ((ConfigOptionInts,                printer_extruder_id))
     ((ConfigOptionStrings,             printer_extruder_variant))
     //Orca
