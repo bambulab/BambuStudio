@@ -11293,7 +11293,7 @@ msgstr ""
 "deneyebilirsiniz. Başarısız olan test sonucu görmezden gelinir."
 
 msgid ""
-"*We recommend you to add brand, material, type, and even humidity level in "
+"*We recommend you to add brand, materia, type, and even humidity level in "
 "the Name"
 msgstr "*İsme marka, malzeme, tür ve hatta nem seviyesini eklemenizi öneririz"
 

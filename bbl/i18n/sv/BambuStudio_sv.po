@@ -11233,7 +11233,7 @@ msgstr ""
 "försöka igen. Det misslyckade testresultatet kommer att raderas."
 
 msgid ""
-"*We recommend you to add brand, material, type, and even humidity level in "
+"*We recommend you to add brand, materia, type, and even humidity level in "
 "the Name"
 msgstr ""
 "*Vi rekommenderar att du lägger till varumärke, material, typ och till och "
