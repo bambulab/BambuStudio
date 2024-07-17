@@ -709,6 +709,14 @@ void PartPlate::render_icons(bool bottom, bool only_body, int hover_id)
                 render_icon_texture(m_partplate_list->m_lock_icon, m_partplate_list->m_lockopen_texture);
         }
 
+		int extruder_count = wxGetApp().preset_bundle->get_printer_extruder_count();
+		if (extruder_count == 2) {
+			if (hover_id == PLATE_FILAMENT_MAP_ID)
+				render_icon_texture(m_partplate_list->m_plate_filament_map_icon, m_partplate_list->m_plate_set_filament_map_hovered_texture);
+			else
+				render_icon_texture(m_partplate_list->m_plate_filament_map_icon, m_partplate_list->m_plate_set_filament_map_texture);
+		}
+
 		if (hover_id == PLATE_NAME_ID)
             render_icon_texture(m_plate_name_edit_icon, m_partplate_list->m_plate_name_edit_hovered_texture);
         else
@@ -2834,7 +2842,7 @@ FilamentMapMode PartPlate::get_filament_map_mode()
 	return m_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true)->value;
 }
 
-void PartPlate::set_filament_map_mode(FilamentMapMode& mode)
+void PartPlate::set_filament_map_mode(const FilamentMapMode& mode)
 {
 	m_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true)->value = mode;
 }
@@ -3338,6 +3346,20 @@ void PartPlateList::generate_icon_textures()
 		}
 	}
 
+	{
+        file_name = path + (m_is_dark ? "plate_set_filament_map_dark.svg" : "plate_set_filament_map.svg");
+        if (!m_plate_set_filament_map_texture.load_from_svg_file(file_name, true, false, false, icon_size)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
+        }
+    }
+
+	{
+        file_name = path + (m_is_dark ? "plate_set_filament_map_hover_dark.svg" : "plate_set_filament_map_hover.svg");
+        if (!m_plate_set_filament_map_hovered_texture.load_from_svg_file(file_name, true, false, false, icon_size)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
+        }
+    }
+
 	//if (m_bedtype_changed_texture.get_id() == 0)
 	{
 		file_name = path + (m_is_dark ? "plate_settings_changed_dark.svg" : "plate_settings_changed.svg");
@@ -3433,9 +3455,9 @@ void PartPlateList::release_icon_textures()
 	m_lockopen_texture.reset();
 	m_lockopen_hovered_texture.reset();
 	m_plate_settings_texture.reset();
-	m_plate_settings_texture.reset();
-	m_plate_settings_texture.reset();
 	m_plate_settings_hovered_texture.reset();
+    m_plate_set_filament_map_texture.reset();
+    m_plate_set_filament_map_hovered_texture.reset();
 	m_plate_name_edit_texture.reset();
 	m_plate_name_edit_hovered_texture.reset();
 	for (int i = 0;i < MAX_PLATE_COUNT; i++) {

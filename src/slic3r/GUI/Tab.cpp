@@ -5824,7 +5824,6 @@ void Tab::update_extruder_variants(int extruder_id, bool reload)
             m_extruder_switch->SetLabels(wxString::Format(_L("Left: %s"), left), wxString::Format(_L("Right: %s"), right));
             m_extruder_switch->SetValue(extruder_id == 1);
             m_extruder_switch->Enable(true);
-            assert(m_extruder_switch->IsEnabled());
         } else {
             m_extruder_switch->Enable(false);
         }
