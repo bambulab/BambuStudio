@@ -11503,7 +11503,7 @@ msgstr ""
 "plaque et de réessayer. Le résultat du test échoué sera effacé."
 
 msgid ""
-"*We recommend you to add brand, material, type, and even humidity level in "
+"*We recommend you to add brand, materia, type, and even humidity level in "
 "the Name"
 msgstr ""
 "*Nous vous recommandons d'ajouter la marque, le matériau, le type et même le "

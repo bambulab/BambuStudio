@@ -11495,7 +11495,7 @@ msgstr ""
 "повторить попытку. Результат неудачного теста будет удалён."
 
 msgid ""
-"*We recommend you to add brand, material, type, and even humidity level in "
+"*We recommend you to add brand, materia, type, and even humidity level in "
 "the Name"
 msgstr ""
 "*Мы рекомендуем добавить к названию материала, производителя, тип и даже "
