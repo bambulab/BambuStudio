@@ -10,7 +10,7 @@
 // BBS
 #include "libslic3r/ObjectID.hpp"
 
-#include "GLModel.hpp"
+#include "MeshUtils.hpp"
 #include "GLShader.hpp"
 
 #include <functional>

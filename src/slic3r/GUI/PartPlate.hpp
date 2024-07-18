@@ -128,32 +128,34 @@ private:
     Slic3r::Geometry::Transformation position;
     std::vector<Vec3f> positions;
     unsigned int m_vbo_id{ 0 };
-    GeometryBuffer m_triangles;
-    GeometryBuffer m_exclude_triangles;
-    GeometryBuffer m_logo_triangles;
-    GeometryBuffer m_gridlines;
-    GeometryBuffer m_gridlines_bolder;
-    GeometryBuffer m_height_limit_common;
-    GeometryBuffer m_height_limit_bottom;
-    GeometryBuffer m_height_limit_top;
-    GeometryBuffer m_del_icon;
-    GeometryBuffer m_plate_name_edit_icon;
+    GLModel        m_triangles;
+    GLModel        m_exclude_triangles;
+    GLModel        m_logo_triangles;
+    GLModel        m_gridlines;
+    GLModel        m_gridlines_bolder;
+    GLModel        m_height_limit_common;
+    GLModel        m_height_limit_bottom;
+    GLModel        m_height_limit_top;
+    GLModel        m_del_icon;
+    GLModel        m_plate_name_edit_icon;
     //GeometryBuffer m_del_and_background_icon;
     mutable unsigned int m_del_vbo_id{ 0 };
-    GeometryBuffer m_arrange_icon;
+    GLModel              m_arrange_icon;
     mutable unsigned int m_arrange_vbo_id{ 0 };
-    GeometryBuffer m_orient_icon;
+    GLModel              m_orient_icon;
     mutable unsigned int m_orient_vbo_id{ 0 };
-    GeometryBuffer m_lock_icon;
+    GLModel              m_lock_icon;
     mutable unsigned int m_lock_vbo_id{ 0 };
-    GeometryBuffer m_plate_settings_icon;
+    GLModel              m_plate_settings_icon;
     mutable unsigned int m_plate_settings_vbo_id{ 0 };
-    GeometryBuffer m_plate_idx_icon;
+    GLModel              m_plate_filament_map_icon;
+    mutable unsigned int m_plate_filament_map_vbo_id{0};
+    GLModel        m_plate_idx_icon;
+
     mutable unsigned int m_plate_idx_vbo_id{ 0 };
     mutable unsigned int m_plate_name_edit_vbo_id{0};
     GLTexture m_texture;
 
-    mutable float m_grabber_color[4];
     float m_scale_factor{ 1.0f };
     GLUquadricObject* m_quadric;
     int m_hover_id;
@@ -166,7 +168,7 @@ private:
     // part plate name
     std::string          m_name;        // utf8 string
     bool                 m_name_change = false;
-    GeometryBuffer       m_plate_name_icon;
+    GLModel              m_plate_name_icon;
     mutable unsigned int m_plate_name_vbo_id{0};
     GLTexture            m_name_texture;
 
@@ -181,37 +183,42 @@ private:
     void calc_exclude_triangles(const ExPolygon& poly);
     void calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox);
     void calc_height_limit();
-    void calc_vertex_for_number(int index, bool one_number, GeometryBuffer &buffer);
-    void calc_vertex_for_plate_name(GLTexture& texture, GeometryBuffer &buffer);
-    void calc_vertex_for_plate_name_edit_icon(GLTexture *texture, int index, GeometryBuffer &buffer);
-    void calc_vertex_for_icons(int index, GeometryBuffer &buffer);
+
+    void calc_vertex_for_number(int index, bool one_number, GLModel &gl_model);
+    void calc_vertex_for_plate_name(GLTexture &texture, GLModel &buffer);
+    void calc_vertex_for_plate_name_edit_icon(GLTexture *texture, int index, GLModel &buffer);
+    void calc_vertex_for_icons(int index, GLModel &gl_model);
     void calc_vertex_for_icons_background(int icon_count, GeometryBuffer &buffer);
-    void render_background(bool force_default_color = false) const;
+
+    void render_background(bool force_default_color = false);
     void render_logo(bool bottom, bool render_cali = true);
-    void render_logo_texture(GLTexture& logo_texture, const GeometryBuffer& logo_buffer, bool bottom, unsigned int vbo_id) const;
-    void render_exclude_area(bool force_default_color) const;
+    void render_logo_texture(GLTexture &logo_texture, GLModel &logo_buffer, bool bottom);
+    void render_exclude_area(bool force_default_color);
     //void render_background_for_picking(const float* render_color) const;
-    void render_grid(bool bottom) const;
-    void render_height_limit(PartPlate::HeightLimitMode mode = HEIGHT_LIMIT_BOTH) const;
+
+    void render_grid(bool bottom);
+    void render_height_limit(PartPlate::HeightLimitMode mode = HEIGHT_LIMIT_BOTH);
     void render_label(GLCanvas3D& canvas) const;
     void render_grabber(const float* render_color, bool use_lighting) const;
     void render_face(float x_size, float y_size) const;
     void render_arrows(const float* render_color, bool use_lighting) const;
     void render_left_arrow(const float* render_color, bool use_lighting) const;
     void render_right_arrow(const float* render_color, bool use_lighting) const;
-    void render_icon_texture(int position_id, int tex_coords_id, const GeometryBuffer &buffer, GLTexture &texture, unsigned int &vbo_id) const;
-    void render_plate_name_texture(int position_id, int tex_coords_id);
+
+    void render_icon_texture(GLModel &buffer, GLTexture &texture);
+    void render_plate_name_texture();
     void render_icons(bool bottom, bool only_body = false, int hover_id = -1);
-    void render_only_numbers(bool bottom) const;
-    void render_rectangle_for_picking(const GeometryBuffer &buffer, const float* render_color) const;
-    void on_render_for_picking() const;
+
+    void render_only_numbers(bool bottom);
+    void on_render_for_picking();
     std::array<float, 4> picking_color_component(int idx) const;
     void release_opengl_resource();
 
 public:
     static const unsigned int PLATE_BASE_ID = 255 * 255 * 253;
-    static const unsigned int PLATE_NAME_HOVER_ID = 6;
+    //static const unsigned int PLATE_FILAMENT_MAP_ID = 6;//todo
     static const unsigned int GRABBER_COUNT = 7;
+    static const unsigned int PLATE_NAME_ID = GRABBER_COUNT-1;
 
     static std::array<float, 4> SELECT_COLOR;
     static std::array<float, 4> UNSELECT_COLOR;
@@ -375,7 +382,7 @@ public:
     bool intersects(const BoundingBoxf3& bb) const;
 
     void render(bool bottom, bool only_body = false, bool force_background_color = false, HeightLimitMode mode = HEIGHT_LIMIT_NONE, int hover_id = -1, bool render_cali = false);
-    void render_for_picking() const { on_render_for_picking(); }
+    void render_for_picking()  { on_render_for_picking(); }
     void set_selected();
     void set_unselected();
     void set_hover_id(int id) { m_hover_id = id; }
@@ -619,7 +626,7 @@ public:
             std::string filename;
             GLTexture* texture { nullptr };
             Vec2d offset;
-            GeometryBuffer* buffer { nullptr };
+            GLModel*    buffer{nullptr};
             TexturePart(float xx, float yy, float ww, float hh, std::string file){
                 x = xx; y = yy;
                 w = ww; h = hh;

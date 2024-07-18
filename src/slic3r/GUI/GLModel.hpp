@@ -22,7 +22,10 @@ namespace GUI {
     public:
         enum class PrimitiveType : unsigned char
         {
+            Points,
             Triangles,
+            TriangleStrip,
+            TriangleFan,
             Lines,
             LineStrip,
             LineLoop
@@ -130,6 +133,7 @@ namespace GUI {
             PrimitiveType        type;
             unsigned int         vbo_id{0};
             unsigned int         ibo_id{0};
+            size_t               vertices_count{0};
             size_t               indices_count{0};
             std::array<float, 4> color{1.0f, 1.0f, 1.0f, 1.0f};
         };
@@ -165,6 +169,12 @@ namespace GUI {
         GLModel() = default;
         virtual ~GLModel();
 
+        size_t vertices_count(int i = 0) const {
+            return m_render_data[i].vertices_count > 0 ? m_render_data[i].vertices_count : m_render_data[i].geometry.vertices_count();
+        }
+        size_t indices_count(int i = 0) const {
+            return m_render_data[i].indices_count > 0 ? m_render_data[i].indices_count : m_render_data[i].geometry.indices_count(); }
+
         TriangleMesh *mesh{nullptr};
 
         void init_from(Geometry &&data, bool generate_mesh = false);
@@ -173,12 +183,17 @@ namespace GUI {
         void init_from(const indexed_triangle_set& its);
         void init_from(const Polygons& polygons, float z);
         bool init_from_file(const std::string& filename);
-
+        bool init_model_from_poly(const std::vector<Vec2f> &triangles, float z, bool generate_mesh = false);
+        bool init_model_from_lines(const Lines &lines, float z, bool generate_mesh = false);
+        bool init_model_from_lines(const Lines3 &lines, bool generate_mesh = false);
         // if entity_id == -1 set the color of all entities
         void set_color(int entity_id, const std::array<float, 4>& color);
+        void set_color(const ColorRGBA &color);
 
         void reset();
         void render() const;
+        void render_geometry();
+        void render_geometry(int i,const std::pair<size_t, size_t> &range);
         void render_instanced(unsigned int instances_vbo, unsigned int instances_count) const;
 
         bool is_initialized() const { return !m_render_data.empty(); }

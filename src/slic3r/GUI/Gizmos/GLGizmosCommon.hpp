@@ -4,14 +4,11 @@
 #include <memory>
 #include <map>
 
+#include "libslic3r/Model.hpp"
 #include "slic3r/GUI/MeshUtils.hpp"
 #include "libslic3r/SLA/Hollowing.hpp"
 
 namespace Slic3r {
-
-class ModelObject;
-
-
 namespace GUI {
 
 class GLCanvas3D;

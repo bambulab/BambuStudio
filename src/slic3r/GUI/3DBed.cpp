@@ -320,8 +320,14 @@ void Bed3D::on_change_color_mode(bool is_dark)
     m_is_dark = is_dark;
 }
 
-void Bed3D::render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool show_axes)
+BoundingBoxf3 Bed3D::get_cur_bed_model_box()
 {
+    BoundingBoxf3 model_bb = m_model.get_bounding_box();
+    model_bb.translate(m_model_offset);
+    return model_bb;
+}
+
+void Bed3D::render(GLCanvas3D &canvas, bool bottom, float scale_factor, bool show_axes) {
     render_internal(canvas, bottom, scale_factor, show_axes);
 }
 
@@ -558,7 +564,7 @@ void Bed3D::render_system(GLCanvas3D& canvas, bool bottom) const
             unsigned int stride = m_triangles.get_vertex_data_size();
 
             GLint position_id = shader->get_attrib_location("v_position");
-            GLint tex_coords_id = shader->get_attrib_location("v_tex_coords");
+            GLint tex_coords_id = shader->get_attrib_location("v_tex_coord");
 
             // show the temporary texture while no compressed data is available
             GLuint tex_id = (GLuint)temp_texture->get_id();

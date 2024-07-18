@@ -346,14 +346,20 @@ void PartPlate::calc_bounding_boxes() const {
 	}
 }
 
-void PartPlate::calc_triangles(const ExPolygon& poly) {
-	if (!m_triangles.set_from_triangles(triangulate_expolygon_2f(poly, NORMALS_UP), GROUND_Z))
+void PartPlate::calc_triangles(const ExPolygon& poly)
+{
+	auto triangles =triangulate_expolygon_2f(poly, NORMALS_UP);
+    m_triangles.reset();
+	if (!m_triangles.init_model_from_poly(triangles, GROUND_Z))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create plate triangles\n";
 }
 
 void PartPlate::calc_exclude_triangles(const ExPolygon& poly) {
-	if (!m_exclude_triangles.set_from_triangles(triangulate_expolygon_2f(poly, NORMALS_UP), GROUND_Z))
-		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create exclude triangles\n";
+    if (poly.empty()) { return; }
+    auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
+    m_exclude_triangles.reset();
+    if (!m_exclude_triangles.init_model_from_poly(triangles, GROUND_Z))
+		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create plate triangles\n";
 }
 
 void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox) {
@@ -392,10 +398,11 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
 	Lines contour_lines = to_lines(poly);
 	std::copy(contour_lines.begin(), contour_lines.end(), std::back_inserter(gridlines));
 
-	if (!m_gridlines.set_from_lines(gridlines, GROUND_Z))
+	m_gridlines.reset();
+	if (!m_gridlines.init_model_from_lines(gridlines, GROUND_Z))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create bed grid lines\n";
-
-	if (!m_gridlines_bolder.set_from_lines(gridlines_bolder, GROUND_Z))
+    m_gridlines_bolder.reset();
+	if (!m_gridlines_bolder.init_model_from_lines(gridlines_bolder, GROUND_Z))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create bed grid lines\n";
 }
 
@@ -430,18 +437,18 @@ void PartPlate::calc_height_limit() {
 	}
 	//std::copy(bottom_lines.begin(), bottom_lines.end(), std::back_inserter(bottom_h_lines));
 	std::copy(top_lines.begin(), top_lines.end(), std::back_inserter(top_h_lines));
-
-	if (!m_height_limit_common.set_from_3d_Lines(common_lines))
+    m_height_limit_common.reset();
+    if (!m_height_limit_common.init_model_from_lines(common_lines))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create height limit bottom lines\n";
-
-	if (!m_height_limit_bottom.set_from_3d_Lines(bottom_h_lines))
+    m_height_limit_bottom.reset();
+    if (!m_height_limit_bottom.init_model_from_lines(bottom_h_lines))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create height limit bottom lines\n";
-
-	if (!m_height_limit_top.set_from_3d_Lines(top_h_lines))
+    m_height_limit_top.reset();
+    if (!m_height_limit_top.init_model_from_lines(top_h_lines))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create height limit top lines\n";
 }
 
-void PartPlate::calc_vertex_for_number(int index, bool one_number, GeometryBuffer &buffer)
+void PartPlate::calc_vertex_for_number(int index, bool one_number, GLModel &gl_model)
 {
 	ExPolygon poly;
 #if 0 //in the up area
@@ -462,11 +469,12 @@ void PartPlate::calc_vertex_for_number(int index, bool one_number, GeometryBuffe
 	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) + PARTPLATE_ICON_SIZE - PARTPLATE_TEXT_OFFSET_Y) });
 #endif
 	auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
-	if (!buffer.set_from_triangles(triangles, GROUND_Z))
-		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
+    gl_model.reset();
+    if (!gl_model.init_model_from_poly(triangles, GROUND_Z))
+		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create plate triangles\n";
 }
 
-void PartPlate::calc_vertex_for_plate_name(GLTexture &texture, GeometryBuffer &buffer)
+void PartPlate::calc_vertex_for_plate_name(GLTexture &texture, GLModel &gl_model)
 {
 	if (texture.get_width() > 0 && texture.get_height()) {
 	    wxCoord   w, h;
@@ -483,12 +491,15 @@ void PartPlate::calc_vertex_for_plate_name(GLTexture &texture, GeometryBuffer &b
 		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) )});
 
 		auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
-		if (!buffer.set_from_triangles(triangles, GROUND_Z)) BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
+        gl_model.reset();
+        if (!gl_model.init_model_from_poly(triangles, GROUND_Z))
+			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
 
 	}
 }
 
-void PartPlate::calc_vertex_for_plate_name_edit_icon(GLTexture *texture, int index, GeometryBuffer &buffer) {
+void PartPlate::calc_vertex_for_plate_name_edit_icon(GLTexture *texture, int index, GLModel &gl_model)
+{
 	auto    bed_ext = get_extents(m_shape);
 	auto    factor  = bed_ext.size()(1) / 200.0;
 	wxCoord w, h;
@@ -498,6 +509,7 @@ void PartPlate::calc_vertex_for_plate_name_edit_icon(GLTexture *texture, int ind
 	float     offset_x = 1;
 	h = PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE;
 	p += Vec2d(0, PARTPLATE_PLATENAME_OFFSET_Y + h);
+    std::vector<Vec2f> triangles;
 	if (texture && texture->get_width() > 0 && texture->get_height()) {
 		w    = int(factor * (texture->get_original_width() * 16) / texture->get_height()) + 1;
 
@@ -506,9 +518,7 @@ void PartPlate::calc_vertex_for_plate_name_edit_icon(GLTexture *texture, int ind
 		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w + PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE), scale_(p(1))});
 		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + w), scale_(p(1) )});
 
-		auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
-		if (!buffer.set_from_triangles(triangles, GROUND_Z))
-			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
+		triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
 	} else {
 
 		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x ), scale_(p(1) - h )});
@@ -516,13 +526,14 @@ void PartPlate::calc_vertex_for_plate_name_edit_icon(GLTexture *texture, int ind
 		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x + PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE), scale_(p(1))});
 		poly.contour.append({scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + offset_x), scale_(p(1) )});
 
-		auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
-		if (!buffer.set_from_triangles(triangles, GROUND_Z))
-			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
+		triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
     }
+    gl_model.reset();
+    if (!gl_model.init_model_from_poly(triangles, GROUND_Z))
+		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
 }
 
-void PartPlate::calc_vertex_for_icons(int index, GeometryBuffer &buffer)
+void PartPlate::calc_vertex_for_icons(int index, GLModel &gl_model)
 {
 	ExPolygon poly;
 	Vec2d& p = m_shape[2];
@@ -533,7 +544,8 @@ void PartPlate::calc_vertex_for_icons(int index, GeometryBuffer &buffer)
 	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y)- PARTPLATE_ICON_GAP_TOP) });
 
 	auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
-	if (!buffer.set_from_triangles(triangles, GROUND_Z))
+    gl_model.reset();
+    if (!gl_model.init_model_from_poly(triangles, GROUND_Z))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
 }
 
@@ -552,33 +564,30 @@ void PartPlate::calc_vertex_for_icons_background(int icon_count, GeometryBuffer 
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
 }
 
-void PartPlate::render_background(bool force_default_color) const {
-	unsigned int triangles_vcount = m_triangles.get_vertices_count();
-
+void PartPlate::render_background(bool force_default_color) {
 	//return directly for current plate
 	if (m_selected && !force_default_color) return;
 
 	// draw background
 	glsafe(::glDepthMask(GL_FALSE));
-
+    ColorRGBA color;
 	if (!force_default_color) {
 		if (m_selected) {
-			glsafe(::glColor4fv(PartPlate::SELECT_COLOR.data()));
+            color = PartPlate::SELECT_COLOR;
 		}
 		else {
-			glsafe(m_partplate_list->m_is_dark ? ::glColor4fv(PartPlate::UNSELECT_DARK_COLOR.data()) : ::glColor4fv(PartPlate::UNSELECT_COLOR.data()));
+            color = m_partplate_list->m_is_dark ? PartPlate::UNSELECT_DARK_COLOR : PartPlate::UNSELECT_COLOR;
 		}
 	}
 	else {
-		glsafe(::glColor4fv(PartPlate::DEFAULT_COLOR.data()));
+        color = PartPlate::DEFAULT_COLOR;
 	}
-	glsafe(::glNormal3d(0.0f, 0.0f, 1.0f));
-	glsafe(::glVertexPointer(3, GL_FLOAT, m_triangles.get_vertex_data_size(), (GLvoid*)m_triangles.get_vertices_data()));
-	glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)triangles_vcount));
-	glsafe(::glDepthMask(GL_TRUE));
+    m_triangles.set_color(color);
+    m_triangles.render_geometry();
+    glsafe(::glDepthMask(GL_TRUE));
 }
 
-void PartPlate::render_logo_texture(GLTexture &logo_texture, const GeometryBuffer& logo_buffer, bool bottom, unsigned int vbo_id) const
+void PartPlate::render_logo_texture(GLTexture &logo_texture, GLModel &logo_buffer, bool bottom)
 {
 	//check valid
 	if (logo_texture.unsent_compressed_data_available()) {
@@ -586,57 +595,18 @@ void PartPlate::render_logo_texture(GLTexture &logo_texture, const GeometryBuffe
 		logo_texture.send_compressed_data_to_gpu();
 	}
 
-	if (logo_buffer.get_vertices_count() > 0) {
-		GLShaderProgram* shader = wxGetApp().get_shader("printbed");
-		if (shader != nullptr) {
-			shader->start_using();
-			shader->set_uniform("transparent_background", 0);
-			shader->set_uniform("svg_source", 0);
-
-			//glsafe(::glEnable(GL_DEPTH_TEST));
-			glsafe(::glDepthMask(GL_FALSE));
+	if (logo_buffer.is_initialized()) {
 			if (bottom)
 				glsafe(::glFrontFace(GL_CW));
 
-			unsigned int stride = logo_buffer.get_vertex_data_size();
-
-			GLint position_id = shader->get_attrib_location("v_position");
-			GLint tex_coords_id = shader->get_attrib_location("v_tex_coords");
-			if (position_id != -1) {
-				glsafe(::glEnableVertexAttribArray(position_id));
-			}
-			if (tex_coords_id != -1) {
-				glsafe(::glEnableVertexAttribArray(tex_coords_id));
-			}
-
 			// show the temporary texture while no compressed data is available
 			GLuint tex_id = (GLuint)logo_texture.get_id();
-
 			glsafe(::glBindTexture(GL_TEXTURE_2D, tex_id));
-			glsafe(::glBindBuffer(GL_ARRAY_BUFFER, vbo_id));
-
-			if (position_id != -1)
-				glsafe(::glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(intptr_t)logo_buffer.get_position_offset()));
-			if (tex_coords_id != -1)
-				glsafe(::glVertexAttribPointer(tex_coords_id, 2, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(intptr_t)logo_buffer.get_tex_coords_offset()));
-			glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)logo_buffer.get_vertices_count()));
-
-			if (tex_coords_id != -1)
-				glsafe(::glDisableVertexAttribArray(tex_coords_id));
-
-			if (position_id != -1)
-				glsafe(::glDisableVertexAttribArray(position_id));
-
-			glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+            logo_buffer.render_geometry();
 			glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 
 			if (bottom)
 				glsafe(::glFrontFace(GL_CCW));
-
-			glsafe(::glDepthMask(GL_TRUE));
-
-			shader->stop_using();
-		}
 	}
 }
 
@@ -650,17 +620,6 @@ void PartPlate::render_logo(bool bottom, bool render_cali)
             m_partplate_list->m_logo_texture.reset();
 
             if (boost::algorithm::iends_with(m_partplate_list->m_logo_texture_filename, ".svg")) {
-                /*// use higher resolution images if graphic card and opengl version allow
-                GLint max_tex_size = OpenGLManager::get_gl_info().get_max_tex_size();
-                if (temp_texture->get_id() == 0 || temp_texture->get_source() != m_texture_filename) {
-                    // generate a temporary lower resolution texture to show while no main texture levels have been compressed
-                    if (!temp_texture->load_from_svg_file(m_texture_filename, false, false, false, max_tex_size / 8)) {
-                        render_default(bottom, false);
-                        return;
-                    }
-                    canvas.request_extra_frame();
-                }*/
-
                 // starts generating the main texture, compression will run asynchronously
                 GLint max_tex_size  = OpenGLManager::get_gl_info().get_max_tex_size();
                 GLint logo_tex_size = (max_tex_size < 2048) ? max_tex_size : 2048;
@@ -699,23 +658,15 @@ void PartPlate::render_logo(bool bottom, bool render_cali)
             // canvas.request_extra_frame();
         }
 
-        if (m_vbo_id == 0) {
-            unsigned int *vbo_id_ptr = const_cast<unsigned int *>(&m_vbo_id);
-            glsafe(::glGenBuffers(1, vbo_id_ptr));
-            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, *vbo_id_ptr));
-            glsafe(::glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr) m_logo_triangles.get_vertices_data_size(), (const GLvoid *) m_logo_triangles.get_vertices_data(),
-                                    GL_STATIC_DRAW));
-            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-        }
         if (m_partplate_list && m_partplate_list->m_bed3d && !m_partplate_list->m_bed3d->get_model_filename().empty()) {
             auto cur_bed = m_partplate_list->m_bed3d;
-            auto cur_box = cur_bed->get_model().get_bounding_box().transformed(Geometry::translation_transform(m_origin));
+            auto cur_box = cur_bed->get_cur_bed_model_box();
             if ((m_cur_bed_boundingbox.center() - cur_box.center()).norm() > 1.0f) {
 				set_logo_box_by_bed(cur_box);
             }
         }
-        if (m_vbo_id != 0 && m_logo_triangles.get_vertices_count() > 0) {
-			render_logo_texture(m_partplate_list->m_logo_texture, m_logo_triangles, bottom, m_vbo_id);
+        if (m_logo_triangles.is_initialized()) {
+			render_logo_texture(m_partplate_list->m_logo_texture, m_logo_triangles, bottom);
 		}
         if (!m_partplate_list->render_bedtype_logo) {
 			return;
@@ -736,7 +687,7 @@ void PartPlate::render_logo(bool bottom, bool render_cali)
 	// render bed textures
 	for (auto &part : m_partplate_list->bed_texture_info[bed_type_idx].parts) {
 		if (part.texture) {
-			if (part.buffer && part.buffer->get_vertices_count() > 0
+            if (part.buffer && part.buffer->is_initialized()
 				//&& part.vbo_id != 0
 				) {
 				if (part.offset.x() != m_origin.x() || part.offset.y() != m_origin.y()) {
@@ -745,8 +696,7 @@ void PartPlate::render_logo(bool bottom, bool render_cali)
 				}
 				render_logo_texture(*(part.texture),
 									*(part.buffer),
-									bottom,
-									part.vbo_id);
+									bottom);
 			}
 		}
 	}
@@ -755,320 +705,167 @@ void PartPlate::render_logo(bool bottom, bool render_cali)
 	if (render_cali) {
 		for (auto& part : m_partplate_list->cali_texture_info.parts) {
 			if (part.texture) {
-				if (part.buffer && part.buffer->get_vertices_count() > 0) {
+                if (part.buffer && part.buffer->is_initialized()) {
 					if (part.offset.x() != m_origin.x() || part.offset.y() != m_origin.y()) {
 						part.offset = Vec2d(m_origin.x(), m_origin.y());
 						part.update_buffer();
 					}
 					render_logo_texture(*(part.texture),
 						*(part.buffer),
-						bottom,
-						part.vbo_id);
+						bottom);
 				}
 			}
 		}
 	}
 }
 
-void PartPlate::render_exclude_area(bool force_default_color) const {
-	if (force_default_color) //for thumbnail case
+void PartPlate::render_exclude_area(bool force_default_color)
+{
+    if (force_default_color || !m_exclude_triangles.is_initialized()) // for thumbnail case
 		return;
 
-	unsigned int triangles_vcount = m_exclude_triangles.get_vertices_count();
-	std::array<float, 4> select_color{ 0.765f, 0.7686f, 0.7686f, 1.0f };
-	std::array<float, 4> unselect_color{ 0.9f, 0.9f, 0.9f, 1.0f };
-	std::array<float, 4> default_color{ 0.9f, 0.9f, 0.9f, 1.0f };
+	ColorRGBA select_color{0.765f, 0.7686f, 0.7686f, 1.0f};
+    ColorRGBA unselect_color{0.9f, 0.9f, 0.9f, 1.0f};
+	//std::array<float, 4> default_color{ 0.9f, 0.9f, 0.9f, 1.0f };
 
 	// draw exclude area
 	glsafe(::glDepthMask(GL_FALSE));
-
-	if (m_selected) {
-		glsafe(::glColor4fv(select_color.data()));
-	}
-	else {
-		glsafe(::glColor4fv(unselect_color.data()));
-	}
-
-	glsafe(::glNormal3d(0.0f, 0.0f, 1.0f));
-	glsafe(::glVertexPointer(3, GL_FLOAT, m_exclude_triangles.get_vertex_data_size(), (GLvoid*)m_exclude_triangles.get_vertices_data()));
-	glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)triangles_vcount));
+    m_exclude_triangles.set_color(m_selected ? select_color : unselect_color);
+    m_exclude_triangles.render_geometry();
 	glsafe(::glDepthMask(GL_TRUE));
 }
 
-
-/*void PartPlate::render_background_for_picking(const float* render_color) const
-{
-	unsigned int triangles_vcount = m_triangles.get_vertices_count();
-
-	glsafe(::glDepthMask(GL_FALSE));
-	glsafe(::glColor4fv(render_color));
-	glsafe(::glNormal3d(0.0f, 0.0f, 1.0f));
-	glsafe(::glVertexPointer(3, GL_FLOAT, m_triangles.get_vertex_data_size(), (GLvoid*)m_triangles.get_vertices_data()));
-	glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)triangles_vcount));
-	glsafe(::glDepthMask(GL_TRUE));
-}*/
-
-void PartPlate::render_grid(bool bottom) const {
+void PartPlate::render_grid(bool bottom) {
 	//glsafe(::glEnable(GL_MULTISAMPLE));
 	// draw grid
 	glsafe(::glLineWidth(1.0f * m_scale_factor));
+    ColorRGBA color;
 	if (bottom)
-		glsafe(::glColor4fv(LINE_BOTTOM_COLOR.data()));
+        color = LINE_BOTTOM_COLOR;
 	else {
 		if (m_selected)
-			glsafe(m_partplate_list->m_is_dark ? ::glColor4fv(LINE_TOP_SEL_DARK_COLOR.data()) : ::glColor4fv(LINE_TOP_SEL_COLOR.data()));
+			color = m_partplate_list->m_is_dark ? LINE_TOP_SEL_DARK_COLOR : LINE_TOP_SEL_COLOR;
 		else
-			glsafe(m_partplate_list->m_is_dark ? ::glColor4fv(LINE_TOP_DARK_COLOR.data()) : ::glColor4fv(LINE_TOP_COLOR.data()));
+            color = m_partplate_list->m_is_dark ? LINE_TOP_DARK_COLOR : LINE_TOP_COLOR;
 	}
-	glsafe(::glVertexPointer(3, GL_FLOAT, m_gridlines.get_vertex_data_size(), (GLvoid*)m_gridlines.get_vertices_data()));
-	glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)m_gridlines.get_vertices_count()));
+    m_gridlines.set_color(color);
+    m_gridlines.render_geometry();
 
-	glsafe(::glLineWidth(2.0f * m_scale_factor));
-	glsafe(::glVertexPointer(3, GL_FLOAT, m_gridlines_bolder.get_vertex_data_size(), (GLvoid*)m_gridlines_bolder.get_vertices_data()));
-	glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)m_gridlines_bolder.get_vertices_count()));
+    glsafe(::glLineWidth(2.0f * m_scale_factor));
+    m_gridlines_bolder.set_color(color);
+    m_gridlines_bolder.render_geometry();
 }
 
-void PartPlate::render_height_limit(PartPlate::HeightLimitMode mode) const
+void PartPlate::render_height_limit(PartPlate::HeightLimitMode mode)
 {
 	if (m_print && m_print->config().print_sequence == PrintSequence::ByObject && mode != HEIGHT_LIMIT_NONE)
 	{
 		// draw lower limit
 		glsafe(::glLineWidth(3.0f * m_scale_factor));
-		glsafe(::glColor4fv(HEIGHT_LIMIT_BOTTOM_COLOR.data()));
-		glsafe(::glVertexPointer(3, GL_FLOAT, m_height_limit_common.get_vertex_data_size(), (GLvoid*)m_height_limit_common.get_vertices_data()));
-		glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)m_height_limit_common.get_vertices_count()));
+        m_height_limit_common.set_color(HEIGHT_LIMIT_BOTTOM_COLOR);
+        m_height_limit_common.render_geometry();
 
 		if ((mode == HEIGHT_LIMIT_BOTTOM) || (mode == HEIGHT_LIMIT_BOTH)) {
-			glsafe(::glLineWidth(3.0f * m_scale_factor));
-			glsafe(::glColor4fv(HEIGHT_LIMIT_BOTTOM_COLOR.data()));
-			glsafe(::glVertexPointer(3, GL_FLOAT, m_height_limit_bottom.get_vertex_data_size(), (GLvoid*)m_height_limit_bottom.get_vertices_data()));
-			glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)m_height_limit_bottom.get_vertices_count()));
-		}
-
+            glsafe(::glLineWidth(3.0f * m_scale_factor));
+            m_height_limit_bottom.set_color(HEIGHT_LIMIT_BOTTOM_COLOR);
+            m_height_limit_bottom.render_geometry();
+        }
 		// draw upper limit
 		if ((mode == HEIGHT_LIMIT_TOP) || (mode == HEIGHT_LIMIT_BOTH)){
 			glsafe(::glLineWidth(3.0f * m_scale_factor));
-			glsafe(::glColor4fv(HEIGHT_LIMIT_TOP_COLOR.data()));
-			glsafe(::glVertexPointer(3, GL_FLOAT, m_height_limit_top.get_vertex_data_size(), (GLvoid*)m_height_limit_top.get_vertices_data()));
-			glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)m_height_limit_top.get_vertices_count()));
+            m_height_limit_top.set_color(HEIGHT_LIMIT_TOP_COLOR);
+            m_height_limit_top.render_geometry();
 		}
 	}
 }
 
 
-void PartPlate::render_icon_texture(int position_id, int tex_coords_id, const GeometryBuffer &buffer, GLTexture &texture, unsigned int &vbo_id) const
+void PartPlate::render_icon_texture(GLModel &icon, GLTexture &texture)
 {
-	if (vbo_id == 0) {
-		glsafe(::glGenBuffers(1, &vbo_id));
-		glsafe(::glBindBuffer(GL_ARRAY_BUFFER, vbo_id));
-		glsafe(::glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)buffer.get_vertices_data_size(), (const GLvoid*)buffer.get_vertices_data(), GL_STATIC_DRAW));
-		glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-	}
-
-	unsigned int stride = buffer.get_vertex_data_size();
-	GLuint tex_id = (GLuint)texture.get_id();
-	glsafe(::glBindTexture(GL_TEXTURE_2D, tex_id));
-	glsafe(::glBindBuffer(GL_ARRAY_BUFFER, vbo_id));
-	if (position_id != -1)
-		glsafe(::glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(intptr_t)buffer.get_position_offset()));
-	if (tex_coords_id != -1)
-		glsafe(::glVertexAttribPointer(tex_coords_id, 2, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(intptr_t)buffer.get_tex_coords_offset()));
-	glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)buffer.get_vertices_count()));
-
-	glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-	glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
-}
-
-void PartPlate::render_plate_name_texture(int position_id, int tex_coords_id)
-{
-	if (m_name_change) {
-		 m_name_change = false;
-		if (m_plate_name_vbo_id > 0) {
-			glsafe(::glDeleteBuffers(1, &m_plate_name_vbo_id));
-			m_plate_name_vbo_id = 0;
-		}
-		if (m_plate_name_edit_vbo_id > 0) {
-			glsafe(::glDeleteBuffers(1, &m_plate_name_edit_vbo_id));
-			m_plate_name_edit_vbo_id = 0;
-		}
-	}
-	if (m_plate_name_vbo_id==0) {
-		if (generate_plate_name_texture()) {
-			calc_vertex_for_plate_name(m_name_texture, m_plate_name_icon);
-			if (m_plate_name_edit_vbo_id > 0) { //for redo
-				glsafe(::glDeleteBuffers(1, &m_plate_name_edit_vbo_id));
-				m_plate_name_edit_vbo_id = 0;
-			}
-			calc_vertex_for_plate_name_edit_icon(&m_name_texture, 0, m_plate_name_edit_icon);
-		}
-		else {
-			if (m_plate_name_edit_vbo_id==0) {
-				calc_vertex_for_plate_name_edit_icon(nullptr, 0, m_plate_name_edit_icon);
-			}
-			return;
-		}
-	}
-
-    if (m_plate_name_vbo_id == 0 && m_plate_name_icon.get_vertices_data_size() > 0) {
-        glsafe(::glGenBuffers(1, &m_plate_name_vbo_id));
-        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_plate_name_vbo_id));
-        glsafe(::glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr) m_plate_name_icon.get_vertices_data_size(), (const GLvoid *) m_plate_name_icon.get_vertices_data(), GL_STATIC_DRAW));
-        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-    }
-
-    unsigned int stride = m_plate_name_icon.get_vertex_data_size();
-    GLuint       tex_id = (GLuint) m_name_texture.get_id();
+    GLuint tex_id = (GLuint) texture.get_id();
     glsafe(::glBindTexture(GL_TEXTURE_2D, tex_id));
-    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_plate_name_vbo_id));
-    if (position_id != -1) glsafe(::glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, stride, (GLvoid *) (intptr_t) m_plate_name_icon.get_position_offset()));
-    if (tex_coords_id != -1) glsafe(::glVertexAttribPointer(tex_coords_id, 2, GL_FLOAT, GL_FALSE, stride, (GLvoid *) (intptr_t) m_plate_name_icon.get_tex_coords_offset()));
-    glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei) m_plate_name_icon.get_vertices_count()));
+    icon.render_geometry();
+    glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
+}
 
-    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+void PartPlate::render_plate_name_texture()
+{
+     if (m_name_change) {
+         m_name_change = false;
+         generate_plate_name_texture();
+    }
+    if (m_name_texture.get_id() == 0)
+		generate_plate_name_texture();
+    if (!m_plate_name_icon.is_initialized()) {
+		return;
+	}
+    GLuint tex_id = (GLuint) m_name_texture.get_id();
+    glsafe(::glBindTexture(GL_TEXTURE_2D, tex_id));
+    m_plate_name_icon.render_geometry();
     glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 }
 
 void PartPlate::render_icons(bool bottom, bool only_body, int hover_id)
 {
-	GLShaderProgram* shader = wxGetApp().get_shader("printbed");
-	if (shader != nullptr) {
-		shader->start_using();
-		shader->set_uniform("transparent_background", bottom);
-		//shader->set_uniform("svg_source", boost::algorithm::iends_with(m_partplate_list->m_del_texture.get_source(), ".svg"));
-		shader->set_uniform("svg_source", 0);
+    if (!only_body) {
+        if (hover_id == 1)
+            render_icon_texture(m_del_icon, m_partplate_list->m_del_hovered_texture);
+        else
+            render_icon_texture(m_del_icon, m_partplate_list->m_del_texture);
 
-        //if (bottom)
-        //    glsafe(::glFrontFace(GL_CW));
-        glsafe(::glDepthMask(GL_FALSE));
+        if (hover_id == 2)
+            render_icon_texture(m_orient_icon, m_partplate_list->m_orient_hovered_texture);
+        else
+            render_icon_texture(m_orient_icon, m_partplate_list->m_orient_texture);
 
-        GLint position_id = shader->get_attrib_location("v_position");
-        GLint tex_coords_id = shader->get_attrib_location("v_tex_coords");
-        if (position_id != -1) {
-            glsafe(::glEnableVertexAttribArray(position_id));
+        if (hover_id == 3)
+            render_icon_texture(m_arrange_icon, m_partplate_list->m_arrange_hovered_texture);
+        else
+            render_icon_texture(m_arrange_icon, m_partplate_list->m_arrange_texture);
+
+        if (hover_id == 4) {
+            if (this->is_locked())
+                render_icon_texture(m_lock_icon, m_partplate_list->m_locked_hovered_texture);
+            else
+                render_icon_texture(m_lock_icon, m_partplate_list->m_lockopen_hovered_texture);
+        } else {
+            if (this->is_locked())
+                render_icon_texture(m_lock_icon, m_partplate_list->m_locked_texture);
+            else
+                render_icon_texture(m_lock_icon, m_partplate_list->m_lockopen_texture);
         }
-        if (tex_coords_id != -1) {
-            glsafe(::glEnableVertexAttribArray(tex_coords_id));
-        }
-        render_plate_name_texture(position_id, tex_coords_id);
-        if (!only_body) {
-            if (hover_id == 1)
-                render_icon_texture(position_id, tex_coords_id, m_del_icon, m_partplate_list->m_del_hovered_texture, m_del_vbo_id);
-            else
-                render_icon_texture(position_id, tex_coords_id, m_del_icon, m_partplate_list->m_del_texture, m_del_vbo_id);
 
-            if (hover_id == 2)
-                render_icon_texture(position_id, tex_coords_id, m_orient_icon, m_partplate_list->m_orient_hovered_texture, m_orient_vbo_id);
-            else
-                render_icon_texture(position_id, tex_coords_id, m_orient_icon, m_partplate_list->m_orient_texture, m_orient_vbo_id);
+        if (hover_id == PLATE_NAME_ID)
+            render_icon_texture(m_plate_name_edit_icon, m_partplate_list->m_plate_name_edit_hovered_texture);
+        else
+            render_icon_texture(m_plate_name_edit_icon, m_partplate_list->m_plate_name_edit_texture);
 
-            if (hover_id == 3)
-                render_icon_texture(position_id, tex_coords_id, m_arrange_icon, m_partplate_list->m_arrange_hovered_texture, m_arrange_vbo_id);
-            else
-                render_icon_texture(position_id, tex_coords_id, m_arrange_icon, m_partplate_list->m_arrange_texture, m_arrange_vbo_id);
-
-            if (hover_id == 4) {
-                if (this->is_locked())
-                    render_icon_texture(position_id, tex_coords_id, m_lock_icon, m_partplate_list->m_locked_hovered_texture, m_lock_vbo_id);
+        if (m_partplate_list->render_plate_settings) {
+            bool has_plate_settings = get_bed_type() != BedType::btDefault || get_print_seq() != PrintSequence::ByDefault || !get_first_layer_print_sequence().empty() ||
+                                      !get_other_layers_print_sequence().empty() || has_spiral_mode_config();
+            if (hover_id == 5) {
+                if (!has_plate_settings)
+                    render_icon_texture(m_plate_settings_icon, m_partplate_list->m_plate_settings_hovered_texture);
                 else
-                    render_icon_texture(position_id, tex_coords_id, m_lock_icon, m_partplate_list->m_lockopen_hovered_texture, m_lock_vbo_id);
+                    render_icon_texture(m_plate_settings_icon, m_partplate_list->m_plate_settings_changed_hovered_texture);
             } else {
-                if (this->is_locked())
-                    render_icon_texture(position_id, tex_coords_id, m_lock_icon, m_partplate_list->m_locked_texture, m_lock_vbo_id);
+                if (!has_plate_settings)
+                    render_icon_texture(m_plate_settings_icon, m_partplate_list->m_plate_settings_texture);
                 else
-                    render_icon_texture(position_id, tex_coords_id, m_lock_icon, m_partplate_list->m_lockopen_texture, m_lock_vbo_id);
-            }
-
-			if (hover_id == 6)
-				render_icon_texture(position_id, tex_coords_id, m_plate_name_edit_icon, m_partplate_list->m_plate_name_edit_hovered_texture, m_plate_name_edit_vbo_id);
-			else
-				render_icon_texture(position_id, tex_coords_id, m_plate_name_edit_icon, m_partplate_list->m_plate_name_edit_texture, m_plate_name_edit_vbo_id);
-
-			if (m_partplate_list->render_plate_settings) {
-				bool has_plate_settings = get_bed_type() != BedType::btDefault || get_print_seq() != PrintSequence::ByDefault || !get_first_layer_print_sequence().empty() || !get_other_layers_print_sequence().empty() || has_spiral_mode_config();
-                if (hover_id == 5) {
-                    if (!has_plate_settings)
-                        render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon, m_partplate_list->m_plate_settings_hovered_texture, m_plate_settings_vbo_id);
-                    else
-                        render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon, m_partplate_list->m_plate_settings_changed_hovered_texture,
-                                            m_plate_settings_vbo_id);
-                } else {
-                    if (!has_plate_settings)
-                        render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon, m_partplate_list->m_plate_settings_texture, m_plate_settings_vbo_id);
-                    else
-                        render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon, m_partplate_list->m_plate_settings_changed_texture, m_plate_settings_vbo_id);
-                }
-            }
-
-            if (m_plate_index >= 0 && m_plate_index < MAX_PLATE_COUNT) {
-                render_icon_texture(position_id, tex_coords_id, m_plate_idx_icon, m_partplate_list->m_idx_textures[m_plate_index], m_plate_idx_vbo_id);
+                    render_icon_texture(m_plate_settings_icon, m_partplate_list->m_plate_settings_changed_texture);
             }
         }
-        if (tex_coords_id != -1)
-            glsafe(::glDisableVertexAttribArray(tex_coords_id));
 
-        if (position_id != -1)
-            glsafe(::glDisableVertexAttribArray(position_id));
-
-        //if (bottom)
-        //    glsafe(::glFrontFace(GL_CCW));
-
-        glsafe(::glDepthMask(GL_TRUE));
-        shader->stop_using();
+        if (m_plate_index >= 0 && m_plate_index < MAX_PLATE_COUNT) { render_icon_texture(m_plate_idx_icon, m_partplate_list->m_idx_textures[m_plate_index]); }
     }
+    render_plate_name_texture();
 }
 
-void PartPlate::render_only_numbers(bool bottom) const
+void PartPlate::render_only_numbers(bool bottom)
 {
-	GLShaderProgram* shader = wxGetApp().get_shader("printbed");
-	if (shader != nullptr) {
-		shader->start_using();
-		shader->set_uniform("transparent_background", bottom);
-		//shader->set_uniform("svg_source", boost::algorithm::iends_with(m_partplate_list->m_del_texture.get_source(), ".svg"));
-		shader->set_uniform("svg_source", 0);
-
-        //if (bottom)
-        //    glsafe(::glFrontFace(GL_CW));
-        glsafe(::glDepthMask(GL_FALSE));
-
-        GLint position_id = shader->get_attrib_location("v_position");
-        GLint tex_coords_id = shader->get_attrib_location("v_tex_coords");
-        if (position_id != -1) {
-            glsafe(::glEnableVertexAttribArray(position_id));
-        }
-        if (tex_coords_id != -1) {
-            glsafe(::glEnableVertexAttribArray(tex_coords_id));
-        }
-
-        if (m_plate_index >=0 && m_plate_index < MAX_PLATE_COUNT) {
-            render_icon_texture(position_id, tex_coords_id, m_plate_idx_icon, m_partplate_list->m_idx_textures[m_plate_index], m_plate_idx_vbo_id);
-        }
-
-        if (tex_coords_id != -1)
-            glsafe(::glDisableVertexAttribArray(tex_coords_id));
-
-        if (position_id != -1)
-            glsafe(::glDisableVertexAttribArray(position_id));
-
-        //if (bottom)
-        //    glsafe(::glFrontFace(GL_CCW));
-
-        glsafe(::glDepthMask(GL_TRUE));
-        shader->stop_using();
+    if (m_plate_index >=0 && m_plate_index < MAX_PLATE_COUNT) {
+        render_icon_texture(m_plate_idx_icon, m_partplate_list->m_idx_textures[m_plate_index]);
     }
-}
-
-void PartPlate::render_rectangle_for_picking(const GeometryBuffer &buffer, const float* render_color) const
-{
-	unsigned int triangles_vcount = buffer.get_vertices_count();
-
-	//glsafe(::glDepthMask(GL_FALSE));
-	glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
-	glsafe(::glColor4fv(render_color));
-	glsafe(::glNormal3d(0.0f, 0.0f, 1.0f));
-	glsafe(::glVertexPointer(3, GL_FLOAT, buffer.get_vertex_data_size(), (GLvoid*)buffer.get_vertices_data()));
-	glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)triangles_vcount));
-	glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
-	//glsafe(::glDepthMask(GL_TRUE));
 }
 
 void PartPlate::render_label(GLCanvas3D& canvas) const {
@@ -1287,62 +1084,25 @@ void PartPlate::render_right_arrow(const float* render_color, bool use_lighting)
 #endif
 }
 
-void PartPlate::on_render_for_picking() const {
+void PartPlate::on_render_for_picking() {
 	//glsafe(::glDisable(GL_DEPTH_TEST));
-	int hover_id = 0;
-	std::array<float, 4> color = picking_color_component(hover_id);
-	m_grabber_color[0] = color[0];
-	m_grabber_color[1] = color[1];
-	m_grabber_color[2] = color[2];
-	m_grabber_color[3] = color[3];
-	//render_grabber(m_grabber_color, false);
-	render_rectangle_for_picking(m_triangles, m_grabber_color);
-	hover_id = 1;
-	color = picking_color_component(hover_id);
-	m_grabber_color[0] = color[0];
-	m_grabber_color[1] = color[1];
-	m_grabber_color[2] = color[2];
-	m_grabber_color[3] = color[3];
-	//render_left_arrow(m_grabber_color, false);
-	render_rectangle_for_picking(m_del_icon, m_grabber_color);
-	hover_id = 2;
-	color = picking_color_component(hover_id);
-	m_grabber_color[0] = color[0];
-	m_grabber_color[1] = color[1];
-	m_grabber_color[2] = color[2];
-	m_grabber_color[3] = color[3];
-	render_rectangle_for_picking(m_orient_icon, m_grabber_color);
-    hover_id = 3;
-	color = picking_color_component(hover_id);
-	m_grabber_color[0] = color[0];
-	m_grabber_color[1] = color[1];
-	m_grabber_color[2] = color[2];
-	m_grabber_color[3] = color[3];
-	render_rectangle_for_picking(m_arrange_icon, m_grabber_color);
-	hover_id = 4;
-	color = picking_color_component(hover_id);
-	m_grabber_color[0] = color[0];
-	m_grabber_color[1] = color[1];
-	m_grabber_color[2] = color[2];
-	m_grabber_color[3] = color[3];
-	//render_right_arrow(m_grabber_color, false);
-	render_rectangle_for_picking(m_lock_icon, m_grabber_color);
-	hover_id = 5;
-	color = picking_color_component(hover_id);
-	m_grabber_color[0] = color[0];
-	m_grabber_color[1] = color[1];
-	m_grabber_color[2] = color[2];
-	m_grabber_color[3] = color[3];
-    if (m_partplate_list->render_plate_settings)
-        render_rectangle_for_picking(m_plate_settings_icon, m_grabber_color);
-	hover_id           = 6;
-	color              = picking_color_component(hover_id);
-	m_grabber_color[0] = color[0];
-	m_grabber_color[1] = color[1];
-	m_grabber_color[2] = color[2];
-	m_grabber_color[3] = color[3];
-    // render_left_arrow(m_grabber_color, false);
-    render_rectangle_for_picking(m_plate_name_edit_icon, m_grabber_color);
+    const Camera &camera   = wxGetApp().plater()->get_camera();
+    auto          view_mat = camera.get_view_matrix();
+    auto          proj_mat = camera.get_projection_matrix();
+
+    GLShaderProgram *shader = wxGetApp().get_shader("flat");
+    shader->start_using();
+    shader->set_uniform("view_model_matrix", view_mat);
+    shader->set_uniform("projection_matrix", proj_mat);
+    std::vector<GLModel *> gl_models = {&m_triangles,           &m_del_icon, &m_orient_icon, &m_arrange_icon, &m_lock_icon, &m_plate_settings_icon,
+                                        &m_plate_name_edit_icon};
+    for (size_t i = 0; i < gl_models.size(); i++) {
+        int                  hover_id = i;
+        std::array<float, 4> color    = picking_color_component(hover_id);
+        gl_models[i]->set_color(-1, color);
+        gl_models[i]->render_geometry();
+    }
+    shader->stop_using();
 }
 
 std::array<float, 4> PartPlate::picking_color_component(int idx) const
@@ -1902,6 +1662,8 @@ bool PartPlate::generate_plate_name_texture()
 		BOOST_LOG_TRIVIAL(error) << "PartPlate::generate_plate_name_texture(): generate_from_text_string() failed";
 		return false;
 	}
+    calc_vertex_for_plate_name(m_name_texture, m_plate_name_icon);
+    calc_vertex_for_plate_name_edit_icon(&m_name_texture, 0, m_plate_name_edit_icon);
 	return true;
 }
 
@@ -2549,7 +2311,9 @@ void PartPlate::set_logo_box_by_bed(const BoundingBoxf3& box)
         m_cur_bed_boundingbox = box;
         ExPolygon logo_poly;
         generate_logo_polygon(logo_poly, box);
-        if (!m_logo_triangles.set_from_triangles(triangulate_expolygon_2f(logo_poly, NORMALS_UP), GROUND_Z + 0.02f)) {
+        auto triangles = triangulate_expolygon_2f(logo_poly, NORMALS_UP);
+        m_logo_triangles.reset();
+        if (!m_logo_triangles.init_model_from_poly(triangles, GROUND_Z + 0.01f)) {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":error :Unable to create logo triangles in set_logo_box_by_bed\n";
             return;
         }
@@ -2722,14 +2486,16 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
 
 		ExPolygon logo_poly;
 		generate_logo_polygon(logo_poly);
-		if (!m_logo_triangles.set_from_triangles(triangulate_expolygon_2f(logo_poly, NORMALS_UP), GROUND_Z+0.02f))
+        auto triangles = triangulate_expolygon_2f(logo_poly, NORMALS_UP);
+        m_logo_triangles.reset();
+		if (!m_logo_triangles.init_model_from_poly(triangles, GROUND_Z + 0.01f))
 			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create logo triangles\n";
 		else {
 			;
 		}
 		if (m_partplate_list && m_partplate_list->m_bed3d && !m_partplate_list->m_bed3d->get_model_filename().empty()) {
             auto cur_bed = m_partplate_list->m_bed3d;
-            set_logo_box_by_bed(cur_bed->get_model().get_bounding_box().transformed(Geometry::translation_transform(m_origin)));
+            set_logo_box_by_bed(cur_bed->get_cur_bed_model_box());
 		}
 
 		ExPolygon poly;
@@ -2811,35 +2577,53 @@ bool PartPlate::intersects(const BoundingBoxf3& bb) const
 
 void PartPlate::render(bool bottom, bool only_body, bool force_background_color, HeightLimitMode mode, int hover_id, bool render_cali)
 {
-	glsafe(::glEnable(GL_DEPTH_TEST));
-	glsafe(::glEnable(GL_BLEND));
-	glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-	glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
+    glsafe(::glEnable(GL_DEPTH_TEST));
+    glsafe(::glEnable(GL_BLEND));
+    glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+    glsafe(::glDepthMask(GL_FALSE));
+    const Camera &camera = wxGetApp().plater()->get_camera();
+    auto          view_mat = camera.get_view_matrix();
+    auto          proj_mat = camera.get_projection_matrix();
+    {
+        GLShaderProgram *shader = wxGetApp().get_shader("flat");
+        shader->start_using();
+        shader->set_uniform("view_model_matrix", view_mat);
+        shader->set_uniform("projection_matrix", proj_mat);
 
-	if (!bottom) {
-		// draw background
-		render_background(force_background_color);
+        if (!bottom) {
+            // draw background
+            render_background(force_background_color);
+            render_exclude_area(force_background_color);
+        }
+        render_grid(bottom);
+        render_height_limit(mode);
 
-		render_exclude_area(force_background_color);
-	}
-
-	render_grid(bottom);
-
-	if (!bottom && m_selected && !force_background_color) {
-		if (m_partplate_list)
-           render_logo(bottom, m_partplate_list->render_cali_logo && render_cali);
-		else
-		   render_logo(bottom);
-	}
-
-	render_height_limit(mode);
-
-    render_icons(bottom, only_body, hover_id);
-	if (!force_background_color){
-		render_only_numbers(bottom);
-	}
-	glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
-	glsafe(::glDisable(GL_BLEND));
+        shader->stop_using();
+    }
+    {
+        GLShaderProgram *shader = wxGetApp().get_shader("printbed");
+        shader->start_using();
+        shader->set_uniform("view_model_matrix", view_mat);
+        shader->set_uniform("projection_matrix", proj_mat);
+        shader->set_uniform("svg_source", 0);
+        shader->set_uniform("transparent_background", 0);
+         if (!bottom && m_selected && !force_background_color) {//bed all icon
+            if (m_partplate_list)
+               render_logo(bottom, m_partplate_list->render_cali_logo && render_cali);
+            else
+               render_logo(bottom);
+         }
+         {
+             shader->set_uniform("transparent_background", bottom);
+             render_icons(bottom, only_body, hover_id);
+             if (!force_background_color) {
+                  render_only_numbers(bottom);
+             }
+         }
+         shader->stop_using();
+    }
+    glsafe(::glDepthMask(GL_TRUE));
+    glsafe(::glDisable(GL_BLEND));
 
 	//if (with_label) {
 	//	render_label(canvas);
@@ -5555,17 +5339,9 @@ void PartPlateList::BedTextureInfo::TexturePart::update_buffer()
 		}
 	}
 
-	if (!buffer)
-		buffer = new GeometryBuffer();
-
-	if (buffer->set_from_triangles(triangulate_expolygon_2f(poly, NORMALS_UP), GROUND_Z + 0.02f)) {
-		release_vbo();
-		unsigned int* vbo_id_ptr = const_cast<unsigned int*>(&vbo_id);
-		glsafe(::glGenBuffers(1, vbo_id_ptr));
-		glsafe(::glBindBuffer(GL_ARRAY_BUFFER, *vbo_id_ptr));
-		glsafe(::glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)buffer->get_vertices_data_size(), (const GLvoid*)buffer->get_vertices_data(), GL_STATIC_DRAW));
-		glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-	} else {
+	if (!buffer) buffer = new GLModel();
+    buffer->reset();
+    if (!buffer->init_model_from_poly(triangulate_expolygon_2f(poly, NORMALS_UP), GROUND_Z + 0.02f)) {
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create buffer triangles\n";
 	}
 }

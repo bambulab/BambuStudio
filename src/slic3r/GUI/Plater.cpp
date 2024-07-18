@@ -13388,7 +13388,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
     int action, plate_index;
 
     plate_index = hover_id / PartPlate::GRABBER_COUNT;
-    action      = isModidyPlateName ? PartPlate::PLATE_NAME_HOVER_ID : hover_id % PartPlate::GRABBER_COUNT;
+    action      = isModidyPlateName ? PartPlate::PLATE_NAME_ID : hover_id % PartPlate::GRABBER_COUNT;
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": enter, hover_id %1%, plate_index %2%, action %3%")%hover_id % plate_index %action;
     if (action == 0)
