@@ -698,15 +698,20 @@ public:
 
 void Sidebar::priv::sync_extruder_list()
 {
-    auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
-    printer_tab->set_extruder_volume_type(0, NozzleVolumeType::nvtBigTraffic);
-    printer_tab->set_extruder_volume_type(1, NozzleVolumeType::nvtNormal);
     MachineObject *obj = wxGetApp().getDeviceManager()->get_selected_machine();
     if (obj == nullptr) {
-        MessageDialog dlg(this->plater, _L("Please select a printer in 'Device' page first."), _L("Sync extruder infomation"), wxOK);
+        MessageDialog dlg(this->plater, _L("Please select a printer in 'Device' page first."), _L("Sync extruder infomation"), wxOK | wxICON_WARNING);
         dlg.ShowModal();
         return;
     }
+    if (obj->m_nozzle_data.nozzles.size() != 2) {
+        MessageDialog dlg(this->plater, _L("The currently connected printer does not have two extruders."), _L("Sync extruder infomation"), wxOK | wxICON_WARNING);
+        dlg.ShowModal();
+        return;
+    }
+    auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
+    printer_tab->set_extruder_volume_type(0, NozzleVolumeType(obj->m_nozzle_data.nozzles[1].flow_type));
+    printer_tab->set_extruder_volume_type(1, NozzleVolumeType(obj->m_nozzle_data.nozzles[0].flow_type));
     int left = 0, right = 0;
     for (auto ams : obj->amsList) {
         // Main (first) extruder at right
@@ -1520,6 +1525,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
         // Update dual extrudes
         auto extruder_variants = printer_preset.config.option<ConfigOptionStrings>("extruder_variant_list");
         p->m_dual_extruder_sizer->Show(extruder_variants->size() == 2);
+        p->m_extruder_sync->Show(extruder_variants->size() == 2);
         if (extruder_variants->size() == 2) {
             auto extruders_def = printer_preset.config.def()->get("extruder_type");
             auto extruders = printer_preset.config.option<ConfigOptionEnumsGeneric>("extruder_type");
@@ -1956,7 +1962,8 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
     if (!obj) return filament_ams_list;
 
     auto build_tray_config = [](AmsTray const & tray, std::string const & name) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": name %1% setting_id %2% color %3%") % name % tray.setting_id % tray.color;
+        BOOST_LOG_TRIVIAL(info) << boost::format("build_filament_ams_list: name %1% setting_id %2% type %3% color %4%")
+                    % name % tray.setting_id % tray.type % tray.color;
         DynamicPrintConfig tray_config;
         tray_config.set_key_value("filament_id", new ConfigOptionStrings{tray.setting_id});
         tray_config.set_key_value("tag_uid", new ConfigOptionStrings{tray.tag_uid});
