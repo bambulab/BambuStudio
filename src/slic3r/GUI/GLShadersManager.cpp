@@ -41,7 +41,7 @@ std::pair<bool, std::string> GLShadersManager::init()
     valid &= append_shader("cali", { "cali.vs", "cali.fs"});
     valid &= append_shader("flat", {"flat.vs", "flat.fs"});
     // used to render printbed
-    valid &= append_shader("printbed", { "printbed.vs", "printbed.fs" });
+    valid &= append_shader("printbed", {"110/printbed.vs", "110/printbed.fs"});
     // used to render options in gcode preview
     if (GUI::wxGetApp().is_gl_version_greater_or_equal_to(3, 3))
         valid &= append_shader("gouraud_light_instanced", { "gouraud_light_instanced.vs", "gouraud_light_instanced.fs" });

@@ -5,8 +5,7 @@
 #include "libslic3r/Color.hpp"
 
 #include "slic3r/GUI/I18N.hpp"
-#include "slic3r/GUI/GLModel.hpp"
-#include "slic3r/GUI/MeshUtils.hpp"
+#include "slic3r/GUI/3DScene.hpp"
 
 #include <cereal/archives/binary.hpp>
 

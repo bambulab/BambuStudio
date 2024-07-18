@@ -7,7 +7,7 @@
 #include "libslic3r/SLA/IndexedMesh.hpp"
 #include "admesh/stl.h"
 
-#include "slic3r/GUI/3DScene.hpp"
+#include "slic3r/GUI/GLModel.hpp"
 
 #include <cfloat>
 
