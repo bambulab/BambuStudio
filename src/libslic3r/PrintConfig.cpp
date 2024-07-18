@@ -38,7 +38,12 @@ std::set<std::string> SplitStringAndRemoveDuplicateElement(const std::string &st
 void ReplaceString(std::string &resource_str, const std::string &old_str, const std::string &new_str)
 {
     std::string::size_type pos = 0;
-    while ((pos = resource_str.find(old_str)) != std::string::npos) { resource_str.replace(pos, old_str.length(), new_str); }
+    size_t new_size = 0;
+    while ((pos = resource_str.find(old_str, pos + new_size)) != std::string::npos)
+    {
+        resource_str.replace(pos, old_str.length(), new_str);
+        new_size = new_str.size();
+    }
 }
 }
 
