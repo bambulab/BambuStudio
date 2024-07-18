@@ -98,13 +98,9 @@ jobs:
         if: inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04'
         working-directory: ${{ github.workspace }}
         run: |
-            sudo apt-get update
-            sudo apt-get install libgl1-mesa-dev libgtk-3-dev libxkbcommon-dev libunwind-dev libfuse2 -y
-            mkdir -p ${{ github.workspace }}/deps/build
-            mkdir -p ${{ github.workspace }}/deps/build/destdir
             sudo ./BuildLinux.sh -ur
             sudo chown $USER -R ./
-            ./BuildLinux.sh -dr
+            ./BuildLinux.sh -dfr
             cd deps/build
             tar -czvf BambuStudio_dep_${{ inputs.os }}_$(date +"%Y%m%d").tar.gz destdir
 
