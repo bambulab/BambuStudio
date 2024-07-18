@@ -3429,7 +3429,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                         if (jj.contains("nozzle_target_temper")) {
                             if (jj["nozzle_target_temper"].is_number()) {
                                 if (m_nozzle_data.nozzles.size() == 1) {
-                                    m_nozzle_data.nozzles[0].target_temp = jj["nozzle_temper"].get<float>();
+                                    m_nozzle_data.nozzles[0].target_temp = jj["nozzle_target_temper"].get<float>();
                                 }
                             }
                         }
@@ -4303,7 +4303,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
 
                             }
                             else if (jj.contains("vt_tray")) {
-                                auto main_slot = parse_vt_tray(jj.contains("vt_tray"));
+                                auto main_slot = parse_vt_tray(jj["vt_tray"].get<json>());
                                 main_slot.id = std::to_string(VIRTUAL_TRAY_MAIN_ID);
 
 
