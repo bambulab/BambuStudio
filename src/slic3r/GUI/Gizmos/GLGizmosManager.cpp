@@ -498,8 +498,10 @@ void GLGizmosManager::update_data()
     }
 
     //BBS: GUI refactor: add object manipulation in gizmo
-    m_object_manipulation.update_ui_from_settings();
-    m_object_manipulation.UpdateAndShow(true);
+    if (!selection.is_empty()) {
+        m_object_manipulation.update_ui_from_settings();
+        m_object_manipulation.UpdateAndShow(true);
+    }
 }
 
 bool GLGizmosManager::is_running() const
