@@ -1149,7 +1149,7 @@ void PresetCollection::load_presets(
                     boost::optional<Semver> version = Semver::parse(version_str);
                     if (!version) continue;
                     Semver app_version = *(Semver::parse(SLIC3R_VERSION));
-                    if ( version->maj() !=  app_version.maj()) {
+                    if ( version->maj() >  app_version.maj()) {
                         BOOST_LOG_TRIVIAL(warning) << "Preset incompatibla, not loading: " << name;
                         continue;
                     }
@@ -1605,7 +1605,7 @@ bool PresetCollection::load_user_preset(std::string name, std::map<std::string, 
         return false;
     }
     Semver app_version = *(Semver::parse(SLIC3R_VERSION));
-    if ( cloud_version->maj() !=  app_version.maj()) {
+    if ( cloud_version->maj() >  app_version.maj()) {
         BOOST_LOG_TRIVIAL(warning)<< __FUNCTION__ << boost::format("version %1% mismatch with app version %2%, not loading for user preset %3%")%version_str %SLIC3R_VERSION %name;
         return false;
     }
