@@ -1202,7 +1202,7 @@ void PresetUpdater::priv::check_installed_vendor_profiles() const
                         bool version_match = ((resource_ver.maj() == vendor_ver.maj()) && (resource_ver.min() == vendor_ver.min()));
 
                         if (!version_match || (vendor_ver < resource_ver)) {
-                            BOOST_LOG_TRIVIAL(info) << "[BBL Updater]:found vendor "<<vendor_name<<" newer version "<<resource_ver.to_string() <<" from resource, old version "<<vendor_ver.to_string();
+                            BOOST_LOG_TRIVIAL(info) << "[BBL Updater]:found vendor "<<vendor_name<<" different version "<<resource_ver.to_string() <<" from resource, old version "<<vendor_ver.to_string()<<", will copy from resource";
                             bundles.push_back(vendor_name);
                         }
                     }
@@ -1257,7 +1257,7 @@ Updates PresetUpdater::priv::get_printer_config_updates(bool update) const
         bool version_match = ((resc_ver.maj() == curr_ver.maj()) && (resc_ver.min() == curr_ver.min()));
 
         if (!version_match || (curr_ver < resc_ver)) {
-            BOOST_LOG_TRIVIAL(info) << "[BBL Updater]:found newer version " << resc_version << " from resource, old version " << curr_version;
+            BOOST_LOG_TRIVIAL(info) << "[BBL Updater]:found different version " << resc_version << " from resource, old version " << curr_version<<", will copy from resource";
         } else {
             return {};
         }
