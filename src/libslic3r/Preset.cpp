@@ -318,11 +318,12 @@ void Preset::normalize(DynamicPrintConfig &config)
 {
     // BBS
     auto* filament_diameter = dynamic_cast<const ConfigOptionFloats*>(config.option("filament_diameter"));
-    if (filament_diameter != nullptr)
+    //not use any more
+    /*if (filament_diameter != nullptr)
         // Loaded the FFF Printer settings. Verify, that all extruder dependent values have enough values.
-        config.set_num_filaments((unsigned int)filament_diameter->values.size());
+        config.set_num_filaments((unsigned int)filament_diameter->values.size());*/
 
-    if (config.option("filament_diameter") != nullptr) {
+    if (filament_diameter) {
         // This config contains single or multiple filament presets.
         // Ensure that the filament preset vector options contain the correct number of values.
         // BBS
