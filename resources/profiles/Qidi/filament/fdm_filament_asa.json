@@ -4,8 +4,11 @@
     "from": "system",
     "instantiation": "false",
     "inherits": "fdm_filament_common",
+    "chamber_temperatures" : [
+        "55"
+    ],
     "cool_plate_temp" : [
-        "0"
+        "90"
     ],
     "eng_plate_temp" : [
         "90"
@@ -17,7 +20,7 @@
         "90"
     ],
     "cool_plate_temp_initial_layer" : [
-        "0"
+        "90"
     ],
     "eng_plate_temp_initial_layer" : [
         "90"
@@ -38,7 +41,7 @@
         "35"
     ],
     "filament_max_volumetric_speed": [
-        "28.6"
+        "15"
     ],
     "filament_type": [
         "ASA"
@@ -50,16 +53,16 @@
         "20"
     ],
     "nozzle_temperature_initial_layer": [
-        "260"
+        "250"
     ],
     "reduce_fan_stop_start_freq": [
         "1"
     ],
     "fan_max_speed": [
-        "35"
+        "50"
     ],
     "fan_min_speed": [
-        "35"
+        "10"
     ],
     "overhang_fan_threshold": [
         "25%"
@@ -68,7 +71,7 @@
         "80"
     ],
     "nozzle_temperature": [
-        "260"
+        "270"
     ],
     "temperature_vitrification": [
         "100"

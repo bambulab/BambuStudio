@@ -1,6 +1,6 @@
 {
     "type": "process",
-    "setting_id": "GP_Qidi_028",
+    "setting_id": "GP_Qidi_078",
     "name": "0.30mm Extra Draft @Qidi XPlus",
     "from": "system",
     "inherits": "fdm_process_qidi_common",
