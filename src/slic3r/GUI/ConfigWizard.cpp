@@ -1338,7 +1338,7 @@ PageDiameters::PageDiameters(ConfigWizard *parent)
     , diam_nozzle(new DiamTextCtrl(this))
     , diam_filam (new DiamTextCtrl(this))
 {
-    auto *default_nozzle = print_config_def.get("nozzle_diameter")->get_default_value<ConfigOptionFloats>();
+    auto *default_nozzle = print_config_def.get("nozzle_diameter")->get_default_value<ConfigOptionFloatsNullable>();
     wxString value = double_to_string(default_nozzle != nullptr && default_nozzle->size() > 0 ? default_nozzle->get_at(0) : 0.5);
     diam_nozzle->SetValue(value);
 

@@ -3589,7 +3589,7 @@ void Model::setExtruderParams(const DynamicPrintConfig& config, int extruders_co
             matName = config.opt_string("filament_type", i);
         }
         if (config.has("nozzle_temperature")) {
-            endTemp = config.opt_int("nozzle_temperature", i);
+            endTemp = config.opt_int_nullable("nozzle_temperature", i);
         }
 
         // FIXME: curr_bed_type is now a plate config rather than a global config.
@@ -3792,7 +3792,7 @@ double Model::findMaxSpeed(const ModelObject* object) {
         if (objectKey == "outer_wall_speed")
             externalPerimeterSpeedObj = object->config.get().opt_float_nullable(objectKey, 0);
         if (objectKey == "small_perimeter_speed")
-            smallPerimeterSpeedObj = object->config.opt_float(objectKey);
+            smallPerimeterSpeedObj = object->config.get().opt_float_nullable(objectKey,0);
     }
     objMaxSpeed = std::max(perimeterSpeedObj, std::max(externalPerimeterSpeedObj, std::max(infillSpeedObj, std::max(solidInfillSpeedObj, std::max(topSolidInfillSpeedObj, std::max(supportSpeedObj, std::max(smallPerimeterSpeedObj,objMaxSpeed)))))));
     if (objMaxSpeed <= 0) objMaxSpeed = 250.;

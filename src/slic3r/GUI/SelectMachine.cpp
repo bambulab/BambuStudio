@@ -1951,7 +1951,7 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
     // try color and type mapping
 
     const auto& full_config = wxGetApp().preset_bundle->full_config();
-    size_t nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+    size_t nozzle_nums = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
     m_filaments_map = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_filament_maps();
 
     int filament_result = 0;
@@ -2609,7 +2609,7 @@ bool SelectMachineDialog::is_same_nozzle_diameters(std::string& tag_nozzle_type,
     try
     {
         PresetBundle* preset_bundle = wxGetApp().preset_bundle;
-        auto opt_nozzle_diameters = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter");
+        auto opt_nozzle_diameters = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
 
         const ConfigOptionEnum<NozzleType>* nozzle_type = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<NozzleType>>("nozzle_type");
 
@@ -3878,7 +3878,7 @@ void SelectMachineDialog::update_show_status()
     }
 
     const auto& full_config = wxGetApp().preset_bundle->full_config();
-    size_t nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+    size_t nozzle_nums = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
     if (!m_mapping_popup.m_supporting_mix_print && nozzle_nums == 1)
     {
         bool useAms = false;
@@ -4336,7 +4336,7 @@ void SelectMachineDialog::reset_and_sync_ams_list()
 
     const auto& full_config = wxGetApp().preset_bundle->full_config();
     const auto& extra_flush_volumes = get_min_flush_volumes(full_config, 0); // todo multi_extruder: always display nozzle 1
-    size_t nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+    size_t nozzle_nums = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
 
     bool use_double_extruder = nozzle_nums > 1 ? true : false;
     if (use_double_extruder)
@@ -4396,7 +4396,7 @@ void SelectMachineDialog::reset_and_sync_ams_list()
             if (!dev_manager) return;
             MachineObject *obj_ = dev_manager->get_selected_machine();
             const auto& full_config = wxGetApp().preset_bundle->full_config();
-            size_t nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+            size_t nozzle_nums = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
             if (nozzle_nums > 1)
             {
                 if (is_two_nozzle_same())

@@ -100,7 +100,7 @@ double Flow::extrusion_width(const std::string& opt_key, const ConfigOptionFloat
 
 	if (opt->value == 0.) {
         // If user left option to 0, calculate a sane default width.
-    	auto opt_nozzle_diameters = config.option<ConfigOptionFloats>("nozzle_diameter");
+    	auto opt_nozzle_diameters = config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
     	if (opt_nozzle_diameters == nullptr)
     		throw_on_missing_variable(opt_key, "nozzle_diameter");
         return auto_extrusion_width(opt_key_to_flow_role(opt_key), float(opt_nozzle_diameters->get_at(first_printing_extruder)));

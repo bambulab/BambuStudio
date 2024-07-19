@@ -45,7 +45,7 @@ inline coordf_t max_layer_height_from_nozzle(const PrintConfig &print_config, in
 // Minimum layer height for the variable layer height algorithm.
 coordf_t Slicing::min_layer_height_from_nozzle(const DynamicPrintConfig &print_config, int idx_nozzle)
 {
-    coordf_t min_layer_height = print_config.opt_float("min_layer_height", idx_nozzle - 1);
+    coordf_t min_layer_height = print_config.opt_float_nullable("min_layer_height", idx_nozzle - 1);
     return (min_layer_height == 0.) ? MIN_LAYER_HEIGHT_DEFAULT : std::max(MIN_LAYER_HEIGHT, min_layer_height);
 }
 
@@ -54,8 +54,8 @@ coordf_t Slicing::min_layer_height_from_nozzle(const DynamicPrintConfig &print_c
 coordf_t Slicing::max_layer_height_from_nozzle(const DynamicPrintConfig &print_config, int idx_nozzle)
 {
     coordf_t min_layer_height = min_layer_height_from_nozzle(print_config, idx_nozzle);
-    coordf_t max_layer_height = print_config.opt_float("max_layer_height", idx_nozzle - 1);
-    coordf_t nozzle_dmr       = print_config.opt_float("nozzle_diameter", idx_nozzle - 1);
+    coordf_t max_layer_height = print_config.opt_float_nullable("max_layer_height", idx_nozzle - 1);
+    coordf_t nozzle_dmr       = print_config.opt_float_nullable("nozzle_diameter", idx_nozzle - 1);
     return std::max(min_layer_height, (max_layer_height == 0.) ? (0.75 * nozzle_dmr) : max_layer_height);
 }
 

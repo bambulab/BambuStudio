@@ -85,7 +85,7 @@ void ConfigManipulation::check_nozzle_temperature_range(DynamicPrintConfig *conf
     if (!get_temperature_range(config, temperature_range_low, temperature_range_high)) return;
 
     if (config->has("nozzle_temperature")) {
-        if (config->opt_int("nozzle_temperature", 0) < temperature_range_low || config->opt_int("nozzle_temperature", 0) > temperature_range_high) {
+        if (config->opt_int_nullable("nozzle_temperature", 0) < temperature_range_low || config->opt_int_nullable("nozzle_temperature", 0) > temperature_range_high) {
             wxString msg_text = _(L("Nozzle may be blocked when the temperature is out of recommended range.\n"
                                     "Please confirm whether to use the temperature for printing.\n\n"));
             msg_text += wxString::Format(_L("Recommended nozzle temperature of this filament type is [%d, %d] degree centigrade"), temperature_range_low, temperature_range_high);
@@ -106,8 +106,8 @@ void ConfigManipulation::check_nozzle_temperature_initial_layer_range(DynamicPri
     if (!get_temperature_range(config, temperature_range_low, temperature_range_high)) return;
 
     if (config->has("nozzle_temperature_initial_layer")) {
-        if (config->opt_int("nozzle_temperature_initial_layer", 0) < temperature_range_low ||
-            config->opt_int("nozzle_temperature_initial_layer", 0) > temperature_range_high)
+        if (config->opt_int_nullable("nozzle_temperature_initial_layer", 0) < temperature_range_low ||
+            config->opt_int_nullable("nozzle_temperature_initial_layer", 0) > temperature_range_high)
         {
             wxString msg_text = _(L("Nozzle may be blocked when the temperature is out of recommended range.\n"
                 "Please confirm whether to use the temperature for printing.\n\n"));
@@ -126,7 +126,7 @@ void ConfigManipulation::check_filament_max_volumetric_speed(DynamicPrintConfig 
     //if (is_msg_dlg_already_exist) return;
     //float max_volumetric_speed = config->opt_float("filament_max_volumetric_speed");
 
-    float max_volumetric_speed = config->has("filament_max_volumetric_speed") ? config->opt_float("filament_max_volumetric_speed", (float) 0.5) : 0.5;
+    float max_volumetric_speed = config->has("filament_max_volumetric_speed") ? config->opt_float_nullable("filament_max_volumetric_speed", (float) 0.5) : 0.5;
     // BBS: limite the min max_volumetric_speed
     if (max_volumetric_speed < 0.5) {
         const wxString     msg_text = _(L("Too small max volumetric speed.\nReset to 0.5"));
@@ -134,7 +134,7 @@ void ConfigManipulation::check_filament_max_volumetric_speed(DynamicPrintConfig 
         DynamicPrintConfig new_conf = *config;
         is_msg_dlg_already_exist    = true;
         dialog.ShowModal();
-        new_conf.set_key_value("filament_max_volumetric_speed", new ConfigOptionFloats({0.5}));
+        new_conf.set_key_value("filament_max_volumetric_speed", new ConfigOptionFloatsNullable({0.5}));
         apply(config, &new_conf);
         is_msg_dlg_already_exist = false;
     }
@@ -576,7 +576,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
         toggle_field(el, has_top_solid_infill || (has_spiral_vase && has_bottom_solid_infill));
 
     // todo multi_extruders: the exact filament id
-    bool have_default_acceleration = config->opt_float("default_acceleration", 0) > 0;
+    bool have_default_acceleration = config->opt_float_nullable("default_acceleration", 0) > 0;
     //BBS
     for (auto el : { "initial_layer_acceleration", "outer_wall_acceleration", "top_surface_acceleration", "inner_wall_acceleration", "sparse_infill_acceleration" })
         toggle_field(el, have_default_acceleration);
@@ -676,7 +676,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     toggle_line("max_travel_detour_distance", have_avoid_crossing_perimeters);
 
     // todo multi_extruders:
-    bool has_overhang_speed = config->opt_bool("enable_overhang_speed", variant_index);
+    bool has_overhang_speed = config->opt_bool_nullable("enable_overhang_speed", variant_index);
     for (auto el : { "overhang_1_4_speed", "overhang_2_4_speed", "overhang_3_4_speed", "overhang_4_4_speed"})
         toggle_line(el, has_overhang_speed, variant_index);
 
