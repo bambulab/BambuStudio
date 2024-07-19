@@ -668,7 +668,7 @@ double ConfigBase::get_abs_value_at(const t_config_option_key &opt_key, size_t i
         } else {
             const ConfigOption *ratio_opt = this->option(opt_def->ratio_over);
             assert(ratio_opt->type() == coFloats);
-            const ConfigOptionFloats *ratio_values = static_cast<const ConfigOptionFloats *>(raw_opt);
+            const ConfigOptionFloats *ratio_values = static_cast<const ConfigOptionFloats *>(ratio_opt);
             return static_cast<const ConfigOptionFloatsOrPercents *>(raw_opt)->get_at(index).get_abs_value(ratio_values->get_at(index));
         }
     }
