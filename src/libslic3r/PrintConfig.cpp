@@ -1624,7 +1624,8 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->max = 70;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloats { 2. });
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable { 2. });
 
     def = this->add("filament_minimal_purge_on_wipe_tower", coFloats);
     def->label = L("Minimal purge on wipe tower");
@@ -1881,7 +1882,8 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = "mm/s²";
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloats{500});
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable{500});
 
     def = this->add("outer_wall_acceleration", coFloats);
     def->label = L("Outer wall");
@@ -1898,7 +1900,8 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = "mm/s²";
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloats{0});
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable{0});
 
     def             = this->add("sparse_infill_acceleration", coFloatsOrPercents);
     def->label      = L("Sparse infill");
@@ -1907,7 +1910,8 @@ void PrintConfigDef::init_fff_params()
     def->min        = 0;
     def->mode       = comAdvanced;
     def->ratio_over = "default_acceleration";
-    def->set_default_value(new ConfigOptionFloatsOrPercents{FloatOrPercent(100, true)});
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsOrPercentsNullable{FloatOrPercent(100, true)});
 
     def = this->add("initial_layer_acceleration", coFloats);
     def->label = L("Initial layer");
@@ -1915,6 +1919,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = "mm/s²";
     def->min = 0;
     def->mode = comAdvanced;
+    def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable{300});
 
     def = this->add("accel_to_decel_enable", coBool);
@@ -2038,7 +2043,8 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = "°C";
     def->min = 0;
     def->max = max_temp;
-    def->set_default_value(new ConfigOptionInts { 200 });
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionIntsNullable { 200 });
 
     def = this->add("full_fan_speed_layer", coInts);
     def->label = L("Full fan speed at layer");
@@ -2553,7 +2559,8 @@ void PrintConfigDef::init_fff_params()
             def->sidetext = L("mm/s");
             def->min = 0;
             def->mode = comSimple;
-            def->set_default_value(new ConfigOptionFloats(axis.max_feedrate));
+            def->nullable = true;
+            def->set_default_value(new ConfigOptionFloatsNullable(axis.max_feedrate));
             // Add the machine acceleration limits for XYZE axes (M201)
             def = this->add("machine_max_acceleration_" + axis.name, coFloats);
             def->full_label = (boost::format("Maximum acceleration %1%") % axis_upper).str();
@@ -2571,7 +2578,8 @@ void PrintConfigDef::init_fff_params()
             def->sidetext = "mm/s²";
             def->min = 0;
             def->mode = comSimple;
-            def->set_default_value(new ConfigOptionFloats(axis.max_acceleration));
+            def->nullable = true;
+            def->set_default_value(new ConfigOptionFloatsNullable(axis.max_acceleration));
             // Add the machine jerk limits for XYZE axes (M205)
             def = this->add("machine_max_jerk_" + axis.name, coFloats);
             def->full_label = (boost::format("Maximum jerk %1%") % axis_upper).str();
@@ -2589,7 +2597,8 @@ void PrintConfigDef::init_fff_params()
             def->sidetext = L("mm/s");
             def->min = 0;
             def->mode = comSimple;
-            def->set_default_value(new ConfigOptionFloats(axis.max_jerk));
+            def->nullable = true;
+            def->set_default_value(new ConfigOptionFloatsNullable(axis.max_jerk));
         }
     }
 
@@ -2601,7 +2610,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloats{ 0., 0. });
+    def->set_default_value(new ConfigOptionFloatsNullable{ 0., 0. });
 
     // M205 T... [mm/sec]
     def = this->add("machine_min_travel_rate", coFloats);
@@ -2611,7 +2620,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloats{ 0., 0. });
+    def->set_default_value(new ConfigOptionFloatsNullable{ 0., 0. });
 
     // M204 P... [mm/sec^2]
     def = this->add("machine_max_acceleration_extruding", coFloats);
@@ -2624,7 +2633,8 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->readonly = false;
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionFloats{ 1500., 1250. });
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable{ 1500., 1250. });
 
 
     // M204 R... [mm/sec^2]
@@ -2636,7 +2646,8 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->readonly = false;
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionFloats{ 1500., 1250. });
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable{ 1500., 1250. });
 
     // M204 T... [mm/sec^2]
     def = this->add("machine_max_acceleration_travel", coFloats);
@@ -2647,7 +2658,8 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->readonly = true;
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloats{ 1500., 1250. });
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable{ 1500., 1250. });
 
     def = this->add("fan_max_speed", coInts);
     def->label = L("Fan speed");
@@ -2666,7 +2678,8 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloats { 0. });
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable { 0. });
 
 #ifdef HAS_PRESSURE_EQUALIZER
     //def = this->add("max_volumetric_extrusion_rate_slope_positive", coFloat);
@@ -2718,7 +2731,8 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloats { 0.07 });
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable { 0.07 });
 
     def = this->add("slow_down_min_speed", coFloats);
     def->label = L("Min print speed");
@@ -2734,7 +2748,8 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->mode = comAdvanced;
     def->max = 1.0;
-    def->set_default_value(new ConfigOptionFloats { 0.4 });
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable { 0.4 });
 
     def = this->add("host_type", coEnum);
     def->label = L("Host Type");
@@ -2961,20 +2976,23 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Only trigger retraction when the travel distance is longer than this threshold");
     def->sidetext = L("mm");
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloats { 2. });
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable { 2. });
 
     def = this->add("retract_before_wipe", coPercents);
     def->label = L("Retract amount before wipe");
     def->tooltip = L("The length of fast retraction before wipe, relative to retraction length");
     def->sidetext = "%";
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionPercents { 100 });
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionPercentsNullable { 100 });
 
     def = this->add("retract_when_changing_layer", coBools);
     def->label = L("Retract when change layer");
     def->tooltip = L("Force a retraction when changes layer");
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBools { false });
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionBoolsNullable { false });
 
     def = this->add("retraction_length", coFloats);
     def->label = L("Length");
@@ -2983,7 +3001,8 @@ void PrintConfigDef::init_fff_params()
                      "Set zero to disable retraction");
     def->sidetext = L("mm");
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionFloats { 0.8 });
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable { 0.8 });
 
     def = this->add("enable_long_retraction_when_cut",coInt);
     def->mode = comDevelop;
@@ -2994,7 +3013,8 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Experimental feature.Retracting and cutting off the filament at a longer distance during changes to minimize purge."
                      "While this reduces flush significantly, it may also raise the risk of nozzle clogs or other printing problems.");
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionBools {false});
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionBoolsNullable {false});
 
     def = this->add("retraction_distances_when_cut",coFloats);
     def->label = L("Retraction distance when cut");
@@ -3002,7 +3022,8 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->min = 10;
     def->max = 18;
-    def->set_default_value(new ConfigOptionFloats {18});
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable {18});
 
     def = this->add("retract_length_toolchange", coFloats);
     def->label = L("Length");
@@ -3013,7 +3034,8 @@ void PrintConfigDef::init_fff_params()
     //               "the extruder).");
     def->sidetext = L("mm");
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloats { 10. });
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable { 10. });
 
     def = this->add("z_hop", coFloats);
     def->label = L("Z hop when retract");
@@ -3024,7 +3046,8 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->min = 0;
     def->max = 5;
-    def->set_default_value(new ConfigOptionFloats { 0.4 });
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable { 0.4 });
 
     def             = this->add("retract_lift_above", coFloats);
     def->label      = L("Z hop lower boundary");
@@ -3032,7 +3055,8 @@ void PrintConfigDef::init_fff_params()
     def->sidetext   = L("mm");
     def->mode       = comAdvanced;
     def->min        = 0;
-    def->set_default_value(new ConfigOptionFloats{0.});
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable{0.});
 
     def             = this->add("retract_lift_below", coFloats);
     def->label      = L("Z hop upper boundary");
@@ -3040,7 +3064,8 @@ void PrintConfigDef::init_fff_params()
     def->sidetext   = L("mm");
     def->mode       = comAdvanced;
     def->min        = 0;
-    def->set_default_value(new ConfigOptionFloats{0.});
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable{0.});
 
 
     def = this->add("z_hop_types", coEnums);
@@ -3056,7 +3081,8 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Slope"));
     def->enum_labels.push_back(L("Spiral"));
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionEnumsGeneric{ ZHopType::zhtSpiral });
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionEnumsGenericNullable{ ZHopType::zhtSpiral });
 
     def = this->add("extruder_type", coEnums);
     def->label = L("Type");
@@ -3161,7 +3187,7 @@ void PrintConfigDef::init_fff_params()
     //               "this additional amount of filament. This setting is rarely needed.");
     def->sidetext = L("mm");
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloats { 0. });
+    def->set_default_value(new ConfigOptionFloatsNullable { 0. });
 
     def = this->add("retract_restart_extra_toolchange", coFloats);
     def->label = L("Extra length on restart");
@@ -3170,7 +3196,8 @@ void PrintConfigDef::init_fff_params()
     //               "this additional amount of filament.");
     def->sidetext = L("mm");
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloats { 0. });
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable { 0. });
 
     def = this->add("retraction_speed", coFloats);
     def->label = L("Retraction Speed");
@@ -3178,7 +3205,8 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Speed of retractions");
     def->sidetext = L("mm/s");
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloats { 30. });
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable { 30. });
 
     def = this->add("deretraction_speed", coFloats);
     def->label = L("Deretraction Speed");
@@ -3186,7 +3214,8 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Speed for reloading filament into extruder. Zero means the same speed as retraction");
     def->sidetext = L("mm/s");
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloats { 0. });
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable { 0. });
 
     def = this->add("seam_position", coEnum);
     def->label = L("Seam position");
@@ -3872,7 +3901,8 @@ void PrintConfigDef::init_fff_params()
     def->full_label = L("Nozzle temperature");
     def->min = 0;
     def->max = max_temp;
-    def->set_default_value(new ConfigOptionInts { 200 });
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionIntsNullable { 200 });
 
     def = this->add("nozzle_temperature_range_low", coInts);
     def->label = L("Min");
@@ -3990,7 +4020,8 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Move nozzle along the last extrusion path when retracting to clean leaked material on nozzle. "
                      "This can minimize blob when printing new part after travel");
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBools { false });
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionBoolsNullable { false });
 
     def = this->add("wipe_distance", coFloats);
     def->label = L("Wipe Distance");
@@ -3998,7 +4029,8 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloats { 2. });
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable { 2. });
 
     def = this->add("enable_prime_tower", coBool);
     def->label = L("Enable");
@@ -4254,10 +4286,10 @@ void PrintConfigDef::init_fff_params()
         else
             def->mode       = comAdvanced;
         switch (def->type) {
-        case coFloats   : def->set_default_value(new ConfigOptionFloatsNullable  (static_cast<const ConfigOptionFloats*  >(it_opt->second.default_value.get())->values)); break;
-        case coPercents : def->set_default_value(new ConfigOptionPercentsNullable(static_cast<const ConfigOptionPercents*>(it_opt->second.default_value.get())->values)); break;
-        case coBools    : def->set_default_value(new ConfigOptionBoolsNullable   (static_cast<const ConfigOptionBools*   >(it_opt->second.default_value.get())->values)); break;
-        case coEnums    : def->set_default_value(new ConfigOptionEnumsGenericNullable(static_cast<const ConfigOptionEnumsGeneric*   >(it_opt->second.default_value.get())->values)); break;
+        case coFloats: def->set_default_value(new ConfigOptionFloatsNullable(static_cast<const ConfigOptionFloatsNullable*>(it_opt->second.default_value.get())->values)); break;
+        case coPercents: def->set_default_value(new ConfigOptionPercentsNullable(static_cast<const ConfigOptionPercentsNullable*>(it_opt->second.default_value.get())->values)); break;
+        case coBools: def->set_default_value(new ConfigOptionBoolsNullable(static_cast<const ConfigOptionBools*>(it_opt->second.default_value.get())->values)); break;
+        case coEnums: def->set_default_value(new ConfigOptionEnumsGenericNullable(static_cast<const ConfigOptionEnumsGenericNullable*>(it_opt->second.default_value.get())->values)); break;
         default: assert(false);
         }
     }
@@ -5270,7 +5302,7 @@ void DynamicPrintConfig::normalize_fdm(int used_filaments)
     if (this->has("spiral_mode") && this->opt<ConfigOptionBool>("spiral_mode", true)->value) {
         {
             // this should be actually done only on the spiral layers instead of all
-            auto* opt = this->opt<ConfigOptionBools>("retract_when_changing_layer", true);
+            auto* opt = this->opt<ConfigOptionBoolsNullable>("retract_when_changing_layer", true);
             opt->values.assign(opt->values.size(), false);  // set all values to false
             // Disable retract on layer change also for filament overrides.
             auto* opt_n = this->opt<ConfigOptionBoolsNullable>("filament_retract_when_changing_layer", true);
@@ -5342,7 +5374,7 @@ void DynamicPrintConfig::normalize_fdm_1()
     if (this->has("spiral_mode") && this->opt<ConfigOptionBool>("spiral_mode", true)->value) {
         {
             // this should be actually done only on the spiral layers instead of all
-            auto* opt = this->opt<ConfigOptionBools>("retract_when_changing_layer", true);
+            auto* opt = this->opt<ConfigOptionBoolsNullable>("retract_when_changing_layer", true);
             opt->values.assign(opt->values.size(), false);  // set all values to false
             // Disable retract on layer change also for filament overrides.
             auto* opt_n = this->opt<ConfigOptionBoolsNullable>("filament_retract_when_changing_layer", true);
@@ -5592,7 +5624,7 @@ bool DynamicPrintConfig::is_using_different_extruders()
 {
     bool ret = false;
 
-    auto nozzle_diameters_opt = dynamic_cast<const ConfigOptionFloats*>(this->option("nozzle_diameter"));
+    auto nozzle_diameters_opt = dynamic_cast<const ConfigOptionFloatsNullable*>(this->option("nozzle_diameter"));
     if (nozzle_diameters_opt != nullptr) {
         int size = nozzle_diameters_opt->size();
         if (size > 1) {
@@ -5621,7 +5653,7 @@ bool DynamicPrintConfig::support_different_extruders(int& extruder_count)
 {
     std::set<std::string> variant_set;
 
-    auto nozzle_diameters_opt = dynamic_cast<const ConfigOptionFloats*>(this->option("nozzle_diameter"));
+    auto nozzle_diameters_opt = dynamic_cast<const ConfigOptionFloatsNullable*>(this->option("nozzle_diameter"));
     if (nozzle_diameters_opt != nullptr) {
         int size = nozzle_diameters_opt->size();
         extruder_count = size;

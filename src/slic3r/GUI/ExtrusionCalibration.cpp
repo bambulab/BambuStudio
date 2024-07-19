@@ -462,8 +462,8 @@ void ExtrusionCalibration::on_click_cali(wxCommandEvent& event)
                 if (filament_name.compare(m_comboBox_filament->GetValue()) == 0) {
                     try {
                         bed_temp = get_bed_temp(&it->config);
-                        const ConfigOptionInts* nozzle_temp_opt = it->config.option<ConfigOptionInts>("nozzle_temperature");
-                        const ConfigOptionFloats* speed_opt = it->config.option<ConfigOptionFloats>("filament_max_volumetric_speed");
+                        const ConfigOptionIntsNullable* nozzle_temp_opt = it->config.option<ConfigOptionIntsNullable>("nozzle_temperature");
+                        const ConfigOptionFloatsNullable* speed_opt = it->config.option<ConfigOptionFloatsNullable>("filament_max_volumetric_speed");
                         if (nozzle_temp_opt && speed_opt) {
                             nozzle_temp = nozzle_temp_opt->get_at(0);
                             max_volumetric_speed = speed_opt->get_at(0);
@@ -582,8 +582,8 @@ void ExtrusionCalibration::on_click_save(wxCommandEvent &event)
             if (filament_name.compare(m_comboBox_filament->GetValue()) == 0) {
                 if (obj) {
                     bed_temp    = get_bed_temp(&it->config);
-                    const ConfigOptionInts* nozzle_temp_opt = it->config.option<ConfigOptionInts>("nozzle_temperature");
-                    const ConfigOptionFloats* speed_opt = it->config.option<ConfigOptionFloats>("filament_max_volumetric_speed");
+                    const ConfigOptionIntsNullable* nozzle_temp_opt = it->config.option<ConfigOptionIntsNullable>("nozzle_temperature");
+                    const ConfigOptionFloatsNullable* speed_opt = it->config.option<ConfigOptionFloatsNullable>("filament_max_volumetric_speed");
                     if (nozzle_temp_opt && speed_opt) {
                         nozzle_temp = nozzle_temp_opt->get_at(0);
                         max_volumetric_speed = speed_opt->get_at(0);
@@ -799,7 +799,7 @@ void ExtrusionCalibration::update_filament_info()
                 // update nozzle temperature
                 ConfigOption* opt_nozzle_temp = filament_it->config.option("nozzle_temperature");
                 if (opt_nozzle_temp) {
-                    ConfigOptionInts* opt_min_ints = dynamic_cast<ConfigOptionInts*>(opt_nozzle_temp);
+                    ConfigOptionIntsNullable* opt_min_ints = dynamic_cast<ConfigOptionIntsNullable*>(opt_nozzle_temp);
                     if (opt_min_ints) {
                         wxString text_nozzle_temp = wxString::Format("%d", opt_min_ints->get_at(0));
                         m_nozzle_temp->GetTextCtrl()->SetValue(text_nozzle_temp);
@@ -813,7 +813,7 @@ void ExtrusionCalibration::update_filament_info()
                 // update max flow speed
                 ConfigOption* opt_flow_speed = filament_it->config.option("filament_max_volumetric_speed");
                 if (opt_flow_speed) {
-                    ConfigOptionFloats* opt_flow_floats = dynamic_cast<ConfigOptionFloats*>(opt_flow_speed);
+                    ConfigOptionFloatsNullable* opt_flow_floats = dynamic_cast<ConfigOptionFloatsNullable*>(opt_flow_speed);
                     if (opt_flow_floats) {
                         wxString flow_val_text = wxString::Format("%0.2f", opt_flow_floats->get_at(0));
                         m_max_flow_ratio->GetTextCtrl()->SetValue(flow_val_text);

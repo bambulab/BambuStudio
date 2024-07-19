@@ -108,7 +108,7 @@ static bool is_same_nozzle_diameters(const DynamicPrintConfig &full_config, cons
             nozzle_type = "stainless_steel";
         }
 
-        auto opt_nozzle_diameters = full_config.option<ConfigOptionFloats>("nozzle_diameter");
+        auto opt_nozzle_diameters = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
         if (opt_nozzle_diameters != nullptr) {
             float preset_nozzle_diameter = opt_nozzle_diameters->get_at(0);
             if (preset_nozzle_diameter != obj->m_nozzle_data.nozzles[0].diameter) {
@@ -536,7 +536,7 @@ bool CalibUtils::calib_flowrate(int pass, const CalibInfo &calib_info, wxString 
 
     /// --- scale ---
     // model is created for a 0.4 nozzle, scale z with nozzle size.
-    const ConfigOptionFloats *nozzle_diameter_config = printer_config.option<ConfigOptionFloats>("nozzle_diameter");
+    const ConfigOptionFloatsNullable *nozzle_diameter_config = printer_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
     assert(nozzle_diameter_config->values.size() > 0);
     float nozzle_diameter = nozzle_diameter_config->values[0];
     float xyScale         = nozzle_diameter / 0.6;
@@ -555,10 +555,10 @@ bool CalibUtils::calib_flowrate(int pass, const CalibInfo &calib_info, wxString 
     //}
 
     Flow   infill_flow                   = Flow(nozzle_diameter * 1.2f, layer_height, nozzle_diameter);
-    double filament_max_volumetric_speed = filament_config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(0);
+    double filament_max_volumetric_speed = filament_config.option<ConfigOptionFloatsNullable>("filament_max_volumetric_speed")->get_at(0);
     double max_infill_speed              = filament_max_volumetric_speed / (infill_flow.mm3_per_mm() * (pass == 1 ? 1.2 : 1));
-    double internal_solid_speed          = std::floor(std::min(print_config.opt_float("internal_solid_infill_speed", calib_info.extruder_id), max_infill_speed));
-    double top_surface_speed             = std::floor(std::min(print_config.opt_float("top_surface_speed", calib_info.extruder_id), max_infill_speed));
+    double internal_solid_speed          = std::floor(std::min(print_config.opt_float_nullable("internal_solid_infill_speed", calib_info.extruder_id), max_infill_speed));
+    double top_surface_speed             = std::floor(std::min(print_config.opt_float_nullable("top_surface_speed", calib_info.extruder_id), max_infill_speed));
 
     // adjust parameters
     filament_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(calib_info.bed_type));
@@ -650,7 +650,7 @@ void CalibUtils::calib_pa_pattern(const CalibInfo &calib_info, Model& model)
     full_config.apply(filament_config);
     full_config.apply(printer_config);
 
-    float nozzle_diameter = printer_config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0);
+    float nozzle_diameter = printer_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->get_at(0);
 
     for (const auto opt : SuggestedConfigCalibPAPattern().float_pairs) {
         print_config.set_key_value(opt.first, new ConfigOptionFloat(opt.second));
@@ -744,7 +744,7 @@ bool CalibUtils::calib_generic_PA(const CalibInfo &calib_info, wxString &error_m
         else if (params.mode == CalibMode::Calib_PA_Pattern)
             js["cali_type"] = "cali_pa_pattern";
 
-        const ConfigOptionFloats *nozzle_diameter_config = printer_config.option<ConfigOptionFloats>("nozzle_diameter");
+        const ConfigOptionFloatsNullable *nozzle_diameter_config = printer_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
         assert(nozzle_diameter_config->values.size() > 0);
         float nozzle_diameter = nozzle_diameter_config->values[0];
 
@@ -807,8 +807,8 @@ void CalibUtils::calib_temptue(const CalibInfo &calib_info, wxString &error_mess
     DynamicPrintConfig printer_config  = calib_info.printer_prest->config;
 
     auto start_temp      = lround(params.start);
-    filament_config.set_key_value("nozzle_temperature_initial_layer", new ConfigOptionInts(1, (int) start_temp));
-    filament_config.set_key_value("nozzle_temperature", new ConfigOptionInts(1, (int) start_temp));
+    filament_config.set_key_value("nozzle_temperature_initial_layer", new ConfigOptionIntsNullable(1, (int) start_temp));
+    filament_config.set_key_value("nozzle_temperature", new ConfigOptionIntsNullable(1, (int) start_temp));
     filament_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(calib_info.bed_type));
 
     model.objects[0]->config.set_key_value("brim_type", new ConfigOptionEnum<BrimType>(btOuterOnly));
@@ -851,20 +851,20 @@ void CalibUtils::calib_max_vol_speed(const CalibInfo &calib_info, wxString &erro
     if (scale_obj < 1.0)
         obj->scale(scale_obj, 1, 1);
 
-    const ConfigOptionFloats *nozzle_diameter_config = printer_config.option<ConfigOptionFloats>("nozzle_diameter");
+    const ConfigOptionFloatsNullable *nozzle_diameter_config = printer_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
     assert(nozzle_diameter_config->values.size() > 0);
     double nozzle_diameter = nozzle_diameter_config->values[0];
     double line_width      = nozzle_diameter * 1.75;
     double layer_height    = nozzle_diameter * 0.8;
 
-    auto max_lh = printer_config.option<ConfigOptionFloats>("max_layer_height");
+    auto max_lh = printer_config.option<ConfigOptionFloatsNullable>("max_layer_height");
     if (max_lh->values[0] < layer_height) max_lh->values[0] = {layer_height};
 
-    filament_config.set_key_value("filament_max_volumetric_speed", new ConfigOptionFloats{50});
+    filament_config.set_key_value("filament_max_volumetric_speed", new ConfigOptionFloatsNullable{50});
     filament_config.set_key_value("slow_down_layer_time", new ConfigOptionInts{0});
     filament_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(calib_info.bed_type));
 
-    print_config.set_key_value("enable_overhang_speed", new ConfigOptionBool{false});
+    print_config.set_key_value("enable_overhang_speed", new ConfigOptionBoolsNullable{false});
     print_config.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
     print_config.set_key_value("wall_loops", new ConfigOptionInt(1));
     print_config.set_key_value("top_shell_layers", new ConfigOptionInt(0));
@@ -924,10 +924,10 @@ void CalibUtils::calib_VFA(const CalibInfo &calib_info, wxString &error_message)
     DynamicPrintConfig printer_config  = calib_info.printer_prest->config;
 
     filament_config.set_key_value("slow_down_layer_time", new ConfigOptionInts{0});
-    filament_config.set_key_value("filament_max_volumetric_speed", new ConfigOptionFloats{200});
+    filament_config.set_key_value("filament_max_volumetric_speed", new ConfigOptionFloatsNullable{200});
     filament_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(calib_info.bed_type));
 
-    print_config.set_key_value("enable_overhang_speed", new ConfigOptionBool{false});
+    print_config.set_key_value("enable_overhang_speed", new ConfigOptionBoolsNullable{false});
     print_config.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
     print_config.set_key_value("wall_loops", new ConfigOptionInt(1));
     print_config.set_key_value("top_shell_layers", new ConfigOptionInt(0));
@@ -985,7 +985,7 @@ void CalibUtils::calib_retraction(const CalibInfo &calib_info, wxString &error_m
 
     double layer_height = 0.2;
 
-    auto max_lh = printer_config.option<ConfigOptionFloats>("max_layer_height");
+    auto max_lh = printer_config.option<ConfigOptionFloatsNullable>("max_layer_height");
     if (max_lh->values[0] < layer_height) max_lh->values[0] = {layer_height};
 
     filament_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(calib_info.bed_type));

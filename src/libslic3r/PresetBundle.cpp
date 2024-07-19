@@ -1871,7 +1871,7 @@ void PresetBundle::set_calibrate_printer(std::string name)
     DynamicPrintConfig            config;
     config.set_key_value("printer_preset", new ConfigOptionString(active_printer.preset.name));
     const ConfigOption *opt = active_printer.preset.config.option("nozzle_diameter");
-    if (opt) config.set_key_value("num_extruders", new ConfigOptionInt((int) static_cast<const ConfigOptionFloats *>(opt)->values.size()));
+    if (opt) config.set_key_value("num_extruders", new ConfigOptionInt((int) static_cast<const ConfigOptionFloatsNullable *>(opt)->values.size()));
     calibrate_filaments.clear();
     for (size_t i = filaments.num_default_presets(); i < filaments.size(); ++i) {
         const Preset &                preset                          = filaments.m_presets[i];
@@ -2010,7 +2010,7 @@ int PresetBundle::get_printer_extruder_count()
 {
     Preset& printer_preset = this->printers.get_edited_preset();
 
-    int count = printer_preset.config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+    int count = printer_preset.config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
 
     return count;
 }
@@ -2067,7 +2067,7 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::vecto
         filament_maps.resize(num_filaments, 1);
     }
 
-    auto* extruder_diameter = dynamic_cast<const ConfigOptionFloats*>(out.option("nozzle_diameter"));
+    auto* extruder_diameter = dynamic_cast<const ConfigOptionFloatsNullable*>(out.option("nozzle_diameter"));
     // Collect the "compatible_printers_condition" and "inherits" values over all presets (print, filaments, printers) into a single vector.
     std::vector<std::string> compatible_printers_condition;
     std::vector<std::string> compatible_prints_condition;
@@ -2501,7 +2501,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
     std::vector<int> filament_self_indice = std::move(config.option<ConfigOptionInts>("filament_self_index", true)->values);
     if (config.option("extruder_variant_list")) {
         //3mf support multiple extruder logic
-        size_t extruder_count = config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+        size_t extruder_count = config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
         extruder_variant_count = config.option<ConfigOptionStrings>("filament_extruder_variant", true)->size();
         if ((extruder_variant_count != filament_self_indice.size())
             || (extruder_variant_count < num_filaments)) {

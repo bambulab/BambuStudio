@@ -513,9 +513,9 @@ void PressureAdvanceWizard::on_device_connected(MachineObject* obj)
 
 static bool get_preset_info(const DynamicConfig& config, const BedType plate_type, int& nozzle_temp, int& bed_temp, float& max_volumetric_speed)
 {
-    const ConfigOptionInts* nozzle_temp_opt = config.option<ConfigOptionInts>("nozzle_temperature");
+    const ConfigOptionIntsNullable* nozzle_temp_opt = config.option<ConfigOptionIntsNullable>("nozzle_temperature");
     const ConfigOptionInts* opt_bed_temp_ints = config.option<ConfigOptionInts>(get_bed_temp_key(plate_type));
-    const ConfigOptionFloats* speed_opt = config.option<ConfigOptionFloats>("filament_max_volumetric_speed");
+    const ConfigOptionFloatsNullable* speed_opt = config.option<ConfigOptionFloatsNullable>("filament_max_volumetric_speed");
     if (nozzle_temp_opt && speed_opt && opt_bed_temp_ints) {
         nozzle_temp = nozzle_temp_opt->get_at(0);
         max_volumetric_speed = speed_opt->get_at(0);
@@ -1463,7 +1463,7 @@ void MaxVolumetricSpeedWizard::on_cali_save()
         return;
 
     std::map<std::string, ConfigOption *> key_value_map;
-    key_value_map.insert(std::make_pair("filament_max_volumetric_speed", new ConfigOptionFloats{ value }));
+    key_value_map.insert(std::make_pair("filament_max_volumetric_speed", new ConfigOptionFloatsNullable{ value }));
 
     wxString message;
     if (!save_preset(old_preset_name, new_preset_name, key_value_map, message)) {

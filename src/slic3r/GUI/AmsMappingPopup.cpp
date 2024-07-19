@@ -529,7 +529,7 @@ void AmsMapingPopup::update(MachineObject* obj)
 
     /*ext*/
     const auto& full_config = wxGetApp().preset_bundle->full_config();
-    size_t nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+    size_t nozzle_nums = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
     if (nozzle_nums == 1) {
         m_warning_text->SetMinSize(wxSize(FromDIP(248), FromDIP(-1)));
         m_warning_text->Wrap(FromDIP(248));

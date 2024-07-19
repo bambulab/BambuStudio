@@ -505,7 +505,7 @@ std::vector<int> get_min_flush_volumes(const DynamicPrintConfig &full_config, si
         machine_enabled_level = enable_long_retraction_when_cut_opt->value;
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": get enable_long_retraction_when_cut from config, value=%1%")%machine_enabled_level;
     }
-    const ConfigOptionBools* long_retractions_when_cut_opt = full_config.option<ConfigOptionBools>("long_retractions_when_cut");
+    const ConfigOptionBoolsNullable* long_retractions_when_cut_opt = full_config.option<ConfigOptionBoolsNullable>("long_retractions_when_cut");
     bool machine_activated = false;
     if (long_retractions_when_cut_opt) {
         machine_activated = long_retractions_when_cut_opt->values[nozzle_id] == 1;
@@ -515,19 +515,19 @@ std::vector<int> get_min_flush_volumes(const DynamicPrintConfig &full_config, si
     size_t filament_size = full_config.option<ConfigOptionFloats>("filament_diameter")->values.size();
     std::vector<double> filament_retraction_distance_when_cut(filament_size, 18.0f), printer_retraction_distance_when_cut(filament_size, 18.0f);
     std::vector<unsigned char> filament_long_retractions_when_cut(filament_size, 0);
-    const ConfigOptionFloats* filament_retraction_distances_when_cut_opt = full_config.option<ConfigOptionFloats>("filament_retraction_distances_when_cut");
+    const ConfigOptionFloatsNullable* filament_retraction_distances_when_cut_opt = full_config.option<ConfigOptionFloatsNullable>("filament_retraction_distances_when_cut");
     if (filament_retraction_distances_when_cut_opt) {
         filament_retraction_distance_when_cut = filament_retraction_distances_when_cut_opt->values;
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": get filament_retraction_distance_when_cut from config, size=%1%, values=%2%")%filament_retraction_distance_when_cut.size() %filament_retraction_distances_when_cut_opt->serialize();
     }
 
-    const ConfigOptionFloats* printer_retraction_distance_when_cut_opt = full_config.option<ConfigOptionFloats>("retraction_distances_when_cut");
+    const ConfigOptionFloatsNullable* printer_retraction_distance_when_cut_opt = full_config.option<ConfigOptionFloatsNullable>("retraction_distances_when_cut");
     if (printer_retraction_distance_when_cut_opt) {
         printer_retraction_distance_when_cut = printer_retraction_distance_when_cut_opt->values;
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": get retraction_distances_when_cut from config, size=%1%, values=%2%")%printer_retraction_distance_when_cut.size() %printer_retraction_distance_when_cut_opt->serialize();
     }
 
-    const ConfigOptionBools* filament_long_retractions_when_cut_opt = full_config.option<ConfigOptionBools>("filament_long_retractions_when_cut");
+    const ConfigOptionBoolsNullable* filament_long_retractions_when_cut_opt = full_config.option<ConfigOptionBoolsNullable>("filament_long_retractions_when_cut");
     if (filament_long_retractions_when_cut_opt) {
         filament_long_retractions_when_cut = filament_long_retractions_when_cut_opt->values;
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": get filament_long_retractions_when_cut from config, size=%1%, values=%2%")%filament_long_retractions_when_cut.size() %filament_long_retractions_when_cut_opt->serialize();
@@ -1066,7 +1066,7 @@ Sidebar::Sidebar(Plater *parent)
             const auto& full_config = wxGetApp().preset_bundle->full_config();
             const auto& extra_flush_volumes = get_min_flush_volumes(full_config, 0); // todo multi_extruder: always display nozzle 1
 
-            size_t nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+            size_t nozzle_nums = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
 
             std::vector<float>  flush_multiplier;
             ConfigOptionFloats *flush_multi_opt = project_config.option<ConfigOptionFloats>("flush_multiplier");
@@ -8040,7 +8040,7 @@ PlateBBoxData Plater::priv::generate_first_layer_bbox()
     bboxdata.first_extruder = print->get_tool_ordering().first_extruder();
     bboxdata.bed_type       = bed_type_to_gcode_string(print->config().curr_bed_type.value);
     // get nozzle diameter
-    auto opt_nozzle_diameters = print->config().option<ConfigOptionFloats>("nozzle_diameter");
+    auto opt_nozzle_diameters = print->config().option<ConfigOptionFloatsNullable>("nozzle_diameter");
     if (opt_nozzle_diameters != nullptr)
         bboxdata.nozzle_diameter = float(opt_nozzle_diameters->get_at(bboxdata.first_extruder));
     //PrintObjectPtrs objects;
@@ -9944,7 +9944,7 @@ void Plater::_calib_pa_pattern(const Calib_Params &params)
 
     const DynamicPrintConfig &printer_config  = wxGetApp().preset_bundle->printers.get_edited_preset().config;
     DynamicPrintConfig &      print_config    = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-    float                    nozzle_diameter = printer_config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0);
+    float                    nozzle_diameter = printer_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->get_at(0);
 
     for (const auto opt : SuggestedConfigCalibPAPattern().float_pairs) {
         print_config.set_key_value(opt.first, new ConfigOptionFloat(opt.second));
@@ -9999,7 +9999,7 @@ void Plater::_calib_pa_tower(const Calib_Params &params)
     auto printer_config  = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
     auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
 
-    const float nozzle_diameter = printer_config->option<ConfigOptionFloats>("nozzle_diameter")->get_at(0);
+    const float nozzle_diameter = printer_config->option<ConfigOptionFloatsNullable>("nozzle_diameter")->get_at(0);
 
     filament_config->set_key_value("slow_down_layer_time", new ConfigOptionInts{1});
     //print_config->set_key_value("default_jerk", new ConfigOptionFloat(1.0f));
@@ -10008,8 +10008,8 @@ void Plater::_calib_pa_tower(const Calib_Params &params)
     auto full_config = wxGetApp().preset_bundle->full_config();
     auto wall_speed  = CalibPressureAdvance::find_optimal_PA_speed(full_config, full_config.get_abs_value("line_width"),
                                                                   full_config.get_abs_value("layer_height"), 0, 0);
-    print_config->set_key_value("outer_wall_speed", new ConfigOptionFloat(wall_speed));
-    print_config->set_key_value("inner_wall_speed", new ConfigOptionFloat(wall_speed));
+    print_config->set_key_value("outer_wall_speed", new ConfigOptionFloatsNullable({wall_speed}));
+    print_config->set_key_value("inner_wall_speed", new ConfigOptionFloatsNullable({wall_speed}));
     // print_config->set_key_value("wall_generator", new ConfigOptionEnum<PerimeterGeneratorType>(PerimeterGeneratorType::Classic));
     const auto _wall_generator = print_config->option<ConfigOptionEnum<PerimeterGeneratorType>>("wall_generator");
     if (_wall_generator->value == PerimeterGeneratorType::Arachne) print_config->set_key_value("wall_transition_angle", new ConfigOptionFloat(25));
@@ -10072,7 +10072,7 @@ void Plater::calib_flowrate(int pass)
 
     /// --- scale ---
     // model is created for a 0.4 nozzle, scale z with nozzle size.
-    const ConfigOptionFloats *nozzle_diameter_config = printerConfig->option<ConfigOptionFloats>("nozzle_diameter");
+    const ConfigOptionFloatsNullable *nozzle_diameter_config = printerConfig->option<ConfigOptionFloatsNullable>("nozzle_diameter");
     assert(nozzle_diameter_config->values.size() > 0);
     float nozzle_diameter = nozzle_diameter_config->values[0];
     float xyScale         = nozzle_diameter / 0.6;
@@ -10090,10 +10090,10 @@ void Plater::calib_flowrate(int pass)
     }
 
     Flow   infill_flow                   = Flow(nozzle_diameter * 1.2f, layer_height, nozzle_diameter);
-    double filament_max_volumetric_speed = filament_config->option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(0);
+    double filament_max_volumetric_speed = filament_config->option<ConfigOptionFloatsNullable>("filament_max_volumetric_speed")->get_at(0);
     double max_infill_speed              = filament_max_volumetric_speed / (infill_flow.mm3_per_mm() * (pass == 1 ? 1.2 : 1));
-    double internal_solid_speed          = std::floor(std::min(print_config->opt_float("internal_solid_infill_speed", 0), max_infill_speed));
-    double top_surface_speed             = std::floor(std::min(print_config->opt_float("top_surface_speed", 0), max_infill_speed));
+    double internal_solid_speed          = std::floor(std::min(print_config->opt_float_nullable("internal_solid_infill_speed", 0), max_infill_speed));
+    double top_surface_speed             = std::floor(std::min(print_config->opt_float_nullable("top_surface_speed", 0), max_infill_speed));
 
     // adjust parameters
     for (auto _obj : model().objects) {
@@ -10178,8 +10178,8 @@ void Plater::calib_temp(const Calib_Params &params)
     add_model(false, Slic3r::resources_dir() + "/calib/temperature_tower/temperature_tower.stl");
     auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
     auto start_temp      = lround(params.start);
-    filament_config->set_key_value("nozzle_temperature_initial_layer", new ConfigOptionInts(1, (int) start_temp));
-    filament_config->set_key_value("nozzle_temperature", new ConfigOptionInts(1, (int) start_temp));
+    filament_config->set_key_value("nozzle_temperature_initial_layer", new ConfigOptionIntsNullable(1, (int) start_temp));
+    filament_config->set_key_value("nozzle_temperature", new ConfigOptionIntsNullable(1, (int) start_temp));
     model().objects[0]->config.set_key_value("brim_type", new ConfigOptionEnum<BrimType>(btOuterOnly));
     model().objects[0]->config.set_key_value("brim_width", new ConfigOptionFloat(5.0));
     model().objects[0]->config.set_key_value("brim_object_gap", new ConfigOptionFloat(0.0));
@@ -10246,19 +10246,19 @@ void Plater::calib_max_vol_speed(const Calib_Params &params)
     auto         scale_obj = (bed_ext.size().x() - 10) / obj->bounding_box().size().x();
     if (scale_obj < 1.0) obj->scale(scale_obj, 1, 1);
 
-    const ConfigOptionFloats *nozzle_diameter_config = printer_config->option<ConfigOptionFloats>("nozzle_diameter");
+    const ConfigOptionFloatsNullable *nozzle_diameter_config = printer_config->option<ConfigOptionFloatsNullable>("nozzle_diameter");
     assert(nozzle_diameter_config->values.size() > 0);
     double nozzle_diameter = nozzle_diameter_config->values[0];
     double line_width      = nozzle_diameter * 1.75;
     double layer_height    = nozzle_diameter * 0.8;
 
-    auto max_lh = printer_config->option<ConfigOptionFloats>("max_layer_height");
+    auto max_lh = printer_config->option<ConfigOptionFloatsNullable>("max_layer_height");
     if (max_lh->values[0] < layer_height) max_lh->values[0] = {layer_height};
 
-    filament_config->set_key_value("filament_max_volumetric_speed", new ConfigOptionFloats{200});
+    filament_config->set_key_value("filament_max_volumetric_speed", new ConfigOptionFloatsNullable{200});
     filament_config->set_key_value("slow_down_layer_time", new ConfigOptionInts{0});
 
-    print_config->set_key_value("enable_overhang_speed", new ConfigOptionBool{false});
+    print_config->set_key_value("enable_overhang_speed", new ConfigOptionBoolsNullable{false});
     print_config->set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
     print_config->set_key_value("wall_loops", new ConfigOptionInt(1));
     print_config->set_key_value("top_shell_layers", new ConfigOptionInt(0));
@@ -10324,7 +10324,7 @@ void Plater::calib_retraction(const Calib_Params &params)
 
     double layer_height = 0.2;
 
-    auto max_lh = printer_config->option<ConfigOptionFloats>("max_layer_height");
+    auto max_lh = printer_config->option<ConfigOptionFloatsNullable>("max_layer_height");
     if (max_lh->values[0] < layer_height) max_lh->values[0] = {layer_height};
 
     obj->config.set_key_value("wall_loops", new ConfigOptionInt(2));
@@ -10369,8 +10369,8 @@ void Plater::calib_VFA(const Calib_Params &params)
     auto print_config    = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
     filament_config->set_key_value("slow_down_layer_time", new ConfigOptionInts{0});
-    filament_config->set_key_value("filament_max_volumetric_speed", new ConfigOptionFloats{200});
-    print_config->set_key_value("enable_overhang_speed", new ConfigOptionBool{false});
+    filament_config->set_key_value("filament_max_volumetric_speed", new ConfigOptionFloatsNullable{200});
+    print_config->set_key_value("enable_overhang_speed", new ConfigOptionBoolsNullable{false});
     print_config->set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
     print_config->set_key_value("wall_loops", new ConfigOptionInt(1));
     print_config->set_key_value("top_shell_layers", new ConfigOptionInt(0));
@@ -12511,7 +12511,7 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
 
     // get type and color for platedata
     auto* filament_color = dynamic_cast<const ConfigOptionStrings*>(cfg.option("filament_colour"));
-    auto* nozzle_diameter_option = dynamic_cast<const ConfigOptionFloats*>(cfg.option("nozzle_diameter"));
+    auto* nozzle_diameter_option = dynamic_cast<const ConfigOptionFloatsNullable*>(cfg.option("nozzle_diameter"));
     auto* filament_id_opt = dynamic_cast<const ConfigOptionStrings*>(cfg.option("filament_ids"));
     std::string nozzle_diameter_str;
     if (nozzle_diameter_option)

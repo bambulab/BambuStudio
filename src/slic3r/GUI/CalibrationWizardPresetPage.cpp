@@ -954,7 +954,7 @@ void CalibrationPresetPage::on_recommend_input_value()
         Preset* selected_filament_preset = selected_filaments.begin()->second;
         if (selected_filament_preset) {
             if (m_custom_range_panel) {
-                const ConfigOptionFloats* speed_opt = selected_filament_preset->config.option<ConfigOptionFloats>("filament_max_volumetric_speed");
+                const ConfigOptionFloatsNullable* speed_opt = selected_filament_preset->config.option<ConfigOptionFloatsNullable>("filament_max_volumetric_speed");
                 if (speed_opt) {
                     double max_volumetric_speed = speed_opt->get_at(0);
                     wxArrayString values;

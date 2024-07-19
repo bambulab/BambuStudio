@@ -1966,8 +1966,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_placeholder_parser.set("retraction_distance_when_cut", m_config.retraction_distances_when_cut.get_at(extruder_id));
     m_placeholder_parser.set("long_retraction_when_cut", m_config.long_retractions_when_cut.get_at(extruder_id));
 
-    m_placeholder_parser.set("retraction_distances_when_cut", new ConfigOptionFloats(m_config.retraction_distances_when_cut));
-    m_placeholder_parser.set("long_retractions_when_cut",new ConfigOptionBools(m_config.long_retractions_when_cut));
+    m_placeholder_parser.set("retraction_distances_when_cut", new ConfigOptionFloatsNullable(m_config.retraction_distances_when_cut));
+    m_placeholder_parser.set("long_retractions_when_cut",new ConfigOptionBoolsNullable(m_config.long_retractions_when_cut));
     //Set variable for total layer count so it can be used in custom gcode.
     m_placeholder_parser.set("total_layer_count", m_layer_count);
     // Useful for sequential prints.
@@ -2062,7 +2062,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
          //support variables `first_layer_temperature` and `first_layer_bed_temperature`
         m_placeholder_parser.set("first_layer_bed_temperature", new ConfigOptionInts(*first_bed_temp_opt));
-        m_placeholder_parser.set("first_layer_temperature", new ConfigOptionInts(m_config.nozzle_temperature_initial_layer));
+        m_placeholder_parser.set("first_layer_temperature", new ConfigOptionIntsNullable(m_config.nozzle_temperature_initial_layer));
         m_placeholder_parser.set("max_print_height", new ConfigOptionInt(m_config.printable_height));
         m_placeholder_parser.set("z_offset", new ConfigOptionFloat(0.0f));
         m_placeholder_parser.set("plate_name", new ConfigOptionString(print.get_plate_name()));
@@ -2075,7 +2075,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         m_placeholder_parser.set("during_print_exhaust_fan_speed_num",new ConfigOptionInts(during_print_exhaust_fan_speed_num));
         //BBS: calculate the volumetric speed of outer wall. Ignore pre-object setting and multi-filament, and just use the default setting
         {
-            float filament_max_volumetric_speed = m_config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(initial_non_support_extruder_id);
+            float filament_max_volumetric_speed = m_config.option<ConfigOptionFloatsNullable>("filament_max_volumetric_speed")->get_at(initial_non_support_extruder_id);
             float outer_wall_line_width = print.default_region_config().outer_wall_line_width.value;
             if (outer_wall_line_width == 0.0) {
                 float default_line_width = print.default_object_config().line_width.value;
@@ -2185,7 +2185,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         }
 
         CalibPressureAdvanceLine pa_test(this);
-        double                 filament_max_volumetric_speed = m_config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(initial_extruder_id);
+        double                 filament_max_volumetric_speed = m_config.option<ConfigOptionFloatsNullable>("filament_max_volumetric_speed")->get_at(initial_extruder_id);
         Flow                   pattern_line                  = Flow(pa_test.line_width(), 0.2, m_config.nozzle_diameter.get_at(0));
         auto                   fast_speed = std::min(print.default_region_config().outer_wall_speed.get_at(cur_extruder_index()), filament_max_volumetric_speed / pattern_line.mm3_per_mm());
         auto                   slow_speed = fast_speed / 4; /*std::max(20.0, fast_speed / 10.0);*/
@@ -3197,16 +3197,16 @@ GCode::LayerResult GCode::process_layer(
     }
     else if (print.calib_mode() == CalibMode::Calib_Vol_speed_Tower) {
         auto _speed = print.calib_params().start + print_z * print.calib_params().step;
-        m_calib_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(std::round(_speed)));
+        m_calib_config.set_key_value("outer_wall_speed", new ConfigOptionFloatsNullable({ std::round(_speed) }));
     }
     else if (print.calib_mode() == CalibMode::Calib_VFA_Tower) {
         auto _speed = print.calib_params().start + std::floor(print_z / 5.0) * print.calib_params().step;
-        m_calib_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(std::round(_speed)));
+        m_calib_config.set_key_value("outer_wall_speed", new ConfigOptionFloatsNullable({ std::round(_speed) }));
     }
     else if (print.calib_mode() == CalibMode::Calib_Retraction_tower) {
         auto _length = print.calib_params().start + std::floor(std::max(0.0, print_z - 0.4)) * print.calib_params().step;
         DynamicConfig _cfg;
-        _cfg.set_key_value("retraction_length", new ConfigOptionFloats{_length});
+        _cfg.set_key_value("retraction_length", new ConfigOptionFloatsNullable{_length});
         writer().config.apply(_cfg);
         sprintf(buf, "; Calib_Retraction_tower: Z_HEIGHT: %g, length:%g\n", print_z, _length);
         gcode += buf;

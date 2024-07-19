@@ -662,9 +662,10 @@ public:
 
     // Is this option overridden by another option?
     // An option overrides another option if it is not nil and not equal.
+    // assume lhs is not nullable even it is nullable
     bool overriden_by(const ConfigOption *rhs) const override {
-        if (this->nullable())
-        	throw ConfigurationError("Cannot override a nullable ConfigOption.");
+        /*if (this->nullable())
+        	throw ConfigurationError("Cannot override a nullable ConfigOption.");*/
         if (rhs->type() != this->type())
             throw ConfigurationError("ConfigOptionVector.overriden_by() applied to different types.");
     	auto rhs_vec = static_cast<const ConfigOptionVector<T>*>(rhs);
@@ -682,9 +683,10 @@ public:
     	return false;
     }
     // Apply an override option, possibly a nullable one.
+    // assume lhs is not nullable even it is nullable
     bool apply_override(const ConfigOption *rhs) override {
-        if (this->nullable())
-        	throw ConfigurationError("Cannot override a nullable ConfigOption.");
+        //if (this->nullable())
+        //	throw ConfigurationError("Cannot override a nullable ConfigOption.");
         if (rhs->type() != this->type())
 			throw ConfigurationError("ConfigOptionVector.apply_override() applied to different types.");
 		auto rhs_vec = static_cast<const ConfigOptionVector<T>*>(rhs);
@@ -2513,6 +2515,8 @@ public:
     int                 opt_int(const t_config_option_key &opt_key) const                       { return dynamic_cast<const ConfigOptionInt*>(this->option(opt_key))->value; }
     int&                opt_int(const t_config_option_key &opt_key, unsigned int idx)           { return this->option<ConfigOptionInts>(opt_key)->get_at(idx); }
     int                 opt_int(const t_config_option_key &opt_key, unsigned int idx) const     { return dynamic_cast<const ConfigOptionInts*>(this->option(opt_key))->get_at(idx); }
+    int&                opt_int_nullable(const t_config_option_key &opt_key, unsigned int idx)  { return this->option<ConfigOptionIntsNullable>(opt_key)->get_at(idx);}
+    const int &         opt_int_nullable(const t_config_option_key &opt_key, unsigned int idx) const { return dynamic_cast<const ConfigOptionIntsNullable*>(this->option(opt_key))->get_at(idx);}
 
     // In ConfigManipulation::toggle_print_fff_options, it is called on option with type ConfigOptionEnumGeneric* and also ConfigOptionEnum*.
     // Thus the virtual method getInt() is used to retrieve the enum value.
@@ -2520,9 +2524,13 @@ public:
     ENUM                opt_enum(const t_config_option_key &opt_key) const                      { return static_cast<ENUM>(this->option(opt_key)->getInt()); }
     // BBS
     int                 opt_enum(const t_config_option_key &opt_key, unsigned int idx) const    { return dynamic_cast<const ConfigOptionEnumsGeneric*>(this->option(opt_key))->get_at(idx); }
+    int                 opt_enum_nullable(const t_config_option_key &opt_key, unsigned int idx) const { return dynamic_cast<const ConfigOptionEnumsGenericNullable*>(this->option(opt_key))->get_at(idx); }
+
 
     bool                opt_bool(const t_config_option_key &opt_key) const                      { return this->option<ConfigOptionBool>(opt_key)->value != 0; }
     bool                opt_bool(const t_config_option_key &opt_key, unsigned int idx) const;
+    bool                opt_bool_nullable(const t_config_option_key &opt_key, unsigned int idx) const { return dynamic_cast<const ConfigOptionBoolsNullable*>(this->option(opt_key))->get_at(idx);}
+
 
     // Command line processing
     bool                read_cli(int argc, const char* const argv[], t_config_option_keys* extra, t_config_option_keys* keys = nullptr);

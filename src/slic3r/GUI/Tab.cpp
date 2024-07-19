@@ -1525,8 +1525,8 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     }
 
     if(opt_key=="layer_height"){
-        auto min_layer_height_from_nozzle=m_preset_bundle->full_config().option<ConfigOptionFloats>("min_layer_height")->values;
-        auto max_layer_height_from_nozzle=m_preset_bundle->full_config().option<ConfigOptionFloats>("max_layer_height")->values;
+        auto min_layer_height_from_nozzle=m_preset_bundle->full_config().option<ConfigOptionFloatsNullable>("min_layer_height")->values;
+        auto max_layer_height_from_nozzle=m_preset_bundle->full_config().option<ConfigOptionFloatsNullable>("max_layer_height")->values;
         auto layer_height_floor = *std::min_element(min_layer_height_from_nozzle.begin(), min_layer_height_from_nozzle.end());
         auto layer_height_ceil  = *std::max_element(max_layer_height_from_nozzle.begin(), max_layer_height_from_nozzle.end());
         float layer_height = m_config->opt_float("layer_height");
@@ -1646,7 +1646,7 @@ void Tab::update_wiping_button_visibility() {
     if (m_preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA)
         return; // ys_FIXME
     bool wipe_tower_enabled = dynamic_cast<ConfigOptionBool*>(  (m_preset_bundle->prints.get_edited_preset().config  ).option("enable_prime_tower"))->value;
-    bool multiple_extruders = dynamic_cast<ConfigOptionFloats*>((m_preset_bundle->printers.get_edited_preset().config).option("nozzle_diameter"))->values.size() > 1;
+    bool multiple_extruders = dynamic_cast<ConfigOptionFloatsNullable*>((m_preset_bundle->printers.get_edited_preset().config).option("nozzle_diameter"))->values.size() > 1;
 
     auto wiping_dialog_button = wxGetApp().sidebar().get_wiping_dialog_button();
     if (wiping_dialog_button) {
@@ -3092,7 +3092,7 @@ void TabFilament::update_filament_overrides_page()
     const int extruder_idx = m_variant_combo->GetSelection(); // #ys_FIXME
 
     const bool have_retract_length = dynamic_cast<ConfigOptionVectorBase *>(m_config->option("filament_retraction_length"))->is_nil(extruder_idx) ||
-                                     m_config->opt_float("filament_retraction_length", extruder_idx) > 0;
+                                     m_config->opt_float_nullable("filament_retraction_length", extruder_idx) > 0;
 
     for (const std::string& opt_key : opt_keys)
     {
@@ -3113,7 +3113,7 @@ void TabFilament::update_filament_overrides_page()
             else if (opt_key == "filament_retraction_distances_when_cut") {
                 int machine_enabled_level = m_preset_bundle->printers.get_edited_preset().config.option<ConfigOptionInt>("enable_long_retraction_when_cut")->value;
                 bool machine_enabled = machine_enabled_level == LongRectrationLevel::EnableFilament;
-                bool filament_enabled = m_config->option<ConfigOptionBools>("filament_long_retractions_when_cut")->values[extruder_idx] == 1;
+                bool filament_enabled = m_config->option<ConfigOptionBoolsNullable>("filament_long_retractions_when_cut")->values[extruder_idx] == 1;
                 toggle_line(opt_key, filament_enabled && machine_enabled, extruder_idx + 256);
                 field->toggle(is_checked && filament_enabled && machine_enabled);
             }
@@ -3523,7 +3523,7 @@ void TabPrinter::build_fff()
     // to avoid redundant memory allocation / deallocation during extruders count changing
     m_pages.reserve(30);
 
-    auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"));
+    auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloatsNullable*>(m_config->option("nozzle_diameter"));
     m_initial_extruders_count = m_extruders_count = nozzle_diameter->values.size();
     // BBS
     //wxGetApp().obj_list()->update_objects_list_filament_column(m_initial_extruders_count);
@@ -3531,7 +3531,7 @@ void TabPrinter::build_fff()
     const Preset* parent_preset = m_printer_technology == ptSLA ? nullptr // just for first build, if SLA printer preset is selected
                                   : m_presets->get_selected_preset_parent();
     m_sys_extruders_count = parent_preset == nullptr ? 0 :
-            static_cast<const ConfigOptionFloats*>(parent_preset->config.option("nozzle_diameter"))->values.size();
+            static_cast<const ConfigOptionFloatsNullable*>(parent_preset->config.option("nozzle_diameter"))->values.size();
 
     auto page = add_options_page(L("Basic information"), "printer");
         auto optgroup = page->new_optgroup(L("Printable space")/*, L"param_printable_space"*/);
@@ -4182,7 +4182,7 @@ void TabPrinter::on_preset_loaded()
     }
 
     // update the extruders count field
-    auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"));
+    auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloatsNullable*>(m_config->option("nozzle_diameter"));
     size_t extruders_count = nozzle_diameter->values.size();
     // update the GUI field according to the number of nozzle diameters supplied
     if (m_extruders_count != extruders_count)
@@ -4308,7 +4308,7 @@ void TabPrinter::toggle_options()
     {
         size_t i = size_t(val - 1);
         int variant_index = get_index_for_extruder(i);
-        bool have_retract_length = m_config->opt_float("retraction_length", variant_index) > 0;
+        bool have_retract_length = m_config->opt_float_nullable("retraction_length", variant_index) > 0;
 
         //BBS
         for (auto el : { "extruder_type" , "nozzle_diameter"}) {
@@ -4340,7 +4340,7 @@ void TabPrinter::toggle_options()
             //BBS
             toggle_option(el, retraction && !use_firmware_retraction, i);
 
-        bool wipe = retraction && m_config->opt_bool("wipe", i);
+        bool wipe = retraction && m_config->opt_bool_nullable("wipe", i);
         toggle_option("retract_before_wipe", wipe, i);
 
         if (use_firmware_retraction && wipe) {
@@ -4352,7 +4352,7 @@ void TabPrinter::toggle_options()
 
             DynamicPrintConfig new_conf = *m_config;
             if (dialog.ShowModal() == wxID_YES) {
-                auto wipe = static_cast<ConfigOptionBools*>(m_config->option("wipe")->clone());
+                auto wipe = static_cast<ConfigOptionBoolsNullable*>(m_config->option("wipe")->clone());
                 for (size_t w = 0; w < wipe->values.size(); w++)
                     wipe->values[w] = false;
                 new_conf.set_key_value("wipe", wipe);
@@ -4368,11 +4368,11 @@ void TabPrinter::toggle_options()
 
         toggle_option("retract_length_toolchange", have_multiple_extruders, i);
 
-        bool toolchange_retraction = m_config->opt_float("retract_length_toolchange", variant_index) > 0;
+        bool toolchange_retraction = m_config->opt_float_nullable("retract_length_toolchange", variant_index) > 0;
         toggle_option("retract_restart_extra_toolchange", have_multiple_extruders && toolchange_retraction, i);
 
         toggle_option("long_retractions_when_cut", !use_firmware_retraction && m_config->opt_int("enable_long_retraction_when_cut"), i);
-        toggle_line("retraction_distances_when_cut", m_config->opt_bool("long_retractions_when_cut", variant_index), i);
+        toggle_line("retraction_distances_when_cut", m_config->opt_bool_nullable("long_retractions_when_cut", variant_index), i);
     }
 
     if (m_active_page->title() == "Motion ability") {
@@ -4541,10 +4541,10 @@ void Tab::load_current_preset()
             }
             on_presets_changed();
             if (printer_technology == ptFFF) {
-                static_cast<TabPrinter*>(this)->m_initial_extruders_count = static_cast<const ConfigOptionFloats*>(m_presets->get_selected_preset().config.option("nozzle_diameter"))->values.size(); //static_cast<TabPrinter*>(this)->m_extruders_count;
+                static_cast<TabPrinter*>(this)->m_initial_extruders_count = static_cast<const ConfigOptionFloatsNullable*>(m_presets->get_selected_preset().config.option("nozzle_diameter"))->values.size(); //static_cast<TabPrinter*>(this)->m_extruders_count;
                 const Preset* parent_preset = m_presets->get_selected_preset_parent();
                 static_cast<TabPrinter*>(this)->m_sys_extruders_count = parent_preset == nullptr ? 0 :
-                    static_cast<const ConfigOptionFloats*>(parent_preset->config.option("nozzle_diameter"))->values.size();
+                    static_cast<const ConfigOptionFloatsNullable*>(parent_preset->config.option("nozzle_diameter"))->values.size();
             }
         }
         else {
@@ -5817,7 +5817,7 @@ void TabPrinter::cache_extruder_cnt()
         return;
 
     // BBS. Get extruder count from preset instead of m_extruders_count.
-    m_cache_extruder_count = dynamic_cast<ConfigOptionFloats*>((m_presets->get_edited_preset().config).option("nozzle_diameter"))->values.size();
+    m_cache_extruder_count = dynamic_cast<ConfigOptionFloatsNullable*>((m_presets->get_edited_preset().config).option("nozzle_diameter"))->values.size();
 }
 
 bool TabPrinter::apply_extruder_cnt_from_cache()

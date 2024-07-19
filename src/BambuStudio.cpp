@@ -1776,10 +1776,10 @@ int CLI::run(int argc, char **argv)
                         old_height_to_lid = config.opt_float("extruder_clearance_height_to_lid");
                     if (config.option<ConfigOptionFloat>("extruder_clearance_max_radius"))
                         old_max_radius = config.opt_float("extruder_clearance_max_radius");
-                    if (config.option<ConfigOptionFloats>("max_layer_height"))
-                        old_max_layer_height = config.option<ConfigOptionFloats>("max_layer_height")->values;
-                    if (config.option<ConfigOptionFloats>("min_layer_height"))
-                        old_min_layer_height = config.option<ConfigOptionFloats>("min_layer_height")->values;
+                    if (config.option<ConfigOptionFloatsNullable>("max_layer_height"))
+                        old_max_layer_height = config.option<ConfigOptionFloatsNullable>("max_layer_height")->values;
+                    if (config.option<ConfigOptionFloatsNullable>("min_layer_height"))
+                        old_min_layer_height = config.option<ConfigOptionFloatsNullable>("min_layer_height")->values;
                     BOOST_LOG_TRIVIAL(info) << boost::format("old printable size from 3mf: {%1%, %2%, %3%}")%old_printable_width %old_printable_depth %old_printable_height;
                     BOOST_LOG_TRIVIAL(info) << boost::format("old extruder_clearance_height_to_rod %1%, extruder_clearance_height_to_lid %2%, extruder_clearance_max_radius %3%}")%old_height_to_rod %old_height_to_lid %old_max_radius;
                 }
@@ -3161,7 +3161,7 @@ int CLI::run(int argc, char **argv)
             }
 
             size_t nozzle_nums = 1;
-            auto opt_nozzle_diameters = m_print_config.option<ConfigOptionFloats>("nozzle_diameter");
+            auto opt_nozzle_diameters = m_print_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
             if (opt_nozzle_diameters != nullptr) {
                 nozzle_nums       = opt_nozzle_diameters->values.size();
             }
@@ -5893,7 +5893,7 @@ int CLI::run(int argc, char **argv)
         //auto* filament_types = dynamic_cast<const ConfigOptionStrings*>(m_print_config.option("filament_type"));
         //const ConfigOptionStrings* filament_color = dynamic_cast<const ConfigOptionStrings *>(m_print_config.option("filament_colour"));
         auto* filament_id = dynamic_cast<const ConfigOptionStrings*>(m_print_config.option("filament_ids"));
-        const ConfigOptionFloats* nozzle_diameter_option = dynamic_cast<const ConfigOptionFloats *>(m_print_config.option("nozzle_diameter"));
+        const ConfigOptionFloatsNullable* nozzle_diameter_option = dynamic_cast<const ConfigOptionFloatsNullable *>(m_print_config.option("nozzle_diameter"));
         std::string nozzle_diameter_str;
         if (nozzle_diameter_option)
             nozzle_diameter_str = nozzle_diameter_option->serialize();
@@ -6465,7 +6465,7 @@ int CLI::run(int argc, char **argv)
                 plate_bbox->bed_type       = bed_type_to_gcode_string(plate_bed_type);
             }
             // get nozzle diameter
-            auto opt_nozzle_diameters = m_print_config.option<ConfigOptionFloats>("nozzle_diameter");
+            auto opt_nozzle_diameters = m_print_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
             if (opt_nozzle_diameters != nullptr)
                 plate_bbox->nozzle_diameter = float(opt_nozzle_diameters->get_at(plate_bbox->first_extruder));
 

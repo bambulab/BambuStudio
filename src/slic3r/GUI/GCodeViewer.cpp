@@ -1024,7 +1024,7 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
     load_toolpaths(gcode_result, build_volume, exclude_bounding_box);
 
     // BBS: data for rendering color arrangement recommendation
-    m_nozzle_nums = print.config().option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+    m_nozzle_nums = print.config().option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
     std::vector<int>         filament_maps = print.get_filament_maps();
     std::vector<std::string> color_opt     = print.config().option<ConfigOptionStrings>("filament_colour")->values;
     std::vector<std::string> type_opt      = print.config().option<ConfigOptionStrings>("filament_type")->values;
