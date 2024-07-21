@@ -1938,8 +1938,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_line_width","parameter/line-width");
 
         optgroup = page->new_optgroup(L("Seam"), L"param_seam");
-        optgroup->append_single_option_line("seam_position", "Seam");
-        optgroup->append_single_option_line("seam_gap", "Seam");
+        optgroup->append_single_option_line("seam_position", "szew");
+        optgroup->append_single_option_line("seam_gap", "szew");
         optgroup->append_single_option_line("seam_slope_type");
         optgroup->append_single_option_line("seam_slope_conditional");
         optgroup->append_single_option_line("scarf_angle_threshold");
@@ -1948,7 +1948,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("seam_slope_min_length");
         optgroup->append_single_option_line("seam_slope_steps");
         optgroup->append_single_option_line("seam_slope_inner_walls");
-        optgroup->append_single_option_line("wipe_speed", "Seam");
+        optgroup->append_single_option_line("wipe_speed", "szew");
 
         optgroup = page->new_optgroup(L("Precision"), L"param_precision");
         optgroup->append_single_option_line("slice_closing_radius");
