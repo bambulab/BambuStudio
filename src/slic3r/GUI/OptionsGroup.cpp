@@ -1261,27 +1261,34 @@ void ExtruderOptionsGroup::on_change_OG(const t_config_option_key& opt_id, const
 
 wxString OptionsGroup::get_url(const std::string& path_end)
 {
-    //BBS
+    // BBS
     wxString str = from_u8(path_end);
-    auto     pos = str.find(L'#');
+    auto pos = str.find(L'#');
     if (pos != size_t(-1)) {
         pos++;
         wxString anchor = str.Mid(pos).Lower();
         anchor.Replace(L" ", "-");
         str = str.Left(pos) + anchor;
     }
+    
     std::string language = wxGetApp().app_config->get("language");
-    wxString    region    = L"en";
-    if (language.find("zh") == 0)
-        region = L"zh";
-    return wxString::Format(L"https://wiki.bambulab.com/%s/software/bambu-studio/%s", region, str);
+    wxString url;
+
+    if (language.find("zh") == 0) {
+        url = wxString::Format(L"https://wiki.bambulab.com/zh/software/bambu-studio/%s", str);
+    } else if (language.find("pl") == 0) {
+        url = wxString::Format(L"https://bambulab.get3d.pl/pl/software/bambu-studio/%s", str);
+    } else {
+        url = wxString::Format(L"https://wiki.bambulab.com/en/software/bambu-studio/%s", str);
+    }
+
+    return url;
 }
 
 bool OptionsGroup::launch_browser(const std::string& path_end)
 {
     return wxLaunchDefaultBrowser(OptionsGroup::get_url(path_end));
 }
-
 
 //-------------------------------------------------------------------------------------------
 // ogStaticText
