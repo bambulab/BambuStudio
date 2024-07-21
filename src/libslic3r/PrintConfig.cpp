@@ -1623,7 +1623,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Support Cubic"));
     def->enum_labels.push_back(L("Lightning"));
     def->enum_labels.push_back(L("Cross Hatch"));
-    def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipCubic));
+    def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipCrossHatch));
 
     def = this->add("top_surface_acceleration", coFloat);
     def->label = L("Top surface");
