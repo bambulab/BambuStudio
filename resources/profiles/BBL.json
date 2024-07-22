@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.09.00.16",
+    "version": "01.09.00.17",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -840,6 +840,10 @@
         {
             "name": "Bambu ABS-GF @base",
             "sub_path": "filament/Bambu ABS-GF @base.json"
+        },
+        {
+            "name": "Bambu Support for ABS @base",
+            "sub_path": "filament/Bambu Support for ABS @base.json"
         },
         {
             "name": "Bambu PC @base",
@@ -2000,6 +2004,14 @@
         {
             "name": "Bambu ABS-GF @BBL A1",
             "sub_path": "filament/Bambu ABS-GF @BBL A1.json"
+        },
+        {
+            "name": "Bambu Support for ABS @BBL X1C",
+            "sub_path": "filament/Bambu Support for ABS @BBL X1C.json"
+        },
+        {
+            "name": "Bambu Support for ABS @BBL A1",
+            "sub_path": "filament/Bambu Support for ABS @BBL A1.json"
         },
         {
             "name": "Bambu PC @BBL X1C",
