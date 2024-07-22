@@ -188,7 +188,7 @@ void ArrangeJob::prepare_selected() {
 void ArrangeJob::prepare_all() {
     clear_input();
 
-    PartPlateList& plate_list = m_plater->get_partplate_list();    
+    PartPlateList& plate_list = m_plater->get_partplate_list();
     for (size_t i = 0; i < plate_list.get_plate_count(); i++) {
         PartPlate* plate = plate_list.get_plate(i);
         bool same_as_global_print_seq = true;
@@ -540,12 +540,12 @@ void ArrangeJob::process()
     if (params.avoid_extrusion_cali_region && global_config.opt_bool("scan_first_layer"))
         partplate_list.preprocess_nonprefered_areas(m_unselected, MAX_NUM_PLATES);
 
-    update_arrange_params(params, m_plater->config(), m_selected);
-    update_selected_items_inflation(m_selected, m_plater->config(), params);
-    update_unselected_items_inflation(m_unselected, m_plater->config(), params);
-    update_selected_items_axis_align(m_selected, m_plater->config(), params);
+    update_arrange_params(params, &global_config, m_selected);
+    update_selected_items_inflation(m_selected, &global_config, params);
+    update_unselected_items_inflation(m_unselected, &global_config, params);
+    update_selected_items_axis_align(m_selected, &global_config, params);
 
-    Points      bedpts = get_shrink_bedpts(m_plater->config(),params);
+    Points      bedpts = get_shrink_bedpts(&global_config,params);
 
     partplate_list.preprocess_exclude_areas(params.excluded_regions, 1, scale_(1));
 
