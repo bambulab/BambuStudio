@@ -173,7 +173,7 @@ public:
     std::vector<Caninfo>    cans;
     int                     nozzle_id = 0;
     std::string             current_can_id;
-    AMSPassRoadSTEP         current_step;
+    AMSPassRoadSTEP         current_step = AMSPassRoadSTEP::AMS_ROAD_STEP_NONE;
     AMSAction               current_action;
     int                     curreent_filamentstep;
     int                     ams_humidity = 0;
@@ -313,6 +313,7 @@ public:
     bool            m_vams_loading{false};
     bool            m_ams_loading{false};
     wxColour        m_current_colur;
+    wxColour        m_current_colur_deputy;
     int             m_nozzle_num{ 1 };
 
     wxBoxSizer *    m_bitmap_sizer{nullptr};
@@ -543,7 +544,8 @@ public:
     double                       m_radius = { 4 };
     wxColour                     m_road_def_color;
     AMSPassRoadType              m_pass_road_type = { AMSPassRoadType::AMS_ROAD_TYPE_NONE };
-    AMSPassRoadSTEP              m_pass_road_step = { AMSPassRoadSTEP::AMS_ROAD_STEP_NONE };
+    AMSPassRoadSTEP              m_pass_road_left_step = { AMSPassRoadSTEP::AMS_ROAD_STEP_NONE };
+    AMSPassRoadSTEP              m_pass_road_right_step = { AMSPassRoadSTEP::AMS_ROAD_STEP_NONE };
 
     wxColour                     m_road_color;
     //void                         Update(AMSRoadDownPartMode nozzle, AMSRoadShowMode left_mode, AMSRoadShowMode right_mode, int left_len, int right_len);

@@ -600,14 +600,13 @@ void AMSextruder::OnVamsLoading(bool load, wxColour col)
 void AMSextruder::OnAmsLoading(bool load, int nozzle_id, wxColour col /*= AMS_CONTROL_GRAY500*/)
 {
     m_ams_loading = load;
-    if (load)m_current_colur = col;
     if (nozzle_id == 0){
         m_left_extruder->OnAmsLoading(load, col);
-        m_right_extruder->OnAmsLoading(false, col);
+        if (load) m_current_colur = col;
     }
     else{
         m_right_extruder->OnAmsLoading(load, col);
-        m_left_extruder->OnAmsLoading(false, col);
+        if (load) m_current_colur_deputy = col;
     }
     Refresh();
 }
@@ -631,6 +630,7 @@ void AMSextruder::render(wxDC& dc)
         wxGCDC dc2(memdc);
         //doRender(dc2);
     }
+    m_left_extruder->update(true);
     if (m_nozzle_num >= 2) {
         m_right_extruder->update(true);
     }
@@ -1301,9 +1301,10 @@ void AMSLib::render_generic_lib(wxDC &dc)
 
     // selected
     if (m_selected) {
-        dc.SetPen(wxPen(tmp_lib_colour, 2, wxSOLID));
+        dc.SetPen(wxPen(AMS_CONTROL_BRAND_COLOUR, 3, wxSOLID));
+        //dc.SetPen(wxPen(tmp_lib_colour, 2, wxSOLID));
         if (tmp_lib_colour.Alpha() == 0) {
-            dc.SetPen(wxPen(wxColour(tmp_lib_colour.Red(), tmp_lib_colour.Green(), tmp_lib_colour.Blue(), 128), 2, wxSOLID));
+            dc.SetPen(wxPen(wxColour(tmp_lib_colour.Red(), tmp_lib_colour.Green(), tmp_lib_colour.Blue(), 128), 3, wxSOLID));
         }
         dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
         if (m_radius == 0) {
@@ -1500,9 +1501,10 @@ void AMSLib::render_generic_lib(wxDC &dc)
 #endif
 
     if (m_selected) {
-        dc.SetPen(wxPen(tmp_lib_colour, 2, wxSOLID));
+        dc.SetPen(wxPen(AMS_CONTROL_BRAND_COLOUR, 3, wxSOLID));
+        //dc.SetPen(wxPen(tmp_lib_colour, 3, wxSOLID));
         if (tmp_lib_colour.Alpha() == 0) {
-            dc.SetPen(wxPen(wxColour(tmp_lib_colour.Red(), tmp_lib_colour.Green(), tmp_lib_colour.Blue(), 128), 2, wxSOLID));
+            dc.SetPen(wxPen(wxColour(tmp_lib_colour.Red(), tmp_lib_colour.Green(), tmp_lib_colour.Blue(), 128), 3, wxSOLID));
         }
         dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
         if (m_radius == 0) {
@@ -1517,7 +1519,7 @@ void AMSLib::render_generic_lib(wxDC &dc)
     }
 
     if (!m_selected && m_hover) {
-        dc.SetPen(wxPen(AMS_CONTROL_BRAND_COLOUR, 2, wxSOLID));
+        dc.SetPen(wxPen(AMS_CONTROL_BRAND_COLOUR, 3, wxSOLID));
         dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
         if (m_radius == 0) {
             dc.DrawRectangle(0, 0, size.x, size.y);
@@ -2225,42 +2227,60 @@ void AMSRoadDownPart::doRender(wxDC& dc)
         dc.DrawLine(left_nozzle_pos.x, left_nozzle_pos.y, FromDIP(left_nozzle_pos.x + 30), left_nozzle_pos.y);
     }*/
     //dc.SetBrush(wxBrush(*wxBLUE));
-    if (m_pass_road_step == AMSPassRoadSTEP::AMS_ROAD_STEP_2 || m_pass_road_step == AMSPassRoadSTEP::AMS_ROAD_STEP_3){
+    if (m_pass_road_left_step == AMSPassRoadSTEP::AMS_ROAD_STEP_2 || m_pass_road_left_step == AMSPassRoadSTEP::AMS_ROAD_STEP_3){
         dc.SetPen(wxPen(m_amsinfo.cans[m_canindex].material_colour, 4, wxSOLID));
         if (m_left_road_length > 0){
             dc.DrawLine((FromDIP(left_nozzle_pos.x - m_left_road_length)), FromDIP(size.y / 2), FromDIP(left_nozzle_pos.x), FromDIP(size.y / 2));
             dc.DrawLine(FromDIP(left_nozzle_pos.x), FromDIP(size.y / 2), FromDIP(left_nozzle_pos.x), FromDIP(size.y));
             dc.DrawLine(FromDIP(left_nozzle_pos.x - m_left_road_length), FromDIP(0), FromDIP(left_nozzle_pos.x - m_left_road_length), FromDIP(size.y / 2));
         }
-        else if (m_right_road_length > 0){
-            dc.DrawLine((FromDIP(left_nozzle_pos.x)), FromDIP(size.y / 2), FromDIP(left_nozzle_pos.x + m_right_road_length), FromDIP(size.y / 2));
-            dc.DrawLine(FromDIP(left_nozzle_pos.x + m_right_road_length), FromDIP(0), FromDIP(left_nozzle_pos.x + m_right_road_length), FromDIP(size.y / 2));
-            if (m_nozzle_num == 1){
-                dc.DrawLine(FromDIP(left_nozzle_pos.x), FromDIP(size.y / 2), FromDIP(right_nozzle_pos.x), FromDIP(size.y / 2));
-                dc.DrawLine(FromDIP(left_nozzle_pos.x), FromDIP(size.y / 2), FromDIP(left_nozzle_pos.x), FromDIP(size.y));
+    }
+
+    if (m_pass_road_right_step == AMSPassRoadSTEP::AMS_ROAD_STEP_2 || m_pass_road_right_step == AMSPassRoadSTEP::AMS_ROAD_STEP_3) {
+        dc.SetPen(wxPen(m_amsinfo.cans[m_canindex].material_colour, 4, wxSOLID));
+        if (m_right_road_length > 0) {
+            int x = left_nozzle_pos.x;
+            int len = m_right_road_length;
+            if (m_nozzle_num == 2){
+                x = right_nozzle_pos.x;
+                len = len - 14;
             }
-            else{
-                dc.DrawLine(FromDIP(right_nozzle_pos.x), FromDIP(size.y / 2), FromDIP(right_nozzle_pos.x), FromDIP(size.y));
-            }
+            dc.DrawLine((FromDIP(x)), FromDIP(size.y / 2), FromDIP(x + len), FromDIP(size.y / 2));
+            dc.DrawLine(FromDIP(x + len), FromDIP(0), FromDIP(left_nozzle_pos.x + len), FromDIP(size.y / 2));
+            dc.DrawLine(FromDIP(x), FromDIP(size.y / 2), FromDIP(x), FromDIP(size.y));
         }
     }
 }
 
 void AMSRoadDownPart::UpdatePassRoad(string can_id, bool left, int len, AMSinfo info, AMSPassRoadSTEP step) {
-    m_pass_road_step = step;
-    if (len == -1){
-        m_left_road_length = -1;
-        m_right_road_length = -1;
-        return;
+    if (m_nozzle_num >= 2){
+        if (left) {
+            m_left_road_length = len;
+            m_pass_road_left_step = step;
+        }
+        else {
+            m_right_road_length = len;
+            m_pass_road_right_step = step;
+        }
     }
+    else{
+        if (left) {
+            m_left_road_length = len;
+            m_right_road_length = -1;
+            m_pass_road_left_step = step;
+        }
+        else {
+            m_right_road_length = len;
+            m_left_road_length = -1;
+            m_pass_road_right_step = step;
+        }
+    }
+
     m_canindex = atoi(can_id.c_str());
     if (m_canindex == -1){
         return;
     }
     m_amsinfo = info;
-    m_left_road_length = left ? len : -1;
-    m_right_road_length = left ? -1 : len;
-    m_pass_road_step = step;
 }
 
 
@@ -2851,9 +2871,9 @@ void AmsItem::Update(AMSinfo info)
     }
 
     i = 0;
-    for (auto lib_it : m_can_lib_list) {
-        AMSLib* lib = lib_it.second;
-        if (i < m_can_count) {
+    for (int i = 0; i < m_can_lib_list.size(); i++) {
+        AMSLib* lib = m_can_lib_list[std::to_string(i)];
+        if (i < m_can_count && lib != nullptr) {
             lib->Update(info.cans[i], info.ams_id);
             lib->Show();
         }
