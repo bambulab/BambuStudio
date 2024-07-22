@@ -5501,8 +5501,8 @@ wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
                              *m_config->option<ConfigOptionString>("bed_custom_model") , !is_configed_by_BBL);
             if (dlg.ShowModal() == wxID_OK) {
                 if (dlg.get_valid()) {
+                    std::string custom_texture = dlg.get_custom_texture();
                     if (is_configed_by_BBL) {
-                        std::string custom_texture = dlg.get_custom_texture();
                         {//save to user_bbl_svg_list
                             if (!wxGetApp().app_config->has_section("user_bbl_svg_list")) {
                                 std::map<std::string, std::string> data;
@@ -5517,12 +5517,8 @@ wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
                         }
                         load_key_value("bed_custom_texture", custom_texture);
                         update_changed_ui();
-                        if (custom_texture == "") {
-                            wxGetApp().plater()->get_partplate_list().update_logo_texture_filename("");
-                        }
                     } else {
                         const std::vector<Vec2d> &shape          = dlg.get_shape();
-                        const std::string &       custom_texture = dlg.get_custom_texture();
                         const std::string &       custom_model   = dlg.get_custom_model();
                         if (!shape.empty()) {
                             load_key_value("printable_area", shape);
@@ -5531,6 +5527,10 @@ wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
                             update_changed_ui();
                         }
                     }
+                    if (custom_texture == "") {
+                        wxGetApp().plater()->get_partplate_list().update_logo_texture_filename("");
+                    }
+
                 } else {
                     show_error(m_parent, _L("Invalid input."));
                 }
