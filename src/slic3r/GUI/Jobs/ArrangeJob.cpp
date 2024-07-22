@@ -456,8 +456,7 @@ void ArrangeJob::prepare()
     if (1)
     { // subtract excluded region and get a polygon bed
         auto& print = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
-        auto print_config = print.config();
-        bed_poly.points = get_bed_shape(*m_plater->config());
+        bed_poly.points              = get_bed_shape(config);
         Pointfs excluse_area_points = print_config.bed_exclude_area.values;
         Polygons exclude_polys;
         Polygon exclude_poly;
@@ -540,12 +539,11 @@ void ArrangeJob::process()
     if (params.avoid_extrusion_cali_region && global_config.opt_bool("scan_first_layer"))
         partplate_list.preprocess_nonprefered_areas(m_unselected, MAX_NUM_PLATES);
 
-    update_arrange_params(params, &global_config, m_selected);
-    update_selected_items_inflation(m_selected, &global_config, params);
-    update_unselected_items_inflation(m_unselected, &global_config, params);
-    update_selected_items_axis_align(m_selected, &global_config, params);
+    update_arrange_params(params, global_config, m_selected);
+    update_selected_items_inflation(m_selected, global_config, params);
+    update_unselected_items_inflation(m_unselected, global_config, params);
 
-    Points      bedpts = get_shrink_bedpts(&global_config,params);
+    Points      bedpts = get_shrink_bedpts(global_config,params);
 
     partplate_list.preprocess_exclude_areas(params.excluded_regions, 1, scale_(1));
 
