@@ -26,9 +26,12 @@ public:
     void on_retry();
 
 protected:
-    std::string  m_current_ams;
-    std::string  m_current_slot;
-    std::string  m_current_show_ams;
+    std::string  m_current_ams_left;
+    std::string  m_current_ams_right;
+    std::string  m_current_slot_left;
+    std::string  m_current_slot_right;
+    std::string  m_current_show_ams_left;
+    std::string  m_current_show_ams_right;
     std::map<std::string, int> m_ams_selection;
 
     std::map<std::string, AMSPreview*> m_ams_preview_list;
@@ -127,9 +130,10 @@ protected:
     std::string m_last_tray_id = "-1";
 
 public:
-    std::string GetCurentAms();
-    std::string GetCurentShowAms();
+    std::string GetCurentAms(bool right_panel = true);
+    std::string GetCurentShowAms(bool right_panel = true);
     std::string GetCurrentCan(std::string amsid);
+    bool        IsAmsInRightPanel(std::string ams_id);
 	wxColour GetCanColour(std::string amsid, std::string canid);
 
     AMSModel m_ams_model{AMSModel::NO_AMS};
