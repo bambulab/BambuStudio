@@ -846,6 +846,10 @@
             "sub_path": "filament/Bambu ABS-GF @base.json"
         },
         {
+            "name": "Bambu Support for ABS @base",
+            "sub_path": "filament/Bambu Support for ABS @base.json"
+        },
+        {
             "name": "Bambu PC @base",
             "sub_path": "filament/Bambu PC @base.json"
         },
@@ -2020,6 +2024,14 @@
         {
             "name": "Bambu ABS-GF @BBL A1",
             "sub_path": "filament/Bambu ABS-GF @BBL A1.json"
+        },
+        {
+            "name": "Bambu Support for ABS @BBL X1C",
+            "sub_path": "filament/Bambu Support for ABS @BBL X1C.json"
+        },
+        {
+            "name": "Bambu Support for ABS @BBL A1",
+            "sub_path": "filament/Bambu Support for ABS @BBL A1.json"
         },
         {
             "name": "Bambu PC @BBL X1C",
