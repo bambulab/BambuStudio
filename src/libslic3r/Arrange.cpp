@@ -83,10 +83,9 @@ const double BIG_ITEM_TRESHOLD = 0.02;
 
 void update_arrange_params(ArrangeParams& params, const DynamicPrintConfig* print_cfg, const ArrangePolygons& selected)
 {
-    double                             skirt_distance = get_real_skirt_dist(*print_cfg);
     // Note: skirt_distance is now defined between outermost brim and skirt, not the object and skirt.
     // So we can't do max but do adding instead.
-    params.brim_skirt_distance = skirt_distance;
+    params.brim_skirt_distance = get_real_skirt_dist(*print_cfg);
     params.bed_shrink_x += params.brim_skirt_distance;
     params.bed_shrink_y += params.brim_skirt_distance;
     if (params.is_seq_print) {
@@ -97,7 +96,7 @@ void update_arrange_params(ArrangeParams& params, const DynamicPrintConfig* prin
         }
         else
             params.min_obj_distance = std::max(params.min_obj_distance, scaled(params.cleareance_radius + 0.001)); // +0.001mm to avoid clearance check fail due to rounding error
-    
+
         // for sequential print, we need to inflate the bed because cleareance_radius is so large
         params.bed_shrink_x -= unscale_(params.min_obj_distance / 2);
         params.bed_shrink_y -= unscale_(params.min_obj_distance / 2);
