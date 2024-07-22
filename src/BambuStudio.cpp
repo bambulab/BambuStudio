@@ -4161,12 +4161,11 @@ int CLI::run(int argc, char **argv)
                     arrange_cfg.align_to_y_axis = (printer_structure_opt->value == PrinterStructure::psI3);
                 }
 
-                arrangement::update_arrange_params(arrange_cfg, &m_print_config, selected);
-                arrangement::update_selected_items_inflation(selected, &m_print_config, arrange_cfg);
-                arrangement::update_unselected_items_inflation(unselected, &m_print_config, arrange_cfg);
-                arrangement::update_selected_items_axis_align(selected, &m_print_config, arrange_cfg);
+                arrangement::update_arrange_params(arrange_cfg, m_print_config, selected);
+                arrangement::update_selected_items_inflation(selected, m_print_config, arrange_cfg);
+                arrangement::update_unselected_items_inflation(unselected, m_print_config, arrange_cfg);
 
-                beds = get_shrink_bedpts(&m_print_config, arrange_cfg);
+                beds = get_shrink_bedpts(m_print_config, arrange_cfg);
 
                 partplate_list.preprocess_exclude_areas(arrange_cfg.excluded_regions, 1, scale_(1));
 
@@ -4562,12 +4561,11 @@ int CLI::run(int argc, char **argv)
                     arrange_cfg.align_to_y_axis = (printer_structure_opt->value == PrinterStructure::psI3);
                 }
 
-                arrangement::update_arrange_params(arrange_cfg, &m_print_config, selected);
-                arrangement::update_selected_items_inflation(selected, &m_print_config, arrange_cfg);
-                arrangement::update_unselected_items_inflation(unselected, &m_print_config, arrange_cfg);
-                arrangement::update_selected_items_axis_align(selected, &m_print_config, arrange_cfg);
+                arrangement::update_arrange_params(arrange_cfg, m_print_config, selected);
+                arrangement::update_selected_items_inflation(selected, m_print_config, arrange_cfg);
+                arrangement::update_unselected_items_inflation(unselected, m_print_config, arrange_cfg);
 
-                beds=get_shrink_bedpts(&m_print_config, arrange_cfg);
+                beds=get_shrink_bedpts(m_print_config, arrange_cfg);
 
                 partplate_list.preprocess_exclude_areas(arrange_cfg.excluded_regions, 1, scale_(1));
 
