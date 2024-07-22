@@ -125,13 +125,20 @@ void wxMediaCtrl3::paintEvent(wxPaintEvent &evt)
     auto size2 = m_frame.GetSize();
     if (size2.x != m_frame_size.x && size2.y == m_frame_size.y)
         size2.x = m_frame_size.x;
+    auto size3 = (size - size2) / 2;
     if (size2.x != size.x && size2.y != size.y) {
-        auto scale = std::min(double(size.x) / size2.x, double(size.y) / size2.y);
+        double scale = 1.;
+        if (size.x * size2.y > size.y * size2.x) {
+            size3 = {size.x * size2.y / size.y, size2.y};
+            scale = double(size.y) / size2.y;
+        } else {
+            size3 = {size2.x, size.y * size2.x / size.x};
+            scale = double(size.x) / size2.x;
+        }
         dc.SetUserScale(scale, scale);
-        adjust_frame_size(size2, size2, size);
+        size3 = (size3 - size2) / 2;
     }
-    size2 = (size - size2) / 2;
-    dc.DrawBitmap(m_frame, size2.x, size2.y);
+    dc.DrawBitmap(m_frame, size3.x, size3.y);
 }
 
 void wxMediaCtrl3::DoSetSize(int x, int y, int width, int height, int sizeFlags)
@@ -141,6 +148,7 @@ void wxMediaCtrl3::DoSetSize(int x, int y, int width, int height, int sizeFlags)
     wxMediaCtrl_OnSize(this, m_video_size, width, height);
     std::unique_lock<std::mutex> lk(m_mutex);
     adjust_frame_size(m_frame_size, m_video_size, GetSize());
+    Refresh();
 }
 
 void wxMediaCtrl3::bambu_log(void *ctx, int level, tchar const *msg2)
@@ -230,16 +238,16 @@ void wxMediaCtrl3::PlayThread()
                 lk.lock();
             }
             if (error == 0) {
-                if (m_url != url) {
-                    error = 1;
-                    break;
-                }
                 auto frame_size = m_frame_size;
                 lk.unlock();
                 wxBitmap bm;
                 decoder.decode(sample);
                 decoder.toWxBitmap(bm, frame_size);
                 lk.lock();
+                if (m_url != url) {
+                    error = 1;
+                    break;
+                }
                 if (bm.IsOk())
                     m_frame = bm;
                 CallAfter([this] { Refresh(); });
@@ -254,6 +262,7 @@ void wxMediaCtrl3::PlayThread()
         }
         if (m_url == url)
             m_error = error;
+        m_frame_size = wxDefaultSize;
         m_video_size = wxDefaultSize;
         NotifyStopped();
     }
