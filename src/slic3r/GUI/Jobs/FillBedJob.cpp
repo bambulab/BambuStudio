@@ -125,7 +125,7 @@ void FillBedJob::prepare()
     plate_list.preprocess_exclude_areas(params.excluded_regions, 1, scaled_exclusion_gap);
     plate_list.preprocess_exclude_areas(m_unselected);
 
-    m_bedpts = get_bed_shape(*m_plater->config());
+    m_bedpts = get_bed_shape(global_config);
 
     auto &objects = m_plater->model().objects;
     /*BoundingBox bedbb = get_extents(m_bedpts);
@@ -200,18 +200,17 @@ void FillBedJob::prepare()
 void FillBedJob::process()
 {
     if (m_object_idx == -1 || m_selected.empty()) return;
+    const Slic3r::DynamicPrintConfig &global_config = wxGetApp().preset_bundle->full_config();
 
-    update_arrange_params(params, m_plater->config(), m_selected);
-    m_bedpts = get_shrink_bedpts(m_plater->config(), params);
+    update_arrange_params(params, global_config, m_selected);
+    m_bedpts = get_shrink_bedpts(global_config, params);
 
     auto &partplate_list               = m_plater->get_partplate_list();
-    auto &print                        = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
-    const Slic3r::DynamicPrintConfig& global_config = wxGetApp().preset_bundle->full_config();
     if (params.avoid_extrusion_cali_region && global_config.opt_bool("scan_first_layer"))
         partplate_list.preprocess_nonprefered_areas(m_unselected, MAX_NUM_PLATES);
     
-    update_selected_items_inflation(m_selected, m_plater->config(), params);
-    update_unselected_items_inflation(m_unselected, m_plater->config(), params);
+    update_selected_items_inflation(m_selected, global_config, params);
+    update_unselected_items_inflation(m_unselected, global_config, params);
 
     bool do_stop = false;
     params.stopcondition = [this, &do_stop]() {

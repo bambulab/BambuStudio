@@ -175,15 +175,13 @@ struct ArrangeParams {
 
 };
 
-void update_arrange_params(ArrangeParams& params, const DynamicPrintConfig* print_cfg, const ArrangePolygons& selected);
+void update_arrange_params(ArrangeParams& params, const DynamicPrintConfig & print_cfg, const ArrangePolygons& selected);
 
-void update_selected_items_inflation(ArrangePolygons& selected, const DynamicPrintConfig* print_cfg, ArrangeParams& params);
+void update_selected_items_inflation(ArrangePolygons& selected, const DynamicPrintConfig & print_cfg, ArrangeParams& params);
 
-void update_unselected_items_inflation(ArrangePolygons& unselected, const DynamicPrintConfig* print_cfg, const ArrangeParams& params);
+void update_unselected_items_inflation(ArrangePolygons& unselected, const DynamicPrintConfig & print_cfg, const ArrangeParams& params);
 
-void update_selected_items_axis_align(ArrangePolygons& selected, const DynamicPrintConfig* print_cfg, const ArrangeParams& params);
-
-Points get_shrink_bedpts(const DynamicPrintConfig* print_cfg, const ArrangeParams& params);
+Points get_shrink_bedpts(const DynamicPrintConfig & print_cfg, const ArrangeParams& params);
 
 /**
  * \brief Arranges the input polygons.
