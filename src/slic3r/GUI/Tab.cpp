@@ -844,7 +844,8 @@ void Tab::decorate()
 void Tab::filter_diff_option(std::vector<std::string> &options)
 {
     for (auto &opt : options) {
-        if (opt.find_last_of('#') == std::string::npos) continue;
+        auto n = opt.find_last_of('#');
+        if (n == std::string::npos) continue;
         bool found = false;
         for (auto page : m_pages) {
             if (auto iter = page->m_opt_id_map.find(opt); iter != page->m_opt_id_map.end()) {
@@ -853,7 +854,7 @@ void Tab::filter_diff_option(std::vector<std::string> &options)
                 break;
             }
         }
-        if (!found) opt.clear();
+        if (!found) opt = opt.substr(0, n);
     }
     options.erase(std::remove(options.begin(), options.end(), ""), options.end());
 }
@@ -878,10 +879,8 @@ void Tab::update_changed_ui()
 
     update_custom_dirty(dirty_options, nonsys_options);
 
-    if (m_extruder_switch == nullptr || m_extruder_switch->IsEnabled()) {
-        filter_diff_option(dirty_options);
-        filter_diff_option(nonsys_options);
-    }
+    filter_diff_option(dirty_options);
+    filter_diff_option(nonsys_options);
 
     for (auto& it : m_options_list)
         it.second = m_opt_status_value;
