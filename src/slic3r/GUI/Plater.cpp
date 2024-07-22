@@ -340,7 +340,7 @@ struct Sidebar::priv
     StaticBox* m_panel_filament_title;
     wxStaticText* m_staticText_filament_settings;
     ScalableButton *  m_bpButton_add_filament;
-    ScalableButton *  m_bpButton_del_filament;
+    //ScalableButton *  m_bpButton_del_filament;
     ScalableButton *  m_bpButton_ams_filament;
     ScalableButton *  m_bpButton_set_filament;
     int m_menu_filament_id = -1;
@@ -1656,7 +1656,7 @@ void Sidebar::msw_rescale()
     p->m_printer_setting->msw_rescale();
     p->m_filament_icon->msw_rescale();
     p->m_bpButton_add_filament->msw_rescale();
-    p->m_bpButton_del_filament->msw_rescale();
+    //p->m_bpButton_del_filament->msw_rescale();
     p->m_bpButton_ams_filament->msw_rescale();
     p->m_bpButton_set_filament->msw_rescale();
     p->m_flushing_volume_btn->Rescale();
