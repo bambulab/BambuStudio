@@ -1582,9 +1582,10 @@ void AMSLib::OnSelected()
 
 void AMSLib::post_event(wxCommandEvent &&event)
 {
-    int tray_id = atoi(m_ams_id.c_str()) * 4 + atoi(m_info.can_id.c_str());
+    //int tray_id = atoi(m_ams_id.c_str()) * 4 + atoi(m_info.can_id.c_str());
     //event.SetString(m_info.can_id);
-    event.SetInt(tray_id);
+    event.SetString(m_slot_id);
+    event.SetInt(std::stoi(m_ams_id));
     event.SetEventObject(m_parent);
     wxPostEvent(m_parent, event);
     event.Skip();
@@ -2810,7 +2811,9 @@ void AmsItem::AddCan(Caninfo caninfo, int canindex, int maxcan, wxBoxSizer* size
         });
 
 
-    m_panel_lib->m_ams_model = m_ams_model;
+    m_panel_lib->m_ams_model   = m_ams_model;
+    m_panel_lib->m_ams_id      = m_info.ams_id;
+    m_panel_lib->m_slot_id     = caninfo.can_id;
     m_panel_lib->m_info.can_id = caninfo.can_id;
     m_panel_lib->m_can_index = canindex;
 
@@ -2870,7 +2873,6 @@ void AmsItem::Update(AMSinfo info)
         i++;
     }
 
-    i = 0;
     for (int i = 0; i < m_can_lib_list.size(); i++) {
         AMSLib* lib = m_can_lib_list[std::to_string(i)];
         if (i < m_can_count && lib != nullptr) {
