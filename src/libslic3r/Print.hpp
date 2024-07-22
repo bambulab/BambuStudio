@@ -695,6 +695,17 @@ class ConstPrintRegionPtrsAdaptor : public ConstVectorOfPtrsAdaptor<PrintRegion>
 };
 */
 
+struct StatisticsByExtruderCount
+{
+    // multi extruder always comes first
+    std::vector<int> filament_flush_weight{ 0,0 };
+    std::vector<int> filament_change_count{ 0,0 };
+    void clear() {
+        filament_flush_weight.clear();
+        filament_change_count.clear();
+    }
+};
+
 enum FilamentTempType {
     HighTemp=0,
     LowTemp,
@@ -799,6 +810,9 @@ public:
 
     const PrintStatistics&      print_statistics() const { return m_print_statistics; }
     PrintStatistics&            print_statistics() { return m_print_statistics; }
+
+    const StatisticsByExtruderCount statistics_by_extruder() const { return m_statistics_by_extruder_count; }
+    StatisticsByExtruderCount& statistics_by_extruder() { return m_statistics_by_extruder_count; }
 
     // Wipe tower support.
     bool                        has_wipe_tower() const;
@@ -915,6 +929,7 @@ private:
     // Estimated print time, filament consumed.
     PrintStatistics                         m_print_statistics;
     bool                                    m_support_used {false};
+    StatisticsByExtruderCount                m_statistics_by_extruder_count;
 
     //BBS: plate's origin
     Vec3d   m_origin;
