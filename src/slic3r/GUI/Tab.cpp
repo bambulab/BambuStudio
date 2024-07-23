@@ -5070,7 +5070,21 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach, bool save_to_proje
 
     //BBS record current preset name
     std::string curr_preset_name = m_presets->get_edited_preset().name;
-
+    auto        curr_preset      = m_presets->get_edited_preset();
+    std::map<std::string, std::string> extra_map;
+    {
+        bool is_configed_by_BBL = PresetUtils::system_printer_bed_model(curr_preset).size() > 0;
+        if (is_configed_by_BBL && wxGetApp().app_config->has_section("user_bbl_svg_list")) {
+            auto user_bbl_svg_list = wxGetApp().app_config->get_section("user_bbl_svg_list");
+            if (user_bbl_svg_list.size() > 0 && user_bbl_svg_list[curr_preset_name].size() > 0) {
+                extra_map["bed_custom_texture"] = ConfigOptionString(user_bbl_svg_list[curr_preset_name]);
+            }
+        }
+        auto bed_model_path = wxGetApp().plater()->get_partplate_list().get_bed3d()->get_model_filename();
+        if (!bed_model_path.empty()) {
+            extra_map["bed_custom_model"] = bed_model_path;
+        }
+    }
     bool exist_preset = false;
     Preset* new_preset = m_presets->find_preset(name, false);
     if (new_preset) {
@@ -5078,7 +5092,7 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach, bool save_to_proje
     }
 
     // Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
-    m_presets->save_current_preset(name, detach, save_to_project);
+    m_presets->save_current_preset(name, detach, save_to_project, nullptr, &extra_map);
 
     //BBS create new settings
     new_preset = m_presets->find_preset(name, false, true);
