@@ -9883,6 +9883,8 @@ void Plater::load_gcode(const wxString& filename)
     //BBS: zoom to bed 0 for gcode preview
     //p->preview->get_canvas3d()->zoom_to_gcode();
     p->preview->get_canvas3d()->zoom_to_plate(0);
+    p->partplate_list.get_curr_plate()->update_slice_result_valid_state(true);
+    current_print.apply(this->model(), wxGetApp().preset_bundle->full_config());
 
     if (p->preview->get_canvas3d()->get_gcode_layers_zs().empty()) {
         MessageDialog(this, _L("The selected file") + ":\n" + filename + "\n" + _L("does not contain valid gcode."),
