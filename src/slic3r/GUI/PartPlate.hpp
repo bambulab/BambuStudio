@@ -125,36 +125,12 @@ private:
     mutable std::vector<BoundingBoxf3> m_exclude_bounding_box;
     mutable BoundingBoxf3 m_grabber_box;
     Transform3d m_grabber_trans_matrix;
-    Slic3r::Geometry::Transformation position;
-    std::vector<Vec3f> positions;
-    unsigned int m_vbo_id{ 0 };
-    GLModel        m_triangles;
-    GLModel        m_exclude_triangles;
+
     GLModel        m_logo_triangles;
-    GLModel        m_gridlines;
-    GLModel        m_gridlines_bolder;
     GLModel        m_height_limit_common;
     GLModel        m_height_limit_bottom;
     GLModel        m_height_limit_top;
-    GLModel        m_del_icon;
     GLModel        m_plate_name_edit_icon;
-    //GeometryBuffer m_del_and_background_icon;
-    mutable unsigned int m_del_vbo_id{ 0 };
-    GLModel              m_arrange_icon;
-    mutable unsigned int m_arrange_vbo_id{ 0 };
-    GLModel              m_orient_icon;
-    mutable unsigned int m_orient_vbo_id{ 0 };
-    GLModel              m_lock_icon;
-    mutable unsigned int m_lock_vbo_id{ 0 };
-    GLModel              m_plate_settings_icon;
-    mutable unsigned int m_plate_settings_vbo_id{ 0 };
-    GLModel              m_plate_filament_map_icon;
-    mutable unsigned int m_plate_filament_map_vbo_id{0};
-    GLModel        m_plate_idx_icon;
-
-    mutable unsigned int m_plate_idx_vbo_id{ 0 };
-    mutable unsigned int m_plate_name_edit_vbo_id{0};
-    GLTexture m_texture;
 
     float m_scale_factor{ 1.0f };
     GLUquadricObject* m_quadric;
@@ -179,24 +155,15 @@ private:
     void generate_logo_polygon(ExPolygon &logo_polygon);
     void generate_logo_polygon(ExPolygon &logo_polygon,const BoundingBoxf3& box);
     void calc_bounding_boxes() const;
-    void calc_triangles(const ExPolygon& poly);
-    void calc_exclude_triangles(const ExPolygon& poly);
-    void calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox);
     void calc_height_limit();
 
-    void calc_vertex_for_number(int index, bool one_number, GLModel &gl_model);
     void calc_vertex_for_plate_name(GLTexture &texture, GLModel &buffer);
     void calc_vertex_for_plate_name_edit_icon(GLTexture *texture, int index, GLModel &buffer);
-    void calc_vertex_for_icons(int index, GLModel &gl_model);
     void calc_vertex_for_icons_background(int icon_count, GeometryBuffer &buffer);
-
-    void render_background(bool force_default_color = false);
+    bool calc_bed_3d_boundingbox(BoundingBoxf3 & box_in_plate_origin);
     void render_logo(bool bottom, bool render_cali = true);
     void render_logo_texture(GLTexture &logo_texture, GLModel &logo_buffer, bool bottom);
-    void render_exclude_area(bool force_default_color);
-    //void render_background_for_picking(const float* render_color) const;
 
-    void render_grid(bool bottom);
     void render_height_limit(PartPlate::HeightLimitMode mode = HEIGHT_LIMIT_BOTH);
     void render_label(GLCanvas3D& canvas) const;
     void render_grabber(const float* render_color, bool use_lighting) const;
@@ -209,7 +176,7 @@ private:
     void render_plate_name_texture();
     void render_icons(bool bottom, bool only_body = false, int hover_id = -1);
 
-    void render_only_numbers(bool bottom);
+    void render_numbers(bool bottom);
     void on_render_for_picking();
     std::array<float, 4> picking_color_component(int idx) const;
     void release_opengl_resource();
@@ -382,7 +349,6 @@ public:
     bool intersects(const BoundingBoxf3& bb) const;
 
     void render(bool bottom, bool only_body = false, bool force_background_color = false, HeightLimitMode mode = HEIGHT_LIMIT_NONE, int hover_id = -1, bool render_cali = false);
-    void render_for_picking()  { on_render_for_picking(); }
     void set_selected();
     void set_unselected();
     void set_hover_id(int id) { m_hover_id = id; }
@@ -611,6 +577,39 @@ class PartPlateList : public ObjectBase
     friend class cereal::access;
     friend class UndoRedo::StackImpl;
     friend class PartPlate;
+//render plate repetitive object and so on
+private:
+    void  generate_print_polygon(ExPolygon &print_polygon);
+    void  generate_exclude_polygon(ExPolygon &exclude_polygon);
+    void  calc_triangles(const ExPolygon &poly);
+    void  calc_vertex_for_icons(int index, GLModel &gl_model);
+    void  calc_exclude_triangles(const ExPolygon &poly);
+    void  calc_gridlines(const ExPolygon &poly, const BoundingBox &pp_bbox);
+    void  calc_vertex_for_number(int index, bool one_number, GLModel &gl_model);
+private:
+    int                                   m_plate_hover_index{-1};
+    int                                   m_plate_hover_action{-1};
+
+    std::vector<Geometry::Transformation> m_plate_trans; // MAX_PLATE_COUNT
+    unsigned int                          m_plate_mats_vbo{0};
+    bool                                  m_update_plate_mats_vbo{true};
+
+    std::vector<Geometry::Transformation> m_unselected_plate_trans;
+    unsigned int                          m_unselected_plate_mats_vbo{0};
+    bool                                  m_update_unselected_plate_mats_vbo{true};
+
+    GLModel                               m_triangles;
+    GLModel                               m_exclude_triangles;
+    GLModel                               m_gridlines;
+    GLModel                               m_gridlines_bolder;
+    GLModel                               m_del_icon;
+    GLModel                               m_arrange_icon;
+    GLModel                               m_orient_icon;
+    GLModel                               m_lock_icon;
+    GLModel                               m_plate_settings_icon;
+    GLModel                               m_plate_filament_map_icon;
+    GLModel                               m_plate_idx_icon;
+    float                                 m_scale_factor{1.0f};
 
 public:
     class BedTextureInfo {
@@ -676,9 +675,12 @@ public:
     //compute the origin for printable plate with index i using new width
     Vec3d compute_origin_using_new_size(int i, int new_width, int new_depth);
 
+    void update_plate_trans(int count);
+    void update_unselected_plate_trans(int count);
     //reset partplate to init states
     void reinit();
     void set_bed3d(Bed3D* _bed3d);
+    Bed3D *get_bed3d() { return m_bed3d; }
     //get the plate stride
     double plate_stride_x();
     double plate_stride_y();
@@ -695,6 +697,7 @@ public:
     //destroy print which has the index of print_index
     int destroy_print(int print_index);
 
+    void add_plate();
     //delete a plate by index
     int delete_plate(int index);
 
@@ -804,6 +807,18 @@ public:
     void postprocess_arrange_polygon(arrangement::ArrangePolygon& arrange_polygon, bool selected);
 
     /*rendering related functions*/
+    void render_instance(bool  bottom,
+                         bool  only_current           = false,
+                         bool  only_body              = false,
+                         bool  force_background_color = false,
+                         int   hover_id               = -1);
+    void render_instance_grid(bool bottom);
+    void render_instance_background(bool force_default_color = false);
+    void render_grid(bool bottom);
+    void render_background(bool force_default_color = false);
+    void render_exclude_area(bool force_default_color);
+    void render_instance_exclude_area(bool force_default_color);
+
     void on_change_color_mode(bool is_dark) { m_is_dark = is_dark; }
     void render(bool bottom,    bool only_current = false, bool only_body = false, int hover_id = -1, bool render_cali = false);
     void render_for_picking_pass();

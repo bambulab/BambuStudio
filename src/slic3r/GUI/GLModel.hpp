@@ -4,6 +4,7 @@
 #include "libslic3r/Point.hpp"
 #include "libslic3r/Color.hpp"
 #include "libslic3r/BoundingBox.hpp"
+#include "libslic3r/Geometry.hpp"
 #include <vector>
 #include <string>
 
@@ -194,6 +195,10 @@ namespace GUI {
         void render() const;
         void render_geometry();
         void render_geometry(int i,const std::pair<size_t, size_t> &range);
+        static void create_or_update_mats_vbo(unsigned int &vbo, const std::vector<Slic3r::Geometry::Transformation> &mats);
+        void bind_mats_vbo(unsigned int instance_mats_vbo, unsigned int instances_count, int location);
+        void render_geometry_instance(unsigned int instance_mats_vbo, unsigned int instances_count);
+        void render_geometry_instance(unsigned int instance_mats_vbo, unsigned int instances_count, const std::pair<size_t, size_t> &range);
         void render_instanced(unsigned int instances_vbo, unsigned int instances_count) const;
 
         bool is_initialized() const { return !m_render_data.empty(); }
@@ -202,6 +207,7 @@ namespace GUI {
         const std::string& get_filename() const { return m_filename; }
 
     private:
+        bool send_to_gpu(Geometry& geometry);
         bool send_to_gpu(RenderData &data, const std::vector<float> &vertices, const std::vector<unsigned int> &indices) const;
     };
 
