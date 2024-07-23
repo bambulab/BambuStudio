@@ -3983,13 +3983,14 @@ void AMSControl::AddAmsPreview(AMSinfo info, AMSModel type)
         ams_prv = new AMSPreview(m_panel_items_left, wxID_ANY, info, type);
         m_sizer_items_left->Add(ams_prv, 0, wxALIGN_CENTER | wxRIGHT, 6);
     }
-    ams_prv->Bind(wxEVT_LEFT_DOWN, [this, ams_prv](wxMouseEvent& e) {
-        SwitchAms(ams_prv->m_amsinfo.ams_id);
-        e.Skip();
+
+    if (ams_prv){
+        ams_prv->Bind(wxEVT_LEFT_DOWN, [this, ams_prv](wxMouseEvent &e) {
+            SwitchAms(ams_prv->m_amsinfo.ams_id);
+            e.Skip();
         });
-
-    m_ams_preview_list[info.ams_id] = ams_prv;
-
+        m_ams_preview_list[info.ams_id] = ams_prv;
+    }
 }
 
 void AMSControl::AddAms(AMSinfo info, bool left)
@@ -4595,8 +4596,11 @@ void AMSControl::SetExtruder(bool on_off, bool is_vams, std::string ams_now, wxC
             m_vams_road->OnVamsLoading(false);*/
         }
         else {
-            m_extruder->TurnOn(col);
-            m_extruder->OnAmsLoading(true, item->m_info.nozzle_id, col);
+
+            if (item) {
+                m_extruder->TurnOn(col);
+                m_extruder->OnAmsLoading(true, item->m_info.nozzle_id, col);
+            }
         }
     }
 }

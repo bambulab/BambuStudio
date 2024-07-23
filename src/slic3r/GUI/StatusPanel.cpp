@@ -2672,7 +2672,7 @@ void StatusPanel::update_ams(MachineObject *obj)
         is_vt_tray = true;
 
     // set segment 1, 2
-    if (obj->m_tray_now == std::to_string(VIRTUAL_TRAY_MAIN_ID) ) {
+    if (obj->m_tray_now == std::to_string(VIRTUAL_TRAY_MAIN_ID) || obj->m_tray_now == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
          m_ams_control->SetAmsStep(obj->m_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
     }
     else {
@@ -2688,7 +2688,7 @@ void StatusPanel::update_ams(MachineObject *obj)
     }
 
     // set segment 3
-    if (obj->m_tray_now == std::to_string(VIRTUAL_TRAY_MAIN_ID)) {
+    if (obj->m_tray_now == std::to_string(VIRTUAL_TRAY_MAIN_ID) || obj->m_tray_now == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
         m_ams_control->SetExtruder(obj->is_filament_at_extruder(), true, obj->m_ams_id, obj->vt_slot[0].get_color());
     } else {
         m_ams_control->SetExtruder(obj->is_filament_at_extruder(), false, obj->m_ams_id, m_ams_control->GetCanColour(obj->m_ams_id, obj->m_tray_id));
@@ -3723,7 +3723,7 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
             try {
                 m_filament_setting_dlg->ams_id  = ams_id;
                 m_filament_setting_dlg->slot_id = slot_id;
-                m_filament_setting_dlg->tray_id = 254;
+                //m_filament_setting_dlg->tray_id = 254;
 
                 std::string sn_number;
                 std::string filament;
