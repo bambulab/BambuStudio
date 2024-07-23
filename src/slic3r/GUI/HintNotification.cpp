@@ -309,12 +309,38 @@ void HintDatabase::reinit()
 		uninit();
 	init();
 }
+## void HintDatabase::init()
+## {
+## 	load_hints_from_file(std::move(boost::filesystem::path(resources_dir()) / "data" / "hints.ini"));
+## 	m_initialized = true;
+## 	init_random_hint_id();
+## }
 void HintDatabase::init()
 {
-	load_hints_from_file(std::move(boost::filesystem::path(resources_dir()) / "data" / "hints.ini"));
-	m_initialized = true;
-	init_random_hint_id();
-}
+    // Pobierz język z konfiguracji
+    std::string language = wxGetApp().app_config->get("language");
+    wxString region = L"en"; // Domyślny region to 'en'
+    
+    // Ustal region na podstawie języka
+    if (language.find("zh") == 0) {
+        region = L"zh";
+    } else if (language.find("pl") == 0) {
+        region = L"pl";
+    } else if (language.find("de") == 0) {
+        region = L"de";
+    }
+
+    // Użyj wxString::Format do zamiany %s na nazwę regionu
+    wxString hints_file_name = wxString::Format(L"hints_%s.ini", region.c_str());
+    
+    // Stwórz pełną ścieżkę do pliku z hintami
+    boost::filesystem::path hints_file_path = boost::filesystem::path(resources_dir()) / "data" / hints_file_name.ToStdString();
+
+    // Wczytaj plik z hintami
+    load_hints_from_file(std::move(hints_file_path));
+
+    m_initialized = true;
+    init_random_hint_id();
 void HintDatabase::init_random_hint_id()
 {
 	srand(time(NULL));
