@@ -600,14 +600,21 @@ void AMSextruder::OnVamsLoading(bool load, wxColour col)
 void AMSextruder::OnAmsLoading(bool load, int nozzle_id, wxColour col /*= AMS_CONTROL_GRAY500*/)
 {
     m_ams_loading = load;
-    if (nozzle_id == 0){
+    if (m_nozzle_num == 1){
         m_left_extruder->OnAmsLoading(load, col);
-        if (load) m_current_colur = col;
-    }
-    else{
-        m_right_extruder->OnAmsLoading(load, col);
         if (load) m_current_colur_deputy = col;
     }
+    else if (m_nozzle_num > 1){
+        if (nozzle_id == 0) {
+            m_right_extruder->OnAmsLoading(load, col);
+            if (load) m_current_colur = col;
+        }
+        else {
+            m_left_extruder->OnAmsLoading(load, col);
+            if (load) m_current_colur_deputy = col;
+        }
+    }
+
     Refresh();
 }
 
