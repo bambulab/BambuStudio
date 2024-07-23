@@ -111,7 +111,8 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, Ams *ams, bool remain_flag, boo
                 info.n = it->second->n;
             }
         } else {
-            info.can_id         = i;
+            //info.can_id = i;
+            info.can_id         = std::to_string(i);
             info.material_state = AMSCanType::AMS_CAN_TYPE_EMPTY;
         }
         cans.push_back(info);
@@ -1997,7 +1998,7 @@ void AMSRoadUpPart::doRender(wxDC& dc)
     dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxSOLID));
     dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
 
-    if (m_ams_model == SINGLE_AMS || m_ams_model == NO_AMS){
+    if ((m_ams_model == SINGLE_AMS || m_ams_model == NO_AMS) && m_amsinfo.cans.size() != 4){
         dc.DrawLine(FromDIP(size.x / 2), FromDIP(0), FromDIP(size.x / 2), FromDIP(size.y));
         if (m_load_step == AMSPassRoadSTEP::AMS_ROAD_STEP_2 || m_load_step == AMSPassRoadSTEP::AMS_ROAD_STEP_3){
             dc.SetPen(wxPen(m_amsinfo.cans[m_load_slot_index].material_colour, 4, wxSOLID));
@@ -2868,8 +2869,9 @@ void AmsItem::Update(AMSinfo info)
     m_info      = info;
     m_can_count = info.cans.size();
 
-    int i = 0;
+
     for (auto refresh_it : m_can_refresh_list) {
+        int i = 0;
         AMSrefresh *refresh = refresh_it.second;
         if (i < m_can_count) {
             refresh->Update(info.ams_id, info.cans[i]);
@@ -2882,14 +2884,15 @@ void AmsItem::Update(AMSinfo info)
 
     for (int i = 0; i < m_can_lib_list.size(); i++) {
         AMSLib* lib = m_can_lib_list[std::to_string(i)];
-        if (i < m_can_count && lib != nullptr) {
-            lib->Update(info.cans[i], info.ams_id);
-            lib->Show();
+        if (lib != nullptr){
+            if (i < m_can_count){
+                lib->Update(info.cans[i], info.ams_id);
+                lib->Show();
+            }
+            else{
+                lib->Hide();
+            }
         }
-        else {
-            lib->Hide();
-        }
-        i++;
     }
 
     if (true || m_ams_model == AMSModel::GENERIC_AMS) {
