@@ -2234,7 +2234,7 @@ std::map<std::string, std::vector<Preset const *>> PresetCollection::get_filamen
 }
 
 //BBS: add project embedded preset logic
-void PresetCollection::save_current_preset(const std::string &new_name, bool detach, bool save_to_project, Preset* _curr_preset)
+void PresetCollection::save_current_preset(const std::string &new_name, bool detach, bool save_to_project, Preset *_curr_preset, std::map<std::string, std::string> *extra_map)
 {
     Preset curr_preset = _curr_preset ? *_curr_preset : m_edited_preset;
     //BBS: add lock logic for sync preset in background
@@ -2273,8 +2273,12 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
             preset.config.option<ConfigOptionString>("print_settings_id", true)->value = new_name;
         else if (m_type == Preset::TYPE_FILAMENT)
             preset.config.option<ConfigOptionStrings>("filament_settings_id", true)->values[0] = new_name;
-        else if (m_type == Preset::TYPE_PRINTER)
+        else if (m_type == Preset::TYPE_PRINTER) {
             preset.config.option<ConfigOptionString>("printer_settings_id", true)->value = new_name;
+            for (auto iter : *extra_map) {
+                preset.config.option<ConfigOptionString>(iter.first, true)->value = iter.second;
+            }
+        }
         final_inherits = preset.inherits();
         unlock();
         // TODO: apply change from custom root to devided presets.
@@ -2318,8 +2322,12 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
             preset.config.option<ConfigOptionString>("print_settings_id", true)->value = new_name;
         else if (m_type == Preset::TYPE_FILAMENT)
             preset.config.option<ConfigOptionStrings>("filament_settings_id", true)->values[0] = new_name;
-        else if (m_type == Preset::TYPE_PRINTER)
+        else if (m_type == Preset::TYPE_PRINTER) {
             preset.config.option<ConfigOptionString>("printer_settings_id", true)->value = new_name;
+            for (auto iter : *extra_map) {
+                preset.config.option<ConfigOptionString>(iter.first, true)->value = iter.second;
+            }
+        }
         //BBS: add lock logic for sync preset in background
         final_inherits = inherits;
         unlock();
