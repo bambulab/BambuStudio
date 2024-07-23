@@ -309,12 +309,12 @@ void HintDatabase::reinit()
 		uninit();
 	init();
 }
-## void HintDatabase::init()
-## {
-## 	load_hints_from_file(std::move(boost::filesystem::path(resources_dir()) / "data" / "hints.ini"));
-## 	m_initialized = true;
-## 	init_random_hint_id();
-## }
+// void HintDatabase::init()
+// {
+// 	load_hints_from_file(std::move(boost::filesystem::path(resources_dir()) / "data" / "hints.ini"));
+// 	m_initialized = true;
+// 	init_random_hint_id();
+// }
 void HintDatabase::init()
 {
     // Pobierz język z konfiguracji
