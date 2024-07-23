@@ -3462,8 +3462,8 @@ void AMSControl::CreateAmsNew()
     }
     m_extruder->update(2);
     auto it = m_ams_item_list.begin();
-    m_down_road->UpdatePassRoad(0, true, -1, it->second->m_info, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
-    m_down_road->UpdatePassRoad(0, false, -1, (++it)->second->m_info, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+    m_down_road->UpdatePassRoad("0", true, -1, it->second->m_info, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+    m_down_road->UpdatePassRoad("0", false, -1, (++it)->second->m_info, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
     //Refresh();
     //Freeze();
     Thaw();
