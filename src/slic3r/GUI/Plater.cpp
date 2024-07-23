@@ -9848,6 +9848,8 @@ void Plater::load_gcode(const wxString& filename)
     //BBS: zoom to bed 0 for gcode preview
     //p->preview->get_canvas3d()->zoom_to_gcode();
     p->preview->get_canvas3d()->zoom_to_plate(0);
+    p->partplate_list.get_curr_plate()->update_slice_result_valid_state(true);
+    current_print.apply(this->model(), wxGetApp().preset_bundle->full_config());
 
     if (p->preview->get_canvas3d()->get_gcode_layers_zs().empty()) {
         MessageDialog(this, _L("The selected file") + ":\n" + filename + "\n" + _L("does not contain valid gcode."),
@@ -11288,7 +11290,7 @@ void Plater::export_stl(bool extended, bool selection_only, bool multi_stls)
         const auto obj_idx = selection.get_object_idx();
         if (obj_idx == -1 ||selection.is_wipe_tower())
             return;
-        // only support selection single full object 
+        // only support selection single full object
         if (!selection.is_single_full_object())
             return;
         const ModelObject *cur_model_object = p->model.objects[obj_idx];
