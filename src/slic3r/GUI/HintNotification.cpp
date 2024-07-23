@@ -341,6 +341,7 @@ void HintDatabase::init()
 
     m_initialized = true;
     init_random_hint_id();
+}
 void HintDatabase::init_random_hint_id()
 {
 	srand(time(NULL));
