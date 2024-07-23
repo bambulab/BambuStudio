@@ -3825,6 +3825,15 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> ams_info, std::vector<AMSinfo>ex
             }
         }
 
+        for (auto ams_prv : m_ams_preview_list) {
+            std::string id = ams_prv.second->m_amsinfo.ams_id;
+            auto item = m_ams_item_list.find(id);
+            if (item != m_ams_item_list.end())
+            {
+                ams_prv.second->Update(item->second->m_info);
+            }
+        }
+
         /*if (m_current_show_ams.empty() && !is_reset) {
             if (ext_info.size() > 0) {
                 SwitchAms(ext_info[0].ams_id);
