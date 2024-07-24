@@ -5170,6 +5170,7 @@ bool Tab::tree_sel_change_delayed(wxCommandEvent& event)
         if (m_variant_sizer) {
             wxWindow *variant_ctrl = m_extruder_switch ? (wxWindow *) m_extruder_switch : m_variant_combo;
             m_main_sizer->Show(m_variant_sizer, variant_ctrl->IsThisEnabled() && !m_active_page->m_opt_id_map.empty() && !m_active_page->title().StartsWith("Extruder "));
+            if (m_extruder_sync) m_extruder_sync->Show(m_extruder_sync->IsThisEnabled());
             GetParent()->Layout();
         }
 
@@ -5185,6 +5186,7 @@ bool Tab::tree_sel_change_delayed(wxCommandEvent& event)
     if (m_variant_sizer) {
         wxWindow *variant_ctrl = m_extruder_switch ? (wxWindow *) m_extruder_switch : m_variant_combo;
         m_main_sizer->Show(m_variant_sizer, variant_ctrl->IsThisEnabled() && !m_active_page->m_opt_id_map.empty() && !m_active_page->title().StartsWith("Extruder "));
+        if (m_extruder_sync) m_extruder_sync->Show(m_extruder_sync->IsThisEnabled());
         GetParent()->Layout();
     }
 
@@ -5679,6 +5681,7 @@ void TabPrinter::set_extruder_volume_type(int extruder_id, NozzleVolumeType type
     assert(nozzle_volumes->values.size() > (size_t)extruder_id);
     nozzle_volumes->values[extruder_id] = type;
     on_value_change((boost::format("nozzle_volume_type#%1%") % extruder_id).str(), int(type));
+    update_dirty();
 }
 
 // Return a callback to create a TabPrinter widget to edit bed shape
@@ -5839,6 +5842,7 @@ void Tab::update_extruder_variants(int extruder_id, bool reload)
             m_extruder_switch->SetLabels(wxString::Format(_L("Left: %s"), left), wxString::Format(_L("Right: %s"), right));
             m_extruder_switch->SetValue(extruder_id == 1);
             m_extruder_switch->Enable(true);
+            m_extruder_sync->Enable(left == right);
         } else {
             m_extruder_switch->Enable(false);
         }
@@ -5856,6 +5860,7 @@ void Tab::update_extruder_variants(int extruder_id, bool reload)
     if (m_variant_sizer) {
         wxWindow *variant_ctrl = m_extruder_switch ? (wxWindow *) m_extruder_switch : m_variant_combo;
         m_main_sizer->Show(m_variant_sizer, variant_ctrl->IsThisEnabled() && m_active_page && !m_active_page->m_opt_id_map.empty() && !m_active_page->title().StartsWith("Extruder "));
+        if (m_extruder_sync) m_extruder_sync->Show(m_extruder_sync->IsThisEnabled());
         GetParent()->Layout();
     }
 }
