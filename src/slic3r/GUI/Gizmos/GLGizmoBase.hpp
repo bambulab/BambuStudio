@@ -25,8 +25,8 @@ class Linef3;
 class ModelObject;
 
 namespace GUI {
-
-
+#define MAX_NUM 9999.99
+#define MAX_SIZE "9999.99"
 
 class ImGuiWrapper;
 class GLCanvas3D;
@@ -275,6 +275,22 @@ protected:
 
     // Mark gizmo as dirty to Re-Render when idle()
     void set_dirty();
+
+    /// <summary>
+    /// function which
+    /// Set up m_dragging and call functions
+    /// on_start_dragging / on_dragging / on_stop_dragging
+    /// </summary>
+    /// <param name="mouse_event">Keep information about mouse click</param>
+    /// <returns>same as on_mouse</returns>
+    bool use_grabbers(const wxMouseEvent &mouse_event);
+    void do_stop_dragging(bool perform_mouse_cleanup);
+    template<typename T> void limit_value(T &value, T _min, T _max)
+    {
+        if (value >= _max) { value = _max;}
+        if (value <= _min) { value = _min; }
+    }
+
 private:
     // Flag for dirty visible state of Gizmo
     // When True then need new rendering
