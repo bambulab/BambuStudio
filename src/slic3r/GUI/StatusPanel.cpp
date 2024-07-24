@@ -2590,8 +2590,11 @@ void StatusPanel::update_ams(MachineObject *obj)
     AMSModel ams_mode               = AMSModel::GENERIC_AMS;
 
     if (obj) {
-        if (obj->get_printer_ams_type() == "f1") { ams_mode = AMSModel::EXTRA_AMS; }
+        if (obj->get_printer_ams_type() == "f1") { ams_mode = AMSModel::AMS_LITE; }
         else if(obj->get_printer_ams_type() == "generic") { ams_mode = AMSModel::GENERIC_AMS; }
+    }
+    if (obj->is_enable_np && obj->amsList.size() > 0){
+        ams_mode = AMSModel(obj->amsList[0]->type);
     }
 
     if (!obj
@@ -2609,7 +2612,8 @@ void StatusPanel::update_ams(MachineObject *obj)
         }
 
 
-        m_ams_control->SetAmsModel(AMSModel::NO_AMS, ams_mode);
+        m_ams_control->SetAmsModel(AMSModel::EXT_AMS, ams_mode);
+
         show_ams_group(false);
         m_ams_control->show_auto_refill(false);
     }
@@ -2630,6 +2634,9 @@ void StatusPanel::update_ams(MachineObject *obj)
         AMSinfo info;
         info.ams_id = ams->first;
         if (ams->second->is_exists && info.parse_ams_info(obj, ams->second, obj->ams_calibrate_remain_flag, obj->is_support_ams_humidity)) {
+            if (ams_mode == AMSModel::AMS_LITE) {
+                info.ams_type = AMSModel::AMS_LITE;
+            }
             ams_info.push_back(info);
         }
     }
@@ -3865,6 +3872,8 @@ void StatusPanel::on_ams_selected(wxCommandEvent &event)
 {
     if (obj) {
         std::string curr_ams_id = m_ams_control->GetCurentAms();
+        std::string curr_selected_ams_id = std::to_string(event.GetInt());
+
         if (curr_ams_id.compare(std::to_string(VIRTUAL_TRAY_MAIN_ID)) == 0) {
             //update_ams_control_state(curr_ams_id, true);
             return;
@@ -3897,7 +3906,7 @@ void StatusPanel::on_ams_guide(wxCommandEvent& event)
     if (m_ams_control && m_ams_control->m_is_none_ams_mode == AMSModel::GENERIC_AMS) {
         ams_wiki_url = "https://wiki.bambulab.com/en/software/bambu-studio/use-ams-on-bambu-studio";
     }
-    else if (m_ams_control && m_ams_control->m_is_none_ams_mode == AMSModel::EXTRA_AMS) {
+    else if (m_ams_control && m_ams_control->m_is_none_ams_mode == AMSModel::AMS_LITE) {
         ams_wiki_url = "https://wiki.bambulab.com/en/ams-lite";
     }
     else {
