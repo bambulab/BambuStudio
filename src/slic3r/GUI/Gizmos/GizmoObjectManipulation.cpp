@@ -18,8 +18,7 @@
 
 #include <boost/algorithm/string.hpp>
 
-#define MAX_NUM 9999.99
-#define MAX_SIZE "9999.99"
+
 
 namespace Slic3r
 {

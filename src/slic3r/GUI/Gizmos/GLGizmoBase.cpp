@@ -481,6 +481,83 @@ void GLGizmoBase::set_dirty() {
     m_dirty = true;
 }
 
+bool GLGizmoBase::use_grabbers(const wxMouseEvent &mouse_event)
+{
+    bool is_dragging_finished = false;
+    if (mouse_event.Moving()) {
+        // it should not happen but for sure
+        assert(!m_dragging);
+        if (m_dragging)
+            is_dragging_finished = true;
+        else
+            return false;
+    }
+
+    if (mouse_event.LeftDown()) {
+        Selection &selection = m_parent.get_selection();
+        if (!selection.is_empty() && m_hover_id != -1 /* &&
+            (m_grabbers.empty() || m_hover_id < static_cast<int>(m_grabbers.size()))*/) {
+            selection.setup_cache();
+
+            m_dragging = true;
+            for (auto &grabber : m_grabbers) grabber.dragging = false;
+            //            if (!m_grabbers.empty() && m_hover_id < int(m_grabbers.size()))
+            //                m_grabbers[m_hover_id].dragging = true;
+
+            on_start_dragging();
+
+            // Let the plater know that the dragging started
+            m_parent.post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_STARTED));
+            m_parent.set_as_dirty();
+            return true;
+        }
+    } else if (m_dragging) {
+        // when mouse cursor leave window than finish actual dragging operation
+        bool is_leaving = mouse_event.Leaving();
+        if (mouse_event.Dragging()) {
+            Point      mouse_coord(mouse_event.GetX(), mouse_event.GetY());
+            auto       ray = m_parent.mouse_ray(mouse_coord);
+            UpdateData data(ray, mouse_coord);
+
+            update(data);
+
+            wxGetApp().obj_manipul()->set_dirty();
+            m_parent.set_as_dirty();
+            return true;
+        } else if (mouse_event.LeftUp() || is_leaving || is_dragging_finished) {
+            do_stop_dragging(is_leaving);
+            return true;
+        }
+    }
+    return false;
+}
+
+void GLGizmoBase::do_stop_dragging(bool perform_mouse_cleanup)
+{
+    for (auto &grabber : m_grabbers) grabber.dragging = false;
+    m_dragging = false;
+
+    // NOTE: This should be part of GLCanvas3D
+    // Reset hover_id when leave window
+    if (perform_mouse_cleanup) m_parent.mouse_up_cleanup();
+
+    on_stop_dragging();
+
+    // There is prediction that after draggign, data are changed
+    // Data are updated twice also by canvas3D::reload_scene.
+    // Should be fixed.
+    m_parent.get_gizmos_manager().update_data();
+
+    wxGetApp().obj_manipul()->set_dirty();
+
+    // Let the plater know that the dragging finished, so a delayed
+    // refresh of the scene with the background processing data should
+    // be performed.
+    m_parent.post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
+    // updates camera target constraints
+    m_parent.refresh_camera_scene_box();
+}
+
 void GLGizmoBase::render_input_window(float x, float y, float bottom_limit)
 {
     on_render_input_window(x, y, bottom_limit);

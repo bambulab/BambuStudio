@@ -1350,20 +1350,27 @@ void ObjectList::show_context_menu(const bool evt_context_menu)
                     if (volume_type != ModelVolumeType::MODEL_PART)
                         return;
                 }
-                menu = plater->assemble_multi_selection_menu();
             }
             else {
-                menu = type & itPlate                ? plater->plate_menu() :
-                       type & itInstance             ? plater->instance_menu() :
-                       type & itVolume               ? plater->part_menu() :
-                       printer_technology() == ptFFF ? plater->object_menu() :
-                                                       plater->sla_object_menu();
-                plater->SetPlateIndexByRightMenuInLeftUI(-1);
-                if (type & itPlate) {
-                    int            plate_idx = -1;
-                    const ItemType type0     = m_objects_model->GetItemType(item, plate_idx);
-                    if (plate_idx >= 0) {
-                        plater->SetPlateIndexByRightMenuInLeftUI(plate_idx);
+                if (type & itVolume) {
+                    int obj_idx, vol_idx;
+                    get_selected_item_indexes(obj_idx, vol_idx, item);
+                    if (obj_idx < 0 || vol_idx < 0) return;
+                    const ModelVolume *volume = object(obj_idx)->volumes[vol_idx];
+
+                    menu = volume->is_svg() ? plater->svg_part_menu() : // ORCA fixes missing "Edit SVG" item for Add/Negative/Modifier SVG objects in object list
+                           plater->part_menu();
+                }
+                else {
+                    menu = type & itPlate    ? plater->plate_menu() :
+                           type & itInstance ? plater->instance_menu() :
+                           printer_technology() == ptFFF ? plater->object_menu() :
+                                                           plater->sla_object_menu();
+                    plater->SetPlateIndexByRightMenuInLeftUI(-1);
+                    if (type & itPlate) {
+                        int            plate_idx = -1;
+                        const ItemType type0     = m_objects_model->GetItemType(item, plate_idx);
+                        if (plate_idx >= 0) { plater->SetPlateIndexByRightMenuInLeftUI(plate_idx); }
                     }
                 }
             }
@@ -2701,6 +2708,7 @@ void ObjectList::split()
     for (const ModelVolume* volume : model_object->volumes) {
         const wxDataViewItem& vol_item = m_objects_model->AddVolumeChild(parent, from_u8(volume->name),
             volume->type(),// is_modifier() ? ModelVolumeType::PARAMETER_MODIFIER : ModelVolumeType::MODEL_PART,
+            volume->is_svg(),
             get_warning_icon_name(volume->mesh().stats()),
             volume->config.has("extruder") ? volume->config.extruder() : 0,
             false);
@@ -3899,6 +3907,7 @@ wxDataViewItemArray ObjectList::add_volumes_to_object_in_list(size_t obj_idx, st
                 object_item,
                 from_u8(volume->name),
                 volume->type(),
+                volume->is_svg(),
                 get_warning_icon_name(volume->mesh().stats()),
                 volume->config.has("extruder") ? volume->config.extruder() : 0,
                 false);
@@ -5204,8 +5213,17 @@ void ObjectList::change_part_type()
         }
     }
 
-    const wxString names[] = { _L("Part"), _L("Negative Part"), _L("Modifier"), _L("Support Blocker"), _L("Support Enforcer") };
-    SingleChoiceDialog dlg(_L("Type:"), _L("Choose part type"), wxArrayString(5, names), int(type));
+    // ORCA: Fix crash when changing type of svg / text modifier
+    wxArrayString names;
+    names.Add(_L("Part"));
+    names.Add(_L("Negative Part"));
+    names.Add(_L("Modifier"));
+    if (!volume->is_svg()) {
+        names.Add(_L("Support Blocker"));
+        names.Add(_L("Support Enforcer"));
+    }
+
+    SingleChoiceDialog dlg(_L("Type:"), _L("Choose part type"), names, int(type));
     auto new_type = ModelVolumeType(dlg.GetSingleChoiceIndex());
 
 	if (new_type == type || new_type == ModelVolumeType::INVALID)

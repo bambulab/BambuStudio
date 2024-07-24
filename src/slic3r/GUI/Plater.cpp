@@ -88,6 +88,8 @@
 #include "Jobs/SLAImportJob.hpp"
 #include "Jobs/PrintJob.hpp"
 #include "Jobs/NotificationProgressIndicator.hpp"
+#include "Jobs/PlaterWorker.hpp"
+#include "Jobs/BoostThreadWorker.hpp"
 #include "BackgroundSlicingProcess.hpp"
 #include "SelectMachine.hpp"
 #include "SendMultiMachinePage.hpp"
@@ -107,7 +109,7 @@
 #include "MsgDialog.hpp"
 #include "ProjectDirtyStateManager.hpp"
 #include "Gizmos/GLGizmoSimplify.hpp" // create suggestion notification
-
+#include "Gizmos/GLGizmoSVG.hpp" // Drop SVG file
 // BBS
 #include "Widgets/ProgressDialog.hpp"
 #include "BBLStatusBar.hpp"
@@ -2218,7 +2220,9 @@ struct Plater::priv
 
     BackgroundSlicingProcess    background_process;
     bool suppressed_backround_processing_update { false };
-
+    // UIThreadWorker can be used as a replacement for BoostThreadWorker if
+    // no additional worker threads are desired (useful for debugging or profiling)
+    PlaterWorker<BoostThreadWorker> m_worker;
     // Jobs defined inside the group class will be managed so that only one can
     // run at a time. Also, the background process will be stopped if a job is
     // started. It is up the the plater to ensure that the background slicing
@@ -2747,6 +2751,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         }))
     , sidebar(new Sidebar(q))
     , notification_manager(std::make_unique<NotificationManager>(q))
+    , m_worker{q, std::make_unique<NotificationProgressIndicator>(notification_manager.get()), "ui_worker"}
     , m_ui_jobs(this)
     , m_job_prepare_state(Job::JobPrepareState::PREPARE_STATE_DEFAULT)
     , delayed_scene_refresh(false)
@@ -3363,6 +3368,10 @@ void Plater::priv::reset_all_gizmos()
 {
     view3D->get_canvas3d()->reset_all_gizmos();
 }
+
+Worker &Plater::get_ui_job_worker() { return p->m_worker; }
+
+const Worker &Plater::get_ui_job_worker() const { return p->m_worker; }
 
 // Called after the Preferences dialog is closed and the program settings are saved.
 // Update the UI based on the current preferences.
@@ -7357,8 +7366,15 @@ void Plater::priv::on_right_click(RBtnEvent& evt)
                 menu = is_some_full_instances   ? menus.assemble_object_menu() :
                    is_part                  ? menus.assemble_part_menu()   : menus.assemble_multi_selection_menu();
             } else {
-                menu = is_some_full_instances   ? menus.object_menu() :
-                       is_part                  ? menus.part_menu()   : menus.multi_selection_menu();
+                if (is_some_full_instances)
+                    menu = printer_technology == ptSLA ? menus.sla_object_menu() : menus.object_menu();
+                else if (is_part) {
+                    const GLVolume *   gl_volume    = selection.get_first_volume();
+                    const ModelVolume *model_volume = get_model_volume(*gl_volume, selection.get_model()->objects);
+                    menu                            = (model_volume != nullptr && model_volume->is_svg())  ? menus.svg_part_menu() :
+                                                                                                             menus.part_menu();
+                } else
+                    menu = menus.multi_selection_menu();
             }
         }
     }
@@ -10338,6 +10354,26 @@ void ProjectDropDialog::on_dpi_changed(const wxRect& suggested_rect)
     Refresh();
 }
 
+bool Plater::emboss_svg(const wxString &svg_file)
+{
+    std::string svg_file_str = into_u8(svg_file);
+    GLCanvas3D *canvas       = canvas3D();
+    if (canvas == nullptr)
+        return false;
+    auto base_svg = canvas->get_gizmos_manager().get_gizmo(GLGizmosManager::Svg);
+    if (base_svg == nullptr)
+        return false;
+    GLGizmoSVG *svg = dynamic_cast<GLGizmoSVG*>(base_svg);
+    if (svg == nullptr)
+        return false;
+    // Refresh hover state to find surface point under mouse
+    wxMouseEvent evt(wxEVT_MOTION);
+    auto  mouse_drop_position =canvas->get_local_mouse_position();
+    evt.SetPosition(wxPoint(mouse_drop_position.x(), mouse_drop_position.y()));
+    canvas->on_mouse(evt); // call render where is call GLCanvas3D::_picking_pass()
+    return svg->create_volume(svg_file_str, mouse_drop_position, ModelVolumeType::MODEL_PART);
+}
+
 //BBS: remove GCodeViewer as seperate APP logic
 bool Plater::load_files(const wxArrayString& filenames)
 {
@@ -10346,6 +10382,20 @@ bool Plater::load_files(const wxArrayString& filenames)
 
     std::vector<fs::path> normal_paths;
     std::vector<fs::path> gcode_paths;
+
+    // When only one .svg file is dropped on scene
+    if (filenames.size() == 1) {
+        const wxString &filename       = filenames.Last();
+        const wxString  file_extension = filename.substr(filename.length() - 4);
+        if (file_extension.CmpNoCase(".svg") == 0) {
+            // BBS: GUI refactor: move sidebar to the left
+          /*  const wxPoint offset = GetPosition() + p->current_panel->GetPosition();
+            Vec2d         mouse_position(x - offset.x, y - offset.y);*/
+            // Scale for retina displays
+            //canvas->apply_retina_scale(mouse_position);
+            return emboss_svg(filename);
+        }
+    }
 
     for (const auto& filename : filenames) {
         fs::path path(into_path(filename));
@@ -10765,6 +10815,7 @@ void Plater::set_selected_visible(bool visible)
         return;
 
     Plater::TakeSnapshot snapshot(this, "Set Selected Objects Visible in AssembleView");
+    get_ui_job_worker().cancel_all();
     p->m_ui_jobs.cancel_all();
 
     p->get_current_canvas3D()->set_selected_visible(visible);
@@ -10783,6 +10834,7 @@ void Plater::remove_selected()
         return;
 
     Plater::TakeSnapshot snapshot(this, "Delete Selected Objects");
+    get_ui_job_worker().cancel_all();
     p->m_ui_jobs.cancel_all();
 
     //BBS delete current selected
@@ -11560,6 +11612,101 @@ void Plater::export_stl(bool extended, bool selection_only, bool multi_stls)
         ; // store failed
     }
 }*/
+namespace {
+std::string get_file_name(const std::string &file_path)
+{
+    size_t pos_last_delimiter = file_path.find_last_of("/\\");
+    size_t pos_point          = file_path.find_last_of('.');
+    size_t offset             = pos_last_delimiter + 1;
+    size_t count              = pos_point - pos_last_delimiter - 1;
+    return file_path.substr(offset, count);
+}
+using SvgFile  = EmbossShape::SvgFile;
+using SvgFiles = std::vector<SvgFile *>;
+std::string create_unique_3mf_filepath(const std::string &file, const SvgFiles svgs)
+{
+    // const std::string MODEL_FOLDER = "3D/"; // copy from file 3mf.cpp
+    std::string path_in_3mf   = "3D/" + file + ".svg";
+    size_t      suffix_number = 0;
+    bool        is_unique     = false;
+    do {
+        is_unique   = true;
+        path_in_3mf = "3D/" + file + ((suffix_number++) ? ("_" + std::to_string(suffix_number)) : "") + ".svg";
+        for (SvgFile *svgfile : svgs) {
+            if (svgfile->path_in_3mf.empty()) continue;
+            if (svgfile->path_in_3mf.compare(path_in_3mf) == 0) {
+                is_unique = false;
+                break;
+            }
+        }
+    } while (!is_unique);
+    return path_in_3mf;
+}
+
+bool set_by_local_path(SvgFile &svg, const SvgFiles &svgs)
+{
+    // Try to find already used svg file
+    for (SvgFile *svg_ : svgs) {
+        if (svg_->path_in_3mf.empty()) continue;
+        if (svg.path.compare(svg_->path) == 0) {
+            svg.path_in_3mf = svg_->path_in_3mf;
+            return true;
+        }
+    }
+    return false;
+}
+
+/// <summary>
+/// Function to secure private data before store to 3mf
+/// </summary>
+/// <param name="model">Data(also private) to clean before publishing</param>
+void publish(Model &model, SaveStrategy strategy)
+{
+    // SVG file publishing
+    bool     exist_new = false;
+    SvgFiles svgfiles;
+    for (ModelObject *object : model.objects) {
+        for (ModelVolume *volume : object->volumes) {
+            if (!volume->emboss_shape.has_value()) continue;
+
+            assert(volume->emboss_shape->svg_file.has_value());
+            if (!volume->emboss_shape->svg_file.has_value()) continue;
+
+            SvgFile *svg = &(*volume->emboss_shape->svg_file);
+            if (svg->path_in_3mf.empty()) exist_new = true;
+            svgfiles.push_back(svg);
+        }
+    }
+
+    // Orca: don't show this in silence mode
+    if (exist_new && !(strategy & SaveStrategy::Silence)) {
+        MessageDialog dialog(nullptr,
+                             _L("Are you sure you want to store original SVGs with their local paths into the 3MF file?\n"
+                                "If you hit 'NO', all SVGs in the project will not be editable any more."),
+                             _L("Private protection"), wxYES_NO | wxICON_QUESTION);
+        if (dialog.ShowModal() == wxID_NO) {
+            for (ModelObject *object : model.objects)
+                for (ModelVolume *volume : object->volumes)
+                    if (volume->emboss_shape.has_value()) volume->emboss_shape.reset();
+        }
+    }
+
+    for (SvgFile *svgfile : svgfiles) {
+        if (!svgfile->path_in_3mf.empty())
+            continue; // already suggested path (previous save)
+
+        // create unique name for svgs, when local path differ
+        std::string filename = "unknown";
+        if (!svgfile->path.empty()) {
+            if (set_by_local_path(*svgfile, svgfiles))
+                continue;
+            // check whether original filename is already in:
+            filename = get_file_name(svgfile->path);
+        }
+        svgfile->path_in_3mf = create_unique_3mf_filepath(filename, svgfiles);
+    }
+}
+} // namespace
 
 // BBS: backup
 int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy strategy, int export_plate_idx, Export3mfProgressFn proFn)
@@ -11579,6 +11726,9 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
 
     if (!path.Lower().EndsWith(".3mf"))
         return -1;
+    // take care about private data stored into .3mf
+    // modify model
+    publish(p->model, strategy);
 
     DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config_secure();
     const std::string path_u8 = into_u8(path);
@@ -12832,6 +12982,28 @@ void Plater::changed_mesh(int obj_idx)
     p->schedule_background_process();
 }
 
+void Plater::changed_object(ModelObject &object)
+{
+    assert(object.get_model() == &p->model); // is object from same model?
+    object.invalidate_bounding_box();
+
+    // recenter and re - align to Z = 0
+    object.ensure_on_bed(p->printer_technology != ptSLA);
+
+    if (p->printer_technology == ptSLA) {
+        // Update the SLAPrint from the current Model, so that the reload_scene()
+        // pulls the correct data, update the 3D scene.
+        p->update_restart_background_process(true, false);
+    } else
+        p->view3D->reload_scene(false);
+
+    // update print
+    p->schedule_background_process();
+
+    // Check outside bed
+    get_current_canvas3D()->requires_check_outside_state();
+}
+
 void Plater::changed_object(int obj_idx)
 {
     if (obj_idx < 0)
@@ -14073,7 +14245,8 @@ bool Plater::PopupObjectTableBySelection()
 
 wxMenu* Plater::plate_menu()            { return p->menus.plate_menu();             }
 wxMenu* Plater::object_menu()           { return p->menus.object_menu();            }
-wxMenu* Plater::part_menu()             { return p->menus.part_menu();              }
+wxMenu *Plater::part_menu()             { return p->menus.part_menu();              }
+wxMenu *Plater::svg_part_menu()         { return p->menus.svg_part_menu();          }
 wxMenu* Plater::sla_object_menu()       { return p->menus.sla_object_menu();        }
 wxMenu* Plater::default_menu()          { return p->menus.default_menu();           }
 wxMenu* Plater::instance_menu()         { return p->menus.instance_menu();          }

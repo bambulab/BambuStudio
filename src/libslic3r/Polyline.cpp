@@ -13,7 +13,7 @@ const Point& Polyline::leftmost_point() const
 {
     const Point *p = &this->points.front();
     for (Points::const_iterator it = this->points.begin() + 1; it != this->points.end(); ++ it) {
-        if (it->x() < p->x()) 
+        if (it->x() < p->x())
         	p = &(*it);
     }
     return *p;
@@ -122,7 +122,7 @@ Points Polyline::equally_spaced_points(double distance) const
     Points points;
     points.emplace_back(this->first_point());
     double len = 0;
-    
+
     for (Points::const_iterator it = this->points.begin() + 1; it != this->points.end(); ++it) {
         Vec2d  p1 = (it-1)->cast<double>();
         Vec2d  v  = it->cast<double>() - p1;
@@ -172,7 +172,7 @@ Polylines Polyline::equally_spaced_lines(double distance) const
         if (len == distance) {
             line.append(*it);
             lines.emplace_back(line);
-            
+
             line.clear();
             line.append(*it);
             len = 0;
@@ -202,7 +202,7 @@ template <class T>
 void Polyline::simplify_by_visibility(const T &area)
 {
     Points &pp = this->points;
-    
+
     size_t s = 0;
     bool did_erase = false;
     for (size_t i = s+2; i < pp.size(); i = s + 2) {
@@ -232,7 +232,7 @@ void Polyline::split_at(Point &point, Polyline* p1, Polyline* p2) const
         point = p1->is_valid()? p1->last_point(): p2->first_point();
         return;
     }
-    
+
     //1 find the line to split at
     size_t line_idx = 0;
     Point p = this->first_point();
@@ -530,6 +530,30 @@ BoundingBox get_extents(const Polylines &polylines)
     return bb;
 }
 
+// Return True when erase some otherwise False.
+bool remove_same_neighbor(Polyline &polyline)
+{
+    Points &points = polyline.points;
+    if (points.empty()) return false;
+    auto last = std::unique(points.begin(), points.end());
+
+    // no duplicits
+    if (last == points.end()) return false;
+
+    points.erase(last, points.end());
+    return true;
+}
+
+bool remove_same_neighbor(Polylines &polylines)
+{
+    if (polylines.empty()) return false;
+    bool exist = false;
+    for (Polyline &polyline : polylines) exist |= remove_same_neighbor(polyline);
+    // remove empty polylines
+    polylines.erase(std::remove_if(polylines.begin(), polylines.end(), [](const Polyline &p) { return p.points.size() <= 1; }), polylines.end());
+    return exist;
+}
+
 const Point& leftmost_point(const Polylines &polylines)
 {
     if (polylines.empty())
@@ -550,7 +574,7 @@ bool remove_degenerate(Polylines &polylines)
     size_t j = 0;
     for (size_t i = 0; i < polylines.size(); ++ i) {
         if (polylines[i].points.size() >= 2) {
-            if (j < i) 
+            if (j < i)
                 std::swap(polylines[i].points, polylines[j].points);
             ++ j;
         } else

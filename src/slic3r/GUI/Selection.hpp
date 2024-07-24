@@ -14,6 +14,7 @@ class Model;
 class ModelObject;
 class ModelVolume;
 class ModelInstance;
+class ObjectID;
 class GLVolume;
 class GLArrow;
 class GLCurvedArrow;
@@ -291,7 +292,7 @@ public:
     void set_model(Model* model);
 
     EMode get_mode() const { return m_mode; }
-    void set_mode(EMode mode) { m_mode = mode; }
+    void  set_mode(EMode mode);
 
     int query_real_volume_idx_from_other_view(unsigned int object_idx, unsigned int instance_idx, unsigned int model_volume_idx);
     void add(unsigned int volume_idx, bool as_single_selection = true, bool check_for_already_contained = false);
@@ -376,6 +377,7 @@ public:
 
     const IndicesList& get_volume_idxs() const { return m_list; }
     const GLVolume* get_volume(unsigned int volume_idx) const;
+    GLVolume*      get_volume(unsigned int volume_idx);
     const GLVolume* get_first_volume() const { return get_volume(*m_list.begin()); }
     const ObjectIdxsToInstanceIdxsMap& get_content() const { return m_cache.content; }
 
@@ -526,7 +528,11 @@ private:
     void transform_volume_relative(
         GLVolume &volume, const VolumeCache &volume_data, TransformationType transformation_type, const Transform3d &transform, const Vec3d &world_pivot);
 };
+ModelVolume *   get_selected_volume(const Selection &selection);
+const GLVolume *get_selected_gl_volume(const Selection &selection);
 
+ModelVolume *get_selected_volume(const ObjectID &volume_id, const Selection &selection);
+ModelVolume *get_volume(const ObjectID &volume_id, const Selection &selection);
 } // namespace GUI
 } // namespace Slic3r
 

@@ -147,6 +147,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Gizmos/GLGizmoSeam.hpp
     GUI/Gizmos/GLGizmoText.cpp
     GUI/Gizmos/GLGizmoText.hpp
+    GUI/Gizmos/GLGizmoSVG.cpp
+    GUI/Gizmos/GLGizmoSVG.hpp
     GUI/Gizmos/GLGizmoMeshBoolean.cpp
     GUI/Gizmos/GLGizmoMeshBoolean.hpp
     GUI/GLSelectionRectangle.cpp
@@ -187,6 +189,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/GUI_Utils.hpp
     GUI/I18N.cpp
     GUI/I18N.hpp
+	GUI/IconManager.cpp
+    GUI/IconManager.hpp
     GUI/MainFrame.cpp
     GUI/MainFrame.hpp
     GUI/BBLTopbar.cpp
@@ -299,6 +303,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/SendSystemInfoDialog.hpp
     GUI/StepMeshDialog.cpp
     GUI/StepMeshDialog.hpp
+    GUI/SurfaceDrag.cpp
+    GUI/SurfaceDrag.hpp
     GUI/PlateSettingsDialog.cpp
     GUI/PlateSettingsDialog.hpp
     GUI/ImGuiWrapper.hpp
@@ -328,6 +334,15 @@ set(SLIC3R_GUI_SOURCES
     GUI/UpdateDialogs.hpp
     GUI/Jobs/Job.hpp
     GUI/Jobs/Job.cpp
+    GUI/Jobs/JobNew.hpp
+    GUI/Jobs/Worker.hpp
+    GUI/Jobs/BoostThreadWorker.hpp
+    GUI/Jobs/BoostThreadWorker.cpp
+    GUI/Jobs/BusyCursorJob.hpp
+    GUI/Jobs/ThreadSafeQueue.hpp
+    GUI/Jobs/PlaterWorker.hpp
+    GUI/Jobs/EmbossJob.cpp
+    GUI/Jobs/EmbossJob.hpp
     GUI/Jobs/PlaterJob.hpp
     GUI/Jobs/PlaterJob.cpp
     GUI/Jobs/UpgradeNetworkJob.hpp
@@ -472,6 +487,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/PresetUpdater.hpp
     Utils/Process.cpp
     Utils/Process.hpp
+    Utils/RaycastManager.cpp
+    Utils/RaycastManager.hpp
     Utils/Profile.hpp
     Utils/UndoRedo.cpp
     Utils/UndoRedo.hpp

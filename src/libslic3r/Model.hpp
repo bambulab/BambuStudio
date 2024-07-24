@@ -14,7 +14,7 @@
 #include "TriangleMesh.hpp"
 #include "CustomGCode.hpp"
 #include "enum_bitmask.hpp"
-
+#include "EmbossShape.hpp"
 //BBS: add bbs 3mf
 #include "Format/bbs_3mf.hpp"
 //BBS: add step
@@ -32,7 +32,7 @@
 #include <vector>
 #include <algorithm>
 #include <functional>
-
+#include <optional>
 namespace cereal {
 	class BinaryInputArchive;
 	class BinaryOutputArchive;
@@ -901,6 +901,7 @@ public:
     void                set_mesh(std::shared_ptr<const TriangleMesh> &mesh) { m_mesh = mesh; }
     void                set_mesh(std::unique_ptr<const TriangleMesh> &&mesh) { m_mesh = std::move(mesh); }
 	void				reset_mesh() { m_mesh = std::make_shared<const TriangleMesh>(); }
+    const std::shared_ptr<const TriangleMesh> &get_mesh_shared_ptr() const { return m_mesh; }
     // Configuration parameters specific to an object model geometry or a modifier volume,
     // overriding the global Slic3r settings and the ModelObject settings.
     ModelConfigObject	config;
@@ -921,6 +922,10 @@ public:
     // List of exterior faces
     FacetsAnnotation    exterior_facets;
 
+
+    // Is set only when volume is Embossed Shape
+    // Contain 2d information about embossed shape to be editabled
+    std::optional<EmbossShape> emboss_shape;
     // A parent object owning this modifier volume.
     ModelObject*        get_object() const { return this->object; }
     ModelVolumeType     type() const { return m_type; }
@@ -931,6 +936,8 @@ public:
 	bool                is_support_enforcer()   const { return m_type == ModelVolumeType::SUPPORT_ENFORCER; }
 	bool                is_support_blocker()    const { return m_type == ModelVolumeType::SUPPORT_BLOCKER; }
 	bool                is_support_modifier()   const { return m_type == ModelVolumeType::SUPPORT_BLOCKER || m_type == ModelVolumeType::SUPPORT_ENFORCER; }
+    bool                is_svg() const { return emboss_shape.has_value(); }
+    bool                is_the_only_one_part() const; // behave like an object
     t_model_material_id material_id() const { return m_material_id; }
     void                set_material_id(t_model_material_id material_id);
     void                reset_extra_facets();
@@ -1119,7 +1126,7 @@ private:
         name(other.name), source(other.source), m_mesh(other.m_mesh), m_convex_hull(other.m_convex_hull),
         config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation),
         supported_facets(other.supported_facets), seam_facets(other.seam_facets), mmu_segmentation_facets(other.mmu_segmentation_facets),
-        m_text_info(other.m_text_info)
+        m_text_info(other.m_text_info), emboss_shape(other.emboss_shape)
     {
 		assert(this->id().valid());
         assert(this->config.id().valid());
@@ -1139,7 +1146,8 @@ private:
     }
     // Providing a new mesh, therefore this volume will get a new unique ID assigned.
     ModelVolume(ModelObject *object, const ModelVolume &other, const TriangleMesh &&mesh) :
-        name(other.name), source(other.source), m_mesh(new TriangleMesh(std::move(mesh))), config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation)
+        name(other.name), source(other.source), m_mesh(new TriangleMesh(std::move(mesh))), config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation),
+        emboss_shape(other.emboss_shape)
     {
 		assert(this->id().valid());
         assert(this->config.id().valid());
@@ -1186,7 +1194,6 @@ private:
         auto tr = m_transformation;
         ar(name, source, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull, m_text_info, cut_info);
         mesh_changed |= !(tr == m_transformation);
-        if (mesh_changed) m_transformation.get_matrix(true, true, true, true); // force dirty
         auto t = supported_facets.timestamp();
         cereal::load_by_value(ar, supported_facets);
         mesh_changed |= t != supported_facets.timestamp();
@@ -1197,6 +1204,7 @@ private:
         cereal::load_by_value(ar, mmu_segmentation_facets);
         mesh_changed |= t != mmu_segmentation_facets.timestamp();
         cereal::load_by_value(ar, config);
+        cereal::load(ar, emboss_shape);
 		assert(m_mesh);
 		if (has_convex_hull) {
 			cereal::load_optional(ar, m_convex_hull);
@@ -1215,6 +1223,7 @@ private:
         cereal::save_by_value(ar, seam_facets);
         cereal::save_by_value(ar, mmu_segmentation_facets);
         cereal::save_by_value(ar, config);
+        cereal::save(ar, emboss_shape);
 		if (has_convex_hull)
 			cereal::save_optional(ar, m_convex_hull);
 	}
@@ -1306,7 +1315,7 @@ public:
     // BBS
     void rotate(Matrix3d rotation_matrix) {
         // note: must remove scaling from transformation, otherwise auto-orientation with scaled objects will have problem
-        auto R = get_matrix(true,false,true).matrix().block<3, 3>(0, 0);
+        auto R            = m_transformation.get_rotation_matrix().matrix().block<3, 3>(0, 0);
         auto R_new = rotation_matrix * R;
         auto euler_angles = Geometry::extract_euler_angles(R_new);
         set_rotation(euler_angles);

@@ -2905,7 +2905,7 @@ static void UnpackAccumulativeOffsetsIntoRanges(int base_codepoint, const short*
 //-------------------------------------------------------------------------
 // [SECTION] ImFontAtlas glyph ranges helpers
 //-------------------------------------------------------------------------
-const ImWchar*  ImFontAtlas::GetGlyphRangesChineseSimplifiedCommon() // used in bold_font only 
+const ImWchar*  ImFontAtlas::GetGlyphRangesChineseSimplifiedCommon() // used in bold_font only
 {
     // Store 2500 regularly used characters for Simplified Chinese.
     // Sourced from https://zh.wiktionary.org/wiki/%E9%99%84%E5%BD%95:%E7%8E%B0%E4%BB%A3%E6%B1%89%E8%AF%AD%E5%B8%B8%E7%94%A8%E5%AD%97%E8%A1%A8

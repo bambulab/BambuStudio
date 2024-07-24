@@ -47,8 +47,9 @@ struct SettingsFactory
 class MenuFactory
 {
 public:
-    static const std::vector<std::pair<std::string, std::string>> ADD_VOLUME_MENU_ITEMS;
     static std::vector<wxBitmap>    get_volume_bitmaps();
+    static std::vector<wxBitmap>    get_text_volume_bitmaps();
+    static std::vector<wxBitmap>    get_svg_volume_bitmaps();
 
     MenuFactory();
     ~MenuFactory() = default;
@@ -66,6 +67,8 @@ public:
     wxMenu* object_menu();
     wxMenu* sla_object_menu();
     wxMenu* part_menu();
+    wxMenu *text_part_menu();
+    wxMenu *svg_part_menu();
     wxMenu* instance_menu();
     wxMenu* layer_menu();
     wxMenu* multi_selection_menu();
@@ -86,6 +89,8 @@ private:
 
     MenuWithSeparators m_object_menu;
     MenuWithSeparators m_part_menu;
+    MenuWithSeparators m_text_part_menu;
+    MenuWithSeparators m_svg_part_menu;
     MenuWithSeparators m_sla_object_menu;
     MenuWithSeparators m_default_menu;
     MenuWithSeparators m_instance_menu;
@@ -112,6 +117,8 @@ private:
     void        create_object_menu();
     void        create_sla_object_menu();
     void        create_part_menu();
+    void        create_text_part_menu();
+    void        create_svg_part_menu();
     //BBS: add part plate related logic
     void        create_plate_menu();
     //BBS: add bbl object menu
@@ -136,7 +143,6 @@ private:
     void        append_menu_item_change_extruder(wxMenu* menu);
     void        append_menu_item_set_visible(wxMenu* menu);
     void        append_menu_item_delete(wxMenu* menu);
-    void        append_menu_item_edit_text(wxMenu *menu);
     void        append_menu_item_scale_selection_to_fit_print_volume(wxMenu* menu);
     void        append_menu_items_convert_unit(wxMenu* menu); // Add "Conver/Revert..." menu items (from/to inches/meters) after "Reload From Disk"
     void        append_menu_items_flush_options(wxMenu* menu);
@@ -145,6 +151,8 @@ private:
     void        append_menu_item_merge_parts_to_single_part(wxMenu *menu);
     void        append_menu_items_mirror(wxMenu *menu);
     void        append_menu_item_invalidate_cut_info(wxMenu *menu);
+    void        append_menu_item_edit_text(wxMenu *menu);
+    void        append_menu_item_edit_svg(wxMenu *menu);
 
     //void        append_menu_items_instance_manipulation(wxMenu *menu);
     //void        update_menu_items_instance_manipulation(MenuType type);
