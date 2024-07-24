@@ -16,9 +16,9 @@ public:
     PointClass min;
     PointClass max;
     bool defined;
-    
+
     BoundingBoxBase() : min(PointClass::Zero()), max(PointClass::Zero()), defined(false) {}
-    BoundingBoxBase(const PointClass &pmin, const PointClass &pmax) : 
+    BoundingBoxBase(const PointClass &pmin, const PointClass &pmax) :
         min(pmin), max(pmax), defined(pmin(0) < pmax(0) && pmin(1) < pmax(1)) {}
     BoundingBoxBase(const PointClass &p1, const PointClass &p2, const PointClass &p3) :
         min(p1), max(p1), defined(false) { merge(p2); merge(p3); }
@@ -27,7 +27,7 @@ public:
     template<class It, class = IteratorOnly<It>>
     BoundingBoxBase(It from, It to)
     {
-        construct(*this, from, to); 
+        construct(*this, from, to);
     }
 
     BoundingBoxBase(const std::vector<PointClass> &points)
@@ -107,8 +107,8 @@ class BoundingBox3Base : public BoundingBoxBase<PointClass>
 {
 public:
     BoundingBox3Base() : BoundingBoxBase<PointClass>() {}
-    BoundingBox3Base(const PointClass &pmin, const PointClass &pmax) : 
-        BoundingBoxBase<PointClass>(pmin, pmax) 
+    BoundingBox3Base(const PointClass &pmin, const PointClass &pmax) :
+        BoundingBoxBase<PointClass>(pmin, pmax)
         { if (pmin(2) >= pmax(2)) BoundingBoxBase<PointClass>::defined = false; }
     BoundingBox3Base(const PointClass &p1, const PointClass &p2, const PointClass &p3) :
         BoundingBoxBase<PointClass>(p1, p1) { merge(p2); merge(p3); }
@@ -206,7 +206,7 @@ public:
     // Align the min corner to a grid of cell_size x cell_size cells,
     // to encompass the original bounding box.
     void align_to_grid(const coord_t cell_size);
-    
+
     BoundingBox() : BoundingBoxBase<Point>() {}
     BoundingBox(const Point &pmin, const Point &pmax) : BoundingBoxBase<Point>(pmin, pmax) {}
     BoundingBox(const Points &points) : BoundingBoxBase<Point>(points) {}
@@ -216,7 +216,9 @@ public:
     friend BoundingBox get_extents_rotated(const Points &points, double angle);
 };
 
-class BoundingBox3  : public BoundingBox3Base<Vec3crd> 
+using BoundingBoxes = std::vector<BoundingBox>;
+
+class BoundingBox3  : public BoundingBox3Base<Vec3crd>
 {
 public:
     BoundingBox3() : BoundingBox3Base<Vec3crd>() {}
@@ -224,7 +226,7 @@ public:
     BoundingBox3(const Points3& points) : BoundingBox3Base<Vec3crd>(points) {}
 };
 
-class BoundingBoxf : public BoundingBoxBase<Vec2d> 
+class BoundingBoxf : public BoundingBoxBase<Vec2d>
 {
 public:
     BoundingBoxf() : BoundingBoxBase<Vec2d>() {}
@@ -232,7 +234,7 @@ public:
     BoundingBoxf(const std::vector<Vec2d> &points) : BoundingBoxBase<Vec2d>(points) {}
 };
 
-class BoundingBoxf3 : public BoundingBox3Base<Vec3d> 
+class BoundingBoxf3 : public BoundingBox3Base<Vec3d>
 {
 public:
     using BoundingBox3Base::BoundingBox3Base;

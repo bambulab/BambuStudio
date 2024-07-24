@@ -1932,6 +1932,21 @@ void ModelObject::clone_for_cut(ModelObject **obj)
     (*obj)->input_file.clear();
 }
 
+bool ModelVolume::is_the_only_one_part() const
+{
+    if (m_type != ModelVolumeType::MODEL_PART)
+        return false;
+    if (object == nullptr) return false;
+    for (const ModelVolume *v : object->volumes) {
+        if (v == nullptr) continue;
+        // is this volume?
+        if (v->id() == this->id()) continue;
+        // exist another model part in object?
+        if (v->type() == ModelVolumeType::MODEL_PART) return false;
+    }
+    return true;
+}
+
 Transform3d ModelObject::calculate_cut_plane_inverse_matrix(const std::array<Vec3d, 4>& plane_points)
 {
     Vec3d mid_point = {0.0, 0.0, 0.0};
@@ -2425,6 +2440,7 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
         if (volume->type() != ModelVolumeType::MODEL_PART)
             continue;
 
+        // splited volume should not be text object
         if (!is_multi_volume_object) {
             //BBS: not multi volume object, then split mesh.
             std::vector<TriangleMesh> volume_meshes = volume->mesh().split();
@@ -3183,7 +3199,7 @@ size_t ModelVolume::split(unsigned int max_extruders)
     std::vector<TriangleMesh> meshes = this->mesh().split();
     if (meshes.size() <= 1)
         return 1;
-
+    // splited volume should not be text object
     size_t idx = 0;
     size_t ivolume = std::find(this->object->volumes.begin(), this->object->volumes.end(), this) - this->object->volumes.begin();
     const std::string name = this->name;

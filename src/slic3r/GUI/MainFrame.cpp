@@ -883,6 +883,7 @@ void MainFrame::shutdown()
 #endif // _WIN32
 
     if (m_plater != nullptr) {
+        m_plater->get_ui_job_worker().cancel_all();
         m_plater->stop_jobs();
 
         // Unbinding of wxWidgets event handling in canvases needs to be done here because on MAC,

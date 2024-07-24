@@ -77,6 +77,7 @@ public:
         Seam,
         // BBS
         Text,
+        Svg,
         MmuSegmentation,
         Measure,
         Assembly,
@@ -229,6 +230,7 @@ public:
     void reset_all_states();
     bool is_serializing() const { return m_serializing; }
     bool open_gizmo(EType type);
+    bool open_gizmo(unsigned char type);
     bool check_gizmos_closed_except(EType) const;
 
     void set_hover_id(int id);

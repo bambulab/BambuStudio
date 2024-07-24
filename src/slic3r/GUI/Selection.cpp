@@ -149,6 +149,10 @@ void Selection::set_model(Model* model)
     update_valid();
 }
 
+void Selection::set_mode(EMode mode) {
+    m_mode = mode;
+}
+
 int Selection::query_real_volume_idx_from_other_view(unsigned int object_idx, unsigned int instance_idx, unsigned int model_volume_idx)
 {
     for (int i = 0; i < m_volumes->size(); i++) {
@@ -874,6 +878,10 @@ const Selection::InstanceIdxsList& Selection::get_instance_idxs() const
 const GLVolume* Selection::get_volume(unsigned int volume_idx) const
 {
     return (m_valid && (volume_idx < (unsigned int)m_volumes->size())) ? (*m_volumes)[volume_idx] : nullptr;
+}
+
+GLVolume *Selection::get_volume(unsigned int volume_idx) {
+    return (m_valid && (volume_idx < (unsigned int) m_volumes->size())) ? (*m_volumes)[volume_idx] : nullptr;
 }
 
 const BoundingBoxf3& Selection::get_bounding_box() const
@@ -3242,6 +3250,53 @@ void Selection::transform_volume_relative(
         volume.set_volume_transformation(vol_trafo.get_matrix() * transform);
     else
         assert(false);
+}
+
+ModelVolume *get_selected_volume(const Selection &selection)
+{
+    const GLVolume *gl_volume = get_selected_gl_volume(selection);
+    if (gl_volume == nullptr) return nullptr;
+    const ModelObjectPtrs &objects = selection.get_model()->objects;
+    return get_model_volume(*gl_volume, objects);
+}
+
+const GLVolume *get_selected_gl_volume(const Selection &selection)
+{
+    int object_idx = selection.get_object_idx();
+    // is more object selected?
+    if (object_idx == -1) return nullptr;
+
+    const auto &list = selection.get_volume_idxs();
+    // is more volumes selected?
+    if (list.size() != 1) return nullptr;
+
+    unsigned int volume_idx = *list.begin();
+    return selection.get_volume(volume_idx);
+}
+
+ModelVolume *get_selected_volume(const ObjectID &volume_id, const Selection &selection)
+{
+    const Selection::IndicesList &volume_ids    = selection.get_volume_idxs();
+    const ModelObjectPtrs &       model_objects = selection.get_model()->objects;
+    for (auto id : volume_ids) {
+        const GLVolume *             selected_volume = selection.get_volume(id);
+        const GLVolume::CompositeID &cid             = selected_volume->composite_id;
+        ModelObject *                obj             = model_objects[cid.object_id];
+        ModelVolume *                volume          = obj->volumes[cid.volume_id];
+        if (volume_id == volume->id()) return volume;
+    }
+    return nullptr;
+}
+
+ModelVolume *get_volume(const ObjectID &volume_id, const Selection &selection)
+{
+    const ModelObjectPtrs &objects = selection.get_model()->objects;
+    for (const ModelObject *object : objects) {
+        for (ModelVolume *volume : object->volumes) {
+            if (volume->id() == volume_id) return volume;
+        }
+    }
+    return nullptr;
 }
 
 } // namespace GUI

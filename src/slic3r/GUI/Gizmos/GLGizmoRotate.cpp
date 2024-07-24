@@ -360,7 +360,7 @@ void GLGizmoRotate::transform_to_local(const Selection &selection) const
 {
     glsafe(::glTranslated(m_center(0), m_center(1), m_center(2)));
 
-    if (selection.is_single_volume() || selection.is_single_modifier() || selection.requires_local_axes()) {
+    if (selection.is_single_volume() || selection.is_single_modifier() || selection.requires_local_axes() || m_force_local_coordinate) {
         glsafe(::glMultMatrixd(Geometry::Transformation(m_orient_matrix).get_matrix_no_offset().data()));
     }
 
