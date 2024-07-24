@@ -26,8 +26,7 @@ public:
     void on_retry();
 
 protected:
-    std::string  m_current_ams_left;
-    std::string  m_current_ams_right;
+    std::string  m_current_ams;
     std::string  m_current_slot_left;
     std::string  m_current_slot_right;
     std::string  m_current_show_ams_left;
@@ -130,18 +129,19 @@ protected:
     std::string m_last_tray_id = "-1";
 
 public:
-    std::string GetCurentAms(bool right_panel = true);
+    std::string GetCurentAms();
     std::string GetCurentShowAms(bool right_panel = true);
     std::string GetCurrentCan(std::string amsid);
     bool        IsAmsInRightPanel(std::string ams_id);
 	wxColour GetCanColour(std::string amsid, std::string canid);
 
-    AMSModel m_ams_model{AMSModel::NO_AMS};
-    AMSModel m_ext_model{AMSModel::NO_AMS};
-    AMSModel m_is_none_ams_mode{AMSModel::NO_AMS};
+    AMSModel m_ams_model{AMSModel::EXT_AMS};
+    AMSModel m_ext_model{AMSModel::EXT_AMS};
+    AMSModel m_is_none_ams_mode{AMSModel::EXT_AMS};
     bool     m_single_nozzle_no_ams = { true };
 
     void SetAmsModel(AMSModel mode, AMSModel ext_mode) {m_ams_model = mode; m_ext_model = ext_mode;};
+    void AmsSelectedSwitch(wxCommandEvent& event);
 
 	void SetActionState(bool button_status[]);
     void EnterNoneAMSMode();
