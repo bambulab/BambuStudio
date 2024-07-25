@@ -94,7 +94,7 @@ void OptionsSearcher::append_options(DynamicPrintConfig *config, Preset::Type ty
 
         int cnt = 0;
 
-        if ((type == Preset::TYPE_SLA_MATERIAL || type == Preset::TYPE_PRINTER) && opt_key != "printable_area")
+        if ((type == Preset::TYPE_SLA_MATERIAL || type == Preset::TYPE_PRINTER || type == Preset::TYPE_PRINT) && opt_key != "printable_area")
             switch (config->option(opt_key)->type()) {
             case coInts: change_opt_key<ConfigOptionInts>(opt_key, config, cnt); break;
             case coBools: change_opt_key<ConfigOptionBools>(opt_key, config, cnt); break;
@@ -106,6 +106,9 @@ void OptionsSearcher::append_options(DynamicPrintConfig *config, Preset::Type ty
             case coEnums: change_opt_key<ConfigOptionInts>(opt_key, config, cnt); break;
             default: break;
             }
+
+        if (type == Preset::TYPE_FILAMENT && filament_options_with_variant.find(opt_key) != filament_options_with_variant.end())
+            opt_key += "#0";
 
         wxString label = opt.full_label.empty() ? opt.label : opt.full_label;
 
@@ -209,12 +212,12 @@ bool OptionsSearcher::search(const std::string &search, bool force /* = false*/,
         if (full_list) {
             std::string label = into_u8(get_label(opt));
             //all
-            if (type == Preset::TYPE_INVALID) { 
+            if (type == Preset::TYPE_INVALID) {
                 found.emplace_back(FoundOption{label, label, boost::nowide::narrow(get_tooltip(opt)), i, 0});
             } else if (type == opt.type){
                 found.emplace_back(FoundOption{label, label, boost::nowide::narrow(get_tooltip(opt)), i, 0});
             }
-            
+
             continue;
         }
 
@@ -257,7 +260,7 @@ bool OptionsSearcher::search(const std::string &search, bool force /* = false*/,
             } else if (type == opt.type) {
                 found.emplace_back(FoundOption{label_plain, label_u8, boost::nowide::narrow(get_tooltip(opt)), i, score});
             }
-            
+
         }
     }
 
@@ -301,12 +304,34 @@ const Option &OptionsSearcher::get_option(size_t pos_in_filter) const
     return options[found[pos_in_filter].option_idx];
 }
 
-const Option &OptionsSearcher::get_option(const std::string &opt_key, Preset::Type type) const
+const Option &OptionsSearcher::get_option(const std::string &opt_key, Preset::Type type, int &variant_index) const
 {
-    auto it = std::lower_bound(options.begin(), options.end(), Option({boost::nowide::widen(get_key(opt_key, type))}));
+    std::string opt_key2 = opt_key;
+    if (auto n = opt_key.find('#'); n != std::string::npos) {
+        variant_index = std::atoi(opt_key.c_str() + n + 1);
+        opt_key2 = opt_key.substr(0, n);
+    }
+    auto it = std::lower_bound(options.begin(), options.end(), Option({boost::nowide::widen(get_key(opt_key2, type))}));
     // BBS: return the 0th option when not found in searcher caused by mode difference
     // assert(it != options.end());
     if (it == options.end()) return options[0];
+    if (it->opt_key() == opt_key2) {
+        variant_index = -1;
+    } else if (it->opt_key() != opt_key) {
+        auto it2 = it;
+        while (it2 != options.end() && it2->opt_key() != opt_key && it2->opt_key().compare(0, opt_key2.length(), opt_key2) == 0)
+            ++it2;
+        if (it2->opt_key() == opt_key)
+            it = it2;
+        if (it2 == it)
+            variant_index = -2;
+    } else {
+        auto it2 = it;
+        ++it2;
+        if (it2 != options.end() && it2->opt_key().compare(0, opt_key2.length(), opt_key2) == 0
+                && printer_options_with_variant_1.find(opt_key2) == printer_options_with_variant_1.end())
+            variant_index = -2;
+    }
 
     return options[it - options.begin()];
 }
@@ -434,7 +459,7 @@ void SearchItem::OnPaint(wxPaintEvent &event)
     int       left = 20;
 
     auto bold_pair = std::vector<std::pair<int, int>>();
-    
+
     auto index     = 0;
 
     auto b_first_list  = std::vector<int>();
@@ -473,19 +498,19 @@ void SearchItem::OnPaint(wxPaintEvent &event)
         auto inset = false;
         auto pair_index = 0;
         for (auto o = 0; o < bold_pair.size(); o++) {
-            if (c >= bold_pair[o].first && c <= bold_pair[o].second) { 
+            if (c >= bold_pair[o].first && c <= bold_pair[o].second) {
                 pair_index = o;
                 inset = true;
                 break;
             }
         }
 
-        if (!inset) { 
+        if (!inset) {
             left += DrawTextString(dc, str, wxPoint(left, top), false).GetWidth();
         } else {
             //str = str.erase(bold_pair[pair_index].first, 3);
             //str = str.erase(bold_pair[pair_index].second, 4);
-            if (c - bold_pair[pair_index].first >= 3 && bold_pair[pair_index].second - c > 3) { 
+            if (c - bold_pair[pair_index].first >= 3 && bold_pair[pair_index].second - c > 3) {
                 left += DrawTextString(dc, str, wxPoint(left, top), true).GetWidth();
             }
         }
@@ -538,7 +563,7 @@ static const std::map<const char, int> icon_idxs = {
     {ImGui::PrintIconMarker, 0}, {ImGui::PrinterIconMarker, 1}, {ImGui::PrinterSlaIconMarker, 2}, {ImGui::FilamentIconMarker, 3}, {ImGui::MaterialIconMarker, 4},
 };
 
-SearchDialog::SearchDialog(OptionsSearcher *searcher, Preset::Type type, wxWindow *parent, TextInput *input, wxWindow *search_btn) 
+SearchDialog::SearchDialog(OptionsSearcher *searcher, Preset::Type type, wxWindow *parent, TextInput *input, wxWindow *search_btn)
     : PopupWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS), searcher(searcher)
 {
     m_event_tag       = parent;
@@ -674,7 +699,7 @@ void SearchDialog::Dismiss()
     }
 }
 
-void SearchDialog::Die() 
+void SearchDialog::Die()
 {
     PopupWindow::Dismiss();
     wxCommandEvent event(wxCUSTOMEVT_EXIT_SEARCH);

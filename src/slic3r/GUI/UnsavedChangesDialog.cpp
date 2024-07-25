@@ -602,7 +602,7 @@ DiffViewCtrl::DiffViewCtrl(wxWindow* parent, wxSize size)
     this->Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, &DiffViewCtrl::item_value_changed, this);
 }
 
-DiffViewCtrl::~DiffViewCtrl() { 
+DiffViewCtrl::~DiffViewCtrl() {
     this->AssociateModel(nullptr);
     delete model;
 }
@@ -830,7 +830,7 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, PresetCollection *
 
 inline int UnsavedChangesDialog::ShowModal()
 {
-    auto choise_key = "save_preset_choise"; 
+    auto choise_key = "save_preset_choise";
     auto choise     = wxGetApp().app_config->get(choise_key);
     long result = 0;
     if ((m_buttons & REMEMBER_CHOISE) && !choise.empty() && wxString(choise).ToLong(&result) && (1 << result) & (m_buttons | DONT_SAVE)) {
@@ -1444,7 +1444,7 @@ void UnsavedChangesDialog::update(Preset::Type type, PresetCollection* dependent
         else
             action_msg += _L("\nYou can save or discard the preset values you have modified.");
     }
-        
+
     m_action_line->SetLabel(action_msg);
 
     update_tree(type, presets);
@@ -1459,21 +1459,23 @@ void UnsavedChangesDialog::update_list()
 
     // group
     for (auto i = 0; i < m_presetitems.size(); i++) {
-        if (class_g_list.count(m_presetitems[i].group_name) <= 0) {
+        auto name = m_presetitems[i].category_name + ":" + m_presetitems[i].group_name;
+        if (class_g_list.count(name) <= 0) {
             std::vector<PresetItem> vp;
             vp.push_back(m_presetitems[i]);
-            class_g_list.emplace(m_presetitems[i].group_name, vp);
+            class_g_list.emplace(name, vp);
         } else {
             //for (auto iter = class_g_list.begin(); iter != class_g_list.end(); iter++) iter->second.push_back(m_presetitems[i]);
-            class_g_list[m_presetitems[i].group_name].push_back(m_presetitems[i]);
+            class_g_list[name].push_back(m_presetitems[i]);
         }
     }
 
     // category
     for (auto i = 0; i < m_presetitems.size(); i++) {
+        auto name = m_presetitems[i].category_name + ":" + m_presetitems[i].group_name;
         if (class_c_list.count(m_presetitems[i].category_name) <= 0) {
             std::vector<wxString> vp;
-            vp.push_back(m_presetitems[i].group_name);
+            vp.push_back(name);
             class_c_list.emplace(m_presetitems[i].category_name, vp);
             category_list.push_back(m_presetitems[i].category_name);
         } else {
@@ -1481,9 +1483,9 @@ void UnsavedChangesDialog::update_list()
                 iter->second.push_back(m_presetitems[i].group_name);*/
             //class_c_list[m_presetitems[i].category_name].push_back(m_presetitems[i].group_name);
             std::vector<wxString>::iterator it;
-            it = find(class_c_list[m_presetitems[i].category_name].begin(), class_c_list[m_presetitems[i].category_name].end(), m_presetitems[i].group_name);
+            it = find(class_c_list[m_presetitems[i].category_name].begin(), class_c_list[m_presetitems[i].category_name].end(), name);
             if (it == class_c_list[m_presetitems[i].category_name].end()) {
-                class_c_list[m_presetitems[i].category_name].push_back(m_presetitems[i].group_name);
+                class_c_list[m_presetitems[i].category_name].push_back(name);
             }
         }
     }
@@ -1535,7 +1537,7 @@ void UnsavedChangesDialog::update_list()
 
                      wxBoxSizer *sizer_left_v = new wxBoxSizer(wxVERTICAL);
 
-                     auto text_left = new wxStaticText(panel_left, wxID_ANY, gname, wxDefaultPosition, wxSize(-1, -1), 0);
+                     auto text_left = new wxStaticText(panel_left, wxID_ANY, class_g_list[gname][0].group_name, wxDefaultPosition, wxSize(-1, -1), 0);
                      text_left->SetFont(::Label::Head_13);
                      text_left->Wrap(-1);
 #ifdef __linux__
@@ -1637,7 +1639,7 @@ void UnsavedChangesDialog::update_list()
        wxSize text_size = m_action_line->GetTextExtent(m_action_line->GetLabel());
        int    width     = UNSAVE_CHANGE_DIALOG_ACTION_LINE_SIZE.GetWidth();
        // +2: Ensure that there is at least one line and that the content contains '\n'
-       int    rows      = int(text_size.GetWidth() / width) + 2; 
+       int    rows      = int(text_size.GetWidth() / width) + 2;
        int    height    = rows * text_size.GetHeight();
        m_action_line->SetMinSize(wxSize(width, height));
        Layout();
@@ -1686,7 +1688,7 @@ void UnsavedChangesDialog::update_tree(Preset::Type type, PresetCollection* pres
         //m_tree->model->AddPreset(type, from_u8(presets->get_edited_preset().name), old_pt);
 
         // Collect dirty options.
-        const bool deep_compare = (type == Preset::TYPE_PRINTER || type == Preset::TYPE_SLA_MATERIAL);
+        const bool deep_compare = (type == Preset::TYPE_PRINTER || type == Preset::TYPE_PRINT || type == Preset::TYPE_FILAMENT || type == Preset::TYPE_SLA_MATERIAL);
         auto dirty_options = presets->current_dirty_options(deep_compare);
 
         // process changes of extruders count
@@ -1704,13 +1706,29 @@ void UnsavedChangesDialog::update_tree(Preset::Type type, PresetCollection* pres
             m_presetitems.push_back(pi);
         }
 
+        auto variant_key      = Preset::get_iot_type_string(type) + "_extruder_variant";
+        auto id_key           = Preset::get_iot_type_string(type) + "_extruder_id";
+        auto extruder_variant = dynamic_cast<ConfigOptionStrings const *>(old_config.option(variant_key));
+        auto extruder_id      = dynamic_cast<ConfigOptionInts const *>(old_config.option(id_key));
+
         for (const std::string& opt_key : dirty_options) {
-            const Search::Option& option = searcher.get_option(opt_key, type);
-            if (option.opt_key() != opt_key) {
+            int variant_index = -2;
+            const Search::Option &option = searcher.get_option(opt_key, type, variant_index);
+            if (option.opt_key() != opt_key && variant_index < -1) {
                 // When founded option isn't the correct one.
                 // It can be for dirty_options: "default_print_profile", "printer_model", "printer_settings_id",
                 // because of they don't exist in searcher
                 continue;
+            }
+            auto category = option.category_local;
+            if (variant_index >= 0) {
+                if (boost::nowide::narrow(category).find("Extruder ") == 0)
+                    category = category.substr(0, 8);
+                if (extruder_id)
+                    category = category + (wxString(" {") + (extruder_id->values[variant_index] == 1 ? _L("Left: ") : _L("Right: "))
+                            + L(extruder_variant->values[variant_index]) + "}");
+                else
+                    category = category + (" {" + L(extruder_variant->values[variant_index]) + "}");
             }
 
             /*m_tree->Append(opt_key, type, option.category_local, option.group_local, option.label_local,
@@ -1719,7 +1737,7 @@ void UnsavedChangesDialog::update_tree(Preset::Type type, PresetCollection* pres
 
             //PresetItem pi = {opt_key, type, 1983};
             //m_presetitems.push_back()
-            PresetItem pi = {type, opt_key, option.category_local, option.group_local, option.label_local, get_string_value(opt_key, old_config), get_string_value(opt_key, new_config)};
+            PresetItem pi = {type, opt_key, category, option.group_local, option.label_local, get_string_value(opt_key, old_config), get_string_value(opt_key, new_config)};
             m_presetitems.push_back(pi);
 
         }
