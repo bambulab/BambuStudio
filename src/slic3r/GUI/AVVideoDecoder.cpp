@@ -81,6 +81,8 @@ bool AVVideoDecoder::toWxImage(wxImage &image, wxSize const &size2)
                                     size.GetWidth(), size.GetHeight(), wxFmt,
                                     SWS_GAUSS,
                                     nullptr, nullptr, nullptr);
+    if (sws_ctx_ == nullptr)
+        return false;
     int length = size.GetWidth() * size.GetHeight() * 3;
     if (bits_.size() < length)
         bits_.resize(length);
@@ -110,6 +112,8 @@ bool AVVideoDecoder::toWxBitmap(wxBitmap &bitmap, wxSize const &size2)
                                     size.GetWidth(), size.GetHeight(), wxFmt,
                                     SWS_GAUSS,
                                     nullptr, nullptr, nullptr);
+    if (sws_ctx_ == nullptr)
+        return false;
     int length = size.GetWidth() * size.GetHeight() * 4;
     if (bits_.size() < length)
         bits_.resize(length);
