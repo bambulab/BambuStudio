@@ -64,6 +64,7 @@ void Print::clear()
 	m_objects.clear();
     m_print_regions.clear();
     m_model.clear_objects();
+    m_statistics_by_extruder_count.clear();
 }
 
 // Called by Print::apply().
@@ -1809,17 +1810,13 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
         m_tool_ordering.clear();
         if (this->has_wipe_tower()) {
             this->_make_wipe_tower();
-        } else if (this->config().print_sequence != PrintSequence::ByObject) {
-        	// Initialize the tool ordering, so it could be used by the G-code preview slider for planning tool changes and filament switches.
-        	m_tool_ordering = ToolOrdering(*this, -1, false);
+        }
+        else if (this->config().print_sequence != PrintSequence::ByObject) {
+            // Initialize the tool ordering, so it could be used by the G-code preview slider for planning tool changes and filament switches.
+            m_tool_ordering = ToolOrdering(*this, -1, false);
             if (m_tool_ordering.empty() || m_tool_ordering.last_extruder() == unsigned(-1))
                 throw Slic3r::SlicingError("The print is empty. The model is not printable with current print settings.");
 
-            std::pair<int, int> curr_info = m_tool_ordering.get_flush_info(ToolOrdering::FlushCalcMode::Normal);
-            std::pair<int, int> single_extruder_info = m_tool_ordering.get_flush_info(ToolOrdering::FlushCalcMode::OneExtruder);
-
-            this->m_statistics_by_extruder_count.filament_flush_weight = { curr_info.first,single_extruder_info.first };
-            this->m_statistics_by_extruder_count.filament_change_count = { curr_info.second,single_extruder_info.second };
         }
         this->set_done(psWipeTower);
     }
@@ -2412,12 +2409,6 @@ void Print::_make_wipe_tower()
     // Let the ToolOrdering class know there will be initial priming extrusions at the start of the print.
     // BBS: priming logic is removed, so don't consider it in tool ordering
     m_wipe_tower_data.tool_ordering = ToolOrdering(*this, (unsigned int)-1, false);
-
-    std::pair<int, int> curr_info = m_wipe_tower_data.tool_ordering.get_flush_info(ToolOrdering::FlushCalcMode::Normal);
-    std::pair<int, int> single_extruder_info = m_wipe_tower_data.tool_ordering.get_flush_info(ToolOrdering::FlushCalcMode::OneExtruder);
-
-    this->m_statistics_by_extruder_count.filament_flush_weight = { curr_info.first,single_extruder_info.first };
-    this->m_statistics_by_extruder_count.filament_change_count = { curr_info.second,single_extruder_info.second };
 
     if (!m_wipe_tower_data.tool_ordering.has_wipe_tower())
         // Don't generate any wipe tower.
