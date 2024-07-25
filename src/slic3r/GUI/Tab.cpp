@@ -5915,7 +5915,7 @@ void Tab::switch_excluder(int extruder_id, bool reload)
         }
         page->m_opt_id_map.clear();
         for (auto group : page->m_optgroups) {
-            if (is_extruder && group->title == "Type") {
+            if (is_extruder && (group->title == "Type" || group->title == "Layer height limits" || group->title == "Position")) {
                 for (auto &opt : group->opt_map())
                     page->m_opt_id_map.insert({opt.first, opt.first});
                 continue;
