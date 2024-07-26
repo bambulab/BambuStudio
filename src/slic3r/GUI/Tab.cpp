@@ -3659,6 +3659,7 @@ void TabPrinter::build_fff()
         // optgroup->append_single_option_line("spaghetti_detector");
         optgroup->append_single_option_line("machine_load_filament_time");
         optgroup->append_single_option_line("machine_unload_filament_time");
+        optgroup->append_single_option_line("machine_switch_extruder_time");
 
         optgroup = page->new_optgroup(L("Extruder Clearance"));
         optgroup->append_single_option_line("extruder_clearance_max_radius");

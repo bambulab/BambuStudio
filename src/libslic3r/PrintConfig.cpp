@@ -1653,6 +1653,14 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.0));
 
+    def = this->add("machine_switch_extruder_time", coFloat);
+    def->label = L("Extruder switch time");
+    def->tooltip = L("Time to switch extruder. For statistics only");
+    def->min = 0;
+    def->sidetext = L("s");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(5));
+
     def = this->add("filament_diameter", coFloats);
     def->label = L("Diameter");
     def->tooltip = L("Filament diameter is used to calculate extrusion in gcode, so it's important and should be accurate");
