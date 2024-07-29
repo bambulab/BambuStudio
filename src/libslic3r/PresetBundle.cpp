@@ -1577,6 +1577,7 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
     // If executed due to a Config Wizard update, preferred_printer contains the first newly installed printer, otherwise nullptr.
     const Preset *preferred_printer = printers.find_system_preset_by_model_and_variant(preferred_selection.printer_model_id, preferred_selection.printer_variant);
     printers.select_preset_by_name(preferred_printer ? preferred_printer->name : initial_printer_profile_name, true);
+    CNumericLocalesSetter locales_setter;
 
     //BBS: set default print/filament profiles to BBL's default setting
     if (preferred_printer)
@@ -1864,6 +1865,7 @@ bool PresetBundle::check_filament_temp_equation_by_printer_type_and_nozzle_for_m
     std::map<std::string, std::vector<Preset const *>> filament_list = filaments.get_filament_presets();
     std::set<std::string> printer_names       = get_printer_names_by_printer_type_and_nozzle(printer_type, nozzle_diameter_str);
 
+    if (filament_list.find(setting_id) == filament_list.end()) return is_equation;
     for (const Preset *preset : filament_list.find(setting_id)->second) {
         if (tag_uid == "0" || (tag_uid.size() == 16 && tag_uid.substr(12, 2) == "01")) continue;
         if (preset && !preset->is_user()) continue;

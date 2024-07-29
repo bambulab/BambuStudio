@@ -86,12 +86,15 @@ Model& Model::assign_copy(const Model &rhs)
     // BBS: for design info
     this->design_info = rhs.design_info;
     this->model_info = rhs.model_info;
+    this->design_id = rhs.design_id;
     this->stl_design_id = rhs.stl_design_id;
     this->stl_design_country = rhs.stl_design_country;
     this->profile_info = rhs.profile_info;
 
     this->mk_name = rhs.mk_name;
     this->mk_version = rhs.mk_version;
+    this->md_name = rhs.md_name;
+    this->md_value = rhs.md_value;
 
     return *this;
 }
@@ -120,10 +123,13 @@ Model& Model::assign_copy(Model &&rhs)
 
     //BBS: add auxiliary path logic
     // BBS: backup, all in one temp dir
+    this->design_id = rhs.design_id;
     this->stl_design_id = rhs.stl_design_id;
     this->stl_design_country = rhs.stl_design_country;
     this->mk_name = rhs.mk_name;
     this->mk_version = rhs.mk_version;
+    this->md_name = rhs.md_name;
+    this->md_value = rhs.md_value;
     this->backup_path = std::move(rhs.backup_path);
     this->object_backup_id_map = std::move(rhs.object_backup_id_map);
     this->next_object_backup_id = rhs.next_object_backup_id;
@@ -220,16 +226,6 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
                     if (vertex_filament_ids.size() > 0) {
                         result = obj_import_vertex_color_deal(vertex_filament_ids, first_extruder_id, & model);
                     }
-                } else { // test //todo delete
-                    vertex_filament_ids.push_back(2);
-                    vertex_filament_ids.push_back(3);
-                    vertex_filament_ids.push_back(4);
-                    vertex_filament_ids.push_back(1); // 4
-                    vertex_filament_ids.push_back(1);
-                    vertex_filament_ids.push_back(1);
-                    vertex_filament_ids.push_back(1);
-                    vertex_filament_ids.push_back(1); // 8
-                    result = obj_import_vertex_color_deal(vertex_filament_ids, first_extruder_id, &model);
                 }
             } else if (obj_info.face_colors.size() > 0 && obj_info.has_uv_png == false) { // mtl file
                 std::vector<unsigned char> face_filament_ids;
@@ -966,12 +962,15 @@ void Model::load_from(Model& model)
     object_backup_id_map = model.object_backup_id_map;
     next_object_backup_id = model.next_object_backup_id;
     design_info = model.design_info;
+    design_id = model.design_id;
     stl_design_id = model.stl_design_id;
     stl_design_country = model.stl_design_country;
     model_info  = model.model_info;
     profile_info  = model.profile_info;
     mk_name = model.mk_name;
     mk_version = model.mk_version;
+    md_name = model.md_name;
+    md_value = model.md_value;
     model.design_info.reset();
     model.model_info.reset();
     model.profile_info.reset();
@@ -3507,7 +3506,7 @@ bool Model::obj_import_vertex_color_deal(const std::vector<unsigned char> &verte
                 case _3_SAME_COLOR: {
                     std::string result;
                     get_real_filament_id(filament_id0, result);
-                    volume->mmu_segmentation_facets.set_triangle_from_string(i, result); 
+                    volume->mmu_segmentation_facets.set_triangle_from_string(i, result);
                     break;
                 }
                 case _3_DIFF_COLOR: {
@@ -3712,7 +3711,8 @@ double getadhesionCoeff(const ModelVolumePtrs objectVolumes)
     double adhesionCoeff = 1;
     for (const ModelVolume* modelVolume : objectVolumes) {
         if (Model::extruderParamsMap.find(modelVolume->extruder_id()) != Model::extruderParamsMap.end())
-            if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "PETG") {
+            if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "PETG" ||
+                Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "PCTG") {
                 adhesionCoeff = 2;
             }
             else if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "TPU") {

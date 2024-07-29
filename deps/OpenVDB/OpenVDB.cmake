@@ -17,7 +17,7 @@ bambustudio_add_cmake_project(OpenVDB
     URL_HASH SHA256=f353e7b99bd0cbfc27ac9082de51acf32a8bc0b3e21ff9661ecca6f205ec1d81
     # URL https://github.com/AcademySoftwareFoundation/openvdb/archive/refs/tags/v10.0.1.zip
     # URL_HASH SHA256=48C2CFA9853B58FA86282DF1F83F0E99D07858CC03EB2BA8227DC447A830100A
-    DEPENDS dep_TBB dep_Blosc dep_OpenEXR dep_Boost
+    DEPENDS dep_TBB dep_Blosc dep_OpenEXR ${BOOST_PKG}
     CMAKE_ARGS
         -DCMAKE_POSITION_INDEPENDENT_CODE=ON 
         -DOPENVDB_BUILD_PYTHON_MODULE=OFF

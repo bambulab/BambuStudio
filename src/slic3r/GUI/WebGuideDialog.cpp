@@ -57,7 +57,7 @@ static wxString update_custom_filaments()
         bool not_need_show = false;
         std::string filament_name;
         for (const Preset *preset : filament_id_to_presets.second) {
-            if (preset->is_system) {
+            if (preset->is_system || preset->is_project_embedded) {
                 not_need_show = true;
                 break;
             }
@@ -485,6 +485,12 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             }
             else
                 InstallNetplugin = false;
+        } 
+        else if (strCmd == "common_openurl")
+        {
+            std::string strUrl = j["url"];
+
+            wxLaunchDefaultBrowser(strUrl);
         }
     } catch (std::exception &e) {
         // wxMessageBox(e.what(), "json Exception", MB_OK);

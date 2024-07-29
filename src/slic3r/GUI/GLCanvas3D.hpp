@@ -507,6 +507,7 @@ private:
     wxGLCanvas* m_canvas;
     wxGLContext* m_context;
     Bed3D &m_bed;
+    std::map<std::string, wxString> m_assembly_view_desc;
 #if ENABLE_RETINA_GL
     std::unique_ptr<RetinaHelper> m_retina_helper;
 #endif
@@ -846,20 +847,39 @@ public:
     // printable_only == false -> render also non printable volumes as grayed
     // parts_only == false -> render also sla support and pad
     void render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
-        Camera::EType camera_type, bool use_top_view = false, bool for_picking = false);
+                                 Camera::EType           camera_type,
+                                 bool                    use_top_view = false,
+                                 bool                    for_picking  = false,
+                                 bool                    ban_light    = false);
     void render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
-        const GLVolumeCollection& volumes, Camera::EType camera_type, bool use_top_view = false, bool for_picking = false);
+                                 const GLVolumeCollection &volumes,
+                                 Camera::EType             camera_type,
+                                 bool                      use_top_view = false,
+                                 bool                      for_picking  = false,
+                                 bool                      ban_light    = false);
     static void render_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, ModelObjectPtrs& model_objects,
         const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
-        GLShaderProgram* shader, Camera::EType camera_type, bool use_top_view = false, bool for_picking = false);
+                                          GLShaderProgram *                  shader,
+                                          Camera::EType                      camera_type,
+                                          bool                               use_top_view = false,
+                                          bool                               for_picking  = false,
+                                          bool                               ban_light    = false);
     // render thumbnail using an off-screen framebuffer
     static void render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
         PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
-        GLShaderProgram* shader, Camera::EType camera_type, bool use_top_view = false, bool for_picking = false);
+                                             GLShaderProgram *                  shader,
+                                             Camera::EType                      camera_type,
+                                             bool                               use_top_view = false,
+                                             bool                               for_picking  = false,
+                                             bool                               ban_light    = false);
     // render thumbnail using an off-screen framebuffer when GLEW_EXT_framebuffer_object is supported
     static void render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
         PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
-        GLShaderProgram* shader, Camera::EType camera_type, bool use_top_view = false, bool for_picking = false);
+                                                 GLShaderProgram *                  shader,
+                                                 Camera::EType                      camera_type,
+                                                 bool                               use_top_view = false,
+                                                 bool                               for_picking  = false,
+                                                 bool                               ban_light    = false);
 
     //BBS use gcoder viewer render calibration thumbnails
     void render_calibration_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params);
@@ -872,6 +892,7 @@ public:
 
     void select_all();
     void deselect_all();
+    void exit_gizmo();
     void set_selected_visible(bool visible);
     void delete_selected();
     void ensure_on_bed(unsigned int object_idx, bool allow_negative_z);
@@ -1125,6 +1146,7 @@ private:
     // BBS
     //void _render_view_toolbar() const;
     void _render_paint_toolbar() const;
+    float _show_assembly_tooltip_information(float caption_max, float x, float y) const;
     void _render_assemble_control() const;
     void _render_assemble_info() const;
 #if ENABLE_SHOW_CAMERA_TARGET
@@ -1136,7 +1158,19 @@ private:
     bool _render_orient_menu(float left, float right, float bottom, float top);
     bool _render_arrange_menu(float left, float right, float bottom, float top);
     // render thumbnail using the default framebuffer
-    void render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors, GLShaderProgram* shader, Camera::EType camera_type);
+    void render_thumbnail_legacy(ThumbnailData &                    thumbnail_data,
+                                 unsigned int                       w,
+                                 unsigned int                       h,
+                                 const ThumbnailsParams &           thumbnail_params,
+                                 PartPlateList &                    partplate_list,
+                                 ModelObjectPtrs &                  model_objects,
+                                 const GLVolumeCollection &         volumes,
+                                 std::vector<std::array<float, 4>> &extruder_colors,
+                                 GLShaderProgram *                  shader,
+                                 Camera::EType                      camera_type,
+                                 bool                               use_top_view = false,
+                                 bool                               for_picking  = false,
+                                 bool                               ban_light = false);
 
     void _update_volumes_hover_state();
 

@@ -413,7 +413,7 @@ public:
     bool                    is_mm_painted() const;
     // This object may have a varying layer height by painting or by a table.
     // Even if true is returned, the layer height profile may be "flat" with no difference to default layering.
-    bool                    has_custom_layering() const 
+    bool                    has_custom_layering() const
         { return ! this->layer_config_ranges.empty() || ! this->layer_height_profile.empty(); }
 
     ModelInstance*          add_instance();
@@ -1467,7 +1467,7 @@ public:
 class ModelDesignInfo
 {
 public:
-    std::string DesignId;               // DisignId for Model
+    std::string DesignerId;             // DisignId for Model
     std::string Designer;               // Designer nickname in utf8
     std::string DesignerUserId;         // Designer user_id string
 };
@@ -1517,6 +1517,7 @@ public:
 
     // DesignInfo of Model
     std::string stl_design_id;
+    std::string design_id;
     std::string stl_design_country;
     std::shared_ptr<ModelDesignInfo> design_info = nullptr;
     std::shared_ptr<ModelInfo> model_info = nullptr;
@@ -1525,6 +1526,8 @@ public:
     //makerlab information
     std::string mk_name;
     std::string mk_version;
+    std::vector<std::string> md_name;
+    std::vector<std::string> md_value;
 
     void SetDesigner(std::string designer, std::string designer_user_id) {
         if (design_info == nullptr) {

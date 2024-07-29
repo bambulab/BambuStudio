@@ -1088,6 +1088,8 @@ void GUI_App::post_init()
             for (auto input_str : input_str_arr) {
                 if (boost::starts_with(input_str, "http://makerworld") ||
                     boost::starts_with(input_str, "https://makerworld") ||
+                    boost::starts_with(input_str, "http://public-cdn.bblmw.com") ||
+                    boost::starts_with(input_str, "https://public-cdn.bblmw.com") ||
                     boost::algorithm::contains(input_str, "amazonaws.com") ||
                     boost::algorithm::contains(input_str, "aliyuncs.com")) {
                     download_url = input_str;
@@ -1472,7 +1474,7 @@ std::string GUI_App::get_model_http_url(std::string country_code)
         url = "https://makerworld.com/";
     }
     else if (country_code == "CN") {
-        url = "https://makerworld.com/";
+        url = "https://makerworld.com.cn/";
     }
     else if (country_code == "ENV_CN_DEV") {
         url = "https://makerhub-dev.bambu-lab.com/";
@@ -1765,13 +1767,17 @@ int GUI_App::install_plugin(std::string name, std::string package_name, InstallP
                     mz_bool res = mz_zip_reader_extract_to_file(&archive, stat.m_file_index, dest_zip_file.c_str(), 0);
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", extract  %1% from plugin zip %2%\n") % dest_file % stat.m_filename;
                     if (res == 0) {
-                        mz_zip_error zip_error = mz_zip_get_last_error(&archive);
-                        BOOST_LOG_TRIVIAL(error) << "[install_plugin]Archive read error:" << mz_zip_get_error_string(zip_error) << std::endl;
-                        close_zip_reader(&archive);
-                        if (pro_fn) {
-                            pro_fn(InstallStatusUnzipFailed, 0, cancel);
+#ifdef WIN32
+                        std::wstring new_dest_zip_file = boost::locale::conv::utf_to_utf<wchar_t>(dest_path.generic_string());
+                        res                            = mz_zip_reader_extract_to_file_w(&archive, stat.m_file_index, new_dest_zip_file.c_str(), 0);
+#endif
+                        if (res == 0) {
+                            mz_zip_error zip_error = mz_zip_get_last_error(&archive);
+                            BOOST_LOG_TRIVIAL(error) << "[install_plugin]Archive read error:" << mz_zip_get_error_string(zip_error) << std::endl;
+                            close_zip_reader(&archive);
+                            if (pro_fn) { pro_fn(InstallStatusUnzipFailed, 0, cancel); }
+                            return InstallStatusUnzipFailed;
                         }
-                        return InstallStatusUnzipFailed;
                     }
                     else {
                         if (pro_fn) {
@@ -2043,6 +2049,9 @@ void GUI_App::init_networking_callbacks()
                                 }
                                 event.SetInt(-1);
                             } else if (state == ConnectStatus::ConnectStatusLost) {
+                                obj->set_access_code("");
+                                obj->erase_user_access_code();
+                                m_device_manager->localMachineList.erase(obj->dev_id);
                                 m_device_manager->set_selected_machine("", true);
                                 event.SetInt(-1);
                                 BOOST_LOG_TRIVIAL(info) << "set_on_local_connect_fn: state = lost";
@@ -3228,8 +3237,8 @@ void GUI_App::update_publish_status()
 
 bool GUI_App::has_model_mall()
 {
-    if (auto cc = app_config->get_region(); cc == "CNH" || cc == "China" || cc == "")
-        return false;
+    /*if (auto cc = app_config->get_region(); cc == "CNH" || cc == "China" || cc == "")
+        return false;*/
     return true;
 }
 
@@ -4023,6 +4032,19 @@ std::string GUI_App::handle_web_request(std::string cmd)
                     });
             }
             else if (command_str.compare("homepage_login_or_register") == 0) {
+
+                if (root.get_child_optional("makerworld_model_id") != boost::none) {
+                    boost::optional<std::string> ModelID      = root.get_optional<std::string>("makerworld_model_id");
+                    if (ModelID.has_value()) {
+                        if (mainframe) {
+                            if (mainframe->m_webview) 
+                            { 
+                                mainframe->m_webview->SetMakerworldModelID(ModelID.value()); 
+                            }
+                        }
+                    }
+                }
+
                 CallAfter([this] {
                     this->request_login(true);
                 });
@@ -6444,6 +6466,7 @@ wxString GUI_App::current_language_code_safe() const
 		{ "zh", 	"zh_CN", },
 		{ "ru", 	"ru_RU", },
         { "tr",     "tr_TR", },
+        { "pt",     "pt_BR", },
 	};
 	wxString language_code = this->current_language_code().BeforeFirst('_');
 	auto it = mapping.find(language_code);

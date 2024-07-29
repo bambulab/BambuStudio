@@ -374,6 +374,11 @@ body
 
 
 /*---Profile---*/
+#Model_Profile
+{
+	min-height: 100%;
+}
+
 #Profile_Preview_Image
 {
 	height: 480px;

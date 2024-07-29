@@ -2270,10 +2270,11 @@ void GLGizmoAdvancedCut::render_input_window_warning() const
                    (m_info_stats.outside_bb == 1 ? _L("connector is out of object") : _L("connectors is out of object"));
         if (m_info_stats.is_overlap)
             out += "\n - " + _L("Some connectors are overlapped");
-        m_imgui->text(out);
+        m_imgui->warning_text(out);
     }
-    if (!m_keep_upper && !m_keep_lower)
-        m_imgui->text(/*wxString(ImGui::WarningMarkerSmall)*/_L("Warning") + ": " + _L("Invalid state. \nNo one part is selected to keep after cut"));
+    if (!m_keep_upper && !m_keep_lower) {
+        m_imgui->warning_text(/*wxString(ImGui::WarningMarkerSmall)*/ _L("Warning") + ": " + _L("Invalid state. \nNo one part is selected to keep after cut"));
+    }
 }
 
 bool GLGizmoAdvancedCut::render_reset_button(const std::string &label_id, const std::string &tooltip) const

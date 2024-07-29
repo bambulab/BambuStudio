@@ -604,8 +604,17 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
     m_raft_layers = slicing_params.base_raft_layers + slicing_params.interface_raft_layers;
     support_type = m_object_config->support_type;
     support_style = m_object_config->support_style;
-    if (support_style == smsDefault)
-        support_style = smsTreeOrganic;
+    if (support_style == smsDefault) {
+        // organic support doesn't work with adaptive layer height
+        if (object.model_object()->layer_height_profile.empty()) {
+            BOOST_LOG_TRIVIAL(warning) << "tree support default to organic support";
+            support_style = smsTreeOrganic;
+        }
+        else {
+            BOOST_LOG_TRIVIAL(warning) << "Adaptive layer height is not supported for organic support, using hybrid tree support instead.";
+            support_style = smsTreeHybrid;
+        }
+    }
     SupportMaterialPattern support_pattern  = m_object_config->support_base_pattern;
     if (support_style == smsTreeHybrid && support_pattern == smpDefault)
         support_pattern = smpRectilinear;
@@ -1143,7 +1152,7 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
 void TreeSupport::create_tree_support_layers()
 {
     int layer_id = 0;
-    { //create raft layers
+    if (m_raft_layers > 0) { //create raft layers
         coordf_t raft_print_z = 0.f;
         coordf_t raft_slice_z = 0.f;
         {
@@ -1978,9 +1987,8 @@ void TreeSupport::draw_circles(const std::vector<std::vector<SupportNode*>>& con
                     continue;
                 }
 
-                SupportNode* first_node = curr_layer_nodes.front();
-                ts_layer->print_z = first_node->print_z;
-                ts_layer->height = first_node->height;
+                ts_layer->print_z = m_ts_data->layer_heights[layer_nr].print_z;
+                ts_layer->height = m_ts_data->layer_heights[layer_nr].height;
                 if (ts_layer->height < EPSILON) {
                     continue;
                 }
@@ -2984,7 +2992,7 @@ void TreeSupport::smooth_nodes(std::vector<std::vector<SupportNode *>> &contact_
                             branch[i]->is_processed = true;
                             if (branch[i]->parents.size()>1 || (branch[i]->movement.x() > max_move || branch[i]->movement.y() > max_move))
                                 branch[i]->need_extra_wall = true;
-                            BOOST_LOG_TRIVIAL(info) << "smooth_nodes: layer_nr=" << layer_nr << ", i=" << i << ", pt=" << pt << ", movement=" << branch[i]->movement << ", radius=" << branch[i]->radius;
+                            BOOST_LOG_TRIVIAL(trace) << "smooth_nodes: layer_nr=" << layer_nr << ", i=" << i << ", pt=" << pt << ", movement=" << branch[i]->movement << ", radius=" << branch[i]->radius;
                         }
                     }
                     if (k < iterations - 1) {
@@ -3150,20 +3158,11 @@ std::vector<LayerHeightData> TreeSupport::plan_layer_heights(std::vector<std::ve
         // Keep first layer still
         layer_heights[0] = { m_object->get_layer(0)->print_z, m_object->get_layer(0)->height, 0 };
         // Collect top contact layers
-        coordf_t print_z = layer_heights[0].print_z;
         for (int layer_nr = 1; layer_nr < contact_nodes.size(); layer_nr++) {
             if (!contact_nodes[layer_nr].empty()) {
                 bounds.push_back(layer_nr);
                 layer_heights[layer_nr].print_z = contact_nodes[layer_nr].front()->print_z;
                 layer_heights[layer_nr].height = contact_nodes[layer_nr].front()->height;
-                if (layer_heights[layer_nr].bottom_z() - print_z < m_slicing_params.min_layer_height) {
-                    layer_heights[layer_nr].height = layer_heights[layer_nr].print_z - print_z;
-                    for (auto& node : contact_nodes[layer_nr]) {
-                        node->height = layer_heights[layer_nr].height;
-                    }
-                }
-                print_z = layer_heights[layer_nr].print_z;
-
                 BOOST_LOG_TRIVIAL(trace) << "plan_layer_heights0 print_z, height, layer_nr: " << layer_heights[layer_nr].print_z << " " << layer_heights[layer_nr].height << "   "
                     << layer_nr;
             }
@@ -3207,34 +3206,23 @@ std::vector<LayerHeightData> TreeSupport::plan_layer_heights(std::vector<std::ve
 
         // fill in next_layer_nr
         int i = layer_heights.size() - 1, j = i;
-        for (; j >= 0; i = j) {
+        for (; i >= 0; i--) {
             if (layer_heights[i].height < EPSILON) {
-                j--;
                 continue;
             }
             for (j = i - 1; j >= 0; j--) {
-                if (layer_heights[j].height > EPSILON) {
+                if (layer_heights[j].height > EPSILON && layer_heights[j].print_z<layer_heights[i].bottom_z()+EPSILON) {
                     layer_heights[i].next_layer_nr = j;
+                    if(layer_heights[i].bottom_z()- layer_heights[j].print_z>0.01)  // there is a gap more than 0.01mm, increase the top z distance to fill the gap
+                        layer_heights[i].height = layer_heights[i].print_z - layer_heights[j].print_z;
                     break;
                 }
             }
         }
-
-        for (i = 0; i < layer_heights.size(); i++) {
-            // there might be gap between layers due to non-integer interfaces
-            if (size_t next_layer_nr = layer_heights[i].next_layer_nr;
-                next_layer_nr > 0 && layer_heights[i].height + EPSILON < layer_heights[i].print_z - layer_heights[next_layer_nr].print_z) {
-                layer_heights[i].height = layer_heights[i].print_z - layer_heights[next_layer_nr].print_z;
-            }
-            
-        }
     }
 
-    // update interfaces' height
+    // log layer_heights
     for (size_t i = 0; i < layer_heights.size(); i++) {
-        for (auto& node : contact_nodes[i]) {
-            node->height = layer_heights[i].height;
-        }
         if (layer_heights[i].height > EPSILON)
             BOOST_LOG_TRIVIAL(trace) << "plan_layer_heights print_z, height, lower_layer_nr->layer_nr: " << layer_heights[i].print_z << " " << layer_heights[i].height << "   "
             << layer_heights[i].next_layer_nr << "->" << i;
