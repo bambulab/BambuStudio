@@ -3546,6 +3546,8 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("printable_height");
         optgroup->append_single_option_line("nozzle_volume");
         optgroup->append_single_option_line("best_object_pos");
+        // todo: for multi_extruder test
+        optgroup->append_single_option_line("extruder_change_length");
         // BBS
 #if 0
         //optgroup->append_single_option_line("z_offset");
