@@ -7519,6 +7519,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                             continue;
                         }
                         inst =  obj->instances[inst_id];
+                        if (!inst->printable)
+                            continue;
                         if (m_use_loaded_id && (inst->loaded_id > 0)) {
                             identify_id = inst->loaded_id;
                             if (identify_id & 0xFF000000) {
