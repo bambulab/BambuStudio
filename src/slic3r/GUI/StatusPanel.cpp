@@ -2591,7 +2591,6 @@ void StatusPanel::update_ams(MachineObject *obj)
 
     if (obj) {
         if (obj->get_printer_ams_type() == "f1") { ams_mode = AMSModel::AMS_LITE; }
-        else if(obj->get_printer_ams_type() == "generic") { ams_mode = AMSModel::GENERIC_AMS; }
     }
     if (obj->is_enable_np && obj->amsList.size() > 0){
         ams_mode = AMSModel(obj->amsList.begin()->second->type);
@@ -2644,6 +2643,7 @@ void StatusPanel::update_ams(MachineObject *obj)
     for (auto slot : obj->vt_slot) {
         AMSinfo info;
         info.ReadExtInfo(slot);
+        if (ams_mode == AMSModel::AMS_LITE) info.ext_type = AMSModelOriginType::LITE_EXT;
         ext_info.push_back(info);
     }
     std::string dev_id = obj->dev_id;
@@ -3840,7 +3840,11 @@ void StatusPanel::on_ams_refresh_rfid(wxCommandEvent &event)
             return;
         }
 
-        std::string curr_ams_id = m_ams_control->GetCurentAms();
+        //std::string curr_ams_id = m_ams_control->GetCurentAms();
+        if (event.GetInt() < 0 || event.GetInt() > VIRTUAL_TRAY_MAIN_ID){
+            return;
+        }
+        std::string curr_ams_id = std::to_string(event.GetInt());
         // do not support refresh rfid for VIRTUAL_TRAY_MAIN_ID
         if (curr_ams_id.compare(std::to_string(VIRTUAL_TRAY_MAIN_ID)) == 0) {
             return;

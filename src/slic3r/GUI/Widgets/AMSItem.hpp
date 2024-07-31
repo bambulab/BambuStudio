@@ -667,7 +667,7 @@ public:
     void     Update(AMSinfo info);
     void     create(wxWindow *parent);
     void     AddCan(Caninfo caninfo, int canindex, int maxcan, wxBoxSizer* sizer);
-    void     AddExtraCan(Caninfo caninfo, int canindex, int maxcan, wxGridSizer* sizer);
+    void     AddLiteCan(Caninfo caninfo, int canindex, wxGridSizer* sizer);
     void     SetDefSelectCan();
     void     SelectCan(std::string canid);
     void     PlayRridLoading(wxString canid);
@@ -701,7 +701,7 @@ public:
     //std::map<std::string, AMSRoad*>     m_can_road_list;
     AMSRoadUpPart* m_panel_road = { nullptr };
     std::map<std::string, AMSrefresh*>  m_can_refresh_list;
-    AMSHumidity* m_humidity;
+    AMSHumidity* m_humidity = { nullptr };
 
     AMSinfo         m_info;
     wxBoxSizer *    sizer_can = {nullptr};
@@ -711,7 +711,8 @@ public:
     wxBoxSizer *    sizer_can_middle = {nullptr};
     wxBoxSizer *    sizer_can_left = {nullptr};
     wxBoxSizer *    sizer_can_right = {nullptr};
-    AMSPassRoadSTEP m_step    = {AMSPassRoadSTEP ::AMS_ROAD_STEP_NONE};
+    AMSExtImage*    m_ext_image = { nullptr };      //the ext image upon the ext ams
+    AMSExtText* m_ext_text = { nullptr };       //the ext text upon the ext ams
 };
 
 wxDECLARE_EVENT(EVT_AMS_EXTRUSION_CALI, wxCommandEvent);
