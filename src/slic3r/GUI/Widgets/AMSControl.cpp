@@ -2600,7 +2600,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     // m_img_ams_backup->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND); });
     // m_img_ams_backup->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
     // m_img_ams_backup->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {post_event(SimpleEvent(EVT_AMS_FILAMENT_BACKUP)); });
-    m_sizer_option_left->Add(m_button_auto_refill, 0, wxALIGN_CENTER, 0);
+    m_sizer_option_left->Add(m_button_auto_refill, 0, wxALIGN_CENTER_VERTICAL, 0);
 
     m_button_ams_setting_normal = ScalableBitmap(this, "ams_setting_normal", 24);
     m_button_ams_setting_hover = ScalableBitmap(this, "ams_setting_hover", 24);
@@ -2608,7 +2608,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
     m_button_ams_setting = new wxStaticBitmap(m_amswin, wxID_ANY, m_button_ams_setting_normal.bmp(), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)));
     m_button_ams_setting->SetBackgroundColour(m_amswin->GetBackgroundColour());
-    m_sizer_option_left->Add(m_button_ams_setting, 0, wxALIGN_CENTER|wxLEFT, FromDIP(5));
+    m_sizer_option_left->Add(m_button_ams_setting, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(20));
 
 
     /*option mid*/
@@ -2659,14 +2659,14 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
     //m_sizer_option_right->Add(0, 0, 1, wxEXPAND, 0);
     m_sizer_option_right->Add(m_button_extruder_back, 0, wxLEFT, FromDIP(0));
-    m_sizer_option_right->Add(m_button_extruder_feed, 0, wxLEFT, FromDIP(5));
+    m_sizer_option_right->Add(m_button_extruder_feed, 0, wxLEFT, FromDIP(20));
 
 
-    m_sizer_ams_option->Add(m_sizer_option_left, 0, wxLEFT, 0);
+    m_sizer_ams_option->Add(m_sizer_option_left, 0, wxALIGN_LEFT, 0);
     //m_sizer_ams_option->Add(m_sizer_option_mid, 1, wxEXPAND, 0);
-    m_sizer_ams_option->Add(m_sizer_option_mid, 0, wxALIGN_CENTER_HORIZONTAL | wxLEFT | wxRIGHT, FromDIP(60));
+    m_sizer_ams_option->Add(m_sizer_option_mid, 0, wxALIGN_CENTER_HORIZONTAL | wxLEFT | wxRIGHT, FromDIP(90));
     //m_sizer_ams_option->Add(m_sizer_option_right, 0, wxEXPAND, 0);
-    m_sizer_ams_option->Add(m_sizer_option_right, 0, wxALIGN_CENTER, 0);
+    m_sizer_ams_option->Add(m_sizer_option_right, 0, wxALIGN_RIGHT, 0);
 
 
 
@@ -2987,6 +2987,9 @@ std::string AMSControl::GetCurrentCan(std::string amsid)
     std::string current_can;
     for (auto ams_item : m_ams_item_list) {
         AmsItem* item = ams_item.second;
+        if (item == nullptr){
+            continue;
+        }
         if (item->m_info.ams_id == amsid) {
             current_can = item->GetCurrentCan();
             return current_can;
@@ -3019,7 +3022,7 @@ void AMSControl::AmsSelectedSwitch(wxCommandEvent& event) {
     if (m_current_ams != ams_id_selected){
         m_current_ams = ams_id_selected;
     }
-    if (m_current_show_ams_left != ams_id_selected){
+    if (m_current_show_ams_left != ams_id_selected && m_current_show_ams_left != "") {
         auto item = m_ams_item_list[m_current_show_ams_left];
         if (!item) return;
         try{
@@ -3031,7 +3034,7 @@ void AMSControl::AmsSelectedSwitch(wxCommandEvent& event) {
             ;
         }
     }
-    else if (m_current_show_ams_right != ams_id_selected){
+    else if (m_current_show_ams_right != ams_id_selected && m_current_show_ams_right != "") {
         auto item = m_ams_item_list[m_current_show_ams_right];
         if (!item) return;
         try {
@@ -3269,42 +3272,7 @@ void AMSControl::UpdateStepCtrl(bool is_extrusion)
     }*/
 }
 
-void AMSControl::UpdatePassRoad(string ams_id, AMSPassRoadType type, AMSPassRoadSTEP step) {
-    bool left = false;
-    int len = -1;
-    for (auto id : m_item_ids[0]){
-        if (ams_id == id){
-            left = true;
-            break;
-        }
-    }
-    if (m_ams_item_list[ams_id]->m_info.cans.size() == 4){
-        len = 133;
-    }
-    else{
-        for (auto pairId : pair_id){
-            if (pairId.first == ams_id) {
-                len = 72;
-                break;
-            }
-            if (pairId.second == ams_id){
-                len = 188;
-                break;
-            }
-        }
-    }
-    if (len == -1){
-        if (left){
-            len = 213;
-        }
-        else{
-            len = 72;
-        }
-    }
 
-    //std::vector<int>                 m_item_nums = { 0, 0 };
-    //std::vector<std::vector<string>> m_item_ids = { {},{} };
-}
 
 
 void AMSControl::CreateAms()
@@ -3493,14 +3461,14 @@ void AMSControl::CreateAmsNew()
     m_extruder->update(2);
     auto it = m_ams_item_list.begin();
 
-    m_current_show_ams_left = "-1";
-    m_current_show_ams_right = "-1";
+    m_current_show_ams_left = "";
+    m_current_show_ams_right = "";
     for (auto it = m_ams_item_list.begin(); it != m_ams_item_list.end(); it++)
     {
-        if (it->second->m_info.nozzle_id == 1 && m_current_show_ams_left == "-1"){
+        if (it->second->m_info.nozzle_id == 1 && m_current_show_ams_left == ""){
             m_current_show_ams_left = it->second->m_info.ams_id;
         }
-        if (it->second->m_info.nozzle_id == 0 && m_current_show_ams_right == "-1"){
+        if (it->second->m_info.nozzle_id == 0 && m_current_show_ams_right == ""){
             m_current_show_ams_right = it->second->m_info.ams_id;
         }
     }
@@ -3646,14 +3614,14 @@ void AMSControl::CreateAmsSingleNozzle()
         m_down_road->UpdateRight(1, right_init_mode);
     }
 
-    m_current_show_ams_left = "-1";
-    m_current_show_ams_right = "-1";
+    m_current_show_ams_left = "";
+    m_current_show_ams_right = "";
     for (auto it = m_ams_item_list.begin(); it != m_ams_item_list.end(); it++)
     {
-        if (!IsAmsInRightPanel(it->second->m_info.ams_id) && m_current_show_ams_left == "-1"){
+        if (!IsAmsInRightPanel(it->second->m_info.ams_id) && m_current_show_ams_left == ""){
             m_current_show_ams_left = it->second->m_info.ams_id;
         }
-        if (IsAmsInRightPanel(it->second->m_info.ams_id) && m_current_show_ams_right == "-1"){
+        if (IsAmsInRightPanel(it->second->m_info.ams_id) && m_current_show_ams_right == ""){
             m_current_show_ams_right = it->second->m_info.ams_id;
         }
     }
@@ -3835,6 +3803,7 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> ams_info, std::vector<AMSinfo>ex
         else{
             fresh = true;
         }
+        m_ams_item_list;
         m_ams_info.clear();
         m_ams_info = ams_info;
         m_ext_info.clear();
@@ -3852,24 +3821,29 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> ams_info, std::vector<AMSinfo>ex
             m_right_page_index = 0;
             if (m_nozzle_num >= 2){
                 CreateAmsNew();
+                m_ams_item_list;
             }else{
                 /*m_panel_items_right->ClearBackground();
                 m_panel_items_left->ClearBackground();*/
                 m_item_ids = { {}, {} };
                 pair_id.clear();
                 CreateAmsSingleNozzle();
+
             }
             /*m_amswin->Layout();
             m_amswin->Fit();
             */
             SetSize(wxSize(FromDIP(578), -1));
             SetMinSize(wxSize(FromDIP(578), -1));
-
+            m_ams_item_list;
 
         }
         // update cans
 
         for (auto ams_item : m_ams_item_list) {
+            if (ams_item.second == nullptr){
+                continue;
+            }
             std::string ams_id = ams_item.second->m_info.ams_id;
             AmsItem* cans = ams_item.second;
             if (cans->m_info.ams_id == std::to_string(VIRTUAL_TRAY_MAIN_ID) || cans->m_info.ams_id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)){
@@ -4143,7 +4117,7 @@ void AMSControl::AddAms(std::vector<AMSinfo>single_info, bool left) {
             if (single_info[0].nozzle_id == 0)
             {
                 wxPanel*  book_panel = new wxPanel(m_simplebook_ams_right);
-                book_panel->SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
+                book_panel->SetBackgroundColour(StateColor::darkModeColorFor(AMS_CONTROL_DEF_LIB_BK_COLOUR));
                 ams_item = new AmsItem(book_panel, single_info[0], mode, AMSPanelPos::RIGHT_PANEL);
                 sizer->Add(ams_item, 0, wxLEFT, FromDIP(30));
                 book_panel->SetSize(wxSize(FromDIP(264), FromDIP(150)));
@@ -4159,7 +4133,7 @@ void AMSControl::AddAms(std::vector<AMSinfo>single_info, bool left) {
             else if (single_info[0].nozzle_id == 1)
             {
                 wxPanel*  book_panel = new wxPanel(m_simplebook_ams_left);
-                book_panel->SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
+                book_panel->SetBackgroundColour(StateColor::darkModeColorFor(AMS_CONTROL_DEF_LIB_BK_COLOUR));
                 ams_item = new AmsItem(book_panel, single_info[0], mode, AMSPanelPos::LEFT_PANEL);
                 sizer->Add(ams_item, 0, wxLEFT, FromDIP(30));
                 book_panel->SetSize(wxSize(FromDIP(264), FromDIP(150)));
@@ -4176,7 +4150,7 @@ void AMSControl::AddAms(std::vector<AMSinfo>single_info, bool left) {
         else if (m_nozzle_num == 1){
             if (!left){
                 wxPanel*  book_panel = new wxPanel(m_simplebook_ams_right);
-                book_panel->SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
+                book_panel->SetBackgroundColour(StateColor::darkModeColorFor(AMS_CONTROL_DEF_LIB_BK_COLOUR));
                 ams_item = new AmsItem(book_panel, single_info[0], mode, AMSPanelPos::RIGHT_PANEL);
                 sizer->Add(ams_item, 0, wxLEFT, FromDIP(30));
                 book_panel->SetSize(wxSize(FromDIP(264), FromDIP(150)));
@@ -4192,7 +4166,7 @@ void AMSControl::AddAms(std::vector<AMSinfo>single_info, bool left) {
             else
             {
                 wxPanel* book_panel = new wxPanel(m_simplebook_ams_left);
-                book_panel->SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
+                book_panel->SetBackgroundColour(StateColor::darkModeColorFor(AMS_CONTROL_DEF_LIB_BK_COLOUR));
                 ams_item = new AmsItem(book_panel, single_info[0], mode, AMSPanelPos::LEFT_PANEL);
                 sizer->Add(ams_item, 0, wxLEFT, FromDIP(30));
                 book_panel->SetSize(wxSize(FromDIP(264), FromDIP(150)));
@@ -4207,7 +4181,7 @@ void AMSControl::AddAms(std::vector<AMSinfo>single_info, bool left) {
             }
         }
 
-        ams_item->SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
+        //ams_item->SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
         m_ams_item_list[single_info[0].ams_id] = ams_item;
     }
     else if (single_info.size() == 2)
@@ -4227,7 +4201,7 @@ void AMSControl::AddAms(std::vector<AMSinfo>single_info, bool left) {
             if (single_info[1].nozzle_id == 0)
             {
                 wxPanel* book_panel = new wxPanel(m_simplebook_ams_right);
-                book_panel->SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
+                book_panel->SetBackgroundColour(StateColor::darkModeColorFor(AMS_CONTROL_DEF_LIB_BK_COLOUR));
                 book_panel->SetSize(wxSize(FromDIP(264), FromDIP(150)));
                 book_panel->SetMinSize(wxSize(FromDIP(264), FromDIP(150)));
                 ams_item = new AmsItem(book_panel, single_info[0], AMSModel::N3S_AMS, AMSPanelPos::RIGHT_PANEL);
@@ -4246,7 +4220,7 @@ void AMSControl::AddAms(std::vector<AMSinfo>single_info, bool left) {
             else if (single_info[1].nozzle_id == 1)
             {
                 wxPanel* book_panel = new wxPanel(m_simplebook_ams_left);
-                book_panel->SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
+                book_panel->SetBackgroundColour(StateColor::darkModeColorFor(AMS_CONTROL_DEF_LIB_BK_COLOUR));
                 book_panel->SetSize(wxSize(FromDIP(264), FromDIP(150)));
                 book_panel->SetMinSize(wxSize(FromDIP(264), FromDIP(150)));
                 ams_item = new AmsItem(book_panel, single_info[0], AMSModel::N3S_AMS, AMSPanelPos::LEFT_PANEL);
@@ -4265,7 +4239,7 @@ void AMSControl::AddAms(std::vector<AMSinfo>single_info, bool left) {
             if (!left)
             {
                 wxPanel* book_panel = new wxPanel(m_simplebook_ams_right);
-                book_panel->SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
+                book_panel->SetBackgroundColour(StateColor::darkModeColorFor(AMS_CONTROL_DEF_LIB_BK_COLOUR));
                 book_panel->SetSize(wxSize(FromDIP(264), FromDIP(150)));
                 book_panel->SetMinSize(wxSize(FromDIP(264), FromDIP(150)));
                 ams_item = new AmsItem(book_panel, single_info[0], AMSModel::N3S_AMS, AMSPanelPos::RIGHT_PANEL);
@@ -4284,7 +4258,7 @@ void AMSControl::AddAms(std::vector<AMSinfo>single_info, bool left) {
             else
             {
                 wxPanel* book_panel = new wxPanel(m_simplebook_ams_left);
-                book_panel->SetBackgroundColour(AMS_CONTROL_DEF_LIB_BK_COLOUR);
+                book_panel->SetBackgroundColour(StateColor::darkModeColorFor(AMS_CONTROL_DEF_LIB_BK_COLOUR));
                 book_panel->SetSize(wxSize(FromDIP(264), FromDIP(150)));
                 book_panel->SetMinSize(wxSize(FromDIP(264), FromDIP(150)));
                 ams_item = new AmsItem(book_panel, single_info[0], AMSModel::N3S_AMS, AMSPanelPos::LEFT_PANEL);
@@ -4843,7 +4817,7 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
 
 
     AMSinfo info;
-    if (m_ams_item_list[ams_id] != nullptr) {
+    if (m_ams_item_list.find(ams_id) != m_ams_item_list.end()) {
         info = m_ams_item_list[ams_id]->m_info;
     }
     else
