@@ -5845,6 +5845,7 @@ void Tab::update_extruder_variants(int extruder_id, bool reload)
             m_extruder_sync->Enable(left == right);
         } else {
             m_extruder_switch->Enable(false);
+            m_extruder_sync->Enable(false);
         }
     } else if (m_variant_combo) {
         if (extruder_id >= 0) // variant_combo did not depend on extruder
@@ -5877,8 +5878,9 @@ void Tab::switch_excluder(int extruder_id, bool reload)
     };
     if (m_extruder_switch && m_type != Preset::TYPE_PRINTER) {
         int current_extruder = m_extruder_switch->IsThisEnabled() && m_extruder_switch->GetValue() ? 1 : 0;
-        m_variant_sizer->Show(2, m_extruder_switch->IsThisEnabled() && extruders->values[0] == extruders->values[1] &&
-                                     nozzle_volumes->values[0] == extruders->values[1]);
+        m_extruder_sync->Enable(m_extruder_switch->IsThisEnabled() && extruders->values[0] == extruders->values[1] &&
+                                     nozzle_volumes->values[0] == nozzle_volumes->values[1]);
+        m_extruder_sync->Show(m_extruder_sync->IsThisEnabled());
         if (extruder_id == -1)
             extruder_id = current_extruder;
         else if (extruder_id != current_extruder)
