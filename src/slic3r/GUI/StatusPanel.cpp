@@ -2594,9 +2594,8 @@ void StatusPanel::update_ams(MachineObject *obj)
         else if(obj->get_printer_ams_type() == "generic") { ams_mode = AMSModel::GENERIC_AMS; }
     }
     if (obj->is_enable_np && obj->amsList.size() > 0){
-        ams_mode = AMSModel(obj->amsList[0]->type);
+        ams_mode = AMSModel(obj->amsList.begin()->second->type);
     }
-
     if (!obj
         || !obj->is_connected()
         || obj->amsList.empty()
