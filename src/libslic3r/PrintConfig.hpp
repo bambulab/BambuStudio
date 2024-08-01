@@ -172,6 +172,7 @@ enum SLAPillarConnectionMode {
 
 enum BrimType {
     btAutoBrim,  // BBS
+    btBrimEars,  // BBS
     btOuterOnly,
     btInnerOnly,
     btOuterAndInner,
