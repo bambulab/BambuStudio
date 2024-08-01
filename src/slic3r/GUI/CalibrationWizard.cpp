@@ -577,7 +577,7 @@ void PressureAdvanceWizard::on_cali_start()
 
     //std::string error_message;
     wxString wx_err_string;
-    if (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO && curr_obj->get_printer_series() == PrinterSeries::SERIES_X1) {
+    if (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO && (curr_obj->get_printer_series() == PrinterSeries::SERIES_X1 || curr_obj->get_printer_arch() == PrinterArch::ARCH_I3)) {
         X1CCalibInfos calib_infos;
         for (auto &item : selected_filaments) {
             int   nozzle_temp          = -1;
@@ -701,7 +701,7 @@ void PressureAdvanceWizard::on_cali_save()
             return;
         }
 
-        if (curr_obj->get_printer_series() == PrinterSeries::SERIES_X1) {
+        if (curr_obj->get_printer_series() == PrinterSeries::SERIES_X1 || curr_obj->get_printer_arch() == PrinterArch::ARCH_I3) {
             if (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO) {
                 std::vector<PACalibResult> new_pa_cali_results;
                 auto save_page = static_cast<CalibrationPASavePage*>(save_step->page);
