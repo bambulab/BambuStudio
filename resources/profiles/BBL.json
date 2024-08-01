@@ -930,6 +930,10 @@
             "sub_path": "filament/Generic PPS @base.json"
         },
         {
+            "name": "Bambu PPS-CF @base",
+            "sub_path": "filament/Bambu PPS-CF @base.json"
+        },
+        {
             "name": "Generic PPA-CF @base",
             "sub_path": "filament/Generic PPA-CF @base.json"
         },
@@ -2332,6 +2336,10 @@
         {
             "name": "Generic PPS @BBL X1E",
             "sub_path": "filament/Generic PPS @BBL X1E.json"
+        },
+        {
+            "name": "Bambu PPS-CF @BBL X1E",
+            "sub_path": "filament/Bambu PPS-CF @BBL X1E.json"
         },
         {
             "name": "Generic PPA-CF @BBL X1E",
