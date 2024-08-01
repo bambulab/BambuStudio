@@ -181,7 +181,7 @@ private:
         const Transform3d& get_instance_scale_matrix() const { return m_instance.scale_matrix; }
         const Transform3d& get_instance_mirror_matrix() const { return m_instance.mirror_matrix; }
         const Transform3d &get_instance_full_matrix() const { return m_instance.full_tran.get_matrix(); }
-   
+
         const Geometry::Transformation &get_volume_transform() const { return m_volume.full_tran; }
         const Geometry::Transformation &get_instance_transform() const { return m_instance.full_tran; }
     };
@@ -431,6 +431,7 @@ public:
     //BBS: add partplate related logic
     void notify_instance_update(int object_idx, int instance_idx);
     // BBS
+    EMode get_volume_selection_mode(){ return m_volume_selection_mode;}
     void set_volume_selection_mode(EMode mode) { if (!m_volume_selection_locked) m_volume_selection_mode = mode; }
     void lock_volume_selection_mode() { m_volume_selection_locked = true; }
     void unlock_volume_selection_mode() { m_volume_selection_locked = false; }
