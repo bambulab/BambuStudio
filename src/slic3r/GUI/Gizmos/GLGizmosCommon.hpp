@@ -263,8 +263,9 @@ public:
     CommonGizmosDataID get_dependencies() const override { return CommonGizmosDataID::SelectionInfo; }
 #endif // NDEBUG
 
-    void set_position(double pos, bool keep_normal);
+    void set_position(double pos, bool keep_normal, bool vertical_normal=false);
     double get_position() const { return m_clp_ratio; }
+    void set_position_to_init_layer();
     ClippingPlane* get_clipping_plane() const { return m_clp.get(); }
     void           render_cut(const std::vector<size_t> *ignore_idxs = nullptr) const;
     void           set_range_and_pos(const Vec3d &cpl_normal, double cpl_offset, double pos);

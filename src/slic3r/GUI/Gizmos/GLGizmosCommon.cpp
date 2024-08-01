@@ -414,7 +414,7 @@ void CommonGizmosDataObjects::ObjectClipper::render_cut(const std::vector<size_t
 {
     if (m_clp_ratio == 0.) return;
     const SelectionInfo *          sel_info          = get_pool()->selection_info();
-    //consider normal view  or assemble view 
+    //consider normal view  or assemble view
     const ModelObject *      mo       = sel_info->model_object();
     Geometry::Transformation inst_trafo;
     bool                     is_assem_cnv             = get_pool()->get_canvas()->get_canvas_type() == GLCanvas3D::CanvasAssembleView;
@@ -463,7 +463,7 @@ void CommonGizmosDataObjects::ObjectClipper::set_behaviour(bool hide_clipped, bo
         clipper.first->set_behaviour(fill_cut, contour_width);
 }
 
-void ObjectClipper::set_position(double pos, bool keep_normal)
+void ObjectClipper::set_position(double pos, bool keep_normal, bool vertical_normal)
 {
     const ModelObject *mo          = get_pool()->selection_info()->model_object();
     int                active_inst = get_pool()->selection_info()->get_active_instance();
@@ -471,7 +471,12 @@ void ObjectClipper::set_position(double pos, bool keep_normal)
     if (active_inst < 0) {
         return;
     }
-    Vec3d normal = (keep_normal && m_clp) ? m_clp->get_normal() : -wxGetApp().plater()->get_camera().get_dir_forward();
+    Vec3d normal;
+    if(vertical_normal) {
+        normal = {0, 0, 1};
+    }else {
+        normal = (keep_normal && m_clp) ? m_clp->get_normal() : -wxGetApp().plater()->get_camera().get_dir_forward();
+    }
     Vec3d center;
     if (get_pool()->get_canvas()->get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
         const SelectionInfo *sel_info           = get_pool()->selection_info();
@@ -488,6 +493,12 @@ void ObjectClipper::set_position(double pos, bool keep_normal)
 
     m_clp_ratio = pos;
     m_clp.reset(new ClippingPlane(normal, (dist - (-m_active_inst_bb_radius) - m_clp_ratio * 2 * m_active_inst_bb_radius)));
+    get_pool()->get_canvas()->set_as_dirty();
+}
+
+void ObjectClipper::set_position_to_init_layer()
+{
+    m_clp.reset(new ClippingPlane({0, 0, 1}, 0.1));
     get_pool()->get_canvas()->set_as_dirty();
 }
 

@@ -272,7 +272,8 @@ static const t_config_enum_values s_keys_map_BrimType = {
     {"outer_only",      btOuterOnly},
     {"inner_only",      btInnerOnly},
     {"outer_and_inner", btOuterAndInner},
-    {"auto_brim", btAutoBrim}  // BBS
+    {"auto_brim", btAutoBrim},  // BBS
+    {"brim_ears", btBrimEars}  // BBS
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(BrimType)
 
@@ -973,6 +974,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_keys_map = &ConfigOptionEnum<BrimType>::get_enum_values();
     def->enum_values.emplace_back("auto_brim");
     def->enum_values.emplace_back("outer_only");
+    def->enum_values.emplace_back("brim_ears");
 #if 1 //!BBL_RELEASE_TO_PUBLIC
     // BBS: The following two types are disabled
     def->enum_values.emplace_back("inner_only");
@@ -981,6 +983,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.emplace_back("no_brim");
 
     def->enum_labels.emplace_back(L("Auto"));
+    def->enum_labels.emplace_back(L("Manual"));
     def->enum_labels.emplace_back(L("Outer brim only"));
 #if 1 //!BBL_RELEASE_TO_PUBLIC
     // BBS: The following two types are disabled
@@ -1001,6 +1004,13 @@ void PrintConfigDef::init_fff_params()
     def->max = 2;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.));
+
+    def = this->add("brim_ears", coBool);
+    def->label = L("Brim ears");
+    def->category = L("Support");
+    def->tooltip = L("Draw brim");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("compatible_printers", coStrings);
     def->label = L("Compatible machine");

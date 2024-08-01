@@ -57,6 +57,7 @@ static constexpr double EPSILON = 1e-4;
 // with int64_t we don't have to worry anymore about the size of the int.
 static constexpr double SCALING_FACTOR = 0.000001;
 static constexpr double PI = 3.141592653589793238;
+#define POLY_SIDE_COUNT 24 // for brim ear circle
 // When extruding a closed loop, the loop is interrupted and shortened a bit to reduce the seam.
 static constexpr double LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER = 0.15;
 static constexpr double RESOLUTION = 0.0125;
