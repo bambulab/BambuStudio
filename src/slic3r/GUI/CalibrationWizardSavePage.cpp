@@ -852,7 +852,7 @@ void CalibrationPASavePage::sync_cali_result(MachineObject* obj)
 }
 
 void CalibrationPASavePage::show_panels(CalibrationMethod method, const PrinterSeries printer_ser) {
-    if (printer_ser == PrinterSeries::SERIES_X1) {
+    if (printer_ser == PrinterSeries::SERIES_X1 || curr_obj->get_printer_arch() == PrinterArch::ARCH_I3) {
         if (method == CalibrationMethod::CALI_METHOD_MANUAL) {
             m_manual_panel->set_pa_cali_method(curr_obj->manual_pa_cali_method);
             m_manual_panel->Show();
