@@ -2381,6 +2381,7 @@ void PartPlate::render(bool bottom, bool only_body, bool force_background_color,
         shader->start_using();
         shader->set_uniform("view_model_matrix", view_mat);
         shader->set_uniform("projection_matrix", proj_mat);
+
         render_height_limit(mode);
         shader->stop_using();
     }
@@ -4682,7 +4683,7 @@ void PartPlateList::postprocess_arrange_polygon(arrangement::ArrangePolygon& arr
 }
 
 /*rendering related functions*/
-void PartPlateList::render_instance(bool bottom, bool only_current, bool only_body, bool force_background_color, int hover_id)
+void PartPlateList::render_instance(bool bottom, bool only_current, bool only_body, bool force_background_color, int hover_id, bool show_grid)
 {
     if (m_update_plate_mats_vbo) {
 		m_update_plate_mats_vbo = false;
@@ -4709,7 +4710,8 @@ void PartPlateList::render_instance(bool bottom, bool only_current, bool only_bo
             if (!bottom) { // draw background
                 render_exclude_area(force_background_color); // for selected_plate
             }
-            render_grid(bottom); // for selected_plate
+			if (show_grid)
+				render_grid(bottom); // for selected_plate
 
             shader->stop_using();
 
@@ -4804,7 +4806,7 @@ void PartPlateList::render_instance_exclude_area(bool force_default_color)
 }
 
 //render
-void PartPlateList::render(bool bottom, bool only_current, bool only_body, int hover_id, bool render_cali)
+void PartPlateList::render(bool bottom, bool only_current, bool only_body, int hover_id, bool render_cali, bool show_grid)
 {
 	const std::lock_guard<std::mutex> local_lock(m_plates_mutex);
 	std::vector<PartPlate*>::iterator it = m_plate_list.begin();
@@ -4828,7 +4830,7 @@ void PartPlateList::render(bool bottom, bool only_current, bool only_body, int h
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
     glsafe(::glDepthMask(GL_FALSE));
 
-	render_instance(bottom, only_current, only_body, false,  m_plate_hover_action);
+	render_instance(bottom, only_current, only_body, false,  m_plate_hover_action, show_grid);
 
 	for (it = m_plate_list.begin(); it != m_plate_list.end(); it++) {
 		int current_index = (*it)->get_index();
@@ -4836,14 +4838,14 @@ void PartPlateList::render(bool bottom, bool only_current, bool only_body, int h
 			continue;
 		if (current_index == m_current_plate) {
 			PartPlate::HeightLimitMode height_mode = (only_current)?PartPlate::HEIGHT_LIMIT_NONE:m_height_limit_mode;
-            if (m_plate_hover_index == current_index)
-                (*it)->render(bottom, only_body, false, height_mode, m_plate_hover_action, render_cali);
+			if (m_plate_hover_index == current_index)
+				(*it)->render(bottom, only_body, false, height_mode, m_plate_hover_action, render_cali);
 			else
 				(*it)->render(bottom, only_body, false, height_mode, -1, render_cali);
 		}
 		else {
-            if (m_plate_hover_index == current_index)
-                (*it)->render(bottom, only_body, false, PartPlate::HEIGHT_LIMIT_NONE, m_plate_hover_action, render_cali);
+			if (m_plate_hover_index == current_index)
+				(*it)->render(bottom, only_body, false, PartPlate::HEIGHT_LIMIT_NONE, m_plate_hover_action, render_cali);
 			else
 				(*it)->render(bottom, only_body, false, PartPlate::HEIGHT_LIMIT_NONE, -1, render_cali);
 		}

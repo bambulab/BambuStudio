@@ -1469,6 +1469,8 @@ void GLCanvas3D::toggle_model_objects_visibility(bool visible, const ModelObject
                           || gizmo_type == GLGizmosManager::Seam)
                         && ! vol->is_modifier)
                         vol->force_neutral_color = true;
+                    else if (gizmo_type == GLGizmosManager::BrimEars)
+                        vol->force_neutral_color = false;
                     else if (gizmo_type == GLGizmosManager::MmuSegmentation)
                         vol->is_active = false;
                     else if (gizmo_type == GLGizmosManager::Text) {
@@ -1919,17 +1921,21 @@ void GLCanvas3D::render(bool only_init)
 
     //BBS add partplater rendering logic
     bool only_current = false, only_body = false, show_axes = true, no_partplate = false;
+    bool show_grid = true;
     GLGizmosManager::EType gizmo_type = m_gizmos.get_current_type();
     if (!m_main_toolbar.is_enabled() || m_gizmos.is_show_only_active_plate()) {
         //only_body = true;
         if (m_gizmos.get_object_located_outside_plate()) {
             no_partplate = true;
-        } else {
+        }
+        else {
             only_current = true;
         }
     }
     else if ((gizmo_type == GLGizmosManager::FdmSupports) || (gizmo_type == GLGizmosManager::Seam) || (gizmo_type == GLGizmosManager::MmuSegmentation))
         no_partplate = true;
+    else if (gizmo_type == GLGizmosManager::BrimEars && !camera.is_looking_downward())
+        show_grid = false;
 
     /* view3D render*/
     int hover_id = (m_hover_plate_idxs.size() > 0)?m_hover_plate_idxs.front():-1;
@@ -1941,7 +1947,7 @@ void GLCanvas3D::render(bool only_init)
         if (!no_partplate)
             _render_bed(!camera.is_looking_downward(), show_axes);
         if (!no_partplate) //BBS: add outline logic
-            _render_platelist(!camera.is_looking_downward(), only_current, only_body, hover_id, true);
+            _render_platelist(!camera.is_looking_downward(), only_current, only_body, hover_id, true, show_grid);
         _render_objects(GLVolumeCollection::ERenderType::Transparent, !m_gizmos.is_running());
     }
     /* preview render */
@@ -7070,9 +7076,9 @@ void GLCanvas3D::_render_bed_for_picking(bool bottom)
     //m_bed.render_for_picking(*this, bottom, scale_factor);
 }
 
-void GLCanvas3D::_render_platelist(bool bottom, bool only_current, bool only_body, int hover_id, bool render_cali) const
+void GLCanvas3D::_render_platelist(bool bottom, bool only_current, bool only_body, int hover_id, bool render_cali, bool show_grid) const
 {
-    wxGetApp().plater()->get_partplate_list().render(bottom, only_current, only_body, hover_id, render_cali);
+    wxGetApp().plater()->get_partplate_list().render(bottom, only_current, only_body, hover_id, render_cali, show_grid);
 }
 
 void GLCanvas3D::_render_plates_for_picking() const
@@ -9843,6 +9849,51 @@ void GLCanvas3D::GizmoHighlighter::blink()
 
     if ((++m_blink_counter) >= 11)
         invalidate();
+}
+
+const ModelVolume *get_model_volume(const GLVolume &v, const Model &model)
+{
+    const ModelVolume * ret = nullptr;
+
+    if (v.object_idx() < (int)model.objects.size()) {
+        const ModelObject *obj = model.objects[v.object_idx()];
+        if (v.volume_idx() < (int)obj->volumes.size())
+            ret = obj->volumes[v.volume_idx()];
+    }
+
+    return ret;
+}
+
+ModelVolume *get_model_volume(const ObjectID &volume_id, const ModelObjectPtrs &objects)
+{
+    for (const ModelObject *obj : objects)
+        for (ModelVolume *vol : obj->volumes)
+            if (vol->id() == volume_id)
+                return vol;
+    return nullptr;
+}
+
+ModelVolume *get_model_volume(const GLVolume &v, const ModelObject& object) {
+    if (v.volume_idx() < 0)
+        return nullptr;
+
+    size_t volume_idx = static_cast<size_t>(v.volume_idx());
+    if (volume_idx >= object.volumes.size())
+        return nullptr;
+
+    return object.volumes[volume_idx];
+}
+
+ModelVolume *get_model_volume(const GLVolume &v, const ModelObjectPtrs &objects)
+{
+    if (v.object_idx() < 0)
+        return nullptr;
+    size_t objext_idx = static_cast<size_t>(v.object_idx());
+    if (objext_idx >= objects.size())
+        return nullptr;
+    if (objects[objext_idx] == nullptr)
+        return nullptr;
+    return get_model_volume(v, *objects[objext_idx]);
 }
 
 } // namespace GUI
