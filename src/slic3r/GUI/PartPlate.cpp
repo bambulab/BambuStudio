@@ -773,12 +773,12 @@ void PartPlate::render_icons(bool bottom, bool only_body, int hover_id)
         }
 
 		int extruder_count = wxGetApp().preset_bundle->get_printer_extruder_count();
-		if (extruder_count == 2) {
-			if (hover_id == PLATE_FILAMENT_MAP_ID)
-				render_icon_texture(m_partplate_list->m_plate_filament_map_icon, m_partplate_list->m_plate_set_filament_map_hovered_texture);
-			else
-				render_icon_texture(m_partplate_list->m_plate_filament_map_icon, m_partplate_list->m_plate_set_filament_map_texture);
-		}
+        if (extruder_count == 2) {
+            if (hover_id == PLATE_FILAMENT_MAP_ID)
+                render_icon_texture(m_partplate_list->m_plate_filament_map_icon, m_partplate_list->m_plate_set_filament_map_hovered_texture);
+            else
+                render_icon_texture(m_partplate_list->m_plate_filament_map_icon, m_partplate_list->m_plate_set_filament_map_texture);
+        }
 
 		if (hover_id == PLATE_NAME_ID)
             render_icon_texture(m_plate_name_edit_icon, m_partplate_list->m_plate_name_edit_hovered_texture);
