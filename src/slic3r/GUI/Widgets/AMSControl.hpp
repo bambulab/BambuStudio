@@ -38,6 +38,7 @@ protected:
     std::vector<AMSinfo>       m_ams_info;
     std::vector<AMSinfo>       m_ext_info;
     std::map<std::string, AmsItem*>  m_ams_item_list;
+    std::map<std::string, AMSExtImage*> m_ext_image_list;
     //std::map<std::string, AmsItem*>  m_ams_generic_item_list;
     //std::map<std::string, AmsItem*>  m_ams_extra_item_list;
     //std::map<std::string, Ams*>      m_ams_list;
@@ -52,10 +53,10 @@ protected:
 
     /*items*/
     wxBoxSizer* m_sizer_ams_items{nullptr};
-    wxWindow* m_panel_items_left {nullptr};
-    wxWindow* m_panel_items_right{nullptr};
-    wxBoxSizer* m_sizer_items_left{nullptr};
-    wxBoxSizer* m_sizer_items_right{nullptr};
+    wxWindow* m_panel_prv_left {nullptr};
+    wxWindow* m_panel_prv_right{nullptr};
+    wxBoxSizer* m_sizer_prv_left{nullptr};
+    wxBoxSizer* m_sizer_prv_right{nullptr};
 
     /*ams */
     wxBoxSizer *m_sizer_ams_body{nullptr};
@@ -125,15 +126,18 @@ protected:
 
     AmsHumidityTipPopup m_Humidity_tip_popup;
 
-    std::string m_last_ams_id = "-1";
-    std::string m_last_tray_id = "-1";
+    std::string m_last_ams_id = "";
+    std::string m_last_tray_id = "";
 
 public:
     std::string GetCurentAms();
-    std::string GetCurentShowAms(bool right_panel = true);
+    std::string GetCurentShowAms(AMSPanelPos pos = AMSPanelPos::RIGHT_PANEL);
     std::string GetCurrentCan(std::string amsid);
     bool        IsAmsInRightPanel(std::string ams_id);
 	wxColour GetCanColour(std::string amsid, std::string canid);
+    void createAms(wxSimplebook* parent, int& idx, AMSinfo info, AMSPanelPos pos);
+    void createAmsPanel(wxSimplebook* parent, int& idx, std::vector<AMSinfo>infos, AMSPanelPos pos);
+    AMSRoadShowMode findFirstMode(AMSPanelPos pos);
 
     AMSModel m_ams_model{AMSModel::EXT_AMS};
     AMSModel m_ext_model{AMSModel::EXT_AMS};
@@ -157,19 +161,20 @@ public:
     void UpdateStepCtrl(bool is_extrusion_exist);
     void UpdatePassRoad(string ams_id, AMSPassRoadType type, AMSPassRoadSTEP step);
     void CreateAms();
-    void CreateAmsNew();
+    void CreateAmsDoubleNozzle();
     void CreateAmsSingleNozzle();
     void ClearAms();
     void UpdateAms(std::vector<AMSinfo> ams_info, std::vector<AMSinfo> ext_info, int nozzle_num, std::string dev_id, bool is_reset = true, bool test = false);
     void ReadExtInfo(MachineObject* obj);
+    std::vector<AMSinfo> GenerateSimulateData();
 
-    void AddAms(AMSinfo info, bool left = true);
+    void AddAms(AMSinfo info, AMSPanelPos pos = AMSPanelPos::LEFT_PANEL);
     //void AddExtAms(int ams_id);
     void AddAmsPreview(AMSinfo info, AMSModel type);
     //void AddExtraAms(AMSinfo info);
 
-    void AddAms(std::vector<AMSinfo>single_info, bool left = true);
-    void AddAmsPreview(std::vector<AMSinfo>single_info);
+    void AddAms(std::vector<AMSinfo>single_info, AMSPanelPos pos = AMSPanelPos::LEFT_PANEL);
+    void AddAmsPreview(std::vector<AMSinfo>single_info, AMSPanelPos pos);
     //void AddExtraAms(std::vector<AMSinfo>single_info);
     void SetExtruder(bool on_off, bool is_vams, std::string ams_now, wxColour col);
     void SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadType type, AMSPassRoadSTEP step);

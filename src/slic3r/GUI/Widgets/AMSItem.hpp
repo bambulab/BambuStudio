@@ -72,7 +72,7 @@ enum class AMSRoadShowMode : int {
     AMS_ROAD_MODE_FOUR,
     AMS_ROAD_MODE_DOUBLE,
     AMS_ROAD_MODE_SINGLE,
-    AMS_ROAD_MODE_EXTRA_AMS,
+    AMS_ROAD_MODE_AMS_LITE,
     AMS_ROAD_MODE_NONE
 };
 
@@ -143,22 +143,30 @@ enum FilamentStepType {
 #define AMS_ITEM_CUBE_SIZE wxSize(FromDIP(8), FromDIP(14))
 #define AMS_PREVIEW_SIZE wxSize(FromDIP(82), FromDIP(27))
 #define AMS_ITEM_SIZE wxSize(FromDIP(78), FromDIP(184))
-#define AMS_ITEM_FOUR_SIZE wxSize(FromDIP(44), FromDIP(24))
-#define AMS_ITEM_SINGLE_SIZE wxSize(FromDIP(20), FromDIP(24))
+#define AMS_ITEM_FOUR_SIZE wxSize(FromDIP(52), FromDIP(32))
+#define AMS_ITEM_SINGLE_SIZE wxSize(FromDIP(28), FromDIP(32))
 #define AMS_ITEM_HUMIDITY_SIZE wxSize(FromDIP(120), FromDIP(27))
 #define AMS_CAN_LIB_SIZE wxSize(FromDIP(52), FromDIP(80))
 #define AMS_LITE_CAN_LIB_SIZE wxSize(FromDIP(49), FromDIP(72))
 #define AMS_CAN_ROAD_SIZE wxSize(FromDIP(264), FromDIP(50))
-#define AMS_ITEMS_PANEL_SIZE wxSize(FromDIP(264), FromDIP(27))
+#define AMS_ITEMS_PANEL_SIZE wxSize(FromDIP(264), FromDIP(44))
 //#define AMS_CANS_SIZE wxSize(FromDIP(284), FromDIP(184))
 //#define AMS_CANS_WINDOW_SIZE wxSize(FromDIP(264), FromDIP(196))
 #define AMS_STEP_SIZE wxSize(FromDIP(172), FromDIP(196))
 #define AMS_REFRESH_SIZE wxSize(FromDIP(25), FromDIP(25))
 #define AMS_EXTRUDER_SIZE wxSize(FromDIP(29), FromDIP(37))
-#define AMS_EXTRUDER_BITMAP_SIZE wxSize(FromDIP(13), FromDIP(37))
+#define AMS_EXTRUDER_DOUBLE_NOZZLE_BITMAP_SIZE wxSize(FromDIP(13), FromDIP(36))
+#define AMS_EXTRUDER_SINGLE_NOZZLE_BITMAP_SIZE wxSize(FromDIP(18), FromDIP(36))
 #define AMS_BODY_SIZE wxSize(FromDIP(36), FromDIP(55))
 #define AMS_DOWN_ROAD_SIZE wxSize(FromDIP(568), FromDIP(10))
 #define AMS_HUMIDITY_SIZE wxSize(FromDIP(93), FromDIP(26))
+#define AMS_PANEL_SIZE wxSize(FromDIP(264), FromDIP(150))
+
+
+
+#define MAIN_NOZZLE_ID 0
+#define DEPUTY_NOZZLE_ID 1
+#define GENERIC_AMS_SLOT_NUM 4
 
 struct Caninfo
 {
@@ -270,7 +278,7 @@ class AMSextruderImage: public wxWindow
 public:
     void OnAmsLoading(bool load, wxColour col);
     void TurnOff();
-    void update(bool show_state) { m_show_state = show_state; };
+    void setShowState(bool show_state) { m_show_state = show_state; };
     void msw_rescale();
     void paintEvent(wxPaintEvent &evt);
 
@@ -281,27 +289,36 @@ public:
     string m_file_name;
     bool            m_ams_loading{ false };
     void            doRender(wxDC &dc);
-    AMSextruderImage(wxWindow *parent, wxWindowID id, string file_name, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
+    AMSextruderImage(wxWindow *parent, wxWindowID id, string file_name, const wxSize& size, const wxPoint &pos = wxDefaultPosition);
     ~AMSextruderImage();
 };
 
 //AMSExtImage upon ext lib
 class AMSExtImage : public wxWindow
 {
+    private:
+    bool m_ext_show = true;
+    bool m_single_flag = false;
+    AMSPanelPos m_ext_pos;
 public:
     void msw_rescale();
     void paintEvent(wxPaintEvent& evt);
+    void setShowState(bool show) { m_ext_show = show; };
 
     void            render(wxDC& dc);
     ScalableBitmap  m_ams_ext;
+    ScalableBitmap  m_ams_ext_left;
+    ScalableBitmap  m_ams_ext_right;
     void            doRender(wxDC& dc);
-    AMSExtImage(wxWindow* parent, wxWindowID id, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+    AMSExtImage(wxWindow* parent, bool single_flag = false, AMSPanelPos ext_pos = AMSPanelPos::RIGHT_PANEL, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
     ~AMSExtImage();
 };
 
 
 class AMSextruder : public wxWindow
 {
+private:
+    int m_nozzle_num{ 1 };
 public:
     void TurnOn(wxColour col);
     void TurnOff();
@@ -314,7 +331,7 @@ public:
     void msw_rescale();
     void has_ams(bool hams) {m_has_vams = hams; Refresh();};
     void no_ams_mode(bool mode) {m_none_ams_mode = mode; Refresh();};
-    void update(int nozzle_num) { m_nozzle_num = nozzle_num; };
+    void updateNozzleNum(int nozzle_num);
 
     bool            m_none_ams_mode{true};
     bool            m_has_vams{false};
@@ -322,14 +339,13 @@ public:
     bool            m_ams_loading{false};
     wxColour        m_current_colur;
     wxColour        m_current_colur_deputy;
-    int             m_nozzle_num{ 1 };
 
     wxBoxSizer *    m_bitmap_sizer{nullptr};
     wxPanel *       m_bitmap_panel{nullptr};
     //AMSextruderImage *m_amsSextruder{nullptr};
-    AMSextruderImage* m_left_extruder;
-    AMSextruderImage* m_right_extruder;
-    AMSextruder(wxWindow *parent, wxWindowID id, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
+    AMSextruderImage* m_left_extruder = nullptr;
+    AMSextruderImage* m_right_extruder = nullptr;
+    AMSextruder(wxWindow *parent, wxWindowID id, int nozzle_num, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
     ~AMSextruder();
 };
 
@@ -402,12 +418,15 @@ protected:
 
     ScalableBitmap  m_bitmap_extra_tray_left;
     ScalableBitmap  m_bitmap_extra_tray_right;
+    ScalableBitmap  m_bitmap_extra_tray_mid;
 
     ScalableBitmap  m_bitmap_extra_tray_left_hover;
     ScalableBitmap  m_bitmap_extra_tray_right_hover;
+    ScalableBitmap  m_bitmap_extra_tray_mid_hover;
 
     ScalableBitmap  m_bitmap_extra_tray_left_selected;
     ScalableBitmap  m_bitmap_extra_tray_right_selected;
+    ScalableBitmap  m_bitmap_extra_tray_mid_selected;
 
     bool            m_unable_selected = {false};
     bool            m_enable          = {false};
@@ -429,10 +448,10 @@ protected:
     void on_left_down(wxMouseEvent &evt);
     void paintEvent(wxPaintEvent &evt);
     void render(wxDC &dc);
-    void render_extra_text(wxDC& dc);
+    void render_lite_text(wxDC& dc);
     void render_generic_text(wxDC& dc);
     void doRender(wxDC& dc);
-    void render_extra_lib(wxDC& dc);
+    void render_lite_lib(wxDC& dc);
     void render_generic_lib(wxDC& dc);
 };
 
@@ -566,7 +585,7 @@ public:
     void OnVamsLoading(bool load, wxColour col = AMS_CONTROL_GRAY500);
     void SetPassRoadColour(bool left, wxColour col);
     void SetShowMode(AMSRoadShowMode left_mode, AMSRoadShowMode right_mode);
-    void UpdatePassRoad(string can_id, bool left, int len, AMSinfo info, AMSPassRoadSTEP step);
+    void UpdatePassRoad(string can_id, AMSPanelPos pos, int len, AMSPassRoadSTEP step);
 
     void paintEvent(wxPaintEvent& evt);
     void render(wxDC& dc);
@@ -603,8 +622,8 @@ public:
 protected:
     wxSize   m_cube_size;
     wxColour m_background_colour = { AMS_CONTROL_DEF_LIB_BK_COLOUR };
-    float    m_padding = { 4.0 };
-    float    m_space = { 9.4 };
+    float    m_padding;
+    float    m_space;
     bool     m_hover             = {false};
     bool     m_selected          = {false};
     AMSModel m_ams_item_type = AMSModel::GENERIC_AMS;
@@ -680,7 +699,7 @@ public:
     void     paintEvent(wxPaintEvent& evt);
     void     render(wxDC& dc);
     void     doRender(wxDC& dc);
-    void     RenderExtraRoad(wxDC& dc, wxSize size);
+    void     RenderLiteRoad(wxDC& dc, wxSize size);
     wxColour GetTagColr(wxString canid);
     std::string GetCurrentCan();
 
