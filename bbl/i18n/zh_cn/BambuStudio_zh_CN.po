@@ -1,12 +1,12 @@
 # Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-11 10:13+0800\n"
+"POT-Creation-Date: 2024-08-02 18:23+0800\n"
 "PO-Revision-Date: 2024-03-21 10:39+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -3359,6 +3359,9 @@ msgstr "剖面视图"
 msgid "Assemble Control"
 msgstr "拼装视图控制"
 
+msgid "Selection Mode"
+msgstr "选择模式"
+
 msgid "Total Volume:"
 msgstr "总体积："
 
@@ -3753,9 +3756,6 @@ msgstr "使用透视视角"
 
 msgid "Use Orthogonal View"
 msgstr "使用正交视角"
-
-msgid "Show &Labels"
-msgstr "显示名称"
 
 msgid "Show object labels in 3D scene"
 msgstr "在3D场景中显示对象名称"
@@ -4891,7 +4891,7 @@ msgstr "配置无法加载。"
 msgid ""
 "Due to the lower version of Bambu Studio, this 3mf file cannot be fully "
 "loaded. Please update Bambu Studio to the latest version"
-msgstr ""
+msgstr "由于Bambu Studio版本较低，无法完整地加载此3mf文件。请将Bambu Studio更新到最新版本。"
 
 msgid "Found following keys unrecognized:\n"
 msgstr "找到以下未能识别的关键字：\n"
@@ -6338,8 +6338,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "在录制无工具头延时摄影视频时，建议添加“延时摄影擦料塔”\n"
 "右键单击打印板的空白位置，选择“添加标准模型”->“延时摄影擦料塔”。"
@@ -7997,11 +7997,7 @@ msgid ""
 "Expressed as percentage which indicides how much width of the line without "
 "support from lower layer. 100% means forcing cooling for all outer wall no "
 "matter how much overhang degree"
-msgstr ""
-"决定多少阈值的悬垂参与冷却降速."
-"用百分比表示超出线宽的范围。"
-""
-""
+msgstr "决定多少阈值的悬垂参与冷却降速.用百分比表示超出线宽的范围。"
 
 msgid "Bridge direction"
 msgstr "桥接方向"
@@ -11251,8 +11247,8 @@ msgstr ""
 "你想重写预设吗"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "我们会将预设重命名为“供应商 类型 系列 @您选择的打印机”。\n"
@@ -12007,6 +12003,42 @@ msgstr ""
 "此耗材较为小众，拓竹并未出售，且不同品牌的差异很大，故强烈建议打印前向厂家咨"
 "询预设参数，并根据打印表现来调整打印参数。"
 
+msgid "When printing this filament, there's a risk of warping and low layer adhesion strength. To get better results, please refer to this wiki: Printing Tips for High Temp / Engineering materials."
+msgstr "此耗材打印时有翘曲、层间强度较低等风险。为获得更好的打印效果，请查阅 wiki: 工程材料打印指南。"
+
+msgid "When printing this filament, there's a risk of nozzle clogging, oozing, warping and low layer adhesion strength. To get better results, please refer to this wiki: Printing Tips for High Temp / Engineering materials."
+msgstr "此耗材打印时有堵喷嘴、漏料、翘曲、层间强度较低等风险。为获得更好的打印效果，请查阅 wiki: 工程材料打印指南。"
+
+msgid "To get better transparent or translucent results with the corresponding filament, please refer to this wiki: Printing tips for transparent PETG."
+msgstr "若要用此耗材的透明线材打印透明效果很好的模型，请查阅 wiki: 透明 PETG 打印指南。"
+
+msgid "To make the prints get higher gloss, please dry the filament before use, and set the outer wall speed to be 40 to 60 mm/s when slicing."
+msgstr "为使打印件具有更高的光泽，请在打印前把耗材烘干，并在切片时把模型的外墙速度调到 40 到 60 mm/s 之间。"
+
+msgid "This filament is only used to print models with a low density usually, and some special parameters are required. To get better printing quality, please refer to this wiki: Instructions for printing RC model with foaming PLA (PLA Aero)."
+msgstr "此耗材通常只用于打印低密度的模型，且必须使用特殊参数。为保证打印质量，请查阅 wiki: 发泡 PLA（PLA Aero）打印航模操作指南。"
+
+msgid "This filament is only used to print models with a low density usually, and some special parameters are required. To get better printing quality, please refer to this wiki: ASA Aero Printing Guide."
+msgstr "此耗材通常只用于打印低密度的模型，且必须使用特殊参数。为保证打印质量，请查阅 wiki: 发泡 ASA （ASA Aero）打印指南。"
+
+msgid "This filament is too soft and not compatible with the AMS. Printing it is of many requirements, and to get better printing quality, please refer to this wiki: TPU printing guide."
+msgstr "此耗材太软，不适配 AMS。其使用要求较高，为保证打印质量，请查阅 wiki: TPU 打印建议。"
+
+msgid "This filament has high enough hardness (about 67D)  and is compatible with the AMS. Printing it is of many requirements, and to get better printing quality, please refer to this wiki: TPU printing guide."
+msgstr "此耗材的硬度较高（约 67D），可通过 AMS 打印。其使用要求较高，为保证打印质量，请查阅 wiki: TPU 打印建议。"
+
+msgid "If you are to print a kind of soft TPU, please don't slice with this profile, and it is only for TPU that has high enough hardness (not less than 55D) and is compatible with the AMS. To get better printing quality, please refer to this wiki: TPU printing guide."
+msgstr "若要打印的 TPU 硬度较低，请勿用此参数切片。此参数仅适配硬度较高的 TPU（硬度通常需 ≥ 55D），也即可通过 AMS 打印的 TPU。其使用要求较高，为保证打印质量，请查阅 wiki: TPU 打印建议。"
+
+msgid "This is a water-soluble support filament, and usually it is only for the support structure and not for the model body. Printing this filament is of many requirements, and to get better printing quality, please refer to this wiki: PVA Printing Guide."
+msgstr "此为水溶性支撑耗材，通常只能用于打印支撑结构，不能用于打印模型主体。其使用要求较高，为保证打印质量，请查阅 wiki: PVA 打印指南。"
+
+msgid "This is a non-water-soluble support filament, and usually it is only for the support structure and not for the model body. To get better printing quality, please refer to this wiki: Printing Tips for Support Filament and Support Function."
+msgstr "此为非水溶性支撑耗材，通常只能用于打印支撑结构，不能用于打印模型主体。为保证打印质量，请查阅 wiki: 支撑耗材与支撑功能的介绍。"
+
+msgid "The generic presets are conservatively tuned for compatibility with a wider range of filaments. For higher printing quality and speeds, please use Bambu filaments with Bambu presets."
+msgstr "Generic 参数为了兼容更多种耗材而进行了较为保守的调校，使用拓竹原装耗材配合拓竹专用参数可获得更高的打印质量与更高的打印速度。"
+
 msgid "No AMS"
 msgstr "没有AMS"
 
@@ -12405,6 +12437,17 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid "Show &Labels"
+#~ msgstr "显示名称"
+
+#~ msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
+#~ msgstr "该3mf文件来自旧版本的Bambu Studio，将只加载几何数据。"
+
+#~ msgid ""
+#~ "*We recommend you to add brand, materia, type, and even humidity level in "
+#~ "the Name"
+#~ msgstr "*我们建议您在名称中添加品牌、材料、类型，甚至湿度水平。"
 
 #~ msgid "Alt + Mouse wheel"
 #~ msgstr "Alt + 鼠标滚轮"
@@ -18032,8 +18075,8 @@ msgstr ""
 #~ msgstr "正在准备设置页"
 
 #~ msgid ""
-#~ "You have the following presets with saved options for \"Print Host "
-#~ "upload\""
+#~ "You have the following presets with saved options for \"Print Host upload"
+#~ "\""
 #~ msgstr "您的以下预设中包含未保存的选项“打印主机上传”"
 
 #~ msgid ""
