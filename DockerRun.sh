@@ -20,6 +20,8 @@ docker run \
   --privileged=true \
   `# Attach tty for running bambu with command line things` \
   -ti \
+  `# Remove container when it is finished` \
+  --rm \
   `# Pass all parameters from this script to the bambu ENTRYPOINT binary` \
   bambustudio $* 
   
