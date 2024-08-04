@@ -47,7 +47,8 @@ RUN apt-get update && apt-get install  -y \
     pkgconf \
     sudo \
     wayland-protocols \
-    wget 
+    wget \
+    bc
 
 # Change your locale here if you want.  See the output
 # of `locale -a` to pick the correct string formatting.
