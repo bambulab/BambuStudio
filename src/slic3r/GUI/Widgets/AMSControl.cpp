@@ -3330,6 +3330,10 @@ void AMSControl::ClearAms() {
     m_ams_item_list.clear();
     m_sizer_items_right->Clear();
     m_sizer_items_left->Clear();
+    m_left_page_index = 0;
+    m_right_page_index = 0;
+
+    m_item_ids = { {}, {} };
 }
 
 void AMSControl::CreateAmsNew()
@@ -3783,14 +3787,9 @@ void AMSControl::ReadExtInfo(MachineObject* obj) {
     }
 }
 
-void AMSControl::UpdateAms(std::vector<AMSinfo> ams_info, std::vector<AMSinfo>ext_info, std::string dev_id, bool is_reset, bool test)
+void AMSControl::UpdateAms(std::vector<AMSinfo> ams_info, std::vector<AMSinfo>ext_info, int nozzle_num, std::string dev_id, bool is_reset, bool test)
 {
     if (!test){
-        /*std::string curr_ams_id = GetCurentAms();
-        std::string curr_can_id = GetCurrentCan(curr_ams_id);*/
-
-        int nozzle_num = ext_info.size();
-
         // update item
         bool fresh = false;
         if (m_ams_info.size() == ams_info.size() && m_nozzle_num == nozzle_num && m_dev_id == dev_id){
@@ -3817,15 +3816,9 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> ams_info, std::vector<AMSinfo>ex
             }
             m_ams_preview_list.clear();
             ClearAms();
-            m_left_page_index = 0;
-            m_right_page_index = 0;
             if (m_nozzle_num >= 2){
                 CreateAmsNew();
-                m_ams_item_list;
             }else{
-                /*m_panel_items_right->ClearBackground();
-                m_panel_items_left->ClearBackground();*/
-                m_item_ids = { {}, {} };
                 pair_id.clear();
                 CreateAmsSingleNozzle();
 
