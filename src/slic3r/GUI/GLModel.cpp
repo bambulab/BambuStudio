@@ -916,23 +916,26 @@ void GLModel::create_or_update_mats_vbo(unsigned int &vbo, const std::vector<Sli
 
 void GLModel::bind_mats_vbo(unsigned int instance_mats_vbo, unsigned int instances_count, int location)
 {
+    if (instance_mats_vbo == 0 || instances_count == 0) {
+        return;
+    }
     auto one_mat_all_size = sizeof(float) * 16;
     auto one_mat_col_size = sizeof(float) * 4;
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, instance_mats_vbo));
     for (unsigned int i = 0; i < instances_count; i++) { // set attribute pointers for matrix (4 times vec4)
-        glEnableVertexAttribArray(location);
-        glVertexAttribPointer(location, 4, GL_FLOAT, GL_FALSE, one_mat_all_size, (void *) 0);
-        glEnableVertexAttribArray(location + 1);
-        glVertexAttribPointer(location + 1, 4, GL_FLOAT, GL_FALSE, one_mat_all_size, (void *) (one_mat_col_size));
-        glEnableVertexAttribArray(location + 2);
-        glVertexAttribPointer(location + 2, 4, GL_FLOAT, GL_FALSE, one_mat_all_size, (void *) (2 * one_mat_col_size));
-        glEnableVertexAttribArray(location + 3);
-        glVertexAttribPointer(location + 3, 4, GL_FLOAT, GL_FALSE, one_mat_all_size, (void *) (3 * one_mat_col_size));
+        glsafe(glEnableVertexAttribArray(location));
+        glsafe(glVertexAttribPointer(location, 4, GL_FLOAT, GL_FALSE, one_mat_all_size, (void *) 0));
+        glsafe(glEnableVertexAttribArray(location + 1));
+        glsafe(glVertexAttribPointer(location + 1, 4, GL_FLOAT, GL_FALSE, one_mat_all_size, (void *) (one_mat_col_size)));
+        glsafe(glEnableVertexAttribArray(location + 2));
+        glsafe(glVertexAttribPointer(location + 2, 4, GL_FLOAT, GL_FALSE, one_mat_all_size, (void *) (2 * one_mat_col_size)));
+        glsafe(glEnableVertexAttribArray(location + 3));
+        glsafe(glVertexAttribPointer(location + 3, 4, GL_FLOAT, GL_FALSE, one_mat_all_size, (void *) (3 * one_mat_col_size)));
         // Update the matrix every time after an object is drawn//useful
-        glVertexAttribDivisor(location, 1);
-        glVertexAttribDivisor(location + 1, 1);
-        glVertexAttribDivisor(location + 2, 1);
-        glVertexAttribDivisor(location + 3, 1);
+        glsafe(glVertexAttribDivisor(location, 1));
+        glsafe(glVertexAttribDivisor(location + 1, 1));
+        glsafe(glVertexAttribDivisor(location + 2, 1));
+        glsafe(glVertexAttribDivisor(location + 3, 1));
     }
 }
 
@@ -943,6 +946,9 @@ void GLModel::render_geometry_instance(unsigned int instance_mats_vbo, unsigned 
 
 void GLModel::render_geometry_instance(unsigned int instance_mats_vbo, unsigned int instances_count, const std::pair<size_t, size_t> &range)
 {
+    if (instance_mats_vbo == 0 || instances_count == 0) {
+        return;
+    }
     if (m_render_data.size() != 1) { return; }
     GLShaderProgram *shader = wxGetApp().get_current_shader();
     if (shader == nullptr) return;
