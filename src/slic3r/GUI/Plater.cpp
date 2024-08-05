@@ -2305,7 +2305,6 @@ void Sidebar::auto_calc_flushing_volumes(const int modify_id)
     auto& printer_config = preset_bundle->printers.get_edited_preset().config;
     const auto& full_config = wxGetApp().preset_bundle->full_config();
     auto& ams_multi_color_filament = preset_bundle->ams_multi_color_filment;
-    auto& ams_filament_list = preset_bundle->filament_ams_list;
 
     size_t nozzle_nums = preset_bundle->get_printer_extruder_count();
     for (size_t nozzle_id = 0; nozzle_id < nozzle_nums; ++nozzle_id)
