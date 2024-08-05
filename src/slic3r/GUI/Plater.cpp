@@ -8053,6 +8053,7 @@ void Plater::priv::on_create_filament(SimpleEvent &)
         CreatePresetSuccessfulDialog success_dlg(wxGetApp().mainframe, SuccessType::FILAMENT);
         int                          res = success_dlg.ShowModal();
     }
+    wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_FILAMENTS);
 }
 
 void Plater::priv::on_modify_filament(SimpleEvent &evt)
@@ -8080,7 +8081,8 @@ void Plater::priv::on_modify_filament(SimpleEvent &evt)
         tab->select_preset(need_edit_preset->name);
         // when some preset have modified, if the printer is not need_edit_preset_name compatible printer, the preset will jump to other preset, need select again
         if (!need_edit_preset->is_compatible) tab->select_preset(need_edit_preset->name);
-    }
+    } else
+        wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_FILAMENTS);
 
 }
 
