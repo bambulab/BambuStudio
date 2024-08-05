@@ -4766,6 +4766,7 @@ void PartPlateList::render_instance_grid(bool bottom)
 
 void PartPlateList::render_instance_background(bool force_default_color)
 {
+    if (m_unselected_plate_trans.size() == 0) { return; }
     // draw background
     ColorRGBA color;
     if (!force_default_color) {
