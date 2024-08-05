@@ -160,7 +160,7 @@ public:
     void CreateAmsNew();
     void CreateAmsSingleNozzle();
     void ClearAms();
-    void UpdateAms(std::vector<AMSinfo> ams_info, std::vector<AMSinfo> ext_info, std::string dev_id, bool is_reset = true, bool test = false);
+    void UpdateAms(std::vector<AMSinfo> ams_info, std::vector<AMSinfo> ext_info, int nozzle_num, std::string dev_id, bool is_reset = true, bool test = false);
     void ReadExtInfo(MachineObject* obj);
 
     void AddAms(AMSinfo info, bool left = true);
