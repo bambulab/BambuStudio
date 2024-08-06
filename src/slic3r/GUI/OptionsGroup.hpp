@@ -24,7 +24,7 @@
 
 namespace Slic3r { namespace GUI {
 
-extern int get_extruder_idx(const DynamicPrintConfig& config, const std::string &opt_key, int cur_extruder_id);
+extern int get_extruder_idx(const DynamicPrintConfig& config, const std::string &opt_key, int cur_extruder_id, NozzleVolumeType nozzle_volume_type);
 
 // Thrown if the building of a parameter page is canceled.
 class UIBuildCanceled : public std::exception {};

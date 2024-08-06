@@ -1529,8 +1529,8 @@ void Sidebar::update_presets(Preset::Type preset_type)
         if (extruder_variants->size() == 2) {
             auto extruders_def = printer_preset.config.def()->get("extruder_type");
             auto extruders = printer_preset.config.option<ConfigOptionEnumsGeneric>("extruder_type");
-            auto nozzle_volumes_def = printer_preset.config.def()->get("nozzle_volume_type");
-            auto nozzle_volumes = printer_preset.config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+            auto nozzle_volumes_def = wxGetApp().preset_bundle->project_config.def()->get("nozzle_volume_type");
+            auto nozzle_volumes = wxGetApp().preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
             auto update_extruder_variant = [extruders_def, extruders, nozzle_volumes_def, nozzle_volumes, extruder_variants](ComboBox &box, int index) {
                 box.Clear();
                 auto extruder = extruders_def->enum_labels[extruders->values[index]];
