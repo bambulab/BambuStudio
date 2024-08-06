@@ -24,7 +24,7 @@ namespace Slic3r { namespace GUI {
 constexpr int titleWidth = 20;
 
 // get the param index of cur_exturder
-int get_extruder_idx(const DynamicPrintConfig& config, const std::string &opt_key, int cur_extruder_id)
+int get_extruder_idx(const DynamicPrintConfig& config, const std::string &opt_key, int cur_extruder_id, NozzleVolumeType nozzle_volume_type)
 {
     if (printer_extruder_options.find(opt_key) != printer_extruder_options.end()) {
         return cur_extruder_id;
@@ -37,13 +37,13 @@ int get_extruder_idx(const DynamicPrintConfig& config, const std::string &opt_ke
     assert(cur_extruder_id < extruder_count);
     const DynamicPrintConfig& cur_printer_config = wxGetApp().preset_bundle->printers.get_selected_preset().config;
     auto opt_extruder_type      = dynamic_cast<const ConfigOptionEnumsGeneric *>(cur_printer_config.option("extruder_type"));
-    auto opt_nozzle_volume_type = dynamic_cast<const ConfigOptionEnumsGeneric *>(cur_printer_config.option("nozzle_volume_type"));
+    //auto opt_nozzle_volume_type = dynamic_cast<const ConfigOptionEnumsGeneric *>(cur_printer_config.option("default_nozzle_volume_type"));
 
-    if (!opt_extruder_type || !opt_nozzle_volume_type)
+    if (!opt_extruder_type)
         return 0;
 
     ExtruderType     extruder_type      = (ExtruderType) (opt_extruder_type->get_at(cur_extruder_id));
-    NozzleVolumeType nozzle_volume_type = (NozzleVolumeType) (opt_nozzle_volume_type->get_at(cur_extruder_id));
+    //NozzleVolumeType nozzle_volume_type = (NozzleVolumeType) (opt_nozzle_volume_type->get_at(cur_extruder_id));
 
     std::string id_name, variant_name;
     unsigned int stride = 1;
