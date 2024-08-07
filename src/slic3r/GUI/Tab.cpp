@@ -1478,7 +1478,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     }
 
     if (opt_key == "print_sequence" && m_config->opt_enum<PrintSequence>("print_sequence") == PrintSequence::ByObject) {
-        auto printer_structure_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
+        auto printer_structure_opt = m_preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
         if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3) {
             wxString msg_text = _(L("Timelapse is not supported because Print sequence is set to \"By object\"."));
             msg_text += "\n\n" + _(L("Still print by object?"));
@@ -1525,8 +1525,8 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     }
 
     if(opt_key=="layer_height"){
-        auto min_layer_height_from_nozzle=wxGetApp().preset_bundle->full_config().option<ConfigOptionFloats>("min_layer_height")->values;
-        auto max_layer_height_from_nozzle=wxGetApp().preset_bundle->full_config().option<ConfigOptionFloats>("max_layer_height")->values;
+        auto min_layer_height_from_nozzle=m_preset_bundle->full_config().option<ConfigOptionFloats>("min_layer_height")->values;
+        auto max_layer_height_from_nozzle=m_preset_bundle->full_config().option<ConfigOptionFloats>("max_layer_height")->values;
         auto layer_height_floor = *std::min_element(min_layer_height_from_nozzle.begin(), min_layer_height_from_nozzle.end());
         auto layer_height_ceil  = *std::max_element(max_layer_height_from_nozzle.begin(), max_layer_height_from_nozzle.end());
         float layer_height = m_config->opt_float("layer_height");
@@ -1774,10 +1774,10 @@ void Tab::on_presets_changed()
     // Instead of PostEvent (EVT_TAB_PRESETS_CHANGED) just call update_presets
     wxGetApp().plater()->sidebar().update_presets(m_type);
 
-    bool is_bbl_vendor_preset = wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle);
+    bool is_bbl_vendor_preset = m_preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle);
     if (is_bbl_vendor_preset) {
         wxGetApp().plater()->get_partplate_list().set_render_option(true, true);
-        if (wxGetApp().preset_bundle->printers.get_edited_preset().has_cali_lines(wxGetApp().preset_bundle)) {
+        if (m_preset_bundle->printers.get_edited_preset().has_cali_lines(wxGetApp().preset_bundle)) {
             wxGetApp().plater()->get_partplate_list().set_render_cali(true);
         } else {
             wxGetApp().plater()->get_partplate_list().set_render_cali(false);
@@ -2519,7 +2519,7 @@ void TabPrintModel::update_model_config()
                 PrintSequence plate_print_seq = (PrintSequence)0;
                 if (!plate_config.has("curr_bed_type")) {
                     // same as global
-                    DynamicConfig& global_cfg = wxGetApp().preset_bundle->project_config;
+                    DynamicConfig& global_cfg = m_preset_bundle->project_config;
                     if (global_cfg.has("curr_bed_type")) {
                         BedType global_bed_type = global_cfg.opt_enum<BedType>("curr_bed_type");
                         m_config->set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(global_bed_type));
@@ -2897,7 +2897,7 @@ void TabPrintPlate::update_custom_dirty(std::vector<std::string> &dirty_options,
             }
         }
         if (k == "curr_bed_type") {
-            DynamicConfig& global_cfg = wxGetApp().preset_bundle->project_config;
+            DynamicConfig& global_cfg = m_preset_bundle->project_config;
             if (global_cfg.has("curr_bed_type")) {
                 BedType global_bed_type = global_cfg.opt_enum<BedType>("curr_bed_type");
                 if (m_config->opt_enum<BedType>("curr_bed_type") != global_bed_type) {
@@ -3105,13 +3105,13 @@ void TabFilament::update_filament_overrides_page()
         Field* field = optgroup->get_fieldc(opt_key, 0);
         if (field != nullptr) {
             if (opt_key == "filament_long_retractions_when_cut") {
-                int machine_enabled_level = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionInt>("enable_long_retraction_when_cut")->value;
+                int machine_enabled_level = m_preset_bundle->printers.get_edited_preset().config.option<ConfigOptionInt>("enable_long_retraction_when_cut")->value;
                 bool machine_enabled = machine_enabled_level == LongRectrationLevel::EnableFilament;
                 toggle_line(opt_key, machine_enabled, extruder_idx + 256);
                 field->toggle(is_checked && machine_enabled);
             }
             else if (opt_key == "filament_retraction_distances_when_cut") {
-                int machine_enabled_level = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionInt>("enable_long_retraction_when_cut")->value;
+                int machine_enabled_level = m_preset_bundle->printers.get_edited_preset().config.option<ConfigOptionInt>("enable_long_retraction_when_cut")->value;
                 bool machine_enabled = machine_enabled_level == LongRectrationLevel::EnableFilament;
                 bool filament_enabled = m_config->option<ConfigOptionBools>("filament_long_retractions_when_cut")->values[extruder_idx] == 1;
                 toggle_line(opt_key, filament_enabled && machine_enabled, extruder_idx + 256);
@@ -3159,7 +3159,7 @@ void TabFilament::build()
         optgroup->append_line(line);
 
         optgroup->m_on_change = [this, optgroup](t_config_option_key opt_key, boost::any value) {
-            DynamicPrintConfig &filament_config = wxGetApp().preset_bundle->filaments.get_edited_preset().config;
+            DynamicPrintConfig &filament_config = m_preset_bundle->filaments.get_edited_preset().config;
 
             update_dirty();
             if (!m_postpone_update_ui && (opt_key == "nozzle_temperature_range_low" || opt_key == "nozzle_temperature_range_high")) {
@@ -3204,7 +3204,7 @@ void TabFilament::build()
 
         optgroup->m_on_change = [this, optgroup](t_config_option_key opt_key, boost::any value)
         {
-            DynamicPrintConfig& filament_config = wxGetApp().preset_bundle->filaments.get_edited_preset().config;
+            DynamicPrintConfig& filament_config = m_preset_bundle->filaments.get_edited_preset().config;
 
             update_dirty();
             /*if (opt_key == "cool_plate_temp" || opt_key == "cool_plate_temp_initial_layer") {
@@ -4030,7 +4030,7 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
             auto optgroup = page->new_optgroup(L("Type"), L"param_type", -1, true);
             optgroup->append_single_option_line("extruder_type", "", extruder_idx);
             optgroup->append_single_option_line("nozzle_diameter", "", extruder_idx);
-            optgroup->append_single_option_line("nozzle_volume_type", "", extruder_idx);
+            //optgroup->append_single_option_line("default_nozzle_volume_type", "", extruder_idx);
 
             optgroup->m_on_change = [this, extruder_idx](const t_config_option_key& opt_key, boost::any value)
             {
@@ -4258,7 +4258,7 @@ void TabPrinter::toggle_options()
     if (!m_active_page || m_presets->get_edited_preset().printer_technology() == ptSLA)
         return;
 
-    auto nozzle_volumes = m_config->option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+    auto nozzle_volumes = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
     auto extruders      = m_config->option<ConfigOptionEnumsGeneric>("extruder_type");
         auto get_index_for_extruder =
             [this, &extruders, &nozzle_volumes](int extruder_id, int stride = 1) {
@@ -5216,7 +5216,7 @@ bool Tab::tree_sel_change_delayed(wxCommandEvent& event)
         if (m_variant_sizer) {
             wxWindow *variant_ctrl = m_extruder_switch ? (wxWindow *) m_extruder_switch : m_variant_combo;
             m_main_sizer->Show(m_variant_sizer, variant_ctrl->IsThisEnabled() && !m_active_page->m_opt_id_map.empty() && !m_active_page->title().StartsWith("Extruder "));
-            if (m_extruder_sync) m_extruder_sync->Show(m_extruder_sync->IsThisEnabled());
+            if (m_extruder_sync) m_extruder_sync->Show(variant_ctrl->IsShown() && m_extruder_sync->IsThisEnabled());
             GetParent()->Layout();
         }
 
@@ -5231,8 +5231,8 @@ bool Tab::tree_sel_change_delayed(wxCommandEvent& event)
     m_active_page = page;
     if (m_variant_sizer) {
         wxWindow *variant_ctrl = m_extruder_switch ? (wxWindow *) m_extruder_switch : m_variant_combo;
-        m_main_sizer->Show(m_variant_sizer, variant_ctrl->IsThisEnabled() && !m_active_page->m_opt_id_map.empty() && !m_active_page->title().StartsWith("Extruder "));
-        if (m_extruder_sync) m_extruder_sync->Show(m_extruder_sync->IsThisEnabled());
+        m_main_sizer->Show(m_variant_sizer, variant_ctrl->IsThisEnabled() && !m_active_page->m_opt_id_map.empty() && !m_active_page->title().StartsWith("Extruder"));
+        if (m_extruder_sync) m_extruder_sync->Show(variant_ctrl->IsShown() && m_extruder_sync->IsThisEnabled());
         GetParent()->Layout();
     }
 
@@ -5884,10 +5884,10 @@ void Tab::update_extruder_variants(int extruder_id, bool reload)
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << extruder_id;
     if (m_extruder_switch) {
-        Preset &printer_preset = wxGetApp().preset_bundle->printers.get_edited_preset();
-        auto    nozzle_volumes = wxGetApp().preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+        Preset &printer_preset = m_preset_bundle->printers.get_edited_preset();
+        auto    nozzle_volumes = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
         if (nozzle_volumes->size() == 2) {
-            auto     nozzle_volumes_def = printer_preset.config.def()->get("nozzle_volume_type");
+            auto     nozzle_volumes_def = m_preset_bundle->project_config.def()->get("nozzle_volume_type");
             wxString left, right;
             for (size_t i = 0; i < nozzle_volumes_def->enum_labels.size(); ++i) {
                 if (nozzle_volumes->values[0] == i) left = _L(nozzle_volumes_def->enum_labels[i]);
@@ -5915,15 +5915,15 @@ void Tab::update_extruder_variants(int extruder_id, bool reload)
     if (m_variant_sizer) {
         wxWindow *variant_ctrl = m_extruder_switch ? (wxWindow *) m_extruder_switch : m_variant_combo;
         m_main_sizer->Show(m_variant_sizer, variant_ctrl->IsThisEnabled() && m_active_page && !m_active_page->m_opt_id_map.empty() && !m_active_page->title().StartsWith("Extruder "));
-        if (m_extruder_sync) m_extruder_sync->Show(m_extruder_sync->IsThisEnabled());
+        if (m_extruder_sync) m_extruder_sync->Show(variant_ctrl->IsShown() && m_extruder_sync->IsThisEnabled());
         GetParent()->Layout();
     }
 }
 
 void Tab::switch_excluder(int extruder_id, bool reload)
 {
-    Preset & printer_preset = wxGetApp().preset_bundle->printers.get_edited_preset();
-    auto nozzle_volumes = wxGetApp().preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+    Preset & printer_preset = m_preset_bundle->printers.get_edited_preset();
+    auto nozzle_volumes = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
     auto extruders      = printer_preset.config.option<ConfigOptionEnumsGeneric>("extruder_type");
     std::pair<std::string, std::string> variant_keys[]{
         {}, {"print_extruder_id", "print_extruder_variant"},     // Preset::TYPE_PRINT
@@ -5996,8 +5996,8 @@ void Tab::switch_excluder(int extruder_id, bool reload)
 
 void Tab::sync_excluder()
 {
-    Preset & printer_preset = wxGetApp().preset_bundle->printers.get_edited_preset();
-    auto nozzle_volumes = printer_preset.config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+    Preset & printer_preset = m_preset_bundle->printers.get_edited_preset();
+    auto nozzle_volumes = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
     auto extruders      = printer_preset.config.option<ConfigOptionEnumsGeneric>("extruder_type");
     std::pair<std::string, std::string> variant_keys[]{
         {}, {"print_extruder_id", "print_extruder_variant"},     // Preset::TYPE_PRINT
@@ -6416,7 +6416,7 @@ void TabSLAMaterial::reload_config()
 
 void TabSLAMaterial::toggle_options()
 {
-    const Preset &current_printer = wxGetApp().preset_bundle->printers.get_edited_preset();
+    const Preset &current_printer = m_preset_bundle->printers.get_edited_preset();
     std::string model = current_printer.config.opt_string("printer_model");
     m_config_manipulation.toggle_field("material_print_speed", model != "SL1");
 }
