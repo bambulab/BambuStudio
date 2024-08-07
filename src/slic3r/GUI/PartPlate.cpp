@@ -2845,9 +2845,14 @@ void PartPlateList::update_plate_trans(int count)
         Vec3d plate_origin= Vec3d(pos.x(), pos.y(), 0);
         m_plate_trans[i].set_offset(plate_origin);
 	}
+    update_unselected_plate_trans(count);
 }
 
 void PartPlateList::update_unselected_plate_trans(int count) {
+    if (count == 1) {
+        m_unselected_plate_trans.clear();
+        return;
+	}
     m_update_unselected_plate_mats_vbo = true;
     m_unselected_plate_trans.resize(count - 1);
     int cols = compute_colum_count(count);
@@ -3806,7 +3811,7 @@ int PartPlateList::select_plate(int index)
 	m_current_plate = index;
 	m_plate_list[m_current_plate]->set_selected();
 
-    update_unselected_plate_trans(get_plate_count());
+    update_plate_trans(get_plate_count());
 	//BBS
 	if(m_model)
 		m_model->curr_plate_index = index;
@@ -4965,7 +4970,7 @@ bool PartPlateList::set_shapes(const Pointfs& shape, const Pointfs& exclude_area
 
 	update_logo_texture_filename(texture_filename);
     update_plate_trans(get_plate_count());
-    update_unselected_plate_trans(get_plate_count());
+
     { // prepare render data
         ExPolygon poly;
         generate_print_polygon(poly);
