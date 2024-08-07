@@ -81,7 +81,7 @@ bool GLGizmoRotate::on_init()
 }
 
 void GLGizmoRotate::on_start_dragging()
-{ 
+{
     init_data_from_selection(m_parent.get_selection());
 }
 
@@ -489,6 +489,22 @@ void GLGizmoRotate3D::on_set_state()
         g.set_state(m_state);
     if (get_state() == On && m_object_manipulation) {
         m_object_manipulation->set_coordinates_type(ECoordinatesType::World);
+        m_last_volume = nullptr;
+    }
+}
+
+void GLGizmoRotate3D::data_changed(bool is_serializing) {
+    const Selection &selection = m_parent.get_selection();
+    const GLVolume * volume    = selection.get_first_volume();
+    if (m_last_volume != volume) {
+        m_last_volume = volume;
+        Geometry::Transformation tran;
+        if (selection.is_single_full_instance()) {
+            tran = volume->get_instance_transformation();
+        } else {
+            tran = volume->get_volume_transformation();
+        }
+        m_object_manipulation->set_init_rotation(tran);
     }
 }
 

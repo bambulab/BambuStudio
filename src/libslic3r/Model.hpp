@@ -399,8 +399,8 @@ public:
             return global_config.option<T>(config_option);
     }
 
-    ModelVolume*            add_volume(const TriangleMesh &mesh);
-    ModelVolume*            add_volume(TriangleMesh &&mesh, ModelVolumeType type = ModelVolumeType::MODEL_PART);
+    ModelVolume*            add_volume(const TriangleMesh &mesh, bool modify_to_center_geometry = true);
+    ModelVolume*            add_volume(TriangleMesh &&mesh, ModelVolumeType type = ModelVolumeType::MODEL_PART, bool modify_to_center_geometry = true);
     ModelVolume*            add_volume(const ModelVolume &volume, ModelVolumeType type = ModelVolumeType::INVALID);
     ModelVolume*            add_volume(const ModelVolume &volume, TriangleMesh &&mesh);
     ModelVolume*            add_volume_with_shared_mesh(const ModelVolume &other, ModelVolumeType type = ModelVolumeType::MODEL_PART);
@@ -828,7 +828,6 @@ struct TextInfo
     std::string m_text;
 
     RaycastResult m_rr;
-    Vec3d         m_hit_in_text; // for load use
     template<typename Archive> void serialize(Archive &ar) {
         ar(m_font_name, m_font_size, m_curr_font_idx, m_bold, m_italic, m_thickness, m_embeded_depth, m_rotate_angle, m_text_gap, m_is_surface_text, m_keep_horizontal, m_text, m_rr);
     }

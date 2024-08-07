@@ -291,6 +291,7 @@ public:
     // BBS
     void                switch_to_object_process();
     int                 load_mesh_part(const TriangleMesh &mesh, const wxString &name, const TextInfo &text_info, bool is_temp);
+    int                 add_text_part(const TriangleMesh &mesh, const wxString &name, const TextInfo &text_info,const Transform3d& text_in_object_tran, bool is_temp);
     bool                del_object(const int obj_idx, bool refresh_immediately = true);
     void                del_subobject_item(wxDataViewItem& item);
     void                del_settings_from_config(const wxDataViewItem& parent_item);

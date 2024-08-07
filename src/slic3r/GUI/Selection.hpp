@@ -502,13 +502,13 @@ private:
     void render_sidebar_layers_hints(const std::string& sidebar_field) const;
 
 public:
-    enum SyncRotationType {
+    enum class SyncRotationType {
         // Do not synchronize rotation. Either not rotating at all, or rotating by world Z axis.
-        SYNC_ROTATION_NONE = 0,
+        NONE = 0,
         // Synchronize after rotation by an axis not parallel with Z.
-        SYNC_ROTATION_GENERAL = 1,
+        GENERAL = 1,
         // Synchronize after rotation reset.
-        SYNC_ROTATION_RESET = 2
+        RESET = 2
     };
     void synchronize_unselected_instances(SyncRotationType sync_rotation_type);
     void synchronize_unselected_volumes();

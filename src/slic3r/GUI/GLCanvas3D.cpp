@@ -4616,30 +4616,6 @@ void GLCanvas3D::set_tooltip(const std::string& tooltip)
         m_tooltip.set_text(tooltip);
 }
 
-void GLCanvas3D::generate_new_hit_in_text_info(ModelVolume *      cur_mv,
-                                               ModelObject *      model_object,
-                                               ModelInstance *    mi,
-                                               const Transform3d &old_text_world_tran,
-                                               const Transform3d &cur_text_world_tran,
-                                               TextInfo *         text_info,
-                                               int                type)
-{
-    Geometry::Transformation old_text_tran_(old_text_world_tran);
-    Geometry::Transformation cur_text_tran_(cur_text_world_tran);
-    bool   is_changed = (type == 0 && old_text_tran_.get_offset() != cur_text_tran_.get_offset()) ||//move
-                      (type == 1 && old_text_tran_.get_rotation() != cur_text_tran_.get_rotation()) ||// rotate
-                      (type == 2 && old_text_tran_.get_scaling_factor() != cur_text_tran_.get_scaling_factor());
-    if (is_changed) {
-        std::vector<Transform3d> trafo_matrices;
-        for (const ModelVolume *mv : model_object->volumes) {
-            if (mv->is_model_part()) { trafo_matrices.emplace_back(mi->get_transformation().get_matrix() * mv->get_matrix()); }
-        }
-        if (text_info->m_rr.mesh_id < trafo_matrices.size()) {
-            text_info->m_rr.hit = (trafo_matrices[text_info->m_rr.mesh_id].inverse() * (cur_text_world_tran * text_info->m_hit_in_text)).cast<float>();
-        }
-    }
-}
-
 void GLCanvas3D::do_move(const std::string &snapshot_type)
 {
     if (m_model == nullptr)
@@ -4682,18 +4658,7 @@ void GLCanvas3D::do_move(const std::string &snapshot_type)
                 else if (selection_mode == Selection::Volume) {
                     auto cur_mv = model_object->volumes[volume_idx];
                     if (cur_mv->get_offset() != v->get_volume_offset()) {
-                        auto        text_info = const_cast<TextInfo *>(&cur_mv->get_text_info());
-                        auto        mi        = model_object->instances[instance_idx];
-                        Transform3d old_text_world_tran;
-                        bool        is_text_mv = text_info && !text_info->m_text.empty() && text_info->m_rr.mesh_id >= 0;
-                        if (is_text_mv) { // deal text_info
-                            old_text_world_tran = mi->get_transformation().get_matrix() * cur_mv->get_matrix();
-                        }
                         cur_mv->set_offset(v->get_volume_offset());
-                        if (is_text_mv) { // deal text_info
-                            auto cur_text_world_tran = mi->get_transformation().get_matrix() * cur_mv->get_matrix();
-                            generate_new_hit_in_text_info(cur_mv, model_object, mi, old_text_world_tran, cur_text_world_tran, text_info, 0);
-                        }
                         // BBS: backup
                         Slic3r::save_object_mesh(*model_object);
                     }
@@ -4806,19 +4771,7 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
             else if (selection_mode == Selection::Volume) {
                 auto cur_mv = model_object->volumes[volume_idx];
                 if (cur_mv->get_rotation() != v->get_volume_rotation()) {
-                    auto        text_info = const_cast<TextInfo *>(&cur_mv->get_text_info());
-                    auto        mi        = model_object->instances[instance_idx];
-                    Transform3d old_text_world_tran;
-                    bool        is_text_mv = text_info && !text_info->m_text.empty() && text_info->m_rr.mesh_id >= 0;
-                    if (is_text_mv) { // deal text_info
-                        old_text_world_tran = mi->get_transformation().get_matrix() * cur_mv->get_matrix();
-                    }
-
                     cur_mv->set_transformation(v->get_volume_transformation());
-                    if (is_text_mv) { // deal text_info
-                        auto                     cur_text_world_tran = mi->get_transformation().get_matrix() * cur_mv->get_matrix();
-                        generate_new_hit_in_text_info(cur_mv, model_object, mi, old_text_world_tran, cur_text_world_tran, text_info, 1);
-                    }
                     // BBS: backup
                     Slic3r::save_object_mesh(*model_object);
                 }
@@ -4899,21 +4852,8 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
             else if (selection_mode == Selection::Volume) {
                 auto cur_mv = model_object->volumes[volume_idx];
                 if (cur_mv->get_scaling_factor() != v->get_volume_scaling_factor()) {
-                    auto        text_info = const_cast<TextInfo *>(&cur_mv->get_text_info());
-                    auto        mi        = model_object->instances[instance_idx];
-                    Transform3d old_text_world_tran;
-                    bool        is_text_mv = text_info && !text_info->m_text.empty() && text_info->m_rr.mesh_id >= 0;
-                    if (is_text_mv) { // deal text_info
-                        old_text_world_tran = mi->get_transformation().get_matrix() * cur_mv->get_matrix();
-                    }
-
                     model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
                     cur_mv->set_transformation(v->get_volume_transformation());
-
-                    if (is_text_mv) { // deal text_info
-                        auto cur_text_world_tran = mi->get_transformation().get_matrix() * cur_mv->get_matrix();
-                        generate_new_hit_in_text_info(cur_mv, model_object, mi, old_text_world_tran, cur_text_world_tran, text_info, 2);
-                    }
                     // BBS: backup
                     Slic3r::save_object_mesh(*model_object);
                 }
