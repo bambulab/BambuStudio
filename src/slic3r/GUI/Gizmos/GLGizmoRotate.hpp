@@ -137,6 +137,7 @@ protected:
         if (id < 3)
             m_gizmos[id].disable_grabber(0);
     }
+    void data_changed(bool is_serializing) override;
     bool on_is_activable() const override;
     void on_start_dragging() override;
     void on_stop_dragging() override;
@@ -157,7 +158,7 @@ protected:
     void on_render_input_window(float x, float y, float bottom_limit) override;
 
 private:
-
+    const GLVolume *m_last_volume;
     class RotoptimzeWindow {
         ImGuiWrapper *m_imgui = nullptr;
     public:

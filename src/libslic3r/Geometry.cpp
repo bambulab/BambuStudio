@@ -808,5 +808,16 @@ Geometry::TransformationSVD::TransformationSVD(const Transform3d &trafo)
     return curMat;
 }
 
+Transformation generate_transform(const Vec3d& x_dir, const Vec3d& y_dir, const Vec3d& z_dir, const Vec3d& origin) {
+     Matrix3d m;
+     m.col(0) = x_dir.normalized();
+     m.col(1) = y_dir.normalized();
+     m.col(2) = z_dir.normalized();
+     Transform3d    mm(m);
+     Transformation tran(mm);
+     tran.set_offset(origin);
+     return tran;
+}
+
 } // namespace Geometry
 } // namespace Slic3r
