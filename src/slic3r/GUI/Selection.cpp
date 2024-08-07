@@ -422,7 +422,7 @@ ModelVolume *Selection::get_selected_single_volume(int &out_object_idx, int &out
 
 ModelObject *Selection::get_selected_single_object(int &out_object_idx)
 {
-    if (is_single_volume() || is_single_modifier()) {
+    if (is_single_volume() || is_single_modifier() || is_single_full_object()) {
         const GLVolume *gl_volume = get_volume(*get_volume_idxs().begin());
         out_object_idx            = gl_volume->object_idx();
         return get_model()->objects[out_object_idx];
@@ -1222,7 +1222,7 @@ void Selection::translate(const Vec3d &displacement, bool local)
 
 #if !DISABLE_INSTANCES_SYNCH
     if (translation_type == Instance)
-        synchronize_unselected_instances(SYNC_ROTATION_NONE);
+        synchronize_unselected_instances(SyncRotationType::NONE);
     else if (translation_type == Volume)
         synchronize_unselected_volumes();
 #endif // !DISABLE_INSTANCES_SYNCH
@@ -1292,7 +1292,7 @@ void Selection::translate(const Vec3d &displacement, TransformationType transfor
 
 #if !DISABLE_INSTANCES_SYNCH
     if (m_mode == Instance)
-        synchronize_unselected_instances(SYNC_ROTATION_NONE);
+        synchronize_unselected_instances(SyncRotationType::NONE);
     else if (m_mode == Volume)
         synchronize_unselected_volumes();
 #endif // !DISABLE_INSTANCES_SYNCH
@@ -1425,7 +1425,7 @@ void Selection::rotate(const Vec3d& rotation, TransformationType transformation_
 
     #if !DISABLE_INSTANCES_SYNCH
         if (m_mode == Instance)
-            synchronize_unselected_instances((rot_axis_max == 2) ? SYNC_ROTATION_NONE : SYNC_ROTATION_GENERAL);
+            synchronize_unselected_instances((rot_axis_max == 2) ? SyncRotationType::NONE : SyncRotationType::GENERAL);
         else if (m_mode == Volume)
             synchronize_unselected_volumes();
     #endif // !DISABLE_INSTANCES_SYNCH
@@ -1483,7 +1483,7 @@ void Selection::flattening_rotate(const Vec3d& normal)
     // Apply the same transformation also to other instances,
     // but respect their possibly diffrent z-rotation.
     if (m_mode == Instance)
-        synchronize_unselected_instances(SYNC_ROTATION_GENERAL);
+        synchronize_unselected_instances(SyncRotationType::GENERAL);
 #endif // !DISABLE_INSTANCES_SYNCH
 
     this->set_bounding_boxes_dirty();
@@ -1669,7 +1669,11 @@ void Selection::scale_and_translate(const Vec3d &scale, const Vec3d &world_trans
             } else
                 transform_instance_relative(v, volume_data, transformation_type, Geometry::translation_transform(world_translation) * Geometry::scale_transform(relative_scale),
                                             m_cache.dragging_center);
-            std::cout << "";
+            // update the instance assemble transform
+            ModelObject *            object             = m_model->objects[v.object_idx()];
+            Geometry::Transformation assemble_transform = object->instances[v.instance_idx()]->get_assemble_transformation();
+            assemble_transform.set_scaling_factor(v.get_instance_scaling_factor());
+            object->instances[v.instance_idx()]->set_assemble_transformation(assemble_transform);
         } else {
             if (!is_single_volume_or_modifier()) {
                 assert(transformation_type.world());
@@ -1695,7 +1699,7 @@ void Selection::scale_and_translate(const Vec3d &scale, const Vec3d &world_trans
     if (m_mode == Instance)
         // even if there is no rotation, we pass SyncRotationType::GENERAL to force
         // synchronize_unselected_instances() to apply the scale to the other instances
-        synchronize_unselected_instances(SyncRotationType::SYNC_ROTATION_GENERAL);
+        synchronize_unselected_instances(SyncRotationType::GENERAL);
     else if (m_mode == Volume)
         synchronize_unselected_volumes();
 #endif // !DISABLE_INSTANCES_SYNCH
@@ -2910,7 +2914,7 @@ void Selection::synchronize_unselected_instances(SyncRotationType sync_rotation_
 
             assert(is_rotation_xy_synchronized(m_cache.volumes_data[i].get_instance_rotation(), m_cache.volumes_data[j].get_instance_rotation()));
             switch (sync_rotation_type) {
-            case SYNC_ROTATION_NONE: {
+            case SyncRotationType::NONE: {
                 // z only rotation -> synch instance z
                 // The X,Y rotations should be synchronized from start to end of the rotation.
                 assert(is_rotation_xy_synchronized(rotation, v->get_instance_rotation()));
@@ -2918,7 +2922,7 @@ void Selection::synchronize_unselected_instances(SyncRotationType sync_rotation_
                     v->set_instance_offset(Z, volume->get_instance_offset().z());
                 break;
             }
-            case SYNC_ROTATION_GENERAL:
+            case SyncRotationType::GENERAL:
                 // generic rotation -> update instance z with the delta of the rotation.
                 const double z_diff = Geometry::rotation_diff_z(m_cache.volumes_data[i].get_instance_rotation(), m_cache.volumes_data[j].get_instance_rotation());
                 v->set_instance_rotation({ rotation.x(), rotation.y(), rotation.z() + z_diff });

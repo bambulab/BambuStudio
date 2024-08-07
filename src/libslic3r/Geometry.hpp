@@ -494,6 +494,7 @@ inline bool is_rotation_ninety_degrees(const Vec3d &rotation)
 }
 
 Transformation mat_around_a_point_rotate(const Transformation& innMat, const Vec3d &pt, const Vec3d &axis, float rotate_theta_radian);
+Transformation generate_transform(const Vec3d &x_dir, const Vec3d &y_dir, const Vec3d &z_dir, const Vec3d &origin);
 } } // namespace Slicer::Geometry
 
 #endif
