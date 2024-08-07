@@ -237,9 +237,9 @@ private:
     bool            m_opengl_initialized{ false };
 #endif
 
-//import model from mall 
+//import model from mall
     wxString       m_download_file_url;
-   
+
 //#ifdef _WIN32
     wxColour        m_color_label_modified;
     wxColour        m_color_label_sys;
@@ -380,7 +380,7 @@ public:
     bool            get_side_menu_popup_status();
     void            set_side_menu_popup_status(bool status);
     void            link_to_network_check();
-        
+
 
     const wxColour& get_label_clr_modified(){ return m_color_label_modified; }
     const wxColour& get_label_clr_sys()     { return m_color_label_sys; }
@@ -647,7 +647,8 @@ public:
     bool            check_networking_version();
     void            cancel_networking_install();
     void            restart_networking();
-    void            check_config_updates_from_updater() { check_updates(false); }
+    void            check_config_updates_from_updater();
+    void            check_config_updates_from_menu();
 
 private:
     int             updating_bambu_networking();
