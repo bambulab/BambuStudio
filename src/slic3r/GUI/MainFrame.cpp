@@ -2386,7 +2386,7 @@ void MainFrame::init_menubar_as_editor()
             m_plater->add_file();
         } }, "menu_import", nullptr,
             [this](){return can_add_models(); }, this);
-#else
+    #else
         append_menu_item(import_menu, wxID_ANY, _L("Import 3MF/STL/STEP/SVG/OBJ/AMF") + dots + "\t" + ctrl + "I", _L("Load a model"),
             [this](wxCommandEvent&) { if (m_plater) { m_plater->add_model(); } }, "", nullptr,
             [this](){return can_add_models(); }, this);
@@ -2396,7 +2396,6 @@ void MainFrame::init_menubar_as_editor()
             [this](){return true; }, this);
 
         append_submenu(fileMenu, import_menu, wxID_ANY, _L("Import"), "");
-
 
         wxMenu* export_menu = new wxMenu();
         // BBS export as STL
@@ -2877,7 +2876,7 @@ void MainFrame::init_menubar_as_editor()
         append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 2"), _L("Flow rate test - Pass 2"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(2); }, "", nullptr,
             [this]() {return m_plater->is_view3D_shown();; }, this);
-        m_topbar->GetCalibMenu()->AppendSubMenu(flowrate_menu, _L("Flow rate"));
+        m_topbar->GetCalibMenu()->AppendSubMenu(flowrate_menu, _L("Flow rate") );
         append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Pressure advance"), _L("Pressure advance"),
             [this](wxCommandEvent&) {
                 //if (!m_pa_calib_dlg)

@@ -2744,7 +2744,7 @@ void TabPrintPlate::notify_changed(ObjectBase* object)
     for (auto item : items) {
         if (objects_list->GetModel()->GetItemType(item) == itPlate) {
             ObjectDataViewModelNode* node = static_cast<ObjectDataViewModelNode*>(item.GetID());
-            if (node) 
+            if (node)
                 node->set_action_icon(!m_all_keys.empty());
         }
     }
@@ -2752,7 +2752,7 @@ void TabPrintPlate::notify_changed(ObjectBase* object)
 
 void TabPrintPlate::update_custom_dirty()
 {
-    for (auto k : m_null_keys) 
+    for (auto k : m_null_keys)
         m_options_list[k] = 0;
     for (auto k : m_all_keys) {
         if (k == "first_layer_sequence_choice" || k == "other_layers_sequence_choice") {
@@ -3570,7 +3570,7 @@ void TabPrinter::build_fff()
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
         optgroup->append_single_option_line(option);
-        
+
         optgroup = page->new_optgroup(L("Time lapse G-code"), L"param_gcode", 0);
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
@@ -4598,7 +4598,7 @@ bool Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
         try {
             //BBS delete preset
             Preset &current_preset = m_presets->get_selected_preset();
-            
+
             // Obtain compatible filament and process presets for printers
             if (m_preset_bundle && m_presets->get_preset_base(current_preset) == &current_preset && printer_tab && !current_preset.is_system) {
                 delete_third_printer = true;
@@ -4729,7 +4729,7 @@ bool Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
 
             });
         }
-        
+
     }
 
     if (technology_changed)
@@ -5970,7 +5970,7 @@ void TabSLAPrint::build()
 //    optgroup->append_single_option_line("support_head_front_diameter");
 //    optgroup->append_single_option_line("support_head_penetration");
 //    optgroup->append_single_option_line("support_head_width");
-//
+    //
 //    optgroup = page->new_optgroup(L("Support pillar"));
 //    optgroup->append_single_option_line("support_pillar_diameter");
 //    optgroup->append_single_option_line("support_small_pillar_diameter_percent");
@@ -6020,7 +6020,7 @@ void TabSLAPrint::build()
 //    optgroup->append_single_option_line("pad_object_connector_stride");
 //    optgroup->append_single_option_line("pad_object_connector_width");
 //    optgroup->append_single_option_line("pad_object_connector_penetration");
-//
+    //
 //    page = add_options_page(L("Hollowing"), "hollowing");
 //    optgroup = page->new_optgroup(L("Hollowing"));
 //    optgroup->append_single_option_line("hollowing_enable");

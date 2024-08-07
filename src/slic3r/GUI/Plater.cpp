@@ -3112,7 +3112,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
             });
         //wxPostEvent(this->q, wxCommandEvent{EVT_RESTORE_PROJECT});
     }
-
     this->q->Bind(EVT_LOAD_MODEL_OTHER_INSTANCE, [this](LoadFromOtherInstanceEvent& evt) {
         BOOST_LOG_TRIVIAL(trace) << "Received load from other instance event.";
         wxArrayString input_files;
@@ -4548,7 +4547,6 @@ wxString Plater::priv::get_export_file(GUI::FileType file_type)
     }
 
     std::string out_dir = (boost::filesystem::path(output_file).parent_path()).string();
-
     wxFileDialog dlg(q, dlg_title,
         is_shapes_dir(out_dir) ? from_u8(wxGetApp().app_config->get_last_dir()) : from_path(output_file.parent_path()), from_path(output_file.filename()),
         wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT | wxPD_APP_MODAL);

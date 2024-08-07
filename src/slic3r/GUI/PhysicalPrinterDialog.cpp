@@ -590,7 +590,6 @@ void PhysicalPrinterDialog::update(bool printer_change)
                 if (m_printhost_cafile_browse_btn)
                     m_printhost_cafile_browse_btn->Disable();
         }
-
     }
     else {
         m_optgroup->set_value("host_type", int(PrintHostType::htOctoPrint), false);

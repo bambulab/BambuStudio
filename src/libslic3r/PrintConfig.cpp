@@ -934,7 +934,6 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.emplace_back(L("Outer and inner brim"));
 #endif
     def->enum_labels.emplace_back(L("No-brim"));
-
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionEnum<BrimType>(btAutoBrim));
 
