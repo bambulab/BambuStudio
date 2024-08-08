@@ -10,7 +10,7 @@
 #include "GLShader.hpp"
 #include "GUI_App.hpp"
 #include "GUI_Colors.hpp"
-//#include "Camera.hpp"
+
 #include "Plater.hpp"
 #include "BitmapCache.hpp"
 
