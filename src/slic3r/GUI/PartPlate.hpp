@@ -815,7 +815,6 @@ public:
     void render_instance_grid(bool bottom);
     void render_instance_background(bool force_default_color = false);
     void render_grid(bool bottom);
-    void render_background(bool force_default_color = false);
     void render_exclude_area(bool force_default_color);
     void render_instance_exclude_area(bool force_default_color);
 
