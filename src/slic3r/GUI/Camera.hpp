@@ -121,7 +121,7 @@ public:
 
     void zoom_to_box(const BoundingBoxf3& box, double margin_factor = DefaultZoomToBoxMarginFactor);
     void zoom_to_volumes(const GLVolumePtrs& volumes, double margin_factor = DefaultZoomToVolumesMarginFactor);
-
+    void debug_frustum();
 #if ENABLE_CAMERA_STATISTICS
     void debug_render();
 #endif // ENABLE_CAMERA_STATISTICS
