@@ -629,7 +629,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
 
         if (obj->cali_version >= 0) {
             PACalibIndexInfo select_index_info;
-            select_index_info.tray_id = tray_id;
+            select_index_info.tray_id = slot_id;
             select_index_info.nozzle_diameter = obj->m_nozzle_data.nozzles[0].diameter;
 
             auto cali_select_id = m_comboBox_cali_result->GetSelection();
@@ -649,7 +649,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
         }
     }
     else {
-        int cali_tray_id = ams_id * 4 + tray_id;
+        int cali_tray_id = ams_id * 4 + slot_id;
         double k = 0.0;
         try {
             k_text.ToDouble(&k);

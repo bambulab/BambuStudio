@@ -2306,8 +2306,8 @@ void AMSRoadDownPart::doRender(wxDC& dc)
     dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxSOLID));
     auto xpos = left_nozzle_pos.x;
     if (m_left_rode_mode == AMSRoadShowMode::AMS_ROAD_MODE_NONE || m_right_rode_mode == AMSRoadShowMode::AMS_ROAD_MODE_NONE){
-        dc.DrawLine(left_nozzle_pos.x - FromDIP(55), (size.y / 2), (left_nozzle_pos.x), (size.y / 2));
-        dc.DrawLine(left_nozzle_pos.x - FromDIP(55), (0), left_nozzle_pos.x - FromDIP(55), (size.y / 2));
+        dc.DrawLine(left_nozzle_pos.x - FromDIP(50), (size.y / 2), (left_nozzle_pos.x), (size.y / 2));
+        dc.DrawLine(left_nozzle_pos.x - FromDIP(50), (0), left_nozzle_pos.x - FromDIP(50), (size.y / 2));
     }
     else {
         switch (m_left_rode_mode)
@@ -2753,6 +2753,7 @@ AMSHumidity::AMSHumidity(wxWindow* parent, wxWindowID id, AMSinfo info, const wx
             if (mouse_pos.x > rect.x &&
                 mouse_pos.y > rect.y) {
                 wxCommandEvent show_event(EVT_AMS_SHOW_HUMIDITY_TIPS);
+                show_event.SetInt(m_amsinfo.ams_humidity);
                 wxPostEvent(GetParent()->GetParent(), show_event);
 
 #ifdef __WXMSW__

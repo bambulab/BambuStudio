@@ -2914,13 +2914,9 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
         wxPoint img_pos = ClientToScreen(wxPoint(0, 0));
         wxPoint popup_pos(img_pos.x - m_Humidity_tip_popup.GetSize().GetWidth() + FromDIP(150), img_pos.y - FromDIP(80));
         m_Humidity_tip_popup.Position(popup_pos, wxSize(0, 0));
-        if (m_ams_info.size() > 0) {
-            for (auto i = 0; i < m_ams_info.size(); i++) {
-                if (m_ams_info[i].ams_id == m_current_show_ams_left || m_ams_info[i].ams_id == m_current_show_ams_right) {
-                    m_Humidity_tip_popup.set_humidity_level(m_ams_info[i].ams_humidity);
-                }
-            }
-
+        int humidity_value = evt.GetInt();
+        if (humidity_value > 0 && humidity_value <= 5) {
+            m_Humidity_tip_popup.set_humidity_level(humidity_value);
         }
         m_Humidity_tip_popup.Popup();
     });
