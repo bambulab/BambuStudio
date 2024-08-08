@@ -109,11 +109,43 @@ void Camera::select_view(const std::string& direction)
 //how to use
 //BoundingBox bbox = mesh.aabb.transform(transform);
 //return camera_->getFrustum().intersects(bbox);
+void Camera::debug_frustum()
+{
+    ImGuiWrapper &imgui = *wxGetApp().imgui();
+    imgui.begin(std::string("Camera debug_frusm"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+
+    Vec3f              frustum_min  = m_frustum.bbox.min.cast<float>();
+    Vec3f              frustum_max = m_frustum.bbox.max.cast<float>();
+    Vec3f              _0_normal  = m_frustum.planes[0].getNormal().cast<float>();
+    Vec3f              _0_corner    = m_frustum.corners[0].cast<float>();
+    Vec3f              _1_corner    = m_frustum.corners[1].cast<float>();
+
+    ImGui::InputFloat3("m_last_eye", m_last_eye.data(), "%.6f", ImGuiInputTextFlags_ReadOnly);
+    ImGui::InputFloat3("m_last_center", m_last_center.data(), "%.6f", ImGuiInputTextFlags_ReadOnly);
+    ImGui::InputFloat3("m_last_up", m_last_up.data(), "%.6f", ImGuiInputTextFlags_ReadOnly);
+    ImGui::InputFloat3("frustum_min", frustum_min.data(), "%.6f", ImGuiInputTextFlags_ReadOnly);
+    ImGui::InputFloat3("frustum_max", frustum_max.data(), "%.6f", ImGuiInputTextFlags_ReadOnly);
+    for (size_t i = 0; i < 8; i++) {
+        std::string name = "corner" + std::to_string(i);
+        ImGui::InputFloat3(name.c_str(), m_frustum.corners[i].data(), "%.6f", ImGuiInputTextFlags_ReadOnly);
+    }
+    for (size_t i = 0; i < 6; i++) {
+        std::string name = "plane_normal" + std::to_string(i);
+        Vec3f       normal = m_frustum.planes[i].getNormal();
+        ImGui::InputFloat3(name.c_str(), normal.data(), "%.6f", ImGuiInputTextFlags_ReadOnly);
+
+        name   = "plane_center" + std::to_string(i);
+        Vec3f center = m_frustum.planes[i].getCenter();
+        ImGui::InputFloat3(name.c_str(), center.data(), "%.6f", ImGuiInputTextFlags_ReadOnly);
+    }
+    imgui.end();
+}
+
 void Camera::update_frustum()
 {
-    auto  eye_ = get_position().cast<float>();
-    auto  center_   = get_target().cast<float>();
-    auto  up_       = get_dir_up().cast<float>();
+    Vec3f  eye_      = get_position().cast<float>();
+    Vec3f  center_   = get_target().cast<float>();
+    Vec3f  up_       = get_dir_up().cast<float>();
     float  near_     = m_frustrum_zs.first;
     float far_      = m_frustrum_zs.second;
     float  aspect_   = m_viewport[2] /  (double)m_viewport[3];

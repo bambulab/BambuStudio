@@ -23,7 +23,7 @@ public:
         float distance(const Vec3f &pt) const { return normal_.dot(pt) + d_; }
 
         inline const Vec3f &getNormal() const { return normal_; }
-
+        const Vec3f &       getCenter() const { return center_; }
         Plane::PlaneIntersects intersects(const BoundingBoxf3 &box) const;
         //// check intersect with point (world space)
         Plane::PlaneIntersects intersects(const Vec3f &p0) const;
