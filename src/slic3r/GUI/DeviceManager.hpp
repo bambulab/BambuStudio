@@ -211,6 +211,12 @@ public:
         return wxColour(ret[0], ret[1], ret[2], ret[3]);
     }
 
+    bool operator==(AmsTray const &o) const
+    {
+        return id == o.id && type == o.type && filament_setting_id == o.filament_setting_id && color == o.color;
+    }
+    bool operator!=(AmsTray const &o) const { return !operator==(o); }
+
     std::string     id;
     std::string     tag_uid;     // tag_uid
     std::string     setting_id;  // tray_info_idx

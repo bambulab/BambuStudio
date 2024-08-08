@@ -4289,18 +4289,22 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                     if (vslot.id == std::to_string(VIRTUAL_TRAY_MAIN_ID)) {
                                         auto it = std::next(vt_slot.begin(), 0);
                                         if (it != vt_slot.end()) {
+                                            is_ams_need_update |= vt_slot[0] != vslot;
                                             vt_slot[0] = vslot;
                                         }
                                         else {
+                                            is_ams_need_update = true;
                                             vt_slot.push_back(vslot);
                                         }
                                     }
                                     else if (vslot.id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
                                         auto it = std::next(vt_slot.begin(), 1);
                                         if (it != vt_slot.end()) {
+                                            is_ams_need_update |= vt_slot[1] != vslot;
                                             vt_slot[1] = vslot;
                                         }
                                         else {
+                                            is_ams_need_update = true;
                                             vt_slot.push_back(vslot);
                                         }
                                     }
@@ -4314,9 +4318,11 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
 
                                 auto it = std::next(vt_slot.begin(), 0);
                                 if (it != vt_slot.end()) {
+                                    is_ams_need_update |= vt_slot[0] != main_slot;
                                     vt_slot[0] = main_slot;
                                 }
                                 else {
+                                    is_ams_need_update = true;
                                     vt_slot.push_back(main_slot);
                                 }
                             }
