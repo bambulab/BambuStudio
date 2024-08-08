@@ -153,7 +153,7 @@ enum FilamentStepType {
 //#define AMS_CANS_SIZE wxSize(FromDIP(284), FromDIP(184))
 //#define AMS_CANS_WINDOW_SIZE wxSize(FromDIP(264), FromDIP(196))
 #define AMS_STEP_SIZE wxSize(FromDIP(172), FromDIP(196))
-#define AMS_REFRESH_SIZE wxSize(FromDIP(25), FromDIP(25))
+#define AMS_REFRESH_SIZE wxSize(FromDIP(28), FromDIP(28))
 #define AMS_EXTRUDER_SIZE wxSize(FromDIP(29), FromDIP(37))
 #define AMS_EXTRUDER_DOUBLE_NOZZLE_BITMAP_SIZE wxSize(FromDIP(13), FromDIP(36))
 #define AMS_EXTRUDER_SINGLE_NOZZLE_BITMAP_SIZE wxSize(FromDIP(18), FromDIP(36))

@@ -242,17 +242,17 @@ void AMSrefresh::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, con
     Bind(wxEVT_LEAVE_WINDOW, &AMSrefresh::OnLeaveWindow, this);
     Bind(wxEVT_LEFT_DOWN, &AMSrefresh::OnClick, this);
 
-    m_bitmap_normal   = ScalableBitmap(this, "ams_refresh_normal", 28);
-    m_bitmap_selected = ScalableBitmap(this, "ams_refresh_selected", 28);
+    m_bitmap_normal   = ScalableBitmap(this, "ams_refresh_normal", 32);
+    m_bitmap_selected = ScalableBitmap(this, "ams_refresh_selected", 32);
 
-    m_bitmap_ams_rfid_0 = ScalableBitmap(this, "ams_rfid_0", 28);
-    m_bitmap_ams_rfid_1 = ScalableBitmap(this, "ams_rfid_1", 28);
-    m_bitmap_ams_rfid_2 = ScalableBitmap(this, "ams_rfid_2", 28);
-    m_bitmap_ams_rfid_3 = ScalableBitmap(this, "ams_rfid_3", 28);
-    m_bitmap_ams_rfid_4 = ScalableBitmap(this, "ams_rfid_4", 28);
-    m_bitmap_ams_rfid_5 = ScalableBitmap(this, "ams_rfid_5", 28);
-    m_bitmap_ams_rfid_6 = ScalableBitmap(this, "ams_rfid_6", 28);
-    m_bitmap_ams_rfid_7 = ScalableBitmap(this, "ams_rfid_7", 28);
+    m_bitmap_ams_rfid_0 = ScalableBitmap(this, "ams_rfid_0", 32);
+    m_bitmap_ams_rfid_1 = ScalableBitmap(this, "ams_rfid_1", 32);
+    m_bitmap_ams_rfid_2 = ScalableBitmap(this, "ams_rfid_2", 32);
+    m_bitmap_ams_rfid_3 = ScalableBitmap(this, "ams_rfid_3", 32);
+    m_bitmap_ams_rfid_4 = ScalableBitmap(this, "ams_rfid_4", 32);
+    m_bitmap_ams_rfid_5 = ScalableBitmap(this, "ams_rfid_5", 32);
+    m_bitmap_ams_rfid_6 = ScalableBitmap(this, "ams_rfid_6", 32);
+    m_bitmap_ams_rfid_7 = ScalableBitmap(this, "ams_rfid_7", 32);
 
     m_rfid_bitmap_list.push_back(m_bitmap_ams_rfid_0);
     m_rfid_bitmap_list.push_back(m_bitmap_ams_rfid_1);
@@ -380,16 +380,16 @@ void AMSrefresh::Update(std::string ams_id, Caninfo info)
 }
 
 void AMSrefresh::msw_rescale() {
-    m_bitmap_normal     = ScalableBitmap(this, "ams_refresh_normal", 28);
-    m_bitmap_selected   = ScalableBitmap(this, "ams_refresh_selected", 28);
-    m_bitmap_ams_rfid_0 = ScalableBitmap(this, "ams_rfid_0", 28);
-    m_bitmap_ams_rfid_1 = ScalableBitmap(this, "ams_rfid_1", 28);
-    m_bitmap_ams_rfid_2 = ScalableBitmap(this, "ams_rfid_2", 28);
-    m_bitmap_ams_rfid_3 = ScalableBitmap(this, "ams_rfid_3", 28);
-    m_bitmap_ams_rfid_4 = ScalableBitmap(this, "ams_rfid_4", 28);
-    m_bitmap_ams_rfid_5 = ScalableBitmap(this, "ams_rfid_5", 28);
-    m_bitmap_ams_rfid_6 = ScalableBitmap(this, "ams_rfid_6", 28);
-    m_bitmap_ams_rfid_7 = ScalableBitmap(this, "ams_rfid_7", 28);
+    m_bitmap_normal     = ScalableBitmap(this, "ams_refresh_normal", 32);
+    m_bitmap_selected   = ScalableBitmap(this, "ams_refresh_selected", 32);
+    m_bitmap_ams_rfid_0 = ScalableBitmap(this, "ams_rfid_0", 32);
+    m_bitmap_ams_rfid_1 = ScalableBitmap(this, "ams_rfid_1", 32);
+    m_bitmap_ams_rfid_2 = ScalableBitmap(this, "ams_rfid_2", 32);
+    m_bitmap_ams_rfid_3 = ScalableBitmap(this, "ams_rfid_3", 32);
+    m_bitmap_ams_rfid_4 = ScalableBitmap(this, "ams_rfid_4", 32);
+    m_bitmap_ams_rfid_5 = ScalableBitmap(this, "ams_rfid_5", 32);
+    m_bitmap_ams_rfid_6 = ScalableBitmap(this, "ams_rfid_6", 32);
+    m_bitmap_ams_rfid_7 = ScalableBitmap(this, "ams_rfid_7", 32);
 
     m_rfid_bitmap_list.clear();
     m_rfid_bitmap_list.push_back(m_bitmap_ams_rfid_0);
@@ -1294,14 +1294,20 @@ void AMSLib::render_lite_lib(wxDC& dc)
             for (int i = 0; i < cols_size; i++) {
                 dc.SetBrush(wxBrush(m_info.material_cols[i]));
                 float x = FromDIP(10) + ((float)libsize.x - FromDIP(18)) * i / cols_size;
-                dc.DrawRoundedRectangle(x, FromDIP(10), ((float)libsize.x - FromDIP(18)) / cols_size, libsize.y - FromDIP(18), 0);
+                dc.DrawRoundedRectangle(x, FromDIP(10), ((float)libsize.x - FromDIP(17)) / cols_size, libsize.y - FromDIP(18), 0);
             }
             dc.SetBrush(wxBrush(tmp_lib_colour));
         }
     }
     else  {
         dc.SetBrush(wxBrush(tmp_lib_colour));
-        dc.DrawRoundedRectangle(FromDIP(10), (size.y - libsize.y) / 2 + FromDIP(10), libsize.x - FromDIP(18), libsize.y - FromDIP(18), 0);
+        if (m_ams_model == AMSModel::EXT_AMS) {
+            dc.DrawRoundedRectangle(FromDIP(10), (size.y - libsize.y) / 2 + FromDIP(8), libsize.x - FromDIP(17), libsize.y - FromDIP(16), 0);
+        }
+        else{
+            dc.DrawRoundedRectangle(FromDIP(10), (size.y - libsize.y) / 2 + FromDIP(10), libsize.x - FromDIP(17), libsize.y - FromDIP(18), 0);
+        }
+        
     }
     dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
     dc.SetBrush(wxBrush(tmp_lib_colour));
@@ -2956,7 +2962,8 @@ void AmsItem::create(wxWindow *parent)
         SetSizer(sizer_item);
     }
     else{
-        sizer_can_extra = new wxGridSizer(2, 2, FromDIP(20), FromDIP(20));
+        sizer_can_extra = new wxGridSizer(2, 2, FromDIP(18), FromDIP(20));
+        //sizer_can_extra = new wxGridSizer(2, 2, 20, 20);
         sizer_item = new wxBoxSizer(wxVERTICAL);
         if (m_info.cans.size() == GENERIC_AMS_SLOT_NUM){
             AddLiteCan(m_info.cans[0], 0, sizer_can_extra);
@@ -3071,13 +3078,16 @@ void AmsItem::AddCan(Caninfo caninfo, int canindex, int maxcan, wxBoxSizer* size
 void AmsItem::AddLiteCan(Caninfo caninfo, int canindex, wxGridSizer* sizer)
 {
     auto        amscan = new wxWindow(this, wxID_ANY);
-    amscan->SetSize(wxSize(FromDIP(49), FromDIP(72)));
+    /*amscan->SetSize(wxSize(FromDIP(49), FromDIP(72)));
     amscan->SetMinSize(wxSize(FromDIP(49), FromDIP(72)));
-    amscan->SetMaxSize(wxSize(FromDIP(49), FromDIP(72)));
+    amscan->SetMaxSize(wxSize(FromDIP(49), FromDIP(72)));*/
+    amscan->SetSize(wxSize(FromDIP(80), FromDIP(72)));
+    amscan->SetMinSize(wxSize(FromDIP(80), FromDIP(72)));
+    amscan->SetMaxSize(wxSize(FromDIP(80), FromDIP(72)));
 
     amscan->SetBackgroundColour(StateColor::darkModeColorFor(AMS_CONTROL_DEF_LIB_BK_COLOUR));
 
-    wxBoxSizer* m_sizer_ams = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* m_sizer_ams = new wxBoxSizer(wxHORIZONTAL);
 
     auto m_panel_lib = new AMSLib(amscan, m_info.ams_id, caninfo);
 
@@ -3100,6 +3110,8 @@ void AmsItem::AddLiteCan(Caninfo caninfo, int canindex, wxGridSizer* sizer)
         ev.Skip();
         });
 
+    auto ams_refresh = new AMSrefresh(amscan, canindex, caninfo);
+    m_can_refresh_list[caninfo.can_id] = ams_refresh;
     m_panel_lib->m_ams_model = m_ams_model;
     m_panel_lib->m_ams_id = m_info.ams_id;
     m_panel_lib->m_slot_id = caninfo.can_id;
@@ -3107,6 +3119,9 @@ void AmsItem::AddLiteCan(Caninfo caninfo, int canindex, wxGridSizer* sizer)
     m_panel_lib->m_can_index = canindex;
 
     //auto m_panel_road = new AMSRoad(amscan, wxID_ANY, caninfo, canindex, maxcan, wxDefaultPosition, AMS_CAN_ROAD_SIZE);
+    if (caninfo.can_id == "0" || caninfo.can_id == "1") {
+        m_sizer_ams->Add(ams_refresh, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 0);
+    }
     switch (canindex){
     case 0:
         m_sizer_ams->Add(m_panel_lib, 0, wxALIGN_RIGHT | wxALIGN_BOTTOM, 0);
@@ -3123,7 +3138,9 @@ void AmsItem::AddLiteCan(Caninfo caninfo, int canindex, wxGridSizer* sizer)
     default:
         break;
     }
-
+    if (caninfo.can_id == "2" || caninfo.can_id == "3") {
+        m_sizer_ams->Add(ams_refresh, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL, 0);
+    }
     amscan->SetSizer(m_sizer_ams);
     amscan->Layout();
     amscan->Fit();
@@ -3406,7 +3423,7 @@ void AmsItem::doRender(wxDC& dc)
 
     //road for extra
     if (m_ams_model == AMSModel::AMS_LITE) {
-        dc.DrawBitmap(m_bitmap_extra_framework.bmp(), (size.x - m_bitmap_extra_framework.GetBmpSize().x) / 2, (size.y - m_bitmap_extra_framework.GetBmpSize().y) / 2 - FromDIP(3));
+        dc.DrawBitmap(m_bitmap_extra_framework.bmp(), (size.x - m_bitmap_extra_framework.GetBmpSize().x) / 2, (size.y - m_bitmap_extra_framework.GetBmpSize().y) / 2 - FromDIP(4));
 
         // A1
         dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxSOLID));
