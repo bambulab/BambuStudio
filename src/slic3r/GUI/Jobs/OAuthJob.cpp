@@ -3,8 +3,11 @@
 #include "Http.hpp"
 #include "ThreadSafeQueue.hpp"
 #include "slic3r/GUI/I18N.hpp"
-#include "nlohmann/json.hpp"
 
+#include <boost/property_tree/ptree.hpp>
+
+namespace pt = boost::property_tree;
+namespace jp = boost::property_tree::json_parser;
 
 namespace Slic3r {
 namespace GUI {
@@ -15,19 +18,21 @@ OAuthJob::OAuthJob(const OAuthData& input) : local_authorization_server(input.pa
 
 void OAuthJob::parse_token_response(const std::string& body, bool error, OAuthResult& result)
 {
-    const auto j = nlohmann::json::parse(body, nullptr, false, true);
-    if (j.is_discarded()) {
-        BOOST_LOG_TRIVIAL(warning) << "Invalid or no JSON data on token response: " << body;
-        result.error_message = _u8L("Unknown error");
-    } else if (error) {
-        if (j.contains("error_description")) {
-            j.at("error_description").get_to(result.error_message);
-        } else {
-            result.error_message = _u8L("Unknown error");
-        }
+    pt::ptree j;
+    std::stringstream ss(body);
+    try {
+        jp::read_json(ss, j);
+    } catch (pt::json_parser_error& err) {
+        BOOST_LOG_TRIVIAL(warning) << "Invalid or no JSON data on token response: JSON Body = " << body
+                                   << ", Reason = " << err.what();
+        error = true;
+    }
+
+    if (error) {
+        result.error_message = j.get<std::string>("error_description", _u8L("Unknown error"));
     } else {
-        j.at("access_token").get_to(result.access_token);
-        j.at("refresh_token").get_to(result.refresh_token);
+        result.access_token = j.get<std::string>("access_token");
+        result.refresh_token = j.get<std::string>("refresh_token");
         result.success = true;
     }
 }

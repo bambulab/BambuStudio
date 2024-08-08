@@ -2,14 +2,16 @@
 
 #include <openssl/sha.h>
 #include <boost/beast/core/detail/base64.hpp>
+#include <boost/property_tree/ptree.hpp>
 
-#include "nlohmann/json.hpp"
 #include "libslic3r/Utils.hpp"
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/format.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
 
+namespace pt = boost::property_tree;
+namespace jp = boost::property_tree::json_parser;
 
 namespace Slic3r {
 
@@ -141,16 +143,19 @@ void SimplyPrint::load_oauth_credential()
 {
     cred.clear();
     if (boost::filesystem::exists(cred_file)) {
-        nlohmann::json j;
+        pt::ptree j;
         try {
-            boost::nowide::ifstream ifs(cred_file);
-            ifs >> j;
-            ifs.close();
+            jp::read_json(cred_file, j);
 
-            cred["access_token"] = j["access_token"];
-            cred["refresh_token"] = j["refresh_token"];
-        } catch (std::exception& err) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": parse " << cred_file << " failed, reason = " << err.what();
+            cred["access_token"] = j.get<std::string>("access_token");
+            cred["refresh_token"] = j.get<std::string>("refresh_token");
+        } catch (jp::json_parser_error& err) { // handle errors during parsing json to ptree
+            BOOST_LOG_TRIVIAL(error)
+                << __FUNCTION__ << ": parse " << cred_file << " failed, reason = " << err.what();
+            cred.clear();
+        } catch (pt::ptree_error& err) { // handle errors during retrieving data from ptree
+            BOOST_LOG_TRIVIAL(error)
+                << __FUNCTION__ << ": failed to get expected json data, reason = " << err.what();
             cred.clear();
         }
     }
@@ -158,14 +163,17 @@ void SimplyPrint::load_oauth_credential()
 
 void SimplyPrint::save_oauth_credential(const GUI::OAuthResult& cred) const
 {
-    nlohmann::json j;
-    j["access_token"]  = cred.access_token;
-    j["refresh_token"] = cred.refresh_token;
+    pt::ptree j;
+    j.put("access_token", cred.access_token);
+    j.put("refresh_token", cred.refresh_token);
     
-    boost::nowide::ofstream c;
-    c.open(cred_file, std::ios::out | std::ios::trunc);
-    c << std::setw(4) << j << std::endl;
-    c.close();
+    try {
+        jp::write_json(cred_file, j);
+    } catch (jp::json_parser_error& err) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__
+                                 << ": failed to write json to file. Path = " << cred_file
+                                 << " Reason = " << err.what();
+    }
 }
 
 wxString SimplyPrint::get_test_ok_msg() const { return _(L("Connected to SimplyPrint successfully!")); }
@@ -302,19 +310,25 @@ bool SimplyPrint::do_temp_upload(const boost::filesystem::path& file_path,
             BOOST_LOG_TRIVIAL(info) << boost::format("SimplyPrint: File uploaded: HTTP %1%: %2%") % status % body;
 
             // Get file UUID
-            const auto j = nlohmann::json::parse(body, nullptr, false, true);
-            if (j.is_discarded()) {
-                BOOST_LOG_TRIVIAL(error) << "SimplyPrint: Invalid or no JSON data on token response: " << body;
+            pt::ptree j;
+            std::stringstream ss(body);
+            try {
+                jp::read_json(ss, j);
+            } catch (jp::json_parser_error& err) {
+                BOOST_LOG_TRIVIAL(error)
+                    << "SimplyPrint: Invalid JSON data on token response: Body = " << body
+                    << " Reason = " << err.what();
                 error_fn(_L("Unknown error"));
                 return false;
             }
 
-            if (j.find("uuid") == j.end()) {
+            auto opt = j.get_optional<std::string>("uuid");
+            if (!opt) {
                 BOOST_LOG_TRIVIAL(error) << "SimplyPrint: Invalid or no JSON data on token response: " << body;
                 error_fn(_L("Unknown error"));
                 return false;
             }
-            const std::string uuid = j["uuid"];
+            const std::string& uuid = opt.get();
 
             // Launch external browser for file importing after uploading
             const auto url = URL_BASE_HOME"/panel?" + url_encode({{"import", "tmp:" + uuid}, {"filename", filename}});
@@ -425,23 +439,28 @@ bool SimplyPrint::do_chunk_upload(const boost::filesystem::path& file_path, cons
                 BOOST_LOG_TRIVIAL(info) << boost::format("SimplyPrint: File chunk [%1%/%2%] uploaded: HTTP %3%: %4%") % (i + 1) % chunk_amount % status % body;
                 if (i == 0) {
                     // First chunk, parse chunk id
-                    const auto j = nlohmann::json::parse(body, nullptr, false, true);
-                    if (j.is_discarded()) {
-                        BOOST_LOG_TRIVIAL(error) << "SimplyPrint: Invalid or no JSON data on ChunkReceive: " << body;
+                    pt::ptree j;
+                    std::stringstream ss(body);
+                    try {
+                        jp::read_json(ss, j);
+                    } catch (jp::json_parser_error& err) {
+                        BOOST_LOG_TRIVIAL(error)
+                            << "SimplyPrint: Invalid data on ChunkReceive: Body = " << body
+                            << " Reason = " << err.what();
                         error_fn(_L("Unknown error"));
                         return false;
                     }
 
-                    if (j.find("id") == j.end() || j.find("delete_token") == j.end()) {
-                        BOOST_LOG_TRIVIAL(error) << "SimplyPrint: Invalid or no JSON data on ChunkReceive: " << body;
+                    auto opt_id = j.get_optional<std::string>("id");
+                    auto opt_del_token = j.get_optional<std::string>("delete_token");
+                    if (!opt_id || !opt_del_token) {
+                        BOOST_LOG_TRIVIAL(error) << "SimplyPrint: Invalid or no JSON data on ChunkReceive: Body = " << body;
                         error_fn(_L("Unknown error"));
                         return false;
                     }
 
-                    const unsigned long id = j["id"];
-
-                    chunk_id = std::to_string(id);
-                    delete_token = j["delete_token"];
+                    chunk_id = opt_id.get();
+                    delete_token = opt_del_token.get();
                 }
                 return true;
             },
