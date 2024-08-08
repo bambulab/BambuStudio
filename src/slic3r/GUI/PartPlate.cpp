@@ -4707,7 +4707,6 @@ void PartPlateList::render_instance(bool bottom, bool only_current, bool only_bo
             shader->set_uniform("view_model_matrix", view_mat * m_plate_trans[m_current_plate].get_matrix());
             shader->set_uniform("projection_matrix", proj_mat);
             if (!bottom) { // draw background
-                render_background(force_background_color);   // for selected_plate
                 render_exclude_area(force_background_color); // for selected_plate
             }
             render_grid(bottom); // for selected_plate
@@ -4781,17 +4780,6 @@ void PartPlateList::render_instance_background(bool force_default_color)
     }
     m_triangles.set_color(color);
     m_triangles.render_geometry_instance(m_unselected_plate_mats_vbo, m_unselected_plate_trans.size());
-}
-
-void PartPlateList::render_background(bool force_default_color) {
-    ColorRGBA color;
-    if (!force_default_color) {
-        color = PartPlate::SELECT_COLOR;
-    } else {
-        color = PartPlate::DEFAULT_COLOR;
-    }
-    m_triangles.set_color(color);
-    m_triangles.render_geometry();
 }
 
 void PartPlateList::render_exclude_area(bool force_default_color)
