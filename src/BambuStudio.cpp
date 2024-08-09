@@ -779,7 +779,7 @@ void merge_or_add_object(assemble_plate_info_t& assemble_plate_info, Model &mode
     }
 }
 
-bool convert_obj_cluster_colors(std::vector<Slic3r::RGBA>& input_colors, std::vector<RGBA>& all_colours, int max_filament_count, std::vector<unsigned char>& output_filament_ids, unsigned char & first_filament_id)
+bool convert_obj_cluster_colors(std::vector<Slic3r::RGBA>& input_colors, std::vector<RGBA>& all_colours, int max_filament_count, std::vector<unsigned char>& output_filament_ids, int& first_filament_id)
 {
     using namespace Slic3r::GUI;
 
@@ -798,25 +798,37 @@ bool convert_obj_cluster_colors(std::vector<Slic3r::RGBA>& input_colors, std::ve
 
         int init_size = all_colours.size();
 
+        first_filament_id = max_filament_count;
         for (size_t i = 0; i < cluster_colors.size(); i++) {
-            if ((init_size + i + 1) <= max_filament_count) {
-                all_colours.push_back(cluster_colors[i]);
-                cluster_color_maps[i] = all_colours.size();
-                BOOST_LOG_TRIVIAL(info) << boost::format("%1%:%2%, cluster color index %3% RGBA {%4%,%5%,%6%,%7%} directly inserted, id %8%")
-                    %__FUNCTION__ %__LINE__%(i+1) %cluster_colors[i][0] %cluster_colors[i][1] %cluster_colors[i][2] %cluster_colors[i][3] %cluster_color_maps[i] ;
+            auto previous_color = std::find(all_colours.begin(), all_colours.end(), cluster_colors[i]);
+
+            if (previous_color != all_colours.end()) {
+                cluster_color_maps[i] = previous_color - all_colours.begin() + 1;
+                BOOST_LOG_TRIVIAL(info) << boost::format("%1%:%2%, cluster color index %3% RGBA {%4%,%5%,%6%,%7%} found same color before, id %8%")
+                        %__FUNCTION__ %__LINE__%(i+1) %cluster_colors[i][0] %cluster_colors[i][1] %cluster_colors[i][2] %cluster_colors[i][3] %cluster_color_maps[i] ;
             }
             else {
-                std::vector<ColorDistValue> color_dists;
-                color_dists.resize(max_filament_count);
-                for (size_t j = 0; j < max_filament_count; j++) {
-                    color_dists[j].distance = calc_color_distance(cluster_colors[i], all_colours[j]);
-                    color_dists[j].id       = j + 1;
+                if ((init_size + i + 1) <= max_filament_count) {
+                    all_colours.push_back(cluster_colors[i]);
+                    cluster_color_maps[i] = all_colours.size();
+                    BOOST_LOG_TRIVIAL(info) << boost::format("%1%:%2%, cluster color index %3% RGBA {%4%,%5%,%6%,%7%} directly inserted, id %8%")
+                        %__FUNCTION__ %__LINE__%(i+1) %cluster_colors[i][0] %cluster_colors[i][1] %cluster_colors[i][2] %cluster_colors[i][3] %cluster_color_maps[i] ;
                 }
-                std::sort(color_dists.begin(), color_dists.end(), [](ColorDistValue &a, ColorDistValue &b) { return a.distance < b.distance; });
-                cluster_color_maps[i] = color_dists[0].id;
-                BOOST_LOG_TRIVIAL(info) << boost::format("%1%:%2%, cluster color index %3% RGBA {%4%,%5%,%6%,%7%} directly inserted, id %8%")
-                    %__FUNCTION__ %__LINE__%(i+1) %cluster_colors[i][0] %cluster_colors[i][1] %cluster_colors[i][2] %cluster_colors[i][3] %cluster_color_maps[i] ;
+                else {
+                    std::vector<ColorDistValue> color_dists;
+                    color_dists.resize(max_filament_count);
+                    for (size_t j = 0; j < max_filament_count; j++) {
+                        color_dists[j].distance = calc_color_distance(cluster_colors[i], all_colours[j]);
+                        color_dists[j].id       = j + 1;
+                    }
+                    std::sort(color_dists.begin(), color_dists.end(), [](ColorDistValue &a, ColorDistValue &b) { return a.distance < b.distance; });
+                    cluster_color_maps[i] = color_dists[0].id;
+                    BOOST_LOG_TRIVIAL(info) << boost::format("%1%:%2%, color size reaches to max, cluster color index %3% RGBA {%4%,%5%,%6%,%7%} mapped to id %8%")
+                        %__FUNCTION__ %__LINE__%(i+1) %cluster_colors[i][0] %cluster_colors[i][1] %cluster_colors[i][2] %cluster_colors[i][3] %cluster_color_maps[i] ;
+                }
             }
+            if (cluster_color_maps[i] < first_filament_id)
+                first_filament_id = cluster_color_maps[i];
         }
 
         //3.generate filament_ids
@@ -826,9 +838,8 @@ bool convert_obj_cluster_colors(std::vector<Slic3r::RGBA>& input_colors, std::ve
             int label = cluster_labels[i];
             output_filament_ids[i] = cluster_color_maps[label];
         }
-	first_filament_id = cluster_color_maps[0];
 
-        BOOST_LOG_TRIVIAL(info) << boost::format("%1%:%2%, all_colours size changes to %3%")%__FUNCTION__ %__LINE__%all_colours.size();
+        BOOST_LOG_TRIVIAL(info) << boost::format("%1%:%2%, all_colours size changes to %3%, first_filament_id = %4%")%__FUNCTION__ %__LINE__%all_colours.size() %first_filament_id;
 
         return true;
     }
@@ -934,17 +945,19 @@ static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_
                 }
 
                 std::vector<unsigned char> output_filament_ids;
-                unsigned char first_extruder_id;
+                int first_filament_id;
                 if (obj_info.vertex_colors.size() > 0) {
-                    convert_obj_cluster_colors(obj_info.vertex_colors, all_colours, max_filament_count, output_filament_ids, first_extruder_id);
+                    convert_obj_cluster_colors(obj_info.vertex_colors, all_colours, max_filament_count, output_filament_ids, first_filament_id);
                     if (output_filament_ids.size() > 0) {
-                        result = Model::obj_import_vertex_color_deal(output_filament_ids, first_extruder_id, & obj_temp_model);
+                        unsigned char first_eid = (unsigned char)first_filament_id;
+                        result = Model::obj_import_vertex_color_deal(output_filament_ids, first_eid, & obj_temp_model);
                     }
                     skip_filament = true;
                 } else if (obj_info.face_colors.size() > 0 && obj_info.has_uv_png == false) { // mtl file
-                    convert_obj_cluster_colors(obj_info.face_colors, all_colours, max_filament_count, output_filament_ids, first_extruder_id);
+                    convert_obj_cluster_colors(obj_info.face_colors, all_colours, max_filament_count, output_filament_ids, first_filament_id);
                     if (output_filament_ids.size() > 0) {
-                        result = Model::obj_import_face_color_deal(output_filament_ids, first_extruder_id, & obj_temp_model);
+                        unsigned char first_eid = (unsigned char)first_filament_id;
+                        result = Model::obj_import_face_color_deal(output_filament_ids, first_eid, & obj_temp_model);
                     }
                     skip_filament = true;
                 }
