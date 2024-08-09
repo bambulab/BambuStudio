@@ -779,7 +779,7 @@ void merge_or_add_object(assemble_plate_info_t& assemble_plate_info, Model &mode
     }
 }
 
-bool convert_obj_cluster_colors(std::vector<Slic3r::RGBA>& input_colors, std::vector<RGBA>& all_colours, int max_filament_count, std::vector<unsigned char>& output_filament_ids)
+bool convert_obj_cluster_colors(std::vector<Slic3r::RGBA>& input_colors, std::vector<RGBA>& all_colours, int max_filament_count, std::vector<unsigned char>& output_filament_ids, unsigned char & first_filament_id)
 {
     using namespace Slic3r::GUI;
 
@@ -826,6 +826,7 @@ bool convert_obj_cluster_colors(std::vector<Slic3r::RGBA>& input_colors, std::ve
             int label = cluster_labels[i];
             output_filament_ids[i] = cluster_color_maps[label];
         }
+	first_filament_id = cluster_color_maps[0];
 
         BOOST_LOG_TRIVIAL(info) << boost::format("%1%:%2%, all_colours size changes to %3%")%__FUNCTION__ %__LINE__%all_colours.size();
 
@@ -933,17 +934,16 @@ static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_
                 }
 
                 std::vector<unsigned char> output_filament_ids;
+                unsigned char first_extruder_id;
                 if (obj_info.vertex_colors.size() > 0) {
-                    convert_obj_cluster_colors(obj_info.vertex_colors, all_colours, max_filament_count, output_filament_ids);
+                    convert_obj_cluster_colors(obj_info.vertex_colors, all_colours, max_filament_count, output_filament_ids, first_extruder_id);
                     if (output_filament_ids.size() > 0) {
-                        unsigned char first_extruder_id = output_filament_ids.front();
                         result = Model::obj_import_vertex_color_deal(output_filament_ids, first_extruder_id, & obj_temp_model);
                     }
                     skip_filament = true;
                 } else if (obj_info.face_colors.size() > 0 && obj_info.has_uv_png == false) { // mtl file
-                    convert_obj_cluster_colors(obj_info.face_colors, all_colours, max_filament_count, output_filament_ids);
+                    convert_obj_cluster_colors(obj_info.face_colors, all_colours, max_filament_count, output_filament_ids, first_extruder_id);
                     if (output_filament_ids.size() > 0) {
-                        unsigned char first_extruder_id = output_filament_ids.front();
                         result = Model::obj_import_face_color_deal(output_filament_ids, first_extruder_id, & obj_temp_model);
                     }
                     skip_filament = true;
