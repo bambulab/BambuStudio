@@ -632,10 +632,6 @@ bool GLVolume::simplify_mesh(const TriangleMesh &mesh, GLIndexedVertexArray &va,
 bool GLVolume::simplify_mesh(const indexed_triangle_set &_its, GLIndexedVertexArray &va, LOD_LEVEL lod) const
 {
     if (_its.indices.size() == 0 || _its.vertices.size() == 0) { return false; }
-    bool enable_lod = GUI::wxGetApp().app_config->get("enable_lod") == "true";
-    if (!enable_lod) {
-        return false;
-    }
     auto its = std::make_unique<indexed_triangle_set>(_its);
     auto m_state = std::make_unique<State>();
     if (lod == LOD_LEVEL::MIDDLE) {
@@ -1244,12 +1240,13 @@ std::vector<int> GLVolumeCollection::load_object(
     int                      obj_idx,
     const std::vector<int>  &instance_idxs,
     const std::string       &color_by,
-    bool 					 opengl_initialized)
+    bool 					 opengl_initialized,
+    bool                    lod_enabled)
 {
     std::vector<int> volumes_idx;
     for (int volume_idx = 0; volume_idx < int(model_object->volumes.size()); ++volume_idx)
         for (int instance_idx : instance_idxs)
-            volumes_idx.emplace_back(this->GLVolumeCollection::load_object_volume(model_object, obj_idx, volume_idx, instance_idx, color_by, opengl_initialized));
+            volumes_idx.emplace_back(this->GLVolumeCollection::load_object_volume(model_object, obj_idx, volume_idx, instance_idx, color_by, opengl_initialized, false, lod_enabled));
     return volumes_idx;
 }
 
@@ -1261,7 +1258,8 @@ int GLVolumeCollection::load_object_volume(
     const std::string   &color_by,
     bool 				 opengl_initialized,
     bool                 in_assemble_view,
-    bool                 use_loaded_id)
+    bool                 use_loaded_id,
+    bool                 lod_enabled)
 {
     const ModelVolume   *model_volume = model_object->volumes[volume_idx];
     const int            extruder_id  = model_volume->extruder_id();
@@ -1306,10 +1304,21 @@ int GLVolumeCollection::load_object_volume(
 #if ENABLE_SMOOTH_NORMALS
         v.indexed_vertex_array->load_mesh(mesh, true);
 #else
-        if (v.indexed_vertex_array_middle == nullptr) { v.indexed_vertex_array_middle = std::make_shared<GLIndexedVertexArray>(); }
-        v.simplify_mesh(mesh, *v.indexed_vertex_array_middle, LOD_LEVEL::MIDDLE); // include finalize_geometry
-        if (v.indexed_vertex_array_small == nullptr) { v.indexed_vertex_array_small = std::make_shared<GLIndexedVertexArray>(); }
-        v.simplify_mesh(mesh, *v.indexed_vertex_array_small, LOD_LEVEL::SMALL);
+        if (lod_enabled) {
+            if (v.indexed_vertex_array_middle == nullptr)
+            {
+                v.indexed_vertex_array_middle = std::make_shared<GLIndexedVertexArray>();
+            }
+
+            v.simplify_mesh(mesh, *v.indexed_vertex_array_middle, LOD_LEVEL::MIDDLE); // include finalize_geometry
+
+            if (v.indexed_vertex_array_small == nullptr)
+            {
+                v.indexed_vertex_array_small = std::make_shared<GLIndexedVertexArray>();
+            }
+            v.simplify_mesh(mesh, *v.indexed_vertex_array_small, LOD_LEVEL::SMALL);
+        }
+
         v.indexed_vertex_array->load_mesh(mesh);
 #endif // ENABLE_SMOOTH_NORMALS
         v.indexed_vertex_array->finalize_geometry(opengl_initialized);
