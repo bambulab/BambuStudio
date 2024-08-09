@@ -673,7 +673,8 @@ public:
         int                      obj_idx,
         const std::vector<int>	&instance_idxs,
         const std::string 		&color_by,
-        bool 					 opengl_initialized);
+        bool 					 opengl_initialized,
+        bool                    lod_enabled);
 
     int load_object_volume(
         const ModelObject *model_object,
@@ -683,7 +684,8 @@ public:
         const std::string &color_by,
         bool 			   opengl_initialized,
         bool               in_assemble_view = false,
-        bool               use_loaded_id = false);
+        bool               use_loaded_id = false,
+        bool               lod_enabled = true);
 
     // Load SLA auxiliary GLVolumes (for support trees or pad).
     void load_object_auxiliary(

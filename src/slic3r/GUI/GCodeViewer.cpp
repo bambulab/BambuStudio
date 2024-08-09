@@ -3167,6 +3167,7 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
     // BBS: fix the issue that object_idx is not assigned as index of Model.objects array
     int object_count = 0;
     const ModelObjectPtrs& model_objs = wxGetApp().model().objects;
+    bool enable_lod = GUI::wxGetApp().app_config->get("enable_lod") == "true";
     for (const PrintObject* obj : print.objects()) {
         const ModelObject* model_obj = obj->model_object();
 
@@ -3193,7 +3194,7 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
         instance_ids.resize(instance_index);
 
         size_t current_volumes_count = m_shells.volumes.volumes.size();
-        m_shells.volumes.load_object(model_obj, object_idx, instance_ids, "object", initialized);
+        m_shells.volumes.load_object(model_obj, object_idx, instance_ids, "object", initialized, enable_lod);
 
         // adjust shells' z if raft is present
         const SlicingParameters& slicing_parameters = obj->slicing_parameters();
