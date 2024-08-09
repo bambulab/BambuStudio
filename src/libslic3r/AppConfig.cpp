@@ -200,6 +200,11 @@ void AppConfig::set_defaults()
 //#endif
 #endif // _WIN32
 
+#ifdef __LINUX__
+    if (get("dark_color_mode").empty())
+        set("dark_color_mode", "0");
+#endif // __LINUX__ dark mode
+
     // BBS
     /*if (get("3mf_include_gcode").empty())
         set_bool("3mf_include_gcode", true);*/

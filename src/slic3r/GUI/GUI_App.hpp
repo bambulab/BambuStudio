@@ -360,6 +360,8 @@ public:
     void            update_publish_status();
     bool            has_model_mall();
     void            update_label_colours();
+    bool            is_similar(const wxColour& bg, const wxColour& fg);
+    const wxColour  invert_color(const wxColour& color);
     // update color mode for window
     void            UpdateDarkUI(wxWindow *window, bool highlited = false, bool just_font = false);
     void            UpdateDarkUIWin(wxWindow* win);

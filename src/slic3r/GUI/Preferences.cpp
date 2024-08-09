@@ -23,6 +23,10 @@
 #endif // _MSW_DARK_MODE
 #endif //__WINDOWS__
 
+#if defined(__WXGTK20__) || defined(__WXGTK3__)
+    #include <gtk/gtk.h>
+#endif
+
 namespace Slic3r { namespace GUI {
 
 WX_DEFINE_LIST(RadioSelectorList);
@@ -599,6 +603,12 @@ wxBoxSizer* PreferencesDialog::create_item_darkmode_checkbox(wxString title, wxW
         wxGetApp().update_ui_from_settings();
         set_dark_mode();
 #endif
+
+#if defined(__LINUX__) && (defined(__WXGTK20__) || defined(__WXGTK3__))
+        bool is_dark = (wxGetApp().app_config->get("dark_color_mode") == "1" ? true : false);
+        g_object_set (gtk_settings_get_default (), "gtk-theme-name", (is_dark) ? "" : " ", NULL);
+#endif // __LINUX__ dark mode
+
         SimpleEvent evt = SimpleEvent(EVT_GLCANVAS_COLOR_MODE_CHANGED);
         wxPostEvent(wxGetApp().plater(), evt);
         e.Skip();
@@ -1081,7 +1091,7 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_downloads = create_item_downloads(page,50,"download_path");
 
     //dark mode
-#ifdef _WIN32
+#if defined(_WIN32) || (defined(__LINUX__) && (defined(__WXGTK20__) || defined(__WXGTK3__)))
     auto title_darkmode = create_item_title(_L("Dark Mode"), page, _L("Dark Mode"));
     auto item_darkmode = create_item_darkmode_checkbox(_L("Enable dark mode"), page,_L("Enable dark mode"), 50, "dark_color_mode");
 #endif
@@ -1139,10 +1149,10 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(title_downloads, 0, wxTOP| wxEXPAND, FromDIP(20));
     sizer_page->Add(item_downloads, 0, wxEXPAND, FromDIP(3));
 
-#ifdef _WIN32
+#if defined(_WIN32) || (defined(__LINUX__) && (defined(__WXGTK20__) || defined(__WXGTK3__)))
     sizer_page->Add(title_darkmode, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_darkmode, 0, wxEXPAND, FromDIP(3));
-#endif
+#endif // _WIN32 && __LINUX__
 
     sizer_page->Add(title_user_experience, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_priv_policy, 0, wxTOP, FromDIP(3));
