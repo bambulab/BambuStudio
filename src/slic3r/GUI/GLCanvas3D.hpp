@@ -911,8 +911,8 @@ public:
     std::vector<CustomGCode::Item>& get_custom_gcode_per_print_z() { return m_gcode_viewer.get_custom_gcode_per_print_z(); }
     size_t get_gcode_extruders_count() { return m_gcode_viewer.get_extruders_count(); }
 
-    std::vector<int> load_object(const ModelObject& model_object, int obj_idx, std::vector<int> instance_idxs);
-    std::vector<int> load_object(const Model& model, int obj_idx);
+    std::vector<int> load_object(const ModelObject& model_object, int obj_idx, std::vector<int> instance_idxs, bool lod_enabled);
+    std::vector<int> load_object(const Model& model, int obj_idx, bool lod_enabled);
 
     void mirror_selection(Axis axis);
 
