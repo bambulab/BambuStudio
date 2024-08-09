@@ -1,0 +1,15 @@
+{
+    "type": "filament",
+    "filament_id": "GFG99",
+    "setting_id": "GFSG99_Qidi_02",
+    "name": "Generic PETG @Qidi Q1 Pro 0.2 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "Generic PETG @Qidi",
+    "filament_max_volumetric_speed": [
+        "1"
+    ],
+	"compatible_printers": [
+		"Qidi Q1 Pro 0.2 nozzle"
+	]
+}

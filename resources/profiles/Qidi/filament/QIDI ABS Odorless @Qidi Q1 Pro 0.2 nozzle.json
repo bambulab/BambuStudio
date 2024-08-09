@@ -1,0 +1,24 @@
+{
+    "type": "filament",
+    "filament_id": "GFB00",
+    "setting_id": "GFSB00_Qidi_10",
+    "name": "QIDI ABS Odorless @Qidi Q1 Pro 0.2 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "QIDI ABS Odorless @Qidi",
+    "filament_max_volumetric_speed": [
+        "2"
+    ],
+    "hot_plate_temp_initial_layer": [
+        "90"
+    ],
+    "nozzle_temperature": [
+        "260"
+    ],
+    "slow_down_min_speed": [
+        "20"
+    ],
+    "compatible_printers": [
+        "Qidi Q1 Pro 0.2 nozzle"
+	]
+}
