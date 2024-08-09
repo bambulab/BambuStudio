@@ -2646,7 +2646,7 @@ void StatusPanel::update_ams(MachineObject *obj)
         ext_info.push_back(info);
     }
     std::string dev_id = obj->dev_id;
-    int nozzle_num = obj->m_nozzle_data.total_nozzle_count;
+    NozzleData data = obj->m_nozzle_data;
     //if (obj->ams_exist_bits != last_ams_exist_bits || obj->tray_exist_bits != last_tray_exist_bits || obj->tray_is_bbl_bits != last_tray_is_bbl_bits ||
     //    obj->tray_read_done_bits != last_read_done_bits || obj->ams_version != last_ams_version) {
     //    m_ams_control->UpdateAms(ams_info, false);
@@ -2661,7 +2661,7 @@ void StatusPanel::update_ams(MachineObject *obj)
     //}
 
     // must select a current can
-    m_ams_control->UpdateAms(ams_info, ext_info, nozzle_num, dev_id, false);
+    m_ams_control->UpdateAms(ams_info, ext_info, data, dev_id, false);
 
     last_tray_exist_bits  = obj->tray_exist_bits;
     last_ams_exist_bits   = obj->ams_exist_bits;

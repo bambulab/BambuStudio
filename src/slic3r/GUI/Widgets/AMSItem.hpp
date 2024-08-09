@@ -143,8 +143,8 @@ enum FilamentStepType {
 #define AMS_ITEM_CUBE_SIZE wxSize(FromDIP(8), FromDIP(14))
 #define AMS_PREVIEW_SIZE wxSize(FromDIP(82), FromDIP(27))
 #define AMS_ITEM_SIZE wxSize(FromDIP(78), FromDIP(184))
-#define AMS_ITEM_FOUR_SIZE wxSize(FromDIP(52), FromDIP(32))
-#define AMS_ITEM_SINGLE_SIZE wxSize(FromDIP(28), FromDIP(32))
+#define AMS_PREV_FOUR_SIZE wxSize(FromDIP(52), FromDIP(32))
+#define AMS_PREV_SINGLE_SIZE wxSize(FromDIP(28), FromDIP(32))
 #define AMS_ITEM_HUMIDITY_SIZE wxSize(FromDIP(120), FromDIP(27))
 #define AMS_CAN_LIB_SIZE wxSize(FromDIP(52), FromDIP(80))
 #define AMS_LITE_CAN_LIB_SIZE wxSize(FromDIP(49), FromDIP(72))
@@ -167,6 +167,7 @@ enum FilamentStepType {
 #define MAIN_NOZZLE_ID 0
 #define DEPUTY_NOZZLE_ID 1
 #define GENERIC_AMS_SLOT_NUM 4
+#define MAX_AMS_NUM_IN_PANEL 2
 
 struct Caninfo
 {
@@ -298,7 +299,7 @@ class AMSExtImage : public wxWindow
 {
     private:
     bool m_ext_show = true;
-    bool m_single_flag = false;
+    NozzleData* m_nozzle_data = nullptr;
     AMSPanelPos m_ext_pos;
 public:
     void msw_rescale();
@@ -309,8 +310,10 @@ public:
     ScalableBitmap  m_ams_ext;
     ScalableBitmap  m_ams_ext_left;
     ScalableBitmap  m_ams_ext_right;
+    ScalableBitmap  m_ams_ext_single_nozzle;
     void            doRender(wxDC& dc);
-    AMSExtImage(wxWindow* parent, bool single_flag = false, AMSPanelPos ext_pos = AMSPanelPos::RIGHT_PANEL, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+    AMSExtImage(wxWindow* parent, AMSPanelPos ext_pos = AMSPanelPos::RIGHT_PANEL, NozzleData *data = nullptr,
+        wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition);
     ~AMSExtImage();
 };
 

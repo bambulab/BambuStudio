@@ -43,7 +43,7 @@ protected:
     //std::map<std::string, AmsItem*>  m_ams_extra_item_list;
     //std::map<std::string, Ams*>      m_ams_list;
 
-    int                              m_nozzle_num = 1;
+    NozzleData                       m_nozzle_data;
     std::string                      m_dev_id;
     std::vector<std::vector<std::string>> m_item_ids{ {}, {} };
     std::vector<std::pair<string, string>> pair_id;
@@ -164,7 +164,7 @@ public:
     void CreateAmsDoubleNozzle();
     void CreateAmsSingleNozzle();
     void ClearAms();
-    void UpdateAms(std::vector<AMSinfo> ams_info, std::vector<AMSinfo> ext_info, int nozzle_num, std::string dev_id, bool is_reset = true, bool test = false);
+    void UpdateAms(std::vector<AMSinfo> ams_info, std::vector<AMSinfo> ext_info, NozzleData data, std::string dev_id, bool is_reset = true, bool test = false);
     void ReadExtInfo(MachineObject* obj);
     std::vector<AMSinfo> GenerateSimulateData();
 
