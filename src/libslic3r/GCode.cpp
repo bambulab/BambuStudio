@@ -1914,10 +1914,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_placeholder_parser.set("total_toolchanges", std::max(0, print.wipe_tower_data().number_of_toolchanges)); // Check for negative toolchanges (single extruder mode) and set to 0 (no tool change).
     Vec2f plate_offset = m_writer.get_xy_offset();
     {
-        BoundingBoxf bbox(print.config().printable_area.values);
-        m_placeholder_parser.set("print_bed_min", new ConfigOptionFloats({ bbox.min.x() - plate_offset.x(), bbox.min.y() - plate_offset.y() }));
-        m_placeholder_parser.set("print_bed_max", new ConfigOptionFloats({ bbox.max.x() - plate_offset.x(), bbox.max.y() - plate_offset.y() }));
-        m_placeholder_parser.set("print_bed_size", new ConfigOptionFloats({ bbox.size().x(), bbox.size().y() }));
+        BoundingBoxf bbox_bed(print.config().printable_area.values);
+        m_placeholder_parser.set("print_bed_min", new ConfigOptionFloats({ bbox_bed.min.x(), bbox_bed.min.y() }));
+        m_placeholder_parser.set("print_bed_max", new ConfigOptionFloats({ bbox_bed.max.x(), bbox_bed.max.y() }));
+        m_placeholder_parser.set("print_bed_size", new ConfigOptionFloats({ bbox_bed.size().x(), bbox_bed.size().y() }));
     }
     {
         // Convex hull of the 1st layer extrusions, for bed leveling and placing the initial purge line.
@@ -1926,19 +1926,15 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         // therefore it does NOT encompass the initial purge line.
         // It does NOT encompass MMU/MMU2 starting (wipe) areas.
         auto pts = std::make_unique<ConfigOptionPoints>();
+        BoundingBoxf bbox;
         pts->values.reserve(print.first_layer_convex_hull().size());
-        for (const Point &pt : print.first_layer_convex_hull().points)
-            pts->values.emplace_back(unscale(pt));
-
-        BoundingBoxf bbox = first_layer_projection(print);
-        BoundingBoxf bbox_without_plate_offset{
-            {bbox.min.x() - plate_offset.x(),bbox.min.y() - plate_offset.y()},
-            {bbox.max.x() - plate_offset.x(),bbox.max.y() - plate_offset.y()}
-        };
+        for (const Point& pt : print.first_layer_convex_hull().points)
+            pts->values.emplace_back(print.translate_to_print_space(pt));
+        bbox = BoundingBoxf((pts->values));
 
         m_placeholder_parser.set("first_layer_print_convex_hull", pts.release());
-        m_placeholder_parser.set("first_layer_print_min", new ConfigOptionFloats({ bbox_without_plate_offset.min.x(),bbox_without_plate_offset.min.y() }));
-        m_placeholder_parser.set("first_layer_print_max", new ConfigOptionFloats({ bbox_without_plate_offset.max.x(),bbox_without_plate_offset.max.y() }));
+        m_placeholder_parser.set("first_layer_print_min", new ConfigOptionFloats({ bbox.min.x(), bbox.min.y() }));
+        m_placeholder_parser.set("first_layer_print_max", new ConfigOptionFloats({ bbox.max.x(), bbox.max.y() }));
         m_placeholder_parser.set("first_layer_print_size", new ConfigOptionFloats({ bbox.size().x(), bbox.size().y() }));
 
         {   // BBS:deal with head wrap detect
