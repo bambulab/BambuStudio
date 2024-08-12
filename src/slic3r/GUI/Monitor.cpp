@@ -288,8 +288,8 @@ void MonitorPanel::on_update_all(wxMouseEvent &event)
 {
     if (update_flag) {
         update_all();
-        Layout();
-        Refresh();
+        //Layout();
+        //Refresh();
     }
 }
 
@@ -297,8 +297,8 @@ void MonitorPanel::on_update_all(wxMouseEvent &event)
 {
      if (update_flag) {
          update_all();
-         Layout();
-         Refresh();
+         //Layout();
+         //Refresh();
      }
 }
 
@@ -371,6 +371,7 @@ void MonitorPanel::update_all()
         return;
     }
 
+
     //BBS check mqtt connections if user is login
     if (wxGetApp().is_user_login()) {
         dev->check_pushing();
@@ -419,7 +420,6 @@ void MonitorPanel::update_all()
     }
 
     show_status(MONITOR_NORMAL);
-
 
     if (m_status_info_panel->IsShown()) {
         m_status_info_panel->update(obj);
