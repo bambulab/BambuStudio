@@ -2405,27 +2405,34 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
 
     if (m_current_support_aux_fan != is_suppt_aux_fun) {
         if (is_suppt_aux_fun) {
-            m_switch_printing_fan->Show();
-            m_switch_nozzle_fan->SetMinSize(MISC_BUTTON_3FAN_SIZE);
-            m_switch_nozzle_fan->SetMaxSize(MISC_BUTTON_3FAN_SIZE);
-            m_switch_cham_fan->SetMinSize(MISC_BUTTON_3FAN_SIZE);
-            m_switch_cham_fan->SetMaxSize(MISC_BUTTON_3FAN_SIZE);
+            if (!m_switch_printing_fan->IsShown()) {
+                m_switch_printing_fan->Show();
+                m_switch_nozzle_fan->SetMinSize(MISC_BUTTON_3FAN_SIZE);
+                m_switch_nozzle_fan->SetMaxSize(MISC_BUTTON_3FAN_SIZE);
+                m_switch_cham_fan->SetMinSize(MISC_BUTTON_3FAN_SIZE);
+                m_switch_cham_fan->SetMaxSize(MISC_BUTTON_3FAN_SIZE);
+            }
         }
         else {
-            m_switch_printing_fan->Hide();
-            m_switch_nozzle_fan->SetMinSize(MISC_BUTTON_2FAN_SIZE);
-            m_switch_nozzle_fan->SetMaxSize(MISC_BUTTON_2FAN_SIZE);
-            m_switch_cham_fan->SetMinSize(MISC_BUTTON_2FAN_SIZE);
-            m_switch_cham_fan->SetMaxSize(MISC_BUTTON_2FAN_SIZE);
+            if (m_switch_printing_fan->IsShown()) {
+                m_switch_printing_fan->Hide();
+                m_switch_nozzle_fan->SetMinSize(MISC_BUTTON_2FAN_SIZE);
+                m_switch_nozzle_fan->SetMaxSize(MISC_BUTTON_2FAN_SIZE);
+                m_switch_cham_fan->SetMinSize(MISC_BUTTON_2FAN_SIZE);
+                m_switch_cham_fan->SetMaxSize(MISC_BUTTON_2FAN_SIZE);
+            }
         }
 
         m_misc_ctrl_sizer->Layout();
     }
 
     if (!is_suppt_aux_fun && !is_suppt_cham_fun) {
-        m_switch_nozzle_fan->SetMinSize(MISC_BUTTON_1FAN_SIZE);
-        m_switch_nozzle_fan->SetMaxSize(MISC_BUTTON_1FAN_SIZE);
-        m_misc_ctrl_sizer->Layout();
+        if (!m_switch_nozzle_fan->IsShown()) {
+            m_switch_nozzle_fan->Show();
+            m_switch_nozzle_fan->SetMinSize(MISC_BUTTON_1FAN_SIZE);
+            m_switch_nozzle_fan->SetMaxSize(MISC_BUTTON_1FAN_SIZE);
+            m_misc_ctrl_sizer->Layout();
+        }
     }
 
 
@@ -2491,21 +2498,27 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
 void StatusPanel::update_extruder_status(MachineObject* obj)
 {
     if (!obj) return;
-    if (obj->is_filament_at_extruder()) {
-        if (obj->extruder_axis_status == MachineObject::ExtruderAxisStatus::LOAD) {
-            m_bitmap_extruder_img->SetBitmap(m_bitmap_extruder_filled_load);
-        }
-        else {
-            m_bitmap_extruder_img->SetBitmap(m_bitmap_extruder_filled_unload);
-        }
-    }
-    else {
-        if (obj->extruder_axis_status == MachineObject::ExtruderAxisStatus::LOAD) {
-            m_bitmap_extruder_img->SetBitmap(m_bitmap_extruder_empty_load);
-        } else {
-            m_bitmap_extruder_img->SetBitmap(m_bitmap_extruder_empty_unload);
-        }
-    }
+     wxBitmap tmp;
+     if (obj->is_filament_at_extruder()) {
+         if (obj->extruder_axis_status == MachineObject::ExtruderAxisStatus::LOAD) {
+             tmp = m_bitmap_extruder_filled_load;
+         }
+         else {
+             tmp = m_bitmap_extruder_filled_unload;
+         }
+     }
+     else {
+         if (obj->extruder_axis_status == MachineObject::ExtruderAxisStatus::LOAD) {
+             tmp = m_bitmap_extruder_empty_load;
+         }
+         else {
+             tmp = m_bitmap_extruder_empty_unload;
+         }
+     }
+     if (tmp.GetBitmapData() != m_bitmap_extruder_now) {
+         m_bitmap_extruder_now = tmp.GetBitmapData();
+         m_bitmap_extruder_img->SetBitmap(tmp);
+     }
 }
 
 void StatusPanel::update_ams(MachineObject *obj)
@@ -3145,7 +3158,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
         reset_printing_values();
     }
 
-    this->Layout();
+    m_project_task_panel->Layout();
 }
 
 void StatusPanel::update_cloud_subtask(MachineObject *obj)
@@ -3231,7 +3244,6 @@ void StatusPanel::reset_printing_values()
     m_start_loading_thumbnail = false;
     m_load_sdcard_thumbnail   = false;
     skip_print_error = 0;
-    this->Layout();
 }
 
 void StatusPanel::on_axis_ctrl_xy(wxCommandEvent &event)
