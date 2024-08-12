@@ -51,10 +51,13 @@ Frustum::Plane::PlaneIntersects Frustum::Plane::intersects(const Vec3f &p0, cons
     return Plane::Intersects_Tangent;
 }
 
-bool Frustum::intersects(const BoundingBoxf3 &box) const {
-    for (auto &plane : planes) {
-        if (plane.intersects(box) == Plane::Intersects_Back) {
-            return false;
+bool Frustum::intersects(const BoundingBoxf3 &box, bool is_perspective) const
+{
+    if (is_perspective) {
+        for (auto &plane : planes) {
+            if (plane.intersects(box) == Plane::Intersects_Back) {
+                return false;
+            }
         }
     }
     // check box intersects

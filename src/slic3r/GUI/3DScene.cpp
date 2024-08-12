@@ -1555,7 +1555,7 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType       type,
     auto camera = GUI::wxGetApp().plater()->get_camera();
     for (GLVolumeWithIdAndZ& volume : to_render) {
         auto world_box = volume.first->transformed_bounding_box();
-        if (!camera.getFrustum().intersects(world_box)) {
+        if (!camera.getFrustum().intersects(world_box, camera.get_type_as_string() == "perspective")) {
             continue;
         }
 #if ENABLE_MODIFIERS_ALWAYS_TRANSPARENT
