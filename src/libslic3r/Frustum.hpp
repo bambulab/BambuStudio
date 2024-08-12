@@ -37,7 +37,7 @@ public:
         float d_ = 0;
     };
 
-    bool intersects(const BoundingBoxf3 &box) const;
+    bool intersects(const BoundingBoxf3 &box, bool is_perspective) const;
     // check intersect with point (world space)
     bool intersects(const Vec3f &p0) const;
     // check intersect with line segment (world space)

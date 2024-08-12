@@ -151,9 +151,9 @@ void Camera::update_frustum()
     float  aspect_   = m_viewport[2] /  (double)m_viewport[3];
     float  fov_      = (float) Geometry::deg2rad(get_fov());
     float  eps       = 0.01;
-    if (m_last_eye.isApprox(eye_) && m_last_center.isApprox(center_) && m_last_up.isApprox(up_) &&
-        abs(m_last_near - near_) > eps && abs(m_last_far - far_) > eps &&
-        abs(m_last_aspect - aspect_) > eps && abs(m_last_fov - fov_) > eps) {
+    if (m_last_eye.isApprox(eye_) && m_last_center.isApprox(center_) && m_last_up.isApprox(up_)
+        && abs(m_last_near - near_) < eps && abs(m_last_far - far_) < eps &&
+        abs(m_last_aspect - aspect_) < eps && abs(m_last_fov - fov_) < eps) {
         return;
     }
     m_last_eye = eye_;
@@ -181,7 +181,37 @@ void Camera::update_frustum()
     Vec3f farCenter = eye_ + forward * far_;
     Vec3f farNormal = -forward;
     m_frustum.planes[1].set(farNormal, farCenter);
+    if (m_type == EType::Ortho) {
+        double right       = 1.0 / m_projection_matrix.matrix()(0, 0) - 0.5 * m_projection_matrix.matrix()(0, 0) * m_projection_matrix.matrix()(0, 3);
+        double top         = 1.0 / m_projection_matrix.matrix()(1, 1) - 0.5 * m_projection_matrix.matrix()(1, 1) * m_projection_matrix.matrix()(1, 3);
+        auto   dz          = (far_ - near_) / 2.0;
+        Vec3f center    = eye_ + forward * (far_ + near_) /2.0f;
+        m_frustum.bbox.reset();
+        Vec3f corner   = farCenter + up * top + side * right;
+        m_frustum.bbox.merge(corner.cast<double>());
 
+        corner   = farCenter - up * top + side * right;
+        m_frustum.bbox.merge(corner.cast<double>());
+
+        corner = farCenter + up * top - side * right;
+        m_frustum.bbox.merge(corner.cast<double>());
+
+        corner = farCenter - up * top - side * right;
+        m_frustum.bbox.merge(corner.cast<double>());
+        //nearCenter
+        corner = nearCenter + up * top + side * right;
+        m_frustum.bbox.merge(corner.cast<double>());
+
+        corner = nearCenter - up * top + side * right;
+        m_frustum.bbox.merge(corner.cast<double>());
+
+        corner = nearCenter + up * top - side * right;
+        m_frustum.bbox.merge(corner.cast<double>());
+
+        corner = nearCenter - up * top - side * right;
+        m_frustum.bbox.merge(corner.cast<double>());
+        return;
+    }
     // top plane
     Vec3f topCenter = nearCenter + up * nearHeightHalf;
     Vec3f topNormal = (topCenter - eye_).normalized().cross(side);
