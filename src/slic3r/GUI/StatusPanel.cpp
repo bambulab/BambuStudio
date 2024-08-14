@@ -1907,6 +1907,15 @@ void StatusPanel::on_subtask_abort(wxCommandEvent &event)
         });
     }
     abort_dlg->update_text(_L("Are you sure you want to cancel this print?"));
+
+    abort_dlg->m_button_cancel->SetBackgroundColor(abort_dlg->btn_bg_green);
+    abort_dlg->m_button_cancel->SetBorderColor(*wxWHITE);
+    abort_dlg->m_button_cancel->SetTextColor(wxColor("#FFFFFE"));
+
+    abort_dlg->m_button_ok->SetBackgroundColor(abort_dlg->btn_bg_white);
+    abort_dlg->m_button_ok->SetBorderColor(wxColor(38, 46, 48));
+    abort_dlg->m_button_ok->SetTextColor(*wxBLACK);
+
     abort_dlg->on_show();
 }
 
@@ -2515,8 +2524,8 @@ void StatusPanel::update_extruder_status(MachineObject* obj)
              tmp = m_bitmap_extruder_empty_unload;
          }
      }
-     if (tmp.GetBitmapData() != m_bitmap_extruder_now) {
-         m_bitmap_extruder_now = tmp.GetBitmapData();
+     if (!tmp.IsSameAs(m_bitmap_extruder_now)) {
+         m_bitmap_extruder_now = tmp;
          m_bitmap_extruder_img->SetBitmap(tmp);
      }
 }
