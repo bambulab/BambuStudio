@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-02 18:23+0800\n"
+"POT-Creation-Date: 2024-08-14 20:45+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -3724,6 +3724,9 @@ msgstr "Повідомити про проблему"
 msgid "Check for Update"
 msgstr "Перевірити оновлення"
 
+msgid "Check for Presets Update"
+msgstr ""
+
 msgid "Open Network Test"
 msgstr "Відкритий мережевий тест"
 
@@ -5597,6 +5600,15 @@ msgstr "Вибір регіону"
 msgid "Second"
 msgstr "Другий"
 
+msgid ""
+"Please note that the model show will undergo certain changes at small pixels "
+"case.\n"
+"Enabled LOD requires application restart."
+msgstr ""
+
+msgid "Enable LOD"
+msgstr ""
+
 msgid "Browse"
 msgstr "Огляд"
 
@@ -5704,6 +5716,14 @@ msgid ""
 "2D window center."
 msgstr ""
 "Наблизьтеся до положення покажчика миші у 3D-виді, а не до центру 2D вікна."
+
+msgid "Improve rendering performance by lod"
+msgstr ""
+
+msgid ""
+"Improved rendering performance under the scene of multiple plates and many "
+"models."
+msgstr ""
 
 msgid "Grabber scale"
 msgstr ""
@@ -13395,6 +13415,15 @@ msgstr ""
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як "
 "ABS, відповідне підвищення температури гарячого ліжка може зменшити "
 "ймовірність деформації."
+
+#~ msgid "China"
+#~ msgstr "Китай"
+
+#~ msgid "Tree support brim width"
+#~ msgstr "Підтримка дерева із заповненням"
+
+#~ msgid "The brim width around tree support. 0 means auto."
+#~ msgstr "The brim width around tree support. 0 means auto."
 
 #~ msgid "Show &Labels"
 #~ msgstr "Показати &Ярлики"

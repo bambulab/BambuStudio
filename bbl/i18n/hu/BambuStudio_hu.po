@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-02 18:23+0800\n"
+"POT-Creation-Date: 2024-08-14 20:45+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3733,6 +3733,9 @@ msgstr "Probléma bejelentése"
 msgid "Check for Update"
 msgstr "Frissítés keresése"
 
+msgid "Check for Presets Update"
+msgstr ""
+
 msgid "Open Network Test"
 msgstr "Hálózati teszt megnyitása"
 
@@ -5586,6 +5589,15 @@ msgstr "Régió kiválasztása"
 msgid "Second"
 msgstr "Másodperc"
 
+msgid ""
+"Please note that the model show will undergo certain changes at small pixels "
+"case.\n"
+"Enabled LOD requires application restart."
+msgstr ""
+
+msgid "Enable LOD"
+msgstr ""
+
 msgid "Browse"
 msgstr "Tallózás"
 
@@ -5690,6 +5702,14 @@ msgid ""
 "Zoom in towards the mouse pointer's position in the 3D view, rather than the "
 "2D window center."
 msgstr "Az egérmutatóra nagyít a 3D-nézetben, a 2D-ablak középpontja helyett."
+
+msgid "Improve rendering performance by lod"
+msgstr ""
+
+msgid ""
+"Improved rendering performance under the scene of multiple plates and many "
+"models."
+msgstr ""
 
 msgid "Grabber scale"
 msgstr ""
@@ -13359,6 +13379,16 @@ msgstr ""
 "Vetemedés elkerülése\n"
 "Tudtad, hogy a vetemedésre hajlamos anyagok (például ABS) nyomtatásakor a "
 "tárgyasztal hőmérsékletének növelése csökkentheti a vetemedés valószínűségét?"
+
+#~ msgid "China"
+#~ msgstr "Kína"
+
+#~ msgid "Tree support brim width"
+#~ msgstr "Fa támasz peremének szélessége"
+
+#~ msgid "The brim width around tree support. 0 means auto."
+#~ msgstr ""
+#~ "Perem szélessége a fa támaszok körül. A 0 az automatikus módot jelenti."
 
 #~ msgid "Show &Labels"
 #~ msgstr "Címkék megjelenítése"

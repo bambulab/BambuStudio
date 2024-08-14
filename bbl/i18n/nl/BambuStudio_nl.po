@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-02 18:23+0800\n"
+"POT-Creation-Date: 2024-08-14 20:45+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3759,6 +3759,9 @@ msgstr "Een probleem melden"
 msgid "Check for Update"
 msgstr "Zoeken naar updates"
 
+msgid "Check for Presets Update"
+msgstr ""
+
 msgid "Open Network Test"
 msgstr "Open Netwerk Test"
 
@@ -5638,6 +5641,15 @@ msgstr "Regio selectie"
 msgid "Second"
 msgstr "Seconde"
 
+msgid ""
+"Please note that the model show will undergo certain changes at small pixels "
+"case.\n"
+"Enabled LOD requires application restart."
+msgstr ""
+
+msgid "Enable LOD"
+msgstr ""
+
 msgid "Browse"
 msgstr "Browsen"
 
@@ -5744,6 +5756,14 @@ msgid ""
 msgstr ""
 "Zoom in op de positie van de muisaanwijzer in de 3D-weergave in plaats van "
 "in het midden van het 2D-venster."
+
+msgid "Improve rendering performance by lod"
+msgstr ""
+
+msgid ""
+"Improved rendering performance under the scene of multiple plates and many "
+"models."
+msgstr ""
 
 msgid "Grabber scale"
 msgstr ""
@@ -13453,6 +13473,15 @@ msgstr ""
 "Wist je dat bij het printen van materialen die gevoelig zijn voor "
 "kromtrekken, zoals ABS, een juiste verhoging van de temperatuur van het "
 "warmtebed de kans op kromtrekken kan verkleinen?"
+
+#~ msgid "China"
+#~ msgstr "China"
+
+#~ msgid "Tree support brim width"
+#~ msgstr "Boom support randbreedte"
+
+#~ msgid "The brim width around tree support. 0 means auto."
+#~ msgstr "De randbreedte rond de boom support. 0 betekent automatisch."
 
 #~ msgid "Show &Labels"
 #~ msgstr "Toon &Labels"
