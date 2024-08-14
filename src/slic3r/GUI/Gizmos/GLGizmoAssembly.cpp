@@ -44,6 +44,9 @@ std::string GLGizmoAssembly::on_get_name() const
 bool GLGizmoAssembly::on_is_activable() const
 {
     const Selection& selection = m_parent.get_selection();
+    if (selection.is_wipe_tower()) {
+        return false;
+    }
     const int    selection_volumes_count = 2;
     if (wxGetApp().plater()->canvas3D()->get_canvas_type() == GLCanvas3D::ECanvasType::CanvasAssembleView) {
         if (abs(m_parent.get_explosion_ratio() - 1.0f) < 1e-2 && selection.volumes_count() >= selection_volumes_count) {
