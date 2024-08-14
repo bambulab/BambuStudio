@@ -273,7 +273,7 @@ protected:
     wxBitmap m_bitmap_extruder_filled_load;
     wxBitmap m_bitmap_extruder_empty_unload;
     wxBitmap m_bitmap_extruder_filled_unload;
-    wxBitmapRefData* m_bitmap_extruder_now;
+    wxBitmap m_bitmap_extruder_now;
 
     CameraRecordingStatus m_state_recording{CameraRecordingStatus::RECORDING_NONE};
     CameraTimelapseStatus m_state_timelapse{CameraTimelapseStatus::TIMELAPSE_NONE};
