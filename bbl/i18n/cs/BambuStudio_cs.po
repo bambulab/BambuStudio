@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-02 18:23+0800\n"
+"POT-Creation-Date: 2024-08-14 20:45+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -3624,6 +3624,9 @@ msgstr "Nahlásit problém"
 msgid "Check for Update"
 msgstr "Zkontrolovat aktualizace"
 
+msgid "Check for Presets Update"
+msgstr ""
+
 msgid "Open Network Test"
 msgstr "Otevřít test sítě"
 
@@ -5427,6 +5430,15 @@ msgstr "Výběr regionu"
 msgid "Second"
 msgstr "Sekund"
 
+msgid ""
+"Please note that the model show will undergo certain changes at small pixels "
+"case.\n"
+"Enabled LOD requires application restart."
+msgstr ""
+
+msgid "Enable LOD"
+msgstr ""
+
 msgid "Browse"
 msgstr "Procházet"
 
@@ -5517,6 +5529,14 @@ msgid ""
 "Zoom in towards the mouse pointer's position in the 3D view, rather than the "
 "2D window center."
 msgstr "Přiblížit se ke kurzoru myši ve 3D zobrazení, na místo středu 2D okna."
+
+msgid "Improve rendering performance by lod"
+msgstr ""
+
+msgid ""
+"Improved rendering performance under the scene of multiple plates and many "
+"models."
+msgstr ""
 
 msgid "Grabber scale"
 msgstr ""
@@ -12663,6 +12683,16 @@ msgid ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
 msgstr ""
+
+#~ msgid "China"
+#~ msgstr "Čína"
+
+#~ msgid "Tree support brim width"
+#~ msgstr "Šířka Limce podpěr stromů"
+
+#~ msgid "The brim width around tree support. 0 means auto."
+#~ msgstr ""
+#~ "Šířka límce kolem stromové podpěry. 0 znamená automatické nastavení."
 
 #~ msgid "Show &Labels"
 #~ msgstr "Zobrazit &Popisky"

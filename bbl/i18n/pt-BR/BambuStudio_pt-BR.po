@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-02 18:23+0800\n"
+"POT-Creation-Date: 2024-08-14 20:45+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3733,6 +3733,9 @@ msgstr "Relatar problema"
 msgid "Check for Update"
 msgstr "Verificar atualizações"
 
+msgid "Check for Presets Update"
+msgstr ""
+
 msgid "Open Network Test"
 msgstr "Teste de rede aberta"
 
@@ -5587,6 +5590,15 @@ msgstr "Seleção regional"
 msgid "Second"
 msgstr "Segundo"
 
+msgid ""
+"Please note that the model show will undergo certain changes at small pixels "
+"case.\n"
+"Enabled LOD requires application restart."
+msgstr ""
+
+msgid "Enable LOD"
+msgstr ""
+
 msgid "Browse"
 msgstr "Navegar"
 
@@ -5691,6 +5703,14 @@ msgid ""
 msgstr ""
 "Amplie em direção à posição do ponteiro do mouse na visualização 3D, em vez "
 "do centro da janela 2D."
+
+msgid "Improve rendering performance by lod"
+msgstr ""
+
+msgid ""
+"Improved rendering performance under the scene of multiple plates and many "
+"models."
+msgstr ""
 
 msgid "Grabber scale"
 msgstr ""
@@ -13395,6 +13415,16 @@ msgstr ""
 "Você sabia que, ao imprimir materiais propensos a deformações, como o ABS, "
 "aumentar adequadamente a temperatura do leito térmico pode reduzir a "
 "probabilidade de deformação."
+
+#~ msgid "China"
+#~ msgstr "China"
+
+#~ msgid "Tree support brim width"
+#~ msgstr "Largura da aba do suporte da árvore"
+
+#~ msgid "The brim width around tree support. 0 means auto."
+#~ msgstr ""
+#~ "A largura da aba ao redor do suporte da árvore. 0 significa automático."
 
 #~ msgid "Show &Labels"
 #~ msgstr "Mostrar etiquetas"

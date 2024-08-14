@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-02 18:23+0800\n"
+"POT-Creation-Date: 2024-08-14 20:45+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3642,6 +3642,9 @@ msgstr "문제 보고"
 msgid "Check for Update"
 msgstr "업데이트 확인"
 
+msgid "Check for Presets Update"
+msgstr ""
+
 msgid "Open Network Test"
 msgstr "네트워크 테스트 열기"
 
@@ -5475,6 +5478,15 @@ msgstr "지역 선택"
 msgid "Second"
 msgstr "초"
 
+msgid ""
+"Please note that the model show will undergo certain changes at small pixels "
+"case.\n"
+"Enabled LOD requires application restart."
+msgstr ""
+
+msgid "Enable LOD"
+msgstr ""
+
 msgid "Browse"
 msgstr "브라우저"
 
@@ -5574,6 +5586,14 @@ msgid ""
 "Zoom in towards the mouse pointer's position in the 3D view, rather than the "
 "2D window center."
 msgstr "2D 창 중앙이 아닌 3D 보기에서 마우스 포인터의 위치를 향해 확대합니다."
+
+msgid "Improve rendering performance by lod"
+msgstr ""
+
+msgid ""
+"Improved rendering performance under the scene of multiple plates and many "
+"models."
+msgstr ""
 
 msgid "Grabber scale"
 msgstr ""
@@ -13014,6 +13034,15 @@ msgstr ""
 "뒤틀림 방지\n"
 "ABS 등 뒤틀림이 발생하기 쉬운 소재를 출력할 때, 히트베드 온도를 적절하게 높이"
 "면 뒤틀림 가능성을 줄일 수 있다는 사실을 알고 계셨나요?"
+
+#~ msgid "China"
+#~ msgstr "중국"
+
+#~ msgid "Tree support brim width"
+#~ msgstr "트리서포트 브림 폭"
+
+#~ msgid "The brim width around tree support. 0 means auto."
+#~ msgstr "트리서포트 주변의 브림 폭. 0은 자동생성을 의미함"
 
 #~ msgid "Show &Labels"
 #~ msgstr "라벨 표시"

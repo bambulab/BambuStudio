@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-02 18:23+0800\n"
+"POT-Creation-Date: 2024-08-14 20:45+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3757,6 +3757,9 @@ msgstr "Informar de un problema"
 msgid "Check for Update"
 msgstr "Comprobar Actualicaciones"
 
+msgid "Check for Presets Update"
+msgstr ""
+
 msgid "Open Network Test"
 msgstr "Abrir prueba de red"
 
@@ -5635,6 +5638,15 @@ msgstr "Selección de región"
 msgid "Second"
 msgstr "Segundo"
 
+msgid ""
+"Please note that the model show will undergo certain changes at small pixels "
+"case.\n"
+"Enabled LOD requires application restart."
+msgstr ""
+
+msgid "Enable LOD"
+msgstr ""
+
 msgid "Browse"
 msgstr "Navegar"
 
@@ -5740,6 +5752,14 @@ msgid ""
 msgstr ""
 "Amplíe el zoom hacia la posición del puntero del ratón en la vista 3D, en "
 "lugar del centro de la ventana 2D."
+
+msgid "Improve rendering performance by lod"
+msgstr ""
+
+msgid ""
+"Improved rendering performance under the scene of multiple plates and many "
+"models."
+msgstr ""
 
 msgid "Grabber scale"
 msgstr ""
@@ -13506,6 +13526,17 @@ msgstr ""
 "¿Sabías que al imprimir materiales propensos al alabeo, como el ABS, "
 "aumentar adecuadamente la temperatura del lecho térmico puede reducir la "
 "probabilidad de alabeo?"
+
+#~ msgid "China"
+#~ msgstr "China"
+
+#~ msgid "Tree support brim width"
+#~ msgstr "Ancho del borde del soporte del árbol"
+
+#~ msgid "The brim width around tree support. 0 means auto."
+#~ msgstr ""
+#~ "El ancho del borde alrededor del soporte del árbol. 0 significa "
+#~ "automático."
 
 #~ msgid "Show &Labels"
 #~ msgstr "Mostrar y etiquetar"

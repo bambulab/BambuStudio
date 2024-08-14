@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-02 18:23+0800\n"
+"POT-Creation-Date: 2024-08-14 20:45+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3687,6 +3687,9 @@ msgstr "Report issue"
 msgid "Check for Update"
 msgstr "Check for Updates"
 
+msgid "Check for Presets Update"
+msgstr ""
+
 msgid "Open Network Test"
 msgstr "Open Network Test"
 
@@ -5529,6 +5532,15 @@ msgstr "Region selection"
 msgid "Second"
 msgstr "Second"
 
+msgid ""
+"Please note that the model show will undergo certain changes at small pixels "
+"case.\n"
+"Enabled LOD requires application restart."
+msgstr ""
+
+msgid "Enable LOD"
+msgstr ""
+
 msgid "Browse"
 msgstr "Browse"
 
@@ -5631,6 +5643,14 @@ msgid ""
 msgstr ""
 "Zoom in towards the mouse pointer's position in the 3D view, rather than the "
 "2D window center."
+
+msgid "Improve rendering performance by lod"
+msgstr ""
+
+msgid ""
+"Improved rendering performance under the scene of multiple plates and many "
+"models."
+msgstr ""
 
 msgid "Grabber scale"
 msgstr ""
@@ -13164,6 +13184,15 @@ msgstr ""
 "Did you know that when printing materials that are prone to warping such as "
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping?"
+
+#~ msgid "China"
+#~ msgstr "China"
+
+#~ msgid "Tree support brim width"
+#~ msgstr "Tree support brim width"
+
+#~ msgid "The brim width around tree support. 0 means auto."
+#~ msgstr "The brim width around tree support. 0 means auto."
 
 #~ msgid "Show &Labels"
 #~ msgstr "Show &Labels"

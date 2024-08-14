@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-02 18:23+0800\n"
+"POT-Creation-Date: 2024-08-14 20:45+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3772,6 +3772,9 @@ msgstr "Problem melden"
 msgid "Check for Update"
 msgstr "Nach Updates suchen"
 
+msgid "Check for Presets Update"
+msgstr ""
+
 msgid "Open Network Test"
 msgstr "Netzwerktest öffnen"
 
@@ -5661,6 +5664,15 @@ msgstr "Auswahl der Region"
 msgid "Second"
 msgstr "Sekunde"
 
+msgid ""
+"Please note that the model show will undergo certain changes at small pixels "
+"case.\n"
+"Enabled LOD requires application restart."
+msgstr ""
+
+msgid "Enable LOD"
+msgstr ""
+
 msgid "Browse"
 msgstr "Suchen"
 
@@ -5766,6 +5778,14 @@ msgid ""
 msgstr ""
 "Zoome auf die Position des Mauszeigers in der 3D-Ansicht und nicht auf die "
 "Mitte des 2D-Fensters."
+
+msgid "Improve rendering performance by lod"
+msgstr ""
+
+msgid ""
+"Improved rendering performance under the scene of multiple plates and many "
+"models."
+msgstr ""
 
 msgid "Grabber scale"
 msgstr ""
@@ -13552,6 +13572,15 @@ msgstr ""
 "Wussten Sie, dass beim Drucken von Materialien, die zu Verformungen neigen, "
 "wie z. B. ABS, die Wahrscheinlichkeit von Verformungen durch eine "
 "entsprechende Erhöhung der Heizbetttemperatur verringert werden kann?"
+
+#~ msgid "China"
+#~ msgstr "China"
+
+#~ msgid "Tree support brim width"
+#~ msgstr "Umrandungsbreite der Baumstütze"
+
+#~ msgid "The brim width around tree support. 0 means auto."
+#~ msgstr "Die Umrandungsbreite der Baumstütze. 0 bedeutet automatisch."
 
 #~ msgid "Show &Labels"
 #~ msgstr "Anzeigen &Etiketten"
