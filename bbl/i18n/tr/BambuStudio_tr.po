@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-02 18:23+0800\n"
+"POT-Creation-Date: 2024-08-14 20:45+0800\n"
 "PO-Revision-Date: 2024-06-12 16:40+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -3708,6 +3708,9 @@ msgstr "Rapor sorunu"
 msgid "Check for Update"
 msgstr "Güncellemeleri kontrol et"
 
+msgid "Check for Presets Update"
+msgstr ""
+
 msgid "Open Network Test"
 msgstr "Ağ Testini Aç"
 
@@ -5573,6 +5576,15 @@ msgstr "Bölge seçimi"
 msgid "Second"
 msgstr "Saniye"
 
+msgid ""
+"Please note that the model show will undergo certain changes at small pixels "
+"case.\n"
+"Enabled LOD requires application restart."
+msgstr ""
+
+msgid "Enable LOD"
+msgstr ""
+
 msgid "Browse"
 msgstr "Aç"
 
@@ -5585,8 +5597,8 @@ msgstr "Genel Ayarlar"
 msgid "Asia-Pacific"
 msgstr "Asya Pasifik"
 
-msgid "China"
-msgstr "Çin"
+msgid "Chinese Mainland"
+msgstr "Çin Mainland"
 
 msgid "Europe"
 msgstr "Avrupa"
@@ -5683,6 +5695,14 @@ msgid ""
 msgstr ""
 "2B pencere merkezi yerine, 3B görünümde fare işaretçisinin konumuna doğru "
 "yakınlaştırın."
+
+msgid "Improve rendering performance by lod"
+msgstr ""
+
+msgid ""
+"Improved rendering performance under the scene of multiple plates and many "
+"models."
+msgstr ""
 
 msgid "Grabber scale"
 msgstr ""
@@ -6702,6 +6722,9 @@ msgstr "Raft"
 
 msgid "Support filament"
 msgstr "Destek Filamenti"
+
+msgid "Tree Support"
+msgstr ""
 
 msgid "Prime tower"
 msgstr "Prime Kulesi"
@@ -10534,12 +10557,6 @@ msgstr "Destek duvarı döngüleri"
 msgid "This setting specifies the count of walls around support"
 msgstr "Bu ayar, destek etrafındaki duvar sayısını belirtir"
 
-msgid "Tree support brim width"
-msgstr "Ağaç desteği kenar genişliği"
-
-msgid "The brim width around tree support. 0 means auto."
-msgstr "Ağaç desteği etrafındaki kenar genişliği. 0 otomatik anlamına gelir."
-
 msgid "Chamber temperature"
 msgstr "Bölme sıcaklığı"
 
@@ -13299,6 +13316,16 @@ msgstr ""
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı "
 "sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını "
 "azaltabileceğini biliyor muydunuz."
+
+#~ msgid "China"
+#~ msgstr "Çin"
+
+#~ msgid "Tree support brim width"
+#~ msgstr "Ağaç desteği kenar genişliği"
+
+#~ msgid "The brim width around tree support. 0 means auto."
+#~ msgstr ""
+#~ "Ağaç desteği etrafındaki kenar genişliği. 0 otomatik anlamına gelir."
 
 #~ msgid "Show &Labels"
 #~ msgstr "Etiketleri Göster"

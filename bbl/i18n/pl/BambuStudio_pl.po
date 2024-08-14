@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-02 18:23+0800\n"
+"POT-Creation-Date: 2024-08-14 20:45+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3741,6 +3741,9 @@ msgstr "Zgłoś problem"
 msgid "Check for Update"
 msgstr "Sprawdź aktualizacje"
 
+msgid "Check for Presets Update"
+msgstr ""
+
 msgid "Open Network Test"
 msgstr "Otwórz test sieciowy"
 
@@ -5608,6 +5611,15 @@ msgstr "Wybór regionu"
 msgid "Second"
 msgstr "Sekunda"
 
+msgid ""
+"Please note that the model show will undergo certain changes at small pixels "
+"case.\n"
+"Enabled LOD requires application restart."
+msgstr ""
+
+msgid "Enable LOD"
+msgstr ""
+
 msgid "Browse"
 msgstr "Przeglądaj"
 
@@ -5620,8 +5632,8 @@ msgstr "Ustawienia ogólne"
 msgid "Asia-Pacific"
 msgstr "Azja-Pacyfik"
 
-msgid "China"
-msgstr "Chiny"
+msgid "Chinese Mainland"
+msgstr "Chiński kontynent"
 
 msgid "Europe"
 msgstr "Europa"
@@ -5719,6 +5731,14 @@ msgid ""
 msgstr ""
 "Powiększ w kierunku pozycji wskaźnika myszy w widoku 3D, a nie w centrum "
 "okna 2D."
+
+msgid "Improve rendering performance by lod"
+msgstr ""
+
+msgid ""
+"Improved rendering performance under the scene of multiple plates and many "
+"models."
+msgstr ""
 
 msgid "Grabber scale"
 msgstr ""
@@ -6737,6 +6757,9 @@ msgstr "Raft"
 
 msgid "Support filament"
 msgstr "Filament podpory"
+
+msgid "Tree Support"
+msgstr ""
 
 msgid "Prime tower"
 msgstr "Wieża Czyszcząca"
@@ -10624,12 +10647,6 @@ msgstr "Pętle ścian podpory"
 msgid "This setting specifies the count of walls around support"
 msgstr "To ustawienie określa liczbę ścian wokół podpory"
 
-msgid "Tree support brim width"
-msgstr "Szerokość Brimu dla podpory drzewa"
-
-msgid "The brim width around tree support. 0 means auto."
-msgstr "Szerokość Brimu wokół podpory drzewa. 0 oznacza automatycznie."
-
 msgid "Chamber temperature"
 msgstr "Temperatura komory"
 
@@ -13397,6 +13414,15 @@ msgstr ""
 "Czy wiesz, że podczas drukowania materiałów podatnych na wypaczanie, takich "
 "jak ABS, odpowiednie zwiększenie temperatury stołu grzejnego może zmniejszyć "
 "prawdopodobieństwo wypaczania."
+
+#~ msgid "China"
+#~ msgstr "Chiny"
+
+#~ msgid "Tree support brim width"
+#~ msgstr "Szerokość Brimu dla podpory drzewa"
+
+#~ msgid "The brim width around tree support. 0 means auto."
+#~ msgstr "Szerokość Brimu wokół podpory drzewa. 0 oznacza automatycznie."
 
 #, boost-format
 #~ msgid ""

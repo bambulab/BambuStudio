@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-02 18:23+0800\n"
+"POT-Creation-Date: 2024-08-14 20:45+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3463,6 +3463,9 @@ msgstr ""
 msgid "Check for Update"
 msgstr ""
 
+msgid "Check for Presets Update"
+msgstr ""
+
 msgid "Open Network Test"
 msgstr ""
 
@@ -5190,6 +5193,15 @@ msgstr ""
 msgid "Second"
 msgstr ""
 
+msgid ""
+"Please note that the model show will undergo certain changes at small pixels "
+"case.\n"
+"Enabled LOD requires application restart."
+msgstr ""
+
+msgid "Enable LOD"
+msgstr ""
+
 msgid "Browse"
 msgstr ""
 
@@ -5202,7 +5214,7 @@ msgstr ""
 msgid "Asia-Pacific"
 msgstr ""
 
-msgid "China"
+msgid "Chinese Mainland"
 msgstr ""
 
 msgid "Europe"
@@ -5279,6 +5291,14 @@ msgstr ""
 msgid ""
 "Zoom in towards the mouse pointer's position in the 3D view, rather than the "
 "2D window center."
+msgstr ""
+
+msgid "Improve rendering performance by lod"
+msgstr ""
+
+msgid ""
+"Improved rendering performance under the scene of multiple plates and many "
+"models."
 msgstr ""
 
 msgid "Grabber scale"
@@ -6192,6 +6212,9 @@ msgid "Raft"
 msgstr ""
 
 msgid "Support filament"
+msgstr ""
+
+msgid "Tree Support"
 msgstr ""
 
 msgid "Prime tower"
@@ -9536,12 +9559,6 @@ msgid "Support wall loops"
 msgstr ""
 
 msgid "This setting specifies the count of walls around support"
-msgstr ""
-
-msgid "Tree support brim width"
-msgstr ""
-
-msgid "The brim width around tree support. 0 means auto."
 msgstr ""
 
 msgid "Chamber temperature"
