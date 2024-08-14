@@ -1017,7 +1017,7 @@ wxWindow* PreferencesDialog::create_general_page()
     std::sort(language_infos.begin(), language_infos.end(), [](const wxLanguageInfo *l, const wxLanguageInfo *r) { return l->Description < r->Description; });
     auto item_language = create_item_language_combobox(_L("Language"), page, _L("Language"), 50, "language", language_infos);
 
-    std::vector<wxString> Regions         = {_L("Asia-Pacific"), _L("China"), _L("Europe"), _L("North America"), _L("Others")};
+    std::vector<wxString> Regions         = {_L("Asia-Pacific"), _L("China Mainland"), _L("Europe"), _L("North America"), _L("Others")};
     auto                  item_region= create_item_region_combobox(_L("Login Region"), page, _L("Login Region"), Regions);
 
     std::vector<wxString> Units         = {_L("Metric") + " (mm, g)", _L("Imperial") + " (in, oz)"};
