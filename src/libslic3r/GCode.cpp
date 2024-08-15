@@ -295,7 +295,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         /*  Reduce feedrate a bit; travel speed is often too high to move on existing material.
             Too fast = ripping of existing material; too slow = short wipe path, thus more blob.  */
         //OrcaSlicer
-        double wipe_speed = gcodegen.config().role_base_wipe_speed ? gcodegen.writer().get_current_speed() / 60 :
+        double cur_speed = gcodegen.writer().get_current_speed();
+        double wipe_speed = gcodegen.config().role_base_wipe_speed && cur_speed > EPSILON ? cur_speed / 60 :
             gcodegen.writer().config.travel_speed.value * gcodegen.config().wipe_speed.value / 100;
 
 
@@ -1164,7 +1165,7 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     BOOST_LOG_TRIVIAL(info) << boost::format("Will export G-code to %1% soon")%path;
 
     GCodeProcessor::s_IsBBLPrinter = print->is_BBL_Printer();
-    
+
     print->set_started(psGCodeExport);
 
     // check if any custom gcode contains keywords used by the gcode processor to
@@ -1245,12 +1246,12 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     bool activate_long_retraction_when_cut = false;
     for (const auto& extruder : m_writer.extruders())
         activate_long_retraction_when_cut |= (
-            m_config.long_retractions_when_cut.get_at(extruder.id()) 
+            m_config.long_retractions_when_cut.get_at(extruder.id())
          && m_config.retraction_distances_when_cut.get_at(extruder.id()) > 0
             );
 
     m_processor.result().long_retraction_when_cut = activate_long_retraction_when_cut;
-   
+
     {   //BBS:check bed and filament compatible
         const ConfigOptionDef *bed_type_def = print_config_def.get("curr_bed_type");
         assert(bed_type_def != nullptr);
@@ -4683,7 +4684,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     const ExtrusionPathSloped *sloped = dynamic_cast<const ExtrusionPathSloped *>(&path);
     const auto get_sloped_z = [&sloped, this](double z_ratio) {
-        const auto height = sloped->height; 
+        const auto height = sloped->height;
         return lerp(m_nominal_z - height, m_nominal_z, z_ratio);
     };
 
