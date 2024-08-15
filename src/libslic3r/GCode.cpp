@@ -346,7 +346,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         /*  Reduce feedrate a bit; travel speed is often too high to move on existing material.
             Too fast = ripping of existing material; too slow = short wipe path, thus more blob.  */
         //OrcaSlicer
-        double cur_speed = gcodegen.writer().get_current_speed();
+        double cur_speed  = gcodegen.writer().get_current_speed();
         double wipe_speed = gcodegen.config().role_base_wipe_speed && cur_speed > EPSILON ? cur_speed / 60 :
             gcodegen.writer().config.travel_speed.get_at(get_extruder_index(gcodegen.writer().config, gcodegen.writer().filament()->id())) * gcodegen.config().wipe_speed.value / 100;
 
