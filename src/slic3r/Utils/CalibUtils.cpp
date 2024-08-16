@@ -530,9 +530,9 @@ bool CalibUtils::calib_flowrate(int pass, const CalibInfo &calib_info, wxString 
 
     read_model_from_file(input_file, model);
 
-    DynamicConfig print_config    = calib_info.print_prest->config;
-    DynamicConfig filament_config = calib_info.filament_prest->config;
-    DynamicConfig printer_config  = calib_info.printer_prest->config;
+    DynamicPrintConfig print_config    = calib_info.print_prest->config;
+    DynamicPrintConfig filament_config = calib_info.filament_prest->config;
+    DynamicPrintConfig printer_config  = calib_info.printer_prest->config;
 
     /// --- scale ---
     // model is created for a 0.4 nozzle, scale z with nozzle size.
@@ -555,10 +555,22 @@ bool CalibUtils::calib_flowrate(int pass, const CalibInfo &calib_info, wxString 
     //}
 
     Flow   infill_flow                   = Flow(nozzle_diameter * 1.2f, layer_height, nozzle_diameter);
-    double filament_max_volumetric_speed = filament_config.option<ConfigOptionFloatsNullable>("filament_max_volumetric_speed")->get_at(0);
+
+    int index = get_index_for_extruder_parameter(filament_config, "filament_max_volumetric_speed", calib_info.extruder_id, calib_info.extruder_type, calib_info.nozzle_volume_type);
+    double filament_max_volumetric_speed = filament_config.option<ConfigOptionFloatsNullable>("filament_max_volumetric_speed")->get_at(index);
     double max_infill_speed              = filament_max_volumetric_speed / (infill_flow.mm3_per_mm() * (pass == 1 ? 1.2 : 1));
-    double internal_solid_speed          = std::floor(std::min(print_config.opt_float_nullable("internal_solid_infill_speed", calib_info.extruder_id), max_infill_speed));
-    double top_surface_speed             = std::floor(std::min(print_config.opt_float_nullable("top_surface_speed", calib_info.extruder_id), max_infill_speed));
+
+    index = get_index_for_extruder_parameter(print_config, "internal_solid_infill_speed", calib_info.extruder_id, calib_info.extruder_type, calib_info.nozzle_volume_type);
+    double internal_solid_speed          = std::floor(std::min(print_config.opt_float_nullable("internal_solid_infill_speed", index), max_infill_speed));
+    ConfigOptionFloatsNullable* internal_solid_speed_opt = print_config.option<ConfigOptionFloatsNullable>("internal_solid_infill_speed");
+    auto & new_internal_solid_speed      = internal_solid_speed_opt->values;
+    new_internal_solid_speed[index]      = internal_solid_speed;
+
+    index = get_index_for_extruder_parameter(print_config, "top_surface_speed", calib_info.extruder_id, calib_info.extruder_type, calib_info.nozzle_volume_type);
+    double top_surface_speed        = std::floor(std::min(print_config.opt_float_nullable("top_surface_speed", index), max_infill_speed));
+    ConfigOptionFloatsNullable *top_surface_speed_opt = print_config.option<ConfigOptionFloatsNullable>("top_surface_speed");
+    auto & new_top_surface_speed    = top_surface_speed_opt->values;
+    new_top_surface_speed[index]    = top_surface_speed;
 
     // adjust parameters
     filament_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(calib_info.bed_type));
@@ -580,8 +592,8 @@ bool CalibUtils::calib_flowrate(int pass, const CalibInfo &calib_info, wxString 
         _obj->config.set_key_value("top_solid_infill_flow_ratio", new ConfigOptionFloat(1.0f));
         _obj->config.set_key_value("infill_direction", new ConfigOptionFloat(45));
         _obj->config.set_key_value("ironing_type", new ConfigOptionEnum<IroningType>(IroningType::NoIroning));
-        _obj->config.set_key_value("internal_solid_infill_speed", new ConfigOptionFloat(internal_solid_speed));
-        _obj->config.set_key_value("top_surface_speed", new ConfigOptionFloat(top_surface_speed));
+        _obj->config.set_key_value("internal_solid_infill_speed", internal_solid_speed_opt);
+        _obj->config.set_key_value("top_surface_speed", top_surface_speed_opt);
 
         // extract flowrate from name, filename format: flowrate_xxx
         std::string obj_name = _obj->name;
