@@ -922,7 +922,9 @@ void WebViewPanel::OnNavigationRequest(wxWebViewEvent& evt)
             surl.EndsWith(".3mf")  || 
             surl.EndsWith(".xlsx") || 
             surl.EndsWith(".xls")  ||
-            surl.EndsWith(".txt")
+            surl.EndsWith(".txt")  || 
+            surl.EndsWith("bbscfg") || 
+            surl.EndsWith("bbsflmt")
             ) 
         {
             wxLaunchDefaultBrowser(url);
