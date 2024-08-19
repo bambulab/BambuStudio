@@ -291,6 +291,8 @@ public:
     void check_object_located_outside_plate();
     bool get_object_located_outside_plate() { return m_object_located_outside_plate; }
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position = Vec2d::Zero(), bool shift_down = false, bool alt_down = false, bool control_down = false);
+    bool is_paint_gizmo();
+    bool is_allow_select_all();
     ClippingPlane get_clipping_plane() const;
     ClippingPlane get_assemble_view_clipping_plane() const;
     bool wants_reslice_supports_on_undo() const;
