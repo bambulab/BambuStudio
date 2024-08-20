@@ -577,6 +577,41 @@ inline std::string get_bbl_monitor_time_dhm(float time_in_secs)
     return buffer;
 }
 
+inline std::string get_bbl_finish_time_dhm(float time_in_secs)
+{
+    if (time_in_secs < 1) return "Finished";
+    time_t   finish_time    = std::time(nullptr) + static_cast<time_t>(time_in_secs);
+    std::tm *finish_tm      = std::localtime(&finish_time);
+    int      finish_hour    = finish_tm->tm_hour;
+    int      finish_minute  = finish_tm->tm_min;
+    int      finish_day     = finish_tm->tm_yday;
+    int      finish_year    = finish_tm->tm_year + 1900;
+    time_t   current_time   = std::time(nullptr);
+    std::tm *current_tm     = std::localtime(&current_time);
+    int      current_day    = current_tm->tm_yday;
+    int      current_year   = current_tm->tm_year + 1900;
+
+    int diff_day = 0;
+    if (current_year != finish_year) {
+        if ((current_year % 4 == 0 && current_year % 100 != 0) || current_year % 400 == 0)
+            diff_day = 366 - current_day;
+        else
+            diff_day = 365 - current_day;
+        for (int year = current_year + 1; year < finish_year; year++) {
+            if ((current_year % 4 == 0 && current_year % 100 != 0) || current_year % 400 == 0)
+                diff_day += 366;
+            else
+                diff_day += 365;
+        }
+        diff_day += finish_day;
+    }
+
+    std::string finish_time_str = std::to_string(finish_hour) + ":" + std::to_string(finish_minute);
+    if (diff_day != 0) finish_time_str += " +" + std::to_string(diff_day);
+
+    return finish_time_str;
+}
+
 inline std::string get_bbl_remain_time_dhms(float time_in_secs)
 {
     int days = (int) (time_in_secs / 86400.0f);

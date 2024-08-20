@@ -181,6 +181,7 @@ private:
     wxStaticText*   m_staticText_progress_percent;
     wxStaticText*   m_staticText_progress_percent_icon;
     wxStaticText*   m_staticText_progress_left;
+    wxStaticText*   m_staticText_finish_time;
     wxStaticText*   m_staticText_layers;
     wxStaticText *  m_has_rated_prompt;
     wxStaticText *  m_request_failed_info;
@@ -221,6 +222,7 @@ public:
     void update_stage_value(wxString stage, int val);
     void update_progress_percent(wxString percent, wxString icon);
     void update_left_time(wxString time);
+    void update_finish_time(wxString finish_time);
     void update_left_time(int mc_left_time);
     void update_layers_num(bool show, wxString num = wxEmptyString);
     void show_priting_use_info(bool show, wxString time = wxEmptyString, wxString weight = wxEmptyString);
