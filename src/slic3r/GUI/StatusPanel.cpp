@@ -320,11 +320,14 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
 
     wxBoxSizer *bSizer_buttons = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *bSizer_text = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *bSizer_finish_time = new wxBoxSizer(wxHORIZONTAL);
     wxPanel* penel_bottons = new wxPanel(parent);
     wxPanel* penel_text = new wxPanel(penel_bottons);
+    wxPanel* penel_finish_time = new wxPanel(parent);
 
     penel_text->SetBackgroundColour(*wxWHITE);
     penel_bottons->SetBackgroundColour(*wxWHITE);
+    penel_finish_time->SetBackgroundColour(*wxWHITE);
 
     wxBoxSizer *sizer_percent = new wxBoxSizer(wxVERTICAL);
     sizer_percent->Add(0, 0, 1, wxEXPAND, 0);
@@ -383,6 +386,18 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     penel_text->SetSizer(bSizer_text);
     penel_text->Layout();
 
+    m_staticText_finish_time = new wxStaticText(penel_finish_time, wxID_ANY, _L("Finish Time: N/A"));
+    m_staticText_finish_time->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("HarmonyOS Sans SC")));
+    m_staticText_finish_time->SetForegroundColour(wxColour(146, 146, 146));
+    m_staticText_finish_time->SetToolTip(_L("The estimated printing time for \nmulti-color models may be inaccurate."));
+    bSizer_finish_time->Add(0, 0, 1, wxEXPAND, 0);
+    bSizer_finish_time->Add(0, 0, 0, wxLEFT, FromDIP(20));
+    bSizer_finish_time->Add(m_staticText_finish_time, 0, wxALIGN_CENTER | wxALL, 0);
+    bSizer_finish_time->Add(panel_button_block, 0, wxALIGN_CENTER | wxALL, 0);
+    penel_finish_time->SetMaxSize(wxSize(FromDIP(600), -1));
+    penel_finish_time->SetSizer(bSizer_finish_time);
+    penel_finish_time->Layout();
+
     bSizer_buttons->Add(penel_text, 1, wxEXPAND | wxALL, 0);
     bSizer_buttons->Add(panel_button_block, 0, wxALIGN_CENTER | wxALL, 0);
 
@@ -395,14 +410,13 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     bSizer_subtask_info->Add(m_printing_stage_value, 0, wxEXPAND | wxTOP, FromDIP(5));
     bSizer_subtask_info->Add(penel_bottons, 0, wxEXPAND | wxTOP, FromDIP(10));
     bSizer_subtask_info->Add(m_panel_progress, 0, wxEXPAND|wxRIGHT, FromDIP(25));
-
+    bSizer_subtask_info->Add(penel_finish_time, 0, wxEXPAND, 0);
 
     m_printing_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_printing_sizer->SetMinSize(wxSize(PAGE_MIN_WIDTH, -1));
     m_printing_sizer->Add(m_bitmap_thumbnail, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT | wxLEFT, FromDIP(12));
     m_printing_sizer->Add(FromDIP(8), 0, 0, wxEXPAND, 0);
     m_printing_sizer->Add(bSizer_subtask_info, 1, wxALL | wxEXPAND, 0);
-
 
     m_staticline = new wxPanel( parent, wxID_ANY);
     m_staticline->SetBackgroundColour(wxColour(238,238,238));
@@ -687,14 +701,24 @@ void PrintingTaskPanel::update_left_time(wxString time)
     m_staticText_progress_left->SetLabelText(time);
 }
 
+void PrintingTaskPanel::update_finish_time(wxString finish_time)
+{
+    if (finish_time == "Finished")
+        m_staticText_finish_time->SetLabelText(_L("Finished"));
+    else
+        m_staticText_finish_time->SetLabelText(_L("Finish Time: ") + finish_time);
+}
+
 void PrintingTaskPanel::update_left_time(int mc_left_time)
 {
     // update gcode progress
     std::string left_time;
+    std::string right_time;
     wxString    left_time_text = NA_STR;
 
     try {
         left_time = get_bbl_monitor_time_dhm(mc_left_time);
+        right_time = get_bbl_finish_time_dhm(mc_left_time);
     }
     catch (...) {
         ;
@@ -702,6 +726,7 @@ void PrintingTaskPanel::update_left_time(int mc_left_time)
 
     if (!left_time.empty()) left_time_text = wxString::Format("-%s", left_time);
     update_left_time(left_time_text);
+    update_finish_time(right_time);
 }
 
 void PrintingTaskPanel::update_layers_num(bool show, wxString num)
