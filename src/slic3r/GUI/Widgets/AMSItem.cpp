@@ -2302,8 +2302,12 @@ void AMSRoadDownPart::doRender(wxDC& dc)
     dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxSOLID));
     auto xpos = left_nozzle_pos.x;
     if (m_left_rode_mode == AMSRoadShowMode::AMS_ROAD_MODE_NONE || m_right_rode_mode == AMSRoadShowMode::AMS_ROAD_MODE_NONE){
-        dc.DrawLine(left_nozzle_pos.x - FromDIP(50), (size.y / 2), (left_nozzle_pos.x), (size.y / 2));
-        dc.DrawLine(left_nozzle_pos.x - FromDIP(50), (0), left_nozzle_pos.x - FromDIP(50), (size.y / 2));
+        auto length = 50;
+        if (m_left_rode_mode == AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE || m_right_rode_mode == AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE)
+            length = -13;
+        dc.DrawLine(left_nozzle_pos.x - FromDIP(length), (size.y / 2), (left_nozzle_pos.x), (size.y / 2));
+        dc.DrawLine(left_nozzle_pos.x - FromDIP(length), (0), left_nozzle_pos.x - FromDIP(length), (size.y / 2));
+        dc.DrawLine(left_nozzle_pos.x, size.y / 2, left_nozzle_pos.x, size.y);
     }
     else {
         switch (m_left_rode_mode)
@@ -2556,9 +2560,8 @@ void AMSPreview::doRender(wxDC &dc)
     dc.SetBrush(wxBrush(StateColor::darkModeColorFor(m_background_colour)));
     dc.DrawRoundedRectangle(0, 0, size.x, size.y, 3);*/
 
-    //auto left = m_padding;
-    auto left = FromDIP(8);
-    m_space = FromDIP(9);
+    auto left = 8;
+    m_space = 9;
     auto color = *wxWHITE;
     dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
     dc.SetBrush(color);
@@ -2579,13 +2582,13 @@ void AMSPreview::doRender(wxDC &dc)
                 dc.SetBrush(AMS_CONTROL_DISABLE_COLOUR);
             }
             if (iter->material_cols.size() > 1) {
-                int fleft = left;
+                int fleft = FromDIP(left);
                 float total_width = AMS_ITEM_CUBE_SIZE.x;
                 int gwidth = (total_width / (iter->material_cols.size() - 1));
                 if (iter->ctype == 0) {
                     for (int i = 0; i < iter->material_cols.size() - 1; i++) {
-                        if ((fleft + gwidth) > (AMS_ITEM_CUBE_SIZE.x)) {
-                            gwidth = (fleft + AMS_ITEM_CUBE_SIZE.x) - fleft;
+                        if (fleft + gwidth > (AMS_ITEM_CUBE_SIZE.x)) {
+                            gwidth = fleft + AMS_ITEM_CUBE_SIZE.x - fleft;
                         }
 
                         auto rect = wxRect(fleft, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, gwidth, AMS_ITEM_CUBE_SIZE.y);
@@ -2597,20 +2600,22 @@ void AMSPreview::doRender(wxDC &dc)
                     int cols_size = iter->material_cols.size();
                     for (int i = 0; i < cols_size; i++) {
                         dc.SetBrush(wxBrush(iter->material_cols[i]));
-                        float x = left + total_width * i / cols_size;
+                        int x = FromDIP(left) + total_width * i / cols_size;
                         dc.DrawRectangle(x, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, total_width / cols_size, AMS_ITEM_CUBE_SIZE.y);
                     }
                 }
             }
             else {
                 if (iter->material_colour.Alpha() == 0) {
-                    dc.DrawBitmap(m_ts_bitmap_cube.bmp(), left, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2);
+                    dc.DrawBitmap(m_ts_bitmap_cube.bmp(), FromDIP(left), (size.y - AMS_ITEM_CUBE_SIZE.y) / 2);
                 }
                 else {
-                    wxRect rect(left, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, AMS_ITEM_CUBE_SIZE.x, AMS_ITEM_CUBE_SIZE.y);
+                    wxRect rect(FromDIP(left), (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, AMS_ITEM_CUBE_SIZE.x, AMS_ITEM_CUBE_SIZE.y);
                     if (iter->material_state == AMSCanType::AMS_CAN_TYPE_EMPTY) {
-                        dc.SetPen(wxPen(wxColor(0, 0, 0)));
-                        dc.DrawRoundedRectangle(rect, 3);
+
+                        // draw a slash when ams slot is empty
+                        /*dc.SetPen(wxPen(wxColor(0, 0, 0)));
+                        dc.DrawRoundedRectangle(rect, 3);*/
                         //dc.DrawLine(rect.GetRight() - FromDIP(1), rect.GetTop() + FromDIP(1), rect.GetLeft() + FromDIP(1), rect.GetBottom() - FromDIP(1));
                     }
                     else {
@@ -2664,18 +2669,19 @@ void AMSPreview::doRender(wxDC &dc)
             dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
             dc.SetBrush(iter.material_colour);
             //dc.SetBrush(*wxGREEN);
-            auto rect = wxRect(((size.x - AMS_ITEM_CUBE_SIZE.x) / 2), ((size.y - AMS_ITEM_CUBE_SIZE.y) / 2), (AMS_ITEM_CUBE_SIZE.x - FromDIP(1)), (AMS_ITEM_CUBE_SIZE.y));
-            dc.DrawRoundedRectangle(rect, 3);
+            auto rect = wxRect(((size.x - AMS_ITEM_CUBE_SIZE.x) / 2), ((size.y - AMS_ITEM_CUBE_SIZE.y) / 2), (AMS_ITEM_CUBE_SIZE.x), (AMS_ITEM_CUBE_SIZE.y));
+            dc.DrawRoundedRectangle(rect, FromDIP(4));
         }
         if (m_ams_item_type == AMSModel::N3S_AMS) {
             auto pot = wxPoint(((size.x - m_single_slot_bitmap.GetBmpSize().x) / 2), ((size.y - m_single_slot_bitmap.GetBmpSize().y) / 2));
             dc.DrawBitmap(m_single_slot_bitmap.bmp(), pot);
         }
-        if ((iter.material_colour.Red() >= 238 && iter.material_colour.Green() >= 238 && iter.material_colour.Blue() >= 238) || iter.material_colour.Alpha() == 0) {
+        if (((iter.material_colour.Red() >= 238 && iter.material_colour.Green() >= 238 && iter.material_colour.Blue() >= 238)
+            || iter.material_colour.Alpha() == 0) && m_ams_item_type == AMSModel::EXT_AMS) {
             dc.SetPen(wxPen(AMS_CONTROL_GRAY500));
             dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
-            auto rect = wxRect((size.x - FromDIP(6)) / 2 - FromDIP(1), (size.y - FromDIP(12)) / 2 - FromDIP(1), AMS_ITEM_CUBE_SIZE.x - FromDIP(1), AMS_ITEM_CUBE_SIZE.y - FromDIP(1));
-            dc.DrawRoundedRectangle(rect, 3);
+            auto rect = wxRect((size.x - AMS_ITEM_CUBE_SIZE.x) / 2, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, AMS_ITEM_CUBE_SIZE.x, AMS_ITEM_CUBE_SIZE.y);
+            dc.DrawRoundedRectangle(rect, FromDIP(4));
         }
     }
     auto border_colour = AMS_CONTROL_BRAND_COLOUR;
