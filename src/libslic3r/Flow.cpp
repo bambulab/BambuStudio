@@ -190,8 +190,10 @@ Flow Flow::with_cross_section(float area_new) const
 float Flow::rounded_rectangle_extrusion_spacing(float width, float height)
 {
     auto out = width - height * float(1. - 0.25 * PI);
-    if (out <= 0.f)
+    if (out <= 0.f) {
+        BOOST_LOG_TRIVIAL(error)<< __FUNCTION__ << boost::format("negative extrusion : width %1%   height %2%") % width % height;
         throw FlowErrorNegativeSpacing();
+    }
     return out;
 }
 
