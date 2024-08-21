@@ -353,6 +353,7 @@ public:
     MaxVolumetricSpeed_Test_Dlg *m_vol_test_dlg{nullptr};
     VFA_Test_Dlg *               m_vfa_test_dlg{nullptr};
     Retraction_Test_Dlg *        m_retraction_calib_dlg{nullptr};
+    SecondaryCheckDialog*        m_confirm_download_plugin_dlg{ nullptr };
 
     // BBS. Replace title bar and menu bar with top bar.
     BBLTopbar*            m_topbar{ nullptr };
