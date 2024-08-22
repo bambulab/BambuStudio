@@ -3266,7 +3266,20 @@ void StatusPanel::on_axis_ctrl_xy(wxCommandEvent &event)
     if (event.GetInt() == 5) { obj->command_axis_control("X", 1.0, -1.0f, 3000); }
     if (event.GetInt() == 6) { obj->command_axis_control("Y", 1.0, -1.0f, 3000); }
     if (event.GetInt() == 7) { obj->command_axis_control("X", 1.0, 1.0f, 3000); }
-    if (event.GetInt() == 8) { obj->command_go_home(); }
+    if (event.GetInt() == 8) {
+        if (axis_go_home_dlg == nullptr) {
+            axis_go_home_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Axis go home"));
+            axis_go_home_dlg->update_text(_L("Are you sure you want to home now?"));
+            axis_go_home_dlg->m_button_ok->SetLabel(_L("Home"));
+            axis_go_home_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent& e) {
+                if (obj) {
+                    BOOST_LOG_TRIVIAL(info) << "Axis have go home";
+                    obj->command_go_home();
+                }
+            });
+        }
+        axis_go_home_dlg->on_show();
+    }
 
     //check is at home
     if (event.GetInt() == 1

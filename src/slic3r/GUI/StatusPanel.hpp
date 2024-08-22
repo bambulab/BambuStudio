@@ -470,6 +470,7 @@ protected:
     SecondaryCheckDialog* con_load_dlg = nullptr;
     SecondaryCheckDialog* ctrl_e_hint_dlg = nullptr;
     SecondaryCheckDialog* sdcard_hint_dlg = nullptr;
+    SecondaryCheckDialog* axis_go_home_dlg = nullptr;
 
     FanControlPopup* m_fan_control_popup{nullptr};
 
