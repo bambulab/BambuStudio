@@ -892,7 +892,6 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->min      = 0;
     def->mode     = comAdvanced;
-    def->nullable = true;
     def->set_default_value(new ConfigOptionFloat{24});
 
     def = this->add("bridge_speed", coFloat);
