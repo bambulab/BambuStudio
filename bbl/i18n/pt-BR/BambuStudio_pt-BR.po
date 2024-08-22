@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-16 10:33+0800\n"
+"POT-Creation-Date: 2024-08-22 18:32+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -8513,6 +8513,15 @@ msgstr ""
 msgid "mm/s"
 msgstr "mm/s"
 
+msgid "over 100% wall (not bridge)"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Speed for line of wall which has degree of overhang over 100% line width, "
+"but the wall is not a bridge wall."
+msgstr ""
+
 msgid "Speed of bridge and completely overhang wall"
 msgstr "Velocidade da ponte e da parede completamente saliente"
 
@@ -9815,6 +9824,18 @@ msgstr ""
 "Detecte a porcentagem de saliência em relação à largura da linha e use uma "
 "velocidade diferente para imprimir. Para uma saliência de 100 por cento, a "
 "velocidade da ponte é usada."
+
+msgid "Smooth speed discontinuity area"
+msgstr ""
+
+msgid "Add the speed transition between discontinuity area."
+msgstr ""
+
+msgid "Smooth coefficient"
+msgstr ""
+
+msgid "The smaller the number, the longer the speed transition path."
+msgstr ""
 
 msgid "Line width of inner wall"
 msgstr "Largura da linha das paredes internas"

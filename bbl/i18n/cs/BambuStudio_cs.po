@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-16 10:33+0800\n"
+"POT-Creation-Date: 2024-08-22 18:32+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -5415,7 +5415,7 @@ msgid "Asia-Pacific"
 msgstr "Asie-Pacifik"
 
 msgid "Chinese Mainland"
-msgstr "Čína pevninská"
+msgstr "Čínská pevninská"
 
 msgid "Europe"
 msgstr "Evropa"
@@ -8197,6 +8197,15 @@ msgstr "Povolte tuto volbu pro zpomalení tisku pro různé stupně převisů"
 msgid "mm/s"
 msgstr "mm/s"
 
+msgid "over 100% wall (not bridge)"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Speed for line of wall which has degree of overhang over 100% line width, "
+"but the wall is not a bridge wall."
+msgstr ""
+
 msgid "Speed of bridge and completely overhang wall"
 msgstr "Rychlost mostu a zcela převislé stěny"
 
@@ -9410,6 +9419,18 @@ msgid ""
 msgstr ""
 "Zjistěte procento převisů vzhledem k šířce extruze a použijte jinou rychlost "
 "tisku. Pro 100 procentní převisy se použije rychlost mostu."
+
+msgid "Smooth speed discontinuity area"
+msgstr ""
+
+msgid "Add the speed transition between discontinuity area."
+msgstr ""
+
+msgid "Smooth coefficient"
+msgstr ""
+
+msgid "The smaller the number, the longer the speed transition path."
+msgstr ""
 
 msgid "Line width of inner wall"
 msgstr "Šířka extruze vnitřní stěny"
