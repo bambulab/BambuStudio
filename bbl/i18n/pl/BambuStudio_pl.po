@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-16 10:30+0800\n"
+"POT-Creation-Date: 2024-08-22 19:49+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -8577,6 +8577,15 @@ msgstr "Włącz tę opcję, aby spowolnić drukowanie dla różnych stopni nawis
 msgid "mm/s"
 msgstr "mm/s"
 
+msgid "over 100% wall (not bridge)"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Speed for line of wall which has degree of overhang over 100% line width, "
+"but the wall is not a bridge wall."
+msgstr ""
+
 msgid "Speed of bridge and completely overhang wall"
 msgstr "Prędkość dla mostu i ściany całkowicie nawisającej"
 
@@ -9886,6 +9895,18 @@ msgid ""
 msgstr ""
 "Wykrywaj procent nawisu względem szerokości linii i używaj różnych prędkości "
 "druku. Dla nawisu 100 procent, używana jest prędkość mostu."
+
+msgid "Smooth speed discontinuity area"
+msgstr ""
+
+msgid "Add the speed transition between discontinuity area."
+msgstr ""
+
+msgid "Smooth coefficient"
+msgstr ""
+
+msgid "The smaller the number, the longer the speed transition path."
+msgstr ""
 
 msgid "Line width of inner wall"
 msgstr "Szerokość linii ściany wewnętrznej"

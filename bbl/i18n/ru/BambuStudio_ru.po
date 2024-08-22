@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 1.9.0.70 Public Beta 3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-16 10:30+0800\n"
+"POT-Creation-Date: 2024-08-22 19:49+0800\n"
 "PO-Revision-Date: 2023-08-11 09:11+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -8676,6 +8676,15 @@ msgstr "Включение динамического управления ск�
 msgid "mm/s"
 msgstr "мм/с"
 
+msgid "over 100% wall (not bridge)"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Speed for line of wall which has degree of overhang over 100% line width, "
+"but the wall is not a bridge wall."
+msgstr ""
+
 msgid "Speed of bridge and completely overhang wall"
 msgstr "Скорость печати мостов и периметров с полным нависанием."
 
@@ -9993,6 +10002,18 @@ msgid ""
 msgstr ""
 "Определяет процент нависания относительно ширины линии и использует разную "
 "скорость печати. Для 100%-го свеса используется скорость печати мостов."
+
+msgid "Smooth speed discontinuity area"
+msgstr ""
+
+msgid "Add the speed transition between discontinuity area."
+msgstr ""
+
+msgid "Smooth coefficient"
+msgstr ""
+
+msgid "The smaller the number, the longer the speed transition path."
+msgstr ""
 
 msgid "Line width of inner wall"
 msgstr "Ширина экструзии внутренних периметров"

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-16 10:30+0800\n"
+"POT-Creation-Date: 2024-08-22 19:49+0800\n"
 "PO-Revision-Date: 2024-03-21 10:39+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -8081,6 +8081,15 @@ msgstr "打开这个选项将降低不同悬垂程度的走线的打印速度"
 msgid "mm/s"
 msgstr "mm/s"
 
+msgid "over 100% wall (not bridge)"
+msgstr "完全悬垂墙（非架桥墙）"
+
+#, c-format, boost-format
+msgid ""
+"Speed for line of wall which has degree of overhang over 100% line width, "
+"but the wall is not a bridge wall."
+msgstr ""
+
 msgid "Speed of bridge and completely overhang wall"
 msgstr "桥接和完全悬空的外墙的打印速度"
 
@@ -9247,6 +9256,18 @@ msgid ""
 "speed to print. For 100 percent overhang, bridge speed is used."
 msgstr ""
 "检测悬空相对于线宽的百分比，并应用不同的速度打印。100%的悬空将使用桥接速度。"
+
+msgid "Smooth speed discontinuity area"
+msgstr ""
+
+msgid "Add the speed transition between discontinuity area."
+msgstr ""
+
+msgid "Smooth coefficient"
+msgstr ""
+
+msgid "The smaller the number, the longer the speed transition path."
+msgstr ""
 
 msgid "Line width of inner wall"
 msgstr "内墙的线宽"
