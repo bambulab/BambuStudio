@@ -13,6 +13,32 @@ namespace Slic3r { namespace GUI {
 
 wxDEFINE_EVENT(EVT_SELECTED_COLOR, wxCommandEvent);
 
+static void get_default_k_n_value(const std::string& filament_id, float& k, float& n)
+{
+    if (filament_id.compare("GFG00") == 0) {
+        // PETG
+        k = 0.04;
+        n = 1.0;
+    }
+    else if (filament_id.compare("GFB00") == 0 || filament_id.compare("GFB50") == 0) {
+        // ABS
+        k = 0.04;
+        n = 1.0;
+    } else if (filament_id.compare("GFU01") == 0) {
+        // TPU
+        k = 0.2;
+        n = 1.0;
+    } else if (filament_id.compare("GFB01") == 0) {
+        // ASA
+        k = 0.04;
+        n = 1.0;
+    } else {
+        // PLA , other
+        k = 0.02;
+        n = 1.0;
+    }
+}
+
 static std::string float_to_string_with_precision(float value, int precision = 3)
 {
     std::stringstream stream;
@@ -484,7 +510,7 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
         // set k / n value
         if (obj->cali_version <= -1 && obj->get_printer_series() == PrinterSeries::SERIES_P1P) {
             // set extrusion cali ratio
-            int cali_tray_id = ams_id * 4 + tray_id;
+            int cali_tray_id = ams_id * 4 + slot_id;
 
             double k = 0.0;
             try {
@@ -505,7 +531,7 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
         }
         else {
             PACalibIndexInfo select_index_info;
-            select_index_info.tray_id = tray_id;
+            select_index_info.tray_id = slot_id;
             select_index_info.nozzle_diameter = obj->m_nozzle_data.nozzles[0].diameter;
             select_index_info.cali_idx = -1;
             select_index_info.filament_id = ams_filament_id;
@@ -1128,17 +1154,9 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
     m_pa_profile_items.clear();
     m_comboBox_cali_result->SetValue(wxEmptyString);
 
-    auto get_cali_index = [this](const std::string &str) -> int {
-        for (int i = 0; i < int(m_pa_profile_items.size()); ++i) {
-            if (m_pa_profile_items[i].name == str) return i;
-        }
-        return 0;
-    };
-
     if (obj->cali_version >= 0) {
         // add default item
         PACalibResult default_item;
-        default_item.filament_id = ams_filament_id;
         default_item.cali_idx = -1;
         get_default_k_n_value(ams_filament_id, default_item.k_value, default_item.n_coef);
         m_pa_profile_items.emplace_back(default_item);
@@ -1154,20 +1172,28 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         }
 
         m_comboBox_cali_result->Set(items);
-        if (tray_id == VIRTUAL_TRAY_MAIN_ID) {
+        if (ams_id == VIRTUAL_TRAY_DEPUTY_ID) {
             cali_select_idx = CalibUtils::get_selected_calib_idx(m_pa_profile_items,this->obj->vt_slot[0].cali_idx);
             if (cali_select_idx >= 0) {
                 m_comboBox_cali_result->SetSelection(cali_select_idx);
             }
+            else {
+                m_comboBox_cali_result->SetSelection(0);
+            }
         }
         else {
             Ams* selected_ams = this->obj->amsList[std::to_string(ams_id)];
-            if(!selected_ams) return;
-            AmsTray* selected_tray = selected_ams->trayList[std::to_string(tray_id)];
-            if(!selected_tray) return;
+            if(!selected_ams)
+                return;
+            AmsTray* selected_tray = selected_ams->trayList[std::to_string(slot_id)];
+            if(!selected_tray)
+                return;
             cali_select_idx = CalibUtils::get_selected_calib_idx(m_pa_profile_items, selected_tray->cali_idx);
             if (cali_select_idx >= 0) {
                 m_comboBox_cali_result->SetSelection(cali_select_idx);
+            }
+            else {
+                m_comboBox_cali_result->SetSelection(0);
             }
         }
 
