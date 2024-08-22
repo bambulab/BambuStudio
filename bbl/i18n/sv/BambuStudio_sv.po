@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-16 10:33+0800\n"
+"POT-Creation-Date: 2024-08-22 18:32+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -8433,6 +8433,15 @@ msgstr ""
 msgid "mm/s"
 msgstr "mm/s"
 
+msgid "over 100% wall (not bridge)"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Speed for line of wall which has degree of overhang over 100% line width, "
+"but the wall is not a bridge wall."
+msgstr ""
+
 msgid "Speed of bridge and completely overhang wall"
 msgstr "Hastighet för bridges/bryggor och hela överhängs väggar"
 
@@ -9717,6 +9726,18 @@ msgstr ""
 "Upptäck överhängets procentuella andel i förhållande till linjebredden och "
 "använd olika utskriftshastigheter. För 100 procent överhäng används bridge "
 "hastighet."
+
+msgid "Smooth speed discontinuity area"
+msgstr ""
+
+msgid "Add the speed transition between discontinuity area."
+msgstr ""
+
+msgid "Smooth coefficient"
+msgstr ""
+
+msgid "The smaller the number, the longer the speed transition path."
+msgstr ""
 
 msgid "Line width of inner wall"
 msgstr "Linjebredd för inre vägg"

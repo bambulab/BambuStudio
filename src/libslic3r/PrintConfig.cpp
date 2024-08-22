@@ -886,7 +886,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(0));
 
     def             = this->add("overhang_totally_speed", coFloat);
-    def->label      = "100% overhang wall (not bridge)";
+    def->label      = L("over 100% wall (not bridge)");
     def->category   = L("Speed");
     def->tooltip = L("Speed for line of wall which has degree of overhang over 100% line width, but the wall is not a bridge wall.");
     def->sidetext = L("mm/s");
