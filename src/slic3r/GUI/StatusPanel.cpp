@@ -3781,7 +3781,6 @@ void StatusPanel::on_ext_spool_edit(wxCommandEvent &event)
 
         m_filament_setting_dlg->ams_id = ams_id;
         m_filament_setting_dlg->slot_id  = slot_id;
-        m_filament_setting_dlg->tray_id = 255;
         int nozzle_index = ams_id == VIRTUAL_TRAY_MAIN_ID ? 0 : 1;
 
         try {
