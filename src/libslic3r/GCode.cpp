@@ -4590,41 +4590,10 @@ ExtrusionPaths GCode::merge_same_speed_paths(const ExtrusionPaths &paths)
         }
     }
 
-    if (!merge_path.empty())
+    if (!merge_path.empty() && merge_start < paths.size())
         output_paths.push_back(std::move(merge_path));
 
     return output_paths;
-}
-
-static void set_short_and_discontinuity_speed_line(ExtrusionPaths &paths)
-{
-    for (size_t path_idx = 0; path_idx < paths.size(); path_idx++) {
-        ExtrusionPath &path        = paths[path_idx];
-        double         path_length = path.polyline.length();
-
-        if (path_length > not_split_length) continue;
-
-        bool smooth_left_path  = false;
-        bool smooth_right_path = false;
-        // first line do not need to smooth speed on left
-        // prev line speed may change
-        if (path_idx > 0)
-            smooth_left_path = need_smooth_speed(paths[path_idx - 1], path);
-
-        // last line do not need to smooth speed on right
-        if (path_idx < paths.size() - 1)
-            smooth_right_path = need_smooth_speed(paths[path_idx + 1], path);
-
-        if (!(smooth_left_path || smooth_right_path))
-            continue;
-
-        //reset speed
-        if (smooth_left_path) {
-            path.smooth_speed = paths[path_idx - 1].smooth_speed;
-        } else {
-            path.smooth_speed = paths[path_idx + 1].smooth_speed;
-        }
-    }
 }
 
 ExtrusionPaths GCode::set_speed_transition(ExtrusionPaths &paths)
@@ -4688,10 +4657,7 @@ void GCode::smooth_speed_discontinuity_area(ExtrusionPaths &paths) {
     size_t path_tail_pos = 0;
     ExtrusionPaths prepare_paths = merge_same_speed_paths(paths);
 
-    //step 2 set too short path speed
-    set_short_and_discontinuity_speed_line(prepare_paths);
-
-    //step 3 split path
+    //step 2 split path
     ExtrusionPaths inter_paths;
     inter_paths =set_speed_transition(prepare_paths);
     paths = std::move(inter_paths);
