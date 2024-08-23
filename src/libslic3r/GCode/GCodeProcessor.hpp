@@ -222,7 +222,7 @@ namespace Slic3r {
         std::vector<std::pair<float, std::pair<size_t, size_t>>> spiral_vase_layers;
         //BBS
         std::vector<SliceWarning> warnings;
-        NozzleType nozzle_type;
+        std::vector<NozzleType> nozzle_type;
         BedType bed_type = BedType::btCount;
 #if ENABLE_GCODE_VIEWER_STATISTICS
         int64_t time{ 0 };
@@ -735,7 +735,7 @@ namespace Slic3r {
         EPositioningType m_e_local_positioning_type;
         std::vector<Vec3f> m_extruder_offsets;
         GCodeFlavor m_flavor;
-        float       m_nozzle_volume;
+        std::vector<float> m_nozzle_volume;
         AxisCoords m_start_position; // mm
         AxisCoords m_end_position; // mm
         AxisCoords m_origin; // mm

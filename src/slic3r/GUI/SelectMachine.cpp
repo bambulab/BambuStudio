@@ -2611,21 +2611,32 @@ bool SelectMachineDialog::is_same_nozzle_diameters(std::string& tag_nozzle_type,
         PresetBundle* preset_bundle = wxGetApp().preset_bundle;
         auto opt_nozzle_diameters = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
 
-        const ConfigOptionEnum<NozzleType>* nozzle_type = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<NozzleType>>("nozzle_type");
+        const ConfigOptionEnumsGenericNullable* nozzle_type = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnumsGenericNullable>("nozzle_type");
+        std::vector<std::string> preset_nozzle_types(nozzle_type->size());
+        for (size_t idx = 0; idx < nozzle_type->size(); ++idx)
+            preset_nozzle_types[idx] = NozzleTypeEumnToStr[NozzleType(nozzle_type->values[idx])];
 
-        if (nozzle_type->value == NozzleType::ntHardenedSteel) {
-            preset_nozzle_type = "hardened_steel";
-        }
-        else if (nozzle_type->value == NozzleType::ntStainlessSteel) {
-            preset_nozzle_type = "stainless_steel";
-        }
+        std::vector<std::string> machine_nozzle_types(obj_->m_nozzle_data.nozzles.size());
+        for (size_t idx = 0; idx < obj_->m_nozzle_data.nozzles.size(); ++idx)
+            machine_nozzle_types[idx] = obj_->m_nozzle_data.nozzles[idx].type;
 
+        auto used_filaments = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_used_extruders();  // 1 based
+        auto filament_maps=wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_filament_maps(); // 1 based
+
+        std::vector<int>used_extruders; // 0 based
+        for (auto f : used_filaments) {
+            int filament_extruder = filament_maps[f - 1] - 1;
+            if (std::find(used_extruders.begin(), used_extruders.end(), filament_extruder) == used_extruders.end())
+                used_extruders.emplace_back(filament_extruder);
+        }
+        std::sort(used_extruders.begin(), used_extruders.end());
+
+        // TODO [tao wang] : add idx mapping
         tag_nozzle_type = obj_->m_nozzle_data.nozzles[0].type;
 
-        auto        extruders = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_used_extruders();
         if (opt_nozzle_diameters != nullptr) {
-            for (auto i = 0; i < extruders.size(); i++) {
-                auto extruder = extruders[i] - 1;
+            for (auto i = 0; i < used_extruders.size(); i++) {
+                auto extruder = used_extruders[i];
                 preset_nozzle_diameters = float(opt_nozzle_diameters->get_at(extruder));
                 if (preset_nozzle_diameters != obj_->m_nozzle_data.nozzles[0].diameter) {
                     is_same_nozzle_diameters = false;
