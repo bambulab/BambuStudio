@@ -489,6 +489,12 @@ void PrintConfigDef::init_common_params()
     def->gui_type = ConfigOptionDef::GUIType::one_string;
     def->set_default_value(new ConfigOptionPoints{ Vec2d(0, 0), Vec2d(200, 0), Vec2d(200, 200), Vec2d(0, 200) });
 
+    def = this->add("extruder_printable_area", coPointsGroups);
+    def->label = L("Extruder printable area");
+    def->mode = comAdvanced;
+    def->gui_type = ConfigOptionDef::GUIType::one_string;
+    def->set_default_value(new ConfigOptionPointsGroups{ { Vec2d(0, 0), Vec2d(200, 0), Vec2d(200, 200), Vec2d(0, 200) } });
+
     //BBS: add "bed_exclude_area"
     def = this->add("bed_exclude_area", coPoints);
     def->label = L("Bed exclude area");
@@ -5187,6 +5193,7 @@ std::set<std::string> printer_extruder_options = {
     "extruder_type",
     "nozzle_diameter",
     "default_nozzle_volume_type",
+    "extruder_printable_area",
     "min_layer_height",
     "max_layer_height"
 };
