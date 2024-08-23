@@ -4547,6 +4547,12 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                         }
                     }
                 } else if (jj["command"].get<std::string>() == "extrusion_cali_set") {
+                    if (jj.contains("result") && jj.contains("reason")) {
+                        if (jj["result"].get<std::string>() == "fail") {
+                            auto err_code = jj["err_code"].get<int>();
+                            print_error   = err_code;
+                        }
+                    }
 #ifdef CALI_DEBUG
                     std::string str = jj.dump();
                     BOOST_LOG_TRIVIAL(info) << "extrusion_cali_set: " << str;
@@ -4591,6 +4597,13 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     extrusion_cali_set_hold_start = std::chrono::system_clock::now();
                 }
                 else if (jj["command"].get<std::string>() == "extrusion_cali_sel") {
+                    if (jj.contains("result") && jj.contains("reason")) {
+                        if (jj["result"].get<std::string>() == "fail") {
+                            auto err_code = jj["err_code"].get<int>();
+                            print_error   = err_code;
+                        }
+                    }
+
 #ifdef CALI_DEBUG
                     std::string str = jj.dump();
                     BOOST_LOG_TRIVIAL(info) << "extrusion_cali_sel: " << str;
@@ -4632,6 +4645,13 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     }
                 }   
                 else if (jj["command"].get<std::string>() == "extrusion_cali_get") {
+                    if (jj.contains("result") && jj.contains("reason")) {
+                        if (jj["result"].get<std::string>() == "fail") {
+                            auto err_code = jj["err_code"].get<int>();
+                            print_error   = err_code;
+                        }
+                    }
+
                     reset_pa_cali_history_result();
                     has_get_pa_calib_tab = true;
 
@@ -4695,6 +4715,13 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     // notify cali history to update
                 }
                 else if (jj["command"].get<std::string>() == "extrusion_cali_get_result") {
+                    if (jj.contains("result") && jj.contains("reason")) {
+                        if (jj["result"].get<std::string>() == "fail") {
+                            auto err_code = jj["err_code"].get<int>();
+                            print_error   = err_code;
+                        }
+                    }
+
                     reset_pa_cali_result();
                     get_pa_calib_result = true;
 
