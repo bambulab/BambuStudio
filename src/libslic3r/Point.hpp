@@ -610,6 +610,21 @@ inline Point   align_to_grid(Point   coord, Point   spacing, Point   base)
     }
 } // namespace Slic3r
 
+// requseted by ConfigOptionPointsGroups
+namespace std {
+    template<>
+    struct hash<Slic3r::Vec2ds> {
+        size_t operator()(const Slic3r::Vec2ds& vec) {
+            size_t seed = 0;
+            for (const auto& element : vec) {
+                seed ^= std::hash<double>()(element[0]) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+                seed ^= std::hash<double>()(element[1]) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+            }
+            return seed;
+        }
+    };
+}
+
 // start Boost
 #include <boost/version.hpp>
 #include <boost/polygon/polygon.hpp>
