@@ -12098,7 +12098,7 @@ void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn, bool us
     }
 
     auto config = get_app_config();
-    PrintHostSendDialog dlg(default_output_file, upload_job.printhost->get_post_upload_actions(), groups, config->get_bool("open_device_tab_post_upload"));
+    PrintHostSendDialog dlg(default_output_file, upload_job.printhost->get_post_upload_actions(), groups, config->get("open_device_tab_post_upload") == "true");
     if (dlg.ShowModal() == wxID_OK) {
         config->set_bool("open_device_tab_post_upload", dlg.switch_to_device_tab());
         upload_job.switch_to_device_tab    = dlg.switch_to_device_tab();
