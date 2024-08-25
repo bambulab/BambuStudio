@@ -18,6 +18,13 @@
 #define VALIDATE_PRESETS_MODIFIED_GCODES        3
 
 
+// define an enum class of vendor type
+enum class VendorType {
+    Unknown = 0,
+    Klipper,
+    Marlin,
+    Marlin_BBL
+};
 namespace Slic3r {
 
 // Bundle of Print + Filament + Printer presets.
@@ -80,6 +87,10 @@ public:
     //BBS: get vendor's current version
     Semver get_vendor_profile_version(std::string vendor_name);
 
+    // Orca: get vendor type
+    VendorType get_current_vendor_type();
+    // Vendor related handy functions
+    bool is_bbl_vendor() { return get_current_vendor_type() == VendorType::Marlin_BBL; }
     // Whether using bbl network for print upload
     bool use_bbl_network();
     // Whether using bbl's device tab
