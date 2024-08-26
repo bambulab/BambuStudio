@@ -187,6 +187,7 @@ namespace GUI {
         bool init_model_from_poly(const std::vector<Vec2f> &triangles, float z, bool generate_mesh = false);
         bool init_model_from_lines(const Lines &lines, float z, bool generate_mesh = false);
         bool init_model_from_lines(const Lines3 &lines, bool generate_mesh = false);
+        bool init_model_from_lines(const Line3floats &lines, bool generate_mesh = false);
         // if entity_id == -1 set the color of all entities
         void set_color(int entity_id, const std::array<float, 4>& color);
         void set_color(const ColorRGBA &color);

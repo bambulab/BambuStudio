@@ -2296,7 +2296,7 @@ struct Plater::priv
     bool                        show_render_statistic_dialog{ false };
     bool                        show_wireframe{ false };
     bool                        wireframe_enabled{ true };
-
+    bool                        show_non_manifold_edges{false};
     static const std::regex pattern_bundle;
     static const std::regex pattern_3mf;
     static const std::regex pattern_zip_amf;
@@ -13965,8 +13965,14 @@ bool Plater::is_render_statistic_dialog_visible() const
     return p->show_render_statistic_dialog;
 }
 
-void Plater::toggle_show_wireframe()
-{
+void Plater::toggle_non_manifold_edges() {
+    p->show_non_manifold_edges = !p->show_non_manifold_edges; }
+
+bool Plater::is_show_non_manifold_edges() {
+    return p->show_non_manifold_edges;
+}
+
+void Plater::toggle_show_wireframe() {
     p->show_wireframe = !p->show_wireframe;
 }
 
