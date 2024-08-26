@@ -3501,6 +3501,9 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                     evt.ShiftDown() && evt.AltDown() && keyCode == WXK_RETURN) {
                     wxGetApp().plater()->toggle_show_wireframe();
                     m_dirty = true;
+                } else if ((evt.ShiftDown() && evt.ControlDown() && keyCode == 'L')) {
+                    wxGetApp().plater()->toggle_non_manifold_edges();
+                    m_dirty = true;
                 }
                 else if (m_tab_down && keyCode == WXK_TAB && !evt.HasAnyModifiers()) {
                     // Enable switching between 3D and Preview with Tab

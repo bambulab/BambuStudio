@@ -699,6 +699,8 @@ public:
     void toggle_render_statistic_dialog();
     bool is_render_statistic_dialog_visible() const;
 
+    void toggle_non_manifold_edges();
+    bool is_show_non_manifold_edges();
     void toggle_show_wireframe();
     bool is_show_wireframe() const;
     void enable_wireframe(bool status);
