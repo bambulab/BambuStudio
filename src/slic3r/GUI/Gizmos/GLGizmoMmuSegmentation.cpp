@@ -143,7 +143,9 @@ bool GLGizmoMmuSegmentation::on_init()
 
     //add toggle wire frame hint
     m_desc["toggle_wireframe_caption"] = alt + _L("Shift + Enter");
-    m_desc["toggle_wireframe"]         = _L("Toggle Wireframe");
+    m_desc["toggle_wireframe"]         = _L("Toggle Wireframe");//"show_wireframe" in shader
+    m_desc["toggle_non_manifold_edges_caption"] = ctrl + _L("Shift + L");
+    m_desc["toggle_non_manifold_edges"]         = _L("Toggle non-manifold edges");
 
     init_extruders_data();
 
@@ -167,8 +169,52 @@ void GLGizmoMmuSegmentation::render_painter_gizmo() const
     m_c->object_clipper()->render_cut();
     m_c->instances_hider()->render_cut();
     render_cursor();
-
+    render_non_manifold_edges();
     glsafe(::glDisable(GL_BLEND));
+}
+
+void GLGizmoMmuSegmentation::render_non_manifold_edges() const {
+    if (wxGetApp().plater()->is_show_non_manifold_edges()) {
+        if (!m_non_manifold_edges_model.is_initialized()) {
+            const Selection &  selection = m_parent.get_selection();
+            const ModelObject *mo = m_c->selection_info()->model_object();
+            Line3floats non_manifold_edges;
+            int         idx = -1;
+            for (ModelVolume *mv : mo->volumes) {
+                if (mv->is_model_part()) {
+                    ++idx;
+                    auto &triangle_selector = m_triangle_selectors[idx];
+                    int   max_orig_size_vertices = triangle_selector->get_orig_size_vertices();
+                    auto  neighbors              = triangle_selector->get_neighbors();
+                    auto  vertices               = triangle_selector->get_vertices();
+                    auto  triangles              = triangle_selector->get_triangles();
+                    auto  world_tran             = (mo->instances[selection.get_instance_idx()]->get_transformation().get_matrix() * mv->get_matrix()).cast<float>();
+                    for (size_t i = 0; i < neighbors.size(); i++) {
+                        auto nei = neighbors[i];
+                        for (int j = 0; j < 3; j++) {
+                            if (nei[j] < 0) {
+                                auto jj     = next_idx_modulo(j, 3);
+                                auto v      = world_tran * vertices[triangles[i].verts_idxs[j]].v;
+                                auto next_v = world_tran * vertices[triangles[i].verts_idxs[jj]].v;
+                                non_manifold_edges.emplace_back(Line3float(v, next_v));
+                            }
+                        }
+                    }
+                }
+            }
+            m_non_manifold_edges_model.init_model_from_lines(non_manifold_edges);
+            m_non_manifold_edges_model.set_color(ColorRGBA::RED());
+        }
+        const Camera &   camera   = wxGetApp().plater()->get_camera();
+        auto             view_mat = camera.get_view_matrix();
+        auto             proj_mat = camera.get_projection_matrix();
+        GLShaderProgram *shader = wxGetApp().get_shader("flat");
+        shader->start_using();
+        shader->set_uniform("view_model_matrix", view_mat);
+        shader->set_uniform("projection_matrix", proj_mat);
+        m_non_manifold_edges_model.render_geometry();
+        shader->stop_using();
+    }
 }
 
 void GLGizmoMmuSegmentation::set_painter_gizmo_data(const Selection &selection)
@@ -364,17 +410,17 @@ void GLGizmoMmuSegmentation::show_tooltip_information(float caption_max, float x
 
         std::vector<std::string> tip_items;
         switch (m_tool_type) {
-            case ToolType::BRUSH: 
-                tip_items = {"paint", "erase", "cursor_size", "clipping_of_view", "toggle_wireframe"};
+            case ToolType::BRUSH:
+                tip_items = {"paint", "erase", "cursor_size", "clipping_of_view", "toggle_wireframe", "toggle_non_manifold_edges"};
                 break;
-            case ToolType::BUCKET_FILL: 
-                tip_items = {"paint", "erase", "smart_fill_angle", "clipping_of_view", "toggle_wireframe"};
+            case ToolType::BUCKET_FILL:
+                tip_items = {"paint", "erase", "smart_fill_angle", "clipping_of_view", "toggle_wireframe", "toggle_non_manifold_edges"};
                 break;
             case ToolType::SMART_FILL:
                 // TODO:
                 break;
             case ToolType::GAP_FILL:
-                tip_items = {"gap_area", "toggle_wireframe"};
+                tip_items = {"gap_area", "toggle_wireframe", "toggle_non_manifold_edges"};
                 break;
             default:
                 break;
@@ -958,9 +1004,10 @@ void GLGizmoMmuSegmentation::on_set_state()
     GLGizmoPainterBase::on_set_state();
     if (get_state() == On) {
         size_t n_extruder_colors = std::min((size_t) EnforcerBlockerType::ExtruderMax, m_extruders_colors.size());
-        if (n_extruder_colors>=2) { 
+        if (n_extruder_colors>=2) {
             m_selected_extruder_idx = 1;
         }
+        m_non_manifold_edges_model.reset();
     }
     else if (get_state() == Off) {
         ModelObject* mo = m_c->selection_info()->model_object();

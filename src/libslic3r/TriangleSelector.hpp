@@ -218,7 +218,10 @@ public:
     // Create new object on a TriangleMesh. The referenced mesh must
     // stay valid, a ptr to it is saved and used.
     explicit TriangleSelector(const TriangleMesh& mesh, float edge_limit = 0.6f);
-
+    int   get_orig_size_vertices() { return m_orig_size_vertices; }
+    const std::vector<Triangle> &get_triangles() { return m_triangles; }
+    const std::vector<Vertex>&  get_vertices() { return m_vertices; }
+    const std::vector<Vec3i>& get_neighbors() { return m_neighbors; }
     // Returns the facet_idx of the unsplit triangle containing the "hit". Returns -1 if the triangle isn't found.
     [[nodiscard]] int select_unsplit_triangle(const Vec3f &hit, int facet_idx) const;
     [[nodiscard]] int select_unsplit_triangle(const Vec3f &hit, int facet_idx, const Vec3i &neighbors) const;

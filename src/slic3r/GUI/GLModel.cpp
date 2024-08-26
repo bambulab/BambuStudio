@@ -696,6 +696,23 @@ bool GLModel::init_model_from_lines(const Lines3 &lines, bool generate_mesh)
     return true;
 }
 
+bool GLModel::init_model_from_lines(const Line3floats &lines, bool generate_mesh)
+{
+    GLModel::Geometry init_data;
+    init_data.format = {GLModel::PrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3};
+    init_data.reserve_vertices(2 * lines.size());
+    init_data.reserve_indices(2 * lines.size());
+
+    for (const auto &l : lines) {
+        init_data.add_vertex(l.a);
+        init_data.add_vertex(l.b);
+        const unsigned int vertices_counter = (unsigned int) init_data.vertices_count();
+        init_data.add_line(vertices_counter - 2, vertices_counter - 1);
+    }
+    init_from(std::move(init_data), generate_mesh);
+    return true;
+}
+
 void GLModel::set_color(int entity_id, const std::array<float, 4>& color)
 {
     for (size_t i = 0; i < m_render_data.size(); ++i) {
