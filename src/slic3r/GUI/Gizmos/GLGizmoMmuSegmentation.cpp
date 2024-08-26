@@ -205,15 +205,17 @@ void GLGizmoMmuSegmentation::render_non_manifold_edges() const {
             m_non_manifold_edges_model.init_model_from_lines(non_manifold_edges);
             m_non_manifold_edges_model.set_color(ColorRGBA::RED());
         }
-        const Camera &   camera   = wxGetApp().plater()->get_camera();
-        auto             view_mat = camera.get_view_matrix();
-        auto             proj_mat = camera.get_projection_matrix();
-        GLShaderProgram *shader = wxGetApp().get_shader("flat");
-        shader->start_using();
-        shader->set_uniform("view_model_matrix", view_mat);
-        shader->set_uniform("projection_matrix", proj_mat);
-        m_non_manifold_edges_model.render_geometry();
-        shader->stop_using();
+        if (m_non_manifold_edges_model.is_initialized()) {
+            const Camera &   camera   = wxGetApp().plater()->get_camera();
+            auto             view_mat = camera.get_view_matrix();
+            auto             proj_mat = camera.get_projection_matrix();
+            GLShaderProgram *shader   = wxGetApp().get_shader("flat");
+            shader->start_using();
+            shader->set_uniform("view_model_matrix", view_mat);
+            shader->set_uniform("projection_matrix", proj_mat);
+            m_non_manifold_edges_model.render_geometry();
+            shader->stop_using();
+        }
     }
 }
 
@@ -502,7 +504,9 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
 
     float textbox_width       = 1.5 * slider_icon_width;
     SliderInputLayout slider_input_layout = {clipping_slider_left, sliders_width, drag_left_width + circle_max_width, textbox_width};
-
+    if (wxGetApp().plater()->is_show_non_manifold_edges() && m_rr.mesh_id >= 0) {
+        m_imgui->text(_L("hit face") + ":" + std::to_string(m_rr.facet));
+    }
     {
         m_imgui->text(m_desc.at("filaments"));
         float text_offset = m_imgui->calc_text_size(m_desc.at("filaments")).x + m_imgui->scaled(1.5f);
