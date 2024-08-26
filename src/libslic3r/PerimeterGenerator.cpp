@@ -10,6 +10,7 @@
 #include <cmath>
 #include <cassert>
 #include <random>
+#include <thread>
 #include <unordered_set>
 #include "libslic3r/AABBTreeLines.hpp"
 static const int overhang_sampling_number = 6;
