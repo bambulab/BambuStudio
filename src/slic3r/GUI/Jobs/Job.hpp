@@ -29,6 +29,12 @@ public:
         // status update, to be used from the work thread (process() method)
         virtual void update_status(int st, const std::string &msg = "") = 0;
 
+        // clear the percentage on the ProgressIndicator
+        virtual void clear_percent() = 0;
+
+        // show the provided error information on the ProgressIndicator
+        virtual void show_error_info(wxString msg, int code, wxString description, wxString extra) = 0;
+
         // Returns true if the job was asked to cancel itself.
         virtual bool was_canceled() const = 0;
 

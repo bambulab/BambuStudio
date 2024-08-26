@@ -115,6 +115,18 @@ public:
 
     ProgressIndicator * get_pri() { return m_progress.get(); }
     const ProgressIndicator * get_pri() const  { return m_progress.get(); }
+
+    void clear_percent() override
+    {
+        if (m_progress)
+            m_progress->clear_percent();
+    }
+
+    void show_error_info(wxString msg, int code, wxString description, wxString extra) override
+    {
+        if (m_progress)
+            m_progress->show_error_info(msg, code, description, extra);
+    }
 };
 
 }} // namespace Slic3r::GUI
