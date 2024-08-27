@@ -951,12 +951,6 @@ void MainFrame::update_title()
     return;
 }
 
-void MainFrame::show_publish_button(bool show)
-{
-    m_publish_btn->Show(show);
-    Layout();
-}
-
 void MainFrame::show_calibration_button(bool show)
 {
 #ifdef __APPLE__
@@ -1562,17 +1556,14 @@ wxBoxSizer* MainFrame::create_side_tools()
     m_slice_select = eSlicePlate;
     m_print_select = ePrintPlate;
 
-    m_publish_btn = new Button(this, _L("Upload"), "bar_publish", 0, FromDIP(16));
     m_slice_btn = new SideButton(this, _L("Slice plate"), "");
     m_slice_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, FromDIP(14));
     m_print_btn = new SideButton(this, _L("Print plate"), "");
     m_print_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, FromDIP(14));
 
     update_side_button_style();
-    m_publish_btn->Hide();
     m_slice_option_btn->Enable();
     m_print_option_btn->Enable();
-    sizer->Add(m_publish_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
     sizer->Add(FromDIP(15), 0, 0, 0, 0);
     sizer->Add(m_slice_option_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
     sizer->Add(m_slice_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
@@ -1582,23 +1573,6 @@ wxBoxSizer* MainFrame::create_side_tools()
     sizer->Add(FromDIP(19), 0, 0, 0, 0);
 
     sizer->Layout();
-
-    m_publish_btn->Bind(wxEVT_BUTTON, [this](auto& e) {
-        CallAfter([this] {
-            wxGetApp().open_publish_page_dialog();
-
-            if (!wxGetApp().getAgent()) {
-                BOOST_LOG_TRIVIAL(info) << "publish: no agent";
-                return;
-            }
-
-            // record
-            json j;
-            NetworkAgent* agent = GUI::wxGetApp().getAgent();
-            if (agent)
-                agent->track_event("enter_model_mall", j.dump());
-        });
-    });
 
     m_slice_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
@@ -1988,13 +1962,6 @@ void MainFrame::update_side_button_style()
         std::pair<wxColour, int>(wxColour(48, 221, 112), StateColor::Hovered),
         std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal)
     );
-
-    m_publish_btn->SetMinSize(wxSize(FromDIP(125), FromDIP(24)));
-    m_publish_btn->SetCornerRadius(FromDIP(12));
-    m_publish_btn->SetBackgroundColor(m_btn_bg_enable);
-    m_publish_btn->SetBorderColor(m_btn_bg_enable);
-    m_publish_btn->SetBackgroundColour(wxColour(59,68,70));
-    m_publish_btn->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
 
     m_slice_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Left, FromDIP(15));
     m_slice_btn->SetCornerRadius(FromDIP(12));
@@ -2418,6 +2385,27 @@ void MainFrame::init_menubar_as_editor()
             []() { return true; }, this);
 
         append_submenu(fileMenu, export_menu, wxID_ANY, _L("Export"), "");
+
+        // Publish to MakerWorld
+        append_menu_item(
+            fileMenu, wxID_ANY, _L("Publish to MakerWorld"), _L("Publish to MakerWorld"),
+            [this](wxCommandEvent &) {
+                CallAfter([this] {
+                    wxGetApp().open_publish_page_dialog();
+
+                    if (!wxGetApp().getAgent()) {
+                        BOOST_LOG_TRIVIAL(info) << "publish: no agent";
+                        return;
+                    }
+
+                    // record
+                    json          j;
+                    NetworkAgent *agent = GUI::wxGetApp().getAgent();
+                    if (agent) agent->track_event("enter_model_mall", j.dump());
+                });
+            },
+            "", nullptr,
+            [this](){ return wxGetApp().has_model_mall(); }, this);
 
         fileMenu->AppendSeparator();
 
