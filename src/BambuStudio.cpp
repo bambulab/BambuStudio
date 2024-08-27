@@ -3321,6 +3321,16 @@ int CLI::run(int argc, char **argv)
             return;
         }
 
+        bool wipe_tower_enabled = false;
+        if (print_config.has("enable_prime_tower")) {
+            wipe_tower_enabled = print_config.option<ConfigOptionBool>("enable_prime_tower")->value;
+        }
+        if (!wipe_tower_enabled) {
+            plate_obj_size_info.has_wipe_tower = false;
+            BOOST_LOG_TRIVIAL(info) << boost::format("enable_prime_tower set to false");
+            return;
+        }
+
         int valid_count = plate->printable_instance_size();
         if (valid_count <= 0){
             plate_obj_size_info.has_wipe_tower = false;
