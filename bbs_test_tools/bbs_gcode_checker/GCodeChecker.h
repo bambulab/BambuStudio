@@ -218,6 +218,7 @@ private:
     std::vector<double> filament_flow_ratio;
     std::vector<double> nozzle_temperature;
     std::vector<double> nozzle_temperature_initial_layer;
+    bool has_scarf_joint_seam = false;
 };
 
 }
