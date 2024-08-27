@@ -1122,6 +1122,10 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
 
         set_view_type(EViewType::Summary);
     }
+    else {
+        m_view_type_sel = (int) EViewType::FeatureType;
+        set_view_type(EViewType::FeatureType);
+    }
 
     m_fold = false;
 
