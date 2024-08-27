@@ -1365,14 +1365,17 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                             Slic3r::append(zs_sinking, zs);
                             slice_mesh_slabs(painted, zs_sinking, volume_trafo, max_top_layers > 0 ? &top : nullptr, max_bottom_layers > 0 ? &bottom : nullptr, throw_on_cancel_callback);
 
-                            MeshSlicingParams slicing_params;
-                            slicing_params.trafo = volume_trafo;
-                            Polygons bottom_slice = slice_mesh(painted, zs[0], slicing_params);
+                            if (top.size() > 0)
+                                top.erase(top.begin());
 
-                            top.erase(top.begin());
-                            bottom.erase(bottom.begin());
+                            if (bottom.size() > 1) {
+                                MeshSlicingParams slicing_params;
+                                slicing_params.trafo  = volume_trafo;
+                                Polygons bottom_slice = slice_mesh(painted, zs[0], slicing_params);
 
-                            bottom[0] = union_(bottom[0], bottom_slice);
+                                bottom.erase(bottom.begin());
+                                bottom[0] = union_(bottom[0], bottom_slice);
+                            }
                         } else
                             slice_mesh_slabs(painted, zs, volume_trafo, max_top_layers > 0 ? &top : nullptr, max_bottom_layers > 0 ? &bottom : nullptr, throw_on_cancel_callback);
                         auto merge = [](std::vector<Polygons> &&src, std::vector<Polygons> &dst) {
