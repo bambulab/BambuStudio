@@ -3212,8 +3212,6 @@ void GUI_App::update_label_colours_from_appconfig()
 
 void GUI_App::update_publish_status()
 {
-    mainframe->show_publish_button(has_model_mall());
-
     mainframe->m_webview->ResetWholePage();
 }
 
