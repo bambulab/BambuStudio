@@ -20,6 +20,7 @@ const std::string Wipe_End_Tag       = " WIPE_END";
 const std::string Layer_Change_Tag   = " CHANGE_LAYER";
 const std::string Height_Tag         = " LAYER_HEIGHT: ";
 const std::string filament_flow_ratio_tag = " filament_flow_ratio";
+const std::string has_scarf_joint_seam_tag = " has_scarf_joint_seam";
 const std::string nozzle_temperature_Tag   = " nozzle_temperature =";
 const std::string nozzle_temperature_initial_layer_Tag  = " nozzle_temperature_initial_layer";
 const std::string Z_HEIGHT_TAG                         = " Z_HEIGHT: ";
@@ -161,6 +162,11 @@ GCodeCheckResult GCodeChecker::parse_comment(GCodeLine& line)
             std::cout << "invalid filament flow ratio comment with invalid value!" << std::endl;
             return GCodeCheckResult::ParseFailed;
         }
+    }
+    else if (starts_with(comment, has_scarf_joint_seam_tag))
+    {
+        std::string str = comment.substr(has_scarf_joint_seam_tag.size() + 3);
+        has_scarf_joint_seam = (str == "1");
     }
     else if (starts_with(comment, nozzle_temperature_Tag)) {
         std::string str = comment.substr(nozzle_temperature_Tag.size() + 1);
@@ -638,7 +644,16 @@ GCodeCheckResult GCodeChecker::check_G0_G1_width(const GCodeLine& line)
 
         bool is_bridge = m_role == erOverhangPerimeter || m_role == erBridgeInfill;
         if (!is_bridge) {
-            double width_real = calculate_G1_width(source, target, delta_pos[E], m_height, is_bridge);
+            double real_height = m_height;
+            if (line.has(Z) && has_scarf_joint_seam && line.get(Z) != 0)
+            {
+                if (line.get(Z) == z_height)
+                {
+                    return GCodeCheckResult::Success;
+                }
+                real_height = line.get(Z) - (z_height - m_height);
+            }
+            double width_real = calculate_G1_width(source, target, delta_pos[E], real_height, is_bridge);
             if (fabs(width_real - m_width) > WIDTH_THRESHOLD) {
                 std::cout << "Invalid G0_G1 because has abnormal line width." << std::endl;
                 std::cout << "Width: " << m_width << " Width_real: " << width_real << std::endl;
