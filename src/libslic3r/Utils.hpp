@@ -604,6 +604,8 @@ inline std::string get_bbl_finish_time_dhm(float time_in_secs)
                 diff_day += 365;
         }
         diff_day += finish_day;
+    } else {
+        diff_day = finish_day - current_day;
     }
 
     std::string finish_time_str = std::to_string(finish_hour) + ":" + std::to_string(finish_minute);
