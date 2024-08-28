@@ -13629,16 +13629,35 @@ void Plater::show_object_info()
     wxString info_manifold;
     int non_manifold_edges = 0;
     auto mesh_errors = p->sidebar->obj_list()->get_mesh_errors_info(&info_manifold, &non_manifold_edges);
+    bool warning = non_manifold_edges > 0;
+    wxString hyper_text;
+    std::function<bool(wxEvtHandler*)> callback;
+    if (warning) {
+        hyper_text = _L(" (Repair)");
+        callback = [](wxEvtHandler*) {
+            wxCommandEvent* evt = new wxCommandEvent(EVT_REPAIR_MODEL);
+            wxQueueEvent(wxGetApp().plater(), evt);
+            return false;
+        };
+    }
 
     #ifndef __WINDOWS__
     if (non_manifold_edges > 0) {
-        info_manifold += into_u8("\n" + _L("Tips:") + "\n" +_L("\"Fix Model\" feature is currently only on Windows. Please repair the model on Bambu Studio(windows) or CAD softwares."));
+        info_manifold += into_u8("\n" + _L("Tips:") + "\n" +_L("\"Fix Model\" feature is currently only on Windows. Please use a third-party tool to repair the model before importing it into Bambu Studio, such as "));
+    }
+    if (warning) {
+        std::string repair_url = "https://www.formware.co/onlinestlrepair";
+        hyper_text = repair_url + ".";
+        callback = [repair_url](wxEvtHandler*) {
+            wxGetApp().open_browser_with_warning_dialog(repair_url);
+            return false;
+        };
     }
     #endif //APPLE & LINUX
 
     info_manifold = "<Error>" + info_manifold + "</Error>";
     info_text += into_u8(info_manifold);
-    notify_manager->bbl_show_objectsinfo_notification(info_text, is_windows10()&&(non_manifold_edges > 0), !(p->current_panel == p->view3D));
+    notify_manager->bbl_show_objectsinfo_notification(info_text, warning, !(p->current_panel == p->view3D), into_u8(hyper_text), callback);
 }
 
 bool Plater::show_publish_dialog(bool show)
