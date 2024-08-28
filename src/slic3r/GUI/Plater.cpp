@@ -13602,6 +13602,16 @@ void Plater::show_object_info()
     int obj_idx = selection.get_object_idx();
     std::string info_text;
 
+    if (selection.is_wipe_tower()) {
+        info_text += _u8L("Prime Tower:");
+        info_text += "\n";
+        info_text += _u8L("A cube printed during a filament change to purge old color and ensure smooth color transition.");
+        notify_manager->bbl_show_objectsinfo_notification(info_text, false, !(p->current_panel == p->view3D), _u8L("View Wiki for more information"), [](wxEvtHandler*) {
+            wxGetApp().open_browser_with_warning_dialog("https://wiki.bambulab.com/en/software/bambu-studio/multi-color-printing");
+            return false;
+            });
+        return;
+    }
     if (selCount > 1 && !selection.is_single_full_object()) {
         notify_manager->bbl_close_objectsinfo_notification();
         if (selection.get_mode() == Selection::EMode::Volume) {
@@ -13613,7 +13623,7 @@ void Plater::show_object_info()
         notify_manager->bbl_show_objectsinfo_notification(info_text, false, !(p->current_panel == p->view3D));
         return;
     }
-    else if (objects.empty() || (obj_idx < 0) || (obj_idx >= objects.size()) ||
+    if (objects.empty() || (obj_idx < 0) || (obj_idx >= objects.size()) ||
         objects[obj_idx]->volumes.empty() ||// hack to avoid crash when deleting the last object on the bed
         (selection.is_single_full_object() && objects[obj_idx]->instances.size()> 1) ||
         !(selection.is_single_full_instance() || selection.is_single_volume()))
