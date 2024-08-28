@@ -4569,8 +4569,10 @@ ExtrusionPaths GCode::merge_same_speed_paths(const ExtrusionPaths &paths)
 
         // 100% overhang speed will not to set smooth speed
         if (path.role() == erOverhangPerimeter) {
-            if (!merge_path.empty())
+            if (!merge_path.empty()) {
                 output_paths.push_back(std::move(merge_path));
+                merge_path.polyline.clear();
+            }
             output_paths.push_back(std::move(path));
             merge_start = path_idx + 1;
             continue;
