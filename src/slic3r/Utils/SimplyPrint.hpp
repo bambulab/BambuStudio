@@ -62,7 +62,7 @@ public:
     wxString                   get_test_ok_msg() const override;
     wxString                   get_test_failed_msg(wxString& msg) const override;
     bool                       test(wxString& curl_msg) const override;
-    PrintHostPostUploadActions get_post_upload_actions() const override { return PrintHostPostUploadAction::QueuePrint; }
+    PrintHostPostUploadActions get_post_upload_actions() const override { return PrintHostPostUploadAction::None; }
     bool                       upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn, InfoFn info_fn) const override;
     bool                       is_logged_in() const override { return !cred.empty(); }
     void                       log_out() const override;
