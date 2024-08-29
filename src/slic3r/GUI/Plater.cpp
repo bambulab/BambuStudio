@@ -2618,7 +2618,7 @@ struct Plater::priv
     bool can_decrease_instances() const;
     bool can_split_to_objects() const;
     bool can_split_to_volumes() const;
-    bool can_arrange() const;
+    bool can_do_ui_job() const;
     bool can_layers_editing() const;
     bool can_fix_through_netfabb() const;
     bool can_simplify() const;
@@ -6484,6 +6484,10 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
                 view3D->center_selected_plate(i);
             }
 
+            take_snapshot("Arrange after bed size changes");
+            q->set_prepare_state(Job::PREPARE_STATE_OUTSIDE_BED);
+            q->arrange();
+
             view3D->deselect_all();
         }
 #if 0   // do not toggle auto calc when change printer
@@ -8063,7 +8067,7 @@ bool Plater::priv::can_split_to_volumes() const
     return (printer_technology != ptSLA) && q->can_split(false);
 }
 
-bool Plater::priv::can_arrange() const
+bool Plater::priv::can_do_ui_job() const
 {
     return !model.objects.empty() && !m_ui_jobs.is_any_running() && !q->is_background_process_slicing();
 }
@@ -13474,7 +13478,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
     }
     else if ((action == 2)&&(!right_click))
     {
-        if (!p->partplate_list.get_plate(plate_index)->get_objects().empty() && !is_background_process_slicing())
+        if (p->can_do_ui_job())
         {
             //arrange the plate
             //take_snapshot("select_orient partplate");
@@ -13493,7 +13497,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
     }
     else if ((action == 3)&&(!right_click))
     {
-        if (!p->partplate_list.get_plate(plate_index)->get_objects().empty() && !is_background_process_slicing())
+        if (p->can_do_ui_job())
         {
             //arrange the plate
             //take_snapshot("select_arrange partplate");
@@ -13893,7 +13897,7 @@ bool Plater::can_fix_through_netfabb() const { return p->can_fix_through_netfabb
 bool Plater::can_simplify() const { return p->can_simplify(); }
 bool Plater::can_split_to_objects() const { return p->can_split_to_objects(); }
 bool Plater::can_split_to_volumes() const { return p->can_split_to_volumes(); }
-bool Plater::can_arrange() const { return p->can_arrange(); }
+bool Plater::can_do_ui_job() const { return p->can_do_ui_job(); }
 bool Plater::can_layers_editing() const { return p->can_layers_editing(); }
 bool Plater::can_paste_from_clipboard() const
 {

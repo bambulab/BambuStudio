@@ -513,7 +513,7 @@ public:
     bool can_simplify() const;
     bool can_split_to_objects() const;
     bool can_split_to_volumes() const;
-    bool can_arrange() const;
+    bool can_do_ui_job() const;
     //BBS
     bool can_cut_to_clipboard() const;
     bool can_layers_editing() const;

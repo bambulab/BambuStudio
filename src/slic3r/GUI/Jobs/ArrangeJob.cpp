@@ -93,6 +93,7 @@ void ArrangeJob::clear_input()
     m_locked.clear();
     m_unarranged.clear();
     m_uncompatible_plates.clear();
+    is_plate_locked.clear();
     m_selected.reserve(count + 1 /* for optional wti */);
     m_unselected.reserve(count + 1 /* for optional wti */);
     m_unprintable.reserve(cunprint /* for optional wti */);
@@ -423,6 +424,46 @@ void ArrangeJob::prepare_partplate() {
     plate_list.preprocess_exclude_areas(m_unselected, current_plate_index + 1);
 }
 
+void ArrangeJob::prepare_outside_plate() {
+    clear_input();
+
+    Model         &model      = m_plater->model();
+    PartPlateList &plate_list = m_plater->get_partplate_list();
+    is_plate_locked.resize(plate_list.get_plate_count());
+    for (int plate_idx = 0; plate_idx < plate_list.get_plate_count(); plate_idx++) {
+        PartPlate *plate = plate_list.get_plate(plate_idx);
+        assert(plate != nullptr);
+        if (plate->empty()) {
+            // no instances on this plate
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << format(": no instances in plate %d!", plate_idx);
+            continue;
+        }
+
+        is_plate_locked[plate_idx] = plate->is_locked();
+        plate->lock(true);
+
+        // Go through the objects and select the outside ones
+        for (auto obj_and_inst : plate->get_obj_and_inst_set()) {
+            int          oidx     = obj_and_inst.first;
+            size_t       inst_idx = obj_and_inst.second;
+            ModelObject *mo       = model.objects[oidx];
+            bool             outside_plate = plate->check_outside(oidx, inst_idx);
+            ArrangePolygon &&ap            = prepare_arrange_polygon(mo->instances[inst_idx]);
+            ArrangePolygons &cont          = mo->instances[inst_idx]->printable ? (outside_plate ? m_selected : m_locked) : m_unprintable;
+            ap.itemid                      = cont.size();
+            cont.emplace_back(std::move(ap));
+        }
+    }
+    // BBS
+    if (auto wti = get_wipe_tower(*m_plater, current_plate_index)) {
+        ArrangePolygon &&ap = get_wipetower_arrange_poly(&wti);
+        m_unselected.emplace_back(std::move(ap));
+    }
+
+    // add the virtual object into unselect list if has
+    plate_list.preprocess_exclude_areas(m_unselected, current_plate_index + 1);
+}
+
 //BBS: add partplate logic
 void ArrangeJob::prepare()
 {
@@ -449,6 +490,9 @@ void ArrangeJob::prepare()
     else if (state == Job::JobPrepareState::PREPARE_STATE_MENU) {
         only_on_partplate = true;   // only arrange items on current plate
         prepare_partplate();
+    } else if (state == Job::JobPrepareState::PREPARE_STATE_OUTSIDE_BED) {
+        only_on_partplate = false;
+        prepare_outside_plate();
     }
 
 
@@ -730,6 +774,11 @@ void ArrangeJob::finalize() {
             NotificationManager::NotificationLevel::RegularNotificationLevel, _u8L("Arranging canceled."));
     }
     Job::finalize();
+
+    // restore lock status
+    for (int i = 0; i < is_plate_locked.size(); i++)
+        m_plater->get_partplate_list().get_plate(i)->lock(is_plate_locked[i]);
+
     m_plater->m_arrange_running.store(false);
 }
 

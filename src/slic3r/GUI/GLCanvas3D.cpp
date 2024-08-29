@@ -6409,7 +6409,7 @@ bool GLCanvas3D::_init_main_toolbar()
     item.tooltip = _utf8(L("Auto orient"));
     item.sprite_id++;
     item.left.render_callback = nullptr;
-    item.enabling_callback = []()->bool { return wxGetApp().plater()->can_arrange(); };
+    item.enabling_callback = []()->bool { return wxGetApp().plater()->can_do_ui_job(); };
     item.left.toggable = false;  // allow right mouse click
     //BBS: GUI refactor: adjust the main toolbar position
     item.left.action_callback = [this]() {
@@ -6436,7 +6436,7 @@ bool GLCanvas3D::_init_main_toolbar()
             if (agent) agent->track_update_property("auto_arrange", std::to_string(++auto_arrange_count));
         }
     };
-    item.enabling_callback = []()->bool { return wxGetApp().plater()->can_arrange(); };
+    item.enabling_callback = []()->bool { return wxGetApp().plater()->can_do_ui_job(); };
     item.left.toggable = true;
     //BBS: GUI refactor: adjust the main toolbar position
     item.left.render_callback = [this](float left, float right, float bottom, float top) {
