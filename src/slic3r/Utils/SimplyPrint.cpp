@@ -470,7 +470,7 @@ bool SimplyPrint::do_chunk_upload(const boost::filesystem::path& file_path, cons
 }
 
 
-bool SimplyPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn, InfoFn info_fn) const
+bool SimplyPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn) const
 {
     if (cred.find("access_token") == cred.end()) {
         error_fn(_L("SimplyPrint account not linked. Go to Connect options to set it up."));
