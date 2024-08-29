@@ -71,7 +71,8 @@ protected:
 public:
     enum JobPrepareState {
         PREPARE_STATE_DEFAULT = 0,
-        PREPARE_STATE_MENU = 1,
+        PREPARE_STATE_MENU    = 1,
+        PREPARE_STATE_OUTSIDE_BED = 2,
     };
 
     Job(std::shared_ptr<ProgressIndicator> pri);
