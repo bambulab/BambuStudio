@@ -4000,7 +4000,7 @@ int CLI::run(int argc, char **argv)
             need_arrange = true;
     }
 
-    if ((!need_arrange) && is_bbl_3mf && !shrink_to_new_bed && (plate_to_slice > 0))
+    if ((!need_arrange) && is_bbl_3mf && !shrink_to_new_bed && (plate_to_slice > 0) && !new_printer_system_name.empty() && (new_printer_system_name!= current_printer_system_name))
     {
         if (((old_height_to_rod != 0.f) && (old_height_to_rod != height_to_rod))
             || ((old_height_to_lid != 0.f) && (old_height_to_lid != height_to_lid))
