@@ -2641,7 +2641,7 @@ void StatusPanel::update_ams(MachineObject *obj)
     ext_info.clear();
     for (auto slot : obj->vt_slot) {
         AMSinfo info;
-        info.ReadExtInfo(slot);
+        info.parse_ext_info(obj, slot);
         if (ams_mode == AMSModel::AMS_LITE) info.ext_type = AMSModelOriginType::LITE_EXT;
         ext_info.push_back(info);
     }

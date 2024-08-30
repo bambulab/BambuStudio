@@ -3647,33 +3647,6 @@ void AMSControl::reset_vams()
 }
 
 
-void AMSControl::ReadExtInfo(MachineObject* obj) {
-    m_ext_info.clear();
-    if (!obj){
-        return;
-    }
-    AMSinfo ext_info;
-    for (auto slot : obj->vt_slot){
-        ext_info.ams_id = slot.id;
-        Caninfo can;
-        can.can_id = std::to_string(0);
-        can.material_name = slot.filament_setting_id;
-        ext_info.cans.push_back(can);
-        if (slot.id == std::to_string(VIRTUAL_TRAY_MAIN_ID)){
-            ext_info.nozzle_id = MAIN_NOZZLE_ID;
-        }
-        else{
-            ext_info.nozzle_id = DEPUTY_NOZZLE_ID;
-        }
-        ext_info.cans[0].material_state = AMSCanType::AMS_CAN_TYPE_VIRTUAL;
-        ext_info.cans[0].material_colour = slot.decode_color(slot.color);
-        ext_info.cans[0].material_remain = slot.remain;
-        ext_info.cans[0].material_name = slot.type;
-
-        m_ext_info.push_back(ext_info);
-    }
-}
-
 std::vector<AMSinfo> AMSControl::GenerateSimulateData() {
     auto caninfo0_0 = Caninfo{ "0", (""), *wxRED, AMSCanType::AMS_CAN_TYPE_VIRTUAL };
     auto caninfo0_1 = Caninfo{ "1", (""), *wxGREEN, AMSCanType::AMS_CAN_TYPE_VIRTUAL };
