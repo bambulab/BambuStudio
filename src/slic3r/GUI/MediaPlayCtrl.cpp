@@ -710,6 +710,7 @@ void MediaPlayCtrl::SetStatus(wxString const &msg2, bool hyperlink)
         int state2 = m_last_state >= MEDIASTATE_IDLE ? m_last_state - MEDIASTATE_IDLE :
                                                        m_last_state + MEDIASTATE_BUFFERING - MEDIASTATE_IDLE;
         msg += wxString::Format(" [%d:%d]", state2, m_failed_code);
+        msg += wxDateTime::Now().Format(_T(" <%m-%d %H:%M>"));
     }
     BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::SetStatus: " << msg.ToUTF8().data() << " tutk_state: " << m_tutk_state;
 #ifdef __WXMSW__
