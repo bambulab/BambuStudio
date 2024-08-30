@@ -617,12 +617,7 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
 
     if(support_pattern == smpLightning)
         m_support_params.base_fill_pattern = ipLightning;
-    m_support_params.support_extrusion_width = m_object_config->support_line_width.value > 0 ? m_object_config->support_line_width : m_object_config->line_width;
-    // Check if set to zero, use default if so.
-    if (m_support_params.support_extrusion_width <= 0.0) {
-        const auto nozzle_diameter = object.print()->config().nozzle_diameter.get_at(object.config().support_interface_filament - 1);
-        m_support_params.support_extrusion_width = Flow::auto_extrusion_width(FlowRole::frSupportMaterial, (float)nozzle_diameter);
-    }
+
     is_slim                                  = is_tree_slim(support_type, support_style);
     is_strong = is_tree(support_type) && support_style == smsTreeStrong;
     base_radius                              = std::max(MIN_BRANCH_RADIUS, m_object_config->tree_support_branch_diameter.value / 2);
@@ -632,7 +627,6 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
     Vec3d plate_offset       = m_object->print()->get_plate_origin();
     // align with the centered object in current plate (may not be the 1st plate, so need to add the plate offset)
     m_machine_border.translate(Point(scale_(plate_offset(0)), scale_(plate_offset(1))) - m_object->instances().front().shift);
-    m_support_params.independent_layer_height = m_print_config->independent_support_layer_height;
     top_z_distance                            = m_object_config->support_top_z_distance.value;
     if (top_z_distance > EPSILON) top_z_distance = std::max(top_z_distance, float(m_slicing_params.min_layer_height));
 #if USE_TREESUPPRT3D
@@ -1538,7 +1532,8 @@ void TreeSupport::generate_toolpaths()
                         Polygons loops = to_polygons(poly);
                         if (layer_id == 0) {
                             float density = float(m_object_config->raft_first_layer_density.value * 0.01);
-                            fill_expolygons_with_sheath_generate_paths(ts_layer->support_fills.entities, loops, filler_support.get(), density, erSupportMaterial, flow, true, false);
+                            fill_expolygons_with_sheath_generate_paths(ts_layer->support_fills.entities, loops, filler_support.get(), density, erSupportMaterial, flow,
+                                                                       m_support_params, true, false);
                         }
                         else {
                             if (need_infill && m_support_params.base_fill_pattern != ipLightning) {
@@ -1551,12 +1546,16 @@ void TreeSupport::generate_toolpaths()
                             }
                             else {
                                 size_t walls = wall_count;
-                                if (area_group.need_extra_wall && walls < 2) walls += 1;
-                                for (size_t i = 1; i < walls; i++) {
-                                    Polygons contour_new = offset(poly.contour, -(i - 0.5f) * flow.scaled_spacing(), jtSquare);
-                                    loops.insert(loops.end(), contour_new.begin(), contour_new.end());
-                                }
-                                fill_expolygons_with_sheath_generate_paths(ts_layer->support_fills.entities, loops, nullptr, 0, erSupportMaterial, flow, true, false);
+                                //if (area_group.need_extra_wall && walls < 2) walls += 1;
+                                //for (size_t i = 1; i < walls; i++) {
+                                //    Polygons contour_new = offset(poly.contour, -(i - 0.5f) * flow.scaled_spacing(), jtSquare);
+                                //    loops.insert(loops.end(), contour_new.begin(), contour_new.end());
+                                //}
+                                //fill_expolygons_with_sheath_generate_paths(ts_layer->support_fills.entities, loops, nullptr, 0, erSupportMaterial, flow, true, false);
+                                SupportParameters support_params = m_support_params;
+                                if(walls>1)
+                                    support_params.tree_branch_diameter_double_wall_area_scaled=0.1;
+                                tree_supports_generate_paths(ts_layer->support_fills.entities, loops, flow, support_params);
                             }
                         }
                     }
@@ -1616,8 +1615,12 @@ void TreeSupport::generate_toolpaths()
                 }
 
                 // sort extrusions to reduce travel, also make sure walls go before infills
-                if(ts_layer->support_fills.no_sort==false)
+                if (ts_layer->support_fills.no_sort == false) {
+                    // chain_and_reorder_extrusion_entities crashes if there are empty elements in entities
+                    auto &entities = ts_layer->support_fills.entities;
+                    entities.erase(std::remove_if(entities.begin(), entities.end(), [](ExtrusionEntity* entity) { return static_cast<ExtrusionEntityCollection*>(entity)->empty(); }), entities.end());
                     chain_and_reorder_extrusion_entities(ts_layer->support_fills.entities);
+                }
             }
         }
     );
