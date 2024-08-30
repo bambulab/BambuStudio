@@ -197,7 +197,7 @@ public:
     AMSModelOriginType      ext_type = AMSModelOriginType::GENERIC_EXT;
 
     bool parse_ams_info(MachineObject* obj, Ams *ams, bool remain_flag = false, bool humidity_flag = false);
-    void ReadExtInfo(AmsTray tray);
+    void parse_ext_info(MachineObject* obj, AmsTray tray);
 };
 
 /*************************************************

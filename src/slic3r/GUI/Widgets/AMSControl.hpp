@@ -165,7 +165,6 @@ public:
     void CreateAmsSingleNozzle();
     void ClearAms();
     void UpdateAms(std::vector<AMSinfo> ams_info, std::vector<AMSinfo> ext_info, NozzleData data, std::string dev_id, bool is_reset = true, bool test = false);
-    void ReadExtInfo(MachineObject* obj);
     std::vector<AMSinfo> GenerateSimulateData();
 
     void AddAms(AMSinfo info, AMSPanelPos pos = AMSPanelPos::LEFT_PANEL);
