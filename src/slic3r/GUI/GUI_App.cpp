@@ -4947,7 +4947,7 @@ void GUI_App::sync_preset(Preset* preset)
             }
         }
         else {
-            BOOST_LOG_TRIVIAL(trace) << "[sync_preset]init: can not generate differed key-values";
+            BOOST_LOG_TRIVIAL(info) << "[sync_preset]init: can not generate differed key-values and code: " << ret;
             result = 0;
             updated_info = "hold";
         }
@@ -4977,7 +4977,11 @@ void GUI_App::sync_preset(Preset* preset)
             }
         }
         else {
-            BOOST_LOG_TRIVIAL(trace) << "[sync_preset]create: can not generate differed preset";
+            BOOST_LOG_TRIVIAL(info) << "[sync_preset]create: can not generate differed preset and code: " << ret;
+            if (ret == -2) {
+                result       = 0;
+                updated_info = "hold";
+            }
         }
     }
     else if (preset->sync_info.compare("update") == 0) {
@@ -5004,8 +5008,9 @@ void GUI_App::sync_preset(Preset* preset)
 
             }
             else {
-                BOOST_LOG_TRIVIAL(trace) << "[sync_preset]update: can not generate differed key-values, we need to skip this preset "<< preset->name;
+                BOOST_LOG_TRIVIAL(info) << "[sync_preset]update: can not generate differed key-values, we need to skip this preset " << preset->name << " code: " << ret;
                 result = 0;
+                if (ret == -2) updated_info = "hold";
             }
         }
         else {

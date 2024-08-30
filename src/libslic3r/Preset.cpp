@@ -1329,6 +1329,14 @@ int PresetCollection::get_differed_values_to_update(Preset& preset, std::map<std
                             << " and base_id is: " << preset.base_id;
     key_values[BBL_JSON_KEY_UPDATE_TIME] = std::to_string(preset.updated_time);
     key_values[BBL_JSON_KEY_TYPE] = Preset::get_iot_type_string(preset.type);
+
+    int update_size = 0;
+    for (const auto &pair : key_values) {
+        update_size += pair.first.size();
+        update_size += pair.second.size();
+    }
+    if (update_size > 350 * 1024) return -2;
+
     return 0;
 }
 
