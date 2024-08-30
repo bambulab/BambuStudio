@@ -4559,6 +4559,17 @@ fs::path Plater::priv::get_export_file_path(GUI::FileType file_type)
     }
     return output_file;
 }
+bool delete_file_name_redundant_suffix(fs::path &path, const std::wstring &suffix) {
+    auto temp_str = path.filename().wstring();
+    boost::ireplace_last(temp_str, suffix, "");
+    if (boost::icontains(temp_str, suffix)) {
+        boost::ireplace_all(temp_str, suffix, "");
+        std::wstring temp = L"/";
+        path = (path.parent_path().wstring() + temp + temp_str + suffix);
+        return true;
+    }
+    return false;
+}
 
 wxString Plater::priv::get_export_file(GUI::FileType file_type)
 {
@@ -4624,7 +4635,7 @@ wxString Plater::priv::get_export_file(GUI::FileType file_type)
     fs::path path(into_path(out_path));
 #ifdef __WXMSW__
     if (boost::iequals(path.extension().string(), output_file.extension().string()) == false) {
-        out_path += output_file.extension().string();
+        out_path += output_file.extension().wstring();
         boost::system::error_code ec;
         if (boost::filesystem::exists(into_u8(out_path), ec)) {
             auto result = MessageBox(q->GetHandle(),
@@ -4636,6 +4647,9 @@ wxString Plater::priv::get_export_file(GUI::FileType file_type)
         }
     }
 #endif
+    if (delete_file_name_redundant_suffix(path, output_file.extension().wstring())) {
+        out_path = path.wstring();
+    }
     wxGetApp().app_config->update_last_output_dir(path.parent_path().string());
 
     return out_path;
@@ -11175,10 +11189,11 @@ void Plater::export_gcode_3mf(bool export_all)
         );
         if (dlg.ShowModal() == wxID_OK) {
             output_path = into_path(dlg.GetPath());
+            delete_file_name_redundant_suffix(output_path, L".gcode.3mf");
             if (boost::iends_with(output_path.string(), ".gcode")) {
-                std::string path = output_path.string();
-                path             = path.substr(0, path.size() - 6);
-                output_path      = path + ".gcode.3mf";
+                std::wstring temp_path = output_path.wstring();
+                temp_path              = temp_path.substr(0, temp_path.size() - 6);
+                output_path            = temp_path + L".gcode.3mf";
             }
             else if (!boost::iends_with(output_path.string(), ".gcode.3mf")) {
                 output_path = output_path.replace_extension(".gcode.3mf");
