@@ -3576,10 +3576,11 @@ void PrintConfigDef::init_fff_params()
     def = this->add("tree_support_wall_count", coInt);
     def->label = L("Support wall loops");
     def->category = L("Support");
-    def->tooltip = L("This setting specifies the count of walls around support");
+    def->tooltip = L("This setting specifies the min count of support walls in the range of [0,2]. Actual wall count may be larger than the specified value.");
     def->min = 0;
+    def->max = 2;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionInt(0));
+    def->set_default_value(new ConfigOptionInt(1));
 
     def = this->add("chamber_temperatures", coInts);
     def->label = L("Chamber temperature");

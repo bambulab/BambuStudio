@@ -4215,6 +4215,7 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
             support_params.support_density = 0;
         }
 
+
         SupportGeneratorLayerStorage layer_storage;
         SupportGeneratorLayersPtr    top_contacts;
         SupportGeneratorLayersPtr    bottom_contacts;

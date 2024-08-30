@@ -10,7 +10,7 @@
 
 namespace Slic3r {
 struct SupportParameters {
-    SupportParameters() = default;
+    SupportParameters() = delete;
     SupportParameters(const PrintObject& object)
     {
         const PrintConfig& print_config = object.print()->config();
@@ -149,9 +149,19 @@ struct SupportParameters {
 	        assert(slicing_params.interface_raft_layers == 0);
 	        assert(slicing_params.raft_layers() == 0);
 	    }
-	
-		double tree_support_branch_diameter_double_wall = 3.0; // in organic support, Branches with area larger than the area of a circle of this diameter will be printed with double walls for stability
-	 	this->tree_branch_diameter_double_wall_area_scaled = 0.25 * sqr(scaled<double>(tree_support_branch_diameter_double_wall)) * M_PI;
+
+        support_extrusion_width = object_config.support_line_width.value > 0 ? object_config.support_line_width : object_config.line_width;
+        // Check if set to zero, use default if so.
+        if (support_extrusion_width <= 0.0) {
+            const auto nozzle_diameter               = print_config.nozzle_diameter.get_at(object_config.support_interface_filament - 1);
+            support_extrusion_width = Flow::auto_extrusion_width(FlowRole::frSupportMaterial, (float) nozzle_diameter);
+        }
+
+        independent_layer_height = print_config.independent_support_layer_height;
+
+        // force double walls everywhere if wall count is larger than 1        
+        tree_branch_diameter_double_wall_area_scaled = object_config.tree_support_wall_count.value > 1 ? 0.1 : 0.25 * sqr(scaled<double>(5.0)) * M_PI;
+        
     }
 	// Both top / bottom contacts and interfaces are soluble.
     bool                    soluble_interface;
@@ -210,7 +220,7 @@ struct SupportParameters {
     InfillPattern 			contact_fill_pattern;
     bool                    with_sheath;
     // Branches of organic supports with area larger than this threshold will be extruded with double lines.
-    double                  tree_branch_diameter_double_wall_area_scaled = 0.25 * sqr(scaled<double>(3.0)) * M_PI;;
+    double                  tree_branch_diameter_double_wall_area_scaled = 0.25 * sqr(scaled<double>(5.0)) * M_PI;;
 
     float 					raft_angle_1st_layer;
     float 					raft_angle_base;
