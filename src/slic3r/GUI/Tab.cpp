@@ -1868,6 +1868,15 @@ void Tab::update_preset_description_line()
     m_parent->Layout();
 }
 
+static void validate_custom_note_cb(Tab *tab, ConfigOptionsGroupShp opt_group, const t_config_option_key &opt_key, const boost::any &value)
+{
+    if (boost::any_cast<std::string>(value).size() > 40 * 1024) {
+        MessageDialog dialog(static_cast<wxWindow *>(wxGetApp().mainframe), _L("The notes are too large, and may not be synchronized to the cloud. Please keep it within 40k."),
+                             "", wxICON_WARNING | wxOK);
+        dialog.ShowModal();
+    }
+}
+
 void Tab::update_frequently_changed_parameters()
 {
     const bool is_fff = supports_printer_technology(ptFFF);
@@ -2159,6 +2168,7 @@ void TabPrint::build()
         option.opt.is_code = true;
         option.opt.height = 15;
         optgroup->append_single_option_line(option);
+        optgroup->m_on_change = [this, optgroup](const t_config_option_key &opt_key, const boost::any &value) { validate_custom_note_cb(this, optgroup, opt_key, value); };
 
         optgroup = page->new_optgroup(L("Notes"),"note");
         optgroup->label_width = 0;
@@ -2166,6 +2176,7 @@ void TabPrint::build()
         option.opt.full_width = true;
         option.opt.height = 25;
         optgroup->append_single_option_line(option);
+        optgroup->m_on_change = [this, optgroup](const t_config_option_key &opt_key, const boost::any &value) { validate_custom_note_cb(this, optgroup, opt_key, value); };
 
 #if 0
     //page = add_options_page(L("Dependencies"), "advanced.png");
@@ -2848,6 +2859,10 @@ static void validate_custom_gcode_cb(Tab* tab, ConfigOptionsGroupShp opt_group, 
     tab->validate_custom_gcodes_was_shown = !Tab::validate_custom_gcode(opt_group->title, boost::any_cast<std::string>(value));
     tab->update_dirty();
     tab->on_value_change(opt_key, value);
+    if (boost::any_cast<std::string>(value).size() > 40 * 1024) {
+        MessageDialog dialog(static_cast<wxWindow *>(wxGetApp().mainframe), _L("Custom G-code files are too large, and may not be synchronized to the cloud. Please keep it within 40k."), "", wxICON_WARNING | wxOK);
+        dialog.ShowModal();
+    }
 }
 
 void TabFilament::add_filament_overrides_page()
@@ -3168,6 +3183,7 @@ void TabFilament::build()
         option.opt.full_width = true;
         option.opt.height = notes_field_height;
         optgroup->append_single_option_line(option);
+        optgroup->m_on_change = [this, optgroup](const t_config_option_key &opt_key, const boost::any &value) { validate_custom_note_cb(this, optgroup, opt_key, value); };
 
         //BBS
 #if 0
@@ -3607,7 +3623,7 @@ void TabPrinter::build_fff()
         option.opt.full_width = true;
         option.opt.height = notes_field_height;
         optgroup->append_single_option_line(option);
-
+        optgroup->m_on_change = [this, optgroup](const t_config_option_key &opt_key, const boost::any &value) { validate_custom_note_cb(this, optgroup, opt_key, value); };
 
     build_unregular_pages(true);
 }
