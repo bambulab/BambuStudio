@@ -376,6 +376,7 @@ class GLCanvas3D
         SlaSupportsOutside,
         SomethingNotShown,
         ObjectClashed,
+        ObjectLimited,
         GCodeConflict,
         ToolHeightOutside,
         FilamentUnPrintableOnFirstLayer

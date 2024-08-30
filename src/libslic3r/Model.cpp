@@ -2830,7 +2830,23 @@ unsigned int ModelObject::update_instances_print_volume_state(const BuildVolume 
                 }
 
                 const Transform3d matrix = model_instance->get_matrix() * vol->get_matrix();
-                BuildVolume::ObjectState state = build_volume.object_state(vol->mesh().its, matrix.cast<float>(), true /* may be below print bed */);
+                BuildVolume::ObjectState state;
+                switch(build_volume.type())
+                {
+                    case BuildVolume::Type::Rectangle:
+                    {
+                        BoundingBoxf3 transformed_bb = bb.transformed(matrix);
+                        state = build_volume.volume_state_bbox(transformed_bb);
+                        break;
+                    }
+                    case BuildVolume::Type::Circle:
+                    case BuildVolume::Type::Convex:
+                    case BuildVolume::Type::Custom:
+                    default:
+                        state = build_volume.object_state(vol->mesh().its, matrix.cast<float>(), true /* may be below print bed */);
+                        break;
+                }
+
                 if (state == BuildVolume::ObjectState::Inside)
                     // Volume is completely inside.
                     inside_outside |= INSIDE;
