@@ -504,7 +504,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
 
     float textbox_width       = 1.5 * slider_icon_width;
     SliderInputLayout slider_input_layout = {clipping_slider_left, sliders_width, drag_left_width + circle_max_width, textbox_width};
-    if (wxGetApp().plater()->is_show_non_manifold_edges() && m_rr.mesh_id >= 0) {
+    if (wxGetApp().plater()->is_show_non_manifold_edges()) {
         m_imgui->text(_L("hit face") + ":" + std::to_string(m_rr.facet));
     }
     {
