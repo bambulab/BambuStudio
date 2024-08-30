@@ -26,6 +26,38 @@ GLGizmoMeshBoolean::~GLGizmoMeshBoolean()
 {
 }
 
+void GLGizmoMeshBoolean::set_src_volume(ModelVolume* mv)
+{
+    m_src.mv = mv;
+    m_src.trafo = mv->get_matrix();
+    m_src.volume_idx = -1;
+    const auto& volumes = mv->get_object()->volumes;
+    auto it = std::find(volumes.begin(), volumes.end(), mv);
+    assert(it != volumes.end());
+    if (it != volumes.end())
+        m_src.volume_idx = std::distance(volumes.begin(), it);
+
+    if (m_src.mv == m_tool.mv)
+        m_tool.reset();
+
+    m_selecting_state = MeshBooleanSelectingState::SelectTool;
+}
+
+void GLGizmoMeshBoolean::set_tool_volume(ModelVolume* mv)
+{
+    if (mv == m_src.mv)
+        return;
+
+    m_tool.mv = mv;
+    m_tool.trafo = mv->get_matrix();
+    m_tool.volume_idx = -1;
+    const auto& volumes = mv->get_object()->volumes;
+    auto it = std::find(volumes.begin(), volumes.end(), mv);
+    assert(it != volumes.end());
+    if (it != volumes.end())
+        m_tool.volume_idx = std::distance(volumes.begin(), it);
+}
+
 bool GLGizmoMeshBoolean::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down)
 {
     if (action == SLAGizmoEventType::LeftDown) {
@@ -35,7 +67,7 @@ bool GLGizmoMeshBoolean::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         const ModelInstance* mi = mo->instances[m_parent.get_selection().get_instance_idx()];
         std::vector<Transform3d> trafo_matrices;
         for (const ModelVolume* mv : mo->volumes) {
-            //if (mv->is_model_part()) { 
+            //if (mv->is_model_part()) {
                 trafo_matrices.emplace_back(mi->get_transformation().get_matrix() * mv->get_matrix()); 
             //}
         }
@@ -69,16 +101,11 @@ bool GLGizmoMeshBoolean::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             return true;
 
         if (get_selecting_state() == MeshBooleanSelectingState::SelectTool) {
-            m_tool.trafo = mo->volumes[closest_hit_mesh_id]->get_matrix();
-            m_tool.volume_idx = closest_hit_mesh_id;
             set_tool_volume(mo->volumes[closest_hit_mesh_id]);
             return true;
         }
         if (get_selecting_state() == MeshBooleanSelectingState::SelectSource) {
-            m_src.trafo = mo->volumes[closest_hit_mesh_id]->get_matrix();
-            m_src.volume_idx = closest_hit_mesh_id;
             set_src_volume(mo->volumes[closest_hit_mesh_id]);
-            m_selecting_state = MeshBooleanSelectingState::SelectTool;
             return true;
         }
     }
@@ -94,10 +121,11 @@ bool GLGizmoMeshBoolean::on_init()
 std::string GLGizmoMeshBoolean::on_get_name() const
 {
     if (!on_is_activable() && m_state == EState::Off) {
+        if (m_parent.get_selection().get_volume_idxs().size() <= 1) {
+            return _u8L("Mesh Boolean") + ":\n" + _u8L("Please add at least one more object and select them together,\nthen right click to assembly these objects.");
+        }
         if (!m_parent.get_selection().is_single_full_instance()) {
             return _u8L("Mesh Boolean") + ":\n" + _u8L("Please right click to assembly these objects.");
-        } else if (m_parent.get_selection().get_volume_idxs().size() <= 1){
-            return _u8L("Mesh Boolean") + ":\n" + _u8L("Please add at least one more object and select them together,\nthen right click to assembly these objects.");
         }
     }
     return _u8L("Mesh Boolean");
@@ -105,7 +133,14 @@ std::string GLGizmoMeshBoolean::on_get_name() const
 
 bool GLGizmoMeshBoolean::on_is_activable() const
 {
-    return m_parent.get_selection().is_single_full_instance() && m_parent.get_selection().get_volume_idxs().size() > 1;
+    auto& selection = m_parent.get_selection();
+
+    auto obj_idx = selection.get_object_idx();
+    int volumes_size = 0;
+    if (obj_idx != -1)
+        volumes_size = selection.get_volume_idxs_from_object(obj_idx).size();
+
+    return !selection.is_empty() && !selection.is_multiple_full_object() && volumes_size > 1;
 }
 
 void GLGizmoMeshBoolean::on_render()
@@ -128,8 +163,11 @@ void GLGizmoMeshBoolean::on_render()
     const ModelObject* mo = m_c->selection_info()->model_object();
     const ModelInstance* mi = mo->instances[m_parent.get_selection().get_instance_idx()];
     const Selection& selection = m_parent.get_selection();
-    const Selection::IndicesList& idxs = selection.get_volume_idxs();
-    for (unsigned int i : idxs) {
+    auto obj_idx = selection.get_object_idx();
+    std::vector<unsigned int> volume_ids;
+    if (obj_idx != -1)
+        volume_ids = selection.get_volume_idxs_from_object(obj_idx);
+    for (unsigned int i : volume_ids) {
         const GLVolume* volume = selection.get_volume(i);
         if(volume->volume_idx() == m_src.volume_idx) {
             src_bb = volume->transformed_convex_hull_bounding_box();
@@ -287,6 +325,7 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
         if (ImGui::Button((into_u8(ImGui::TextSearchCloseIcon) + "##src").c_str(), {18, 18}))
         {
             m_src.reset();
+            m_selecting_state = MeshBooleanSelectingState::SelectSource;
         }
         ImGui::PopStyleColor(5);
     }
@@ -315,6 +354,7 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
         if (ImGui::Button((into_u8(ImGui::TextSearchCloseIcon) + "tool").c_str(), {18, 18}))
         {
             m_tool.reset();
+            m_selecting_state = (m_src.mv == nullptr) ? MeshBooleanSelectingState::SelectSource : MeshBooleanSelectingState::SelectTool;
         }
         ImGui::PopStyleColor(5);
     }
@@ -337,6 +377,9 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
             else {
                 m_warning_texts[index] = warning_text_common;
             }
+            m_selecting_state = MeshBooleanSelectingState::SelectSource;
+            m_src.reset();
+            m_tool.reset();
         }
     }
     else if (m_operation_mode == MeshBooleanOperation::Difference) {
@@ -355,6 +398,9 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
             else {
                 m_warning_texts[index] = warning_text_common;
             }
+            m_selecting_state = MeshBooleanSelectingState::SelectSource;
+            m_src.reset();
+            m_tool.reset();
         }
     }
     else if (m_operation_mode == MeshBooleanOperation::Intersection){
@@ -373,8 +419,10 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
             else {
                 m_warning_texts[index] = warning_text_intersection;
             }
+            m_selecting_state = MeshBooleanSelectingState::SelectSource;
+            m_src.reset();
+            m_tool.reset();
         }
-        
     }
     if (index >= 0 && index < m_warning_texts.size()) {
         render_input_window_warning(m_warning_texts[index]);
@@ -426,20 +474,7 @@ void GLGizmoMeshBoolean::generate_new_volume(bool delete_input, const TriangleMe
 
     // assign to new_volume from old_volume
     ModelVolume* old_volume = m_src.mv;
-    std::string suffix;
-    switch (m_operation_mode)
-    {
-    case MeshBooleanOperation::Union:
-        suffix = "union";
-        break;
-    case MeshBooleanOperation::Difference:
-        suffix = "difference";
-        break;
-    case MeshBooleanOperation::Intersection:
-        suffix = "intersection";
-        break;
-    }
-    new_volume->name = old_volume->name + " - " + suffix;
+    new_volume->name = old_volume->name;
     new_volume->set_new_unique_id();
     new_volume->config.apply(old_volume->config);
     new_volume->set_type(old_volume->type());
