@@ -11,6 +11,7 @@
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/chrono.hpp>
 
 #include <wx/sizer.h>
 #include <wx/toolbar.h>
@@ -514,6 +515,16 @@ void WebViewPanel::SendRecentList(int images)
 
 void WebViewPanel::SendDesignStaffpick(bool on)
 {
+    static long long StaffPickMs = 0;
+
+    auto      now       = std::chrono::system_clock::now();
+    long long TmpMs     = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+    long long nInterval = TmpMs - StaffPickMs;
+    if (nInterval < 500) return;
+    StaffPickMs = TmpMs;
+
+    BOOST_LOG_TRIVIAL(info) << "Begin SendDesignStaffpick: " << nInterval;
+
     try {
         if (on) {
             std::string sguide = wxGetApp().app_config->get("firstguide", "finish");
