@@ -35,6 +35,7 @@
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/ScrolledWindow.hpp"
+#include "Jobs/Worker.hpp"
 #include <wx/hashmap.h>
 #include <wx/webview.h>
 
@@ -298,7 +299,7 @@ public:
     wxHyperlinkCtrl* m_trouble_shoot{ nullptr };
     bool   m_show_access_code{ false };
     int    m_result;
-    std::shared_ptr<SendJob> m_send_job{nullptr};
+    std::unique_ptr<Worker> m_worker;
     std::shared_ptr<BBLStatusBarSend> m_status_bar;
 
     void on_cancel();

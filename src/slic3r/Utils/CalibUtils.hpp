@@ -2,6 +2,7 @@
 #include "libslic3r/Calib.hpp"
 #include "../GUI/DeviceManager.hpp"
 #include "../GUI/Jobs/PrintJob.hpp"
+#include "../GUI/Jobs/Worker.hpp"
 
 namespace Slic3r {
 
@@ -29,7 +30,7 @@ class CalibUtils
 {
 public:
     CalibUtils(){};
-    static std::shared_ptr<PrintJob> print_job;
+    static std::unique_ptr<Worker> m_print_worker;
 
     static CalibMode get_calib_mode_by_name(const std::string name, int &cali_stage);
 

@@ -15,6 +15,8 @@
 #include "GUI_App.hpp"
 #include "Plater.hpp"
 #include "Widgets/WebView.hpp"
+#include "Jobs/WindowWorker.hpp"
+#include "Jobs/BoostThreadWorker.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -668,6 +670,7 @@ PingCodeBindDialog::~PingCodeBindDialog() {
      m_simplebook->SetBackgroundColour(*wxWHITE);
 
      m_status_bar = std::make_shared<BBLStatusBarBind>(m_simplebook);
+     m_worker = std::make_unique<WindowWorker<BoostThreadWorker>>(this, m_status_bar, "bind_worker");
 
      auto        button_panel   = new wxPanel(m_simplebook, wxID_ANY, wxDefaultPosition, BIND_DIALOG_BUTTON_PANEL_SIZE);
      button_panel->SetBackgroundColour(*wxWHITE);
@@ -808,10 +811,7 @@ PingCodeBindDialog::~PingCodeBindDialog() {
 
  void BindMachineDialog::on_destroy()
  {
-     if (m_bind_job) {
-         m_bind_job->cancel();
-         m_bind_job->join();
-     }
+     m_worker->cancel_all();
  }
 
  void BindMachineDialog::on_close(wxCloseEvent &event)
@@ -867,18 +867,17 @@ PingCodeBindDialog::~PingCodeBindDialog() {
          agent->track_update_property("dev_ota_version", m_machine_info->get_ota_version());
 
      m_simplebook->SetSelection(0);
-     m_bind_job = std::make_shared<BindJob>(m_status_bar, wxGetApp().plater(),
-         m_machine_info->dev_id, m_machine_info->dev_ip, m_machine_info->bind_sec_link, m_machine_info->bind_ssdp_version);
+     auto bind_job = std::make_unique<BindJob>(m_machine_info->dev_id, m_machine_info->dev_ip, m_machine_info->bind_sec_link, m_machine_info->bind_ssdp_version);
 
      if (m_machine_info && (m_machine_info->get_printer_series() == PrinterSeries::SERIES_X1)) {
-         m_bind_job->set_improved(false);
+         bind_job->set_improved(false);
      }
      else {
-         m_bind_job->set_improved(m_allow_notice);
+         bind_job->set_improved(m_allow_notice);
      }
 
-     m_bind_job->set_event_handle(this);
-     m_bind_job->start();
+     bind_job->set_event_handle(this);
+     replace_job(*m_worker, std::move(bind_job));
  }
 
 void BindMachineDialog::on_dpi_changed(const wxRect &suggested_rect)

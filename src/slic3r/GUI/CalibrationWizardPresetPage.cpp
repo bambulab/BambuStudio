@@ -1490,13 +1490,7 @@ void CalibrationPresetPage::on_cali_finished_job()
 void CalibrationPresetPage::on_cali_cancel_job()
 {
     BOOST_LOG_TRIVIAL(info) << "CalibrationWizard::print_job: enter canceled";
-    if (CalibUtils::print_job) {
-        if (CalibUtils::print_job->is_running()) {
-            BOOST_LOG_TRIVIAL(info) << "calibration_print_job: canceled";
-            CalibUtils::print_job->cancel();
-        }
-        CalibUtils::print_job->join();
-    }
+    CalibUtils::m_print_worker->cancel_all();
 
     m_sending_panel->reset();
     m_sending_panel->Show(false);

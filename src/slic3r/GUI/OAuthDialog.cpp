@@ -2,7 +2,7 @@
 
 #include "GUI_App.hpp"
 #include "Jobs/BoostThreadWorker.hpp"
-#include "Jobs/PlaterWorker.hpp"
+#include "Jobs/WindowWorker.hpp"
 #include "wxExtensions.hpp"
 
 namespace Slic3r {
@@ -18,7 +18,7 @@ OAuthDialog::OAuthDialog(wxWindow* parent, OAuthParams params)
     SetFont(wxGetApp().normal_font());
     SetBackgroundColour(*wxWHITE);
 
-    m_worker = std::make_unique<PlaterWorker<BoostThreadWorker>>(this, nullptr, "auth_worker");
+    m_worker = std::make_unique<WindowWorker<BoostThreadWorker>>(this, nullptr, "auth_worker");
 
     wxStdDialogButtonSizer* btns = this->CreateStdDialogButtonSizer(wxCANCEL);
     btnCancel                    = static_cast<wxButton*>(this->FindWindowById(wxID_CANCEL, this));

@@ -24,6 +24,8 @@
 #include "Notebook.hpp"
 #include "BitmapCache.hpp"
 #include "BindDialog.hpp"
+#include "Jobs/WindowWorker.hpp"
+#include "Jobs/BoostThreadWorker.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -1262,6 +1264,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_panel_sending = m_status_bar->get_panel();
     m_simplebook->AddPage(m_panel_sending, wxEmptyString, false);
 
+    m_worker = std::make_unique<WindowWorker<BoostThreadWorker>>(this, m_status_bar, "send_worker");
+
     // finish mode
     m_panel_finish = new wxPanel(m_simplebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_panel_finish->SetBackgroundColour(wxColour(135, 206, 250));
@@ -1716,9 +1720,7 @@ void SelectMachineDialog::prepare_mode(bool refresh_button)
     show_print_failed_info(false);
 
     m_is_in_sending_mode = false;
-    if (m_print_job) {
-        m_print_job->join();
-    }
+    m_worker->wait_for_idle();
 
     if (wxIsBusy())
         wxEndBusyCursor();
@@ -2258,12 +2260,8 @@ void SelectMachineDialog::on_cancel(wxCloseEvent &event)
     if (m_mapping_popup.IsShown())
         m_mapping_popup.Dismiss();
 
-    if (m_print_job) {
-        if (m_print_job->is_running()) {
-            m_print_job->cancel();
-            m_print_job->join();
-        }
-    }
+    m_worker->cancel_all();
+
     this->EndModal(wxID_CANCEL);
 }
 
@@ -2739,13 +2737,7 @@ void SelectMachineDialog::on_send_print()
     m_status_bar->set_prog_block();
     m_status_bar->set_cancel_callback_fina([this]() {
         BOOST_LOG_TRIVIAL(info) << "print_job: enter canceled";
-        if (m_print_job) {
-            if (m_print_job->is_running()) {
-                BOOST_LOG_TRIVIAL(info) << "print_job: canceled";
-                m_print_job->cancel();
-            }
-            m_print_job->join();
-        }
+        m_worker->cancel_all();
         m_is_canceled = true;
         wxCommandEvent* event = new wxCommandEvent(EVT_PRINT_JOB_CANCEL);
         wxQueueEvent(this, event);
@@ -2813,63 +2805,63 @@ void SelectMachineDialog::on_send_print()
         }
     }
 
-    m_print_job = std::make_shared<PrintJob>(m_status_bar, m_plater, m_printer_last_select);
-    m_print_job->m_dev_ip = obj_->dev_ip;
-    m_print_job->m_ftp_folder = obj_->get_ftp_folder();
-    m_print_job->m_access_code = obj_->get_access_code();
+    auto print_job = std::make_unique<PrintJob>(m_printer_last_select);
+    print_job->m_dev_ip = obj_->dev_ip;
+    print_job->m_ftp_folder = obj_->get_ftp_folder();
+    print_job->m_access_code = obj_->get_access_code();
 #if !BBL_RELEASE_TO_PUBLIC
-    m_print_job->m_local_use_ssl_for_ftp = wxGetApp().app_config->get("enable_ssl_for_ftp") == "true" ? true : false;
-    m_print_job->m_local_use_ssl_for_mqtt = wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false;
+    print_job->m_local_use_ssl_for_ftp = wxGetApp().app_config->get("enable_ssl_for_ftp") == "true" ? true : false;
+    print_job->m_local_use_ssl_for_mqtt = wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false;
 #else
-    m_print_job->m_local_use_ssl_for_ftp = obj_->local_use_ssl_for_ftp;
-    m_print_job->m_local_use_ssl_for_mqtt = obj_->local_use_ssl_for_mqtt;
+    print_job->m_local_use_ssl_for_ftp = obj_->local_use_ssl_for_ftp;
+    print_job->m_local_use_ssl_for_mqtt = obj_->local_use_ssl_for_mqtt;
 #endif
-    m_print_job->connection_type = obj_->connection_type();
-    m_print_job->cloud_print_only = obj_->is_support_cloud_print_only;
+    print_job->connection_type = obj_->connection_type();
+    print_job->cloud_print_only = obj_->is_support_cloud_print_only;
 
     if (m_print_type == PrintFromType::FROM_NORMAL) {
         BOOST_LOG_TRIVIAL(info) << "print_job: m_print_type = from_normal";
-        m_print_job->m_print_type = "from_normal";
-        m_print_job->set_project_name(m_current_project_name.utf8_string());
+        print_job->m_print_type = "from_normal";
+        print_job->set_project_name(m_current_project_name.utf8_string());
     }
     else if(m_print_type == PrintFromType::FROM_SDCARD_VIEW){
         BOOST_LOG_TRIVIAL(info) << "print_job: m_print_type = from_sdcard_view";
-        m_print_job->m_print_type = "from_sdcard_view";
-        //m_print_job->connection_type = "lan";
+        print_job->m_print_type = "from_sdcard_view";
+        //print_job->connection_type = "lan";
 
         try {
-            m_print_job->m_print_from_sdc_plate_idx = m_required_data_plate_data_list[m_print_plate_idx]->plate_index + 1;
-            m_print_job->set_dst_name(m_required_data_file_path);
+            print_job->m_print_from_sdc_plate_idx = m_required_data_plate_data_list[m_print_plate_idx]->plate_index + 1;
+            print_job->set_dst_name(m_required_data_file_path);
         }
         catch (...) {}
-        BOOST_LOG_TRIVIAL(info) << "print_job: m_print_plate_idx =" << m_print_job->m_print_from_sdc_plate_idx;
+        BOOST_LOG_TRIVIAL(info) << "print_job: m_print_plate_idx =" << print_job->m_print_from_sdc_plate_idx;
 
         auto input_str_arr = wxGetApp().split_str(m_required_data_file_name, ".gcode.3mf");
         if (input_str_arr.size() <= 1) {
             input_str_arr = wxGetApp().split_str(m_required_data_file_name, ".3mf");
             if (input_str_arr.size() > 1) {
-                m_print_job->set_project_name(input_str_arr[0]);
+                print_job->set_project_name(input_str_arr[0]);
             }
         }
         else {
-            m_print_job->set_project_name(input_str_arr[0]);
+            print_job->set_project_name(input_str_arr[0]);
         }
     }
 
     if (obj_->is_support_ams_mapping()) {
-        m_print_job->task_ams_mapping = ams_mapping_array;
-        m_print_job->task_ams_mapping_info = ams_mapping_info;
+        print_job->task_ams_mapping = ams_mapping_array;
+        print_job->task_ams_mapping_info = ams_mapping_info;
     } else {
-        m_print_job->task_ams_mapping = "";
-        m_print_job->task_ams_mapping_info = "";
+        print_job->task_ams_mapping = "";
+        print_job->task_ams_mapping_info = "";
     }
 
-    m_print_job->has_sdcard = obj_->has_sdcard();
+    print_job->has_sdcard = obj_->has_sdcard();
 
 
     bool timelapse_option = select_timelapse->IsShown() ? m_checkbox_list["timelapse"]->GetValue() : true;
 
-    m_print_job->set_print_config(
+    print_job->set_print_config(
         MachineBedTypeString[0],
         m_checkbox_list["bed_leveling"]->GetValue(),
         m_checkbox_list["flow_cali"]->GetValue(),
@@ -2878,17 +2870,17 @@ void SelectMachineDialog::on_send_print()
         true);
 
     if (obj_->has_ams()) {
-        m_print_job->task_use_ams = m_checkbox_list["use_ams"]->GetValue();
+        print_job->task_use_ams = m_checkbox_list["use_ams"]->GetValue();
     } else {
-        m_print_job->task_use_ams = false;
+        print_job->task_use_ams = false;
     }
 
     BOOST_LOG_TRIVIAL(info) << "print_job: timelapse_option = " << timelapse_option;
-    BOOST_LOG_TRIVIAL(info) << "print_job: use_ams = " << m_print_job->task_use_ams;
+    BOOST_LOG_TRIVIAL(info) << "print_job: use_ams = " << print_job->task_use_ams;
 
-    m_print_job->on_success([this]() { finish_mode(); });
+    print_job->on_success([this]() { finish_mode(); });
 
-    m_print_job->on_check_ip_address_fail([this]() {
+    print_job->on_check_ip_address_fail([this]() {
         wxCommandEvent* evt = new wxCommandEvent(EVT_CLEAR_IPADDRESS);
         wxQueueEvent(this, evt);
         wxGetApp().show_ip_address_enter_dialog();
@@ -2901,7 +2893,7 @@ void SelectMachineDialog::on_send_print()
         agent->track_update_property(dev_ota_str, obj_->get_ota_version());
     }
 
-    m_print_job->start();
+    replace_job(*m_worker, std::move(print_job));
     BOOST_LOG_TRIVIAL(info) << "print_job: start print job";
 }
 
