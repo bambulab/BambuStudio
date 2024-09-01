@@ -95,7 +95,7 @@ static bool should_open_in_external_browser()
     }
 
     // Otherwise, if user choose to switch to device tab, then don't bother opening external browser
-    return !app.app_config->get_bool("open_device_tab_post_upload");
+    return app.app_config->get("open_device_tab_post_upload") != "true";
 }
 
 SimplyPrint::SimplyPrint(DynamicPrintConfig* config)
