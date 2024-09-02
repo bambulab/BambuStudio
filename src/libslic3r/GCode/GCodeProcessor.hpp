@@ -132,9 +132,23 @@ namespace Slic3r {
         };
     };
 
+    using ConflictResultOpt = std::optional<ConflictResult>;
+
+    struct GCodeCheckResult
+    {
+        int error_code = 0;   // 0 means succeed
+        std::map<int, std::vector<int>> error_infos;   // extruder_id to filament_ids
+
+        void reset() {
+            error_code = 0;
+            error_infos.clear();
+        }
+    };
+
     struct GCodeProcessorResult
     {
         ConflictResultOpt conflict_result;
+        GCodeCheckResult  gcode_check_result;
         FilamentPrintableResult filament_printable_reuslt;
 
         struct SettingsIds
@@ -256,6 +270,7 @@ namespace Slic3r {
             spiral_vase_layers = other.spiral_vase_layers;
             warnings = other.warnings;
             bed_type = other.bed_type;
+            gcode_check_result = other.gcode_check_result;
             filament_printable_reuslt = other.filament_printable_reuslt;
 #if ENABLE_GCODE_VIEWER_STATISTICS
             time = other.time;
@@ -820,6 +835,8 @@ namespace Slic3r {
     public:
         GCodeProcessor();
 
+        // check whether the gcode path meets the filament_map grouping requirements
+        bool check_multi_extruder_gcode_valid(const std::vector<Polygons> &unprintable_areas, const std::vector<int>& filament_map);
         void apply_config(const PrintConfig& config);
 
         void set_filaments(const std::vector<Extruder>&filament_lists) { m_filament_lists=filament_lists;}
