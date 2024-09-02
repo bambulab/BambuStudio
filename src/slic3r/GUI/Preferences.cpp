@@ -630,8 +630,9 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
     auto checkbox = new ::CheckBox(parent);
     if (param == "privacyuse") {
         checkbox->SetValue((app_config->get("firstguide", param) == "true") ? true : false);
-    }
-    else {
+    } else if (param == "auto_stop_liveview") {
+        checkbox->SetValue((app_config->get("liveview", param) == "true") ? true : false);
+    } else {
         checkbox->SetValue((app_config->get(param) == "true") ? true : false);
     }
 
@@ -660,6 +661,9 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
                 }
             }
             app_config->save();
+        }
+        else if (param == "auto_stop_liveview") {
+            app_config->set("liveview", param, checkbox->GetValue());
         }
         else {
             app_config->set_bool(param, checkbox->GetValue());
@@ -1077,8 +1081,9 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_backup_interval = create_item_backup_input(_L("every"), page, _L("The peroid of backup in seconds."), "backup_interval");
 
     //downloads
-    auto title_downloads = create_item_title(_L("Downloads"), page, _L("Downloads"));
+    auto title_media = create_item_title(_L("Media"), page, _L("Media"));
     auto item_downloads = create_item_downloads(page,50,"download_path");
+    auto item_auto_stop_liveview = create_item_checkbox(_L("Auto Stop Liveview"), page, _L("Automatically close the video after printing."), 50, "auto_stop_liveview");
 
     //dark mode
 #ifdef _WIN32
@@ -1136,8 +1141,9 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_backup, 0, wxTOP,FromDIP(3));
     item_backup->Add(item_backup_interval, 0, wxLEFT, 0);
 
-    sizer_page->Add(title_downloads, 0, wxTOP| wxEXPAND, FromDIP(20));
+    sizer_page->Add(title_media, 0, wxTOP| wxEXPAND, FromDIP(20));
     sizer_page->Add(item_downloads, 0, wxEXPAND, FromDIP(3));
+    sizer_page->Add(item_auto_stop_liveview, 0, wxEXPAND, FromDIP(3));
 
 #ifdef _WIN32
     sizer_page->Add(title_darkmode, 0, wxTOP | wxEXPAND, FromDIP(20));
