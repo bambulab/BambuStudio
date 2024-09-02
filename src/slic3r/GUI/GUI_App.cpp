@@ -4474,7 +4474,7 @@ void GUI_App::reset_to_active()
     last_active_point = std::chrono::system_clock::now();
 }
 
-void GUI_App::check_update(bool show_tips, int by_user)
+void GUI_App::check_update(bool show_tips, int by_user, VersionUpdateType type)
 {
     if (version_info.version_str.empty()) return;
     if (version_info.url.empty()) return;
@@ -4495,8 +4495,17 @@ void GUI_App::check_update(bool show_tips, int by_user)
         }
     } else {
         wxGetApp().app_config->set("upgrade", "force_upgrade", false);
-        if (show_tips)
+        if (app_config->get("enable_beta_version_update") == "true"){
+            if (type == ReleaseVersionUpdate){
+                check_beta_version(show_tips, by_user);
+            }
+            else if (type == BetaVersionUpdate){
+                this->no_new_version();
+            }
+        }
+        else{
             this->no_new_version();
+        }
     }
 }
 
@@ -4560,6 +4569,76 @@ void GUI_App::check_new_version(bool show_tips, int by_user)
             handle_http_error(status, body);
             BOOST_LOG_TRIVIAL(error) << "check new version error" << body;
     }).perform();
+}
+
+void GUI_App::check_beta_version(bool show_tips, int by_user) {
+    std::string platform = "windows";
+
+#ifdef __WINDOWS__
+    platform = "windows";
+#endif
+#ifdef __APPLE__
+    platform = "macos";
+#endif
+#ifdef __LINUX__
+    platform = "linux";
+#endif
+
+    std::string repoOwner = "bambulab"; // The owner of repository
+    std::string repoName = "BambuStudio";   // The name of repository
+    //"https://api.github.com/repos/bambulab/BambuStudio/releases"
+    std::string url = "https://api.github.com/repos/" + repoOwner + "/" + repoName + "/releases";
+
+    Slic3r::Http http = Slic3r::Http::get(url);
+
+    http.header("accept", "application/json")
+        .timeout_connect(TIMEOUT_CONNECT)
+        .timeout_max(TIMEOUT_RESPONSE)
+        .on_complete([this, show_tips, by_user, platform](std::string body, unsigned) {
+        try {
+            json versions = json::parse(body, nullptr, false);
+            for (auto version : versions){
+                if (version.contains("prerelease") && version.contains("assets") && version.contains("tag_name") && version.contains("html_url")) {
+                    bool is_beta_version = version["prerelease"];
+                    if (is_beta_version){
+                        std::regex version_regex(R"((\d+)\.(\d+)\.(\d+)\.(\d+))");
+                        std::smatch match;
+                        std::string version_str = "";
+                        std::string tag_name = version["tag_name"];
+                        if (std::regex_search(tag_name, match, version_regex)) {
+                            version_str = match[0];
+                        }
+                        version_info.version_str = version_str;
+                        auto assets = version["assets"];
+                        for (auto asset : assets){
+                            if (asset.contains("browser_download_url")){
+                                std::string url = asset["browser_download_url"];
+                                if ((platform == "windows" && url.find(".exe") != std::string::npos)
+                                    || (platform == "linux" && url.find(".AppImage") != std::string::npos)
+                                    || (platform == "macos" && url.find(".dmg") != std::string::npos))
+                                {
+                                    version_info.url = url;
+                                    version_info.description = "###" + std::string(version["html_url"]) + "###";
+                                    version_info.force_upgrade = false;
+                                    CallAfter([this, show_tips, by_user]() {
+                                        this->check_update(show_tips, by_user, BetaVersionUpdate);
+                                        });
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        catch (...) {
+            ;
+        }
+            })
+        .on_error([this](std::string body, std::string error, unsigned int status) {
+                handle_http_error(status, body);
+                BOOST_LOG_TRIVIAL(error) << "check new version error" << body;
+            }).perform();
 }
 
 
