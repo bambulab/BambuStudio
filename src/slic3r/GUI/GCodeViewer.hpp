@@ -746,6 +746,7 @@ public:
 
     //BBS
     ConflictResultOpt m_conflict_result;
+    GCodeCheckResult  m_gcode_check_result;
     FilamentPrintableResult filament_printable_reuslt;
 
 private:

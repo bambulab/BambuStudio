@@ -2901,6 +2901,7 @@ void GLCanvas3D::load_gcode_preview(const GCodeProcessorResult& gcode_result, co
         _set_warning_notification_if_needed(EWarning::ToolHeightOutside);
         _set_warning_notification_if_needed(EWarning::ToolpathOutside);
         _set_warning_notification_if_needed(EWarning::GCodeConflict);
+        _set_warning_notification_if_needed(EWarning::MultiExtruderPrintableError);
         _set_warning_notification_if_needed(EWarning::FilamentUnPrintableOnFirstLayer);
     }
 
@@ -9548,6 +9549,8 @@ void GLCanvas3D::_set_warning_notification_if_needed(EWarning warning)
                            (m_gcode_viewer.get_max_print_height() - m_gcode_viewer.get_layers_zs()[max_z_layer] >= 1e-6);
                 } else if (warning == EWarning::GCodeConflict)
                     show = m_gcode_viewer.has_data() && m_gcode_viewer.is_contained_in_bed() && m_gcode_viewer.m_conflict_result.has_value();
+                else if (warning == EWarning::MultiExtruderPrintableError)
+                    show = m_gcode_viewer.has_data() && m_gcode_viewer.m_gcode_check_result.error_code != 0;
                 else if (warning == EWarning::FilamentUnPrintableOnFirstLayer)
                     show = m_gcode_viewer.has_data() && m_gcode_viewer.filament_printable_reuslt.has_value();
             }
@@ -9616,6 +9619,25 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
     case EWarning::ObjectOutside:      text = _u8L("An object is layed over the boundary of plate."); break;
     case EWarning::ToolHeightOutside:  text = _u8L("A G-code path goes beyond the max print height."); error = ErrorType::SLICING_ERROR; break;
     case EWarning::ToolpathOutside:    text = _u8L("A G-code path goes beyond the boundary of plate."); error = ErrorType::SLICING_ERROR; break;
+    case EWarning::MultiExtruderPrintableError: {
+        text.clear();
+        for (auto error_iter = m_gcode_viewer.m_gcode_check_result.error_infos.begin(); error_iter != m_gcode_viewer.m_gcode_check_result.error_infos.end(); ++error_iter) {
+            if (error_iter != m_gcode_viewer.m_gcode_check_result.error_infos.begin()) {
+                text += "\n";
+            }
+            int extruder_id = error_iter->first + 1;
+            std::string filaments;
+            for (size_t i = 0; i < error_iter->second.size(); ++i) {
+                if (i > 0) {
+                    filaments += ", ";
+                }
+                filaments += std::to_string(error_iter->second[i] + 1);
+            }
+            text += (boost::format(_u8L("Extruder %d conflicts with filaments: %s.")) %extruder_id %filaments).str();
+        }
+        error = ErrorType::SLICING_ERROR;
+        break;
+    }
     // BBS: remove _u8L() for SLA
     case EWarning::SlaSupportsOutside: text = ("SLA supports outside the print area were detected."); error = ErrorType::PLATER_ERROR; break;
     case EWarning::SomethingNotShown:  text = _u8L("Only the object being edited is visible."); break;
