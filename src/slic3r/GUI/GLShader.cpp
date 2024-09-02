@@ -344,6 +344,11 @@ bool GLShaderProgram::set_uniform(const char* name, const Matrix3f& value) const
     return false;
 }
 
+bool GLShaderProgram::set_uniform(const char *name, const Matrix3d &value) const
+{
+    return set_uniform(name, (Matrix3f) value.cast<float>());
+}
+
 bool GLShaderProgram::set_uniform(const char* name, const Vec3f& value) const
 {
     int id = get_uniform_location(name);

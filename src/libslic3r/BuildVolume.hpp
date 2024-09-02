@@ -17,10 +17,10 @@ struct GCodeProcessorResult;
 class BuildVolume
 {
 public:
-    enum class Type : unsigned char
+    enum class Type :  char
     {
         // Not set yet or undefined.
-        Invalid,
+        Invalid = -1,
         // Rectangular print bed. Most common, cheap to work with.
         Rectangle,
         // Circular print bed. Common on detals, cheap to work with.
@@ -39,6 +39,20 @@ public:
         Geometry::Circled   circle;
     };
 
+    struct BuildSharedVolume
+    {
+        // see: Bed3D::EShapeType
+        int type{ 0 };
+        // data contains:
+        // Rectangle:
+        //   [0] = min.x, [1] = min.y, [2] = max.x, [3] = max.y
+        // Circle:
+        //   [0] = center.x, [1] = center.y, [3] = radius
+        std::array<float, 4> data;
+        //   [0] = min z, [1] = max z
+        std::array<float, 2> zs;
+    };
+
     // Initialized to empty, all zeros, Invalid.
     BuildVolume() {}
     // Initialize from PrintConfig::printable_area and PrintConfig::printable_height
@@ -48,6 +62,7 @@ public:
     const std::vector<Vec2d>&   printable_area()         const { return m_bed_shape; }
     double                      printable_height()  const { return m_max_print_height; }
     const std::vector<std::vector<Vec2d>>& extruder_areas() const { return m_extruder_shapes; }
+    const BuildSharedVolume& get_shared_volume() const { return m_shared_volume; }
 
     // Derived data
     Type                        type()              const { return m_type; }
@@ -117,8 +132,9 @@ private:
     // Source definition of the print bed geometry (PrintConfig::printable_area)
     std::vector<Vec2d>  m_bed_shape;
     //BBS: extruder shapes
-    std::vector<std::vector<Vec2d>>  m_extruder_shapes;
+    std::vector<std::vector<Vec2d>>  m_extruder_shapes; //original data from config
     std::vector<BuildExtruderVolume> m_extruder_volumes;
+    BuildSharedVolume m_shared_volume;  //used for rendering
     // Source definition of the print volume height (PrintConfig::printable_height)
     double              m_max_print_height { 0.f };
 
