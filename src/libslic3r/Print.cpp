@@ -121,6 +121,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "accel_to_decel_enable",
         "accel_to_decel_factor",
         // BBS
+        "supertack_plate_temp_initial_layer",
         "cool_plate_temp_initial_layer",
         "eng_plate_temp_initial_layer",
         "hot_plate_temp_initial_layer",
@@ -231,6 +232,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "single_extruder_multi_material"
             || opt_key == "nozzle_temperature"
             // BBS
+            || opt_key == "supertack_plate_temp"
             || opt_key == "cool_plate_temp"
             || opt_key == "eng_plate_temp"
             || opt_key == "hot_plate_temp"
