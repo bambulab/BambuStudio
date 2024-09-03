@@ -1433,7 +1433,7 @@ void WebViewPanel::SwitchLeftMenu(std::string strMenu)
 
 void WebViewPanel::OpenOneMakerlab(std::string url) {
     auto        host = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
-    std::string LabUrl  = (boost::format("%1%%2%") % host % url).str();
+    std::string LabUrl  = (boost::format("%1%%2%?from=bambustudio") % host % url).str();
 
     wxString      FinalUrl = LabUrl;
     NetworkAgent *agent    = GUI::wxGetApp().getAgent();
