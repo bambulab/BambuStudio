@@ -96,6 +96,7 @@ struct NfpPConfig {
      */
     bool parallel = true;
 
+    bool save_svg = false;
     /**
      * @brief before_packing Callback that is called just before a search for
      * a new item's position is started. You can use this to create various
@@ -163,9 +164,9 @@ template<class RawShape> class EdgeCache {
     std::vector<ContourCache> holes_;
 
     double accuracy_ = 1.0;
-    
-    static double length(const Edge &e) 
-    { 
+
+    static double length(const Edge &e)
+    {
         return std::sqrt(e.template sqlength<double>());
     }
 
@@ -784,7 +785,7 @@ private:
                 if(can_pack) break;
             }
             item.inflation(inflation_back);
-            
+
             if (can_pack)
                 global_score = 0.2;
             item.rotation(best_rot);
@@ -987,38 +988,39 @@ private:
         }
 
 #ifdef SVGTOOLS_HPP
-        svg::SVGWriter<RawShape> svgwriter;
-        Box binbb2(binbb.width() * 2, binbb.height() * 2, binbb.center()); // expand bbox to allow object be drawed outside
-        svgwriter.setSize(binbb2);
-        svgwriter.conf_.x0 = binbb.width();
-        svgwriter.conf_.y0 = -binbb.height()/2; // origin is top left corner
-        svgwriter.add_comment("bed");
-        svgwriter.writeShape(box2RawShape(binbb), "none", "black");
-        svgwriter.add_comment("nfps");
-        for (int i = 0; i < nfps.size(); i++)
-            svgwriter.writeShape(nfps[i], "none", "blue");
-        for (int i = 0; i < items_.size(); i++) {
-            svgwriter.add_comment(items_[i].get().name);
-            svgwriter.writeItem(items_[i], "none", "black");
-        }
-        svgwriter.add_comment("merged_pile_");
-        for (int i = 0; i < merged_pile_.size(); i++)
-            svgwriter.writeShape(merged_pile_[i], "none", "yellow");
-        svgwriter.add_comment("current item");
-        svgwriter.writeItem(item, "red", "red", 2);
+        if (config_.save_svg) {
+            svg::SVGWriter<RawShape> svgwriter;
+            Box                      binbb2(binbb.width() * 2, binbb.height() * 2, binbb.center()); // expand bbox to allow object be drawed outside
+            svgwriter.setSize(binbb2);
+            svgwriter.conf_.x0 = binbb.width();
+            svgwriter.conf_.y0 = -binbb.height() / 2; // origin is top left corner
+            svgwriter.add_comment("bed");
+            svgwriter.writeShape(box2RawShape(binbb), "none", "black");
+            svgwriter.add_comment("nfps");
+            for (int i = 0; i < nfps.size(); i++) svgwriter.writeShape(nfps[i], "none", "blue");
+            for (int i = 0; i < items_.size(); i++) {
+                svgwriter.add_comment(items_[i].get().name);
+                svgwriter.writeItem(items_[i], "none", "black");
+            }
+            svgwriter.add_comment("merged_pile_");
+            for (int i = 0; i < merged_pile_.size(); i++) svgwriter.writeShape(merged_pile_[i], "none", "yellow");
+            svgwriter.add_comment("current item");
+            svgwriter.writeItem(item, "red", "red", 2);
 
-        std::stringstream ss;
-        ss.setf(std::ios::fixed | std::ios::showpoint);
-        ss.precision(1);
-        ss << "t=" << round(item.translation().x() / 1e6) << "," << round(item.translation().y() / 1e6)
-            //<< "-rot=" << round(item.rotation().toDegrees())
-            << "-sco=" << round(global_score);
-        svgwriter.draw_text(20, 20, ss.str(), "blue", 20);
-        ss.str("");
-        ss << "items.size=" << items_.size()
-            << "-merged_pile.size=" << merged_pile_.size();
-        svgwriter.draw_text(20, 40, ss.str(), "blue", 20);
-        svgwriter.save(boost::filesystem::path("C:/Users/arthur.tang/AppData/Roaming/BambuStudioInternal/SVG")/ ("nfpplacer_" + std::to_string(plate_id) + "_" + ss.str() + "_" + item.name + ".svg"));
+            std::stringstream ss;
+            ss.setf(std::ios::fixed | std::ios::showpoint);
+            ss.precision(1);
+            ss << "t=" << round(item.translation().x() / 1e6) << ","
+               << round(item.translation().y() / 1e6)
+               //<< "-rot=" << round(item.rotation().toDegrees())
+               << "-sco=" << round(global_score);
+            svgwriter.draw_text(20, 20, ss.str(), "blue", 20);
+            ss.str("");
+            ss << "items.size=" << items_.size() << "-merged_pile.size=" << merged_pile_.size();
+            svgwriter.draw_text(20, 40, ss.str(), "blue", 20);
+            svgwriter.save(boost::filesystem::path("C:/Users/arthur.tang/AppData/Roaming/BambuStudioInternal/SVG") /
+                           ("nfpplacer_" + std::to_string(plate_id) + "_" + ss.str() + "_" + item.name + ".svg"));
+        }
 #endif
 
         if(can_pack) {
@@ -1142,7 +1144,7 @@ private:
         default: ; // DONT_ALIGN
         }
 
-        auto d = cb - ci;       
+        auto d = cb - ci;
 
         // BBS make sure the item won't clash with excluded regions
         // do we have wipe tower after arranging?
@@ -1194,7 +1196,7 @@ private:
 
     void setInitialPosition(Item& item) {
         Box bb = item.boundingBox();
-        
+
         Vertex ci, cb;
         Box    bbin = sl::boundingBox(bin_);
         Vertex shrink(10, 10);
