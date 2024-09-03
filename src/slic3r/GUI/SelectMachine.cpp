@@ -4926,7 +4926,21 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
  void PinCodePanel::on_mouse_left_up(wxMouseEvent& evt)
  {
      if (m_type == 0) {
-         wxGetApp().popup_ping_bind_dialog();
+        if (wxGetApp().getAgent() && wxGetApp().getAgent()->is_user_login()){
+             wxGetApp().popup_ping_bind_dialog();
+         }
+         else{
+             auto m_confirm_login_dlg = new SecondaryCheckDialog(nullptr, wxID_ANY, _L("Bind with Pin Code"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM, wxDefaultPosition);
+             m_confirm_login_dlg->SetSize(wxSize(FromDIP(270), FromDIP(158)));
+             m_confirm_login_dlg->update_text(_L("Please log in before binding your device with a PIN code.\nAlternatively, you can use LAN mode to bind your device. Learn about LAN mode."));
+             m_confirm_login_dlg->update_btn_label(_L("Go to Login"), _L(""));
+             m_confirm_login_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent& e) {
+                 //m_confirm_login_dlg->on_hide();
+                 wxGetApp().request_login();
+                 return;
+                 });
+             m_confirm_login_dlg->on_show();
+         }
      }
      else if (m_type == 1) {
          InputIpAddressDialog dlgo;
