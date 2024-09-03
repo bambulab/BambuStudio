@@ -1045,6 +1045,9 @@ void MainFrame::init_tabpanel()
                         return;
                         });
                 }
+                int xPos = GetRect().GetX() + (GetSize().x - m_confirm_download_plugin_dlg->GetSize().x) / 2;
+                int yPos = GetRect().GetY() + (GetSize().y - m_confirm_download_plugin_dlg->GetSize().y) / 2;
+                m_confirm_download_plugin_dlg->SetPosition(wxPoint(xPos, yPos));
                 m_confirm_download_plugin_dlg->on_show();
             }
         }

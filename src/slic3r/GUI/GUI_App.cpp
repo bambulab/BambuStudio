@@ -4233,8 +4233,29 @@ std::string GUI_App::handle_web_request(std::string cmd)
 
                     if (mainframe && mainframe->m_webview) { mainframe->m_webview->OpenOneMakerlab(strUrl); }
                 }
-            } 
-            else if (command_str.compare("makerworld_model_open") == 0) 
+            }
+            else if (command_str.compare("homepage_need_networkplugin") == 0){
+                if (mainframe){
+                    if (mainframe->m_confirm_download_plugin_dlg == nullptr) {
+                    mainframe->m_confirm_download_plugin_dlg = new SecondaryCheckDialog(mainframe, wxID_ANY, _L("Install network plug-in"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM);
+                    mainframe->m_confirm_download_plugin_dlg->SetSize(wxSize(270, 158));
+                    mainframe->m_confirm_download_plugin_dlg->update_text(_L("Please Install network plug-in before log in."));
+                    mainframe->m_confirm_download_plugin_dlg->update_btn_label(_L("Install Network Plug-in"), _L(""));
+
+                    mainframe->m_confirm_download_plugin_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent& e) {
+                        mainframe->m_confirm_download_plugin_dlg->Close();
+                        ShowDownNetPluginDlg();
+                        return;
+                        });
+                }
+                auto dlg_width = mainframe->m_confirm_download_plugin_dlg->GetSize();
+                int xPos = mainframe->GetRect().GetX() + (mainframe->GetSize().x - dlg_width.x) / 2;
+                int yPos = mainframe->GetRect().GetY() + (mainframe->GetSize().y - dlg_width.y) / 2;
+                mainframe->m_confirm_download_plugin_dlg->SetPosition(wxPoint(xPos, yPos));
+                mainframe->m_confirm_download_plugin_dlg->on_show();
+                }
+            }
+            else if (command_str.compare("makerworld_model_open") == 0)
             {
                 if (root.get_child_optional("model") != boost::none) {
                     pt::ptree                    data_node = root.get_child("model");
