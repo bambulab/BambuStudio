@@ -113,11 +113,9 @@ body
 #NoPluginTip
 {
 	position: absolute;
-	top: 0px;
 	left: 0px;
 	bottom: 0px;
 	right: 0px;
-	z-index: 1;
 	display: none;
 	flex-direction: column;
 	justify-content: flex-end;
