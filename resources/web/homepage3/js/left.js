@@ -1,6 +1,7 @@
 //var TestData={"sequence_id":"0","command":"get_recent_projects","response":[{"path":"D:\\work\\Models\\Toy\\3d-puzzle-cube-model_files\\3d-puzzle-cube.3mf","time":"2022\/3\/24 20:33:10"},{"path":"D:\\work\\Models\\Art\\Carved Stone Vase - remeshed+drainage\\Carved Stone Vase.3mf","time":"2022\/3\/24 17:11:51"},{"path":"D:\\work\\Models\\Art\\Kity & Cat\\Cat.3mf","time":"2022\/3\/24 17:07:55"},{"path":"D:\\work\\Models\\Toy\\鐩村墤.3mf","time":"2022\/3\/24 17:06:02"},{"path":"D:\\work\\Models\\Toy\\minimalistic-dual-tone-whistle-model_files\\minimalistic-dual-tone-whistle.3mf","time":"2022\/3\/22 21:12:22"},{"path":"D:\\work\\Models\\Toy\\spiral-city-model_files\\spiral-city.3mf","time":"2022\/3\/22 18:58:37"},{"path":"D:\\work\\Models\\Toy\\impossible-dovetail-puzzle-box-model_files\\impossible-dovetail-puzzle-box.3mf","time":"2022\/3\/22 20:08:40"}]};
 
 var m_HotModelList=null;
+var m_HasNetworkPlugin=true;
 
 function OnInit()
 {
@@ -32,10 +33,13 @@ function HandleStudio( pVal )
 		{
 			$("#NoPluginTip").show();
 			$("#NoPluginTip").css("display","flex");
+			
+			m_HasNetworkPlugin=false;
 		}
 		else
 		{
 			$("#NoPluginTip").hide();
+			m_HasNetworkPlugin=true;
 		}
 	}	
 	else if(strCmd=='homepage_leftmenu_clicked')
@@ -174,9 +178,18 @@ function SendMsg_GetLoginInfo()
 function OnLoginOrRegister()
 {
 	var tSend={};
-	tSend['sequence_id']=Math.round(new Date() / 1000);
-	tSend['command']="homepage_login_or_register";
 	
+	if( m_HasNetworkPlugin )
+	{
+		tSend['sequence_id']=Math.round(new Date() / 1000);
+		tSend['command']="homepage_login_or_register";		
+	}
+	else
+	{
+		tSend['sequence_id']=Math.round(new Date() / 1000);
+		tSend['command']="homepage_need_networkplugin";
+	}
+		
 	SendWXMessage( JSON.stringify(tSend) );	
 }
 
