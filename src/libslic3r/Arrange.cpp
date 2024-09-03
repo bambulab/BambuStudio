@@ -129,7 +129,7 @@ void update_unselected_items_inflation(ArrangePolygons& unselected, const Dynami
         exclusion_gap = std::max(exclusion_gap, params.min_obj_distance / 2 + scaled<coord_t>(params.bed_shrink_x + 1.f));  // +1mm gap so the exclusion region is not too close
         // dont forget to move the excluded region
         for (auto& region : unselected) {
-            if (region.is_virt_object) region.poly.translate(scaled(params.bed_shrink_x), scaled(params.bed_shrink_y));
+            if (region.is_virt_object) region.poly.translate(scaled(params.bed_shrink_x+1.f), scaled(params.bed_shrink_y+1.f));
         }
     }
     // For occulusion regions, inflation should be larger to prevent genrating brim on them.
@@ -142,7 +142,7 @@ void update_unselected_items_inflation(ArrangePolygons& unselected, const Dynami
         : (ap.is_extrusion_cali_object ? 0 : exclusion_gap); });
 }
 
-//it will bed accurate after call update_params
+//it will be accurate after call update_params
 Points get_shrink_bedpts(const DynamicPrintConfig & print_cfg, const ArrangeParams& params)
 {
     Points bedpts = get_bed_shape(print_cfg);
