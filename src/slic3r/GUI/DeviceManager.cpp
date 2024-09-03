@@ -3933,6 +3933,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     catch (...) {
                         ;
                     }
+                    update_printer_preset_name();
                     update_filament_list();
                     if (jj.contains("ams")) {
                         if (jj["ams"].contains("ams")) {
@@ -5621,8 +5622,10 @@ void MachineObject::update_printer_preset_name()
         if (m_nozzle_filament_data.find(nozzle_diameter_str) != m_nozzle_filament_data.end()) continue;
         auto data = FilamentData();
         auto printer_set = preset_bundle->get_printer_names_by_printer_type_and_nozzle(printer_model, nozzle_diameter_str);
-        if (printer_set.size() > 0)
+        if (printer_set.size() > 0) {
             data.printer_preset_name = *printer_set.begin();
+            m_nozzle_filament_data[nozzle_diameter_str] = data;
+        }
         else
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << " update printer preset name failed: "<< "printer_type: " << printer_type << "nozzle_diameter_str" << nozzle_diameter_str;
     }
