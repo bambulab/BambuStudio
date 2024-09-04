@@ -90,7 +90,9 @@ enum PrintDialogStatus {
     PrintStatusBlankPlate,
     PrintStatusUnsupportedPrinter,
     PrintStatusTimelapseWarning,
-    PrintStatusMixAmsAndVtSlotWarning
+    PrintStatusMixAmsAndVtSlotWarning,
+    PrintStatusPublicInitFailed,
+    PrintStatusPublicUploadFiled
 };
 
 class Material
