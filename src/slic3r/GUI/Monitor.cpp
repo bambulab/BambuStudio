@@ -288,8 +288,8 @@ void MonitorPanel::on_update_all(wxMouseEvent &event)
 {
     if (update_flag) {
         update_all();
-        //Layout();
-        //Refresh();
+        Layout();
+        Refresh();
     }
 }
 
@@ -297,8 +297,8 @@ void MonitorPanel::on_update_all(wxMouseEvent &event)
 {
      if (update_flag) {
          update_all();
-         //Layout();
-         //Refresh();
+         Layout();
+         Refresh();
      }
 }
 
