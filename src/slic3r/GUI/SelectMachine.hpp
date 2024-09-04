@@ -333,6 +333,7 @@ enum PrintDialogStatus {
     PrintStatusTimelapseWarning
 };
 
+
 std::string get_print_status_info(PrintDialogStatus status);
 
 class SelectMachineDialog : public DPIDialog
@@ -539,7 +540,8 @@ public:
     bool Show(bool show);
     bool do_ams_mapping(MachineObject* obj_);
     bool get_ams_mapping_result(std::string& mapping_array_str, std::string& mapping_array_str2, std::string& ams_mapping_info);
-    bool is_two_nozzle_same();
+    bool can_hybrid_mapping(NozzleData data);
+    void auto_supply_with_ext(std::vector<AmsTray> slots);
 
     PrintFromType get_print_type() {return m_print_type;};
     wxString    format_steel_name(std::string name);
