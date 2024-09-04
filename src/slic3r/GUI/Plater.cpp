@@ -340,7 +340,7 @@ struct Sidebar::priv
     StaticBox* m_panel_filament_title;
     wxStaticText* m_staticText_filament_settings;
     ScalableButton *  m_bpButton_add_filament;
-    //ScalableButton *  m_bpButton_del_filament;
+    ScalableButton *  m_bpButton_del_filament;
     ScalableButton *  m_bpButton_ams_filament;
     ScalableButton *  m_bpButton_set_filament;
     int m_menu_filament_id = -1;
@@ -1116,15 +1116,15 @@ Sidebar::Sidebar(Plater *parent)
     bSizer39->Add(add_btn, 0, wxALIGN_CENTER|wxALL, FromDIP(5));
     bSizer39->Add(FromDIP(10), 0, 0, 0, 0 );
 
-    //ScalableButton* del_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "delete_filament");
-    //del_btn->SetToolTip(_L("Remove last filament"));
-    //del_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent &e) {
-    //    delete_filament();
-    //});
-    //p->m_bpButton_del_filament = del_btn;
+    ScalableButton* del_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "delete_filament");
+    del_btn->SetToolTip(_L("Remove last filament"));
+    del_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent &e) {
+        delete_filament();
+    });
+    p->m_bpButton_del_filament = del_btn;
 
-    //bSizer39->Add(del_btn, 0, wxALIGN_CENTER_VERTICAL, FromDIP(5));
-    //bSizer39->Add(FromDIP(20), 0, 0, 0, 0);
+    bSizer39->Add(del_btn, 0, wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    bSizer39->Add(FromDIP(20), 0, 0, 0, 0);
 
     ams_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "ams_fila_sync", wxEmptyString, wxDefaultSize, wxDefaultPosition,
                                                  wxBU_EXACTFIT | wxNO_BORDER, false, 18);
@@ -1665,7 +1665,7 @@ void Sidebar::msw_rescale()
     p->m_printer_setting->msw_rescale();
     p->m_filament_icon->msw_rescale();
     p->m_bpButton_add_filament->msw_rescale();
-    //p->m_bpButton_del_filament->msw_rescale();
+    p->m_bpButton_del_filament->msw_rescale();
     p->m_bpButton_ams_filament->msw_rescale();
     p->m_bpButton_set_filament->msw_rescale();
     p->m_flushing_volume_btn->Rescale();
@@ -1742,7 +1742,7 @@ void Sidebar::sys_color_changed()
     p->m_printer_setting->msw_rescale();
     p->m_filament_icon->msw_rescale();
     p->m_bpButton_add_filament->msw_rescale();
-    //p->m_bpButton_del_filament->msw_rescale();
+    p->m_bpButton_del_filament->msw_rescale();
     p->m_bpButton_ams_filament->msw_rescale();
     p->m_bpButton_set_filament->msw_rescale();
     p->m_flushing_volume_btn->Rescale();
