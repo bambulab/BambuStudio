@@ -577,7 +577,9 @@ public:
     // exceed index start with 0
     bool is_mapping_exceed_filament(std::vector<FilamentInfo>& result, int &exceed_index);
     void reset_mapping_result(std::vector<FilamentInfo>& result);
+    bool is_main_extruder_on_left() const;
     bool is_multi_extruders() const;
+    bool need_SD_card() const;
 
     /*online*/
     bool   online_rfid;

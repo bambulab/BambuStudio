@@ -1128,9 +1128,20 @@ void MachineObject::reset_mapping_result(std::vector<FilamentInfo>& result)
     }
 }
 
+bool MachineObject::is_main_extruder_on_left() const
+{
+    return printer_type.find("O1D") == std::string::npos;  // not O1D
+}
+
 bool MachineObject::is_multi_extruders() const
 {
     return m_nozzle_data.total_nozzle_count > 1;
+}
+
+bool MachineObject::need_SD_card() const
+{
+    // todo: check whether need SD card
+    return !is_multi_extruders();
 }
 
 bool MachineObject::is_bbl_filament(std::string tag_uid)
