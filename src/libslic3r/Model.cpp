@@ -2835,8 +2835,9 @@ unsigned int ModelObject::update_instances_print_volume_state(const BuildVolume 
                 {
                     case BuildVolume::Type::Rectangle:
                     {
-                        BoundingBoxf3 transformed_bb = bb.transformed(matrix);
+                        BoundingBoxf3 transformed_bb = vol->get_convex_hull().transformed_bounding_box(matrix);
                         state = build_volume.volume_state_bbox(transformed_bb);
+                        //state = build_volume.object_state(vol->mesh().its, matrix.cast<float>(), true /* may be below print bed */);
                         break;
                     }
                     case BuildVolume::Type::Circle:
