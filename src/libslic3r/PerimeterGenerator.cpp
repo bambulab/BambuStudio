@@ -79,7 +79,7 @@ static void fuzzy_polygon(Polygon &poly, double fuzzy_skin_thickness, double fuz
             double r = random_value() * (fuzzy_skin_thickness * 2.) - fuzzy_skin_thickness;
             out.emplace_back(*p0 + (p0p1 * (p0pa_dist / p0p1_size) + perp(p0p1).cast<double>().normalized() * r).cast<coord_t>());
         }
-        dist_left_over = p0p1_size - p0pa_dist;
+        dist_left_over = p0pa_dist - p0p1_size;
         p0 = &p1;
     }
     while (out.size() < 3) {
