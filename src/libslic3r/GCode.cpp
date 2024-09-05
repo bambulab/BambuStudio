@@ -2619,7 +2619,7 @@ void GCode::process_layers(
                 for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++layer_idx) {
                     print.throw_if_canceled();
                     if (layer_idx > 0) {
-                        LayerToPrint &layer = layers_to_print[layer_idx++];
+                        LayerToPrint &layer = layers_to_print[layer_idx];
                         cooling_buffer.apply_smooth_speed(smooth_calculator, layers_extruder_adjustments[layer_idx], layer_idx);
                     }
                 }
