@@ -170,6 +170,10 @@ void PrintObject::merge_layer_node(const size_t layer_id, int &max_merged_id, st
                 continue;
 
             auto it = node_record.find(appear_id[appear_node_idx]);
+            //protect
+            if (it == node_record.end())
+                continue;
+
             std::vector<std::pair<int, int>> &appear_node_pos = it->second;
 
             for (size_t node_idx = 0; node_idx < appear_node_pos.size(); ++node_idx) {
