@@ -577,14 +577,12 @@ bool CalibUtils::calib_flowrate(int pass, const CalibInfo &calib_info, wxString 
     index = get_index_for_extruder_parameter(print_config, "internal_solid_infill_speed", calib_info.extruder_id, calib_info.extruder_type, calib_info.nozzle_volume_type);
     double internal_solid_speed          = std::floor(std::min(print_config.opt_float_nullable("internal_solid_infill_speed", index), max_infill_speed));
     ConfigOptionFloatsNullable* internal_solid_speed_opt = print_config.option<ConfigOptionFloatsNullable>("internal_solid_infill_speed");
-    auto & new_internal_solid_speed      = internal_solid_speed_opt->values;
-    new_internal_solid_speed[index]      = internal_solid_speed;
+    internal_solid_speed_opt->values[index] = internal_solid_speed;
 
     index = get_index_for_extruder_parameter(print_config, "top_surface_speed", calib_info.extruder_id, calib_info.extruder_type, calib_info.nozzle_volume_type);
     double top_surface_speed        = std::floor(std::min(print_config.opt_float_nullable("top_surface_speed", index), max_infill_speed));
     ConfigOptionFloatsNullable *top_surface_speed_opt = print_config.option<ConfigOptionFloatsNullable>("top_surface_speed");
-    auto & new_top_surface_speed    = top_surface_speed_opt->values;
-    new_top_surface_speed[index]    = top_surface_speed;
+    top_surface_speed_opt->values[index] = top_surface_speed;
 
     // adjust parameters
     filament_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(calib_info.bed_type));
@@ -606,8 +604,8 @@ bool CalibUtils::calib_flowrate(int pass, const CalibInfo &calib_info, wxString 
         _obj->config.set_key_value("top_solid_infill_flow_ratio", new ConfigOptionFloat(1.0f));
         _obj->config.set_key_value("infill_direction", new ConfigOptionFloat(45));
         _obj->config.set_key_value("ironing_type", new ConfigOptionEnum<IroningType>(IroningType::NoIroning));
-        _obj->config.set_key_value("internal_solid_infill_speed", internal_solid_speed_opt);
-        _obj->config.set_key_value("top_surface_speed", top_surface_speed_opt);
+        _obj->config.set_key_value("internal_solid_infill_speed", new ConfigOptionFloatsNullable(internal_solid_speed_opt->values));
+        _obj->config.set_key_value("top_surface_speed", new ConfigOptionFloatsNullable(top_surface_speed_opt->values));
 
         // extract flowrate from name, filename format: flowrate_xxx
         std::string obj_name = _obj->name;
@@ -917,7 +915,7 @@ void CalibUtils::calib_max_vol_speed(const CalibInfo &calib_info, wxString &erro
     }
 
     auto new_params  = params;
-    auto mm3_per_mm  = Flow(line_width, layer_height, nozzle_diameter).mm3_per_mm() * filament_config.option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0);
+    auto mm3_per_mm  = Flow(line_width, layer_height, nozzle_diameter).mm3_per_mm() * filament_config.option<ConfigOptionFloatsNullable>("filament_flow_ratio")->get_at(0);
     new_params.end   = params.end / mm3_per_mm;
     new_params.start = params.start / mm3_per_mm;
     new_params.step  = params.step / mm3_per_mm;
