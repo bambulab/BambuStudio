@@ -701,7 +701,8 @@ bool GLGizmosManager::get_gizmo_active_condition(GLGizmosManager::EType type) {
     return false;
 }
 
-void GLGizmosManager::check_object_located_outside_plate() {
+void GLGizmosManager::check_object_located_outside_plate(bool change_plate)
+{
     PartPlateList &plate_list       = wxGetApp().plater()->get_partplate_list();
     auto           curr_plate_index = plate_list.get_curr_plate_index();
     Selection &    selection        = m_parent.get_selection();
@@ -719,7 +720,7 @@ void GLGizmosManager::check_object_located_outside_plate() {
                 ModelObjectPtrs objects = plate->get_objects_on_this_plate();
                 for (auto object : objects) {
                     if (model_object == object) {
-                        if (curr_plate_index != i) { // confirm selected model_object at corresponding plate
+                        if (change_plate && curr_plate_index != i) { // confirm selected model_object at corresponding plate
                             wxGetApp().plater()->get_partplate_list().select_plate(i);
                         }
                         find_object = true;
