@@ -187,14 +187,18 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
             auto now = std::chrono::system_clock::now();
             if (m_play_timer <= now) {
                 m_play_timer = now + 1min;
+                if (SecondsSinceLastInput() >= 900) { // 15 min
+                    auto close = wxGetApp().app_config->get("liveview", "auto_stop_liveview") == "true";
+                    if (close) {
+                        Stop(_L("Temporarily closed because there is no operating for a long time."));
+                        return;
+                    }
+                }
                 auto obj = wxGetApp().getDeviceManager()->get_selected_machine();
                 if (obj && obj->is_in_printing()) {
                     m_print_idle = 0;
                 } else if (++m_print_idle >= 5) {
-                    auto close = wxGetApp().app_config->get("liveview", "auto_stop_liveview") == "true";
-                    if (close) {
-                        Stop(_L("Temporarily closed because there is no printing for a long time."));
-                    }
+                    Stop(_L("Temporarily closed because there is no printing for a while."));
                 }
             }
         }
