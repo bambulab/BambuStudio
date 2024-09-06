@@ -1542,13 +1542,20 @@ void MenuFactory::append_menu_item_center(wxMenu* menu)
 {
      append_menu_item(menu, wxID_ANY, _L("Center") , "",
         [this](wxCommandEvent&) {
+            auto canvas3d = plater()->get_view3D_canvas3D();
+            canvas3d->get_gizmos_manager().check_object_located_outside_plate(true);
             plater()->center_selection();
         }, "", nullptr,
         []() {
             if (plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasView3D)
                 return false;
             else {
-                Selection& selection = plater()->get_view3D_canvas3D()->get_selection();
+                auto canvas3d = plater()->get_view3D_canvas3D();
+                canvas3d->get_gizmos_manager().check_object_located_outside_plate(false);
+                if (canvas3d->get_gizmos_manager().get_object_located_outside_plate()) { //_outside_plate
+                    return false;
+                }
+                Selection &selection  = canvas3d->get_selection();
                 PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
                 Vec3d model_pos = selection.get_bounding_box().center();
                 Vec3d center_pos = plate->get_center_origin();
