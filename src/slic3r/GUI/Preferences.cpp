@@ -631,7 +631,7 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
     if (param == "privacyuse") {
         checkbox->SetValue((app_config->get("firstguide", param) == "true") ? true : false);
     } else if (param == "auto_stop_liveview") {
-        checkbox->SetValue((app_config->get("liveview", param) == "true") ? true : false);
+        checkbox->SetValue((app_config->get("liveview", param) == "true") ? false : true);
     } else {
         checkbox->SetValue((app_config->get(param) == "true") ? true : false);
     }
@@ -663,7 +663,7 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
             app_config->save();
         }
         else if (param == "auto_stop_liveview") {
-            app_config->set("liveview", param, checkbox->GetValue());
+            app_config->set("liveview", param, !checkbox->GetValue());
         }
         else {
             app_config->set_bool(param, checkbox->GetValue());
@@ -1083,7 +1083,7 @@ wxWindow* PreferencesDialog::create_general_page()
     //downloads
     auto title_media = create_item_title(_L("Media"), page, _L("Media"));
     auto item_downloads = create_item_downloads(page,50,"download_path");
-    auto item_auto_stop_liveview = create_item_checkbox(_L("Auto Stop Liveview"), page, _L("Automatically close the video after printing."), 50, "auto_stop_liveview");
+    auto item_auto_stop_liveview = create_item_checkbox(_L("Keep liveview when printing."), page, _L("By default, Liveview will pause after 15 minutes of inactivity on the computer. Check this box to disable this feature during printing."), 50, "auto_stop_liveview");
 
     //dark mode
 #ifdef _WIN32

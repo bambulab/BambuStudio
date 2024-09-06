@@ -1742,7 +1742,7 @@ void Sidebar::sync_ams_list()
                 add_button(wxID_OK, true, _L("Sync"));
                 add_button(wxID_YES, false, _L("Resync"));
             }
-            add_button(wxID_CANCEL, false, _L("Cancel"));
+            add_button(wxID_CANCEL, false, _L("No"));
         }
     } dlg(this, ams_filament_ids.empty());
     auto res = dlg.ShowModal();
