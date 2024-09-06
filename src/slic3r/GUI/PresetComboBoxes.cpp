@@ -1045,9 +1045,9 @@ void PlaterPresetComboBox::update()
 
     std::vector<std::string> first_types = { "PLA", "PETG" };
     auto add_presets = [this, &preset_descriptions, &preset_filament_types, &first_types]
-            (std::map<wxString, wxBitmap *> const &presets, wxString const &selected, wxString const &group) {
+            (std::map<wxString, wxBitmap *> const &presets, wxString const &selected, std::string const &group) {
         if (!presets.empty()) {
-            set_label_marker(Append(separator(L("Project-inside presets")), wxNullBitmap));
+            set_label_marker(Append(separator(group), wxNullBitmap));
             if (m_type == Preset::TYPE_FILAMENT) {
                 std::vector<std::map<wxString, wxBitmap *>::value_type const*> list(presets.size(), nullptr);
                 std::transform(presets.begin(), presets.end(), list.begin(), [](auto & pair) { return &pair; });
