@@ -9,6 +9,9 @@
 #include "Line.hpp"
 #include <cmath>
 #include <cassert>
+#include <random>
+#include <thread>
+#include <unordered_set>
 #include "libslic3r/AABBTreeLines.hpp"
 static const int overhang_sampling_number = 6;
 static const double narrow_loop_length_threshold = 10;
@@ -21,6 +24,15 @@ static const std::vector<double> non_uniform_degree_map = { 0, 10, 25, 50, 75, 1
 static constexpr double SMALLER_EXT_INSET_OVERLAP_TOLERANCE = 0.22;
 
 namespace Slic3r {
+
+// Produces a random value between 0 and 1. Thread-safe.
+static double random_value() {
+    thread_local std::random_device rd;
+    // Hash thread ID for random number seed if no hardware rng seed is available
+    thread_local std::mt19937 gen(rd.entropy() > 0 ? rd() : std::hash<std::thread::id>()(std::this_thread::get_id()));
+    thread_local std::uniform_real_distribution<double> dist(0.0, 1.0);
+    return dist(gen);
+}
 
 // Hierarchy of perimeters.
 class PerimeterGeneratorLoop {
@@ -52,7 +64,7 @@ static void fuzzy_polygon(Polygon &poly, double fuzzy_skin_thickness, double fuz
 {
     const double min_dist_between_points = fuzzy_skin_point_distance * 3. / 4.; // hardcoded: the point distance may vary between 3/4 and 5/4 the supplied value
     const double range_random_point_dist = fuzzy_skin_point_distance / 2.;
-    double dist_left_over = double(rand()) * (min_dist_between_points / 2) / double(RAND_MAX); // the distance to be traversed on the line before making the first new point
+    double dist_left_over = random_value() * (min_dist_between_points / 2.); // the distance to be traversed on the line before making the first new point
     Point* p0 = &poly.points.back();
     Points out;
     out.reserve(poly.points.size());
@@ -60,16 +72,14 @@ static void fuzzy_polygon(Polygon &poly, double fuzzy_skin_thickness, double fuz
     { // 'a' is the (next) new point between p0 and p1
         Vec2d  p0p1      = (p1 - *p0).cast<double>();
         double p0p1_size = p0p1.norm();
-        // so that p0p1_size - dist_last_point evaulates to dist_left_over - p0p1_size
-        double dist_last_point = dist_left_over + p0p1_size * 2.;
-        for (double p0pa_dist = dist_left_over; p0pa_dist < p0p1_size;
-            p0pa_dist += min_dist_between_points + double(rand()) * range_random_point_dist / double(RAND_MAX))
+        double p0pa_dist = dist_left_over;
+        for (; p0pa_dist < p0p1_size;
+            p0pa_dist += min_dist_between_points + random_value() * range_random_point_dist)
         {
-            double r = double(rand()) * (fuzzy_skin_thickness * 2.) / double(RAND_MAX) - fuzzy_skin_thickness;
+            double r = random_value() * (fuzzy_skin_thickness * 2.) - fuzzy_skin_thickness;
             out.emplace_back(*p0 + (p0p1 * (p0pa_dist / p0p1_size) + perp(p0p1).cast<double>().normalized() * r).cast<coord_t>());
-            dist_last_point = p0pa_dist;
         }
-        dist_left_over = p0p1_size - dist_last_point;
+        dist_left_over = p0p1_size - p0pa_dist;
         p0 = &p1;
     }
     while (out.size() < 3) {
@@ -408,6 +418,34 @@ std::pair<double, double> PerimeterGenerator::dist_boundary(double width)
     return out;
 }
 
+static void detect_bridge_wall(const PerimeterGenerator &perimeter_generator, ExtrusionPaths &paths, const Polylines &remain_polines, ExtrusionRole role, double mm3_per_mm, float width, float height)
+{
+    for (Polyline poly : remain_polines) {
+        // check if the line is straight line, which mean if the wall is bridge
+        Line line(poly.first_point(), poly.last_point());
+        if (line.length() < poly.length()) {
+            extrusion_paths_append(paths,
+                                   std::move(poly),
+                                   overhang_sampling_number - 1,
+                                   int(0),
+                                   role,
+                                   mm3_per_mm,
+                                   width,
+                                   height);
+            continue;
+        }
+        // bridge wall
+        extrusion_paths_append(paths,
+                               std::move(poly),
+                               overhang_sampling_number,
+                               int(0),
+                               role,
+                               mm3_per_mm,
+                               width,
+                               height);
+    }
+}
+
 
 static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perimeter_generator, const PerimeterGeneratorLoops &loops, ThickPolylines &thin_walls)
 {
@@ -548,25 +586,22 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             if (remain_polines.size() != 0) {
                 if (!((perimeter_generator.object_config->enable_support || perimeter_generator.object_config->enforce_support_layers > 0)
                     && perimeter_generator.object_config->support_top_z_distance.value == 0)) {
-                    extrusion_paths_append(
-                        paths,
-                        std::move(remain_polines),
-                        overhang_sampling_number - 1,
-                        int(0),
-                        erOverhangPerimeter,
-                        perimeter_generator.mm3_per_mm_overhang(),
-                        perimeter_generator.overhang_flow.width(),
-                        perimeter_generator.overhang_flow.height());
+                    //detect if the overhang perimeter is bridge
+                    detect_bridge_wall(perimeter_generator,
+                                       paths,
+                                       remain_polines,
+                                       erOverhangPerimeter,
+                                       perimeter_generator.mm3_per_mm_overhang(),
+                                       perimeter_generator.overhang_flow.width(),
+                                       perimeter_generator.overhang_flow.height());
                 } else {
-                    extrusion_paths_append(
-                    paths,
-                    std::move(remain_polines),
-                    overhang_sampling_number - 1,
-                    int(0),
-                    role,
-                    extrusion_mm3_per_mm,
-                    extrusion_width,
-                    (float)perimeter_generator.layer_height);
+                    detect_bridge_wall( perimeter_generator,
+                                        paths,
+                                        remain_polines,
+                                        role,
+                                        extrusion_mm3_per_mm,
+                                        extrusion_width,
+                                        (float)perimeter_generator.layer_height);
                 }
 
             }
@@ -816,6 +851,30 @@ static void smooth_overhang_level(ExtrusionPaths &paths)
     }
 }
 
+static void detect_brigde_wall_arachne(const PerimeterGenerator &perimeter_generator, ExtrusionPaths &paths, const ClipperLib_Z::Paths &path_overhang, const ExtrusionRole role, const Flow &flow)
+{
+    for (ClipperLib_Z::Path path : path_overhang) {
+        // check if the line is straight line, which mean if the wall is bridge
+        ThickPolyline thick_polyline = Arachne::to_thick_polyline(path);
+
+        Line line(thick_polyline.front(), thick_polyline.back());
+        if (line.length() < thick_polyline.length()) {
+            extrusion_path_append(paths,
+                                  std::move(thick_polyline),
+                                  role,
+                                  flow,
+                                  overhang_sampling_number - 1);
+            continue;
+        }
+
+        extrusion_path_append(paths,
+                              std::move(thick_polyline),
+                              role,
+                              flow,
+                              overhang_sampling_number);
+    }
+}
+
 static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& perimeter_generator, std::vector<PerimeterGeneratorArachneExtrusion>& pg_extrusions)
 {
     ExtrusionEntityCollection extrusion_coll;
@@ -832,9 +891,7 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
 
         ExtrusionPaths paths;
         // detect overhanging/bridging perimeters
-        if (perimeter_generator.config->detect_overhang_wall && perimeter_generator.layer_id > perimeter_generator.object_config->raft_layers
-            && !((perimeter_generator.object_config->enable_support || perimeter_generator.object_config->enforce_support_layers > 0) &&
-                perimeter_generator.object_config->support_top_z_distance.value == 0)) {
+        if (perimeter_generator.config->detect_overhang_wall && perimeter_generator.layer_id > perimeter_generator.object_config->raft_layers) {
             ClipperLib_Z::Path extrusion_path;
             extrusion_path.reserve(extrusion->size());
             BoundingBox extrusion_path_bbox;
@@ -919,9 +976,15 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
             // get overhang paths by checking what parts of this loop fall
             // outside the grown lower slices (thus where the distance between
             // the loop centerline and original lower slices is >= half nozzle diameter
-            extrusion_paths_append(paths, clip_extrusion(extrusion_path, lower_slices_paths, ClipperLib_Z::ctDifference), erOverhangPerimeter,
-                perimeter_generator.overhang_flow);
+            // detect if the overhang perimeter is bridge
+            ClipperLib_Z::Paths path_overhang = clip_extrusion(extrusion_path, lower_slices_paths, ClipperLib_Z::ctDifference);
 
+            bool zero_z_support = (perimeter_generator.object_config->enable_support || perimeter_generator.object_config->enforce_support_layers > 0) && perimeter_generator.object_config->support_top_z_distance.value == 0;
+
+            if(zero_z_support)
+                detect_brigde_wall_arachne(perimeter_generator, paths, path_overhang, role, is_external ? perimeter_generator.ext_perimeter_flow : perimeter_generator.perimeter_flow);
+            else
+                detect_brigde_wall_arachne(perimeter_generator, paths, path_overhang, erOverhangPerimeter, perimeter_generator.overhang_flow);
             // Reapply the nearest point search for starting point.
             // We allow polyline reversal because Clipper may have randomly reversed polylines during clipping.
             // Arachne sometimes creates extrusion with zero-length (just two same endpoints);
@@ -965,8 +1028,7 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
                 }
 
             }
-        }
-        else {
+        } else {
             extrusion_paths_append(paths, *extrusion, role, is_external ? perimeter_generator.ext_perimeter_flow : perimeter_generator.perimeter_flow);
         }
 

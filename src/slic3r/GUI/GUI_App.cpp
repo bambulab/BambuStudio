@@ -779,6 +779,7 @@ static const FileWildcards file_wildcards_by_type[FT_SIZE] = {
     /* FT_OBJ */     { "OBJ files"sv,       { ".obj"sv } },
     /* FT_AMF */     { "AMF files"sv,       { ".amf"sv, ".zip.amf"sv, ".xml"sv } },
     /* FT_3MF */     { "3MF files"sv,       { ".3mf"sv } },
+    /* FT_GCODE_3MF */ {"Gcode 3MF files"sv, {".gcode.3mf"sv}},
     /* FT_GCODE */   { "G-code files"sv,    { ".gcode"sv } },
 #ifdef __APPLE__
     /* FT_MODEL */
@@ -2433,7 +2434,8 @@ bool GUI_App::OnInit()
 {
     try {
         return on_init_inner();
-    } catch (const std::exception&) {
+    } catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(fatal) << "OnInit Got Fatal error: " << e.what();
         generic_exception_handle();
         return false;
     }
@@ -6467,6 +6469,7 @@ wxString GUI_App::current_language_code_safe() const
 		{ "ru", 	"ru_RU", },
         { "tr",     "tr_TR", },
         { "pt",     "pt_BR", },
+        { "hu",     "hu_HU", },
 	};
 	wxString language_code = this->current_language_code().BeforeFirst('_');
 	auto it = mapping.find(language_code);

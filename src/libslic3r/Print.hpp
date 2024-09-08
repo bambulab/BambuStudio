@@ -39,6 +39,11 @@ class TreeSupport;
 
 #define MARGIN_HEIGHT   1.5
 #define MAX_OUTER_NOZZLE_RADIUS   4
+#define TIME_USING_CACHE "time_using_cache"
+#define TIME_MAKE_PERIMETERS "make_perimeters_time"
+#define TIME_INFILL "infill_time"
+#define TIME_GENERATE_SUPPORT "generate_support_material_time"
+
 // BBS: move from PrintObjectSlice.cpp
 struct VolumeSlices
 {
@@ -441,6 +446,7 @@ public:
 
     // BBS: returns 1-based indices of extruders used to print the first layer wall of objects
     std::vector<int>            object_first_layer_wall_extruders;
+    bool             has_variable_layer_heights = false;
 
     // OrcaSlicer
     size_t get_klipper_object_id() const { return m_klipper_object_id; }
@@ -717,7 +723,7 @@ public:
 
     ApplyStatus         apply(const Model &model, DynamicPrintConfig config) override;
 
-    void                process(long long *time_cost_with_cache = nullptr, bool use_cache = false) override;
+    void                process(std::unordered_map<std::string, long long>* slice_time = nullptr, bool use_cache = false) override;
     // Exports G-code into a file name based on the path_template, returns the file path of the generated G-code file.
     // If preview_data is not null, the preview_data is filled in for the G-code visualization (not used by the command line Slic3r).
     std::string         export_gcode(const std::string& path_template, GCodeProcessorResult* result, ThumbnailsGeneratorCallback thumbnail_cb = nullptr);

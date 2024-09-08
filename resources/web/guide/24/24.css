@@ -14,38 +14,15 @@
 .BannerBtns
 {
 	float: right;
-	display: flex;
-	width: 140px;
-	justify-content: space-around;
-	align-items: center;
 	height: 40px;
 	text-align: center;
 	margin-right: 10px;
 }
 
-/*.Banner-Btn
+.BannerBtns .SmallBtn,.SmallBtn_Green
 {
-	background-color: #C0C0C0;
-	color: #000;
-	padding: 0px 6px;
-	min-width: 50px;
-	border-radius: 4px;
-	height: 32px;
-	line-height: 32px;
-	cursor: pointer;
+	margin-left:6px;
 }
-
-.Banner-Btn-green
-{
-	background-color: #00AE42;
-	color: #fff;
-	padding: 0px 6px;
-	min-width: 50px;
-	border-radius: 8px;
-	height: 32px;
-	line-height: 32px;
-	cursor: pointer;
-}*/
 
 .BlockBanner  a
 {

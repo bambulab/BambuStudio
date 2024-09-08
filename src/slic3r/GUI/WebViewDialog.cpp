@@ -7,6 +7,8 @@
 #include "libslic3r_version.h"
 #include "../Utils/Http.hpp"
 
+#include <regex>
+
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 
@@ -814,7 +816,29 @@ void WebViewPanel::SetMakerworldPageLoginStatus(bool login ,wxString ticket)
         mw_currenturl.Replace("modelid=", "");
     }
 
-    //mw_currenturl.Replace("modelid=", "");
+    //If AgreeTerms, Redirect Other Url
+    std::regex pattern("^https://.*/(.*/){0,1}agree-terms.*");
+    if (std::regex_match(mw_currenturl.ToStdString(), pattern)) {
+        std::regex  ParamPattern("agreeBackUrl=([^&]+)");
+        std::smatch match;
+        std::string CurUrl = mw_currenturl.ToStdString();
+        if (std::regex_search(CurUrl, match, ParamPattern)) 
+        {
+            //std::cout << "Param Value: " << match[1] << std::endl;
+            mw_currenturl = wxGetApp().url_decode(std::string(match[1]));
+        } else {
+            //std::cout << "Not Find agreeBackUrl" << std::endl;
+            auto host = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
+
+            wxString language_code = wxGetApp().current_language_code().BeforeFirst('_');
+            language_code          = language_code.ToStdString();
+
+            mw_currenturl = (boost::format("%1%%2%/studio/webview?from=bambustudio") % host % language_code.mb_str()).str();
+        }
+    } else {
+        //std::cout << "The string does not match the pattern." << std::endl;
+    }
+
     wxString mw_jumpurl = "";
 
     bool b = GetJumpUrl(login, ticket, mw_currenturl, mw_jumpurl);
@@ -1375,6 +1399,8 @@ void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
         CallAfter([this]{
             SetWebviewShow("online", false);
             SetWebviewShow("right", true);
+
+            GetSizer()->Layout();
         });
     }
 }

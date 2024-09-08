@@ -2,7 +2,7 @@
 
 namespace Slic3r {
 
-ExtrusionMultiPath thick_polyline_to_multi_path(const ThickPolyline& thick_polyline, ExtrusionRole role, const Flow& flow, const float tolerance, const float merge_tolerance)
+ExtrusionMultiPath thick_polyline_to_multi_path(const ThickPolyline& thick_polyline, ExtrusionRole role, const Flow& flow, const float tolerance, const float merge_tolerance, int overhang)
 {
     ExtrusionMultiPath multi_path;
     ExtrusionPath      path(role);
@@ -90,8 +90,10 @@ ExtrusionMultiPath thick_polyline_to_multi_path(const ThickPolyline& thick_polyl
             }
         }
     }
-    if (path.polyline.is_valid())
+    if( path.polyline.is_valid() ) {
+        path.overhang_degree = overhang;
         multi_path.paths.emplace_back(std::move(path));
+    }
     return multi_path;
 }
 
@@ -122,10 +124,8 @@ static ExtrusionPaths thick_polyline_to_extrusion_paths_2(const ThickPolyline& t
             //BBS: 1 generate path from start_index to i(not included)
             if (start_index != i){
                 path = ExtrusionPath(role);
-                double length = lines[start_index].length();
-                double sum = lines[start_index].length() * 0.5 * (lines[start_index].a_width + lines[start_index].b_width);
-                path.polyline.append(lines[start_index].a);
-                for (int idx = start_index + 1; idx < i; idx++) {
+                double length = 0, sum = 0;
+                for (int idx = start_index; idx < i; idx++) {
                     length += lines[idx].length();
                     sum += lines[idx].length() * 0.5 * (lines[idx].a_width + lines[idx].b_width);
                     path.polyline.append(lines[idx].a);
@@ -191,12 +191,10 @@ static ExtrusionPaths thick_polyline_to_extrusion_paths_2(const ThickPolyline& t
     size_t final_size = lines.size();
     if (start_index < final_size) {
         path = ExtrusionPath(role);
-        double length = lines[start_index].length();
-        double sum = lines[start_index].length() * lines[start_index].a_width;
-        path.polyline.append(lines[start_index].a);
-        for (int idx = start_index + 1; idx < final_size; idx++) {
+        double length = 0, sum = 0;
+        for (int idx = start_index; idx < final_size; idx++) {
             length += lines[idx].length();
-            sum += lines[idx].length() * lines[idx].a_width;
+            sum += lines[idx].length() * (lines[idx].a_width + lines[idx].b_width) * 0.5;
             path.polyline.append(lines[idx].a);
         }
         path.polyline.append(lines[final_size - 1].b);

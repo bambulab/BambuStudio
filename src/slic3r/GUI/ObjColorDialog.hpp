@@ -2,7 +2,7 @@
 #define _OBJ_COLOR_DIALOG_H_
 
 #include "GUI_Utils.hpp"
-#include "libslic3r/Color.hpp"
+#include "GuiColor.hpp"
 #include <wx/sizer.h>
 #include <wx/spinctrl.h>
 #include <wx/stattext.h>
@@ -12,11 +12,7 @@
 class Button;
 class Label;
 class ComboBox;
-struct ColorDistValue
-{
-    int   id;
-    float distance;
-};
+
 class ObjColorPanel : public wxPanel
 {
 public:

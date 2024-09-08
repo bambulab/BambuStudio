@@ -886,11 +886,20 @@ void PrintConfigDef::init_fff_params()
     def->label = "[75%, 100%)";
     def->category = L("Speed");
     def->full_label = "[75%, 100%)";
-    //def->tooltip = L("Speed for line of wall which has degree of overhang between 75% and 100% line width. 0 means using original wall speed");
+    // def->tooltip = L("Speed for line of wall which has degree of overhang between 75% and 100% line width. 0 means using original wall speed");
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
+
+    def             = this->add("overhang_totally_speed", coFloat);
+    def->label      = L("over 100% wall (not bridge)");
+    def->category   = L("Speed");
+    def->tooltip = L("Speed for line of wall which has degree of overhang over 100% line width, but the wall is not a bridge wall.");
+    def->sidetext = L("mm/s");
+    def->min      = 0;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat{24});
 
     def = this->add("bridge_speed", coFloat);
     def->label = L("Bridge");
@@ -2549,6 +2558,20 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(true));
 
+    def = this->add("smooth_speed_discontinuity_area", coBool);
+    def->label = L("Smooth speed discontinuity area");
+    def->category = L("Quality");
+    def->tooltip  = L("Add the speed transition between discontinuity area.");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
+    def           = this->add("smooth_coefficient", coFloat);
+    def->label    = L("Smooth coefficient");
+    def->category = L("Quality");
+    def->tooltip  = L("The smaller the number, the longer the speed transition path.");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(80));
+
     def = this->add("wall_filament", coInt);
     //def->label = L("Walls");
     //def->category = L("Extruders");
@@ -3502,16 +3525,6 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(0));
-
-    def = this->add("tree_support_brim_width", coFloat);
-    def->label = L("Tree support brim width");
-    def->category = L("Support");
-    def->tooltip = L("The brim width around tree support. 0 means auto.");
-    def->sidetext = L("mm");
-    def->min = 0;
-    def->max = 100;
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("chamber_temperatures", coInts);
     def->label = L("Chamber temperature");
@@ -4726,6 +4739,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         // BBS
         , "support_sharp_tails","support_remove_small_overhangs", "support_with_sheath",
         "tree_support_branch_diameter_angle", "tree_support_collision_resolution", "tree_support_with_infill",
+        "tree_support_brim_width",
         "max_volumetric_speed", "max_print_speed",
         "support_closing_radius",
         "remove_freq_sweep", "remove_bed_leveling", "remove_extrusion_calibration",

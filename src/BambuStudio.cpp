@@ -68,6 +68,7 @@ using namespace nlohmann;
 
 #include "libslic3r/Orient.hpp"
 #include "libslic3r/PNGReadWrite.hpp"
+#include "libslic3r/ObjColorUtils.hpp"
 
 #include "BambuStudio.hpp"
 //BBS: add exception handler for win32
@@ -81,6 +82,7 @@ using namespace nlohmann;
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/Camera.hpp"
 #include "slic3r/GUI/Plater.hpp"
+#include "slic3r/GUI/GuiColor.hpp"
 #include <GLFW/glfw3.h>
 
 #ifdef __WXGTK__
@@ -150,6 +152,9 @@ typedef struct  _sliced_plate_info{
     int plate_id{0};
     size_t sliced_time {0};
     size_t sliced_time_with_cache {0};
+    size_t make_perimeters_time {0};
+    size_t infill_time {0};
+    size_t generate_support_material_time {0};
     size_t triangle_count{0};
     std::string warning_message;
 }sliced_plate_info_t;
@@ -426,6 +431,9 @@ void record_exit_reson(std::string outputdir, int code, int plate_id, std::strin
             plate_json["id"] = sliced_info.sliced_plates[index].plate_id;
             plate_json["sliced_time"] = sliced_info.sliced_plates[index].sliced_time;
             plate_json["sliced_time_with_cache"] = sliced_info.sliced_plates[index].sliced_time_with_cache;
+            plate_json["make_perimeters_time"] = sliced_info.sliced_plates[index].make_perimeters_time;
+            plate_json["infill_time"] = sliced_info.sliced_plates[index].infill_time;
+            plate_json["generate_support_material_time"] = sliced_info.sliced_plates[index].generate_support_material_time;
             plate_json["triangle_count"] = sliced_info.sliced_plates[index].triangle_count;
             plate_json["warning_message"] = sliced_info.sliced_plates[index].warning_message;
             j["sliced_plates"].push_back(plate_json);
@@ -771,17 +779,86 @@ void merge_or_add_object(assemble_plate_info_t& assemble_plate_info, Model &mode
     }
 }
 
+bool convert_obj_cluster_colors(std::vector<Slic3r::RGBA>& input_colors, std::vector<RGBA>& all_colours, int max_filament_count, std::vector<unsigned char>& output_filament_ids, int& first_filament_id)
+{
+    using namespace Slic3r::GUI;
+
+    BOOST_LOG_TRIVIAL(info) << boost::format("%1%:%2%, got original input obj colors %3%")%__FUNCTION__ %__LINE__ %input_colors.size();
+    if (input_colors.size() > 0) {
+        std::vector<Slic3r::RGBA> cluster_colors;
+        std::vector<int>          cluster_labels;
+        char                      cluster_number = -1;
+
+        obj_color_deal_algo(input_colors, cluster_colors, cluster_labels, cluster_number);
+        std::vector<int> cluster_color_maps;
+
+        BOOST_LOG_TRIVIAL(info) << boost::format("%1%:%2%, after obj_color_deal_algo, cluster_colors size %3%, all_colours size %4%, max_filament_count=%5%")%__FUNCTION__ %__LINE__%cluster_colors.size() %all_colours.size() %max_filament_count;
+
+        cluster_color_maps.resize(cluster_colors.size(), 1);
+
+        int init_size = all_colours.size();
+
+        first_filament_id = max_filament_count;
+        for (size_t i = 0; i < cluster_colors.size(); i++) {
+            auto previous_color = std::find(all_colours.begin(), all_colours.end(), cluster_colors[i]);
+
+            if (previous_color != all_colours.end()) {
+                cluster_color_maps[i] = previous_color - all_colours.begin() + 1;
+                BOOST_LOG_TRIVIAL(info) << boost::format("%1%:%2%, cluster color index %3% RGBA {%4%,%5%,%6%,%7%} found same color before, id %8%")
+                        %__FUNCTION__ %__LINE__%(i+1) %cluster_colors[i][0] %cluster_colors[i][1] %cluster_colors[i][2] %cluster_colors[i][3] %cluster_color_maps[i] ;
+            }
+            else {
+                if ((init_size + i + 1) <= max_filament_count) {
+                    all_colours.push_back(cluster_colors[i]);
+                    cluster_color_maps[i] = all_colours.size();
+                    BOOST_LOG_TRIVIAL(info) << boost::format("%1%:%2%, cluster color index %3% RGBA {%4%,%5%,%6%,%7%} directly inserted, id %8%")
+                        %__FUNCTION__ %__LINE__%(i+1) %cluster_colors[i][0] %cluster_colors[i][1] %cluster_colors[i][2] %cluster_colors[i][3] %cluster_color_maps[i] ;
+                }
+                else {
+                    std::vector<ColorDistValue> color_dists;
+                    color_dists.resize(max_filament_count);
+                    for (size_t j = 0; j < max_filament_count; j++) {
+                        color_dists[j].distance = calc_color_distance(cluster_colors[i], all_colours[j]);
+                        color_dists[j].id       = j + 1;
+                    }
+                    std::sort(color_dists.begin(), color_dists.end(), [](ColorDistValue &a, ColorDistValue &b) { return a.distance < b.distance; });
+                    cluster_color_maps[i] = color_dists[0].id;
+                    BOOST_LOG_TRIVIAL(info) << boost::format("%1%:%2%, color size reaches to max, cluster color index %3% RGBA {%4%,%5%,%6%,%7%} mapped to id %8%")
+                        %__FUNCTION__ %__LINE__%(i+1) %cluster_colors[i][0] %cluster_colors[i][1] %cluster_colors[i][2] %cluster_colors[i][3] %cluster_color_maps[i] ;
+                }
+            }
+            if (cluster_color_maps[i] < first_filament_id)
+                first_filament_id = cluster_color_maps[i];
+        }
+
+        //3.generate filament_ids
+        auto input_colors_size = input_colors.size();
+        output_filament_ids.resize(input_colors_size);
+        for (size_t i = 0; i < input_colors_size; i++) {
+            int label = cluster_labels[i];
+            output_filament_ids[i] = cluster_color_maps[label];
+        }
+
+        BOOST_LOG_TRIVIAL(info) << boost::format("%1%:%2%, all_colours size changes to %3%, first_filament_id = %4%")%__FUNCTION__ %__LINE__%all_colours.size() %first_filament_id;
+
+        return true;
+    }
+
+    return false;
+}
+
 #ifdef _WIN32
 #define DIR_SEPARATOR '\\'
 #else
 #define DIR_SEPARATOR '/'
 #endif
-static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_plate_info_list, Model &model, PlateDataPtrs &plate_list)
+static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_plate_info_list, Model &model, PlateDataPtrs &plate_list, std::vector<RGBA>& all_colours)
 {
     int ret = 0;
     int plate_count = assemble_plate_info_list.size();
     ConfigSubstitutionContext config_substitutions(ForwardCompatibilitySubstitutionRule::Enable);
     Model temp_model;
+    const int max_filament_count = size_t(EnforcerBlockerType::ExtruderMax);
 
     plate_list.resize(plate_count);
     for (int index = 0; index < plate_count; index++)
@@ -815,7 +892,10 @@ static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_
         {
             assemble_object_info_t& assemble_object = assemble_plate_info.assemble_obj_list[obj_index];
             std::string object_name;
+            std::string object_1_name;
+            ModelObject* object = nullptr;
             TriangleMesh mesh;
+            bool skip_filament = false;
 
             boost::filesystem::path object_path(assemble_object.path);
             if (!fs::exists(object_path)) {
@@ -837,7 +917,13 @@ static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_
                     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": found no mesh data from stl file %1%, plate index %2%, object index %3%") % assemble_object.path % (index + 1) % (obj_index + 1);
                     return CLI_DATA_FILE_ERROR;
                 }
-                object_name.erase(object_name.end() - 3, object_name.end());
+                object_name.erase(object_name.end() - 4, object_name.end());
+                object_1_name = object_name + "_1";
+                object = temp_model.add_object(object_1_name.c_str(), path_str, std::move(mesh));
+                if (!object) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": add_object %1% for stl failed, plate index %2%, object index %3%") % object_1_name % (index + 1) % (obj_index + 1);
+                    return CLI_DATA_FILE_ERROR;
+                }
             }
             else if (boost::algorithm::iends_with(assemble_object.path, ".obj"))
             {
@@ -848,20 +934,62 @@ static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_
                     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": failed to read a valid mesh from obj file %1%, plate index %2%, object index %3%, error %4%") % assemble_object.path % (index + 1) % (obj_index + 1) % message;
                     return CLI_DATA_FILE_ERROR;
                 }
-                object_name.erase(object_name.end() - 3, object_name.end());
+                object_name.erase(object_name.end() - 4, object_name.end());
+                object_1_name = object_name + "_1";
+                //process colors
+                Model obj_temp_model;
+                ModelObject* temp_object = obj_temp_model.add_object(object_1_name.c_str(), path_str, std::move(mesh));
+                if (!temp_object) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": add_object %1%  for obj failed, plate index %2%, object index %3%") % object_1_name % (index + 1) % (obj_index + 1);
+                    return CLI_DATA_FILE_ERROR;
+                }
+
+                std::vector<unsigned char> output_filament_ids;
+                int first_filament_id;
+                if (obj_info.vertex_colors.size() > 0) {
+                    convert_obj_cluster_colors(obj_info.vertex_colors, all_colours, max_filament_count, output_filament_ids, first_filament_id);
+                    if (output_filament_ids.size() > 0) {
+                        unsigned char first_eid = (unsigned char)first_filament_id;
+                        result = Model::obj_import_vertex_color_deal(output_filament_ids, first_eid, & obj_temp_model);
+                    }
+                    skip_filament = true;
+                } else if (obj_info.face_colors.size() > 0 && obj_info.has_uv_png == false) { // mtl file
+                    convert_obj_cluster_colors(obj_info.face_colors, all_colours, max_filament_count, output_filament_ids, first_filament_id);
+                    if (output_filament_ids.size() > 0) {
+                        unsigned char first_eid = (unsigned char)first_filament_id;
+                        result = Model::obj_import_face_color_deal(output_filament_ids, first_eid, & obj_temp_model);
+                    }
+                    skip_filament = true;
+                }
+                if (!result) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": failed to convert colors for %1%, plate index %2%, object index %3%, error %4%") % assemble_object.path % (index + 1) % (obj_index + 1) % message;
+                    return CLI_DATA_FILE_ERROR;
+                }
+                object =  temp_model.add_object(*temp_object);
+                if (!object) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": add_object %1% for stl failed, plate index %2%, object index %3%") % object_1_name % (index + 1) % (obj_index + 1);
+                    return CLI_DATA_FILE_ERROR;
+                }
+                obj_temp_model.clear_objects();
+                obj_temp_model.clear_materials();
             }
             else {
                 BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": unsupported file %1%, plate index %2%, object index %3%") % assemble_object.path % (index + 1) % (obj_index + 1);
                 return CLI_INVALID_PARAMS;
             }
 
-            std::string object_1_name = object_name + "_1";
-            ModelObject* object = temp_model.add_object(object_1_name.c_str(), path_str, std::move(mesh));
-            if (!object) {
-                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": add_object %1% failed, plate index %2%, object index %3%") % object_1_name % (index + 1) % (obj_index + 1);
-                return CLI_DATA_FILE_ERROR;
+            if (!skip_filament) {
+                object->config.set_key_value("extruder", new ConfigOptionInt(assemble_object.filaments[0]));
+                used_filaments.emplace(assemble_object.filaments[0]);
             }
-            object->config.set_key_value("extruder", new ConfigOptionInt(assemble_object.filaments[0]));
+            else {
+                assemble_object.filaments[0] = 0;
+                for (const ModelVolume* mv : object->volumes) {
+                    std::vector<int> volume_extruders = mv->get_extruders();
+                    used_filaments.insert(volume_extruders.begin(), volume_extruders.end());
+                }
+            }
+
             if (!assemble_object.print_params.empty())
             {
                 for (auto param_iter = assemble_object.print_params.begin(); param_iter != assemble_object.print_params.end(); param_iter++)
@@ -897,7 +1025,7 @@ static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_
 
             object->translate(assemble_object.pos_x[0], assemble_object.pos_y[0], assemble_object.pos_z[0]);
             merge_or_add_object(assemble_plate_info, model, assemble_object.assemble_index[0], merged_objects, object);
-            used_filaments.emplace(assemble_object.filaments[0]);
+
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": object %1%, name %2%, pos_x %3% pos_y %4%, pos_z %5%, filament %6%, assemble_index %7%")
                 %obj_index %object->name %assemble_object.pos_x[0] %assemble_object.pos_y[0] %assemble_object.pos_z[0] %assemble_object.filaments[0] %assemble_object.assemble_index[0];
 
@@ -916,8 +1044,14 @@ static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_
                     array_index = copy_index;
                 else
                     array_index = 0;
-                copy_obj->config.set_key_value("extruder", new ConfigOptionInt(assemble_object.filaments[array_index]));
-                used_filaments.emplace(assemble_object.filaments[array_index]);
+
+                if (!skip_filament) {
+                    copy_obj->config.set_key_value("extruder", new ConfigOptionInt(assemble_object.filaments[array_index]));
+                    used_filaments.emplace(assemble_object.filaments[array_index]);
+                }
+                else {
+                    assemble_object.filaments[array_index] = 0;
+                }
 
                 if (copy_index < assemble_object.assemble_index.size())
                     array_index = copy_index;
@@ -1204,7 +1338,7 @@ int CLI::run(int argc, char **argv)
         }
     }
 
-    global_begin_time = (long long)Slic3r::Utils::get_current_time_utc();
+    global_begin_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
     BOOST_LOG_TRIVIAL(warning) << boost::format("cli mode, Current BambuStudio Version %1%")%SLIC3R_VERSION;
 
     //BBS: add plate data related logic
@@ -1367,7 +1501,8 @@ int CLI::run(int argc, char **argv)
         }*/
     BOOST_LOG_TRIVIAL(info) << boost::format("plate_to_slice=%1%, normative_check=%2%, use_first_fila_as_default=%3%")%plate_to_slice %normative_check %use_first_fila_as_default;
     unsigned int input_index = 0;
-    if (!load_assemble_list.empty() && ((m_input_files.size() > 0) || (m_transforms.size() > 0)))
+    std::vector<RGBA> input_obj_colours;
+    if (!load_assemble_list.empty() && (m_input_files.size() > 0))
     {
         BOOST_LOG_TRIVIAL(error) << boost::format("load_assemble_list should not be used with input model files to load and should not be sued with transforms");
         record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
@@ -1632,7 +1767,7 @@ int CLI::run(int argc, char **argv)
         }
 
         try {
-            ret = construct_assemble_list(assemble_plate_info_list, model, plate_data_src);
+            ret = construct_assemble_list(assemble_plate_info_list, model, plate_data_src, input_obj_colours);
             if (ret) {
                 record_exit_reson(outfile_dir, ret, 0, cli_errors[ret], sliced_info);
                 flush_and_exit(ret);
@@ -1950,6 +2085,60 @@ int CLI::run(int argc, char **argv)
         }
     }
 
+    //add logic for obj auto colors
+    if (input_obj_colours.size() > 0) {
+        BOOST_LOG_TRIVIAL(info) << boost::format("%1%:%2%, got input obj colors %3%")%__FUNCTION__ %__LINE__ %input_obj_colours.size();
+        int input_color_count = input_obj_colours.size();
+        if (load_filament_count == 0) {
+            BOOST_LOG_TRIVIAL(error) << boost::format("filament config not loaded when loading colored obj");
+            record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+            flush_and_exit(CLI_INVALID_PARAMS);
+        }
+
+        //check filament_color from extra config
+        ConfigOptionStrings *selected_filament_colors_option = m_extra_config.option<ConfigOptionStrings>("filament_colour");
+        if (selected_filament_colors_option) {
+            BOOST_LOG_TRIVIAL(error) << boost::format("filament_colour should not be set when loading colored obj");
+            record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+            flush_and_exit(CLI_INVALID_PARAMS);
+        }
+        if (load_filament_count < input_color_count) {
+            int delta = input_color_count - load_filament_count;
+            for (int index = 0; index < delta; index++) {
+                load_filaments_id.push_back(load_filaments_id[0]);
+                load_filaments_name.push_back(load_filaments_name[0]);
+                load_filaments_config.push_back(load_filaments_config[0]);
+                load_filaments_index.push_back(index+1+load_filament_count);
+                load_filaments_inherit.push_back(load_filaments_inherit[0]);
+            }
+            load_filament_count = input_color_count;
+        }
+
+        selected_filament_colors_option = m_extra_config.option<ConfigOptionStrings>("filament_colour", true);
+        std::vector<std::string>& filament_colors = selected_filament_colors_option->values;
+        filament_colors.resize(input_color_count);
+        for (int index = 0; index < input_color_count; index++)
+        {
+            std::string color_string;
+            int color[4];
+            color[0] = std::clamp((int) (input_obj_colours[index][0] * 255.f), 0, 255);
+            color[1] = std::clamp((int) (input_obj_colours[index][1] * 255.f), 0, 255);
+            color[2] = std::clamp((int) (input_obj_colours[index][2] * 255.f), 0, 255);
+            color[3] = std::clamp((int) (input_obj_colours[index][3] * 255.f), 0, 255);
+
+            std::stringstream stream;
+            stream << std::hex << std::uppercase << std::setfill('0') << std::setw(2) << color[0];
+            stream << std::hex << std::uppercase << std::setfill('0') << std::setw(2) << color[1];
+            stream << std::hex << std::uppercase << std::setfill('0') << std::setw(2) << color[2];
+            stream << std::hex << std::uppercase << std::setfill('0') << std::setw(2) << color[3];
+            std::string result(stream.str());
+
+            filament_colors[index] = "#" + result;
+
+            BOOST_LOG_TRIVIAL(info) << boost::format("%1%:%2%, index %3%, argb {%4%,%5%,%6%,%7%} to string %8%")%__FUNCTION__ %__LINE__ %(index+1) %color[0] %color[1] %color[2] %color[3] %filament_colors[index];
+        }
+    }
+
     if (filament_count == 0)
         filament_count = load_filament_count;
 
@@ -2117,13 +2306,13 @@ int CLI::run(int argc, char **argv)
         {
             if (uptodate_filaments.size() > 0)
             {
-                if (uptodate_filaments.size() != filament_count)
+                if (uptodate_filaments.size() != (size_t)filament_count)
                 {
                     BOOST_LOG_TRIVIAL(error) << boost::format("uptodate_filaments size %1% not equal to filament_count %2% ")%uptodate_filaments.size() %filament_count;
                     record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
                     flush_and_exit(CLI_INVALID_PARAMS);
                 }
-                for (unsigned int index = 0; index < filament_count; index ++)
+                for (int index = 0; index < filament_count; index ++)
                 {
                     std::string file = uptodate_filaments[index];
                     DynamicPrintConfig  config;
@@ -3132,6 +3321,16 @@ int CLI::run(int argc, char **argv)
             return;
         }
 
+        bool wipe_tower_enabled = false;
+        if (print_config.has("enable_prime_tower")) {
+            wipe_tower_enabled = print_config.option<ConfigOptionBool>("enable_prime_tower")->value;
+        }
+        if (!wipe_tower_enabled) {
+            plate_obj_size_info.has_wipe_tower = false;
+            BOOST_LOG_TRIVIAL(info) << boost::format("enable_prime_tower set to false");
+            return;
+        }
+
         int valid_count = plate->printable_instance_size();
         if (valid_count <= 0){
             plate_obj_size_info.has_wipe_tower = false;
@@ -3596,10 +3795,16 @@ int CLI::run(int argc, char **argv)
                     // this affects volumes:
                     o->rotate(Geometry::deg2rad(m_config.opt_float(opt_key)), Y);
         } else if (opt_key == "scale") {
+            float ratio = m_config.opt_float(opt_key);
+            if (ratio <= 0.f) {
+                BOOST_LOG_TRIVIAL(error) << boost::format("Invalid params:invalid scale ratio %1%")%ratio;
+                record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+                flush_and_exit(CLI_INVALID_PARAMS);
+            }
             for (auto &model : m_models)
                 for (auto &o : model.objects)
                     // this affects volumes:
-                    o->scale(m_config.get_abs_value(opt_key, 1));
+                    o->scale(ratio);
         } else if (opt_key == "scale_to_fit") {
             const Vec3d &opt = m_config.opt<ConfigOptionPoint3>(opt_key)->value;
             if (opt.x() <= 0 || opt.y() <= 0 || opt.z() <= 0) {
@@ -4630,9 +4835,134 @@ int CLI::run(int argc, char **argv)
     std::vector<bool> plate_has_skips(partplate_list.get_plate_count(), false);
     std::vector<std::vector<size_t>> plate_skipped_objects(partplate_list.get_plate_count());
 
-    global_current_time = (long long)Slic3r::Utils::get_current_time_utc();
+    global_current_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
     sliced_info.prepare_time = (size_t) (global_current_time - global_begin_time);
     global_begin_time = global_current_time;
+
+    //opengl related
+    Slic3r::GUI::OpenGLManager opengl_mgr;
+    GLShaderProgram* shader = nullptr;
+    GLVolumeCollection glvolume_collection;
+    bool opengl_valid = false;
+    const ConfigOptionStrings* filament_color = dynamic_cast<const ConfigOptionStrings *>(m_print_config.option("filament_colour"));
+    std::vector<std::string> colors;
+    if (filament_color) {
+        colors= filament_color->vserialize();
+    }
+    else
+        colors.push_back("#FFFFFFFF");
+    std::vector<std::array<float, 4>> colors_out(colors.size());
+    auto init_opengl_and_colors = [&opengl_mgr, &colors_out, &glvolume_collection, &shader, &filament_color](Model &model, std::vector<std::string>& f_colors) -> bool {
+        unsigned char rgb_color[4] = {};
+        for (const std::string& color : f_colors) {
+            Slic3r::GUI::BitmapCache::parse_color4(color, rgb_color);
+            size_t color_idx = &color - &f_colors.front();
+            colors_out[color_idx] = { float(rgb_color[0]) / 255.f, float(rgb_color[1]) / 255.f, float(rgb_color[2]) / 255.f, float(rgb_color[3]) / 255.f };
+        }
+
+        int gl_major, gl_minor, gl_verbos;
+        glfwGetVersion(&gl_major, &gl_minor, &gl_verbos);
+        BOOST_LOG_TRIVIAL(info) << boost::format("opengl version %1%.%2%.%3%")%gl_major %gl_minor %gl_verbos;
+
+        glfwSetErrorCallback(glfw_callback);
+        int ret = glfwInit();
+        if (ret == GLFW_FALSE) {
+            int code = glfwGetError(NULL);
+            BOOST_LOG_TRIVIAL(error) << "glfwInit return error, code " <<code<< std::endl;
+            return false;
+        }
+        else {
+            BOOST_LOG_TRIVIAL(info) << "glfwInit Success."<< std::endl;
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, gl_major);
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, gl_minor);
+            glfwWindowHint(GLFW_RED_BITS, 8);
+            glfwWindowHint(GLFW_GREEN_BITS, 8);
+            glfwWindowHint(GLFW_BLUE_BITS, 8);
+            glfwWindowHint(GLFW_ALPHA_BITS, 8);
+            glfwWindowHint(GLFW_VISIBLE, false);
+            //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+            //glfwDisable(GLFW_AUTO_POLL_EVENTS);
+#ifdef __WXMAC__
+            glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#else
+            glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+#endif
+
+#ifdef __linux__
+            glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_OSMESA_CONTEXT_API);
+#endif
+
+            GLFWwindow* window = glfwCreateWindow(640, 480, "base_window", NULL, NULL);
+            if (window == NULL)
+            {
+                BOOST_LOG_TRIVIAL(error) << "Failed to create GLFW window" << std::endl;
+                return false;
+            }
+            else
+                glfwMakeContextCurrent(window);
+        }
+
+        bool gl_valid = opengl_mgr.init_gl(false);
+        if (!gl_valid) {
+            BOOST_LOG_TRIVIAL(error) << "init opengl failed! skip thumbnail generating" << std::endl;
+        }
+        else {
+            BOOST_LOG_TRIVIAL(info) << "glewInit Sucess." << std::endl;
+
+            shader = opengl_mgr.get_shader("thumbnail");
+            if (!shader) {
+                BOOST_LOG_TRIVIAL(error) << boost::format("can not get shader for rendering thumbnail");
+                gl_valid = false;
+            }
+            else {
+                int obj_extruder_id = 1, volume_extruder_id = 1;
+                for (unsigned int obj_idx = 0; obj_idx < (unsigned int)model.objects.size(); ++ obj_idx) {
+                    const ModelObject &model_object = *model.objects[obj_idx];
+                    const ConfigOption* option = model_object.config.option("extruder");
+                    if (option)
+                        obj_extruder_id = (dynamic_cast<const ConfigOptionInt *>(option))->getInt();
+                    else
+                        obj_extruder_id = 1;
+                    for (int volume_idx = 0; volume_idx < (int)model_object.volumes.size(); ++ volume_idx) {
+                        const ModelVolume &model_volume = *model_object.volumes[volume_idx];
+                        option = model_volume.config.option("extruder");
+                        if (option)
+                            volume_extruder_id = (dynamic_cast<const ConfigOptionInt *>(option))->getInt();
+                        else
+                            volume_extruder_id = obj_extruder_id;
+
+                        BOOST_LOG_TRIVIAL(debug) << boost::format("volume %1%'s extruder_id %2%")%volume_idx %volume_extruder_id;
+                        //if (!model_volume.is_model_part())
+                        //    continue;
+                        for (int instance_idx = 0; instance_idx < (int)model_object.instances.size(); ++ instance_idx) {
+                            const ModelInstance &model_instance = *model_object.instances[instance_idx];
+                            glvolume_collection.load_object_volume(&model_object, obj_idx, volume_idx, instance_idx, "volume", true, false, true);
+                            //glvolume_collection.volumes.back()->geometry_id = key.geometry_id;
+                            std::string color = filament_color?filament_color->get_at(volume_extruder_id - 1):"#00FF00FF";
+
+                            BOOST_LOG_TRIVIAL(debug) << boost::format("volume %1%'s color %2%")%volume_idx %color;
+
+                            unsigned char  rgb_color[4] = {};
+                            Slic3r::GUI::BitmapCache::parse_color4(color, rgb_color);
+
+                            std::array<float, 4> new_color;
+                            new_color[0] = float(rgb_color[0]) / 255.f;
+                            new_color[1] = float(rgb_color[1]) / 255.f;
+                            new_color[2] = float(rgb_color[2]) / 255.f;
+                            new_color[3] = float(rgb_color[3]) / 255.f;
+
+                            glvolume_collection.volumes.back()->set_render_color( new_color[0], new_color[1], new_color[2], new_color[3]);
+                            glvolume_collection.volumes.back()->set_color(new_color);
+                            glvolume_collection.volumes.back()->printable = model_instance.printable;
+                        }
+                    }
+                }
+            }
+        }
+        BOOST_LOG_TRIVIAL(info) << boost::format("init_opengl_and_colors finished, gl_valid=%1%")%gl_valid;
+        return gl_valid;
+    };
 
     for (auto const &opt_key : m_actions) {
         if (opt_key == "help") {
@@ -4783,8 +5113,15 @@ int CLI::run(int argc, char **argv)
 
                         model.curr_plate_index = index;
                         BOOST_LOG_TRIVIAL(info) << boost::format("Plate %1%: pre_check %2%, start")%(index+1)%pre_check;
-                        long long start_time = 0, end_time = 0, temp_time = 0, time_using_cache = 0;
-                        start_time = (long long)Slic3r::Utils::get_current_time_utc();
+                        long long start_time = 0, end_time = 0, temp_time = 0;
+
+                        std::unordered_map<std::string, long long> slice_time;
+                        slice_time[TIME_USING_CACHE] = 0;
+                        slice_time[TIME_MAKE_PERIMETERS] = 0;
+                        slice_time[TIME_INFILL] = 0;
+                        slice_time[TIME_GENERATE_SUPPORT] = 0;
+
+                        start_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
                         //get the current partplate
                         Slic3r::GUI::PartPlate* part_plate = partplate_list.get_plate(index);
                         part_plate->get_print(&print, &gcode_result, &print_index);
@@ -5019,8 +5356,8 @@ int CLI::run(int argc, char **argv)
                                     }
                                 }
                                 else {
-                                    print->process(&time_using_cache);
-                                    BOOST_LOG_TRIVIAL(info) << "print::process: first time_using_cache is " << time_using_cache << " secs.";
+                                    print->process(&slice_time);
+                                    BOOST_LOG_TRIVIAL(info) << "print::process: first time_using_cache is " << slice_time[TIME_USING_CACHE] << " secs.";
                                 }
                                 if (printer_technology == ptFFF) {
                                     std::string conflict_result = print_fff->get_conflict_string();
@@ -5062,6 +5399,40 @@ int CLI::run(int argc, char **argv)
                                     }
                                     sliced_plate_info.triangle_count = plate_triangle_counts[index];
 
+                                    auto cli_generate_thumbnails = [&partplate_list, &model, &glvolume_collection, &colors_out, &shader](const ThumbnailsParams& params) -> ThumbnailsList{
+                                        ThumbnailsList thumbnails;
+                                        for (const Vec2d& size : params.sizes) {
+                                            thumbnails.push_back(ThumbnailData());
+                                            Point isize(size); // round to ints
+                                            ThumbnailData& thumbnail_data = thumbnails.back();
+                                            switch (Slic3r::GUI::OpenGLManager::get_framebuffers_type())
+                                            {
+                                                case Slic3r::GUI::OpenGLManager::EFramebufferType::Arb:
+                                                {
+                                                    BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: ARB");
+                                                    Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer(thumbnail_data,
+                                                       isize.x(), isize.y(), params,
+                                                       partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho);
+                                                    break;
+                                                }
+                                                case Slic3r::GUI::OpenGLManager::EFramebufferType::Ext:
+                                                {
+                                                    BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: EXT");
+                                                    Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer_ext(thumbnail_data,
+                                                       isize.x(), isize.y(), params,
+                                                       partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho);
+                                                    break;
+                                                }
+                                                default:
+                                                    BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: unknown");
+                                                    break;
+                                            }
+                                            if (!thumbnails.back().is_valid())
+                                                thumbnails.pop_back();
+                                        }
+                                        return thumbnails;
+                                    };
+
                                     // The outfile is processed by a PlaceholderParser.
                                     //outfile = part_plate->get_tmp_gcode_path();
                                     if (outfile_dir.empty()) {
@@ -5072,10 +5443,17 @@ int CLI::run(int argc, char **argv)
                                         part_plate->set_tmp_gcode_path(outfile);
                                     }
                                     BOOST_LOG_TRIVIAL(info) << "process finished, will export gcode temporily to " << outfile << std::endl;
-                                    temp_time = (long long)Slic3r::Utils::get_current_time_utc();
-                                    outfile = print_fff->export_gcode(outfile, gcode_result, nullptr);
-                                    time_using_cache = time_using_cache + ((long long)Slic3r::Utils::get_current_time_utc() - temp_time);
-                                    BOOST_LOG_TRIVIAL(info) << "export_gcode finished: time_using_cache update to " << time_using_cache << " secs.";
+                                    temp_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
+                                    if (is_bbl_vendor_preset) {
+                                        outfile = print_fff->export_gcode(outfile, gcode_result, nullptr);
+                                    }
+                                    else {
+                                        if (!opengl_valid)
+                                            opengl_valid = init_opengl_and_colors(model, colors);
+                                        outfile = print_fff->export_gcode(outfile, gcode_result, cli_generate_thumbnails);
+                                    }
+                                    slice_time[TIME_USING_CACHE] = slice_time[TIME_USING_CACHE] + ((long long)Slic3r::Utils::get_current_milliseconds_time_utc() - temp_time);
+                                    BOOST_LOG_TRIVIAL(info) << "export_gcode finished: time_using_cache update to " << slice_time[TIME_USING_CACHE] << " secs.";
 
                                     //outfile_final = (dynamic_cast<Print*>(print))->print_statistics().finalize_output_path(outfile);
                                     //m_fff_print->export_gcode(m_temp_output_path, m_gcode_result, [this](const ThumbnailsParams& params) { return this->render_thumbnails(params); });
@@ -5117,14 +5495,18 @@ int CLI::run(int argc, char **argv)
                                         flush_and_exit(ret);
                                     }
                                 }
-                                end_time = (long long)Slic3r::Utils::get_current_time_utc();
+                                end_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
                                 sliced_plate_info.sliced_time = end_time - start_time;
-                                sliced_plate_info.sliced_time_with_cache = time_using_cache;
+                                sliced_plate_info.sliced_time_with_cache = slice_time[TIME_USING_CACHE];
+                                sliced_plate_info.make_perimeters_time = slice_time[TIME_MAKE_PERIMETERS];
+                                sliced_plate_info.infill_time = slice_time[TIME_INFILL];
+                                sliced_plate_info.generate_support_material_time = slice_time[TIME_GENERATE_SUPPORT];
+
 
                                 if (max_slicing_time_per_plate != 0) {
                                     long long time_cost = end_time - start_time;
-                                    if (time_cost > max_slicing_time_per_plate) {
-                                        sliced_plate_info.warning_message = (boost::format("plate %1%'s slice time %2% exceeds the limit %3%, return error.")%(index+1) %time_cost %max_slicing_time_per_plate).str();
+                                    if (time_cost > max_slicing_time_per_plate * 1000) {
+                                        sliced_plate_info.warning_message = (boost::format("plate %1%'s slice time %2% exceeds the limit %3%, return error.")%(index+1) %time_cost %(max_slicing_time_per_plate * 1000)).str();
                                         BOOST_LOG_TRIVIAL(error) << sliced_plate_info.warning_message;
                                         sliced_info.sliced_plates.push_back(sliced_plate_info);
                                         record_exit_reson(outfile_dir, CLI_SLICING_TIME_EXCEEDS_LIMIT, index+1, cli_errors[CLI_SLICING_TIME_EXCEEDS_LIMIT], sliced_info);
@@ -5191,7 +5573,7 @@ int CLI::run(int argc, char **argv)
         }
     }
 
-    global_begin_time = (long long)Slic3r::Utils::get_current_time_utc();
+    global_begin_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
     if (export_to_3mf) {
         //BBS: export as bbl 3mf
         std::vector<ThumbnailData *> thumbnails, no_light_thumbnails, top_thumbnails, pick_thumbnails;
@@ -5238,8 +5620,8 @@ int CLI::run(int argc, char **argv)
         bool need_create_thumbnail_group = false, need_create_no_light_group = false, need_create_top_group = false;
 
         // get type and color for platedata
-        auto* filament_types = dynamic_cast<const ConfigOptionStrings*>(m_print_config.option("filament_type"));
-        const ConfigOptionStrings* filament_color = dynamic_cast<const ConfigOptionStrings *>(m_print_config.option("filament_colour"));
+        //auto* filament_types = dynamic_cast<const ConfigOptionStrings*>(m_print_config.option("filament_type"));
+        //const ConfigOptionStrings* filament_color = dynamic_cast<const ConfigOptionStrings *>(m_print_config.option("filament_colour"));
         auto* filament_id = dynamic_cast<const ConfigOptionStrings*>(m_print_config.option("filament_ids"));
         const ConfigOptionFloats* nozzle_diameter_option = dynamic_cast<const ConfigOptionFloats *>(m_print_config.option("nozzle_diameter"));
         std::string nozzle_diameter_str;
@@ -5339,7 +5721,9 @@ int CLI::run(int argc, char **argv)
         }
 
         if (need_regenerate_thumbnail || need_regenerate_no_light_thumbnail || need_regenerate_top_thumbnail) {
-            std::vector<std::string> colors;
+            if (!opengl_valid)
+                opengl_valid = init_opengl_and_colors(m_models[0], colors);
+            /*std::vector<std::string> colors;
             if (filament_color) {
                 colors= filament_color->vserialize();
             }
@@ -5393,11 +5777,11 @@ int CLI::run(int argc, char **argv)
                 }
                 else
                     glfwMakeContextCurrent(window);
-            }
+            }*/
 
             //opengl manager related logic
             {
-                Slic3r::GUI::OpenGLManager opengl_mgr;
+                /*Slic3r::GUI::OpenGLManager opengl_mgr;
                 bool opengl_valid = opengl_mgr.init_gl(false);
                 if (!opengl_valid) {
                     BOOST_LOG_TRIVIAL(error) << "init opengl failed! skip thumbnail generating" << std::endl;
@@ -5454,7 +5838,9 @@ int CLI::run(int argc, char **argv)
                     if (!shader) {
                         BOOST_LOG_TRIVIAL(error) << boost::format("can not get shader for rendering thumbnail");
                     }
-                    else {
+                    else {*/
+                    if (opengl_valid) {
+                        Model &model = m_models[0];
                         for (int i = 0; i < partplate_list.get_plate_count(); i++) {
                             Slic3r::GUI::PartPlate *part_plate      = partplate_list.get_plate(i);
                             PlateData *plate_data = plate_data_list[i];
@@ -5675,7 +6061,6 @@ int CLI::run(int argc, char **argv)
                         }
                     }
                 }
-            }
             //BBS: release glfw
             glfwTerminate();
         }
@@ -5929,7 +6314,7 @@ int CLI::run(int argc, char **argv)
     }
     //BBS: flush logs
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", Finished" << std::endl;
-    global_current_time = (long long)Slic3r::Utils::get_current_time_utc();
+    global_current_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
     sliced_info.export_time = (size_t) (global_current_time - global_begin_time);
 
     //record the duplicate here
@@ -6219,7 +6604,6 @@ std::string CLI::output_filepath(const ModelObject &object, unsigned int index, 
         boost::filesystem::create_directory(subdir_path);
     return output_path;
 }
-
 
 //BBS: dump stack debug codes, don't delete currently
 //#include <dbghelp.h>

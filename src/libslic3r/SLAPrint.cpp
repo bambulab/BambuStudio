@@ -686,7 +686,7 @@ bool SLAPrint::invalidate_step(SLAPrintStep step)
     return invalidated;
 }
 
-void SLAPrint::process(long long *time_cost_with_cache, bool use_cache)
+void SLAPrint::process(std::unordered_map<std::string, long long>* slice_time, bool use_cache)
 {
     if (m_objects.empty())
         return;

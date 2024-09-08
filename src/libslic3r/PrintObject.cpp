@@ -798,7 +798,6 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "tree_support_branch_distance"
             || opt_key == "tree_support_branch_diameter"
             || opt_key == "tree_support_branch_angle"
-            || opt_key == "tree_support_brim_width"
             || opt_key == "tree_support_wall_count") {
             steps.emplace_back(posSupportMaterial);
         } else if (
@@ -908,10 +907,13 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "wipe_speed"
             || opt_key == "support_speed"
             || opt_key == "support_interface_speed"
+            || opt_key == "smooth_speed_discontinuity_area"
+            || opt_key == "smooth_coefficient"
             || opt_key == "overhang_1_4_speed"
             || opt_key == "overhang_2_4_speed"
             || opt_key == "overhang_3_4_speed"
             || opt_key == "overhang_4_4_speed"
+            || opt_key == "overhang_totally_speed"
             || opt_key == "bridge_speed"
             || opt_key == "outer_wall_speed"
             || opt_key == "small_perimeter_speed"

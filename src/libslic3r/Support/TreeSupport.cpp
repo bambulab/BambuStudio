@@ -605,13 +605,13 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
     support_type = m_object_config->support_type;
     support_style = m_object_config->support_style;
     if (support_style == smsDefault) {
-        // organic support doesn't work with adaptive layer height
-        if (object.model_object()->layer_height_profile.empty()) {
+        // organic support doesn't work with variable layer heights (including adaptive layer height and height range modifier, see #4313)
+        if (!m_object->has_variable_layer_heights) {
             BOOST_LOG_TRIVIAL(warning) << "tree support default to organic support";
             support_style = smsTreeOrganic;
         }
         else {
-            BOOST_LOG_TRIVIAL(warning) << "Adaptive layer height is not supported for organic support, using hybrid tree support instead.";
+            BOOST_LOG_TRIVIAL(warning) << "tree support default to hybrid tree due to adaptive layer height";
             support_style = smsTreeHybrid;
         }
     }
@@ -1080,9 +1080,8 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
         }
 
         if (max_bridge_length > 0 && layer->loverhangs.size() > 0 && lower_layer) {
-            // do not break bridge for normal part in TreeHybrid, nor Tree Strong
-            bool break_bridge = !(support_style == smsTreeHybrid && area(layer->loverhangs) > m_support_params.thresh_big_overhang)
-                && !(support_style==smsTreeStrong);
+            // do not break bridge as the interface will be poor, see #4318
+            bool break_bridge = false;
             m_object->remove_bridges_from_contacts(lower_layer, layer, extrusion_width_scaled, &layer->loverhangs, max_bridge_length, break_bridge);
         }
 
@@ -1176,6 +1175,17 @@ void TreeSupport::create_tree_support_layers()
             raft_slice_z = raft_print_z - height / 2;
             m_object->add_tree_support_layer(layer_id++, height, raft_print_z, raft_slice_z);
         }
+
+        // Layers between the raft contacts and bottom of the object.
+        double dist_to_go = m_slicing_params.object_print_z_min - raft_print_z;
+        auto nsteps = int(ceil(dist_to_go / m_slicing_params.max_suport_layer_height));
+        double height = dist_to_go / nsteps;
+        for (int i = 0; i < nsteps; ++i) {
+            raft_print_z += height;
+            raft_slice_z = raft_print_z - height / 2;
+            m_object->add_tree_support_layer(layer_id++, height, raft_print_z, raft_slice_z);
+        }
+        m_raft_layers = layer_id;
     }
 
     for (Layer *layer : m_object->layers()) {
@@ -1275,7 +1285,7 @@ static void make_perimeter_and_inner_brim(ExtrusionEntitiesPtr &dst, const ExPol
     _make_loops(dst, support_area_new, role, wall_count, flow);
 }
 
-static void make_perimeter_and_infill(ExtrusionEntitiesPtr& dst, const Print& print, const ExPolygon& support_area, size_t wall_count, const Flow& flow, ExtrusionRole role, Fill* filler_support, double support_density, bool infill_first=true)
+static void make_perimeter_and_infill(ExtrusionEntitiesPtr& dst, const ExPolygon& support_area, size_t wall_count, const Flow& flow, ExtrusionRole role, Fill* filler_support, double support_density, bool infill_first=true)
 {
     Polygons   loops;
     ExPolygons support_area_new = offset_ex(support_area, -0.5f * float(flow.scaled_spacing()), jtSquare);
@@ -1378,7 +1388,8 @@ void TreeSupport::generate_toolpaths()
 
     raft_areas = std::move(offset_ex(raft_areas, scale_(3.)));
 
-    for (size_t layer_nr = 0; layer_nr < m_slicing_params.base_raft_layers; layer_nr++) {
+    size_t layer_nr = 0;
+    for (; layer_nr < m_slicing_params.base_raft_layers; layer_nr++) {
         SupportLayer *ts_layer = m_object->get_support_layer(layer_nr);
         coordf_t expand_offset = (layer_nr == 0 ? m_object_config->raft_first_layer_expansion.value : 0.);
         auto raft_areas1 = offset_ex(raft_areas, scale_(expand_offset));
@@ -1413,10 +1424,13 @@ void TreeSupport::generate_toolpaths()
                 first_non_raft_base.emplace_back(*area_group.area);
         }
     }
+    first_non_raft_base = offset_ex(first_non_raft_base, support_extrusion_width);
     ExPolygons raft_base_areas = intersection_ex(raft_areas, first_non_raft_base);
     ExPolygons raft_interface_areas = diff_ex(raft_areas, raft_base_areas);
 
-    for (size_t layer_nr = m_slicing_params.base_raft_layers;
+
+    // raft interfaces
+    for (layer_nr = m_slicing_params.base_raft_layers;
          layer_nr < m_slicing_params.base_raft_layers + m_slicing_params.interface_raft_layers;
          layer_nr++)
     {
@@ -1437,6 +1451,17 @@ void TreeSupport::generate_toolpaths()
         fill_params.density = object_config.raft_first_layer_density * 0.01;
         fill_expolygons_generate_paths(ts_layer->support_fills.entities, raft_base_areas,
             filler_interface, fill_params, erSupportMaterial, support_flow);
+    }
+
+    // layers between raft and object
+    for (; layer_nr < m_raft_layers; layer_nr++) {
+        SupportLayer *ts_layer = m_object->get_support_layer(layer_nr);
+        Flow support_flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
+        Fill* filler_raft = Fill::new_from_type(ipRectilinear);
+        filler_raft->angle = PI / 2;
+        filler_raft->spacing = support_flow.spacing();
+        for (auto& poly : first_non_raft_base)
+            make_perimeter_and_infill(ts_layer->support_fills.entities, poly, std::min(size_t(1), wall_count), support_flow, erSupportMaterial, filler_raft, interface_density, false);
     }
 
     if (m_object->support_layer_count() <= m_raft_layers)
@@ -1464,7 +1489,7 @@ void TreeSupport::generate_toolpaths()
 
                 SupportLayer* ts_layer = m_object->get_support_layer(layer_id);
                 Flow support_flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
-                m_support_material_interface_flow = support_material_interface_flow(m_object, ts_layer->height); // update flow using real support layer height
+                Flow interface_flow = support_material_interface_flow(m_object, ts_layer->height); // update flow using real support layer height
                 coordf_t support_spacing         = object_config.support_base_pattern_spacing.value + support_flow.spacing();
                 coordf_t support_density         = std::min(1., support_flow.spacing() / support_spacing);
                 ts_layer->support_fills.no_sort = false;
@@ -1493,10 +1518,10 @@ void TreeSupport::generate_toolpaths()
                         // roof_1st_layer
                         fill_params.density = interface_density;
                         // Note: spacing means the separation between two lines as if they are tightly extruded
-                        filler_Roof1stLayer->spacing = m_support_material_interface_flow.spacing();
+                        filler_Roof1stLayer->spacing = interface_flow.spacing();
                         // generate a perimeter first to support interface better
                         ExtrusionEntityCollection* temp_support_fills = new ExtrusionEntityCollection();
-                        make_perimeter_and_infill(temp_support_fills->entities, *m_object->print(), poly, 1, m_support_material_interface_flow, erSupportMaterial,
+                        make_perimeter_and_infill(temp_support_fills->entities, poly, 1, interface_flow, erSupportMaterial,
                             filler_Roof1stLayer.get(), interface_density, false);
                         temp_support_fills->no_sort = true; // make sure loops are first
                         if (!temp_support_fills->entities.empty())
@@ -1506,13 +1531,13 @@ void TreeSupport::generate_toolpaths()
                     } else if (area_group.type == SupportLayer::FloorType) {
                         // floor_areas
                         fill_params.density = bottom_interface_density;
-                        filler_interface->spacing = m_support_material_interface_flow.spacing();
+                        filler_interface->spacing = interface_flow.spacing();
                         fill_expolygons_generate_paths(ts_layer->support_fills.entities, polys,
-                            filler_interface.get(), fill_params, erSupportMaterialInterface, m_support_material_interface_flow);
+                            filler_interface.get(), fill_params, erSupportMaterialInterface, interface_flow);
                     } else if (area_group.type == SupportLayer::RoofType) {
                         // roof_areas
                         fill_params.density       = interface_density;
-                        filler_interface->spacing = m_support_material_interface_flow.spacing();
+                        filler_interface->spacing = interface_flow.spacing();
                         if (m_object_config->support_interface_pattern == smipGrid) {
                             filler_interface->angle = Geometry::deg2rad(object_config.support_angle.value);
                             fill_params.dont_sort = true;
@@ -1521,7 +1546,7 @@ void TreeSupport::generate_toolpaths()
                             filler_interface->layer_id = area_group.interface_id;
 
                         fill_expolygons_generate_paths(ts_layer->support_fills.entities, polys, filler_interface.get(), fill_params, erSupportMaterialInterface,
-                                                       m_support_material_interface_flow);
+                                                       interface_flow);
                     }
                     else {
                         // base_areas
@@ -1546,7 +1571,7 @@ void TreeSupport::generate_toolpaths()
                                 // otherwise must draw 1 wall
                                 // Don't need extra walls if we have infill. Extra walls may overlap with the infills.
                                 size_t min_wall_count = offset(poly, -scale_(support_spacing * 1.5)).empty() ? 1 : 0;
-                                make_perimeter_and_infill(ts_layer->support_fills.entities, *m_object->print(), poly, std::max(min_wall_count, wall_count), flow,
+                                make_perimeter_and_infill(ts_layer->support_fills.entities, poly, std::max(min_wall_count, wall_count), flow,
                                     erSupportMaterial, filler_support.get(), support_density);
                             }
                             else {
@@ -1962,7 +1987,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<SupportNode*>>& con
     const bool with_lightning_infill = m_support_params.base_fill_pattern == ipLightning;
     coordf_t support_extrusion_width = m_support_params.support_extrusion_width;
     const coordf_t line_width_scaled = scale_(support_extrusion_width);
-    const float tree_brim_width = config.tree_support_brim_width.value;
+    const float tree_brim_width = config.raft_first_layer_expansion.value;
 
     if (m_object->support_layer_count() <= m_raft_layers)
         return;

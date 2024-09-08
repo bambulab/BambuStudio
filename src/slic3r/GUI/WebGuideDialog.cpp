@@ -1017,8 +1017,8 @@ int GuideFrame::GetFilamentInfo( std::string VendorDirectory, json & pFilaList, 
 
                 std::string FPath = pFilaList[FName]["sub_path"];
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Before Format Inherits Path: VendorDirectory - " << VendorDirectory << ", sub_path - " << FPath;
-                wxString strNewFile = wxString::Format("%s%c%s", wxString(VendorDirectory.c_str(), wxConvUTF8), boost::filesystem::path::preferred_separator, FPath);
-                boost::filesystem::path inherits_path(w2s(strNewFile));
+                std::string strNewFile = VendorDirectory + "/" + FPath;
+                boost::filesystem::path inherits_path(strNewFile);
 
                 //boost::filesystem::path nf(strNewFile.c_str());
                 if (boost::filesystem::exists(inherits_path))

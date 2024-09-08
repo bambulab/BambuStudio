@@ -1059,14 +1059,20 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 
 
     // Custom layering is not allowed for tree supports as of now.
-    for (size_t print_object_idx = 0; print_object_idx < m_objects.size(); ++ print_object_idx)
-        if (const PrintObject &print_object = *m_objects[print_object_idx];
-            print_object.has_support_material() && is_tree(print_object.config().support_type.value) && print_object.config().support_style.value == smsTreeOrganic &&
+    for (size_t print_object_idx = 0; print_object_idx < m_objects.size(); ++print_object_idx) {
+        PrintObject &print_object = *m_objects[print_object_idx];
+        print_object.has_variable_layer_heights = false;
+        if (print_object.has_support_material() && is_tree(print_object.config().support_type.value)  &&
             print_object.model_object()->has_custom_layering()) {
-            if (const std::vector<coordf_t> &layers = layer_height_profile(print_object_idx); ! layers.empty())
-                if (! check_object_layers_fixed(print_object.slicing_parameters(), layers))
-                    return { L("Variable layer height is not supported with Organic supports.") };
+            if (const std::vector<coordf_t> &layers = layer_height_profile(print_object_idx); !layers.empty())
+                if (!check_object_layers_fixed(print_object.slicing_parameters(), layers)) {
+                    print_object.has_variable_layer_heights = true;
+                    BOOST_LOG_TRIVIAL(warning) << "print_object: " << print_object.model_object()->name
+                                               << " has_variable_layer_heights: " << print_object.has_variable_layer_heights;
+                    if (print_object.config().support_style.value == smsTreeOrganic) return {L("Variable layer height is not supported with Organic supports.")};
+                }
         }
+    }
 
     if (this->has_wipe_tower() && ! m_objects.empty()) {
         // Make sure all extruders use same diameter filament and have the same nozzle diameter
@@ -1547,11 +1553,16 @@ std::map<ObjectID, unsigned int> getObjectExtruderMap(const Print& print) {
 }
 
 // Slicing process, running at a background thread.
-void Print::process(long long *time_cost_with_cache, bool use_cache)
+void Print::process(std::unordered_map<std::string, long long>* slice_time, bool use_cache)
 {
     long long start_time = 0, end_time = 0;
-    if (time_cost_with_cache)
-        *time_cost_with_cache = 0;
+    if (slice_time) {
+        (*slice_time)[TIME_USING_CACHE] = 0;
+        (*slice_time)[TIME_MAKE_PERIMETERS] = 0;
+        (*slice_time)[TIME_INFILL] = 0;
+        (*slice_time)[TIME_GENERATE_SUPPORT] = 0;
+    }
+
 
     name_tbb_thread_pool_threads_set_locale();
 
@@ -1657,8 +1668,16 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": total object counts %1% in current print, need to slice %2%")%m_objects.size()%need_slicing_objects.size();
     BOOST_LOG_TRIVIAL(info) << "Starting the slicing process." << log_memory_info();
+
+
     if (!use_cache) {
-        for (PrintObject *obj : m_objects) {
+
+        if (slice_time) {
+            start_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
+        }
+            
+
+        for (PrintObject* obj : m_objects) {
             if (need_slicing_objects.count(obj) != 0) {
                 obj->make_perimeters();
             }
@@ -1669,6 +1688,13 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
                     obj->set_done(posPerimeters);
             }
         }
+
+        if (slice_time) {
+            end_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
+            (*slice_time)[TIME_MAKE_PERIMETERS] = (*slice_time)[TIME_MAKE_PERIMETERS] + end_time - start_time;
+            start_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
+        }
+
         for (PrintObject *obj : m_objects) {
             if (need_slicing_objects.count(obj) != 0) {
                 obj->infill();
@@ -1680,6 +1706,12 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
                     obj->set_done(posInfill);
             }
         }
+
+        if (slice_time) {
+            end_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
+            (*slice_time)[TIME_INFILL] = (*slice_time)[TIME_INFILL] + end_time - start_time;
+        }
+
         for (PrintObject *obj : m_objects) {
             if (need_slicing_objects.count(obj) != 0) {
                 obj->ironing();
@@ -1688,6 +1720,10 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
                 if (obj->set_started(posIroning))
                     obj->set_done(posIroning);
             }
+        }
+
+        if (slice_time) {
+            start_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
         }
 
         tbb::parallel_for(tbb::blocked_range<int>(0, int(m_objects.size())),
@@ -1704,6 +1740,11 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
                 }
             }
         );
+
+        if (slice_time) {
+            end_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
+            (*slice_time)[TIME_GENERATE_SUPPORT] = (*slice_time)[TIME_GENERATE_SUPPORT] + end_time - start_time;
+        }
 
         for (PrintObject* obj : m_objects) {
             if (need_slicing_objects.count(obj) != 0) {
@@ -1767,8 +1808,9 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
     if (this->set_started(psSkirtBrim)) {
         this->set_status(70, L("Generating skirt & brim"));
 
-        if (time_cost_with_cache)
-            start_time = (long long)Slic3r::Utils::get_current_time_utc();
+        if (slice_time) {
+            start_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
+        }
 
         m_skirt.clear();
         m_skirt_convex_hull.clear();
@@ -1855,9 +1897,9 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
         this->finalize_first_layer_convex_hull();
         this->set_done(psSkirtBrim);
 
-        if (time_cost_with_cache) {
-            end_time = (long long)Slic3r::Utils::get_current_time_utc();
-            *time_cost_with_cache = *time_cost_with_cache + end_time - start_time;
+        if (slice_time) {
+            end_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
+            (*slice_time)[TIME_USING_CACHE] = (*slice_time)[TIME_USING_CACHE] + end_time - start_time;
         }
     }
     //BBS
