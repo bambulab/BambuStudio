@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.09.00.18",
+    "version": "01.09.00.23",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -872,6 +872,10 @@
         {
             "name": "Bambu ASA-Aero @base",
             "sub_path": "filament/Bambu ASA-Aero @base.json"
+        },
+        {
+            "name": "Bambu ASA-CF @base",
+            "sub_path": "filament/Bambu ASA-CF @base.json"
         },
         {
             "name": "Generic PVA @base",
@@ -2180,6 +2184,30 @@
         {
             "name": "Bambu ASA-Aero @BBL A1",
             "sub_path": "filament/Bambu ASA-Aero @BBL A1.json"
+        },
+        {
+            "name": "Bambu ASA-CF @BBL X1C",
+            "sub_path": "filament/Bambu ASA-CF @BBL X1C.json"
+        },
+        {
+            "name": "Bambu ASA-CF @BBL X1C 0.6 nozzle",
+            "sub_path": "filament/Bambu ASA-CF @BBL X1C 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu ASA-CF @BBL P1P",
+            "sub_path": "filament/Bambu ASA-CF @BBL P1P.json"
+        },
+        {
+            "name": "Bambu ASA-CF @BBL P1P 0.6 nozzle",
+            "sub_path": "filament/Bambu ASA-CF @BBL P1P 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu ASA-CF @BBL A1",
+            "sub_path": "filament/Bambu ASA-CF @BBL A1.json"
+        },
+        {
+            "name": "Bambu ASA-CF @BBL A1 0.6 nozzle",
+            "sub_path": "filament/Bambu ASA-CF @BBL A1 0.6 nozzle.json"
         },
         {
             "name": "Generic PVA @0.2 nozzle",
