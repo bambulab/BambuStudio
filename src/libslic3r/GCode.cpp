@@ -534,7 +534,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
                 //BBS: gcode writer doesn't know fan speed after inserting tool change gcode
                 toolchange_gcode_str += ";_FORCE_RESUME_FAN_SPEED\n";
-                
+
                 //BBS: check whether custom gcode changes the axis positions. Update if changed.
                 bool position_changed = false;
                 Vec3d new_pos = gcodegen.writer().get_position();
@@ -544,19 +544,19 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                     new_pos(0) = temp_x_after_toolchange_gcode;
                     position_changed = true;
                 }
-                
+
                 double temp_y_after_toolchange_gcode;
                 if (GCodeProcessor::get_last_pos_from_gcode(toolchange_gcode_str, 1, temp_y_after_toolchange_gcode)) {
                     new_pos(1) = temp_y_after_toolchange_gcode;
                     position_changed = true;
                 }
-                
+
                 double temp_z_after_toolchange_gcode;
                 if (GCodeProcessor::get_last_pos_from_gcode(toolchange_gcode_str, 2, temp_z_after_toolchange_gcode)) {
                     new_pos(2) = temp_z_after_toolchange_gcode;
                     position_changed = true;
                 }
-                
+
                 if (position_changed) {
                     gcodegen.writer().set_position(new_pos);
                 }
@@ -3101,29 +3101,29 @@ GCode::LayerResult GCode::process_layer(
 
         std::string timelapse_gcode = insert_timelapse_gcode();
         gcode += timelapse_gcode;
-        
+
         //BBS: check whether custom gcode changes the axis positions. Update if changed.
         bool position_changed = false;
         Vec3d new_pos = m_writer.get_position();
-        
+
         double temp_x_after_timelapse_gcode;
         if (GCodeProcessor::get_last_pos_from_gcode(timelapse_gcode, 0, temp_x_after_timelapse_gcode)) {
             new_pos(0) = temp_x_after_timelapse_gcode;
             position_changed = true;
         }
-        
+
         double temp_y_after_timelapse_gcode;
         if (GCodeProcessor::get_last_pos_from_gcode(timelapse_gcode, 1, temp_y_after_timelapse_gcode)) {
             new_pos(1) = temp_y_after_timelapse_gcode;
             position_changed = true;
         }
-        
+
         double temp_z_after_timelapse_gcode;
         if (GCodeProcessor::get_last_pos_from_gcode(timelapse_gcode, 2, temp_z_after_timelapse_gcode)) {
             new_pos(2) = temp_z_after_timelapse_gcode;
             position_changed = true;
         }
-        
+
         if (position_changed) {
             m_writer.set_position(new_pos);
         }
@@ -3473,29 +3473,29 @@ GCode::LayerResult GCode::process_layer(
 
                     std::string timelapse_gcode = insert_timelapse_gcode();
                     gcode += timelapse_gcode;
-                    
+
                     //BBS: check whether custom gcode changes the axis positions. Update if changed.
                     bool position_changed = false;
                     Vec3d new_pos = m_writer.get_position();
-                    
+
                     double temp_x_after_timelapse_gcode;
                     if (GCodeProcessor::get_last_pos_from_gcode(timelapse_gcode, 0, temp_x_after_timelapse_gcode)) {
                         new_pos(0) = temp_x_after_timelapse_gcode;
                         position_changed = true;
                     }
-                    
+
                     double temp_y_after_timelapse_gcode;
                     if (GCodeProcessor::get_last_pos_from_gcode(timelapse_gcode, 1, temp_y_after_timelapse_gcode)) {
                         new_pos(1) = temp_y_after_timelapse_gcode;
                         position_changed = true;
                     }
-                    
+
                     double temp_z_after_timelapse_gcode;
                     if (GCodeProcessor::get_last_pos_from_gcode(timelapse_gcode, 2, temp_z_after_timelapse_gcode)) {
                         new_pos(2) = temp_z_after_timelapse_gcode;
                         position_changed = true;
                     }
-                    
+
                     if (position_changed) {
                         m_writer.set_position(new_pos);
                     }
@@ -3724,25 +3724,25 @@ GCode::LayerResult GCode::process_layer(
                             //BBS: check whether custom gcode changes the axis positions. Update if changed.
                             bool position_changed = false;
                             Vec3d new_pos = m_writer.get_position();
-                            
+
                             double temp_x_after_timelapse_gcode;
                             if (GCodeProcessor::get_last_pos_from_gcode(timelapse_gcode, 0, temp_x_after_timelapse_gcode)) {
                                 new_pos(0) = temp_x_after_timelapse_gcode;
                                 position_changed = true;
                             }
-                            
+
                             double temp_y_after_timelapse_gcode;
                             if (GCodeProcessor::get_last_pos_from_gcode(timelapse_gcode, 1, temp_y_after_timelapse_gcode)) {
                                 new_pos(1) = temp_y_after_timelapse_gcode;
                                 position_changed = true;
                             }
-                            
+
                             double temp_z_after_timelapse_gcode;
                             if (GCodeProcessor::get_last_pos_from_gcode(timelapse_gcode, 2, temp_z_after_timelapse_gcode)) {
                                 new_pos(2) = temp_z_after_timelapse_gcode;
                                 position_changed = true;
                             }
-                            
+
                             if (position_changed) {
                                 m_writer.set_position(new_pos);
                             }
@@ -3773,25 +3773,25 @@ GCode::LayerResult GCode::process_layer(
                             //BBS: check whether custom gcode changes the axis positions. Update if changed.
                             bool position_changed = false;
                             Vec3d new_pos = m_writer.get_position();
-                            
+
                             double temp_x_after_timelapse_gcode;
                             if (GCodeProcessor::get_last_pos_from_gcode(timelapse_gcode, 0, temp_x_after_timelapse_gcode)) {
                                 new_pos(0) = temp_x_after_timelapse_gcode;
                                 position_changed = true;
                             }
-                            
+
                             double temp_y_after_timelapse_gcode;
                             if (GCodeProcessor::get_last_pos_from_gcode(timelapse_gcode, 1, temp_y_after_timelapse_gcode)) {
                                 new_pos(1) = temp_y_after_timelapse_gcode;
                                 position_changed = true;
                             }
-                            
+
                             double temp_z_after_timelapse_gcode;
                             if (GCodeProcessor::get_last_pos_from_gcode(timelapse_gcode, 2, temp_z_after_timelapse_gcode)) {
                                 new_pos(2) = temp_z_after_timelapse_gcode;
                                 position_changed = true;
                             }
-                            
+
                             if (position_changed) {
                                 m_writer.set_position(new_pos);
                             }
@@ -3876,25 +3876,25 @@ GCode::LayerResult GCode::process_layer(
         //BBS: check whether custom gcode changes the axis positions. Update if changed.
         bool position_changed = false;
         Vec3d new_pos = m_writer.get_position();
-        
+
         double temp_x_after_timelapse_gcode;
         if (GCodeProcessor::get_last_pos_from_gcode(timelapse_gcode, 0, temp_x_after_timelapse_gcode)) {
             new_pos(0) = temp_x_after_timelapse_gcode;
             position_changed = true;
         }
-        
+
         double temp_y_after_timelapse_gcode;
         if (GCodeProcessor::get_last_pos_from_gcode(timelapse_gcode, 1, temp_y_after_timelapse_gcode)) {
             new_pos(1) = temp_y_after_timelapse_gcode;
             position_changed = true;
         }
-        
+
         double temp_z_after_timelapse_gcode;
         if (GCodeProcessor::get_last_pos_from_gcode(timelapse_gcode, 2, temp_z_after_timelapse_gcode)) {
             new_pos(2) = temp_z_after_timelapse_gcode;
             position_changed = true;
         }
-        
+
         if (position_changed) {
             m_writer.set_position(new_pos);
         }
@@ -5604,25 +5604,25 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z, bool b
             //BBS: check whether custom gcode changes the axis positions. Update if changed.
             bool position_changed = false;
             Vec3d new_pos = m_writer.get_position();
-            
+
             double temp_x_after_toolchange_gcode;
             if (GCodeProcessor::get_last_pos_from_gcode(toolchange_gcode_parsed, 0, temp_x_after_toolchange_gcode)) {
                 new_pos(0) = temp_x_after_toolchange_gcode;
                 position_changed = true;
             }
-            
+
             double temp_y_after_toolchange_gcode;
             if (GCodeProcessor::get_last_pos_from_gcode(toolchange_gcode_parsed, 1, temp_y_after_toolchange_gcode)) {
                 new_pos(1) = temp_y_after_toolchange_gcode;
                 position_changed = true;
             }
-            
+
             double temp_z_after_toolchange_gcode;
             if (GCodeProcessor::get_last_pos_from_gcode(toolchange_gcode_parsed, 2, temp_z_after_toolchange_gcode)) {
                 new_pos(2) = temp_z_after_toolchange_gcode;
                 position_changed = true;
             }
-            
+
             if (position_changed) {
                 m_writer.set_position(new_pos);
             }
