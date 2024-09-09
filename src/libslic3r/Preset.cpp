@@ -493,11 +493,11 @@ void Preset::remove_files()
 }
 
 //BBS: add logic for only difference save
-void Preset::save(DynamicPrintConfig* parent_config)
+bool Preset::save(DynamicPrintConfig* parent_config)
 {
     //BBS: add project embedded preset logic
     if (this->is_project_embedded)
-        return;
+        return false;
     //BBS: change to json format
     //this->config.save(this->file);
     std::string from_str;
@@ -510,7 +510,11 @@ void Preset::save(DynamicPrintConfig* parent_config)
     else
         from_str = std::string("Default");
 
-    boost::filesystem::create_directories(fs::path(this->file).parent_path());
+    boost::system::error_code ec;
+    if (!boost::filesystem::exists(fs::path(this->file).parent_path()) && !boost::filesystem::create_directories(fs::path(this->file).parent_path(), ec)) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " create directory failed: " << this->file << " " << ec.message();
+        return false;
+    }
 
     //BBS: only save difference if it has parent
     if (parent_config) {
@@ -536,6 +540,7 @@ void Preset::save(DynamicPrintConfig* parent_config)
     fs::path idx_file(this->file);
     idx_file.replace_extension(".info");
     this->save_info(idx_file.string());
+    return true;
 }
 
 void Preset::reload(Preset const &parent)
@@ -1478,7 +1483,10 @@ void PresetCollection::set_sync_info_and_save(std::string name, std::string sett
             preset->setting_id = setting_id;
             if (update_time > 0)
                 preset->updated_time = update_time;
-            preset->sync_info == "update" ? preset->save(nullptr) : preset->save_info();
+            if (preset->sync_info == "update")
+                preset->save(nullptr);
+            else
+                preset->save_info();
             break;
         }
     }
