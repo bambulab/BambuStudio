@@ -5464,6 +5464,14 @@ bool GLCanvas3D::is_object_sinking(int object_idx) const
     return false;
 }
 
+void GLCanvas3D::apply_retina_scale(Vec2d &screen_coordinate) const
+{
+#if ENABLE_RETINA_GL
+    double scale = static_cast<double>(m_retina_helper->get_scale_factor());
+    screen_coordinate *= scale;
+#endif // ENABLE_RETINA_GL}
+}
+
 bool GLCanvas3D::_is_shown_on_screen() const
 {
     return (m_canvas != nullptr) ? m_canvas->IsShownOnScreen() : false;

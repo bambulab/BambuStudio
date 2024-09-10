@@ -2569,6 +2569,7 @@ struct Plater::priv
     void on_add_custom_filament(ColorEvent &);
 
     void on_object_select(SimpleEvent&);
+    void show_right_click_menu(Vec2d mouse_position, wxMenu *menu);
     void on_plate_name_change(SimpleEvent &);
     void on_right_click(RBtnEvent&);
     //BBS: add model repair
@@ -7319,6 +7320,41 @@ void Plater::priv::on_change_color_mode(SimpleEvent& evt) {
     if (m_send_to_sdcard_dlg) m_send_to_sdcard_dlg->on_change_color_mode();
 }
 
+static void get_position(wxWindowBase *child, wxWindowBase *until_parent, int &x, int &y)
+{
+    int res_x = 0, res_y = 0;
+
+    while (child != until_parent && child != nullptr) {
+        int _x, _y;
+        child->GetPosition(&_x, &_y);
+        res_x += _x;
+        res_y += _y;
+
+        child = child->GetParent();
+    }
+
+    x = res_x;
+    y = res_y;
+}
+
+void Plater::priv::show_right_click_menu(Vec2d mouse_position, wxMenu *menu)
+{
+    // BBS: GUI refactor: move sidebar to the left
+    int x, y;
+    get_position(current_panel, wxGetApp().mainframe, x, y);
+    wxPoint position(static_cast<int>(mouse_position.x() + x), static_cast<int>(mouse_position.y() + y));
+#ifdef __linux__
+    // For some reason on Linux the menu isn't displayed if position is
+    // specified (even though the position is sane).
+    position = wxDefaultPosition;
+#endif
+    GLCanvas3D &canvas = *q->canvas3D();
+    canvas.apply_retina_scale(mouse_position);
+    canvas.set_popup_menu_position(mouse_position);
+    q->PopupMenu(menu, position);
+    canvas.clear_popup_menu_position();
+}
+
 void Plater::priv::on_right_click(RBtnEvent& evt)
 {
     int obj_idx = get_selected_object_idx();
@@ -7380,17 +7416,7 @@ void Plater::priv::on_right_click(RBtnEvent& evt)
     }
 
     if (q != nullptr && menu) {
-#ifdef __linux__
-        // For some reason on Linux the menu isn't displayed if position is specified
-        // (even though the position is sane).
-        q->PopupMenu(menu);
-#else
-        //BBS: GUI refactor: move sidebar to the left
-        int x, y;
-        current_panel->GetPosition(&x, &y);
-        q->PopupMenu(menu, (int)evt.data.first.x() + x, (int)evt.data.first.y());
-        //q->PopupMenu(menu);
-#endif
+        show_right_click_menu(evt.data.first, menu);
     }
 }
 
@@ -7398,16 +7424,7 @@ void Plater::priv::on_right_click(RBtnEvent& evt)
 void Plater::priv::on_plate_right_click(RBtnPlateEvent& evt)
 {
     wxMenu* menu = menus.plate_menu();
-
-#ifdef __linux__
-    q->PopupMenu(menu);
-#else
-    //BBS: GUI refactor: move sidebar to the left
-    int x, y;
-    current_panel->GetPosition(&x, &y);
-    q->PopupMenu(menu, (int)evt.data.first.x() + x, (int)evt.data.first.y());
-    //q->PopupMenu(menu);
-#endif
+    show_right_click_menu(evt.data.first, menu);
 }
 
 void Plater::priv::on_update_geometry(Vec3dsEvent<2>&)
