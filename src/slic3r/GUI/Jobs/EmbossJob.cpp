@@ -120,8 +120,7 @@ void _update_volume(TriangleMesh &&mesh, const DataUpdate &data, const Transform
 
     Plater *plater = wxGetApp().plater();
     // Check gizmo is still open otherwise job should be canceled
-    assert(plater->canvas3D()->get_gizmos_manager().get_current_type() == GLGizmosManager::Emboss ||
-           plater->canvas3D()->get_gizmos_manager().get_current_type() == GLGizmosManager::Svg);
+    assert(plater->canvas3D()->get_gizmos_manager().get_current_type() == GLGizmosManager::Svg);
 
     if (data.make_snapshot) {
         // TRN: This is the title of the action appearing in undo/redo stack.
