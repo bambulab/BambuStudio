@@ -527,7 +527,7 @@ AMSextruderImage::~AMSextruderImage() {}
 Description:AMSExtImage upon ext lib
 **************************************************/
 
-AMSExtImage::AMSExtImage(wxWindow* parent, AMSPanelPos ext_pos, NozzleData *data, wxWindowID id, const wxPoint& pos)
+AMSExtImage::AMSExtImage(wxWindow* parent, AMSPanelPos ext_pos, ExtderData *data, wxWindowID id, const wxPoint& pos)
 {
     if (data == nullptr){
         wxWindow::Create(parent, id, pos, AMS_HUMIDITY_SIZE);
@@ -538,7 +538,7 @@ AMSExtImage::AMSExtImage(wxWindow* parent, AMSPanelPos ext_pos, NozzleData *data
 
     SetBackgroundColour(StateColor::darkModeColorFor(AMS_CONTROL_DEF_LIB_BK_COLOUR));
     m_ext_pos = ext_pos;
-    if (data != nullptr) m_nozzle_data = data;
+    if (data != nullptr) m_extder_data = data;
 
     m_ams_ext_left = ScalableBitmap(this, "ext_image_left", 98);
     m_ams_ext_right = ScalableBitmap(this, "ext_image_right", 98);
@@ -595,13 +595,13 @@ void AMSExtImage::doRender(wxDC& dc)
     auto size = GetSize();
     dc.SetPen(*wxTRANSPARENT_PEN);
     //dc.DrawRectangle(0, FromDIP(5), size.x, size.y - FromDIP(5) - FromDIP(2));
-    if (m_nozzle_data == nullptr){
+    if (m_extder_data == nullptr){
         if (m_ext_show) {
             dc.DrawBitmap(m_ams_ext.bmp(), wxPoint((size.x - m_ams_ext.GetBmpSize().x) / 2, 0));
         }
     }
     else{
-        if (m_nozzle_data->total_nozzle_count < 2) {
+        if (m_extder_data->total_extder_count < 2) {
             dc.DrawBitmap(m_ams_ext_single_nozzle.bmp(), wxPoint((size.x - m_ams_ext_right.GetBmpSize().x) / 2, (size.y - m_ams_ext_right.GetBmpSize().y) / 2));
         }
         else {

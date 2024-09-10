@@ -2426,7 +2426,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
         parse_object(obj);
     }
 
-    m_nozzle_data.total_nozzle_count = 1;
+    m_extder_data.total_extder_count = 1;
     SetBackgroundColour(*wxWHITE);
     // normal mode
     Freeze();
@@ -2595,7 +2595,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
 
     /*option mid*/
-    m_extruder = new AMSextruder(m_amswin, wxID_ANY, m_nozzle_data.total_nozzle_count, wxDefaultPosition, AMS_EXTRUDER_SIZE);
+    m_extruder = new AMSextruder(m_amswin, wxID_ANY, m_extder_data.total_extder_count, wxDefaultPosition, AMS_EXTRUDER_SIZE);
     m_sizer_option_mid->Add( m_extruder, 0, wxALIGN_CENTER, 0 );
 
 
@@ -2978,7 +2978,7 @@ std::string AMSControl::GetCurrentCan(std::string amsid)
 }
 
 bool AMSControl::IsAmsInRightPanel(std::string ams_id) {
-    if (m_nozzle_data.total_nozzle_count == 2){
+    if (m_extder_data.total_extder_count == 2){
         if (m_ams_item_list.find(ams_id) != m_ams_item_list.end() && m_ams_item_list[ams_id]->m_info.nozzle_id == MAIN_NOZZLE_ID){
             return true;
         }
@@ -3429,10 +3429,10 @@ void AMSControl::CreateAmsDoubleNozzle()
     auto right_init_mode = findFirstMode(AMSPanelPos::RIGHT_PANEL);
 
 
-    m_down_road->UpdateLeft(m_nozzle_data.total_nozzle_count, left_init_mode);
-    m_down_road->UpdateRight(m_nozzle_data.total_nozzle_count, right_init_mode);
+    m_down_road->UpdateLeft(m_extder_data.total_extder_count, left_init_mode);
+    m_down_road->UpdateRight(m_extder_data.total_extder_count, right_init_mode);
 
-    m_extruder->updateNozzleNum(m_nozzle_data.total_nozzle_count);
+    m_extruder->updateNozzleNum(m_extder_data.total_extder_count);
 
     m_current_show_ams_left = m_item_ids[DEPUTY_NOZZLE_ID].size() > 0 ? m_item_ids[DEPUTY_NOZZLE_ID][0] : "";
     m_current_show_ams_right = m_item_ids[MAIN_NOZZLE_ID].size() > 0 ? m_item_ids[MAIN_NOZZLE_ID][0] : "";
@@ -3699,12 +3699,12 @@ std::vector<AMSinfo> AMSControl::GenerateSimulateData() {
 }
 
 
-void AMSControl::UpdateAms(std::vector<AMSinfo> ams_info, std::vector<AMSinfo>ext_info, NozzleData data, std::string dev_id, bool is_reset, bool test)
+void AMSControl::UpdateAms(std::vector<AMSinfo> ams_info, std::vector<AMSinfo>ext_info, ExtderData data, std::string dev_id, bool is_reset, bool test)
 {
     if (!test){
         // update item
         bool fresh = false;
-        if (m_ams_info.size() == ams_info.size() && m_nozzle_data.total_nozzle_count == data.total_nozzle_count && m_dev_id == dev_id){
+        if (m_ams_info.size() == ams_info.size() && m_extder_data.total_extder_count == data.total_extder_count && m_dev_id == dev_id){
             for (int i = 0; i < m_ams_info.size(); i++){
                 if (m_ams_info[i].ams_id != ams_info[i].ams_id){
                     fresh = true;
@@ -3718,11 +3718,11 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> ams_info, std::vector<AMSinfo>ex
         m_ams_info = ams_info;
         m_ext_info.clear();
         m_ext_info = ext_info;
-        m_nozzle_data = data;
+        m_extder_data = data;
         m_dev_id = dev_id;
         if (fresh){
             ClearAms();
-            if (m_nozzle_data.total_nozzle_count >= 2){
+            if (m_extder_data.total_extder_count >= 2){
                 CreateAmsDoubleNozzle();
             }else{
                 CreateAmsSingleNozzle();
@@ -3799,10 +3799,10 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> ams_info, std::vector<AMSinfo>ex
         m_ext_info[0].nozzle_id = MAIN_NOZZLE_ID;
         m_ext_info[1].ams_id = std::to_string(VIRTUAL_TRAY_DEPUTY_ID);
         m_ext_info[1].nozzle_id = DEPUTY_NOZZLE_ID;
-        m_nozzle_data = data;
+        m_extder_data = data;
         if (fresh){
             ClearAms();
-            if (m_nozzle_data.total_nozzle_count >= 2) {
+            if (m_extder_data.total_extder_count >= 2) {
                 CreateAmsDoubleNozzle();
             }
             else {
@@ -3942,7 +3942,7 @@ void AMSControl::createAmsPanel(wxSimplebook* parent, int& idx, std::vector<AMSi
                 book_sizer->Add(ams1, 0, wxLEFT, (book_panel->GetSize().x - ams1->GetSize().x) / 2);
             }
             else{
-                auto ext_image = new AMSExtImage(book_panel, pos, &m_nozzle_data);
+                auto ext_image = new AMSExtImage(book_panel, pos, &m_extder_data);
                 book_sizer->Add(ams1, 0, wxLEFT, FromDIP(30));
                 book_sizer->Add(ext_image, 0, wxEXPAND | wxLEFT, FromDIP(30));
                 m_ext_image_list[infos[0].ams_id] = ext_image;
@@ -3969,7 +3969,7 @@ void AMSControl::createAmsPanel(wxSimplebook* parent, int& idx, std::vector<AMSi
 void AMSControl::AddAms(AMSinfo info, AMSPanelPos pos)
 {
     AmsItem* ams_item;
-    if (m_nozzle_data.total_nozzle_count > 1){
+    if (m_extder_data.total_extder_count > 1){
         if (info.nozzle_id == MAIN_NOZZLE_ID){
             createAms(m_simplebook_ams_right, m_right_page_index, info, AMSPanelPos::RIGHT_PANEL);
         }
@@ -3977,7 +3977,7 @@ void AMSControl::AddAms(AMSinfo info, AMSPanelPos pos)
             createAms(m_simplebook_ams_left, m_left_page_index, info, AMSPanelPos::LEFT_PANEL);
         }
     }
-    else if (m_nozzle_data.total_nozzle_count == 1){
+    else if (m_extder_data.total_extder_count == 1){
         createAms(m_simplebook_ams_left, m_left_page_index, info, AMSPanelPos::LEFT_PANEL);
     }
     m_simplebook_ams_left->Layout();
@@ -4009,7 +4009,7 @@ void AMSControl::AddAms(std::vector<AMSinfo>single_info, AMSPanelPos pos) {
      if (single_info.size() <= 0){
         return;
     }
-    if (m_nozzle_data.total_nozzle_count == 2) {
+    if (m_extder_data.total_extder_count == 2) {
         if (single_info[0].nozzle_id == MAIN_NOZZLE_ID) {
             createAmsPanel(m_simplebook_ams_right, m_right_page_index, single_info, AMSPanelPos::RIGHT_PANEL);
         }
@@ -4017,7 +4017,7 @@ void AMSControl::AddAms(std::vector<AMSinfo>single_info, AMSPanelPos pos) {
             createAmsPanel(m_simplebook_ams_left, m_left_page_index, single_info, AMSPanelPos::LEFT_PANEL);
         }
     }
-    else if (m_nozzle_data.total_nozzle_count == 1) {
+    else if (m_extder_data.total_extder_count == 1) {
         if (pos == AMSPanelPos::RIGHT_PANEL) {
             createAmsPanel(m_simplebook_ams_right, m_right_page_index, single_info, AMSPanelPos::RIGHT_PANEL);
         }
@@ -4166,12 +4166,12 @@ void AMSControl::SwitchAms(std::string ams_id)
                     pos == AMSPanelPos::LEFT_PANEL ? m_simplebook_ams_left->SetSelection(item->m_selection) : m_simplebook_ams_right->SetSelection(item->m_selection);
                     if (item->m_info.cans.size() == GENERIC_AMS_SLOT_NUM) {
                         if (item->m_info.ams_type == AMSModel::AMS_LITE) {
-                            pos == AMSPanelPos::LEFT_PANEL ? m_down_road->UpdateLeft(m_nozzle_data.total_nozzle_count, AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE)
-                                : m_down_road->UpdateRight(m_nozzle_data.total_nozzle_count, AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE);
+                            pos == AMSPanelPos::LEFT_PANEL ? m_down_road->UpdateLeft(m_extder_data.total_extder_count, AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE)
+                                : m_down_road->UpdateRight(m_extder_data.total_extder_count, AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE);
                         }
                         else {
-                            pos == AMSPanelPos::LEFT_PANEL ? m_down_road->UpdateLeft(m_nozzle_data.total_nozzle_count, AMSRoadShowMode::AMS_ROAD_MODE_FOUR)
-                                : m_down_road->UpdateRight(m_nozzle_data.total_nozzle_count, AMSRoadShowMode::AMS_ROAD_MODE_FOUR);
+                            pos == AMSPanelPos::LEFT_PANEL ? m_down_road->UpdateLeft(m_extder_data.total_extder_count, AMSRoadShowMode::AMS_ROAD_MODE_FOUR)
+                                : m_down_road->UpdateRight(m_extder_data.total_extder_count, AMSRoadShowMode::AMS_ROAD_MODE_FOUR);
                         }
                     }
                     else {
@@ -4182,8 +4182,8 @@ void AMSControl::SwitchAms(std::string ams_id)
                                 break;
                             }
                         }
-                        pos == AMSPanelPos::LEFT_PANEL ? m_down_road->UpdateLeft(m_nozzle_data.total_nozzle_count, mode)
-                            : m_down_road->UpdateRight(m_nozzle_data.total_nozzle_count, mode);
+                        pos == AMSPanelPos::LEFT_PANEL ? m_down_road->UpdateLeft(m_extder_data.total_extder_count, mode)
+                            : m_down_road->UpdateRight(m_extder_data.total_extder_count, mode);
                         if (pos == AMSPanelPos::LEFT_PANEL){
                             m_down_road->UpdatePassRoad(item->m_info.current_can_id, AMSPanelPos::LEFT_PANEL, -1, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
                         }

@@ -675,11 +675,11 @@ MachineObject::MachineObject(NetworkAgent* agent, std::string name, std::string 
     auto vslot = AmsTray(std::to_string(VIRTUAL_TRAY_MAIN_ID));
     vt_slot.push_back(vslot);
 
-    m_nozzle_data.current_nozzle_id = 0;
-    m_nozzle_data.target_nozzle_id = 0;
-    m_nozzle_data.total_nozzle_count = 1;
-    Nozzle nozzle;
-    m_nozzle_data.nozzles.push_back(nozzle);
+    m_extder_data.current_extder_id = 0;
+    m_extder_data.target_extder_id = 0;
+    m_extder_data.total_extder_count = 1;
+    Extder nozzle;
+    m_extder_data.extders.push_back(nozzle);
 }
 
 MachineObject::~MachineObject()
@@ -1165,7 +1165,7 @@ bool MachineObject::is_main_extruder_on_left() const
 
 bool MachineObject::is_multi_extruders() const
 {
-    return m_nozzle_data.total_nozzle_count > 1;
+    return m_extder_data.total_extder_count > 1;
 }
 
 bool MachineObject::need_SD_card() const
@@ -1771,6 +1771,7 @@ int MachineObject::command_go_home()
     }
 }
 
+// Old protocol
 int MachineObject::command_control_fan(FanType fan_type, bool on_off)
 {
     std::string gcode = (boost::format("M106 P%1% S%2% \n") % (int)fan_type % (on_off ? 255 : 0)).str();
@@ -1787,6 +1788,9 @@ int MachineObject::command_control_fan(FanType fan_type, bool on_off)
     return this->publish_gcode(gcode);
 }
 
+
+
+// Old protocol
 int MachineObject::command_control_fan_val(FanType fan_type, int val)
 {
     std::string gcode = (boost::format("M106 P%1% S%2% \n") % (int)fan_type % (val)).str();
@@ -1800,6 +1804,35 @@ int MachineObject::command_control_fan_val(FanType fan_type, int val)
     }
     catch (...) {}
     return this->publish_gcode(gcode);
+}
+
+// New protocol
+int MachineObject::command_control_fan(int fan_id, bool on_off)
+{
+    BOOST_LOG_TRIVIAL(info) << "New protocol of fan setting(switch on/of status), fan_id = " << fan_id;
+    json j;
+    j["print"]["command"] = "set_fan";
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["fan_index"] = fan_id;
+
+    // wait add, set on or off
+    j["print"]["speed"] = 50;
+    BOOST_LOG_TRIVIAL(info) << "MachineObject::command_control_fan, command info need to update, to set on or off status.";
+    return this->publish_json(j.dump());
+}
+
+// New protocol
+int MachineObject::command_control_fan_val(int fan_id, int val)
+{
+    BOOST_LOG_TRIVIAL(info) << "New protocol of fan setting(set speed), fan_id = " << fan_id;
+    json j;
+    j["print"]["command"] = "set_fan";
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["fan_index"] = fan_id;
+
+    j["print"]["speed"] = val;
+    BOOST_LOG_TRIVIAL(info) << "MachineObject::command_control_fan_val, set the speed of fan, fan_id = " << fan_id;
+    return this->publish_json(j.dump());
 }
 
 
@@ -3492,15 +3525,15 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                         }
                         if (jj.contains("nozzle_temper")) {
                             if (jj["nozzle_temper"].is_number()) {
-                                if (m_nozzle_data.nozzles.size() == 1) {
-                                    m_nozzle_data.nozzles[0].temp = jj["nozzle_temper"].get<float>();
+                                if (m_extder_data.extders.size() == 1) {
+                                    m_extder_data.extders[0].temp = jj["nozzle_temper"].get<float>();
                                 }
                             }
                         }
                         if (jj.contains("nozzle_target_temper")) {
                             if (jj["nozzle_target_temper"].is_number()) {
-                                if (m_nozzle_data.nozzles.size() == 1) {
-                                    m_nozzle_data.nozzles[0].target_temp = jj["nozzle_target_temper"].get<float>();
+                                if (m_extder_data.extders.size() == 1) {
+                                    m_extder_data.extders[0].target_temp = jj["nozzle_target_temper"].get<float>();
                                 }
                             }
                         }
@@ -3537,7 +3570,6 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                             else {
                                 cooling_fan_speed = 0;
                             }
-
                             if (jj.contains("big_fan1_speed")) {
                                 big_fan1_speed = stoi(jj["big_fan1_speed"].get<std::string>());
                                 big_fan1_speed = round( floor(big_fan1_speed / float(1.5)) * float(25.5) );
@@ -3545,7 +3577,6 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                             else {
                                 big_fan1_speed = 0;
                             }
-
                             if (jj.contains("big_fan2_speed")) {
                                 big_fan2_speed = stoi(jj["big_fan2_speed"].get<std::string>());
                                 big_fan2_speed = round( floor(big_fan2_speed / float(1.5)) * float(25.5) );
@@ -3554,7 +3585,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                 big_fan2_speed = 0;
                             }
                         }
-
+                        converse_to_duct();
                         if (jj.contains("heatbreak_fan_speed")) {
                             heatbreak_fan_speed = stoi(jj["heatbreak_fan_speed"].get<std::string>());
                         }
@@ -3574,6 +3605,35 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                         catch (...) {
                             ;
                         }
+                    }
+
+                    //new fan data
+                    if (jj.contains("airduct")) {
+                        m_air_duct_data.airducts.clear();
+                        m_air_duct_data.curren_duct = jj["airduct"]["cur"].get<int>();
+                        m_air_duct_data.ducts_ctrl.push_back(jj["airduct"]["ctrl"].get<int>());
+                        for (auto it_airduct = jj["airduct"]["info"].begin(); it_airduct != jj["airduct"]["info"].end(); it_airduct++) {
+                            AirDuct air_duct;
+                            air_duct.airduct_id = (*it_airduct)["id"].get<int>();
+                            air_duct.fans_ctrl.push_back((*it_airduct)["ctrl"].get<int>());
+                            for (auto it_fan = (*it_airduct)["info"].begin(); it_fan != (*it_airduct)["info"].end(); it_airduct++) {
+                                AirDuctFan fan;
+                                fan.use_new_protocol = true;
+                                auto type = (*it_fan)["type"].get<unsigned>();
+                                fan.id = std::log2(type >> 4);
+                                if (type & 0x01) fan.type = AIR_DOOR_TYPE;
+                                else if (type & 0x10) fan.type = AIR_FAN_TYPE;
+
+                                fan.func = (*it_fan)["func"].get<int>();
+
+                                unsigned speed = (*it_fan)["speed"].get<unsigned>();
+                                fan.current_speed = (speed) & 0xFFFF;
+                                fan.target_speed = (speed >> 16) & 0xFFFF;
+                                air_duct.fans_list.push_back(fan);
+                            }
+                            m_air_duct_data.airducts.push_back(air_duct);
+                        }
+                        BOOST_LOG_TRIVIAL(trace) << "New protocol of fans, dir duct num = " << m_air_duct_data.airducts.size();
                     }
 
                     try {
@@ -3685,8 +3745,8 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                         nozzle_diameter = string_to_float(jj["nozzle_diameter"].get<std::string>());
                                     }
 
-                                    if (nozzle_diameter == 0.0f) {m_nozzle_data.nozzles[0].diameter = 0.4f;}
-                                    else {m_nozzle_data.nozzles[0].diameter = round(nozzle_diameter * 10) / 10;}
+                                    if (nozzle_diameter == 0.0f) {m_extder_data.extders[0].diameter = 0.4f;}
+                                    else {m_extder_data.extders[0].diameter = round(nozzle_diameter * 10) / 10;}
                                 }
                             }
                         }
@@ -3703,7 +3763,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                 else {
                                     if (jj["nozzle_type"].is_string()) {
                                         auto nozzle_type = jj["nozzle_type"].get<std::string>();
-                                        m_nozzle_data.nozzles[0].type = nozzle_type;
+                                        m_extder_data.extders[0].type = nozzle_type;
                                     }
                                 }
                             }
@@ -5260,6 +5320,34 @@ std::string MachineObject::get_string_from_fantype(FanType type)
     return "";
 }
 
+void MachineObject::converse_to_duct() {
+    AirDuct duct;
+    duct.airduct_id = -1;
+    AirDuctFan part_fan;
+    part_fan.type = AIR_FAN_TYPE;
+    part_fan.id = 1;
+    part_fan.func = int(FAN_func_e::FAN_FUNC_PART_COOLING);
+    part_fan.current_speed = cooling_fan_speed;
+    duct.fans_list.push_back(part_fan);
+
+    AirDuctFan aux_fan;
+    aux_fan.type = AIR_FAN_TYPE;
+    aux_fan.id = 2;
+    aux_fan.func = int(FAN_func_e::FAN_FUNC_AUX_COOLING);
+    aux_fan.current_speed = big_fan1_speed;
+    duct.fans_list.push_back(aux_fan);
+
+    AirDuctFan chamber_fan;
+    chamber_fan.type = AIR_FAN_TYPE;
+    chamber_fan.id = 3;
+    chamber_fan.func = int(FAN_func_e::FAN_FUNC_EXHAUST);
+    chamber_fan.current_speed = cooling_fan_speed;
+    duct.fans_list.push_back(chamber_fan);
+    this->m_air_duct_data.airducts.clear();
+    this->m_air_duct_data.airducts.push_back(duct);
+    this->m_air_duct_data.curren_duct = -1;
+}
+
 AmsTray MachineObject::parse_vt_tray(json vtray)
 {
     auto vt_tray = AmsTray(std::to_string(VIRTUAL_TRAY_MAIN_ID));
@@ -5417,15 +5505,15 @@ void MachineObject::parse_new_info(json print)
         camera_recording_when_printing = get_flag_bits(cfg, 3);
         camera_resolution = get_flag_bits(cfg, 4) == 0 ? "720p" : "1080p";
         //liveview_local                    = get_flag_bits(cfg, 5); todo zhanma
-        camera_timelapse = get_flag_bits(cfg, 6);
-        tutk_state = get_flag_bits(cfg, 7) == 1 ? "disable" : "";
-        chamber_light = get_flag_bits(cfg, 8) == 1 ? LIGHT_EFFECT::LIGHT_EFFECT_ON : LIGHT_EFFECT::LIGHT_EFFECT_OFF;
-        printing_speed_lvl = (PrintingSpeedLevel)get_flag_bits(cfg, 9, 3);
+        camera_timelapse = get_flag_bits(cfg, 5);
+        tutk_state = get_flag_bits(cfg, 6) == 1 ? "disable" : "";
+        chamber_light = get_flag_bits(cfg, 7) == 1 ? LIGHT_EFFECT::LIGHT_EFFECT_ON : LIGHT_EFFECT::LIGHT_EFFECT_OFF;
+        printing_speed_lvl = (PrintingSpeedLevel)get_flag_bits(cfg, 8, 3);
         //is_support_build_plate_marker_detect = get_flag_bits(cfg, 12); todo yangcong
 
-        xcam_first_layer_inspector = get_flag_bits(cfg, 13);
+        xcam_first_layer_inspector = get_flag_bits(cfg, 12);
 
-        switch (get_flag_bits(cfg, 14, 2))
+        switch (get_flag_bits(cfg, 13, 2))
         {
         case 0:
             xcam_ai_monitoring_sensitivity = "never_halt";
@@ -5441,14 +5529,14 @@ void MachineObject::parse_new_info(json print)
             break;
         }
 
-        xcam_ai_monitoring = get_flag_bits(cfg, 16);
-        xcam_auto_recovery_step_loss = get_flag_bits(cfg, 17);
-        ams_calibrate_remain_flag = get_flag_bits(cfg, 18);
-        ams_auto_switch_filament_flag = get_flag_bits(cfg, 19);
-        xcam_allow_prompt_sound = get_flag_bits(cfg, 23);
-        xcam_filament_tangle_detect = get_flag_bits(cfg, 24);
-        nozzle_blob_detection_enabled = get_flag_bits(cfg, 25);
-        installed_upgrade_kit = get_flag_bits(cfg, 26);
+        xcam_ai_monitoring = get_flag_bits(cfg, 15);
+        xcam_auto_recovery_step_loss = get_flag_bits(cfg, 16);
+        ams_calibrate_remain_flag = get_flag_bits(cfg, 17);
+        ams_auto_switch_filament_flag = get_flag_bits(cfg, 18);
+        xcam_allow_prompt_sound = get_flag_bits(cfg, 22);
+        xcam_filament_tangle_detect = get_flag_bits(cfg, 23);
+        nozzle_blob_detection_enabled = get_flag_bits(cfg, 24);
+        installed_upgrade_kit = get_flag_bits(cfg, 25);
     }
 
     /*fun*/
@@ -5468,7 +5556,7 @@ void MachineObject::parse_new_info(json print)
         is_support_motor_noise_cali = get_flag_bits(fun, 10);
         is_support_user_preset = get_flag_bits(fun, 11);
         is_support_nozzle_blob_detection = get_flag_bits(fun, 13);
-        is_support_upgrade_kit = get_flag_bits(cfg, 14);
+        is_support_upgrade_kit = get_flag_bits(fun, 14);
     }
 
     /*aux*/
@@ -5516,30 +5604,29 @@ void MachineObject::parse_new_info(json print)
             heatbreak_fan_speed = get_flag_bits(device["fan"].get<int>(), 12, 3);
         }
 
-        if (device.contains("nozzle")) {
-            json const& nozzle = device["nozzle"];
+        if (device.contains("extruder")) {
+            json const& nozzle = device["extruder"];
 
-            m_nozzle_data = NozzleData();
-            m_nozzle_data.current_nozzle_id = get_flag_bits(nozzle["info"].get<int>(), 0, 3);
-            m_nozzle_data.target_nozzle_id = get_flag_bits(nozzle["info"].get<int>(), 4, 3);
-            m_nozzle_data.total_nozzle_count = get_flag_bits(nozzle["info"].get<int>(), 8, 3);
+            m_extder_data = ExtderData();
+            m_extder_data.total_extder_count = get_flag_bits(nozzle["state"].get<int>(), 0, 3);
+            m_extder_data.current_extder_id = get_flag_bits(nozzle["state"].get<int>(), 4, 3);
+            m_extder_data.target_extder_id = get_flag_bits(nozzle["state"].get<int>(), 8, 3);
 
+            for (int i = 0; i < m_extder_data.total_extder_count; i++) {
 
-            for (int i = 0; i < m_nozzle_data.total_nozzle_count; i++) {
-
-                Nozzle nozzle_obj;
+                Extder extder_obj;
 
                 std::string nozzle_id = std::to_string(i);
                 if (nozzle.contains(nozzle_id)) {
                     auto njon = nozzle[nozzle_id].get<json>();
 
-                    nozzle_obj.type = DeviceManager::nozzle_type_conver(get_flag_bits(njon["info"].get<int>(), 0, 2));
-                    nozzle_obj.diameter = DeviceManager::nozzle_diameter_conver(get_flag_bits(njon["info"].get<int>(), 3, 3));
-                    nozzle_obj.ext_has_filament = get_flag_bits(njon["info"].get<int>(), 7);
-                    nozzle_obj.buffer_has_filament = get_flag_bits(njon["info"].get<int>(), 8);
-                    nozzle_obj.flow_type = get_flag_bits(njon["info"].get<int>(), 9, 2);
-                    nozzle_obj.temp = get_flag_bits(njon["temp"].get<int>(), 0, 15);
-                    nozzle_obj.target_temp = get_flag_bits(njon["temp"].get<int>(), 16, 15);
+                    extder_obj.type = DeviceManager::nozzle_type_conver(get_flag_bits(njon["info"].get<int>(), 0, 2));
+                    extder_obj.diameter = DeviceManager::nozzle_diameter_conver(get_flag_bits(njon["info"].get<int>(), 3, 3));
+                    extder_obj.ext_has_filament = get_flag_bits(njon["info"].get<int>(), 7);
+                    extder_obj.buffer_has_filament = get_flag_bits(njon["info"].get<int>(), 8);
+                    extder_obj.flow_type = get_flag_bits(njon["info"].get<int>(), 9, 2);
+                    extder_obj.temp = get_flag_bits(njon["temp"].get<int>(), 0, 15);
+                    extder_obj.target_temp = get_flag_bits(njon["temp"].get<int>(), 16, 15);
 
                     AmsSlot spre;
                     spre.ams_id = std::to_string(get_flag_bits(njon["spre"].get<int>(), 0, 8));
@@ -5553,14 +5640,14 @@ void MachineObject::parse_new_info(json print)
                     star.ams_id = std::to_string(get_flag_bits(njon["star"].get<int>(), 0, 8));
                     star.slot_id = std::to_string(get_flag_bits(njon["star"].get<int>(), 8, 8));
 
-                    nozzle_obj.spre = spre;
-                    nozzle_obj.snow = snow;
-                    nozzle_obj.star = star;
-                    nozzle_obj.ams_stat = get_flag_bits(njon["stat"].get<int>(), 0, 15);
-                    nozzle_obj.rfid_stat = get_flag_bits(njon["stat"].get<int>(), 16, 7);
+                    extder_obj.spre = spre;
+                    extder_obj.snow = snow;
+                    extder_obj.star = star;
+                    extder_obj.ams_stat = get_flag_bits(njon["stat"].get<int>(), 0, 15);
+                    extder_obj.rfid_stat = get_flag_bits(njon["stat"].get<int>(), 16, 15);
                 }
 
-                m_nozzle_data.nozzles.push_back(nozzle_obj);
+                m_extder_data.extders.push_back(extder_obj);
             }
         }
     }
@@ -5568,26 +5655,34 @@ void MachineObject::parse_new_info(json print)
 
 int MachineObject::get_flag_bits(std::string str, int start, int count)
 {
-    int decimal_value = std::stoi(str, nullptr, 16);
-    int mask = 0;
-    for (int i = 0; i < count; i++) {
-        mask += 1 << (start + i);
+    try {
+        unsigned long long decimal_value = std::stoull(str, nullptr, 16);
+        unsigned long long mask = (1ULL << count) - 1;
+        int flag = (decimal_value >> start) & mask;
+        return flag;
+    } catch (...) {
+        return 0;
     }
-
-    int flag = (decimal_value & (mask)) >> start;
-    return flag;
 }
 
-int MachineObject::get_flag_bits(int num, int start, int count)
+int MachineObject::get_flag_bits(int num, int start, int count, int base)
 {
-    int decimal_value = num;
-    int mask = 0;
-    for (int i = 0; i < count; i++) {
-        mask += 1 << (start + i);
-    }
+    try {
+        unsigned long long mask = (1ULL << count) - 1;
+        unsigned long long value;
+        if (base == 10) {
+            value = static_cast<unsigned long long>(num);
+        } else if (base == 16) {
+            value = static_cast<unsigned long long>(std::stoul(std::to_string(num), nullptr, 16));
+        } else {
+            throw std::invalid_argument("Unsupported base");
+        }
 
-    int flag = (decimal_value & (mask)) >> start;
-    return flag;
+        int flag = (value >> start) & mask;
+        return flag;
+    } catch (...) {
+        return 0;
+    }
 }
 
 void MachineObject::update_filament_list()
@@ -5662,7 +5757,7 @@ void MachineObject::update_printer_preset_name()
     PresetBundle *     preset_bundle = Slic3r::GUI::wxGetApp().preset_bundle;
     auto               printer_model = MachineObject::get_preset_printer_model_name(this->printer_type);
     std::set<std::string> diameter_set;
-    for (auto &nozzle : m_nozzle_data.nozzles) {
+    for (auto &nozzle : m_extder_data.extders) {
         float diameter = nozzle.diameter;
         std::ostringstream stream;
         stream << std::fixed << std::setprecision(1) << diameter;
@@ -5695,7 +5790,10 @@ void MachineObject::check_ams_filament_valid()
         auto               ams_id = ams_pair.first;
         auto &ams = ams_pair.second;
         std::ostringstream stream;
-        stream << std::fixed << std::setprecision(1) << m_nozzle_data.nozzles[ams->nozzle].diameter;
+        if (ams->nozzle < 0 || ams->nozzle >= m_extder_data.extders.size()) {
+            return;
+        }
+        stream << std::fixed << std::setprecision(1) << m_extder_data.extders[ams->nozzle].diameter;
         std::string nozzle_diameter_str = stream.str();
         assert(nozzle_diameter_str.size() == 3);
         if (m_nozzle_filament_data.find(nozzle_diameter_str) == m_nozzle_filament_data.end()) {
@@ -5750,17 +5848,17 @@ void MachineObject::check_ams_filament_valid()
 
     for (auto vt_tray : vt_slot) {
         int  index = 255 - std::stoi(vt_tray.id);
-        if (index >= m_nozzle_data.total_nozzle_count) {
-            BOOST_LOG_TRIVIAL(error) << " vt_tray id map for nozzle id is not exist, index is: " << index << " nozzle count" << m_nozzle_data.total_nozzle_count;
+        if (index >= m_extder_data.total_extder_count) {
+            BOOST_LOG_TRIVIAL(error) << " vt_tray id map for nozzle id is not exist, index is: " << index << " nozzle count" << m_extder_data.total_extder_count;
             continue;
         }
-        auto diameter = m_nozzle_data.nozzles[index].diameter;
+        auto diameter = m_extder_data.extders[index].diameter;
         std::ostringstream stream;
         stream << std::fixed << std::setprecision(1) << diameter;
         std::string nozzle_diameter_str = stream.str();
         assert(nozzle_diameter_str.size() == 3);
         if (m_nozzle_filament_data.find(nozzle_diameter_str) == m_nozzle_filament_data.end()) {
-            assert(false);
+            //assert(false);
             continue;
         }
         auto &data = m_nozzle_filament_data[nozzle_diameter_str];
@@ -5788,7 +5886,7 @@ void MachineObject::check_ams_filament_valid()
                     std::string        preset_setting_id;
                     PresetBundle *     preset_bundle = Slic3r::GUI::wxGetApp().preset_bundle;
                     std::ostringstream stream;
-                    stream << std::fixed << std::setprecision(1) << m_nozzle_data.nozzles[0].diameter;
+                    stream << std::fixed << std::setprecision(1) << m_extder_data.extders[0].diameter;
                     std::string nozzle_diameter_str = stream.str();
                     bool        is_equation = preset_bundle->check_filament_temp_equation_by_printer_type_and_nozzle_for_mas_tray(MachineObject::get_preset_printer_model_name(
                                                                                                                                this->printer_type),

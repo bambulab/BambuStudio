@@ -113,9 +113,9 @@ static bool is_same_nozzle_diameters(const DynamicPrintConfig &full_config, cons
         for (size_t idx = 0; idx < opt_nozzle_diameters->size(); ++idx)
             config_nozzle_diameters[idx] = opt_nozzle_diameters->values[idx];
 
-        std::vector<float> machine_nozzle_diameters(obj->m_nozzle_data.nozzles.size());
-        for (size_t idx = 0; idx < obj->m_nozzle_data.nozzles.size(); ++idx)
-            machine_nozzle_diameters[idx] = obj->m_nozzle_data.nozzles[idx].diameter;
+        std::vector<float> machine_nozzle_diameters(obj->m_extder_data.extders.size());
+        for (size_t idx = 0; idx < obj->m_extder_data.extders.size(); ++idx)
+            machine_nozzle_diameters[idx] = obj->m_extder_data.extders[idx].diameter;
 
         if (config_nozzle_diameters.size() != machine_nozzle_diameters.size()) {
             wxString nozzle_in_preset  = wxString::Format(_L("nozzle size in preset: %d"), config_nozzle_diameters.size());
@@ -147,9 +147,9 @@ static bool is_same_nozzle_type(const DynamicPrintConfig &full_config, const Mac
 
     NozzleType nozzle_type = NozzleType::ntUndefine;
 
-    if (obj->m_nozzle_data.nozzles[0].type == "stainless_steel") {
+    if (obj->m_extder_data.extders[0].type == "stainless_steel") {
         nozzle_type = NozzleType::ntStainlessSteel;
-    } else if (obj->m_nozzle_data.nozzles[0].type == "hardened_steel") {
+    } else if (obj->m_extder_data.extders[0].type == "hardened_steel") {
         nozzle_type = NozzleType::ntHardenedSteel;
     }
 
@@ -159,7 +159,7 @@ static bool is_same_nozzle_type(const DynamicPrintConfig &full_config, const Mac
         if (abs(filament_nozzle_hrc) > abs(printer_nozzle_hrc)) {
             BOOST_LOG_TRIVIAL(info) << "filaments hardness mismatch:  printer_nozzle_hrc = " << printer_nozzle_hrc << ", filament_nozzle_hrc = " << filament_nozzle_hrc;
             std::string filament_type = full_config.opt_string("filament_type", 0);
-            error_msg = wxString::Format(_L("*Printing %s material with %s may cause nozzle damage"), filament_type, to_wstring_name(obj->m_nozzle_data.nozzles[0].type));
+            error_msg = wxString::Format(_L("*Printing %s material with %s may cause nozzle damage"), filament_type, to_wstring_name(obj->m_extder_data.extders[0].type));
             error_msg += "\n";
 
             MessageDialog msg_dlg(nullptr, error_msg, wxEmptyString, wxICON_WARNING | wxOK | wxCANCEL);
@@ -192,7 +192,7 @@ static bool check_nozzle_diameter_and_type(const DynamicPrintConfig &full_config
     }
 
     // P1P/S
-    if (obj->m_nozzle_data.nozzles[0].type.empty())
+    if (obj->m_extder_data.extders[0].type.empty())
         return true;
 
     if (!is_same_nozzle_diameters(full_config, obj, error_msg))

@@ -299,7 +299,7 @@ class AMSExtImage : public wxWindow
 {
     private:
     bool m_ext_show = true;
-    NozzleData* m_nozzle_data = nullptr;
+    ExtderData* m_extder_data = nullptr;
     AMSPanelPos m_ext_pos;
 public:
     void msw_rescale();
@@ -312,7 +312,7 @@ public:
     ScalableBitmap  m_ams_ext_right;
     ScalableBitmap  m_ams_ext_single_nozzle;
     void            doRender(wxDC& dc);
-    AMSExtImage(wxWindow* parent, AMSPanelPos ext_pos = AMSPanelPos::RIGHT_PANEL, NozzleData *data = nullptr,
+    AMSExtImage(wxWindow* parent, AMSPanelPos ext_pos = AMSPanelPos::RIGHT_PANEL, ExtderData *data = nullptr,
         wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition);
     ~AMSExtImage();
 };

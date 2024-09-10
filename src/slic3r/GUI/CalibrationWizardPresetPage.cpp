@@ -1867,7 +1867,7 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
     // set nozzle value from machine
     bool nozzle_is_set = false;
     for (int i = 0; i < NOZZLE_LIST_COUNT; i++) {
-        if (abs(obj->m_nozzle_data.nozzles[0].diameter - nozzle_diameter_list[i]) < 1e-3) {
+        if (abs(obj->m_extder_data.extders[0].diameter - nozzle_diameter_list[i]) < 1e-3) {
             if (m_comboBox_nozzle_dia->GetCount() > i) {
                 m_comboBox_nozzle_dia->SetSelection(i);
                 nozzle_is_set = true;
@@ -1890,7 +1890,7 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
     if (obj->is_multi_extruders()) {
         for (int i = 0; i < m_comboBox_nozzle_volume_types.size(); ++i) {
             m_comboBox_nozzle_volume_types[i]->Show();
-            m_comboBox_nozzle_volume_types[i]->SetSelection(obj->m_nozzle_data.nozzles[i].flow_type);
+            m_comboBox_nozzle_volume_types[i]->SetSelection(obj->m_extder_data.extders[i].flow_type);
         }
 
         if (!obj->is_main_extruder_on_left() && m_main_extruder_on_left) {

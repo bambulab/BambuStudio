@@ -711,7 +711,7 @@ void Sidebar::priv::sync_extruder_list()
         dlg.ShowModal();
         return;
     }
-    if (obj->m_nozzle_data.nozzles.size() != 2) {
+    if (obj->m_extder_data.extders.size() != 2) {
         MessageDialog dlg(this->plater, _L("The currently connected printer does not have two extruders."), _L("Sync extruder infomation"), wxOK | wxICON_WARNING);
         dlg.ShowModal();
         return;
@@ -729,8 +729,8 @@ void Sidebar::priv::sync_extruder_list()
     }
 
     auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
-    printer_tab->set_extruder_volume_type(0, NozzleVolumeType(obj->m_nozzle_data.nozzles[1].flow_type));
-    printer_tab->set_extruder_volume_type(1, NozzleVolumeType(obj->m_nozzle_data.nozzles[0].flow_type));
+    printer_tab->set_extruder_volume_type(0, NozzleVolumeType(obj->m_extder_data.extders[1].flow_type));
+    printer_tab->set_extruder_volume_type(1, NozzleVolumeType(obj->m_extder_data.extders[0].flow_type));
     int left_4 = 0, right_4 = 0, left_1 = 0, right_1 = 0;
     for (auto ams : obj->amsList) {
         // Main (first) extruder at right
