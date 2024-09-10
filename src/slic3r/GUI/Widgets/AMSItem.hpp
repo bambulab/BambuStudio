@@ -33,11 +33,11 @@
 namespace Slic3r { namespace GUI {
 
 enum AMSModel {
-    EXT_AMS              = 0,    //ext
+    EXT_AMS             = 0,    //ext
     GENERIC_AMS         = 1,
     AMS_LITE            = 2,    //ams-lite
     N3F_AMS             = 3,
-    N3S_AMS          = 4     //n3s  single_ams
+    N3S_AMS             = 4     //n3s  single_ams
 };
 
 enum AMSModelOriginType {

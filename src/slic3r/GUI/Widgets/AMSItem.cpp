@@ -51,16 +51,10 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, Ams *ams, bool remain_flag, boo
         this->ams_humidity = -1;
     }
     this->ams_type = AMSModel(ams->type);
-    /*if (humidity_flag) {
-        this->ams_humidity = ams->humidity;
-    }
-    else {
-        this->ams_humidity = -1;
-    }*/
 
     nozzle_id = ams->nozzle;
     cans.clear();
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < ams->trayList.size(); i++) {
         auto    it = ams->trayList.find(std::to_string(i));
         Caninfo info;
         // tray is exists
