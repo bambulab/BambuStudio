@@ -1,9 +1,6 @@
 #include "ArrangeJob.hpp"
 
-#include "libslic3r/BuildVolume.hpp"
 #include "libslic3r/SVG.hpp"
-#include "libslic3r/MTUtils.hpp"
-#include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/ModelArrange.hpp"
 
 #include "slic3r/GUI/PartPlate.hpp"
@@ -12,11 +9,11 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/NotificationManager.hpp"
 #include "slic3r/GUI/format.hpp"
-#include "slic3r/GUI/GUI_ObjectList.hpp"
 
 #include "libnest2d/common.hpp"
 
 #define SAVE_ARRANGE_POLY 0
+#define ARRANGE_LOG(level) BOOST_LOG_TRIVIAL(level) << "arrange: "
 
 namespace Slic3r { namespace GUI {
     using ArrangePolygon = arrangement::ArrangePolygon;
@@ -57,7 +54,7 @@ public:
         ret.is_wipe_tower = true;
         ++ret.priority;
 
-        BOOST_LOG_TRIVIAL(debug) << " arrange: wipe tower info:" << m_bb << ", m_pos: " << m_pos.transpose();
+        ARRANGE_LOG(debug) << " wipe tower info:" << m_bb << ", m_pos: " << m_pos.transpose();
 
         return ret;
     }
@@ -93,7 +90,6 @@ void ArrangeJob::clear_input()
     m_locked.clear();
     m_unarranged.clear();
     m_uncompatible_plates.clear();
-    is_plate_locked.clear();
     m_selected.reserve(count + 1 /* for optional wti */);
     m_unselected.reserve(count + 1 /* for optional wti */);
     m_unprintable.reserve(cunprint /* for optional wti */);
@@ -159,7 +155,7 @@ void ArrangeJob::prepare_selected() {
                 m_locked.emplace_back(std::move(ap));
                 if (inst_sel[i])
                     selected_is_locked = true;
-                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": skip locked instance, obj_id %1%, instance_id %2%, name %3%") % oidx % i % mo->name;
+                ARRANGE_LOG(debug) << __FUNCTION__ << boost::format(": skip locked instance, obj_id %1%, instance_id %2%, name %3%") % oidx % i % mo->name;
                 }
             }
         }
@@ -227,7 +223,7 @@ void ArrangeJob::prepare_all() {
                 ap.itemid = m_locked.size();
                 m_locked.emplace_back(std::move(ap));
                 selected_is_locked = true;
-                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": skip locked instance, obj_id %1%, instance_id %2%") % oidx % i;
+                ARRANGE_LOG(debug) << __FUNCTION__ << boost::format(": skip locked instance, obj_id %1%, instance_id %2%") % oidx % i;
             }
         }
     }
@@ -299,7 +295,7 @@ void ArrangeJob::prepare_wipe_tower()
         obj_extruders.insert(item.extrude_ids.begin(), item.extrude_ids.end());
         if (obj_extruders.size() > 1) {
             need_wipe_tower = true;
-            BOOST_LOG_TRIVIAL(info) << "arrange: need wipe tower because object " << item.name << " has multiple extruders (has paint-on colors)";
+            ARRANGE_LOG(info) << "need wipe tower because object " << item.name << " has multiple extruders (has paint-on colors)";
             break;
         }
     }
@@ -313,12 +309,12 @@ void ArrangeJob::prepare_wipe_tower()
         for (const auto& be : bedTemp2extruderIds) {
             if (be.second.size() > 1) {
                 need_wipe_tower = true;
-                BOOST_LOG_TRIVIAL(info) << "arrange: need wipe tower because allow_multi_materials_on_same_plate=true and we have multiple extruders of same type";
+                ARRANGE_LOG(info) << "need wipe tower because allow_multi_materials_on_same_plate=true and we have multiple extruders of same type";
                 break;
             }
         }
     }
-    BOOST_LOG_TRIVIAL(info) << "arrange: need_wipe_tower=" << need_wipe_tower;
+    ARRANGE_LOG(info) << "need_wipe_tower=" << need_wipe_tower;
 
 
     ArrangePolygon    wipe_tower_ap;
@@ -373,7 +369,7 @@ void ArrangeJob::prepare_partplate() {
     if (plate->empty())
     {
         //no instances on this plate
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": no instances in current plate!");
+        ARRANGE_LOG(info) << __FUNCTION__ << boost::format(": no instances in current plate!");
 
         return;
     }
@@ -429,20 +425,24 @@ void ArrangeJob::prepare_outside_plate() {
 
     Model         &model      = m_plater->model();
     PartPlateList &plate_list = m_plater->get_partplate_list();
-    is_plate_locked.resize(plate_list.get_plate_count());
     for (int plate_idx = 0; plate_idx < plate_list.get_plate_count(); plate_idx++) {
         PartPlate *plate = plate_list.get_plate(plate_idx);
         assert(plate != nullptr);
         if (plate->empty()) {
             // no instances on this plate
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << format(": no instances in plate %d!", plate_idx);
+            ARRANGE_LOG(info) << __FUNCTION__ << format(": no instances in plate %d!", plate_idx);
             continue;
         }
 
-        is_plate_locked[plate_idx] = plate->is_locked();
-        plate->lock(true);
+        if (plate->is_locked()) {
+            ARRANGE_LOG(info) << __FUNCTION__ << format(": skip locked plate %d!", plate_idx);
+            continue;
+        }
+
 
         // Go through the objects and select the outside ones
+        bool has_object_inside = false;
+        bool has_object_unprintable = false;
         for (auto obj_and_inst : plate->get_obj_and_inst_set()) {
             int          oidx     = obj_and_inst.first;
             size_t       inst_idx = obj_and_inst.second;
@@ -452,13 +452,18 @@ void ArrangeJob::prepare_outside_plate() {
             ArrangePolygons &cont          = mo->instances[inst_idx]->printable ? (outside_plate ? m_selected : m_locked) : m_unprintable;
             ap.itemid                      = cont.size();
             cont.emplace_back(std::move(ap));
+            if (!outside_plate) has_object_inside = true;
+            if (!mo->instances[inst_idx]->printable) has_object_unprintable = true;
+        }
+        // if there are objects inside the plate, lock the plate and don't put new objects in it
+        if (has_object_inside || has_object_unprintable) {
+            plate->lock(true);
+            m_uncompatible_plates.push_back(plate_idx);
+            ARRANGE_LOG(info) << __FUNCTION__ << format(": lock plate %d because there are objects inside!", plate_idx);
         }
     }
-    // BBS
-    if (auto wti = get_wipe_tower(*m_plater, current_plate_index)) {
-        ArrangePolygon &&ap = get_wipetower_arrange_poly(&wti);
-        m_unselected.emplace_back(std::move(ap));
-    }
+
+    prepare_wipe_tower();
 
     // add the virtual object into unselect list if has
     plate_list.preprocess_exclude_areas(m_unselected, current_plate_index + 1);
@@ -653,15 +658,16 @@ static std::string concat_strings(const std::set<std::string> &strings,
         });
 }
 
-void ArrangeJob::finalize() {
+void ArrangeJob::finalize()
+{
+    // BBS: partplate
+    PartPlateList &plate_list = m_plater->get_partplate_list();
     // Ignore the arrange result if aborted.
     if (!was_canceled()) {
 
         // Unprintable items go to the last virtual bed
         int beds = 0;
 
-        //BBS: partplate
-        PartPlateList& plate_list = m_plater->get_partplate_list();
         //clear all the relations before apply the arrangement results
         if (only_on_partplate) {
             plate_list.clear(false, false, true, current_plate_index);
@@ -774,10 +780,6 @@ void ArrangeJob::finalize() {
             NotificationManager::NotificationLevel::RegularNotificationLevel, _u8L("Arranging canceled."));
     }
     Job::finalize();
-
-    // restore lock status
-    for (int i = 0; i < is_plate_locked.size(); i++)
-        m_plater->get_partplate_list().get_plate(i)->lock(is_plate_locked[i]);
 
     m_plater->m_arrange_running.store(false);
 }

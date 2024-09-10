@@ -22,7 +22,6 @@ class ArrangeJob : public PlaterJob
     std::vector<ModelInstance*> m_unarranged;
     std::map<int, ArrangePolygons> m_selected_groups;   // groups of selected items for sequential printing
     std::vector<int> m_uncompatible_plates;  // plate indices with different printing sequence than global
-    std::vector<bool> is_plate_locked;
 
     arrangement::ArrangeParams params;
     int current_plate_index = 0;
