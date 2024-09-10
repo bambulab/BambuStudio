@@ -424,6 +424,24 @@ bool reset_button(const IconManager::VIcons &icons)
     return draw_clickable(icons, IconType::reset_value);
 }
 
+bool GLGizmoSVG::create_volume(ModelVolumeType volume_type)
+{
+    Emboss::CreateVolumeParams input = create_input(m_parent,  volume_type);
+    Emboss::DataBasePtr        base  = create_emboss_data_base(m_job_cancel, volume_type);
+    if (!base)
+        return false; // Uninterpretable svg
+    return start_create_volume_without_position(input, std::move(base));
+}
+
+bool GLGizmoSVG::create_volume(ModelVolumeType volume_type, const Vec2d &mouse_pos)
+{
+    Emboss::CreateVolumeParams input = create_input(m_parent, volume_type);
+    Emboss::DataBasePtr        base  = create_emboss_data_base(m_job_cancel, volume_type);
+    if (!base)
+        return false; // Uninterpretable svg
+    return start_create_volume(input, std::move(base), mouse_pos);
+}
+
 bool GLGizmoSVG::create_volume(std::string_view svg_file, const Vec2d &mouse_pos, ModelVolumeType volume_type)
 {//drag file//drag svg_file
     wxBusyCursor wait;

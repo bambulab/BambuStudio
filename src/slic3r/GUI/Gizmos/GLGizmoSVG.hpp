@@ -22,7 +22,7 @@ class Worker;
 enum class SLAGizmoEventType : unsigned char;
 class GLGizmoSVG : public GLGizmoBase
 {
-    Emboss::DataBasePtr      create_emboss_data_base(std::shared_ptr<std::atomic<bool>> &cancel, ModelVolumeType volume_type, std::string_view filepath);
+    Emboss::DataBasePtr        create_emboss_data_base(std::shared_ptr<std::atomic<bool>> &cancel, ModelVolumeType volume_type, std::string_view filepath = "");
     Emboss::CreateVolumeParams create_input(GLCanvas3D &canvas, ModelVolumeType volume_type);
 
 
@@ -35,6 +35,14 @@ public:
     void        on_set_hover_id() override { m_rotate_gizmo.set_hover_id(m_hover_id); }
     void        on_enable_grabber(unsigned int id) override;
     void        on_disable_grabber(unsigned int id) override;
+
+     /// <summary>
+    /// Create new text without given position
+    /// </summary>
+    /// <param name="volume_type">Object part / Negative volume / Modifier</param>
+    /// <returns>True on succesfull start creation otherwise False</returns>
+    bool create_volume(ModelVolumeType volume_type); // first open file dialog //by rigth menu
+    bool create_volume(ModelVolumeType volume_type, const Vec2d &mouse_pos); // first open file dialog //by rigth menu
 
     bool create_volume(std::string_view svg_file, const Vec2d &mouse_pos, ModelVolumeType volume_type = ModelVolumeType::MODEL_PART);
     /// <summary>
