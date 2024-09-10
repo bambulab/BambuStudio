@@ -153,7 +153,7 @@ void Camera::update_frustum()
     float  eps       = 0.01;
     if (m_last_eye.isApprox(eye_) && m_last_center.isApprox(center_) && m_last_up.isApprox(up_)
         && abs(m_last_near - near_) < eps && abs(m_last_far - far_) < eps &&
-        abs(m_last_aspect - aspect_) < eps && abs(m_last_fov - fov_) < eps) {
+        abs(m_last_aspect - aspect_) < eps && abs(m_last_fov - fov_) < eps && abs(m_last_zoom - m_zoom) < eps) {
         return;
     }
     m_last_eye = eye_;
@@ -163,6 +163,7 @@ void Camera::update_frustum()
     m_last_far    = far_;
     m_last_aspect = aspect_;
     m_last_fov    = fov_;
+    m_last_zoom   = m_zoom;
     Vec3f forward((center_ - eye_).normalized());
     Vec3f side((forward.cross(up_)).normalized());
     Vec3f up((side.cross(forward)).normalized());
