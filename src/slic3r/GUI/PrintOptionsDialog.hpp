@@ -22,10 +22,24 @@ class PrinterPartsDialog : public DPIDialog
 {
 protected:
     MachineObject* obj{ nullptr };
+
     ComboBox* nozzle_type_checkbox;
     ComboBox* nozzle_diameter_checkbox;
+
+    ComboBox* multiple_left_nozzle_type_checkbox;
+    ComboBox *multiple_left_nozzle_diameter_checkbox;
+    ComboBox *multiple_left_nozzle_flow_checkbox;
+
+    ComboBox *multiple_right_nozzle_type_checkbox;
+    ComboBox *multiple_right_nozzle_diameter_checkbox;
+    ComboBox *multiple_right_nozzle_flow_checkbox;
+
+    wxPanel *single_panel;
+    wxPanel *multiple_panel;
+
     std::string last_nozzle_type;
     std::map<int, std::string> nozzle_type_map;
+    std::map<int, std::string> nozzle_flow_map;
     std::map<int, wxString> nozzle_type_map_tr;
     std::map<int, float> nozzle_stainless_diameter_map;
     std::map<int, float> nozzle_hard_diameter_map;

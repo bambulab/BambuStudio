@@ -542,9 +542,9 @@ public:
     bool Show(bool show);
     bool do_ams_mapping(MachineObject* obj_);
     bool get_ams_mapping_result(std::string& mapping_array_str, std::string& mapping_array_str2, std::string& ams_mapping_info);
-    bool can_hybrid_mapping(NozzleData data);
+    bool can_hybrid_mapping(ExtderData data);
     void auto_supply_with_ext(std::vector<AmsTray> slots);
-    bool is_nozzle_type_match(NozzleData data);
+    bool is_nozzle_type_match(ExtderData data);
 
     PrintFromType get_print_type() {return m_print_type;};
     wxString    format_steel_name(std::string name);
