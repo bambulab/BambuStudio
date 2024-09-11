@@ -577,6 +577,8 @@ bool objparse(const char *path, ObjData &data)
 		char buf[65536 * 2];
 		size_t len = 0;
 		size_t lenPrev = 0;
+		size_t lineCount = 0;
+
 		while ((len = ::fread(buf + lenPrev, 1, 65536, pFile)) != 0) {
 			len += lenPrev;
 			size_t lastLine = 0;
@@ -589,6 +591,13 @@ bool objparse(const char *path, ObjData &data)
 					//FIXME check the return value and exit on error?
 					// Will it break parsing of some obj files?
 					obj_parseline(c, data);
+
+					/*for ml*/
+					if (lineCount == 0) { data.ml_region = parsemlinfo(c, "region:");}
+                    if (lineCount == 1) { data.ml_name = parsemlinfo(c, "ml_name:"); }
+					if (lineCount == 2) { data.ml_id = parsemlinfo(c, "ml_file_id:");}
+
+					++lineCount;
 					lastLine = i + 1;
 				}
 			lenPrev = len - lastLine;
@@ -606,6 +615,28 @@ bool objparse(const char *path, ObjData &data)
 	::fclose(pFile);
 	return true;
 }
+
+std::string parsemlinfo(const char* input, const char* condition) {
+    const char* regionPtr = std::strstr(input, condition);
+
+	std::string regionContent = "";
+
+    if (regionPtr != nullptr) {
+        regionPtr += std::strlen(condition);
+
+        while (*regionPtr == ' ' || *regionPtr == '\t') {
+            ++regionPtr;
+        }
+
+        const char* endPtr = std::strchr(regionPtr, '\n');
+        size_t length = (endPtr != nullptr) ? (endPtr - regionPtr) : std::strlen(regionPtr);
+
+		regionContent = std::string(regionPtr, length);
+    }
+
+	return regionContent;
+}
+
 
 bool mtlparse(const char *path, MtlData &data)
 {
@@ -664,6 +695,14 @@ bool objparse(std::istream &stream, ObjData &data)
                     while (*c == ' ' || *c == '\t')
                         ++ c;
                     obj_parseline(c, data);
+
+                    /*for ml*/
+                    if (lastLine < 3) {
+                        data.ml_region = parsemlinfo(c, "region");
+                        data.ml_name = parsemlinfo(c, "ml_name");
+                        data.ml_id = parsemlinfo(c, "ml_file_id");
+                    }
+
                     lastLine = i + 1;
                 }
             lenPrev = len - lastLine;

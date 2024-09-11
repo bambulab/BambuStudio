@@ -33,6 +33,11 @@ bool load_obj(const char *path, TriangleMesh *meshptr, ObjInfo& obj_info, std::s
         message = _L("load_obj: failed to parse");
         return false;
     }
+
+    obj_info.ml_region = data.ml_region;
+    obj_info.ml_name = data.ml_name;
+    obj_info.ml_id = data.ml_id;
+
     bool exist_mtl = false;
     if (data.mtllibs.size() > 0) { // read mtl
         for (auto mtl_name : data.mtllibs) {

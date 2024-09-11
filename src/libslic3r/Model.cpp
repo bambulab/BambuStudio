@@ -90,7 +90,14 @@ Model& Model::assign_copy(const Model &rhs)
     this->design_id = rhs.design_id;
     this->stl_design_id = rhs.stl_design_id;
     this->stl_design_country = rhs.stl_design_country;
+    this->makerlab_region = rhs.makerlab_region;
+    this->makerlab_name = rhs.makerlab_name;
+    this->makerlab_id = rhs.makerlab_id;
     this->profile_info = rhs.profile_info;
+
+    this->makerlab_region = rhs.makerlab_region;
+    this->makerlab_name = rhs.makerlab_name;
+    this->makerlab_id = rhs.makerlab_id;
 
     this->mk_name = rhs.mk_name;
     this->mk_version = rhs.mk_version;
@@ -127,6 +134,9 @@ Model& Model::assign_copy(Model &&rhs)
     this->design_id = rhs.design_id;
     this->stl_design_id = rhs.stl_design_id;
     this->stl_design_country = rhs.stl_design_country;
+    this->makerlab_region = rhs.makerlab_region;
+    this->makerlab_name = rhs.makerlab_name;
+    this->makerlab_id = rhs.makerlab_id;
     this->mk_name = rhs.mk_name;
     this->mk_version = rhs.mk_version;
     this->md_name = rhs.md_name;
@@ -234,7 +244,7 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
             if (obj_info.vertex_colors.size() > 0) {
                 std::vector<unsigned char> vertex_filament_ids;
                 if (objFn) { // 1.result is ok and pop up a dialog
-                    objFn(obj_info.vertex_colors, false, vertex_filament_ids, first_extruder_id);
+                    objFn(obj_info.vertex_colors, false, vertex_filament_ids, first_extruder_id, obj_info.ml_region, obj_info.ml_name, obj_info.ml_id);
                     if (vertex_filament_ids.size() > 0) {
                         result = obj_import_vertex_color_deal(vertex_filament_ids, first_extruder_id, & model);
                     }
@@ -242,7 +252,7 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
             } else if (obj_info.face_colors.size() > 0 && obj_info.has_uv_png == false) { // mtl file
                 std::vector<unsigned char> face_filament_ids;
                 if (objFn) { // 1.result is ok and pop up a dialog
-                    objFn(obj_info.face_colors, obj_info.is_single_mtl, face_filament_ids, first_extruder_id);
+                    objFn(obj_info.face_colors, obj_info.is_single_mtl, face_filament_ids, first_extruder_id, obj_info.ml_region, obj_info.ml_name, obj_info.ml_id);
                     if (face_filament_ids.size() > 0) {
                         result = obj_import_face_color_deal(face_filament_ids, first_extruder_id, &model);
                     }
@@ -999,6 +1009,9 @@ void Model::load_from(Model& model)
     design_id = model.design_id;
     stl_design_id = model.stl_design_id;
     stl_design_country = model.stl_design_country;
+    makerlab_region = model.makerlab_region;
+    makerlab_name = model.makerlab_name;
+    makerlab_id = model.makerlab_id;
     model_info  = model.model_info;
     profile_info  = model.profile_info;
     mk_name = model.mk_name;

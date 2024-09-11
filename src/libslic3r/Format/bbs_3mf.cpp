@@ -137,6 +137,10 @@ const std::string BBL_APPLICATION_TAG               = "Application";
 const std::string BBL_MAKERLAB_TAG                  = "MakerLab";
 const std::string BBL_MAKERLAB_VERSION_TAG          = "MakerLabVersion";
 
+const std::string BBL_MAKERLAB_NAME                 = "MakerLab";
+const std::string BBL_MAKERLAB_REGION               = "MakerLabRegion";
+const std::string BBL_MAKERLAB_ID                   = "MakerLabFileId";
+
 
 const std::string BBL_PROFILE_TITLE_TAG             = "ProfileTitle";
 const std::string BBL_PROFILE_COVER_TAG             = "ProfileCover";
@@ -6459,6 +6463,15 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 metadata_item_map[BBL_MAKERLAB_VERSION_TAG] = xml_escape(model.mk_version);
                 BOOST_LOG_TRIVIAL(info) << "saved mk_version " << model.mk_version;
             }
+
+
+            /*for ml*/
+            if (model.mk_name.empty() && !model.makerlab_name.empty()) {
+                metadata_item_map[BBL_MAKERLAB_NAME] = model.makerlab_name;
+                metadata_item_map[BBL_MAKERLAB_REGION] = model.makerlab_region;
+                metadata_item_map[BBL_MAKERLAB_ID] = model.makerlab_id;
+            }
+
             if (!model.md_name.empty()) {
                 for (unsigned int i = 0; i < model.md_name.size(); i++)
                 {
