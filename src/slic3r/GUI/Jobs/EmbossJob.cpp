@@ -354,8 +354,8 @@ void UpdateJob::update_volume(ModelVolume *volume, TriangleMesh &&mesh, const Da
     }
 
     ModelObject *object = volume->get_object();
-    assert(object != nullptr);
-    if (object == nullptr) return;
+    if (object == nullptr)
+        return;
 
     Plater *plater = app.plater();
     if (plater->printer_technology() == ptSLA)
@@ -1085,7 +1085,6 @@ bool start_create_volume_on_surface_job(CreateVolumeParams &input, DataBasePtr d
     if (instance == nullptr)
         return false;
     const ModelObject *object = mv->get_object();
-    assert(object != nullptr);
     if (object == nullptr)
         return false;
 
