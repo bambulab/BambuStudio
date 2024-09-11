@@ -3411,7 +3411,8 @@ BoundingBox Plater::priv::scaled_bed_shape_bb() const
 }
 
 
-void read_binary_stl(const std::string& filename, std::string& model_id, std::string& code) {
+void read_binary_stl(const std::string& filename, std::string& model_id, std::string& code,
+    std::string& ml_name, std::string& ml_region, std::string& ml_id) {
     std::ifstream file( encode_path(filename.c_str()), std::ios::binary);
     if (!file) {
         return;
@@ -3431,42 +3432,60 @@ void read_binary_stl(const std::string& filename, std::string& model_id, std::st
             return;
         }
 
-        char magic[2] = { data[0], data[1] };
-        if (magic[0] != 'M' || magic[1] != 'W') {
-            file.close();
-            return;
+        /*include ml info*/
+        std::string ext_content(data);
+        std::string ml_content;
+        std::string mw_content;
+
+        size_t pos = ext_content.find('&');
+        if (pos != std::string::npos) {
+            ml_content = ext_content.substr(0, pos);
+            mw_content = ext_content.substr(pos + 1);
         }
 
-        if (data[2] != ' ') {
-            file.close();
-            return;
+        if (ml_content.empty() && ext_content.find("ML") != std::string::npos) {
+            ml_content = ext_content;
         }
 
-        char protocol_version[3] = { data[3], data[4], data[5] };
-
-        //version
-        if (protocol_version[0] != '1' || protocol_version[1] != '.' || protocol_version[2] != '0') {
-            file.close();
-            return;
+        if (mw_content.empty() && ext_content.find("MW") != std::string::npos) {
+            mw_content = ext_content;
         }
 
-        std::vector<char*> tokens;
-        std::istringstream iss(data);
-        std::string token;
-        while (std::getline(iss, token, ' ')) {
-            char* tokenPtr = new char[token.length() + 1];
-            std::strcpy(tokenPtr, token.c_str());
-            tokens.push_back(tokenPtr);
+        /*parse ml info*/
+        if (!ml_content.empty()) {
+            std::istringstream iss(ml_content);
+            std::string token;
+            std::vector<std::string> result;
+            while (iss >> token) {
+                if (token.find(' ') == std::string::npos) {
+                    result.push_back(token);
+                }
+            }
+
+            if (result.size() == 4 && result[0] == "ML") {
+                ml_region   = result[1];
+                ml_name     = result[2];
+                ml_id       = result[3];
+            }
         }
 
-        //model id
-        if (tokens.size() < 4) {
-            file.close();
-            return;
+        /*parse mw info*/
+        if (!mw_content.empty()) {
+            std::istringstream iss(mw_content);
+            std::string token;
+            std::vector<std::string> result;
+            while (iss >> token) {
+                if (token.find(' ') == std::string::npos) {
+                    result.push_back(token);
+                }
+            }
+
+            if (result.size() == 4 && result[0] == "MW") {
+                model_id    = result[2];
+                code        = result[3];
+            }
         }
 
-        model_id = tokens[2];
-        code = tokens[3];
         file.close();
     }
     catch (...) {
@@ -3513,6 +3532,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
     std::string  designer_model_id;
     std::string  designer_country_code;
+    std::string  makerlab_region;
+    std::string  makerlab_name;
+    std::string  makerlab_id;
 
     int answer_convert_from_meters          = wxOK_DEFAULT;
     int answer_convert_from_imperial_units  = wxOK_DEFAULT;
@@ -3975,8 +3997,13 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 bool                  is_xxx;
                 Semver                file_version;
                 //ObjImportColorFn obj_color_fun=nullptr;
-                auto obj_color_fun = [this, &path](std::vector<RGBA> &input_colors, bool is_single_color, std::vector<unsigned char> &filament_ids,
-                                                   unsigned char &first_extruder_id) {
+                auto obj_color_fun = [this, &path, &makerlab_region, &makerlab_name, &makerlab_id](std::vector<RGBA> &input_colors, bool is_single_color, std::vector<unsigned char> &filament_ids,
+                    unsigned char& first_extruder_id, std::string ml_origin, std::string ml_name, std::string ml_id) {
+
+                    makerlab_region = ml_origin;
+                    makerlab_name = ml_name;
+                    makerlab_id = ml_id;
+
                     if (!boost::iends_with(path.string(), ".obj")) { return; }
                     const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
                     ObjColorDialog                 color_dlg(nullptr, input_colors, is_single_color, extruder_colours, filament_ids, first_extruder_id);
@@ -3999,10 +4026,14 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 };
                 model = Slic3r::Model:: read_from_file(
                     path.string(), nullptr, nullptr, strategy, &plate_data, &project_presets, &is_xxx, &file_version, nullptr,
-                    [this, &dlg, real_filename, &progress_percent, &file_percent, INPUT_FILES_RATIO, total_files, i, &designer_model_id, &designer_country_code](int current, int total, bool &cancel, std::string &mode_id, std::string &code)
+                    [this, &dlg, real_filename, &progress_percent, &file_percent, INPUT_FILES_RATIO, total_files, i, &designer_model_id, &designer_country_code, &makerlab_region, &makerlab_name, &makerlab_id](int current, int total, bool &cancel,
+                        std::string &mode_id, std::string &code, std::string &ml_region,  std::string &ml_name, std::string &ml_id)
                     {
-                            designer_model_id = mode_id;
-                            designer_country_code = code;
+                            designer_model_id       = mode_id;
+                            designer_country_code   = code;
+                            makerlab_region         = ml_region;
+                            makerlab_name           = ml_name;
+                            makerlab_id             = ml_id;
 
                             bool     cont = true;
                             float percent_float = (100.0f * (float)i / (float)total_files) + INPUT_FILES_RATIO * 100.0f * ((float)current / (float)total) / (float)total_files;
@@ -4031,7 +4062,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
 
                 if (designer_model_id.empty() && boost::algorithm::iends_with(path.string(), ".stl")) {
-                    read_binary_stl(path.string(), designer_model_id, designer_country_code);
+                    read_binary_stl(path.string(), designer_model_id, designer_country_code, makerlab_name, makerlab_region, makerlab_id);
                 }
 
                 if (type_any_amf && is_xxx) imperial_units = true;
@@ -4342,6 +4373,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     //set designer_model_id
     q->model().stl_design_id = designer_model_id;
     q->model().stl_design_country = designer_country_code;
+    q->model().makerlab_region = makerlab_region;
+    q->model().makerlab_name = makerlab_name;
+    q->model().makerlab_id = makerlab_id;
+
     //if (!designer_model_id.empty() && q->model().stl_design_id.empty() && !designer_country_code.empty()) {
     //    q->model().stl_design_id = designer_model_id;
     //    q->model().stl_design_country = designer_country_code;
@@ -5772,7 +5807,8 @@ void Plater::priv::reload_from_disk()
     // load one file at a time
     for (size_t i = 0; i < input_paths.size(); ++i) {
         const auto& path = input_paths[i].string();
-        auto obj_color_fun = [this, &path](std::vector<RGBA> &input_colors, bool is_single_color, std::vector<unsigned char> &filament_ids, unsigned char &first_extruder_id) {
+        auto obj_color_fun = [this, &path](std::vector<RGBA> &input_colors, bool is_single_color, std::vector<unsigned char> &filament_ids, unsigned char &first_extruder_id,
+             std::string ml_origin,  std::string ml_name,  std::string ml_id) {
             if (!boost::iends_with(path, ".obj")) { return; }
             const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
             ObjColorDialog                 color_dlg(nullptr, input_colors, is_single_color, extruder_colours, filament_ids, first_extruder_id);
