@@ -45,6 +45,7 @@ public:
     bool create_volume(ModelVolumeType volume_type, const Vec2d &mouse_pos); // first open file dialog //by rigth menu
 
     bool create_volume(std::string_view svg_file, const Vec2d &mouse_pos, ModelVolumeType volume_type = ModelVolumeType::MODEL_PART);
+    bool create_volume(std::string_view svg_file, ModelVolumeType volume_type = ModelVolumeType::MODEL_PART);
     /// <summary>
     /// Check whether volume is object containing only emboss volume
     /// </summary>

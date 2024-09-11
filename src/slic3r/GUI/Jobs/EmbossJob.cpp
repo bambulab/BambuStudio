@@ -315,7 +315,8 @@ UpdateJob::UpdateJob(DataUpdate &&input) : m_input(std::move(input)) {}
 
 void UpdateJob::process(Ctl &ctl)
 {
-    if (!check(m_input)) throw JobException("Bad input data for EmbossUpdateJob.");
+    if (!check(m_input))
+        throw JobException("Bad input data for EmbossUpdateJob.");
 
     m_result = try_create_mesh(*m_input.base);
     if (was_canceled(ctl, *m_input.base))
@@ -366,7 +367,8 @@ void UpdateJob::update_volume(ModelVolume *volume, TriangleMesh &&mesh, const Da
 CreateObjectJob::CreateObjectJob(DataCreateObject &&input) : m_input(std::move(input)) {}
 void CreateObjectJob::process(Ctl &ctl)
 {
-    if (!check(m_input)) return throw JobException("Bad input data for EmbossCreateObjectJob.");
+    if (!check(m_input))
+        throw JobException("Bad input data for EmbossCreateObjectJob.");
 
     // can't create new object with using surface
     if (m_input.base->shape.projection.use_surface) m_input.base->shape.projection.use_surface = false;
