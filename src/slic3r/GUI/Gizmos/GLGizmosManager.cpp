@@ -1295,7 +1295,7 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
 
         //case WXK_BACK:
         case WXK_DELETE: {
-            if ((m_current == Cut || m_current == Measure || m_current == Assembly) && gizmo_event(SLAGizmoEventType::Delete))
+            if ((m_current == Cut || m_current == Measure || m_current == Assembly || m_current == BrimEars) && gizmo_event(SLAGizmoEventType::Delete))
                 processed = true;
             break;
         }

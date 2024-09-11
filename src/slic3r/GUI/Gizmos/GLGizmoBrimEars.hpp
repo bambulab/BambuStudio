@@ -31,10 +31,10 @@ private:
     class CacheEntry {
     public:
         CacheEntry() :
-            brim_point(BrimPoint()), selected(false), normal(Vec3f::Zero()), is_hover(false) {}
+            brim_point(BrimPoint()), selected(false), normal(Vec3f(0, 0, 1)), is_hover(false) {}
 
-        CacheEntry(const BrimPoint& point, bool sel = false, const Vec3f& norm = Vec3f::Zero(), bool hover = false) :
-            brim_point(point), selected(sel), normal(norm), is_hover(hover) {}
+        CacheEntry(const BrimPoint &point, bool sel = false, const Vec3f &norm = Vec3f(0, 0, 1), bool hover = false)
+            :brim_point(point), selected(sel), normal(norm), is_hover(hover) {}
 
         bool operator==(const CacheEntry& rhs) const {
             return (brim_point == rhs.brim_point);
@@ -155,6 +155,7 @@ protected:
     void update_single_mesh_pick(GLVolume* v);
     void reset_all_pick();
     bool add_point_to_cache(Vec3f pos, float head_radius, bool selected, Vec3f normal);
+    float get_brim_default_radius() const;
 };
 
 } // namespace GUI
