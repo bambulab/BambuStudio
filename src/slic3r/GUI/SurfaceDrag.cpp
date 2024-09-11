@@ -181,7 +181,6 @@ std::optional<Vec3d> calc_surface_offset(const Selection &selection, RaycastMana
 std::optional<float> calc_distance(const GLVolume &gl_volume, RaycastManager &raycaster, GLCanvas3D &canvas)
 {
     const ModelObject *object = get_model_object(gl_volume, canvas.get_model()->objects);
-    assert(object != nullptr);
     if (object == nullptr)
         return {};
 
@@ -511,7 +510,6 @@ bool start_dragging(const Vec2d                &mouse_pos,
 
     const ModelObjectPtrs &objects = canvas.get_model()->objects;
     const ModelObject     *mo  = get_model_object(gl_volume, objects);
-    assert(object != nullptr);
     if (mo == nullptr)
         return false;
 
