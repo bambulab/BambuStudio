@@ -10407,7 +10407,7 @@ void ProjectDropDialog::on_dpi_changed(const wxRect& suggested_rect)
     Refresh();
 }
 
-bool Plater::emboss_svg(const wxString &svg_file)
+bool Plater::emboss_svg(const wxString &svg_file, bool from_toolbar_or_file_menu)
 {
     std::string svg_file_str = into_u8(svg_file);
     GLCanvas3D *canvas       = canvas3D();
@@ -10420,14 +10420,35 @@ bool Plater::emboss_svg(const wxString &svg_file)
     if (svg == nullptr)
         return false;
     // Refresh hover state to find surface point under mouse
-    wxMouseEvent evt(wxEVT_MOTION);
-    auto  mouse_drop_position =canvas->get_local_mouse_position();
-    evt.SetPosition(wxPoint(mouse_drop_position.x(), mouse_drop_position.y()));
-    canvas->on_mouse(evt); // call render where is call GLCanvas3D::_picking_pass()
-    return svg->create_volume(svg_file_str, mouse_drop_position, ModelVolumeType::MODEL_PART);
+    if (from_toolbar_or_file_menu) {
+        return svg->create_volume(svg_file_str, ModelVolumeType::MODEL_PART);
+    } else {
+        wxMouseEvent evt(wxEVT_MOTION);
+        auto         mouse_drop_position = canvas->get_local_mouse_position();
+        evt.SetPosition(wxPoint(mouse_drop_position.x(), mouse_drop_position.y()));
+        canvas->on_mouse(evt); // call render where is call GLCanvas3D::_picking_pass()
+        return svg->create_volume(svg_file_str, mouse_drop_position, ModelVolumeType::MODEL_PART);
+    }
 }
 
-//BBS: remove GCodeViewer as seperate APP logic
+bool Plater::load_svg(const wxArrayString &filenames, bool from_toolbar_or_file_menu)
+{
+    // When only one .svg file is dropped on scene
+    if (filenames.size() == 1) {
+        const wxString &filename       = filenames.Last();
+        const wxString  file_extension = filename.substr(filename.length() - 4);
+        if (file_extension.CmpNoCase(".svg") == 0) {
+            // BBS: GUI refactor: move sidebar to the left
+            /*  const wxPoint offset = GetPosition() + p->current_panel->GetPosition();
+              Vec2d         mouse_position(x - offset.x, y - offset.y);*/
+            // Scale for retina displays
+            // canvas->apply_retina_scale(mouse_position);
+            return emboss_svg(filename, from_toolbar_or_file_menu);
+        }
+    }
+    return false;
+}
+    //BBS: remove GCodeViewer as seperate APP logic
 bool Plater::load_files(const wxArrayString& filenames)
 {
     const std::regex pattern_drop(".*[.](stp|step|stl|oltp|obj|amf|3mf|svg)", std::regex::icase);
@@ -10436,18 +10457,8 @@ bool Plater::load_files(const wxArrayString& filenames)
     std::vector<fs::path> normal_paths;
     std::vector<fs::path> gcode_paths;
 
-    // When only one .svg file is dropped on scene
-    if (filenames.size() == 1) {
-        const wxString &filename       = filenames.Last();
-        const wxString  file_extension = filename.substr(filename.length() - 4);
-        if (file_extension.CmpNoCase(".svg") == 0) {
-            // BBS: GUI refactor: move sidebar to the left
-          /*  const wxPoint offset = GetPosition() + p->current_panel->GetPosition();
-            Vec2d         mouse_position(x - offset.x, y - offset.y);*/
-            // Scale for retina displays
-            //canvas->apply_retina_scale(mouse_position);
-            return emboss_svg(filename);
-        }
+    if (load_svg(filenames)) {
+        return true;
     }
 
     for (const auto& filename : filenames) {
@@ -10689,6 +10700,9 @@ void Plater::add_file()
 
     case LoadFilesType::SingleOther: {
         Plater::TakeSnapshot snapshot(this, snapshot_label);
+        if (load_svg(input_files,true)) {
+            return;
+        }
         if (!load_files(paths, LoadStrategy::LoadModel, false).empty()) {
             if (get_project_name() == _L("Untitled") && paths.size() > 0) {
                 p->set_project_filename(wxString::FromUTF8(paths[0].string()));
