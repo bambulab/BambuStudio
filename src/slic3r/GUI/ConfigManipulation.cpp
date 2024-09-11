@@ -575,8 +575,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     for (auto el : { "top_surface_line_width", "top_surface_speed" })
         toggle_field(el, has_top_solid_infill || (has_spiral_vase && has_bottom_solid_infill));
 
-    // todo multi_extruders: the exact filament id
-    bool have_default_acceleration = config->opt_float_nullable("default_acceleration", 0) > 0;
+    bool have_default_acceleration = config->opt_float_nullable("default_acceleration", variant_index) > 0;
     //BBS
     for (auto el : { "initial_layer_acceleration", "outer_wall_acceleration", "top_surface_acceleration", "inner_wall_acceleration", "sparse_infill_acceleration" })
         toggle_field(el, have_default_acceleration);
@@ -675,7 +674,6 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     bool have_avoid_crossing_perimeters = config->opt_bool("reduce_crossing_wall");
     toggle_line("max_travel_detour_distance", have_avoid_crossing_perimeters);
 
-    // todo multi_extruders:
     bool has_overhang_speed = config->opt_bool_nullable("enable_overhang_speed", variant_index);
     for (auto el : { "overhang_1_4_speed", "overhang_2_4_speed", "overhang_3_4_speed", "overhang_4_4_speed"})
         toggle_line(el, has_overhang_speed, variant_index);

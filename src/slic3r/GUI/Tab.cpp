@@ -4077,7 +4077,7 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
             optgroup->append_single_option_line("max_layer_height", "adaptive-layer-height", extruder_idx);
 
             optgroup = page->new_optgroup(L("Position"), L"param_retraction", -1, true);
-            optgroup->append_single_option_line("extruder_offset", "", extruder_idx);
+            optgroup->append_single_option_line("extruder_offset");
 
             //BBS: don't show retract related config menu in machine page
             optgroup = page->new_optgroup(L("Retraction"), L"param_retraction");
