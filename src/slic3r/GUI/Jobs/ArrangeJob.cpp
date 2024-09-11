@@ -229,8 +229,6 @@ void ArrangeJob::prepare_all() {
     }
 
 
-    // If the selection was empty arrange everything
-    //if (m_selected.empty()) m_selected.swap(m_unselected);
     if (m_selected.empty()) {
         if (!selected_is_locked) {
             m_plater->get_notification_manager()->push_notification(NotificationType::BBLPlateInfo,
@@ -240,6 +238,14 @@ void ArrangeJob::prepare_all() {
             m_plater->get_notification_manager()->push_notification(NotificationType::BBLPlateInfo,
                 NotificationManager::NotificationLevel::WarningNotificationLevel, into_u8(_L("All the selected objects are on the locked plate,\nWe can not do auto-arrange on these objects.")));
         }
+    }
+    if (!m_uncompatible_plates.empty()) {
+        std::string msg = "The following plates are skipped due to different arranging settings from global:\n";
+        for (int i : m_uncompatible_plates) {
+            msg += "Plate " + std::to_string(i + 1) + "\n";
+        }
+        m_plater->get_notification_manager()->push_notification(NotificationType::BBLPlateInfo,
+                       NotificationManager::NotificationLevel::WarningNotificationLevel, into_u8(msg));
     }
 
     prepare_wipe_tower();
