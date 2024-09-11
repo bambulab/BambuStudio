@@ -65,10 +65,14 @@ PrinterFileSystem::PrinterFileSystem()
     : BambuLib(StaticBambuLib::get(this))
 {
     if (!default_thumbnail.IsOk()) {
-        default_thumbnail = *Slic3r::GUI::BitmapCache().load_svg("printer_file", 0, 0);
+        Slic3r::GUI::BitmapCache c;
+        auto thumbnail = c.load_svg("printer_file", 0, 0);
+        if (thumbnail && thumbnail->IsOk()) {
+            default_thumbnail = *thumbnail;
 #ifdef __APPLE__
-        default_thumbnail = wxBitmap(default_thumbnail.ConvertToImage(), -1, 1);
+            default_thumbnail = wxBitmap(default_thumbnail.ConvertToImage(), -1, 1);
 #endif
+        }
     }
     m_session.owner = this;
 #ifdef PRINTER_FILE_SYSTEM_TEST
