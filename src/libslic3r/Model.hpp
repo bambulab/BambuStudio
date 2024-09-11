@@ -20,6 +20,7 @@
 #include "Format/STEP.hpp"
 //BBS: add stl
 #include "Format/STL.hpp"
+#include "Format/OBJ.hpp"
 
 #include "Calib.hpp"
 
@@ -410,6 +411,10 @@ public:
     bool                    is_seam_painted() const;
     // Checks if any of object volume is painted using the multi-material painting gizmo.
     bool                    is_mm_painted() const;
+    // This object may have a varying layer height by painting or by a table.
+    // Even if true is returned, the layer height profile may be "flat" with no difference to default layering.
+    bool                    has_custom_layering() const
+        { return ! this->layer_config_ranges.empty() || ! this->layer_height_profile.empty(); }
 
     ModelInstance*          add_instance();
     ModelInstance*          add_instance(const ModelInstance &instance);
@@ -445,6 +450,7 @@ public:
 
     //BBS: add instance convex hull bounding box
     BoundingBoxf3 instance_convex_hull_bounding_box(size_t instance_idx, bool dont_translate = false) const;
+    BoundingBoxf3 instance_convex_hull_bounding_box(const ModelInstance* instance, bool dont_translate = false) const;
 
     // Calculate 2D convex hull of of a projection of the transformed printable volumes into the XY plane.
     // This method is cheap in that it does not make any unnecessary copy of the volume meshes.
@@ -1271,14 +1277,16 @@ public:
         m_assemble_initialized = true;
         m_assemble_transformation.set_from_transform(transform);
     }
+    const Vec3d& get_assemble_offset() {return m_assemble_transformation.get_offset(); }
     void set_assemble_offset(const Vec3d& offset) { m_assemble_transformation.set_offset(offset); }
+    void set_assemble_rotation(const Vec3d &rotation) { m_assemble_transformation.set_rotation(rotation); }
     void rotate_assemble(double angle, const Vec3d& axis) {
         m_assemble_transformation.set_rotation(m_assemble_transformation.get_rotation() + Geometry::extract_euler_angles(Eigen::Quaterniond(Eigen::AngleAxisd(angle, axis)).toRotationMatrix()));
     }
 
     // BBS
     void set_offset_to_assembly(const Vec3d& offset) { m_offset_to_assembly = offset; }
-    Vec3d get_offset_to_assembly() const { return m_offset_to_assembly; }
+    const Vec3d& get_offset_to_assembly() const { return m_offset_to_assembly; }
 
     const Vec3d& get_offset() const { return m_transformation.get_offset(); }
     double get_offset(Axis axis) const { return m_transformation.get_offset(axis); }
@@ -1459,7 +1467,7 @@ public:
 class ModelDesignInfo
 {
 public:
-    std::string DesignId;               // DisignId for Model
+    std::string DesignerId;             // DisignId for Model
     std::string Designer;               // Designer nickname in utf8
     std::string DesignerUserId;         // Designer user_id string
 };
@@ -1509,9 +1517,17 @@ public:
 
     // DesignInfo of Model
     std::string stl_design_id;
+    std::string design_id;
+    std::string stl_design_country;
     std::shared_ptr<ModelDesignInfo> design_info = nullptr;
     std::shared_ptr<ModelInfo> model_info = nullptr;
     std::shared_ptr<ModelProfileInfo> profile_info = nullptr;
+
+    //makerlab information
+    std::string mk_name;
+    std::string mk_version;
+    std::vector<std::string> md_name;
+    std::vector<std::string> md_value;
 
     void SetDesigner(std::string designer, std::string designer_user_id) {
         if (design_info == nullptr) {
@@ -1557,8 +1573,16 @@ public:
         DynamicPrintConfig* config = nullptr, ConfigSubstitutionContext* config_substitutions = nullptr,
         LoadStrategy options = LoadStrategy::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr,
         std::vector<Preset*>* project_presets = nullptr, bool* is_xxx = nullptr, Semver* file_version = nullptr, Import3mfProgressFn proFn = nullptr,
-        ImportstlProgressFn stlFn = nullptr, ImportStepProgressFn stepFn = nullptr, StepIsUtf8Fn stepIsUtf8Fn = nullptr, BBLProject* project = nullptr, int plate_id = 0);
+                                ImportstlProgressFn        stlFn                = nullptr,
+                                ImportStepProgressFn       stepFn               = nullptr,
+                                StepIsUtf8Fn               stepIsUtf8Fn         = nullptr,
+                                BBLProject *               project              = nullptr,
+                                int                        plate_id             = 0,
+                                ObjImportColorFn           objFn                = nullptr
+                                );
     // BBS
+    static bool    obj_import_vertex_color_deal(const std::vector<unsigned char> &vertex_filament_ids, const unsigned char &first_extruder_id, Model *model);
+    static bool    obj_import_face_color_deal(const std::vector<unsigned char> &face_filament_ids, const unsigned char &first_extruder_id, Model *model);
     static double findMaxSpeed(const ModelObject* object);
     static double getThermalLength(const ModelVolume* modelVolumePtr);
     static double getThermalLength(const std::vector<ModelVolume*> modelVolumePtrs);

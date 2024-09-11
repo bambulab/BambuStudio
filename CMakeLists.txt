@@ -112,6 +112,11 @@ if (MSVC)
     add_compile_options(/wd4244 /wd4267)
 endif ()
 
+# https://github.com/SoftFever/OrcaSlicer/issues/2233
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang" AND ${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER 15)
+    add_compile_definitions(BOOST_NO_CXX98_FUNCTION_BASE _HAS_AUTO_PTR_ETC=0)
+endif()
+
 if (MINGW)
     add_compile_options(-Wa,-mbig-obj)
 endif ()
@@ -206,11 +211,6 @@ endif ()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     find_package(PkgConfig REQUIRED)
-
-    if (CMAKE_VERSION VERSION_LESS "3.1")
-        # Workaround for an old CMake, which does not understand CMAKE_CXX_STANDARD.
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-    endif()
 
     # Boost on Raspberry-Pi does not link to pthreads.
     set(THREADS_PREFER_PTHREAD_FLAG ON)
@@ -537,6 +537,14 @@ foreach(po_file ${BBL_L10N_PO_FILES})
         DEPENDS ${po_file}
     )
 endforeach()
+
+# copy pt-BR/BamabuStudio.mo to pt_br/
+SET(PT_BR "${L10N_DIR}/pt-BR/BambuStudio.mo")
+SET(PT_BR_DST "${L10N_DIR}/pt_br/")
+add_custom_command(
+    TARGET gettext_po_to_mo POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PT_BR} ${PT_BR_DST}
+)
 
 find_package(NLopt 1.4 REQUIRED)
 

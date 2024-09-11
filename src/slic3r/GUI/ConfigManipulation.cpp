@@ -50,26 +50,44 @@ void ConfigManipulation::toggle_line(const std::string& opt_key, const bool togg
         cb_toggle_line(opt_key, toggle);
 }
 
+void ConfigManipulation::check_nozzle_recommended_temperature_range(DynamicPrintConfig *config) {
+    if (is_msg_dlg_already_exist)
+        return;
+
+    int temperature_range_low, temperature_range_high;
+    if (!get_temperature_range(config, temperature_range_low, temperature_range_high)) return;
+
+    wxString msg_text;
+    bool     need_check = false;
+    if (temperature_range_low < 190 || temperature_range_high > 300) {
+        msg_text += _L("The recommended minimum temperature is less than 190 degree or the recommended maximum temperature is greater than 300 degree.\n");
+        need_check = true;
+    }
+    if (temperature_range_low > temperature_range_high) {
+        msg_text += _L("The recommended minimum temperature cannot be higher than the recommended maximum temperature.\n");
+        need_check = true;
+    }
+    if (need_check) {
+        msg_text += _L("Please check.\n");
+        MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
+        is_msg_dlg_already_exist = true;
+        dialog.ShowModal();
+        is_msg_dlg_already_exist = false;
+    }
+}
+
 void ConfigManipulation::check_nozzle_temperature_range(DynamicPrintConfig *config)
 {
     if (is_msg_dlg_already_exist)
         return;
 
-    int temperature_range_low = config->has("nozzle_temperature_range_low") ?
-                                config->opt_int("nozzle_temperature_range_low", (unsigned int)0) :
-                                0;
-    int temperature_range_high = config->has("nozzle_temperature_range_high") ?
-                                 config->opt_int("nozzle_temperature_range_high", (unsigned int)0) :
-                                 0;
+    int temperature_range_low, temperature_range_high;
+    if (!get_temperature_range(config, temperature_range_low, temperature_range_high)) return;
 
-    if (temperature_range_low != 0 &&
-        temperature_range_high != 0 &&
-        config->has("nozzle_temperature")) {
-        if (config->opt_int("nozzle_temperature", 0) < temperature_range_low ||
-            config->opt_int("nozzle_temperature", 0) > temperature_range_high)
-        {
+    if (config->has("nozzle_temperature")) {
+        if (config->opt_int("nozzle_temperature", 0) < temperature_range_low || config->opt_int("nozzle_temperature", 0) > temperature_range_high) {
             wxString msg_text = _(L("Nozzle may be blocked when the temperature is out of recommended range.\n"
-                "Please make sure whether to use the temperature to print.\n\n"));
+                                    "Please confirm whether to use the temperature for printing.\n\n"));
             msg_text += wxString::Format(_L("Recommended nozzle temperature of this filament type is [%d, %d] degree centigrade"), temperature_range_low, temperature_range_high);
             MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
             is_msg_dlg_already_exist = true;
@@ -84,21 +102,15 @@ void ConfigManipulation::check_nozzle_temperature_initial_layer_range(DynamicPri
     if (is_msg_dlg_already_exist)
         return;
 
-    int temperature_range_low = config->has("nozzle_temperature_range_low") ?
-                            config->opt_int("nozzle_temperature_range_low", (unsigned int)0) :
-                            0;
-    int temperature_range_high = config->has("nozzle_temperature_range_high") ?
-                                 config->opt_int("nozzle_temperature_range_high", (unsigned int)0) :
-                                 0;
+    int temperature_range_low, temperature_range_high;
+    if (!get_temperature_range(config, temperature_range_low, temperature_range_high)) return;
 
-    if (temperature_range_low != 0 &&
-        temperature_range_high != 0 &&
-        config->has("nozzle_temperature_initial_layer")) {
+    if (config->has("nozzle_temperature_initial_layer")) {
         if (config->opt_int("nozzle_temperature_initial_layer", 0) < temperature_range_low ||
             config->opt_int("nozzle_temperature_initial_layer", 0) > temperature_range_high)
         {
             wxString msg_text = _(L("Nozzle may be blocked when the temperature is out of recommended range.\n"
-                "Please make sure whether to use the temperature to print.\n\n"));
+                "Please confirm whether to use the temperature for printing.\n\n"));
             msg_text += wxString::Format(_L("Recommended nozzle temperature of this filament type is [%d, %d] degree centigrade"), temperature_range_low, temperature_range_high);
             MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
             is_msg_dlg_already_exist = true;
@@ -137,6 +149,7 @@ void ConfigManipulation::check_chamber_temperature(DynamicPrintConfig* config)
         {"PVA",45},
         {"TPU",50},
         {"PETG",55},
+        {"PCTG",55},
         {"PETG-CF",55}
     };
    bool support_chamber_temp_control=GUI::wxGetApp().preset_bundle->printers.get_selected_preset().config.opt_bool("support_chamber_temp_control");
@@ -155,7 +168,7 @@ void ConfigManipulation::check_chamber_temperature(DynamicPrintConfig* config)
     }
 }
 
-void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, const bool is_global_config)
+void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, const bool is_global_config, const bool is_plate_config)
 {
     // #ys_FIXME_to_delete
     //! Temporary workaround for the correct updates of the TextCtrl (like "layer_height"):
@@ -164,6 +177,8 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     // let check if this process is already started.
     if (is_msg_dlg_already_exist)
         return;
+
+    bool is_object_config = (!is_global_config && !is_plate_config);
 
     // layer_height shouldn't be equal to zero
     if (config->opt_float("layer_height") < EPSILON)
@@ -190,6 +205,38 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         apply(config, &new_conf);
         is_msg_dlg_already_exist = false;
     }
+
+    //BBS: limit scarf seam start height range
+    bool apply_scarf_seam = config->opt_enum<SeamScarfType>("seam_slope_type") != SeamScarfType::None;
+    if (apply_scarf_seam) {
+        // scarf seam start height shouldn't small than zero
+        double layer_height = config->opt_float("layer_height");
+        double scarf_seam_slope_height = config->option<ConfigOptionFloatOrPercent>("seam_slope_start_height")->get_abs_value(layer_height);
+
+        if (scarf_seam_slope_height < EPSILON) {
+            const wxString     msg_text = _(L("Too small scarf start height.\nReset to 50%"));
+            MessageDialog      dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
+            DynamicPrintConfig new_conf = *config;
+            is_msg_dlg_already_exist    = true;
+            dialog.ShowModal();
+            new_conf.set_key_value("seam_slope_start_height", new ConfigOptionFloatOrPercent(50, true));
+            apply(config, &new_conf);
+            is_msg_dlg_already_exist = false;
+        }
+
+        // scarf seam start height shouldn't bigger than layer height
+        if (scarf_seam_slope_height > config->opt_float("layer_height") + EPSILON) {
+            const wxString     msg_text = _(L("Too big scarf start height.\nReset to 50%"));
+            MessageDialog      dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
+            DynamicPrintConfig new_conf = *config;
+            is_msg_dlg_already_exist    = true;
+            dialog.ShowModal();
+            new_conf.set_key_value("seam_slope_start_height", new ConfigOptionFloatOrPercent(50, true));
+            apply(config, &new_conf);
+            is_msg_dlg_already_exist = false;
+        }
+    }
+
     //BBS: top_area_threshold showed if the top one wall function be applyed
     bool top_one_wall_apply = config->opt_enum<TopOneWallType>("top_one_wall_type") == TopOneWallType::None;
     toggle_line("top_area_threshold", !top_one_wall_apply);
@@ -221,9 +268,9 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
 
     if (abs(config->option<ConfigOptionFloat>("xy_hole_compensation")->value) > 2)
     {
-        const wxString msg_text = _(L("This setting is only used for model size tunning with small value in some cases.\n"
-                                      "For example, when model size has small error and hard to be assembled.\n"
-                                      "For large size tuning, please use model scale function.\n\n"
+        const wxString msg_text = _(L("This setting is only used for model size tuning with small value in some cases.\n"
+                                      "For example, when the model size has slight errors and is difficult be assembled.\n"
+                                      "For large size tuning, please use model scaling function.\n\n"
                                       "The value will be reset to 0."));
         MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
         DynamicPrintConfig new_conf = *config;
@@ -236,9 +283,9 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
 
     if (abs(config->option<ConfigOptionFloat>("xy_contour_compensation")->value) > 2)
     {
-        const wxString msg_text = _(L("This setting is only used for model size tunning with small value in some cases.\n"
-                                      "For example, when model size has small error and hard to be assembled.\n"
-                                      "For large size tuning, please use model scale function.\n\n"
+        const wxString msg_text = _(L("This setting is only used for model size tuning with small value in some cases.\n"
+                                      "For example, when the model size has slight errors and is difficult be assembled.\n"
+                                      "For large size tuning, please use model scaling function.\n\n"
                                       "The value will be reset to 0."));
         MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
         DynamicPrintConfig new_conf = *config;
@@ -251,7 +298,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
 
     if (config->option<ConfigOptionFloat>("elefant_foot_compensation")->value > 1)
     {
-        const wxString msg_text = _(L("Too large elefant foot compensation is unreasonable.\n"
+        const wxString msg_text = _(L("Too large elephant foot compensation is unreasonable.\n"
                                       "If really have serious elephant foot effect, please check other settings.\n"
                                       "For example, whether bed temperature is too high.\n\n"
                                       "The value will be reset to 0."));
@@ -267,34 +314,21 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     double sparse_infill_density = config->option<ConfigOptionPercent>("sparse_infill_density")->value;
     auto timelapse_type = config->opt_enum<TimelapseType>("timelapse_type");
 
-    if (config->opt_bool("spiral_mode") &&
-        ! (config->opt_int("wall_loops") == 1 &&
-           config->opt_int("top_shell_layers") == 0 &&
-           sparse_infill_density == 0 &&
-           ! config->opt_bool("enable_support") &&
-           config->opt_int("enforce_support_layers") == 0 &&
-           config->opt_bool("ensure_vertical_shell_thickness") &&
-           ! config->opt_bool("detect_thin_wall") &&
+    if (!is_plate_config &&
+        config->opt_bool("spiral_mode") &&
+        !(config->opt_int("wall_loops") == 1 &&
+            config->opt_int("top_shell_layers") == 0 &&
+            sparse_infill_density == 0 &&
+            !config->opt_bool("enable_support") &&
+            config->opt_int("enforce_support_layers") == 0 &&
+            config->opt_bool("ensure_vertical_shell_thickness") &&
+            !config->opt_bool("detect_thin_wall") &&
             config->opt_enum<TimelapseType>("timelapse_type") == TimelapseType::tlTraditional))
     {
-        wxString msg_text = _(L("Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0 and timelapse type is traditional."));
-
-        auto printer_structure_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
-        if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3) {
-            msg_text += _(L(" But machines with I3 structure will not generate timelapse videos."));
-        }
-
-        if (is_global_config)
-            msg_text += "\n\n" + _(L("Change these settings automatically? \n"
-                                     "Yes - Change these settings and enable spiral mode automatically\n"
-                                     "No  - Give up using spiral mode this time"));
-        MessageDialog dialog(m_msg_dlg_parent, msg_text, "",
-                               wxICON_WARNING | (is_global_config ? wxYES | wxNO : wxOK));
         DynamicPrintConfig new_conf = *config;
-        is_msg_dlg_already_exist = true;
-        auto answer = dialog.ShowModal();
+        auto answer = show_spiral_mode_settings_dialog(is_object_config);
         bool support = true;
-        if (!is_global_config || answer == wxID_YES) {
+        if (answer == wxID_YES) {
             new_conf.set_key_value("wall_loops", new ConfigOptionInt(1));
             new_conf.set_key_value("top_shell_layers", new ConfigOptionInt(0));
             new_conf.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
@@ -459,14 +493,14 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
                     _(fill_pattern_def->enum_labels[it_pattern - fill_pattern_def->enum_values.begin()]));
                 if (is_global_config)
                     msg_text += "\n" + _L("Switch to rectilinear pattern?\n"
-                                          "Yes - switch to rectilinear pattern automaticlly\n"
-                                          "No  - reset density to default non 100% value automaticlly") + "\n";
+                                          "Yes - switch to rectilinear pattern automatically\n"
+                                          "No  - reset density to default non 100% value automatically") + "\n";
                 MessageDialog dialog(m_msg_dlg_parent, msg_text, "",
                                                   wxICON_WARNING | (is_global_config ? wxYES | wxNO : wxOK) );
                 DynamicPrintConfig new_conf = *config;
                 is_msg_dlg_already_exist = true;
                 auto answer = dialog.ShowModal();
-                if (!is_global_config || answer == wxID_YES) {
+                if (is_object_config || answer == wxID_YES) {
                     new_conf.set_key_value("sparse_infill_pattern", new ConfigOptionEnum<InfillPattern>(ipRectilinear));
                     sparse_infill_density = 100;
                 }
@@ -549,6 +583,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_line("sparse_infill_anchor", has_infill_anchors);
 
     bool has_spiral_vase         = config->opt_bool("spiral_mode");
+    toggle_line("spiral_mode_smooth", has_spiral_vase);
+    toggle_line("spiral_mode_max_xy_smoothing", config->opt_bool("spiral_mode_smooth"));
     bool has_top_solid_infill 	 = config->opt_int("top_shell_layers") > 0;
     bool has_bottom_solid_infill = config->opt_int("bottom_shell_layers") > 0;
     bool has_solid_infill 		 = has_top_solid_infill || has_bottom_solid_infill;
@@ -611,17 +647,17 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
                      //BBS: add more support params to dependent of enable_support
                     "support_type", "support_on_build_plate_only",
                     "support_remove_small_overhang","support_interface_not_for_body",
-                    "support_object_xy_distance"/*, "independent_support_layer_height"*/})
+                    "support_object_xy_distance","support_object_first_layer_gap"/*, "independent_support_layer_height"*/})
         toggle_field(el, have_support_material);
     toggle_field("support_threshold_angle", have_support_material && is_auto(support_type));
     //toggle_field("support_closing_radius", have_support_material && support_style == smsSnug);
 
     bool support_is_tree = config->opt_bool("enable_support") && is_tree(support_type);
-    for (auto el : {"tree_support_branch_angle", "tree_support_branch_distance", "tree_support_branch_diameter","tree_support_brim_width"})
+    for (auto el : {"tree_support_branch_angle", "tree_support_branch_distance", "tree_support_branch_diameter"})
         toggle_field(el, support_is_tree);
 
     // hide tree support settings when normal is selected
-    for (auto el : {"tree_support_branch_angle", "tree_support_branch_distance", "tree_support_branch_diameter", "max_bridge_length","tree_support_brim_width" })
+    for (auto el : {"tree_support_branch_angle", "tree_support_branch_distance", "tree_support_branch_diameter", "max_bridge_length"})
         toggle_line(el, support_is_tree);
     toggle_line("support_critical_regions_only", is_auto(support_type) && support_is_tree);
 
@@ -645,7 +681,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_field("support_filament", have_support_material || have_skirt);
 
     toggle_line("raft_contact_distance", have_raft && !have_support_soluble);
-    for (auto el : { "raft_first_layer_expansion", "raft_first_layer_density"})
+    for (auto el : { "raft_first_layer_density"})
         toggle_line(el, have_raft);
 
     bool has_ironing = (config->opt_enum<IroningType>("ironing_type") != IroningType::NoIroning);
@@ -703,6 +739,17 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         toggle_field("accel_to_decel_factor", config->opt_bool("accel_to_decel_enable"));
     }
     toggle_line("exclude_object", gcflavor == gcfKlipper);
+
+    toggle_field("seam_slope_type", !has_spiral_vase);
+    bool has_seam_slope = !has_spiral_vase && config->opt_enum<SeamScarfType>("seam_slope_type") != SeamScarfType::None;
+    toggle_line("seam_slope_conditional", has_seam_slope);
+    toggle_line("scarf_angle_threshold", has_seam_slope && config->opt_bool("seam_slope_conditional"));
+    toggle_line("seam_slope_start_height", has_seam_slope);
+    toggle_line("seam_slope_entire_loop", has_seam_slope);
+    toggle_line("seam_slope_min_length", has_seam_slope);
+    toggle_line("seam_slope_steps", has_seam_slope);
+    toggle_line("seam_slope_inner_walls", has_seam_slope);
+    toggle_field("seam_slope_min_length", !config->opt_bool("seam_slope_entire_loop"));
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)
@@ -780,6 +827,43 @@ void ConfigManipulation::toggle_print_sla_options(DynamicPrintConfig* config)
     toggle_field("pad_object_connector_width", zero_elev);
     toggle_field("pad_object_connector_penetration", zero_elev);
 }
+
+int ConfigManipulation::show_spiral_mode_settings_dialog(bool is_object_config)
+{
+    wxString msg_text = _(L("Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0 and timelapse type is traditional."));
+    auto printer_structure_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
+    if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3) {
+        msg_text += _(L(" But machines with I3 structure will not generate timelapse videos."));
+    }
+    if (!is_object_config)
+        msg_text += "\n\n" + _(L("Change these settings automatically? \n"
+            "Yes - Change these settings and enable spiral mode automatically\n"
+            "No  - Give up using spiral mode this time"));
+
+    MessageDialog dialog(m_msg_dlg_parent, msg_text, "",
+        wxICON_WARNING | (!is_object_config ? wxYES | wxNO : wxOK));
+    is_msg_dlg_already_exist = true;
+    auto answer = dialog.ShowModal();
+    is_msg_dlg_already_exist = false;
+    if (is_object_config)
+        answer = wxID_YES;
+    return answer;
+}
+
+bool ConfigManipulation::get_temperature_range(DynamicPrintConfig *config, int &range_low, int &range_high)
+{
+    bool range_low_exist = false, range_high_exist = false;
+    if (config->has("nozzle_temperature_range_low")) {
+        range_low       = config->opt_int("nozzle_temperature_range_low", (unsigned int) 0);
+        range_low_exist       = true;
+    }
+    if (config->has("nozzle_temperature_range_high")) {
+        range_high       = config->opt_int("nozzle_temperature_range_high", (unsigned int) 0);
+        range_high_exist       = true;
+    }
+    return range_low_exist && range_high_exist;
+}
+
 
 } // GUI
 } // Slic3r

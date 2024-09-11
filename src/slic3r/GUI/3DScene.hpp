@@ -287,7 +287,7 @@ public:
         HS_Deselect
     };
 
-    GLVolume(float r = 1.f, float g = 1.f, float b = 1.f, float a = 1.f);
+    GLVolume(float r = 1.f, float g = 1.f, float b = 1.f, float a = 1.f, bool create_index_data = true);
     GLVolume(const std::array<float, 4>& rgba) : GLVolume(rgba[0], rgba[1], rgba[2], rgba[3]) {}
     virtual ~GLVolume() = default;
 
@@ -400,7 +400,8 @@ public:
     EHoverState         	hover;
 
     // Interleaved triangles & normals with indexed triangles & quads.
-    GLIndexedVertexArray        indexed_vertex_array;
+    std::shared_ptr<GLIndexedVertexArray>        indexed_vertex_array;
+    const TriangleMesh * ori_mesh{nullptr};
     // BBS
     mutable std::vector<GLIndexedVertexArray> mmuseg_ivas;
     mutable ObjectBase::Timestamp       mmuseg_ts;
@@ -418,9 +419,9 @@ public:
     // Bounding box of this volume, in unscaled coordinates.
     BoundingBoxf3 bounding_box() const {
         BoundingBoxf3 out;
-        if (! this->indexed_vertex_array.bounding_box().isEmpty()) {
-            out.min = this->indexed_vertex_array.bounding_box().min().cast<double>();
-            out.max = this->indexed_vertex_array.bounding_box().max().cast<double>();
+        if (! this->indexed_vertex_array->bounding_box().isEmpty()) {
+            out.min = this->indexed_vertex_array->bounding_box().min().cast<double>();
+            out.max = this->indexed_vertex_array->bounding_box().max().cast<double>();
             out.defined = true;
         };
         return out;
@@ -436,7 +437,7 @@ public:
 
     const Geometry::Transformation& get_instance_transformation() const { return m_instance_transformation; }
     void set_instance_transformation(const Geometry::Transformation& transformation) { m_instance_transformation = transformation; set_bounding_boxes_as_dirty(); }
-
+    void set_instance_transformation(const Transform3d &transform){ m_instance_transformation.set_matrix(transform); set_bounding_boxes_as_dirty(); }
     const Vec3d& get_instance_offset() const { return m_instance_transformation.get_offset(); }
     double get_instance_offset(Axis axis) const { return m_instance_transformation.get_offset(axis); }
 
@@ -463,6 +464,7 @@ public:
 
     const Geometry::Transformation& get_volume_transformation() const { return m_volume_transformation; }
     void set_volume_transformation(const Geometry::Transformation& transformation) { m_volume_transformation = transformation; set_bounding_boxes_as_dirty(); }
+    void set_volume_transformation(const Transform3d &transform) { m_volume_transformation.set_matrix(transform); set_bounding_boxes_as_dirty(); }
 
     const Vec3d& get_volume_offset() const { return m_volume_transformation.get_offset(); }
     double get_volume_offset(Axis axis) const { return m_volume_transformation.get_offset(axis); }
@@ -496,7 +498,7 @@ public:
     void set_convex_hull(TriangleMesh &&convex_hull) { m_convex_hull = std::make_shared<const TriangleMesh>(std::move(convex_hull)); }
 
     void set_offset_to_assembly(const Vec3d& offset) { m_offset_to_assembly = offset; set_bounding_boxes_as_dirty(); }
-    Vec3d get_offset_to_assembly() { return m_offset_to_assembly; }
+    const Vec3d& get_offset_to_assembly() { return m_offset_to_assembly; }
 
     int                 object_idx() const { return this->composite_id.object_id; }
     int                 volume_idx() const { return this->composite_id.volume_id; }
@@ -517,18 +519,19 @@ public:
     // convex hull
     const TriangleMesh*  convex_hull() const { return m_convex_hull.get(); }
 
-    bool                empty() const { return this->indexed_vertex_array.empty(); }
+    bool                empty() const { return this->indexed_vertex_array->empty(); }
 
     void                set_range(double low, double high);
 
     //BBS: add outline related logic and add virtual specifier
-    virtual void        render(bool with_outline = false) const;
+    virtual void render(bool                         with_outline = false,
+                        const std::array<float, 4> &body_color = {1.0f, 1.0f, 1.0f, 1.0f} ) const;
 
     //BBS: add simple render function for thumbnail
-    void simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_objects, std::vector<std::array<float, 4>>& extruder_colors) const;
+    void simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_objects, std::vector<std::array<float, 4>>& extruder_colors,bool ban_light =false) const;
 
-    void                finalize_geometry(bool opengl_initialized) { this->indexed_vertex_array.finalize_geometry(opengl_initialized); }
-    void                release_geometry() { this->indexed_vertex_array.release_geometry(); }
+    void                finalize_geometry(bool opengl_initialized) { this->indexed_vertex_array->finalize_geometry(opengl_initialized); }
+    void                release_geometry() { this->indexed_vertex_array->release_geometry(); }
 
     void                set_bounding_boxes_as_dirty() {
         m_transformed_bounding_box.reset();
@@ -546,10 +549,10 @@ public:
     // Return an estimate of the memory consumed by this class.
     size_t 				cpu_memory_used() const {
     	//FIXME what to do wih m_convex_hull?
-    	return sizeof(*this) - sizeof(this->indexed_vertex_array) + this->indexed_vertex_array.cpu_memory_used() + this->print_zs.capacity() * sizeof(coordf_t) + this->offsets.capacity() * sizeof(size_t);
+    	return sizeof(*this) - sizeof(*(this->indexed_vertex_array)) + this->indexed_vertex_array->cpu_memory_used() + this->print_zs.capacity() * sizeof(coordf_t) + this->offsets.capacity() * sizeof(size_t);
     }
     // Return an estimate of the memory held by GPU vertex buffers.
-    size_t 				gpu_memory_used() const { return this->indexed_vertex_array.gpu_memory_used(); }
+    size_t 				gpu_memory_used() const { return this->indexed_vertex_array->gpu_memory_used(); }
     size_t 				total_memory_used() const { return this->cpu_memory_used() + this->gpu_memory_used(); }
 };
 
@@ -557,7 +560,7 @@ public:
 class GLWipeTowerVolume : public GLVolume {
 public:
     GLWipeTowerVolume(const std::vector<std::array<float, 4>>& colors);
-    virtual void render(bool with_outline = false) const;
+    virtual void render(bool with_outline = false, const std::array<float, 4> &body_color = {1.0f, 1.0f, 1.0f, 1.0f}) const;
 
     std::vector<GLIndexedVertexArray> iva_per_colors;
     bool                              IsTransparent();
@@ -666,8 +669,11 @@ public:
     void render(ERenderType                           type,
                 bool                                  disable_cullface,
                 const Transform3d &                   view_matrix,
-                std::function<bool(const GLVolume &)> filter_func  = std::function<bool(const GLVolume &)>(),
-                bool with_outline = true) const;
+                std::function<bool(const GLVolume &)> filter_func   = std::function<bool(const GLVolume &)>(),
+                bool                                  with_outline = true,
+                const std::array<float, 4>&           body_color           = {1.0f, 1.0f, 1.0f, 1.0f},
+                bool                                  partly_inside_enable =true
+           ) const;
 
     // Finalize the initialization of the geometry & indices,
     // upload the geometry and indices to OpenGL VBO objects
@@ -677,7 +683,9 @@ public:
     // If OpenGL VBOs were allocated, an OpenGL context has to be active to release them.
     void release_geometry() { for (auto *v : volumes) v->release_geometry(); }
     // Clear the geometry
-    void clear() { for (auto *v : volumes) delete v; volumes.clear(); }
+    void clear();
+
+    void release_volume (GLVolume* volume);
 
     bool empty() const { return volumes.empty(); }
     void set_range(double low, double high) { for (GLVolume *vol : this->volumes) vol->set_range(low, high); }

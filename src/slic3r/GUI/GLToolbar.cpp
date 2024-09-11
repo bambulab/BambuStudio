@@ -31,6 +31,8 @@ wxDEFINE_EVENT(EVT_GLTOOLBAR_EXPORT_ALL_SLICED_FILE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLTOOLBAR_PRINT_SELECT, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLTOOLBAR_SEND_TO_PRINTER, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLTOOLBAR_SEND_TO_PRINTER_ALL, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLTOOLBAR_PRINT_MULTI_MACHINE, SimpleEvent);
+
 
 wxDEFINE_EVENT(EVT_GLTOOLBAR_ADD, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLTOOLBAR_DELETE, SimpleEvent);
@@ -94,6 +96,43 @@ GLToolbarItem::GLToolbarItem(GLToolbarItem::EType type, const GLToolbarItem::Dat
     , m_highlight_state(NotHighlighted)
 {
     render_left_pos = 0.0f;
+}
+
+void GLToolbarItem::set_state(EState state)
+{
+    if (m_data.name == "arrange" || m_data.name == "layersediting" || m_data.name == "assembly_view") {
+        if (m_state == Hover && state == HoverPressed) {
+            start = std::chrono::system_clock::now();
+        }
+        else if ((m_state == HoverPressed && state == Hover) ||
+                 (m_state == Pressed && state == Normal) ||
+                 (m_state == HoverPressed && state == Normal)) {
+            if (m_data.name != "assembly_view") {
+                std::chrono::system_clock::time_point end = std::chrono::system_clock::now();
+                std::chrono::duration<int> duration = std::chrono::duration_cast<std::chrono::duration<int>>(end - start);
+                int times = duration.count();
+
+                NetworkAgent* agent = GUI::wxGetApp().getAgent();
+                if (agent) {
+                    std::string name = m_data.name + "_duration";
+                    std::string value = "";
+                    int existing_time = 0;
+
+                    agent->track_get_property(name, value);
+                    try {
+                        if (value != "") {
+                            existing_time = std::stoi(value);
+                        }
+                    }
+                    catch (...) {}
+
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " tool name:" << name << " duration: " << times + existing_time;
+                    agent->track_update_property(name, std::to_string(times + existing_time));
+                }
+            }
+        }
+    }
+    m_state = state;
 }
 
 bool GLToolbarItem::update_visibility()
@@ -491,11 +530,11 @@ std::string GLToolbar::get_tooltip() const
         if (item->is_hovered())
         {
             tooltip = item->get_tooltip();
-            if (!item->is_pressed())
+            if (!item->is_enabled())
             {
                 const std::string& additional_tooltip = item->get_additional_tooltip();
                 if (!additional_tooltip.empty())
-                    tooltip += "\n" + additional_tooltip;
+                    tooltip += ":\n" + additional_tooltip;
 
                 break;
             }

@@ -14,18 +14,19 @@
 namespace Slic3r {
 namespace GUI {
 
-static const std::string warning_text = _u8L("Unable to perform boolean operation on selected parts");
+static const std::string warning_text_common       = _u8L("Unable to perform boolean operation on selected parts");
+static const std::string warning_text_intersection = _u8L("Performed boolean intersection fails \n because the selected parts have no intersection");
 
 GLGizmoMeshBoolean::GLGizmoMeshBoolean(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoBase(parent, icon_filename, sprite_id)
 {
 }
 
-GLGizmoMeshBoolean::~GLGizmoMeshBoolean() 
+GLGizmoMeshBoolean::~GLGizmoMeshBoolean()
 {
 }
 
-bool GLGizmoMeshBoolean::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down) 
+bool GLGizmoMeshBoolean::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down)
 {
     if (action == SLAGizmoEventType::LeftDown) {
         const ModelObject* mo = m_c->selection_info()->model_object();
@@ -92,6 +93,13 @@ bool GLGizmoMeshBoolean::on_init()
 
 std::string GLGizmoMeshBoolean::on_get_name() const
 {
+    if (!on_is_activable() && m_state == EState::Off) {
+        if (!m_parent.get_selection().is_single_full_instance()) {
+            return _u8L("Mesh Boolean") + ":\n" + _u8L("Please right click to assembly these objects.");
+        } else if (m_parent.get_selection().get_volume_idxs().size() <= 1){
+            return _u8L("Mesh Boolean") + ":\n" + _u8L("Please add at least one more object and select them together,\nthen right click to assembly these objects.");
+        }
+    }
     return _u8L("Mesh Boolean");
 }
 
@@ -139,6 +147,9 @@ void GLGizmoMeshBoolean::on_render()
 
 void GLGizmoMeshBoolean::on_set_state()
 {
+    for (size_t i = 0; i < m_warning_texts.size(); i++) {
+        m_warning_texts[i] = "";
+    }
     if (m_state == EState::On) {
         m_src.reset();
         m_tool.reset();
@@ -154,7 +165,6 @@ void GLGizmoMeshBoolean::on_set_state()
         bool m_inter_delete_input = false;
         m_operation_mode = MeshBooleanOperation::Undef;
         m_selecting_state = MeshBooleanSelectingState::Undef;
-        wxGetApp().notification_manager()->close_plater_warning_notification(warning_text);
     }
 }
 
@@ -240,15 +250,15 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
     };
 
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0);
-    if (selectable(_u8L("Union").c_str(), m_operation_mode == MeshBooleanOperation::Union, ImVec2(max_tab_length, 0.0f))) {
+    if (selectable(_u8L("Union"), m_operation_mode == MeshBooleanOperation::Union, ImVec2(max_tab_length, 0.0f))) {
         m_operation_mode = MeshBooleanOperation::Union;
     }
     ImGui::SameLine(0, 0);
-    if (selectable(_u8L("Difference").c_str(), m_operation_mode == MeshBooleanOperation::Difference, ImVec2(max_tab_length, 0.0f))) {
+    if (selectable(_u8L("Difference"), m_operation_mode == MeshBooleanOperation::Difference, ImVec2(max_tab_length, 0.0f))) {
         m_operation_mode = MeshBooleanOperation::Difference;
     }
     ImGui::SameLine(0, 0);
-    if (selectable(_u8L("Intersection").c_str(), m_operation_mode == MeshBooleanOperation::Intersection, ImVec2(max_tab_length, 0.0f))) {
+    if (selectable(_u8L("Intersection"), m_operation_mode == MeshBooleanOperation::Intersection, ImVec2(max_tab_length, 0.0f))) {
         m_operation_mode = MeshBooleanOperation::Intersection;
     }
     ImGui::PopStyleVar();
@@ -260,7 +270,7 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
     wxString select_src_str = m_src.mv ? "1 " + _u8L("selected") : _u8L("Select");
     select_src_str << "##select_source_volume";
     ImGui::PushItemWidth(select_btn_length);
-    if (selectable(select_src_str.c_str(), m_selecting_state == MeshBooleanSelectingState::SelectSource, ImVec2(select_btn_length, 0)))
+    if (selectable(select_src_str, m_selecting_state == MeshBooleanSelectingState::SelectSource, ImVec2(select_btn_length, 0)))
         m_selecting_state = MeshBooleanSelectingState::SelectSource;
     ImGui::PopItemWidth();
     if (m_src.mv) {
@@ -288,7 +298,7 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
     wxString select_tool_str = m_tool.mv ? "1 " + _u8L("selected") : _u8L("Select");
     select_tool_str << "##select_tool_volume";
     ImGui::PushItemWidth(select_btn_length);
-    if (selectable(select_tool_str.c_str(), m_selecting_state == MeshBooleanSelectingState::SelectTool, ImVec2(select_btn_length, 0)))
+    if (selectable(select_tool_str, m_selecting_state == MeshBooleanSelectingState::SelectTool, ImVec2(select_btn_length, 0)))
         m_selecting_state = MeshBooleanSelectingState::SelectTool;
     ImGui::PopItemWidth();
     if (m_tool.mv) {
@@ -310,6 +320,7 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
     }
 
     bool enable_button = m_src.mv && m_tool.mv;
+    int index =(int) m_operation_mode;
     if (m_operation_mode == MeshBooleanOperation::Union)
     {
         if (operate_button(_L("Union") + "##btn", enable_button)) {
@@ -321,10 +332,10 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
             Slic3r::MeshBoolean::mcut::make_boolean(temp_src_mesh, temp_tool_mesh, temp_mesh_resuls, "UNION");
             if (temp_mesh_resuls.size() != 0) {
                 generate_new_volume(true, *temp_mesh_resuls.begin());
-                wxGetApp().notification_manager()->close_plater_warning_notification(warning_text);
+                m_warning_texts[index] = "";
             }
             else {
-                wxGetApp().notification_manager()->push_plater_warning_notification(warning_text);
+                m_warning_texts[index] = warning_text_common;
             }
         }
     }
@@ -339,10 +350,10 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
             Slic3r::MeshBoolean::mcut::make_boolean(temp_src_mesh, temp_tool_mesh, temp_mesh_resuls, "A_NOT_B");
             if (temp_mesh_resuls.size() != 0) {
                 generate_new_volume(m_diff_delete_input, *temp_mesh_resuls.begin());
-                wxGetApp().notification_manager()->close_plater_warning_notification(warning_text);
+                m_warning_texts[index] = "";
             }
             else {
-                wxGetApp().notification_manager()->push_plater_warning_notification(warning_text);
+                m_warning_texts[index] = warning_text_common;
             }
         }
     }
@@ -357,12 +368,16 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
             Slic3r::MeshBoolean::mcut::make_boolean(temp_src_mesh, temp_tool_mesh, temp_mesh_resuls, "INTERSECTION");
             if (temp_mesh_resuls.size() != 0) {
                 generate_new_volume(m_inter_delete_input, *temp_mesh_resuls.begin());
-                wxGetApp().notification_manager()->close_plater_warning_notification(warning_text);
+                m_warning_texts[index] = "";
             }
             else {
-                wxGetApp().notification_manager()->push_plater_warning_notification(warning_text);
+                m_warning_texts[index] = warning_text_intersection;
             }
         }
+        
+    }
+    if (index >= 0 && index < m_warning_texts.size()) {
+        render_input_window_warning(m_warning_texts[index]);
     }
 
     float win_w = ImGui::GetWindowWidth();
@@ -379,6 +394,12 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
 
     GizmoImguiEnd();
     ImGuiWrapper::pop_toolbar_style();
+}
+
+void GLGizmoMeshBoolean::render_input_window_warning(const std::string &text) {
+    if (text.size() > 0) {
+        m_imgui->warning_text(_L("Warning") + ": " + _L(text));
+    }
 }
 
 void GLGizmoMeshBoolean::on_load(cereal::BinaryInputArchive &ar)
@@ -423,7 +444,7 @@ void GLGizmoMeshBoolean::generate_new_volume(bool delete_input, const TriangleMe
     new_volume->config.apply(old_volume->config);
     new_volume->set_type(old_volume->type());
     new_volume->set_material_id(old_volume->material_id());
-    new_volume->set_offset(old_volume->get_transformation().get_offset());
+    //new_volume->set_offset(old_volume->get_transformation().get_offset());
     //Vec3d translate_z = { 0,0, (new_volume->source.mesh_offset - old_volume->source.mesh_offset).z() };
     //new_volume->translate(new_volume->get_transformation().get_matrix(true) * translate_z);
     //new_volume->supported_facets.assign(old_volume->supported_facets);
@@ -441,9 +462,7 @@ void GLGizmoMeshBoolean::generate_new_volume(bool delete_input, const TriangleMe
         wxGetApp().obj_list()->delete_from_model_and_list(items);
     }
 
-    //bool sinking = curr_model_object->bounding_box().min.z() < SINKING_Z_THRESHOLD;
-    //if (!sinking)
-    //    curr_model_object->ensure_on_bed();
+    curr_model_object->ensure_on_bed();
     //curr_model_object->sort_volumes(true);
 
     wxGetApp().plater()->update();

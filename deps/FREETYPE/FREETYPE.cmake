@@ -11,8 +11,8 @@ else()
 endif()
 
 bambustudio_add_cmake_project(FREETYPE
-    URL https://mirror.ossplanet.net/nongnu/freetype/freetype-2.12.1.tar.gz
-    URL_HASH SHA256=efe71fd4b8246f1b0b1b9bfca13cfff1c9ad85930340c27df469733bbb620938
+    URL https://github.com/freetype/freetype/archive/refs/tags/VER-2-12-1.tar.gz
+    URL_HASH SHA256=0E72CAE32751598D126CFD4BCEDA909F646B7231AB8C52E28ABB686C20A2BEA1
     #DEPENDS ${ZLIB_PKG}
     #"${_patch_step}"
     CMAKE_ARGS

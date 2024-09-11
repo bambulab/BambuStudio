@@ -2,11 +2,18 @@
 #define slic3r_GLGizmoBase_hpp_
 
 #include "libslic3r/Point.hpp"
+#include "libslic3r/Color.hpp"
 
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/GLModel.hpp"
+#include "slic3r/GUI/MeshUtils.hpp"
 
 #include <cereal/archives/binary.hpp>
+
+#include <wx/event.h>
+#include <wx/timer.h>
+
+#include <chrono>
 
 #define ENABLE_FIXED_GRABBER 1
 
@@ -113,6 +120,21 @@ protected:
     std::string m_icon_filename;
     unsigned int m_sprite_id;
     int m_hover_id;
+    enum GripperType {
+        UNDEFINE,
+        POINT,
+        EDGE,
+        CIRCLE,
+        CIRCLE_1,
+        CIRCLE_2,
+        PLANE,
+        PLANE_1,
+        PLANE_2,
+        SPHERE_1,
+        SPHERE_2,
+    };
+    std::map<GripperType, std::shared_ptr<PickRaycaster>> m_gripper_id_raycast_map;
+
     bool m_dragging;
     std::array<float, 4> m_base_color;
     std::array<float, 4> m_drag_color;
@@ -127,6 +149,29 @@ protected:
     GLModel m_sphere;
 
     bool m_is_dark_mode = false;
+
+    std::chrono::system_clock::time_point start;
+    enum DoubleShowType {
+        Normal, // origin data
+        PERCENTAGE,
+        DEGREE,//input must is radian
+    };
+    struct SliderInputLayout
+    {
+        float sliders_left_width;
+        float sliders_width;
+        float input_left_width;
+        float input_width;
+    };
+    bool render_slider_double_input_by_format(const SliderInputLayout &    layout,
+                                              const std::string &          label,
+                                              float &                      value_in,
+                                              float                        value_min,
+                                              float                        value_max,
+                                              int                          keep_digit ,
+                                              DoubleShowType               show_type = DoubleShowType::Normal);
+    bool render_combo(const std::string &label, const std::vector<std::string> &lines,
+        size_t &selection_idx, float label_width, float item_width);
 
 public:
     GLGizmoBase(GLCanvas3D& parent,
@@ -145,8 +190,7 @@ public:
     void set_group_id(int id) { m_group_id = id; }
 
     EState get_state() const { return m_state; }
-    void set_state(EState state) { m_state = state; on_set_state(); }
-
+    void set_state(EState state);
     int get_shortcut_key() const { return m_shortcut_key; }
 
     const std::string& get_icon_filename() const { return m_icon_filename; }
@@ -163,7 +207,7 @@ public:
     void set_common_data_pool(CommonGizmosDataPool* ptr) { m_c = ptr; }
 
     virtual bool apply_clipping_plane() { return true; }
-
+    virtual bool on_mouse(const wxMouseEvent &mouse_event) { return false; }
     unsigned int get_sprite_id() const { return m_sprite_id; }
 
     int get_hover_id() const { return m_hover_id; }
@@ -195,14 +239,14 @@ public:
     /// </summary>
     virtual void data_changed(bool is_serializing){};
     int get_count() { return ++count; }
-    std::string get_gizmo_name() { return on_get_name(); }
-
+    static void  render_glmodel(GLModel &model, const std::array<float, 4> &color, Transform3d view_model_matrix, bool for_picking = false, float emission_factor = 0.0f);
 protected:
     float last_input_window_width = 0;
     virtual bool on_init() = 0;
     virtual void on_load(cereal::BinaryInputArchive& ar) {}
     virtual void on_save(cereal::BinaryOutputArchive& ar) const {}
     virtual std::string on_get_name() const = 0;
+    virtual std::string on_get_name_str() { return ""; }
     virtual void on_set_state() {}
     virtual void on_set_hover_id() {}
     virtual bool on_is_activable() const { return true; }

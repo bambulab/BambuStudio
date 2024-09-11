@@ -24,6 +24,7 @@ const std::string nozzle_temperature_Tag   = " nozzle_temperature =";
 const std::string nozzle_temperature_initial_layer_Tag  = " nozzle_temperature_initial_layer";
 const std::string Z_HEIGHT_TAG                         = " Z_HEIGHT: ";
 const std::string Initial_Layer_Ptint_Height_Tag        = " initial_layer_print_height =";
+const std::string Line_Width_Tag = " line_width =";
 
 GCodeCheckResult GCodeChecker::parse_file(const std::string& path)
 {
@@ -110,8 +111,8 @@ GCodeCheckResult GCodeChecker::parse_comment(GCodeLine& line)
     // extrusion role tag
     if (starts_with(comment, Extrusion_Role_Tag)) {
         m_role = string_to_role(comment.substr(Extrusion_Role_Tag.length()));
+        check_gap_infill_width = false;
         if (m_role == erExternalPerimeter) {
-
             if (z_height == initial_layer_height && nozzle_temp != nozzle_temperature_initial_layer[filament_id]) {
                 std::cout << "invalid filament nozzle initial layer temperature comment with invalid value!" << std::endl;
                 return GCodeCheckResult::ParseFailed;
@@ -121,9 +122,11 @@ GCodeCheckResult GCodeChecker::parse_comment(GCodeLine& line)
                 std::cout << "invalid filament nozzle temperature comment with invalid value!" << std::endl;
                 return GCodeCheckResult::ParseFailed;
             }
+        } else if (m_role == erGapFill) {
+            check_gap_infill_width = true;
         }
 
-    } else if (starts_with(comment, Wipe_Start_Tag)) {
+    }else if (starts_with(comment, Wipe_Start_Tag)) {
         m_wiping = true;
     } else if (starts_with(comment, Wipe_End_Tag)) {
         m_wiping = false;
@@ -138,6 +141,15 @@ GCodeCheckResult GCodeChecker::parse_comment(GCodeLine& line)
         if (!parse_double_from_str(str, m_width)) {
             std::cout << "invalid width comment with invalid value!" << std::endl;
             return GCodeCheckResult::ParseFailed;
+        }
+
+        //check gap infill line width
+        if( check_gap_infill_width ) {
+            if (m_width > max_gap_infill_width) {
+                std::cout << "gap infill width has invalid value!" << std::endl;
+                std::cout << "allowed max gap width: " << max_gap_infill_width << std::endl;
+                return GCodeCheckResult::ParseFailed;
+            }
         }
     } else if (starts_with(comment, Layer_Change_Tag)) {
         m_layer_num++;
@@ -175,8 +187,15 @@ GCodeCheckResult GCodeChecker::parse_comment(GCodeLine& line)
             std::cout << "invalid initial layer height comment with invalid value!" << std::endl;
             return GCodeCheckResult::ParseFailed;
         }
-   }
-
+    } else if (starts_with(comment, Line_Width_Tag)) {
+        std::string str = comment.substr(Line_Width_Tag.size());
+        double default_line_width = 0.0f;
+        if (!parse_double_from_str(str, default_line_width)) {
+            std::cout << "invalid initial layer height comment with invalid value!" << std::endl;
+            return GCodeCheckResult::ParseFailed;
+        }
+        max_gap_infill_width = 3 * default_line_width;
+    }
     return GCodeCheckResult::Success;
 }
 

@@ -94,7 +94,8 @@ namespace BBL {
 
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"
 #define BAMBU_NETWORK_AGENT_NAME            "bambu_network_agent"
-#define BAMBU_NETWORK_AGENT_VERSION         "01.07.09.02"
+
+#define BAMBU_NETWORK_AGENT_VERSION         "01.09.02.05"
 
 //iot preset type strings
 #define IOT_PRINTER_TYPE_STRING     "printer"
@@ -104,26 +105,12 @@ namespace BBL {
 #define IOT_JSON_KEY_VERSION            "version"
 #define IOT_JSON_KEY_NAME               "name"
 #define IOT_JSON_KEY_TYPE               "type"
-#define IOT_JSON_KEY_UPDATE_TIME        "updated_time"
+#define IOT_JSON_KEY_UPDATE_TIME        "update_time"
+#define IOT_JSON_KEY_UPDATED_TIME        "updated_time"
 #define IOT_JSON_KEY_BASE_ID            "base_id"
 #define IOT_JSON_KEY_SETTING_ID         "setting_id"
 #define IOT_JSON_KEY_FILAMENT_ID        "filament_id"
 #define IOT_JSON_KEY_USER_ID            "user_id"
-
-#define IOT_JSON_KEY_SIGN_DATE              "sign_date"
-#define IOT_JSON_KEY_CERT_START_DATE        "cert_start_date"
-#define IOT_JSON_KEY_CERT_END_DATE          "cert_end_date"
-#define IOT_JSON_KEY_CERT_ISSUE_NAME        "issue_name"
-#define IOT_JSON_KEY_CERT_SUBJECT_NAME      "subject_name"
-#define IOT_JSON_KEY_CERT_SERIAL_NUMBER     "serial_number"
-#define IOT_JSON_KEY_CERT_HASH_VALUE        "hash_value"
-#define IOT_JSON_KEY_CERT_VERIFY_RESULT     "verify_result"
-
-#define EMBEDDED_ISSUER_NAME          "GlobalSign GCC R45 EV CodeSigning CA 2020"
-#define EMBEDDED_SUBJECT_NAME        "Shenzhen Tuozhu Technology Co., Ltd."
-#define EMBEDDED_SERIAL_NAME       "0b209295a54b188466ad7478"
-#define EMBEDDED_HASH_NAME         "9690647085f910ffe2098129bc1229956a51e250"
-
 
 // user callbacks
 typedef std::function<void(int online_login, bool login)> OnUserLoginFn;
@@ -160,6 +147,7 @@ enum SendingPrintJobStage {
     PrintingStageWaitPrinter = 5,
     PrintingStageFinished = 6,
     PrintingStageERROR = 7,
+    PrintingStageLimit = 8,
 };
 
 enum PublishingStage {
@@ -206,6 +194,7 @@ struct PrintParams {
     std::string     origin_model_id;
     std::string     print_type;
     std::string     dst_file;
+    std::string     dev_name;
 
     /* access options */
     std::string     dev_ip;
@@ -225,6 +214,14 @@ struct PrintParams {
     std::string     extra_options;
 };
 
+struct TaskQueryParams
+{
+    std::string dev_id;
+    int status = 0;
+    int offset = 0;
+    int limit = 20;
+};
+
 struct PublishParams {
     std::string     project_name;
     std::string     project_3mf_file;
@@ -232,6 +229,14 @@ struct PublishParams {
     std::string     project_model_id;
     std::string     design_id;
     std::string     config_filename;
+};
+
+struct CertificateInformation {
+    std::string     issuer;
+    std::string     sub_name;
+    std::string     start_date;
+    std::string     end_date;
+    std::string     serial_number;
 };
 
 }

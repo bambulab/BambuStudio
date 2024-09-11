@@ -1,0 +1,164 @@
+/*---Whole---*/
+*
+{
+	padding:0px;
+	border: 0px;
+	margin: 0px;
+    font-family: "system-ui", "Segoe UI", Roboto, Oxygen, Ubuntu, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-sans;
+	border-color: #D7D7D7;
+	user-select: none;
+}
+
+html, body {
+	line-height: 20px;
+    font-size: 14px;
+	padding:0px;
+	border: 0px;
+	margin: 0px;
+}
+
+/*---字体----*/
+.TextS1
+{
+	color:#333333;
+}
+
+.TextS2
+{
+	color:#6B6B6B;
+}
+
+.TextS3
+{
+	color: #ACACAC;
+}
+
+/*-------按钮------*/
+.Btn_White
+{
+	background-color:#E5E5E5;
+	border: 1px solid #BABABA;
+	border-radius: 8px;
+	padding: 4px 20px;
+	color: black;
+	cursor: pointer;
+}
+
+.Btn_White:hover
+{
+	background-color:#EBEBEB;
+	border: 1px solid #C2C2C2;
+}
+
+.Btn_Green
+{
+	background-color:#00AE42;
+	border: 1px solid #009438;
+	border-radius: 8px;
+	color: white;
+	padding: 4px 20px;
+	cursor: pointer;
+}
+
+.Btn_Green:hover
+{
+	background-color:#00A03D;
+	border: 1px solid #009438;
+}
+
+/*---滚动条---*/
+.ZScrol::-webkit-scrollbar {/*滚动条整体样式*/
+    width: 12px;     /*高宽分别对应横竖滚动条的尺寸*/
+    height: 1px;
+	padding: 2px;
+}
+
+.ZScrol::-webkit-scrollbar-thumb {/*滚动条里面小方块*/
+    border-radius: 6px;
+    -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+	box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+    background-color: #AAAAAA;
+}
+
+.ZScrol::-webkit-scrollbar-track {/*滚动条里面轨道*/
+        -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+	    box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+        border-radius: 10px;
+        background: #EDEDED;
+}
+
+/*------Top Menu-----*/
+#MenuArea
+{
+	display:flex;
+	justify-content: flex-end;
+	margin-bottom: 24px;
+}
+
+.Menu_Btn
+{
+	display: flex;
+	align-items: center;
+	height: 40px;
+	margin-right: 10px;
+}
+
+.Menu_Btn img
+{
+	margin-right: 6px;
+	width: 18px;
+}
+
+/*---弹性内容块---*/
+.GuideBlock
+{
+	margin: 0px 10px 24px 10px;
+	cursor: pointer;
+}
+
+@media screen and (max-width: 815px) {
+	.GuideBlock
+	{
+		width: calc(50% - 20px);
+	}
+	.SingleGuideBar :nth-child(n+3)
+	{
+		display: none;
+	}
+}
+
+@media screen and ( min-width:816px) and ( max-width:1087px )
+{
+	.GuideBlock
+	{
+		width: calc(33% - 20px);
+	}
+	.SingleGuideBar :nth-child(n+4)
+	{
+		display: none;
+	}	
+}
+
+@media screen and ( min-width:1088px) and (max-width:1359px ) {
+	.GuideBlock
+	{
+		width: calc(25% - 20px);
+	}
+	.SingleGuideBar :nth-child(n+5)
+	{
+		display: none;
+	}	
+}
+
+@media screen and ( min-width:1360px) {
+	.GuideBlock
+	{
+		width: calc(20% - 20px);
+	}
+	.SingleGuideBar :nth-child(n+6)
+	{
+		display: none;
+	}
+}
+
+/*---打开/新建项目---*/

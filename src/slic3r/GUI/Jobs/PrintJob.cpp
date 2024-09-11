@@ -1,4 +1,5 @@
 #include "PrintJob.hpp"
+#include <regex>
 #include "libslic3r/MTUtils.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PresetBundle.hpp"
@@ -30,7 +31,8 @@ static wxString sending_over_lan_str        = _L("Sending print job over LAN");
 static wxString sending_over_cloud_str      = _L("Sending print job through cloud service");
 
 static wxString wait_sending_finish         = _L("Print task sending times out.");
-static wxString desc_wait_sending_finish    = _L("The printer timed out while receiving a print job. Please check if the network is functioning properly and send the print again.");
+//static wxString desc_wait_sending_finish    = _L("The printer timed out while receiving a print job. Please check if the network is functioning properly and send the print again.");
+//static wxString desc_wait_sending_finish    = _L("The printer timed out while receiving a print job. Please check if the network is functioning properly.");
 
 PrintJob::PrintJob(std::shared_ptr<ProgressIndicator> pri, Plater* plater, std::string dev_id)
 : PlaterJob{ std::move(pri), plater },
@@ -75,9 +77,15 @@ std::string PrintJob::truncate_string(const std::string& str, size_t maxLength)
     }
 
     wxString local_str = wxString::FromUTF8(str);
-    wxString truncatedStr = local_str.Mid(0, maxLength - 3);
-    truncatedStr.append("...");
+    wxString truncatedStr;
 
+    for (auto i = 1; i < local_str.Length(); i++) {
+        wxString tagStr = local_str.Mid(0, i);
+        if (tagStr.ToUTF8().length() >= maxLength) {
+            truncatedStr = local_str.Mid(0, i - 1);
+            break;
+        }
+    }
     return truncatedStr.utf8_string();
 }
 
@@ -115,7 +123,7 @@ wxString PrintJob::get_http_error_msg(unsigned int status, std::string body)
             return _L("Service Unavailable");
         }
         else {
-            wxString unkown_text = _L("Unkown Error.");
+            wxString unkown_text = _L("Unknown Error.");
             unkown_text += wxString::Format("status=%u, body=%s", status, body);
             BOOST_LOG_TRIVIAL(error) << "http_error: status=" << status << ", code=" << code << ", error=" << error;
             return unkown_text;
@@ -273,22 +281,72 @@ void PrintJob::process()
         auto model_name = model_info->metadata_items.find(BBL_DESIGNER_MODEL_TITLE_TAG);
         if (model_name != model_info->metadata_items.end()) {
             try {
-                params.project_name = model_name->second;
+
+                std::string mall_model_name = model_name->second;
+                std::replace(mall_model_name.begin(), mall_model_name.end(), ' ', '_');
+                const char* unusable_symbols = "<>[]:/\\|?*\" ";
+                for (const char* symbol = unusable_symbols; *symbol != '\0'; ++symbol) {
+                    std::replace(mall_model_name.begin(), mall_model_name.end(), *symbol, '_');
+                }
+
+                std::regex pattern("_+");
+                params.project_name = std::regex_replace(mall_model_name, pattern, "_");
             }
             catch (...) {}
         }
     }
 
+    params.stl_design_id = 0;
+
     if (!wxGetApp().model().stl_design_id.empty()) {
-       int stl_design_id = 0;
-        try {
-            stl_design_id = std::stoi(wxGetApp().model().stl_design_id);
+
+        auto country_code = wxGetApp().app_config->get_country_code();
+        bool match_code = false;
+
+        if (wxGetApp().model().stl_design_country == "DEV" && (country_code == "ENV_CN_DEV" || country_code == "NEW_ENV_DEV_HOST")) {
+            match_code = true;
         }
-        catch (const std::exception& e) {
-            stl_design_id = 0;
+
+        if (wxGetApp().model().stl_design_country == "QA" && (country_code == "ENV_CN_QA" || country_code == "NEW_ENV_QAT_HOST")) {
+            match_code = true;
         }
-        params.stl_design_id = stl_design_id;
+
+        if (wxGetApp().model().stl_design_country == "CN_PRE" && (country_code == "ENV_CN_PRE" || country_code == "NEW_ENV_PRE_HOST")) {
+            match_code = true;
+        }
+
+        if (wxGetApp().model().stl_design_country == "US_PRE" && country_code == "ENV_US_PRE") {
+            match_code = true;
+        }
+
+        if (country_code == wxGetApp().model().stl_design_country) {
+            match_code = true;
+        }
+
+        if (match_code) {
+            int stl_design_id = 0;
+            try {
+                stl_design_id = std::stoi(wxGetApp().model().stl_design_id);
+            }
+            catch (...) {
+                stl_design_id = 0;
+            }
+            params.stl_design_id = stl_design_id;
+        }
     }
+
+
+    if (params.stl_design_id == 0 || !wxGetApp().model().design_id.empty()) {
+        try {
+            params.stl_design_id = std::stoi(wxGetApp().model().design_id);
+        }
+        catch (...)
+        {
+            params.stl_design_id = 0;
+        }
+    }
+
+    
 
     if (params.preset_name.empty() && m_print_type == "from_normal") { params.preset_name = wxString::Format("%s_plate_%d", m_project_name, curr_plate_idx).ToStdString(); }
     if (params.project_name.empty()) {params.project_name = m_project_name;}
@@ -444,11 +502,12 @@ void PrintJob::process()
                     boost::this_thread::sleep_for(boost::chrono::milliseconds(1000));
                 }
                 //this->update_status(curr_percent, _L("Print task sending times out."));
-                m_plater->update_print_error_info(BAMBU_NETWORK_ERR_TIMEOUT, wait_sending_finish.ToStdString(), desc_wait_sending_finish.ToStdString());
+                //m_plater->update_print_error_info(BAMBU_NETWORK_ERR_TIMEOUT, wait_sending_finish.ToStdString(), desc_wait_sending_finish.ToStdString());
                 BOOST_LOG_TRIVIAL(info) << "print_job: timeout, cancel the job" << obj->job_id_;
                 /* handle tiemout */
-                obj->command_task_cancel(curr_job_id);
-                return false;
+                //obj->command_task_cancel(curr_job_id);
+                //return false;
+                return true;
             }
             BOOST_LOG_TRIVIAL(info) << "print_job: obj is null";
             return true;
@@ -467,7 +526,12 @@ void PrintJob::process()
 
 
         //use ftp only
-        if (!wxGetApp().app_config->get("lan_mode_only").empty() && wxGetApp().app_config->get("lan_mode_only") == "1") {
+        if (m_print_type == "from_sdcard_view") {
+            BOOST_LOG_TRIVIAL(info) << "print_job: try to send with cloud, model is sdcard view";
+            this->update_status(curr_percent, _L("Sending print job through cloud service"));
+            result = m_agent->start_sdcard_print(params, update_fn, cancel_fn);
+        }
+        else if (!wxGetApp().app_config->get("lan_mode_only").empty() && wxGetApp().app_config->get("lan_mode_only") == "1") {
 
             if (params.password.empty() || params.dev_ip.empty()) {
                 error_text = wxString::Format("Access code:%s Ip address:%s", params.password, params.dev_ip);

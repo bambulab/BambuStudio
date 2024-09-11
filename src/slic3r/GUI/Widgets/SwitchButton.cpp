@@ -5,7 +5,9 @@
 #include "../wxExtensions.hpp"
 #include "../Utils/MacDarkMode.hpp"
 
+#include <wx/dcclient.h>
 #include <wx/dcgraph.h>
+#include <wx/dcmemory.h>
 
 SwitchButton::SwitchButton(wxWindow* parent, wxWindowID id)
 	: wxBitmapToggleButton(parent, id, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE | wxBU_EXACTFIT)
@@ -80,6 +82,7 @@ void SwitchButton::Rescale()
 			textSize[0] = dc.GetTextExtent(labels[0]);
 			textSize[1] = dc.GetTextExtent(labels[1]);
 		}
+		float fontScale = 0;
 		{
 			thumbSize = textSize[0];
 			auto size = textSize[1];
@@ -94,6 +97,7 @@ void SwitchButton::Rescale()
             maxWidth *= scale;
 #endif
 			if (trackSize.x > maxWidth) {
+                fontScale   = float(maxWidth) / trackSize.x;
                 thumbSize.x -= (trackSize.x - maxWidth) / 2;
                 trackSize.x = maxWidth;
 			}
@@ -113,6 +117,11 @@ void SwitchButton::Rescale()
             memdc.SelectObject(bmp);
 #endif
             memdc.SetFont(dc.GetFont());
+            if (fontScale) {
+                memdc.SetFont(dc.GetFont().Scaled(fontScale));
+                textSize[0] = memdc.GetTextExtent(labels[0]);
+                textSize[1] = memdc.GetTextExtent(labels[1]);
+			}
 			auto state = i == 0 ? StateColor::Enabled : (StateColor::Checked | StateColor::Enabled);
             {
 #ifdef __WXMSW__

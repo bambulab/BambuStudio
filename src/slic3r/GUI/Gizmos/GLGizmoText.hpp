@@ -26,6 +26,8 @@ private:
     bool m_bold = true;
     bool m_italic = false;
     float m_thickness = 2.f;
+    float m_thickness_min = 0.01f;
+    float m_thickness_max = 999.99f;
     float m_embeded_depth = 0.f;
     float m_rotate_angle = 0;
     float m_text_gap = 0.f;
@@ -54,6 +56,11 @@ private:
     std::vector<TextureInfo> m_textures;
 
     std::vector<std::string> m_font_names;
+
+    bool m_init_texture = false;
+    std::vector<bool> m_font_status;
+    std::mutex m_mutex;
+    std::thread m_thread;
 
     bool m_is_modify = false;
     bool m_need_update_text = false;
@@ -89,6 +96,7 @@ public:
 protected:
     virtual bool on_init() override;
     virtual std::string on_get_name() const override;
+    virtual std::string on_get_name_str() override { return "Text shape"; }
     virtual bool on_is_activable() const override;
     virtual void on_render() override;
     virtual void on_render_for_picking() override;
@@ -105,6 +113,7 @@ protected:
 
 private:
     ModelVolume *get_selected_single_volume(int& out_object_idx, int& out_volume_idx) const;
+    void update_font_status();
     void reset_text_info();
     bool update_text_positions(const std::vector<std::string>& texts);
     TriangleMesh get_text_mesh(const char* text_str, const Vec3d &position, const Vec3d &normal, const Vec3d &text_up_dir);

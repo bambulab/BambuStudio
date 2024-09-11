@@ -1,0 +1,22 @@
+{
+    "type": "filament",
+    "name": "Generic PA-CF @Troodon",
+    "inherits": "fdm_filament_pa",
+    "from": "system",
+    "filament_id": "GFN98",
+    "setting_id": "GFSN98_Troodon_00",
+    "instantiation": "true",
+    "filament_type": [
+        "PA-CF"
+    ],
+    "nozzle_temperature": [
+        "280"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "280"
+    ],
+    "compatible_printers": [
+        "Troodon 2.0 Klipper 0.4 nozzle",
+        "Troodon 2.0 RRF 0.4 nozzle"
+    ]
+}

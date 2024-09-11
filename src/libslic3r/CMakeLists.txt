@@ -48,6 +48,8 @@ set(lisbslic3r_sources
     ClipperUtils.hpp
     Clipper2Utils.cpp
     Clipper2Utils.hpp
+    Color.cpp
+    Color.hpp
     Config.cpp
     Config.hpp
     CurveAnalyzer.cpp
@@ -82,6 +84,8 @@ set(lisbslic3r_sources
     Fill/FillConcentric.hpp
     Fill/FillConcentricInternal.cpp
     Fill/FillConcentricInternal.hpp
+    Fill/FillCrossHatch.cpp
+    Fill/FillCrossHatch.hpp
     Fill/FillHoneycomb.cpp
     Fill/FillHoneycomb.hpp
     Fill/FillGyroid.cpp
@@ -169,9 +173,12 @@ set(lisbslic3r_sources
     Geometry/Curves.hpp
     Geometry/MedialAxis.cpp
     Geometry/MedialAxis.hpp
+	Geometry/Voronoi.cpp
     Geometry/Voronoi.hpp
     Geometry/VoronoiOffset.cpp
     Geometry/VoronoiOffset.hpp
+	Geometry/VoronoiUtils.hpp
+    Geometry/VoronoiUtils.cpp
     Geometry/VoronoiUtilsCgal.cpp
     Geometry/VoronoiUtilsCgal.hpp
     Geometry/VoronoiVisualUtils.hpp
@@ -197,12 +204,17 @@ set(lisbslic3r_sources
     ModelArrange.cpp
     MultiMaterialSegmentation.cpp
     MultiMaterialSegmentation.hpp
+    Measure.hpp
+    Measure.cpp
+    MeasureUtils.hpp
     CustomGCode.cpp
     CustomGCode.hpp
     Arrange.hpp
     Arrange.cpp
     NormalUtils.cpp
     NormalUtils.hpp
+    ObjColorUtils.cpp
+    ObjColorUtils.hpp
     Orient.hpp
     Orient.cpp
     MultiPoint.cpp
@@ -210,6 +222,8 @@ set(lisbslic3r_sources
     MutablePriorityQueue.hpp
     ObjectID.cpp
     ObjectID.hpp
+	ParameterUtils.cpp
+    ParameterUtils.hpp
     PerimeterGenerator.cpp
     PerimeterGenerator.hpp
     PlaceholderParser.cpp
@@ -280,6 +294,7 @@ set(lisbslic3r_sources
     Surface.hpp
     SurfaceCollection.cpp
     SurfaceCollection.hpp
+    SurfaceMesh.hpp
     SVG.cpp
     SVG.hpp
     Technologies.hpp
@@ -383,8 +398,6 @@ set(lisbslic3r_sources
     Arachne/utils/PolygonsSegmentIndex.hpp
     Arachne/utils/PolylineStitcher.hpp
     Arachne/utils/PolylineStitcher.cpp
-    Arachne/utils/VoronoiUtils.hpp
-    Arachne/utils/VoronoiUtils.cpp
     Arachne/SkeletalTrapezoidation.hpp
     Arachne/SkeletalTrapezoidation.cpp
     Arachne/SkeletalTrapezoidationEdge.hpp
@@ -395,6 +408,9 @@ set(lisbslic3r_sources
     Arachne/WallToolPaths.cpp
     Shape/TextShape.hpp
     Shape/TextShape.cpp
+    RegionExpansion.hpp
+    RegionExpansion.cpp
+    ClipperZUtils.hpp
 )
 
 if (APPLE)
@@ -418,6 +434,7 @@ set(CGAL_DO_NOT_WARN_ABOUT_CMAKE_BUILD_TYPE ON CACHE BOOL "" FORCE)
 cmake_policy(PUSH)
 cmake_policy(SET CMP0011 NEW)
 find_package(CGAL REQUIRED)
+find_package(OpenCV REQUIRED core)
 cmake_policy(POP)
 
 add_library(libslic3r_cgal STATIC MeshBoolean.cpp MeshBoolean.hpp  TryCatchSignal.hpp
@@ -438,6 +455,13 @@ if (_opts)
     list(FILTER _opts_good EXCLUDE REGEX frounding-math)
     set_target_properties(${_cgal_tgt} PROPERTIES INTERFACE_COMPILE_OPTIONS "${_opts_good}")
     target_compile_options(libslic3r_cgal PRIVATE "${_opts_bad}")
+endif()
+
+if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 14.1)
+    set_property(TARGET libslic3r PROPERTY CXX_STANDARD 17)
+    set_property(TARGET libslic3r PROPERTY CXX_EXTENSIONS OFF)
+    set_property(TARGET libslic3r_cgal PROPERTY CXX_STANDARD 17)
+    set_property(TARGET libslic3r_cgal PROPERTY CXX_EXTENSIONS OFF)
 endif()
 
 target_link_libraries(libslic3r_cgal PRIVATE ${_cgal_tgt} libigl mcut)
@@ -509,6 +533,7 @@ target_link_libraries(libslic3r
     ${OCCT_LIBS}
     Clipper2
     mcut
+    opencv_world
     )
 
 if(NOT WIN32)

@@ -242,6 +242,7 @@ protected:
     void render_cursor_circle() const;
     void render_cursor_sphere(const Transform3d& trafo) const;
     // BBS
+    bool is_valid_height_range_cursor(float min_z, float max_z) const;
     void render_cursor_height_range(const Transform3d& trafo) const;
     //BBS: add logic to distinguish the first_time_update and later_update
     virtual void update_model_object() = 0;
@@ -304,6 +305,11 @@ protected:
     static constexpr float SmartFillAngleMax  = 90.f;
     static constexpr float SmartFillAngleStep = 1.f;
 
+    // BBL: paint behavior enchancement
+    bool  m_vertical_only   = false;
+    bool  m_horizontal_only = false;
+    bool  m_is_front_view   = false;
+    float m_front_view_radian = 0;
     // It stores the value of the previous mesh_id to which the seed fill was applied.
     // It is used to detect when the mouse has moved from one volume to another one.
     int      m_seed_fill_last_mesh_id     = -1;
@@ -324,7 +330,8 @@ protected:
 
     TriangleSelector::ClippingPlane get_clipping_plane_in_volume_coordinates(const Transform3d &trafo) const;
 
-private:
+    void change_camera_view_angle(float front_view_radian);
+ private:
     std::vector<std::vector<ProjectedMousePosition>> get_projected_mouse_positions(const Vec2d &mouse_position, double resolution, const std::vector<Transform3d> &trafo_matrices) const;
 
     std::vector<ProjectedHeightRange> get_projected_height_range(const Vec2d& mouse_position, double resolution, const std::vector<const ModelVolume*>& part_volumes, const std::vector<Transform3d>& trafo_matrices) const;
@@ -365,14 +372,15 @@ private:
         ObjectID object_id;
         int instance_idx{ -1 };
     };
-    mutable CutContours m_cut_contours;
+    mutable std::vector<CutContours> m_cut_contours;
+    mutable int                      m_volumes_index = 0;
     mutable float       m_cursor_z{0};
     mutable double      m_height_start_z_in_imgui{0};
     mutable bool        m_is_set_height_start_z_by_imgui{false};
     mutable Vec2i       m_height_start_pos{0, 0};
     mutable bool        m_is_cursor_in_imgui{false};
     BoundingBoxf3 bounding_box() const;
-    void          update_contours(const TriangleMesh &vol_mesh, float cursor_z, float max_z, float min_z, bool update_height_start_pos) const;
+    void          update_contours(int i, const TriangleMesh &vol_mesh, float cursor_z, float max_z, float min_z, bool update_height_start_pos) const;
     Vec2i         _3d_to_mouse(Vec3d pos_in_3d, const Camera &camera) const;
 protected:
     void on_set_state() override;

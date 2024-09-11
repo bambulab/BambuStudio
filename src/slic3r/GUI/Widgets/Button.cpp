@@ -1,6 +1,7 @@
 #include "Button.hpp"
 #include "Label.hpp"
 
+#include <wx/dcclient.h>
 #include <wx/dcgraph.h>
 
 BEGIN_EVENT_TABLE(Button, StaticBox)
@@ -143,6 +144,11 @@ void Button::SetValue(bool state)
 
 bool Button::GetValue() const { return state_handler.states() & StateHandler::Checked; }
 
+void Button::SetCenter(bool isCenter)
+{
+    this->isCenter = isCenter;
+}
+
 void Button::Rescale()
 {
     if (this->active_icon.bmp().IsOk())
@@ -199,9 +205,11 @@ void Button::render(wxDC& dc)
     }
     // move to center
     wxRect rcContent = { {0, 0}, size };
-    wxSize offset = (size - szContent) / 2;
-    if (offset.x < 0) offset.x = 0;
-    rcContent.Deflate(offset.x, offset.y);
+    if (isCenter) {
+        wxSize offset = (size - szContent) / 2;
+        if (offset.x < 0) offset.x = 0;
+        rcContent.Deflate(offset.x, offset.y);
+    }
     // start draw
     wxPoint pt = rcContent.GetLeftTop();
     if (icon.bmp().IsOk()) {

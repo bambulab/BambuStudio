@@ -209,6 +209,8 @@ private:
     double m_width = 0.0;
     double z_height=0.0f;
     double initial_layer_height=0.0f;
+    double max_gap_infill_width = 0.0f;
+    bool check_gap_infill_width = false;
     int                 filament_id;
     double              flow_ratio  = 0;
     double              nozzle_temp = 0.0f;

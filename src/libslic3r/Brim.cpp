@@ -13,6 +13,8 @@
 #include <unordered_set>
 #include <tbb/parallel_for.h>
 
+#include <boost/log/trivial.hpp>
+
 #ifndef NDEBUG
     // #define BRIM_DEBUG_TO_SVG
 #endif
@@ -588,7 +590,8 @@ double getadhesionCoeff(const PrintObject* printObject)
         for (auto iter = extrudersFirstLayer.begin(); iter != extrudersFirstLayer.end(); iter++)
             if (modelVolume->extruder_id() == *iter) {
                 if (Model::extruderParamsMap.find(modelVolume->extruder_id()) != Model::extruderParamsMap.end())
-                    if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "PETG") {
+                    if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "PETG" ||
+                        Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "PCTG") {
                         adhesionCoeff = 2;
                     }
                     else if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "TPU") {

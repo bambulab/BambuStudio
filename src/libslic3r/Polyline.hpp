@@ -120,7 +120,7 @@ public:
 //    template <class T> void simplify_by_visibility(const T &area);
     void split_at(Point &point, Polyline* p1, Polyline* p2) const;
     bool split_at_index(const size_t index, Polyline* p1, Polyline* p2) const;
-
+    bool split_at_length(const double length, Polyline *p1, Polyline *p2) const;
     bool is_straight() const;
     bool is_closed() const { return this->points.front() == this->points.back(); }
 
@@ -219,6 +219,25 @@ inline void polylines_append(Polylines &dst, Polylines &&src)
         std::move(std::begin(src), std::end(src), std::back_inserter(dst));
         src.clear();
     }
+}
+
+// Merge polylines at their respective end points.
+// dst_first: the merge point is at dst.begin() or dst.end()?
+// src_first: the merge point is at src.begin() or src.end()?
+// The orientation of the resulting polyline is unknown, the output polyline may start
+// either with src piece or dst piece.
+template<typename PointsType>
+inline void polylines_merge(PointsType &dst, bool dst_first, PointsType &&src, bool src_first)
+{
+    if (dst_first) {
+        if (src_first)
+            std::reverse(dst.begin(), dst.end());
+        else
+            std::swap(dst, src);
+    } else if (! src_first)
+        std::reverse(src.begin(), src.end());
+    // Merge src into dst.
+    append(dst, std::move(src));
 }
 
 const Point& leftmost_point(const Polylines &polylines);

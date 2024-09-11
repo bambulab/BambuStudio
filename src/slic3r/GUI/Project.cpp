@@ -21,6 +21,8 @@
 #include <wx/arrstr.h>
 #include <wx/tglbtn.h>
 
+#include <boost/log/trivial.hpp>
+
 #include "wxExtensions.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
@@ -97,6 +99,7 @@ void ProjectPanel::on_reload(wxCommandEvent& evt)
         std::string p_author;
         std::string p_description;
         std::string p_cover_file;
+        std::string model_id;
 
         Model model = wxGetApp().plater()->model();
 
@@ -106,6 +109,19 @@ void ProjectPanel::on_reload(wxCommandEvent& evt)
         description = model.model_info->description;
         update_type = model.model_info->origin;
 
+
+
+        if (model.design_info && !model.design_info->DesignerId.empty()) {
+
+            if (m_model_id_map.count(model.design_info->DesignerId) > 0) {
+                model_id = m_model_id_map[model.design_info->DesignerId];
+            }
+            else {
+                model_id = get_model_id(model.design_info->DesignerId);
+                m_model_id_map[model.design_info->DesignerId] = model_id;
+            }
+        }
+        
 
         try {
             if (!model.model_info->copyright.empty()) {
@@ -152,6 +168,7 @@ void ProjectPanel::on_reload(wxCommandEvent& evt)
         j["model"]["description"] = wxGetApp().url_encode(description);
         j["model"]["preview_img"] = files["Model Pictures"];
         j["model"]["upload_type"] = update_type;
+        j["model"]["model_id"] = model_id;
 
         j["file"]["BOM"] = files["Bill of Materials"];
         j["file"]["Assembly"] = files["Assembly Guide"];
@@ -176,6 +193,34 @@ void ProjectPanel::on_reload(wxCommandEvent& evt)
                 });
         }
     });
+}
+
+std::string ProjectPanel::get_model_id(std::string desgin_id)
+{
+    std::string model_id;
+    auto host = wxGetApp().get_http_url(wxGetApp().app_config->get_country_code(), "v1/design-service/model/" + desgin_id);
+    Http http = Http::get(host);
+    http.header("accept", "application/json")
+        //.header("Authorization")
+        .on_complete([this, &model_id](std::string body, unsigned status) {
+        try {
+            json j = json::parse(body);
+            if (j.contains("id")) {
+                int mid = j["id"].get<int>();
+                if (mid > 0) {
+                    model_id = std::to_string(mid);
+                }
+            }
+        }
+        catch (...) {
+            ;
+        }
+            })
+        .on_error([this](std::string body, std::string error, unsigned status) {
+            })
+        .perform_sync();
+
+    return model_id;
 }
 
 void ProjectPanel::msw_rescale() 
@@ -214,6 +259,26 @@ void ProjectPanel::OnScriptMessage(wxWebViewEvent& evt)
         }
         else if (strCmd == "request_3mf_info") {
             m_web_init_completed = true;
+        }
+        else if (strCmd == "modelmall_model_open") {
+            if (j.contains("data")) {
+                json data = j["data"];
+
+                if (data.contains("id")) {
+                    wxString model_id =  j["data"]["id"];
+
+                    if (!model_id.empty()) {
+                        std::string h = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
+                        auto l = wxGetApp().current_language_code_safe();
+                        if (auto n = l.find('_'); n != std::string::npos)
+                            l = l.substr(0, n);
+                        auto url = (boost::format("%1%%2%/models/%3%") % h % l % model_id).str();
+                        wxLaunchDefaultBrowser(url);
+                    }
+                }
+            }
+            
+            
         }
         else if (strCmd == "debug_info") {
             //wxString msg =  j["msg"];

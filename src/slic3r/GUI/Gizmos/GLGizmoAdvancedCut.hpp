@@ -5,7 +5,7 @@
 #include "GLGizmoRotate.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/CutUtils.hpp"
-#include "slic3r/GUI/MeshUtils.hpp"
+
 namespace Slic3r {
 enum class CutConnectorType : int;
 class ModelVolume;
@@ -51,11 +51,13 @@ public:
 
     std::vector<Cut::Part> get_cut_parts();
     std::vector<PartPara> &get_parts() { return m_cut_parts; }
+    bool                   has_modified_cut_parts();
 
 private:
     Model                                                            m_model;
     int                                                              m_instance_idx;
     std::vector<PartPara>                                            m_cut_parts;
+    std::vector<bool>                                                m_back_cut_parts_state;
     bool                                                             m_valid = false;
     std::vector<std::pair<std::vector<size_t>, std::vector<size_t>>> m_contour_to_parts; // for each contour, there is a vector of parts above and a vector of parts below
     std::vector<size_t> m_ignored_contours; // contour that should not be rendered (the parts on both sides will both be parts of the same object)
@@ -153,7 +155,7 @@ private:
     bool               m_was_cut_plane_dragged{false};
     bool               m_was_contour_selected{false};
     bool               m_is_dragging{false};
-    PartSelection *    m_part_selection{nullptr};
+    std::shared_ptr<PartSelection>    m_part_selection{nullptr};
     // dragging angel in hovered axes
     double             m_rotate_angle{0.0};
     bool               m_imperial_units{false};
@@ -161,10 +163,10 @@ private:
     BoundingBoxf3      m_transformed_bounding_box;
 
     float m_connector_depth_ratio{3.f};
-    float m_connector_depth_ratio_tolerance{0.1f};
+    float m_connector_depth_ratio_tolerance{CUT_TOLERANCE};
 
     float m_connector_size{2.5f};
-    float m_connector_size_tolerance{0.1f};
+    float m_connector_size_tolerance{CUT_TOLERANCE};
     // Input params for cut with snaps
     float        m_snap_space_proportion{0.3f};
     float        m_snap_bulge_proportion{0.15f};
@@ -218,13 +220,14 @@ public:
     bool unproject_on_cut_plane(const Vec2d &mouse_pos, Vec3d &pos, Vec3d &pos_world, bool respect_contours = true);
 
     virtual bool apply_clipping_plane() { return m_connectors_editing; }
-    static void  render_glmodel(GLModel &model, const std::array<float, 4> &color, Transform3d view_model_matrix, bool for_picking = false);
+
 protected:
     virtual bool on_init();
     virtual void on_load(cereal::BinaryInputArchive &ar) override;
     virtual void on_save(cereal::BinaryOutputArchive &ar) const override;
     virtual void data_changed(bool is_serializing) override;
     virtual std::string on_get_name() const;
+    virtual std::string on_get_name_str() override { return "Cut"; }
     virtual void on_set_state();
     virtual bool on_is_activable() const;
     virtual CommonGizmosDataID on_get_requirements() const override;
@@ -311,7 +314,6 @@ private:
     void reset_cut_by_contours();
     void process_contours();
     void toggle_model_objects_visibility(bool show_in_3d = false);
-    void delete_part_selection();
     void deal_connector_pos_by_type(Vec3d &pos, float &height, CutConnectorType, CutConnectorStyle, bool looking_forward, bool is_edit, const Vec3d &clp_normal);
     void update_bb();
     void check_and_update_connectors_state();
@@ -331,13 +333,7 @@ private:
     bool render_reset_button(const std::string &label_id, const std::string &tooltip) const;
     bool render_connect_type_radio_button(CutConnectorType type);
 
-    bool render_combo(const std::string &label, const std::vector<std::string> &lines, size_t &selection_idx, float label_width, float item_width);
     bool render_slider_double_input(const std::string &label, float &value_in, float &tolerance_in);
-    enum DoubleShowType {
-        Normal, // origin data
-        PERCENTAGE,
-        DEGREE,
-    };
     bool render_slider_double_input_by_format(const std::string &label, float &value_in, float value_min, float value_max, DoubleShowType show_type = DoubleShowType::Normal);
     bool cut_line_processing() const;
     void discard_cut_line_processing();

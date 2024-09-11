@@ -54,8 +54,8 @@ enum AuthorizationType {
 enum InfillPattern : int {
     ipConcentric, ipRectilinear, ipGrid, ipLine, ipCubic, ipTriangles, ipStars, ipGyroid, ipHoneycomb, ipAdaptiveCubic, ipMonotonic, ipMonotonicLine, ipAlignedRectilinear, ip3DHoneycomb,
     ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipSupportCubic, ipSupportBase, ipConcentricInternal,
-    ipLightning,
-ipCount,
+    ipLightning, ipCrossHatch,
+    ipCount,
 };
 
 enum class IroningType {
@@ -112,6 +112,13 @@ enum SupportMaterialStyle {
     smsDefault, smsGrid, smsSnug, smsTreeSlim, smsTreeStrong, smsTreeHybrid, smsTreeOrganic
 };
 
+enum LongRectrationLevel
+{
+    Disabled=0,
+    EnableMachine,
+    EnableFilament
+};
+
 enum SupportMaterialInterfacePattern {
     smipAuto, smipRectilinear, smipConcentric, smipRectilinearInterlaced, smipGrid
 };
@@ -135,6 +142,13 @@ inline bool is_auto(SupportType stype)
 
 enum SeamPosition {
     spNearest, spAligned, spRear, spRandom
+};
+
+// Orca
+enum class SeamScarfType {
+    None,
+    External,
+    All,
 };
 
 enum SLAMaterial {
@@ -210,7 +224,7 @@ enum BedType {
 };
 
 // BBS
-enum FirstLayerSeq {
+enum LayerSeq {
     flsAuto, 
     flsCutomize
 };
@@ -330,6 +344,7 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SupportMaterialInterfacePattern)
 // BBS
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SupportType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SeamPosition)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SeamScarfType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SLADisplayOrientation)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SLAPillarConnectionMode)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(BrimType)
@@ -721,6 +736,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     // Overhang angle threshold.
     ((ConfigOptionInt,                 support_threshold_angle))
     ((ConfigOptionFloat,               support_object_xy_distance))
+    ((ConfigOptionFloat,               support_object_first_layer_gap))
     ((ConfigOptionFloat,               xy_hole_compensation))
     ((ConfigOptionFloat,               xy_contour_compensation))
     ((ConfigOptionBool,                flush_into_objects))
@@ -733,7 +749,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,              tree_support_branch_diameter))
     ((ConfigOptionFloat,              tree_support_branch_angle))
     ((ConfigOptionInt,                tree_support_wall_count))
-    ((ConfigOptionFloat,              tree_support_brim_width))
     ((ConfigOptionBool,               detect_narrow_internal_solid_infill))
     // ((ConfigOptionBool,               adaptive_layer_height))
     ((ConfigOptionFloat,              support_bottom_interface_spacing))
@@ -751,6 +766,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     // OrcaSlicer
     ((ConfigOptionPercent,            seam_gap))
     ((ConfigOptionPercent,            wipe_speed))
+    ((ConfigOptionBool,               precise_z_height)) // BBS
 )
 
 // This object is mapped to Perl as Slic3r::Config::PrintRegion.
@@ -761,6 +777,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat, bottom_shell_thickness))
     ((ConfigOptionFloat, bridge_angle))
     ((ConfigOptionFloat, bridge_flow))
+    ((ConfigOptionFloat, overhang_totally_speed))
     ((ConfigOptionFloat, bridge_speed))
     ((ConfigOptionBool, ensure_vertical_shell_thickness))
     ((ConfigOptionEnum<InfillPattern>, top_surface_pattern))
@@ -790,6 +807,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat, ironing_speed))
     // Detect bridging perimeters
     ((ConfigOptionBool, detect_overhang_wall))
+    ((ConfigOptionBool, smooth_speed_discontinuity_area))
+    ((ConfigOptionFloat, smooth_coefficient))
     ((ConfigOptionInt, wall_filament))
     ((ConfigOptionFloat, inner_wall_line_width))
     ((ConfigOptionFloat, inner_wall_speed))
@@ -820,7 +839,17 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat, initial_layer_flow_ratio))
     ((ConfigOptionFloat, filter_out_gap_fill))
     //calib
-    ((ConfigOptionFloat, print_flow_ratio)))
+    ((ConfigOptionFloat, print_flow_ratio))
+    // Orca: seam slopes
+    ((ConfigOptionEnum<SeamScarfType>,  seam_slope_type))
+    ((ConfigOptionBool,                 seam_slope_conditional))
+    ((ConfigOptionInt,                  scarf_angle_threshold))
+    ((ConfigOptionFloatOrPercent,       seam_slope_start_height))
+    ((ConfigOptionBool,                 seam_slope_entire_loop))
+    ((ConfigOptionFloat,                seam_slope_min_length))
+    ((ConfigOptionInt,                  seam_slope_steps))
+    ((ConfigOptionBool,                 seam_slope_inner_walls))
+)
 
 PRINT_CONFIG_CLASS_DEFINE(
     MachineEnvelopeConfig,
@@ -872,6 +901,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBools,               filament_soluble))
     ((ConfigOptionBools,               filament_is_support))
     ((ConfigOptionFloats,              filament_cost))
+    ((ConfigOptionString,              filament_notes))
     ((ConfigOptionStrings,             default_filament_colour))
     ((ConfigOptionInts,                temperature_vitrification))  //BBS
     ((ConfigOptionFloats,              filament_max_volumetric_speed))
@@ -895,6 +925,9 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionPercents,            retract_before_wipe))
     ((ConfigOptionFloats,              retraction_length))
     ((ConfigOptionFloats,              retract_length_toolchange))
+    ((ConfigOptionInt,                 enable_long_retraction_when_cut))
+    ((ConfigOptionFloats,              retraction_distances_when_cut))
+    ((ConfigOptionBools,               long_retractions_when_cut))
     ((ConfigOptionFloats,              z_hop))
     // BBS
     ((ConfigOptionEnumsGeneric,        z_hop_types))
@@ -924,6 +957,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                accel_to_decel_enable))
     ((ConfigOptionPercent,             accel_to_decel_factor))
     ((ConfigOptionEnumsGeneric,        extruder_type))
+    //Orca
+    ((ConfigOptionBool,                has_scarf_joint_seam))
 )
 
 // This object is mapped to Perl as Slic3r::Config::Print.
@@ -938,6 +973,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionPoints,             printable_area))
     //BBS: add bed_exclude_area
     ((ConfigOptionPoints,             bed_exclude_area))
+    ((ConfigOptionPoints,             head_wrap_detect_zone))
     // BBS
     ((ConfigOptionString,             bed_custom_texture))
     ((ConfigOptionString,             bed_custom_model))
@@ -955,6 +991,8 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionEnumsGeneric,       overhang_fan_threshold))
     ((ConfigOptionEnum<PrintSequence>,print_sequence))
     ((ConfigOptionInts,               first_layer_print_sequence))
+    ((ConfigOptionInts,               other_layers_print_sequence))
+    ((ConfigOptionInt,                other_layers_print_sequence_nums))
     ((ConfigOptionBools,              slow_down_for_layer_cooling))
     ((ConfigOptionFloat,              default_acceleration))
     ((ConfigOptionFloat,              inner_wall_acceleration))
@@ -967,6 +1005,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloat,              extruder_clearance_height_to_rod))//BBs
     ((ConfigOptionFloat,              extruder_clearance_height_to_lid))//BBS
     ((ConfigOptionFloat,              extruder_clearance_radius))
+    ((ConfigOptionFloat,              nozzle_height))
     ((ConfigOptionFloat,              extruder_clearance_max_radius))
     ((ConfigOptionStrings,            extruder_colour))
     ((ConfigOptionPoints,             extruder_offset))
@@ -987,6 +1026,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloats,             max_layer_height))
     ((ConfigOptionInts,               fan_min_speed))
     ((ConfigOptionFloats,             min_layer_height))
+    ((ConfigOptionString,             printer_notes))
     ((ConfigOptionFloat,              printable_height))
     ((ConfigOptionPoint,              best_object_pos))
     ((ConfigOptionFloats,             slow_down_min_speed))
@@ -996,6 +1036,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionString,             filename_format))
     ((ConfigOptionStrings,            post_process))
     ((ConfigOptionString,             printer_model))
+    ((ConfigOptionString,             process_notes))
     ((ConfigOptionFloat,              resolution))
     ((ConfigOptionFloats,             retraction_minimum_travel))
     ((ConfigOptionBools,              retract_when_changing_layer))
@@ -1004,6 +1045,8 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionInt,                skirt_loops))
     ((ConfigOptionInts,               slow_down_layer_time))
     ((ConfigOptionBool,               spiral_mode))
+    ((ConfigOptionBool,               spiral_mode_smooth))
+    ((ConfigOptionFloatOrPercent,     spiral_mode_max_xy_smoothing))
     ((ConfigOptionInt,                standby_temperature_delta))
     ((ConfigOptionInts,               nozzle_temperature))
     ((ConfigOptionInts,               chamber_temperatures))

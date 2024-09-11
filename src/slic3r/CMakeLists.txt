@@ -137,6 +137,10 @@ set(SLIC3R_GUI_SOURCES
     GUI/Gizmos/GLGizmoMmuSegmentation.hpp
     GUI/Gizmos/GLGizmoFaceDetector.cpp
     GUI/Gizmos/GLGizmoFaceDetector.hpp
+    GUI/Gizmos/GLGizmoMeasure.cpp
+    GUI/Gizmos/GLGizmoMeasure.hpp
+    GUI/Gizmos/GLGizmoAssembly.cpp
+    GUI/Gizmos/GLGizmoAssembly.hpp
     GUI/Gizmos/GLGizmoSeam.cpp
     GUI/Gizmos/GLGizmoSeam.hpp
     GUI/Gizmos/GLGizmoText.cpp
@@ -153,6 +157,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/GLTexture.cpp
     GUI/GLToolbar.hpp
     GUI/GLToolbar.cpp
+    GUI/GuiColor.cpp
+    GUI/GuiColor.hpp
     GUI/IMToolbar.hpp
     GUI/IMToolbar.cpp
     GUI/GCodeViewer.hpp
@@ -189,6 +195,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Plater.hpp
     GUI/PartPlate.cpp
     GUI/PartPlate.hpp
+    GUI/UserNotification.cpp
+    GUI/UserNotification.hpp
     GUI/PresetComboBoxes.hpp
     GUI/PresetComboBoxes.cpp
     GUI/BitmapComboBox.hpp
@@ -279,6 +287,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/CameraUtils.hpp
     GUI/wxExtensions.cpp
     GUI/wxExtensions.hpp
+    GUI/ObjColorDialog.cpp
+    GUI/ObjColorDialog.hpp
     GUI/WipeTowerDialog.cpp
     GUI/WipeTowerDialog.hpp
     GUI/RemovableDriveManager.cpp
@@ -291,6 +301,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/ImGuiWrapper.cpp
     GUI/DeviceManager.hpp
     GUI/DeviceManager.cpp
+    GUI/UserManager.hpp
+    GUI/UserManager.cpp
     GUI/HttpServer.hpp
     GUI/HttpServer.cpp
     Config/Snapshot.cpp
@@ -360,8 +372,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/ObjectDataViewModel.hpp
     GUI/AuxiliaryDataViewModel.cpp
     GUI/AuxiliaryDataViewModel.hpp
-    #GUI/InstanceCheck.cpp
-    #GUI/InstanceCheck.hpp
+    GUI/InstanceCheck.cpp
+    GUI/InstanceCheck.hpp
     GUI/Search.cpp
     GUI/Search.hpp
     GUI/NotificationManager.cpp
@@ -426,6 +438,24 @@ set(SLIC3R_GUI_SOURCES
     Utils/json_diff.cpp
     GUI/KBShortcutsDialog.hpp
     GUI/KBShortcutsDialog.cpp
+    GUI/MultiMachine.hpp
+    GUI/MultiMachine.cpp
+    GUI/MultiMachinePage.hpp
+    GUI/MultiMachinePage.cpp
+    GUI/MultiMachineManagerPage.cpp
+    GUI/MultiMachineManagerPage.hpp
+    GUI/MultiPrintJob.cpp
+    GUI/MultiPrintJob.hpp
+    GUI/MultiSendMachineModel.hpp
+    GUI/MultiSendMachineModel.cpp
+    GUI/MultiTaskManagerPage.hpp
+    GUI/MultiTaskManagerPage.cpp
+    GUI/MultiTaskModel.hpp
+    GUI/MultiTaskModel.cpp
+    GUI/SendMultiMachinePage.hpp
+    GUI/SendMultiMachinePage.cpp
+    GUI/TaskManager.cpp
+    GUI/TaskManager.hpp
     Utils/Http.cpp
     Utils/Http.hpp
     Utils/FixModelByWin10.cpp
@@ -465,9 +495,13 @@ set(SLIC3R_GUI_SOURCES
     Utils/AstroBox.hpp
     Utils/Repetier.cpp
     Utils/Repetier.hpp
-
     Utils/CalibUtils.cpp
     Utils/CalibUtils.hpp
+    Utils/ProfileDescription.hpp
+	Utils/FontConfigHelp.cpp
+	Utils/FontConfigHelp.hpp
+	Utils/FontUtils.cpp
+	Utils/FontUtils.hpp
 )
 
 if (WIN32)
@@ -487,8 +521,8 @@ if (APPLE)
             GUI/RemovableDriveManagerMM.mm
             GUI/RemovableDriveManagerMM.h
             GUI/Mouse3DHandlerMac.mm
-            #GUI/InstanceCheckMac.mm
-            #GUI/InstanceCheckMac.h
+            GUI/InstanceCheckMac.mm
+            GUI/InstanceCheckMac.h
             GUI/wxMediaCtrl2.mm
             GUI/wxMediaCtrl2.h
         )

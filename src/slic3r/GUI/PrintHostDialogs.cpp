@@ -117,7 +117,7 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, PrintHostPostUplo
         });
     }
 
-    add_button(wxID_CANCEL,false,"Cancel");
+    add_button(wxID_CANCEL,false, _L("Cancel"));
     finalize();
 
 #ifdef __linux__
@@ -242,7 +242,7 @@ PrintHostQueueDialog::PrintHostQueueDialog(wxWindow *parent)
     };
 
     // Note: Keep these in sync with Column
-    append_text_column(_L("ID"), widths[0]);
+    append_text_column("ID", widths[0]);
     job_list->AppendProgressColumn(_L("Progress"),      wxDATAVIEW_CELL_INERT, widths[1], wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
     append_text_column(_L("Status"),widths[2]);
     append_text_column(_L("Host"),  widths[3]);

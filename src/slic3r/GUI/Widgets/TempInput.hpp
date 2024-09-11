@@ -2,6 +2,7 @@
 #define slic3r_GUI_TempInput_hpp_
 
 #include "../wxExtensions.hpp"
+#include <wx/stattext.h>
 #include <wx/textctrl.h>
 #include "StaticBox.hpp"
 
@@ -88,7 +89,7 @@ public:
 
     wxString GetTagTemp() { return text_ctrl->GetValue(); }
     wxString GetCurrTemp() { return GetLabel(); }
-
+    int get_max_temp() { return max_temp; }
     void SetLabel(const wxString &label);
 
     void SetTextColor(StateColor const &color);

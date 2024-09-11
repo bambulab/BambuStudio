@@ -181,7 +181,8 @@ void TreeModelVolumes::precalculate(const PrintObject& print_object, const coord
                 m_ignorable_radii.emplace_back(radius_eval);
     }
 
-    throw_on_cancel();
+    if (throw_on_cancel)
+        throw_on_cancel();
 
     // it may seem that the required avoidance can be of a smaller radius when going to model (no initial layer diameter for to model branches)
     // but as for every branch going towards the bp, the to model avoidance is required to check for possible merges with to model branches, this assumption is in-fact wrong.
@@ -202,7 +203,8 @@ void TreeModelVolumes::precalculate(const PrintObject& print_object, const coord
         update_radius_until_layer(ceilRadius(config.recommendedMinRadius(current_layer) + m_current_min_xy_dist_delta));
     }
 
-    throw_on_cancel();
+    if (throw_on_cancel)
+        throw_on_cancel();
 
     // Copy to deque to use in parallel for later.
     std::vector<RadiusLayerPair> relevant_avoidance_radiis{ radius_until_layer.begin(), radius_until_layer.end() };
@@ -296,7 +298,7 @@ const Polygons& TreeModelVolumes::getCollision(const coord_t orig_radius, LayerI
         BOOST_LOG_TRIVIAL(error_level_not_in_cache) << "Had to calculate collision at radius " << radius << " and layer " << layer_idx << ", but precalculate was called. Performance may suffer!";
         tree_supports_show_error("Not precalculated Collision requested."sv, false);
     }
-    const_cast<TreeModelVolumes*>(this)->calculateCollision(radius, layer_idx, {});
+    const_cast<TreeModelVolumes*>(this)->calculateCollision(radius, layer_idx, []{});
     return getCollision(orig_radius, layer_idx, min_xy_dist);
 }
 
@@ -458,6 +460,7 @@ void TreeModelVolumes::calculateCollision(const coord_t radius, const LayerIndex
                     collision_areas_offsetted[layer_idx] = offset_value == 0 ?
                             union_(collision_areas) :
                             offset(union_ex(collision_areas), offset_value, ClipperLib::jtMiter, 1.2);
+                    if(throw_on_cancel)
                         throw_on_cancel();
                 }
             });

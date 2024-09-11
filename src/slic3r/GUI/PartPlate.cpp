@@ -3,7 +3,6 @@
 #include <numeric>
 #include <vector>
 #include <string>
-#include <regex>
 #include <future>
 #include <GL/glew.h>
 #include <boost/algorithm/string.hpp>
@@ -12,6 +11,7 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/convert.hpp>
+#include <boost/nowide/cstdio.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
 #include "libslic3r/libslic3r.h"
@@ -244,16 +244,12 @@ PrintSequence PartPlate::get_print_seq() const
 
 PrintSequence PartPlate::get_real_print_seq(bool* plate_same_as_global) const
 {
-	PrintSequence global_print_seq = PrintSequence::ByDefault;
-	auto curr_preset_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-	if (curr_preset_config.has("print_sequence"))
-		global_print_seq = curr_preset_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence")->value;
-
+	PrintSequence global_print_seq = wxGetApp().global_print_sequence();
     PrintSequence curr_plate_seq = get_print_seq();
     if (curr_plate_seq == PrintSequence::ByDefault) {
 		curr_plate_seq = global_print_seq;
     }
-	
+
 	if(plate_same_as_global)
 		*plate_same_as_global = (curr_plate_seq == global_print_seq);
 
@@ -285,8 +281,20 @@ void PartPlate::set_spiral_vase_mode(bool spiral_mode, bool as_global)
 	std::string key = "spiral_mode";
 	if (as_global)
 		m_config.erase(key);
-	else
-		m_config.set_key_value(key, new ConfigOptionBool(spiral_mode));
+	else {
+		if (spiral_mode) {
+			if (get_spiral_vase_mode())
+				return;
+			// Secondary confirmation
+			auto answer = static_cast<TabPrintPlate*>(wxGetApp().plate_tab)->show_spiral_mode_settings_dialog(false);
+			if (answer == wxID_YES) {
+				m_config.set_key_value(key, new ConfigOptionBool(true));
+				set_vase_mode_related_object_config();
+			}
+		}
+		else
+			m_config.set_key_value(key, new ConfigOptionBool(false));
+	}
 }
 
 bool PartPlate::valid_instance(int obj_id, int instance_id)
@@ -663,7 +671,7 @@ void PartPlate::render_logo(bool bottom, bool render_cali) const
 				// starts generating the main texture, compression will run asynchronously
 				GLint max_tex_size = OpenGLManager::get_gl_info().get_max_tex_size();
 				GLint logo_tex_size = (max_tex_size < 2048) ? max_tex_size : 2048;
-				if (!m_partplate_list->m_logo_texture.load_from_svg_file(m_partplate_list->m_logo_texture_filename, true, true, true, logo_tex_size)) {
+				if (!m_partplate_list->m_logo_texture.load_from_svg_file(m_partplate_list->m_logo_texture_filename, true, false, false, logo_tex_size)) {
 					BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": load logo texture from %1% failed!") % m_partplate_list->m_logo_texture_filename;
 					return;
 				}
@@ -974,7 +982,7 @@ void PartPlate::render_icons(bool bottom, bool only_body, int hover_id)
 				render_icon_texture(position_id, tex_coords_id, m_plate_name_edit_icon, m_partplate_list->m_plate_name_edit_texture, m_plate_name_edit_vbo_id);
 
 			if (m_partplate_list->render_plate_settings) {
-				bool has_plate_settings = get_bed_type() != BedType::btDefault || get_print_seq() != PrintSequence::ByDefault || !get_first_layer_print_sequence().empty() || has_spiral_mode_config();
+				bool has_plate_settings = get_bed_type() != BedType::btDefault || get_print_seq() != PrintSequence::ByDefault || !get_first_layer_print_sequence().empty() || !get_other_layers_print_sequence().empty() || has_spiral_mode_config();
                 if (hover_id == 5) {
                     if (!has_plate_settings)
                         render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon, m_partplate_list->m_plate_settings_hovered_texture, m_plate_settings_vbo_id);
@@ -1628,11 +1636,12 @@ std::vector<int> PartPlate::get_used_extruders()
 	if (!result)
 		return used_extruders;
 
+	std::set<int> used_extruders_set;
 	PrintEstimatedStatistics& ps = result->print_statistics;
-	for (auto it = ps.volumes_per_extruder.begin(); it != ps.volumes_per_extruder.end(); it++) {
-		used_extruders.push_back(it->first + 1);
-	}
-	return used_extruders;
+	for (const auto& item : ps.total_volumes_per_extruder)
+		used_extruders_set.emplace(item.first + 1);
+
+	return std::vector(used_extruders_set.begin(), used_extruders_set.end());
 }
 
 Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double wipe_volume, int plate_extruder_size, bool use_global_objects) const
@@ -1910,11 +1919,14 @@ void PartPlate::set_plate_name(const std::string &name)
 {
 	// compare if name equal to m_name, case sensitive
 	if (boost::equals(m_name, name)) return;
+	if (Plater::has_illegal_filename_characters(name)) {
+		if(m_plater)
+			Plater::show_illegal_characters_warning(m_plater);
+		return;
+	}
 	if (m_plater)
 		m_plater->take_snapshot("set_plate_name");
 	m_name = remove_invisible_ascii(name);
-	std::regex reg("[\\\\/:*?\"<>|\\0]");
-	m_name= regex_replace(m_name, reg, "");
 	m_name_change = true;
 	if (m_plater) {
 		ObjectList *obj_list = wxGetApp().obj_list();
@@ -1975,6 +1987,16 @@ bool PartPlate::is_valid_gcode_file()
 		return false;
 	}
 	return true;
+}
+
+ModelObjectPtrs PartPlate::get_objects_on_this_plate() {
+    ModelObjectPtrs objects_ptr;
+    int obj_id;
+    for (auto it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); it++) {
+        obj_id = it->first;
+        objects_ptr.push_back(m_model->objects[obj_id]);
+    }
+    return objects_ptr;
 }
 
 ModelInstance* PartPlate::get_instance(int obj_id, int instance_id)
@@ -2047,10 +2069,9 @@ bool PartPlate::check_outside(int obj_id, int instance_id, BoundingBoxf3* boundi
 
 	BoundingBoxf3 instance_box = bounding_box? *bounding_box: object->instance_convex_hull_bounding_box(instance_id);
 	Polygon hull = instance->convex_hull_2d();
-	Vec3d up_point(m_origin.x() + m_width + Slic3r::BuildVolume::SceneEpsilon, m_origin.y() + m_depth + Slic3r::BuildVolume::SceneEpsilon, m_origin.z() + m_height + Slic3r::BuildVolume::SceneEpsilon);
-	Vec3d low_point(m_origin.x() - Slic3r::BuildVolume::SceneEpsilon, m_origin.y() - Slic3r::BuildVolume::SceneEpsilon, m_origin.z() - Slic3r::BuildVolume::SceneEpsilon);
-    if (instance_box.max.z() > low_point.z()) low_point.z() +=  instance_box.min.z(); // not considering outsize if sinking
-	BoundingBoxf3 plate_box(low_point, up_point);
+	BoundingBoxf3 plate_box = get_plate_box();
+	if (instance_box.max.z() > plate_box.min.z())
+		plate_box.min.z() += instance_box.min.z(); // not considering outsize if sinking
 
 	if (plate_box.contains(instance_box))
 	{
@@ -2092,11 +2113,7 @@ bool PartPlate::intersect_instance(int obj_id, int instance_id, BoundingBoxf3* b
 		ModelObject* object = m_model->objects[obj_id];
 		ModelInstance* instance = object->instances[instance_id];
 		BoundingBoxf3 instance_box = bounding_box? *bounding_box: object->instance_convex_hull_bounding_box(instance_id);
-		Vec3d up_point(m_origin.x() + m_width, m_origin.y() + m_depth, m_origin.z() + m_height);
-		Vec3d low_point(m_origin.x(), m_origin.y(), m_origin.z() - 5.0f);
-		BoundingBoxf3 plate_box(low_point, up_point);
-
-		result = plate_box.intersects(instance_box);
+		result = get_plate_box().intersects(instance_box);
 	}
 	else
 	{
@@ -2139,7 +2156,7 @@ int PartPlate::add_instance(int obj_id, int instance_id, bool move_position, Bou
 	ModelInstance* instance = object->instances[instance_id];
 	std::pair<int, int> pair(obj_id, instance_id);
 
-	obj_to_instance_set.insert(pair);
+    obj_to_instance_set.insert(pair);
 
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": plate_id %1%, add instance obj_id %2%, instance_id %3%, move_position %4%") % m_plate_index % obj_id % instance_id % move_position;
 
@@ -2198,6 +2215,28 @@ int PartPlate::remove_instance(int obj_id, int instance_id)
 
 	return result;
 }
+
+BoundingBoxf3 PartPlate::get_objects_bounding_box()
+{
+    BoundingBoxf3 bbox;
+    for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it)
+    {
+        int obj_id = it->first;
+        int instance_id = it->second;
+
+        if ((obj_id >= 0) && (obj_id < m_model->objects.size()))
+        {
+            ModelObject* object = m_model->objects[obj_id];
+            if ((instance_id >= 0) && (instance_id < object->instances.size()))
+            {
+                BoundingBoxf3 instance_bbox = object->instance_bounding_box(instance_id);
+                bbox.merge(instance_bbox);
+            }
+        }
+    }
+    return bbox;
+}
+
 
 //translate instance on the plate
 void PartPlate::translate_all_instance(Vec3d position)
@@ -2335,6 +2374,42 @@ void PartPlate::update_object_index(int obj_idx_removed, int obj_idx_max)
 	instance_outside_set.clear();
 	instance_outside_set = temp_set;
 
+}
+
+void PartPlate::set_vase_mode_related_object_config(int obj_id) {
+	ModelObjectPtrs obj_ptrs;
+	if (obj_id != -1) {
+		ModelObject* object = m_model->objects[obj_id];
+		obj_ptrs.push_back(object);
+	}
+	else
+		obj_ptrs = get_objects_on_this_plate();
+
+	DynamicPrintConfig* global_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
+	DynamicPrintConfig new_conf;
+	new_conf.set_key_value("wall_loops", new ConfigOptionInt(1));
+	new_conf.set_key_value("top_shell_layers", new ConfigOptionInt(0));
+	new_conf.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
+	new_conf.set_key_value("enable_support", new ConfigOptionBool(false));
+	new_conf.set_key_value("enforce_support_layers", new ConfigOptionInt(0));
+	new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionBool(true));
+	new_conf.set_key_value("detect_thin_wall", new ConfigOptionBool(false));
+	new_conf.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
+	auto applying_keys = global_config->diff(new_conf);
+
+	for (ModelObject* object : obj_ptrs) {
+		ModelConfigObject& config = object->config;
+
+		for (auto opt_key : applying_keys) {
+			config.set_key_value(opt_key, new_conf.option(opt_key)->clone());
+		}
+
+		applying_keys = config.get().diff(new_conf);
+		for (auto opt_key : applying_keys) {
+			config.set_key_value(opt_key, new_conf.option(opt_key)->clone());
+		}
+	}
+	//wxGetApp().obj_list()->update_selections();
 }
 
 int PartPlate::printable_instance_size()
@@ -2575,7 +2650,7 @@ void PartPlate::generate_exclude_polygon(ExPolygon &exclude_polygon)
 bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Vec2d position, float height_to_lid, float height_to_rod)
 {
 	Pointfs new_shape, new_exclude_areas;
-
+	m_raw_shape = shape;
 	for (const Vec2d& p : shape) {
 		new_shape.push_back(Vec2d(p.x() + position.x(), p.y() + position.y()));
 	}
@@ -2942,6 +3017,20 @@ std::vector<int> PartPlate::get_first_layer_print_sequence() const
         return std::vector<int>();
 }
 
+std::vector<LayerPrintSequence> PartPlate::get_other_layers_print_sequence() const
+{
+	const ConfigOptionInts* other_layers_print_sequence_op = m_config.option<ConfigOptionInts>("other_layers_print_sequence");
+	const ConfigOptionInt* other_layers_print_sequence_nums_op = m_config.option<ConfigOptionInt>("other_layers_print_sequence_nums");
+	if (other_layers_print_sequence_op && other_layers_print_sequence_nums_op) {
+		const std::vector<int>& print_sequence = other_layers_print_sequence_op->values;
+		int sequence_nums = other_layers_print_sequence_nums_op->value;
+		auto other_layers_seqs = Slic3r::get_other_layers_print_sequence(sequence_nums, print_sequence);
+		return other_layers_seqs;
+	}
+	else
+		return {};
+}
+
 void PartPlate::set_first_layer_print_sequence(const std::vector<int>& sorted_filaments)
 {
     if (sorted_filaments.size() > 0) {
@@ -2961,8 +3050,52 @@ void PartPlate::set_first_layer_print_sequence(const std::vector<int>& sorted_fi
 	}
 }
 
+void PartPlate::set_other_layers_print_sequence(const std::vector<LayerPrintSequence>& layer_seq_list)
+{
+	if (layer_seq_list.empty()) {
+		m_config.erase("other_layers_print_sequence");
+		m_config.erase("other_layers_print_sequence_nums");
+		return;
+	}
+
+	int sequence_nums;
+	std::vector<int> other_layers_seqs;
+	Slic3r::get_other_layers_print_sequence(layer_seq_list, sequence_nums, other_layers_seqs);
+	ConfigOptionInts* other_layers_print_sequence_op = m_config.option<ConfigOptionInts>("other_layers_print_sequence");
+	ConfigOptionInt* other_layers_print_sequence_nums_op = m_config.option<ConfigOptionInt>("other_layers_print_sequence_nums");
+	if (other_layers_print_sequence_op)
+		other_layers_print_sequence_op->values = other_layers_seqs;
+	else
+		m_config.set_key_value("other_layers_print_sequence", new ConfigOptionInts(other_layers_seqs));
+	if (other_layers_print_sequence_nums_op)
+		other_layers_print_sequence_nums_op->value = sequence_nums;
+	else
+		m_config.set_key_value("other_layers_print_sequence_nums", new ConfigOptionInt(sequence_nums));
+}
+
 void PartPlate::update_first_layer_print_sequence(size_t filament_nums)
 {
+	auto other_layers_seqs = get_other_layers_print_sequence();
+	if (!other_layers_seqs.empty()) {
+		bool need_update_data = false;
+		for (auto& other_layers_seq : other_layers_seqs) {
+			std::vector<int>& orders = other_layers_seq.second;
+			if (orders.size() > filament_nums) {
+				orders.erase(std::remove_if(orders.begin(), orders.end(), [filament_nums](int n) { return n > filament_nums; }), orders.end());
+				need_update_data = true;
+			}
+			if (orders.size() < filament_nums) {
+				for (size_t extruder_id = orders.size(); extruder_id < filament_nums; ++extruder_id) {
+					orders.push_back(extruder_id + 1);
+					need_update_data = true;
+				}
+			}
+		}
+		if (need_update_data)
+			set_other_layers_print_sequence(other_layers_seqs);
+	}
+
+
     ConfigOptionInts * op_print_sequence_1st = m_config.option<ConfigOptionInts>("first_layer_print_sequence");
     if (!op_print_sequence_1st) {
 		return;
@@ -3006,6 +3139,39 @@ void PartPlate::print() const
 	}*/
 
 	return;
+}
+
+std::map<std::string, std::string> PartPlate::get_diff_object_setting()
+{
+	std::map<std::string, std::string> out;
+	for (auto it = obj_to_instance_set.cbegin(); it != obj_to_instance_set.cend(); ++it) {
+		const ModelConfigObject& different_object_config = m_model->objects[it->first]->config;
+		for (auto iter = different_object_config.cbegin(); iter != different_object_config.cend(); ++iter) {
+			std::string config_name = iter->first;
+			std::string config_value = iter->second->serialize();
+			if (out.find(config_name) == out.end()) {
+				out[config_name] = config_value;
+			}
+		}
+	}
+	return out;
+}
+
+std::map<std::string, std::string> PartPlate::get_diff_plate_setting()
+{
+	std::map<std::string, std::string> out;
+	for (auto it = m_config.cbegin(); it != m_config.cend(); ++it) {
+		std::string diff_config_name = it->first;
+		std::string diff_config_value;
+		if (diff_config_name == "first_layer_print_sequence") {
+			diff_config_value = "cutomize";
+		}
+		else {
+			diff_config_value = it->second->serialize();
+		}
+		out[diff_config_name] = diff_config_value;
+	}
+	return out;
 }
 
 /* PartPlate List related functions*/
@@ -4037,7 +4203,7 @@ int PartPlateList::find_instance_belongs(int obj_id, int instance_id)
 
 //notify instance's update, need to refresh the instance in plates
 //newly added or modified
-int PartPlateList::notify_instance_update(int obj_id, int instance_id)
+int PartPlateList::notify_instance_update(int obj_id, int instance_id, bool is_new)
 {
 	int ret = 0, index;
 	PartPlate* plate = NULL;
@@ -4052,6 +4218,7 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id)
 		PartPlate* plate = m_plate_list[obj_id - 1000];
 		plate->update_slice_result_valid_state( false );
 		plate->thumbnail_data.reset();
+        plate->no_light_thumbnail_data.reset();
 		plate->top_thumbnail_data.reset();
 		plate->pick_thumbnail_data.reset();
 
@@ -4082,12 +4249,14 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id)
 			plate->update_states();
 			plate->update_slice_result_valid_state();
 			plate->thumbnail_data.reset();
+            plate->no_light_thumbnail_data.reset();
 			plate->top_thumbnail_data.reset();
 			plate->pick_thumbnail_data.reset();
 			return 0;
 		}
 		plate->update_slice_result_valid_state();
 		plate->thumbnail_data.reset();
+        plate->no_light_thumbnail_data.reset();
 		plate->top_thumbnail_data.reset();
 		plate->pick_thumbnail_data.reset();
 	}
@@ -4108,6 +4277,21 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id)
 		}
 	}
 
+	auto is_object_config_compatible_with_spiral_vase = [](ModelObject* object) {
+		const DynamicPrintConfig& config = object->config.get();
+		if (config.has("wall_loops") && config.opt_int("wall_loops") == 1 &&
+			config.has("top_shell_layers") && config.opt_int("top_shell_layers") == 0 &&
+			config.has("sparse_infill_density") && config.option<ConfigOptionPercent>("sparse_infill_density")->value == 0 &&
+			config.has("enable_support") && !config.opt_bool("enable_support") &&
+			config.has("enforce_support_layers") && config.opt_int("enforce_support_layers") == 0 &&
+			config.has("ensure_vertical_shell_thickness") && config.opt_bool("ensure_vertical_shell_thickness") &&
+			config.has("detect_thin_wall") && !config.opt_bool("detect_thin_wall") &&
+			config.has("timelapse_type") && config.opt_enum<TimelapseType>("timelapse_type") == TimelapseType::tlTraditional)
+			return true;
+		else
+			return false;
+	};
+
 	//try to find a new plate
 	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
 	{
@@ -4118,8 +4302,23 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id)
 		{
 			//found a new plate, add it to plate
 			plate->add_instance(obj_id, instance_id, false, &boundingbox);
+
+			// spiral mode, update object setting
+			if (plate->config()->has("spiral_mode") && plate->config()->opt_bool("spiral_mode") && !is_object_config_compatible_with_spiral_vase(object)) {
+				if (!is_new) {
+					auto answer = static_cast<TabPrintPlate*>(wxGetApp().plate_tab)->show_spiral_mode_settings_dialog(true);
+					if (answer == wxID_YES) {
+						plate->set_vase_mode_related_object_config(obj_id);
+					}
+				}
+				else {
+					plate->set_vase_mode_related_object_config(obj_id);
+				}
+			}
+
 			plate->update_slice_result_valid_state();
 			plate->thumbnail_data.reset();
+            plate->no_light_thumbnail_data.reset();
 			plate->top_thumbnail_data.reset();
 			plate->pick_thumbnail_data.reset();
 			BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": add it to new plate %1%") % i;
@@ -4157,6 +4356,7 @@ int PartPlateList::notify_instance_removed(int obj_id, int instance_id)
 		plate->remove_instance(obj_id, instance_to_delete);
 		plate->update_slice_result_valid_state();
 		plate->thumbnail_data.reset();
+        plate->no_light_thumbnail_data.reset();
 		plate->top_thumbnail_data.reset();
 		plate->pick_thumbnail_data.reset();
 	}
@@ -5086,6 +5286,8 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
 			%(i+1) %plate_data_item->plate_thumbnail.width %plate_data_item->plate_thumbnail.height %plate_data_item->plate_thumbnail.pixels.size();
 		plate_data_item->config.apply(*m_plate_list[i]->config());
 
+		if (m_plate_list[i]->no_light_thumbnail_data.is_valid())
+			plate_data_item->no_light_thumbnail_file = "valid_no_light";
 		if (m_plate_list[i]->top_thumbnail_data.is_valid())
 			plate_data_item->top_file = "valid_top";
 		if (m_plate_list[i]->pick_thumbnail_data.is_valid())
@@ -5201,6 +5403,13 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list)
 			}
 		}
 
+		if (m_plater && !plate_data_list[i]->no_light_thumbnail_file.empty()) {
+			if (boost::filesystem::exists(plate_data_list[i]->no_light_thumbnail_file)) {
+				BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": plate %1%, load no_light_thumbnail_file from %2%.")%(i+1) %plate_data_list[i]->no_light_thumbnail_file;
+				m_plate_list[index]->load_thumbnail_data(plate_data_list[i]->no_light_thumbnail_file, m_plate_list[index]->no_light_thumbnail_data);
+			}
+		}
+
 		/*if (m_plater && !plate_data_list[i]->pattern_file.empty()) {
 			if (boost::filesystem::exists(plate_data_list[i]->pattern_file)) {
 				//no need to load pattern data currently
@@ -5305,10 +5514,7 @@ void PartPlateList::BedTextureInfo::TexturePart::update_buffer()
 		buffer = new GeometryBuffer();
 
 	if (buffer->set_from_triangles(triangulate_expolygon_2f(poly, NORMALS_UP), GROUND_Z + 0.02f)) {
-		if (vbo_id != 0) {
-			glsafe(::glDeleteBuffers(1, &vbo_id));
-			vbo_id = 0;
-		}
+		release_vbo();
 		unsigned int* vbo_id_ptr = const_cast<unsigned int*>(&vbo_id);
 		glsafe(::glGenBuffers(1, vbo_id_ptr));
 		glsafe(::glBindBuffer(GL_ARRAY_BUFFER, *vbo_id_ptr));
@@ -5325,8 +5531,18 @@ void PartPlateList::BedTextureInfo::TexturePart::reset()
         texture->reset();
         delete texture;
     }
-    if (buffer)
+    if (buffer) {
+        release_vbo();
         delete buffer;
+    }
+}
+
+void PartPlateList::BedTextureInfo::TexturePart::release_vbo()
+{
+    if (vbo_id != 0) {
+        glsafe(::glDeleteBuffers(1, &vbo_id));
+        vbo_id = 0;
+    }
 }
 
 void PartPlateList::BedTextureInfo::reset()
@@ -5388,7 +5604,7 @@ void PartPlateList::load_bedtype_textures()
 			std::string filename = resources_dir() + "/images/" + bed_texture_info[i].parts[j].filename;
 			if (boost::filesystem::exists(filename)) {
 				PartPlateList::bed_texture_info[i].parts[j].texture = new GLTexture();
-				if (!PartPlateList::bed_texture_info[i].parts[j].texture->load_from_svg_file(filename, true, true, true, logo_tex_size)) {
+				if (!PartPlateList::bed_texture_info[i].parts[j].texture->load_from_svg_file(filename, true, false, false, logo_tex_size)) {
 					BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": load logo texture from %1% failed!") % filename;
 				}
 			} else {
@@ -5421,7 +5637,7 @@ void PartPlateList::load_cali_textures()
 			std::string filename = resources_dir() + "/images/" + cali_texture_info.parts[j].filename;
 			if (boost::filesystem::exists(filename)) {
 				PartPlateList::cali_texture_info.parts[j].texture = new GLTexture();
-				if (!PartPlateList::cali_texture_info.parts[j].texture->load_from_svg_file(filename, true, true, true, logo_tex_size)) {
+				if (!PartPlateList::cali_texture_info.parts[j].texture->load_from_svg_file(filename, true, false, false, logo_tex_size)) {
 					BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": load cali texture from %1% failed!") % filename;
 				}
 			}

@@ -10,6 +10,8 @@
 
 #include "libslic3r/ObjectID.hpp"
 
+#include "wx/timer.h"
+
 #include <map>
 
 //BBS: GUI refactor: to support top layout
@@ -76,6 +78,8 @@ public:
         // BBS
         Text,
         MmuSegmentation,
+        Measure,
+        Assembly,
         Simplify,
         SlaSupports,
         // BBS
@@ -142,6 +146,10 @@ private:
     std::string m_tooltip;
     bool m_serializing;
     std::unique_ptr<CommonGizmosDataPool> m_common_gizmos_data;
+
+    //When there are more than 9 colors, shortcut key coloring
+    wxTimer m_timer_set_color;
+    void on_set_color_timer(wxTimerEvent& evt);
 
     // key MENU_ICON_NAME, value = ImtextureID
     std::map<int, void*> icon_list;
@@ -276,6 +284,12 @@ public:
 
     void set_painter_gizmo_data();
 
+    bool is_gizmo_activable_when_single_full_instance();
+    bool is_gizmo_click_empty_not_exit();
+    bool is_show_only_active_plate();
+    bool get_gizmo_active_condition(GLGizmosManager::EType type);
+    void check_object_located_outside_plate();
+    bool get_object_located_outside_plate() { return m_object_located_outside_plate; }
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position = Vec2d::Zero(), bool shift_down = false, bool alt_down = false, bool control_down = false);
     ClippingPlane get_clipping_plane() const;
     ClippingPlane get_assemble_view_clipping_plane() const;
@@ -318,7 +332,7 @@ public:
 
 private:
     void render_background(float left, float top, float right, float bottom, float border) const;
-    
+
     void do_render_overlay() const;
 
     bool generate_icons_texture() const;
@@ -326,6 +340,9 @@ private:
     void update_on_off_state(const Vec2d& mouse_pos);
     std::string update_hover_state(const Vec2d& mouse_pos);
     bool grabber_contains_mouse() const;
+
+private:
+    bool m_object_located_outside_plate{false};
 };
 
 std::string get_name_from_gizmo_etype(GLGizmosManager::EType type);

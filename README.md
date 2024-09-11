@@ -1,8 +1,4 @@
 ![image](https://user-images.githubusercontent.com/106916061/179006347-497d24c0-9bd6-45b7-8c49-d5cc8ecfe5d7.png)
-# Work with us!
-If you are interested in working with us in China, please apply to our open positions below by simply sending your resume to our mailbox [zhaopin at bambulab.com].
-- [Graphics Algorithm Engineer](https://bambulab.jobs.feishu.cn/experienced/position/7139785303246637342/detail)
-- [Software Engineer C++](https://bambulab.jobs.feishu.cn/experienced/position/7088880036707420446/detail)
 # BambuStudio
 Bambu Studio is a cutting-edge, feature-rich slicing software.  
 It contains project-based workflows, systematically optimized slicing algorithms, and an easy-to-use graphic interface, bringing users an incredibly smooth printing experience.
@@ -51,5 +47,6 @@ Slic3r is licensed under the GNU Affero General Public License, version 3. Slic3
 
 The GNU Affero General Public License, version 3 ensures that if you use any part of this software in any way (even behind a web server), your software must be released under the same license.
 
-The bambu networking plugin is based on non-free libraries. It is optional to the Bambu Studio and provides extended functionalities for users.
+The bambu networking plugin is based on non-free libraries. It is optional to the Bambu Studio and provides extended networking functionalities for users.
+By default, after installing Bambu Studio without the networking plugin, you can initiate printing through the SD card after slicing is completed.
 

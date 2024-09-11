@@ -1,3 +1,4 @@
+#include "clipper/clipper_z.hpp"
 #include "ClipperUtils.hpp"
 #include "ExtrusionEntityCollection.hpp"
 #include "Layer.hpp"
@@ -676,6 +677,8 @@ public:
         m_support_material_closing_radius(params.support_closing_radius)
     {
         if (m_style == smsDefault) m_style = smsGrid;
+        if (std::set<SupportMaterialStyle>{smsTreeSlim, smsTreeStrong, smsTreeHybrid, smsTreeOrganic}.count(m_style))
+            m_style = smsGrid;
         switch (m_style) {
         case smsGrid:
         {
@@ -772,7 +775,8 @@ public:
         case smsTreeHybrid:
         case smsTreeOrganic:
             assert(false);
-            [[fallthrough]];
+            //[[fallthrough]];
+            return Polygons();
         case smsGrid:
         {
     #ifdef SUPPORT_USE_AGG_RASTERIZER
@@ -1407,6 +1411,7 @@ static inline ExPolygons detect_overhangs(
     const coordf_t max_bridge_length = scale_(object_config.max_bridge_length.value);
     const bool bridge_no_support = object_config.bridge_no_support.value;
     const coordf_t xy_expansion = scale_(object_config.support_expansion.value);
+    float lower_layer_offset = 0;
 
     if (layer_id == 0)
     {
@@ -1419,7 +1424,7 @@ static inline ExPolygons detect_overhangs(
                 !(bbox_size.x() > length_thresh_well_supported && bbox_size.y() > length_thresh_well_supported))
             {
                 layer.sharp_tails.push_back(slice);
-                layer.sharp_tails_height.insert({ &slice, layer.height });
+                layer.sharp_tails_height.push_back(layer.height);
             }
         }
     }
@@ -1439,7 +1444,6 @@ static inline ExPolygons detect_overhangs(
             }
         }
 
-        float lower_layer_offset  = 0;
         for (LayerRegion *layerm : layer.regions()) {
             // Extrusion width accounts for the roundings of the extrudates.
             // It is the maximum widh of the extrudate.
@@ -1501,7 +1505,7 @@ static inline ExPolygons detect_overhangs(
                         if (is_sharp_tail) {
                             ExPolygons overhang = diff_ex({ expoly }, lower_layer_expolys);
                             layer.sharp_tails.push_back(expoly);
-                            layer.sharp_tails_height.insert({ &expoly, accum_height });
+                            layer.sharp_tails_height.push_back(accum_height);
                             overhang = offset_ex(overhang, 0.05 * fw);
                             polygons_append(diff_polygons, to_polygons(overhang));
                         }
@@ -1518,8 +1522,9 @@ static inline ExPolygons detect_overhangs(
                 // spanning just the projection between the two slices.
                 // Subtracting them as they are may leave unwanted narrow
                 // residues of diff_polygons that would then be supported.
-                diff_polygons = diff(diff_polygons,
-                    expand(union_(annotations.blockers_layers[layer_id]), float(1000. * SCALED_EPSILON)));
+                auto blocker = expand(union_(annotations.blockers_layers[layer_id]), float(1000. * SCALED_EPSILON));
+                diff_polygons = diff(diff_polygons, blocker);
+                layer.sharp_tails = diff_ex(layer.sharp_tails, blocker);
             }
 
             if (bridge_no_support) {
@@ -1540,7 +1545,7 @@ static inline ExPolygons detect_overhangs(
     if (layer.lower_layer) {
         for (ExPolygon& poly : overhang_areas) {
             float fw = float(layer.regions().front()->flow(frExternalPerimeter).scaled_width());
-            auto cluster_boundary_ex = intersection_ex(poly, offset_ex(layer.lower_layer->lslices, scale_(0.5)));
+            auto cluster_boundary_ex = intersection_ex(poly, offset_ex(layer.lower_layer->lslices, std::max(fw, lower_layer_offset) + scale_(0.1)));
             Polygons cluster_boundary = to_polygons(cluster_boundary_ex);
             if (cluster_boundary.empty()) continue;
             double dist_max = 0;
@@ -1724,9 +1729,11 @@ Layer* sync_gap_with_object_layer(const Layer& layer, const coordf_t gap_support
             gap_synced -= last_valid_gap_layer->height;
             last_valid_gap_layer = last_valid_gap_layer->lower_layer;
         }
-        upper_layer = last_valid_gap_layer;  // layer just above the last valid gap layer
-        if (last_valid_gap_layer->upper_layer)
-            upper_layer = last_valid_gap_layer->upper_layer;
+        if (gap_support_object > 0) {
+            upper_layer = last_valid_gap_layer;  // layer just above the last valid gap layer
+            if (last_valid_gap_layer->upper_layer)
+                upper_layer = last_valid_gap_layer->upper_layer;
+        }
         return upper_layer;
     }
 }
@@ -2208,9 +2215,9 @@ SupportGeneratorLayersPtr PrintObjectSupportMaterial::top_contact_layers(
                     }
 
                     // 2.3 check whether sharp tail exceed the max height
-                    for (const auto& lower_sharp_tail_height : lower_layer_sharptails_height) {
-                        if (lower_sharp_tail_height.first->overlaps(expoly)) {
-                            accum_height += lower_sharp_tail_height.second;
+                    for (size_t i = 0; i < lower_layer_sharptails_height.size();i++) {
+                        if (lower_layer_sharptails[i].overlaps(expoly)) {
+                            accum_height += lower_layer_sharptails_height[i];
                             break;
                         }
                     }
@@ -2235,7 +2242,7 @@ SupportGeneratorLayersPtr PrintObjectSupportMaterial::top_contact_layers(
                 if (is_sharp_tail) {
                     ExPolygons overhang = diff_ex({ expoly }, lower_layer->lslices);
                     layer->sharp_tails.push_back(expoly);
-                    layer->sharp_tails_height.insert({ &expoly, accum_height });
+                    layer->sharp_tails_height.push_back( accum_height );
                     append(overhangs_per_layers[layer_nr], overhang);
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
                     SVG svg(get_svg_filename(std::to_string(layer->print_z), "sharp_tail"), object.bounding_box());
@@ -2428,21 +2435,21 @@ static inline SupportGeneratorLayer* detect_bottom_contacts(
     // Grow top surfaces so that interface and support generation are generated
     // with some spacing from object - it looks we don't need the actual
     // top shapes so this can be done here
+    Layer* upper_layer = layer.upper_layer;
     if (object.print()->config().independent_support_layer_height) {
         // If the layer is extruded with no bridging flow, support just the normal extrusions.
-        layer_new.height = slicing_params.soluble_interface?
+        layer_new.height = slicing_params.soluble_interface ?
             // Align the interface layer with the object's layer height.
-            layer.upper_layer->height :
+            upper_layer->height :
             // Place a bridge flow interface layer or the normal flow interface layer over the top surface.
             support_params.support_material_bottom_interface_flow.height();
-        layer_new.print_z = slicing_params.soluble_interface ? layer.upper_layer->print_z :
+        layer_new.print_z = slicing_params.soluble_interface ? upper_layer->print_z :
             layer.print_z + layer_new.height + slicing_params.gap_object_support;
     }
     else {
-        Layer* synced_layer = sync_gap_with_object_layer(layer, slicing_params.gap_object_support, false);
-        // If the layer is extruded with no bridging flow, support just the normal extrusions.
-        layer_new.height = synced_layer->height;
-        layer_new.print_z = synced_layer->print_z;
+        upper_layer = sync_gap_with_object_layer(layer, slicing_params.gap_object_support, false);
+        layer_new.height = upper_layer->height;
+        layer_new.print_z = upper_layer->print_z;
     }
     layer_new.bottom_z = layer.print_z;
     layer_new.idx_object_layer_below = layer_id;
@@ -3243,7 +3250,7 @@ void PrintObjectSupportMaterial::trim_support_layers_by_object(
                     bool is_overlap = is_layers_overlap(support_layer, object_layer);
                     for (const ExPolygon& expoly : object_layer.lslices) {
                         // BBS
-                        bool is_sharptail = !intersection_ex({ expoly }, object_layer.sharp_tails).empty();
+                        bool is_sharptail = overlaps({ expoly }, object_layer.sharp_tails);
                         coordf_t trimming_offset = is_sharptail ? scale_(sharp_tail_xy_gap) :
                                                    is_overlap ? gap_xy_scaled :
                                                    scale_(no_overlap_xy_gap);
@@ -3408,10 +3415,11 @@ SupportGeneratorLayersPtr generate_raft_base(
             Polygons &raft     = columns_base->polygons;
             Polygons  trimming;
             // BBS: if first layer of support is intersected with object island, it must have the same function as brim unless in nobrim mode.
-            if (object.has_brim())
-                trimming = offset(object.layers().front()->lslices, (float)scale_(object.config().brim_object_gap.value), SUPPORT_SURFACES_OFFSET_PARAMETERS);
-            else
-                trimming = offset(object.layers().front()->lslices, (float)scale_(support_params.gap_xy), SUPPORT_SURFACES_OFFSET_PARAMETERS);
+            // brim_object_gap is changed to 0 by default, it's no longer appropriate to use it to determine the gap of first layer support.
+            //if (object.has_brim())
+            //    trimming = offset(object.layers().front()->lslices, (float)scale_(object.config().brim_object_gap.value), SUPPORT_SURFACES_OFFSET_PARAMETERS);
+            //else
+                trimming = offset(object.layers().front()->lslices, (float)scale_(support_params.gap_xy_first_layer), SUPPORT_SURFACES_OFFSET_PARAMETERS);
             if (inflate_factor_1st_layer > SCALED_EPSILON) {
                 // Inflate in multiple steps to avoid leaking of the support 1st layer through object walls.
                 auto  nsteps = std::max(5, int(ceil(inflate_factor_1st_layer / support_params.first_layer_flow.scaled_width())));
@@ -4820,7 +4828,7 @@ void generate_support_toolpaths(
         {
             SupportLayer &support_layer = *support_layers[support_layer_id];
             LayerCache   &layer_cache   = layer_caches[support_layer_id];
-            float         interface_angle_delta = config.support_style.value == smsSnug || is_tree(config.support_type.value)  ? 
+            float         interface_angle_delta = is_tree(config.support_type.value)  ? 
                 (support_layer.interface_id() & 1) ? float(- M_PI / 4.) : float(+ M_PI / 4.) :
                 0;
 

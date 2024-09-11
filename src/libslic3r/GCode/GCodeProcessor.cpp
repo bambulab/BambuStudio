@@ -16,6 +16,7 @@
 
 #include <float.h>
 #include <assert.h>
+#include <regex>
 
 #if __has_include(<charconv>)
     #include <charconv>
@@ -72,6 +73,8 @@ const std::string GCodeProcessor::Flush_End_Tag = " FLUSH_END";
 
 const float GCodeProcessor::Wipe_Width = 0.05f;
 const float GCodeProcessor::Wipe_Height = 0.05f;
+
+bool GCodeProcessor::s_IsBBLPrinter = true;
 
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
 const std::string GCodeProcessor::Mm3_Per_Mm_Tag = "MM3_PER_MM:";
@@ -496,13 +499,18 @@ void GCodeProcessor::PostProcessor::post_process(const std::string& filename, st
                     PrintEstimatedStatistics::ETimeMode mode = static_cast<PrintEstimatedStatistics::ETimeMode>(i);
                     if (mode == PrintEstimatedStatistics::ETimeMode::Normal || machine.enabled) {
                         char buf[128];
-                        //sprintf(buf, "; estimated printing time (%s mode) = %s\n",
-                        //    (mode == PrintEstimatedStatistics::ETimeMode::Normal) ? "normal" : "silent",
-                        //    get_time_dhms(machine.time).c_str());
-                        sprintf(buf, "; model printing time: %s; total estimated time: %s\n",
-                                get_time_dhms(machine.time - machine.prepare_time).c_str(),
+                        if (!s_IsBBLPrinter) {
+                            // Klipper estimator
+                            sprintf(buf, "; estimated printing time (normal mode) = %s\n",
                                 get_time_dhms(machine.time).c_str());
-                        ret += buf;
+                            ret += buf;
+                        } else {
+                            // BBS estimator
+                            sprintf(buf, "; model printing time: %s; total estimated time: %s\n",
+                                    get_time_dhms(machine.time - machine.prepare_time).c_str(),
+                                    get_time_dhms(machine.time).c_str());
+                            ret += buf;
+                        }
                     }
                 }
             }
@@ -779,7 +787,7 @@ void GCodeProcessor::UsedFilaments::reset()
     volumes_per_color_change = std::vector<double>();
 
     model_extrude_cache = 0.0f;
-    volumes_per_extruder.clear();
+    model_volumes_per_extruder.clear();
 
     flush_per_filament.clear();
 
@@ -787,7 +795,20 @@ void GCodeProcessor::UsedFilaments::reset()
     filaments_per_role.clear();
 
     wipe_tower_cache = 0.0f;
-    wipe_tower_volume_per_extruder.clear();
+    wipe_tower_volumes_per_extruder.clear();
+
+    support_volume_cache = 0.0f;
+    support_volumes_per_extruder.clear();
+
+    total_volume_cache = 0.0f;
+    total_volumes_per_extruder.clear();
+}
+
+void GCodeProcessor::UsedFilaments::increase_support_caches(double extruded_volume)
+{
+    support_volume_cache += extruded_volume;
+    role_cache += extruded_volume;
+    total_volume_cache += extruded_volume;
 }
 
 void GCodeProcessor::UsedFilaments::increase_model_caches(double extruded_volume)
@@ -795,11 +816,14 @@ void GCodeProcessor::UsedFilaments::increase_model_caches(double extruded_volume
     color_change_cache += extruded_volume;
     model_extrude_cache += extruded_volume;
     role_cache += extruded_volume;
+    total_volume_cache += extruded_volume;
 }
 
 void GCodeProcessor::UsedFilaments::increase_wipe_tower_caches(double extruded_volume)
 {
     wipe_tower_cache += extruded_volume;
+    role_cache += extruded_volume;
+    total_volume_cache += extruded_volume;
 }
 
 void GCodeProcessor::UsedFilaments::process_color_change_cache()
@@ -810,14 +834,27 @@ void GCodeProcessor::UsedFilaments::process_color_change_cache()
     }
 }
 
+
+void GCodeProcessor::UsedFilaments::process_total_volume_cache(GCodeProcessor* processor)
+{
+    size_t active_extruder_id = processor->m_extruder_id;
+    if (total_volume_cache!= 0.0f) {
+        if (total_volumes_per_extruder.find(active_extruder_id) != total_volumes_per_extruder.end())
+            total_volumes_per_extruder[active_extruder_id] += total_volume_cache;
+        else
+            total_volumes_per_extruder[active_extruder_id] = total_volume_cache;
+        total_volume_cache = 0.0f;
+    }
+}
+
 void GCodeProcessor::UsedFilaments::process_model_cache(GCodeProcessor* processor)
 {
     size_t active_extruder_id = processor->m_extruder_id;
     if (model_extrude_cache != 0.0f) {
-        if (volumes_per_extruder.find(active_extruder_id) != volumes_per_extruder.end())
-            volumes_per_extruder[active_extruder_id] += model_extrude_cache;
+        if (model_volumes_per_extruder.find(active_extruder_id) != model_volumes_per_extruder.end())
+            model_volumes_per_extruder[active_extruder_id] += model_extrude_cache;
         else
-            volumes_per_extruder[active_extruder_id] = model_extrude_cache;
+            model_volumes_per_extruder[active_extruder_id] = model_extrude_cache;
         model_extrude_cache = 0.0f;
     }
 }
@@ -826,20 +863,39 @@ void GCodeProcessor::UsedFilaments::process_wipe_tower_cache(GCodeProcessor* pro
 {
     size_t active_extruder_id = processor->m_extruder_id;
     if (wipe_tower_cache != 0.0f) {
-        if (wipe_tower_volume_per_extruder.find(active_extruder_id) != wipe_tower_volume_per_extruder.end())
-            wipe_tower_volume_per_extruder[active_extruder_id] += wipe_tower_cache;
+        if (wipe_tower_volumes_per_extruder.find(active_extruder_id) != wipe_tower_volumes_per_extruder.end())
+            wipe_tower_volumes_per_extruder[active_extruder_id] += wipe_tower_cache;
         else
-            wipe_tower_volume_per_extruder[active_extruder_id] = wipe_tower_cache;
+            wipe_tower_volumes_per_extruder[active_extruder_id] = wipe_tower_cache;
         wipe_tower_cache = 0.0f;
+    }
+}
+
+void GCodeProcessor::UsedFilaments::process_support_cache(GCodeProcessor* processor)
+{
+    size_t active_extruder_id = processor->m_extruder_id;
+    if (support_volume_cache != 0.0f){
+        if (support_volumes_per_extruder.find(active_extruder_id) != support_volumes_per_extruder.end())
+            support_volumes_per_extruder[active_extruder_id] += support_volume_cache;
+        else
+            support_volumes_per_extruder[active_extruder_id] = support_volume_cache;
+        support_volume_cache = 0.0f;
     }
 }
 
 void GCodeProcessor::UsedFilaments::update_flush_per_filament(size_t extrude_id, float flush_volume)
 {
-    if (flush_per_filament.find(extrude_id) != flush_per_filament.end())
-        flush_per_filament[extrude_id] += flush_volume;
-    else
-        flush_per_filament[extrude_id] = flush_volume;
+    if (flush_volume != 0.f) {
+        if (flush_per_filament.find(extrude_id) != flush_per_filament.end())
+            flush_per_filament[extrude_id] += flush_volume;
+        else
+            flush_per_filament[extrude_id] = flush_volume;
+
+        if (total_volumes_per_extruder.find(extrude_id) != total_volumes_per_extruder.end())
+            total_volumes_per_extruder[extrude_id] += flush_volume;
+        else
+            total_volumes_per_extruder[extrude_id] = flush_volume;
+    }
 }
 
 void GCodeProcessor::UsedFilaments::process_role_cache(GCodeProcessor* processor)
@@ -868,6 +924,8 @@ void GCodeProcessor::UsedFilaments::process_caches(GCodeProcessor* processor)
     process_model_cache(processor);
     process_role_cache(processor);
     process_wipe_tower_cache(processor);
+    process_support_cache(processor);
+    process_total_volume_cache(processor);
 }
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -911,6 +969,7 @@ void GCodeProcessorResult::reset() {
     toolpath_outside = false;
     //BBS: add label_object_enabled
     label_object_enabled = false;
+    long_retraction_when_cut = false;
     timelapse_warning_code = 0;
     printable_height = 0.0f;
     settings_ids.reset();
@@ -1074,8 +1133,11 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
 
     const ConfigOptionBool* spiral_vase = config.option<ConfigOptionBool>("spiral_mode");
     if (spiral_vase != nullptr)
-        m_spiral_vase_active = spiral_vase->value;
+        m_detect_layer_based_on_tag  = spiral_vase->value;
 
+    const ConfigOptionBool *has_scarf_joint_seam = config.option<ConfigOptionBool>("has_scarf_joint_seam");
+    if (has_scarf_joint_seam != nullptr)
+        m_detect_layer_based_on_tag  = m_detect_layer_based_on_tag  || has_scarf_joint_seam->value;
 
 }
 
@@ -1356,7 +1418,11 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
 
     const ConfigOptionBool* spiral_vase = config.option<ConfigOptionBool>("spiral_mode");
     if (spiral_vase != nullptr)
-        m_spiral_vase_active = spiral_vase->value;
+        m_detect_layer_based_on_tag  = spiral_vase->value;
+
+    const ConfigOptionBool *has_scarf_joint_seam = config.option<ConfigOptionBool>("has_scarf_joint_seam");
+    if (has_scarf_joint_seam != nullptr)
+        m_detect_layer_based_on_tag = m_detect_layer_based_on_tag || has_scarf_joint_seam->value;
 
     const ConfigOptionEnumGeneric *bed_type = config.option<ConfigOptionEnumGeneric>("curr_bed_type");
     if (bed_type != nullptr)
@@ -1435,8 +1501,9 @@ void GCodeProcessor::reset()
 
     m_options_z_corrector.reset();
 
-    m_spiral_vase_active = false;
+    m_detect_layer_based_on_tag = false;
 
+    m_seams_count = 0;
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
     m_mm3_per_mm_compare.reset();
     m_height_compare.reset();
@@ -2082,13 +2149,14 @@ int GCodeProcessor::get_gcode_last_filament(const std::string& gcode_str)
     return out_filament;
 }
 
-//BBS: get last z position from gcode
-bool GCodeProcessor::get_last_z_from_gcode(const std::string& gcode_str, double& z)
+//BBS: get last position from gcode for specified axis
+//axis index is the same as Vec3d (X=0, Y=1, Z=2)
+bool GCodeProcessor::get_last_pos_from_gcode(const std::string& gcode_str, int axis, double& pos)
 {
     int str_size = gcode_str.size();
     int start_index = 0;
     int end_index = 0;
-    bool is_z_changed = false;
+    bool is_axis_changed = false;
     while (end_index < str_size) {
         //find a full line
         if (gcode_str[end_index] != '\n') {
@@ -2108,24 +2176,32 @@ bool GCodeProcessor::get_last_z_from_gcode(const std::string& gcode_str, double&
                                        || line_str.find("G2 ") == 0
                                        || line_str.find("G3 ") == 0))
             {
-                auto z_pos = line_str.find(" Z");
-                double temp_z = 0;
-                if (z_pos != line_str.npos
-                    && z_pos + 2 < line_str.size()) {
+                std::string axis_str;
+                if (axis == 0) {
+                    axis_str = "X";
+                } else if (axis == 1) {
+                    axis_str = "Y";
+                } else if (axis == 2) {
+                    axis_str = "Z";
+                }
+                auto axis_pos = line_str.find(" " + axis_str);
+                double temp_axis_pos = 0;
+                if (axis_pos != line_str.npos
+                    && axis_pos + 2 < line_str.size()) {
                     // Try to parse the numeric value.
-                    std::string z_sub = line_str.substr(z_pos + 2);
-                    char* c = &z_sub[0];
-                    char* end = c + sizeof(z_sub.c_str());
+                    std::string axis_substr = line_str.substr(axis_pos + 2);
+                    char* start_ptr = &axis_substr[0];
+                    char* end_ptr = start_ptr + sizeof(axis_substr.c_str());
 
                     auto is_end_of_word = [](char c) {
                         return c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == 0 || c == ';';
                     };
 
-                    auto [pend, ec] = fast_float::from_chars(c, end, temp_z);
-                    if (pend != c && is_end_of_word(*pend)) {
+                    auto [parsed_ptr, error_code] = fast_float::from_chars(start_ptr, end_ptr, temp_axis_pos);
+                    if (parsed_ptr != start_ptr && is_end_of_word(*parsed_ptr)) {
                         // The axis value has been parsed correctly.
-                        z = temp_z;
-                        is_z_changed = true;
+                        pos = temp_axis_pos;
+                        is_axis_changed = true;
                     }
                 }
             }
@@ -2134,7 +2210,7 @@ bool GCodeProcessor::get_last_z_from_gcode(const std::string& gcode_str, double&
         start_index = end_index + 1;
         end_index = start_index;
     }
-    return is_z_changed;
+    return is_axis_changed;
 }
 
 void GCodeProcessor::process_tags(const std::string_view comment, bool producers_enabled)
@@ -2295,12 +2371,12 @@ void GCodeProcessor::process_tags(const std::string_view comment, bool producers
     // layer change tag
     if (comment == reserved_tag(ETags::Layer_Change)) {
         ++m_layer_id;
-        if (m_spiral_vase_active) {
+        if (m_detect_layer_based_on_tag) {
             if (m_result.moves.empty() || m_result.spiral_vase_layers.empty())
                 // add a placeholder for layer height. the actual value will be set inside process_G1() method
                 m_result.spiral_vase_layers.push_back({ FLT_MAX, { 0, 0 } });
             else {
-                const size_t move_id = m_result.moves.size() - 1;
+                const size_t move_id = m_result.moves.size() - 1 - m_seams_count;
                 if (!m_result.spiral_vase_layers.empty())
                     m_result.spiral_vase_layers.back().second.second = move_id;
                 // add a placeholder for layer height. the actual value will be set inside process_G1() method
@@ -2864,7 +2940,10 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
         float delta_xyz = std::sqrt(sqr(delta_pos[X]) + sqr(delta_pos[Y]) + sqr(delta_pos[Z]));
         float volume_extruded_filament = area_filament_cross_section * delta_pos[E];
         float area_toolpath_cross_section = volume_extruded_filament / delta_xyz;
-        if (m_wipe_tower) {
+
+        if(m_extrusion_role == ExtrusionRole::erSupportMaterial || m_extrusion_role == ExtrusionRole::erSupportMaterialInterface || m_extrusion_role ==ExtrusionRole::erSupportTransition)
+            m_used_filaments.increase_support_caches(volume_extruded_filament);
+        else if (m_extrusion_role==ExtrusionRole::erWipeTower) {
             m_used_filaments.increase_wipe_tower_caches(volume_extruded_filament);
         }
         else {
@@ -3163,6 +3242,15 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
             //BBS: m_result.moves.back().position has plate offset, must minus plate offset before calculate the real seam position
             const Vec3f real_first_pos = Vec3f(m_result.moves.back().position.x() - m_x_offset, m_result.moves.back().position.y() - m_y_offset, m_result.moves.back().position.z());
             m_seams_detector.set_first_vertex(real_first_pos - m_extruder_offsets[m_extruder_id]);
+        } else if (type == EMoveType::Extrude && m_extrusion_role == erExternalPerimeter && m_detect_layer_based_on_tag) {
+            const Vec3f real_last_pos = Vec3f(m_result.moves.back().position.x() - m_x_offset, m_result.moves.back().position.y() - m_y_offset,
+                                              m_result.moves.back().position.z());
+            const Vec3f new_pos       = real_last_pos - m_extruder_offsets[m_extruder_id];
+            // We may have sloped loop, drop any previous start pos if we have z increment
+            const std::optional<Vec3f> first_vertex = m_seams_detector.get_first_vertex();
+            if (new_pos.z() > first_vertex->z()) {
+                m_seams_detector.set_first_vertex(new_pos);
+            }
         }
         // check for seam ending vertex and store the resulting move
         else if ((type != EMoveType::Extrude || (m_extrusion_role != erExternalPerimeter && m_extrusion_role != erOverhangPerimeter)) && m_seams_detector.has_first_vertex()) {
@@ -3192,12 +3280,18 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
         m_seams_detector.set_first_vertex(m_result.moves.back().position - m_extruder_offsets[m_extruder_id] - plate_offset);
     }
 
-    if (m_spiral_vase_active && !m_result.spiral_vase_layers.empty()) {
-        if (m_result.spiral_vase_layers.back().first == FLT_MAX && delta_pos[Z] > 0.0)
+    if (m_detect_layer_based_on_tag && !m_result.spiral_vase_layers.empty()) {
+        if (delta_pos[Z] >= 0.0 && type == EMoveType::Extrude) {
+            const float current_z = static_cast<float>(m_end_position[Z]);
             // replace layer height placeholder with correct value
-            m_result.spiral_vase_layers.back().first = static_cast<float>(m_end_position[Z]);
+            if (m_result.spiral_vase_layers.back().first == FLT_MAX) {
+                m_result.spiral_vase_layers.back().first = current_z;
+            } else {
+                m_result.spiral_vase_layers.back().first = std::max(m_result.spiral_vase_layers.back().first, current_z);
+            }
+        }
         if (!m_result.moves.empty())
-            m_result.spiral_vase_layers.back().second.second = m_result.moves.size() - 1;
+            m_result.spiral_vase_layers.back().second.second = m_result.moves.size() - 1 - m_seams_count;
     }
 
     // store move
@@ -3324,7 +3418,10 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
     if (type == EMoveType::Extrude) {
         float volume_extruded_filament = area_filament_cross_section * delta_pos[E];
         float area_toolpath_cross_section = volume_extruded_filament / delta_xyz;
-        if (m_wipe_tower) {
+
+        if(m_extrusion_role == ExtrusionRole::erSupportMaterial || m_extrusion_role == ExtrusionRole::erSupportMaterialInterface || m_extrusion_role ==ExtrusionRole::erSupportTransition)
+            m_used_filaments.increase_support_caches(volume_extruded_filament);
+        else if (m_extrusion_role == ExtrusionRole::erWipeTower) {
             //BBS: save wipe tower volume to the cache
             m_used_filaments.increase_wipe_tower_caches(volume_extruded_filament);
         }
@@ -3581,6 +3678,13 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
         //BBS: check for seam starting vertex
         if (type == EMoveType::Extrude && m_extrusion_role == erExternalPerimeter && !m_seams_detector.has_first_vertex()) {
             m_seams_detector.set_first_vertex(m_result.moves.back().position - m_extruder_offsets[m_extruder_id] - plate_offset);
+        } else if (type == EMoveType::Extrude && m_extrusion_role == erExternalPerimeter && m_detect_layer_based_on_tag) {
+            const Vec3f real_last_pos = Vec3f(m_result.moves.back().position.x() - m_x_offset, m_result.moves.back().position.y() - m_y_offset,
+                                              m_result.moves.back().position.z());
+            const Vec3f new_pos       = real_last_pos - m_extruder_offsets[m_extruder_id];
+            // We may have sloped loop, drop any previous start pos if we have z increment
+            const std::optional<Vec3f> first_vertex = m_seams_detector.get_first_vertex();
+            if (new_pos.z() > first_vertex->z()) { m_seams_detector.set_first_vertex(new_pos); }
         }
         //BBS: check for seam ending vertex and store the resulting move
         else if ((type != EMoveType::Extrude || (m_extrusion_role != erExternalPerimeter && m_extrusion_role != erOverhangPerimeter)) && m_seams_detector.has_first_vertex()) {
@@ -4205,6 +4309,10 @@ void GCodeProcessor::store_move_vertex(EMoveType type, EMovePathType path_type)
         m_interpolation_points,
     });
 
+    if (type == EMoveType::Seam) {
+        m_seams_count++;
+    }
+
     // stores stop time placeholders for later use
     if (type == EMoveType::Color_change || type == EMoveType::Pause_Print) {
         for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
@@ -4377,6 +4485,8 @@ void GCodeProcessor::process_filaments(CustomGCode::Type code)
 
     if (code == CustomGCode::ToolChange) {
         m_used_filaments.process_model_cache(this);
+        m_used_filaments.process_support_cache(this);
+        m_used_filaments.process_total_volume_cache(this);
         //BBS: reset remaining filament
         m_remaining_volume = m_nozzle_volume;
     }
@@ -4408,10 +4518,12 @@ void GCodeProcessor::update_estimated_times_stats()
         m_result.print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Stealth)].reset();
 
     m_result.print_statistics.volumes_per_color_change  = m_used_filaments.volumes_per_color_change;
-    m_result.print_statistics.volumes_per_extruder      = m_used_filaments.volumes_per_extruder;
-    m_result.print_statistics.wipe_tower_volumes_per_extruder = m_used_filaments.wipe_tower_volume_per_extruder;
+    m_result.print_statistics.model_volumes_per_extruder      = m_used_filaments.model_volumes_per_extruder;
+    m_result.print_statistics.wipe_tower_volumes_per_extruder = m_used_filaments.wipe_tower_volumes_per_extruder;
+    m_result.print_statistics.support_volumes_per_extruder = m_used_filaments.support_volumes_per_extruder;
     m_result.print_statistics.flush_per_filament      = m_used_filaments.flush_per_filament;
     m_result.print_statistics.used_filaments_per_role   = m_used_filaments.filaments_per_role;
+    m_result.print_statistics.total_volumes_per_extruder = m_used_filaments.total_volumes_per_extruder;
 }
 
 //BBS: ugly code...
@@ -4421,8 +4533,8 @@ void GCodeProcessor::update_slice_warnings()
 
     auto get_used_extruders = [this]() {
         std::vector<size_t> used_extruders;
-        used_extruders.reserve(m_used_filaments.volumes_per_extruder.size());
-        for (auto item : m_used_filaments.volumes_per_extruder) {
+        used_extruders.reserve(m_used_filaments.total_volumes_per_extruder.size());
+        for (auto item : m_used_filaments.total_volumes_per_extruder) {
             used_extruders.push_back(item.first);
         }
         return used_extruders;

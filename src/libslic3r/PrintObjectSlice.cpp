@@ -215,7 +215,9 @@ static inline bool overlap_in_xy(const PrintObjectRegions::BoundingBox &l, const
 static std::vector<PrintObjectRegions::LayerRangeRegions>::const_iterator layer_range_first(const std::vector<PrintObjectRegions::LayerRangeRegions> &layer_ranges, double z)
 {
     auto  it = lower_bound_by_predicate(layer_ranges.begin(), layer_ranges.end(),
-        [z](const PrintObjectRegions::LayerRangeRegions &lr) { return lr.layer_height_range.second < z; });
+        [z](const PrintObjectRegions::LayerRangeRegions &lr) {
+            return lr.layer_height_range.second < z && abs(lr.layer_height_range.second - z) > EPSILON;
+        });
     assert(it != layer_ranges.end() && it->layer_height_range.first <= z && z <= it->layer_height_range.second);
     if (z == it->layer_height_range.second)
         if (auto it_next = it; ++ it_next != layer_ranges.end() && it_next->layer_height_range.first == z)
@@ -229,7 +231,7 @@ static std::vector<PrintObjectRegions::LayerRangeRegions>::const_iterator layer_
     std::vector<PrintObjectRegions::LayerRangeRegions>::const_iterator   it,
     double                                                               z)
 {
-    for (; it->layer_height_range.second <= z; ++ it)
+    for (; it->layer_height_range.second <= z + EPSILON; ++ it)
         assert(it != layer_ranges.end());
     assert(it != layer_ranges.end() && it->layer_height_range.first <= z && z < it->layer_height_range.second);
     return it;
@@ -790,7 +792,7 @@ void PrintObject::slice()
     m_print->throw_if_canceled();
     m_typed_slices = false;
     this->clear_layers();
-    m_layers = new_layers(this, generate_object_layers(m_slicing_params, layer_height_profile));
+    m_layers = new_layers(this, generate_object_layers(m_slicing_params, layer_height_profile, m_config.precise_z_height.value));
     this->slice_volumes();
     m_print->throw_if_canceled();
     int firstLayerReplacedBy = 0;
@@ -801,10 +803,11 @@ void PrintObject::slice()
     std::string warning = fix_slicing_errors(this, m_layers, [this](){ m_print->throw_if_canceled(); }, firstLayerReplacedBy);
     m_print->throw_if_canceled();
     //BBS: send warning message to slicing callback
-    if (!warning.empty()) {
-        BOOST_LOG_TRIVIAL(info) << warning;
-        this->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL, warning, PrintStateBase::SlicingReplaceInitEmptyLayers);
-    }
+    // This warning is inaccurate, because the empty layers may have been replaced, or the model has supports.
+    //if (!warning.empty()) {
+    //    BOOST_LOG_TRIVIAL(info) << warning;
+    //    this->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL, warning, PrintStateBase::SlicingReplaceInitEmptyLayers);
+    //}
 #endif
 
     // BBS: the actual first layer slices stored in layers are re-sorted by volume group and will be used to generate brim

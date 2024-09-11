@@ -8,6 +8,7 @@
 #include <wx/bitmap.h>
 #include <wx/image.h>
 #include <wx/sizer.h>
+#include <wx/timer.h>
 #include <wx/gbsizer.h>
 #include <wx/webrequest.h>
 #include <wx/hyperlink.h>
@@ -66,6 +67,8 @@ private:
     SwitchButton* m_switch_recording;
     wxStaticText* m_text_vcamera;
     SwitchButton* m_switch_vcamera;
+    wxStaticText* m_text_liveview_retry;
+    SwitchButton* m_switch_liveview_retry;
     wxStaticText* m_text_resolution;
     wxWindow* m_resolution_options[RESOLUTION_OPTIONS_NUM];
     wxScrolledWindow *m_panel;

@@ -161,6 +161,12 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_UKRAINIAN)) {
             language_name = wxString::FromUTF8("\xD0\xA3\xD0\xBA\xD1\x80\xD0\xB0\xD1\x97\xD0\xBD\xD1\x81\xD1\x8C\xD0\xBA\xD0\xB0");
         }
+        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_PORTUGUESE_BRAZILIAN)) {
+            language_name = wxString::FromUTF8("\x50\x6F\x72\x74\x75\x67\x75\xC3\xAA\x73\x20\x28\x42\x72\x61\x73\x69\x6C\x29");
+        }
+        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_TURKISH)) {
+            language_name = wxString::FromUTF8("\x54\xC3\xBC\x72\x6B\xC3\xA7\x65");
+        }
 
         if (language == vlist[i]->CanonicalName) {
             m_current_language_selected = i;
@@ -193,7 +199,7 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
             {
                 //check if the project has changed
                 if (wxGetApp().plater()->is_project_dirty()) {
-                    auto result = MessageDialog(static_cast<wxWindow*>(this), _L("The current project has unsaved changes, save it before continue?"),
+                    auto result = MessageDialog(static_cast<wxWindow*>(this), _L("The current project has unsaved changes, save it before continuing?"),
                         wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Save"), wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE).ShowModal();
 
                     if (result == wxID_YES) {
@@ -622,7 +628,12 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
     m_sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
 
     auto checkbox = new ::CheckBox(parent);
-    checkbox->SetValue((app_config->get(param) == "true") ? true : false);
+    if (param == "privacyuse") {
+        checkbox->SetValue((app_config->get("firstguide", param) == "true") ? true : false);
+    }
+    else {
+        checkbox->SetValue((app_config->get(param) == "true") ? true : false);
+    }
 
     m_sizer_checkbox->Add(checkbox, 0, wxALIGN_CENTER, 0);
     m_sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, 8);
@@ -639,8 +650,21 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
 
      //// save config
     checkbox->Bind(wxEVT_TOGGLEBUTTON, [this, checkbox, param](wxCommandEvent &e) {
-        app_config->set_bool(param, checkbox->GetValue());
-        app_config->save();
+        if (param == "privacyuse") {
+            app_config->set("firstguide", param, checkbox->GetValue());
+            NetworkAgent* agent = GUI::wxGetApp().getAgent();
+            if (!checkbox->GetValue()) {
+                if (agent) {
+                    agent->track_enable(false);
+                    agent->track_remove_files();
+                }
+            }
+            app_config->save();
+        }
+        else {
+            app_config->set_bool(param, checkbox->GetValue());
+            app_config->save();
+        }
 
         if (param == "staff_pick_switch") {
             bool pbool = app_config->get("staff_pick_switch") == "true";
@@ -663,6 +687,7 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
             } else {
                 wxGetApp().stop_sync_user_preset();
             }
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync_user_preset: " << (sync ? "true" : "false");
         }
 
         #ifdef __WXMSW__
@@ -852,6 +877,8 @@ PreferencesDialog::PreferencesDialog(wxWindow *parent, wxWindowID id, const wxSt
                 std::string value;
                 value = wxGetApp().app_config->get("auto_calculate");
                 j["auto_flushing"] = value;
+                value = wxGetApp().app_config->get("auto_calculate_when_filament_change");
+                j["auto_calculate_when_filament_change"] = value;
                 agent->track_event("preferences_changed", j.dump());
             }
         } catch(...) {}
@@ -966,7 +993,9 @@ wxWindow* PreferencesDialog::create_general_page()
         wxLANGUAGE_KOREAN,
         wxLANGUAGE_RUSSIAN,
         wxLANGUAGE_CZECH,
-        wxLANGUAGE_UKRAINIAN
+        wxLANGUAGE_UKRAINIAN,
+        wxLANGUAGE_PORTUGUESE_BRAZILIAN,
+        wxLANGUAGE_TURKISH
     };
 
     auto translations = wxTranslations::Get()->GetAvailableTranslations(SLIC3R_APP_KEY);
@@ -988,16 +1017,28 @@ wxWindow* PreferencesDialog::create_general_page()
     std::sort(language_infos.begin(), language_infos.end(), [](const wxLanguageInfo *l, const wxLanguageInfo *r) { return l->Description < r->Description; });
     auto item_language = create_item_language_combobox(_L("Language"), page, _L("Language"), 50, "language", language_infos);
 
-    std::vector<wxString> Regions         = {_L("Asia-Pacific"), _L("China"), _L("Europe"), _L("North America"), _L("Others")};
+    std::vector<wxString> Regions         = {_L("Asia-Pacific"), _L("Chinese Mainland"), _L("Europe"), _L("North America"), _L("Others")};
     auto                  item_region= create_item_region_combobox(_L("Login Region"), page, _L("Login Region"), Regions);
 
     std::vector<wxString> Units         = {_L("Metric") + " (mm, g)", _L("Imperial") + " (in, oz)"};
     auto item_currency = create_item_combobox(_L("Units"), page, _L("Units"), "use_inches", Units);
+    auto item_single_instance = create_item_checkbox(_L("Keep only one Bambu Studio instance"), page,
+#if __APPLE__
+        _L("On OSX there is always only one instance of app running by default. However it is allowed to run multiple instances "
+			  "of same app from the command line. In such case this settings will allow only one instance."),
+#else
+        _L("If this is enabled, when starting Bambu Studio and another instance of the same Bambu Studio is already running, that instance will be reactivated instead."),
+#endif
+        50, "single_instance");
 
     auto item_mouse_zoom_settings = create_item_checkbox(_L("Zoom to mouse position"), page, _L("Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."), 50, "zoom_to_mouse");
-
+    auto item_bed_type_follow_preset = create_item_checkbox(_L("Auto plate type"), page,
+                                                         _L("Studio will remember build plate selected last time for certain printer model."), 50,
+                                                         "user_bed_type");
     //auto item_hints = create_item_checkbox(_L("Show \"Tip of the day\" notification after start"), page, _L("If enabled, useful hints are displayed at startup."), 50, "show_hints");
-    auto item_calc_mode = create_item_checkbox(_L("Flushing volumes: Auto-calculate everytime the color changed."), page, _L("If enabled, auto-calculate everytime the color changed."), 50, "auto_calculate");
+    auto item_calc_mode = create_item_checkbox(_L("Flushing volumes: Auto-calculate every time when the color is changed."), page, _L("If enabled, auto-calculate every time when the color is changed."), 50, "auto_calculate");
+    auto item_calc_in_long_retract = create_item_checkbox(_L("Flushing volumes: Auto-calculate every time when the filament is changed."), page, _L("If enabled, auto-calculate every time when filament is changed"), 50, "auto_calculate_when_filament_change");
+    auto item_multi_machine = create_item_checkbox(_L("Multi-device Management(Take effect after restarting Studio)."), page, _L("With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."), 50, "enable_multi_machine");
     auto title_presets = create_item_title(_L("Presets"), page, _L("Presets"));
     auto item_user_sync        = create_item_checkbox(_L("Auto sync user presets(Printer/Filament/Process)"), page, _L("User Sync"), 50, "sync_user_preset");
     auto item_system_sync        = create_item_checkbox(_L("Update built-in Presets automatically."), page, _L("System Sync"), 50, "sync_system_preset");
@@ -1006,15 +1047,15 @@ wxWindow* PreferencesDialog::create_general_page()
     });
 
 #ifdef _WIN32
-    auto title_associate_file = create_item_title(_L("Associate files to BambuStudio"), page, _L("Associate files to BambuStudio"));
+    auto title_associate_file = create_item_title(_L("Associate Files To Bambu Studio"), page, _L("Associate Files To Bambu Studio"));
 
     // associate file
-    auto item_associate_3mf  = create_item_checkbox(_L("Associate .3mf files to BambuStudio"), page,
-                                                        _L("If enabled, sets BambuStudio as default application to open .3mf files"), 50, "associate_3mf");
-    auto item_associate_stl  = create_item_checkbox(_L("Associate .stl files to BambuStudio"), page,
-                                                        _L("If enabled, sets BambuStudio as default application to open .stl files"), 50, "associate_stl");
-    auto item_associate_step = create_item_checkbox(_L("Associate .step/.stp files to BambuStudio"), page,
-                                                         _L("If enabled, sets BambuStudio as default application to open .step files"), 50, "associate_step");
+    auto item_associate_3mf  = create_item_checkbox(_L("Associate .3mf files to Bambu Studio"), page,
+                                                        _L("If enabled, sets Bambu Studio as default application to open .3mf files"), 50, "associate_3mf");
+    auto item_associate_stl  = create_item_checkbox(_L("Associate .stl files to Bambu Studio"), page,
+                                                        _L("If enabled, sets Bambu Studio as default application to open .stl files"), 50, "associate_stl");
+    auto item_associate_step = create_item_checkbox(_L("Associate .step/.stp files to Bambu Studio"), page,
+                                                         _L("If enabled, sets Bambu Studio as default application to open .step files"), 50, "associate_step");
 #endif // _WIN32
 
     auto title_modelmall = create_item_title(_L("Online Models"), page, _L("Online Models"));
@@ -1042,10 +1083,16 @@ wxWindow* PreferencesDialog::create_general_page()
     //dark mode
 #ifdef _WIN32
     auto title_darkmode = create_item_title(_L("Dark Mode"), page, _L("Dark Mode"));
-    auto item_darkmode = create_item_darkmode_checkbox(_L("Enable Dark mode"), page,_L("Enable Dark mode"), 50, "dark_color_mode");
+    auto item_darkmode = create_item_darkmode_checkbox(_L("Enable dark mode"), page,_L("Enable dark mode"), 50, "dark_color_mode");
 #endif
 
-    auto title_develop_mode = create_item_title(_L("Develop mode"), page, _L("Develop mode"));
+    auto title_user_experience = create_item_title(_L("User Experience"), page, _L("User Experience"));
+    auto item_priv_policy = create_item_checkbox(_L("Join Customer Experience Improvement Program."), page, "", 50, "privacyuse");
+    wxHyperlinkCtrl* hyperlink = new wxHyperlinkCtrl(page, wxID_ANY, _L("What data would be collected?"), "https://bambulab.com/en/policies/privacy");
+    hyperlink->SetFont(Label::Head_13);
+    item_priv_policy->Add(hyperlink, 0, wxALIGN_CENTER, 0);
+
+    auto title_develop_mode = create_item_title(_L("Develop Mode"), page, _L("Develop Mode"));
     auto item_develop_mode  = create_item_checkbox(_L("Develop mode"), page, _L("Develop mode"), 50, "developer_mode");
     auto item_skip_ams_blacklist_check  = create_item_checkbox(_L("Skip AMS blacklist check"), page, _L("Skip AMS blacklist check"), 50, "skip_ams_blacklist_check");
 
@@ -1053,9 +1100,13 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_language, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_region, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_currency, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_single_instance, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_mouse_zoom_settings, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_bed_type_follow_preset, 0, wxTOP, FromDIP(3));
     //sizer_page->Add(item_hints, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_calc_mode, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_calc_in_long_retract, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_multi_machine, 0, wxTOP, FromDIP(3));
     sizer_page->Add(title_presets, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_user_sync, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_system_sync, 0, wxTOP, FromDIP(3));
@@ -1092,6 +1143,9 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(title_darkmode, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_darkmode, 0, wxEXPAND, FromDIP(3));
 #endif
+
+    sizer_page->Add(title_user_experience, 0, wxTOP | wxEXPAND, FromDIP(20));
+    sizer_page->Add(item_priv_policy, 0, wxTOP, FromDIP(3));
 
     sizer_page->Add(title_develop_mode, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_develop_mode, 0, wxTOP, FromDIP(3));
@@ -1279,6 +1333,7 @@ wxWindow* PreferencesDialog::create_debug_page()
                 }
 
 
+                wxGetApp().update_publish_status();
 
                 AppConfig* config = GUI::wxGetApp().app_config;
                 std::string country_code = config->get_country_code();

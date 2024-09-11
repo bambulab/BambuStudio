@@ -2,6 +2,7 @@
 #include "Label.hpp"
 #include "TextCtrl.h"
 
+#include <wx/dcclient.h>
 #include <wx/dcgraph.h>
 
 BEGIN_EVENT_TABLE(TextInput, wxPanel)
@@ -97,6 +98,14 @@ void TextInput::SetIcon(const wxBitmap &icon)
 {
     this->icon = ScalableBitmap();
     this->icon.bmp() = icon;
+    Rescale();
+}
+
+void TextInput::SetIcon(const wxString &icon)
+{
+    if (this->icon.name() == icon.ToStdString())
+        return;
+    this->icon = ScalableBitmap(this, icon.ToStdString(), 16);
     Rescale();
 }
 

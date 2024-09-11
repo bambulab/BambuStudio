@@ -43,19 +43,23 @@ void GLGizmoMmuSegmentation::on_shutdown()
 
 std::string GLGizmoMmuSegmentation::on_get_name() const
 {
-    return _u8L("Color Painting");
+    if (!on_is_activable() && m_state == EState::Off) {
+        return _u8L("Color Painting") + ":\n" + _u8L("Please select single object.");
+    } else {
+        return _u8L("Color Painting");
+    }
 }
 
 bool GLGizmoMmuSegmentation::on_is_selectable() const
 {
     return (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptFFF
-            && /*wxGetApp().get_mode() != comSimple && */wxGetApp().filaments_cnt() > 1);
+            /*wxGetApp().get_mode() != comSimple && */);
 }
 
 bool GLGizmoMmuSegmentation::on_is_activable() const
 {
     const Selection& selection = m_parent.get_selection();
-    return !selection.is_empty() && (selection.is_single_full_instance() || selection.is_any_volume()) && wxGetApp().filaments_cnt() > 1;
+    return !selection.is_empty() && (selection.is_single_full_instance() || selection.is_any_volume());
 }
 
 //BBS: use the global one in 3DScene.cpp
@@ -90,7 +94,10 @@ static std::vector<int> get_extruder_id_for_volumes(const ModelObject &model_obj
 void GLGizmoMmuSegmentation::init_extruders_data()
 {
     m_extruders_colors = get_extruders_colors();
-    m_selected_extruder_idx = 0;
+    size_t n_extruder_colors = std::min((size_t) EnforcerBlockerType::ExtruderMax, m_extruders_colors.size());
+    if (n_extruder_colors == 2 || m_selected_extruder_idx >= n_extruder_colors) {
+        m_selected_extruder_idx = n_extruder_colors - 1;
+    }
 }
 
 bool GLGizmoMmuSegmentation::on_init()
@@ -167,7 +174,7 @@ void GLGizmoMmuSegmentation::set_painter_gizmo_data(const Selection &selection)
 {
     GLGizmoPainterBase::set_painter_gizmo_data(selection);
 
-    if (m_state != On || wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptFFF || wxGetApp().filaments_cnt() <= 1)
+    if (m_state != On || wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptFFF)
         return;
 
     ModelObject* model_object = m_c->selection_info()->model_object();
@@ -243,7 +250,7 @@ void GLGizmoMmuSegmentation::render_triangles(const Selection &selection) const
 bool GLGizmoMmuSegmentation::on_number_key_down(int number)
 {
     int extruder_idx = number - 1;
-    if (extruder_idx < m_extruders_colors.size())
+    if (extruder_idx < m_extruders_colors.size() && extruder_idx >= 0)
         m_selected_extruder_idx = extruder_idx;
 
     return true;
@@ -393,8 +400,11 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
 
     // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:
     const float space_size = m_imgui->get_style_scaling() * 8;
-    const float clipping_slider_left  = std::max(m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x + m_imgui->scaled(1.5f),
+    float clipping_slider_left  = std::max(m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x + m_imgui->scaled(1.5f),
         m_imgui->calc_text_size(m_desc.at("reset_direction")).x + m_imgui->scaled(1.5f) + ImGui::GetStyle().FramePadding.x * 2);
+    float rotate_horizontal_text= m_imgui->calc_text_size(_L("Rotate horizontally")).x + m_imgui->scaled(1.5f);
+    clipping_slider_left        = std::max(rotate_horizontal_text, clipping_slider_left);
+
     const float cursor_slider_left = m_imgui->calc_text_size(m_desc.at("cursor_size")).x + m_imgui->scaled(1.5f);
     const float smart_fill_slider_left = m_imgui->calc_text_size(m_desc.at("smart_fill_angle")).x + m_imgui->scaled(1.5f);
     const float edge_detect_slider_left = m_imgui->calc_text_size(m_desc.at("edge_detection")).x + m_imgui->scaled(1.f);
@@ -442,7 +452,36 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
 
     float color_button = ImGui::GetCursorPos().y;
 
-    m_imgui->text(m_desc.at("filaments"));
+    float textbox_width       = 1.5 * slider_icon_width;
+    SliderInputLayout slider_input_layout = {clipping_slider_left, sliders_width, drag_left_width + circle_max_width, textbox_width};
+
+    {
+        m_imgui->text(m_desc.at("filaments"));
+        float text_offset = m_imgui->calc_text_size(m_desc.at("filaments")).x + m_imgui->scaled(1.5f);
+        ImGui::SameLine(text_offset);
+        float but1_offset = m_imgui->calc_button_size("+++").x;
+        ImGui::PushItemWidth(but1_offset);
+        std::wstring add_btn_name = (m_is_dark_mode ? ImGui::AddFilamentDarkIcon : ImGui::AddFilamentIcon) + boost::nowide::widen("");
+
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0);
+        ImGui::PushStyleColor(ImGuiCol_Button, m_is_dark_mode ? ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 0.00f) : ImVec4(0.86f, 0.99f, 0.91f, 0.00f)); // r, g, b, a
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, m_is_dark_mode ? ImVec4(150 / 255.0f, 150 / 255.0f, 150 / 255.0f, 1.00f) : ImVec4(0.86f, 0.99f, 0.91f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, m_is_dark_mode ? ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 1.00f) : ImVec4(0.86f, 0.99f, 0.91f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+
+        if (ImGui::Button(into_u8(add_btn_name).c_str())) {
+            wxQueueEvent(wxGetApp().plater(), new SimpleEvent(EVT_ADD_FILAMENT));
+        }
+        ImGui::SameLine(text_offset + but1_offset);
+        ImGui::PushItemWidth(but1_offset);
+        std::wstring del_btn_name = (m_is_dark_mode ? ImGui::DeleteFilamentDarkIcon : ImGui::DeleteFilamentIcon) + boost::nowide::widen("");
+        if (ImGui::Button(into_u8(del_btn_name).c_str())) {
+            wxQueueEvent(wxGetApp().plater(), new SimpleEvent(EVT_DEL_FILAMENT));
+        }
+
+        ImGui::PopStyleColor(4);
+        ImGui::PopStyleVar(1);
+    }
 
     float start_pos_x = ImGui::GetCursorPos().x;
     const ImVec2 max_label_size = ImGui::CalcTextSize("99", NULL, true);
@@ -484,7 +523,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         color_button_high = ImGui::GetCursorPos().y - color_button - 2.0;
         if (color_picked) { m_selected_extruder_idx = extruder_idx; }
 
-        if (extruder_idx < 9 && ImGui::IsItemHovered()) m_imgui->tooltip(_L("Shortcut Key ") + std::to_string(extruder_idx + 1), max_tooltip_width);
+        if (extruder_idx < 16 && ImGui::IsItemHovered()) m_imgui->tooltip(_L("Shortcut Key ") + std::to_string(extruder_idx + 1), max_tooltip_width);
 
         // draw filament id
         float gray = 0.299 * extruder_color[0] + 0.587 * extruder_color[1] + 0.114 * extruder_color[2];
@@ -711,8 +750,52 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         ImGui::PushItemWidth(1.5 * slider_icon_width);
         ImGui::BBLDragFloat("##gap_area_input", &TriangleSelectorPatch::gap_area, 0.05f, 0.0f, 0.0f, "%.2f");
     }
-
     ImGui::Separator();
+    if (m_current_tool == ImGui::CircleButtonIcon || m_current_tool == ImGui::SphereButtonIcon) {
+        float vertical_text_width   = m_imgui->calc_button_size(_L("Vertical")).x;
+        float horizontal_text_width = m_imgui->calc_button_size(_L("Horizontal")).x;
+        if (!wxGetApp().plater()->get_camera().is_looking_front()) {
+            m_is_front_view = false;
+        }
+        auto vertical_only = m_vertical_only;
+        if (m_imgui->bbl_checkbox(_L("Vertical"), vertical_only)) {
+            m_vertical_only = vertical_only;
+            if (m_vertical_only) {
+                m_horizontal_only = false;
+                m_is_front_view   = true;
+                change_camera_view_angle(m_front_view_radian);
+            }
+        }
+
+        ImGui::SameLine(vertical_text_width * 2.0);
+        ImGui::PushItemWidth(horizontal_text_width * 2.0);
+        auto horizontal_only = m_horizontal_only;
+        if (m_imgui->bbl_checkbox(_L("Horizontal"), horizontal_only)) {
+            m_horizontal_only = horizontal_only;
+            if (m_horizontal_only) {
+                m_vertical_only = false;
+                m_is_front_view = true;
+                change_camera_view_angle(m_front_view_radian);
+            }
+        }
+
+        auto is_front_view = m_is_front_view;
+        m_imgui->bbl_checkbox(_L("View: keep horizontal"), is_front_view);
+        if (m_is_front_view != is_front_view) {
+            m_is_front_view = is_front_view;
+            if (m_is_front_view) {
+                change_camera_view_angle(m_front_view_radian);
+            }
+        }
+        m_imgui->disabled_begin(!m_is_front_view);
+
+        if (render_slider_double_input_by_format(slider_input_layout, _u8L("Rotate horizontally"), m_front_view_radian, 0.f, 360.f, 0, DoubleShowType::DEGREE)) {
+            change_camera_view_angle(m_front_view_radian);
+        }
+        m_imgui->disabled_end();
+        ImGui::Separator();
+    }
+
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 10.0f));
     float get_cur_y = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;
     show_tooltip_information(caption_max, x, get_cur_y);
@@ -871,8 +954,13 @@ std::array<float, 4> GLGizmoMmuSegmentation::get_cursor_hover_color() const
 void GLGizmoMmuSegmentation::on_set_state()
 {
     GLGizmoPainterBase::on_set_state();
-
-    if (get_state() == Off) {
+    if (get_state() == On) {
+        size_t n_extruder_colors = std::min((size_t) EnforcerBlockerType::ExtruderMax, m_extruders_colors.size());
+        if (n_extruder_colors>=2) { 
+            m_selected_extruder_idx = 1;
+        }
+    }
+    else if (get_state() == Off) {
         ModelObject* mo = m_c->selection_info()->model_object();
         if (mo) Slic3r::save_object_mesh(*mo);
         m_parent.post_event(SimpleEvent(EVT_GLCANVAS_FORCE_UPDATE));

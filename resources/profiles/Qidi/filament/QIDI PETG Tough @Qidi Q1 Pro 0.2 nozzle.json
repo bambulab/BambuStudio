@@ -1,0 +1,15 @@
+{
+    "type": "filament",
+    "filament_id": "GFT01",
+    "setting_id": "GFST01_Qidi_05",
+    "name": "QIDI PETG Tough @Qidi Q1 Pro 0.2 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "QIDI PETG Tough @Qidi",
+    "filament_max_volumetric_speed": [
+        "1"
+    ],
+    "compatible_printers": [
+        "Qidi Q1 Pro 0.2 nozzle"
+    ]
+}

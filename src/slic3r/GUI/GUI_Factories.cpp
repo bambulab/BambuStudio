@@ -77,15 +77,18 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::OBJECT_C
                     {"wall_sequence","",2},
                     {"seam_position", "",3}, {"seam_gap", "",4}, {"wipe_speed", "",5},
                     {"slice_closing_radius", "",6}, {"resolution", "",7},
-                    {"xy_hole_compensation", "",8}, {"xy_contour_compensation", "",9}, {"elefant_foot_compensation", "",10}
+                    {"xy_hole_compensation", "",8}, {"xy_contour_compensation", "",9}, {"elefant_foot_compensation", "",10},
+                    {"precise_z_height", "",10}
+
                     }},
     { L("Support"), {{"brim_type", "",1},{"brim_width", "",2},{"brim_object_gap", "",3},
                     {"enable_support", "",4},{"support_type", "",5},{"support_threshold_angle", "",6},{"support_on_build_plate_only", "",7},
                     {"support_filament", "",8},{"support_interface_filament", "",9},{"support_expansion", "",24},{"support_style", "",25},
-                    {"tree_support_brim_width", "",26}, {"tree_support_branch_angle", "",10}, {"tree_support_wall_count", "",11},//tree support
-                            {"support_top_z_distance", "",13},{"support_bottom_z_distance", "",12},{"support_base_pattern", "",14},{"support_base_pattern_spacing", "",15},
-                            {"support_interface_top_layers", "",16},{"support_interface_bottom_layers", "",17},{"support_interface_spacing", "",18},{"support_bottom_interface_spacing", "",19},
-                            {"support_object_xy_distance", "",20}, {"bridge_no_support", "",21},{"max_bridge_length", "",22},{"support_critical_regions_only", "",23},{"support_remove_small_overhang","",27}
+                    {"tree_support_branch_angle", "",10}, {"tree_support_wall_count", "",11},//tree support
+                    {"support_top_z_distance", "",13},{"support_bottom_z_distance", "",12},{"support_base_pattern", "",14},{"support_base_pattern_spacing", "",15},
+                    {"support_interface_top_layers", "",16},{"support_interface_bottom_layers", "",17},{"support_interface_spacing", "",18},{"support_bottom_interface_spacing", "",19},
+                    {"support_object_xy_distance", "",20}, {"bridge_no_support", "",21},{"max_bridge_length", "",22},{"support_critical_regions_only", "",23},{"support_remove_small_overhang","",27},
+                    {"support_object_first_layer_gap","",28}
                             }},
     { L("Speed"), {{"support_speed", "",12}, {"support_interface_speed", "",13}
                     }}
@@ -100,8 +103,8 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::PART_CAT
                     {"infill_combination", "",1}, {"infill_wall_overlap", "",1}, {"infill_direction", "",1}, {"bridge_angle", "",1},{"minimum_sparse_infill_area", "",1}
                     }},
     { L("Speed"), {{"outer_wall_speed", "",1},{"inner_wall_speed", "",2},{"sparse_infill_speed", "",3},{"top_surface_speed", "",4}, {"internal_solid_infill_speed", "",5},
-                    {"enable_overhang_speed", "",6}, {"overhang_1_4_speed", "",7}, {"overhang_2_4_speed", "",8}, {"overhang_3_4_speed", "",9}, {"overhang_4_4_speed", "",10},
-                    {"bridge_speed", "",11}, {"gap_infill_speed", "",12}
+                    {"enable_overhang_speed", "",6}, {"overhang_1_4_speed", "",7}, {"overhang_2_4_speed", "",8}, {"overhang_3_4_speed", "",9}, {"overhang_4_4_speed", "",10}, {"overhang_totally_speed", "",11},
+                    {"bridge_speed", "",12}, {"gap_infill_speed", "",13}
                     }}
 };
 
@@ -146,6 +149,7 @@ std::vector<SimpleSettingData> SettingsFactory::get_visible_options(const std::s
         "tree_support_wall_count",
         //support
         "support_top_z_distance", "support_base_pattern", "support_base_pattern_spacing", "support_interface_top_layers", "support_interface_bottom_layers", "support_interface_spacing", "support_bottom_interface_spacing", "support_object_xy_distance",
+        "support_object_first_layer_gap",
         //adhesion
         "brim_type", "brim_width", "brim_object_gap", "raft_layers"
         };*/
@@ -484,10 +488,12 @@ wxMenu* MenuFactory::append_submenu_add_generic(wxMenu* menu, ModelVolumeType ty
         sub_menu->AppendSeparator();
     }
 
-    for (auto &item : {L("Cube"), L("Cylinder"), L("Sphere"), L("Cone"), L("Disc"),L("Torus")})
+    std::vector<std::string> icons = { "Cube", "Cylinder", "Sphere", "Cone", "Disc", "Torus", "rounded_rectangle" };
+    size_t i = 0;
+    for (auto &item : {L("Cube"), L("Cylinder"), L("Sphere"), L("Cone"), L("Disc"),L("Torus"),L("Rounded Rectangle") })
     {
         append_menu_item(sub_menu, wxID_ANY, _(item), "",
-            [type, item](wxCommandEvent&) { obj_list()->load_generic_subobject(item, type); }, "", menu);
+            [type, item](wxCommandEvent&) { obj_list()->load_generic_subobject(item, type); }, Slic3r::resources_dir() + "/model/" + icons[i++] + ".png", menu);
     }
 
     if (type == ModelVolumeType::INVALID) {
@@ -687,7 +693,7 @@ wxMenuItem* MenuFactory::append_menu_item_fix_through_netfabb(wxMenu* menu)
 
 void MenuFactory::append_menu_item_export_stl(wxMenu* menu, bool is_mulity_menu)
 {
-    append_menu_item(menu, wxID_ANY, _L("Export as one STL") + dots, "",
+    append_menu_item(menu, wxID_ANY, _L("Export as one STL"), "",
         [](wxCommandEvent&) { plater()->export_stl(false, true); }, "", nullptr,
         [is_mulity_menu]() {
             const Selection& selection = plater()->canvas3D()->get_selection();
@@ -756,8 +762,20 @@ void MenuFactory::append_menu_item_change_extruder(wxMenu* menu)
         bool is_active_extruder = i == initial_extruder;
         int icon_idx = i == 0 ? 0 : i - 1;
 
-        const wxString& item_name = (i == 0 ? _L("Default") : wxString::Format(_L("Filament %d"), i)) +
-            (is_active_extruder ? " (" + _L("active") + ")" : "");
+        wxString item_name = _L("Default");
+
+        if (i > 0) {
+            auto preset = wxGetApp().preset_bundle->filaments.find_preset(wxGetApp().preset_bundle->filament_presets[i - 1]);
+            if (preset == nullptr) {
+                item_name = wxString::Format(_L("Filament %d"), i);
+            } else {
+                item_name = from_u8(preset->label(false));
+            }
+        }
+
+        if (is_active_extruder) {
+            item_name << " (" + _L("current") + ")";
+        }
 
         if (icon_idx >= 0 && icon_idx < icons.size()) {
             append_menu_item(
@@ -806,6 +824,10 @@ void MenuFactory::append_menu_items_flush_options(wxMenu* menu)
     ModelConfig& select_object_config = object_list->object(selection.get_object_idx())->config;
 
     wxMenu* flush_options_menu = new wxMenu();
+    auto can_flush = [&global_config]() {
+        auto option = global_config.option("enable_prime_tower");
+        return option ? option->getBool() : false;
+    };
     append_menu_check_item(flush_options_menu, wxID_ANY, _L("Flush into objects' infill"), "",
         [&select_object_config, &global_config](wxCommandEvent&) {
             const ConfigOption* option = select_object_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][0]);
@@ -814,8 +836,8 @@ void MenuFactory::append_menu_items_flush_options(wxMenu* menu)
             }
             select_object_config.set_key_value(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][0], new ConfigOptionBool(!option->getBool()));
             wxGetApp().obj_settings()->UpdateAndShow(true);
-        }, menu, []() {return true; }, 
-            [&select_object_config, &global_config]() {
+        }, menu, can_flush,
+        [&select_object_config, &global_config]() {
             const ConfigOption* option = select_object_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][0]);
             if (!option) {
                 option = global_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][0]);
@@ -831,8 +853,8 @@ void MenuFactory::append_menu_items_flush_options(wxMenu* menu)
             }
             select_object_config.set_key_value(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][1], new ConfigOptionBool(!option->getBool()));
             wxGetApp().obj_settings()->UpdateAndShow(true);
-        }, menu, []() {return true; }, 
-            [&select_object_config, &global_config]() {
+        }, menu, can_flush,
+        [&select_object_config, &global_config]() {
             const ConfigOption* option = select_object_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][1]);
             if (!option) {
                 option = global_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][1]);
@@ -848,8 +870,8 @@ void MenuFactory::append_menu_items_flush_options(wxMenu* menu)
             }
             select_object_config.set_key_value(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][2], new ConfigOptionBool(!option->getBool()));
             wxGetApp().obj_settings()->UpdateAndShow(true);
-        }, menu, []() {return true; }, 
-            [&select_object_config, &global_config]() {
+        }, menu, can_flush,
+        [&select_object_config, &global_config]() {
             const ConfigOption* option = select_object_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][2]);
             if (!option) {
                 option = global_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][2]);
@@ -926,7 +948,7 @@ void MenuFactory::append_menu_items_convert_unit(wxMenu* menu)
 
 void MenuFactory::append_menu_item_merge_to_multipart_object(wxMenu* menu)
 {
-    append_menu_item(menu, wxID_ANY, _L("Assemble"), _L("Assemble the selected objects to an object with multiple parts"),
+    append_menu_item(menu, wxID_ANY, _L("Merge"), _L("Assemble the selected objects to an object with multiple parts"),
         [](wxCommandEvent&) { obj_list()->merge(true); }, "", menu,
         []() { return obj_list()->can_merge_to_multipart_object(); }, m_parent);
 }
@@ -934,7 +956,7 @@ void MenuFactory::append_menu_item_merge_to_multipart_object(wxMenu* menu)
 void MenuFactory::append_menu_item_merge_to_single_object(wxMenu* menu)
 {
     menu->AppendSeparator();
-    append_menu_item(menu, wxID_ANY, _L("Assemble"), _L("Assemble the selected objects to an object with single part"),
+    append_menu_item(menu, wxID_ANY, _L("Merge"), _L("Assemble the selected objects to an object with single part"),
         [](wxCommandEvent&) { obj_list()->merge(false); }, "", menu,
         []() { return obj_list()->can_merge_to_single_object(); }, m_parent);
 }
@@ -1161,10 +1183,10 @@ void MenuFactory::create_bbl_part_menu()
     if (!split_menu)
         return;
 
-    append_menu_item(split_menu, wxID_ANY, _L("To objects"), _L("Split the selected object into mutiple objects"),
+    append_menu_item(split_menu, wxID_ANY, _L("To objects"), _L("Split the selected object into multiple objects"),
         [](wxCommandEvent&) { plater()->split_object(); }, "split_objects", menu,
         []() { return plater()->can_split(true); }, m_parent);
-    append_menu_item(split_menu, wxID_ANY, _L("To parts"), _L("Split the selected object into mutiple parts"),
+    append_menu_item(split_menu, wxID_ANY, _L("To parts"), _L("Split the selected object into multiple parts"),
         [](wxCommandEvent&) { plater()->split_volume(); }, "split_parts", menu,
         []() { return plater()->can_split(false); }, m_parent);
 
@@ -1294,6 +1316,10 @@ void MenuFactory::update()
 
 wxMenu* MenuFactory::default_menu()
 {
+    {
+        NetworkAgent* agent = GUI::wxGetApp().getAgent();
+        if (agent) agent->track_update_property("default_menu", std::to_string(++default_menu_count));
+    }
     return &m_default_menu;
 }
 
@@ -1303,6 +1329,10 @@ wxMenu* MenuFactory::object_menu()
     append_menu_items_flush_options(&m_object_menu);
     append_menu_item_invalidate_cut_info(&m_object_menu);
     append_menu_item_change_filament(&m_object_menu);
+    {
+        NetworkAgent* agent = GUI::wxGetApp().getAgent();
+        if (agent) agent->track_update_property("object_menu", std::to_string(++object_menu_count));
+    }
     return &m_object_menu;
 }
 
@@ -1311,7 +1341,6 @@ wxMenu* MenuFactory::sla_object_menu()
     append_menu_items_convert_unit(&m_sla_object_menu);
     append_menu_item_settings(&m_sla_object_menu);
     //update_menu_items_instance_manipulation(mtObjectSLA);
-
     return &m_sla_object_menu;
 }
 
@@ -1320,6 +1349,10 @@ wxMenu* MenuFactory::part_menu()
     append_menu_items_convert_unit(&m_part_menu);
     append_menu_item_change_filament(&m_part_menu);
     append_menu_item_per_object_settings(&m_part_menu);
+    {
+        NetworkAgent* agent = GUI::wxGetApp().getAgent();
+        if (agent) agent->track_update_property("part_menu", std::to_string(++part_menu_count));
+    }
     return &m_part_menu;
 }
 
@@ -1392,6 +1425,11 @@ wxMenu* MenuFactory::multi_selection_menu()
                 []() { return plater()->can_split(true); }, m_parent);
         }
     }
+
+    {
+        NetworkAgent* agent = GUI::wxGetApp().getAgent();
+        if (agent) agent->track_update_property("multi_selection_menu", std::to_string(++multi_selection_menu_count));
+    }
     return menu;
 }
 
@@ -1412,6 +1450,10 @@ wxMenu* MenuFactory::assemble_multi_selection_menu()
     append_menu_item_delete(menu);
     menu->AppendSeparator();
     append_menu_item_change_extruder(menu);
+    {
+        NetworkAgent* agent = GUI::wxGetApp().getAgent();
+        if (agent) agent->track_update_property("asseble_multi_selection_menu", std::to_string(++assemble_multi_selection_menu_count));
+    }
     return menu;
 }
 
@@ -1421,6 +1463,10 @@ wxMenu* MenuFactory::plate_menu()
 {
     append_menu_item_locked(&m_plate_menu);
     append_menu_item_plate_name(&m_plate_menu);
+    {
+        NetworkAgent* agent = GUI::wxGetApp().getAgent();
+        if (agent) agent->track_update_property("plate_menu", std::to_string(++plate_menu_count));
+    }
     return &m_plate_menu;
 }
 
@@ -1441,6 +1487,10 @@ wxMenu* MenuFactory::assemble_object_menu()
     append_menu_item_change_extruder(menu);
     //// Enter per object parameters
     //append_menu_item_per_object_settings(menu);
+    {
+        NetworkAgent* agent = GUI::wxGetApp().getAgent();
+        if (agent) agent->track_update_property("assemble_object_menu", std::to_string(++assemble_object_menu_ocunt));
+    }
     return menu;
 }
 
@@ -1600,8 +1650,20 @@ void MenuFactory::append_menu_item_change_filament(wxMenu* menu)
         //bool is_active_extruder = i == initial_extruder;
         bool is_active_extruder = false;
 
-        const wxString& item_name = (i == 0 ? _L("Default") : wxString::Format(_L("Filament %d"), i)) +
-            (is_active_extruder ? " (" + _L("current") + ")" : "");
+        wxString item_name = _L("Default");
+
+        if (i > 0) {
+            auto preset = wxGetApp().preset_bundle->filaments.find_preset(wxGetApp().preset_bundle->filament_presets[i - 1]);
+            if (preset == nullptr) {
+                item_name = wxString::Format(_L("Filament %d"), i);
+            } else {
+                item_name = from_u8(preset->label(false));
+            }
+        }
+
+        if (is_active_extruder) {
+            item_name << " (" + _L("current") + ")";
+        }
 
         append_menu_item(extruder_selection_menu, wxID_ANY, item_name, "",
             [i](wxCommandEvent&) { obj_list()->set_extruder_for_selected_items(i); }, i == 0 ? wxNullBitmap : *icons[i - 1], menu,
@@ -1683,10 +1745,10 @@ void MenuFactory::append_menu_item_plate_name(wxMenu *menu)
     // Delete old menu item
     const int item_id = menu->FindItem(name);
     if (item_id != wxNOT_FOUND) menu->Destroy(item_id);
-    
+
     PartPlate *plate = plater()->get_partplate_list().get_selected_plate();
     assert(plate);
-   
+
     auto item = append_menu_item(
         menu, wxID_ANY, name, "",
         [plate](wxCommandEvent &e) {
@@ -1698,7 +1760,7 @@ void MenuFactory::append_menu_item_plate_name(wxMenu *menu)
             else
             {
                 plater()->select_plate_by_hover_id(hover_idx, false, true);
-            } 
+            }
             plater()->get_current_canvas3D()->post_event(SimpleEvent(EVT_GLCANVAS_PLATE_NAME_CHANGE));
         },
         "", nullptr, []() { return true; }, m_parent);

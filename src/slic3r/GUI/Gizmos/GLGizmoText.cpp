@@ -1,5 +1,6 @@
 // Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code, which overrides our localization "L" macro.
 #include "GLGizmoText.hpp"
+#include "libslic3r/ClipperUtils.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmosCommon.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
@@ -14,6 +15,8 @@
 
 #include <numeric>
 
+#include <boost/log/trivial.hpp>
+
 #include <GL/glew.h>
 
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
@@ -22,6 +25,8 @@
 #include <imgui/imgui_internal.h>
 #include "libslic3r/SVG.hpp"
 #include <codecvt>
+#include "wx/fontenum.h"
+#include "FontUtils.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -31,6 +36,59 @@ static const wxColour FONT_TEXTURE_BG = wxColour(0, 0, 0, 0);
 static const wxColour FONT_TEXTURE_FG = *wxWHITE;
 static const int FONT_SIZE = 12;
 static const float SELECTABLE_INNER_OFFSET = 8.0f;
+
+static const wxFontEncoding font_encoding = wxFontEncoding::wxFONTENCODING_SYSTEM;
+
+std::vector<std::string> init_face_names()
+{
+    std::vector<std::string> valid_font_names;
+    wxArrayString            facenames = wxFontEnumerator::GetFacenames(font_encoding);
+    std::vector<wxString>    bad_fonts;
+
+    BOOST_LOG_TRIVIAL(info) << "init_fonts_names start";
+
+    // validation lambda
+    auto is_valid_font = [coding = font_encoding, bad = bad_fonts](const wxString &name) {
+        if (name.empty())
+            return false;
+
+        // vertical font start with @, we will filter it out
+        // Not sure if it is only in Windows so filtering is on all platforms
+        if (name[0] == '@')
+            return false;
+
+        // previously detected bad font
+        auto it = std::lower_bound(bad.begin(), bad.end(), name);
+        if (it != bad.end() && *it == name)
+            return false;
+
+        wxFont wx_font(wxFontInfo().FaceName(name).Encoding(coding));
+        // Faster chech if wx_font is loadable but not 100%
+        // names could contain not loadable font
+        if (!wx_font.IsOk())
+            return false;
+
+        if (!can_load(wx_font))
+            return false;
+
+        return true;
+    };    
+
+    std::sort(facenames.begin(), facenames.end());
+    for (const wxString &name : facenames) {
+        if (is_valid_font(name)) {
+            valid_font_names.push_back(name.ToStdString());
+        }
+        else {
+            bad_fonts.emplace_back(name);
+        }
+    }
+    assert(std::is_sorted(bad_fonts.begin(), bad_fonts.end()));
+
+    BOOST_LOG_TRIVIAL(info) << "init_fonts_names end";
+
+    return valid_font_names;
+}
 
 class Line_3D
 {
@@ -132,6 +190,9 @@ GLGizmoText::GLGizmoText(GLCanvas3D& parent, const std::string& icon_filename, u
 
 GLGizmoText::~GLGizmoText()
 {
+    if (m_thread.joinable())
+        m_thread.join();
+
     for (int i = 0; i < m_textures.size(); i++) {
         if (m_textures[i].texture != nullptr)
             delete m_textures[i].texture;
@@ -140,14 +201,19 @@ GLGizmoText::~GLGizmoText()
 
 bool GLGizmoText::on_init()
 {
-    m_avail_font_names = init_occt_fonts();
-    update_font_texture();
+    m_init_texture     = false;
+    m_avail_font_names = init_face_names();
+
+    m_thread = std::thread(&GLGizmoText::update_font_status, this);
+
+    //m_avail_font_names = init_occt_fonts();
+    //update_font_texture();
     m_scale = m_imgui->get_font_size();
     m_shortcut_key = WXK_CONTROL_T;
 
     reset_text_info();
 
-    m_desc["rotate_text_caption"] = _L("Shift + Mouse move up or dowm");
+    m_desc["rotate_text_caption"] = _L("Shift + Mouse move up or down");
     m_desc["rotate_text"]         = _L("Rotate text");
 
     m_grabbers.push_back(Grabber());
@@ -172,7 +238,8 @@ void GLGizmoText::update_font_texture()
         auto retina_scale = m_parent.get_scale();
         wxFont font { (int)round(retina_scale * FONT_SIZE), wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, face };
         int w, h, hl;
-        if (texture->generate_texture_from_text(m_avail_font_names[i], font, w, h, hl, FONT_TEXTURE_BG, FONT_TEXTURE_FG)) {
+        std::unique_lock<std::mutex> lock(m_mutex);
+        if (m_font_status[i] && texture->generate_texture_from_text(m_avail_font_names[i], font, w, h, hl, FONT_TEXTURE_BG, FONT_TEXTURE_FG)) {
             //if (h < m_imgui->scaled(2.f)) {
                 TextureInfo info;
                 info.texture = texture;
@@ -261,7 +328,7 @@ bool GLGizmoText::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_posit
             return true;
 
         Plater *plater = wxGetApp().plater();
-        if (!plater)
+        if (!plater || m_thickness <= 0)
             return true;
 
         ModelObject *model_object = selection.get_model()->objects[m_object_idx];
@@ -352,7 +419,11 @@ CommonGizmosDataID GLGizmoText::on_get_requirements() const
 
 std::string GLGizmoText::on_get_name() const
 {
-    return _u8L("Text shape");
+    if (!on_is_activable() && m_state == EState::Off) {
+        return _u8L("Text shape") + ":\n" + _u8L("Please select single object.");
+    } else {
+        return _u8L("Text shape");
+    }
 }
 
 bool GLGizmoText::on_is_activable() const
@@ -625,6 +696,11 @@ void GLGizmoText::pop_combo_style()
 // BBS
 void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
 {
+    if (!m_init_texture) {
+        update_font_texture();
+        m_init_texture = true;
+    }
+
     if (m_imgui->get_font_size() != m_scale) {
         m_scale = m_imgui->get_font_size();
         update_font_texture();
@@ -774,8 +850,7 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     ImGui::PushItemWidth(list_width);
     float old_value = m_thickness;
     ImGui::InputFloat("###text_thickness", &m_thickness, 0.0f, 0.0f, "%.2f");
-    if (m_thickness < 0.1f)
-        m_thickness = 0.1f;
+    m_thickness = ImClamp(m_thickness, m_thickness_min, m_thickness_max);
     if (old_value != m_thickness)
         m_need_update_text = true;
 
@@ -927,6 +1002,19 @@ void GLGizmoText::reset_text_info()
     m_keep_horizontal = false;
 
     m_is_modify = false;
+}
+
+void GLGizmoText::update_font_status() {
+    std::unique_lock<std::mutex> lock(m_mutex);
+    m_font_status.reserve(m_avail_font_names.size());
+    for (std::string font_name : m_avail_font_names) {
+        if (!can_generate_text_shape(font_name)) {
+            m_font_status.emplace_back(false);
+        }
+        else {
+            m_font_status.emplace_back(true);
+        }
+    }
 }
 
 bool GLGizmoText::update_text_positions(const std::vector<std::string>& texts)
@@ -1111,10 +1199,8 @@ bool GLGizmoText::update_text_positions(const std::vector<std::string>& texts)
     Polygons polys = union_(temp_polys);
 
     auto point_in_line_rectange = [](const Line &line, const Point &point, double& distance) {
-        distance = abs((point.x() - line.a.x()) * (line.b.y() - line.a.y()) - (line.b.x() - line.a.x()) * (point.y() - line.a.y()));
-        bool   in_rectange = (std::min(line.a.x(), line.b.x()) - 1000) <= point.x() && point.x() <= (std::max(line.a.x(), line.b.x()) + 1000) &&
-                           (std::min(line.a.y(), line.b.y()) - 1000) <= point.y() && point.y() <= (std::max(line.a.y(), line.b.y()) + 1000);
-        return in_rectange;
+        distance = line.distance_to(point);
+        return distance < line.length() / 2;
     };
 
     int            index     = 0;
@@ -1552,7 +1638,13 @@ void GLGizmoText::load_from_text_info(const TextInfo &text_info)
 {
     m_font_name     = text_info.m_font_name;
     m_font_size     = text_info.m_font_size;
-    m_curr_font_idx = text_info.m_curr_font_idx;
+    // from other user's computer may exist case:font library size is different
+    if (text_info.m_curr_font_idx < m_font_names.size()) {
+        m_curr_font_idx = text_info.m_curr_font_idx;
+    }
+    else {
+        m_curr_font_idx = 0;
+    }
     m_bold          = text_info.m_bold;
     m_italic        = text_info.m_italic;
     m_thickness     = text_info.m_thickness;

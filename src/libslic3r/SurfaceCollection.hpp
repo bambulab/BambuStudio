@@ -27,11 +27,11 @@ public:
         return false;
     }
     SurfacesPtr filter_by_type(const SurfaceType type);
-    SurfacesPtr filter_by_types(const SurfaceType *types, int ntypes);
+    SurfacesPtr filter_by_types(std::initializer_list<SurfaceType> types);
     void keep_type(const SurfaceType type);
-    void keep_types(const SurfaceType *types, int ntypes);
+    void keep_types(std::initializer_list<SurfaceType> types);
     void remove_type(const SurfaceType type);
-    void remove_types(const SurfaceType *types, int ntypes);
+    void remove_types(std::initializer_list<SurfaceType> type);
     void filter_by_type(SurfaceType type, Polygons* polygons);
     void set_type(SurfaceType type) {
     	for (Surface &surface : this->surfaces)

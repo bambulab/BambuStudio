@@ -3,7 +3,9 @@
 #include "MsgDialog.hpp"
 #include "libslic3r/Preset.hpp"
 #include "I18N.hpp"
+#include <boost/log/trivial.hpp>
 #include <wx/dcgraph.h>
+#include "CalibUtils.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -125,21 +127,21 @@ void ExtrusionCalibration::create()
         wxWindow::GetTextExtent(_L("Bed Temperature")).x),
         wxWindow::GetTextExtent(_L("Max volumetric speed")).x),
         EXTRUSION_CALIBRATION_INPUT_SIZE.x);
-    m_nozzle_temp = new TextInput(m_step_1_panel, wxEmptyString, _L("\u2103"), "", wxDefaultPosition, { max_input_width, EXTRUSION_CALIBRATION_INPUT_SIZE.y }, wxTE_READONLY);
+    m_nozzle_temp = new TextInput(m_step_1_panel, wxEmptyString, "°C", "", wxDefaultPosition, { max_input_width, EXTRUSION_CALIBRATION_INPUT_SIZE.y }, wxTE_READONLY);
     nozzle_temp_sizer->Add(nozzle_temp_text, 0, wxALIGN_LEFT);
     nozzle_temp_sizer->AddSpacer(FromDIP(4));
     nozzle_temp_sizer->Add(m_nozzle_temp, 0, wxEXPAND);
 
     auto bed_temp_sizer = new wxBoxSizer(wxVERTICAL);
     auto bed_temp_text = new wxStaticText(m_step_1_panel, wxID_ANY, _L("Bed temperature"));
-    m_bed_temp = new TextInput(m_step_1_panel, wxEmptyString, _L("\u2103"), "", wxDefaultPosition, { max_input_width, EXTRUSION_CALIBRATION_INPUT_SIZE.y }, wxTE_READONLY);
+    m_bed_temp = new TextInput(m_step_1_panel, wxEmptyString, "°C", "", wxDefaultPosition, { max_input_width, EXTRUSION_CALIBRATION_INPUT_SIZE.y }, wxTE_READONLY);
     bed_temp_sizer->Add(bed_temp_text, 0, wxALIGN_LEFT);
     bed_temp_sizer->AddSpacer(FromDIP(4));
     bed_temp_sizer->Add(m_bed_temp, 0, wxEXPAND);
 
     auto max_flow_sizer = new wxBoxSizer(wxVERTICAL);
     auto max_flow_text = new wxStaticText(m_step_1_panel, wxID_ANY, _L("Max volumetric speed"));
-    m_max_flow_ratio = new TextInput(m_step_1_panel, wxEmptyString, _L("mm\u00B3"), "", wxDefaultPosition, { max_input_width, EXTRUSION_CALIBRATION_INPUT_SIZE.y }, wxTE_READONLY);
+    m_max_flow_ratio = new TextInput(m_step_1_panel, wxEmptyString, "mm³", "", wxDefaultPosition, { max_input_width, EXTRUSION_CALIBRATION_INPUT_SIZE.y }, wxTE_READONLY);
     max_flow_sizer->Add(max_flow_text, 0, wxALIGN_LEFT);
     max_flow_sizer->AddSpacer(FromDIP(4));
     max_flow_sizer->Add(m_max_flow_ratio, 0, wxEXPAND);
@@ -508,7 +510,7 @@ bool ExtrusionCalibration::check_k_validation(wxString k_text)
         ;
     }
 
-    if (k < 0 || k > 0.3)
+    if (k < MIN_PA_K_VALUE || k > MAX_PA_K_VALUE)
         return false;
     return true;
 }
@@ -532,7 +534,7 @@ bool ExtrusionCalibration::check_k_n_validation(wxString k_text, wxString n_text
     catch (...) {
         ;
     }
-    if (k < 0 || k > 0.5)
+    if (k < MIN_PA_K_VALUE || k > MAX_PA_K_VALUE)
         return false;
     if (n < 0.6 || n > 2.0)
         return false;
@@ -544,8 +546,8 @@ void ExtrusionCalibration::on_click_save(wxCommandEvent &event)
     wxString k_text = m_k_val->GetTextCtrl()->GetValue();
     wxString n_text = m_n_val->GetTextCtrl()->GetValue();
     if (!ExtrusionCalibration::check_k_validation(k_text)) {
-        wxString k_tips = _L("Please input a valid value (K in 0~0.3)");
-        wxString kn_tips = _L("Please input a valid value (K in 0~0.3, N in 0.6~2.0)");
+        wxString k_tips = wxString::Format(_L("Please input a valid value (K in %.1f~%.1f)"), MIN_PA_K_VALUE, MAX_PA_K_VALUE);
+        wxString kn_tips = wxString::Format(_L("Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"), MIN_PA_K_VALUE, MAX_PA_K_VALUE, 0.6, 2.0);
         MessageDialog msg_dlg(nullptr, k_tips, wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return;

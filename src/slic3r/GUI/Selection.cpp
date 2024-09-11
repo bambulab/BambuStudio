@@ -23,6 +23,9 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/log/trivial.hpp>
 
+#include <CGAL/Simple_cartesian.h>
+#include <CGAL/Min_sphere_of_spheres_d.h>
+#include <CGAL/Min_sphere_of_points_d_traits_3.h>
 static const std::array<float, 4> UNIFORM_SCALE_COLOR = { 0.923f, 0.504f, 0.264f, 1.0f };
 
 namespace Slic3r {
@@ -36,7 +39,7 @@ Selection::VolumeCache::TransformCache::TransformCache()
     , rotation_matrix(Transform3d::Identity())
     , scale_matrix(Transform3d::Identity())
     , mirror_matrix(Transform3d::Identity())
-    , full_matrix(Transform3d::Identity())
+    , full_tran(Transform3d::Identity())
 {
 }
 
@@ -45,7 +48,7 @@ Selection::VolumeCache::TransformCache::TransformCache(const Geometry::Transform
     , rotation(transform.get_rotation())
     , scaling_factor(transform.get_scaling_factor())
     , mirror(transform.get_mirror())
-    , full_matrix(transform.get_matrix())
+    , full_tran(transform)
 {
     rotation_matrix = Geometry::assemble_transform(Vec3d::Zero(), rotation);
     scale_matrix = Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), scaling_factor);
@@ -144,6 +147,17 @@ void Selection::set_model(Model* model)
 {
     m_model = model;
     update_valid();
+}
+
+int Selection::query_real_volume_idx_from_other_view(unsigned int object_idx, unsigned int instance_idx, unsigned int model_volume_idx)
+{
+    for (int i = 0; i < m_volumes->size(); i++) {
+        auto v = (*m_volumes)[i];
+        if (v->object_idx() == object_idx && instance_idx == v->instance_idx() && model_volume_idx == v->volume_idx()) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 void Selection::add(unsigned int volume_idx, bool as_single_selection, bool check_for_already_contained)
@@ -703,6 +717,28 @@ bool Selection::is_single_full_instance() const
     return m_model->objects[object_idx]->volumes.size() == volumes_idxs.size();
 }
 
+bool Selection::is_any_connector() const
+{
+    const int obj_idx = get_object_idx();
+
+    if ((is_any_volume() || is_any_modifier() || is_mixed()) && // some solid_part AND/OR modifier is selected
+        obj_idx >= 0 && m_model->objects[obj_idx]->is_cut()) {
+        const ModelVolumePtrs &obj_volumes = m_model->objects[obj_idx]->volumes;
+        for (size_t vol_idx = 0; vol_idx < obj_volumes.size(); vol_idx++)
+            if (obj_volumes[vol_idx]->is_cut_connector())
+                for (const GLVolume *v : *m_volumes)
+                    if (v->object_idx() == obj_idx && v->volume_idx() == (int) vol_idx && v->selected)
+                        return true;
+    }
+    return false;
+}
+
+bool Selection::is_any_cut_volume() const
+{
+    const int obj_idx = get_object_idx();
+    return is_any_volume() && obj_idx >= 0 && m_model->objects[obj_idx]->is_cut();
+}
+
 bool Selection::is_from_single_object() const
 {
     const int idx = get_object_idx();
@@ -843,6 +879,101 @@ const BoundingBoxf3& Selection::get_scaled_instance_bounding_box() const
     return *m_scaled_instance_bounding_box;
 }
 
+const std::pair<BoundingBoxf3, Transform3d> &Selection::get_bounding_box_in_current_reference_system() const
+{
+    static int last_coordinates_type = -1;
+
+    assert(!is_empty());
+
+    ECoordinatesType coordinates_type = wxGetApp().obj_manipul()->get_coordinates_type();
+    if (m_mode == Instance && coordinates_type == ECoordinatesType::Local) coordinates_type = ECoordinatesType::World;
+
+    if (last_coordinates_type != int(coordinates_type)) const_cast<std::optional<std::pair<BoundingBoxf3, Transform3d>> *>(&m_bounding_box_in_current_reference_system)->reset();
+
+    if (!m_bounding_box_in_current_reference_system.has_value()) {
+        last_coordinates_type                                                                                            = int(coordinates_type);
+        *const_cast<std::optional<std::pair<BoundingBoxf3, Transform3d>> *>(&m_bounding_box_in_current_reference_system) = get_bounding_box_in_reference_system(coordinates_type);
+    }
+
+    return *m_bounding_box_in_current_reference_system;
+}
+
+std::pair<BoundingBoxf3, Transform3d> Selection::get_bounding_box_in_reference_system(ECoordinatesType type) const
+{
+    //
+    // trafo to current reference system
+    //
+    Transform3d trafo;
+    switch (type) {
+    case ECoordinatesType::World: {
+        trafo = Transform3d::Identity();
+        break;
+    }
+    case ECoordinatesType::Instance: {
+        trafo = get_first_volume()->get_instance_transformation().get_matrix();
+        break;
+    }
+    case ECoordinatesType::Local: {
+        trafo = get_first_volume()->world_matrix();
+        break;
+    }
+    }
+
+    //
+    // trafo basis in world coordinates
+    //
+    Geometry::Transformation t(trafo);
+    t.reset_scaling_factor();
+    const Transform3d  basis_trafo = t.get_matrix_no_offset();
+    std::vector<Vec3d> axes        = {Vec3d::UnitX(), Vec3d::UnitY(), Vec3d::UnitZ()};
+    for (size_t i = 0; i < axes.size(); ++i) { axes[i] = basis_trafo * axes[i]; }
+
+    //
+    // calculate bounding box aligned to trafo basis
+    //
+    Vec3d min = {DBL_MAX, DBL_MAX, DBL_MAX};
+    Vec3d max = {-DBL_MAX, -DBL_MAX, -DBL_MAX};
+    for (unsigned int id : m_list) {
+        const GLVolume &    vol            = *get_volume(id);
+        const Transform3d   vol_world_rafo = vol.world_matrix();
+        const TriangleMesh *mesh           = vol.convex_hull();
+        if (mesh == nullptr) mesh = &m_model->objects[vol.object_idx()]->volumes[vol.volume_idx()]->mesh();
+        assert(mesh != nullptr);
+        for (const stl_vertex &v : mesh->its.vertices) {
+            const Vec3d world_v = vol_world_rafo * v.cast<double>();
+            for (int i = 0; i < 3; ++i) {
+                const double i_comp = world_v.dot(axes[i]);
+                min(i)              = std::min(min(i), i_comp);
+                max(i)              = std::max(max(i), i_comp);
+            }
+        }
+    }
+
+    const Vec3d              box_size      = max - min;
+    Vec3d                    half_box_size = 0.5 * box_size;
+    Geometry::Transformation out_trafo(trafo);
+    Vec3d                    center = 0.5 * (min + max);
+
+    // Fix for non centered volume
+    // by move with calculated center(to volume center) and extend half box size
+    // e.g. for right aligned embossed text
+    if (m_list.size() == 1 && type == ECoordinatesType::Local) {
+        const GLVolume &  vol             = *get_volume(*m_list.begin());
+        const Transform3d vol_world_trafo = vol.world_matrix();
+        Vec3d             world_zero      = vol_world_trafo * Vec3d::Zero();
+        for (size_t i = 0; i < 3; i++) {
+            // move center to local volume zero
+            center[i] = world_zero.dot(axes[i]);
+            // extend half size to bigger distance from center
+            half_box_size[i] = std::max(abs(center[i] - min[i]), abs(center[i] - max[i]));
+        }
+    }
+
+    const BoundingBoxf3 out_box(-half_box_size, half_box_size);
+    out_trafo.set_offset(basis_trafo * center);
+    return {out_box, out_trafo.get_matrix_no_scaling_factor()};
+}
+
 void Selection::start_dragging()
 {
     if (!m_valid)
@@ -885,7 +1016,48 @@ void Selection::move_to_center(const Vec3d& displacement, bool local)
     this->set_bounding_boxes_dirty();
 }
 
-void Selection::translate(const Vec3d& displacement, bool local)
+const std::pair<Vec3d, double> Selection::get_bounding_sphere() const
+{
+    if (!m_bounding_sphere.has_value()) {
+        std::optional<std::pair<Vec3d, double>> *sphere = const_cast<std::optional<std::pair<Vec3d, double>> *>(&m_bounding_sphere);
+        *sphere                                         = {Vec3d::Zero(), 0.0};
+
+        using K          = CGAL::Simple_cartesian<float>;
+        using Traits     = CGAL::Min_sphere_of_points_d_traits_3<K, float>;
+        using Min_sphere = CGAL::Min_sphere_of_spheres_d<Traits>;
+        using Point      = K::Point_3;
+
+        std::vector<Point> points;
+        if (m_valid) {
+            for (unsigned int i : m_list) {
+                const GLVolume &            volume = *(*m_volumes)[i];
+                const TriangleMesh *        hull   = volume.convex_hull();
+                const indexed_triangle_set &its    = (hull != nullptr) ? hull->its : m_model->objects[volume.object_idx()]->volumes[volume.volume_idx()]->mesh().its;
+                const Transform3d &         matrix = volume.world_matrix();
+                for (const Vec3f &v : its.vertices) {
+                    const Vec3d vv = matrix * v.cast<double>();
+                    points.push_back(Point(vv.x(), vv.y(), vv.z()));
+                }
+            }
+
+            Min_sphere   ms(points.begin(), points.end());
+            const float *center_x = ms.center_cartesian_begin();
+            (*sphere)->first      = {*center_x, *(center_x + 1), *(center_x + 2)};
+            (*sphere)->second     = ms.radius();
+        }
+    }
+
+    return *m_bounding_sphere;
+}
+
+void Selection::setup_cache()
+{
+    if (!m_valid)
+        return;
+    set_caches();
+}
+
+void Selection::translate(const Vec3d &displacement, bool local)
 {
     if (!m_valid)
         return;
@@ -947,10 +1119,13 @@ void Selection::translate(const Vec3d& displacement, bool local)
     else if (translation_type == Volume)
         synchronize_unselected_volumes();
 #endif // !DISABLE_INSTANCES_SYNCH
-
-    ensure_not_below_bed();
+    if (wxGetApp().plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasAssembleView) {
+        ensure_not_below_bed();
+    }
     set_bounding_boxes_dirty();
-    wxGetApp().plater()->canvas3D()->requires_check_outside_state();
+    if (wxGetApp().plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasAssembleView) {
+        wxGetApp().plater()->canvas3D()->requires_check_outside_state();
+    }
 }
 
 // Rotate an object around one of the axes. Only one rotation component is expected to be changing.
@@ -1014,33 +1189,60 @@ void Selection::rotate(const Vec3d& rotation, TransformationType transformation_
             };
 
             for (unsigned int i : m_list) {
+                Transform3d        rotation_matrix = Geometry::rotation_transform(rotation);
                 GLVolume &v = *(*m_volumes)[i];
-                if (is_single_full_instance())
-                    rotate_instance(v, i);
-                else if (is_single_volume() || is_single_modifier()) {
-                    if (transformation_type.independent())
-                        v.set_volume_rotation(m_cache.volumes_data[i].get_volume_rotation() + rotation);
-                    else {
-                        const Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
-                        const Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_volume_rotation_matrix());
-                        v.set_volume_rotation(new_rotation);
+                const VolumeCache &volume_data = m_cache.volumes_data[i];
+                const Geometry::Transformation &inst_trafo      = volume_data.get_instance_transform();
+                if (m_mode == Instance ||is_single_full_instance()) {
+                    assert(is_from_fully_selected_instance(i));
+                    if (transformation_type.instance()) {
+                        // ensure that the instance rotates as a rigid body
+                        Transform3d inst_rotation_matrix = inst_trafo.get_rotation_matrix();
+                        if (inst_trafo.is_left_handed()) {
+                            Geometry::TransformationSVD inst_svd(inst_trafo);
+                            inst_rotation_matrix = inst_svd.u * inst_svd.v.transpose();
+                            // ensure the rotation has the proper direction
+                            if (!rotation.normalized().cwiseAbs().isApprox(Vec3d::UnitX())) rotation_matrix = rotation_matrix.inverse();
+                        }
+
+                        const Transform3d inst_matrix_no_offset = inst_trafo.get_matrix_no_offset();
+                        rotation_matrix = inst_matrix_no_offset.inverse() * inst_rotation_matrix * rotation_matrix * inst_rotation_matrix.inverse() * inst_matrix_no_offset;
+
+                        // rotate around selection center
+                        const Vec3d inst_pivot = inst_trafo.get_matrix_no_offset().inverse() * (m_cache.rotation_pivot - inst_trafo.get_offset());
+                        rotation_matrix        = Geometry::translation_transform(inst_pivot) * rotation_matrix * Geometry::translation_transform(-inst_pivot);
                     }
+                    transform_instance_relative(v, volume_data, transformation_type, rotation_matrix, m_cache.rotation_pivot);
                 }
+                else if (!is_single_volume_or_modifier()) {
+                    assert(transformation_type.world());
+                    transform_volume_relative(v, volume_data, transformation_type, rotation_matrix, m_cache.rotation_pivot);
+                }
+
                 else
                 {
-                    if (m_mode == Instance)
-                        rotate_instance(v, i);
-                    else if (m_mode == Volume) {
-                        // extracts rotations from the composed transformation
-                        Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
-                        Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_volume_rotation_matrix());
-                        if (transformation_type.joint()) {
-                            const Vec3d local_pivot = m_cache.volumes_data[i].get_instance_full_matrix().inverse() * m_cache.dragging_center;
-                            const Vec3d offset = m * (m_cache.volumes_data[i].get_volume_position() - local_pivot);
-                            v.set_volume_offset(local_pivot + offset);
+                    if (transformation_type.instance()) {//in object Coordinate System 
+                        // ensure that the volume rotates as a rigid body
+                        const Transform3d inst_scale_matrix = inst_trafo.get_scaling_factor_matrix();
+                        rotation_matrix                     = inst_scale_matrix.inverse() * rotation_matrix * inst_scale_matrix;
+                    } else {
+                        if (transformation_type.local()) {
+                            // ensure that the volume rotates as a rigid body
+                            const Geometry::Transformation &vol_trafo            = volume_data.get_volume_transform();
+                            const Transform3d               vol_matrix_no_offset = vol_trafo.get_matrix_no_offset();
+                            const Transform3d               inst_scale_matrix    = inst_trafo.get_scaling_factor_matrix();
+                            Transform3d                     vol_rotation_matrix  = vol_trafo.get_rotation_matrix();
+                            if (vol_trafo.is_left_handed()) {
+                                Geometry::TransformationSVD vol_svd(vol_trafo);
+                                vol_rotation_matrix = vol_svd.u * vol_svd.v.transpose();
+                                // ensure the rotation has the proper direction
+                                if (!rotation.normalized().cwiseAbs().isApprox(Vec3d::UnitX())) rotation_matrix = rotation_matrix.inverse();
+                            }
+                            rotation_matrix = vol_matrix_no_offset.inverse() * inst_scale_matrix.inverse() * vol_rotation_matrix * rotation_matrix *
+                                              vol_rotation_matrix.inverse() * inst_scale_matrix * vol_matrix_no_offset;
                         }
-                        v.set_volume_rotation(new_rotation);
                     }
+                    transform_volume_relative(v, volume_data, transformation_type, rotation_matrix, m_cache.rotation_pivot);
                 }
             }
         }
@@ -1064,7 +1266,9 @@ void Selection::rotate(const Vec3d& rotation, TransformationType transformation_
     }
 
     set_bounding_boxes_dirty();
-    wxGetApp().plater()->canvas3D()->requires_check_outside_state();
+    if (wxGetApp().plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasAssembleView) {
+        wxGetApp().plater()->canvas3D()->requires_check_outside_state();
+    }
 }
 
 void Selection::flattening_rotate(const Vec3d& normal)
@@ -1179,7 +1383,9 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
 
     ensure_on_bed();
     set_bounding_boxes_dirty();
-    wxGetApp().plater()->canvas3D()->requires_check_outside_state();
+    if (wxGetApp().plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasAssembleView) {
+        wxGetApp().plater()->canvas3D()->requires_check_outside_state();
+    }
 }
 
 #if ENABLE_ENHANCED_PRINT_VOLUME_FIT
@@ -1428,6 +1634,66 @@ void Selection::translate(unsigned int object_idx, unsigned int instance_idx, co
     this->set_bounding_boxes_dirty();
 }
 
+void Selection::translate(unsigned int object_idx, unsigned int instance_idx, unsigned int volume_idx, const Vec3d &displacement) {
+    if (!m_valid) return;
+
+    for (unsigned int i : m_list) {
+        GLVolume &v = *(*m_volumes)[i];
+        if (v.object_idx() == (int) object_idx && v.instance_idx() == (int) instance_idx && v.volume_idx() == (int) volume_idx)
+            v.set_volume_offset(v.get_volume_offset() + displacement);
+    }
+
+    this->set_bounding_boxes_dirty();
+}
+
+void Selection::rotate(unsigned int object_idx, unsigned int instance_idx, const Transform3d &overwrite_tran)
+{
+    if (!m_valid) return;
+
+    for (unsigned int i : m_list) {
+        GLVolume &v = *(*m_volumes)[i];
+        if (v.object_idx() == (int) object_idx && v.instance_idx() == (int) instance_idx) {
+            v.set_instance_transformation(overwrite_tran);
+        }
+    }
+
+    std::set<unsigned int> done; // prevent processing volumes twice
+    done.insert(m_list.begin(), m_list.end());
+    for (unsigned int i : m_list) {
+        if (done.size() == m_volumes->size()) break;
+
+        int object_idx = (*m_volumes)[i]->object_idx();
+        if (object_idx >= 1000) continue;
+
+        // Process unselected volumes of the object.
+        for (unsigned int j = 0; j < (unsigned int) m_volumes->size(); ++j) {
+            if (done.size() == m_volumes->size()) break;
+
+            if (done.find(j) != done.end()) continue;
+
+            GLVolume &v = *(*m_volumes)[j];
+            if (v.object_idx() != object_idx || v.instance_idx() != (int) instance_idx)
+                continue;
+
+            v.set_instance_transformation(overwrite_tran);
+            done.insert(j);
+        }
+    }
+    this->set_bounding_boxes_dirty();
+}
+void Selection::rotate(unsigned int object_idx, unsigned int instance_idx, unsigned int volume_idx, const Transform3d &overwrite_tran)
+{
+    if (!m_valid) return;
+
+    for (unsigned int i : m_list) {
+        GLVolume &v = *(*m_volumes)[i];
+        if (v.object_idx() == (int) object_idx && v.instance_idx() == (int) instance_idx && v.volume_idx() == (int) volume_idx) {
+            v.set_volume_transformation(overwrite_tran);
+        }
+    }
+    this->set_bounding_boxes_dirty();
+}
+
 //BBS: add partplate related logic
 void Selection::notify_instance_update(int object_idx, int instance_idx)
 {
@@ -1644,7 +1910,7 @@ void Selection::render_sidebar_hints(const std::string& sidebar_field, bool unif
             glsafe(::glTranslated(center(0), center(1), center(2)));
             if (!boost::starts_with(sidebar_field, "position")) {
                 Transform3d orient_matrix = Transform3d::Identity();
-                if (boost::starts_with(sidebar_field, "scale"))
+                if (boost::starts_with(sidebar_field, "scale") || boost::starts_with(sidebar_field, "size"))
                     orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
                 else if (boost::starts_with(sidebar_field, "rotation")) {
                     if (boost::ends_with(sidebar_field, "x"))
@@ -1710,6 +1976,13 @@ void Selection::copy_to_clipboard()
 
     m_clipboard.reset();
 
+    // sort as the object list order
+    std::vector<unsigned int> selected_list;
+    selected_list.assign(m_list.begin(), m_list.end());
+    std::sort(selected_list.begin(), selected_list.end(), [this](unsigned int left, unsigned int right) {
+        return (*m_volumes)[left]->volume_idx() < (*m_volumes)[right]->volume_idx();
+    });
+
     for (const ObjectIdxsToInstanceIdxsMap::value_type& object : m_cache.content)
     {
         ModelObject* src_object = m_model->objects[object.first];
@@ -1729,7 +2002,7 @@ void Selection::copy_to_clipboard()
             dst_object->add_instance(*src_object->instances[i]);
         }
 
-        for (unsigned int i : m_list)
+        for (unsigned int i : selected_list)
         {
             // Copy the ModelVolumes only for the selected GLVolumes of the 1st selected instance.
             const GLVolume* volume = (*m_volumes)[i];
@@ -2114,6 +2387,7 @@ void Selection::set_caches()
             m_cache.sinking_volumes.push_back(i);
     }
     m_cache.dragging_center = get_bounding_box().center();
+    m_cache.rotation_pivot  = get_bounding_sphere().first;
 }
 
 void Selection::do_add_volume(unsigned int volume_idx)
@@ -2603,6 +2877,9 @@ void Selection::ensure_not_below_bed()
 
 bool Selection::is_from_fully_selected_instance(unsigned int volume_idx) const
 {
+    if (m_mode == Instance && wxGetApp().plater()->canvas3D()->get_canvas_type() == GLCanvas3D::ECanvasType::CanvasAssembleView) {
+        return true;
+    }
     struct SameInstance
     {
         int obj_idx;
@@ -2710,7 +2987,7 @@ void Selection::paste_objects_from_clipboard()
     if (src_objects.size() > 1) {
         BoundingBoxf3 bbox_all;
         for (const ModelObject *src_object : src_objects) {
-            BoundingBoxf3 bbox = src_object->instance_convex_hull_bounding_box(0);
+            BoundingBoxf3 bbox = src_object->instance_convex_hull_bounding_box(size_t(0));
             bbox_all.merge(bbox);
         }
         auto bsize = bbox_all.size();
@@ -2726,7 +3003,7 @@ void Selection::paste_objects_from_clipboard()
         ModelObject* dst_object = m_model->add_object(*src_object);
 
         // BBS: find an empty cell to put the copied object
-        BoundingBoxf3 bbox = src_object->instance_convex_hull_bounding_box(0);
+        BoundingBoxf3 bbox = src_object->instance_convex_hull_bounding_box(size_t(0));
 
         Vec3d displacement;
         bool  in_current  = plate->intersects(bbox);
@@ -2763,6 +3040,46 @@ void Selection::paste_objects_from_clipboard()
 #ifdef _DEBUG
     check_model_ids_validity(*m_model);
 #endif /* _DEBUG */
+}
+
+void Selection::transform_instance_relative(
+    GLVolume &volume, const VolumeCache &volume_data, TransformationType transformation_type, const Transform3d &transform, const Vec3d &world_pivot)
+{
+    assert(transformation_type.relative());
+
+    const Geometry::Transformation &inst_trafo = volume_data.get_instance_transform();
+    if (transformation_type.world()) {
+        const Vec3d       inst_pivot = transformation_type.independent() && !is_from_single_instance() ? inst_trafo.get_offset() : world_pivot;
+        const Transform3d trafo      = Geometry::translation_transform(inst_pivot) * transform * Geometry::translation_transform(-inst_pivot);
+        volume.set_instance_transformation(trafo * inst_trafo.get_matrix());
+    } else if (transformation_type.instance())
+        volume.set_instance_transformation(inst_trafo.get_matrix() * transform);
+    else
+        assert(false);
+}
+
+void Selection::transform_volume_relative(
+    GLVolume &volume, const VolumeCache &volume_data, TransformationType transformation_type, const Transform3d &transform, const Vec3d &world_pivot)
+{
+    assert(transformation_type.relative());
+
+    const Geometry::Transformation &vol_trafo  = volume_data.get_volume_transform();
+    const Geometry::Transformation &inst_trafo = volume_data.get_instance_transform();
+
+    if (transformation_type.world()) {
+        const Vec3d       inst_pivot            = transformation_type.independent() ? vol_trafo.get_offset() : (Vec3d) (inst_trafo.get_matrix().inverse() * world_pivot);
+        const Transform3d inst_matrix_no_offset = inst_trafo.get_matrix_no_offset();
+        const Transform3d trafo                 = Geometry::translation_transform(inst_pivot) * inst_matrix_no_offset.inverse() * transform * inst_matrix_no_offset *
+                                  Geometry::translation_transform(-inst_pivot);
+        volume.set_volume_transformation(trafo * vol_trafo.get_matrix());
+    } else if (transformation_type.instance()) {
+        const Vec3d       inst_pivot = transformation_type.independent() ? vol_trafo.get_offset() : (Vec3d) (inst_trafo.get_matrix().inverse() * world_pivot);
+        const Transform3d trafo      = Geometry::translation_transform(inst_pivot) * transform * Geometry::translation_transform(-inst_pivot);
+        volume.set_volume_transformation(trafo * vol_trafo.get_matrix());
+    } else if (transformation_type.local())
+        volume.set_volume_transformation(vol_trafo.get_matrix() * transform);
+    else
+        assert(false);
 }
 
 } // namespace GUI

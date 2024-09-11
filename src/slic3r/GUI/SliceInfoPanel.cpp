@@ -4,6 +4,8 @@
 #include "Widgets/Label.hpp"
 #include "libslic3r/Utils.hpp"
 
+#include <boost/log/trivial.hpp>
+
 namespace Slic3r {
 namespace GUI {
 

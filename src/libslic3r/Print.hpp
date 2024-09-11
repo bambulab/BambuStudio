@@ -2,6 +2,8 @@
 #define slic3r_Print_hpp_
 
 #include "PrintBase.hpp"
+#include "Fill/FillAdaptive.hpp"
+#include "Fill/FillLightning.hpp"
 
 #include "BoundingBox.hpp"
 #include "ExtrusionEntityCollection.hpp"
@@ -34,6 +36,13 @@ class SupportLayer;
 // BBS
 class TreeSupportData;
 class TreeSupport;
+
+#define MARGIN_HEIGHT   1.5
+#define MAX_OUTER_NOZZLE_RADIUS   4
+#define TIME_USING_CACHE "time_using_cache"
+#define TIME_MAKE_PERIMETERS "make_perimeters_time"
+#define TIME_INFILL "infill_time"
+#define TIME_GENERATE_SUPPORT "generate_support_material_time"
 
 // BBS: move from PrintObjectSlice.cpp
 struct VolumeSlices
@@ -326,6 +335,7 @@ public:
     // Height is used for slicing, for sorting the objects by height for sequential printing and for checking vertical clearence in sequential print mode.
     // The height is snug.
     coord_t 				     height() const         { return m_size.z(); }
+    double                      max_z() const         { return m_max_z; }
     // Centering offset of the sliced mesh from the scaled and rotated mesh of the model.
     const Point& 			     center_offset() const  { return m_center_offset; }
 
@@ -378,7 +388,7 @@ public:
 
     size_t          support_layer_count() const { return m_support_layers.size(); }
     void            clear_support_layers();
-    SupportLayer*   get_support_layer(int idx) { return m_support_layers[idx]; }
+    SupportLayer*   get_support_layer(int idx) { return idx<m_support_layers.size()? m_support_layers[idx]:nullptr; }
     const SupportLayer* get_support_layer_at_printz(coordf_t print_z, coordf_t epsilon) const;
     SupportLayer*   get_support_layer_at_printz(coordf_t print_z, coordf_t epsilon);
     SupportLayer*   add_support_layer(int id, int interface_id, coordf_t height, coordf_t print_z);
@@ -436,6 +446,7 @@ public:
 
     // BBS: returns 1-based indices of extruders used to print the first layer wall of objects
     std::vector<int>            object_first_layer_wall_extruders;
+    bool             has_variable_layer_heights = false;
 
     // OrcaSlicer
     size_t get_klipper_object_id() const { return m_klipper_object_id; }
@@ -488,7 +499,8 @@ private:
     void discover_horizontal_shells();
     void combine_infill();
     void _generate_support_material();
-    std::pair<FillAdaptive::OctreePtr, FillAdaptive::OctreePtr> prepare_adaptive_infill_data();
+    std::pair<FillAdaptive::OctreePtr, FillAdaptive::OctreePtr> prepare_adaptive_infill_data(
+        const std::vector<std::pair<const Surface*, float>>& surfaces_w_bottom_z) const;
     FillLightning::GeneratorPtr prepare_lightning_infill_data();
 
     // BBS
@@ -496,6 +508,7 @@ private:
 
     // XYZ in scaled coordinates
     Vec3crd									m_size;
+    double                                  m_max_z;
     PrintObjectConfig                       m_config;
     // Translation in Z + Rotation + Scaling / Mirroring.
     Transform3d                             m_trafo = Transform3d::Identity();
@@ -518,6 +531,10 @@ private:
     // this is set to true when LayerRegion->slices is split in top/internal/bottom
     // so that next call to make_perimeters() performs a union() before computing loops
     bool                    				m_typed_slices = false;
+
+    std::pair<FillAdaptive::OctreePtr, FillAdaptive::OctreePtr> m_adaptive_fill_octrees;
+    FillLightning::GeneratorPtr m_lightning_generator;
+
     std::vector < VolumeSlices >            firstLayerObjSliceByVolume;
     std::vector<groupedVolumeSlices>        firstLayerObjSliceByGroups;
 
@@ -706,7 +723,7 @@ public:
 
     ApplyStatus         apply(const Model &model, DynamicPrintConfig config) override;
 
-    void                process(long long *time_cost_with_cache = nullptr, bool use_cache = false) override;
+    void                process(std::unordered_map<std::string, long long>* slice_time = nullptr, bool use_cache = false) override;
     // Exports G-code into a file name based on the path_template, returns the file path of the generated G-code file.
     // If preview_data is not null, the preview_data is filled in for the G-code visualization (not used by the command line Slic3r).
     std::string         export_gcode(const std::string& path_template, GCodeProcessorResult* result, ThumbnailsGeneratorCallback thumbnail_cb = nullptr);
@@ -839,6 +856,10 @@ public:
     // 3. LowTemp+HighTemp+...=HighLowCompatible
     // Unset types are just ignored.
     static int get_compatible_filament_type(const std::set<int>& types);
+
+    bool is_all_objects_are_short() const {
+        return std::all_of(this->objects().begin(), this->objects().end(), [&](PrintObject* obj) { return obj->height() < scale_(this->config().nozzle_height.value); });
+    }
 
 protected:
     // Invalidates the step, and its depending steps in Print.

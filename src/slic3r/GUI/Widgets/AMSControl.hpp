@@ -124,7 +124,7 @@ enum FilamentStepType {
 #define AMS_ITEM_CUBE_SIZE wxSize(FromDIP(14), FromDIP(14))
 #define AMS_ITEM_SIZE wxSize(FromDIP(82), FromDIP(27))
 #define AMS_ITEM_HUMIDITY_SIZE wxSize(FromDIP(120), FromDIP(27))
-#define AMS_CAN_LIB_SIZE wxSize(FromDIP(58), FromDIP(80))
+#define AMS_CAN_LIB_SIZE wxSize(FromDIP(58), FromDIP(75))
 #define AMS_CAN_ROAD_SIZE wxSize(FromDIP(66), FromDIP(70))
 #define AMS_CAN_ITEM_HEIGHT_SIZE FromDIP(27)
 #define AMS_CANS_SIZE wxSize(FromDIP(284), FromDIP(196))
@@ -140,6 +140,7 @@ struct Caninfo
     wxString        material_name;
     wxColour        material_colour = {*wxWHITE};
     AMSCanType      material_state;
+    int             ctype=0;
     int             material_remain = 100;
     float           k = 0.0f;
     float           n = 0.0f;
@@ -338,6 +339,7 @@ protected:
     bool            m_hover           = {false};
     bool            m_show_kn         = {false};
     bool            m_support_cali    = {false};
+    bool            transparent_changed     = {false};
 
     double   m_radius = {4};
     wxColour m_border_color;
@@ -381,11 +383,7 @@ public:
     wxColour                     m_road_color;
     void                         Update(AMSinfo amsinfo, Caninfo info, int canindex, int maxcan);
 
-    ScalableBitmap ams_humidity_0;
-    ScalableBitmap ams_humidity_1;
-    ScalableBitmap ams_humidity_2;
-    ScalableBitmap ams_humidity_3;
-    ScalableBitmap ams_humidity_4;
+    std::vector<ScalableBitmap> ams_humidity_img;
 
    
     int      m_humidity = { 0 };

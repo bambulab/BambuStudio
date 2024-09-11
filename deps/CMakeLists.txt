@@ -31,6 +31,15 @@ if (NPROC EQUAL 0)
     set(NPROC 1)
 endif ()
 
+option(DEP_BUILD_PNG "Compile libpng" ON)
+option(DEP_BUILD_JPEG "Compile libjpeg" ON)
+option(DEP_BUILD_TIFF "Compile libtiff" ON)
+option(DEP_BUILD_BOOST "Compile boost" ON)
+option(DEP_BUILD_OPENSSL "Compile openssl" ON)
+option(DEP_BUILD_GLFW "Compile GLFW" ON)
+option(DEP_BUILD_FREETYPE "Compile freetype" ON)
+option(DEP_BUILD_WXWIDGETS "Compile wxWidgets" ON)
+
 set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir" CACHE PATH "Destination directory")
 set(DEP_DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR} CACHE PATH "Path for downloaded source packages.")
 
@@ -148,10 +157,20 @@ if (NOT ZLIB_FOUND)
     set(ZLIB_PKG dep_ZLIB)
 endif ()
 set(PNG_PKG "")
-if (NOT PNG_FOUND) 
+if (DEP_BUILD_PNG AND NOT PNG_FOUND) 
     include(PNG/PNG.cmake)
     set(PNG_PKG dep_PNG)
 endif ()
+set(JPEG_PKG "")
+if (DEP_BUILD_JPEG AND NOT JPEG_FOUND)
+    include(JPEG/JPEG.cmake)
+    set(JPEG_PKG dep_JPEG)
+endif()
+set(TIFF_PKG "")
+if (DEP_BUILD_TIFF AND NOT TIFF_FOUND)
+    include(TIFF/TIFF.cmake)
+    set(TIFF_PKG dep_TIFF)
+endif()
 set(EXPAT_PKG "")
 if (NOT EXPAT_FOUND) 
     include(EXPAT/EXPAT.cmake)
@@ -159,13 +178,21 @@ if (NOT EXPAT_FOUND)
 endif ()
 
 set(DEP_Boost_COMPONENTS system iostreams filesystem thread log locale regex date_time)
-include(Boost/Boost.cmake)
+set(BOOST_PKG "")
+if (DEP_BUILD_BOOST) 
+    include(Boost/Boost.cmake)
+    set(BOOST_PKG dep_Boost)
+endif ()
 
 # The order of includes respects the dependencies between libraries
 include(Cereal/Cereal.cmake)
 include(Qhull/Qhull.cmake)
 include(GLEW/GLEW.cmake)
-include(GLFW/GLFW.cmake)
+set(GLFW_PKG "")
+if (DEP_BUILD_GLFW)
+    include(GLFW/GLFW.cmake)
+    set(GLFW_PKG dep_GLFW)
+endif ()
 include(OpenCSG/OpenCSG.cmake)
 
 include(TBB/TBB.cmake)
@@ -180,35 +207,46 @@ include(CGAL/CGAL.cmake)
 
 include(NLopt/NLopt.cmake)
 
-include(OpenSSL/OpenSSL.cmake)
-
+set(OPENSSL_PKG "")
+if (DEP_BUILD_OPENSSL)
+    include(OpenSSL/OpenSSL.cmake)
+    set(OPENSSL_PKG dep_OpenSSL)
+endif ()
 set(CURL_PKG "")
 if (NOT CURL_FOUND)
     include(CURL/CURL.cmake)
     set(CURL_PKG dep_CURL)
 endif ()
-
-include(JPEG/JPEG.cmake)
-include(TIFF/TIFF.cmake)
-include(wxWidgets/wxWidgets.cmake)
+set(WXWIDGETS_PKG "")
+if (DEP_BUILD_WXWIDGETS)
+    include(wxWidgets/wxWidgets.cmake)
+    set(WXWIDGETS_PKG dep_wxWidgets)
+endif ()
+set(FREETYPE_PKG "")
+if (DEP_BUILD_FREETYPE)
+    include(FREETYPE/FREETYPE.cmake)
+    set(FREETYPE_PKG dep_FREETYPE)
+endif ()
 include(OCCT/OCCT.cmake)
-include(FREETYPE/FREETYPE.cmake)
+include(OpenCV/OpenCV.cmake)
 
 set(_dep_list
-    dep_Boost
+    ${BOOST_PKG}
     dep_TBB
     ${CURL_PKG}
-    dep_wxWidgets
+    ${WXWIDGETS_PKG}
     dep_Cereal
     dep_NLopt
     dep_OpenVDB
     dep_OpenCSG
+    dep_OpenCV
     dep_CGAL
-    dep_OpenSSL
-    dep_GLFW
+    ${OPENSSL_PKG}
+    ${GLFW_PKG}
     ${PNG_PKG}
     ${ZLIB_PKG}
     ${EXPAT_PKG}
+    ${FREETYPE_PKG}
     )
 
 if (MSVC)
@@ -221,7 +259,9 @@ else()
 endif()
 
 list(APPEND _dep_list "dep_OCCT")
-list(APPEND _dep_list "dep_FREETYPE")
+# if (DEP_BUILD_FREETYPE)
+#     list(APPEND _dep_list "dep_FREETYPE")
+# endif ()
 
 add_custom_target(deps ALL DEPENDS ${_dep_list})
 
