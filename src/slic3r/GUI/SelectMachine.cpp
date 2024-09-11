@@ -4337,7 +4337,6 @@ void SelectMachineDialog::reset_and_sync_ams_list()
     m_filaments.clear();
 
     const auto& full_config = wxGetApp().preset_bundle->full_config();
-    const auto& extra_flush_volumes = get_min_flush_volumes(full_config, 0); // todo multi_extruder: always display nozzle 1
     size_t nozzle_nums = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
 
     bool use_double_extruder = nozzle_nums > 1 ? true : false;
@@ -4988,7 +4987,7 @@ bool SelectMachineDialog::Show(bool show)
     else{
         m_text_bed_type->Hide();
     }
-    
+
 
     // set default value when show this dialog
     if (show) {
@@ -5270,6 +5269,8 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
      SetMinSize(SELECT_MACHINE_ITEM_SIZE);
 
      m_type = type;
+     m_bitmap = ScalableBitmap(this, "bind_device_ping_code",10);
+
      this->Bind(wxEVT_ENTER_WINDOW, &PinCodePanel::on_mouse_enter, this);
      this->Bind(wxEVT_LEAVE_WINDOW, &PinCodePanel::on_mouse_leave, this);
      this->Bind(wxEVT_LEFT_UP, &PinCodePanel::on_mouse_left_up, this);
@@ -5314,8 +5315,8 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
      dc.SetFont(::Label::Head_13);
      dc.SetTextForeground(StateColor::darkModeColorFor(SELECT_MACHINE_GREY900));
      wxString txt;
-     if (m_type == 0) { txt = _L("Bind with Pin Code"); }
-     else if (m_type == 1) { txt = _L("Bind with Access Code"); }
+     if (m_type == 0) {txt = _L("Bind with Pin Code");}
+     else if (m_type == 1) {txt = _L("Bind with Access Code");}
 
      auto txt_size = dc.GetTextExtent(txt);
      dc.DrawText(txt, wxPoint(FromDIP(28), (size.y - txt_size.y) / 2));
