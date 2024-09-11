@@ -83,7 +83,8 @@ void GLGizmoBrimEars::on_render()
     const Selection &selection = m_parent.get_selection();
 
     // If current m_c->m_model_object does not match selection, ask GLCanvas3D to turn us off
-    if (m_state == On && (mo != selection.get_model()->objects[selection.get_object_idx()] || m_c->selection_info()->get_active_instance() != selection.get_instance_idx())) {
+    if (m_state == On && (mo != selection.get_model()->objects[selection.get_object_idx()]
+        || m_c->selection_info()->get_active_instance() != selection.get_instance_idx())) {
         m_parent.post_event(SimpleEvent(EVT_GLCANVAS_RESETGIZMOS));
         return;
     }
@@ -685,7 +686,7 @@ void GLGizmoBrimEars::on_set_state()
     if (m_state == On && m_old_state != On) {
         // the gizmo was just turned on
         wxGetApp().plater()->enter_gizmos_stack();
-        m_new_point_head_diameter = 5.0f;
+        m_new_point_head_diameter = get_brim_default_radius();
         first_layer_slicer();
     }
     if (m_state == Off && m_old_state != Off) {
@@ -694,6 +695,7 @@ void GLGizmoBrimEars::on_set_state()
         ModelObject         *mo = m_c->selection_info()->model_object();
         mo->brim_points.clear();
         for (const CacheEntry &ce : m_editing_cache) mo->brim_points.emplace_back(ce.brim_point);
+        m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
         wxGetApp().plater()->leave_gizmos_stack();
         // wxGetApp().mainframe->update_slice_print_status(MainFrame::SlicePrintEventType::eEventSliceUpdate, true, true);
     }
@@ -817,27 +819,6 @@ void GLGizmoBrimEars::first_layer_slicer()
 
 void GLGizmoBrimEars::auto_generate()
 {
-    /*ModelObject* mo = m_c->selection_info()->model_object();
-    std::vector<float> slice_height(1, 0.1);
-    const Selection& selection = m_parent.get_selection();
-    const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
-    Transform3d trsf = volume->get_instance_transformation().get_matrix();
-    const ModelVolume* model_volume = get_model_volume(selection, wxGetApp().model());
-    Vec3f normal = (volume->get_instance_transformation().get_matrix(true).inverse() * m_world_normal).cast<float>();
-
-    indexed_triangle_set volume_its = model_volume->mesh().its;
-    if (volume_its.indices.size() <= 0)
-        return;
-
-    MeshSlicingParamsEx params;
-    params.mode = MeshSlicingParams::SlicingMode::Regular;
-    params.closing_radius = 0.1f;
-    params.extra_offset = 0.05f;
-    params.resolution = 0.01;
-    params.trafo = params.trafo * trsf;
-    if (params.trafo.rotation().determinant() < 0.)
-        its_flip_triangles(volume_its);
-    ExPolygons sliced_layer = slice_mesh_ex(volume_its, slice_height, params).front();*/
     const Selection &selection = m_parent.get_selection();
     const GLVolume  *volume    = selection.get_volume(*selection.get_volume_idxs().begin());
     Transform3d      trsf      = volume->get_instance_transformation().get_matrix();
@@ -901,4 +882,9 @@ void GLGizmoBrimEars::update_single_mesh_pick(GLVolume *v)
 
 void GLGizmoBrimEars::reset_all_pick() { std::map<GLVolume *, std::shared_ptr<PickRaycaster>>().swap(m_mesh_raycaster_map); }
 
+float GLGizmoBrimEars::get_brim_default_radius() const
+{
+    const DynamicPrintConfig& pring_cfg = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    return pring_cfg.get_abs_value("initial_layer_line_width") * 16.0f;
+}
 }} // namespace Slic3r::GUI
