@@ -4677,41 +4677,37 @@ ExtrusionPaths GCode::split_and_mapping_speed(double &other_path_v, double &fina
 ExtrusionPaths GCode::merge_same_speed_paths(const ExtrusionPaths &paths)
 {
     ExtrusionPaths output_paths;
+    std::optional<ExtrusionPath> merged_path;
 
-    size_t path_idx = 0;
-    int merge_start = 0;
-    ExtrusionPath merge_path;
-    for (; path_idx < paths.size(); path_idx++) {
+    for(size_t path_idx=0;path_idx<paths.size();++path_idx){
         ExtrusionPath path = paths[path_idx];
-        path.smooth_speed  = get_path_speed(path);
+        path.smooth_speed = get_path_speed(path);
 
-        // 100% overhang speed will not to set smooth speed
-        if (path.role() == erOverhangPerimeter) {
-            if (!merge_path.empty()) {
-                output_paths.push_back(std::move(merge_path));
-                merge_path.polyline.clear();
+        if(path.role() == erOverhangPerimeter){
+            if(merged_path.has_value()){
+                output_paths.push_back(std::move(*merged_path));
+                merged_path=std::nullopt;
             }
-            output_paths.push_back(std::move(path));
-            merge_start = path_idx + 1;
+            output_paths.emplace_back(path);
             continue;
         }
 
-        if (merge_start == path_idx) {
-            merge_path = path;
+        if(!merged_path.has_value()){
+            merged_path=path;
             continue;
         }
 
-        // merge path with same speed
-        if (merge_path.smooth_speed == path.smooth_speed) {
-            merge_path.polyline.append(path.polyline);
-        } else {
-            output_paths.push_back(std::move(merge_path));
-            merge_path = path;
+        if(merged_path->can_merge(path)){
+            merged_path->polyline.append(path.polyline);
+        }
+        else{
+            output_paths.push_back(std::move(*merged_path));
+            merged_path = path;
         }
     }
 
-    if (!merge_path.empty() && merge_start < paths.size())
-        output_paths.push_back(std::move(merge_path));
+    if(merged_path.has_value())
+        output_paths.push_back(std::move(*merged_path));
 
     return output_paths;
 }
