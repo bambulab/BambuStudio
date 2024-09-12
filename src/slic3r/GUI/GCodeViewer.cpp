@@ -1291,13 +1291,13 @@ void GCodeViewer::render(int canvas_width, int canvas_height, int right_margin)
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
     //BBS: always render shells in preview window
+    glsafe(::glEnable(GL_DEPTH_TEST));
     render_shells();
 
     m_legend_height = 0.0f;
     if (m_roles.empty())
         return;
 
-    glsafe(::glEnable(GL_DEPTH_TEST));
     render_toolpaths();
     //render_shells();
     render_legend(m_legend_height, canvas_width, canvas_height, right_margin);
@@ -4140,16 +4140,14 @@ void GCodeViewer::render_shells()
         if (!v->indexed_vertex_array->has_VBOs())
             v->finalize_geometry(true);
     }
-
-    glsafe(::glEnable(GL_DEPTH_TEST));
-//    glsafe(::glDepthMask(GL_FALSE));
+    glsafe(::glDepthMask(GL_FALSE));
 
     shader->start_using();
     //BBS: reopen cul faces
     m_shells.volumes.render(GLVolumeCollection::ERenderType::Transparent, false, wxGetApp().plater()->get_camera().get_view_matrix());
     shader->stop_using();
 
-//    glsafe(::glDepthMask(GL_TRUE));
+    glsafe(::glDepthMask(GL_TRUE));
 }
 
 //BBS
