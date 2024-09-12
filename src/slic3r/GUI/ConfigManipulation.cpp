@@ -682,8 +682,6 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_field("support_filament", have_support_material || have_skirt);
 
     toggle_line("raft_contact_distance", have_raft && !have_support_soluble);
-    for (auto el : { "raft_first_layer_density"})
-        toggle_line(el, have_raft);
 
     bool has_ironing = (config->opt_enum<IroningType>("ironing_type") != IroningType::NoIroning);
     for (auto el : {

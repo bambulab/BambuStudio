@@ -2047,7 +2047,7 @@ void TabPrint::build()
 
     page = add_options_page(L("Support"), "support");
         optgroup = page->new_optgroup(L("Support"), L"param_support");
-    optgroup->append_single_option_line("enable_support", "support");
+        optgroup->append_single_option_line("enable_support", "support");
         optgroup->append_single_option_line("support_type", "support#support-types");
         optgroup->append_single_option_line("support_style", "support#support-styles");
         optgroup->append_single_option_line("support_threshold_angle", "support#threshold-angle");
@@ -2059,7 +2059,6 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Raft"), L"param_raft");
         optgroup->append_single_option_line("raft_layers");
         optgroup->append_single_option_line("raft_contact_distance");
-        optgroup->append_single_option_line("raft_first_layer_density");
 
         optgroup = page->new_optgroup(L("Support filament"), L"param_support_filament");
         optgroup->append_single_option_line("support_filament", "support#support-filament");
@@ -2070,7 +2069,8 @@ void TabPrint::build()
 
         //BBS
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
-        optgroup->append_single_option_line("raft_first_layer_expansion");  // not only for raft, but for support too
+        optgroup->append_single_option_line("raft_first_layer_density");   // not only for raft, but for support too
+        optgroup->append_single_option_line("raft_first_layer_expansion"); // not only for raft, but for support too
         optgroup->append_single_option_line("tree_support_wall_count");
         optgroup->append_single_option_line("support_top_z_distance", "support#top-z-distance");
         optgroup->append_single_option_line("support_bottom_z_distance", "support#bottom-z-distance");
