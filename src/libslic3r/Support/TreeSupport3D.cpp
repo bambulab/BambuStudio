@@ -4331,6 +4331,11 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
         SupportGeneratorLayersPtr raft_layers = generate_raft_base(print_object, support_params, print_object.slicing_parameters(), top_contacts, interface_layers, base_interface_layers, intermediate_layers, layer_storage);
         SupportGeneratorLayersPtr layers_sorted = generate_support_layers(print_object, raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers);
 
+        // BBS: This is a hack to avoid the support being generated outside the bed area. See #4769.
+        for (SupportGeneratorLayer *layer : layers_sorted) {
+            if (layer) layer->polygons = intersection(layer->polygons, volumes.m_bed_area);
+        }
+
         // Don't fill in the tree supports, make them hollow with just a single sheath line.
         print.set_status(69, _L("Generating support"));
         generate_support_toolpaths(print_object.support_layers(), print_object.config(), support_params, print_object.slicing_parameters(),
@@ -4584,9 +4589,10 @@ void organic_draw_branches(
                     std::vector<Polygons> slices = slice_mesh(partial_mesh, slice_z, mesh_slicing_params, throw_on_cancel);
                     bottom_contacts.clear();
                     //FIXME parallelize?
-                    for (LayerIndex i = 0; i < LayerIndex(slices.size()); ++i)
-                        slices[i] = diff_clipped(slices[i], volumes.getCollision(0, layer_begin + i, true)); //FIXME parent_uses_min || draw_area.element->state.use_min_xy_dist);
-
+                    for (LayerIndex i = 0; i < LayerIndex(slices.size()); ++i) {
+                        slices[i] = diff_clipped(slices[i], volumes.getCollision(0, layer_begin + i, true)); // FIXME parent_uses_min || draw_area.element->state.use_min_xy_dist);
+                        slices[i] = intersection(slices[i], volumes.m_bed_area);
+                    }
                     size_t num_empty = 0;
                     if (slices.front().empty()) {
                         // Some of the initial layers are empty.
