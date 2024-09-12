@@ -1897,7 +1897,13 @@ bool SelectMachineDialog::get_ams_mapping_result(std::string &mapping_array_str,
         json          j = json::array();
         json mapping_info_json = json::array();
 
-        for (int i = 0; i < wxGetApp().preset_bundle->filament_presets.size(); i++) {
+        BOOST_LOG_TRIVIAL(info) << "filaments size = " << m_filaments.size();
+        int mapping_size = wxGetApp().preset_bundle->filament_presets.size();
+        for (size_t i = 0; i < m_ams_mapping_result.size(); i++) {
+            mapping_size = std::max(mapping_size, m_ams_mapping_result[i].id);
+        }
+        mapping_size = std::min(mapping_size, 16);
+        for (int i = 0; i <= mapping_size; i++) {
             int tray_id = -1;
             json mapping_item;
             mapping_item["ams"] = tray_id;
@@ -3625,7 +3631,7 @@ void SelectMachineDialog::update_show_status()
                     show_status(PrintDialogStatus::PrintStatusAmsMappingValid);
                 }
                 return;
-            }       
+            }
         }
         else {
             show_status(PrintDialogStatus::PrintStatusAmsMappingInvalid);
@@ -4002,6 +4008,8 @@ void SelectMachineDialog::reset_and_sync_ams_list()
     m_sizer_material->Clear();
     m_materialList.clear();
     m_filaments.clear();
+
+    BOOST_LOG_TRIVIAL(info) << "extruders = " << extruders.size();
 
     for (auto i = 0; i < extruders.size(); i++) {
         auto          extruder = extruders[i] - 1;
