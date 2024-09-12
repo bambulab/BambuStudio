@@ -984,10 +984,9 @@ int GuideFrame::GetFilamentInfo( std::string VendorDirectory, json & pFilaList, 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " GetFilamentInfo:VendorDirectory - " << VendorDirectory << ", Filepath - "<<filepath;
 
     try {
-        std::string contents;
-        LoadFile(filepath, contents);
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": Json Contents: " << contents;
-        json jLocal = json::parse(contents);
+        boost::nowide::ifstream ifs(filepath);
+        json                    jLocal;
+        ifs >> jLocal;
 
         if (sVendor == "") {
             if (jLocal.contains("filament_vendor"))
@@ -1254,186 +1253,6 @@ void StringReplace(string &strBase, string strSrc, string strDes)
     }
 }
 
-
-//int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath)
-//{
-//    //wxString strFolder = strFilePath.BeforeLast(boost::filesystem::path::preferred_separator);
-//    boost::filesystem::path file_path(strFilePath);
-//    boost::filesystem::path vendor_dir = boost::filesystem::absolute(file_path.parent_path()/ strVendor).make_preferred();
-//    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(",  vendor path %1%.")% vendor_dir.string();
-//    try {
-//
-//        //wxLogMessage("GUIDE: json_path1  %s", w2s(strFilePath));
-//
-//        std::string contents;
-//        LoadFile(strFilePath, contents);
-//        //wxLogMessage("GUIDE: json_path1 content: %s", contents);
-//        json jLocal=json::parse(contents);
-//        //wxLogMessage("GUIDE: json_path1 Loaded");
-//
-//        // BBS:models
-//        json pmodels = jLocal["machine_model_list"];
-//        int  nsize   = pmodels.size();
-//
-//        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(",  got %1% machine models")%nsize;
-//
-//        for (int n = 0; n < nsize; n++) {
-//            json OneModel = pmodels.at(n);
-//
-//            OneModel["model"] = OneModel["name"];
-//            OneModel.erase("name");
-//
-//            std::string s1 = OneModel["model"];
-//            std::string s2 = OneModel["sub_path"];
-//
-//            boost::filesystem::path sub_path = boost::filesystem::absolute(vendor_dir / s2).make_preferred();
-//            std::string sub_file = sub_path.string();
-//
-//            //wxLogMessage("GUIDE: json_path2  %s", w2s(ModelFilePath));
-//            LoadFile(sub_file, contents);
-//            //wxLogMessage("GUIDE: json_path2 content: %s", contents);
-//            json     pm=json::parse(contents);
-//            //wxLogMessage("GUIDE: json_path2  loaded");
-//
-//            OneModel["vendor"]          = strVendor;
-//            std::string NozzleOpt = pm["nozzle_diameter"];
-//            StringReplace(NozzleOpt, " ", "");
-//            OneModel["nozzle_diameter"] = NozzleOpt;
-//            OneModel["materials"]       = pm["default_materials"];
-//
-//            //wxString strCoverPath = wxString::Format("%s\\%s\\%s_cover.png", strFolder, strVendor, std::string(s1.mb_str()));
-//            std::string cover_file = s1+"_cover.png";
-//            boost::filesystem::path cover_path = boost::filesystem::absolute(vendor_dir / cover_file).make_preferred();
-//            OneModel["cover"]   = cover_path.string();
-//
-//            OneModel["nozzle_selected"] = "";
-//
-//            m_ProfileJson["model"].push_back(OneModel);
-//        }
-//
-//        // BBS:Machine
-//        json pmachine = jLocal["machine_list"];
-//        nsize         = pmachine.size();
-//        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(",  got %1% machines")%nsize;
-//        for (int n = 0; n < nsize; n++) {
-//            json OneMachine = pmachine.at(n);
-//
-//            std::string s1 = OneMachine["name"];
-//            std::string s2 = OneMachine["sub_path"];
-//
-//            //wxString ModelFilePath = wxString::Format("%s\\%s\\%s", strFolder, strVendor, s2);
-//            boost::filesystem::path sub_path = boost::filesystem::absolute(vendor_dir / s2).make_preferred();
-//            std::string sub_file = sub_path.string();
-//            LoadFile(sub_file, contents);
-//            json pm = json::parse(contents);
-//
-//            std::string strInstant = pm["instantiation"];
-//            if (strInstant.compare("true") == 0) {
-//                OneMachine["model"] = pm["printer_model"];
-//
-//                m_ProfileJson["machine"].push_back(OneMachine);
-//            }
-//        }
-//
-//        // BBS:Filament
-//        json pFilament = jLocal["filament_list"];
-//        nsize          = pFilament.size();
-//
-//        int nFalse = 0;
-//        int nModel = 0;
-//        int nFinish = 0;
-//        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(",  got %1% filaments")%nsize;
-//        for (int n = 0; n < nsize; n++) {
-//            json OneFF = pFilament.at(n);
-//
-//            std::string s1 = OneFF["name"];
-//            std::string s2 = OneFF["sub_path"];
-//
-//            if (!m_ProfileJson["filament"].contains(s1))
-//            {
-//                //wxString ModelFilePath = wxString::Format("%s\\%s\\%s", strFolder, strVendor, s2);
-//                boost::filesystem::path sub_path = boost::filesystem::absolute(vendor_dir / s2).make_preferred();
-//                std::string sub_file = sub_path.string();
-//                LoadFile(sub_file, contents);
-//                json pm = json::parse(contents);
-//
-//                std::string strInstant = pm["instantiation"];
-//                if (strInstant == "true") {
-//                    std::string sV;
-//                    std::string sT;
-//
-//                    int nRet = GetFilamentInfo(sub_file, sV, sT);
-//                    if (nRet != 0) continue;
-//
-//                    OneFF["vendor"] = sV;
-//                    OneFF["type"] = sT;
-//
-//                    OneFF["models"] = "";
-//                    OneFF["selected"] = 0;
-//                }
-//                else
-//                    continue;
-//
-//            } else {
-//                OneFF = m_ProfileJson["filament"][s1];
-//            }
-//
-//            std::string vModel = "";
-//            int nm    = m_ProfileJson["model"].size();
-//            int bFind = 0;
-//            for (int m = 0; m < nm; m++) {
-//                std::string strFF = m_ProfileJson["model"][m]["materials"];
-//                strFF          = (boost::format(";%1%;")%strFF).str();
-//                std::string strTT = (boost::format(";%1%;")%s1).str();
-//                if (strFF.find(strTT) != std::string::npos) {
-//                    std::string sModel = m_ProfileJson["model"][m]["model"];
-//
-//                    vModel = (boost::format("%1%[%2%]")%vModel %sModel).str();
-//                    bFind           = 1;
-//                }
-//            }
-//
-//            OneFF["models"]                    = vModel;
-//
-//            m_ProfileJson["filament"][s1] = OneFF;
-//        }
-//
-//        //process
-//        json pProcess = jLocal["process_list"];
-//        nsize    = pProcess.size();
-//        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(",  got %1% processes")%nsize;
-//        for (int n = 0; n < nsize; n++) {
-//            json OneProcess = pProcess.at(n);
-//
-//            std::string s2            = OneProcess["sub_path"];
-//            //wxString ModelFilePath = wxString::Format("%s\\%s\\%s", strFolder, strVendor, s2);
-//            boost::filesystem::path sub_path = boost::filesystem::absolute(vendor_dir / s2).make_preferred();
-//            std::string sub_file = sub_path.string();
-//            LoadFile(sub_file, contents);
-//            json pm = json::parse(contents);
-//
-//            std::string bInstall = pm["instantiation"];
-//            if (bInstall == "true")
-//            {
-//                m_ProfileJson["process"].push_back(OneProcess);
-//            }
-//        }
-//
-//    }
-//    catch(nlohmann::detail::parse_error &err) {
-//        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<strFilePath <<" got a nlohmann::detail::parse_error, reason = " << err.what();
-//        return -1;
-//    }
-//    catch (std::exception &e) {
-//        // wxMessageBox(e.what(), "", MB_OK);
-//        //wxLogMessage("GUIDE: LoadFamily Error: %s", e.what());
-//        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": parse " << strFilePath << " got exception: " << e.what();
-//        return -1;
-//    }
-//
-//    return 0;
-//}
-
 int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath)
 {
     // wxString strFolder = strFilePath.BeforeLast(boost::filesystem::path::preferred_separator);
@@ -1443,11 +1262,9 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
     try {
         // wxLogMessage("GUIDE: json_path1  %s", w2s(strFilePath));
 
-        std::string contents;
-        LoadFile(strFilePath, contents);
-        // wxLogMessage("GUIDE: json_path1 content: %s", contents);
-        json jLocal = json::parse(contents);
-        // wxLogMessage("GUIDE: json_path1 Loaded");
+        boost::nowide::ifstream ifs(strFilePath);
+        json                    jLocal;
+        ifs >> jLocal;
 
         // BBS:models
         json pmodels = jLocal["machine_model_list"];
@@ -1467,11 +1284,9 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
             boost::filesystem::path sub_path = boost::filesystem::absolute(vendor_dir / s2).make_preferred();
             std::string             sub_file = sub_path.string();
 
-            // wxLogMessage("GUIDE: json_path2  %s", w2s(ModelFilePath));
-            LoadFile(sub_file, contents);
-            // wxLogMessage("GUIDE: json_path2 content: %s", contents);
-            json pm = json::parse(contents);
-            // wxLogMessage("GUIDE: json_path2  loaded");
+            boost::nowide::ifstream ifs(sub_file);
+            json                    pm;
+            ifs >> pm;
 
             OneModel["vendor"]    = strVendor;
             std::string NozzleOpt = pm["nozzle_diameter"];
@@ -1502,8 +1317,9 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
             // wxString ModelFilePath = wxString::Format("%s\\%s\\%s", strFolder, strVendor, s2);
             boost::filesystem::path sub_path = boost::filesystem::absolute(vendor_dir / s2).make_preferred();
             std::string             sub_file = sub_path.string();
-            LoadFile(sub_file, contents);
-            json pm = json::parse(contents);
+            boost::nowide::ifstream ifs(sub_file);
+            json                    pm;
+            ifs >> pm;
 
             std::string strInstant = pm["instantiation"];
             if (strInstant.compare("true") == 0) {
@@ -1543,8 +1359,9 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
                 // wxString ModelFilePath = wxString::Format("%s\\%s\\%s", strFolder, strVendor, s2);
                 boost::filesystem::path sub_path = boost::filesystem::absolute(vendor_dir / s2).make_preferred();
                 std::string             sub_file = sub_path.string();
-                LoadFile(sub_file, contents);
-                json pm = json::parse(contents);
+                boost::nowide::ifstream ifs(sub_file);
+                json                    pm;
+                ifs >> pm;
                 
                 std::string strInstant = pm["instantiation"];
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "Load Filament:" << s1 << ",Path:" << sub_file << ",instantiation：" << strInstant;
@@ -1601,8 +1418,9 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
             // wxString ModelFilePath = wxString::Format("%s\\%s\\%s", strFolder, strVendor, s2);
             boost::filesystem::path sub_path = boost::filesystem::absolute(vendor_dir / s2).make_preferred();
             std::string             sub_file = sub_path.string();
-            LoadFile(sub_file, contents);
-            json pm = json::parse(contents);
+            boost::nowide::ifstream ifs(sub_file);
+            json                    pm;
+            ifs >> pm;
 
             std::string bInstall = pm["instantiation"];
             if (bInstall == "true") { m_ProfileJson["process"].push_back(OneProcess); }
@@ -1644,23 +1462,23 @@ void GuideFrame::GetStardardFilePath(std::string &FilePath) {
     StrReplace(FilePath, "\/", w2s(wxString::Format("%c", boost::filesystem::path::preferred_separator)));
 }
 
-bool GuideFrame::LoadFile(std::string jPath, std::string &sContent)
-{
-    try {
-        boost::nowide::ifstream t(jPath);
-        std::stringstream buffer;
-        buffer << t.rdbuf();
-        sContent=buffer.str();
-        BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << boost::format(", load %1% into buffer")% jPath;
-    }
-    catch (std::exception &e)
-    {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ",  got exception: "<<e.what();
-        return false;
-    }
-
-    return true;
-}
+//bool GuideFrame::LoadFile(std::string jPath, std::string &sContent)
+//{
+//    try {
+//        boost::nowide::ifstream t(jPath);
+//        std::stringstream buffer;
+//        buffer << t.rdbuf();
+//        sContent=buffer.str();
+//        BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << boost::format(", load %1% into buffer")% jPath;
+//    }
+//    catch (std::exception &e)
+//    {
+//        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ",  got exception: "<<e.what();
+//        return false;
+//    }
+//
+//    return true;
+//}
 
 int GuideFrame::DownloadPlugin()
 {
