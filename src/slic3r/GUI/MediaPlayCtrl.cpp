@@ -301,6 +301,8 @@ void MediaPlayCtrl::Play()
         return;
     }
 
+    m_play_timer = std::chrono::system_clock::now();
+
     NetworkAgent *agent = wxGetApp().getAgent();
     std::string  agent_version = agent ? agent->get_version() : "";
     if (m_lan_proto > MachineObject::LVL_Disable && (m_lan_mode || !m_remote_proto) && !m_disable_lan && !m_lan_ip.empty()) {
@@ -353,7 +355,6 @@ void MediaPlayCtrl::Play()
 
     m_label_stat->SetLabel({});
     SetStatus(_L("Initializing..."));
-    m_play_timer = std::chrono::system_clock::now();
 
     if (agent) {
         std::string protocols[] = {"", "\"tutk\"", "\"agora\"", "\"tutk\",\"agora\""};
