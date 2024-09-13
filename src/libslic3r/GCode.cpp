@@ -1288,7 +1288,7 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
                 break;
         }
     }
-
+    m_processor.set_filaments(m_writer.extruders());
     m_processor.finalize(true);
 //    DoExport::update_print_estimated_times_stats(m_processor, print->m_print_statistics);
     DoExport::update_print_estimated_stats(m_processor, m_writer.extruders(), print->m_print_statistics);
@@ -1323,13 +1323,14 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
 
 // free functions called by GCode::_do_export()
 namespace DoExport {
-    static void init_gcode_processor(const PrintConfig& config, GCodeProcessor& processor, bool& silent_time_estimator_enabled)
+    static void init_gcode_processor(const PrintConfig& config, GCodeProcessor& processor, bool& silent_time_estimator_enabled,const std::vector<Extruder>& filaments)
     {
         silent_time_estimator_enabled = (config.gcode_flavor == gcfMarlinLegacy || config.gcode_flavor == gcfMarlinFirmware)
                                         && config.silent_mode;
         processor.reset();
         processor.apply_config(config);
         processor.enable_stealth_time_estimator(silent_time_estimator_enabled);
+        processor.set_filaments(filaments);
     }
 
 #if 0
@@ -1600,7 +1601,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     PROFILE_FUNC();
 
     // modifies m_silent_time_estimator_enabled
-    DoExport::init_gcode_processor(print.config(), m_processor, m_silent_time_estimator_enabled);
+    DoExport::init_gcode_processor(print.config(), m_processor, m_silent_time_estimator_enabled, m_writer.extruders());
     // resets analyzer's tracking data
     m_last_height  = 0.f;
     m_last_layer_z = 0.f;
@@ -1680,6 +1681,14 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Estimated_Printing_Time_Placeholder).c_str());
     //BBS: total layer number
     file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Total_Layer_Number_Placeholder).c_str());
+
+    //BBS: total filament used in mm
+    file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Used_Filament_Length_Placeholder).c_str());
+    //BBS: total filament used in cm3
+    file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Used_Filament_Volume_Placeholder).c_str());
+    //BBS: total filament used in g
+    file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Used_Filament_Weight_Placeholder).c_str());
+
     //BBS: judge whether support skipping, if yes, list all label_object_id with sorted order here
     if (print.num_object_instances() <= g_max_label_object && //Don't support too many objects on one plate
         (print.num_object_instances() > 1) && //Don't support skipping single object
@@ -2373,11 +2382,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         m_writer.extruders(),
         // Modifies
         print.m_print_statistics));
-    //file.write("\n");
-    //file.write_format("; total filament weight [g] = %.2lf\n", print.m_print_statistics.total_weight);
-    //file.write_format("; total filament cost = %.2lf\n", print.m_print_statistics.total_cost);
-    //if (print.m_print_statistics.total_toolchanges > 0)
-    //	file.write_format("; total filament change = %i\n", print.m_print_statistics.total_toolchanges);
 
     bool activate_air_filtration = false;
     for (const auto& extruder : m_writer.extruders())
