@@ -3,12 +3,8 @@
 
 #include "GLGizmoBase.hpp"
 #include "slic3r/GUI/GLSelectionRectangle.hpp"
-
 #include "libslic3r/BrimEarsPoint.hpp"
 #include "libslic3r/ObjectID.hpp"
-#include <wx/dialog.h>
-
-#include <cereal/types/vector.hpp>
 
 
 namespace Slic3r {
@@ -31,10 +27,16 @@ private:
     class CacheEntry {
     public:
         CacheEntry() :
-            brim_point(BrimPoint()), selected(false), normal(Vec3f(0, 0, 1)), is_hover(false) {}
+            brim_point(BrimPoint()),
+            selected(false),
+            normal(Vec3f(0, 0, 1)),
+            is_hover(false),
+            is_error(false)
+        {}
 
-        CacheEntry(const BrimPoint &point, bool sel = false, const Vec3f &norm = Vec3f(0, 0, 1), bool hover = false)
-            :brim_point(point), selected(sel), normal(norm), is_hover(hover) {}
+        CacheEntry(const BrimPoint &point, bool sel = false, const Vec3f &norm = Vec3f(0, 0, 1), bool hover = false, bool error = false)
+            : brim_point(point), selected(sel), normal(norm), is_hover(hover), is_error(error)
+        {}
 
         bool operator==(const CacheEntry& rhs) const {
             return (brim_point == rhs.brim_point);
@@ -53,11 +55,13 @@ private:
             selected = false;
             normal.setZero();
             is_hover = false;
+            is_error = false;
         }
 
         BrimPoint brim_point;
         bool selected; // whether the point is selected
         bool is_hover; // show mouse hover cylinder
+        bool is_error;
         Vec3f normal;
 
         template<class Archive>
@@ -96,6 +100,7 @@ private:
     CacheEntry m_point_before_drag;         // undo/redo - so we know what state was edited
     float m_old_point_head_diameter = 0.;   // the same
     mutable std::vector<CacheEntry> m_editing_cache; // a support point and whether it is currently selectedchanges or undo/redo
+    std::map<int, CacheEntry> m_single_brim;
     ObjectID m_old_mo_id;
     const Vec3d m_world_normal = {0, 0, 1};
     std::map<GLVolume*, std::shared_ptr<PickRaycaster>>   m_mesh_raycaster_map;
@@ -156,6 +161,8 @@ protected:
     void reset_all_pick();
     bool add_point_to_cache(Vec3f pos, float head_radius, bool selected, Vec3f normal);
     float get_brim_default_radius() const;
+    ExPolygon make_polygon(BrimPoint point, const Geometry::Transformation &trsf);
+    void find_single();
 };
 
 } // namespace GUI

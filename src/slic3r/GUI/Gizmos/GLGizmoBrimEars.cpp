@@ -1,29 +1,18 @@
-// Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code, which overrides our localization "L" macro.
 #include "GLGizmoBrimEars.hpp"
+#include <GL/glew.h>
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/Camera.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmosCommon.hpp"
-#include "slic3r/GUI/MainFrame.hpp"
-#include "slic3r/Utils/UndoRedo.hpp"
-#include "slic3r/GUI/Gizmos/GLGizmoSimplify.hpp"
-
-#include <GL/glew.h>
-
-#include <wx/msgdlg.h>
-#include <wx/settings.h>
-#include <wx/stattext.h>
-
 #include "slic3r/GUI/GUI_App.hpp"
-#include "slic3r/GUI/GUI.hpp"
-#include "slic3r/GUI/GUI_ObjectSettings.hpp"
-#include "slic3r/GUI/GUI_ObjectList.hpp"
 #include "slic3r/GUI/Plater.hpp"
-#include "slic3r/GUI/NotificationManager.hpp"
-#include "slic3r/GUI/MsgDialog.hpp"
-#include "libslic3r/PresetBundle.hpp"
-#include "libslic3r/SLAPrint.hpp"
+#include "libslic3r/ExPolygon.hpp"
 
 namespace Slic3r { namespace GUI {
+
+static const ColorRGBA DEF_COLOR   = {0.7f, 0.7f, 0.7f, 1.f};
+static const ColorRGBA SELECTED_COLOR = {0.0f, 0.5f, 0.5f, 1.0f};
+static const ColorRGBA ERR_COLOR = {1.0f, 0.3f, 0.3f, 0.5f};
+static const ColorRGBA HOVER_COLOR = {0.7f, 0.7f, 0.7f, 0.5f};
 
 static ModelVolume *get_model_volume(const Selection &selection, Model &model)
 {
@@ -83,8 +72,7 @@ void GLGizmoBrimEars::on_render()
     const Selection &selection = m_parent.get_selection();
 
     // If current m_c->m_model_object does not match selection, ask GLCanvas3D to turn us off
-    if (m_state == On && (mo != selection.get_model()->objects[selection.get_object_idx()]
-        || m_c->selection_info()->get_active_instance() != selection.get_instance_idx())) {
+    if (m_state == On && (mo != selection.get_model()->objects[selection.get_object_idx()] || m_c->selection_info()->get_active_instance() != selection.get_instance_idx())) {
         m_parent.post_event(SimpleEvent(EVT_GLCANVAS_RESETGIZMOS));
         return;
     }
@@ -131,18 +119,19 @@ void GLGizmoBrimEars::render_points(const Selection &selection, bool picking) co
     glsafe(::glPushMatrix());
     glsafe(::glMultMatrixd(instance_matrix.data()));
 
-    std::array<float, 4> render_color;
+    ColorRGBA render_color;
     for (size_t i = 0; i < cache_size; ++i) {
         const BrimPoint &brim_point     = editing_cache[i].brim_point;
         const bool      &point_selected = editing_cache[i].selected;
         const bool      &hover          = editing_cache[i].is_hover;
+        const bool      &error          = editing_cache[i].is_error;
         // keep show brim ear
         // if (is_mesh_point_clipped(brim_point.pos.cast<double>()))
         //     continue;
 
         // First decide about the color of the point.
         if (hover) {
-            render_color = {0.7f, 0.7f, 0.7f, 0.5f};
+            render_color = HOVER_COLOR;
         } else {
             if (picking)
                 render_color = picking_color_component(i);
@@ -151,14 +140,18 @@ void GLGizmoBrimEars::render_points(const Selection &selection, bool picking) co
                     render_color = {0.f, 1.f, 1.f, 1.f};
                 else { // neigher hover nor picking
                     if (point_selected)
-                        render_color = {1.f, 0.3f, 0.3f, 1.f};
-                    else
-                        render_color = {0.7f, 0.7f, 0.7f, 1.f};
+                        render_color = SELECTED_COLOR;
+                    else {
+                        if (error)
+                            render_color = ERR_COLOR;
+                        else
+                            render_color = DEF_COLOR;
+                    }
                 }
             }
         }
 
-        const_cast<GLModel *>(&m_cylinder)->set_color(-1, render_color);
+        const_cast<GLModel *>(&m_cylinder)->set_color(render_color);
         if (shader && !picking) shader->set_uniform("emission_factor", 0.5f);
 
         // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
@@ -336,6 +329,7 @@ bool GLGizmoBrimEars::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_p
                 add_point_to_cache(object_pos.cast<float>(), m_new_point_head_diameter / 2.f, false, (inverse_trsf * m_world_normal).cast<float>());
                 m_parent.set_as_dirty();
                 m_wait_for_up_event = true;
+                find_single();
             } else
                 return false;
         } else
@@ -411,6 +405,7 @@ bool GLGizmoBrimEars::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_p
             select_point(NoPoints);
             select_point(m_hover_id);
             delete_selected_points();
+            find_single();
             return true;
         }
         return false;
@@ -460,10 +455,12 @@ void GLGizmoBrimEars::on_update(const UpdateData &data)
 {
     if (m_hover_id != -1) {
         std::pair<Vec3f, Vec3f> pos_and_normal;
-        if (!unproject_on_mesh(data.mouse_pos.cast<double>(), pos_and_normal)) return;
+        if (!unproject_on_mesh2(data.mouse_pos.cast<double>(), pos_and_normal)) return;
         m_editing_cache[m_hover_id].brim_point.pos[0] = pos_and_normal.first.x();
         m_editing_cache[m_hover_id].brim_point.pos[1] = pos_and_normal.first.y();
-        m_editing_cache[m_hover_id].normal            = pos_and_normal.second;
+        //m_editing_cache[m_hover_id].normal            = pos_and_normal.second;
+        m_editing_cache[m_hover_id].normal = Vec3f(0, 0, 1);
+        find_single();
     }
 }
 
@@ -544,14 +541,19 @@ void GLGizmoBrimEars::on_render_input_window(float x, float y, float bottom_limi
     m_imgui->text(m_desc["head_diameter"]);
     ImGui::SameLine(caption_size);
     ImGui::PushItemWidth(slider_width);
+    auto update_cache_radius = [this]() {
+        for (auto &cache_entry : m_editing_cache)
+            if (cache_entry.selected) {
+                cache_entry.brim_point.head_front_radius = m_new_point_head_diameter / 2.f;
+                find_single();
+            }
+    };
     m_imgui->bbl_slider_float_style("##head_diameter", &m_new_point_head_diameter, 5, 10, "%.1f", 1.0f, true);
     if (m_imgui->get_last_slider_status().clicked) {
         if (m_old_point_head_diameter == 0.f) m_old_point_head_diameter = initial_value;
     }
-    if (m_imgui->get_last_slider_status().edited) {
-        for (auto &cache_entry : m_editing_cache)
-            if (cache_entry.selected) cache_entry.brim_point.head_front_radius = m_new_point_head_diameter / 2.f;
-    }
+    if (m_imgui->get_last_slider_status().edited)
+        update_cache_radius();
     if (m_imgui->get_last_slider_status().deactivated_after_edit) {
         // momentarily restore the old value to take snapshot
         for (auto &cache_entry : m_editing_cache)
@@ -560,8 +562,7 @@ void GLGizmoBrimEars::on_render_input_window(float x, float y, float bottom_limi
         m_new_point_head_diameter = m_old_point_head_diameter;
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Change point head diameter");
         m_new_point_head_diameter = backup;
-        for (auto &cache_entry : m_editing_cache)
-            if (cache_entry.selected) cache_entry.brim_point.head_front_radius = m_new_point_head_diameter / 2.f;
+        update_cache_radius();
         m_old_point_head_diameter = 0.f;
     }
     ImGui::SameLine(drag_left_width);
@@ -617,8 +618,12 @@ void GLGizmoBrimEars::on_render_input_window(float x, float y, float bottom_limi
             delete_selected_points();
         }
     }
-
     ImGui::PopStyleVar(1);
+
+    if (!m_single_brim.empty()) {
+        wxString out = _L("Warning") + ": " + std::to_string(m_single_brim.size()) + _L(" invalid brim ears");
+        m_imgui->warning_text(out);
+    }
 
     GizmoImguiEnd();
     ImGui::PopStyleVar(2);
@@ -841,6 +846,7 @@ void GLGizmoBrimEars::auto_generate()
             for (Point &p : inner_points) { add_point(p); }
         }
     }
+    find_single();
 }
 
 bool GLGizmoBrimEars::add_point_to_cache(Vec3f pos, float head_radius, bool selected, Vec3f normal)
@@ -884,7 +890,67 @@ void GLGizmoBrimEars::reset_all_pick() { std::map<GLVolume *, std::shared_ptr<Pi
 
 float GLGizmoBrimEars::get_brim_default_radius() const
 {
-    const DynamicPrintConfig& pring_cfg = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    const DynamicPrintConfig &pring_cfg = wxGetApp().preset_bundle->prints.get_edited_preset().config;
     return pring_cfg.get_abs_value("initial_layer_line_width") * 16.0f;
+}
+
+ExPolygon GLGizmoBrimEars::make_polygon(BrimPoint point, const Geometry::Transformation &trsf)
+{
+    ExPolygon   point_round;
+    Transform3d model_trsf = trsf.get_matrix();
+    Vec3f       world_pos  = point.transform(trsf.get_matrix());
+    coord_t     size_ear   = scale_(point.head_front_radius);
+    for (size_t i = 0; i < POLY_SIDE_COUNT; i++) {
+        double angle = (2.0 * PI * i) / POLY_SIDE_COUNT;
+        point_round.contour.points.emplace_back(size_ear * cos(angle), size_ear * sin(angle));
+    }
+    Vec3f   pos  = point.transform(model_trsf);
+    int32_t pt_x = scale_(pos.x());
+    int32_t pt_y = scale_(pos.y());
+    point_round.translate(Point(pt_x, pt_y));
+    return point_round;
+}
+
+void GLGizmoBrimEars::find_single()
+{
+    if (m_editing_cache.size() == 0) {
+        m_single_brim.clear();
+        return;
+    }
+    const Selection         &selection = m_parent.get_selection();
+    const GLVolume          *volume    = selection.get_volume(*selection.get_volume_idxs().begin());
+    Geometry::Transformation trsf      = volume->get_instance_transformation();
+    ExPolygons               model_pl  = m_first_layer;
+
+    m_single_brim.clear();
+    for (int i = 0; i < m_editing_cache.size(); i++)
+        m_single_brim[i] = m_editing_cache[i];
+    unsigned int index = 0;
+    bool cyc = true;
+    while (cyc) {
+        index++;
+        if (index > 99999999) break; // cycle protection
+        if (m_single_brim.empty()) {
+            break;
+        }
+        auto end = --m_single_brim.end();
+        for (auto it = m_single_brim.begin(); it != m_single_brim.end(); ++it) {
+            ExPolygon point_pl = make_polygon(it->second.brim_point, trsf);
+            if (overlaps(model_pl, point_pl)) {
+                model_pl.emplace_back(point_pl);
+                model_pl = union_ex(model_pl);
+                it = m_single_brim.erase(it);
+                break;
+            } else {
+                if (it == end) cyc = false;
+            }
+        }
+    }
+    for (auto& it : m_editing_cache) {
+        it.is_error = false;
+    }
+    for (auto &it : m_single_brim) {
+        m_editing_cache[it.first].is_error = true;
+    }
 }
 }} // namespace Slic3r::GUI
