@@ -1054,6 +1054,8 @@ void PlaterPresetComboBox::update()
                 std::sort(list.begin(), list.end(), [&preset_filament_types, &first_types](auto *l, auto *r) {
                     auto iter1 = std::find(first_types.begin(), first_types.end(), preset_filament_types[l->first]);
                     auto iter2 = std::find(first_types.begin(), first_types.end(), preset_filament_types[r->first]);
+                    if (iter1 == iter2)
+                        return l->first < r->first;
                     return iter1 < iter2;
                 });
                 for (auto it : list) {
