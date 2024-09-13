@@ -61,7 +61,10 @@ const std::vector<std::string> GCodeProcessor::Reserved_Tags = {
     "_GP_ESTIMATED_PRINTING_TIME_PLACEHOLDER",
     "_GP_TOTAL_LAYER_NUMBER_PLACEHOLDER",
     " WIPE_TOWER_START",
-    " WIPE_TOWER_END"
+    " WIPE_TOWER_END",
+    "_GP_FILAMENT_USED_WEIGHT_PLACEHOLDER",
+    "_GP_FILAMENT_USED_VOLUME_PLACEHOLDER",
+    "_GP_FILAMENT_USED_LENGTH_PLACEHOLDER"
 };
 
 const std::string GCodeProcessor::Flush_Start_Tag = " FLUSH_START";
@@ -370,7 +373,7 @@ void GCodeProcessor::TimeProcessor::reset()
     machines[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].enabled = true;
 }
 
-void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, std::vector<GCodeProcessorResult::MoveVertex>& moves, std::vector<size_t>& lines_ends, size_t total_layer_num)
+void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, std::vector<GCodeProcessorResult::MoveVertex>& moves, std::vector<size_t>& lines_ends, const TimeProcessContext& context)
 {
     FilePtr in{ boost::nowide::fopen(filename.c_str(), "rb") };
     if (in.f == nullptr)
@@ -448,6 +451,20 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
     auto process_placeholders = [&](std::string& gcode_line) {
         unsigned int extra_lines_count = 0;
 
+        auto format_filament_used_info = [](const std::string& info, std::map<size_t, double>val_per_extruder) {
+            auto double_to_fmt_string = [](double num) -> std::string {
+                char buf[20];
+                sprintf(buf, "%.2f", num);
+                return std::string(buf);
+            };
+            std::string buf = "; " + info + " : ";
+            size_t idx = 0;
+            for (auto item : val_per_extruder)
+                buf += (idx++ == 0 ? double_to_fmt_string(item.second) : "," + double_to_fmt_string(item.second));
+            buf += '\n';
+            return buf;
+        };
+
         // remove trailing '\n'
         auto line = std::string_view(gcode_line).substr(0, gcode_line.length() - 1);
 
@@ -485,11 +502,12 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                             sprintf(buf, "; estimated printing time (normal mode) = %s\n",
                                 get_time_dhms(machine.time).c_str());
                             ret += buf;
-                        } else {
+                        }
+                        else {
                             // BBS estimator
                             sprintf(buf, "; model printing time: %s; total estimated time: %s\n",
-                                    get_time_dhms(machine.time - machine.prepare_time).c_str(),
-                                    get_time_dhms(machine.time).c_str());
+                                get_time_dhms(machine.time - machine.prepare_time).c_str(),
+                                get_time_dhms(machine.time).c_str());
                             ret += buf;
                         }
                     }
@@ -498,8 +516,47 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
             //BBS: write total layer number
             else if (line == reserved_tag(ETags::Total_Layer_Number_Placeholder)) {
                 char buf[128];
-                sprintf(buf, "; total layer number: %zd\n", total_layer_num);
+                sprintf(buf, "; total layer number: %zd\n", context.total_layer_num);
                 ret += buf;
+            }
+            else if (line == reserved_tag(ETags::Used_Filament_Weight_Placeholder)) {
+                std::map<size_t, double>total_weight_per_extruder;
+                for (const auto& pair : context.used_filaments.total_volumes_per_extruder) {
+                    auto filament_id = pair.first;
+                    auto volume = pair.second;
+                    auto iter = std::find_if(context.filament_lists.begin(), context.filament_lists.end(), [filament_id](const Extruder& filament) { return filament.id() == filament_id; });
+                    if (iter == context.filament_lists.end())
+                        continue;
+                    double weight = volume * iter->filament_density() * 0.001;
+                    total_weight_per_extruder[filament_id] += weight;
+                }
+
+                ret += format_filament_used_info("total filament weight [g]", total_weight_per_extruder);
+            }
+            else if (line == reserved_tag(ETags::Used_Filament_Volume_Placeholder)) {
+                std::map<size_t, double>total_volume_per_extruder;
+                for (const auto& pair : context.used_filaments.total_volumes_per_extruder) {
+                    auto filament_id = pair.first;
+                    auto volume = pair.second;
+                    auto iter = std::find_if(context.filament_lists.begin(), context.filament_lists.end(), [filament_id](const Extruder& filament) { return filament.id() == filament_id; });
+                    if (iter == context.filament_lists.end())
+                        continue;
+                    total_volume_per_extruder[filament_id] += volume;
+                }
+                ret += format_filament_used_info("total filament volume [cm^3]", total_volume_per_extruder);
+            }
+            else if (line == reserved_tag(ETags::Used_Filament_Length_Placeholder)) {
+                std::map<size_t, double>total_length_per_extruder;
+                for (const auto& pair : context.used_filaments.total_volumes_per_extruder) {
+                    auto filament_id = pair.first;
+                    auto volume = pair.second;
+                    auto iter = std::find_if(context.filament_lists.begin(), context.filament_lists.end(), [filament_id](const Extruder& filament) { return filament.id() == filament_id; });
+                    if (iter == context.filament_lists.end())
+                        continue;
+                    double length = volume / (PI * sqr(0.5 * iter->filament_diameter()));
+                    total_length_per_extruder[filament_id] += length;
+                }
+                ret += format_filament_used_info("total filament length [mm]", total_length_per_extruder);
             }
         }
 
@@ -1578,7 +1635,8 @@ void GCodeProcessor::finalize(bool post_process)
     m_width_compare.output();
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
     if (post_process){
-        m_time_processor.post_process(m_result.filename, m_result.moves, m_result.lines_ends, m_layer_id);
+        TimeProcessContext context(m_layer_id,m_filament_lists,m_used_filaments);
+        m_time_processor.post_process(m_result.filename, m_result.moves, m_result.lines_ends, context);
     }
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_result.time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_start_time).count();
