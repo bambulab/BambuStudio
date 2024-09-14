@@ -190,6 +190,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
                 if (SecondsSinceLastInput() >= 900) { // 15 min
                     auto close = wxGetApp().app_config->get("liveview", "auto_stop_liveview") == "true";
                     if (close) {
+                        m_next_retry = wxDateTime();
                         Stop(_L("Temporarily closed because there is no operating for a long time."));
                         return;
                     }
@@ -198,6 +199,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
                 if (obj && obj->is_in_printing()) {
                     m_print_idle = 0;
                 } else if (++m_print_idle >= 5) {
+                    m_next_retry = wxDateTime();
                     Stop(_L("Temporarily closed because there is no printing for a while."));
                 }
             }
