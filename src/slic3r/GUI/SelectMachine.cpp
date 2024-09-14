@@ -1916,9 +1916,11 @@ bool SelectMachineDialog::get_ams_mapping_result(std::string &mapping_array_str,
                     tray_id = m_ams_mapping_result[k].tray_id;
                     mapping_item["ams"]             = tray_id;
                     mapping_item["filamentType"]    = m_filaments[k].type;
-                    auto it = wxGetApp().preset_bundle->filaments.find_preset(wxGetApp().preset_bundle->filament_presets[i]);
-                    if (it != nullptr) {
-                        mapping_item["filamentId"] = it->filament_id;
+                    if (i >= 0 && i < wxGetApp().preset_bundle->filament_presets.size()) {
+                        auto it = wxGetApp().preset_bundle->filaments.find_preset(wxGetApp().preset_bundle->filament_presets[i]);
+                        if (it != nullptr) {
+                            mapping_item["filamentId"] = it->filament_id;
+                        }
                     }
                     //convert #RRGGBB to RRGGBBAA
                     mapping_item["sourceColor"]     = m_filaments[k].color;
