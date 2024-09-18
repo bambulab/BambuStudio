@@ -10438,15 +10438,45 @@ bool Plater::load_svg(const wxArrayString &filenames, bool from_toolbar_or_file_
         const wxString &filename       = filenames.Last();
         const wxString  file_extension = filename.substr(filename.length() - 4);
         if (file_extension.CmpNoCase(".svg") == 0) {
-            // BBS: GUI refactor: move sidebar to the left
-            /*  const wxPoint offset = GetPosition() + p->current_panel->GetPosition();
-              Vec2d         mouse_position(x - offset.x, y - offset.y);*/
-            // Scale for retina displays
-            // canvas->apply_retina_scale(mouse_position);
             return emboss_svg(filename, from_toolbar_or_file_menu);
         }
     }
+    else {
+        const auto     loading = _L("Loading") + dots;
+        ProgressDialog dlg(loading, "", 100, wxGetApp().mainframe, wxPD_AUTO_HIDE | wxPD_CAN_ABORT | wxPD_APP_MODAL);
+        wxBusyCursor   busy;
+        for (size_t i = 0; i < filenames.size(); i++) {
+            if (i > 0) {
+                deselect_all();
+            }
+            wxArrayString temp_filenames;
+            temp_filenames.push_back(filenames[i]);
+            const auto dlg_info = _L("Loading file") + ": " + filenames[i];
+            int        progress_percent = static_cast<int>(100.0f * static_cast<float>(i) / static_cast<float>(filenames.size()));
+            dlg.Update(progress_percent, dlg_info);
+            load_svg(temp_filenames,true);
+            get_ui_job_worker().wait_for_current_job();
+        }
+        return true;
+    }
     return false;
+}
+
+bool Plater::load_same_type_files(const wxArrayString &filenames) {
+    if (filenames.size() <= 1) { return true; }
+    else {
+        const wxString &filename = filenames.front();
+        boost::filesystem::path path(filename.ToStdWstring());
+        auto   extension =path.extension();
+        for (size_t i = 1; i < filenames.size(); i++) {
+            boost::filesystem::path temp(filenames[i].ToStdWstring());
+            auto                    temp_extension = temp.extension();
+            if (extension != temp_extension) {
+                return false;
+            }
+        }
+        return true;
+    }
 }
     //BBS: remove GCodeViewer as seperate APP logic
 bool Plater::load_files(const wxArrayString& filenames)
@@ -10456,7 +10486,12 @@ bool Plater::load_files(const wxArrayString& filenames)
 
     std::vector<fs::path> normal_paths;
     std::vector<fs::path> gcode_paths;
-
+    if (!load_same_type_files(filenames)) {
+        MessageDialog msg(wxGetApp().mainframe, _L("Please import multiple files with the same suffix."), _L("Warning"), wxYES | wxICON_WARNING);
+        if (msg.ShowModal() == wxID_YES) {
+            return true;
+        }
+    }
     if (load_svg(filenames)) {
         return true;
     }
@@ -10724,6 +10759,19 @@ void Plater::add_file()
 
     case LoadFilesType::MultipleOther: {
         Plater::TakeSnapshot snapshot(this, snapshot_label);
+        wxArrayString        filenames;
+        for (auto path : paths) {
+            filenames.push_back(path.wstring());
+        }
+        if (!load_same_type_files(filenames)) {
+            MessageDialog msg(wxGetApp().mainframe, _L("Please import multiple files with the same suffix."), _L("Warning"), wxYES | wxICON_WARNING);
+            if (msg.ShowModal() == wxID_YES) {
+                return;
+            }
+        }
+        if (boost::iends_with(paths[0].string(), ".svg")&& load_svg(filenames)) {
+            return;
+        }
         if (!load_files(paths, LoadStrategy::LoadModel, true).empty()) {
             if (get_project_name() == _L("Untitled") && paths.size() > 0) {
                 p->set_project_filename(wxString::FromUTF8(paths[0].string()));
