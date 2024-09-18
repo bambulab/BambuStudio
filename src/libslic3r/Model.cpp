@@ -266,8 +266,6 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
             }*/
         }
     }
-    else if (boost::algorithm::iends_with(input_file, ".svg"))
-        result = load_svg(input_file.c_str(), &model, message);
     //BBS: remove the old .amf.xml files
     //else if (boost::algorithm::iends_with(input_file, ".amf") || boost::algorithm::iends_with(input_file, ".amf.xml"))
     else if (boost::algorithm::iends_with(input_file, ".amf"))
