@@ -290,6 +290,7 @@ public:
     // to be called on drag and drop
     bool emboss_svg(const wxString &svg_file, bool from_toolbar_or_file_menu = false);
     bool load_svg(const wxArrayString &filenames, bool from_toolbar_or_file_menu = false);
+    bool load_same_type_files(const wxArrayString &filenames);
     bool load_files(const wxArrayString& filenames);
     const wxString& get_last_loaded_gcode() const { return m_last_loaded_gcode; }
 
