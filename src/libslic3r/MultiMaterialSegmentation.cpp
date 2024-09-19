@@ -16,6 +16,7 @@
 #include <mutex>
 #include <boost/thread/lock_guard.hpp>
 
+//#define MM_SEGMENTATION_DEBUG_PAINT_LINE
 //#define MM_SEGMENTATION_DEBUG_GRAPH
 //#define MM_SEGMENTATION_DEBUG_REGIONS
 //#define MM_SEGMENTATION_DEBUG_INPUT
@@ -2161,16 +2162,24 @@ std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(con
 
     BOOST_LOG_TRIVIAL(debug) << "MM segmentation - projection of painted triangles - begin";
     for (const ModelVolume *mv : print_object.model_object()->volumes) {
+#ifndef MM_SEGMENTATION_DEBUG_PAINT_LINE
         tbb::parallel_for(tbb::blocked_range<size_t>(1, num_extruders + 1), [&mv, &print_object, &layers, &edge_grids, &painted_lines, &painted_lines_mutex, &input_expolygons, &throw_on_cancel_callback](const tbb::blocked_range<size_t> &range) {
             for (size_t extruder_idx = range.begin(); extruder_idx < range.end(); ++extruder_idx) {
+#else
+            for (size_t extruder_idx = 1; extruder_idx < num_extruders + 1; ++extruder_idx) {
+#endif
                 throw_on_cancel_callback();
                 const indexed_triangle_set custom_facets = mv->mmu_segmentation_facets.get_facets(*mv, EnforcerBlockerType(extruder_idx));
                 if (!mv->is_model_part() || custom_facets.indices.empty())
                     continue;
 
                 const Transform3f tr = print_object.trafo().cast<float>() * mv->get_matrix().cast<float>();
+#ifndef MM_SEGMENTATION_DEBUG_PAINT_LINE
                 tbb::parallel_for(tbb::blocked_range<size_t>(0, custom_facets.indices.size()), [&tr, &custom_facets, &print_object, &layers, &edge_grids, &input_expolygons, &painted_lines, &painted_lines_mutex, &extruder_idx](const tbb::blocked_range<size_t> &range) {
                     for (size_t facet_idx = range.begin(); facet_idx < range.end(); ++facet_idx) {
+#else
+                    for (size_t facet_idx = 0; facet_idx < custom_facets.indices.size(); ++facet_idx) {
+#endif
                         float min_z = std::numeric_limits<float>::max();
                         float max_z = std::numeric_limits<float>::lowest();
 
@@ -2243,12 +2252,16 @@ std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(con
                             PaintedLineVisitor visitor(edge_grids[layer_idx], painted_lines[layer_idx], painted_lines_mutex[mutex_idx], 16);
                             visitor.line_to_test = line_to_test;
                             visitor.color        = int(extruder_idx);
-                            edge_grids[layer_idx].visit_cells_intersecting_line(line_to_test.a, line_to_test.b, visitor);
+                            edge_grids[layer_idx].visit_cells_intersecting_line(line_to_test.a, line_to_test.b, visitor, true);
                         }
                     }
+#ifndef MM_SEGMENTATION_DEBUG_PAINT_LINE
                 }); // end of parallel_for
+#endif
             }
+#ifndef MM_SEGMENTATION_DEBUG_PAINT_LINE
         }); // end of parallel_for
+#endif
     }
     BOOST_LOG_TRIVIAL(debug) << "MM segmentation - projection of painted triangles - end";
     BOOST_LOG_TRIVIAL(debug) << "MM segmentation - painted layers count: "
