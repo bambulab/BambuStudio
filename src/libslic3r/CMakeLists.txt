@@ -426,6 +426,8 @@ set(lisbslic3r_sources
     RegionExpansion.hpp
     RegionExpansion.cpp
     ClipperZUtils.hpp
+    FlushVolPredictor.hpp
+    FlushVolPredictor.cpp
 )
 
 if (APPLE)
