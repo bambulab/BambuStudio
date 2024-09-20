@@ -289,6 +289,8 @@ namespace Slic3r {
         static const std::vector<std::string> Reserved_Tags;
         static const std::string Flush_Start_Tag;
         static const std::string Flush_End_Tag;
+        static const std::string VFlush_Start_Tag;
+        static const std::string VFlush_End_Tag;
     public:
         enum class ETags : unsigned char
         {
@@ -727,7 +729,8 @@ namespace Slic3r {
         AxisCoords m_origin; // mm
         CachedPosition m_cached_position;
         bool m_wiping;
-        bool m_flushing;
+        bool m_flushing; // mark a section with real flush
+        bool m_virtual_flushing; // mark a section with virtual flush, only for statistics
         bool m_wipe_tower;
         std::vector<float> m_remaining_volume;
         std::vector<Extruder> m_filament_lists;
@@ -870,6 +873,9 @@ namespace Slic3r {
         void process_G0(const GCodeReader::GCodeLine& line);
         void process_G1(const GCodeReader::GCodeLine& line);
         void process_G2_G3(const GCodeReader::GCodeLine& line);
+
+        void process_VG1(const GCodeReader::GCodeLine& line);
+
 
         // BBS: handle delay command
         void process_G4(const GCodeReader::GCodeLine& line);
