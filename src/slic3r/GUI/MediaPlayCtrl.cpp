@@ -61,7 +61,7 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const w
     m_media_ctrl->Bind(EVT_MEDIA_CTRL_STAT, [this](auto & e) {
 #if !BBL_RELEASE_TO_PUBLIC
         wxSize size = m_media_ctrl->GetVideoSize();
-        m_label_stat->SetLabel(e.GetString() + wxString::Format(" VS:%ix%i", size.x, size.y));
+        m_label_stat->SetLabel(e.GetString() + wxString::Format(" VS:%ix%i LD:%i", size.x, size.y, m_load_duration));
 #endif
         wxString str = e.GetString();
         m_stat.clear();
@@ -183,9 +183,26 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
                 agent->get_camera_url(machine, [](auto) {});
             m_last_user_play = wxDateTime::Now();
         }
-        if (m_last_state == wxMediaState::wxMEDIASTATE_PLAYING && SecondsSinceLastInput() > 900) { // 15 minutes
-            m_next_retry = wxDateTime();
-            Stop(_L("Temporarily closed because there is no operating for a long time."));
+        if (m_last_state == wxMediaState::wxMEDIASTATE_PLAYING) {
+            auto now = std::chrono::system_clock::now();
+            if (m_play_timer <= now) {
+                m_play_timer = now + 1min;
+                if (SecondsSinceLastInput() >= 900) { // 15 min
+                    auto close = wxGetApp().app_config->get("liveview", "auto_stop_liveview") == "true";
+                    if (close) {
+                        m_next_retry = wxDateTime();
+                        Stop(_L("Temporarily closed because there is no operating for a long time."));
+                        return;
+                    }
+                }
+                auto obj = wxGetApp().getDeviceManager()->get_selected_machine();
+                if (obj && obj->is_in_printing()) {
+                    m_print_idle = 0;
+                } else if (++m_print_idle >= 5) {
+                    m_next_retry = wxDateTime();
+                    Stop(_L("Temporarily closed because there is no printing for a while."));
+                }
+            }
         }
         return;
     }
@@ -323,6 +340,7 @@ void MediaPlayCtrl::Play()
 
     m_label_stat->SetLabel({});
     SetStatus(_L("Initializing..."));
+    m_play_timer = std::chrono::system_clock::now();
 
     if (agent) {
         agent->get_camera_url(m_machine, 
@@ -388,7 +406,7 @@ void MediaPlayCtrl::Stop(wxString const &msg)
 #endif
             SetStatus(msg2);
         } else
-            SetStatus(_L("Stopped."), false);
+            SetStatus(_L("Video Stopped."), false);
         m_last_state = MEDIASTATE_IDLE;
         bool auto_retry = wxGetApp().app_config->get("liveview", "auto_retry") != "false";
         if (!auto_retry || m_failed_code >= 100 || m_failed_code == 1) // not keep retry on local error or EOS
@@ -630,6 +648,10 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
             m_last_state = state;
             m_failed_code = 0;
             SetStatus(_L("Playing..."), false);
+            m_print_idle = 0;
+            auto now = std::chrono::system_clock::now();
+            m_load_duration = std::chrono::duration_cast<std::chrono::milliseconds>(now - m_play_timer).count();
+            m_play_timer    = now + 1min;
 
             // track event
             json j;

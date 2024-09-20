@@ -2527,19 +2527,9 @@ void NotificationManager::bbl_close_preview_only_notification()
         }
 }
 
-void NotificationManager::bbl_show_objectsinfo_notification(const std::string &text, bool is_warning, bool is_hidden)
+void NotificationManager::bbl_show_objectsinfo_notification(const std::string &text, bool is_warning, bool is_hidden, const std::string hypertext, std::function<bool(wxEvtHandler*)> callback)
 {
-    std::string hyper_text;
-    auto callback = std::function<bool(wxEvtHandler *)>();
-    if (is_warning) {
-        callback =[](wxEvtHandler *) {
-            wxCommandEvent *evt = new wxCommandEvent(EVT_REPAIR_MODEL);
-            wxQueueEvent(wxGetApp().plater(), evt);
-            return false;
-        };
-        hyper_text =  _u8L(" (Repair)");
-    }
-    NotificationData data{NotificationType::BBLObjectInfo, NotificationLevel::PrintInfoNotificationLevel, BBL_NOTICE_MAX_INTERVAL, text, hyper_text, callback};
+    NotificationData data{NotificationType::BBLObjectInfo, NotificationLevel::PrintInfoNotificationLevel, BBL_NOTICE_MAX_INTERVAL, text, hypertext, callback};
     if (is_warning)
         data.use_warn_color = true;
 

@@ -309,7 +309,8 @@ public:
     void bbl_close_plugin_install_notification();
 
 	//BBS--Objects Info
-	void bbl_show_objectsinfo_notification(const std::string &text, bool is_warning, bool is_hidden);
+	void bbl_show_objectsinfo_notification(const std::string &text, bool is_warning, bool is_hidden,
+		const std::string hypertext = "", std::function<bool(wxEvtHandler*)> callback = std::function<bool(wxEvtHandler*)>());
     void bbl_close_objectsinfo_notification();
 
     void bbl_show_seqprintinfo_notification(const std::string &text);

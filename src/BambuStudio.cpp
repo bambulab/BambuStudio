@@ -3546,6 +3546,15 @@ int CLI::run(int argc, char **argv)
             BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: printable size{%1%,%2%, %3%}, exclude area{%4%, %5%: %6% x %7%}")
                 %printer_plate.printable_width %printer_plate.printable_depth %printer_plate.printable_height
                 %printer_plate.exclude_x %printer_plate.exclude_y %printer_plate.exclude_width %printer_plate.exclude_depth;
+
+            if (config.option<ConfigOptionFloat>("extruder_clearance_height_to_lid"))
+                printer_plate.height_to_lid = config.opt_float("extruder_clearance_height_to_lid");
+
+            if (config.option<ConfigOptionFloat>("extruder_clearance_height_to_rod"))
+                printer_plate.height_to_rod = config.opt_float("extruder_clearance_height_to_rod");
+
+            if (config.option<ConfigOptionFloat>("extruder_clearance_max_radius"))
+                printer_plate.cleareance_radius = config.opt_float("extruder_clearance_max_radius");
             downward_check_printers.push_back(std::move(printer_plate));
         }
     }
@@ -3565,6 +3574,9 @@ int CLI::run(int argc, char **argv)
             Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate *)partplate_list.get_plate(index);
             Vec3d size = plate_obj_size_infos[index].obj_bbox.size();
 
+            bool is_sequence = false;
+            get_print_sequence(cur_plate, m_print_config, is_sequence);
+
             for (int index2 = 0; index2 < downward_check_size; index2 ++)
             {
                 if (failed_count == downward_check_size) {
@@ -3573,6 +3585,28 @@ int CLI::run(int argc, char **argv)
                 if (downward_check_status[index2])
                     continue;
                 printer_plate_info_t& plate_info = downward_check_printers[index2];
+
+                if (is_sequence) {
+                    if ((plate_info.cleareance_radius > 0.f) && (plate_info.height_to_rod > 0.f) && (plate_info.height_to_lid > 0.f)) {
+                        if ((cleareance_radius < plate_info.cleareance_radius)
+                            || (height_to_rod > plate_info.height_to_rod)
+                            || (height_to_lid > plate_info.height_to_lid))
+                        {
+                            BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%, downward_check index %2%, name %3%, sequence print, original clearance{%4%, %5%, %6%} exceeds new {%7%, %8%, %9%}")
+                            %(index+1) %(index2+1) %plate_info.printer_name %cleareance_radius %height_to_rod %height_to_lid %plate_info.cleareance_radius %plate_info.height_to_rod %plate_info.height_to_lid;
+                            downward_check_status[index2] = true;
+                            failed_count ++;
+                            continue;
+                        }
+                    }
+                    else {
+                        BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%, downward_check index %2%, name %3%, sequence print, can not get cleareance params, set to false")
+                            %(index+1) %(index2+1) %plate_info.printer_name;
+                        downward_check_status[index2] = true;
+                        failed_count ++;
+                        continue;
+                    }
+                }
                 if ((size.z() > plate_info.printable_height) || (size.y() > plate_info.printable_depth) || (size.x() > plate_info.printable_width)) {
                     BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%, downward_check index %2%, name %3%, bbox {%4%, %5%, %6%} exceeds printer size {%7%, %8%, %9%}")
                         %(index+1) %(index2+1) %plate_info.printer_name
@@ -3966,7 +4000,7 @@ int CLI::run(int argc, char **argv)
             need_arrange = true;
     }
 
-    if ((!need_arrange) && is_bbl_3mf && !shrink_to_new_bed && (plate_to_slice > 0))
+    if ((!need_arrange) && is_bbl_3mf && !shrink_to_new_bed && (plate_to_slice > 0) && !new_printer_system_name.empty() && (new_printer_system_name!= current_printer_system_name))
     {
         if (((old_height_to_rod != 0.f) && (old_height_to_rod != height_to_rod))
             || ((old_height_to_lid != 0.f) && (old_height_to_lid != height_to_lid))

@@ -85,7 +85,7 @@ public:
     void        StrReplace(std::string &strBase, std::string strSrc, std::string strDes);
     std::string w2s(wxString sSrc);
     void        GetStardardFilePath(std::string &FilePath);
-    bool LoadFile(std::string jPath, std::string & sContent);
+    //bool LoadFile(std::string jPath, std::string & sContent);
 
     // install plugin
     int DownloadPlugin();

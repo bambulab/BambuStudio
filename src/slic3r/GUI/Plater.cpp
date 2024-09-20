@@ -1747,7 +1747,7 @@ void Sidebar::sync_ams_list()
                 add_button(wxID_OK, true, _L("Sync"));
                 add_button(wxID_YES, false, _L("Resync"));
             }
-            add_button(wxID_CANCEL, false, _L("Cancel"));
+            add_button(wxID_CANCEL, false, _L("No"));
         }
     } dlg(this, ams_filament_ids.empty());
     auto res = dlg.ShowModal();
@@ -8019,6 +8019,7 @@ void Plater::priv::on_create_filament(SimpleEvent &)
         CreatePresetSuccessfulDialog success_dlg(wxGetApp().mainframe, SuccessType::FILAMENT);
         int                          res = success_dlg.ShowModal();
     }
+    wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_FILAMENTS);
 }
 
 void Plater::priv::on_modify_filament(SimpleEvent &evt)
@@ -8046,7 +8047,8 @@ void Plater::priv::on_modify_filament(SimpleEvent &evt)
         tab->select_preset(need_edit_preset->name);
         // when some preset have modified, if the printer is not need_edit_preset_name compatible printer, the preset will jump to other preset, need select again
         if (!need_edit_preset->is_compatible) tab->select_preset(need_edit_preset->name);
-    }
+    } else
+        wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_FILAMENTS);
 
 }
 
@@ -12121,7 +12123,7 @@ int Plater::send_gcode(int plate_idx, Export3mfProgressFn proFn)
         return -1;
     }
 
-    SaveStrategy strategy = SaveStrategy::Silence | SaveStrategy::SkipModel | SaveStrategy::WithGcode;
+    SaveStrategy strategy = SaveStrategy::Silence | SaveStrategy::SkipModel | SaveStrategy::WithGcode | SaveStrategy::SkipAuxiliary;
 #if !BBL_RELEASE_TO_PUBLIC
     //only save model in QA environment
     std::string sel = get_app_config()->get("iot_environment");
@@ -13628,16 +13630,35 @@ void Plater::show_object_info()
     wxString info_manifold;
     int non_manifold_edges = 0;
     auto mesh_errors = p->sidebar->obj_list()->get_mesh_errors_info(&info_manifold, &non_manifold_edges);
+    bool warning = non_manifold_edges > 0;
+    wxString hyper_text;
+    std::function<bool(wxEvtHandler*)> callback;
+    if (warning) {
+        hyper_text = _L(" (Repair)");
+        callback = [](wxEvtHandler*) {
+            wxCommandEvent* evt = new wxCommandEvent(EVT_REPAIR_MODEL);
+            wxQueueEvent(wxGetApp().plater(), evt);
+            return false;
+        };
+    }
 
     #ifndef __WINDOWS__
     if (non_manifold_edges > 0) {
-        info_manifold += into_u8("\n" + _L("Tips:") + "\n" +_L("\"Fix Model\" feature is currently only on Windows. Please repair the model on Bambu Studio(windows) or CAD softwares."));
+        info_manifold += into_u8("\n" + _L("Tips:") + "\n" +_L("\"Fix Model\" feature is currently only on Windows. Please use a third-party tool to repair the model before importing it into Bambu Studio, such as "));
+    }
+    if (warning) {
+        std::string repair_url = "https://www.formware.co/onlinestlrepair";
+        hyper_text = repair_url + ".";
+        callback = [repair_url](wxEvtHandler*) {
+            wxGetApp().open_browser_with_warning_dialog(repair_url);
+            return false;
+        };
     }
     #endif //APPLE & LINUX
 
     info_manifold = "<Error>" + info_manifold + "</Error>";
     info_text += into_u8(info_manifold);
-    notify_manager->bbl_show_objectsinfo_notification(info_text, is_windows10()&&(non_manifold_edges > 0), !(p->current_panel == p->view3D));
+    notify_manager->bbl_show_objectsinfo_notification(info_text, warning, !(p->current_panel == p->view3D), into_u8(hyper_text), callback);
 }
 
 bool Plater::show_publish_dialog(bool show)

@@ -285,6 +285,8 @@ public:
     void set_reverse() override { m_can_reverse = false; }
     bool can_reverse() const override { return m_can_reverse; }
 
+    bool can_merge(const ExtrusionPath& other);
+
 private:
     void _inflate_collection(const Polylines &polylines, ExtrusionEntityCollection* collection) const;
     bool m_can_reverse = true;

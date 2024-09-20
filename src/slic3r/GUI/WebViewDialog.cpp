@@ -11,6 +11,7 @@
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/chrono.hpp>
 
 #include <wx/sizer.h>
 #include <wx/toolbar.h>
@@ -514,6 +515,16 @@ void WebViewPanel::SendRecentList(int images)
 
 void WebViewPanel::SendDesignStaffpick(bool on)
 {
+    static long long StaffPickMs = 0;
+
+    auto      now       = std::chrono::system_clock::now();
+    long long TmpMs     = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+    long long nInterval = TmpMs - StaffPickMs;
+    if (nInterval < 500) return;
+    StaffPickMs = TmpMs;
+
+    BOOST_LOG_TRIVIAL(info) << "Begin SendDesignStaffpick: " << nInterval;
+
     try {
         if (on) {
             std::string sguide = wxGetApp().app_config->get("firstguide", "finish");
@@ -1010,10 +1021,11 @@ void WebViewPanel::OnNewWindow(wxWebViewEvent& evt)
     if (wxGetApp().get_mode() == comDevelop)
         wxLogMessage("%s", "New window; url='" + evt.GetURL() + "'" + flag);
 
-    //If we handle new window events then just load them in this window as we
-    //are a single window browser
-    if (m_tools_handle_new_window->IsChecked())
-        m_browser->LoadURL(evt.GetURL());
+    //If we handle new window events then just load them in local browser
+    if (m_tools_handle_new_window->IsChecked()) 
+    {
+        wxLaunchDefaultBrowser(evt.GetURL());
+    }
 
     UpdateState();
 }
@@ -1422,7 +1434,7 @@ void WebViewPanel::SwitchLeftMenu(std::string strMenu)
 
 void WebViewPanel::OpenOneMakerlab(std::string url) {
     auto        host = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
-    std::string LabUrl  = (boost::format("%1%%2%") % host % url).str();
+    std::string LabUrl  = (boost::format("%1%%2%?from=bambustudio") % host % url).str();
 
     wxString      FinalUrl = LabUrl;
     NetworkAgent *agent    = GUI::wxGetApp().getAgent();

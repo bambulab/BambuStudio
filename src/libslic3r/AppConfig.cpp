@@ -321,6 +321,10 @@ void AppConfig::set_defaults()
         set_bool("backup_switch", true);
     }
 
+    if (get("liveview", "auto_stop_liveview").empty()) {
+        set("liveview", "auto_stop_liveview", true);
+    }
+
     if (get("backup_interval").empty()) {
         set("backup_interval", "10");
     }
