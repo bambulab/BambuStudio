@@ -207,37 +207,6 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         is_msg_dlg_already_exist = false;
     }
 
-    //BBS: limit scarf seam start height range
-    bool apply_scarf_seam = config->opt_enum<SeamScarfType>("seam_slope_type") != SeamScarfType::None;
-    if (apply_scarf_seam) {
-        // scarf seam start height shouldn't small than zero
-        double layer_height = config->opt_float("layer_height");
-        double scarf_seam_slope_height = config->option<ConfigOptionFloatOrPercent>("seam_slope_start_height")->get_abs_value(layer_height);
-
-        if (scarf_seam_slope_height < EPSILON) {
-            const wxString     msg_text = _(L("Too small scarf start height.\nReset to 50%"));
-            MessageDialog      dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
-            DynamicPrintConfig new_conf = *config;
-            is_msg_dlg_already_exist    = true;
-            dialog.ShowModal();
-            new_conf.set_key_value("seam_slope_start_height", new ConfigOptionFloatOrPercent(50, true));
-            apply(config, &new_conf);
-            is_msg_dlg_already_exist = false;
-        }
-
-        // scarf seam start height shouldn't bigger than layer height
-        if (scarf_seam_slope_height > config->opt_float("layer_height") + EPSILON) {
-            const wxString     msg_text = _(L("Too big scarf start height.\nReset to 50%"));
-            MessageDialog      dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
-            DynamicPrintConfig new_conf = *config;
-            is_msg_dlg_already_exist    = true;
-            dialog.ShowModal();
-            new_conf.set_key_value("seam_slope_start_height", new ConfigOptionFloatOrPercent(50, true));
-            apply(config, &new_conf);
-            is_msg_dlg_already_exist = false;
-        }
-    }
-
     //BBS: top_area_threshold showed if the top one wall function be applyed
     bool top_one_wall_apply = config->opt_enum<TopOneWallType>("top_one_wall_type") == TopOneWallType::None;
     toggle_line("top_area_threshold", !top_one_wall_apply);
@@ -738,18 +707,6 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         toggle_field("accel_to_decel_factor", config->opt_bool("accel_to_decel_enable"));
     }
     toggle_line("exclude_object", gcflavor == gcfKlipper);
-
-    toggle_field("seam_slope_type", !has_spiral_vase);
-    bool has_seam_slope = !has_spiral_vase && config->opt_enum<SeamScarfType>("seam_slope_type") != SeamScarfType::None;
-    toggle_line("seam_slope_conditional", has_seam_slope);
-    toggle_line("scarf_angle_threshold", has_seam_slope && config->opt_bool("seam_slope_conditional"));
-    toggle_line("seam_slope_start_height", has_seam_slope);
-    toggle_line("seam_slope_gap", has_seam_slope);
-    toggle_line("seam_slope_entire_loop", has_seam_slope);
-    toggle_line("seam_slope_min_length", has_seam_slope);
-    toggle_line("seam_slope_steps", has_seam_slope);
-    toggle_line("seam_slope_inner_walls", has_seam_slope);
-    toggle_field("seam_slope_min_length", !config->opt_bool("seam_slope_entire_loop"));
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)

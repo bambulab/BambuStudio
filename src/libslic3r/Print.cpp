@@ -258,6 +258,10 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             steps.emplace_back(psSkirtBrim);
         } else if (opt_key == "filament_soluble"
                 || opt_key == "filament_is_support"
+                || opt_key == "filament_scarf_seam_type"
+                || opt_key == "filament_scarf_height"
+                || opt_key == "filament_scarf_gap"
+                || opt_key == "filament_scarf_length"
                 || opt_key == "independent_support_layer_height") {
             steps.emplace_back(psWipeTower);
             // Soluble support interface / non-soluble base interface produces non-soluble interface layers below soluble interface layers.

@@ -1925,13 +1925,9 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Seam"), L"param_seam");
         optgroup->append_single_option_line("seam_position", "Seam");
         optgroup->append_single_option_line("seam_gap", "Seam");
-        optgroup->append_single_option_line("seam_slope_type");
         optgroup->append_single_option_line("seam_slope_conditional");
         optgroup->append_single_option_line("scarf_angle_threshold");
-        optgroup->append_single_option_line("seam_slope_start_height");
-        optgroup->append_single_option_line("seam_slope_gap");
         optgroup->append_single_option_line("seam_slope_entire_loop");
-        optgroup->append_single_option_line("seam_slope_min_length");
         optgroup->append_single_option_line("seam_slope_steps");
         optgroup->append_single_option_line("seam_slope_inner_walls");
         optgroup->append_single_option_line("wipe_speed", "Seam");
@@ -3000,6 +2996,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_soluble");
         // BBS
         optgroup->append_single_option_line("filament_is_support");
+
         //optgroup->append_single_option_line("filament_colour");
         optgroup->append_single_option_line("required_nozzle_HRC");
         optgroup->append_single_option_line("default_filament_colour");
@@ -3009,6 +3006,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("pressure_advance");
         optgroup->append_single_option_line("filament_density");
         optgroup->append_single_option_line("filament_cost");
+
         //BBS
         optgroup->append_single_option_line("temperature_vitrification");
         Line line = { L("Recommended nozzle temperature"), L("Recommended nozzle temperature range of this filament. 0 means no set") };
@@ -3093,6 +3091,13 @@ void TabFilament::build()
         //BBS
         optgroup = page->new_optgroup(L("Volumetric speed limitation"), L"param_volumetric_speed");
         optgroup->append_single_option_line("filament_max_volumetric_speed");
+
+        // BBS
+        optgroup = page->new_optgroup(L("Filament scarf seam settings"), L"param_volumetric_speed");
+        optgroup->append_single_option_line("filament_scarf_seam_type");
+        optgroup->append_single_option_line("filament_scarf_height");
+        optgroup->append_single_option_line("filament_scarf_gap");
+        optgroup->append_single_option_line("filament_scarf_length");
 
         //line = { "", "" };
         //line.full_width = 1;
