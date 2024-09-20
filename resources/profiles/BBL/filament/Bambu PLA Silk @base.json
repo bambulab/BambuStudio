@@ -18,6 +18,18 @@
     "filament_vendor": [
         "Bambu Lab"
     ],
+    "filament_scarf_seam_type": [
+        "all"
+    ],
+    "filament_scarf_height":[
+        "5%"
+    ],
+    "filament_scarf_gap":[
+        "0%"
+    ],
+    "filament_scarf_length":[
+        "10"
+    ],
     "nozzle_temperature": [
         "230"
     ],
