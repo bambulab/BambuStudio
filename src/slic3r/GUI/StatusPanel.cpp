@@ -2576,11 +2576,6 @@ void StatusPanel::update_ams(MachineObject *obj)
         m_ams_control->show_auto_refill(false);
     }
     else {
-<<<<<<< HEAD   (26a4fc ENH: refresh_agora_url callback)
-=======
-
-        m_ams_control->SetAmsModel(ams_mode, ams_mode);
->>>>>>> CHANGE (d6c7f0 NEW: reimpl wxMediaCtrl from ffmpeg)
 
         m_ams_control->SetAmsModel(ams_mode, ams_mode);
         show_ams_group(true);
