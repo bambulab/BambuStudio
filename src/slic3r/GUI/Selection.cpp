@@ -2783,7 +2783,9 @@ void Selection::render_sidebar_scale_hints(const std::string& sidebar_field, boo
 void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) const
 {
     static const double Margin = 10.0;
-
+    if (wxGetApp().plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasView3D) {
+        return;
+    }
     std::string field = sidebar_field;
 
     // extract max_z
