@@ -119,7 +119,7 @@ fi
 if ! [[ -n "${DISABLE_PARALLEL_LIMIT}" ]]
 then
     FREE_MEM_GB=$(free -g -t | grep 'Mem' | rev | cut -d" " -f1 | rev)
-    MAX_THREADS=$(echo "scale=0; $FREE_MEM_GB / 2.5" | bc)
+    MAX_THREADS=$((FREE_MEM_GB * 10 / 25))
     if [ "$MAX_THREADS" -lt 1 ]; then
         export CMAKE_BUILD_PARALLEL_LEVEL=1
     else
