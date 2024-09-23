@@ -1,13 +1,14 @@
 // Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code, which overrides our localization "L" macro.
 #include "GLGizmoFlatten.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
+#include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmosCommon.hpp"
 
 #include "libslic3r/Geometry/ConvexHull.hpp"
 #include "libslic3r/Model.hpp"
 
 #include <numeric>
-
+#include <imgui/imgui_internal.h>
 #include <GL/glew.h>
 
 namespace Slic3r {
@@ -35,6 +36,33 @@ void GLGizmoFlatten::on_set_state()
 CommonGizmosDataID GLGizmoFlatten::on_get_requirements() const
 {
     return CommonGizmosDataID::SelectionInfo;
+}
+
+void GLGizmoFlatten::on_render_input_window(float x, float y, float bottom_limit) {
+    if (!m_show_warning) {
+        return;
+    }
+    double screen_scale = wxDisplay(wxGetApp().plater()).GetScaleFactor();
+    static float last_y       = 0.0f;
+    static float last_h       = 0.0f;
+    const float  win_h        = ImGui::GetWindowHeight();
+    y                         = std::min(y, bottom_limit - win_h);
+    GizmoImguiSetNextWIndowPos(x, y, ImGuiCond_Always, 0.0f, 0.0f);
+    if (last_h != win_h || last_y != y) {
+        // ask canvas for another frame to render the window in the correct position
+        m_imgui->set_requires_extra_frame();
+        if (last_h != win_h) last_h = win_h;
+        if (last_y != y) last_y = y;
+    }
+    ImGuiWrapper::push_toolbar_style(m_parent.get_scale());
+    GizmoImguiBegin(on_get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
+
+    if (m_show_warning) {
+       m_imgui->warning_text(_L("Warning: All triangle areas are too small,The current function is not working."));
+    }
+
+    GizmoImguiEnd();
+    ImGuiWrapper::pop_toolbar_style();
 }
 
 std::string GLGizmoFlatten::on_get_name() const
@@ -143,7 +171,8 @@ void GLGizmoFlatten::update_planes()
     const Transform3d& inst_matrix = mo->instances.front()->get_matrix(true);
 
     // Following constants are used for discarding too small polygons.
-    const float minimal_area = 5.f; // in square mm (world coordinates)
+    const float experted_minimal_area  = 5.0f;
+    const float minimal_area = 1.0f; // in square mm (world coordinates)
     const float minimal_side = 1.f; // mm
     const float minimal_angle = 1.f; // degree, initial value was 10, but cause bugs
 
@@ -313,9 +342,38 @@ void GLGizmoFlatten::update_planes()
         // Transform back to 3D (and also back to mesh coordinates)
         polygon = transform(polygon, inst_matrix.inverse() * m.inverse());
     }
+    if (m_planes.size() == 0) {
+        m_show_warning = true;
+        return;
+    }
 
     // We'll sort the planes by area and only keep the 254 largest ones (because of the picking pass limitations):
     std::sort(m_planes.rbegin(), m_planes.rend(), [](const PlaneData& a, const PlaneData& b) { return a.area < b.area; });
+
+    auto delte_index_to_end                    = [](int index, std::vector<PlaneData>& planes) {
+        for (size_t i = planes.size() - 1; i >= index; i--) {
+            planes.pop_back();
+        }
+    };
+    const int plane_count = 10;
+    for (size_t i = 0; i < m_planes.size(); i++) {
+        if (m_planes[i].area < experted_minimal_area) {
+            if (i + 1 >= plane_count) {
+                delte_index_to_end(plane_count, m_planes);
+                break;
+            }
+            else {//<plane_count
+                for (size_t j = i + 1; j < m_planes.size(); j++) {
+                    if (j + 1 >= plane_count) {
+                        delte_index_to_end(plane_count, m_planes);
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+    }
+
     m_planes.resize(std::min((int)m_planes.size(), 254));
 
     // Planes are finished - let's save what we calculated it from:
@@ -343,7 +401,7 @@ void GLGizmoFlatten::update_planes()
         plane.vertices.clear();
         plane.vertices.shrink_to_fit();
     }
-
+    m_show_warning = false;
     m_planes_valid = true;
 }
 
