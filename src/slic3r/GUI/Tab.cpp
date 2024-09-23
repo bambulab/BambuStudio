@@ -4273,7 +4273,6 @@ void Tab::load_current_preset()
 
     update_btns_enabling();
 
-    update();
     if (m_type == Slic3r::Preset::TYPE_PRINTER) {
         // For the printer profile, generate the extruder pages.
         if (preset.printer_technology() == ptFFF)
@@ -4281,6 +4280,7 @@ void Tab::load_current_preset()
         else
             wxGetApp().obj_list()->update_objects_list_filament_column(1);
     }
+    update();
 
     // Reload preset pages with the new configuration values.
     reload_config();
