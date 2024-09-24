@@ -312,6 +312,7 @@ private:
     bool has_valid_groove() const;
     bool has_valid_contour() const;
     void reset_cut_by_contours();
+    void render_flip_plane_button(bool disable_pred = false);
     void process_contours();
     void toggle_model_objects_visibility(bool show_in_3d = false);
     void deal_connector_pos_by_type(Vec3d &pos, float &height, CutConnectorType, CutConnectorStyle, bool looking_forward, bool is_edit, const Vec3d &clp_normal);
