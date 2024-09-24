@@ -524,7 +524,7 @@ std::pair<double, double> Camera::calc_tight_frustrum_zs_around(const BoundingBo
 {
     std::pair<double, double> ret;
     auto& [near_z, far_z] = ret;
-    set_distance(DefaultDistance);
+
     // box in eye space
     const BoundingBoxf3 eye_box = box.transformed(m_view_matrix);
     near_z = -eye_box.max(2);
@@ -544,7 +544,6 @@ std::pair<double, double> Camera::calc_tight_frustrum_zs_around(const BoundingBo
 
     if (near_z < FrustrumMinNearZ) {
         const double delta = FrustrumMinNearZ - near_z;
-        set_distance(m_distance + delta);
         near_z += delta;
         far_z += delta;
     }
@@ -665,16 +664,6 @@ double Camera::calc_zoom_to_volumes_factor(const GLVolumePtrs& volumes, Vec3d& c
         return -1.0f;
 
     return std::min((double)m_viewport[2] / dx, (double)m_viewport[3] / dy);
-}
-
-void Camera::set_distance(double distance)
-{
-    if (m_distance != distance) {
-        m_view_matrix.translate((distance - m_distance) * get_dir_forward());
-        m_distance = distance;
-
-        update_target();
-    }
 }
 
 void Camera::load_camera_view(Camera& cam)
