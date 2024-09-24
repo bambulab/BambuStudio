@@ -709,14 +709,23 @@ void Sidebar::priv::sync_extruder_list()
     auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
     printer_tab->set_extruder_volume_type(0, NozzleVolumeType(obj->m_nozzle_data.nozzles[1].flow_type));
     printer_tab->set_extruder_volume_type(1, NozzleVolumeType(obj->m_nozzle_data.nozzles[0].flow_type));
-    int left = 0, right = 0;
+    int left_4 = 0, right_4 = 0, left_1 = 0, right_1 = 0;
     for (auto ams : obj->amsList) {
         // Main (first) extruder at right
-        if (ams.second->nozzle == 0) ++right;
-        else if(ams.second->nozzle == 1) ++left;
+        if (ams.second->nozzle == 0) {
+            if (ams.second->type == 4) // N3S
+                ++right_1;
+            else
+                ++right_4;
+        } else if (ams.second->nozzle == 1) {
+            if (ams.second->type == 4) // N3S
+                ++left_1;
+            else
+                ++left_4;
+        }
     }
-    AMSCountPopupWindow::SetAMSCount(0, left, obj->vt_slot.size() > 1);
-    AMSCountPopupWindow::SetAMSCount(1, right, 1);
+    AMSCountPopupWindow::SetAMSCount(0, left_4, left_1);
+    AMSCountPopupWindow::SetAMSCount(1, right_4, right_1);
     AMSCountPopupWindow::UpdateAMSCount(0, m_left_ams_count);
     AMSCountPopupWindow::UpdateAMSCount(1, m_right_ams_count);
 }
