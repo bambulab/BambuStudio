@@ -1649,6 +1649,23 @@ void GLGizmoAdvancedCut::process_contours()
     toggle_model_objects_visibility();
 }
 
+void GLGizmoAdvancedCut::render_flip_plane_button(bool disable_pred /*=false*/)
+{
+    ImGui::SameLine();
+
+    if (m_hover_id == c_plate_move_id)
+        ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetColorU32(ImGuiCol_ButtonHovered));
+
+    m_imgui->disabled_begin(disable_pred);
+    if (m_imgui->button(_L("Flip cut plane")))
+        flip_cut_plane();
+    m_imgui->disabled_end();
+
+    if (m_hover_id == c_plate_move_id)
+        ImGui::PopStyleColor();
+}
+
+
 void GLGizmoAdvancedCut::toggle_model_objects_visibility(bool show_in_3d)
 {
     if (m_part_selection && m_part_selection->valid() && show_in_3d == false && (m_is_dragging == false || m_connectors_editing)) // BBL
@@ -2168,6 +2185,8 @@ void GLGizmoAdvancedCut::render_connectors_input_window(float x, float y, float 
     if (render_reset_button("connectors", _u8L("Remove connectors")))
         reset_connectors();
     m_imgui->disabled_end();
+
+    render_flip_plane_button(m_connectors_editing && connectors.empty());
 
     m_imgui->text(_L("Type"));
     ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.00f, 0.00f, 0.00f, 1.00f));
