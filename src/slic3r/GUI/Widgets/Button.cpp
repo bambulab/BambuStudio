@@ -270,7 +270,7 @@ void Button::render(wxDC& dc)
         dc.DrawRectangle(pt, textSize.GetSize());
 #endif
 #ifdef __WXOSX__
-        pt.y -= textSize.x / 2;
+        pt.y -= this->textSize.x / 2;
 #endif
         dc.DrawText(text, pt);
     }
