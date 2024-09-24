@@ -1130,6 +1130,9 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_mouse_zoom_settings  = create_item_checkbox(_L("Zoom to mouse position"), page,
                                                          _L("Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."), 50,
                                                          "zoom_to_mouse");
+    auto  item_show_shells_in_preview_settings = create_item_checkbox(_L("Always show shells in preview"), page,
+                                                         _L("Always show shells or not in preview view tab.If change value,you should reslice."), 50,
+                                                         "show_shells_in_preview");
     auto  enable_lod_settings       = create_item_checkbox(_L("Improve rendering performance by lod"), page,
                                                          _L("Improved rendering performance under the scene of multiple plates and many models."), 50,
                                                          "enable_lod");
@@ -1215,6 +1218,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_beta_version_update, 0, wxTOP, FromDIP(3));
     sizer_page->Add(_3d_settings, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_mouse_zoom_settings, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_show_shells_in_preview_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(enable_lod_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_grabber_size_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(title_presets, 0, wxTOP | wxEXPAND, FromDIP(20));
