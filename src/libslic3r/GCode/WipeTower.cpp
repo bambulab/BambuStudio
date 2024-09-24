@@ -415,26 +415,22 @@ public:
 		return *this;
     }
 
-	// Let the firmware back up the active speed override value.
-	WipeTowerWriter& speed_override_backup()
+    // Let the firmware back up the active speed override value.
+    WipeTowerWriter& speed_override_backup()
     {
         // BBS: BBL machine don't support speed backup
-#if 0
         if (m_gcode_flavor == gcfMarlinLegacy || m_gcode_flavor == gcfMarlinFirmware)
             m_gcode += "M220 B\n";
-#endif
-		return *this;
+        return *this;
     }
 
-	// Let the firmware restore the active speed override value.
-	WipeTowerWriter& speed_override_restore()
-	{
-	    // BBS: BBL machine don't support speed restore
-#if 0
+    // Let the firmware restore the active speed override value.
+    WipeTowerWriter& speed_override_restore()
+    {
+        // BBS: BBL machine don't support speed restore
         if (m_gcode_flavor == gcfMarlinLegacy || m_gcode_flavor == gcfMarlinFirmware)
             m_gcode += "M220 R\n";
-#endif
-		return *this;
+        return *this;
     }
 
 	// Set digital trimpot motor
@@ -776,7 +772,7 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool, bool extrude_per
               .append(";--------------------\n");
 
     writer.speed_override_backup();
-	writer.speed_override(100);
+    writer.speed_override(100);
 
 	Vec2f initial_position = cleaning_box.ld + Vec2f(0.f, m_depth_traversed);
     writer.set_initial_position(initial_position, m_wipe_tower_width, m_wipe_tower_depth, m_internal_rotation);
@@ -819,7 +815,7 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool, bool extrude_per
     //BBS
 	//if (m_set_extruder_trimpot)
 	//	writer.set_extruder_trimpot(550);    // Reset the extruder current to a normal value.
-	writer.speed_override_restore();
+    writer.speed_override_restore();
     writer.feedrate(m_travel_speed * 60.f)
           .flush_planner_queue()
           .reset_extruder()
