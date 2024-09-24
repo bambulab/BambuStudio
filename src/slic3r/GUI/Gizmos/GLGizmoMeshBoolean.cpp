@@ -490,9 +490,17 @@ void GLGizmoMeshBoolean::generate_new_volume(bool delete_input, const TriangleMe
     std::swap(curr_model_object->volumes[m_src.volume_idx], curr_model_object->volumes.back());
     curr_model_object->delete_volume(curr_model_object->volumes.size() - 1);
 
+    int obj_idx = m_parent.get_selection().get_object_idx();
+    if (obj_idx == -1) {
+        auto& objects = *wxGetApp().obj_list()->objects();
+        auto it = std::find(objects.begin(), objects.end(), curr_model_object);
+        if (it != objects.end())
+            obj_idx = it - objects.begin();
+    }
+    assert(obj_idx != -1);
+
     if (delete_input) {
         std::vector<ItemForDelete> items;
-        auto obj_idx = m_parent.get_selection().get_object_idx();
         items.emplace_back(ItemType::itVolume, obj_idx, m_tool.volume_idx);
         wxGetApp().obj_list()->delete_from_model_and_list(items);
     }
@@ -501,13 +509,11 @@ void GLGizmoMeshBoolean::generate_new_volume(bool delete_input, const TriangleMe
     //curr_model_object->sort_volumes(true);
 
     wxGetApp().plater()->update();
-    wxGetApp().obj_list()->select_item([this, new_volume]() {
+    wxGetApp().obj_list()->select_item([this, new_volume, obj_idx]() {
         wxDataViewItem sel_item;
-
-        wxDataViewItemArray items = wxGetApp().obj_list()->reorder_volumes_and_get_selection(m_parent.get_selection().get_object_idx(), [new_volume](const ModelVolume* volume) { return volume == new_volume; });
+        wxDataViewItemArray items = wxGetApp().obj_list()->reorder_volumes_and_get_selection(obj_idx, [new_volume](const ModelVolume* volume) { return volume == new_volume; });
         if (!items.IsEmpty())
             sel_item = items.front();
-
         return sel_item;
         });
 
