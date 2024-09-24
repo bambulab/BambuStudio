@@ -6544,9 +6544,11 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
                 view3D->center_selected_plate(i);
             }
 
-            take_snapshot("Arrange after bed size changes");
-            q->set_prepare_state(Job::PREPARE_STATE_OUTSIDE_BED);
-            q->arrange();
+            if (std::any_of(plate_object.begin(), plate_object.end(), [](const std::vector<int> &obj_idxs) { return !obj_idxs.empty(); })) {
+                take_snapshot("Arrange after bed size changes");
+                q->set_prepare_state(Job::PREPARE_STATE_OUTSIDE_BED);
+                q->arrange();
+            }
 
             view3D->deselect_all();
         }
