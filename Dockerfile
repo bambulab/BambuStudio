@@ -11,6 +11,7 @@ RUN echo deb-src http://archive.ubuntu.com/ubuntu \
 
 RUN apt-get update && apt-get install  -y \
     autoconf \
+    bc \
     build-essential \
     cmake \
     curl \
