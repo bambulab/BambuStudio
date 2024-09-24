@@ -4357,10 +4357,9 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
         char buff[64];
         double longest_str = 0.0;
         for (auto i : model_used_filaments_g_all_plates) {
-            if (i > longest_str)
-                longest_str = i;
+            longest_str += i;
         }
-        ::sprintf(buff, "%.2f", longest_str);
+        ::sprintf(buff, imperial_units ? "%.2f oz" : "%.2f g", longest_str / unit_conver);
 
         std::vector<std::pair<std::string, std::vector<::string>>> title_columns;
         if (displayed_columns & ColumnData::Model) {
@@ -4472,10 +4471,10 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
                 columns_offsets.push_back({buf, offsets[_u8L("Model")]});
             }
             if (displayed_columns & ColumnData::Support) {
-                std::for_each(model_used_filaments_m_all_plates.begin(), model_used_filaments_m_all_plates.end(), [&total_support_used_filament_m](double value) {
+                std::for_each(support_used_filaments_m_all_plates.begin(), support_used_filaments_m_all_plates.end(), [&total_support_used_filament_m](double value) {
                     total_support_used_filament_m += value;
                     });
-                std::for_each(model_used_filaments_g_all_plates.begin(), model_used_filaments_g_all_plates.end(), [&total_support_used_filament_g](double value) {
+                std::for_each(support_used_filaments_g_all_plates.begin(), support_used_filaments_g_all_plates.end(), [&total_support_used_filament_g](double value) {
                     total_support_used_filament_g += value;
                     });
                 ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", total_support_used_filament_m, total_support_used_filament_g / unit_conver);
@@ -4524,7 +4523,7 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
 
         for (auto it = plate_time.begin(); it != plate_time.end(); it++) {
             std::vector<std::pair<std::string, float>> columns_offsets;
-            columns_offsets.push_back({ _u8L("Plate") + " " + std::to_string(it->first), offsets[_u8L("Filament")]});
+            columns_offsets.push_back({ _u8L("Plate") + " " + std::to_string(it->first + 1), offsets[_u8L("Filament")]});
             columns_offsets.push_back({ short_time(get_time_dhms(it->second)), offsets[_u8L("Model")] });
             append_item(false, m_tools.m_tool_colors[0], columns_offsets);
         }
