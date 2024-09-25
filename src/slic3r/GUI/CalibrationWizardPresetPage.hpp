@@ -245,9 +245,9 @@ protected:
 
     void check_nozzle_diameter_for_auto_cali();
     void check_filament_compatible();
-    bool is_filaments_compatiable(const std::vector<Preset*>& prests);
-    bool is_filament_in_blacklist(Preset* preset, std::string& error_tips);
-    bool is_filaments_compatiable(const std::vector<Preset*>& prests,
+    bool is_filaments_compatiable(const std::map<int, Preset *>& prests);
+    bool is_filament_in_blacklist(int tray_id, Preset* preset, std::string& error_tips);
+    bool is_filaments_compatiable(const std::map<int, Preset *> &prests,
         int& bed_temp,
         std::string& incompatiable_filament_name,
         std::string& error_tips);
