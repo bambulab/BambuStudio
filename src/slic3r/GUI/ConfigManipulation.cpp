@@ -312,6 +312,14 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         is_msg_dlg_already_exist = false;
     }
 
+    // arachen not support wall generator
+    bool have_arachne = config->opt_enum<PerimeterGeneratorType>("wall_generator") == PerimeterGeneratorType::Arachne;
+    if (have_arachne) {
+        DynamicPrintConfig new_conf = *config;
+        new_conf.set_key_value("z_direction_outwall_speed_continuous", new ConfigOptionBool(false));
+        apply(config, &new_conf);
+    }
+
     double sparse_infill_density = config->option<ConfigOptionPercent>("sparse_infill_density")->value;
     auto timelapse_type = config->opt_enum<TimelapseType>("timelapse_type");
 
