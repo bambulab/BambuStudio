@@ -1576,9 +1576,14 @@ BoundingBoxf3 GLCanvas3D::assembly_view_cur_bounding_box() const {
 BoundingBoxf3 GLCanvas3D::volumes_bounding_box() const
 {
     BoundingBoxf3 bb;
-    for (const GLVolume* volume : m_volumes.volumes) {
-        if (!m_apply_zoom_to_volumes_filter || ((volume != nullptr) && volume->zoom_to_volumes))
-            bb.merge(volume->transformed_bounding_box());
+    auto partplate_list_box = wxGetApp().plater()->get_partplate_list().get_bounding_box();
+    for (const GLVolume *volume : m_volumes.volumes) {
+        if (!m_apply_zoom_to_volumes_filter || ((volume != nullptr) && volume->zoom_to_volumes)) {
+            const auto v_bb     = volume->transformed_bounding_box();
+            if (!partplate_list_box.overlap(v_bb))
+                continue;
+            bb.merge(v_bb);
+        }
     }
     return bb;
 }
