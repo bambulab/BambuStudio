@@ -150,6 +150,7 @@ public:
     void load_ams_list(std::string const & device, MachineObject* obj);
     std::map<int, DynamicPrintConfig> build_filament_ams_list(MachineObject* obj);
     void sync_ams_list();
+    void sync_extruder_list();
 
     ObjectList*             obj_list();
     ObjectSettings*         obj_settings();
@@ -279,6 +280,7 @@ public:
         m_exported_file = exported_file;
     }
 
+    bool is_multi_extruder_ams_empty();
     // BBS
     wxString get_project_name();
     void update_all_plate_thumbnails(bool force_update = false);
