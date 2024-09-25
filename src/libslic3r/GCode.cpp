@@ -2134,9 +2134,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_writer.set_current_position_clear(false);
     m_start_gcode_filament = GCodeProcessor::get_gcode_last_filament(machine_start_gcode);
 
-    // init extrude
-    m_writer.init_extruder(initial_non_support_extruder_id);
-
     // Process filament-specific gcode.
    /* if (has_wipe_tower) {
         // Wipe tower will control the extruder switching, it will call the filament_start_gcode.
