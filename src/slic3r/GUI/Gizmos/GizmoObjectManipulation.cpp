@@ -290,9 +290,24 @@ void GizmoObjectManipulation::change_position_value(int axis, double value)
     position(axis) = value;
 
     Selection& selection = m_glcanvas.get_selection();
-    selection.start_dragging();
-    selection.translate(position - m_cache.position, selection.requires_local_axes());
-    wxGetApp().plater()->take_snapshot(_u8L("Set Position"), UndoRedo::SnapshotType::GizmoAction);
+    selection.setup_cache();
+    TransformationType trafo_type;
+    trafo_type.set_relative();
+    switch (m_coordinates_type) {
+    case ECoordinatesType::Instance: {
+        trafo_type.set_instance();
+        break;
+    }
+    case ECoordinatesType::Local: {
+        trafo_type.set_local();
+        break;
+    }
+    default: {
+        break;
+    }
+    }
+    selection.translate(position - m_cache.position, trafo_type);
+    wxGetApp().plater()->take_snapshot("Set Position", UndoRedo::SnapshotType::GizmoAction);
     m_glcanvas.do_move("");
 
     m_cache.position = position;
