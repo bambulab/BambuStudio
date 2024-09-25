@@ -426,6 +426,23 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         return Point(scale_(wipe_tower_pt.x() - gcodegen.origin()(0)), scale_(wipe_tower_pt.y() - gcodegen.origin()(1)));
     }
 
+    // set volumetric speed of outer wall ,ignore per obejct & region ,just use default setting
+    static float get_outer_wall_volumetric_speed(const FullPrintConfig& config, const Print& print, int filament_id, int extruder_id) {
+        float outer_wall_volumetric_speed = 0;
+        float filament_max_volumetric_speed = config.filament_max_volumetric_speed.get_at(filament_id);
+        float outer_wall_line_width = print.default_region_config().outer_wall_line_width.value;
+        if (outer_wall_line_width == 0.0) {
+            float default_line_width = print.default_object_config().line_width.value;
+            outer_wall_line_width = default_line_width == 0.0 ? config.filament_diameter.get_at(filament_id) : default_line_width;
+        }
+        Flow outer_wall_flow = Flow(outer_wall_line_width, config.layer_height, config.nozzle_diameter.get_at(extruder_id));
+        float outer_wall_speed = print.default_region_config().outer_wall_speed.get_at(extruder_id);
+        outer_wall_volumetric_speed = outer_wall_speed * outer_wall_flow.mm3_per_mm();
+        if (outer_wall_volumetric_speed > filament_max_volumetric_speed)
+            outer_wall_volumetric_speed = filament_max_volumetric_speed;
+        return outer_wall_volumetric_speed;
+    }
+
     std::string WipeTowerIntegration::append_tcr(GCode& gcodegen, const WipeTower::ToolChangeResult& tcr, int new_filament_id, double z) const
     {
         if (new_filament_id != -1 && new_filament_id != tcr.new_tool)
@@ -536,6 +553,11 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             {
                 GCodeWriter& gcode_writer = gcodegen.m_writer;
                 FullPrintConfig& full_config = gcodegen.m_config;
+
+                // set volumetric speed of outer wall ,ignore per obejct,just use default setting
+                float outer_wall_volumetric_speed = get_outer_wall_volumetric_speed(full_config, *gcodegen.m_print, new_filament_id, gcodegen.get_extruder_id(new_filament_id));
+                config.set_key_value("outer_wall_volumetric_speed", new ConfigOptionFloat(outer_wall_volumetric_speed));
+
                 float old_retract_length = (old_filament_id != -1) ? full_config.retraction_length.get_at(old_filament_id) : 0;
                 float new_retract_length = full_config.retraction_length.get_at(new_filament_id);
                 float old_retract_length_toolchange = (old_filament_id != -1) ? full_config.retract_length_toolchange.get_at(old_filament_id) : 0;
@@ -2092,21 +2114,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         for (const auto& item : m_config.during_print_exhaust_fan_speed.values)
             during_print_exhaust_fan_speed_num.emplace_back((int)(item / 100.0 * 255));
         m_placeholder_parser.set("during_print_exhaust_fan_speed_num",new ConfigOptionInts(during_print_exhaust_fan_speed_num));
+
         //BBS: calculate the volumetric speed of outer wall. Ignore pre-object setting and multi-filament, and just use the default setting
-        {
-            float filament_max_volumetric_speed = m_config.option<ConfigOptionFloatsNullable>("filament_max_volumetric_speed")->get_at(initial_non_support_extruder_id);
-            float outer_wall_line_width = print.default_region_config().outer_wall_line_width.value;
-            if (outer_wall_line_width == 0.0) {
-                float default_line_width = print.default_object_config().line_width.value;
-                outer_wall_line_width = default_line_width == 0.0 ? m_config.nozzle_diameter.get_at(initial_non_support_extruder_id) : default_line_width;
-            }
-            Flow outer_wall_flow = Flow(outer_wall_line_width, m_config.layer_height, m_config.nozzle_diameter.get_at(initial_non_support_extruder_id));
-            float outer_wall_speed            = print.default_region_config().outer_wall_speed.get_at(get_extruder_id(initial_extruder_id));
-            float outer_wall_volumetric_speed = outer_wall_speed * outer_wall_flow.mm3_per_mm();
-            if (outer_wall_volumetric_speed > filament_max_volumetric_speed)
-                outer_wall_volumetric_speed = filament_max_volumetric_speed;
-            m_placeholder_parser.set("outer_wall_volumetric_speed", new ConfigOptionFloat(outer_wall_volumetric_speed));
-        }
+        float outer_wall_volumetric_speed = get_outer_wall_volumetric_speed(m_config, print, initial_non_support_extruder_id, get_extruder_id(initial_non_support_extruder_id));
+        m_placeholder_parser.set("outer_wall_volumetric_speed", new ConfigOptionFloat(outer_wall_volumetric_speed));
 
         if (print.calib_params().mode == CalibMode::Calib_PA_Line) {
             m_placeholder_parser.set("scan_first_layer", new ConfigOptionBool(false));
@@ -5523,7 +5534,11 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
     int new_filament_e_feedrate = (int)(60.0 * m_config.filament_max_volumetric_speed.get_at(new_filament_id) / filament_area);
     new_filament_e_feedrate = new_filament_e_feedrate == 0 ? 100 : new_filament_e_feedrate;
 
+    // set volumetric speed of outer wall ,ignore per obejct,just use default setting
+    float outer_wall_volumetric_speed = get_outer_wall_volumetric_speed(m_config, *m_print, new_filament_id, get_extruder_id(new_filament_id));
+
     DynamicConfig dyn_config;
+    dyn_config.set_key_value("outer_wall_volumetric_speed", new ConfigOptionFloat(outer_wall_volumetric_speed));
     dyn_config.set_key_value("previous_extruder", new ConfigOptionInt(old_filament_id));
     dyn_config.set_key_value("next_extruder", new ConfigOptionInt((int)new_filament_id));
     dyn_config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
