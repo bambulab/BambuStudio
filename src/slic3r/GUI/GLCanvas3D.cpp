@@ -3482,7 +3482,9 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
             else
                 displacement = multiplier * direction;
 
-            m_selection.translate(displacement);
+            TransformationType trafo_type;
+            trafo_type.set_relative();
+            m_selection.translate(displacement, trafo_type);
             m_selection.stop_dragging();
             m_dirty = true;
         }
@@ -4304,8 +4306,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         cur_pos = Linef3(_mouse_to_3d(pos, &z0), _mouse_to_3d(pos, &z1)).intersect_plane(m_mouse.drag.start_position_3D(2));
                     }
                 }
-
-                m_selection.translate(cur_pos - m_mouse.drag.start_position_3D);
+                TransformationType trafo_type;
+                trafo_type.set_relative();
+                m_selection.translate(cur_pos - m_mouse.drag.start_position_3D, trafo_type);
                 if (current_printer_technology() == ptFFF && (fff_print()->config().print_sequence == PrintSequence::ByObject))
                     update_sequential_clearance();
                 // BBS
