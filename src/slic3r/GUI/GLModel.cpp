@@ -459,6 +459,20 @@ GLModel::~GLModel()
     if (mesh) { delete mesh; }
 }
 
+size_t GLModel::get_vertices_count(int i) const {
+    if (m_render_data.empty() || i >= m_render_data.size()) {
+        return 0;
+    }
+    return m_render_data[i].vertices_count > 0 ? m_render_data[i].vertices_count : m_render_data[i].geometry.vertices_count();
+}
+
+size_t GLModel::get_indices_count(int i) const {
+    if (m_render_data.empty() || i >= m_render_data.size()) {
+        return 0;
+    }
+    return m_render_data[i].indices_count > 0 ? m_render_data[i].indices_count : m_render_data[i].geometry.indices_count();
+}
+
 void GLModel::init_from(Geometry &&data, bool generate_mesh)
 {
     if (is_initialized()) {
@@ -731,10 +745,14 @@ void GLModel::reset()
 {
     for (RenderData& data : m_render_data) {
         // release gpu memory
-        if (data.ibo_id > 0)
+        if (data.ibo_id > 0) {
             glsafe(::glDeleteBuffers(1, &data.ibo_id));
-        if (data.vbo_id > 0)
+            data.ibo_id = 0;
+        }
+        if (data.vbo_id > 0) {
             glsafe(::glDeleteBuffers(1, &data.vbo_id));
+            data.vbo_id = 0;
+        }
     }
 
     m_render_data.clear();
@@ -842,7 +860,7 @@ void GLModel::render() const
 }
 
 void GLModel::render_geometry() {
-    render_geometry(0,std::make_pair<size_t, size_t>(0, indices_count()));
+    render_geometry(0,std::make_pair<size_t, size_t>(0, get_indices_count()));
 }
 
 void GLModel::render_geometry(int i,const std::pair<size_t, size_t> &range)
@@ -918,6 +936,7 @@ void GLModel::create_or_update_mats_vbo(unsigned int &vbo, const std::vector<Sli
 { // first bind
     if (vbo>0) {
         glsafe(::glDeleteBuffers(1, &vbo));
+        vbo = 0;
     }
     std::vector<Matrix4f> out_mats;
     out_mats.reserve(mats.size());
@@ -958,7 +977,7 @@ void GLModel::bind_mats_vbo(unsigned int instance_mats_vbo, unsigned int instanc
 
 void GLModel::render_geometry_instance(unsigned int instance_mats_vbo, unsigned int instances_count)
 {
-    render_geometry_instance(instance_mats_vbo, instances_count,std::make_pair<size_t, size_t>(0, indices_count()));
+    render_geometry_instance(instance_mats_vbo, instances_count,std::make_pair<size_t, size_t>(0, get_indices_count()));
 }
 
 void GLModel::render_geometry_instance(unsigned int instance_mats_vbo, unsigned int instances_count, const std::pair<size_t, size_t> &range)
@@ -1141,7 +1160,7 @@ bool GLModel::send_to_gpu(Geometry &geometry)
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, render_data.vbo_id));
     glsafe(::glBufferData(GL_ARRAY_BUFFER, data.vertices_size_bytes(), data.vertices.data(), GL_STATIC_DRAW));
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-    render_data.vertices_count = vertices_count();
+    render_data.vertices_count = get_vertices_count();
     data.vertices              = std::vector<float>();
 
     // indices
