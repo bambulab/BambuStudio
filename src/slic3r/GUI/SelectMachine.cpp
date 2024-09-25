@@ -2767,8 +2767,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         bool in_blacklist = false;
         std::string action;
         std::string info;
-
-        DeviceManager::check_filaments_in_blacklist(filament_brand, filament_type, in_blacklist, action, info);
+        DeviceManager::check_filaments_in_blacklist(filament_brand, filament_type, tid, in_blacklist, action, info);
 
         if (in_blacklist && action == "warning") {
             wxString prohibited_error = wxString::FromUTF8(info);
@@ -2833,8 +2832,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         bool in_blacklist = false;
         std::string action;
         std::string info;
-
-        DeviceManager::check_filaments_in_blacklist(filament_brand, filament_type, in_blacklist, action, info);
+        DeviceManager::check_filaments_in_blacklist(filament_brand, filament_type, tid, in_blacklist, action, info);
 
         if (in_blacklist && action == "prohibition") {
             has_prohibited_filament = true;
