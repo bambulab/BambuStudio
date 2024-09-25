@@ -1964,22 +1964,22 @@ void TabPrint::build()
         optgroup->append_single_option_line("min_feature_size");
 
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
-        optgroup->append_single_option_line("wall_sequence");
-        optgroup->append_single_option_line("is_infill_first");
+        optgroup->append_single_option_line("wall_sequence","parameter/quality-advance-settings");
+        optgroup->append_single_option_line("is_infill_first","parameter/quality-advance-settings");
         optgroup->append_single_option_line("bridge_flow","parameter/bridge");
         optgroup->append_single_option_line("thick_bridges","parameter/bridge");
-        optgroup->append_single_option_line("top_solid_infill_flow_ratio");
-        optgroup->append_single_option_line("initial_layer_flow_ratio");
-        optgroup->append_single_option_line("top_one_wall_type");
-        optgroup->append_single_option_line("top_area_threshold");
-        optgroup->append_single_option_line("only_one_wall_first_layer");
-        optgroup->append_single_option_line("detect_overhang_wall");
-        optgroup->append_single_option_line("smooth_speed_discontinuity_area");
-        optgroup->append_single_option_line("smooth_coefficient");
-        optgroup->append_single_option_line("reduce_crossing_wall");
+        optgroup->append_single_option_line("top_solid_infill_flow_ratio","parameter/quality-advance-settings");
+        optgroup->append_single_option_line("initial_layer_flow_ratio","parameter/quality-advance-settings");
+        optgroup->append_single_option_line("top_one_wall_type","parameter/quality-advance-settings");
+        optgroup->append_single_option_line("top_area_threshold","parameter/quality-advance-settings");
+        optgroup->append_single_option_line("only_one_wall_first_layer","parameter/quality-advance-settings");
+        optgroup->append_single_option_line("detect_overhang_wall","parameter/quality-advance-settings");
+        optgroup->append_single_option_line("smooth_speed_discontinuity_area","parameter/quality-advance-settings");
+        optgroup->append_single_option_line("smooth_coefficient","parameter/quality-advance-settings");
+        optgroup->append_single_option_line("reduce_crossing_wall","parameter/quality-advance-settings");
+        optgroup->append_single_option_line("max_travel_detour_distance","parameter/quality-advance-settings");
         optgroup->append_single_option_line("z_direction_outwall_speed_continuous");
         optgroup->append_single_option_line("layer_time_smoothing");
-        optgroup->append_single_option_line("max_travel_detour_distance");
 
     page = add_options_page(L("Strength"), "empty");
         optgroup = page->new_optgroup(L("Walls"), L"param_wall");
