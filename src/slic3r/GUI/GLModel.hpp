@@ -170,11 +170,8 @@ namespace GUI {
         GLModel() = default;
         virtual ~GLModel();
 
-        size_t vertices_count(int i = 0) const {
-            return m_render_data[i].vertices_count > 0 ? m_render_data[i].vertices_count : m_render_data[i].geometry.vertices_count();
-        }
-        size_t indices_count(int i = 0) const {
-            return m_render_data[i].indices_count > 0 ? m_render_data[i].indices_count : m_render_data[i].geometry.indices_count(); }
+        size_t get_vertices_count(int i = 0) const;
+        size_t get_indices_count(int i = 0) const;
 
         TriangleMesh *mesh{nullptr};
 
