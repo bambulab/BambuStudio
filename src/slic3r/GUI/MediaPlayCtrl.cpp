@@ -788,7 +788,9 @@ void MediaPlayCtrl::media_proc()
             break;
         }
         else if (url == "<play>") {
+            BOOST_LOG_TRIVIAL(info) <<  "MediaPlayCtrl: start play";
             m_media_ctrl->Play();
+            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: end play";
         }
         else {
             BOOST_LOG_TRIVIAL(info) <<  "MediaPlayCtrl: start load";
