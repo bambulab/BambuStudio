@@ -427,7 +427,7 @@ public:
 
     wxString transition_tridid(int trid_id);
     void            ShowUserGuide();
-    void            ShowDownNetPluginDlg();
+    void            ShowDownNetPluginDlg(bool post_login = false);
     void            ShowUserLogin(bool show = true);
     void            ShowOnlyFilament();
     //BBS

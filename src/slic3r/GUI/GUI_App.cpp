@@ -3694,14 +3694,15 @@ void GUI_App::ShowUserGuide() {
     }
 }
 
-void GUI_App::ShowDownNetPluginDlg() {
+void GUI_App::ShowDownNetPluginDlg(bool post_login)
+{
     try {
         auto iter = std::find_if(dialogStack.begin(), dialogStack.end(), [](auto dialog) {
             return dynamic_cast<DownloadProgressDialog *>(dialog) != nullptr;
         });
         if (iter != dialogStack.end())
             return;
-        DownloadProgressDialog dlg(_L("Downloading Bambu Network Plug-in"));
+        DownloadProgressDialog dlg(_L("Downloading Bambu Network Plug-in"), post_login);
         dlg.ShowModal();
     } catch (std::exception &e) {
         ;
@@ -4234,17 +4235,18 @@ std::string GUI_App::handle_web_request(std::string cmd)
                     if (mainframe && mainframe->m_webview) { mainframe->m_webview->OpenOneMakerlab(strUrl); }
                 }
             }
-            else if (command_str.compare("homepage_need_networkplugin") == 0){
-                if (mainframe){
+            else if (command_str.compare("homepage_need_networkplugin") == 0) {
+                bool post_login = true;
+                if (mainframe) {
                     if (mainframe->m_confirm_download_plugin_dlg == nullptr) {
                     mainframe->m_confirm_download_plugin_dlg = new SecondaryCheckDialog(mainframe, wxID_ANY, _L("Install network plug-in"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM);
                     mainframe->m_confirm_download_plugin_dlg->SetSize(wxSize(270, 158));
                     mainframe->m_confirm_download_plugin_dlg->update_text(_L("Please Install network plug-in before log in."));
                     mainframe->m_confirm_download_plugin_dlg->update_btn_label(_L("Install Network Plug-in"), _L(""));
 
-                    mainframe->m_confirm_download_plugin_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent& e) {
+                    mainframe->m_confirm_download_plugin_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, post_login](wxCommandEvent& e) {
                         mainframe->m_confirm_download_plugin_dlg->Close();
-                        ShowDownNetPluginDlg();
+                        ShowDownNetPluginDlg(post_login);
                         return;
                         });
                 }
