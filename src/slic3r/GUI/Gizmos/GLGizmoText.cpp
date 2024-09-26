@@ -818,9 +818,12 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 4.0f * currt_scale);
     GizmoImguiBegin("Text", ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 #ifdef DEBUG_TEXT
-    std::string hit = "hit x:" + formatFloat(m_rr.hit[0]) + " y:" + formatFloat(m_rr.hit[1]) + " z:" + formatFloat(m_rr.hit[2]);
+    std::string world_hit = "world hit x:" + formatFloat(m_text_position_in_world[0]) + " y:" + formatFloat(m_text_position_in_world[1]) +
+                            " z:" + formatFloat(m_text_position_in_world[2]);
+    std::string hit = "local hit x:" + formatFloat(m_rr.hit[0]) + " y:" + formatFloat(m_rr.hit[1]) + " z:" + formatFloat(m_rr.hit[2]);
     std::string normal = "normal x:" + formatFloat(m_rr.normal[0]) + " y:" + formatFloat(m_rr.normal[1]) + " z:" + formatFloat(m_rr.normal[2]);
     auto cut_dir = "cut_dir x:" + formatFloat(m_cut_plane_dir_in_world[0]) + " y:" + formatFloat(m_cut_plane_dir_in_world[1]) + " z:" + formatFloat(m_cut_plane_dir_in_world[2]);
+    m_imgui->text(world_hit);
     m_imgui->text(hit);
     m_imgui->text(normal);
     m_imgui->text(cut_dir);
@@ -996,13 +999,17 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
 
     ImGui::SameLine(caption_size);
     ImGui::AlignTextToFramePadding();
-    if (m_imgui->bbl_checkbox(_L("Surface"), m_is_surface_text))
+    if (m_imgui->bbl_checkbox(_L("Surface"), m_is_surface_text)) {
         m_need_update_text = true;
+    }
 
     ImGui::SameLine();
     ImGui::AlignTextToFramePadding();
-    if (m_imgui->bbl_checkbox(_L("Horizontal text"), m_keep_horizontal))
+    auto keep_horizontal = !m_is_surface_text;
+    if (m_imgui->bbl_checkbox(_L("Horizontal text"), keep_horizontal)) {
         m_need_update_text = true;
+    }
+    m_is_surface_text = !keep_horizontal;
 
     //ImGui::SameLine();
     //ImGui::AlignTextToFramePadding();
@@ -1071,7 +1078,6 @@ void GLGizmoText::reset_text_info()
     m_rotate_angle    = 0;
     m_text_gap        = 0.f;
     m_is_surface_text = true;
-    m_keep_horizontal = false;
     m_rr              = RaycastResult();
     m_is_modify = false;
 }
@@ -1202,8 +1208,21 @@ bool GLGizmoText::update_text_positions(const std::vector<std::string>& texts)
 
     m_cut_plane_dir_in_world = cut_plane_in_world;
 
-    if (m_keep_horizontal && mouse_normal_world != Vec3d::UnitZ())
-        m_cut_plane_dir_in_world = Vec3d::UnitZ();
+    auto  y_dir          = -m_text_normal_in_world.cast<double>();
+    Vec3d x_dir_world    = y_dir.cross(m_cut_plane_dir_in_world);
+    m_text_tran_in_world = Geometry::generate_transform(x_dir_world, y_dir, m_cut_plane_dir_in_world.cast<double>(), m_text_position_in_world);
+    Geometry::Transformation rotate_trans;
+    rotate_trans.set_rotation(Vec3d(0, Geometry::deg2rad(m_rotate_angle), 0)); // m_rotate_angle
+    m_text_tran_in_world.set_matrix(m_text_tran_in_world.get_matrix() * rotate_trans.get_matrix());
+    m_cut_plane_dir_in_world = m_text_tran_in_world.get_matrix().linear().col(2);
+
+    // generate clip cs at click pos
+    auto text_position_in_object = mi->get_transformation().get_matrix().inverse() * m_text_position_in_world.cast<double>();
+    auto rotate_mat_inv          = mi->get_transformation().get_matrix_no_offset().inverse();
+
+    auto text_tran_in_object = mi->get_transformation().get_matrix().inverse() * m_text_tran_in_world.get_matrix(); // Geometry::generate_transform(cs_x_dir, cs_y_dir, cs_z_dir, text_position_in_object); // todo modify by m_text_tran_in_world
+    m_text_tran_in_object.set_matrix(text_tran_in_object);
+    m_text_cs_to_world_tran = mi->get_transformation().get_matrix() * m_text_tran_in_object.get_matrix();
 
     if (!m_is_surface_text) {
         m_position_points.resize(text_num);
@@ -1254,21 +1273,6 @@ bool GLGizmoText::update_text_positions(const std::vector<std::string>& texts)
 
         return true;
     }
-    auto y_dir = -m_text_normal_in_world.cast<double>();
-    Vec3d x_dir_world     = y_dir.cross(m_cut_plane_dir_in_world);
-    m_text_tran_in_world = Geometry::generate_transform(x_dir_world, y_dir, m_cut_plane_dir_in_world.cast<double>(), m_text_position_in_world);
-    Geometry::Transformation rotate_trans;
-    rotate_trans.set_rotation(Vec3d(0, Geometry::deg2rad(m_rotate_angle), 0));   //m_rotate_angle
-    m_text_tran_in_world.set_matrix(m_text_tran_in_world.get_matrix() * rotate_trans.get_matrix());
-    m_cut_plane_dir_in_world = m_text_tran_in_world.get_matrix().linear().col(2);
-
-    // generate clip cs at click pos
-    auto text_position_in_object = mi->get_transformation().get_matrix().inverse() * m_text_position_in_world.cast<double>();
-    auto rotate_mat_inv      = mi->get_transformation().get_matrix_no_offset().inverse();
-
-    auto text_tran_in_object         = mi->get_transformation().get_matrix().inverse() * m_text_tran_in_world.get_matrix(); // Geometry::generate_transform(cs_x_dir, cs_y_dir, cs_z_dir, text_position_in_object); // todo modify by m_text_tran_in_world
-    m_text_tran_in_object.set_matrix(text_tran_in_object);
-    m_text_cs_to_world_tran       = mi->get_transformation().get_matrix() * m_text_tran_in_object.get_matrix();
 
     MeshSlicingParams slicing_params;
     slicing_params.trafo = m_text_tran_in_object.get_matrix().inverse();
@@ -1719,7 +1723,6 @@ TextInfo GLGizmoText::get_text_info()
     text_info.m_rotate_angle  = m_rotate_angle;
     text_info.m_text_gap      = m_text_gap;
     text_info.m_is_surface_text = m_is_surface_text;
-    text_info.m_keep_horizontal = m_keep_horizontal;
     return text_info;
 }
 
@@ -1743,7 +1746,6 @@ void GLGizmoText::load_from_text_info(const TextInfo &text_info)
     m_rotate_angle  = text_info.m_rotate_angle;
     m_text_gap      = text_info.m_text_gap;
     m_is_surface_text = text_info.m_is_surface_text;
-    m_keep_horizontal = text_info.m_keep_horizontal;
 }
 
 } // namespace GUI
