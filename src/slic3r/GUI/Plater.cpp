@@ -7445,8 +7445,15 @@ void Plater::priv::on_right_click(RBtnEvent& evt)
                 else if (is_part) {
                     const GLVolume *   gl_volume    = selection.get_first_volume();
                     const ModelVolume *model_volume = get_model_volume(*gl_volume, selection.get_model()->objects);
-                    menu                            = (model_volume != nullptr && model_volume->is_svg())  ? menus.svg_part_menu() :
-                                                                                                             menus.part_menu();
+                    if (model_volume != nullptr) {
+                        if (model_volume->is_svg()) {
+                            menu = menus.svg_part_menu();
+                        } else if (model_volume->is_cut_connector()) {
+                            menu = menus.cut_connector_menu();
+                        } else {
+                            menu = menus.part_menu();
+                        }
+                    }
                 } else
                     menu = menus.multi_selection_menu();
             }
@@ -14364,6 +14371,7 @@ wxMenu* Plater::plate_menu()            { return p->menus.plate_menu();         
 wxMenu* Plater::object_menu()           { return p->menus.object_menu();            }
 wxMenu *Plater::part_menu()             { return p->menus.part_menu();              }
 wxMenu *Plater::svg_part_menu()         { return p->menus.svg_part_menu();          }
+wxMenu* Plater::cut_connector_menu()    { return p->menus.cut_connector_menu(); }
 wxMenu* Plater::sla_object_menu()       { return p->menus.sla_object_menu();        }
 wxMenu* Plater::default_menu()          { return p->menus.default_menu();           }
 wxMenu* Plater::instance_menu()         { return p->menus.instance_menu();          }
