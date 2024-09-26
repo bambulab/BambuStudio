@@ -4093,6 +4093,7 @@ void TabPrinter::toggle_options()
     if (!m_active_page || m_presets->get_edited_preset().printer_technology() == ptSLA)
         return;
 
+    auto config_mode = wxGetApp().get_mode();
     //BBS: whether the preset is Bambu Lab printer
     bool is_BBL_printer = false;
     if (m_preset_bundle) {
@@ -4136,8 +4137,10 @@ void TabPrinter::toggle_options()
         bool have_retract_length = m_config->opt_float("retraction_length", i) > 0;
 
         //BBS
-        for (auto el : {"extruder_type" , "nozzle_diameter", "extruder_offset"})
+        for (auto el : { "extruder_type" , "nozzle_diameter"}) {
             toggle_option(el, !is_BBL_printer, i);
+        }
+        toggle_option("extruder_offset", !is_BBL_printer || config_mode == ConfigOptionMode::comDevelop, i);
 
         bool use_firmware_retraction = m_config->opt_bool("use_firmware_retraction");
         toggle_option("retract_length",!use_firmware_retraction, i);
