@@ -524,10 +524,10 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             //BBS: don't calculate overhang degree when enable fuzzy skin. It's unmeaning
             Polygons lower_polygons_series_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(lower_polygons_series->back(), bbox);
 
-            Polylines inside_polines = intersection_pl({polygon}, lower_polygons_series_clipped);
+            Polylines inside_polines = intersection_pl_2({to_polyline(polygon)}, lower_polygons_series_clipped);
 
 
-            remain_polines = diff_pl({polygon}, lower_polygons_series_clipped);
+            remain_polines = diff_pl_2({to_polyline(polygon)}, lower_polygons_series_clipped);
 
             bool detect_overhang_degree = perimeter_generator.config->enable_overhang_speed && perimeter_generator.config->fuzzy_skin == FuzzySkinType::None;
 
@@ -545,9 +545,9 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             } else {
                 Polygons lower_polygons_series_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(lower_polygons_series->front(), bbox);
 
-                Polylines middle_overhang_polyines = diff_pl({inside_polines}, lower_polygons_series_clipped);
+                Polylines middle_overhang_polyines = diff_pl_2(inside_polines, lower_polygons_series_clipped);
                 //BBS: add zero_degree_path
-                Polylines zero_degree_polines = intersection_pl({inside_polines}, lower_polygons_series_clipped);
+                Polylines zero_degree_polines = intersection_pl_2(inside_polines, lower_polygons_series_clipped);
                 if (!zero_degree_polines.empty())
                     extrusion_paths_append(
                         paths,
@@ -963,9 +963,9 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
                     for (int j = 0; j < overhang_sampling_number; j++) {
                         Polygons  limiton_polygons = offset(lower_slcier_chopped, float(scale_(start_pos + (j + 0.5) * (end_pos - start_pos) / (overhang_sampling_number - 1))));
 
-                        Polylines inside_polines   = j == 0 ? intersection_pl(be_clipped, limiton_polygons) : intersection_pl(remain_polylines, limiton_polygons);
+                        Polylines inside_polines = j == 0 ? intersection_pl_2(be_clipped, limiton_polygons) : intersection_pl_2(remain_polylines, limiton_polygons);
 
-                        remain_polylines           = j == 0 ? diff_pl(be_clipped, limiton_polygons) : diff_pl(remain_polylines, limiton_polygons);
+                        remain_polylines = j == 0 ? diff_pl_2(be_clipped, limiton_polygons) : diff_pl_2(remain_polylines, limiton_polygons);
 
                         extrusion_paths_append(paths, std::move(inside_polines), j, int(0), role, it.second.front().mm3_per_mm, it.second.front().width, it.second.front().height);
 
