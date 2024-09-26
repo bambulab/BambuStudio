@@ -67,6 +67,7 @@ void wxMediaCtrl3::Stop()
     std::unique_lock<std::mutex> lk(m_mutex);
     m_url.reset();
     m_frame = wxImage(m_idle_image);
+    NotifyStopped();
     m_cond.notify_all();
     Refresh();
 }
