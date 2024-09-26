@@ -33,7 +33,6 @@ private:
     float m_rotate_angle = 0;
     float m_text_gap = 0.f;
     bool m_is_surface_text = false;
-    bool m_keep_horizontal = false;
     mutable RaycastResult    m_rr;
 
     float m_combo_height = 0.0f;
