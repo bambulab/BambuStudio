@@ -16,7 +16,6 @@
 #include "libslic3r/Utils.hpp"
 #include "GUI.hpp"
 #include "I18N.hpp"
-//#include "ConfigWizard.hpp"
 #include "wxExtensions.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
 #include "GUI_App.hpp"
@@ -26,10 +25,9 @@
 namespace Slic3r {
 namespace GUI {
 
-
-
-DownloadProgressDialog::DownloadProgressDialog(wxString title)
+DownloadProgressDialog::DownloadProgressDialog(wxString title, bool post_login)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+    , m_post_login(post_login)
 {
     wxString download_failed_url = wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-get-network-plugin");
     wxString install_failed_url = wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-get-network-plugin");
@@ -148,19 +146,16 @@ bool DownloadProgressDialog::Show(bool show)
         m_upgrade_job->set_event_handle(this);
         m_status_bar->set_progress(0);
         Bind(EVT_UPGRADE_NETWORK_SUCCESS, [this](wxCommandEvent& evt) {
-            if (wxGetApp().check_networking_version()) {
-                m_status_bar->change_button_label(_L("OK"));
-                on_finish();
+            m_status_bar->change_button_label(_L("OK"));
+            on_finish();
+            if (m_post_login) {
                 m_status_bar->set_cancel_callback_fina(
                     [this]() {
                         this->Close();
                         wxGetApp().request_login();
                     }
                 );
-            }
-            else {
-                on_finish();
-                m_status_bar->change_button_label(_L("Close"));
+            } else {
                 m_status_bar->set_cancel_callback_fina(
                     [this]() {
                         this->Close();
