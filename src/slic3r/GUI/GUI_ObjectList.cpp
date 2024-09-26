@@ -5192,9 +5192,16 @@ ModelVolume* ObjectList::get_selected_model_volume()
 void ObjectList::change_part_type()
 {
     ModelVolume* volume = get_selected_model_volume();
-    if (!volume)
-        return;
-
+    if (!volume) {
+        auto canvas_type = wxGetApp().plater()->get_current_canvas3D()->get_canvas_type();
+        if (canvas_type == GLCanvas3D::ECanvasType::CanvasView3D && is_connectors_item_selected()) {
+            const Selection &selection = wxGetApp().plater()->get_view3D_canvas3D()->get_selection();
+            const GLVolume *   gl_volume      = selection.get_first_volume();
+            volume                            = get_model_volume(*gl_volume, selection.get_model()->objects);
+        } else {
+            return;
+        }
+    }
     const int obj_idx = get_selected_obj_idx();
     if (obj_idx < 0) return;
 
@@ -5217,10 +5224,12 @@ void ObjectList::change_part_type()
     wxArrayString names;
     names.Add(_L("Part"));
     names.Add(_L("Negative Part"));
-    names.Add(_L("Modifier"));
-    if (!volume->is_svg()) {
-        names.Add(_L("Support Blocker"));
-        names.Add(_L("Support Enforcer"));
+    if (!volume->is_cut_connector()) {
+        names.Add(_L("Modifier"));
+        if (!volume->is_svg()) {
+            names.Add(_L("Support Blocker"));
+            names.Add(_L("Support Enforcer"));
+        }
     }
 
     SingleChoiceDialog dlg(_L("Type:"), _L("Choose part type"), names, int(type));
