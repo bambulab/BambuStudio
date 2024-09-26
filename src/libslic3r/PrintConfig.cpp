@@ -1412,6 +1412,8 @@ void PrintConfigDef::init_fff_params()
     //               "from the XY coordinate).");
     def->sidetext = L("mm");
     def->mode = comAdvanced;
+    def->min = -5;
+    def->max = 5;
     def->set_default_value(new ConfigOptionPoints { Vec2d(0,0) });
 
     def = this->add("filament_flow_ratio", coFloats);
