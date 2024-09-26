@@ -1814,7 +1814,8 @@ void Selection::notify_instance_update(int object_idx, int instance_idx)
     if (object_idx == -1)
     {
         std::set<std::pair<int, int>> notify_set;
-        for (unsigned int i : m_list)
+        auto list = m_list;
+        for (unsigned int i : list)
         {
             int obj_index = (*m_volumes)[i]->object_idx();
             //-1 means all the instance in this object
