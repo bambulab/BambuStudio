@@ -69,6 +69,7 @@ public:
     wxMenu* part_menu();
     wxMenu *text_part_menu();
     wxMenu *svg_part_menu();
+    wxMenu* cut_connector_menu();
     wxMenu* instance_menu();
     wxMenu* layer_menu();
     wxMenu* multi_selection_menu();
@@ -91,6 +92,7 @@ private:
     MenuWithSeparators m_part_menu;
     MenuWithSeparators m_text_part_menu;
     MenuWithSeparators m_svg_part_menu;
+    MenuWithSeparators m_cut_cutter_menu;
     MenuWithSeparators m_sla_object_menu;
     MenuWithSeparators m_default_menu;
     MenuWithSeparators m_instance_menu;
@@ -126,6 +128,7 @@ private:
     void        create_bbl_part_menu();
     void        create_bbl_assemble_object_menu();
     void        create_bbl_assemble_part_menu();
+    void        create_cut_cutter_menu();
 
     wxMenu*     append_submenu_add_generic(wxMenu* menu, ModelVolumeType type);
     void        append_menu_item_add_svg(wxMenu *menu, ModelVolumeType type, bool is_submenu_item = true);

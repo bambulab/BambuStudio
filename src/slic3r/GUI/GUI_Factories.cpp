@@ -1337,6 +1337,13 @@ void MenuFactory::create_bbl_assemble_part_menu()
     menu->AppendSeparator();
 }
 
+void MenuFactory::create_cut_cutter_menu()
+{
+    wxMenu *menu = &m_cut_cutter_menu;
+    append_menu_item_delete(menu);
+    append_menu_item_change_type(menu);
+}
+
 //BBS: add part plate related logic
 void MenuFactory::create_plate_menu()
 {
@@ -1436,7 +1443,7 @@ void MenuFactory::init(wxWindow* parent)
     create_bbl_part_menu();
     create_bbl_assemble_object_menu();
     create_bbl_assemble_part_menu();
-
+    create_cut_cutter_menu();
     //BBS: add part plate related logic
     create_plate_menu();
 
@@ -1509,6 +1516,11 @@ wxMenu *MenuFactory::svg_part_menu()
     append_menu_item_per_object_settings(&m_svg_part_menu);
 
     return &m_svg_part_menu;
+}
+
+wxMenu *MenuFactory::cut_connector_menu()
+{
+    return &m_cut_cutter_menu;
 }
 
 wxMenu* MenuFactory::instance_menu()
