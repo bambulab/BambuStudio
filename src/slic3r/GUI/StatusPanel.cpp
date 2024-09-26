@@ -1552,13 +1552,15 @@ wxBoxSizer *StatusBasePanel::create_ams_group(wxWindow *parent)
 
 void StatusBasePanel::show_ams_group(bool show)
 {
-    m_ams_control->Show(true);
-    m_ams_control_box->Show(true);
-    m_ams_control->show_noams_mode();
-    if (m_show_ams_group != show) {
-        Fit();
+    if (m_show_ams_group != show || m_show_ams_group_reset) {
+        m_ams_control->Show(true);
+        m_ams_control_box->Show(true);
+        m_ams_control->show_noams_mode();
+        if (m_show_ams_group != show) { Fit(); }
+        m_show_ams_group = show;
+        m_show_ams_group_reset = false;
+        Layout();
     }
-    m_show_ams_group = show;
 }
 
 void StatusPanel::update_camera_state(MachineObject* obj)
@@ -2008,25 +2010,22 @@ bool StatusPanel::is_task_changed(MachineObject* obj)
 
 void StatusPanel::update(MachineObject *obj)
 {
+   
     if (!obj) return;
     m_project_task_panel->Freeze();
     update_subtask(obj);
     m_project_task_panel->Thaw();
-
+    
 #if !BBL_RELEASE_TO_PUBLIC
-    auto delay1  = std::chrono::duration_cast<std::chrono::milliseconds>(obj->last_utc_time - std::chrono::system_clock::now()).count();
-    auto delay2  = std::chrono::duration_cast<std::chrono::milliseconds>(obj->last_push_time - std::chrono::system_clock::now()).count();
-    auto delay = wxString::Format(" %ld/%ld", delay1, delay2);
-    m_staticText_timelapse
-        ->SetLabel((obj->is_lan_mode_printer() ? "Local Mqtt" : obj->is_tunnel_mqtt ? "Tunnel Mqtt" : "Cloud Mqtt") + delay);
-    m_bmToggleBtn_timelapse
-        ->Enable(!obj->is_lan_mode_printer());
-    m_bmToggleBtn_timelapse
-        ->SetValue(obj->is_tunnel_mqtt);
+    auto delay1 = std::chrono::duration_cast<std::chrono::milliseconds>(obj->last_utc_time - std::chrono::system_clock::now()).count();
+    auto delay2 = std::chrono::duration_cast<std::chrono::milliseconds>(obj->last_push_time - std::chrono::system_clock::now()).count();
+    auto delay  = wxString::Format(" %ld/%ld", delay1, delay2);
+    m_staticText_timelapse->SetLabel((obj->is_lan_mode_printer() ? "Local Mqtt" : obj->is_tunnel_mqtt ? "Tunnel Mqtt" : "Cloud Mqtt") + delay);
+    m_bmToggleBtn_timelapse->Enable(!obj->is_lan_mode_printer());
+    m_bmToggleBtn_timelapse->SetValue(obj->is_tunnel_mqtt);
 #endif
 
-    m_machine_ctrl_panel->Freeze();
-
+    //m_machine_ctrl_panel->Freeze();
     if (obj->is_in_printing() && !obj->can_resume())
         show_printing_status(false, true);
     else
@@ -2065,7 +2064,6 @@ void StatusPanel::update(MachineObject *obj)
         } else {
             m_options_btn->Hide();
         }
-
         m_parts_btn->Show();
 
         //support edit chamber temp
@@ -2082,14 +2080,13 @@ void StatusPanel::update(MachineObject *obj)
 
             if (obj->get_printer_series() == PrinterSeries::SERIES_X1) {
                 m_tempCtrl_chamber->SetTagTemp(TEMP_BLANK_STR);
-            }if (obj->get_printer_series() == PrinterSeries::SERIES_P1P)
+            }
+            
+            if (obj->get_printer_series() == PrinterSeries::SERIES_P1P)
             {
                 m_tempCtrl_chamber->SetLabel(TEMP_BLANK_STR);
                 m_tempCtrl_chamber->GetTextCtrl()->SetValue(TEMP_BLANK_STR);
             }
-
-            //m_tempCtrl_chamber->Disable();
-
         }
 
         if (!obj->dev_connection_type.empty()) {
@@ -2114,7 +2111,7 @@ void StatusPanel::update(MachineObject *obj)
 
     update_camera_state(obj);
 
-    m_machine_ctrl_panel->Thaw();
+    //m_machine_ctrl_panel->Thaw();
 }
 
 void StatusPanel::show_recenter_dialog() {
@@ -2266,12 +2263,12 @@ void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
         m_bpButton_e_10->Enable();
         m_bpButton_e_down_10->Enable();
 
-		m_bpButton_z_10->SetIcon("monitor_bed_up");
-		m_bpButton_z_1->SetIcon("monitor_bed_up");
-		m_bpButton_z_down_1->SetIcon("monitor_bed_down");
-		m_bpButton_z_down_10->SetIcon("monitor_bed_down");
-		m_bpButton_e_10->SetIcon("monitor_extruder_up");
-		m_bpButton_e_down_10->SetIcon("monitor_extrduer_down");
+	    m_bpButton_z_10->SetIcon("monitor_bed_up");
+        m_bpButton_z_1->SetIcon("monitor_bed_up");
+        m_bpButton_z_down_1->SetIcon("monitor_bed_down");
+        m_bpButton_z_down_10->SetIcon("monitor_bed_down");
+        m_bpButton_e_10->SetIcon("monitor_extruder_up");
+        m_bpButton_e_down_10->SetIcon("monitor_extrduer_down");
 
         m_staticText_z_tip->SetForegroundColour(TEXT_LIGHT_FONT_COL);
         m_staticText_e->SetForegroundColour(TEXT_LIGHT_FONT_COL);
@@ -2366,12 +2363,12 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
     if (obj->can_unload_filament()) {
         if (!m_button_unload->IsShown()) {
             m_button_unload->Show();
-            m_button_unload->GetParent()->Layout();
+            //m_button_unload->GetParent()->Layout();
         }
     } else {
         if (m_button_unload->IsShown()) {
             m_button_unload->Hide();
-            m_button_unload->GetParent()->Layout();
+            //m_button_unload->GetParent()->Layout();
         }
     }
 
@@ -2572,7 +2569,6 @@ void StatusPanel::update_ams(MachineObject *obj)
 
         m_ams_control->SetAmsModel(AMSModel::NO_AMS, ams_mode);
         show_ams_group(false);
-
         m_ams_control->show_auto_refill(false);
     }
     else {
@@ -2581,7 +2577,6 @@ void StatusPanel::update_ams(MachineObject *obj)
         show_ams_group(true);
         m_ams_control->show_auto_refill(true);
     }
-
 
     if (is_support_virtual_tray) m_ams_control->update_vams_kn_value(obj->vt_tray, obj);
     if (m_filament_setting_dlg) m_filament_setting_dlg->update();
@@ -2592,18 +2587,6 @@ void StatusPanel::update_ams(MachineObject *obj)
         info.ams_id = ams->first;
         if (ams->second->is_exists && info.parse_ams_info(obj, ams->second, obj->ams_calibrate_remain_flag, obj->is_support_ams_humidity)) ams_info.push_back(info);
     }
-    //if (obj->ams_exist_bits != last_ams_exist_bits || obj->tray_exist_bits != last_tray_exist_bits || obj->tray_is_bbl_bits != last_tray_is_bbl_bits ||
-    //    obj->tray_read_done_bits != last_read_done_bits || obj->ams_version != last_ams_version) {
-    //    m_ams_control->UpdateAms(ams_info, false);
-    //    // select current ams
-    //    //if (!obj->m_ams_id.empty()) m_ams_control->SwitchAms(obj->m_ams_id);
-
-    //    last_tray_exist_bits  = obj->tray_exist_bits;
-    //    last_ams_exist_bits   = obj->ams_exist_bits;
-    //    last_tray_is_bbl_bits = obj->tray_is_bbl_bits;
-    //    last_read_done_bits   = obj->tray_read_done_bits;
-    //    last_ams_version      = obj->ams_version;
-    //}
 
     // must select a current can
     m_ams_control->UpdateAms(ams_info, false);
@@ -2643,7 +2626,6 @@ void StatusPanel::update_ams(MachineObject *obj)
         m_ams_control->SetExtruder(obj->is_filament_at_extruder(), true, obj->m_ams_id, obj->vt_tray.get_color());
     } else {
         m_ams_control->SetExtruder(obj->is_filament_at_extruder(), false, obj->m_ams_id, m_ams_control->GetCanColour(obj->m_ams_id, obj->m_tray_id));
-
     }
 
     if (obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {

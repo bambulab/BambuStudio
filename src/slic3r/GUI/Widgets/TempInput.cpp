@@ -182,14 +182,16 @@ void TempInput::SetTagTemp(wxString temp)
 void TempInput::SetCurrTemp(int temp) 
 { 
     auto tp = wxString::Format("%d", temp);
-    if (GetLabel() != tp) {
-         SetLabel(tp);
+    if (currentTemp != tp) {
+        currentTemp = tp;
+        SetLabel(tp);
     }
 }
 
 void TempInput::SetCurrTemp(wxString temp) 
 {
-    if (GetLabel() != temp) {
+    if (currentTemp != temp) {
+        currentTemp = temp;
         SetLabel(temp);
     }
 }
@@ -275,9 +277,11 @@ void TempInput::SetMinTemp(int temp) { min_temp = temp; }
 
 void TempInput::SetLabel(const wxString &label)
 {
-    wxWindow::SetLabel(label);
-    messureSize();
-    Refresh();
+    if (label != wxWindow::GetLabel()) {
+        wxWindow::SetLabel(label);
+        messureSize();
+        Refresh();
+    }
 }
 
 void TempInput::SetTextColor(StateColor const &color)

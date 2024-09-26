@@ -284,21 +284,12 @@ void MonitorPanel::select_machine(std::string machine_sn)
     wxQueueEvent(this, event);
 }
 
-void MonitorPanel::on_update_all(wxMouseEvent &event)
-{
-    if (update_flag) {
-        update_all();
-        Layout();
-        Refresh();
-    }
-}
 
  void MonitorPanel::on_timer(wxTimerEvent& event)
 {
      if (update_flag) {
          update_all();
          Layout();
-         Refresh();
      }
 }
 
@@ -314,6 +305,8 @@ void MonitorPanel::on_update_all(wxMouseEvent &event)
     if (!dev->set_selected_machine(event.GetString().ToStdString()))
         return;
 
+    m_status_info_panel->reset_ams_group_show_flag();
+
     set_default();
     update_all();
 
@@ -324,7 +317,6 @@ void MonitorPanel::on_update_all(wxMouseEvent &event)
         GUI::wxGetApp().sidebar().load_ams_list(obj_->dev_id, obj_);
 
     Layout();
-    Refresh();
 }
 
 void MonitorPanel::on_printer_clicked(wxMouseEvent &event)
@@ -350,8 +342,8 @@ void MonitorPanel::on_printer_clicked(wxMouseEvent &event)
 
 void MonitorPanel::on_size(wxSizeEvent &event)
 {
-    Layout();
-    Refresh();
+    //Layout();
+    //Refresh();
 }
 
 void MonitorPanel::update_all()
