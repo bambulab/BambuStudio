@@ -424,7 +424,7 @@ float GLVolume::LAST_CAMERA_ZOOM_VALUE = 0.0f;
 const float ZOOM_THRESHOLD                   = 0.3f;
 const unsigned char LOD_UPDATE_FREQUENCY     = 20;
 const Vec2i LOD_SCREEN_MIN                   = Vec2i(45, 35);
-const Vec2i LOD_SCREEN_MAX                   = Vec2i(70, 55);
+const Vec2i LOD_SCREEN_MAX                   = Vec2i(65, 55);
 
 Vec2f calc_pt_in_screen(const Vec3d &pt, const Transform3d &world_tran, const Matrix4d &view_proj_mat, int window_width, int window_height)
 {
@@ -672,6 +672,7 @@ bool GLVolume::simplify_mesh(const indexed_triangle_set &_its, GLIndexedVertexAr
                 state->result.reset();
                 state->status = State::Status::running;
             }
+            int          init_face_count = its->indices.size();
             TriangleMesh origin_mesh(*its);
             try { // Start the actual calculation.
                 its_quadric_edge_collapse(*its, triangle_count, &max_error, throw_on_cancel, statusfn);
@@ -684,6 +685,10 @@ bool GLVolume::simplify_mesh(const indexed_triangle_set &_its, GLIndexedVertexAr
                 state->result = std::move(its);
             }
             if (state->result) {
+                int          end_face_count = (*state->result).indices.size();
+                if (init_face_count < 200 || (init_face_count < 1000 && end_face_count < init_face_count * 0.5)) {
+                    return;
+                }
                 TriangleMesh mesh(*state->result);
                 float        eps        = 1.0f;
                 Vec3f        origin_min = origin_mesh.stats().min - Vec3f(eps, eps, eps);
