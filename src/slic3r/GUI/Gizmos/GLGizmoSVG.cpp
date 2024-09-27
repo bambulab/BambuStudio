@@ -1838,10 +1838,13 @@ void GLGizmoSVG::draw_distance()
 
 void GLGizmoSVG::draw_rotation()
 {
-    const EmbossProjection &projection              = m_volume->emboss_shape->projection;
-    bool                    use_surface             = projection.use_surface;
-    bool allowe_surface_distance = !use_surface && !m_volume->is_the_only_one_part();
-    m_imgui->disabled_begin(!allowe_surface_distance);
+    bool  allow_rotation = true;
+    if (!m_volume->is_the_only_one_part()) {
+        const EmbossProjection &projection             = m_volume->emboss_shape->projection;
+        bool                    use_surface            = projection.use_surface;
+        allow_rotation                                 = !use_surface;
+    }
+    m_imgui->disabled_begin(!allow_rotation);
     ImGui::AlignTextToFramePadding();
     ImGuiWrapper::text(m_gui_cfg->translations.rotation);
     ImGui::SameLine(m_gui_cfg->input_offset);
