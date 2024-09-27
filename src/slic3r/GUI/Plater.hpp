@@ -151,6 +151,7 @@ public:
     std::map<int, DynamicPrintConfig> build_filament_ams_list(MachineObject* obj);
     void sync_ams_list();
     void sync_extruder_list();
+    bool should_sync_extruder_list(MachineObject* obj);
 
     ObjectList*             obj_list();
     ObjectSettings*         obj_settings();
