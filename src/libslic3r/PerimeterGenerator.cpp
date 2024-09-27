@@ -339,8 +339,7 @@ public:
 static std::deque<PolylineWithDegree> detect_overahng_degree(Polygons        lower_polygons,
                                                              Polylines       middle_overhang_polyines,
                                                              const double    &lower_bound,
-                                                             const double    &upper_bound,
-                                                             Polylines       &too_short_polylines)
+                                                             const double    &upper_bound)
 {
     // BBS: collect lower_polygons points
     //Polylines;
@@ -355,10 +354,6 @@ static std::deque<PolylineWithDegree> detect_overahng_degree(Polygons        low
     for (size_t polyline_idx = 0; polyline_idx < middle_overhang_polyines.size(); ++polyline_idx) {
         //filter too short polyline
         Polyline middle_poly = middle_overhang_polyines[polyline_idx];
-        if (middle_poly.length() < scale_(1.0)) {
-            too_short_polylines.push_back(middle_poly);
-            continue;
-        }
 
         Polyline polyline_with_insert_points;
         points_overhang.clear();
@@ -560,21 +555,11 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
                         (float)perimeter_generator.layer_height);
                 //BBS: detect middle line overhang
                 if (!middle_overhang_polyines.empty()) {
-                    Polylines                      too_short_polylines;
                     std::deque<PolylineWithDegree> polylines_degree_collection = detect_overahng_degree(lower_polygons_series->front(),
                                                                                                         middle_overhang_polyines,
                                                                                                         overhang_dist_boundary->first,
-                                                                                                        overhang_dist_boundary->second,
-                                                                                                        too_short_polylines);
-                    if (!too_short_polylines.empty())
-                        extrusion_paths_append(paths,
-                                               std::move(too_short_polylines),
-                                               0,
-                                               int(0),
-                                               role,
-                                               extrusion_mm3_per_mm,
-                                               extrusion_width,
-                                               (float) perimeter_generator.layer_height);
+                                                                                                        overhang_dist_boundary->second);
+
                     // BBS: add path with overhang degree
                     for (PolylineWithDegree polylines_collection : polylines_degree_collection) {
                         extrusion_paths_append(paths,
