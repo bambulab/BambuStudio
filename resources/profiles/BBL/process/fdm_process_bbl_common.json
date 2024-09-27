@@ -70,7 +70,5 @@
     "wipe_tower_no_sparse_layers": "0",
     "prime_tower_width": "35",
     "wall_generator": "classic",
-    "z_direction_outwall_speed_continuous": "1",
-    "layer_time_smoothing": "0",
     "compatible_printers": []
 }

@@ -505,7 +505,7 @@ private:
 
     // BBS
     SupportNecessaryType is_support_necessary();
-    void                 merge_layer_node(const size_t layer_id, int &max_merged_id, std::map<int, std::vector<std::pair<int, int>>> &node_record);
+
     // XYZ in scaled coordinates
     Vec3crd									m_size;
     double                                  m_max_z;
