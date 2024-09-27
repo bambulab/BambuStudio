@@ -23,7 +23,7 @@ void wxMediaCtrl_OnSize(wxWindow * ctrl, wxSize const & videoSize, int width, in
 #else
 
 #define BAMBU_DYNAMIC
-#include <BambuTunnel.h>
+#include "Printer/BambuTunnel.h"
 
 class AVVideoDecoder;
 

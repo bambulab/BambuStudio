@@ -30,6 +30,7 @@ echo -n "[9/9] Generating Linux app..."
     # copy Resources
     cp -Rf ../resources package/resources
     cp -f src/@SLIC3R_APP_CMD@ package/bin/@SLIC3R_APP_CMD@
+    cp -f src/*.so* package/bin/
     # remove unneeded po from resources
     ## find package/resources/localization -name "*.po" -type f -delete ## FIXME: DD - do we need this?
 
