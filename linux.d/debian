@@ -27,6 +27,9 @@ REQUIRED_DEV_PACKAGES=(
     libunwind-dev
     libfuse2
     texinfo
+    nasm
+    yasm
+    libx264-dev
 )
 
 if [[ -n "$UPDATE_LIB" ]]
