@@ -212,11 +212,13 @@ static void process_solid_part_cut(
 
 static void reset_instance_transformation(ModelObject *      object,
                                           size_t             src_instance_idx,
-                                          const Transform3d &cut_matrix   = Transform3d::Identity(),
-                                          bool               place_on_cut  = false,
-                                          bool               flip          = false,
-                                          bool               is_set_offset = false,
-                                          bool               offset_pos_dir = true)
+                                          const Transform3d &cut_matrix     = Transform3d::Identity(),
+                                          bool               place_on_cut   = false,
+                                          bool               flip           = false,
+                                          bool               is_set_offset  = false,
+                                          bool               offset_pos_dir = true,
+                                          bool               set_displace   = false,
+                                          Vec3d              local_displace = Vec3d::Zero())
 {
     // Reset instance transformation except offset and Z-rotation
 
@@ -231,15 +233,18 @@ static void reset_instance_transformation(ModelObject *      object,
 
         obj_instance->set_transformation(inst_trafo);
 
-        if (is_set_offset && object->volumes.size() > 0) {
-            BoundingBoxf3 curBox;
-            for (size_t i = 0; i < object->volumes.size(); i++) {
-                curBox.merge(object->volumes[i]->mesh().bounding_box());
+        if (object->volumes.size() > 0) {
+            if (is_set_offset) {
+                BoundingBoxf3 curBox;
+                for (size_t i = 0; i < object->volumes.size(); i++) { curBox.merge(object->volumes[i]->mesh().bounding_box()); }
+                float offset_x = curBox.size().x() * (offset_pos_dir ? 1.1 : 0);
+                Vec3d displace(offset_x, 0, 0);
+                displace = rotation_transform(obj_instance->get_rotation()) * displace;
+                obj_instance->set_offset(obj_instance->get_offset() + displace);
+            } else if (set_displace) {
+                Vec3d displace = rotation_transform(obj_instance->get_rotation()) * local_displace;
+                obj_instance->set_offset(obj_instance->get_offset() + displace);
             }
-            auto  offset_x = curBox.size().x() * 0.7 * (offset_pos_dir ? 1 : -1);
-            Vec3d displace(offset_x,0,0);
-            displace = rotation_transform(obj_instance->get_rotation()) * displace;
-            obj_instance->set_offset(obj_instance->get_offset() + displace);
         }
 
         Vec3d rotation = Vec3d::Zero();
@@ -274,12 +279,12 @@ Cut::Cut(const ModelObject *      object,
     if (object) m_model.add_object(*object);
 }
 
-void Cut::post_process(ModelObject *object, bool is_upper, ModelObjectPtrs &cut_object_ptrs, bool keep, bool place_on_cut, bool flip)
+void Cut::post_process(ModelObject *object, bool is_upper, ModelObjectPtrs &cut_object_ptrs, bool keep, bool place_on_cut, bool flip,  bool discard_half_cut)
 {
     if (!object) return;
 
     if (keep && !object->volumes.empty()) {
-        reset_instance_transformation(object, m_instance, m_cut_matrix, place_on_cut, flip,set_offset_for_two_part, is_upper);
+        reset_instance_transformation(object, m_instance, m_cut_matrix, place_on_cut, flip, set_offset_for_two_part, discard_half_cut ? false :is_upper);
         cut_object_ptrs.push_back(object);
     } else
         m_model.objects.push_back(object); // will be deleted in m_model.clear_objects();
@@ -287,11 +292,15 @@ void Cut::post_process(ModelObject *object, bool is_upper, ModelObjectPtrs &cut_
 
 void Cut::post_process(ModelObject *upper, ModelObject *lower, ModelObjectPtrs &cut_object_ptrs)
 {
+    bool discard_half_cut = false;
+    if (!(upper && lower)) {
+        discard_half_cut = true;
+    }
     post_process(upper,true, cut_object_ptrs, m_attributes.has(ModelObjectCutAttribute::KeepUpper), m_attributes.has(ModelObjectCutAttribute::PlaceOnCutUpper),
-                 m_attributes.has(ModelObjectCutAttribute::FlipUpper));
+                 m_attributes.has(ModelObjectCutAttribute::FlipUpper), discard_half_cut);
 
     post_process(lower, false, cut_object_ptrs, m_attributes.has(ModelObjectCutAttribute::KeepLower), m_attributes.has(ModelObjectCutAttribute::PlaceOnCutLower),
-                 m_attributes.has(ModelObjectCutAttribute::PlaceOnCutLower) || m_attributes.has(ModelObjectCutAttribute::FlipLower));
+                 m_attributes.has(ModelObjectCutAttribute::PlaceOnCutLower) || m_attributes.has(ModelObjectCutAttribute::FlipLower), discard_half_cut);
 }
 
 void Cut::finalize(const ModelObjectPtrs &objects)
@@ -385,9 +394,16 @@ const ModelObjectPtrs &Cut::perform_with_plane()
         delete_extra_modifiers(lower);
 
         if (m_attributes.has(ModelObjectCutAttribute::CreateDowels) && !dowels.empty()) {
+            auto  object_box            = mo->bounding_box();//in world
+            auto  origin_box_size       = object_box.size();
+            Vec3d local_dowels_displace = Vec3d(0, -origin_box_size.y() * 0.7, 0);
             for (auto dowel : dowels) {
-                reset_instance_transformation(dowel, m_instance);
+                reset_instance_transformation(dowel, m_instance, Transform3d::Identity(), false, false,false,false,true, local_dowels_displace);
+                local_dowels_displace += dowel->full_raw_mesh_bounding_box().size().cwiseProduct(Vec3d(1.5, 0.0, 0.0));
                 dowel->name += "-Dowel-" + dowel->volumes[0]->name;
+                for (auto &volume : dowel->volumes) {
+                    volume->set_offset(Vec3d::Zero());
+                }
                 cut_object_ptrs.push_back(dowel);
             }
         }
