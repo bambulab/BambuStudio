@@ -1,7 +1,7 @@
 #ifndef AVVIDEODECODER_HPP
 #define AVVIDEODECODER_HPP
 
-#include "BambuTunnel.h"
+#include "Printer/BambuTunnel.h"
 
 extern "C" {
     #include <libavcodec/avcodec.h>

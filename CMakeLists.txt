@@ -622,11 +622,10 @@ function(bambustudio_copy_dlls target config postfix output_dlls)
             ${CMAKE_PREFIX_PATH}/bin/occt/TKXDESTEP.dll
             ${CMAKE_PREFIX_PATH}/bin/occt/TKXSBase.dll
             ${CMAKE_PREFIX_PATH}/bin/freetype.dll
-            ${CMAKE_PREFIX_PATH}/bin/avcodec-59.dll
-            ${CMAKE_PREFIX_PATH}/bin/swresample-4.dll
-            ${CMAKE_PREFIX_PATH}/bin/swscale-6.dll
-            ${CMAKE_PREFIX_PATH}/bin/avutil-57.dll
-            ${CMAKE_PREFIX_PATH}/bin/libwinpthread-1.dll
+            ${CMAKE_PREFIX_PATH}/bin/avcodec-61.dll
+            ${CMAKE_PREFIX_PATH}/bin/swresample-5.dll
+            ${CMAKE_PREFIX_PATH}/bin/swscale-8.dll
+            ${CMAKE_PREFIX_PATH}/bin/avutil-59.dll
          DESTINATION ${_out_dir})
 
     set(${output_dlls}
@@ -662,11 +661,10 @@ function(bambustudio_copy_dlls target config postfix output_dlls)
         ${_out_dir}/TKXSBase.dll
 
         ${_out_dir}/freetype.dll
-        ${_out_dir}/avcodec-59.dll
-        ${_out_dir}/swresample-4.dll
-        ${_out_dir}/swscale-6.dll
-        ${_out_dir}/avutil-57.dll
-	${_out_dir}/libwinpthread-1.dll
+        ${_out_dir}/avcodec-61.dll
+        ${_out_dir}/swresample-5.dll
+        ${_out_dir}/swscale-8.dll
+        ${_out_dir}/avutil-59.dll
         PARENT_SCOPE
     )
 
@@ -679,31 +677,31 @@ function(bambustudio_copy_sos target config postfix output_sos)
 
     file(COPY ${CMAKE_PREFIX_PATH}/lib/libavcodec.so
             ${CMAKE_PREFIX_PATH}/lib/libavcodec.so.61
-            ${CMAKE_PREFIX_PATH}/lib/libavcodec.so.61.10.100
+            ${CMAKE_PREFIX_PATH}/lib/libavcodec.so.61.3.100
             ${CMAKE_PREFIX_PATH}/lib/libavutil.so
             ${CMAKE_PREFIX_PATH}/lib/libavutil.so.59
-            ${CMAKE_PREFIX_PATH}/lib/libavutil.so.59.28.100
+            ${CMAKE_PREFIX_PATH}/lib/libavutil.so.59.8.100
             ${CMAKE_PREFIX_PATH}/lib/libswscale.so
             ${CMAKE_PREFIX_PATH}/lib/libswscale.so.8
-            ${CMAKE_PREFIX_PATH}/lib/libswscale.so.8.2.100
+            ${CMAKE_PREFIX_PATH}/lib/libswscale.so.8.1.100
             ${CMAKE_PREFIX_PATH}/lib/libswresample.so
             ${CMAKE_PREFIX_PATH}/lib/libswresample.so.5
-            ${CMAKE_PREFIX_PATH}/lib/libswresample.so.5.2.100
+            ${CMAKE_PREFIX_PATH}/lib/libswresample.so.5.1.100
          DESTINATION ${_out_dir})
 
     set(${output_dlls}
         ${_out_dir}/libavcodec.so
         ${_out_dir}/libavcodec.so.61
-        ${_out_dir}/libavcodec.so.61.10.100
+        ${_out_dir}/libavcodec.so.61.3.100
         ${_out_dir}/libavutil.so
         ${_out_dir}/libavutil.so.59
-        ${_out_dir}/libavutil.so.59.28.100
+        ${_out_dir}/libavutil.so.59.8.100
         ${_out_dir}/libswscale.so
         ${_out_dir}/libswscale.so.8
-        ${_out_dir}/libswscale.so.8.2.100
+        ${_out_dir}/libswscale.so.8.1.100
         ${_out_dir}/libswresample.so
         ${_out_dir}/libswresample.so.5
-        ${_out_dir}/libswresample.so.5.2.100
+        ${_out_dir}/libswresample.so.5.1.100
         PARENT_SCOPE
     )
 endfunction()
