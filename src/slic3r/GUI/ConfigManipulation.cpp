@@ -312,14 +312,6 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         is_msg_dlg_already_exist = false;
     }
 
-    // arachen not support wall generator
-    bool have_arachne = config->opt_enum<PerimeterGeneratorType>("wall_generator") == PerimeterGeneratorType::Arachne;
-    if (have_arachne) {
-        DynamicPrintConfig new_conf = *config;
-        new_conf.set_key_value("z_direction_outwall_speed_continuous", new ConfigOptionBool(false));
-        apply(config, &new_conf);
-    }
-
     double sparse_infill_density = config->option<ConfigOptionPercent>("sparse_infill_density")->value;
     auto timelapse_type = config->opt_enum<TimelapseType>("timelapse_type");
 
@@ -726,10 +718,10 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         toggle_line(el, has_fuzzy_skin);
 
     bool have_arachne = config->opt_enum<PerimeterGeneratorType>("wall_generator") == PerimeterGeneratorType::Arachne;
-    for (auto el : { "wall_transition_length", "wall_transition_filter_deviation", "wall_transition_angle", "min_feature_size", "min_bead_width", "wall_distribution_count"})
+    for (auto el : { "wall_transition_length", "wall_transition_filter_deviation", "wall_transition_angle",
+        "min_feature_size", "min_bead_width", "wall_distribution_count" })
         toggle_line(el, have_arachne);
     toggle_field("detect_thin_wall", !have_arachne);
-    toggle_field("z_direction_outwall_speed_continuous", !have_arachne);
 
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     // OrcaSlicer
