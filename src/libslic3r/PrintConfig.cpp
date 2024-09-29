@@ -1610,8 +1610,8 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBools { false });
 
     def                = this->add("filament_scarf_seam_type", coEnums);
-    def->label         = L("Filament scarf seam type");
-    def->tooltip       = L("Will replace the scarf parameters on process profile.");
+    def->label         = L("Scarf seam type");
+    def->tooltip       = L("Set scarf seam type for this filament. This setting could minimize seam visibiliy.");
     def->enum_keys_map = &ConfigOptionEnum<SeamScarfType>::get_enum_values();
     def->enum_values.push_back("none");
     def->enum_values.push_back("external");
@@ -1623,21 +1623,28 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionEnumsGeneric{0});
 
     def          = this->add("filament_scarf_height", coFloatsOrPercents);
-    def->label   = L("Filament scarf seam height");
+    def->label   = L("Scarf start height");
+    def->tooltip    = L("This amount can be specified in millimeters or as a percentage of the current layer height.");
+    def->min        = 0;
     def->ratio_over = "layer_height";
+    def->sidetext   = L("mm/%");
     def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionFloatsOrPercents{FloatOrPercent( 0, 10)});
 
     def        = this->add("filament_scarf_gap", coFloatsOrPercents);
-    def->label = L("Filament scarf seam slope height");
+    def->label = L("Scarf slope gap");
+    def->tooltip    = L("In order to reduce the visiblity of the seam in closed loop, the inner wall and outer wall are shortened by a specified amount.");
     def->min   = 0;
     def->ratio_over = "nozzle_diameter";
+    def->sidetext   = L("mm/%");
     def->mode  = comAdvanced;
     def->set_default_value(new ConfigOptionFloatsOrPercents{FloatOrPercent(0, 0)});
 
     def        = this->add("filament_scarf_length", coFloats);
-    def->label = L("Filament scarf seam length");
+    def->label = L("Scarf length");
+    def->tooltip = L("Length of the scarf. Setting this parameter to zero effectively disables the scarf.");
     def->min   = 0;
+    def->sidetext = "mm";
     def->mode  = comAdvanced;
     def->set_default_value(new ConfigOptionFloats{10});
 
