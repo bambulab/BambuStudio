@@ -1289,25 +1289,25 @@ void GLGizmoSVG::draw_window()
     assert(m_volume != nullptr);
     assert(m_volume_id.valid());
     if (m_volume == nullptr || m_volume_id.invalid()) {
-        ImGui::Text("Not valid state please report reproduction steps on github");
+        m_imgui->text(_L("Not valid state please report reproduction steps on github"));
         return;
     }
 
     assert(m_volume->emboss_shape.has_value());
     if (!m_volume->emboss_shape.has_value()) {
-        ImGui::Text("No embossed file");
+        m_imgui->text(_L("No embossed file"));
         return;
     }
 
     assert(m_volume->emboss_shape->svg_file.has_value());
     if (!m_volume->emboss_shape->svg_file.has_value()) {
-        ImGui::Text("Missing svg file in embossed shape");
+        m_imgui->text(_L("Missing svg file in embossed shape"));
         return;
     }
 
     assert(m_volume->emboss_shape->svg_file->file_data != nullptr);
     if (m_volume->emboss_shape->svg_file->file_data == nullptr) {
-        ImGui::Text("Missing data of svg file");
+        m_imgui->text(_L("Missing data of svg file"));
         return;
     }
     draw_preview();
@@ -1339,7 +1339,7 @@ void GLGizmoSVG::draw_window()
         draw_model_type();
     }
     if (!m_can_use_surface) {
-        ImGui::Text("Tip:If you want to place svg file on another part surface,\nyou should select part first, and then drag svg file to the part surface.");
+        m_imgui->text(_L("Tip:If you want to place svg file on another part surface,\nyou should select part first, and then drag svg file to the part surface."));
     }
 }
 
