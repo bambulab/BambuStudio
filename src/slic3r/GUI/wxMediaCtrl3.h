@@ -69,8 +69,11 @@ private:
     int m_error  = 0;
     wxSize m_video_size = wxDefaultSize;
     wxSize m_frame_size = wxDefaultSize;
+#ifdef _WIN32
     wxBitmap m_frame;
-    wxImage m_frame2;
+#else
+    wxImage m_frame;
+#endif
 
     std::shared_ptr<wxURI> m_url;
     std::mutex m_mutex;

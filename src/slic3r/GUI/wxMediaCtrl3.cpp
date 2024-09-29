@@ -241,9 +241,14 @@ void wxMediaCtrl3::PlayThread()
             if (error == 0) {
                 auto frame_size = m_frame_size;
                 lk.unlock();
-                wxBitmap bm;
                 decoder.decode(sample);
+#ifdef _WIN32
+                wxBitmap bm;
                 decoder.toWxBitmap(bm, frame_size);
+#else
+                wxImage bm;
+                decoder.toWxImage(bm, frame_size);
+#endif
                 lk.lock();
                 if (m_url != url) {
                     error = 1;
