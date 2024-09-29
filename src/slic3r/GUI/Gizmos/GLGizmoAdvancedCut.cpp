@@ -479,6 +479,11 @@ void GLGizmoAdvancedCut::on_set_state()
 
     // Reset m_cut_z on gizmo activation
     if (get_state() == On) {
+        const Selection &selection = m_parent.get_selection();
+        if (selection.is_empty()) {//check selection again
+            close();
+            return;
+        }
         m_hover_id           = -1;
         m_connectors_editing = false;
 
@@ -513,6 +518,13 @@ void GLGizmoAdvancedCut::on_set_state()
             });
         }
     }
+}
+
+void GLGizmoAdvancedCut::close()
+{//close gizmo == open it again
+    auto &mng = m_parent.get_gizmos_manager();
+    if (mng.get_current_type() == GLGizmosManager::Cut)
+        mng.open_gizmo(GLGizmosManager::Cut);
 }
 
 bool GLGizmoAdvancedCut::on_is_activable() const
