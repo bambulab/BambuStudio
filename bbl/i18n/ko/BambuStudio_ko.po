@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-22 19:49+0800\n"
+"POT-Creation-Date: 2024-09-29 14:17+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -104,6 +104,11 @@ msgstr "자동서포트 사용하지 않음"
 msgid "Support Generated"
 msgstr "생성된 서포트"
 
+msgid ""
+"Warning: All triangle areas are too small,The current function is not "
+"working."
+msgstr ""
+
 msgid "Lay on face"
 msgstr "선택면을 바닥으로"
 
@@ -157,8 +162,17 @@ msgstr ""
 msgid "Toggle Wireframe"
 msgstr "와이어프레임 전환"
 
+msgid "Shift + L"
+msgstr ""
+
+msgid "Toggle non-manifold edges"
+msgstr ""
+
 msgid "Rotate horizontally"
 msgstr "수평으로 회전"
+
+msgid "hit face"
+msgstr ""
 
 msgid "Shortcut Key "
 msgstr "단축키 "
@@ -260,9 +274,6 @@ msgstr "번역"
 msgid "Group Operations"
 msgstr "그룹 작업"
 
-msgid "Set Position"
-msgstr "위치 설정"
-
 msgid "Set Orientation"
 msgstr "방향 설정"
 
@@ -281,8 +292,14 @@ msgstr ""
 msgid "World coordinates"
 msgstr "월드 좌표계"
 
+msgid "Reset current rotation to real zeros."
+msgstr ""
+
 msgid "°"
 msgstr "°"
+
+msgid "Reset current rotation to the value when open the rotation tool."
+msgstr ""
 
 msgid "Part coordinates"
 msgstr ""
@@ -290,6 +307,7 @@ msgstr ""
 msgid "%"
 msgstr "%"
 
+#. TRN - Input label. Be short as possible
 msgid "Size"
 msgstr "사이즈"
 
@@ -364,6 +382,9 @@ msgstr "모델 객체 오류수정"
 msgid "Connector"
 msgstr "커넥터"
 
+msgid "Flip cut plane"
+msgstr ""
+
 msgid "Planar"
 msgstr "평면"
 
@@ -379,6 +400,7 @@ msgstr "이동:"
 msgid "Groove Angle"
 msgstr "홈 각도"
 
+#. TRN - Input label. Be short as possible
 msgid "Rotation"
 msgstr "회전"
 
@@ -397,6 +419,7 @@ msgstr "커넥터 추가"
 msgid "Groove"
 msgstr "홈"
 
+#. TRN - Input label. Be short as possible
 msgid "Depth"
 msgstr "깊이"
 
@@ -807,11 +830,268 @@ msgstr ""
 "임베디드\n"
 "깊이"
 
+msgid "Warning:Input cannot be empty!"
+msgstr ""
+
+msgid "Warning:create text fail."
+msgstr ""
+
 msgid "Surface"
 msgstr "표면"
 
 msgid "Horizontal text"
 msgstr "가로 텍스트"
+
+msgid "Head diameter"
+msgstr ""
+
+msgid "Max angle"
+msgstr ""
+
+msgid "Detection radius"
+msgstr ""
+
+msgid "Remove selected points"
+msgstr ""
+
+msgid "Remove all points"
+msgstr ""
+
+msgid "Auto-generate points"
+msgstr ""
+
+msgid "Add a brim ear"
+msgstr ""
+
+msgid "Delete a brim ear"
+msgstr ""
+
+msgid "Ctrl+Mouse wheel"
+msgstr "Ctrl+마우스 휠"
+
+msgid "Adjust section view"
+msgstr ""
+
+msgid " invalid brim ears"
+msgstr ""
+
+msgid "Brim Ears"
+msgstr ""
+
+msgid "Choose SVG file for emboss:"
+msgstr ""
+
+#, boost-format
+msgid "File does NOT exist (%1%)."
+msgstr ""
+
+#, boost-format
+msgid "Filename has to end with \".svg\" but you selected %1%"
+msgstr ""
+
+#, boost-format
+msgid "Nano SVG parser can't load from file (%1%)."
+msgstr ""
+
+#, boost-format
+msgid "SVG file does NOT contain a single path to be embossed (%1%)."
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+msgid "Use surface"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+msgid "From surface"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+msgid "Mirror"
+msgstr "미러"
+
+#, boost-format
+msgid "Opacity (%1%)"
+msgstr ""
+
+#, boost-format
+msgid "Color gradient (%1%)"
+msgstr ""
+
+msgid "Undefined fill type"
+msgstr ""
+
+msgid "Linear gradient"
+msgstr ""
+
+msgid "Radial gradient"
+msgstr ""
+
+msgid "Open filled path"
+msgstr ""
+
+msgid "Undefined stroke type"
+msgstr ""
+
+msgid "Path can't be healed from selfintersection and multiple points."
+msgstr ""
+
+msgid ""
+"Final shape constains selfintersection or multiple points with same "
+"coordinate."
+msgstr ""
+
+#, boost-format
+msgid "Shape is marked as invisible (%1%)."
+msgstr ""
+
+#. TRN: The first placeholder is shape identifier, the second one is text describing the problem.
+#, boost-format
+msgid "Fill of shape (%1%) contains unsupported: %2%."
+msgstr ""
+
+#, boost-format
+msgid "Stroke of shape (%1%) is too thin (minimal width is %2% mm)."
+msgstr ""
+
+#, boost-format
+msgid "Stroke of shape (%1%) contains unsupported: %2%."
+msgstr ""
+
+msgid "Not valid state please report reproduction steps on github"
+msgstr ""
+
+msgid "No embossed file"
+msgstr ""
+
+msgid "Missing svg file in embossed shape"
+msgstr ""
+
+msgid "Missing data of svg file"
+msgstr ""
+
+msgid ""
+"Tip:If you want to place svg file on another part surface,\n"
+"you should select part first, and then drag svg file to the part surface."
+msgstr ""
+
+#. TRN - Preview of filename after clear local filepath.
+msgid "Unknown filename"
+msgstr ""
+
+#, boost-format
+msgid "SVG file path is \"%1%\""
+msgstr ""
+
+msgid "Reload SVG file from disk."
+msgstr ""
+
+msgid "Change file"
+msgstr ""
+
+msgid "Change to another .svg file"
+msgstr ""
+
+#. TRN: An menu option to convert the SVG into an unmodifiable model part.
+msgid "Bake to model"
+msgstr ""
+
+#. TRN: Tooltip for the menu item.
+msgid "Bake into model as uneditable part"
+msgstr ""
+
+msgid "Save as"
+msgstr ""
+
+msgid "Save SVG file"
+msgstr ""
+
+msgid "Save as '.svg' file"
+msgstr ""
+
+msgid "Size in emboss direction."
+msgstr ""
+
+#. TRN: The placeholder contains a number.
+#, boost-format
+msgid "Scale also changes amount of curve samples (%1%)"
+msgstr ""
+
+msgid "width:"
+msgstr ""
+
+msgid "height:"
+msgstr ""
+
+msgid "set width and height keep ratio with width"
+msgstr ""
+
+msgid "Width of SVG."
+msgstr ""
+
+msgid "Height of SVG."
+msgstr ""
+
+msgid "Lock/unlock the aspect ratio of the SVG."
+msgstr ""
+
+msgid "Reset scale"
+msgstr ""
+
+msgid "Distance of the center of the SVG to the model surface."
+msgstr ""
+
+msgid "Reset distance"
+msgstr ""
+
+msgid "Rotate text Clock-wise."
+msgstr ""
+
+msgid "Reset rotation"
+msgstr ""
+
+msgid "Lock/unlock rotation angle when dragging above the surface."
+msgstr ""
+
+msgid "Mirror vertically"
+msgstr ""
+
+msgid "Mirror horizontally"
+msgstr ""
+
+msgid "Set Mirror"
+msgstr ""
+
+msgid "Face the camera"
+msgstr ""
+
+msgid "Operation"
+msgstr ""
+
+msgid "Join"
+msgstr ""
+
+msgid "Click to change text into object part."
+msgstr ""
+
+msgid "You can't change a type of the last solid part of the object."
+msgstr ""
+
+msgctxt "EmbossOperation"
+msgid "Cut"
+msgstr ""
+
+msgid "Click to change part type into negative volume."
+msgstr ""
+
+msgid "Modifier"
+msgstr "수정자"
+
+msgid "Click to change part type into modifier."
+msgstr ""
+
+#. TRN: This is the name of the action that shows in undo/redo stack (changing part type from SVG to something else).
+msgid "Change SVG Type"
+msgstr ""
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -967,6 +1247,15 @@ msgstr ""
 msgid "User logged out"
 msgstr "사용자가 로그아웃했습니다."
 
+msgid "Install network plug-in"
+msgstr ""
+
+msgid "Please Install network plug-in before log in."
+msgstr ""
+
+msgid "Install Network Plug-in"
+msgstr ""
+
 msgid "new or open project file is not allowed during the slicing process!"
 msgstr ""
 "슬라이싱 프로세스 중에는 새 프로젝트 나 프로젝트 열기를 할 수 없습니다!"
@@ -1103,6 +1392,24 @@ msgstr "서포트 차단 추가"
 msgid "Add support enforcer"
 msgstr "커스텀 서포트 추가"
 
+msgid "Add text"
+msgstr ""
+
+msgid "Add negative text"
+msgstr ""
+
+msgid "Add text modifier"
+msgstr ""
+
+msgid "Add SVG part"
+msgstr ""
+
+msgid "Add negative SVG"
+msgstr ""
+
+msgid "Add SVG modifier"
+msgstr ""
+
 msgid "Select settings"
 msgstr "설정 선택"
 
@@ -1121,6 +1428,12 @@ msgstr "선택한 객체 삭제"
 msgid "Edit Text"
 msgstr "텍스트 편집"
 
+msgid "Edit SVG"
+msgstr ""
+
+msgid "Change SVG source file, projection, size, ..."
+msgstr ""
+
 msgid "Load..."
 msgstr "로딩..."
 
@@ -1132,6 +1445,9 @@ msgstr "원기둥"
 
 msgid "Cone"
 msgstr "원뿔"
+
+msgid "Double Tear Romboid Cylinder"
+msgstr ""
 
 msgid "Disc"
 msgstr "삭제"
@@ -1153,6 +1469,9 @@ msgstr "3D벤치"
 
 msgid "ksr FDMTest"
 msgstr "ksr FDM테스트"
+
+msgid "SVG"
+msgstr ""
 
 msgid "Height range Modifier"
 msgstr "높이 범위 수정자"
@@ -1274,9 +1593,6 @@ msgstr "Z축 방향"
 
 msgid "Mirror along the Z axis"
 msgstr "Z축에 대해 미러"
-
-msgid "Mirror"
-msgstr "미러"
 
 msgid "Mirror object"
 msgstr "객체 미러"
@@ -1545,9 +1861,6 @@ msgstr "마지막 단일 객체 부품의 유형은 변경할 수 없습니다."
 
 msgid "Negative Part"
 msgstr "네거티브 부품"
-
-msgid "Modifier"
-msgstr "수정자"
 
 msgid "Support Blocker"
 msgstr "서포트 차단기"
@@ -3588,9 +3901,6 @@ msgstr "아니요"
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "새 모델을 생성하기 전에 닫힙니다. 계속하시겠습니까?"
 
-msgid "Upload"
-msgstr "업로드"
-
 msgid "Slice plate"
 msgstr "플레이트 슬라이스"
 
@@ -3776,6 +4086,9 @@ msgstr "현재 설정을 파일로 내보내기"
 
 msgid "Export"
 msgstr "내보내기"
+
+msgid "Publish to MakerWorld"
+msgstr ""
 
 msgid "Quit"
 msgstr "종료"
@@ -4339,6 +4652,14 @@ msgstr "중지"
 msgid "Layer: N/A"
 msgstr "레이어: N/A"
 
+msgid "Finish Time: N/A"
+msgstr ""
+
+msgid ""
+"The estimated printing time for \n"
+"multi-color models may be inaccurate."
+msgstr ""
+
 msgid "Clear"
 msgstr "지우기"
 
@@ -4360,6 +4681,12 @@ msgstr ""
 
 msgid "Rate"
 msgstr "비율"
+
+msgid "Finished"
+msgstr "완료됨"
+
+msgid "Finish Time: "
+msgstr ""
 
 msgid "Camera"
 msgstr "카메라"
@@ -4426,6 +4753,15 @@ msgstr "레이어: %s"
 #, c-format, boost-format
 msgid "Layer: %d/%d"
 msgstr "레이어: %d/%d"
+
+msgid "Axis go home"
+msgstr ""
+
+msgid "Are you sure you want to home now?"
+msgstr ""
+
+msgid "Home"
+msgstr ""
 
 msgid ""
 "Please heat the nozzle to above 170 degree before loading or unloading "
@@ -4571,6 +4907,30 @@ msgstr ""
 "이 인쇄 프로필의 성공적인 인쇄 기록이 하나 이상 필요합니다.\n"
 "긍정적인 평가(별 4개 또는 5개)를 제공합니다."
 
+msgid "Step file import parameters"
+msgstr ""
+
+msgid "Linear Deflection:"
+msgstr ""
+
+msgid "Please input a valid value (0.001 < angle deflection < 0.1)"
+msgstr ""
+
+msgid "Angle Deflection:"
+msgstr ""
+
+msgid "Please input a valid value (0.01 < angle deflection < 1.0)"
+msgstr ""
+
+msgid "Number of triangular facets: "
+msgstr ""
+
+msgid "0"
+msgstr ""
+
+msgid "Calculating, please wait..."
+msgstr ""
+
 msgid "Status"
 msgstr "출력상황"
 
@@ -4638,6 +4998,22 @@ msgstr "최신 버전:"
 
 msgid "Not for now"
 msgstr "지금은 아니에요."
+
+msgid "Server Exception"
+msgstr ""
+
+msgid ""
+"The server is unable to respond. Please click the link below to check the "
+"server status."
+msgstr ""
+
+msgid ""
+"If the server is in a fault state, you can temporarily use offline printing "
+"or local network printing."
+msgstr ""
+
+msgid "How to use LAN only mode"
+msgstr ""
 
 msgid "3D Mouse disconnected."
 msgstr "3D 마우스 연결이 끊겼습니다."
@@ -5287,6 +5663,9 @@ msgstr "프로젝트로 열기"
 msgid "Import geometry only"
 msgstr "모델만 가져오기"
 
+msgid "Please import multiple files with the same suffix."
+msgstr ""
+
 msgid "Only one G-code file can be opened at the same time."
 msgstr "한 번에 하나의 G코드 파일만 열 수 있습니다."
 
@@ -5371,6 +5750,15 @@ msgstr ""
 "부정적인 부분이 감지되었습니다. 내보내기 전에 메쉬 부울을 수행하시겠습니까?"
 
 msgid ""
+"Are you sure you want to store original SVGs with their local paths into the "
+"3MF file?\n"
+"If you hit 'NO', all SVGs in the project will not be editable any more."
+msgstr ""
+
+msgid "Private protection"
+msgstr ""
+
+msgid ""
 "Print By Object: \n"
 "Suggest to use auto-arrange to avoid collisions when printing."
 msgstr ""
@@ -5391,6 +5779,17 @@ msgstr "잘못된 번호"
 
 msgid "Plate Settings"
 msgstr "플레이트 설정"
+
+msgid "Prime Tower:"
+msgstr ""
+
+msgid ""
+"A cube printed during a filament change to purge old color and ensure smooth "
+"color transition."
+msgstr ""
+
+msgid "View Wiki for more information"
+msgstr ""
 
 #, boost-format
 msgid "Number of currently selected parts: %1%\n"
@@ -5576,6 +5975,12 @@ msgstr ""
 "이 옵션을 활성화하면 동시에 여러 장치에 작업을 보내고 여러 장치를 관리할 수 "
 "있습니다."
 
+msgid "Support beta version update."
+msgstr ""
+
+msgid "With this option enabled, you can receive beta version updates."
+msgstr ""
+
 msgid "3D Settings"
 msgstr ""
 
@@ -5586,6 +5991,14 @@ msgid ""
 "Zoom in towards the mouse pointer's position in the 3D view, rather than the "
 "2D window center."
 msgstr "2D 창 중앙이 아닌 3D 보기에서 마우스 포인터의 위치를 향해 확대합니다."
+
+msgid "Always show shells in preview"
+msgstr ""
+
+msgid ""
+"Always show shells or not in preview view tab.If change value,you should "
+"reslice."
+msgstr ""
 
 msgid "Improve rendering performance by lod"
 msgstr ""
@@ -6270,6 +6683,18 @@ msgstr "장치 이름 수정"
 msgid "Bind with Pin Code"
 msgstr "핀 코드로 바인딩"
 
+msgid "Bind with Access Code"
+msgstr ""
+
+msgid ""
+"Please log in before binding your device with a PIN code.\n"
+"Alternatively, you can use LAN mode to bind your device. Learn about LAN "
+"mode."
+msgstr ""
+
+msgid "Go to Login"
+msgstr ""
+
 msgid "Send to Printer SD card"
 msgstr "프린터 MicroSD 카드로 보내기"
 
@@ -6459,13 +6884,14 @@ msgid "Still print by object?"
 msgstr "아직도 개체별로 인쇄하시겠습니까?"
 
 msgid ""
-"We have added an experimental style \"Tree Slim\" that features smaller "
-"support volume but weaker strength.\n"
-"We recommend using it with: 0 interface layers, 0 top distance, 2 walls."
+"When using support material for the support interface, We recommend the "
+"following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and "
+"disable independent support layer height"
 msgstr ""
-"부피는 작고 강도는 약한 실험적인 스타일의 '트리 슬림'을 추가했습니다.\n"
-"다음 조건에서 사용하는 것을 권장합니다: 인터페이스 레이어 0, 상단 거리 0, 벽 "
-"2."
+"지원 인터페이스에 대한 지원 자료를 사용할 때 다음 설정을 권장합니다.\n"
+"0 상단 z 거리, 0 인터페이스 간격, 인터레이스된 직선 패턴 및 독립 지지 레이어 "
+"높이 비활성화"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -6477,22 +6903,9 @@ msgstr ""
 "아니요 - 이 설정으로 변경하지 않습니다."
 
 msgid ""
-"For \"Tree Strong\" and \"Tree Hybrid\" styles, we recommend the following "
-"settings: at least 2 interface layers, at least 0.1mm top z distance or "
-"using support materials on interface."
+"Layer height is too small.\n"
+"It will set to min_layer_height\n"
 msgstr ""
-"“Tree Strong” 및 “Tree Hybrid” 스타일의 경우 다음 설정을 권장합니다. 최소 2개"
-"의 인터페이스 레이어, 최소 0.1mm 상단 z 거리 또는 서포트 전용필라멘트 사용"
-
-msgid ""
-"When using support material for the support interface, We recommend the "
-"following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and "
-"disable independent support layer height"
-msgstr ""
-"지원 인터페이스에 대한 지원 자료를 사용할 때 다음 설정을 권장합니다.\n"
-"0 상단 z 거리, 0 인터페이스 간격, 인터레이스된 직선 패턴 및 독립 지지 레이어 "
-"높이 비활성화"
 
 msgid ""
 "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer "
@@ -6534,13 +6947,18 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "툴헤드 없이 타임랩스를 녹화할 때는 “타임랩스 와이프 타워”를 추가하는 것이 좋"
 "습니다. \n"
 "빌드 플레이트의 빈 위치를 마우스 오른쪽 버튼으로 클릭하고 “기본 모델링 추가”-"
 ">\"타임랩스 와이프 타워\"를 선택합니다."
+
+msgid ""
+"The notes are too large, and may not be synchronized to the cloud. Please "
+"keep it within 40k."
+msgstr ""
 
 msgid "Line width"
 msgstr "선 폭"
@@ -6633,6 +7051,11 @@ msgstr[0] ""
 msgid "Reserved keywords found"
 msgstr "예약된 키워드가 발견되었습니다."
 
+msgid ""
+"Custom G-code files are too large, and may not be synchronized to the cloud. "
+"Please keep it within 40k."
+msgstr ""
+
 msgid "Setting Overrides"
 msgstr "설정 재정의"
 
@@ -6657,6 +7080,14 @@ msgstr "노즐"
 
 msgid "Nozzle temperature when printing"
 msgstr "출력 시 노즐 온도"
+
+msgid "Bambu Cool Plate SuperTack"
+msgstr ""
+
+msgid ""
+"Bed temperature when cool plate is installed. Value 0 means the filament "
+"does not support to print on the Bambu Cool Plate SuperTack"
+msgstr ""
 
 msgid "Cool Plate / PLA Plate"
 msgstr "쿨 플레이트 / PLA 플레이트"
@@ -7484,8 +7915,8 @@ msgstr "라이브뷰 보기"
 msgid "Confirm and Update Nozzle"
 msgstr "노즐 확인 및 업데이트"
 
-msgid "LAN Connection Failed (Sending print file)"
-msgstr "LAN 연결 실패 (출력 파일 전송 중)"
+msgid "Connect the printer using IP and access code"
+msgstr ""
 
 msgid ""
 "Step 1, please confirm Bambu Studio and your printer are in the same LAN."
@@ -7508,11 +7939,29 @@ msgstr "프린터의 IP 및 액세스 코드는 어디서 찾을 수 있습니�
 msgid "Step 3: Ping the IP address to check for packet loss and latency."
 msgstr "3단계: IP 주소를 ping하여 패킷 손실 및 대기 시간을 확인합니다."
 
-msgid "Test"
-msgstr "테스트"
+msgid "Connect"
+msgstr ""
 
-msgid "IP and Access Code Verified! You may close the window"
-msgstr "IP 및 액세스 코드 확인! 창을 닫을 수 있습니다"
+msgid "connecting..."
+msgstr ""
+
+msgid "Failed to connect to printer."
+msgstr ""
+
+msgid "Failed to publish login request."
+msgstr ""
+
+msgid "The device does not support using IP and Access Code for connection."
+msgstr ""
+
+msgid "The printer has already been bound."
+msgstr ""
+
+msgid "The printer mode is incorrect, please switch to LAN Only."
+msgstr ""
+
+msgid "Printer binding successful. The dialog will close later"
+msgstr ""
 
 msgid "Connection failed, please double check IP and Access Code"
 msgstr "연결에 실패했습니다. IP 및 액세스 코드를 다시 확인하십시오"
@@ -8156,10 +8605,8 @@ msgstr "첫레이어 베드온도"
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
-"support to print on the Cool Plate"
+"support to print on the Bambu Cool Plate SuperTack"
 msgstr ""
-"첫 레이어의 베드 온도입니다. 값이 0이면 필라멘트가 해당 Plate에서의 출력을 지"
-"원하지 않음을 의미합니다."
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
@@ -8386,6 +8833,9 @@ msgstr ""
 "모델의 바깥쪽 또는 안쪽 브림 생성을 제어합니다. 자동은 브림 폭이 자동으로 분"
 "석 및 계산됨을 의미합니다."
 
+msgid "Manual"
+msgstr ""
+
 msgid "Brim-object gap"
 msgstr "브림-출력물 간격"
 
@@ -8394,6 +8844,12 @@ msgid ""
 "easily"
 msgstr ""
 "가장 안쪽 브림 라인과 개체 사이에 틈이 생겨 브림을 제거하기가 쉬워집니다."
+
+msgid "Brim ears"
+msgstr ""
+
+msgid "Draw brim"
+msgstr ""
 
 msgid "Compatible machine"
 msgstr "호환 가능한 장치"
@@ -10355,8 +10811,10 @@ msgstr "이 설정은 서포트 분기점의 초기 지름을 결정합니다."
 msgid "Support wall loops"
 msgstr "Support wall loops"
 
-msgid "This setting specifies the count of walls around support"
-msgstr "This setting specifies the count of walls around support"
+msgid ""
+"This setting specifies the count of support walls in the range of [0,2]. 0 "
+"means auto."
+msgstr ""
 
 msgid "Chamber temperature"
 msgstr "Chamber temperature"
@@ -11420,9 +11878,6 @@ msgstr "OctoPrint version"
 msgid "Searching for devices"
 msgstr "Searching for devices"
 
-msgid "Finished"
-msgstr "완료됨"
-
 msgid "Send to print"
 msgstr "Send to print"
 
@@ -11435,6 +11890,9 @@ msgstr "Use forward slashes ( / ) as a directory separator if needed."
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
 msgstr "Upload filename doesn't end with \"%s\". Do you wish to continue?"
+
+msgid "Upload"
+msgstr "업로드"
 
 msgid "Simulate"
 msgstr "Simulate"
@@ -11489,15 +11947,15 @@ msgstr ""
 msgid "Mesh Boolean"
 msgstr "Mesh Boolean"
 
-msgid "Please right click to assembly these objects."
-msgstr "Please right click to assemble these objects."
-
 msgid ""
 "Please add at least one more object and select them together,\n"
 "then right click to assembly these objects."
 msgstr ""
 "Please add at least one more object and select them together,\n"
 "then right click to assemble these objects."
+
+msgid "Please right click to assembly these objects."
+msgstr "Please right click to assemble these objects."
 
 msgid "Union"
 msgstr "Union"
@@ -11706,12 +12164,12 @@ msgstr ""
 "다시 작성하시겠습니까?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more printers; please go to printer selection"
 
 msgid "Create Printer/Nozzle"
@@ -12128,6 +12586,9 @@ msgstr "Physical Printer"
 
 msgid "Print Host upload"
 msgstr "Print Host upload"
+
+msgid "Test"
+msgstr "테스트"
 
 msgid "Could not get a valid Printer Host reference"
 msgstr "Could not get a valid Printer Host reference"
@@ -13035,6 +13496,56 @@ msgstr ""
 "ABS 등 뒤틀림이 발생하기 쉬운 소재를 출력할 때, 히트베드 온도를 적절하게 높이"
 "면 뒤틀림 가능성을 줄일 수 있다는 사실을 알고 계셨나요?"
 
+#~ msgid "Set Position"
+#~ msgstr "위치 설정"
+
+#~ msgid "Stopped."
+#~ msgstr "중지됨"
+
+#~ msgid ""
+#~ "\"Fix Model\" feature is currently only on Windows. Please repair the "
+#~ "model on Bambu Studio(windows) or CAD softwares."
+#~ msgstr ""
+#~ "“모델 수정” 기능은 현재 Windows에서만 사용할 수 있습니다. 뱀부 스튜디오 "
+#~ "(Windows) 또는 CAD 소프트웨어로 모델을 수정하십시오."
+
+#~ msgid "Downloads"
+#~ msgstr "다운로드"
+
+#~ msgid ""
+#~ "We have added an experimental style \"Tree Slim\" that features smaller "
+#~ "support volume but weaker strength.\n"
+#~ "We recommend using it with: 0 interface layers, 0 top distance, 2 walls."
+#~ msgstr ""
+#~ "부피는 작고 강도는 약한 실험적인 스타일의 '트리 슬림'을 추가했습니다.\n"
+#~ "다음 조건에서 사용하는 것을 권장합니다: 인터페이스 레이어 0, 상단 거리 0, "
+#~ "벽 2."
+
+#~ msgid ""
+#~ "For \"Tree Strong\" and \"Tree Hybrid\" styles, we recommend the "
+#~ "following settings: at least 2 interface layers, at least 0.1mm top z "
+#~ "distance or using support materials on interface."
+#~ msgstr ""
+#~ "“Tree Strong” 및 “Tree Hybrid” 스타일의 경우 다음 설정을 권장합니다. 최소 "
+#~ "2개의 인터페이스 레이어, 최소 0.1mm 상단 z 거리 또는 서포트 전용필라멘트 "
+#~ "사용"
+
+#~ msgid "LAN Connection Failed (Sending print file)"
+#~ msgstr "LAN 연결 실패 (출력 파일 전송 중)"
+
+#~ msgid "IP and Access Code Verified! You may close the window"
+#~ msgstr "IP 및 액세스 코드 확인! 창을 닫을 수 있습니다"
+
+#~ msgid ""
+#~ "Bed temperature of the initial layer. Value 0 means the filament does not "
+#~ "support to print on the Cool Plate"
+#~ msgstr ""
+#~ "첫 레이어의 베드 온도입니다. 값이 0이면 필라멘트가 해당 Plate에서의 출력"
+#~ "을 지원하지 않음을 의미합니다."
+
+#~ msgid "This setting specifies the count of walls around support"
+#~ msgstr "This setting specifies the count of walls around support"
+
 #~ msgid "China"
 #~ msgstr "중국"
 
@@ -13074,9 +13585,6 @@ msgstr ""
 
 #~ msgid "⌥+Mouse wheel"
 #~ msgstr "⌥+마우스 휠"
-
-#~ msgid "Ctrl+Mouse wheel"
-#~ msgstr "Ctrl+마우스 휠"
 
 #~ msgid "Alt+Mouse wheel"
 #~ msgstr "Alt+마우스 휠"
