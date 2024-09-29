@@ -229,6 +229,7 @@ protected:
     virtual std::string on_get_name() const;
     virtual std::string on_get_name_str() override { return "Cut"; }
     virtual void on_set_state();
+    void         close();
     virtual bool on_is_activable() const;
     virtual CommonGizmosDataID on_get_requirements() const override;
     virtual void on_start_dragging() override;
