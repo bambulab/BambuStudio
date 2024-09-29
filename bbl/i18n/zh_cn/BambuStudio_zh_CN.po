@@ -1,12 +1,12 @@
 # Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-22 19:49+0800\n"
+"POT-Creation-Date: 2024-09-29 14:17+0800\n"
 "PO-Revision-Date: 2024-03-21 10:39+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -108,6 +108,11 @@ msgstr "无自动支撑"
 msgid "Support Generated"
 msgstr "已生成支撑"
 
+msgid ""
+"Warning: All triangle areas are too small,The current function is not "
+"working."
+msgstr "警告：所有的三角形面积过小，当前功能不能工作。"
+
 msgid "Lay on face"
 msgstr "选择底面"
 
@@ -160,8 +165,17 @@ msgstr "Shift + 回车"
 msgid "Toggle Wireframe"
 msgstr "显示/隐藏线框"
 
+msgid "Shift + L"
+msgstr ""
+
+msgid "Toggle non-manifold edges"
+msgstr "切换非流行边"
+
 msgid "Rotate horizontally"
 msgstr "水平旋转"
+
+msgid "hit face"
+msgstr "选中面片"
 
 msgid "Shortcut Key "
 msgstr "快捷键 "
@@ -263,9 +277,6 @@ msgstr "平移"
 msgid "Group Operations"
 msgstr "组操作"
 
-msgid "Set Position"
-msgstr "设置位置"
-
 msgid "Set Orientation"
 msgstr "设置方向"
 
@@ -284,8 +295,14 @@ msgstr "物体坐标"
 msgid "World coordinates"
 msgstr "世界坐标"
 
+msgid "Reset current rotation to real zeros."
+msgstr "将当前旋转重置为实数零。"
+
 msgid "°"
 msgstr "°"
+
+msgid "Reset current rotation to the value when open the rotation tool."
+msgstr "将当前旋转重置为打开旋转工具时的值。"
 
 msgid "Part coordinates"
 msgstr "零件坐标"
@@ -293,6 +310,7 @@ msgstr "零件坐标"
 msgid "%"
 msgstr "%"
 
+#. TRN - Input label. Be short as possible
 msgid "Size"
 msgstr "大小"
 
@@ -364,6 +382,9 @@ msgstr "修复模型对象"
 msgid "Connector"
 msgstr "连接件"
 
+msgid "Flip cut plane"
+msgstr "翻转剖切面"
+
 msgid "Planar"
 msgstr "平面"
 
@@ -379,6 +400,7 @@ msgstr "移动："
 msgid "Groove Angle"
 msgstr "凹槽角"
 
+#. TRN - Input label. Be short as possible
 msgid "Rotation"
 msgstr "旋转"
 
@@ -397,6 +419,7 @@ msgstr "添加连接件"
 msgid "Groove"
 msgstr "凹槽"
 
+#. TRN - Input label. Be short as possible
 msgid "Depth"
 msgstr "深度"
 
@@ -798,11 +821,270 @@ msgid ""
 "depth"
 msgstr "内嵌深度"
 
+msgid "Warning:Input cannot be empty!"
+msgstr "警告：输入不能为空！"
+
+msgid "Warning:create text fail."
+msgstr "警告：创建文字失败。"
+
 msgid "Surface"
 msgstr "附着曲面"
 
 msgid "Horizontal text"
 msgstr "水平文字"
+
+msgid "Head diameter"
+msgstr "Brim 直径"
+
+msgid "Max angle"
+msgstr "最大角度"
+
+msgid "Detection radius"
+msgstr "检测半径"
+
+msgid "Remove selected points"
+msgstr "删除已选择的点"
+
+msgid "Remove all points"
+msgstr "删除所有点"
+
+msgid "Auto-generate points"
+msgstr "自动生成点"
+
+msgid "Add a brim ear"
+msgstr "加入一个Brim圆盘"
+
+msgid "Delete a brim ear"
+msgstr "删除一个Brim圆盘"
+
+msgid "Ctrl+Mouse wheel"
+msgstr "Ctrl+鼠标滚轮"
+
+msgid "Adjust section view"
+msgstr "调整剖面视图"
+
+msgid " invalid brim ears"
+msgstr "无效Brim圆盘"
+
+msgid "Brim Ears"
+msgstr "Brim圆盘"
+
+msgid "Choose SVG file for emboss:"
+msgstr "选择SVG文件进行浮雕:"
+
+#, boost-format
+msgid "File does NOT exist (%1%)."
+msgstr "文件不存在（%1%）。"
+
+#, boost-format
+msgid "Filename has to end with \".svg\" but you selected %1%"
+msgstr "文件名必须以“.svg”结尾，但您选择了%1%"
+
+#, boost-format
+msgid "Nano SVG parser can't load from file (%1%)."
+msgstr "Nano SVG解析器不能加载文件（%1%）。"
+
+#, boost-format
+msgid "SVG file does NOT contain a single path to be embossed (%1%)."
+msgstr "SVG文件不包含要浮雕的单个路径（%1%）。"
+
+#. TRN - Input label. Be short as possible
+msgid "Use surface"
+msgstr "使用表面"
+
+#. TRN - Input label. Be short as possible
+msgid "From surface"
+msgstr "距表面"
+
+#. TRN - Input label. Be short as possible
+msgid "Mirror"
+msgstr "镜像"
+
+#, boost-format
+msgid "Opacity (%1%)"
+msgstr "不透明度 (%1%)"
+
+#, boost-format
+msgid "Color gradient (%1%)"
+msgstr "颜色渐变(%1%)"
+
+msgid "Undefined fill type"
+msgstr "未定义填充类型"
+
+msgid "Linear gradient"
+msgstr "线性渐变"
+
+msgid "Radial gradient"
+msgstr "放射渐变"
+
+msgid "Open filled path"
+msgstr "打开填充路径"
+
+msgid "Undefined stroke type"
+msgstr "未定义笔划类型"
+
+msgid "Path can't be healed from selfintersection and multiple points."
+msgstr "路径无法从自切入和多个点修复。"
+
+msgid ""
+"Final shape constains selfintersection or multiple points with same "
+"coordinate."
+msgstr "最终形状恒定自截面或具有相同坐标的多个点。"
+
+#, boost-format
+msgid "Shape is marked as invisible (%1%)."
+msgstr "形状标记为不可见（%1%）。"
+
+#. TRN: The first placeholder is shape identifier, the second one is text describing the problem.
+#, boost-format
+msgid "Fill of shape (%1%) contains unsupported: %2%."
+msgstr "形状填充（%1%）包含不受支持的：%2%。"
+
+#, boost-format
+msgid "Stroke of shape (%1%) is too thin (minimal width is %2% mm)."
+msgstr "形状的笔划（%1%）太薄（最小宽度为%2%mm）。"
+
+#, boost-format
+msgid "Stroke of shape (%1%) contains unsupported: %2%."
+msgstr "形状笔划（%1%）包含不受支持的：%2%。"
+
+msgid "Not valid state please report reproduction steps on github"
+msgstr "状态无效，请在github上报告此问题步骤。"
+
+msgid "No embossed file"
+msgstr "没有浮雕文件。"
+
+msgid "Missing svg file in embossed shape"
+msgstr "缺少浮雕形状的svg文件"
+
+msgid "Missing data of svg file"
+msgstr "svg文件数据缺失"
+
+msgid ""
+"Tip:If you want to place svg file on another part surface,\n"
+"you should select part first, and then drag svg file to the part surface."
+msgstr ""
+"提示：如果要将svg文件放置在另一个零件表面上，\n"
+"您应该先选择零件，然后将svg文件拖动到零件表面。"
+
+#. TRN - Preview of filename after clear local filepath.
+msgid "Unknown filename"
+msgstr "未知文件名"
+
+#, boost-format
+msgid "SVG file path is \"%1%\""
+msgstr "SVG文件路径为 \"%1%\"。"
+
+msgid "Reload SVG file from disk."
+msgstr "从磁盘重新加载SVG文件"
+
+msgid "Change file"
+msgstr "改变文件"
+
+msgid "Change to another .svg file"
+msgstr "更改为另一个.svg文件"
+
+#. TRN: An menu option to convert the SVG into an unmodifiable model part.
+msgid "Bake to model"
+msgstr ""
+
+#. TRN: Tooltip for the menu item.
+msgid "Bake into model as uneditable part"
+msgstr "将模型烘焙为不可编辑的部分"
+
+msgid "Save as"
+msgstr "另存为"
+
+msgid "Save SVG file"
+msgstr "保存SVG文件"
+
+msgid "Save as '.svg' file"
+msgstr "另存为'.svg'文件"
+
+msgid "Size in emboss direction."
+msgstr "浮雕方向上的大小"
+
+#. TRN: The placeholder contains a number.
+#, boost-format
+msgid "Scale also changes amount of curve samples (%1%)"
+msgstr "缩放也会改变曲线样本的数量（%1%）"
+
+msgid "width:"
+msgstr "宽"
+
+msgid "height:"
+msgstr "高"
+
+msgid "set width and height keep ratio with width"
+msgstr "设置宽度和保持比例的宽度"
+
+msgid "Width of SVG."
+msgstr "SVG宽度"
+
+msgid "Height of SVG."
+msgstr "SVG高度"
+
+msgid "Lock/unlock the aspect ratio of the SVG."
+msgstr "锁定/解锁SVG的宽高比。"
+
+msgid "Reset scale"
+msgstr "重置缩放"
+
+msgid "Distance of the center of the SVG to the model surface."
+msgstr "SVG中心到模型表面的距离。"
+
+msgid "Reset distance"
+msgstr "重置距离"
+
+msgid "Rotate text Clock-wise."
+msgstr "顺时针旋转文本"
+
+msgid "Reset rotation"
+msgstr "重置旋转"
+
+msgid "Lock/unlock rotation angle when dragging above the surface."
+msgstr "在曲面上方拖动时锁定/解锁旋转角度。"
+
+msgid "Mirror vertically"
+msgstr "垂直镜像"
+
+msgid "Mirror horizontally"
+msgstr "水平镜像"
+
+msgid "Set Mirror"
+msgstr "设置镜像"
+
+msgid "Face the camera"
+msgstr "面向相机"
+
+msgid "Operation"
+msgstr "操作"
+
+msgid "Join"
+msgstr "合并"
+
+msgid "Click to change text into object part."
+msgstr "单击可将文本更改为对象部分。"
+
+msgid "You can't change a type of the last solid part of the object."
+msgstr "不能更改对象的最后一个实体部分的类型。"
+
+msgctxt "EmbossOperation"
+msgid "Cut"
+msgstr "负零件"
+
+msgid "Click to change part type into negative volume."
+msgstr "单击可将零件类型更改为负零件。"
+
+msgid "Modifier"
+msgstr "修改器"
+
+msgid "Click to change part type into modifier."
+msgstr "单击以将零件类型更改为修改器"
+
+#. TRN: This is the name of the action that shows in undo/redo stack (changing part type from SVG to something else).
+msgid "Change SVG Type"
+msgstr "改变SVG类型"
 
 msgid "Ctrl+"
 msgstr ""
@@ -955,6 +1237,15 @@ msgstr "您可以保留未保存修改的预设应用到新项目中，或者选
 msgid "User logged out"
 msgstr "用户登出"
 
+msgid "Install network plug-in"
+msgstr "安装网络插件"
+
+msgid "Please Install network plug-in before log in."
+msgstr "请在登录前安装网络插件。"
+
+msgid "Install Network Plug-in"
+msgstr "安装网络插件"
+
 msgid "new or open project file is not allowed during the slicing process!"
 msgstr "在切片过程不允许新建或打开项目文件！"
 
@@ -1088,6 +1379,24 @@ msgstr "添加支撑屏蔽"
 msgid "Add support enforcer"
 msgstr "添加支撑生成器"
 
+msgid "Add text"
+msgstr "添加文字"
+
+msgid "Add negative text"
+msgstr "添加负零件文字"
+
+msgid "Add text modifier"
+msgstr "添加文字修改器"
+
+msgid "Add SVG part"
+msgstr "添加svg零件"
+
+msgid "Add negative SVG"
+msgstr "添加负零件SVG"
+
+msgid "Add SVG modifier"
+msgstr "添加SVG修改器"
+
 msgid "Select settings"
 msgstr "选择设置"
 
@@ -1106,6 +1415,12 @@ msgstr "删除所选对象"
 msgid "Edit Text"
 msgstr "编辑文字"
 
+msgid "Edit SVG"
+msgstr "编辑SVG"
+
+msgid "Change SVG source file, projection, size, ..."
+msgstr "改变svg的来源文件，投影，大小..."
+
 msgid "Load..."
 msgstr "加载..."
 
@@ -1117,6 +1432,9 @@ msgstr "圆柱体"
 
 msgid "Cone"
 msgstr "锥体"
+
+msgid "Double Tear Romboid Cylinder"
+msgstr "双泪滴状柱体"
 
 msgid "Disc"
 msgstr "小圆片"
@@ -1138,6 +1456,9 @@ msgstr "小船"
 
 msgid "ksr FDMTest"
 msgstr "欧特克FDM测试"
+
+msgid "SVG"
+msgstr ""
 
 msgid "Height range Modifier"
 msgstr "高度范围修改器"
@@ -1259,9 +1580,6 @@ msgstr "沿 Z 轴"
 
 msgid "Mirror along the Z axis"
 msgstr "沿Z轴镜像"
-
-msgid "Mirror"
-msgstr "镜像"
 
 msgid "Mirror object"
 msgstr "镜像对象"
@@ -1524,9 +1842,6 @@ msgstr "不允许修改对象中最后一个实体零件的类型。"
 
 msgid "Negative Part"
 msgstr "负零件"
-
-msgid "Modifier"
-msgstr "修改器"
 
 msgid "Support Blocker"
 msgstr "支撑去除器"
@@ -3511,9 +3826,6 @@ msgstr "否"
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "将会被关闭以创建新模型，是否继续?"
 
-msgid "Upload"
-msgstr "上传"
-
 msgid "Slice plate"
 msgstr "切片单盘"
 
@@ -3699,6 +4011,9 @@ msgstr "导出当前选择的预设"
 
 msgid "Export"
 msgstr "导出"
+
+msgid "Publish to MakerWorld"
+msgstr "发布到MakerWorld"
 
 msgid "Quit"
 msgstr "退出程序"
@@ -3980,10 +4295,10 @@ msgid "The player is not loaded, please click \"play\" button to retry."
 msgstr "未能加载播放器，请重新点击“播放”按钮。"
 
 msgid "Temporarily closed because there is no operating for a long time."
-msgstr "因长时间没有操作，临时关闭视频。"
+msgstr "因长时间没有操作，暂时关闭。"
 
 msgid "Temporarily closed because there is no printing for a while."
-msgstr "因为打印已经结束，临时关闭视频。"
+msgstr "因有一段时间未打印，暂时关闭。"
 
 msgid "Please confirm if the printer is connected."
 msgstr "请确认打印机是否连接成功。"
@@ -4021,7 +4336,7 @@ msgid "The printer has been logged out and cannot connect."
 msgstr "打印机已注销，无法连接。"
 
 msgid "Video Stopped."
-msgstr "播放停止。"
+msgstr "视频已停止。"
 
 msgid "LAN Connection Failed (Failed to start liveview)"
 msgstr "局域网连接失败（无法启动直播）"
@@ -4247,6 +4562,14 @@ msgstr "停止"
 msgid "Layer: N/A"
 msgstr "层： N/A"
 
+msgid "Finish Time: N/A"
+msgstr "完成时间：N/A"
+
+msgid ""
+"The estimated printing time for \n"
+"multi-color models may be inaccurate."
+msgstr "多色模型的估计打印时间可能不准确。"
+
 msgid "Clear"
 msgstr "清除"
 
@@ -4265,6 +4588,12 @@ msgstr "（该模型已经被评分。您的评分将覆盖先前的评分。）
 
 msgid "Rate"
 msgstr "评分"
+
+msgid "Finished"
+msgstr "完成"
+
+msgid "Finish Time: "
+msgstr "完成时间："
 
 msgid "Camera"
 msgstr "摄像机"
@@ -4331,6 +4660,15 @@ msgstr "层： %s"
 #, c-format, boost-format
 msgid "Layer: %d/%d"
 msgstr "层： %d/%d"
+
+msgid "Axis go home"
+msgstr "Axis回Home点"
+
+msgid "Are you sure you want to home now?"
+msgstr "你确定现在要回Home点吗？"
+
+msgid "Home"
+msgstr "首页"
 
 msgid ""
 "Please heat the nozzle to above 170 degree before loading or unloading "
@@ -4468,6 +4806,30 @@ msgid ""
 "to give a positive rating(4 or 5stars)."
 msgstr "至少需要一个成功的打印记录，才能给出积极的评价（4星或5星）。"
 
+msgid "Step file import parameters"
+msgstr "导入step文件选项"
+
+msgid "Linear Deflection:"
+msgstr "线偏转值"
+
+msgid "Please input a valid value (0.001 < angle deflection < 0.1)"
+msgstr "请输入有效值（0.001<线偏转值<0.1）"
+
+msgid "Angle Deflection:"
+msgstr "角偏转值"
+
+msgid "Please input a valid value (0.01 < angle deflection < 1.0)"
+msgstr "请输入有效值（0.01<角偏转值<0.1）"
+
+msgid "Number of triangular facets: "
+msgstr "三角面数量"
+
+msgid "0"
+msgstr ""
+
+msgid "Calculating, please wait..."
+msgstr "计算中，请等待..."
+
 msgid "Status"
 msgstr "设备状态"
 
@@ -4532,7 +4894,23 @@ msgid "Latest Version: "
 msgstr "最新版本："
 
 msgid "Not for now"
-msgstr ""
+msgstr "现在不行"
+
+msgid "Server Exception"
+msgstr "服务器异常"
+
+msgid ""
+"The server is unable to respond. Please click the link below to check the "
+"server status."
+msgstr "服务器无法响应。请单击下面的链接检查服务器状态。"
+
+msgid ""
+"If the server is in a fault state, you can temporarily use offline printing "
+"or local network printing."
+msgstr "如果服务器处于故障状态，您可以暂时使用离线打印或本地网络打印。"
+
+msgid "How to use LAN only mode"
+msgstr "如何使用仅局域网模式"
 
 msgid "3D Mouse disconnected."
 msgstr "3D鼠标断连。"
@@ -5155,6 +5533,9 @@ msgstr "按项目打开"
 msgid "Import geometry only"
 msgstr "仅导入模型数据"
 
+msgid "Please import multiple files with the same suffix."
+msgstr "请导入多个具有相同后缀的文件。"
+
 msgid "Only one G-code file can be opened at the same time."
 msgstr "只能同时打开一个G-code文件。"
 
@@ -5234,6 +5615,17 @@ msgid ""
 msgstr "检测到负零件。在导出前，您是否想执行网格布尔运算？"
 
 msgid ""
+"Are you sure you want to store original SVGs with their local paths into the "
+"3MF file?\n"
+"If you hit 'NO', all SVGs in the project will not be editable any more."
+msgstr ""
+"您确定要将原始SVG及其本地路径存储到3MF文件中吗？\n"
+"如果点击“否”，项目中的所有SVG将不再可编辑。"
+
+msgid "Private protection"
+msgstr "个人保护"
+
+msgid ""
 "Print By Object: \n"
 "Suggest to use auto-arrange to avoid collisions when printing."
 msgstr ""
@@ -5254,6 +5646,17 @@ msgstr "无效数字"
 
 msgid "Plate Settings"
 msgstr "盘参数设置"
+
+msgid "Prime Tower:"
+msgstr ""
+
+msgid ""
+"A cube printed during a filament change to purge old color and ensure smooth "
+"color transition."
+msgstr "在换丝过程中打印的立方体，用于清除旧色并确保平滑的颜色过渡"
+
+msgid "View Wiki for more information"
+msgstr "查看Wiki以获取更多信息"
 
 #, boost-format
 msgid "Number of currently selected parts: %1%\n"
@@ -5301,8 +5704,8 @@ msgid ""
 "\"Fix Model\" feature is currently only on Windows. Please use a third-party "
 "tool to repair the model before importing it into Bambu Studio, such as "
 msgstr ""
-"“修复模型” 功能目前仅在Windows上可用。请使用第三方工具在将模型导入Bambu "
-"Studio之前进行修复，例如"
+"\"修复模型\"功能目前仅适用于Windows。请使用第三方工具修复模型后再导入Bambu "
+"Studio，如"
 
 #, c-format, boost-format
 msgid ""
@@ -5433,6 +5836,12 @@ msgid ""
 "same time and manage multiple devices."
 msgstr "启用此选项后，您可以同时向多个设备发送任务并管理多个设备。"
 
+msgid "Support beta version update."
+msgstr "支持beta版本更新"
+
+msgid "With this option enabled, you can receive beta version updates."
+msgstr "启用此选项后，您可以接收测试版更新。"
+
 msgid "3D Settings"
 msgstr "3D设置"
 
@@ -5444,13 +5853,21 @@ msgid ""
 "2D window center."
 msgstr "在3D视角放大到鼠标位置，而不是2D窗口的中心。"
 
+msgid "Always show shells in preview"
+msgstr "在预览界面总是显示透明壳"
+
+msgid ""
+"Always show shells or not in preview view tab.If change value,you should "
+"reslice."
+msgstr "始终在预览视图选项卡中显示或不显示壳。如果更改值，您应该重新切片。"
+
 msgid "Improve rendering performance by lod"
-msgstr ""
+msgstr "通过lod提高渲染性能"
 
 msgid ""
 "Improved rendering performance under the scene of multiple plates and many "
 "models."
-msgstr ""
+msgstr "在多盘和多模型的场景下提高了渲染性能"
 
 msgid "Grabber scale"
 msgstr "抓手比例"
@@ -5536,14 +5953,14 @@ msgid "Media"
 msgstr "视频文件"
 
 msgid "Keep liveview when printing."
-msgstr "当有打印在进行中，不停止 Liveview。"
+msgstr "打印时保持实时取景"
 
 msgid ""
 "By default, Liveview will pause after 15 minutes of inactivity on the "
 "computer. Check this box to disable this feature during printing."
 msgstr ""
-"默认情况下，当没有操作时，Liveview 将在15分钟后暂停。选中此框可在打印过程中关"
-"闭此机制。"
+"默认情况下，Liveview将在计算机上处于非活动状态15分钟后暂停。选中此框可在打印"
+"过程中禁用此功能。"
 
 msgid "Dark Mode"
 msgstr "深色模式"
@@ -6108,6 +6525,20 @@ msgstr "修改打印机名称"
 msgid "Bind with Pin Code"
 msgstr "通过Pin码绑定"
 
+msgid "Bind with Access Code"
+msgstr "绑定访问码"
+
+msgid ""
+"Please log in before binding your device with a PIN code.\n"
+"Alternatively, you can use LAN mode to bind your device. Learn about LAN "
+"mode."
+msgstr ""
+"请在用PIN码绑定设备之前登录\n"
+"或者，您可以使用LAN模式绑定设备。了解LAN模式。"
+
+msgid "Go to Login"
+msgstr "转到登录"
+
 msgid "Send to Printer SD card"
 msgstr "发送到打印机的SD卡"
 
@@ -6290,12 +6721,13 @@ msgid "Still print by object?"
 msgstr "仍然按对象打印吗？"
 
 msgid ""
-"We have added an experimental style \"Tree Slim\" that features smaller "
-"support volume but weaker strength.\n"
-"We recommend using it with: 0 interface layers, 0 top distance, 2 walls."
+"When using support material for the support interface, We recommend the "
+"following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and "
+"disable independent support layer height"
 msgstr ""
-"我们增加了一种实验性的风格 \"苗条树\"，它的特点是支撑体积较小，但强度较弱。\n"
-"因此我们推荐以下参数：接触层数为0，顶部Z距离为0，墙层数为2。"
+"当使用支持界面的支持材料时，我们推荐以下设置：\n"
+"0顶层z距离，0接触层间距，交叠直线图案，并且禁用独立支撑层高"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -6307,21 +6739,11 @@ msgstr ""
 "否 - 不用为我调整这些设置"
 
 msgid ""
-"For \"Tree Strong\" and \"Tree Hybrid\" styles, we recommend the following "
-"settings: at least 2 interface layers, at least 0.1mm top z distance or "
-"using support materials on interface."
+"Layer height is too small.\n"
+"It will set to min_layer_height\n"
 msgstr ""
-"对于 \"强壮树 \"和 \"混合树 \"风格，我们推荐以下设置：至少2层界面层，至少0.1"
-"毫米的顶部z距离或在界面上使用支撑材料。"
-
-msgid ""
-"When using support material for the support interface, We recommend the "
-"following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and "
-"disable independent support layer height"
-msgstr ""
-"当使用支持界面的支持材料时，我们推荐以下设置：\n"
-"0顶层z距离，0接触层间距，交叠直线图案，并且禁用独立支撑层高"
+"层高太小，\n"
+"将自动设置为最小层高的值。\n"
 
 msgid ""
 "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer "
@@ -6360,11 +6782,16 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "在录制无工具头延时摄影视频时，建议添加“延时摄影擦料塔”\n"
 "右键单击打印板的空白位置，选择“添加标准模型”->“延时摄影擦料塔”。"
+
+msgid ""
+"The notes are too large, and may not be synchronized to the cloud. Please "
+"keep it within 40k."
+msgstr "内容太大，可能无法同步到云端。请将其控制在40k以内。"
 
 msgid "Line width"
 msgstr "线宽"
@@ -6456,6 +6883,11 @@ msgstr[0] ""
 msgid "Reserved keywords found"
 msgstr "检测到保留的关键字"
 
+msgid ""
+"Custom G-code files are too large, and may not be synchronized to the cloud. "
+"Please keep it within 40k."
+msgstr "自定义G-code代码文件太大，可能无法同步到云端。请将其保持在40k以内。"
+
 msgid "Setting Overrides"
 msgstr "参数覆盖"
 
@@ -6479,6 +6911,14 @@ msgstr "喷嘴"
 
 msgid "Nozzle temperature when printing"
 msgstr "打印时的喷嘴温度"
+
+msgid "Bambu Cool Plate SuperTack"
+msgstr "低温增稳打印板"
+
+msgid ""
+"Bed temperature when cool plate is installed. Value 0 means the filament "
+"does not support to print on the Bambu Cool Plate SuperTack"
+msgstr "安装冷却板时的床温。值0表示耗材丝不支持在低温增稳打印板上打印。"
 
 msgid "Cool Plate / PLA Plate"
 msgstr "低温打印板 / PLA打印板"
@@ -7286,8 +7726,8 @@ msgstr "查看LiveView"
 msgid "Confirm and Update Nozzle"
 msgstr "确认并更新喷嘴"
 
-msgid "LAN Connection Failed (Sending print file)"
-msgstr "LAN连接失败(发送打印文件)"
+msgid "Connect the printer using IP and access code"
+msgstr "使用IP和访问代码连接打印"
 
 msgid ""
 "Step 1, please confirm Bambu Studio and your printer are in the same LAN."
@@ -7307,11 +7747,29 @@ msgstr "在哪里可以找到打印机的IP和访问代码?"
 msgid "Step 3: Ping the IP address to check for packet loss and latency."
 msgstr "步骤3，请ping打印机的IP地址，以此检查丢包和延迟。"
 
-msgid "Test"
-msgstr "测试"
+msgid "Connect"
+msgstr "连接"
 
-msgid "IP and Access Code Verified! You may close the window"
-msgstr "IP地址和访问码验证成功！您可以关闭此窗口。"
+msgid "connecting..."
+msgstr "连接中..."
+
+msgid "Failed to connect to printer."
+msgstr "无法连接到打印机"
+
+msgid "Failed to publish login request."
+msgstr "发布登录请求失败"
+
+msgid "The device does not support using IP and Access Code for connection."
+msgstr "该设备不支持使用IP和访问代码进行连接。"
+
+msgid "The printer has already been bound."
+msgstr "打印机已绑定。"
+
+msgid "The printer mode is incorrect, please switch to LAN Only."
+msgstr "打印机模式不正确，请切换到仅局域网。"
+
+msgid "Printer binding successful. The dialog will close later"
+msgstr "打印机绑定成功。稍后将关闭对话框。"
 
 msgid "Connection failed, please double check IP and Access Code"
 msgstr "连接失败，请再次检查IP地址和访问码。"
@@ -7916,8 +8374,8 @@ msgstr "首层床温"
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
-"support to print on the Cool Plate"
-msgstr "首层热床温度。0值表示这个耗材丝不支持低温打印热床"
+"support to print on the Bambu Cool Plate SuperTack"
+msgstr "初始层的床温。值0表示耗材丝不支持在低温增稳打印板上打印"
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
@@ -8124,6 +8582,9 @@ msgid ""
 msgstr ""
 "该参数控制在模型的外侧和/或内侧生成brim。自动是指自动分析和计算边框的宽度。"
 
+msgid "Manual"
+msgstr "手动"
+
 msgid "Brim-object gap"
 msgstr "Brim与模型的间隙"
 
@@ -8131,6 +8592,12 @@ msgid ""
 "A gap between innermost brim line and object can make brim be removed more "
 "easily"
 msgstr "在brim和模型之间设置间隙，能够让brim更容易剥离"
+
+msgid "Brim ears"
+msgstr "Brim圆盘"
+
+msgid "Draw brim"
+msgstr "绘制brim"
 
 msgid "Compatible machine"
 msgstr "兼容的机器"
@@ -9959,8 +10426,10 @@ msgstr "此设置确定了树状支撑节点的初始直径。"
 msgid "Support wall loops"
 msgstr "支撑外墙层数"
 
-msgid "This setting specifies the count of walls around support"
-msgstr "此设置指定了支撑的外墙层数"
+msgid ""
+"This setting specifies the count of support walls in the range of [0,2]. 0 "
+"means auto."
+msgstr "此设置指定[0,2]范围内的支撑墙层数。0表示自动。"
 
 msgid "Chamber temperature"
 msgstr "腔体温度"
@@ -10991,9 +11460,6 @@ msgstr "OctoPrint版本"
 msgid "Searching for devices"
 msgstr "正在搜索设备"
 
-msgid "Finished"
-msgstr "完成"
-
 msgid "Send to print"
 msgstr "发送打印"
 
@@ -11006,6 +11472,9 @@ msgstr "如有需要，请使用正斜杠（/）作为目录分隔符。"
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
 msgstr "上传的文件名不以 \"%s\" 结尾。您是否希望继续？"
+
+msgid "Upload"
+msgstr "上传"
 
 msgid "Simulate"
 msgstr ""
@@ -11058,15 +11527,15 @@ msgstr "因选中的物体无交集，布尔交集计算失败"
 msgid "Mesh Boolean"
 msgstr "布尔运算"
 
-msgid "Please right click to assembly these objects."
-msgstr "请右键组合这些对象"
-
 msgid ""
 "Please add at least one more object and select them together,\n"
 "then right click to assembly these objects."
 msgstr ""
 "请增加至少一个对象并一起选中它们，\n"
 "然后右键组合这些对象。"
+
+msgid "Please right click to assembly these objects."
+msgstr "请右键组合这些对象"
 
 msgid "Union"
 msgstr "并集"
@@ -11269,8 +11738,8 @@ msgstr ""
 "你想重写预设吗"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "我们会将预设重命名为“供应商 类型 系列 @您选择的打印机”。\n"
@@ -11661,6 +12130,9 @@ msgstr "物理打印机"
 msgid "Print Host upload"
 msgstr "打印主机上传"
 
+msgid "Test"
+msgstr "测试"
+
 msgid "Could not get a valid Printer Host reference"
 msgstr "无法获取有效的打印机主机引用"
 
@@ -11795,7 +12267,10 @@ msgid ""
 "Enumeration of host printers failed.\n"
 "Message body: \"%1%\"\n"
 "Error: \"%2%\""
-msgstr "主机打印机的枚举失败。消息体：\"%1%\"错误：\"%2%\""
+msgstr ""
+"主机打印机的枚举失败。\n"
+"消息体：\"%1%\"\n"
+"错误：\"%2%\""
 
 msgid ""
 "It has a small layer height, and results in almost negligible layer lines "
@@ -12523,6 +12998,53 @@ msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
 
+#~ msgid "Set Position"
+#~ msgstr "设置位置"
+
+#~ msgid "Stopped."
+#~ msgstr "已经停止。"
+
+#~ msgid ""
+#~ "\"Fix Model\" feature is currently only on Windows. Please repair the "
+#~ "model on Bambu Studio(windows) or CAD softwares."
+#~ msgstr ""
+#~ "\"修复模型\"功能目前仅适用于Windows。请在Bambu Studio(windows)或CAD软件上"
+#~ "修复模型。"
+
+#~ msgid "Downloads"
+#~ msgstr "下载"
+
+#~ msgid ""
+#~ "We have added an experimental style \"Tree Slim\" that features smaller "
+#~ "support volume but weaker strength.\n"
+#~ "We recommend using it with: 0 interface layers, 0 top distance, 2 walls."
+#~ msgstr ""
+#~ "我们增加了一种实验性的风格 \"苗条树\"，它的特点是支撑体积较小，但强度较"
+#~ "弱。\n"
+#~ "因此我们推荐以下参数：接触层数为0，顶部Z距离为0，墙层数为2。"
+
+#~ msgid ""
+#~ "For \"Tree Strong\" and \"Tree Hybrid\" styles, we recommend the "
+#~ "following settings: at least 2 interface layers, at least 0.1mm top z "
+#~ "distance or using support materials on interface."
+#~ msgstr ""
+#~ "对于 \"强壮树 \"和 \"混合树 \"风格，我们推荐以下设置：至少2层界面层，至少"
+#~ "0.1毫米的顶部z距离或在界面上使用支撑材料。"
+
+#~ msgid "LAN Connection Failed (Sending print file)"
+#~ msgstr "LAN连接失败(发送打印文件)"
+
+#~ msgid "IP and Access Code Verified! You may close the window"
+#~ msgstr "IP地址和访问码验证成功！您可以关闭此窗口。"
+
+#~ msgid ""
+#~ "Bed temperature of the initial layer. Value 0 means the filament does not "
+#~ "support to print on the Cool Plate"
+#~ msgstr "首层热床温度。0值表示这个耗材丝不支持低温打印热床"
+
+#~ msgid "This setting specifies the count of walls around support"
+#~ msgstr "此设置指定了支撑的外墙层数"
+
 #~ msgid "China"
 #~ msgstr "中国"
 
@@ -12554,9 +13076,6 @@ msgstr ""
 
 #~ msgid "⌥+Mouse wheel"
 #~ msgstr "⌥+鼠标滚轮"
-
-#~ msgid "Ctrl+Mouse wheel"
-#~ msgstr "Ctrl+鼠标滚轮"
 
 #~ msgid "Alt+Mouse wheel"
 #~ msgstr "Alt+鼠标滚轮"
@@ -14413,9 +14932,6 @@ msgstr ""
 #~ msgid "Edit plate setitngs"
 #~ msgstr "编辑盘设置"
 
-#~ msgid "Manual"
-#~ msgstr "手动"
-
 #~ msgid "Feed new filament from external spool"
 #~ msgstr "从外部料盘送入新的耗材丝"
 
@@ -15199,9 +15715,6 @@ msgstr ""
 
 #~ msgid "Waiting"
 #~ msgstr "等待中"
-
-#~ msgid "Home"
-#~ msgstr "首页"
 
 #~ msgid "Per object edit"
 #~ msgstr "编辑单个对象"
@@ -16627,17 +17140,8 @@ msgstr ""
 #~ msgid "Object name"
 #~ msgstr "对象名称"
 
-#~ msgid "Set Mirror"
-#~ msgstr "设置镜像"
-
 #~ msgid "Drop to bed"
 #~ msgstr "放到床上"
-
-#~ msgid "Reset rotation"
-#~ msgstr "重置旋转"
-
-#~ msgid "Reset scale"
-#~ msgstr "重置缩放"
 
 #~ msgid "Inches"
 #~ msgstr "英寸"
@@ -18169,8 +18673,8 @@ msgstr ""
 #~ msgstr "正在准备设置页"
 
 #~ msgid ""
-#~ "You have the following presets with saved options for \"Print Host upload"
-#~ "\""
+#~ "You have the following presets with saved options for \"Print Host "
+#~ "upload\""
 #~ msgstr "您的以下预设中包含未保存的选项“打印主机上传”"
 
 #~ msgid ""
@@ -18519,9 +19023,6 @@ msgstr ""
 
 #~ msgid "of a current Object"
 #~ msgstr "当前对象的"
-
-#~ msgid "You can't change a type of the last solid part of the object."
-#~ msgstr "不能更改对象的最后一个实体部分的类型。"
 
 #~ msgid "Negative Volume"
 #~ msgstr "负零件"

@@ -2,12 +2,12 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-22 19:49+0800\n"
+"POT-Creation-Date: 2024-09-29 14:17+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -109,6 +109,11 @@ msgstr "Žádné automatické podpěry"
 msgid "Support Generated"
 msgstr "Vygenerovat podpěry"
 
+msgid ""
+"Warning: All triangle areas are too small,The current function is not "
+"working."
+msgstr ""
+
 msgid "Lay on face"
 msgstr "Plochou na podložku"
 
@@ -163,7 +168,16 @@ msgstr ""
 msgid "Toggle Wireframe"
 msgstr "Přepnout drátový model"
 
+msgid "Shift + L"
+msgstr ""
+
+msgid "Toggle non-manifold edges"
+msgstr ""
+
 msgid "Rotate horizontally"
+msgstr ""
+
+msgid "hit face"
 msgstr ""
 
 msgid "Shortcut Key "
@@ -266,9 +280,6 @@ msgstr "Posunout"
 msgid "Group Operations"
 msgstr "Skupinové operace"
 
-msgid "Set Position"
-msgstr "Nastavení pozice"
-
 msgid "Set Orientation"
 msgstr "Změna orientace"
 
@@ -287,8 +298,14 @@ msgstr ""
 msgid "World coordinates"
 msgstr "Světové souřadnice"
 
+msgid "Reset current rotation to real zeros."
+msgstr ""
+
 msgid "°"
 msgstr "°"
+
+msgid "Reset current rotation to the value when open the rotation tool."
+msgstr ""
 
 msgid "Part coordinates"
 msgstr ""
@@ -296,6 +313,7 @@ msgstr ""
 msgid "%"
 msgstr "%"
 
+#. TRN - Input label. Be short as possible
 msgid "Size"
 msgstr "Rozměr"
 
@@ -367,6 +385,9 @@ msgstr "Oprava objektu modelu"
 msgid "Connector"
 msgstr "Spojka"
 
+msgid "Flip cut plane"
+msgstr ""
+
 msgid "Planar"
 msgstr ""
 
@@ -382,6 +403,7 @@ msgstr "Přejezd:"
 msgid "Groove Angle"
 msgstr ""
 
+#. TRN - Input label. Be short as possible
 msgid "Rotation"
 msgstr "Otáčení"
 
@@ -400,6 +422,7 @@ msgstr "Přidat spojky"
 msgid "Groove"
 msgstr ""
 
+#. TRN - Input label. Be short as possible
 msgid "Depth"
 msgstr ""
 
@@ -798,11 +821,268 @@ msgid ""
 "depth"
 msgstr ""
 
+msgid "Warning:Input cannot be empty!"
+msgstr ""
+
+msgid "Warning:create text fail."
+msgstr ""
+
 msgid "Surface"
 msgstr "Povrch"
 
 msgid "Horizontal text"
 msgstr "Vodorovný text"
+
+msgid "Head diameter"
+msgstr ""
+
+msgid "Max angle"
+msgstr ""
+
+msgid "Detection radius"
+msgstr ""
+
+msgid "Remove selected points"
+msgstr ""
+
+msgid "Remove all points"
+msgstr ""
+
+msgid "Auto-generate points"
+msgstr ""
+
+msgid "Add a brim ear"
+msgstr ""
+
+msgid "Delete a brim ear"
+msgstr ""
+
+msgid "Ctrl+Mouse wheel"
+msgstr "Ctrl+kolečko myši"
+
+msgid "Adjust section view"
+msgstr ""
+
+msgid " invalid brim ears"
+msgstr ""
+
+msgid "Brim Ears"
+msgstr ""
+
+msgid "Choose SVG file for emboss:"
+msgstr ""
+
+#, boost-format
+msgid "File does NOT exist (%1%)."
+msgstr ""
+
+#, boost-format
+msgid "Filename has to end with \".svg\" but you selected %1%"
+msgstr ""
+
+#, boost-format
+msgid "Nano SVG parser can't load from file (%1%)."
+msgstr ""
+
+#, boost-format
+msgid "SVG file does NOT contain a single path to be embossed (%1%)."
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+msgid "Use surface"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+msgid "From surface"
+msgstr ""
+
+#. TRN - Input label. Be short as possible
+msgid "Mirror"
+msgstr "Zrcadlit"
+
+#, boost-format
+msgid "Opacity (%1%)"
+msgstr ""
+
+#, boost-format
+msgid "Color gradient (%1%)"
+msgstr ""
+
+msgid "Undefined fill type"
+msgstr ""
+
+msgid "Linear gradient"
+msgstr ""
+
+msgid "Radial gradient"
+msgstr ""
+
+msgid "Open filled path"
+msgstr ""
+
+msgid "Undefined stroke type"
+msgstr ""
+
+msgid "Path can't be healed from selfintersection and multiple points."
+msgstr ""
+
+msgid ""
+"Final shape constains selfintersection or multiple points with same "
+"coordinate."
+msgstr ""
+
+#, boost-format
+msgid "Shape is marked as invisible (%1%)."
+msgstr ""
+
+#. TRN: The first placeholder is shape identifier, the second one is text describing the problem.
+#, boost-format
+msgid "Fill of shape (%1%) contains unsupported: %2%."
+msgstr ""
+
+#, boost-format
+msgid "Stroke of shape (%1%) is too thin (minimal width is %2% mm)."
+msgstr ""
+
+#, boost-format
+msgid "Stroke of shape (%1%) contains unsupported: %2%."
+msgstr ""
+
+msgid "Not valid state please report reproduction steps on github"
+msgstr ""
+
+msgid "No embossed file"
+msgstr ""
+
+msgid "Missing svg file in embossed shape"
+msgstr ""
+
+msgid "Missing data of svg file"
+msgstr ""
+
+msgid ""
+"Tip:If you want to place svg file on another part surface,\n"
+"you should select part first, and then drag svg file to the part surface."
+msgstr ""
+
+#. TRN - Preview of filename after clear local filepath.
+msgid "Unknown filename"
+msgstr ""
+
+#, boost-format
+msgid "SVG file path is \"%1%\""
+msgstr ""
+
+msgid "Reload SVG file from disk."
+msgstr ""
+
+msgid "Change file"
+msgstr ""
+
+msgid "Change to another .svg file"
+msgstr ""
+
+#. TRN: An menu option to convert the SVG into an unmodifiable model part.
+msgid "Bake to model"
+msgstr ""
+
+#. TRN: Tooltip for the menu item.
+msgid "Bake into model as uneditable part"
+msgstr ""
+
+msgid "Save as"
+msgstr ""
+
+msgid "Save SVG file"
+msgstr ""
+
+msgid "Save as '.svg' file"
+msgstr ""
+
+msgid "Size in emboss direction."
+msgstr ""
+
+#. TRN: The placeholder contains a number.
+#, boost-format
+msgid "Scale also changes amount of curve samples (%1%)"
+msgstr ""
+
+msgid "width:"
+msgstr ""
+
+msgid "height:"
+msgstr ""
+
+msgid "set width and height keep ratio with width"
+msgstr ""
+
+msgid "Width of SVG."
+msgstr ""
+
+msgid "Height of SVG."
+msgstr ""
+
+msgid "Lock/unlock the aspect ratio of the SVG."
+msgstr ""
+
+msgid "Reset scale"
+msgstr ""
+
+msgid "Distance of the center of the SVG to the model surface."
+msgstr ""
+
+msgid "Reset distance"
+msgstr ""
+
+msgid "Rotate text Clock-wise."
+msgstr ""
+
+msgid "Reset rotation"
+msgstr ""
+
+msgid "Lock/unlock rotation angle when dragging above the surface."
+msgstr ""
+
+msgid "Mirror vertically"
+msgstr ""
+
+msgid "Mirror horizontally"
+msgstr ""
+
+msgid "Set Mirror"
+msgstr ""
+
+msgid "Face the camera"
+msgstr ""
+
+msgid "Operation"
+msgstr ""
+
+msgid "Join"
+msgstr ""
+
+msgid "Click to change text into object part."
+msgstr ""
+
+msgid "You can't change a type of the last solid part of the object."
+msgstr ""
+
+msgctxt "EmbossOperation"
+msgid "Cut"
+msgstr ""
+
+msgid "Click to change part type into negative volume."
+msgstr ""
+
+msgid "Modifier"
+msgstr "Modifikátor"
+
+msgid "Click to change part type into modifier."
+msgstr ""
+
+#. TRN: This is the name of the action that shows in undo/redo stack (changing part type from SVG to something else).
+msgid "Change SVG Type"
+msgstr ""
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -959,6 +1239,15 @@ msgstr ""
 msgid "User logged out"
 msgstr "Uživatel odhlášen"
 
+msgid "Install network plug-in"
+msgstr ""
+
+msgid "Please Install network plug-in before log in."
+msgstr ""
+
+msgid "Install Network Plug-in"
+msgstr ""
+
 msgid "new or open project file is not allowed during the slicing process!"
 msgstr ""
 "během procesu Slicovaní není povolen nový nebo otevřený soubor projektu!"
@@ -1091,6 +1380,24 @@ msgstr "Přidat blokátor podpěr"
 msgid "Add support enforcer"
 msgstr "Přidat vynucení podpěr"
 
+msgid "Add text"
+msgstr ""
+
+msgid "Add negative text"
+msgstr ""
+
+msgid "Add text modifier"
+msgstr ""
+
+msgid "Add SVG part"
+msgstr ""
+
+msgid "Add negative SVG"
+msgstr ""
+
+msgid "Add SVG modifier"
+msgstr ""
+
 msgid "Select settings"
 msgstr "Vybrat nastavení"
 
@@ -1109,6 +1416,12 @@ msgstr "Smazat vybraný objekt"
 msgid "Edit Text"
 msgstr "Upravit text"
 
+msgid "Edit SVG"
+msgstr ""
+
+msgid "Change SVG source file, projection, size, ..."
+msgstr ""
+
 msgid "Load..."
 msgstr "Načíst..."
 
@@ -1120,6 +1433,9 @@ msgstr "Válec"
 
 msgid "Cone"
 msgstr "Kužel"
+
+msgid "Double Tear Romboid Cylinder"
+msgstr ""
 
 msgid "Disc"
 msgstr ""
@@ -1141,6 +1457,9 @@ msgstr "3DBenchy"
 
 msgid "ksr FDMTest"
 msgstr "ksr FDMTest"
+
+msgid "SVG"
+msgstr ""
 
 msgid "Height range Modifier"
 msgstr "Modifikátor výškového rozsahu"
@@ -1262,9 +1581,6 @@ msgstr "Podél osy Z"
 
 msgid "Mirror along the Z axis"
 msgstr "Zrcadlit podél osy Z"
-
-msgid "Mirror"
-msgstr "Zrcadlit"
 
 msgid "Mirror object"
 msgstr "Zrcadlit objekt"
@@ -1537,9 +1853,6 @@ msgstr "Typ poslední části pevného objektu nelze změnit."
 
 msgid "Negative Part"
 msgstr "Negativní díl"
-
-msgid "Modifier"
-msgstr "Modifikátor"
 
 msgid "Support Blocker"
 msgstr "Blokátor podpěr"
@@ -3570,9 +3883,6 @@ msgstr "Ne"
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "bude uzavřen před vytvořením nového modelu. Chcete pokračovat?"
 
-msgid "Upload"
-msgstr "Nahrát"
-
 msgid "Slice plate"
 msgstr "Slicuj Podložku"
 
@@ -3758,6 +4068,9 @@ msgstr "Exportovat aktuální konfiguraci do souborů"
 
 msgid "Export"
 msgstr "Exportovat"
+
+msgid "Publish to MakerWorld"
+msgstr ""
 
 msgid "Quit"
 msgstr "Ukončit"
@@ -4320,6 +4633,14 @@ msgstr "Zastavit"
 msgid "Layer: N/A"
 msgstr "Vrstva: N/A"
 
+msgid "Finish Time: N/A"
+msgstr ""
+
+msgid ""
+"The estimated printing time for \n"
+"multi-color models may be inaccurate."
+msgstr ""
+
 msgid "Clear"
 msgstr "Vymazat"
 
@@ -4337,6 +4658,12 @@ msgid ""
 msgstr ""
 
 msgid "Rate"
+msgstr ""
+
+msgid "Finished"
+msgstr "Dokončeno"
+
+msgid "Finish Time: "
 msgstr ""
 
 msgid "Camera"
@@ -4404,6 +4731,15 @@ msgstr "Vrstva: %s"
 #, c-format, boost-format
 msgid "Layer: %d/%d"
 msgstr "Vrstva: %d/%d"
+
+msgid "Axis go home"
+msgstr ""
+
+msgid "Are you sure you want to home now?"
+msgstr ""
+
+msgid "Home"
+msgstr ""
 
 msgid ""
 "Please heat the nozzle to above 170 degree before loading or unloading "
@@ -4535,6 +4871,30 @@ msgid ""
 "to give a positive rating(4 or 5stars)."
 msgstr ""
 
+msgid "Step file import parameters"
+msgstr ""
+
+msgid "Linear Deflection:"
+msgstr ""
+
+msgid "Please input a valid value (0.001 < angle deflection < 0.1)"
+msgstr ""
+
+msgid "Angle Deflection:"
+msgstr ""
+
+msgid "Please input a valid value (0.01 < angle deflection < 1.0)"
+msgstr ""
+
+msgid "Number of triangular facets: "
+msgstr ""
+
+msgid "0"
+msgstr "0"
+
+msgid "Calculating, please wait..."
+msgstr ""
+
 msgid "Status"
 msgstr "Stav"
 
@@ -4599,6 +4959,22 @@ msgid "Latest Version: "
 msgstr ""
 
 msgid "Not for now"
+msgstr ""
+
+msgid "Server Exception"
+msgstr ""
+
+msgid ""
+"The server is unable to respond. Please click the link below to check the "
+"server status."
+msgstr ""
+
+msgid ""
+"If the server is in a fault state, you can temporarily use offline printing "
+"or local network printing."
+msgstr ""
+
+msgid "How to use LAN only mode"
 msgstr ""
 
 msgid "3D Mouse disconnected."
@@ -5244,6 +5620,9 @@ msgstr "Otevřít jako projekt"
 msgid "Import geometry only"
 msgstr "Importovat pouze modely"
 
+msgid "Please import multiple files with the same suffix."
+msgstr ""
+
 msgid "Only one G-code file can be opened at the same time."
 msgstr "Najednou lze otevřít pouze jeden soubor s G-kódem."
 
@@ -5324,6 +5703,15 @@ msgid ""
 msgstr ""
 
 msgid ""
+"Are you sure you want to store original SVGs with their local paths into the "
+"3MF file?\n"
+"If you hit 'NO', all SVGs in the project will not be editable any more."
+msgstr ""
+
+msgid "Private protection"
+msgstr ""
+
+msgid ""
 "Print By Object: \n"
 "Suggest to use auto-arrange to avoid collisions when printing."
 msgstr ""
@@ -5345,6 +5733,17 @@ msgstr "Neplatné číslo"
 
 msgid "Plate Settings"
 msgstr "Nastavení Podložky"
+
+msgid "Prime Tower:"
+msgstr ""
+
+msgid ""
+"A cube printed during a filament change to purge old color and ensure smooth "
+"color transition."
+msgstr ""
+
+msgid "View Wiki for more information"
+msgstr ""
 
 #, boost-format
 msgid "Number of currently selected parts: %1%\n"
@@ -5519,6 +5918,12 @@ msgid ""
 "same time and manage multiple devices."
 msgstr ""
 
+msgid "Support beta version update."
+msgstr ""
+
+msgid "With this option enabled, you can receive beta version updates."
+msgstr ""
+
 msgid "3D Settings"
 msgstr ""
 
@@ -5529,6 +5934,14 @@ msgid ""
 "Zoom in towards the mouse pointer's position in the 3D view, rather than the "
 "2D window center."
 msgstr "Přiblížit se ke kurzoru myši ve 3D zobrazení, na místo středu 2D okna."
+
+msgid "Always show shells in preview"
+msgstr ""
+
+msgid ""
+"Always show shells or not in preview view tab.If change value,you should "
+"reslice."
+msgstr ""
 
 msgid "Improve rendering performance by lod"
 msgstr ""
@@ -6205,6 +6618,18 @@ msgstr "Úprava názvu zařízení"
 msgid "Bind with Pin Code"
 msgstr ""
 
+msgid "Bind with Access Code"
+msgstr ""
+
+msgid ""
+"Please log in before binding your device with a PIN code.\n"
+"Alternatively, you can use LAN mode to bind your device. Learn about LAN "
+"mode."
+msgstr ""
+
+msgid "Go to Login"
+msgstr ""
+
 msgid "Send to Printer SD card"
 msgstr "Odeslat do tiskárny SD kartu"
 
@@ -6391,14 +6816,11 @@ msgid "Still print by object?"
 msgstr ""
 
 msgid ""
-"We have added an experimental style \"Tree Slim\" that features smaller "
-"support volume but weaker strength.\n"
-"We recommend using it with: 0 interface layers, 0 top distance, 2 walls."
+"When using support material for the support interface, We recommend the "
+"following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and "
+"disable independent support layer height"
 msgstr ""
-"Přidali jsme experimentální styl \" Tree Slim \" , který obsahuje menší "
-"podporovat objem, ale slabší sílu.\n"
-"Doporučujeme jej používat s: 0 vrstvami rozhraní, 0 horní vzdáleností, 2 "
-"stěnami."
 
 msgid ""
 "Change these settings automatically? \n"
@@ -6410,19 +6832,8 @@ msgstr ""
 "Ne - tato nastavení za mě neměňte"
 
 msgid ""
-"For \"Tree Strong\" and \"Tree Hybrid\" styles, we recommend the following "
-"settings: at least 2 interface layers, at least 0.1mm top z distance or "
-"using support materials on interface."
-msgstr ""
-"Pro styly \"Tree Strong\" a \"Tree Hybrid\" doporučujeme následující "
-"nastavení: alespoň 2 vrstvy rozhraní, alespoň 0,1 mm horní z vzdálenost nebo "
-"používání podpůrných materiálů na rozhraní."
-
-msgid ""
-"When using support material for the support interface, We recommend the "
-"following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and "
-"disable independent support layer height"
+"Layer height is too small.\n"
+"It will set to min_layer_height\n"
 msgstr ""
 
 msgid ""
@@ -6456,13 +6867,18 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Při nahrávání časosběru bez nástrojové hlavy se doporučuje přidat  "
 "\"Timelapse Wipe Tower\" \n"
 "klikněte pravým tlačítkem na prázdnou pozici stavební desky a vyberte "
 "\"Přidat primitivní\" -> \"Timelapse Wipe Tower\" ."
+
+msgid ""
+"The notes are too large, and may not be synchronized to the cloud. Please "
+"keep it within 40k."
+msgstr ""
 
 msgid "Line width"
 msgstr "Šířka Extruze"
@@ -6564,6 +6980,11 @@ msgstr[2] ""
 msgid "Reserved keywords found"
 msgstr "Byla nalezena vyhrazená klíčová slova"
 
+msgid ""
+"Custom G-code files are too large, and may not be synchronized to the cloud. "
+"Please keep it within 40k."
+msgstr ""
+
 msgid "Setting Overrides"
 msgstr "Přepsání nastavení"
 
@@ -6588,6 +7009,14 @@ msgstr "Tryska"
 
 msgid "Nozzle temperature when printing"
 msgstr "Teplota trysky při tisku"
+
+msgid "Bambu Cool Plate SuperTack"
+msgstr ""
+
+msgid ""
+"Bed temperature when cool plate is installed. Value 0 means the filament "
+"does not support to print on the Bambu Cool Plate SuperTack"
+msgstr ""
 
 msgid "Cool Plate / PLA Plate"
 msgstr "Cool Podložka / PLA Podložka"
@@ -7396,8 +7825,8 @@ msgstr ""
 msgid "Confirm and Update Nozzle"
 msgstr ""
 
-msgid "LAN Connection Failed (Sending print file)"
-msgstr "Připojení k síti LAN se nezdařilo (odesílání tiskového souboru)"
+msgid "Connect the printer using IP and access code"
+msgstr ""
 
 msgid ""
 "Step 1, please confirm Bambu Studio and your printer are in the same LAN."
@@ -7420,10 +7849,28 @@ msgstr "Kde najít IP a přístupový kód vaší tiskárny?"
 msgid "Step 3: Ping the IP address to check for packet loss and latency."
 msgstr ""
 
-msgid "Test"
+msgid "Connect"
 msgstr ""
 
-msgid "IP and Access Code Verified! You may close the window"
+msgid "connecting..."
+msgstr ""
+
+msgid "Failed to connect to printer."
+msgstr ""
+
+msgid "Failed to publish login request."
+msgstr ""
+
+msgid "The device does not support using IP and Access Code for connection."
+msgstr ""
+
+msgid "The printer has already been bound."
+msgstr ""
+
+msgid "The printer mode is incorrect, please switch to LAN Only."
+msgstr ""
+
+msgid "Printer binding successful. The dialog will close later"
 msgstr ""
 
 msgid "Connection failed, please double check IP and Access Code"
@@ -8065,10 +8512,8 @@ msgstr "Teplota podložky první vrstvy"
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
-"support to print on the Cool Plate"
+"support to print on the Bambu Cool Plate SuperTack"
 msgstr ""
-"Toto je teplota podložky první vrstvy. Hodnota 0 znamená filament "
-"nepodporuje tisk na Cool Podložku"
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
@@ -8283,6 +8728,9 @@ msgstr ""
 "Toto ovládá generování límce na vnější a/nebo vnitřní straně modelů. Možnost "
 "Auto znamená, že šířka límce je automaticky analyzována a vypočítána."
 
+msgid "Manual"
+msgstr ""
+
 msgid "Brim-object gap"
 msgstr "Mezera mezi Límcem a Objektem"
 
@@ -8291,6 +8739,12 @@ msgid ""
 "easily"
 msgstr ""
 "Mezera mezi nejvnitřnějším límcem a předmětem může usnadnit odstranění límce"
+
+msgid "Brim ears"
+msgstr ""
+
+msgid "Draw brim"
+msgstr ""
 
 msgid "Compatible machine"
 msgstr "Kompatibilní stroj"
@@ -10188,7 +10642,9 @@ msgstr "Toto nastavení určuje počáteční průměr uzlů poděry."
 msgid "Support wall loops"
 msgstr ""
 
-msgid "This setting specifies the count of walls around support"
+msgid ""
+"This setting specifies the count of support walls in the range of [0,2]. 0 "
+"means auto."
 msgstr ""
 
 msgid "Chamber temperature"
@@ -11250,9 +11706,6 @@ msgstr "Service name"
 msgid "Searching for devices"
 msgstr "Vyhledávání zařízení"
 
-msgid "Finished"
-msgstr "Dokončeno"
-
 msgid "Send to print"
 msgstr "Odeslat do tiskárny"
 
@@ -11265,6 +11718,9 @@ msgstr "Pokud je to nutné, použijte pro oddělení složek lomítko (/)."
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
 msgstr "Název nahrávaného souboru neskončí s \"%s\". Přejete si pokračovat?"
+
+msgid "Upload"
+msgstr "Nahrát"
 
 msgid "Simulate"
 msgstr "Simulovat"
@@ -11317,12 +11773,12 @@ msgstr ""
 msgid "Mesh Boolean"
 msgstr "Booleovská síť"
 
-msgid "Please right click to assembly these objects."
-msgstr ""
-
 msgid ""
 "Please add at least one more object and select them together,\n"
 "then right click to assembly these objects."
+msgstr ""
+
+msgid "Please right click to assembly these objects."
 msgstr ""
 
 msgid "Union"
@@ -11522,8 +11978,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 
@@ -11888,6 +12344,9 @@ msgid "Physical Printer"
 msgstr ""
 
 msgid "Print Host upload"
+msgstr ""
+
+msgid "Test"
 msgstr ""
 
 msgid "Could not get a valid Printer Host reference"
@@ -12464,8 +12923,8 @@ msgid ""
 msgstr ""
 "Plochou na podložku\n"
 "Věděli jste, že můžete rychle nastavit orientaci modelu tak, aby jedna z "
-"jeho stěn spočívala na tiskovém podloží? Vyberte funkci \"Plochou na podložku"
-"\" nebo stiskněte klávesu <b>F</b>."
+"jeho stěn spočívala na tiskovém podloží? Vyberte funkci \"Plochou na "
+"podložku\" nebo stiskněte klávesu <b>F</b>."
 
 #: resources/data/hints.ini: [hint:Object List]
 msgid ""
@@ -12684,6 +13143,51 @@ msgid ""
 "probability of warping."
 msgstr ""
 
+#~ msgid "Set Position"
+#~ msgstr "Nastavení pozice"
+
+#~ msgid "Stopped."
+#~ msgstr "Zastaveno."
+
+#~ msgid ""
+#~ "\"Fix Model\" feature is currently only on Windows. Please repair the "
+#~ "model on Bambu Studio(windows) or CAD softwares."
+#~ msgstr ""
+#~ "Funkce  \"Opravit model\" je momentálně pouze v systému Windows. Opravte "
+#~ "prosím model na Bambu Studio (windows) nebo CAD software."
+
+#~ msgid "Downloads"
+#~ msgstr "Stahování"
+
+#~ msgid ""
+#~ "We have added an experimental style \"Tree Slim\" that features smaller "
+#~ "support volume but weaker strength.\n"
+#~ "We recommend using it with: 0 interface layers, 0 top distance, 2 walls."
+#~ msgstr ""
+#~ "Přidali jsme experimentální styl \" Tree Slim \" , který obsahuje menší "
+#~ "podporovat objem, ale slabší sílu.\n"
+#~ "Doporučujeme jej používat s: 0 vrstvami rozhraní, 0 horní vzdáleností, 2 "
+#~ "stěnami."
+
+#~ msgid ""
+#~ "For \"Tree Strong\" and \"Tree Hybrid\" styles, we recommend the "
+#~ "following settings: at least 2 interface layers, at least 0.1mm top z "
+#~ "distance or using support materials on interface."
+#~ msgstr ""
+#~ "Pro styly \"Tree Strong\" a \"Tree Hybrid\" doporučujeme následující "
+#~ "nastavení: alespoň 2 vrstvy rozhraní, alespoň 0,1 mm horní z vzdálenost "
+#~ "nebo používání podpůrných materiálů na rozhraní."
+
+#~ msgid "LAN Connection Failed (Sending print file)"
+#~ msgstr "Připojení k síti LAN se nezdařilo (odesílání tiskového souboru)"
+
+#~ msgid ""
+#~ "Bed temperature of the initial layer. Value 0 means the filament does not "
+#~ "support to print on the Cool Plate"
+#~ msgstr ""
+#~ "Toto je teplota podložky první vrstvy. Hodnota 0 znamená filament "
+#~ "nepodporuje tisk na Cool Podložku"
+
 #~ msgid "China"
 #~ msgstr "Čína"
 
@@ -12720,9 +13224,6 @@ msgstr ""
 #~ msgid "⌥+Mouse wheel"
 #~ msgstr "⌥+kolečko myši"
 
-#~ msgid "Ctrl+Mouse wheel"
-#~ msgstr "Ctrl+kolečko myši"
-
 #~ msgid "Alt+Mouse wheel"
 #~ msgstr "Alt+kolečko myši"
 
@@ -12749,12 +13250,12 @@ msgstr ""
 #~ "Najdete podrobnosti o kalibraci průtoku dynamiky v naší wiki.\n"
 #~ "\n"
 #~ "Obvykle kalibrace není potřebná. Při spuštění tisku s jednobarevným/"
-#~ "materiálovým filamentem a zaškrtnutou volbou \"kalibrace průtoku dynamiky"
-#~ "\" v menu spuštění tisku, tiskárna bude postupovat podle staré metody a "
-#~ "zkalibruje filament před tiskem. Při spuštění tisku s vícebarevným/"
-#~ "materiálovým filamentem bude tiskárna při každé změně filamentu používat "
-#~ "výchozí kompenzační parametr pro filament, což má většinou dobrý "
-#~ "výsledek.\n"
+#~ "materiálovým filamentem a zaškrtnutou volbou \"kalibrace průtoku "
+#~ "dynamiky\" v menu spuštění tisku, tiskárna bude postupovat podle staré "
+#~ "metody a zkalibruje filament před tiskem. Při spuštění tisku s "
+#~ "vícebarevným/materiálovým filamentem bude tiskárna při každé změně "
+#~ "filamentu používat výchozí kompenzační parametr pro filament, což má "
+#~ "většinou dobrý výsledek.\n"
 #~ "\n"
 #~ "Všimněte si, že existují některé případy, které mohou způsobit, že "
 #~ "výsledek kalibrace nebude spolehlivý: použití texturované podložky pro "
@@ -13394,9 +13895,6 @@ msgstr ""
 
 #~ msgid "1080p"
 #~ msgstr "1080p"
-
-#~ msgid "0"
-#~ msgstr "0"
 
 #~ msgid "HMS"
 #~ msgstr "HMS"
