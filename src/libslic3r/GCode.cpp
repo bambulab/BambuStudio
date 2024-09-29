@@ -4908,21 +4908,22 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     }
 
     std::string comment;
+    bool cooling_extrude = false;
     if (m_enable_cooling_markers) {
         if (EXTRUDER_CONFIG(enable_overhang_bridge_fan)) {
             //BBS: Overhang_threshold_none means Overhang_threshold_1_4 and forcing cooling for all external perimeter
             int overhang_threshold = EXTRUDER_CONFIG(overhang_fan_threshold) == Overhang_threshold_none ?
                 Overhang_threshold_none : EXTRUDER_CONFIG(overhang_fan_threshold) - 1;
-            if ((EXTRUDER_CONFIG(overhang_fan_threshold) == Overhang_threshold_none && path.role() == erExternalPerimeter)) {
+            if ((EXTRUDER_CONFIG(overhang_fan_threshold) == Overhang_threshold_none && path.role() == erExternalPerimeter || (path.get_overhang_degree() > overhang_threshold ||
+                is_bridge(path.role())))) {
                 gcode += ";_OVERHANG_FAN_START\n";
-            } else if (path.get_overhang_degree() > overhang_threshold ||
-                is_bridge(path.role()))
-                gcode += ";_OVERHANG_FAN_START\n";
+            }
         }
 
         int overhang_boundary_for_cooling = EXTRUDER_CONFIG(overhang_threshold_participating_cooling);
 
         if (!is_bridge(path.role()) && path.get_overhang_degree() <= overhang_boundary_for_cooling) {
+            cooling_extrude = true;
             comment = ";_EXTRUDE_SET_SPEED";
         }
 
@@ -5017,22 +5018,17 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         }
     }
     if (m_enable_cooling_markers) {
+        if (cooling_extrude)
+            gcode += ";_EXTRUDE_END\n";
+
+
         if (EXTRUDER_CONFIG(enable_overhang_bridge_fan)) {
             //BBS: Overhang_threshold_none means Overhang_threshold_1_4 and forcing cooling for all external perimeter
             int overhang_threshold = EXTRUDER_CONFIG(overhang_fan_threshold) == Overhang_threshold_none ?
                 Overhang_threshold_none : EXTRUDER_CONFIG(overhang_fan_threshold) - 1;
-            if ((EXTRUDER_CONFIG(overhang_fan_threshold) == Overhang_threshold_none && path.role() == erExternalPerimeter)) {
-                gcode += ";_EXTRUDE_END\n";
+            if ((EXTRUDER_CONFIG(overhang_fan_threshold) == Overhang_threshold_none && path.role() == erExternalPerimeter || (path.get_overhang_degree() > overhang_threshold ||
+                is_bridge(path.role()))))
                 gcode += ";_OVERHANG_FAN_END\n";
-
-            } else if (path.get_overhang_degree() > overhang_threshold ||
-                is_bridge(path.role()))
-                gcode += ";_OVERHANG_FAN_END\n";
-            else
-                gcode += ";_EXTRUDE_END\n";
-        }
-        else {
-            gcode += ";_EXTRUDE_END\n";
         }
     }
 
