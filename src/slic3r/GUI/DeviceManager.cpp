@@ -245,6 +245,33 @@ void split_string(std::string s, std::vector<std::string>& v) {
     v.push_back(t);
 }
 
+wxString generate_nozzle_id(NozzleVolumeType nozzle_type)
+{
+    std::string nozzle_id;
+    switch (nozzle_type) {
+    case NozzleVolumeType::nvtNormal: {
+        nozzle_id = L("Normal");
+        break;
+    }
+    case NozzleVolumeType::nvtBigTraffic: {
+        nozzle_id = L("BigTraffic");
+        break;
+    }
+    default: break;
+    }
+    return nozzle_id;
+}
+
+NozzleVolumeType convert_to_nozzle_type(const std::string &str)
+{
+    NozzleVolumeType res = NozzleVolumeType::nvtNormal;
+    if (str == "Normal")
+        res = NozzleVolumeType::nvtNormal;
+    else if (str == "BigTraffic")
+        res = NozzleVolumeType::nvtBigTraffic;
+    return res;
+}
+
 PrinterArch get_printer_arch_by_str(std::string arch_str)
 {
     if (arch_str == "i3") {
@@ -2241,7 +2268,7 @@ int MachineObject::command_start_pa_calibration(const X1CCalibInfos &pa_data, in
         j["print"]["filaments"][i]["nozzle_temp"]          = pa_data.calib_datas[i].nozzle_temp;
         j["print"]["filaments"][i]["ams_id"]               = pa_data.calib_datas[i].ams_id;
         j["print"]["filaments"][i]["slot_id"]              = pa_data.calib_datas[i].slot_id;
-        j["print"]["filaments"][i]["nozzle_volume_type"]   = int(pa_data.calib_datas[i].nozzle_volume_type);
+        j["print"]["filaments"][i]["nozzle_id"]            = generate_nozzle_id(pa_data.calib_datas[i].nozzle_volume_type).ToStdString();
         j["print"]["filaments"][i]["nozzle_diameter"]      = pa_data.calib_datas[i].nozzle_diameter;
         j["print"]["filaments"][i]["max_volumetric_speed"] = std::to_string(pa_data.calib_datas[i].max_volumetric_speed);
 
@@ -2281,7 +2308,7 @@ int MachineObject::command_set_pa_calibration(const std::vector<PACalibResult> &
                 j["print"]["filaments"][i]["cali_idx"] = pa_calib_values[i].cali_idx;
             j["print"]["filaments"][i]["tray_id"]     = pa_calib_values[i].tray_id;
             j["print"]["filaments"][i]["extruder_id"] = pa_calib_values[i].extruder_id;
-            j["print"]["filaments"][i]["nozzle_volume_type"] = int(pa_calib_values[i].nozzle_volume_type);
+            j["print"]["filaments"][i]["nozzle_id"]   = generate_nozzle_id(pa_calib_values[i].nozzle_volume_type).ToStdString();
             j["print"]["filaments"][i]["ams_id"]      = pa_calib_values[i].ams_id;
             j["print"]["filaments"][i]["slot_id"]     = pa_calib_values[i].slot_id;
             j["print"]["filaments"][i]["filament_id"] = pa_calib_values[i].filament_id;
@@ -2307,7 +2334,7 @@ int MachineObject::command_delete_pa_calibration(const PACalibIndexInfo& pa_cali
     j["print"]["command"]         = "extrusion_cali_del";
     j["print"]["sequence_id"]     = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["extruder_id"]     = pa_calib.extruder_id;
-    j["print"]["nozzle_volume_type"]     = int(pa_calib.nozzle_volume_type);
+    j["print"]["nozzle_id"]       = generate_nozzle_id(pa_calib.nozzle_volume_type).ToStdString();
     j["print"]["filament_id"]     = pa_calib.filament_id;
     j["print"]["cali_idx"]        = pa_calib.cali_idx;
     j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(pa_calib.nozzle_diameter);
@@ -2325,7 +2352,7 @@ int MachineObject::command_get_pa_calibration_tab(const PACalibExtruderInfo &cal
     j["print"]["sequence_id"]     = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["filament_id"]     = calib_info.filament_id;
     j["print"]["extruder_id"]     = calib_info.extruder_id;
-    j["print"]["nozzle_volume_type"]    = int(calib_info.nozzle_volume_type);
+    j["print"]["nozzle_id"]       = generate_nozzle_id(calib_info.nozzle_volume_type).ToStdString();
     j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(calib_info.nozzle_diameter);
 
     BOOST_LOG_TRIVIAL(trace) << "extrusion_cali_get: " << j.dump();
@@ -4368,8 +4395,10 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                 } else if (jj["command"].get<std::string>() == "ams_filament_setting" && !key_field_only) {
                     if (jj.contains("result") && jj.contains("reason")) {
                         if (jj["result"].get<std::string>() == "fail") {
-                            auto err_code = jj["err_code"].get<int>();
-                            print_error = err_code;
+                            if (jj.contains("err_code")) {
+                                auto err_code = jj["err_code"].get<int>();
+                                print_error   = err_code;
+                            }
                         }
                     }
 
@@ -4509,8 +4538,10 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                 } else if (jj["command"].get<std::string>() == "extrusion_cali_set") {
                     if (jj.contains("result") && jj.contains("reason")) {
                         if (jj["result"].get<std::string>() == "fail") {
-                            auto err_code = jj["err_code"].get<int>();
-                            print_error   = err_code;
+                            if (jj.contains("err_code")) {
+                                auto err_code = jj["err_code"].get<int>();
+                                print_error   = err_code;
+                            }
                         }
                     }
 #ifdef CALI_DEBUG
@@ -4559,8 +4590,10 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                 else if (jj["command"].get<std::string>() == "extrusion_cali_sel") {
                     if (jj.contains("result") && jj.contains("reason")) {
                         if (jj["result"].get<std::string>() == "fail") {
-                            auto err_code = jj["err_code"].get<int>();
-                            print_error   = err_code;
+                            if (jj.contains("err_code")) {
+                                auto err_code = jj["err_code"].get<int>();
+                                print_error   = err_code;
+                            }
                         }
                     }
 
@@ -4615,7 +4648,6 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                 auto err_code = jj["err_code"].get<int>();
                                 print_error   = err_code;
                             }
-                            is_succeed = false;
                         }
                     }
 
@@ -4643,8 +4675,8 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                         pa_calib_tab_info.extruder_id = jj["extruder_id"].get<int>();
                     }
 
-                    if (jj.contains("nozzle_volume_type")) {
-                        pa_calib_tab_info.nozzle_volume_type = NozzleVolumeType(jj["nozzle_volume_type"].get<int>());
+                    if (jj.contains("nozzle_id")) {
+                        pa_calib_tab_info.nozzle_volume_type = convert_to_nozzle_type(jj["nozzle_id"].get<std::string>());
                     }
 
                     if (jj.contains("filaments") && jj["filaments"].is_array()) {
@@ -4696,7 +4728,6 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                             if (jj.contains("err_code")) {
                                 auto err_code = jj["err_code"].get<int>();
                                 print_error   = err_code;
-                                is_succeed    = false;
                             }
                         }
                     }
@@ -4736,8 +4767,8 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                     pa_calib_result.extruder_id = -1;
                                 }
 
-                                if (it->contains("nozzle_volume_type")) {
-                                    pa_calib_result.nozzle_volume_type = NozzleVolumeType((*it)["nozzle_volume_type"].get<int>());
+                                if (it->contains("nozzle_id")) {
+                                    pa_calib_result.nozzle_volume_type = convert_to_nozzle_type((*it)["nozzle_id"].get<std::string>());
                                 } else {
                                     pa_calib_result.nozzle_volume_type = NozzleVolumeType::nvtNormal;
                                 }

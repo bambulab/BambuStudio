@@ -1174,6 +1174,8 @@ public:
 
 // change the opacity
 void change_the_opacity(wxColour& colour);
+
+wxString generate_nozzle_id(NozzleVolumeType nozzle_type);
 } // namespace Slic3r
 
 #endif //  slic3r_DeviceManager_hpp_
