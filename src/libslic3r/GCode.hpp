@@ -296,6 +296,31 @@ private:
         bool        spiral_vase_enable { false };
         // Should the cooling buffer content be flushed at the end of this layer?
         bool        cooling_buffer_flush { false };
+        // the layer store pos of gcode
+        size_t      gcode_store_pos;
+        LayerResult() = default;
+        LayerResult(const std::string& gcode_, const size_t layer_id_, const bool spiral_vase_enable_, const bool cooling_buffer_flush_, const size_t gcode_store_pos_ = static_cast<size_t>(-1)) :
+            gcode(gcode_), layer_id(layer_id_), spiral_vase_enable(spiral_vase_enable_), cooling_buffer_flush(cooling_buffer_flush_), gcode_store_pos(gcode_store_pos_){}
+        LayerResult(const LayerResult& other) = default;
+        LayerResult& operator=(const LayerResult& other) = default;
+        LayerResult(LayerResult&& other) noexcept {
+            gcode = std::move(other.gcode);
+            layer_id = other.layer_id;
+            spiral_vase_enable = other.spiral_vase_enable;
+            cooling_buffer_flush = other.cooling_buffer_flush;
+            gcode_store_pos = other.gcode_store_pos;
+        }
+
+        LayerResult& operator=(LayerResult&& other) noexcept {
+            if (this != &other) {
+                gcode = std::move(other.gcode);
+                layer_id = other.layer_id;
+                spiral_vase_enable = other.spiral_vase_enable;
+                cooling_buffer_flush = other.cooling_buffer_flush;
+                gcode_store_pos = other.gcode_store_pos;
+            }
+            return *this;
+        }
     };
     LayerResult process_layer(
         const Print                     &print,
