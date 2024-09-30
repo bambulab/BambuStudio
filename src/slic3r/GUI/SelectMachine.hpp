@@ -174,7 +174,7 @@ public:
                        const wxSize &  size  = wxDefaultSize,
                        long            style = wxTAB_TRAVERSAL,
                        const wxString &name  = wxEmptyString);
-    
+
     ~MachineObjectPanel();
 
     void show_bind_dialog();
@@ -192,7 +192,7 @@ protected:
 };
 
 #define SELECT_MACHINE_POPUP_SIZE wxSize(FromDIP(216), FromDIP(364))
-#define SELECT_MACHINE_LIST_SIZE wxSize(FromDIP(212), FromDIP(360))  
+#define SELECT_MACHINE_LIST_SIZE wxSize(FromDIP(212), FromDIP(360))
 #define SELECT_MACHINE_ITEM_SIZE wxSize(FromDIP(190), FromDIP(35))
 #define SELECT_MACHINE_GREY900 wxColour(38, 46, 48)
 #define SELECT_MACHINE_GREY600 wxColour(144,144,144)
@@ -274,7 +274,7 @@ private:
     std::string                       m_print_info = "";
     bool                              m_dismiss { false };
 
-    std::map<std::string, MachineObject*> m_bind_machine_list; 
+    std::map<std::string, MachineObject*> m_bind_machine_list;
     std::map<std::string, MachineObject*> m_free_machine_list;
 
 private:
@@ -331,7 +331,8 @@ enum PrintDialogStatus {
     PrintStatusNotSupportedPrintAll,
     PrintStatusBlankPlate,
     PrintStatusUnsupportedPrinter,
-    PrintStatusTimelapseWarning
+    PrintStatusTimelapseWarning,
+    PrintStatusMixAmsAndVtSlotWarning
 };
 
 
@@ -362,7 +363,7 @@ private:
     wxColour                            m_colour_bold_color{wxColour(38, 46, 48)};
     StateColor                          m_btn_bg_enable;
     Label* m_text_bed_type;
-    
+
     std::shared_ptr<int>                m_token = std::make_shared<int>(0);
     std::map<std::string, CheckBox *>   m_checkbox_list;
     //std::map<std::string, bool>         m_checkbox_state_list;
@@ -374,7 +375,7 @@ private:
     std::shared_ptr<BBLStatusBarSend>   m_status_bar;
 
     Slic3r::DynamicPrintConfig          m_required_data_config;
-    Slic3r::Model                       m_required_data_model; 
+    Slic3r::Model                       m_required_data_model;
     Slic3r::PlateDataPtrs               m_required_data_plate_data_list;
     std::string                         m_required_data_file_name;
     std::string                         m_required_data_file_path;
@@ -388,7 +389,7 @@ protected:
     Plater *                            m_plater{nullptr};
     wxBoxSizer*                         m_sizer_options{ nullptr };
     wxBoxSizer*                         m_sizer_thumbnail{ nullptr };
-    
+
     wxBoxSizer*                         m_sizer_main{ nullptr };
     wxBoxSizer*                         m_basicl_sizer{ nullptr };
     wxBoxSizer*                         rename_sizer_v{ nullptr };
