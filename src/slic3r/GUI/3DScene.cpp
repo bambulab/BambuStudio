@@ -623,13 +623,12 @@ std::array<float, 4> color_from_model_volume(const ModelVolume& model_volume)
     return color;
 }
 
-bool GLVolume::simplify_mesh(const TriangleMesh &mesh, GLIndexedVertexArray &va, LOD_LEVEL lod) const
-{
+bool GLVolume::simplify_mesh(const TriangleMesh &mesh, std::shared_ptr<GLIndexedVertexArray> va, LOD_LEVEL lod) const {
    return simplify_mesh(mesh.its,va,lod);
 }
 #define SUPER_LARGE_FACES 500000
 #define LARGE_FACES 100000
-bool GLVolume::simplify_mesh(const indexed_triangle_set &_its, GLIndexedVertexArray &va, LOD_LEVEL lod) const
+bool GLVolume::simplify_mesh(const indexed_triangle_set &_its, std::shared_ptr<GLIndexedVertexArray> va, LOD_LEVEL lod) const
 {
     if (_its.indices.size() == 0 || _its.vertices.size() == 0) { return false; }
     auto its = std::make_unique<indexed_triangle_set>(_its);
@@ -653,7 +652,7 @@ bool GLVolume::simplify_mesh(const indexed_triangle_set &_its, GLIndexedVertexAr
 
     //std::mutex  m_state_mutex;
     std::thread m_worker = std::thread(
-        [&va](std::unique_ptr<indexed_triangle_set> its, std::unique_ptr<State> state) {
+        [va,this](std::unique_ptr<indexed_triangle_set> its, std::unique_ptr<State> state) {
             // Checks that the UI thread did not request cancellation, throws if so.
             std::function<void(void)> throw_on_cancel = []() {
             };
@@ -695,7 +694,9 @@ bool GLVolume::simplify_mesh(const indexed_triangle_set &_its, GLIndexedVertexAr
                 Vec3f        origin_max = origin_mesh.stats().max + Vec3f(eps, eps, eps);
                 if (origin_min.x() < mesh.stats().min.x() && origin_min.y() < mesh.stats().min.y() && origin_min.z() < mesh.stats().min.z()&&
                     origin_max.x() > mesh.stats().max.x() && origin_max.y() > mesh.stats().max.y() && origin_max.z() > mesh.stats().max.z()) {
-                    va.load_mesh(mesh);
+                    if (va && va.use_count() >= 2) {
+                        va->load_mesh(mesh);
+                    }
                 }
                 else {
                     state->status = State::cancelling;
@@ -1315,13 +1316,13 @@ int GLVolumeCollection::load_object_volume(
                 v.indexed_vertex_array_middle = std::make_shared<GLIndexedVertexArray>();
             }
 
-            v.simplify_mesh(mesh, *v.indexed_vertex_array_middle, LOD_LEVEL::MIDDLE); // include finalize_geometry
+            v.simplify_mesh(mesh, v.indexed_vertex_array_middle, LOD_LEVEL::MIDDLE); // include finalize_geometry
 
             if (v.indexed_vertex_array_small == nullptr)
             {
                 v.indexed_vertex_array_small = std::make_shared<GLIndexedVertexArray>();
             }
-            v.simplify_mesh(mesh, *v.indexed_vertex_array_small, LOD_LEVEL::SMALL);
+            v.simplify_mesh(mesh, v.indexed_vertex_array_small, LOD_LEVEL::SMALL);
         }
 
         v.indexed_vertex_array->load_mesh(mesh);

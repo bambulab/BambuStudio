@@ -304,8 +304,8 @@ public:
     virtual ~GLVolume() = default;
 
     // BBS
-    bool simplify_mesh(const TriangleMesh &mesh, GLIndexedVertexArray &va, LOD_LEVEL lod) const;
-    bool simplify_mesh(const indexed_triangle_set &_its, GLIndexedVertexArray &va, LOD_LEVEL lod) const;
+    bool simplify_mesh(const TriangleMesh &mesh, std::shared_ptr<GLIndexedVertexArray> va, LOD_LEVEL lod) const;
+    bool simplify_mesh(const indexed_triangle_set &_its, std::shared_ptr<GLIndexedVertexArray> va, LOD_LEVEL lod) const;
 
 protected:
     Geometry::Transformation m_instance_transformation;
