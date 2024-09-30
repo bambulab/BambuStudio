@@ -281,6 +281,7 @@ public:
     ModelObjectPtrs get_objects() { return m_model->objects; }
     ModelObjectPtrs get_objects_on_this_plate();
     std::set<std::pair<int, int>>& get_obj_and_inst_set() { return obj_to_instance_set; }
+    std::set<std::pair<int, int>>& get_obj_and_inst_outside_set() { return instance_outside_set; }
     ModelInstance* get_instance(int obj_id, int instance_id);
     BoundingBoxf3 get_objects_bounding_box();
 
