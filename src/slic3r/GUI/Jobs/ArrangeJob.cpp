@@ -429,43 +429,60 @@ void ArrangeJob::prepare_partplate() {
 void ArrangeJob::prepare_outside_plate() {
     clear_input();
 
+    std::set<std::pair<int, int>> all_inside_objects;
+    std::set<std::pair<int, int>> all_outside_objects;
+
     Model         &model      = m_plater->model();
     PartPlateList &plate_list = m_plater->get_partplate_list();
+    //collect all the objects outside
     for (int plate_idx = 0; plate_idx < plate_list.get_plate_count(); plate_idx++) {
         PartPlate *plate = plate_list.get_plate(plate_idx);
         assert(plate != nullptr);
-        if (plate->empty()) {
+        std::set<std::pair<int, int>>& plate_objects = plate->get_obj_and_inst_set();
+        std::set<std::pair<int, int>>& plate_outside_objects = plate->get_obj_and_inst_outside_set();
+        if (plate_objects.empty()) {
             // no instances on this plate
             ARRANGE_LOG(info) << __FUNCTION__ << format(": no instances in plate %d!", plate_idx);
             continue;
         }
+
+        all_inside_objects.insert(plate_objects.begin(), plate_objects.end());
+        if (!plate_outside_objects.empty())
+            all_outside_objects.insert(plate_outside_objects.begin(), plate_outside_objects.end());
 
         if (plate->is_locked()) {
             ARRANGE_LOG(info) << __FUNCTION__ << format(": skip locked plate %d!", plate_idx);
             continue;
         }
 
-
-        // Go through the objects and select the outside ones
-        bool has_object_inside = false;
-        bool has_object_unprintable = false;
-        for (auto obj_and_inst : plate->get_obj_and_inst_set()) {
-            int          oidx     = obj_and_inst.first;
-            size_t       inst_idx = obj_and_inst.second;
-            ModelObject *mo       = model.objects[oidx];
-            bool             outside_plate = plate->check_outside(oidx, inst_idx);
-            ArrangePolygon &&ap            = prepare_arrange_polygon(mo->instances[inst_idx]);
-            ArrangePolygons &cont          = mo->instances[inst_idx]->printable ? (outside_plate ? m_selected : m_locked) : m_unprintable;
-            ap.itemid                      = cont.size();
-            cont.emplace_back(std::move(ap));
-            if (!outside_plate) has_object_inside = true;
-            if (!mo->instances[inst_idx]->printable) has_object_unprintable = true;
-        }
         // if there are objects inside the plate, lock the plate and don't put new objects in it
-        if (has_object_inside || has_object_unprintable) {
+        if (plate_objects.size() > plate_outside_objects.size()) {
             plate->lock(true);
             m_uncompatible_plates.push_back(plate_idx);
             ARRANGE_LOG(info) << __FUNCTION__ << format(": lock plate %d because there are objects inside!", plate_idx);
+        }
+    }
+
+    for (int obj_idx = 0; obj_idx < model.objects.size(); obj_idx++) {
+        ModelObject *object = model.objects[obj_idx];
+        for (size_t inst_idx = 0; inst_idx < object->instances.size(); ++inst_idx) {
+            ModelInstance * instance = object->instances[inst_idx];
+            std::set<std::pair<int, int>>::iterator iter1, iter2;
+
+            iter1 = all_inside_objects.find(std::pair(obj_idx, inst_idx));
+            iter2 = all_outside_objects.find(std::pair(obj_idx, inst_idx));
+            bool outside_plate = false;
+            if ((iter2 != all_outside_objects.end())
+                || (iter1 == all_inside_objects.end())) {
+                outside_plate = true;
+            }
+            ArrangePolygon&& ap = prepare_arrange_polygon(instance);
+            ArrangePolygons &cont  = instance->printable ? (outside_plate ? m_selected : m_locked) : m_unprintable;
+            ap.itemid                      = cont.size();
+            if (!outside_plate) {
+                plate_list.preprocess_arrange_polygon(obj_idx, inst_idx, ap, true);
+            }
+            cont.emplace_back(std::move(ap));
         }
     }
 
