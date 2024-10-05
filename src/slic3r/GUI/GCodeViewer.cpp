@@ -4473,10 +4473,10 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
                 columns_offsets.push_back({buf, offsets[_u8L("Model")]});
             }
             if (displayed_columns & ColumnData::Support) {
-                std::for_each(model_used_filaments_m_all_plates.begin(), model_used_filaments_m_all_plates.end(), [&total_support_used_filament_m](double value) {
+                std::for_each(support_used_filaments_m_all_plates.begin(), support_used_filaments_m_all_plates.end(), [&total_support_used_filament_m](double value) {
                     total_support_used_filament_m += value;
                     });
-                std::for_each(model_used_filaments_g_all_plates.begin(), model_used_filaments_g_all_plates.end(), [&total_support_used_filament_g](double value) {
+                std::for_each(support_used_filaments_g_all_plates.begin(), support_used_filaments_g_all_plates.end(), [&total_support_used_filament_g](double value) {
                     total_support_used_filament_g += value;
                     });
                 ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", total_support_used_filament_m, total_support_used_filament_g / unit_conver);
