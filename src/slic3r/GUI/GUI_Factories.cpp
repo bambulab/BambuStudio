@@ -486,6 +486,18 @@ void MenuFactory::append_menu_item_delete(wxMenu* menu)
 #endif
 }
 
+void MenuFactory::append_menu_item_delete_all_cutter(wxMenu *menu)
+{
+#ifdef __WINDOWS__
+    append_menu_item(
+        menu, wxID_ANY, _L("Delete all cutter") + "\t" + _L("Del"), _L("Delete all cutter"), [](wxCommandEvent &) { plater()->remove_selected(); }, "menu_delete", nullptr,
+        []() { return plater()->can_delete(); }, m_parent);
+#else
+    append_menu_item(
+        menu, wxID_ANY, _L("Delete all cutter") + "\tBackSpace", _L("Delete all cutter"), [](wxCommandEvent &) { plater()->remove_selected(); }, "", nullptr,
+        []() { return plater()->can_delete(); }, m_parent);
+#endif
+}
 
 void MenuFactory::append_menu_item_edit_text(wxMenu *menu)
 {
@@ -716,6 +728,10 @@ wxMenuItem* MenuFactory::append_menu_item_change_type(wxMenu* menu)
     return append_menu_item(menu, wxID_ANY, _L("Change type"), "",
         [](wxCommandEvent&) { obj_list()->change_part_type(); }, "", menu,
         []() {
+            const Selection &selection = plater()->canvas3D()->get_selection();
+            if (selection.get_volume_idxs().size() != 1) {
+                return false;
+            }
             wxDataViewItem item = obj_list()->GetSelection();
             return item.IsOk() || obj_list()->GetModel()->GetItemType(item) == itVolume;
         }, m_parent);
@@ -1340,7 +1356,7 @@ void MenuFactory::create_bbl_assemble_part_menu()
 void MenuFactory::create_cut_cutter_menu()
 {
     wxMenu *menu = &m_cut_cutter_menu;
-    append_menu_item_delete(menu);
+    append_menu_item_delete_all_cutter(menu);
     append_menu_item_change_type(menu);
 }
 

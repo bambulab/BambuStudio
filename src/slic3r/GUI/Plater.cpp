@@ -7454,8 +7454,13 @@ void Plater::priv::on_right_click(RBtnEvent& evt)
                             menu = menus.part_menu();
                         }
                     }
-                } else
-                    menu = menus.multi_selection_menu();
+                } else {
+                    if (selection.is_any_cut_volume()) {
+                        menu = menus.cut_connector_menu();
+                    } else {
+                        menu = menus.multi_selection_menu();
+                    }
+                }
             }
         }
     }
