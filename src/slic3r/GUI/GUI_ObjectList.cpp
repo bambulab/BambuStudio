@@ -4791,8 +4791,6 @@ void ObjectList::update_selections_on_canvas()
 
     if (sel_cnt == 1) {
         wxDataViewItem item = GetSelection();
-        if (m_objects_model->GetInfoItemType(item) == InfoItemType::CutConnectors)
-            selection.remove_all();
 
         if (m_objects_model->GetItemType(item) & (itSettings | itInstanceRoot | itLayerRoot | itLayer))
             add_to_selection(m_objects_model->GetParent(item), selection, instance_idx, mode);
@@ -4829,6 +4827,9 @@ void ObjectList::update_selections_on_canvas()
         // to avoid lost of some volumes in selection
         // check non-selected volumes only if selection mode wasn't changed
         // OR there is no single selection
+        if (is_connectors_item_selected() && !selection.is_empty()) {
+            return;
+        }
         if (selection.get_mode() == mode || !single_selection)
             volume_idxs = selection.get_unselected_volume_idxs_from(volume_idxs);
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Add selected to list", UndoRedo::SnapshotType::Selection);
@@ -5136,6 +5137,11 @@ void ObjectList::fix_cut_selection()
         SetSelections(sels);
 
         m_prevent_list_events = false;
+    }
+    auto canvas_type = wxGetApp().plater()->get_current_canvas3D()->get_canvas_type();
+    if (canvas_type == GLCanvas3D::ECanvasType::CanvasView3D && is_connectors_item_selected()) {
+        Selection &selection = wxGetApp().plater()->get_view3D_canvas3D()->get_selection();
+        selection.remove_all();
     }
 }
 
