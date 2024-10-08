@@ -1168,6 +1168,7 @@ private:
     //BBS: GUI refactor: adjust main toolbar position
     bool _render_orient_menu(float left, float right, float bottom, float top);
     bool _render_arrange_menu(float left, float right, float bottom, float top);
+    void _render_3d_navigator();
     // render thumbnail using the default framebuffer
     void render_thumbnail_legacy(ThumbnailData &                    thumbnail_data,
                                  unsigned int                       w,

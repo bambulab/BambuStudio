@@ -337,6 +337,10 @@ public:
     bool is_gcode_viewer() const { return m_app_mode == EAppMode::GCodeViewer; }
     bool is_recreating_gui() const { return m_is_recreating_gui; }
     std::string logo_name() const { return is_editor() ? "BambuStudio" : "BambuStudio-gcodeviewer"; }
+
+    bool     show_3d_navigator() const { return app_config->get_bool("show_3d_navigator"); }
+    void     toggle_show_3d_navigator() const { app_config->set_bool("show_3d_navigator", !show_3d_navigator()); }
+
     wxString get_inf_dialog_contect () {return m_info_dialog_content;};
 
     std::vector<std::string> split_str(std::string src, std::string separator);

@@ -73,7 +73,7 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 #include <imgui/imgui_internal.h>
-
+#include <imguizmo/ImGuizmo.h>
 static constexpr const float TRACKBALLSIZE = 0.8f;
 
 static const float SLIDER_DEFAULT_RIGHT_MARGIN  = 10.0f;
@@ -5765,6 +5765,72 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
     return settings_changed;
 }
 
+static float       identityMatrix[16]   = {1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f};
+static const float cameraProjection[16] = {1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f};
+void GLCanvas3D::_render_3d_navigator()
+{
+    if (!wxGetApp().show_3d_navigator()) {
+        return;
+    }
+
+    ImGuizmo::BeginFrame();
+    ImGuizmo::AllowAxisFlip(false);
+
+    auto &style                                = ImGuizmo::GetStyle();
+    style.Colors[ImGuizmo::COLOR::DIRECTION_X] = ImGuiWrapper::to_ImVec4(ColorRGBA::Y());
+    style.Colors[ImGuizmo::COLOR::DIRECTION_Y] = ImGuiWrapper::to_ImVec4(ColorRGBA::Z());
+    style.Colors[ImGuizmo::COLOR::DIRECTION_Z] = ImGuiWrapper::to_ImVec4(ColorRGBA::X());
+    style.Colors[ImGuizmo::COLOR::TEXT]        = m_is_dark ? ImVec4(224 / 255.f, 224 / 255.f, 224 / 255.f, 1.f) : ImVec4(.2f, .2f, .2f, 1.0f);
+    style.Colors[ImGuizmo::COLOR::FACE]        = m_is_dark ? ImVec4(0.23f, 0.23f, 0.23f, 1.f) : ImVec4(0.77f, 0.77f, 0.77f, 1);
+    strcpy(style.AxisLabels[ImGuizmo::Axis::Axis_X], "y");
+    strcpy(style.AxisLabels[ImGuizmo::Axis::Axis_Y], "z");
+    strcpy(style.AxisLabels[ImGuizmo::Axis::Axis_Z], "x");
+    strcpy(style.FaceLabels[ImGuizmo::FACES::FACE_FRONT], _utf8("Front").c_str());
+    strcpy(style.FaceLabels[ImGuizmo::FACES::FACE_BACK], _utf8("Back").c_str());
+    strcpy(style.FaceLabels[ImGuizmo::FACES::FACE_TOP], _utf8("Top").c_str());
+    strcpy(style.FaceLabels[ImGuizmo::FACES::FACE_BOTTOM], _utf8("Bottom").c_str());
+    strcpy(style.FaceLabels[ImGuizmo::FACES::FACE_LEFT], _utf8("Left").c_str());
+    strcpy(style.FaceLabels[ImGuizmo::FACES::FACE_RIGHT], _utf8("Right").c_str());
+
+    float sc = get_scale();
+#ifdef WIN32
+    const int dpi = get_dpi_for_window(wxGetApp().GetTopWindow());
+    sc *= (float) dpi / (float) DPI_DEFAULT;
+#endif // WIN32
+
+    const ImGuiIO &io                 = ImGui::GetIO();
+    const float    viewManipulateLeft = 0;
+    const float    viewManipulateTop  = io.DisplaySize.y;
+    const float    camDistance        = 8.f;
+    ImGuizmo::SetID(0);
+
+    Camera &    camera           = wxGetApp().plater()->get_camera();
+    Transform3d m                = Transform3d::Identity();
+    m.matrix().block(0, 0, 3, 3) = camera.get_view_rotation().toRotationMatrix();
+    // Rotate along X and Z axis for 90 degrees to have Y-up
+    const auto coord_mapping_transform = Geometry::rotation_transform(Vec3d(0.5 * PI, 0, 0.5 * PI));
+    m                                  = m * coord_mapping_transform;
+    float cameraView[16];
+    for (unsigned int c = 0; c < 4; ++c) {
+        for (unsigned int r = 0; r < 4; ++r) { cameraView[c * 4 + r] = m(r, c); }
+    }
+
+    const float size  = 128 * sc;
+    const bool  dirty = ImGuizmo::ViewManipulate(cameraView, cameraProjection, ImGuizmo::OPERATION::ROTATE, ImGuizmo::MODE::WORLD, identityMatrix, camDistance,
+                                                ImVec2(viewManipulateLeft, viewManipulateTop - size), ImVec2(size, size), 0x00101010);
+
+    if (dirty) {
+        for (unsigned int c = 0; c < 4; ++c) {
+            for (unsigned int r = 0; r < 4; ++r) { m(r, c) = cameraView[c * 4 + r]; }
+        }
+        // Rotate back
+        m = m * (coord_mapping_transform.inverse());
+        camera.set_rotation(m);
+
+        request_extra_frame();
+    }
+}
+
 #define ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT 0
 #if ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
 static void debug_output_thumbnail(const ThumbnailData& thumbnail_data)
@@ -7504,7 +7570,7 @@ void GLCanvas3D::_render_overlays()
             }*/
     }
     m_labels.render(sorted_instances);
-
+    _render_3d_navigator();
     glsafe(::glPopMatrix());
 }
 
@@ -7804,6 +7870,18 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
     float frame_padding = 1.0f * f_scale;
     float margin_size = 4.0f * f_scale;
     float button_margin = frame_padding;
+
+    const float y_offset = 0; // is_collapse_toolbar_on_left() ? (get_collapse_toolbar_height() + 5) : 0;
+    // Make sure the window does not overlap the 3d navigator
+    auto window_height_max = canvas_h - y_offset;
+    if (wxGetApp().show_3d_navigator()) {
+        float sc = get_scale();
+#ifdef WIN32
+        const int dpi = get_dpi_for_window(wxGetApp().GetTopWindow());
+        sc *= (float) dpi / (float) DPI_DEFAULT;
+#endif // WIN32
+        window_height_max -= (128 * sc + 5);
+    }
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     int item_count = m_sel_plate_toolbar.m_items.size() + (m_sel_plate_toolbar.show_stats_item ? 1 : 0);
