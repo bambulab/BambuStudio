@@ -38,6 +38,7 @@ public:
         MeshRaycaster* raycaster;
         bool           is_up_part;
         Transform3d    trans;
+        bool           is_modifier;
     };
     void         part_render(const Vec3d *cut_center, const Vec3d *normal);
     void         toggle_selection(const Vec2d &mouse_pos);

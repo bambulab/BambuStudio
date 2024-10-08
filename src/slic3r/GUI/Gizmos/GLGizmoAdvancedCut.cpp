@@ -12,6 +12,7 @@
 #include <algorithm>
 #include "GLGizmosCommon.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/format.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "../GUI/MsgDialog.hpp"
@@ -850,7 +851,40 @@ void update_object_cut_id(CutObjectBase &cut_id, ModelObjectCutAttributes attrib
     }
 }
 
-void synchronize_model_after_cut(Model &model, const CutObjectBase &cut_id)
+static void check_objects_after_cut(const ModelObjectPtrs &objects)
+{
+    std::vector<std::string> err_objects_names;
+    std::vector<int>         err_objects_idxs;
+    int                      obj_idx{0};
+    for (const ModelObject *object : objects) {
+        std::vector<std::string> connectors_names;
+        connectors_names.reserve(object->volumes.size());
+        for (const ModelVolume *vol : object->volumes)
+            if (vol->cut_info.is_connector) connectors_names.push_back(vol->name);
+        const size_t connectors_count = connectors_names.size();
+        sort_remove_duplicates(connectors_names);
+        if (connectors_count != connectors_names.size()) err_objects_names.push_back(object->name);
+
+        // check manifol/repairs
+        auto stats = object->get_object_stl_stats();
+        if (!stats.manifold() || stats.repaired()) err_objects_idxs.push_back(obj_idx);
+        obj_idx++;
+    }
+
+    auto plater = wxGetApp().plater();
+    if (!err_objects_names.empty()) {
+        wxString names = from_u8(err_objects_names[0]);
+        for (size_t i = 1; i < err_objects_names.size(); i++) names += ", " + from_u8(err_objects_names[i]);
+        WarningDialog(plater, format_wxstr("Objects(%1%) have duplicated connectors. "
+                                           "Some connectors may be missing in slicing result.\n"
+                                           "Please report to BambuSudio team in which scenario this issue happened.\n"
+                                           "Thank you.",
+                                           names))
+            .ShowModal();
+    }
+}
+
+    void synchronize_model_after_cut(Model &model, const CutObjectBase &cut_id)
 {
     for (ModelObject *obj : model.objects)
         if (obj->is_cut() && obj->cut_id.has_same_id(cut_id) && !obj->cut_id.is_equal(cut_id)) obj->cut_id.copy(cut_id);
@@ -915,6 +949,7 @@ void GLGizmoAdvancedCut::perform_cut(const Selection& selection)
         const ModelObjectPtrs &new_objects = cut_by_contour  ? cut.perform_by_contour(m_part_selection->get_cut_parts(), dowels_count) :
                                              cut_with_groove ? cut.perform_with_groove(m_groove, m_rotate_matrix) :
                                                                cut.perform_with_plane();
+        check_objects_after_cut(new_objects);// Fix for #11487 - Cut Connectors Broken when assigning part to other side
         // fix_non_manifold_edges
 #ifdef HAS_WIN10SDK
         if (is_windows10()) {
@@ -2561,14 +2596,18 @@ PartSelection::PartSelection(
     const ModelVolumePtrs &volumes = model_object()->volumes;
 
     // split to parts
-    for (int id = int(volumes.size()) - 1; id >= 0; id--)
-        if (volumes[id]->is_splittable()) volumes[id]->split(1);
+    for (int id = int(volumes.size()) - 1; id >= 0; id--) {
+        auto look = volumes[id]->is_model_part();
+        if (volumes[id]->is_splittable() && volumes[id]->is_model_part()) // we have to split just solid volumes
+            volumes[id]->split(1);
+    }
 
     const Vec3d inst_offset = model_object()->instances[m_instance_idx]->get_offset();
     int         i           = 0;
     m_cut_parts.resize(volumes.size());
     for (const ModelVolume *volume : volumes) {
         assert(volume != nullptr);
+        m_cut_parts[i].is_modifier = !volume->is_model_part();
         m_cut_parts[i].is_up_part = false;
         if (m_cut_parts[i].raycaster) { delete m_cut_parts[i].raycaster; }
         m_cut_parts[i].raycaster = new MeshRaycaster(volume->mesh());
@@ -2645,11 +2684,13 @@ PartSelection::PartSelection(const ModelObject *object, int instance_idx_in) : m
     m_cut_parts.resize(volumes.size());
     for (const ModelVolume *volume : volumes) {
         assert(volume != nullptr);
+        m_cut_parts[i].is_modifier = !volume->is_model_part();
         if (m_cut_parts[i].raycaster) { delete m_cut_parts[i].raycaster; }
         m_cut_parts[i].raycaster = new MeshRaycaster(volume->mesh());
         m_cut_parts[i].glmodel.reset();
         m_cut_parts[i].glmodel.init_from(volume->mesh_ptr()->its);
         m_cut_parts[i].trans    = Geometry::translation_transform(inst_offset) * model_object()->volumes[i]->get_matrix();
+        // Now check whether this part is below or above the plane.
         m_cut_parts[i].is_up_part = volume->is_from_upper();
         i++;
     }
@@ -2678,7 +2719,16 @@ void PartSelection::part_render(const Vec3d *cut_center, const Vec3d *normal)
             if (!is_looking_forward)
                 continue;
         }
-        GLGizmoBase::render_glmodel(m_cut_parts[id].glmodel, m_cut_parts[id].is_up_part ? UPPER_PART_COLOR.get_data() : LOWER_PART_COLOR.get_data(), m_cut_parts[id].trans);
+        if (m_cut_parts[id].is_modifier) {
+            glsafe(::glEnable(GL_BLEND));
+            glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+        }
+        GLGizmoBase::render_glmodel(m_cut_parts[id].glmodel,
+                                    m_cut_parts[id].is_modifier ? MODIFIER_COLOR.get_data() :
+                                                                  (m_cut_parts[id].is_up_part ? UPPER_PART_COLOR.get_data() : LOWER_PART_COLOR.get_data()),
+                                    m_cut_parts[id].trans);
+        if (m_cut_parts[id].is_modifier)
+            glsafe(::glDisable(GL_BLEND));
     }
 }
 
@@ -2703,13 +2753,13 @@ bool PartSelection::is_one_object() const
     // flawlessly. Because it is currently not always so for self-intersecting
     // objects, let's better check the parts itself:
     if (m_cut_parts.size() < 2) return true;
-    return std::all_of(m_cut_parts.begin(), m_cut_parts.end(), [this](const PartPara &part) { return part.is_up_part == m_cut_parts.front().is_up_part; });
+    return std::all_of(m_cut_parts.begin(), m_cut_parts.end(), [this](const PartPara &part) { return part.is_modifier || part.is_up_part == m_cut_parts.front().is_up_part; });
 }
 
 std::vector<Cut::Part> PartSelection::get_cut_parts()
 {
     std::vector<Cut::Part> parts;
-    for (const auto &part : m_cut_parts) parts.push_back({part.is_up_part, false});
+    for (const auto &part : m_cut_parts) parts.push_back({part.is_up_part, part.is_modifier});
     return parts;
 }
 
