@@ -34,7 +34,7 @@ var LangText={
 		"t32": "Create new project",
 		"t33": "Open Project",
 		"t34": "hotspot",
-		"t35": "Recently opened",
+		"t35": "Recently Opened",
 		"t36": "ok",
 		"t37": "At least one printer must be selected.",
 		"t38": "Cancel",
