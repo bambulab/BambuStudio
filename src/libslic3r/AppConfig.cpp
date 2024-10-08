@@ -191,6 +191,8 @@ void AppConfig::set_defaults()
     if (get("enable_multi_machine").empty())
         set_bool("enable_multi_machine", false);
 
+    if (get("show_3d_navigator").empty())
+        set_bool("show_3d_navigator", true);
 
 #ifdef _WIN32
 
