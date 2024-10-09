@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-29 14:17+0800\n"
+"POT-Creation-Date: 2024-10-09 11:50+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1438,6 +1438,9 @@ msgstr "CE"
 
 msgid "Delete the selected object"
 msgstr "Eliminar el objeto seleccionado"
+
+msgid "Delete all cutter"
+msgstr ""
 
 msgid "Edit Text"
 msgstr "editar texto"
@@ -3129,20 +3132,6 @@ msgid ""
 msgstr ""
 "Altura de la capa demasiado grande.\n"
 "Reajustar a 0.2"
-
-msgid ""
-"Too small scarf start height.\n"
-"Reset to 50%"
-msgstr ""
-"Too small scarf start height.\n"
-"Reset to 50%"
-
-msgid ""
-"Too big scarf start height.\n"
-"Reset to 50%"
-msgstr ""
-"Too big scarf start height.\n"
-"Reset to 50%"
 
 msgid ""
 "Too small ironing spacing.\n"
@@ -5040,19 +5029,19 @@ msgstr ""
 msgid "Step file import parameters"
 msgstr ""
 
-msgid "Linear Deflection:"
+msgid "Linear Deflection"
 msgstr ""
 
 msgid "Please input a valid value (0.001 < angle deflection < 0.1)"
 msgstr ""
 
-msgid "Angle Deflection:"
+msgid "Angle Deflection"
 msgstr ""
 
 msgid "Please input a valid value (0.01 < angle deflection < 1.0)"
 msgstr ""
 
-msgid "Number of triangular facets: "
+msgid "Number of triangular facets"
 msgstr ""
 
 msgid "0"
@@ -7352,6 +7341,9 @@ msgstr ""
 msgid "Volumetric speed limitation"
 msgstr "Limitación de la velocidad volumétrica"
 
+msgid "Filament scarf seam settings"
+msgstr ""
+
 msgid "Cooling"
 msgstr "Enfriando"
 
@@ -9648,6 +9640,49 @@ msgstr ""
 "El material soluble se utiliza habitualmente para imprimir el soporte y la "
 "interfaz de soporte"
 
+msgid "Scarf seam type"
+msgstr ""
+
+msgid ""
+"Set scarf seam type for this filament. This setting could minimize seam "
+"visibiliy."
+msgstr ""
+
+msgid "Contour"
+msgstr "Contorno"
+
+msgid "Contour and hole"
+msgstr "Contorno y agujero"
+
+msgid "Scarf start height"
+msgstr "Scarf start height"
+
+msgid ""
+"This amount can be specified in millimeters or as a percentage of the "
+"current layer height."
+msgstr ""
+
+msgid "mm/%"
+msgstr ""
+
+msgid "Scarf slope gap"
+msgstr ""
+
+msgid ""
+"In order to reduce the visiblity of the seam in closed loop, the inner wall "
+"and outer wall are shortened by a specified amount."
+msgstr ""
+
+msgid "Scarf length"
+msgstr "Scarf length"
+
+msgid ""
+"Length of the scarf. Setting this parameter to zero effectively disables the "
+"scarf."
+msgstr ""
+"Length of the scarf. Setting this parameter to zero effectively disables the "
+"scarf."
+
 msgid "Support material"
 msgstr "Material de soporte"
 
@@ -9858,12 +9893,6 @@ msgstr ""
 "Agitar aleatoriamente mientras se imprime la pared, de modo que la "
 "superficie tenga un aspecto rugoso. Esta configuración controla la posición "
 "difusa."
-
-msgid "Contour"
-msgstr "Contorno"
-
-msgid "Contour and hole"
-msgstr "Contorno y agujero"
 
 msgid "All walls"
 msgstr "Todas las paredes"
@@ -10680,13 +10709,6 @@ msgstr ""
 "Esta cantidad se expresa como un porcentaje del diámetro actual del "
 "extrusor. El valor por defecto de este parámetro es 15"
 
-msgid "Scarf joint seam (experimental)"
-msgstr "Scarf joint seam (experimental)"
-
-msgid "Use scarf joint to minimize seam visibility and increase seam strength."
-msgstr ""
-"Use scarf joint to minimize seam visibility and increase seam strength."
-
 msgid "Conditional scarf joint"
 msgstr "Conditional scarf joint"
 
@@ -10713,36 +10735,11 @@ msgstr ""
 "the absence of sharp corners), a scarf joint seam will be used. The default "
 "value is 155°."
 
-msgid "Scarf start height"
-msgstr "Scarf start height"
-
-msgid ""
-"Start height of the scarf.\n"
-"This amount can be specified in millimeters or as a percentage of the "
-"current layer height. The default value for this parameter is 0."
-msgstr ""
-"Start height of the scarf.\n"
-"This amount can be specified in millimeters or as a percentage of the "
-"current layer height. The default value for this parameter is 0."
-
-msgid "Slop gap"
-msgstr ""
-
 msgid "Scarf around entire wall"
 msgstr "Scarf around entire wall"
 
 msgid "The scarf extends to the entire length of the wall."
 msgstr "The scarf extends to the entire length of the wall."
-
-msgid "Scarf length"
-msgstr "Scarf length"
-
-msgid ""
-"Length of the scarf. Setting this parameter to zero effectively disables the "
-"scarf."
-msgstr ""
-"Length of the scarf. Setting this parameter to zero effectively disables the "
-"scarf."
 
 msgid "Scarf steps"
 msgstr "Scarf steps"
@@ -13983,6 +13980,37 @@ msgstr ""
 "¿Sabías que al imprimir materiales propensos al alabeo, como el ABS, "
 "aumentar adecuadamente la temperatura del lecho térmico puede reducir la "
 "probabilidad de alabeo?"
+
+#~ msgid ""
+#~ "Too small scarf start height.\n"
+#~ "Reset to 50%"
+#~ msgstr ""
+#~ "Too small scarf start height.\n"
+#~ "Reset to 50%"
+
+#~ msgid ""
+#~ "Too big scarf start height.\n"
+#~ "Reset to 50%"
+#~ msgstr ""
+#~ "Too big scarf start height.\n"
+#~ "Reset to 50%"
+
+#~ msgid "Scarf joint seam (experimental)"
+#~ msgstr "Scarf joint seam (experimental)"
+
+#~ msgid ""
+#~ "Use scarf joint to minimize seam visibility and increase seam strength."
+#~ msgstr ""
+#~ "Use scarf joint to minimize seam visibility and increase seam strength."
+
+#~ msgid ""
+#~ "Start height of the scarf.\n"
+#~ "This amount can be specified in millimeters or as a percentage of the "
+#~ "current layer height. The default value for this parameter is 0."
+#~ msgstr ""
+#~ "Start height of the scarf.\n"
+#~ "This amount can be specified in millimeters or as a percentage of the "
+#~ "current layer height. The default value for this parameter is 0."
 
 #~ msgid "Set Position"
 #~ msgstr "Establecer Posición"

@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.9.7.52 Public Official\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-29 14:17+0800\n"
-"PO-Revision-Date: 2023-08-11 09:11+0800\n"
+"POT-Creation-Date: 2024-10-09 11:50+0800\n"
+"PO-Revision-Date: 2024-09-27 23:58+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
 "Language: ru\n"
@@ -1461,6 +1461,9 @@ msgstr "Del"
 
 msgid "Delete the selected object"
 msgstr "Удаление выбранных моделей"
+
+msgid "Delete all cutter"
+msgstr ""
 
 msgid "Edit Text"
 msgstr "Изменить текст"
@@ -3168,20 +3171,6 @@ msgid ""
 msgstr ""
 "Слишком большая высота слоя.\n"
 "Значение будет сброшено на 0,2."
-
-msgid ""
-"Too small scarf start height.\n"
-"Reset to 50%"
-msgstr ""
-"Слишком маленькая начальная высота клиновидного шва.\n"
-"Значение будет сброшено на 50%."
-
-msgid ""
-"Too big scarf start height.\n"
-"Reset to 50%"
-msgstr ""
-"Слишком большая начальная высота клиновидного шва.\n"
-"Значение будет сброшено на 50%."
 
 msgid ""
 "Too small ironing spacing.\n"
@@ -5131,19 +5120,19 @@ msgstr ""
 msgid "Step file import parameters"
 msgstr ""
 
-msgid "Linear Deflection:"
+msgid "Linear Deflection"
 msgstr ""
 
 msgid "Please input a valid value (0.001 < angle deflection < 0.1)"
 msgstr ""
 
-msgid "Angle Deflection:"
+msgid "Angle Deflection"
 msgstr ""
 
 msgid "Please input a valid value (0.01 < angle deflection < 1.0)"
 msgstr ""
 
-msgid "Number of triangular facets: "
+msgid "Number of triangular facets"
 msgstr ""
 
 msgid "0"
@@ -6203,16 +6192,6 @@ msgstr ""
 "Если включено, разрешена работа только одного экземпляра той же самой версии "
 "программы."
 
-msgid "Zoom to mouse position"
-msgstr "Приближать к положению курсора"
-
-msgid ""
-"Zoom in towards the mouse pointer's position in the 3D view, rather than the "
-"2D window center."
-msgstr ""
-"Увеличивать масштаб по направлению к курсору в 3D-виде, а не к центру 2D-"
-"окна."
-
 msgid "Auto plate type"
 msgstr "Автовыбор типа печатной пластины"
 
@@ -6262,7 +6241,7 @@ msgid "3D Settings"
 msgstr ""
 
 msgid "Zoom to mouse position"
-msgstr "Приближать к положению курсор"
+msgstr "Приближать к положению курсора"
 
 msgid ""
 "Zoom in towards the mouse pointer's position in the 3D view, rather than the "
@@ -7476,6 +7455,9 @@ msgstr ""
 
 msgid "Volumetric speed limitation"
 msgstr "Ограничение объёмной скорости"
+
+msgid "Filament scarf seam settings"
+msgstr ""
 
 msgid "Cooling"
 msgstr "Охлаждение"
@@ -9798,6 +9780,49 @@ msgstr ""
 "Растворимый материал обычно используется для печати поддержки и связующего "
 "слоя поддержки."
 
+msgid "Scarf seam type"
+msgstr ""
+
+msgid ""
+"Set scarf seam type for this filament. This setting could minimize seam "
+"visibiliy."
+msgstr ""
+
+msgid "Contour"
+msgstr "Внешний периметр"
+
+msgid "Contour and hole"
+msgstr "Внешний периметр и отверстия"
+
+msgid "Scarf start height"
+msgstr "Начальная высота клиновидного шва"
+
+msgid ""
+"This amount can be specified in millimeters or as a percentage of the "
+"current layer height."
+msgstr ""
+
+msgid "mm/%"
+msgstr ""
+
+msgid "Scarf slope gap"
+msgstr ""
+
+msgid ""
+"In order to reduce the visiblity of the seam in closed loop, the inner wall "
+"and outer wall are shortened by a specified amount."
+msgstr ""
+
+msgid "Scarf length"
+msgstr "Длина клиновидного шва"
+
+msgid ""
+"Length of the scarf. Setting this parameter to zero effectively disables the "
+"scarf."
+msgstr ""
+"Длина клиновидного шва. Установка этого параметра на ноль фактически "
+"отключает шарф."
+
 msgid "Support material"
 msgstr "Поддержка"
 
@@ -10014,12 +10039,6 @@ msgstr ""
 "Случайное дрожание сопла при печати внешнего периметра для создания эффекта "
 "шероховатой поверхности. Эта настройка определяет положение нечёткой "
 "оболочки."
-
-msgid "Contour"
-msgstr "Внешний периметр"
-
-msgid "Contour and hole"
-msgstr "Внешний периметр и отверстия"
 
 msgid "All walls"
 msgstr "Все периметры"
@@ -10254,8 +10273,8 @@ msgstr ""
 "две ближайшие линии заполнения с коротким отрезком периметра. Если не "
 "найдено такого отрезка периметра короче этого параметра, линия заполнения "
 "соединяется с отрезком периметра только с одной стороны, а длина отрезка "
-"периметра ограничена значением «Длина привязок разреженного заполнения» "
-"(infill_anchor), но не больше этого параметра.\n"
+"периметра ограничена значением «Длина привязок разреженного "
+"заполнения» (infill_anchor), но не больше этого параметра.\n"
 "Установите 0 для отключения привязок."
 
 msgid "0 (not anchored)"
@@ -10859,14 +10878,6 @@ msgstr ""
 "Это величина задаётся в процентах от текущего диаметра сопла. Значение по "
 "умолчанию - 15%."
 
-msgid "Scarf joint seam (experimental)"
-msgstr "Клиновидный шов"
-
-msgid "Use scarf joint to minimize seam visibility and increase seam strength."
-msgstr ""
-"Использование клиновидного шва для минимизации его видимости и повышения "
-"прочности."
-
 msgid "Conditional scarf joint"
 msgstr "Условие для клиновидного шва"
 
@@ -10893,36 +10904,11 @@ msgstr ""
 "указывает на отсутствие острых углов), будет использован клиновидный шов. "
 "Значение по умолчанию - 155°."
 
-msgid "Scarf start height"
-msgstr "Начальная высота клиновидного шва"
-
-msgid ""
-"Start height of the scarf.\n"
-"This amount can be specified in millimeters or as a percentage of the "
-"current layer height. The default value for this parameter is 0."
-msgstr ""
-"Начальная высота клиновидного шва.\n"
-"Значение может быть задано в миллиметрах или в процентах от высоты текущего "
-"слоя. Значение по умолчанию - 0."
-
-msgid "Slop gap"
-msgstr ""
-
 msgid "Scarf around entire wall"
 msgstr "Клиновидный шов по всей стене"
 
 msgid "The scarf extends to the entire length of the wall."
 msgstr "Клиновидный шов простирается на всю высоту стены."
-
-msgid "Scarf length"
-msgstr "Длина клиновидного шва"
-
-msgid ""
-"Length of the scarf. Setting this parameter to zero effectively disables the "
-"scarf."
-msgstr ""
-"Длина клиновидного шва. Установка этого параметра на ноль фактически "
-"отключает шарф."
 
 msgid "Scarf steps"
 msgstr "Шагов клиновидного шва"
@@ -14221,6 +14207,38 @@ msgstr ""
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как "
 "ABS, повышение температуры подогреваемого стола может снизить эту "
 "вероятность?"
+
+#~ msgid ""
+#~ "Too small scarf start height.\n"
+#~ "Reset to 50%"
+#~ msgstr ""
+#~ "Слишком маленькая начальная высота клиновидного шва.\n"
+#~ "Значение будет сброшено на 50%."
+
+#~ msgid ""
+#~ "Too big scarf start height.\n"
+#~ "Reset to 50%"
+#~ msgstr ""
+#~ "Слишком большая начальная высота клиновидного шва.\n"
+#~ "Значение будет сброшено на 50%."
+
+#~ msgid "Scarf joint seam (experimental)"
+#~ msgstr "Клиновидный шов"
+
+#~ msgid ""
+#~ "Use scarf joint to minimize seam visibility and increase seam strength."
+#~ msgstr ""
+#~ "Использование клиновидного шва для минимизации его видимости и повышения "
+#~ "прочности."
+
+#~ msgid ""
+#~ "Start height of the scarf.\n"
+#~ "This amount can be specified in millimeters or as a percentage of the "
+#~ "current layer height. The default value for this parameter is 0."
+#~ msgstr ""
+#~ "Начальная высота клиновидного шва.\n"
+#~ "Значение может быть задано в миллиметрах или в процентах от высоты "
+#~ "текущего слоя. Значение по умолчанию - 0."
 
 #~ msgid "Set Position"
 #~ msgstr "Задание позиции"
