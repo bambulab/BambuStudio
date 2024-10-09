@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-29 14:17+0800\n"
+"POT-Creation-Date: 2024-10-09 11:50+0800\n"
 "PO-Revision-Date: 2024-03-21 10:39+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -973,7 +973,7 @@ msgstr "未知文件名"
 
 #, boost-format
 msgid "SVG file path is \"%1%\""
-msgstr "SVG文件路径为 \"%1%\"。"
+msgstr "SVG文件路径为 \"%1%\""
 
 msgid "Reload SVG file from disk."
 msgstr "从磁盘重新加载SVG文件"
@@ -986,7 +986,7 @@ msgstr "更改为另一个.svg文件"
 
 #. TRN: An menu option to convert the SVG into an unmodifiable model part.
 msgid "Bake to model"
-msgstr ""
+msgstr "烘焙成模型"
 
 #. TRN: Tooltip for the menu item.
 msgid "Bake into model as uneditable part"
@@ -1411,6 +1411,9 @@ msgstr "删除"
 
 msgid "Delete the selected object"
 msgstr "删除所选对象"
+
+msgid "Delete all cutter"
+msgstr "删除所有连接器"
 
 msgid "Edit Text"
 msgstr "编辑文字"
@@ -2976,16 +2979,6 @@ msgid ""
 msgstr "层高过大。将重置为0.2"
 
 msgid ""
-"Too small scarf start height.\n"
-"Reset to 50%"
-msgstr "斜拼接缝起始高度过小，重设为50%。"
-
-msgid ""
-"Too big scarf start height.\n"
-"Reset to 50%"
-msgstr "斜拼接缝起始高度过大，重设为50%。"
-
-msgid ""
 "Too small ironing spacing.\n"
 "Reset to 0.1"
 msgstr "熨烫线距过小。将重置为0.1"
@@ -3878,7 +3871,7 @@ msgid "Check for Update"
 msgstr "检查新版本"
 
 msgid "Check for Presets Update"
-msgstr ""
+msgstr "检查预设更新"
 
 msgid "Open Network Test"
 msgstr "打开网络测试"
@@ -4809,19 +4802,19 @@ msgstr "至少需要一个成功的打印记录，才能给出积极的评价（
 msgid "Step file import parameters"
 msgstr "导入step文件选项"
 
-msgid "Linear Deflection:"
+msgid "Linear Deflection"
 msgstr "线偏转值"
 
 msgid "Please input a valid value (0.001 < angle deflection < 0.1)"
 msgstr "请输入有效值（0.001<线偏转值<0.1）"
 
-msgid "Angle Deflection:"
+msgid "Angle Deflection"
 msgstr "角偏转值"
 
 msgid "Please input a valid value (0.01 < angle deflection < 1.0)"
 msgstr "请输入有效值（0.01<角偏转值<0.1）"
 
-msgid "Number of triangular facets: "
+msgid "Number of triangular facets"
 msgstr "三角面数量"
 
 msgid "0"
@@ -5748,9 +5741,11 @@ msgid ""
 "case.\n"
 "Enabled LOD requires application restart."
 msgstr ""
+"请注意，模型显示将在像素块较小的情况下发生一定变化。\n"
+"启用LOD需要重新启动应用程序。"
 
 msgid "Enable LOD"
-msgstr ""
+msgstr "启用LOD"
 
 msgid "Browse"
 msgstr "浏览"
@@ -6957,6 +6952,9 @@ msgstr "安装纹理PEI打印板时的热床温度。0值表示这个耗材丝�
 
 msgid "Volumetric speed limitation"
 msgstr "体积速度限制"
+
+msgid "Filament scarf seam settings"
+msgstr "材料斜拼接缝参数"
 
 msgid "Cooling"
 msgstr "冷却"
@@ -9045,6 +9043,50 @@ msgid ""
 "Soluble material is commonly used to print support and support interface"
 msgstr "可溶性材料通常用于打印支撑和支撑面"
 
+msgid "Scarf seam type"
+msgstr "斜拼接缝类型"
+
+msgid ""
+"Set scarf seam type for this filament. This setting could minimize seam "
+"visibiliy."
+msgstr ""
+"设置这个材料的斜拼接缝类型，这个选项可以最小化接缝的可见性。"
+
+msgid "Contour"
+msgstr "轮廓"
+
+msgid "Contour and hole"
+msgstr "轮廓和孔"
+
+msgid "Scarf start height"
+msgstr "斜拼接缝起始高度"
+
+msgid ""
+"This amount can be specified in millimeters or as a percentage of the "
+"current layer height."
+msgstr ""
+"可以设置为毫米也可以设置为设置的层高的百分比。"
+
+msgid "mm/%"
+msgstr "mm/%"
+
+msgid "Scarf slope gap"
+msgstr "斜拼接缝间隔"
+
+msgid ""
+"In order to reduce the visiblity of the seam in closed loop, the inner wall "
+"and outer wall are shortened by a specified amount."
+msgstr ""
+"为了改善缝隙的可见度，内墙和外墙会被缩短指定长度。"
+
+msgid "Scarf length"
+msgstr "斜拼接缝长度"
+
+msgid ""
+"Length of the scarf. Setting this parameter to zero effectively disables the "
+"scarf."
+msgstr "斜拼接缝的长度。长度为0时会禁用斜拼接缝。"
+
 msgid "Support material"
 msgstr "支撑材料"
 
@@ -9231,12 +9273,6 @@ msgid ""
 "Randomly jitter while printing the wall, so that the surface has a rough "
 "look. This setting controls the fuzzy position"
 msgstr "打印外墙时随机抖动，使外表面产生绒效果。这个设置决定适用的位置。"
-
-msgid "Contour"
-msgstr "轮廓"
-
-msgid "Contour and hole"
-msgstr "轮廓和孔"
 
 msgid "All walls"
 msgstr "所有墙"
@@ -9955,12 +9991,6 @@ msgstr ""
 "为了减少闭环挤出中接缝的可见性，循环会被中断并缩短指定的长度。\n"
 "这个长度是当前挤出器直径的百分比。该参数的默认值为15。"
 
-msgid "Scarf joint seam (experimental)"
-msgstr "斜拼接缝（实验）"
-
-msgid "Use scarf joint to minimize seam visibility and increase seam strength."
-msgstr "使用斜拼接缝来最小化接缝的可见性并增加接缝的强度。"
-
 msgid "Conditional scarf joint"
 msgstr "选择性应用斜拼接缝"
 
@@ -9983,33 +10013,11 @@ msgstr ""
 "如果围墙环内的最大角度超过了这个值（表示没有足够锐的角），则使用斜拼接缝接"
 "缝。默认值为155°。"
 
-msgid "Scarf start height"
-msgstr "斜拼接缝起始高度"
-
-msgid ""
-"Start height of the scarf.\n"
-"This amount can be specified in millimeters or as a percentage of the "
-"current layer height. The default value for this parameter is 0."
-msgstr ""
-"斜拼接缝的起始高度。\n"
-"这个数值可以用毫米或者当前层高的百分比表示。默认值为0。"
-
-msgid "Slop gap"
-msgstr "斜面接缝"
-
 msgid "Scarf around entire wall"
 msgstr "围绕整个围墙"
 
 msgid "The scarf extends to the entire length of the wall."
 msgstr "将斜拼接缝延伸到整个围墙"
-
-msgid "Scarf length"
-msgstr "斜拼接缝长度"
-
-msgid ""
-"Length of the scarf. Setting this parameter to zero effectively disables the "
-"scarf."
-msgstr "斜拼接缝的长度。长度为0时会禁用斜拼接缝"
 
 msgid "Scarf steps"
 msgstr "斜拼段数"
@@ -12997,6 +13005,43 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid ""
+#~ "Too small scarf start height.\n"
+#~ "Reset to 50%"
+#~ msgstr "斜拼接缝起始高度过小，重设为50%。"
+
+#~ msgid ""
+#~ "Too big scarf start height.\n"
+#~ "Reset to 50%"
+#~ msgstr "斜拼接缝起始高度过大，重设为50%。"
+
+#~ msgid "Linear Deflection:"
+#~ msgstr "线偏转值"
+
+#~ msgid "Angle Deflection:"
+#~ msgstr "角偏转值"
+
+#~ msgid "Number of triangular facets: "
+#~ msgstr "三角面数量"
+
+#~ msgid "Scarf joint seam (experimental)"
+#~ msgstr "斜拼接缝（实验）"
+
+#~ msgid ""
+#~ "Use scarf joint to minimize seam visibility and increase seam strength."
+#~ msgstr "使用斜拼接缝来最小化接缝的可见性并增加接缝的强度。"
+
+#~ msgid ""
+#~ "Start height of the scarf.\n"
+#~ "This amount can be specified in millimeters or as a percentage of the "
+#~ "current layer height. The default value for this parameter is 0."
+#~ msgstr ""
+#~ "斜拼接缝的起始高度。\n"
+#~ "这个数值可以用毫米或者当前层高的百分比表示。默认值为0。"
+
+#~ msgid "Slop gap"
+#~ msgstr "斜面接缝"
 
 #~ msgid "Set Position"
 #~ msgstr "设置位置"

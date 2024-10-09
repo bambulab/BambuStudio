@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-29 14:17+0800\n"
+"POT-Creation-Date: 2024-10-09 11:50+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -1432,6 +1432,9 @@ msgstr "Видалити"
 
 msgid "Delete the selected object"
 msgstr "Видалити вибраний об'єкт"
+
+msgid "Delete all cutter"
+msgstr ""
 
 msgid "Edit Text"
 msgstr "Редагувати текст"
@@ -3106,20 +3109,6 @@ msgid ""
 msgstr ""
 "Надто висока висота шару.\n"
 "Скинути на 0,2"
-
-msgid ""
-"Too small scarf start height.\n"
-"Reset to 50%"
-msgstr ""
-"Занадто мала висота початку шарфа.\n"
-"Скинути до 50%"
-
-msgid ""
-"Too big scarf start height.\n"
-"Reset to 50%"
-msgstr ""
-"Занадто велика висота початку шарфа.\n"
-"Скинути до 50%"
 
 msgid ""
 "Too small ironing spacing.\n"
@@ -5017,19 +5006,19 @@ msgstr ""
 msgid "Step file import parameters"
 msgstr ""
 
-msgid "Linear Deflection:"
+msgid "Linear Deflection"
 msgstr ""
 
 msgid "Please input a valid value (0.001 < angle deflection < 0.1)"
 msgstr ""
 
-msgid "Angle Deflection:"
+msgid "Angle Deflection"
 msgstr ""
 
 msgid "Please input a valid value (0.01 < angle deflection < 1.0)"
 msgstr ""
 
-msgid "Number of triangular facets: "
+msgid "Number of triangular facets"
 msgstr ""
 
 msgid "0"
@@ -7296,6 +7285,9 @@ msgstr ""
 msgid "Volumetric speed limitation"
 msgstr "Об'ємне обмеження швидкості"
 
+msgid "Filament scarf seam settings"
+msgstr ""
+
 msgid "Cooling"
 msgstr "Охолодження"
 
@@ -9553,6 +9545,48 @@ msgid ""
 "Soluble material is commonly used to print support and support interface"
 msgstr "Розчинний матеріал зазвичай використовується для друку підтримки"
 
+msgid "Scarf seam type"
+msgstr ""
+
+msgid ""
+"Set scarf seam type for this filament. This setting could minimize seam "
+"visibiliy."
+msgstr ""
+
+msgid "Contour"
+msgstr "Контур"
+
+msgid "Contour and hole"
+msgstr "Контур та отвір"
+
+msgid "Scarf start height"
+msgstr "Висота початку шарфу"
+
+msgid ""
+"This amount can be specified in millimeters or as a percentage of the "
+"current layer height."
+msgstr ""
+
+msgid "mm/%"
+msgstr ""
+
+msgid "Scarf slope gap"
+msgstr ""
+
+msgid ""
+"In order to reduce the visiblity of the seam in closed loop, the inner wall "
+"and outer wall are shortened by a specified amount."
+msgstr ""
+
+msgid "Scarf length"
+msgstr "Довжина шарфа"
+
+msgid ""
+"Length of the scarf. Setting this parameter to zero effectively disables the "
+"scarf."
+msgstr ""
+"Довжина шарфа. Встановлення цього параметра на нуль ефективно вимикає шарф."
+
 msgid "Support material"
 msgstr "Матеріал підтримки"
 
@@ -9761,12 +9795,6 @@ msgid ""
 msgstr ""
 "Випадкове тремтіння під час друку зовнішнього периметра, так що поверхня "
 "була шорсткої. Цей параметр керує нечіткою оболонкою"
-
-msgid "Contour"
-msgstr "Контур"
-
-msgid "Contour and hole"
-msgstr "Контур та отвір"
 
 msgid "All walls"
 msgstr "Всі периметри"
@@ -10569,14 +10597,6 @@ msgstr ""
 "Ця кількість виражена у відсотках від поточного діаметра екструдера. За "
 "замовчуванням, цей параметр має значення 15"
 
-msgid "Scarf joint seam (experimental)"
-msgstr "З’єднання з шарфом (експериментально)"
-
-msgid "Use scarf joint to minimize seam visibility and increase seam strength."
-msgstr ""
-"Використовуйте з’єднання з шарфом, щоб мінімізувати видимість шва та "
-"збільшити міцність шва."
-
 msgid "Conditional scarf joint"
 msgstr "Умовне з’єднання з шарфом"
 
@@ -10603,35 +10623,11 @@ msgstr ""
 "відсутність гострих кутів), буде використовуватися з’єднання шва шарфа. "
 "Значення за замовчуванням - 155°."
 
-msgid "Scarf start height"
-msgstr "Висота початку шарфу"
-
-msgid ""
-"Start height of the scarf.\n"
-"This amount can be specified in millimeters or as a percentage of the "
-"current layer height. The default value for this parameter is 0."
-msgstr ""
-"Висота початку шарфу.\n"
-"Ця величина може бути вказана в міліметрах або як відсоток від поточної "
-"товщини шару. Значення за замовчуванням для цього параметра - 0."
-
-msgid "Slop gap"
-msgstr ""
-
 msgid "Scarf around entire wall"
 msgstr "Шарф навколо всієї стіни"
 
 msgid "The scarf extends to the entire length of the wall."
 msgstr "Шарф простягається на всю довжину стіни."
-
-msgid "Scarf length"
-msgstr "Довжина шарфа"
-
-msgid ""
-"Length of the scarf. Setting this parameter to zero effectively disables the "
-"scarf."
-msgstr ""
-"Довжина шарфа. Встановлення цього параметра на нуль ефективно вимикає шарф."
 
 msgid "Scarf steps"
 msgstr "Кроки шарфа"
@@ -13874,6 +13870,38 @@ msgstr ""
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як "
 "ABS, відповідне підвищення температури гарячого ліжка може зменшити "
 "ймовірність деформації."
+
+#~ msgid ""
+#~ "Too small scarf start height.\n"
+#~ "Reset to 50%"
+#~ msgstr ""
+#~ "Занадто мала висота початку шарфа.\n"
+#~ "Скинути до 50%"
+
+#~ msgid ""
+#~ "Too big scarf start height.\n"
+#~ "Reset to 50%"
+#~ msgstr ""
+#~ "Занадто велика висота початку шарфа.\n"
+#~ "Скинути до 50%"
+
+#~ msgid "Scarf joint seam (experimental)"
+#~ msgstr "З’єднання з шарфом (експериментально)"
+
+#~ msgid ""
+#~ "Use scarf joint to minimize seam visibility and increase seam strength."
+#~ msgstr ""
+#~ "Використовуйте з’єднання з шарфом, щоб мінімізувати видимість шва та "
+#~ "збільшити міцність шва."
+
+#~ msgid ""
+#~ "Start height of the scarf.\n"
+#~ "This amount can be specified in millimeters or as a percentage of the "
+#~ "current layer height. The default value for this parameter is 0."
+#~ msgstr ""
+#~ "Висота початку шарфу.\n"
+#~ "Ця величина може бути вказана в міліметрах або як відсоток від поточної "
+#~ "товщини шару. Значення за замовчуванням для цього параметра - 0."
 
 #~ msgid "Set Position"
 #~ msgstr "Встановити позицію"

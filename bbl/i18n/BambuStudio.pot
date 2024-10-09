@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-29 14:17+0800\n"
+"POT-Creation-Date: 2024-10-09 11:50+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1395,6 +1395,9 @@ msgid "Del"
 msgstr ""
 
 msgid "Delete the selected object"
+msgstr ""
+
+msgid "Delete all cutter"
 msgstr ""
 
 msgid "Edit Text"
@@ -2917,16 +2920,6 @@ msgstr ""
 msgid ""
 "Too large layer height.\n"
 "Reset to 0.2"
-msgstr ""
-
-msgid ""
-"Too small scarf start height.\n"
-"Reset to 50%"
-msgstr ""
-
-msgid ""
-"Too big scarf start height.\n"
-"Reset to 50%"
 msgstr ""
 
 msgid ""
@@ -4690,19 +4683,19 @@ msgstr ""
 msgid "Step file import parameters"
 msgstr ""
 
-msgid "Linear Deflection:"
+msgid "Linear Deflection"
 msgstr ""
 
 msgid "Please input a valid value (0.001 < angle deflection < 0.1)"
 msgstr ""
 
-msgid "Angle Deflection:"
+msgid "Angle Deflection"
 msgstr ""
 
 msgid "Please input a valid value (0.01 < angle deflection < 1.0)"
 msgstr ""
 
-msgid "Number of triangular facets: "
+msgid "Number of triangular facets"
 msgstr ""
 
 msgid "0"
@@ -6760,6 +6753,9 @@ msgstr ""
 msgid "Volumetric speed limitation"
 msgstr ""
 
+msgid "Filament scarf seam settings"
+msgstr ""
+
 msgid "Cooling"
 msgstr ""
 
@@ -8750,6 +8746,47 @@ msgid ""
 "Soluble material is commonly used to print support and support interface"
 msgstr ""
 
+msgid "Scarf seam type"
+msgstr ""
+
+msgid ""
+"Set scarf seam type for this filament. This setting could minimize seam "
+"visibiliy."
+msgstr ""
+
+msgid "Contour"
+msgstr ""
+
+msgid "Contour and hole"
+msgstr ""
+
+msgid "Scarf start height"
+msgstr ""
+
+msgid ""
+"This amount can be specified in millimeters or as a percentage of the "
+"current layer height."
+msgstr ""
+
+msgid "mm/%"
+msgstr ""
+
+msgid "Scarf slope gap"
+msgstr ""
+
+msgid ""
+"In order to reduce the visiblity of the seam in closed loop, the inner wall "
+"and outer wall are shortened by a specified amount."
+msgstr ""
+
+msgid "Scarf length"
+msgstr ""
+
+msgid ""
+"Length of the scarf. Setting this parameter to zero effectively disables the "
+"scarf."
+msgstr ""
+
 msgid "Support material"
 msgstr ""
 
@@ -8931,12 +8968,6 @@ msgstr ""
 msgid ""
 "Randomly jitter while printing the wall, so that the surface has a rough "
 "look. This setting controls the fuzzy position"
-msgstr ""
-
-msgid "Contour"
-msgstr ""
-
-msgid "Contour and hole"
 msgstr ""
 
 msgid "All walls"
@@ -9616,12 +9647,6 @@ msgid ""
 "value for this parameter is 15"
 msgstr ""
 
-msgid "Scarf joint seam (experimental)"
-msgstr ""
-
-msgid "Use scarf joint to minimize seam visibility and increase seam strength."
-msgstr ""
-
 msgid "Conditional scarf joint"
 msgstr ""
 
@@ -9641,30 +9666,10 @@ msgid ""
 "value is 155°."
 msgstr ""
 
-msgid "Scarf start height"
-msgstr ""
-
-msgid ""
-"Start height of the scarf.\n"
-"This amount can be specified in millimeters or as a percentage of the "
-"current layer height. The default value for this parameter is 0."
-msgstr ""
-
-msgid "Slop gap"
-msgstr ""
-
 msgid "Scarf around entire wall"
 msgstr ""
 
 msgid "The scarf extends to the entire length of the wall."
-msgstr ""
-
-msgid "Scarf length"
-msgstr ""
-
-msgid ""
-"Length of the scarf. Setting this parameter to zero effectively disables the "
-"scarf."
 msgstr ""
 
 msgid "Scarf steps"
