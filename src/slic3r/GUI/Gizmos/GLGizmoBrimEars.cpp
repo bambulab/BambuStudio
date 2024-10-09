@@ -775,9 +775,10 @@ Points GLGizmoBrimEars::generate_points(Polygon &obj_polygon, float ear_detectio
     const coordf_t angle_threshold = (180 - brim_ears_max_angle) * PI / 180.0;
     Points         pt_ears;
     if (ear_detection_length > 0) {
+        double detect_length = ear_detection_length / SCALING_FACTOR;
         Points points = obj_polygon.points;
         points.push_back(points.front());
-        points = MultiPoint::_douglas_peucker(points, ear_detection_length);
+        points = MultiPoint::_douglas_peucker(points, detect_length);
         if (points.size() > 4) {
             points.erase(points.end() - 1);
             obj_polygon.points = points;
