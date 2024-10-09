@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-29 14:17+0800\n"
-"PO-Revision-Date: 2024-09-03 18:58+0300\n"
+"POT-Creation-Date: 2024-10-09 11:50+0800\n"
+"PO-Revision-Date: 2024-09-29 02:13+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
 "Language: tr\n"
@@ -1433,6 +1433,9 @@ msgstr "Sil"
 
 msgid "Delete the selected object"
 msgstr "Seçilen nesneyi sil"
+
+msgid "Delete all cutter"
+msgstr ""
 
 msgid "Edit Text"
 msgstr "Metni düzenle"
@@ -3086,20 +3089,6 @@ msgid ""
 msgstr ""
 "Çok büyük katman yüksekliği.\n"
 "0,2'ye sıfırlayın"
-
-msgid ""
-"Too small scarf start height.\n"
-"Reset to 50%"
-msgstr ""
-"Çok küçük atkı başlangıç yüksekliği.\n"
-"50'ye sıfırla"
-
-msgid ""
-"Too big scarf start height.\n"
-"Reset to 50%"
-msgstr ""
-"Çok büyük atkı başlangıç yüksekliği.\n"
-"50'ye sıfırla"
 
 msgid ""
 "Too small ironing spacing.\n"
@@ -4997,19 +4986,19 @@ msgstr ""
 msgid "Step file import parameters"
 msgstr ""
 
-msgid "Linear Deflection:"
+msgid "Linear Deflection"
 msgstr ""
 
 msgid "Please input a valid value (0.001 < angle deflection < 0.1)"
 msgstr ""
 
-msgid "Angle Deflection:"
+msgid "Angle Deflection"
 msgstr ""
 
 msgid "Please input a valid value (0.01 < angle deflection < 1.0)"
 msgstr ""
 
-msgid "Number of triangular facets: "
+msgid "Number of triangular facets"
 msgstr ""
 
 msgid "0"
@@ -7285,6 +7274,9 @@ msgstr ""
 msgid "Volumetric speed limitation"
 msgstr "Hacimsel Hız Sınırlaması"
 
+msgid "Filament scarf seam settings"
+msgstr ""
+
 msgid "Cooling"
 msgstr "Soğutma"
 
@@ -9530,6 +9522,49 @@ msgstr ""
 "Çözünür malzeme genellikle destek ve destek arayüzünü yazdırmak için "
 "kullanılır"
 
+msgid "Scarf seam type"
+msgstr ""
+
+msgid ""
+"Set scarf seam type for this filament. This setting could minimize seam "
+"visibiliy."
+msgstr ""
+
+msgid "Contour"
+msgstr "Kontur"
+
+msgid "Contour and hole"
+msgstr "Kontur ve delik"
+
+msgid "Scarf start height"
+msgstr "Atkı başlangıç ​​yüksekliği"
+
+msgid ""
+"This amount can be specified in millimeters or as a percentage of the "
+"current layer height."
+msgstr ""
+
+msgid "mm/%"
+msgstr ""
+
+msgid "Scarf slope gap"
+msgstr ""
+
+msgid ""
+"In order to reduce the visiblity of the seam in closed loop, the inner wall "
+"and outer wall are shortened by a specified amount."
+msgstr ""
+
+msgid "Scarf length"
+msgstr "Atkı uzunluğu"
+
+msgid ""
+"Length of the scarf. Setting this parameter to zero effectively disables the "
+"scarf."
+msgstr ""
+"Atkının uzunluğu. Bu parametrenin 0 a ayarlanması atkıyı dolaylı yoldan "
+"devre dışı bırakır."
+
 msgid "Support material"
 msgstr "Destek malzemesi"
 
@@ -9730,12 +9765,6 @@ msgid ""
 msgstr ""
 "Duvara baskı yaparken rastgele titreme, böylece yüzeyin pürüzlü bir görünüme "
 "sahip olması. Bu ayar bulanık konumu kontrol eder"
-
-msgid "Contour"
-msgstr "Kontur"
-
-msgid "Contour and hole"
-msgstr "Kontur ve delik"
 
 msgid "All walls"
 msgstr "Tüm duvarlar"
@@ -10537,14 +10566,6 @@ msgstr ""
 "Bu miktar, mevcut ekstrüder çapının bir yüzdesi olarak belirlenir. Bu "
 "parametre için varsayılan değer 15'tir"
 
-msgid "Scarf joint seam (experimental)"
-msgstr "Atkı Eklem Dikişi (deneysel)"
-
-msgid "Use scarf joint to minimize seam visibility and increase seam strength."
-msgstr ""
-"Dikiş görünürlüğünü en aza indirmek ve dikiş mukavemetini arttırmak için "
-"atkı birleşimini kullanın."
-
 msgid "Conditional scarf joint"
 msgstr "Koşullu atkı birleşimi"
 
@@ -10570,36 +10591,11 @@ msgstr ""
 "köşelerin olmadığını gösterir), bir atkı eklem dikişi kullanılacaktır. "
 "Varsayılan değer 155°'tir."
 
-msgid "Scarf start height"
-msgstr "Atkı başlangıç ​​yüksekliği"
-
-msgid ""
-"Start height of the scarf.\n"
-"This amount can be specified in millimeters or as a percentage of the "
-"current layer height. The default value for this parameter is 0."
-msgstr ""
-"Atkı başlangıç yüksekliği.\n"
-"Bu miktar milimetre cinsinden veya geçerli katman yüksekliğinin yüzdesi "
-"olarak belirtilebilir. Bu parametrenin varsayılan değeri 0'dır."
-
-msgid "Slop gap"
-msgstr ""
-
 msgid "Scarf around entire wall"
 msgstr "Tüm duvarın etrafına atkıla"
 
 msgid "The scarf extends to the entire length of the wall."
 msgstr "Atkı duvarın tüm uzunluğu boyunca uzanır."
-
-msgid "Scarf length"
-msgstr "Atkı uzunluğu"
-
-msgid ""
-"Length of the scarf. Setting this parameter to zero effectively disables the "
-"scarf."
-msgstr ""
-"Atkının uzunluğu. Bu parametrenin 0 a ayarlanması atkıyı dolaylı yoldan "
-"devre dışı bırakır."
 
 msgid "Scarf steps"
 msgstr "Atkı kademesi"
@@ -13821,6 +13817,38 @@ msgstr ""
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı "
 "sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını "
 "azaltabileceğini biliyor muydunuz."
+
+#~ msgid ""
+#~ "Too small scarf start height.\n"
+#~ "Reset to 50%"
+#~ msgstr ""
+#~ "Çok küçük atkı başlangıç yüksekliği.\n"
+#~ "50'ye sıfırla"
+
+#~ msgid ""
+#~ "Too big scarf start height.\n"
+#~ "Reset to 50%"
+#~ msgstr ""
+#~ "Çok büyük atkı başlangıç yüksekliği.\n"
+#~ "50'ye sıfırla"
+
+#~ msgid "Scarf joint seam (experimental)"
+#~ msgstr "Atkı Eklem Dikişi (deneysel)"
+
+#~ msgid ""
+#~ "Use scarf joint to minimize seam visibility and increase seam strength."
+#~ msgstr ""
+#~ "Dikiş görünürlüğünü en aza indirmek ve dikiş mukavemetini arttırmak için "
+#~ "atkı birleşimini kullanın."
+
+#~ msgid ""
+#~ "Start height of the scarf.\n"
+#~ "This amount can be specified in millimeters or as a percentage of the "
+#~ "current layer height. The default value for this parameter is 0."
+#~ msgstr ""
+#~ "Atkı başlangıç yüksekliği.\n"
+#~ "Bu miktar milimetre cinsinden veya geçerli katman yüksekliğinin yüzdesi "
+#~ "olarak belirtilebilir. Bu parametrenin varsayılan değeri 0'dır."
 
 #~ msgid "Set Position"
 #~ msgstr "Pozisyonu ayarla"
