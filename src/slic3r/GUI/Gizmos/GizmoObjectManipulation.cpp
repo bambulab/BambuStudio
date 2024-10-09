@@ -972,7 +972,7 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
         if (reset_zero_button(imgui_wrapper, caption_max, unit_size, space_size, end_text_size)) { reset_rotation_value(false); }
         if (ImGui::IsItemHovered()) {
             float tooltip_size = imgui_wrapper->calc_text_size(_L("Reset current rotation to real zeros.")).x + 3 * space_size;
-            imgui_wrapper->tooltip(_u8L("Reset current rotation to real zeros."), tooltip_size);
+            imgui_wrapper->tooltip(_L("Reset current rotation to real zeros."), tooltip_size);
         }
     }
     index      = 1;
@@ -1002,7 +1002,7 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
         }
         if (ImGui::IsItemHovered()) {
             float tooltip_size = imgui_wrapper->calc_text_size(_L("Reset current rotation to the value when open the rotation tool.")).x + 3 * space_size;
-            imgui_wrapper->tooltip(_u8L("Reset current rotation to the value when open the rotation tool."), tooltip_size);
+            imgui_wrapper->tooltip(_L("Reset current rotation to the value when open the rotation tool."), tooltip_size);
         }
     } else {
         ImGui::SameLine(caption_max + 3 * unit_size + 5 * space_size + end_text_size);
