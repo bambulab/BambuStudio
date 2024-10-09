@@ -5307,7 +5307,7 @@ void GLCanvas3D::update_sequential_clearance()
         if (all_objects_are_short)
             shrink_factor = scale_(0.5 * MAX_OUTER_NOZZLE_RADIUS - 0.1);
         else
-            shrink_factor = static_cast<float>(scale_(0.5 * fff_print()->config().extruder_clearance_radius.value - EPSILON));
+            shrink_factor = static_cast<float>(scale_(0.5 * fff_print()->config().extruder_clearance_max_radius.value - EPSILON));
 
         double mitter_limit = scale_(0.1);
         m_sequential_print_clearance.m_hull_2d_cache.reserve(m_model->objects.size());
