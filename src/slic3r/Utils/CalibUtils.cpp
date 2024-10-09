@@ -21,8 +21,9 @@ static const std::string temp_gcode_path = temp_dir + "/temp.gcode";
 static const std::string path            = temp_dir + "/test.3mf";
 static const std::string config_3mf_path = temp_dir + "/test_config.3mf";
 
-static std::string MachineBedTypeString[5] = {
+static std::string MachineBedTypeString[6] = {
     "auto",
+    "suprtack",
     "pc",
     "ep",
     "pei",
