@@ -977,41 +977,40 @@ void ToolOrdering::assign_custom_gcodes(const Print &print)
 	// If printing on a single extruder machine, make the tool changes trigger color change (M600) events.
 	bool 						tool_changes_as_color_changes = mode == CustomGCode::SingleExtruder && model_mode == CustomGCode::MultiAsSingle;
 
-	// From the last layer to the first one:
-	for (auto it_lt = m_layer_tools.rbegin(); it_lt != m_layer_tools.rend(); ++ it_lt) {
-		LayerTools &lt = *it_lt;
-		// Add the extruders of the current layer to the set of extruders printing at and above this print_z.
-		for (unsigned int i : lt.extruders)
-			extruder_printing_above[i] = true;
-		// Skip all custom G-codes above this layer and skip all extruder switches.
-		for (; custom_gcode_it != custom_gcode_per_print_z.gcodes.rend() && (custom_gcode_it->print_z > lt.print_z + EPSILON || custom_gcode_it->type == CustomGCode::ToolChange); ++ custom_gcode_it);
-		if (custom_gcode_it == custom_gcode_per_print_z.gcodes.rend())
-			// Custom G-codes were processed.
-			break;
-		// Some custom G-code is configured for this layer or a layer below.
-		const CustomGCode::Item &custom_gcode = *custom_gcode_it;
-		// print_z of the layer below the current layer.
-		coordf_t print_z_below = 0.;
-		if (auto it_lt_below = it_lt; ++ it_lt_below != m_layer_tools.rend())
-			print_z_below = it_lt_below->print_z;
-		if (custom_gcode.print_z > print_z_below + 0.5 * EPSILON) {
-			// The custom G-code applies to the current layer.
-			bool color_change = custom_gcode.type == CustomGCode::ColorChange;
-			bool tool_change  = custom_gcode.type == CustomGCode::ToolChange;
-			bool pause_or_custom_gcode = ! color_change && ! tool_change;
-			bool apply_color_change = ! ignore_tool_and_color_changes &&
-				// If it is color change, it will actually be useful as the exturder above will print.
-                // BBS
-				(color_change ? 
-					mode == CustomGCode::SingleExtruder || 
-						(custom_gcode.extruder <= int(num_filaments) && extruder_printing_above[unsigned(custom_gcode.extruder - 1)]) :
-				 	tool_change && tool_changes_as_color_changes);
-			if (pause_or_custom_gcode || apply_color_change)
-        		lt.custom_gcode = &custom_gcode;
-			// Consume that custom G-code event.
-			++ custom_gcode_it;
-		}
-	}
+    // take the half of the minimum layer height gap as episilon
+    double layer_height_episilon = std::numeric_limits<double>::max();
+    for (auto it_prev = m_layer_tools.begin(), it_next = std::next(m_layer_tools.begin()); it_next != m_layer_tools.end(); it_prev = it_next, ++it_next)
+        layer_height_episilon = std::min(layer_height_episilon, it_next->print_z - it_prev->print_z);
+    layer_height_episilon *= 0.5;
+
+    auto it_lt = m_layer_tools.rbegin();
+    for (auto custom_gcode_it = custom_gcode_per_print_z.gcodes.rbegin(); custom_gcode_it != custom_gcode_per_print_z.gcodes.rend(); ++custom_gcode_it) {
+        if (custom_gcode_it->type == CustomGCode::ToolChange)
+            continue;
+        for (; it_lt != m_layer_tools.rend(); ++it_lt) {
+            for (unsigned int i : it_lt->extruders)
+                extruder_printing_above[i] = true;
+            if (std::abs(it_lt->print_z - custom_gcode_it->print_z) < layer_height_episilon) {
+                const CustomGCode::Item &custom_gcode = *custom_gcode_it;
+                // The custom G-code applies to the current layer.
+                bool color_change = custom_gcode.type == CustomGCode::ColorChange;
+                bool tool_change  = custom_gcode.type == CustomGCode::ToolChange;
+                bool pause_or_custom_gcode = ! color_change && ! tool_change;
+                bool apply_color_change = ! ignore_tool_and_color_changes &&
+                    // If it is color change, it will actually be useful as the exturder above will print.
+                    // BBS
+                    (color_change ?
+                        mode == CustomGCode::SingleExtruder ||
+                        (custom_gcode.extruder <= int(num_filaments) && extruder_printing_above[unsigned(custom_gcode.extruder - 1)]) :
+                        tool_change && tool_changes_as_color_changes);
+                if (pause_or_custom_gcode || apply_color_change)
+                    it_lt->custom_gcode = &custom_gcode;
+
+                ++it_lt;
+                break;
+            }
+        }
+    }
 }
 
 const LayerTools& ToolOrdering::tools_for_layer(coordf_t print_z) const
