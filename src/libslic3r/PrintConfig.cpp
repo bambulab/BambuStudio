@@ -1570,6 +1570,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("PLA");
     def->enum_values.push_back("ABS");
     def->enum_values.push_back("ASA");
+    def->enum_values.push_back("ASA-CF");
     def->enum_values.push_back("PETG");
     def->enum_values.push_back("PCTG");
     def->enum_values.push_back("TPU");
