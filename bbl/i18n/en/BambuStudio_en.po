@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-09 11:50+0800\n"
+"POT-Creation-Date: 2024-10-10 15:52+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2272,6 +2272,23 @@ msgstr "Bed filling canceled."
 
 msgid "Bed filling done."
 msgstr "Bed filling done."
+
+#. TRN: This is the title of the action appearing in undo/redo stack.
+#. It is same for Text and SVG.
+msgid "Emboss attribute change"
+msgstr ""
+
+msgid "Add Emboss text object"
+msgstr ""
+
+msgid "Add Emboss text Volume"
+msgstr ""
+
+msgid "Font doesn't have any shape for given text."
+msgstr ""
+
+msgid "There is no valid surface for text projection."
+msgstr ""
 
 msgid "Error! Unable to create thread!"
 msgstr "Error! Unable to create thread!"
@@ -4952,7 +4969,7 @@ msgstr ""
 msgid "Linear Deflection"
 msgstr ""
 
-msgid "Please input a valid value (0.001 < angle deflection < 0.1)"
+msgid "Please input a valid value (0.001 < linear deflection < 0.1)"
 msgstr ""
 
 msgid "Angle Deflection"
