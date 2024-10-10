@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.9.7.52 Public Official\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-09 11:50+0800\n"
+"POT-Creation-Date: 2024-10-10 15:52+0800\n"
 "PO-Revision-Date: 2024-09-27 23:58+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -2334,6 +2334,23 @@ msgstr "Заполнение стола отменено."
 
 msgid "Bed filling done."
 msgstr "Заполнение стола закончено."
+
+#. TRN: This is the title of the action appearing in undo/redo stack.
+#. It is same for Text and SVG.
+msgid "Emboss attribute change"
+msgstr ""
+
+msgid "Add Emboss text object"
+msgstr ""
+
+msgid "Add Emboss text Volume"
+msgstr ""
+
+msgid "Font doesn't have any shape for given text."
+msgstr ""
+
+msgid "There is no valid surface for text projection."
+msgstr ""
 
 msgid "Error! Unable to create thread!"
 msgstr "Ошибка! Не удалось создать поток!"
@@ -5123,7 +5140,7 @@ msgstr ""
 msgid "Linear Deflection"
 msgstr ""
 
-msgid "Please input a valid value (0.001 < angle deflection < 0.1)"
+msgid "Please input a valid value (0.001 < linear deflection < 0.1)"
 msgstr ""
 
 msgid "Angle Deflection"

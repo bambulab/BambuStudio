@@ -41,6 +41,7 @@ src/slic3r/GUI/ImGuiWrapper.cpp
 src/slic3r/GUI/Jobs/ArrangeJob.cpp
 src/slic3r/GUI/Jobs/OrientJob.cpp
 src/slic3r/GUI/Jobs/FillBedJob.cpp
+src/slic3r/GUI/Jobs/EmbossJob.cpp
 src/slic3r/GUI/Jobs/Job.cpp
 src/slic3r/GUI/Jobs/PlaterJob.cpp
 src/slic3r/GUI/Jobs/RotoptimizeJob.cpp
