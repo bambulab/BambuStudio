@@ -510,6 +510,8 @@ void GLGizmoRotate3D::data_changed(bool is_serializing) {
         }
         m_object_manipulation->set_init_rotation(tran);
     }
+    for (GLGizmoRotate &g : m_gizmos)
+        g.init_data_from_selection(m_parent.get_selection());
 }
 
 bool GLGizmoRotate3D::on_is_activable() const
