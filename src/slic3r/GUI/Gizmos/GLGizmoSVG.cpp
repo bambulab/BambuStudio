@@ -1500,7 +1500,7 @@ void GLGizmoSVG::draw_filename()
         draw(get_icon(m_icons, IconType::bake, IconState::hovered));
         ImGui::SameLine();
         // TRN: An menu option to convert the SVG into an unmodifiable model part.
-        if (ImGui::Selectable(_L("Bake to model").c_str())) {
+        if (ImGui::Selectable(_u8L("Bake to model").c_str())) {
             m_volume->emboss_shape.reset();
             close();
         } else if (ImGui::IsItemHovered()) {
