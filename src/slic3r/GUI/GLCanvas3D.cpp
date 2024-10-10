@@ -3475,7 +3475,10 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
             m_dirty = true;
         },
         [this](const Vec3d& direction, bool slow, bool camera_space) {
-            m_selection.start_dragging();
+            if (m_gizmos.is_ban_move_glvolume()) {
+                return;
+            }
+            m_selection.setup_cache();
             double multiplier = slow ? 1.0 : 10.0;
 
             Vec3d displacement;
@@ -3490,7 +3493,6 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
             TransformationType trafo_type;
             trafo_type.set_relative();
             m_selection.translate(displacement, trafo_type);
-            m_selection.stop_dragging();
             m_dirty = true;
         }
     );}
@@ -3647,12 +3649,14 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                     post_event(SimpleEvent(EVT_GLCANVAS_COLLAPSE_SIDEBAR));
                 } else if (m_gizmos.is_enabled() && !m_selection.is_empty() && m_canvas_type != CanvasAssembleView) {
                     auto _do_rotate = [this](double angle_z_rad) {
+                        if (m_gizmos.is_ban_move_glvolume()) {
+                            return;
+                        }
                         if (!m_gizmos.get_gizmo_active_condition(GLGizmosManager::EType::Rotate)) {
                             return;
                         }
-                        m_selection.start_dragging();
+                        m_selection.setup_cache();
                         m_selection.rotate(Vec3d(0.0, 0.0, angle_z_rad), TransformationType(TransformationType::World_Relative_Joint));
-                        m_selection.stop_dragging();
                         m_dirty = true;
 //                        wxGetApp().obj_manipul()->set_dirty();
                     };
