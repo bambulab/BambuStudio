@@ -59,6 +59,7 @@ public:
 
     void set_center(const Vec3d &point) { m_custom_center = point; }
     void set_force_local_coordinate(bool use) { m_force_local_coordinate = use; }
+    void init_data_from_selection(const Selection &selection);
 
 protected:
     bool on_init() override;
@@ -80,7 +81,6 @@ private:
     void transform_to_local(const Selection& selection) const;
     // returns the intersection of the mouse ray with the plane perpendicular to the gizmo axis, in local coordinate
     Vec3d mouse_position_in_local_plane(const Linef3& mouse_ray, const Selection& selection) const;
-    void  init_data_from_selection(const Selection &selection);
 };
 
 class GLGizmoRotate3D : public GLGizmoBase

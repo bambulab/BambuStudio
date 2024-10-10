@@ -724,6 +724,18 @@ bool GLGizmosManager::is_show_only_active_plate()
     return false;
 }
 
+bool GLGizmosManager::is_ban_move_glvolume()
+{
+    auto current_type = get_current_type();
+    if (current_type == GLGizmosManager::EType::Undefined ||
+        current_type == GLGizmosManager::EType::Move ||
+        current_type == GLGizmosManager::EType::Rotate ||
+        current_type == GLGizmosManager::EType::Scale) {
+        return false;
+    }
+    return true;
+}
+
 bool GLGizmosManager::get_gizmo_active_condition(GLGizmosManager::EType type) {
     if (auto cur_gizmo = get_gizmo(type)) {
         return cur_gizmo->is_activable();
