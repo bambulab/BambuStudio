@@ -904,9 +904,10 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     m_imgui->text(_L("Size"));
     ImGui::SameLine(caption_size);
     ImGui::PushItemWidth(input_size);
-    if(ImGui::InputFloat("###font_size", &m_font_size, 0.0f, 0.0f, "%.2f"))
+    if (ImGui::InputFloat("###font_size", &m_font_size, 0.0f, 0.0f, "%.2f")) {
+        limit_value(m_font_size, m_font_size_min, m_font_size_max);
         m_need_update_text = true;
-    if (m_font_size < 3.0f)m_font_size = 3.0f;
+    }
     ImGui::SameLine();
 
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * currt_scale);
@@ -968,9 +969,9 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     ImGui::SameLine(caption_size);
     ImGui::PushItemWidth(list_width);
     old_value = m_embeded_depth;
-    ImGui::InputFloat("###text_embeded_depth", &m_embeded_depth, 0.0f, 0.0f, "%.2f");
-    if (m_embeded_depth < 0.f)
-        m_embeded_depth = 0.f;
+    if (ImGui::InputFloat("###text_embeded_depth", &m_embeded_depth, 0.0f, 0.0f, "%.2f")) {
+        limit_value(m_embeded_depth, 0.0f, m_embeded_depth_max);
+    }
     if (old_value != m_embeded_depth)
         m_need_update_text = true;
 
