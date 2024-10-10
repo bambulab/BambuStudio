@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-09 11:50+0800\n"
+"POT-Creation-Date: 2024-10-10 15:52+0800\n"
 "PO-Revision-Date: 2024-03-21 10:39+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -2238,6 +2238,23 @@ msgstr "填充热床已取消。"
 
 msgid "Bed filling done."
 msgstr "填充热床已完成。"
+
+#. TRN: This is the title of the action appearing in undo/redo stack.
+#. It is same for Text and SVG.
+msgid "Emboss attribute change"
+msgstr "浮雕属性更改"
+
+msgid "Add Emboss text object"
+msgstr "添加浮雕文本对象"
+
+msgid "Add Emboss text Volume"
+msgstr "添加浮雕文本Volume"
+
+msgid "Font doesn't have any shape for given text."
+msgstr "给定文本的字体没有任何形状。"
+
+msgid "There is no valid surface for text projection."
+msgstr "没有用于文本投影的有效曲面。"
 
 msgid "Error! Unable to create thread!"
 msgstr "发生错误，无法创建线程！"
@@ -4805,7 +4822,7 @@ msgstr "导入step文件选项"
 msgid "Linear Deflection"
 msgstr "线偏转值"
 
-msgid "Please input a valid value (0.001 < angle deflection < 0.1)"
+msgid "Please input a valid value (0.001 < linear deflection < 0.1)"
 msgstr "请输入有效值（0.001<线偏转值<0.1）"
 
 msgid "Angle Deflection"
@@ -9049,8 +9066,7 @@ msgstr "斜拼接缝类型"
 msgid ""
 "Set scarf seam type for this filament. This setting could minimize seam "
 "visibiliy."
-msgstr ""
-"设置这个材料的斜拼接缝类型，这个选项可以最小化接缝的可见性。"
+msgstr "设置这个材料的斜拼接缝类型，这个选项可以最小化接缝的可见性。"
 
 msgid "Contour"
 msgstr "轮廓"
@@ -9064,8 +9080,7 @@ msgstr "斜拼接缝起始高度"
 msgid ""
 "This amount can be specified in millimeters or as a percentage of the "
 "current layer height."
-msgstr ""
-"可以设置为毫米也可以设置为设置的层高的百分比。"
+msgstr "可以设置为毫米也可以设置为设置的层高的百分比。"
 
 msgid "mm/%"
 msgstr "mm/%"
@@ -9076,8 +9091,7 @@ msgstr "斜拼接缝间隔"
 msgid ""
 "In order to reduce the visiblity of the seam in closed loop, the inner wall "
 "and outer wall are shortened by a specified amount."
-msgstr ""
-"为了改善缝隙的可见度，内墙和外墙会被缩短指定长度。"
+msgstr "为了改善缝隙的可见度，内墙和外墙会被缩短指定长度。"
 
 msgid "Scarf length"
 msgstr "斜拼接缝长度"
@@ -13005,6 +13019,9 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid "Please input a valid value (0.001 < angle deflection < 0.1)"
+#~ msgstr "请输入有效值（0.001<线偏转值<0.1）"
 
 #~ msgid ""
 #~ "Too small scarf start height.\n"
