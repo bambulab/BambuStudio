@@ -11390,6 +11390,11 @@ void Plater::export_gcode_3mf(bool export_all)
                 temp_path              = temp_path.substr(0, temp_path.size() - 6);
                 output_path            = temp_path + L".gcode.3mf";
             }
+            else if (boost::iends_with(output_path.string(), ".gcode.gcode.3mf")) {//for mac
+                std::wstring temp_path = output_path.wstring();
+                temp_path              = temp_path.substr(0, temp_path.size() - 16);
+                output_path            = temp_path + L".gcode.3mf";
+            }
             else if (!boost::iends_with(output_path.string(), ".gcode.3mf")) {
                 output_path = output_path.replace_extension(".gcode.3mf");
             }
