@@ -525,6 +525,22 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
 
             bool detect_overhang_degree = perimeter_generator.config->enable_overhang_speed && perimeter_generator.config->fuzzy_skin == FuzzySkinType::None;
 
+            //BBS: fuzziy skin may generate a line that approximates a point, which can cause the clipper to get empty results
+            if (loop.fuzzify && remain_polines.empty() && inside_polines.empty()) {
+                bool inside_contour = false;
+                for (const Polygon cliped_polygon : lower_polygons_series_clipped) {
+                    if (cliped_polygon.contains(polygon.first_point())) {
+                        inside_contour = true;
+                        break;
+                    }
+                }
+
+                if (inside_contour)
+                    inside_polines.push_back(to_polyline(polygon));
+                else
+                    remain_polines.push_back(to_polyline(polygon));
+            }
+
             if (!detect_overhang_degree) {
                 if (!inside_polines.empty())
                     extrusion_paths_append(
