@@ -10464,6 +10464,9 @@ bool Plater::load_svg(const wxArrayString &filenames, bool from_toolbar_or_file_
                 deselect_all();
             }
             wxArrayString temp_filenames;
+            if (!boost::iends_with(filenames[i].ToStdString(), ".svg")) {
+                return false;
+            }
             temp_filenames.push_back(filenames[i]);
             const auto dlg_info = _L("Loading file") + ": " + filenames[i];
             int        progress_percent = static_cast<int>(100.0f * static_cast<float>(i) / static_cast<float>(filenames.size()));
