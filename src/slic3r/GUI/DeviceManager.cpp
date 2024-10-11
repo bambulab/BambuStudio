@@ -2309,6 +2309,7 @@ int MachineObject::command_set_pa_calibration(const std::vector<PACalibResult> &
             j["print"]["filaments"][i]["tray_id"]     = pa_calib_values[i].tray_id;
             j["print"]["filaments"][i]["extruder_id"] = pa_calib_values[i].extruder_id;
             j["print"]["filaments"][i]["nozzle_id"]   = generate_nozzle_id(pa_calib_values[i].nozzle_volume_type).ToStdString();
+            j["print"]["filaments"][i]["nozzle_diameter"] = to_string_nozzle_diameter(pa_calib_values[i].nozzle_diameter);
             j["print"]["filaments"][i]["ams_id"]      = pa_calib_values[i].ams_id;
             j["print"]["filaments"][i]["slot_id"]     = pa_calib_values[i].slot_id;
             j["print"]["filaments"][i]["filament_id"] = pa_calib_values[i].filament_id;
