@@ -62,7 +62,6 @@ GUI::Job::Job(std::shared_ptr<ProgressIndicator> pri)
             // to make sure they close, fade out, whathever
             m_progress->set_progress(m_range);
             m_progress->set_cancel_callback();
-            wxEndBusyCursor();
 
             if (m_worker_error) {
                 m_finalized = true;
@@ -86,7 +85,7 @@ GUI::Job::Job(std::shared_ptr<ProgressIndicator> pri)
 
                 finalize();
             }
-
+            wxEndBusyCursor();
             // dont do finalization again for the same process
             m_finalized = true;
         }
@@ -96,6 +95,8 @@ GUI::Job::Job(std::shared_ptr<ProgressIndicator> pri)
 void GUI::Job::start()
 { // Start the job. No effect if the job is already running
     if (!m_running.load()) {
+        // Changing cursor to busy
+        wxBeginBusyCursor();
         prepare();
 
         // Save the current status indicatior range and push the new one
@@ -109,9 +110,6 @@ void GUI::Job::start()
 
         m_finalized  = false;
         m_finalizing = false;
-
-        // Changing cursor to busy
-        wxBeginBusyCursor();
 
         try { // Execute the job
             m_worker_error = nullptr;
