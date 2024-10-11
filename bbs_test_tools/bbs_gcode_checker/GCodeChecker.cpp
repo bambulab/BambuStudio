@@ -17,6 +17,8 @@ const std::string Extrusion_Role_Tag = " FEATURE: ";
 const std::string Width_Tag          = " LINE_WIDTH: ";
 const std::string Wipe_Start_Tag     = " WIPE_START";
 const std::string Wipe_End_Tag       = " WIPE_END";
+const std::string Wipe_Tower_Start_Tag = " WIPE_TOWER_START";
+const std::string Wipe_Tower_End_Tag = " WIPE_TOWER_END";
 const std::string Layer_Change_Tag   = " CHANGE_LAYER";
 const std::string Height_Tag         = " LAYER_HEIGHT: ";
 const std::string filament_flow_ratio_tag = " filament_flow_ratio";
@@ -131,6 +133,12 @@ GCodeCheckResult GCodeChecker::parse_comment(GCodeLine& line)
         m_wiping = true;
     } else if (starts_with(comment, Wipe_End_Tag)) {
         m_wiping = false;
+    }
+    else if (starts_with(comment, Wipe_Tower_Start_Tag)) {
+        is_wipe_tower = true;
+    }
+    else if (starts_with(comment, Wipe_Tower_End_Tag)) {
+        is_wipe_tower = false;
     } else if (starts_with(comment, Height_Tag)) {
         std::string str = comment.substr(Height_Tag.size());
         if (!parse_double_from_str(str, m_height)) {
@@ -417,20 +425,31 @@ GCodeCheckResult GCodeChecker::parse_G92(GCodeLine& gcode_line)
         return GCodeCheckResult::ParseFailed;
     }
 
-    if (gcode_line.has(X))
+    bool any_found = false;
+    if (gcode_line.has(X)){
         m_origin[X] = m_end_position[X] - gcode_line.get(X);
+        any_found = true;
+    }
 
-    if (gcode_line.has(Y))
+    if (gcode_line.has(Y)){
         m_origin[Y] = m_end_position[Y] - gcode_line.get(Y);
+        any_found = true;
+    }
 
-    if (gcode_line.has(Z))
+    if (gcode_line.has(Z)){
         m_origin[Z] = m_end_position[Z] - gcode_line.get(Z);
+        any_found = true;
+    }
 
-    if (gcode_line.has(E))
+    if (gcode_line.has(E)){
         m_end_position[E] = gcode_line.get(E);
+        any_found = true;
+    }
 
-    for (unsigned char a = X; a <= E; ++a) {
-        m_origin[a] = m_end_position[a];
+    if (!any_found) {
+        for (unsigned char a = X; a <= E; ++a) {
+            m_origin[a] = m_end_position[a];
+        }
     }
 
     return GCodeCheckResult::Success;
@@ -643,11 +662,15 @@ GCodeCheckResult GCodeChecker::check_G0_G1_width(const GCodeLine& line)
         std::array<double, 3> target = { m_end_position[X], m_end_position[Y], m_end_position[Z] };
 
         bool is_bridge = m_role == erOverhangPerimeter || m_role == erBridgeInfill;
-        if (!is_bridge) {
+        if (!is_bridge && !is_wipe_tower) {
             double real_height = m_height;
             if (line.has(Z) && has_scarf_joint_seam && line.get(Z) != 0)
             {
                 if (line.get(Z) == z_height)
+                {
+                    return GCodeCheckResult::Success;
+                }
+                if (line.get(Z) && line.get(E))
                 {
                     return GCodeCheckResult::Success;
                 }
