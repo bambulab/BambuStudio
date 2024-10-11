@@ -219,6 +219,7 @@ private:
     std::vector<double> nozzle_temperature;
     std::vector<double> nozzle_temperature_initial_layer;
     bool has_scarf_joint_seam = false;
+    bool is_wipe_tower = false;
 };
 
 }
