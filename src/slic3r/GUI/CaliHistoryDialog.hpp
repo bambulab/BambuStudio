@@ -45,7 +45,7 @@ protected:
 class EditCalibrationHistoryDialog : public DPIDialog
 {
 public:
-    EditCalibrationHistoryDialog(wxWindow* parent, const PACalibResult& result);
+    EditCalibrationHistoryDialog(wxWindow* parent, const PACalibResult& result, const MachineObject* obj);
     ~EditCalibrationHistoryDialog();
     void on_dpi_changed(const wxRect& suggested_rect) override;
     PACalibResult get_result();
@@ -74,6 +74,7 @@ protected:
 
 
     wxArrayString get_all_filaments(const MachineObject *obj);
+    int get_extruder_id(int extruder_index);  // extruder_index 0 : left, 1 : right
 
 protected:
     PACalibResult m_new_result;
@@ -85,6 +86,8 @@ protected:
 
     ComboBox *m_comboBox_nozzle_diameter;
     ComboBox *m_comboBox_filament;
+    ComboBox *m_comboBox_extruder;
+    ComboBox *m_comboBox_nozzle_type;
 
     struct FilamentInfos
     {
