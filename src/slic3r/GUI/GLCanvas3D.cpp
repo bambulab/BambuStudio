@@ -1576,11 +1576,16 @@ BoundingBoxf3 GLCanvas3D::assembly_view_cur_bounding_box() const {
 BoundingBoxf3 GLCanvas3D::volumes_bounding_box() const
 {
     BoundingBoxf3 bb;
-    auto partplate_list_box = wxGetApp().plater()->get_partplate_list().get_bounding_box();
+    BoundingBoxf3 expand_part_plate_list_box;
+    auto plate_list_box = wxGetApp().plater()->get_partplate_list().get_bounding_box();
+    auto horizontal_radius = 0.5 * sqrt(std::pow(plate_list_box.min[0] - plate_list_box.max[0], 2) + std::pow(plate_list_box.min[1] - plate_list_box.max[1], 2));
+    const float   scale    = 2;
+    expand_part_plate_list_box.merge(plate_list_box.min - scale * Vec3d(horizontal_radius, horizontal_radius, 0));
+    expand_part_plate_list_box.merge(plate_list_box.max + scale * Vec3d(horizontal_radius, horizontal_radius, 0));
     for (const GLVolume *volume : m_volumes.volumes) {
         if (!m_apply_zoom_to_volumes_filter || ((volume != nullptr) && volume->zoom_to_volumes)) {
             const auto v_bb     = volume->transformed_bounding_box();
-            if (!partplate_list_box.overlap(v_bb))
+            if (!expand_part_plate_list_box.overlap(v_bb))
                 continue;
             bb.merge(v_bb);
         }
