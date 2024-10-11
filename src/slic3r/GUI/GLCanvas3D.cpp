@@ -8471,7 +8471,8 @@ void GLCanvas3D::_render_assemble_control()
         int selection_idx = m_selection.get_volume_selection_mode() == Selection::Instance ? 0 : 1;
         auto label         = _u8L("Selection Mode") + ":" ;
         auto label_width   = imgui->calc_text_size(label).x ;
-        auto item_width    = imgui->calc_text_size(_u8L("Object")).x * 2.5 + imgui->calc_text_size("xx").x+ item_spacing;
+        auto item_width   = imgui->calc_text_size(_L("Object")).x * 2.5 + imgui->calc_text_size("x").x+imgui->scaled(2);
+
         //render imgui
         ImGui::AlignTextToFramePadding();
         ImGui::PushItemWidth(label_width);
