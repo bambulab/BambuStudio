@@ -982,8 +982,8 @@ void PrintConfigDef::init_fff_params()
                      "Auto means the brim width is analysed and calculated automatically.");
     def->enum_keys_map = &ConfigOptionEnum<BrimType>::get_enum_values();
     def->enum_values.emplace_back("auto_brim");
-    def->enum_values.emplace_back("outer_only");
     def->enum_values.emplace_back("brim_ears");
+    def->enum_values.emplace_back("outer_only");
 #if 1 //!BBL_RELEASE_TO_PUBLIC
     // BBS: The following two types are disabled
     def->enum_values.emplace_back("inner_only");
@@ -1014,12 +1014,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.));
 
-    def = this->add("brim_ears", coBool);
-    def->label = L("Brim ears");
-    def->category = L("Support");
-    def->tooltip = L("Draw brim");
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("compatible_printers", coStrings);
     def->label = L("Compatible machine");
