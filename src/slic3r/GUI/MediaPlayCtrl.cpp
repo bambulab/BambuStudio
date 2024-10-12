@@ -899,6 +899,11 @@ static int SecondsSinceLastInput()
 
 void wxMediaCtrl2::DoSetSize(int x, int y, int width, int height, int sizeFlags)
 {
+    // Ignore resize calls while in fullscreen mode
+    if (IsFullScreen())
+    {
+        return;
+    }
 #ifdef __WXMAC__
     wxWindow::DoSetSize(x, y, width, height, sizeFlags);
 #else

@@ -16,6 +16,10 @@
 #include <stdlib.h>
 #include <dlfcn.h>
 
+#include <wx/button.h>
+#include <wx/bmpbuttn.h>
+#include "BitmapCache.hpp"
+
 wxDEFINE_EVENT(EVT_MEDIA_CTRL_STAT, wxCommandEvent);
 
 #define BAMBU_DYNAMIC
@@ -56,6 +60,45 @@ wxMediaCtrl2::wxMediaCtrl2(wxWindow * parent)
     CGColorRelease(color);
     imageView.wantsLayer = YES;
     create_player();
+
+    auto key_down = [this](wxKeyEvent& event)
+    {
+        if (event.m_keyCode == WXK_ESCAPE)
+            toggle_fullscreen();
+    };
+    Bind(wxEVT_KEY_DOWN, key_down);
+
+    wxBitmap bmp = *Slic3r::GUI::BitmapCache().load_svg("fullscreen", 0, 0);
+    bmp = bmp.ConvertToImage();
+
+    wxBitmap bmp_selected = *Slic3r::GUI::BitmapCache().load_svg("fullscreen_selected", 0, 0);
+    bmp_selected = bmp_selected.ConvertToImage();
+
+    wxBitmapButton * fullscreen_button = new wxBitmapButton(this, wxID_HIGHEST + 1, bmp,
+                                                wxDefaultPosition,
+                                                wxSize(32, 32),
+                                                wxBORDER_NONE);
+    fullscreen_button->SetBitmapSelected(bmp_selected);
+    auto fullscreen_button_clicked = [this](wxEvent &e) {
+        toggle_fullscreen();
+    };
+    fullscreen_button->Bind(wxEVT_COMMAND_BUTTON_CLICKED, fullscreen_button_clicked);
+
+    auto double_click = [this](wxMouseEvent& e) {
+        toggle_fullscreen();
+    };
+    Bind(wxEVT_LEFT_DCLICK, double_click);
+
+    wxSizer * hsizer = new wxBoxSizer(wxHORIZONTAL);
+    hsizer->AddStretchSpacer();
+    hsizer->Add(fullscreen_button);
+
+    wxSizer * sizer = new wxBoxSizer(wxVERTICAL);
+    sizer->AddStretchSpacer();
+    sizer->Add(hsizer, 0, wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALL);
+
+    SetSizer(sizer);
+    SetAutoLayout(true);
 }
 
 wxMediaCtrl2::~wxMediaCtrl2()
@@ -167,4 +210,25 @@ wxSize wxMediaCtrl2::GetVideoSize() const
     } else {
         return {0, 0};
     }
+}
+
+bool wxMediaCtrl2::IsFullScreen() const
+{
+    NSView * imageView = (NSView *) GetHandle();
+    return (bool) [imageView isInFullScreenMode];
+}
+
+void wxMediaCtrl2::toggle_fullscreen()
+{
+    NSView * imageView = (NSView *) GetHandle();
+    if ([imageView isInFullScreenMode])
+    {
+        [imageView exitFullScreenModeWithOptions:nil];
+    }
+    else
+    {
+        NSDictionary * fullScreenOptions = [NSDictionary dictionaryWithObjectsAndKeys: [NSNumber numberWithBool: NO], NSFullScreenModeAllScreens, nil];
+        [imageView enterFullScreenMode:imageView.window.screen withOptions:fullScreenOptions];
+    }
+    Layout();
 }
