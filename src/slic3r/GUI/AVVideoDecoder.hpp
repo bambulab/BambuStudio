@@ -34,6 +34,7 @@ private:
     AVFrame *       frame_     = nullptr;
     SwsContext *    sws_ctx_   = nullptr;
     bool got_frame_ = false;
+    int width_ { 0 }; // scale result width
     std::vector<uint8_t> bits_;
 };
 
