@@ -3000,7 +3000,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("°");
     def->min      = 0;
     def->max      = 180;
-    def->set_default_value(new ConfigOptionInt(0));
+    def->set_default_value(new ConfigOptionInt(155));
 
     def          = this->add("seam_slope_entire_loop", coBool);
     def->label   = L("Scarf around entire wall");
