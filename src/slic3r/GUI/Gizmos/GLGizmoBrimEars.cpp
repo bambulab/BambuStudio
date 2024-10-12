@@ -498,6 +498,8 @@ void GLGizmoBrimEars::on_render_input_window(float x, float y, float bottom_limi
 
     if (!mo) return;
 
+    const DynamicPrintConfig& obj_cfg = mo->config.get();
+    const DynamicPrintConfig& glb_cfg = wxGetApp().preset_bundle->prints.get_edited_preset().config;
     const float win_h = ImGui::GetWindowHeight();
     y                 = std::min(y, bottom_limit - win_h);
     GizmoImguiSetNextWIndowPos(x, y, ImGuiCond_Always, 0.0f, 0.0f);
@@ -620,6 +622,44 @@ void GLGizmoBrimEars::on_render_input_window(float x, float y, float bottom_limi
     }
     ImGui::PopStyleVar(1);
 
+    if (glb_cfg.opt_enum<BrimType>("brim_type") != btBrimEars) {
+        auto link_text = [&]() {
+            ImColor HyperColor = ImColor(48, 221, 114, 255).Value;
+            ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::to_ImVec4(ColorRGB::WARNING()));
+            float parent_width = ImGui::GetContentRegionAvail().x;
+            m_imgui->text(_L("Warning: The brim type is not set to manual,"));
+            m_imgui->text(_L("the brim ears will not take effect !"));
+            ImGui::PopStyleColor();
+            ImGui::SameLine();
+            ImGui::PushStyleColor(ImGuiCol_Text, HyperColor.Value);
+            m_imgui->text(_L("(set)"));
+            ImGui::PopStyleColor();
+            if (ImGui::IsMouseHoveringRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), true)) {
+                // underline
+                ImVec2 lineEnd = ImGui::GetItemRectMax();
+                lineEnd.y -= 2.0f;
+                ImVec2 lineStart = lineEnd;
+                lineStart.x = ImGui::GetItemRectMin().x;
+                ImGui::GetWindowDrawList()->AddLine(lineStart, lineEnd, HyperColor);
+
+                if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+                    DynamicPrintConfig new_conf = obj_cfg;
+                    new_conf.set_key_value("brim_type", new ConfigOptionEnum<BrimType>(btBrimEars));
+                    mo->config.assign_config(new_conf);
+                }
+            }
+        };
+
+        if (obj_cfg.option("brim_type")) {
+            if (obj_cfg.opt_enum<BrimType>("brim_type") != btBrimEars){
+                link_text();
+            }
+        }else {
+            link_text();
+        }
+
+    }
+
     if (!m_single_brim.empty()) {
         wxString out = _L("Warning") + ": " + std::to_string(m_single_brim.size()) + _L(" invalid brim ears");
         m_imgui->warning_text(out);
@@ -675,7 +715,7 @@ bool GLGizmoBrimEars::on_is_activable() const
     return true;
 }
 
-std::string GLGizmoBrimEars::on_get_name() const 
+std::string GLGizmoBrimEars::on_get_name() const
 {
     if (!on_is_activable() && m_state == EState::Off) {
         return _u8L("Brim Ears") + ":\n" + _u8L("Please select single object.");
@@ -708,6 +748,7 @@ void GLGizmoBrimEars::on_set_state()
         if (mo) {
             mo->brim_points.clear();
             for (const CacheEntry& ce : m_editing_cache) mo->brim_points.emplace_back(ce.brim_point);
+            wxGetApp().plater()->set_plater_dirty(true);
         }
         m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
         wxGetApp().plater()->leave_gizmos_stack();

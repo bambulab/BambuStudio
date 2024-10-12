@@ -804,7 +804,7 @@ double configBrimWidthByVolumeGroups(double adhension, double maxSpeed, const st
     return brim_width;
 }
 
-static ExPolygons make_brim_ears(const PrintObject* object, double flowWidth, float brim_offset, Flow &flow, bool is_outer_brim)
+static ExPolygons make_brim_ears(const PrintObject* object, const double& flowWidth, float brim_offset, Flow &flow, bool is_outer_brim)
 {
     ExPolygons mouse_ears_ex;
     BrimPoints brim_ear_points = object->model_object()->brim_points;
@@ -815,15 +815,14 @@ static ExPolygons make_brim_ears(const PrintObject* object, double flowWidth, fl
     Transform3d model_trsf = trsf.get_matrix(true);
     const Point &center_offset = object->center_offset();
     model_trsf = model_trsf.pretranslate(Vec3d(- unscale<double>(center_offset.x()), - unscale<double>(center_offset.y()), 0));
-
     for (auto &pt : brim_ear_points) {
         Vec3f world_pos = pt.transform(trsf.get_matrix());
         if ( world_pos.z() > 0) continue;
         Polygon point_round;
         float brim_width = floor(scale_(pt.head_front_radius) / flowWidth / 2) * flowWidth * 2;
         if (is_outer_brim) {
-            flowWidth = flowWidth / SCALING_FACTOR;
-            brim_width = floor(brim_width / flowWidth / 2) * flowWidth * 2;
+            double flowWidthScale = flowWidth / SCALING_FACTOR;
+            brim_width = floor(brim_width / flowWidthScale / 2) * flowWidthScale * 2;
         }
         coord_t size_ear = (brim_width - brim_offset - flow.scaled_spacing());
         for (size_t i = 0; i < POLY_SIDE_COUNT; i++) {
