@@ -46,7 +46,7 @@ bool GLGizmoBrimEars::on_init()
 
     m_desc["left_click_caption"]       = _L("Left click");
     m_desc["left_click"]               = _L("Add a brim ear");
-    m_desc["right_click_caption"]      = L("Right click");
+    m_desc["right_click_caption"]      = _L("Right click");
     m_desc["right_click"]              = _L("Delete a brim ear");
     m_desc["ctrl_mouse_wheel_caption"] = _L("Ctrl+Mouse wheel");
     m_desc["ctrl_mouse_wheel"]         = _L("Adjust section view");
@@ -405,7 +405,6 @@ bool GLGizmoBrimEars::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_p
             select_point(NoPoints);
             select_point(m_hover_id);
             delete_selected_points();
-            find_single();
             return true;
         }
         return false;
@@ -449,6 +448,7 @@ void GLGizmoBrimEars::delete_selected_points()
     }
 
     select_point(NoPoints);
+    find_single();
 }
 
 void GLGizmoBrimEars::on_update(const UpdateData &data)
@@ -665,17 +665,24 @@ bool GLGizmoBrimEars::on_is_activable() const
 {
     const Selection &selection = m_parent.get_selection();
 
-    if (!selection.is_from_single_instance()) return false;
+    if (!selection.is_single_full_instance()) return false;
 
     // Check that none of the selected volumes is outside. Only SLA auxiliaries (supports) are allowed outside.
-    const Selection::IndicesList &list = selection.get_volume_idxs();
-    for (const auto &idx : list)
-        if (selection.get_volume(idx)->is_outside && selection.get_volume(idx)->composite_id.volume_id >= 0) return false;
+    // const Selection::IndicesList &list = selection.get_volume_idxs();
+    // for (const auto &idx : list)
+    //     if (selection.get_volume(idx)->is_outside && selection.get_volume(idx)->composite_id.volume_id >= 0) return false;
 
     return true;
 }
 
-std::string GLGizmoBrimEars::on_get_name() const { return _u8L("Brim Ears"); }
+std::string GLGizmoBrimEars::on_get_name() const 
+{
+    if (!on_is_activable() && m_state == EState::Off) {
+        return _u8L("Brim Ears") + ":\n" + _u8L("Please select single object.");
+    } else {
+        return _u8L("Brim Ears");
+    }
+}
 
 CommonGizmosDataID GLGizmoBrimEars::on_get_requirements() const
 {
@@ -698,8 +705,10 @@ void GLGizmoBrimEars::on_set_state()
         // the gizmo was just turned Off
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Brim ears edit");
         ModelObject         *mo = m_c->selection_info()->model_object();
-        mo->brim_points.clear();
-        for (const CacheEntry &ce : m_editing_cache) mo->brim_points.emplace_back(ce.brim_point);
+        if (mo) {
+            mo->brim_points.clear();
+            for (const CacheEntry& ce : m_editing_cache) mo->brim_points.emplace_back(ce.brim_point);
+        }
         m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
         wxGetApp().plater()->leave_gizmos_stack();
         // wxGetApp().mainframe->update_slice_print_status(MainFrame::SlicePrintEventType::eEventSliceUpdate, true, true);
@@ -867,6 +876,8 @@ void GLGizmoBrimEars::register_single_mesh_pick()
     if (idxs.size() > 0) {
         for (unsigned int idx : idxs) {
             GLVolume *v          = const_cast<GLVolume *>(selection.get_volume(idx));
+            const ModelVolume* mv = get_model_volume(*v, wxGetApp().model());
+            if (!mv->is_model_part()) continue;
             auto      world_tran = v->get_instance_transformation() * v->get_volume_transformation();
             auto      mesh       = const_cast<TriangleMesh *>(v->ori_mesh);
             if (m_mesh_raycaster_map.find(v) != m_mesh_raycaster_map.end()) {

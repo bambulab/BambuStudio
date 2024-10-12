@@ -891,8 +891,8 @@ static ExPolygons outer_inner_brim_area(const Print& print,
             const float        scaled_half_min_adh_length = scale_(1.1);
             bool               has_brim_auto = object->config().brim_type == btAutoBrim;
             bool         use_brim_ears = object->config().brim_type == btBrimEars;
-            if (object->model_object()->brim_points.size()>0 && has_brim_auto)
-                use_brim_ears = true;
+            // if (object->model_object()->brim_points.size()>0 && has_brim_auto)
+            //     use_brim_ears = true;
             const bool         has_inner_brim = brim_type == btInnerOnly || brim_type == btOuterAndInner || use_brim_ears;
             const bool         has_outer_brim = brim_type == btOuterOnly || brim_type == btOuterAndInner || brim_type == btAutoBrim || use_brim_ears;
 
