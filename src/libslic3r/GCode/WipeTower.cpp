@@ -172,7 +172,7 @@ public:
 	// Extrude with an explicitely provided amount of extrusion.
 	WipeTowerWriter& extrude_explicit(float x, float y, float e, float f = 0.f, bool record_length = false, bool limit_volumetric_flow = true)
 	{
-		if (x == m_current_pos.x() && y == m_current_pos.y() && e == 0.f && (f == 0.f || f == m_current_feedrate))
+        if ((std::abs(x - m_current_pos.x()) <= (float)EPSILON) && (std::abs(y - m_current_pos.y()) < (float)EPSILON) && e == 0.f && (f == 0.f || f == m_current_feedrate))
 			// Neither extrusion nor a travel move.
 			return *this;
 
@@ -1101,7 +1101,7 @@ void WipeTower::toolchange_Wipe(
     if (m_depth_traversed != 0)
         writer.travel(xl, writer.y() + dy);
 #endif
-    
+
     bool need_change_flow = false;
     // now the wiping itself:
 	for (int i = 0; true; ++i)	{
