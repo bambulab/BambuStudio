@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-10 15:52+0800\n"
+"POT-Creation-Date: 2024-10-12 15:54+0800\n"
 "PO-Revision-Date: 2024-09-29 02:13+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -5110,6 +5110,9 @@ msgstr ""
 msgid "How to use LAN only mode"
 msgstr ""
 
+msgid "Dont't show this dialog again"
+msgstr ""
+
 msgid "3D Mouse disconnected."
 msgstr "3D Fare bağlantısı kesildi."
 
@@ -6147,14 +6150,18 @@ msgstr "Ön ayarlar"
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr "Kullanıcı ön ayarları otomatik senkronizasyon (Yazıcı/Filament/İşlem)"
 
-msgid "User Sync"
-msgstr "Kullanıcı Senkronizasyonu"
+msgid ""
+"If enabled, auto sync user presets with cloud after Bambu Studio startup or "
+"presets modified."
+msgstr ""
 
-msgid "Update built-in Presets automatically."
-msgstr "Yerleşik Ön Ayarları otomatik olarak güncelleyin."
+msgid "Auto check for system presets updates"
+msgstr ""
 
-msgid "System Sync"
-msgstr "Sistem Senkronizasyonu"
+msgid ""
+"If enabled, auto check whether there are system presets updates after Bambu "
+"Studio startup."
+msgstr ""
 
 msgid "Clear my choice on the unsaved presets."
 msgstr "Kaydedilmemiş ön ayarlardaki seçimimi temizle."
@@ -6584,6 +6591,9 @@ msgstr "Çevrimdışı"
 
 msgid "Busy"
 msgstr "Meşgul"
+
+msgid "Bambu Cool Plate SuperTack"
+msgstr ""
 
 msgid "Bambu Cool Plate"
 msgstr "Bambu Soğuk Plaka"
@@ -7237,9 +7247,6 @@ msgstr "Nozul"
 
 msgid "Nozzle temperature when printing"
 msgstr "Yazdırma sırasında nozul sıcaklığı"
-
-msgid "Bambu Cool Plate SuperTack"
-msgstr ""
 
 msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
@@ -9040,12 +9047,6 @@ msgid ""
 msgstr ""
 "En içteki kenar çizgisi ile nesne arasındaki boşluk, kenarlığın daha kolay "
 "çıkarılmasını sağlayabilir"
-
-msgid "Brim ears"
-msgstr ""
-
-msgid "Draw brim"
-msgstr ""
 
 msgid "Compatible machine"
 msgstr "Uyumlu makine"
@@ -13834,6 +13835,15 @@ msgstr ""
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı "
 "sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını "
 "azaltabileceğini biliyor muydunuz."
+
+#~ msgid "User Sync"
+#~ msgstr "Kullanıcı Senkronizasyonu"
+
+#~ msgid "Update built-in Presets automatically."
+#~ msgstr "Yerleşik Ön Ayarları otomatik olarak güncelleyin."
+
+#~ msgid "System Sync"
+#~ msgstr "Sistem Senkronizasyonu"
 
 #~ msgid ""
 #~ "Too small scarf start height.\n"
