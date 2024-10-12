@@ -230,6 +230,7 @@ public:
     void set_brightness_value(int value) { m_brightness_value = value; }
     void set_plate_index(int plate_idx = -1);
     void market_scoring_show();
+    bool is_market_scoring_show();
     void market_scoring_hide();
 
 public:
