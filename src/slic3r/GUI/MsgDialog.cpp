@@ -661,7 +661,7 @@ NetworkErrorDialog::NetworkErrorDialog(wxWindow* parent)
     checkbox->SetValue(false);
 
 
-    auto checkbox_title = new Label(this, _L("Dont't show this dialog again"));
+    auto checkbox_title = new Label(this, _L("Don't show this dialog again"));
     checkbox_title->SetForegroundColour(0x323A3C);
     checkbox_title->SetFont(::Label::Body_14);
     checkbox_title->Wrap(-1);
