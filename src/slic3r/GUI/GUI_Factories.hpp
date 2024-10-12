@@ -79,7 +79,7 @@ public:
     wxMenu* assemble_part_menu();
     wxMenu* assemble_multi_selection_menu();
 
-    wxMenu *filament_action_menu();
+    wxMenu *filament_action_menu(int active_filament_menu_id);
 
 private:
     enum MenuType {
@@ -134,7 +134,7 @@ private:
     void        create_bbl_assemble_part_menu();
     void        create_cut_cutter_menu();
 
-    void        create_filament_action_menu(bool init);
+    void        create_filament_action_menu(bool init, int active_filament_menu_id);
 
     wxMenu*     append_submenu_add_generic(wxMenu* menu, ModelVolumeType type);
     void        append_menu_item_add_svg(wxMenu *menu, ModelVolumeType type, bool is_submenu_item = true);
