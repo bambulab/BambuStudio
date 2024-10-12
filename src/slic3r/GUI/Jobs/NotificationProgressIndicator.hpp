@@ -9,7 +9,7 @@ class NotificationManager;
 
 class NotificationProgressIndicator: public ProgressIndicator {
     NotificationManager *m_nm = nullptr;
-
+    CancelFn m_cancelfn;
 public:
 
     explicit NotificationProgressIndicator(NotificationManager *nm);

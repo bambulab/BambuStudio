@@ -4,12 +4,14 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 #include "libslic3r/PrintConfig.hpp"
-#include "PlaterJob.hpp"
+#include "Job.hpp"
 
 namespace fs = boost::filesystem;
 
 namespace Slic3r {
 namespace GUI {
+
+class Plater;
 
 #define PRINT_JOB_SENDING_TIMEOUT   25
 
@@ -35,7 +37,7 @@ public:
     BedType bed_type = BedType::btDefault;
 };
 
-class PrintJob : public PlaterJob
+class PrintJob : public Job
 {
     std::function<void()> m_success_fun{nullptr};
     std::string         m_dev_id;
@@ -44,16 +46,16 @@ class PrintJob : public PlaterJob
     wxString            m_completed_evt_data;
     std::function<void()> m_enter_ip_address_fun_fail{ nullptr };
     std::function<void()> m_enter_ip_address_fun_success{ nullptr };
+    Plater* m_plater;
 
 public:
     PrintPrepareData job_data;
     PlateListData    plate_data;
 
 protected:
-    void prepare() override;
-    void on_exception(const std::exception_ptr &) override;
+    void prepare();
 public:
-    PrintJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater, std::string dev_id = "");
+    PrintJob(std::string dev_id = "");
 
     std::string m_project_name;
     std::string m_dev_ip;
@@ -69,7 +71,7 @@ public:
     bool m_is_calibration_task = false;
 
     int         m_print_from_sdc_plate_idx = 0;
-    
+
     bool        m_local_use_ssl_for_mqtt { true };
     bool        m_local_use_ssl_for_ftp { true };
     bool        task_bed_leveling;
@@ -81,7 +83,7 @@ public:
     bool        has_sdcard { false };
     bool        task_use_ams { true };
 
-    void set_print_config(std::string bed_type, bool bed_leveling, bool flow_cali, bool vabration_cali, bool record_timelapse, bool layer_inspect) 
+    void set_print_config(std::string bed_type, bool bed_leveling, bool flow_cali, bool vabration_cali, bool record_timelapse, bool layer_inspect)
     {
         task_bed_type       = bed_type;
         task_bed_leveling   = bed_leveling;
@@ -91,7 +93,7 @@ public:
         task_layer_inspect    = layer_inspect;
     }
 
-    int  status_range() const override
+    int  status_range() const
     {
         return 100;
     }
@@ -102,13 +104,13 @@ public:
         m_completed_evt_data = evt_data;
     }
     void on_success(std::function<void()> success);
-    void process() override;
-    void finalize() override;
+    void process(Ctl& ctl) override;
+    void finalize(bool canceled, std::exception_ptr& eptr) override;
     void set_project_name(std::string name);
     void set_dst_name(std::string path);
     void on_check_ip_address_fail(std::function<void()> func);
     void on_check_ip_address_success(std::function<void()> func);
-    void connect_to_local_mqtt();
+    // void connect_to_local_mqtt();
     wxString get_http_error_msg(unsigned int status, std::string body);
     std::string truncate_string(const std::string& str, size_t maxLength);
     void set_calibration_task(bool is_calibration);

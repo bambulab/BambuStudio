@@ -1565,7 +1565,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     if (opt_key == "filament_long_retractions_when_cut"){
         unsigned char activate = boost::any_cast<unsigned char>(value);
         if (activate == 1) {
-            MessageDialog dialog(wxGetApp().plater(), 
+            MessageDialog dialog(wxGetApp().plater(),
             _L("Experimental feature: Retracting and cutting off the filament at a greater distance during filament changes to minimize flush."
             "Although it can notably reduce flush, it may also elevate the risk of nozzle clogs or other printing complications.Please use with the latest printer firmware."), "", wxICON_WARNING | wxOK);
             dialog.ShowModal();
@@ -2748,7 +2748,7 @@ void TabPrintPlate::notify_changed(ObjectBase* object)
     for (auto item : items) {
         if (objects_list->GetModel()->GetItemType(item) == itPlate) {
             ObjectDataViewModelNode* node = static_cast<ObjectDataViewModelNode*>(item.GetID());
-            if (node) 
+            if (node)
                 node->set_action_icon(!m_all_keys.empty());
         }
     }
@@ -2756,7 +2756,7 @@ void TabPrintPlate::notify_changed(ObjectBase* object)
 
 void TabPrintPlate::update_custom_dirty()
 {
-    for (auto k : m_null_keys) 
+    for (auto k : m_null_keys)
         m_options_list[k] = 0;
     for (auto k : m_all_keys) {
         if (k == "first_layer_sequence_choice" || k == "other_layers_sequence_choice") {
@@ -3496,6 +3496,7 @@ void TabPrinter::build_fff()
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
         optgroup->append_single_option_line("printer_structure");
         optgroup->append_single_option_line("gcode_flavor");
+        optgroup->append_single_option_line("bbl_use_printhost");
 
         option =optgroup->get_option("thumbnail_size");
         option.opt.full_width=true;
@@ -3573,7 +3574,7 @@ void TabPrinter::build_fff()
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
         optgroup->append_single_option_line(option);
-        
+
         optgroup = page->new_optgroup(L("Time lapse G-code"), L"param_gcode", 0);
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
@@ -4113,6 +4114,7 @@ void TabPrinter::toggle_options()
         toggle_option("support_chamber_temp_control",!is_BBL_printer);
         toggle_option("use_firmware_retraction", !is_BBL_printer);
         toggle_option("support_air_filtration",is_BBL_printer);
+        toggle_option("bbl_use_printhost", is_BBL_printer);
         auto flavor = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
         bool is_marlin_flavor = flavor == gcfMarlinLegacy || flavor == gcfMarlinFirmware;
         // Disable silent mode for non-marlin firmwares.
@@ -4600,13 +4602,13 @@ bool Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
         try {
             //BBS delete preset
             Preset &current_preset = m_presets->get_selected_preset();
-            
+
             // Obtain compatible filament and process presets for printers
             if (m_preset_bundle && m_presets->get_preset_base(current_preset) == &current_preset && printer_tab && !current_preset.is_system) {
                 delete_third_printer = true;
                 for (const Preset &preset : m_preset_bundle->filaments.get_presets()) {
                     if (preset.is_compatible && !preset.is_default) {
-                        if (preset.inherits() != "") 
+                        if (preset.inherits() != "")
                             filament_presets.push_front(preset);
                         else
                             filament_presets.push_back(preset);
@@ -4731,7 +4733,7 @@ bool Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
 
             });
         }
-        
+
     }
 
     if (technology_changed)
@@ -5498,7 +5500,7 @@ wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
                         load_key_value("bed_custom_model", custom_model);
                         update_changed_ui();
                     }
-                
+
                 } else {
                     show_error(m_parent, _L("Invalid input."));
                 }
@@ -5972,7 +5974,7 @@ void TabSLAPrint::build()
 //    optgroup->append_single_option_line("support_head_front_diameter");
 //    optgroup->append_single_option_line("support_head_penetration");
 //    optgroup->append_single_option_line("support_head_width");
-//
+    //
 //    optgroup = page->new_optgroup(L("Support pillar"));
 //    optgroup->append_single_option_line("support_pillar_diameter");
 //    optgroup->append_single_option_line("support_small_pillar_diameter_percent");
@@ -6022,7 +6024,7 @@ void TabSLAPrint::build()
 //    optgroup->append_single_option_line("pad_object_connector_stride");
 //    optgroup->append_single_option_line("pad_object_connector_width");
 //    optgroup->append_single_option_line("pad_object_connector_penetration");
-//
+    //
 //    page = add_options_page(L("Hollowing"), "hollowing");
 //    optgroup = page->new_optgroup(L("Hollowing"));
 //    optgroup->append_single_option_line("hollowing_enable");
