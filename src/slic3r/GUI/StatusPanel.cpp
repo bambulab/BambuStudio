@@ -800,6 +800,9 @@ void PrintingTaskPanel::market_scoring_show()
     m_score_subtask_info->Show();
 }
 
+bool PrintingTaskPanel::is_market_scoring_show() { 
+    return m_score_staticline->IsShown() && m_score_subtask_info->IsShown(); }
+
 void PrintingTaskPanel::market_scoring_hide()
 {
     m_score_staticline->Hide();
@@ -3020,6 +3023,24 @@ void StatusPanel::update_subtask(MachineObject *obj)
         || obj->is_in_calibration()) {
         reset_printing_values();
     } else if (obj->is_in_printing() || obj->print_status == "FINISH") {
+
+        m_project_task_panel->update_subtask_name(wxString::Format("%s", GUI::from_u8(obj->subtask_name)));
+
+        if (obj->get_modeltask() && obj->get_modeltask()->design_id > 0) {
+            m_project_task_panel->show_profile_info(wxString::FromUTF8(obj->get_modeltask()->profile_name));
+        } else {
+            m_project_task_panel->show_profile_info(false);
+        }
+
+        // update thumbnail
+        if (obj->is_sdcard_printing()) {
+            update_basic_print_data(false);
+            update_sdcard_subtask(obj);
+        } else {
+            update_basic_print_data(true);
+            update_cloud_subtask(obj);
+        }
+
         if (obj->is_in_prepare() || obj->print_status == "SLICING") {
             m_project_task_panel->market_scoring_hide();
             m_project_task_panel->get_request_failed_panel()->Hide();
@@ -3064,6 +3085,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
             } else {
                  m_project_task_panel->enable_pause_resume_button(true, "pause");
             }
+
             if (obj->is_printing_finished()) {
                 obj->update_model_task();
                 m_project_task_panel->enable_abort_button(false);
@@ -3089,7 +3111,12 @@ void StatusPanel::update_subtask(MachineObject *obj)
                                 m_project_task_panel->set_has_reted_text(false);
                             }
                         }
-                        m_project_task_panel->market_scoring_show();
+
+                        if (!m_project_task_panel->is_market_scoring_show()) {
+                            m_project_task_panel->market_scoring_show();
+                            Layout();
+                        }
+
                     } else if (obj && obj->rating_info && !obj->rating_info->request_successful) {
                         BOOST_LOG_TRIVIAL(info) << "model mall result request failed";
                         if (403 != obj->rating_info->http_code) {
@@ -3101,11 +3128,18 @@ void StatusPanel::update_subtask(MachineObject *obj)
                         }
                     }
                 } else {
-                    m_project_task_panel->market_scoring_hide();
+
+                    if (m_project_task_panel->is_market_scoring_show()) {
+                        m_project_task_panel->market_scoring_hide();
+                        Layout();
+                    }
                 }
             } else { // model printing is not finished, hide scoring page
                 m_project_task_panel->enable_abort_button(true);
-                m_project_task_panel->market_scoring_hide();
+                if (m_project_task_panel->is_market_scoring_show()) {
+                    m_project_task_panel->market_scoring_hide();
+                    Layout();
+                }
                 m_project_task_panel->get_request_failed_panel()->Hide();
             }
             // update printing stage
@@ -3121,24 +3155,6 @@ void StatusPanel::update_subtask(MachineObject *obj)
                 m_project_task_panel->update_progress_percent(NA_STR, wxEmptyString);
                 m_project_task_panel->update_layers_num(true, wxString::Format(_L("Layer: %s"), NA_STR));
             }
-        }
-
-        m_project_task_panel->update_subtask_name(wxString::Format("%s", GUI::from_u8(obj->subtask_name)));
-
-        if (obj->get_modeltask() && obj->get_modeltask()->design_id > 0) {
-            m_project_task_panel->show_profile_info(wxString::FromUTF8(obj->get_modeltask()->profile_name));
-        }
-        else {
-            m_project_task_panel->show_profile_info(false);
-        }
-
-        //update thumbnail
-        if (obj->is_sdcard_printing()) {
-            update_basic_print_data(false);
-            update_sdcard_subtask(obj);
-        } else {
-            update_basic_print_data(true);
-            update_cloud_subtask(obj);
         }
     } else {
         reset_printing_values();
