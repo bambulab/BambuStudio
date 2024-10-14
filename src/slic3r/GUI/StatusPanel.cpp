@@ -3086,6 +3086,19 @@ void StatusPanel::update_subtask(MachineObject *obj)
                  m_project_task_panel->enable_pause_resume_button(true, "pause");
             }
 
+            // update printing stage
+            m_project_task_panel->update_left_time(obj->mc_left_time);
+            if (obj->subtask_) {
+                m_project_task_panel->update_stage_value(obj->get_curr_stage(), obj->subtask_->task_progress);
+                m_project_task_panel->update_progress_percent(wxString::Format("%d", obj->subtask_->task_progress), "%");
+                m_project_task_panel->update_layers_num(true, wxString::Format(_L("Layer: %d/%d"), obj->curr_layer, obj->total_layers));
+
+            } else {
+                m_project_task_panel->update_stage_value(obj->get_curr_stage(), 0);
+                m_project_task_panel->update_progress_percent(NA_STR, wxEmptyString);
+                m_project_task_panel->update_layers_num(true, wxString::Format(_L("Layer: %s"), NA_STR));
+            }
+
             if (obj->is_printing_finished()) {
                 obj->update_model_task();
                 m_project_task_panel->enable_abort_button(false);
@@ -3112,10 +3125,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
                             }
                         }
 
-                        if (!m_project_task_panel->is_market_scoring_show()) {
-                            m_project_task_panel->market_scoring_show();
-                            Layout();
-                        }
+                        m_project_task_panel->market_scoring_show();
 
                     } else if (obj && obj->rating_info && !obj->rating_info->request_successful) {
                         BOOST_LOG_TRIVIAL(info) << "model mall result request failed";
@@ -3128,39 +3138,19 @@ void StatusPanel::update_subtask(MachineObject *obj)
                         }
                     }
                 } else {
-
-                    if (m_project_task_panel->is_market_scoring_show()) {
-                        m_project_task_panel->market_scoring_hide();
-                        Layout();
-                    }
+                    m_project_task_panel->market_scoring_hide();
                 }
             } else { // model printing is not finished, hide scoring page
                 m_project_task_panel->enable_abort_button(true);
-                if (m_project_task_panel->is_market_scoring_show()) {
-                    m_project_task_panel->market_scoring_hide();
-                    Layout();
-                }
+                m_project_task_panel->market_scoring_hide();
                 m_project_task_panel->get_request_failed_panel()->Hide();
-            }
-            // update printing stage
-
-            m_project_task_panel->update_left_time(obj->mc_left_time);
-            if (obj->subtask_) {
-                m_project_task_panel->update_stage_value(obj->get_curr_stage(), obj->subtask_->task_progress);
-                m_project_task_panel->update_progress_percent(wxString::Format("%d", obj->subtask_->task_progress), "%");
-                m_project_task_panel->update_layers_num(true, wxString::Format(_L("Layer: %d/%d"), obj->curr_layer, obj->total_layers));
-
-            } else {
-                m_project_task_panel->update_stage_value(obj->get_curr_stage(), 0);
-                m_project_task_panel->update_progress_percent(NA_STR, wxEmptyString);
-                m_project_task_panel->update_layers_num(true, wxString::Format(_L("Layer: %s"), NA_STR));
             }
         }
     } else {
         reset_printing_values();
     }
 
-    m_project_task_panel->Layout();
+    Layout();
 }
 
 void StatusPanel::update_cloud_subtask(MachineObject *obj)
