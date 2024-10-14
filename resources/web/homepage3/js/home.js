@@ -663,6 +663,7 @@ function ShowStaffPick( ModelList )
 	$('#HotModelList').html(strPickHtml);
 	InitStaffPick();
 	$('#HotModelArea').show();
+	$('#HotModel_Search_Bar').css('display','flex');
 }
 
 function Show4UPick( ModelList )
@@ -721,6 +722,7 @@ function Show4UPick( ModelList )
 	$('#HotModelList').html(strPickHtml);
 	InitStaffPick();
 	$('#HotModelArea').show();
+	$('#HotModel_Search_Bar').css('display','flex');
 }
 
 function OpenOneStaffPickModel( ModelID )
