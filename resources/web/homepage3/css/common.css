@@ -91,14 +91,8 @@ html, body {
 #MenuArea
 {
 	display:flex;
+	justify-content: flex-end;
 	margin-bottom: 24px;
-	flex-direction:row-reverse;
-}
-
-#MenuBtnBlock
-{
-	display:flex;
-	margin-left: 60px;
 }
 
 .Menu_Btn
@@ -113,13 +107,6 @@ html, body {
 {
 	margin-right: 6px;
 	width: 18px;
-}
-
-.Menu_Btn span
-{
-	display: inline-block;
-	width: 100%;
-	white-space: nowrap;
 }
 
 /*---弹性内容块---*/
