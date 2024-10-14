@@ -877,6 +877,7 @@ static ExPolygons outer_inner_brim_area(const Print& print,
         }
         hole_index = -1;
     };
+    const float scaled_flow_width = print.brim_flow().scaled_spacing();
     for (unsigned int extruderNo : printExtruders) {
         ++extruderNo;
         for (const auto& objectWithExtruder : objPrintVec) {
@@ -885,7 +886,6 @@ static ExPolygons outer_inner_brim_area(const Print& print,
             float              brim_offset = scale_(object->config().brim_object_gap.value);
             double             flowWidth = print.brim_flow().scaled_spacing() * SCALING_FACTOR;
             float              brim_width = scale_(floor(object->config().brim_width.value / flowWidth / 2) * flowWidth * 2);
-            const float        scaled_flow_width = print.brim_flow().scaled_spacing();
             const float        scaled_additional_brim_width = scale_(floor(5 / flowWidth / 2) * flowWidth * 2);
             const float        scaled_half_min_adh_length = scale_(1.1);
             bool               has_brim_auto = object->config().brim_type == btAutoBrim;
@@ -1031,15 +1031,9 @@ static ExPolygons outer_inner_brim_area(const Print& print,
             }
             if (support_material_extruder == extruderNo && brimToWrite.at(object->id()).sup) {
 
-                if (!object->support_layers().empty() && object->support_layers().front()->support_type == stInnerNormal) {
-                    for (const Polygon& support_contour : object->support_layers().front()->support_fills.polygons_covered_by_spacing()) {
+                if (!object->support_layers().empty()) {
+                    for (const auto &support_contour : object->support_layers().front()->support_islands) {
                         no_brim_area_support.emplace_back(support_contour);
-                    }
-                }
-
-                if (!object->support_layers().empty() && object->support_layers().front()->support_type == stInnerTree) {
-                    for (const ExPolygon& ex_poly : object->support_layers().front()->lslices) {
-                        no_brim_area_support.emplace_back(ex_poly.contour);
                     }
                 }
 
@@ -1058,6 +1052,7 @@ static ExPolygons outer_inner_brim_area(const Print& print,
     if (!bedExPoly.empty()){
         no_brim_area.push_back(bedExPoly.front());
     }
+    no_brim_area = offset2_ex(no_brim_area, scaled_flow_width, -scaled_flow_width); // connect scattered small areas to prevent generating very small brims
     for (const PrintObject* object : print.objects()) {
         if (brimAreaMap.find(object->id()) != brimAreaMap.end())
         {
@@ -1080,22 +1075,14 @@ static ExPolygons outer_inner_brim_area(const Print& print,
                 }
             }
 
-            auto tempArea = brimAreaMap[object->id()];
-            brimAreaMap[object->id()].clear();
-
-            for (int ia = 0; ia != tempArea.size(); ++ia) {
-                // find this object's other brim area
-                ExPolygons otherExPoly;
-                for (int iao = 0; iao != tempArea.size(); ++iao)
-                    if (iao != ia) otherExPoly.push_back(tempArea[iao]);
-
-                auto offsetedTa = offset_ex(tempArea[ia], print.brim_flow().scaled_spacing() * 2, jtRound, SCALED_RESOLUTION);
-                if (!intersection_ex(offsetedTa, objectIslands).empty() ||
-                    !intersection_ex(offsetedTa, otherExPoly).empty() ||
-                    !intersection_ex(offsetedTa, otherExPolys).empty())
-                    brimAreaMap[object->id()].push_back(tempArea[ia]);
+            auto& tempAreas = brimAreaMap[object->id()];
+            brim_area.reserve(brim_area.size() + tempAreas.size());
+            for (auto& tempArea:tempAreas) {
+                auto offsetedTa = offset_ex(tempArea, print.brim_flow().scaled_spacing() * 2, jtRound, SCALED_RESOLUTION);
+                if (!overlaps(offsetedTa, objectIslands) ||
+                    !overlaps(offsetedTa, otherExPolys))
+                    brim_area.push_back(tempArea);
             }
-            expolygons_append(brim_area, brimAreaMap[object->id()]);
         }
     }
     return brim_area;

@@ -1088,56 +1088,6 @@ bool GCode::is_BBL_Printer()
 //BBS : get the plate model's projection on first layer, contain plate offset,unscaled data
 BoundingBoxf GCode::first_layer_projection(const Print& print) const
 {
-    // too slow
-#if 0
-    // seperatre points into object for parallel
-    std::vector<Pointfs>points(print.objects().size());
-    auto objects = print.objects();
-    // use parallel for to speed the iterate
-    tbb::parallel_for(tbb::blocked_range<size_t>(0, points.size()), [&points,&objects](tbb::blocked_range<size_t> r) {
-        for (auto index = r.begin(); index < r.end(); ++index) {
-            Polygons obj_islands;
-            unsigned int estimate_size = (objects[index]->layers().empty() ? 0 : objects[index]->layers().size() * objects[index]->layers().front()->lslices.size());
-            obj_islands.reserve(estimate_size);
-            for (auto& layer : objects[index]->layers())
-                for (auto& expoly : layer->lslices)
-                    obj_islands.emplace_back(expoly.contour);
-            if (!objects[index]->support_layers().empty()) {
-                for (auto& layer : objects[index]->support_layers()) {
-                    if (layer->support_type == stInnerNormal)
-                        layer->support_fills.polygons_covered_by_spacing(obj_islands, float(SCALED_EPSILON));
-                    else if (layer->support_type == stInnerTree) {
-                        for (auto& expoly : layer->lslices)
-                            obj_islands.emplace_back(expoly.contour);
-                    }
-                }
-            }
-            // caculate the transform
-            for (auto& instance : objects[index]->instances()) {
-                for (Polygon &poly : obj_islands) {
-                    poly.translate(instance.shift);
-                    Pointfs poly_points;
-                    poly_points.reserve(poly.points.size());
-                    for (auto& point : poly.points)
-                        poly_points.emplace_back(unscale(point));
-                    append(points[index], std::move(poly_points));
-                }
-            }
-        }
-    });
-
-    Pointfs total_points;
-    //consider first layers for skirt,brim,wipe tower
-    int estimate_size =std::accumulate(points.begin(), points.end(), print.first_layer_convex_hull().size(), [](int sum, const Pointfs& point) {return sum + point.size(); });;
-    total_points.reserve(estimate_size);
-
-    for (const auto& pt : print.first_layer_convex_hull().points)
-        total_points.emplace_back(unscale(pt.x(),pt.y()));
-    for (auto& point : points)
-        append(total_points, std::move(point));
-    return BoundingBoxf(total_points);
-#endif
-
     BoundingBoxf bbox;
     for (auto& obj : print.objects()) {
         for (auto& instance : obj->instances()) {
@@ -5287,11 +5237,6 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role, LiftTyp
             // at the end of the extrusion path!
             for (const ExPolygon& support_island : support_layer->support_islands)
                 if (support_island.contains(travel))
-                    return false;
-        //reduce the retractions in lightning infills for tree support
-        if (support_layer != NULL && support_layer->support_type==stInnerTree)
-            for (auto &area : support_layer->base_areas)
-                if (area.contains(travel))
                     return false;
     }
     //BBS: need retract when long moving to print perimeter to avoid dropping of material
