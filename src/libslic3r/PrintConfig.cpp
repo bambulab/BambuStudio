@@ -2800,7 +2800,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Raft layers");
     def->category = L("Support");
     def->tooltip = L("Object will be raised by this number of support layers. "
-                     "Use this function to avoid wrapping when print ABS");
+                     "Use this function to avoid warping when print ABS");
     def->sidetext = L("layers");
     def->min = 0;
     def->max = 100;
