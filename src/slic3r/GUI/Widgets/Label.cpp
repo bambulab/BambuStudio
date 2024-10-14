@@ -19,8 +19,11 @@ wxFont Label::sysFont(int size, bool bold, std::string lang_code)
 
     wxString face;
     if (lang_code == "ja") {
-        face = wxString::FromUTF8("Noto Sans JP");
-    } else {
+        face = wxString::FromUTF8("Source Han Sans JP Normal");
+    } else if (lang_code == "ko") {
+        face = wxString::FromUTF8("NanumGothic");
+    }
+    else {
         face = wxString::FromUTF8("HarmonyOS Sans SC");
     }
 

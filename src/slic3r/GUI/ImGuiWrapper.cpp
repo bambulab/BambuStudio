@@ -2402,7 +2402,7 @@ void ImGuiWrapper::init_font(bool compress)
     //FIXME replace with io.Fonts->AddFontFromMemoryTTF(buf_decompressed_data, (int)buf_decompressed_size, m_font_size, nullptr, ranges.Data);
     //https://github.com/ocornut/imgui/issues/220
     if (m_is_korean)
-        default_font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "NotoSansKR-Regular.ttf").c_str(), m_font_size, &cfg, ranges.Data);
+        default_font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "NanumGothic-Regular.ttf").c_str(), m_font_size, &cfg, ranges.Data);
     else
         default_font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "HarmonyOS_Sans_SC_Regular.ttf").c_str(), m_font_size, &cfg, ranges.Data);
     if (default_font == nullptr) {
@@ -2413,7 +2413,7 @@ void ImGuiWrapper::init_font(bool compress)
     }
 
     if (m_is_korean)
-        bold_font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "NotoSansKR-Bold.ttf").c_str(), m_font_size, &cfg, ranges.Data);
+        bold_font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "NanumGothic-Bold.ttf").c_str(), m_font_size, &cfg, ranges.Data);
     else
         bold_font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "HarmonyOS_Sans_SC_Bold.ttf").c_str(), m_font_size, &cfg, ranges.Data);
     if (bold_font == nullptr) {
