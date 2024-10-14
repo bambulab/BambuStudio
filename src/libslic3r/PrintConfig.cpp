@@ -5190,7 +5190,12 @@ std::string DynamicPrintConfig::get_filament_type(std::string &displayed_filamen
                 } else if (filament_type->get_at(id) == "PA") {
                     displayed_filament_type = "Sup.PA";
                     return "PA-S";
-                } else {
+                }
+                else if (filament_type->get_at(id) == "ABS") {
+                    displayed_filament_type = "Sup.ABS";
+                    return "ABS-S";
+                }
+                else {
                     displayed_filament_type = filament_type->get_at(id);
                     return filament_type->get_at(id);
                 }

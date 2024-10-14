@@ -274,6 +274,8 @@ std::string AmsTray::get_display_filament_type()
         return "Sup.PLA";
     else if (type == "PA-S")
         return "Sup.PA";
+    else if (type == "ABS-S")
+        return "Sup.ABS";
     else
         return type;
     return type;
@@ -285,6 +287,8 @@ std::string AmsTray::get_filament_type()
         return "PLA-S";
     } else if (type == "Sup.PA") {
         return "PA-S";
+    } else if (type == "Sup.ABS") {
+        return "ABS-S";
     } else if (type == "Support W") {
         return "PLA-S";
     } else if (type == "Support G") {
