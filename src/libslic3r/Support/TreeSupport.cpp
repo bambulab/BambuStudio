@@ -2063,7 +2063,7 @@ void TreeSupport::draw_circles()
 
                 BOOST_LOG_TRIVIAL(debug) << "circles at layer " << layer_nr << " contact nodes size=" << curr_layer_nodes.size();
                 //Draw the support areas and add the roofs appropriately to the support roof instead of normal areas.
-                ts_layer->lslices.reserve(curr_layer_nodes.size());
+                ts_layer->support_islands.reserve(curr_layer_nodes.size());
                 ExPolygons area_poly;  // the polygon node area which will be printed as normal support
                 for (const SupportNode* p_node : curr_layer_nodes)
                 {
@@ -2230,14 +2230,14 @@ void TreeSupport::draw_circles()
                                         expoly->holes.end());
 
                     if (layer_nr < brim_skirt_layers)
-                        ts_layer->lslices.emplace_back(*expoly);
+                        ts_layer->support_islands.emplace_back(*expoly);
                 }
 
-                ts_layer->lslices = std::move(union_ex(ts_layer->lslices));
+                ts_layer->support_islands = std::move(union_ex(ts_layer->support_islands));
                 //Must update bounding box which is used in avoid crossing perimeter
                 ts_layer->lslices_bboxes.clear();
-                ts_layer->lslices_bboxes.reserve(ts_layer->lslices.size());
-                for (const ExPolygon& expoly : ts_layer->lslices)
+                ts_layer->lslices_bboxes.reserve(ts_layer->support_islands.size());
+                for (const ExPolygon& expoly : ts_layer->support_islands)
                     ts_layer->lslices_bboxes.emplace_back(get_extents(expoly));
                 ts_layer->backup_untyped_slices();
 
