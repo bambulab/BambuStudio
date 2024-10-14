@@ -262,11 +262,6 @@ private:
     LayerRegionPtrs     m_regions;
 };
 
-enum SupportInnerType {
-    stInnerNormal,
-    stInnerTree
-};
-
 class SupportLayer : public Layer
 {
 public:
@@ -275,7 +270,6 @@ public:
     ExPolygons                  support_islands;
     // Extrusion paths for the support base and for the support interface and contacts.
     ExtrusionEntityCollection   support_fills;
-    SupportInnerType            support_type = stInnerNormal;
 
     // for tree supports
     ExPolygons base_areas;
@@ -296,7 +290,7 @@ protected:
     // The constructor has been made public to be able to insert additional support layers for the skirt or a wipe tower
     // between the raft and the object first layer.
     SupportLayer(size_t id, size_t interface_id, PrintObject *object, coordf_t height, coordf_t print_z, coordf_t slice_z) :
-        Layer(id, object, height, print_z, slice_z), m_interface_id(interface_id), support_type(stInnerNormal) {}
+        Layer(id, object, height, print_z, slice_z), m_interface_id(interface_id) {}
     virtual ~SupportLayer() = default;
 
     size_t m_interface_id;

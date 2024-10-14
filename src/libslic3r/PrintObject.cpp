@@ -659,7 +659,6 @@ std::shared_ptr<TreeSupportData> PrintObject::alloc_tree_support_preview_cache()
 SupportLayer* PrintObject::add_tree_support_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z)
 {
     m_support_layers.emplace_back(new SupportLayer(id, 0, this, height, print_z, slice_z));
-    m_support_layers.back()->support_type = stInnerTree;
     return m_support_layers.back();
 }
 

@@ -2175,12 +2175,8 @@ Polygons Print::first_layer_islands() const
         for (ExPolygon &expoly : object->m_layers.front()->lslices)
             object_islands.push_back(expoly.contour);
         if (!object->support_layers().empty()) {
-            if (object->support_layers().front()->support_type==stInnerNormal)
-                object->support_layers().front()->support_fills.polygons_covered_by_spacing(object_islands, float(SCALED_EPSILON));
-            else if(object->support_layers().front()->support_type==stInnerTree) {
-                ExPolygons &expolys_first_layer = object->m_support_layers.front()->lslices;
-                for (ExPolygon &expoly : expolys_first_layer) { object_islands.push_back(expoly.contour); }
-            }
+            ExPolygons &expolys_first_layer = object->m_support_layers.front()->support_islands;
+            for (ExPolygon &expoly : expolys_first_layer) { object_islands.push_back(expoly.contour); }
         }
         islands.reserve(islands.size() + object_islands.size() * object->instances().size());
         for (const PrintInstance &instance : object->instances())
@@ -2622,7 +2618,6 @@ std::string PrintStatistics::finalize_output_path(const std::string &path_in) co
 #define JSON_SUPPORT_LAYER_ISLANDS                  "support_islands"
 #define JSON_SUPPORT_LAYER_FILLS                    "support_fills"
 #define JSON_SUPPORT_LAYER_INTERFACE_ID             "interface_id"
-#define JSON_SUPPORT_LAYER_TYPE                     "support_type"
 
 #define JSON_LAYER_REGION_CONFIG_HASH             "config_hash"
 #define JSON_LAYER_REGION_SLICES                  "slices"
@@ -3284,7 +3279,6 @@ void extract_layer(const json& layer_json, Layer& layer) {
 void extract_support_layer(const json& support_layer_json, SupportLayer& support_layer) {
     extract_layer(support_layer_json, support_layer);
 
-    support_layer.support_type = support_layer_json[JSON_SUPPORT_LAYER_TYPE];
     //support_islands
     int islands_count = support_layer_json[JSON_SUPPORT_LAYER_ISLANDS].size();
     for (int islands_index = 0; islands_index < islands_count; islands_index++)
@@ -3464,7 +3458,6 @@ int Print::export_cached_data(const std::string& directory, bool with_space)
                         convert_layer_to_json(support_layer_json, support_layer);
 
                         support_layer_json[JSON_SUPPORT_LAYER_INTERFACE_ID] = support_layer->interface_id();
-                        support_layer_json[JSON_SUPPORT_LAYER_TYPE] = support_layer->support_type;
 
                         //support_islands
                         for (const ExPolygon& support_island : support_layer->support_islands) {
