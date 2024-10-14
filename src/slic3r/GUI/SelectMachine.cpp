@@ -2121,8 +2121,14 @@ bool SelectMachineDialog::get_ams_mapping_result(std::string &mapping_array_str,
 
                     try
                     {
-                        mapping_item_v1["ams_id"] = std::stoi(m_ams_mapping_result[k].ams_id);
-                        mapping_item_v1["slot_id"] = std::stoi(m_ams_mapping_result[k].slot_id);
+                        if (m_ams_mapping_result[k].ams_id.empty() || m_ams_mapping_result[k].slot_id.empty()) {  // invalid case
+                            mapping_item_v1["ams_id"]  = VIRTUAL_TRAY_MAIN_ID;
+                            mapping_item_v1["slot_id"] = VIRTUAL_TRAY_MAIN_ID;
+                        }
+                        else {
+                            mapping_item_v1["ams_id"] = std::stoi(m_ams_mapping_result[k].ams_id);
+                            mapping_item_v1["slot_id"] = std::stoi(m_ams_mapping_result[k].slot_id);
+                        }
                     }
                     catch (...)
                     {
@@ -3936,6 +3942,9 @@ void SelectMachineDialog::update_show_status()
         };
         std::vector<ExtruderStatus> extruder_status(nozzle_nums);
         for (const FilamentInfo &item : m_ams_mapping_result) {
+            if (item.ams_id.empty())
+                continue;
+
             int extruder_id = obj_->get_extruder_id_by_ams_id(item.ams_id);
             if (DeviceManager::is_virtual_slot(stoi(item.ams_id)))
                 extruder_status[extruder_id].has_vt_slot = true;
