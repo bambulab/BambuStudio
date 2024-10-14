@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-14 14:34+0800\n"
+"POT-Creation-Date: 2024-10-14 20:57+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -872,13 +872,12 @@ msgstr "Ctrl+마우스 휠"
 msgid "Adjust section view"
 msgstr ""
 
-msgid "Warning: The brim type is not set to manual,"
+msgid ""
+"Warning: The brim type is not set to \"painted\",the brim ears will not take "
+"effect !"
 msgstr ""
 
-msgid "the brim ears will not take effect !"
-msgstr ""
-
-msgid "(set)"
+msgid "(Set the brim type to \"painted\")"
 msgstr ""
 
 msgid " invalid brim ears"
@@ -2568,9 +2567,6 @@ msgstr "입력 값은 %1%보다 크고 %2%보다 작아야 합니다."
 msgid "SN"
 msgstr "SN"
 
-msgid "Setting AMS slot information while printing is not supported"
-msgstr "출력 중 AMS 슬롯 정보 설정은 지원되지 않습니다."
-
 msgid "Factors of Flow Dynamics Calibration"
 msgstr "흐름 역학 교정 요소"
 
@@ -2582,6 +2578,9 @@ msgstr "인자 K"
 
 msgid "Factor N"
 msgstr "인자 N"
+
+msgid "Setting AMS slot information while printing is not supported"
+msgstr "출력 중 AMS 슬롯 정보 설정은 지원되지 않습니다."
 
 msgid "Setting Virtual slot information while printing is not supported"
 msgstr "출력 중 가상 슬롯 정보 설정은 지원되지 않습니다."
@@ -8855,7 +8854,7 @@ msgstr ""
 "모델의 바깥쪽 또는 안쪽 브림 생성을 제어합니다. 자동은 브림 폭이 자동으로 분"
 "석 및 계산됨을 의미합니다."
 
-msgid "Manual"
+msgid "Painted"
 msgstr ""
 
 msgid "Brim-object gap"
@@ -10192,10 +10191,8 @@ msgstr "라프트 레이어"
 
 msgid ""
 "Object will be raised by this number of support layers. Use this function to "
-"avoid wrapping when print ABS"
+"avoid warping when print ABS"
 msgstr ""
-"객체가 여기서 설정한 서포트 레이어 수만큼 올라가게 됩니다. ABS 로 출력할 때 "
-"워핑을 방지하기 위해 이 기능을 사용하십시오."
 
 msgid ""
 "G-code path is generated after simplifying the contour of model to avoid too "
@@ -13516,6 +13513,13 @@ msgstr ""
 "뒤틀림 방지\n"
 "ABS 등 뒤틀림이 발생하기 쉬운 소재를 출력할 때, 히트베드 온도를 적절하게 높이"
 "면 뒤틀림 가능성을 줄일 수 있다는 사실을 알고 계셨나요?"
+
+#~ msgid ""
+#~ "Object will be raised by this number of support layers. Use this function "
+#~ "to avoid wrapping when print ABS"
+#~ msgstr ""
+#~ "객체가 여기서 설정한 서포트 레이어 수만큼 올라가게 됩니다. ABS 로 출력할 "
+#~ "때 워핑을 방지하기 위해 이 기능을 사용하십시오."
 
 #~ msgid "User Sync"
 #~ msgstr "사용자 동기화"

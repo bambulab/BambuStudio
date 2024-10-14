@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-14 14:34+0800\n"
+"POT-Creation-Date: 2024-10-14 20:57+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -878,13 +878,12 @@ msgstr "Ctrl+Kółko myszy"
 msgid "Adjust section view"
 msgstr ""
 
-msgid "Warning: The brim type is not set to manual,"
+msgid ""
+"Warning: The brim type is not set to \"painted\",the brim ears will not take "
+"effect !"
 msgstr ""
 
-msgid "the brim ears will not take effect !"
-msgstr ""
-
-msgid "(set)"
+msgid "(Set the brim type to \"painted\")"
 msgstr ""
 
 msgid " invalid brim ears"
@@ -2613,10 +2612,6 @@ msgstr "Wartość wejściowa powinna być większa niż %1% i mniejsza niż %2%"
 msgid "SN"
 msgstr "SN"
 
-msgid "Setting AMS slot information while printing is not supported"
-msgstr ""
-"Ustawianie informacji o gnieździe AMS podczas drukowania nie jest obsługiwane"
-
 msgid "Factors of Flow Dynamics Calibration"
 msgstr "Współczynnik kalib. Dynamiki Przepływu"
 
@@ -2628,6 +2623,10 @@ msgstr "Faktor K"
 
 msgid "Factor N"
 msgstr "Faktor N"
+
+msgid "Setting AMS slot information while printing is not supported"
+msgstr ""
+"Ustawianie informacji o gnieździe AMS podczas drukowania nie jest obsługiwane"
 
 msgid "Setting Virtual slot information while printing is not supported"
 msgstr ""
@@ -9085,8 +9084,8 @@ msgstr ""
 "modeli. Auto oznacza, że szerokość Brimu jest analizowana i obliczana "
 "automatycznie."
 
-msgid "Manual"
-msgstr "Podręcznik"
+msgid "Painted"
+msgstr ""
 
 msgid "Brim-object gap"
 msgstr "Odstęp Brimu od obiektu"
@@ -10482,10 +10481,8 @@ msgstr "Ilość warstw tratwy"
 
 msgid ""
 "Object will be raised by this number of support layers. Use this function to "
-"avoid wrapping when print ABS"
+"avoid warping when print ABS"
 msgstr ""
-"Model zostanie podniesiony o zadaną ilość warstw i umieszczony na podporach. "
-"Użyj tej funkcji, aby uniknąć deformacji podczas drukowania ABS"
 
 msgid ""
 "G-code path is generated after simplifying the contour of model to avoid too "
@@ -13926,6 +13923,16 @@ msgstr ""
 "Czy wiesz, że podczas drukowania materiałów podatnych na wypaczanie, takich "
 "jak ABS, odpowiednie zwiększenie temperatury stołu grzejnego może zmniejszyć "
 "prawdopodobieństwo wypaczania."
+
+#~ msgid "Manual"
+#~ msgstr "Podręcznik"
+
+#~ msgid ""
+#~ "Object will be raised by this number of support layers. Use this function "
+#~ "to avoid wrapping when print ABS"
+#~ msgstr ""
+#~ "Model zostanie podniesiony o zadaną ilość warstw i umieszczony na "
+#~ "podporach. Użyj tej funkcji, aby uniknąć deformacji podczas drukowania ABS"
 
 #~ msgid "User Sync"
 #~ msgstr "Synchronizacja Użytkownika"

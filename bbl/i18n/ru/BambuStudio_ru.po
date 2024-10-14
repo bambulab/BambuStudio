@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.9.7.52 Public Official\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-14 14:34+0800\n"
+"POT-Creation-Date: 2024-10-14 20:57+0800\n"
 "PO-Revision-Date: 2024-09-27 23:58+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -899,13 +899,12 @@ msgstr "Ctrl + Колесо мыши"
 msgid "Adjust section view"
 msgstr ""
 
-msgid "Warning: The brim type is not set to manual,"
+msgid ""
+"Warning: The brim type is not set to \"painted\",the brim ears will not take "
+"effect !"
 msgstr ""
 
-msgid "the brim ears will not take effect !"
-msgstr ""
-
-msgid "(set)"
+msgid "(Set the brim type to \"painted\")"
 msgstr ""
 
 msgid " invalid brim ears"
@@ -2653,9 +2652,6 @@ msgstr "Введённое значение должно быть больше %
 msgid "SN"
 msgstr "Серийный №"
 
-msgid "Setting AMS slot information while printing is not supported"
-msgstr "Изменение информации о слотах АСПП во время печати не поддерживается"
-
 msgid "Factors of Flow Dynamics Calibration"
 msgstr "Коэф. калиб. динам. потока"
 
@@ -2667,6 +2663,9 @@ msgstr "Коэф. K"
 
 msgid "Factor N"
 msgstr "Коэф. N"
+
+msgid "Setting AMS slot information while printing is not supported"
+msgstr "Изменение информации о слотах АСПП во время печати не поддерживается"
 
 msgid "Setting Virtual slot information while printing is not supported"
 msgstr ""
@@ -9274,7 +9273,7 @@ msgstr ""
 "моделей. Авто означает, что ширина каймы анализируется и рассчитывается "
 "автоматически."
 
-msgid "Manual"
+msgid "Painted"
 msgstr ""
 
 msgid "Brim-object gap"
@@ -10723,11 +10722,8 @@ msgstr "Слоёв в подложке"
 
 msgid ""
 "Object will be raised by this number of support layers. Use this function to "
-"avoid wrapping when print ABS"
+"avoid warping when print ABS"
 msgstr ""
-"Параметр устанавливает высоту подложки в слоях, тем самым поднимая модель на "
-"заданное количество слоёв от стола. Используйте эту функцию, чтобы избежать "
-"деформации при печати ABS пластиком."
 
 msgid ""
 "G-code path is generated after simplifying the contour of model to avoid too "
@@ -14231,6 +14227,14 @@ msgstr ""
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как "
 "ABS, повышение температуры подогреваемого стола может снизить эту "
 "вероятность?"
+
+#~ msgid ""
+#~ "Object will be raised by this number of support layers. Use this function "
+#~ "to avoid wrapping when print ABS"
+#~ msgstr ""
+#~ "Параметр устанавливает высоту подложки в слоях, тем самым поднимая модель "
+#~ "на заданное количество слоёв от стола. Используйте эту функцию, чтобы "
+#~ "избежать деформации при печати ABS пластиком."
 
 #~ msgid "User Sync"
 #~ msgstr "Синхронизация пользовательских данных."

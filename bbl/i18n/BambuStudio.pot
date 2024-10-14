@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-14 14:34+0800\n"
+"POT-Creation-Date: 2024-10-14 20:57+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -857,13 +857,12 @@ msgstr ""
 msgid "Adjust section view"
 msgstr ""
 
-msgid "Warning: The brim type is not set to manual,"
+msgid ""
+"Warning: The brim type is not set to \"painted\",the brim ears will not take "
+"effect !"
 msgstr ""
 
-msgid "the brim ears will not take effect !"
-msgstr ""
-
-msgid "(set)"
+msgid "(Set the brim type to \"painted\")"
 msgstr ""
 
 msgid " invalid brim ears"
@@ -2498,9 +2497,6 @@ msgstr ""
 msgid "SN"
 msgstr ""
 
-msgid "Setting AMS slot information while printing is not supported"
-msgstr ""
-
 msgid "Factors of Flow Dynamics Calibration"
 msgstr ""
 
@@ -2511,6 +2507,9 @@ msgid "Factor K"
 msgstr ""
 
 msgid "Factor N"
+msgstr ""
+
+msgid "Setting AMS slot information while printing is not supported"
 msgstr ""
 
 msgid "Setting Virtual slot information while printing is not supported"
@@ -8341,7 +8340,7 @@ msgid ""
 "models. Auto means the brim width is analysed and calculated automatically."
 msgstr ""
 
-msgid "Manual"
+msgid "Painted"
 msgstr ""
 
 msgid "Brim-object gap"
@@ -9530,7 +9529,7 @@ msgstr ""
 
 msgid ""
 "Object will be raised by this number of support layers. Use this function to "
-"avoid wrapping when print ABS"
+"avoid warping when print ABS"
 msgstr ""
 
 msgid ""
