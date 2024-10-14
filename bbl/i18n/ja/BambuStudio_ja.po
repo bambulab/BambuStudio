@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-14 14:34+0800\n"
+"POT-Creation-Date: 2024-10-14 20:57+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -866,13 +866,12 @@ msgstr "Ctrl+マウスホイール"
 msgid "Adjust section view"
 msgstr ""
 
-msgid "Warning: The brim type is not set to manual,"
+msgid ""
+"Warning: The brim type is not set to \"painted\",the brim ears will not take "
+"effect !"
 msgstr ""
 
-msgid "the brim ears will not take effect !"
-msgstr ""
-
-msgid "(set)"
+msgid "(Set the brim type to \"painted\")"
 msgstr ""
 
 msgid " invalid brim ears"
@@ -2562,9 +2561,6 @@ msgstr "入力値範囲は %1% ～ %2%"
 msgid "SN"
 msgstr "シリアル番号"
 
-msgid "Setting AMS slot information while printing is not supported"
-msgstr "造形中に、AMSスロットを設定できません。"
-
 msgid "Factors of Flow Dynamics Calibration"
 msgstr "Factors of Flow Dynamics Calibration"
 
@@ -2576,6 +2572,9 @@ msgstr "係数K"
 
 msgid "Factor N"
 msgstr "係数N"
+
+msgid "Setting AMS slot information while printing is not supported"
+msgstr "造形中に、AMSスロットを設定できません。"
 
 msgid "Setting Virtual slot information while printing is not supported"
 msgstr "Setting Virtual slot information while printing is not supported"
@@ -8809,8 +8808,8 @@ msgstr ""
 "This controls the generation of the brim at outer and/or inner side of "
 "models. Auto means the brim width is analyzed and calculated automatically."
 
-msgid "Manual"
-msgstr "手動"
+msgid "Painted"
+msgstr ""
 
 msgid "Brim-object gap"
 msgstr "ブリムとオブジェクトの間隔"
@@ -10128,10 +10127,8 @@ msgstr "ラフト"
 
 msgid ""
 "Object will be raised by this number of support layers. Use this function to "
-"avoid wrapping when print ABS"
+"avoid warping when print ABS"
 msgstr ""
-"指定したサポート層数で上げて造形します。ABSなど反りやすい材料に対して有効的で"
-"す。"
 
 msgid ""
 "G-code path is generated after simplifying the contour of model to avoid too "
@@ -13426,6 +13423,16 @@ msgstr ""
 "Did you know that when printing materials that are prone to warping such as "
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping?"
+
+#~ msgid "Manual"
+#~ msgstr "手動"
+
+#~ msgid ""
+#~ "Object will be raised by this number of support layers. Use this function "
+#~ "to avoid wrapping when print ABS"
+#~ msgstr ""
+#~ "指定したサポート層数で上げて造形します。ABSなど反りやすい材料に対して有効"
+#~ "的です。"
 
 #~ msgid "User Sync"
 #~ msgstr "ユーザー同期"

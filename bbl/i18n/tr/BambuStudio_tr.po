@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-14 14:34+0800\n"
+"POT-Creation-Date: 2024-10-14 20:57+0800\n"
 "PO-Revision-Date: 2024-09-29 02:13+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -877,13 +877,12 @@ msgstr "Ctrl+Fare tekerleği"
 msgid "Adjust section view"
 msgstr ""
 
-msgid "Warning: The brim type is not set to manual,"
+msgid ""
+"Warning: The brim type is not set to \"painted\",the brim ears will not take "
+"effect !"
 msgstr ""
 
-msgid "the brim ears will not take effect !"
-msgstr ""
-
-msgid "(set)"
+msgid "(Set the brim type to \"painted\")"
 msgstr ""
 
 msgid " invalid brim ears"
@@ -2597,9 +2596,6 @@ msgstr "Giriş değeri %1%'den büyük ve %2%'den küçük olmalıdır"
 msgid "SN"
 msgstr "SN"
 
-msgid "Setting AMS slot information while printing is not supported"
-msgstr "Yazdırma sırasında AMS yuvası bilgilerinin ayarlanması desteklenmiyor"
-
 msgid "Factors of Flow Dynamics Calibration"
 msgstr "Akış Dinamiği Kalibrasyonunun Faktörleri"
 
@@ -2611,6 +2607,9 @@ msgstr "Faktör K"
 
 msgid "Factor N"
 msgstr "Faktör N"
+
+msgid "Setting AMS slot information while printing is not supported"
+msgstr "Yazdırma sırasında AMS yuvası bilgilerinin ayarlanması desteklenmiyor"
 
 msgid "Setting Virtual slot information while printing is not supported"
 msgstr "Yazdırma desteklenmediğinde Sanal yuva bilgilerinin ayarlanması"
@@ -9041,7 +9040,7 @@ msgstr ""
 "Otomatik, kenar genişliğinin otomatik olarak analiz edilip hesaplandığı "
 "anlamına gelir."
 
-msgid "Manual"
+msgid "Painted"
 msgstr ""
 
 msgid "Brim-object gap"
@@ -10417,10 +10416,8 @@ msgstr "Raft katmanları"
 
 msgid ""
 "Object will be raised by this number of support layers. Use this function to "
-"avoid wrapping when print ABS"
+"avoid warping when print ABS"
 msgstr ""
-"Nesne bu sayıdaki destek katmanı tarafından yükseltilecektir. ABS "
-"yazdırırken sarmayı önlemek için bu işlevi kullanın"
 
 msgid ""
 "G-code path is generated after simplifying the contour of model to avoid too "
@@ -13841,6 +13838,13 @@ msgstr ""
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı "
 "sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını "
 "azaltabileceğini biliyor muydunuz."
+
+#~ msgid ""
+#~ "Object will be raised by this number of support layers. Use this function "
+#~ "to avoid wrapping when print ABS"
+#~ msgstr ""
+#~ "Nesne bu sayıdaki destek katmanı tarafından yükseltilecektir. ABS "
+#~ "yazdırırken sarmayı önlemek için bu işlevi kullanın"
 
 #~ msgid "User Sync"
 #~ msgstr "Kullanıcı Senkronizasyonu"

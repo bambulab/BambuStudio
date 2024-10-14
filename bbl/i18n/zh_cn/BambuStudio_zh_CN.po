@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-14 14:34+0800\n"
+"POT-Creation-Date: 2024-10-14 20:57+0800\n"
 "PO-Revision-Date: 2024-03-21 10:39+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -852,10 +852,10 @@ msgid "Auto-generate points"
 msgstr "自动生成点"
 
 msgid "Add a brim ear"
-msgstr "加入一个Brim圆盘"
+msgstr "加入一个耳状Brim"
 
 msgid "Delete a brim ear"
-msgstr "删除一个Brim圆盘"
+msgstr "删除一个耳状Brim"
 
 msgid "Ctrl+Mouse wheel"
 msgstr "Ctrl+鼠标滚轮"
@@ -863,20 +863,19 @@ msgstr "Ctrl+鼠标滚轮"
 msgid "Adjust section view"
 msgstr "调整剖面视图"
 
-msgid "Warning: The brim type is not set to manual,"
-msgstr "警告：Brim类型未设置为手动，"
+msgid ""
+"Warning: The brim type is not set to \"painted\",the brim ears will not take "
+"effect !"
+msgstr "警告：Brim类型未设置为绘制模式，耳状Brim将不会生效！"
 
-msgid "the brim ears will not take effect !"
-msgstr "Brim圆盘不会生效！"
-
-msgid "(set)"
-msgstr "（设置）"
+msgid "(Set the brim type to \"painted\")"
+msgstr "将Brim类型设置为绘制模式"
 
 msgid " invalid brim ears"
-msgstr "无效Brim圆盘"
+msgstr "个无效耳状Brim"
 
 msgid "Brim Ears"
-msgstr "Brim圆盘"
+msgstr "耳状Brim"
 
 msgid "Choose SVG file for emboss:"
 msgstr "选择SVG文件进行浮雕:"
@@ -2526,9 +2525,6 @@ msgstr "输入的范围在 %1% 和 %2% 之间"
 msgid "SN"
 msgstr "序列号"
 
-msgid "Setting AMS slot information while printing is not supported"
-msgstr "不支持在打印时设置AMS槽位信息"
-
 msgid "Factors of Flow Dynamics Calibration"
 msgstr "动态流量校准系数"
 
@@ -2540,6 +2536,9 @@ msgstr "系数K"
 
 msgid "Factor N"
 msgstr "系数N"
+
+msgid "Setting AMS slot information while printing is not supported"
+msgstr "不支持在打印时设置AMS槽位信息"
 
 msgid "Setting Virtual slot information while printing is not supported"
 msgstr "不支持在打印时设置虚拟槽位信息"
@@ -7798,7 +7797,7 @@ msgid "The printer mode is incorrect, please switch to LAN Only."
 msgstr "打印机模式不正确，请切换到仅局域网。"
 
 msgid "Connecting to printer... The dialog will close later"
-msgstr ""
+msgstr "连接打印机中… 对话框稍后将自动关闭。"
 
 msgid "Connection failed, please double check IP and Access Code"
 msgstr "连接失败，请再次检查IP地址和访问码。"
@@ -8611,8 +8610,8 @@ msgid ""
 msgstr ""
 "该参数控制在模型的外侧和/或内侧生成brim。自动是指自动分析和计算边框的宽度。"
 
-msgid "Manual"
-msgstr "手动"
+msgid "Painted"
+msgstr "绘制"
 
 msgid "Brim-object gap"
 msgstr "Brim与模型的间隙"
@@ -9861,7 +9860,7 @@ msgstr "筏层"
 
 msgid ""
 "Object will be raised by this number of support layers. Use this function to "
-"avoid wrapping when print ABS"
+"avoid warping when print ABS"
 msgstr ""
 "模型会在相应层数的支撑上抬高进行打印。使用该功能通常用于打印ABS时翘曲。"
 
@@ -13029,6 +13028,24 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid "Warning: The brim type is not set to manual,"
+#~ msgstr "警告：Brim类型未设置为手动，"
+
+#~ msgid "the brim ears will not take effect !"
+#~ msgstr "Brim圆盘不会生效！"
+
+#~ msgid "(set)"
+#~ msgstr "（设置）"
+
+#~ msgid "Manual"
+#~ msgstr "手动"
+
+#~ msgid ""
+#~ "Object will be raised by this number of support layers. Use this function "
+#~ "to avoid wrapping when print ABS"
+#~ msgstr ""
+#~ "模型会在相应层数的支撑上抬高进行打印。使用该功能通常用于打印ABS时翘曲。"
 
 #~ msgid "Axis go home"
 #~ msgstr "Axis回Home点"

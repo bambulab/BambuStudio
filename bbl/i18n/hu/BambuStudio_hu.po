@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-14 14:34+0800\n"
+"POT-Creation-Date: 2024-10-14 20:57+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -872,13 +872,12 @@ msgstr "Ctrl+Egérgörgő"
 msgid "Adjust section view"
 msgstr ""
 
-msgid "Warning: The brim type is not set to manual,"
+msgid ""
+"Warning: The brim type is not set to \"painted\",the brim ears will not take "
+"effect !"
 msgstr ""
 
-msgid "the brim ears will not take effect !"
-msgstr ""
-
-msgid "(set)"
+msgid "(Set the brim type to \"painted\")"
 msgstr ""
 
 msgid " invalid brim ears"
@@ -2616,9 +2615,6 @@ msgstr ""
 msgid "SN"
 msgstr "SN"
 
-msgid "Setting AMS slot information while printing is not supported"
-msgstr "Nyomtatás közben nem változtathatóak meg a AMS férőhelyek adatai"
-
 msgid "Factors of Flow Dynamics Calibration"
 msgstr "Anyagáramlás kalibrálásának faktorai"
 
@@ -2630,6 +2626,9 @@ msgstr "K-tényező"
 
 msgid "Factor N"
 msgstr "N-tényező"
+
+msgid "Setting AMS slot information while printing is not supported"
+msgstr "Nyomtatás közben nem változtathatóak meg a AMS férőhelyek adatai"
 
 msgid "Setting Virtual slot information while printing is not supported"
 msgstr "Nem módosíthatod a virtuális férőhelyek beállításait nyomtatás közben."
@@ -9076,8 +9075,8 @@ msgstr ""
 "Az Auto azt jelenti, hogy a perem szélessége automatikusan kerül "
 "kiszámításra."
 
-msgid "Manual"
-msgstr "Manuális"
+msgid "Painted"
+msgstr ""
 
 msgid "Brim-object gap"
 msgstr "Perem-tárgy közötti rés"
@@ -10463,10 +10462,8 @@ msgstr "Tutaj rétegek"
 
 msgid ""
 "Object will be raised by this number of support layers. Use this function to "
-"avoid wrapping when print ABS"
+"avoid warping when print ABS"
 msgstr ""
-"A tárgy ennyi támaszréteggel kerül megemelésre. Ezzel a funkcióval "
-"elkerülheted a vetemedést ABS nyomtatásakor"
 
 msgid ""
 "G-code path is generated after simplifying the contour of model to avoid too "
@@ -13859,6 +13856,16 @@ msgstr ""
 "Vetemedés elkerülése\n"
 "Tudtad, hogy a vetemedésre hajlamos anyagok (például ABS) nyomtatásakor a "
 "tárgyasztal hőmérsékletének növelése csökkentheti a vetemedés valószínűségét?"
+
+#~ msgid "Manual"
+#~ msgstr "Manuális"
+
+#~ msgid ""
+#~ "Object will be raised by this number of support layers. Use this function "
+#~ "to avoid wrapping when print ABS"
+#~ msgstr ""
+#~ "A tárgy ennyi támaszréteggel kerül megemelésre. Ezzel a funkcióval "
+#~ "elkerülheted a vetemedést ABS nyomtatásakor"
 
 #~ msgid "User Sync"
 #~ msgstr "Felhasználó szinkronizálás"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-14 14:34+0800\n"
+"POT-Creation-Date: 2024-10-14 20:57+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -874,13 +874,12 @@ msgstr "Ctrl+Колесо миші"
 msgid "Adjust section view"
 msgstr ""
 
-msgid "Warning: The brim type is not set to manual,"
+msgid ""
+"Warning: The brim type is not set to \"painted\",the brim ears will not take "
+"effect !"
 msgstr ""
 
-msgid "the brim ears will not take effect !"
-msgstr ""
-
-msgid "(set)"
+msgid "(Set the brim type to \"painted\")"
 msgstr ""
 
 msgid " invalid brim ears"
@@ -2602,9 +2601,6 @@ msgstr "Вхідне значення має бути більше %1% і мен
 msgid "SN"
 msgstr "SN"
 
-msgid "Setting AMS slot information while printing is not supported"
-msgstr "Встановлення інформації про слот AMS під час друку не підтримується"
-
 msgid "Factors of Flow Dynamics Calibration"
 msgstr "Фактори калібрування динаміки потоку"
 
@@ -2616,6 +2612,9 @@ msgstr "Фактор K"
 
 msgid "Factor N"
 msgstr "Фактор N"
+
+msgid "Setting AMS slot information while printing is not supported"
+msgstr "Встановлення інформації про слот AMS під час друку не підтримується"
 
 msgid "Setting Virtual slot information while printing is not supported"
 msgstr ""
@@ -9060,8 +9059,8 @@ msgstr ""
 "Це керує формуванням поля на зовнішній та/або внутрішній сторонімоделей. "
 "Auto означає, що ширина поля аналізується та обчислюється автоматично."
 
-msgid "Manual"
-msgstr "Manual"
+msgid "Painted"
+msgstr ""
 
 msgid "Brim-object gap"
 msgstr "Зазор між каймою та об'єктом"
@@ -10448,10 +10447,8 @@ msgstr "Кількість шарів підкладки"
 
 msgid ""
 "Object will be raised by this number of support layers. Use this function to "
-"avoid wrapping when print ABS"
+"avoid warping when print ABS"
 msgstr ""
-"Об'єкт буде піднятий такою кількістю опорних шарів. Використовуйте цю "
-"функцію, щоб уникнути обтікання під час друку ABS"
 
 msgid ""
 "G-code path is generated after simplifying the contour of model to avoid too "
@@ -13894,6 +13891,16 @@ msgstr ""
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як "
 "ABS, відповідне підвищення температури гарячого ліжка може зменшити "
 "ймовірність деформації."
+
+#~ msgid "Manual"
+#~ msgstr "Manual"
+
+#~ msgid ""
+#~ "Object will be raised by this number of support layers. Use this function "
+#~ "to avoid wrapping when print ABS"
+#~ msgstr ""
+#~ "Об'єкт буде піднятий такою кількістю опорних шарів. Використовуйте цю "
+#~ "функцію, щоб уникнути обтікання під час друку ABS"
 
 #~ msgid "User Sync"
 #~ msgstr "Синхронізація користувачів"

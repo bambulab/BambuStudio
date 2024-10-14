@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-14 14:34+0800\n"
+"POT-Creation-Date: 2024-10-14 20:57+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -868,13 +868,12 @@ msgstr "Ctrl+mushjul"
 msgid "Adjust section view"
 msgstr ""
 
-msgid "Warning: The brim type is not set to manual,"
+msgid ""
+"Warning: The brim type is not set to \"painted\",the brim ears will not take "
+"effect !"
 msgstr ""
 
-msgid "the brim ears will not take effect !"
-msgstr ""
-
-msgid "(set)"
+msgid "(Set the brim type to \"painted\")"
 msgstr ""
 
 msgid " invalid brim ears"
@@ -2588,9 +2587,6 @@ msgstr "Inmatningsvärdet ska vara större än %1% och mindre än %2%"
 msgid "SN"
 msgstr "SN"
 
-msgid "Setting AMS slot information while printing is not supported"
-msgstr "Inställning av AMS-facks information under utskrift stöds inte"
-
 msgid "Factors of Flow Dynamics Calibration"
 msgstr "Faktorer för kalibrering av flödesdynamik"
 
@@ -2602,6 +2598,9 @@ msgstr "Faktor K"
 
 msgid "Factor N"
 msgstr "Faktor N"
+
+msgid "Setting AMS slot information while printing is not supported"
+msgstr "Inställning av AMS-facks information under utskrift stöds inte"
 
 msgid "Setting Virtual slot information while printing is not supported"
 msgstr "Inställning av information om virtuell plats under utskrift stöds inte"
@@ -8986,8 +8985,8 @@ msgstr ""
 "Detta styr genereringen av brim på modellens yttre och/eller inre sida. Auto "
 "innebär att brim bredd analyseras och beräknas automatiskt."
 
-msgid "Manual"
-msgstr "Manuell"
+msgid "Painted"
+msgstr ""
 
 msgid "Brim-object gap"
 msgstr "Avstånd mellan brim och modell"
@@ -10364,10 +10363,8 @@ msgstr "Raft lager"
 
 msgid ""
 "Object will be raised by this number of support layers. Use this function to "
-"avoid wrapping when print ABS"
+"avoid warping when print ABS"
 msgstr ""
-"Objekt kommer att höjas med detta antal support lager. Använd denna funktion "
-"för att undvika warping vid utskrift med ABS"
 
 msgid ""
 "G-code path is generated after simplifying the contour of model to avoid too "
@@ -13752,6 +13749,16 @@ msgstr ""
 "Visste du att när du skriver ut material som är benägna att vrida, såsom "
 "ABS, kan en lämplig ökning av värmebäddens temperatur minska sannolikheten "
 "för vridning."
+
+#~ msgid "Manual"
+#~ msgstr "Manuell"
+
+#~ msgid ""
+#~ "Object will be raised by this number of support layers. Use this function "
+#~ "to avoid wrapping when print ABS"
+#~ msgstr ""
+#~ "Objekt kommer att höjas med detta antal support lager. Använd denna "
+#~ "funktion för att undvika warping vid utskrift med ABS"
 
 #~ msgid "User Sync"
 #~ msgstr "Användar synkronisering"
