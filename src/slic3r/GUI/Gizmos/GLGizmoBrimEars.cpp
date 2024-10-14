@@ -627,12 +627,10 @@ void GLGizmoBrimEars::on_render_input_window(float x, float y, float bottom_limi
             ImColor HyperColor = ImColor(48, 221, 114, 255).Value;
             ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::to_ImVec4(ColorRGB::WARNING()));
             float parent_width = ImGui::GetContentRegionAvail().x;
-            m_imgui->text(_L("Warning: The brim type is not set to manual,"));
-            m_imgui->text(_L("the brim ears will not take effect !"));
+            m_imgui->text_wrapped(_L("Warning: The brim type is not set to \"painted\",the brim ears will not take effect !"), parent_width);
             ImGui::PopStyleColor();
-            ImGui::SameLine();
             ImGui::PushStyleColor(ImGuiCol_Text, HyperColor.Value);
-            m_imgui->text(_L("(set)"));
+            m_imgui->text(_L("(Set the brim type to \"painted\")"));
             ImGui::PopStyleColor();
             if (ImGui::IsMouseHoveringRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), true)) {
                 // underline
@@ -730,6 +728,16 @@ CommonGizmosDataID GLGizmoBrimEars::on_get_requirements() const
                               int(CommonGizmosDataID::ObjectClipper));
 }
 
+void GLGizmoBrimEars::save_model()
+{
+    ModelObject* mo = m_c->selection_info()->model_object();
+    if (mo) {
+        mo->brim_points.clear();
+        for (const CacheEntry& ce : m_editing_cache) mo->brim_points.emplace_back(ce.brim_point);
+        wxGetApp().plater()->set_plater_dirty(true);
+    }
+}
+
 // switch gizmos
 void GLGizmoBrimEars::on_set_state()
 {
@@ -744,12 +752,7 @@ void GLGizmoBrimEars::on_set_state()
     if (m_state == Off && m_old_state != Off) {
         // the gizmo was just turned Off
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Brim ears edit");
-        ModelObject         *mo = m_c->selection_info()->model_object();
-        if (mo) {
-            mo->brim_points.clear();
-            for (const CacheEntry& ce : m_editing_cache) mo->brim_points.emplace_back(ce.brim_point);
-            wxGetApp().plater()->set_plater_dirty(true);
-        }
+        save_model();
         m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
         wxGetApp().plater()->leave_gizmos_stack();
         // wxGetApp().mainframe->update_slice_print_status(MainFrame::SlicePrintEventType::eEventSliceUpdate, true, true);
