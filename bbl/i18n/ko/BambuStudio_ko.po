@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-12 15:54+0800\n"
+"POT-Creation-Date: 2024-10-14 14:34+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -870,6 +870,15 @@ msgid "Ctrl+Mouse wheel"
 msgstr "Ctrl+마우스 휠"
 
 msgid "Adjust section view"
+msgstr ""
+
+msgid "Warning: The brim type is not set to manual,"
+msgstr ""
+
+msgid "the brim ears will not take effect !"
+msgstr ""
+
+msgid "(set)"
 msgstr ""
 
 msgid " invalid brim ears"
@@ -4760,13 +4769,10 @@ msgstr "레이어: %s"
 msgid "Layer: %d/%d"
 msgstr "레이어: %d/%d"
 
-msgid "Axis go home"
+msgid "Auto homing"
 msgstr ""
 
-msgid "Are you sure you want to home now?"
-msgstr ""
-
-msgid "Home"
+msgid "Are you sure you want to trigger auto homing?"
 msgstr ""
 
 msgid ""
@@ -5021,7 +5027,7 @@ msgstr ""
 msgid "How to use LAN only mode"
 msgstr ""
 
-msgid "Dont't show this dialog again"
+msgid "Don't show this dialog again"
 msgstr ""
 
 msgid "3D Mouse disconnected."
@@ -7976,7 +7982,7 @@ msgstr ""
 msgid "The printer mode is incorrect, please switch to LAN Only."
 msgstr ""
 
-msgid "Printer binding successful. The dialog will close later"
+msgid "Connecting to printer... The dialog will close later"
 msgstr ""
 
 msgid "Connection failed, please double check IP and Access Code"
