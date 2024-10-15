@@ -2,6 +2,7 @@
 #include <chrono>
 #include <math.h>
 
+#include "format.hpp"
 #include "ClipperUtils.hpp"
 #include "Fill/FillBase.hpp"
 #include "I18N.hpp"
