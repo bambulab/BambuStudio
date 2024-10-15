@@ -1635,7 +1635,7 @@ void PrintConfigDef::init_fff_params()
                      "Can't be zero");
     def->sidetext = L("mm³/s");
     def->min = 0;
-    def->max = 70;
+    def->max = 200;
     def->mode = comAdvanced;
     def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable { 2. });
