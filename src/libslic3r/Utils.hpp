@@ -609,8 +609,10 @@ inline std::string get_bbl_finish_time_dhm(float time_in_secs)
         diff_day = finish_day - current_day;
     }
 
-    std::string finish_time_str = std::to_string(finish_hour) + ":" + std::to_string(finish_minute);
-    if (diff_day != 0) finish_time_str += " +" + std::to_string(diff_day);
+    std::ostringstream formattedTime;
+    formattedTime << std::setw(2) << std::setfill('0') << finish_hour << ":" << std::setw(2) << std::setfill('0') << finish_minute;
+    std::string finish_time_str = formattedTime.str();
+    if (diff_day != 0) finish_time_str += "+" + std::to_string(diff_day);
 
     return finish_time_str;
 }
