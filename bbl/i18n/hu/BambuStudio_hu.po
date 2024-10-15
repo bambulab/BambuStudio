@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-14 20:57+0800\n"
+"POT-Creation-Date: 2024-10-15 16:47+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4870,6 +4870,9 @@ msgid "Auto homing"
 msgstr ""
 
 msgid "Are you sure you want to trigger auto homing?"
+msgstr ""
+
+msgid "Homing"
 msgstr ""
 
 msgid ""
