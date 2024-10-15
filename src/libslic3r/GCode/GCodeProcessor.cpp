@@ -1164,8 +1164,13 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     for (size_t idx = 0; idx < m_result.nozzle_type.size(); ++idx) {
         m_result.nozzle_type[idx] = NozzleType(config.nozzle_type.values[idx]);
     }
+
+    std::vector<int> filament_map = config.filament_map.values; // 1 based idxs
+    // if filament map has wrong length, set filament to master extruder_id
+    filament_map.resize(filament_count, config.master_extruder_id.value);
+
     for (size_t i = 0; i < filament_count; ++ i) {
-        m_extruder_offsets[i]           = to_3d(config.extruder_offset.get_at(i).cast<float>().eval(), 0.f);
+        m_extruder_offsets[i] = to_3d(config.extruder_offset.get_at(filament_map[i] - 1).cast<float>().eval(), 0.f);
         m_extruder_colors[i]            = static_cast<unsigned char>(i);
         m_result.filament_diameters[i]  = static_cast<float>(config.filament_diameter.get_at(i));
         m_result.required_nozzle_HRC[i] = static_cast<int>(config.required_nozzle_HRC.get_at(i));

@@ -1456,8 +1456,9 @@ namespace DoExport {
 	        if (! skirt_points.empty()) {
 	            Polygon outer_skirt = Slic3r::Geometry::convex_hull(skirt_points);
 	            Polygons skirts;
-	            for (unsigned int extruder_id : print.extruders()) {
-	                const Vec2d &extruder_offset = print.config().extruder_offset.get_at(extruder_id);
+                auto filament_extruder_map = print.config().filament_map.values; // 1 based idxs
+	            for (unsigned int filament_id : print.extruders()) {
+                    const Vec2d& extruder_offset = print.config().extruder_offset.get_at(filament_extruder_map[filament_id] - 1);
 	                Polygon s(outer_skirt);
 	                s.translate(Point::new_scale(-extruder_offset(0), -extruder_offset(1)));
 	                skirts.emplace_back(std::move(s));
@@ -5702,14 +5703,14 @@ std::string GCode::set_object_info(Print* print)
 // convert a model-space scaled point into G-code coordinates
 Vec2d GCode::point_to_gcode(const Point &point) const
 {
-    Vec2d extruder_offset = FILAMENT_CONFIG(extruder_offset);
+    Vec2d extruder_offset = EXTRUDER_CONFIG(extruder_offset);
     return unscale(point) + m_origin - extruder_offset;
 }
 
 // convert a model-space scaled point into G-code coordinates
 Point GCode::gcode_to_point(const Vec2d &point) const
 {
-    Vec2d extruder_offset = FILAMENT_CONFIG(extruder_offset);
+    Vec2d extruder_offset = EXTRUDER_CONFIG(extruder_offset);
     return Point(
         scale_(point(0) - m_origin(0) + extruder_offset(0)),
         scale_(point(1) - m_origin(1) + extruder_offset(1)));
