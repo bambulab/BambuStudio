@@ -7,6 +7,8 @@
 #include "libslic3r/Geometry/ConvexHull.hpp"
 #include "libslic3r/Model.hpp"
 
+#include <wx/display.h>
+
 #include <numeric>
 #include <imgui/imgui_internal.h>
 #include <GL/glew.h>
