@@ -5785,7 +5785,7 @@ msgid "Asia-Pacific"
 msgstr "亚太"
 
 msgid "Chinese Mainland"
-msgstr "中国境内(不含港澳台地区)"
+msgstr "中国内地(大陆)"
 
 msgid "Europe"
 msgstr "欧洲"
