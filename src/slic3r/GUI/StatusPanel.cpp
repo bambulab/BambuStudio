@@ -390,9 +390,13 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     m_staticText_finish_time->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("HarmonyOS Sans SC")));
     m_staticText_finish_time->SetForegroundColour(wxColour(146, 146, 146));
     m_staticText_finish_time->SetToolTip(_L("The estimated printing time for \nmulti-color models may be inaccurate."));
+    m_staticText_finish_day = new RectTextPanel(penel_finish_time);
+    m_staticText_finish_day->Hide();
     bSizer_finish_time->Add(0, 0, 1, wxEXPAND, 0);
     bSizer_finish_time->Add(0, 0, 0, wxLEFT, FromDIP(20));
     bSizer_finish_time->Add(m_staticText_finish_time, 0, wxALIGN_CENTER | wxALL, 0);
+    bSizer_finish_time->Add(m_staticText_finish_day, 0,wxLEFT | wxRIGHT , FromDIP(10));
+    bSizer_finish_time->Add(0, 0, 0, wxLEFT, FromDIP(20));
     bSizer_finish_time->Add(panel_button_block, 0, wxALIGN_CENTER | wxALL, 0);
     penel_finish_time->SetMaxSize(wxSize(FromDIP(600), -1));
     penel_finish_time->SetSizer(bSizer_finish_time);
@@ -703,10 +707,27 @@ void PrintingTaskPanel::update_left_time(wxString time)
 
 void PrintingTaskPanel::update_finish_time(wxString finish_time)
 {
-    if (finish_time == "Finished")
+    static wxString finish_day = "";
+    if (finish_time == "Finished") {
         m_staticText_finish_time->SetLabelText(_L("Finished"));
-    else
+        finish_day = "";
+        if (m_staticText_finish_day->IsShown()) m_staticText_finish_day->Hide();
+    }
+    else {
+        if (!finish_time.Contains('+')) {
+            if (m_staticText_finish_day->IsShown()) m_staticText_finish_day->Hide();
+        } else {
+            int index = finish_time.find_last_of('+');
+            wxString day   = finish_time.Mid(index);
+            finish_time    = finish_time.Mid(0, index);
+            if (finish_day != day) {
+                m_staticText_finish_day->setText(day);
+                finish_day = day;
+                if (!m_staticText_finish_day->IsShown()) m_staticText_finish_day->Show();
+            }
+        }
         m_staticText_finish_time->SetLabelText(_L("Finish Time: ") + finish_time);
+    }
 }
 
 void PrintingTaskPanel::update_left_time(int mc_left_time)
@@ -3229,6 +3250,7 @@ void StatusPanel::reset_printing_values()
     m_project_task_panel->get_request_failed_panel()->Hide();
     update_basic_print_data(false);
     m_project_task_panel->update_left_time(NA_STR);
+    m_project_task_panel->update_finish_time(NA_STR);
     m_project_task_panel->update_layers_num(true, wxString::Format(_L("Layer: %s"), NA_STR));
     update_calib_bitmap();
 
@@ -5032,5 +5054,29 @@ void ScoreDialog::set_cloud_bitmap(std::vector<std::string> cloud_bitmaps)
     Fit();
 }
 
-} // namespace GUI
-} // namespace Slic3r
+RectTextPanel::RectTextPanel(wxWindow *parent) : wxPanel(parent)
+{
+    Bind(wxEVT_PAINT, &RectTextPanel::OnPaint, this);
+}
+
+void RectTextPanel::setText(const wxString text)
+{
+    this->text = text;
+    Refresh();
+}
+
+void RectTextPanel::OnPaint(wxPaintEvent &event) {
+    wxPaintDC dc(this);
+    dc.SetFont(::Label::Body_12);
+    wxSize textSize = dc.GetTextExtent(text);
+
+    dc.SetBrush(wxBrush(wxColour("#00AE42")));
+    dc.SetPen(wxPen(wxColour("#00AE42")));
+    wxRect rect(0, 0, textSize.GetWidth() + 4, textSize.GetHeight() + 4);
+    SetSize(rect.GetSize());
+    dc.DrawRoundedRectangle(rect, 4);
+    dc.SetTextForeground(wxColour(255, 255, 255));
+    dc.DrawText(text, wxPoint(2, 2));
+}
+
+}} // namespace Slic3r

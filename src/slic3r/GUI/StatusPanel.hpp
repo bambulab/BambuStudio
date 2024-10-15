@@ -150,6 +150,18 @@ protected:
 
 };
 
+class RectTextPanel : public wxPanel
+{
+public:
+    RectTextPanel(wxWindow *parent);
+
+    void setText(const wxString text);
+
+    void OnPaint(wxPaintEvent &event);
+private:
+    wxString text;
+};
+
 class PrintingTaskPanel : public wxPanel
 {
 public:
@@ -181,6 +193,7 @@ private:
     wxStaticText*   m_staticText_progress_percent_icon;
     wxStaticText*   m_staticText_progress_left;
     wxStaticText*   m_staticText_finish_time;
+    RectTextPanel*  m_staticText_finish_day;
     wxStaticText*   m_staticText_layers;
     wxStaticText *  m_has_rated_prompt;
     wxStaticText *  m_request_failed_info;
