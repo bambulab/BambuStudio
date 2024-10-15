@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-14 20:57+0800\n"
+"POT-Creation-Date: 2024-10-15 16:47+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -4754,6 +4754,9 @@ msgid "Auto homing"
 msgstr ""
 
 msgid "Are you sure you want to trigger auto homing?"
+msgstr ""
+
+msgid "Homing"
 msgstr ""
 
 msgid ""
