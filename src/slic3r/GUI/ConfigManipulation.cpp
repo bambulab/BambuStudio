@@ -623,11 +623,11 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     //toggle_field("support_closing_radius", have_support_material && support_style == smsSnug);
 
     bool support_is_tree = config->opt_bool("enable_support") && is_tree(support_type);
-    for (auto el : {"tree_support_branch_angle", "tree_support_branch_distance", "tree_support_branch_diameter"})
+    for (auto el : {"tree_support_branch_angle", "tree_support_branch_distance", "tree_support_branch_diameter", "tree_support_branch_diameter_angle"})
         toggle_field(el, support_is_tree);
 
     // hide tree support settings when normal is selected
-    for (auto el : {"tree_support_branch_angle", "tree_support_branch_distance", "tree_support_branch_diameter", "max_bridge_length"})
+    for (auto el : {"tree_support_branch_angle", "tree_support_branch_distance", "tree_support_branch_diameter", "tree_support_branch_diameter_angle", "max_bridge_length"})
         toggle_line(el, support_is_tree);
     toggle_line("support_critical_regions_only", is_auto(support_type) && support_is_tree);
 

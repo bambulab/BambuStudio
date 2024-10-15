@@ -2104,13 +2104,14 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_object_xy_distance", "support");
         optgroup->append_single_option_line("support_object_first_layer_gap", "support");
         optgroup->append_single_option_line("bridge_no_support", "support#base-pattern");
-        optgroup->append_single_option_line("max_bridge_length", "support#base-pattern");
+        optgroup->append_single_option_line("max_bridge_length", "support#tree-support-only-options");
         optgroup->append_single_option_line("independent_support_layer_height", "support");
 
         optgroup = page->new_optgroup(L("Tree Support"), L"param_advanced");
         optgroup->append_single_option_line("tree_support_branch_distance", "support#tree-support-only-options");
         optgroup->append_single_option_line("tree_support_branch_diameter", "support#tree-support-only-options");
         optgroup->append_single_option_line("tree_support_branch_angle", "support#tree-support-only-options");
+        optgroup->append_single_option_line("tree_support_branch_diameter_angle", "support#tree-support-only-options");
 
     page = add_options_page(L("Others"), "advanced");
         optgroup = page->new_optgroup(L("Bed adhension"), L"param_adhension");

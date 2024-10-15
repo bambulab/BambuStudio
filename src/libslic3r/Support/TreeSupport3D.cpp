@@ -37,6 +37,7 @@
 #define TBB_PREVIEW_GLOBAL_CONTROL 1
 #include <tbb/global_control.h>
 #include <tbb/parallel_for.h>
+#include <tbb/parallel_for_each.h>
 #include <tbb/spin_mutex.h>
 
 #if defined(TREE_SUPPORT_SHOW_ERRORS) && defined(_WIN32)
@@ -4332,15 +4333,17 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
         SupportGeneratorLayersPtr layers_sorted = generate_support_layers(print_object, raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers);
 
         // BBS: This is a hack to avoid the support being generated outside the bed area. See #4769.
-        for (SupportGeneratorLayer *layer : layers_sorted) {
+        tbb::parallel_for_each(layers_sorted.begin(), layers_sorted.end(), [&](SupportGeneratorLayer *layer) {
             if (layer) layer->polygons = intersection(layer->polygons, volumes.m_bed_area);
-        }
+        });
 
         // Don't fill in the tree supports, make them hollow with just a single sheath line.
         print.set_status(69, _L("Generating support"));
         generate_support_toolpaths(print_object.support_layers(), print_object.config(), support_params, print_object.slicing_parameters(),
             raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers);
-
+        
+        auto t_end = std::chrono::high_resolution_clock::now();
+        BOOST_LOG_TRIVIAL(info) << "Total time of organic tree support: " << 0.001 * std::chrono::duration_cast<std::chrono::microseconds>(t_end - t_start).count() << " ms";
  #if 0
 //#ifdef SLIC3R_DEBUG
         {

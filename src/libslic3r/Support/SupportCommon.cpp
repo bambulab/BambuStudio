@@ -65,8 +65,8 @@ std::pair<SupportGeneratorLayersPtr, SupportGeneratorLayersPtr> generate_interfa
     if (! intermediate_layers.empty() && support_params.has_interfaces()) {
         // For all intermediate layers, collect top contact surfaces, which are not further than support_material_interface_layers.
         BOOST_LOG_TRIVIAL(debug) << "PrintObjectSupportMaterial::generate_interface_layers() in parallel - start";
-        const bool snug_supports = config.support_style.value == smsSnug;
-        const bool smooth_supports = config.support_style.value != smsGrid;
+        const bool                 snug_supports          = support_params.support_style == smsSnug;
+        const bool                 smooth_supports        = support_params.support_style != smsGrid;
         SupportGeneratorLayersPtr &interface_layers       = base_and_interface_layers.first;
         SupportGeneratorLayersPtr &base_interface_layers  = base_and_interface_layers.second;
 
@@ -1351,6 +1351,10 @@ SupportGeneratorLayersPtr generate_support_layers(
     append(layers_sorted, intermediate_layers);
     append(layers_sorted, interface_layers);
     append(layers_sorted, base_interface_layers);
+    // remove dupliated layers
+    std::sort(layers_sorted.begin(), layers_sorted.end());
+    layers_sorted.erase(std::unique(layers_sorted.begin(), layers_sorted.end()), layers_sorted.end());
+
     // Sort the layers lexicographically by a raising print_z and a decreasing height.
     std::sort(layers_sorted.begin(), layers_sorted.end(), [](auto *l1, auto *l2) { return *l1 < *l2; });
     int layer_id = 0;
@@ -1582,7 +1586,7 @@ void generate_support_toolpaths(
         {
             SupportLayer &support_layer = *support_layers[support_layer_id];
             LayerCache   &layer_cache   = layer_caches[support_layer_id];
-            const float   support_interface_angle = (config.support_style.value == smsGrid || config.support_interface_pattern == smipRectilinear) ?
+            const float   support_interface_angle = (support_params.support_style == smsGrid || config.support_interface_pattern == smipRectilinear) ?
                 support_params.interface_angle : support_params.raft_interface_angle(support_layer.interface_id());
 
             // Find polygons with the same print_z.
@@ -1719,7 +1723,7 @@ void generate_support_toolpaths(
 
             // Base support or flange.
             if (! base_layer.empty() && ! base_layer.polygons_to_extrude().empty()) {
-                Fill *filler = filler_support.get();
+                Fill             *filler          = filler_support.get();
                 filler->angle = angles[support_layer_id % angles.size()];
                 // We don't use $base_flow->spacing because we need a constant spacing
                 // value that guarantees that all layers are correctly aligned.
@@ -1744,8 +1748,12 @@ void generate_support_toolpaths(
                     filler->link_max_length = coord_t(scale_(filler->spacing * link_max_length_factor / density));
                     sheath  = true;
                     no_sort = true;
-                } else if (config.support_style == SupportMaterialStyle::smsTreeOrganic) {
-                    tree_supports_generate_paths(base_layer.extrusions, base_layer.polygons_to_extrude(), flow, support_params);
+                } else if (support_params.support_style == SupportMaterialStyle::smsTreeOrganic) {
+                    // if the tree supports are too tall, use double wall to make it stronger
+                    SupportParameters support_params2 = support_params;
+                    if (support_layer.print_z > 100.0)
+                        support_params2.tree_branch_diameter_double_wall_area_scaled = 0.1;
+                    tree_supports_generate_paths(base_layer.extrusions, base_layer.polygons_to_extrude(), flow, support_params2);
                     done = true;
                 }
                 if (! done)
