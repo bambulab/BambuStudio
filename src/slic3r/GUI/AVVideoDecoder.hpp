@@ -7,6 +7,11 @@ extern "C" {
     #include <libavcodec/avcodec.h>
     #include <libswscale/swscale.h>
 }
+#include <vector>
+#include <wx/bitmap.h>
+#include <wx/gdicmn.h>
+#include <wx/image.h>
+
 class wxBitmap;
 
 class AVVideoDecoder

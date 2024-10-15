@@ -12,6 +12,7 @@
 #include <numeric>
 #include <unordered_set>
 #include <tbb/parallel_for.h>
+#include <tbb/spin_mutex.h>
 
 #include <boost/log/trivial.hpp>
 

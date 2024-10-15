@@ -2,6 +2,8 @@
 #include "AVVideoDecoder.hpp"
 #include "I18N.hpp"
 #include "libslic3r/Utils.hpp"
+#include <boost/log/trivial.hpp>
+#include <wx/dcclient.h>
 #ifdef __WIN32__
 #include <versionhelpers.h>
 #include <wx/msw/registry.h>
