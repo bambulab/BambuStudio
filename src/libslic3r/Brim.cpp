@@ -1075,13 +1075,32 @@ static ExPolygons outer_inner_brim_area(const Print& print,
                 }
             }
 
-            auto& tempAreas = brimAreaMap[object->id()];
+            auto tempAreas = brimAreaMap[object->id()];
+            brimAreaMap[object->id()].clear();
+            brimAreaMap[object->id()].reserve(tempAreas.size());
             brim_area.reserve(brim_area.size() + tempAreas.size());
-            for (auto& tempArea:tempAreas) {
-                auto offsetedTa = offset_ex(tempArea, print.brim_flow().scaled_spacing() * 2, jtRound, SCALED_RESOLUTION);
-                if (!overlaps(offsetedTa, objectIslands) ||
-                    !overlaps(offsetedTa, otherExPolys))
-                    brim_area.push_back(tempArea);
+
+            std::vector<int> retained{};
+            tbb::spin_mutex brimMutex;
+            tbb::parallel_for(tbb::blocked_range<int>(0, tempAreas.size()),
+                [&tempAreas, &objectIslands, &print, &otherExPolys, &brimMutex, &retained](const tbb::blocked_range<int>& range) {
+                    for (auto ia = range.begin(); ia != range.end(); ++ia) {
+                        tbb::spin_mutex::scoped_lock lock;
+                        ExPolygons otherExPoly;
+
+                        auto offsetedTa = offset_ex(tempAreas[ia], print.brim_flow().scaled_spacing() * 2, jtRound, SCALED_RESOLUTION);
+                        if (overlaps(offsetedTa, objectIslands) ||
+                            overlaps(offsetedTa, otherExPolys)) {
+                            lock.acquire(brimMutex);
+                            retained.push_back(ia);
+                            lock.release();
+                        }
+                    }
+                });
+
+            for (auto& index : retained) {
+                brimAreaMap[object->id()].push_back(tempAreas[index]);
+                brim_area.push_back(tempAreas[index]);
             }
         }
     }
