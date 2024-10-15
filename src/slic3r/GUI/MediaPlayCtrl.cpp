@@ -42,7 +42,7 @@ namespace GUI {
 
 static int SecondsSinceLastInput();
 
-MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const wxPoint &pos, const wxSize &size)
+MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl3 *media_ctrl, const wxPoint &pos, const wxSize &size)
     : wxPanel(parent, wxID_ANY, pos, size)
     , m_media_ctrl(media_ctrl)
 {
@@ -62,7 +62,7 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const w
     m_media_ctrl->Bind(EVT_MEDIA_CTRL_STAT, [this](auto & e) {
 #if !BBL_RELEASE_TO_PUBLIC
         wxSize size = m_media_ctrl->GetVideoSize();
-        m_label_stat->SetLabel(e.GetString() + wxString::Format(" VS:%ix%i IDLE:%i", size.x, size.y, SecondsSinceLastInput()));
+        m_label_stat->SetLabel(e.GetString() + wxString::Format(" VS:%ix%i LD:%i", size.x, size.y, m_load_duration));
 #endif
         wxString str = e.GetString();
         m_stat.clear();
@@ -177,13 +177,6 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
     if (machine == m_machine) {
         if (m_last_state == MEDIASTATE_IDLE && IsEnabled())
             Play();
-        else if (m_last_state == MEDIASTATE_LOADING && m_tutk_state == "disable"
-                && m_last_user_play + wxTimeSpan::Seconds(3) < wxDateTime::Now()) {
-            // resend ttcode to printer
-            if (auto agent = wxGetApp().getAgent())
-                agent->get_camera_url(machine, [](auto) {});
-            m_last_user_play = wxDateTime::Now();
-        }
         if (m_last_state == wxMediaState::wxMEDIASTATE_PLAYING) {
             auto now = std::chrono::system_clock::now();
             if (m_play_timer <= now) {
@@ -346,7 +339,7 @@ void MediaPlayCtrl::Play()
     m_last_state  = MEDIASTATE_INITIALIZING;
     m_button_play->SetIcon("media_stop");
 
-    if (!m_remote_support) { // not support tutk
+    if (!m_remote_proto) { // not support tutk
         m_failed_code = -1;
         m_url = "bambu:///local/";
         Stop(_L("Please enter the IP of printer to connect."));
