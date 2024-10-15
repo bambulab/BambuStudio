@@ -239,6 +239,7 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
                 Close();
                 // Reparent(nullptr);
                 GetParent()->RemoveChild(this);
+                Label::initSysFont(app_config->get_language_code());
                 wxGetApp().recreate_GUI(_L("Changing application language"));
             }
         }
