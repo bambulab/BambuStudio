@@ -5956,6 +5956,8 @@ void Tab::switch_excluder(int extruder_id, bool reload)
             ExtruderType(extruders->values[extruder_id]), NozzleVolumeType(nozzle_volumes->values[extruder_id]), variant_keys.second, stride);
     };
     auto index = m_variant_combo ? extruder_id : get_index_for_extruder(extruder_id == -1 ? 0 : extruder_id);
+    if (index < 0)
+        return;
     if (m_extruder_switch) m_extruder_switch->SetClientData((void *) (index));
     if (m_variant_combo) m_variant_combo->SetClientData((void *) (index));
     for (auto page : m_pages) {
