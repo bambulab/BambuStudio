@@ -6467,6 +6467,7 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     PartPlateList& old_plate_list = this->partplate_list;
     PartPlate* old_plate = old_plate_list.get_selected_plate();
     Vec3d old_plate_pos = old_plate->get_center_origin();
+    Vec3d old_plate_size = old_plate->get_plate_box().size();
 
     // BBS: Save the model in the current platelist
     std::vector<vector<int> > plate_object;
@@ -6536,15 +6537,20 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
         PartPlateList& cur_plate_list = this->partplate_list;
         PartPlate* cur_plate = cur_plate_list.get_curr_plate();
         Vec3d cur_plate_pos = cur_plate->get_center_origin();
+        Vec3d cur_plate_size = cur_plate->get_bounding_box().size();
+        bool  cur_plate_is_smaller = cur_plate_size.x() + 1.0 < old_plate_size.x() || cur_plate_size.y() + 1.0 < old_plate_size.y();
+        BOOST_LOG_TRIVIAL(info) << format("change bed pos from (%.0f,%.0f) to (%.0f,%.0f)", old_plate_pos.x(), old_plate_pos.y(), cur_plate_pos.x(), cur_plate_pos.y());
 
-        if (old_plate_pos.x() != cur_plate_pos.x() || old_plate_pos.y() != cur_plate_pos.y()) {
+        if (old_plate_pos.x() != cur_plate_pos.x() || old_plate_pos.y() != cur_plate_pos.y() || cur_plate_is_smaller) {
             for (int i = 0; i < plate_object.size(); ++i) {
                 view3D->select_object_from_idx(plate_object[i]);
                 this->sidebar->obj_list()->update_selections();
                 view3D->center_selected_plate(i);
             }
 
-            if (std::any_of(plate_object.begin(), plate_object.end(), [](const std::vector<int> &obj_idxs) { return !obj_idxs.empty(); })) {
+            BOOST_LOG_TRIVIAL(info) << format("change bed size from (%.0f,%.0f) to (%.0f,%.0f)", old_plate_size.x(), old_plate_size.y(), cur_plate_size.x(), cur_plate_size.y());
+            if (cur_plate_is_smaller &&
+                std::any_of(plate_object.begin(), plate_object.end(), [](const std::vector<int> &obj_idxs) { return !obj_idxs.empty(); })) {
                 take_snapshot("Arrange after bed size changes");
                 q->set_prepare_state(Job::PREPARE_STATE_OUTSIDE_BED);
                 q->arrange();
