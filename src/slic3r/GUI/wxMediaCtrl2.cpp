@@ -1,6 +1,8 @@
 #include "wxMediaCtrl2.h"
 #include "I18N.hpp"
 #include "libslic3r/Utils.hpp"
+#include <wx/log.h>
+#include <wx/msgdlg.h>
 #ifdef __WIN32__
 #include <versionhelpers.h>
 #include <wx/msw/registry.h>
