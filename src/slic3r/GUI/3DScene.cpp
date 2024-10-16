@@ -495,6 +495,7 @@ GLVolume::GLVolume(float r, float g, float b, float a, bool create_index_data)
     , partly_inside(false)
     , hover(HS_None)
     , is_modifier(false)
+    , slice_error(false)
     , is_wipe_tower(false)
     , is_extrusion_path(false)
     , force_transparent(false)
@@ -1652,7 +1653,8 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType       type,
         glcheck();
 
         //BBS: add outline related logic
-        volume.first->render(with_outline && volume.first->selected, body_color);
+        auto red_color = std::array<float, 4>({1.0f, 0.0f, 0.0f, 1.0f});//slice_error
+        volume.first->render(with_outline && volume.first->selected, volume.first->slice_error ? red_color : body_color);
 
 #if ENABLE_ENVIRONMENT_MAP
         if (use_environment_texture)
