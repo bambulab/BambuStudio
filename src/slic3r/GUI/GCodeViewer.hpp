@@ -380,16 +380,6 @@ class GCodeViewer
         }
     };
 
-    // helper to render shells
-    struct Shells
-    {
-        GLVolumeCollection volumes;
-        bool visible{ false };
-        //BBS: always load shell when preview
-        int print_id{ -1 };
-        int print_modify_count { -1 };
-        bool previewing{ false };
-    };
 
     // helper to render extrusion paths
     struct Extrusions
@@ -743,11 +733,21 @@ public:
         LayerTime,
         Count
     };
-
+    // helper to render shells
+    struct Shells
+    {
+        GLVolumeCollection volumes;
+        bool               visible{false};
+        // BBS: always load shell when preview
+        int  print_id{-1};
+        int  print_modify_count{-1};
+        bool previewing{false};
+    };
     //BBS
     ConflictResultOpt m_conflict_result;
     GCodeCheckResult  m_gcode_check_result;
     FilamentPrintableResult filament_printable_reuslt;
+    Shells            m_shells;
 
 private:
     std::vector<int> m_plater_extruder;
@@ -790,7 +790,7 @@ private:
     SequentialView m_sequential_view;
     IMSlider* m_moves_slider;
     IMSlider* m_layers_slider;
-    Shells m_shells;
+
     /*BBS GUI refactor, store displayed items in color scheme combobox */
     std::vector<EViewType> view_type_items;
     std::vector<std::string> view_type_items_str;
