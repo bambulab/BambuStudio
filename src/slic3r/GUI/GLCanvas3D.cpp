@@ -2037,9 +2037,10 @@ void GLCanvas3D::render(bool only_init)
         wxGetApp().plater()->render_project_state_debug_window();
 #endif // ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
 
-#if ENABLE_CAMERA_STATISTICS
-    camera.debug_render();
-#endif // ENABLE_CAMERA_STATISTICS
+    if (wxGetApp().plater()->is_render_statistic_dialog_visible()) {
+        camera.debug_render();
+        camera.debug_frustum();
+    }
 
 #if ENABLE_IMGUI_STYLE_EDITOR
     if (wxGetApp().get_mode() == ConfigOptionMode::comDevelop)

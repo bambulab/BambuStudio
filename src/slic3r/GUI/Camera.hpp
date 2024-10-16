@@ -56,6 +56,8 @@ private:
     std::pair<double, double> m_frustrum_zs;
 
     BoundingBoxf3 m_scene_box;
+    float         m_scene_box_radius{0};
+    float         m_last_scene_box_radius{0};
     Frustum       m_frustum;
     Vec3f         m_last_eye, m_last_center, m_last_up;
     float         m_last_near, m_last_far, m_last_aspect, m_last_fov,m_last_zoom;
@@ -122,9 +124,7 @@ public:
     void zoom_to_box(const BoundingBoxf3& box, double margin_factor = DefaultZoomToBoxMarginFactor);
     void zoom_to_volumes(const GLVolumePtrs& volumes, double margin_factor = DefaultZoomToVolumesMarginFactor);
     void debug_frustum();
-#if ENABLE_CAMERA_STATISTICS
     void debug_render();
-#endif // ENABLE_CAMERA_STATISTICS
 
     // translate the camera in world space
     void translate_world(const Vec3d& displacement) { set_target(m_target + displacement); }
@@ -164,6 +164,7 @@ private:
     std::pair<double, double> calc_tight_frustrum_zs_around(const BoundingBoxf3& box);
     double calc_zoom_to_bounding_box_factor(const BoundingBoxf3& box, double margin_factor = DefaultZoomToBoxMarginFactor) const;
     double calc_zoom_to_volumes_factor(const GLVolumePtrs& volumes, Vec3d& center, double margin_factor = DefaultZoomToVolumesMarginFactor) const;
+    void   set_distance(double distance);
 
     void set_default_orientation();
     void set_iso_orientation();
