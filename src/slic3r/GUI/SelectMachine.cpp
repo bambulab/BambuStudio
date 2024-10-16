@@ -3710,19 +3710,20 @@ void SelectMachineDialog::update_flow_cali_check(MachineObject* obj)
     set_flow_calibration_state(true, show_cali_tips);
 }
 
-void SelectMachineDialog::update_ams_check(MachineObject* obj)
+void SelectMachineDialog::update_ams_check(MachineObject *obj)
 {
-    if (obj && obj->ams_support_use_ams && obj->has_ams()) {
+    if (obj && obj->ams_support_use_ams && obj->has_ams() && !obj->is_enable_np) {
         select_use_ams->Show();
         if (obj->get_printer_ams_type() == "generic") {
             img_use_ams_tip->Show();
-        }
-        else {
+        } else {
             img_use_ams_tip->Hide();
         }
-    } else {
-        select_use_ams->Hide();
-    }
+    } /* else {
+         select_use_ams->Hide();
+     }*/
+
+    if (obj->is_enable_np) { m_checkbox_list["use_ams"]->SetValue(true); }
 }
 
 void SelectMachineDialog::update_show_status()
