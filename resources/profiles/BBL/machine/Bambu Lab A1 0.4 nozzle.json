@@ -16,6 +16,7 @@
         "Bambu PLA Basic @BBL A1"
     ],
     "default_print_profile": "0.20mm Standard @BBL A1",
+    "enable_long_retraction_when_cut": "2",
     "extruder_clearance_height_to_lid": "256",
     "extruder_clearance_height_to_rod": "25",
     "extruder_clearance_max_radius": "73",
