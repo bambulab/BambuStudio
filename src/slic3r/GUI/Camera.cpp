@@ -3,10 +3,9 @@
 
 #include "Camera.hpp"
 #include "GUI_App.hpp"
-#if ENABLE_CAMERA_STATISTICS
+
 #include "Mouse3DController.hpp"
 #include "Plater.hpp"
-#endif // ENABLE_CAMERA_STATISTICS
 
 #include <GL/glew.h>
 
@@ -380,7 +379,6 @@ void Camera::zoom_to_volumes(const GLVolumePtrs& volumes, double margin_factor)
     }
 }
 
-#if ENABLE_CAMERA_STATISTICS
 void Camera::debug_render()
 {
     ImGuiWrapper& imgui = *wxGetApp().imgui();
@@ -435,7 +433,6 @@ void Camera::debug_render()
     ImGui::InputFloat("GUI scale", &gui_scale, 0.0f, 0.0f, "%.6f", ImGuiInputTextFlags_ReadOnly);
     imgui.end();
 }
-#endif // ENABLE_CAMERA_STATISTICS
 
 void Camera::rotate_on_sphere_with_target(double delta_azimut_rad, double delta_zenit_rad, bool apply_limits, Vec3d target)
 {
@@ -524,7 +521,7 @@ std::pair<double, double> Camera::calc_tight_frustrum_zs_around(const BoundingBo
 {
     std::pair<double, double> ret;
     auto& [near_z, far_z] = ret;
-
+    m_scene_box_radius    = box.radius();
     // box in eye space
     const BoundingBoxf3 eye_box = box.transformed(m_view_matrix);
     near_z = -eye_box.max(2);
@@ -544,8 +541,15 @@ std::pair<double, double> Camera::calc_tight_frustrum_zs_around(const BoundingBo
 
     if (near_z < FrustrumMinNearZ) {
         const double delta = FrustrumMinNearZ - near_z;
+        set_distance(m_distance + delta);
+        m_last_scene_box_radius = m_scene_box_radius;
         near_z += delta;
         far_z += delta;
+    } else {
+        if (abs(m_last_scene_box_radius - m_scene_box_radius) > 1) {
+            m_last_scene_box_radius = m_scene_box_radius;
+            set_distance(DefaultDistance);
+        }
     }
 
     return ret;
@@ -606,6 +610,16 @@ double Camera::calc_zoom_to_bounding_box_factor(const BoundingBoxf3& box, double
     dy *= margin_factor;
 
     return std::min((double)m_viewport[2] / dx, (double)m_viewport[3] / dy);
+}
+
+void Camera::set_distance(double distance)
+{
+    if (m_distance != distance) {
+        m_view_matrix.translate((distance - m_distance) * get_dir_forward());
+        m_distance = distance;
+
+        update_target();
+    }
 }
 
 double Camera::calc_zoom_to_volumes_factor(const GLVolumePtrs& volumes, Vec3d& center, double margin_factor) const
