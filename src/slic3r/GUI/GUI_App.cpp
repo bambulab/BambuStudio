@@ -147,6 +147,7 @@ namespace pt = boost::property_tree;
 struct StaticBambuLib
 {
     static void reset();
+    static void release();
 };
 
 namespace Slic3r {
@@ -2239,6 +2240,8 @@ GUI_App::~GUI_App()
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": destroy preset updater");
         delete preset_updater;
     }
+
+    StaticBambuLib::release();
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": exit");
 }
