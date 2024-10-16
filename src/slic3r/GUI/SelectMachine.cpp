@@ -3725,7 +3725,7 @@ void SelectMachineDialog::update_ams_check(MachineObject *obj)
          select_use_ams->Hide();
      }*/
 
-    if (obj->is_enable_np) { m_checkbox_list["use_ams"]->SetValue(true); }
+    if (obj && obj->is_enable_np) { m_checkbox_list["use_ams"]->SetValue(true); }
 }
 
 void SelectMachineDialog::update_show_status()
