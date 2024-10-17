@@ -35,6 +35,9 @@ REQUIRED_DEV_PACKAGES=(
     wget
     libcurl-devel
     libquadmath-devel
+    nasm
+    yasm
+    x264-devel
 )
 
 if [[ -n "$UPDATE_LIB" ]]
@@ -52,6 +55,8 @@ then
     done
 
     if [ -n "${NEEDED_PKGS}" ]; then
+        sudo dnf install -y https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
+        sudo dnf -y update
         sudo dnf install -y ${NEEDED_PKGS}
     fi
     echo -e "done\n"
