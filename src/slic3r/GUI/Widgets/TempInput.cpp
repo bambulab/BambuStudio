@@ -163,7 +163,7 @@ wxString TempInput::erasePending(wxString &str)
 void TempInput::SetTagTemp(int temp)
 {
     auto tp = wxString::Format("%d", temp);
-    if ((text_ctrl->GetValue() != wxString("_")) && (text_ctrl->GetValue() != tp) ) {
+    if (text_ctrl->GetValue() != tp) {
         text_ctrl->SetValue(tp);
         messureSize();
         Refresh();
