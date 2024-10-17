@@ -585,10 +585,10 @@ void GLGizmoBrimEars::on_render_input_window(float x, float y, float bottom_limi
     m_imgui->text(m_desc["detection_radius"]);
     ImGui::SameLine(caption_size);
     ImGui::PushItemWidth(slider_width);
-    m_imgui->bbl_slider_float_style("##detection_radius", &m_detection_radius, 0, 200, "%.1f", 1.0f, true);
+    m_imgui->bbl_slider_float_style("##detection_radius", &m_detection_radius, 0, static_cast<int>(m_detection_radius_max), "%.1f", 1.0f, true);
     ImGui::SameLine(drag_left_width);
     ImGui::PushItemWidth(1.5 * slider_icon_width);
-    ImGui::BBLDragFloat("##detection_radius_input", &m_detection_radius, 0.05f, 0.0f, 200.0f, "%.1f");
+    ImGui::BBLDragFloat("##detection_radius_input", &m_detection_radius, 0.05f, 0.0f, static_cast<float>(m_detection_radius_max), "%.1f");
     ImGui::Separator();
 
     float clp_dist = float(m_c->object_clipper()->get_position());
@@ -835,8 +835,8 @@ Points GLGizmoBrimEars::generate_points(Polygon &obj_polygon, float ear_detectio
         points = MultiPoint::_douglas_peucker(points, detect_length);
         if (points.size() > 4) {
             points.erase(points.end() - 1);
-            obj_polygon.points = points;
         }
+        obj_polygon.points = points;
     }
     append(pt_ears, is_outer ? obj_polygon.convex_points(angle_threshold) : obj_polygon.concave_points(angle_threshold));
     return pt_ears;
@@ -875,6 +875,7 @@ void GLGizmoBrimEars::first_layer_slicer()
         }
     }
     m_first_layer = diff_ex(part_ex, negative_ex);
+    get_detection_radius_max();
 }
 
 void GLGizmoBrimEars::auto_generate()
@@ -902,6 +903,56 @@ void GLGizmoBrimEars::auto_generate()
         }
     }
     find_single();
+}
+
+void GLGizmoBrimEars::get_detection_radius_max()
+{
+    double max_dist = 0.0;
+    int    min_points_num = 0;
+    for (const ExPolygon &ex_poly : m_first_layer) {
+        Polygon  out_poly   = ex_poly.contour;
+        Polygons inner_poly = ex_poly.holes;
+        polygons_reverse(inner_poly);
+
+        Points out_points = out_poly.points;
+        out_points.push_back(out_points.front());
+        double tolerance = 0.0;
+        min_points_num   = MultiPoint::_douglas_peucker(out_points, 0).size();
+        int repeat       = 0;
+        int loop_protect = 0;
+        for (;;) {
+            loop_protect++;
+            tolerance += 10;
+            int num = MultiPoint::_douglas_peucker(out_points, tolerance / SCALING_FACTOR).size();
+            if (num == min_points_num) {
+                repeat++;
+                if (repeat > 1)
+                    break;
+            }
+            min_points_num = num;
+            if (loop_protect > 100) break;
+        }
+        loop_protect = 0;
+        for (;;) {
+            loop_protect++;
+            tolerance -= 1;
+            int num = MultiPoint::_douglas_peucker(out_points, tolerance / SCALING_FACTOR).size();
+            if (num <= min_points_num) {
+                min_points_num = num;
+            }else{
+                break;
+            }
+            if (loop_protect > 100) break;
+        }
+        tolerance += 1;
+        if (tolerance > max_dist)
+            max_dist = tolerance;
+    }
+    if (max_dist > 100 || max_dist <= 0) {
+        m_detection_radius_max = 100;
+    } else {
+        m_detection_radius_max = max_dist;
+    }
 }
 
 bool GLGizmoBrimEars::add_point_to_cache(Vec3f pos, float head_radius, bool selected, Vec3f normal)
