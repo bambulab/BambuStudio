@@ -98,6 +98,7 @@ private:
     float m_new_point_head_diameter;        // Size of a new point.
     float m_max_angle = 125.f;
     float m_detection_radius = 1.f;
+    double m_detection_radius_max = .0f;
     CacheEntry m_point_before_drag;         // undo/redo - so we know what state was edited
     float m_old_point_head_diameter = 0.;   // the same
     mutable std::vector<CacheEntry> m_editing_cache; // a support point and whether it is currently selectedchanges or undo/redo
@@ -136,6 +137,7 @@ private:
     Points generate_points(Polygon &obj_polygon, float ear_detection_length, float brim_ears_max_angle, bool is_outer);
     void auto_generate();
     void first_layer_slicer();
+    void get_detection_radius_max();
 
 protected:
     void on_set_state() override;
