@@ -5325,6 +5325,8 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z, bool b
     // BBS: insert skip object label before change filament while by object
     if (by_object)
         m_writer.add_object_change_labels(gcode);
+    else
+        m_writer.add_object_end_labels(gcode);
 
     if (m_writer.extruder() != nullptr) {
         // Process the custom filament_end_gcode. set_extruder() is only called if there is no wipe tower
