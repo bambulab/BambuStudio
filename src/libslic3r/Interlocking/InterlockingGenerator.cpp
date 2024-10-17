@@ -241,8 +241,9 @@ std::vector<std::vector<ExPolygons>> InterlockingGenerator::generateMicrostructu
     std::vector<std::vector<ExPolygons>> cell_area_per_mesh_per_layer;
     cell_area_per_mesh_per_layer.resize(2);
     cell_area_per_mesh_per_layer[0].resize(2);
-    const coord_t beam_w_sum = beam_width + beam_width;
-    const coord_t middle     = cell_size.x() * beam_width / beam_w_sum;
+    //const coord_t beam_w_sum = beam_width + beam_width;
+    //const coord_t middle     = cell_size.x() * beam_width / beam_w_sum;
+    const coord_t middle     = cell_size.x() / 2;
     const coord_t width[2]   = {middle, cell_size.x() - middle};
     for (size_t mesh_idx : {0ul, 1ul}) {
         Point offset(mesh_idx ? middle : 0, 0);
