@@ -121,7 +121,7 @@ static FILE *stl_open_count_facets(stl_file *stl, const char *file, unsigned int
       		fclose(fp);
       		return nullptr;
     	}
-    
+
     	// Find the number of facets.
 		char linebuf[100];
 		int num_lines = 1;
@@ -136,9 +136,9 @@ static FILE *stl_open_count_facets(stl_file *stl, const char *file, unsigned int
 		}
 
     	rewind(fp);
-    
+
     	// Get the header.
-		int i = 0;
+		unsigned int i = 0;
     	for (; i < custom_header_length && (stl->stats.header[i] = getc(fp)) != '\n'; ++ i) ;
     	stl->stats.header[i] = '\0'; // Lose the '\n'
         stl->stats.header[custom_header_length] = '\0';
@@ -225,10 +225,10 @@ static bool stl_read(stl_file *stl, FILE *fp, int first_facet, bool first, Impor
         }
         catch (...){
         }
-        
+
         rewind(fp);
 	}
-    	
+
 
   	char normal_buf[3][32];
 
@@ -247,7 +247,7 @@ static bool stl_read(stl_file *stl, FILE *fp, int first_facet, bool first, Impor
   	  	stl_facet facet;
 
     	if (stl->stats.type == binary) {
-  
+
 
       		// Read a single facet from a binary .STL file. We assume little-endian architecture!
       		if (fread(&facet, 1, SIZEOF_STL_FACET, fp) != SIZEOF_STL_FACET)
@@ -319,9 +319,9 @@ static bool stl_read(stl_file *stl, FILE *fp, int first_facet, bool first, Impor
 		// Write the facet into memory if none of facet vertices is NAN.
 		bool someone_is_nan = false;
 		for (size_t j = 0; j < 3; ++j) {
-			if (isnan(facet.vertex[j](0)) || isnan(facet.vertex[j](1)) || isnan(facet.vertex[j](2))) { 
+			if (isnan(facet.vertex[j](0)) || isnan(facet.vertex[j](1)) || isnan(facet.vertex[j](2))) {
 				someone_is_nan = true;
-				break; 
+				break;
 			}
 		}
 		if(someone_is_nan)
@@ -338,7 +338,7 @@ static bool stl_read(stl_file *stl, FILE *fp, int first_facet, bool first, Impor
 
 bool stl_open(stl_file *stl, const char *file, ImportstlProgressFn stlFn, int custom_header_length)
 {
-    if (custom_header_length < LABEL_SIZE) { 
+    if (custom_header_length < LABEL_SIZE) {
         custom_header_length = LABEL_SIZE;
     }
     Slic3r::CNumericLocalesSetter locales_setter;

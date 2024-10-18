@@ -754,6 +754,12 @@ public:
 
     void set_z_range(float min_z, float max_z) { m_z_range[0] = min_z; m_z_range[1] = max_z; }
     void set_clipping_plane(const double* coeffs) { m_clipping_plane[0] = coeffs[0]; m_clipping_plane[1] = coeffs[1]; m_clipping_plane[2] = coeffs[2]; m_clipping_plane[3] = coeffs[3]; }
+    void set_clipping_plane(double coeffs[4]){
+        m_clipping_plane[0] = coeffs[0];
+        m_clipping_plane[1] = coeffs[1];
+        m_clipping_plane[2] = coeffs[2];
+        m_clipping_plane[3] = coeffs[3];
+    }
 
     bool is_slope_GlobalActive() const { return m_slope.isGlobalActive; }
     bool is_slope_active() const { return m_slope.active; }

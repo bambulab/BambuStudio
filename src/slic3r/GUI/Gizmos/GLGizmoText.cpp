@@ -14,7 +14,7 @@
 #include "libslic3r/Shape/TextShape.hpp"
 
 #include <numeric>
-
+#include <codecvt>
 #include <boost/log/trivial.hpp>
 
 #include <GL/glew.h>

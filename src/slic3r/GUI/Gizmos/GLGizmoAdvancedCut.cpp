@@ -1965,7 +1965,7 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
     m_imgui->text(_L("Rotation") + " ");
     ImGui::SameLine(caption_size + 1 * space_size);
     ImGui::PushItemWidth(unit_size);
-    for (size_t i = 0; i < m_buffered_rotation.size(); i++) {
+    for (int i = 0; i < m_buffered_rotation.size(); i++) {
         if (abs(m_buffered_rotation[i]) < 1e-3) {
             m_buffered_rotation[i] = 0;
         }

@@ -712,13 +712,13 @@ static struct DynamicFilamentList : DynamicList
         if (items.empty())
             update(true);
         auto cb = dynamic_cast<ComboBox *>(c->window);
-        auto n  = cb->GetSelection();
+        int n  = cb->GetSelection();
         cb->Clear();
         cb->Append(_L("Default"));
         for (auto i : items) {
             cb->Append(i.first, *i.second);
         }
-        if (n < cb->GetCount())
+        if ((unsigned int)n < cb->GetCount())
             cb->SetSelection(n);
     }
     wxString get_value(int index) override
@@ -10475,9 +10475,8 @@ void Plater::import_model_id(wxString download_info)
         }
 
     }
-    catch (const std::exception& error)
-    {
-        //wxString sError = error.what();
+    catch (const std::exception& error){
+        BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << error.what();
     }
 
     bool download_ok = false;
@@ -10516,7 +10515,7 @@ void Plater::import_model_id(wxString download_info)
         if (!m_agent) return;
 
         int res = 0;
-        unsigned int http_code;
+        //unsigned int http_code;
         std::string http_body;
 
         msg = _L("prepare 3mf file...");
@@ -10555,9 +10554,8 @@ void Plater::import_model_id(wxString download_info)
                 if (sFile == filename) is_already_exist = true;
             }
         }
-        catch (const std::exception& error)
-        {
-            //wxString sError = error.what();
+        catch (const std::exception& error) {
+            BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << error.what();
         }
 
         //update filename
@@ -13986,7 +13984,7 @@ int Plater::send_gcode(int plate_idx, Export3mfProgressFn proFn)
         p->m_print_job_data._3mf_path.replace_extension("3mf");
     }
     catch (std::exception& e) {
-        BOOST_LOG_TRIVIAL(error) << "generate 3mf path failed";
+        BOOST_LOG_TRIVIAL(error) << "generate 3mf path failed"<< e.what();
         return -1;
     }
 
@@ -14019,7 +14017,7 @@ int Plater::export_config_3mf(int plate_idx, Export3mfProgressFn proFn)
         p->m_print_job_data._3mf_config_path = fs::path(plate->get_temp_config_3mf_path());
     }
     catch (std::exception& e) {
-        BOOST_LOG_TRIVIAL(error) << "generate 3mf path failed";
+        BOOST_LOG_TRIVIAL(error) << "generate 3mf path failed" << e.what();
         return -1;
     }
 

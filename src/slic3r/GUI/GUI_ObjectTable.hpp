@@ -578,7 +578,7 @@ public:
 
     std::vector<wxString> m_filaments_name;
     std::vector<wxColour> m_filaments_colors;
-    int m_filaments_count{ 1 };
+    unsigned int m_filaments_count{ 1 };
     void set_default_filaments_and_colors()
     {
         m_filaments_count = 1;
