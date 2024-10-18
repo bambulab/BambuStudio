@@ -468,7 +468,7 @@ void GizmoObjectManipulation::do_scale(int axis, const Vec3d &scale) const
 
 
 void GizmoObjectManipulation::limit_scaling_ratio(Vec3d &scaling_factor) const{
-    for (size_t i = 0; i < scaling_factor.size(); i++) { // range protect //scaling_factor too big has problem
+    for (unsigned int i = 0; i < scaling_factor.size(); i++) { // range protect //scaling_factor too big has problem
         if (scaling_factor[i] * m_unscale_size[i] > MAX_NUM) {
             scaling_factor[i] = MAX_NUM / m_unscale_size[i];
         }

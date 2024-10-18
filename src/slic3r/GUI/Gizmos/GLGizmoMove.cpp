@@ -36,6 +36,7 @@ GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent, const std::string& icon_filenam
         float value                             = std::stof(wxGetApp().app_config->get("grabber_size_factor"));
         GLGizmoBase::Grabber::GrabberSizeFactor = value;
     } catch (const std::invalid_argument &e) {
+        BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << e.what();
         GLGizmoBase::Grabber::GrabberSizeFactor = 1.0f;
     }
 }

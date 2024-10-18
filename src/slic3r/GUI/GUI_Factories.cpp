@@ -688,9 +688,9 @@ wxMenuItem* MenuFactory::append_menu_item_settings(wxMenu* menu_)
 
     // Create new items for settings popupmenu
 
-    if (printer_technology() == ptFFF ||
-        (menu->GetMenuItems().size() > 0 && !menu->GetMenuItems().back()->IsSeparator()))
-        ;// menu->SetFirstSeparator();
+    if (printer_technology() == ptFFF || (menu->GetMenuItems().size() > 0 && !menu->GetMenuItems().back()->IsSeparator())) {
+        // menu->SetFirstSeparator();
+    }
 
     // detect itemm for adding of the setting
     ObjectList* object_list = obj_list();
@@ -1920,7 +1920,6 @@ void MenuFactory::append_menu_item_set_printable(wxMenu* menu)
 
     for (wxDataViewItem item : sels) {
         ItemType type = list->GetModel()->GetItemType(item);
-        bool check;
         if (type != itInstance && type != itObject)
             continue;
         else {
