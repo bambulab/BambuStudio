@@ -5120,6 +5120,12 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach, bool save_to_proje
             if (user_bbl_svg_list.size() > 0 && user_bbl_svg_list[curr_preset_name].size() > 0) {
                 extra_map["bed_custom_texture"] = ConfigOptionString(user_bbl_svg_list[curr_preset_name]);
             }
+            else {
+                auto logo =wxGetApp().plater()->get_partplate_list().get_logo_texture_filename();
+                if (!logo.empty()) {
+                    extra_map["bed_custom_texture"] = logo;
+                }
+            }
         }
         auto bed_model_path = wxGetApp().plater()->get_partplate_list().get_bed3d()->get_model_filename();
         if (!bed_model_path.empty()) {
