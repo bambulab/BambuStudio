@@ -708,6 +708,7 @@ void PrintingTaskPanel::update_left_time(wxString time)
 void PrintingTaskPanel::update_finish_time(wxString finish_time)
 {
     static wxString finish_day = "";
+    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << " finish time: " << finish_time << " finish day: " << finish_day;
     if (finish_time == "Finished") {
         m_staticText_finish_time->SetLabelText(_L("Finished"));
         finish_day = "";
@@ -715,6 +716,7 @@ void PrintingTaskPanel::update_finish_time(wxString finish_time)
     }
     else {
         if (!finish_time.Contains('+')) {
+            finish_day = "";
             if (m_staticText_finish_day->IsShown()) m_staticText_finish_day->Hide();
         } else {
             int index = finish_time.find_last_of('+');
