@@ -1162,8 +1162,8 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
                 }
             }
             else {
-                int index = get_cali_index(m_comboBox_filament->GetLabel().ToStdString());
-                m_comboBox_cali_result->SetSelection(index);
+                cali_select_idx = get_cali_index(m_comboBox_filament->GetLabel().ToStdString());
+                m_comboBox_cali_result->SetSelection(cali_select_idx);
             }
         }
         else {
@@ -1180,8 +1180,8 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
                 }
             }
             else {
-                int index = get_cali_index(m_comboBox_filament->GetLabel().ToStdString());
-                m_comboBox_cali_result->SetSelection(index);
+                cali_select_idx = get_cali_index(m_comboBox_filament->GetLabel().ToStdString());
+                m_comboBox_cali_result->SetSelection(cali_select_idx);
             }
         }
 
