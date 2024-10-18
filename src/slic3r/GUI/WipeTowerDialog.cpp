@@ -21,7 +21,7 @@ int scale(const int val) { return val * Slic3r::GUI::wxGetApp().em_unit() / 10; 
 int ITEM_WIDTH() { return scale(30); }
 static const wxColour g_text_color = wxColour(107, 107, 107, 255);
 
-#define ICON_SIZE               wxSize(FromDIP(16), FromDIP(16))
+#define WIPE_TOWER_ICON_SIZE               wxSize(FromDIP(16), FromDIP(16))
 #define TABLE_BORDER            FromDIP(28)
 #define HEADER_VERT_PADDING     FromDIP(12)
 #define HEADER_BEG_PADDING      FromDIP(30)
@@ -270,7 +270,7 @@ void WipingPanel::create_panels(wxWindow* parent, const int num) {
         auto sizer = new wxBoxSizer(wxHORIZONTAL);
         panel->SetSizer(sizer);
 
-        wxButton* icon = new wxButton(panel, wxID_ANY, {}, wxDefaultPosition, ICON_SIZE, wxBORDER_NONE | wxBU_AUTODRAW);
+        wxButton* icon = new wxButton(panel, wxID_ANY, {}, wxDefaultPosition, WIPE_TOWER_ICON_SIZE, wxBORDER_NONE | wxBU_AUTODRAW);
         icon->SetBitmap(*get_extruder_color_icon(m_colours[i].GetAsString(wxC2S_HTML_SYNTAX).ToStdString(), std::to_string(i + 1), FromDIP(16), FromDIP(16)));
         icon->SetCanFocus(false);
         icon_list2.push_back(icon);
@@ -278,7 +278,7 @@ void WipingPanel::create_panels(wxWindow* parent, const int num) {
         sizer->AddSpacer(ROW_BEG_PADDING);
         sizer->Add(icon, 0, wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM, ROW_VERT_PADDING);
 
-        for (unsigned int j = 0; j < num; ++j) {
+        for (unsigned int j = 0; j < (unsigned int)num; ++j) {
             edit_boxes[j][i]->Reparent(panel);
             edit_boxes[j][i]->SetBackgroundColour(panel->GetBackgroundColour());
             edit_boxes[j][i]->SetFont(::Label::Body_13);
@@ -401,7 +401,7 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
 
     header_line_sizer->AddSpacer(HEADER_BEG_PADDING);
     for (unsigned int i = 0; i < m_number_of_extruders; ++i) {
-        wxButton* icon = new wxButton(header_line_panel, wxID_ANY, {}, wxDefaultPosition, ICON_SIZE, wxBORDER_NONE | wxBU_AUTODRAW);
+        wxButton* icon = new wxButton(header_line_panel, wxID_ANY, {}, wxDefaultPosition, WIPE_TOWER_ICON_SIZE, wxBORDER_NONE | wxBU_AUTODRAW);
         icon->SetBitmap(*get_extruder_color_icon(m_colours[i].GetAsString(wxC2S_HTML_SYNTAX).ToStdString(), std::to_string(i + 1), FromDIP(16), FromDIP(16)));
         icon->SetCanFocus(false);
         icon_list1.push_back(icon);
@@ -524,7 +524,7 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
         add_spin_ctrl(m_new, extruders[2 * i+1]);
 
         auto hsizer = new wxBoxSizer(wxHORIZONTAL);
-        wxWindow* w = new wxWindow(m_page_simple, wxID_ANY, wxDefaultPosition, ICON_SIZE, wxBORDER_SIMPLE);
+        wxWindow* w = new wxWindow(m_page_simple, wxID_ANY, wxDefaultPosition, WIPE_TOWER_ICON_SIZE, wxBORDER_SIMPLE);
         w->SetCanFocus(false);
         w->SetBackgroundColour(m_colours[i]);
         hsizer->Add(w, wxALIGN_CENTER_VERTICAL);
@@ -554,7 +554,7 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
         wxSize to_text_size = dc.GetTextExtent(to_text);
 
         int base_y = (header_line_panel->GetSize().y - from_text_size.y - to_text_size.y) / 2;
-        int vol_width = ROW_BEG_PADDING + EDIT_BOXES_GAP / 2 + ICON_SIZE.x;
+        int vol_width = ROW_BEG_PADDING + EDIT_BOXES_GAP / 2 + WIPE_TOWER_ICON_SIZE.x;
         int base_x = (vol_width - from_text_size.x - to_text_size.x) / 2;
 
         // draw from text
