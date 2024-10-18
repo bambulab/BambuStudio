@@ -248,6 +248,7 @@ bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_heig
     m_type = type;
     //m_texture_filename = texture_filename;
     m_model_filename = model_filename;
+    std::replace(m_model_filename.begin(), m_model_filename.end(), '\\', '/');
     //BBS: add part plate logic
     m_extended_bounding_box = this->calc_extended_bounding_box(false);
 
