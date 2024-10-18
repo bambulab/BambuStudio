@@ -2155,7 +2155,7 @@ std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(con
         if (layer_idx > 1) bbox.merge(layer_bboxes[layer_idx - 1]);
         if (layer_idx < num_layers - 1) bbox.merge(layer_bboxes[layer_idx + 1]);
         // Projected triangles may slightly exceed the input polygons.
-        bbox.offset(20 * SCALED_EPSILON);
+        bbox.offset(30 * SCALED_EPSILON);
         edge_grids[layer_idx].set_bbox(bbox);
         edge_grids[layer_idx].create(input_expolygons[layer_idx], coord_t(scale_(10.)));
     }
@@ -2237,8 +2237,7 @@ std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(con
                             // be outside EdgeGrid's BoundingBox, for example, when the negative volume is used on the painted area (GH #7618).
                             // To ensure that the painted line is always inside EdgeGrid's BoundingBox, it is clipped by EdgeGrid's BoundingBox in cases
                             // when any of the endpoints of the line are outside the EdgeGrid's BoundingBox.
-                            BoundingBox edge_grid_bbox = edge_grids[layer_idx].bbox();
-                            edge_grid_bbox.offset(10 * scale_(EPSILON));
+                            const BoundingBox& edge_grid_bbox = edge_grids[layer_idx].bbox();
                             if (!edge_grid_bbox.contains(line_to_test.a) || !edge_grid_bbox.contains(line_to_test.b)) {
                                 // If the painted line (line_to_test) is entirely outside EdgeGrid's BoundingBox, skip this painted line.
                                 if (!edge_grid_bbox.overlap(BoundingBox(Points{line_to_test.a, line_to_test.b})) ||
