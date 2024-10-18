@@ -1675,6 +1675,15 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(5));
 
+    def = this->add("hotend_cooling_rate", coFloat);
+    def->set_default_value(new ConfigOptionFloat(2));
+
+    def = this->add("hotend_heating_rate", coFloat);
+    def->set_default_value(new ConfigOptionFloat(2));
+
+    def = this->add("enable_pre_heating", coBool);
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("filament_diameter", coFloats);
     def->label = L("Diameter");
     def->tooltip = L("Filament diameter is used to calculate extrusion in gcode, so it's important and should be accurate");

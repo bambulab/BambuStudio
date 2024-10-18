@@ -999,6 +999,9 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,               machine_load_filament_time))
     ((ConfigOptionFloat,               machine_unload_filament_time))
     ((ConfigOptionFloat,               machine_switch_extruder_time))
+    ((ConfigOptionBool,                enable_pre_heating))
+    ((ConfigOptionFloat,               hotend_cooling_rate))
+    ((ConfigOptionFloat,               hotend_heating_rate))
     ((ConfigOptionFloats,              filament_minimal_purge_on_wipe_tower))
     // BBS
     ((ConfigOptionBool,                scan_first_layer))
