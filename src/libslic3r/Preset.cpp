@@ -2292,8 +2292,10 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
             preset.config.option<ConfigOptionStrings>("filament_settings_id", true)->values[0] = new_name;
         else if (m_type == Preset::TYPE_PRINTER) {
             preset.config.option<ConfigOptionString>("printer_settings_id", true)->value = new_name;
-            for (auto iter : *extra_map) {
-                preset.config.option<ConfigOptionString>(iter.first, true)->value = iter.second;
+            if (extra_map) {
+                for (auto iter : *extra_map) {
+                    preset.config.option<ConfigOptionString>(iter.first, true)->value = iter.second;
+                }
             }
         }
         final_inherits = preset.inherits();
@@ -2341,8 +2343,10 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
             preset.config.option<ConfigOptionStrings>("filament_settings_id", true)->values[0] = new_name;
         else if (m_type == Preset::TYPE_PRINTER) {
             preset.config.option<ConfigOptionString>("printer_settings_id", true)->value = new_name;
-            for (auto iter : *extra_map) {
-                preset.config.option<ConfigOptionString>(iter.first, true)->value = iter.second;
+            if (extra_map) {
+                for (auto iter : *extra_map) {
+                    preset.config.option<ConfigOptionString>(iter.first, true)->value = iter.second;
+                }
             }
         }
         //BBS: add lock logic for sync preset in background
