@@ -22,6 +22,7 @@ namespace IO {
 #define JSON_ASSEMPLE_PLATE_NAME               "plate_name"
 #define JSON_ASSEMPLE_PLATE_NEED_ARRANGE       "need_arrange"
 #define JSON_ASSEMPLE_OBJECTS                  "objects"
+#define JSON_ASSEMPLE_SUBTYPE                  "subtype"
 #define JSON_ASSEMPLE_OBJECT_PATH              "path"
 #define JSON_ASSEMPLE_OBJECT_COUNT             "count"
 #define JSON_ASSEMPLE_OBJECT_FILAMENTS         "filaments"
@@ -52,6 +53,7 @@ typedef struct _assembled_param_info {
 
 typedef struct _assemble_object_info {
     std::string         path;
+    ModelVolumeType     subtype;
     int                 count;
 
     std::vector<int>    filaments;
