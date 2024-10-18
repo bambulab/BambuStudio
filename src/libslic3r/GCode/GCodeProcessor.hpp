@@ -174,12 +174,14 @@ namespace Slic3r {
 
         struct MoveVertex
         {
-            unsigned int gcode_id{ 0 };
             EMoveType type{ EMoveType::Noop };
             ExtrusionRole extrusion_role{ erNone };
+            //BBS: arc move related data
+            EMovePathType move_path_type{ EMovePathType::Noop_move };
             unsigned char extruder_id{ 0 };
             unsigned char cp_color_id{ 0 };
-            Vec3f position{ Vec3f::Zero() }; // mm
+
+            unsigned int gcode_id{ 0 };
             float delta_extruder{ 0.0f }; // mm
             float feedrate{ 0.0f }; // mm/s
             float width{ 0.0f }; // mm
@@ -187,12 +189,11 @@ namespace Slic3r {
             float mm3_per_mm{ 0.0f };
             float fan_speed{ 0.0f }; // percentage
             float temperature{ 0.0f }; // Celsius degrees
-            float time{ 0.0f }; // s
             float layer_duration{ 0.0f }; // s (layer id before finalize)
 
+            std::array<float, 2>time{ 0.f,0.f }; // prefix sum of time, assigned during finalize()
 
-            //BBS: arc move related data
-            EMovePathType move_path_type{ EMovePathType::Noop_move };
+            Vec3f position{ Vec3f::Zero() }; // mm
             Vec3f arc_center_position{ Vec3f::Zero() };      // mm
             std::vector<Vec3f> interpolation_points;     // interpolation points of arc for drawing
             int  object_label_id{-1};
@@ -322,7 +323,9 @@ namespace Slic3r {
             Wipe_Tower_End,
             Used_Filament_Weight_Placeholder,
             Used_Filament_Volume_Placeholder,
-            Used_Filament_Length_Placeholder
+            Used_Filament_Length_Placeholder,
+            MachineStartGCodeEnd,
+            MachineEndGCodeStart
         };
 
         static const std::string& reserved_tag(ETags tag) { return Reserved_Tags[static_cast<unsigned char>(tag)]; }
@@ -408,6 +411,7 @@ namespace Slic3r {
 
             EMoveType move_type{ EMoveType::Noop };
             ExtrusionRole role{ erNone };
+            unsigned int move_id{ 0 }; //  index of the related move vertex, will be assigned duraing gcode process
             unsigned int g1_line_id{ 0 };
             unsigned int layer_id{ 0 };
             float distance{ 0.0f }; // mm
@@ -491,28 +495,13 @@ namespace Slic3r {
             //BBS: prepare stage time before print model, including start gcode time and mostly same with start gcode time
             float prepare_time;
 
+            // accept the time block and total time
+            using block_handler_t = std::function<void(const TimeBlock&, const float)>;
+
             void reset();
-
-            /**
-             * @brief Simulates firmware st_synchronize() call
-             *
-             * Adding additional time to the specified extrusion role's time block.
-             *
-             * @param additional_time Addtional time to calculate
-             * @param target_role Target extrusion role for addtional time.Default is none,means any role is ok.
-             */
-            void simulate_st_synchronize(float additional_time = 0.0f, ExtrusionRole target_role = ExtrusionRole::erNone);
-
-            /**
-             * @brief  Calculates the time for all blocks
-             * 
-             * Computes the time for all blocks.
-             *
-             * @param keep_last_n_blocks The number of last blocks to retain during calculation (default is 0).
-             * @param additional_time  Additional time to calculate.
-             * @param target_role Target extrusion role for addtional time.Default is none, means any role is ok.
-             */
-            void calculate_time(size_t keep_last_n_blocks = 0, float additional_time = 0.0f, ExtrusionRole target_role = ExtrusionRole::erNone);
+            // Simulates firmware st_synchronize() call
+            void simulate_st_synchronize(float additional_time = 0.0f, block_handler_t block_handler = block_handler_t());
+            void calculate_time(size_t keep_last_n_blocks = 0, float additional_time = 0.0f, block_handler_t block_handler = block_handler_t());
         };
 
         struct UsedFilaments  // filaments per ColorChange
@@ -559,13 +548,43 @@ namespace Slic3r {
 
         struct TimeProcessContext
         {
-            size_t total_layer_num;
+            UsedFilaments used_filaments; // stores the accurate filament usage info
             std::vector<Extruder> filament_lists;
-            UsedFilaments used_filaments;
-            TimeProcessContext( size_t total_layer_num_,
+            std::vector<int> filament_maps; // map each filament to extruder
+            std::vector<float> filament_nozzle_temp;
+
+            size_t total_layer_num;
+            float cooling_rate{ 2.f }; // Celsius degree per second
+            float heating_rate{ 2.f }; // Celsius degree per second
+            float pre_heating_time_threshold{ 30.f }; // only active pre cooling & heating if time gap is bigger than threshold
+            bool enable_pre_heating{ false };
+            int master_extruder_id{ 0 };
+
+            TimeProcessContext(
+                const UsedFilaments& used_filaments_,
                 const std::vector<Extruder>& filament_lists_,
-                const UsedFilaments& used_filaments_)
-                :total_layer_num(total_layer_num_), filament_lists(filament_lists_), used_filaments(used_filaments_) {}
+                const std::vector<int>& filament_maps_,
+                const std::vector<float>& filament_nozzle_temp_,
+                const size_t total_layer_num_,
+                const float cooling_rate_,
+                const float heating_rate_,
+                const float pre_heating_time_threshold_,
+                const int master_extruder_id_,
+                const bool  enable_pre_heating_
+            ) :
+                used_filaments(used_filaments_),
+                filament_lists(filament_lists_),
+                filament_maps(filament_maps_),
+                filament_nozzle_temp(filament_nozzle_temp_),
+                total_layer_num(total_layer_num_),
+                cooling_rate(cooling_rate_),
+                heating_rate(heating_rate_),
+                enable_pre_heating(enable_pre_heating_),
+                pre_heating_time_threshold(pre_heating_time_threshold_),
+                master_extruder_id(master_extruder_id_)
+            {
+            }
+
         };
 
         struct TimeProcessor
@@ -746,6 +765,11 @@ namespace Slic3r {
         int m_object_label_id{-1};
         std::vector<float> m_remaining_volume;
         std::vector<Extruder> m_filament_lists;
+        std::vector<float> m_filament_nozzle_temp;
+        float m_hotend_cooling_rate{ 2.f };
+        float m_hotend_heating_rate{ 2.f };
+        float m_enable_pre_heating{ false };
+        int m_master_extruder_id;
 
         //BBS: x, y offset for gcode generated
         double          m_x_offset{ 0 };
