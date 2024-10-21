@@ -10052,10 +10052,11 @@ void Plater::_calib_pa_pattern(const Calib_Params &params)
     for (const auto opt : SuggestedConfigCalibPAPattern().float_pairs) {
         print_config.set_key_value(opt.first, new ConfigOptionFloat(opt.second));
     }
-    print_config.set_key_value("outer_wall_speed",
-        new ConfigOptionFloat(CalibPressureAdvance::find_optimal_PA_speed(
-            wxGetApp().preset_bundle->full_config(), print_config.get_abs_value("line_width"),
-            print_config.get_abs_value("layer_height"), 0, 0)));
+    for (const auto opt : SuggestedConfigCalibPAPattern().floats_pairs) {
+        print_config.set_key_value(opt.first, new ConfigOptionFloatsNullable(opt.second));
+    }
+    float wall_speed = CalibPressureAdvance::find_optimal_PA_speed(wxGetApp().preset_bundle->full_config(), print_config.get_abs_value("line_width"), print_config.get_abs_value("layer_height"), 0, 0);
+    print_config.set_key_value("outer_wall_speed", new ConfigOptionFloatsNullable({wall_speed}));
 
     for (const auto opt : SuggestedConfigCalibPAPattern().nozzle_ratio_pairs) {
         print_config.set_key_value(opt.first, new ConfigOptionFloat(nozzle_diameter * opt.second / 100));
@@ -10216,8 +10217,8 @@ void Plater::calib_flowrate(int pass)
         _obj->config.set_key_value("top_solid_infill_flow_ratio", new ConfigOptionFloat(1.0f));
         _obj->config.set_key_value("infill_direction", new ConfigOptionFloat(45));
         _obj->config.set_key_value("ironing_type", new ConfigOptionEnum<IroningType>(IroningType::NoIroning));
-        _obj->config.set_key_value("internal_solid_infill_speed", new ConfigOptionFloat(internal_solid_speed));
-        _obj->config.set_key_value("top_surface_speed", new ConfigOptionFloat(top_surface_speed));
+        _obj->config.set_key_value("internal_solid_infill_speed", new ConfigOptionFloatsNullable({internal_solid_speed}));
+        _obj->config.set_key_value("top_surface_speed", new ConfigOptionFloatsNullable({top_surface_speed}));
 
         // extract flowrate from name, filename format: flowrate_xxx
         std::string obj_name = _obj->name;
