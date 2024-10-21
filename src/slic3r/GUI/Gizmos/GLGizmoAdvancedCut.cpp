@@ -715,11 +715,6 @@ void GLGizmoAdvancedCut::on_render_for_picking()
         GLGizmoRotate3D::on_render_for_picking();
 
         BoundingBoxf3 box = m_parent.get_selection().get_bounding_box();
-#if ENABLE_FIXED_GRABBER
-        float mean_size = (float) (GLGizmoBase::Grabber::FixedGrabberSize);
-#else
-        float mean_size = (float) ((box.size().x() + box.size().y() + box.size().z()) / 3.0);
-#endif
         // pick grabber
         {
             color                     = picking_color_component(0);
@@ -727,14 +722,14 @@ void GLGizmoAdvancedCut::on_render_for_picking()
             m_move_z_grabber.color[1] = color[1];
             m_move_z_grabber.color[2] = color[2];
             m_move_z_grabber.color[3] = color[3];
-            m_move_z_grabber.render_for_picking(mean_size);
+            m_move_z_grabber.render_for_picking();
             if (m_cut_mode == CutMode::cutTongueAndGroove) {
                 color                     = picking_color_component(1);
                 m_move_x_grabber.color[0] = color[0];
                 m_move_x_grabber.color[1] = color[1];
                 m_move_x_grabber.color[2] = color[2];
                 m_move_x_grabber.color[3] = color[3];
-                m_move_x_grabber.render_for_picking(mean_size);
+                m_move_x_grabber.render_for_picking();
             }
         }
 
@@ -1209,8 +1204,8 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
 
     // BBS set to fixed size grabber
     // float fullsize = 2 * (dragging ? get_dragging_half_size(size) : get_half_size(size));
-    float fullsize = 8.0f;
-    if (GLGizmoBase::INV_ZOOM > 0) { fullsize = m_move_z_grabber.FixedGrabberSize * GLGizmoBase::INV_ZOOM; }
+    float fullsize = get_grabber_size();
+
     GLModel &cube_z = m_move_z_grabber.get_cube();
     GLModel &cube_x = m_move_x_grabber.get_cube();
     if (is_render_z_grabber) {

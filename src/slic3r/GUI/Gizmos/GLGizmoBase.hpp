@@ -79,15 +79,15 @@ public:
 
         Grabber();
 
-        void render(bool hover, float size) const;
-        void render_for_picking(float size) const { render(size, color, true); }
+        void render(bool hover) const;
+        void render_for_picking() const { render(color, true); }
 
         float get_half_size(float size) const;
         float get_dragging_half_size(float size) const;
         GLModel& get_cube();
 
     private:
-        void render(float size, const std::array<float, 4>& render_color, bool picking) const;
+        void render(const std::array<float, 4>& render_color, bool picking) const;
 
         GLModel cube;
         bool cube_initialized = false;
@@ -173,6 +173,8 @@ protected:
     bool render_combo(const std::string &label, const std::vector<std::string> &lines,
         size_t &selection_idx, float label_width, float item_width);
     void render_cross_mark(const Vec3f& target,bool is_single =false);
+    static float get_grabber_size();
+
 public:
     GLGizmoBase(GLCanvas3D& parent,
                 const std::string& icon_filename,
@@ -268,7 +270,7 @@ protected:
     // No check is made for clashing with other picking color (i.e. GLVolumes)
     std::array<float, 4> picking_color_component(unsigned int id) const;
     void render_grabbers(const BoundingBoxf3& box) const;
-    void render_grabbers(float size) const;
+    void render_grabbers() const;
     void render_grabbers_for_picking(const BoundingBoxf3& box) const;
 
     std::string format(float value, unsigned int decimals) const;

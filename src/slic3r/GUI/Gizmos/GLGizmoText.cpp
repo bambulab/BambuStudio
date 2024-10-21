@@ -596,8 +596,7 @@ void GLGizmoText::on_render()
             render_color = TEXT_GRABBER_HOVER_COLOR;
         } else
             render_color = TEXT_GRABBER_COLOR;
-        float fullsize = 8.0f;
-        if (GLGizmoBase::INV_ZOOM > 0) { fullsize = m_move_grabber.FixedGrabberSize * GLGizmoBase::INV_ZOOM; }
+        float fullsize            = get_grabber_size();
         m_move_grabber.center     = tran.get_offset();
         Transform3d rotate_matrix = tran.get_rotation_matrix();
         Transform3d cube_mat      = Geometry::translation_transform(m_move_grabber.center) * rotate_matrix * Geometry::scale_transform(fullsize);
@@ -629,8 +628,7 @@ void GLGizmoText::on_render_for_picking()
         m_move_grabber.color[1] = color[1];
         m_move_grabber.color[2] = color[2];
         m_move_grabber.color[3] = color[3];
-        float mean_size         = (float) (GLGizmoBase::Grabber::FixedGrabberSize);
-        m_move_grabber.render_for_picking(mean_size);
+        m_move_grabber.render_for_picking();
     }
 }
 

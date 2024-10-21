@@ -262,8 +262,8 @@ double GLGizmoMove3D::calc_projection(const UpdateData& data) const
 
 void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box, bool picking) const
 {
-    double size = 0.75 * GLGizmoBase::Grabber::FixedGrabberSize * GLGizmoBase::INV_ZOOM;
-    size                       = size * GLGizmoBase::Grabber::GrabberSizeFactor;
+    double size = get_grabber_size() * 0.75;//0.75 for arrow show
+
     std::array<float, 4> color = m_grabbers[axis].color;
     if (!picking && m_hover_id != -1) {
         if (m_hover_id == axis) {

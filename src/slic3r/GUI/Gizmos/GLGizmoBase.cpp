@@ -79,7 +79,7 @@ GLGizmoBase::Grabber::Grabber()
     hover_color = GRABBER_HOVER_COL;
 }
 
-void GLGizmoBase::Grabber::render(bool hover, float size) const
+void GLGizmoBase::Grabber::render(bool hover) const
 {
     std::array<float, 4> render_color;
     if (hover) {
@@ -88,7 +88,7 @@ void GLGizmoBase::Grabber::render(bool hover, float size) const
     else
         render_color = color;
 
-    render(size, render_color, false);
+    render(render_color, false);
 }
 
 float GLGizmoBase::Grabber::get_half_size(float size) const
@@ -114,7 +114,7 @@ GLModel& GLGizmoBase::Grabber::get_cube()
     return cube;
 }
 
-void GLGizmoBase::Grabber::render(float size, const std::array<float, 4>& render_color, bool picking) const
+void GLGizmoBase::Grabber::render(const std::array<float, 4>& render_color, bool picking) const
 {
     if (! cube_initialized) {
         // This cannot be done in constructor, OpenGL is not yet
@@ -127,11 +127,7 @@ void GLGizmoBase::Grabber::render(float size, const std::array<float, 4>& render
 
     //BBS set to fixed size grabber
     //float fullsize = 2 * (dragging ? get_dragging_half_size(size) : get_half_size(size));
-    float fullsize = 8.0f;
-    if (GLGizmoBase::INV_ZOOM > 0) {
-        fullsize = FixedGrabberSize * GLGizmoBase::INV_ZOOM;
-    }
-    fullsize = fullsize * Grabber::GrabberSizeFactor;
+    float fullsize = get_grabber_size();
 
     const_cast<GLModel*>(&cube)->set_color(-1, render_color);
 
@@ -254,6 +250,16 @@ void GLGizmoBase::render_cross_mark(const Vec3f &target, bool is_single)
     }
     ::glVertex3f(target(0), target(1), target(2) + half_length);
     glsafe(::glEnd());
+}
+
+float GLGizmoBase::get_grabber_size()
+{
+    float grabber_size = 8.0f;
+    if (GLGizmoBase::INV_ZOOM > 0) {
+        grabber_size = GLGizmoBase::Grabber::FixedGrabberSize * GLGizmoBase::INV_ZOOM;
+        grabber_size = grabber_size * GLGizmoBase::Grabber::GrabberSizeFactor;
+    }
+    return grabber_size;
 }
 
 GLGizmoBase::GLGizmoBase(GLCanvas3D &parent, const std::string &icon_filename, unsigned int sprite_id)
@@ -435,13 +441,13 @@ std::array<float, 4> GLGizmoBase::picking_color_component(unsigned int id) const
 void GLGizmoBase::render_grabbers(const BoundingBoxf3& box) const
 {
 #if ENABLE_FIXED_GRABBER
-    render_grabbers((float)(GLGizmoBase::Grabber::FixedGrabberSize));
+    render_grabbers();
 #else
     render_grabbers((float)((box.size().x() + box.size().y() + box.size().z()) / 3.0));
 #endif
 }
 
-void GLGizmoBase::render_grabbers(float size) const
+void GLGizmoBase::render_grabbers() const
 {
     GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
     if (shader == nullptr)
@@ -450,24 +456,18 @@ void GLGizmoBase::render_grabbers(float size) const
     shader->set_uniform("emission_factor", 0.1f);
     for (int i = 0; i < (int)m_grabbers.size(); ++i) {
         if (m_grabbers[i].enabled)
-            m_grabbers[i].render(m_hover_id == i, size);
+            m_grabbers[i].render(m_hover_id == i);
     }
     shader->stop_using();
 }
 
 void GLGizmoBase::render_grabbers_for_picking(const BoundingBoxf3& box) const
 {
-#if ENABLE_FIXED_GRABBER
-    float mean_size = (float)(GLGizmoBase::Grabber::FixedGrabberSize);
-#else
-    float mean_size = (float)((box.size().x() + box.size().y() + box.size().z()) / 3.0);
-#endif
-
     for (unsigned int i = 0; i < (unsigned int)m_grabbers.size(); ++i) {
         if (m_grabbers[i].enabled) {
             std::array<float, 4> color = picking_color_component(i);
             m_grabbers[i].color = color;
-            m_grabbers[i].render_for_picking(mean_size);
+            m_grabbers[i].render_for_picking();
         }
     }
 }

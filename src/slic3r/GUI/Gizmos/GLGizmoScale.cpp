@@ -250,7 +250,6 @@ void GLGizmoScale3D::on_render()
 
     glsafe(::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f));
 
-    float grabber_mean_size = (float) ((m_bounding_box.size().x() + m_bounding_box.size().y() + m_bounding_box.size().z()) / 3.0);
     glsafe(::glPushMatrix());
     glsafe(::glMultMatrixd(m_grabbers_tran.get_matrix().data()));
      //draw connections
@@ -272,7 +271,7 @@ void GLGizmoScale3D::on_render()
     render_grabbers_connection(9, 6);
 
     // draw grabbers
-    render_grabbers(grabber_mean_size);
+    render_grabbers();
     glsafe(::glPopMatrix());
 }
 
