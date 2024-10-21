@@ -1,0 +1,18 @@
+{
+    "type": "filament",
+    "filament_id": "GFT01",
+    "setting_id": "GFST01_Qidi_15",
+    "name": "QIDI PETG Tough @Qidi X-Plus 4 0.6 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "QIDI PETG Tough @Qidi",
+    "filament_max_volumetric_speed": [
+        "13"
+    ],
+    "pressure_advance": [
+        "0.032"
+    ],
+    "compatible_printers": [
+        "Qidi X-Plus 4 0.6 nozzle"
+    ]
+}
