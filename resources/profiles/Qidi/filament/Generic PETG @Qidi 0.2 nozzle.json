@@ -6,9 +6,6 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "Generic PETG @Qidi",
-    "slow_down_min_speed": [
-        "10"
-    ],
     "filament_max_volumetric_speed": [
         "1"
     ],

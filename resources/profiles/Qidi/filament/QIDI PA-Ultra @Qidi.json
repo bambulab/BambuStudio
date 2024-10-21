@@ -24,10 +24,10 @@
     "pressure_advance": [
         "0.03"
     ],
-    "max_fan_speed":[
+    "fan_max_speed": [
         "40"
     ],
-    "min_fan_speed":[
+    "fan_min_speed": [
         "20"
     ],
     "hot_plate_temp_initial_layer" : [
@@ -44,6 +44,21 @@
     ],
     "filament_flow_ratio": [
         "0.96"
+    ],
+    "fan_cooling_layer_time": [
+        "60"
+    ],
+    "overhang_fan_speed": [
+        "100"
+    ],
+    "close_fan_the_first_x_layers": [
+        "1"
+    ],
+    "slow_down_min_speed": [
+        "20"
+    ],
+    "enable_overhang_bridge_fan": [
+        "0"
     ],
 	  "compatible_printers": [
         "Qidi X-Plus 0.4 nozzle",

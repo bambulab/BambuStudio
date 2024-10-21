@@ -37,7 +37,10 @@
         "100"
     ],
     "overhang_fan_speed": [
-        "100"
+        "80"
+    ],
+    "slow_down_layer_time": [
+        "8"
     ],
     "compatible_printers": [
         "Qidi X-Plus 0.4 nozzle",

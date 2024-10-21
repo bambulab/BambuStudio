@@ -9,14 +9,11 @@
     "filament_max_volumetric_speed": [
         "24.5"
     ],
-    "hot_plate_temp_initial_layer": [
-        "90"
-    ],
     "nozzle_temperature": [
         "250"
     ],
     "pressure_advance": [
-        "0.014"
+        "0.016"
     ],
     "slow_down_min_speed": [
         "20"

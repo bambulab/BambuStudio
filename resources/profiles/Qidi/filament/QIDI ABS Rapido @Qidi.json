@@ -18,14 +18,14 @@
     "pressure_advance": [
         "0.021"
     ],
-    "max_fan_speed":[
+    "fan_max_speed": [
         "80"
     ],
-    "min_fan_speed":[
+    "fan_min_speed": [
         "20"
     ],
     "overhang_fan_speed": [
-        "100"
+        "80"
     ],
     "filament_density":[
         "1.05"
@@ -36,13 +36,7 @@
         "Qidi X-CF Pro 0.4 nozzle",
 		"Qidi X-Smart 3 0.4 nozzle",
 		"Qidi X-Plus 3 0.4 nozzle",
-		"Qidi X-Max 3 0.4 nozzle",
-        "Qidi X-Plus 0.6 nozzle",
-        "Qidi X-Max 0.6 nozzle",
-        "Qidi X-CF Pro 0.6 nozzle",
-		"Qidi X-Smart 3 0.6 nozzle",
-		"Qidi X-Plus 3 0.6 nozzle",
-		"Qidi X-Max 3 0.6 nozzle"
+		"Qidi X-Max 3 0.4 nozzle"
 
 	]
 }

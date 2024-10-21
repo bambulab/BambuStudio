@@ -7,10 +7,13 @@
     "instantiation": "true",
     "inherits": "QIDI ABS Rapido @Qidi",
     "nozzle_temperature": [
-        "270"
+        "260"
     ],
     "slow_down_min_speed": [
         "10"
+    ],
+    "pressure_advance": [
+        "0.011"
     ],
 	"compatible_printers": [
         "Qidi X-Plus 0.8 nozzle",

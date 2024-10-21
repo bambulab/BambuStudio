@@ -25,10 +25,10 @@
         "0%"
     ],
     "overhang_fan_speed": [
-        "100"
+        "40"
     ],
     "fan_cooling_layer_time": [
-        "5"
+        "10"
     ],
     "full_fan_speed_layer": [
         "0"
@@ -46,7 +46,7 @@
         "80"
     ],
     "slow_down_layer_time": [
-        "5"
+        "8"
     ],
     "filament_density":[
         "1.30"

@@ -18,6 +18,12 @@
     "slow_down_min_speed": [
         "20"
     ],
+    "filament_max_volumetric_speed": [
+        "15"
+    ],
+    "pressure_advance": [
+        "0.032"
+    ],
     "compatible_printers": [
         "Qidi Q1 Pro 0.4 nozzle"
     ]
