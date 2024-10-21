@@ -679,6 +679,9 @@ void CalibUtils::calib_pa_pattern(const CalibInfo &calib_info, Model& model)
     for (const auto opt : SuggestedConfigCalibPAPattern().float_pairs) {
         print_config.set_key_value(opt.first, new ConfigOptionFloat(opt.second));
     }
+    for (const auto opt : SuggestedConfigCalibPAPattern().floats_pairs) {
+        print_config.set_key_value(opt.first, new ConfigOptionFloatsNullable(opt.second));
+    }
 
     print_config.set_key_value("outer_wall_speed",
         new ConfigOptionFloat(CalibPressureAdvance::find_optimal_PA_speed(
