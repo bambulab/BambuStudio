@@ -6,17 +6,11 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "QIDI ABS Odorless @Qidi",
-    "filament_max_volumetric_speed": [
-        "24.5"
-    ],
-    "hot_plate_temp_initial_layer": [
-        "90"
-    ],
     "nozzle_temperature": [
         "260"
     ],
     "pressure_advance": [
-        "0.035"
+        "0.023"
     ],
     "slow_down_min_speed": [
         "20"

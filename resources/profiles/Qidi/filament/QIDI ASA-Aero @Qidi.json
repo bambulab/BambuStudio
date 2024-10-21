@@ -51,15 +51,6 @@
     "filament_retraction_length": [
         "0.01"
     ],
-    "max_fan_speed":[
-        "50"
-    ],
-    "min_fan_speed":[
-        "10"
-    ],
-    "overhang_fan_speed": [
-        "100"
-    ],
     "filament_density":[
         "1.03"
     ],
