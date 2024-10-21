@@ -200,13 +200,18 @@ bool Plater::has_illegal_filename_characters(const std::string& name)
     for (size_t i = 0; i < std::strlen(illegal_characters); i++)
         if (name.find_first_of(illegal_characters[i]) != std::string::npos)
             return true;
-
+    std::array<std::string, 5> escape_characters = {"&lt;", "&gt;", "&amp;", "&quot;", "&apos;"};
+    for (auto escape : escape_characters) {
+        if (boost::contains(name, escape)) {
+            return true;
+        }
+    }
     return false;
 }
 
 void Plater::show_illegal_characters_warning(wxWindow* parent)
 {
-    show_error(parent, _L("Invalid name, the following characters are not allowed:") + " <>:/\\|?*\"");
+    show_error(parent, _L("Invalid name, the following characters are not allowed:") + " <>:/\\|?*\"" +_L("(Including its escape characters)"));
 }
 
 enum SlicedInfoIdx
