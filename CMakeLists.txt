@@ -42,6 +42,8 @@ set(SLIC3R_GTK "2" CACHE STRING "GTK version to use with wxWidgets on Linux")
 
 set(IS_CROSS_COMPILE FALSE)
 
+set(FLATPAK FALSE CACHE BOOL "Not copy FFMPEG file")
+
 
 if (APPLE)
     set(CMAKE_FIND_FRAMEWORK LAST)
@@ -760,7 +762,7 @@ else ()
     install(DIRECTORY "${SLIC3R_RESOURCES_DIR}/" DESTINATION "${CMAKE_INSTALL_PREFIX}/resources")
 endif ()
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT FLATPAK)
     set(LIBRARY_FILES
     ${LIBDIR_BIN}/libavcodec.so.61
     ${LIBDIR_BIN}/libavcodec.so.61.3.100

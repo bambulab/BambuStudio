@@ -218,7 +218,7 @@ if (WIN32)
 
 
 else ()
-    if (NOT APPLE)
+    if (NOT APPLE AND NOT FLATPAK)
         set(output_sos_Release "")
         set(output_sos_Debug "")
         add_custom_target(BambuStudioSosCopy ALL DEPENDS BambuStudio)
