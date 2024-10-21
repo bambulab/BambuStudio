@@ -18,7 +18,7 @@
     "nozzle_temperature_initial_layer": [
         "230"
     ],
-      "nozzle_temperature": [
+    "nozzle_temperature": [
         "230"
     ],
     "filament_vendor": [
@@ -43,6 +43,9 @@
         "Qidi X-Plus 3 0.8 nozzle",
         "Qidi X-Max 3 0.8 nozzle",
         "Qidi Q1 Pro 0.6 nozzle",
-        "Qidi Q1 Pro 0.8 nozzle"
+        "Qidi Q1 Pro 0.8 nozzle",
+        "Qidi X-Plus 4 0.4 nozzle",
+        "Qidi X-Plus 4 0.6 nozzle",
+        "Qidi X-Plus 4 0.8 nozzle"
 	]
 }
