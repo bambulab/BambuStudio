@@ -820,6 +820,9 @@ void MainFrame::update_layout()
                 if (!preview_only_hint())
                     return;
             }
+            else if (evt.GetId() == tpCalibration) {
+                m_calibration->update_all();
+            }
             evt.Skip();
         });
 
