@@ -551,7 +551,8 @@ ExtrusionLoopSloped::ExtrusionLoopSloped( ExtrusionPaths &original_paths,
             paths.emplace_back(std::move(flat_path), *path);
             remaining_length = 0;
         } else {
-            remaining_length -= path_len;
+            // BBS: protection for accuracy issues
+            remaining_length       = remaining_length - path_len < EPSILON ? 0 : remaining_length - path_len;
             const double end_ratio = lerp(1.0, start_slope_ratio, remaining_length / slope_min_length);
             add_slop(*path, path->polyline, start_ratio, end_ratio);
             start_ratio = end_ratio;
