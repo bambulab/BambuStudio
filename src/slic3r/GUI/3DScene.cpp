@@ -426,9 +426,9 @@ const unsigned char LOD_UPDATE_FREQUENCY     = 20;
 const Vec2i LOD_SCREEN_MIN                   = Vec2i(45, 35);
 const Vec2i LOD_SCREEN_MAX                   = Vec2i(65, 55);
 
-Vec2f calc_pt_in_screen(const Vec3d &pt, const Transform3d &world_tran, const Matrix4d &view_proj_mat, int window_width, int window_height)
+Vec2f calc_pt_in_screen(const Vec3d &pt,  const Matrix4d &view_proj_mat, int window_width, int window_height)
 {
-    auto tran = (view_proj_mat * world_tran);
+    auto tran = view_proj_mat;
     Vec4d temp_center(pt.x(), pt.y(), pt.z(), 1.0);
     Vec4d temp_ndc          = tran * temp_center;
     Vec3d screen_box_center = Vec3d(temp_ndc.x(), temp_ndc.y(), temp_ndc.z()) / temp_ndc.w();
@@ -438,12 +438,11 @@ Vec2f calc_pt_in_screen(const Vec3d &pt, const Transform3d &world_tran, const Ma
     return Vec2f(x, y);
 }
 
-LOD_LEVEL calc_volume_box_in_screen_bigger_than_threshold(
-    const BoundingBoxf3 &v_box, const Transform3d &world_tran, const Matrix4d &view_proj_mat,
+LOD_LEVEL calc_volume_box_in_screen_bigger_than_threshold(const BoundingBoxf3 &v_box_in_world,  const Matrix4d &view_proj_mat,
           int window_width, int window_height)
 {
-   auto s_min = calc_pt_in_screen(v_box.min, world_tran, view_proj_mat, window_width, window_height);
-   auto s_max = calc_pt_in_screen(v_box.max, world_tran, view_proj_mat, window_width, window_height);
+    auto s_min  = calc_pt_in_screen(v_box_in_world.min, view_proj_mat, window_width, window_height);
+    auto s_max  = calc_pt_in_screen(v_box_in_world.max, view_proj_mat, window_width, window_height);
    auto size_x = abs(s_max.x() - s_min.x());
    auto size_y = abs(s_max.y() - s_min.y());
    if (size_x >= LOD_SCREEN_MAX.x() || size_y >= LOD_SCREEN_MAX.y()) {
@@ -923,7 +922,7 @@ void GLVolume::render(bool with_outline, const std::array<float, 4>& body_color)
             if (abs(zoom - LAST_CAMERA_ZOOM_VALUE) > ZOOM_THRESHOLD || m_lod_update_index >= LOD_UPDATE_FREQUENCY){
                 m_lod_update_index     = 0;
                 LAST_CAMERA_ZOOM_VALUE = zoom;
-                m_cur_lod_level        = calc_volume_box_in_screen_bigger_than_threshold(bounding_box(), world_tran, vier_proj_mat, viewport[2], viewport[3]);
+                m_cur_lod_level        = calc_volume_box_in_screen_bigger_than_threshold(transformed_bounding_box(), vier_proj_mat, viewport[2], viewport[3]);
             }
             if (m_cur_lod_level == LOD_LEVEL::SMALL && indexed_vertex_array_small) {
                 render_which(indexed_vertex_array_small);
@@ -1052,7 +1051,7 @@ void GLVolume::render(bool with_outline, const std::array<float, 4>& body_color)
             if (abs(zoom - LAST_CAMERA_ZOOM_VALUE) > ZOOM_THRESHOLD || m_lod_update_index >= LOD_UPDATE_FREQUENCY) {
                 m_lod_update_index     = 0;
                 LAST_CAMERA_ZOOM_VALUE = zoom;
-                m_cur_lod_level = calc_volume_box_in_screen_bigger_than_threshold(bounding_box(), world_tran, vier_proj_mat, viewport[2], viewport[3]);
+                m_cur_lod_level        = calc_volume_box_in_screen_bigger_than_threshold(transformed_bounding_box(), vier_proj_mat, viewport[2], viewport[3]);
             }
             if (m_cur_lod_level == LOD_LEVEL::SMALL && indexed_vertex_array_small && indexed_vertex_array_small->vertices_and_normals_interleaved_VBO_id > 0) {
                 this->indexed_vertex_array_small->render(this->tverts_range_lod, this->qverts_range_lod);
