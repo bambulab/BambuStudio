@@ -2345,6 +2345,8 @@ void GUI_App::init_app_config()
         std::string error = app_config->load();
         if (!error.empty()) {
             // Error while parsing config file. We'll customize the error message and rethrow to be displayed.
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__
+            << "Configuration file may be corrupted and is not able to be parsed.Please delete the file and try again.";
             throw Slic3r::RuntimeError(
                 _u8L("BambuStudio configuration file may be corrupted and is not able to be parsed."
                      "Please delete the file and try again.") +
