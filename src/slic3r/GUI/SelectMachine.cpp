@@ -2153,6 +2153,9 @@ bool SelectMachineDialog::get_ams_mapping_result(std::string &mapping_array_str,
 }
 
 bool SelectMachineDialog::can_hybrid_mapping(ExtderData data) {
+    // Mixed mappings are not allowed
+    return false;
+
     if (data.total_extder_count <= 1 || data.extders.size() <= 1 || !wxGetApp().preset_bundle)
         return false;
 
