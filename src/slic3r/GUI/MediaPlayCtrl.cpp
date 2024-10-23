@@ -181,6 +181,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
             auto now = std::chrono::system_clock::now();
             if (m_play_timer <= now) {
                 m_play_timer = now + 1min;
+#if BBL_RELEASE_TO_PUBLIC
                 if (SecondsSinceLastInput() >= 900) { // 15 min
                     auto close = wxGetApp().app_config->get("liveview", "auto_stop_liveview") == "true";
                     if (close) {
@@ -196,6 +197,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
                     m_next_retry = wxDateTime();
                     Stop(_L("Temporarily closed because there is no printing for a while."));
                 }
+#endif
             }
         }
         return;
