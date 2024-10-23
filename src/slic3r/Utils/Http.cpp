@@ -68,8 +68,8 @@ struct CurlGlobalInit
             else
                 message = (boost::format("use system SSL certificate: %1%") % bundle).str();
 
-             message += "\n" + (boost::format("To manually specify the system certificate store, "
-                                                   "set the %1% environment variable to the correct CA and restart the application") % SSL_CA_FILE).str();
+            message += "\n" + (boost::format("To manually specify the system certificate store, "
+            "set the %1% environment variable to the correct CA and restart the application.") % SSL_CA_FILE).str();
         }
 #endif // OPENSSL_CERT_OVERRIDE
 
