@@ -509,6 +509,9 @@ public:
         std::set<std::string>& key_set1, std::set<std::string>& key_set2);
     void update_diff_values_to_child_config(DynamicPrintConfig& new_config, std::string extruder_id_name, std::string extruder_variant_name, std::set<std::string>& key_set1, std::set<std::string>& key_set2);
 
+    int update_values_from_single_to_multi(DynamicPrintConfig& multi_config, std::set<std::string>& key_set, std::string id_name, std::string variant_name);
+    int update_values_from_multi_to_single(DynamicPrintConfig& single_config, std::set<std::string>& key_set, std::string id_name, std::string variant_name, std::vector<std::string>& extruder_variants);
+
 };
 extern std::set<std::string> printer_extruder_options;
 extern std::set<std::string> print_options_with_variant;
@@ -833,7 +836,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionPercent,            wipe_speed))
     ((ConfigOptionBool,               role_base_wipe_speed))
     ((ConfigOptionBool,               precise_z_height)) // BBS
-        
+
     ((ConfigOptionBool, interlocking_beam))
     ((ConfigOptionFloat,interlocking_beam_width))
     ((ConfigOptionFloat,interlocking_orientation))
@@ -1482,10 +1485,10 @@ private:
     static PrintAndCLIConfigDef s_def;
 };
 
-Points get_bed_shape(const DynamicPrintConfig &cfg);
-Points get_bed_shape(const PrintConfig &cfg);
+Points get_bed_shape(const DynamicPrintConfig &cfg, bool use_share = true);
+Points get_bed_shape(const PrintConfig &cfg, bool use_share = false);
 Points get_bed_shape(const SLAPrinterConfig &cfg);
-Slic3r::Polygon get_bed_shape_with_excluded_area(const PrintConfig& cfg);
+Slic3r::Polygon get_bed_shape_with_excluded_area(const PrintConfig& cfg, bool use_share = false);
 bool has_skirt(const DynamicPrintConfig& cfg);
 float get_real_skirt_dist(const DynamicPrintConfig& cfg);
 
