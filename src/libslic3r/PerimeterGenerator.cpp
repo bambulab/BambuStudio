@@ -19,6 +19,7 @@ static const double narrow_loop_length_threshold = 10;
 static const double min_degree_gap = 0.1;
 static const int max_overhang_degree = overhang_sampling_number - 1;
 static const std::vector<double> non_uniform_degree_map = { 0, 10, 25, 50, 75, 100};
+static const int insert_point_count = 3;
 //BBS: when the width of expolygon is smaller than
 //ext_perimeter_width + ext_perimeter_spacing  * (1 - SMALLER_EXT_INSET_OVERLAP_TOLERANCE),
 //we think it's small detail area and will generate smaller line width for it
@@ -339,6 +340,37 @@ public:
     }
 };
 
+static void sampling_at_line_end(Polyline &poly, double mini_length, int insert_count)
+{
+
+
+    Point end_point = poly.last_point();
+    const double length = poly.length();
+    if (length < mini_length * 2)
+        return;
+
+    if (length < mini_length * (insert_count * 2 - 1))
+        insert_count = 0.5 * length /  mini_length;
+
+    poly.points.pop_back();
+    double length_count = 0;
+    Point dir = end_point - poly.first_point();
+
+    for (int count = 0; count < insert_count; ++count) {
+        length_count += mini_length;
+        poly.append(poly.first_point() + dir * (length_count / length));
+    }
+
+    dir *= -1;
+    for (int count = 0; count < insert_count; ++count) {
+
+        poly.append(end_point + dir * (length_count / length));
+
+        length_count -= mini_length;
+    }
+    poly.append(end_point);
+}
+
 static std::deque<PolylineWithDegree> detect_overahng_degree(Polygons        lower_polygons,
                                                              Polylines       middle_overhang_polyines,
                                                              const double    &lower_bound,
@@ -357,6 +389,9 @@ static std::deque<PolylineWithDegree> detect_overahng_degree(Polygons        low
     for (size_t polyline_idx = 0; polyline_idx < middle_overhang_polyines.size(); ++polyline_idx) {
         //filter too short polyline
         Polyline middle_poly = middle_overhang_polyines[polyline_idx];
+        //sample at start and end
+        if (middle_poly.size() == 2)
+            sampling_at_line_end(middle_poly, (upper_bound - lower_bound) / 2, insert_point_count);
 
         Polyline polyline_with_insert_points;
         points_overhang.clear();
@@ -582,7 +617,7 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
                                                                                                         overhang_dist_boundary->second);
 
                     // BBS: add path with overhang degree
-                    for (PolylineWithDegree polylines_collection : polylines_degree_collection) {
+                    for (PolylineWithDegree &polylines_collection : polylines_degree_collection) {
                         extrusion_paths_append(paths,
                                                std::move(polylines_collection.polyline),
                                                polylines_collection.overhang_degree,
