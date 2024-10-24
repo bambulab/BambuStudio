@@ -35,6 +35,9 @@ GLGizmoBrimEars::GLGizmoBrimEars(GLCanvas3D &parent, const std::string &icon_fil
 
 bool GLGizmoBrimEars::on_init()
 {
+
+    m_new_point_head_diameter = get_brim_default_radius();
+    
     m_shortcut_key = WXK_CONTROL_L;
 
     m_desc["head_diameter"]    = _L("Head diameter");
@@ -551,7 +554,7 @@ void GLGizmoBrimEars::on_render_input_window(float x, float y, float bottom_limi
                 find_single();
             }
     };
-    m_imgui->bbl_slider_float_style("##head_diameter", &m_new_point_head_diameter, 5, 10, "%.1f", 1.0f, true);
+    m_imgui->bbl_slider_float_style("##head_diameter", &m_new_point_head_diameter, 5, 20, "%.1f", 1.0f, true);
     if (m_imgui->get_last_slider_status().clicked) {
         if (m_old_point_head_diameter == 0.f) m_old_point_head_diameter = initial_value;
     }
@@ -747,7 +750,6 @@ void GLGizmoBrimEars::on_set_state()
     if (m_state == On && m_old_state != On) {
         // the gizmo was just turned on
         wxGetApp().plater()->enter_gizmos_stack();
-        m_new_point_head_diameter = get_brim_default_radius();
         first_layer_slicer();
     }
     if (m_state == Off && m_old_state != Off) {
