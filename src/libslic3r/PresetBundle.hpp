@@ -100,6 +100,7 @@ public:
     //BBS: check whether this is the only edited filament
     bool is_the_only_edited_filament(unsigned int filament_index);
 
+    std::vector<int> get_used_tpu_filaments(const std::vector<int> &used_filaments);
     void set_calibrate_printer(std::string name);
 
     std::vector<std::vector<DynamicPrintConfig>> get_extruder_filament_info() const;
