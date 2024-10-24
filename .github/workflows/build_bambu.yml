@@ -151,6 +151,7 @@ jobs:
         if: inputs.os == 'windows-latest'
         run: |
           dir "C:/Program Files (x86)/Windows Kits/10/Include"
+          choco install pkgconfiglite
           choco install nsis
 
       - name: Build slicer Win
