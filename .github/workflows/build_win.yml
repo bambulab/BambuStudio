@@ -1,0 +1,53 @@
+name: Build Win
+
+on:
+  push:
+    branches:
+     - main
+    paths:
+     - 'deps/**'
+     - 'src/**'
+     - '**/CMakeLists.txt'
+     - 'version.inc'
+     - 'bbl/**'
+     - 'resources/**'
+     - ".github/workflows/build_*.yml"
+
+  pull_request:
+    branches:
+     - master
+    paths:
+     - 'deps/**'
+     - 'src/**'
+     - '**/CMakeLists.txt'
+     - 'version.inc'
+     - ".github/workflows/build_*.yml"
+     - 'BuildLinux.sh'
+     - 'build_win.bat'
+    
+  workflow_dispatch: # manual dispatch
+      inputs:
+        build-deps-only:
+            description: 'Only build dependencies (bypasses caching)'
+            type: boolean
+            default: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build_win:
+    name: Build Win
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            arch: x86_64
+    uses: ./.github/workflows/build_check_cache.yml
+    with:
+      os: ${{ matrix.os }}
+      arch: ${{ matrix.arch }}
+      build-deps-only: ${{ inputs.build-deps-only || false }}
+    secrets: inherit
