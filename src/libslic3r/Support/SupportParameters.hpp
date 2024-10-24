@@ -166,13 +166,17 @@ struct SupportParameters {
 
         support_style = object_config.support_style;
         if (support_style == smsDefault) {
-            // organic support doesn't work with variable layer heights (including adaptive layer height and height range modifier, see #4313)
-            if (!object.has_variable_layer_heights) {
-                BOOST_LOG_TRIVIAL(warning) << "tree support default to organic support";
-                support_style = smsTreeOrganic;
+            if (is_tree(object_config.support_type)) {
+                // organic support doesn't work with variable layer heights (including adaptive layer height and height range modifier, see #4313)
+                if (!object.has_variable_layer_heights) {
+                    BOOST_LOG_TRIVIAL(warning) << "tree support default to organic support";
+                    support_style = smsTreeOrganic;
+                } else {
+                    BOOST_LOG_TRIVIAL(warning) << "tree support default to hybrid tree due to adaptive layer height";
+                    support_style = smsTreeHybrid;
+                }
             } else {
-                BOOST_LOG_TRIVIAL(warning) << "tree support default to hybrid tree due to adaptive layer height";
-                support_style = smsTreeHybrid;
+                support_style = smsGrid;
             }
         }
     }
