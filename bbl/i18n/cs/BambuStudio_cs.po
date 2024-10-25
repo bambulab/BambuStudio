@@ -2,12 +2,12 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-15 16:47+0800\n"
+"POT-Creation-Date: 2024-10-25 21:39+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -2194,6 +2194,11 @@ msgstr ""
 "Tyto objekty nelze automaticky uspořádat."
 
 msgid "No arrangeable objects are selected."
+msgstr ""
+
+msgid ""
+"The following plates are skipped due to different arranging settings from "
+"global:"
 msgstr ""
 
 msgid ""
@@ -4892,6 +4897,21 @@ msgstr ""
 msgid "Step file import parameters"
 msgstr ""
 
+msgid "Rough"
+msgstr ""
+
+msgid "Reduce Linear"
+msgstr ""
+
+msgid "Reduce Angle"
+msgstr ""
+
+msgid "Fewer faces"
+msgstr ""
+
+msgid "More faces"
+msgstr ""
+
 msgid "Linear Deflection"
 msgstr ""
 
@@ -5229,6 +5249,9 @@ msgstr " podložka %1%: "
 
 msgid "Invalid name, the following characters are not allowed:"
 msgstr "Neplatné jméno, následující znaky nejsou povoleny:"
+
+msgid "(Including its escape characters)"
+msgstr ""
 
 msgid "Sliced Info"
 msgstr "Informace o slicování"
@@ -9212,6 +9235,18 @@ msgstr ""
 "Průměr filamentu se používá k výpočtu vytlačování v gcode, takže je důležitý "
 "a měl by být přesný"
 
+msgid "Shrinkage"
+msgstr ""
+
+#, no-c-format, no-boost-format
+msgid ""
+"Enter the shrinkage percentage that the filament will get after cooling (94% "
+"if you measure 94mm instead of 100mm). The part will be scaled in xy to "
+"compensate. Only the filament used for the perimeter is taken into account.\n"
+"Be sure to allow enough space between objects, as this compensation is done "
+"after the checks."
+msgstr ""
+
 msgid "Density"
 msgstr "Hustota"
 
@@ -10643,8 +10678,8 @@ msgstr ""
 "Podpěry budou generovány pro převisy, jejichž úhel sklonu je pod hraniční "
 "hodnotou."
 
-msgid "Tree support branch angle"
-msgstr "Úhel větve podpěr stromu"
+msgid "Branch angle"
+msgstr ""
 
 msgid ""
 "This setting determines the maximum overhang angle that t he branches of "
@@ -10655,18 +10690,28 @@ msgstr ""
 "stromu dělat. Pokud se úhel zvětší, větve mohou být vytištěny více "
 "vodorovně, což jim umožní dosáhnout dále."
 
-msgid "Tree support branch distance"
-msgstr "Vzdálenost větví podpěr stromů"
+msgid "Branch distance"
+msgstr ""
 
 msgid ""
 "This setting determines the distance between neighboring tree support nodes."
 msgstr "Toto nastavení určuje vzdálenost mezi sousedními uzly podpěr stromů."
 
-msgid "Tree support branch diameter"
-msgstr "Průměr větve podpěr stromů"
+msgid "Branch diameter"
+msgstr ""
 
 msgid "This setting determines the initial diameter of support nodes."
 msgstr "Toto nastavení určuje počáteční průměr uzlů poděry."
+
+msgid "Branch diameter angle"
+msgstr ""
+
+msgid ""
+"The angle of the branches' diameter as they gradually become thicker towards "
+"the bottom. An angle of 0 will cause the branches to have uniform thickness "
+"over their length. A bit of an angle can increase stability of the tree "
+"support."
+msgstr ""
 
 msgid "Support wall loops"
 msgstr ""
@@ -13171,6 +13216,15 @@ msgid ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
 msgstr ""
+
+#~ msgid "Tree support branch angle"
+#~ msgstr "Úhel větve podpěr stromu"
+
+#~ msgid "Tree support branch distance"
+#~ msgstr "Vzdálenost větví podpěr stromů"
+
+#~ msgid "Tree support branch diameter"
+#~ msgstr "Průměr větve podpěr stromů"
 
 #~ msgid ""
 #~ "Object will be raised by this number of support layers. Use this function "

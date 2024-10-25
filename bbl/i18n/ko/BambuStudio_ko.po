@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-15 16:47+0800\n"
+"POT-Creation-Date: 2024-10-25 21:39+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2200,6 +2200,11 @@ msgstr ""
 
 msgid "No arrangeable objects are selected."
 msgstr "정렬 가능한 개체가 선택되지 않았습니다."
+
+msgid ""
+"The following plates are skipped due to different arranging settings from "
+"global:"
+msgstr ""
 
 msgid ""
 "This plate is locked,\n"
@@ -4924,6 +4929,21 @@ msgstr ""
 msgid "Step file import parameters"
 msgstr ""
 
+msgid "Rough"
+msgstr ""
+
+msgid "Reduce Linear"
+msgstr ""
+
+msgid "Reduce Angle"
+msgstr ""
+
+msgid "Fewer faces"
+msgstr ""
+
+msgid "More faces"
+msgstr ""
+
 msgid "Linear Deflection"
 msgstr ""
 
@@ -5257,6 +5277,9 @@ msgstr "플레이트 %1%:"
 
 msgid "Invalid name, the following characters are not allowed:"
 msgstr "이름이 잘못되었습니다. 다음 문자는 사용할 수 없습니다."
+
+msgid "(Including its escape characters)"
+msgstr ""
 
 msgid "Sliced Info"
 msgstr "슬라이스 정보"
@@ -9323,6 +9346,18 @@ msgstr ""
 "필라멘트 직경은 G 코드의 압출값을 계산하는 데 사용되므로 정확하고 정밀해야 합"
 "니다."
 
+msgid "Shrinkage"
+msgstr ""
+
+#, no-c-format, no-boost-format
+msgid ""
+"Enter the shrinkage percentage that the filament will get after cooling (94% "
+"if you measure 94mm instead of 100mm). The part will be scaled in xy to "
+"compensate. Only the filament used for the perimeter is taken into account.\n"
+"Be sure to allow enough space between objects, as this compensation is done "
+"after the checks."
+msgstr ""
+
 msgid "Density"
 msgstr "밀도"
 
@@ -10804,8 +10839,8 @@ msgid ""
 "threshold."
 msgstr "경사 각도가 이 임계값 미만인 오버행에 대해서는 서포트가 생성됩니다."
 
-msgid "Tree support branch angle"
-msgstr "트리서포트 가지 각도"
+msgid "Branch angle"
+msgstr ""
 
 msgid ""
 "This setting determines the maximum overhang angle that t he branches of "
@@ -10816,18 +10851,28 @@ msgstr ""
 "를 높이면 가지를 더 수평으로 인쇄할 수 있으므로 가지가 더 멀리 뻗을 수 있습니"
 "다."
 
-msgid "Tree support branch distance"
-msgstr "트리 서포트 가지 거리"
+msgid "Branch distance"
+msgstr ""
 
 msgid ""
 "This setting determines the distance between neighboring tree support nodes."
 msgstr "이 설정은 인접한 트리 서포트 분기점 간의 거리를 결정합니다."
 
-msgid "Tree support branch diameter"
-msgstr "트리 서포트 가지 지름"
+msgid "Branch diameter"
+msgstr ""
 
 msgid "This setting determines the initial diameter of support nodes."
 msgstr "이 설정은 서포트 분기점의 초기 지름을 결정합니다."
+
+msgid "Branch diameter angle"
+msgstr ""
+
+msgid ""
+"The angle of the branches' diameter as they gradually become thicker towards "
+"the bottom. An angle of 0 will cause the branches to have uniform thickness "
+"over their length. A bit of an angle can increase stability of the tree "
+"support."
+msgstr ""
 
 msgid "Support wall loops"
 msgstr "Support wall loops"
@@ -13516,6 +13561,15 @@ msgstr ""
 "뒤틀림 방지\n"
 "ABS 등 뒤틀림이 발생하기 쉬운 소재를 출력할 때, 히트베드 온도를 적절하게 높이"
 "면 뒤틀림 가능성을 줄일 수 있다는 사실을 알고 계셨나요?"
+
+#~ msgid "Tree support branch angle"
+#~ msgstr "트리서포트 가지 각도"
+
+#~ msgid "Tree support branch distance"
+#~ msgstr "트리 서포트 가지 거리"
+
+#~ msgid "Tree support branch diameter"
+#~ msgstr "트리 서포트 가지 지름"
 
 #~ msgid ""
 #~ "Object will be raised by this number of support layers. Use this function "

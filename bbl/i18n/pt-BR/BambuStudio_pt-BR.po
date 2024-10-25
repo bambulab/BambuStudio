@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-15 16:47+0800\n"
+"POT-Creation-Date: 2024-10-25 21:39+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2229,6 +2229,11 @@ msgstr ""
 
 msgid "No arrangeable objects are selected."
 msgstr "Nenhum objeto organizável está selecionado."
+
+msgid ""
+"The following plates are skipped due to different arranging settings from "
+"global:"
+msgstr ""
 
 msgid ""
 "This plate is locked,\n"
@@ -5020,6 +5025,21 @@ msgstr ""
 msgid "Step file import parameters"
 msgstr ""
 
+msgid "Rough"
+msgstr ""
+
+msgid "Reduce Linear"
+msgstr ""
+
+msgid "Reduce Angle"
+msgstr ""
+
+msgid "Fewer faces"
+msgstr ""
+
+msgid "More faces"
+msgstr ""
+
 msgid "Linear Deflection"
 msgstr ""
 
@@ -5360,6 +5380,9 @@ msgstr "placa %1%:"
 
 msgid "Invalid name, the following characters are not allowed:"
 msgstr "Nome inválido, os seguintes caracteres não são permitidos:"
+
+msgid "(Including its escape characters)"
+msgstr ""
 
 msgid "Sliced Info"
 msgstr "Informações fatiadas"
@@ -9561,6 +9584,18 @@ msgstr ""
 "O diâmetro do filamento é usado para calcular a extrusão em gcode, por isso "
 "é importante e deve ser preciso"
 
+msgid "Shrinkage"
+msgstr ""
+
+#, no-c-format, no-boost-format
+msgid ""
+"Enter the shrinkage percentage that the filament will get after cooling (94% "
+"if you measure 94mm instead of 100mm). The part will be scaled in xy to "
+"compensate. Only the filament used for the perimeter is taken into account.\n"
+"Be sure to allow enough space between objects, as this compensation is done "
+"after the checks."
+msgstr ""
+
 msgid "Density"
 msgstr "Densidade"
 
@@ -11100,8 +11135,8 @@ msgstr ""
 "O suporte será gerado para saliências cujo ângulo de inclinação esteja "
 "abaixo do limite."
 
-msgid "Tree support branch angle"
-msgstr "Ângulo do ramo de suporte da árvore"
+msgid "Branch angle"
+msgstr ""
 
 msgid ""
 "This setting determines the maximum overhang angle that t he branches of "
@@ -11112,8 +11147,8 @@ msgstr ""
 "suporte da árvore podem criar. Se o ângulo for aumentado, os galhos poderão "
 "ser impressos mais horizontalmente, permitindo que cheguem mais longe."
 
-msgid "Tree support branch distance"
-msgstr "Distância do ramo de suporte de"
+msgid "Branch distance"
+msgstr ""
 
 msgid ""
 "This setting determines the distance between neighboring tree support nodes."
@@ -11121,11 +11156,21 @@ msgstr ""
 "Essa configuração determina a distância entre os nós de suporte de árvore "
 "vizinhos."
 
-msgid "Tree support branch diameter"
-msgstr "Diâmetro do galho de suporte de"
+msgid "Branch diameter"
+msgstr ""
 
 msgid "This setting determines the initial diameter of support nodes."
 msgstr "Essa configuração determina o diâmetro inicial dos nós de suporte."
+
+msgid "Branch diameter angle"
+msgstr ""
+
+msgid ""
+"The angle of the branches' diameter as they gradually become thicker towards "
+"the bottom. An angle of 0 will cause the branches to have uniform thickness "
+"over their length. A bit of an angle can increase stability of the tree "
+"support."
+msgstr ""
 
 msgid "Support wall loops"
 msgstr "Alças de parede de suporte"
@@ -13895,6 +13940,15 @@ msgstr ""
 "Você sabia que, ao imprimir materiais propensos a deformações, como o ABS, "
 "aumentar adequadamente a temperatura do leito térmico pode reduzir a "
 "probabilidade de deformação."
+
+#~ msgid "Tree support branch angle"
+#~ msgstr "Ângulo do ramo de suporte da árvore"
+
+#~ msgid "Tree support branch distance"
+#~ msgstr "Distância do ramo de suporte de"
+
+#~ msgid "Tree support branch diameter"
+#~ msgstr "Diâmetro do galho de suporte de"
 
 #~ msgid "Manual"
 #~ msgstr "Manual"
