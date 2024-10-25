@@ -240,9 +240,8 @@ void ArrangeJob::prepare_all() {
         }
     }
     if (!m_uncompatible_plates.empty()) {
-        std::string msg = "The following plates are skipped due to different arranging settings from global:\n";
-        for (int i : m_uncompatible_plates) {
-            msg += "Plate " + std::to_string(i + 1) + "\n";
+        auto msg = _L("The following plates are skipped due to different arranging settings from global:");
+        for (int i : m_uncompatible_plates) { msg += "\n"+_L("Plate") + " " + std::to_string(i + 1);
         }
         m_plater->get_notification_manager()->push_notification(NotificationType::BBLPlateInfo,
                        NotificationManager::NotificationLevel::WarningNotificationLevel, into_u8(msg));
