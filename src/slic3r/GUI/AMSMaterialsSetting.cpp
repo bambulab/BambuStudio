@@ -1162,7 +1162,11 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
                 }
             }
             else {
+#ifdef __APPLE__
+                cali_select_idx = get_cali_index(m_comboBox_filament->GetValue().ToStdString());
+#else
                 cali_select_idx = get_cali_index(m_comboBox_filament->GetLabel().ToStdString());
+#endif
                 m_comboBox_cali_result->SetSelection(cali_select_idx);
             }
         }
@@ -1180,7 +1184,11 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
                 }
             }
             else {
+#ifdef __APPLE__
+                cali_select_idx = get_cali_index(m_comboBox_filament->GetValue().ToStdString());
+#else
                 cali_select_idx = get_cali_index(m_comboBox_filament->GetLabel().ToStdString());
+#endif
                 m_comboBox_cali_result->SetSelection(cali_select_idx);
             }
         }
