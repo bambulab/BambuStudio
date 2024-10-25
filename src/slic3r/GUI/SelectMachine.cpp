@@ -1879,9 +1879,9 @@ bool SelectMachineDialog::get_ams_mapping_result(std::string &mapping_array_str,
     } else {
         json          j = json::array();
         json mapping_info_json = json::array();
-
         for (int i = 0; i < wxGetApp().preset_bundle->filament_presets.size(); i++) {
-            int tray_id = -1;
+            /* JIRA: 8116, fix a ams mapping issue, modify -1 to -2 */
+            int tray_id = -2;
             json mapping_item;
             mapping_item["ams"] = tray_id;
             mapping_item["targetColor"] = "";
