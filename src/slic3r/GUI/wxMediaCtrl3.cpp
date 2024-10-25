@@ -122,6 +122,8 @@ void wxMediaCtrl3::paintEvent(wxPaintEvent &evt)
 {
     wxPaintDC dc(this);
     auto      size = GetSize();
+    if (size.x <= 0 || size.y <= 0)
+        return;
     std::unique_lock<std::mutex> lk(m_mutex);
     if (!m_frame.IsOk())
         return;
