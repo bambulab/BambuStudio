@@ -146,6 +146,15 @@ namespace Slic3r {
 
     struct GCodeProcessorResult
     {
+        struct FilamentSequenceHash
+        {
+            uint64_t operator()(const std::vector<unsigned int>& layer_filament) const {
+                uint64_t key = 0;
+                for (auto& f : layer_filament)
+                    key |= (uint64_t(1) << f);
+                return key;
+            }
+        };
         ConflictResultOpt conflict_result;
         GCodeCheckResult  gcode_check_result;
         FilamentPrintableResult filament_printable_reuslt;
@@ -239,6 +248,8 @@ namespace Slic3r {
         //BBS
         std::vector<SliceWarning> warnings;
         std::vector<NozzleType> nozzle_type;
+        // first key stores filaments, second keys stores the layer ranges(enclosed) that use the filaments
+        std::unordered_map<std::vector<unsigned int>, std::vector<std::pair<int, int>>,FilamentSequenceHash> layer_filaments;
         BedType bed_type = BedType::btCount;
 #if ENABLE_GCODE_VIEWER_STATISTICS
         int64_t time{ 0 };
