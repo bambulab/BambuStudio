@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-15 16:47+0800\n"
+"POT-Creation-Date: 2024-10-25 21:39+0800\n"
 "PO-Revision-Date: 2024-03-21 10:39+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Poedit 3.3.2\n"
+"X-Generator: Poedit 3.5\n"
 
 msgid "Supports Painting"
 msgstr "支撑绘制"
@@ -2179,6 +2179,11 @@ msgstr ""
 
 msgid "No arrangeable objects are selected."
 msgstr "没有可摆盘的对象被选中。"
+
+msgid ""
+"The following plates are skipped due to different arranging settings from "
+"global:"
+msgstr "由于单盘摆盘设置与全局不同，以下盘被跳过："
 
 msgid ""
 "This plate is locked,\n"
@@ -4827,6 +4832,21 @@ msgstr "至少需要一个成功的打印记录，才能给出积极的评价（
 msgid "Step file import parameters"
 msgstr "导入step文件选项"
 
+msgid "Rough"
+msgstr "粗糙"
+
+msgid "Reduce Linear"
+msgstr "减少线偏转值"
+
+msgid "Reduce Angle"
+msgstr "减少角偏转值"
+
+msgid "Fewer faces"
+msgstr "更少三角面"
+
+msgid "More faces"
+msgstr "更多三角面"
+
 msgid "Linear Deflection"
 msgstr "线偏转值"
 
@@ -5153,6 +5173,9 @@ msgstr " 盘 %1%: "
 
 msgid "Invalid name, the following characters are not allowed:"
 msgstr "无效名称，不允许使用以下字符："
+
+msgid "(Including its escape characters)"
+msgstr "(包括转义字符）"
 
 msgid "Sliced Info"
 msgstr "切片你信息"
@@ -5669,7 +5692,7 @@ msgid "Plate Settings"
 msgstr "盘参数设置"
 
 msgid "Prime Tower:"
-msgstr ""
+msgstr "擦料塔："
 
 msgid ""
 "A cube printed during a filament change to purge old color and ensure smooth "
@@ -9051,6 +9074,21 @@ msgid ""
 "and should be accurate"
 msgstr "耗材丝直径被用于计算G-code文件中的挤出量。因此很重要，应尽可能精确。"
 
+msgid "Shrinkage"
+msgstr "收缩"
+
+#, no-c-format, no-boost-format
+msgid ""
+"Enter the shrinkage percentage that the filament will get after cooling (94% "
+"if you measure 94mm instead of 100mm). The part will be scaled in xy to "
+"compensate. Only the filament used for the perimeter is taken into account.\n"
+"Be sure to allow enough space between objects, as this compensation is done "
+"after the checks."
+msgstr ""
+"输入耗材冷却后将会产生的收缩百分比（如果测量值为94毫米而不是100毫米，则为"
+"94%）。零件将在XY方向上缩放以进行补偿。仅考虑用于外周的耗材。  \n"
+"请确保对象之间有足够的空间，因为补偿是在检查之后进行的。"
+
 msgid "Density"
 msgstr "密度"
 
@@ -9966,7 +10004,7 @@ msgid "Direct drive"
 msgstr "直接驱动"
 
 msgid "Bowden"
-msgstr ""
+msgstr "远程"
 
 msgid "Extra length on restart"
 msgstr "启动时额外长度"
@@ -10433,8 +10471,8 @@ msgid ""
 "threshold."
 msgstr "将会为悬垂角度低于阈值的模型表面生成支撑。"
 
-msgid "Tree support branch angle"
-msgstr "树状支撑分支角度"
+msgid "Branch angle"
+msgstr "分支角度"
 
 msgid ""
 "This setting determines the maximum overhang angle that t he branches of "
@@ -10444,18 +10482,30 @@ msgstr ""
 "此设置确定了允许树状支撑的最大悬垂角度。如果角度增加，可以更水平地打印分支，"
 "使它们可以到达更远的地方。"
 
-msgid "Tree support branch distance"
-msgstr "树状支撑分支距离"
+msgid "Branch distance"
+msgstr "分支距离"
 
 msgid ""
 "This setting determines the distance between neighboring tree support nodes."
 msgstr "此设置确定了树状支撑的相邻节点之间的距离。"
 
-msgid "Tree support branch diameter"
-msgstr "树状支撑分支直径"
+msgid "Branch diameter"
+msgstr "分支直径"
 
 msgid "This setting determines the initial diameter of support nodes."
 msgstr "此设置确定了树状支撑节点的初始直径。"
+
+msgid "Branch diameter angle"
+msgstr "分支直径角度"
+
+msgid ""
+"The angle of the branches' diameter as they gradually become thicker towards "
+"the bottom. An angle of 0 will cause the branches to have uniform thickness "
+"over their length. A bit of an angle can increase stability of the tree "
+"support."
+msgstr ""
+"树枝向底部逐渐变粗时的直径角度。角度为 0 会使树枝在整个长度上粗细一致。稍大一"
+"点的角度可以增加树状支撑的稳定性。"
 
 msgid "Support wall loops"
 msgstr "支撑外墙层数"
@@ -12064,7 +12114,7 @@ msgid "Please select a type you want to export"
 msgstr "请选择一个你想导出的类型"
 
 msgid "Failed to create temporary folder, please try Export Configs again."
-msgstr ""
+msgstr "无法创建临时文件夹，请再次尝试导出配置。"
 
 msgid "Edit Filament"
 msgstr "编辑材料"
