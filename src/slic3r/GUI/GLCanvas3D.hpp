@@ -377,7 +377,8 @@ class GLCanvas3D
         SomethingNotShown,
         ObjectClashed,
         GCodeConflict,
-        ToolHeightOutside
+        ToolHeightOutside,
+        FilamentUnPrintableOnFirstLayer
     };
 
     class RenderStats
