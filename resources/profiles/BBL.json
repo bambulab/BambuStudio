@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.10.00.26",
+    "version": "01.10.00.27",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -772,6 +772,10 @@
         {
             "name": "Bambu Support For PLA/PETG @base",
             "sub_path": "filament/Bambu Support For PLA-PETG @base.json"
+        },
+        {
+            "name": "Bambu PLA Wood @base",
+            "sub_path": "filament/Bambu PLA Wood @base.json"
         },
         {
             "name": "Bambu TPU 95A @base",
@@ -1720,6 +1724,30 @@
         {
             "name": "Bambu Support For PLA/PETG @BBL A1 0.2 nozzle",
             "sub_path": "filament/Bambu Support For PLA-PETG @BBL A1 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Wood @BBL X1C",
+            "sub_path": "filament/Bambu PLA Wood @BBL X1C.json"
+        },
+        {
+            "name": "Bambu PLA Wood @BBL X1C 0.8 nozzle",
+            "sub_path": "filament/Bambu PLA Wood @BBL X1C 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Wood @BBL X1",
+            "sub_path": "filament/Bambu PLA Wood @BBL X1.json"
+        },
+        {
+            "name": "Bambu PLA Wood @BBL P1P",
+            "sub_path": "filament/Bambu PLA Wood @BBL P1P.json"
+        },
+        {
+            "name": "Bambu PLA Wood @BBL A1",
+            "sub_path": "filament/Bambu PLA Wood @BBL A1.json"
+        },
+        {
+            "name": "Bambu PLA Wood @BBL A1M",
+            "sub_path": "filament/Bambu PLA Wood @BBL A1M.json"
         },
         {
             "name": "Bambu TPU 95A @BBL X1C",
