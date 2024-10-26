@@ -2165,7 +2165,7 @@ bool SelectMachineDialog::can_hybrid_mapping(ExtderData data) {
     for (auto it = data.extders.rbegin(); it != data.extders.rend(); it++){
         //exist field is not updated, wait add
         //if (it->exist < 3) return false;
-        std::string type_str = it->flow_type ? "Big Traffic" : "Normal";
+        std::string type_str = it->current_nozzle_flow_type ? "Big Traffic" : "Normal";
         flow_type_of_machine.push_back(type_str);
     }
     //get the nozzle type of preset --> flow_types
@@ -2211,24 +2211,49 @@ bool SelectMachineDialog::is_nozzle_type_match(ExtderData data) {
     if (data.total_extder_count <= 1 || data.extders.size() <= 1 || !wxGetApp().preset_bundle)
         return false;
 
-    //The default two extruders are left, right, but the order of the extruders on the machine is right, left.
-    std::vector<std::string>flow_type_of_machine;
-    for (auto it = data.extders.rbegin(); it != data.extders.rend(); it++) {
-        std::string str_flow = it->flow_type ? "Big Traffic" : "Normal";
-        flow_type_of_machine.push_back(str_flow);
+    //check nozzle used
+    auto used_filaments = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_used_extruders(); // 1 based
+    auto filament_maps  = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_filament_maps();  // 1 based
+    std::map<int, std::string> used_extruders_flow;
+    std::vector<int> used_extruders; // 0 based
+    for (auto f : used_filaments) {
+        int filament_extruder = filament_maps[f - 1] - 1;
+        if (std::find(used_extruders.begin(), used_extruders.end(), filament_extruder) == used_extruders.end()) used_extruders.emplace_back(filament_extruder);
     }
-    //get the nozzle type of preset --> flow_types
-    const Preset& current_printer = wxGetApp().preset_bundle->printers.get_selected_preset();
-    const Preset* base_printer = wxGetApp().preset_bundle->printers.get_preset_base(current_printer);
-    auto flow_data = wxGetApp().app_config->get_nozzle_volume_types_from_config(base_printer->name);
-    std::vector<string> flow_types;
-    boost::split(flow_types, flow_data, boost::is_any_of(","));
 
-    if (flow_types.size() <= 1 || flow_types.size() != flow_type_of_machine.size()) return false;
+    std::sort(used_extruders.begin(), used_extruders.end());
+
+    auto nozzle_volume_type_opt = dynamic_cast<const ConfigOptionEnumsGeneric *>(wxGetApp().preset_bundle->project_config.option("nozzle_volume_type"));
+    for (auto i = 0; i < used_extruders.size(); i++) {
+        if (nozzle_volume_type_opt) {
+            NozzleVolumeType nozzle_volume_type = (NozzleVolumeType) (nozzle_volume_type_opt->get_at(used_extruders[i]));
+            if (nozzle_volume_type == NozzleVolumeType::nvtNormal) { used_extruders_flow[used_extruders[i]] = "Normal";}
+            else {used_extruders_flow[used_extruders[i]] = "Big Traffic";}
+        }
+    }
+
+    vector<int> map_extruders = {1, 0};
+
+
+    // The default two extruders are left, right, but the order of the extruders on the machine is right, left.
+    std::vector<std::string> flow_type_of_machine;
+    for (auto it = data.extders.rbegin(); it != data.extders.rend(); it++) {
+        if (it->current_nozzle_flow_type == NozzleFlowType::H_FLOW) {
+            flow_type_of_machine.push_back("Big Traffic");
+        } else if (it->current_nozzle_flow_type == NozzleFlowType::S_FLOW){
+            flow_type_of_machine.push_back("Normal");
+        }
+    }
 
     //Only when all preset nozzle types and machine nozzle types are exactly the same, return true.
-    for (int i = 0; i < flow_types.size(); i++) {
-        if (flow_types[i] != flow_type_of_machine[i]) return false;
+    for (std::map<int, std::string>::iterator it = used_extruders_flow.begin(); it!= used_extruders_flow.end(); it++) {
+        int target_machine_nozzle_id = map_extruders[it->first];
+
+        if (target_machine_nozzle_id <= flow_type_of_machine.size()) {
+            if (flow_type_of_machine[target_machine_nozzle_id] != used_extruders_flow[it->first]) {
+                return false;
+            }
+        }
     }
     return true;
 }
@@ -2425,6 +2450,11 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingMixInvalid) {
         wxString msg_text = _L("Please do not mix-use the Ext with Ams");
+        update_print_status_msg(msg_text, true, false);
+        Enable_Send_Button(false);
+        Enable_Refresh_Button(true);
+    } else if (status == PrintDialogStatus::PrintStatusNozzleDataInvalid) {
+        wxString msg_text = _L("Invalid nozzle information, please refresh or manually set nozzle information.");
         update_print_status_msg(msg_text, true, false);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
@@ -2639,7 +2669,7 @@ bool SelectMachineDialog::is_same_nozzle_diameters(std::string& tag_nozzle_type,
 
         std::vector<std::string> machine_nozzle_types(obj_->m_extder_data.extders.size());
         for (size_t idx = 0; idx < obj_->m_extder_data.extders.size(); ++idx)
-            machine_nozzle_types[idx] = obj_->m_extder_data.extders[idx].type;
+            machine_nozzle_types[idx] = obj_->m_extder_data.extders[idx].current_nozzle_type;
 
         auto used_filaments = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_used_extruders();  // 1 based
         auto filament_maps=wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_filament_maps(); // 1 based
@@ -2653,13 +2683,13 @@ bool SelectMachineDialog::is_same_nozzle_diameters(std::string& tag_nozzle_type,
         std::sort(used_extruders.begin(), used_extruders.end());
 
         // TODO [tao wang] : add idx mapping
-        tag_nozzle_type = obj_->m_extder_data.extders[0].type;
+        tag_nozzle_type = obj_->m_extder_data.extders[0].current_nozzle_type;
 
         if (opt_nozzle_diameters != nullptr) {
             for (auto i = 0; i < used_extruders.size(); i++) {
                 auto extruder = used_extruders[i];
                 preset_nozzle_diameters = float(opt_nozzle_diameters->get_at(extruder));
-                if (preset_nozzle_diameters != obj_->m_extder_data.extders[0].diameter) {
+                if (preset_nozzle_diameters != obj_->m_extder_data.extders[0].current_nozzle_diameter) {
                     is_same_nozzle_diameters = false;
                 }
             }
@@ -2687,15 +2717,7 @@ bool SelectMachineDialog::is_same_nozzle_type(std::string& filament_type, std::s
     if (obj_ == nullptr) return true;
 
 
-    NozzleType nozzle_type = NozzleType::ntUndefine;
-
-    if (obj_->m_extder_data.extders[0].type == "stainless_steel") {
-        nozzle_type = NozzleType::ntStainlessSteel;
-    }
-    else if (obj_->m_extder_data.extders[0].type == "hardened_steel") {
-        nozzle_type = NozzleType::ntHardenedSteel;
-    }
-
+    NozzleType nozzle_type = obj_->m_extder_data.extders[0].current_nozzle_type;
     auto printer_nozzle_hrc = Print::get_hrc_by_nozzle_type(nozzle_type);
 
     auto preset_bundle = wxGetApp().preset_bundle;
@@ -2713,7 +2735,7 @@ bool SelectMachineDialog::is_same_nozzle_type(std::string& filament_type, std::s
             return is_same_nozzle_type;
         }
         else {
-            tag_nozzle_type = DeviceManager::nozzle_type_conver(obj_->m_extder_data.extders[0].type);
+            tag_nozzle_type = DeviceManager::nozzle_type_conver(obj_->m_extder_data.extders[0].current_nozzle_type);
         }
 
         iter++;
@@ -2902,13 +2924,13 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     std::string filament_type;
     std::string tag_nozzle_type;
 
-    if (!obj_->m_extder_data.extders[0].type.empty() && (m_print_type == PrintFromType::FROM_NORMAL)) {
+    if (!obj_->m_extder_data.extders[0].current_nozzle_type == NozzleType::ntUndefine && (m_print_type == PrintFromType::FROM_NORMAL)) {
         if (!is_same_nozzle_diameters(tag_nozzle_type, nozzle_diameter)) {
             has_slice_warnings = true;
             is_printing_block  = true;
 
             wxString nozzle_in_preset = wxString::Format(_L("nozzle in preset: %s %s"),nozzle_diameter, "");
-            wxString nozzle_in_printer = wxString::Format(_L("nozzle memorized: %.1f %s"), obj_->m_extder_data.extders[0].diameter, "");
+            wxString nozzle_in_printer = wxString::Format(_L("nozzle memorized: %.1f %s"), obj_->m_extder_data.extders[0].current_nozzle_diameter, "");
 
             confirm_text.push_back(ConfirmBeforeSendInfo(_L("Your nozzle diameter in sliced file is not consistent with memorized nozzle. If you changed your nozzle lately, please go to Device > Printer Parts to change settings.")
                 + "\n    " + nozzle_in_preset
@@ -2919,9 +2941,9 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         if (!is_same_nozzle_type(filament_type, tag_nozzle_type)){
             has_slice_warnings = true;
             is_printing_block = true;
-            nozzle_diameter =  wxString::Format("%.1f", obj_->m_extder_data.extders[0].diameter).ToStdString();
+            nozzle_diameter =  wxString::Format("%.1f", obj_->m_extder_data.extders[0].current_nozzle_diameter).ToStdString();
 
-                wxString nozzle_in_preset = wxString::Format(_L("Printing high temperature material(%s material) with %s may cause nozzle damage"), filament_type, format_steel_name(obj_->m_extder_data.extders[0].type));
+                wxString nozzle_in_preset = wxString::Format(_L("Printing high temperature material(%s material) with %s may cause nozzle damage"), filament_type, format_steel_name(obj_->m_extder_data.extders[0].current_nozzle_type));
             confirm_text.push_back(ConfirmBeforeSendInfo(nozzle_in_preset, ConfirmBeforeSendInfo::InfoLevel::Warning));
         }
     }
@@ -2990,12 +3012,12 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     }
 }
 
-wxString SelectMachineDialog::format_steel_name(std::string name)
+wxString SelectMachineDialog::format_steel_name(NozzleType type)
 {
-    if (name == "hardened_steel") {
+    if (type == NozzleType::ntHardenedSteel) {
         return _L("Hardened Steel");
     }
-    else if (name == "stainless_steel") {
+    else if (type == NozzleType::ntStainlessSteel) {
         return _L("Stainless Steel");
     }
 
@@ -3912,9 +3934,16 @@ void SelectMachineDialog::update_show_status()
     size_t nozzle_nums = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
 
     //the nozzle type of preset and machine are different
-    if (nozzle_nums > 1 && !is_nozzle_type_match(obj_->m_extder_data)) {
-        show_status(PrintDialogStatus::PrintStatusNozzleMatchInvalid);
-        return;
+    if (nozzle_nums > 1) {
+        if (!obj_->is_nozzle_data_invalid()) {
+            show_status(PrintDialogStatus::PrintStatusNozzleDataInvalid);
+            return;
+        }
+
+        if (!is_nozzle_type_match(obj_->m_extder_data)) {
+            show_status(PrintDialogStatus::PrintStatusNozzleMatchInvalid);
+            return;
+        }
     }
 
     if (!m_mapping_popup.m_supporting_mix_print && nozzle_nums == 1)
@@ -4509,13 +4538,6 @@ void SelectMachineDialog::reset_and_sync_ams_list()
             m_filaments.push_back(info);
         }
     }
-
-    /*if (extruders.size() <= 10) {
-        m_sizer_ams_mapping->SetCols(extruders.size());
-    }
-    else {
-        m_sizer_ams_mapping->SetCols(10);
-    }*/
 
     if (use_double_extruder)
     {

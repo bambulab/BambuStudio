@@ -21,6 +21,17 @@ namespace Slic3r { namespace GUI {
 class PrinterPartsDialog : public DPIDialog
 {
 protected:
+    wxWindowID ID_NOZZLE_TYPE_CHECKBOX_SINGLE;
+    wxWindowID ID_NOZZLE_TYPE_CHECKBOX_LEFT;
+    wxWindowID ID_NOZZLE_TYPE_CHECKBOX_RIGHT;
+
+    wxWindowID ID_NOZZLE_DIAMETER_CHECKBOX_SINGLE;
+    wxWindowID ID_NOZZLE_DIAMETER_CHECKBOX_LEFT;
+    wxWindowID ID_NOZZLE_DIAMETER_CHECKBOX_RIGHT;
+
+    wxWindowID ID_NOZZLE_FLOW_CHECKBOX_LEFT;
+    wxWindowID ID_NOZZLE_FLOW_CHECKBOX_RIGHT;
+
     MachineObject* obj{ nullptr };
 
     ComboBox* nozzle_type_checkbox;
@@ -46,8 +57,7 @@ protected:
 public:
     PrinterPartsDialog(wxWindow* parent);
     ~PrinterPartsDialog();
-    void set_nozzle_type(wxCommandEvent& evt);
-    void set_nozzle_diameter(wxCommandEvent& evt);
+    void set_nozzle_data(wxCommandEvent& evt);
     void on_dpi_changed(const wxRect& suggested_rect) override;
     void update_machine_obj(MachineObject* obj_);
     bool Show(bool show) override;
