@@ -316,6 +316,7 @@ enum PrintDialogStatus {
     PrintStatusAmsMappingU0Invalid,
     PrintStatusAmsMappingMixInvalid,
     PrintStatusNozzleMatchInvalid,
+    PrintStatusNozzleDataInvalid,
     PrintStatusAmsMappingValid,
     PrintStatusAmsMappingByOrder,
     PrintStatusRefreshingMachineList,
@@ -547,7 +548,7 @@ public:
     bool is_nozzle_type_match(ExtderData data);
 
     PrintFromType get_print_type() {return m_print_type;};
-    wxString    format_steel_name(std::string name);
+    wxString    format_steel_name(NozzleType type);
     wxString    format_text(wxString &m_msg);
     wxWindow*   create_ams_checkbox(wxString title, wxWindow* parent, wxString tooltip);
     wxWindow*   create_item_checkbox(wxString title, wxWindow* parent, wxString tooltip, std::string param);

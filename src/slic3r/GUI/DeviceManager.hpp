@@ -141,6 +141,17 @@ enum AirDuctType {
     AIR_DOOR_TYPE
 };
 
+enum NozzleFlowType{
+    NONE_FLOWTYPE,
+    S_FLOW,
+    H_FLOW
+};
+
+enum NozzleToolType {
+    NONE_TOOLTYPE,
+    H_TOOL,
+    C_TOOL
+};
 
 struct AmsSlot
 {
@@ -148,22 +159,51 @@ struct AmsSlot
     std::string slot_id;
 };
 
+struct Nozzle
+{
+    int   id;
+    NozzleToolType  tool_type;         // H nozzle or Cut
+    NozzleFlowType  nozzle_flow;       // 0-common 1-high flow
+    NozzleType      nozzle_type;       // 0-stainless_steel 1-hardened_steel
+    float diameter = {0.4f}; // 0-0.2mm  1-0.4mm 2-0.6 mm3-0.8mm
+    int   max_temp = 0;
+    int   wear = 0;
+};
+
+struct NozzleData
+{
+    int extder_exist;  //0- none exist 1-exist
+    int cut_exist;
+    int state; //0-idle 1-checking
+    std::vector<Nozzle> nozzles;
+};
+
 struct Extder
 {
-    std::string type;  //0-hardened_steel 1-stainless_steel
-    float diameter = {0.4f}; // 0-0.2mm  1-0.4mm 2-0.6 mm3-0.8mm
-    int exist{0}; //0-Not Installed 1-Wrong extruder 2-No enablement 3-Enable
+    int id; // 0-right 1-left
+
+    int enable_change_nozzle{0};
     int ext_has_filament{0};
     int buffer_has_filament{0};
-    int flow_type{0};//0-common 1-high flow
+    int nozzle_exist{0};
 
-    int temp{0};
+    int  temp{0};
     int target_temp{0};
-    AmsSlot spre;   //tray_pre
-    AmsSlot snow;   //tray_now
-    AmsSlot star;   //tray_tar
-    int ams_stat{0}; ;
-    int rfid_stat{0}; ;
+
+    AmsSlot spre; // tray_pre
+    AmsSlot snow; // tray_now
+    AmsSlot star; // tray_tar
+    int     ams_stat{0};
+
+    int rfid_stat{0};
+
+    int nozzle_id;        // nozzle id now
+    int target_nozzle_id; // target nozzle id
+
+    //current nozzle
+    NozzleType     current_nozzle_type{NozzleType::ntUndefine};            // 0-hardened_steel 1-stainless_steel
+    float current_nozzle_diameter = {0.4f}; // 0-0.2mm  1-0.4mm 2-0.6 mm3-0.8mm
+    NozzleFlowType current_nozzle_flow_type{NozzleFlowType::NONE_FLOWTYPE};//0-common 1-high flow
 };
 
 struct ExtderData
@@ -959,6 +999,7 @@ public:
     int command_pushing(std::string cmd);
     int command_clean_print_error(std::string task_id, int print_error);
     int command_set_printer_nozzle(std::string nozzle_type, float diameter);
+    int command_set_printer_nozzle2(int id, std::string nozzle_type, float diameter, int flow);
     int command_get_access_code();
 
 
@@ -1098,7 +1139,9 @@ public:
 
     /*for more extruder*/
     bool                        is_enable_np{ false };
+
     ExtderData                  m_extder_data;
+    NozzleData                  m_nozzle_data;
 
     /*vi slot data*/
     std::vector<AmsTray> vt_slot;
@@ -1106,7 +1149,8 @@ public:
 
     /*for parse new info*/
     void parse_new_info(json print);
-    int get_flag_bits(std::string str, int start, int count = 1);
+    bool is_nozzle_data_invalid();
+    int  get_flag_bits(std::string str, int start, int count = 1);
     int get_flag_bits(int num, int start, int count = 1, int base = 10);
 
     /* Device Filament Check */

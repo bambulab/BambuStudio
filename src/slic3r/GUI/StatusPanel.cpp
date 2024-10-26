@@ -2953,7 +2953,7 @@ void StatusPanel::update_ams(MachineObject *obj)
     if (obj && (obj->last_cali_version != obj->cali_version)) {
         last_cali_version = obj->cali_version;
         PACalibExtruderInfo cali_info;
-        cali_info.nozzle_diameter = obj->m_extder_data.extders[0].diameter;
+        cali_info.nozzle_diameter = obj->m_extder_data.extders[0].current_nozzle_diameter;
         CalibUtils::emit_get_PA_calib_info(cali_info);
     }
 

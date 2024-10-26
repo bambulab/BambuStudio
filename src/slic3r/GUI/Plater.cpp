@@ -729,8 +729,8 @@ void Sidebar::priv::sync_extruder_list()
     }
 
     auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
-    printer_tab->set_extruder_volume_type(0, NozzleVolumeType(obj->m_extder_data.extders[1].flow_type));
-    printer_tab->set_extruder_volume_type(1, NozzleVolumeType(obj->m_extder_data.extders[0].flow_type));
+    printer_tab->set_extruder_volume_type(0, NozzleVolumeType(obj->m_extder_data.extders[1].current_nozzle_flow_type));
+    printer_tab->set_extruder_volume_type(1, NozzleVolumeType(obj->m_extder_data.extders[0].current_nozzle_flow_type));
     int left_4 = 0, right_4 = 0, left_1 = 0, right_1 = 0;
     for (auto ams : obj->amsList) {
         // Main (first) extruder at right
@@ -4699,7 +4699,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 const ConfigOption *opt = printer_preset.config.option("nozzle_diameter");
                 if (opt)
                     preset_nozzle_diameter = static_cast<const ConfigOptionFloatsNullable *>(opt)->values[0];
-                float machine_nozzle_diameter = obj->m_extder_data.extders[0].diameter;
+                float machine_nozzle_diameter = obj->m_extder_data.extders[0].current_nozzle_diameter;
 
                 std::string machine_type = obj->printer_type;
                 if (obj->is_support_upgrade_kit && obj->installed_upgrade_kit)
