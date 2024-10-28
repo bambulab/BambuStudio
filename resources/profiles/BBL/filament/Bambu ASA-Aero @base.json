@@ -56,5 +56,8 @@
     ],
     "slow_down_layer_time": [
         "5"
+    ],
+    "filament_scarf_seam_type": [
+        "none"
     ]
 }
