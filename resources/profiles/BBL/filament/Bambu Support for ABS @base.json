@@ -30,6 +30,9 @@
     "slow_down_layer_time": [
         "12"
     ],
+    "filament_scarf_seam_type": [
+        "none"
+    ],
     "temperature_vitrification": [
         "90"
     ]
