@@ -555,7 +555,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         }
 
         // draw filament background
-        ImGuiColorEditFlags flags = ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_NoTooltip;
+        ImGuiColorEditFlags flags = ImGuiColorEditFlags_AlphaPreview | ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_NoTooltip;
         if (m_selected_extruder_idx != extruder_idx) flags |= ImGuiColorEditFlags_NoBorder;
         #ifdef __APPLE__
             ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
@@ -581,10 +581,15 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         float gray = 0.299 * extruder_color[0] + 0.587 * extruder_color[1] + 0.114 * extruder_color[2];
         ImGui::SameLine(button_offset + (button_size.x - label_size.x) / 2.f);
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, {10.0,15.0});
-        if (gray * 255.f < 80.f)
-            ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), item_text.c_str());
-        else
+        if (abs(color_vec.w - 1) < 0.01) {
+            if (gray * 255.f < 80.f)
+                ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), item_text.c_str());
+            else
+                ImGui::TextColored(ImVec4(0.0f, 0.0f, 0.0f, 1.0f), item_text.c_str());
+        }
+        else {//alpha
             ImGui::TextColored(ImVec4(0.0f, 0.0f, 0.0f, 1.0f), item_text.c_str());
+        }
 
         ImGui::PopStyleVar();
     }
