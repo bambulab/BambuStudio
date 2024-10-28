@@ -1,4 +1,5 @@
 #pragma once
+#include <boost/log/trivial.hpp>
 #include "../libslic3r.h"
 #include "../Flow.hpp"
 #include "../PrintConfig.hpp"
