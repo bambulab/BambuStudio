@@ -30,6 +30,9 @@
     "required_nozzle_HRC": [
         "3"
     ],
+    "filament_scarf_seam_type": [
+        "none"
+    ],
     "slow_down_layer_time": [
         "6"
     ]
