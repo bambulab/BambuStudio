@@ -30,6 +30,30 @@ static std::string MachineBedTypeString[6] = {
     "pte"
 };
 
+void get_default_k_n_value(const std::string &filament_id, float &k, float &n)
+{
+    if (filament_id.compare("GFG00") == 0) {
+        // PETG
+        k = 0.04;
+        n = 1.0;
+    } else if (filament_id.compare("GFB00") == 0 || filament_id.compare("GFB50") == 0) {
+        // ABS
+        k = 0.04;
+        n = 1.0;
+    } else if (filament_id.compare("GFU01") == 0) {
+        // TPU
+        k = 0.2;
+        n = 1.0;
+    } else if (filament_id.compare("GFB01") == 0) {
+        // ASA
+        k = 0.04;
+        n = 1.0;
+    } else {
+        // PLA , other
+        k = 0.02;
+        n = 1.0;
+    }
+}
 
 std::string get_calib_mode_name(CalibMode cali_mode, int stage)
 {

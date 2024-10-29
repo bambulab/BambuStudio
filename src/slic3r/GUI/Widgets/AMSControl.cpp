@@ -54,6 +54,8 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, Ams *ams, bool remain_flag, boo
                 info.can_id        = it->second->id;
                 info.ctype         = it->second->ctype;
                 info.material_name = it->second->get_display_filament_type();
+                info.cali_idx      = it->second->cali_idx;
+                info.filament_id   = it->second->filament_setting_id;
                 if (!it->second->color.empty()) {
                     info.material_colour = AmsTray::decode_color(it->second->color);
                 } else {
@@ -82,6 +84,8 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, Ams *ams, bool remain_flag, boo
             } else {
                 info.can_id = it->second->id;
                 info.material_name = "";
+                info.cali_idx = -1;
+                info.filament_id = "";
                 info.ctype = 0;
                 info.material_colour = AMS_TRAY_DEFAULT_COL;
                 info.material_state = AMSCanType::AMS_CAN_TYPE_THIRDBRAND;
@@ -853,8 +857,11 @@ void AMSLib::render_extra_text(wxDC& dc)
 void AMSLib::render_generic_text(wxDC &dc)
 {
     bool show_k_value = true;
-    if (m_obj && (m_obj->cali_version >= 0) && (abs(m_info.k - 0) < 1e-3)) {
+    if (m_info.material_name.empty()) {
         show_k_value = false;
+    }
+    else if (m_info.cali_idx == -1) {
+        get_default_k_n_value(m_info.filament_id, m_info.k, m_info.n);
     }
 
     auto tmp_lib_colour = m_info.material_colour;
@@ -3366,8 +3373,12 @@ void AMSControl::update_vams_kn_value(AmsTray tray, MachineObject* obj)
 
     m_vams_info.material_name = tray.get_display_filament_type();
     m_vams_info.material_colour = tray.get_color();
+    m_vams_info.cali_idx               = tray.cali_idx;
+    m_vams_info.filament_id            = tray.filament_setting_id;
     m_vams_lib->m_info.material_name = tray.get_display_filament_type();
     m_vams_lib->m_info.material_colour = tray.get_color();
+    m_vams_lib->m_info.cali_idx        = tray.cali_idx;
+    m_vams_lib->m_info.filament_id     = tray.filament_setting_id;
 
     if (last_k_value != m_vams_info.k || last_n_value != m_vams_info.n) { 
         m_vams_lib->Refresh();
@@ -3380,8 +3391,12 @@ void AMSControl::reset_vams()
     m_vams_lib->m_info.n = 0;
     m_vams_lib->m_info.material_name = wxEmptyString;
     m_vams_lib->m_info.material_colour = AMS_CONTROL_WHITE_COLOUR;
+    m_vams_lib->m_info.cali_idx = -1;
+    m_vams_lib->m_info.filament_id = "";
     m_vams_info.material_name = wxEmptyString;
     m_vams_info.material_colour = AMS_CONTROL_WHITE_COLOUR;
+    m_vams_info.cali_idx = -1;
+    m_vams_info.filament_id = "";
     m_vams_lib->Refresh();
 }
 

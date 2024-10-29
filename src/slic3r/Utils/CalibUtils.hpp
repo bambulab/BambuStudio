@@ -74,5 +74,7 @@ private:
     static void send_to_print(const CalibInfo &calib_info, wxString& error_message, int flow_ratio_mode = 0); // 0: none  1: coarse  2: fine
 };
 
+extern void get_default_k_n_value(const std::string &filament_id, float &k, float &n);
+
 }
 }
