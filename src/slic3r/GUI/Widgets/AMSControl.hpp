@@ -142,20 +142,24 @@ struct Caninfo
     AMSCanType      material_state;
     int             ctype=0;
     int             material_remain = 100;
+    int             cali_idx = -1;
+    std::string     filament_id;
     float           k = 0.0f;
     float           n = 0.0f;
     std::vector<wxColour> material_cols;
 
     bool operator==(const Caninfo &other) const
     {
-        return  can_id == other.can_id && 
-                material_name == other.material_name && 
-                material_colour == other.material_colour && 
+        return  can_id == other.can_id &&
+                material_name == other.material_name &&
+                material_colour == other.material_colour &&
                 material_state == other.material_state &&
-                ctype == other.ctype && 
-                material_remain == other.material_remain && 
-                k == other.k && 
-                n == other.n && 
+                ctype == other.ctype &&
+                material_remain == other.material_remain &&
+                cali_idx == other.cali_idx &&
+                filament_id == other.filament_id &&
+                k == other.k &&
+                n == other.n &&
                 material_cols == other.material_cols;
     }
 };
