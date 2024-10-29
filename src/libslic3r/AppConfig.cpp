@@ -263,6 +263,10 @@ void AppConfig::set_defaults()
         set_bool("show_home_page", true);
     }
 
+    if (get("show_print_history").empty()) {
+        set_bool("show_print_history", true);
+    }
+
     if (get("show_printable_box").empty()) {
         set_bool("show_printable_box", true);
     }
