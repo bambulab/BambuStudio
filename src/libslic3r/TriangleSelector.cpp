@@ -1768,11 +1768,15 @@ void TriangleSelector::deserialize(const std::pair<std::vector<std::pair<int, in
             }
 
             // BBS
-            if (state > max_ebt || state == to_delete_filament)
+            if (state == to_delete_filament)
                 state = replace_filament;
-
-            if (to_delete_filament != EnforcerBlockerType::NONE && state != EnforcerBlockerType::NONE) {
+            else if (to_delete_filament != EnforcerBlockerType::NONE && state != EnforcerBlockerType::NONE) {
                 state = state > to_delete_filament ? EnforcerBlockerType((int)state - 1) : state;
+            }
+
+            if (state > max_ebt) {
+                assert(false);
+                state = EnforcerBlockerType::NONE;
             }
 
             // Only valid if is_split.
