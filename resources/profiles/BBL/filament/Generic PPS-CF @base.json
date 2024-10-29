@@ -21,9 +21,6 @@
     "filament_type": [
         "PPS-CF"
     ],
-    "nozzle_temperature_range_high": [
-        "350"
-    ],
     "nozzle_temperature_range_low": [
         "310"
     ],

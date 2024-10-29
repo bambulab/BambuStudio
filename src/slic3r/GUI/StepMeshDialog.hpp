@@ -1,6 +1,7 @@
 #ifndef _STEP_MESH_DIALOG_H_
 #define _STEP_MESH_DIALOG_H_
 
+#include <future>
 #include <thread>
 #include "GUI_Utils.hpp"
 #include "libslic3r/Format/STEP.hpp"

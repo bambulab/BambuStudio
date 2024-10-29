@@ -2104,13 +2104,14 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_object_xy_distance", "support");
         optgroup->append_single_option_line("support_object_first_layer_gap", "support");
         optgroup->append_single_option_line("bridge_no_support", "support#base-pattern");
-        optgroup->append_single_option_line("max_bridge_length", "support#base-pattern");
+        optgroup->append_single_option_line("max_bridge_length", "support#tree-support-only-options");
         optgroup->append_single_option_line("independent_support_layer_height", "support");
 
         optgroup = page->new_optgroup(L("Tree Support"), L"param_advanced");
         optgroup->append_single_option_line("tree_support_branch_distance", "support#tree-support-only-options");
         optgroup->append_single_option_line("tree_support_branch_diameter", "support#tree-support-only-options");
         optgroup->append_single_option_line("tree_support_branch_angle", "support#tree-support-only-options");
+        optgroup->append_single_option_line("tree_support_branch_diameter_angle", "support#tree-support-only-options");
 
     page = add_options_page(L("Others"), "advanced");
         optgroup = page->new_optgroup(L("Bed adhension"), L"param_adhension");
@@ -3005,6 +3006,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("enable_pressure_advance");
         optgroup->append_single_option_line("pressure_advance");
         optgroup->append_single_option_line("filament_density");
+        optgroup->append_single_option_line("filament_shrink");
         optgroup->append_single_option_line("filament_cost");
 
         //BBS
@@ -5115,15 +5117,23 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach, bool save_to_proje
     std::map<std::string, std::string> extra_map;
     {
         bool is_configed_by_BBL = PresetUtils::system_printer_bed_model(curr_preset).size() > 0;
-        if (is_configed_by_BBL && wxGetApp().app_config->has_section("user_bbl_svg_list")) {
-            auto user_bbl_svg_list = wxGetApp().app_config->get_section("user_bbl_svg_list");
-            if (user_bbl_svg_list.size() > 0 && user_bbl_svg_list[curr_preset_name].size() > 0) {
-                extra_map["bed_custom_texture"] = ConfigOptionString(user_bbl_svg_list[curr_preset_name]);
+        if (is_configed_by_BBL) {//only record svg
+            if (wxGetApp().app_config->has_section("user_bbl_svg_list")) {
+                auto user_bbl_svg_list = wxGetApp().app_config->get_section("user_bbl_svg_list");
+                if (user_bbl_svg_list.size() > 0 && user_bbl_svg_list[curr_preset_name].size() > 0) {
+                    extra_map["bed_custom_texture"] = ConfigOptionString(user_bbl_svg_list[curr_preset_name]);
+                }
             }
         }
-        auto bed_model_path = wxGetApp().plater()->get_partplate_list().get_bed3d()->get_model_filename();
-        if (!bed_model_path.empty()) {
-            extra_map["bed_custom_model"] = bed_model_path;
+        else {//for cutom machine
+            auto bed_model_path = wxGetApp().plater()->get_partplate_list().get_bed3d()->get_model_filename();
+            if (!bed_model_path.empty()) {
+                extra_map["bed_custom_model"] = bed_model_path;
+            }
+            auto logo = wxGetApp().plater()->get_partplate_list().get_logo_texture_filename();
+            if (!logo.empty()) {
+                extra_map["bed_custom_texture"] = logo;
+            }
         }
     }
     bool exist_preset = false;

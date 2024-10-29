@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-15 16:47+0800\n"
+"POT-Creation-Date: 2024-10-25 21:39+0800\n"
 "PO-Revision-Date: 2024-09-29 02:13+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -2142,7 +2142,7 @@ msgid "Load"
 msgstr "Yükle"
 
 msgid "Unload"
-msgstr "Boşalt"
+msgstr "Çıkart"
 
 msgid "Ext Spool"
 msgstr "Harici Makara"
@@ -2154,7 +2154,7 @@ msgid "Guide"
 msgstr "Rehber"
 
 msgid "Retry"
-msgstr "Yeniden dene"
+msgstr "Yenile"
 
 msgid "Calibrating AMS..."
 msgstr "AMS kalibre ediliyor..."
@@ -2204,7 +2204,7 @@ msgid ""
 "load or unload filaments."
 msgstr ""
 "Bir AMS yuvası seçin ve ardından filamentleri otomatik olarak yüklemek veya "
-"boşaltmak için \"Yükle\" veya \"Boşalt\" düğmesine basın."
+"çokartmak için \"Yükle\" veya \"Çıkart\" düğmesine basın."
 
 msgid "Edit"
 msgstr "Düzenle"
@@ -2218,6 +2218,11 @@ msgstr ""
 
 msgid "No arrangeable objects are selected."
 msgstr "Düzenlenebilir hiçbir nesne seçilmemiştir."
+
+msgid ""
+"The following plates are skipped due to different arranging settings from "
+"global:"
+msgstr ""
 
 msgid ""
 "This plate is locked,\n"
@@ -3302,7 +3307,7 @@ msgid "Paused due to heat bed temperature malfunction"
 msgstr "Isı yatağı sıcaklık arızası nedeniyle duraklatıldı"
 
 msgid "Filament unloading"
-msgstr "Filament boşaltma"
+msgstr "Filament çıkart"
 
 msgid "Skip step pause"
 msgstr "Adım duraklamasını atla"
@@ -4027,7 +4032,7 @@ msgid "Show Tip of the Day"
 msgstr "Günün İpucunu Göster"
 
 msgid "Report issue"
-msgstr "Rapor sorunu"
+msgstr "Sorunu rapor edin"
 
 msgid "Check for Update"
 msgstr "Güncellemeleri kontrol et"
@@ -4865,11 +4870,11 @@ msgid ""
 "Please heat the nozzle to above 170 degree before loading or unloading "
 "filament."
 msgstr ""
-"Filamenti yüklemeden veya boşaltmadan önce lütfen nozulu 170 derecenin "
+"Filamenti yüklemeden veya çıkartmadan önce lütfen nozulu 170 derecenin "
 "üzerine ısıtın."
 
 msgid "Still unload"
-msgstr "Daha Fazla Boşalt"
+msgstr "Daha Fazla tahliye"
 
 msgid "Still load"
 msgstr "Daha Fazla Yükle"
@@ -4882,7 +4887,7 @@ msgid ""
 "unload the filament and try again."
 msgstr ""
 "Filament bilgisi okunamıyor: Filament alet kafasına yüklenmiştir, lütfen "
-"filamenti boşaltın ve tekrar deneyin."
+"filamenti çıkartın ve tekrar deneyin."
 
 msgid "This only takes effect during printing"
 msgstr "Bu yalnızca yazdırma sırasında etkili olur"
@@ -5009,6 +5014,21 @@ msgstr ""
 "başarılı baskı kaydı gereklidir."
 
 msgid "Step file import parameters"
+msgstr ""
+
+msgid "Rough"
+msgstr ""
+
+msgid "Reduce Linear"
+msgstr ""
+
+msgid "Reduce Angle"
+msgstr ""
+
+msgid "Fewer faces"
+msgstr ""
+
+msgid "More faces"
 msgstr ""
 
 msgid "Linear Deflection"
@@ -5352,6 +5372,9 @@ msgstr " plaka %1%: "
 
 msgid "Invalid name, the following characters are not allowed:"
 msgstr "Geçersiz ad, aşağıdaki karakterlere izin verilmiyor:"
+
+msgid "(Including its escape characters)"
+msgstr ""
 
 msgid "Sliced Info"
 msgstr "Dilimleme bilgisi"
@@ -5960,7 +5983,7 @@ msgid ""
 msgstr ""
 "\"Modeli Düzelt\" özelliği şu anda yalnızca Windows'ta bulunmaktadır. Lütfen "
 "modeli Bambu Studio'ya aktarmadan önce onarmak için üçüncü taraf bir araç "
-"kullanın, örneğin"
+"kullanın, örneğin "
 
 #, c-format, boost-format
 msgid ""
@@ -7203,7 +7226,7 @@ msgid "Notes"
 msgstr "Notlar"
 
 msgid "Frequent"
-msgstr "Sıklıkla"
+msgstr "Sıkça Kullanılan"
 
 #, c-format, boost-format
 msgid ""
@@ -7794,7 +7817,7 @@ msgid "Multiplier"
 msgstr "Çarpan"
 
 msgid "unloaded"
-msgstr "boşaltılmış"
+msgstr "çıkartılmış"
 
 msgid "loaded"
 msgstr "yüklenmiş"
@@ -9499,7 +9522,7 @@ msgid "mm³/s"
 msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
-msgstr "Silme kulesi üzerinde minimum boşaltım"
+msgstr "Silme kulesi üzerinde minimum tahliye"
 
 msgid "mm³"
 msgstr "mm³"
@@ -9513,11 +9536,11 @@ msgstr ""
 "istatistikler için"
 
 msgid "Filament unload time"
-msgstr "Filament boşaltma süresi"
+msgstr "Filament çıkartma süresi"
 
 msgid "Time to unload old filament when switch filament. For statistics only"
 msgstr ""
-"Filamenti değiştirdiğinizde eski filamenti boşaltma zamanı. Yalnızca "
+"Filamenti değiştirdiğinizde eski filamenti çıkartma zamanı. Yalnızca "
 "istatistikler için"
 
 msgid ""
@@ -9526,6 +9549,18 @@ msgid ""
 msgstr ""
 "Filament çapı, gcode'da ekstrüzyonu hesaplamak için kullanılır; bu nedenle "
 "önemlidir ve doğru olmalıdır"
+
+msgid "Shrinkage"
+msgstr ""
+
+#, no-c-format, no-boost-format
+msgid ""
+"Enter the shrinkage percentage that the filament will get after cooling (94% "
+"if you measure 94mm instead of 100mm). The part will be scaled in xy to "
+"compensate. Only the filament used for the perimeter is taken into account.\n"
+"Be sure to allow enough space between objects, as this compensation is done "
+"after the checks."
+msgstr ""
 
 msgid "Density"
 msgstr "Yoğunluk"
@@ -10475,7 +10510,7 @@ msgid ""
 "significantly, it may also raise the risk of nozzle clogs or other printing "
 "problems."
 msgstr ""
-"Deneysel özellik: Boşaltmayı en aza indirmek için değişimler sırasında "
+"Deneysel özellik: Tahliyeyi en aza indirmek için değişimler sırasında "
 "filamentin daha uzun bir mesafeden geri çekilmesi ve kesilmesi. Bu, yıkamayı "
 "önemli ölçüde azaltırken, nozül tıkanması veya diğer baskı sorunları riskini "
 "de artırabilir."
@@ -11044,8 +11079,8 @@ msgid ""
 "threshold."
 msgstr "Eğim açısı eşiğin altında olan çıkmalar için destek oluşturulacaktır."
 
-msgid "Tree support branch angle"
-msgstr "Ağaç desteği dal açısı"
+msgid "Branch angle"
+msgstr ""
 
 msgid ""
 "This setting determines the maximum overhang angle that t he branches of "
@@ -11056,18 +11091,28 @@ msgstr ""
 "açısını belirler. Açı artırılırsa, dallar daha yatay olarak basılabilir ve "
 "daha uzağa ulaşır."
 
-msgid "Tree support branch distance"
-msgstr "Ağaç destek dal mesafesi"
+msgid "Branch distance"
+msgstr ""
 
 msgid ""
 "This setting determines the distance between neighboring tree support nodes."
 msgstr "Bu ayar, komşu ağaç destek düğümleri arasındaki mesafeyi belirler."
 
-msgid "Tree support branch diameter"
-msgstr "Ağaç destek dalı çapı"
+msgid "Branch diameter"
+msgstr ""
 
 msgid "This setting determines the initial diameter of support nodes."
 msgstr "Bu ayar, destek düğümlerinin başlangıç çapını belirler."
+
+msgid "Branch diameter angle"
+msgstr ""
+
+msgid ""
+"The angle of the branches' diameter as they gradually become thicker towards "
+"the bottom. An angle of 0 will cause the branches to have uniform thickness "
+"over their length. A bit of an angle can increase stability of the tree "
+"support."
+msgstr ""
 
 msgid "Support wall loops"
 msgstr "Destek duvarı döngüleri"
@@ -13841,6 +13886,15 @@ msgstr ""
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı "
 "sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını "
 "azaltabileceğini biliyor muydunuz."
+
+#~ msgid "Tree support branch angle"
+#~ msgstr "Ağaç desteği dal açısı"
+
+#~ msgid "Tree support branch distance"
+#~ msgstr "Ağaç destek dal mesafesi"
+
+#~ msgid "Tree support branch diameter"
+#~ msgstr "Ağaç destek dalı çapı"
 
 #~ msgid ""
 #~ "Object will be raised by this number of support layers. Use this function "

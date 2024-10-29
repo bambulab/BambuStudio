@@ -835,8 +835,8 @@ static std::vector<std::string> s_Preset_print_options {
     "wipe_tower_no_sparse_layers", "compatible_printers", "compatible_printers_condition", "inherits",
     "flush_into_infill", "flush_into_objects", "flush_into_support","process_notes",
     // BBS
-     "tree_support_branch_angle", "tree_support_wall_count", "tree_support_branch_distance",
-     "tree_support_branch_diameter",
+     "tree_support_branch_angle", "tree_support_wall_count", "tree_support_branch_distance", "tree_support_branch_diameter",
+    "tree_support_branch_diameter_angle",
      "detect_narrow_internal_solid_infill",
      "gcode_add_line_number", "enable_arc_fitting", "precise_z_height", "infill_combination", /*"adaptive_layer_height",*/
      "support_bottom_interface_spacing", "enable_overhang_speed", "overhang_1_4_speed", "overhang_2_4_speed", "overhang_3_4_speed", "overhang_4_4_speed", "overhang_totally_speed",
@@ -879,7 +879,7 @@ static std::vector<std::string> s_Preset_filament_options {
     "nozzle_temperature_range_low", "nozzle_temperature_range_high",
     //OrcaSlicer
     "enable_pressure_advance", "pressure_advance", "chamber_temperatures","filament_notes",
-    "filament_long_retractions_when_cut","filament_retraction_distances_when_cut"
+    "filament_long_retractions_when_cut","filament_retraction_distances_when_cut","filament_shrink"
 };
 
 static std::vector<std::string> s_Preset_machine_limits_options {
@@ -2292,8 +2292,10 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
             preset.config.option<ConfigOptionStrings>("filament_settings_id", true)->values[0] = new_name;
         else if (m_type == Preset::TYPE_PRINTER) {
             preset.config.option<ConfigOptionString>("printer_settings_id", true)->value = new_name;
-            for (auto iter : *extra_map) {
-                preset.config.option<ConfigOptionString>(iter.first, true)->value = iter.second;
+            if (extra_map) {
+                for (auto iter : *extra_map) {
+                    preset.config.option<ConfigOptionString>(iter.first, true)->value = iter.second;
+                }
             }
         }
         final_inherits = preset.inherits();
@@ -2341,8 +2343,10 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
             preset.config.option<ConfigOptionStrings>("filament_settings_id", true)->values[0] = new_name;
         else if (m_type == Preset::TYPE_PRINTER) {
             preset.config.option<ConfigOptionString>("printer_settings_id", true)->value = new_name;
-            for (auto iter : *extra_map) {
-                preset.config.option<ConfigOptionString>(iter.first, true)->value = iter.second;
+            if (extra_map) {
+                for (auto iter : *extra_map) {
+                    preset.config.option<ConfigOptionString>(iter.first, true)->value = iter.second;
+                }
             }
         }
         //BBS: add lock logic for sync preset in background

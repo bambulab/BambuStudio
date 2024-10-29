@@ -1548,6 +1548,19 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->set_default_value(new ConfigOptionFloats { 1.75 });
 
+    def = this->add("filament_shrink", coPercents);
+    def->label = L("Shrinkage");
+    // xgettext:no-c-format, no-boost-format
+    def->tooltip = L("Enter the shrinkage percentage that the filament will get after cooling (94% if you measure 94mm instead of 100mm)."
+        " The part will be scaled in xy to compensate."
+        " Only the filament used for the perimeter is taken into account."
+        "\nBe sure to allow enough space between objects, as this compensation is done after the checks.");
+    def->sidetext = L("%");
+    def->ratio_over = "";
+    def->min = 10;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionPercents{ 100 });
+
     def = this->add("filament_density", coFloats);
     def->label = L("Density");
     def->tooltip = L("Filament density. For statistics only");
@@ -3574,7 +3587,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionInt(30));
 
     def = this->add("tree_support_branch_angle", coFloat);
-    def->label = L("Tree support branch angle");
+    def->label = L("Branch angle");
     def->category = L("Support");
     def->tooltip = L("This setting determines the maximum overhang angle that t he branches of tree support allowed to make."
                      "If the angle is increased, the branches can be printed more horizontally, allowing them to reach farther.");
@@ -3585,7 +3598,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(40.));
 
     def           = this->add("tree_support_branch_distance", coFloat);
-    def->label    = L("Tree support branch distance");
+    def->label    = L("Branch distance");
     def->category = L("Support");
     def->tooltip  = L("This setting determines the distance between neighboring tree support nodes.");
     def->sidetext = L("mm");
@@ -3595,12 +3608,24 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(5.));
 
     def           = this->add("tree_support_branch_diameter", coFloat);
-    def->label    = L("Tree support branch diameter");
+    def->label    = L("Branch diameter");
     def->category = L("Support");
     def->tooltip  = L("This setting determines the initial diameter of support nodes.");
     def->sidetext = L("mm");
     def->min      = 1.0;
     def->max      = 10;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(5.));
+
+    def           = this->add("tree_support_branch_diameter_angle", coFloat);
+    def->label    = L("Branch diameter angle");
+    def->category = L("Support");
+    def->tooltip  = L("The angle of the branches' diameter as they gradually become thicker towards the bottom. "
+                       "An angle of 0 will cause the branches to have uniform thickness over their length. "
+                       "A bit of an angle can increase stability of the tree support.");
+    def->sidetext = L("°");
+    def->min      = 0.0;
+    def->max      = 15;
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(5.));
 

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-15 16:47+0800\n"
+"POT-Creation-Date: 2024-10-25 21:39+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2247,6 +2247,11 @@ msgstr ""
 
 msgid "No arrangeable objects are selected."
 msgstr "Er zijn geen arrangeerbare objecten geselecteerd."
+
+msgid ""
+"The following plates are skipped due to different arranging settings from "
+"global:"
+msgstr ""
 
 msgid ""
 "This plate is locked,\n"
@@ -5054,6 +5059,21 @@ msgstr ""
 msgid "Step file import parameters"
 msgstr ""
 
+msgid "Rough"
+msgstr ""
+
+msgid "Reduce Linear"
+msgstr ""
+
+msgid "Reduce Angle"
+msgstr ""
+
+msgid "Fewer faces"
+msgstr ""
+
+msgid "More faces"
+msgstr ""
+
 msgid "Linear Deflection"
 msgstr ""
 
@@ -5400,6 +5420,9 @@ msgstr " plaat %1%: "
 
 msgid "Invalid name, the following characters are not allowed:"
 msgstr "Ongeldige naam, the volgende karakters zijn niet toegestaan:"
+
+msgid "(Including its escape characters)"
+msgstr ""
 
 msgid "Sliced Info"
 msgstr "Sliced info"
@@ -9635,6 +9658,18 @@ msgstr ""
 "De diameter van het filament wordt gebruikt om de extrusie in gcode te "
 "berekenen, dus het is belangrijk en moet nauwkeurig zijn"
 
+msgid "Shrinkage"
+msgstr ""
+
+#, no-c-format, no-boost-format
+msgid ""
+"Enter the shrinkage percentage that the filament will get after cooling (94% "
+"if you measure 94mm instead of 100mm). The part will be scaled in xy to "
+"compensate. Only the filament used for the perimeter is taken into account.\n"
+"Be sure to allow enough space between objects, as this compensation is done "
+"after the checks."
+msgstr ""
+
 msgid "Density"
 msgstr "Dichtheid"
 
@@ -11175,8 +11210,8 @@ msgstr ""
 "Er wordt ondersteuning gegenereerd voor overstekken waarvan de hellingshoek "
 "kleiner is dan de drempel."
 
-msgid "Tree support branch angle"
-msgstr "Tree support vertakkingshoek"
+msgid "Branch angle"
+msgstr ""
 
 msgid ""
 "This setting determines the maximum overhang angle that t he branches of "
@@ -11187,8 +11222,8 @@ msgstr ""
 "boomondersteuning mogen maken. Als de hoek groter is, kunnen de takken meer "
 "horizontaal worden afgedrukt, waardoor ze verder kunnen reiken."
 
-msgid "Tree support branch distance"
-msgstr "Tree support tak-afstand"
+msgid "Branch distance"
+msgstr ""
 
 msgid ""
 "This setting determines the distance between neighboring tree support nodes."
@@ -11196,11 +11231,21 @@ msgstr ""
 "Deze instelling bepaald de afstand tussen naastliggende tree support "
 "knooppunten."
 
-msgid "Tree support branch diameter"
-msgstr "Tree support diameter van de takken"
+msgid "Branch diameter"
+msgstr ""
 
 msgid "This setting determines the initial diameter of support nodes."
 msgstr "Deze instelling bepaalt de initiële diameter van support knooppunten."
+
+msgid "Branch diameter angle"
+msgstr ""
+
+msgid ""
+"The angle of the branches' diameter as they gradually become thicker towards "
+"the bottom. An angle of 0 will cause the branches to have uniform thickness "
+"over their length. A bit of an angle can increase stability of the tree "
+"support."
+msgstr ""
 
 msgid "Support wall loops"
 msgstr "Steunmuurlussen"
@@ -13953,6 +13998,15 @@ msgstr ""
 "Wist je dat bij het printen van materialen die gevoelig zijn voor "
 "kromtrekken, zoals ABS, een juiste verhoging van de temperatuur van het "
 "warmtebed de kans op kromtrekken kan verkleinen?"
+
+#~ msgid "Tree support branch angle"
+#~ msgstr "Tree support vertakkingshoek"
+
+#~ msgid "Tree support branch distance"
+#~ msgstr "Tree support tak-afstand"
+
+#~ msgid "Tree support branch diameter"
+#~ msgstr "Tree support diameter van de takken"
 
 #~ msgid "Manual"
 #~ msgstr "Handmatig"

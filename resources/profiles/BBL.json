@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.10.00.10",
+    "version": "01.10.00.16",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -792,6 +792,10 @@
         {
             "name": "Generic TPU for AMS @base",
             "sub_path": "filament/Generic TPU for AMS @base.json"
+        },
+        {
+            "name": "Bambu TPU for AMS @base",
+            "sub_path": "filament/Bambu TPU for AMS @base.json"
         },
         {
             "name": "Bambu PETG Basic @base",
@@ -1784,6 +1788,22 @@
         {
             "name": "Generic TPU for AMS @BBL A1M",
             "sub_path": "filament/Generic TPU for AMS @BBL A1M.json"
+        },
+        {
+            "name": "Bambu TPU for AMS @BBL X1C",
+            "sub_path": "filament/Bambu TPU for AMS @BBL X1C.json"
+        },
+        {
+            "name": "Bambu TPU for AMS @BBL P1P",
+            "sub_path": "filament/Bambu TPU for AMS @BBL P1P.json"
+        },
+        {
+            "name": "Bambu TPU for AMS @BBL A1",
+            "sub_path": "filament/Bambu TPU for AMS @BBL A1.json"
+        },
+        {
+            "name": "Bambu TPU for AMS @BBL A1M",
+            "sub_path": "filament/Bambu TPU for AMS @BBL A1M.json"
         },
         {
             "name": "Bambu PETG Basic @BBL X1C",

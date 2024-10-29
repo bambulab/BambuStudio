@@ -9,6 +9,7 @@
 #include "Printer/PrinterFileSystem.h"
 #include "MsgDialog.hpp"
 #include "Widgets/ProgressDialog.hpp"
+#include <boost/lexical_cast.hpp>
 #include <libslic3r/Model.hpp>
 #include <libslic3r/Format/bbs_3mf.hpp>
 

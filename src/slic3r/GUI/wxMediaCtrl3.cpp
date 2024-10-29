@@ -2,6 +2,8 @@
 #include "AVVideoDecoder.hpp"
 #include "I18N.hpp"
 #include "libslic3r/Utils.hpp"
+#include <boost/log/trivial.hpp>
+#include <wx/dcclient.h>
 #ifdef __WIN32__
 #include <versionhelpers.h>
 #include <wx/msw/registry.h>
@@ -120,6 +122,8 @@ void wxMediaCtrl3::paintEvent(wxPaintEvent &evt)
 {
     wxPaintDC dc(this);
     auto      size = GetSize();
+    if (size.x <= 0 || size.y <= 0)
+        return;
     std::unique_lock<std::mutex> lk(m_mutex);
     if (!m_frame.IsOk())
         return;

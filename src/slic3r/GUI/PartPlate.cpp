@@ -3916,7 +3916,7 @@ void PartPlateList::update_all_plates_pos_and_size(bool adjust_position, bool wi
 		plate->set_pos_and_size(origin1, m_plate_width, m_plate_depth, m_plate_height, adjust_position, do_clear);
 
 		// set default wipe pos when switch plate
-        if (switch_plate_type && m_plater && plate->get_used_extruders().size() <= 0) {
+        if (switch_plate_type && m_plater/* && plate->get_used_extruders().size() <= 0*/) {
 			set_default_wipe_tower_pos_for_plate(i);
 		}
 	}
@@ -4993,8 +4993,10 @@ void PartPlateList::update_logo_texture_filename(const std::string &texture_file
     };
     if (!texture_filename.empty() && !check_texture(texture_filename)) {
         BOOST_LOG_TRIVIAL(error) << "Unable to load bed texture: " << texture_filename;
-    } else
+    } else {
         m_logo_texture_filename = texture_filename;
+        std::replace(m_logo_texture_filename.begin(), m_logo_texture_filename.end(), '\\', '/');
+    }
 }
 
 /*slice related functions*/

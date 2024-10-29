@@ -247,10 +247,9 @@ public:
     SupportNode* create_node(const Point position, const int distance_to_top, const int obj_layer_nr, const int support_roof_layers_below, const bool to_buildplate, SupportNode* parent,
         coordf_t     print_z_, coordf_t height_, coordf_t dist_mm_to_top_ = 0, coordf_t radius_ = 0);
     void clear_nodes();
-    void remove_invalid_nodes();
     std::vector<LayerHeightData> layer_heights;
 
-    std::vector<SupportNode*> contact_nodes;
+    std::vector<std::unique_ptr<SupportNode>> contact_nodes;
     // ExPolygon                  m_machine_border;
 
 private:
@@ -400,7 +399,6 @@ public:
     bool  has_cantilever = false;
     double max_cantilever_dist = 0;
     SupportType support_type;
-    SupportMaterialStyle support_style;
 
     std::unique_ptr<FillLightning::Generator> generator;
     std::unordered_map<double, size_t> printZ_to_lightninglayer;
@@ -442,8 +440,7 @@ private:
     const coordf_t MIN_BRANCH_RADIUS = 0.4;
     const coordf_t MAX_BRANCH_RADIUS_FIRST_LAYER = 12.0;
     const coordf_t MIN_BRANCH_RADIUS_FIRST_LAYER = 2.0;
-    const double tree_support_branch_diameter_angle = 5.0;
-    const double diameter_angle_scale_factor = tan(tree_support_branch_diameter_angle*M_PI/180.0);
+    double diameter_angle_scale_factor = tan(5.0*M_PI/180.0);
     // minimum roof area (1 mm^2), area smaller than this value will not have interface
     const double minimum_roof_area{SQ(scaled<double>(1.))};
     float        top_z_distance = 0.0;
