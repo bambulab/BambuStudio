@@ -6471,16 +6471,57 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     Vec3d old_plate_size = old_plate->get_plate_box().size();
 
     // BBS: Save the model in the current platelist
-    std::vector<vector<int> > plate_object;
+    std::vector<vector<int>> plate_object;
+    std::set<int> all_plate_object;
     for (size_t i = 0; i < old_plate_list.get_plate_count(); ++i) {
         PartPlate* plate = old_plate_list.get_plate(i);
+        std::set<std::pair<int, int>> obj_set = plate->get_obj_and_inst_set();
+
         std::vector<int> obj_idxs;
-        for (int obj_idx = 0; obj_idx < model.objects.size(); obj_idx++) {
-            if (plate && plate->contain_instance(obj_idx, 0)) {
-                obj_idxs.emplace_back(obj_idx);
-            }
+        for (auto& p: obj_set) {
+            obj_idxs.push_back(p.first);
+            all_plate_object.emplace(p.first);
         }
-        plate_object.emplace_back(obj_idxs);
+        plate_object.emplace_back(std::move(obj_idxs));
+    }
+
+    BoundingBoxf3 platelist_bbox = old_plate_list.get_bounding_box();
+    std::map<int, int> outside_plate_object;
+    for (int i = 0; i < model.objects.size(); ++i)
+    {
+        ModelObject* object = model.objects[i];
+        ModelInstance* obj_inst = object->instances[0];
+
+        if (all_plate_object.find(i) == all_plate_object.end())
+        {
+            int position_type = 0;
+            BoundingBoxf3 instance_bbox = object->instance_convex_hull_bounding_box(obj_inst);
+            /*               1       |     2     |    3
+            *             --------------------------------
+            *                4       |     5     |    6
+            *             --------------------------------
+            *                7       |     8     |    9
+            */
+            if ((platelist_bbox.min.x() >= instance_bbox.max.x()) && (platelist_bbox.max.y() <= instance_bbox.min.y()))
+                position_type = 1;
+            else if ((platelist_bbox.min.x() >= instance_bbox.max.x()) && (platelist_bbox.min.y() >= instance_bbox.max.y()))
+                position_type = 7;
+            else if (platelist_bbox.min.x() >= instance_bbox.max.x())
+                position_type = 4;
+            else if ((platelist_bbox.max.x() <= instance_bbox.min.x()) && (platelist_bbox.max.y() <= instance_bbox.min.y()))
+                position_type = 3;
+            else if ((platelist_bbox.max.x() <= instance_bbox.min.x()) && (platelist_bbox.min.y() >= instance_bbox.max.y()))
+                position_type = 9;
+            else if (platelist_bbox.max.x() <= instance_bbox.min.x())
+                position_type = 6;
+             else if (platelist_bbox.max.y() <= instance_bbox.min.y())
+                position_type = 2;
+            else if (platelist_bbox.min.y() >= instance_bbox.max.y())
+                position_type = 8;
+            else
+                position_type = 5;
+            outside_plate_object.emplace(i, position_type);
+        }
     }
 
     bool flag = is_support_filament(idx);
@@ -6547,6 +6588,47 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
                 view3D->select_object_from_idx(plate_object[i]);
                 this->sidebar->obj_list()->update_selections();
                 view3D->center_selected_plate(i);
+            }
+
+            const BoundingBoxf3& cur_platelist_bbox = cur_plate_list.get_bounding_box();
+            const BoundingBoxf3 last_plate_bbox = cur_plate_list.get_plate(cur_plate_list.get_plate_count() - 1)->get_bounding_box();
+            int cur_plate_w, cur_plate_d, cur_plate_h;
+            cur_plate_list.get_plate_size(cur_plate_w, cur_plate_d, cur_plate_h);
+            for (auto& iter: outside_plate_object)
+            {
+                ModelObject *object = model.objects[iter.first];
+                BoundingBoxf3 instance_bbox = object->instance_convex_hull_bounding_box(size_t(0), false);
+                Vec3d offset = Vec3d::Zero();
+                switch(iter.second) {
+                    case 1:
+                    case 2:
+                        offset(1) = cur_platelist_bbox.max.y() - platelist_bbox.max.y();
+                        break;
+                    case 7:
+                    case 8:
+                        offset(1) = cur_platelist_bbox.min.y() - platelist_bbox.min.y();
+                        break;
+                    case 3:
+                        offset(0) = cur_platelist_bbox.max.x() - platelist_bbox.max.x();
+                        offset(1) = cur_platelist_bbox.max.y() - platelist_bbox.max.y();
+                        break;
+                    case 6:
+                        offset(0) = cur_platelist_bbox.max.x() - platelist_bbox.max.x();
+                        break;
+                    case 9:
+                        offset(0) = cur_platelist_bbox.max.x() - platelist_bbox.max.x();
+                        offset(1) = cur_platelist_bbox.min.y() - platelist_bbox.min.y();
+                        break;
+                    case 5:
+                        offset(0) = last_plate_bbox.center().x() + 1.2f * cur_plate_w - instance_bbox.center().x();
+                        offset(1) = last_plate_bbox.center().y() - instance_bbox.center().y();
+                        break;
+                    default:
+                        break;
+                }
+
+                object->translate_instance(0, offset);
+                cur_plate_list.notify_instance_update(iter.first, 0);
             }
 
             BOOST_LOG_TRIVIAL(info) << format("change bed size from (%.0f,%.0f) to (%.0f,%.0f)", old_plate_size.x(), old_plate_size.y(), cur_plate_size.x(), cur_plate_size.y());
