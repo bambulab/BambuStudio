@@ -4551,10 +4551,12 @@ void GUI_App::reset_to_active()
     last_active_point = std::chrono::system_clock::now();
 }
 
-void GUI_App::check_update(bool show_tips, int by_user, VersionUpdateType type)
+void GUI_App::check_update(bool show_tips, int by_user)
 {
-    if (version_info.version_str.empty()) return;
-    if (version_info.url.empty()) return;
+    if (version_info.version_str.empty() || version_info.url.empty()) {
+        check_beta_version();
+        return;
+    }
 
     auto curr_version = Semver::parse(SLIC3R_VERSION);
     auto remote_version = Semver::parse(version_info.version_str);
@@ -4572,17 +4574,12 @@ void GUI_App::check_update(bool show_tips, int by_user, VersionUpdateType type)
         }
     } else {
         wxGetApp().app_config->set("upgrade", "force_upgrade", false);
-        if (app_config->get("enable_beta_version_update") == "true"){
-            if (type == ReleaseVersionUpdate){
-                check_beta_version(show_tips, by_user);
-            }
-            else if (type == BetaVersionUpdate){
-                this->no_new_version();
-            }
-        }
-        else{
+
+        if (show_tips) {
             this->no_new_version();
         }
+
+        check_beta_version();
     }
 }
 
@@ -4616,8 +4613,11 @@ void GUI_App::check_new_version(bool show_tips, int by_user)
             if (j.contains("message")) {
                 if (j["message"].get<std::string>() == "success") {
                     if (j.contains("software")) {
-                        if (j["software"].empty() && show_tips) {
-                            this->no_new_version();
+                        if (j["software"].empty()) {
+                            if (show_tips) {
+                                this->no_new_version();
+                            }
+                            check_beta_version();
                         }
                         else {
                             if (j["software"].contains("url")
@@ -4648,7 +4648,12 @@ void GUI_App::check_new_version(bool show_tips, int by_user)
     }).perform();
 }
 
-void GUI_App::check_beta_version(bool show_tips, int by_user) {
+void GUI_App::check_beta_version()
+{
+    if (app_config->get("enable_beta_version_update") != "true") {
+        return;
+    }
+
     std::string platform = "windows";
 
 #ifdef __WINDOWS__
@@ -4671,7 +4676,7 @@ void GUI_App::check_beta_version(bool show_tips, int by_user) {
     http.header("accept", "application/json")
         .timeout_connect(TIMEOUT_CONNECT)
         .timeout_max(TIMEOUT_RESPONSE)
-        .on_complete([this, show_tips, by_user, platform](std::string body, unsigned) {
+        .on_complete([this, platform](std::string body, unsigned) {
         try {
             json versions = json::parse(body, nullptr, false);
             for (auto version : versions){
@@ -4697,15 +4702,24 @@ void GUI_App::check_beta_version(bool show_tips, int by_user) {
                                     version_info.url = url;
                                     version_info.description = "###" + std::string(version["html_url"]) + "###";
                                     version_info.force_upgrade = false;
-                                    CallAfter([this, show_tips, by_user]() {
-                                        this->check_update(show_tips, by_user, BetaVersionUpdate);
-                                        });
-                                    return;
+                                    CallAfter([this]() {
+
+                                        if (version_info.version_str.empty() || version_info.url.empty()) {
+                                            return;
+                                        }
+
+                                        auto curr_version   = Semver::parse(SLIC3R_VERSION);
+                                        auto remote_version = Semver::parse(version_info.version_str);
+                                        if (curr_version && remote_version && (*remote_version > *curr_version)) {
+                                            GUI::wxGetApp().request_new_version(false);
+                                        }
+                                    });
                                 }
                             }
                         }
                     }
                 }
+                return;
             }
         }
         catch (...) {
