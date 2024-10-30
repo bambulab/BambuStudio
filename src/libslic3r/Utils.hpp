@@ -63,6 +63,7 @@
 
 #define CLI_SLICING_ERROR                  -100
 #define CLI_GCODE_PATH_CONFLICTS           -101
+#define CLI_FILAMENT_UNPRINTABLE_ON_FIRST_LAYER -103
 
 
 namespace boost { namespace filesystem { class directory_entry; }}
