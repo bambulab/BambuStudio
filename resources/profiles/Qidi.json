@@ -15,7 +15,7 @@
         {
             "name": "Qidi X-Max 3",
             "sub_path": "machine/Qidi X-Max 3.json"
-        },        
+        },
         {
             "name": "Qidi X-Plus 3",
             "sub_path": "machine/Qidi X-Plus 3.json"
@@ -113,7 +113,7 @@
         {
             "name": "0.12mm Fine @Qidi X3",
             "sub_path": "process/0.12mm Fine @Qidi X3.json"
-        },  
+        },
 		{
             "name": "0.12mm Fine @Qidi XMPlus",
             "sub_path": "process/0.12mm Fine @Qidi XPlus.json"
@@ -137,7 +137,7 @@
         {
             "name": "0.12mm Fine @Qidi XMax3",
             "sub_path": "process/0.12mm Fine @Qidi XMax3.json"
-        }, 
+        },
         {
             "name": "0.12mm Fine @Qidi Q1 Pro",
             "sub_path": "process/0.12mm Fine @Qidi Q1 Pro.json"
@@ -608,7 +608,7 @@
             "name": "fdm_filament_pa",
             "sub_path": "filament/fdm_filament_pa.json"
         },
-		{
+	{
             "name": "fdm_filament_pc",
             "sub_path": "filament/fdm_filament_pc.json"
         },
@@ -616,11 +616,11 @@
             "name": "fdm_filament_pet",
             "sub_path": "filament/fdm_filament_pet.json"
         },
-		        {
+	{
             "name": "fdm_filament_pla",
             "sub_path": "filament/fdm_filament_pla.json"
         },
-		{
+	{
             "name": "fdm_filament_pva",
             "sub_path": "filament/fdm_filament_pva.json"
         },
@@ -1542,15 +1542,15 @@
             "name": "fdm_qidi_x3_common",
             "sub_path": "machine/fdm_qidi_x3_common.json"
         },
-		{
+	{
             "name": "Qidi X-Plus 0.4 nozzle",
             "sub_path": "machine/Qidi X-Plus 0.4 nozzle.json"
         },
-		{
+	{
             "name": "Qidi X-Max 0.4 nozzle",
             "sub_path": "machine/Qidi X-Max 0.4 nozzle.json"
         },
-		{
+	{
             "name": "Qidi X-CF Pro 0.4 nozzle",
             "sub_path": "machine/Qidi X-CF Pro 0.4 nozzle.json"
         },
