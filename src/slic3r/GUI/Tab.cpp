@@ -4146,6 +4146,9 @@ void TabPrinter::toggle_options()
         for (auto el : { "extruder_type" , "nozzle_diameter"}) {
             toggle_option(el, !is_BBL_printer, i);
         }
+
+        toggle_option("extruder_type", !is_BBL_printer, i);
+        toggle_option("nozzle_diameter", !is_BBL_printer || config_mode == ConfigOptionMode::comDevelop, i);
         toggle_option("extruder_offset", !is_BBL_printer || config_mode == ConfigOptionMode::comDevelop, i);
 
         bool use_firmware_retraction = m_config->opt_bool("use_firmware_retraction");
