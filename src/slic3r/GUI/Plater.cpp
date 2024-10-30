@@ -1626,7 +1626,7 @@ void Sidebar::add_filament() {
 
 void Sidebar::delete_filament() {
     if (p->combos_filament.size() <= 1) return;
-
+    wxBusyCursor busy;
     size_t filament_count = p->combos_filament.size() - 1;
     if (wxGetApp().preset_bundle->is_the_only_edited_filament(filament_count) || (filament_count == 1)) {
         wxGetApp().get_tab(Preset::TYPE_FILAMENT)->select_preset(wxGetApp().preset_bundle->filament_presets[0], false, "", true);

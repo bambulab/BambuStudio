@@ -837,6 +837,11 @@ void GLVolume::render(bool with_outline, const std::array<float, 4>& body_color)
             if (mv->mmu_segmentation_facets.empty())
                 break;
 
+            std::vector<std::array<float, 4>> colors = get_extruders_colors();
+            if (colors.size() == 1) {
+                break;
+            }
+
             color_volume = true;
             if (mv->mmu_segmentation_facets.timestamp() != mmuseg_ts) {
                 BOOST_LOG_TRIVIAL(debug) << __FUNCTION__<< boost::format(", this %1%, name %2%, current mmuseg_ts %3%, current color size %4%")
@@ -845,9 +850,12 @@ void GLVolume::render(bool with_outline, const std::array<float, 4>& body_color)
                 std::vector<indexed_triangle_set> its_per_color;
                 mv->mmu_segmentation_facets.get_facets(*mv, its_per_color);
                 mmuseg_ivas.resize(its_per_color.size());
+
                 for (int idx = 0; idx < its_per_color.size(); idx++) {
-                    mmuseg_ivas[idx].load_its_flat_shading(its_per_color[idx]);
-                    mmuseg_ivas[idx].finalize_geometry(true);
+                    if (its_per_color[idx].indices.size() > 0) {
+                        mmuseg_ivas[idx].load_its_flat_shading(its_per_color[idx]);
+                        mmuseg_ivas[idx].finalize_geometry(true);
+                    }
                 }
                 mmuseg_ts = mv->mmu_segmentation_facets.timestamp();
                 BOOST_LOG_TRIVIAL(debug) << __FUNCTION__<< boost::format(", this %1%, name %2%, new mmuseg_ts %3%, new color size %4%")
@@ -877,6 +885,7 @@ void GLVolume::render(bool with_outline, const std::array<float, 4>& body_color)
                         int extruder_id = mv->extruder_id();
                         //shader->set_uniform("uniform_color", colors[extruder_id - 1]);
                         //to make black not too hard too see
+                        if (extruder_id <= 0) { extruder_id = 1; }
                         std::array<float, 4> new_color = adjust_color_for_rendering(colors[extruder_id - 1]);
                         shader->set_uniform("uniform_color", new_color);
                     }
@@ -1127,6 +1136,7 @@ void GLVolume::simple_render(GLShaderProgram *shader, ModelObjectPtrs &model_obj
             if (shader) {
                 if (idx == 0) {
                     int extruder_id = model_volume->extruder_id();
+                    if (extruder_id <= 0) { extruder_id = 1; }
                     //to make black not too hard too see
                     std::array<float, 4> new_color = adjust_color_for_rendering(extruder_colors[extruder_id - 1]);
                     if (ban_light) {
