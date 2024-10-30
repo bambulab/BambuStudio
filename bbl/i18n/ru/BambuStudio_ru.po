@@ -2,12 +2,12 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: 1.9.7.52 Public Official\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-15 16:47+0800\n"
+"POT-Creation-Date: 2024-10-25 21:39+0800\n"
 "PO-Revision-Date: 2024-09-27 23:58+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -2268,6 +2268,11 @@ msgstr ""
 
 msgid "No arrangeable objects are selected."
 msgstr "Не выбрано моделей для расстановки."
+
+msgid ""
+"The following plates are skipped due to different arranging settings from "
+"global:"
+msgstr ""
 
 msgid ""
 "This plate is locked,\n"
@@ -5140,6 +5145,21 @@ msgstr ""
 msgid "Step file import parameters"
 msgstr ""
 
+msgid "Rough"
+msgstr ""
+
+msgid "Reduce Linear"
+msgstr ""
+
+msgid "Reduce Angle"
+msgstr ""
+
+msgid "Fewer faces"
+msgstr ""
+
+msgid "More faces"
+msgstr ""
+
 msgid "Linear Deflection"
 msgstr ""
 
@@ -5484,6 +5504,9 @@ msgstr " печатной пластины %1%: "
 
 msgid "Invalid name, the following characters are not allowed:"
 msgstr "Недопустимое имя файла. Следующие символов не разрешены:"
+
+msgid "(Including its escape characters)"
+msgstr ""
 
 msgid "Sliced Info"
 msgstr "Информация о нарезке"
@@ -9783,6 +9806,18 @@ msgstr ""
 "Диаметр пластиковой нити используется для расчёта экструзии, поэтому он "
 "важен и должен быть точным"
 
+msgid "Shrinkage"
+msgstr ""
+
+#, no-c-format, no-boost-format
+msgid ""
+"Enter the shrinkage percentage that the filament will get after cooling (94% "
+"if you measure 94mm instead of 100mm). The part will be scaled in xy to "
+"compensate. Only the filament used for the perimeter is taken into account.\n"
+"Be sure to allow enough space between objects, as this compensation is done "
+"after the checks."
+msgstr ""
+
 msgid "Density"
 msgstr "Плотность"
 
@@ -11384,8 +11419,8 @@ msgstr ""
 "Для нависаний, угол наклона которых ниже заданного порогового значения, "
 "будут использоваться поддержки."
 
-msgid "Tree support branch angle"
-msgstr "Угол нависания ветвей древовидной поддержки"
+msgid "Branch angle"
+msgstr ""
 
 msgid ""
 "This setting determines the maximum overhang angle that t he branches of "
@@ -11397,8 +11432,8 @@ msgstr ""
 "позволяет им достигать большего охвата. При указании меньшего угла, "
 "поддержка будет более вертикальной и устойчивой."
 
-msgid "Tree support branch distance"
-msgstr "Расстояние между ветвями древовидной поддержки"
+msgid "Branch distance"
+msgstr ""
 
 msgid ""
 "This setting determines the distance between neighboring tree support nodes."
@@ -11406,13 +11441,23 @@ msgstr ""
 "Этот параметр определяет, насколько далеко должны друг от друга "
 "располагаться ветви при касании модели."
 
-msgid "Tree support branch diameter"
-msgstr "Диаметр ветвей древовидной поддержки"
+msgid "Branch diameter"
+msgstr ""
 
 msgid "This setting determines the initial diameter of support nodes."
 msgstr ""
 "Этот параметр определяет начальный диаметр ветвей, т.е. их диаметр в месте "
 "контакта с моделью."
+
+msgid "Branch diameter angle"
+msgstr ""
+
+msgid ""
+"The angle of the branches' diameter as they gradually become thicker towards "
+"the bottom. An angle of 0 will cause the branches to have uniform thickness "
+"over their length. A bit of an angle can increase stability of the tree "
+"support."
+msgstr ""
 
 msgid "Support wall loops"
 msgstr "Периметров поддержки"
@@ -14233,6 +14278,15 @@ msgstr ""
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как "
 "ABS, повышение температуры подогреваемого стола может снизить эту "
 "вероятность?"
+
+#~ msgid "Tree support branch angle"
+#~ msgstr "Угол нависания ветвей древовидной поддержки"
+
+#~ msgid "Tree support branch distance"
+#~ msgstr "Расстояние между ветвями древовидной поддержки"
+
+#~ msgid "Tree support branch diameter"
+#~ msgstr "Диаметр ветвей древовидной поддержки"
 
 #~ msgid ""
 #~ "Object will be raised by this number of support layers. Use this function "

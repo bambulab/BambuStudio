@@ -4420,17 +4420,6 @@ static bool need_smooth_speed(const ExtrusionPath &other_path, const ExtrusionPa
     return false;
 }
 
-static void append_split_line(bool split_from_left, Polyline &polyline, Point p1, Point p2)
-{
-    if (split_from_left) {
-        polyline.append(p1);
-        polyline.append(p2);
-    } else {
-        polyline.append(p2);
-        polyline.append(p1);
-    }
-}
-
 ExtrusionPaths GCode::split_and_mapping_speed(double &other_path_v, double &final_v, ExtrusionPath &this_path, double max_smooth_length, bool split_from_left)
 {
     ExtrusionPaths splited_path;
@@ -4473,63 +4462,50 @@ ExtrusionPaths GCode::split_and_mapping_speed(double &other_path_v, double &fina
         return pos_x_speed;
     };
 
-    while (end_pt_idx < input_polyline.points.size()) {
+    while (split_line_speed < final_v && end_pt_idx < input_polyline.size()) {
         // move to next line
         if (get_next_line) {
             line_start_pt = input_polyline.points[end_pt_idx - 1];
             line_end_pt   = input_polyline.points[end_pt_idx];
         }
-
-        Polyline polyline;
+        //This line is cut off as a speed transition area
+        Polyline cuted_polyline;
         Line     line(line_start_pt, line_end_pt);
 
+        cuted_polyline.append(line_start_pt);
         // split polyline and set speed
         if (line.length() < max_step_length || line.length() - min_step_length < min_step_length / 2) {
             split_line_speed = insert_speed(line.length(), x_base, smooth_length_count, final_v);
-            append_split_line(split_from_left, polyline, line_start_pt, line_end_pt);
             end_pt_idx++;
-            get_next_line = true;
+            get_next_line    = true;
+            cuted_polyline.append(line.b);
         } else {
             // path is too long, split it
             double rate     = min_step_length / line.length();
-            Point  insert_p = line.a + (line.b - line.a) * rate;
+            Point insert_p = line.a + (line.b - line.a) * rate;
 
             split_line_speed = insert_speed(min_step_length, x_base, smooth_length_count, final_v);
-            append_split_line(split_from_left, polyline, line_start_pt, insert_p);
-
             line_start_pt = insert_p;
-            get_next_line = false;
+            get_next_line    = false;
+            cuted_polyline.append(insert_p);
         }
 
-        ExtrusionPath path_step(polyline, this_path);
+        ExtrusionPath path_step(cuted_polyline, this_path);
         path_step.smooth_speed = split_line_speed;
         splited_path.push_back(std::move(path_step));
-
-        // stop condition
-        if (split_line_speed >= final_v) break;
     }
 
-    if (!split_from_left)
-        std::reverse(input_polyline.points.begin(), input_polyline.points.end());
-    // get_remain_path
-    if (end_pt_idx < input_polyline.points.size()) {
-        // split at index or split at corr length
-        Polyline p1, p2;
-        if( !split_from_left ) {
-            input_polyline.split_at_length(input_polyline.length() - smooth_length_count, &p1, &p2);
-            this_path.polyline = p1;
-        } else {
-            input_polyline.split_at_length(smooth_length_count, &p1, &p2);
-            this_path.polyline = p2;
-        }
-
-    } else {
-        this_path.polyline.clear();
-    }
-
-    // reverse paths if this start from right
-    if (!split_from_left)
+    // reverse path back
+    Polyline p1, p2;
+    Point &  split_point = splited_path.back().polyline.points.back();
+    this_path.polyline.split_at(split_point, &p1, &p2);
+    if (!split_from_left) {
+        this_path.polyline = p1;
         std::reverse(splited_path.begin(), splited_path.end());
+        for (ExtrusionPath &path : splited_path) { std::reverse(path.polyline.points.begin(), path.polyline.points.end()); }
+    } else {
+        this_path.polyline = p2;
+    }
 
     return splited_path;
 }
@@ -5325,6 +5301,8 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z, bool b
     // BBS: insert skip object label before change filament while by object
     if (by_object)
         m_writer.add_object_change_labels(gcode);
+    else
+        m_writer.add_object_end_labels(gcode);
 
     if (m_writer.extruder() != nullptr) {
         // Process the custom filament_end_gcode. set_extruder() is only called if there is no wipe tower

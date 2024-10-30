@@ -382,7 +382,7 @@ void AMSMaterialsSetting::paintEvent(wxPaintEvent &evt)
 {
     auto      size = GetSize();
     wxPaintDC dc(this);
-    dc.SetPen(wxPen(StateColor::darkModeColorFor(wxColour("#000000")), 1, wxSOLID));
+    dc.SetPen(wxPen(StateColor::darkModeColorFor(wxColour("#000000")), 1, wxPENSTYLE_SOLID));
     dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
     dc.DrawRectangle(0, 0, size.x, size.y);
 }
@@ -970,6 +970,9 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
         m_comboBox_filament->SetValue(wxEmptyString);
     }
 
+    // Set the flag whether to open the filament setting dialog from the device page
+    m_comboBox_filament->SetClientData(new int(1));
+
     update();
     Layout();
     Fit();
@@ -1003,6 +1006,9 @@ void AMSMaterialsSetting::on_select_cali_result(wxCommandEvent &evt)
 
 void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
 {
+    // Get the flag whether to open the filament setting dialog from the device page
+    int *from_printer           = static_cast<int *>(m_comboBox_filament->GetClientData());
+
     m_filament_type = "";
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     if (preset_bundle) {
@@ -1084,6 +1090,7 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         m_comboBox_cali_result->SetValue(wxEmptyString);
         m_input_k_val->GetTextCtrl()->SetValue(wxEmptyString);
         m_input_n_val->GetTextCtrl()->SetValue(wxEmptyString);
+        m_comboBox_filament->SetClientData(new int(0));
         return;
     }
     else {
@@ -1118,6 +1125,13 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
     m_pa_profile_items.clear();
     m_comboBox_cali_result->SetValue(wxEmptyString);
 
+    auto get_cali_index = [this](const std::string &str) -> int {
+        for (int i = 0; i < int(m_pa_profile_items.size()); ++i) {
+            if (m_pa_profile_items[i].name == str) return i;
+        }
+        return 0;
+    };
+
     if (obj->cali_version >= 0) {
         // add default item
         PACalibResult default_item;
@@ -1138,26 +1152,44 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
 
         m_comboBox_cali_result->Set(items);
         if (tray_id == VIRTUAL_TRAY_ID) {
-            AmsTray selected_tray = this->obj->vt_tray;
-            cali_select_idx = CalibUtils::get_selected_calib_idx(m_pa_profile_items,selected_tray.cali_idx);
-            if (cali_select_idx >= 0) {
-                m_comboBox_cali_result->SetSelection(cali_select_idx);
+            if (from_printer && (*from_printer == 1)) {
+                AmsTray selected_tray = this->obj->vt_tray;
+                cali_select_idx       = CalibUtils::get_selected_calib_idx(m_pa_profile_items, selected_tray.cali_idx);
+                if (cali_select_idx >= 0) {
+                    m_comboBox_cali_result->SetSelection(cali_select_idx);
+                } else {
+                    m_comboBox_cali_result->SetSelection(0);
+                }
             }
             else {
-                m_comboBox_cali_result->SetSelection(0);
+#ifdef __APPLE__
+                cali_select_idx = get_cali_index(m_comboBox_filament->GetValue().ToStdString());
+#else
+                cali_select_idx = get_cali_index(m_comboBox_filament->GetLabel().ToStdString());
+#endif
+                m_comboBox_cali_result->SetSelection(cali_select_idx);
             }
         }
         else {
-            Ams* selected_ams = this->obj->amsList[std::to_string(ams_id)];
-            if(!selected_ams) return;
-            AmsTray* selected_tray = selected_ams->trayList[std::to_string(tray_id)];
-            if(!selected_tray) return;
-            cali_select_idx = CalibUtils::get_selected_calib_idx(m_pa_profile_items, selected_tray->cali_idx);
-            if (cali_select_idx >= 0) {
-                m_comboBox_cali_result->SetSelection(cali_select_idx);
+            if (from_printer && (*from_printer == 1)) {
+                Ams *selected_ams = this->obj->amsList[std::to_string(ams_id)];
+                if (!selected_ams) return;
+                AmsTray *selected_tray = selected_ams->trayList[std::to_string(tray_id)];
+                if (!selected_tray) return;
+                cali_select_idx = CalibUtils::get_selected_calib_idx(m_pa_profile_items, selected_tray->cali_idx);
+                if (cali_select_idx >= 0) {
+                    m_comboBox_cali_result->SetSelection(cali_select_idx);
+                } else {
+                    m_comboBox_cali_result->SetSelection(0);
+                }
             }
             else {
-                m_comboBox_cali_result->SetSelection(0);
+#ifdef __APPLE__
+                cali_select_idx = get_cali_index(m_comboBox_filament->GetValue().ToStdString());
+#else
+                cali_select_idx = get_cali_index(m_comboBox_filament->GetLabel().ToStdString());
+#endif
+                m_comboBox_cali_result->SetSelection(cali_select_idx);
             }
         }
 
@@ -1176,6 +1208,8 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
             m_input_k_val->Disable();
         }
     }
+
+    m_comboBox_filament->SetClientData(new int(0));
 }
 
 void AMSMaterialsSetting::on_dpi_changed(const wxRect &suggested_rect)

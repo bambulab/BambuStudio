@@ -163,7 +163,22 @@ struct SupportParameters {
         tree_branch_diameter_double_wall_area_scaled = object_config.tree_support_wall_count.value > 1  ? 0.1 :
                                                        object_config.tree_support_wall_count.value == 0 ? 0.25 * sqr(scaled<double>(5.0)) * M_PI :
                                                                                                           std::numeric_limits<double>::max();
-        
+
+        support_style = object_config.support_style;
+        if (support_style == smsDefault) {
+            if (is_tree(object_config.support_type)) {
+                // organic support doesn't work with variable layer heights (including adaptive layer height and height range modifier, see #4313)
+                if (!object.has_variable_layer_heights) {
+                    BOOST_LOG_TRIVIAL(warning) << "tree support default to organic support";
+                    support_style = smsTreeOrganic;
+                } else {
+                    BOOST_LOG_TRIVIAL(warning) << "tree support default to hybrid tree due to adaptive layer height";
+                    support_style = smsTreeHybrid;
+                }
+            } else {
+                support_style = smsGrid;
+            }
+        }
     }
 	// Both top / bottom contacts and interfaces are soluble.
     bool                    soluble_interface;
@@ -214,6 +229,7 @@ struct SupportParameters {
     coordf_t 				raft_interface_density;
     coordf_t 				support_spacing;
     coordf_t 				support_density;
+    SupportMaterialStyle    support_style = smsDefault;
 
     InfillPattern           base_fill_pattern;
     InfillPattern           interface_fill_pattern;

@@ -200,13 +200,18 @@ bool Plater::has_illegal_filename_characters(const std::string& name)
     for (size_t i = 0; i < std::strlen(illegal_characters); i++)
         if (name.find_first_of(illegal_characters[i]) != std::string::npos)
             return true;
-
+    std::array<std::string, 5> escape_characters = {"&lt;", "&gt;", "&amp;", "&quot;", "&apos;"};
+    for (auto escape : escape_characters) {
+        if (boost::contains(name, escape)) {
+            return true;
+        }
+    }
     return false;
 }
 
 void Plater::show_illegal_characters_warning(wxWindow* parent)
 {
-    show_error(parent, _L("Invalid name, the following characters are not allowed:") + " <>:/\\|?*\"");
+    show_error(parent, _L("Invalid name, the following characters are not allowed:") + " <>:/\\|?*\"" +_L("(Including its escape characters)"));
 }
 
 enum SlicedInfoIdx
@@ -5926,11 +5931,7 @@ void Plater::priv::reload_from_disk()
                 new_volume->set_material_id(old_volume->material_id());
 
                 new_volume->source.mesh_offset = old_volume->source.mesh_offset;
-                new_volume->set_offset(old_volume->get_offset());
-                // Transform3d transform = Transform3d::Identity();
-                // transform.translate(new_volume->source.mesh_offset - old_volume->source.mesh_offset);
-                // new_volume->set_transformation(old_volume->get_transformation().get_matrix() * old_volume->source.transform.get_matrix(true) *
-                //                                transform * new_volume->source.transform.get_matrix(true).inverse());
+                new_volume->set_transformation(old_volume->get_transformation());
 
                 new_volume->source.object_idx = old_volume->source.object_idx;
                 new_volume->source.volume_idx = old_volume->source.volume_idx;
@@ -6467,6 +6468,7 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     PartPlateList& old_plate_list = this->partplate_list;
     PartPlate* old_plate = old_plate_list.get_selected_plate();
     Vec3d old_plate_pos = old_plate->get_center_origin();
+    Vec3d old_plate_size = old_plate->get_plate_box().size();
 
     // BBS: Save the model in the current platelist
     std::vector<vector<int> > plate_object;
@@ -6536,15 +6538,20 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
         PartPlateList& cur_plate_list = this->partplate_list;
         PartPlate* cur_plate = cur_plate_list.get_curr_plate();
         Vec3d cur_plate_pos = cur_plate->get_center_origin();
+        Vec3d cur_plate_size = cur_plate->get_bounding_box().size();
+        bool  cur_plate_is_smaller = cur_plate_size.x() + 1.0 < old_plate_size.x() || cur_plate_size.y() + 1.0 < old_plate_size.y();
+        BOOST_LOG_TRIVIAL(info) << format("change bed pos from (%.0f,%.0f) to (%.0f,%.0f)", old_plate_pos.x(), old_plate_pos.y(), cur_plate_pos.x(), cur_plate_pos.y());
 
-        if (old_plate_pos.x() != cur_plate_pos.x() || old_plate_pos.y() != cur_plate_pos.y()) {
+        if (old_plate_pos.x() != cur_plate_pos.x() || old_plate_pos.y() != cur_plate_pos.y() || cur_plate_is_smaller) {
             for (int i = 0; i < plate_object.size(); ++i) {
                 view3D->select_object_from_idx(plate_object[i]);
                 this->sidebar->obj_list()->update_selections();
                 view3D->center_selected_plate(i);
             }
 
-            if (std::any_of(plate_object.begin(), plate_object.end(), [](const std::vector<int> &obj_idxs) { return !obj_idxs.empty(); })) {
+            BOOST_LOG_TRIVIAL(info) << format("change bed size from (%.0f,%.0f) to (%.0f,%.0f)", old_plate_size.x(), old_plate_size.y(), cur_plate_size.x(), cur_plate_size.y());
+            if (cur_plate_is_smaller &&
+                std::any_of(plate_object.begin(), plate_object.end(), [](const std::vector<int> &obj_idxs) { return !obj_idxs.empty(); })) {
                 take_snapshot("Arrange after bed size changes");
                 q->set_prepare_state(Job::PREPARE_STATE_OUTSIDE_BED);
                 q->arrange();

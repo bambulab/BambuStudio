@@ -768,6 +768,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,              tree_support_branch_distance))
     ((ConfigOptionFloat,              tree_support_branch_diameter))
     ((ConfigOptionFloat,              tree_support_branch_angle))
+    ((ConfigOptionFloat,              tree_support_branch_diameter_angle))
     ((ConfigOptionInt,                tree_support_wall_count))
     ((ConfigOptionBool,               detect_narrow_internal_solid_infill))
     // ((ConfigOptionBool,               adaptive_layer_height))
@@ -1118,6 +1119,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     // BBS: move from PrintObjectConfig
     ((ConfigOptionBool,               independent_support_layer_height))
     ((ConfigOptionBool,               exclude_object))
+    ((ConfigOptionPercents,            filament_shrink))
 )
 
 // This object is mapped to Perl as Slic3r::Config::Full.

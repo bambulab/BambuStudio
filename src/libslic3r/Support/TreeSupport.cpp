@@ -2,6 +2,7 @@
 #include <chrono>
 #include <math.h>
 
+#include "format.hpp"
 #include "ClipperUtils.hpp"
 #include "Fill/FillBase.hpp"
 #include "I18N.hpp"
@@ -599,27 +600,16 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
     m_print_config = &m_object->print()->config();
     m_raft_layers = slicing_params.base_raft_layers + slicing_params.interface_raft_layers;
     support_type = m_object_config->support_type;
-    support_style = m_object_config->support_style;
-    if (support_style == smsDefault) {
-        // organic support doesn't work with variable layer heights (including adaptive layer height and height range modifier, see #4313)
-        if (!m_object->has_variable_layer_heights) {
-            BOOST_LOG_TRIVIAL(warning) << "tree support default to organic support";
-            support_style = smsTreeOrganic;
-        }
-        else {
-            BOOST_LOG_TRIVIAL(warning) << "tree support default to hybrid tree due to adaptive layer height";
-            support_style = smsTreeHybrid;
-        }
-    }
+
     SupportMaterialPattern support_pattern  = m_object_config->support_base_pattern;
-    if (support_style == smsTreeHybrid && support_pattern == smpDefault)
+    if (m_support_params.support_style == smsTreeHybrid && support_pattern == smpDefault)
         support_pattern = smpRectilinear;
 
     if(support_pattern == smpLightning)
         m_support_params.base_fill_pattern = ipLightning;
-
-    is_slim                                  = is_tree_slim(support_type, support_style);
-    is_strong = is_tree(support_type) && support_style == smsTreeStrong;
+    diameter_angle_scale_factor              = std::clamp<double>(m_object_config->tree_support_branch_diameter_angle * M_PI / 180., 0., 0.5 * M_PI - EPSILON);
+    is_slim                                  = is_tree_slim(support_type, m_support_params.support_style);
+    is_strong = is_tree(support_type) && m_support_params.support_style == smsTreeStrong;
     base_radius                              = std::max(MIN_BRANCH_RADIUS, m_object_config->tree_support_branch_diameter.value / 2);
     // by default tree support needs no infill, unless it's tree hybrid which contains normal nodes.
     with_infill                              = support_pattern != smpNone && support_pattern != smpDefault;
@@ -1301,6 +1291,7 @@ static void make_perimeter_and_infill(ExtrusionEntitiesPtr& dst, const ExPolygon
             dst = std::move(loops_entities);
         }
     }
+    dst.erase(std::remove_if(dst.begin(), dst.end(), [](ExtrusionEntity *entity) { return static_cast<ExtrusionEntityCollection *>(entity)->empty(); }), dst.end());
     if (infill_first) {
         // sort regions to reduce travel
         Points ordering_points;
@@ -1545,7 +1536,10 @@ void TreeSupport::generate_toolpaths()
                                     erSupportMaterial, filler_support.get(), support_density);
                             }
                             else {
-                                tree_supports_generate_paths(ts_layer->support_fills.entities, loops, flow, m_support_params);
+                                SupportParameters support_params = m_support_params;
+                                if (area_group.need_extra_wall && object_config.tree_support_wall_count.value == 0)
+                                    support_params.tree_branch_diameter_double_wall_area_scaled = 0.1;
+                                tree_supports_generate_paths(ts_layer->support_fills.entities, loops, flow, support_params);
                             }
                         }
                     }
@@ -1651,7 +1645,7 @@ void TreeSupport::move_bounds_to_contact_nodes(std::vector<TreeSupport3D::Suppor
 
 void TreeSupport::generate()
 {
-    if (support_style == smsTreeOrganic) {
+    if (m_support_params.support_style == smsTreeOrganic) {
         generate_tree_support_3D(*m_object, this, this->throw_on_cancel);
         return;
     }
@@ -2003,7 +1997,7 @@ void TreeSupport::draw_circles()
         return;
     BOOST_LOG_TRIVIAL(info) << "draw_circles for object: " << m_object->model_object()->name;
 
-    tbb::parallel_for(tbb::blocked_range<size_t>(0, contact_nodes.size()),
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, m_ts_data->layer_heights.size()),
         [&](const tbb::blocked_range<size_t>& range)
         {
             for (size_t layer_nr = range.begin(); layer_nr < range.end(); layer_nr++)
@@ -2661,7 +2655,8 @@ void TreeSupport::drop_nodes()
                     // Remove all circle neighbours that are completely inside the polygon and merge them into this node.
                     for (const Point &neighbour : neighbours) {
                         SupportNode *    neighbour_node          = nodes_this_part[neighbour];
-                        if(neighbour_node->type==ePolygon) continue;
+                        if (neighbour_node->valid == false) continue;
+                        if (neighbour_node->type == ePolygon) continue;
                         coord_t    neighbour_radius = scale_(neighbour_node->radius);
                         Point     pt_north = neighbour + Point(0, neighbour_radius), pt_south = neighbour - Point(0, neighbour_radius),
                               pt_west = neighbour - Point(neighbour_radius, 0), pt_east = neighbour + Point(neighbour_radius, 0);
@@ -2937,8 +2932,6 @@ void TreeSupport::drop_nodes()
             for (; i_node != nullptr; i_node = i_node->parent)
             {
                 size_t i_layer = i_node->obj_layer_nr;
-                std::vector<SupportNode*>::iterator to_erase = std::find(contact_nodes[i_layer].begin(), contact_nodes[i_layer].end(), i_node);
-                if (to_erase != contact_nodes[i_layer].end())
                 {
                     // update the parent-child chain
                     if (i_node->parent) {
@@ -2953,20 +2946,24 @@ void TreeSupport::drop_nodes()
                         i_node->child->parents.erase(std::find(i_node->child->parents.begin(), i_node->child->parents.end(), i_node));
                         append(i_node->child->parents, i_node->parents);
                     }
-                    contact_nodes[i_layer].erase(to_erase);
-                    i_node->valid = false;
+                    i_node->is_processed = true;  // mark to be deleted later
 
                     for (SupportNode* neighbour : i_node->merged_neighbours)
                     {
-                        unsupported_branch_leaves.push_front({ i_layer, neighbour });
+                        if (neighbour && !neighbour->is_processed)
+                            unsupported_branch_leaves.push_front({ i_layer, neighbour });
                     }
                 }
             }
         }
+        for (auto &layer_contact_nodes : contact_nodes) {
+            if (!layer_contact_nodes.empty())
+                layer_contact_nodes.erase(std::remove_if(layer_contact_nodes.begin(), layer_contact_nodes.end(), [](SupportNode *node) { return node->is_processed; }),
+                                          layer_contact_nodes.end());
+        }
     }
 
     BOOST_LOG_TRIVIAL(debug) << "after m_avoidance_cache.size()=" << m_ts_data->m_avoidance_cache.size();
-
 }
 
 void TreeSupport::smooth_nodes()
@@ -2980,6 +2977,10 @@ void TreeSupport::smooth_nodes()
     }
 
     float max_move = scale_(m_object_config->support_line_width / 2);
+    // if the branch is very tall, the tip also needs extra wall
+    float thresh_tall_branch = 100;
+    float thresh_dist_to_top = 30;
+
     for (int layer_nr = 0; layer_nr< contact_nodes.size(); layer_nr++) {
         std::vector<SupportNode *> &curr_layer_nodes = contact_nodes[layer_nr];
         if (curr_layer_nodes.empty()) continue;
@@ -2989,17 +2990,20 @@ void TreeSupport::smooth_nodes()
                 std::vector<double> radii;
                 std::vector<SupportNode *>   branch;
                 SupportNode *              p_node = node;
+                float                        total_height = 0;
                 // add a fixed head if it's not a polygon node, see STUDIO-4403
                 // Polygon node can't be added because the move distance might be huge, making the nodes in between jump and dangling
                 if (node->child && node->child->type!=ePolygon) {
                     pts.push_back(p_node->child->position);
                     radii.push_back(p_node->child->radius);
                     branch.push_back(p_node->child);
+                    total_height += p_node->child->height;
                 }
                 do {
                     pts.push_back(p_node->position);
                     radii.push_back(p_node->radius);
                     branch.push_back(p_node);
+                    total_height += p_node->height;
                     p_node = p_node->parent;
                 } while (p_node && !p_node->is_processed);
                 if (pts.size() < 3) continue;
@@ -3018,7 +3022,8 @@ void TreeSupport::smooth_nodes()
                             branch[i]->radius = radii1[i];
                             branch[i]->movement = (pts[i + 1] - pts[i - 1]) / 2;
                             branch[i]->is_processed = true;
-                            if (branch[i]->parents.size()>1 || (branch[i]->movement.x() > max_move || branch[i]->movement.y() > max_move))
+                            if (branch[i]->parents.size() > 1 || (branch[i]->movement.x() > max_move || branch[i]->movement.y() > max_move) ||
+                                (total_height > thresh_tall_branch && branch[i]->dist_mm_to_top < thresh_dist_to_top))
                                 branch[i]->need_extra_wall = true;
                             BOOST_LOG_TRIVIAL(trace) << "smooth_nodes: layer_nr=" << layer_nr << ", i=" << i << ", pt=" << pt << ", movement=" << branch[i]->movement << ", radius=" << branch[i]->radius;
                         }
@@ -3415,7 +3420,7 @@ void TreeSupport::generate_contact_points()
                 const auto& overhang_type = this->overhang_types[&overhang_part];
                 is_sharp_tail = overhang_type == OverhangType::SharpTail;
                 ExPolygons overhangs_regular;
-                if (support_style == smsTreeHybrid && overhang_part.area() > m_support_params.thresh_big_overhang && !is_sharp_tail) {
+                if (m_support_params.support_style == smsTreeHybrid && overhang_part.area() > m_support_params.thresh_big_overhang && !is_sharp_tail) {
                     overhangs_regular           = offset_ex(intersection_ex({overhang_part}, m_ts_data->m_layer_outlines_below[layer_nr - 1]), radius_scaled);
                     ExPolygons overhangs_normal = diff_ex({overhang_part}, overhangs_regular);
                     if (area(overhangs_normal) > m_support_params.thresh_big_overhang) {
@@ -3606,33 +3611,19 @@ SupportNode* TreeSupportData::create_node(const Point position, const int distan
 {
     // this function may be called from multiple threads, need to lock
     m_mutex.lock();
-    SupportNode* node = new SupportNode(position, distance_to_top, obj_layer_nr, support_roof_layers_below, to_buildplate, parent, print_z_, height_, dist_mm_to_top_, radius_);
-    contact_nodes.emplace_back(node);
+    std::unique_ptr<SupportNode> node = std::make_unique<SupportNode>(position, distance_to_top, obj_layer_nr, support_roof_layers_below, to_buildplate, parent, print_z_, height_, dist_mm_to_top_, radius_);
+    SupportNode* raw_ptr = node.get();
+    contact_nodes.emplace_back(std::move(node));
     m_mutex.unlock();
     if (parent)
-        node->movement = position - parent->position;
-    return node;
+        raw_ptr->movement = position - parent->position;
+    return raw_ptr;
 }
 
 void TreeSupportData::clear_nodes()
 {
-    for (auto node : contact_nodes) {
-        delete node;
-    }
+    tbb::spin_mutex::scoped_lock guard(m_mutex);
     contact_nodes.clear();
-}
-
-void TreeSupportData::remove_invalid_nodes()
-{
-    for (auto it = contact_nodes.begin(); it != contact_nodes.end();) {
-        if ((*it)->valid==false) {
-            delete (*it);
-            it = contact_nodes.erase(it);
-        }
-        else {
-            it++;
-        }
-    }
 }
 
 coordf_t TreeSupportData::ceil_radius(coordf_t radius) const
@@ -3662,27 +3653,22 @@ const ExPolygons& TreeSupportData::calculate_avoidance(const RadiusLayerPair& ke
 {
     const auto &radius = key.radius;
     const auto &layer_nr = key.layer_nr;
-    if (layer_nr == 0) {
-        // avoid ExPolygons:~ExPolygons() in multi-threading case, as it's not thread-safe and may
-        // cause crash in some cases. See STUDIO-8313.
-        if (m_avoidance_cache.find(key) == m_avoidance_cache.end())
-            m_avoidance_cache[key] = get_collision(radius, 0);
-        return m_avoidance_cache[key];
-    }
+    ExPolygons avoidance_areas;
+    if (layer_nr > 0) {
+        // Avoidance for a given layer depends on all layers beneath it so could have very deep recursion depths if
+        // called at high layer heights. We can limit the reqursion depth to N by checking if the layer N
+        // below the current one exists and if not, forcing the calculation of that layer. This may cause another recursion
+        // if the layer at 2N below the current one but we won't exceed our limit unless there are N*N uncalculated layers
+        // below our current one.
+        constexpr auto max_recursion_depth = 100;
+        // Check if we would exceed the recursion limit by trying to process this layer
+        if (layer_nr >= max_recursion_depth && m_avoidance_cache.find({radius, layer_nr - max_recursion_depth}) == m_avoidance_cache.end()) {
+            // Force the calculation of the layer `max_recursion_depth` below our current one, ignoring the result.
+            get_avoidance(radius, layer_nr - max_recursion_depth);
+        }
 
-    // Avoidance for a given layer depends on all layers beneath it so could have very deep recursion depths if
-    // called at high layer heights. We can limit the reqursion depth to N by checking if the layer N
-    // below the current one exists and if not, forcing the calculation of that layer. This may cause another recursion
-    // if the layer at 2N below the current one but we won't exceed our limit unless there are N*N uncalculated layers
-    // below our current one.
-    constexpr auto max_recursion_depth = 100;
-    // Check if we would exceed the recursion limit by trying to process this layer
-    if (layer_nr >= max_recursion_depth && m_avoidance_cache.find({radius, layer_nr - max_recursion_depth}) == m_avoidance_cache.end()) {
-        // Force the calculation of the layer `max_recursion_depth` below our current one, ignoring the result.
-        get_avoidance(radius, layer_nr - max_recursion_depth);
+        avoidance_areas = std::move(offset_ex(get_avoidance(radius, layer_nr - 1), scale_(-m_max_move_distances[layer_nr-1])));
     }
-
-    ExPolygons avoidance_areas = std::move(offset_ex(get_avoidance(radius, layer_nr - 1), scale_(-m_max_move_distances[layer_nr-1])));
     const ExPolygons &collision       = get_collision(radius, layer_nr);
     avoidance_areas.insert(avoidance_areas.end(), collision.begin(), collision.end());
     avoidance_areas = std::move(union_ex(avoidance_areas));

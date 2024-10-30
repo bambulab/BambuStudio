@@ -649,6 +649,11 @@ static int load_assemble_plate_list(std::string config_file, std::vector<assembl
                     return CLI_CONFIG_FILE_ERROR;
                 }
 
+                if (object_json.contains(JSON_ASSEMPLE_SUBTYPE))
+                    assemble_object.subtype = ModelVolume::type_from_string(object_json[JSON_ASSEMPLE_SUBTYPE]);
+                else
+                    assemble_object.subtype = ModelVolumeType::MODEL_PART;
+
                 assemble_object.filaments = object_json.at(JSON_ASSEMPLE_OBJECT_FILAMENTS).get<std::vector<int>>();
                 if ((assemble_object.filaments.size() > 0) && (assemble_object.filaments.size() != assemble_object.count) && (assemble_object.filaments.size() != 1))
                 {
@@ -749,7 +754,7 @@ static int load_assemble_plate_list(std::string config_file, std::vector<assembl
     return ret;
 }
 
-void merge_or_add_object(assemble_plate_info_t& assemble_plate_info, Model &model, int assemble_index, std::map<int, ModelObject*> &merged_objects, ModelObject *ori_object)
+void merge_or_add_object(assemble_plate_info_t& assemble_plate_info, Model &model, int assemble_index, std::map<int, ModelObject*> &merged_objects, ModelObject *ori_object, ModelVolumeType type)
 {
     if (assemble_index > 0) {
         auto iter = merged_objects.find(assemble_index);
@@ -760,17 +765,21 @@ void merge_or_add_object(assemble_plate_info_t& assemble_plate_info, Model &mode
             new_object->name = "assemble_" + std::to_string(assemble_index);
             merged_objects[assemble_index] = new_object;
             assemble_plate_info.loaded_obj_list.emplace_back(new_object);
-            new_object->config.assign_config(ori_object->config.get());
+            //new_object->config.assign_config(ori_object->config.get());
         }
         else
             new_object = iter->second;
 
         for (auto volume : ori_object->volumes) {
-            ModelVolume* new_volume = new_object->add_volume(*volume);
+            ModelVolume* new_volume = new_object->add_volume(*volume, type);
             // set extruder id
-            new_volume->config.set_key_value("extruder", new ConfigOptionInt(ori_object->config.extruder()));
+            //new_volume->config.set_key_value("extruder", new ConfigOptionInt(ori_object->config.extruder()));
+            if (type == ModelVolumeType::MODEL_PART || type == ModelVolumeType::PARAMETER_MODIFIER)
+            {
+                new_volume->config.apply(ori_object->config);
+            }
         }
-        BOOST_LOG_TRIVIAL(debug) << boost::format("assemble_index %1%, name %2%, merged to new model %3%") % assemble_index % ori_object->name % new_object->name;
+        BOOST_LOG_TRIVIAL(debug) << boost::format("assemble_index %1%, name %2%, merged to new model %3%, subtype %4%") % assemble_index % ori_object->name % new_object->name %(int)type;
     }
     else {
         ModelObject* new_object = model.add_object(*ori_object);
@@ -925,7 +934,7 @@ static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_
                     return CLI_DATA_FILE_ERROR;
                 }
             }
-            else if (boost::algorithm::iends_with(assemble_object.path, ".obj"))
+            else if ((boost::algorithm::iends_with(assemble_object.path, ".obj")) && assemble_object.subtype == ModelVolumeType::MODEL_PART)
             {
                 std::string message;
                 ObjInfo  obj_info;
@@ -974,7 +983,7 @@ static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_
                 obj_temp_model.clear_materials();
             }
             else {
-                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": unsupported file %1%, plate index %2%, object index %3%") % assemble_object.path % (index + 1) % (obj_index + 1);
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": unsupported file %1%, plate index %2%, object index %3%, subtype %4%") % assemble_object.path % (index + 1) % (obj_index + 1) %(int)(assemble_object.subtype);
                 return CLI_INVALID_PARAMS;
             }
 
@@ -1001,6 +1010,10 @@ static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_
 
             if (!assemble_object.height_ranges.empty())
             {
+                if (assemble_object.subtype != ModelVolumeType::MODEL_PART) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": only normal part can have height ranges, file %1%, plate index %2%, object index %3%, subtype %4%") % assemble_object.path % (index + 1) % (obj_index + 1) %(int)(assemble_object.subtype);
+                    return CLI_INVALID_PARAMS;
+                }
                 for (int range_index = 0; range_index < assemble_object.height_ranges.size(); range_index++)
                 {
                     height_range_info_t& range = assemble_object.height_ranges[range_index];
@@ -1020,11 +1033,21 @@ static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_
                 assemble_object.pos_y.resize(1, 0.f);
             if (assemble_object.pos_z.empty())
                 assemble_object.pos_z.resize(1, 0.f);
-            if (assemble_object.assemble_index.empty())
+            if (assemble_object.assemble_index.empty()) {
+                if (assemble_object.subtype != ModelVolumeType::MODEL_PART) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": only normal part can be used as individual object, file %1%, plate index %2%, object index %3%, subtype %4%") % assemble_object.path % (index + 1) % (obj_index + 1) %(int)(assemble_object.subtype);
+                    return CLI_INVALID_PARAMS;
+                }
                 assemble_object.assemble_index.resize(1, 0);
+            }
+
+            if ((assemble_object.subtype != ModelVolumeType::MODEL_PART)&&(assemble_object.assemble_index[0] == 0)) {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": only normal part can have height ranges, file %1%, plate index %2%, object index %3%, subtype %4%") % assemble_object.path % (index + 1) % (obj_index + 1) %(int)(assemble_object.subtype);
+                return CLI_INVALID_PARAMS;
+            }
 
             object->translate(assemble_object.pos_x[0], assemble_object.pos_y[0], assemble_object.pos_z[0]);
-            merge_or_add_object(assemble_plate_info, model, assemble_object.assemble_index[0], merged_objects, object);
+            merge_or_add_object(assemble_plate_info, model, assemble_object.assemble_index[0], merged_objects, object, assemble_object.subtype);
 
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": object %1%, name %2%, pos_x %3% pos_y %4%, pos_z %5%, filament %6%, assemble_index %7%")
                 %obj_index %object->name %assemble_object.pos_x[0] %assemble_object.pos_y[0] %assemble_object.pos_z[0] %assemble_object.filaments[0] %assemble_object.assemble_index[0];
@@ -1057,7 +1080,13 @@ static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_
                     array_index = copy_index;
                 else
                     array_index = 0;
-                merge_or_add_object(assemble_plate_info, model, assemble_object.assemble_index[array_index], merged_objects, copy_obj);
+
+                if ((assemble_object.subtype != ModelVolumeType::MODEL_PART)&&(assemble_object.assemble_index[array_index] == 0)) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": only normal part can have height ranges, file %1%, plate index %2%, object index %3%, subtype %4%, copy_index %5%")
+                        % assemble_object.path % (index + 1) % (obj_index + 1) %(int)(assemble_object.subtype) %copy_index;
+                    return CLI_INVALID_PARAMS;
+                }
+                merge_or_add_object(assemble_plate_info, model, assemble_object.assemble_index[array_index], merged_objects, copy_obj, assemble_object.subtype);
 
                 BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": cloned object %1%, name %2%, pos_x %3% pos_y %4%, pos_z %5%")
                     %copy_index %object->name %assemble_object.pos_x[array_index] %assemble_object.pos_y[array_index] %assemble_object.pos_z[array_index];
@@ -1344,7 +1373,7 @@ int CLI::run(int argc, char **argv)
     //BBS: add plate data related logic
     PlateDataPtrs plate_data_src;
     std::vector<plate_obj_size_info_t> plate_obj_size_infos;
-    int arrange_option;
+    //int arrange_option;
     int plate_to_slice = 0, filament_count = 0, duplicate_count = 0, real_duplicate_count = 0;
     bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true, duplicate_single_object = false, use_first_fila_as_default = false, minimum_save = false, enable_timelapse = false;
     bool allow_rotations = true, skip_modified_gcodes = false, avoid_extrusion_cali_region = false, skip_useless_pick = false, allow_newer_file = false;
@@ -1701,7 +1730,7 @@ int CLI::run(int argc, char **argv)
                         {
                             ModelObject* object = model.objects[obj_index];
 
-                            for (unsigned int clone_index = 1; clone_index < clone_count; clone_index++)
+                            for (int clone_index = 1; clone_index < clone_count; clone_index++)
                             {
                                 ModelObject* newObj = model.add_object(*object);
                                 newObj->name = object->name +"_"+ std::to_string(clone_index+1);
