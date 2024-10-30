@@ -1314,10 +1314,13 @@ public:
 
     // BBS
     void rotate(Matrix3d rotation_matrix) {
-        // note: must remove scaling from transformation, otherwise auto-orientation with scaled objects will have problem
-        auto R            = m_transformation.get_rotation_matrix().matrix().block<3, 3>(0, 0);
+        auto R = m_transformation.get_rotation_matrix();
         auto R_new = rotation_matrix * R;
         auto euler_angles = Geometry::extract_euler_angles(R_new);
+        //BOOST_LOG_TRIVIAL(debug) << "old R:\n"
+        //                         << R.matrix() << "\nnew R:\n"
+        //                         << R_new.matrix() << "\nold euler angles: " << m_transformation.get_rotation().transpose() << "\n"
+        //                         << "new euler angles: " << euler_angles.transpose();
         set_rotation(euler_angles);
     }
 
