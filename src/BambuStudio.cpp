@@ -145,7 +145,8 @@ std::map<int, std::string> cli_errors = {
     {CLI_OBJECT_COLLISION_IN_LAYER_PRINT, "Object conflicts were detected. Please verify the slicing of all plates in Bambu Studio before uploading."},
     {CLI_SPIRAL_MODE_INVALID_PARAMS, "Some slicing parameters cannot work with Spiral Vase mode. Please solve the issue in Bambu Studio before uploading."},
     {CLI_SLICING_ERROR, "Failed slicing the model. Please verify the slicing of all plates on Bambu Studio before uploading."},
-    {CLI_GCODE_PATH_CONFLICTS, " G-code conflicts detected after slicing. Please make sure the 3mf file can be successfully sliced in the latest Bambu Studio."}
+    {CLI_GCODE_PATH_CONFLICTS, " G-code conflicts detected after slicing. Please make sure the 3mf file can be successfully sliced in the latest Bambu Studio."},
+    {CLI_FILAMENT_UNPRINTABLE_ON_FIRST_LAYER, "Found some filament unprintable at first layer on current Plate. Please make sure the 3mf file can be successfully sliced with the same Plate type in the latest Bambu Studio."}
 };
 
 typedef struct  _sliced_plate_info{
@@ -5515,6 +5516,13 @@ int CLI::run(int argc, char **argv)
                                     }
                                     slice_time[TIME_USING_CACHE] = slice_time[TIME_USING_CACHE] + ((long long)Slic3r::Utils::get_current_milliseconds_time_utc() - temp_time);
                                     BOOST_LOG_TRIVIAL(info) << "export_gcode finished: time_using_cache update to " << slice_time[TIME_USING_CACHE] << " secs.";
+
+                                    if (gcode_result && gcode_result->filament_printable_reuslt.has_value()) {
+                                        //found gcode error
+                                        BOOST_LOG_TRIVIAL(error) << "plate " << index + 1 << ": found some filament unprintable on current bed- "<< gcode_result->filament_printable_reuslt.plate_name << std::endl;
+                                        record_exit_reson(outfile_dir, CLI_FILAMENT_UNPRINTABLE_ON_FIRST_LAYER, index + 1, cli_errors[CLI_FILAMENT_UNPRINTABLE_ON_FIRST_LAYER], sliced_info);
+                                        flush_and_exit(CLI_FILAMENT_UNPRINTABLE_ON_FIRST_LAYER);
+                                    }
 
                                     //outfile_final = (dynamic_cast<Print*>(print))->print_statistics().finalize_output_path(outfile);
                                     //m_fff_print->export_gcode(m_temp_output_path, m_gcode_result, [this](const ThumbnailsParams& params) { return this->render_thumbnails(params); });
