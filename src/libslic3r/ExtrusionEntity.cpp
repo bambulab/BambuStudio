@@ -468,13 +468,32 @@ bool ExtrusionLoop::check_seam_point_angle(double angle_threshold, double min_ar
         idx_next = Slic3r::next_idx_modulo(idx_next, points.size());
     }
 
-    // Calculate angle between idx_prev, idx_curr, idx_next.
-    const Point &p0 = points[idx_prev];
-    const Point &p1 = points[idx_curr];
-    const Point &p2 = points[idx_next];
-    const auto   a  = angle(p0 - p1, p2 - p1);
-    if (a > 0 ? a < angle_threshold : a > -angle_threshold) {
-        return false;
+    //thanks orca
+    for (size_t _i = 0; _i < points.size(); ++_i) {
+        // pull idx_prev to current as much as possible, while respecting the min_arm_length
+        while (distance_to_prev - lengths[idx_prev] > min_arm_length) {
+            distance_to_prev -= lengths[idx_prev];
+            idx_prev = Slic3r::next_idx_modulo(idx_prev, points.size());
+        }
+
+        // push idx_next forward as far as needed
+        while (distance_to_next < min_arm_length) {
+            distance_to_next += lengths[idx_next];
+            idx_next = Slic3r::next_idx_modulo(idx_next, points.size());
+        }
+
+        // Calculate angle between idx_prev, idx_curr, idx_next.
+        const Point &p0 = points[idx_prev];
+        const Point &p1 = points[idx_curr];
+        const Point &p2 = points[idx_next];
+        const auto   a  = angle(p0 - p1, p2 - p1);
+        if (a > 0 ? a < angle_threshold : a > -angle_threshold) { return false; }
+
+        // increase idx_curr by one
+        float curr_distance = lengths[idx_curr];
+        idx_curr++;
+        distance_to_prev += curr_distance;
+        distance_to_next -= curr_distance;
     }
 
     return true;
