@@ -107,3 +107,43 @@ html,body
 {
 	filter: invert(1);
 }
+
+#HotModel_Search_Bar
+{
+	border: 1px solid #323A3D;
+	background-color: #36363A;
+}
+
+#HotModel_Search_InputArea
+{
+	background-color: #36363A;
+}
+
+#HotModel_Search_Input
+{
+	background-color: #36363A;
+	caret-color: white;
+	color: #FFFFFF;
+}
+
+#HotModel_Search_Btn img
+{
+	filter: invert(100%) brightness(100);
+}
+
+/*----Makerlab-----*/
+.MakerlabItem
+{
+	border: none;
+}
+
+/*---Print History----*/
+.PrintHistoryImg img
+{
+	border: 1px solid #474747;
+}
+
+#PrintHistory_Refresh_Btn
+{
+	filter: invert(80%) brightness(20);
+}

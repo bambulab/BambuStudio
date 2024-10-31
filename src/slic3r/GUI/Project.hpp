@@ -67,7 +67,6 @@ private:
     wxString   m_root_dir;
     std::map<std::string, std::string> m_model_id_map;
     static inline int m_sequence_id = 8000;
-    
 
 public:
     ProjectPanel(wxWindow *parent, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
@@ -78,7 +77,8 @@ public:
     void on_reload(wxCommandEvent& evt);
     void on_size(wxSizeEvent& event);
     void on_navigated(wxWebViewEvent& event);
-   
+    void OnNewWindow(wxWebViewEvent &evt);
+
     void msw_rescale();
     void update_model_data();
     void clear_model_info();

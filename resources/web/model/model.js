@@ -144,6 +144,14 @@ function Request3MFInfo()
 	SendWXMessage( JSON.stringify(tSend) );		
 }
 
+function HtmlDecodeFrom3MF(strInput)
+{
+	const el = document.createElement('textarea');
+	el.innerHTML = strInput;
+	el.innerHTML = el.value;
+	return el.value;
+}
+
 function HandleStudio(pVal)
 {
 	let strCmd=pVal['command'];
@@ -213,6 +221,7 @@ function ShowModelInfo( pModel )
 	let UploadType=pModel.upload_type.toLowerCase();
 	let sLicence=pModel.license.toUpperCase();
 	let sModelDesc=decodeURIComponent(pModel.description);
+	sModelDesc=HtmlDecodeFrom3MF( sModelDesc );
 	
 	if( pModel.hasOwnProperty('model_id') )
 	{
@@ -275,8 +284,8 @@ function ShowModelInfo( pModel )
 			$('#ModelLicenceImg').hide();
 			break;
 	}
-	
-	$('#Model_Desc').html( html_decode(sModelDesc) );
+	 			
+	$('#Model_Desc').html( sModelDesc );
 			
 	let ModelPreviewList=pModel.preview_img;				
     let TotalPreview=ModelPreviewList.length;
@@ -490,11 +499,12 @@ function ShowProfilelInfo( pProfile )
 	let sProfileName=decodeURIComponent(pProfile.name);
 	let sProfileAuthor=decodeURIComponent(pProfile.author);
 	let sProfileDesc=decodeURIComponent(pProfile.description);
+	sProfileDesc=HtmlDecodeFrom3MF(sProfileDesc);
 	
 	$('#ProfileName').html(sProfileName);
     $('#ProfileAuthor').html(sProfileAuthor);
 		
-	$('#Profile_Desc').html( html_decode(sProfileDesc) );
+	$('#Profile_Desc').html( sProfileDesc );
 			
 	let ProfilePreviewList=pProfile.preview_img;				
     let TotalPreview=ProfilePreviewList.length;

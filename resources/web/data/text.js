@@ -107,7 +107,15 @@ var LangText={
 		"t113": "You may change your choice in preference anytime.",
 		"t114": "Home",
 		"t115": "Batch",
-		"t116": "Retry"
+		"t116": "Retry",
+		"t117": "Print History",
+		"t118": "Printing",
+		"t119": "Success",
+		"t120": "Canceled",
+		"t121": "Search",
+		"t122": "Search online models",
+		"t123": "Plate",
+		"t124": ""
 	},
 	"zh_CN": {
 		"t1": "欢迎使用Bambu Studio",
@@ -218,6 +226,14 @@ var LangText={
 		"t114": "首页",
 		"t115": "批量处理",
 		"t116": "重试",
+		"t117": "打印历史",
+		"t118": "正在打印",
+		"t119": "成功",
+		"t120": "已取消",
+		"t121": "搜索",
+		"t122": "搜索在线模型",
+		"t123": "第",
+		"t124": " 盘",		
 		"wk1": "快速入门指南",
 		"wk2": "本文介绍了Bambu Studio的最基本用法。它指导用户配置软件，创建项目，并逐步完成第一个打印任务。",
 		"wk3": "基于项目的工作流",
@@ -343,7 +359,15 @@ var LangText={
 		"t113": "好みはいつでも変更できます.",
 		"t114": "トップページ",
 		"t115": "バッチ",
-		"t116": "[再試行]"
+		"t116": "[再試行]",
+		"t117": "印刷履歴",
+		"t118": "印刷中",
+		"t119": "成功",
+		"t120": "キャンセルされた",
+		"t121": "検索",
+		"t122": "オンラインモデルを検索する",
+		"t123": "シート材",
+		"t124": ""	
 	},
 	"it_IT": {
 		"t1": "Benvenuti allo Studio Bambu",
@@ -453,7 +477,15 @@ var LangText={
 		"t113": "Puoi cambiare la tua scelta in qualsiasi momento.",
 		"t114": "Home",
 		"t115": "Lotto",
-		"t116": "Riprova"
+		"t116": "Riprova",
+		"t117": "Storico di stampa",
+		"t118": "Stampa in corso",
+		"t119": "Successo",
+		"t120": "annullato",
+		"t121": "Ricerca",
+		"t122": "Cerca modelli online",
+		"t123": "piatto",
+		"t124": ""	
 	},
 	"fr_FR": {
 		"t1": "Bienvenue chez Bambu Studio",
@@ -563,7 +595,15 @@ var LangText={
 		"t113": "Vous pouvez modifier vos préférences à tout moment.",
 		"t114": "Accueil",
 		"t115": "Un lot de",
-		"t116": "Retenter"
+		"t116": "Retenter",
+		"t117": "Historique d'impression",
+		"t118": "Impression en cours",
+		"t119": "Succès",
+		"t120": "annulé",
+		"t121": "Recherche",
+		"t122": "Rechercher des modèles en ligne",
+		"t123": "assiette",
+		"t124": ""			
 	},
 	"de_DE": {
 		"t1": "Willkommen im Bambu Studio",
@@ -673,7 +713,15 @@ var LangText={
 		"t113": "Sie können Ihre Wahl jederzeit ändern.",
 		"t114": "Startseite",
 		"t115": "Charge",
-		"t116": "Erneut versuchen"
+		"t116": "Erneut versuchen",
+		"t117": "Druckverlauf",
+		"t118": "Wird gedruckt",
+		"t119": "Erfolg",
+		"t120": "storniert",
+		"t121": "Suche",
+		"t122": "Suche Online-Modelle",
+		"t123": "Teller",
+		"t124": ""		
 	},
 	"hu_HU": {
 		"t1": "Üdvözöljük a Bambu Stúdióban",
@@ -783,7 +831,15 @@ var LangText={
 		"t113": "Bármikor megváltoztathatja a preferenciáját.",
 		"t114": "honlap",
 		"t115": "Tétel",
-		"t116": "Újrapróbálkozás"
+		"t116": "Újrapróbálkozás",
+		"t117": "Nyomtatási előzmények",
+		"t118": "Nyomtatás folyamatban",
+		"t119": "Siker",
+		"t120": "törölt",
+		"t121": "Keresés",
+		"t122": "Online modellek keresése",
+		"t123": "tányér",
+		"t124": ""			
 	},
 	"es_ES": {
 		"t1": "Bienvenido a Bambu Studio",
@@ -893,7 +949,15 @@ var LangText={
 		"t113": "Puede cambiar sus preferencias en cualquier momento.",
 		"t114": "Página de inicio",
 		"t115": "Un lote",
-		"t116": "Reintentar"
+		"t116": "Reintentar",
+		"t117": "Historial de impresión",
+		"t118": "Imprimiendo",
+		"t119": "Éxito",
+		"t120": "cancelado",
+		"t121": "Búsqueda",
+		"t122": "Buscar modelos en línea",
+		"t123": "plato",
+		"t124": ""			
 	},
 	"sv_SE": {
 		"t1": "Välkommen till Bambu Studio",
@@ -1003,7 +1067,15 @@ var LangText={
 		"t113": "Du kan ändra ditt val när som helst.",
 		"t114": "startsida",
 		"t115": "Batch",
-		"t116": "Försök igen"
+		"t116": "Försök igen",
+		"t117": "Utskriftshistorik",
+		"t118": "Skrivs ut",
+		"t119": "Lyckad",
+		"t120": "avbruten",
+		"t121": "Sök",
+		"t122": "Sök online-modeller",
+		"t123": "fat",
+		"t124": ""			
 	},
 	"cs_CZ": {
 		"t1": "Vítejte v Bambu Studio",
@@ -1113,7 +1185,15 @@ var LangText={
 		"t113": "Své preference můžete kdykoliv změnit.",
 		"t114": "domovská stránka",
 		"t115": "Šarže",
-		"t116": "Zkuste to znovu"
+		"t116": "Zkuste to znovu",
+		"t117": "Historie tisku",
+		"t118": "Tisk probíhá",
+		"t119": "Úspěch",
+		"t120": "zrušený",
+		"t121": "Hledat",
+		"t122": "Hledat online modely",
+		"t123": "talíř",
+		"t124": ""		
 	},
 	"nl_NL": {
 		"t1": "Welkom bij Bambu Studio",
@@ -1223,7 +1303,15 @@ var LangText={
 		"t113": "U kunt uw keuze op elk gewenst moment wijzigen.",
 		"t114": "startpagina",
 		"t115": "Batch",
-		"t116": "Probeer het opnieuw"
+		"t116": "Probeer het opnieuw",
+		"t117": "Afdrukhistoriek",
+		"t118": "Aan het printen",
+		"t119": "Succes",
+		"t120": "geannuleerd",
+		"t121": "Zoeken",
+		"t122": "Zoek online modellen",
+		"t123": "bord",
+		"t124": ""		
 	},
 	"uk_UA": {
 		"t1": "Вітаємо в Bambu Studio!",
@@ -1333,7 +1421,15 @@ var LangText={
 		"t113": "Ви можете змінити свої переваги в будь-який час.",
 		"t114": "Головна сторінка",
 		"t115": "Одна партія",
-		"t116": "Спробувати знову"
+		"t116": "Спробувати знову",
+		"t117": "Історія друку",
+		"t118": "Друкується",
+		"t119": "Успіх",
+		"t120": "скасований",
+		"t121": "Пошук",
+		"t122": "Пошук онлайн-моделей",
+		"t123": "тарілка",
+		"t124": ""		
 	},
 	"ru_RU": {
 		"t1": "Приветствуем в Bambu Studio!",
@@ -1443,7 +1539,15 @@ var LangText={
 		"t113": "Вы можете изменить свои предпочтения в любое время.",
 		"t114": "Главная страница",
 		"t115": "Одна партия",
-		"t116": "Повторить попытку"
+		"t116": "Повторить попытку",
+		"t117": "История печати",
+		"t118": "Печатается",
+		"t119": "Успех",
+		"t120": "отмененный",
+		"t121": "Поиск",
+		"t122": "Поиск онлайн-моделей",
+		"t123": "тарелка",
+		"t124": ""		
 	},
 	"tr_TR": {
 		"t1": "Bambu Stüdyo'ya Hoş Geldiniz",
@@ -1553,7 +1657,15 @@ var LangText={
 		"t113": "ercihlerinizde istediğiniz zaman seçiminizi değiştirebilirsiniz.",
 		"t114": "Ana Sayfa",
 		"t115": "Toplu",
-		"t116": "Yeniden Dene"
+		"t116": "Yeniden Dene",
+		"t117": "Yazdırma geçmişi",
+		"t118": "Yazdırılıyor",
+		"t119": "Başarılı",
+		"t120": "iptal edildi",
+		"t121": "Arama",
+		"t122": "Çevrimiçi modelleri arayın",
+		"t123": "tabak",
+		"t124": ""	
 	},
 	"pt_BR": {
 		"t1": "Bem-vindo ao Bambu Studio",
@@ -1663,7 +1775,15 @@ var LangText={
 		"t113": "Você pode alterar sua escolha nas Preferências a qualquer momento",
 		"t114": "Inicio",
 		"t115": "Lote",
-		"t116": "Retentar"
+		"t116": "Retentar",
+		"t117": "Histórico de impressão",
+		"t118": "Imprimindo",
+		"t119": "Sucesso",
+		"t120": "cancelado",
+		"t121": "Pesquisa",
+		"t122": "Procurar modelos online",
+		"t123": "prato",
+		"t124": ""			
 	},
 	"ko_KR": {
 		"t1": "Bambu Studio에 오신 것을 환영합니다",
@@ -1773,7 +1893,15 @@ var LangText={
 		"t113": "언제든지 환경 설정에서 선택을 변경할 수 있습니다.",
 		"t114": "홈",
 		"t115": "일괄 처리",
-		"t116": "재시도"
+		"t116": "재시도",
+		"t117": "인쇄 기록",
+		"t118": "인쇄 중",
+		"t119": "성공",
+		"t120": "취소된",
+		"t121": "검색",
+		"t122": "온라인 모델을 검색하다",
+		"t123": "접시",
+		"t124": ""			
 	},
 	"pl_PL": {
 		"t1": "Witamy w Bambu Studio",
@@ -1883,7 +2011,15 @@ var LangText={
 		"t113": "Opcja można zmienić w preferencjach w dowolnym momencie.",
 		"t114": "Strona główna",
 		"t115": "Wartość zbiorcza",
-		"t116": "Ponów"
+		"t116": "Ponów",
+		"t117": "Historia druku",
+		"t118": "Drukuje się",
+		"t119": "Sukces",
+		"t120": "anulowany",
+		"t121": "Wyszukiwanie",
+		"t122": "Wyszukaj modele online",
+		"t123": "talerz",
+		"t124": ""			
 	}
 };
 
@@ -1925,4 +2061,36 @@ function TranslatePage()
 			$(OneNode).html(LangText['en'][tid]);
 		}		
 	}
+}
+
+function GetCurrentTextByKey( key )
+{
+	let strLang=GetQueryString("lang");
+	if(strLang!=null)
+	{
+		//setCookie(LANG_COOKIE_NAME,strLang,LANG_COOKIE_EXPIRESECOND,'/');
+		localStorage.setItem(LANG_COOKIE_NAME,strLang);
+	}
+	else
+	{
+		//strLang=getCookie(LANG_COOKIE_NAME);
+		strLang=localStorage.getItem(LANG_COOKIE_NAME);
+	}
+	
+	//alert(strLang);
+	
+	if( !LangText.hasOwnProperty(strLang) )
+		strLang="en";
+
+	let strText='';
+	if( LangText[strLang].hasOwnProperty(key) )
+	{
+		strText=LangText[strLang][key];
+	}
+	else if(strLang!='en' && LangText['en'].hasOwnProperty(key) )
+	{
+		strText=LangText['en'][key];
+	}	
+	
+	return strText;
 }
