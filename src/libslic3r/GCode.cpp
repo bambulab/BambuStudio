@@ -2339,12 +2339,27 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 //BBS
 void GCode::check_placeholder_parser_failed()
 {
+    bool has_machine_gcode = false, has_filament_gcode = false;
     if (! m_placeholder_parser_failed_templates.empty()) {
         // G-code export proceeded, but some of the PlaceholderParser substitutions failed.
         std::string msg = Slic3r::format(_(L("Failed to generate gcode for invalid custom G-code.\n\n")));
         for (const auto &name_and_error : m_placeholder_parser_failed_templates)
+        {
             msg += name_and_error.first + " " + name_and_error.second + "\n";
-        msg += Slic3r::format(_(L("Please check the custom G-code or use the default custom G-code.")));
+            if (("filament_end_gcode" == name_and_error.first) || ("filament_start_gcode" == name_and_error.first))
+                has_filament_gcode = true;
+            else
+                has_machine_gcode = true;
+        }
+        msg += Slic3r::format(_(L("Please check the custom G-code or use the default custom G-code.\n")));
+        if (has_machine_gcode) {
+            if (has_filament_gcode)
+                msg += Slic3r::format(_(L("You can find it from 'Printer settings' -> 'Machine G-code' and 'Filament settings' -> 'Advanced'.")));
+            else
+                msg += Slic3r::format(_(L("You can find it from 'Printer settings' -> 'Machine G-code'.")));
+        }
+        else
+            msg += Slic3r::format(_(L("You can find it from 'Filament settings' -> 'Advanced'.")));
         throw Slic3r::PlaceholderParserError(msg);
     }
 }
