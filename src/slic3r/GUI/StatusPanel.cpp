@@ -1021,7 +1021,7 @@ void PrintingTaskPanel::market_scoring_show()
     m_score_subtask_info->Show();
 }
 
-bool PrintingTaskPanel::is_market_scoring_show() { 
+bool PrintingTaskPanel::is_market_scoring_show() {
     return m_score_staticline->IsShown() && m_score_subtask_info->IsShown(); }
 
 void PrintingTaskPanel::market_scoring_hide()
@@ -4801,7 +4801,7 @@ void StatusPanel::msw_rescale()
 
     m_bpButton_xy->Rescale();
     auto size = TEMP_CTRL_MIN_SIZE_OF_SINGLE_NOZZLE;
-    if (obj->m_extder_data.total_extder_count >= 2) size = TEMP_CTRL_MIN_SIZE_OF_DOUBLE_NOZZLE;
+    if (obj && obj->m_extder_data.total_extder_count >= 2) size = TEMP_CTRL_MIN_SIZE_OF_DOUBLE_NOZZLE;
     m_tempCtrl_nozzle->SetMinSize(size);
     m_tempCtrl_nozzle->Rescale();
     m_tempCtrl_nozzle_deputy->SetMinSize(size);
