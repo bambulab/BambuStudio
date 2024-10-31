@@ -97,10 +97,14 @@ public:
     void ResetWholePage();
 
     void SetMakerworldModelID(std::string ModelID);
+    void OpenMakerworldSearchPage(std::string KeyWord);
+    void SetPrintHistoryTaskID(int TaskID);
     void SwitchWebContent(std::string modelname, int refresh=0);
     void SwitchLeftMenu(std::string strMenu);
     void OpenOneMakerlab(std::string url);
     
+    wxString MakeDisconnectUrl(std::string MenuName);
+
     void CheckMenuNewTag();
     void ShowMenuNewTag(std::string menuname, std::string show);
     void SetLeftMenuShow(std::string menuname, int show);
@@ -120,6 +124,9 @@ public:
     void get_makerlab_list(std::function<void(std::string)> callback);
     int  get_model_mall_detail_url(std::string *url, std::string id);
 
+    std::string m_TaskInfo;
+    void ShowUserPrintTask(bool bShow);
+
     void UpdateMakerworldLoginStatus();
     void SetMakerworldPageLoginStatus(bool login, wxString ticket = "");
 
@@ -136,12 +143,15 @@ private:
     wxWebView* m_browser;
     wxWebView* m_browserLeft;
     wxWebView * m_browserMW;
+    wxWebView  *m_browserPH;               //PrintHistory
     std::string m_contentname;
-    bool        m_leftfirst;          //Left First Loaded
-    bool        m_onlinefirst;        //Online Page First Load
-    //std::string m_online_spec_id;     // Online Page Spec_ID
-    wxString    m_online_type;        //recommend & browse
-    wxString    m_online_LastUrl;     //PageLastError Url
+    bool        m_leftfirst;               //Left First Loaded
+    bool        m_onlinefirst;             //Online Page First Load
+    bool        m_printhistoryfirst;       //print history first load
+    //std::string m_online_spec_id;        // Online Page Spec_ID
+    wxString    m_online_type;             //recommend & browse
+    wxString    m_online_LastUrl;          //PageLastError Url
+    wxString    m_print_history_LastUrl;
 
     wxBoxSizer *bSizer_toolbar;
     wxButton *  m_button_back;

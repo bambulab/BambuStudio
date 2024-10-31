@@ -4205,17 +4205,6 @@ std::string GUI_App::handle_web_request(std::string cmd)
                     }
                 }
             }
-            else if (command_str.compare("homepage_open_ccabin") == 0) {
-                if (root.get_child_optional("data") != boost::none) {
-                    pt::ptree                    data_node = root.get_child("data");
-                    boost::optional<std::string> path      = data_node.get_optional<std::string>("file");
-                    if (path.has_value()) {
-                        std::string Fullpath = resources_dir() + "/web/homepage/model/" + path.value();
-
-                        this->request_open_project(Fullpath);
-                    }
-                }
-            }
             else if (command_str.compare("common_openurl") == 0) {
                 boost::optional<std::string> path      = root.get_optional<std::string>("url");
                 if (path.has_value()) {
@@ -4285,6 +4274,34 @@ std::string GUI_App::handle_web_request(std::string cmd)
                         wxString realurl = from_u8(url_decode(path.value()));
                         wxGetApp().request_model_download(realurl);
                     }
+                }
+            }
+            else if (command_str.compare("homepage_online_search") == 0) {
+                if (root.get_child_optional("keyword") != boost::none)
+                {
+                    std::string strKW = root.get_optional<std::string>("keyword").value();
+
+                    if (mainframe && mainframe->m_webview)
+                    {
+                        mainframe->m_webview->OpenMakerworldSearchPage(strKW);
+                    }
+                }
+            }
+            else if (command_str.compare("homepage_printhistory_click") == 0) {
+                if (root.get_child_optional("taskid") != boost::none) {
+                    int nTaskID = root.get<int>("taskid");
+
+                    if (mainframe && mainframe->m_webview)
+                    {
+                        mainframe->m_webview->SetPrintHistoryTaskID(nTaskID);
+                        mainframe->m_webview->SwitchLeftMenu("printhistory");
+                    }
+                }
+            }
+            else if (command_str.compare("homepage_printhistory_get")==0)
+            {
+                if (mainframe && mainframe->m_webview) {
+                    mainframe->m_webview->ShowUserPrintTask(true);
                 }
             }
         }
