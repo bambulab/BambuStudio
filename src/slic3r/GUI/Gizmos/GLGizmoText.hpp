@@ -69,6 +69,7 @@ private:
     bool m_is_modify = false;
     bool m_need_update_text = false;
     bool m_show_warning = false;
+    bool m_show_text_normal_error = false;
 
     int  m_object_idx = -1;
     int  m_volume_idx = -1;

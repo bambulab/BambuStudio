@@ -400,6 +400,7 @@ void GLGizmoText::on_set_state()
     }
     else if (m_state == EState::Off) {
         m_show_warning    = false;
+        m_show_text_normal_error = false;
         m_edit_text_again = false;
         reset_text_info();
         delete_temp_preview_text_volume();
@@ -987,6 +988,9 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     if (m_show_warning) {
         m_imgui->warning_text(_L("Warning:create text fail."));
     }
+    if (m_show_text_normal_error) {
+        m_imgui->warning_text(_L("Warning:text normal is error."));
+    }
     ImGui::Separator();
 
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 10.0f));
@@ -1162,16 +1166,18 @@ bool GLGizmoText::update_text_positions(const std::vector<std::string>& texts)
         BOOST_LOG_TRIVIAL(info) << boost::format("Text: mrr_mesh_id is -1");
         return false;
     }
-    if (m_text_normal_in_world.norm() < 0.1) {
-        BOOST_LOG_TRIVIAL(info) << "m_text_normal_in_object is error";
-        return false;
-    }
     // mouse_position_world may is error after user modified
     if (m_need_fix) {
         m_need_fix               = false;
         m_text_position_in_world = m_fix_text_position_in_world;
         m_text_normal_in_world   = m_fix_text_normal_in_world;
     }
+    if (m_text_normal_in_world.norm() < 0.1) {
+        m_show_text_normal_error = true;
+        BOOST_LOG_TRIVIAL(info) << "m_text_normal_in_object is error";
+        return false;
+    }
+    m_show_text_normal_error  = false;
     auto mouse_position_world = m_text_position_in_world.cast<double>();
     auto mouse_normal_world   = m_text_normal_in_world.cast<double>();
 
