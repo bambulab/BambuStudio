@@ -2809,6 +2809,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     //BBS:exclude the assmble view
     if (m_canvas_type != ECanvasType::CanvasAssembleView) {
         _set_warning_notification_if_needed(EWarning::GCodeConflict);
+        _set_warning_notification(EWarning::FilamentUnPrintableOnFirstLayer, false);
         // checks for geometry outside the print volume to render it accordingly
         if (!m_volumes.empty()) {
             ModelInstanceEPrintVolumeState state;
@@ -9491,7 +9492,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         PLATER_WARNING,
         PLATER_ERROR,
         SLICING_SERIOUS_WARNING,
-        SLICING_ERROR
+        SLICING_ERROR,
     };
     std::string text;
     ErrorType error = ErrorType::PLATER_WARNING;
@@ -9564,10 +9565,20 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
             notification_manager.close_slicing_serious_warning_notification(text);
         break;
     case SLICING_ERROR:
-        if (state)
-            notification_manager.push_slicing_error_notification(text, conflictObj ? std::vector<ModelObject const*>{conflictObj} : std::vector<ModelObject const*>{});
-        else
-            notification_manager.close_slicing_error_notification(text);
+        if (warning == EWarning::FilamentUnPrintableOnFirstLayer) {
+            if (state) {
+                notification_manager.bbl_show_bed_filament_incompatible_notification(text);
+            }
+            else {
+                notification_manager.bbl_close_bed_filament_incompatible_notification();
+            }
+        }
+        else {
+            if (state)
+                notification_manager.push_slicing_error_notification(text, conflictObj ? std::vector<ModelObject const*>{conflictObj} : std::vector<ModelObject const*>{});
+            else
+                notification_manager.close_slicing_error_notification(text);
+        }
         break;
     default:
         break;
