@@ -5890,6 +5890,8 @@ void GLCanvas3D::_render_3d_navigator()
     }
 
     const float size  = 128 * sc;
+    m_fit_camrea_button_pos[0] = size - 10;
+    m_sc                       = sc;
     const bool  dirty = ImGuizmo::ViewManipulate(cameraView, cameraProjection, ImGuizmo::OPERATION::ROTATE, ImGuizmo::MODE::WORLD, identityMatrix, camDistance,
                                                 ImVec2(viewManipulateLeft, viewManipulateTop - size), ImVec2(size, size), 0x00101010);
 
@@ -7646,6 +7648,7 @@ void GLCanvas3D::_render_overlays()
     }
     m_labels.render(sorted_instances);
     _render_3d_navigator();
+    _render_fit_camera_toolbar();
     glsafe(::glPopMatrix());
 }
 
@@ -8310,6 +8313,60 @@ void GLCanvas3D::_render_return_toolbar()
     }
     ImGui::PopStyleColor(5);
     ImGui::PopStyleVar(1);
+
+    imgui.end();
+}
+
+void GLCanvas3D::_render_fit_camera_toolbar()
+{
+    float  font_size        = ImGui::GetFontSize();
+    ImVec2 button_icon_size = ImVec2(font_size * 2.5, font_size * 2.5);
+
+    ImGuiWrapper &imgui         = *wxGetApp().imgui();
+    float         window_width  = button_icon_size.x + imgui.scaled(2.0f);
+    float         window_height = button_icon_size.y + imgui.scaled(2.0f);
+
+    Size cnv_size              = get_canvas_size();
+    m_fit_camrea_button_pos[1] = cnv_size.get_height() - button_icon_size[1] - 20 * m_sc;
+    imgui.set_next_window_pos(m_fit_camrea_button_pos[0], m_fit_camrea_button_pos[1], ImGuiCond_Always, 0, 0);
+#ifdef __WINDOWS__
+    imgui.set_next_window_size(window_width, window_height, ImGuiCond_Always);
+#endif
+
+    imgui.begin(_L("Fit camera"), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove |
+                                           ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse);//
+
+    ImTextureID normal_id = m_gizmos.get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_FIT_CAMERA);
+    if (normal_id == 0) {
+        m_gizmos.init_icon_textures();
+    }
+    normal_id = m_gizmos.get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_FIT_CAMERA);
+    ImTextureID hover_id  = m_gizmos.get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_FIT_CAMERA_HOVER); // IC_FIT_CAMERA_HOVER
+
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {0, 0});
+
+    if (ImGui::ImageButton3(normal_id, hover_id, button_icon_size, ImVec2(0, 0), ImVec2(1, 1),  -1,
+                           ImVec4(0, 0, 0, 0), ImVec4(1, 1, 1, 1), ImVec2(10, 0))) {
+        select_view("plate");
+        if (m_selection.is_empty()) {
+            if (m_canvas_type == ECanvasType::CanvasAssembleView) {
+                zoom_to_volumes();
+            }
+            else {
+                zoom_to_bed();
+            }
+        }
+        else {
+            zoom_to_selection();
+        }
+    }
+    if (ImGui::IsItemHovered()) {
+        auto temp_tooltip = _L("Fit camera to scene or selected object.");
+        auto width        = ImGui::CalcTextSize(temp_tooltip.c_str()).x + imgui.scaled(2.0f);
+        imgui.tooltip(temp_tooltip, width);
+    }
+    ImGui::PopStyleVar(2);
 
     imgui.end();
 }

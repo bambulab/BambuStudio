@@ -172,6 +172,8 @@ public:
         IC_TEXT_T,
         IC_TEXT_T_DARK,
         IC_NAME_COUNT,
+        IC_FIT_CAMERA,
+        IC_FIT_CAMERA_HOVER,
     };
 
     explicit GLGizmosManager(GLCanvas3D& parent);
