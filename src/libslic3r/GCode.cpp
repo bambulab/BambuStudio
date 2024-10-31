@@ -2354,7 +2354,7 @@ void GCode::check_placeholder_parser_failed()
         msg += Slic3r::format(_(L("Please check the custom G-code or use the default custom G-code.\n")));
         if (has_machine_gcode) {
             if (has_filament_gcode)
-                msg += Slic3r::format(_(L("You can find it from 'Printer settings' -> 'Machine G-code' and 'Filament settings' -> 'Advanced'.")));
+                msg += Slic3r::format(_(L("You can find them from 'Printer settings' -> 'Machine G-code' and 'Filament settings' -> 'Advanced'.")));
             else
                 msg += Slic3r::format(_(L("You can find it from 'Printer settings' -> 'Machine G-code'.")));
         }
