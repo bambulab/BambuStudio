@@ -288,6 +288,15 @@ bool GLGizmosManager::init_icon_textures()
     else
         return false;
 
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/fit_camera.svg", 32, 32, texture_id))
+        icon_list.insert(std::make_pair((int) IC_FIT_CAMERA, texture_id));
+    else
+        return false;
+
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/fit_camera_hover.svg", 32, 32, texture_id))
+        icon_list.insert(std::make_pair((int) IC_FIT_CAMERA_HOVER, texture_id));
+    else
+        return false;
 
      if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_B.svg", 20, 20, texture_id))
         icon_list.insert(std::make_pair((int)IC_TEXT_B, texture_id));
