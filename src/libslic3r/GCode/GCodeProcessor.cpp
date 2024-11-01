@@ -862,17 +862,9 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
     std::map<unsigned int, std::vector<std::pair<std::string, InsertLineType>>> inserted_operation_lines;
 
     auto format_line_M104 = [&context](int target_temp, int target_extruder = -1, const std::string& comment = std::string()) {
-        // TODO: remove this code later
-        auto logic_id_to_physical = [](int master_extruder_id, int extruder_id) {
-            if (master_extruder_id == 0)
-                return extruder_id;
-            else
-                return 1 - extruder_id;
-            };
-
         std::string buffer = "M104";
         if (target_extruder != -1)
-            buffer += (" T" + std::to_string(logic_id_to_physical(context.master_extruder_id,target_extruder)));
+            buffer += (" T" + std::to_string(context.physical_extruder_map[target_extruder]));
         buffer += " S" + std::to_string(target_temp);
         if (!comment.empty())
             buffer += " ;" + comment;
@@ -1452,7 +1444,7 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     m_hotend_cooling_rate = config.hotend_cooling_rate.value;
     m_hotend_heating_rate = config.hotend_heating_rate.value;
     m_enable_pre_heating = config.enable_pre_heating;
-    m_master_extruder_id = config.master_extruder_id - 1;
+    m_physical_extruder_map = config.physical_extruder_map.values;
 
     m_extruder_offsets.resize(filament_count);
     m_extruder_colors.resize(filament_count);
@@ -1559,15 +1551,14 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
         m_hotend_heating_rate = hotend_heating_rate->value;
     }
 
-
-    const ConfigOptionInt* master_extruder_id = config.option<ConfigOptionInt>("master_extruder_id");
-    if (hotend_heating_rate != nullptr) {
-        m_extruder_id = master_extruder_id->value - 1;
-    }
-
     const ConfigOptionBool* enable_pre_heating = config.option<ConfigOptionBool>("enable_pre_heating");
     if (enable_pre_heating != nullptr) {
         m_enable_pre_heating = enable_pre_heating->value;
+    }
+
+    const ConfigOptionInts* physical_extruder_map = config.option<ConfigOptionInts>("physical_extruder_map");
+    if (physical_extruder_map != nullptr) {
+        m_physical_extruder_map = physical_extruder_map->values;
     }
 
     const ConfigOptionEnumsGenericNullable* nozzle_type = config.option<ConfigOptionEnumsGenericNullable>("nozzle_type");
@@ -1915,6 +1906,7 @@ void GCodeProcessor::reset()
         m_extruder_temps[i] = 0.0f;
     }
 
+    m_physical_extruder_map.clear();
     m_filament_nozzle_temp.clear();
     m_enable_pre_heating = false;
     m_hotend_cooling_rate = m_hotend_heating_rate = 2.f;
@@ -2106,11 +2098,11 @@ void GCodeProcessor::finalize(bool post_process)
             m_filament_lists,
             m_filament_maps,
             m_filament_nozzle_temp,
+            m_physical_extruder_map,
             m_layer_id,
             m_hotend_cooling_rate,
             m_hotend_heating_rate,
             pre_heating_time_threshold,
-            m_master_extruder_id,
             m_enable_pre_heating
         );
 

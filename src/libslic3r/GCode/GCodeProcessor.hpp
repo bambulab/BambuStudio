@@ -552,36 +552,36 @@ namespace Slic3r {
             std::vector<Extruder> filament_lists;
             std::vector<int> filament_maps; // map each filament to extruder
             std::vector<float> filament_nozzle_temp;
+            std::vector<int> physical_extruder_map;
 
             size_t total_layer_num;
             float cooling_rate{ 2.f }; // Celsius degree per second
             float heating_rate{ 2.f }; // Celsius degree per second
             float pre_heating_time_threshold{ 30.f }; // only active pre cooling & heating if time gap is bigger than threshold
             bool enable_pre_heating{ false };
-            int master_extruder_id{ 0 };
 
             TimeProcessContext(
                 const UsedFilaments& used_filaments_,
                 const std::vector<Extruder>& filament_lists_,
                 const std::vector<int>& filament_maps_,
                 const std::vector<float>& filament_nozzle_temp_,
+                const std::vector<int>& physical_extruder_map_,
                 const size_t total_layer_num_,
                 const float cooling_rate_,
                 const float heating_rate_,
                 const float pre_heating_time_threshold_,
-                const int master_extruder_id_,
                 const bool  enable_pre_heating_
             ) :
                 used_filaments(used_filaments_),
                 filament_lists(filament_lists_),
                 filament_maps(filament_maps_),
                 filament_nozzle_temp(filament_nozzle_temp_),
+                physical_extruder_map(physical_extruder_map_),
                 total_layer_num(total_layer_num_),
                 cooling_rate(cooling_rate_),
                 heating_rate(heating_rate_),
                 enable_pre_heating(enable_pre_heating_),
-                pre_heating_time_threshold(pre_heating_time_threshold_),
-                master_extruder_id(master_extruder_id_)
+                pre_heating_time_threshold(pre_heating_time_threshold_)
             {
             }
 
@@ -769,7 +769,7 @@ namespace Slic3r {
         float m_hotend_cooling_rate{ 2.f };
         float m_hotend_heating_rate{ 2.f };
         float m_enable_pre_heating{ false };
-        int m_master_extruder_id;
+        std::vector<int> m_physical_extruder_map;
 
         //BBS: x, y offset for gcode generated
         double          m_x_offset{ 0 };
