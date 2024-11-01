@@ -1740,6 +1740,7 @@ void PerimeterGenerator::process_arachne()
 {
     // other perimeters
     m_mm3_per_mm = this->perimeter_flow.mm3_per_mm();
+    coord_t perimeter_width = this->perimeter_flow.scaled_width();
     coord_t perimeter_spacing = this->perimeter_flow.scaled_spacing();
 
     // external perimeters
@@ -1768,15 +1769,43 @@ void PerimeterGenerator::process_arachne()
     double surface_simplify_resolution = (print_config->enable_arc_fitting && this->config->fuzzy_skin == FuzzySkinType::None) ? 0.2 * m_scaled_resolution : m_scaled_resolution;
     // we need to process each island separately because we might have different
     // extra perimeters for each one
+
+
     for (const Surface& surface : this->slices->surfaces) {
+        bool generate_one_wall = false;
+        bool generate_one_wall_by_first_layer = this->object_config->only_one_wall_first_layer && layer_id == 0;
+        bool generate_one_wall_by_top_one_wall = this->object_config->top_one_wall_type == TopOneWallType::Topmost && this->upper_slices == nullptr ||
+            this->object_config->top_one_wall_type == TopOneWallType::Alltop;
+
+        generate_one_wall = generate_one_wall_by_first_layer || generate_one_wall_by_top_one_wall;
         // detect how many perimeters must be generated for this island
         int loop_number = this->config->wall_loops + surface.extra_perimeters - 1; // 0-indexed loops
-        if (loop_number > 0 && this->object_config->only_one_wall_first_layer && layer_id == 0 ||
-            (this->object_config->top_one_wall_type == TopOneWallType::Topmost && this->upper_slices == nullptr))
-            loop_number = 0;
 
         ExPolygons last = offset_ex(surface.expolygon.simplify_p(surface_simplify_resolution), -float(ext_perimeter_width / 2. - ext_perimeter_spacing / 2.));
         Polygons   last_p = to_polygons(last);
+
+        // check whether to activate one wall mode
+        if (generate_one_wall && !generate_one_wall_by_first_layer)
+        {
+            ExPolygons top_expolys;
+            ExPolygons infill_contour_by_one_wall = offset_ex(last, -(ext_perimeter_width + perimeter_spacing) / 2.f);
+
+            BoundingBox infill_bbox = get_extents(infill_contour_by_one_wall);
+            infill_bbox.offset(EPSILON);
+
+            Polygons upper_polygons_clipped;
+            if (this->upper_slices)
+                upper_polygons_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*this->upper_slices, infill_bbox);
+            top_expolys = diff_ex(infill_contour_by_one_wall, upper_polygons_clipped);
+
+            Polygons lower_polygons_clipped;
+            if (this->lower_slices)
+                lower_polygons_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*this->lower_slices, infill_bbox);
+            ExPolygons bottom_expolys = offset_ex(diff_ex(top_expolys, lower_polygons_clipped), std::max(ext_perimeter_spacing, perimeter_width));
+
+            top_expolys = diff_ex(top_expolys, bottom_expolys);
+            generate_one_wall = should_enable_top_one_wall(last, top_expolys);
+        }
 
         double min_nozzle_diameter = *std::min_element(print_config->nozzle_diameter.values.begin(), print_config->nozzle_diameter.values.end());
         Arachne::WallToolPathsParams input_params;
@@ -1797,76 +1826,11 @@ void PerimeterGenerator::process_arachne()
             input_params.wall_distribution_count = this->object_config->wall_distribution_count.value;
         }
 
-        int remain_loops = -1;
-        if (loop_number > 0 && this->object_config->top_one_wall_type == TopOneWallType::Alltop) {
-            if (this->upper_slices != nullptr)
-                remain_loops = loop_number - 1;
+        coord_t real_loop_number = generate_one_wall ? 1 : loop_number + 1;
 
-            loop_number = 0;
-        }
-
-        Arachne::WallToolPaths wallToolPaths(last_p, ext_perimeter_spacing, perimeter_spacing, coord_t(loop_number + 1), 0, layer_height, input_params);
+        Arachne::WallToolPaths wallToolPaths(last_p, ext_perimeter_spacing, perimeter_spacing, real_loop_number, 0, layer_height, input_params);
         std::vector<Arachne::VariableWidthLines> perimeters = wallToolPaths.getToolPaths();
-        loop_number = int(perimeters.size()) - 1;
-
-        //BBS: top one wall for arachne
         ExPolygons infill_contour = union_ex(wallToolPaths.getInnerContour());
-        ExPolygons inner_infill_contour;
-
-        if( remain_loops >= 0 )
-        {
-            ExPolygons the_layer_surface = infill_contour;
-            // BBS: get boungding box of last
-            BoundingBox infill_contour_box = get_extents(infill_contour);
-            infill_contour_box.offset(SCALED_EPSILON);
-
-            // BBS: get the Polygons upper the polygon this layer
-            Polygons upper_polygons_series_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*this->upper_slices, infill_contour_box);
-
-            infill_contour = diff_ex(infill_contour, upper_polygons_series_clipped);
-
-            coord_t    perimeter_width       = this->perimeter_flow.scaled_width();
-            //BBS: add bridge area
-            if (this->lower_slices != nullptr) {
-                BoundingBox infill_contour_box = get_extents(infill_contour);
-                infill_contour_box.offset(SCALED_EPSILON);
-                // BBS: get the Polygons below the polygon this layer
-                Polygons lower_polygons_series_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*this->lower_slices, infill_contour_box);
-
-                ExPolygons bridge_area = offset_ex(diff_ex(infill_contour, lower_polygons_series_clipped), std::max(ext_perimeter_spacing, perimeter_width));
-                infill_contour = diff_ex(infill_contour, bridge_area);
-            }
-            //BBS: filter small area and extend top surface a bit to hide the wall line
-            double min_width_top_surface = (this->object_config->top_area_threshold / 100) * std::max(double(ext_perimeter_spacing / 4 + 10), double(perimeter_width / 4));
-            infill_contour = offset2_ex(infill_contour, -min_width_top_surface, min_width_top_surface + perimeter_width);
-
-            //BBS: get the inner surface that not export to top
-            ExPolygons surface_not_export_to_top = diff_ex(the_layer_surface, infill_contour);
-
-            //BBS: get real top surface
-            infill_contour = intersection_ex(infill_contour, the_layer_surface);
-            Polygons surface_not_export_to_top_p = to_polygons(surface_not_export_to_top);
-            Arachne::WallToolPaths innerWallToolPaths(surface_not_export_to_top_p, perimeter_spacing, perimeter_spacing, coord_t(remain_loops + 1), 0, layer_height, input_params);
-
-            std::vector<Arachne::VariableWidthLines> perimeters_inner = innerWallToolPaths.getToolPaths();
-            remain_loops = int(perimeters_inner.size()) - 1;
-
-            //BBS: set wall's perporsity
-            if (!perimeters.empty()) {
-                for (int perimeter_idx = 0; perimeter_idx < perimeters_inner.size(); perimeter_idx++) {
-                    if (perimeters_inner[perimeter_idx].empty()) continue;
-
-                    for (Arachne::ExtrusionLine &wall : perimeters_inner[perimeter_idx]) {
-                        // BBS: 0 means outer wall
-                        wall.inset_idx++;
-                    }
-                }
-            }
-            perimeters.insert(perimeters.end(), perimeters_inner.begin(), perimeters_inner.end());
-
-            inner_infill_contour = union_ex(innerWallToolPaths.getInnerContour());
-        }
-
 #ifdef ARACHNE_DEBUG
         {
             static int iRun = 0;
@@ -2070,11 +2034,20 @@ void PerimeterGenerator::process_arachne()
         // append infill areas to fill_surfaces
         add_infill_contour_for_arachne(infill_contour, loop_number, ext_perimeter_spacing, perimeter_spacing, min_perimeter_infill_spacing, spacing, false);
 
-        //BBS: add infill_contour of top one wall part
-        if( !inner_infill_contour.empty() )
-            add_infill_contour_for_arachne(inner_infill_contour, remain_loops, ext_perimeter_spacing, perimeter_spacing, min_perimeter_infill_spacing, spacing, true);
-
     }
+}
+
+// determine whether to enable top one wall feature
+bool PerimeterGenerator::should_enable_top_one_wall(const ExPolygons& original_expolys, ExPolygons& top)
+{
+    coord_t perimeter_width = this->perimeter_flow.width();
+    coord_t ext_perimeter_spacing = this->ext_perimeter_flow.scaled_spacing();
+ 
+    //BBS: filter small area and extend top surface a bit to hide the wall line
+    double min_width_top_surface = (this->object_config->top_area_threshold / 100) * std::max(double(ext_perimeter_spacing / 4 + 10), double(perimeter_width / 4));
+    top = offset2_ex(top, -min_width_top_surface, min_width_top_surface + perimeter_width);
+    // compare the width with the width of perimeter
+    return !offset_ex(top, -perimeter_width).empty();
 }
 
 bool PerimeterGeneratorLoop::is_internal_contour() const
