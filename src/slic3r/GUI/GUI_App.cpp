@@ -2613,10 +2613,15 @@ bool GUI_App::on_init_inner()
 #ifdef _MSW_DARK_MODE
 
 #ifndef __WINDOWS__
-    wxSystemAppearance app = wxSystemSettings::GetAppearance();
-    GUI::wxGetApp().app_config->set("dark_color_mode", app.IsDark() ? "1" : "0");
-    GUI::wxGetApp().app_config->save();
-#endif // __APPLE__
+    #if defined(__LINUX__) && (defined(__WXGTK20__) || defined(__WXGTK3__)) // __LINUX__ dark mode
+        bool is_dark = (wxGetApp().app_config->get("dark_color_mode") == "1" ? true : false);
+        g_object_set (gtk_settings_get_default (), "gtk-theme-name", (is_dark) ? "" : " ", NULL);
+    #else
+        wxSystemAppearance app = wxSystemSettings::GetAppearance();
+        GUI::wxGetApp().app_config->set("dark_color_mode", app.IsDark() ? "1" : "0");
+        GUI::wxGetApp().app_config->save();
+    #endif
+#endif // __APPLE__ / __LINUX__
 
 
     bool init_dark_color_mode = dark_mode();
@@ -3282,6 +3287,30 @@ static bool is_default(wxWindow* win)
 }
 #endif
 
+// Checks if fg is +/- 10 rgb values from bg
+bool GUI_App::is_similar(const wxColour& bg, const wxColour& fg){
+    int bg_r = bg.Red();
+    int bg_g = bg.Green();            
+    int bg_b = bg.Blue();
+
+    int fg_r = fg.Red();
+    int fg_g = fg.Green();            
+    int fg_b = fg.Blue();
+
+    return (bg_r+10 >= fg_r && fg_r >= bg_r-10 
+    && bg_g+10 >= fg_g && fg_g >= bg_g-10 
+    && bg_b+10 >= fg_b && fg_b >= bg_b-10);
+}
+
+const wxColour GUI_App::invert_color(const wxColour& color){
+    int color_r = 255-color.Red();
+    int color_g = 255-color.Green();            
+    int color_b = 255-color.Blue();
+
+    return wxColour(color_r, color_g, color_b);
+}
+
+
 void GUI_App::UpdateDarkUI(wxWindow* window, bool highlited/* = false*/, bool just_font/* = false*/)
 {
     if (wxButton *btn = dynamic_cast<wxButton*>(window)) {
@@ -3341,9 +3370,20 @@ void GUI_App::UpdateDarkUI(wxWindow* window, bool highlited/* = false*/, bool ju
         original_col = window->GetForegroundColour();
         auto fg_col = StateColor::darkModeColorFor(original_col);
 
+#ifndef __LINUX__
         if (fg_col != original_col) {
             window->SetForegroundColour(fg_col);
         }
+#else
+        if (fg_col != original_col) {
+            if(bg_col != fg_col && !is_similar(bg_col, fg_col)){
+                window->SetForegroundColour(fg_col);
+            }
+            else{ // if bg and fg colors are the same, invert fg color
+                window->SetForegroundColour(invert_color(fg_col));
+            }
+        }
+#endif
     }
     else {
         auto original_col = window->GetBackgroundColour();
@@ -3356,9 +3396,20 @@ void GUI_App::UpdateDarkUI(wxWindow* window, bool highlited/* = false*/, bool ju
         original_col = window->GetForegroundColour();
         auto fg_col = StateColor::lightModeColorFor(original_col);
 
+#ifndef __LINUX__
         if (fg_col != original_col) {
             window->SetForegroundColour(fg_col);
         }
+#else
+        if (fg_col != original_col) {
+            if(bg_col != fg_col && !is_similar(bg_col, fg_col)){
+                window->SetForegroundColour(fg_col);
+            }
+            else{ // if bg and fg colors are the same, invert fg color
+                window->SetForegroundColour(invert_color(fg_col));
+            }
+        }
+#endif
     }
 }
 
@@ -3431,7 +3482,7 @@ void GUI_App::UpdateDVCDarkUI(wxDataViewCtrl* dvc, bool highlited/* = false*/)
 
 void GUI_App::UpdateAllStaticTextDarkUI(wxWindow* parent)
 {
-#ifdef __WINDOWS__
+#if defined(__WINDOWS__) || defined(__LINUX__)
     wxGetApp().UpdateDarkUI(parent);
 
     auto children = parent->GetChildren();
