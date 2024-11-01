@@ -1,0 +1,27 @@
+{
+    "type": "filament",
+    "filament_id": "GFB00",
+    "setting_id": "GFSB00_Qidi_33",
+    "name": "QIDI ABS Rapido @Qidi X-Plus 4 0.4 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "QIDI ABS Rapido @Qidi",
+    "activate_chamber_temp_control": [
+        "0"
+    ],
+    "filament_max_volumetric_speed": [
+        "24.5"
+    ],
+    "hot_plate_temp_initial_layer": [
+        "90"
+    ],
+    "nozzle_temperature": [
+        "260"
+    ],
+    "pressure_advance": [
+        "0.03"
+    ],
+    "compatible_printers": [
+        "Qidi X-Plus 4 0.4 nozzle"
+	]
+}
