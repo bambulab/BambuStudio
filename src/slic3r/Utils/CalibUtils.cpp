@@ -1063,9 +1063,9 @@ bool CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &f
 
     if (params.mode == CalibMode::Calib_PA_Pattern) {
         ModelInstance *instance = model->objects[0]->instances[0];
-        Vec3d offset = model->calib_pa_pattern->get_start_offset() +
-                       Vec3d(model->calib_pa_pattern->handle_xy_size() / 2, -model->calib_pa_pattern->handle_xy_size() / 2 - model->calib_pa_pattern->handle_spacing(), 0);
-        instance->set_offset(offset);
+        instance->set_offset(Axis::X, model->calib_pa_pattern->get_start_offset().x() + model->calib_pa_pattern->handle_xy_size() / 2);
+        instance->set_offset(Axis::Y, model->calib_pa_pattern->get_start_offset().y() - model->calib_pa_pattern->handle_xy_size() / 2 - model->calib_pa_pattern->handle_spacing());
+
     }
     else if (model->objects.size() == 1) {
         ModelInstance *instance = model->objects[0]->instances[0];
