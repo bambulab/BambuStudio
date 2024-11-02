@@ -38,7 +38,7 @@
 	"extra_loading_move": "-2",
     "extruder_clearance_height_to_lid": "34",
     "extruder_clearance_height_to_rod": "34",
-    "extruder_clearance_radius": "47",
+    "extruder_clearance_dist_to_rod": "47",
     "extruder_colour": ["#FCE94F"],
     "extruder_offset": ["0x0"],
 	"fan_kickstart": "0",

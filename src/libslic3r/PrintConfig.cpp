@@ -1352,8 +1352,8 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(120));
 
-    def = this->add("extruder_clearance_radius", coFloat);
-    def->label = L("Radius");
+    def = this->add("extruder_clearance_dist_to_rod", coFloat);
+    def->label = L("Distance to rod");
     def->tooltip = L("Clearance radius around extruder. Used for collision avoidance in by-object printing.");
     def->sidetext = L("mm");
     def->min = 0;
