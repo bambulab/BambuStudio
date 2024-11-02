@@ -101,7 +101,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "post_process",
         "extruder_clearance_height_to_rod",
         "extruder_clearance_height_to_lid",
-        "extruder_clearance_radius",
+        "extruder_clearance_dist_to_rod",
         "nozzle_height",
         "extruder_clearance_max_radius",
         "extruder_colour",
@@ -768,7 +768,7 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
         {
             auto inst = print_instance_with_bounding_box[k].print_instance;
             // 只需要考虑喷嘴到滑杆的偏移量，这个比整个工具头的碰撞半径要小得多
-            auto bbox = print_instance_with_bounding_box[k].bounding_box.inflated(-scale_(0.5 * print.config().extruder_clearance_max_radius.value));
+            auto bbox = print_instance_with_bounding_box[k].bounding_box.inflated(-scale_(print_config.extruder_clearance_dist_to_rod.value - print_config.extruder_clearance_max_radius.value));
             auto iy1 = bbox.min.y();
             auto iy2 = bbox.max.y();
             (const_cast<ModelInstance*>(inst->model_instance))->arrange_order = k+1;
@@ -1163,7 +1163,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             if (has_custom_layering) {
                 std::vector<std::vector<coordf_t>> layer_z_series;
                 layer_z_series.assign(m_objects.size(), std::vector<coordf_t>());
-               
+
                 for (size_t idx_object = 0; idx_object < m_objects.size(); ++idx_object) {
                     layer_z_series[idx_object] = generate_object_layers(m_objects[idx_object]->slicing_parameters(), layer_height_profiles[idx_object], m_objects[idx_object]->config().precise_z_height.value);
                 }
@@ -1683,7 +1683,7 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
         if (slice_time) {
             start_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
         }
-            
+
 
         for (PrintObject* obj : m_objects) {
             if (need_slicing_objects.count(obj) != 0) {
