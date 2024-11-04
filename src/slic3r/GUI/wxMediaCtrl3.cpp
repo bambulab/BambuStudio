@@ -149,7 +149,7 @@ void wxMediaCtrl3::paintEvent(wxPaintEvent &evt)
 void wxMediaCtrl3::DoSetSize(int x, int y, int width, int height, int sizeFlags)
 {
     wxWindow::DoSetSize(x, y, width, height, sizeFlags);
-    if (sizeFlags & wxSIZE_USE_EXISTING) return;
+    if (sizeFlags == wxSIZE_USE_EXISTING) return;
     wxMediaCtrl_OnSize(this, m_video_size, width, height);
     std::unique_lock<std::mutex> lk(m_mutex);
     adjust_frame_size(m_frame_size, m_video_size, GetSize());
