@@ -3260,6 +3260,27 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
         % m_shells.print_id % m_shells.print_modify_count % object_count %m_shells.volumes.volumes.size();
 }
 
+void GUI::GCodeViewer::set_shells_on_preview(bool is_previewing) {
+    if (is_previewing) {
+        delete_wipe_tower();
+    }
+    m_shells.previewing = is_previewing;
+}
+
+void GUI::GCodeViewer::delete_wipe_tower()
+{
+    size_t current_volumes_count = m_shells.volumes.volumes.size();
+    for (size_t i = current_volumes_count - 1; i > 0; i--) {
+        GLVolume *v = m_shells.volumes.volumes[i];
+        if (v->is_wipe_tower) {
+            m_shells.volumes.release_volume(v);
+            delete v;
+            m_shells.volumes.volumes.erase(m_shells.volumes.volumes.begin() + i);
+            break;
+        }
+    }
+}
+
 void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool keep_sequential_current_last) const
 {
 #if ENABLE_GCODE_VIEWER_STATISTICS
