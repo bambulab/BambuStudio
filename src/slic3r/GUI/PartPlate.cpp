@@ -2137,7 +2137,6 @@ void PartPlate::set_logo_box_by_bed(const BoundingBoxf3& box)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":error :Unable to create logo triangles in set_logo_box_by_bed\n";
             return;
         }
-        m_partplate_list->m_logo_texture.reset();
 	}
 }
 
