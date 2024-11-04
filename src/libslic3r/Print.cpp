@@ -768,7 +768,7 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
         {
             auto inst = print_instance_with_bounding_box[k].print_instance;
             // 只需要考虑喷嘴到滑杆的偏移量，这个比整个工具头的碰撞半径要小得多
-            auto bbox = print_instance_with_bounding_box[k].bounding_box.inflated(-scale_(print_config.extruder_clearance_dist_to_rod.value - print_config.extruder_clearance_max_radius.value));
+            auto bbox = print_instance_with_bounding_box[k].bounding_box.inflated(scale_(print_config.extruder_clearance_dist_to_rod.value - print_config.extruder_clearance_max_radius.value));
             auto iy1 = bbox.min.y();
             auto iy2 = bbox.max.y();
             (const_cast<ModelInstance*>(inst->model_instance))->arrange_order = k+1;
