@@ -4846,8 +4846,6 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
      SetMinSize(SELECT_MACHINE_ITEM_SIZE);
 
      m_type = type;
-     m_bitmap = ScalableBitmap(this, "bind_device_ping_code",10);
-     
      this->Bind(wxEVT_ENTER_WINDOW, &PinCodePanel::on_mouse_enter, this);
      this->Bind(wxEVT_LEAVE_WINDOW, &PinCodePanel::on_mouse_leave, this);
      this->Bind(wxEVT_LEFT_UP, &PinCodePanel::on_mouse_left_up, this);
@@ -4883,9 +4881,14 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
  void PinCodePanel::doRender(wxDC& dc)
  {
      auto size = GetSize();
+
+     //m_bitmap = ScalableBitmap(this, "bind_device_ping_code",10);
+
+     m_bitmap = ScalableBitmap(this, wxGetApp().dark_mode() ? "bind_device_ping_code_dark" : "bind_device_ping_code_light", 10);
+
      dc.DrawBitmap(m_bitmap.bmp(), wxPoint(FromDIP(12), (size.y - m_bitmap.GetBmpSize().y) / 2));
      dc.SetFont(::Label::Head_13);
-     dc.SetTextForeground(wxColour(38, 46, 48));
+     dc.SetTextForeground(StateColor::darkModeColorFor(SELECT_MACHINE_GREY900));
      wxString txt;
      if (m_type == 0) { txt = _L("Bind with Pin Code"); }
      else if (m_type == 1) { txt = _L("Bind with Access Code"); }
