@@ -322,11 +322,11 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(OverhangThresholdParticipatingCooling)
 // BBS
 static const t_config_enum_values s_keys_map_BedType = {
     { "Default Plate",      btDefault },
-    { "Supertack Plate",    btSuperTack },
     { "Cool Plate",         btPC },
     { "Engineering Plate",  btEP  },
     { "High Temp Plate",    btPEI  },
-    { "Textured PEI Plate", btPTE }
+    { "Textured PEI Plate", btPTE },
+    {"Supertack Plate",     btSuperTack}
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(BedType)
 
@@ -691,16 +691,16 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Bed types supported by the printer");
     def->mode = comSimple;
     def->enum_keys_map = &s_keys_map_BedType;
-    def->enum_values.emplace_back("Supertack Plate");
     def->enum_values.emplace_back("Cool Plate");
     def->enum_values.emplace_back("Engineering Plate");
     def->enum_values.emplace_back("High Temp Plate");
     def->enum_values.emplace_back("Textured PEI Plate");
-    def->enum_labels.emplace_back(L("Bambu Cool Plate SuperTack"));
-    def->enum_labels.emplace_back(L("Cool Plate / PLA Plate"));
+    def->enum_values.emplace_back("Supertack Plate");
+    def->enum_labels.emplace_back(L("Cool Plate"));
     def->enum_labels.emplace_back(L("Engineering Plate"));
     def->enum_labels.emplace_back(L("Smooth PEI Plate / High Temp Plate"));
     def->enum_labels.emplace_back(L("Textured PEI Plate"));
+    def->enum_labels.emplace_back(L("Bambu Cool Plate SuperTack"));
     def->set_default_value(new ConfigOptionEnum<BedType>(btPC));
 
     // BBS

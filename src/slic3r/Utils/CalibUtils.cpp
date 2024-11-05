@@ -23,11 +23,11 @@ static const std::string config_3mf_path = temp_dir + "/test_config.3mf";
 
 static std::string MachineBedTypeString[6] = {
     "auto",
-    "suprtack",
     "pc",
     "ep",
     "pei",
-    "pte"
+    "pte",
+    "suprtack"
 };
 
 void get_default_k_n_value(const std::string &filament_id, float &k, float &n)
