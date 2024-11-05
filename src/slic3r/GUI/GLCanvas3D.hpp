@@ -883,20 +883,35 @@ public:
     // parts_only == false -> render also sla support and pad
     void render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
                                  Camera::EType           camera_type,
-                                 bool                    use_top_view = false,
+                                 Camera::ViewAngleType   camera_view_angle_type = Camera::ViewAngleType::Iso,
                                  bool                    for_picking  = false,
                                  bool                    ban_light    = false);
-    void render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
+    void render_thumbnail(ThumbnailData &           thumbnail_data,
+                                 unsigned int              w,
+                                 unsigned int              h,
+                                 const ThumbnailsParams &  thumbnail_params,
+                                 ModelObjectPtrs &         model_objects,
                                  const GLVolumeCollection &volumes,
                                  Camera::EType             camera_type,
-                                 bool                      use_top_view = false,
+                                 Camera::ViewAngleType     camera_view_angle_type = Camera::ViewAngleType::Iso,
+                                 bool                      for_picking  = false,
+                                 bool                      ban_light    = false);
+    void render_thumbnail(ThumbnailData &           thumbnail_data,
+                                 std::vector<std::array<float, 4>> &extruder_colors,
+                                 unsigned int              w,
+                                 unsigned int              h,
+                                 const ThumbnailsParams &  thumbnail_params,
+                                 ModelObjectPtrs &         model_objects,
+                                 const GLVolumeCollection &volumes,
+                                 Camera::EType             camera_type,
+                                 Camera::ViewAngleType     camera_view_angle_type = Camera::ViewAngleType::Iso,
                                  bool                      for_picking  = false,
                                  bool                      ban_light    = false);
     static void render_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, ModelObjectPtrs& model_objects,
         const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
                                           GLShaderProgram *                  shader,
                                           Camera::EType                      camera_type,
-                                          bool                               use_top_view = false,
+                                          Camera::ViewAngleType              camera_view_angle_type = Camera::ViewAngleType::Iso,
                                           bool                               for_picking  = false,
                                           bool                               ban_light    = false);
     // render thumbnail using an off-screen framebuffer
@@ -904,7 +919,7 @@ public:
         PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
                                              GLShaderProgram *                  shader,
                                              Camera::EType                      camera_type,
-                                             bool                               use_top_view = false,
+                                             Camera::ViewAngleType              camera_view_angle_type = Camera::ViewAngleType::Iso,
                                              bool                               for_picking  = false,
                                              bool                               ban_light    = false);
     // render thumbnail using an off-screen framebuffer when GLEW_EXT_framebuffer_object is supported
@@ -912,7 +927,7 @@ public:
         PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
                                                  GLShaderProgram *                  shader,
                                                  Camera::EType                      camera_type,
-                                                 bool                               use_top_view = false,
+                                                 Camera::ViewAngleType              camera_view_angle_type = Camera::ViewAngleType::Iso,
                                                  bool                               for_picking  = false,
                                                  bool                               ban_light    = false);
 
@@ -927,7 +942,7 @@ public:
                                  std::vector<std::array<float, 4>> &extruder_colors,
                                  GLShaderProgram *                  shader,
                                  Camera::EType                      camera_type,
-                                 bool                               use_top_view = false,
+                                 Camera::ViewAngleType              camera_view_angle_type = Camera::ViewAngleType::Iso,
                                  bool                               for_picking  = false,
                                  bool                               ban_light = false);
 

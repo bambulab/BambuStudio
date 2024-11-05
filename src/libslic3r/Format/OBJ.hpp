@@ -8,8 +8,6 @@ namespace Slic3r {
 class TriangleMesh;
 class Model;
 class ModelObject;
-typedef std::function<void(std::vector<RGBA> &input_colors, bool is_single_color, std::vector<unsigned char> &filament_ids, unsigned char &first_extruder_id,
-    std::string& ml_region, std::string& ml_name, std::string& ml_id)> ObjImportColorFn;
 // Load an OBJ file into a provided model.
 struct ObjInfo {
     std::vector<RGBA> vertex_colors;
@@ -25,6 +23,21 @@ struct ObjInfo {
     std::string	ml_name;
     std::string ml_id;
 };
+struct ObjDialogInOut
+{ // input:colors array
+    std::vector<RGBA> input_colors;
+    bool              is_single_color{false};
+    // colors array output:
+    std::vector<unsigned char> filament_ids;
+    unsigned char              first_extruder_id;
+    bool                       deal_vertex_color;
+    Model *                    model{nullptr};
+    // ml
+    std::string ml_region;
+    std::string ml_name;
+    std::string ml_id;
+};
+typedef std::function<void(ObjDialogInOut &in_out)> ObjImportColorFn;
 extern bool load_obj(const char *path, TriangleMesh *mesh, ObjInfo &vertex_colors, std::string &message);
 extern bool load_obj(const char *path, Model *model, ObjInfo &vertex_colors, std::string &message, const char *object_name = nullptr);
 
