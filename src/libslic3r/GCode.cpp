@@ -1190,6 +1190,16 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
 
     BOOST_LOG_TRIVIAL(debug) << "Start processing gcode, " << log_memory_info();
     // Post-process the G-code to update time stamps.
+    // BBS: FIX: layers count error, while the last layer extrude is empty
+    // spiral_vase_layer can't get right height
+    while (!m_processor.result().spiral_vase_layers.empty()) {
+        if (m_processor.result().spiral_vase_layers.back().first != FLT_MAX)
+            break;
+        //record last move, update prev layer move range
+        int last_move = m_processor.result().spiral_vase_layers.back().second.second;
+        m_processor.result().spiral_vase_layers.pop_back();
+        m_processor.result().spiral_vase_layers.back().second.second = last_move;
+    }
 
     m_timelapse_warning_code = 0;
     if (m_config.printer_structure.value == PrinterStructure::psI3 && m_spiral_vase) {
