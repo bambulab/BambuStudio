@@ -448,7 +448,6 @@ bool MonitorPanel::Show(bool show)
 #ifdef __APPLE__
     wxGetApp().mainframe->SetMinSize(wxGetApp().plater()->GetMinSize());
 #endif
-
     NetworkAgent* m_agent = wxGetApp().getAgent();
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (show) {
@@ -475,6 +474,13 @@ bool MonitorPanel::Show(bool show)
         stop_update();
         m_refresh_timer->Stop();
     }
+
+    if (obj && !obj->dev_id.empty()) {
+        select_machine(obj->dev_id);
+    } else {
+        select_machine("");
+    }
+
     return wxPanel::Show(show);
 }
 

@@ -1585,7 +1585,10 @@ void StatusBasePanel::show_ams_group(bool show)
         if (m_show_ams_group != show) { Fit(); }
         m_show_ams_group = show;
         m_show_ams_group_reset = false;
+        m_ams_control->Layout();
+        m_ams_control->Fit();
         Layout();
+        Fit();
     }
 }
 
