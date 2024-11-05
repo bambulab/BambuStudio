@@ -59,7 +59,9 @@
 {
 	display:flex;
 	flex-direction: column;
-	cursor: pointer;	
+	cursor: pointer;
+	border-radius: 10px;
+	overflow: hidden;
 }
 
 .HotModel_PrevBlock

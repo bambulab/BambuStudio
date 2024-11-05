@@ -108,15 +108,22 @@ body
     word-break: break-all;
 	position: relative;
 	cursor: pointer;
+	border-radius: 12px;
+	overflow: hidden;
+}
+
+.PrintHistoryImg
+{
+	border-radius: 12px;	
+	border: 1px solid #EEEEEE;
+/*	background-color: #E4E4E4;*/
 }
 
 .PrintHistoryImg img
 {
-	border-radius: 12px;
 	width: calc(100% - 2px);
 	aspect-ratio: 4/3;
     object-fit:contain;
-	border: 1px solid #EEEEEE;
 }
 
 .PrintHistoryTextBlock
@@ -125,7 +132,8 @@ body
 	flex-direction: column;
     white-space: nowrap;
     text-overflow: ellipsis;
-    overflow: hidden;	
+    overflow: hidden;
+	margin-top: 2px;
 }
 
 .PrintHistoryName
@@ -224,7 +232,7 @@ body
 	width: Hug (61px)px;
     height: Hug (28px)px;
     gap: 10px;
-    border-radius: 12px 0px 4px 0px;
+    border-radius: 0px 0px 4px 0px;
     opacity: 0px;
 	color: #FFFFFF;
 	position: absolute;
