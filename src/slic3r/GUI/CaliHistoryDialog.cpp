@@ -273,6 +273,7 @@ void HistoryWindow::reqeust_history_result(MachineObject* obj)
             PACalibExtruderInfo cali_info;
             cali_info.nozzle_diameter = nozzle_value;
             cali_info.extruder_id     = extruder_id;
+            cali_info.use_nozzle_volume_type = false;
             CalibUtils::emit_get_PA_calib_infos(cali_info);
             m_tips->SetLabel(_L("Refreshing the historical Flow Dynamics Calibration records"));
             BOOST_LOG_TRIVIAL(info) << "request calib history";
@@ -348,7 +349,7 @@ void HistoryWindow::sync_history_data() {
         wxString preset_name = get_preset_name_by_filament_id(result.filament_id);
         auto preset_name_value = new Label(m_history_data_panel, preset_name);
 
-        wxString nozzle_name = generate_nozzle_id(result.nozzle_volume_type);
+        wxString nozzle_name = get_nozzle_volume_type_name(result.nozzle_volume_type);
         auto     nozzle_name_label = new Label(m_history_data_panel, nozzle_name);
 
         auto k_str = wxString::Format("%.3f", result.k_value);
@@ -861,7 +862,7 @@ void NewCalibrationHistoryDialog::on_ok(wxCommandEvent &event)
         }
 
         m_new_result.extruder_id        = get_extruder_id(m_comboBox_extruder->GetSelection());
-        m_new_result.nozzle_volume_type = NozzleVolumeType(m_comboBox_extruder->GetSelection());
+        m_new_result.nozzle_volume_type = NozzleVolumeType(m_comboBox_nozzle_type->GetSelection());
     }
 
     auto filament_item = map_filament_items[m_comboBox_filament->GetValue().ToStdString()];
