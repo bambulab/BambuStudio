@@ -497,7 +497,24 @@ function DisableHotkey( b_CtrlP )
 			event.preventDefault();
 		}
 	}, { passive: false });	
+	
+	DisableDropAction();
 }
 	
 DisableHotkey();
 
+/*--------Disable Drop Action---------*/
+function DisableDropAction()
+{
+	document.addEventListener("dragstart", (event) => {
+    event.preventDefault();
+	});
+
+	document.addEventListener("dragover", (event) => {
+		event.preventDefault();
+	});
+	
+	document.addEventListener("drop", (event) => {
+		event.preventDefault();
+	});
+}
