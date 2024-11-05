@@ -124,6 +124,8 @@ struct SegmentIntersection
     // y position of the intersection, rational number.
     int64_t     pos_p { 0 };
     uint32_t    pos_q { 1 };
+    // the index fo the prev point in the contour
+    size_t      prev_idx{0};
 
     coord_t     pos() const {
         // Division rounds both positive and negative down to zero.
@@ -798,6 +800,7 @@ static std::vector<SegmentedIntersectionLine> slice_region_by_vertical_lines(con
                 SegmentIntersection is;
                 is.iContour = iContour;
                 is.iSegment = iSegment;
+                is.prev_idx = iPrev;
                 assert(l <= this_x);
                 assert(r >= this_x);
                 // Calculate the intersection position in y axis. x is known.
@@ -839,6 +842,12 @@ static std::vector<SegmentedIntersectionLine> slice_region_by_vertical_lines(con
                 // +-1 to take rounding into account.
                 assert(is.pos() + 1 >= std::min(p1.y(), p2.y()));
                 assert(is.pos() <= std::max(p1.y(), p2.y()) + 1);
+                //BBS: check segment intersection type
+                const coord_t dir = p2.x() - p1.x();
+                const bool    low = dir > 0;
+                is.type = poly_with_offset.is_contour_outer(iContour) ?
+                    (low ? SegmentIntersection::OUTER_LOW : SegmentIntersection::OUTER_HIGH) :
+                    (low ? SegmentIntersection::INNER_LOW : SegmentIntersection::INNER_HIGH);
                 segs[i].intersections.push_back(is);
             }
         }
@@ -848,7 +857,13 @@ static std::vector<SegmentedIntersectionLine> slice_region_by_vertical_lines(con
     for (size_t i_seg = 0; i_seg < segs.size(); ++ i_seg) {
         SegmentedIntersectionLine &sil = segs[i_seg];
         // Sort the intersection points using exact rational arithmetic.
-        std::sort(sil.intersections.begin(), sil.intersections.end());
+        //BBS: if the LOW and HIGH has seam y pos, LOW should be first
+        std::sort(sil.intersections.begin(), sil.intersections.end(), [](const SegmentIntersection &l, const SegmentIntersection &r) {
+            if (l.pos() == r.pos() && l.iContour == r.iContour)
+                  return l.type < r.type;
+
+            return l.pos() < r.pos();
+        });
         // Assign the intersection types, remove duplicate or overlapping intersection points.
         // When a loop vertex touches a vertical line, intersection point is generated for both segments.
         // If such two segments are oriented equally, then one of them is removed.
@@ -858,16 +873,11 @@ static std::vector<SegmentedIntersectionLine> slice_region_by_vertical_lines(con
         size_t j = 0;
         for (size_t i = 0; i < sil.intersections.size(); ++ i) {
             // What is the orientation of the segment at the intersection point?
-            SegmentIntersection       &is       = sil.intersections[i];
+            SegmentIntersection        &is       = sil.intersections[i];
             const size_t               iContour = is.iContour;
-            const Points              &contour  = poly_with_offset.contour(iContour).points;
             const size_t               iSegment = is.iSegment;
-            const size_t               iPrev    = prev_idx_modulo(iSegment, contour);
-            const coord_t              dir      = contour[iSegment].x() - contour[iPrev].x();
-            const bool                 low      = dir > 0;
-            is.type = poly_with_offset.is_contour_outer(iContour) ?
-                (low ? SegmentIntersection::OUTER_LOW : SegmentIntersection::OUTER_HIGH) :
-                (low ? SegmentIntersection::INNER_LOW : SegmentIntersection::INNER_HIGH);
+            const size_t               iPrev    = is.prev_idx;
+            const bool                 low      = is.type == SegmentIntersection::OUTER_LOW || is.type == SegmentIntersection::INNER_LOW;
             bool take_next = true;
             if (j > 0) {
                 SegmentIntersection &is2 = sil.intersections[j - 1];
@@ -876,7 +886,7 @@ static std::vector<SegmentedIntersectionLine> slice_region_by_vertical_lines(con
                     if (is.pos_p == is2.pos_p) {
                         // Two successive segments meet exactly at the vertical line.
                         // Verify that the segments of sil.intersections[i] and sil.intersections[j-1] are adjoint.
-                        assert(iSegment == prev_idx_modulo(is2.iSegment, contour) || is2.iSegment == iPrev);
+                        assert(iSegment == is2.prev_idx || is2.iSegment == iPrev);
                         assert(is.type == is2.type);
                         // Two successive segments of the same direction (both to the right or both to the left)
                         // meet exactly at the vertical line.
