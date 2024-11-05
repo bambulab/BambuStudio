@@ -226,11 +226,11 @@ enum OverhangThresholdParticipatingCooling {
 // BBS
 enum BedType {
     btDefault = 0,
-    btSuperTack,
     btPC,
     btEP,
     btPEI,
     btPTE,
+    btSuperTack,
     btCount
 };
 
