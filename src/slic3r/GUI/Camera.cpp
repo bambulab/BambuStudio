@@ -105,6 +105,45 @@ void Camera::select_view(const std::string& direction)
         look_at(m_target - 0.707 * m_distance * Vec3d::UnitY() + 0.707 * m_distance * Vec3d::UnitZ(), m_target, Vec3d::UnitY() + Vec3d::UnitZ());
     }
 }
+void Camera::select_view(ViewAngleType type)
+{
+    switch (type) {
+    case Slic3r::GUI::Camera::ViewAngleType::Iso: {
+        select_view("iso");
+        break;
+    }
+    case Slic3r::GUI::Camera::ViewAngleType::Top_Front: {
+        select_view("topfront");
+        break;
+    }
+    case Slic3r::GUI::Camera::ViewAngleType::Left: {
+        select_view("left");
+        break;
+    }
+    case Slic3r::GUI::Camera::ViewAngleType::Right: {
+        select_view("right");
+        break;
+    }
+    case Slic3r::GUI::Camera::ViewAngleType::Top_Plate:
+    case Slic3r::GUI::Camera::ViewAngleType::Top: {
+        select_view("top");
+        break;
+    }
+    case Slic3r::GUI::Camera::ViewAngleType::Bottom: {
+        select_view("bottom");
+        break;
+    }
+    case Slic3r::GUI::Camera::ViewAngleType::Front: {
+        select_view("front");
+        break;
+    }
+    case Slic3r::GUI::Camera::ViewAngleType::Rear: {
+        select_view("rear");
+        break;
+    }
+    default: break;
+    }
+}
 //how to use
 //BoundingBox bbox = mesh.aabb.transform(transform);
 //return camera_->getFrustum().intersects(bbox);

@@ -6493,14 +6493,18 @@ int CLI::run(int argc, char **argv)
                                             {
                                                 Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer(*no_light_thumbnail,
                                                    thumbnail_width, thumbnail_height, thumbnail_params,
-                                                   partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho, false, false, true);
+                                                                                                  partplate_list, model.objects, glvolume_collection, colors_out, shader,
+                                                                                                  Slic3r::GUI::Camera::EType::Ortho, Slic3r::GUI::Camera::ViewAngleType::Iso,
+                                                                                                  false, true);
                                                 break;
                                             }
                                         case Slic3r::GUI::OpenGLManager::EFramebufferType::Ext:
                                             {
                                                 Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer_ext(*no_light_thumbnail,
                                                    thumbnail_width, thumbnail_height, thumbnail_params,
-                                                   partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho, false, false, true);
+                                                                                                      partplate_list, model.objects, glvolume_collection, colors_out, shader,
+                                                                                                      Slic3r::GUI::Camera::EType::Ortho, Slic3r::GUI::Camera::ViewAngleType::Iso,
+                                                                                                      false, true);
                                                 break;
                                             }
                                         default:
@@ -6577,20 +6581,29 @@ int CLI::run(int argc, char **argv)
                                                 {
                                                     Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer(*top_thumbnail,
                                                        thumbnail_width, thumbnail_height, thumbnail_params,
-                                                       partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho, true, false);
+                                                                                                      partplate_list, model.objects, glvolume_collection, colors_out, shader,
+                                                                                                      Slic3r::GUI::Camera::EType::Ortho, Slic3r::GUI::Camera::ViewAngleType::Top_Plate,
+                                                                                                      false);
                                                     Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer(*picking_thumbnail,
                                                        thumbnail_width, thumbnail_height, thumbnail_params,
-                                                       partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho, true, true);
+                                                                                                          partplate_list, model.objects, glvolume_collection, colors_out, shader,
+                                                                                                          Slic3r::GUI::Camera::EType::Ortho,
+                                                                                                          Slic3r::GUI::Camera::ViewAngleType::Top_Plate, true);
                                                     break;
                                                 }
                                             case Slic3r::GUI::OpenGLManager::EFramebufferType::Ext:
                                                 {
                                                     Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer_ext(*top_thumbnail,
                                                        thumbnail_width, thumbnail_height, thumbnail_params,
-                                                       partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho, true, false);
+                                                                                                          partplate_list, model.objects, glvolume_collection, colors_out, shader,
+                                                                                                          Slic3r::GUI::Camera::EType::Ortho,
+                                                                                                          Slic3r::GUI::Camera::ViewAngleType::Top_Plate, false);
                                                     Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer_ext(*picking_thumbnail,
-                                                       thumbnail_width, thumbnail_height, thumbnail_params,
-                                                       partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho, true, true);
+                                                       thumbnail_width, thumbnail_height, thumbnail_params, partplate_list, model.objects,
+                                                                                                              glvolume_collection, colors_out, shader,
+                                                                                                              Slic3r::GUI::Camera::EType::Ortho,
+                                                                                                              Slic3r::GUI::Camera::ViewAngleType::Top_Plate,
+                                                                                                              true);
                                                     break;
                                                 }
                                             default:
