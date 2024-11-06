@@ -3270,13 +3270,15 @@ void GUI::GCodeViewer::set_shells_on_preview(bool is_previewing) {
 void GUI::GCodeViewer::delete_wipe_tower()
 {
     size_t current_volumes_count = m_shells.volumes.volumes.size();
-    for (size_t i = current_volumes_count - 1; i > 0; i--) {
-        GLVolume *v = m_shells.volumes.volumes[i];
-        if (v->is_wipe_tower) {
-            m_shells.volumes.release_volume(v);
-            delete v;
-            m_shells.volumes.volumes.erase(m_shells.volumes.volumes.begin() + i);
-            break;
+    if (current_volumes_count >= 1) {
+        for (size_t i = current_volumes_count - 1; i > 0; i--) {
+            GLVolume *v = m_shells.volumes.volumes[i];
+            if (v->is_wipe_tower) {
+                m_shells.volumes.release_volume(v);
+                delete v;
+                m_shells.volumes.volumes.erase(m_shells.volumes.volumes.begin() + i);
+                break;
+            }
         }
     }
 }
