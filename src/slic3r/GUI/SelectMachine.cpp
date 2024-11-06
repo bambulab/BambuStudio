@@ -2237,7 +2237,7 @@ bool SelectMachineDialog::is_nozzle_type_match(ExtderData data) {
 
     // The default two extruders are left, right, but the order of the extruders on the machine is right, left.
     std::vector<std::string> flow_type_of_machine;
-    for (auto it = data.extders.rbegin(); it != data.extders.rend(); it++) {
+    for (auto it = data.extders.begin(); it != data.extders.end(); it++) {
         if (it->current_nozzle_flow_type == NozzleFlowType::H_FLOW) {
             flow_type_of_machine.push_back("Big Traffic");
         } else if (it->current_nozzle_flow_type == NozzleFlowType::S_FLOW){
@@ -3739,17 +3739,14 @@ void SelectMachineDialog::update_flow_cali_check(MachineObject* obj)
 
 void SelectMachineDialog::update_ams_check(MachineObject *obj)
 {
-    if (obj && obj->ams_support_use_ams && obj->has_ams() && !obj->is_enable_np) {
+    if (obj && obj->has_ams() && !obj->is_enable_np) {
         select_use_ams->Show();
         if (obj->get_printer_ams_type() == "generic") {
             img_use_ams_tip->Show();
         } else {
             img_use_ams_tip->Hide();
         }
-    } /* else {
-         select_use_ams->Hide();
-     }*/
-
+    }
     if (obj && obj->is_enable_np) { m_checkbox_list["use_ams"]->SetValue(true); }
 }
 
@@ -3834,13 +3831,11 @@ void SelectMachineDialog::update_show_status()
 
     // do ams mapping if no ams result
     bool clean_ams_mapping = false;
-    if (obj_->has_ams() && m_ams_mapping_result.empty()) {
-        if (obj_->ams_support_use_ams) {
-            if (m_checkbox_list["use_ams"]->GetValue()) {
-                do_ams_mapping(obj_);
-            } else {
-                clean_ams_mapping = true;
-            }
+    if (m_ams_mapping_result.empty()) {
+        if (m_checkbox_list["use_ams"]->GetValue()) {
+            do_ams_mapping(obj_);
+        } else {
+            clean_ams_mapping = true;
         }
     }
 
@@ -3908,20 +3903,17 @@ void SelectMachineDialog::update_show_status()
         return;
     }
 
-    if (obj_->ams_support_use_ams) {
-        if (!m_checkbox_list["use_ams"]->GetValue()) {
-            m_ams_mapping_result.clear();
-            sync_ams_mapping_result(m_ams_mapping_result);
+    if (!m_checkbox_list["use_ams"]->GetValue()) {
+        m_ams_mapping_result.clear();
+        sync_ams_mapping_result(m_ams_mapping_result);
 
-            if (has_timelapse_warning()) {
-                show_status(PrintDialogStatus::PrintStatusTimelapseWarning);
-            }
-            else {
-                show_status(PrintDialogStatus::PrintStatusDisableAms);
-            }
-
-            return;
+        if (has_timelapse_warning()) {
+            show_status(PrintDialogStatus::PrintStatusTimelapseWarning);
+        } else {
+            show_status(PrintDialogStatus::PrintStatusDisableAms);
         }
+
+        return;
     }
 
 
