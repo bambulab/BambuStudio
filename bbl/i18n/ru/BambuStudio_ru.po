@@ -2,12 +2,12 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: 1.9.7.52 Public Official\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-25 21:39+0800\n"
+"POT-Creation-Date: 2024-11-06 20:50+0800\n"
 "PO-Revision-Date: 2024-09-27 23:58+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -861,6 +861,9 @@ msgid "Warning:Input cannot be empty!"
 msgstr ""
 
 msgid "Warning:create text fail."
+msgstr ""
+
+msgid "Warning:text normal is error."
 msgstr ""
 
 msgid "Surface"
@@ -2084,9 +2087,6 @@ msgid "OK"
 msgstr "OK"
 
 msgid "Jump to Layer"
-msgstr "Перейти к слою"
-
-msgid "Jump to layer"
 msgstr "Перейти к слою"
 
 msgid "Please enter the layer number"
@@ -3979,6 +3979,10 @@ msgstr ""
 "пределы стола) и убедитесь, что высота модели находится в пределах область "
 "построения."
 
+#, c-format, boost-format
+msgid "filaments %s cannot be printed directly on the surface of this plate"
+msgstr ""
+
 msgid "Calibration step selection"
 msgstr "Выбор шага калибровки"
 
@@ -5464,14 +5468,14 @@ msgstr ""
 "Обнаружение накапливания на сопле материала в результате засорения/протечки "
 "сопла или других причин."
 
-msgid "Nozzle Type"
-msgstr "Тип сопла"
+msgid "Hardened Steel"
+msgstr "Закалённая сталь"
 
 msgid "Stainless Steel"
 msgstr "Нержавеющая сталь"
 
-msgid "Hardened Steel"
-msgstr "Закалённая сталь"
+msgid "Nozzle Type"
+msgstr "Тип сопла"
 
 #, c-format, boost-format
 msgid "%.1f"
@@ -6379,6 +6383,9 @@ msgstr ""
 "Показывать на главной странице модели из сети отобранные\n"
 "сотрудниками компании"
 
+msgid "Show history on the home page"
+msgstr ""
+
 msgid "Maximum recent projects"
 msgstr "Максимальное количество недавних проектов"
 
@@ -6783,14 +6790,8 @@ msgstr "Не в сети"
 msgid "Busy"
 msgstr "Занят"
 
-msgid "Bambu Cool Plate SuperTack"
-msgstr ""
-
 msgid "Bambu Cool Plate"
 msgstr "Не нагреваемая пластина Bambu"
-
-msgid "PLA Plate"
-msgstr "PLA пластина"
 
 msgid "Bamabu Engineering Plate"
 msgstr "Инженерная пластина Bambu"
@@ -6803,6 +6804,9 @@ msgstr "Высокотемпературная пластина"
 
 msgid "Bamabu Textured PEI Plate"
 msgstr "Текстурированная PEI пластина Bambu"
+
+msgid "Bambu Cool Plate SuperTack"
+msgstr ""
 
 msgid "Send print job to"
 msgstr "Отправка задания на печать"
@@ -7462,8 +7466,8 @@ msgid ""
 "does not support to print on the Bambu Cool Plate SuperTack"
 msgstr ""
 
-msgid "Cool Plate / PLA Plate"
-msgstr "Не нагреваемая/PLA пластина"
+msgid "Cool Plate"
+msgstr ""
 
 msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
@@ -8327,27 +8331,27 @@ msgid "Connect the printer using IP and access code"
 msgstr ""
 
 msgid ""
-"Step 1, please confirm Bambu Studio and your printer are in the same LAN."
+"Step 1. Please confirm Bambu Studio and your printer are in the same LAN."
 msgstr ""
-"Шаг 1. Пожалуйста, убедитесь, что Bambu Studio и ваш принтер находятся в "
-"одной локальной сети."
 
 msgid ""
-"Step 2, if the IP and Access Code below are different from the actual values "
+"Step 2. If the IP and Access Code below are different from the actual values "
 "on your printer, please correct them."
 msgstr ""
-"Шаг 2. Если приведенный ниже IP-адрес и код доступа отличаются от "
-"фактических значений на вашем принтере, пожалуйста, исправьте их."
+
+msgid ""
+"Step 3. Please obtain the device SN from the printer side; it is usually "
+"found in the device information on the printer screen."
+msgstr ""
 
 msgid "Access Code"
 msgstr "Код доступа"
 
+msgid "Printer model"
+msgstr ""
+
 msgid "Where to find your printer's IP and Access Code?"
 msgstr "Где найти IP-адрес и код доступа к вашему принтеру?"
-
-msgid "Step 3: Ping the IP address to check for packet loss and latency."
-msgstr ""
-"Шаг 3. Пропингуйте IP-адрес, чтобы проверить потерю пакетов и задержку."
 
 msgid "Connect"
 msgstr ""
@@ -8359,9 +8363,6 @@ msgid "Failed to connect to printer."
 msgstr ""
 
 msgid "Failed to publish login request."
-msgstr ""
-
-msgid "The device does not support using IP and Access Code for connection."
 msgstr ""
 
 msgid "The printer has already been bound."
@@ -8543,10 +8544,19 @@ msgstr ""
 "Не удалось сгенерировать G-код из-за недопустимого пользовательского G-"
 "кода.\n"
 
-msgid "Please check the custom G-code or use the default custom G-code."
+msgid "Please check the custom G-code or use the default custom G-code.\n"
 msgstr ""
-"Пожалуйста, проверьте пользовательский G-код или используйте "
-"пользовательский G-код по умолчанию."
+
+msgid ""
+"You can find them from 'Printer settings' -> 'Machine G-code' and 'Filament "
+"settings' -> 'Advanced'."
+msgstr ""
+
+msgid "You can find it from 'Printer settings' -> 'Machine G-code'."
+msgstr ""
+
+msgid "You can find it from 'Filament settings' -> 'Advanced'."
+msgstr ""
 
 #, boost-format
 msgid "Generating G-code: layer %1%"
@@ -9619,12 +9629,13 @@ msgstr ""
 "Расстояние от кончика сопла до крышки. Значение важно при печати моделей «По "
 "очереди» для предотвращения столкновений."
 
-msgid ""
-"Clearance radius around extruder. Used for collision avoidance in by-object "
-"printing."
+msgid "Distance to rod"
 msgstr ""
-"Безопасное расстояние вокруг экструдера. Используется для предотвращения "
-"столкновений при печати отдельно стоящих моделей."
+
+msgid ""
+"Horizontal distance of the nozzle tip to the rod's farther edge. Used for "
+"collision avoidance in by-object printing."
+msgstr ""
 
 msgid "Nozzle height"
 msgstr "Высота сопла"
@@ -14278,6 +14289,44 @@ msgstr ""
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как "
 "ABS, повышение температуры подогреваемого стола может снизить эту "
 "вероятность?"
+
+#~ msgid "Jump to layer"
+#~ msgstr "Перейти к слою"
+
+#~ msgid "PLA Plate"
+#~ msgstr "PLA пластина"
+
+#~ msgid "Cool Plate / PLA Plate"
+#~ msgstr "Не нагреваемая/PLA пластина"
+
+#~ msgid ""
+#~ "Step 1, please confirm Bambu Studio and your printer are in the same LAN."
+#~ msgstr ""
+#~ "Шаг 1. Пожалуйста, убедитесь, что Bambu Studio и ваш принтер находятся в "
+#~ "одной локальной сети."
+
+#~ msgid ""
+#~ "Step 2, if the IP and Access Code below are different from the actual "
+#~ "values on your printer, please correct them."
+#~ msgstr ""
+#~ "Шаг 2. Если приведенный ниже IP-адрес и код доступа отличаются от "
+#~ "фактических значений на вашем принтере, пожалуйста, исправьте их."
+
+#~ msgid "Step 3: Ping the IP address to check for packet loss and latency."
+#~ msgstr ""
+#~ "Шаг 3. Пропингуйте IP-адрес, чтобы проверить потерю пакетов и задержку."
+
+#~ msgid "Please check the custom G-code or use the default custom G-code."
+#~ msgstr ""
+#~ "Пожалуйста, проверьте пользовательский G-код или используйте "
+#~ "пользовательский G-код по умолчанию."
+
+#~ msgid ""
+#~ "Clearance radius around extruder. Used for collision avoidance in by-"
+#~ "object printing."
+#~ msgstr ""
+#~ "Безопасное расстояние вокруг экструдера. Используется для предотвращения "
+#~ "столкновений при печати отдельно стоящих моделей."
 
 #~ msgid "Tree support branch angle"
 #~ msgstr "Угол нависания ветвей древовидной поддержки"

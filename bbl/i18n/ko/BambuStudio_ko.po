@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-25 21:39+0800\n"
+"POT-Creation-Date: 2024-11-06 20:50+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -834,6 +834,9 @@ msgid "Warning:Input cannot be empty!"
 msgstr ""
 
 msgid "Warning:create text fail."
+msgstr ""
+
+msgid "Warning:text normal is error."
 msgstr ""
 
 msgid "Surface"
@@ -2023,9 +2026,6 @@ msgid "OK"
 msgstr "확인"
 
 msgid "Jump to Layer"
-msgstr "레이어로 이동"
-
-msgid "Jump to layer"
 msgstr "레이어로 이동"
 
 msgid "Please enter the layer number"
@@ -3808,6 +3808,10 @@ msgstr ""
 "플레이트 안 또는 밖으로 완전히 옮기고 높이가 빌드 볼륨 내에 있는지 확인하여 "
 "문제를 해결하십시오."
 
+#, c-format, boost-format
+msgid "filaments %s cannot be printed directly on the surface of this plate"
+msgstr ""
+
 msgid "Calibration step selection"
 msgstr "캘리브레이션 단계 선택"
 
@@ -5237,14 +5241,14 @@ msgstr "노즐 응집 감지"
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
 msgstr "노즐에 필라멘트나 기타 이물질이 뭉쳐져 있는지 확인하세요."
 
-msgid "Nozzle Type"
-msgstr "노즐 유형"
+msgid "Hardened Steel"
+msgstr "경화강"
 
 msgid "Stainless Steel"
 msgstr "스테인레스 스틸"
 
-msgid "Hardened Steel"
-msgstr "경화강"
+msgid "Nozzle Type"
+msgstr "노즐 유형"
 
 #, c-format, boost-format
 msgid "%.1f"
@@ -6113,6 +6117,9 @@ msgstr "온라인 모델"
 msgid "Show online staff-picked models on the home page"
 msgstr "홈페이지에서 추천 온라인 모델 보기"
 
+msgid "Show history on the home page"
+msgstr ""
+
 msgid "Maximum recent projects"
 msgstr "최대 최근 프로젝트 수"
 
@@ -6503,14 +6510,8 @@ msgstr "오프라인"
 msgid "Busy"
 msgstr "바쁜"
 
-msgid "Bambu Cool Plate SuperTack"
-msgstr ""
-
 msgid "Bambu Cool Plate"
 msgstr "뱀부 쿨 플레이트"
-
-msgid "PLA Plate"
-msgstr "PLA 플레이트"
 
 msgid "Bamabu Engineering Plate"
 msgstr "뱀부 엔지니어링 플레이트"
@@ -6523,6 +6524,9 @@ msgstr "고온 플레이트"
 
 msgid "Bamabu Textured PEI Plate"
 msgstr "뱀부 질감 PEI 플레이트"
+
+msgid "Bambu Cool Plate SuperTack"
+msgstr ""
 
 msgid "Send print job to"
 msgstr "출력 작업 보내기"
@@ -7133,8 +7137,8 @@ msgid ""
 "does not support to print on the Bambu Cool Plate SuperTack"
 msgstr ""
 
-msgid "Cool Plate / PLA Plate"
-msgstr "쿨 플레이트 / PLA 플레이트"
+msgid "Cool Plate"
+msgstr ""
 
 msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
@@ -7966,25 +7970,27 @@ msgid "Connect the printer using IP and access code"
 msgstr ""
 
 msgid ""
-"Step 1, please confirm Bambu Studio and your printer are in the same LAN."
+"Step 1. Please confirm Bambu Studio and your printer are in the same LAN."
 msgstr ""
-"1단계, Bambu Studio와 프린터가 동일한 인터넷 망에 연결되어 있는지 확인하십시"
-"오."
 
 msgid ""
-"Step 2, if the IP and Access Code below are different from the actual values "
+"Step 2. If the IP and Access Code below are different from the actual values "
 "on your printer, please correct them."
 msgstr ""
-"2단계. 아래의 IP 및 액세스 코드가 프린터의 실제 값과 다른 경우 수정하십시오."
+
+msgid ""
+"Step 3. Please obtain the device SN from the printer side; it is usually "
+"found in the device information on the printer screen."
+msgstr ""
 
 msgid "Access Code"
 msgstr "액세스 코드"
 
+msgid "Printer model"
+msgstr ""
+
 msgid "Where to find your printer's IP and Access Code?"
 msgstr "프린터의 IP 및 액세스 코드는 어디서 찾을 수 있습니까?"
-
-msgid "Step 3: Ping the IP address to check for packet loss and latency."
-msgstr "3단계: IP 주소를 ping하여 패킷 손실 및 대기 시간을 확인합니다."
 
 msgid "Connect"
 msgstr ""
@@ -7996,9 +8002,6 @@ msgid "Failed to connect to printer."
 msgstr ""
 
 msgid "Failed to publish login request."
-msgstr ""
-
-msgid "The device does not support using IP and Access Code for connection."
 msgstr ""
 
 msgid "The printer has already been bound."
@@ -8175,8 +8178,19 @@ msgstr ""
 "잘못된 커스텀 G 코드로 인해 G 코드생성에 실패했습니다. \n"
 "\n"
 
-msgid "Please check the custom G-code or use the default custom G-code."
-msgstr "커스텀 G 코드를 확인하거나 기본 커스텀 G 코드를 사용하십시오."
+msgid "Please check the custom G-code or use the default custom G-code.\n"
+msgstr ""
+
+msgid ""
+"You can find them from 'Printer settings' -> 'Machine G-code' and 'Filament "
+"settings' -> 'Advanced'."
+msgstr ""
+
+msgid "You can find it from 'Printer settings' -> 'Machine G-code'."
+msgstr ""
+
+msgid "You can find it from 'Filament settings' -> 'Advanced'."
+msgstr ""
 
 #, boost-format
 msgid "Generating G-code: layer %1%"
@@ -9178,10 +9192,13 @@ msgid ""
 msgstr ""
 "노즐 끝에서 뚜껑까지의 거리. 객체별 출력에서 충돌을 피하는 데 사용됩니다."
 
+msgid "Distance to rod"
+msgstr ""
+
 msgid ""
-"Clearance radius around extruder. Used for collision avoidance in by-object "
-"printing."
-msgstr "압출기 주변 안전 반경: 객체별 출력에서 충돌 방지를 위해 사용됩니다."
+"Horizontal distance of the nozzle tip to the rod's farther edge. Used for "
+"collision avoidance in by-object printing."
+msgstr ""
 
 msgid "Nozzle height"
 msgstr "노즐 높이"
@@ -13561,6 +13578,39 @@ msgstr ""
 "뒤틀림 방지\n"
 "ABS 등 뒤틀림이 발생하기 쉬운 소재를 출력할 때, 히트베드 온도를 적절하게 높이"
 "면 뒤틀림 가능성을 줄일 수 있다는 사실을 알고 계셨나요?"
+
+#~ msgid "Jump to layer"
+#~ msgstr "레이어로 이동"
+
+#~ msgid "PLA Plate"
+#~ msgstr "PLA 플레이트"
+
+#~ msgid "Cool Plate / PLA Plate"
+#~ msgstr "쿨 플레이트 / PLA 플레이트"
+
+#~ msgid ""
+#~ "Step 1, please confirm Bambu Studio and your printer are in the same LAN."
+#~ msgstr ""
+#~ "1단계, Bambu Studio와 프린터가 동일한 인터넷 망에 연결되어 있는지 확인하십"
+#~ "시오."
+
+#~ msgid ""
+#~ "Step 2, if the IP and Access Code below are different from the actual "
+#~ "values on your printer, please correct them."
+#~ msgstr ""
+#~ "2단계. 아래의 IP 및 액세스 코드가 프린터의 실제 값과 다른 경우 수정하십시"
+#~ "오."
+
+#~ msgid "Step 3: Ping the IP address to check for packet loss and latency."
+#~ msgstr "3단계: IP 주소를 ping하여 패킷 손실 및 대기 시간을 확인합니다."
+
+#~ msgid "Please check the custom G-code or use the default custom G-code."
+#~ msgstr "커스텀 G 코드를 확인하거나 기본 커스텀 G 코드를 사용하십시오."
+
+#~ msgid ""
+#~ "Clearance radius around extruder. Used for collision avoidance in by-"
+#~ "object printing."
+#~ msgstr "압출기 주변 안전 반경: 객체별 출력에서 충돌 방지를 위해 사용됩니다."
 
 #~ msgid "Tree support branch angle"
 #~ msgstr "트리서포트 가지 각도"
