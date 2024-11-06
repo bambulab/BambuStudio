@@ -92,6 +92,12 @@ html,body
 	color:#818183;
 }
 
+/*----Recent Opened----*/
+.FileImg
+{
+	background-color:#575757;
+}
+
 /*---Staff PIck----*/
 .HotModelPiece
 {
@@ -141,6 +147,7 @@ html,body
 .PrintHistoryImg
 {
 	border: 1px solid #474747;
+	background-color: #575757;
 }
 
 #PrintHistory_Refresh_Btn
