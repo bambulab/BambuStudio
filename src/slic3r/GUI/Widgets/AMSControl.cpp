@@ -3374,11 +3374,11 @@ void AMSControl::update_vams_kn_value(AmsTray tray, MachineObject* obj)
     m_vams_info.material_name = tray.get_display_filament_type();
     m_vams_info.material_colour = tray.get_color();
     m_vams_info.cali_idx               = tray.cali_idx;
-    m_vams_info.filament_id            = tray.filament_setting_id;
+    m_vams_info.filament_id            = tray.setting_id;
     m_vams_lib->m_info.material_name = tray.get_display_filament_type();
     m_vams_lib->m_info.material_colour = tray.get_color();
     m_vams_lib->m_info.cali_idx        = tray.cali_idx;
-    m_vams_lib->m_info.filament_id     = tray.filament_setting_id;
+    m_vams_lib->m_info.filament_id     = tray.setting_id;
 
     if (last_k_value != m_vams_info.k || last_n_value != m_vams_info.n) {
         m_vams_lib->Refresh();
