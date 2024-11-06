@@ -9,6 +9,12 @@
     "filament_flow_ratio": [
         "0.98"
     ],
+    "supertack_plate_temp": [
+        "35"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "35"
+    ],
     "slow_down_layer_time": [
         "8"
     ],

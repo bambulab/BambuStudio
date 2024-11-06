@@ -59,12 +59,6 @@
     "slow_down_layer_time": [
         "25"
     ],
-    "supertack_plate_temp": [
-        "0"
-    ],
-    "supertack_plate_temp_initial_layer": [
-        "0"
-    ],
     "textured_plate_temp": [
         "70"
     ],
