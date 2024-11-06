@@ -26,6 +26,7 @@ protected:
     ComboBox* nozzle_diameter_checkbox;
     std::string last_nozzle_type;
     std::map<int, std::string> nozzle_type_map;
+    std::map<int, wxString> nozzle_type_map_tr;
     std::map<int, float> nozzle_stainless_diameter_map;
     std::map<int, float> nozzle_hard_diameter_map;
 public:

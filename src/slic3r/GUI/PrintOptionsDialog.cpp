@@ -441,6 +441,8 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
 {
     nozzle_type_map[0] = "hardened_steel";
     nozzle_type_map[1] = "stainless_steel";
+    nozzle_type_map_tr[0] = _L("Hardened Steel");
+    nozzle_type_map_tr[1] = _L("Stainless Steel");
 
     nozzle_stainless_diameter_map[0] = 0.2;
     nozzle_stainless_diameter_map[1] = 0.4;
@@ -467,8 +469,8 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     nozzle_type->Wrap(-1);
 
     nozzle_type_checkbox = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(140), -1), 0, NULL, wxCB_READONLY);
-    nozzle_type_checkbox->Append(_L("Stainless Steel"));
-    nozzle_type_checkbox->Append(_L("Hardened Steel"));
+    nozzle_type_checkbox->Append(nozzle_type_map_tr[0]);
+    nozzle_type_checkbox->Append(nozzle_type_map_tr[1]);
     nozzle_type_checkbox->SetSelection(0);
 
     
@@ -605,7 +607,7 @@ bool PrinterPartsDialog::Show(bool show)
 
         for (int i=0; i < nozzle_type_map.size(); i++)
         {
-            nozzle_type_checkbox->Append( nozzle_type_map[i] );
+            nozzle_type_checkbox->Append(nozzle_type_map_tr[i]);
             if (nozzle_type_map[i] == type) {
                 nozzle_type_checkbox->SetSelection(i);
             }
