@@ -1045,7 +1045,7 @@ void PlaterPresetComboBox::update()
     if (m_type == Preset::TYPE_FILAMENT)
         add_ams_filaments(into_u8(selected_user_preset.empty() ? selected_system_preset : selected_user_preset), true);
 
-    std::vector<std::string> filament_orders = {"Bambu PLA Basic", "Bambu PLA Mette", "Bambu PETG HF",    "Bambu ABS",      "Bambu PLA Sink", "Bambu PLA-CF",
+    std::vector<std::string> filament_orders = {"Bambu PLA Basic", "Bambu PLA Matte", "Bambu PETG HF",    "Bambu ABS",      "Bambu PLA Silk", "Bambu PLA-CF",
                                                 "Bambu PLA Galaxy", "Bambu PLA Metal", "Bambu PLA Marble", "Bambu PETG-CF", "Bambu PETG Translucent", "Bambu ABS-GF"};
     std::vector<std::string> first_vendors     = {"Bambu Lab", "Generic"};
     std::vector<std::string> first_types     = {"PLA", "PETG", "ABS", "TPU"};
