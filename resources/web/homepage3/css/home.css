@@ -116,7 +116,7 @@ body
 {
 	border-radius: 12px;	
 	border: 1px solid #EEEEEE;
-/*	background-color: #E4E4E4;*/
+	background-color: #E4E4E4;
 }
 
 .PrintHistoryImg img
@@ -226,7 +226,7 @@ body
 
 .PH_Gcode_Icon
 {
-	background-color: #5C5C5C;
+	background-color: #8F8F8F;
 	display: inline-block;
 	padding: 6px 12px;
 	width: Hug (61px)px;
