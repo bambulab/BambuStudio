@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-25 21:39+0800\n"
+"POT-Creation-Date: 2024-11-06 20:50+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -836,6 +836,9 @@ msgid "Warning:Input cannot be empty!"
 msgstr ""
 
 msgid "Warning:create text fail."
+msgstr ""
+
+msgid "Warning:text normal is error."
 msgstr ""
 
 msgid "Surface"
@@ -2067,9 +2070,6 @@ msgstr "Bevestigen"
 
 msgid "Jump to Layer"
 msgstr "Ga naar laag"
-
-msgid "Jump to layer"
-msgstr "Spring naar laag"
 
 msgid "Please enter the layer number"
 msgstr "Voer het laagnummer in"
@@ -3925,6 +3925,10 @@ msgstr ""
 "Los het probleem op door het object volledig op of van de plaat te "
 "verplaatsen en controleer of de hoogte binnen het bouwvolume valt."
 
+#, c-format, boost-format
+msgid "filaments %s cannot be printed directly on the surface of this plate"
+msgstr ""
+
 msgid "Calibration step selection"
 msgstr "Kalibratiestap selectie"
 
@@ -5380,14 +5384,14 @@ msgstr "Nozzle Clumping Detection"
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
 msgstr "Check if the nozzle is clumping by filament or other foreign objects."
 
-msgid "Nozzle Type"
-msgstr "Nozzle Type"
+msgid "Hardened Steel"
+msgstr "Gehard staal"
 
 msgid "Stainless Steel"
 msgstr "Roestvrij staal"
 
-msgid "Hardened Steel"
-msgstr "Gehard staal"
+msgid "Nozzle Type"
+msgstr "Nozzle Type"
 
 #, c-format, boost-format
 msgid "%.1f"
@@ -6282,6 +6286,9 @@ msgstr "Online modellen"
 msgid "Show online staff-picked models on the home page"
 msgstr "Toon door medewerkers geselecteerde online modellen op de homepage"
 
+msgid "Show history on the home page"
+msgstr ""
+
 msgid "Maximum recent projects"
 msgstr "Maximale recente projecten"
 
@@ -6679,14 +6686,8 @@ msgstr "Offline"
 msgid "Busy"
 msgstr "Bezet"
 
-msgid "Bambu Cool Plate SuperTack"
-msgstr ""
-
 msgid "Bambu Cool Plate"
 msgstr "Bambu Cool (koude) Plate"
-
-msgid "PLA Plate"
-msgstr "PLA Plaat"
 
 msgid "Bamabu Engineering Plate"
 msgstr "Bambu Engineering (technische) plate"
@@ -6699,6 +6700,9 @@ msgstr "Plaat op hoge temperatuur"
 
 msgid "Bamabu Textured PEI Plate"
 msgstr "Bambu getextureerde PEI-plaat"
+
+msgid "Bambu Cool Plate SuperTack"
+msgstr ""
 
 msgid "Send print job to"
 msgstr "Stuur de printtaak naar"
@@ -7352,8 +7356,8 @@ msgid ""
 "does not support to print on the Bambu Cool Plate SuperTack"
 msgstr ""
 
-msgid "Cool Plate / PLA Plate"
-msgstr "Koelplaat/PLA-plaat"
+msgid "Cool Plate"
+msgstr "Cool (koud) printbed"
 
 msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
@@ -8207,27 +8211,27 @@ msgid "Connect the printer using IP and access code"
 msgstr ""
 
 msgid ""
-"Step 1, please confirm Bambu Studio and your printer are in the same LAN."
+"Step 1. Please confirm Bambu Studio and your printer are in the same LAN."
 msgstr ""
-"Stap 1, controleer of Bambu Studio en uw printer zich in hetzelfde LAN "
-"bevinden."
 
 msgid ""
-"Step 2, if the IP and Access Code below are different from the actual values "
+"Step 2. If the IP and Access Code below are different from the actual values "
 "on your printer, please correct them."
 msgstr ""
-"Stap 2, als het IP-adres en de toegangscode hieronder afwijken van de "
-"werkelijke waarden op uw printer, corrigeer ze dan."
+
+msgid ""
+"Step 3. Please obtain the device SN from the printer side; it is usually "
+"found in the device information on the printer screen."
+msgstr ""
 
 msgid "Access Code"
 msgstr "Toegangscode"
 
+msgid "Printer model"
+msgstr ""
+
 msgid "Where to find your printer's IP and Access Code?"
 msgstr "Waar vind je het IP-adres en de toegangscode van je printer?"
-
-msgid "Step 3: Ping the IP address to check for packet loss and latency."
-msgstr ""
-"Stap 3: Ping het IP-adres om te controleren op pakketverlies en latentie."
 
 msgid "Connect"
 msgstr ""
@@ -8239,9 +8243,6 @@ msgid "Failed to connect to printer."
 msgstr ""
 
 msgid "Failed to publish login request."
-msgstr ""
-
-msgid "The device does not support using IP and Access Code for connection."
 msgstr ""
 
 msgid "The printer has already been bound."
@@ -8423,8 +8424,19 @@ msgstr ""
 "Kan gcode niet genereren voor ongeldige handmatige G-code.\n"
 "\n"
 
-msgid "Please check the custom G-code or use the default custom G-code."
-msgstr "Controleer de aangepaste G-code of gebruik de standaard G-code."
+msgid "Please check the custom G-code or use the default custom G-code.\n"
+msgstr ""
+
+msgid ""
+"You can find them from 'Printer settings' -> 'Machine G-code' and 'Filament "
+"settings' -> 'Advanced'."
+msgstr ""
+
+msgid "You can find it from 'Printer settings' -> 'Machine G-code'."
+msgstr ""
+
+msgid "You can find it from 'Filament settings' -> 'Advanced'."
+msgstr ""
 
 #, boost-format
 msgid "Generating G-code: layer %1%"
@@ -9479,12 +9491,13 @@ msgstr ""
 "Afstand van de punt van het mondstuk tot het deksel. Wordt gebruikt om "
 "botsingen te voorkomen bij het afdrukken van bijobjecten."
 
-msgid ""
-"Clearance radius around extruder. Used for collision avoidance in by-object "
-"printing."
+msgid "Distance to rod"
 msgstr ""
-"Radius rond de extruder. Wordt gebruikt om botsingen te vermijden bij het "
-"printen per object."
+
+msgid ""
+"Horizontal distance of the nozzle tip to the rod's farther edge. Used for "
+"collision avoidance in by-object printing."
+msgstr ""
 
 msgid "Nozzle height"
 msgstr "Hoogte van het mondstuk"
@@ -13999,6 +14012,42 @@ msgstr ""
 "kromtrekken, zoals ABS, een juiste verhoging van de temperatuur van het "
 "warmtebed de kans op kromtrekken kan verkleinen?"
 
+#~ msgid "Jump to layer"
+#~ msgstr "Spring naar laag"
+
+#~ msgid "PLA Plate"
+#~ msgstr "PLA Plaat"
+
+#~ msgid "Cool Plate / PLA Plate"
+#~ msgstr "Koelplaat/PLA-plaat"
+
+#~ msgid ""
+#~ "Step 1, please confirm Bambu Studio and your printer are in the same LAN."
+#~ msgstr ""
+#~ "Stap 1, controleer of Bambu Studio en uw printer zich in hetzelfde LAN "
+#~ "bevinden."
+
+#~ msgid ""
+#~ "Step 2, if the IP and Access Code below are different from the actual "
+#~ "values on your printer, please correct them."
+#~ msgstr ""
+#~ "Stap 2, als het IP-adres en de toegangscode hieronder afwijken van de "
+#~ "werkelijke waarden op uw printer, corrigeer ze dan."
+
+#~ msgid "Step 3: Ping the IP address to check for packet loss and latency."
+#~ msgstr ""
+#~ "Stap 3: Ping het IP-adres om te controleren op pakketverlies en latentie."
+
+#~ msgid "Please check the custom G-code or use the default custom G-code."
+#~ msgstr "Controleer de aangepaste G-code of gebruik de standaard G-code."
+
+#~ msgid ""
+#~ "Clearance radius around extruder. Used for collision avoidance in by-"
+#~ "object printing."
+#~ msgstr ""
+#~ "Radius rond de extruder. Wordt gebruikt om botsingen te vermijden bij het "
+#~ "printen per object."
+
 #~ msgid "Tree support branch angle"
 #~ msgstr "Tree support vertakkingshoek"
 
@@ -14633,9 +14682,6 @@ msgstr ""
 
 #~ msgid "Convert the units of model"
 #~ msgstr "Converteer de eenheden van het model"
-
-#~ msgid "Cool Plate"
-#~ msgstr "Cool (koud) printbed"
 
 #~ msgid "Cool plate"
 #~ msgstr "Cool (koud) printbed"

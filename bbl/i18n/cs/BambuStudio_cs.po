@@ -2,12 +2,12 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-25 21:39+0800\n"
+"POT-Creation-Date: 2024-11-06 20:50+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -825,6 +825,9 @@ msgid "Warning:Input cannot be empty!"
 msgstr ""
 
 msgid "Warning:create text fail."
+msgstr ""
+
+msgid "Warning:text normal is error."
 msgstr ""
 
 msgid "Surface"
@@ -2021,9 +2024,6 @@ msgstr "OK"
 
 msgid "Jump to Layer"
 msgstr "Přejít na vrstvu"
-
-msgid "Jump to layer"
-msgstr "Přeskočit do vrstvy"
 
 msgid "Please enter the layer number"
 msgstr "Zadejte prosím číslo vrstvy"
@@ -3794,6 +3794,10 @@ msgstr ""
 "Prosím, vyřešte problém tím, že jej úplně přesunete na podložku nebo mimo ní "
 "a potvrďte, že výška je v rámci objemu stavby."
 
+#, c-format, boost-format
+msgid "filaments %s cannot be printed directly on the surface of this plate"
+msgstr ""
+
 msgid "Calibration step selection"
 msgstr "Výběr kroku kalibrace"
 
@@ -5209,13 +5213,13 @@ msgstr ""
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
 msgstr ""
 
-msgid "Nozzle Type"
+msgid "Hardened Steel"
 msgstr ""
 
 msgid "Stainless Steel"
 msgstr ""
 
-msgid "Hardened Steel"
+msgid "Nozzle Type"
 msgstr ""
 
 #, c-format, boost-format
@@ -6055,6 +6059,9 @@ msgstr "Online modely"
 msgid "Show online staff-picked models on the home page"
 msgstr "Zobrazit online modely vybrané týmem na úvodní stránce"
 
+msgid "Show history on the home page"
+msgstr ""
+
 msgid "Maximum recent projects"
 msgstr "Maximální počet nedávných projektů"
 
@@ -6444,14 +6451,8 @@ msgstr "Offline"
 msgid "Busy"
 msgstr "Zaneprázdněn"
 
-msgid "Bambu Cool Plate SuperTack"
-msgstr ""
-
 msgid "Bambu Cool Plate"
 msgstr "Bambu Cool Podložka"
-
-msgid "PLA Plate"
-msgstr "PLA Podložka"
 
 msgid "Bamabu Engineering Plate"
 msgstr "Bamabu Engineering Podložka"
@@ -6463,6 +6464,9 @@ msgid "High temperature Plate"
 msgstr ""
 
 msgid "Bamabu Textured PEI Plate"
+msgstr ""
+
+msgid "Bambu Cool Plate SuperTack"
 msgstr ""
 
 msgid "Send print job to"
@@ -7066,8 +7070,8 @@ msgid ""
 "does not support to print on the Bambu Cool Plate SuperTack"
 msgstr ""
 
-msgid "Cool Plate / PLA Plate"
-msgstr "Cool Podložka / PLA Podložka"
+msgid "Cool Plate"
+msgstr ""
 
 msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
@@ -7880,25 +7884,27 @@ msgid "Connect the printer using IP and access code"
 msgstr ""
 
 msgid ""
-"Step 1, please confirm Bambu Studio and your printer are in the same LAN."
+"Step 1. Please confirm Bambu Studio and your printer are in the same LAN."
 msgstr ""
-"Krok 1, potvrďte, že Bambu Studio a vaše tiskárna jsou ve stejné síti LAN."
 
 msgid ""
-"Step 2, if the IP and Access Code below are different from the actual values "
+"Step 2. If the IP and Access Code below are different from the actual values "
 "on your printer, please correct them."
 msgstr ""
-"Krok 2, pokud se IP a přístupový kód níže liší od skutečných hodnot na "
-"tiskárně, opravte je."
+
+msgid ""
+"Step 3. Please obtain the device SN from the printer side; it is usually "
+"found in the device information on the printer screen."
+msgstr ""
 
 msgid "Access Code"
 msgstr "Přístupový kód"
 
+msgid "Printer model"
+msgstr ""
+
 msgid "Where to find your printer's IP and Access Code?"
 msgstr "Kde najít IP a přístupový kód vaší tiskárny?"
-
-msgid "Step 3: Ping the IP address to check for packet loss and latency."
-msgstr ""
 
 msgid "Connect"
 msgstr ""
@@ -7910,9 +7916,6 @@ msgid "Failed to connect to printer."
 msgstr ""
 
 msgid "Failed to publish login request."
-msgstr ""
-
-msgid "The device does not support using IP and Access Code for connection."
 msgstr ""
 
 msgid "The printer has already been bound."
@@ -8088,8 +8091,19 @@ msgstr ""
 "Nepodařilo se vygenerovat G-kód pro neplatný vlastní G-kód.\n"
 "\n"
 
-msgid "Please check the custom G-code or use the default custom G-code."
-msgstr "Zkontrolujte prosím vlastní G-kód nebo použijte výchozí vlastní G-kód."
+msgid "Please check the custom G-code or use the default custom G-code.\n"
+msgstr ""
+
+msgid ""
+"You can find them from 'Printer settings' -> 'Machine G-code' and 'Filament "
+"settings' -> 'Advanced'."
+msgstr ""
+
+msgid "You can find it from 'Printer settings' -> 'Machine G-code'."
+msgstr ""
+
+msgid "You can find it from 'Filament settings' -> 'Advanced'."
+msgstr ""
 
 #, boost-format
 msgid "Generating G-code: layer %1%"
@@ -9063,12 +9077,13 @@ msgstr ""
 "Vzdálenost hrotu trysky k víčku. Používá se pro zamezení kolizi při tisku "
 "vedlejších objektů."
 
-msgid ""
-"Clearance radius around extruder. Used for collision avoidance in by-object "
-"printing."
+msgid "Distance to rod"
 msgstr ""
-"Poloměr vůle kolem extruderu. Používá se pro zamezení kolizi při tisku "
-"vedlejších objektů."
+
+msgid ""
+"Horizontal distance of the nozzle tip to the rod's farther edge. Used for "
+"collision avoidance in by-object printing."
+msgstr ""
 
 msgid "Nozzle height"
 msgstr ""
@@ -13216,6 +13231,38 @@ msgid ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
 msgstr ""
+
+#~ msgid "Jump to layer"
+#~ msgstr "Přeskočit do vrstvy"
+
+#~ msgid "PLA Plate"
+#~ msgstr "PLA Podložka"
+
+#~ msgid "Cool Plate / PLA Plate"
+#~ msgstr "Cool Podložka / PLA Podložka"
+
+#~ msgid ""
+#~ "Step 1, please confirm Bambu Studio and your printer are in the same LAN."
+#~ msgstr ""
+#~ "Krok 1, potvrďte, že Bambu Studio a vaše tiskárna jsou ve stejné síti LAN."
+
+#~ msgid ""
+#~ "Step 2, if the IP and Access Code below are different from the actual "
+#~ "values on your printer, please correct them."
+#~ msgstr ""
+#~ "Krok 2, pokud se IP a přístupový kód níže liší od skutečných hodnot na "
+#~ "tiskárně, opravte je."
+
+#~ msgid "Please check the custom G-code or use the default custom G-code."
+#~ msgstr ""
+#~ "Zkontrolujte prosím vlastní G-kód nebo použijte výchozí vlastní G-kód."
+
+#~ msgid ""
+#~ "Clearance radius around extruder. Used for collision avoidance in by-"
+#~ "object printing."
+#~ msgstr ""
+#~ "Poloměr vůle kolem extruderu. Používá se pro zamezení kolizi při tisku "
+#~ "vedlejších objektů."
 
 #~ msgid "Tree support branch angle"
 #~ msgstr "Úhel větve podpěr stromu"
