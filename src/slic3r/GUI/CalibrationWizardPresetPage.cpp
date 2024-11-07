@@ -1138,7 +1138,10 @@ void CalibrationPresetPage::check_filament_cali_reliability(const std::vector<Pr
                 continue;
 
             if (item->filament_id == "GFA11" || item->filament_id == "GFB02") {  // PLA Aero, ASA-Aero
-                foam_filaments.insert(item->name);
+                if (item->alias.empty())
+                    foam_filaments.insert(item->name);
+                else
+                    foam_filaments.insert(item->alias);
             }
         }
 
