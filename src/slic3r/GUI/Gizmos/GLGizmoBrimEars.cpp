@@ -44,7 +44,7 @@ bool GLGizmoBrimEars::on_init()
     m_desc["max_angle"]        = _L("Max angle");
     m_desc["detection_radius"] = _L("Detection radius");
     m_desc["remove_selected"]  = _L("Remove selected points");
-    m_desc["remove_all"]       = _L("Remove all points");
+    m_desc["remove_all"]       = _L("Remove all");
     m_desc["auto_generate"]    = _L("Auto-generate points");
     m_desc["section_view"]     = _L("Section view");
 
@@ -522,8 +522,7 @@ void GLGizmoBrimEars::on_render_input_window(float x, float y, float bottom_limi
     float                 input_text_size = m_imgui->scaled(10.0f);
     float                 button_size     = ImGui::GetFrameHeight();
 
-    float selectable_size = input_text_size + ImGui::GetFrameHeight() * 2;
-    float list_width      = selectable_size + ImGui::GetStyle().ScrollbarSize + 2 * currt_scale;
+    float list_width      = input_text_size + ImGui::GetStyle().ScrollbarSize + 2 * currt_scale;
 
     const float slider_icon_width = m_imgui->get_slider_icon_size().x;
     const float slider_width      = list_width - space_size;
@@ -606,17 +605,14 @@ void GLGizmoBrimEars::on_render_input_window(float x, float y, float bottom_limi
     ImGui::Separator();
 
     // ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 10.0f));
-    float get_cur_y = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;
-    show_tooltip_information(x, get_cur_y);
 
     float f_scale = m_parent.get_gizmos_manager().get_layout_scale();
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 4.0f * f_scale));
-    ImGui::SameLine();
     if (m_imgui->button(m_desc["auto_generate"])) { auto_generate(); }
-    ImGui::SameLine();
+
     if (m_imgui->button(m_desc["remove_selected"])) { delete_selected_points(); }
     float font_size = ImGui::GetFontSize();
-    ImGui::Dummy(ImVec2(font_size * 1.8, font_size * 1.3));
+    //ImGui::Dummy(ImVec2(font_size * 1, font_size * 1.3));
     ImGui::SameLine();
     if (m_imgui->button(m_desc["remove_all"])) {
         if (m_editing_cache.size() > 0) {
@@ -626,29 +622,37 @@ void GLGizmoBrimEars::on_render_input_window(float x, float y, float bottom_limi
     }
     ImGui::PopStyleVar(1);
 
+    float get_cur_y = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;
+    show_tooltip_information(x, get_cur_y);
+
     if (glb_cfg.opt_enum<BrimType>("brim_type") != btBrimEars) {
+        ImGui::SameLine();
         auto link_text = [&]() {
-            ImColor HyperColor = ImColor(48, 221, 114, 255).Value;
+            ImColor HyperColor = m_link_text_hover ? ImColor(0, 240, 91).Value : ImColor(0, 174, 66).Value;
             ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::to_ImVec4(ColorRGB::WARNING()));
             float parent_width = ImGui::GetContentRegionAvail().x;
             m_imgui->text_wrapped(_L("Warning: The brim type is not set to \"painted\",the brim ears will not take effect !"), parent_width);
             ImGui::PopStyleColor();
             ImGui::PushStyleColor(ImGuiCol_Text, HyperColor.Value);
-            m_imgui->text(_L("(Set the brim type to \"painted\")"));
+            ImGui::Dummy(ImVec2(font_size * 1.8, font_size * 1.3));
+            ImGui::SameLine();
+            m_imgui->bold_text(_u8L("Set the brim type to \"painted\""));
             ImGui::PopStyleColor();
+            // underline
+            ImVec2 lineEnd = ImGui::GetItemRectMax();
+            lineEnd.y -= 2.0f;
+            ImVec2 lineStart = lineEnd;
+            lineStart.x = ImGui::GetItemRectMin().x;
+            ImGui::GetWindowDrawList()->AddLine(lineStart, lineEnd, HyperColor);
             if (ImGui::IsMouseHoveringRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), true)) {
-                // underline
-                ImVec2 lineEnd = ImGui::GetItemRectMax();
-                lineEnd.y -= 2.0f;
-                ImVec2 lineStart = lineEnd;
-                lineStart.x = ImGui::GetItemRectMin().x;
-                ImGui::GetWindowDrawList()->AddLine(lineStart, lineEnd, HyperColor);
-
+                m_link_text_hover = true;
                 if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
                     DynamicPrintConfig new_conf = obj_cfg;
                     new_conf.set_key_value("brim_type", new ConfigOptionEnum<BrimType>(btBrimEars));
                     mo->config.assign_config(new_conf);
                 }
+            }else {
+                m_link_text_hover = false;
             }
         };
 

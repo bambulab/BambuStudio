@@ -109,6 +109,8 @@ private:
     GLVolume* m_last_hit_volume;
     CacheEntry* render_hover_point = nullptr;
 
+    bool m_link_text_hover = false;
+
 
     // This map holds all translated description texts, so they can be easily referenced during layout calculations
     // etc. When language changes, GUI is recreated and this class constructed again, so the change takes effect.
