@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-06 20:50+0800\n"
+"POT-Creation-Date: 2024-11-07 20:10+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -842,7 +842,7 @@ msgstr ""
 msgid "Remove selected points"
 msgstr ""
 
-msgid "Remove all points"
+msgid "Remove all"
 msgstr ""
 
 msgid "Auto-generate points"
@@ -865,7 +865,7 @@ msgid ""
 "effect !"
 msgstr ""
 
-msgid "(Set the brim type to \"painted\")"
+msgid "Set the brim type to \"painted\""
 msgstr ""
 
 msgid " invalid brim ears"
@@ -9728,7 +9728,7 @@ msgid ""
 "value for this parameter is 15"
 msgstr ""
 
-msgid "Conditional scarf joint"
+msgid "Smart scarf seam application"
 msgstr ""
 
 msgid ""
@@ -9736,7 +9736,7 @@ msgid ""
 "conceal the seams at sharp corners effectively."
 msgstr ""
 
-msgid "Conditional angle threshold"
+msgid "Scarf application angle threshold"
 msgstr ""
 
 msgid ""
@@ -9775,7 +9775,7 @@ msgid ""
 "this parameter is 80%"
 msgstr ""
 
-msgid "Role base wipe speed"
+msgid "Role-based wipe speed"
 msgstr ""
 
 msgid ""
@@ -10894,10 +10894,40 @@ msgid "Method"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
+msgid ""
+"Tip: Using a %.1fmm nozzle for auto dynamic flow calibration may have a high "
+"probability of failure.\n"
+"If it fails, it is recommended to use manual calibration."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid ""
+"Tip: Using a %.1fmm nozzle for auto dynamic flow calibration may not get "
+"accurate calibration results.\n"
+"It is recommended to use manual calibration."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
 msgid "%s is not compatible with %s"
 msgstr ""
 
 msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid ""
+"Tip: Calibrating foam filaments(%s) in X series printers may not get "
+"accurate results\n"
+"because their dynamic response is much different from that of ordinary "
+"filaments, and there is a high risk of oozing when printing calibration "
+"lines."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid ""
+"Tip: When using the A1/A1 mini machine, we do not recommend calibrating foam "
+"filaments(%s),\n"
+"as the results may be unstable and affect print quality."
 msgstr ""
 
 msgid "Connecting to printer"

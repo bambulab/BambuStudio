@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-06 20:50+0800\n"
+"POT-Creation-Date: 2024-11-07 20:10+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -863,7 +863,7 @@ msgstr ""
 msgid "Remove selected points"
 msgstr ""
 
-msgid "Remove all points"
+msgid "Remove all"
 msgstr ""
 
 msgid "Auto-generate points"
@@ -886,7 +886,7 @@ msgid ""
 "effect !"
 msgstr ""
 
-msgid "(Set the brim type to \"painted\")"
+msgid "Set the brim type to \"painted\""
 msgstr ""
 
 msgid " invalid brim ears"
@@ -10706,8 +10706,8 @@ msgstr ""
 "Wartość ta wyrażona jest jako procent aktualnej średnicy ekstrudera. "
 "Domyślna wartość tego parametru to 15"
 
-msgid "Conditional scarf joint"
-msgstr "Warunkowe szwy Scarf"
+msgid "Smart scarf seam application"
+msgstr ""
 
 msgid ""
 "Apply scarf joints only to smooth perimeters where traditional seams do not "
@@ -10716,8 +10716,8 @@ msgstr ""
 "Szwy typu Scarf należy stosować wyłącznie na gładkich krawędziach, gdzie "
 "tradycyjne szwy nie są w stanie skutecznie ukryć szwów w ostrych narożnikach."
 
-msgid "Conditional angle threshold"
-msgstr "Warunkowy próg kąta"
+msgid "Scarf application angle threshold"
+msgstr ""
 
 msgid ""
 "This option sets the threshold angle for applying a conditional scarf joint "
@@ -10763,7 +10763,7 @@ msgstr ""
 "jest na podstawie ustawienia powyżej prędkości jałowej. Domyślna wartość "
 "tego parametru to 80%"
 
-msgid "Role base wipe speed"
+msgid "Role-based wipe speed"
 msgstr ""
 
 msgid ""
@@ -12134,12 +12134,42 @@ msgid "Method"
 msgstr "Metoda"
 
 #, c-format, boost-format
+msgid ""
+"Tip: Using a %.1fmm nozzle for auto dynamic flow calibration may have a high "
+"probability of failure.\n"
+"If it fails, it is recommended to use manual calibration."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Tip: Using a %.1fmm nozzle for auto dynamic flow calibration may not get "
+"accurate calibration results.\n"
+"It is recommended to use manual calibration."
+msgstr ""
+
+#, c-format, boost-format
 msgid "%s is not compatible with %s"
 msgstr "%s nie jest kompatybilne z %s"
 
 msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
 msgstr ""
 "TPU nie jest obsługiwane przez automatyczną kalibrację Dynamiki Przepływu."
+
+#, c-format, boost-format
+msgid ""
+"Tip: Calibrating foam filaments(%s) in X series printers may not get "
+"accurate results\n"
+"because their dynamic response is much different from that of ordinary "
+"filaments, and there is a high risk of oozing when printing calibration "
+"lines."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Tip: When using the A1/A1 mini machine, we do not recommend calibrating foam "
+"filaments(%s),\n"
+"as the results may be unstable and affect print quality."
+msgstr ""
 
 msgid "Connecting to printer"
 msgstr "Łączenie z drukarką"
@@ -13985,6 +14015,12 @@ msgstr ""
 "Czy wiesz, że podczas drukowania materiałów podatnych na wypaczanie, takich "
 "jak ABS, odpowiednie zwiększenie temperatury stołu grzejnego może zmniejszyć "
 "prawdopodobieństwo wypaczania."
+
+#~ msgid "Conditional scarf joint"
+#~ msgstr "Warunkowe szwy Scarf"
+
+#~ msgid "Conditional angle threshold"
+#~ msgstr "Warunkowy próg kąta"
 
 #~ msgid "Jump to layer"
 #~ msgstr "Przejdź do warstwy"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-06 20:50+0800\n"
+"POT-Creation-Date: 2024-11-07 20:10+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -864,8 +864,8 @@ msgstr "Радіус виявлення"
 msgid "Remove selected points"
 msgstr "Видалити вибрані точки"
 
-msgid "Remove all points"
-msgstr "Видалити всі точки"
+msgid "Remove all"
+msgstr ""
 
 msgid "Auto-generate points"
 msgstr "Автоматично згенерувати точки"
@@ -889,8 +889,8 @@ msgstr ""
 "Попередження: Тип краєчка не встановлено на “пофарбований”, краєчки не "
 "матимуть ефекту!"
 
-msgid "(Set the brim type to \"painted\")"
-msgstr "(Встановіть тип краєчка на “пофарбований”)"
+msgid "Set the brim type to \"painted\""
+msgstr ""
 
 msgid " invalid brim ears"
 msgstr " Неправильні краєчки"
@@ -10755,8 +10755,8 @@ msgstr ""
 "Ця кількість виражена у відсотках від поточного діаметра екструдера. За "
 "замовчуванням, цей параметр має значення 15"
 
-msgid "Conditional scarf joint"
-msgstr "Умовне з’єднання з шарфом"
+msgid "Smart scarf seam application"
+msgstr ""
 
 msgid ""
 "Apply scarf joints only to smooth perimeters where traditional seams do not "
@@ -10765,8 +10765,8 @@ msgstr ""
 "Застосовувати з’єднання з шарфом лише до гладких периметрів, де традиційні "
 "шви не ефективно приховують шви в гострих кутах."
 
-msgid "Conditional angle threshold"
-msgstr "Умовний поріг кута"
+msgid "Scarf application angle threshold"
+msgstr ""
 
 msgid ""
 "This option sets the threshold angle for applying a conditional scarf joint "
@@ -10813,8 +10813,8 @@ msgstr ""
 "то воно буде розраховано на основі наведеної вище установки швидкості руху. "
 "За замовчуванням для цього параметра - 80%"
 
-msgid "Role base wipe speed"
-msgstr "Швидкість затирання на основі ролі"
+msgid "Role-based wipe speed"
+msgstr ""
 
 msgid ""
 "The wipe speed is determined by speed of current extrusion role. e.g if a "
@@ -12213,11 +12213,41 @@ msgid "Method"
 msgstr "Метод"
 
 #, c-format, boost-format
+msgid ""
+"Tip: Using a %.1fmm nozzle for auto dynamic flow calibration may have a high "
+"probability of failure.\n"
+"If it fails, it is recommended to use manual calibration."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Tip: Using a %.1fmm nozzle for auto dynamic flow calibration may not get "
+"accurate calibration results.\n"
+"It is recommended to use manual calibration."
+msgstr ""
+
+#, c-format, boost-format
 msgid "%s is not compatible with %s"
 msgstr "%s несумісний з %s"
 
 msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
 msgstr "TPU не підтримується для автокалібрування Flow Dynamics."
+
+#, c-format, boost-format
+msgid ""
+"Tip: Calibrating foam filaments(%s) in X series printers may not get "
+"accurate results\n"
+"because their dynamic response is much different from that of ordinary "
+"filaments, and there is a high risk of oozing when printing calibration "
+"lines."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Tip: When using the A1/A1 mini machine, we do not recommend calibrating foam "
+"filaments(%s),\n"
+"as the results may be unstable and affect print quality."
+msgstr ""
 
 msgid "Connecting to printer"
 msgstr "Підключення до принтера"
@@ -14111,6 +14141,21 @@ msgstr ""
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як "
 "ABS, відповідне підвищення температури гарячого ліжка може зменшити "
 "ймовірність деформації."
+
+#~ msgid "Remove all points"
+#~ msgstr "Видалити всі точки"
+
+#~ msgid "(Set the brim type to \"painted\")"
+#~ msgstr "(Встановіть тип краєчка на “пофарбований”)"
+
+#~ msgid "Conditional scarf joint"
+#~ msgstr "Умовне з’єднання з шарфом"
+
+#~ msgid "Conditional angle threshold"
+#~ msgstr "Умовний поріг кута"
+
+#~ msgid "Role base wipe speed"
+#~ msgstr "Швидкість затирання на основі ролі"
 
 #~ msgid "Jump to layer"
 #~ msgstr "Перейти до шару"
