@@ -1697,7 +1697,7 @@ float its_volume(const indexed_triangle_set &its)
         volume += (area * height) / 3.0f;
     }
 
-    return volume;
+    return std::abs(volume);
 }
 
 float its_average_edge_length(const indexed_triangle_set &its)
