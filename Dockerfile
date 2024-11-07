@@ -1,5 +1,4 @@
-FROM docker.io/ubuntu:22.04
-LABEL maintainer "DeftDawg <DeftDawg@gmail.com>"
+FROM docker.io/ubuntu:24.10
 
 # Disable interactive package configuration
 RUN apt-get update && \
@@ -14,10 +13,13 @@ RUN apt-get update && apt-get install  -y \
     build-essential \
     cmake \
     curl \
+    bc \
+    xvfb \
     eglexternalplatform-dev \
     extra-cmake-modules \
     file \
     git \
+    ffmpeg \
     gstreamer1.0-plugins-bad \
     gstreamer1.0-libav \
     libcairo2-dev \
@@ -39,7 +41,6 @@ RUN apt-get update && apt-get install  -y \
     libssl-dev \
     libudev-dev \
     libwayland-dev \
-    libwebkit2gtk-4.0-dev \
     libxkbcommon-dev \
     locales \
     locales-all \
@@ -47,7 +48,13 @@ RUN apt-get update && apt-get install  -y \
     pkgconf \
     sudo \
     wayland-protocols \
+    bash \
     wget 
+
+#Temporary fix for 24.10 dependency
+RUN echo 'deb http://gb.archive.ubuntu.com/ubuntu jammy main' >> /etc/apt/sources.list
+
+RUN apt-get update && apt-get install -y libwebkit2gtk-4.0-dev
 
 # Change your locale here if you want.  See the output
 # of `locale -a` to pick the correct string formatting.
@@ -81,13 +88,21 @@ RUN ./BuildLinux.sh -i
 # your home directory into the container, it's handy
 # to keep permissions the same.  Just in case, defaults
 # are root.
+# Use bash as the shell
 SHELL ["/bin/bash", "-l", "-c"]
+
+# Set ARG values
 ARG USER=root
 ARG UID=0
 ARG GID=0
-RUN [[ "$UID" != "0" ]] \
-  && groupadd -f -g $GID $USER \
-  && useradd -u $UID -g $GID $USER
+
+# Run the commands with proper bash syntax
+RUN if [ "$UID" != "0" ]; then \
+      groupadd -f -g $GID $USER && \
+      useradd -u $UID -g $GID $USER; \
+    fi
+
+#RUN chmod +x entrypoint.sh
 
 # Using an entrypoint instead of CMD because the binary
 # accepts several command line arguments.
