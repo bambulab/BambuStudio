@@ -9,7 +9,7 @@ set -x
 # the simplicity of a single Docker image and a one-time compilation
 # seems better.
 docker build -t bambustudio \
-  --build-arg USER=$USER \
+  --build-arg USER=${USER:-root} \
   --build-arg UID=$(id -u) \
   --build-arg GID=$(id -g) \
   $PROJECT_ROOT
