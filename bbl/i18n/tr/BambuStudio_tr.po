@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-06 20:50+0800\n"
+"POT-Creation-Date: 2024-11-07 20:10+0800\n"
 "PO-Revision-Date: 2024-09-29 02:13+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -862,7 +862,7 @@ msgstr ""
 msgid "Remove selected points"
 msgstr ""
 
-msgid "Remove all points"
+msgid "Remove all"
 msgstr ""
 
 msgid "Auto-generate points"
@@ -885,7 +885,7 @@ msgid ""
 "effect !"
 msgstr ""
 
-msgid "(Set the brim type to \"painted\")"
+msgid "Set the brim type to \"painted\""
 msgstr ""
 
 msgid " invalid brim ears"
@@ -10638,8 +10638,8 @@ msgstr ""
 "Bu miktar, mevcut ekstrüder çapının bir yüzdesi olarak belirlenir. Bu "
 "parametre için varsayılan değer 15'tir"
 
-msgid "Conditional scarf joint"
-msgstr "Koşullu atkı birleşimi"
+msgid "Smart scarf seam application"
+msgstr ""
 
 msgid ""
 "Apply scarf joints only to smooth perimeters where traditional seams do not "
@@ -10648,8 +10648,8 @@ msgstr ""
 "Atkı bağlantılarını yalnızca geleneksel dikişlerin keskin köşelerdeki "
 "dikişleri etkili bir şekilde gizleyemediği düzgün kenarlara uygulayın."
 
-msgid "Conditional angle threshold"
-msgstr "Koşullu açı eşiği"
+msgid "Scarf application angle threshold"
+msgstr ""
 
 msgid ""
 "This option sets the threshold angle for applying a conditional scarf joint "
@@ -10694,7 +10694,7 @@ msgstr ""
 "Değer yüzde olarak ifade edilirse (örn. %80), yukarıdaki ilerleme hızı "
 "ayarına göre hesaplanır. Bu parametrenin varsayılan değeri %80'dir"
 
-msgid "Role base wipe speed"
+msgid "Role-based wipe speed"
 msgstr ""
 
 msgid ""
@@ -12066,11 +12066,41 @@ msgid "Method"
 msgstr "Yöntem"
 
 #, c-format, boost-format
+msgid ""
+"Tip: Using a %.1fmm nozzle for auto dynamic flow calibration may have a high "
+"probability of failure.\n"
+"If it fails, it is recommended to use manual calibration."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Tip: Using a %.1fmm nozzle for auto dynamic flow calibration may not get "
+"accurate calibration results.\n"
+"It is recommended to use manual calibration."
+msgstr ""
+
+#, c-format, boost-format
 msgid "%s is not compatible with %s"
 msgstr "%s, %s ile uyumlu değil"
 
 msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
 msgstr "Flow Dynamics Otomatik Kalibrasyonunda TPU desteklenmiyor."
+
+#, c-format, boost-format
+msgid ""
+"Tip: Calibrating foam filaments(%s) in X series printers may not get "
+"accurate results\n"
+"because their dynamic response is much different from that of ordinary "
+"filaments, and there is a high risk of oozing when printing calibration "
+"lines."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Tip: When using the A1/A1 mini machine, we do not recommend calibrating foam "
+"filaments(%s),\n"
+"as the results may be unstable and affect print quality."
+msgstr ""
 
 msgid "Connecting to printer"
 msgstr "Yazıcıya bağlanılıyor"
@@ -13899,6 +13929,12 @@ msgstr ""
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı "
 "sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını "
 "azaltabileceğini biliyor muydunuz."
+
+#~ msgid "Conditional scarf joint"
+#~ msgstr "Koşullu atkı birleşimi"
+
+#~ msgid "Conditional angle threshold"
+#~ msgstr "Koşullu açı eşiği"
 
 #~ msgid "Jump to layer"
 #~ msgstr "Katmana atla"

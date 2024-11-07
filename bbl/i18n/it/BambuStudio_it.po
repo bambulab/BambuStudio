@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-06 20:50+0800\n"
+"POT-Creation-Date: 2024-11-07 20:10+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -860,7 +860,7 @@ msgstr ""
 msgid "Remove selected points"
 msgstr ""
 
-msgid "Remove all points"
+msgid "Remove all"
 msgstr ""
 
 msgid "Auto-generate points"
@@ -883,7 +883,7 @@ msgid ""
 "effect !"
 msgstr ""
 
-msgid "(Set the brim type to \"painted\")"
+msgid "Set the brim type to \"painted\""
 msgstr ""
 
 msgid " invalid brim ears"
@@ -10718,8 +10718,8 @@ msgstr ""
 "Questa quantità è espressa in percentuale del diametro attuale "
 "dell'estrusore. Il valore predefinito per questo parametro è 15"
 
-msgid "Conditional scarf joint"
-msgstr "Conditional scarf joint"
+msgid "Smart scarf seam application"
+msgstr ""
 
 msgid ""
 "Apply scarf joints only to smooth perimeters where traditional seams do not "
@@ -10728,8 +10728,8 @@ msgstr ""
 "Apply scarf joints only to smooth perimeters where traditional seams do not "
 "conceal the seams at sharp corners effectively."
 
-msgid "Conditional angle threshold"
-msgstr "Conditional angle threshold"
+msgid "Scarf application angle threshold"
+msgstr ""
 
 msgid ""
 "This option sets the threshold angle for applying a conditional scarf joint "
@@ -10776,7 +10776,7 @@ msgstr ""
 "(ad es. 80%), sarà calcolato in base all'impostazione di spostamento di cui "
 "sopra. Il valore predefinito per questo parametro è 80%."
 
-msgid "Role base wipe speed"
+msgid "Role-based wipe speed"
 msgstr ""
 
 msgid ""
@@ -12158,11 +12158,41 @@ msgid "Method"
 msgstr "Metodo"
 
 #, c-format, boost-format
+msgid ""
+"Tip: Using a %.1fmm nozzle for auto dynamic flow calibration may have a high "
+"probability of failure.\n"
+"If it fails, it is recommended to use manual calibration."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Tip: Using a %.1fmm nozzle for auto dynamic flow calibration may not get "
+"accurate calibration results.\n"
+"It is recommended to use manual calibration."
+msgstr ""
+
+#, c-format, boost-format
 msgid "%s is not compatible with %s"
 msgstr "%s non è compatibile con %s"
 
 msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
 msgstr "La calibrazione automatica del Flusso Dinamico non supporta il TPU."
+
+#, c-format, boost-format
+msgid ""
+"Tip: Calibrating foam filaments(%s) in X series printers may not get "
+"accurate results\n"
+"because their dynamic response is much different from that of ordinary "
+"filaments, and there is a high risk of oozing when printing calibration "
+"lines."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Tip: When using the A1/A1 mini machine, we do not recommend calibrating foam "
+"filaments(%s),\n"
+"as the results may be unstable and affect print quality."
+msgstr ""
 
 msgid "Connecting to printer"
 msgstr "Connessione alla stampante"
@@ -13986,6 +14016,12 @@ msgstr ""
 "Sapevi che quando si stampano materiali soggetti a deformazioni, come l'ABS, "
 "aumentare adeguatamente la temperatura del piano può ridurre la probabilità "
 "di deformazione."
+
+#~ msgid "Conditional scarf joint"
+#~ msgstr "Conditional scarf joint"
+
+#~ msgid "Conditional angle threshold"
+#~ msgstr "Conditional angle threshold"
 
 #~ msgid "Jump to layer"
 #~ msgstr "Vai al layer"
