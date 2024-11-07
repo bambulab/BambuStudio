@@ -81,6 +81,9 @@ public:
     void create_panel(wxWindow* parent);
 
     void set_warning(wxString text);
+
+    void set_color(wxColour color);
+
 protected:
     wxBoxSizer*   m_top_sizer;
     Label* m_warning_text;
@@ -145,7 +148,7 @@ enum CaliPresetPageStatus
     CaliPresetStatusNeedForceUpgrading,
     CaliPresetStatusNeedConsistencyUpgrading,
     CaliPresetStatusUnsupportedPrinter,
-    CaliPresetStatusInConnecting, 
+    CaliPresetStatusInConnecting,
     CaliPresetStatusFilamentIncompatible,
 };
 
@@ -236,6 +239,7 @@ protected:
 
     void on_recommend_input_value();
 
+    void check_nozzle_diameter_for_auto_cali();
     void check_filament_compatible();
     bool is_filaments_compatiable(const std::vector<Preset*>& prests);
     bool is_filament_in_blacklist(Preset* preset, std::string& error_tips);
@@ -243,6 +247,8 @@ protected:
         int& bed_temp,
         std::string& incompatiable_filament_name,
         std::string& error_tips);
+
+    void check_filament_cali_reliability(const std::vector<Preset *> &prests);
 
     float get_nozzle_value();
 
@@ -253,7 +259,7 @@ protected:
     void Enable_Send_Button(bool enable);
     bool is_blocking_printing();
     bool need_check_sdcard(MachineObject* obj);
-    
+
     CaliPresetPageStatus  get_status() { return m_page_status; }
 
     CaliPageStepGuide* m_step_panel{ nullptr };
@@ -265,7 +271,8 @@ protected:
     wxPanel*                  m_multi_ams_panel { nullptr };
     wxPanel*                  m_filament_list_panel { nullptr };
     wxPanel*                  m_ext_spool_panel { nullptr };
-    CaliPresetWarningPanel*   m_warning_panel { nullptr };
+    CaliPresetWarningPanel*   m_warning_panel{nullptr};
+    CaliPresetWarningPanel*   m_error_panel { nullptr };
     CaliPresetCustomRangePanel* m_custom_range_panel { nullptr };
     CaliPresetTipsPanel*      m_tips_panel { nullptr };
     CaliPageSendingPanel*     m_sending_panel { nullptr };
@@ -276,15 +283,16 @@ protected:
     ComboBox*       m_comboBox_nozzle_dia;
     ComboBox*       m_comboBox_bed_type;
     ComboBox*       m_comboBox_process;
-    
+    Label*          m_nozzle_diameter_tips{nullptr};
+
     wxRadioButton*      m_ams_radiobox;
     wxRadioButton*      m_ext_spool_radiobox;
-    
+
     ScalableButton*      m_ams_sync_button;
     FilamentComboBoxList m_filament_comboBox_list;
     FilamentComboBox*    m_virtual_tray_comboBox;
 
-    
+
     std::vector<AMSItem*> m_ams_item_list;
 
     // for update filament combobox, key : tray_id
