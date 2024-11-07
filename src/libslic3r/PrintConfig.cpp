@@ -3001,13 +3001,13 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionPercent(15));
 
     def          = this->add("seam_slope_conditional", coBool);
-    def->label   = L("Conditional scarf joint");
+    def->label   = L("Smart scarf seam application");
     def->tooltip = L("Apply scarf joints only to smooth perimeters where traditional seams do not conceal the seams at sharp corners effectively.");
     def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
     def           = this->add("scarf_angle_threshold", coInt);
-    def->label    = L("Conditional angle threshold");
+    def->label    = L("Scarf application angle threshold");
     def->tooltip  = L("This option sets the threshold angle for applying a conditional scarf joint seam.\nIf the seam angle within the perimeter loop " "exceeds this value (indicating the absence of sharp corners), a scarf joint seam will be used. The default value is 155°.");
     def->mode     = comAdvanced;
     def->sidetext = L("°");
@@ -3043,7 +3043,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionPercent(80));
 
     def          = this->add("role_base_wipe_speed", coBool);
-    def->label   = L("Role base wipe speed");
+    def->label   = L("Role-based wipe speed");
     def->tooltip = L("The wipe speed is determined by speed of current extrusion role. " "e.g if a wip action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action.");
     def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
