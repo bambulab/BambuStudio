@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-07 20:10+0800\n"
+"POT-Creation-Date: 2024-11-08 21:03+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -2652,8 +2652,8 @@ msgstr "Будь ласка, введіть допустиме значення 
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr ""
-"Будь ласка, введіть допустиме значення (K у межах %.1f~%.1f, N у межах %.1f~"
-"%.1f)"
+"Будь ласка, введіть допустиме значення (K у межах %.1f~%.1f, N у межах "
+"%.1f~%.1f)"
 
 msgid "Other Color"
 msgstr "Інший колір"
@@ -5092,6 +5092,9 @@ msgstr "Кількість трикутних граней"
 msgid "0"
 msgstr "0"
 
+msgid "Don't show again"
+msgstr "Більше не показувати"
+
 msgid "Calculating, please wait..."
 msgstr "Розрахунок, будь ласка, зачекайте…"
 
@@ -5100,9 +5103,6 @@ msgstr "Статус"
 
 msgid "Update"
 msgstr "Оновлення"
-
-msgid "Don't show again"
-msgstr "Більше не показувати"
 
 #, c-format, boost-format
 msgid "%s error"
@@ -6187,6 +6187,13 @@ msgstr ""
 "З цією опцією ввімкненою, ви можете відправляти завдання на кілька пристроїв "
 "одночасно та керувати декількома пристроями."
 
+msgid "Show the step mesh parameter setting dialog."
+msgstr ""
+
+msgid ""
+"If enabled,a parameter settings dialog will appear during STEP file import."
+msgstr ""
+
 msgid "Support beta version update."
 msgstr "Оновлення бета-версії підтримки."
 
@@ -7212,8 +7219,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "При записі таймлапсу без інструментальної головки рекомендується додати "
 "“Timelapse Wipe Tower” \n"
@@ -12726,8 +12733,8 @@ msgstr ""
 "Чи бажаєте ви їх перезаписати?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "Ми перейменовуємо налаштування на “Виробник Тип Серійний номер @принтер, "
