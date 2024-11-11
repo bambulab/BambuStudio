@@ -9534,7 +9534,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
             warning += std::to_string(filament + 1);
             warning+=" ";
         }
-        text  = (boost::format(_u8L("filaments %s cannot be printed directly on the surface of this plate")) % warning ).str();
+        text  = (boost::format(_u8L("filaments %s cannot be printed directly on the surface of this plate.")) % warning ).str();
         error = ErrorType::SLICING_ERROR;
         break;
     }
