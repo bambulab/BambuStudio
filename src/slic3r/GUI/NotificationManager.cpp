@@ -2687,11 +2687,15 @@ void NotificationManager::bbl_close_gcode_overlap_notification()
 void NotificationManager::bbl_show_bed_filament_incompatible_notification(const std::string& text)
 {
 	auto callback = [](wxEvtHandler*) {
-		const wxString bed_filament_compatibility_wiki = "https://wiki.bambulab.com/en/general/filament-guide-material-table";
+		std::string language = wxGetApp().app_config->get("language");
+		wxString    region = L"en";
+		if (language.find("zh") == 0)
+			region = L"zh";
+		const wxString bed_filament_compatibility_wiki = wxString::Format(L"https://wiki.bambulab.com/%s/PLA/PETG-with-bambu-bool-plate-supertack", region);
 		wxGetApp().open_browser_with_warning_dialog(bed_filament_compatibility_wiki);
 		return false;
 	};
-	push_notification_data({ NotificationType::BBLBedFilamentIncompatible,NotificationLevel::ErrorNotificationLevel,0,_u8L("Error:") + "\n" + text,"Click for more.",callback }, 0);
+	push_notification_data({ NotificationType::BBLBedFilamentIncompatible,NotificationLevel::ErrorNotificationLevel,0,_u8L("Error:") + "\n" + text,_u8L("Click Wiki for help."),callback }, 0);
 }
 
 void NotificationManager::bbl_close_bed_filament_incompatible_notification()
