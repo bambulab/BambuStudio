@@ -4069,6 +4069,14 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 CallAfter([this] {
                         get_login_info();
                     });
+                // TODO: Fix home page not emit get_recent_projects on macOS
+                #ifdef __WXOSX__
+                if (mainframe) {
+                    if (mainframe->m_webview) {
+                        mainframe->m_webview->SendRecentList(INT_MAX);
+                    }
+                }
+                #endif
             }
             else if (command_str.compare("homepage_login_or_register") == 0) {
 
