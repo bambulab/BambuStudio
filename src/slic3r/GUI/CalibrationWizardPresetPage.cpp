@@ -1159,7 +1159,7 @@ void CalibrationPresetPage::check_filament_cali_reliability(const std::vector<Pr
                                           "because their dynamic response is much different from that of ordinary filaments, and there is a high risk of oozing when printing calibration lines.")) %names).str();
             }
             else if (curr_obj->get_printer_arch() == PrinterArch::ARCH_I3) {
-                tips = (boost::format(_u8L("Tip: When using the A1/A1 mini machine, we do not recommend calibrating foam filaments(%s),\n"
+                tips = (boost::format(_u8L("Tip: When using the A1/A1 mini printer, we do not recommend calibrating foam filaments(%s),\n"
                                            "as the results may be unstable and affect print quality."))%names).str();
             }
             m_warning_panel->set_warning(tips);

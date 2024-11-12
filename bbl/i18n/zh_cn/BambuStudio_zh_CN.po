@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-11 19:42+0800\n"
+"POT-Creation-Date: 2024-11-12 11:34+0800\n"
 "PO-Revision-Date: 2024-03-21 10:39+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -6553,11 +6553,10 @@ msgstr ""
 "切片文件中的喷嘴直径与记忆的喷嘴不一致。如果您最近更换了喷嘴，请前往设备 > 打"
 "印机零件进行更改设置。"
 
-#, c-format, boost-format
 msgid ""
-"Printing high temperature material(%s material) with %s may cause nozzle "
+"Printing high temperature material(%1 material) with %2 may cause nozzle "
 "damage"
-msgstr "用%s打印高温材料（%s材料）可能会导致喷嘴损坏"
+msgstr "用%2打印高温材料（%1材料）可能会导致喷嘴损坏"
 
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr "请修复上述错误，否则打印无法继续。"
@@ -11424,7 +11423,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Tip: When using the A1/A1 mini machine, we do not recommend calibrating foam "
+"Tip: When using the A1/A1 mini printer, we do not recommend calibrating foam "
 "filaments(%s),\n"
 "as the results may be unstable and affect print quality."
 msgstr ""
@@ -13150,6 +13149,21 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Printing high temperature material(%s material) with %s may cause nozzle "
+#~ "damage"
+#~ msgstr "用%s打印高温材料（%s材料）可能会导致喷嘴损坏"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Tip: When using the A1/A1 mini machine, we do not recommend calibrating "
+#~ "foam filaments(%s),\n"
+#~ "as the results may be unstable and affect print quality."
+#~ msgstr ""
+#~ "提示：在使用A1/A1 mini机器时，不建议对发泡类材料（%s）进行校准，\n"
+#~ "以免因效果不佳（校准结果不稳定）而影响打印质量。"
 
 #, c-format, boost-format
 #~ msgid "filaments %s cannot be printed directly on the surface of this plate"
