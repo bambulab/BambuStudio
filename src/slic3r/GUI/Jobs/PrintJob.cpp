@@ -250,6 +250,9 @@ void PrintJob::process()
     params.task_use_ams         = this->task_use_ams;
     params.task_bed_type        = this->task_bed_type;
     params.print_type           = this->m_print_type;
+    params.auto_bed_leveling    = this->auto_bed_leveling;
+    params.auto_flow_cali       = this->auto_flow_cali;
+    params.auto_offset_cali     = this->auto_offset_cali;
 
     if (m_print_type == "from_sdcard_view") {
         params.dst_file = m_dst_path;

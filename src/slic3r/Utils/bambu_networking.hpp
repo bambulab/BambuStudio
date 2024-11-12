@@ -229,6 +229,9 @@ struct PrintParams {
     bool            task_use_ams;
     std::string     task_bed_type;
     std::string     extra_options;
+    int             auto_bed_leveling{0};
+    int             auto_flow_cali{0};
+    int             auto_offset_cali{0};
 };
 
 struct TaskQueryParams
