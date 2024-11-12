@@ -5663,6 +5663,10 @@ void MachineObject::parse_new_info(json print)
                     } else if (type.substr(2, 2) == std::string("01")) {
                         nozzle_obj.nozzle_type = NozzleType::ntHardenedSteel;
                     }
+                } else {
+                    nozzle_obj.tool_type   = NozzleToolType::NONE_TOOLTYPE;
+                    nozzle_obj.nozzle_flow = NozzleFlowType::NONE_FLOWTYPE;
+                    nozzle_obj.nozzle_type = NozzleType::ntUndefine;
                 }
 
                 nozzle_obj.diameter     = njon["diameter"].get<float>();
