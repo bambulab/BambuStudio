@@ -24,6 +24,7 @@
 #include <wx/wrapsizer.h>
 #include <wx/srchctrl.h>
 
+#include "boost/bimap/bimap.hpp"
 #include "AmsMappingPopup.hpp"
 #include "ReleaseNote.hpp"
 #include "GUI_Utils.hpp"
@@ -43,254 +44,10 @@
 
 namespace Slic3r { namespace GUI {
 
-enum PrinterState {
-    OFFLINE,
-    IDLE,
-    BUSY,
-    LOCK,
-    IN_LAN
-};
-
-enum PrinterBindState {
-    NONE,
-    ALLOW_BIND,
-    ALLOW_UNBIND
-};
-
 enum PrintFromType {
     FROM_NORMAL,
     FROM_SDCARD_VIEW,
 };
-
-static int get_brightness_value(wxImage image) {
-
-    wxImage grayImage = image.ConvertToGreyscale();
-
-    int width = grayImage.GetWidth();
-    int height = grayImage.GetHeight();
-
-    int totalLuminance = 0;
-    unsigned char alpha;
-    int num_none_transparent = 0;
-    for (int y = 0; y < height; y += 2) {
-
-        for (int x = 0; x < width; x += 2) {
-
-            alpha = image.GetAlpha(x, y);
-            if (alpha != 0) {
-                wxColour pixelColor = grayImage.GetRed(x, y);
-                totalLuminance += pixelColor.Red();
-                num_none_transparent = num_none_transparent + 1;
-            }
-        }
-    }
-    if (totalLuminance <= 0 || num_none_transparent <= 0) {
-        return 0;
-    }
-    return totalLuminance / num_none_transparent;
-}
-
-class Material
-{
-public:
-    int             id;
-    MaterialItem    *item;
-};
-
-WX_DECLARE_HASH_MAP(int, Material *, wxIntegerHash, wxIntegerEqual, MaterialHash);
-
-// move to seperate file
-class MachineListModel : public wxDataViewVirtualListModel
-{
-public:
-    enum {
-        Col_MachineName           = 0,
-        Col_MachineSN             = 1,
-        Col_MachineBind           = 2,
-        Col_MachinePrintingStatus = 3,
-        Col_MachineIPAddress      = 4,
-        Col_MachineConnection     = 5,
-        Col_MachineTaskName       = 6,
-        Col_Max                   = 7
-    };
-    MachineListModel();
-
-    virtual unsigned int GetColumnCount() const wxOVERRIDE { return Col_Max; }
-
-    virtual wxString GetColumnType(unsigned int col) const wxOVERRIDE { return "string"; }
-
-    virtual void GetValueByRow(wxVariant &variant, unsigned int row, unsigned int col) const wxOVERRIDE;
-    virtual bool GetAttrByRow(unsigned int row, unsigned int col, wxDataViewItemAttr &attr) const wxOVERRIDE;
-    virtual bool SetValueByRow(const wxVariant &variant, unsigned int row, unsigned int col) wxOVERRIDE;
-
-    void display_machines(std::map<std::string, MachineObject *> list);
-    void add_machine(MachineObject *obj, bool reset = true);
-    int  find_row_by_sn(wxString sn);
-
-private:
-    wxArrayString m_values[Col_Max];
-
-    wxArrayString m_nameColValues;
-    wxArrayString m_snColValues;
-    wxArrayString m_bindColValues;
-    wxArrayString m_connectionColValues;
-    wxArrayString m_printingStatusValues;
-    wxArrayString m_ipAddressValues;
-};
-
-class MachineObjectPanel : public wxPanel
-{
-private:
-    bool        m_is_my_devices {false};
-    bool        m_show_edit{false};
-    bool        m_show_bind{false};
-    bool        m_hover {false};
-    bool        m_is_macos_special_version{false};
-
-
-    PrinterBindState   m_bind_state;
-    PrinterState       m_state;
-
-    ScalableBitmap m_unbind_img;
-    ScalableBitmap m_edit_name_img;
-    ScalableBitmap m_select_unbind_img;
-
-    ScalableBitmap m_printer_status_offline;
-    ScalableBitmap m_printer_status_busy;
-    ScalableBitmap m_printer_status_idle;
-    ScalableBitmap m_printer_status_lock;
-    ScalableBitmap m_printer_in_lan;
-
-    MachineObject *m_info;
-
-protected:
-    wxStaticBitmap *m_bitmap_info;
-    wxStaticBitmap *m_bitmap_bind;
-
-public:
-    MachineObjectPanel(wxWindow *      parent,
-                       wxWindowID      id    = wxID_ANY,
-                       const wxPoint & pos   = wxDefaultPosition,
-                       const wxSize &  size  = wxDefaultSize,
-                       long            style = wxTAB_TRAVERSAL,
-                       const wxString &name  = wxEmptyString);
-
-    ~MachineObjectPanel();
-
-    void show_bind_dialog();
-    void set_printer_state(PrinterState state);
-    void show_printer_bind(bool show, PrinterBindState state);
-    void show_edit_printer_name(bool show);
-    void update_machine_info(MachineObject *info, bool is_my_devices = false);
-protected:
-    void OnPaint(wxPaintEvent &event);
-    void render(wxDC &dc);
-    void doRender(wxDC &dc);
-    void on_mouse_enter(wxMouseEvent &evt);
-    void on_mouse_leave(wxMouseEvent &evt);
-    void on_mouse_left_up(wxMouseEvent &evt);
-};
-
-#define SELECT_MACHINE_POPUP_SIZE wxSize(FromDIP(216), FromDIP(364))
-#define SELECT_MACHINE_LIST_SIZE wxSize(FromDIP(212), FromDIP(360))
-#define SELECT_MACHINE_ITEM_SIZE wxSize(FromDIP(190), FromDIP(35))
-#define SELECT_MACHINE_GREY900 wxColour(38, 46, 48)
-#define SELECT_MACHINE_GREY600 wxColour(144,144,144)
-#define SELECT_MACHINE_GREY400 wxColour(206, 206, 206)
-#define SELECT_MACHINE_BRAND wxColour(0, 174, 66)
-#define SELECT_MACHINE_REMIND wxColour(255,111,0)
-#define SELECT_MACHINE_LIGHT_GREEN wxColour(219, 253, 231)
-
-class MachinePanel
-{
-public:
-    wxString mIndex;
-    MachineObjectPanel *mPanel;
-};
-
-class PinCodePanel : public wxPanel
-{
-public:
-    PinCodePanel(wxWindow* parent,
-        int type,
-        wxWindowID      winid = wxID_ANY,
-        const wxPoint& pos = wxDefaultPosition,
-        const wxSize& size = wxDefaultSize);
-    ~PinCodePanel() {};
-
-    ScalableBitmap       m_bitmap;
-    bool           m_hover{false};
-    int            m_type{0};
-
-    void OnPaint(wxPaintEvent& event);
-    void render(wxDC& dc);
-    void doRender(wxDC& dc);
-
-    void on_mouse_enter(wxMouseEvent& evt);
-    void on_mouse_leave(wxMouseEvent& evt);
-    void on_mouse_left_up(wxMouseEvent& evt);
-};
-
-
-class ThumbnailPanel;
-
-class SelectMachinePopup : public PopupWindow
-{
-public:
-    SelectMachinePopup(wxWindow *parent);
-    ~SelectMachinePopup();
-
-    // PopupWindow virtual methods are all overridden to log them
-    virtual void Popup(wxWindow *focus = NULL) wxOVERRIDE;
-    virtual void OnDismiss() wxOVERRIDE;
-    virtual bool ProcessLeftDown(wxMouseEvent &event) wxOVERRIDE;
-    virtual bool Show(bool show = true) wxOVERRIDE;
-
-    void update_machine_list(wxCommandEvent &event);
-    void start_ssdp(bool on_off);
-    bool was_dismiss() { return m_dismiss; }
-
-private:
-    int                               m_my_devices_count{0};
-    int                               m_other_devices_count{0};
-    PinCodePanel*                     m_panel_ping_code{nullptr};
-    PinCodePanel*                     m_panel_direct_connection{nullptr};
-    wxWindow*                         m_placeholder_panel{nullptr};
-    wxHyperlinkCtrl*                  m_hyperlink{nullptr};
-    Label*                            m_ping_code_text{nullptr};
-    wxStaticBitmap*                   m_img_ping_code{nullptr};
-    wxBoxSizer *                      m_sizer_body{nullptr};
-    wxBoxSizer *                      m_sizer_my_devices{nullptr};
-    wxBoxSizer *                      m_sizer_other_devices{nullptr};
-    wxBoxSizer *                      m_sizer_search_bar{nullptr};
-    wxSearchCtrl*                     m_search_bar{nullptr};
-    wxScrolledWindow *                m_scrolledWindow{nullptr};
-    wxWindow *                        m_panel_body{nullptr};
-    wxTimer *                         m_refresh_timer{nullptr};
-    std::vector<MachinePanel*>        m_user_list_machine_panel;
-    std::vector<MachinePanel*>        m_other_list_machine_panel;
-    boost::thread*                    get_print_info_thread{ nullptr };
-    std::shared_ptr<int>              m_token = std::make_shared<int>(0);
-    std::string                       m_print_info = "";
-    bool                              m_dismiss { false };
-
-    std::map<std::string, MachineObject*> m_bind_machine_list;
-    std::map<std::string, MachineObject*> m_free_machine_list;
-
-private:
-    void OnLeftUp(wxMouseEvent &event);
-    void on_timer(wxTimerEvent &event);
-
-	void      update_other_devices();
-    void      update_user_devices();
-    bool      search_for_printer(MachineObject* obj);
-    void      on_dissmiss_win(wxCommandEvent &event);
-    wxWindow *create_title_panel(wxString text);
-};
-
-#define SELECT_MACHINE_DIALOG_BUTTON_SIZE wxSize(FromDIP(68), FromDIP(23))
-#define SELECT_MACHINE_DIALOG_SIMBOOK_SIZE wxSize(FromDIP(370), FromDIP(64))
-
 
 enum PrintPageMode {
     PrintPageModePrepare = 0,
@@ -336,8 +93,117 @@ enum PrintDialogStatus {
     PrintStatusMixAmsAndVtSlotWarning
 };
 
+class Material
+{
+public:
+    int           id;
+    MaterialItem *item;
+};
 
-std::string get_print_status_info(PrintDialogStatus status);
+WX_DECLARE_HASH_MAP(int, Material *, wxIntegerHash, wxIntegerEqual, MaterialHash);
+
+#define SELECT_MACHINE_DIALOG_BUTTON_SIZE wxSize(FromDIP(68), FromDIP(23))
+#define SELECT_MACHINE_DIALOG_SIMBOOK_SIZE wxSize(FromDIP(370), FromDIP(64))
+
+static int get_brightness_value(wxImage image) {
+
+    wxImage grayImage = image.ConvertToGreyscale();
+
+    int width = grayImage.GetWidth();
+    int height = grayImage.GetHeight();
+
+    int totalLuminance = 0;
+    unsigned char alpha;
+    int num_none_transparent = 0;
+    for (int y = 0; y < height; y += 2) {
+
+        for (int x = 0; x < width; x += 2) {
+
+            alpha = image.GetAlpha(x, y);
+            if (alpha != 0) {
+                wxColour pixelColor = grayImage.GetRed(x, y);
+                totalLuminance += pixelColor.Red();
+                num_none_transparent = num_none_transparent + 1;
+            }
+        }
+    }
+    if (totalLuminance <= 0 || num_none_transparent <= 0) {
+        return 0;
+    }
+    return totalLuminance / num_none_transparent;
+}
+
+class PrintOptionItem : public wxPanel
+{
+public:
+    PrintOptionItem(wxWindow *parent, boost::bimaps::bimap<std::string, std::string> ops, std::string param = "");
+    ~PrintOptionItem(){};
+    void OnPaint(wxPaintEvent &event);
+    void render(wxDC &dc);
+    void on_left_down(wxMouseEvent &evt);
+    void doRender(wxDC &dc);
+
+    ScalableBitmap m_selected_bk;
+    boost::bimaps::bimap<std::string, std::string> m_ops;
+    std::string selected_key;
+    std::string m_param;
+
+    void setValue(std::string value);
+    void update_options(boost::bimaps::bimap<std::string, std::string> ops){
+        m_ops = ops;
+        selected_key = "";
+        auto width  = ops.size() * FromDIP(56) + FromDIP(8);
+        auto height = FromDIP(22) + FromDIP(8);
+        SetMinSize(wxSize(width, height));
+        SetMaxSize(wxSize(width, height));
+        Refresh();
+    };
+    std::string getValue();
+};
+
+class PrintOption : public wxPanel
+{
+public:
+    PrintOption(wxWindow *parent, wxString title, wxString tips, boost::bimaps::bimap<std::string, std::string> ops, std::string param = "");
+    ~PrintOption(){};
+    void OnPaint(wxPaintEvent &event);
+    void render(wxDC &dc);
+    void doRender(wxDC &dc);
+
+    std::string m_param;
+    boost::bimaps::bimap<std::string, std::string> m_ops;
+    Label*   m_label{nullptr};
+    Label*   m_printoption_title{nullptr};
+    PrintOptionItem* m_printoption_item{nullptr};
+    void setValue(std::string value);
+    void update_options(boost::bimaps::bimap<std::string, std::string> ops){
+        m_ops = ops;
+        m_printoption_item->update_options(ops);
+    };
+    std::string getValue();
+    int getValueInt();
+};
+
+class ThumbnailPanel : public wxPanel
+{
+public:
+    wxBitmap        m_bitmap;
+    wxStaticBitmap *m_staticbitmap{nullptr};
+
+    ThumbnailPanel(wxWindow *parent, wxWindowID winid = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
+    ~ThumbnailPanel();
+
+    void OnPaint(wxPaintEvent &event);
+    void PaintBackground(wxDC &dc);
+    void OnEraseBackground(wxEraseEvent &event);
+    void set_thumbnail(wxImage &img);
+    void render(wxDC &dc);
+
+private:
+    ScalableBitmap m_background_bitmap;
+    wxBitmap       bitmap_with_background;
+    int            m_brightness_value{-1};
+};
 
 class SelectMachineDialog : public DPIDialog
 {
@@ -353,6 +219,7 @@ private:
     bool                                m_export_3mf_cancel{ false };
     bool                                m_is_canceled{ false };
     bool                                m_is_rename_mode{ false };
+    bool                                m_printer_update_options_layout {false};
     PrintPageMode                       m_print_page_mode{PrintPageMode::PrintPageModePrepare};
     std::string                         m_print_error_msg;
     std::string                         m_print_error_extra;
@@ -366,8 +233,7 @@ private:
     Label* m_text_bed_type;
 
     std::shared_ptr<int>                m_token = std::make_shared<int>(0);
-    std::map<std::string, CheckBox *>   m_checkbox_list;
-    //std::map<std::string, bool>         m_checkbox_state_list;
+    std::map<std::string, PrintOption*>   m_checkbox_list;
     std::vector<wxString>               m_bedtype_list;
     std::vector<MachineObject*>         m_list;
     std::vector<FilamentInfo>           m_filaments;
@@ -380,6 +246,9 @@ private:
     Slic3r::PlateDataPtrs               m_required_data_plate_data_list;
     std::string                         m_required_data_file_name;
     std::string                         m_required_data_file_path;
+
+    boost::bimaps::bimap<std::string, std::string> ops_auto;
+    boost::bimaps::bimap<std::string, std::string> ops_no_auto;
 
 protected:
     PrintFromType                       m_print_type{FROM_NORMAL};
@@ -405,10 +274,6 @@ protected:
     wxStaticBitmap*                     m_bitmap_next_plate{ nullptr };
     wxStaticBitmap*                     img_amsmapping_tip{nullptr};
     ThumbnailPanel*                     m_thumbnailPanel{ nullptr };
-    wxWindow*                           select_bed{ nullptr };
-    wxWindow*                           select_flow{ nullptr };
-    wxWindow*                           select_timelapse{ nullptr };
-    wxWindow*                           select_use_ams{ nullptr };
     wxPanel*                            m_panel_status{ nullptr };
     wxPanel*                            m_basic_panel;
     wxPanel*                            m_rename_normal_panel{nullptr};
@@ -547,66 +412,14 @@ public:
     void auto_supply_with_ext(std::vector<AmsTray> slots);
     bool is_nozzle_type_match(ExtderData data);
 
+    std::string get_print_status_info(PrintDialogStatus status);
+
     PrintFromType get_print_type() {return m_print_type;};
     wxString    format_steel_name(NozzleType type);
     wxString    format_text(wxString &m_msg);
-    wxWindow*   create_ams_checkbox(wxString title, wxWindow* parent, wxString tooltip);
-    wxWindow*   create_item_checkbox(wxString title, wxWindow* parent, wxString tooltip, std::string param);
-    wxImage *   LoadImageFromBlob(const unsigned char *data, int size);
     PrintDialogStatus  get_status() { return m_print_status; }
     std::vector<std::string> sort_string(std::vector<std::string> strArray);
 };
-
-wxDECLARE_EVENT(EVT_FINISHED_UPDATE_MACHINE_LIST, wxCommandEvent);
-wxDECLARE_EVENT(EVT_REQUEST_BIND_LIST, wxCommandEvent);
-wxDECLARE_EVENT(EVT_WILL_DISMISS_MACHINE_LIST, wxCommandEvent);
-wxDECLARE_EVENT(EVT_UPDATE_WINDOWS_POSITION, wxCommandEvent);
-wxDECLARE_EVENT(EVT_DISSMISS_MACHINE_LIST, wxCommandEvent);
-wxDECLARE_EVENT(EVT_CONNECT_LAN_PRINT, wxCommandEvent);
-wxDECLARE_EVENT(EVT_EDIT_PRINT_NAME, wxCommandEvent);
-wxDECLARE_EVENT(EVT_UNBIND_MACHINE, wxCommandEvent);
-wxDECLARE_EVENT(EVT_BIND_MACHINE, wxCommandEvent);
-
-class EditDevNameDialog : public DPIDialog
-{
-public:
-    EditDevNameDialog(Plater *plater = nullptr);
-    ~EditDevNameDialog();
-
-    void set_machine_obj(MachineObject *obj);
-    void on_dpi_changed(const wxRect &suggested_rect) override;
-    void on_edit_name(wxCommandEvent &e);
-
-    Button*             m_button_confirm{nullptr};
-    TextInput*          m_textCtr{nullptr};
-    wxStaticText*       m_static_valid{nullptr};
-    MachineObject*      m_info{nullptr};
-};
-
-
-class ThumbnailPanel : public wxPanel
-{
-public:
-    wxBitmap       m_bitmap;
-    wxStaticBitmap *m_staticbitmap{nullptr};
-
-    ThumbnailPanel(wxWindow *      parent,
-                   wxWindowID      winid = wxID_ANY,
-                   const wxPoint & pos   = wxDefaultPosition,
-                   const wxSize &  size  = wxDefaultSize);
-    ~ThumbnailPanel();
-
-    void OnPaint(wxPaintEvent &event);
-    void PaintBackground(wxDC &dc);
-    void OnEraseBackground(wxEraseEvent &event);
-    void set_thumbnail(wxImage &img);
-    void render(wxDC &dc);
-private:
-    ScalableBitmap m_background_bitmap;
-    wxBitmap bitmap_with_background;
-    int m_brightness_value{ -1 };
-};
-
 }} // namespace Slic3r::GUI
 
 #endif

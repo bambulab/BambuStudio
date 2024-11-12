@@ -4,6 +4,8 @@
 #include "MainFrame.hpp"
 #include "CalibrationPanel.hpp"
 #include "I18N.hpp"
+#include "SelectMachine.hpp"
+#include "SelectMachinePop.hpp"
 
 namespace Slic3r { namespace GUI {
 
