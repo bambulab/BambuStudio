@@ -206,6 +206,9 @@ bool TriangleMesh::from_stl(stl_file& stl, bool repair)
 
     stl_generate_shared_vertices(&stl, this->its);
     fill_initial_stats(this->its, this->m_stats);
+    if (m_stats.volume < 0) {
+        flip_triangles();
+    }
     return true;
 }
 
@@ -1720,8 +1723,7 @@ float its_volume(const indexed_triangle_set &its)
         float height = normal.dot(triangle[0] - p0);
         volume += (area * height) / 3.0f;
     }
-
-    return std::abs(volume);
+    return volume;
 }
 
 float its_average_edge_length(const indexed_triangle_set &its)
