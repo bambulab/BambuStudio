@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-11 19:42+0800\n"
+"POT-Creation-Date: 2024-11-12 11:34+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -6640,9 +6640,8 @@ msgid ""
 "change settings."
 msgstr ""
 
-#, c-format, boost-format
 msgid ""
-"Printing high temperature material(%s material) with %s may cause nozzle "
+"Printing high temperature material(%1 material) with %2 may cause nozzle "
 "damage"
 msgstr ""
 
@@ -11648,7 +11647,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Tip: When using the A1/A1 mini machine, we do not recommend calibrating foam "
+"Tip: When using the A1/A1 mini printer, we do not recommend calibrating foam "
 "filaments(%s),\n"
 "as the results may be unstable and affect print quality."
 msgstr ""
