@@ -4015,7 +4015,8 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
 
     if (enable_seam_slope && m_config.seam_slope_conditional.value) {
         //BBS: the seam has been decide, only check the seam position angle
-        enable_seam_slope = loop.check_seam_point_angle(m_config.scarf_angle_threshold.value * M_PI / 180.0);
+        const auto nozzle_diameter = EXTRUDER_CONFIG(nozzle_diameter);
+        enable_seam_slope          = loop.check_seam_point_angle(m_config.scarf_angle_threshold.value * M_PI / 180.0, nozzle_diameter);
     }
 
     // clip the path to avoid the extruder to get exactly on the first point of the loop;
