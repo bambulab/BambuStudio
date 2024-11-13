@@ -2644,7 +2644,7 @@ bool SelectMachineDialog::is_blocking_printing(MachineObject* obj_)
     return false;
 }
 
-bool SelectMachineDialog::is_same_nozzle_diameters(std::string& tag_nozzle_type, std::string& nozzle_diameter)
+bool SelectMachineDialog::is_same_nozzle_diameters(NozzleType& tag_nozzle_type, float& nozzle_diameter)
 {
     bool  is_same_nozzle_diameters = true;
 
@@ -2700,13 +2700,12 @@ bool SelectMachineDialog::is_same_nozzle_diameters(std::string& tag_nozzle_type,
     {
     }
 
-    //nozzle_type = preset_nozzle_type;
-    nozzle_diameter = wxString::Format("%.1f", preset_nozzle_diameters).ToStdString();
+    nozzle_diameter = preset_nozzle_diameters;
 
     return is_same_nozzle_diameters;
 }
 
-bool SelectMachineDialog::is_same_nozzle_type(std::string& filament_type, std::string& tag_nozzle_type)
+bool SelectMachineDialog::is_same_nozzle_type(std::string& filament_type, NozzleType& tag_nozzle_type)
 {
     bool  is_same_nozzle_type = true;
 
@@ -2731,11 +2730,11 @@ bool SelectMachineDialog::is_same_nozzle_type(std::string& filament_type, std::s
             filament_type = m->m_material_name.ToStdString();
             BOOST_LOG_TRIVIAL(info) << "filaments hardness mismatch: filament = " << filament_type << " printer_nozzle_hrc = " << printer_nozzle_hrc;
             is_same_nozzle_type = false;
-            tag_nozzle_type = "hardened_steel";
+            tag_nozzle_type = NozzleType::ntHardenedSteel;
             return is_same_nozzle_type;
         }
         else {
-            tag_nozzle_type = DeviceManager::nozzle_type_conver(obj_->m_extder_data.extders[0].current_nozzle_type);
+            tag_nozzle_type = obj_->m_extder_data.extders[0].current_nozzle_type;
         }
 
         iter++;
@@ -2920,16 +2919,16 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         confirm_text.push_back(ConfirmBeforeSendInfo(_L("There are some unknown filaments in the AMS mappings. Please check whether they are the required filaments. If they are okay, press \"Confirm\" to start printing.")));
     }
 
-    std::string nozzle_diameter;
+    float nozzle_diameter;
     std::string filament_type;
-    std::string tag_nozzle_type;
+    NozzleType tag_nozzle_type;
 
     if (!obj_->m_extder_data.extders[0].current_nozzle_type == NozzleType::ntUndefine && (m_print_type == PrintFromType::FROM_NORMAL)) {
         if (!is_same_nozzle_diameters(tag_nozzle_type, nozzle_diameter)) {
             has_slice_warnings = true;
             is_printing_block  = true;
 
-            wxString nozzle_in_preset = wxString::Format(_L("nozzle in preset: %s %s"),nozzle_diameter, "");
+            wxString nozzle_in_preset = wxString::Format(_L("nozzle in preset: %.1f %s"), nozzle_diameter, "");
             wxString nozzle_in_printer = wxString::Format(_L("nozzle memorized: %.1f %s"), obj_->m_extder_data.extders[0].current_nozzle_diameter, "");
 
             confirm_text.push_back(ConfirmBeforeSendInfo(_L("Your nozzle diameter in sliced file is not consistent with memorized nozzle. If you changed your nozzle lately, please go to Device > Printer Parts to change settings.")
@@ -2941,7 +2940,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         if (!is_same_nozzle_type(filament_type, tag_nozzle_type)){
             has_slice_warnings = true;
             is_printing_block = true;
-            nozzle_diameter =  wxString::Format("%.1f", obj_->m_extder_data.extders[0].current_nozzle_diameter).ToStdString();
+            nozzle_diameter = obj_->m_extder_data.extders[0].current_nozzle_diameter;
 
                 wxString nozzle_in_preset = wxString::Format(_L("Printing high temperature material(%s material) with %s may cause nozzle damage"), filament_type, format_steel_name(obj_->m_extder_data.extders[0].current_nozzle_type));
             confirm_text.push_back(ConfirmBeforeSendInfo(nozzle_in_preset, ConfirmBeforeSendInfo::InfoLevel::Warning));
@@ -2964,26 +2963,8 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 
         confirm_dlg.Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, &confirm_dlg](wxCommandEvent& e) {
             confirm_dlg.on_hide();
-           /* if (m_print_type == PrintFromType::FROM_SDCARD_VIEW) {
-                this->connect_printer_mqtt();
-            }
-            else {*/
-                this->on_send_print();
-            //}
+            this->on_send_print();
         });
-
-        //confirm_dlg.Bind(EVT_UPDATE_NOZZLE, [this, obj_, tag_nozzle_type, nozzle_diameter, &confirm_dlg](wxCommandEvent& e) {
-        //    if (obj_ && !tag_nozzle_type.empty() && !nozzle_diameter.empty()) {
-        //        try
-        //        {
-        //            float diameter = std::stof(nozzle_diameter);
-        //            diameter = round(diameter * 10) / 10;
-        //            obj_->command_set_printer_nozzle(tag_nozzle_type, diameter);
-        //        }
-        //        catch (...) {}
-        //    }
-        //    });
-
 
         wxString info_msg = wxEmptyString;
 
@@ -3003,12 +2984,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         confirm_dlg.on_show();
 
     } else {
-        /* if (m_print_type == PrintFromType::FROM_SDCARD_VIEW) {
-             this->connect_printer_mqtt();
-         }
-         else {*/
-            this->on_send_print();
-        //}
+        this->on_send_print();
     }
 }
 
