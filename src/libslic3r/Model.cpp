@@ -3243,8 +3243,11 @@ std::string ModelVolume::type_to_string(const ModelVolumeType t)
 // This is useful to assign different materials to different volumes of an object.
 size_t ModelVolume::split(unsigned int max_extruders)
 {
-    std::vector<TriangleMesh> meshes = this->mesh().split();
+    std::vector<std::unordered_map<int, int>> ships;
+    std::vector<TriangleMesh>  meshes = this->mesh().split_and_save_relationship(ships);
     if (meshes.size() <= 1)
+        return 1;
+    if (meshes.size() != ships.size())
         return 1;
     // splited volume should not be text object
     size_t idx = 0;
@@ -3279,17 +3282,23 @@ size_t ModelVolume::split(unsigned int max_extruders)
             this->exterior_facets.reset();
             this->supported_facets.reset();
             this->seam_facets.reset();
-            for (size_t i = 0; i < tris_split_strs.size(); i++) {
-                if (i < cur_face_count && tris_split_strs[i].size()>0) {
-                    mmu_segmentation_facets.set_triangle_from_string(i, tris_split_strs[i]);
+            for (size_t i = 0; i < cur_face_count; i++) {
+                if (ships[idx].find(i) != ships[idx].end()) {
+                    auto index = ships[idx][i];
+                    if (tris_split_strs[index].size() > 0) {
+                        mmu_segmentation_facets.set_triangle_from_string(i, tris_split_strs[index]);
+                    }
                 }
             }
         } else {
             auto new_mv =new ModelVolume(object, *this, std::move(mesh));
             this->object->volumes.insert(this->object->volumes.begin() + (++ivolume), new_mv);
-            for (size_t i = last_all_mesh_face_count; i < tris_split_strs.size(); i++) {
-                if (i < last_all_mesh_face_count + cur_face_count && tris_split_strs[i].size() > 0) {
-                    new_mv->mmu_segmentation_facets.set_triangle_from_string(i - last_all_mesh_face_count, tris_split_strs[i]);
+            for (size_t i = 0; i < new_mv->mesh_ptr()->its.indices.size(); i++) {
+                if (ships[idx].find(i) != ships[idx].end()) {
+                    auto index = ships[idx][i];
+                    if (tris_split_strs[index].size() > 0) {
+                        new_mv->mmu_segmentation_facets.set_triangle_from_string(i, tris_split_strs[index]);
+                    }
                 }
             }
         }
