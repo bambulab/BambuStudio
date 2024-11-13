@@ -182,16 +182,14 @@ void TempInput::SetTagTemp(wxString temp)
 void TempInput::SetCurrTemp(int temp) 
 { 
     auto tp = wxString::Format("%d", temp);
-    if (currentTemp != tp) {
-        currentTemp = tp;
+    if (GetLabel() != tp) {
         SetLabel(tp);
     }
 }
 
 void TempInput::SetCurrTemp(wxString temp) 
 {
-    if (currentTemp != temp) {
-        currentTemp = temp;
+    if (GetLabel() != temp) {
         SetLabel(temp);
     }
 }
@@ -257,18 +255,14 @@ void TempInput::Warning(bool warn, WarningType type)
 
 void TempInput::SetIconActive()
 {
-    if (!actice) {
-        actice = true;
-        Refresh();
-    }
+    actice = true;
+    Refresh();
 }
 
 void TempInput::SetIconNormal()
 {
-    if (actice) {
-        actice = false;
-        Refresh();
-    }
+    actice = false;
+    Refresh();
 }
 
 void TempInput::SetMaxTemp(int temp) { max_temp = temp; }
