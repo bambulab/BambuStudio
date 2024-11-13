@@ -3069,6 +3069,8 @@ struct Plater::priv
     // Call after plater and Canvas#D is initialized
     void init_notification_manager();
 
+    void update_objects_position_when_select_preset(const std::function<void()>& select_prest);
+
     // Caching last value of show_action_buttons parameter for show_action_buttons(), so that a callback which does not know this state will not override it.
     //mutable bool    			ready_to_slice = { false };
     // Flag indicating that the G-code export targets a removable device, therefore the show_action_buttons() needs to be called at any case when the background processing finishes.
@@ -4772,9 +4774,11 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             sync_printer_info = wxGetApp().app_config->get("sync_after_load_file_show_flag") == "true";
                         }
                         if (sync_printer_info) {
-                            Tab *printer_tab = GUI::wxGetApp().get_tab(Preset::Type::TYPE_PRINTER);
-                            printer_tab->select_preset(machine_preset->name);
-                            if (obj->is_multi_extruders()) GUI::wxGetApp().sidebar().sync_extruder_list();
+                            update_objects_position_when_select_preset([&obj, machine_preset]() {
+                                Tab *printer_tab = GUI::wxGetApp().get_tab(Preset::Type::TYPE_PRINTER);
+                                printer_tab->select_preset(machine_preset->name);
+                                if (obj->is_multi_extruders()) GUI::wxGetApp().sidebar().sync_extruder_list();
+                            });
                         }
                     }
                 }
@@ -7036,67 +7040,6 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     }
 
     auto idx = combo->get_filament_idx();
-
-    // BBS:Save the plate parameters before switching
-    PartPlateList& old_plate_list = this->partplate_list;
-    PartPlate* old_plate = old_plate_list.get_selected_plate();
-    Vec3d old_plate_pos = old_plate->get_center_origin();
-    Vec3d old_plate_size = old_plate->get_plate_box().size();
-
-    // BBS: Save the model in the current platelist
-    std::vector<vector<int>> plate_object;
-    std::set<int> all_plate_object;
-    for (size_t i = 0; i < old_plate_list.get_plate_count(); ++i) {
-        PartPlate* plate = old_plate_list.get_plate(i);
-        std::set<std::pair<int, int>> obj_set = plate->get_obj_and_inst_set();
-
-        std::vector<int> obj_idxs;
-        for (auto& p: obj_set) {
-            obj_idxs.push_back(p.first);
-            all_plate_object.emplace(p.first);
-        }
-        plate_object.emplace_back(std::move(obj_idxs));
-    }
-
-    BoundingBoxf3 platelist_bbox = old_plate_list.get_bounding_box();
-    std::map<int, int> outside_plate_object;
-    for (int i = 0; i < model.objects.size(); ++i)
-    {
-        ModelObject* object = model.objects[i];
-        ModelInstance* obj_inst = object->instances[0];
-
-        if (all_plate_object.find(i) == all_plate_object.end())
-        {
-            int position_type = 0;
-            BoundingBoxf3 instance_bbox = object->instance_convex_hull_bounding_box(obj_inst);
-            /*               1       |     2     |    3
-            *             --------------------------------
-            *                4       |     5     |    6
-            *             --------------------------------
-            *                7       |     8     |    9
-            */
-            if ((platelist_bbox.min.x() >= instance_bbox.max.x()) && (platelist_bbox.max.y() <= instance_bbox.min.y()))
-                position_type = 1;
-            else if ((platelist_bbox.min.x() >= instance_bbox.max.x()) && (platelist_bbox.min.y() >= instance_bbox.max.y()))
-                position_type = 7;
-            else if (platelist_bbox.min.x() >= instance_bbox.max.x())
-                position_type = 4;
-            else if ((platelist_bbox.max.x() <= instance_bbox.min.x()) && (platelist_bbox.max.y() <= instance_bbox.min.y()))
-                position_type = 3;
-            else if ((platelist_bbox.max.x() <= instance_bbox.min.x()) && (platelist_bbox.min.y() >= instance_bbox.max.y()))
-                position_type = 9;
-            else if (platelist_bbox.max.x() <= instance_bbox.min.x())
-                position_type = 6;
-             else if (platelist_bbox.max.y() <= instance_bbox.min.y())
-                position_type = 2;
-            else if (platelist_bbox.min.y() >= instance_bbox.max.y())
-                position_type = 8;
-            else
-                position_type = 5;
-            outside_plate_object.emplace(i, position_type);
-        }
-    }
-
     bool flag = is_support_filament(idx);
     //! Because of The MSW and GTK version of wxBitmapComboBox derived from wxComboBox,
     //! but the OSX version derived from wxOwnerDrawnCombo.
@@ -7123,6 +7066,8 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     if (preset_type == Preset::TYPE_FILAMENT && sidebar->is_multifilament()) {
         // Only update the plater UI for the 2nd and other filaments.
         combo->update();
+        // update plater with new config
+        q->on_config_change(wxGetApp().preset_bundle->full_config());
     }
     else if (select_preset) {
         if (preset_type == Preset::TYPE_PRINTER) {
@@ -7131,95 +7076,21 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
                 preset_name = physical_printers.get_selected_printer_preset_name();
             else
                 physical_printers.unselect_printer();
+
+            update_objects_position_when_select_preset([this, &preset_type, &preset_name]() {
+                wxWindowUpdateLocker noUpdates2(sidebar->filament_panel());
+                wxGetApp().get_tab(preset_type)->select_preset(preset_name);
+                // update plater with new config
+                q->on_config_change(wxGetApp().preset_bundle->full_config());
+            });
+        } else {
+            // BBS
+            // wxWindowUpdateLocker noUpdates1(sidebar->print_panel());
+            wxWindowUpdateLocker noUpdates2(sidebar->filament_panel());
+            wxGetApp().get_tab(preset_type)->select_preset(preset_name);
+            // update plater with new config
+            q->on_config_change(wxGetApp().preset_bundle->full_config());
         }
-        //BBS
-        //wxWindowUpdateLocker noUpdates1(sidebar->print_panel());
-        wxWindowUpdateLocker noUpdates2(sidebar->filament_panel());
-        wxGetApp().get_tab(preset_type)->select_preset(preset_name);
-    }
-
-    // update plater with new config
-    q->on_config_change(wxGetApp().preset_bundle->full_config());
-    if (preset_type == Preset::TYPE_PRINTER) {
-    /* Settings list can be changed after printer preset changing, so
-     * update all settings items for all item had it.
-     * Furthermore, Layers editing is implemented only for FFF printers
-     * and for SLA presets they should be deleted
-     */
-        wxGetApp().obj_list()->update_object_list_by_printer_technology();
-
-        // BBS:Model reset by plate center
-        PartPlateList& cur_plate_list = this->partplate_list;
-        PartPlate* cur_plate = cur_plate_list.get_curr_plate();
-        Vec3d cur_plate_pos = cur_plate->get_center_origin();
-        Vec3d cur_plate_size = cur_plate->get_bounding_box().size();
-        bool  cur_plate_is_smaller = cur_plate_size.x() + 1.0 < old_plate_size.x() || cur_plate_size.y() + 1.0 < old_plate_size.y();
-        BOOST_LOG_TRIVIAL(info) << format("change bed pos from (%.0f,%.0f) to (%.0f,%.0f)", old_plate_pos.x(), old_plate_pos.y(), cur_plate_pos.x(), cur_plate_pos.y());
-
-        if (old_plate_pos.x() != cur_plate_pos.x() || old_plate_pos.y() != cur_plate_pos.y() || cur_plate_is_smaller) {
-            for (int i = 0; i < plate_object.size(); ++i) {
-                view3D->select_object_from_idx(plate_object[i]);
-                this->sidebar->obj_list()->update_selections();
-                view3D->center_selected_plate(i);
-            }
-
-            const BoundingBoxf3& cur_platelist_bbox = cur_plate_list.get_bounding_box();
-            const BoundingBoxf3 last_plate_bbox = cur_plate_list.get_plate(cur_plate_list.get_plate_count() - 1)->get_bounding_box();
-            int cur_plate_w, cur_plate_d, cur_plate_h;
-            cur_plate_list.get_plate_size(cur_plate_w, cur_plate_d, cur_plate_h);
-            for (auto& iter: outside_plate_object)
-            {
-                ModelObject *object = model.objects[iter.first];
-                BoundingBoxf3 instance_bbox = object->instance_convex_hull_bounding_box(size_t(0), false);
-                Vec3d offset = Vec3d::Zero();
-                switch(iter.second) {
-                    case 1:
-                    case 2:
-                        offset(1) = cur_platelist_bbox.max.y() - platelist_bbox.max.y();
-                        break;
-                    case 7:
-                    case 8:
-                        offset(1) = cur_platelist_bbox.min.y() - platelist_bbox.min.y();
-                        break;
-                    case 3:
-                        offset(0) = cur_platelist_bbox.max.x() - platelist_bbox.max.x();
-                        offset(1) = cur_platelist_bbox.max.y() - platelist_bbox.max.y();
-                        break;
-                    case 6:
-                        offset(0) = cur_platelist_bbox.max.x() - platelist_bbox.max.x();
-                        break;
-                    case 9:
-                        offset(0) = cur_platelist_bbox.max.x() - platelist_bbox.max.x();
-                        offset(1) = cur_platelist_bbox.min.y() - platelist_bbox.min.y();
-                        break;
-                    case 5:
-                        offset(0) = last_plate_bbox.center().x() + 1.2f * cur_plate_w - instance_bbox.center().x();
-                        offset(1) = last_plate_bbox.center().y() - instance_bbox.center().y();
-                        break;
-                    default:
-                        break;
-                }
-
-                object->translate_instance(0, offset);
-                cur_plate_list.notify_instance_update(iter.first, 0);
-            }
-
-            BOOST_LOG_TRIVIAL(info) << format("change bed size from (%.0f,%.0f) to (%.0f,%.0f)", old_plate_size.x(), old_plate_size.y(), cur_plate_size.x(), cur_plate_size.y());
-            if (cur_plate_is_smaller &&
-                std::any_of(plate_object.begin(), plate_object.end(), [](const std::vector<int> &obj_idxs) { return !obj_idxs.empty(); })) {
-                take_snapshot("Arrange after bed size changes");
-                q->set_prepare_state(Job::PREPARE_STATE_OUTSIDE_BED);
-                q->arrange();
-            }
-
-            view3D->deselect_all();
-        }
-#if 0   // do not toggle auto calc when change printer
-        // update flush matrix
-        size_t filament_size = wxGetApp().plater()->get_extruder_colors_from_plater_config().size();
-        for (size_t idx = 0; idx < filament_size; ++idx)
-            wxGetApp().plater()->sidebar().auto_calc_flushing_volumes(idx);
-#endif
     }
 
 #ifdef __WXMSW__
@@ -8420,6 +8291,135 @@ void Plater::priv::init_notification_manager()
     notification_manager->init_slicing_progress_notification(cancel_callback);
     notification_manager->set_fff(printer_technology == ptFFF);
     notification_manager->init_progress_indicator();
+}
+
+void Plater::priv::update_objects_position_when_select_preset(const std::function<void()> &select_prest)
+{
+    PartPlateList &old_plate_list = this->partplate_list;
+    PartPlate     *old_plate      = old_plate_list.get_selected_plate();
+    Vec3d          old_plate_pos  = old_plate->get_center_origin();
+    Vec3d          old_plate_size = old_plate->get_plate_box().size();
+
+    // BBS: Save the model in the current platelist
+    std::vector<vector<int>> plate_object;
+    std::set<int>            all_plate_object;
+    for (size_t i = 0; i < old_plate_list.get_plate_count(); ++i) {
+        PartPlate                    *plate   = old_plate_list.get_plate(i);
+        std::set<std::pair<int, int>> obj_set = plate->get_obj_and_inst_set();
+
+        std::vector<int> obj_idxs;
+        for (auto &p : obj_set) {
+            obj_idxs.push_back(p.first);
+            all_plate_object.emplace(p.first);
+        }
+        plate_object.emplace_back(std::move(obj_idxs));
+    }
+
+    BoundingBoxf3      platelist_bbox = old_plate_list.get_bounding_box();
+    std::map<int, int> outside_plate_object;
+    for (int i = 0; i < model.objects.size(); ++i) {
+        ModelObject   *object   = model.objects[i];
+        ModelInstance *obj_inst = object->instances[0];
+
+        if (all_plate_object.find(i) == all_plate_object.end()) {
+            int           position_type = 0;
+            BoundingBoxf3 instance_bbox = object->instance_convex_hull_bounding_box(obj_inst);
+            /*               1       |     2     |    3
+             *             --------------------------------
+             *                4       |     5     |    6
+             *             --------------------------------
+             *                7       |     8     |    9
+             */
+            if ((platelist_bbox.min.x() >= instance_bbox.max.x()) && (platelist_bbox.max.y() <= instance_bbox.min.y()))
+                position_type = 1;
+            else if ((platelist_bbox.min.x() >= instance_bbox.max.x()) && (platelist_bbox.min.y() >= instance_bbox.max.y()))
+                position_type = 7;
+            else if (platelist_bbox.min.x() >= instance_bbox.max.x())
+                position_type = 4;
+            else if ((platelist_bbox.max.x() <= instance_bbox.min.x()) && (platelist_bbox.max.y() <= instance_bbox.min.y()))
+                position_type = 3;
+            else if ((platelist_bbox.max.x() <= instance_bbox.min.x()) && (platelist_bbox.min.y() >= instance_bbox.max.y()))
+                position_type = 9;
+            else if (platelist_bbox.max.x() <= instance_bbox.min.x())
+                position_type = 6;
+            else if (platelist_bbox.max.y() <= instance_bbox.min.y())
+                position_type = 2;
+            else if (platelist_bbox.min.y() >= instance_bbox.max.y())
+                position_type = 8;
+            else
+                position_type = 5;
+            outside_plate_object.emplace(i, position_type);
+        }
+    }
+
+    select_prest();
+
+    wxGetApp().obj_list()->update_object_list_by_printer_technology();
+
+    // BBS:Model reset by plate center
+    PartPlateList &cur_plate_list       = this->partplate_list;
+    PartPlate     *cur_plate            = cur_plate_list.get_curr_plate();
+    Vec3d          cur_plate_pos        = cur_plate->get_center_origin();
+    Vec3d          cur_plate_size       = cur_plate->get_bounding_box().size();
+    bool           cur_plate_is_smaller = cur_plate_size.x() + 1.0 < old_plate_size.x() || cur_plate_size.y() + 1.0 < old_plate_size.y();
+    BOOST_LOG_TRIVIAL(info) << format("change bed pos from (%.0f,%.0f) to (%.0f,%.0f)", old_plate_pos.x(), old_plate_pos.y(), cur_plate_pos.x(), cur_plate_pos.y());
+
+    if (old_plate_pos.x() != cur_plate_pos.x() || old_plate_pos.y() != cur_plate_pos.y() || cur_plate_is_smaller) {
+        for (int i = 0; i < plate_object.size(); ++i) {
+            view3D->select_object_from_idx(plate_object[i]);
+            this->sidebar->obj_list()->update_selections();
+            view3D->center_selected_plate(i);
+        }
+
+        const BoundingBoxf3 &cur_platelist_bbox = cur_plate_list.get_bounding_box();
+        const BoundingBoxf3  last_plate_bbox    = cur_plate_list.get_plate(cur_plate_list.get_plate_count() - 1)->get_bounding_box();
+        int                  cur_plate_w, cur_plate_d, cur_plate_h;
+        cur_plate_list.get_plate_size(cur_plate_w, cur_plate_d, cur_plate_h);
+        for (auto &iter : outside_plate_object) {
+            ModelObject  *object        = model.objects[iter.first];
+            BoundingBoxf3 instance_bbox = object->instance_convex_hull_bounding_box(size_t(0), false);
+            Vec3d         offset        = Vec3d::Zero();
+            switch (iter.second) {
+            case 1:
+            case 2: offset(1) = cur_platelist_bbox.max.y() - platelist_bbox.max.y(); break;
+            case 7:
+            case 8: offset(1) = cur_platelist_bbox.min.y() - platelist_bbox.min.y(); break;
+            case 3:
+                offset(0) = cur_platelist_bbox.max.x() - platelist_bbox.max.x();
+                offset(1) = cur_platelist_bbox.max.y() - platelist_bbox.max.y();
+                break;
+            case 6: offset(0) = cur_platelist_bbox.max.x() - platelist_bbox.max.x(); break;
+            case 9:
+                offset(0) = cur_platelist_bbox.max.x() - platelist_bbox.max.x();
+                offset(1) = cur_platelist_bbox.min.y() - platelist_bbox.min.y();
+                break;
+            case 5:
+                offset(0) = last_plate_bbox.center().x() + 1.2f * cur_plate_w - instance_bbox.center().x();
+                offset(1) = last_plate_bbox.center().y() - instance_bbox.center().y();
+                break;
+            default: break;
+            }
+
+            object->translate_instance(0, offset);
+            cur_plate_list.notify_instance_update(iter.first, 0);
+        }
+
+        BOOST_LOG_TRIVIAL(info) << format("change bed size from (%.0f,%.0f) to (%.0f,%.0f)", old_plate_size.x(), old_plate_size.y(), cur_plate_size.x(), cur_plate_size.y());
+        if (cur_plate_is_smaller && std::any_of(plate_object.begin(), plate_object.end(), [](const std::vector<int> &obj_idxs) { return !obj_idxs.empty(); })) {
+            take_snapshot("Arrange after bed size changes");
+            q->set_prepare_state(Job::PREPARE_STATE_OUTSIDE_BED);
+            q->arrange();
+        }
+
+        view3D->deselect_all();
+    }
+
+#if 0 // do not toggle auto calc when change printer
+      // update flush matrix
+        size_t filament_size = wxGetApp().plater()->get_extruder_colors_from_plater_config().size();
+        for (size_t idx = 0; idx < filament_size; ++idx)
+            wxGetApp().plater()->sidebar().auto_calc_flushing_volumes(idx);
+#endif
 }
 
 void Plater::orient()
