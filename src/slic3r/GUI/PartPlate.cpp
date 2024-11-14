@@ -2137,7 +2137,6 @@ void PartPlate::set_logo_box_by_bed(const BoundingBoxf3& box)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":error :Unable to create logo triangles in set_logo_box_by_bed\n";
             return;
         }
-        m_partplate_list->m_logo_texture.reset();
 	}
 }
 
@@ -5570,18 +5569,23 @@ void PartPlateList::BedTextureInfo::reset()
 
 void PartPlateList::init_bed_type_info()
 {
-	BedTextureInfo::TexturePart pc_part1(10, 130,  10, 110, "bbl_bed_pc_left.svg");
-	BedTextureInfo::TexturePart pc_part2(74, -10, 148, 12, "bbl_bed_pc_bottom.svg");
-	BedTextureInfo::TexturePart ep_part1(7.5, 90, 12.5, 150, "bbl_bed_ep_left.svg");
-	BedTextureInfo::TexturePart ep_part2(74, -10, 148, 12, "bbl_bed_ep_bottom.svg");
-	BedTextureInfo::TexturePart pei_part1(7.5, 50, 12.5, 190, "bbl_bed_pei_left.svg");
-	BedTextureInfo::TexturePart pei_part2(74, -10, 148, 12, "bbl_bed_pei_bottom.svg");
-	BedTextureInfo::TexturePart pte_part1(10, 80, 10, 160, "bbl_bed_pte_left.svg");
-	BedTextureInfo::TexturePart pte_part2(74, -10, 148,  12, "bbl_bed_pte_bottom.svg");
+    BedTextureInfo::TexturePart st_part1(10, 52, 8.393f, 192, "bbl_bed_st_left.svg");
+    BedTextureInfo::TexturePart st_part2(74, -10, 148, 12, "bbl_bed_st_bottom.svg");
+    BedTextureInfo::TexturePart pc_part1(10, 52, 8.393f, 192, "bbl_bed_pc_left.svg");
+    BedTextureInfo::TexturePart pc_part2(74, -10, 148, 12, "bbl_bed_pc_bottom.svg");
+    BedTextureInfo::TexturePart ep_part1(10, 52, 8.393f, 192, "bbl_bed_ep_left.svg");
+    BedTextureInfo::TexturePart ep_part2(74, -10, 148, 12, "bbl_bed_ep_bottom.svg");
+    BedTextureInfo::TexturePart pei_part1(10, 52, 8.393f, 192, "bbl_bed_pei_left.svg");
+    BedTextureInfo::TexturePart pei_part2(74, -10, 148, 12, "bbl_bed_pei_bottom.svg");
+    BedTextureInfo::TexturePart pte_part1(10, 52, 8.393f, 192, "bbl_bed_pte_left.svg");
+    BedTextureInfo::TexturePart pte_part2(74, -10, 148, 12, "bbl_bed_pte_bottom.svg");
+
 	for (size_t i = 0; i < btCount; i++) {
 		bed_texture_info[i].reset();
 		bed_texture_info[i].parts.clear();
 	}
+    bed_texture_info[btSuperTack].parts.push_back(st_part1);
+    bed_texture_info[btSuperTack].parts.push_back(st_part2);
 	bed_texture_info[btPC].parts.push_back(pc_part1);
 	bed_texture_info[btPC].parts.push_back(pc_part2);
 	bed_texture_info[btEP].parts.push_back(ep_part1);
@@ -5600,8 +5604,13 @@ void PartPlateList::init_bed_type_info()
 	float y_rate      = bed_height / base_height;
 	for (int i = 0; i < btCount; i++) {
 		for (int j = 0; j < bed_texture_info[i].parts.size(); j++) {
-			bed_texture_info[i].parts[j].x *= x_rate;
-			bed_texture_info[i].parts[j].y *= y_rate;
+            if (j == 0 && (bed_width == 180 && bed_height == 180)) {
+                bed_texture_info[i].parts[j].x = 10;
+                bed_texture_info[i].parts[j].y = 35;
+            } else {
+                bed_texture_info[i].parts[j].x *= x_rate;
+                bed_texture_info[i].parts[j].y *= y_rate;
+            }
 			bed_texture_info[i].parts[j].w *= x_rate;
 			bed_texture_info[i].parts[j].h *= y_rate;
 			bed_texture_info[i].parts[j].update_buffer();

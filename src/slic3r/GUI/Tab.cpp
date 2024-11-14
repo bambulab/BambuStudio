@@ -3040,7 +3040,7 @@ void TabFilament::build()
         line.append_option(optgroup->get_option("supertack_plate_temp"));
         optgroup->append_line(line);
 
-        line = { L("Cool Plate / PLA Plate"), L("Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Cool Plate") };
+        line = { L("Cool Plate"), L("Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Cool Plate") };
         line.append_option(optgroup->get_option("cool_plate_temp_initial_layer"));
         line.append_option(optgroup->get_option("cool_plate_temp"));
         optgroup->append_line(line);
@@ -3517,6 +3517,7 @@ void TabPrinter::build_fff()
 
         optgroup = page->new_optgroup(L("Extruder Clearance"));
         optgroup->append_single_option_line("extruder_clearance_max_radius");
+        optgroup->append_single_option_line("extruder_clearance_dist_to_rod");
         optgroup->append_single_option_line("extruder_clearance_height_to_rod");
         optgroup->append_single_option_line("extruder_clearance_height_to_lid");
 
@@ -4126,7 +4127,7 @@ void TabPrinter::toggle_options()
         // Disable silent mode for non-marlin firmwares.
         toggle_option("silent_mode", is_marlin_flavor);
         //BBS: extruder clearance of BBL printer can't be edited.
-        for (auto el : { "extruder_clearance_max_radius", "extruder_clearance_height_to_rod", "extruder_clearance_height_to_lid" })
+        for (auto el : {"extruder_clearance_max_radius", "extruder_clearance_dist_to_rod", "extruder_clearance_height_to_rod", "extruder_clearance_height_to_lid"})
             toggle_option(el, !is_BBL_printer);
     }
 
@@ -4146,6 +4147,9 @@ void TabPrinter::toggle_options()
         for (auto el : { "extruder_type" , "nozzle_diameter"}) {
             toggle_option(el, !is_BBL_printer, i);
         }
+
+        toggle_option("extruder_type", !is_BBL_printer, i);
+        toggle_option("nozzle_diameter", !is_BBL_printer || config_mode == ConfigOptionMode::comDevelop, i);
         toggle_option("extruder_offset", !is_BBL_printer || config_mode == ConfigOptionMode::comDevelop, i);
 
         bool use_firmware_retraction = m_config->opt_bool("use_firmware_retraction");

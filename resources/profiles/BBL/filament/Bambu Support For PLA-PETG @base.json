@@ -27,6 +27,9 @@
     "filament_max_volumetric_speed": [
         "6"
     ],
+    "filament_scarf_seam_type": [
+        "none"
+    ],
     "filament_vendor": [
         "Bambu Lab"
     ],
@@ -45,13 +48,13 @@
     "slow_down_layer_time": [
         "8"
     ],
+    "supertack_plate_temp_initial_layer": [
+        "0"
+    ],
     "textured_plate_temp": [
         "60"
     ],
     "textured_plate_temp_initial_layer": [
         "60"
-    ],
-    "filament_scarf_seam_type": [
-        "none"
     ]
 }
