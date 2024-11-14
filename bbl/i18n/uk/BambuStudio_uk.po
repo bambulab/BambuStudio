@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-12 11:34+0800\n"
+"POT-Creation-Date: 2024-11-14 12:25+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -4877,8 +4877,11 @@ msgstr "SD-картка не в порядку"
 msgid "Cancel print"
 msgstr "Скасувати друк"
 
-msgid "Are you sure you want to cancel this print?"
-msgstr "Ви впевнені, що хочете скасувати цей друк?"
+msgid "Are you sure to stop printing?"
+msgstr ""
+
+msgid "Unknow error."
+msgstr ""
 
 msgid "Downloading..."
 msgstr "Завантаження..."
@@ -5067,11 +5070,11 @@ msgstr "Зменшити лінійно"
 msgid "Reduce Angle"
 msgstr "Зменшити кут"
 
-msgid "Fewer faces"
-msgstr "Менше граней"
-
 msgid "More faces"
 msgstr "Більше граней"
+
+msgid "Fewer faces"
+msgstr "Менше граней"
 
 msgid "Linear Deflection"
 msgstr "Лінійне відхилення"
@@ -14148,6 +14151,9 @@ msgstr ""
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як "
 "ABS, відповідне підвищення температури гарячого ліжка може зменшити "
 "ймовірність деформації."
+
+#~ msgid "Are you sure you want to cancel this print?"
+#~ msgstr "Ви впевнені, що хочете скасувати цей друк?"
 
 #, c-format, boost-format
 #~ msgid ""

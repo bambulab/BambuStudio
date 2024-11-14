@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-12 11:34+0800\n"
+"POT-Creation-Date: 2024-11-14 12:25+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4883,8 +4883,11 @@ msgstr "MicroSD Kaart Abnormaal"
 msgid "Cancel print"
 msgstr "Print annuleren"
 
-msgid "Are you sure you want to cancel this print?"
-msgstr "Weet je zeker dat je deze print wilt annuleren?"
+msgid "Are you sure to stop printing?"
+msgstr ""
+
+msgid "Unknow error."
+msgstr ""
 
 msgid "Downloading..."
 msgstr "Downloaden..."
@@ -5072,10 +5075,10 @@ msgstr ""
 msgid "Reduce Angle"
 msgstr ""
 
-msgid "Fewer faces"
+msgid "More faces"
 msgstr ""
 
-msgid "More faces"
+msgid "Fewer faces"
 msgstr ""
 
 msgid "Linear Deflection"
@@ -14048,6 +14051,9 @@ msgstr ""
 "Wist je dat bij het printen van materialen die gevoelig zijn voor "
 "kromtrekken, zoals ABS, een juiste verhoging van de temperatuur van het "
 "warmtebed de kans op kromtrekken kan verkleinen?"
+
+#~ msgid "Are you sure you want to cancel this print?"
+#~ msgstr "Weet je zeker dat je deze print wilt annuleren?"
 
 #, c-format, boost-format
 #~ msgid ""
