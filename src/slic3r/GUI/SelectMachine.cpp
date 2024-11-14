@@ -2171,11 +2171,11 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
             auto target_print_name = wxString(obj_->get_preset_printer_model_name(target_model_id));
             target_print_name.Replace(wxT("Bambu Lab "), wxEmptyString);
             msg_text = wxString::Format(_L("The selected printer (%s) is incompatible with the chosen printer profile in the slicer (%s)."), sourcet_print_name, target_print_name);
-            
+
             update_print_status_msg(msg_text, true, true);
         }
         catch (...){}
-        
+
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     }else if (status == PrintDialogStatus::PrintStatusTimelapseNoSdcard) {
@@ -2260,8 +2260,8 @@ bool SelectMachineDialog::is_blocking_printing(MachineObject* obj_)
     if (m_print_type == PrintFromType::FROM_NORMAL) {
         PresetBundle* preset_bundle = wxGetApp().preset_bundle;
         source_model = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
-        
-       
+
+
     }else if (m_print_type == PrintFromType::FROM_SDCARD_VIEW) {
         if (m_required_data_plate_data_list.size() > 0) {
             source_model = m_required_data_plate_data_list[m_print_plate_idx]->printer_model_id;
@@ -2490,7 +2490,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
             wxString error_info = Plater::get_slice_warning_string(warning);
             if (error_info.IsEmpty()) {
                 error_info = wxString::Format("%s\n", warning.msg);
-            } 
+            }
 
             confirm_text.push_back(ConfirmBeforeSendInfo(error_info));
             has_slice_warnings = true;
@@ -2525,7 +2525,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         std::string info;
 
         DeviceManager::check_filaments_in_blacklist(filament_brand, filament_type, in_blacklist, action, info);
-        
+
         if (in_blacklist && action == "prohibition") {
             has_prohibited_filament = true;
             prohibited_error = wxString::FromUTF8(info);
@@ -2561,26 +2561,26 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         if (!is_same_nozzle_diameters(tag_nozzle_type, nozzle_diameter)) {
             has_slice_warnings = true;
             is_printing_block  = true;
-            
+
             wxString nozzle_in_preset = wxString::Format(_L("nozzle in preset: %s %s"),nozzle_diameter, "");
             wxString nozzle_in_printer = wxString::Format(_L("nozzle memorized: %.1f %s"), obj_->nozzle_diameter, "");
 
-            confirm_text.push_back(ConfirmBeforeSendInfo(_L("Your nozzle diameter in sliced file is not consistent with memorized nozzle. If you changed your nozzle lately, please go to Device > Printer Parts to change settings.") 
-                + "\n    " + nozzle_in_preset 
+            confirm_text.push_back(ConfirmBeforeSendInfo(_L("Your nozzle diameter in sliced file is not consistent with memorized nozzle. If you changed your nozzle lately, please go to Device > Printer Parts to change settings.")
+                + "\n    " + nozzle_in_preset
                 + "\n    " + nozzle_in_printer
                 + "\n",  ConfirmBeforeSendInfo::InfoLevel::Warning));
         }
-        
+
         if (!is_same_nozzle_type(filament_type, tag_nozzle_type)){
             has_slice_warnings = true;
             is_printing_block = true;
             nozzle_diameter =  wxString::Format("%.1f", obj_->nozzle_diameter).ToStdString();
 
-                wxString nozzle_in_preset = wxString::Format(_L("Printing high temperature material(%1 material) with %2 may cause nozzle damage"), filament_type, format_steel_name(obj_->nozzle_type));
+            wxString nozzle_in_preset = wxString::Format(_L("Printing %1s material with %2s nozzle may cause nozzle damage."), filament_type,format_steel_name(obj_->nozzle_type));
             confirm_text.push_back(ConfirmBeforeSendInfo(nozzle_in_preset, ConfirmBeforeSendInfo::InfoLevel::Warning));
         }
     }
-    
+
 
     if (has_slice_warnings) {
         wxString confirm_title = _L("Warning");
@@ -2617,7 +2617,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         //    }
         //    });
 
-       
+
         wxString info_msg = wxEmptyString;
 
         for (auto i = 0; i < confirm_text.size(); i++) {
@@ -3569,7 +3569,7 @@ void SelectMachineDialog::update_show_status()
                 else {
                     show_status(PrintDialogStatus::PrintStatusAmsMappingByOrder);
                 }
-                
+
             } else {
                 int mismatch_index = -1;
                 for (int i = 0; i < m_ams_mapping_result.size(); i++) {
@@ -3614,7 +3614,7 @@ void SelectMachineDialog::update_show_status()
             show_status(PrintDialogStatus::PrintStatusAmsMappingInvalid);
             return;
         }
-    } 
+    }
 }
 
 bool SelectMachineDialog::has_timelapse_warning()
@@ -3625,7 +3625,7 @@ bool SelectMachineDialog::has_timelapse_warning()
             return true;
         }
     }
-    
+
     return false;
 }
 
@@ -3981,7 +3981,7 @@ void SelectMachineDialog::reset_and_sync_ams_list()
         delete item;
         iter++;
     }
-    
+
     m_sizer_material->Clear();
     m_materialList.clear();
     m_filaments.clear();
@@ -4394,7 +4394,7 @@ void SelectMachineDialog::set_default_from_sdcard()
         image = image.Rescale(FromDIP(256), FromDIP(256));
         m_thumbnailPanel->set_thumbnail(image);
     }
-   
+
     //for black list
     std::vector<std::string> materials;
     std::vector<std::string> brands;
@@ -4818,7 +4818,7 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
  }
 
  void ThumbnailPanel::render(wxDC& dc) {
-     
+
      if (wxGetApp().dark_mode() && m_brightness_value < SHOW_BACKGROUND_BITMAP_PIXEL_THRESHOLD) {
          #ifdef __WXMSW__
              wxMemoryDC memdc;
@@ -4832,7 +4832,7 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
      }
      else
          dc.DrawBitmap(m_bitmap, 0, 0);
-     
+
  }
 
  ThumbnailPanel::~ThumbnailPanel() {}

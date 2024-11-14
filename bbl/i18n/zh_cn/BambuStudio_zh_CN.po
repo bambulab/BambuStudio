@@ -1,12 +1,12 @@
 # Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-14 12:25+0800\n"
+"POT-Creation-Date: 2024-11-14 16:56+0800\n"
 "PO-Revision-Date: 2024-03-21 10:39+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -4670,8 +4670,8 @@ msgstr "取消打印"
 msgid "Are you sure to stop printing?"
 msgstr "您确定要停止打印吗？"
 
-msgid "Unknow error."
-msgstr "未知错误"
+msgid "Unknown error."
+msgstr "未知错误。"
 
 msgid "Downloading..."
 msgstr "下载中..."
@@ -5808,6 +5808,12 @@ msgstr ""
 msgid "Enable LOD"
 msgstr "启用LOD"
 
+msgid "Change opengl multi instance rendering requires application restart."
+msgstr "改变opengl多实例渲染要求软件重启。"
+
+msgid "Enable opengl multi instance rendering"
+msgstr "开启opengl多实例渲染"
+
 msgid "Browse"
 msgstr "浏览"
 
@@ -5931,6 +5937,15 @@ msgid ""
 "Improved rendering performance under the scene of multiple plates and many "
 "models."
 msgstr "在多盘和多模型的场景下提高了渲染性能"
+
+msgid "enable multi instance rendering by opengl"
+msgstr "开启opengl多实例渲染"
+
+msgid ""
+"If enabled, it can improve certain rendering performance. But for some "
+"graphics cards, it may not be applicable, please turn it off."
+msgstr ""
+"如果启用，它可以提高一定的渲染性能。但对于某些图形卡，它可能不适用，请将其关闭。"
 
 msgid "Grabber scale"
 msgstr "抓手比例"
@@ -6556,10 +6571,9 @@ msgstr ""
 "切片文件中的喷嘴直径与记忆的喷嘴不一致。如果您最近更换了喷嘴，请前往设备 > 打"
 "印机零件进行更改设置。"
 
-msgid ""
-"Printing high temperature material(%1 material) with %2 may cause nozzle "
-"damage"
-msgstr "用%2打印高温材料（%1材料）可能会导致喷嘴损坏"
+#, c-format, boost-format
+msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
+msgstr "%1s材料在使用%2s的喷嘴打印时,可能会导致喷嘴损坏。"
 
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr "请修复上述错误，否则打印无法继续。"
@@ -6852,8 +6866,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "在录制无工具头延时摄影视频时，建议添加“延时摄影擦料塔”\n"
 "右键单击打印板的空白位置，选择“添加标准模型”->“延时摄影擦料塔”。"
@@ -10976,8 +10990,8 @@ msgstr "结果可由人眼读取。"
 msgid "Auto-Calibration"
 msgstr "自动校准"
 
-msgid "We would use Lidar to read the calibration result"
-msgstr "我们将使用激光雷达来读取校准结果。"
+msgid "The printer will automatically read the calibration results."
+msgstr "打印机将自动读取校准结果。"
 
 msgid "Prev"
 msgstr "上一个"
@@ -11893,8 +11907,8 @@ msgstr ""
 "你想重写预设吗"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "我们会将预设重命名为“供应商 类型 系列 @您选择的打印机”。\n"
@@ -13152,6 +13166,23 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Printing high temperature material(%1s material) with %2s may cause "
+#~ "nozzle damage"
+#~ msgstr "用%2s打印高温材料（%1s材料）可能会导致喷嘴损坏"
+
+#~ msgid "Unknow error."
+#~ msgstr "未知错误"
+
+#~ msgid ""
+#~ "Printing high temperature material(%1 material) with %2 may cause nozzle "
+#~ "damage"
+#~ msgstr "用%2打印高温材料（%1材料）可能会导致喷嘴损坏"
+
+#~ msgid "We would use Lidar to read the calibration result"
+#~ msgstr "我们将使用激光雷达来读取校准结果。"
 
 #~ msgid "Are you sure you want to cancel this print?"
 #~ msgstr "你确定要取消这次打印吗？"
@@ -18944,8 +18975,8 @@ msgstr ""
 #~ msgstr "正在准备设置页"
 
 #~ msgid ""
-#~ "You have the following presets with saved options for \"Print Host upload"
-#~ "\""
+#~ "You have the following presets with saved options for \"Print Host "
+#~ "upload\""
 #~ msgstr "您的以下预设中包含未保存的选项“打印主机上传”"
 
 #~ msgid ""
