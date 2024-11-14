@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-12 11:34+0800\n"
+"POT-Creation-Date: 2024-11-14 12:25+0800\n"
 "PO-Revision-Date: 2024-09-29 02:13+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -4840,8 +4840,11 @@ msgstr "SD Kart Anormal"
 msgid "Cancel print"
 msgstr "Yazdırmayı iptal et"
 
-msgid "Are you sure you want to cancel this print?"
-msgstr "Bu yazdırmayı iptal etmek istediğinizden emin misiniz?"
+msgid "Are you sure to stop printing?"
+msgstr ""
+
+msgid "Unknow error."
+msgstr ""
 
 msgid "Downloading..."
 msgstr "İndiriliyor..."
@@ -5029,10 +5032,10 @@ msgstr ""
 msgid "Reduce Angle"
 msgstr ""
 
-msgid "Fewer faces"
+msgid "More faces"
 msgstr ""
 
-msgid "More faces"
+msgid "Fewer faces"
 msgstr ""
 
 msgid "Linear Deflection"
@@ -13936,6 +13939,9 @@ msgstr ""
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı "
 "sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını "
 "azaltabileceğini biliyor muydunuz."
+
+#~ msgid "Are you sure you want to cancel this print?"
+#~ msgstr "Bu yazdırmayı iptal etmek istediğinizden emin misiniz?"
 
 #, c-format, boost-format
 #~ msgid ""

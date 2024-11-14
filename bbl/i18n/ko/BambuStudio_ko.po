@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-12 11:34+0800\n"
+"POT-Creation-Date: 2024-11-14 12:25+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4756,8 +4756,11 @@ msgstr "MicroSD 카드 이상"
 msgid "Cancel print"
 msgstr "출력 취소"
 
-msgid "Are you sure you want to cancel this print?"
-msgstr "이 출력을 취소하시겠습니까?"
+msgid "Are you sure to stop printing?"
+msgstr ""
+
+msgid "Unknow error."
+msgstr ""
 
 msgid "Downloading..."
 msgstr "다운로드 중…"
@@ -4942,10 +4945,10 @@ msgstr ""
 msgid "Reduce Angle"
 msgstr ""
 
-msgid "Fewer faces"
+msgid "More faces"
 msgstr ""
 
-msgid "More faces"
+msgid "Fewer faces"
 msgstr ""
 
 msgid "Linear Deflection"
@@ -13617,6 +13620,9 @@ msgstr ""
 "뒤틀림 방지\n"
 "ABS 등 뒤틀림이 발생하기 쉬운 소재를 출력할 때, 히트베드 온도를 적절하게 높이"
 "면 뒤틀림 가능성을 줄일 수 있다는 사실을 알고 계셨나요?"
+
+#~ msgid "Are you sure you want to cancel this print?"
+#~ msgstr "이 출력을 취소하시겠습니까?"
 
 #, c-format, boost-format
 #~ msgid ""

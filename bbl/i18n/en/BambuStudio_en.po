@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-12 11:34+0800\n"
+"POT-Creation-Date: 2024-11-14 12:25+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -4805,8 +4805,11 @@ msgstr "MicroSD Card Abnormal"
 msgid "Cancel print"
 msgstr "Cancel print"
 
-msgid "Are you sure you want to cancel this print?"
-msgstr "Are you sure you want to cancel this print?"
+msgid "Are you sure to stop printing?"
+msgstr ""
+
+msgid "Unknow error."
+msgstr ""
 
 msgid "Downloading..."
 msgstr "Downloading..."
@@ -4992,10 +4995,10 @@ msgstr ""
 msgid "Reduce Angle"
 msgstr ""
 
-msgid "Fewer faces"
+msgid "More faces"
 msgstr ""
 
-msgid "More faces"
+msgid "Fewer faces"
 msgstr ""
 
 msgid "Linear Deflection"
@@ -13762,6 +13765,9 @@ msgstr ""
 "Did you know that when printing materials that are prone to warping such as "
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping?"
+
+#~ msgid "Are you sure you want to cancel this print?"
+#~ msgstr "Are you sure you want to cancel this print?"
 
 #, c-format, boost-format
 #~ msgid ""

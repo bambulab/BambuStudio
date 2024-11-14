@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-12 11:34+0800\n"
+"POT-Creation-Date: 2024-11-14 12:25+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4854,8 +4854,11 @@ msgstr "Hibás MicroSD kártya"
 msgid "Cancel print"
 msgstr "Nyomtatás megszakítása"
 
-msgid "Are you sure you want to cancel this print?"
-msgstr "Biztosan megszakítod ezt a nyomtatást?"
+msgid "Are you sure to stop printing?"
+msgstr ""
+
+msgid "Unknow error."
+msgstr ""
 
 msgid "Downloading..."
 msgstr "Letöltés..."
@@ -5041,10 +5044,10 @@ msgstr ""
 msgid "Reduce Angle"
 msgstr ""
 
-msgid "Fewer faces"
+msgid "More faces"
 msgstr ""
 
-msgid "More faces"
+msgid "Fewer faces"
 msgstr ""
 
 msgid "Linear Deflection"
@@ -13951,6 +13954,9 @@ msgstr ""
 "Vetemedés elkerülése\n"
 "Tudtad, hogy a vetemedésre hajlamos anyagok (például ABS) nyomtatásakor a "
 "tárgyasztal hőmérsékletének növelése csökkentheti a vetemedés valószínűségét?"
+
+#~ msgid "Are you sure you want to cancel this print?"
+#~ msgstr "Biztosan megszakítod ezt a nyomtatást?"
 
 #, c-format, boost-format
 #~ msgid ""

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-12 11:34+0800\n"
+"POT-Creation-Date: 2024-11-14 12:25+0800\n"
 "PO-Revision-Date: 2024-03-21 10:39+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -4667,8 +4667,11 @@ msgstr "SD卡异常"
 msgid "Cancel print"
 msgstr "取消打印"
 
-msgid "Are you sure you want to cancel this print?"
-msgstr "你确定要取消这次打印吗？"
+msgid "Are you sure to stop printing?"
+msgstr "您确定要停止打印吗？"
+
+msgid "Unknow error."
+msgstr "未知错误"
 
 msgid "Downloading..."
 msgstr "下载中..."
@@ -4845,11 +4848,11 @@ msgstr "减少线偏转值"
 msgid "Reduce Angle"
 msgstr "减少角偏转值"
 
-msgid "Fewer faces"
-msgstr "更少三角面"
-
 msgid "More faces"
 msgstr "更多三角面"
+
+msgid "Fewer faces"
+msgstr "更少三角面"
 
 msgid "Linear Deflection"
 msgstr "线偏转值"
@@ -13149,6 +13152,9 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid "Are you sure you want to cancel this print?"
+#~ msgstr "你确定要取消这次打印吗？"
 
 #, c-format, boost-format
 #~ msgid ""
