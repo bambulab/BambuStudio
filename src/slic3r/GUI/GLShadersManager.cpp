@@ -40,9 +40,7 @@ std::pair<bool, std::string> GLShadersManager::init()
     // used to render first layer for calibration
     valid &= append_shader("cali", { "cali.vs", "cali.fs"});
     valid &= append_shader("flat", {"110/flat.vs", "110/flat.fs"});
-    if (Slic3r::GUI::wxGetApp().app_config->get_bool("enable_opengl_multi_instance")) {
-        valid &= append_shader("flat_instance", {"110/flat_instance.vs", "110/flat.fs"});
-    }
+    valid &= append_shader("flat_instance", {"110/flat_instance.vs", "110/flat.fs"});
     // used to render printbed
     valid &= append_shader("printbed", {"110/printbed.vs", "110/printbed.fs"});
     // used to render options in gcode preview
