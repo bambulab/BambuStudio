@@ -174,7 +174,7 @@ CaliPageButton::CaliPageButton(wxWindow* parent, CaliPageActionType type, wxStri
         break;
     case CaliPageActionType::CALI_ACTION_AUTO_CALI:
         this->SetLabel(_L("Auto-Calibration"));
-        this->SetToolTip(_L("We would use Lidar to read the calibration result"));
+        this->SetToolTip(_L("The printer will automatically read the calibration results."));
         break;
     case CaliPageActionType::CALI_ACTION_START:
         this->SetLabel(_L("Start Calibration"));

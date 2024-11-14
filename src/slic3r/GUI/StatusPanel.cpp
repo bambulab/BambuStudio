@@ -2155,7 +2155,7 @@ void StatusPanel::show_error_message(MachineObject *obj, bool is_exist, wxString
     if (is_exist && msg.IsEmpty()) {
         error_info_reset();
     } else {
-        if (msg.IsEmpty()) { msg = _L("Unknow error."); }
+        if (msg.IsEmpty()) { msg = _L("Unknown error."); }
         m_project_task_panel->show_error_msg(msg);
 
         if (!used_button.empty()) {

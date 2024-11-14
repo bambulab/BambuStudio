@@ -856,11 +856,11 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
             MessageDialog msg_wingow(nullptr,
                                      _L("Change opengl multi instance rendering requires application restart.") + "\n" +
                                          _L("Do you want to continue?"),
-                                     _L("Enable  opengl multi instance rendering"), wxYES | wxYES_DEFAULT | wxCANCEL | wxCENTRE);
+                                     _L("Enable opengl multi instance rendering"), wxYES | wxYES_DEFAULT | wxCANCEL | wxCENTRE);
             if (msg_wingow.ShowModal() == wxID_YES) {
                 Close();
                 GetParent()->RemoveChild(this);
-                wxGetApp().recreate_GUI(_L("Enable  opengl multi instance rendering"));
+                wxGetApp().recreate_GUI(_L("Enable opengl multi instance rendering"));
             } else {
                 checkbox->SetValue(!checkbox->GetValue());
                 app_config->set_bool(param, checkbox->GetValue());

@@ -2,12 +2,12 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: 1.9.7.52 Public Official\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-14 12:25+0800\n"
+"POT-Creation-Date: 2024-11-14 16:56+0800\n"
 "PO-Revision-Date: 2024-09-27 23:58+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -15,8 +15,8 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
 "X-Generator: Poedit 3.4.2\n"
 
 msgid "Supports Painting"
@@ -4969,7 +4969,7 @@ msgstr "Отмена печати"
 msgid "Are you sure to stop printing?"
 msgstr ""
 
-msgid "Unknow error."
+msgid "Unknown error."
 msgstr ""
 
 msgid "Downloading..."
@@ -6189,6 +6189,12 @@ msgstr ""
 msgid "Enable LOD"
 msgstr ""
 
+msgid "Change opengl multi instance rendering requires application restart."
+msgstr ""
+
+msgid "Enable opengl multi instance rendering"
+msgstr ""
+
 msgid "Browse"
 msgstr "Обзор"
 
@@ -6327,6 +6333,14 @@ msgstr ""
 msgid ""
 "Improved rendering performance under the scene of multiple plates and many "
 "models."
+msgstr ""
+
+msgid "enable multi instance rendering by opengl"
+msgstr ""
+
+msgid ""
+"If enabled, it can improve certain rendering performance. But for some "
+"graphics cards, it may not be applicable, please turn it off."
 msgstr ""
 
 msgid "Grabber scale"
@@ -7002,9 +7016,8 @@ msgstr ""
 "недавно меняли сопло, перейдите в раздел Принтер > Части принтера, чтобы "
 "изменить настройки."
 
-msgid ""
-"Printing high temperature material(%1 material) with %2 may cause nozzle "
-"damage"
+#, c-format, boost-format
+msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
 msgstr ""
 
 msgid "Please fix the error above, otherwise printing cannot continue."
@@ -7325,8 +7338,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "При записи таймлапса без видимости головы рекомендуется добавить «Черновая "
 "башня таймлапса». \n"
@@ -11985,8 +11998,8 @@ msgstr "Результат калибровки может быть визуал
 msgid "Auto-Calibration"
 msgstr "Автокалибровка"
 
-msgid "We would use Lidar to read the calibration result"
-msgstr "Для считывания результата калибровки будет использоваться лидар."
+msgid "The printer will automatically read the calibration results."
+msgstr ""
 
 msgid "Prev"
 msgstr "Назад"
@@ -12964,8 +12977,8 @@ msgstr ""
 "Хотите перезаписать его?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "Мы переименуем профиль в \"Производитель Тип Серия @выбранный принтер\".\n"
@@ -14329,6 +14342,9 @@ msgstr ""
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как "
 "ABS, повышение температуры подогреваемого стола может снизить эту "
 "вероятность?"
+
+#~ msgid "We would use Lidar to read the calibration result"
+#~ msgstr "Для считывания результата калибровки будет использоваться лидар."
 
 #~ msgid "Are you sure you want to cancel this print?"
 #~ msgstr "Вы уверены, что хотите отменить эту печать?"
