@@ -7081,7 +7081,8 @@ void GLCanvas3D::_render_bed_for_picking(bool bottom)
 
 void GLCanvas3D::_render_platelist(bool bottom, bool only_current, bool only_body, int hover_id, bool render_cali, bool show_grid) const
 {
-    wxGetApp().plater()->get_partplate_list().render(bottom, only_current, only_body, hover_id, render_cali, show_grid);
+    wxGetApp().plater()->get_partplate_list().render(bottom, only_current, only_body, hover_id, render_cali, show_grid,
+                                                     wxGetApp().app_config->get_bool("enable_opengl_multi_instance"));
 }
 
 void GLCanvas3D::_render_plates_for_picking() const
