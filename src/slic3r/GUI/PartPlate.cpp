@@ -4682,15 +4682,19 @@ void PartPlateList::postprocess_arrange_polygon(arrangement::ArrangePolygon& arr
 }
 
 /*rendering related functions*/
-void PartPlateList::render_instance(bool bottom, bool only_current, bool only_body, bool force_background_color, int hover_id, bool show_grid)
+void PartPlateList::render_instance(bool bottom, bool only_current, bool only_body, bool force_background_color, int hover_id, bool show_grid, bool enable_multi_instance)
 {
-    if (m_update_plate_mats_vbo) {
-		m_update_plate_mats_vbo = false;
-        GLModel::create_or_update_mats_vbo(m_plate_mats_vbo, m_plate_trans);
-	}
-    if (m_update_unselected_plate_mats_vbo) {
-        m_update_unselected_plate_mats_vbo = false;
-        GLModel::create_or_update_mats_vbo(m_unselected_plate_mats_vbo, m_unselected_plate_trans);
+    if (enable_multi_instance) {
+        if (!only_current) {
+            if (m_update_plate_mats_vbo) {
+                m_update_plate_mats_vbo = false;
+                GLModel::create_or_update_mats_vbo(m_plate_mats_vbo, m_plate_trans);
+            }
+            if (m_update_unselected_plate_mats_vbo) {
+                m_update_unselected_plate_mats_vbo = false;
+                GLModel::create_or_update_mats_vbo(m_unselected_plate_mats_vbo, m_unselected_plate_trans);
+            }
+        }
     }
 
     const Camera &camera   = wxGetApp().plater()->get_camera();
@@ -4699,34 +4703,49 @@ void PartPlateList::render_instance(bool bottom, bool only_current, bool only_bo
     {
        auto cur_shader = wxGetApp().get_current_shader();
         if (cur_shader) {
-			cur_shader->stop_using();
-		}
+            cur_shader->stop_using();
+        }
+       GLShaderProgram *shader = wxGetApp().get_shader("flat");
        {//for selected
-            GLShaderProgram *shader = wxGetApp().get_shader("flat");
             shader->start_using();
             shader->set_uniform("view_model_matrix", view_mat * m_plate_trans[m_current_plate].get_matrix());
             shader->set_uniform("projection_matrix", proj_mat);
             if (!bottom) { // draw background
                 render_exclude_area(force_background_color); // for selected_plate
             }
-			if (show_grid)
-				render_grid(bottom); // for selected_plate
-
-            shader->stop_using();
-
-		}
+            if (show_grid)
+                render_grid(bottom); // for selected_plate
+        }
+       if (enable_multi_instance) {
+           shader->stop_using();
+       }
        if (!only_current) {
-			GLShaderProgram *shader = wxGetApp().get_shader("flat_instance");
-			shader->start_using();
-			auto res =shader->set_uniform("view_matrix", view_mat);
-			res      = shader->set_uniform("projection_matrix", proj_mat);
-			if (!bottom) {// draw background
-				render_instance_background(force_background_color);//for unselected_plate
-				render_instance_exclude_area(force_background_color);//for unselected_plate
-			}
-			render_instance_grid(bottom);//for unselected_plate
+           if (enable_multi_instance) {
+                GLShaderProgram *shader = wxGetApp().get_shader("flat_instance");
+                shader->start_using();
+                auto res = shader->set_uniform("view_matrix", view_mat);
+                res      = shader->set_uniform("projection_matrix", proj_mat);
+                if (!bottom) {                                            // draw background
+                    render_instance_background(force_background_color);   // for unselected_plate
+                    render_instance_exclude_area(force_background_color); // for unselected_plate
+                }
+                render_instance_grid(bottom); // for unselected_plate
 
-			shader->stop_using();
+                shader->stop_using();
+            }
+            else {
+                for (size_t i = 0; i < m_unselected_plate_trans.size(); i++) {
+                    shader->set_uniform("view_model_matrix", view_mat * m_unselected_plate_trans[i].get_matrix());
+                    if (!bottom) {                                            // draw background
+                        render_unselected_background(force_background_color);   // for unselected_plate
+                        render_unselected_exclude_area(force_background_color); // for unselected_plate
+                    }
+                    render_unselected_grid(bottom); // for unselected_plate
+                }
+            }
+       }
+       if (!enable_multi_instance) {
+          shader->stop_using();
        }
     }
 
@@ -4769,6 +4788,22 @@ void PartPlateList::render_instance_grid(bool bottom)
     m_gridlines_bolder.render_geometry_instance(m_unselected_plate_mats_vbo, m_unselected_plate_trans.size());
 }
 
+void PartPlateList::render_unselected_grid(bool bottom)
+{
+    glsafe(::glLineWidth(1.0f * m_scale_factor));
+    ColorRGBA color;
+    if (bottom)
+        color = PartPlate::LINE_BOTTOM_COLOR;
+    else {
+        color = m_is_dark ? PartPlate::LINE_TOP_DARK_COLOR : PartPlate::LINE_TOP_COLOR;
+    }
+    m_gridlines.set_color(color);
+    m_gridlines.render_geometry();
+    glsafe(::glLineWidth(2.0f * m_scale_factor));
+    m_gridlines_bolder.set_color(color);
+    m_gridlines_bolder.render_geometry();
+}
+
 void PartPlateList::render_instance_background(bool force_default_color)
 {
     if (m_unselected_plate_trans.size() == 0) { return; }
@@ -4781,6 +4816,19 @@ void PartPlateList::render_instance_background(bool force_default_color)
     }
     m_triangles.set_color(color);
     m_triangles.render_geometry_instance(m_unselected_plate_mats_vbo, m_unselected_plate_trans.size());
+}
+
+void PartPlateList::render_unselected_background(bool force_default_color)
+{
+    // draw background
+    ColorRGBA color;
+    if (!force_default_color) {
+        color = m_is_dark ? PartPlate::UNSELECT_DARK_COLOR : PartPlate::UNSELECT_COLOR;
+    } else {
+        color = PartPlate::DEFAULT_COLOR;
+    }
+    m_triangles.set_color(color);
+    m_triangles.render_geometry();
 }
 
 void PartPlateList::render_exclude_area(bool force_default_color)
@@ -4804,8 +4852,18 @@ void PartPlateList::render_instance_exclude_area(bool force_default_color)
     m_exclude_triangles.render_geometry_instance(m_unselected_plate_mats_vbo, m_unselected_plate_trans.size());
 }
 
+void PartPlateList::render_unselected_exclude_area(bool force_default_color)
+{
+    if (force_default_color || !m_exclude_triangles.is_initialized()) // for thumbnail case
+        return;
+    ColorRGBA unselect_color{0.9f, 0.9f, 0.9f, 1.0f};
+    // draw exclude area
+    m_exclude_triangles.set_color(unselect_color);
+    m_exclude_triangles.render_geometry();
+}
+
 //render
-void PartPlateList::render(bool bottom, bool only_current, bool only_body, int hover_id, bool render_cali, bool show_grid)
+void PartPlateList::render(bool bottom, bool only_current, bool only_body, int hover_id, bool render_cali, bool show_grid, bool enable_multi_instance)
 {
 	const std::lock_guard<std::mutex> local_lock(m_plates_mutex);
 	std::vector<PartPlate*>::iterator it = m_plate_list.begin();
@@ -4829,7 +4887,7 @@ void PartPlateList::render(bool bottom, bool only_current, bool only_body, int h
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
     glsafe(::glDepthMask(GL_FALSE));
 
-	render_instance(bottom, only_current, only_body, false,  m_plate_hover_action, show_grid);
+	render_instance(bottom, only_current, only_body, false, m_plate_hover_action, show_grid, enable_multi_instance);
 
 	for (it = m_plate_list.begin(); it != m_plate_list.end(); it++) {
 		int current_index = (*it)->get_index();
