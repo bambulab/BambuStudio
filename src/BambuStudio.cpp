@@ -1288,6 +1288,7 @@ int CLI::run(int argc, char **argv)
     const std::vector<std::string>              &uptodate_filaments          = m_config.option<ConfigOptionStrings>("uptodate_filaments", true)->values;
     std::vector<std::string>                    downward_settings          = m_config.option<ConfigOptionStrings>("downward_settings", true)->values;
     std::vector<std::string> downward_compatible_machines;
+    std::set<std::string> downward_uncompatible_machines;
     //BBS: always use ForwardCompatibilitySubstitutionRule::Enable
     //const ForwardCompatibilitySubstitutionRule   config_substitution_rule = m_config.option<ConfigOptionEnum<ForwardCompatibilitySubstitutionRule>>("config_compatibility", true)->value;
     const ForwardCompatibilitySubstitutionRule   config_substitution_rule = ForwardCompatibilitySubstitutionRule::Enable;
@@ -3659,19 +3660,29 @@ int CLI::run(int argc, char **argv)
                 }
             }
         }
-        if (failed_count < downward_check_size)
+
+        for (int index2 = 0; index2 < downward_check_size; index2 ++)
         {
-            //has success ones
-            BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: downward_check_size %1%, failed_count %2%")%downward_check_size %failed_count;
-            for (int index2 = 0; index2 < downward_check_size; index2 ++)
-            {
-                if (downward_check_status[index2])
-                    continue;
-                printer_plate_info_t& plate_info = downward_check_printers[index2];
-                BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: found compatible printer %1%")%plate_info.printer_name;
-                downward_compatible_machines.push_back(plate_info.printer_name);
+            printer_plate_info_t& plate_info = downward_check_printers[index2];
+            if (downward_check_status[index2]) {
+                downward_uncompatible_machines.emplace(plate_info.printer_name);
+                BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: found uncompatible printer %1%")%plate_info.printer_name;
             }
-            sliced_info.downward_machines = downward_compatible_machines;
+            else {
+                downward_compatible_machines.push_back(plate_info.printer_name);
+                BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: found compatible printer %1%")%plate_info.printer_name;
+            }
+        }
+        BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: downward_check_size %1%, failed_count %2%")%downward_check_size %failed_count;
+        sliced_info.downward_machines = downward_compatible_machines;
+
+        for(std::vector<std::string>::iterator it = sliced_info.upward_machines.begin(); it != sliced_info.upward_machines.end();){
+            if(downward_uncompatible_machines.find(*it) != downward_uncompatible_machines.end()){
+                BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: remove %1% from upward compatible printers")%*it;
+                it = sliced_info.upward_machines.erase(it);
+            } else {
+                it ++;
+            }
         }
     }
 
