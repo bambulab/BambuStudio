@@ -2,12 +2,12 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: 1.9.7.52 Public Official\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-14 16:56+0800\n"
+"POT-Creation-Date: 2024-11-14 20:56+0800\n"
 "PO-Revision-Date: 2024-09-27 23:58+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -5152,19 +5152,12 @@ msgstr ""
 msgid "Step file import parameters"
 msgstr ""
 
-msgid "Rough"
+msgid ""
+"Smaller linear and angular deflections result in higher-quality "
+"transformations but increase the processing time."
 msgstr ""
 
-msgid "Reduce Linear"
-msgstr ""
-
-msgid "Reduce Angle"
-msgstr ""
-
-msgid "More faces"
-msgstr ""
-
-msgid "Fewer faces"
+msgid "See BambuLab Wiki"
 msgstr ""
 
 msgid "Linear Deflection"
@@ -10368,8 +10361,8 @@ msgstr ""
 "две ближайшие линии заполнения с коротким отрезком периметра. Если не "
 "найдено такого отрезка периметра короче этого параметра, линия заполнения "
 "соединяется с отрезком периметра только с одной стороны, а длина отрезка "
-"периметра ограничена значением «Длина привязок разреженного "
-"заполнения» (infill_anchor), но не больше этого параметра.\n"
+"периметра ограничена значением «Длина привязок разреженного заполнения» "
+"(infill_anchor), но не больше этого параметра.\n"
 "Установите 0 для отключения привязок."
 
 msgid "0 (not anchored)"
