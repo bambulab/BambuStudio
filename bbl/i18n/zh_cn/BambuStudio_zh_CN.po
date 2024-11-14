@@ -1,12 +1,12 @@
 # Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-14 16:56+0800\n"
+"POT-Creation-Date: 2024-11-14 20:56+0800\n"
 "PO-Revision-Date: 2024-03-21 10:39+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -4839,20 +4839,13 @@ msgstr "至少需要一个成功的打印记录，才能给出积极的评价（
 msgid "Step file import parameters"
 msgstr "导入step文件选项"
 
-msgid "Rough"
-msgstr "粗糙"
+msgid ""
+"Smaller linear and angular deflections result in higher-quality "
+"transformations but increase the processing time."
+msgstr "较小的线偏转值和角偏转值会产生更高质量的转换，但会增加处理时间。"
 
-msgid "Reduce Linear"
-msgstr "减少线偏转值"
-
-msgid "Reduce Angle"
-msgstr "减少角偏转值"
-
-msgid "More faces"
-msgstr "更多三角面"
-
-msgid "Fewer faces"
-msgstr "更少三角面"
+msgid "See BambuLab Wiki"
+msgstr "查看BambuLab Wiki"
 
 msgid "Linear Deflection"
 msgstr "线偏转值"
@@ -5945,7 +5938,8 @@ msgid ""
 "If enabled, it can improve certain rendering performance. But for some "
 "graphics cards, it may not be applicable, please turn it off."
 msgstr ""
-"如果启用，它可以提高一定的渲染性能。但对于某些图形卡，它可能不适用，请将其关闭。"
+"如果启用，它可以提高一定的渲染性能。但对于某些图形卡，它可能不适用，请将其关"
+"闭。"
 
 msgid "Grabber scale"
 msgstr "抓手比例"
@@ -13166,6 +13160,21 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid "Rough"
+#~ msgstr "粗糙"
+
+#~ msgid "Reduce Linear"
+#~ msgstr "减少线偏转值"
+
+#~ msgid "Reduce Angle"
+#~ msgstr "减少角偏转值"
+
+#~ msgid "More faces"
+#~ msgstr "更多三角面"
+
+#~ msgid "Fewer faces"
+#~ msgstr "更少三角面"
 
 #, c-format, boost-format
 #~ msgid ""

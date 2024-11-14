@@ -2,12 +2,12 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-14 16:56+0800\n"
+"POT-Creation-Date: 2024-11-14 20:56+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -4904,19 +4904,12 @@ msgstr ""
 msgid "Step file import parameters"
 msgstr ""
 
-msgid "Rough"
+msgid ""
+"Smaller linear and angular deflections result in higher-quality "
+"transformations but increase the processing time."
 msgstr ""
 
-msgid "Reduce Linear"
-msgstr ""
-
-msgid "Reduce Angle"
-msgstr ""
-
-msgid "More faces"
-msgstr ""
-
-msgid "Fewer faces"
+msgid "See BambuLab Wiki"
 msgstr ""
 
 msgid "Linear Deflection"
