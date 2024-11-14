@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-12 11:34+0800\n"
+"POT-Creation-Date: 2024-11-14 12:25+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4851,8 +4851,11 @@ msgstr "Cartão microSD anormal"
 msgid "Cancel print"
 msgstr "Cancelar impressão"
 
-msgid "Are you sure you want to cancel this print?"
-msgstr "Tem certeza de que deseja cancelar esta impressão?"
+msgid "Are you sure to stop printing?"
+msgstr ""
+
+msgid "Unknow error."
+msgstr ""
 
 msgid "Downloading..."
 msgstr "Baixando"
@@ -5038,10 +5041,10 @@ msgstr ""
 msgid "Reduce Angle"
 msgstr ""
 
-msgid "Fewer faces"
+msgid "More faces"
 msgstr ""
 
-msgid "More faces"
+msgid "Fewer faces"
 msgstr ""
 
 msgid "Linear Deflection"
@@ -13990,6 +13993,9 @@ msgstr ""
 "Você sabia que, ao imprimir materiais propensos a deformações, como o ABS, "
 "aumentar adequadamente a temperatura do leito térmico pode reduzir a "
 "probabilidade de deformação."
+
+#~ msgid "Are you sure you want to cancel this print?"
+#~ msgstr "Tem certeza de que deseja cancelar esta impressão?"
 
 #, c-format, boost-format
 #~ msgid ""

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-12 11:34+0800\n"
+"POT-Creation-Date: 2024-11-14 12:25+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4883,8 +4883,11 @@ msgstr "Tarjeta SD errónea"
 msgid "Cancel print"
 msgstr "Cancelar impresión"
 
-msgid "Are you sure you want to cancel this print?"
-msgstr "¿Está seguro de cancelar la impresión?"
+msgid "Are you sure to stop printing?"
+msgstr ""
+
+msgid "Unknow error."
+msgstr ""
 
 msgid "Downloading..."
 msgstr "Descargando…"
@@ -5072,10 +5075,10 @@ msgstr ""
 msgid "Reduce Angle"
 msgstr ""
 
-msgid "Fewer faces"
+msgid "More faces"
 msgstr ""
 
-msgid "More faces"
+msgid "Fewer faces"
 msgstr ""
 
 msgid "Linear Deflection"
@@ -14097,6 +14100,9 @@ msgstr ""
 "¿Sabías que al imprimir materiales propensos al alabeo, como el ABS, "
 "aumentar adecuadamente la temperatura del lecho térmico puede reducir la "
 "probabilidad de alabeo?"
+
+#~ msgid "Are you sure you want to cancel this print?"
+#~ msgstr "¿Está seguro de cancelar la impresión?"
 
 #, c-format, boost-format
 #~ msgid ""

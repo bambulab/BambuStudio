@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-12 11:34+0800\n"
+"POT-Creation-Date: 2024-11-14 12:25+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4873,8 +4873,11 @@ msgstr "Błąd karty MicroSD"
 msgid "Cancel print"
 msgstr "Anuluj drukowanie"
 
-msgid "Are you sure you want to cancel this print?"
-msgstr "Czy na pewno chcesz anulować to drukowanie?"
+msgid "Are you sure to stop printing?"
+msgstr ""
+
+msgid "Unknow error."
+msgstr ""
 
 msgid "Downloading..."
 msgstr "Pobieranie..."
@@ -5060,10 +5063,10 @@ msgstr ""
 msgid "Reduce Angle"
 msgstr ""
 
-msgid "Fewer faces"
+msgid "More faces"
 msgstr ""
 
-msgid "More faces"
+msgid "Fewer faces"
 msgstr ""
 
 msgid "Linear Deflection"
@@ -14022,6 +14025,9 @@ msgstr ""
 "Czy wiesz, że podczas drukowania materiałów podatnych na wypaczanie, takich "
 "jak ABS, odpowiednie zwiększenie temperatury stołu grzejnego może zmniejszyć "
 "prawdopodobieństwo wypaczania."
+
+#~ msgid "Are you sure you want to cancel this print?"
+#~ msgstr "Czy na pewno chcesz anulować to drukowanie?"
 
 #, c-format, boost-format
 #~ msgid ""
