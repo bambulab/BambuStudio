@@ -2,12 +2,12 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-25 21:39+0800\n"
+"POT-Creation-Date: 2024-11-12 11:34+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -827,6 +827,9 @@ msgstr ""
 msgid "Warning:create text fail."
 msgstr ""
 
+msgid "Warning:text normal is error."
+msgstr ""
+
 msgid "Surface"
 msgstr "Povrch"
 
@@ -845,7 +848,7 @@ msgstr ""
 msgid "Remove selected points"
 msgstr ""
 
-msgid "Remove all points"
+msgid "Remove all"
 msgstr ""
 
 msgid "Auto-generate points"
@@ -868,7 +871,7 @@ msgid ""
 "effect !"
 msgstr ""
 
-msgid "(Set the brim type to \"painted\")"
+msgid "Set the brim type to \"painted\""
 msgstr ""
 
 msgid " invalid brim ears"
@@ -2021,9 +2024,6 @@ msgstr "OK"
 
 msgid "Jump to Layer"
 msgstr "Přejít na vrstvu"
-
-msgid "Jump to layer"
-msgstr "Přeskočit do vrstvy"
 
 msgid "Please enter the layer number"
 msgstr "Zadejte prosím číslo vrstvy"
@@ -3794,6 +3794,10 @@ msgstr ""
 "Prosím, vyřešte problém tím, že jej úplně přesunete na podložku nebo mimo ní "
 "a potvrďte, že výška je v rámci objemu stavby."
 
+#, c-format, boost-format
+msgid "filaments %s cannot be printed directly on the surface of this plate."
+msgstr ""
+
 msgid "Calibration step selection"
 msgstr "Výběr kroku kalibrace"
 
@@ -4930,6 +4934,9 @@ msgstr ""
 msgid "0"
 msgstr "0"
 
+msgid "Don't show again"
+msgstr "Znovu Nezobrazovat"
+
 msgid "Calculating, please wait..."
 msgstr ""
 
@@ -4938,9 +4945,6 @@ msgstr "Stav"
 
 msgid "Update"
 msgstr "Aktualizovat"
-
-msgid "Don't show again"
-msgstr "Znovu Nezobrazovat"
 
 #, c-format, boost-format
 msgid "%s error"
@@ -5129,6 +5133,9 @@ msgstr "Váš model potřebuje podpěry ! Povolte prosím podpůrný materiál."
 msgid "Gcode path overlap"
 msgstr "Překrytí cesty G-kódu"
 
+msgid "Click Wiki for help."
+msgstr ""
+
 msgid "Support painting"
 msgstr "Malování podpěr"
 
@@ -5209,13 +5216,13 @@ msgstr ""
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
 msgstr ""
 
-msgid "Nozzle Type"
+msgid "Hardened Steel"
 msgstr ""
 
 msgid "Stainless Steel"
 msgstr ""
 
-msgid "Hardened Steel"
+msgid "Nozzle Type"
 msgstr ""
 
 #, c-format, boost-format
@@ -5962,6 +5969,13 @@ msgid ""
 "same time and manage multiple devices."
 msgstr ""
 
+msgid "Show the step mesh parameter setting dialog."
+msgstr ""
+
+msgid ""
+"If enabled,a parameter settings dialog will appear during STEP file import."
+msgstr ""
+
 msgid "Support beta version update."
 msgstr ""
 
@@ -6054,6 +6068,9 @@ msgstr "Online modely"
 
 msgid "Show online staff-picked models on the home page"
 msgstr "Zobrazit online modely vybrané týmem na úvodní stránce"
+
+msgid "Show history on the home page"
+msgstr ""
 
 msgid "Maximum recent projects"
 msgstr "Maximální počet nedávných projektů"
@@ -6444,14 +6461,8 @@ msgstr "Offline"
 msgid "Busy"
 msgstr "Zaneprázdněn"
 
-msgid "Bambu Cool Plate SuperTack"
-msgstr ""
-
 msgid "Bambu Cool Plate"
 msgstr "Bambu Cool Podložka"
-
-msgid "PLA Plate"
-msgstr "PLA Podložka"
 
 msgid "Bamabu Engineering Plate"
 msgstr "Bamabu Engineering Podložka"
@@ -6463,6 +6474,9 @@ msgid "High temperature Plate"
 msgstr ""
 
 msgid "Bamabu Textured PEI Plate"
+msgstr ""
+
+msgid "Bambu Cool Plate SuperTack"
 msgstr ""
 
 msgid "Send print job to"
@@ -6626,9 +6640,8 @@ msgid ""
 "change settings."
 msgstr ""
 
-#, c-format, boost-format
 msgid ""
-"Printing high temperature material(%s material) with %s may cause nozzle "
+"Printing high temperature material(%1 material) with %2 may cause nozzle "
 "damage"
 msgstr ""
 
@@ -7066,8 +7079,8 @@ msgid ""
 "does not support to print on the Bambu Cool Plate SuperTack"
 msgstr ""
 
-msgid "Cool Plate / PLA Plate"
-msgstr "Cool Podložka / PLA Podložka"
+msgid "Cool Plate"
+msgstr ""
 
 msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
@@ -7880,25 +7893,27 @@ msgid "Connect the printer using IP and access code"
 msgstr ""
 
 msgid ""
-"Step 1, please confirm Bambu Studio and your printer are in the same LAN."
+"Step 1. Please confirm Bambu Studio and your printer are in the same LAN."
 msgstr ""
-"Krok 1, potvrďte, že Bambu Studio a vaše tiskárna jsou ve stejné síti LAN."
 
 msgid ""
-"Step 2, if the IP and Access Code below are different from the actual values "
+"Step 2. If the IP and Access Code below are different from the actual values "
 "on your printer, please correct them."
 msgstr ""
-"Krok 2, pokud se IP a přístupový kód níže liší od skutečných hodnot na "
-"tiskárně, opravte je."
+
+msgid ""
+"Step 3. Please obtain the device SN from the printer side; it is usually "
+"found in the device information on the printer screen."
+msgstr ""
 
 msgid "Access Code"
 msgstr "Přístupový kód"
 
+msgid "Printer model"
+msgstr ""
+
 msgid "Where to find your printer's IP and Access Code?"
 msgstr "Kde najít IP a přístupový kód vaší tiskárny?"
-
-msgid "Step 3: Ping the IP address to check for packet loss and latency."
-msgstr ""
 
 msgid "Connect"
 msgstr ""
@@ -7910,9 +7925,6 @@ msgid "Failed to connect to printer."
 msgstr ""
 
 msgid "Failed to publish login request."
-msgstr ""
-
-msgid "The device does not support using IP and Access Code for connection."
 msgstr ""
 
 msgid "The printer has already been bound."
@@ -8088,8 +8100,19 @@ msgstr ""
 "Nepodařilo se vygenerovat G-kód pro neplatný vlastní G-kód.\n"
 "\n"
 
-msgid "Please check the custom G-code or use the default custom G-code."
-msgstr "Zkontrolujte prosím vlastní G-kód nebo použijte výchozí vlastní G-kód."
+msgid "Please check the custom G-code or use the default custom G-code.\n"
+msgstr ""
+
+msgid ""
+"You can find them from 'Printer settings' -> 'Machine G-code' and 'Filament "
+"settings' -> 'Advanced'."
+msgstr ""
+
+msgid "You can find it from 'Printer settings' -> 'Machine G-code'."
+msgstr ""
+
+msgid "You can find it from 'Filament settings' -> 'Advanced'."
+msgstr ""
 
 #, boost-format
 msgid "Generating G-code: layer %1%"
@@ -9063,12 +9086,13 @@ msgstr ""
 "Vzdálenost hrotu trysky k víčku. Používá se pro zamezení kolizi při tisku "
 "vedlejších objektů."
 
-msgid ""
-"Clearance radius around extruder. Used for collision avoidance in by-object "
-"printing."
+msgid "Distance to rod"
 msgstr ""
-"Poloměr vůle kolem extruderu. Používá se pro zamezení kolizi při tisku "
-"vedlejších objektů."
+
+msgid ""
+"Horizontal distance of the nozzle tip to the rod's farther edge. Used for "
+"collision avoidance in by-object printing."
+msgstr ""
 
 msgid "Nozzle height"
 msgstr ""
@@ -10245,7 +10269,7 @@ msgstr ""
 "Tato hodnota je vyjádřena jako procento průměru aktuální trysky. Výchozí "
 "hodnota tohoto parametru je 15"
 
-msgid "Conditional scarf joint"
+msgid "Smart scarf seam application"
 msgstr ""
 
 msgid ""
@@ -10253,7 +10277,7 @@ msgid ""
 "conceal the seams at sharp corners effectively."
 msgstr ""
 
-msgid "Conditional angle threshold"
+msgid "Scarf application angle threshold"
 msgstr ""
 
 msgid ""
@@ -10296,7 +10320,7 @@ msgstr ""
 "vypočítána na základě výše nastavené rychlosti jízdy. Výchozí hodnota pro "
 "tento parametr je 80%"
 
-msgid "Role base wipe speed"
+msgid "Role-based wipe speed"
 msgstr ""
 
 msgid ""
@@ -11123,17 +11147,17 @@ msgstr ""
 "natřený.\n"
 "Korekci velikosti XY nelze kombinovat s barevnou malbou."
 
-msgid ""
-"Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
-msgstr ""
-"Neznámý formát souboru. Vstupní soubor musí mít příponu .stl, .obj nebo ."
-"amf(.xml)"
-
 msgid "Loading of a model file failed."
 msgstr "Nahrávání souboru modelu selhalo."
 
 msgid "The supplied file couldn't be read because it's empty"
 msgstr "Nahraný soubor nemohl být načten, protože je prázdný"
+
+msgid ""
+"Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
+msgstr ""
+"Neznámý formát souboru. Vstupní soubor musí mít příponu .stl, .obj nebo ."
+"amf(.xml)"
 
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
@@ -11592,11 +11616,41 @@ msgid "Method"
 msgstr "Metoda"
 
 #, c-format, boost-format
+msgid ""
+"Tip: Using a %.1fmm nozzle for auto dynamic flow calibration may have a high "
+"probability of failure.\n"
+"If it fails, it is recommended to use manual calibration."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Tip: Using a %.1fmm nozzle for auto dynamic flow calibration may not get "
+"accurate calibration results.\n"
+"It is recommended to use manual calibration."
+msgstr ""
+
+#, c-format, boost-format
 msgid "%s is not compatible with %s"
 msgstr "%s není kompatibilní s %s"
 
 msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
 msgstr "TPU není podporováno pro automatickou kalibraci dynamiky průtoku."
+
+#, c-format, boost-format
+msgid ""
+"Tip: Calibrating foam filaments(%s) in X series printers may not get "
+"accurate results\n"
+"because their dynamic response is much different from that of ordinary "
+"filaments, and there is a high risk of oozing when printing calibration "
+"lines."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Tip: When using the A1/A1 mini printer, we do not recommend calibrating foam "
+"filaments(%s),\n"
+"as the results may be unstable and affect print quality."
+msgstr ""
 
 msgid "Connecting to printer"
 msgstr "Připojování k tiskárně"
@@ -13216,6 +13270,38 @@ msgid ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
 msgstr ""
+
+#~ msgid "Jump to layer"
+#~ msgstr "Přeskočit do vrstvy"
+
+#~ msgid "PLA Plate"
+#~ msgstr "PLA Podložka"
+
+#~ msgid "Cool Plate / PLA Plate"
+#~ msgstr "Cool Podložka / PLA Podložka"
+
+#~ msgid ""
+#~ "Step 1, please confirm Bambu Studio and your printer are in the same LAN."
+#~ msgstr ""
+#~ "Krok 1, potvrďte, že Bambu Studio a vaše tiskárna jsou ve stejné síti LAN."
+
+#~ msgid ""
+#~ "Step 2, if the IP and Access Code below are different from the actual "
+#~ "values on your printer, please correct them."
+#~ msgstr ""
+#~ "Krok 2, pokud se IP a přístupový kód níže liší od skutečných hodnot na "
+#~ "tiskárně, opravte je."
+
+#~ msgid "Please check the custom G-code or use the default custom G-code."
+#~ msgstr ""
+#~ "Zkontrolujte prosím vlastní G-kód nebo použijte výchozí vlastní G-kód."
+
+#~ msgid ""
+#~ "Clearance radius around extruder. Used for collision avoidance in by-"
+#~ "object printing."
+#~ msgstr ""
+#~ "Poloměr vůle kolem extruderu. Používá se pro zamezení kolizi při tisku "
+#~ "vedlejších objektů."
 
 #~ msgid "Tree support branch angle"
 #~ msgstr "Úhel větve podpěr stromu"

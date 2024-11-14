@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-25 21:39+0800\n"
+"POT-Creation-Date: 2024-11-12 11:34+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -839,6 +839,9 @@ msgstr ""
 msgid "Warning:create text fail."
 msgstr ""
 
+msgid "Warning:text normal is error."
+msgstr ""
+
 msgid "Surface"
 msgstr "Superficie"
 
@@ -857,7 +860,7 @@ msgstr ""
 msgid "Remove selected points"
 msgstr ""
 
-msgid "Remove all points"
+msgid "Remove all"
 msgstr ""
 
 msgid "Auto-generate points"
@@ -880,7 +883,7 @@ msgid ""
 "effect !"
 msgstr ""
 
-msgid "(Set the brim type to \"painted\")"
+msgid "Set the brim type to \"painted\""
 msgstr ""
 
 msgid " invalid brim ears"
@@ -2054,9 +2057,6 @@ msgid "OK"
 msgstr "Ok"
 
 msgid "Jump to Layer"
-msgstr "Vai al layer"
-
-msgid "Jump to layer"
 msgstr "Vai al layer"
 
 msgid "Please enter the layer number"
@@ -3912,6 +3912,10 @@ msgstr ""
 "altezza. Risolvi il problema spostandolo completamente sopra o fuori dalla "
 "piastra e verificando che l altezza rientri nel volume di costruzione."
 
+#, c-format, boost-format
+msgid "filaments %s cannot be printed directly on the surface of this plate."
+msgstr ""
+
 msgid "Calibration step selection"
 msgstr "Seleziona calibrazione"
 
@@ -5072,6 +5076,9 @@ msgstr ""
 msgid "0"
 msgstr "0"
 
+msgid "Don't show again"
+msgstr "Non mostrare più"
+
 msgid "Calculating, please wait..."
 msgstr ""
 
@@ -5080,9 +5087,6 @@ msgstr "Stato"
 
 msgid "Update"
 msgstr "Aggiorna"
-
-msgid "Don't show again"
-msgstr "Non mostrare più"
 
 #, c-format, boost-format
 msgid "%s error"
@@ -5273,6 +5277,9 @@ msgstr "Il modello necessita di supporti! Abilita i materiali di supporto."
 msgid "Gcode path overlap"
 msgstr "Sovrapposizione percorso G-code"
 
+msgid "Click Wiki for help."
+msgstr ""
+
 msgid "Support painting"
 msgstr "Pittura Supporti"
 
@@ -5354,14 +5361,14 @@ msgstr "Nozzle Clumping Detection"
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
 msgstr "Check if the nozzle is clumping by filament or other foreign objects."
 
-msgid "Nozzle Type"
-msgstr "Nozzle Type"
+msgid "Hardened Steel"
+msgstr "Acciaio temprato"
 
 msgid "Stainless Steel"
 msgstr "Acciaio inox"
 
-msgid "Hardened Steel"
-msgstr "Acciaio temprato"
+msgid "Nozzle Type"
+msgstr "Nozzle Type"
 
 #, c-format, boost-format
 msgid "%.1f"
@@ -6146,6 +6153,13 @@ msgstr ""
 "With this option enabled, you can send a task to multiple devices at the "
 "same time and manage multiple devices."
 
+msgid "Show the step mesh parameter setting dialog."
+msgstr ""
+
+msgid ""
+"If enabled,a parameter settings dialog will appear during STEP file import."
+msgstr ""
+
 msgid "Support beta version update."
 msgstr ""
 
@@ -6243,6 +6257,9 @@ msgstr "Modelli Online"
 
 msgid "Show online staff-picked models on the home page"
 msgstr "Mostra i modelli online selezionati dallo staff  nella home page"
+
+msgid "Show history on the home page"
+msgstr ""
 
 msgid "Maximum recent projects"
 msgstr "Numero massimo di progetti recenti"
@@ -6634,14 +6651,8 @@ msgstr "Off-line"
 msgid "Busy"
 msgstr "Occupato"
 
-msgid "Bambu Cool Plate SuperTack"
-msgstr ""
-
 msgid "Bambu Cool Plate"
 msgstr "Bambu Cool Plate"
-
-msgid "PLA Plate"
-msgstr "PLA Plate"
 
 msgid "Bamabu Engineering Plate"
 msgstr "Bambu Engineering Plate"
@@ -6654,6 +6665,9 @@ msgstr "High temperature Plate"
 
 msgid "Bamabu Textured PEI Plate"
 msgstr "Bambu Textured PEI Plate"
+
+msgid "Bambu Cool Plate SuperTack"
+msgstr ""
 
 msgid "Send print job to"
 msgstr "Invia stampa a"
@@ -6831,13 +6845,10 @@ msgstr ""
 "If you changed your nozzle lately, please go to Device > Printer Parts to "
 "change settings."
 
-#, c-format, boost-format
 msgid ""
-"Printing high temperature material(%s material) with %s may cause nozzle "
+"Printing high temperature material(%1 material) with %2 may cause nozzle "
 "damage"
 msgstr ""
-"Printing high temperature material(%s material) with %s may cause nozzle "
-"damage"
 
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr "Please fix the error above, otherwise printing cannot continue."
@@ -7305,8 +7316,8 @@ msgid ""
 "does not support to print on the Bambu Cool Plate SuperTack"
 msgstr ""
 
-msgid "Cool Plate / PLA Plate"
-msgstr "Cool Plate / PLA Plate"
+msgid "Cool Plate"
+msgstr "Cool Plate"
 
 msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
@@ -8159,27 +8170,27 @@ msgid "Connect the printer using IP and access code"
 msgstr ""
 
 msgid ""
-"Step 1, please confirm Bambu Studio and your printer are in the same LAN."
+"Step 1. Please confirm Bambu Studio and your printer are in the same LAN."
 msgstr ""
-"Step 1, conferma che Bambu Studio e la tua stampante siano nella stessa LAN."
 
 msgid ""
-"Step 2, if the IP and Access Code below are different from the actual values "
+"Step 2. If the IP and Access Code below are different from the actual values "
 "on your printer, please correct them."
 msgstr ""
-"Step 2, se l'IP e il codice di accesso riportati di seguito sono diversi dai "
-"valori effettivi sulla stampante, correggili."
+
+msgid ""
+"Step 3. Please obtain the device SN from the printer side; it is usually "
+"found in the device information on the printer screen."
+msgstr ""
 
 msgid "Access Code"
 msgstr "Codice di accesso"
 
+msgid "Printer model"
+msgstr ""
+
 msgid "Where to find your printer's IP and Access Code?"
 msgstr "Dove trovo l'IP e il codice accesso della stampante?"
-
-msgid "Step 3: Ping the IP address to check for packet loss and latency."
-msgstr ""
-"Step 3: eseguire il ping dell'indirizzo IP per verificare la perdita di "
-"pacchetti e latenza."
 
 msgid "Connect"
 msgstr ""
@@ -8191,9 +8202,6 @@ msgid "Failed to connect to printer."
 msgstr ""
 
 msgid "Failed to publish login request."
-msgstr ""
-
-msgid "The device does not support using IP and Access Code for connection."
 msgstr ""
 
 msgid "The printer has already been bound."
@@ -8377,10 +8385,19 @@ msgstr ""
 "Impossibile generare il G-code per G-code personalizzato non valido.\n"
 "\n"
 
-msgid "Please check the custom G-code or use the default custom G-code."
+msgid "Please check the custom G-code or use the default custom G-code.\n"
 msgstr ""
-"Controlla il G-code personalizzato o utilizza il G-code personalizzato "
-"predefinito."
+
+msgid ""
+"You can find them from 'Printer settings' -> 'Machine G-code' and 'Filament "
+"settings' -> 'Advanced'."
+msgstr ""
+
+msgid "You can find it from 'Printer settings' -> 'Machine G-code'."
+msgstr ""
+
+msgid "You can find it from 'Filament settings' -> 'Advanced'."
+msgstr ""
 
 #, boost-format
 msgid "Generating G-code: layer %1%"
@@ -9436,12 +9453,13 @@ msgstr ""
 "Distanza dalla punta del nozzle al coperchio. Utilizzato per evitare le "
 "collisioni nella stampa oggetto per oggetto."
 
-msgid ""
-"Clearance radius around extruder. Used for collision avoidance in by-object "
-"printing."
+msgid "Distance to rod"
 msgstr ""
-"Raggio di sicurezza attorno all'estrusore: utilizzato per evitare collisioni "
-"nella stampa per oggetto."
+
+msgid ""
+"Horizontal distance of the nozzle tip to the rod's farther edge. Used for "
+"collision avoidance in by-object printing."
+msgstr ""
 
 msgid "Nozzle height"
 msgstr "Altezza nozzle"
@@ -10707,8 +10725,8 @@ msgstr ""
 "Questa quantità è espressa in percentuale del diametro attuale "
 "dell'estrusore. Il valore predefinito per questo parametro è 15"
 
-msgid "Conditional scarf joint"
-msgstr "Conditional scarf joint"
+msgid "Smart scarf seam application"
+msgstr ""
 
 msgid ""
 "Apply scarf joints only to smooth perimeters where traditional seams do not "
@@ -10717,8 +10735,8 @@ msgstr ""
 "Apply scarf joints only to smooth perimeters where traditional seams do not "
 "conceal the seams at sharp corners effectively."
 
-msgid "Conditional angle threshold"
-msgstr "Conditional angle threshold"
+msgid "Scarf application angle threshold"
+msgstr ""
 
 msgid ""
 "This option sets the threshold angle for applying a conditional scarf joint "
@@ -10765,7 +10783,7 @@ msgstr ""
 "(ad es. 80%), sarà calcolato in base all'impostazione di spostamento di cui "
 "sopra. Il valore predefinito per questo parametro è 80%."
 
-msgid "Role base wipe speed"
+msgid "Role-based wipe speed"
 msgstr ""
 
 msgid ""
@@ -11649,17 +11667,17 @@ msgstr ""
 "La compensazione delle dimensioni XY non può essere combinata con la "
 "colorazione."
 
-msgid ""
-"Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
-msgstr ""
-"Formato file sconosciuto. Il file di input deve avere estensione .stl, ."
-"obj, .amf(.xml)."
-
 msgid "Loading of a model file failed."
 msgstr "Caricamento file del modello non riuscito."
 
 msgid "The supplied file couldn't be read because it's empty"
 msgstr "Impossibile leggere il file fornito perché è vuoto."
+
+msgid ""
+"Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
+msgstr ""
+"Formato file sconosciuto. Il file di input deve avere estensione .stl, ."
+"obj, .amf(.xml)."
 
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
@@ -12147,11 +12165,41 @@ msgid "Method"
 msgstr "Metodo"
 
 #, c-format, boost-format
+msgid ""
+"Tip: Using a %.1fmm nozzle for auto dynamic flow calibration may have a high "
+"probability of failure.\n"
+"If it fails, it is recommended to use manual calibration."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Tip: Using a %.1fmm nozzle for auto dynamic flow calibration may not get "
+"accurate calibration results.\n"
+"It is recommended to use manual calibration."
+msgstr ""
+
+#, c-format, boost-format
 msgid "%s is not compatible with %s"
 msgstr "%s non è compatibile con %s"
 
 msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
 msgstr "La calibrazione automatica del Flusso Dinamico non supporta il TPU."
+
+#, c-format, boost-format
+msgid ""
+"Tip: Calibrating foam filaments(%s) in X series printers may not get "
+"accurate results\n"
+"because their dynamic response is much different from that of ordinary "
+"filaments, and there is a high risk of oozing when printing calibration "
+"lines."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Tip: When using the A1/A1 mini printer, we do not recommend calibrating foam "
+"filaments(%s),\n"
+"as the results may be unstable and affect print quality."
+msgstr ""
 
 msgid "Connecting to printer"
 msgstr "Connessione alla stampante"
@@ -13976,6 +14024,59 @@ msgstr ""
 "aumentare adeguatamente la temperatura del piano può ridurre la probabilità "
 "di deformazione."
 
+#, c-format, boost-format
+#~ msgid ""
+#~ "Printing high temperature material(%s material) with %s may cause nozzle "
+#~ "damage"
+#~ msgstr ""
+#~ "Printing high temperature material(%s material) with %s may cause nozzle "
+#~ "damage"
+
+#~ msgid "Conditional scarf joint"
+#~ msgstr "Conditional scarf joint"
+
+#~ msgid "Conditional angle threshold"
+#~ msgstr "Conditional angle threshold"
+
+#~ msgid "Jump to layer"
+#~ msgstr "Vai al layer"
+
+#~ msgid "PLA Plate"
+#~ msgstr "PLA Plate"
+
+#~ msgid "Cool Plate / PLA Plate"
+#~ msgstr "Cool Plate / PLA Plate"
+
+#~ msgid ""
+#~ "Step 1, please confirm Bambu Studio and your printer are in the same LAN."
+#~ msgstr ""
+#~ "Step 1, conferma che Bambu Studio e la tua stampante siano nella stessa "
+#~ "LAN."
+
+#~ msgid ""
+#~ "Step 2, if the IP and Access Code below are different from the actual "
+#~ "values on your printer, please correct them."
+#~ msgstr ""
+#~ "Step 2, se l'IP e il codice di accesso riportati di seguito sono diversi "
+#~ "dai valori effettivi sulla stampante, correggili."
+
+#~ msgid "Step 3: Ping the IP address to check for packet loss and latency."
+#~ msgstr ""
+#~ "Step 3: eseguire il ping dell'indirizzo IP per verificare la perdita di "
+#~ "pacchetti e latenza."
+
+#~ msgid "Please check the custom G-code or use the default custom G-code."
+#~ msgstr ""
+#~ "Controlla il G-code personalizzato o utilizza il G-code personalizzato "
+#~ "predefinito."
+
+#~ msgid ""
+#~ "Clearance radius around extruder. Used for collision avoidance in by-"
+#~ "object printing."
+#~ msgstr ""
+#~ "Raggio di sicurezza attorno all'estrusore: utilizzato per evitare "
+#~ "collisioni nella stampa per oggetto."
+
 #~ msgid "Tree support branch angle"
 #~ msgstr "Angolo ramo supporti ad albero"
 
@@ -14617,9 +14718,6 @@ msgstr ""
 
 #~ msgid "Convert the units of model"
 #~ msgstr "Converti le unità del modello"
-
-#~ msgid "Cool Plate"
-#~ msgstr "Cool Plate"
 
 #~ msgid "Cool plate"
 #~ msgstr "Cool Plate"

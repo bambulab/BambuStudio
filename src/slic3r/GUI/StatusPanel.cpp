@@ -1585,7 +1585,10 @@ void StatusBasePanel::show_ams_group(bool show)
         if (m_show_ams_group != show) { Fit(); }
         m_show_ams_group = show;
         m_show_ams_group_reset = false;
+        m_ams_control->Layout();
+        m_ams_control->Fit();
         Layout();
+        Fit();
     }
 }
 
@@ -2151,14 +2154,17 @@ void StatusPanel::show_error_message(MachineObject *obj, bool is_exist, wxString
     if (is_exist && msg.IsEmpty()) {
         error_info_reset();
     } else {
+        if (msg.IsEmpty()) { msg = _L("Unknow error."); }
         m_project_task_panel->show_error_msg(msg);
 
         if (!used_button.empty()) {
             BOOST_LOG_TRIVIAL(info) << "show print error! error_msg = " << msg;
-            if (m_print_error_dlg == nullptr) {
-                m_print_error_dlg = new PrintErrorDialog(this->GetParent(), wxID_ANY, _L("Error"));
+            if (m_print_error_dlg != nullptr) {
+                delete m_print_error_dlg;
+                m_print_error_dlg = nullptr;
             }
 
+            m_print_error_dlg = new PrintErrorDialog(this->GetParent(), wxID_ANY, _L("Error"));
             m_print_error_dlg->update_title_style(_L("Error"), used_button, this);
             m_print_error_dlg->update_text_image(msg, print_error_str, image_url);
             m_print_error_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, obj](wxCommandEvent& e) {
@@ -2187,10 +2193,12 @@ void StatusPanel::show_error_message(MachineObject *obj, bool is_exist, wxString
             wxString show_time = now.Format("%H%M%d");
             wxString error_code_msg = wxString::Format("%S\n[%S %S]", msg, print_error_str, show_time);
 
-            if (m_print_error_dlg_no_action == nullptr) {
-                m_print_error_dlg_no_action = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM);
+            if (m_print_error_dlg_no_action != nullptr) {
+                delete m_print_error_dlg_no_action;
+                m_print_error_dlg_no_action = nullptr;
             }
 
+            m_print_error_dlg_no_action = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM);
             if (it_done != message_containing_done.end() && it_retry != message_containing_retry.end()) {
                 m_print_error_dlg_no_action->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::DONE_AND_RETRY, this);
             }
@@ -2238,14 +2246,14 @@ void StatusPanel::update_error_message()
             char buf[32];
             ::sprintf(buf, "%08X", obj->print_error);
             std::string print_error_str = std::string(buf);
-            if (print_error_str.size() > 4) { print_error_str.insert(4, " "); }
+            if (print_error_str.size() > 4) { print_error_str.insert(4, "-"); }
 
             wxString error_msg;
             bool is_errocode_exist = wxGetApp().get_hms_query()->query_print_error_msg(obj->print_error, error_msg);
             std::vector<int> used_button;
             wxString error_image_url = wxGetApp().get_hms_query()->query_print_error_url_action(obj->print_error, obj->dev_id, used_button);
             // special case
-            if (print_error_str == "0300 8003" || print_error_str == "0300 8002" || print_error_str == "0300 800A") {
+            if (print_error_str == "0300-8003" || print_error_str == "0300-8002" || print_error_str == "0300-800A") {
                 used_button.emplace_back(PrintErrorDialog::PrintErrorButton::JUMP_TO_LIVEVIEW);
             }
             show_error_message(obj, is_errocode_exist, error_msg, print_error_str, error_image_url, used_button);
@@ -3006,7 +3014,10 @@ void StatusPanel::update_subtask(MachineObject *obj)
                 int height = m_project_task_panel->get_bitmap_thumbnail()->GetSize().y;
                 if (m_calib_method == CALI_METHOD_AUTO) {
                     if (m_calib_mode == CalibMode::Calib_PA_Line) {
-                        png_path = (boost::format("%1%/images/fd_calibration_auto.png") % resources_dir()).str();
+                        if (obj->get_printer_arch() == PrinterArch::ARCH_I3)
+                            png_path = (boost::format("%1%/images/fd_calibration_auto_i3.png") % resources_dir()).str();
+                        else
+                            png_path = (boost::format("%1%/images/fd_calibration_auto.png") % resources_dir()).str();
                     }
                     else if (m_calib_mode == CalibMode::Calib_Flow_Rate) {
                         png_path = (boost::format("%1%/images/flow_rate_calibration_auto.png") % resources_dir()).str();

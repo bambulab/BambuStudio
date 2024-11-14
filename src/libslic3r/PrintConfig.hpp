@@ -226,11 +226,11 @@ enum OverhangThresholdParticipatingCooling {
 // BBS
 enum BedType {
     btDefault = 0,
-    btSuperTack,
     btPC,
     btEP,
     btPEI,
     btPTE,
+    btSuperTack,
     btCount
 };
 
@@ -1035,7 +1035,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionEnum<DraftShield>,  draft_shield))
     ((ConfigOptionFloat,              extruder_clearance_height_to_rod))//BBs
     ((ConfigOptionFloat,              extruder_clearance_height_to_lid))//BBS
-    ((ConfigOptionFloat,              extruder_clearance_radius))
+    ((ConfigOptionFloat,              extruder_clearance_dist_to_rod))
     ((ConfigOptionFloat,              nozzle_height))
     ((ConfigOptionFloat,              extruder_clearance_max_radius))
     ((ConfigOptionStrings,            extruder_colour))

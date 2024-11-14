@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-25 21:39+0800\n"
+"POT-Creation-Date: 2024-11-12 11:34+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -836,6 +836,9 @@ msgstr ""
 msgid "Warning:create text fail."
 msgstr ""
 
+msgid "Warning:text normal is error."
+msgstr ""
+
 msgid "Surface"
 msgstr "표면"
 
@@ -854,7 +857,7 @@ msgstr ""
 msgid "Remove selected points"
 msgstr ""
 
-msgid "Remove all points"
+msgid "Remove all"
 msgstr ""
 
 msgid "Auto-generate points"
@@ -877,7 +880,7 @@ msgid ""
 "effect !"
 msgstr ""
 
-msgid "(Set the brim type to \"painted\")"
+msgid "Set the brim type to \"painted\""
 msgstr ""
 
 msgid " invalid brim ears"
@@ -2023,9 +2026,6 @@ msgid "OK"
 msgstr "확인"
 
 msgid "Jump to Layer"
-msgstr "레이어로 이동"
-
-msgid "Jump to layer"
 msgstr "레이어로 이동"
 
 msgid "Please enter the layer number"
@@ -3808,6 +3808,10 @@ msgstr ""
 "플레이트 안 또는 밖으로 완전히 옮기고 높이가 빌드 볼륨 내에 있는지 확인하여 "
 "문제를 해결하십시오."
 
+#, c-format, boost-format
+msgid "filaments %s cannot be printed directly on the surface of this plate."
+msgstr ""
+
 msgid "Calibration step selection"
 msgstr "캘리브레이션 단계 선택"
 
@@ -4962,6 +4966,9 @@ msgstr ""
 msgid "0"
 msgstr ""
 
+msgid "Don't show again"
+msgstr "다시 표시하지 않음"
+
 msgid "Calculating, please wait..."
 msgstr ""
 
@@ -4970,9 +4977,6 @@ msgstr "출력상황"
 
 msgid "Update"
 msgstr "업데이트"
-
-msgid "Don't show again"
-msgstr "다시 표시하지 않음"
 
 #, c-format, boost-format
 msgid "%s error"
@@ -5157,6 +5161,9 @@ msgstr "출력모델에 서포트가 필요합니다. 서포트를 활성화하�
 msgid "Gcode path overlap"
 msgstr "G 코드 경로 겹침"
 
+msgid "Click Wiki for help."
+msgstr ""
+
 msgid "Support painting"
 msgstr "서포트 페인팅"
 
@@ -5237,14 +5244,14 @@ msgstr "노즐 응집 감지"
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
 msgstr "노즐에 필라멘트나 기타 이물질이 뭉쳐져 있는지 확인하세요."
 
-msgid "Nozzle Type"
-msgstr "노즐 유형"
+msgid "Hardened Steel"
+msgstr "경화강"
 
 msgid "Stainless Steel"
 msgstr "스테인레스 스틸"
 
-msgid "Hardened Steel"
-msgstr "경화강"
+msgid "Nozzle Type"
+msgstr "노즐 유형"
 
 #, c-format, boost-format
 msgid "%.1f"
@@ -6015,6 +6022,13 @@ msgstr ""
 "이 옵션을 활성화하면 동시에 여러 장치에 작업을 보내고 여러 장치를 관리할 수 "
 "있습니다."
 
+msgid "Show the step mesh parameter setting dialog."
+msgstr ""
+
+msgid ""
+"If enabled,a parameter settings dialog will appear during STEP file import."
+msgstr ""
+
 msgid "Support beta version update."
 msgstr ""
 
@@ -6112,6 +6126,9 @@ msgstr "온라인 모델"
 
 msgid "Show online staff-picked models on the home page"
 msgstr "홈페이지에서 추천 온라인 모델 보기"
+
+msgid "Show history on the home page"
+msgstr ""
 
 msgid "Maximum recent projects"
 msgstr "최대 최근 프로젝트 수"
@@ -6503,14 +6520,8 @@ msgstr "오프라인"
 msgid "Busy"
 msgstr "바쁜"
 
-msgid "Bambu Cool Plate SuperTack"
-msgstr ""
-
 msgid "Bambu Cool Plate"
 msgstr "뱀부 쿨 플레이트"
-
-msgid "PLA Plate"
-msgstr "PLA 플레이트"
 
 msgid "Bamabu Engineering Plate"
 msgstr "뱀부 엔지니어링 플레이트"
@@ -6523,6 +6534,9 @@ msgstr "고온 플레이트"
 
 msgid "Bamabu Textured PEI Plate"
 msgstr "뱀부 질감 PEI 플레이트"
+
+msgid "Bambu Cool Plate SuperTack"
+msgstr ""
 
 msgid "Send print job to"
 msgstr "출력 작업 보내기"
@@ -6688,11 +6702,10 @@ msgstr ""
 "슬라이스 파일의 노즐 직경이 저장된 노즐과 일치하지 않습니다. 최근에 노즐을 변"
 "경한 경우 장치 > 프린터 부품으로 이동하여 설정을 변경하세요."
 
-#, c-format, boost-format
 msgid ""
-"Printing high temperature material(%s material) with %s may cause nozzle "
+"Printing high temperature material(%1 material) with %2 may cause nozzle "
 "damage"
-msgstr "고온 재료(%s 재료)를 %s로 인쇄하면 노즐이 손상될 수 있습니다."
+msgstr ""
 
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr "위의 오류를 수정하십시오. 그렇지 않으면 인쇄를 계속할 수 없습니다."
@@ -7133,8 +7146,8 @@ msgid ""
 "does not support to print on the Bambu Cool Plate SuperTack"
 msgstr ""
 
-msgid "Cool Plate / PLA Plate"
-msgstr "쿨 플레이트 / PLA 플레이트"
+msgid "Cool Plate"
+msgstr ""
 
 msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
@@ -7966,25 +7979,27 @@ msgid "Connect the printer using IP and access code"
 msgstr ""
 
 msgid ""
-"Step 1, please confirm Bambu Studio and your printer are in the same LAN."
+"Step 1. Please confirm Bambu Studio and your printer are in the same LAN."
 msgstr ""
-"1단계, Bambu Studio와 프린터가 동일한 인터넷 망에 연결되어 있는지 확인하십시"
-"오."
 
 msgid ""
-"Step 2, if the IP and Access Code below are different from the actual values "
+"Step 2. If the IP and Access Code below are different from the actual values "
 "on your printer, please correct them."
 msgstr ""
-"2단계. 아래의 IP 및 액세스 코드가 프린터의 실제 값과 다른 경우 수정하십시오."
+
+msgid ""
+"Step 3. Please obtain the device SN from the printer side; it is usually "
+"found in the device information on the printer screen."
+msgstr ""
 
 msgid "Access Code"
 msgstr "액세스 코드"
 
+msgid "Printer model"
+msgstr ""
+
 msgid "Where to find your printer's IP and Access Code?"
 msgstr "프린터의 IP 및 액세스 코드는 어디서 찾을 수 있습니까?"
-
-msgid "Step 3: Ping the IP address to check for packet loss and latency."
-msgstr "3단계: IP 주소를 ping하여 패킷 손실 및 대기 시간을 확인합니다."
 
 msgid "Connect"
 msgstr ""
@@ -7996,9 +8011,6 @@ msgid "Failed to connect to printer."
 msgstr ""
 
 msgid "Failed to publish login request."
-msgstr ""
-
-msgid "The device does not support using IP and Access Code for connection."
 msgstr ""
 
 msgid "The printer has already been bound."
@@ -8175,8 +8187,19 @@ msgstr ""
 "잘못된 커스텀 G 코드로 인해 G 코드생성에 실패했습니다. \n"
 "\n"
 
-msgid "Please check the custom G-code or use the default custom G-code."
-msgstr "커스텀 G 코드를 확인하거나 기본 커스텀 G 코드를 사용하십시오."
+msgid "Please check the custom G-code or use the default custom G-code.\n"
+msgstr ""
+
+msgid ""
+"You can find them from 'Printer settings' -> 'Machine G-code' and 'Filament "
+"settings' -> 'Advanced'."
+msgstr ""
+
+msgid "You can find it from 'Printer settings' -> 'Machine G-code'."
+msgstr ""
+
+msgid "You can find it from 'Filament settings' -> 'Advanced'."
+msgstr ""
 
 #, boost-format
 msgid "Generating G-code: layer %1%"
@@ -9178,10 +9201,13 @@ msgid ""
 msgstr ""
 "노즐 끝에서 뚜껑까지의 거리. 객체별 출력에서 충돌을 피하는 데 사용됩니다."
 
+msgid "Distance to rod"
+msgstr ""
+
 msgid ""
-"Clearance radius around extruder. Used for collision avoidance in by-object "
-"printing."
-msgstr "압출기 주변 안전 반경: 객체별 출력에서 충돌 방지를 위해 사용됩니다."
+"Horizontal distance of the nozzle tip to the rod's farther edge. Used for "
+"collision avoidance in by-object printing."
+msgstr ""
 
 msgid "Nozzle height"
 msgstr "노즐 높이"
@@ -10395,8 +10421,8 @@ msgstr ""
 "This amount as a percentage of the current extruder diameter. The default "
 "value for this parameter is 15"
 
-msgid "Conditional scarf joint"
-msgstr "Conditional scarf joint"
+msgid "Smart scarf seam application"
+msgstr ""
 
 msgid ""
 "Apply scarf joints only to smooth perimeters where traditional seams do not "
@@ -10405,8 +10431,8 @@ msgstr ""
 "Apply scarf joints only to smooth perimeters where traditional seams do not "
 "conceal the seams at sharp corners effectively."
 
-msgid "Conditional angle threshold"
-msgstr "Conditional angle threshold"
+msgid "Scarf application angle threshold"
+msgstr ""
 
 msgid ""
 "This option sets the threshold angle for applying a conditional scarf joint "
@@ -10453,7 +10479,7 @@ msgstr ""
 "be calculated based on the travel speed setting above.The default value for "
 "this parameter is 80%"
 
-msgid "Role base wipe speed"
+msgid "Role-based wipe speed"
 msgstr ""
 
 msgid ""
@@ -11280,17 +11306,17 @@ msgstr ""
 "개체의 XY 크기 보정은 색상으로 칠해져 있기 때문에 사용되지 않습니다.\n"
 "XY 크기 보정은 컬러 페인팅과 함께 사용할 수 없습니다."
 
-msgid ""
-"Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
-msgstr ""
-"알 수 없는 파일 형식: 입력 파일의 확장자는 .stl, .obj 또는 .amf(.xml)여야 합"
-"니다."
-
 msgid "Loading of a model file failed."
 msgstr "모델 파일 로드에 실패했습니다."
 
 msgid "The supplied file couldn't be read because it's empty"
 msgstr "제공된 파일이 비어 있어 읽을 수 없습니다."
+
+msgid ""
+"Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
+msgstr ""
+"알 수 없는 파일 형식: 입력 파일의 확장자는 .stl, .obj 또는 .amf(.xml)여야 합"
+"니다."
 
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
@@ -11762,11 +11788,41 @@ msgid "Method"
 msgstr "Method"
 
 #, c-format, boost-format
+msgid ""
+"Tip: Using a %.1fmm nozzle for auto dynamic flow calibration may have a high "
+"probability of failure.\n"
+"If it fails, it is recommended to use manual calibration."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Tip: Using a %.1fmm nozzle for auto dynamic flow calibration may not get "
+"accurate calibration results.\n"
+"It is recommended to use manual calibration."
+msgstr ""
+
+#, c-format, boost-format
 msgid "%s is not compatible with %s"
 msgstr "%s 와 호환되지 않습니다. %s"
 
 msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
 msgstr "TPU is not supported for Flow Dynamics Auto-Calibration."
+
+#, c-format, boost-format
+msgid ""
+"Tip: Calibrating foam filaments(%s) in X series printers may not get "
+"accurate results\n"
+"because their dynamic response is much different from that of ordinary "
+"filaments, and there is a high risk of oozing when printing calibration "
+"lines."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Tip: When using the A1/A1 mini printer, we do not recommend calibrating foam "
+"filaments(%s),\n"
+"as the results may be unstable and affect print quality."
+msgstr ""
 
 msgid "Connecting to printer"
 msgstr "Connecting to printer"
@@ -13561,6 +13617,51 @@ msgstr ""
 "뒤틀림 방지\n"
 "ABS 등 뒤틀림이 발생하기 쉬운 소재를 출력할 때, 히트베드 온도를 적절하게 높이"
 "면 뒤틀림 가능성을 줄일 수 있다는 사실을 알고 계셨나요?"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Printing high temperature material(%s material) with %s may cause nozzle "
+#~ "damage"
+#~ msgstr "고온 재료(%s 재료)를 %s로 인쇄하면 노즐이 손상될 수 있습니다."
+
+#~ msgid "Conditional scarf joint"
+#~ msgstr "Conditional scarf joint"
+
+#~ msgid "Conditional angle threshold"
+#~ msgstr "Conditional angle threshold"
+
+#~ msgid "Jump to layer"
+#~ msgstr "레이어로 이동"
+
+#~ msgid "PLA Plate"
+#~ msgstr "PLA 플레이트"
+
+#~ msgid "Cool Plate / PLA Plate"
+#~ msgstr "쿨 플레이트 / PLA 플레이트"
+
+#~ msgid ""
+#~ "Step 1, please confirm Bambu Studio and your printer are in the same LAN."
+#~ msgstr ""
+#~ "1단계, Bambu Studio와 프린터가 동일한 인터넷 망에 연결되어 있는지 확인하십"
+#~ "시오."
+
+#~ msgid ""
+#~ "Step 2, if the IP and Access Code below are different from the actual "
+#~ "values on your printer, please correct them."
+#~ msgstr ""
+#~ "2단계. 아래의 IP 및 액세스 코드가 프린터의 실제 값과 다른 경우 수정하십시"
+#~ "오."
+
+#~ msgid "Step 3: Ping the IP address to check for packet loss and latency."
+#~ msgstr "3단계: IP 주소를 ping하여 패킷 손실 및 대기 시간을 확인합니다."
+
+#~ msgid "Please check the custom G-code or use the default custom G-code."
+#~ msgstr "커스텀 G 코드를 확인하거나 기본 커스텀 G 코드를 사용하십시오."
+
+#~ msgid ""
+#~ "Clearance radius around extruder. Used for collision avoidance in by-"
+#~ "object printing."
+#~ msgstr "압출기 주변 안전 반경: 객체별 출력에서 충돌 방지를 위해 사용됩니다."
 
 #~ msgid "Tree support branch angle"
 #~ msgstr "트리서포트 가지 각도"

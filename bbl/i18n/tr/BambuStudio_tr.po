@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-25 21:39+0800\n"
+"POT-Creation-Date: 2024-11-12 11:34+0800\n"
 "PO-Revision-Date: 2024-09-29 02:13+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -841,6 +841,9 @@ msgstr ""
 msgid "Warning:create text fail."
 msgstr ""
 
+msgid "Warning:text normal is error."
+msgstr ""
+
 msgid "Surface"
 msgstr "Yüzey"
 
@@ -859,7 +862,7 @@ msgstr ""
 msgid "Remove selected points"
 msgstr ""
 
-msgid "Remove all points"
+msgid "Remove all"
 msgstr ""
 
 msgid "Auto-generate points"
@@ -882,7 +885,7 @@ msgid ""
 "effect !"
 msgstr ""
 
-msgid "(Set the brim type to \"painted\")"
+msgid "Set the brim type to \"painted\""
 msgstr ""
 
 msgid " invalid brim ears"
@@ -2040,9 +2043,6 @@ msgstr "TAMAM"
 
 msgid "Jump to Layer"
 msgstr "Katmana Atla"
-
-msgid "Jump to layer"
-msgstr "Katmana atla"
 
 msgid "Please enter the layer number"
 msgstr "Lütfen katman numarasını girin"
@@ -3873,6 +3873,10 @@ msgstr ""
 "Lütfen sorunu tamamen plakanın üzerine veya dışına hareket ettirerek ve "
 "yüksekliğin yapım hacmi dahilinde olduğunu doğrulayarak çözün."
 
+#, c-format, boost-format
+msgid "filaments %s cannot be printed directly on the surface of this plate."
+msgstr ""
+
 msgid "Calibration step selection"
 msgstr "Kalibrasyon adımı seçimi"
 
@@ -5049,6 +5053,9 @@ msgstr ""
 msgid "0"
 msgstr ""
 
+msgid "Don't show again"
+msgstr "Bir daha gösterme"
+
 msgid "Calculating, please wait..."
 msgstr ""
 
@@ -5057,9 +5064,6 @@ msgstr "Durum"
 
 msgid "Update"
 msgstr "Güncelle"
-
-msgid "Don't show again"
-msgstr "Bir daha gösterme"
 
 #, c-format, boost-format
 msgid "%s error"
@@ -5250,6 +5254,9 @@ msgstr ""
 msgid "Gcode path overlap"
 msgstr "Gcode yolu çakışması"
 
+msgid "Click Wiki for help."
+msgstr ""
+
 msgid "Support painting"
 msgstr "Destek boyama"
 
@@ -5332,14 +5339,14 @@ msgstr ""
 "Nozulun filament veya diğer yabancı cisimler tarafından tıkanıp "
 "tıkanmadığını kontrol edin."
 
-msgid "Nozzle Type"
-msgstr "Nozul tipi"
+msgid "Hardened Steel"
+msgstr "Güçlendirilmiş çelik"
 
 msgid "Stainless Steel"
 msgstr "Paslanmaz çelik"
 
-msgid "Hardened Steel"
-msgstr "Güçlendirilmiş çelik"
+msgid "Nozzle Type"
+msgstr "Nozul tipi"
 
 #, c-format, boost-format
 msgid "%.1f"
@@ -6131,6 +6138,13 @@ msgstr ""
 "Bu seçenek etkinleştirildiğinde, aynı anda birden fazla cihaza görev "
 "gönderebilir ve birden fazla cihazı yönetebilirsiniz."
 
+msgid "Show the step mesh parameter setting dialog."
+msgstr ""
+
+msgid ""
+"If enabled,a parameter settings dialog will appear during STEP file import."
+msgstr ""
+
 msgid "Support beta version update."
 msgstr ""
 
@@ -6230,6 +6244,9 @@ msgstr "Çevrimiçi Modeller"
 
 msgid "Show online staff-picked models on the home page"
 msgstr "Personel tarafından seçilen çevrimiçi modelleri ana sayfada gösterin"
+
+msgid "Show history on the home page"
+msgstr ""
 
 msgid "Maximum recent projects"
 msgstr "Maksimum yeni proje"
@@ -6623,14 +6640,8 @@ msgstr "Çevrimdışı"
 msgid "Busy"
 msgstr "Meşgul"
 
-msgid "Bambu Cool Plate SuperTack"
-msgstr ""
-
 msgid "Bambu Cool Plate"
 msgstr "Bambu Soğuk Plaka"
-
-msgid "PLA Plate"
-msgstr "PLA Plaka"
 
 msgid "Bamabu Engineering Plate"
 msgstr "Bamabu Mühendislik Plakası"
@@ -6643,6 +6654,9 @@ msgstr "Yüksek Sıcaklık Plakası"
 
 msgid "Bamabu Textured PEI Plate"
 msgstr "Bamabu Dokulu PEI Tabak"
+
+msgid "Bambu Cool Plate SuperTack"
+msgstr ""
 
 msgid "Send print job to"
 msgstr "Yazdırma işini şuraya gönder"
@@ -6818,13 +6832,10 @@ msgstr ""
 "Nozulunuzu yakın zamanda değiştirdiyseniz, ayarları değiştirmek için lütfen "
 "Cihaz > Yazıcı Parçaları bölümüne gidin."
 
-#, c-format, boost-format
 msgid ""
-"Printing high temperature material(%s material) with %s may cause nozzle "
+"Printing high temperature material(%1 material) with %2 may cause nozzle "
 "damage"
 msgstr ""
-"Yüksek sıcaklıktaki malzemenin (%s malzeme) %s ile basılması nozul hasarına "
-"neden olabilir"
 
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr ""
@@ -7284,8 +7295,8 @@ msgid ""
 "does not support to print on the Bambu Cool Plate SuperTack"
 msgstr ""
 
-msgid "Cool Plate / PLA Plate"
-msgstr "Soğuk Plaka / PLA Plaka"
+msgid "Cool Plate"
+msgstr ""
 
 msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
@@ -8122,26 +8133,27 @@ msgid "Connect the printer using IP and access code"
 msgstr ""
 
 msgid ""
-"Step 1, please confirm Bambu Studio and your printer are in the same LAN."
+"Step 1. Please confirm Bambu Studio and your printer are in the same LAN."
 msgstr ""
-"Adım 1, lütfen Bambu Studio ve yazıcınızın aynı LAN'da olduğunu onaylayın."
 
 msgid ""
-"Step 2, if the IP and Access Code below are different from the actual values "
+"Step 2. If the IP and Access Code below are different from the actual values "
 "on your printer, please correct them."
 msgstr ""
-"Adım 2, aşağıdaki IP ve Erişim Kodu yazıcınızdaki gerçek değerlerden "
-"farklıysa lütfen bunları düzeltin."
+
+msgid ""
+"Step 3. Please obtain the device SN from the printer side; it is usually "
+"found in the device information on the printer screen."
+msgstr ""
 
 msgid "Access Code"
 msgstr "Giriş kodu"
 
+msgid "Printer model"
+msgstr ""
+
 msgid "Where to find your printer's IP and Access Code?"
 msgstr "Yazıcınızın IP'sini ve Erişim Kodunu nerede bulabilirsiniz?"
-
-msgid "Step 3: Ping the IP address to check for packet loss and latency."
-msgstr ""
-"Adım 3: Paket kaybını ve gecikmeyi kontrol etmek için IP adresine ping atın."
 
 msgid "Connect"
 msgstr ""
@@ -8153,9 +8165,6 @@ msgid "Failed to connect to printer."
 msgstr ""
 
 msgid "Failed to publish login request."
-msgstr ""
-
-msgid "The device does not support using IP and Access Code for connection."
 msgstr ""
 
 msgid "The printer has already been bound."
@@ -8339,9 +8348,19 @@ msgstr ""
 "Geçersiz özel G kodu için gcode oluşturulamadı.\n"
 "\n"
 
-msgid "Please check the custom G-code or use the default custom G-code."
+msgid "Please check the custom G-code or use the default custom G-code.\n"
 msgstr ""
-"Lütfen özel G kodunu kontrol edin veya varsayılan özel G kodunu kullanın."
+
+msgid ""
+"You can find them from 'Printer settings' -> 'Machine G-code' and 'Filament "
+"settings' -> 'Advanced'."
+msgstr ""
+
+msgid "You can find it from 'Printer settings' -> 'Machine G-code'."
+msgstr ""
+
+msgid "You can find it from 'Filament settings' -> 'Advanced'."
+msgstr ""
 
 #, boost-format
 msgid "Generating G-code: layer %1%"
@@ -9374,12 +9393,13 @@ msgstr ""
 "Nozul ucunun kapağa olan mesafesi. Nesneye göre yazdırmada çarpışmayı "
 "önlemek için kullanılır."
 
-msgid ""
-"Clearance radius around extruder. Used for collision avoidance in by-object "
-"printing."
+msgid "Distance to rod"
 msgstr ""
-"Ekstruder etrafındaki boşluk yarıçapı. Nesneye göre yazdırmada çarpışmayı "
-"önlemek için kullanılır."
+
+msgid ""
+"Horizontal distance of the nozzle tip to the rod's farther edge. Used for "
+"collision avoidance in by-object printing."
+msgstr ""
 
 msgid "Nozzle height"
 msgstr "Nozul yüksekliği"
@@ -10625,8 +10645,8 @@ msgstr ""
 "Bu miktar, mevcut ekstrüder çapının bir yüzdesi olarak belirlenir. Bu "
 "parametre için varsayılan değer 15'tir"
 
-msgid "Conditional scarf joint"
-msgstr "Koşullu atkı birleşimi"
+msgid "Smart scarf seam application"
+msgstr ""
 
 msgid ""
 "Apply scarf joints only to smooth perimeters where traditional seams do not "
@@ -10635,8 +10655,8 @@ msgstr ""
 "Atkı bağlantılarını yalnızca geleneksel dikişlerin keskin köşelerdeki "
 "dikişleri etkili bir şekilde gizleyemediği düzgün kenarlara uygulayın."
 
-msgid "Conditional angle threshold"
-msgstr "Koşullu açı eşiği"
+msgid "Scarf application angle threshold"
+msgstr ""
 
 msgid ""
 "This option sets the threshold angle for applying a conditional scarf joint "
@@ -10681,7 +10701,7 @@ msgstr ""
 "Değer yüzde olarak ifade edilirse (örn. %80), yukarıdaki ilerleme hızı "
 "ayarına göre hesaplanır. Bu parametrenin varsayılan değeri %80'dir"
 
-msgid "Role base wipe speed"
+msgid "Role-based wipe speed"
 msgstr ""
 
 msgid ""
@@ -11543,17 +11563,17 @@ msgstr ""
 "kullanılmayacaktır.\n"
 "XY Boyut telafisi  renkli boyamayla birleştirilemez."
 
-msgid ""
-"Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
-msgstr ""
-"Bilinmeyen dosya formatı. Giriş dosyası .stl, .obj, .amf(.xml) uzantılı "
-"olmalıdır."
-
 msgid "Loading of a model file failed."
 msgstr "Model dosyasının yüklenmesi başarısız oldu."
 
 msgid "The supplied file couldn't be read because it's empty"
 msgstr "Sağlanan dosya boş olduğundan okunamadı"
+
+msgid ""
+"Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
+msgstr ""
+"Bilinmeyen dosya formatı. Giriş dosyası .stl, .obj, .amf(.xml) uzantılı "
+"olmalıdır."
 
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
@@ -12053,11 +12073,41 @@ msgid "Method"
 msgstr "Yöntem"
 
 #, c-format, boost-format
+msgid ""
+"Tip: Using a %.1fmm nozzle for auto dynamic flow calibration may have a high "
+"probability of failure.\n"
+"If it fails, it is recommended to use manual calibration."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Tip: Using a %.1fmm nozzle for auto dynamic flow calibration may not get "
+"accurate calibration results.\n"
+"It is recommended to use manual calibration."
+msgstr ""
+
+#, c-format, boost-format
 msgid "%s is not compatible with %s"
 msgstr "%s, %s ile uyumlu değil"
 
 msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
 msgstr "Flow Dynamics Otomatik Kalibrasyonunda TPU desteklenmiyor."
+
+#, c-format, boost-format
+msgid ""
+"Tip: Calibrating foam filaments(%s) in X series printers may not get "
+"accurate results\n"
+"because their dynamic response is much different from that of ordinary "
+"filaments, and there is a high risk of oozing when printing calibration "
+"lines."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Tip: When using the A1/A1 mini printer, we do not recommend calibrating foam "
+"filaments(%s),\n"
+"as the results may be unstable and affect print quality."
+msgstr ""
 
 msgid "Connecting to printer"
 msgstr "Yazıcıya bağlanılıyor"
@@ -13886,6 +13936,57 @@ msgstr ""
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı "
 "sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını "
 "azaltabileceğini biliyor muydunuz."
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Printing high temperature material(%s material) with %s may cause nozzle "
+#~ "damage"
+#~ msgstr ""
+#~ "Yüksek sıcaklıktaki malzemenin (%s malzeme) %s ile basılması nozul "
+#~ "hasarına neden olabilir"
+
+#~ msgid "Conditional scarf joint"
+#~ msgstr "Koşullu atkı birleşimi"
+
+#~ msgid "Conditional angle threshold"
+#~ msgstr "Koşullu açı eşiği"
+
+#~ msgid "Jump to layer"
+#~ msgstr "Katmana atla"
+
+#~ msgid "PLA Plate"
+#~ msgstr "PLA Plaka"
+
+#~ msgid "Cool Plate / PLA Plate"
+#~ msgstr "Soğuk Plaka / PLA Plaka"
+
+#~ msgid ""
+#~ "Step 1, please confirm Bambu Studio and your printer are in the same LAN."
+#~ msgstr ""
+#~ "Adım 1, lütfen Bambu Studio ve yazıcınızın aynı LAN'da olduğunu onaylayın."
+
+#~ msgid ""
+#~ "Step 2, if the IP and Access Code below are different from the actual "
+#~ "values on your printer, please correct them."
+#~ msgstr ""
+#~ "Adım 2, aşağıdaki IP ve Erişim Kodu yazıcınızdaki gerçek değerlerden "
+#~ "farklıysa lütfen bunları düzeltin."
+
+#~ msgid "Step 3: Ping the IP address to check for packet loss and latency."
+#~ msgstr ""
+#~ "Adım 3: Paket kaybını ve gecikmeyi kontrol etmek için IP adresine ping "
+#~ "atın."
+
+#~ msgid "Please check the custom G-code or use the default custom G-code."
+#~ msgstr ""
+#~ "Lütfen özel G kodunu kontrol edin veya varsayılan özel G kodunu kullanın."
+
+#~ msgid ""
+#~ "Clearance radius around extruder. Used for collision avoidance in by-"
+#~ "object printing."
+#~ msgstr ""
+#~ "Ekstruder etrafındaki boşluk yarıçapı. Nesneye göre yazdırmada çarpışmayı "
+#~ "önlemek için kullanılır."
 
 #~ msgid "Tree support branch angle"
 #~ msgstr "Ağaç desteği dal açısı"

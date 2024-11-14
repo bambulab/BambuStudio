@@ -29,6 +29,8 @@
 #include "MainFrame.hpp"
 #include <slic3r/GUI/Widgets/WebView.hpp>
 
+#include <regex>
+
 namespace Slic3r { namespace GUI {
 
 wxDEFINE_EVENT(EVT_PROJECT_RELOAD, wxCommandEvent);
@@ -61,7 +63,7 @@ ProjectPanel::ProjectPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
     m_browser->Bind(wxEVT_WEBVIEW_NAVIGATED, &ProjectPanel::on_navigated, this);
     m_browser->Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, &ProjectPanel::OnScriptMessage, this, m_browser->GetId());
     Bind(wxEVT_WEBVIEW_NAVIGATING, &ProjectPanel::onWebNavigating, this, m_browser->GetId());
-
+    Bind(wxEVT_WEBVIEW_NEWWINDOW, &ProjectPanel::OnNewWindow, this);
     Bind(EVT_PROJECT_RELOAD, &ProjectPanel::on_reload, this);
 
     SetSizer(main_sizer);
@@ -71,6 +73,42 @@ ProjectPanel::ProjectPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 
 ProjectPanel::~ProjectPanel() {}
 
+std::string trim(const std::string &str, const std::string &charsToTrim)
+{
+    std::regex pattern("^[" + charsToTrim + "]+|[" + charsToTrim + "]+$");
+    return std::regex_replace(str, pattern, "");
+}
+
+/**
+ * On new window, we veto to stop extra windows appearing
+ */
+void ProjectPanel::OnNewWindow(wxWebViewEvent &evt)
+{
+    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << evt.GetURL().ToUTF8().data();
+    wxString flag = " (other)";
+
+    if (evt.GetNavigationAction() == wxWEBVIEW_NAV_ACTION_USER) { flag = " (user)"; }
+
+    if (wxGetApp().get_mode() == comDevelop) 
+        wxLogMessage("%s", "New window; url='" + evt.GetURL() + "'" + flag);
+
+    // If we handle new window events then just load them in local browser
+    wxString        tmpUrl = evt.GetURL();
+
+    if (tmpUrl.StartsWith("File://") || tmpUrl.StartsWith("file://"))
+    {
+        std::regex  pattern("%22http.+%22");
+        std::smatch matches;
+        std::string UrlTmp = tmpUrl.ToStdString();
+        if (std::regex_search(UrlTmp, matches, pattern)) { tmpUrl = trim(matches[0].str(), "%22"); }    
+    }
+
+    if (boost::starts_with(tmpUrl, "http://") || boost::starts_with(tmpUrl, "https://")) {
+        m_browser->Stop();
+        evt.Veto();
+        wxLaunchDefaultApplication(tmpUrl);
+    }
+}
 
 void ProjectPanel::onWebNavigating(wxWebViewEvent& evt)
 {
@@ -109,8 +147,6 @@ void ProjectPanel::on_reload(wxCommandEvent& evt)
         description = model.model_info->description;
         update_type = model.model_info->origin;
 
-
-
         if (model.design_info && !model.design_info->DesignerId.empty()) {
 
             if (m_model_id_map.count(model.design_info->DesignerId) > 0) {
@@ -121,7 +157,6 @@ void ProjectPanel::on_reload(wxCommandEvent& evt)
                 m_model_id_map[model.design_info->DesignerId] = model_id;
             }
         }
-        
 
         try {
             if (!model.model_info->copyright.empty()) {
@@ -277,8 +312,6 @@ void ProjectPanel::OnScriptMessage(wxWebViewEvent& evt)
                     }
                 }
             }
-            
-            
         }
         else if (strCmd == "debug_info") {
             //wxString msg =  j["msg"];

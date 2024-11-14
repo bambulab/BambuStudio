@@ -1952,6 +1952,10 @@ void GUI_App::init_networking_callbacks()
                     m_server_error_dialog = new NetworkErrorDialog(mainframe);
                 }
 
+                if(plater()->get_select_machine_dialog() && plater()->get_select_machine_dialog()->IsShown()){
+                    return;
+                }
+
                 if (m_server_error_dialog->m_show_again) {
                     return;
                 }
@@ -4065,6 +4069,14 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 CallAfter([this] {
                         get_login_info();
                     });
+                // TODO: Fix home page not emit get_recent_projects on macOS
+                #ifdef __WXOSX__
+                if (mainframe) {
+                    if (mainframe->m_webview) {
+                        mainframe->m_webview->SendRecentList(INT_MAX);
+                    }
+                }
+                #endif
             }
             else if (command_str.compare("homepage_login_or_register") == 0) {
 
@@ -4205,17 +4217,6 @@ std::string GUI_App::handle_web_request(std::string cmd)
                     }
                 }
             }
-            else if (command_str.compare("homepage_open_ccabin") == 0) {
-                if (root.get_child_optional("data") != boost::none) {
-                    pt::ptree                    data_node = root.get_child("data");
-                    boost::optional<std::string> path      = data_node.get_optional<std::string>("file");
-                    if (path.has_value()) {
-                        std::string Fullpath = resources_dir() + "/web/homepage/model/" + path.value();
-
-                        this->request_open_project(Fullpath);
-                    }
-                }
-            }
             else if (command_str.compare("common_openurl") == 0) {
                 boost::optional<std::string> path      = root.get_optional<std::string>("url");
                 if (path.has_value()) {
@@ -4285,6 +4286,34 @@ std::string GUI_App::handle_web_request(std::string cmd)
                         wxString realurl = from_u8(url_decode(path.value()));
                         wxGetApp().request_model_download(realurl);
                     }
+                }
+            }
+            else if (command_str.compare("homepage_online_search") == 0) {
+                if (root.get_child_optional("keyword") != boost::none)
+                {
+                    std::string strKW = root.get_optional<std::string>("keyword").value();
+
+                    if (mainframe && mainframe->m_webview)
+                    {
+                        mainframe->m_webview->OpenMakerworldSearchPage(strKW);
+                    }
+                }
+            }
+            else if (command_str.compare("homepage_printhistory_click") == 0) {
+                if (root.get_child_optional("taskid") != boost::none) {
+                    int nTaskID = root.get<int>("taskid");
+
+                    if (mainframe && mainframe->m_webview)
+                    {
+                        mainframe->m_webview->SetPrintHistoryTaskID(nTaskID);
+                        mainframe->m_webview->SwitchLeftMenu("printhistory");
+                    }
+                }
+            }
+            else if (command_str.compare("homepage_printhistory_get")==0)
+            {
+                if (mainframe && mainframe->m_webview) {
+                    mainframe->m_webview->ShowUserPrintTask(true);
                 }
             }
         }
@@ -4551,10 +4580,12 @@ void GUI_App::reset_to_active()
     last_active_point = std::chrono::system_clock::now();
 }
 
-void GUI_App::check_update(bool show_tips, int by_user, VersionUpdateType type)
+void GUI_App::check_update(bool show_tips, int by_user)
 {
-    if (version_info.version_str.empty()) return;
-    if (version_info.url.empty()) return;
+    if (version_info.version_str.empty() || version_info.url.empty()) {
+        check_beta_version();
+        return;
+    }
 
     auto curr_version = Semver::parse(SLIC3R_VERSION);
     auto remote_version = Semver::parse(version_info.version_str);
@@ -4572,17 +4603,12 @@ void GUI_App::check_update(bool show_tips, int by_user, VersionUpdateType type)
         }
     } else {
         wxGetApp().app_config->set("upgrade", "force_upgrade", false);
-        if (app_config->get("enable_beta_version_update") == "true"){
-            if (type == ReleaseVersionUpdate){
-                check_beta_version(show_tips, by_user);
-            }
-            else if (type == BetaVersionUpdate){
-                this->no_new_version();
-            }
-        }
-        else{
+
+        if (show_tips) {
             this->no_new_version();
         }
+
+        check_beta_version();
     }
 }
 
@@ -4616,8 +4642,11 @@ void GUI_App::check_new_version(bool show_tips, int by_user)
             if (j.contains("message")) {
                 if (j["message"].get<std::string>() == "success") {
                     if (j.contains("software")) {
-                        if (j["software"].empty() && show_tips) {
-                            this->no_new_version();
+                        if (j["software"].empty()) {
+                            if (show_tips) {
+                                this->no_new_version();
+                            }
+                            check_beta_version();
                         }
                         else {
                             if (j["software"].contains("url")
@@ -4648,7 +4677,12 @@ void GUI_App::check_new_version(bool show_tips, int by_user)
     }).perform();
 }
 
-void GUI_App::check_beta_version(bool show_tips, int by_user) {
+void GUI_App::check_beta_version()
+{
+    if (app_config->get("enable_beta_version_update") != "true") {
+        return;
+    }
+
     std::string platform = "windows";
 
 #ifdef __WINDOWS__
@@ -4671,7 +4705,7 @@ void GUI_App::check_beta_version(bool show_tips, int by_user) {
     http.header("accept", "application/json")
         .timeout_connect(TIMEOUT_CONNECT)
         .timeout_max(TIMEOUT_RESPONSE)
-        .on_complete([this, show_tips, by_user, platform](std::string body, unsigned) {
+        .on_complete([this, platform](std::string body, unsigned) {
         try {
             json versions = json::parse(body, nullptr, false);
             for (auto version : versions){
@@ -4697,15 +4731,24 @@ void GUI_App::check_beta_version(bool show_tips, int by_user) {
                                     version_info.url = url;
                                     version_info.description = "###" + std::string(version["html_url"]) + "###";
                                     version_info.force_upgrade = false;
-                                    CallAfter([this, show_tips, by_user]() {
-                                        this->check_update(show_tips, by_user, BetaVersionUpdate);
-                                        });
-                                    return;
+                                    CallAfter([this]() {
+
+                                        if (version_info.version_str.empty() || version_info.url.empty()) {
+                                            return;
+                                        }
+
+                                        auto curr_version   = Semver::parse(SLIC3R_VERSION);
+                                        auto remote_version = Semver::parse(version_info.version_str);
+                                        if (curr_version && remote_version && (*remote_version > *curr_version)) {
+                                            GUI::wxGetApp().request_new_version(false);
+                                        }
+                                    });
                                 }
                             }
                         }
                     }
                 }
+                return;
             }
         }
         catch (...) {

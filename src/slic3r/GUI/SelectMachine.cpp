@@ -897,20 +897,20 @@ void SelectMachinePopup::OnLeftUp(wxMouseEvent &event)
 
 static wxString MACHINE_BED_TYPE_STRING[BED_TYPE_COUNT] = {
     //_L("Auto"),
-    _L("Bambu Cool Plate SuperTack"),
-    _L("Bambu Cool Plate") + " / " + _L("PLA Plate"),
+    _L("Bambu Cool Plate"),
     _L("Bamabu Engineering Plate"),
     _L("Bamabu Smooth PEI Plate") + "/" + _L("High temperature Plate"),
-    _L("Bamabu Textured PEI Plate")
+    _L("Bamabu Textured PEI Plate"),
+    _L("Bambu Cool Plate SuperTack")
 };
 
 static std::string MachineBedTypeString[BED_TYPE_COUNT] = {
     //"auto",
-    "suprtack",
     "pc",
     "pe",
     "pei",
-    "pte"
+    "pte",
+    "suprtack"
 };
 
 void SelectMachineDialog::stripWhiteSpace(std::string& str)
@@ -2576,7 +2576,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
             is_printing_block = true;
             nozzle_diameter =  wxString::Format("%.1f", obj_->nozzle_diameter).ToStdString();
 
-                wxString nozzle_in_preset = wxString::Format(_L("Printing high temperature material(%s material) with %s may cause nozzle damage"), filament_type, format_steel_name(obj_->nozzle_type));
+                wxString nozzle_in_preset = wxString::Format(_L("Printing high temperature material(%1 material) with %2 may cause nozzle damage"), filament_type, format_steel_name(obj_->nozzle_type));
             confirm_text.push_back(ConfirmBeforeSendInfo(nozzle_in_preset, ConfirmBeforeSendInfo::InfoLevel::Warning));
         }
     }
@@ -4846,8 +4846,6 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
      SetMinSize(SELECT_MACHINE_ITEM_SIZE);
 
      m_type = type;
-     m_bitmap = ScalableBitmap(this, "bind_device_ping_code",10);
-     
      this->Bind(wxEVT_ENTER_WINDOW, &PinCodePanel::on_mouse_enter, this);
      this->Bind(wxEVT_LEAVE_WINDOW, &PinCodePanel::on_mouse_leave, this);
      this->Bind(wxEVT_LEFT_UP, &PinCodePanel::on_mouse_left_up, this);
@@ -4883,9 +4881,14 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
  void PinCodePanel::doRender(wxDC& dc)
  {
      auto size = GetSize();
+
+     //m_bitmap = ScalableBitmap(this, "bind_device_ping_code",10);
+
+     m_bitmap = ScalableBitmap(this, wxGetApp().dark_mode() ? "bind_device_ping_code_dark" : "bind_device_ping_code_light", 10);
+
      dc.DrawBitmap(m_bitmap.bmp(), wxPoint(FromDIP(12), (size.y - m_bitmap.GetBmpSize().y) / 2));
      dc.SetFont(::Label::Head_13);
-     dc.SetTextForeground(wxColour(38, 46, 48));
+     dc.SetTextForeground(StateColor::darkModeColorFor(SELECT_MACHINE_GREY900));
      wxString txt;
      if (m_type == 0) { txt = _L("Bind with Pin Code"); }
      else if (m_type == 1) { txt = _L("Bind with Access Code"); }

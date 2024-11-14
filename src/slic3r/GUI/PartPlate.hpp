@@ -417,7 +417,9 @@ public:
     {
         bool result = m_slice_result_valid;
         if (result)
-            result = m_gcode_result ? (!m_gcode_result->toolpath_outside) : false;// && !m_gcode_result->conflict_result.has_value()  gcode conflict can also print
+            result = m_gcode_result ?
+            (!m_gcode_result->toolpath_outside && !m_gcode_result->filament_printable_reuslt.has_value()) :
+            false;// && !m_gcode_result->conflict_result.has_value()  gcode conflict can also print
         return result;
     }
 

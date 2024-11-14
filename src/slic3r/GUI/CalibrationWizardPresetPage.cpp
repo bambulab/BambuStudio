@@ -36,7 +36,7 @@ void CaliPresetCaliStagePanel::create_panel(wxWindow* parent)
 
     m_complete_radioBox = new wxRadioButton(parent, wxID_ANY, _L("Complete Calibration"));
     m_complete_radioBox->SetForegroundColour(*wxBLACK);
-    
+
     m_complete_radioBox->SetValue(true);
     m_stage = CALI_MANUAL_STAGE_1;
     m_top_sizer->Add(m_complete_radioBox);
@@ -231,7 +231,7 @@ void CaliPresetWarningPanel::create_panel(wxWindow* parent)
 {
     m_warning_text = new Label(parent, wxEmptyString);
     m_warning_text->SetFont(Label::Body_13);
-    m_warning_text->SetForegroundColour(wxColour(230, 92, 92));
+    //m_warning_text->SetForegroundColour(wxColour(230, 92, 92));
     m_warning_text->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
     m_top_sizer->Add(m_warning_text, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
 }
@@ -239,6 +239,11 @@ void CaliPresetWarningPanel::create_panel(wxWindow* parent)
 void CaliPresetWarningPanel::set_warning(wxString text)
 {
     m_warning_text->SetLabel(text);
+}
+
+void CaliPresetWarningPanel::set_color(wxColour color)
+{
+    m_warning_text->SetForegroundColour(color);
 }
 
 CaliPresetCustomRangePanel::CaliPresetCustomRangePanel(
@@ -365,7 +370,7 @@ CaliPresetTipsPanel::CaliPresetTipsPanel(
 {
     this->SetBackgroundColour(wxColour(238, 238, 238));
     this->SetMinSize(wxSize(MIN_CALIBRATION_PAGE_WIDTH, -1));
-    
+
     m_top_sizer = new wxBoxSizer(wxVERTICAL);
 
     create_panel(this);
@@ -518,6 +523,13 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
     panel_sizer->AddSpacer(FromDIP(10));
     m_comboBox_nozzle_dia = new ComboBox(parent, wxID_ANY, "", wxDefaultPosition, CALIBRATION_COMBOX_SIZE, 0, nullptr, wxCB_READONLY);
     panel_sizer->Add(m_comboBox_nozzle_dia, 0, wxALL, 0);
+
+    m_nozzle_diameter_tips = new Label(parent, "");
+    m_nozzle_diameter_tips->Hide();
+    m_nozzle_diameter_tips->SetFont(Label::Body_13);
+    //m_nozzle_diameter_tips->SetForegroundColour(wxColour(100, 100, 100));
+    m_nozzle_diameter_tips->Wrap(CALIBRATION_TEXT_MAX_LENGTH);
+    panel_sizer->Add(m_nozzle_diameter_tips, 0, wxALL, 0);
 
     panel_sizer->AddSpacer(PRESET_GAP);
 
@@ -740,12 +752,16 @@ void CalibrationPresetPage::create_page(wxWindow* parent)
         pa_cali_modes.push_back(_L("Pattern"));
         m_pa_cali_method_combox = new CaliComboBox(parent, _L("Method"), pa_cali_modes);
     }
-    
+
     m_ext_spool_panel = new wxPanel(parent);
     create_ext_spool_panel(m_ext_spool_panel);
     m_ext_spool_panel->Hide();
 
     m_warning_panel = new CaliPresetWarningPanel(parent);
+    m_warning_panel->Hide();
+
+    m_error_panel = new CaliPresetWarningPanel(parent);
+    m_error_panel->set_color(wxColour(230, 92, 92));
 
     m_tips_panel = new CaliPresetTipsPanel(parent);
 
@@ -770,6 +786,7 @@ void CalibrationPresetPage::create_page(wxWindow* parent)
     m_top_sizer->Add(m_custom_range_panel, 0);
     m_top_sizer->AddSpacer(FromDIP(15));
     m_top_sizer->Add(m_warning_panel, 0);
+    m_top_sizer->Add(m_error_panel, 0);
     m_top_sizer->Add(m_tips_panel, 0);
     m_top_sizer->AddSpacer(PRESET_GAP);
     m_top_sizer->Add(m_sending_panel, 0, wxALIGN_CENTER);
@@ -860,6 +877,7 @@ void CalibrationPresetPage::update_priner_status_msg(wxString msg, bool is_warni
 
 void CalibrationPresetPage::on_select_nozzle(wxCommandEvent& evt)
 {
+    check_nozzle_diameter_for_auto_cali();
     update_combobox_filaments(curr_obj);
 }
 
@@ -950,6 +968,30 @@ void CalibrationPresetPage::on_recommend_input_value()
     }
 }
 
+void CalibrationPresetPage::check_nozzle_diameter_for_auto_cali()
+{
+    m_nozzle_diameter_tips->Hide();
+    if (!curr_obj)
+        return;
+
+    if (m_cali_method == CALI_METHOD_AUTO) {
+        float nozzle_diameter = get_nozzle_value();
+        if (nozzle_diameter < 0.3) {
+            if (curr_obj->get_printer_arch() == PrinterArch::ARCH_I3) {
+                wxString tips = (boost::format(_u8L("Tip: Using a %.1fmm nozzle for auto dynamic flow calibration may have a high probability of failure.\n"
+                                        "If it fails, it is recommended to use manual calibration.")) % nozzle_diameter).str();
+                m_nozzle_diameter_tips->SetLabel(tips);
+            }
+            else if (curr_obj->get_printer_series() == PrinterSeries::SERIES_X1) {
+                wxString tips = (boost::format(_u8L("Tip: Using a %.1fmm nozzle for auto dynamic flow calibration may not get accurate calibration results.\n"
+                                        "It is recommended to use manual calibration.")) % nozzle_diameter).str();
+                m_nozzle_diameter_tips->SetLabel(tips);
+            }
+            m_nozzle_diameter_tips->Show();
+        }
+    }
+}
+
 void CalibrationPresetPage::check_filament_compatible()
 {
     std::map<int, Preset*> selected_filaments = get_selected_filaments();
@@ -961,20 +1003,22 @@ void CalibrationPresetPage::check_filament_compatible()
     for (auto& item: selected_filaments)
         selected_filaments_list.push_back(item.second);
 
+    check_filament_cali_reliability(selected_filaments_list);
+
     if (!is_filaments_compatiable(selected_filaments_list, bed_temp, incompatiable_filament_name, error_tips)) {
         m_tips_panel->set_params(0, 0, 0.0f);
         if (!error_tips.empty()) {
             wxString tips = from_u8(error_tips);
-            m_warning_panel->set_warning(tips);
+            m_error_panel->set_warning(tips);
         } else {
             wxString tips = wxString::Format(_L("%s is not compatible with %s"), m_comboBox_bed_type->GetValue(), incompatiable_filament_name);
-            m_warning_panel->set_warning(tips);
+            m_error_panel->set_warning(tips);
         }
         m_has_filament_incompatible = true;
         update_show_status();
     } else {
         m_tips_panel->set_params(0, bed_temp, 0);
-        m_warning_panel->set_warning("");
+        m_error_panel->set_warning("");
         m_has_filament_incompatible = false;
         update_show_status();
     }
@@ -1079,6 +1123,49 @@ bool CalibrationPresetPage::is_filaments_compatiable(const std::vector<Preset*> 
     }
 
     return true;
+}
+
+void CalibrationPresetPage::check_filament_cali_reliability(const std::vector<Preset *> &prests)
+{
+    m_warning_panel->Hide();
+    if (!curr_obj)
+        return;
+
+    if (m_cali_method == CALI_METHOD_AUTO) {
+        std::set<std::string> foam_filaments;
+        for (auto &item : prests) {
+            if (!item)
+                continue;
+
+            if (item->filament_id == "GFA11" || item->filament_id == "GFB02") {  // PLA Aero, ASA-Aero
+                if (item->alias.empty())
+                    foam_filaments.insert(item->name);
+                else
+                    foam_filaments.insert(item->alias);
+            }
+        }
+
+        if (!foam_filaments.empty()) {
+            std::string names;
+            for (auto foam_filament : foam_filaments) {
+                names += foam_filament;
+                names += ",";
+            }
+            names.pop_back();
+
+            wxString tips;
+            if (curr_obj->get_printer_series() == PrinterSeries::SERIES_X1) {
+                tips = (boost::format(_u8L("Tip: Calibrating foam filaments(%s) in X series printers may not get accurate results\n"
+                                          "because their dynamic response is much different from that of ordinary filaments, and there is a high risk of oozing when printing calibration lines.")) %names).str();
+            }
+            else if (curr_obj->get_printer_arch() == PrinterArch::ARCH_I3) {
+                tips = (boost::format(_u8L("Tip: When using the A1/A1 mini printer, we do not recommend calibrating foam filaments(%s),\n"
+                                           "as the results may be unstable and affect print quality."))%names).str();
+            }
+            m_warning_panel->set_warning(tips);
+            m_warning_panel->Show();
+        }
+    }
 }
 
 void CalibrationPresetPage::update_plate_type_collection(CalibrationMethod method)
@@ -1361,14 +1448,14 @@ float CalibrationPresetPage::get_nozzle_value()
 void CalibrationPresetPage::update(MachineObject* obj)
 {
     curr_obj = obj;
-    
+
     //update printer status
     update_show_status();
 
 }
 
 void CalibrationPresetPage::on_device_connected(MachineObject* obj)
-{   
+{
     init_with_machine(obj);
     update_combobox_filaments(obj);
 }
@@ -1618,12 +1705,12 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
     for (auto ams = obj->amsList.begin(); ams != obj->amsList.end(); ams++) {
         AMSinfo info;
         info.ams_id = ams->first;
-        if (ams->second->is_exists 
+        if (ams->second->is_exists
             && info.parse_ams_info(obj, ams->second, obj->ams_calibrate_remain_flag, obj->is_support_ams_humidity)) {
             ams_info.push_back(info);
         }
     }
-    
+
     for (auto i = 0; i < m_ams_item_list.size(); i++) {
         AMSItem* item = m_ams_item_list[i];
         if (ams_info.size() > 1) {
@@ -1745,7 +1832,7 @@ std::map<int, Preset*> CalibrationPresetPage::get_selected_filaments()
             out.emplace(std::make_pair(fcb_list[i]->get_tray_id(), preset));
         }
     }
-    
+
 
     return out;
 }

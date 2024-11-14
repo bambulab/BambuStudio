@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-25 21:39+0800\n"
+"POT-Creation-Date: 2024-11-12 11:34+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -832,6 +832,9 @@ msgstr ""
 msgid "Warning:create text fail."
 msgstr ""
 
+msgid "Warning:text normal is error."
+msgstr ""
+
 msgid "Surface"
 msgstr "Yta"
 
@@ -850,7 +853,7 @@ msgstr ""
 msgid "Remove selected points"
 msgstr ""
 
-msgid "Remove all points"
+msgid "Remove all"
 msgstr ""
 
 msgid "Auto-generate points"
@@ -873,7 +876,7 @@ msgid ""
 "effect !"
 msgstr ""
 
-msgid "(Set the brim type to \"painted\")"
+msgid "Set the brim type to \"painted\""
 msgstr ""
 
 msgid " invalid brim ears"
@@ -2036,9 +2039,6 @@ msgid "OK"
 msgstr "OK"
 
 msgid "Jump to Layer"
-msgstr "Hoppa till lager"
-
-msgid "Jump to layer"
 msgstr "Hoppa till lager"
 
 msgid "Please enter the layer number"
@@ -3868,6 +3868,10 @@ msgstr ""
 "Lös problemet genom att flytta det helt på eller av plattan och bekräfta att "
 "höjden är inom byggvolymen."
 
+#, c-format, boost-format
+msgid "filaments %s cannot be printed directly on the surface of this plate."
+msgstr ""
+
 msgid "Calibration step selection"
 msgstr "Val av kalibreringssteg"
 
@@ -5028,6 +5032,9 @@ msgstr ""
 msgid "0"
 msgstr "0"
 
+msgid "Don't show again"
+msgstr "Visa inte igen"
+
 msgid "Calculating, please wait..."
 msgstr ""
 
@@ -5036,9 +5043,6 @@ msgstr "Status"
 
 msgid "Update"
 msgstr "Uppdatera"
-
-msgid "Don't show again"
-msgstr "Visa inte igen"
 
 #, c-format, boost-format
 msgid "%s error"
@@ -5227,6 +5231,9 @@ msgstr "Modellen behöver support ! Aktivera support inställningarna."
 msgid "Gcode path overlap"
 msgstr "Överlappning av G-kods banor"
 
+msgid "Click Wiki for help."
+msgstr ""
+
 msgid "Support painting"
 msgstr "Support färgläggning"
 
@@ -5308,14 +5315,14 @@ msgstr "Nozzle Clumping Detection"
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
 msgstr "Check if the nozzle is clumping by filament or other foreign objects."
 
-msgid "Nozzle Type"
-msgstr "Nozzle Type"
+msgid "Hardened Steel"
+msgstr "Härdat stål"
 
 msgid "Stainless Steel"
 msgstr "Rostfritt stål"
 
-msgid "Hardened Steel"
-msgstr "Härdat stål"
+msgid "Nozzle Type"
+msgstr "Nozzle Type"
 
 #, c-format, boost-format
 msgid "%.1f"
@@ -6089,6 +6096,13 @@ msgstr ""
 "With this option enabled, you can send a task to multiple devices at the "
 "same time and manage multiple devices."
 
+msgid "Show the step mesh parameter setting dialog."
+msgstr ""
+
+msgid ""
+"If enabled,a parameter settings dialog will appear during STEP file import."
+msgstr ""
+
 msgid "Support beta version update."
 msgstr ""
 
@@ -6187,6 +6201,9 @@ msgstr "Online modeller"
 
 msgid "Show online staff-picked models on the home page"
 msgstr "Visa personalens utvalda modeller online på startsidan"
+
+msgid "Show history on the home page"
+msgstr ""
 
 msgid "Maximum recent projects"
 msgstr "Maximalt antal nyligen genomförda projekt"
@@ -6579,14 +6596,8 @@ msgstr "Offline"
 msgid "Busy"
 msgstr "Upptagen"
 
-msgid "Bambu Cool Plate SuperTack"
-msgstr ""
-
 msgid "Bambu Cool Plate"
 msgstr "Bambu Cool Plate"
-
-msgid "PLA Plate"
-msgstr "PLA platta"
 
 msgid "Bamabu Engineering Plate"
 msgstr "Bambu Engineering Plate"
@@ -6599,6 +6610,9 @@ msgstr "Högtemperatur platta"
 
 msgid "Bamabu Textured PEI Plate"
 msgstr "Bambu Lab texturerad PEI-platta"
+
+msgid "Bambu Cool Plate SuperTack"
+msgstr ""
 
 msgid "Send print job to"
 msgstr "Skicka utskriftsjobb till"
@@ -6775,13 +6789,10 @@ msgstr ""
 "If you changed your nozzle lately, please go to Device > Printer Parts to "
 "change settings."
 
-#, c-format, boost-format
 msgid ""
-"Printing high temperature material(%s material) with %s may cause nozzle "
+"Printing high temperature material(%1 material) with %2 may cause nozzle "
 "damage"
 msgstr ""
-"Printing high temperature material(%s material) with %s may cause nozzle "
-"damage"
 
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr "Please fix the error above, otherwise printing cannot continue."
@@ -7242,8 +7253,8 @@ msgid ""
 "does not support to print on the Bambu Cool Plate SuperTack"
 msgstr ""
 
-msgid "Cool Plate / PLA Plate"
-msgstr "Cool Plate / PLA Platta"
+msgid "Cool Plate"
+msgstr "Cool Plate"
 
 msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
@@ -8087,24 +8098,27 @@ msgid "Connect the printer using IP and access code"
 msgstr ""
 
 msgid ""
-"Step 1, please confirm Bambu Studio and your printer are in the same LAN."
-msgstr "Steg 1, bekräfta att Bambu Studio och din skrivare finns på samma LAN."
+"Step 1. Please confirm Bambu Studio and your printer are in the same LAN."
+msgstr ""
 
 msgid ""
-"Step 2, if the IP and Access Code below are different from the actual values "
+"Step 2. If the IP and Access Code below are different from the actual values "
 "on your printer, please correct them."
 msgstr ""
-"Steg 2, om IP- och åtkomst koden nedan skiljer sig från de faktiska värdena "
-"på skrivaren, korrigera dem."
+
+msgid ""
+"Step 3. Please obtain the device SN from the printer side; it is usually "
+"found in the device information on the printer screen."
+msgstr ""
 
 msgid "Access Code"
 msgstr "Behörighetskod: "
 
+msgid "Printer model"
+msgstr ""
+
 msgid "Where to find your printer's IP and Access Code?"
 msgstr "Var hittar du skrivarens IP- och åtkomstkod?"
-
-msgid "Step 3: Ping the IP address to check for packet loss and latency."
-msgstr "Steg 3: Pinga IP-adressen för att kontrollera paketförlust och latens."
 
 msgid "Connect"
 msgstr ""
@@ -8116,9 +8130,6 @@ msgid "Failed to connect to printer."
 msgstr ""
 
 msgid "Failed to publish login request."
-msgstr ""
-
-msgid "The device does not support using IP and Access Code for connection."
 msgstr ""
 
 msgid "The printer has already been bound."
@@ -8298,8 +8309,19 @@ msgstr ""
 "Misslyckades att skapa G-kod för ogiltlig custom G-kod.\n"
 "\n"
 
-msgid "Please check the custom G-code or use the default custom G-code."
-msgstr "Kontrollera custom G-kod elleranvänd standard custom G-kod."
+msgid "Please check the custom G-code or use the default custom G-code.\n"
+msgstr ""
+
+msgid ""
+"You can find them from 'Printer settings' -> 'Machine G-code' and 'Filament "
+"settings' -> 'Advanced'."
+msgstr ""
+
+msgid "You can find it from 'Printer settings' -> 'Machine G-code'."
+msgstr ""
+
+msgid "You can find it from 'Filament settings' -> 'Advanced'."
+msgstr ""
 
 #, boost-format
 msgid "Generating G-code: layer %1%"
@@ -9320,12 +9342,13 @@ msgstr ""
 "Avstånd från nozzel spetsen till locket. Används för att undvika kollisioner "
 "vid utskrift av flera objekt."
 
-msgid ""
-"Clearance radius around extruder. Used for collision avoidance in by-object "
-"printing."
+msgid "Distance to rod"
 msgstr ""
-"Fri radie runt extrudern. Används för att undvika kollision vid utskrift per "
-"objekt."
+
+msgid ""
+"Horizontal distance of the nozzle tip to the rod's farther edge. Used for "
+"collision avoidance in by-object printing."
+msgstr ""
 
 msgid "Nozzle height"
 msgstr "Nozzel höjd"
@@ -10571,8 +10594,8 @@ msgstr ""
 "Detta belopp anges som en procentandel av den aktuella extruder diametern. "
 "Standardvärdet för denna parameter är 15"
 
-msgid "Conditional scarf joint"
-msgstr "Conditional scarf joint"
+msgid "Smart scarf seam application"
+msgstr ""
 
 msgid ""
 "Apply scarf joints only to smooth perimeters where traditional seams do not "
@@ -10581,8 +10604,8 @@ msgstr ""
 "Apply scarf joints only to smooth perimeters where traditional seams do not "
 "conceal the seams at sharp corners effectively."
 
-msgid "Conditional angle threshold"
-msgstr "Conditional angle threshold"
+msgid "Scarf application angle threshold"
+msgstr ""
 
 msgid ""
 "This option sets the threshold angle for applying a conditional scarf joint "
@@ -10629,7 +10652,7 @@ msgstr ""
 "beräknas baserat på inställningen för förflyttnings hastigheten ovan. "
 "Standardvärdet för denna parameter är 80%"
 
-msgid "Role base wipe speed"
+msgid "Role-based wipe speed"
 msgstr ""
 
 msgid ""
@@ -11491,16 +11514,16 @@ msgstr ""
 "är också färglagd.\n"
 "XY-storlekskompensation kan inte kombineras med färgläggning."
 
-msgid ""
-"Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
-msgstr ""
-"Okänt filformat. Indata filen måste ha tillägget .stl, .obj eller .amf(.xml)."
-
 msgid "Loading of a model file failed."
 msgstr "Laddning av modell filen misslyckades."
 
 msgid "The supplied file couldn't be read because it's empty"
 msgstr "Den medföljande filen kunde inte läsas eftersom den är tom."
+
+msgid ""
+"Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
+msgstr ""
+"Okänt filformat. Indata filen måste ha tillägget .stl, .obj eller .amf(.xml)."
 
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
@@ -11982,11 +12005,41 @@ msgid "Method"
 msgstr "Metod"
 
 #, c-format, boost-format
+msgid ""
+"Tip: Using a %.1fmm nozzle for auto dynamic flow calibration may have a high "
+"probability of failure.\n"
+"If it fails, it is recommended to use manual calibration."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Tip: Using a %.1fmm nozzle for auto dynamic flow calibration may not get "
+"accurate calibration results.\n"
+"It is recommended to use manual calibration."
+msgstr ""
+
+#, c-format, boost-format
 msgid "%s is not compatible with %s"
 msgstr "%s är inte kompatibel med %s"
 
 msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
 msgstr "TPU stöds inte för automatisk kalibrering av flödesdynamik."
+
+#, c-format, boost-format
+msgid ""
+"Tip: Calibrating foam filaments(%s) in X series printers may not get "
+"accurate results\n"
+"because their dynamic response is much different from that of ordinary "
+"filaments, and there is a high risk of oozing when printing calibration "
+"lines."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Tip: When using the A1/A1 mini printer, we do not recommend calibrating foam "
+"filaments(%s),\n"
+"as the results may be unstable and affect print quality."
+msgstr ""
 
 msgid "Connecting to printer"
 msgstr "Ansluter till skrivaren"
@@ -13798,6 +13851,55 @@ msgstr ""
 "ABS, kan en lämplig ökning av värmebäddens temperatur minska sannolikheten "
 "för vridning."
 
+#, c-format, boost-format
+#~ msgid ""
+#~ "Printing high temperature material(%s material) with %s may cause nozzle "
+#~ "damage"
+#~ msgstr ""
+#~ "Printing high temperature material(%s material) with %s may cause nozzle "
+#~ "damage"
+
+#~ msgid "Conditional scarf joint"
+#~ msgstr "Conditional scarf joint"
+
+#~ msgid "Conditional angle threshold"
+#~ msgstr "Conditional angle threshold"
+
+#~ msgid "Jump to layer"
+#~ msgstr "Hoppa till lager"
+
+#~ msgid "PLA Plate"
+#~ msgstr "PLA platta"
+
+#~ msgid "Cool Plate / PLA Plate"
+#~ msgstr "Cool Plate / PLA Platta"
+
+#~ msgid ""
+#~ "Step 1, please confirm Bambu Studio and your printer are in the same LAN."
+#~ msgstr ""
+#~ "Steg 1, bekräfta att Bambu Studio och din skrivare finns på samma LAN."
+
+#~ msgid ""
+#~ "Step 2, if the IP and Access Code below are different from the actual "
+#~ "values on your printer, please correct them."
+#~ msgstr ""
+#~ "Steg 2, om IP- och åtkomst koden nedan skiljer sig från de faktiska "
+#~ "värdena på skrivaren, korrigera dem."
+
+#~ msgid "Step 3: Ping the IP address to check for packet loss and latency."
+#~ msgstr ""
+#~ "Steg 3: Pinga IP-adressen för att kontrollera paketförlust och latens."
+
+#~ msgid "Please check the custom G-code or use the default custom G-code."
+#~ msgstr "Kontrollera custom G-kod elleranvänd standard custom G-kod."
+
+#~ msgid ""
+#~ "Clearance radius around extruder. Used for collision avoidance in by-"
+#~ "object printing."
+#~ msgstr ""
+#~ "Fri radie runt extrudern. Används för att undvika kollision vid utskrift "
+#~ "per objekt."
+
 #~ msgid "Tree support branch angle"
 #~ msgstr "Tree support grenarnas vinkel"
 
@@ -14424,9 +14526,6 @@ msgstr ""
 
 #~ msgid "Convert the units of model"
 #~ msgstr "Konvertera modellens enheter"
-
-#~ msgid "Cool Plate"
-#~ msgstr "Cool Plate"
 
 #~ msgid "Cool plate"
 #~ msgstr "Kall platta"

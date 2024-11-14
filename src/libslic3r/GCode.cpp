@@ -1190,6 +1190,16 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
 
     BOOST_LOG_TRIVIAL(debug) << "Start processing gcode, " << log_memory_info();
     // Post-process the G-code to update time stamps.
+    // BBS: FIX: layers count error, while the last layer extrude is empty
+    // spiral_vase_layer can't get right height
+    while (!m_processor.result().spiral_vase_layers.empty()) {
+        if (m_processor.result().spiral_vase_layers.back().first != FLT_MAX)
+            break;
+        //record last move, update prev layer move range
+        int last_move = m_processor.result().spiral_vase_layers.back().second.second;
+        m_processor.result().spiral_vase_layers.pop_back();
+        m_processor.result().spiral_vase_layers.back().second.second = last_move;
+    }
 
     m_timelapse_warning_code = 0;
     if (m_config.printer_structure.value == PrinterStructure::psI3 && m_spiral_vase) {
@@ -1211,23 +1221,16 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     m_processor.result().long_retraction_when_cut = activate_long_retraction_when_cut;
 
     {   //BBS:check bed and filament compatible
-        const ConfigOptionDef *bed_type_def = print_config_def.get("curr_bed_type");
-        assert(bed_type_def != nullptr);
-        const t_config_enum_values *bed_type_keys_map = bed_type_def->enum_keys_map;
-        const ConfigOptionInts *bed_temp_opt = m_config.option<ConfigOptionInts>(get_bed_temp_key(m_config.curr_bed_type));
+        const ConfigOptionInts *bed_temp_opt = m_config.option<ConfigOptionInts>(get_bed_temp_1st_layer_key(m_config.curr_bed_type));
+        std::vector<int> conflict_filament;
         for(auto extruder_id : m_initial_layer_extruders){
             int cur_bed_temp = bed_temp_opt->get_at(extruder_id);
-            if (cur_bed_temp == 0 && bed_type_keys_map != nullptr) {
-                for (auto item : *bed_type_keys_map) {
-                    if (item.second == m_config.curr_bed_type) {
-                        m_processor.result().bed_match_result = BedMatchResult(false, item.first, extruder_id);
-                        break;
-                    }
-                }
+            if (cur_bed_temp == 0) {
+                conflict_filament.push_back(extruder_id);
             }
-            if (m_processor.result().bed_match_result.match == false)
-                break;
         }
+
+        m_processor.result().filament_printable_reuslt = FilamentPrintableResult(conflict_filament, bed_type_to_gcode_string(m_config.curr_bed_type));
     }
     m_processor.set_filaments(m_writer.extruders());
     m_processor.finalize(true);
@@ -2346,12 +2349,27 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 //BBS
 void GCode::check_placeholder_parser_failed()
 {
+    bool has_machine_gcode = false, has_filament_gcode = false;
     if (! m_placeholder_parser_failed_templates.empty()) {
         // G-code export proceeded, but some of the PlaceholderParser substitutions failed.
         std::string msg = Slic3r::format(_(L("Failed to generate gcode for invalid custom G-code.\n\n")));
         for (const auto &name_and_error : m_placeholder_parser_failed_templates)
+        {
             msg += name_and_error.first + " " + name_and_error.second + "\n";
-        msg += Slic3r::format(_(L("Please check the custom G-code or use the default custom G-code.")));
+            if (("filament_end_gcode" == name_and_error.first) || ("filament_start_gcode" == name_and_error.first))
+                has_filament_gcode = true;
+            else
+                has_machine_gcode = true;
+        }
+        msg += Slic3r::format(_(L("Please check the custom G-code or use the default custom G-code.\n")));
+        if (has_machine_gcode) {
+            if (has_filament_gcode)
+                msg += Slic3r::format(_(L("You can find them from 'Printer settings' -> 'Machine G-code' and 'Filament settings' -> 'Advanced'.")));
+            else
+                msg += Slic3r::format(_(L("You can find it from 'Printer settings' -> 'Machine G-code'.")));
+        }
+        else
+            msg += Slic3r::format(_(L("You can find it from 'Filament settings' -> 'Advanced'.")));
         throw Slic3r::PlaceholderParserError(msg);
     }
 }

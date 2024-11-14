@@ -198,6 +198,7 @@ protected:
     std::vector<std::array<float, 4>> m_ebt_colors;
 
     bool                        m_filter_state = false;
+    bool                        m_cached_wireframe_mode = false;
 
 private:
     void update_render_data();

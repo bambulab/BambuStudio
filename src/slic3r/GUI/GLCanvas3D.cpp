@@ -2809,6 +2809,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     //BBS:exclude the assmble view
     if (m_canvas_type != ECanvasType::CanvasAssembleView) {
         _set_warning_notification_if_needed(EWarning::GCodeConflict);
+        _set_warning_notification(EWarning::FilamentUnPrintableOnFirstLayer, false);
         // checks for geometry outside the print volume to render it accordingly
         if (!m_volumes.empty()) {
             ModelInstanceEPrintVolumeState state;
@@ -2897,6 +2898,7 @@ void GLCanvas3D::load_gcode_preview(const GCodeProcessorResult& gcode_result, co
         _set_warning_notification_if_needed(EWarning::ToolHeightOutside);
         _set_warning_notification_if_needed(EWarning::ToolpathOutside);
         _set_warning_notification_if_needed(EWarning::GCodeConflict);
+        _set_warning_notification_if_needed(EWarning::FilamentUnPrintableOnFirstLayer);
     }
 
     m_gcode_viewer.refresh(gcode_result, str_tool_colors);
@@ -5330,8 +5332,8 @@ void GLCanvas3D::update_sequential_clearance()
             Polygon hull_no_offset = model_object->convex_hull_2d(Geometry::assemble_transform({ 0.0, 0.0, model_instance0->get_offset().z() }, model_instance0->get_rotation(),
                 model_instance0->get_scaling_factor(), model_instance0->get_mirror()));
             auto tmp = offset(hull_no_offset,
-                // Shrink the extruder_clearance_radius a tiny bit, so that if the object arrangement algorithm placed the objects
-                // exactly by satisfying the extruder_clearance_radius, this test will not trigger collision.
+                // Shrink the extruder_clearance_max_radius a tiny bit, so that if the object arrangement algorithm placed the objects
+                // exactly by satisfying the extruder_clearance_max_radius, this test will not trigger collision.
                 shrink_factor,
                 jtRound, mitter_limit);
             Polygon hull_2d = !tmp.empty() ? tmp.front() : hull_no_offset;// tmp may be empty due to clipper's bug, see STUDIO-2452
@@ -9446,14 +9448,15 @@ void GLCanvas3D::_set_warning_notification_if_needed(EWarning warning)
         if (wxGetApp().is_editor()) {
             if (current_printer_technology() != ptSLA) {
                 unsigned int max_z_layer = m_gcode_viewer.get_layers_z_range().back();
-                if (warning == EWarning::ToolHeightOutside)  // check if max z_layer height exceed max print height
+                if (warning == EWarning::ToolHeightOutside) // check if max z_layer height exceed max print height
                     show = m_gcode_viewer.has_data() && (m_gcode_viewer.get_layers_zs()[max_z_layer] - m_gcode_viewer.get_max_print_height() >= 1e-6);
                 else if (warning == EWarning::ToolpathOutside) { // check if max x,y coords exceed bed area
                     show = m_gcode_viewer.has_data() && !m_gcode_viewer.is_contained_in_bed() &&
-                           (m_gcode_viewer.get_max_print_height() -m_gcode_viewer.get_layers_zs()[max_z_layer] >= 1e-6);
-                }
-                else if (warning == EWarning::GCodeConflict)
+                           (m_gcode_viewer.get_max_print_height() - m_gcode_viewer.get_layers_zs()[max_z_layer] >= 1e-6);
+                } else if (warning == EWarning::GCodeConflict)
                     show = m_gcode_viewer.has_data() && m_gcode_viewer.is_contained_in_bed() && m_gcode_viewer.m_conflict_result.has_value();
+                else if (warning == EWarning::FilamentUnPrintableOnFirstLayer)
+                    show = m_gcode_viewer.has_data() && m_gcode_viewer.filament_printable_reuslt.has_value();
             }
         }
     }
@@ -9489,7 +9492,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         PLATER_WARNING,
         PLATER_ERROR,
         SLICING_SERIOUS_WARNING,
-        SLICING_ERROR
+        SLICING_ERROR,
     };
     std::string text;
     ErrorType error = ErrorType::PLATER_WARNING;
@@ -9523,6 +9526,18 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
             "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.");
         error = ErrorType::PLATER_ERROR;
         break;
+    case EWarning::FilamentUnPrintableOnFirstLayer: {
+        std::string warning;
+        const std::vector<int> &conflict_filament = m_gcode_viewer.filament_printable_reuslt.conflict_filament;
+        auto iter = conflict_filament.begin();
+        for (int filament : conflict_filament) {
+            warning += std::to_string(filament + 1);
+            warning+=" ";
+        }
+        text  = (boost::format(_u8L("filaments %s cannot be printed directly on the surface of this plate.")) % warning ).str();
+        error = ErrorType::SLICING_ERROR;
+        break;
+    }
     }
     //BBS: this may happened when exit the app, plater is null
     if (!wxGetApp().plater())
@@ -9550,10 +9565,20 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
             notification_manager.close_slicing_serious_warning_notification(text);
         break;
     case SLICING_ERROR:
-        if (state)
-            notification_manager.push_slicing_error_notification(text, conflictObj ? std::vector<ModelObject const*>{conflictObj} : std::vector<ModelObject const*>{});
-        else
-            notification_manager.close_slicing_error_notification(text);
+        if (warning == EWarning::FilamentUnPrintableOnFirstLayer) {
+            if (state) {
+                notification_manager.bbl_show_bed_filament_incompatible_notification(text);
+            }
+            else {
+                notification_manager.bbl_close_bed_filament_incompatible_notification();
+            }
+        }
+        else {
+            if (state)
+                notification_manager.push_slicing_error_notification(text, conflictObj ? std::vector<ModelObject const*>{conflictObj} : std::vector<ModelObject const*>{});
+            else
+                notification_manager.close_slicing_error_notification(text);
+        }
         break;
     default:
         break;

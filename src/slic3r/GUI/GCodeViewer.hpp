@@ -738,6 +738,8 @@ public:
 
     //BBS
     ConflictResultOpt m_conflict_result;
+    FilamentPrintableResult filament_printable_reuslt;
+
 private:
     std::vector<int> m_plater_extruder;
     bool m_gl_data_initialized{ false };
@@ -821,7 +823,8 @@ public:
     //BBS: always load shell at preview
     void reset_shell();
     void load_shells(const Print& print, bool initialized, bool force_previewing = false);
-    void set_shells_on_preview(bool is_previewing) { m_shells.previewing = is_previewing; }
+    void set_shells_on_preview(bool is_previewing);
+    void delete_wipe_tower();
     //BBS: add all plates filament statistics
     void render_all_plates_stats(const std::vector<const GCodeProcessorResult*>& gcode_result_list, bool show = true) const;
     //BBS: GUI refactor: add canvas width and height

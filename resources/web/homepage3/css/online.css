@@ -60,7 +60,8 @@
 	display:flex;
 	flex-direction: column;
 	cursor: pointer;
-    border-radius: 8px;		
+	border-radius: 10px;
+	overflow: hidden;
 }
 
 .HotModel_PrevBlock
@@ -160,3 +161,42 @@
 	align-items: center;
 }
 
+/*-----Search Bar------*/
+#HotModel_Search_Bar
+{
+	display: none;
+	align-items: center;
+	border-radius: 22px;
+	border: 1px solid #EEEEEE;	
+    flex-grow: 1;
+	background-color: #FFFFFF;
+}
+
+#HotModel_Search_InputArea
+{
+	background-color: #FFF;
+	display: flex;
+	align-items: center;
+	flex-grow: 1;
+	padding: 0px 22px 0px 0px;
+    border-radius: 22px 0px 0px 22px;
+}
+
+#HotModel_Search_Input
+{
+	height: 30px;
+	flex-grow: 1;
+	outline: none;
+	font-size: 16px;
+}
+
+
+#HotModel_Search_Btn
+{
+	width: 60px;
+	height: 100%;
+	border-radius: 0px 22px 22px 0px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}

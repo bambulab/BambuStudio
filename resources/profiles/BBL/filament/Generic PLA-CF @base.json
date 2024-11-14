@@ -8,12 +8,6 @@
     "additional_cooling_fan_speed": [
         "0"
     ],
-    "supertack_plate_temp": [
-        "45"
-    ],
-    "supertack_plate_temp_initial_layer": [
-        "45"
-    ],
     "cool_plate_temp": [
         "45"
     ],
@@ -28,6 +22,12 @@
     ],
     "required_nozzle_HRC": [
         "40"
+    ],
+    "supertack_plate_temp": [
+        "50"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "50"
     ],
     "slow_down_layer_time": [
         "7"
