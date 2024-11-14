@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-14 16:56+0800\n"
+"POT-Creation-Date: 2024-11-14 20:56+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -5061,20 +5061,13 @@ msgstr ""
 msgid "Step file import parameters"
 msgstr "Параметри імпорту STEP-файлу"
 
-msgid "Rough"
-msgstr "Грубо"
+msgid ""
+"Smaller linear and angular deflections result in higher-quality "
+"transformations but increase the processing time."
+msgstr ""
 
-msgid "Reduce Linear"
-msgstr "Зменшити лінійно"
-
-msgid "Reduce Angle"
-msgstr "Зменшити кут"
-
-msgid "More faces"
-msgstr "Більше граней"
-
-msgid "Fewer faces"
-msgstr "Менше граней"
+msgid "See BambuLab Wiki"
+msgstr ""
 
 msgid "Linear Deflection"
 msgstr "Лінійне відхилення"
@@ -14164,6 +14157,21 @@ msgstr ""
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як "
 "ABS, відповідне підвищення температури гарячого ліжка може зменшити "
 "ймовірність деформації."
+
+#~ msgid "Rough"
+#~ msgstr "Грубо"
+
+#~ msgid "Reduce Linear"
+#~ msgstr "Зменшити лінійно"
+
+#~ msgid "Reduce Angle"
+#~ msgstr "Зменшити кут"
+
+#~ msgid "More faces"
+#~ msgstr "Більше граней"
+
+#~ msgid "Fewer faces"
+#~ msgstr "Менше граней"
 
 #~ msgid "We would use Lidar to read the calibration result"
 #~ msgstr "Ми використовуватимемо Лідар для зчитування результату калібрування"
