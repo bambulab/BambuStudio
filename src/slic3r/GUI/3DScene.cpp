@@ -1287,7 +1287,7 @@ int GLVolumeCollection::load_object_volume(
     GLVolume& v = *new_volume;
     v.set_color(color_from_model_volume(*model_volume));
     v.name = model_volume->name;
-    v.is_text_shape = model_volume->get_text_info().m_text.empty();
+    v.is_text_shape = model_volume->is_text();
 
     const TriangleMesh* mesh_ptr = model_volume->mesh_ptr();
     new_volume->ori_mesh = mesh_ptr;
