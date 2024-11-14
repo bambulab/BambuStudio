@@ -1330,7 +1330,7 @@ int CLI::run(int argc, char **argv)
         "filament_pla_matte.json;filament_pla_basic.json;filament_pla_matte.json;filament_pla_matte.json",
         "--export-3mf=output.3mf",
         "--nozzle-volume-type",
-        "Normal,Big Traffic",
+        "Standard,High Flow",
         "--filament-map-mode",
         "Auto",
         "--filament-map",
