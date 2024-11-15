@@ -1001,7 +1001,7 @@ void ToolOrdering::assign_custom_gcodes(const Print& print)
         for (auto iter = m_layer_tools.rbegin(); iter != m_layer_tools.rend(); ++iter) {
             for (unsigned int i : iter->extruders)
                 extruder_printing_above[i] = true;
-            int layer_idx = iter.base() - m_layer_tools.begin();
+            int layer_idx = m_layer_tools.rend() - iter - 1;
             extruder_print_above_by_layer.emplace(layer_idx, extruder_printing_above);
         }
     }
