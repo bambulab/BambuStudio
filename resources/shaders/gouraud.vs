@@ -62,8 +62,8 @@ void main()
 	// Perform the same lighting calculation for the 2nd light source (no specular applied).
 	NdotL = max(dot(eye_normal, LIGHT_FRONT_DIR), 0.0);
 	intensity.x += NdotL * LIGHT_FRONT_DIFFUSE;
-	
-	if(is_text_shape){
+
+	if(!is_text_shape){
 		NdotL = max(dot(eye_normal, LIGHT_BACK_DIR), 0.0);
 		intensity.x += NdotL * LIGHT_BACK_DIFFUSE;
 	}
