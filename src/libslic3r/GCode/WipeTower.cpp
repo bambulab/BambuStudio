@@ -966,6 +966,13 @@ WipeTower::NozzleChangeResult WipeTower::nozzle_change(int old_filament_id, int 
         // Otherwise we are going to Unload only. And m_layer_info would be invalid.
     }
 
+    auto format_nozzle_change_line = [](bool start, int old_filament_id, int new_filament_id)->std::string {
+        char buff[64];
+        std::string tag = start ? GCodeProcessor::reserved_tag(GCodeProcessor::ETags::NozzleChangeStart) : GCodeProcessor::reserved_tag(GCodeProcessor::ETags::NozzleChangeEnd);
+        snprintf(buff, sizeof(buff), ";%s OF%d NF%d\n", tag.c_str(), old_filament_id, new_filament_id);
+        return std::string(buff);
+        };
+
     float nozzle_change_speed = 60.0f * m_filpar[m_current_tool].max_e_speed / m_extrusion_flow;
     if (is_tpu_filament(m_current_tool)) {
         nozzle_change_speed *= 0.25;
@@ -977,7 +984,7 @@ WipeTower::NozzleChangeResult WipeTower::nozzle_change(int old_filament_id, int 
         .set_initial_tool(m_current_tool)
         .set_extrusion_flow(m_extrusion_flow)
         .set_y_shift(m_y_shift + (new_filament_id != (unsigned int) (-1) && (m_current_shape == SHAPE_REVERSED) ? m_layer_info->depth - m_layer_info->toolchanges_depth() : 0.f))
-        .append("; Nozzle change start\n");
+        .append(format_nozzle_change_line(true,old_filament_id,new_filament_id));
 
     writer.speed_override_backup();
     writer.speed_override(100);
@@ -1070,12 +1077,12 @@ WipeTower::NozzleChangeResult WipeTower::nozzle_change(int old_filament_id, int 
         writer.append(lift_gcode);
     }
 
-    writer.append("; Nozzle change end\n");
+    writer.append(format_nozzle_change_line(false, old_filament_id, new_filament_id));
 
     NozzleChangeResult result;
     result.start_pos = initial_position;
     result.end_pos   = writer.pos();
-    result.gcode     = std::move(writer.gcode());
+    result.gcode     = writer.gcode();
     return result;
 }
 
