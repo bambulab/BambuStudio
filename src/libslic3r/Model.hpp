@@ -816,6 +816,7 @@ struct RaycastResult
 struct TextInfo
 {
     std::string m_font_name;
+    std::string m_font_version;
     float       m_font_size     = 16.f;
     int         m_curr_font_idx = 0;
     bool        m_bold          = true;
@@ -830,7 +831,8 @@ struct TextInfo
 
     RaycastResult m_rr;
     template<typename Archive> void serialize(Archive &ar) {
-        ar(m_font_name, m_font_size, m_curr_font_idx, m_bold, m_italic, m_thickness, m_embeded_depth, m_rotate_angle, m_text_gap, m_is_surface_text, m_keep_horizontal, m_text, m_rr);
+        ar(m_font_name, m_font_version, m_font_size, m_curr_font_idx, m_bold, m_italic, m_thickness, m_embeded_depth, m_rotate_angle, m_text_gap, m_is_surface_text,
+           m_keep_horizontal, m_text, m_rr);
     }
 };
 
@@ -1027,7 +1029,7 @@ public:
 
     void set_text_info(const TextInfo& text_info) { m_text_info = text_info; }
     const TextInfo& get_text_info() const { return m_text_info; }
-
+    bool  is_text() const { return !m_text_info.m_text.empty(); }
     const Transform3d &get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const;
 	void set_new_unique_id() {
         ObjectBase::set_new_unique_id();
