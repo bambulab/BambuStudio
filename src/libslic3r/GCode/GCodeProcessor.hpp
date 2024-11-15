@@ -297,6 +297,63 @@ namespace Slic3r {
         void  unlock() const { result_mutex.unlock(); }
     };
 
+    namespace ExtruderPreHeating
+    {
+        struct FilamentUsageBlock
+        {
+            int filament_id;
+            unsigned int lower_gcode_id;
+            unsigned int upper_gcode_id;  // [lower_gcode_id,upper_gcode_id) uses current filament , upper gcode id will be set after finding next block
+            FilamentUsageBlock(int filament_id_, unsigned int lower_gcode_id_, unsigned int upper_gcode_id_) :filament_id(filament_id_), lower_gcode_id(lower_gcode_id_), upper_gcode_id(upper_gcode_id_) {}
+        };
+
+        /**
+         * @brief Describle the usage of a exturder in a section
+         *
+         * The strucutre stores the start and end lines of the sections as well as
+         * the filament used at the beginning and end of the section.
+         * Post extrusion means the final extrusion before switching to the next extruder.
+         *
+         * Simplified GCode Flow:
+         * 1.Extruder Change Block (ext0 switch to ext1)
+         * 2.Extruder Usage Block  (use ext1 to print)
+         * 3.Extruder Change Block (ext1 switch to ext0)
+         * 4.Extruder Usage Block  (use ext0 to print)
+         * 5.Extruder Change Block (ext0 switch to ex1)
+         * ...
+         *
+         * So the construct of extruder usage block relys on two extruder change block
+        */
+        struct ExtruderUsageBlcok
+        {
+            int extruder_id = -1;
+            unsigned int start_id = -1;
+            unsigned int end_id = -1;
+            int start_filament = -1;
+            int end_filament = -1;
+            unsigned int post_extrusion_start_id = -1;
+            unsigned int post_extrusion_end_id = -1;
+
+            void initialize_step_1(int extruder_id_, int start_id_, int start_filament_) {
+                extruder_id = extruder_id_;
+                start_id = start_id_;
+                start_filament = start_filament_;
+            };
+            void initialize_step_2(int post_extrusion_start_id_) {
+                post_extrusion_start_id = post_extrusion_start_id_;
+            }
+            void initialize_step_3(int end_id_, int end_filament_, int post_extrusion_end_id_) {
+                end_id = end_id_;
+                end_filament = end_filament_;
+                post_extrusion_end_id = post_extrusion_end_id_;
+            }
+            void reset() {
+                *this = ExtruderUsageBlcok();
+            }
+            ExtruderUsageBlcok() = default;
+        };
+    }
+
 
     class GCodeProcessor
     {
@@ -327,7 +384,9 @@ namespace Slic3r {
             Used_Filament_Volume_Placeholder,
             Used_Filament_Length_Placeholder,
             MachineStartGCodeEnd,
-            MachineEndGCodeStart
+            MachineEndGCodeStart,
+            NozzleChangeStart,
+            NozzleChangeEnd
         };
 
         static const std::string& reserved_tag(ETags tag) { return Reserved_Tags[static_cast<unsigned char>(tag)]; }
@@ -552,6 +611,7 @@ namespace Slic3r {
         {
             UsedFilaments used_filaments; // stores the accurate filament usage info
             std::vector<Extruder> filament_lists;
+            std::vector<std::string> filament_types;
             std::vector<int> filament_maps; // map each filament to extruder
             std::vector<float> filament_nozzle_temp;
             std::vector<int> physical_extruder_map;
@@ -560,12 +620,14 @@ namespace Slic3r {
             float cooling_rate{ 2.f }; // Celsius degree per second
             float heating_rate{ 2.f }; // Celsius degree per second
             float pre_heating_time_threshold{ 30.f }; // only active pre cooling & heating if time gap is bigger than threshold
+            float post_extrusion_cooling_threshold{ 30.f }; // threshold of temp if do cooling in post extrusion
             bool enable_pre_heating{ false };
 
             TimeProcessContext(
                 const UsedFilaments& used_filaments_,
                 const std::vector<Extruder>& filament_lists_,
                 const std::vector<int>& filament_maps_,
+                const std::vector<std::string>& filament_types_,
                 const std::vector<float>& filament_nozzle_temp_,
                 const std::vector<int>& physical_extruder_map_,
                 const size_t total_layer_num_,
@@ -577,6 +639,7 @@ namespace Slic3r {
                 used_filaments(used_filaments_),
                 filament_lists(filament_lists_),
                 filament_maps(filament_maps_),
+                filament_types(filament_types_),
                 filament_nozzle_temp(filament_nozzle_temp_),
                 physical_extruder_map(physical_extruder_map_),
                 total_layer_num(total_layer_num_),
@@ -769,6 +832,7 @@ namespace Slic3r {
         std::vector<float> m_remaining_volume;
         std::vector<Extruder> m_filament_lists;
         std::vector<float> m_filament_nozzle_temp;
+        std::vector<std::string> m_filament_types;
         float m_hotend_cooling_rate{ 2.f };
         float m_hotend_heating_rate{ 2.f };
         float m_enable_pre_heating{ false };
