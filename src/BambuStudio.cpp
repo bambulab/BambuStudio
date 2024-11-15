@@ -169,6 +169,7 @@ typedef struct _sliced_info {
     size_t export_time;
     std::vector<std::string> upward_machines;
     std::vector<std::string> downward_machines;
+    std::vector<std::string> upward_compatibility_taint;
 }sliced_info_t;
 std::vector<PrintBase::SlicingStatus> g_slicing_warnings;
 
@@ -421,6 +422,8 @@ void record_exit_reson(std::string outputdir, int code, int plate_id, std::strin
             j["downward_compatible_machine"] = sliced_info.downward_machines;
         if (sliced_info.upward_machines.size() > 0)
             j["upward_compatible_machine"] = sliced_info.upward_machines;
+        if (sliced_info.upward_compatibility_taint.size() > 0)
+            j["upward_compatibility_taint"] = sliced_info.upward_compatibility_taint;
         j["plate_index"] = plate_id;
         j["return_code"] = code;
         j["error_string"] = error_message;
@@ -3590,6 +3593,7 @@ int CLI::run(int argc, char **argv)
         }
     }
 
+    bool has_sequence_plates = false;
     int downward_check_size = downward_check_printers.size();
     if (downward_check_size > 0)
     {
@@ -3598,15 +3602,17 @@ int CLI::run(int argc, char **argv)
         int failed_count = 0;
         for (int index = 0; index < plate_count; index ++)
         {
-            if (failed_count == downward_check_size) {
-                BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: all failed, size %1%")%downward_check_size;
-                break;
-            }
             Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate *)partplate_list.get_plate(index);
             Vec3d size = plate_obj_size_infos[index].obj_bbox.size();
 
             bool is_sequence = false;
             get_print_sequence(cur_plate, m_print_config, is_sequence);
+            has_sequence_plates |= is_sequence;
+
+            if (failed_count == downward_check_size) {
+                BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: all failed, size %1%")%downward_check_size;
+                break;
+            }
 
             for (int index2 = 0; index2 < downward_check_size; index2 ++)
             {
@@ -3685,6 +3691,18 @@ int CLI::run(int argc, char **argv)
             }
         }
     }
+    else if (downward_check) {
+        int plate_count = partplate_list.get_plate_count();
+        for (int index = 0; index < plate_count; index ++)
+        {
+            Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate *)partplate_list.get_plate(index);
+            bool is_sequence = false;
+            get_print_sequence(cur_plate, m_print_config, is_sequence);
+            has_sequence_plates |= is_sequence;
+        }
+    }
+    if (has_sequence_plates)
+        sliced_info.upward_compatibility_taint.push_back("PrintSequenceByObject");
 
     // Loop through transform options.
     bool user_center_specified = false;
