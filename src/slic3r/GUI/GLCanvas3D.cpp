@@ -4582,12 +4582,20 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 continue;
             const ModelVolume *hover_volume = hover_object->volumes[hover_volume_idx];
 
-           /* if (hover_volume->text_configuration.has_value()) {
+            if (hover_volume->is_text()) {
+                m_selection.add_volumes(Selection::EMode::Volume, {(unsigned) hover_volume_id});
+                if (type != GLGizmosManager::EType::Text)
+                    m_gizmos.open_gizmo(GLGizmosManager::EType::Text);
+                wxGetApp().obj_list()->update_selections();
+                return;
+            }
+           /* else if (hover_volume->text_configuration.has_value()) {
                 m_selection.add_volumes(Selection::EMode::Volume, {(unsigned) hover_volume_id});
                 if (type != GLGizmosManager::EType::Emboss) m_gizmos.open_gizmo(GLGizmosManager::EType::Emboss);
                 wxGetApp().obj_list()->update_selections();
                 return;
-            } else*/ if (hover_volume->emboss_shape.has_value()) {
+            }*/
+            else if(hover_volume->emboss_shape.has_value()){
                 m_selection.add_volumes(Selection::EMode::Volume, {(unsigned) hover_volume_id});
                 if (type != GLGizmosManager::EType::Svg)
                     m_gizmos.open_gizmo(GLGizmosManager::EType::Svg);

@@ -201,7 +201,7 @@ public:
     // normal* can be used to also get normal of the respective triangle.
 
     Vec3f get_closest_point(const Vec3f& point, Vec3f* normal = nullptr) const;
-
+    bool  get_closest_point_and_normal(const Vec3f &point, const Vec3f &direction, Vec3f *closest_point, Vec3f *normal, int *face_id = nullptr) const;
     // Given a point in mesh coords, the method returns the closest facet from mesh.
     int get_closest_facet(const Vec3f &point) const;
 
@@ -221,7 +221,7 @@ public:
     /*PickRaycaster(TriangleMesh *mesh, const Transform3d &tran) : PickRaycaster(mesh) {
         set_transform(tran);
     }*/
-    PickRaycaster(TriangleMesh *mesh,  int _id) 
+    PickRaycaster(TriangleMesh *mesh,  int _id)
     {
         mesh_raycaster = std::make_shared<MeshRaycaster>(*mesh);
         m_id = _id;
