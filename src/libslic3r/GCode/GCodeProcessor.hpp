@@ -121,6 +121,18 @@ namespace Slic3r {
 
     using ConflictResultOpt = std::optional<ConflictResult>;
 
+    struct GCodeCheckResult
+    {
+        int error_code = 0;   // 0 means succeed, 0001 printable area error, 0010 printable height error
+        std::map<int, std::vector<std::pair<int, int>>> print_area_error_infos;   // printable_area  extruder_id to <filament_id - object_label_id> which cannot printed in this extruder
+        std::map<int, std::vector<std::pair<int, int>>> print_height_error_infos;   // printable_height extruder_id to <filament_id - object_label_id> which cannot printed in this extruder
+        void reset() {
+            error_code = 0;
+            print_area_error_infos.clear();
+            print_height_error_infos.clear();
+        }
+    };
+
     struct FilamentPrintableResult
     {
         std::vector<int> conflict_filament;
@@ -130,18 +142,6 @@ namespace Slic3r {
         bool has_value(){
            return !conflict_filament.empty();
         };
-    };
-
-    using ConflictResultOpt = std::optional<ConflictResult>;
-
-    struct GCodeCheckResult
-    {
-        int error_code = 0;   // 0 means succeed
-        std::map<int, std::vector<std::pair<int, int>>> error_infos;   // extruder_id to <filament_id - object_label_id> which cannot printed in this extruder
-        void reset() {
-            error_code = 0;
-            error_infos.clear();
-        }
     };
 
     struct GCodeProcessorResult
@@ -197,6 +197,7 @@ namespace Slic3r {
             Vec3f arc_center_position{ Vec3f::Zero() };      // mm
             std::vector<Vec3f> interpolation_points;     // interpolation points of arc for drawing
             int  object_label_id{-1};
+            float print_z{0.0f};
 
             float volumetric_rate() const { return feedrate * mm3_per_mm; }
             //BBS: new function to support arc move
@@ -763,6 +764,7 @@ namespace Slic3r {
         bool m_virtual_flushing; // mark a section with virtual flush, only for statistics
         bool m_wipe_tower;
         int m_object_label_id{-1};
+        float m_print_z{0.0f};
         std::vector<float> m_remaining_volume;
         std::vector<Extruder> m_filament_lists;
         std::vector<float> m_filament_nozzle_temp;
@@ -845,7 +847,7 @@ namespace Slic3r {
         GCodeProcessor();
 
         // check whether the gcode path meets the filament_map grouping requirements
-        bool check_multi_extruder_gcode_valid(const std::vector<Polygons> &unprintable_areas, const std::vector<int>& filament_map);
+        bool check_multi_extruder_gcode_valid(const std::vector<Polygons> &unprintable_areas, const std::vector<double>& printable_heights, const std::vector<int>& filament_map);
         void apply_config(const PrintConfig& config);
 
         void set_filaments(const std::vector<Extruder>&filament_lists) { m_filament_lists=filament_lists;}

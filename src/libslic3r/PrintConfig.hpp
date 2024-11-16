@@ -1140,6 +1140,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloatsNullable,     min_layer_height))
     ((ConfigOptionString,             printer_notes))
     ((ConfigOptionFloat,              printable_height))
+    ((ConfigOptionFloatsNullable,     extruder_printable_height))
     ((ConfigOptionPoint,              best_object_pos))
     ((ConfigOptionFloats,             slow_down_min_speed))
     ((ConfigOptionFloatsNullable,     nozzle_diameter))
