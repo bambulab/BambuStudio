@@ -1321,9 +1321,10 @@ class ModelInstance final : public ObjectBase
 {
 private:
     Geometry::Transformation m_transformation;
-    Geometry::Transformation m_assemble_transformation;
+    mutable Geometry::Transformation m_assemble_transformation;
     Vec3d m_offset_to_assembly{ 0.0, 0.0, 0.0 };
     bool m_assemble_initialized;
+    mutable bool m_assemble_scalling_factor_dirty{ true };
 
 public:
     // flag showing the position of this instance with respect to the print volume (set by Print::validate() using ModelObject::check_instances_print_volume_state())
@@ -1345,9 +1346,9 @@ public:
     ModelObject* get_object() const { return this->object; }
 
     const Geometry::Transformation& get_transformation() const { return m_transformation; }
-    void set_transformation(const Geometry::Transformation& transformation) { m_transformation = transformation; }
+    void set_transformation(const Geometry::Transformation& transformation);
 
-    const Geometry::Transformation& get_assemble_transformation() const { return m_assemble_transformation; }
+    const Geometry::Transformation& get_assemble_transformation() const;
     void set_assemble_transformation(const Geometry::Transformation& transformation) {
         m_assemble_initialized = true;
         m_assemble_transformation = transformation;
@@ -1384,8 +1385,8 @@ public:
     const Vec3d& get_scaling_factor() const { return m_transformation.get_scaling_factor(); }
     double get_scaling_factor(Axis axis) const { return m_transformation.get_scaling_factor(axis); }
 
-    void set_scaling_factor(const Vec3d& scaling_factor) { m_transformation.set_scaling_factor(scaling_factor); }
-    void set_scaling_factor(Axis axis, double scaling_factor) { m_transformation.set_scaling_factor(axis, scaling_factor); }
+    void set_scaling_factor(const Vec3d& scaling_factor);
+    void set_scaling_factor(Axis axis, double scaling_factor);
 
     const Vec3d& get_mirror() const { return m_transformation.get_mirror(); }
     double get_mirror(Axis axis) const { return m_transformation.get_mirror(axis); }
