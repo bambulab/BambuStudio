@@ -3501,6 +3501,34 @@ const Transform3d &ModelVolume::get_matrix(bool dont_translate, bool dont_rotate
     return m_transformation.get_matrix(dont_translate, dont_rotate, dont_scale, dont_mirror);
 }
 
+void ModelInstance::set_transformation(const Geometry::Transformation& transformation)
+{
+    m_transformation = transformation;
+    m_assemble_scalling_factor_dirty = true;
+}
+
+const Geometry::Transformation& ModelInstance::get_assemble_transformation() const
+{
+    if (m_assemble_scalling_factor_dirty)
+    {
+        m_assemble_transformation.set_scaling_factor(m_transformation.get_scaling_factor());
+        m_assemble_scalling_factor_dirty = false;
+    }
+    return m_assemble_transformation;
+}
+
+void ModelInstance::set_scaling_factor(const Vec3d& scaling_factor)
+{
+    m_transformation.set_scaling_factor(scaling_factor);
+    m_assemble_scalling_factor_dirty = true;
+}
+
+void ModelInstance::set_scaling_factor(Axis axis, double scaling_factor)
+{
+    m_transformation.set_scaling_factor(axis, scaling_factor);
+    m_assemble_scalling_factor_dirty = true;
+}
+
 void ModelInstance::transform_mesh(TriangleMesh* mesh, bool dont_translate) const
 {
     mesh->transform(get_matrix(dont_translate));
