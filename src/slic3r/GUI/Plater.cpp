@@ -9433,6 +9433,7 @@ bool Plater::up_to_date(bool saved, bool backup)
 
 void Plater::add_model(bool imperial_units, std::string fname)
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " entry";
     wxArrayString input_files;
 
     std::vector<fs::path> paths;
@@ -10559,10 +10560,12 @@ bool Plater::load_svg(const wxArrayString &filenames, bool from_toolbar_or_file_
 {
     // When only one .svg file is dropped on scene
     if (filenames.size() == 1) {
-        const wxString &filename       = filenames.Last();
-        const wxString  file_extension = filename.substr(filename.length() - 4);
-        if (file_extension.CmpNoCase(".svg") == 0) {
+        const wxString &filename = filenames[0];
+        if (boost::iends_with(filenames[0].ToStdString(), ".svg")) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "," << __FILE__ << filename;
             return emboss_svg(filename, from_toolbar_or_file_menu);
+        } else {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "," << __FILE__ << ",fail:" << filename;
         }
     }
     else {
@@ -10873,6 +10876,7 @@ void Plater::add_file()
         if (load_svg(input_files,true)) {
             return;
         }
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "," << __FILE__ << ","<< "LoadFilesType::SingleOther";
         if (!load_files(paths, LoadStrategy::LoadModel, false).empty()) {
             if (get_project_name() == _L("Untitled") && paths.size() > 0) {
                 p->set_project_filename(wxString::FromUTF8(paths[0].string()));
