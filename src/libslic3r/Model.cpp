@@ -3241,10 +3241,10 @@ std::string ModelVolume::type_to_string(const ModelVolumeType t)
 // Split this volume, append the result to the object owning this volume.
 // Return the number of volumes created from this one.
 // This is useful to assign different materials to different volumes of an object.
-size_t ModelVolume::split(unsigned int max_extruders)
+size_t ModelVolume::split(unsigned int max_extruders, float scale_det)
 {
     std::vector<std::unordered_map<int, int>> ships;
-    std::vector<TriangleMesh>  meshes = this->mesh().split_and_save_relationship(ships);
+    std::vector<TriangleMesh>  meshes = this->mesh().split_and_save_relationship(ships, scale_det);
     if (meshes.size() <= 1)
         return 1;
     if (meshes.size() != ships.size())

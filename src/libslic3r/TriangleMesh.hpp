@@ -118,8 +118,8 @@ public:
     void flip_triangles();
     void align_to_origin();
     void rotate(double angle, Point* center);
-    std::vector<TriangleMesh> split() const;
-    std::vector<TriangleMesh> split_and_save_relationship(std::vector<std::unordered_map<int, int>> &result) const;
+    std::vector<TriangleMesh> split(float scale_det = 1.f) const;
+    std::vector<TriangleMesh> split_and_save_relationship(std::vector<std::unordered_map<int, int>> &result, float scale_det = 1.f) const;
     void merge(const TriangleMesh &mesh);
     ExPolygons horizontal_projection() const;
     // 2D convex hull of a 3D mesh projected into the Z=0 plane.
