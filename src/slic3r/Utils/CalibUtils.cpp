@@ -272,7 +272,7 @@ bool CalibUtils::validate_input_k_value(wxString k_text, float* output_value)
         ;
     }
 
-    if (k_value < MIN_PA_K_VALUE || k_value > MAX_PA_K_VALUE) {
+    if (k_value <= MIN_PA_K_VALUE || k_value >= MAX_PA_K_VALUE) {
         *output_value = default_k;
         return false;
     }
