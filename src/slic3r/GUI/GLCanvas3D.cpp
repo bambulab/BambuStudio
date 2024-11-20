@@ -7304,6 +7304,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
     std::array<float, 4> body_color  = canvas_type == ECanvasType::CanvasAssembleView ? std::array<float, 4>({1.0f, 1.0f, 0.0f, 1.0f}) ://yellow
                                                                                         std::array<float, 4>({1.0f, 1.0f, 1.0f, 1.0f});//white
     bool                 partly_inside_enable = canvas_type == ECanvasType::CanvasAssembleView ? false : true;
+    auto printable_height_option = GUI::wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloatsNullable>("extruder_printable_height");
     if (shader != nullptr) {
         shader->start_using();
 
@@ -7340,7 +7341,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
                             return (m_render_sla_auxiliaries || volume.composite_id.volume_id >= 0);
                         }
                         },
-                        with_outline, body_color, partly_inside_enable);
+                        with_outline, body_color, partly_inside_enable, printable_height_option ? &printable_height_option->values : nullptr);
                 }
             }
             else {
@@ -7374,7 +7375,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
                     return true;
                 }
                 },
-                with_outline, body_color, partly_inside_enable);
+                with_outline, body_color, partly_inside_enable, printable_height_option ? &printable_height_option->values : nullptr);
             if (m_canvas_type == CanvasAssembleView && m_gizmos.m_assemble_view_data->model_objects_clipper()->get_position() > 0) {
                 const GLGizmosManager& gm = get_gizmos_manager();
                 shader->stop_using();

@@ -1558,7 +1558,8 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType       type,
                                 std::function<bool(const GLVolume &)> filter_func,
                                 bool                                  with_outline,
                                 const std::array<float, 4> &          body_color,
-                                bool                                  partly_inside_enable) const
+                                bool                                  partly_inside_enable,
+                                std::vector<double> *                 printable_heights) const
 {
     GLVolumeWithIdAndZList to_render = volumes_to_render(volumes, type, view_matrix, filter_func);
     if (to_render.empty())
@@ -1621,12 +1622,26 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType       type,
         //shader->set_uniform("print_volume.type", static_cast<int>(m_render_volume.type));
         //shader->set_uniform("print_volume.xy_data", m_render_volume.data);
         //shader->set_uniform("print_volume.z_data", m_render_volume.zs);
-
+        if (printable_heights) {
+            std::array<float, 3> extruder_printable_heights;
+            if ((*printable_heights).size() > 0) {
+                extruder_printable_heights[0] = 2.0f;
+                extruder_printable_heights[1] = (*printable_heights)[0];
+                extruder_printable_heights[2] = (*printable_heights)[1];
+                shader->set_uniform("extruder_printable_heights", extruder_printable_heights);
+                shader->set_uniform("print_volume.xy_data", m_print_volume.data);
+            } else {
+                extruder_printable_heights[0] = 0.0f;
+                shader->set_uniform("extruder_printable_heights", extruder_printable_heights);
+            }
+        }
         if (volume.first->partly_inside && partly_inside_enable) {
             //only partly inside volume need to be painted with boundary check
             shader->set_uniform("print_volume.type", static_cast<int>(m_print_volume.type));
-            shader->set_uniform("print_volume.xy_data", m_print_volume.data);
             shader->set_uniform("print_volume.z_data", m_print_volume.zs);
+            if (!printable_heights || (printable_heights && (*printable_heights).size() == 0)) {
+                shader->set_uniform("print_volume.xy_data", m_print_volume.data);
+            }
         }
         else {
             //use -1 ad a invalid type
