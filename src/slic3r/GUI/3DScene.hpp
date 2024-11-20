@@ -727,11 +727,11 @@ public:
     void render(ERenderType                           type,
                 bool                                  disable_cullface,
                 const Transform3d &                   view_matrix,
-                std::function<bool(const GLVolume &)> filter_func   = std::function<bool(const GLVolume &)>(),
-                bool                                  with_outline = true,
-                const std::array<float, 4>&           body_color           = {1.0f, 1.0f, 1.0f, 1.0f},
-                bool                                  partly_inside_enable =true
-           ) const;
+                std::function<bool(const GLVolume &)> filter_func          = std::function<bool(const GLVolume &)>(),
+                bool                                  with_outline         = true,
+                const std::array<float, 4> &          body_color           = {1.0f, 1.0f, 1.0f, 1.0f},
+                bool                                  partly_inside_enable = true,
+                std::vector<double> *                 printable_heights    = nullptr) const;
 
     // Finalize the initialization of the geometry & indices,
     // upload the geometry and indices to OpenGL VBO objects

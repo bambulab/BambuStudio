@@ -47,7 +47,7 @@ varying vec3 clipping_planes_dots;
 varying vec2 intensity;
 
 uniform PrintVolumeDetection print_volume;
-
+uniform vec3 extruder_printable_heights;
 varying vec4 model_pos;
 varying vec4 world_pos;
 varying float world_normal_z;
@@ -75,11 +75,11 @@ void main()
 	// if the fragment is outside the print volume -> use darker color
     vec3 pv_check_min = ZERO;
     vec3 pv_check_max = ZERO;
-    if (print_volume.type == 0) {
-        // rectangle
-        pv_check_min = world_pos.xyz - vec3(print_volume.xy_data.x, print_volume.xy_data.y, print_volume.z_data.x);
-        pv_check_max = world_pos.xyz - vec3(print_volume.xy_data.z, print_volume.xy_data.w, print_volume.z_data.y);
-        color = (any(lessThan(pv_check_min, ZERO)) || any(greaterThan(pv_check_max, ZERO))) ? mix(color, ZERO, 0.3333) : color;
+    pv_check_min = world_pos.xyz - vec3(print_volume.xy_data.x, print_volume.xy_data.y, print_volume.z_data.x);
+    pv_check_max = world_pos.xyz - vec3(print_volume.xy_data.z, print_volume.xy_data.w, print_volume.z_data.y);
+    bool is_out_print_limit =(any(lessThan(pv_check_min, ZERO)) || any(greaterThan(pv_check_max, ZERO)));
+    if (print_volume.type == 0) {// rectangle
+        color = is_out_print_limit ? mix(color, ZERO, 0.3333) : color;
     }
     else if (print_volume.type == 1) {
         // circle
@@ -88,7 +88,12 @@ void main()
         pv_check_max = vec3(0.0, 0.0, world_pos.z - print_volume.z_data.y);
         color = (any(lessThan(pv_check_min, ZERO)) || any(greaterThan(pv_check_max, ZERO))) ? mix(color, ZERO, 0.3333) : color;
     }
-
+    if(is_out_print_limit == false && extruder_printable_heights.x >= 1.0 ){
+        pv_check_min = world_pos.xyz - vec3(print_volume.xy_data.x, print_volume.xy_data.y, extruder_printable_heights.y);
+        pv_check_max = world_pos.xyz - vec3(print_volume.xy_data.z, print_volume.xy_data.w, extruder_printable_heights.z);
+        bool is_out_printable_height = (all(greaterThan(pv_check_min, ZERO)) && all(lessThan(pv_check_max, ZERO))) ;
+        color = is_out_printable_height ? mix(color, ZERO, 0.7) : color;
+    }
 	//BBS: add outline_color
 	if (is_outline)
 		gl_FragColor = uniform_color;
@@ -98,7 +103,7 @@ void main()
 #endif
 	else
         gl_FragColor = vec4(vec3(intensity.y) + color * intensity.x, alpha);
-		
+
     // In the support painting gizmo and the seam painting gizmo are painted triangles rendered over the already
     // rendered object. To resolved z-fighting between previously rendered object and painted triangles, values
     // inside the depth buffer are offset by small epsilon for painted triangles inside those gizmos.
