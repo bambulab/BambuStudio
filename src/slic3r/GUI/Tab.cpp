@@ -2191,6 +2191,7 @@ void TabPrint::build()
 
         optgroup = page->new_optgroup(L("Prime tower"), L"param_tower");
         optgroup->append_single_option_line("enable_prime_tower","parameter/prime-tower");
+        optgroup->append_single_option_line("prime_tower_outer_first", "parameter/prime-tower");
         optgroup->append_single_option_line("prime_tower_width","parameter/prime-tower");
         optgroup->append_single_option_line("prime_volume","parameter/prime-tower");
         optgroup->append_single_option_line("prime_tower_brim_width","parameter/prime-tower");
