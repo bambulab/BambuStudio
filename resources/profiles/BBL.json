@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.10.00.27",
+    "version": "01.10.00.28",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -1988,6 +1988,18 @@
         {
             "name": "Bambu PETG Translucent @BBL A1",
             "sub_path": "filament/Bambu PETG Translucent @BBL A1.json"
+        },
+        {
+            "name": "Bambu PETG Translucent @BBL X1C 0.2 nozzle",
+            "sub_path": "filament/Bambu PETG Translucent @BBL X1C 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Translucent @BBL A1M 0.2 nozzle",
+            "sub_path": "filament/Bambu PETG Translucent @BBL A1M 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Translucent @BBL A1 0.2 nozzle",
+            "sub_path": "filament/Bambu PETG Translucent @BBL A1 0.2 nozzle.json"
         },
         {
             "name": "Bambu PETG HF @BBL X1C",
