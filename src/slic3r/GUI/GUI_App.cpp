@@ -1092,12 +1092,9 @@ void GUI_App::post_init()
             std::string download_url;
 #if BBL_RELEASE_TO_PUBLIC
             for (auto input_str : input_str_arr) {
-                if (boost::starts_with(input_str, "http://makerworld") ||
-                    boost::starts_with(input_str, "https://makerworld") ||
-                    boost::starts_with(input_str, "http://public-cdn.bblmw.com") ||
-                    boost::starts_with(input_str, "https://public-cdn.bblmw.com") ||
-                    boost::algorithm::contains(input_str, "amazonaws.com") ||
-                    boost::algorithm::contains(input_str, "aliyuncs.com")) {
+                if (boost::starts_with(input_str, "http://") ||
+                    boost::starts_with(input_str, "https://") ||
+                    boost::starts_with(input_str, "file:///")) {
                     download_url = input_str;
                 }
             }
