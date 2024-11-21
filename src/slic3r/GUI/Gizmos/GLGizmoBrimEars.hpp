@@ -168,6 +168,7 @@ protected:
     float get_brim_default_radius() const;
     ExPolygon make_polygon(BrimPoint point, const Geometry::Transformation &trsf);
     void find_single();
+    bool is_use_point(const BrimPoint &point) const;
 };
 
 wxDECLARE_EVENT(wxEVT_THREAD_DONE, wxCommandEvent);
