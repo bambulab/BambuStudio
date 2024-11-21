@@ -10593,14 +10593,22 @@ bool Plater::load_svg(const wxArrayString &filenames, bool from_toolbar_or_file_
 }
 
 bool Plater::load_same_type_files(const wxArrayString &filenames) {
+    auto trans_extension = [] (boost::filesystem::path ext) {
+        std::string ext_str = ext.extension().string();
+        boost::algorithm::to_lower(ext_str);
+        if (ext_str == ".stp" || ext_str == ".step") {
+            ext.replace_extension(".step");
+        }
+        return ext;
+    };
     if (filenames.size() <= 1) { return true; }
     else {
         const wxString &filename = filenames.front();
         boost::filesystem::path path(filename.ToStdWstring());
-        auto   extension =path.extension();
+        auto extension = trans_extension(path.extension());
         for (size_t i = 1; i < filenames.size(); i++) {
             boost::filesystem::path temp(filenames[i].ToStdWstring());
-            auto                    temp_extension = temp.extension();
+            auto temp_extension = trans_extension(temp.extension());
             if (extension != temp_extension) {
                 return false;
             }
