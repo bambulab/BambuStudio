@@ -37,7 +37,7 @@ bool GLGizmoBrimEars::on_init()
 {
 
     m_new_point_head_diameter = get_brim_default_radius();
-    
+
     m_shortcut_key = WXK_CONTROL_L;
 
     m_desc["head_diameter"]    = _L("Head diameter");
@@ -99,6 +99,16 @@ void GLGizmoBrimEars::on_render_for_picking()
     render_points(selection, true);
 }
 
+bool GLGizmoBrimEars::is_use_point(const BrimPoint &point) const
+{
+    const Selection &selection = m_parent.get_selection();
+    const GLVolume  *volume    = selection.get_volume(*selection.get_volume_idxs().begin());
+    Transform3d      trsf      = volume->get_instance_transformation().get_matrix();
+    auto world_point = trsf * point.pos.cast<double>();
+    if (world_point[2] > 0) return false;
+    return true;
+}
+
 void GLGizmoBrimEars::render_points(const Selection &selection, bool picking) const
 {
     auto editing_cache = m_editing_cache;
@@ -126,6 +136,7 @@ void GLGizmoBrimEars::render_points(const Selection &selection, bool picking) co
     ColorRGBA render_color;
     for (size_t i = 0; i < cache_size; ++i) {
         const BrimPoint &brim_point     = editing_cache[i].brim_point;
+        if (!is_use_point(brim_point)) continue;
         const bool      &point_selected = editing_cache[i].selected;
         const bool      &hover          = editing_cache[i].is_hover;
         const bool      &error          = editing_cache[i].is_error;
@@ -457,15 +468,16 @@ void GLGizmoBrimEars::delete_selected_points()
 
 void GLGizmoBrimEars::on_update(const UpdateData &data)
 {
-    if (m_hover_id != -1) {
-        std::pair<Vec3f, Vec3f> pos_and_normal;
-        if (!unproject_on_mesh2(data.mouse_pos.cast<double>(), pos_and_normal)) return;
-        m_editing_cache[m_hover_id].brim_point.pos[0] = pos_and_normal.first.x();
-        m_editing_cache[m_hover_id].brim_point.pos[1] = pos_and_normal.first.y();
-        //m_editing_cache[m_hover_id].normal            = pos_and_normal.second;
-        m_editing_cache[m_hover_id].normal = Vec3f(0, 0, 1);
-        find_single();
-    }
+    //Disable moving point
+    //if (m_hover_id != -1) {
+    //    std::pair<Vec3f, Vec3f> pos_and_normal;
+    //    if (!unproject_on_mesh2(data.mouse_pos.cast<double>(), pos_and_normal)) return;
+    //    m_editing_cache[m_hover_id].brim_point.pos[0] = pos_and_normal.first.x();
+    //    m_editing_cache[m_hover_id].brim_point.pos[1] = pos_and_normal.first.y();
+    //    //m_editing_cache[m_hover_id].normal            = pos_and_normal.second;
+    //    m_editing_cache[m_hover_id].normal = Vec3f(0, 0, 1);
+    //    find_single();
+    //}
 }
 
 std::vector<const ConfigOption *> GLGizmoBrimEars::get_config_options(const std::vector<std::string> &keys) const
