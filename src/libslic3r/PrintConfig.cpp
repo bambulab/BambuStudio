@@ -4850,7 +4850,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
 #endif /* HAS_PRESSURE_EQUALIZER */
         // BBS
         , "support_sharp_tails","support_remove_small_overhangs", "support_with_sheath",
-        "tree_support_branch_diameter_angle", "tree_support_collision_resolution", "tree_support_with_infill",
+        "tree_support_collision_resolution", "tree_support_with_infill",
         "tree_support_brim_width",
         "max_volumetric_speed", "max_print_speed",
         "support_closing_radius",
