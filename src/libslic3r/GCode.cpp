@@ -4387,6 +4387,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     const double clip_length = m_enable_loop_clipping && !enable_seam_slope ? seam_gap : 0;
      // get paths
     ExtrusionPaths paths;
+    bool set_holes_and_compensation_speed = loop.get_customize_flag() && !loop.has_overhang_paths();
     loop.clip_end(clip_length, &paths);
     if (paths.empty()) return "";
 
@@ -4448,7 +4449,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
                 smooth_speed_discontinuity_area(new_loop.paths);
             // Then extrude it
             for (const auto &p : new_loop.get_all_paths()) {
-                gcode += this->_extrude(*p, description, speed_for_path(*p));
+                gcode += this->_extrude(*p, description, speed_for_path(*p), set_holes_and_compensation_speed);
             }
             set_last_scarf_seam_flag(true);
 
@@ -4473,7 +4474,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
             smooth_speed_discontinuity_area(paths);
 
         for (ExtrusionPaths::iterator path = paths.begin(); path != paths.end(); ++path) {
-            gcode += this->_extrude(*path, description, speed_for_path(*path));
+            gcode += this->_extrude(*path, description, speed_for_path(*path), set_holes_and_compensation_speed);
         }
         set_last_scarf_seam_flag(false);
     }
@@ -5005,7 +5006,7 @@ void GCode::smooth_speed_discontinuity_area(ExtrusionPaths &paths) {
     paths = std::move(inter_paths);
 }
 
-std::string GCode::_extrude(const ExtrusionPath &path, std::string description, double speed, bool is_first_slope)
+std::string GCode::_extrude(const ExtrusionPath &path, std::string description, double speed, bool set_holes_and_compensation_speed, bool is_first_slope)
 {
     std::string gcode;
 
@@ -5098,7 +5099,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     if (speed == -1) {
         if (path.role() == erPerimeter) {
             speed = m_config.inner_wall_speed.get_at(cur_extruder_index());
-            if (m_config.detect_overhang_wall && m_config.smooth_speed_discontinuity_area && path.smooth_speed != 0)
+            //reset speed by auto compensation speed
+            if(set_holes_and_compensation_speed) {
+                speed = m_config.circle_compensation_speed;
+            }else if (m_config.detect_overhang_wall && m_config.smooth_speed_discontinuity_area && path.smooth_speed != 0)
                 speed = path.smooth_speed;
             else if (m_config.enable_overhang_speed.get_at(cur_extruder_index())) {
                 double new_speed = 0;
@@ -5107,12 +5111,14 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             }
         } else if (path.role() == erExternalPerimeter) {
             speed = m_config.outer_wall_speed.get_at(cur_extruder_index());
-            if (m_config.detect_overhang_wall && m_config.smooth_speed_discontinuity_area && path.smooth_speed != 0)
+            // reset speed by auto compensation speed
+            if (set_holes_and_compensation_speed) {
+                speed = m_config.circle_compensation_speed;
+            } else if (m_config.detect_overhang_wall && m_config.smooth_speed_discontinuity_area && path.smooth_speed != 0)
                 speed = path.smooth_speed;
             else if (m_config.enable_overhang_speed.get_at(cur_extruder_index())) {
                 double new_speed = 0;
-                new_speed = get_overhang_degree_corr_speed(speed, path.overhang_degree);
-
+                new_speed        = get_overhang_degree_corr_speed(speed, path.overhang_degree);
                 speed = new_speed == 0.0 ? speed : new_speed;
             }
         } else if (path.role() == erOverhangPerimeter && path.overhang_degree == 5) {
@@ -5196,6 +5202,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     bool last_was_wipe_tower = (m_last_processor_extrusion_role == erWipeTower);
     char buf[64];
     assert(is_decimal_separator_point());
+
+
+    if (set_holes_and_compensation_speed)
+        gcode += "; Slow Down Start\n";
 
     if (path.role() != m_last_processor_extrusion_role) {
         m_last_processor_extrusion_role = path.role();
@@ -5346,6 +5356,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 is_bridge(path.role())))
                 gcode += ";_OVERHANG_FAN_END\n";
         }
+    }
+
+    if (set_holes_and_compensation_speed) {
+        gcode += "; Slow Down End\n";
     }
 
     this->set_last_pos(path.last_point());

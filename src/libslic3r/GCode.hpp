@@ -560,7 +560,7 @@ private:
     // BBS
     int get_bed_temperature(const int extruder_id, const bool is_first_layer, const BedType bed_type) const;
 
-    std::string _extrude(const ExtrusionPath &path, std::string description = "", double speed = -1, bool is_first_slope = false);
+    std::string _extrude(const ExtrusionPath &path, std::string description = "", double speed = -1, bool set_holes_and_compensation_speed = false, bool is_first_slope = false);
     ExtrusionPaths set_speed_transition(ExtrusionPaths &paths);
     ExtrusionPaths split_and_mapping_speed(double &other_path_v, double &final_v, ExtrusionPath &this_path, double max_smooth_length, bool split_from_left = true);
     double get_path_speed(const ExtrusionPath &path);

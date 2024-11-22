@@ -128,7 +128,7 @@ std::vector<PerExtruderAdjustments> GCodeEditer::parse_layer_gcode(
     std::string cooling_node_label = "; COOLING_NODE: ";
     bool append_wall_ptr = false;
     bool append_inner_wall_ptr = false;
-
+    bool not_join_cooling = false;
     std::pair<int, int> node_pos;
     int line_idx = -1;
     for (; *line_start != 0; line_start = line_end)
@@ -199,7 +199,7 @@ std::vector<PerExtruderAdjustments> GCodeEditer::parse_layer_gcode(
 
             if (wipe)
                 line.type |= CoolingLine::TYPE_WIPE;
-            if (boost::contains(sline, ";_EXTRUDE_SET_SPEED") && ! wipe) {
+            if (boost::contains(sline, ";_EXTRUDE_SET_SPEED") && !wipe && !not_join_cooling) {
                 line.type |= CoolingLine::TYPE_ADJUSTABLE;
                 active_speed_modifier = adjustment->lines.size();
             }
@@ -279,6 +279,10 @@ std::vector<PerExtruderAdjustments> GCodeEditer::parse_layer_gcode(
                 }
             }
             current_pos = std::move(new_pos);
+        } else if (boost::starts_with(sline, "; Slow Down Start")) {
+            not_join_cooling = true;
+        } else if (boost::starts_with(sline, "; Slow Down End")) {
+            not_join_cooling = false;
         } else if (boost::starts_with(sline, ";_EXTRUDE_END")) {
             line.type = CoolingLine::TYPE_EXTRUDE_END;
             active_speed_modifier = size_t(-1);
