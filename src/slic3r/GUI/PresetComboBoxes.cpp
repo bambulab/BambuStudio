@@ -1088,7 +1088,7 @@ void PlaterPresetComboBox::update()
                 }
             } else {
                 for (std::map<wxString, wxBitmap *>::const_iterator it = presets.begin(); it != presets.end(); ++it) {
-                    SetItemTooltip(Append(it->first, *it->second), preset_descriptions[it->first]);
+                    SetItemTooltip(Append(it->first, *it->second, it->first.Left(13)), preset_descriptions[it->first]);
                     validate_selection(it->first == selected);
                 }
             }
