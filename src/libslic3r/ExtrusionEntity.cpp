@@ -14,6 +14,7 @@
 namespace Slic3r {
 static const double slope_path_ratio = 0.3;
 static const double slope_inner_outer_wall_gap = 0.4;
+static const int    overhang_threshold = 1;
 
 void ExtrusionPath::intersect_expolygons(const ExPolygons &collection, ExtrusionEntityCollection* retval) const
 {
@@ -414,6 +415,17 @@ bool ExtrusionLoop::has_overhang_point(const Point &point) const
             // we consider it overhang only if it's not an endpoint
             return (is_bridge(path.role()) && pos > 0 && pos != (int)(path.polyline.points.size())-1);
         }
+    }
+    return false;
+}
+
+bool ExtrusionLoop::has_overhang_paths() const
+{
+    for (const ExtrusionPath &path : this->paths) {
+        if (is_bridge(path.role()))
+            return true;
+        if (path.overhang_degree >= overhang_threshold)
+            return true;
     }
     return false;
 }

@@ -47,7 +47,7 @@ Flow LayerRegion::bridging_flow(FlowRole role, bool thick_bridge) const
 // Fill in layerm->fill_surfaces by trimming the layerm->slices by the cummulative layerm->fill_surfaces.
 void LayerRegion::slices_to_fill_surfaces_clipped()
 {
-    // Note: this method should be idempotent, but fill_surfaces gets modified 
+    // Note: this method should be idempotent, but fill_surfaces gets modified
     // in place. However we're now only using its boundaries (which are invariant)
     // so we're safe. This guarantees idempotence of prepare_infill() also in case
     // that combine_infill() turns some fill_surface into VOID surfaces.
@@ -64,12 +64,73 @@ void LayerRegion::slices_to_fill_surfaces_clipped()
     }
 }
 
+void LayerRegion::auto_circle_compensation(SurfaceCollection& slices)
+{
+     const PrintObjectConfig &object_config = this->layer()->object()->config();
+     double max_deviation = object_config.max_deviation * 1e6;
+     double max_variance  = object_config.max_variance * 1e6;
+     double limited_speed = object_config.circle_compensation_speed;
+
+     double counter_speed_coef = object_config.counter_coef_1 / 1e6;
+     double counter_diameter_coef   = object_config.counter_coef_2 / 1e6;
+     double counter_compensate_coef = object_config.counter_coef_3;
+
+     double hole_speed_coef      = object_config.hole_coef_1 / 1e6;
+     double hole_diameter_coef   = object_config.hole_coef_2 / 1e6;
+     double hole_compensate_coef = object_config.hole_coef_3;
+
+     double counter_limit_min_value = object_config.counter_limit_min;
+     double counter_limit_max_value = object_config.counter_limit_max;
+     double hole_limit_min_value    = object_config.hole_limit_min;
+     double hole_limit_max_value    = object_config.hole_limit_max;
+
+     double diameter_limit_value = object_config.diameter_limit;
+
+    for (Surface &surface : slices.surfaces) {
+        Point  center;
+        double diameter = 0;
+        if (surface.expolygon.contour.is_approx_circle(max_deviation, max_variance, center, diameter)) {
+            double offset_value = counter_speed_coef * limited_speed + counter_diameter_coef * diameter + counter_compensate_coef;
+            if (offset_value < counter_limit_min_value) {
+                offset_value = counter_limit_min_value;
+            } else if (offset_value > counter_limit_max_value) {
+                offset_value = counter_limit_max_value;
+            }
+            Polygons offseted_polys = offset(surface.expolygon.contour, offset_value);
+            if (offseted_polys.size() == 1) {
+                surface.expolygon.contour = offseted_polys[0];
+                if (diameter < diameter_limit_value * 1e6)
+                    surface.counter_circle_compensation = true;
+            }
+        }
+        for (size_t i = 0; i < surface.expolygon.holes.size(); ++i) {
+            Polygon &hole = surface.expolygon.holes[i];
+            if (hole.is_approx_circle(max_deviation, max_variance, center, diameter)) {
+                double offset_value = hole_speed_coef * limited_speed + hole_diameter_coef * diameter + hole_compensate_coef;
+                if (offset_value < hole_limit_min_value) {
+                    offset_value = hole_limit_min_value;
+                } else if (offset_value > hole_limit_max_value) {
+                    offset_value = hole_limit_max_value;
+                }
+                // positive value means shrinking hole, which oppsite to contour
+                offset_value            = -offset_value;
+                Polygons offseted_polys = offset(hole, offset_value);
+                if (offseted_polys.size() == 1) {
+                    hole = offseted_polys[0];
+                    if (diameter < diameter_limit_value * 1e6)
+                        surface.holes_circle_compensation.push_back(i);
+                }
+            }
+        }
+    }
+}
+
 void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollection *fill_surfaces, ExPolygons *fill_no_overlap, std::vector<LoopNode> &loop_nodes)
 {
     this->perimeters.clear();
     this->thin_fills.clear();
 
-    const PrintConfig       &print_config  = this->layer()->object()->print()->config();
+    const PrintConfig &      print_config  = this->layer()->object()->print()->config();
     const PrintRegionConfig &region_config = this->region().config();
     const PrintObjectConfig& object_config = this->layer()->object()->config();
     // This needs to be in sync with PrintObject::_slice() slicing_mode_normal_below_layer!
@@ -87,7 +148,6 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollec
         &this->layer()->object()->config(),
         &print_config,
         spiral_mode,
-        
         // output:
         &this->perimeters,
         &this->thin_fills,
@@ -96,13 +156,13 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollec
         fill_no_overlap,
         &loop_nodes
     );
-    
+
     if (this->layer()->lower_layer != nullptr)
         // Cummulative sum of polygons over all the regions.
         g.lower_slices = &this->layer()->lower_layer->lslices;
     if (this->layer()->upper_layer != NULL)
         g.upper_slices = &this->layer()->upper_layer->lslices;
-    
+
     g.layer_id              = (int)this->layer()->id();
     g.ext_perimeter_flow    = this->flow(frExternalPerimeter);
     g.overhang_flow         = this->bridging_flow(frPerimeter, object_config.thick_bridges);
@@ -658,13 +718,13 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
             static int iRun = 0;
             SVG svg(debug_out_path("3_process_external_surfaces-fill_regions-%d.svg", iRun ++).c_str(), get_extents(fill_boundaries_ex));
             svg.draw(fill_boundaries_ex);
-            svg.draw_outline(fill_boundaries_ex, "black", "blue", scale_(0.05)); 
+            svg.draw_outline(fill_boundaries_ex, "black", "blue", scale_(0.05));
             svg.Close();
         }
 
 //        export_region_fill_surfaces_to_svg_debug("3_process_external_surfaces-initial");
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
- 
+
         {
             // Bridge expolygons, grown, to be tested for intersection with other bridge regions.
             std::vector<BoundingBox> fill_boundaries_ex_bboxes = get_extents_vector(fill_boundaries_ex);
@@ -675,7 +735,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
                 const Point pt = bridges[i].expolygon.contour.points.front();
                 int idx_island = -1;
                 for (int j = 0; j < int(fill_boundaries_ex.size()); ++ j)
-                    if (fill_boundaries_ex_bboxes[j].contains(pt) && 
+                    if (fill_boundaries_ex_bboxes[j].contains(pt) &&
                         fill_boundaries_ex[j].contains(pt)) {
                         idx_island = j;
                         break;
@@ -697,7 +757,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
 
         // 2) Group the bridge surfaces by overlaps.
         std::vector<size_t> bridge_group(bridges.size(), (size_t)-1);
-        size_t n_groups = 0; 
+        size_t n_groups = 0;
         for (size_t i = 0; i < bridges.size(); ++ i) {
             // A grup id for this bridge.
             size_t group_id = (bridge_group[i] == size_t(-1)) ? (n_groups ++) : bridge_group[i];
@@ -821,7 +881,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
                 s1);
         }
     }
-    
+
     // Subtract the new top surfaces from the other non-top surfaces and re-add them.
     Polygons new_polygons = to_polygons(new_surfaces);
     for (size_t i = 0; i < internal.size(); ++ i) {
@@ -841,7 +901,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
         polygons_append(new_polygons, to_polygons(new_expolys));
         surfaces_append(new_surfaces, std::move(new_expolys), s1);
     }
-    
+
     this->fill_surfaces.surfaces = std::move(new_surfaces);
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
@@ -855,12 +915,12 @@ void LayerRegion::prepare_fill_surfaces()
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
     export_region_slices_to_svg_debug("2_prepare_fill_surfaces-initial");
     export_region_fill_surfaces_to_svg_debug("2_prepare_fill_surfaces-initial");
-#endif /* SLIC3R_DEBUG_SLICE_PROCESSING */ 
+#endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 
     /*  Note: in order to make the psPrepareInfill step idempotent, we should never
         alter fill_surfaces boundaries on which our idempotency relies since that's
         the only meaningful information returned by psPerimeters. */
-    
+
     bool spiral_mode = this->layer()->object()->print()->config().spiral_mode;
 
 #if 0
@@ -960,7 +1020,7 @@ void LayerRegion::export_region_fill_surfaces_to_svg(const char *path) const
     const float transparency = 0.5f;
     for (const Surface &surface : this->fill_surfaces.surfaces) {
         svg.draw(surface.expolygon, surface_type_to_color_name(surface.surface_type), transparency);
-        svg.draw_outline(surface.expolygon, "black", "blue", scale_(0.05)); 
+        svg.draw_outline(surface.expolygon, "black", "blue", scale_(0.05));
     }
     export_surface_type_legend_to_svg(svg, legend_pos);
     svg.Close();
@@ -1049,4 +1109,3 @@ void LayerRegion::simplify_loop(ExtrusionLoop* loop)
 }
 
 }
- 

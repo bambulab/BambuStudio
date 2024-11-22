@@ -37,6 +37,8 @@ public:
     unsigned short  thickness_layers;   // in layers
     double          bridge_angle;       // in radians, ccw, 0 = East, only 0+ (negative means undefined)
     unsigned short  extra_perimeters;
+    bool            counter_circle_compensation{false};
+    std::vector<int> holes_circle_compensation; // hole index
 
     Surface(SurfaceType _surface_type = stInternal)
         : surface_type(_surface_type),

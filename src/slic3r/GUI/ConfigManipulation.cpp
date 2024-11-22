@@ -266,6 +266,16 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         is_msg_dlg_already_exist = false;
     }
 
+    //if enable auto hole and contour compensation, disable the manner
+    if (config->opt_bool("enable_circle_compensation")) {
+        DynamicPrintConfig new_conf = *config;
+        is_msg_dlg_already_exist    = true;
+        new_conf.set_key_value("xy_contour_compensation", new ConfigOptionFloat(0));
+        new_conf.set_key_value("xy_hole_compensation", new ConfigOptionFloat(0));
+        apply(config, &new_conf);
+        is_msg_dlg_already_exist = false;
+    }
+
     if (config->option<ConfigOptionFloat>("elefant_foot_compensation")->value > 1)
     {
         const wxString msg_text = _(L("Too large elephant foot compensation is unreasonable.\n"
@@ -715,6 +725,12 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     toggle_line("interlocking_beam_layer_count", use_beam_interlocking);
     toggle_line("interlocking_depth", use_beam_interlocking);
     toggle_line("interlocking_boundary_avoidance", use_beam_interlocking);
+
+    bool enable_auto_hole_and_contour_compensation = config->opt_bool("enable_circle_compensation");
+    for (auto el : {"max_deviation", "max_variance", "circle_compensation_speed", "counter_coef_1", "counter_coef_2", "counter_coef_3", "hole_coef_1", "hole_coef_2", "hole_coef_3", "counter_limit_min", "counter_limit_max", "hole_limit_min", "hole_limit_max", "diameter_limit"})
+        toggle_line(el, enable_auto_hole_and_contour_compensation);
+    toggle_field("xy_hole_compensation", !enable_auto_hole_and_contour_compensation);
+    toggle_field("xy_contour_compensation", !enable_auto_hole_and_contour_compensation);
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)
