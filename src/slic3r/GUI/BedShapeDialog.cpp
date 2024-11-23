@@ -22,7 +22,7 @@ namespace GUI {
 
 BedShape::BedShape(const ConfigOptionPoints& points)
 {
-    m_build_volume = { points.values, 0.f, {} };
+    m_build_volume = { points.values, 0.f, {}, {} };
 }
 
 static std::string get_option_label(BedShape::Parameter param)
