@@ -338,6 +338,7 @@ static constexpr const char* SOURCE_IN_METERS    = "source_in_meters";
 
 static constexpr const char* MESH_SHARED_KEY = "mesh_shared";
 
+static constexpr const char *MESH_STAT_FACE_COUNT           = "face_count";
 static constexpr const char* MESH_STAT_EDGES_FIXED          = "edges_fixed";
 static constexpr const char* MESH_STAT_DEGENERATED_FACETS   = "degenerate_facets";
 static constexpr const char* MESH_STAT_FACETS_REMOVED       = "facets_removed";
@@ -7374,6 +7375,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << key << "\" " << VALUE_ATTR << "=\"" << obj->config.opt_serialize(key) << "\"/>\n";
                 }
 
+                stream << "    <" << METADATA_TAG << " " << MESH_STAT_FACE_COUNT << "=\"" << obj_metadata.second.object->facets_count() << "\"/>\n";
+
                 for (const ModelVolume* volume : obj_metadata.second.object->volumes) {
                     if (volume != nullptr) {
                         const VolumeToObjectIDMap& objectIDs = obj_metadata.second.volumes_objectID;
@@ -7450,6 +7453,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                             // stores mesh's statistics
                             const RepairedMeshErrors& stats = volume->mesh().stats().repaired_errors;
                             stream << "      <" << MESH_STAT_TAG << " ";
+                            stream << MESH_STAT_FACE_COUNT << "=\"" << volume->mesh().facets_count() << "\" ";
                             stream << MESH_STAT_EDGES_FIXED        << "=\"" << stats.edges_fixed        << "\" ";
                             stream << MESH_STAT_DEGENERATED_FACETS << "=\"" << stats.degenerate_facets  << "\" ";
                             stream << MESH_STAT_FACETS_REMOVED     << "=\"" << stats.facets_removed     << "\" ";
