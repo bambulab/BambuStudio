@@ -2110,17 +2110,17 @@ void TabPrint::build()
         optgroup->append_single_option_line("inner_wall_acceleration", "", 0);
         optgroup->append_single_option_line("top_surface_acceleration", "", 0);
         optgroup->append_single_option_line("sparse_infill_acceleration", "", 0);
-        optgroup->append_single_option_line("accel_to_decel_enable", "", 0);
-        optgroup->append_single_option_line("accel_to_decel_factor", "", 0);
+        optgroup->append_single_option_line("accel_to_decel_enable", "");
+        optgroup->append_single_option_line("accel_to_decel_factor", "");
 
         optgroup = page->new_optgroup(L("Jerk(XY)"), L"param_acceleration", 15);
-        optgroup->append_single_option_line("default_jerk", "", 0);
-        optgroup->append_single_option_line("outer_wall_jerk", "", 0);
-        optgroup->append_single_option_line("inner_wall_jerk", "", 0);
-        optgroup->append_single_option_line("infill_jerk", "", 0);
-        optgroup->append_single_option_line("top_surface_jerk", "", 0);
-        optgroup->append_single_option_line("initial_layer_jerk", "", 0);
-        optgroup->append_single_option_line("travel_jerk", "", 0);
+        optgroup->append_single_option_line("default_jerk", "");
+        optgroup->append_single_option_line("outer_wall_jerk", "");
+        optgroup->append_single_option_line("inner_wall_jerk", "");
+        optgroup->append_single_option_line("infill_jerk", "");
+        optgroup->append_single_option_line("top_surface_jerk", "");
+        optgroup->append_single_option_line("initial_layer_jerk", "");
+        optgroup->append_single_option_line("travel_jerk", "");
 
 #ifdef HAS_PRESSURE_EQUALIZER
         optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_positive");
@@ -2626,6 +2626,7 @@ void TabPrintModel::on_value_change(const std::string& opt_id, const boost::any&
     bool set   = true; // *m_config->option(k) != *m_prints.get_selected_preset().config.option(k) || inull != m_null_keys.end();
     auto tab_opt = dynamic_cast<ConfigOptionVectorBase *>(m_config->option(opt_key));
     static std::map<ConfigOptionType, ConfigOptionVectorBase const *> null_vecs {
+        {coBools, new ConfigOptionBoolsNullable(1, ConfigOptionBoolsNullable::nil_value())},
         {coInts, new ConfigOptionIntsNullable(1, ConfigOptionIntsNullable::nil_value())},
         {coFloats, new ConfigOptionFloatsNullable(1, ConfigOptionFloatsNullable::nil_value())},
         {coPercents, new ConfigOptionPercentsNullable(1, ConfigOptionPercentsNullable::nil_value())},
@@ -4469,10 +4470,6 @@ void Tab::load_current_preset()
         else
             wxGetApp().obj_list()->update_objects_list_filament_column(1);
     }
-    update();
-
-    // Reload preset pages with the new configuration values.
-    update_extruder_variants(-1, false);
     if (m_type == Preset::TYPE_PRINT) {
         if (auto tab = wxGetApp().plate_tab) {
             tab->update_extruder_variants();
@@ -4481,6 +4478,10 @@ void Tab::load_current_preset()
             tab->update_extruder_variants();
         }
     }
+    update();
+
+    // Reload preset pages with the new configuration values.
+    update_extruder_variants(-1, false);
     reload_config();
 
     update_ui_items_related_on_parent_preset(m_presets->get_selected_preset_parent());
