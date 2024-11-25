@@ -88,9 +88,9 @@ void main()
         pv_check_max = vec3(0.0, 0.0, world_pos.z - print_volume.z_data.y);
         color = (any(lessThan(pv_check_min, ZERO)) || any(greaterThan(pv_check_max, ZERO))) ? mix(color, ZERO, 0.3333) : color;
     }
-    if(is_out_print_limit == false && extruder_printable_heights.x >= 1.0 ){
+    if(extruder_printable_heights.x >= 1.0 ){
         pv_check_min = world_pos.xyz - vec3(print_volume.xy_data.x, print_volume.xy_data.y, extruder_printable_heights.y);
-        pv_check_max = world_pos.xyz - vec3(print_volume.xy_data.z, print_volume.xy_data.w, extruder_printable_heights.z);
+        pv_check_max = world_pos.xyz - vec3(print_volume.xy_data.z, print_volume.xy_data.w, extruder_printable_heights.z -0.01);
         bool is_out_printable_height = (all(greaterThan(pv_check_min, ZERO)) && all(lessThan(pv_check_max, ZERO))) ;
         color = is_out_printable_height ? mix(color, ZERO, 0.7) : color;
     }
