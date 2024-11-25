@@ -357,7 +357,7 @@ void GLGizmoFlatten::update_planes()
             planes.pop_back();
         }
     };
-    const int plane_count = 10;
+    const int plane_count = 20;
     for (size_t i = 0; i < m_planes.size(); i++) {
         if (m_planes[i].area < experted_minimal_area) {
             if (i + 1 >= plane_count) {
