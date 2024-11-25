@@ -27,6 +27,8 @@ public:
         Vec3d position_rounded;
         Vec3d rotation;
         Vec3d rotation_rounded;
+        Vec3d absolute_rotation;
+        Vec3d absolute_rotation_rounded;
         Vec3d scale;
         Vec3d scale_rounded;
         Vec3d size;
@@ -72,11 +74,13 @@ public:
     std::string     m_new_unit_string;
     Vec3d           m_new_position;
     Vec3d           m_new_rotation;
+    Vec3d           m_new_absolute_rotation;
     Vec3d           m_new_scale;
     Vec3d           m_new_size;
     Vec3d           m_unscale_size;
     Vec3d           m_buffered_position;
     Vec3d           m_buffered_rotation;
+    Vec3d           m_buffered_absolute_rotation;
     Vec3d           m_buffered_scale;
     Vec3d           m_buffered_size;
     Vec3d           cs_center;
@@ -89,6 +93,9 @@ public:
     bool            m_show_clear_rotation { false };
     bool            m_show_clear_scale { false };
     bool            m_show_drop_to_bed { false };
+    enum class RotateType { None, Relative, Absolute
+    };
+    RotateType m_last_rotate_type{RotateType::None}; // 0:no input 1:relative 2:absolute
 
 protected:
     float last_move_input_window_width = 0.0f;
@@ -150,6 +157,7 @@ private:
     // change values
     void change_position_value(int axis, double value);
     void change_rotation_value(int axis, double value);
+    void change_absolute_rotation_value(int axis, double value);
     void change_scale_value(int axis, double value);
     void change_size_value(int axis, double value);
     void do_scale(int axis, const Vec3d &scale) const;
