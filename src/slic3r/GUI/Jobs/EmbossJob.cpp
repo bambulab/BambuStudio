@@ -374,7 +374,11 @@ void CreateObjectJob::process(Ctl &ctl)
     if (m_input.base->shape.projection.use_surface) m_input.base->shape.projection.use_surface = false;
 
     // auto was_canceled = ::was_canceled(ctl, *m_input.base);
-    m_result = create_mesh(*m_input.base);
+    if (m_input.base->merge_shape || !m_input.base->text_lines.empty()) { // || m_input.base->shape.shapes_with_ids.size() > 20
+        m_result = create_mesh(*m_input.base);
+    } else {
+        m_results = create_meshs(*m_input.base);
+    }
 
     // Create new object
     // calculate X,Y offset position for lay on platter in place of
@@ -407,7 +411,7 @@ void CreateObjectJob::finalize(bool canceled, std::exception_ptr &eptr)
 {
     if (!_finalize(canceled, eptr, *m_input.base)) return;
     // only for sure
-    if (m_result.empty()) {
+    if (m_result.empty() && m_results.empty()) {
         create_message("Can't create empty object.");
         return;
     }
@@ -425,13 +429,28 @@ void CreateObjectJob::finalize(bool canceled, std::exception_ptr &eptr)
         new_object->name        = m_input.base->volume_name;
         new_object->add_instance(); // each object should have at list one instance
 
-        ModelVolume *new_volume = new_object->add_volume(std::move(m_result));
-        // set a default extruder value, since user can't add it manually
-        new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
+        if (!m_result.empty()) {
+            ModelVolume *new_volume = new_object->add_volume(std::move(m_result));
+            // set a default extruder value, since user can't add it manually
+            new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
+            // write emboss data into volume
+            m_input.base->write(*new_volume);
+        } else if (!m_results.empty()) {
+            int index = 0;
+            for (auto shape : m_input.base->shape.shapes_with_ids) {
+                if (shape.expoly.empty())
+                    continue;
+                ModelVolume *new_volume = new_object->add_volume(std::move(m_results[index]));
+                // set a default extruder value, since user can't add it manually
+                new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
+                //donot write emboss data into volume
+                new_volume->name = new_object->name + "_" + std::to_string(index);
+                index++;
+            }
 
-        // write emboss data into volume
-        m_input.base->write(*new_volume);
-
+        } else {
+            create_message("CreateObjectJob:unknown error.");
+        }
         // set transformation
         Slic3r::Geometry::Transformation tr(m_transformation);
         new_object->instances.front()->set_transformation(tr);
@@ -630,6 +649,26 @@ TriangleMesh create_mesh(DataBase &input)
 
     assert(!result.its.empty());
     return result;
+}
+
+std::vector<TriangleMesh> create_meshs(DataBase &input)
+{
+    std::vector<TriangleMesh> meshs;
+
+    // NOTE: SHAPE_SCALE is applied in ProjectZ
+    double scale    = input.shape.scale;
+    double depth    = input.shape.projection.depth / scale;
+    auto   projectZ = std::make_unique<ProjectZ>(depth);
+    float  offset   = input.is_outside ? -SAFE_SURFACE_OFFSET : (SAFE_SURFACE_OFFSET - input.shape.projection.depth);
+    if (input.from_surface.has_value()) offset += *input.from_surface;
+    Transform3d      tr = Eigen::Translation<double, 3>(0., 0., static_cast<double>(offset)) * Eigen::Scaling(scale);
+    ProjectTransform project(std::move(projectZ), tr);
+
+    for (auto shape : input.shape.shapes_with_ids) {
+        if (shape.expoly.empty()) continue;
+        meshs.emplace_back(TriangleMesh(polygons2model(shape.expoly, project)));
+    }
+    return meshs;
 }
 
 void create_volume(
@@ -967,9 +1006,13 @@ bool start_update_volume(DataUpdate &&data, const ModelVolume &volume, const Sel
     return execute_job(std::move(job));
 #endif // EXECUTE_UPDATE_ON_MAIN_THREAD
 }
+bool is_merge_shape_before_create_object() {
+    return GUI::wxGetApp().app_config->get_bool("import_single_svg_and_split") ? false : true;
+}
 
 bool start_create_object_job(const CreateVolumeParams &input, DataBasePtr emboss_data, const Vec2d &coor)
 {
+    emboss_data->merge_shape   = input.merge_shape;
     const Pointfs &  bed_shape = input.build_volume.printable_area();
     DataCreateObject m_input{std::move(emboss_data), coor, input.camera, bed_shape, input.gizmo_type, input.angle};
 
@@ -1025,17 +1068,20 @@ bool start_create_volume_without_position(CreateVolumeParams &input, DataBasePtr
     const ModelObjectPtrs &objects = selection.get_model()->objects;
 
     // No selected object so create new object
-    if (selection.is_empty() || object_idx < 0 || static_cast<size_t>(object_idx) >= objects.size())
+    if (selection.is_empty() || object_idx < 0 || static_cast<size_t>(object_idx) >= objects.size()){
         // create Object on center of screen
         // when ray throw center of screen not hit bed it create object on center of bed
+        input.merge_shape = is_merge_shape_before_create_object();
         return start_create_object_job(input, std::move(data), screen_center);
-
+    }
     // create volume inside of selected object
     Vec2d         coor;
     const Camera &camera = wxGetApp().plater()->get_camera();
     input.gl_volume      = find_closest(selection, screen_center, camera, objects, &coor);
-    if (input.gl_volume == nullptr)
+    if (input.gl_volume == nullptr) {
+        input.merge_shape = is_merge_shape_before_create_object();
         return start_create_object_job(input, std::move(data), screen_center);
+    }
     else {
         return start_create_volume_on_surface_job(input, std::move(data), coor);
     }
@@ -1097,6 +1143,7 @@ bool start_create_volume_on_surface_job(CreateVolumeParams &input, DataBasePtr d
     // object. After right click, object is selected and object_idx is set
     // also hit must exist. But there is options to add text by object list
     if (!hit.has_value()) {                                                // modify by bbs
+        input.merge_shape = is_merge_shape_before_create_object();
         return start_create_object_job(input, std::move(data), mouse_pos); // return on_bad_state(std::move(data), object);
     }
 
@@ -1114,9 +1161,11 @@ bool start_create_volume(CreateVolumeParams &input, DataBasePtr data, const Vec2
     if (data == nullptr) return false;
     if (!check(input)) return false;
 
-    if (input.gl_volume == nullptr || !input.gl_volume->selected)
+    if (input.gl_volume == nullptr || !input.gl_volume->selected) {
+        input.merge_shape = is_merge_shape_before_create_object();
         // object is not under mouse position soo create object on plater
         return start_create_object_job(input, std::move(data), mouse_pos);
+    }
     else { // modify by bbs
         return start_create_volume_on_surface_job(input, std::move(data), mouse_pos);
     }

@@ -69,6 +69,7 @@ public:
     std::shared_ptr<std::atomic<bool>> cancel;
     // shape to emboss
     EmbossShape shape;
+    bool        merge_shape{true};
 };
 
 struct DataCreateVolumeUtil : public DataBase // modfiy bu bbs //struct DataCreateVolume : public DataBase
@@ -124,6 +125,7 @@ struct DataUpdate
     std::optional<float> distance = {};
     // Wanted additionl rotation around Z of new created volume
     std::optional<float> angle = {};
+    bool                 merge_shape{true};
 };
 struct DataCreateObject
 {
@@ -251,6 +253,7 @@ class CreateObjectJob : public JobNew
 {
     DataCreateObject m_input;
     TriangleMesh     m_result;
+    std::vector<TriangleMesh> m_results;
     Transform3d      m_transformation;
 
 public:
@@ -318,6 +321,7 @@ static ExPolygons           create_shape(DataBase &input);
 static TriangleMesh         create_mesh_per_glyph(DataBase &input);
 static TriangleMesh         try_create_mesh(DataBase &input);
 static TriangleMesh         create_mesh(DataBase &input);
+static std::vector<TriangleMesh> create_meshs(DataBase &input);
 static indexed_triangle_set cut_surface_to_its(const ExPolygons &shapes, const Transform3d &tr, const SurfaceVolumeData::ModelSources &sources, DataBase &input);
 static TriangleMesh         cut_per_glyph_surface(DataBase &input1, const SurfaceVolumeData &input2);
 static TriangleMesh         cut_surface(DataBase &input1, const SurfaceVolumeData &input2);
