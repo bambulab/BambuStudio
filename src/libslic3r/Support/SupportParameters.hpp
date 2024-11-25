@@ -107,11 +107,41 @@ struct SupportParameters {
             this->interface_density = this->support_density;
         }
 
-        SupportMaterialPattern  support_pattern = object_config.support_base_pattern;
+        support_style = object_config.support_style;
+        if (support_style != smsDefault) {
+            if ((support_style == smsSnug || support_style == smsGrid) && is_tree(object_config.support_type)) support_style = smsDefault;
+            if ((support_style == smsTreeSlim || support_style == smsTreeStrong || support_style == smsTreeHybrid || support_style == smsTreeOrganic) &&
+                !is_tree(object_config.support_type))
+                support_style = smsDefault;
+        }
+        if (support_style == smsDefault) {
+            if (is_tree(object_config.support_type)) {
+                // organic support doesn't work with variable layer heights (including adaptive layer height and height range modifier, see #4313)
+                if (!object.has_variable_layer_heights && !slicing_params.soluble_interface) {
+                    BOOST_LOG_TRIVIAL(warning) << "tree support default to organic support";
+                    support_style = smsTreeOrganic;
+                } else {
+                    BOOST_LOG_TRIVIAL(warning) << "tree support default to hybrid tree due to adaptive layer height";
+                    support_style = smsTreeHybrid;
+                }
+            } else {
+                support_style = smsGrid;
+            }
+        }
+
+        support_base_pattern = object_config.support_base_pattern;
+        if (support_base_pattern == smpDefault) {
+            if (is_tree(object_config.support_type))
+                support_base_pattern = support_style == smsTreeHybrid ? smpRectilinear : smpNone;
+            else
+                support_base_pattern = smpRectilinear;
+        }
+
         this->with_sheath = object_config.tree_support_wall_count > 0;
-        this->base_fill_pattern =
-            support_pattern == smpHoneycomb ? ipHoneycomb :
-            this->support_density > 0.95 || this->with_sheath ? ipRectilinear : ipSupportBase;
+        this->base_fill_pattern           = support_base_pattern == smpLightning              ? ipLightning :
+                                            support_base_pattern == smpHoneycomb              ? ipHoneycomb :
+                                            this->support_density > 0.95 || this->with_sheath ? ipRectilinear :
+                                                                                                ipSupportBase;
         this->interface_fill_pattern = (this->interface_density > 0.95 ? ipRectilinear : ipSupportBase);
 		this->raft_interface_fill_pattern = this->raft_interface_density > 0.95 ? ipRectilinear : ipSupportBase;
         if (object_config.support_interface_pattern == smipGrid)
@@ -182,28 +212,6 @@ struct SupportParameters {
         }
 
         independent_layer_height = print_config.independent_support_layer_height;
-
-        support_style = object_config.support_style;
-        if (support_style != smsDefault) {
-            if ((support_style == smsSnug || support_style == smsGrid) && is_tree(object_config.support_type)) support_style = smsDefault;
-            if ((support_style == smsTreeSlim || support_style == smsTreeStrong || support_style == smsTreeHybrid || support_style == smsTreeOrganic) &&
-                !is_tree(object_config.support_type))
-                support_style = smsDefault;
-        }
-        if (support_style == smsDefault) {
-            if (is_tree(object_config.support_type)) {
-                // organic support doesn't work with variable layer heights (including adaptive layer height and height range modifier, see #4313)
-                if (!object.has_variable_layer_heights && !slicing_params.soluble_interface) {
-                    BOOST_LOG_TRIVIAL(warning) << "tree support default to organic support";
-                    support_style = smsTreeOrganic;
-                } else {
-                    BOOST_LOG_TRIVIAL(warning) << "tree support default to hybrid tree due to adaptive layer height";
-                    support_style = smsTreeHybrid;
-                }
-            } else {
-                support_style = smsGrid;
-            }
-        }
     }
 	// Both top / bottom contacts and interfaces are soluble.
     bool                    soluble_interface;
@@ -255,6 +263,7 @@ struct SupportParameters {
     coordf_t 				support_spacing;
     coordf_t 				support_density;
     SupportMaterialStyle    support_style = smsDefault;
+    SupportMaterialPattern  support_base_pattern = smpDefault;
 
     InfillPattern           base_fill_pattern;
     InfillPattern           interface_fill_pattern;

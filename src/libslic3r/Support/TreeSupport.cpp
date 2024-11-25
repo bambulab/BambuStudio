@@ -622,7 +622,7 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
     is_strong = is_tree(support_type) && m_support_params.support_style == smsTreeStrong;
     base_radius                              = std::max(MIN_BRANCH_RADIUS, m_object_config->tree_support_branch_diameter.value / 2);
     // by default tree support needs no infill, unless it's tree hybrid which contains normal nodes.
-    with_infill                              = support_pattern != smpNone && support_pattern != smpDefault;
+    with_infill              = m_support_params.support_base_pattern != smpNone;
     m_machine_border.contour = get_bed_shape_with_excluded_area(*m_print_config);
     Vec3d plate_offset       = m_object->print()->get_plate_origin();
     // align with the centered object in current plate (may not be the 1st plate, so need to add the plate offset)
