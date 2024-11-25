@@ -447,6 +447,16 @@ const Vec3d &Transformation::get_rotation() const
     return m_temp_rotation;
 }
 
+const Vec3d &Transformation::get_rotation_by_quaternion() const
+{
+    Matrix3d           rotation_matrix = m_matrix.matrix().block(0, 0, 3, 3);
+    Eigen::Quaterniond quaternion(rotation_matrix);
+    quaternion.normalize();
+    m_temp_rotation  = quaternion.matrix().eulerAngles(2, 1, 0);
+    std::swap(m_temp_rotation(0), m_temp_rotation(2));
+    return m_temp_rotation;
+}
+
 Transform3d Transformation::get_rotation_matrix() const { return extract_rotation_matrix(m_matrix); }
 
 void Transformation::set_rotation(const Vec3d &rotation)
