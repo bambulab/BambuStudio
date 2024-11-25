@@ -38,6 +38,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/ScrolledWindow.hpp
     GUI/Widgets/StaticBox.cpp
     GUI/Widgets/StaticBox.hpp
+    GUI/Widgets/StaticGroup.cpp
+    GUI/Widgets/StaticGroup.hpp
     GUI/Widgets/ImageSwitchButton.cpp
     GUI/Widgets/ImageSwitchButton.hpp
     GUI/Widgets/SwitchButton.cpp
