@@ -265,6 +265,7 @@ public:
     void calib_VFA(const Calib_Params &params);
 
     //BBS: add only gcode mode
+    bool is_gcode_3mf() { return m_only_gcode && m_exported_file; }
     bool only_gcode_mode() { return m_only_gcode; }
     void set_only_gcode(bool only_gcode) { m_only_gcode = only_gcode; }
 
