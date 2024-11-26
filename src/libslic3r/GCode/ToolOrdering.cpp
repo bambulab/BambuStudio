@@ -617,9 +617,6 @@ void ToolOrdering::reorder_extruders(std::vector<unsigned int> tool_order_layer0
     if (m_layer_tools.empty())
         return;
 
-    if (tool_order_layer0.empty())
-        return;
-
     // Reorder the extruders of first layer
     {
         LayerTools& lt = m_layer_tools[0];
@@ -642,12 +639,31 @@ void ToolOrdering::reorder_extruders(std::vector<unsigned int> tool_order_layer0
         }
 
         // all extruders are zero
-        if (lt.extruders.empty()) {
+        if (lt.extruders.empty() && !tool_order_layer0.empty()) {
             lt.extruders.push_back(tool_order_layer0[0]);
         }
     }
 
-    int last_extruder_id = m_layer_tools[0].extruders.back();
+    int last_extruder_id = 0;
+    // BBS: fist layer may be empty or only has defult extrude id
+    if (m_layer_tools[0].extruders.empty()) {
+        // search for first extrude filament id
+        for (size_t layer_id = 1; layer_id < m_layer_tools.size(); layer_id++) {
+            for (auto const &extrude : m_layer_tools[layer_id].extruders) {
+                if (extrude != 0) {
+                    last_extruder_id = extrude;
+                    break;
+                }
+            }
+
+            if (last_extruder_id != 0)
+                break;
+        }
+    } else {
+        //use first layer last extruder
+        last_extruder_id = m_layer_tools[0].extruders.back();
+    }
+
     for (int i = 1; i < m_layer_tools.size(); i++) {
         LayerTools& lt = m_layer_tools[i];
 
