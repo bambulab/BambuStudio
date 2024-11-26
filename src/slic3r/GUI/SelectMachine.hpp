@@ -102,7 +102,7 @@ public:
 
 WX_DECLARE_HASH_MAP(int, Material *, wxIntegerHash, wxIntegerEqual, MaterialHash);
 
-#define SELECT_MACHINE_DIALOG_BUTTON_SIZE wxSize(FromDIP(68), FromDIP(23))
+#define SELECT_MACHINE_DIALOG_BUTTON_SIZE wxSize(FromDIP(57), FromDIP(32))
 #define SELECT_MACHINE_DIALOG_SIMBOOK_SIZE wxSize(FromDIP(370), FromDIP(64))
 
 static int get_brightness_value(wxImage image) {
@@ -205,6 +205,25 @@ private:
     int            m_brightness_value{-1};
 };
 
+
+class SendModeSwitchButton : public wxPanel
+{
+public:
+    SendModeSwitchButton(wxWindow *parent, wxString mode, bool sel);
+    ~SendModeSwitchButton(){};
+    void OnPaint(wxPaintEvent &event);
+    void render(wxDC &dc);
+    void on_left_down(wxMouseEvent &evt);
+    void doRender(wxDC &dc);
+    void setSelected(bool selected);
+    bool isSelected(){return is_selected;};
+    bool is_selected {false};
+    ScalableBitmap m_img_selected;
+    ScalableBitmap m_img_unselected;
+    ScalableBitmap m_img_selected_tag;
+    ScalableBitmap m_img_unselected_tag;
+};
+
 class SelectMachineDialog : public DPIDialog
 {
 private:
@@ -241,6 +260,11 @@ private:
     std::vector<int>                    m_filaments_map;
     std::shared_ptr<BBLStatusBarSend>   m_status_bar;
 
+    SendModeSwitchButton*               m_mode_print {nullptr};
+    SendModeSwitchButton*               m_mode_send {nullptr};
+    wxStaticBitmap*                     m_printer_image{nullptr};
+    wxStaticBitmap*                     m_bed_image{nullptr};
+
     Slic3r::DynamicPrintConfig          m_required_data_config;
     Slic3r::Model                       m_required_data_model;
     Slic3r::PlateDataPtrs               m_required_data_plate_data_list;
@@ -265,7 +289,7 @@ protected:
     wxBoxSizer*                         rename_sizer_v{ nullptr };
     wxBoxSizer*                         rename_sizer_h{ nullptr };
     wxBoxSizer*                         m_sizer_autorefill{ nullptr };
-    Button*                             m_button_refresh{ nullptr };
+    ScalableButton*                     m_button_refresh{ nullptr };
     Button*                             m_button_ensure{ nullptr };
     wxStaticBitmap *                    m_rename_button{nullptr};
     ComboBox*                           m_comboBox_printer{ nullptr };
