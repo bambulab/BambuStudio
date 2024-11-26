@@ -549,7 +549,7 @@ void PrintConfigDef::init_common_params()
     def->min      = 0;
     def->max      = 1000;
     def->mode     = comSimple;
-    def->set_default_value(new ConfigOptionFloatsNullable{100.0, 200.0});
+    def->set_default_value(new ConfigOptionFloatsNullable{});
 
     // Options used by physical printers
 
