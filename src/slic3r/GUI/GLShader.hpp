@@ -59,6 +59,8 @@ public:
     bool set_uniform(const char* name, const Transform3d& value) const;
     bool set_uniform(const char* name, const Matrix3f& value) const;
     bool set_uniform(const char *name, const Matrix3d &value) const;
+    bool set_uniform(const char* name, const Matrix4f& value) const;
+    bool set_uniform(const char* name, const Matrix4d& value) const;
     bool set_uniform(const char* name, const Vec3f& value) const;
     bool set_uniform(const char* name, const Vec3d& value) const;
 

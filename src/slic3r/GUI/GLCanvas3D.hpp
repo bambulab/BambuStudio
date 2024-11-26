@@ -5,6 +5,7 @@
 #include <memory>
 #include <chrono>
 #include <cstdint>
+#include <stack>
 
 #include "GLToolbar.hpp"
 #include "Event.hpp"
@@ -19,6 +20,7 @@
 #include "IMToolbar.hpp"
 #include "slic3r/GUI/3DBed.hpp"
 #include "libslic3r/Slicing.hpp"
+#include "GLEnums.hpp"
 
 #include <float.h>
 
@@ -471,6 +473,25 @@ class GLCanvas3D
         virtual void Notify() override;
     };
 
+    class RenderPipelineStageModifier
+    {
+    public:
+        explicit RenderPipelineStageModifier(GLCanvas3D& canvas, ERenderPipelineStage stage);
+        ~RenderPipelineStageModifier();
+
+    private:
+        // no copy
+        RenderPipelineStageModifier(const RenderPipelineStageModifier&) = delete;
+        RenderPipelineStageModifier(RenderPipelineStageModifier&&) = delete;
+
+        // no assign
+        RenderPipelineStageModifier& operator=(const RenderPipelineStageModifier&) = delete;
+        RenderPipelineStageModifier& operator=(RenderPipelineStageModifier&&) = delete;
+    private:
+        GLCanvas3D& m_canvas;
+        ERenderPipelineStage m_stage;
+    };
+
 public:
     enum ECursorType : unsigned char
     {
@@ -627,6 +648,9 @@ private:
     int split_to_part_count = 0;
     int custom_height_count = 0;
     int assembly_view_count = 0;
+
+    std::stack<ERenderPipelineStage> m_render_pipeline_stage_stack;
+    GLModel m_full_screen_mesh;
 
 public:
     OrientSettings& get_orient_settings()
@@ -1239,6 +1263,12 @@ private:
     float get_overlay_window_width() { return 0; /*LayersEditing::get_overlay_window_width();*/ }
 
     static std::vector<std::array<float, 4>> _parse_colors(const std::vector<std::string>& colors);
+
+    void _push_render_stage(ERenderPipelineStage stage);
+    void _pop_render_stage();
+    ERenderPipelineStage _get_current_render_stage() const;
+
+    void _render_silhouette_effect();
 };
 
 const ModelVolume *get_model_volume(const GLVolume &v, const Model &model);

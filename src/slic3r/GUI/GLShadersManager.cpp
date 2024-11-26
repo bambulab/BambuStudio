@@ -92,6 +92,10 @@ std::pair<bool, std::string> GLShadersManager::init()
     //BBS: add shader for outline
     valid &= append_shader("outline", { "outline.vs", "outline.fs" });
 
+    valid &= append_shader("silhouette", { "110/silhouette.vs", "110/silhouette.fs" });
+
+    valid &= append_shader("silhouette_composite", { "110/silhouette_composite.vs", "110/silhouette_composite.fs" });
+
     return { valid, error };
 }
 
