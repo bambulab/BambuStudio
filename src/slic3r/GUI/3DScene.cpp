@@ -1552,7 +1552,8 @@ int GLVolumeCollection::get_selection_support_threshold_angle(bool &enable_suppo
 }
 
 //BBS: add outline drawing logic
-void GLVolumeCollection::render(GLVolumeCollection::ERenderType       type,
+void GLVolumeCollection::render(GUI::ERenderPipelineStage             render_pipeline_stage,
+                                GLVolumeCollection::ERenderType       type,
                                 bool                                  disable_cullface,
                                 const Transform3d &                   view_matrix,
                                 std::function<bool(const GLVolume &)> filter_func,
@@ -1599,77 +1600,88 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType       type,
 #endif // ENABLE_MODIFIERS_ALWAYS_TRANSPARENT
 
         // render sinking contours of non-hovered volumes
-        if (m_show_sinking_contours)
-            if (volume.first->is_sinking() && !volume.first->is_below_printbed() &&
-                volume.first->hover == GLVolume::HS_None && !volume.first->force_sinking_contours) {
-                shader->stop_using();
-                volume.first->render_sinking_contours();
-                shader->start_using();
-            }
+        if (GUI::ERenderPipelineStage::Silhouette != render_pipeline_stage) {
+            if (m_show_sinking_contours)
+                if (volume.first->is_sinking() && !volume.first->is_below_printbed() &&
+                    volume.first->hover == GLVolume::HS_None && !volume.first->force_sinking_contours) {
+                    shader->stop_using();
+                    volume.first->render_sinking_contours();
+                    shader->start_using();
+                }
+        }
 
         glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
         glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
 
-        shader->set_uniform("is_text_shape", volume.first->is_text_shape);
-        shader->set_uniform("uniform_color", volume.first->render_color);
-        shader->set_uniform("z_range", m_z_range, 2);
-        shader->set_uniform("clipping_plane", m_clipping_plane, 4);
-        //BOOST_LOG_TRIVIAL(info) << boost::format("set uniform_color to {%1%, %2%, %3%, %4%}, with_outline=%5%, selected %6%")
-        //    %volume.first->render_color[0]%volume.first->render_color[1]%volume.first->render_color[2]%volume.first->render_color[3]
-        //    %with_outline%volume.first->selected;
+        if (GUI::ERenderPipelineStage::Silhouette != render_pipeline_stage) {
+            shader->set_uniform("is_text_shape", volume.first->is_text_shape);
+            shader->set_uniform("uniform_color", volume.first->render_color);
+            shader->set_uniform("z_range", m_z_range, 2);
+            shader->set_uniform("clipping_plane", m_clipping_plane, 4);
+            //BOOST_LOG_TRIVIAL(info) << boost::format("set uniform_color to {%1%, %2%, %3%, %4%}, with_outline=%5%, selected %6%")
+            //    %volume.first->render_color[0]%volume.first->render_color[1]%volume.first->render_color[2]%volume.first->render_color[3]
+            //    %with_outline%volume.first->selected;
 
-        //BBS set print_volume to render volume
-        //shader->set_uniform("print_volume.type", static_cast<int>(m_render_volume.type));
-        //shader->set_uniform("print_volume.xy_data", m_render_volume.data);
-        //shader->set_uniform("print_volume.z_data", m_render_volume.zs);
-        if (printable_heights) {
-            std::array<float, 3> extruder_printable_heights;
-            if ((*printable_heights).size() > 0) {
-                extruder_printable_heights[0] = 2.0f;
-                extruder_printable_heights[1] = (*printable_heights)[0];
-                extruder_printable_heights[2] = (*printable_heights)[1];
-                shader->set_uniform("extruder_printable_heights", extruder_printable_heights);
-                shader->set_uniform("print_volume.xy_data", m_print_volume.data);
-            } else {
-                extruder_printable_heights[0] = 0.0f;
-                shader->set_uniform("extruder_printable_heights", extruder_printable_heights);
+            //BBS set print_volume to render volume
+            //shader->set_uniform("print_volume.type", static_cast<int>(m_render_volume.type));
+            //shader->set_uniform("print_volume.xy_data", m_render_volume.data);
+            //shader->set_uniform("print_volume.z_data", m_render_volume.zs);
+            if (printable_heights) {
+                std::array<float, 3> extruder_printable_heights;
+                if ((*printable_heights).size() > 0) {
+                    extruder_printable_heights[0] = 2.0f;
+                    extruder_printable_heights[1] = (*printable_heights)[0];
+                    extruder_printable_heights[2] = (*printable_heights)[1];
+                    shader->set_uniform("extruder_printable_heights", extruder_printable_heights);
+                    shader->set_uniform("print_volume.xy_data", m_print_volume.data);
+                }
+                else {
+                    extruder_printable_heights[0] = 0.0f;
+                    shader->set_uniform("extruder_printable_heights", extruder_printable_heights);
+                }
             }
-        }
-        if (volume.first->partly_inside && partly_inside_enable) {
-            //only partly inside volume need to be painted with boundary check
-            shader->set_uniform("print_volume.type", static_cast<int>(m_print_volume.type));
-            shader->set_uniform("print_volume.z_data", m_print_volume.zs);
-            if (!printable_heights || (printable_heights && (*printable_heights).size() == 0)) {
-                shader->set_uniform("print_volume.xy_data", m_print_volume.data);
+            if (volume.first->partly_inside && partly_inside_enable) {
+                //only partly inside volume need to be painted with boundary check
+                shader->set_uniform("print_volume.type", static_cast<int>(m_print_volume.type));
+                shader->set_uniform("print_volume.z_data", m_print_volume.zs);
+                if (!printable_heights || (printable_heights && (*printable_heights).size() == 0)) {
+                    shader->set_uniform("print_volume.xy_data", m_print_volume.data);
+                }
             }
-        }
-        else {
-            //use -1 ad a invalid type
-            shader->set_uniform("print_volume.type", -1);
-        }
+            else {
+                //use -1 ad a invalid type
+                shader->set_uniform("print_volume.type", -1);
+            }
 
-        bool  enable_support;
-        int   support_threshold_angle = get_selection_support_threshold_angle(enable_support);
+            bool  enable_support;
+            int   support_threshold_angle = get_selection_support_threshold_angle(enable_support);
 
-        float normal_z  = -::cos(Geometry::deg2rad((float) support_threshold_angle));
+            float normal_z = -::cos(Geometry::deg2rad((float)support_threshold_angle));
 
-        shader->set_uniform("volume_world_matrix", volume.first->world_matrix());
-        shader->set_uniform("slope.actived", m_slope.isGlobalActive && !volume.first->is_modifier && !volume.first->is_wipe_tower);
-        shader->set_uniform("slope.volume_world_normal_matrix", static_cast<Matrix3f>(volume.first->world_matrix().matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>()));
-        shader->set_uniform("slope.normal_z", normal_z);
+            shader->set_uniform("volume_world_matrix", volume.first->world_matrix());
+            shader->set_uniform("slope.actived", m_slope.isGlobalActive && !volume.first->is_modifier && !volume.first->is_wipe_tower);
+            shader->set_uniform("slope.volume_world_normal_matrix", static_cast<Matrix3f>(volume.first->world_matrix().matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>()));
+            shader->set_uniform("slope.normal_z", normal_z);
 
 #if ENABLE_ENVIRONMENT_MAP
-        unsigned int environment_texture_id = GUI::wxGetApp().plater()->get_environment_texture_id();
-        bool use_environment_texture = environment_texture_id > 0 && GUI::wxGetApp().app_config->get("use_environment_map") == "1";
-        shader->set_uniform("use_environment_tex", use_environment_texture);
-        if (use_environment_texture)
-            glsafe(::glBindTexture(GL_TEXTURE_2D, environment_texture_id));
+            unsigned int environment_texture_id = GUI::wxGetApp().plater()->get_environment_texture_id();
+            bool use_environment_texture = environment_texture_id > 0 && GUI::wxGetApp().app_config->get("use_environment_map") == "1";
+            shader->set_uniform("use_environment_tex", use_environment_texture);
+            if (use_environment_texture)
+                glsafe(::glBindTexture(GL_TEXTURE_2D, environment_texture_id));
 #endif // ENABLE_ENVIRONMENT_MAP
-        glcheck();
+            glcheck();
 
-        //BBS: add outline related logic
-        auto red_color = std::array<float, 4>({1.0f, 0.0f, 0.0f, 1.0f});//slice_error
-        volume.first->render(with_outline && volume.first->selected, volume.first->slice_error ? red_color : body_color);
+            //BBS: add outline related logic
+            auto red_color = std::array<float, 4>({ 1.0f, 0.0f, 0.0f, 1.0f });//slice_error
+            volume.first->render(with_outline&& volume.first->selected, volume.first->slice_error ? red_color : body_color);
+        }
+        else {
+            if (volume.first->selected) {
+                shader->set_uniform("u_model_matrix", volume.first->world_matrix());
+                volume.first->render(false, body_color);
+            }
+        }
 
 #if ENABLE_ENVIRONMENT_MAP
         if (use_environment_texture)
@@ -1683,16 +1695,18 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType       type,
         glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
     }
 
-    if (m_show_sinking_contours) {
-        for (GLVolumeWithIdAndZ& volume : to_render) {
-            // render sinking contours of hovered/displaced volumes
-            if (volume.first->is_sinking() && !volume.first->is_below_printbed() &&
-                (volume.first->hover != GLVolume::HS_None || volume.first->force_sinking_contours)) {
-                shader->stop_using();
-                glsafe(::glDepthFunc(GL_ALWAYS));
-                volume.first->render_sinking_contours();
-                glsafe(::glDepthFunc(GL_LESS));
-                shader->start_using();
+    if (GUI::ERenderPipelineStage::Silhouette != render_pipeline_stage) {
+        if (m_show_sinking_contours) {
+            for (GLVolumeWithIdAndZ& volume : to_render) {
+                // render sinking contours of hovered/displaced volumes
+                if (volume.first->is_sinking() && !volume.first->is_below_printbed() &&
+                    (volume.first->hover != GLVolume::HS_None || volume.first->force_sinking_contours)) {
+                    shader->stop_using();
+                    glsafe(::glDepthFunc(GL_ALWAYS));
+                    volume.first->render_sinking_contours();
+                    glsafe(::glDepthFunc(GL_LESS));
+                    shader->start_using();
+                }
             }
         }
     }

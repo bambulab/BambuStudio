@@ -7071,6 +7071,32 @@ void GUI_App::check_config_updates_from_menu()
     check_updates(true);
 }
 
+void GUI_App::set_picking_effect(EPickingEffect effect)
+{
+    if (m_picking_effect != effect)
+    {
+        std::string str_picking_effect{};
+        switch (effect)
+        {
+        case EPickingEffect::Disabled:
+            str_picking_effect = "Disabled";
+            break;
+        case EPickingEffect::StencilOutline:
+            str_picking_effect = "StencilOutline";
+            break;
+        case EPickingEffect::Silhouette:
+            str_picking_effect = "Silhouette";
+            break;
+        }
+        BOOST_LOG_TRIVIAL(info) << "Switched picking effect to: " << str_picking_effect;
+        m_picking_effect = effect;
+    }
+}
+
+EPickingEffect GUI_App::get_picking_effect() const
+{
+    return m_picking_effect;
+}
 
 bool GUI_App::open_browser_with_warning_dialog(const wxString& url, int flags/* = 0*/)
 {

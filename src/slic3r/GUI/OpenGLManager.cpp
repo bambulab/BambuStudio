@@ -23,6 +23,13 @@
 #include "../Utils/MacDarkMode.hpp"
 #endif // __APPLE__
 
+#define BBS_GL_EXTENSION_FUNC(_func) (OpenGLManager::get_framebuffers_type() == OpenGLManager::EFramebufferType::Ext ? _func ## EXT : _func)
+#define BBS_GL_EXTENSION_FRAMEBUFFER OpenGLManager::get_framebuffers_type() == OpenGLManager::EFramebufferType::Ext ? GL_FRAMEBUFFER_EXT : GL_FRAMEBUFFER
+#define BBS_GL_EXTENSION_COLOR_ATTACHMENT(color_attachment) (OpenGLManager::get_framebuffers_type() == OpenGLManager::EFramebufferType::Ext ? color_attachment ## _EXT : color_attachment)
+#define BBS_GL_EXTENSION_DEPTH_ATTACHMENT OpenGLManager::get_framebuffers_type() == OpenGLManager::EFramebufferType::Ext ? GL_DEPTH_ATTACHMENT_EXT : GL_DEPTH_ATTACHMENT
+#define BBS_GL_EXTENSION_RENDER_BUFFER OpenGLManager::get_framebuffers_type() == OpenGLManager::EFramebufferType::Ext ? GL_RENDERBUFFER_EXT : GL_RENDERBUFFER
+
+
 namespace Slic3r {
 namespace GUI {
 
@@ -39,6 +46,20 @@ const std::string& OpenGLManager::GLInfo::get_version() const
         detect();
 
     return m_version;
+}
+
+const uint32_t OpenGLManager::GLInfo::get_formated_gl_version() const
+{
+    if (0 == m_formated_gl_version)
+    {
+        GLint major = 0;
+        GLint minor = 0;
+        glGetIntegerv(GL_MAJOR_VERSION, &major);
+        glGetIntegerv(GL_MINOR_VERSION, &minor);
+
+        m_formated_gl_version = major * 10 + minor;
+    }
+    return m_formated_gl_version;
 }
 
 const std::string& OpenGLManager::GLInfo::get_glsl_version() const
@@ -219,6 +240,7 @@ OpenGLManager::OSInfo OpenGLManager::s_os_info;
 OpenGLManager::~OpenGLManager()
 {
     m_shaders_manager.shutdown();
+    m_name_to_frame_buffer.clear();
 
 #ifdef __APPLE__
     // This is an ugly hack needed to solve the crash happening when closing the application on OSX 10.9.5 with newer wxWidgets
@@ -249,7 +271,13 @@ bool OpenGLManager::init_gl(bool popup_error)
         else
             s_compressed_textures_supported = false;
 
-        if (GLEW_ARB_framebuffer_object) {
+        const auto& gl_info = OpenGLManager::get_gl_info();
+        const uint32_t gl_formated_version = gl_info.get_formated_gl_version();
+        if (gl_formated_version >= 30) {
+            s_framebuffers_type = EFramebufferType::Supported;
+            BOOST_LOG_TRIVIAL(info) << "Opengl version >= 30, FrameBuffer normal." << std::endl;
+        }
+        else if (GLEW_ARB_framebuffer_object) {
             s_framebuffers_type = EFramebufferType::Arb;
             BOOST_LOG_TRIVIAL(info) << "Found Framebuffer Type ARB."<< std::endl;
         }
@@ -336,6 +364,78 @@ wxGLContext* OpenGLManager::init_glcontext(wxGLCanvas& canvas)
     return m_context;
 }
 
+void OpenGLManager::clear_dirty()
+{
+    m_b_viewport_dirty = false;
+}
+
+void OpenGLManager::set_viewport_size(uint32_t width, uint32_t height)
+{
+    if (width != m_viewport_width)
+    {
+        m_b_viewport_dirty = true;
+        m_viewport_width = width;
+    }
+    if (height != m_viewport_height)
+    {
+        m_b_viewport_dirty = true;
+        m_viewport_height = height;
+    }
+}
+
+void OpenGLManager::get_viewport_size(uint32_t& width, uint32_t& height) const
+{
+    width = m_viewport_width;
+    height = m_viewport_height;
+}
+
+void OpenGLManager::_bind_frame_buffer(const std::string& name)
+{
+    const auto& iter = m_name_to_frame_buffer.find(name);
+    if (iter == m_name_to_frame_buffer.end() || m_b_viewport_dirty) {
+        const auto& p_frame_buffer = std::make_shared<FrameBuffer>(m_viewport_width, m_viewport_height);
+        m_name_to_frame_buffer.insert_or_assign(name, p_frame_buffer);
+    }
+
+    m_name_to_frame_buffer[name]->bind();
+}
+
+void OpenGLManager::_unbind_frame_buffer(const std::string& name)
+{
+    const auto& iter = m_name_to_frame_buffer.find(name);
+    if (iter == m_name_to_frame_buffer.end()) {
+        return;
+    }
+
+    m_name_to_frame_buffer[name]->unbind();
+}
+
+const std::shared_ptr<FrameBuffer>& OpenGLManager::get_frame_buffer(const std::string& name) const
+{
+    const auto& iter = m_name_to_frame_buffer.find(name);
+    if (iter != m_name_to_frame_buffer.end()) {
+        return iter->second;
+    }
+    static std::shared_ptr<FrameBuffer> sEmpty{ nullptr };
+    return sEmpty;
+}
+
+std::string OpenGLManager::framebuffer_type_to_string(EFramebufferType type)
+{
+    switch (type)
+    {
+    case EFramebufferType::Supported:
+        return "Supported";
+    case EFramebufferType::Arb:
+        return "ARB";
+    case EFramebufferType::Ext:
+        return "EXT";
+    case EFramebufferType::Unknown:
+    default:
+        return "unknow";
+    }
+}
+
 wxGLCanvas* OpenGLManager::create_wxglcanvas(wxWindow& parent)
 {
     int attribList[] = {
@@ -381,6 +481,128 @@ void OpenGLManager::detect_multisample(int* attribList)
         ? EMultisampleState::Enabled : EMultisampleState::Disabled;
     // Alternative method: it was working on previous version of wxWidgets but not with the latest, at least on Windows
     // s_multisample = enable_multisample && wxGLCanvas::IsExtensionSupported("WGL_ARB_multisample");
+}
+
+FrameBuffer::FrameBuffer(uint32_t width, uint32_t height)
+    : m_width(width)
+    , m_height(height)
+{
+}
+
+FrameBuffer::~FrameBuffer()
+{
+    if (UINT32_MAX != m_gl_id)
+    {
+        //glsafe(::glBindFramebuffer(GL_FRAMEBUFFER, 0));
+        glsafe(::glDeleteFramebuffers(1, &m_gl_id));
+        m_gl_id = UINT32_MAX;
+    }
+
+    if (UINT32_MAX != m_color_texture_id)
+    {
+        glDeleteTextures(1, &m_color_texture_id);
+        m_color_texture_id = UINT32_MAX;
+    }
+
+    if (UINT32_MAX != m_depth_rbo_id)
+    {
+        glDeleteRenderbuffers(1, &m_depth_rbo_id);
+        m_depth_rbo_id = UINT32_MAX;
+    }
+}
+
+void FrameBuffer::bind()
+{
+    const OpenGLManager::EFramebufferType framebuffer_type = OpenGLManager::get_framebuffers_type();
+    if (OpenGLManager::EFramebufferType::Unknown == framebuffer_type) {
+        return;
+    }
+    if (0 == m_width || 0 == m_height)
+    {
+        return;
+    }
+    if (UINT32_MAX == m_gl_id)
+    {
+        glsafe(BBS_GL_EXTENSION_FUNC(::glGenFramebuffers)(1, &m_gl_id));
+
+        glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_FRAMEBUFFER, m_gl_id));
+
+        glsafe(::glGenTextures(1, &m_color_texture_id));
+        glsafe(::glBindTexture(GL_TEXTURE_2D, m_color_texture_id));
+
+        glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr));
+        glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+        glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+
+        glsafe(BBS_GL_EXTENSION_FUNC(::glFramebufferTexture2D)(BBS_GL_EXTENSION_FRAMEBUFFER, BBS_GL_EXTENSION_COLOR_ATTACHMENT(GL_COLOR_ATTACHMENT0), GL_TEXTURE_2D, m_color_texture_id, 0));
+
+        if (OpenGLManager::EFramebufferType::Ext == framebuffer_type) {
+            GLenum bufs[1]{ GL_COLOR_ATTACHMENT0_EXT };
+            glsafe(::glDrawBuffers((GLsizei)1, bufs));
+        }
+        else {
+            GLenum bufs[1]{ GL_COLOR_ATTACHMENT0 };
+            glsafe(::glDrawBuffers((GLsizei)1, bufs));
+        }
+
+        glsafe(BBS_GL_EXTENSION_FUNC(::glGenRenderbuffers)(1, &m_depth_rbo_id));
+        glsafe(BBS_GL_EXTENSION_FUNC(::glBindRenderbuffer)(BBS_GL_EXTENSION_RENDER_BUFFER, m_depth_rbo_id));
+
+        glsafe(BBS_GL_EXTENSION_FUNC(::glRenderbufferStorage)(BBS_GL_EXTENSION_RENDER_BUFFER, GL_DEPTH24_STENCIL8, m_width, m_height));
+
+        glsafe(BBS_GL_EXTENSION_FUNC(::glFramebufferRenderbuffer)(BBS_GL_EXTENSION_FRAMEBUFFER, BBS_GL_EXTENSION_DEPTH_ATTACHMENT, BBS_GL_EXTENSION_RENDER_BUFFER, m_depth_rbo_id));
+
+        if (OpenGLManager::EFramebufferType::Ext == framebuffer_type) {
+            if (::glCheckFramebufferStatusEXT(BBS_GL_EXTENSION_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE_EXT)
+            {
+                BOOST_LOG_TRIVIAL(error) << "Framebuffer is not complete!";
+                glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_FRAMEBUFFER, 0));
+                return;
+            }
+        }
+        else {
+            if (::glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+            {
+                BOOST_LOG_TRIVIAL(error) << "Framebuffer is not complete!";
+                glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_FRAMEBUFFER, 0));
+                return;
+            }
+        }
+        BOOST_LOG_TRIVIAL(trace) << "Successfully created framebuffer: width = " << m_width << ", heihgt = " << m_height;
+    }
+
+    glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_FRAMEBUFFER, m_gl_id));
+}
+
+void FrameBuffer::unbind()
+{
+    const OpenGLManager::EFramebufferType framebuffer_type = OpenGLManager::get_framebuffers_type();
+    if (OpenGLManager::EFramebufferType::Unknown == framebuffer_type) {
+        return;
+    }
+    glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_FRAMEBUFFER, 0));
+}
+
+uint32_t FrameBuffer::get_color_texture() const noexcept
+{
+    return m_color_texture_id;
+}
+
+bool FrameBuffer::is_texture_valid(uint32_t texture_id) const noexcept
+{
+    return m_color_texture_id != UINT32_MAX;
+}
+
+OpenGLManager::FrameBufferModifier::FrameBufferModifier(OpenGLManager& ogl_manager, const std::string& frame_buffer_name)
+    : m_ogl_manager(ogl_manager)
+    , m_frame_buffer_name(frame_buffer_name)
+{
+    m_ogl_manager._bind_frame_buffer(m_frame_buffer_name);
+}
+
+OpenGLManager::FrameBufferModifier::~FrameBufferModifier()
+{
+    m_ogl_manager._unbind_frame_buffer(m_frame_buffer_name);
 }
 
 } // namespace GUI

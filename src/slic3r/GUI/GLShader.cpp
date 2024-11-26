@@ -349,6 +349,21 @@ bool GLShaderProgram::set_uniform(const char *name, const Matrix3d &value) const
     return set_uniform(name, (Matrix3f) value.cast<float>());
 }
 
+bool GLShaderProgram::set_uniform(const char* name, const Matrix4f& value) const
+{
+    int id = get_uniform_location(name);
+    if (id >= 0) {
+        glsafe(::glUniformMatrix4fv(id, 1, GL_FALSE, static_cast<const GLfloat*>(value.data())));
+        return true;
+    }
+    return false;
+}
+
+bool GLShaderProgram::set_uniform(const char* name, const Matrix4d& value) const
+{
+    return set_uniform(name, (Matrix4f)value.cast<float>());
+}
+
 bool GLShaderProgram::set_uniform(const char* name, const Vec3f& value) const
 {
     int id = get_uniform_location(name);

@@ -12,6 +12,7 @@
 
 #include "MeshUtils.hpp"
 #include "GLShader.hpp"
+#include "GLEnums.hpp"
 
 #include <functional>
 #include <optional>
@@ -725,7 +726,8 @@ public:
     int get_selection_support_threshold_angle(bool&) const;
     // Render the volumes by OpenGL.
     //BBS: add outline drawing logic
-    void render(ERenderType                           type,
+    void render(GUI::ERenderPipelineStage             render_pipeline_stage,
+                ERenderType                           type,
                 bool                                  disable_cullface,
                 const Transform3d &                   view_matrix,
                 std::function<bool(const GLVolume &)> filter_func          = std::function<bool(const GLVolume &)>(),

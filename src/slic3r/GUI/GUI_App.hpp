@@ -19,6 +19,7 @@
 #include "slic3r/GUI/Jobs/UpgradeNetworkJob.hpp"
 #include "slic3r/GUI/HttpServer.hpp"
 #include "../Utils/PrintHost.hpp"
+#include "slic3r/GUI/GLEnums.hpp"
 
 #include <wx/app.h>
 #include <wx/colour.h>
@@ -659,6 +660,9 @@ public:
     void            check_config_updates_from_updater();
     void            check_config_updates_from_menu();
 
+    void set_picking_effect(EPickingEffect effect);
+    EPickingEffect get_picking_effect() const;
+
 private:
     int             updating_bambu_networking();
     bool            on_init_inner();
@@ -687,6 +691,7 @@ private:
     std::string             m_older_data_dir_path;
     boost::optional<Semver> m_last_config_version;
     std::string             m_open_method;
+    EPickingEffect          m_picking_effect{ EPickingEffect::StencilOutline };
 };
 
 DECLARE_APP(GUI_App)

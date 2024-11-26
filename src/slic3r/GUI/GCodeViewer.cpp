@@ -4198,7 +4198,7 @@ void GCodeViewer::render_shells()
 
     shader->start_using();
     //BBS: reopen cul faces
-    m_shells.volumes.render(GLVolumeCollection::ERenderType::Transparent, false, wxGetApp().plater()->get_camera().get_view_matrix());
+    m_shells.volumes.render(GUI::ERenderPipelineStage::Normal, GLVolumeCollection::ERenderType::Transparent, false, wxGetApp().plater()->get_camera().get_view_matrix());
     shader->stop_using();
 
     glsafe(::glDepthMask(GL_TRUE));
