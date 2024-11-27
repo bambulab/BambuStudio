@@ -2693,6 +2693,7 @@ struct Plater::priv
     bool PopupObjectTable(int object_id, int volume_id, const wxPoint& position);
     void on_action_send_to_printer(bool isall = false);
     void on_action_send_to_multi_machine(SimpleEvent&);
+    void on_action_send_to_multi_app(SimpleEvent&);
     int update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path);
 private:
     bool layers_height_allowed() const;
@@ -3060,6 +3061,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_GLTOOLBAR_SEND_TO_PRINTER, &priv::on_action_export_to_sdcard, this);
         q->Bind(EVT_GLTOOLBAR_SEND_TO_PRINTER_ALL, &priv::on_action_export_to_sdcard_all, this);
         q->Bind(EVT_GLTOOLBAR_PRINT_MULTI_MACHINE, &priv::on_action_send_to_multi_machine, this);
+        q->Bind(EVT_GLTOOLBAR_SEND_MULTI_APP, &priv::on_action_send_to_multi_app, this);
         q->Bind(EVT_GLCANVAS_PLATE_SELECT, &priv::on_plate_selected, this);
         q->Bind(EVT_DOWNLOAD_PROJECT, &priv::on_action_download_project, this);
         q->Bind(EVT_IMPORT_MODEL_ID, &priv::on_action_request_model_id, this);
@@ -7241,6 +7243,54 @@ void Plater::priv::on_action_send_to_multi_machine(SimpleEvent&)
         m_send_multi_dlg = new SendMultiMachinePage(q);
     m_send_multi_dlg->prepare(partplate_list.get_curr_plate_index());
     m_send_multi_dlg->ShowModal();
+}
+
+void Plater::priv::on_action_send_to_multi_app(SimpleEvent &)
+{
+#ifdef WIN32
+    HKEY hKey;
+
+    LONG result        = RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("SOFTWARE\\Bambulab\\Bambu Farm Manager Client"), 0, KEY_READ, &hKey);
+    LONG result_backup = RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("HKEY_CLASSES_ROOT\\bambu-farm-client\\shell\\open\\command"), 0, KEY_READ, &hKey);
+
+    if (result == ERROR_SUCCESS || result_backup == ERROR_SUCCESS) {
+        RegCloseKey(hKey);
+
+        auto gcodeResult = q->send_gcode(partplate_list.get_curr_plate_index(), [this](int export_stage, int current, int total, bool &cancel) {});
+
+        if (gcodeResult != 0) {
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":send_gcode failed\n";
+            return;
+        }
+
+        PrintPrepareData data;
+        q->get_print_job_data(&data);
+
+        if (data._3mf_path.empty()) {
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":3mf path is empty\n";
+            return;
+        }
+
+        wxString filename = q->get_export_gcode_filename("", true, partplate_list.get_curr_plate_index() == PLATE_ALL_IDX ? true : false);
+        wxString filepath = wxString::FromUTF8(data._3mf_path.string());
+        filepath.Replace("\\", "/");
+        std::string filePath = "?version=v1.6.0&path=" + filepath.ToStdString() + "&name=" + filename.utf8_string();
+        wxString    url      = "bambu-farm-client://upload-file" + Http::url_encode(filePath);
+        if (!wxLaunchDefaultBrowser(url)) {
+            GUI::MessageDialog msgdialog(nullptr, _L("Failed to start Bambu Farm Manager Client."), "", wxAPPLY | wxOK);
+            msgdialog.ShowModal();
+        }
+
+    } else {
+        GUI::MessageDialog msgdialog(nullptr, _L("No Bambu Farm Manager Client found."), "", wxAPPLY | wxOK);
+        msgdialog.ShowModal();
+    }
+#endif // WIN32
+
+#ifdef __APPLE__
+    // todo
+#endif //__APPLE__
+
 }
 
 void Plater::priv::on_action_print_plate_from_sdcard(SimpleEvent&)
