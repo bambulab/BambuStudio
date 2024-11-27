@@ -399,9 +399,9 @@ public:
     double get_rotation(Axis axis) const { return get_rotation()[axis]; }
 
     Transform3d get_rotation_matrix() const;
+    void        set_rotation_matrix(const Transform3d &rot_mat);
 
     void set_rotation(const Vec3d &rotation);
-    void set_rotation(Axis axis, double rotation);
 
     const Vec3d &get_scaling_factor() const;
     double get_scaling_factor(Axis axis) const { return get_scaling_factor()[axis]; }

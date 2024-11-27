@@ -577,9 +577,10 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
                 // FIXME: Arrangement has different parameters for offsetting (jtMiter, limit 2)
                 // which causes that the warning will be showed after arrangement with the
                 // appropriate object distance. Even if I set this to jtMiter the warning still shows up.
+                Geometry::Transformation new_trans(model_instance0->get_transformation());
+                new_trans.set_offset({0.0, 0.0, model_instance0->get_offset().z()});
                 it_convex_hull = map_model_object_to_convex_hull.emplace_hint(it_convex_hull, model_object_id,
-                            print_object->model_object()->convex_hull_2d(Geometry::assemble_transform(
-                            { 0.0, 0.0, model_instance0->get_offset().z() }, model_instance0->get_rotation(), model_instance0->get_scaling_factor(), model_instance0->get_mirror())));
+                            print_object->model_object()->convex_hull_2d(new_trans.get_matrix()));
             }
             // Make a copy, so it may be rotated for instances.
             Polygon convex_hull0 = it_convex_hull->second;

@@ -3145,11 +3145,9 @@ void  ModelVolume::calculate_convex_hull_2d(const Geometry::Transformation &tran
         return;
 
     Points pts;
-    Vec3d rotation = transformation.get_rotation();
-    Vec3d mirror = transformation.get_mirror();
-    Vec3d scale = transformation.get_scaling_factor();
-    //rotation(2) = 0.f;
-    Transform3d new_matrix = Geometry::assemble_transform(Vec3d::Zero(), rotation, scale, mirror);
+    Geometry::Transformation new_trans(transformation);
+    new_trans.reset_offset();
+    Transform3d new_matrix = new_trans.get_matrix();
 
     pts.reserve(its.vertices.size());
     // Using the shared vertices should be a bit quicker than using the STL faces.
@@ -3478,6 +3476,12 @@ const Transform3d &ModelVolume::get_matrix(bool dont_translate, bool dont_rotate
 void ModelInstance::transform_mesh(TriangleMesh* mesh, bool dont_translate) const
 {
     mesh->transform(get_matrix(dont_translate));
+}
+
+void ModelInstance::rotate(Matrix3d rotation_matrix)
+{
+    auto new_rotation_mat = Transform3d(rotation_matrix) * m_transformation.get_rotation_matrix();
+    m_transformation.set_rotation_matrix(new_rotation_mat);
 }
 
 BoundingBoxf3 ModelInstance::transform_mesh_bounding_box(const TriangleMesh& mesh, bool dont_translate) const
@@ -3947,12 +3951,10 @@ void ModelInstance::get_arrange_polygon(void *ap, const Slic3r::DynamicPrintConf
 {
 //    static const double SIMPLIFY_TOLERANCE_MM = 0.1;
 
-    Vec3d rotation = get_rotation();
-    rotation.z()   = 0.;
-    Transform3d trafo_instance =
-        Geometry::assemble_transform(get_offset().z() * Vec3d::UnitZ(), rotation, get_scaling_factor(), get_mirror());
+    Geometry::Transformation trafo_instance = get_transformation();
+    trafo_instance.set_offset(Vec3d(0, 0, get_offset(Z)));
 
-    Polygon p = get_object()->convex_hull_2d(trafo_instance);
+    Polygon p = get_object()->convex_hull_2d(trafo_instance.get_matrix());
 
 //    if (!p.points.empty()) {
 //        Polygons pp{p};
@@ -3963,7 +3965,7 @@ void ModelInstance::get_arrange_polygon(void *ap, const Slic3r::DynamicPrintConf
     arrangement::ArrangePolygon& ret = *(arrangement::ArrangePolygon*)ap;
     ret.poly.contour = std::move(p);
     ret.translation  = Vec2crd{scaled(get_offset(X)), scaled(get_offset(Y))};
-    ret.rotation     = get_rotation(Z);
+    ret.rotation     = 0;
 
     //BBS: add materials related information
     ModelVolume *volume = NULL;
@@ -3993,6 +3995,15 @@ void ModelInstance::get_arrange_polygon(void *ap, const Slic3r::DynamicPrintConf
 
     if (ret.extrude_ids.empty()) //the default extruder
         ret.extrude_ids.push_back(1);
+}
+
+void ModelInstance::apply_arrange_result(const Vec2d &offs, double rotation)
+{
+    // write the transformation data into the model instance
+    rotate(Eigen::AngleAxisd(rotation, Eigen::Vector3d::UnitZ()).toRotationMatrix());
+    set_offset(X, unscale<double>(offs(X)));
+    set_offset(Y, unscale<double>(offs(Y)));
+    this->object->invalidate_bounding_box();
 }
 
 indexed_triangle_set FacetsAnnotation::get_facets(const ModelVolume& mv, EnforcerBlockerType type) const

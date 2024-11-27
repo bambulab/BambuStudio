@@ -459,24 +459,17 @@ const Vec3d &Transformation::get_rotation_by_quaternion() const
 
 Transform3d Transformation::get_rotation_matrix() const { return extract_rotation_matrix(m_matrix); }
 
+void Transformation::set_rotation_matrix(const Transform3d &rot_mat)
+{
+    const Vec3d offset     = get_offset();
+    m_matrix               = rot_mat * extract_scale(m_matrix);
+    m_matrix.translation() = offset;
+}
+
 void Transformation::set_rotation(const Vec3d &rotation)
 {
     const Vec3d offset     = get_offset();
     m_matrix               = rotation_transform(rotation) * extract_scale(m_matrix);
-    m_matrix.translation() = offset;
-}
-
-void Transformation::set_rotation(Axis axis, double rotation)
-{
-    rotation = angle_to_0_2PI(rotation);
-    if (is_approx(std::abs(rotation), 2.0 * double(PI))) rotation = 0.0;
-
-    auto [curr_rotation, scale] = extract_rotation_scale(m_matrix);
-    Vec3d angles                = extract_rotation(curr_rotation);
-    angles[axis]                = rotation;
-
-    const Vec3d offset     = get_offset();
-    m_matrix               = rotation_transform(angles) * scale;
     m_matrix.translation() = offset;
 }
 

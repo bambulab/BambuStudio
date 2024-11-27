@@ -1031,7 +1031,6 @@ public:
     double get_rotation(Axis axis) const { return m_transformation.get_rotation(axis); }
 
     void set_rotation(const Vec3d& rotation) { m_transformation.set_rotation(rotation); }
-    void set_rotation(Axis axis, double rotation) { m_transformation.set_rotation(axis, rotation); }
 
     const Vec3d &get_scaling_factor() const { return m_transformation.get_scaling_factor(); }
     double get_scaling_factor(Axis axis) const { return m_transformation.get_scaling_factor(axis); }
@@ -1335,19 +1334,9 @@ public:
     double get_rotation(Axis axis) const { return m_transformation.get_rotation(axis); }
 
     void set_rotation(const Vec3d& rotation) { m_transformation.set_rotation(rotation); }
-    void set_rotation(Axis axis, double rotation) { m_transformation.set_rotation(axis, rotation); }
 
     // BBS
-    void rotate(Matrix3d rotation_matrix) {
-        auto R = m_transformation.get_rotation_matrix();
-        auto R_new = rotation_matrix * R;
-        auto euler_angles = Geometry::extract_euler_angles(R_new);
-        //BOOST_LOG_TRIVIAL(debug) << "old R:\n"
-        //                         << R.matrix() << "\nnew R:\n"
-        //                         << R_new.matrix() << "\nold euler angles: " << m_transformation.get_rotation().transpose() << "\n"
-        //                         << "new euler angles: " << euler_angles.transpose();
-        set_rotation(euler_angles);
-    }
+    void rotate(Matrix3d rotation_matrix);
 
     const Vec3d& get_scaling_factor() const { return m_transformation.get_scaling_factor(); }
     double get_scaling_factor(Axis axis) const { return m_transformation.get_scaling_factor(axis); }
@@ -1390,14 +1379,7 @@ public:
     void get_arrange_polygon(void *arrange_polygon, const Slic3r::DynamicPrintConfig &config = Slic3r::DynamicPrintConfig()) const;
 
     // Apply the arrange result on the ModelInstance
-    void apply_arrange_result(const Vec2d& offs, double rotation)
-    {
-        // write the transformation data into the model instance
-        set_rotation(Z, rotation);
-        set_offset(X, unscale<double>(offs(X)));
-        set_offset(Y, unscale<double>(offs(Y)));
-        this->object->invalidate_bounding_box();
-    }
+    void apply_arrange_result(const Vec2d &offs, double rotation);
 
 protected:
     friend class Print;
