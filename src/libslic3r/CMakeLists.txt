@@ -434,6 +434,8 @@ set(lisbslic3r_sources
     FlushVolPredictor.cpp
     FilamentGroup.hpp
     FilamentGroup.cpp
+    FilamentGroupUtils.hpp
+    FilamentGroupUtils.cpp
     GCode/ToolOrderUtils.hpp
     GCode/ToolOrderUtils.cpp
     FlushVolPredictor.hpp
