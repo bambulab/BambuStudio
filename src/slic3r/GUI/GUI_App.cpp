@@ -4081,6 +4081,13 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 #endif
             }
             else if (command_str.compare("homepage_login_or_register") == 0) {
+                //Check Plugin
+                bool bValid = is_compatibility_version();
+                if (!bValid) {
+                    CallAfter([this] { handle_web_request("{\"sequence_id\":1,\"command\":\"homepage_need_networkplugin\"}");
+                        });
+                    return "";
+                }
 
                 if (root.get_child_optional("makerworld_model_id") != boost::none) {
                     boost::optional<std::string> ModelID      = root.get_optional<std::string>("makerworld_model_id");
@@ -4316,6 +4323,33 @@ std::string GUI_App::handle_web_request(std::string cmd)
             {
                 if (mainframe && mainframe->m_webview) {
                     mainframe->m_webview->ShowUserPrintTask(true);
+                }
+            } 
+            else if (command_str.compare("homepage_leftmenu_change_width") == 0) {
+                int NewWidth = 214;
+                if (root.get_child_optional("width") != boost::none) NewWidth = root.get<int>("width");
+
+                if (mainframe && mainframe->m_webview) 
+                { 
+                    mainframe->m_webview->SetLeftMenuWidth(NewWidth); 
+                    mainframe->m_webview->Layout();
+                }
+            } 
+            else if (command_str.compare("homepage_makerlab_open_3mf_binary") == 0) {
+                 if (root.get_child_optional("3mf") != boost::none) {
+                    std::string str3MFBase64 = root.get_optional<std::string>("3mf").value();
+
+                    std::string str3MFName = "makerlab";
+                    if (root.get_child_optional("3mf_name") != boost::none) 
+                    { 
+                        std::string strTmp = from_u8(root.get_optional<std::string>("3mf_name").value()).ToStdString();
+                        if (strTmp != "") str3MFName = strTmp;
+                    }
+
+                    if (mainframe && mainframe->m_webview) 
+                    { 
+                        mainframe->m_webview->OpenMakerlab3mf(str3MFBase64,str3MFName);
+                    }
                 }
             }
         }
