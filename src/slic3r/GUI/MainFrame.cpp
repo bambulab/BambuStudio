@@ -1639,6 +1639,8 @@ wxBoxSizer* MainFrame::create_side_tools()
                 wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SEND_TO_PRINTER));
             else if (m_print_select == eSendToPrinterAll)
                 wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SEND_TO_PRINTER_ALL));
+            else if (m_print_select == eSendMultiApp)
+                wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SEND_MULTI_APP));
             /* else if (m_print_select == ePrintMultiMachine)
                  wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PRINT_MULTI_MACHINE));*/
         });
@@ -1792,12 +1794,24 @@ wxBoxSizer* MainFrame::create_side_tools()
                     p->Dismiss();
                     });
 
+                SideButton *send_to_multi_app_btn = new SideButton(p, _L("Send to Bambu Farm Manager Client"), "");
+                send_to_multi_app_btn->SetCornerRadius(0);
+                send_to_multi_app_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent &) {
+                    m_print_btn->SetLabel(_L("Send to BFMC"));
+                    m_print_select = eSendMultiApp;
+                    m_print_enable = get_enable_print_status();
+                    m_print_btn->Enable(m_print_enable);
+                    this->Layout();
+                    p->Dismiss();
+                });
+
                 p->append_button(print_plate_btn);
                 p->append_button(print_all_btn);
                 p->append_button(send_to_printer_btn);
                 p->append_button(send_to_printer_all_btn);
                 p->append_button(export_sliced_file_btn);
                 p->append_button(export_all_sliced_file_btn);
+                p->append_button(send_to_multi_app_btn);
                 if (enable_multi_machine) {
                     SideButton* print_multi_machine_btn = new SideButton(p, _L("Send to Multi-device"), "");
                     print_multi_machine_btn->SetCornerRadius(0);
@@ -1956,6 +1970,11 @@ bool MainFrame::get_enable_print_status()
     {
         if (!current_plate->is_slice_result_ready_for_print())
         {
+            enable = false;
+        }
+        enable = enable && !is_all_plates;
+    }else if (m_print_select == eSendMultiApp) {
+        if (!current_plate->is_slice_result_ready_for_print()) {
             enable = false;
         }
         enable = enable && !is_all_plates;
