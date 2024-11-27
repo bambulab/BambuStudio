@@ -12,6 +12,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/chrono.hpp>
+#include <boost/beast/core/detail/base64.hpp>
 
 #include <wx/sizer.h>
 #include <wx/toolbar.h>
@@ -144,11 +145,22 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     SetPrintHistoryTaskID(0);
     m_printhistoryfirst = false;
 
+    // MakerLab webview
+    m_browserML = WebView::CreateWebView(this, "about:blank");
+    if (m_browserML == nullptr) {
+        wxLogError("Could not init  m_browserML");
+        return;
+    }
+    m_browserML->Hide();
+    SetMakerlabUrl("");
+    m_MakerLabFirst = false;
+
     // Position
     m_home_web->Add(m_browserLeft, 0, wxEXPAND | wxALL, 0);
     m_home_web->Add(m_browser, 1, wxEXPAND | wxALL, 0);
     m_home_web->Add(m_browserMW, 1, wxEXPAND | wxALL, 0);
     m_home_web->Add(m_browserPH, 1, wxEXPAND | wxALL, 0);
+    m_home_web->Add(m_browserML, 1, wxEXPAND | wxALL, 0);
 
     topsizer->Add(m_home_web,1, wxEXPAND | wxALL, 0);
 
@@ -312,6 +324,10 @@ void WebViewPanel::ResetWholePage()
     //PrintHistory
     SetPrintHistoryTaskID(0);
     m_printhistoryfirst = false;
+
+    //MakerLab
+    m_MakerLabFirst = false;
+    SetMakerlabUrl("");
 }
 
 wxString WebViewPanel::MakeDisconnectUrl(std::string MenuName)
@@ -520,8 +536,17 @@ void WebViewPanel::OnFreshLoginStatus(wxTimerEvent &event)
         {
             m_loginstatus = 1;
 
-            if (m_onlinefirst)
+            if (m_onlinefirst) 
+            { 
                 UpdateMakerworldLoginStatus();
+            }           
+
+            if (m_MakerLabFirst) 
+            { 
+                SetMakerlabUrl("");
+                m_browserML->LoadURL(m_MakerLab_LastUrl);
+                m_MakerLab_LastUrl = "";
+            }
         }
 
         if (m_TaskInfo == "" && m_browser && phShow != "false")
@@ -535,6 +560,12 @@ void WebViewPanel::OnFreshLoginStatus(wxTimerEvent &event)
 
             if (m_onlinefirst)
                 SetMakerworldPageLoginStatus(false);
+
+            if (m_MakerLabFirst) {
+                SetMakerlabUrl("");
+                m_browserML->LoadURL(m_MakerLab_LastUrl);
+                m_MakerLab_LastUrl = "";
+            }
         }
 
         if (m_TaskInfo != "" && m_browser) ShowUserPrintTask(false);
@@ -776,6 +807,112 @@ void WebViewPanel::get_makerlab_list(std::function<void(std::string)> callback)
         .on_complete([this, callback](std::string body, unsigned status) { callback(body); })
         .on_error([this, callback](std::string body, std::string error, unsigned status) { callback(body + error); })
         .perform();
+}
+
+void WebViewPanel::SetMakerlabUrl(std::string url) {
+    auto        host   = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
+    std::string LabUrl;
+    if (url == "")
+        LabUrl = (boost::format("%1%makerlab?from=bambustudio") % host).str();
+    else
+        LabUrl = (boost::format("%1%%2%?from=bambustudio") % host % url).str();
+
+    m_MakerLab_LastUrl  = LabUrl;
+    NetworkAgent *agent    = GUI::wxGetApp().getAgent();
+    if (!agent) return;
+
+    if (agent->is_user_login()) {
+        std::string newticket;
+        int         ret = agent->request_bind_ticket(&newticket);
+        if (ret == 0) {
+            GetJumpUrl(true, newticket, m_MakerLab_LastUrl, m_MakerLab_LastUrl);
+        } else
+            return;
+    } else {
+        GetJumpUrl(false, "", m_MakerLab_LastUrl, m_MakerLab_LastUrl);
+    }
+}
+
+void WebViewPanel::OpenOneMakerlab(std::string url)
+{
+    NetworkAgent *agent    = GUI::wxGetApp().getAgent();
+    if (!agent) return;
+
+    if (!agent->is_user_login()) wxGetApp().ShowUserLogin(true);
+
+    if (agent->is_user_login()) {
+        SetMakerlabUrl(url);
+
+        SwitchLeftMenu("makerlab");
+    } else {
+        return;
+    }
+}
+
+std::string GenerateRandomString(int length)
+{
+    std::string randomString;
+    srand(static_cast<unsigned int>(time(nullptr)));
+    for (int i = 0; i < length; ++i) {
+        int randomAscii = rand() % 26 + 65; // 65 - 90的ASCII码范围为可打印字符
+        randomString += static_cast<char>(randomAscii);
+    }
+    return randomString;
+}
+
+void WebViewPanel::OpenMakerlab3mf(std::string Base64Buf, std::string FileName)
+{ 
+    int   nSize  = wxBase64DecodedSize(Base64Buf.length());
+    char *DstBuf = new char[nSize+1];
+    memset(DstBuf, 0, nSize + 1);
+
+    int nWrite=wxBase64Decode(DstBuf, nSize+1, Base64Buf.c_str(), Base64Buf.length());
+
+    // Format Time String
+    std::time_t currentTime = std::time(nullptr);
+    std::tm    *timeInfo    = std::localtime(&currentTime);
+    int               year   = timeInfo->tm_year % 100;
+    int               month  = timeInfo->tm_mon + 1; // 月份范围是0 - 11，需要加1
+    int               day    = timeInfo->tm_mday;
+    int               hour   = timeInfo->tm_hour;
+    int               minute = timeInfo->tm_min;
+    int               second = timeInfo->tm_sec;
+
+    std::stringstream ss;
+    ss << std::setfill('0') << std::setw(2) << year << std::setw(2) << month << std::setw(2) << day << std::setw(2) << hour << std::setw(2) << minute << std::setw(2) << second;
+    std::string dateTimeString = ss.str();
+
+    // Write 3MF to Disk
+    char        separator = boost::filesystem::path::preferred_separator;
+    std::string separatorStr(1, separator);
+
+    wxString download_path = wxString::FromUTF8(wxGetApp().app_config->get("download_path"));
+    wxString download_file = download_path + separatorStr + FileName + "_" + ss.str() + "_" + GenerateRandomString(4) + ".3mf";
+
+    std::ofstream outFile(download_file.ToStdString(), std::ios::binary);
+    if (!outFile) {
+        delete DstBuf;
+        std::cerr << "Error opening file for writing." << std::endl;
+        return;
+    }
+    outFile.write(DstBuf, nWrite);
+    if (!outFile) {
+        delete DstBuf;
+        std::cerr << "Error writing to file." << std::endl;
+        return;
+    }
+
+    delete DstBuf;
+    outFile.close();
+    std::cout << "Data written to file successfully." << std::endl;
+    wxLogMessage("Makerlab Binary Write to %s", download_file.ToStdString());
+
+    //Open File
+    download_file = download_file.utf8_string();
+    wxGetApp().request_open_project(download_file.ToStdString());
+
+    //Remove File
+    //boost::filesystem::remove(download_file.ToStdString());
 }
 
 unsigned char ToHex(unsigned char x) { return x > 9 ? x + 55 : x + 48; }
@@ -1431,6 +1568,7 @@ void WebViewPanel::OnError(wxWebViewEvent& evt)
             wxString UrlDisconnect = MakeDisconnectUrl("online");
             m_browserMW->LoadURL(UrlDisconnect);
 
+            SetWebviewShow("makerlab", false);
             SetWebviewShow("online", true);
             SetWebviewShow("right", false);
             SetWebviewShow("printhistory", false);
@@ -1446,7 +1584,24 @@ void WebViewPanel::OnError(wxWebViewEvent& evt)
             wxString UrlDisconnect = MakeDisconnectUrl("printhistory");
             m_browserPH->LoadURL(UrlDisconnect);
 
+            SetWebviewShow("makerlab", false);
             SetWebviewShow("printhistory", true);
+            SetWebviewShow("online", false);
+            SetWebviewShow("right", false);
+        }
+    }
+
+    if (evt.GetInt() == wxWEBVIEW_NAV_ERR_CONNECTION && evt.GetId() == m_browserML->GetId()) {
+        m_MakerLab_LastUrl = m_browserML->GetCurrentURL();
+
+        if (m_contentname == "makerlab") {
+            wxString errurl = evt.GetURL();
+
+            wxString UrlDisconnect = MakeDisconnectUrl("makerlab");
+            m_browserML->LoadURL(UrlDisconnect);
+
+            SetWebviewShow("makerlab", true);
+            SetWebviewShow("printhistory", false);
             SetWebviewShow("online", false);
             SetWebviewShow("right", false);
         }
@@ -1503,21 +1658,34 @@ void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
 
     wxString strlang = wxGetApp().current_language_code_safe();
 
-    if (modelname.compare("makerlab") == 0) {
-        auto        host   = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
-        std::string LabUrl = (boost::format("%1%makerlab?from=bambustudio") % host).str();
+    if (modelname.compare("makerlab") == 0) 
+    {
+        wxString FinalUrl;
 
-        wxString      FinalUrl = LabUrl;
-        NetworkAgent *agent    = GUI::wxGetApp().getAgent();
-        if (agent && agent->is_user_login()) {
-            std::string  BambuHost=agent->get_bambulab_host();
+        if (!m_MakerLabFirst) 
+        { 
+            if (m_MakerLab_LastUrl != "") 
+                FinalUrl = m_MakerLab_LastUrl;
+            else 
+            {
+                SetMakerlabUrl("");
 
-            std::string newticket;
-            int         ret = agent->request_bind_ticket(&newticket);
-            if (ret == 0) GetJumpUrl(true, newticket, FinalUrl, FinalUrl);
+                FinalUrl = m_MakerLab_LastUrl;
+            }
+        } 
+        else {
+            if (m_MakerLab_LastUrl != "") 
+                FinalUrl = m_MakerLab_LastUrl;
         }
 
-        wxLaunchDefaultBrowser(FinalUrl);
+        m_browserML->LoadURL(FinalUrl);
+        m_MakerLabFirst = true;
+        m_MakerLab_LastUrl = "";
+
+        SetWebviewShow("makerlab", true);
+        SetWebviewShow("online", false);
+        SetWebviewShow("right", false);
+        SetWebviewShow("printhistory", false);
 
         // conf save
         wxGetApp().app_config->set_str("homepage", "makerlab_clicked", "1");
@@ -1544,10 +1712,9 @@ void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
         }
 
         SetWebviewShow("online", true);
+        SetWebviewShow("makerlab", false);
         SetWebviewShow("right", false);
         SetWebviewShow("printhistory", false);
-
-        GetSizer()->Layout();
 
         // conf save
         wxGetApp().app_config->set_str("homepage", "online_clicked", "1");
@@ -1588,8 +1755,7 @@ void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
         SetWebviewShow("online", false);
         SetWebviewShow("right", false);
         SetWebviewShow("printhistory", true);
-
-        GetSizer()->Layout();
+        SetWebviewShow("makerlab", false);
 
     } else if (modelname.compare("home") == 0 || modelname.compare("recent") == 0 || modelname.compare("manual") == 0) {
         if (!m_browser) return;
@@ -1607,9 +1773,10 @@ void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
         SetWebviewShow("online", false);
         SetWebviewShow("printhistory", false);
         SetWebviewShow("right", true);
-
-        GetSizer()->Layout();
+        SetWebviewShow("makerlab", false);
     }
+
+    GetSizer()->Layout();
 }
 
 void WebViewPanel::SwitchLeftMenu(std::string strMenu)
@@ -1626,22 +1793,6 @@ void WebViewPanel::SwitchLeftMenu(std::string strMenu)
 
     WebView::RunScript(m_browserLeft, strJS);
 }
-
-void WebViewPanel::OpenOneMakerlab(std::string url) {
-    auto        host = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
-    std::string LabUrl  = (boost::format("%1%%2%?from=bambustudio") % host % url).str();
-
-    wxString      FinalUrl = LabUrl;
-    NetworkAgent *agent    = GUI::wxGetApp().getAgent();
-    if (agent && agent->is_user_login()) {
-        std::string newticket;
-        int         ret = agent->request_bind_ticket(&newticket);
-        if (ret == 0) GetJumpUrl(true, newticket, FinalUrl, FinalUrl);
-    }
-
-    wxLaunchDefaultBrowser(FinalUrl);
-}
-
 
 void WebViewPanel::CheckMenuNewTag() {
     std::string sClick = wxGetApp().app_config->get("homepage", "online_clicked");
@@ -1694,6 +1845,12 @@ void WebViewPanel::SetLeftMenuShow(std::string menuname, int show)
     WebView::RunScript(m_browser, strJS);
 }
 
+void WebViewPanel::SetLeftMenuWidth(int nWidth) {
+    m_browserLeft->SetSize(wxSize(FromDIP(nWidth), -1));
+    m_browserLeft->SetMinSize(wxSize(FromDIP(nWidth), -1));
+    m_browserLeft->SetMaxSize(wxSize(FromDIP(nWidth), -1));
+}
+
 void WebViewPanel::SetWebviewShow(wxString name, bool show)
 {
     wxWebView *TmpWeb = nullptr;
@@ -1705,6 +1862,8 @@ void WebViewPanel::SetWebviewShow(wxString name, bool show)
         TmpWeb = m_browserMW;
     else if (name == "printhistory")
         TmpWeb = m_browserPH;
+    else if (name == "makerlab")
+        TmpWeb = m_browserML;
 
     if (TmpWeb != nullptr)
     {

@@ -84,7 +84,7 @@ function GotoMenu( strMenu )
 		
 		if( $(OneBtn).attr("menu")==strMenu )
 		{
-			if(strMenu!=='makerlab')
+			//if(strMenu!=='makerlab')
 			{
 				$(".BtnItem").removeClass("BtnItemSelected");						
 				$(OneBtn).addClass("BtnItemSelected");
@@ -217,6 +217,22 @@ function BeginDownloadNetworkPlugin()
 	tSend['sequence_id']=Math.round(new Date() / 1000);
 	tSend['command']="begin_network_plugin_download";
 	
+	SendWXMessage( JSON.stringify(tSend) );		
+}
+
+var WidthBoundary=168;
+function ChangeLeftWidth()
+{
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="homepage_leftmenu_change_width";
+	
+	let NowWidth=window.innerWidth;
+	if(NowWidth<=WidthBoundary)
+		tSend['width']=224;
+	else
+		tSend['width']=64;
+
 	SendWXMessage( JSON.stringify(tSend) );		
 }
 

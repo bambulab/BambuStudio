@@ -86,6 +86,12 @@ html,body
 	box-shadow: 0px 0px 3px #DCDCDC;
 }
 
+#HotModel_Search_Btn img
+{
+	filter: brightness(78%);
+}
+
+
 /*----User Manual------*/
 .UG_DESC
 {
@@ -116,18 +122,17 @@ html,body
 
 #HotModel_Search_Bar
 {
-	border: 1px solid #323A3D;
-	background-color: #36363A;
+	border: 1px solid #5C5C5C;
+	background-color: #242428;
 }
 
 #HotModel_Search_InputArea
 {
-	background-color: #36363A;
 }
 
 #HotModel_Search_Input
 {
-	background-color: #36363A;
+	background-color: #242428;
 	caret-color: white;
 	color: #FFFFFF;
 }
@@ -153,4 +158,17 @@ html,body
 #PrintHistory_Refresh_Btn
 {
 	filter: invert(80%) brightness(20);
+}
+
+/*-----Hide Button-----*/
+#HideBtn
+{
+	background-image: url('../img/arrow_light_left.svg');
+	border: 1px solid rgba(48, 48, 51, 1);
+	background-color: rgba(48, 48, 51, 1);
+}
+
+#HideBtn:hover
+{
+	background-color: rgba(70, 70, 71, 1);
 }

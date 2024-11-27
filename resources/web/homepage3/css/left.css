@@ -97,14 +97,10 @@ body
 	display: flex;
 	justify-content: center;
 	user-select: none;
-}
-
-#LoginBtn
-{
 	cursor:pointer;
 }
 
-#LoginBtn:hover
+#Login1:hover #LoginBtn
 {
 	font-size:17px;
 }
@@ -220,19 +216,6 @@ body
 	display: none;
 }
 
-
-.JumpIcon
-{
-	display: none;
-	margin-left:6px;
-	width: 12px;
-}
-
-.BtnItem[menu="makerlab"]:hover .JumpIcon
-{
-	display: inline;
-}
-
 .BtnItem:hover
 {
 	background-color: #E0FCEB;
@@ -276,5 +259,29 @@ body
 	top: calc(50% - 8px);
 	right: 12px;
 	display: none;
+}
+
+
+/*-----Hide Button-----*/
+#HideBtn
+{
+	position: absolute;
+	height: 60px;
+	width: 12px;
+	right: 1px;
+	top: calc(50% - 30px);
+	cursor: pointer;
+	background-repeat: no-repeat;
+	background-position: center;
+	background-image: url('../img/arrow_dark_left.svg');
+    border-left: 1px solid rgba(238, 238, 238, 1);
+	border-top: 1px solid rgba(238, 238, 238, 1);
+	border-bottom: 1px solid rgba(238, 238, 238, 1);
+	border-radius: 4px 0px 0px 4px;
+}
+
+#HideBtn:hover
+{
+	background-color: rgba(238, 238, 238, 1);
 }
 
