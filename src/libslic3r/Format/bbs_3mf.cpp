@@ -369,7 +369,8 @@ static constexpr const char *FONT_STYLE_ATTR     = "style";
 static constexpr const char *FONT_WEIGHT_ATTR    = "weight";
 
 // Store / load of EmbossShape
-static constexpr const char *SHAPE_TAG                 = "slic3rpe:shape";
+static constexpr const char *OLD_SHAPE_TAG             = "slic3rpe:shape";
+static constexpr const char *SHAPE_TAG                 = "BambuStudio:shape";
 static constexpr const char *SHAPE_SCALE_ATTR          = "scale";
 static constexpr const char *UNHEALED_ATTR             = "unhealed";
 static constexpr const char *SVG_FILE_PATH_ATTR        = "filepath";
@@ -3252,6 +3253,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             res = _handle_start_assemble_item(attributes, num_attributes);
         else if (::strcmp(TEXT_INFO_TAG, name) == 0)
             res = _handle_start_text_info_item(attributes, num_attributes);
+        else if (::strcmp(OLD_SHAPE_TAG, name) == 0)
+            res = _handle_start_shape_configuration(attributes, num_attributes);
         else if (::strcmp(SHAPE_TAG, name) == 0)
             res = _handle_start_shape_configuration(attributes, num_attributes);
         if (!res)
@@ -7351,7 +7354,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         // when loaded as accurately as possible.
 		stream << std::setprecision(std::numeric_limits<double>::max_digits10);
         stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-        stream << "<" << CONFIG_TAG << ">\n";
+        stream << "<" << CONFIG_TAG
+               << " xml:lang=\"en-US\" xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\" "
+                  "xmlns:BambuStudio=\"http://schemas.bambulab.com/package/2021\"";
+        stream << ">\n";
 
         if (!m_skip_model)
         for (const ObjectToObjectDataMap::value_type& obj_metadata : objects_data) {
@@ -8635,7 +8641,7 @@ bool to_xml(std::stringstream &stream, const EmbossShape::SvgFile &svg, const Mo
 
 void to_xml(std::stringstream &stream, const EmbossShape &es, const ModelVolume &volume, mz_zip_archive &archive)
 {
-    stream << "   <" << SHAPE_TAG << " ";
+    stream << "      <" << SHAPE_TAG << " ";
     if (es.svg_file.has_value())
         if (!to_xml(stream, *es.svg_file, volume, archive)) BOOST_LOG_TRIVIAL(warning) << "Can't write svg file defiden embossed shape into 3mf";
 
