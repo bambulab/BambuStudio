@@ -572,7 +572,9 @@ void GLGizmoText::load_init_text()
                         }
                     }
                     else if (!temp_ray_caster.get_closest_point_and_normal(local_center, -direction, &closest_pt, &temp_normal, &face_id)) {
-                        m_show_warning_error_mesh = true;
+                        if (!temp_ray_caster.get_closest_point_and_normal(local_center, direction, &closest_pt, &temp_normal, &face_id)) {
+                            m_show_warning_error_mesh = true;
+                        }
                     }
                 }
                 // m_rr.mesh_id
@@ -1872,6 +1874,7 @@ void GLGizmoText::generate_text_volume(bool is_temp)
         if (!is_temp) {
             plater->take_snapshot("Modify Text");
         }
+        text_info.m_font_version = CUR_FONT_VERSION;
         ModelVolume *    model_volume     = model_object->volumes[m_volume_idx];
         ModelVolume *    new_model_volume = model_object->add_volume(std::move(mesh),false);
         if (m_need_fix && // m_reedit_text//m_need_fix
