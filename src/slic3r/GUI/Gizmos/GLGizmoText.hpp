@@ -16,13 +16,14 @@ namespace GUI {
 //#define DEBUG_TEXT
 //#define DEBUG_TEXT_VALUE
 enum class SLAGizmoEventType : unsigned char;
+const std::string CUR_FONT_VERSION  = "1.0";
 class GLGizmoText : public GLGizmoBase
 {
 private:
     std::vector<std::string> m_avail_font_names;
     char m_text[1024] = { 0 };
     std::string m_font_name;
-    std::string m_font_version{"1.0"};
+    std::string m_font_version = CUR_FONT_VERSION;
     float m_font_size = 16.f;
     const float m_font_size_min = 3.f;
     const float m_font_size_max     = 1000.f;
