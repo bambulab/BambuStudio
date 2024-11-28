@@ -370,7 +370,7 @@ static constexpr const char *FONT_WEIGHT_ATTR    = "weight";
 
 // Store / load of EmbossShape
 static constexpr const char *OLD_SHAPE_TAG             = "slic3rpe:shape";
-static constexpr const char *SHAPE_TAG                 = "BambuStudio:shape";
+static constexpr const char *SHAPE_TAG                 = "BambuStudioShape";
 static constexpr const char *SHAPE_SCALE_ATTR          = "scale";
 static constexpr const char *UNHEALED_ATTR             = "unhealed";
 static constexpr const char *SVG_FILE_PATH_ATTR        = "filepath";
@@ -7354,10 +7354,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         // when loaded as accurately as possible.
 		stream << std::setprecision(std::numeric_limits<double>::max_digits10);
         stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-        stream << "<" << CONFIG_TAG
-               << " xml:lang=\"en-US\" xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\" "
-                  "xmlns:BambuStudio=\"http://schemas.bambulab.com/package/2021\"";
-        stream << ">\n";
+        stream << "<" << CONFIG_TAG << ">\n";
 
         if (!m_skip_model)
         for (const ObjectToObjectDataMap::value_type& obj_metadata : objects_data) {
