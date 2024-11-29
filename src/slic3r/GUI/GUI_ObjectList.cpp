@@ -95,6 +95,10 @@ ObjectList::ObjectList(wxWindow* parent) :
     wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxDV_MULTIPLE)
 {
     wxGetApp().UpdateDVCDarkUI(this, true);
+#ifdef __linux__
+// ubuntu dark mode issue. https://github.com/bambulab/BambuStudio/issues/4943
+    this->SetForegroundColour(*wxBLACK);
+#endif
     SetFont(Label::sysFont(13));
 #ifdef __WXMSW__
     GenericGetHeader()->SetFont(Label::sysFont(13));
