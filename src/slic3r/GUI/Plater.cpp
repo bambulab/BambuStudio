@@ -3449,8 +3449,8 @@ void read_binary_stl(const std::string& filename, std::string& model_id, std::st
 
         size_t pos = ext_content.find('&');
         if (pos != std::string::npos) {
-            ml_content = ext_content.substr(0, pos);
-            mw_content = ext_content.substr(pos + 1);
+            mw_content = ext_content.substr(0, pos);
+            ml_content = ext_content.substr(pos + 1);
         }
 
         if (ml_content.empty() && ext_content.find("ML") != std::string::npos) {
