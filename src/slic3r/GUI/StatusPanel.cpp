@@ -1217,7 +1217,7 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     m_setting_button->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
     m_setting_button->SetBackgroundColour(STATUS_TITLE_BG);
 
-    m_bitmap_sdcard_img->SetToolTip(_L("SD Card"));
+    m_bitmap_sdcard_img->SetToolTip(_L("Storage"));
     m_bitmap_timelapse_img->SetToolTip(_L("Timelapse"));
     m_bitmap_recording_img->SetToolTip(_L("Video"));
     m_bitmap_vcamera_img->SetToolTip(_L("Go Live"));
@@ -1903,16 +1903,16 @@ void StatusPanel::update_camera_state(MachineObject* obj)
     if (m_last_sdcard != (int)obj->get_sdcard_state()) {
         if (obj->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD) {
             m_bitmap_sdcard_img->SetBitmap(m_bitmap_sdcard_state_no.bmp());
-            m_bitmap_sdcard_img->SetToolTip(_L("No SD Card"));
+            m_bitmap_sdcard_img->SetToolTip(_L("No Storage"));
         } else if (obj->get_sdcard_state() == MachineObject::SdcardState::HAS_SDCARD_NORMAL) {
             m_bitmap_sdcard_img->SetBitmap(m_bitmap_sdcard_state_normal.bmp());
-            m_bitmap_sdcard_img->SetToolTip(_L("SD Card"));
+            m_bitmap_sdcard_img->SetToolTip(_L("Storage"));
         } else if (obj->get_sdcard_state() == MachineObject::SdcardState::HAS_SDCARD_ABNORMAL) {
             m_bitmap_sdcard_img->SetBitmap(m_bitmap_sdcard_state_abnormal.bmp());
-            m_bitmap_sdcard_img->SetToolTip(_L("SD Card Abnormal"));
+            m_bitmap_sdcard_img->SetToolTip(_L("Storage Abnormal"));
         } else {
             m_bitmap_sdcard_img->SetBitmap(m_bitmap_sdcard_state_normal.bmp());
-            m_bitmap_sdcard_img->SetToolTip(_L("SD Card"));
+            m_bitmap_sdcard_img->SetToolTip(_L("Storage"));
         }
         m_last_sdcard = (int)obj->get_sdcard_state();
     }
