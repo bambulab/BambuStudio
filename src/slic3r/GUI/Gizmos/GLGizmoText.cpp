@@ -433,6 +433,7 @@ void GLGizmoText::on_set_state()
                 if (m_is_version1_10_xoy) {
                     auto rotate_tran = Geometry::assemble_transform(Vec3d::Zero(), {0.5 * M_PI, 0.0, 0.0});
                     m_load_text_tran_in_object.set_from_transform(m_load_text_tran_in_object.get_matrix() * rotate_tran);
+                    m_load_text_tran_in_object.set_offset(m_load_text_tran_in_object.get_offset() + Vec3d(0, 1.65, 0)); // for size 16
                     return;
                 }
                 //go on
@@ -450,7 +451,7 @@ void GLGizmoText::on_set_state()
                 }
                 m_load_text_tran_in_object.set_from_transform(expert_text_tran_in_object.get_matrix());
                 if (m_is_version1_9_xoz) {
-                    m_load_text_tran_in_object.set_offset(m_load_text_tran_in_object.get_offset() + Vec3d(0, -1.75, -1));//for size 16
+                    m_load_text_tran_in_object.set_offset(m_load_text_tran_in_object.get_offset());
                 }
             }
         }
@@ -1858,6 +1859,14 @@ void GLGizmoText::generate_text_volume(bool is_temp)
     }
     if (mesh.empty())
         return;
+    auto center = mesh.bounding_box().center();
+    if (abs(mesh.bounding_box().size()[2] - (m_embeded_depth + m_thickness)) < 0.01) {
+        mesh.translate(Vec3f(-center.x(), -center.y(), 0)); // align horizontal and vertical center
+    }
+    else {
+        mesh.translate(Vec3f(0, -center.y(), 0)); // align vertical center
+    }
+
     Plater *plater = wxGetApp().plater();
     if (!plater)
         return;
