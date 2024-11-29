@@ -3237,6 +3237,9 @@ void GUI_App::init_label_colours()
     m_color_hovered_btn_label       = is_dark_mode ? wxColour(255, 255, 254) : wxColour(0,0,0);
     m_color_default_btn_label       = is_dark_mode ? wxColour(255, 255, 254): wxColour(0,0,0);
     m_color_selected_btn_bg         = is_dark_mode ? wxColour(84, 84, 91)   : wxColour(206, 206, 206);
+#elif __linux__
+// ubuntu dark mode issue. https://github.com/bambulab/BambuStudio/issues/4943
+    m_color_label_default           = is_dark_mode ? wxColour(250, 250, 250) : m_color_label_sys;
 #else
     m_color_label_default = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
 #endif

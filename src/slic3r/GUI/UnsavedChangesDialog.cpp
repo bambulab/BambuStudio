@@ -1538,7 +1538,13 @@ void UnsavedChangesDialog::update_list()
                      auto text_left = new wxStaticText(panel_left, wxID_ANY, gname, wxDefaultPosition, wxSize(-1, -1), 0);
                      text_left->SetFont(::Label::Head_13);
                      text_left->Wrap(-1);
-                     text_left->SetForegroundColour(GREY700);
+#ifdef __linux__
+// ubuntu dark mode issue. https://github.com/bambulab/BambuStudio/issues/4943
+                    text_left->SetForegroundColour(wxGetApp().dark_mode() ? *wxLIGHT_GREY : GREY700);
+#else
+                    text_left->SetForegroundColour(GREY700);
+                    text_left->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INFOTEXT));
+#endif
 
                      sizer_left_v->Add(text_left, 0, wxLEFT, 37);
 
@@ -1566,7 +1572,13 @@ void UnsavedChangesDialog::update_list()
                 auto text_left = new wxStaticText(panel_left, wxID_ANY, data.option_name, wxDefaultPosition, wxSize(-1, -1), 0);
                 text_left->SetFont(::Label::Body_13);
                 text_left->Wrap(-1);
+#ifdef __linux__
+// ubuntu dark mode issue. https://github.com/bambulab/BambuStudio/issues/4943
+                text_left->SetForegroundColour(wxGetApp().dark_mode() ? *wxLIGHT_GREY : GREY700);
+#else
                 text_left->SetForegroundColour(GREY700);
+                text_left->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INFOTEXT));
+#endif
 
                 sizer_left_v->Add(text_left, 0, wxLEFT, 51 );
 
