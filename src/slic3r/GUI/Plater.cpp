@@ -7798,8 +7798,11 @@ void Plater::priv::on_action_send_to_multi_app(SimpleEvent &)
 {
 #ifdef WIN32
     HKEY hKey;
+
     LONG result = RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("SOFTWARE\\Bambulab\\Bambu Farm Manager Client"), 0, KEY_READ, &hKey);
-    if (result == ERROR_SUCCESS) {
+    LONG result_backup = RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("HKEY_CLASSES_ROOT\bambu-farm-client\shell\open\command"), 0, KEY_READ, &hKey);
+
+    if (result == ERROR_SUCCESS || result_backup == ERROR_SUCCESS) {
         RegCloseKey(hKey);
 
         auto gcodeResult = q->send_gcode(partplate_list.get_curr_plate_index(), [this](int export_stage, int current, int total, bool &cancel) {});
