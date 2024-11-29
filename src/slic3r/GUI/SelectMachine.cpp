@@ -2354,7 +2354,7 @@ void SelectMachineDialog::on_send_print()
         m_print_job->task_ams_mapping_info = "";
     }
 
-    m_print_job->has_sdcard = obj_->has_sdcard();
+    m_print_job->has_sdcard = obj_->get_sdcard_state() == MachineObject::SdcardState::HAS_SDCARD_NORMAL;
 
 
     bool timelapse_option = m_checkbox_list["timelapse"]->IsShown()?true:false;

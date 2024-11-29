@@ -1484,6 +1484,8 @@ void MachineObject::parse_status(int flag)
     camera_recording            = ((flag >> 5) & 0x1) != 0;
     ams_calibrate_remain_flag   = ((flag >> 7) & 0x1) != 0;
 
+    sdcard_state = MachineObject::SdcardState(get_flag_bits(flag, 8, 2));
+
     if (ams_print_option_count > 0)
         ams_print_option_count--;
     else {
@@ -1536,8 +1538,6 @@ void MachineObject::parse_status(int flag)
     is_support_upgrade_kit = ((flag >> 27) & 0x1) != 0;
     installed_upgrade_kit = ((flag >> 26) & 0x1) != 0;
 
-    sdcard_state = MachineObject::SdcardState((flag >> 8) & 0x11);
-
     is_support_agora = ((flag >> 30) & 0x1) != 0;
     if (is_support_agora)
         is_support_tunnel_mqtt = false;
@@ -1584,11 +1584,6 @@ bool MachineObject::is_sdcard_printing()
         return true;
     else
         return false;
-}
-
-bool MachineObject::has_sdcard()
-{
-    return (sdcard_state == MachineObject::SdcardState::HAS_SDCARD_NORMAL);
 }
 
 MachineObject::SdcardState MachineObject::get_sdcard_state()
@@ -3382,6 +3377,16 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                         if (jj["print_error"].is_number())
                             print_error = jj["print_error"].get<int>();
                     }
+
+                    if (jj.contains("sdcard")) {
+                        if (jj["sdcard"].get<bool>())
+                            sdcard_state = MachineObject::SdcardState::HAS_SDCARD_NORMAL;
+                        else
+                            sdcard_state = MachineObject::SdcardState::NO_SDCARD;
+                    } else {
+                        sdcard_state = MachineObject::SdcardState::NO_SDCARD;
+                    }
+
                     if (!key_field_only) {
                         if (jj.contains("home_flag")) {
                             home_flag = jj["home_flag"].get<int>();
@@ -3743,21 +3748,6 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                     if ((*it)["node"].get<std::string>().compare("work_light") == 0)
                                         work_light = light_effect_parse((*it)["mode"].get<std::string>());
                                 }
-                            }
-                        }
-                        catch (...) {
-                            ;
-                        }
-                        // media
-                        try {
-                            if (jj.contains("sdcard")) {
-                                if (jj["sdcard"].get<bool>())
-                                    sdcard_state = MachineObject::SdcardState::HAS_SDCARD_NORMAL;
-                                else
-                                    sdcard_state = MachineObject::SdcardState::NO_SDCARD;
-                            } else {
-                                //do not check sdcard if no sdcard field
-                                sdcard_state = MachineObject::SdcardState::NO_SDCARD;
                             }
                         }
                         catch (...) {
