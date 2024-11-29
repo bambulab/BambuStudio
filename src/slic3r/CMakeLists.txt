@@ -286,6 +286,10 @@ set(SLIC3R_GUI_SOURCES
     GUI/Field.hpp
     GUI/DragDropPanel.cpp
     GUI/DragDropPanel.hpp
+    GUI/CapsuleButton.cpp
+    GUI/CapsuleButton.hpp
+    GUI/FilamentMapPanel.cpp
+    GUI/FilamentMapPanel.hpp
     GUI/FilamentMapDialog.cpp
     GUI/FilamentMapDialog.hpp
     GUI/OptionsGroup.cpp
@@ -406,6 +410,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/InstanceCheck.hpp
     GUI/Search.cpp
     GUI/Search.hpp
+    GUI/FilamentGroupPopup.hpp
+    GUI/FilamentGroupPopup.cpp
     GUI/NotificationManager.cpp
     GUI/NotificationManager.hpp
     GUI/UnsavedChangesDialog.cpp

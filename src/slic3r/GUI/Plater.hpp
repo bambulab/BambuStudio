@@ -446,6 +446,7 @@ public:
     void on_filaments_delete(size_t extruders_count, size_t filament_id, int replace_filament_id = -1);
     // BBS
     void on_bed_type_change(BedType bed_type,bool is_gcode_file = false);
+
     bool update_filament_colors_in_full_config();
     void config_change_notification(const DynamicPrintConfig &config, const std::string& key);
     void on_config_change(const DynamicPrintConfig &config);
