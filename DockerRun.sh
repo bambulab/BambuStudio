@@ -5,6 +5,16 @@ set -x
 #  -h $HOSTNAME \
 #  If there's problems with the X display, try this
 #  -v /tmp/.X11-unix:/tmp/.X11-unix \
+#  or 
+#  -v $HOME/.Xauthority:/root/.Xauthority
+#  You also need to run "xhost +" on your host system
+# Bambu Studio also require the parent directory for the configuration directory to be present to start
+#  which means it is important to make sure user is passed to container correctly
+#  if the following configuration does not work with error: "boost::filesystem::create_directory: No such file or directory"
+#  try replacing -u line with 
+#  -u $(id -u ${USER}):$(id -g ${USER}) \
+#  and add 
+#  -e HOME=/home/$USER \
 docker run \
   `# Use the hosts networking.  Printer wifi and also dbus communication` \
   --net=host \
