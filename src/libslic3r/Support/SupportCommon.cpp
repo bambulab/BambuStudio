@@ -70,15 +70,6 @@ std::pair<SupportGeneratorLayersPtr, SupportGeneratorLayersPtr> generate_interfa
         SupportGeneratorLayersPtr &interface_layers       = base_and_interface_layers.first;
         SupportGeneratorLayersPtr &base_interface_layers  = base_and_interface_layers.second;
 
-		// BBS: if support interface and support base do not use the same filament, add a base layer to improve their adhesion
-	    // Note: support materials (such as Supp.W) can't be used as support base now, so support interface and base are still using different filaments even if support_filament==0
-	    bool differnt_support_interface_filament = config.support_interface_filament != 0 && config.support_interface_filament.value != config.support_filament.value;
-	    int num_base_interface_layers_top = differnt_support_interface_filament ? 1 : 0;
-	    int num_base_interface_layers_bottom = differnt_support_interface_filament ? 1 : 0;
-	    int num_interface_layers_top = config.support_interface_top_layers + num_base_interface_layers_top;
-	    int num_interface_layers_bottom = config.support_interface_bottom_layers + num_base_interface_layers_bottom;
-	    if (num_interface_layers_bottom < 0)
-	        num_interface_layers_bottom = num_interface_layers_top;
         interface_layers.assign(intermediate_layers.size(), nullptr);
         if (support_params.has_base_interfaces())
             base_interface_layers.assign(intermediate_layers.size(), nullptr);

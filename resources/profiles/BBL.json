@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.10.00.16",
+    "version": "01.10.00.26",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -844,6 +844,10 @@
         {
             "name": "Fiberon PET-CF @base",
             "sub_path": "filament/Fiberon PET-CF @base.json"
+        },
+        {
+            "name": "Generic PETG HF @base",
+            "sub_path": "filament/Generic PETG HF @base.json"
         },
         {
             "name": "Bambu ABS @base",
@@ -2016,6 +2020,38 @@
         {
             "name": "Fiberon PET-CF @BBL X1C",
             "sub_path": "filament/Fiberon PET-CF @BBL X1C.json"
+        },
+        {
+            "name": "Generic PETG HF @BBL X1C",
+            "sub_path": "filament/Generic PETG HF @BBL X1C.json"
+        },
+        {
+            "name": "Generic PETG HF @BBL X1C 0.2 nozzle",
+            "sub_path": "filament/Generic PETG HF @BBL X1C 0.2 nozzle.json"
+        },
+        {
+            "name": "Generic PETG HF @BBL P1P",
+            "sub_path": "filament/Generic PETG HF @BBL P1P.json"
+        },
+        {
+            "name": "Generic PETG HF @BBL P1P 0.2 nozzle",
+            "sub_path": "filament/Generic PETG HF @BBL P1P 0.2 nozzle.json"
+        },
+        {
+            "name": "Generic PETG HF @BBL A1",
+            "sub_path": "filament/Generic PETG HF @BBL A1.json"
+        },
+        {
+            "name": "Generic PETG HF @BBL A1 0.2 nozzle",
+            "sub_path": "filament/Generic PETG HF @BBL A1 0.2 nozzle.json"
+        },
+        {
+            "name": "Generic PETG HF @BBL A1M",
+            "sub_path": "filament/Generic PETG HF @BBL A1M.json"
+        },
+        {
+            "name": "Generic PETG HF @BBL A1M 0.2 nozzle",
+            "sub_path": "filament/Generic PETG HF @BBL A1M 0.2 nozzle.json"
         },
         {
             "name": "Bambu ABS @BBL X1C",

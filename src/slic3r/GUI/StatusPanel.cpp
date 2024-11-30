@@ -387,6 +387,7 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     penel_text->Layout();
 
     m_staticText_finish_time = new wxStaticText(penel_finish_time, wxID_ANY, _L("Finish Time: N/A"));
+    m_staticText_finish_time->Wrap(-1);
     m_staticText_finish_time->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("HarmonyOS Sans SC")));
     m_staticText_finish_time->SetForegroundColour(wxColour(146, 146, 146));
     m_staticText_finish_time->SetToolTip(_L("The estimated printing time for \nmulti-color models may be inaccurate."));
@@ -396,7 +397,7 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     bSizer_finish_time->Add(0, 0, 0, wxLEFT, FromDIP(20));
     bSizer_finish_time->Add(m_staticText_finish_time, 0, wxALIGN_CENTER | wxALL, 0);
     bSizer_finish_time->Add(m_staticText_finish_day, 0,wxLEFT | wxRIGHT , FromDIP(10));
-    bSizer_finish_time->Add(0, 0, 0, wxLEFT, FromDIP(20));
+    //bSizer_finish_time->Add(0, 0, 0, wxLEFT, FromDIP(20));
     bSizer_finish_time->Add(panel_button_block, 0, wxALIGN_CENTER | wxALL, 0);
     penel_finish_time->SetMaxSize(wxSize(FromDIP(600), -1));
     penel_finish_time->SetSizer(bSizer_finish_time);
@@ -414,7 +415,7 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     bSizer_subtask_info->Add(m_printing_stage_value, 0, wxEXPAND | wxTOP, FromDIP(5));
     bSizer_subtask_info->Add(penel_bottons, 0, wxEXPAND | wxTOP, FromDIP(10));
     bSizer_subtask_info->Add(m_panel_progress, 0, wxEXPAND|wxRIGHT, FromDIP(25));
-    bSizer_subtask_info->Add(penel_finish_time, 0, wxEXPAND, 0);
+    bSizer_subtask_info->Add(penel_finish_time, 0, wxEXPAND, FromDIP(10));
 
     m_printing_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_printing_sizer->SetMinSize(wxSize(PAGE_MIN_WIDTH, -1));
@@ -1585,7 +1586,10 @@ void StatusBasePanel::show_ams_group(bool show)
         if (m_show_ams_group != show) { Fit(); }
         m_show_ams_group = show;
         m_show_ams_group_reset = false;
+        m_ams_control->Layout();
+        m_ams_control->Fit();
         Layout();
+        Fit();
     }
 }
 
@@ -1934,7 +1938,8 @@ void StatusPanel::on_subtask_abort(wxCommandEvent &event)
             }
         });
     }
-    abort_dlg->update_text(_L("Are you sure you want to cancel this print?"));
+    abort_dlg->update_text(_L("Are you sure to stop printing?"));
+    abort_dlg->update_btn_label(_L("Yes"), _L("No"));
 
     abort_dlg->m_button_cancel->SetBackgroundColor(abort_dlg->btn_bg_green);
     abort_dlg->m_button_cancel->SetBorderColor(*wxWHITE);
@@ -2151,14 +2156,17 @@ void StatusPanel::show_error_message(MachineObject *obj, bool is_exist, wxString
     if (is_exist && msg.IsEmpty()) {
         error_info_reset();
     } else {
+        if (msg.IsEmpty()) { msg = _L("Unknown error."); }
         m_project_task_panel->show_error_msg(msg);
 
         if (!used_button.empty()) {
             BOOST_LOG_TRIVIAL(info) << "show print error! error_msg = " << msg;
-            if (m_print_error_dlg == nullptr) {
-                m_print_error_dlg = new PrintErrorDialog(this->GetParent(), wxID_ANY, _L("Error"));
+            if (m_print_error_dlg != nullptr) {
+                delete m_print_error_dlg;
+                m_print_error_dlg = nullptr;
             }
 
+            m_print_error_dlg = new PrintErrorDialog(this->GetParent(), wxID_ANY, _L("Error"));
             m_print_error_dlg->update_title_style(_L("Error"), used_button, this);
             m_print_error_dlg->update_text_image(msg, print_error_str, image_url);
             m_print_error_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, obj](wxCommandEvent& e) {
@@ -2187,10 +2195,12 @@ void StatusPanel::show_error_message(MachineObject *obj, bool is_exist, wxString
             wxString show_time = now.Format("%H%M%d");
             wxString error_code_msg = wxString::Format("%S\n[%S %S]", msg, print_error_str, show_time);
 
-            if (m_print_error_dlg_no_action == nullptr) {
-                m_print_error_dlg_no_action = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM);
+            if (m_print_error_dlg_no_action != nullptr) {
+                delete m_print_error_dlg_no_action;
+                m_print_error_dlg_no_action = nullptr;
             }
 
+            m_print_error_dlg_no_action = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM);
             if (it_done != message_containing_done.end() && it_retry != message_containing_retry.end()) {
                 m_print_error_dlg_no_action->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::DONE_AND_RETRY, this);
             }
@@ -2238,14 +2248,14 @@ void StatusPanel::update_error_message()
             char buf[32];
             ::sprintf(buf, "%08X", obj->print_error);
             std::string print_error_str = std::string(buf);
-            if (print_error_str.size() > 4) { print_error_str.insert(4, " "); }
+            if (print_error_str.size() > 4) { print_error_str.insert(4, "-"); }
 
             wxString error_msg;
             bool is_errocode_exist = wxGetApp().get_hms_query()->query_print_error_msg(obj->print_error, error_msg);
             std::vector<int> used_button;
             wxString error_image_url = wxGetApp().get_hms_query()->query_print_error_url_action(obj->print_error, obj->dev_id, used_button);
             // special case
-            if (print_error_str == "0300 8003" || print_error_str == "0300 8002" || print_error_str == "0300 800A") {
+            if (print_error_str == "0300-8003" || print_error_str == "0300-8002" || print_error_str == "0300-800A") {
                 used_button.emplace_back(PrintErrorDialog::PrintErrorButton::JUMP_TO_LIVEVIEW);
             }
             show_error_message(obj, is_errocode_exist, error_msg, print_error_str, error_image_url, used_button);
@@ -3006,7 +3016,10 @@ void StatusPanel::update_subtask(MachineObject *obj)
                 int height = m_project_task_panel->get_bitmap_thumbnail()->GetSize().y;
                 if (m_calib_method == CALI_METHOD_AUTO) {
                     if (m_calib_mode == CalibMode::Calib_PA_Line) {
-                        png_path = (boost::format("%1%/images/fd_calibration_auto.png") % resources_dir()).str();
+                        if (obj->get_printer_arch() == PrinterArch::ARCH_I3)
+                            png_path = (boost::format("%1%/images/fd_calibration_auto_i3.png") % resources_dir()).str();
+                        else
+                            png_path = (boost::format("%1%/images/fd_calibration_auto.png") % resources_dir()).str();
                     }
                     else if (m_calib_mode == CalibMode::Calib_Flow_Rate) {
                         png_path = (boost::format("%1%/images/flow_rate_calibration_auto.png") % resources_dir()).str();

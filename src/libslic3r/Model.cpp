@@ -184,18 +184,67 @@ Model::~Model()
         Slic3r::remove_backup(*this, true);
 }
 
+Model Model::read_from_step(const std::string&                                      input_file,
+                            LoadStrategy                                            options,
+                            ImportStepProgressFn                                    stepFn,
+                            StepIsUtf8Fn                                            stepIsUtf8Fn,
+                            std::function<int(Slic3r::Step&, double&, double&)>     step_mesh_fn,
+                            double                                                  linear_defletion,
+                            double                                                  angle_defletion)
+{
+    Model model;
+    bool result = false;
+    bool is_cb_cancel = false;
+    std::string message;
+    Step step_file(input_file);
+    step_file.load();
+    if (step_mesh_fn) {
+        if (step_mesh_fn(step_file, linear_defletion, angle_defletion) == -1) {
+            Model empty_model;
+            return empty_model;
+        }
+    }
+    result = load_step(input_file.c_str(), &model, is_cb_cancel, linear_defletion, angle_defletion, stepFn, stepIsUtf8Fn);
+    if (is_cb_cancel) {
+        Model empty_model;
+        return empty_model;
+    }
+
+    if (!result) {
+        if (message.empty())
+            throw Slic3r::RuntimeError(_L("Loading of a model file failed."));
+        else
+            throw Slic3r::RuntimeError(message);
+    }
+
+    if (model.objects.empty())
+        throw Slic3r::RuntimeError(_L("The supplied file couldn't be read because it's empty"));
+
+    for (ModelObject *o : model.objects)
+        o->input_file = input_file;
+
+    if (options & LoadStrategy::AddDefaultInstances)
+        model.add_default_instances();
+
+    return model;
+}
+
 // BBS: add part plate related logic
 // BBS: backup & restore
 // Loading model from a file, it may be a simple geometry file as STL or OBJ, however it may be a project file as well.
-Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions,
-                            LoadStrategy options, PlateDataPtrs* plate_data, std::vector<Preset*>* project_presets, bool *is_xxx, Semver* file_version, Import3mfProgressFn proFn,
-                            ImportstlProgressFn        stlFn,
-                            ImportStepProgressFn       stepFn,
-                            StepIsUtf8Fn               stepIsUtf8Fn,
-                            BBLProject *               project,
-                            int                        plate_id,
-                            ObjImportColorFn           objFn,
-                            std::function<int(Slic3r::Step&, double&, double&)>       step_mesh_fn)
+Model Model::read_from_file(const std::string&                                  input_file,
+                            DynamicPrintConfig*                                 config,
+                            ConfigSubstitutionContext*                          config_substitutions,
+                            LoadStrategy                                        options,
+                            PlateDataPtrs*                                      plate_data,
+                            std::vector<Preset*>*                               project_presets,
+                            bool                                                *is_xxx,
+                            Semver*                                             file_version,
+                            Import3mfProgressFn                                 proFn,
+                            ImportstlProgressFn                                 stlFn,
+                            BBLProject *                                        project,
+                            int                                                 plate_id,
+                            ObjImportColorFn                                    objFn)
 {
     Model model;
 
@@ -219,20 +268,7 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
     bool result = false;
     bool is_cb_cancel = false;
     std::string message;
-    if (boost::algorithm::iends_with(input_file, ".stp") ||
-        boost::algorithm::iends_with(input_file, ".step")) {
-        double linear_defletion = 0.003;
-        double angle_defletion = 0.5;
-        Step step_file(input_file);
-        step_file.load();
-        if (step_mesh_fn) {
-            if (step_mesh_fn(step_file, linear_defletion, angle_defletion) == -1) {
-                Model empty_model;
-                return empty_model;
-            }
-        }
-        result = load_step(input_file.c_str(), &model, is_cb_cancel, linear_defletion, angle_defletion, stepFn, stepIsUtf8Fn);
-    } else if (boost::algorithm::iends_with(input_file, ".stl"))
+    if (boost::algorithm::iends_with(input_file, ".stl"))
         result = load_stl(input_file.c_str(), &model, nullptr, stlFn);
     else if (boost::algorithm::iends_with(input_file, ".oltp"))
         result = load_stl(input_file.c_str(), &model, nullptr, stlFn,256);
@@ -3207,8 +3243,11 @@ std::string ModelVolume::type_to_string(const ModelVolumeType t)
 // This is useful to assign different materials to different volumes of an object.
 size_t ModelVolume::split(unsigned int max_extruders)
 {
-    std::vector<TriangleMesh> meshes = this->mesh().split();
+    std::vector<std::unordered_map<int, int>> ships;
+    std::vector<TriangleMesh>  meshes = this->mesh().split_and_save_relationship(ships);
     if (meshes.size() <= 1)
+        return 1;
+    if (meshes.size() != ships.size())
         return 1;
     // splited volume should not be text object
     size_t idx = 0;
@@ -3243,17 +3282,23 @@ size_t ModelVolume::split(unsigned int max_extruders)
             this->exterior_facets.reset();
             this->supported_facets.reset();
             this->seam_facets.reset();
-            for (size_t i = 0; i < tris_split_strs.size(); i++) {
-                if (i < cur_face_count && tris_split_strs[i].size()>0) {
-                    mmu_segmentation_facets.set_triangle_from_string(i, tris_split_strs[i]);
+            for (size_t i = 0; i < cur_face_count; i++) {
+                if (ships[idx].find(i) != ships[idx].end()) {
+                    auto index = ships[idx][i];
+                    if (tris_split_strs[index].size() > 0) {
+                        mmu_segmentation_facets.set_triangle_from_string(i, tris_split_strs[index]);
+                    }
                 }
             }
         } else {
             auto new_mv =new ModelVolume(object, *this, std::move(mesh));
             this->object->volumes.insert(this->object->volumes.begin() + (++ivolume), new_mv);
-            for (size_t i = last_all_mesh_face_count; i < tris_split_strs.size(); i++) {
-                if (i < last_all_mesh_face_count + cur_face_count && tris_split_strs[i].size() > 0) {
-                    new_mv->mmu_segmentation_facets.set_triangle_from_string(i - last_all_mesh_face_count, tris_split_strs[i]);
+            for (size_t i = 0; i < new_mv->mesh_ptr()->its.indices.size(); i++) {
+                if (ships[idx].find(i) != ships[idx].end()) {
+                    auto index = ships[idx][i];
+                    if (tris_split_strs[index].size() > 0) {
+                        new_mv->mmu_segmentation_facets.set_triangle_from_string(i, tris_split_strs[index]);
+                    }
                 }
             }
         }

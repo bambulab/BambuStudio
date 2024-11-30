@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-25 21:39+0800\n"
+"POT-Creation-Date: 2024-11-14 20:56+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -830,6 +830,9 @@ msgstr ""
 msgid "Warning:create text fail."
 msgstr ""
 
+msgid "Warning:text normal is error."
+msgstr ""
+
 msgid "Surface"
 msgstr "表面に沿う"
 
@@ -848,7 +851,7 @@ msgstr ""
 msgid "Remove selected points"
 msgstr ""
 
-msgid "Remove all points"
+msgid "Remove all"
 msgstr ""
 
 msgid "Auto-generate points"
@@ -871,7 +874,7 @@ msgid ""
 "effect !"
 msgstr ""
 
-msgid "(Set the brim type to \"painted\")"
+msgid "Set the brim type to \"painted\""
 msgstr ""
 
 msgid " invalid brim ears"
@@ -2019,9 +2022,6 @@ msgid "OK"
 msgstr "OK"
 
 msgid "Jump to Layer"
-msgstr "積層に移動"
-
-msgid "Jump to layer"
 msgstr "積層に移動"
 
 msgid "Please enter the layer number"
@@ -3797,6 +3797,10 @@ msgstr ""
 "プレートの境界を越えるか、高さ制限を超えるオブジェクトがあります、ご確認くだ"
 "さい"
 
+#, c-format, boost-format
+msgid "filaments %s cannot be printed directly on the surface of this plate."
+msgstr ""
+
 msgid "Calibration step selection"
 msgstr "キャリブレーション項目を選択"
 
@@ -4736,8 +4740,11 @@ msgstr "SDカードに異常があります。"
 msgid "Cancel print"
 msgstr "造形を取消し"
 
-msgid "Are you sure you want to cancel this print?"
-msgstr "現在の造形をキャンセルしても宜しいでしょうか？"
+msgid "Are you sure to stop printing?"
+msgstr ""
+
+msgid "Unknown error."
+msgstr ""
 
 msgid "Downloading..."
 msgstr "ダウンロード中"
@@ -4914,19 +4921,12 @@ msgstr ""
 msgid "Step file import parameters"
 msgstr ""
 
-msgid "Rough"
+msgid ""
+"Smaller linear and angular deflections result in higher-quality "
+"transformations but increase the processing time."
 msgstr ""
 
-msgid "Reduce Linear"
-msgstr ""
-
-msgid "Reduce Angle"
-msgstr ""
-
-msgid "Fewer faces"
-msgstr ""
-
-msgid "More faces"
+msgid "See BambuLab Wiki"
 msgstr ""
 
 msgid "Linear Deflection"
@@ -4947,6 +4947,9 @@ msgstr ""
 msgid "0"
 msgstr "0"
 
+msgid "Don't show again"
+msgstr "次回から表示しない"
+
 msgid "Calculating, please wait..."
 msgstr ""
 
@@ -4955,9 +4958,6 @@ msgstr "デバイス状態"
 
 msgid "Update"
 msgstr "更新"
-
-msgid "Don't show again"
-msgstr "次回から表示しない"
 
 #, c-format, boost-format
 msgid "%s error"
@@ -5144,6 +5144,9 @@ msgstr ""
 msgid "Gcode path overlap"
 msgstr "G-codeにパスのオーバーラップがあります"
 
+msgid "Click Wiki for help."
+msgstr ""
+
 msgid "Support painting"
 msgstr "サポートペイント"
 
@@ -5221,14 +5224,14 @@ msgstr "Nozzle Clumping Detection"
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
 msgstr "Check if the nozzle is clumping by filament or other foreign objects."
 
-msgid "Nozzle Type"
-msgstr "ノズルタイプ"
+msgid "Hardened Steel"
+msgstr "焼入れスチール"
 
 msgid "Stainless Steel"
 msgstr "ステンレススチール"
 
-msgid "Hardened Steel"
-msgstr "焼入れスチール"
+msgid "Nozzle Type"
+msgstr "ノズルタイプ"
 
 #, c-format, boost-format
 msgid "%.1f"
@@ -5904,6 +5907,12 @@ msgstr ""
 msgid "Enable LOD"
 msgstr ""
 
+msgid "Change opengl multi instance rendering requires application restart."
+msgstr ""
+
+msgid "Enable opengl multi instance rendering"
+msgstr ""
+
 msgid "Browse"
 msgstr "閲覧"
 
@@ -5994,6 +6003,13 @@ msgstr ""
 "With this option enabled, you can send a task to multiple devices at the "
 "same time and manage multiple devices."
 
+msgid "Show the step mesh parameter setting dialog."
+msgstr ""
+
+msgid ""
+"If enabled,a parameter settings dialog will appear during STEP file import."
+msgstr ""
+
 msgid "Support beta version update."
 msgstr ""
 
@@ -6027,6 +6043,14 @@ msgstr ""
 msgid ""
 "Improved rendering performance under the scene of multiple plates and many "
 "models."
+msgstr ""
+
+msgid "enable multi instance rendering by opengl"
+msgstr ""
+
+msgid ""
+"If enabled, it can improve certain rendering performance. But for some "
+"graphics cards, it may not be applicable, please turn it off."
 msgstr ""
 
 msgid "Grabber scale"
@@ -6090,6 +6114,9 @@ msgstr "Online Models"
 
 msgid "Show online staff-picked models on the home page"
 msgstr "Show online staff-picked models on the home page"
+
+msgid "Show history on the home page"
+msgstr ""
 
 msgid "Maximum recent projects"
 msgstr "Maximum recent projects"
@@ -6480,14 +6507,8 @@ msgstr "オフライン"
 msgid "Busy"
 msgstr "ビジー状態"
 
-msgid "Bambu Cool Plate SuperTack"
-msgstr ""
-
 msgid "Bambu Cool Plate"
 msgstr "Bambu 常温プレート"
-
-msgid "PLA Plate"
-msgstr "PLA Plate"
 
 msgid "Bamabu Engineering Plate"
 msgstr "Bambu エンジニアリングプレート"
@@ -6500,6 +6521,9 @@ msgstr "High temperature Plate"
 
 msgid "Bamabu Textured PEI Plate"
 msgstr "Bambu Textured PEI Plate"
+
+msgid "Bambu Cool Plate SuperTack"
+msgstr ""
 
 msgid "Send print job to"
 msgstr "造形タスクを送信"
@@ -6656,12 +6680,8 @@ msgstr ""
 "change settings."
 
 #, c-format, boost-format
-msgid ""
-"Printing high temperature material(%s material) with %s may cause nozzle "
-"damage"
+msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
 msgstr ""
-"Printing high temperature material(%s material) with %s may cause nozzle "
-"damage"
 
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr "Please fix the error above, otherwise printing cannot continue."
@@ -6971,8 +6991,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "ヘッド無しのタイムラプスビデオを録画する時に、「タイムラプスプライムタワー」"
 "を追加してください。プレートで右クリックして、「プリミティブを追加」→「タイム"
@@ -7107,8 +7127,8 @@ msgid ""
 "does not support to print on the Bambu Cool Plate SuperTack"
 msgstr ""
 
-msgid "Cool Plate / PLA Plate"
-msgstr "Cool Plate / PLA Plate"
+msgid "Cool Plate"
+msgstr "常温プレート"
 
 msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
@@ -7933,24 +7953,27 @@ msgid "Connect the printer using IP and access code"
 msgstr ""
 
 msgid ""
-"Step 1, please confirm Bambu Studio and your printer are in the same LAN."
+"Step 1. Please confirm Bambu Studio and your printer are in the same LAN."
 msgstr ""
-"Step 1: Bambu Studioとプリンターが同一のLANに繋いでいること確認してください。"
 
 msgid ""
-"Step 2, if the IP and Access Code below are different from the actual values "
+"Step 2. If the IP and Access Code below are different from the actual values "
 "on your printer, please correct them."
 msgstr ""
-"Step 2: 下記IPアドレスやアクセスコードが一致していない場合修正してください。"
+
+msgid ""
+"Step 3. Please obtain the device SN from the printer side; it is usually "
+"found in the device information on the printer screen."
+msgstr ""
 
 msgid "Access Code"
 msgstr "アクセスコード"
 
+msgid "Printer model"
+msgstr ""
+
 msgid "Where to find your printer's IP and Access Code?"
 msgstr "どこでプリンターのIPアドレスとアクセスコードを確認できますか？"
-
-msgid "Step 3: Ping the IP address to check for packet loss and latency."
-msgstr "Step 3: IPアドレスにpingを送信し、パケットロスや遅延を確認します。"
 
 msgid "Connect"
 msgstr ""
@@ -7962,9 +7985,6 @@ msgid "Failed to connect to printer."
 msgstr ""
 
 msgid "Failed to publish login request."
-msgstr ""
-
-msgid "The device does not support using IP and Access Code for connection."
 msgstr ""
 
 msgid "The printer has already been bound."
@@ -8139,8 +8159,19 @@ msgid ""
 "\n"
 msgstr "G-codeを生成できませんでした\n"
 
-msgid "Please check the custom G-code or use the default custom G-code."
-msgstr "カスタムG-codeを確認するか、デフォルトを使用してください。"
+msgid "Please check the custom G-code or use the default custom G-code.\n"
+msgstr ""
+
+msgid ""
+"You can find them from 'Printer settings' -> 'Machine G-code' and 'Filament "
+"settings' -> 'Advanced'."
+msgstr ""
+
+msgid "You can find it from 'Printer settings' -> 'Machine G-code'."
+msgstr ""
+
+msgid "You can find it from 'Filament settings' -> 'Advanced'."
+msgstr ""
 
 #, boost-format
 msgid "Generating G-code: layer %1%"
@@ -9129,12 +9160,13 @@ msgid ""
 msgstr ""
 "ノズル先端から蓋までの距離。オブジェクト順で造形する時に衝突防止用です。"
 
-msgid ""
-"Clearance radius around extruder. Used for collision avoidance in by-object "
-"printing."
+msgid "Distance to rod"
 msgstr ""
-"押出機のクリアランス（半径）：オブジェクト順で造形する時にこのパラメータでオ"
-"ブジェクトの間隔を計算します。"
+
+msgid ""
+"Horizontal distance of the nozzle tip to the rod's farther edge. Used for "
+"collision avoidance in by-object printing."
+msgstr ""
 
 msgid "Nozzle height"
 msgstr "Nozzle height"
@@ -10332,8 +10364,8 @@ msgstr ""
 "This amount is expressed as a percentage of the current extruder diameter. "
 "The default value for this parameter is 15."
 
-msgid "Conditional scarf joint"
-msgstr "Conditional scarf joint"
+msgid "Smart scarf seam application"
+msgstr ""
 
 msgid ""
 "Apply scarf joints only to smooth perimeters where traditional seams do not "
@@ -10342,8 +10374,8 @@ msgstr ""
 "Apply scarf joints only to smooth perimeters where traditional seams do not "
 "conceal the seams at sharp corners effectively."
 
-msgid "Conditional angle threshold"
-msgstr "Conditional angle threshold"
+msgid "Scarf application angle threshold"
+msgstr ""
 
 msgid ""
 "This option sets the threshold angle for applying a conditional scarf joint "
@@ -10390,7 +10422,7 @@ msgstr ""
 "be calculated based on the travel speed setting above. The default value for "
 "this parameter is 80%."
 
-msgid "Role base wipe speed"
+msgid "Role-based wipe speed"
 msgstr ""
 
 msgid ""
@@ -11205,17 +11237,17 @@ msgstr ""
 "painted.\n"
 "XY Size compensation can not be combined with color-painting."
 
-msgid ""
-"Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
-msgstr ""
-"Unknown file format: input file must have .stl, .obj, or .amf(.xml) "
-"extension."
-
 msgid "Loading of a model file failed."
 msgstr "Loading of model file failed."
 
 msgid "The supplied file couldn't be read because it's empty"
 msgstr "The supplied file couldn't be read because it's empty."
+
+msgid ""
+"Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
+msgstr ""
+"Unknown file format: input file must have .stl, .obj, or .amf(.xml) "
+"extension."
 
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr "Unknown file format: input file must have .3mf or .zip.amf extension."
@@ -11259,8 +11291,8 @@ msgstr "Results can be easily seen and understood."
 msgid "Auto-Calibration"
 msgstr "Auto-Calibration"
 
-msgid "We would use Lidar to read the calibration result"
-msgstr "We would use Lidar to read the calibration result."
+msgid "The printer will automatically read the calibration results."
+msgstr ""
 
 msgid "Prev"
 msgstr "Prev"
@@ -11690,11 +11722,41 @@ msgid "Method"
 msgstr "Method"
 
 #, c-format, boost-format
+msgid ""
+"Tip: Using a %.1fmm nozzle for auto dynamic flow calibration may have a high "
+"probability of failure.\n"
+"If it fails, it is recommended to use manual calibration."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Tip: Using a %.1fmm nozzle for auto dynamic flow calibration may not get "
+"accurate calibration results.\n"
+"It is recommended to use manual calibration."
+msgstr ""
+
+#, c-format, boost-format
 msgid "%s is not compatible with %s"
 msgstr "%s is not compatible with %s"
 
 msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
 msgstr "TPU is not supported by Flow Dynamics Auto-Calibration."
+
+#, c-format, boost-format
+msgid ""
+"Tip: Calibrating foam filaments(%s) in X series printers may not get "
+"accurate results\n"
+"because their dynamic response is much different from that of ordinary "
+"filaments, and there is a high risk of oozing when printing calibration "
+"lines."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Tip: When using the A1/A1 mini printer, we do not recommend calibrating foam "
+"filaments(%s),\n"
+"as the results may be unstable and affect print quality."
+msgstr ""
 
 msgid "Connecting to printer"
 msgstr "Connecting to printer"
@@ -12162,12 +12224,12 @@ msgstr ""
 "リライトしますか？"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more printers; please go to printer selection"
 
 msgid "Create Printer/Nozzle"
@@ -13472,6 +13534,61 @@ msgstr ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping?"
 
+#~ msgid "We would use Lidar to read the calibration result"
+#~ msgstr "We would use Lidar to read the calibration result."
+
+#~ msgid "Are you sure you want to cancel this print?"
+#~ msgstr "現在の造形をキャンセルしても宜しいでしょうか？"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Printing high temperature material(%s material) with %s may cause nozzle "
+#~ "damage"
+#~ msgstr ""
+#~ "Printing high temperature material(%s material) with %s may cause nozzle "
+#~ "damage"
+
+#~ msgid "Conditional scarf joint"
+#~ msgstr "Conditional scarf joint"
+
+#~ msgid "Conditional angle threshold"
+#~ msgstr "Conditional angle threshold"
+
+#~ msgid "Jump to layer"
+#~ msgstr "積層に移動"
+
+#~ msgid "PLA Plate"
+#~ msgstr "PLA Plate"
+
+#~ msgid "Cool Plate / PLA Plate"
+#~ msgstr "Cool Plate / PLA Plate"
+
+#~ msgid ""
+#~ "Step 1, please confirm Bambu Studio and your printer are in the same LAN."
+#~ msgstr ""
+#~ "Step 1: Bambu Studioとプリンターが同一のLANに繋いでいること確認してくださ"
+#~ "い。"
+
+#~ msgid ""
+#~ "Step 2, if the IP and Access Code below are different from the actual "
+#~ "values on your printer, please correct them."
+#~ msgstr ""
+#~ "Step 2: 下記IPアドレスやアクセスコードが一致していない場合修正してくださ"
+#~ "い。"
+
+#~ msgid "Step 3: Ping the IP address to check for packet loss and latency."
+#~ msgstr "Step 3: IPアドレスにpingを送信し、パケットロスや遅延を確認します。"
+
+#~ msgid "Please check the custom G-code or use the default custom G-code."
+#~ msgstr "カスタムG-codeを確認するか、デフォルトを使用してください。"
+
+#~ msgid ""
+#~ "Clearance radius around extruder. Used for collision avoidance in by-"
+#~ "object printing."
+#~ msgstr ""
+#~ "押出機のクリアランス（半径）：オブジェクト順で造形する時にこのパラメータで"
+#~ "オブジェクトの間隔を計算します。"
+
 #~ msgid "Tree support branch angle"
 #~ msgstr "ツリーサポート枝アングル"
 
@@ -14076,9 +14193,6 @@ msgstr ""
 
 #~ msgid "Convert the units of model"
 #~ msgstr "モデルの単位を変換"
-
-#~ msgid "Cool Plate"
-#~ msgstr "常温プレート"
 
 #~ msgid "Cool plate"
 #~ msgstr "常温プレート"

@@ -17,6 +17,7 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <wx/dir.h>
 #include "fast_float/fast_float.h"
 
 #define CALI_DEBUG
@@ -6022,6 +6023,7 @@ std::string DeviceManager::get_printer_ams_img(std::string type_str)
 bool DeviceManager::get_printer_is_enclosed(std::string type_str) {
     return get_value_from_config<bool>(type_str, "printer_is_enclosed");
 }
+
 std::vector<std::string> DeviceManager::get_resolution_supported(std::string type_str)
 {
     std::vector<std::string> resolution_supported;
@@ -6067,6 +6069,49 @@ std::vector<std::string> DeviceManager::get_compatible_machine(std::string type_
     return compatible_machine;
 }
 
+boost::bimaps::bimap<std::string, std::string> DeviceManager::get_all_model_id_with_name()
+{
+    boost::bimaps::bimap<std::string, std::string> models;
+    std::vector<wxString> m_files;
+
+    wxDir dir(Slic3r::resources_dir() + "/printers/");
+    if (!dir.IsOpened()) {
+        return models;
+    }
+
+    wxString filename;
+    bool     hasFile = dir.GetFirst(&filename, wxEmptyString, wxDIR_FILES);
+    while (hasFile) {
+        m_files.push_back(filename);
+        hasFile = dir.GetNext(&filename);
+    }
+
+    for (wxString file : m_files) {
+        std::string config_file = Slic3r::resources_dir() + "/printers/" + file.ToStdString();
+        boost::nowide::ifstream json_file(config_file.c_str());
+
+        try {
+            json jj;
+            if (json_file.is_open()) {
+                json_file >> jj;
+                if (jj.contains("00.00.00.00")) {
+                    json const &printer = jj["00.00.00.00"];
+
+                    std::string model_id;
+                    std::string display_name;
+                    if (printer.contains("model_id")) {model_id = printer["model_id"].get<std::string>();}
+                    if (printer.contains("display_name")) {display_name = printer["display_name"].get<std::string>();}
+
+                    if (!model_id.empty() && !display_name.empty()) {
+                        models.left.insert(make_pair(model_id, display_name));
+                    }
+                }
+            }
+        } catch (...) {}
+    }
+
+    return models;
+}
 
 bool DeviceManager::load_filaments_blacklist_config()
 {

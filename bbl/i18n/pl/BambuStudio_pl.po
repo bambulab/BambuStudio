@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-25 21:39+0800\n"
+"POT-Creation-Date: 2024-11-14 20:56+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -10,8 +10,8 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : ((n%10>=2 && n%10<=4) && ((n"
-"%100<12 || n%100>14))) ? 1 : 2;\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : ((n%10>=2 && n%10<=4) && "
+"((n%100<12 || n%100>14))) ? 1 : 2;\n"
 "X-Generator: Poedit 3.4.2\n"
 
 msgid "Supports Painting"
@@ -842,6 +842,9 @@ msgstr ""
 msgid "Warning:create text fail."
 msgstr ""
 
+msgid "Warning:text normal is error."
+msgstr ""
+
 msgid "Surface"
 msgstr "Powierzchnia"
 
@@ -860,7 +863,7 @@ msgstr ""
 msgid "Remove selected points"
 msgstr ""
 
-msgid "Remove all points"
+msgid "Remove all"
 msgstr ""
 
 msgid "Auto-generate points"
@@ -883,7 +886,7 @@ msgid ""
 "effect !"
 msgstr ""
 
-msgid "(Set the brim type to \"painted\")"
+msgid "Set the brim type to \"painted\""
 msgstr ""
 
 msgid " invalid brim ears"
@@ -2057,9 +2060,6 @@ msgid "OK"
 msgstr "OK"
 
 msgid "Jump to Layer"
-msgstr "Przejdź do warstwy"
-
-msgid "Jump to layer"
 msgstr "Przejdź do warstwy"
 
 msgid "Please enter the layer number"
@@ -3906,6 +3906,10 @@ msgstr ""
 "Rozwiąż problem, przesuwając go całkowicie na lub poza płytę i "
 "potwierdzając, że wysokość mieści się w przestrzeni roboczej."
 
+#, c-format, boost-format
+msgid "filaments %s cannot be printed directly on the surface of this plate."
+msgstr ""
+
 msgid "Calibration step selection"
 msgstr "Wybór kroku kalibracji"
 
@@ -4869,8 +4873,11 @@ msgstr "Błąd karty MicroSD"
 msgid "Cancel print"
 msgstr "Anuluj drukowanie"
 
-msgid "Are you sure you want to cancel this print?"
-msgstr "Czy na pewno chcesz anulować to drukowanie?"
+msgid "Are you sure to stop printing?"
+msgstr ""
+
+msgid "Unknown error."
+msgstr ""
 
 msgid "Downloading..."
 msgstr "Pobieranie..."
@@ -5047,19 +5054,12 @@ msgstr ""
 msgid "Step file import parameters"
 msgstr ""
 
-msgid "Rough"
+msgid ""
+"Smaller linear and angular deflections result in higher-quality "
+"transformations but increase the processing time."
 msgstr ""
 
-msgid "Reduce Linear"
-msgstr ""
-
-msgid "Reduce Angle"
-msgstr ""
-
-msgid "Fewer faces"
-msgstr ""
-
-msgid "More faces"
+msgid "See BambuLab Wiki"
 msgstr ""
 
 msgid "Linear Deflection"
@@ -5080,6 +5080,9 @@ msgstr ""
 msgid "0"
 msgstr "0"
 
+msgid "Don't show again"
+msgstr "Nie pokazuj ponownie"
+
 msgid "Calculating, please wait..."
 msgstr ""
 
@@ -5088,9 +5091,6 @@ msgstr "Status"
 
 msgid "Update"
 msgstr "Aktualizuj"
-
-msgid "Don't show again"
-msgstr "Nie pokazuj ponownie"
 
 #, c-format, boost-format
 msgid "%s error"
@@ -5283,6 +5283,9 @@ msgstr "Twój model wymaga podpór! Włącz generowanie podpór."
 msgid "Gcode path overlap"
 msgstr "Nakładanie się ścieżek Gcode"
 
+msgid "Click Wiki for help."
+msgstr ""
+
 msgid "Support painting"
 msgstr "Malowanie podpór"
 
@@ -5366,14 +5369,14 @@ msgstr ""
 "Sprawdź, czy dysza nie została zatkana filamentem lub innym obcym "
 "przedmiotem."
 
-msgid "Nozzle Type"
-msgstr "Typ dyszy"
+msgid "Hardened Steel"
+msgstr "Stal Hartowana"
 
 msgid "Stainless Steel"
 msgstr "Stal nierdzewna"
 
-msgid "Hardened Steel"
-msgstr "Stal Hartowana"
+msgid "Nozzle Type"
+msgstr "Typ dyszy"
 
 #, c-format, boost-format
 msgid "%.1f"
@@ -6063,6 +6066,12 @@ msgstr ""
 msgid "Enable LOD"
 msgstr ""
 
+msgid "Change opengl multi instance rendering requires application restart."
+msgstr ""
+
+msgid "Enable opengl multi instance rendering"
+msgstr ""
+
 msgid "Browse"
 msgstr "Przeglądaj"
 
@@ -6162,6 +6171,13 @@ msgstr ""
 "Dzięki tej opcji możesz wysyłać zadania do wielu urządzeń jednocześnie i "
 "zarządzać nimi."
 
+msgid "Show the step mesh parameter setting dialog."
+msgstr ""
+
+msgid ""
+"If enabled,a parameter settings dialog will appear during STEP file import."
+msgstr ""
+
 msgid "Support beta version update."
 msgstr ""
 
@@ -6195,6 +6211,14 @@ msgstr ""
 msgid ""
 "Improved rendering performance under the scene of multiple plates and many "
 "models."
+msgstr ""
+
+msgid "enable multi instance rendering by opengl"
+msgstr ""
+
+msgid ""
+"If enabled, it can improve certain rendering performance. But for some "
+"graphics cards, it may not be applicable, please turn it off."
 msgstr ""
 
 msgid "Grabber scale"
@@ -6262,6 +6286,9 @@ msgstr "Modele online"
 
 msgid "Show online staff-picked models on the home page"
 msgstr "Pokaż modele online wybrane przez personel na stronie głównej"
+
+msgid "Show history on the home page"
+msgstr ""
 
 msgid "Maximum recent projects"
 msgstr "Maksymalna liczba ostatnich projektów"
@@ -6653,14 +6680,8 @@ msgstr "Offline"
 msgid "Busy"
 msgstr "Zajęte"
 
-msgid "Bambu Cool Plate SuperTack"
-msgstr ""
-
 msgid "Bambu Cool Plate"
 msgstr "Bambu Cool Plate"
-
-msgid "PLA Plate"
-msgstr "Płyta PLA"
 
 msgid "Bamabu Engineering Plate"
 msgstr "Bambu Engineering Plate"
@@ -6673,6 +6694,9 @@ msgstr "High temperature Plate"
 
 msgid "Bamabu Textured PEI Plate"
 msgstr "Bambu Textured PEI Plate"
+
+msgid "Bambu Cool Plate SuperTack"
+msgstr ""
 
 msgid "Send print job to"
 msgstr "Wyślij zadanie druku do"
@@ -6846,12 +6870,8 @@ msgstr ""
 "Części drukarki, aby zmienić to ustawienie."
 
 #, c-format, boost-format
-msgid ""
-"Printing high temperature material(%s material) with %s may cause nozzle "
-"damage"
+msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
 msgstr ""
-"Drukowanie materiału o wysokiej temperaturze (%s materiał) z %s może "
-"spowodować uszkodzenie dyszy"
 
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr ""
@@ -7166,8 +7186,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Podczas nagrywania timelapse'a bez głowicy zaleca się dodanie \"Timelaps - "
 "Wieża Czyszcząca\" \n"
@@ -7314,8 +7334,8 @@ msgid ""
 "does not support to print on the Bambu Cool Plate SuperTack"
 msgstr ""
 
-msgid "Cool Plate / PLA Plate"
-msgstr "Cool Plate / PLA Plate"
+msgid "Cool Plate"
+msgstr "Cool Plate/PLA Plate"
 
 msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
@@ -8160,26 +8180,27 @@ msgid "Connect the printer using IP and access code"
 msgstr ""
 
 msgid ""
-"Step 1, please confirm Bambu Studio and your printer are in the same LAN."
+"Step 1. Please confirm Bambu Studio and your printer are in the same LAN."
 msgstr ""
-"Krok 1, proszę potwierdzić, że Bambu Studio i drukarka są w tej samej sieci "
-"LAN."
 
 msgid ""
-"Step 2, if the IP and Access Code below are different from the actual values "
+"Step 2. If the IP and Access Code below are different from the actual values "
 "on your printer, please correct them."
 msgstr ""
-"Krok 2, jeśli poniższe wartości IP i kod dostępu różnią się od rzeczywistych "
-"wartości na twojej drukarce, popraw je."
+
+msgid ""
+"Step 3. Please obtain the device SN from the printer side; it is usually "
+"found in the device information on the printer screen."
+msgstr ""
 
 msgid "Access Code"
 msgstr "Kod dostępu"
 
+msgid "Printer model"
+msgstr ""
+
 msgid "Where to find your printer's IP and Access Code?"
 msgstr "Gdzie znaleźć IP i kod dostępu do twojej drukarki?"
-
-msgid "Step 3: Ping the IP address to check for packet loss and latency."
-msgstr "Krok 3: Pinguj adres IP, aby sprawdzić utratę pakietów i opóźnienia."
 
 msgid "Connect"
 msgstr ""
@@ -8191,9 +8212,6 @@ msgid "Failed to connect to printer."
 msgstr ""
 
 msgid "Failed to publish login request."
-msgstr ""
-
-msgid "The device does not support using IP and Access Code for connection."
 msgstr ""
 
 msgid "The printer has already been bound."
@@ -8376,8 +8394,19 @@ msgstr ""
 "code.\n"
 "\n"
 
-msgid "Please check the custom G-code or use the default custom G-code."
-msgstr "Sprawdź niestandardowy G-code lub użyj domyślnego G-code."
+msgid "Please check the custom G-code or use the default custom G-code.\n"
+msgstr ""
+
+msgid ""
+"You can find them from 'Printer settings' -> 'Machine G-code' and 'Filament "
+"settings' -> 'Advanced'."
+msgstr ""
+
+msgid "You can find it from 'Printer settings' -> 'Machine G-code'."
+msgstr ""
+
+msgid "You can find it from 'Filament settings' -> 'Advanced'."
+msgstr ""
 
 #, boost-format
 msgid "Generating G-code: layer %1%"
@@ -9422,12 +9451,13 @@ msgstr ""
 "Odległość od końcówki dyszy do pokrywy. Używane do unikania kolizji w druku "
 "według obiektu."
 
-msgid ""
-"Clearance radius around extruder. Used for collision avoidance in by-object "
-"printing."
+msgid "Distance to rod"
 msgstr ""
-"Promień prześwitu wokół ekstrudera. Używane do unikania kolizji w drukowaniu "
-"obiektu."
+
+msgid ""
+"Horizontal distance of the nozzle tip to the rod's farther edge. Used for "
+"collision avoidance in by-object printing."
+msgstr ""
 
 msgid "Nozzle height"
 msgstr "Wysokość dyszy"
@@ -10692,8 +10722,8 @@ msgstr ""
 "Wartość ta wyrażona jest jako procent aktualnej średnicy ekstrudera. "
 "Domyślna wartość tego parametru to 15"
 
-msgid "Conditional scarf joint"
-msgstr "Warunkowe szwy Scarf"
+msgid "Smart scarf seam application"
+msgstr ""
 
 msgid ""
 "Apply scarf joints only to smooth perimeters where traditional seams do not "
@@ -10702,8 +10732,8 @@ msgstr ""
 "Szwy typu Scarf należy stosować wyłącznie na gładkich krawędziach, gdzie "
 "tradycyjne szwy nie są w stanie skutecznie ukryć szwów w ostrych narożnikach."
 
-msgid "Conditional angle threshold"
-msgstr "Warunkowy próg kąta"
+msgid "Scarf application angle threshold"
+msgstr ""
 
 msgid ""
 "This option sets the threshold angle for applying a conditional scarf joint "
@@ -10749,7 +10779,7 @@ msgstr ""
 "jest na podstawie ustawienia powyżej prędkości jałowej. Domyślna wartość "
 "tego parametru to 80%"
 
-msgid "Role base wipe speed"
+msgid "Role-based wipe speed"
 msgstr ""
 
 msgid ""
@@ -10879,10 +10909,10 @@ msgid ""
 "triangle mesh slicing. The gap closing operation may reduce the final print "
 "resolution, therefore it is advisable to keep the value reasonably low."
 msgstr ""
-"Szpary mniejsze niż dwukrotność wartości parametru \"promień zamykania szpar"
-"\" zostaną zamknięte przy cięciu. Operacja zamykania szpar może zmniejszyć "
-"finalną rozdzielczość wydruku, więc zalecane jest ustawienie tej wartości na "
-"rozsądnie niskim poziomie."
+"Szpary mniejsze niż dwukrotność wartości parametru \"promień zamykania "
+"szpar\" zostaną zamknięte przy cięciu. Operacja zamykania szpar może "
+"zmniejszyć finalną rozdzielczość wydruku, więc zalecane jest ustawienie tej "
+"wartości na rozsądnie niskim poziomie."
 
 msgid "Slicing Mode"
 msgstr "Tryb cięcia"
@@ -11625,17 +11655,17 @@ msgstr ""
 "również malowany kolorami.\n"
 "Kompensacja rozmiaru XY nie może być łączona z malowaniem kolorów."
 
-msgid ""
-"Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
-msgstr ""
-"Nieznany format pliku. Plik wejściowy musi mieć rozszerzenie .stl, .obj lub ."
-"amf(.xml)."
-
 msgid "Loading of a model file failed."
 msgstr "Wczytywanie pliku modelu nie powiodło się."
 
 msgid "The supplied file couldn't be read because it's empty"
 msgstr "Nie można odczytać dostarczonego pliku, ponieważ jest pusty"
+
+msgid ""
+"Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
+msgstr ""
+"Nieznany format pliku. Plik wejściowy musi mieć rozszerzenie .stl, .obj lub ."
+"amf(.xml)."
 
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
@@ -11681,8 +11711,8 @@ msgstr "Wynik można odczytać gołym okiem."
 msgid "Auto-Calibration"
 msgstr "Automatyczna kalibracja"
 
-msgid "We would use Lidar to read the calibration result"
-msgstr "Skorzystamy z Lidaru do odczytania wyniku kalibracji"
+msgid "The printer will automatically read the calibration results."
+msgstr ""
 
 msgid "Prev"
 msgstr "Poprzedni"
@@ -12120,12 +12150,42 @@ msgid "Method"
 msgstr "Metoda"
 
 #, c-format, boost-format
+msgid ""
+"Tip: Using a %.1fmm nozzle for auto dynamic flow calibration may have a high "
+"probability of failure.\n"
+"If it fails, it is recommended to use manual calibration."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Tip: Using a %.1fmm nozzle for auto dynamic flow calibration may not get "
+"accurate calibration results.\n"
+"It is recommended to use manual calibration."
+msgstr ""
+
+#, c-format, boost-format
 msgid "%s is not compatible with %s"
 msgstr "%s nie jest kompatybilne z %s"
 
 msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
 msgstr ""
 "TPU nie jest obsługiwane przez automatyczną kalibrację Dynamiki Przepływu."
+
+#, c-format, boost-format
+msgid ""
+"Tip: Calibrating foam filaments(%s) in X series printers may not get "
+"accurate results\n"
+"because their dynamic response is much different from that of ordinary "
+"filaments, and there is a high risk of oozing when printing calibration "
+"lines."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Tip: When using the A1/A1 mini printer, we do not recommend calibrating foam "
+"filaments(%s),\n"
+"as the results may be unstable and affect print quality."
+msgstr ""
 
 msgid "Connecting to printer"
 msgstr "Łączenie z drukarką"
@@ -12603,8 +12663,8 @@ msgstr ""
 "Czy chcesz go zastąpić?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "Nazwa profilu zostanie zmieniona na \"Dostawca Typ Seria @nazwa drukarki, "
@@ -13972,6 +14032,62 @@ msgstr ""
 "jak ABS, odpowiednie zwiększenie temperatury stołu grzejnego może zmniejszyć "
 "prawdopodobieństwo wypaczania."
 
+#~ msgid "We would use Lidar to read the calibration result"
+#~ msgstr "Skorzystamy z Lidaru do odczytania wyniku kalibracji"
+
+#~ msgid "Are you sure you want to cancel this print?"
+#~ msgstr "Czy na pewno chcesz anulować to drukowanie?"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Printing high temperature material(%s material) with %s may cause nozzle "
+#~ "damage"
+#~ msgstr ""
+#~ "Drukowanie materiału o wysokiej temperaturze (%s materiał) z %s może "
+#~ "spowodować uszkodzenie dyszy"
+
+#~ msgid "Conditional scarf joint"
+#~ msgstr "Warunkowe szwy Scarf"
+
+#~ msgid "Conditional angle threshold"
+#~ msgstr "Warunkowy próg kąta"
+
+#~ msgid "Jump to layer"
+#~ msgstr "Przejdź do warstwy"
+
+#~ msgid "PLA Plate"
+#~ msgstr "Płyta PLA"
+
+#~ msgid "Cool Plate / PLA Plate"
+#~ msgstr "Cool Plate / PLA Plate"
+
+#~ msgid ""
+#~ "Step 1, please confirm Bambu Studio and your printer are in the same LAN."
+#~ msgstr ""
+#~ "Krok 1, proszę potwierdzić, że Bambu Studio i drukarka są w tej samej "
+#~ "sieci LAN."
+
+#~ msgid ""
+#~ "Step 2, if the IP and Access Code below are different from the actual "
+#~ "values on your printer, please correct them."
+#~ msgstr ""
+#~ "Krok 2, jeśli poniższe wartości IP i kod dostępu różnią się od "
+#~ "rzeczywistych wartości na twojej drukarce, popraw je."
+
+#~ msgid "Step 3: Ping the IP address to check for packet loss and latency."
+#~ msgstr ""
+#~ "Krok 3: Pinguj adres IP, aby sprawdzić utratę pakietów i opóźnienia."
+
+#~ msgid "Please check the custom G-code or use the default custom G-code."
+#~ msgstr "Sprawdź niestandardowy G-code lub użyj domyślnego G-code."
+
+#~ msgid ""
+#~ "Clearance radius around extruder. Used for collision avoidance in by-"
+#~ "object printing."
+#~ msgstr ""
+#~ "Promień prześwitu wokół ekstrudera. Używane do unikania kolizji w "
+#~ "drukowaniu obiektu."
+
 #~ msgid "Tree support branch angle"
 #~ msgstr "Kąt gałęzi podpory drzewa"
 
@@ -14497,9 +14613,6 @@ msgstr ""
 
 #~ msgid "Convert the units of model"
 #~ msgstr "Konwersja jednostek modelu"
-
-#~ msgid "Cool Plate"
-#~ msgstr "Cool Plate/PLA Plate"
 
 #~ msgid "Cool plate"
 #~ msgstr "Cool plate"

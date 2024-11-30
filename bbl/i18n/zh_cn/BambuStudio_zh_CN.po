@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-25 21:39+0800\n"
+"POT-Creation-Date: 2024-11-14 20:56+0800\n"
 "PO-Revision-Date: 2024-03-21 10:39+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -827,6 +827,9 @@ msgstr "警告：输入不能为空！"
 msgid "Warning:create text fail."
 msgstr "警告：创建文字失败。"
 
+msgid "Warning:text normal is error."
+msgstr "警告：文字法向量错误"
+
 msgid "Surface"
 msgstr "附着曲面"
 
@@ -845,7 +848,7 @@ msgstr "检测半径"
 msgid "Remove selected points"
 msgstr "删除已选择的点"
 
-msgid "Remove all points"
+msgid "Remove all"
 msgstr "删除所有点"
 
 msgid "Auto-generate points"
@@ -868,7 +871,7 @@ msgid ""
 "effect !"
 msgstr "警告：Brim类型未设置为绘制模式，耳状Brim将不会生效！"
 
-msgid "(Set the brim type to \"painted\")"
+msgid "Set the brim type to \"painted\""
 msgstr "将Brim类型设置为绘制模式"
 
 msgid " invalid brim ears"
@@ -2004,9 +2007,6 @@ msgid "OK"
 msgstr "确认"
 
 msgid "Jump to Layer"
-msgstr "跳转到层"
-
-msgid "Jump to layer"
 msgstr "跳转到层"
 
 msgid "Please enter the layer number"
@@ -3738,6 +3738,10 @@ msgstr ""
 "对象被放置在打印板的边界上或超过高度限制。\n"
 "请通过将其完全移动到打印板内或打印板外，并确认高度在构建空间以内来解决问题。"
 
+#, c-format, boost-format
+msgid "filaments %s cannot be printed directly on the surface of this plate."
+msgstr "材料 %s 不能在直接在当前打印板上打印。"
+
 msgid "Calibration step selection"
 msgstr "校准步骤选择"
 
@@ -4663,8 +4667,11 @@ msgstr "SD卡异常"
 msgid "Cancel print"
 msgstr "取消打印"
 
-msgid "Are you sure you want to cancel this print?"
-msgstr "你确定要取消这次打印吗？"
+msgid "Are you sure to stop printing?"
+msgstr "您确定要停止打印吗？"
+
+msgid "Unknown error."
+msgstr "未知错误。"
 
 msgid "Downloading..."
 msgstr "下载中..."
@@ -4832,20 +4839,13 @@ msgstr "至少需要一个成功的打印记录，才能给出积极的评价（
 msgid "Step file import parameters"
 msgstr "导入step文件选项"
 
-msgid "Rough"
-msgstr "粗糙"
+msgid ""
+"Smaller linear and angular deflections result in higher-quality "
+"transformations but increase the processing time."
+msgstr "较小的线偏转值和角偏转值会产生更高质量的转换，但会增加处理时间。"
 
-msgid "Reduce Linear"
-msgstr "减少线偏转值"
-
-msgid "Reduce Angle"
-msgstr "减少角偏转值"
-
-msgid "Fewer faces"
-msgstr "更少三角面"
-
-msgid "More faces"
-msgstr "更多三角面"
+msgid "See BambuLab Wiki"
+msgstr "查看BambuLab Wiki"
 
 msgid "Linear Deflection"
 msgstr "线偏转值"
@@ -4865,6 +4865,9 @@ msgstr "三角面数量"
 msgid "0"
 msgstr ""
 
+msgid "Don't show again"
+msgstr "不再显示"
+
 msgid "Calculating, please wait..."
 msgstr "计算中，请等待..."
 
@@ -4873,9 +4876,6 @@ msgstr "设备状态"
 
 msgid "Update"
 msgstr "固件更新"
-
-msgid "Don't show again"
-msgstr "不再显示"
 
 #, c-format, boost-format
 msgid "%s error"
@@ -5058,6 +5058,9 @@ msgstr "你的模型需要支撑才能打印。请开启材料支撑选项。"
 msgid "Gcode path overlap"
 msgstr "Gcode路径有重叠"
 
+msgid "Click Wiki for help."
+msgstr "点击Wiki寻求帮助。"
+
 msgid "Support painting"
 msgstr "支撑绘制"
 
@@ -5133,14 +5136,14 @@ msgstr "裹头检测"
 msgid "Check if the nozzle is clumping by filament or other foreign objects."
 msgstr "检查喷嘴是否被耗材丝或其他异物裹住"
 
-msgid "Nozzle Type"
-msgstr "喷嘴类型"
+msgid "Hardened Steel"
+msgstr "硬化钢"
 
 msgid "Stainless Steel"
 msgstr "不锈钢"
 
-msgid "Hardened Steel"
-msgstr "硬化钢"
+msgid "Nozzle Type"
+msgstr "喷嘴类型"
 
 #, c-format, boost-format
 msgid "%.1f"
@@ -5798,6 +5801,12 @@ msgstr ""
 msgid "Enable LOD"
 msgstr "启用LOD"
 
+msgid "Change opengl multi instance rendering requires application restart."
+msgstr "改变opengl多实例渲染要求软件重启。"
+
+msgid "Enable opengl multi instance rendering"
+msgstr "开启opengl多实例渲染"
+
 msgid "Browse"
 msgstr "浏览"
 
@@ -5882,6 +5891,13 @@ msgid ""
 "same time and manage multiple devices."
 msgstr "启用此选项后，您可以同时向多个设备发送任务并管理多个设备。"
 
+msgid "Show the step mesh parameter setting dialog."
+msgstr "显示step参数设置对话框。"
+
+msgid ""
+"If enabled,a parameter settings dialog will appear during STEP file import."
+msgstr "如果启用，导入step文件时将出现设置参数对话框。"
+
 msgid "Support beta version update."
 msgstr "支持beta版本更新"
 
@@ -5914,6 +5930,16 @@ msgid ""
 "Improved rendering performance under the scene of multiple plates and many "
 "models."
 msgstr "在多盘和多模型的场景下提高了渲染性能"
+
+msgid "enable multi instance rendering by opengl"
+msgstr "开启opengl多实例渲染"
+
+msgid ""
+"If enabled, it can improve certain rendering performance. But for some "
+"graphics cards, it may not be applicable, please turn it off."
+msgstr ""
+"如果启用，它可以提高一定的渲染性能。但对于某些图形卡，它可能不适用，请将其关"
+"闭。"
 
 msgid "Grabber scale"
 msgstr "抓手比例"
@@ -5974,6 +6000,9 @@ msgstr "在线模型"
 
 msgid "Show online staff-picked models on the home page"
 msgstr "在主页上显示工作人员挑选的在线模型"
+
+msgid "Show history on the home page"
+msgstr "在主页上显示历史"
 
 msgid "Maximum recent projects"
 msgstr "近期项目的最大数量"
@@ -6364,14 +6393,8 @@ msgstr "离线"
 msgid "Busy"
 msgstr "忙碌"
 
-msgid "Bambu Cool Plate SuperTack"
-msgstr "低温增稳打印板"
-
 msgid "Bambu Cool Plate"
 msgstr "低温打印板"
-
-msgid "PLA Plate"
-msgstr "PLA打印板"
 
 msgid "Bamabu Engineering Plate"
 msgstr "工程材料打印板"
@@ -6384,6 +6407,9 @@ msgstr "高温打印板"
 
 msgid "Bamabu Textured PEI Plate"
 msgstr "纹理PEI打印板"
+
+msgid "Bambu Cool Plate SuperTack"
+msgstr "低温增稳打印板"
 
 msgid "Send print job to"
 msgstr "发送打印任务至"
@@ -6540,10 +6566,8 @@ msgstr ""
 "印机零件进行更改设置。"
 
 #, c-format, boost-format
-msgid ""
-"Printing high temperature material(%s material) with %s may cause nozzle "
-"damage"
-msgstr "用%s打印高温材料（%s材料）可能会导致喷嘴损坏"
+msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
+msgstr "%1s材料在使用%2s的喷嘴打印时,可能会导致喷嘴损坏。"
 
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr "请修复上述错误，否则打印无法继续。"
@@ -6836,8 +6860,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "在录制无工具头延时摄影视频时，建议添加“延时摄影擦料塔”\n"
 "右键单击打印板的空白位置，选择“添加标准模型”->“延时摄影擦料塔”。"
@@ -6971,8 +6995,8 @@ msgid ""
 "does not support to print on the Bambu Cool Plate SuperTack"
 msgstr "安装冷却板时的床温。值0表示耗材丝不支持在低温增稳打印板上打印。"
 
-msgid "Cool Plate / PLA Plate"
-msgstr "低温打印板 / PLA打印板"
+msgid "Cool Plate"
+msgstr "低温打印板"
 
 msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
@@ -7784,22 +7808,28 @@ msgid "Connect the printer using IP and access code"
 msgstr "使用IP和访问代码连接打印"
 
 msgid ""
-"Step 1, please confirm Bambu Studio and your printer are in the same LAN."
-msgstr "第1步，请确认Bambu Studio和您的打印机在同一个LAN上。"
+"Step 1. Please confirm Bambu Studio and your printer are in the same LAN."
+msgstr "步骤1，请确认Bambu Studio和您的打印机位于同一局域网中。"
 
 msgid ""
-"Step 2, if the IP and Access Code below are different from the actual values "
+"Step 2. If the IP and Access Code below are different from the actual values "
 "on your printer, please correct them."
-msgstr "第2步，如果下方的IP和访问代码与打印机上的实际值不同,请更正。"
+msgstr "步骤2，如果下面的IP和访问代码与打印机上的实际值不同，请重新输入。"
+
+msgid ""
+"Step 3. Please obtain the device SN from the printer side; it is usually "
+"found in the device information on the printer screen."
+msgstr ""
+"步骤3，请从打印机端获取设备序列号，它通常位于打印机屏幕上的设备信息中。"
 
 msgid "Access Code"
 msgstr "访问码"
 
+msgid "Printer model"
+msgstr "打印机模型"
+
 msgid "Where to find your printer's IP and Access Code?"
 msgstr "在哪里可以找到打印机的IP和访问代码?"
-
-msgid "Step 3: Ping the IP address to check for packet loss and latency."
-msgstr "步骤3，请ping打印机的IP地址，以此检查丢包和延迟。"
 
 msgid "Connect"
 msgstr "连接"
@@ -7812,9 +7842,6 @@ msgstr "无法连接到打印机"
 
 msgid "Failed to publish login request."
 msgstr "发布登录请求失败"
-
-msgid "The device does not support using IP and Access Code for connection."
-msgstr "该设备不支持使用IP和访问代码进行连接。"
 
 msgid "The printer has already been bound."
 msgstr "打印机已绑定。"
@@ -7985,8 +8012,19 @@ msgstr ""
 "由于错误的自定义G-code，G-code生成失败。\n"
 "\n"
 
-msgid "Please check the custom G-code or use the default custom G-code."
-msgstr "请检查自定义G-code，或者使用默认的。"
+msgid "Please check the custom G-code or use the default custom G-code.\n"
+msgstr "请检查自定义G-code，或者使用默认的。\n"
+
+msgid ""
+"You can find them from 'Printer settings' -> 'Machine G-code' and 'Filament "
+"settings' -> 'Advanced'."
+msgstr "您可以在“打印机设置”->“打印机 G-code”和“耗材设置”->“高级”中找到它们。"
+
+msgid "You can find it from 'Printer settings' -> 'Machine G-code'."
+msgstr "您可以在“打印机设置”->“打印机 G-code”中找到它。"
+
+msgid "You can find it from 'Filament settings' -> 'Advanced'."
+msgstr "您可以在“耗材设置”->“高级”中找到它"
 
 #, boost-format
 msgid "Generating G-code: layer %1%"
@@ -8918,10 +8956,13 @@ msgid ""
 "object printing."
 msgstr "喷嘴尖端到顶盖的距离。用于在逐件打印中避免碰撞。"
 
+msgid "Distance to rod"
+msgstr "到滑杆距离"
+
 msgid ""
-"Clearance radius around extruder. Used for collision avoidance in by-object "
-"printing."
-msgstr "挤出机四周的避让半径。用于在逐件打印中避免碰撞。"
+"Horizontal distance of the nozzle tip to the rod's farther edge. Used for "
+"collision avoidance in by-object printing."
+msgstr "喷嘴尖端到滑杆的较远边缘的水平距离。用于在逐件打印中避免碰撞。"
 
 msgid "Nozzle height"
 msgstr "喷嘴高度"
@@ -10053,16 +10094,16 @@ msgstr ""
 "为了减少闭环挤出中接缝的可见性，循环会被中断并缩短指定的长度。\n"
 "这个长度是当前挤出器直径的百分比。该参数的默认值为15。"
 
-msgid "Conditional scarf joint"
-msgstr "选择性应用斜拼接缝"
+msgid "Smart scarf seam application"
+msgstr "智能斜拼接缝应用"
 
 msgid ""
 "Apply scarf joints only to smooth perimeters where traditional seams do not "
 "conceal the seams at sharp corners effectively."
 msgstr "当墙壁没有合适的锐角以至于传统接缝无法有效隐藏的时候使用斜拼接缝。"
 
-msgid "Conditional angle threshold"
-msgstr "角度阈值"
+msgid "Scarf application angle threshold"
+msgstr "斜拼角度阈值"
 
 msgid ""
 "This option sets the threshold angle for applying a conditional scarf joint "
@@ -10105,7 +10146,7 @@ msgstr ""
 "擦拭速度是根据此配置中指定的速度设置确定的。如果该值以百分比形式表示（例如"
 "80%），则将根据上方的移动速度设置进行计算。该参数的默认值为80%。"
 
-msgid "Role base wipe speed"
+msgid "Role-based wipe speed"
 msgstr "自动擦拭速度"
 
 msgid ""
@@ -10891,15 +10932,15 @@ msgstr ""
 "对象的XY尺寸补偿不会生效，因为在此对象上做过涂色操作。\n"
 "XY尺寸补偿不能与涂色功能一起使用。"
 
-msgid ""
-"Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
-msgstr "未知的文件格式。输入文件的扩展名必须为.stl、.obj 或 .amf（.xml）。"
-
 msgid "Loading of a model file failed."
 msgstr "加载模型文件失败。"
 
 msgid "The supplied file couldn't be read because it's empty"
 msgstr "无法读取提供的文件，因为该文件为空。"
+
+msgid ""
+"Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
+msgstr "未知的文件格式。输入文件的扩展名必须为.stl、.obj 或 .amf（.xml）。"
 
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr "未知的文件格式。输入文件的扩展名必须为.3mf或.zip .amf。"
@@ -10943,8 +10984,8 @@ msgstr "结果可由人眼读取。"
 msgid "Auto-Calibration"
 msgstr "自动校准"
 
-msgid "We would use Lidar to read the calibration result"
-msgstr "我们将使用激光雷达来读取校准结果。"
+msgid "The printer will automatically read the calibration results."
+msgstr "打印机将自动读取校准结果。"
 
 msgid "Prev"
 msgstr "上一个"
@@ -11356,11 +11397,49 @@ msgid "Method"
 msgstr "模式"
 
 #, c-format, boost-format
+msgid ""
+"Tip: Using a %.1fmm nozzle for auto dynamic flow calibration may have a high "
+"probability of failure.\n"
+"If it fails, it is recommended to use manual calibration."
+msgstr ""
+"提示：使用%.1fmm喷嘴进行自动流量校准可能会有较高的失败概率，如果失败，建议使"
+"用手动校准。"
+
+#, c-format, boost-format
+msgid ""
+"Tip: Using a %.1fmm nozzle for auto dynamic flow calibration may not get "
+"accurate calibration results.\n"
+"It is recommended to use manual calibration."
+msgstr ""
+"提示：使用%.1fmm喷嘴进行自动动态流量校准很可能无法获得准确的校准结果，建议使"
+"用手动校准。"
+
+#, c-format, boost-format
 msgid "%s is not compatible with %s"
 msgstr "%s 与 %s 不兼容"
 
 msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
 msgstr "不支持TPU进行动态流量自动校准。"
+
+#, c-format, boost-format
+msgid ""
+"Tip: Calibrating foam filaments(%s) in X series printers may not get "
+"accurate results\n"
+"because their dynamic response is much different from that of ordinary "
+"filaments, and there is a high risk of oozing when printing calibration "
+"lines."
+msgstr ""
+"提示：X系列设备校准发泡材料（%s）可能无法得到一个准确的校准值，\n"
+"因为它的动态响应和普通材料差距较大，且在打印校准线的时候有较大的漏料风险。"
+
+#, c-format, boost-format
+msgid ""
+"Tip: When using the A1/A1 mini printer, we do not recommend calibrating foam "
+"filaments(%s),\n"
+"as the results may be unstable and affect print quality."
+msgstr ""
+"提示：在使用A1/A1 mini机器时，不建议对发泡类材料（%s）进行校准，\n"
+"以免因效果不佳（校准结果不稳定）而影响打印质量。"
 
 msgid "Connecting to printer"
 msgstr "正在连接打印机"
@@ -11822,8 +11901,8 @@ msgstr ""
 "你想重写预设吗"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "我们会将预设重命名为“供应商 类型 系列 @您选择的打印机”。\n"
@@ -13081,6 +13160,107 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid "Rough"
+#~ msgstr "粗糙"
+
+#~ msgid "Reduce Linear"
+#~ msgstr "减少线偏转值"
+
+#~ msgid "Reduce Angle"
+#~ msgstr "减少角偏转值"
+
+#~ msgid "More faces"
+#~ msgstr "更多三角面"
+
+#~ msgid "Fewer faces"
+#~ msgstr "更少三角面"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Printing high temperature material(%1s material) with %2s may cause "
+#~ "nozzle damage"
+#~ msgstr "用%2s打印高温材料（%1s材料）可能会导致喷嘴损坏"
+
+#~ msgid "Unknow error."
+#~ msgstr "未知错误"
+
+#~ msgid ""
+#~ "Printing high temperature material(%1 material) with %2 may cause nozzle "
+#~ "damage"
+#~ msgstr "用%2打印高温材料（%1材料）可能会导致喷嘴损坏"
+
+#~ msgid "We would use Lidar to read the calibration result"
+#~ msgstr "我们将使用激光雷达来读取校准结果。"
+
+#~ msgid "Are you sure you want to cancel this print?"
+#~ msgstr "你确定要取消这次打印吗？"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Printing high temperature material(%s material) with %s may cause nozzle "
+#~ "damage"
+#~ msgstr "用%s打印高温材料（%s材料）可能会导致喷嘴损坏"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Tip: When using the A1/A1 mini machine, we do not recommend calibrating "
+#~ "foam filaments(%s),\n"
+#~ "as the results may be unstable and affect print quality."
+#~ msgstr ""
+#~ "提示：在使用A1/A1 mini机器时，不建议对发泡类材料（%s）进行校准，\n"
+#~ "以免因效果不佳（校准结果不稳定）而影响打印质量。"
+
+#, c-format, boost-format
+#~ msgid "filaments %s cannot be printed directly on the surface of this plate"
+#~ msgstr "材料 %s 不能在直接在当前打印板上打印"
+
+#~ msgid "Remove all points"
+#~ msgstr "删除所有点"
+
+#~ msgid "(Set the brim type to \"painted\")"
+#~ msgstr "将Brim类型设置为绘制模式"
+
+#~ msgid "Conditional scarf joint"
+#~ msgstr "选择性应用斜拼接缝"
+
+#~ msgid "Conditional angle threshold"
+#~ msgstr "角度阈值"
+
+#~ msgid "Role base wipe speed"
+#~ msgstr "自动擦拭速度"
+
+#~ msgid "Jump to layer"
+#~ msgstr "跳转到层"
+
+#~ msgid "PLA Plate"
+#~ msgstr "PLA打印板"
+
+#~ msgid "Cool Plate / PLA Plate"
+#~ msgstr "低温打印板 / PLA打印板"
+
+#~ msgid ""
+#~ "Step 1, please confirm Bambu Studio and your printer are in the same LAN."
+#~ msgstr "第1步，请确认Bambu Studio和您的打印机在同一个LAN上。"
+
+#~ msgid ""
+#~ "Step 2, if the IP and Access Code below are different from the actual "
+#~ "values on your printer, please correct them."
+#~ msgstr "第2步，如果下方的IP和访问代码与打印机上的实际值不同,请更正。"
+
+#~ msgid "Step 3: Ping the IP address to check for packet loss and latency."
+#~ msgstr "步骤3，请ping打印机的IP地址，以此检查丢包和延迟。"
+
+#~ msgid "The device does not support using IP and Access Code for connection."
+#~ msgstr "该设备不支持使用IP和访问代码进行连接。"
+
+#~ msgid "Please check the custom G-code or use the default custom G-code."
+#~ msgstr "请检查自定义G-code，或者使用默认的。"
+
+#~ msgid ""
+#~ "Clearance radius around extruder. Used for collision avoidance in by-"
+#~ "object printing."
+#~ msgstr "挤出机四周的避让半径。用于在逐件打印中避免碰撞。"
 
 #~ msgid "Warning: The brim type is not set to manual,"
 #~ msgstr "警告：Brim类型未设置为手动，"
@@ -15083,9 +15263,6 @@ msgstr ""
 #~ "有一些未知型号的材料，映射到通用预设。请更新或者重启 Bambu Studio，以检查"
 #~ "系统预设有没有更新。"
 
-#~ msgid "Cool Plate"
-#~ msgstr "低温打印板"
-
 #~ msgid ""
 #~ "Extrusion compensation calibration is not supported when using Textured "
 #~ "PEI Plate"
@@ -15152,7 +15329,7 @@ msgstr ""
 #~ msgstr "下载视频"
 
 #~ msgid "Cool plate"
-#~ msgstr "低温打印板 / PLA打印板"
+#~ msgstr "低温打印板"
 
 #~ msgid "Engineering plate"
 #~ msgstr "工程材料打印板"
@@ -18807,8 +18984,8 @@ msgstr ""
 #~ msgstr "正在准备设置页"
 
 #~ msgid ""
-#~ "You have the following presets with saved options for \"Print Host upload"
-#~ "\""
+#~ "You have the following presets with saved options for \"Print Host "
+#~ "upload\""
 #~ msgstr "您的以下预设中包含未保存的选项“打印主机上传”"
 
 #~ msgid ""

@@ -92,7 +92,8 @@ void CalibrationCaliPage::on_subtask_abort(wxCommandEvent& event)
             if (obj) obj->command_task_abort();
             });
     }
-    abort_dlg->update_text(_L("Are you sure you want to cancel this print?"));
+    abort_dlg->update_text(_L("Are you sure to stop printing?"));
+    abort_dlg->update_btn_label(_L("Yes"), _L("No"));
     abort_dlg->on_show();
 }
 

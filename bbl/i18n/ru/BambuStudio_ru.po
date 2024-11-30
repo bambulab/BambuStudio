@@ -2,12 +2,12 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: 1.9.7.52 Public Official\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-25 21:39+0800\n"
+"POT-Creation-Date: 2024-11-14 20:56+0800\n"
 "PO-Revision-Date: 2024-09-27 23:58+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -15,8 +15,8 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
 "X-Generator: Poedit 3.4.2\n"
 
 msgid "Supports Painting"
@@ -863,6 +863,9 @@ msgstr ""
 msgid "Warning:create text fail."
 msgstr ""
 
+msgid "Warning:text normal is error."
+msgstr ""
+
 msgid "Surface"
 msgstr "На поверхности"
 
@@ -881,7 +884,7 @@ msgstr ""
 msgid "Remove selected points"
 msgstr ""
 
-msgid "Remove all points"
+msgid "Remove all"
 msgstr ""
 
 msgid "Auto-generate points"
@@ -904,7 +907,7 @@ msgid ""
 "effect !"
 msgstr ""
 
-msgid "(Set the brim type to \"painted\")"
+msgid "Set the brim type to \"painted\""
 msgstr ""
 
 msgid " invalid brim ears"
@@ -2084,9 +2087,6 @@ msgid "OK"
 msgstr "OK"
 
 msgid "Jump to Layer"
-msgstr "Перейти к слою"
-
-msgid "Jump to layer"
 msgstr "Перейти к слою"
 
 msgid "Please enter the layer number"
@@ -3979,6 +3979,10 @@ msgstr ""
 "пределы стола) и убедитесь, что высота модели находится в пределах область "
 "построения."
 
+#, c-format, boost-format
+msgid "filaments %s cannot be printed directly on the surface of this plate."
+msgstr ""
+
 msgid "Calibration step selection"
 msgstr "Выбор шага калибровки"
 
@@ -4962,8 +4966,11 @@ msgstr "Неисправность SD-карты"
 msgid "Cancel print"
 msgstr "Отмена печати"
 
-msgid "Are you sure you want to cancel this print?"
-msgstr "Вы уверены, что хотите отменить эту печать?"
+msgid "Are you sure to stop printing?"
+msgstr ""
+
+msgid "Unknown error."
+msgstr ""
 
 msgid "Downloading..."
 msgstr "Загрузка..."
@@ -5145,19 +5152,12 @@ msgstr ""
 msgid "Step file import parameters"
 msgstr ""
 
-msgid "Rough"
+msgid ""
+"Smaller linear and angular deflections result in higher-quality "
+"transformations but increase the processing time."
 msgstr ""
 
-msgid "Reduce Linear"
-msgstr ""
-
-msgid "Reduce Angle"
-msgstr ""
-
-msgid "Fewer faces"
-msgstr ""
-
-msgid "More faces"
+msgid "See BambuLab Wiki"
 msgstr ""
 
 msgid "Linear Deflection"
@@ -5178,6 +5178,9 @@ msgstr ""
 msgid "0"
 msgstr ""
 
+msgid "Don't show again"
+msgstr "Больше не показывать"
+
 msgid "Calculating, please wait..."
 msgstr ""
 
@@ -5186,9 +5189,6 @@ msgstr "Статус"
 
 msgid "Update"
 msgstr "Обновление"
-
-msgid "Don't show again"
-msgstr "Больше не показывать"
 
 #, c-format, boost-format
 msgid "%s error"
@@ -5381,6 +5381,9 @@ msgstr "Вашей модели необходима поддержка, вкл�
 msgid "Gcode path overlap"
 msgstr "Перекрытие пути G-кода"
 
+msgid "Click Wiki for help."
+msgstr ""
+
 msgid "Support painting"
 msgstr "Рисование поддержек"
 
@@ -5464,14 +5467,14 @@ msgstr ""
 "Обнаружение накапливания на сопле материала в результате засорения/протечки "
 "сопла или других причин."
 
-msgid "Nozzle Type"
-msgstr "Тип сопла"
+msgid "Hardened Steel"
+msgstr "Закалённая сталь"
 
 msgid "Stainless Steel"
 msgstr "Нержавеющая сталь"
 
-msgid "Hardened Steel"
-msgstr "Закалённая сталь"
+msgid "Nozzle Type"
+msgstr "Тип сопла"
 
 #, c-format, boost-format
 msgid "%.1f"
@@ -6179,6 +6182,12 @@ msgstr ""
 msgid "Enable LOD"
 msgstr ""
 
+msgid "Change opengl multi instance rendering requires application restart."
+msgstr ""
+
+msgid "Enable opengl multi instance rendering"
+msgstr ""
+
 msgid "Browse"
 msgstr "Обзор"
 
@@ -6277,6 +6286,13 @@ msgstr ""
 "Если включено, вы сможете управлять несколькими устройствами и отправлять "
 "задания на печать на несколько устройств одновременно."
 
+msgid "Show the step mesh parameter setting dialog."
+msgstr ""
+
+msgid ""
+"If enabled,a parameter settings dialog will appear during STEP file import."
+msgstr ""
+
 msgid "Support beta version update."
 msgstr ""
 
@@ -6310,6 +6326,14 @@ msgstr ""
 msgid ""
 "Improved rendering performance under the scene of multiple plates and many "
 "models."
+msgstr ""
+
+msgid "enable multi instance rendering by opengl"
+msgstr ""
+
+msgid ""
+"If enabled, it can improve certain rendering performance. But for some "
+"graphics cards, it may not be applicable, please turn it off."
 msgstr ""
 
 msgid "Grabber scale"
@@ -6378,6 +6402,9 @@ msgid "Show online staff-picked models on the home page"
 msgstr ""
 "Показывать на главной странице модели из сети отобранные\n"
 "сотрудниками компании"
+
+msgid "Show history on the home page"
+msgstr ""
 
 msgid "Maximum recent projects"
 msgstr "Максимальное количество недавних проектов"
@@ -6783,14 +6810,8 @@ msgstr "Не в сети"
 msgid "Busy"
 msgstr "Занят"
 
-msgid "Bambu Cool Plate SuperTack"
-msgstr ""
-
 msgid "Bambu Cool Plate"
 msgstr "Не нагреваемая пластина Bambu"
-
-msgid "PLA Plate"
-msgstr "PLA пластина"
 
 msgid "Bamabu Engineering Plate"
 msgstr "Инженерная пластина Bambu"
@@ -6803,6 +6824,9 @@ msgstr "Высокотемпературная пластина"
 
 msgid "Bamabu Textured PEI Plate"
 msgstr "Текстурированная PEI пластина Bambu"
+
+msgid "Bambu Cool Plate SuperTack"
+msgstr ""
 
 msgid "Send print job to"
 msgstr "Отправка задания на печать"
@@ -6986,12 +7010,8 @@ msgstr ""
 "изменить настройки."
 
 #, c-format, boost-format
-msgid ""
-"Printing high temperature material(%s material) with %s may cause nozzle "
-"damage"
+msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
 msgstr ""
-"Печать высокотемпературным материалом (%s) с %s может привести к повреждению "
-"сопла"
 
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr ""
@@ -7311,8 +7331,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "При записи таймлапса без видимости головы рекомендуется добавить «Черновая "
 "башня таймлапса». \n"
@@ -7462,8 +7482,8 @@ msgid ""
 "does not support to print on the Bambu Cool Plate SuperTack"
 msgstr ""
 
-msgid "Cool Plate / PLA Plate"
-msgstr "Не нагреваемая/PLA пластина"
+msgid "Cool Plate"
+msgstr ""
 
 msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
@@ -8327,27 +8347,27 @@ msgid "Connect the printer using IP and access code"
 msgstr ""
 
 msgid ""
-"Step 1, please confirm Bambu Studio and your printer are in the same LAN."
+"Step 1. Please confirm Bambu Studio and your printer are in the same LAN."
 msgstr ""
-"Шаг 1. Пожалуйста, убедитесь, что Bambu Studio и ваш принтер находятся в "
-"одной локальной сети."
 
 msgid ""
-"Step 2, if the IP and Access Code below are different from the actual values "
+"Step 2. If the IP and Access Code below are different from the actual values "
 "on your printer, please correct them."
 msgstr ""
-"Шаг 2. Если приведенный ниже IP-адрес и код доступа отличаются от "
-"фактических значений на вашем принтере, пожалуйста, исправьте их."
+
+msgid ""
+"Step 3. Please obtain the device SN from the printer side; it is usually "
+"found in the device information on the printer screen."
+msgstr ""
 
 msgid "Access Code"
 msgstr "Код доступа"
 
+msgid "Printer model"
+msgstr ""
+
 msgid "Where to find your printer's IP and Access Code?"
 msgstr "Где найти IP-адрес и код доступа к вашему принтеру?"
-
-msgid "Step 3: Ping the IP address to check for packet loss and latency."
-msgstr ""
-"Шаг 3. Пропингуйте IP-адрес, чтобы проверить потерю пакетов и задержку."
 
 msgid "Connect"
 msgstr ""
@@ -8359,9 +8379,6 @@ msgid "Failed to connect to printer."
 msgstr ""
 
 msgid "Failed to publish login request."
-msgstr ""
-
-msgid "The device does not support using IP and Access Code for connection."
 msgstr ""
 
 msgid "The printer has already been bound."
@@ -8543,10 +8560,19 @@ msgstr ""
 "Не удалось сгенерировать G-код из-за недопустимого пользовательского G-"
 "кода.\n"
 
-msgid "Please check the custom G-code or use the default custom G-code."
+msgid "Please check the custom G-code or use the default custom G-code.\n"
 msgstr ""
-"Пожалуйста, проверьте пользовательский G-код или используйте "
-"пользовательский G-код по умолчанию."
+
+msgid ""
+"You can find them from 'Printer settings' -> 'Machine G-code' and 'Filament "
+"settings' -> 'Advanced'."
+msgstr ""
+
+msgid "You can find it from 'Printer settings' -> 'Machine G-code'."
+msgstr ""
+
+msgid "You can find it from 'Filament settings' -> 'Advanced'."
+msgstr ""
 
 #, boost-format
 msgid "Generating G-code: layer %1%"
@@ -9619,12 +9645,13 @@ msgstr ""
 "Расстояние от кончика сопла до крышки. Значение важно при печати моделей «По "
 "очереди» для предотвращения столкновений."
 
-msgid ""
-"Clearance radius around extruder. Used for collision avoidance in by-object "
-"printing."
+msgid "Distance to rod"
 msgstr ""
-"Безопасное расстояние вокруг экструдера. Используется для предотвращения "
-"столкновений при печати отдельно стоящих моделей."
+
+msgid ""
+"Horizontal distance of the nozzle tip to the rod's farther edge. Used for "
+"collision avoidance in by-object printing."
+msgstr ""
 
 msgid "Nozzle height"
 msgstr "Высота сопла"
@@ -10334,8 +10361,8 @@ msgstr ""
 "две ближайшие линии заполнения с коротким отрезком периметра. Если не "
 "найдено такого отрезка периметра короче этого параметра, линия заполнения "
 "соединяется с отрезком периметра только с одной стороны, а длина отрезка "
-"периметра ограничена значением «Длина привязок разреженного "
-"заполнения» (infill_anchor), но не больше этого параметра.\n"
+"периметра ограничена значением «Длина привязок разреженного заполнения» "
+"(infill_anchor), но не больше этого параметра.\n"
 "Установите 0 для отключения привязок."
 
 msgid "0 (not anchored)"
@@ -10937,8 +10964,8 @@ msgstr ""
 "Это величина задаётся в процентах от текущего диаметра сопла. Значение по "
 "умолчанию - 15%."
 
-msgid "Conditional scarf joint"
-msgstr "Условие для клиновидного шва"
+msgid "Smart scarf seam application"
+msgstr ""
 
 msgid ""
 "Apply scarf joints only to smooth perimeters where traditional seams do not "
@@ -10947,8 +10974,8 @@ msgstr ""
 "Использовать клиновидный шов только на гладких периметрах, где традиционные "
 "швы не могут быть эффективно скрыты."
 
-msgid "Conditional angle threshold"
-msgstr "Пороговый угол для клиновидного шва"
+msgid "Scarf application angle threshold"
+msgstr ""
 
 msgid ""
 "This option sets the threshold angle for applying a conditional scarf joint "
@@ -10994,7 +11021,7 @@ msgstr ""
 "то она вычисляться относительно скорости перемещения. 80% - значение по "
 "умолчанию."
 
-msgid "Role base wipe speed"
+msgid "Role-based wipe speed"
 msgstr ""
 
 msgid ""
@@ -11907,17 +11934,17 @@ msgstr ""
 "Коррекция горизонтальных размеров модели не может использоваться в сочетании "
 "с функцией раскрашивания."
 
-msgid ""
-"Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
-msgstr ""
-"Неизвестный формат файла. Входной файл должен иметь расширение *.stl, *.obj, "
-"*.amf(.xml)."
-
 msgid "Loading of a model file failed."
 msgstr "Не удалось загрузить файл модели."
 
 msgid "The supplied file couldn't be read because it's empty"
 msgstr "Предоставленный файл не может быть прочитан, так как он пуст."
+
+msgid ""
+"Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
+msgstr ""
+"Неизвестный формат файла. Входной файл должен иметь расширение *.stl, *.obj, "
+"*.amf(.xml)."
 
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
@@ -11964,8 +11991,8 @@ msgstr "Результат калибровки может быть визуал
 msgid "Auto-Calibration"
 msgstr "Автокалибровка"
 
-msgid "We would use Lidar to read the calibration result"
-msgstr "Для считывания результата калибровки будет использоваться лидар."
+msgid "The printer will automatically read the calibration results."
+msgstr ""
 
 msgid "Prev"
 msgstr "Назад"
@@ -12430,11 +12457,41 @@ msgid "Method"
 msgstr "Метод"
 
 #, c-format, boost-format
+msgid ""
+"Tip: Using a %.1fmm nozzle for auto dynamic flow calibration may have a high "
+"probability of failure.\n"
+"If it fails, it is recommended to use manual calibration."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Tip: Using a %.1fmm nozzle for auto dynamic flow calibration may not get "
+"accurate calibration results.\n"
+"It is recommended to use manual calibration."
+msgstr ""
+
+#, c-format, boost-format
 msgid "%s is not compatible with %s"
 msgstr "%s не совместима с %s"
 
 msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
 msgstr "Автоматическая калибровка динамики потока для TPU не поддерживается."
+
+#, c-format, boost-format
+msgid ""
+"Tip: Calibrating foam filaments(%s) in X series printers may not get "
+"accurate results\n"
+"because their dynamic response is much different from that of ordinary "
+"filaments, and there is a high risk of oozing when printing calibration "
+"lines."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Tip: When using the A1/A1 mini printer, we do not recommend calibrating foam "
+"filaments(%s),\n"
+"as the results may be unstable and affect print quality."
+msgstr ""
 
 msgid "Connecting to printer"
 msgstr "Подключением к принтеру"
@@ -12913,8 +12970,8 @@ msgstr ""
 "Хотите перезаписать его?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "Мы переименуем профиль в \"Производитель Тип Серия @выбранный принтер\".\n"
@@ -14278,6 +14335,64 @@ msgstr ""
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как "
 "ABS, повышение температуры подогреваемого стола может снизить эту "
 "вероятность?"
+
+#~ msgid "We would use Lidar to read the calibration result"
+#~ msgstr "Для считывания результата калибровки будет использоваться лидар."
+
+#~ msgid "Are you sure you want to cancel this print?"
+#~ msgstr "Вы уверены, что хотите отменить эту печать?"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Printing high temperature material(%s material) with %s may cause nozzle "
+#~ "damage"
+#~ msgstr ""
+#~ "Печать высокотемпературным материалом (%s) с %s может привести к "
+#~ "повреждению сопла"
+
+#~ msgid "Conditional scarf joint"
+#~ msgstr "Условие для клиновидного шва"
+
+#~ msgid "Conditional angle threshold"
+#~ msgstr "Пороговый угол для клиновидного шва"
+
+#~ msgid "Jump to layer"
+#~ msgstr "Перейти к слою"
+
+#~ msgid "PLA Plate"
+#~ msgstr "PLA пластина"
+
+#~ msgid "Cool Plate / PLA Plate"
+#~ msgstr "Не нагреваемая/PLA пластина"
+
+#~ msgid ""
+#~ "Step 1, please confirm Bambu Studio and your printer are in the same LAN."
+#~ msgstr ""
+#~ "Шаг 1. Пожалуйста, убедитесь, что Bambu Studio и ваш принтер находятся в "
+#~ "одной локальной сети."
+
+#~ msgid ""
+#~ "Step 2, if the IP and Access Code below are different from the actual "
+#~ "values on your printer, please correct them."
+#~ msgstr ""
+#~ "Шаг 2. Если приведенный ниже IP-адрес и код доступа отличаются от "
+#~ "фактических значений на вашем принтере, пожалуйста, исправьте их."
+
+#~ msgid "Step 3: Ping the IP address to check for packet loss and latency."
+#~ msgstr ""
+#~ "Шаг 3. Пропингуйте IP-адрес, чтобы проверить потерю пакетов и задержку."
+
+#~ msgid "Please check the custom G-code or use the default custom G-code."
+#~ msgstr ""
+#~ "Пожалуйста, проверьте пользовательский G-код или используйте "
+#~ "пользовательский G-код по умолчанию."
+
+#~ msgid ""
+#~ "Clearance radius around extruder. Used for collision avoidance in by-"
+#~ "object printing."
+#~ msgstr ""
+#~ "Безопасное расстояние вокруг экструдера. Используется для предотвращения "
+#~ "столкновений при печати отдельно стоящих моделей."
 
 #~ msgid "Tree support branch angle"
 #~ msgstr "Угол нависания ветвей древовидной поддержки"

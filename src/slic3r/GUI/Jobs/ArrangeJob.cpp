@@ -471,8 +471,11 @@ void ArrangeJob::prepare_outside_plate() {
             iter1 = all_inside_objects.find(std::pair(obj_idx, inst_idx));
             iter2 = all_outside_objects.find(std::pair(obj_idx, inst_idx));
             bool outside_plate = false;
-            if ((iter2 != all_outside_objects.end())
-                || (iter1 == all_inside_objects.end())) {
+            if (iter1 == all_inside_objects.end()) {
+                //skip
+                continue;
+            }
+            if (iter2 != all_outside_objects.end()) {
                 outside_plate = true;
             }
             ArrangePolygon&& ap = prepare_arrange_polygon(instance);

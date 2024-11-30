@@ -417,7 +417,9 @@ public:
     {
         bool result = m_slice_result_valid;
         if (result)
-            result = m_gcode_result ? (!m_gcode_result->toolpath_outside) : false;// && !m_gcode_result->conflict_result.has_value()  gcode conflict can also print
+            result = m_gcode_result ?
+            (!m_gcode_result->toolpath_outside && !m_gcode_result->filament_printable_reuslt.has_value()) :
+            false;// && !m_gcode_result->conflict_result.has_value()  gcode conflict can also print
         return result;
     }
 
@@ -814,15 +816,19 @@ public:
                          bool  only_body              = false,
                          bool  force_background_color = false,
                          int   hover_id               = -1,
-                         bool  show_grid              = true);
+                         bool  show_grid              = true,
+                         bool  enable_multi_instance  = true);
     void render_instance_grid(bool bottom);
+    void render_unselected_grid(bool bottom);
     void render_instance_background(bool force_default_color = false);
+    void render_unselected_background(bool force_default_color);
     void render_grid(bool bottom);
     void render_exclude_area(bool force_default_color);
     void render_instance_exclude_area(bool force_default_color);
+    void render_unselected_exclude_area(bool force_default_color);
 
     void on_change_color_mode(bool is_dark) { m_is_dark = is_dark; }
-    void render(bool bottom,    bool only_current = false, bool only_body = false, int hover_id = -1, bool render_cali = false, bool show_grid = true);
+    void render(bool bottom, bool only_current = false, bool only_body = false, int hover_id = -1, bool render_cali = false, bool show_grid = true, bool enable_multi_instance = true);
     void render_for_picking_pass();
     void set_render_option(bool bedtype_texture, bool plate_settings);
     void set_render_cali(bool value = true) { render_cali_logo = value; }

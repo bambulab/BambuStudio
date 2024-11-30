@@ -2137,7 +2137,6 @@ void PartPlate::set_logo_box_by_bed(const BoundingBoxf3& box)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":error :Unable to create logo triangles in set_logo_box_by_bed\n";
             return;
         }
-        m_partplate_list->m_logo_texture.reset();
 	}
 }
 
@@ -4683,15 +4682,19 @@ void PartPlateList::postprocess_arrange_polygon(arrangement::ArrangePolygon& arr
 }
 
 /*rendering related functions*/
-void PartPlateList::render_instance(bool bottom, bool only_current, bool only_body, bool force_background_color, int hover_id, bool show_grid)
+void PartPlateList::render_instance(bool bottom, bool only_current, bool only_body, bool force_background_color, int hover_id, bool show_grid, bool enable_multi_instance)
 {
-    if (m_update_plate_mats_vbo) {
-		m_update_plate_mats_vbo = false;
-        GLModel::create_or_update_mats_vbo(m_plate_mats_vbo, m_plate_trans);
-	}
-    if (m_update_unselected_plate_mats_vbo) {
-        m_update_unselected_plate_mats_vbo = false;
-        GLModel::create_or_update_mats_vbo(m_unselected_plate_mats_vbo, m_unselected_plate_trans);
+    if (enable_multi_instance) {
+        if (!only_current) {
+            if (m_update_plate_mats_vbo) {
+                m_update_plate_mats_vbo = false;
+                GLModel::create_or_update_mats_vbo(m_plate_mats_vbo, m_plate_trans);
+            }
+            if (m_update_unselected_plate_mats_vbo) {
+                m_update_unselected_plate_mats_vbo = false;
+                GLModel::create_or_update_mats_vbo(m_unselected_plate_mats_vbo, m_unselected_plate_trans);
+            }
+        }
     }
 
     const Camera &camera   = wxGetApp().plater()->get_camera();
@@ -4700,34 +4703,49 @@ void PartPlateList::render_instance(bool bottom, bool only_current, bool only_bo
     {
        auto cur_shader = wxGetApp().get_current_shader();
         if (cur_shader) {
-			cur_shader->stop_using();
-		}
+            cur_shader->stop_using();
+        }
+       GLShaderProgram *shader = wxGetApp().get_shader("flat");
        {//for selected
-            GLShaderProgram *shader = wxGetApp().get_shader("flat");
             shader->start_using();
             shader->set_uniform("view_model_matrix", view_mat * m_plate_trans[m_current_plate].get_matrix());
             shader->set_uniform("projection_matrix", proj_mat);
             if (!bottom) { // draw background
                 render_exclude_area(force_background_color); // for selected_plate
             }
-			if (show_grid)
-				render_grid(bottom); // for selected_plate
-
-            shader->stop_using();
-
-		}
+            if (show_grid)
+                render_grid(bottom); // for selected_plate
+        }
+       if (enable_multi_instance) {
+           shader->stop_using();
+       }
        if (!only_current) {
-			GLShaderProgram *shader = wxGetApp().get_shader("flat_instance");
-			shader->start_using();
-			auto res =shader->set_uniform("view_matrix", view_mat);
-			res      = shader->set_uniform("projection_matrix", proj_mat);
-			if (!bottom) {// draw background
-				render_instance_background(force_background_color);//for unselected_plate
-				render_instance_exclude_area(force_background_color);//for unselected_plate
-			}
-			render_instance_grid(bottom);//for unselected_plate
+           if (enable_multi_instance) {
+                GLShaderProgram *shader = wxGetApp().get_shader("flat_instance");
+                shader->start_using();
+                auto res = shader->set_uniform("view_matrix", view_mat);
+                res      = shader->set_uniform("projection_matrix", proj_mat);
+                if (!bottom) {                                            // draw background
+                    render_instance_background(force_background_color);   // for unselected_plate
+                    render_instance_exclude_area(force_background_color); // for unselected_plate
+                }
+                render_instance_grid(bottom); // for unselected_plate
 
-			shader->stop_using();
+                shader->stop_using();
+            }
+            else {
+                for (size_t i = 0; i < m_unselected_plate_trans.size(); i++) {
+                    shader->set_uniform("view_model_matrix", view_mat * m_unselected_plate_trans[i].get_matrix());
+                    if (!bottom) {                                            // draw background
+                        render_unselected_background(force_background_color);   // for unselected_plate
+                        render_unselected_exclude_area(force_background_color); // for unselected_plate
+                    }
+                    render_unselected_grid(bottom); // for unselected_plate
+                }
+            }
+       }
+       if (!enable_multi_instance) {
+          shader->stop_using();
        }
     }
 
@@ -4770,6 +4788,22 @@ void PartPlateList::render_instance_grid(bool bottom)
     m_gridlines_bolder.render_geometry_instance(m_unselected_plate_mats_vbo, m_unselected_plate_trans.size());
 }
 
+void PartPlateList::render_unselected_grid(bool bottom)
+{
+    glsafe(::glLineWidth(1.0f * m_scale_factor));
+    ColorRGBA color;
+    if (bottom)
+        color = PartPlate::LINE_BOTTOM_COLOR;
+    else {
+        color = m_is_dark ? PartPlate::LINE_TOP_DARK_COLOR : PartPlate::LINE_TOP_COLOR;
+    }
+    m_gridlines.set_color(color);
+    m_gridlines.render_geometry();
+    glsafe(::glLineWidth(2.0f * m_scale_factor));
+    m_gridlines_bolder.set_color(color);
+    m_gridlines_bolder.render_geometry();
+}
+
 void PartPlateList::render_instance_background(bool force_default_color)
 {
     if (m_unselected_plate_trans.size() == 0) { return; }
@@ -4782,6 +4816,19 @@ void PartPlateList::render_instance_background(bool force_default_color)
     }
     m_triangles.set_color(color);
     m_triangles.render_geometry_instance(m_unselected_plate_mats_vbo, m_unselected_plate_trans.size());
+}
+
+void PartPlateList::render_unselected_background(bool force_default_color)
+{
+    // draw background
+    ColorRGBA color;
+    if (!force_default_color) {
+        color = m_is_dark ? PartPlate::UNSELECT_DARK_COLOR : PartPlate::UNSELECT_COLOR;
+    } else {
+        color = PartPlate::DEFAULT_COLOR;
+    }
+    m_triangles.set_color(color);
+    m_triangles.render_geometry();
 }
 
 void PartPlateList::render_exclude_area(bool force_default_color)
@@ -4805,8 +4852,18 @@ void PartPlateList::render_instance_exclude_area(bool force_default_color)
     m_exclude_triangles.render_geometry_instance(m_unselected_plate_mats_vbo, m_unselected_plate_trans.size());
 }
 
+void PartPlateList::render_unselected_exclude_area(bool force_default_color)
+{
+    if (force_default_color || !m_exclude_triangles.is_initialized()) // for thumbnail case
+        return;
+    ColorRGBA unselect_color{0.9f, 0.9f, 0.9f, 1.0f};
+    // draw exclude area
+    m_exclude_triangles.set_color(unselect_color);
+    m_exclude_triangles.render_geometry();
+}
+
 //render
-void PartPlateList::render(bool bottom, bool only_current, bool only_body, int hover_id, bool render_cali, bool show_grid)
+void PartPlateList::render(bool bottom, bool only_current, bool only_body, int hover_id, bool render_cali, bool show_grid, bool enable_multi_instance)
 {
 	const std::lock_guard<std::mutex> local_lock(m_plates_mutex);
 	std::vector<PartPlate*>::iterator it = m_plate_list.begin();
@@ -4830,7 +4887,7 @@ void PartPlateList::render(bool bottom, bool only_current, bool only_body, int h
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
     glsafe(::glDepthMask(GL_FALSE));
 
-	render_instance(bottom, only_current, only_body, false,  m_plate_hover_action, show_grid);
+	render_instance(bottom, only_current, only_body, false, m_plate_hover_action, show_grid, enable_multi_instance);
 
 	for (it = m_plate_list.begin(); it != m_plate_list.end(); it++) {
 		int current_index = (*it)->get_index();
@@ -5570,18 +5627,23 @@ void PartPlateList::BedTextureInfo::reset()
 
 void PartPlateList::init_bed_type_info()
 {
-	BedTextureInfo::TexturePart pc_part1(10, 130,  10, 110, "bbl_bed_pc_left.svg");
-	BedTextureInfo::TexturePart pc_part2(74, -10, 148, 12, "bbl_bed_pc_bottom.svg");
-	BedTextureInfo::TexturePart ep_part1(7.5, 90, 12.5, 150, "bbl_bed_ep_left.svg");
-	BedTextureInfo::TexturePart ep_part2(74, -10, 148, 12, "bbl_bed_ep_bottom.svg");
-	BedTextureInfo::TexturePart pei_part1(7.5, 50, 12.5, 190, "bbl_bed_pei_left.svg");
-	BedTextureInfo::TexturePart pei_part2(74, -10, 148, 12, "bbl_bed_pei_bottom.svg");
-	BedTextureInfo::TexturePart pte_part1(10, 80, 10, 160, "bbl_bed_pte_left.svg");
-	BedTextureInfo::TexturePart pte_part2(74, -10, 148,  12, "bbl_bed_pte_bottom.svg");
+    BedTextureInfo::TexturePart st_part1(10, 52, 8.393f, 192, "bbl_bed_st_left.svg");
+    BedTextureInfo::TexturePart st_part2(74, -10, 148, 12, "bbl_bed_st_bottom.svg");
+    BedTextureInfo::TexturePart pc_part1(10, 52, 8.393f, 192, "bbl_bed_pc_left.svg");
+    BedTextureInfo::TexturePart pc_part2(74, -10, 148, 12, "bbl_bed_pc_bottom.svg");
+    BedTextureInfo::TexturePart ep_part1(10, 52, 8.393f, 192, "bbl_bed_ep_left.svg");
+    BedTextureInfo::TexturePart ep_part2(74, -10, 148, 12, "bbl_bed_ep_bottom.svg");
+    BedTextureInfo::TexturePart pei_part1(10, 52, 8.393f, 192, "bbl_bed_pei_left.svg");
+    BedTextureInfo::TexturePart pei_part2(74, -10, 148, 12, "bbl_bed_pei_bottom.svg");
+    BedTextureInfo::TexturePart pte_part1(10, 52, 8.393f, 192, "bbl_bed_pte_left.svg");
+    BedTextureInfo::TexturePart pte_part2(74, -10, 148, 12, "bbl_bed_pte_bottom.svg");
+
 	for (size_t i = 0; i < btCount; i++) {
 		bed_texture_info[i].reset();
 		bed_texture_info[i].parts.clear();
 	}
+    bed_texture_info[btSuperTack].parts.push_back(st_part1);
+    bed_texture_info[btSuperTack].parts.push_back(st_part2);
 	bed_texture_info[btPC].parts.push_back(pc_part1);
 	bed_texture_info[btPC].parts.push_back(pc_part2);
 	bed_texture_info[btEP].parts.push_back(ep_part1);
@@ -5600,8 +5662,13 @@ void PartPlateList::init_bed_type_info()
 	float y_rate      = bed_height / base_height;
 	for (int i = 0; i < btCount; i++) {
 		for (int j = 0; j < bed_texture_info[i].parts.size(); j++) {
-			bed_texture_info[i].parts[j].x *= x_rate;
-			bed_texture_info[i].parts[j].y *= y_rate;
+            if (j == 0 && (bed_width == 180 && bed_height == 180)) {
+                bed_texture_info[i].parts[j].x = 10;
+                bed_texture_info[i].parts[j].y = 35;
+            } else {
+                bed_texture_info[i].parts[j].x *= x_rate;
+                bed_texture_info[i].parts[j].y *= y_rate;
+            }
 			bed_texture_info[i].parts[j].w *= x_rate;
 			bed_texture_info[i].parts[j].h *= y_rate;
 			bed_texture_info[i].parts[j].update_buffer();

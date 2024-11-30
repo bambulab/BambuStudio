@@ -23,13 +23,37 @@ static const std::string config_3mf_path = temp_dir + "/test_config.3mf";
 
 static std::string MachineBedTypeString[6] = {
     "auto",
-    "suprtack",
     "pc",
     "ep",
     "pei",
-    "pte"
+    "pte",
+    "suprtack"
 };
 
+void get_default_k_n_value(const std::string &filament_id, float &k, float &n)
+{
+    if (filament_id.compare("GFG00") == 0) {
+        // PETG
+        k = 0.04;
+        n = 1.0;
+    } else if (filament_id.compare("GFB00") == 0 || filament_id.compare("GFB50") == 0) {
+        // ABS
+        k = 0.04;
+        n = 1.0;
+    } else if (filament_id.compare("GFU01") == 0) {
+        // TPU
+        k = 0.2;
+        n = 1.0;
+    } else if (filament_id.compare("GFB01") == 0) {
+        // ASA
+        k = 0.04;
+        n = 1.0;
+    } else {
+        // PLA , other
+        k = 0.02;
+        n = 1.0;
+    }
+}
 
 std::string get_calib_mode_name(CalibMode cali_mode, int stage)
 {
@@ -297,7 +321,7 @@ static void read_model_from_file(const std::string& input_file, Model& model)
     std::vector<Preset *> project_presets;
 
     model = Model::read_from_file(input_file, &config, &config_substitutions, strategy, &plate_data_src, &project_presets,
-        &is_bbl_3mf, &file_version, nullptr, nullptr, nullptr, nullptr, nullptr, plate_to_slice);
+        &is_bbl_3mf, &file_version, nullptr, nullptr, nullptr, plate_to_slice);
 
     model.add_default_instances();
     for (auto object : model.objects)
@@ -1039,9 +1063,9 @@ bool CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &f
 
     if (params.mode == CalibMode::Calib_PA_Pattern) {
         ModelInstance *instance = model->objects[0]->instances[0];
-        Vec3d offset = model->calib_pa_pattern->get_start_offset() +
-                       Vec3d(model->calib_pa_pattern->handle_xy_size() / 2, -model->calib_pa_pattern->handle_xy_size() / 2 - model->calib_pa_pattern->handle_spacing(), 0);
-        instance->set_offset(offset);
+        instance->set_offset(Axis::X, model->calib_pa_pattern->get_start_offset().x() + model->calib_pa_pattern->handle_xy_size() / 2);
+        instance->set_offset(Axis::Y, model->calib_pa_pattern->get_start_offset().y() - model->calib_pa_pattern->handle_xy_size() / 2 - model->calib_pa_pattern->handle_spacing());
+
     }
     else if (model->objects.size() == 1) {
         ModelInstance *instance = model->objects[0]->instances[0];

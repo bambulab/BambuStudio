@@ -1330,9 +1330,8 @@ float TriangleSelectorPatch::gap_area = TriangleSelectorPatch::GapAreaMin;
 
 void TriangleSelectorPatch::render(ImGuiWrapper* imgui)
 {
-    static bool last_show_wireframe = false;
-    if (last_show_wireframe != wxGetApp().plater()->is_show_wireframe()) {
-        last_show_wireframe  = wxGetApp().plater()->is_show_wireframe();
+    if (m_cached_wireframe_mode != wxGetApp().plater()->is_show_wireframe()) {
+        m_cached_wireframe_mode = wxGetApp().plater()->is_show_wireframe();
         m_update_render_data = true;
         m_paint_changed      = true;
     }
@@ -1681,8 +1680,8 @@ void TriangleSelectorPatch::render(int triangle_indices_idx, int position_id, bo
     glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
     if ((this->m_triangle_indices_sizes[triangle_indices_idx] > 0)&&(position_id != -1))
         glsafe(::glDisableVertexAttribArray(position_id));
-    if ((this->m_triangle_indices_sizes[triangle_indices_idx] > 0)&&show_wireframe) { 
-        glsafe(::glEnableClientState(GL_COLOR_ARRAY));
+    if ((this->m_triangle_indices_sizes[triangle_indices_idx] > 0)&&show_wireframe) {
+        glsafe(::glDisableClientState(GL_COLOR_ARRAY));
     }
     if (this->m_triangle_indices_sizes[triangle_indices_idx] > 0)
         glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));

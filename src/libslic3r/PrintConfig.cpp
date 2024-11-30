@@ -322,11 +322,11 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(OverhangThresholdParticipatingCooling)
 // BBS
 static const t_config_enum_values s_keys_map_BedType = {
     { "Default Plate",      btDefault },
-    { "Supertack Plate",    btSuperTack },
     { "Cool Plate",         btPC },
     { "Engineering Plate",  btEP  },
     { "High Temp Plate",    btPEI  },
-    { "Textured PEI Plate", btPTE }
+    { "Textured PEI Plate", btPTE },
+    {"Supertack Plate",     btSuperTack}
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(BedType)
 
@@ -650,7 +650,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Initial layer");
     def->full_label = L("Initial layer bed temperature");
     def->tooltip = L("Bed temperature of the initial layer. "
-        "Value 0 means the filament does not support to print on the Bambu Cool Plate SuperTack");
+        "Value 0 means the filament does not support to print on the Cool Plate");
     def->sidetext = "°C";
     def->min = 0;
     def->max = 120;
@@ -691,16 +691,16 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Bed types supported by the printer");
     def->mode = comSimple;
     def->enum_keys_map = &s_keys_map_BedType;
-    def->enum_values.emplace_back("Supertack Plate");
     def->enum_values.emplace_back("Cool Plate");
     def->enum_values.emplace_back("Engineering Plate");
     def->enum_values.emplace_back("High Temp Plate");
     def->enum_values.emplace_back("Textured PEI Plate");
-    def->enum_labels.emplace_back(L("Bambu Cool Plate SuperTack"));
-    def->enum_labels.emplace_back(L("Cool Plate / PLA Plate"));
+    def->enum_values.emplace_back("Supertack Plate");
+    def->enum_labels.emplace_back(L("Cool Plate"));
     def->enum_labels.emplace_back(L("Engineering Plate"));
     def->enum_labels.emplace_back(L("Smooth PEI Plate / High Temp Plate"));
     def->enum_labels.emplace_back(L("Textured PEI Plate"));
+    def->enum_labels.emplace_back(L("Bambu Cool Plate SuperTack"));
     def->set_default_value(new ConfigOptionEnum<BedType>(btPC));
 
     // BBS
@@ -1352,9 +1352,9 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(120));
 
-    def = this->add("extruder_clearance_radius", coFloat);
-    def->label = L("Radius");
-    def->tooltip = L("Clearance radius around extruder. Used for collision avoidance in by-object printing.");
+    def = this->add("extruder_clearance_dist_to_rod", coFloat);
+    def->label = L("Distance to rod");
+    def->tooltip = L("Horizontal distance of the nozzle tip to the rod's farther edge. Used for collision avoidance in by-object printing.");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
@@ -3001,13 +3001,13 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionPercent(15));
 
     def          = this->add("seam_slope_conditional", coBool);
-    def->label   = L("Conditional scarf joint");
+    def->label   = L("Smart scarf seam application");
     def->tooltip = L("Apply scarf joints only to smooth perimeters where traditional seams do not conceal the seams at sharp corners effectively.");
     def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
     def           = this->add("scarf_angle_threshold", coInt);
-    def->label    = L("Conditional angle threshold");
+    def->label    = L("Scarf application angle threshold");
     def->tooltip  = L("This option sets the threshold angle for applying a conditional scarf joint seam.\nIf the seam angle within the perimeter loop " "exceeds this value (indicating the absence of sharp corners), a scarf joint seam will be used. The default value is 155°.");
     def->mode     = comAdvanced;
     def->sidetext = L("°");
@@ -3043,8 +3043,8 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionPercent(80));
 
     def          = this->add("role_base_wipe_speed", coBool);
-    def->label   = L("Role base wipe speed");
-    def->tooltip = L("The wipe speed is determined by speed of current extrusion role. " "e.g if a wip action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action.");
+    def->label   = L("Role-based wipe speed");
+    def->tooltip = L("The wipe speed is determined by speed of current extrusion role. " "e.g if a wipe action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action.");
     def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 

@@ -176,6 +176,8 @@ void AppConfig::set_defaults()
         set_bool("show_shells_in_preview", true);
     if (get("enable_lod").empty())
         set_bool("enable_lod", true);
+    if (get("enable_opengl_multi_instance").empty())
+        set_bool("enable_opengl_multi_instance", true);
     if (get("user_bed_type").empty())
         set_bool("user_bed_type", true);
     if (get("grabber_size_factor").empty())
@@ -261,6 +263,10 @@ void AppConfig::set_defaults()
 
     if (get("show_home_page").empty()) {
         set_bool("show_home_page", true);
+    }
+
+    if (get("show_print_history").empty()) {
+        set_bool("show_print_history", true);
     }
 
     if (get("show_printable_box").empty()) {
@@ -365,6 +371,16 @@ void AppConfig::set_defaults()
     }
     if (get("print", "timelapse").empty()) {
         set_str("print", "timelapse", "1");
+    }
+
+    if (get("enable_step_mesh_setting").empty()) {
+        set_bool("enable_step_mesh_setting", true);
+    }
+    if (get("linear_defletion").empty()) {
+        set("linear_defletion", "0.003");
+    }
+    if (get("angle_defletion").empty()) {
+        set("angle_defletion", "0.5");
     }
 
     // Remove legacy window positions/sizes

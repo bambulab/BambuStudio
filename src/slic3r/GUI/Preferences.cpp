@@ -156,10 +156,19 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
             language_name = wxString::FromUTF8("\xD0\xA0\xD1\x83\xD1\x81\xD1\x81\xD0\xBA\xD0\xB8\xD0\xB9");
         }
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_CZECH)) {
-            language_name = wxString::FromUTF8("\xC4\x8D\x65\xC5\xA1\x74\x69\x6E\x61");
+            if (wxGetApp().app_config->get("language") == "ja_JP") {
+                language_name = wxString::FromUTF8("\x43\x7A\x65\x63\x68");
+            }
+            else{
+                language_name = wxString::FromUTF8("\xC4\x8D\x65\xC5\xA1\x74\x69\x6E\x61");
+            }
         }
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_UKRAINIAN)) {
-            language_name = wxString::FromUTF8("\xD0\xA3\xD0\xBA\xD1\x80\xD0\xB0\xD1\x97\xD0\xBD\xD1\x81\xD1\x8C\xD0\xBA\xD0\xB0");
+            if (wxGetApp().app_config->get("language") == "ja_JP") {
+                language_name = wxString::FromUTF8("\x55\x6B\x72\x61\x69\x6E\x69\x61\x6E");
+            } else {
+                language_name = wxString::FromUTF8("\xD0\xA3\xD0\xBA\xD1\x80\xD0\xB0\xD1\x97\xD0\xBD\xD1\x81\xD1\x8C\xD0\xBA\xD0\xB0");
+            }
         }
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_PORTUGUESE_BRAZILIAN)) {
             language_name = wxString::FromUTF8("\x50\x6F\x72\x74\x75\x67\x75\xC3\xAA\x73\x20\x28\x42\x72\x61\x73\x69\x6C\x29");
@@ -806,6 +815,15 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
             }
         }
 
+        if (param == "show_print_history") {
+            auto show_history = app_config->get_bool("show_print_history");
+            if (show_history == true) {
+                if (wxGetApp().mainframe && wxGetApp().mainframe->m_webview) { wxGetApp().mainframe->m_webview->ShowUserPrintTask(true); }
+            } else {
+                if (wxGetApp().mainframe && wxGetApp().mainframe->m_webview) { wxGetApp().mainframe->m_webview->ShowUserPrintTask(false); }
+            }
+        }
+
         if (param == "enable_lod") {
             if (wxGetApp().plater()->is_project_dirty()) {
                 auto result = MessageDialog(static_cast<wxWindow *>(this), _L("The current project has unsaved changes, save it before continuing?"),
@@ -828,6 +846,27 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
             }
         }
 
+        if (param == "enable_opengl_multi_instance") {
+            if (wxGetApp().plater()->is_project_dirty()) {
+                auto result = MessageDialog(static_cast<wxWindow *>(this), _L("The current project has unsaved changes, save it before continuing?"),
+                                            wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Save"), wxYES_NO | wxYES_DEFAULT | wxCENTRE)
+                                  .ShowModal();
+                if (result == wxID_YES) { wxGetApp().plater()->save_project(); }
+            }
+            MessageDialog msg_wingow(nullptr,
+                                     _L("Change opengl multi instance rendering requires application restart.") + "\n" +
+                                         _L("Do you want to continue?"),
+                                     _L("Enable opengl multi instance rendering"), wxYES | wxYES_DEFAULT | wxCANCEL | wxCENTRE);
+            if (msg_wingow.ShowModal() == wxID_YES) {
+                Close();
+                GetParent()->RemoveChild(this);
+                wxGetApp().recreate_GUI(_L("Enable opengl multi instance rendering"));
+            } else {
+                checkbox->SetValue(!checkbox->GetValue());
+                app_config->set_bool(param, checkbox->GetValue());
+                app_config->save();
+            }
+        }
         e.Skip();
     });
 
@@ -1126,6 +1165,7 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_calc_mode = create_item_checkbox(_L("Flushing volumes: Auto-calculate every time when the color is changed."), page, _L("If enabled, auto-calculate every time when the color is changed."), 50, "auto_calculate");
     auto item_calc_in_long_retract = create_item_checkbox(_L("Flushing volumes: Auto-calculate every time when the filament is changed."), page, _L("If enabled, auto-calculate every time when filament is changed"), 50, "auto_calculate_when_filament_change");
     auto item_multi_machine = create_item_checkbox(_L("Multi-device Management(Take effect after restarting Studio)."), page, _L("With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."), 50, "enable_multi_machine");
+    auto item_step_mesh_setting = create_item_checkbox(_L("Show the step mesh parameter setting dialog."), page, _L("If enabled,a parameter settings dialog will appear during STEP file import."), 50, "enable_step_mesh_setting");
     auto item_beta_version_update = create_item_checkbox(_L("Support beta version update."), page, _L("With this option enabled, you can receive beta version updates."), 50, "enable_beta_version_update");
     auto _3d_settings    = create_item_title(_L("3D Settings"), page, _L("3D Settings"));
     auto item_mouse_zoom_settings  = create_item_checkbox(_L("Zoom to mouse position"), page,
@@ -1137,6 +1177,8 @@ wxWindow* PreferencesDialog::create_general_page()
     auto  enable_lod_settings       = create_item_checkbox(_L("Improve rendering performance by lod"), page,
                                                          _L("Improved rendering performance under the scene of multiple plates and many models."), 50,
                                                          "enable_lod");
+    auto enable_opengl_multi_instance_rendering   = create_item_checkbox(_L("enable multi instance rendering by opengl"), page,
+                                                    _L("If enabled, it can improve certain rendering performance. But for some graphics cards, it may not be applicable, please turn it off."), 50, "enable_opengl_multi_instance");
     float range_min = 1.0, range_max = 2.5;
     auto item_grabber_size_settings = create_item_range_input(_L("Grabber scale"), page,
                                                               _L("Set grabber size for move,rotate,scale tool.") + _L("Value range") + ":[" + std::to_string(range_min) + "," +
@@ -1171,6 +1213,7 @@ wxWindow* PreferencesDialog::create_general_page()
     // auto item_backup = create_item_switch(_L("Backup switch"), page, _L("Backup switch"), "units");
     auto item_modelmall = create_item_checkbox(_L("Show online staff-picked models on the home page"), page, _L("Show online staff-picked models on the home page"), 50, "staff_pick_switch");
 
+    auto item_show_history = create_item_checkbox(_L("Show history on the home page"), page, _L("Show history on the home page"), 50, "show_print_history");
     auto title_project = create_item_title(_L("Project"), page, "");
     auto item_max_recent_count = create_item_input(_L("Maximum recent projects"), "", page, _L("Maximum count of recent projects"), "max_recent_count", [](wxString value) {
         long max = 0;
@@ -1216,10 +1259,12 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_calc_mode, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_calc_in_long_retract, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_multi_machine, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_step_mesh_setting, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_beta_version_update, 0, wxTOP, FromDIP(3));
     sizer_page->Add(_3d_settings, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_mouse_zoom_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_show_shells_in_preview_settings, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(enable_opengl_multi_instance_rendering, 0, wxTOP, FromDIP(3));
     sizer_page->Add(enable_lod_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_grabber_size_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(title_presets, 0, wxTOP | wxEXPAND, FromDIP(20));
@@ -1232,12 +1277,15 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_associate_stl, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_associate_step, 0, wxTOP, FromDIP(3));
 #endif // _WIN32
-    auto item_title_modelmall = sizer_page->Add(title_modelmall, 0, wxTOP | wxEXPAND, FromDIP(20));
-    auto item_item_modelmall = sizer_page->Add(item_modelmall, 0, wxTOP, FromDIP(3));
-    auto update_modelmall = [this, item_title_modelmall, item_item_modelmall] (wxEvent & e) {
+    auto item_title_modelmall   = sizer_page->Add(title_modelmall, 0, wxTOP | wxEXPAND, FromDIP(20));
+    auto item_item_modelmall    = sizer_page->Add(item_modelmall, 0, wxTOP, FromDIP(3));
+    auto item_item_show_history = sizer_page->Add(item_show_history, 0, wxTOP, FromDIP(3));
+
+    auto update_modelmall = [this, item_title_modelmall, item_item_modelmall, item_item_show_history](wxEvent &e) {
         bool has_model_mall = wxGetApp().has_model_mall();
         item_title_modelmall->Show(has_model_mall);
         item_item_modelmall->Show(has_model_mall);
+        item_item_show_history->Show(has_model_mall);
         Layout();
         Fit();
     };
