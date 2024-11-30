@@ -19,7 +19,6 @@ RUN apt-get update && apt-get install  -y \
     extra-cmake-modules \
     file \
     git \
-    ffmpeg \
     gstreamer1.0-plugins-bad \
     gstreamer1.0-libav \
     libcairo2-dev \
@@ -51,7 +50,7 @@ RUN apt-get update && apt-get install  -y \
     bash \
     wget 
 
-#Temporary fix for 24.10 dependency
+#Temporary fix for 24.10 dependency, 24.10 still required for ffmpeg7 to run Bug-free
 RUN echo 'deb http://gb.archive.ubuntu.com/ubuntu jammy main' >> /etc/apt/sources.list
 
 RUN apt-get update && apt-get install -y libwebkit2gtk-4.0-dev
@@ -65,9 +64,9 @@ RUN locale-gen $LC_ALL
 # the CA cert path on every startup
 ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 
-COPY ./ BambuStudio
+COPY ./ /BambuStudio
 
-WORKDIR BambuStudio
+WORKDIR /BambuStudio
 
 # These can run together, but we run them seperate for podman caching
 # Update System dependencies
@@ -80,7 +79,7 @@ RUN ./BuildLinux.sh -d
 RUN ./BuildLinux.sh -s
 
 # Build AppImage
-ENV container podman
+ENV container=podman
 RUN ./BuildLinux.sh -i
 
 # It's easier to run Bambu Studio as the same username,
@@ -96,13 +95,13 @@ ARG USER=root
 ARG UID=0
 ARG GID=0
 
-# Run the commands with proper bash syntax
 RUN if [ "$UID" != "0" ]; then \
       groupadd -f -g $GID $USER && \
       useradd -u $UID -g $GID $USER; \
     fi
 
-#RUN chmod +x entrypoint.sh
+# Point FFMPEG Library search to the binary built upon BambuStudio build time
+ENV LD_LIBRARY_PATH=/BambuStudio/build/package/bin
 
 # Using an entrypoint instead of CMD because the binary
 # accepts several command line arguments.
