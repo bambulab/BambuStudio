@@ -956,7 +956,12 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
         m_gizmos[m_current]->on_mouse(evt);
     }
     // mouse anywhere
-    if (evt.Moving()) {
+    if (evt.LeftDClick()) {
+        if (m_current == Text  || m_current == Svg) {
+            return false;
+        }
+    }
+    else if (evt.Moving()) {
         m_tooltip = update_hover_state(mouse_pos);
         if (m_current == MmuSegmentation || m_current == FdmSupports || m_current == Text || m_current == BrimEars || m_current == Svg)
             // BBS

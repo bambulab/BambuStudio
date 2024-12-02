@@ -4568,8 +4568,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // Detection of doubleclick on text to open emboss edit window
     auto type = m_gizmos.get_current_type();
     if (evt.LeftDClick() && !m_hover_volume_idxs.empty() &&
-        (type == GLGizmosManager::EType::Undefined //||type == GLGizmosManager::EType::Text ||
-            //type == GLGizmosManager::EType::Svg
+        (type == GLGizmosManager::EType::Undefined ||
+            type == GLGizmosManager::EType::Text ||
+            type == GLGizmosManager::EType::Svg
         )) {
         for (int hover_volume_id : m_hover_volume_idxs) {
             const GLVolume &hover_gl_volume = *m_volumes.volumes[hover_volume_id];
