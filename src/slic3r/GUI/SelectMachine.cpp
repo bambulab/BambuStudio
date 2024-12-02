@@ -3399,6 +3399,7 @@ void SelectMachineDialog::update_show_status()
     }
     if (!dev) return;
     dev->check_pushing();
+
     PartPlate* plate = m_plater->get_partplate_list().get_curr_plate();
 
     // blank plate has no valid gcode file
@@ -3421,6 +3422,7 @@ void SelectMachineDialog::update_show_status()
         }
         return;
     }
+    agent->install_device_cert(obj_->dev_id, obj_->is_lan_mode_printer());
 
     /* check cloud machine connections */
     if (!obj_->is_lan_mode_printer()) {

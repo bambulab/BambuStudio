@@ -1311,6 +1311,8 @@ void GUI_App::post_init()
 
                 this->check_track_enable();
             }
+
+            this->check_cert();
         });
     }
 
@@ -4761,6 +4763,15 @@ void GUI_App::check_beta_version()
             }).perform();
 }
 
+void GUI_App::check_cert()
+{
+    m_check_cert_thread = Slic3r::create_thread(
+        [this]{
+            if (m_agent)
+                m_agent->check_cert();
+        });
+    BOOST_LOG_TRIVIAL(info) << "check_cert";
+}
 
 //BBS pop up a dialog and download files
 void GUI_App::request_new_version(int by_user)
