@@ -1,4 +1,5 @@
 #version 110
+precision highp float;
 
 const vec3 ZERO = vec3(0.0, 0.0, 0.0);
 //BBS: add grey and orange
@@ -7,6 +8,7 @@ const vec3 ORANGE = vec3(0.8, 0.4, 0.0);
 const vec3 LightRed = vec3(0.78, 0.0, 0.0);
 const vec3 LightBlue = vec3(0.73, 1.0, 1.0);
 const float EPSILON = 0.0001;
+const float ONE_OVER_EPSILON = 1e4;
 
 struct PrintVolumeDetection
 {
@@ -73,25 +75,23 @@ void main()
          }
     }
 	// if the fragment is outside the print volume -> use darker color
-    vec3 pv_check_min = ZERO;
-    vec3 pv_check_max = ZERO;
-    pv_check_min = world_pos.xyz - vec3(print_volume.xy_data.x, print_volume.xy_data.y, print_volume.z_data.x);
-    pv_check_max = world_pos.xyz - vec3(print_volume.xy_data.z, print_volume.xy_data.w, print_volume.z_data.y);
-    bool is_out_print_limit =(any(lessThan(pv_check_min, ZERO)) || any(greaterThan(pv_check_max, ZERO)));
+    vec3 pv_check_min =  (world_pos.xyz - vec3(print_volume.xy_data.x, print_volume.xy_data.y, print_volume.z_data.x)) * ONE_OVER_EPSILON;
+    vec3 pv_check_max = (world_pos.xyz - vec3(print_volume.xy_data.z, print_volume.xy_data.w, print_volume.z_data.y)) * ONE_OVER_EPSILON;
+    bool is_out_print_limit =(any(lessThan(pv_check_min, vec3(1.0))) || any(greaterThan(pv_check_max, vec3(1.0))));
     if (print_volume.type == 0) {// rectangle
         color = is_out_print_limit ? mix(color, ZERO, 0.3333) : color;
     }
     else if (print_volume.type == 1) {
         // circle
         float delta_radius = print_volume.xy_data.z - distance(world_pos.xy, print_volume.xy_data.xy);
-        pv_check_min = vec3(delta_radius, 0.0, world_pos.z - print_volume.z_data.x);
-        pv_check_max = vec3(0.0, 0.0, world_pos.z - print_volume.z_data.y);
-        color = (any(lessThan(pv_check_min, ZERO)) || any(greaterThan(pv_check_max, ZERO))) ? mix(color, ZERO, 0.3333) : color;
+        pv_check_min = vec3(delta_radius, 0.0, world_pos.z - print_volume.z_data.x) * ONE_OVER_EPSILON;
+        pv_check_max = vec3(0.0, 0.0, world_pos.z - print_volume.z_data.y) * ONE_OVER_EPSILON;
+        color = (any(lessThan(pv_check_min, vec3(1.0))) || any(greaterThan(pv_check_max, vec3(1.0)))) ? mix(color, ZERO, 0.3333) : color;
     }
     if(extruder_printable_heights.x >= 1.0 ){
-        pv_check_min = world_pos.xyz - vec3(print_volume.xy_data.x, print_volume.xy_data.y, extruder_printable_heights.y);
-        pv_check_max = world_pos.xyz - vec3(print_volume.xy_data.z, print_volume.xy_data.w, extruder_printable_heights.z -0.01);
-        bool is_out_printable_height = (all(greaterThan(pv_check_min, ZERO)) && all(lessThan(pv_check_max, ZERO))) ;
+        pv_check_min = (world_pos.xyz - vec3(print_volume.xy_data.x, print_volume.xy_data.y, extruder_printable_heights.y)) * ONE_OVER_EPSILON;
+        pv_check_max = (world_pos.xyz - vec3(print_volume.xy_data.z, print_volume.xy_data.w, extruder_printable_heights.z)) * ONE_OVER_EPSILON;
+        bool is_out_printable_height = (all(greaterThan(pv_check_min, vec3(1.0))) && all(lessThan(pv_check_max, vec3(1.0)))) ;
         color = is_out_printable_height ? mix(color, ZERO, 0.7) : color;
     }
 	//BBS: add outline_color
