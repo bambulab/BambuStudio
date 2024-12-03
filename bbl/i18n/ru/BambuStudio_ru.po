@@ -2,12 +2,12 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: 1.9.7.52 Public Official\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-14 20:56+0800\n"
+"POT-Creation-Date: 2024-12-03 09:23+0800\n"
 "PO-Revision-Date: 2024-09-27 23:58+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -303,13 +303,16 @@ msgstr ""
 msgid "World coordinates"
 msgstr "Мировая СК"
 
-msgid "Reset current rotation to real zeros."
-msgstr ""
-
 msgid "°"
 msgstr "°"
 
 msgid "Reset current rotation to the value when open the rotation tool."
+msgstr ""
+
+msgid "Rotate (absolute)"
+msgstr ""
+
+msgid "Reset current rotation to real zeros."
 msgstr ""
 
 msgid "Part coordinates"
@@ -864,6 +867,37 @@ msgid "Warning:create text fail."
 msgstr ""
 
 msgid "Warning:text normal is error."
+msgstr ""
+
+msgid "Warning:text normal has been reset."
+msgstr ""
+
+msgid ""
+"Warning:Because current text does indeed use surround algorithm,\n"
+"if continue to edit, text has to regenerated according to new location."
+msgstr ""
+
+msgid ""
+"Warning:old matrix has at least two parameters: mirroring, scaling, and "
+"rotation. \n"
+"If you continue editing, it may not be correct. \n"
+"Please dragging text or cancel using current pose, \n"
+"save and reedit again."
+msgstr ""
+
+msgid ""
+"Error:Detecting an incorrect mesh id or an unknown error, \n"
+"regenerating text may result in incorrect outcomes.\n"
+"Please drag text,save it then reedit it again."
+msgstr ""
+
+msgid ""
+"Warning:Due to functional upgrade, rotation information \n"
+"cannot be restored. Please drag or modify text,\n"
+" save it and reedit it will ok."
+msgstr ""
+
+msgid "Use opened text pose"
 msgstr ""
 
 msgid "Surface"
@@ -2010,6 +2044,9 @@ msgstr "Автокайма"
 
 msgid "Auto"
 msgstr "Автоматич."
+
+msgid "Painted"
+msgstr ""
 
 msgid "Outer brim only"
 msgstr "Кайма только снаружи"
@@ -6320,6 +6357,12 @@ msgid ""
 "reslice."
 msgstr ""
 
+msgid "Import a single SVG and split it"
+msgstr ""
+
+msgid "Import a single SVG and then split it to several parts."
+msgstr ""
+
 msgid "Improve rendering performance by lod"
 msgstr ""
 
@@ -9082,6 +9125,13 @@ msgstr ""
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
+"support to print on the Cool Plate"
+msgstr ""
+"Температура стола для первого слоя. 0 означает, что пластиковая нить не "
+"поддерживает печать на этой печатной пластине."
+
+msgid ""
+"Bed temperature of the initial layer. Value 0 means the filament does not "
 "support to print on the Engineering Plate"
 msgstr ""
 "Температура стола для первого слоя. 0 означает, что пластиковая нить не "
@@ -9324,9 +9374,6 @@ msgstr ""
 "Этот параметр управляет формированием каймы на внешней/внутренней стороне "
 "моделей. Авто означает, что ширина каймы анализируется и рассчитывается "
 "автоматически."
-
-msgid "Painted"
-msgstr ""
 
 msgid "Brim-object gap"
 msgstr "Смещение каймы"
@@ -10361,8 +10408,8 @@ msgstr ""
 "две ближайшие линии заполнения с коротким отрезком периметра. Если не "
 "найдено такого отрезка периметра короче этого параметра, линия заполнения "
 "соединяется с отрезком периметра только с одной стороны, а длина отрезка "
-"периметра ограничена значением «Длина привязок разреженного заполнения» "
-"(infill_anchor), но не больше этого параметра.\n"
+"периметра ограничена значением «Длина привязок разреженного "
+"заполнения» (infill_anchor), но не больше этого параметра.\n"
 "Установите 0 для отключения привязок."
 
 msgid "0 (not anchored)"
@@ -11026,7 +11073,7 @@ msgstr ""
 
 msgid ""
 "The wipe speed is determined by speed of current extrusion role. e.g if a "
-"wip action is executed immediately following an outer wall extrusion, the "
+"wipe action is executed immediately following an outer wall extrusion, the "
 "speed of the outer wall extrusion will be utilized for the wipe action."
 msgstr ""
 
@@ -14496,13 +14543,6 @@ msgstr ""
 
 #~ msgid "IP and Access Code Verified! You may close the window"
 #~ msgstr "IP-адрес и код доступа подтверждены! Вы можете закрыть окно."
-
-#~ msgid ""
-#~ "Bed temperature of the initial layer. Value 0 means the filament does not "
-#~ "support to print on the Cool Plate"
-#~ msgstr ""
-#~ "Температура стола для первого слоя. 0 означает, что пластиковая нить не "
-#~ "поддерживает печать на этой печатной пластине."
 
 #~ msgid "This setting specifies the count of walls around support"
 #~ msgstr ""
