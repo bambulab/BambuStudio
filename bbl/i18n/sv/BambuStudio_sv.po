@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-14 20:56+0800\n"
+"POT-Creation-Date: 2024-12-03 09:23+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -290,13 +290,16 @@ msgstr ""
 msgid "World coordinates"
 msgstr "Världskoordinater"
 
-msgid "Reset current rotation to real zeros."
-msgstr ""
-
 msgid "°"
 msgstr "°"
 
 msgid "Reset current rotation to the value when open the rotation tool."
+msgstr ""
+
+msgid "Rotate (absolute)"
+msgstr ""
+
+msgid "Reset current rotation to real zeros."
 msgstr ""
 
 msgid "Part coordinates"
@@ -833,6 +836,37 @@ msgid "Warning:create text fail."
 msgstr ""
 
 msgid "Warning:text normal is error."
+msgstr ""
+
+msgid "Warning:text normal has been reset."
+msgstr ""
+
+msgid ""
+"Warning:Because current text does indeed use surround algorithm,\n"
+"if continue to edit, text has to regenerated according to new location."
+msgstr ""
+
+msgid ""
+"Warning:old matrix has at least two parameters: mirroring, scaling, and "
+"rotation. \n"
+"If you continue editing, it may not be correct. \n"
+"Please dragging text or cancel using current pose, \n"
+"save and reedit again."
+msgstr ""
+
+msgid ""
+"Error:Detecting an incorrect mesh id or an unknown error, \n"
+"regenerating text may result in incorrect outcomes.\n"
+"Please drag text,save it then reedit it again."
+msgstr ""
+
+msgid ""
+"Warning:Due to functional upgrade, rotation information \n"
+"cannot be restored. Please drag or modify text,\n"
+" save it and reedit it will ok."
+msgstr ""
+
+msgid "Use opened text pose"
 msgstr ""
 
 msgid "Surface"
@@ -1962,6 +1996,9 @@ msgstr "Auto Brim"
 
 msgid "Auto"
 msgstr "Auto"
+
+msgid "Painted"
+msgstr ""
 
 msgid "Outer brim only"
 msgstr "Endast yttre brim"
@@ -6132,6 +6169,12 @@ msgid ""
 "reslice."
 msgstr ""
 
+msgid "Import a single SVG and split it"
+msgstr ""
+
+msgid "Import a single SVG and then split it to several parts."
+msgstr ""
+
 msgid "Improve rendering performance by lod"
 msgstr ""
 
@@ -8817,6 +8860,13 @@ msgstr ""
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
+"support to print on the Cool Plate"
+msgstr ""
+"Detta är byggplattans temperatur för första lager. Värdet 0 betyder att "
+"filamentet inte stöder utskrift på Cool Plate."
+
+msgid ""
+"Bed temperature of the initial layer. Value 0 means the filament does not "
 "support to print on the Engineering Plate"
 msgstr ""
 "Detta är byggplattans temperatur för första lager. Värdet 0 betyder att "
@@ -9041,9 +9091,6 @@ msgid ""
 msgstr ""
 "Detta styr genereringen av brim på modellens yttre och/eller inre sida. Auto "
 "innebär att brim bredd analyseras och beräknas automatiskt."
-
-msgid "Painted"
-msgstr ""
 
 msgid "Brim-object gap"
 msgstr "Avstånd mellan brim och modell"
@@ -10666,7 +10713,7 @@ msgstr ""
 
 msgid ""
 "The wipe speed is determined by speed of current extrusion role. e.g if a "
-"wip action is executed immediately following an outer wall extrusion, the "
+"wipe action is executed immediately following an outer wall extrusion, the "
 "speed of the outer wall extrusion will be utilized for the wipe action."
 msgstr ""
 
@@ -14014,13 +14061,6 @@ msgstr ""
 
 #~ msgid "IP and Access Code Verified! You may close the window"
 #~ msgstr "IP- och åtkomstkoder verifierade! Du kan stänga fönstret"
-
-#~ msgid ""
-#~ "Bed temperature of the initial layer. Value 0 means the filament does not "
-#~ "support to print on the Cool Plate"
-#~ msgstr ""
-#~ "Detta är byggplattans temperatur för första lager. Värdet 0 betyder att "
-#~ "filamentet inte stöder utskrift på Cool Plate."
 
 #~ msgid "This setting specifies the count of walls around support"
 #~ msgstr "Denna inställning anger antalet väggar runt support"

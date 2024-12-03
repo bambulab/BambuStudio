@@ -1,12 +1,12 @@
 # Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-14 20:56+0800\n"
+"POT-Creation-Date: 2024-12-03 09:23+0800\n"
 "PO-Revision-Date: 2024-03-21 10:39+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -295,14 +295,17 @@ msgstr "物体坐标"
 msgid "World coordinates"
 msgstr "世界坐标"
 
-msgid "Reset current rotation to real zeros."
-msgstr "将当前旋转重置为实数零。"
-
 msgid "°"
 msgstr "°"
 
 msgid "Reset current rotation to the value when open the rotation tool."
 msgstr "将当前旋转重置为打开旋转工具时的值。"
+
+msgid "Rotate (absolute)"
+msgstr "旋转(绝对)"
+
+msgid "Reset current rotation to real zeros."
+msgstr "将当前旋转重置为实数零。"
 
 msgid "Part coordinates"
 msgstr "零件坐标"
@@ -829,6 +832,49 @@ msgstr "警告：创建文字失败。"
 
 msgid "Warning:text normal is error."
 msgstr "警告：文字法向量错误"
+
+msgid "Warning:text normal has been reset."
+msgstr "警告:文字法向量已经被重置。"
+
+msgid ""
+"Warning:Because current text does indeed use surround algorithm,\n"
+"if continue to edit, text has to regenerated according to new location."
+msgstr ""
+"警告：因为当前文本确实使用了环绕算法，\n"
+"如果继续编辑，文本必须根据新位置重新生成。"
+
+msgid ""
+"Warning:old matrix has at least two parameters: mirroring, scaling, and "
+"rotation. \n"
+"If you continue editing, it may not be correct. \n"
+"Please dragging text or cancel using current pose, \n"
+"save and reedit again."
+msgstr ""
+"警告：旧矩阵至少有两个参数：镜像、缩放和旋转。\n"
+"如果继续编辑，则可能不正确。 \n"
+"请拖动文本或取消使用当前位姿，\n"
+"保存并重新编辑。"
+
+msgid ""
+"Error:Detecting an incorrect mesh id or an unknown error, \n"
+"regenerating text may result in incorrect outcomes.\n"
+"Please drag text,save it then reedit it again."
+msgstr ""
+"错误：检测到不正确的网格id或未知错误，\n"
+"重新生成文本可能会导致不正确的结果。\n"
+"请拖动文本，保存，然后重新编辑。"
+
+msgid ""
+"Warning:Due to functional upgrade, rotation information \n"
+"cannot be restored. Please drag or modify text,\n"
+" save it and reedit it will ok."
+msgstr ""
+"警告：由于功能升级，无法恢复旋转信息。\n"
+"请拖动或修改文本，\n"
+"保存并重新编辑即可。"
+
+msgid "Use opened text pose"
+msgstr "使用打开时的文本位姿"
 
 msgid "Surface"
 msgstr "附着曲面"
@@ -1930,6 +1976,9 @@ msgstr "自动Brim"
 
 msgid "Auto"
 msgstr "自动"
+
+msgid "Painted"
+msgstr "绘制"
 
 msgid "Outer brim only"
 msgstr "仅外侧"
@@ -5923,6 +5972,12 @@ msgid ""
 "reslice."
 msgstr "始终在预览视图选项卡中显示或不显示壳。如果更改值，您应该重新切片。"
 
+msgid "Import a single SVG and split it"
+msgstr "导入一个SVG并拆分它"
+
+msgid "Import a single SVG and then split it to several parts."
+msgstr "导入一个SVG并将它拆分成多个零件"
+
 msgid "Improve rendering performance by lod"
 msgstr "通过lod提高渲染性能"
 
@@ -8471,6 +8526,11 @@ msgstr "初始层的床温。值0表示耗材丝不支持在低温增稳打印�
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
+"support to print on the Cool Plate"
+msgstr "首层热床温度。0值表示这个耗材丝不支持低温打印热床"
+
+msgid ""
+"Bed temperature of the initial layer. Value 0 means the filament does not "
 "support to print on the Engineering Plate"
 msgstr "首层热床温度。0值表示这个耗材丝不支持工程材料热床"
 
@@ -8673,9 +8733,6 @@ msgid ""
 "models. Auto means the brim width is analysed and calculated automatically."
 msgstr ""
 "该参数控制在模型的外侧和/或内侧生成brim。自动是指自动分析和计算边框的宽度。"
-
-msgid "Painted"
-msgstr "绘制"
 
 msgid "Brim-object gap"
 msgstr "Brim与模型的间隙"
@@ -10151,7 +10208,7 @@ msgstr "自动擦拭速度"
 
 msgid ""
 "The wipe speed is determined by speed of current extrusion role. e.g if a "
-"wip action is executed immediately following an outer wall extrusion, the "
+"wipe action is executed immediately following an outer wall extrusion, the "
 "speed of the outer wall extrusion will be utilized for the wipe action."
 msgstr ""
 "擦拭速度由当前挤出类型的速度决定。例如，如果擦拭动作紧随外墙，擦拭速度将使用"
@@ -13161,6 +13218,14 @@ msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
 
+#~ msgid ""
+#~ "The wipe speed is determined by speed of current extrusion role. e.g if a "
+#~ "wip action is executed immediately following an outer wall extrusion, the "
+#~ "speed of the outer wall extrusion will be utilized for the wipe action."
+#~ msgstr ""
+#~ "擦拭速度由当前挤出类型的速度决定。例如，如果擦拭动作紧随外墙，擦拭速度将使"
+#~ "用外墙速度。"
+
 #~ msgid "Rough"
 #~ msgstr "粗糙"
 
@@ -13385,11 +13450,6 @@ msgstr ""
 
 #~ msgid "IP and Access Code Verified! You may close the window"
 #~ msgstr "IP地址和访问码验证成功！您可以关闭此窗口。"
-
-#~ msgid ""
-#~ "Bed temperature of the initial layer. Value 0 means the filament does not "
-#~ "support to print on the Cool Plate"
-#~ msgstr "首层热床温度。0值表示这个耗材丝不支持低温打印热床"
 
 #~ msgid "This setting specifies the count of walls around support"
 #~ msgstr "此设置指定了支撑的外墙层数"
