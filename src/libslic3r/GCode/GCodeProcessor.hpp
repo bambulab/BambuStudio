@@ -613,13 +613,13 @@ namespace Slic3r {
             std::vector<Extruder> filament_lists;
             std::vector<std::string> filament_types;
             std::vector<int> filament_maps; // map each filament to extruder
-            std::vector<float> filament_nozzle_temp;
+            std::vector<int> filament_nozzle_temp;
             std::vector<int> physical_extruder_map;
 
             size_t total_layer_num;
             float cooling_rate{ 2.f }; // Celsius degree per second
             float heating_rate{ 2.f }; // Celsius degree per second
-            float pre_heating_time_threshold{ 30.f }; // only active pre cooling & heating if time gap is bigger than threshold
+            float inject_time_threshold{ 30.f }; // only active pre cooling & heating if time gap is bigger than threshold
             float post_extrusion_cooling_threshold{ 30.f }; // threshold of temp if do cooling in post extrusion
             bool enable_pre_heating{ false };
 
@@ -628,12 +628,12 @@ namespace Slic3r {
                 const std::vector<Extruder>& filament_lists_,
                 const std::vector<int>& filament_maps_,
                 const std::vector<std::string>& filament_types_,
-                const std::vector<float>& filament_nozzle_temp_,
+                const std::vector<int>& filament_nozzle_temp_,
                 const std::vector<int>& physical_extruder_map_,
                 const size_t total_layer_num_,
                 const float cooling_rate_,
                 const float heating_rate_,
-                const float pre_heating_time_threshold_,
+                const float inject_time_threshold_,
                 const bool  enable_pre_heating_
             ) :
                 used_filaments(used_filaments_),
@@ -646,7 +646,7 @@ namespace Slic3r {
                 cooling_rate(cooling_rate_),
                 heating_rate(heating_rate_),
                 enable_pre_heating(enable_pre_heating_),
-                pre_heating_time_threshold(pre_heating_time_threshold_)
+                inject_time_threshold(inject_time_threshold_)
             {
             }
 
@@ -654,6 +654,19 @@ namespace Slic3r {
 
         struct TimeProcessor
         {
+            enum InsertLineType
+            {
+                PlaceholderReplace,
+                TimePredict,
+                FilamentChangePredict,
+                ExtruderChangePredict,
+                PreCooling,
+                PreHeating,
+            };
+
+            // first key is line id ,second key is content
+            using InsertedLinesMap = std::map<unsigned int, std::vector<std::pair<std::string, InsertLineType>>>;
+
             struct Planner
             {
                 // Size of the firmware planner queue. The old 8-bit Marlins usually just managed 16 trapezoidal blocks.
@@ -684,6 +697,81 @@ namespace Slic3r {
             // and updates moves' gcode ids accordingly
             void post_process(const std::string& filename, std::vector<GCodeProcessorResult::MoveVertex>& moves, std::vector<size_t>& lines_ends, const TimeProcessContext& context);
         };
+
+        class PreCoolingInjector {
+        public:
+            struct ExtruderFreeBlock {
+                unsigned int free_lower_gcode_id;
+                unsigned int free_upper_gcode_id;
+                unsigned int partial_free_lower_id; // stores the range of extrusion in wipe tower. Without wipetower, partial free lower_id and upper id will be same as free lower id
+                unsigned int partial_free_upper_id;
+                int last_filament_id;
+                int next_filament_id;
+                int extruder_id;
+            };
+
+            void process_pre_cooling_and_heating(TimeProcessor::InsertedLinesMap& inserted_operation_lines);
+            void build_extruder_free_blocks(const std::vector<ExtruderPreHeating::FilamentUsageBlock>& filament_usage_blocks, const std::vector<ExtruderPreHeating::ExtruderUsageBlcok>& extruder_usage_blocks);
+
+            PreCoolingInjector(
+                const std::vector<GCodeProcessorResult::MoveVertex>& moves_,
+                const std::vector<std::string>& filament_types_,
+                const std::vector<int>& filament_maps_,
+                const std::vector<int>& filament_nozzle_temps_,
+                const std::vector<int>& physical_extruder_map_,
+                int valid_machine_id_,
+                float inject_time_threshold_,
+                float partial_free_cooling_thres_,
+                float cooling_rate_,
+                float heating_rate_,
+                unsigned int machine_start_gcode_end_id_,
+                unsigned int machine_end_gcode_start_id_
+            ) :
+                moves(moves_),
+                filament_types(filament_types_),
+                filament_maps(filament_maps_),
+                filament_nozzle_temps(filament_nozzle_temps_),
+                physical_extruder_map(physical_extruder_map_),
+                valid_machine_id(valid_machine_id_),
+                inject_time_threshold(inject_time_threshold_),
+                partial_free_cooling_thres(partial_free_cooling_thres_),
+                cooling_rate(cooling_rate_),
+                heating_rate(heating_rate_),
+                machine_start_gcode_end_id(machine_start_gcode_end_id_),
+                machine_end_gcode_start_id(machine_end_gcode_start_id_)
+            {
+            }
+
+        private:
+            std::vector<ExtruderFreeBlock> m_extruder_free_blocks;
+            const std::vector<GCodeProcessorResult::MoveVertex>& moves;
+            const std::vector<std::string>& filament_types;
+            const std::vector<int>& filament_maps;
+            const std::vector<int>& filament_nozzle_temps;
+            const std::vector<int>& physical_extruder_map;
+            const int valid_machine_id;
+            const float inject_time_threshold;
+            const float partial_free_cooling_thres; // threshold of cooling temp during post extrusion
+            const float cooling_rate;
+            const float heating_rate;
+
+            const unsigned int machine_start_gcode_end_id;
+            const unsigned int machine_end_gcode_start_id;
+
+            void inject_cooling_heating_command(
+                TimeProcessor::InsertedLinesMap& inserted_operation_lines,
+                const ExtruderFreeBlock& free_block,
+                float curr_temp,
+                float target_temp,
+                bool pre_cooling,
+                bool pre_heating
+            );
+
+            void build_by_filament_blocks(const std::vector<ExtruderPreHeating::FilamentUsageBlock>& filament_usage_blocks);
+            void build_by_extruder_blocks(const std::vector<ExtruderPreHeating::ExtruderUsageBlcok>& extruder_usage_blocks);
+        };
+
+
     public:
         class SeamsDetector
         {
@@ -831,7 +919,7 @@ namespace Slic3r {
         float m_print_z{0.0f};
         std::vector<float> m_remaining_volume;
         std::vector<Extruder> m_filament_lists;
-        std::vector<float> m_filament_nozzle_temp;
+        std::vector<int> m_filament_nozzle_temp;
         std::vector<std::string> m_filament_types;
         float m_hotend_cooling_rate{ 2.f };
         float m_hotend_heating_rate{ 2.f };
