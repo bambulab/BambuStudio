@@ -4585,9 +4585,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
             if (hover_volume->is_text()) {
                 m_selection.add_volumes(Selection::EMode::Volume, {(unsigned) hover_volume_id});
-                if (type != GLGizmosManager::EType::Text)
-                    m_gizmos.open_gizmo(GLGizmosManager::EType::Text);
+                if (type == GLGizmosManager::EType::Text)
+                    m_gizmos.open_gizmo(GLGizmosManager::EType::Text); // close text
                 wxGetApp().obj_list()->update_selections();
+                m_gizmos.open_gizmo(GLGizmosManager::EType::Text);
                 return;
             }
            /* else if (hover_volume->text_configuration.has_value()) {
@@ -4598,9 +4599,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }*/
             else if(hover_volume->emboss_shape.has_value()){
                 m_selection.add_volumes(Selection::EMode::Volume, {(unsigned) hover_volume_id});
-                if (type != GLGizmosManager::EType::Svg)
-                    m_gizmos.open_gizmo(GLGizmosManager::EType::Svg);
+                if (type == GLGizmosManager::EType::Svg)
+                    m_gizmos.open_gizmo(GLGizmosManager::EType::Svg);// close svg
                 wxGetApp().obj_list()->update_selections();
+                m_gizmos.open_gizmo(GLGizmosManager::EType::Svg);
                 return;
             }
         }

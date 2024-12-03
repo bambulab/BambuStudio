@@ -457,6 +457,7 @@ void GLGizmoText::on_set_state()
         }
     }
     else if (m_state == EState::Off) {
+        ImGui::FocusWindow(nullptr);//exit cursor
         m_reedit_text     = false;
         m_fix_old_tran_flag = false;
         close_warning_flag_after_close_or_drag();
