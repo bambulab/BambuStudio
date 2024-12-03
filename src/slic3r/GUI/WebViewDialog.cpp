@@ -536,13 +536,13 @@ void WebViewPanel::OnFreshLoginStatus(wxTimerEvent &event)
         {
             m_loginstatus = 1;
 
-            if (m_onlinefirst) 
-            { 
+            if (m_onlinefirst)
+            {
                 UpdateMakerworldLoginStatus();
-            }           
+            }
 
-            if (m_MakerLabFirst) 
-            { 
+            if (m_MakerLabFirst)
+            {
                 SetMakerlabUrl("");
                 m_browserML->LoadURL(m_MakerLab_LastUrl);
                 m_MakerLab_LastUrl = "";
@@ -861,7 +861,7 @@ std::string GenerateRandomString(int length)
 }
 
 void WebViewPanel::OpenMakerlab3mf(std::string Base64Buf, std::string FileName)
-{ 
+{
     int   nSize  = wxBase64DecodedSize(Base64Buf.length());
     char *DstBuf = new char[nSize+1];
     memset(DstBuf, 0, nSize + 1);
@@ -1658,23 +1658,23 @@ void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
 
     wxString strlang = wxGetApp().current_language_code_safe();
 
-    if (modelname.compare("makerlab") == 0) 
+    if (modelname.compare("makerlab") == 0)
     {
         wxString FinalUrl;
 
-        if (!m_MakerLabFirst) 
-        { 
-            if (m_MakerLab_LastUrl != "") 
+        if (!m_MakerLabFirst)
+        {
+            if (m_MakerLab_LastUrl != "")
                 FinalUrl = m_MakerLab_LastUrl;
-            else 
+            else
             {
                 SetMakerlabUrl("");
 
                 FinalUrl = m_MakerLab_LastUrl;
             }
-        } 
+        }
         else {
-            if (m_MakerLab_LastUrl != "") 
+            if (m_MakerLab_LastUrl != "")
                 FinalUrl = m_MakerLab_LastUrl;
         }
 

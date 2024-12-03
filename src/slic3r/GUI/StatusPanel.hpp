@@ -404,7 +404,7 @@ protected:
     Button *        m_button_clean;
     wxSimplebook*   m_extruder_book;
     std::vector<ExtruderImage *> m_extruderImage;
-    SwitchBoard *   m_left_right_btn_panel;
+    SwitchBoard *   m_nozzle_btn_panel;
 
     wxStaticText *  m_text_tasklist_caption;
 
@@ -417,9 +417,9 @@ protected:
     wxBoxSizer *    m_misc_ctrl_sizer;
     StaticBox*      m_fan_panel;
     StaticLine *    m_line_nozzle;
-    TempInput* m_tempCtrl_nozzle;
+    TempInput*      m_tempCtrl_nozzle;
     int             m_temp_nozzle_timeout{ 0 };
-    TempInput* m_tempCtrl_nozzle_deputy;
+    TempInput*      m_tempCtrl_nozzle_deputy;
     int             m_temp_nozzle_deputy_timeout{ 0 };
     TempInput *     m_tempCtrl_bed;
     int             m_temp_bed_timeout {0};
@@ -498,6 +498,7 @@ protected:
     virtual void on_axis_ctrl_z_down_10(wxCommandEvent &event) { event.Skip(); }
     virtual void on_axis_ctrl_e_up_10(wxCommandEvent &event) { event.Skip(); }
     virtual void on_axis_ctrl_e_down_10(wxCommandEvent &event) { event.Skip(); }
+    virtual void on_nozzle_selected(wxCommandEvent &event) { event.Skip(); }
 
 public:
     StatusBasePanel(wxWindow *      parent,
@@ -620,6 +621,8 @@ protected:
     void on_axis_ctrl_e_down_10(wxCommandEvent &event);
     void axis_ctrl_e_hint(bool up_down);
 
+    void on_nozzle_selected(wxCommandEvent &event);
+
 	void on_start_unload(wxCommandEvent &event);
     /* temp control */
     void on_bed_temp_kill_focus(wxFocusEvent &event);
@@ -627,7 +630,7 @@ protected:
     void on_set_bed_temp();
     void on_nozzle_temp_kill_focus(wxFocusEvent &event);
     void on_nozzle_temp_set_focus(wxFocusEvent &event);
-    void on_set_nozzle_temp();
+    void on_set_nozzle_temp(int nozzle_id);
     void on_set_chamber_temp();
 
     /* extruder apis */
@@ -662,6 +665,7 @@ protected:
     void on_camera_leave(wxMouseEvent& event);
     void on_auto_leveling(wxCommandEvent &event);
     void on_xyz_abs(wxCommandEvent &event);
+
 
     void on_show_parts_options(wxCommandEvent& event);
     /* print options */
