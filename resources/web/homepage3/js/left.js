@@ -229,11 +229,41 @@ function ChangeLeftWidth()
 	
 	let NowWidth=window.innerWidth;
 	if(NowWidth<=WidthBoundary)
+	{
 		tSend['width']=224;
+		
+		ShowLeftMenuTip( false );
+	}
 	else
+	{
 		tSend['width']=64;
+		
+		ShowLeftMenuTip( true );
+	}
 
 	SendWXMessage( JSON.stringify(tSend) );		
+}
+
+function ShowLeftMenuTip( bShow )
+{
+	if(bShow==true)
+	{
+		$("div[menu='home'] div.BtnIcon").prop('title',GetCurrentTextByKey('t114'));
+		$("div[menu='recent'] div.BtnIcon").prop('title',GetCurrentTextByKey('t35'));
+		$("div[menu='online'] div.BtnIcon").prop('title',GetCurrentTextByKey('t107'));
+		$("div[menu='makerlab'] div.BtnIcon").prop('title','MakerLab');
+		$("div[menu='printhistory'] div.BtnIcon").prop('title',GetCurrentTextByKey('t117'));
+		$("div[menu='manual'] div.BtnIcon").prop('title',GetCurrentTextByKey('t87'));
+	}
+	else
+	{
+		$("div[menu='home'] div.BtnIcon").removeAttr('title');
+		$("div[menu='recent'] div.BtnIcon").removeAttr('title');
+		$("div[menu='online'] div.BtnIcon").removeAttr('title');
+		$("div[menu='makerlab'] div.BtnIcon").removeAttr('title');
+		$("div[menu='printhistory'] div.BtnIcon").removeAttr('title');
+		$("div[menu='manual'] div.BtnIcon").removeAttr('title');	
+	}
 }
 
 //---------------Global-----------------
