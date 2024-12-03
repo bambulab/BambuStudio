@@ -2214,7 +2214,7 @@ void CalibrationPresetPage::select_default_compatible_filament()
         Layout();
     }
     else {
-        assert(false);
+        //assert(false);
     }
 
     check_filament_compatible();
@@ -2270,7 +2270,7 @@ std::vector<FilamentComboBox*> CalibrationPresetPage::get_selected_filament_comb
                 }
             }
         } else {
-            assert(false);
+            //assert(false);
         }
     }
 

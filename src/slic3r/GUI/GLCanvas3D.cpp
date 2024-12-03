@@ -6393,14 +6393,14 @@ void GLCanvas3D::render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned
                                          bool                               ban_light)
 {
     // check that thumbnail size does not exceed the default framebuffer size
-    const Size& cnv_size = get_canvas_size();
+    /*const Size& cnv_size = get_canvas_size();
     unsigned int cnv_w = (unsigned int)cnv_size.get_width();
     unsigned int cnv_h = (unsigned int)cnv_size.get_height();
     if (w > cnv_w || h > cnv_h) {
         float ratio = std::min((float)cnv_w / (float)w, (float)cnv_h / (float)h);
         w = (unsigned int)(ratio * (float)w);
         h = (unsigned int)(ratio * (float)h);
-    }
+    }*/
 
     thumbnail_data.set(w, h);
     if (!thumbnail_data.is_valid())
