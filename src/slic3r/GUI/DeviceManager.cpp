@@ -1633,6 +1633,20 @@ bool MachineObject::is_studio_cmd(int sequence_id)
     return false;
 }
 
+int MachineObject::command_select_extruder(int id)
+{
+    BOOST_LOG_TRIVIAL(info) << "select_extruder";
+
+    nozzle_selected_count = HOLD_COUNT_MAX;
+
+    json j;
+    j["print"]["sequence_id"]    = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["command"]        = "select_extruder";
+    j["print"]["extruder_index"] = id;
+
+    return this->publish_json(j.dump(), 1);
+}
+
 int MachineObject::command_get_version(bool with_retry)
 {
     BOOST_LOG_TRIVIAL(info) << "command_get_version";
@@ -1922,6 +1936,21 @@ int MachineObject::command_set_nozzle(int temp)
     }
     catch (...) {}
     return this->publish_gcode(gcode_str);
+}
+
+int MachineObject::command_set_nozzle_new(int nozzle_id, int temp)
+{
+    BOOST_LOG_TRIVIAL(info) << "set_nozzle_temp";
+
+    nozzle_selected_count = HOLD_COUNT_MAX;
+
+    json j;
+    j["print"]["sequence_id"]    = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["command"]        = "set_nozzle_temp";
+    j["print"]["extruder_index"] = nozzle_id;
+    j["print"]["target_temp"]    = temp;
+
+    return this->publish_json(j.dump(), 1);
 }
 
 int MachineObject::command_set_chamber(int temp)
@@ -3305,6 +3334,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     }
                 }
             }
+
 
             if (jj.contains("command")) {
                 if (jj["command"].get<std::string>() == "ams_change_filament") {
@@ -5685,8 +5715,14 @@ void MachineObject::parse_new_info(json print)
 
             m_extder_data = ExtderData();
             m_extder_data.total_extder_count = get_flag_bits(extruder["state"].get<int>(), 0, 3);
-            m_extder_data.current_extder_id = get_flag_bits(extruder["state"].get<int>(), 4, 3);
-            m_extder_data.target_extder_id = get_flag_bits(extruder["state"].get<int>(), 8, 3);
+
+            if (nozzle_selected_count > 0) {
+                nozzle_selected_count--;
+            } else {
+                m_extder_data.current_extder_id = get_flag_bits(extruder["state"].get<int>(), 4, 3);
+                m_extder_data.target_extder_id  = get_flag_bits(extruder["state"].get<int>(), 8, 3);
+                m_extder_data.state             = (ExtruderSwitchState) get_flag_bits(extruder["state"].get<int>(), 12, 2);
+            }
 
             for (auto it = extruder["info"].begin(); it != extruder["info"].end(); it++) {
 
