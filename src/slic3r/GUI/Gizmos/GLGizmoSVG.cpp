@@ -508,6 +508,7 @@ void GLGizmoSVG::on_set_state() {
 
     // Closing gizmo. e.g. selecting another one
     if (GLGizmoBase::m_state == GLGizmoBase::Off) {
+        ImGui::FocusWindow(nullptr);  // exit cursor
         m_parent.enable_moving(true); // modify by bbs
         reset_volume();
     } else if (GLGizmoBase::m_state == GLGizmoBase::On) {
