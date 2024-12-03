@@ -1,5 +1,4 @@
 #version 110
-precision highp float;
 #define INTENSITY_CORRECTION 0.6
 
 // normalized values for (-0.6/1.31, 0.6/1.31, 1./1.31)

@@ -1,5 +1,4 @@
 #version 110
-precision highp float;
 
 const vec3 ZERO = vec3(0.0, 0.0, 0.0);
 //BBS: add grey and orange
