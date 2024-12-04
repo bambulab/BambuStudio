@@ -854,7 +854,7 @@ std::string GenerateRandomString(int length)
     std::string randomString;
     srand(static_cast<unsigned int>(time(nullptr)));
     for (int i = 0; i < length; ++i) {
-        int randomAscii = rand() % 26 + 65; // 65 - 90的ASCII码范围为可打印字符
+        int randomAscii = rand() % 26 + 65;
         randomString += static_cast<char>(randomAscii);
     }
     return randomString;
@@ -872,7 +872,7 @@ void WebViewPanel::OpenMakerlab3mf(std::string Base64Buf, std::string FileName)
     std::time_t currentTime = std::time(nullptr);
     std::tm    *timeInfo    = std::localtime(&currentTime);
     int               year   = timeInfo->tm_year % 100;
-    int               month  = timeInfo->tm_mon + 1; // 月份范围是0 - 11，需要加1
+    int               month  = timeInfo->tm_mon + 1;
     int               day    = timeInfo->tm_mday;
     int               hour   = timeInfo->tm_hour;
     int               minute = timeInfo->tm_min;
