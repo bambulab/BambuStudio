@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-03 09:23+0800\n"
+"POT-Creation-Date: 2024-12-04 11:47+0800\n"
 "PO-Revision-Date: 2024-03-21 10:39+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -260,7 +260,7 @@ msgid "Position"
 msgstr "位置"
 
 msgid "Rotate (relative)"
-msgstr "旋转（相对）"
+msgstr "旋转 (相对)"
 
 msgid "Scale ratios"
 msgstr "缩放比例"
@@ -302,7 +302,7 @@ msgid "Reset current rotation to the value when open the rotation tool."
 msgstr "将当前旋转重置为打开旋转工具时的值。"
 
 msgid "Rotate (absolute)"
-msgstr "旋转(绝对)"
+msgstr "旋转 (绝对)"
 
 msgid "Reset current rotation to real zeros."
 msgstr "将当前旋转重置为实数零。"
@@ -4907,6 +4907,9 @@ msgstr "角偏转值"
 
 msgid "Please input a valid value (0.01 < angle deflection < 1.0)"
 msgstr "请输入有效值（0.01<角偏转值<0.1）"
+
+msgid "Split compound and compsolid into multiple objects"
+msgstr "将复合体和复合实体拆分为多个对象"
 
 msgid "Number of triangular facets"
 msgstr "三角面数量"
