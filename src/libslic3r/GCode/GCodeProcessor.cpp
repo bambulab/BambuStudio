@@ -1153,7 +1153,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":  after process %1%") % filename.c_str();
 
-    if (remove(filename_in.c_str()) != 0) {
+    if (boost::nowide::remove(filename_in.c_str()) != 0) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":  Failed to remove the temporary G-code file %1%") % filename_in.c_str();
         throw Slic3r::RuntimeError(std::string("Failed to remove the temporary G-code file ") + filename_in + '\n' +
             "Is " + filename_in + " locked?" + '\n');
