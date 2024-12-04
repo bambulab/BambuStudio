@@ -305,8 +305,6 @@ void MonitorPanel::select_machine(std::string machine_sn)
     if (!dev->set_selected_machine(event.GetString().ToStdString()))
         return;
 
-    m_status_info_panel->reset_ams_group_show_flag();
-
     set_default();
     update_all();
 

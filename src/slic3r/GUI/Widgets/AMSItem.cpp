@@ -957,7 +957,7 @@ void AMSLib::on_left_down(wxMouseEvent &evt)
             auto top = 0;
             auto bottom = 0;
 
-            if (m_ams_model == AMSModel::GENERIC_AMS) {
+            if (m_ams_model == AMSModel::GENERIC_AMS || m_ams_model == AMSModel::N3F_AMS || m_ams_model == AMSModel::EXT_AMS) {
                 top = (size.y - FromDIP(15) - m_bitmap_editable_light.GetBmpSize().y);
                 bottom = size.y - FromDIP(15);
             }
@@ -2265,7 +2265,6 @@ void AMSRoadDownPart::create(wxWindow* parent, wxWindowID id, const wxPoint& pos
 //    Refresh();
 //}
 
-
 void AMSRoadDownPart::UpdateLeft(int nozzle_num, AMSRoadShowMode mode) {
     this->m_left_rode_mode = mode;
     m_nozzle_num = nozzle_num;
@@ -2276,7 +2275,6 @@ void AMSRoadDownPart::UpdateRight(int nozzle_num, AMSRoadShowMode mode) {
     m_nozzle_num = nozzle_num;
     Refresh();
 }
-
 
 void AMSRoadDownPart::OnVamsLoading(bool load, wxColour col /*= AMS_CONTROL_GRAY500*/)
 {
@@ -2478,6 +2476,7 @@ void AMSRoadDownPart::UpdatePassRoad(string can_id, AMSPanelPos pos, int len, AM
             m_pass_road_right_step = step;
         }
     }
+    Refresh();
 }
 
 void AMSRoadDownPart::msw_rescale() {
