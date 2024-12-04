@@ -1,13 +1,13 @@
 # Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-21 14:15+0800\n"
-"PO-Revision-Date: 2025-01-08 21:02+0800\n"
+"POT-Creation-Date: 2024-12-04 11:47+0800\n"
+"PO-Revision-Date: 2024-03-21 10:39+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Poedit 3.4.2\n"
+"X-Generator: Poedit 3.5\n"
 
 msgid "Supports Painting"
 msgstr "支撑绘制"
@@ -260,7 +260,7 @@ msgid "Position"
 msgstr "位置"
 
 msgid "Rotate (relative)"
-msgstr "旋转（相对）"
+msgstr "旋转 (相对)"
 
 msgid "Scale ratios"
 msgstr "缩放比例"
@@ -302,7 +302,7 @@ msgid "Reset current rotation to the value when open the rotation tool."
 msgstr "将当前旋转重置为打开旋转工具时的值。"
 
 msgid "Rotate (absolute)"
-msgstr "旋转(绝对)"
+msgstr "旋转 (绝对)"
 
 msgid "Reset current rotation to real zeros."
 msgstr "将当前旋转重置为实数零。"
@@ -1315,41 +1315,6 @@ msgid ""
 msgstr ""
 "当前BambuStudio的版本过低导致云端服务不可用,请从官网更新BambuStudio到最新版"
 "本。"
-
-msgid ""
-"Your software certificate has been revoked, please update Bambu Studio "
-"software."
-msgstr "您的软件证书已被吊销。请升级Bambu Studio软件"
-
-msgid "Retrieving printer information, please try again later."
-msgstr "正在获取打印机信息，请稍后重试"
-
-msgid "Please try updating Bambu Studio and then try again."
-msgstr "请尝试升级Bambu Studio后重试"
-
-msgid ""
-"The certificate has expired. Please check the time settings or update Bambu "
-"Studio and try again."
-msgstr "您的软件证书已过期，请检查系统时间设置或者更新Bambu Studio后重试"
-
-msgid ""
-"The certificate is no longer valid and the printing functions are "
-"unavailable. If you need printing. Please visit the official website at "
-"https://bambulab.com/ to download and update."
-msgstr ""
-"该证书已失效，打印功能无法使用。如果您需要打印，请访问官方网站https://"
-"bambulab.com/进行下载和更新"
-
-msgid ""
-"Internal error. Please try upgrading the firmware and Studio version. If the "
-"issue persists, contact customer support."
-msgstr ""
-"内部错误，请尝试升级固件和Bambu Studio版本。如果问题仍然存在，请联系售后"
-
-msgid ""
-"Your software is not signed, and some printing functions have been "
-"restricted. Please use the officially signed software version."
-msgstr "您的软件未签名，部分打印功能受限使用。请使用官方签名的软件版本。"
 
 msgid "Privacy Policy Update"
 msgstr "隐私协议更新"
@@ -3964,12 +3929,6 @@ msgstr "打印所有盘"
 msgid "Send all"
 msgstr "发送所有盘"
 
-msgid "Send to Bambu Farm Manager Client"
-msgstr "发送到拓竹农场客户端"
-
-msgid "Send to BFMC"
-msgstr "发送到拓竹农场"
-
 msgid "Send to Multi-device"
 msgstr "发送到多设备"
 
@@ -5597,12 +5556,6 @@ msgstr "正在切片盘%d"
 msgid "Please resolve the slicing errors and publish again."
 msgstr "请解决切片错误后再重新发布。"
 
-msgid "Failed to start Bambu Farm Manager Client."
-msgstr "启动拓竹农场客户端失败"
-
-msgid "No Bambu Farm Manager Client found."
-msgstr "未发现拓竹农场客户端"
-
 msgid ""
 "Network Plug-in is not detected. Network related features are unavailable."
 msgstr "未检测到网络插件。网络相关功能不可用。"
@@ -5734,9 +5687,10 @@ msgid ""
 msgstr "文件%s已经发送到打印机的存储空间，可以在打印机上浏览。"
 
 msgid ""
-"Unable to perform boolean operation on model meshes. You may fix the meshes "
-"and try again."
-msgstr "无法对模型网格执行布尔运算。您可以修复网格，然后重试。"
+"Unable to perform boolean operation on model meshes. Only positive parts "
+"will be kept. You may fix the meshes and try agian."
+msgstr ""
+"无法对模型网格执行布尔运算。只保留正体积部分。您可以修复网格后再试一次。"
 
 #, boost-format
 msgid "Reason: part \"%1%\" is empty."
@@ -6035,7 +5989,7 @@ msgid ""
 "models."
 msgstr "在多盘和多模型的场景下提高了渲染性能"
 
-msgid "Enable multi instance rendering by opengl"
+msgid "enable multi instance rendering by opengl"
 msgstr "开启opengl多实例渲染"
 
 msgid ""
@@ -6964,8 +6918,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "在录制无工具头延时摄影视频时，建议添加“延时摄影擦料塔”\n"
 "右键单击打印板的空白位置，选择“添加标准模型”->“延时摄影擦料塔”。"
@@ -8166,9 +8120,6 @@ msgstr "支撑转换层"
 
 msgid "Multiple"
 msgstr "多个"
-
-msgid "Flush"
-msgstr "冲刷"
 
 #, boost-format
 msgid "Failed to calculate line width of %1%. Can not get value of \"%2%\" "
@@ -12010,8 +11961,8 @@ msgstr ""
 "你想重写预设吗"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "我们会将预设重命名为“供应商 类型 系列 @您选择的打印机”。\n"
@@ -13271,66 +13222,6 @@ msgstr ""
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
 
 #~ msgid ""
-#~ "The current chamber temperature or the target chamber temperature exceeds "
-#~ "45\\u2103.In order to avoid extruder clogging,low temperature "
-#~ "filament(PLA/PETG/TPU) is not allowed to be loaded."
-#~ msgstr ""
-#~ "当前腔温或目标腔温超过了45度。为了避免挤出机堵塞，不允许加载低温度的打印材"
-#~ "料（如PLA/PETG/TPU）"
-
-#~ msgid ""
-#~ "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order "
-#~ "to avoid extruder clogging,it is not allowed to set the chamber "
-#~ "temperature above 45\\u2103."
-#~ msgstr ""
-#~ "挤出机中加载了低温度的打印材料（如PLA/PETG/TPU）。为了避免挤出机堵塞，不允"
-#~ "许将腔温设置高于45度。"
-
-#~ msgid ""
-#~ "When you set the chamber temperature below 40\\u2103, the chamber "
-#~ "temperature control will not be activated. And the target chamber "
-#~ "temperature will automatically be set to 0\\u2103."
-#~ msgstr ""
-#~ "当您设置的腔温低于40度时，腔温控制将不会启动。并且目标腔温将自动设置为0度"
-
-#~ msgid ""
-#~ "The certificate has been revoked. Please check the time settings or "
-#~ "update Bambu Studio and try again."
-#~ msgstr "您的软件证书已过期，请检查系统时间设置或者更新Bambu Studio后重试"
-
-#~ msgid ""
-#~ "Please input valid values:\n"
-#~ "start > 0 \\step >= 0\n"
-#~ "end > start + step)"
-#~ msgstr ""
-#~ "请输入有效值:\n"
-#~ "起始值 > 0 \\值步长 >= 0\n"
-#~ "结束值 > 起始值 + 值步长)"
-
-#~ msgid ""
-#~ "Please input valid values:\n"
-#~ "start > 10 \\step >= 0\n"
-#~ "end > start + step)"
-#~ msgstr ""
-#~ "请输入有效值:\n"
-#~ "起始值 > 10 \\值步长 >= 0\n"
-#~ "结束值 > 起始值 + 值步长)"
-
-#~ msgid "enable multi instance rendering by opengl"
-#~ msgstr "开启opengl多实例渲染"
-
-#~ msgid ""
-#~ "Unable to perform boolean operation on model meshes. You may fix the "
-#~ "meshes and try agian."
-#~ msgstr "无法对模型网格执行布尔运算。您可以修复网格，然后重试。"
-
-#~ msgid ""
-#~ "Unable to perform boolean operation on model meshes. Only positive parts "
-#~ "will be kept. You may fix the meshes and try agian."
-#~ msgstr ""
-#~ "无法对模型网格执行布尔运算。只保留正体积部分。您可以修复网格后再试一次。"
-
-#~ msgid ""
 #~ "The wipe speed is determined by speed of current extrusion role. e.g if a "
 #~ "wip action is executed immediately following an outer wall extrusion, the "
 #~ "speed of the outer wall extrusion will be utilized for the wipe action."
@@ -13353,6 +13244,7 @@ msgstr ""
 #~ msgid "Fewer faces"
 #~ msgstr "更少三角面"
 
+#, c-format, boost-format
 #~ msgid ""
 #~ "Printing high temperature material(%1s material) with %2s may cause "
 #~ "nozzle damage"
@@ -13372,11 +13264,13 @@ msgstr ""
 #~ msgid "Are you sure you want to cancel this print?"
 #~ msgstr "你确定要取消这次打印吗？"
 
+#, c-format, boost-format
 #~ msgid ""
 #~ "Printing high temperature material(%s material) with %s may cause nozzle "
 #~ "damage"
 #~ msgstr "用%s打印高温材料（%s材料）可能会导致喷嘴损坏"
 
+#, c-format, boost-format
 #~ msgid ""
 #~ "Tip: When using the A1/A1 mini machine, we do not recommend calibrating "
 #~ "foam filaments(%s),\n"
@@ -13385,6 +13279,7 @@ msgstr ""
 #~ "提示：在使用A1/A1 mini机器时，不建议对发泡类材料（%s）进行校准，\n"
 #~ "以免因效果不佳（校准结果不稳定）而影响打印质量。"
 
+#, c-format, boost-format
 #~ msgid "filaments %s cannot be printed directly on the surface of this plate"
 #~ msgstr "材料 %s 不能在直接在当前打印板上打印"
 
@@ -13630,6 +13525,7 @@ msgstr ""
 #~ "在我们的测试中，校准结果有约10%的波动，这可能导致每次校准的结果略有不同。"
 #~ "我们仍在调查根本原因，并通过新的更新进行改进。"
 
+#, c-format, boost-format
 #~ msgid "Select Connected Printetrs (%d/6)"
 #~ msgstr "选择已连接的打印机 (%d/6)"
 
@@ -13642,8 +13538,49 @@ msgstr ""
 #~ msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
 #~ msgstr "请输入有效的数值 (K的范围为0~0.3，N的范围为0.6~2.0)"
 
+#~ msgid ""
+#~ "The current chamber temperature or the target chamber temperature exceeds "
+#~ "45\\u2103.In order to avoid extruder clogging,low temperature "
+#~ "filament(PLA/PETG/TPU) is not allowed to be loaded."
+#~ msgstr ""
+#~ "当前腔温或目标腔温超过了45度。为了避免挤出机堵塞，不允许加载低温度的打印材"
+#~ "料（如PLA/PETG/TPU）"
+
+#~ msgid ""
+#~ "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order "
+#~ "to avoid extruder clogging,it is not allowed to set the chamber "
+#~ "temperature above 45\\u2103."
+#~ msgstr ""
+#~ "挤出机中加载了低温度的打印材料（如PLA/PETG/TPU）。为了避免挤出机堵塞，不允"
+#~ "许将腔温设置高于45度。"
+
+#~ msgid ""
+#~ "When you set the chamber temperature below 40\\u2103, the chamber "
+#~ "temperature control will not be activated. And the target chamber "
+#~ "temperature will automatically be set to 0\\u2103."
+#~ msgstr ""
+#~ "当您设置的腔温低于40度时，腔温控制将不会启动。并且目标腔温将自动设置为0度"
+
 #~ msgid "Printer local connection failed, please try again."
 #~ msgstr "打印机局域网连接失败，请重试。"
+
+#~ msgid ""
+#~ "Please input valid values:\n"
+#~ "start > 0 \\step >= 0\n"
+#~ "end > start + step)"
+#~ msgstr ""
+#~ "请输入有效值:\n"
+#~ "起始值 > 0 \\值步长 >= 0\n"
+#~ "结束值 > 起始值 + 值步长)"
+
+#~ msgid ""
+#~ "Please input valid values:\n"
+#~ "start > 10 \\step >= 0\n"
+#~ "end > start + step)"
+#~ msgstr ""
+#~ "请输入有效值:\n"
+#~ "起始值 > 0 \\值步长 >= 0\n"
+#~ "结束值 > 起始值 + 值步长)"
 
 #~ msgid ""
 #~ "Over 4 studio/handy are using remote access, you can close some and try "
@@ -19110,8 +19047,8 @@ msgstr ""
 #~ msgstr "正在准备设置页"
 
 #~ msgid ""
-#~ "You have the following presets with saved options for \"Print Host upload"
-#~ "\""
+#~ "You have the following presets with saved options for \"Print Host "
+#~ "upload\""
 #~ msgstr "您的以下预设中包含未保存的选项“打印主机上传”"
 
 #~ msgid ""

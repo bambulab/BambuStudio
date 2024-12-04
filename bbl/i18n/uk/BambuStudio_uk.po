@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-21 14:15+0800\n"
+"POT-Creation-Date: 2024-12-04 11:47+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -1333,38 +1333,6 @@ msgid ""
 msgstr ""
 "Версія Bambu Studio застаріла для використання хмарного сервісу. Будь ласка, "
 "завантажте останню версію з веб-сайту Bambu Lab."
-
-msgid ""
-"Your software certificate has been revoked, please update Bambu Studio "
-"software."
-msgstr ""
-
-msgid "Retrieving printer information, please try again later."
-msgstr ""
-
-msgid "Please try updating Bambu Studio and then try again."
-msgstr ""
-
-msgid ""
-"The certificate has expired. Please check the time settings or update Bambu "
-"Studio and try again."
-msgstr ""
-
-msgid ""
-"The certificate is no longer valid and the printing functions are "
-"unavailable. If you need printing. Please visit the official website at "
-"https://bambulab.com/ to download and update."
-msgstr ""
-
-msgid ""
-"Internal error. Please try upgrading the firmware and Studio version. If the "
-"issue persists, contact customer support."
-msgstr ""
-
-msgid ""
-"Your software is not signed, and some printing functions have been "
-"restricted. Please use the officially signed software version."
-msgstr ""
 
 msgid "Privacy Policy Update"
 msgstr "Оновлення політики конфіденційності"
@@ -2721,8 +2689,8 @@ msgstr "Будь ласка, введіть допустиме значення 
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr ""
-"Будь ласка, введіть допустиме значення (K у межах %.1f~%.1f, N у межах %.1f~"
-"%.1f)"
+"Будь ласка, введіть допустиме значення (K у межах %.1f~%.1f, N у межах "
+"%.1f~%.1f)"
 
 msgid "Other Color"
 msgstr "Інший колір"
@@ -4117,12 +4085,6 @@ msgstr "Роздрукувати все"
 
 msgid "Send all"
 msgstr "Надіслати все"
-
-msgid "Send to Bambu Farm Manager Client"
-msgstr ""
-
-msgid "Send to BFMC"
-msgstr ""
 
 msgid "Send to Multi-device"
 msgstr "Відправити на багато пристроїв"
@@ -5850,12 +5812,6 @@ msgstr "Пластина для нарізки %d"
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Виправте помилки нарізки та опублікуйте знову."
 
-msgid "Failed to start Bambu Farm Manager Client."
-msgstr ""
-
-msgid "No Bambu Farm Manager Client found."
-msgstr ""
-
 msgid ""
 "Network Plug-in is not detected. Network related features are unavailable."
 msgstr ""
@@ -5995,9 +5951,11 @@ msgstr ""
 "Файл %s надіслано до пам'яті принтера та доступний для перегляду на принтері."
 
 msgid ""
-"Unable to perform boolean operation on model meshes. You may fix the meshes "
-"and try again."
+"Unable to perform boolean operation on model meshes. Only positive parts "
+"will be kept. You may fix the meshes and try agian."
 msgstr ""
+"Неможливо виконати булеву операцію на сітках моделі. Будуть залишені лише "
+"позитивні частини. Ви можете виправити сітки і спробувати ще раз."
 
 #, boost-format
 msgid "Reason: part \"%1%\" is empty."
@@ -6325,7 +6283,7 @@ msgstr ""
 "Покращена продуктивність рендерингу в умовах кількох пластин і багатьох "
 "моделей."
 
-msgid "Enable multi instance rendering by opengl"
+msgid "enable multi instance rendering by opengl"
 msgstr ""
 
 msgid ""
@@ -7316,8 +7274,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "При записі таймлапсу без інструментальної головки рекомендується додати "
 "“Timelapse Wipe Tower” \n"
@@ -8572,9 +8530,6 @@ msgstr "Годтримка переходу"
 
 msgid "Multiple"
 msgstr "Кілька"
-
-msgid "Flush"
-msgstr ""
 
 #, boost-format
 msgid "Failed to calculate line width of %1%. Can not get value of \"%2%\" "
@@ -12833,8 +12788,8 @@ msgstr ""
 "Чи бажаєте ви їх перезаписати?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "Ми перейменовуємо налаштування на “Виробник Тип Серійний номер @принтер, "
@@ -14250,13 +14205,6 @@ msgstr ""
 "ймовірність деформації."
 
 #~ msgid ""
-#~ "Unable to perform boolean operation on model meshes. Only positive parts "
-#~ "will be kept. You may fix the meshes and try agian."
-#~ msgstr ""
-#~ "Неможливо виконати булеву операцію на сітках моделі. Будуть залишені лише "
-#~ "позитивні частини. Ви можете виправити сітки і спробувати ще раз."
-
-#~ msgid ""
 #~ "The wipe speed is determined by speed of current extrusion role. e.g if a "
 #~ "wip action is executed immediately following an outer wall extrusion, the "
 #~ "speed of the outer wall extrusion will be utilized for the wipe action."
@@ -14287,6 +14235,7 @@ msgstr ""
 #~ msgid "Are you sure you want to cancel this print?"
 #~ msgstr "Ви впевнені, що хочете скасувати цей друк?"
 
+#, c-format, boost-format
 #~ msgid ""
 #~ "Printing high temperature material(%s material) with %s may cause nozzle "
 #~ "damage"

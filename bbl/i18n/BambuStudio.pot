@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-21 14:15+0800\n"
+"POT-Creation-Date: 2024-12-04 11:47+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1287,38 +1287,6 @@ msgstr ""
 msgid ""
 "The Bambu Studio version is too old to enable cloud service. Please download "
 "the latest version from Bambu Lab website."
-msgstr ""
-
-msgid ""
-"Your software certificate has been revoked, please update Bambu Studio "
-"software."
-msgstr ""
-
-msgid "Retrieving printer information, please try again later."
-msgstr ""
-
-msgid "Please try updating Bambu Studio and then try again."
-msgstr ""
-
-msgid ""
-"The certificate has expired. Please check the time settings or update Bambu "
-"Studio and try again."
-msgstr ""
-
-msgid ""
-"The certificate is no longer valid and the printing functions are "
-"unavailable. If you need printing. Please visit the official website at "
-"https://bambulab.com/ to download and update."
-msgstr ""
-
-msgid ""
-"Internal error. Please try upgrading the firmware and Studio version. If the "
-"issue persists, contact customer support."
-msgstr ""
-
-msgid ""
-"Your software is not signed, and some printing functions have been "
-"restricted. Please use the officially signed software version."
 msgstr ""
 
 msgid "Privacy Policy Update"
@@ -3845,12 +3813,6 @@ msgstr ""
 msgid "Send all"
 msgstr ""
 
-msgid "Send to Bambu Farm Manager Client"
-msgstr ""
-
-msgid "Send to BFMC"
-msgstr ""
-
 msgid "Send to Multi-device"
 msgstr ""
 
@@ -5450,12 +5412,6 @@ msgstr ""
 msgid "Please resolve the slicing errors and publish again."
 msgstr ""
 
-msgid "Failed to start Bambu Farm Manager Client."
-msgstr ""
-
-msgid "No Bambu Farm Manager Client found."
-msgstr ""
-
 msgid ""
 "Network Plug-in is not detected. Network related features are unavailable."
 msgstr ""
@@ -5583,8 +5539,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Unable to perform boolean operation on model meshes. You may fix the meshes "
-"and try again."
+"Unable to perform boolean operation on model meshes. Only positive parts "
+"will be kept. You may fix the meshes and try agian."
 msgstr ""
 
 #, possible-boost-format
@@ -5870,7 +5826,7 @@ msgid ""
 "models."
 msgstr ""
 
-msgid "Enable multi instance rendering by opengl"
+msgid "enable multi instance rendering by opengl"
 msgstr ""
 
 msgid ""
@@ -6754,8 +6710,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 
 msgid ""
@@ -7912,9 +7868,6 @@ msgid "Support transition"
 msgstr ""
 
 msgid "Multiple"
-msgstr ""
-
-msgid "Flush"
 msgstr ""
 
 #, possible-boost-format
@@ -11483,8 +11436,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 
