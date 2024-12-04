@@ -1941,6 +1941,11 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         initial_extruder_id = 0;
         initial_non_support_extruder_id = 0;
     }
+
+    //could not find non support filmanet, use fisrt print filament
+    if (initial_non_support_extruder_id == (unsigned int) -1)
+        initial_non_support_extruder_id = initial_extruder_id;
+
     print.throw_if_canceled();
 
     m_cooling_buffer = make_unique<CoolingBuffer>(*this);
