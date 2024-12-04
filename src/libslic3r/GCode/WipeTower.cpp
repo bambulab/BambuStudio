@@ -993,9 +993,6 @@ WipeTower::NozzleChangeResult WipeTower::nozzle_change(int old_filament_id, int 
                                  (new_filament_id != (unsigned int) (-1) ? wipe_depth + m_depth_traversed - m_perimeter_width : m_wipe_tower_depth - m_perimeter_width));
 
     Vec2f initial_position = cleaning_box.ld + Vec2f(0.f, m_depth_traversed);
-    writer.travel(initial_position, 30000);
-    writer.append("G1 Z" + std::to_string(m_z_pos) + "\n");
-    writer.append("G1 E2 F1800\n");
     writer.set_initial_position(initial_position, m_wipe_tower_width, m_wipe_tower_depth, m_internal_rotation);
 
     const float &xl = cleaning_box.ld.x();
@@ -1032,6 +1029,8 @@ WipeTower::NozzleChangeResult WipeTower::nozzle_change(int old_filament_id, int 
 
     m_depth_traversed += nozzle_change_line_count * dy;
 
+    NozzleChangeResult result;
+
     if (is_tpu_filament(m_current_tool))
     {
         bool left_to_right = !m_left_to_right;
@@ -1056,30 +1055,16 @@ WipeTower::NozzleChangeResult WipeTower::nozzle_change(int old_filament_id, int 
         }
     }
     else {
-        auto float_to_string_with_precision = [](float value, int precision) {
-            std::ostringstream out;
-            out << std::fixed << std::setprecision(precision) << value;
-            return out.str();
-        };
-
-        float wipe_distance = 2;
-        Vec2f wipe_pos      = writer.pos();
+        result.wipe_path.push_back(writer.pos());
         if (m_left_to_right) {
-            wipe_pos.x() -= wipe_distance;
+             result.wipe_path.push_back(Vec2f(0, writer.y()));
         } else {
-            wipe_pos.x() += wipe_distance;
+             result.wipe_path.push_back(Vec2f(m_wipe_tower_width, writer.y()));
         }
-        writer.append("; WIPE_START\n");
-        writer.extrude_explicit(wipe_pos, -2);
-        writer.append("; WIPE_END\n");
-
-        std::string lift_gcode = "G2 Z" + float_to_string_with_precision(m_z_pos + 0.4, 3) + " I0.86 J0.86 P1 F10000\n";
-        writer.append(lift_gcode);
     }
 
     writer.append(format_nozzle_change_line(false, old_filament_id, new_filament_id));
 
-    NozzleChangeResult result;
     result.start_pos = initial_position;
     result.end_pos   = writer.pos();
     result.gcode     = writer.gcode();
