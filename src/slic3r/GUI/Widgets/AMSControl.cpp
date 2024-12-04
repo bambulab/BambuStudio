@@ -2501,7 +2501,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 //    });
 //
 //
-   
+
 
     //ams area
 
@@ -4166,12 +4166,18 @@ void AMSControl::SwitchAms(std::string ams_id)
                     pos == AMSPanelPos::LEFT_PANEL ? m_simplebook_ams_left->SetSelection(item->m_selection) : m_simplebook_ams_right->SetSelection(item->m_selection);
                     if (item->m_info.cans.size() == GENERIC_AMS_SLOT_NUM) {
                         if (item->m_info.ams_type == AMSModel::AMS_LITE) {
-                            pos == AMSPanelPos::LEFT_PANEL ? m_down_road->UpdateLeft(m_extder_data.total_extder_count, AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE)
-                                : m_down_road->UpdateRight(m_extder_data.total_extder_count, AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE);
+                            if (pos == AMSPanelPos::LEFT_PANEL) {
+                                m_down_road->UpdateLeft(m_extder_data.total_extder_count, AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE);
+                            } else {
+                                m_down_road->UpdateRight(m_extder_data.total_extder_count, AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE);
+                            }
                         }
                         else {
-                            pos == AMSPanelPos::LEFT_PANEL ? m_down_road->UpdateLeft(m_extder_data.total_extder_count, AMSRoadShowMode::AMS_ROAD_MODE_FOUR)
-                                : m_down_road->UpdateRight(m_extder_data.total_extder_count, AMSRoadShowMode::AMS_ROAD_MODE_FOUR);
+                            if (pos == AMSPanelPos::LEFT_PANEL) {
+                                m_down_road->UpdateLeft(m_extder_data.total_extder_count, AMSRoadShowMode::AMS_ROAD_MODE_FOUR);
+                            } else {
+                                m_down_road->UpdateRight(m_extder_data.total_extder_count, AMSRoadShowMode::AMS_ROAD_MODE_FOUR);
+                            }
                         }
                     }
                     else {
@@ -4184,13 +4190,11 @@ void AMSControl::SwitchAms(std::string ams_id)
                         }
                         pos == AMSPanelPos::LEFT_PANEL ? m_down_road->UpdateLeft(m_extder_data.total_extder_count, mode)
                             : m_down_road->UpdateRight(m_extder_data.total_extder_count, mode);
-                        if (pos == AMSPanelPos::LEFT_PANEL){
+                        if (pos == AMSPanelPos::LEFT_PANEL) {
                             m_down_road->UpdatePassRoad(item->m_info.current_can_id, AMSPanelPos::LEFT_PANEL, -1, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
-                        }
-                        else{
+                        } else {
                             m_down_road->UpdatePassRoad(item->m_info.current_can_id, AMSPanelPos::RIGHT_PANEL, -1, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
                         }
-
                     }
                 }
             }
@@ -4511,6 +4515,10 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
     }
     if (model == EXT_AMS && ams->m_info.ext_type == AMSModelOriginType::LITE_EXT){
         length = 145;
+    }
+
+    if (model == EXT_AMS && ams->m_info.ext_type == AMSModelOriginType::GENERIC_EXT){
+        length = 82;
     }
 
     for (auto i = 0; i < m_ams_info.size(); i++) {
