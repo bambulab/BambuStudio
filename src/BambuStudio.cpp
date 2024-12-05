@@ -1678,7 +1678,7 @@ int CLI::run(int argc, char **argv)
                     }*/
 
                     Semver cli_ver = *Semver::parse(SLIC3R_VERSION);
-                    if (!allow_newer_file && ((cli_ver.maj() != file_version.maj()) || (cli_ver.min() < file_version.min()))){
+                    if (!allow_newer_file && ((cli_ver.maj() < file_version.maj()) || ((cli_ver.maj() == file_version.maj()) && (cli_ver.min() < file_version.min())))){
                         BOOST_LOG_TRIVIAL(error) << boost::format("Version Check: File Version %1% not supported by current cli version %2%")%file_version.to_string() %SLIC3R_VERSION;
                         record_exit_reson(outfile_dir, CLI_FILE_VERSION_NOT_SUPPORTED, 0, cli_errors[CLI_FILE_VERSION_NOT_SUPPORTED], sliced_info);
                         flush_and_exit(CLI_FILE_VERSION_NOT_SUPPORTED);
