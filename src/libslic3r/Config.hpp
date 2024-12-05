@@ -292,7 +292,7 @@ public:
     	return *this != *rhs;
     }
     // Apply an override option, possibly a nullable one.
-    virtual bool 				apply_override(const ConfigOption *rhs) {
+    virtual bool 				apply_override(const ConfigOption *rhs, std::vector<int>& default_index) {
     	if (*this == *rhs)
     		return false;
     	*this = *rhs;
@@ -686,7 +686,7 @@ public:
     }
     // Apply an override option, possibly a nullable one.
     // assume lhs is not nullable even it is nullable
-    bool apply_override(const ConfigOption *rhs) override {
+    bool apply_override(const ConfigOption *rhs, std::vector<int>& default_index) override {
         //if (this->nullable())
         //	throw ConfigurationError("Cannot override a nullable ConfigOption.");
         if (rhs->type() != this->type())
@@ -710,14 +710,16 @@ public:
         else
             this->values.resize(rhs_vec->size(), this->values.front());
 
-    	bool modified = false;
-        auto default_value = this->values[0];
+        assert(default_index.size() == rhs_vec->size());
+
+        bool modified = false;
+        std::vector<T> default_value = this->values;
         for (size_t i = 0; i < rhs_vec->size(); ++i) {
             if (!rhs_vec->is_nil(i)) {
                 this->values[i] = rhs_vec->values[i];
                 modified        = true;
             } else {
-                this->values[i] = default_value;
+                this->values[i] = default_value[default_index[i]-1];
             }
         }
         return modified;
