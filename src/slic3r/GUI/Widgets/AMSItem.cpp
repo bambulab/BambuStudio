@@ -2523,6 +2523,14 @@ void AMSPreview::Update(AMSinfo amsinfo)
 {
     m_amsinfo = amsinfo;
     m_ams_item_type = amsinfo.ams_type;
+
+    if (m_ams_item_type == AMSModel::GENERIC_AMS || m_ams_item_type == AMSModel::AMS_LITE || m_ams_item_type == AMSModel::N3F_AMS) {
+        SetMinSize(AMS_PREV_FOUR_SIZE);
+        SetMaxSize(AMS_PREV_FOUR_SIZE);
+    } else {
+        SetMinSize(AMS_PREV_SINGLE_SIZE);
+        SetMaxSize(AMS_PREV_SINGLE_SIZE);
+    }
 }
 
 void AMSPreview::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
