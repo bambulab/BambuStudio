@@ -4366,7 +4366,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             // Is there any modifier or advanced config data?
                             for (ModelVolume *model_volume : model_object->volumes) model_volume->config.reset();
                         }
-                    } else if (load_config && (file_version > app_version)) {
+                    }
+                    else if (load_config && (file_version.maj() == app_version.maj()) && (file_version.min() > app_version.min())) {
                         Semver cloud_ver;
                         if (wxGetApp().app_config->has("app", "cloud_version")) {
                             std::string cloud_version = wxGetApp().app_config->get("app", "cloud_version");
