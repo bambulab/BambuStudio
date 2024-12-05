@@ -1000,7 +1000,10 @@ void Sidebar::priv::sync_extruder_list()
         }
     }
 
+    Preset * machine_preset = get_printer_preset(obj);
+
     auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
+    printer_tab->select_preset(machine_preset->name);
     const Preset &cur_preset  = preset_bundle->printers.get_selected_preset();
 
     int extruder_nums = preset_bundle->get_printer_extruder_count();
