@@ -95,7 +95,7 @@ namespace BBL {
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"
 #define BAMBU_NETWORK_AGENT_NAME            "bambu_network_agent"
 
-#define BAMBU_NETWORK_AGENT_VERSION         "01.10.01.01"
+#define BAMBU_NETWORK_AGENT_VERSION         "01.10.01.02"
 
 //iot preset type strings
 #define IOT_PRINTER_TYPE_STRING     "printer"
@@ -253,11 +253,12 @@ struct CertificateInformation {
     std::string     serial_number;
 };
 
+
 enum class MessageFlag : int
 {
     MSG_FLAG_NONE = 0,
-    MSG_SIGN = 1 << 0,
-    MSG_ENCRYPT = 1 << 1,
+    MSG_SIGN      = 1 << 0,
+    MSG_ENCRYPT   = 1 << 1,
 };
 
 }
