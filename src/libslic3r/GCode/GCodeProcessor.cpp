@@ -858,6 +858,24 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                     filament_blocks.emplace_back(fid, line_id, -1);
                 }
             }
+            else if (GCodeReader::GCodeLine::cmd_start_with(gcode_line, "M1020")) {
+                size_t s_pos = gcode_line.find('S');
+                if (s_pos != std::string::npos) {
+                    std::istringstream str(gcode_line.substr(s_pos + 1)); // skip white spaces and T
+                    int fid;
+                    str >> fid;
+                    if (!str.fail() && 0 <= fid && fid < 255) {
+                        // skip the filaments change in machine start/end gcode
+                        if (machine_start_gcode_end_line_id == (unsigned int)(-1) && line_id<machine_start_gcode_end_line_id ||
+                            machine_end_gcode_start_line_id != (unsigned int)(-1) && line_id>machine_end_gcode_start_line_id)
+                            return;
+
+                        if (!filament_blocks.empty())
+                            filament_blocks.back().upper_gcode_id = line_id;
+                        filament_blocks.emplace_back(fid, line_id, -1);
+                    }
+                }
+            }
             else if (GCodeReader::GCodeLine::cmd_start_with(gcode_line, (std::string(";") + reserved_tag(ETags::NozzleChangeStart)).c_str())) {
                 int prev_filament{ -1 }, next_filament{ -1 }, extruder_id{ -1 };
                 handle_nozzle_change_line(gcode_line, prev_filament, next_filament, extruder_id);
@@ -939,10 +957,28 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
     }
 
     // After traversing the G-code, the first and last extruder blocks still have uncompleted initialization steps
-    if (!extruder_blocks.empty() && !filament_blocks.empty()) {
-        extruder_blocks.front().initialize_step_1(context.filament_maps[filament_blocks.front().filament_id], machine_start_gcode_end_line_id, filament_blocks.front().filament_id);
+    if (!extruder_blocks.empty()) {
+        int first_filament = -1;
+        int last_filament = -1;
+
+        if (!filament_blocks.empty()) {
+            first_filament = filament_blocks.front().filament_id;
+            last_filament = filament_blocks.back().filament_id;
+        }
+        else {
+            if (extruder_blocks.size() == 1) {
+                // only with a dummy extruder block, we can't find any available filament
+                first_filament = 0;
+                last_filament = 0;
+            }
+            else {
+                first_filament = extruder_blocks.front().end_filament;
+                last_filament = extruder_blocks.back().start_filament;
+            }
+        }
+        extruder_blocks.front().initialize_step_1(context.filament_maps[first_filament], machine_start_gcode_end_line_id, first_filament);
         extruder_blocks.back().initialize_step_2(machine_end_gcode_start_line_id);
-        extruder_blocks.back().initialize_step_3(machine_end_gcode_start_line_id,filament_blocks.back().filament_id,machine_end_gcode_start_line_id);
+        extruder_blocks.back().initialize_step_3(machine_end_gcode_start_line_id,last_filament,machine_end_gcode_start_line_id);
     }
 
     for (auto& block : extruder_blocks)
