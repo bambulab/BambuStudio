@@ -2030,6 +2030,7 @@ int MachineObject::command_ams_filament_settings(int ams_id, int tray_id, std::s
     j["print"]["command"]       = "ams_filament_setting";
     j["print"]["sequence_id"]   = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["ams_id"]        = ams_id;
+    j["print"]["slot_id"]       = tray_id;
     j["print"]["tray_id"]       = tray_id;
     j["print"]["tray_info_idx"] = filament_id;
     j["print"]["setting_id"]    = setting_id;
