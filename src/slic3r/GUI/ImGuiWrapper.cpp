@@ -520,6 +520,28 @@ void ImGuiWrapper::render()
     m_new_frame_open = false;
 }
 
+ImVec2 ImGuiWrapper::calc_text_size_new(std::string_view text, bool hide_text_after_double_hash, float wrap_width)
+{
+    return ImGui::CalcTextSize(text.data(), text.data() + text.length(), hide_text_after_double_hash, wrap_width);
+}
+
+ImVec2 ImGuiWrapper::calc_text_size_new(const std::string &text, bool hide_text_after_double_hash, float wrap_width)
+{
+    return ImGui::CalcTextSize(text.c_str(), NULL, hide_text_after_double_hash, wrap_width);
+}
+
+ImVec2 ImGuiWrapper::calc_text_size_new(const wxString &text, bool hide_text_after_double_hash, float wrap_width)
+{
+    auto   text_utf8 = into_u8(text);
+    ImVec2 size      = ImGui::CalcTextSize(text_utf8.c_str(), NULL, hide_text_after_double_hash, wrap_width);
+
+    /*#ifdef __linux__
+        size.x *= m_style_scaling;
+        size.y *= m_style_scaling;
+    #endif*/
+    return size;
+}
+
 ImVec2 ImGuiWrapper::calc_text_size(const wxString &text, float wrap_width)
 {
     auto text_utf8 = into_u8(text);
@@ -591,9 +613,9 @@ bool ImGuiWrapper::bbl_combo_with_filter(const char* label, const std::string& p
         return false;
 
     static char pattern_buffer[256] = { 0 };
-    auto simple_match = [](const char* pattern, const char* str) {
-        wxString sub_str = wxString(pattern).Lower();
-        wxString main_str = wxString(str).Lower();
+    auto   simple_match    = [](const char *pattern, const char *str) {
+        wxString sub_str  = wxString::FromUTF8(pattern).Lower();
+        wxString main_str = wxString::FromUTF8(str).Lower();
         return main_str.Find(sub_str);
     };
 
@@ -664,18 +686,16 @@ bool ImGuiWrapper::bbl_combo_with_filter(const char* label, const std::string& p
         if (*pattern_buffer != '\0')
             is_filtering = true;
 
-        if (is_filtering)
-        {
-            std::vector<std::pair<int, int> > filtered_items_with_priority;// std::pair<index, priority>
-            for (int i = 0; i < all_items.size(); i++)
-            {
+        if (is_filtering) {
+            std::vector<std::pair<int, int>> filtered_items_with_priority; // std::pair<index, priority>
+            for (int i = 0; i < all_items.size(); i++) {
                 int priority = simple_match(pattern_buffer, all_items[i].c_str());
                 if (priority != wxNOT_FOUND)
-                    filtered_items_with_priority.push_back({ i, priority });
+                    filtered_items_with_priority.push_back({i, priority});
             }
-            std::sort(filtered_items_with_priority.begin(), filtered_items_with_priority.end(), [](const std::pair<int, int>& a, const std::pair<int, int>& b) {return (b.second > a.second); });
-            for (auto item : filtered_items_with_priority)
-            {
+            std::sort(filtered_items_with_priority.begin(), filtered_items_with_priority.end(),
+                      [](const std::pair<int, int> &a, const std::pair<int, int> &b) { return (b.second > a.second); });
+            for (auto item : filtered_items_with_priority) {
                 filtered_items_idx->push_back(item.first);
             }
         }
@@ -807,6 +827,17 @@ bool ImGuiWrapper::button(const wxString& label, float width, float height)
 {
     auto label_utf8 = into_u8(label);
     return ImGui::Button(label_utf8.c_str(), ImVec2(width, height));
+}
+
+bool ImGuiWrapper::button(const wxString &label, const ImVec2 &size, bool enable)
+{
+    disabled_begin(!enable);
+
+    auto label_utf8 = into_u8(label);
+    bool res        = ImGui::Button(label_utf8.c_str(), size);
+
+    disabled_end();
+    return (enable) ? res : false;
 }
 
 bool ImGuiWrapper::radio_button(const wxString &label, bool active)
@@ -1021,13 +1052,24 @@ void ImGuiWrapper::text_colored(const ImVec4& color, const char* label)
 
 void ImGuiWrapper::text_colored(const ImVec4& color, const std::string& label)
 {
-    this->text_colored(color, label.c_str());
+    ImGuiWrapper::text_colored(color, label.c_str());
 }
 
 void ImGuiWrapper::text_colored(const ImVec4& color, const wxString& label)
 {
     auto label_utf8 = into_u8(label);
-    this->text_colored(color, label_utf8.c_str());
+    ImGuiWrapper::text_colored(color, label_utf8.c_str());
+}
+
+void ImGuiWrapper::warning_text_wrapped(const char *all_text, float wrap_width) {
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::to_ImVec4(ColorRGB::WARNING()));
+    this->text_wrapped(all_text, wrap_width);
+    ImGui::PopStyleColor();
+}
+
+void ImGuiWrapper::warning_text_wrapped(const wxString &all_text, float wrap_width) {
+    auto label_utf8 = into_u8(all_text);
+    warning_text_wrapped(label_utf8.c_str(), wrap_width);
 }
 
 void ImGuiWrapper::text_wrapped(const char *label, float wrap_width)
@@ -2032,20 +2074,18 @@ std::string ImGuiWrapper::trunc(const std::string &text, float width, const char
     float allowed_width = width - tail_width;
 
     // guess approx count of letter
-    wxString temp{"n"};
-    float    average_letter_width = calc_text_size(temp).x; // average letter width
+    float    average_letter_width = calc_text_size_new(std::string_view("n")).x; // average letter width
     unsigned count_letter         = static_cast<unsigned>(allowed_width / average_letter_width);
 
-    //std::string_view text_       = text;
-    //std::string_view result_text = text_.substr(0, count_letter);
-    wxString result_text(text.substr(0, count_letter));
-    text_width                   = calc_text_size(result_text).x;
+    std::string_view text_       = text;
+    std::string_view result_text = text_.substr(0, count_letter);
+    text_width                   = calc_text_size_new(result_text).x; // calc_text_size
     if (text_width < allowed_width) {
         // increase letter count
         while (count_letter < text.length()) {
             ++count_letter;
-            wxString      act_text(text.substr(0, count_letter));
-            text_width = calc_text_size(act_text).x;
+            std::string_view act_text = text_.substr(0, count_letter);
+            text_width                = calc_text_size_new(act_text).x;
             if (text_width > allowed_width) break;
             result_text = act_text;
         }
@@ -2053,12 +2093,12 @@ std::string ImGuiWrapper::trunc(const std::string &text, float width, const char
         // decrease letter count
         while (count_letter > 1) {
             --count_letter;
-            result_text = text.substr(0, count_letter);
-            text_width  = calc_text_size(result_text).x;
+            result_text = text_.substr(0, count_letter);
+            text_width  = calc_text_size_new(result_text).x;
             if (text_width < allowed_width) break;
         }
     }
-    return result_text .ToStdString()+ tail;
+    return std::string(result_text) + tail;
 }
 
 void ImGuiWrapper::escape_double_hash(std::string &text)
@@ -2069,6 +2109,134 @@ void ImGuiWrapper::escape_double_hash(std::string &text)
     while ((pos = text.find(search, pos)) != std::string::npos) text.replace(pos, search.length(), replace);
 }
 
+ImVec2 ImGuiWrapper::suggest_location(const ImVec2 &dialog_size, const Slic3r::Polygon &interest, const ImVec2 &canvas_size)
+{
+    // IMPROVE 1: do not select place over menu
+    // BoundingBox top_menu;
+    // GLGizmosManager &gizmo_mng = canvas->get_gizmos_manager();
+    // BoundingBox      side_menu; // gizmo_mng.get_size();
+    // BoundingBox left_bottom_menu; // is permanent?
+    // NotificationManager *notify_mng = plater->get_notification_manager();
+    // BoundingBox          notifications; // notify_mng->get_size();
+    // m_window_width, m_window_height + position
+
+    // IMPROVE 2: use polygon of interest not only bounding box
+    BoundingBox bb(interest.points);
+    Point       center = bb.center(); // interest.centroid();
+
+    // area size
+    Point window_center(canvas_size.x / 2, canvas_size.y / 2);
+
+    // mov on side
+    Point bb_half_size = (bb.max - bb.min) / 2 + Point(1, 1);
+    Point diff_center  = window_center - center;
+    Vec2d diff_norm(diff_center.x() / (double) bb_half_size.x(), diff_center.y() / (double) bb_half_size.y());
+    if (diff_norm.x() > 1.) diff_norm.x() = 1.;
+    if (diff_norm.x() < -1.) diff_norm.x() = -1.;
+    if (diff_norm.y() > 1.) diff_norm.y() = 1.;
+    if (diff_norm.y() < -1.) diff_norm.y() = -1.;
+
+    Vec2d abs_diff(abs(diff_norm.x()), abs(diff_norm.y()));
+    if (abs_diff.x() < 1. && abs_diff.y() < 1.) {
+        if (abs_diff.x() > abs_diff.y())
+            diff_norm.x() = (diff_norm.x() < 0.) ? (-1.) : 1.;
+        else
+            diff_norm.y() = (diff_norm.y() < 0.) ? (-1.) : 1.;
+    }
+
+    Point half_dialog_size(dialog_size.x / 2., dialog_size.y / 2.);
+    Point move_size       = bb_half_size + half_dialog_size;
+    Point offseted_center = center - half_dialog_size;
+    Vec2d offset(offseted_center.x() + diff_norm.x() * move_size.x(), offseted_center.y() + diff_norm.y() * move_size.y());
+
+    // move offset close to center
+    Points window_polygon = {offset.cast<coord_t>(), Point(offset.x(), offset.y() + dialog_size.y), Point(offset.x() + dialog_size.x, offset.y() + dialog_size.y),
+                             Point(offset.x() + dialog_size.x, offset.y())};
+    // check that position by Bounding box is not intersecting
+    assert(Slic3r::intersection(interest, Polygon(window_polygon)).empty());
+
+    double allowed_space    = 10; // in px
+    double allowed_space_sq = allowed_space * allowed_space;
+    Vec2d  move_vec         = (center - (offset.cast<coord_t>() + half_dialog_size)).cast<double>();
+    Vec2d  result_move(0, 0);
+    do {
+        move_vec             = move_vec / 2.;
+        Point  move_point    = (move_vec + result_move).cast<coord_t>();
+        Points moved_polygon = window_polygon; // copy
+        for (Point &p : moved_polygon) p += move_point;
+        if (Slic3r::intersection(interest, Polygon(moved_polygon)).empty())
+            result_move += move_vec;
+
+    } while (move_vec.squaredNorm() >= allowed_space_sq);
+    offset += result_move;
+
+    return ImVec2(offset.x(), offset.y());
+}
+
+void ImGuiWrapper::draw(const Polygon &polygon,
+                        ImDrawList *   draw_list /* = ImGui::GetOverlayDrawList()*/,
+                        ImU32          color /* = ImGui::GetColorU32(COL_ORANGE_LIGHT)*/,
+                        float          thickness /* = 3.f*/)
+{
+    // minimal one line consist of 2 points
+    if (polygon.size() < 2) return;
+    // need a place to draw
+    if (draw_list == nullptr) return;
+
+    const Point *prev_point = &polygon.points.back();
+    for (const Point &point : polygon.points) {
+        ImVec2 p1(prev_point->x(), prev_point->y());
+        ImVec2 p2(point.x(), point.y());
+        draw_list->AddLine(p1, p2, color, thickness);
+        prev_point = &point;
+    }
+}
+
+void ImGuiWrapper::draw_cross_hair(const ImVec2 &position, float radius, ImU32 color, int num_segments, float thickness)
+{
+    auto draw_list = ImGui::GetOverlayDrawList();
+    draw_list->AddCircle(position, radius, color, num_segments, thickness);
+    auto dirs = {ImVec2{0, 1}, ImVec2{1, 0}, ImVec2{0, -1}, ImVec2{-1, 0}};
+    for (const ImVec2 &dir : dirs) {
+        ImVec2 start(position.x + dir.x * 0.5 * radius, position.y + dir.y * 0.5 * radius);
+        ImVec2 end(position.x + dir.x * 1.5 * radius, position.y + dir.y * 1.5 * radius);
+        draw_list->AddLine(start, end, color, thickness);
+    }
+}
+
+bool ImGuiWrapper::contain_all_glyphs(const ImFont *font, const std::string &text)
+{
+    if (font == nullptr) return false;
+    if (!font->IsLoaded()) return false;
+    const ImFontConfig *fc = font->ConfigData;
+    if (fc == nullptr) return false;
+    if (text.empty()) return true;
+    return is_chars_in_ranges(fc->GlyphRanges, text.c_str());
+}
+
+bool ImGuiWrapper::is_char_in_ranges(const ImWchar *ranges, unsigned int letter)
+{
+    for (const ImWchar *range = ranges; range[0] && range[1]; range += 2) {
+        ImWchar from = range[0];
+        ImWchar to   = range[1];
+        if (from <= letter && letter <= to) return true;
+        if (letter < to) return false; // ranges should be sorted
+    }
+    return false;
+};
+
+bool ImGuiWrapper::is_chars_in_ranges(const ImWchar *ranges, const char *chars_ptr)
+{
+    while (*chars_ptr) {
+        unsigned int c = 0;
+        // UTF-8 to 32-bit character need imgui_internal
+        int c_len = ImTextCharFromUtf8(&c, chars_ptr, NULL);
+        chars_ptr += c_len;
+        if (c_len == 0) break;
+        if (!is_char_in_ranges(ranges, c)) return false;
+    }
+    return true;
+}
 
 void ImGuiWrapper::disable_background_fadeout_animation()
 {
