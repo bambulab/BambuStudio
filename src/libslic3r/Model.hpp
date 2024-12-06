@@ -15,6 +15,7 @@
 #include "TriangleMesh.hpp"
 #include "CustomGCode.hpp"
 #include "enum_bitmask.hpp"
+#include "TextConfiguration.hpp"
 #include "EmbossShape.hpp"
 //BBS: add bbs 3mf
 #include "Format/bbs_3mf.hpp"
@@ -840,7 +841,7 @@ struct TextInfo
 {
     std::string m_font_name;
     std::string m_font_version;
-    float       m_font_size     = 16.f;
+    float       m_font_size     = 10.f;//size unit:mm version:1.1
     int         m_curr_font_idx = 0;
     bool        m_bold          = true;
     bool        m_italic        = false;
@@ -857,6 +858,7 @@ struct TextInfo
         ar(m_font_name, m_font_version, m_font_size, m_curr_font_idx, m_bold, m_italic, m_thickness, m_embeded_depth, m_rotate_angle, m_text_gap, m_is_surface_text,
            m_keep_horizontal, m_text, m_rr);
     }
+    std::optional<TextConfiguration> text_configuration;
 };
 
 // An object STL, or a modifier volume, over which a different set of parameters shall be applied.
@@ -1052,6 +1054,8 @@ public:
     void convert_from_imperial_units();
     void convert_from_meters();
 
+    void set_text_configuration(const TextConfiguration text_configuration);
+    std::optional<TextConfiguration> &get_text_configuration() { return m_text_info.text_configuration; }
     void set_text_info(const TextInfo& text_info) { m_text_info = text_info; }
     void  clear_text_info() { m_text_info.m_text = ""; }
     const TextInfo& get_text_info() const { return m_text_info; }
@@ -1102,7 +1106,9 @@ private:
     Geometry::Transformation        	m_transformation;
 
     TextInfo m_text_info;
-
+    // Is set only when volume is Embossed Text type
+    // Contain information how to re-create volume
+    //std::optional<TextConfiguration> text_configuration;
     //BBS: add convex_hell_2d related logic
     void  calculate_convex_hull_2d(const Geometry::Transformation &transformation) const;
 

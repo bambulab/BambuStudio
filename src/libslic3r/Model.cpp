@@ -3492,6 +3492,10 @@ void ModelVolume::convert_from_meters()
     this->source.is_converted_from_meters = true;
 }
 
+void ModelVolume::set_text_configuration(const TextConfiguration text_configuration) {
+    m_text_info.text_configuration = text_configuration;
+}
+
 const Transform3d &ModelVolume::get_matrix(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror) const
 {
     return m_transformation.get_matrix(dont_translate, dont_rotate, dont_scale, dont_mirror);

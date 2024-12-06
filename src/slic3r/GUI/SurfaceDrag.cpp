@@ -391,7 +391,8 @@ void do_local_z_rotate(Selection &selection, double relative_angle) {
 
     bool is_single_volume = selection.volumes_count() == 1;
     assert(is_single_volume);
-    if (!is_single_volume) return;
+    if (!is_single_volume)
+        return;
 
     // Fix angle for mirrored volume
     bool is_mirrored = false;

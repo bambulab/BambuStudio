@@ -11,7 +11,6 @@
 #include "Point.hpp" // Transform3d
 
 namespace Slic3r {
-
 /// <summary>
 /// User modifiable property of text style
 /// NOTE: OnEdit fix serializations: EmbossStylesSerializable, TextConfigurationSerialization
@@ -72,18 +71,19 @@ struct FontProp
     /// </summary>
     /// <param name="line_height">Y size of text [in mm]</param>
     /// <param name="depth">Z size of text [in mm]</param>
-    FontProp(float line_height = 10.f) : size_in_mm(line_height), per_glyph(false)
-    {}
+    FontProp(float line_height = 10.f) : size_in_mm(line_height), per_glyph(false) {
+    }
 
     bool operator==(const FontProp& other) const {
+        auto case0 = (other.boldness == 0 && !boldness.has_value()) || is_approx(boldness, other.boldness);
+        auto case1 = (other.skew == 0 && !skew.has_value()) || is_approx(skew, other.skew);
+        auto case2 = face_name == other.face_name;
         return
             char_gap == other.char_gap &&
             line_gap == other.line_gap &&
             per_glyph == other.per_glyph &&
-            align == other.align &&
-            is_approx(size_in_mm, other.size_in_mm) &&
-            is_approx(boldness, other.boldness) &&
-            is_approx(skew, other.skew);
+            align == other.align && is_approx(size_in_mm, other.size_in_mm) &&
+               case0 && case1 && case2;
     }
 
     // undo / redo stack recovery
@@ -148,12 +148,9 @@ struct EmbossStyle
 
     bool operator==(const EmbossStyle &other) const
     {
-        return
-            type == other.type &&
-            prop == other.prop &&
-            name == other.name &&
-            path == other.path
-            ;
+        auto   case0 = prop == other.prop;
+        auto   case1 = path == other.path;
+        return type == other.type && case0 && name == other.name;
     }
 
     // undo / redo stack recovery

@@ -43,7 +43,7 @@ static const std::string MODELS_STR = "models";
 
 const std::string AppConfig::SECTION_FILAMENTS = "filaments";
 const std::string AppConfig::SECTION_MATERIALS = "sla_materials";
-
+const std::string AppConfig::SECTION_EMBOSS_STYLE = "font";
 std::string AppConfig::get_language_code()
 {
     std::string get_lang = get("language");
