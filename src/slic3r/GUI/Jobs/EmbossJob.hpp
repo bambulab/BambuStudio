@@ -261,6 +261,39 @@ public:
     void process(Ctl &ctl) override;
     void finalize(bool canceled, std::exception_ptr &eptr) override;
 };
+void create_all_char_mesh(DataBase &input, std::vector<TriangleMesh> &result);
+class GenerateTextJob : public JobNew
+{
+    DataUpdate   m_input;
+    std::vector<TriangleMesh> m_result;
+
+public:
+    // move params to private variable
+    explicit GenerateTextJob(DataUpdate &&input);
+
+    /// <summary>
+    /// Create new embossed volume by m_input data and store to m_result
+    /// </summary>
+    /// <param name="ctl">Control containing cancel flag</param>
+    void process(Ctl &ctl) override;
+
+    /// <summary>
+    /// Update volume - change object_id
+    /// </summary>
+    /// <param name="canceled">Was process canceled.
+    /// NOTE: Be carefull it doesn't care about
+    /// time between finished process and started finalize part.</param>
+    /// <param name="">unused</param>
+    void finalize(bool canceled, std::exception_ptr &eptr) override;
+
+    /// <summary>
+    /// Update text volume
+    /// </summary>
+    /// <param name="volume">Volume to be updated</param>
+    /// <param name="mesh">New Triangle mesh for volume</param>
+    /// <param name="base">Data to write into volume</param>
+    //static void update_volume(ModelVolume *volume, TriangleMesh &&mesh, const DataBase &base);
+};
 
 struct Texture
 {

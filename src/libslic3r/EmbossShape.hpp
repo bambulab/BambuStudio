@@ -18,18 +18,18 @@ namespace Slic3r {
 
 struct EmbossProjection{
     // Emboss depth, Size in local Z direction
-    double depth = 1.; // [in loacal mm]
+    double depth = 2.f; // [in loacal mm]//Modify By BBS 20241220
     // NOTE: User should see and modify mainly world size not local
 
     // Flag that result volume use surface cutted from source objects
     bool use_surface = false;
-
+    double embeded_depth = 0.f; // for old depth
     bool operator==(const EmbossProjection &other) const {
         return depth == other.depth && use_surface == other.use_surface;
     }
 
     // undo / redo stack recovery
-    template<class Archive> void serialize(Archive &ar) { ar(depth, use_surface); }
+    template<class Archive> void serialize(Archive &ar) { ar(depth, use_surface, embeded_depth); }
 };
 
 // Extend expolygons with information whether it was successfull healed

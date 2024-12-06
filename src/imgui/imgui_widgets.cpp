@@ -7332,10 +7332,10 @@ bool ImGui::BBLSelectable(const char *label, bool selected, ImGuiSelectableFlags
     bool       pressed = ButtonBehavior(bb, id, &hovered, &held, button_flags);
     if (hovered || g.ActiveId == id) {
         ImGui::PushStyleColor(ImGuiCol_Border, GetColorU32(ImGuiCol_BorderActive));
-        if(arrow_size == 0) {
+        if (arrow_size == 0) {
             RenderFrameBorder(bb.Min, ImVec2(bb.Max.x - style.WindowPadding.x, bb.Max.y), style.FrameRounding);
         } else {
-            RenderFrameBorder(ImVec2(bb.Min.x + style.WindowPadding.x,bb.Min.y), ImVec2(bb.Max.x - style.WindowPadding.x,bb.Max.y), style.FrameRounding);
+            RenderFrameBorder(ImVec2(bb.Min.x + style.WindowPadding.x, bb.Min.y), ImVec2(bb.Max.x - style.WindowPadding.x, bb.Max.y), style.FrameRounding);
         }
         ImGui::PopStyleColor(1);
     }
@@ -7358,7 +7358,7 @@ bool ImGui::BBLSelectable(const char *label, bool selected, ImGuiSelectableFlags
     if (held && (flags & ImGuiSelectableFlags_DrawHoveredWhenHeld)) hovered = true;
     if (hovered || selected) {
         const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_HeaderActive : hovered ? ImGuiCol_HeaderHovered : ImGuiCol_Header);
-        if(arrow_size == 0) {
+        if (arrow_size == 0) {
             RenderFrame(bb.Min, ImVec2(bb.Max.x - style.WindowPadding.x, bb.Max.y), col, false, 0.0f);
         } else {
             RenderFrame(ImVec2(bb.Min.x + style.WindowPadding.x, bb.Min.y), ImVec2(bb.Max.x - style.WindowPadding.x, bb.Max.y), col, false, 0.0f);

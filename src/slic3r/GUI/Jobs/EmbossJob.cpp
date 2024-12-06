@@ -1202,6 +1202,43 @@ SurfaceVolumeData::ModelSources create_sources(const ModelVolumePtrs &volumes, s
     return result;
 }
 
+void create_all_char_mesh(DataBase &input,std::vector<TriangleMesh> &result) {
+    const EmbossShape &shape = input.create_shape();//this will call letter2shapes
+    if (shape.shapes_with_ids.empty())
+        return;
+    result.clear();
+    double scale    = input.shape.scale;//1e-6
+    double depth    = (input.shape.projection.depth + input.shape.projection.embeded_depth) / scale;
+    auto   projectZ = std::make_unique<ProjectZ>(depth);
+    float  offset   = input.is_outside ? -SAFE_SURFACE_OFFSET : (SAFE_SURFACE_OFFSET - input.shape.projection.depth);
+    if (input.from_surface.has_value())
+        offset += *input.from_surface;
+    Transform3d      tr = Eigen::Translation<double, 3>(0., 0., static_cast<double>(offset)) * Eigen::Scaling(scale);
+    ProjectTransform project(std::move(projectZ), tr);
+    for (auto shape : shape.shapes_with_ids) {
+        if (shape.expoly.empty())
+            continue;
+        TriangleMesh mesh(polygons2model(shape.expoly, project));
+        result.emplace_back(mesh);
+    }
 }
-} // namespace Slic3r::GUI
+GenerateTextJob::GenerateTextJob(DataUpdate &&input) : m_input(std::move(input)) {}
+
+void GenerateTextJob::process(Ctl &ctl)
+{
+    create_all_char_mesh(*m_input.base, m_result);
+    if (was_canceled(ctl, *m_input.base))
+        return;
+    if (m_result.empty())
+        throw JobException("Created text volume is empty. Change text or font.");
+}
+
+void GenerateTextJob::finalize(bool canceled, std::exception_ptr &eptr)
+{
+    if (!_finalize(canceled, eptr, *m_input.base))
+        return;
+    //_update_volume(std::move(m_result), m_input);
+}
+
+}} // namespace Slic3r::GUI
 } // namespace Slic3r

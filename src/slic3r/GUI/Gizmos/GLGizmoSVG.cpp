@@ -1960,7 +1960,8 @@ void GLGizmoSVG::draw_mirroring()
         m_parent.do_mirror(L("Set Mirror"));
 
         // Mirror is ignoring keep up !!
-        if (m_keep_up) m_angle = calc_angle(selection);
+        if (m_keep_up)
+            m_angle = calc_angle(selection);
 
         volume_transformation_changed();
 

@@ -336,6 +336,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/SyncAmsInfoDialog.hpp
     GUI/SurfaceDrag.cpp
     GUI/SurfaceDrag.hpp
+    GUI/TextLines.cpp
+    GUI/TextLines.hpp
     GUI/PlateSettingsDialog.cpp
     GUI/PlateSettingsDialog.hpp
     GUI/ImGuiWrapper.hpp
@@ -380,6 +382,10 @@ set(SLIC3R_GUI_SOURCES
     GUI/Jobs/UpgradeNetworkJob.cpp
     GUI/Jobs/ArrangeJob.hpp
     GUI/Jobs/ArrangeJob.cpp
+    GUI/Jobs/CreateFontNameImageJob.cpp
+    GUI/Jobs/CreateFontNameImageJob.hpp
+    GUI/Jobs/CreateFontStyleImagesJob.cpp
+    GUI/Jobs/CreateFontStyleImagesJob.hpp
     GUI/Jobs/OrientJob.hpp
     GUI/Jobs/OrientJob.cpp
     GUI/Jobs/RotoptimizeJob.hpp
@@ -521,6 +527,10 @@ set(SLIC3R_GUI_SOURCES
     GUI/SendMultiMachinePage.cpp
     GUI/TaskManager.cpp
     GUI/TaskManager.hpp
+    Utils/WxFontUtils.cpp
+    Utils/WxFontUtils.hpp
+    Utils/EmbossStyleManager.cpp
+    Utils/EmbossStyleManager.hpp
     Utils/Http.cpp
     Utils/Http.hpp
     Utils/FixModelByWin10.cpp

@@ -1342,6 +1342,10 @@ ExPolygonsWithIds Emboss::text2vshapes(FontFileWithCache &font_with_cache, const
         }
         unsigned id = static_cast<unsigned>(letter);
         result.push_back({id, letter2shapes(letter, cursor, font_with_cache, font_prop, font_info_cache)});
+        //if (result.back().expoly.empty()) { //use
+        //    result.erase(result.end());
+        //    result.push_back({id, letter2shapes(letter, cursor, font_with_cache, font_prop, font_info_cache)});
+        //}
     }
 
     align_shape(result, text, font_prop, font);
