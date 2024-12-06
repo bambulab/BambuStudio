@@ -5527,7 +5527,41 @@ bool Plater::priv::replace_volume_with_stl(int object_idx, int volume_idx, const
 
     Model new_model;
     try {
-        new_model = Model::read_from_file(path, nullptr, nullptr, LoadStrategy::AddDefaultInstances | LoadStrategy::LoadModel);
+        if (boost::iends_with(path, ".stp") ||
+            boost::iends_with(path, ".step")) {
+                double linear = string_to_double_decimal_point(wxGetApp().app_config->get("linear_defletion"));
+                if (linear <= 0) linear = 0.003;
+                double angle = string_to_double_decimal_point(wxGetApp().app_config->get("angle_defletion"));
+                if (angle <= 0) angle = 0.5;
+                bool split_compound = wxGetApp().app_config->get_bool("is_split_compound");
+                new_model = Slic3r::Model:: read_from_step(path, LoadStrategy::AddDefaultInstances | LoadStrategy::LoadModel,
+                nullptr,
+                [](int isUtf8StepFile) {
+                    if (!isUtf8StepFile)
+                        Slic3r::GUI::show_info(nullptr, _L("Name of components inside step file is not UTF8 format!") + "\n\n" + _L("The name may show garbage characters!"),
+                                            _L("Attention!"));
+                },
+                [this, &path, &linear, &angle, &split_compound](Slic3r::Step& file, double& linear_value, double& angle_value, bool& is_split)-> int {
+                    if (wxGetApp().app_config->get_bool("enable_step_mesh_setting")) {
+                        StepMeshDialog mesh_dlg(nullptr, file, linear, angle);
+                        if (mesh_dlg.ShowModal() == wxID_OK) {
+                            linear_value = mesh_dlg.get_linear_defletion();
+                            angle_value  = mesh_dlg.get_angle_defletion();
+                            is_split     = mesh_dlg.get_split_compound_value();
+                            return 1;
+                        }
+                    }else {
+                        linear_value = linear;
+                        angle_value = angle;
+                        is_split = split_compound;
+                        return 1;
+                    }
+                    return -1;
+                }, linear, angle, split_compound);
+        }else {
+            new_model = Model::read_from_file(path, nullptr, nullptr, LoadStrategy::AddDefaultInstances | LoadStrategy::LoadModel);
+        }
+        
         for (ModelObject* model_object : new_model.objects) {
             model_object->center_around_origin();
             model_object->ensure_on_bed();
