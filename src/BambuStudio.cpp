@@ -1319,24 +1319,27 @@ int CLI::run(int argc, char **argv)
     /*BOOST_LOG_TRIVIAL(info) << "begin to setup params, argc=" << argc << std::endl;
     for (int index=0; index < argc; index++)
         BOOST_LOG_TRIVIAL(info) << "index="<< index <<", arg is "<< argv[index] <<std::endl;
-    int debug_argc = 16;
+    int debug_argc = 12;
     char* debug_argv[] = {
         "F:\work\projects\bambu_debug\bamboo_slicer\build_debug\src\Debug\bambu-studio.exe",
         "--debug=2",
-        "--uptodate",
+        //"--uptodate",
         "--load-settings",
-        "machine.json",
+        "machine_A1.json",
+        "--load-defaultfila",
         "--load-filaments",
-        "filament_pla_matte.json;filament_pla_basic.json;filament_pla_matte.json;filament_pla_matte.json",
+        "filament_pla_basic_A1.json;filament_pla_basic_A1.json",
         "--export-3mf=output.3mf",
-        "--nozzle-volume-type",
-        "Standard,High Flow",
-        "--filament-map-mode",
-        "Auto",
-        "--filament-map",
-        "1,2,1,2",
-        "--slice=1",
-        "cube_o1d.3mf"
+        "--filament-colour",
+        "#CD056D;#702829",
+        //"--nozzle-volume-type",
+        //"Standard,High Flow",
+        //"--filament-map-mode",
+        //"Auto",
+        //"--filament-map",
+        //"1,2,1,2",
+        "--slice=0",
+        "test.3mf"
         };
     if (! this->setup(debug_argc, debug_argv))*/
     if (!this->setup(argc, argv))
@@ -5680,6 +5683,11 @@ int CLI::run(int argc, char **argv)
                                 print_fff->set_extruder_filament_info(extruder_filament_info);
                             }
                         }
+
+                        //set filament_map
+                        std::vector<int>& final_filament_maps = new_print_config.option<ConfigOptionInts>("filament_map", true)->values;
+                        if (final_filament_maps.size() < filament_count)
+                            final_filament_maps.resize(filament_count, 1);
                         print->apply(model, new_print_config);
                         BOOST_LOG_TRIVIAL(info) << boost::format("set no_check to %1%:")%no_check;
                         print->set_no_check_flag(no_check);//BBS
