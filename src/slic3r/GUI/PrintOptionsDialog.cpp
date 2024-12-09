@@ -183,7 +183,7 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
     }
 
     this->Freeze();
-    
+
     m_cb_first_layer->SetValue(obj_->xcam_first_layer_inspector);
     m_cb_plate_mark->SetValue(obj_->xcam_buildplate_marker_detector);
     m_cb_auto_recovery->SetValue(obj_->xcam_auto_recovery_step_loss);
@@ -241,7 +241,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     if (ai_monitoring_level_list->GetCount() > 0) {
         ai_monitoring_level_list->SetSelection(0);
     }
-    
+
 
     line_sizer->Add(FromDIP(30), 0, 0, 0);
     line_sizer->Add(text_ai_monitoring_caption, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
@@ -429,9 +429,9 @@ void PrintOptionsDialog::update_machine_obj(MachineObject *obj_)
 
 bool PrintOptionsDialog::Show(bool show)
 {
-    if (show) { 
+    if (show) {
         wxGetApp().UpdateDlgDarkUI(this);
-        CentreOnParent(); 
+        CentreOnParent();
     }
     return DPIDialog::Show(show);
 }
@@ -439,13 +439,17 @@ bool PrintOptionsDialog::Show(bool show)
 PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
 : DPIDialog(parent, wxID_ANY, _L("Printer Parts"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
-    nozzle_type_map[0] = "hardened_steel";
-    nozzle_type_map[1] = "stainless_steel";
-    nozzle_type_map_tr[0] = _L("Hardened Steel");
-    nozzle_type_map_tr[1] = _L("Stainless Steel");
+    nozzle_type_map[NozzleType::ntHardenedSteel]    = _L("Hardened Steel");
+    nozzle_type_map[NozzleType::ntStainlessSteel]   = _L("Stainless Steel");
 
-    nozzle_flow_map[0] = "normal flow";
-    nozzle_flow_map[1] = "high flow";
+    nozzle_flow_map[NozzleFlowType::S_FLOW]         = _L("Normal flow");
+    nozzle_flow_map[NozzleFlowType::H_FLOW]         = _L("High flow");
+
+    nozzle_type_selection_map[NozzleType::ntHardenedSteel]  = 0;
+    nozzle_type_selection_map[NozzleType::ntStainlessSteel] = 1;
+
+    nozzle_flow_selection_map[NozzleFlowType::S_FLOW]  = 0;
+    nozzle_flow_selection_map[NozzleFlowType::H_FLOW]  = 1;
 
     nozzle_stainless_diameter_map[0] = 0.2;
     nozzle_stainless_diameter_map[1] = 0.4;
@@ -468,7 +472,7 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
 
     auto m_line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
     m_line->SetBackgroundColour(wxColour(166, 169, 170));
-    
+
     /*single nozzle*/
     //nozzle type
     wxBoxSizer* line_sizer_nozzle_type = new wxBoxSizer(wxHORIZONTAL);
@@ -490,11 +494,11 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     ID_NOZZLE_FLOW_CHECKBOX_RIGHT = wxNewId();
 
     nozzle_type_checkbox = new ComboBox(single_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(140), -1), 0, NULL, wxCB_READONLY);
-    nozzle_type_checkbox->Append(_L("Stainless Steel"));
-    nozzle_type_checkbox->Append(_L("Hardened Steel"));
+    nozzle_type_checkbox->Append(nozzle_type_map[NozzleType::ntHardenedSteel]);
+    nozzle_type_checkbox->Append(nozzle_type_map[NozzleType::ntStainlessSteel]);
     nozzle_type_checkbox->SetSelection(0);
 
-    
+
     line_sizer_nozzle_type->Add(nozzle_type, 0, wxALIGN_CENTER, 5);
     line_sizer_nozzle_type->Add(0, 0, 1, wxEXPAND, 5);
     line_sizer_nozzle_type->Add(nozzle_type_checkbox, 0, wxALIGN_CENTER, 5);
@@ -540,8 +544,8 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     multiple_left_nozzle_type->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
 
     multiple_left_nozzle_type_checkbox = new ComboBox(multiple_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(140), -1), 0, NULL, wxCB_READONLY);
-    multiple_left_nozzle_type_checkbox->Append(_L("Stainless Steel"));
-    multiple_left_nozzle_type_checkbox->Append(_L("Hardened Steel"));
+    multiple_left_nozzle_type_checkbox->Append(nozzle_type_map[NozzleType::ntHardenedSteel]);
+    multiple_left_nozzle_type_checkbox->Append(nozzle_type_map[NozzleType::ntStainlessSteel]);
     multiple_left_nozzle_type_checkbox->SetSelection(0);
 
     auto multiple_left_nozzle_diameter = new Label(multiple_panel, _L("Nozzle Diameter"));
@@ -557,6 +561,8 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     multiple_left_nozzle_flow->SetMaxSize(wxSize(FromDIP(80), -1));
     multiple_left_nozzle_flow->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
     multiple_left_nozzle_flow_checkbox = new ComboBox(multiple_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(140), -1), 0, NULL, wxCB_READONLY);
+    multiple_left_nozzle_flow_checkbox->Append(nozzle_flow_map[NozzleFlowType::S_FLOW]);
+    multiple_left_nozzle_flow_checkbox->Append(nozzle_flow_map[NozzleFlowType::H_FLOW]);
 
     multiple_left_line_sizer->Add(multiple_left_nozzle_type, 0, wxALIGN_CENTER, 0);
     multiple_left_line_sizer->Add(0, 0, 0, wxLEFT, FromDIP(8));
@@ -583,8 +589,8 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     multiple_right_nozzle_type->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
 
     multiple_right_nozzle_type_checkbox = new ComboBox(multiple_panel, ID_NOZZLE_TYPE_CHECKBOX_RIGHT, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(140), -1), 0, NULL, wxCB_READONLY);
-    multiple_right_nozzle_type_checkbox->Append(_L("Stainless Steel"));
-    multiple_right_nozzle_type_checkbox->Append(_L("Hardened Steel"));
+    multiple_right_nozzle_type_checkbox->Append(nozzle_type_map[NozzleType::ntHardenedSteel]);
+    multiple_right_nozzle_type_checkbox->Append(nozzle_type_map[NozzleType::ntStainlessSteel]);
     multiple_right_nozzle_type_checkbox->SetSelection(0);
 
     auto multiple_right_nozzle_diameter = new Label(multiple_panel, _L("Nozzle Diameter"));
@@ -600,6 +606,8 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     multiple_right_nozzle_flow->SetMaxSize(wxSize(FromDIP(80), -1));
     multiple_right_nozzle_flow->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
     multiple_right_nozzle_flow_checkbox = new ComboBox(multiple_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(140), -1), 0, NULL, wxCB_READONLY);
+    multiple_right_nozzle_flow_checkbox->Append(nozzle_flow_map[NozzleFlowType::S_FLOW]);
+    multiple_right_nozzle_flow_checkbox->Append(nozzle_flow_map[NozzleFlowType::H_FLOW]);
 
     multiple_right_line_sizer->Add(multiple_right_nozzle_type, 0, wxALIGN_CENTER, 0);
     multiple_right_line_sizer->Add(0, 0, 0, wxLEFT, FromDIP(8));
@@ -616,7 +624,7 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     multiple_sizer->Add(0, 0, 0, wxTOP, FromDIP(40));
     multiple_sizer->Add(leftTitle, 0, wxLEFT, FromDIP(18));
     multiple_sizer->Add(multiple_left_line_sizer, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(18));
-    multiple_sizer->Add(0, 0, 0, wxTOP, FromDIP(40));
+    multiple_sizer->Add(0, 0, 0, wxTOP, FromDIP(24));
     multiple_sizer->Add(rightTitle, 0, wxLEFT, FromDIP(18));
     multiple_sizer->Add(multiple_right_line_sizer, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(18));
     multiple_sizer->Add(0, 0, 0, wxTOP, FromDIP(40));
@@ -624,6 +632,9 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     multiple_panel->SetSizer(multiple_sizer);
     multiple_panel->Layout();
     multiple_panel->Fit();
+
+    /*inset data*/
+
 
     sizer->Add(single_panel, 0, wxEXPAND, 0);
     sizer->Add(multiple_panel, 0, wxEXPAND, 0);
@@ -662,6 +673,13 @@ PrinterPartsDialog::~PrinterPartsDialog()
 {
     nozzle_type_checkbox->Disconnect(wxEVT_COMBOBOX, wxCommandEventHandler(PrinterPartsDialog::set_nozzle_data), NULL, this);
     nozzle_diameter_checkbox->Disconnect(wxEVT_COMBOBOX, wxCommandEventHandler(PrinterPartsDialog::set_nozzle_data), NULL, this);
+    multiple_left_nozzle_type_checkbox->Disconnect(wxEVT_COMBOBOX, wxCommandEventHandler(PrinterPartsDialog::set_nozzle_data), NULL, this);
+    multiple_left_nozzle_diameter_checkbox->Disconnect(wxEVT_COMBOBOX, wxCommandEventHandler(PrinterPartsDialog::set_nozzle_data), NULL, this);
+    multiple_left_nozzle_flow_checkbox->Disconnect(wxEVT_COMBOBOX, wxCommandEventHandler(PrinterPartsDialog::set_nozzle_data), NULL, this);
+
+    multiple_right_nozzle_type_checkbox->Disconnect(wxEVT_COMBOBOX, wxCommandEventHandler(PrinterPartsDialog::set_nozzle_data), NULL, this);
+    multiple_right_nozzle_diameter_checkbox->Disconnect(wxEVT_COMBOBOX, wxCommandEventHandler(PrinterPartsDialog::set_nozzle_data), NULL, this);
+    multiple_right_nozzle_flow_checkbox->Disconnect(wxEVT_COMBOBOX, wxCommandEventHandler(PrinterPartsDialog::set_nozzle_data), NULL, this);
 }
 
 void PrinterPartsDialog::set_nozzle_data(wxCommandEvent& evt)
@@ -670,62 +688,112 @@ void PrinterPartsDialog::set_nozzle_data(wxCommandEvent& evt)
     ComboBox* current_nozzle_diameter_combox = nullptr;
     ComboBox* current_nozzle_flow_combox = nullptr;
 
-    int nozzle_id = 0;
+    int nozzle_id = MAIN_NOZZLE_ID;
 
-    if (evt.GetId() == ID_NOZZLE_TYPE_CHECKBOX_SINGLE) {
+    if (evt.GetId() == ID_NOZZLE_TYPE_CHECKBOX_SINGLE ||
+        evt.GetId() == ID_NOZZLE_DIAMETER_CHECKBOX_SINGLE) {
         current_nozzle_type_combox = nozzle_type_checkbox;
         current_nozzle_diameter_combox = nozzle_diameter_checkbox;
-        nozzle_id = 0;
-    } else if (evt.GetId() == ID_NOZZLE_TYPE_CHECKBOX_LEFT) {
-        current_nozzle_type_combox = multiple_left_nozzle_type_checkbox;
-        current_nozzle_diameter_combox = multiple_left_nozzle_type_checkbox;
-        current_nozzle_flow_combox = multiple_left_nozzle_flow_checkbox;
-        nozzle_id = 1;
-    } else if (evt.GetId() == ID_NOZZLE_TYPE_CHECKBOX_RIGHT) {
+        nozzle_id = MAIN_NOZZLE_ID;
+    } else if ( evt.GetId() == ID_NOZZLE_TYPE_CHECKBOX_LEFT ||
+                evt.GetId() == ID_NOZZLE_DIAMETER_CHECKBOX_LEFT ||
+                evt.GetId() == ID_NOZZLE_FLOW_CHECKBOX_LEFT ) {
+        current_nozzle_type_combox     = multiple_left_nozzle_type_checkbox;
+        current_nozzle_diameter_combox = multiple_left_nozzle_diameter_checkbox;
+        current_nozzle_flow_combox     = multiple_left_nozzle_flow_checkbox;
+        nozzle_id = DEPUTY_NOZZLE_ID;
+    } else if ( evt.GetId() == ID_NOZZLE_TYPE_CHECKBOX_RIGHT ||
+                evt.GetId() == ID_NOZZLE_DIAMETER_CHECKBOX_RIGHT ||
+                evt.GetId() == ID_NOZZLE_FLOW_CHECKBOX_RIGHT) {
         current_nozzle_type_combox = multiple_right_nozzle_type_checkbox;
-        current_nozzle_diameter_combox = multiple_right_nozzle_type_checkbox;
-        current_nozzle_flow_combox = multiple_right_nozzle_flow_checkbox;
-        nozzle_id = 0;
+        current_nozzle_diameter_combox = multiple_right_nozzle_diameter_checkbox;
+        current_nozzle_flow_combox     = multiple_right_nozzle_flow_checkbox;
+        nozzle_id = MAIN_NOZZLE_ID;
     }
 
-    //auto type = nozzle_type_map[current_nozzle_type->GetSelection()];
 
-
-    //std::map<int, float> diameter_list;
-    //if (type == "hardened_steel") {
-    //    diameter_list = nozzle_hard_diameter_map;
-    //}
-    //else if (type == "stainless_steel") {
-    //    diameter_list = nozzle_stainless_diameter_map;
-    //}
-
-    //nozzle_diameter_checkbox->Clear();
-    //for (int i = 0; i < diameter_list.size(); i++)
-    //{
-    //    nozzle_diameter_checkbox->Append(wxString::Format(_L("%.1f"), diameter_list[i]));
-    //}
-    //nozzle_diameter_checkbox->SetSelection(0);
-
-    if (obj && current_nozzle_type_combox && current_nozzle_diameter_combox) {
+    if (obj) {
         try {
-            auto nozzle_type     = nozzle_type_map[current_nozzle_type_combox->GetSelection()];
-            auto nozzle_diameter = std::stof(current_nozzle_diameter_combox->GetStringSelection().ToStdString());
-            nozzle_diameter      = round(nozzle_diameter * 10) / 10;
+            auto nozzle_type        = NozzleType::ntHardenedSteel;
+            auto nozzle_diameter    = 0.4f;
+            auto nozzle_flow        = NozzleFlowType::NONE_FLOWTYPE;
 
-            if (evt.GetId() == ID_NOZZLE_TYPE_CHECKBOX_SINGLE) {
-                obj->m_extder_data.extders[0].current_nozzle_diameter = nozzle_diameter;
-                obj->m_extder_data.extders[0].current_nozzle_type     = NozzleTypeStrToEumn[nozzle_type];
-            } else if(evt.GetId() == ID_NOZZLE_TYPE_CHECKBOX_LEFT) {
-                obj->m_extder_data.extders[0].current_nozzle_diameter  = nozzle_diameter;
-                obj->m_extder_data.extders[0].current_nozzle_type      = NozzleTypeStrToEumn[nozzle_type];
-            } else if(evt.GetId() == ID_NOZZLE_TYPE_CHECKBOX_RIGHT){
-                obj->m_extder_data.extders[1].current_nozzle_diameter = nozzle_diameter;
-                obj->m_extder_data.extders[1].current_nozzle_type     = NozzleTypeStrToEumn[nozzle_type];
+            for (auto sm : nozzle_type_selection_map) {
+                if (sm.second == current_nozzle_type_combox->GetSelection()) {
+                    nozzle_type = sm.first;
+                }
             }
+
+
+            /*update nozzle diameter*/
+            if (evt.GetId() == ID_NOZZLE_TYPE_CHECKBOX_SINGLE) {
+                nozzle_diameter_checkbox->Clear();
+                std::map<int, float> diameter_map;
+                if (nozzle_type == NozzleType::ntHardenedSteel) {
+                    diameter_map = nozzle_hard_diameter_map;
+                } else if (nozzle_type == NozzleType::ntStainlessSteel) {
+                    diameter_map = nozzle_stainless_diameter_map;
+                }
+
+                for (int i = 0; i < diameter_map.size(); i++) { nozzle_diameter_checkbox->Append(wxString::Format(_L("%.1f"), diameter_map[i])); }
+                nozzle_diameter_checkbox->SetSelection(0);
+            } else if (evt.GetId() == ID_NOZZLE_TYPE_CHECKBOX_LEFT) {
+                multiple_left_nozzle_diameter_checkbox->Clear();
+                std::map<int, float> diameter_map;
+                if (nozzle_type == NozzleType::ntHardenedSteel) {
+                    diameter_map = nozzle_hard_diameter_map;
+                } else if (nozzle_type == NozzleType::ntStainlessSteel) {
+                    diameter_map = nozzle_stainless_diameter_map;
+                }
+
+                for (int i = 0; i < diameter_map.size(); i++) { multiple_left_nozzle_diameter_checkbox->Append(wxString::Format(_L("%.1f"), diameter_map[i])); }
+                multiple_left_nozzle_diameter_checkbox->SetSelection(0);
+            } else if (evt.GetId() == ID_NOZZLE_TYPE_CHECKBOX_RIGHT) {
+                multiple_right_nozzle_diameter_checkbox->Clear();
+                std::map<int, float> diameter_map;
+                if (nozzle_type == NozzleType::ntHardenedSteel) {
+                    diameter_map = nozzle_hard_diameter_map;
+                } else if (nozzle_type == NozzleType::ntStainlessSteel) {
+                    diameter_map = nozzle_stainless_diameter_map;
+                }
+
+                for (int i = 0; i < diameter_map.size(); i++) { multiple_right_nozzle_diameter_checkbox->Append(wxString::Format(_L("%.1f"), diameter_map[i])); }
+                multiple_right_nozzle_diameter_checkbox->SetSelection(0);
+            }
+
+            nozzle_diameter = std::stof(current_nozzle_diameter_combox->GetStringSelection().ToStdString());
+            nozzle_diameter = round(nozzle_diameter * 10) / 10;
+
+            if (current_nozzle_flow_combox) {
+                for (auto sm : nozzle_flow_selection_map) {
+                    if (sm.second == current_nozzle_flow_combox->GetSelection()) {
+                        nozzle_flow = sm.first;
+                    }
+                }
+            }
+
             if (!obj->is_enable_np) {
-                obj->command_set_printer_nozzle(nozzle_type, nozzle_diameter);
+                obj->m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_diameter = nozzle_diameter;
+                obj->m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_type     = nozzle_type;
+                obj->command_set_printer_nozzle(NozzleTypeEumnToStr[nozzle_type], nozzle_diameter);
             } else {
-                //obj->command_set_printer_nozzle2(nozzle_id, nozzle_type, nozzle_diameter);
+                std::string nozzle_data = "H";
+                if (nozzle_flow == NozzleFlowType::S_FLOW) {
+                    nozzle_data += "S";
+                } else if (nozzle_flow == NozzleFlowType::H_FLOW) {
+                    nozzle_data += "H";
+                }
+
+                if (nozzle_type == NozzleType::ntStainlessSteel) {
+                    nozzle_data += "00";
+                } else if (nozzle_type == NozzleType::ntHardenedSteel) {
+                    nozzle_data += "01";
+                }
+
+                obj->m_extder_data.extders[nozzle_id].current_nozzle_diameter   = nozzle_diameter;
+                obj->m_extder_data.extders[nozzle_id].current_nozzle_flow_type  = nozzle_flow;
+                obj->m_extder_data.extders[nozzle_id].current_nozzle_type       = nozzle_type;
+                obj->command_set_printer_nozzle2(obj->m_extder_data.extders[nozzle_id].nozzle_id, nozzle_data, nozzle_diameter);
             }
         } catch (...) {}
     }
@@ -751,13 +819,12 @@ bool PrinterPartsDialog::Show(bool show)
             single_panel->Show();
             multiple_panel->Hide();
 
-            auto type     = obj->m_extder_data.extders[0].current_nozzle_type;
-            auto diameter = obj->m_extder_data.extders[0].current_nozzle_diameter;
+            auto type     = obj->m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_type;
+            auto diameter = obj->m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_diameter;
 
-            nozzle_type_checkbox->Clear();
             nozzle_diameter_checkbox->Clear();
 
-            /*if (type.empty()) {
+            if (type ==  NozzleType::ntUndefine) {
                 nozzle_type_checkbox->SetValue(wxEmptyString);
                 nozzle_diameter_checkbox->SetValue(wxEmptyString);
 
@@ -767,127 +834,105 @@ bool PrinterPartsDialog::Show(bool show)
             } else {
                 nozzle_type_checkbox->Enable();
                 nozzle_diameter_checkbox->Enable();
+
+                std::map<int, float> diameter_map;
+                if (type == NozzleType::ntHardenedSteel) {
+                    diameter_map = nozzle_hard_diameter_map;
+                } else if (type == NozzleType::ntStainlessSteel) {
+                    diameter_map = nozzle_stainless_diameter_map;
+                }
+
+                for (int i = 0; i < diameter_map.size(); i++) {
+                    nozzle_diameter_checkbox->Append(wxString::Format(_L("%.1f"), diameter_map[i]));
+                    if (diameter == diameter_map[i]) {
+                        nozzle_diameter_checkbox->SetSelection(i);
+                    }
+                }
+
+                nozzle_type_checkbox->SetSelection(nozzle_type_selection_map[type]);
             }
-
-            last_nozzle_type = type;
-
-            for (int i = 0; i < nozzle_type_map.size(); i++) {
-                nozzle_type_checkbox->Append(nozzle_type_map[i]);
-                if (nozzle_type_map[i] == type) { nozzle_type_checkbox->SetSelection(i); }
-            }
-
-            std::map<int, float> diameter_list;
-            if (type == "hardened_steel") {
-                diameter_list = nozzle_hard_diameter_map;
-            } else if (type == "stainless_steel") {
-                diameter_list = nozzle_stainless_diameter_map;
-            }
-
-            for (int i = 0; i < diameter_list.size(); i++) {
-                nozzle_diameter_checkbox->Append(wxString::Format(_L("%.1f"), diameter_list[i]));
-                if (diameter_list[i] == diameter) { nozzle_diameter_checkbox->SetSelection(i); }
-            }*/
 
         } else {
-            //single_panel->Hide();
-            //multiple_panel->Show();
+            single_panel->Hide();
+            multiple_panel->Show();
 
-            ////left
-            //auto type     = obj->m_extder_data.extders[0].current_nozzle_type;
-            //auto diameter = obj->m_extder_data.extders[0].current_nozzle_diameter;
-            //auto flow_type = obj->m_extder_data.extders[0].current_nozzle_flow_type;
+            //left
+            auto type      = obj->m_extder_data.extders[DEPUTY_NOZZLE_ID].current_nozzle_type;
+            auto diameter  = obj->m_extder_data.extders[DEPUTY_NOZZLE_ID].current_nozzle_diameter;
+            auto flow_type = obj->m_extder_data.extders[DEPUTY_NOZZLE_ID].current_nozzle_flow_type;
 
-            //multiple_left_nozzle_type_checkbox->Clear();
-            //multiple_left_nozzle_diameter_checkbox->Clear();
-            //multiple_left_nozzle_flow_checkbox->Clear();
+            multiple_left_nozzle_diameter_checkbox->Clear();
 
-            //if (type.empty()) {
-            //    multiple_left_nozzle_type_checkbox->SetValue(wxEmptyString);
-            //    multiple_left_nozzle_diameter_checkbox->SetValue(wxEmptyString);
-            //    multiple_left_nozzle_flow_checkbox->SetValue(wxEmptyString);
+            if (type == NozzleType::ntUndefine) {
+                multiple_left_nozzle_type_checkbox->SetValue(wxEmptyString);
+                multiple_left_nozzle_diameter_checkbox->SetValue(wxEmptyString);
+                multiple_left_nozzle_flow_checkbox->SetValue(wxEmptyString);
 
-            //    multiple_left_nozzle_type_checkbox->Disable();
-            //    multiple_left_nozzle_diameter_checkbox->Disable();
-            //    multiple_left_nozzle_flow_checkbox->Disable();
-            //    return DPIDialog::Show(show);
-            //} else {
-            //    multiple_left_nozzle_type_checkbox->Enable();
-            //    multiple_left_nozzle_diameter_checkbox->Enable();
-            //    multiple_left_nozzle_flow_checkbox->Enable();
-            //}
+                multiple_left_nozzle_type_checkbox->Disable();
+                multiple_left_nozzle_diameter_checkbox->Disable();
+                multiple_left_nozzle_flow_checkbox->Disable();
+                return DPIDialog::Show(show);
+            } else {
+                multiple_left_nozzle_type_checkbox->Enable();
+                multiple_left_nozzle_diameter_checkbox->Enable();
+                multiple_left_nozzle_flow_checkbox->Enable();
 
-            ////last_nozzle_type = type;
+                std::map<int, float> diameter_map;
+                if (type == NozzleType::ntHardenedSteel) {
+                    diameter_map = nozzle_hard_diameter_map;
+                } else if (type == NozzleType::ntStainlessSteel) {
+                    diameter_map = nozzle_stainless_diameter_map;
+                }
 
-            //for (int i = 0; i < nozzle_type_map.size(); i++) {
-            //    multiple_left_nozzle_type_checkbox->Append(nozzle_type_map[i]);
-            //    if (nozzle_type_map[i] == type) { multiple_left_nozzle_type_checkbox->SetSelection(i); }
-            //}
+                for (int i = 0; i < diameter_map.size(); i++) {
+                    multiple_left_nozzle_diameter_checkbox->Append(wxString::Format(_L("%.1f"), diameter_map[i]));
+                    if (diameter == diameter_map[i]) {
+                        multiple_left_nozzle_diameter_checkbox->SetSelection(i);
+                    }
+                }
 
-            //std::map<int, float> diameter_list;
-            //if (type == "hardened_steel") {
-            //    diameter_list = nozzle_hard_diameter_map;
-            //} else if (type == "stainless_steel") {
-            //    diameter_list = nozzle_stainless_diameter_map;
-            //}
+                multiple_left_nozzle_type_checkbox->SetSelection(nozzle_type_selection_map[type]);
+                if (flow_type != NozzleFlowType::NONE_FLOWTYPE) {multiple_left_nozzle_flow_checkbox->SetSelection(nozzle_flow_selection_map[flow_type]);}
+            }
 
-            //for (int i = 0; i < diameter_list.size(); i++) {
-            //    multiple_left_nozzle_diameter_checkbox->Append(wxString::Format(_L("%.1f"), diameter_list[i]));
-            //    if (diameter_list[i] == diameter) { multiple_left_nozzle_diameter_checkbox->SetSelection(i); }
-            //}
+            //right
+            type      = obj->m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_type;
+            diameter  = obj->m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_diameter;
+            flow_type = obj->m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_flow_type;
 
-            //for (int i = 0; i < nozzle_flow_map.size(); i++) {
-            //    multiple_left_nozzle_flow_checkbox->Append(nozzle_flow_map[i]);
-            //    if (i == flow_type) { multiple_left_nozzle_flow_checkbox->SetSelection(i); }
-            //}
+            multiple_right_nozzle_diameter_checkbox->Clear();
 
+            if (type == NozzleType::ntUndefine) {
+                multiple_right_nozzle_type_checkbox->SetValue(wxEmptyString);
+                multiple_right_nozzle_diameter_checkbox->SetValue(wxEmptyString);
+                multiple_right_nozzle_flow_checkbox->SetValue(wxEmptyString);
 
-            ////right
-            //type      = obj->m_extder_data.extders[1].current_nozzle_type;
-            //diameter  = obj->m_extder_data.extders[1].current_nozzle_diameter;
-            //flow_type = obj->m_extder_data.extders[1].current_nozzle_flow_type;
+                multiple_right_nozzle_type_checkbox->Disable();
+                multiple_right_nozzle_diameter_checkbox->Disable();
+                multiple_right_nozzle_flow_checkbox->Disable();
+                return DPIDialog::Show(show);
+            } else {
+                multiple_right_nozzle_type_checkbox->Enable();
+                multiple_right_nozzle_diameter_checkbox->Enable();
+                multiple_right_nozzle_flow_checkbox->Enable();
 
-            //multiple_right_nozzle_type_checkbox->Clear();
-            //multiple_right_nozzle_diameter_checkbox->Clear();
-            //multiple_right_nozzle_flow_checkbox->Clear();
+                std::map<int, float> diameter_map;
+                if (type == NozzleType::ntHardenedSteel) {
+                    diameter_map = nozzle_hard_diameter_map;
+                } else if (type == NozzleType::ntStainlessSteel) {
+                    diameter_map = nozzle_stainless_diameter_map;
+                }
 
-            //if (type.empty()) {
-            //    multiple_right_nozzle_type_checkbox->SetValue(wxEmptyString);
-            //    multiple_right_nozzle_diameter_checkbox->SetValue(wxEmptyString);
-            //    multiple_right_nozzle_flow_checkbox->SetValue(wxEmptyString);
+                for (int i = 0; i < diameter_map.size(); i++) {
+                    multiple_right_nozzle_diameter_checkbox->Append(wxString::Format(_L("%.1f"), diameter_map[i]));
+                    if (diameter == diameter_map[i]) {
+                        multiple_right_nozzle_diameter_checkbox->SetSelection(i);
+                    }
+                }
 
-            //    multiple_right_nozzle_type_checkbox->Disable();
-            //    multiple_right_nozzle_diameter_checkbox->Disable();
-            //    multiple_right_nozzle_flow_checkbox->Disable();
-            //    return DPIDialog::Show(show);
-            //} else {
-            //    multiple_right_nozzle_type_checkbox->Enable();
-            //    multiple_right_nozzle_diameter_checkbox->Enable();
-            //    multiple_right_nozzle_flow_checkbox->Enable();
-            //}
-
-            //// last_nozzle_type = type;
-
-            //for (int i = 0; i < nozzle_type_map.size(); i++) {
-            //    multiple_right_nozzle_type_checkbox->Append(nozzle_type_map[i]);
-            //    if (nozzle_type_map[i] == type) { multiple_right_nozzle_type_checkbox->SetSelection(i); }
-            //}
-
-            //diameter_list;
-            //if (type == "hardened_steel") {
-            //    diameter_list = nozzle_hard_diameter_map;
-            //} else if (type == "stainless_steel") {
-            //    diameter_list = nozzle_stainless_diameter_map;
-            //}
-
-            //for (int i = 0; i < diameter_list.size(); i++) {
-            //    multiple_right_nozzle_diameter_checkbox->Append(wxString::Format(_L("%.1f"), diameter_list[i]));
-            //    if (diameter_list[i] == diameter) { multiple_right_nozzle_diameter_checkbox->SetSelection(i); }
-            //}
-
-            //for (int i = 0; i < nozzle_flow_map.size(); i++) {
-            //    multiple_right_nozzle_flow_checkbox->Append(nozzle_flow_map[i]);
-            //    if (i == flow_type) { multiple_right_nozzle_flow_checkbox->SetSelection(i); }
-            //}
+                multiple_right_nozzle_type_checkbox->SetSelection(nozzle_type_selection_map[type]);
+                if (flow_type != NozzleFlowType::NONE_FLOWTYPE) { multiple_right_nozzle_flow_checkbox->SetSelection(nozzle_flow_selection_map[flow_type]); };
+            }
         }
         Layout();
         Fit();

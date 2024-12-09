@@ -684,10 +684,13 @@ MachineObject::MachineObject(NetworkAgent* agent, std::string name, std::string 
     auto vslot = AmsTray(std::to_string(VIRTUAL_TRAY_MAIN_ID));
     vt_slot.push_back(vslot);
 
-    m_extder_data.current_extder_id = 0;
-    m_extder_data.target_extder_id = 0;
-    m_extder_data.total_extder_count = 1;
+    m_extder_data.current_extder_id     = MAIN_NOZZLE_ID;
+    m_extder_data.target_extder_id      = MAIN_NOZZLE_ID;
+    m_extder_data.total_extder_count    = 1;
     Extder nozzle;
+    nozzle.id               = MAIN_NOZZLE_ID;
+    nozzle.nozzle_id        = MAIN_NOZZLE_ID;
+    nozzle.target_nozzle_id = MAIN_NOZZLE_ID;
     m_extder_data.extders.push_back(nozzle);
 }
 
@@ -2113,7 +2116,7 @@ int MachineObject::command_set_printer_nozzle(std::string nozzle_type, float dia
     return this->publish_json(j.dump());
 }
 
-int MachineObject::command_set_printer_nozzle2(int id, std::string nozzle_type, float diameter, int flow)
+int MachineObject::command_set_printer_nozzle2(int id, std::string nozzle_type, float diameter)
 {
     nozzle_setting_hold_count = HOLD_COUNT_MAX * 2;
     BOOST_LOG_TRIVIAL(info) << "command_set_printer_nozzle2, nozzle_type = " << nozzle_type << " diameter = " << diameter;
@@ -2121,8 +2124,9 @@ int MachineObject::command_set_printer_nozzle2(int id, std::string nozzle_type, 
     j["print"]["command"]         = "set_nozzle";
     j["print"]["sequence_id"]     = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["id"]              = id;
-    j["print"]["type"]            = "type";
+    j["print"]["type"]            = nozzle_type;
     j["print"]["diameter"]        = diameter;
+    j["print"]["wear"]            = 0;
     return this->publish_json(j.dump());
 }
 
@@ -3775,8 +3779,8 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                         nozzle_diameter = string_to_float(jj["nozzle_diameter"].get<std::string>());
                                     }
 
-                                    if (nozzle_diameter == 0.0f) {m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_diameter = 0.4f;}
-                                    else {m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_diameter = round(nozzle_diameter * 10) / 10;}
+                                    if (nozzle_diameter == 0.0f) {m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_diameter = 0.0f;}
+                                    else { m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_diameter = round(nozzle_diameter * 10) / 10;}
                                 }
                             }
                         }
@@ -3793,7 +3797,12 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                 else {
                                     if (jj["nozzle_type"].is_string()) {
                                         auto nozzle_type = jj["nozzle_type"].get<std::string>();
-                                        m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_type = NozzleTypeStrToEumn[nozzle_type];
+                                        if (nozzle_type.empty()) {
+                                            m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_type = NozzleType::ntUndefine;
+                                        }
+                                        else {
+                                            m_extder_data.extders[MAIN_NOZZLE_ID].current_nozzle_type = NozzleTypeStrToEumn[nozzle_type];
+                                        }
                                     }
                                 }
                             }
@@ -5942,7 +5951,6 @@ void MachineObject::update_printer_preset_name()
         std::ostringstream stream;
         stream << std::fixed << std::setprecision(1) << diameter;
         std::string nozzle_diameter_str = stream.str();
-        assert(nozzle_diameter_str.size() == 3);
         diameter_set.insert(nozzle_diameter_str);
         if (m_nozzle_filament_data.find(nozzle_diameter_str) != m_nozzle_filament_data.end()) continue;
         auto data = FilamentData();
@@ -6036,7 +6044,6 @@ void MachineObject::check_ams_filament_valid()
         std::ostringstream stream;
         stream << std::fixed << std::setprecision(1) << diameter;
         std::string nozzle_diameter_str = stream.str();
-        assert(nozzle_diameter_str.size() == 3);
         if (m_nozzle_filament_data.find(nozzle_diameter_str) == m_nozzle_filament_data.end()) {
             assert(false);
             continue;
