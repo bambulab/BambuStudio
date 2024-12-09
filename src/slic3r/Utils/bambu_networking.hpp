@@ -204,6 +204,7 @@ struct PrintParams {
     std::string     ams_mapping;
     std::string     ams_mapping2;
     std::string     ams_mapping_info;
+    std::string     nozzles_info;
     std::string     connection_type;
     std::string     comments;
     int             origin_profile_id = 0;
