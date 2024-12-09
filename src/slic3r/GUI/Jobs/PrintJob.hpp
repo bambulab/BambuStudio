@@ -63,6 +63,7 @@ public:
     std::string task_ams_mapping;
     std::string task_ams_mapping2;
     std::string task_ams_mapping_info;
+    std::string task_nozzles_info;
     std::string connection_type;
     std::string m_print_type;
     std::string m_dst_path;

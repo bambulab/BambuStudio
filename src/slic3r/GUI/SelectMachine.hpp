@@ -102,6 +102,26 @@ public:
     MaterialItem *item;
 };
 
+
+enum class CloudTaskNozzleId : int
+{
+    NOZZLE_RIGHT    = 0,
+    NOZZLE_LEFT     = 1,
+};
+
+enum class FilamentMapNozzleId : int
+{
+    NOZZLE_LEFT     = 1,
+    NOZZLE_RIGHT    = 2,
+};
+
+enum class ConfigNozzleIdx : int
+{
+    NOZZLE_LEFT      = 0,
+    NOZZLE_RIGHT     = 1,
+};
+
+
 WX_DECLARE_HASH_MAP(int, Material *, wxIntegerHash, wxIntegerEqual, MaterialHash);
 
 #define SELECT_MACHINE_DIALOG_BUTTON_SIZE wxSize(FromDIP(57), FromDIP(32))
@@ -441,9 +461,11 @@ public:
     bool Show(bool show);
     bool     do_ams_mapping(MachineObject *obj_);
     bool get_ams_mapping_result(std::string& mapping_array_str, std::string& mapping_array_str2, std::string& ams_mapping_info);
+    bool build_nozzles_info(std::string& nozzles_info);
     bool can_hybrid_mapping(ExtderData data);
     void auto_supply_with_ext(std::vector<AmsTray> slots);
     bool is_nozzle_type_match(ExtderData data);
+    int  convert_filament_map_nozzle_id_to_task_nozzle_id(int nozzle_id);
 
     std::string get_print_status_info(PrintDialogStatus status);
 
