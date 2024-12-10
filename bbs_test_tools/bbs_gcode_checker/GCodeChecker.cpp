@@ -257,7 +257,7 @@ GCodeCheckResult GCodeChecker::parse_command(GCodeLine& gcode_line)
         case 'T':{
 
             int pt = ::atoi(&cmd[1]);
-            if (pt == 1000 || pt == 1100 || pt == 255) {
+            if (pt == 1000 || pt == 1100 || pt == 255 || pt == 1001) {
                 break;
             }
 
