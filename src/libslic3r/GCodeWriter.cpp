@@ -692,10 +692,11 @@ std::string GCodeWriter::lift(LiftType lift_type, bool spiral_vase)
     {
         //BBS
         int extruder_id = filament()->extruder_id();
+        int filament_id = filament()->id();
         double above = this->config.retract_lift_above.get_at(extruder_id);
         double below = this->config.retract_lift_below.get_at(extruder_id);
         if (m_pos.z() >= above && m_pos.z() <= below)
-            target_lift = this->config.z_hop.get_at(extruder_id);
+            target_lift = this->config.z_hop.get_at(filament_id);
     }
     // BBS
     if (m_lifted == 0 && m_to_lift == 0 && target_lift > 0) {
