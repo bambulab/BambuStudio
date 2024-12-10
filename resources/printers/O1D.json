@@ -58,7 +58,7 @@
 		"printer_use_ams_image": "ams_icon",
 		"use_ams_type": "generic",
 		"printer_arch": "core_xy",
-		"printer_series": "series_x1",
+		"printer_series": "series_o",
 		"has_cali_line": true,
 		"printer_is_enclosed": true
 	}
