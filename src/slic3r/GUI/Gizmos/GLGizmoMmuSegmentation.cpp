@@ -194,12 +194,12 @@ void GLGizmoMmuSegmentation::render_non_manifold_edges() const {
             const Camera &   camera   = wxGetApp().plater()->get_camera();
             auto             view_mat = camera.get_view_matrix();
             auto             proj_mat = camera.get_projection_matrix();
-            GLShaderProgram *shader   = wxGetApp().get_shader("flat");
-            shader->start_using();
+            const auto& shader   = wxGetApp().get_shader("flat");
+            wxGetApp().bind_shader(shader);
             shader->set_uniform("view_model_matrix", view_mat);
             shader->set_uniform("projection_matrix", proj_mat);
             m_non_manifold_edges_model.render_geometry();
-            shader->stop_using();
+            wxGetApp().unbind_shader();
         }
     }
 }
@@ -233,14 +233,14 @@ void GLGizmoMmuSegmentation::set_painter_gizmo_data(const Selection &selection)
 void GLGizmoMmuSegmentation::render_triangles(const Selection &selection) const
 {
     ClippingPlaneDataWrapper clp_data = this->get_clipping_plane_data();
-    auto                    *shader   = wxGetApp().get_shader("mm_gouraud");
+    const auto& shader   = wxGetApp().get_shader("mm_gouraud");
     if (!shader)
         return;
-    shader->start_using();
+    wxGetApp().bind_shader(shader);
     shader->set_uniform("clipping_plane", clp_data.clp_dataf);
     shader->set_uniform("z_range", clp_data.z_range);
     shader->set_uniform("slope.actived", m_parent.is_using_slope());
-    ScopeGuard guard([shader]() { if (shader) shader->stop_using(); });
+    ScopeGuard guard([shader]() { if (shader) wxGetApp().unbind_shader(); });
 
     //BBS: to improve the random white pixel issue
     glsafe(::glDisable(GL_CULL_FACE));
@@ -266,14 +266,16 @@ void GLGizmoMmuSegmentation::render_triangles(const Selection &selection) const
         if (is_left_handed)
             glsafe(::glFrontFace(GL_CW));
 
-        glsafe(::glPushMatrix());
-        glsafe(::glMultMatrixd(trafo_matrix.data()));
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        const Transform3d matrix = camera.get_view_matrix() * trafo_matrix;
+        shader->set_uniform("view_model_matrix", matrix);
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+        shader->set_uniform("normal_matrix", (Matrix3d)matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
 
         shader->set_uniform("volume_world_matrix", trafo_matrix);
         shader->set_uniform("volume_mirrored", is_left_handed);
-        m_triangle_selectors[mesh_id]->render(m_imgui);
+        m_triangle_selectors[mesh_id]->render(m_imgui, trafo_matrix);
 
-        glsafe(::glPopMatrix());
         if (is_left_handed)
             glsafe(::glFrontFace(GL_CCW));
     }

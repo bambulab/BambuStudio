@@ -94,6 +94,11 @@ void GLGizmoFlatten::on_start_dragging()
 
 void GLGizmoFlatten::on_render()
 {
+    const auto& p_flat_shader = wxGetApp().get_shader("flat");
+    if (!p_flat_shader) {
+        return;
+    }
+
     const Selection& selection = m_parent.get_selection();
 
     glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
@@ -101,24 +106,24 @@ void GLGizmoFlatten::on_render()
     glsafe(::glEnable(GL_DEPTH_TEST));
     glsafe(::glEnable(GL_BLEND));
 
+    wxGetApp().bind_shader(p_flat_shader);
     if (selection.is_single_full_instance()) {
         const Transform3d& m = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix();
-        glsafe(::glPushMatrix());
-        glsafe(::glTranslatef(0.f, 0.f, selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z()));
-        glsafe(::glMultMatrixd(m.data()));
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        const Transform3d view_model_matrix = camera.get_view_matrix() *
+            Geometry::assemble_transform(selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z() * Vec3d::UnitZ()) * m;
+
+        p_flat_shader->set_uniform("view_model_matrix", view_model_matrix);
+        p_flat_shader->set_uniform("projection_matrix", camera.get_projection_matrix());
         if (this->is_plane_update_necessary())
             update_planes();
         for (int i = 0; i < (int)m_planes.size(); ++i) {
-            if (i == m_hover_id)
-                glsafe(::glColor4fv(GLGizmoBase::FLATTEN_HOVER_COLOR.data()));
-            else
-                glsafe(::glColor4fv(GLGizmoBase::FLATTEN_COLOR.data()));
-
-            if (m_planes[i].vbo.has_VBOs())
-                m_planes[i].vbo.render();
+            p_flat_shader->set_uniform("uniform_color", i == m_hover_id ? GLGizmoBase::FLATTEN_HOVER_COLOR : GLGizmoBase::FLATTEN_COLOR);
+            m_planes[i].vbo.render(p_flat_shader);
         }
-        glsafe(::glPopMatrix());
     }
+
+    wxGetApp().unbind_shader();
 
     glsafe(::glEnable(GL_CULL_FACE));
     glsafe(::glDisable(GL_BLEND));
@@ -126,24 +131,36 @@ void GLGizmoFlatten::on_render()
 
 void GLGizmoFlatten::on_render_for_picking()
 {
+   const auto& p_flat_shader = wxGetApp().get_shader("flat");
+    if (!p_flat_shader) {
+        return;
+    }
+
     const Selection& selection = m_parent.get_selection();
 
     glsafe(::glDisable(GL_DEPTH_TEST));
     glsafe(::glDisable(GL_BLEND));
 
+    wxGetApp().bind_shader(p_flat_shader);
+
     if (selection.is_single_full_instance() && !wxGetKeyState(WXK_CONTROL)) {
         const Transform3d& m = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix();
-        glsafe(::glPushMatrix());
-        glsafe(::glTranslatef(0.f, 0.f, selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z()));
-        glsafe(::glMultMatrixd(m.data()));
+        const Camera& camera = wxGetApp().plater()->get_picking_camera();
+        const Transform3d view_model_matrix = camera.get_view_matrix() *
+            Geometry::assemble_transform(selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z() * Vec3d::UnitZ()) * m;
+
+        p_flat_shader->set_uniform("view_model_matrix", view_model_matrix);
+        p_flat_shader->set_uniform("projection_matrix", camera.get_projection_matrix());
         if (this->is_plane_update_necessary())
             update_planes();
         for (int i = 0; i < (int)m_planes.size(); ++i) {
-            glsafe(::glColor4fv(picking_color_component(i).data()));
-            m_planes[i].vbo.render();
+            p_flat_shader->set_uniform("uniform_color", picking_color_component(i));
+            m_planes[i].vbo.render(p_flat_shader);
         }
-        glsafe(::glPopMatrix());
     }
+
+    wxGetApp().unbind_shader();
+
 
     glsafe(::glEnable(GL_CULL_FACE));
 }

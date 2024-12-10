@@ -607,13 +607,13 @@ void GLGizmoSVG::on_render()
         Transform3d rotate_matrix = tran.get_rotation_matrix();
         Transform3d cube_mat      = Geometry::translation_transform(m_move_grabber.center) * rotate_matrix * Geometry::scale_transform(fullsize);
         m_move_grabber.set_model_matrix(cube_mat);
-        render_glmodel(m_move_grabber.get_cube(), render_color, cube_mat);
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        const auto& view_matrix = camera.get_view_matrix();
+        const auto& projection_matrix = camera.get_projection_matrix();
+        render_glmodel(m_move_grabber.get_cube(), render_color, view_matrix * cube_mat, projection_matrix);
     }
 #ifdef DEBUG_SVG
-    glsafe(::glPushMatrix());
-    glsafe(::glMultMatrixd(tran.get_matrix().data()));
-    render_cross_mark(Vec3f::Zero(), true);
-    glsafe(::glPopMatrix());
+    render_cross_mark(tran.get_matrix(), Vec3f::Zero(), true);
 #endif
     if (is_rotate_by_grabbers || (!is_surface_dragging && !is_parent_dragging)) {
         if (m_hover_id == c_move_cube_id && m_dragging) {
@@ -634,7 +634,13 @@ void GLGizmoSVG::on_render_for_picking()
     m_move_grabber.color[1] = color[1];
     m_move_grabber.color[2] = color[2];
     m_move_grabber.color[3] = color[3];
-    m_move_grabber.render_for_picking();
+
+    const auto& shader = wxGetApp().get_shader("flat");
+    if (nullptr != shader) {
+        wxGetApp().bind_shader(shader);
+        m_move_grabber.render_for_picking();
+        wxGetApp().unbind_shader();
+    }
 }
 
 //BBS: add input window for move

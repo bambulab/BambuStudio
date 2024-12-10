@@ -2,10 +2,10 @@
 #define slic3r_GLSelectionRectangle_hpp_
 
 #include "libslic3r/Point.hpp"
-
+#include "GLModel.hpp"
 namespace Slic3r {
 namespace GUI {
-    
+
 struct Camera;
 class GLCanvas3D;
 
@@ -46,9 +46,10 @@ private:
     EState m_state = Off;
     Vec2d m_start_corner;
     Vec2d m_end_corner;
+    mutable GLModel m_rectangle;
 };
 
-    
+
 } // namespace GUI
 } // namespace Slic3r
 

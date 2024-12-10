@@ -109,6 +109,7 @@ public:
     const std::array<int, 4>& get_viewport() const { return m_viewport; }
     const Transform3d& get_view_matrix() const { return m_view_matrix; }
     const Transform3d& get_projection_matrix() const { return m_projection_matrix; }
+    const Transform3d get_view_matrix_for_billboard() const;
 
     //BBS
     const Eigen::Quaterniond& get_view_rotation() const {return m_view_rotation; }
@@ -127,7 +128,6 @@ public:
     double get_fov() const;
 
     void apply_viewport(int x, int y, unsigned int w, unsigned int h);
-    void apply_view_matrix();
     // Calculates and applies the projection matrix tighting the frustrum z range around the given box.
     // If larger z span is needed, pass the desired values of near and far z (negative values are ignored)
     void apply_projection(const BoundingBoxf3& box, double near_z = -1.0, double far_z = -1.0);

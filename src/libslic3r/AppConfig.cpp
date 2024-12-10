@@ -201,6 +201,12 @@ void AppConfig::set_defaults()
     if (get("prefer_to_use_dgpu").empty())
         set_bool("prefer_to_use_dgpu", false);
 
+    if (get("msaa_type").empty())
+        set("msaa_type", "X4");
+
+    if (get("enable_advanced_antialiasing").empty())
+        set_bool("enable_advanced_antialiasing", true);
+
     if (get("show_3d_navigator").empty())
         set_bool("show_3d_navigator", true);
 

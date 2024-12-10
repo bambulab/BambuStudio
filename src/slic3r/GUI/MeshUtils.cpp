@@ -75,12 +75,14 @@ void MeshClipper::set_transformation(const Geometry::Transformation& trafo)
 void MeshClipper::render_cut(const ColorRGBA &color, const std::vector<size_t> *ignore_idxs)
 {
     if (!m_result) recalculate_triangles();
-    GLShaderProgram *curr_shader = wxGetApp().get_current_shader();
-    if (curr_shader != nullptr) curr_shader->stop_using();
+    const auto& curr_shader = wxGetApp().get_current_shader();
+    if (curr_shader != nullptr) {
+        wxGetApp().unbind_shader();
+    }
 
-    GLShaderProgram *shader = wxGetApp().get_shader("flat");
+    const auto& shader = wxGetApp().get_shader("flat");
     if (shader != nullptr) {
-        shader->start_using();
+        wxGetApp().bind_shader(shader);
         const Camera &camera = wxGetApp().plater()->get_camera();
         shader->set_uniform("view_model_matrix", camera.get_view_matrix());
         shader->set_uniform("projection_matrix", camera.get_projection_matrix());
@@ -89,24 +91,28 @@ void MeshClipper::render_cut(const ColorRGBA &color, const std::vector<size_t> *
             auto isl = m_result->cut_islands[i];
             ColorRGBA  gray{0.5f, 0.5f, 0.5f, 1.f};
             isl->model.set_color(-1, isl->disabled ? gray.get_data() : color.get_data());
-            isl->model.render();
+            isl->model.render_geometry();
         }
-        shader->stop_using();
+        wxGetApp().unbind_shader();
     }
 
-    if (curr_shader != nullptr) curr_shader->start_using();
+    if (curr_shader != nullptr) {
+        wxGetApp().bind_shader(curr_shader);
+    }
 }
 
 void MeshClipper::render_contour(const ColorRGBA &color, const std::vector<size_t> *ignore_idxs)
 {
     if (!m_result) recalculate_triangles();
 
-    GLShaderProgram *curr_shader = wxGetApp().get_current_shader();
-    if (curr_shader != nullptr) curr_shader->stop_using();
+    const auto curr_shader = wxGetApp().get_current_shader();
+    if (curr_shader != nullptr) {
+        wxGetApp().unbind_shader();
+    }
 
-    GLShaderProgram *shader = wxGetApp().get_shader("flat");
+    const auto& shader = wxGetApp().get_shader("flat");
     if (shader != nullptr) {
-        shader->start_using();
+        wxGetApp().bind_shader(shader);
         const Camera &camera = wxGetApp().plater()->get_camera();
         shader->set_uniform("view_model_matrix", camera.get_view_matrix());
         shader->set_uniform("projection_matrix", camera.get_projection_matrix());
@@ -115,13 +121,14 @@ void MeshClipper::render_contour(const ColorRGBA &color, const std::vector<size_
             auto isl = m_result->cut_islands[i];
             ColorRGBA  red{1.0f, 0.f, 0.f, 1.f};
             isl->model_expanded.set_color(-1, isl->disabled ? red.get_data() : color.get_data());
-            isl->model_expanded.render();
+            isl->model_expanded.render_geometry();
         }
-        shader->stop_using();
+        wxGetApp().unbind_shader();
     }
 
-    if (curr_shader != nullptr)
-        curr_shader->start_using();
+    if (curr_shader != nullptr) {
+        wxGetApp().unbind_shader();
+    }
 }
 
 int MeshClipper::is_projection_inside_cut(const Vec3d &point_in) const

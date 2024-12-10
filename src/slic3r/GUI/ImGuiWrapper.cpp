@@ -2686,35 +2686,30 @@ void ImGuiWrapper::render_draw_data(ImDrawData *draw_data)
 {
     if (draw_data == nullptr || draw_data->CmdListsCount == 0)
         return;
-    GLShaderProgram* shader = wxGetApp().get_shader("imgui");
+
+    const auto& shader = wxGetApp().get_shader("imgui");
     if (shader == nullptr)
         return;
+
     // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
     ImGuiIO& io = ImGui::GetIO();
     const int fb_width = (int)(draw_data->DisplaySize.x * io.DisplayFramebufferScale.x);
     const int fb_height = (int)(draw_data->DisplaySize.y * io.DisplayFramebufferScale.y);
     if (fb_width == 0 || fb_height == 0)
         return;
-    GLShaderProgram* curr_shader = wxGetApp().get_current_shader();
+
+    const auto curr_shader = wxGetApp().get_current_shader();
     if (curr_shader != nullptr)
-        curr_shader->stop_using();
-    shader->start_using();
-    // We are using the OpenGL fixed pipeline to make the example code simpler to read!
-    // Setup render state: alpha-blending enabled, no face culling, no depth testing, scissor enabled, vertex/texcoord/color pointers, polygon fill.
-    GLint last_texture;          glsafe(::glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture));
-    GLint last_polygon_mode[2];  glsafe(::glGetIntegerv(GL_POLYGON_MODE, last_polygon_mode));
-    GLint last_viewport[4];      glsafe(::glGetIntegerv(GL_VIEWPORT, last_viewport));
-    GLint last_scissor_box[4];   glsafe(::glGetIntegerv(GL_SCISSOR_BOX, last_scissor_box));
-    const GLboolean was_blend_enabled = glIsEnabled(GL_BLEND);
-    const GLboolean was_cull_face_enabled = glIsEnabled(GL_CULL_FACE);
-    const GLboolean was_depth_test_enabled = glIsEnabled(GL_DEPTH_TEST);
-    const GLboolean was_scissor_test_enabled = glIsEnabled(GL_SCISSOR_TEST);
+        wxGetApp().unbind_shader();
+
+    wxGetApp().bind_shader(shader);
+
     GLboolean was_texture2d_enabled = GL_FALSE;
-    const auto& ogl_manager = wxGetApp().get_opengl_manager();
-    if (!ogl_manager) {
+    const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+    if (!p_ogl_manager) {
         return;
     }
-    const auto& gl_info = ogl_manager->get_gl_info();
+    const auto& gl_info = p_ogl_manager->get_gl_info();
     const auto formated_gl_version = gl_info.get_formated_gl_version();
     if (formated_gl_version < 30) {
         was_texture2d_enabled = glIsEnabled(GL_TEXTURE_2D);
@@ -2805,37 +2800,13 @@ void ImGuiWrapper::render_draw_data(ImDrawData *draw_data)
         glsafe(::glDeleteBuffers(1, &ibo_id));
         glsafe(::glDeleteBuffers(1, &vbo_id));
     }
-    // Restore modified state
-    glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)last_texture));
-    if (!was_blend_enabled) {
-        glsafe(::glDisable(GL_BLEND));
-    }
-    if (was_cull_face_enabled) {
-        glsafe(::glEnable(GL_CULL_FACE));
-    }
-    if (was_depth_test_enabled) {
-        glsafe(::glEnable(GL_DEPTH_TEST));
-    }
-    if (!was_scissor_test_enabled) {
-        glsafe(::glDisable(GL_SCISSOR_TEST));
-    }
-    if (formated_gl_version < 30) {
-        if (!was_texture2d_enabled) {
-            glsafe(::glDisable(GL_TEXTURE_2D));
-        }
-    }
-    if (formated_gl_version < 30) {
-        glsafe(::glPolygonMode(GL_FRONT, (GLenum)last_polygon_mode[0]);
-        glsafe(::glPolygonMode(GL_BACK, (GLenum)last_polygon_mode[1])));
-    }
-    else {
-        glsafe(::glPolygonMode(GL_FRONT_AND_BACK, (GLenum)last_polygon_mode[0]));
-    }
-    glsafe(::glViewport(last_viewport[0], last_viewport[1], (GLsizei)last_viewport[2], (GLsizei)last_viewport[3]));
-    glsafe(::glScissor(last_scissor_box[0], last_scissor_box[1], (GLsizei)last_scissor_box[2], (GLsizei)last_scissor_box[3]));
-    shader->stop_using();
+
+    glsafe(::glDisable(GL_SCISSOR_TEST));
+
+    wxGetApp().unbind_shader();
+
     if (curr_shader != nullptr)
-        curr_shader->start_using();
+        wxGetApp().bind_shader(curr_shader);
 }
 
 bool ImGuiWrapper::display_initialized() const

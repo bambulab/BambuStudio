@@ -342,6 +342,7 @@ public:
     GizmoObjectManipulation& get_object_manipulation() { return m_object_manipulation; }
     bool get_uniform_scaling() const { return m_object_manipulation.get_uniform_scaling();}
     BoundingBoxf3 get_bounding_box() const;
+
 private:
     void render_background(float left, float top, float right, float bottom, float border) const;
 

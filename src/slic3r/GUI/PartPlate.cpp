@@ -670,18 +670,19 @@ void PartPlate::render_height_limit(PartPlate::HeightLimitMode mode)
 	if (m_print && m_print->config().print_sequence == PrintSequence::ByObject && mode != HEIGHT_LIMIT_NONE)
 	{
 		// draw lower limit
-		glsafe(::glLineWidth(3.0f * m_scale_factor));
+		const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+		p_ogl_manager->set_line_width(3.0f * m_scale_factor);
         m_height_limit_common.set_color(HEIGHT_LIMIT_BOTTOM_COLOR);
         m_height_limit_common.render_geometry();
 
 		if ((mode == HEIGHT_LIMIT_BOTTOM) || (mode == HEIGHT_LIMIT_BOTH)) {
-            glsafe(::glLineWidth(3.0f * m_scale_factor));
+			p_ogl_manager->set_line_width(3.0f * m_scale_factor);
             m_height_limit_bottom.set_color(HEIGHT_LIMIT_BOTTOM_COLOR);
             m_height_limit_bottom.render_geometry();
         }
 		// draw upper limit
 		if ((mode == HEIGHT_LIMIT_TOP) || (mode == HEIGHT_LIMIT_BOTH)){
-			glsafe(::glLineWidth(3.0f * m_scale_factor));
+			p_ogl_manager->set_line_width(3.0f * m_scale_factor);
             m_height_limit_top.set_color(HEIGHT_LIMIT_TOP_COLOR);
             m_height_limit_top.render_geometry();
 		}
@@ -1008,12 +1009,12 @@ void PartPlate::render_right_arrow(const float* render_color, bool use_lighting)
 
 void PartPlate::on_render_for_picking() {
 	//glsafe(::glDisable(GL_DEPTH_TEST));
-    const Camera &camera   = wxGetApp().plater()->get_camera();
+    const Camera &camera   = wxGetApp().plater()->get_picking_camera();
     auto          view_mat = camera.get_view_matrix();
     auto          proj_mat = camera.get_projection_matrix();
 
-    GLShaderProgram *shader = wxGetApp().get_shader("flat");
-    shader->start_using();
+    const auto& shader = wxGetApp().get_shader("flat");
+    wxGetApp().bind_shader(shader);
     auto model_mat = m_partplate_list->m_plate_trans[m_plate_index].get_matrix();
     shader->set_uniform("view_model_matrix", view_mat * model_mat);
     shader->set_uniform("projection_matrix", proj_mat);
@@ -1023,14 +1024,17 @@ void PartPlate::on_render_for_picking() {
                                         &m_partplate_list->m_plate_filament_map_icon, &m_plate_name_edit_icon};
     for (size_t i = 0; i < gl_models.size(); i++) {
         if (!gl_models[i]->get_visible()) {
+			continue;
+		}
+        if (!camera.getFrustum().intersects(gl_models[i]->get_bounding_box().transformed(model_mat))) {
             continue;
         }
         int hover_id                  =  i;
         std::array<float, 4> color    = picking_color_component(hover_id);
         gl_models[i]->set_color(-1, color);
         gl_models[i]->render_geometry();
-    }
-    shader->stop_using();
+	}
+    wxGetApp().unbind_shader();
 }
 
 std::array<float, 4> PartPlate::picking_color_component(int idx) const
@@ -2588,17 +2592,17 @@ void PartPlate::render(bool bottom, bool only_body, bool force_background_color,
     auto          view_mat = camera.get_view_matrix();
     auto          proj_mat = camera.get_projection_matrix();
     {
-        GLShaderProgram *shader = wxGetApp().get_shader("flat");
-        shader->start_using();
+        const auto& shader = wxGetApp().get_shader("flat");
+        wxGetApp().bind_shader(shader);
         shader->set_uniform("view_model_matrix", view_mat);
         shader->set_uniform("projection_matrix", proj_mat);
 
         render_height_limit(mode);
-        shader->stop_using();
+        wxGetApp().unbind_shader();
     }
     {
-        GLShaderProgram *shader = wxGetApp().get_shader("printbed");
-        shader->start_using();
+        const auto& shader = wxGetApp().get_shader("printbed");
+        wxGetApp().bind_shader(shader);
         auto model_mat = m_partplate_list->m_plate_trans[m_plate_index].get_matrix();
         shader->set_uniform("view_model_matrix", view_mat * model_mat);
         shader->set_uniform("projection_matrix", proj_mat);
@@ -2617,7 +2621,7 @@ void PartPlate::render(bool bottom, bool only_body, bool force_background_color,
                  render_numbers(bottom);
              }
          }
-         shader->stop_using();
+         wxGetApp().unbind_shader();
     }
 }
 
@@ -5082,13 +5086,13 @@ void PartPlateList::render_instance(bool bottom, bool only_current, bool only_bo
     auto          view_mat = camera.get_view_matrix();
     auto          proj_mat = camera.get_projection_matrix();
     {
-       auto cur_shader = wxGetApp().get_current_shader();
-        if (cur_shader) {
-            cur_shader->stop_using();
-        }
-       GLShaderProgram *shader = wxGetApp().get_shader("flat");
+       const auto cur_shader = wxGetApp().get_current_shader();
+       if (cur_shader) {
+           wxGetApp().unbind_shader();
+       }
+       const auto& shader = wxGetApp().get_shader("flat");
        {//for selected
-            shader->start_using();
+           wxGetApp().bind_shader(shader);
             shader->set_uniform("view_model_matrix", view_mat * m_plate_trans[m_current_plate].get_matrix());
             shader->set_uniform("projection_matrix", proj_mat);
             if (!bottom) { // draw background
@@ -5098,12 +5102,12 @@ void PartPlateList::render_instance(bool bottom, bool only_current, bool only_bo
                 render_grid(bottom); // for selected_plate
         }
        if (enable_multi_instance) {
-           shader->stop_using();
+           wxGetApp().unbind_shader();
        }
        if (!only_current) {
            if (enable_multi_instance) {
-                GLShaderProgram *shader = wxGetApp().get_shader("flat_instance");
-                shader->start_using();
+                const auto& shader = wxGetApp().get_shader("flat_instance");
+                wxGetApp().bind_shader(shader);
                 auto res = shader->set_uniform("view_matrix", view_mat);
                 res      = shader->set_uniform("projection_matrix", proj_mat);
                 if (!bottom) {                                            // draw background
@@ -5112,7 +5116,7 @@ void PartPlateList::render_instance(bool bottom, bool only_current, bool only_bo
                 }
                 render_instance_grid(bottom); // for unselected_plate
 
-                shader->stop_using();
+                wxGetApp().unbind_shader();
             }
             else {
                 for (size_t i = 0; i < m_unselected_plate_trans.size(); i++) {
@@ -5126,17 +5130,21 @@ void PartPlateList::render_instance(bool bottom, bool only_current, bool only_bo
             }
        }
        if (!enable_multi_instance) {
-          shader->stop_using();
+           wxGetApp().unbind_shader();
+       }
+
+       if (cur_shader) {
+           wxGetApp().bind_shader(cur_shader);
        }
     }
-
 }
 
 void PartPlateList::render_grid(bool bottom)
 {
+	const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
     // glsafe(::glEnable(GL_MULTISAMPLE));
     // draw grid
-    glsafe(::glLineWidth(1.0f * m_scale_factor));
+	p_ogl_manager->set_line_width(1.0f * m_scale_factor);
     ColorRGBA color;
     if (bottom)
         color = PartPlate::LINE_BOTTOM_COLOR;
@@ -5146,7 +5154,7 @@ void PartPlateList::render_grid(bool bottom)
     m_gridlines.set_color(color);
     m_gridlines.render_geometry();
 
-    glsafe(::glLineWidth(2.0f * m_scale_factor));
+    p_ogl_manager->set_line_width(2.0f * m_scale_factor);
     m_gridlines_bolder.set_color(color);
     m_gridlines_bolder.render_geometry();
 }
@@ -5155,7 +5163,8 @@ void PartPlateList::render_instance_grid(bool bottom)
 {
     // draw grid
     if (m_unselected_plate_trans.size() == 0) { return; }
-    glsafe(::glLineWidth(1.0f * m_scale_factor));
+	const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+	p_ogl_manager->set_line_width(1.0f * m_scale_factor);
     ColorRGBA color;
     if (bottom)
         color = PartPlate::LINE_BOTTOM_COLOR;
@@ -5164,14 +5173,15 @@ void PartPlateList::render_instance_grid(bool bottom)
     }
     m_gridlines.set_color(color);
     m_gridlines.render_geometry_instance(m_unselected_plate_mats_vbo, m_unselected_plate_trans.size());
-    glsafe(::glLineWidth(2.0f * m_scale_factor));
+	p_ogl_manager->set_line_width(2.0f * m_scale_factor);
     m_gridlines_bolder.set_color(color);
     m_gridlines_bolder.render_geometry_instance(m_unselected_plate_mats_vbo, m_unselected_plate_trans.size());
 }
 
 void PartPlateList::render_unselected_grid(bool bottom)
 {
-    glsafe(::glLineWidth(1.0f * m_scale_factor));
+	const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+	p_ogl_manager->set_line_width(1.0f * m_scale_factor);
     ColorRGBA color;
     if (bottom)
         color = PartPlate::LINE_BOTTOM_COLOR;
@@ -5180,7 +5190,7 @@ void PartPlateList::render_unselected_grid(bool bottom)
     }
     m_gridlines.set_color(color);
     m_gridlines.render_geometry();
-    glsafe(::glLineWidth(2.0f * m_scale_factor));
+	p_ogl_manager->set_line_width(2.0f * m_scale_factor);
     m_gridlines_bolder.set_color(color);
     m_gridlines_bolder.render_geometry();
 }

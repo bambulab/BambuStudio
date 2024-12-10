@@ -44,6 +44,15 @@ class GLGizmoScale3D : public GLGizmoBase
     //BBS: add size adjust related
     GizmoObjectManipulation* m_object_manipulation;
 
+    struct GrabberConnection
+    {
+        GLModel model;
+        std::pair<unsigned int, unsigned int> grabber_indices;
+        Vec3d old_v1{ Vec3d::Zero() };
+        Vec3d old_v2{ Vec3d::Zero() };
+    };
+    mutable std::array<GrabberConnection, 7> m_grabber_connections;
+
 public:
     //BBS: add obj manipulation logic
     //GLGizmoScale3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
@@ -75,7 +84,7 @@ protected:
     //BBS: GUI refactor: add object manipulation
     virtual void on_render_input_window(float x, float y, float bottom_limit);
 private:
-    void render_grabbers_connection(unsigned int id_1, unsigned int id_2) const;
+    void render_grabbers_connection(unsigned int id_1, unsigned int id_2, const ColorRGBA& color) const;
 
     void do_scale_along_axis(Axis axis, const UpdateData& data);
     void do_scale_uniform(const UpdateData& data);

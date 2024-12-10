@@ -152,38 +152,41 @@ void Bed3D::load_render_colors()
 
 void Bed3D::Axes::render() const
 {
-    auto render_axis = [this](const Transform3f& transform) {
-        glsafe(::glPushMatrix());
-        glsafe(::glMultMatrixf(transform.data()));
-        m_arrow.render();
-        glsafe(::glPopMatrix());
+    auto render_axis = [this](const Transform3d& transform, const std::shared_ptr<GLShaderProgram>& shader) {
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        Transform3d view_matrix = camera.get_view_matrix();
+        const Transform3d view_model_matrix = view_matrix * transform;
+        shader->set_uniform("view_model_matrix", view_model_matrix);
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+        shader->set_uniform("normal_matrix", (Matrix3d)view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
+        m_arrow.render_geometry();
     };
 
     if (!m_arrow.is_initialized())
         const_cast<GLModel*>(&m_arrow)->init_from(stilized_arrow(16, DefaultTipRadius, DefaultTipLength, DefaultStemRadius, m_stem_length));
 
-    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
+    const auto& shader = wxGetApp().get_shader("gouraud_light");
     if (shader == nullptr)
         return;
 
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    shader->start_using();
+    wxGetApp().bind_shader(shader);
     shader->set_uniform("emission_factor", 0.0f);
 
     // x axis
     const_cast<GLModel*>(&m_arrow)->set_color(-1, AXIS_X_COLOR);
-    render_axis(Geometry::assemble_transform(m_origin, { 0.0, 0.5 * M_PI, 0.0 }).cast<float>());
+    render_axis(Geometry::assemble_transform(m_origin, { 0.0, 0.5 * M_PI, 0.0 }), shader);
 
     // y axis
     const_cast<GLModel*>(&m_arrow)->set_color(-1, AXIS_Y_COLOR);
-    render_axis(Geometry::assemble_transform(m_origin, { -0.5 * M_PI, 0.0, 0.0 }).cast<float>());
+    render_axis(Geometry::assemble_transform(m_origin, { -0.5 * M_PI, 0.0, 0.0 }), shader);
 
     // z axis
     const_cast<GLModel*>(&m_arrow)->set_color(-1, AXIS_Z_COLOR);
-    render_axis(Geometry::assemble_transform(m_origin).cast<float>());
+    render_axis(Geometry::assemble_transform(m_origin), shader);
 
-    shader->stop_using();
+    wxGetApp().unbind_shader();
 
     glsafe(::glDisable(GL_DEPTH_TEST));
 }
@@ -548,9 +551,9 @@ void Bed3D::render_system(GLCanvas3D& canvas, bool bottom) const
     }
 
     if (m_triangles.get_vertices_count() > 0) {
-        GLShaderProgram* shader = wxGetApp().get_shader("printbed");
+        const auto& shader = wxGetApp().get_shader("printbed");
         if (shader != nullptr) {
-            shader->start_using();
+            wxGetApp().bind_shader(shader);
             shader->set_uniform("transparent_background", bottom);
             shader->set_uniform("svg_source", boost::algorithm::iends_with(m_texture.get_source(), ".svg"));
 
@@ -613,7 +616,7 @@ void Bed3D::render_system(GLCanvas3D& canvas, bool bottom) const
             if (bottom)
                 glsafe(::glDepthMask(GL_TRUE));
 
-            shader->stop_using();
+            wxGetApp().unbind_shader();
         }
     }
 }*/
@@ -689,9 +692,9 @@ void Bed3D::render_model() const
         const Camera &     camera      = wxGetApp().plater()->get_camera();
         const Transform3d &view_matrix = camera.get_view_matrix();
         const Transform3d &projection_matrix = camera.get_projection_matrix();
-        GLShaderProgram* shader = wxGetApp().get_shader("hotbed");
+        const auto& shader = wxGetApp().get_shader("hotbed");
         if (shader != nullptr) {
-            shader->start_using();
+            wxGetApp().bind_shader(shader);
             shader->set_uniform("emission_factor", 0.0f);
             const Transform3d model_matrix = Geometry::assemble_transform(m_model_offset);
             shader->set_uniform("volume_world_matrix",  model_matrix);
@@ -713,7 +716,7 @@ void Bed3D::render_model() const
                 shader->set_uniform("print_volume.type", -1);
             }
             model->render_geometry();
-            shader->stop_using();
+            wxGetApp().unbind_shader();
         }
     }
 }

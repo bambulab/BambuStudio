@@ -3648,6 +3648,7 @@ struct Plater::priv
 
     Bed3D bed;
     Camera camera;
+    Camera picking_camera;
     //BBS: partplate related structure
     PartPlateList partplate_list;
     //BBS: add a flag to ignore cancel event
@@ -15777,6 +15778,16 @@ const Camera& Plater::get_camera() const
 Camera& Plater::get_camera()
 {
     return p->camera;
+}
+
+const Camera& Plater::get_picking_camera() const
+{
+    return p->picking_camera;
+}
+
+Camera& Plater::get_picking_camera()
+{
+    return p->picking_camera;
 }
 
 //BBS: partplate list related functions

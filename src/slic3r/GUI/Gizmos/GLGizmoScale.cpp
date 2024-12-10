@@ -2,6 +2,7 @@
 #include "GLGizmoScale.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/OpenGLManager.hpp"
 
 #include <GL/glew.h>
 
@@ -29,7 +30,15 @@ GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent, const std::string& icon_filen
     , m_snap_step(0.05)
     //BBS: GUI refactor: add obj manipulation
     , m_object_manipulation(obj_manipulation)
-{}
+{
+    m_grabber_connections[0].grabber_indices = { 0, 1 };
+    m_grabber_connections[1].grabber_indices = { 2, 3 };
+    m_grabber_connections[2].grabber_indices = { 4, 5 };
+    m_grabber_connections[3].grabber_indices = { 6, 7 };
+    m_grabber_connections[4].grabber_indices = { 7, 8 };
+    m_grabber_connections[5].grabber_indices = { 8, 9 };
+    m_grabber_connections[6].grabber_indices = { 9, 6 };
+}
 
 const Vec3d &GLGizmoScale3D::get_scale()
 {
@@ -273,33 +282,36 @@ void GLGizmoScale3D::change_cs_by_selection() {
 
 void GLGizmoScale3D::on_render()
 {
+    const Selection& selection = m_parent.get_selection();
+
+    bool single_instance = selection.is_single_full_instance();
+    bool single_volume = selection.is_single_modifier() || selection.is_single_volume();
+
     glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
     glsafe(::glEnable(GL_DEPTH_TEST));
 
     update_grabbers_data();
 
-    glsafe(::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f));
+    const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+    p_ogl_manager->set_line_width((m_hover_id != -1) ? 2.0f : 1.5f);
 
-    glsafe(::glPushMatrix());
-    glsafe(::glMultMatrixd(m_grabbers_tran.get_matrix().data()));
-     //draw connections
-
-    // BBS: when select multiple objects, uniform scale can be deselected, display the connection(4,5)
-    //if (single_instance || single_volume) {
-
-    if (m_grabbers[4].enabled && m_grabbers[5].enabled) {
-        glsafe(::glColor4fv(m_grabbers[4].color.data()));
-        render_grabbers_connection(4, 5);
+    //draw connections
+    const auto& shader = wxGetApp().get_shader("flat");
+    if (shader != nullptr) {
+        wxGetApp().bind_shader(shader);
+        // BBS: when select multiple objects, uniform scale can be deselected, display the connection(4,5)
+        //if (single_instance || single_volume) {
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        shader->set_uniform("view_model_matrix", camera.get_view_matrix() * m_grabbers_tran.get_matrix());
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+        if (m_grabbers[4].enabled && m_grabbers[5].enabled)
+            render_grabbers_connection(4, 5, m_grabbers[4].color);
+        render_grabbers_connection(6, 7, m_grabbers[2].color);
+        render_grabbers_connection(7, 8, m_grabbers[0].color);
+        render_grabbers_connection(8, 9, m_grabbers[2].color);
+        render_grabbers_connection(9, 6, m_grabbers[0].color);
+        wxGetApp().unbind_shader();
     }
-
-    glsafe(::glColor4fv(m_grabbers[2].color.data()));
-    render_grabbers_connection(6, 7);
-    render_grabbers_connection(8, 9);
-
-    glsafe(::glColor4fv(m_grabbers[0].color.data()));
-    render_grabbers_connection(7, 8);
-    render_grabbers_connection(9, 6);
-    glsafe(::glPopMatrix());
     // draw grabbers
     render_grabbers();
 }
@@ -310,18 +322,62 @@ void GLGizmoScale3D::on_render_for_picking()
     render_grabbers_for_picking(m_parent.get_selection().get_bounding_box());
 }
 
-void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int id_2) const
+void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int id_2, const ColorRGBA& color) const
 {
-    unsigned int grabbers_count = (unsigned int)m_grabbers.size();
-    if ((id_1 < grabbers_count) && (id_2 < grabbers_count))
+    auto grabber_connection = [this](unsigned int id_1, unsigned int id_2) {
+        for (int i = 0; i < int(m_grabber_connections.size()); ++i) {
+            if (m_grabber_connections[i].grabber_indices.first == id_1 && m_grabber_connections[i].grabber_indices.second == id_2)
+                return i;
+        }
+        return -1;
+        };
+
+    const int id = grabber_connection(id_1, id_2);
+    if (id == -1)
+        return;
+
+    if (!m_grabber_connections[id].model.is_initialized() ||
+        !m_grabber_connections[id].old_v1.isApprox(m_grabbers[id_1].center) ||
+        !m_grabber_connections[id].old_v2.isApprox(m_grabbers[id_2].center)) {
+        m_grabber_connections[id].old_v1 = m_grabbers[id_1].center;
+        m_grabber_connections[id].old_v2 = m_grabbers[id_2].center;
+        m_grabber_connections[id].model.reset();
+
+        GLModel::Geometry init_data;
+        init_data.format = { GLModel::PrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3 };
+        init_data.reserve_vertices(2);
+        init_data.reserve_indices(2);
+
+        // vertices
+        init_data.add_vertex((Vec3f)m_grabbers[id_1].center.cast<float>());
+        init_data.add_vertex((Vec3f)m_grabbers[id_2].center.cast<float>());
+
+        // indices
+        init_data.add_line(0, 1);
+
+        m_grabber_connections[id].model.init_from(std::move(init_data));
+    }
+
+    m_grabber_connections[id].model.set_color(color);
+
+#ifdef __APPLE__
+    const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+    const auto& gl_info = p_ogl_manager->get_gl_info();
+    const auto formated_gl_version = gl_info.get_formated_gl_version();
+    if (formated_gl_version < 30)
+#endif
     {
-        glLineStipple(1, 0x0FFF);
-        glEnable(GL_LINE_STIPPLE);
-        ::glBegin(GL_LINES);
-        ::glVertex3dv(m_grabbers[id_1].center.data());
-        ::glVertex3dv(m_grabbers[id_2].center.data());
-        glsafe(::glEnd());
-        glDisable(GL_LINE_STIPPLE);
+        glsafe(::glLineStipple(1, 0x0FFF));
+        glsafe(::glEnable(GL_LINE_STIPPLE));
+    }
+
+    m_grabber_connections[id].model.render_geometry();
+
+#ifdef __APPLE__
+    if (formated_gl_version < 30)
+#endif
+    {
+        glsafe(::glDisable(GL_LINE_STIPPLE));
     }
 }
 

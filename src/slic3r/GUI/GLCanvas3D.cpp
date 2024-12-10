@@ -165,16 +165,23 @@ GLCanvas3D::LayersEditing::~LayersEditing()
         m_z_texture_id = 0;
     }
     delete m_slicing_parameters;
+
+    m_background.reset();
+    m_baseline.reset();
+    m_profile_curve.reset();
 }
 
 const float GLCanvas3D::LayersEditing::THICKNESS_BAR_WIDTH = 70.0f;
 
 void GLCanvas3D::LayersEditing::init()
 {
+    const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+    const auto& gl_info = p_ogl_manager->get_gl_info();
+    const auto formated_gl_version = gl_info.get_formated_gl_version();
     glsafe(::glGenTextures(1, (GLuint*)&m_z_texture_id));
     glsafe(::glBindTexture(GL_TEXTURE_2D, m_z_texture_id));
-    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP));
-    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, formated_gl_version >= 30 ? GL_CLAMP_TO_EDGE : GL_CLAMP));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, formated_gl_version >= 30 ? GL_CLAMP_TO_EDGE : GL_CLAMP));
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST));
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1));
@@ -206,6 +213,7 @@ void GLCanvas3D::LayersEditing::select_object(const Model& model, int object_id)
         this->last_object_id = object_id;
         m_model_object = model_object_new;
         m_object_max_z = new_max_z;
+        m_profile_dirty = true;
     }
 }
 
@@ -370,8 +378,8 @@ void GLCanvas3D::LayersEditing::render_variable_layer_height_dialog(const GLCanv
 void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas)
 {
     render_variable_layer_height_dialog(canvas);
+    render_background_texture(canvas);
     const Rect& bar_rect = get_bar_rect_viewport(canvas);
-    render_background_texture(canvas, bar_rect);
     render_curve(bar_rect);
 }
 
@@ -446,16 +454,24 @@ std::string GLCanvas3D::LayersEditing::get_tooltip(const GLCanvas3D& canvas) con
     return ret;
 }
 
-void GLCanvas3D::LayersEditing::render_background_texture(const GLCanvas3D& canvas, const Rect& bar_rect)
+void GLCanvas3D::LayersEditing::render_background_texture(const GLCanvas3D& canvas)
 {
     if (!m_enabled)
         return;
 
-    GLShaderProgram* shader = wxGetApp().get_shader("variable_layer_height");
+    const Size cnv_size = canvas.get_canvas_size();
+    const int cnv_width = cnv_size.get_width();
+    const int cnv_height = cnv_size.get_height();
+    if (cnv_width == 0 || cnv_height == 0)
+        return;
+
+    const float cnv_inv_width = 1.0f / static_cast<float>(cnv_width);
+
+    const auto& shader = wxGetApp().get_shader("variable_layer_height");
     if (shader == nullptr)
         return;
 
-    shader->start_using();
+    wxGetApp().bind_shader(shader);
 
     shader->set_uniform("z_to_texture_row", float(m_layers_texture.cells - 1) / (float(m_layers_texture.width) * m_object_max_z));
     shader->set_uniform("z_texture_row_to_normalized", 1.0f / (float)m_layers_texture.height);
@@ -463,26 +479,67 @@ void GLCanvas3D::LayersEditing::render_background_texture(const GLCanvas3D& canv
     shader->set_uniform("z_cursor_band_width", band_width);
     shader->set_uniform("object_max_z", m_object_max_z);
 
+    const auto thickness = thickness_bar_width(canvas) * cnv_inv_width;
+    if (abs(thickness - m_cached_background_thickness) > 1e-6f)
+    {
+        const float l = 1.0f - 2.0f * thickness;
+        const float r = 1.0f;
+        const float t = 1.0f;
+        const float b = -1.0f;
+
+        const float center_x = (l + r) * 0.5f;
+        const float center_y = (t + b) * 0.5f;
+        const float center_z = 0.0f;
+        const float scale_x = r - l;
+        const float scale_y = t - b;
+        const float scale_z = 0.0f;
+
+        m_model_matrix_for_background = Transform3d::Identity();
+        m_model_matrix_for_background.data()[3 * 4 + 0] = center_x;
+        m_model_matrix_for_background.data()[3 * 4 + 1] = center_y;
+        m_model_matrix_for_background.data()[3 * 4 + 2] = center_z;
+
+        m_model_matrix_for_background.data()[0 * 4 + 0] = scale_x;
+        m_model_matrix_for_background.data()[1 * 4 + 1] = scale_y;
+        m_model_matrix_for_background.data()[2 * 4 + 2] = scale_z;
+
+        m_normal_matrix_for_background = (Matrix3d)m_model_matrix_for_background.matrix().block(0, 0, 3, 3).inverse().transpose();
+
+        m_cached_background_thickness = thickness;
+    }
+
+    shader->set_uniform("view_model_matrix", m_model_matrix_for_background);
+    shader->set_uniform("projection_matrix", Transform3d::Identity());
+    shader->set_uniform("normal_matrix", m_normal_matrix_for_background);
+
     glsafe(::glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
     glsafe(::glBindTexture(GL_TEXTURE_2D, m_z_texture_id));
 
     // Render the color bar
-    const float l = bar_rect.get_left();
-    const float r = bar_rect.get_right();
-    const float t = bar_rect.get_top();
-    const float b = bar_rect.get_bottom();
+    if (!m_background.is_initialized()) {
+        GLModel::Geometry init_data;
+        init_data.format = { GLModel::PrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P2T2 };
+        init_data.reserve_vertices(4);
+        init_data.reserve_indices(6);
 
-    ::glBegin(GL_QUADS);
-    ::glNormal3f(0.0f, 0.0f, 1.0f);
-    ::glTexCoord2f(0.0f, 0.0f); ::glVertex2f(l, b);
-    ::glTexCoord2f(1.0f, 0.0f); ::glVertex2f(r, b);
-    ::glTexCoord2f(1.0f, 1.0f); ::glVertex2f(r, t);
-    ::glTexCoord2f(0.0f, 1.0f); ::glVertex2f(l, t);
-    glsafe(::glEnd());
+        // vertices
+        init_data.add_vertex(Vec2f(-0.5f, -0.5f), Vec2f(0.0f, 0.0f));
+        init_data.add_vertex(Vec2f(0.5f, -0.5f), Vec2f(1.0f, 0.0f));
+        init_data.add_vertex(Vec2f(0.5f, 0.5f), Vec2f(1.0f, 1.0f));
+        init_data.add_vertex(Vec2f(-0.5f, 0.5f), Vec2f(0.0f, 1.0f));
+
+        // indices
+        init_data.add_triangle(0, 1, 2);
+        init_data.add_triangle(2, 3, 0);
+
+        m_background.init_from(std::move(init_data));
+    }
+
+    m_background.render_geometry();
 
     glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 
-    shader->stop_using();
+    wxGetApp().unbind_shader();
 }
 
 void GLCanvas3D::LayersEditing::render_curve(const Rect & bar_rect)
@@ -494,24 +551,78 @@ void GLCanvas3D::LayersEditing::render_curve(const Rect & bar_rect)
     if (!m_slicing_parameters)
         return;
 
+    const auto& shader = wxGetApp().get_shader("flat");
+    if (!shader) {
+        return;
+    }
+
+    wxGetApp().bind_shader(shader);
     // Make the vertical bar a bit wider so the layer height curve does not touch the edge of the bar region.
     const float scale_x = bar_rect.get_width() / float(1.12 * m_slicing_parameters->max_layer_height);
     const float scale_y = bar_rect.get_height() / m_object_max_z;
     const float x = bar_rect.get_left() + float(m_slicing_parameters->layer_height) * scale_x;
 
-    // Baseline
-    glsafe(::glColor3f(0.0f, 0.0f, 0.0f));
-    ::glBegin(GL_LINE_STRIP);
-    ::glVertex2f(x, bar_rect.get_bottom());
-    ::glVertex2f(x, bar_rect.get_top());
-    glsafe(::glEnd());
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    Transform3d view_matrix = camera.get_view_matrix_for_billboard();
+
+    Transform3d model_matrix{ Transform3d::Identity() };
+    model_matrix.data()[3 * 4 + 0] = x;
+    model_matrix.data()[3 * 4 + 1] = (bar_rect.get_top() + bar_rect.get_bottom()) * 0.5f;
+    model_matrix.data()[0 * 4 + 0] = 0.0f;
+    model_matrix.data()[1 * 4 + 1] = (bar_rect.get_top() - bar_rect.get_bottom());
+
+    const auto& projection_matrix = camera.get_projection_matrix();
+    shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
+    shader->set_uniform("projection_matrix", projection_matrix);
+
+    if (!m_baseline.is_initialized()) {
+        GLModel::Geometry init_data;
+        init_data.format = { GLModel::PrimitiveType::LineStrip, GLModel::Geometry::EVertexLayout::P3 };
+        init_data.reserve_vertices(2);
+        init_data.reserve_indices(2);
+
+        // vertices
+        init_data.add_vertex(Vec3f(0.0f, -0.5f, 0.0f));
+        init_data.add_vertex(Vec3f(0.0f, 0.5f, 0.0f));
+
+        // indices
+        init_data.add_line(0, 1);
+
+        m_baseline.init_from(std::move(init_data));
+    }
+    m_baseline.set_color({ 0.0f, 0.0f, 0.0f , 1.0f});
+    m_baseline.render_geometry();
 
     // Curve
-    glsafe(::glColor3f(0.0f, 0.0f, 1.0f));
-    ::glBegin(GL_LINE_STRIP);
-    for (unsigned int i = 0; i < m_layer_height_profile.size(); i += 2)
-        ::glVertex2f(bar_rect.get_left() + (float)m_layer_height_profile[i + 1] * scale_x, bar_rect.get_bottom() + (float)m_layer_height_profile[i] * scale_y);
-    glsafe(::glEnd());
+
+    Transform3d model_matrix_curve{ Transform3d::Identity() };
+    model_matrix_curve.data()[3 * 4 + 0] = bar_rect.get_left();
+    model_matrix_curve.data()[3 * 4 + 1] = bar_rect.get_bottom();
+    model_matrix_curve.data()[0 * 4 + 0] = scale_x;
+    model_matrix_curve.data()[1 * 4 + 1] = scale_y;
+    shader->set_uniform("view_model_matrix", view_matrix * model_matrix_curve);
+
+    if (!m_profile_curve.is_initialized() || m_profile_dirty) {
+        m_profile_curve.reset();
+        GLModel::Geometry init_data;
+        init_data.format = { GLModel::PrimitiveType::LineStrip, GLModel::Geometry::EVertexLayout::P3 };
+        init_data.reserve_vertices(m_layer_height_profile.size() / 2);
+        init_data.reserve_indices(m_layer_height_profile.size() / 2);
+
+        // vertices
+        for (unsigned int i = 0; i < m_layer_height_profile.size(); i += 2) {
+            init_data.add_vertex(Vec3f((float)m_layer_height_profile[i + 1], (float)m_layer_height_profile[i], 0.0f));
+            init_data.add_index(i / 2);
+        }
+
+        m_profile_curve.init_from(std::move(init_data));
+
+        m_profile_dirty = false;
+    }
+    m_profile_curve.set_color({ 0.0f, 0.0f, 1.0f , 1.0f });
+    m_profile_curve.render_geometry();
+
+    wxGetApp().unbind_shader();
 }
 
 void GLCanvas3D::LayersEditing::render_volumes(const GLCanvas3D & canvas, const GLVolumeCollection & volumes)//render volume and layer height texture (has mapping relation with each other)
@@ -519,16 +630,16 @@ void GLCanvas3D::LayersEditing::render_volumes(const GLCanvas3D & canvas, const 
     assert(this->is_allowed());
     assert(this->last_object_id != -1);
 
-    GLShaderProgram* current_shader = wxGetApp().get_current_shader();
-    ScopeGuard guard([current_shader]() { if (current_shader != nullptr) current_shader->start_using(); });
+    const auto& current_shader = wxGetApp().get_current_shader();
+    ScopeGuard guard([current_shader]() { if (current_shader != nullptr) wxGetApp().bind_shader(current_shader); });
     if (current_shader != nullptr)
-        current_shader->stop_using();
+        wxGetApp().unbind_shader();
 
-    GLShaderProgram* shader = wxGetApp().get_shader("variable_layer_height");
+    const auto& shader = wxGetApp().get_shader("variable_layer_height");
     if (shader == nullptr)
         return;
 
-    shader->start_using();
+    wxGetApp().bind_shader(shader);
 
     generate_layer_height_texture();
 
@@ -537,6 +648,11 @@ void GLCanvas3D::LayersEditing::render_volumes(const GLCanvas3D & canvas, const 
     shader->set_uniform("z_texture_row_to_normalized", 1.0f / float(m_layers_texture.height));
     shader->set_uniform("z_cursor", float(m_object_max_z) * float(this->get_cursor_z_relative(canvas)));
     shader->set_uniform("z_cursor_band_width", float(this->band_width));
+
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    const auto& view_matrix = camera.get_view_matrix();
+    const auto& projection_matrix = camera.get_projection_matrix();
+    shader->set_uniform("projection_matrix", projection_matrix);
 
     // Initialize the layer height texture mapping.
     const GLsizei w = (GLsizei)m_layers_texture.width;
@@ -557,7 +673,11 @@ void GLCanvas3D::LayersEditing::render_volumes(const GLCanvas3D & canvas, const 
         shader->set_uniform("volume_world_matrix", glvolume->world_matrix());
         shader->set_uniform("object_max_z", 0.0f);
 
-        glvolume->render();
+        const Transform3d view_model_matrix = view_matrix * glvolume->world_matrix();
+        shader->set_uniform("view_model_matrix", view_model_matrix);
+        shader->set_uniform("normal_matrix", (Matrix3d)view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
+
+        glvolume->render(view_matrix);
     }
     // Revert back to the previous shader.
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -569,6 +689,7 @@ void GLCanvas3D::LayersEditing::adjust_layer_height_profile()
     PrintObject::update_layer_height_profile(*m_model_object, *m_slicing_parameters, m_layer_height_profile);
     Slic3r::adjust_layer_height_profile(*m_slicing_parameters, m_layer_height_profile, this->last_z, this->strength, this->band_width, this->last_action);
     m_layers_texture.valid = false;
+    m_profile_dirty = true;
 }
 
 void GLCanvas3D::LayersEditing::reset_layer_height_profile(GLCanvas3D & canvas)
@@ -578,6 +699,7 @@ void GLCanvas3D::LayersEditing::reset_layer_height_profile(GLCanvas3D & canvas)
     m_layers_texture.valid = false;
     canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
     wxGetApp().obj_list()->update_info_items(last_object_id);
+    m_profile_dirty = true;
 }
 
 void GLCanvas3D::LayersEditing::adaptive_layer_height_profile(GLCanvas3D & canvas, float quality_factor)
@@ -588,6 +710,7 @@ void GLCanvas3D::LayersEditing::adaptive_layer_height_profile(GLCanvas3D & canva
     m_layers_texture.valid = false;
     canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
     wxGetApp().obj_list()->update_info_items(last_object_id);
+    m_profile_dirty = true;
 }
 
 void GLCanvas3D::LayersEditing::smooth_layer_height_profile(GLCanvas3D & canvas, const HeightProfileSmoothingParams & smoothing_params)
@@ -598,6 +721,7 @@ void GLCanvas3D::LayersEditing::smooth_layer_height_profile(GLCanvas3D & canvas,
     m_layers_texture.valid = false;
     canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
     wxGetApp().obj_list()->update_info_items(last_object_id);
+    m_profile_dirty = true;
 }
 
 void GLCanvas3D::LayersEditing::generate_layer_height_texture()
@@ -906,6 +1030,12 @@ void GLCanvas3D::Tooltip::render(const Vec2d& mouse_position, GLCanvas3D& canvas
 }
 
 //BBS: add height limit logic
+
+GLCanvas3D::SequentialPrintClearance::~SequentialPrintClearance()
+{
+    reset();
+}
+
 void GLCanvas3D::SequentialPrintClearance::set_polygons(const Polygons& polygons, const std::vector<std::pair<Polygon, float>>& height_polygons)
 {
     //BBS: add height limit logic
@@ -918,50 +1048,29 @@ void GLCanvas3D::SequentialPrintClearance::set_polygons(const Polygons& polygons
         const size_t vertices_count = 3 * triangles_count;
 
         if (m_render_fill) {
-            GLModel::InitializationData         fill_data;
-            GLModel::InitializationData::Entity entity;
-            entity.type  = GLModel::PrimitiveType::Triangles;
-            entity.color = {0.8f, 0.8f, 1.0f, 0.5f};
-            entity.positions.reserve(vertices_count);
-            entity.normals.reserve(vertices_count);
-            entity.indices.reserve(vertices_count);
+            GLModel::Geometry fill_data;
+            fill_data.format = {GLModel::PrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3};
+            fill_data.color  = {0.8f, 0.8f, 1.0f, 0.5f};
 
-            const ExPolygons polygons_union = union_ex(polygons);
+            // vertices + indices
+            const ExPolygons polygons_union   = union_ex(polygons);
+            unsigned int     vertices_counter = 0;
             for (const ExPolygon &poly : polygons_union) {
                 const std::vector<Vec3d> triangulation = triangulate_expolygon_3d(poly);
+                fill_data.reserve_vertices(fill_data.vertices_count() + triangulation.size());
+                fill_data.reserve_indices(fill_data.indices_count() + triangulation.size());
                 for (const Vec3d &v : triangulation) {
-                    entity.positions.emplace_back(v.cast<float>() + Vec3f(0.0f, 0.0f, 0.0125f)); // add a small positive z to avoid z-fighting
-                    entity.normals.emplace_back(Vec3f::UnitZ());
-                    const size_t positions_count = entity.positions.size();
-                    if (positions_count % 3 == 0) {
-                        entity.indices.emplace_back(positions_count - 3);
-                        entity.indices.emplace_back(positions_count - 2);
-                        entity.indices.emplace_back(positions_count - 1);
-                    }
+                    fill_data.add_vertex((Vec3f) (v.cast<float>() + 0.0125f * Vec3f::UnitZ())); // add a small positive z to avoid z-fighting
+                    ++vertices_counter;
+                    if (vertices_counter % 3 == 0)
+                        fill_data.add_triangle(vertices_counter - 3, vertices_counter - 2, vertices_counter - 1);
                 }
             }
+            m_fill.init_from(std::move(fill_data));
 
-            fill_data.entities.emplace_back(entity);
-            m_fill.init_from(fill_data);
         }
 
-        GLModel::InitializationData perimeter_data;
-        for (const Polygon &poly : polygons) {
-            GLModel::InitializationData::Entity ent;
-            ent.type = GLModel::PrimitiveType::LineLoop;
-            ent.positions.reserve(poly.points.size());
-            ent.indices.reserve(poly.points.size());
-            unsigned int id_count = 0;
-            for (const Point &p : poly.points) {
-                ent.positions.emplace_back(unscale<float>(p.x()), unscale<float>(p.y()), 0.025f); // add a small positive z to avoid z-fighting
-                ent.normals.emplace_back(Vec3f::UnitZ());
-                ent.indices.emplace_back(id_count++);
-            }
-
-            perimeter_data.entities.emplace_back(ent);
-        }
-
-        m_perimeter.init_from(perimeter_data);
+        m_perimeter.init_model_from_polygon(polygons, 0.025f);
     }
 
     //BBS: add the height limit compute logic
@@ -1004,11 +1113,15 @@ void GLCanvas3D::SequentialPrintClearance::render()
     std::array<float, 4> FILL_COLOR = { 0.7f, 0.7f, 1.0f, 0.5f };
     std::array<float, 4> NO_FILL_COLOR = { 0.75f, 0.75f, 0.75f, 0.75f };
 
-    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
+    const auto& shader = wxGetApp().get_shader("flat");
     if (shader == nullptr)
         return;
 
-    shader->start_using();
+    wxGetApp().bind_shader(shader);
+
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    shader->set_uniform("view_model_matrix", camera.get_view_matrix());
+    shader->set_uniform("projection_matrix", camera.get_projection_matrix());
 
     glsafe(::glEnable(GL_DEPTH_TEST));
     glsafe(::glDisable(GL_CULL_FACE));
@@ -1016,17 +1129,24 @@ void GLCanvas3D::SequentialPrintClearance::render()
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
     m_perimeter.set_color(-1, m_render_fill ? FILL_COLOR : NO_FILL_COLOR);
-    m_perimeter.render();
-    m_fill.render();
+    m_perimeter.render_geometry();
+    m_fill.render_geometry();
     //BBS: add height limit
     m_height_limit.set_color(-1, m_render_fill ? FILL_COLOR : NO_FILL_COLOR);
-    m_height_limit.render();
+    m_height_limit.render_geometry();
 
     glsafe(::glDisable(GL_BLEND));
     glsafe(::glEnable(GL_CULL_FACE));
     glsafe(::glDisable(GL_DEPTH_TEST));
 
-    shader->stop_using();
+    wxGetApp().unbind_shader();
+}
+
+void GLCanvas3D::SequentialPrintClearance::reset()
+{
+    m_height_limit.reset();
+    m_fill.reset();
+    m_perimeter.reset();
 }
 
 wxDEFINE_EVENT(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, SimpleEvent);
@@ -1224,6 +1344,29 @@ GLCanvas3D::~GLCanvas3D()
 
     m_sel_plate_toolbar.del_all_item();
     m_sel_plate_toolbar.del_stats_item();
+
+    m_full_screen_mesh.reset();
+    m_unit_cube.reset();
+#if ENABLE_SHOW_CAMERA_TARGET
+    m_camera_target_mark.reset();
+#endif // ENABLE_SHOW_CAMERA_TARGET
+
+    m_sequential_print_clearance.reset();
+}
+
+void GLCanvas3D::set_context(wxGLContext* context)
+{
+    if (context != m_context) {
+        m_context = context;
+        m_dirty_context = true;
+    }
+}
+
+void GLCanvas3D::set_type(ECanvasType type)
+{
+    if (type != m_canvas_type) {
+        m_canvas_type = type;
+    }
 }
 
 void GLCanvas3D::post_event(wxEvent &&event)
@@ -1257,32 +1400,6 @@ bool GLCanvas3D::init()
     // Set antialiasing / multisampling
     glsafe(::glDisable(GL_LINE_SMOOTH));
     glsafe(::glDisable(GL_POLYGON_SMOOTH));
-
-    // ambient lighting
-    GLfloat ambient[4] = { 0.3f, 0.3f, 0.3f, 1.0f };
-    glsafe(::glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient));
-
-    glsafe(::glEnable(GL_LIGHT0));
-    glsafe(::glEnable(GL_LIGHT1));
-
-    // light from camera
-    GLfloat specular_cam[4] = { 0.3f, 0.3f, 0.3f, 1.0f };
-    glsafe(::glLightfv(GL_LIGHT1, GL_SPECULAR, specular_cam));
-    GLfloat diffuse_cam[4] = { 0.2f, 0.2f, 0.2f, 1.0f };
-    glsafe(::glLightfv(GL_LIGHT1, GL_DIFFUSE, diffuse_cam));
-
-    // light from above
-    GLfloat specular_top[4] = { 0.2f, 0.2f, 0.2f, 1.0f };
-    glsafe(::glLightfv(GL_LIGHT0, GL_SPECULAR, specular_top));
-    GLfloat diffuse_top[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
-    glsafe(::glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse_top));
-
-    // Enables Smooth Color Shading; try GL_FLAT for (lack of) fun.
-    glsafe(::glShadeModel(GL_SMOOTH));
-
-    // A handy trick -- have surface material mirror the color.
-    glsafe(::glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE));
-    glsafe(::glEnable(GL_COLOR_MATERIAL));
 
     if (m_multisample_allowed)
         glsafe(::glEnable(GL_MULTISAMPLE));
@@ -1397,7 +1514,7 @@ void GLCanvas3D::reset_volumes()
     if (m_volumes.empty())
         return;
 
-    _set_current();
+    _set_current(true);
 
     m_selection.clear();
     m_volumes.clear();
@@ -1980,7 +2097,12 @@ float GLCanvas3D::get_collapse_toolbar_height()
 }
 
 bool GLCanvas3D::make_current_for_postinit() {
-    return _set_current();
+    return _set_current(true);
+}
+
+void GLCanvas3D::mark_context_dirty()
+{
+    m_dirty_context = true;
 }
 
 void GLCanvas3D::render(bool only_init)
@@ -2003,7 +2125,7 @@ void GLCanvas3D::render(bool only_init)
         return;
 
     // ensures this canvas is current and initialized
-    if (!_is_shown_on_screen() || !_set_current() || !wxGetApp().init_opengl())
+    if (!_is_shown_on_screen() || !_set_current(true) || !wxGetApp().init_opengl())
         return;
 
     if (!is_initialized() && !init())
@@ -2056,13 +2178,10 @@ void GLCanvas3D::render(bool only_init)
         camera.requires_zoom_to_volumes = false;
     }
 
-    camera.apply_view_matrix();
     camera.apply_projection(_max_bounding_box(true, true, true));
+    camera.update_frustum();
 
-    GLfloat position_cam[4] = { 1.0f, 0.0f, 1.0f, 0.0f };
-    glsafe(::glLightfv(GL_LIGHT1, GL_POSITION, position_cam));
-    GLfloat position_top[4] = { -0.5f, -0.5f, 1.0f, 0.0f };
-    glsafe(::glLightfv(GL_LIGHT0, GL_POSITION, position_top));
+    m_frame_callback_list.clear();
 
     const std::array<int, 4>& viewport = camera.get_viewport();
     const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
@@ -2086,6 +2205,26 @@ void GLCanvas3D::render(bool only_init)
         else
             // regular picking pass
             _picking_pass();
+    }
+    glsafe(::glViewport(viewport[0], viewport[1], viewport[2], viewport[3]));
+    EPickingEffect picking_effect = wxGetApp().get_picking_effect();
+    if (EPickingEffect::Disabled != picking_effect) {
+        if (!ogl_manager.are_framebuffers_supported()) {
+            picking_effect = EPickingEffect::StencilOutline; // use stencil outline as framebuffer not supported yet.
+        }
+    }
+
+    const bool off_screen_rendering_enabled = ogl_manager.is_fxaa_enabled();
+
+    if (m_picking_enabled && EPickingEffect::Silhouette == picking_effect) {
+        _render_silhouette_effect();
+    }
+
+    if (off_screen_rendering_enabled) {
+        OpenGLManager::FrameBufferModifier main_frame(ogl_manager, "mainframe", ogl_manager.get_msaa_type());
+    }
+    else {
+        OpenGLManager::FrameBufferModifier main_frame(ogl_manager, OpenGLManager::s_back_frame);
     }
 
 #if ENABLE_RENDER_PICKING_PASS
@@ -2114,13 +2253,7 @@ void GLCanvas3D::render(bool only_init)
         show_grid = false;
 
     /* view3D render*/
-    int hover_id = (m_hover_plate_idxs.size() > 0)?m_hover_plate_idxs.front():-1;
-    EPickingEffect picking_effect = wxGetApp().get_picking_effect();
-    if (EPickingEffect::Disabled != picking_effect) {
-        if (!ogl_manager.are_framebuffers_supported()) {
-            picking_effect = EPickingEffect::StencilOutline; // use stencil outline as framebuffer not supported yet.
-        }
-    }
+    int hover_id = (m_hover_plate_idxs.size() > 0) ? m_hover_plate_idxs.front() : -1;
     bool b_with_stencil_outline = !m_gizmos.is_running() && (EPickingEffect::StencilOutline == picking_effect);
     if (m_canvas_type == ECanvasType::CanvasView3D) {
         //BBS: add outline logic
@@ -2158,25 +2291,22 @@ void GLCanvas3D::render(bool only_init)
         _render_objects(GLVolumeCollection::ERenderType::Transparent, b_with_stencil_outline);
     }
 
-    if (EPickingEffect::Silhouette == picking_effect) {
-        _render_silhouette_effect();
-    }
+     if (m_picking_enabled && EPickingEffect::Silhouette == picking_effect) {
+         _composite_silhouette_effect();
+     }
 
     _render_sequential_clearance();
 #if ENABLE_RENDER_SELECTION_CENTER
     _render_selection_center();
 #endif // ENABLE_RENDER_SELECTION_CENTER
 
-    // we need to set the mouse's scene position here because the depth buffer
-    // could be invalidated by the following gizmo render methods
-    // this position is used later into on_mouse() to drag the objects
-    if (m_picking_enabled)
-        m_mouse.scene_position = _mouse_to_3d(m_mouse.position.cast<coord_t>());
-
     // sidebar hints need to be rendered before the gizmos because the depth buffer
     // could be invalidated by the following gizmo render methods
     _render_selection_sidebar_hints();
     _render_current_gizmo();
+
+    _composite_main_frame(off_screen_rendering_enabled);
+
 #if ENABLE_RENDER_PICKING_PASS
     }
 #endif // ENABLE_RENDER_PICKING_PASS
@@ -2184,7 +2314,6 @@ void GLCanvas3D::render(bool only_init)
 #if ENABLE_SHOW_CAMERA_TARGET
     _render_camera_target();
 #endif // ENABLE_SHOW_CAMERA_TARGET
-    camera.update_frustum();
     if (m_picking_enabled && m_rectangle_selection.is_dragging())
         m_rectangle_selection.render(*this);
 
@@ -2275,6 +2404,11 @@ void GLCanvas3D::render(bool only_init)
     ogl_manager.unbind_vao();
     ogl_manager.clear_dirty();
     m_canvas->SwapBuffers();
+
+    for (const auto& cb : m_frame_callback_list) {
+        cb();
+    }
+
     m_render_stats.increment_fps_counter();
 }
 
@@ -2287,13 +2421,21 @@ void GLCanvas3D::render_thumbnail(ThumbnailData &         thumbnail_data,
                                   bool                    for_picking,
                                   bool                    ban_light)
 {
+    const auto& shader = wxGetApp().get_shader("thumbnail");
+    if (!shader) {
+        return;
+    }
     const auto& ogl_manager = wxGetApp().get_opengl_manager();
     if (!ogl_manager) {
         return;
     }
     ogl_manager->bind_vao();
+    ogl_manager->bind_shader(shader);
+
     ModelObjectPtrs &model_objects = GUI::wxGetApp().model().objects;
     render_thumbnail(thumbnail_data, w, h, thumbnail_params, model_objects, m_volumes, camera_type, camera_view_angle_type, for_picking, ban_light);
+
+    ogl_manager->unbind_shader();
     ogl_manager->unbind_vao();
 }
 
@@ -2308,7 +2450,15 @@ void GLCanvas3D::render_thumbnail(ThumbnailData &           thumbnail_data,
                                   bool                      for_picking,
                                   bool                      ban_light)
 {
-    GLShaderProgram* shader = wxGetApp().get_shader("thumbnail");
+    const auto& shader = wxGetApp().get_shader("thumbnail");
+    if (!shader) {
+        return;
+    }
+
+    const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+    p_ogl_manager->bind_vao();
+    p_ogl_manager->bind_shader(shader);
+
     std::vector<std::array<float, 4>> colors  = wxGetApp().plater()->get_extruders_colors();
     const auto fb_type = Slic3r::GUI::OpenGLManager::get_framebuffers_type();
     BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: %1%") % Slic3r::GUI::OpenGLManager::framebuffer_type_to_string(fb_type).c_str();
@@ -2331,6 +2481,9 @@ void GLCanvas3D::render_thumbnail(ThumbnailData &           thumbnail_data,
         break;
     }
     }
+
+    p_ogl_manager->unbind_shader();
+    p_ogl_manager->unbind_vao();
 }
 
 void GLCanvas3D::render_thumbnail(ThumbnailData &                    thumbnail_data,
@@ -2345,7 +2498,15 @@ void GLCanvas3D::render_thumbnail(ThumbnailData &                    thumbnail_d
                                   bool                               for_picking,
                                   bool                               ban_light)
 {
-    GLShaderProgram *shader = wxGetApp().get_shader("thumbnail");
+    const auto& shader = wxGetApp().get_shader("thumbnail");
+    if (!shader) {
+        return;
+    }
+
+    const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+    p_ogl_manager->bind_vao();
+    p_ogl_manager->bind_shader(shader);
+
     const auto       fb_type = Slic3r::GUI::OpenGLManager::get_framebuffers_type();
     BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: %1%") % Slic3r::GUI::OpenGLManager::framebuffer_type_to_string(fb_type).c_str();
     switch (fb_type){
@@ -2365,6 +2526,9 @@ void GLCanvas3D::render_thumbnail(ThumbnailData &                    thumbnail_d
             break;
         }
     }
+
+    p_ogl_manager->unbind_shader();
+    p_ogl_manager->unbind_vao();
 }
 
 void GLCanvas3D::render_calibration_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params)
@@ -2546,7 +2710,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     if (!m_initialized)
         return;
 
-    _set_current();
+    _set_current(true);
 
     m_hover_volume_idxs.clear();
 
@@ -3187,7 +3351,7 @@ void GLCanvas3D::load_sla_preview()
 {
     const SLAPrint* print = sla_print();
     if (m_canvas != nullptr && print != nullptr) {
-        _set_current();
+        _set_current(true);
 	    // Release OpenGL data before generating new data.
 	    reset_volumes();
         _load_sla_shells();
@@ -4112,8 +4276,9 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
     }
     else {
         auto cnv_size = get_canvas_size();
-        auto screen_center_3d_pos = _mouse_to_3d({ cnv_size.get_width() * 0.5, cnv_size.get_height() * 0.5 });
-        auto mouse_3d_pos = _mouse_to_3d({evt.GetX(), evt.GetY()});
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        auto screen_center_3d_pos = _mouse_to_3d(camera, { cnv_size.get_width() * 0.5, cnv_size.get_height() * 0.5 });
+        auto mouse_3d_pos = _mouse_to_3d(camera, {evt.GetX(), evt.GetY()});
         Vec3d displacement = mouse_3d_pos - screen_center_3d_pos;
         wxGetApp().plater()->get_camera().translate(displacement);
         auto origin_zoom = wxGetApp().plater()->get_camera().get_zoom();
@@ -4223,7 +4388,7 @@ std::string format_mouse_event_debug_message(const wxMouseEvent &evt)
 
 void GLCanvas3D::on_gesture(wxGestureEvent &evt)
 {
-    if (!m_initialized || !_set_current())
+    if (!m_initialized || !_set_current(true))
         return;
 
     auto & camera = wxGetApp().plater()->get_camera();
@@ -4231,8 +4396,8 @@ void GLCanvas3D::on_gesture(wxGestureEvent &evt)
         auto p = evt.GetPosition();
         auto d = static_cast<wxPanGestureEvent&>(evt).GetDelta();
         float z = 0;
-        const Vec3d &p2 = _mouse_to_3d({p.x, p.y}, &z);
-        const Vec3d &p1 = _mouse_to_3d({p.x - d.x, p.y - d.y}, &z);
+        const Vec3d &p2 = _mouse_to_3d(camera, {p.x, p.y}, &z);
+        const Vec3d &p1 = _mouse_to_3d(camera, {p.x - d.x, p.y - d.y}, &z);
         camera.set_target(camera.get_target() + p1 - p2);
     } else if (evt.GetEventType() == wxEVT_GESTURE_ZOOM) {
         static float zoom_start = 1;
@@ -4257,7 +4422,7 @@ void GLCanvas3D::on_gesture(wxGestureEvent &evt)
 
 void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 {
-    if (!m_initialized || !_set_current())
+    if (!m_initialized || !_set_current(true))
         return;
 
     // BBS: single snapshot
@@ -4540,17 +4705,21 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 if (!m_hover_volume_idxs.empty()) {
                     if (evt.LeftDown() && m_moving_enabled && m_mouse.drag.move_volume_idx == -1) {
                         // Only accept the initial position, if it is inside the volume bounding box.
-                        int volume_idx = get_first_hover_volume_idx();
-                        BoundingBoxf3 volume_bbox = m_volumes.volumes[volume_idx]->transformed_bounding_box();
-                        volume_bbox.offset(1.0);
-                        if ((!any_gizmo_active || !evt.CmdDown()) && volume_bbox.contains(m_mouse.scene_position) && !m_selection.is_any_connector()) {
-                            m_volumes.volumes[volume_idx]->hover = GLVolume::HS_None;
-                            // The dragging operation is initiated.
-                            m_mouse.drag.move_volume_idx = volume_idx;
-                            m_selection.start_dragging();
-                            m_mouse.drag.start_position_3D = m_mouse.scene_position;
-                            m_sequential_print_clearance_first_displacement = true;
-                            m_moving = true;
+                        if (!any_gizmo_active || !evt.CmdDown()) {
+                            int volume_idx = get_first_hover_volume_idx();
+                            BoundingBoxf3 volume_bbox = m_volumes.volumes[volume_idx]->transformed_bounding_box();
+                            volume_bbox.offset(1.0);
+                            const Camera& camera = wxGetApp().plater()->get_picking_camera();
+                            m_mouse.scene_position = _mouse_to_3d(camera, { 0, 1 }, nullptr, OpenGLManager::s_picking_frame);
+                            if (volume_bbox.contains(m_mouse.scene_position) && !m_selection.is_any_connector()) {
+                                m_volumes.volumes[volume_idx]->hover = GLVolume::HS_None;
+                                // The dragging operation is initiated.
+                                m_mouse.drag.move_volume_idx = volume_idx;
+                                m_selection.start_dragging();
+                                m_mouse.drag.start_position_3D = m_mouse.scene_position;
+                                m_sequential_print_clearance_first_displacement = true;
+                                m_moving = true;
+                            }
                         }
                     }
                 }
@@ -4594,7 +4763,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         // Get new position at the same Z of the initial click point.
                         float z0 = 0.0f;
                         float z1 = 1.0f;
-                        cur_pos = Linef3(_mouse_to_3d(pos, &z0), _mouse_to_3d(pos, &z1)).intersect_plane(m_mouse.drag.start_position_3D(2));
+                        cur_pos = Linef3(_mouse_to_3d(camera, pos, &z0), _mouse_to_3d(camera, pos, &z1)).intersect_plane(m_mouse.drag.start_position_3D(2));
                     }
                 }
                 TransformationType trafo_type;
@@ -4673,7 +4842,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                                 auto canvas_h = float(get_canvas_size().get_height());
                                 Point screen_center(canvas_w/2, canvas_h/2);
                                 //camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, wxGetApp().plater()->get_partplate_list().get_bounding_box().center());
-                                m_rotation_center = _mouse_to_3d(screen_center);
+                                m_rotation_center = _mouse_to_3d(camera, screen_center);
                                 m_rotation_center(2) = 0.f;
                             }
                             camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, m_rotation_center);
@@ -4692,16 +4861,20 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
                 m_dirty = true;
             }
+            if (m_mouse.is_move_threshold_met(pos)) {
+                m_mouse.rotating = true;
+            }
             m_mouse.drag.start_position_3D = Vec3d((double)pos(0), (double)pos(1), 0.0);
+            m_mouse.drag.move_start_threshold_position_2D = pos;
         }
         else if (evt.MiddleIsDown() || evt.RightIsDown()) {
             // If dragging over blank area with right button, pan.
             if (m_mouse.is_start_position_2D_defined()) {
                 // get point in model space at Z = 0
                 float z = 0.0f;
-                const Vec3d& cur_pos = _mouse_to_3d(pos, &z);
-                Vec3d orig = _mouse_to_3d(m_mouse.drag.start_position_2D, &z);
                 Camera& camera = wxGetApp().plater()->get_camera();
+                const Vec3d& cur_pos = _mouse_to_3d(camera, pos, &z);
+                Vec3d orig = _mouse_to_3d(camera, m_mouse.drag.start_position_2D, &z);
 #ifdef SUPPORT_FREE_CAMERA
                 if (this->m_canvas_type != ECanvasType::CanvasAssembleView) {
                     if (wxGetApp().app_config->get("use_free_camera") != "1")
@@ -4717,11 +4890,15 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 m_dirty = true;
                 m_mouse.ignore_right_up = true;
             }
-
+            if (m_mouse.is_move_threshold_met(pos)) {
+                m_mouse.panning = true;
+            }
             m_mouse.drag.start_position_2D = pos;
+            m_mouse.drag.move_start_threshold_position_2D = pos;
         }
     }
     else if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp()) {
+
         if (evt.LeftUp()) {
             m_selection.stop_dragging();
             m_rotation_center(0) = m_rotation_center(1) = m_rotation_center(2) = 0.f;
@@ -4756,7 +4933,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 deselect_all();
         }
         //BBS Select plate in this 3D canvas.
-        else if (evt.LeftUp() && !m_mouse.dragging && m_picking_enabled && !m_hover_plate_idxs.empty() && (m_canvas_type == CanvasView3D) && !is_layers_editing_enabled())
+        else if (evt.LeftUp() && !m_mouse.rotating && !m_mouse.panning && m_picking_enabled && !m_hover_plate_idxs.empty() && (m_canvas_type == CanvasView3D) && !is_layers_editing_enabled())
         {
                 int hover_idx = m_hover_plate_idxs.front();
                 wxGetApp().plater()->select_plate_by_hover_id(hover_idx);
@@ -5434,7 +5611,8 @@ Linef3 GLCanvas3D::mouse_ray(const Point& mouse_pos)
 {
     float z0 = 0.0f;
     float z1 = 1.0f;
-    return Linef3(_mouse_to_3d(mouse_pos, &z0), _mouse_to_3d(mouse_pos, &z1));
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    return Linef3(_mouse_to_3d(camera, mouse_pos, &z0), _mouse_to_3d(camera, mouse_pos, &z1));
 }
 
 double GLCanvas3D::get_size_proportional_to_max_bed_size(double factor) const
@@ -5543,6 +5721,8 @@ void GLCanvas3D::mouse_up_cleanup()
     m_mouse.set_start_position_3D_as_invalid();
     m_mouse.set_start_position_2D_as_invalid();
     m_mouse.dragging = false;
+    m_mouse.rotating = false;
+    m_mouse.panning = false;
     m_mouse.ignore_left_up = false;
     m_mouse.ignore_right_up = false;
     m_dirty = true;
@@ -6131,7 +6311,7 @@ static void debug_output_thumbnail(const ThumbnailData& thumbnail_data)
 
 void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params,
     PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
-                                           GLShaderProgram *                  shader,
+                                           const std::shared_ptr<GLShaderProgram>& shader,
                                            Camera::EType                      camera_type,
                                            Camera::ViewAngleType              camera_view_angle_type,
                                            bool                               for_picking,
@@ -6180,7 +6360,7 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
             }
         }
         BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail: plate_idx %1% volumes size %2%, shader %3%, use_top_view=%4%, for_picking=%5%") % plate_idx %
-                                       visible_volumes.size() % shader % (int)camera_view_angle_type % for_picking;
+                                       visible_volumes.size() % shader.get() % (int)camera_view_angle_type % for_picking;
     } else {
         visible_volumes = volumes.volumes;
     }
@@ -6244,7 +6424,6 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
         camera.zoom_to_box(volumes_box);
     }
 
-    camera.apply_view_matrix();
     if (thumbnail_params.use_plate_box) {
         camera.apply_projection(plate_build_volume);
     }
@@ -6256,8 +6435,8 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
     //camera.apply_projection(volumes_box, near_z, far_z);
 
     //GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
-    if (!for_picking && (shader == nullptr)) {
-        BOOST_LOG_TRIVIAL(info) <<  boost::format("render_thumbnail with no picking: shader is null, return directly");
+    if (!shader) {
+        BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail with invalid shader");
         return;
     }
 
@@ -6279,6 +6458,10 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
     if (ban_light) {
         glsafe(::glDisable(GL_BLEND));
     }
+
+    const auto& view_matrix = camera.get_view_matrix();
+    const auto& projection_matrix = camera.get_projection_matrix();
+    shader->set_uniform("ban_light", ban_light);
     if (for_picking) {
         //if (OpenGLManager::can_multisample())
               // This flag is often ignored by NVIDIA drivers if rendering into a screen buffer.
@@ -6291,9 +6474,6 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
         // do not cull backfaces to show broken geometry, if any
         glsafe(::glDisable(GL_CULL_FACE));
 
-        //glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
-        //glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
-
         for (GLVolume* vol : visible_volumes) {
             // Object picking mode. Render the object with a color encoding the object index.
             // we reserve color = (0,0,0) for occluders (as the printbed)
@@ -6305,31 +6485,28 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
             unsigned int g = (id & (0x000000FF << 8)) >> 8;
             unsigned int b = (id & (0x000000FF << 16)) >> 16;
             unsigned int a = 0xFF;
-            glsafe(::glColor4f((GLfloat)r * INV_255, (GLfloat)g * INV_255, (GLfloat)b * INV_255, (GLfloat)a * INV_255));
-            /*curr_color[0] = (GLfloat)r * INV_255;
-            curr_color[1] = (GLfloat)g * INV_255;
-            curr_color[2] = (GLfloat)b * INV_255;
-            curr_color[3] = (GLfloat)a * INV_255;
-            shader->set_uniform("uniform_color", curr_color);*/
+
+            const std::array<float, 4> color{ (GLfloat)r * INV_255, (GLfloat)g * INV_255, (GLfloat)b * INV_255, (GLfloat)a * INV_255 };
+            shader->set_uniform("uniform_color", color);
 
             bool is_active = vol->is_active;
             vol->is_active = true;
-            vol->simple_render(nullptr,  model_objects, extruder_colors);
+
+            const Transform3d matrix = view_matrix * vol->world_matrix();
+            shader->set_uniform("view_model_matrix", matrix);
+            shader->set_uniform("projection_matrix", projection_matrix);
+            shader->set_uniform("normal_matrix", (Matrix3d)matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
+            shader->set_uniform("volume_world_matrix", vol->world_matrix());
+            vol->simple_render(shader,  model_objects, extruder_colors);
             vol->is_active = is_active;
         }
-
-        //glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
-        //glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
-
         glsafe(::glEnable(GL_CULL_FACE));
 
         //if (OpenGLManager::can_multisample())
         //    glsafe(::glEnable(GL_MULTISAMPLE));
     }
     else {
-        shader->start_using();
         shader->set_uniform("emission_factor", 0.1f);
-        shader->set_uniform("ban_light", ban_light);
         for (GLVolume* vol : visible_volumes) {
             //BBS set render color for thumbnails
             curr_color[0] = vol->color[0];
@@ -6354,10 +6531,13 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
             // the volume may have been deactivated by an active gizmo
             bool is_active = vol->is_active;
             vol->is_active = true;
+            const Transform3d matrix = view_matrix * vol->world_matrix();
+            shader->set_uniform("view_model_matrix", matrix);
+            shader->set_uniform("projection_matrix", projection_matrix);
+            shader->set_uniform("normal_matrix", (Matrix3d)matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
             vol->simple_render(shader, model_objects, extruder_colors, ban_light);
             vol->is_active = is_active;
         }
-        shader->stop_using();
     }
 
     glsafe(::glDisable(GL_DEPTH_TEST));
@@ -6373,7 +6553,7 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
 
 void GLCanvas3D::render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
     PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
-                                              GLShaderProgram *                  shader,
+                                              const std::shared_ptr<GLShaderProgram>& shader,
                                               Camera::EType                      camera_type,
                                               Camera::ViewAngleType              camera_view_angle_type,
                                               bool                               for_picking,
@@ -6486,7 +6666,7 @@ void GLCanvas3D::render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, uns
 
 void GLCanvas3D::render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
     PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
-                                                  GLShaderProgram *                  shader,
+                                                  const std::shared_ptr<GLShaderProgram>& shader,
                                                   Camera::EType                      camera_type,
                                                   Camera::ViewAngleType              camera_view_angle_type,
                                                   bool                               for_picking,
@@ -6593,7 +6773,7 @@ void GLCanvas3D::render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data,
     //    glsafe(::glDisable(GL_MULTISAMPLE));
 }
 
-void GLCanvas3D::render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, PartPlateList &partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors, GLShaderProgram* shader, Camera::EType camera_type,
+void GLCanvas3D::render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, PartPlateList &partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors, const std::shared_ptr<GLShaderProgram>& shader, Camera::EType camera_type,
                                          Camera::ViewAngleType              camera_view_angle_type,
                                          bool                               for_picking,
                                          bool                               ban_light)
@@ -7061,9 +7241,19 @@ bool GLCanvas3D::_init_collapse_toolbar()
     return wxGetApp().plater()->init_collapse_toolbar();
 }
 
-bool GLCanvas3D::_set_current()
+bool GLCanvas3D::_set_current(bool force_update)
 {
-    return m_context != nullptr && m_canvas->SetCurrent(*m_context);
+    if (!m_context || !m_canvas) {
+        return false;
+    }
+    if (m_dirty_context || force_update) {
+        const auto rt = m_canvas->SetCurrent(*m_context);
+        if (rt) {
+            m_dirty_context = false;
+        }
+        return rt;
+    }
+    return true;
 }
 
 void GLCanvas3D::_resize(unsigned int w, unsigned int h)
@@ -7108,7 +7298,7 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
     this->request_extra_frame();
 
     // ensures that this canvas is current
-    _set_current();
+    _set_current(true);
 }
 
 BoundingBoxf3 GLCanvas3D::_max_bounding_box(bool include_gizmos, bool include_bed_model, bool include_plates) const
@@ -7171,20 +7361,28 @@ void GLCanvas3D::_refresh_if_shown_on_screen()
 
 void GLCanvas3D::_picking_pass()
 {
-    std::vector<int>* hover_volume_idxs = const_cast<std::vector<int>*>(&m_hover_volume_idxs);
-    std::vector<int>* hover_plate_idxs = const_cast<std::vector<int>*>(&m_hover_plate_idxs);
-
     if (m_picking_enabled && !m_mouse.dragging && m_mouse.position != Vec2d(DBL_MAX, DBL_MAX)) {
-        hover_volume_idxs->clear();
-        hover_plate_idxs->clear();
 
         // Render the object for picking.
-        // FIXME This cannot possibly work in a multi - sampled context as the color gets mangled by the anti - aliasing.
-        // Better to use software ray - casting on a bounding - box hierarchy.
+        const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+        {
+            OpenGLManager::FrameBufferModifier picking_frame(*p_ogl_manager, "pickingframe", EMSAAType::Disabled);
+        }
 
-        if (m_multisample_allowed)
-        	// This flag is often ignored by NVIDIA drivers if rendering into a screen buffer.
-            glsafe(::glDisable(GL_MULTISAMPLE));
+        auto& picking_camera = wxGetApp().plater()->get_picking_camera();
+        picking_camera.set_type(Camera::EType::Ortho);
+        picking_camera.apply_viewport(0, 0, 1, 1);
+
+        float pick_eye_z = 0.0f;
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        Vec3d pick_eye = _mouse_to_3d(camera, { m_mouse.position(0), m_mouse.position(1) }, &pick_eye_z);
+
+        float pick_target_z = 1.0f;
+        Vec3d pick_target = _mouse_to_3d(camera, { m_mouse.position(0), m_mouse.position(1) }, &pick_target_z);
+        picking_camera.look_at(pick_eye, pick_target, Vec3d::UnitY());
+        picking_camera.apply_projection(_max_bounding_box(true, true, true));
+
+        picking_camera.update_frustum();
 
         glsafe(::glDisable(GL_BLEND));
         glsafe(::glEnable(GL_DEPTH_TEST));
@@ -7200,65 +7398,69 @@ void GLCanvas3D::_picking_pass()
         }
 
         m_camera_clipping_plane = m_gizmos.get_clipping_plane();
-        if (m_camera_clipping_plane.is_active()) {
-            ::glClipPlane(GL_CLIP_PLANE0, (GLdouble*)m_camera_clipping_plane.get_data());
-            ::glEnable(GL_CLIP_PLANE0);
-        }
         _render_volumes_for_picking();
-        if (m_camera_clipping_plane.is_active())
-            ::glDisable(GL_CLIP_PLANE0);
 
         //BBS: remove the bed picking logic
         //_render_bed_for_picking(!wxGetApp().plater()->get_camera().is_looking_downward());
 
         m_gizmos.render_current_gizmo_for_picking_pass();
 
-        if (m_multisample_allowed)
-            glsafe(::glEnable(GL_MULTISAMPLE));
+        const auto gpu_picking_callback = [this]()->void {
+            std::vector<int>* hover_volume_idxs = const_cast<std::vector<int>*>(&m_hover_volume_idxs);
+            std::vector<int>* hover_plate_idxs = const_cast<std::vector<int>*>(&m_hover_plate_idxs);
 
-        int volume_id = -1;
-        int gizmo_id = -1;
+            hover_volume_idxs->clear();
+            hover_plate_idxs->clear();
 
-        GLubyte color[4] = { 0, 0, 0, 0 };
-        const Size& cnv_size = get_canvas_size();
-        bool inside = 0 <= m_mouse.position(0) && m_mouse.position(0) < cnv_size.get_width() && 0 <= m_mouse.position(1) && m_mouse.position(1) < cnv_size.get_height();
-        if (inside) {
-            glsafe(::glReadPixels(m_mouse.position(0), cnv_size.get_height() - m_mouse.position(1) - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, (void*)color));
-            if (picking_checksum_alpha_channel(color[0], color[1], color[2]) == color[3]) {
-                // Only non-interpolated colors are valid, those have their lowest three bits zeroed.
-                // we reserve color = (0,0,0) for occluders (as the printbed)
-                // volumes' id are shifted by 1
-                // see: _render_volumes_for_picking()
-                //BBS: remove the bed picking logic
-                //volume_id = color[0] + (color[1] << 8) + (color[2] << 16) - 1;
-                volume_id = color[0] + (color[1] << 8) + (color[2] << 16);
-                // gizmos' id are instead properly encoded by the color
-                gizmo_id = color[0] + (color[1] << 8) + (color[2] << 16);
-            }
-        }
-        else
-            m_gizmos.set_hover_id(inside && (unsigned int)gizmo_id <= GLGizmoBase::BASE_ID ? ((int)GLGizmoBase::BASE_ID - gizmo_id) : -1);
+            // Render the object for picking.
+            const Size& cnv_size = get_canvas_size();
 
-        //BBS: add plate picking logic
-        int plate_hover_id = PartPlate::PLATE_BASE_ID - volume_id;
-        if (plate_hover_id >= 0 && plate_hover_id < PartPlateList::MAX_PLATES_COUNT * PartPlate::GRABBER_COUNT) {
-            wxGetApp().plater()->get_partplate_list().set_hover_id(plate_hover_id);
-            hover_plate_idxs->emplace_back(plate_hover_id);
-            const_cast<GLGizmosManager*>(&m_gizmos)->set_hover_id(-1);
-        }
-        else {
-            wxGetApp().plater()->get_partplate_list().reset_hover_id();
-            if (0 <= volume_id && volume_id < (int)m_volumes.volumes.size()) {
-                // do not add the volume id if any gizmo is active and CTRL is pressed
-                if (m_gizmos.get_current_type() == GLGizmosManager::EType::Undefined || !wxGetKeyState(WXK_CONTROL))
-                    hover_volume_idxs->emplace_back(volume_id);
-                const_cast<GLGizmosManager*>(&m_gizmos)->set_hover_id(-1);
+            const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+
+            int volume_id = -1;
+            int gizmo_id = -1;
+
+            GLubyte color[4] = { 0, 0, 0, 0 };
+            bool inside = 0 <= m_mouse.position(0) && m_mouse.position(0) < cnv_size.get_width() && 0 <= m_mouse.position(1) && m_mouse.position(1) < cnv_size.get_height();
+            if (inside) {
+                p_ogl_manager->read_pixel(OpenGLManager::s_picking_frame, 0, 0, 1, 1, EPixelFormat::RGBA, EPixelDataType::UByte, (void*)color);
+                if (picking_checksum_alpha_channel(color[0], color[1], color[2]) == color[3]) {
+                    // Only non-interpolated colors are valid, those have their lowest three bits zeroed.
+                    // we reserve color = (0,0,0) for occluders (as the printbed)
+                    // volumes' id are shifted by 1
+                    // see: _render_volumes_for_picking()
+                    //BBS: remove the bed picking logic
+                    //volume_id = color[0] + (color[1] << 8) + (color[2] << 16) - 1;
+                    volume_id = color[0] + (color[1] << 8) + (color[2] << 16);
+                    // gizmos' id are instead properly encoded by the color
+                    gizmo_id = color[0] + (color[1] << 8) + (color[2] << 16);
+                }
             }
             else
-                const_cast<GLGizmosManager*>(&m_gizmos)->set_hover_id(inside && (unsigned int)volume_id <= GLGizmoBase::BASE_ID ? ((int)GLGizmoBase::BASE_ID - volume_id) : -1);
-        }
+                m_gizmos.set_hover_id(inside && (unsigned int)gizmo_id <= GLGizmoBase::BASE_ID ? ((int)GLGizmoBase::BASE_ID - gizmo_id) : -1);
 
-        _update_volumes_hover_state();
+            //BBS: add plate picking logic
+            int plate_hover_id = PartPlate::PLATE_BASE_ID - volume_id;
+            if (plate_hover_id >= 0 && plate_hover_id < PartPlateList::MAX_PLATES_COUNT * PartPlate::GRABBER_COUNT) {
+                wxGetApp().plater()->get_partplate_list().set_hover_id(plate_hover_id);
+                hover_plate_idxs->emplace_back(plate_hover_id);
+                const_cast<GLGizmosManager*>(&m_gizmos)->set_hover_id(-1);
+            }
+            else {
+                wxGetApp().plater()->get_partplate_list().reset_hover_id();
+                if (0 <= volume_id && volume_id < (int)m_volumes.volumes.size()) {
+                    // do not add the volume id if any gizmo is active and CTRL is pressed
+                    if (m_gizmos.get_current_type() == GLGizmosManager::EType::Undefined || !wxGetKeyState(WXK_CONTROL))
+                        hover_volume_idxs->emplace_back(volume_id);
+                    const_cast<GLGizmosManager*>(&m_gizmos)->set_hover_id(-1);
+                }
+                else
+                    const_cast<GLGizmosManager*>(&m_gizmos)->set_hover_id(inside && (unsigned int)volume_id <= GLGizmoBase::BASE_ID ? ((int)GLGizmoBase::BASE_ID - volume_id) : -1);
+            }
+            _update_volumes_hover_state();
+        };
+
+        _append_to_frame_callback(gpu_picking_callback);
     }
 }
 
@@ -7266,12 +7468,57 @@ void GLCanvas3D::_rectangular_selection_picking_pass()
 {
     m_gizmos.set_hover_id(-1);
 
-    std::set<int> idxs;
-
+    int viewport_width = 0;
+    int viewport_height = 0;
     if (m_picking_enabled) {
-        if (m_multisample_allowed)
-        	// This flag is often ignored by NVIDIA drivers if rendering into a screen buffer.
-            glsafe(::glDisable(GL_MULTISAMPLE));
+
+        Vec2f center;
+        center.x() = (m_rectangle_selection.get_left() + m_rectangle_selection.get_right()) * 0.5f;
+        center.y() = (m_rectangle_selection.get_bottom() + m_rectangle_selection.get_top()) * 0.5f;
+
+        const int viewport_x = static_cast<int>(m_rectangle_selection.get_left());
+        const int viewport_y = static_cast<int>(get_canvas_size().get_height() - m_rectangle_selection.get_top());
+        viewport_width = static_cast<int>(m_rectangle_selection.get_width());
+        viewport_width = viewport_width > 1 ? viewport_width : 1;
+        viewport_width = viewport_width;
+        viewport_height = static_cast<int>(m_rectangle_selection.get_height());
+        viewport_height = viewport_height > 1 ? viewport_height : 1;
+        viewport_height = viewport_height;
+
+        const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+        {
+            OpenGLManager::FrameBufferModifier picking_frame(*p_ogl_manager, "rectangular_selection_pickingframe", EMSAAType::Disabled);
+        }
+
+        const auto camera = wxGetApp().plater()->get_camera();
+        const auto main_camera_type = camera.get_type();
+
+        auto& picking_camera = wxGetApp().plater()->get_picking_camera();
+        if (main_camera_type == Camera::EType::Ortho) {
+
+            picking_camera.set_zoom(camera.get_zoom());
+
+            float pick_eye_z = 0.0f;
+            const Camera& camera = wxGetApp().plater()->get_camera();
+            Vec3d pick_eye = _mouse_to_3d(camera, { center.x(), center.y() }, &pick_eye_z);
+            float pick_target_z = 1.0f;
+            Vec3d pick_target = _mouse_to_3d(camera, { center.x(), center.y() }, &pick_target_z);
+            picking_camera.look_at(pick_eye, pick_target, camera.get_dir_up());
+
+            picking_camera.apply_viewport(viewport_x, viewport_y, viewport_width, viewport_height);
+            picking_camera.set_type(Camera::EType::Ortho);
+
+            picking_camera.apply_projection(_max_bounding_box(true, true, true));
+
+            picking_camera.update_frustum();
+        }
+        else {
+            picking_camera = camera;
+            picking_camera.enable_update_config_on_type_change(false);
+        }
+
+        glsafe(::glEnable(GL_SCISSOR_TEST));
+        glsafe(::glScissor(viewport_x, viewport_y, viewport_width, viewport_height));
 
         glsafe(::glDisable(GL_BLEND));
         glsafe(::glEnable(GL_DEPTH_TEST));
@@ -7282,64 +7529,69 @@ void GLCanvas3D::_rectangular_selection_picking_pass()
         //BBS: remove the bed picking logic
         //_render_bed_for_picking(!wxGetApp().plater()->get_camera().is_looking_downward());
 
-        if (m_multisample_allowed)
-            glsafe(::glEnable(GL_MULTISAMPLE));
-
-        int width = std::max((int)m_rectangle_selection.get_width(), 1);
-        int height = std::max((int)m_rectangle_selection.get_height(), 1);
-        int px_count = width * height;
-
-        int left = (int)m_rectangle_selection.get_left();
-        int top = get_canvas_size().get_height() - (int)m_rectangle_selection.get_top();
-        if (left >= 0 && top >= 0) {
-#define USE_PARALLEL 1
-#if USE_PARALLEL
-            struct Pixel
-            {
-                std::array<GLubyte, 4> data;
-            	// Only non-interpolated colors are valid, those have their lowest three bits zeroed.
-                bool valid() const { return picking_checksum_alpha_channel(data[0], data[1], data[2]) == data[3]; }
-                // we reserve color = (0,0,0) for occluders (as the printbed)
-                // volumes' id are shifted by 1
-                // see: _render_volumes_for_picking()
-                //BBS: remove the bed picking logic
-                int id() const { return data[0] + (data[1] << 8) + (data[2] << 16); }
-                //int id() const { return data[0] + (data[1] << 8) + (data[2] << 16) - 1; }
-            };
-
-            std::vector<Pixel> frame(px_count);
-            glsafe(::glReadPixels(left, top, width, height, GL_RGBA, GL_UNSIGNED_BYTE, (void*)frame.data()));
-
-            tbb::spin_mutex mutex;
-            tbb::parallel_for(tbb::blocked_range<size_t>(0, frame.size(), (size_t)width),
-                [this, &frame, &idxs, &mutex](const tbb::blocked_range<size_t>& range) {
-                for (size_t i = range.begin(); i < range.end(); ++i)
-                	if (frame[i].valid()) {
-                    	int volume_id = frame[i].id();
-                    	if (0 <= volume_id && volume_id < (int)m_volumes.volumes.size()) {
-                        	mutex.lock();
-                        	idxs.insert(volume_id);
-                        	mutex.unlock();
-                    	}
-                	}
-            });
-#else
-            std::vector<GLubyte> frame(4 * px_count);
-            glsafe(::glReadPixels(left, top, width, height, GL_RGBA, GL_UNSIGNED_BYTE, (void*)frame.data()));
-
-            for (int i = 0; i < px_count; ++i)
-            {
-                int px_id = 4 * i;
-                int volume_id = frame[px_id] + (frame[px_id + 1] << 8) + (frame[px_id + 2] << 16);
-                if (0 <= volume_id && volume_id < (int)m_volumes.volumes.size())
-                    idxs.insert(volume_id);
-            }
-#endif // USE_PARALLEL
-        }
+        glsafe(::glDisable(GL_SCISSOR_TEST));
     }
 
-    m_hover_volume_idxs.assign(idxs.begin(), idxs.end());
-    _update_volumes_hover_state();
+    const auto gpu_picking_callback = [this, viewport_width, viewport_height]()->void {
+        std::set<int> idxs;
+
+        if (m_picking_enabled) {
+            int px_count = viewport_width * viewport_height;
+
+            int left = (int)m_rectangle_selection.get_left();
+            int top = get_canvas_size().get_height() - (int)m_rectangle_selection.get_top();
+            if (left >= 0 && top >= 0 && px_count) {
+#define USE_PARALLEL 1
+#if USE_PARALLEL
+                struct Pixel
+                {
+                    std::array<GLubyte, 4> data;
+                    // Only non-interpolated colors are valid, those have their lowest three bits zeroed.
+                    bool valid() const { return picking_checksum_alpha_channel(data[0], data[1], data[2]) == data[3]; }
+                    // we reserve color = (0,0,0) for occluders (as the printbed)
+                    // volumes' id are shifted by 1
+                    // see: _render_volumes_for_picking()
+                    //BBS: remove the bed picking logic
+                    int id() const { return data[0] + (data[1] << 8) + (data[2] << 16); }
+                    //int id() const { return data[0] + (data[1] << 8) + (data[2] << 16) - 1; }
+                };
+
+                std::vector<Pixel> frame(px_count);
+                const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+                p_ogl_manager->read_pixel("rectangular_selection_pickingframe", left, top, viewport_width, viewport_height, EPixelFormat::RGBA, EPixelDataType::UByte, (void*)frame.data());
+                tbb::spin_mutex mutex;
+                tbb::parallel_for(tbb::blocked_range<size_t>(0, frame.size(), (size_t)viewport_width),
+                    [this, &frame, &idxs, &mutex](const tbb::blocked_range<size_t>& range) {
+                        for (size_t i = range.begin(); i < range.end(); ++i)
+                            if (frame[i].valid()) {
+                                int volume_id = frame[i].id();
+                                if (0 <= volume_id && volume_id < (int)m_volumes.volumes.size()) {
+                                    mutex.lock();
+                                    idxs.insert(volume_id);
+                                    mutex.unlock();
+                                }
+                            }
+                    });
+#else
+                std::vector<GLubyte> frame(4 * px_count);
+                p_ogl_manager->read_pixel(left, top, viewport_width, viewport_height, EPixelFormat::RGBA, EPixelDataType::UByte, (void*)frame.data());
+
+                for (int i = 0; i < px_count; ++i)
+                {
+                    int px_id = 4 * i;
+                    int volume_id = frame[px_id] + (frame[px_id + 1] << 8) + (frame[px_id + 2] << 16);
+                    if (0 <= volume_id && volume_id < (int)m_volumes.volumes.size())
+                        idxs.insert(volume_id);
+                }
+#endif // USE_PARALLEL
+            }
+        }
+
+        m_hover_volume_idxs.assign(idxs.begin(), idxs.end());
+        _update_volumes_hover_state();
+    };
+
+    _append_to_frame_callback(gpu_picking_callback);
 }
 
 void GLCanvas3D::_render_background() const
@@ -7365,42 +7617,31 @@ void GLCanvas3D::_render_background() const
         }
     }
 
-    glsafe(::glPushMatrix());
-    glsafe(::glLoadIdentity());
-    glsafe(::glMatrixMode(GL_PROJECTION));
-    glsafe(::glPushMatrix());
-    glsafe(::glLoadIdentity());
-
     // Draws a bottom to top gradient over the complete screen.
     glsafe(::glDisable(GL_DEPTH_TEST));
 
-    ::glBegin(GL_QUADS);
+    _init_fullscreen_mesh();
 
     float* background_color = m_is_dark ? DEFAULT_BG_LIGHT_COLOR_DARK : DEFAULT_BG_LIGHT_COLOR;
     float* error_background_color = m_is_dark ? ERROR_BG_LIGHT_COLOR_DARK : ERROR_BG_LIGHT_COLOR;
 
-    if (use_error_color)
-        ::glColor3fv(error_background_color);
-    else
-        ::glColor3fv(background_color);
+    const auto final_bg_color = use_error_color ? error_background_color : background_color;
 
-    ::glVertex2f(-1.0f, -1.0f);
-    ::glVertex2f(1.0f, -1.0f);
+    const auto& p_background_shader = wxGetApp().get_shader("background");
+    if (!p_background_shader)
+    {
+        BOOST_LOG_TRIVIAL(error) << "Invalid Shader: background";
+        return;
+    }
+    wxGetApp().bind_shader(p_background_shader);
 
-    if (use_error_color)
-        ::glColor3fv(error_background_color);
-    else
-        ::glColor3fv(background_color);
+    m_full_screen_mesh.set_color({ final_bg_color[0], final_bg_color[1], final_bg_color[2], 1.0f});
 
-    ::glVertex2f(1.0f, 1.0f);
-    ::glVertex2f(-1.0f, 1.0f);
-    glsafe(::glEnd());
+    m_full_screen_mesh.render_geometry();
+
+    wxGetApp().unbind_shader();
 
     glsafe(::glEnable(GL_DEPTH_TEST));
-
-    glsafe(::glPopMatrix());
-    glsafe(::glMatrixMode(GL_MODELVIEW));
-    glsafe(::glPopMatrix());
 }
 
 void GLCanvas3D::_render_bed(bool bottom, bool show_axes)
@@ -7515,7 +7756,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
     else
         m_volumes.set_show_sinking_contours(!m_gizmos.is_hiding_instances());
 
-    GLShaderProgram* shader = wxGetApp().get_shader("gouraud");
+    const auto& shader = wxGetApp().get_shader("gouraud");
     ECanvasType canvas_type = this->m_canvas_type;
     std::array<float, 4> body_color  = canvas_type == ECanvasType::CanvasAssembleView ? std::array<float, 4>({1.0f, 1.0f, 0.0f, 1.0f}) ://yellow
                                                                                         std::array<float, 4>({1.0f, 1.0f, 1.0f, 1.0f});//white
@@ -7523,10 +7764,13 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
     auto printable_height_option = GUI::wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloatsNullable>("extruder_printable_height");
     const GUI::ERenderPipelineStage render_pipeline_stage = _get_current_render_stage();
 
+    const auto& camera = wxGetApp().plater()->get_camera();
+    const auto& view_matrix = camera.get_view_matrix();
+    const auto& projection_matrix = camera.get_projection_matrix();
     if ((GUI::ERenderPipelineStage::Silhouette == render_pipeline_stage) || shader != nullptr) {
         if (GUI::ERenderPipelineStage::Silhouette != render_pipeline_stage)
         {
-            shader->start_using();
+            wxGetApp().bind_shader(shader);
         }
         switch (type)
         {
@@ -7538,7 +7782,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
             {
                 if (m_picking_enabled && m_layers_editing.is_enabled() && (m_layers_editing.last_object_id != -1) && (m_layers_editing.object_max_z() > 0.0f) && GUI::ERenderPipelineStage::Silhouette != render_pipeline_stage) {
                     int object_id = m_layers_editing.last_object_id;
-                    m_volumes.render(render_pipeline_stage, type, false, wxGetApp().plater()->get_camera().get_view_matrix(), [object_id](const GLVolume& volume) {
+                    m_volumes.render(render_pipeline_stage, type, false, view_matrix, projection_matrix, [object_id](const GLVolume& volume) {
                         // Which volume to paint without the layer height profile shader?
                         return volume.is_active && (volume.is_modifier || volume.composite_id.object_id != object_id);
                         });
@@ -7553,7 +7797,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
                     }*/
                     //BBS:add assemble view related logic
                     // do not cull backfaces to show broken geometry, if any
-                    m_volumes.render(render_pipeline_stage, type, m_picking_enabled, wxGetApp().plater()->get_camera().get_view_matrix(), [this, canvas_type](const GLVolume& volume) {
+                    m_volumes.render(render_pipeline_stage, type, m_picking_enabled, view_matrix, projection_matrix, [this, canvas_type](const GLVolume& volume) {
                         if (canvas_type == ECanvasType::CanvasAssembleView) {
                             return !volume.is_modifier && !volume.is_wipe_tower;
                         }
@@ -7570,9 +7814,9 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
                 // visible when inside modifier meshes etc.
 //                GLGizmosManager::EType type = gm.get_current_type();
                 if (dynamic_cast<GLGizmoPainterBase*>(gm.get_current())) {
-                    shader->stop_using();
+                    wxGetApp().unbind_shader();
                     gm.render_painter_gizmo();
-                    shader->start_using();
+                    wxGetApp().bind_shader(shader);
                 }
             }
 
@@ -7587,7 +7831,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
                     shader->set_uniform("show_wireframe", false);
             }*/
             //BBS:add assemble view related logic
-            m_volumes.render(render_pipeline_stage, type, false, wxGetApp().plater()->get_camera().get_view_matrix(), [this, canvas_type](const GLVolume& volume) {
+            m_volumes.render(render_pipeline_stage, type, false, view_matrix, projection_matrix, [this, canvas_type](const GLVolume& volume) {
                 if (canvas_type == ECanvasType::CanvasAssembleView) {
                     return !volume.is_modifier;
                 }
@@ -7598,9 +7842,9 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
                 with_outline, body_color, partly_inside_enable, printable_height_option ? &printable_height_option->values : nullptr);
             if (m_canvas_type == CanvasAssembleView && m_gizmos.m_assemble_view_data->model_objects_clipper()->get_position() > 0 && GUI::ERenderPipelineStage::Silhouette != render_pipeline_stage) {
                 const GLGizmosManager& gm = get_gizmos_manager();
-                shader->stop_using();
+                wxGetApp().unbind_shader();
                 gm.render_painter_assemble_view();
-                shader->start_using();
+                wxGetApp().bind_shader(shader);
             }
             break;
         }
@@ -7611,7 +7855,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
         }*/
 
         if (GUI::ERenderPipelineStage::Silhouette != render_pipeline_stage) {
-            shader->stop_using();
+            wxGetApp().unbind_shader();
         }
     }
 
@@ -7776,19 +8020,11 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
 void GLCanvas3D::_render_overlays()
 {
     glsafe(::glDisable(GL_DEPTH_TEST));
-    glsafe(::glPushMatrix());
-    glsafe(::glLoadIdentity());
-    // ensure that the textures are renderered inside the frustrum
-    const Camera& camera = wxGetApp().plater()->get_camera();
-    glsafe(::glTranslated(0.0, 0.0, -(camera.get_near_z() + 0.10)));
-    // ensure that the overlay fits the frustrum near z plane
-    double gui_scale = camera.get_gui_scale();
-    glsafe(::glScaled(gui_scale, gui_scale, 1.0));
 
-    _check_and_update_toolbar_icon_scale();
+     _check_and_update_toolbar_icon_scale();
 
-    _render_assemble_control();
-    _render_assemble_info();
+     _render_assemble_control();
+     _render_assemble_info();
 
     // main toolbar and undoredo toolbar need to be both updated before rendering because both their sizes are needed
     // to correctly place them
@@ -7856,8 +8092,7 @@ void GLCanvas3D::_render_overlays()
     }
     m_labels.render(sorted_instances);
     _render_3d_navigator();
-
-    glsafe(::glPopMatrix());
+    _render_fit_camera_toolbar();
 }
 
 void GLCanvas3D::_render_style_editor()
@@ -7955,19 +8190,29 @@ void GLCanvas3D::_render_style_editor()
 
 void GLCanvas3D::_render_volumes_for_picking() const
 {
+    const auto& shader = wxGetApp().get_shader("flat");
+    if (!shader)
+        return;
+
+    wxGetApp().bind_shader(shader);
+
     static const GLfloat INV_255 = 1.0f / 255.0f;
 
     // do not cull backfaces to show broken geometry, if any
     glsafe(::glDisable(GL_CULL_FACE));
 
-    glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
-    glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
-
-    const Transform3d& view_matrix = wxGetApp().plater()->get_camera().get_view_matrix();
+    const Camera& camera = wxGetApp().plater()->get_picking_camera();
+    const auto& view_matrix = camera.get_view_matrix();
+    const auto& proj_matrix = camera.get_projection_matrix();
+    shader->set_uniform("projection_matrix", proj_matrix);
     for (size_t type = 0; type < 2; ++ type) {
         GLVolumeWithIdAndZList to_render = volumes_to_render(m_volumes.volumes, (type == 0) ? GLVolumeCollection::ERenderType::Opaque : GLVolumeCollection::ERenderType::Transparent, view_matrix);
         for (const GLVolumeWithIdAndZ& volume : to_render)
 	        if (!volume.first->disabled && (volume.first->composite_id.volume_id >= 0 || m_render_sla_auxiliaries)) {
+                auto world_box = volume.first->transformed_bounding_box();
+                if (!camera.getFrustum().intersects(world_box)) {
+                    continue;
+                }
 		        // Object picking mode. Render the object with a color encoding the object index.
                 // we reserve color = (0,0,0) for occluders (as the printbed)
                 // so we shift volumes' id by 1 to get the proper color
@@ -7978,13 +8223,16 @@ void GLCanvas3D::_render_volumes_for_picking() const
 		        unsigned int g = (id & (0x000000FF << 8)) >> 8;
 		        unsigned int b = (id & (0x000000FF << 16)) >> 16;
 		        unsigned int a = picking_checksum_alpha_channel(r, g, b);
-                glsafe(::glColor4f((GLfloat)r * INV_255, (GLfloat)g * INV_255, (GLfloat)b * INV_255, (GLfloat)a * INV_255));
-	            volume.first->render();
-	        }
-	}
+                shader->set_uniform("view_model_matrix", view_matrix * volume.first->world_matrix());
+                std::array<float, 4> t_color{ (GLfloat)r * INV_255, (GLfloat)g * INV_255, (GLfloat)b * INV_255, (GLfloat)a * INV_255 };
+                shader->set_uniform("uniform_color", t_color);
+                volume.first->picking = true;
+                volume.first->render(view_matrix);
+                volume.first->picking = false;
+            }
+    }
 
-    glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
-    glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
+    wxGetApp().unbind_shader();
 
     glsafe(::glEnable(GL_CULL_FACE));
 }
@@ -9005,26 +9253,70 @@ void GLCanvas3D::_render_assemble_info() const
 #if ENABLE_SHOW_CAMERA_TARGET
 void GLCanvas3D::_render_camera_target() const
 {
+    const auto& p_flat_shader = wxGetApp().get_shader("flat");
+    if (!p_flat_shader)
+        return;
+
     double half_length = 5.0;
+
+    if (!m_camera_target_mark.is_initialized()) {
+        GLModel::Geometry geo;
+        geo.format.type = GLModel::PrimitiveType::Lines;
+        geo.format.vertex_layout = GLModel::Geometry::EVertexLayout::P3;
+
+        // x
+        geo.add_vertex(Vec3f{ -0.5f, 0.0f, 0.0f });
+        geo.add_vertex(Vec3f{ 0.5f, 0.0f, 0.0f });
+
+        geo.add_line(0, 1);
+
+        m_camera_target_mark.init_from(std::move(geo));
+    }
+
+    wxGetApp().bind_shader(p_flat_shader);
+
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    const auto& view_matrix = camera.get_view_matrix();
+    const auto& proj_matrix = camera.get_projection_matrix();
 
     glsafe(::glDisable(GL_DEPTH_TEST));
 
-    glsafe(::glLineWidth(2.0f));
-    ::glBegin(GL_LINES);
+    const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+    p_ogl_manager.set_line_width(2.0f);
+
     const Vec3d& target = wxGetApp().plater()->get_camera().get_target();
-    // draw line for x axis
-    ::glColor3f(1.0f, 0.0f, 0.0f);
-    ::glVertex3d(target(0) - half_length, target(1), target(2));
-    ::glVertex3d(target(0) + half_length, target(1), target(2));
-    // draw line for y axis
-    ::glColor3f(0.0f, 1.0f, 0.0f);
-    ::glVertex3d(target(0), target(1) - half_length, target(2));
-    ::glVertex3d(target(0), target(1) + half_length, target(2));
-    // draw line for z axis
-    ::glColor3f(0.0f, 0.0f, 1.0f);
-    ::glVertex3d(target(0), target(1), target(2) - half_length);
-    ::glVertex3d(target(0), target(1), target(2) + half_length);
-    glsafe(::glEnd());
+
+    const float scale = 2.0f * half_length;
+    Transform3d model_matrix{ Transform3d::Identity() };
+    model_matrix.data()[3 * 4 + 0] = target.x();
+    model_matrix.data()[3 * 4 + 1] = target.y();
+    model_matrix.data()[3 * 4 + 2] = target.z();
+    model_matrix.data()[0 * 4 + 0] = scale;
+    model_matrix.data()[1 * 4 + 1] = 1.0f;
+    model_matrix.data()[2 * 4 + 2] = 1.0f;
+
+    p_flat_shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
+    p_flat_shader->set_uniform("projection_matrix", proj_matrix);
+    m_camera_target_mark.set_color({ 1.0f, 0.0f, 0.0f, 1.0f });
+    m_camera_target_mark.render_geometry();
+
+    model_matrix = Geometry::translation_transform(target.cast<double>())
+        * Geometry::rotation_transform({ 0.0f, 0.0f, 0.5 * PI })
+        * Geometry::scale_transform({ scale, 1.0f, 1.0f });
+
+    p_flat_shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
+    m_camera_target_mark.set_color({ 0.0f, 1.0f, 0.0f, 1.0f });
+    m_camera_target_mark.render_geometry();
+
+    model_matrix = Geometry::translation_transform(target.cast<double>())
+        * Geometry::rotation_transform({ 0.0f, -0.5 * PI, 0.0f })
+        * Geometry::scale_transform({ scale, 1.0f, 1.0f });
+
+    p_flat_shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
+    m_camera_target_mark.set_color({ 0.0f, 0.0f, 1.0f, 1.0f });
+    m_camera_target_mark.render_geometry();
+
+    wxGetApp().unbind_shader();
 }
 #endif // ENABLE_SHOW_CAMERA_TARGET
 
@@ -9033,11 +9325,18 @@ void GLCanvas3D::_render_sla_slices()
     if (!m_use_clipping_planes || current_printer_technology() != ptSLA)
         return;
 
+    const auto& shader = wxGetApp().get_shader("flat");
+    if (!shader) {
+        return;
+    }
+
     const SLAPrint* print = this->sla_print();
     const PrintObjects& print_objects = print->objects();
     if (print_objects.empty())
         // nothing to render, return
         return;
+
+    wxGetApp().bind_shader(shader);
 
     double clip_min_z = -m_clipping_planes[0].get_data()[3];
     double clip_max_z = m_clipping_planes[1].get_data()[3];
@@ -9047,43 +9346,62 @@ void GLCanvas3D::_render_sla_slices()
         if (!obj->is_step_done(slaposSliceSupports))
             continue;
 
-        SlaCap::ObjectIdToTrianglesMap::iterator it_caps_bottom = m_sla_caps[0].triangles.find(i);
-        SlaCap::ObjectIdToTrianglesMap::iterator it_caps_top = m_sla_caps[1].triangles.find(i);
+        SlaCap::ObjectIdToModelsMap::iterator it_caps_bottom = m_sla_caps[0].triangles.find(i);
+        SlaCap::ObjectIdToModelsMap::iterator it_caps_top = m_sla_caps[1].triangles.find(i);
         {
             if (it_caps_bottom == m_sla_caps[0].triangles.end())
                 it_caps_bottom = m_sla_caps[0].triangles.emplace(i, SlaCap::Triangles()).first;
             if (!m_sla_caps[0].matches(clip_min_z)) {
                 m_sla_caps[0].z = clip_min_z;
-                it_caps_bottom->second.object.clear();
-                it_caps_bottom->second.supports.clear();
+                it_caps_bottom->second.object.reset();
+                it_caps_bottom->second.supports.reset();
             }
             if (it_caps_top == m_sla_caps[1].triangles.end())
                 it_caps_top = m_sla_caps[1].triangles.emplace(i, SlaCap::Triangles()).first;
             if (!m_sla_caps[1].matches(clip_max_z)) {
                 m_sla_caps[1].z = clip_max_z;
-                it_caps_top->second.object.clear();
-                it_caps_top->second.supports.clear();
+                it_caps_top->second.object.reset();
+                it_caps_top->second.supports.reset();
             }
         }
-        Pointf3s &bottom_obj_triangles = it_caps_bottom->second.object;
-        Pointf3s &bottom_sup_triangles = it_caps_bottom->second.supports;
-        Pointf3s &top_obj_triangles    = it_caps_top->second.object;
-        Pointf3s &top_sup_triangles    = it_caps_top->second.supports;
+        GLModel& bottom_obj_triangles = it_caps_bottom->second.object;
+        GLModel& bottom_sup_triangles = it_caps_bottom->second.supports;
+        GLModel& top_obj_triangles = it_caps_top->second.object;
+        GLModel& top_sup_triangles = it_caps_top->second.supports;
 
-        if ((bottom_obj_triangles.empty() || bottom_sup_triangles.empty() || top_obj_triangles.empty() || top_sup_triangles.empty()) &&
-            !obj->get_slice_index().empty())
-        {
-            double layer_height         = print->default_object_config().layer_height.value;
+        auto init_model = [](GLModel& model, const Pointf3s& triangles, const ColorRGBA& color) {
+            GLModel::Geometry init_data;
+            init_data.format = { GLModel::PrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3 };
+            init_data.reserve_vertices(triangles.size());
+            init_data.reserve_indices(triangles.size() / 3);
+            init_data.color = color;
+
+            unsigned int vertices_count = 0;
+            for (const Vec3d& v : triangles) {
+                init_data.add_vertex((Vec3f)v.cast<float>());
+                ++vertices_count;
+                if (vertices_count % 3 == 0) {
+                    init_data.add_triangle(vertices_count - 3, vertices_count - 2, vertices_count - 1);
+                }
+            }
+
+            if (!init_data.is_empty())
+                model.init_from(std::move(init_data));
+            };
+
+        if ((!bottom_obj_triangles.is_initialized() || !bottom_sup_triangles.is_initialized() ||
+            !top_obj_triangles.is_initialized() || !top_sup_triangles.is_initialized()) && !obj->get_slice_index().empty()) {
+            double layer_height = print->default_object_config().layer_height.value;
             double initial_layer_height = print->material_config().initial_layer_height.value;
-            bool   left_handed          = obj->is_left_handed();
+            bool   left_handed = obj->is_left_handed();
 
             coord_t key_zero = obj->get_slice_index().front().print_level();
             // Slice at the center of the slab starting at clip_min_z will be rendered for the lower plane.
-            coord_t key_low  = coord_t((clip_min_z - initial_layer_height + layer_height) / SCALING_FACTOR) + key_zero;
+            coord_t key_low = coord_t((clip_min_z - initial_layer_height + layer_height) / SCALING_FACTOR) + key_zero;
             // Slice at the center of the slab ending at clip_max_z will be rendered for the upper plane.
             coord_t key_high = coord_t((clip_max_z - initial_layer_height) / SCALING_FACTOR) + key_zero;
 
-            const SliceRecord& slice_low  = obj->closest_slice_to_print_level(key_low, coord_t(SCALED_EPSILON));
+            const SliceRecord& slice_low = obj->closest_slice_to_print_level(key_low, coord_t(SCALED_EPSILON));
             const SliceRecord& slice_high = obj->closest_slice_to_print_level(key_high, coord_t(SCALED_EPSILON));
 
             // Offset to avoid OpenGL Z fighting between the object's horizontal surfaces and the triangluated surfaces of the cuts.
@@ -9093,57 +9411,46 @@ void GLCanvas3D::_render_sla_slices()
                 const ExPolygons& obj_bottom = slice_low.get_slice(soModel);
                 const ExPolygons& sup_bottom = slice_low.get_slice(soSupport);
                 // calculate model bottom cap
-                if (bottom_obj_triangles.empty() && !obj_bottom.empty())
-                    bottom_obj_triangles = triangulate_expolygons_3d(obj_bottom, clip_min_z - plane_shift_z, ! left_handed);
+                // calculate model bottom cap
+                if (!bottom_obj_triangles.is_initialized() && !obj_bottom.empty())
+                    init_model(bottom_obj_triangles, triangulate_expolygons_3d(obj_bottom, clip_min_z - plane_shift_z, !left_handed), { 1.0f, 0.37f, 0.0f, 1.0f });
                 // calculate support bottom cap
-                if (bottom_sup_triangles.empty() && !sup_bottom.empty())
-                    bottom_sup_triangles = triangulate_expolygons_3d(sup_bottom, clip_min_z - plane_shift_z, ! left_handed);
+                if (!bottom_sup_triangles.is_initialized() && !sup_bottom.empty())
+                    init_model(bottom_sup_triangles, triangulate_expolygons_3d(sup_bottom, clip_min_z - plane_shift_z, !left_handed), { 1.0f, 0.0f, 0.37f, 1.0f });
             }
 
             if (slice_high.is_valid()) {
                 const ExPolygons& obj_top = slice_high.get_slice(soModel);
                 const ExPolygons& sup_top = slice_high.get_slice(soSupport);
                 // calculate model top cap
-                if (top_obj_triangles.empty() && !obj_top.empty())
-                    top_obj_triangles = triangulate_expolygons_3d(obj_top, clip_max_z + plane_shift_z, left_handed);
+                // calculate model top cap
+                if (!top_obj_triangles.is_initialized() && !obj_top.empty())
+                    init_model(top_obj_triangles, triangulate_expolygons_3d(obj_top, clip_max_z + plane_shift_z, left_handed), { 1.0f, 0.37f, 0.0f, 1.0f });
                 // calculate support top cap
-                if (top_sup_triangles.empty() && !sup_top.empty())
-                    top_sup_triangles = triangulate_expolygons_3d(sup_top, clip_max_z + plane_shift_z, left_handed);
+                if (!top_sup_triangles.is_initialized() && !sup_top.empty())
+                    init_model(top_sup_triangles, triangulate_expolygons_3d(sup_top, clip_max_z + plane_shift_z, left_handed), { 1.0f, 0.0f, 0.37f, 1.0f });
             }
         }
 
-        if (!bottom_obj_triangles.empty() || !top_obj_triangles.empty() || !bottom_sup_triangles.empty() || !top_sup_triangles.empty()) {
-			for (const SLAPrintObject::Instance& inst : obj->instances()) {
-                glsafe(::glPushMatrix());
-                glsafe(::glTranslated(unscale<double>(inst.shift.x()), unscale<double>(inst.shift.y()), 0));
-                glsafe(::glRotatef(Geometry::rad2deg(inst.rotation), 0.0, 0.0, 1.0));
-				if (obj->is_left_handed())
-                    // The polygons are mirrored by X.
-                    glsafe(::glScalef(-1.0, 1.0, 1.0));
-                glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
-                glsafe(::glColor3f(1.0f, 0.37f, 0.0f));
-				if (!bottom_obj_triangles.empty()) {
-                    glsafe(::glVertexPointer(3, GL_DOUBLE, 0, (GLdouble*)bottom_obj_triangles.front().data()));
-                    glsafe(::glDrawArrays(GL_TRIANGLES, 0, bottom_obj_triangles.size()));
-				}
-				if (! top_obj_triangles.empty()) {
-                    glsafe(::glVertexPointer(3, GL_DOUBLE, 0, (GLdouble*)top_obj_triangles.front().data()));
-                    glsafe(::glDrawArrays(GL_TRIANGLES, 0, top_obj_triangles.size()));
-				}
-                glsafe(::glColor3f(1.0f, 0.0f, 0.37f));
-				if (! bottom_sup_triangles.empty()) {
-                    glsafe(::glVertexPointer(3, GL_DOUBLE, 0, (GLdouble*)bottom_sup_triangles.front().data()));
-                    glsafe(::glDrawArrays(GL_TRIANGLES, 0, bottom_sup_triangles.size()));
-				}
-				if (! top_sup_triangles.empty()) {
-                    glsafe(::glVertexPointer(3, GL_DOUBLE, 0, (GLdouble*)top_sup_triangles.front().data()));
-                    glsafe(::glDrawArrays(GL_TRIANGLES, 0, top_sup_triangles.size()));
-				}
-                glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
-                glsafe(::glPopMatrix());
-            }
+        for (const SLAPrintObject::Instance& inst : obj->instances()) {
+            const Camera& camera = wxGetApp().plater()->get_camera();
+            const Transform3d view_model_matrix = camera.get_view_matrix() *
+                Geometry::assemble_transform(Vec3d(unscale<double>(inst.shift.x()), unscale<double>(inst.shift.y()), 0.0),
+                    inst.rotation * Vec3d::UnitZ(), Vec3d::Ones(),
+                    obj->is_left_handed() ? Vec3d(-1.0f, 1.0f, 1.0f) : Vec3d::Ones());
+
+            shader->set_uniform("view_model_matrix", view_model_matrix);
+            shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+
+            bottom_obj_triangles.render_geometry();
+            top_obj_triangles.render_geometry();
+            bottom_sup_triangles.render_geometry();
+            top_sup_triangles.render_geometry();
+
         }
     }
+
+    wxGetApp().unbind_shader();
 }
 
 void GLCanvas3D::_render_selection_sidebar_hints() const
@@ -9251,23 +9558,21 @@ void GLCanvas3D::_perform_layer_editing_action(wxMouseEvent* evt)
     _start_timer();
 }
 
-Vec3d GLCanvas3D::_mouse_to_3d(const Point& mouse_pos, float* z)
+Vec3d GLCanvas3D::_mouse_to_3d(const Camera& camera, const Point& mouse_pos, float* z, const std::string& frame_name)
 {
     if (m_canvas == nullptr)
         return Vec3d(DBL_MAX, DBL_MAX, DBL_MAX);
-
-    const Camera& camera = wxGetApp().plater()->get_camera();
     Matrix4d modelview = camera.get_view_matrix().matrix();
-    Matrix4d projection= camera.get_projection_matrix().matrix();
+    Matrix4d projection = camera.get_projection_matrix().matrix();
     Vec4i viewport(camera.get_viewport().data());
-
     GLint y = viewport[3] - (GLint)mouse_pos(1);
     GLfloat mouse_z;
-    if (z == nullptr)
-        glsafe(::glReadPixels((GLint)mouse_pos(0), y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, (void*)&mouse_z));
+    if (z == nullptr) {
+        const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+        p_ogl_manager->read_pixel(frame_name, (GLint)mouse_pos(0), y, 1, 1, EPixelFormat::DepthComponent, EPixelDataType::Float, (void*)&mouse_z);
+    }
     else
         mouse_z = *z;
-
     Vec3d out;
     igl::unproject(Vec3d(mouse_pos(0), y, mouse_z), modelview, projection, viewport, out);
     return out;
@@ -9871,7 +10176,7 @@ void GLCanvas3D::_update_sla_shells_outside_state()
 
 void GLCanvas3D::_set_warning_notification_if_needed(EWarning warning)
 {
-    _set_current();
+    _set_current(true);
     bool show = false;
     if (!m_volumes.empty()) {
         show = _is_any_volume_outside();
@@ -9941,7 +10246,7 @@ ERenderPipelineStage GLCanvas3D::_get_current_render_stage() const
 }
 
 void GLCanvas3D::_render_silhouette_effect()
-{;
+{
     RenderPipelineStageModifier render_pipeline_stage_modifier(*this, ERenderPipelineStage::Silhouette);
 
     const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
@@ -9950,65 +10255,145 @@ void GLCanvas3D::_render_silhouette_effect()
     }
 
     auto& ogl_manager = *p_ogl_manager;
+    float t_viewport_scale = 0.5f;
+    uint32_t viewport_width = 0;
+    uint32_t viewport_height = 0;
+    ogl_manager.get_viewport_size(viewport_width, viewport_height);
+    viewport_width = viewport_width * t_viewport_scale;
+    viewport_height = viewport_height * t_viewport_scale;
     {
-        // BBS: render silhouette
-        OpenGLManager::FrameBufferModifier frame_buffer_modifier(ogl_manager, "silhouette");
-
-        glsafe(::glClearColor(0.0f, 0.0f, 0.0f, 0.0f));
-        glsafe(::glClearDepth(1.0f));
-        glsafe(::glEnable(GL_DEPTH_TEST));
-        glsafe(::glDisable(GL_BLEND));
-        glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-
-        GLShaderProgram* p_silhouette_shader = wxGetApp().get_shader("silhouette");
-        if (!p_silhouette_shader)
-        {
-            BOOST_LOG_TRIVIAL(error) << "Invalid shader: silhouette. Failed to render highlight effect.";
-            return;
-        }
-
-        p_silhouette_shader->start_using();
-
-        std::array<float, 4> picking_color{ 1.0f, 0.36f, 0.0f, 1.0f };
-        if (m_canvas_type == ECanvasType::CanvasAssembleView) {
-            picking_color[0] = 1.0f;
-            picking_color[1] = 1.0f;
-            picking_color[2] = 0.0f;
-            picking_color[3] = 1.0f;
-        }
-        else {
-            picking_color[0] = 1.0f;
-            picking_color[1] = 1.0f;
-            picking_color[2] = 1.0f;
-            picking_color[3] = 1.0f;
-        }
-        p_silhouette_shader->set_uniform("u_base_color", picking_color);
-
-        const Camera& camera = wxGetApp().plater()->get_camera();
-        const Transform3d& view_matrix = camera.get_view_matrix();
-        const Transform3d& projection_matrix = camera.get_projection_matrix();
-        const Matrix4d view_proj = projection_matrix.matrix() * view_matrix.matrix();
-        p_silhouette_shader->set_uniform("u_view_projection_matrix", view_proj);
-        _render_objects(GLVolumeCollection::ERenderType::Opaque, false);
-        _render_objects(GLVolumeCollection::ERenderType::Transparent, false);
-
-        p_silhouette_shader->stop_using();
-
-        // BBS: end render silhouette
+        OpenGLManager::FrameBufferModifier frame_buffer_modifier(ogl_manager, "silhouette", EMSAAType::X4);
+        frame_buffer_modifier.set_width(viewport_width)
+            .set_height(viewport_height);
+    }
+    // BBS: render silhouette
+    glViewport(0, 0, viewport_width, viewport_height);
+    glsafe(::glClearColor(0.0f, 0.0f, 0.0f, 0.0f));
+    glsafe(::glClearDepth(1.0f));
+    glsafe(::glEnable(GL_DEPTH_TEST));
+    glsafe(::glDisable(GL_BLEND));
+    glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+    const auto& p_silhouette_shader = wxGetApp().get_shader("silhouette");
+    if (!p_silhouette_shader)
+    {
+        BOOST_LOG_TRIVIAL(error) << "Invalid shader: silhouette. Failed to render highlight effect.";
+        return;
     }
 
-    // BBS: composite silhouette
+    wxGetApp().bind_shader(p_silhouette_shader);
 
-    const auto& p_frame_buffer = ogl_manager.get_frame_buffer("silhouette");
+    std::array<float, 4> picking_color{ 1.0f, 0.36f, 0.0f, 1.0f };
+    if (m_canvas_type == ECanvasType::CanvasAssembleView) {
+        picking_color[0] = 1.0f;
+        picking_color[1] = 1.0f;
+        picking_color[2] = 0.0f;
+        picking_color[3] = 1.0f;
+    }
+    else {
+        picking_color[0] = 1.0f;
+        picking_color[1] = 1.0f;
+        picking_color[2] = 1.0f;
+        picking_color[3] = 1.0f;
+    }
+    p_silhouette_shader->set_uniform("u_base_color", picking_color);
+
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    const Transform3d& view_matrix = camera.get_view_matrix();
+    const Transform3d& projection_matrix = camera.get_projection_matrix();
+    const Matrix4d view_proj = projection_matrix.matrix() * view_matrix.matrix();
+    p_silhouette_shader->set_uniform("u_view_projection_matrix", view_proj);
+    _render_objects(GLVolumeCollection::ERenderType::Opaque, false);
+    _render_objects(GLVolumeCollection::ERenderType::Transparent, false);
+
+    wxGetApp().unbind_shader();
+
+    // BBS: end render silhouette
+
+    std::string input_fb_name = "silhouette";
+    const auto& p_frame_buffer = ogl_manager.get_frame_buffer(input_fb_name);
     if (!p_frame_buffer)
     {
+        BOOST_LOG_TRIVIAL(error) << "Invalid framebuffer. Failed to render highlight effect.";
+        return;
+    }
+
+    int stage = 0;
+
+    const std::array<float, 2> viewport_size{ static_cast<float>(viewport_width), static_cast<float>(viewport_height) };
+
+    {
+        glViewport(0, 0, viewport_width, viewport_height);
+        glsafe(::glDisable(GL_DEPTH_TEST));
+        _init_fullscreen_mesh();
+        // BBS: gaussian blur
+        {
+            OpenGLManager::FrameBufferModifier frame_buffer_gaussian_blur33(ogl_manager, "silhouette_gaussian_blur33", EMSAAType::Disabled);
+            frame_buffer_gaussian_blur33.set_width(viewport_width)
+                .set_height(viewport_height);
+        }
+        const auto& p_gaussian_blur33_shader = wxGetApp().get_shader("gaussian_blur33");
+        if (!p_gaussian_blur33_shader)
+        {
+            BOOST_LOG_TRIVIAL(error) << "Invalid gaussian_blur33 shader. Failed to render highlight effect.";
+            return;
+        }
+        wxGetApp().bind_shader(p_gaussian_blur33_shader);
+
+        p_gaussian_blur33_shader->set_uniform("u_viewport_size", viewport_size);
+
+        Matrix3f gaussian_blur33_convolution_matrix;
+        // https://lodev.org/cgtutor/filtering.html#Gaussian_Blur_
+        gaussian_blur33_convolution_matrix.data()[3 * 0 + 0] = 0.077847;
+        gaussian_blur33_convolution_matrix.data()[3 * 0 + 1] = 0.123317;
+        gaussian_blur33_convolution_matrix.data()[3 * 0 + 2] = 0.077847;
+        gaussian_blur33_convolution_matrix.data()[3 * 1 + 0] = 0.123317;
+        gaussian_blur33_convolution_matrix.data()[3 * 1 + 1] = 0.195346;
+        gaussian_blur33_convolution_matrix.data()[3 * 1 + 2] = 0.123317;
+        gaussian_blur33_convolution_matrix.data()[3 * 2 + 0] = 0.077847;
+        gaussian_blur33_convolution_matrix.data()[3 * 2 + 1] = 0.123317;
+        gaussian_blur33_convolution_matrix.data()[3 * 2 + 2] = 0.077847;
+        p_gaussian_blur33_shader->set_uniform("u_convolution_matrix", gaussian_blur33_convolution_matrix);
+
+        const auto color_texture_id = p_frame_buffer->get_color_texture();
+        if (!p_frame_buffer->is_texture_valid(color_texture_id))
+        {
+            BOOST_LOG_TRIVIAL(error) << "Invalid silhouette texture. Failed to render highlight effect.";
+            return;
+        }
+        int stage = 0;
+        p_gaussian_blur33_shader->set_uniform("u_sampler", stage);
+        glsafe(::glActiveTexture(GL_TEXTURE0 + stage));
+        glsafe(::glBindTexture(GL_TEXTURE_2D, color_texture_id));
+
+        m_full_screen_mesh.render_geometry();
+
+        wxGetApp().unbind_shader();
+        glsafe(::glEnable(GL_DEPTH_TEST));
+        // BBS: end gaussian blur
+    }
+    ogl_manager.get_viewport_size(viewport_width, viewport_height);
+    glViewport(0, 0, viewport_width, viewport_height);
+}
+
+void GLCanvas3D::_composite_silhouette_effect()
+{
+    // BBS: composite silhouette
+
+    const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+    if (!p_ogl_manager) {
+        return;
+    }
+    const auto& p_frame_buffer = p_ogl_manager->get_frame_buffer("silhouette_gaussian_blur33");
+    if (!p_frame_buffer)
+    {
+        BOOST_LOG_TRIVIAL(error) << "Invalid framebuffer. Failed to render highlight effect.";
         return;
     }
 
     const auto color_texture_id = p_frame_buffer->get_color_texture();
     if (!p_frame_buffer->is_texture_valid(color_texture_id))
     {
-        BOOST_LOG_TRIVIAL(error) << "Invalid framebuffer. Failed to render highlight effect.";
+        BOOST_LOG_TRIVIAL(error) << "Invalid silhouette texture. Failed to render highlight effect.";
         return;
     }
 
@@ -10016,18 +10401,18 @@ void GLCanvas3D::_render_silhouette_effect()
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-    GLShaderProgram* p_silhouette_composite_shader = wxGetApp().get_shader("silhouette_composite");
+    const auto& p_silhouette_composite_shader = wxGetApp().get_shader("silhouette_composite");
     if (!p_silhouette_composite_shader)
     {
-        BOOST_LOG_TRIVIAL(error) << "Invalid silhouette texture. Failed to render highlight effect.";
+        BOOST_LOG_TRIVIAL(error) << "Invalid silhouette shader. Failed to render highlight effect.";
         return;
     }
-    p_silhouette_composite_shader->start_using();
+    wxGetApp().bind_shader(p_silhouette_composite_shader);
 
     uint32_t viewport_width = 0;
     uint32_t viewport_height = 0;
-    ogl_manager.get_viewport_size(viewport_width, viewport_height);
-    const std::array<float, 2> viewport_size{ static_cast<float>(viewport_width), static_cast<float>(viewport_height)};
+    p_ogl_manager->get_viewport_size(viewport_width, viewport_height);
+    const std::array<float, 2> viewport_size{ static_cast<float>(viewport_width), static_cast<float>(viewport_height) };
     p_silhouette_composite_shader->set_uniform("u_viewport_size", viewport_size);
 
     Matrix3f convolution_matrix;
@@ -10049,26 +10434,274 @@ void GLCanvas3D::_render_silhouette_effect()
     glsafe(::glActiveTexture(GL_TEXTURE0 + stage));
     glsafe(::glBindTexture(GL_TEXTURE_2D, color_texture_id));
 
-    if (!m_full_screen_mesh.is_initialized()) {
-        GLModel::Geometry geo;
-        geo.format.type = GLModel::PrimitiveType::Triangles;
-        geo.format.vertex_layout = GLModel::Geometry::EVertexLayout::P3T2;
-
-        geo.add_vertex(Vec3f{ -1.0f, -1.0f, 0.0f }, Vec2f{ 0.0f, 0.0f });
-        geo.add_vertex(Vec3f{ 3.0f, -1.0f, 0.0f }, Vec2f{ 2.0f, 0.0f });
-        geo.add_vertex(Vec3f{ -1.0f, 3.0f, 0.0f }, Vec2f{ 0.0f, 2.0f });
-
-        geo.add_triangle(0, 1, 2);
-
-        m_full_screen_mesh.init_from(std::move(geo));
-    }
+    _init_fullscreen_mesh();
 
     m_full_screen_mesh.render_geometry();
 
-    p_silhouette_composite_shader->stop_using();
+    wxGetApp().unbind_shader();
 
     glsafe(::glDisable(GL_BLEND));
     // BBS: end composite silhouette
+}
+
+void GLCanvas3D::_init_fullscreen_mesh() const
+{
+    if (m_full_screen_mesh.is_initialized()) {
+        return;
+    }
+    GLModel::Geometry geo;
+    geo.format.type = GLModel::PrimitiveType::Triangles;
+    geo.format.vertex_layout = GLModel::Geometry::EVertexLayout::P3T2;
+
+    geo.add_vertex(Vec3f{ -1.0f, -1.0f, 0.0f }, Vec2f{ 0.0f, 0.0f });
+    geo.add_vertex(Vec3f{ 3.0f, -1.0f, 0.0f }, Vec2f{ 2.0f, 0.0f });
+    geo.add_vertex(Vec3f{ -1.0f, 3.0f, 0.0f }, Vec2f{ 0.0f, 2.0f });
+
+    geo.add_triangle(0, 1, 2);
+
+    m_full_screen_mesh.init_from(std::move(geo));
+}
+
+void GLCanvas3D::_composite_main_frame(bool off_screen_rendering_enabled) const
+{
+    const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+
+    if (!off_screen_rendering_enabled && !p_ogl_manager->is_fxaa_enabled()) {
+        return;
+    }
+
+    _init_fullscreen_mesh();
+
+    uint32_t output_texture_id = UINT32_MAX;
+    if (p_ogl_manager->is_fxaa_enabled()) {
+        if (!off_screen_rendering_enabled) {
+            {
+                OpenGLManager::FrameBufferModifier fxaa_frame(*p_ogl_manager, "fxaaframe_temp", EMSAAType::Disabled);
+            }
+
+            p_ogl_manager->blit_framebuffer(OpenGLManager::s_back_frame, "fxaaframe_temp");
+        }
+
+        {
+            OpenGLManager::FrameBufferModifier fxaa_frame(*p_ogl_manager, "fxaaframe", EMSAAType::Disabled);
+        }
+
+        // BBS: composite main frame
+        glsafe(::glDisable(GL_DEPTH_TEST));
+        glsafe(::glDisable(GL_BLEND));
+
+        const auto& p_main_frame_buffer = p_ogl_manager->get_frame_buffer(off_screen_rendering_enabled ? "mainframe" : "fxaaframe_temp");
+        if (p_main_frame_buffer) {
+            output_texture_id = p_main_frame_buffer->get_color_texture();
+            if (p_main_frame_buffer->is_texture_valid(output_texture_id)) {
+                const auto& p_fxaa_shader = wxGetApp().get_shader("fxaa");
+                if (p_fxaa_shader) {
+                    wxGetApp().bind_shader(p_fxaa_shader);
+
+                    const int stage = 0;
+                    p_fxaa_shader->set_uniform("u_sampler", stage);
+                    glsafe(::glActiveTexture(GL_TEXTURE0 + stage));
+                    glsafe(::glBindTexture(GL_TEXTURE_2D, output_texture_id));
+
+                    uint32_t viewport_width = 0;
+                    uint32_t viewport_height = 0;
+                    p_ogl_manager->get_viewport_size(viewport_width, viewport_height);
+                    const std::array<float, 4> viewport_size{ static_cast<float>(viewport_width), static_cast<float>(viewport_height), 1.0f / viewport_width, 1.0f / viewport_height };
+                    p_fxaa_shader->set_uniform("u_viewport_size", viewport_size);
+
+                    m_full_screen_mesh.render_geometry();
+
+                    wxGetApp().unbind_shader();
+
+                    const auto& p_fxaa_frame_buffer = p_ogl_manager->get_frame_buffer("fxaaframe");
+                    if (p_fxaa_frame_buffer) {
+                        output_texture_id = p_fxaa_frame_buffer->get_color_texture();
+                        if (!p_fxaa_frame_buffer->is_texture_valid(output_texture_id)) {
+                            BOOST_LOG_TRIVIAL(error) << "Invalid fxaa texture.";
+                        }
+                    }
+                    else {
+                        BOOST_LOG_TRIVIAL(error) << "Invalid fxaa framebuffer.";
+                    }
+                }
+                else {
+                    BOOST_LOG_TRIVIAL(error) << "Invalid fxaa shader.";
+                }
+            }
+            else {
+                BOOST_LOG_TRIVIAL(error) << "Invalid main frame texture. Failed to composite main frame.";
+            }
+        }
+    }
+    else if (off_screen_rendering_enabled) {
+        const auto& p_main_frame_buffer = p_ogl_manager->get_frame_buffer("mainframe");
+        if (p_main_frame_buffer) {
+            output_texture_id = p_main_frame_buffer->get_color_texture();
+        }
+    }
+
+    {
+        OpenGLManager::FrameBufferModifier fxaa_frame(*p_ogl_manager, OpenGLManager::s_back_frame);
+    }
+
+    const auto& p_mainframe_composite_shader = wxGetApp().get_shader("mainframe_composite");
+    if (!p_mainframe_composite_shader)
+    {
+        BOOST_LOG_TRIVIAL(error) << "Invalid mainframe composite shader. Failed to composite main frame.";
+        return;
+    }
+    wxGetApp().bind_shader(p_mainframe_composite_shader);
+
+    const int stage = 0;
+    p_mainframe_composite_shader->set_uniform("u_sampler", stage);
+    glsafe(::glActiveTexture(GL_TEXTURE0 + stage));
+    glsafe(::glBindTexture(GL_TEXTURE_2D, output_texture_id));
+
+    m_full_screen_mesh.render_geometry();
+
+    wxGetApp().unbind_shader();
+
+    // BBS: end composite mainframe
+}
+
+void GLCanvas3D::_debug_draw_camera(const Camera& t_camera)
+{
+    if (!m_unit_cube.is_initialized()) {
+        _init_unit_cube();
+    }
+
+    const auto& p_flat_shader = wxGetApp().get_shader("flat");
+    if (p_flat_shader) {
+        glsafe(::glDisable(GL_DEPTH_TEST));
+        glsafe(::glLineWidth(2.0f));
+
+        Transform3d final_model_matrix{ Transform3d::Identity() };
+        final_model_matrix.data()[0 * 4 + 0] = 2.0f;
+        final_model_matrix.data()[1 * 4 + 1] = 2.0f;
+        final_model_matrix.data()[2 * 4 + 2] = 2.0f;
+
+        auto vp_matrix = t_camera.get_projection_matrix().matrix() * t_camera.get_view_matrix().matrix();
+        auto inv_vp_matrix = vp_matrix.inverse();
+        auto m_inv_vp = inv_vp_matrix * final_model_matrix.matrix();
+        final_model_matrix = m_inv_vp.eval();
+
+        wxGetApp().bind_shader(p_flat_shader);
+
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        const auto& view_matrix = camera.get_view_matrix();
+        const auto& proj_matrix = camera.get_projection_matrix();
+        auto mv = view_matrix.matrix() * final_model_matrix.matrix();
+        Matrix4d final_mv = mv.eval();
+        p_flat_shader->set_uniform("view_model_matrix", final_mv);
+        p_flat_shader->set_uniform("projection_matrix", proj_matrix);
+
+        m_unit_cube.set_color({ 1.0f, 0.0f, 0.0f, 1.0f });
+        m_unit_cube.render_geometry();
+
+        wxGetApp().unbind_shader();
+    }
+}
+
+void GLCanvas3D::_debug_draw_aabb()
+{
+    if (!m_unit_cube.is_initialized()) {
+        _init_unit_cube();
+    }
+
+    std::vector<BoundingBoxf3> bbox_list;
+
+    const auto& partplate_list = wxGetApp().plater()->get_partplate_list().get_plate_list();
+    for (int i = 0; i < partplate_list.size(); ++i) {
+        const auto& bbox = partplate_list[i]->get_bounding_box(true);
+        bbox_list.emplace_back(bbox);
+    }
+
+    if (m_gizmos.is_running()) {
+        const auto t_aabb = m_gizmos.get_bounding_box();
+        if (t_aabb.defined) {
+            bbox_list.emplace_back(t_aabb);
+        }
+    }
+
+    const auto& p_flat_shader = wxGetApp().get_shader("flat");
+    if (p_flat_shader) {
+        glsafe(::glDisable(GL_DEPTH_TEST));
+        glsafe(::glLineWidth(2.0f));
+        wxGetApp().bind_shader(p_flat_shader);
+
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        const auto& view_matrix = camera.get_view_matrix();
+        const auto& proj_matrix = camera.get_projection_matrix();
+        p_flat_shader->set_uniform("projection_matrix", proj_matrix);
+        m_unit_cube.set_color({ 1.0f, 0.0f, 0.0f, 1.0f });
+
+        for (int i = 0; i < bbox_list.size(); ++i) {
+            const auto& bbox = bbox_list[i];
+            Vec3f b_min = bbox.min.cast<float>();
+            Vec3f b_max = bbox.max.cast<float>();
+            Vec3f size = bbox.size().cast<float>();
+            const auto& center = bbox.center();
+
+            Transform3d final_model_matrix{ Transform3d::Identity() };
+            final_model_matrix.data()[3 * 4 + 0] = center(0);
+            final_model_matrix.data()[3 * 4 + 1] = center(1);
+            final_model_matrix.data()[3 * 4 + 2] = center(2);
+            final_model_matrix.data()[0 * 4 + 0] = size(0);
+            final_model_matrix.data()[1 * 4 + 1] = size(1);
+            final_model_matrix.data()[2 * 4 + 2] = size(2);
+
+            p_flat_shader->set_uniform("view_model_matrix", view_matrix * final_model_matrix);
+
+            m_unit_cube.render_geometry();
+        }
+
+        wxGetApp().unbind_shader();
+    }
+}
+
+void GLCanvas3D::_init_unit_cube()
+{
+    GLModel::Geometry geo;
+    geo.format.type = GLModel::PrimitiveType::Lines;
+    geo.format.vertex_layout = GLModel::Geometry::EVertexLayout::P3;
+
+    const float size = 1.0f;
+    Vec3f b_min{ -0.5f, -0.5f, -0.5f };
+    Vec3f b_max{ 0.5f, 0.5f, 0.5f };
+    geo.add_vertex(Vec3f{ b_min(0), b_min(1), b_min(2) });
+    geo.add_vertex(Vec3f{ b_max(0), b_min(1), b_min(2) });
+    geo.add_vertex(Vec3f{ b_max(0), b_max(1), b_min(2) });
+    geo.add_vertex(Vec3f{ b_min(0), b_max(1), b_min(2) });
+    geo.add_vertex(Vec3f{ b_min(0), b_min(1), b_max(2) });
+    geo.add_vertex(Vec3f{ b_max(0), b_min(1), b_max(2) });
+    geo.add_vertex(Vec3f{ b_max(0), b_max(1), b_max(2) });
+    geo.add_vertex(Vec3f{ b_min(0), b_max(1), b_max(2) });
+
+    geo.add_line(0, 1);
+    geo.add_line(0, 3);
+    geo.add_line(0, 4);
+
+    geo.add_line(1, 2);
+    geo.add_line(1, 5);
+
+    geo.add_line(2, 3);
+    geo.add_line(2, 6);
+
+    geo.add_line(3, 7);
+
+    geo.add_line(4, 5);
+    geo.add_line(4, 7);
+
+    geo.add_line(5, 6);
+
+    geo.add_line(6, 7);
+
+    m_unit_cube.init_from(std::move(geo));
+}
+
+void GLCanvas3D::_append_to_frame_callback(const FrameCallback& cb)
+{
+    m_frame_callback_list.emplace_back(cb);
 }
 
 void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)

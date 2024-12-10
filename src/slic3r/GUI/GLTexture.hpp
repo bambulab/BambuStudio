@@ -14,6 +14,8 @@ class wxImage;
 namespace Slic3r {
 namespace GUI {
 
+    class GLModel;
+
     class GLTexture
     {
         class Compressor
@@ -140,10 +142,12 @@ namespace GUI {
 
         static void render_texture(unsigned int tex_id, float left, float right, float bottom, float top);
         static void render_sub_texture(unsigned int tex_id, float left, float right, float bottom, float top, const Quad_UVs& uvs);
-
+        static void shutdown();
     private:
         bool load_from_png(const std::string& filename, bool use_mipmaps, ECompressionType compression_type, bool apply_anisotropy);
         bool load_from_svg(const std::string& filename, bool use_mipmaps, bool compress, bool apply_anisotropy, unsigned int max_size_px);
+        static GLModel& init_model_for_render_image();
+        static GLModel& get_model_for_render_image();
 
         friend class Compressor;
     };

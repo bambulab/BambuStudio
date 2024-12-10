@@ -181,6 +181,7 @@ namespace GUI {
         void init_from(const indexed_triangle_set& its);
         void init_from(const Polygons& polygons, float z);
         bool init_from_file(const std::string& filename);
+        void init_model_from_polygon(const Polygons &polygons, float z);
         bool init_model_from_poly(const std::vector<Vec2f> &triangles, float z, bool generate_mesh = false);
         bool init_model_from_lines(const Lines &lines, float z, bool generate_mesh = false);
         bool init_model_from_lines(const Lines3 &lines, bool generate_mesh = false);
@@ -190,11 +191,10 @@ namespace GUI {
         void set_color(const ColorRGBA &color);
 
         void reset();
-        void render() const;
-        void render_geometry();
-        void render_geometry(int i,const std::pair<size_t, size_t> &range);
+        void render_geometry() const;
+        void render_geometry(int i,const std::pair<size_t, size_t> &range) const;
         static void create_or_update_mats_vbo(unsigned int &vbo, const std::vector<Slic3r::Geometry::Transformation> &mats);
-        void bind_mats_vbo(unsigned int instance_mats_vbo, unsigned int instances_count, int location);
+        void bind_mats_vbo(unsigned int instance_mats_vbo, unsigned int instances_count, const std::vector<int>& locations);
         void render_geometry_instance(unsigned int instance_mats_vbo, unsigned int instances_count);
         void render_geometry_instance(unsigned int instance_mats_vbo, unsigned int instances_count, const std::pair<size_t, size_t> &range);
         void render_instanced(unsigned int instances_vbo, unsigned int instances_count) const;
