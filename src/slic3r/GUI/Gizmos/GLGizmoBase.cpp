@@ -5,6 +5,7 @@
 
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/GUI_Colors.hpp"
+#include "slic3r/GUI/OpenGLManager.hpp"
 
 // TODO: Display tooltips quicker on Linux
 
@@ -120,6 +121,10 @@ void GLGizmoBase::Grabber::set_model_matrix(const Transform3d& model_matrix)
 
 void GLGizmoBase::Grabber::render(const std::array<float, 4>& render_color, bool picking) const
 {
+    const auto& shader = wxGetApp().get_current_shader();
+    if (shader == nullptr)
+        return;
+
     if (! cube_initialized) {
         // This cannot be done in constructor, OpenGL is not yet
         // initialized at that point (on Linux at least).
@@ -131,14 +136,19 @@ void GLGizmoBase::Grabber::render(const std::array<float, 4>& render_color, bool
 
     //BBS set to fixed size grabber
     //float fullsize = 2 * (dragging ? get_dragging_half_size(size) : get_half_size(size));
-    float fullsize = get_grabber_size();
+    //float fullsize = get_grabber_size();
 
     const_cast<GLModel*>(&cube)->set_color(-1, render_color);
 
-    glsafe(::glPushMatrix());
-    glsafe(::glMultMatrixd(m_matrix.data()));
-    cube.render();
-    glsafe(::glPopMatrix());
+    const Camera& camera = picking ? wxGetApp().plater()->get_picking_camera() : wxGetApp().plater()->get_camera();
+    const Transform3d view_model_matrix = camera.get_view_matrix() * m_matrix;
+    const Transform3d& projection_matrix = camera.get_projection_matrix();
+
+    shader->set_uniform("view_model_matrix", view_model_matrix);
+    shader->set_uniform("projection_matrix", projection_matrix);
+    shader->set_uniform("normal_matrix", (Matrix3d)view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
+
+    cube.render_geometry();
 }
 
 
@@ -216,40 +226,55 @@ bool GLGizmoBase::render_combo(const std::string &label, const std::vector<std::
     return is_changed;
 }
 
-void GLGizmoBase::render_cross_mark(const Vec3f &target, bool is_single)
+void GLGizmoBase::render_cross_mark(const Transform3d& matrix, const Vec3f &target, bool is_single)
 {
-    double half_length = 4.0;
+    if (!m_cross_mark.is_initialized()) {
+        GLModel::Geometry geo;
+        geo.format.type = GLModel::PrimitiveType::Lines;
+        geo.format.vertex_layout = GLModel::Geometry::EVertexLayout::P3;
 
+        // x
+        geo.add_vertex(Vec3f{  -0.5f, 0.0f, 0.0f });
+        geo.add_vertex(Vec3f{  0.5f, 0.0f, 0.0f });
+
+        geo.add_line(0, 1);
+
+        m_cross_mark.init_from(std::move(geo));
+    }
+    const auto& p_flat_shader = wxGetApp().get_shader("flat");
+    if (!p_flat_shader)
+        return;
+
+    wxGetApp().bind_shader(p_flat_shader);
+
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    const auto& view_matrix = camera.get_view_matrix();
+    const auto& proj_matrix = camera.get_projection_matrix();
+
+    const auto view_model_matrix = view_matrix * matrix;
     glsafe(::glDisable(GL_DEPTH_TEST));
 
-    glsafe(::glLineWidth(2.0f));
-    ::glBegin(GL_LINES);
-    // draw line for x axis
-    ::glColor3f(1.0f, 0.0f, 0.0f);
-    if (!is_single) {
-        ::glVertex3f(target(0) - half_length, target(1), target(2));
-    }
-    else {
-        ::glVertex3f(target(0), target(1), target(2));
-    }
-    ::glVertex3f(target(0) + half_length, target(1), target(2));
-    // draw line for y axis
-    ::glColor3f(0.0f, 1.0f, 0.0f);
-    if (!is_single) {
-        ::glVertex3f(target(0), target(1) - half_length, target(2));
-    } else {
-        ::glVertex3f(target(0), target(1), target(2));
-    }
-    ::glVertex3f(target(0), target(1) + half_length, target(2));
-    // draw line for z axis
-    ::glColor3f(0.0f, 0.0f, 1.0f);
-    if (!is_single) {
-        ::glVertex3f(target(0), target(1), target(2) - half_length);
-    } else {
-        ::glVertex3f(target(0), target(1), target(2));
-    }
-    ::glVertex3f(target(0), target(1), target(2) + half_length);
-    glsafe(::glEnd());
+    const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+    p_ogl_manager->set_line_width(2.0f);
+
+    Transform3d model_matrix{ Transform3d::Identity() };
+    model_matrix = get_corss_mask_model_matrix(ECrossMaskType::X, target, is_single);
+    p_flat_shader->set_uniform("view_model_matrix", view_model_matrix * model_matrix);
+    p_flat_shader->set_uniform("projection_matrix", proj_matrix);
+    m_cross_mark.set_color({ 1.0f, 0.0f, 0.0f, 1.0f });
+    m_cross_mark.render_geometry();
+
+    model_matrix = get_corss_mask_model_matrix(ECrossMaskType::Y, target, is_single);
+    p_flat_shader->set_uniform("view_model_matrix", view_model_matrix * model_matrix);
+    m_cross_mark.set_color({ 0.0f, 1.0f, 0.0f, 1.0f });
+    m_cross_mark.render_geometry();
+
+    model_matrix = get_corss_mask_model_matrix(ECrossMaskType::Z, target, is_single);
+    p_flat_shader->set_uniform("view_model_matrix", view_model_matrix * model_matrix);
+    m_cross_mark.set_color({ 0.0f, 0.0f, 1.0f, 1.0f });
+    m_cross_mark.render_geometry();
+
+    wxGetApp().unbind_shader();
 }
 
 float GLGizmoBase::get_grabber_size()
@@ -263,7 +288,8 @@ float GLGizmoBase::get_grabber_size()
 
 float GLGizmoBase::get_fixed_grabber_size()
 {
-    return GLGizmoBase::Grabber::FixedGrabberSize * GLGizmoBase::Grabber::GrabberSizeFactor;
+    const float grabber_size = GLGizmoBase::Grabber::FixedGrabberSize * GLGizmoBase::Grabber::GrabberSizeFactor;
+    return grabber_size;
 }
 
 GLGizmoBase::GLGizmoBase(GLCanvas3D &parent, const std::string &icon_filename, unsigned int sprite_id)
@@ -453,20 +479,25 @@ void GLGizmoBase::render_grabbers(const BoundingBoxf3& box) const
 
 void GLGizmoBase::render_grabbers() const
 {
-    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
+    const auto& shader = wxGetApp().get_shader("gouraud_light");
     if (shader == nullptr)
         return;
-    shader->start_using();
+    wxGetApp().bind_shader(shader);
     shader->set_uniform("emission_factor", 0.1f);
     for (int i = 0; i < (int)m_grabbers.size(); ++i) {
         if (m_grabbers[i].enabled)
             m_grabbers[i].render(m_hover_id == i);
     }
-    shader->stop_using();
+    wxGetApp().unbind_shader();
 }
 
 void GLGizmoBase::render_grabbers_for_picking(const BoundingBoxf3& box) const
 {
+    const auto& shader = wxGetApp().get_shader("flat");
+    if (!shader) {
+        return;
+    }
+    wxGetApp().bind_shader(shader);
     for (unsigned int i = 0; i < (unsigned int)m_grabbers.size(); ++i) {
         if (m_grabbers[i].enabled) {
             std::array<float, 4> color = picking_color_component(i);
@@ -474,6 +505,7 @@ void GLGizmoBase::render_grabbers_for_picking(const BoundingBoxf3& box) const
             m_grabbers[i].render_for_picking();
         }
     }
+    wxGetApp().unbind_shader();
 }
 
 std::string GLGizmoBase::format(float value, unsigned int decimals) const
@@ -567,34 +599,33 @@ BoundingBoxf3 GLGizmoBase::get_cross_mask_aabb(const Transform3d& matrix, const 
     BoundingBoxf3 t_aabb;
     t_aabb.reset();
 
-    BoundingBoxf3 t_cross_aabb;
-    t_cross_aabb.min = Vec3d(-0.5f, 0.0f, 0.0f);
-    t_cross_aabb.max = Vec3d(0.5f, 0.0f, 0.0f);
-    t_cross_aabb.defined = true;
-    Transform3d model_matrix{ Transform3d::Identity() };
-    // x axis aabb
-    model_matrix = get_corss_mask_model_matrix(ECrossMaskType::X, target, is_single);
-    auto t_x_axis_aabb = t_cross_aabb.transformed(matrix * model_matrix);
-    t_x_axis_aabb.defined = true;
-    t_aabb.merge(t_x_axis_aabb);
-    t_aabb.defined = true;
-    // end x axis aabb
+    if (m_cross_mark.is_initialized()) {
+        const auto& t_cross_aabb = m_cross_mark.get_bounding_box();
+        Transform3d model_matrix{ Transform3d::Identity() };
+        // x axis aabb
+        model_matrix = get_corss_mask_model_matrix(ECrossMaskType::X, target, is_single);
+        auto t_x_axis_aabb = t_cross_aabb.transformed(matrix * model_matrix);
+        t_x_axis_aabb.defined = true;
+        t_aabb.merge(t_x_axis_aabb);
+        t_aabb.defined = true;
+        // end x axis aabb
 
-    // y axis aabb
-    model_matrix = get_corss_mask_model_matrix(ECrossMaskType::Y, target, is_single);
-    auto t_y_axis_aabb = t_cross_aabb.transformed(matrix * model_matrix);
-    t_y_axis_aabb.defined = true;
-    t_aabb.merge(t_y_axis_aabb);
-    t_aabb.defined = true;
-    // end y axis aabb
+        // y axis aabb
+        model_matrix = get_corss_mask_model_matrix(ECrossMaskType::Y, target, is_single);
+        auto t_y_axis_aabb = t_cross_aabb.transformed(matrix * model_matrix);
+        t_y_axis_aabb.defined = true;
+        t_aabb.merge(t_y_axis_aabb);
+        t_aabb.defined = true;
+        // end y axis aabb
 
-    // z axis aabb
-    model_matrix = get_corss_mask_model_matrix(ECrossMaskType::Z, target, is_single);
-    auto t_z_axis_aabb = t_cross_aabb.transformed(matrix * model_matrix);
-    t_z_axis_aabb.defined = true;
-    t_aabb.merge(t_z_axis_aabb);
-    t_aabb.defined = true;
-    // end z axis aabb
+        // z axis aabb
+        model_matrix = get_corss_mask_model_matrix(ECrossMaskType::Z, target, is_single);
+        auto t_z_axis_aabb = t_cross_aabb.transformed(matrix * model_matrix);
+        t_z_axis_aabb.defined = true;
+        t_aabb.merge(t_z_axis_aabb);
+        t_aabb.defined = true;
+        // end z axis aabb
+    }
 
     return t_aabb;
 }
@@ -648,25 +679,21 @@ BoundingBoxf3 GLGizmoBase::get_bounding_box() const
     return t_aabb;
 }
 
-void GLGizmoBase::render_glmodel(GLModel &model, const std::array<float, 4> &color, Transform3d view_model_matrix, bool for_picking, float emission_factor)
+void GLGizmoBase::render_glmodel(GLModel &model, const std::array<float, 4> &color, Transform3d view_model_matrix, const Transform3d& projection_matrix, bool for_picking, float emission_factor)
 {
-    glPushMatrix();
-    GLShaderProgram *shader = nullptr;
-    if (for_picking)
-        shader = wxGetApp().get_shader("cali");
-    else
-        shader = wxGetApp().get_shader("gouraud_light");
+    const auto& shader = wxGetApp().get_shader(for_picking ? "flat" : "gouraud_light");
     if (shader) {
-        shader->start_using();
+        wxGetApp().bind_shader(shader);
         shader->set_uniform("emission_factor", emission_factor);
-        glsafe(::glMultMatrixd(view_model_matrix.data()));
+        shader->set_uniform("view_model_matrix", view_model_matrix);
+        shader->set_uniform("projection_matrix", projection_matrix);
+        shader->set_uniform("normal_matrix", (Matrix3d)view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
 
         model.set_color(-1, color);
-        model.render();
+        model.render_geometry();
 
-        shader->stop_using();
+        wxGetApp().unbind_shader();
     }
-    glPopMatrix();
 }
 
 std::string GLGizmoBase::get_name(bool include_shortcut) const

@@ -11,6 +11,7 @@
 #include "slic3r/GUI/Camera.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/Utils/UndoRedo.hpp"
+#include "slic3r/GUI/OpenGLManager.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/TriangleMesh.hpp"
@@ -77,14 +78,14 @@ void GLGizmoPainterBase::update_front_view_radian()
 
 void GLGizmoPainterBase::render_triangles(const Selection& selection) const
 {
-    auto* shader = wxGetApp().get_shader("gouraud");
+    const auto& shader = wxGetApp().get_shader("gouraud");
     if (! shader)
         return;
-    shader->start_using();
+    wxGetApp().bind_shader(shader);
     shader->set_uniform("slope.actived", false);
     shader->set_uniform("print_volume.type", 0);
     shader->set_uniform("clipping_plane", this->get_clipping_plane_data().clp_dataf);
-    ScopeGuard guard([shader]() { if (shader) shader->stop_using(); });
+    ScopeGuard guard([shader]() { if (shader) wxGetApp().unbind_shader(); });
 
     const ModelObject *mo      = m_c->selection_info()->model_object();
     int                mesh_id = -1;
@@ -93,7 +94,7 @@ void GLGizmoPainterBase::render_triangles(const Selection& selection) const
             continue;
 
         ++mesh_id;
-        
+
         Transform3d trafo_matrix;
         if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
             trafo_matrix = mo->instances[selection.get_instance_idx()]->get_assemble_transformation().get_matrix() * mv->get_matrix();
@@ -107,8 +108,11 @@ void GLGizmoPainterBase::render_triangles(const Selection& selection) const
         if (is_left_handed)
             glsafe(::glFrontFace(GL_CW));
 
-        glsafe(::glPushMatrix());
-        glsafe(::glMultMatrixd(trafo_matrix.data()));
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        const Transform3d matrix = camera.get_view_matrix() * trafo_matrix;
+        shader->set_uniform("view_model_matrix", matrix);
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+        shader->set_uniform("normal_matrix", (Matrix3d)matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
 
         // For printers with multiple extruders, it is necessary to pass trafo_matrix
         // to the shader input variable print_box.volume_world_matrix before
@@ -116,9 +120,8 @@ void GLGizmoPainterBase::render_triangles(const Selection& selection) const
         // wrong transformation matrix is used for "Clipping of view".
         shader->set_uniform("volume_world_matrix", trafo_matrix);
 
-        m_triangle_selectors[mesh_id]->render(m_imgui);
+        m_triangle_selectors[mesh_id]->render(m_imgui, trafo_matrix);
 
-        glsafe(::glPopMatrix());
         if (is_left_handed)
             glsafe(::glFrontFace(GL_CCW));
     }
@@ -180,20 +183,55 @@ void GLGizmoPainterBase::render_cursor() const
 
 void GLGizmoPainterBase::render_cursor_circle() const
 {
-    const Camera &camera   = wxGetApp().plater()->get_camera();
-    auto          zoom     = (float) camera.get_zoom();
+    const auto& p_flat_shader = wxGetApp().get_shader("flat");
+    if (!p_flat_shader) {
+        return;
+    }
+    if (!m_circle.is_initialized()) {
+        GLModel::Geometry init_data;
+        static const unsigned int StepsCount = 40;
+        static const float StepSize = 2.0f * float(PI) / float(StepsCount);
+        init_data.format = { GLModel::PrimitiveType::LineLoop, GLModel::Geometry::EVertexLayout::P2 };
+        init_data.color = { 0.0f, 1.0f, 0.3f, 1.0f };
+        init_data.reserve_vertices(StepsCount);
+        init_data.reserve_indices(StepsCount);
+
+        // vertices + indices
+        for (unsigned short i = 0; i < StepsCount; ++i) {
+            const float angle = float(i * StepSize);
+            init_data.add_vertex(Vec2f(cos(angle), sin(angle)));
+            init_data.add_index(i);
+        }
+
+        m_circle.init_from(std::move(init_data));
+    }
+
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    auto          zoom = (float)camera.get_zoom();
     float         inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
-    Size  cnv_size        = m_parent.get_canvas_size();
-    float cnv_half_width  = 0.5f * (float) cnv_size.get_width();
-    float cnv_half_height = 0.5f * (float) cnv_size.get_height();
+    Size  cnv_size = m_parent.get_canvas_size();
+    float cnv_half_width = 0.5f * (float)cnv_size.get_width();
+    float cnv_half_height = 0.5f * (float)cnv_size.get_height();
     if ((cnv_half_width == 0.0f) || (cnv_half_height == 0.0f))
         return;
     Vec2d mouse_pos(m_parent.get_local_mouse_position()(0), m_parent.get_local_mouse_position()(1));
     Vec2d center(mouse_pos(0) - cnv_half_width, cnv_half_height - mouse_pos(1));
     center = center * inv_zoom;
 
-    glsafe(::glLineWidth(1.5f));
+    const auto view_matrix = camera.get_view_matrix_for_billboard();
+    const auto& proj_matrix = camera.get_projection_matrix();
+
+    Transform3d model_matrix{ Transform3d::Identity() };
+    model_matrix.data()[3 * 4 + 0] = center.x();
+    model_matrix.data()[3 * 4 + 1] = center.y();
+    model_matrix.data()[0 * 4 + 0] = m_cursor_radius;
+    model_matrix.data()[1 * 4 + 1] = m_cursor_radius;
+
+    wxGetApp().bind_shader(p_flat_shader);
+
+    p_flat_shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
+    p_flat_shader->set_uniform("projection_matrix", proj_matrix);
 
     // BBS
     std::array<float, 4> render_color = this->get_cursor_hover_color();
@@ -201,44 +239,48 @@ void GLGizmoPainterBase::render_cursor_circle() const
         render_color = this->get_cursor_sphere_left_button_color();
     else if (m_button_down == Button::Right)
         render_color = this->get_cursor_sphere_right_button_color();
-    glsafe(::glColor4fv(render_color.data()));
+    m_circle.set_color(render_color);
+
+    const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+    p_ogl_manager->set_line_width(1.5f);
 
     glsafe(::glDisable(GL_DEPTH_TEST));
 
-    glsafe(::glPushMatrix());
-    glsafe(::glLoadIdentity());
-    // ensure that the circle is renderered inside the frustrum
-    glsafe(::glTranslated(0.0, 0.0, -(camera.get_near_z() + 0.5)));
-    // ensure that the overlay fits the frustrum near z plane
-    double gui_scale = camera.get_gui_scale();
-    glsafe(::glScaled(gui_scale, gui_scale, 1.0));
+    GLboolean was_line_stipple_enabled = GL_FALSE;
+#ifdef __APPLE__
+    const auto& gl_info = p_ogl_manager->get_gl_info();
+    const auto formated_gl_version = gl_info.get_formated_gl_version();
+    if (formated_gl_version < 30)
+#endif
+    {
+        glsafe(::glGetBooleanv(GL_LINE_STIPPLE, &was_line_stipple_enabled));
+        glsafe(::glLineStipple(4, 0xAAAA));
+        glsafe(::glEnable(GL_LINE_STIPPLE));
+    }
 
-    glsafe(::glPushAttrib(GL_ENABLE_BIT));
-    glsafe(::glLineStipple(4, 0xAAAA));
-    glsafe(::glEnable(GL_LINE_STIPPLE));
+    m_circle.render_geometry();
 
-    ::glBegin(GL_LINE_LOOP);
-    for (double angle=0; angle<2*M_PI; angle+=M_PI/20.)
-        ::glVertex2f(GLfloat(center.x()+m_cursor_radius*cos(angle)), GLfloat(center.y()+m_cursor_radius*sin(angle)));
-    glsafe(::glEnd());
-
-    glsafe(::glPopAttrib());
-    glsafe(::glPopMatrix());
+    if (!was_line_stipple_enabled) {
+#ifdef __APPLE__
+        if (formated_gl_version < 30)
+#endif
+        {
+            glsafe(::glDisable(GL_LINE_STIPPLE));
+        }
+    }
     glsafe(::glEnable(GL_DEPTH_TEST));
+
+    wxGetApp().unbind_shader();
 }
 
 
 void GLGizmoPainterBase::render_cursor_sphere(const Transform3d& trafo) const
 {
+    const auto& p_flat_shader = wxGetApp().get_shader("flat");
+    if (!p_flat_shader)
+        return;
     const Transform3d complete_scaling_matrix_inverse = Geometry::Transformation(trafo).get_matrix(true, true, false, true).inverse();
     const bool is_left_handed = Geometry::Transformation(trafo).is_left_handed();
-
-    glsafe(::glPushMatrix());
-    glsafe(::glMultMatrixd(trafo.data()));
-    // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
-    glsafe(::glTranslatef(m_rr.hit(0), m_rr.hit(1), m_rr.hit(2)));
-    glsafe(::glMultMatrixd(complete_scaling_matrix_inverse.data()));
-    glsafe(::glScaled(m_cursor_radius, m_cursor_radius, m_cursor_radius));
 
     if (is_left_handed)
         glFrontFace(GL_CW);
@@ -249,14 +291,27 @@ void GLGizmoPainterBase::render_cursor_sphere(const Transform3d& trafo) const
         render_color = this->get_cursor_sphere_left_button_color();
     else if (m_button_down == Button::Right)
         render_color = this->get_cursor_sphere_right_button_color();
-    glsafe(::glColor4fv(render_color.data()));
 
-    m_vbo_sphere.render();
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    const auto& view_matrix = camera.get_projection_matrix();
+    const auto& proj_matrix = view_matrix;
+
+    // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
+    Transform3d view_model_matrix = camera.get_view_matrix() * trafo *
+        Geometry::assemble_transform(m_rr.hit.cast<double>()) * complete_scaling_matrix_inverse *
+        Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), m_cursor_radius * Vec3d::Ones());
+
+    wxGetApp().bind_shader(p_flat_shader);
+    p_flat_shader->set_uniform("view_model_matrix", view_model_matrix);
+    p_flat_shader->set_uniform("projection_matrix", proj_matrix);
+    p_flat_shader->set_uniform("uniform_color", render_color);
+
+    m_vbo_sphere.render(p_flat_shader);
+
+    wxGetApp().unbind_shader();
 
     if (is_left_handed)
         glFrontFace(GL_CCW);
-
-    glsafe(::glPopMatrix());
 }
 
 Vec2i GLGizmoPainterBase::_3d_to_mouse(Vec3d pos_in_3d, const Camera &camera) const
@@ -366,6 +421,15 @@ void GLGizmoPainterBase::render_cursor_height_range(const Transform3d& trafo) co
         m_cut_contours.resize(volumes_count * 2);
     }
     m_volumes_index = 0;
+
+    const auto& shader = wxGetApp().get_shader("flat");
+    if (shader == nullptr)
+        return;
+
+    wxGetApp().bind_shader(shader);
+
+    const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+
     for (const ModelVolume* mv : model_object->volumes) {
         TriangleMesh vol_mesh = mv->mesh();
         if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
@@ -380,15 +444,19 @@ void GLGizmoPainterBase::render_cursor_height_range(const Transform3d& trafo) co
         for (int i = 0; i < zs.size(); i++) {
             update_contours(m_volumes_index, vol_mesh, zs[i], max_z, min_z, m_is_cursor_in_imgui ? false : (i == 0 ? true : false));
 
-            glsafe(::glPushMatrix());
-            glsafe(::glTranslated(m_cut_contours[m_volumes_index].shift.x(), m_cut_contours[m_volumes_index].shift.y(), m_cut_contours[m_volumes_index].shift.z()));
-            glsafe(::glLineWidth(2.0f));
-            m_cut_contours[m_volumes_index].contours.render();
-            glsafe(::glPopMatrix());
+            const Camera& camera = wxGetApp().plater()->get_camera();
+            Transform3d view_model_matrix = camera.get_view_matrix() * Geometry::assemble_transform(m_cut_contours[m_volumes_index].shift);
+
+            shader->set_uniform("view_model_matrix", view_model_matrix);
+            shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+            p_ogl_manager->set_line_width(2.0f);
+            m_cut_contours[m_volumes_index].contours.render_geometry();
+
             m_volumes_index++;
         }
-
     }
+
+    wxGetApp().unbind_shader();
 }
 
 BoundingBoxf3 GLGizmoPainterBase::bounding_box() const
@@ -1202,50 +1270,38 @@ std::array<float, 4> TriangleSelectorGUI::get_seed_fill_color(const std::array<f
         1.f};
 }
 
-void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
+void TriangleSelectorGUI::render(ImGuiWrapper* imgui, const Transform3d& matrix)
 {
     if (m_update_render_data) {
         update_render_data();
         m_update_render_data = false;
     }
 
-    auto* shader = wxGetApp().get_current_shader();
-    if (! shader)
+    const auto shader = wxGetApp().get_current_shader();
+    if (!shader)
         return;
     assert(shader->get_name() == "gouraud");
     ScopeGuard guard([shader]() { if (shader) shader->set_uniform("offset_depth_buffer", false);});
     shader->set_uniform("offset_depth_buffer", true);
     for (auto iva : {std::make_pair(&m_iva_enforcers, enforcers_color),
                      std::make_pair(&m_iva_blockers, blockers_color)}) {
-        if (iva.first->has_VBOs()) {
-            shader->set_uniform("uniform_color", iva.second);
-            iva.first->render();
-        }
+        iva.first->set_color(iva.second);
+        iva.first->render_geometry();
     }
 
-    for (auto &iva : m_iva_seed_fills)
-        if (iva.has_VBOs()) {
-            size_t                      color_idx = &iva - &m_iva_seed_fills.front();
-            const std::array<float, 4> &color     = TriangleSelectorGUI::get_seed_fill_color(color_idx == 1 ? enforcers_color :
-                                                                                             color_idx == 2 ? blockers_color :
-                                                                                                              GLVolume::NEUTRAL_COLOR);
-            shader->set_uniform("uniform_color", color);
-            iva.render();
-        }
-
-    if (m_paint_contour.has_VBO()) {
-        ScopeGuard guard_gouraud([shader]() { shader->start_using(); });
-        shader->stop_using();
-
-        auto *contour_shader = wxGetApp().get_shader("mm_contour");
-        contour_shader->start_using();
-
-        glsafe(::glDepthFunc(GL_LEQUAL));
-        m_paint_contour.render();
-        glsafe(::glDepthFunc(GL_LESS));
-
-        contour_shader->stop_using();
+    for (auto& iva : m_iva_seed_fills) {
+        size_t                      color_idx = &iva - &m_iva_seed_fills.front();
+        const std::array<float, 4>& color = TriangleSelectorGUI::get_seed_fill_color(color_idx == 1 ? enforcers_color :
+            color_idx == 2 ? blockers_color :
+            GLVolume::NEUTRAL_COLOR);
+        iva.set_color(color);
+        iva.render_geometry();
     }
+
+    ScopeGuard guard_gouraud([shader]() { wxGetApp().bind_shader(shader); });
+    wxGetApp().unbind_shader();
+
+    render_paint_contour(matrix);
 
 #ifdef PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
     if (imgui)
@@ -1262,10 +1318,18 @@ void TriangleSelectorGUI::update_render_data()
     std::vector<int> seed_fill_cnt(m_iva_seed_fills.size(), 0);
 
     for (auto *iva : {&m_iva_enforcers, &m_iva_blockers})
-        iva->release_geometry();
+        iva->reset();
 
     for (auto &iva : m_iva_seed_fills)
-        iva.release_geometry();
+        iva.reset();
+
+    GLModel::Geometry iva_enforcers_data;
+    iva_enforcers_data.format = { GLModel::PrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3 };
+    GLModel::Geometry iva_blockers_data;
+    iva_blockers_data.format = { GLModel::PrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3 };
+    std::array<GLModel::Geometry, 3> iva_seed_fills_data;
+    for (auto& data : iva_seed_fills_data)
+        data.format = { GLModel::PrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3 };
 
     for (const Triangle &tr : m_triangles) {
         bool is_valid = tr.valid();
@@ -1276,9 +1340,9 @@ void TriangleSelectorGUI::update_render_data()
             continue;
 
         int tr_state = int(tr.get_state());
-        GLIndexedVertexArray &iva = tr.is_selected_by_seed_fill()                   ? m_iva_seed_fills[tr_state] :
-                                    tr.get_state() == EnforcerBlockerType::ENFORCER ? m_iva_enforcers :
-                                                                                      m_iva_blockers;
+        GLModel::Geometry& iva = tr.is_selected_by_seed_fill()                   ? iva_seed_fills_data[tr_state] :
+                                    tr.get_state() == EnforcerBlockerType::ENFORCER ? iva_enforcers_data :
+                                                                                      iva_blockers_data;
         int                  &cnt = tr.is_selected_by_seed_fill()                   ? seed_fill_cnt[tr_state] :
                                     tr.get_state() == EnforcerBlockerType::ENFORCER ? enf_cnt :
                                                                                       blc_cnt;
@@ -1288,37 +1352,64 @@ void TriangleSelectorGUI::update_render_data()
         //FIXME the normal may likely be pulled from m_triangle_selectors, but it may not be worth the effort
         // or the current implementation may be more cache friendly.
         const Vec3f           n   = (v1 - v0).cross(v2 - v1).normalized();
-        iva.push_geometry(v0, n);
-        iva.push_geometry(v1, n);
-        iva.push_geometry(v2, n);
-        iva.push_triangle(cnt, cnt + 1, cnt + 2);
+        iva.add_vertex(v0, n);
+        iva.add_vertex(v1, n);
+        iva.add_vertex(v2, n);
+        iva.add_triangle((unsigned int)cnt, (unsigned int)cnt + 1, (unsigned int)cnt + 2);
         cnt += 3;
     }
 
-    for (auto *iva : {&m_iva_enforcers, &m_iva_blockers})
-        iva->finalize_geometry(true);
-
-    for (auto &iva : m_iva_seed_fills)
-        iva.finalize_geometry(true);
-
-    m_paint_contour.release_geometry();
-    std::vector<Vec2i> contour_edges = this->get_seed_fill_contour();
-    m_paint_contour.contour_vertices.reserve(contour_edges.size() * 6);
-    for (const Vec2i &edge : contour_edges) {
-        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(0)].v.x());
-        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(0)].v.y());
-        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(0)].v.z());
-
-        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(1)].v.x());
-        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(1)].v.y());
-        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(1)].v.z());
+    if (!iva_enforcers_data.is_empty())
+        m_iva_enforcers.init_from(std::move(iva_enforcers_data));
+    if (!iva_blockers_data.is_empty())
+        m_iva_blockers.init_from(std::move(iva_blockers_data));
+    for (size_t i = 0; i < m_iva_seed_fills.size(); ++i) {
+        if (!iva_seed_fills_data[i].is_empty())
+            m_iva_seed_fills[i].init_from(std::move(iva_seed_fills_data[i]));
     }
 
-    m_paint_contour.contour_indices.assign(m_paint_contour.contour_vertices.size() / 3, 0);
-    std::iota(m_paint_contour.contour_indices.begin(), m_paint_contour.contour_indices.end(), 0);
-    m_paint_contour.contour_indices_size = m_paint_contour.contour_indices.size();
+    update_paint_contour();
+}
 
-    m_paint_contour.finalize_geometry();
+void TriangleSelectorGUI::update_paint_contour()
+{
+    m_paint_contour.reset();
+
+    GLModel::Geometry init_data;
+    const std::vector<Vec2i> contour_edges = this->get_seed_fill_contour();
+    init_data.format = { GLModel::PrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3 };
+    init_data.reserve_vertices(2 * contour_edges.size());
+    init_data.reserve_indices(2 * contour_edges.size());
+    init_data.color = ColorRGBA::WHITE();
+    // vertices + indices
+    unsigned int vertices_count = 0;
+    for (const Vec2i& edge : contour_edges) {
+        init_data.add_vertex(m_vertices[edge(0)].v);
+        init_data.add_vertex(m_vertices[edge(1)].v);
+        vertices_count += 2;
+        init_data.add_line(vertices_count - 2, vertices_count - 1);
+    }
+
+    if (!init_data.is_empty())
+        m_paint_contour.init_from(std::move(init_data));
+}
+void TriangleSelectorGUI::render_paint_contour(const Transform3d& matrix)
+{
+    const auto& contour_shader = wxGetApp().get_shader("mm_contour");
+    if (contour_shader)
+    {
+        wxGetApp().bind_shader(contour_shader);
+
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        contour_shader->set_uniform("view_model_matrix", camera.get_view_matrix() * matrix);
+        contour_shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+
+        glsafe(::glDepthFunc(GL_LEQUAL));
+        m_paint_contour.render_geometry();
+        glsafe(::glDepthFunc(GL_LESS));
+
+        wxGetApp().unbind_shader();
+    }
 }
 
 // BBS
@@ -1330,30 +1421,21 @@ bool TrianglePatch::is_fragment() const
 float TriangleSelectorPatch::gap_area = TriangleSelectorPatch::GapAreaMin;
 bool  TriangleSelectorPatch::exist_gap_area = false;
 
-void TriangleSelectorPatch::render(ImGuiWrapper* imgui)
+void TriangleSelectorPatch::render(ImGuiWrapper* imgui, const Transform3d& matrix)
 {
-    if (m_cached_wireframe_mode != wxGetApp().plater()->is_show_wireframe()) {
-        m_cached_wireframe_mode = wxGetApp().plater()->is_show_wireframe();
-        m_update_render_data = true;
-        m_paint_changed      = true;
-    }
     if (m_update_render_data)
         update_render_data();
 
-    auto* shader = wxGetApp().get_current_shader();
+    const auto shader = wxGetApp().get_current_shader();
     if (!shader)
         return;
     assert(shader->get_name() == "mm_gouraud");
     GLint position_id = -1;
     GLint barycentric_id = -1;
-    bool  show_wireframe = false;
     if (wxGetApp().plater()->is_wireframe_enabled()) {
         if (m_need_wireframe && wxGetApp().plater()->is_show_wireframe()) {
-            position_id    = shader->get_attrib_location("v_position");
-            barycentric_id = shader->get_attrib_location("v_barycentric");
             //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", show_wireframe on");
             shader->set_uniform("show_wireframe", true);
-            show_wireframe = true;
         }
         else {
             //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", show_wireframe off");
@@ -1380,24 +1462,14 @@ void TriangleSelectorPatch::render(ImGuiWrapper* imgui)
             shader->set_uniform("uniform_color", new_color);
             //shader->set_uniform("uniform_color", color);
             //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", buffer_idx %1%: new_color[%2%, %3%, %4%, %5%]")%buffer_idx%new_color[0]%new_color[1]%new_color[2]%new_color[3];
-            this->render(buffer_idx, (int) position_id, show_wireframe);
+            this->render(buffer_idx);
         }
     }
 
-    if (m_paint_contour.has_VBO())
-    {
-        ScopeGuard guard_mm_gouraud([shader]() { shader->start_using(); });
-        shader->stop_using();
+    ScopeGuard guard_mm_gouraud([shader]() { wxGetApp().bind_shader(shader); });
+    wxGetApp().unbind_shader();
 
-        auto* contour_shader = wxGetApp().get_shader("mm_contour");
-        contour_shader->start_using();
-
-        glsafe(::glDepthFunc(GL_LEQUAL));
-        m_paint_contour.render();
-        glsafe(::glDepthFunc(GL_LESS));
-
-        contour_shader->stop_using();
-    }
+    render_paint_contour(matrix);
 
     m_update_render_data = false;
 }
@@ -1412,8 +1484,6 @@ void TriangleSelectorPatch::update_triangles_per_type()
         patch.triangle_indices.reserve(m_triangles.size() / 3);
     }
 
-    bool using_wireframe = (wxGetApp().plater()->is_wireframe_enabled() && wxGetApp().plater()->is_show_wireframe()) ? true : false;
-
     for (auto& triangle : m_triangles) {
         if (!triangle.valid() || triangle.is_split())
             continue;
@@ -1423,27 +1493,25 @@ void TriangleSelectorPatch::update_triangles_per_type()
         //patch.triangle_indices.insert(patch.triangle_indices.end(), triangle.verts_idxs.begin(), triangle.verts_idxs.end());
         for (int i = 0; i < 3; ++i) {
             int j = triangle.verts_idxs[i];
-            int index = using_wireframe?int(patch.patch_vertices.size()/6) : int(patch.patch_vertices.size()/3);
+            int index = int(patch.patch_vertices.size() / 6);
             //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: i=%2%, j=%3%, index=%4%, v[%5%,%6%,%7%]")%__LINE__%i%j%index%m_vertices[j].v(0)%m_vertices[j].v(1)%m_vertices[j].v(2);
             patch.patch_vertices.emplace_back(m_vertices[j].v(0));
             patch.patch_vertices.emplace_back(m_vertices[j].v(1));
             patch.patch_vertices.emplace_back(m_vertices[j].v(2));
-            if (using_wireframe) {
-                if (i == 0) {
-                    patch.patch_vertices.emplace_back(1.0);
-                    patch.patch_vertices.emplace_back(0.0);
-                    patch.patch_vertices.emplace_back(0.0);
-                }
-                else if (i == 1) {
-                    patch.patch_vertices.emplace_back(0.0);
-                    patch.patch_vertices.emplace_back(1.0);
-                    patch.patch_vertices.emplace_back(0.0);
-                }
-                else {
-                    patch.patch_vertices.emplace_back(0.0);
-                    patch.patch_vertices.emplace_back(0.0);
-                    patch.patch_vertices.emplace_back(1.0);
-                }
+            if (i == 0) {
+                patch.patch_vertices.emplace_back(1.0);
+                patch.patch_vertices.emplace_back(0.0);
+                patch.patch_vertices.emplace_back(0.0);
+            }
+            else if (i == 1) {
+                patch.patch_vertices.emplace_back(0.0);
+                patch.patch_vertices.emplace_back(1.0);
+                patch.patch_vertices.emplace_back(0.0);
+            }
+            else {
+                patch.patch_vertices.emplace_back(0.0);
+                patch.patch_vertices.emplace_back(0.0);
+                patch.patch_vertices.emplace_back(1.0);
             }
             patch.triangle_indices.emplace_back( index);
         }
@@ -1469,8 +1537,6 @@ void TriangleSelectorPatch::update_triangles_per_patch()
 {
     auto [neighbors, neighbors_propagated] = this->precompute_all_neighbors();
     std::vector<bool>  visited(m_triangles.size(), false);
-
-    bool using_wireframe = (wxGetApp().plater()->is_wireframe_enabled() && wxGetApp().plater()->is_show_wireframe()) ? true : false; 
 
     auto get_all_touching_triangles = [this](int facet_idx, const Vec3i& neighbors, const Vec3i& neighbors_propagated) -> std::vector<int> {
         assert(facet_idx != -1 && facet_idx < int(m_triangles.size()));
@@ -1533,26 +1599,24 @@ void TriangleSelectorPatch::update_triangles_per_patch()
                 Triangle& triangle = m_triangles[current_facet];
                 for (int i = 0; i < 3; ++i) {
                     int j = triangle.verts_idxs[i];
-                    int index = using_wireframe?int(patch.patch_vertices.size()/6) : int(patch.patch_vertices.size()/3);
+                    int index = int(patch.patch_vertices.size() / 6);
                     patch.patch_vertices.emplace_back(m_vertices[j].v(0));
                     patch.patch_vertices.emplace_back(m_vertices[j].v(1));
                     patch.patch_vertices.emplace_back(m_vertices[j].v(2));
-                    if (using_wireframe) {
-                        if (i == 0) {
-                            patch.patch_vertices.emplace_back(1.0);
-                            patch.patch_vertices.emplace_back(0.0);
-                            patch.patch_vertices.emplace_back(0.0);
-                        }
-                        else if (i == 1) {
-                            patch.patch_vertices.emplace_back(0.0);
-                            patch.patch_vertices.emplace_back(1.0);
-                            patch.patch_vertices.emplace_back(0.0);
-                        }
-                        else {
-                            patch.patch_vertices.emplace_back(0.0);
-                            patch.patch_vertices.emplace_back(0.0);
-                            patch.patch_vertices.emplace_back(1.0);
-                        }
+                    if (i == 0) {
+                        patch.patch_vertices.emplace_back(1.0);
+                        patch.patch_vertices.emplace_back(0.0);
+                        patch.patch_vertices.emplace_back(0.0);
+                    }
+                    else if (i == 1) {
+                        patch.patch_vertices.emplace_back(0.0);
+                        patch.patch_vertices.emplace_back(1.0);
+                        patch.patch_vertices.emplace_back(0.0);
+                    }
+                    else {
+                        patch.patch_vertices.emplace_back(0.0);
+                        patch.patch_vertices.emplace_back(0.0);
+                        patch.patch_vertices.emplace_back(1.0);
                     }
                     patch.triangle_indices.emplace_back( index);
                 }
@@ -1581,7 +1645,7 @@ void TriangleSelectorPatch::update_triangles_per_patch()
             visited[current_facet] = true;
         }
 
-        patch.area = calc_fragment_area(patch, GapAreaMax, using_wireframe?6:3);
+        patch.area = calc_fragment_area(patch, GapAreaMax, 6);
         patch.type = start_facet_state;
         m_triangle_patches.emplace_back(std::move(patch));
      }
@@ -1623,28 +1687,12 @@ void TriangleSelectorPatch::update_render_data()
 
     //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", before paint_contour");
 
-    m_paint_contour.release_geometry();
-    std::vector<Vec2i> contour_edges = this->get_seed_fill_contour();
-    m_paint_contour.contour_vertices.reserve(contour_edges.size() * 6);
-    for (const Vec2i& edge : contour_edges) {
-        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(0)].v.x());
-        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(0)].v.y());
-        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(0)].v.z());
+    update_paint_contour();
 
-        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(1)].v.x());
-        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(1)].v.y());
-        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(1)].v.z());
-    }
-
-    m_paint_contour.contour_indices.assign(m_paint_contour.contour_vertices.size() / 3, 0);
-    std::iota(m_paint_contour.contour_indices.begin(), m_paint_contour.contour_indices.end(), 0);
-    m_paint_contour.contour_indices_size = m_paint_contour.contour_indices.size();
-
-    m_paint_contour.finalize_geometry();
     //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", exit");
 }
 
-void TriangleSelectorPatch::render(int triangle_indices_idx, int position_id, bool show_wireframe)
+void TriangleSelectorPatch::render(int triangle_indices_idx)
 {
     assert(triangle_indices_idx < this->m_triangle_indices_VBO_ids.size());
     assert(this->m_triangle_patches.size() == this->m_triangle_indices_VBO_ids.size());
@@ -1653,24 +1701,30 @@ void TriangleSelectorPatch::render(int triangle_indices_idx, int position_id, bo
     assert(this->m_vertices_VBO_ids[triangle_indices_idx] != 0);
     assert(this->m_triangle_indices_VBO_ids[triangle_indices_idx] != 0);
 
-    //glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->m_vertices_VBO_id));
-    //glsafe(::glVertexPointer(3, GL_FLOAT, 3 * sizeof(float), (const void*)(0 * sizeof(float))));
+    const auto& shader = wxGetApp().get_current_shader();
+    if (shader == nullptr)
+        return;
+
+    int position_id = -1;
+    int color_id = -1;
+
     if (this->m_triangle_indices_sizes[triangle_indices_idx] > 0) {
         glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->m_vertices_VBO_ids[triangle_indices_idx]));
-        if (show_wireframe) {
-            glsafe(::glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), (const void *) 0));
-            glsafe(::glColorPointer(3,GL_FLOAT, 6 * sizeof(float), (const void *) (3 * sizeof(float))));
-            glsafe(::glEnableClientState(GL_COLOR_ARRAY));
+        position_id = shader->get_attrib_location("v_position");
+
+        if (position_id != -1) {
+            glsafe(::glVertexAttribPointer((GLint)position_id, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), nullptr));
+            glsafe(::glEnableVertexAttribArray((GLint)position_id));
         }
-        else {
-            glsafe(::glVertexPointer(3, GL_FLOAT, 3 * sizeof(float), nullptr));
+        color_id = shader->get_attrib_location("v_color");
+        if (color_id != -1) {
+            glsafe(::glVertexAttribPointer((GLint)color_id, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (const void*)(3 * sizeof(float))));
+            glsafe(::glEnableVertexAttribArray((GLint)color_id));
         }
 
         //glsafe(::glVertexPointer(3, GL_FLOAT, 3 * sizeof(float), nullptr));
         //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: triangle_indices_idx %2%, bind vertex vbo, buffer id %3%")%__LINE__%triangle_indices_idx%this->m_vertices_VBO_ids[triangle_indices_idx];
     }
-
-    glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
 
     // Render using the Vertex Buffer Objects.
     if (this->m_triangle_indices_sizes[triangle_indices_idx] > 0) {
@@ -1680,14 +1734,16 @@ void TriangleSelectorPatch::render(int triangle_indices_idx, int position_id, bo
         //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: triangle_indices_idx %2%, bind indices vbo, buffer id %3%")%__LINE__%triangle_indices_idx%this->m_triangle_indices_VBO_ids[triangle_indices_idx];
     }
 
-    glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
-    if ((this->m_triangle_indices_sizes[triangle_indices_idx] > 0)&&(position_id != -1))
-        glsafe(::glDisableVertexAttribArray(position_id));
-    if ((this->m_triangle_indices_sizes[triangle_indices_idx] > 0)&&show_wireframe) {
-        glsafe(::glDisableClientState(GL_COLOR_ARRAY));
-    }
     if (this->m_triangle_indices_sizes[triangle_indices_idx] > 0)
+    {
+        if (position_id != -1) {
+            glsafe(::glDisableVertexAttribArray(position_id));
+        }
+        if (color_id != -1) {
+            glsafe(::glDisableVertexAttribArray(color_id));
+        }
         glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+    }
 }
 
 void TriangleSelectorPatch::release_geometry()
@@ -1754,15 +1810,23 @@ void TriangleSelectorPatch::finalize_triangle_indices()
 
 void GLPaintContour::render() const
 {
+    const auto shader = wxGetApp().get_current_shader();
+    if (shader == nullptr)
+        return;
+
     assert(this->m_contour_VBO_id != 0);
     assert(this->m_contour_EBO_id != 0);
 
-    glsafe(::glLineWidth(4.0f));
+    const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+    p_ogl_manager->set_line_width(4.0f);
 
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->m_contour_VBO_id));
-    glsafe(::glVertexPointer(3, GL_FLOAT, 3 * sizeof(float), nullptr));
 
-    glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
+    auto position_id = shader->get_attrib_location("v_position");
+    if (position_id != -1) {
+        glsafe(::glVertexAttribPointer((GLint)position_id, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr));
+        glsafe(::glEnableVertexAttribArray((GLint)position_id));
+    }
 
     if (this->contour_indices_size > 0) {
         glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->m_contour_EBO_id));
@@ -1770,9 +1834,11 @@ void GLPaintContour::render() const
         glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
     }
 
-    glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
-
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+
+    if (position_id != -1) {
+        glsafe(::glDisableVertexAttribArray(position_id));
+    }
 }
 
 void GLPaintContour::finalize_geometry()
@@ -1846,56 +1912,73 @@ void TriangleSelectorGUI::render_debug(ImGuiWrapper* imgui)
     };
 
     for (auto& va : m_varrays)
-        va.release_geometry();
+        va.reset();
 
     std::array<int, 3> cnts;
 
-    ::glScalef(1.01f, 1.01f, 1.01f);
+    std::array<GLModel::Geometry, 3> varrays_data;
+    for (auto& data : varrays_data)
+        data.format = { GLModel::PrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3, GLModel::Geometry::EIndexType::UINT };
 
     for (int tr_id=0; tr_id<int(m_triangles.size()); ++tr_id) {
         const Triangle& tr = m_triangles[tr_id];
-        GLIndexedVertexArray* va = nullptr;
+        GLModel::Geometry* va = nullptr;
         int* cnt = nullptr;
         if (tr_id < m_orig_size_indices) {
-            va = &m_varrays[ORIGINAL];
+            va = &varrays_data[ORIGINAL];
             cnt = &cnts[ORIGINAL];
         }
         else if (tr.valid()) {
-            va = &m_varrays[SPLIT];
+            va = &varrays_data[SPLIT];
             cnt = &cnts[SPLIT];
         }
         else {
             if (! m_show_invalid)
                 continue;
-            va = &m_varrays[INVALID];
+            va = &varrays_data[INVALID];
             cnt = &cnts[INVALID];
         }
 
-        for (int i=0; i<3; ++i)
-            va->push_geometry(double(m_vertices[tr.verts_idxs[i]].v[0]),
-                              double(m_vertices[tr.verts_idxs[i]].v[1]),
-                              double(m_vertices[tr.verts_idxs[i]].v[2]),
-                              0., 0., 1.);
-        va->push_triangle(*cnt,
-                          *cnt+1,
-                          *cnt+2);
+        for (int i = 0; i < 3; ++i) {
+            va->add_vertex(m_vertices[tr.verts_idxs[i]].v, Vec3f(0.0f, 0.0f, 1.0f));
+        }
+        va->add_uint_triangle((unsigned int)*cnt, (unsigned int)*cnt + 1, (unsigned int)*cnt + 2);
         *cnt += 3;
     }
 
-    ::glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-    for (vtype i : {ORIGINAL, SPLIT, INVALID}) {
-        GLIndexedVertexArray& va = m_varrays[i];
-        va.finalize_geometry(true);
-        if (va.has_VBOs()) {
+    for (int i = 0; i < 3; ++i) {
+        if (!varrays_data[i].is_empty())
+            m_varrays[i].init_from(std::move(varrays_data[i]));
+    }
+
+    const auto curr_shader = wxGetApp().get_current_shader();
+    if (curr_shader != nullptr)
+        wxGetApp().unbind_shader();
+
+    const auto& shader = wxGetApp().get_shader("flat");
+    if (shader != nullptr) {
+        wxGetApp().bind_shader(shader);
+
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        shader->set_uniform("view_model_matrix", camera.get_view_matrix());
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+
+        ::glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        for (vtype i : {ORIGINAL, SPLIT, INVALID}) {
+            GLModel& va = m_varrays[i];
             switch (i) {
-            case ORIGINAL : ::glColor3f(0.f, 0.f, 1.f); break;
-            case SPLIT    : ::glColor3f(1.f, 0.f, 0.f); break;
-            case INVALID  : ::glColor3f(1.f, 1.f, 0.f); break;
+            case ORIGINAL: va.set_color({ 0.0f, 0.0f, 1.0f, 1.0f }); break;
+            case SPLIT:    va.set_color({ 1.0f, 0.0f, 0.0f, 1.0f }); break;
+            case INVALID:  va.set_color({ 1.0f, 1.0f, 0.0f, 1.0f }); break;
             }
             va.render();
         }
+        ::glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        wxGetApp().unbind_shader();
     }
-    ::glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+
+    if (curr_shader != nullptr)
+        wxGetApp().bind_shader(curr_shader);
 }
 #endif
 

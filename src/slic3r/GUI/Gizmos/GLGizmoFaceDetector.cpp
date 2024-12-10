@@ -32,9 +32,9 @@ std::string GLGizmoFaceDetector::on_get_name() const
 
 void GLGizmoFaceDetector::on_render()
 {
-    if (m_iva.has_VBOs()) {
-        ::glColor4f(0.f, 0.f, 1.f, 0.4f);
-        m_iva.render();
+    if (m_model.is_initialized()) {
+        m_model.set_color({ 0.f, 0.f, 1.f, 0.4f });
+        m_model.render_geometry();
     }
 }
 
@@ -72,7 +72,7 @@ void GLGizmoFaceDetector::on_render_input_window(float x, float y, float bottom_
 void GLGizmoFaceDetector::on_set_state()
 {
     if (get_state() == On) {
-        m_iva.release_geometry();
+        m_model.reset();
         display_exterior_face();
     }
 }
@@ -94,8 +94,11 @@ void GLGizmoFaceDetector::perform_recognition(const Selection& selection)
 void GLGizmoFaceDetector::display_exterior_face()
 {
     int cnt = 0;
-    m_iva.release_geometry();
+    m_model.reset();
 
+    GLModel::Geometry init_data;
+    init_data.format = { GLModel::PrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3 };
+    init_data.index_type = GLModel::Geometry::EIndexType::UINT;
     const ModelObjectPtrs& objects = wxGetApp().model().objects;
     for (ModelObject* mo : objects) {
         const ModelInstance* mi = mo->instances[0];
@@ -110,19 +113,16 @@ void GLGizmoFaceDetector::display_exterior_face()
                     continue;
 
                 for (int i = 0; i < 3; ++i) {
-                    m_iva.push_geometry(double(mv_its.vertices[facet_vert_idxs[i]](0)),
-                        double(mv_its.vertices[facet_vert_idxs[i]](1)),
-                        double(mv_its.vertices[facet_vert_idxs[i]](2)),
-                        0., 0., 1.);
+                    init_data.add_vertex((Vec3f)mv_its.vertices[facet_vert_idxs[i]].cast<float>(), Vec3f{ 0.0f, 0.0f, 1.0f });
                 }
 
-                m_iva.push_triangle(cnt, cnt + 1, cnt + 2);
+                init_data.add_triangle(cnt, cnt + 1, cnt + 2);
                 cnt += 3;
             }
         }
     }
 
-    m_iva.finalize_geometry(true);
+    m_model.init_from(std::move(init_data));
 }
 
 CommonGizmosDataID GLGizmoFaceDetector::on_get_requirements() const

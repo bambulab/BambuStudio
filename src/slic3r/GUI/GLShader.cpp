@@ -168,9 +168,6 @@ bool GLShaderProgram::init_from_texts(const std::string& name, const ShaderSourc
         if (shader_ids[i] > 0)
             glsafe(::glAttachShader(m_id, shader_ids[i]));
     }
-    if (boost::ends_with(name,"_instance")) {
-        glBindAttribLocation(m_id, 3, "instanceMatrix");
-    }
 
     glsafe(::glLinkProgram(m_id));
     GLint params;
@@ -202,11 +199,6 @@ void GLShaderProgram::start_using() const
 {
     assert(m_id > 0);
     glsafe(::glUseProgram(m_id));
-}
-
-void GLShaderProgram::stop_using() const
-{
-    glsafe(::glUseProgram(0));
 }
 
 bool GLShaderProgram::set_uniform(const char* name, int value) const
@@ -387,13 +379,13 @@ int GLShaderProgram::get_attrib_location(const char* name) const
         // Shader program not loaded. This should not happen.
         return -1;
 
-    //auto it = std::find_if(m_attrib_location_cache.begin(), m_attrib_location_cache.end(), [name](const auto& p) { return p.first == name; });
-    //if (it != m_attrib_location_cache.end())
-    //    // Attrib ID cached.
-    //    return it->second;
+    auto it = std::find_if(m_attrib_location_cache.begin(), m_attrib_location_cache.end(), [name](const auto& p) { return p.first == name; });
+    if (it != m_attrib_location_cache.end())
+        // Attrib ID cached.
+        return it->second;
 
     int id = ::glGetAttribLocation(m_id, name);
-    //const_cast<GLShaderProgram*>(this)->m_attrib_location_cache.push_back({ name, id });
+    const_cast<GLShaderProgram*>(this)->m_attrib_location_cache.push_back({ name, id });
     return id;
 }
 

@@ -180,8 +180,12 @@ private:
 
     GLModel m_plane; // old name:PickingModel
 
+    GLModel m_grabber_model;
+
     Vec3d m_cut_line_begin{Vec3d::Zero()};
     Vec3d m_cut_line_end{Vec3d::Zero()};
+
+    GLModel m_cut_line_model;
 
     Transform3d m_rotate_matrix{Transform3d::Identity()};
     Transform3d m_start_dragging_m{Transform3d::Identity()};

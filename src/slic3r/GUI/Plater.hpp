@@ -634,6 +634,8 @@ public:
 
     const Camera& get_camera() const;
     Camera& get_camera();
+    const Camera& get_picking_camera() const;
+    Camera& get_picking_camera();
 
     //BBS: partplate list related functions
     PartPlateList& get_partplate_list();

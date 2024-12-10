@@ -5199,7 +5199,7 @@ int CLI::run(int argc, char **argv)
 
     //opengl related
     Slic3r::GUI::OpenGLManager opengl_mgr;
-    GLShaderProgram* shader = nullptr;
+    std::shared_ptr<GLShaderProgram> shader = nullptr;
     GLVolumeCollection glvolume_collection;
     bool opengl_valid = false;
     const ConfigOptionStrings* filament_color = dynamic_cast<const ConfigOptionStrings *>(m_print_config.option("filament_colour"));
@@ -5883,6 +5883,7 @@ int CLI::run(int argc, char **argv)
                                     auto cli_generate_thumbnails = [&partplate_list, &model, &glvolume_collection, &colors_out, &shader, &opengl_mgr](const ThumbnailsParams& params) -> ThumbnailsList{
                                         ThumbnailsList thumbnails;
                                         opengl_mgr.bind_vao();
+                                        opengl_mgr.bind_shader(shader);
                                         for (const Vec2d& size : params.sizes) {
                                             thumbnails.push_back(ThumbnailData());
                                             Point isize(size); // round to ints
@@ -5912,6 +5913,7 @@ int CLI::run(int argc, char **argv)
                                             if (!thumbnails.back().is_valid())
                                                 thumbnails.pop_back();
                                         }
+                                        opengl_mgr.unbind_shader();
                                         opengl_mgr.unbind_vao();
                                         return thumbnails;
                                     };
@@ -6423,6 +6425,7 @@ int CLI::run(int argc, char **argv)
                     if (opengl_valid) {
                         Model &model = m_models[0];
                         opengl_mgr.bind_vao();
+                        opengl_mgr.bind_shader(shader);
                         for (int i = 0; i < partplate_list.get_plate_count(); i++) {
                             Slic3r::GUI::PartPlate *part_plate      = partplate_list.get_plate(i);
                             PlateData *plate_data = plate_data_list[i];
@@ -6654,7 +6657,7 @@ int CLI::run(int argc, char **argv)
                                 BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%: add thumbnail data for top and pick into group")%(i+1);
                             }
                         }
-
+                        opengl_mgr.unbind_shader();
                         opengl_mgr.unbind_vao();
                     }
                 }

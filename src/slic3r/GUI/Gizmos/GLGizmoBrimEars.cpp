@@ -120,18 +120,24 @@ void GLGizmoBrimEars::render_points(const Selection &selection, bool picking) co
 
     if (!has_points) return;
 
-    GLShaderProgram *shader = picking ? nullptr : wxGetApp().get_shader("gouraud_light");
-    if (shader != nullptr) shader->start_using();
+    const auto& shader = wxGetApp().get_shader(picking ? "flat" : "gouraud_light");
+    if (shader == nullptr)
+        return;
+
+    wxGetApp().bind_shader(shader);
     ScopeGuard guard([shader]() {
-        if (shader != nullptr) shader->stop_using();
+        wxGetApp().unbind_shader();
     });
 
     const GLVolume    *vol                             = selection.get_volume(*selection.get_volume_idxs().begin());
     const Transform3d &instance_scaling_matrix_inverse = vol->get_instance_transformation().get_matrix(true, true, false, true).inverse();
     const Transform3d &instance_matrix                 = vol->get_instance_transformation().get_matrix();
 
-    glsafe(::glPushMatrix());
-    glsafe(::glMultMatrixd(instance_matrix.data()));
+    const Camera& camera = picking ? wxGetApp().plater()->get_picking_camera() : wxGetApp().plater()->get_camera();
+    const Transform3d& view_matrix = camera.get_view_matrix();
+    const Transform3d& projection_matrix = camera.get_projection_matrix();
+
+    shader->set_uniform("projection_matrix", projection_matrix);
 
     ColorRGBA render_color;
     for (size_t i = 0; i < cache_size; ++i) {
@@ -171,33 +177,34 @@ void GLGizmoBrimEars::render_points(const Selection &selection, bool picking) co
         if (shader && !picking) shader->set_uniform("emission_factor", 0.5f);
 
         // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
-        glsafe(::glPushMatrix());
-        glsafe(::glTranslatef(brim_point.pos(0), brim_point.pos(1), brim_point.pos(2)));
-        glsafe(::glMultMatrixd(instance_scaling_matrix_inverse.data()));
+        const Transform3d brim_matrix = Geometry::assemble_transform(brim_point.pos.cast<double>()) * instance_scaling_matrix_inverse;
 
-        if (vol->is_left_handed()) glFrontFace(GL_CW);
+        if (vol->is_left_handed())
+            glFrontFace(GL_CW);
 
         // Matrices set, we can render the point mark now.
         // If in editing mode, we'll also render a cone pointing to the sphere.
-        if (editing_cache[i].normal == Vec3f::Zero()) m_c->raycaster()->raycaster()->get_closest_point(editing_cache[i].brim_point.pos, &editing_cache[i].normal);
+        if (editing_cache[i].normal == Vec3f::Zero())
+            m_c->raycaster()->raycaster()->get_closest_point(editing_cache[i].brim_point.pos, &editing_cache[i].normal);
+
+        double radius = (double)brim_point.head_front_radius * RenderPointScale;
 
         Eigen::Quaterniond q;
         q.setFromTwoVectors(Vec3d{0., 0., 1.}, instance_scaling_matrix_inverse * editing_cache[i].normal.cast<double>());
         Eigen::AngleAxisd aa(q);
-        glsafe(::glRotated(aa.angle() * (180. / M_PI), aa.axis()(0), aa.axis()(1), aa.axis()(2)));
 
-        glsafe(::glPushMatrix());
-        double radius = (double) brim_point.head_front_radius * RenderPointScale;
-        glsafe(::glScaled(radius, radius, .2));
-        m_cylinder.render();
-        glsafe(::glPopMatrix());
+        const Transform3d view_model_matrix = view_matrix * instance_matrix * brim_matrix * Transform3d(aa.toRotationMatrix()) *
+            Geometry::assemble_transform(Vec3d(0.0, 0.0, 0.0),
+                Vec3d(PI, 0.0, 0.0), Vec3d(radius, radius, .2));
 
-        if (vol->is_left_handed()) glFrontFace(GL_CCW);
+        shader->set_uniform("view_model_matrix", view_model_matrix);
+        shader->set_uniform("normal_matrix", (Matrix3d)view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
 
-        glsafe(::glPopMatrix());
+        m_cylinder.render_geometry();
+
+        if (vol->is_left_handed())
+            glFrontFace(GL_CCW);
     }
-
-    glsafe(::glPopMatrix());
 }
 
 bool GLGizmoBrimEars::is_mesh_point_clipped(const Vec3d &point) const

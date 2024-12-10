@@ -4,6 +4,7 @@
 #include "GLCanvas3D.hpp"
 #include "GUI_App.hpp"
 #include "Plater.hpp"
+#include "OpenGLManager.hpp"
 #include <igl/project.h>
 
 #include <GL/glew.h>
@@ -75,13 +76,18 @@ namespace GUI {
             return;
 
         const Camera& camera = wxGetApp().plater()->get_camera();
+        const auto& view_matrix = camera.get_view_matrix_for_billboard();
+        const auto& proj_matrix = camera.get_projection_matrix();
         float inv_zoom = (float)camera.get_inv_zoom();
 
         Size cnv_size = canvas.get_canvas_size();
-        float cnv_half_width = 0.5f * (float)cnv_size.get_width();
-        float cnv_half_height = 0.5f * (float)cnv_size.get_height();
-        if ((cnv_half_width == 0.0f) || (cnv_half_height == 0.0f))
+        const int cnv_width = cnv_size.get_width();
+        const int cnv_height = cnv_size.get_height();
+        if (0 == cnv_width || 0 == cnv_height) {
             return;
+        }
+        float cnv_half_width = 0.5f * static_cast<float>(cnv_width);
+        float cnv_half_height = 0.5f * static_cast<float>(cnv_height);
 
         Vec2d start(m_start_corner(0) - cnv_half_width, cnv_half_height - m_start_corner(1));
         Vec2d end(m_end_corner(0) - cnv_half_width, cnv_half_height - m_end_corner(1));
@@ -91,37 +97,73 @@ namespace GUI {
         float right = (float)std::max(start(0), end(0)) * inv_zoom;
         float bottom = (float)std::min(start(1), end(1)) * inv_zoom;
 
-        glsafe(::glLineWidth(1.5f));
-        float color[3];
-        color[0] = 0.00f;
-        color[1] = 1.00f;
-        color[2] = 0.38f;
-        glsafe(::glColor3fv(color));
+        const auto& p_flat_shader = wxGetApp().get_shader("flat");
+        if (!p_flat_shader) {
+            return;
+        }
 
+        if (!m_rectangle.is_initialized()) {
+            GLModel::Geometry init_data;
+            init_data.format = { GLModel::PrimitiveType::LineLoop, GLModel::Geometry::EVertexLayout::P3 };
+            init_data.reserve_vertices(4);
+            init_data.reserve_indices(4);
+
+            // vertices
+            init_data.add_vertex(Vec3f(-0.5f, -0.5f, 0.0f));
+            init_data.add_vertex(Vec3f(0.5f,  -0.5f, 0.0f));
+            init_data.add_vertex(Vec3f(0.5f,   0.5f, 0.0f));
+            init_data.add_vertex(Vec3f(-0.5f,  0.5f, 0.0f));
+
+            // indices
+            init_data.add_index(0);
+            init_data.add_index(1);
+            init_data.add_index(2);
+            init_data.add_index(3);
+
+            m_rectangle.init_from(std::move(init_data));
+        }
+
+        Transform3d model_matrix{ Transform3d::Identity() };
+        model_matrix.data()[3 * 4 + 0] = (left + right) * 0.5f;
+        model_matrix.data()[3 * 4 + 1] = (top + bottom) * 0.5f;
+        model_matrix.data()[0 * 4 + 0] = (right - left);
+        model_matrix.data()[1 * 4 + 1] = (top - bottom);
+
+        GLboolean was_line_stipple_enabled = GL_FALSE;
+
+        const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+        p_ogl_manager->set_line_width(1.5f);
         glsafe(::glDisable(GL_DEPTH_TEST));
 
-        glsafe(::glPushMatrix());
-        glsafe(::glLoadIdentity());
-        // ensure that the rectangle is renderered inside the frustrum
-        glsafe(::glTranslated(0.0, 0.0, -(camera.get_near_z() + 0.5)));
-        // ensure that the overlay fits the frustrum near z plane
-        double gui_scale = camera.get_gui_scale();
-        glsafe(::glScaled(gui_scale, gui_scale, 1.0));
+#ifdef __APPLE__
+        const auto& gl_info = p_ogl_manager->get_gl_info();
+        const auto formated_gl_version = gl_info.get_formated_gl_version();
+        if (formated_gl_version < 30)
+#endif
+        {
+            glsafe(::glGetBooleanv(GL_LINE_STIPPLE, &was_line_stipple_enabled));
+            glsafe(::glLineStipple(4, 0xAAAA));
+            glsafe(::glEnable(GL_LINE_STIPPLE));
+        }
 
-        glsafe(::glPushAttrib(GL_ENABLE_BIT));
-        glsafe(::glLineStipple(4, 0xAAAA));
-        glsafe(::glEnable(GL_LINE_STIPPLE));
+        wxGetApp().bind_shader(p_flat_shader);
 
-        ::glBegin(GL_LINE_LOOP);
-        ::glVertex2f((GLfloat)left, (GLfloat)bottom);
-        ::glVertex2f((GLfloat)right, (GLfloat)bottom);
-        ::glVertex2f((GLfloat)right, (GLfloat)top);
-        ::glVertex2f((GLfloat)left, (GLfloat)top);
-        glsafe(::glEnd());
+        p_flat_shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
+        p_flat_shader->set_uniform("projection_matrix", proj_matrix);
 
-        glsafe(::glPopAttrib());
+        m_rectangle.set_color({ 0.0f, 1.0f, 0.38f, 1.0f });
+        m_rectangle.render_geometry();
 
-        glsafe(::glPopMatrix());
+        wxGetApp().unbind_shader();
+
+        if (!was_line_stipple_enabled) {
+#ifdef __APPLE__
+            if (formated_gl_version < 30)
+#endif
+            {
+                glsafe(::glDisable(GL_LINE_STIPPLE));
+            }
+        }
     }
 
 } // namespace GUI

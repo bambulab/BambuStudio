@@ -2727,6 +2727,14 @@ bool GUI_App::on_init_inner()
     app_config->set("version", SLIC3R_VERSION);
     app_config->save();
 
+    const auto& p_ogl_manager = get_opengl_manager();
+    if (p_ogl_manager) {
+        const auto& msaa_type = app_config->get("msaa_type");
+        p_ogl_manager->set_msaa_type(msaa_type);
+        const bool is_fxaa_enabled = app_config->get_bool("enable_advanced_antialiasing");
+        p_ogl_manager->set_fxaa_enabled(is_fxaa_enabled);
+    }
+
     BBLSplashScreen * scrn = nullptr;
     const bool show_splash_screen = true;
     if (show_splash_screen) {
@@ -5616,6 +5624,24 @@ bool GUI_App::is_glsl_version_greater_or_equal_to(unsigned int major, unsigned i
     return OpenGLManager::get_gl_info().is_glsl_version_greater_or_equal_to(major, minor);
 }
 
+void GUI_App::bind_shader(const std::shared_ptr<GLShaderProgram>& p_shader)
+{
+    const auto& p_ogl_manager = get_opengl_manager();
+    if (!p_ogl_manager) {
+        return;
+    }
+    p_ogl_manager->bind_shader(p_shader);
+}
+
+void GUI_App::unbind_shader()
+{
+    const auto& p_ogl_manager = get_opengl_manager();
+    if (!p_ogl_manager) {
+        return;
+    }
+    p_ogl_manager->unbind_shader();
+}
+
 int GUI_App::GetSingleChoiceIndex(const wxString& message,
                                 const wxString& caption,
                                 const wxArrayString& choices,
@@ -7076,7 +7102,7 @@ const std::shared_ptr<OpenGLManager>& GUI_App::get_opengl_manager() const
     return s_empty;
 }
 
-GLShaderProgram* GUI_App::get_shader(const std::string &shader_name) const
+const std::shared_ptr<GLShaderProgram>& GUI_App::get_shader(const std::string &shader_name) const
 {
     const auto& p_ogl_manager = get_opengl_manager();
     if (p_ogl_manager) {
@@ -7086,7 +7112,7 @@ GLShaderProgram* GUI_App::get_shader(const std::string &shader_name) const
     return nullptr;
 }
 
-GLShaderProgram* GUI_App::get_current_shader() const
+const std::shared_ptr<GLShaderProgram> GUI_App::get_current_shader() const
 {
     const auto& p_ogl_manager = get_opengl_manager();
     if (p_ogl_manager) {

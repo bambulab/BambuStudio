@@ -1,4 +1,4 @@
-#include "libslic3r/libslic3r.h"
+﻿#include "libslic3r/libslic3r.h"
 #include "OpenGLManager.hpp"
 
 #include "GUI.hpp"
@@ -6,6 +6,7 @@
 #include "3DScene.hpp"
 
 #include "libslic3r/Platform.hpp"
+#include "slic3r/GUI/GLTexture.hpp"
 
 #include <GL/glew.h>
 
@@ -196,11 +197,94 @@ bool OpenGLVersionCheck::message_pump_exit = false;
 #endif // __WIN32__
 
 #define BBS_GL_EXTENSION_FUNC(_func) (OpenGLManager::get_framebuffers_type() == OpenGLManager::EFramebufferType::Ext ? _func ## EXT : _func)
-#define BBS_GL_EXTENSION_FRAMEBUFFER OpenGLManager::get_framebuffers_type() == OpenGLManager::EFramebufferType::Ext ? GL_FRAMEBUFFER_EXT : GL_FRAMEBUFFER
-#define BBS_GL_EXTENSION_COLOR_ATTACHMENT(color_attachment) (OpenGLManager::get_framebuffers_type() == OpenGLManager::EFramebufferType::Ext ? color_attachment ## _EXT : color_attachment)
-#define BBS_GL_EXTENSION_DEPTH_ATTACHMENT OpenGLManager::get_framebuffers_type() == OpenGLManager::EFramebufferType::Ext ? GL_DEPTH_ATTACHMENT_EXT : GL_DEPTH_ATTACHMENT
-#define BBS_GL_EXTENSION_RENDER_BUFFER OpenGLManager::get_framebuffers_type() == OpenGLManager::EFramebufferType::Ext ? GL_RENDERBUFFER_EXT : GL_RENDERBUFFER
+#define BBS_GL_EXTENSION_PARAMETER(_param) OpenGLManager::get_framebuffers_type() == OpenGLManager::EFramebufferType::Ext ? _param ## _EXT : _param
 
+
+static uint8_t get_msaa_samples(Slic3r::GUI::EMSAAType msaa_type) {
+    uint8_t num_samples = 0;
+    switch (msaa_type)
+    {
+    case Slic3r::GUI::EMSAAType::X2:
+        num_samples = 2;
+        break;
+    case Slic3r::GUI::EMSAAType::X8:
+        num_samples = 8;
+        break;
+    case Slic3r::GUI::EMSAAType::X16:
+        num_samples = 16;
+        break;
+    case Slic3r::GUI::EMSAAType::X4:
+        num_samples = 4;
+    default:
+        break;
+    }
+
+    return num_samples;
+}
+
+static GLenum get_pixel_format(Slic3r::GUI::EPixelFormat type) {
+    switch (type)
+    {
+    case Slic3r::GUI::EPixelFormat::RGBA:
+        return GL_RGBA;
+    case Slic3r::GUI::EPixelFormat::DepthComponent:
+        return GL_DEPTH_COMPONENT;
+    case Slic3r::GUI::EPixelFormat::StencilIndex:
+        return GL_STENCIL_INDEX;
+    case Slic3r::GUI::EPixelFormat::DepthAndStencil:
+        return GL_DEPTH_STENCIL;
+    }
+
+    return GL_INVALID_ENUM;
+}
+
+static GLenum get_pixel_data_type(Slic3r::GUI::EPixelDataType type) {
+    switch (type)
+    {
+    case Slic3r::GUI::EPixelDataType::UByte:
+        return GL_UNSIGNED_BYTE;
+    case Slic3r::GUI::EPixelDataType::Byte:
+        return GL_BYTE;
+    case Slic3r::GUI::EPixelDataType::UShort:
+        return GL_UNSIGNED_SHORT;
+    case Slic3r::GUI::EPixelDataType::Short:
+        return GL_SHORT;
+    case Slic3r::GUI::EPixelDataType::UInt:
+        return GL_UNSIGNED_INT;
+    case Slic3r::GUI::EPixelDataType::Int:
+        return GL_INT;
+    case Slic3r::GUI::EPixelDataType::Float:
+        return GL_FLOAT;
+    }
+
+    return GL_INVALID_ENUM;
+}
+
+static bool version_to_major_minor(const std::string& version, unsigned int& major, unsigned int& minor)
+{
+    major = 0;
+    minor = 0;
+
+    if (version == "N/A")
+        return false;
+
+    std::vector<std::string> tokens;
+    boost::split(tokens, version, boost::is_any_of(" "), boost::token_compress_on);
+
+    if (tokens.empty())
+        return false;
+
+    std::vector<std::string> numbers;
+    boost::split(numbers, tokens[0], boost::is_any_of("."), boost::token_compress_on);
+
+    if (numbers.size() > 0)
+        major = ::atoi(numbers[0].c_str());
+
+    if (numbers.size() > 1)
+        minor = ::atoi(numbers[1].c_str());
+
+    return true;
+}
 
 namespace Slic3r {
 namespace GUI {
@@ -211,6 +295,9 @@ std::string gl_get_string_safe(GLenum param, const std::string& default_value)
     const char* value = (const char*)::glGetString(param);
     return std::string((value != nullptr) ? value : default_value);
 }
+
+std::string OpenGLManager::s_back_frame = "backframe";
+std::string OpenGLManager::s_picking_frame = "pickingframe";
 
 const std::string& OpenGLManager::GLInfo::get_version() const
 {
@@ -224,11 +311,11 @@ const uint32_t OpenGLManager::GLInfo::get_formated_gl_version() const
 {
     if (0 == m_formated_gl_version)
     {
-        GLint major = 0;
-        GLint minor = 0;
-        glGetIntegerv(GL_MAJOR_VERSION, &major);
-        glGetIntegerv(GL_MINOR_VERSION, &minor);
-
+        unsigned int major = 0;
+        unsigned int minor = 0;
+        if (!m_detected)
+            detect();
+        version_to_major_minor(m_version, major, minor);
         m_formated_gl_version = major * 10 + minor;
     }
     return m_formated_gl_version;
@@ -307,26 +394,11 @@ void OpenGLManager::GLInfo::detect() const
 
 static bool version_greater_or_equal_to(const std::string& version, unsigned int major, unsigned int minor)
 {
-    if (version == "N/A")
-        return false;
-
-    std::vector<std::string> tokens;
-    boost::split(tokens, version, boost::is_any_of(" "), boost::token_compress_on);
-
-    if (tokens.empty())
-        return false;
-
-    std::vector<std::string> numbers;
-    boost::split(numbers, tokens[0], boost::is_any_of("."), boost::token_compress_on);
-
     unsigned int gl_major = 0;
     unsigned int gl_minor = 0;
-
-    if (numbers.size() > 0)
-        gl_major = ::atoi(numbers[0].c_str());
-
-    if (numbers.size() > 1)
-        gl_minor = ::atoi(numbers[1].c_str());
+    const bool rt = version_to_major_minor(version, gl_major, gl_minor);
+    if (!rt)
+        return false;
 
     if (gl_major < major)
         return false;
@@ -416,8 +488,10 @@ OpenGLManager::OpenGLManager()
 OpenGLManager::~OpenGLManager()
 {
     release_vao();
+    Slic3r::GUI::GLTexture::shutdown();
     m_shaders_manager.shutdown();
-    m_name_to_frame_buffer.clear();
+    m_name_to_framebuffer.clear();
+
 #ifdef __APPLE__
     // This is an ugly hack needed to solve the crash happening when closing the application on OSX 10.9.5 with newer wxWidgets
     // The crash is triggered inside wxGLContext destructor
@@ -606,6 +680,16 @@ wxGLContext* OpenGLManager::init_glcontext(wxGLCanvas& canvas)
     return m_context;
 }
 
+void OpenGLManager::bind_shader(const std::shared_ptr<GLShaderProgram>& p_shader)
+{
+    m_shaders_manager.bind_shader(p_shader);
+}
+
+void OpenGLManager::unbind_shader()
+{
+    m_shaders_manager.unbind_shader();
+}
+
 void OpenGLManager::clear_dirty()
 {
     m_b_viewport_dirty = false;
@@ -623,6 +707,11 @@ void OpenGLManager::set_viewport_size(uint32_t width, uint32_t height)
         m_b_viewport_dirty = true;
         m_viewport_height = height;
     }
+
+    if (m_b_viewport_dirty)
+    {
+        m_name_to_framebuffer.clear();
+    }
 }
 
 void OpenGLManager::get_viewport_size(uint32_t& width, uint32_t& height) const
@@ -631,35 +720,118 @@ void OpenGLManager::get_viewport_size(uint32_t& width, uint32_t& height) const
     height = m_viewport_height;
 }
 
-void OpenGLManager::_bind_frame_buffer(const std::string& name)
+void OpenGLManager::_bind_frame_buffer(const std::string& name, EMSAAType msaa_type, uint32_t t_width, uint32_t t_height)
 {
-    const auto& iter = m_name_to_frame_buffer.find(name);
-    if (iter == m_name_to_frame_buffer.end() || m_b_viewport_dirty) {
-        const auto& p_frame_buffer = std::make_shared<FrameBuffer>(m_viewport_width, m_viewport_height);
-        m_name_to_frame_buffer.insert_or_assign(name, p_frame_buffer);
+    if (OpenGLManager::s_back_frame == name) {
+        const auto current_framebuffer = m_current_binded_framebuffer.lock();
+        if (current_framebuffer) {
+            current_framebuffer->unbind();
+            m_current_binded_framebuffer.reset();
+        }
+        glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_PARAMETER(GL_FRAMEBUFFER), 0));
+        return;
+    }
+    const auto& iter = m_name_to_framebuffer.find(name);
+    if (iter == m_name_to_framebuffer.end()) {
+        uint32_t width = t_width == 0 ? m_viewport_width : t_width;
+        uint32_t height = t_height == 0 ? m_viewport_height : t_height;
+        if (s_picking_frame == name) {
+            width = 1;
+            height = 1;
+        }
+        const auto& p_frame_buffer = std::make_shared<FrameBuffer>(width, height, msaa_type);
+        m_name_to_framebuffer.insert_or_assign(name, p_frame_buffer);
     }
 
-    m_name_to_frame_buffer[name]->bind();
+    const auto current_framebuffer = m_current_binded_framebuffer.lock();
+    if (current_framebuffer != m_name_to_framebuffer[name]) {
+        if (current_framebuffer) {
+            current_framebuffer->unbind();
+        }
+        m_name_to_framebuffer[name]->bind();
+        m_current_binded_framebuffer = m_name_to_framebuffer[name];
+    }
 }
 
 void OpenGLManager::_unbind_frame_buffer(const std::string& name)
 {
-    const auto& iter = m_name_to_frame_buffer.find(name);
-    if (iter == m_name_to_frame_buffer.end()) {
+    const auto& iter = m_name_to_framebuffer.find(name);
+    if (iter == m_name_to_framebuffer.end()) {
         return;
     }
 
-    m_name_to_frame_buffer[name]->unbind();
+    m_name_to_framebuffer[name]->unbind();
 }
 
 const std::shared_ptr<FrameBuffer>& OpenGLManager::get_frame_buffer(const std::string& name) const
 {
-    const auto& iter = m_name_to_frame_buffer.find(name);
-    if (iter != m_name_to_frame_buffer.end()) {
+    const auto& iter = m_name_to_framebuffer.find(name);
+    if (iter != m_name_to_framebuffer.end()) {
         return iter->second;
     }
     static std::shared_ptr<FrameBuffer> sEmpty{ nullptr };
     return sEmpty;
+}
+
+void OpenGLManager::set_msaa_type(const std::string& type)
+{
+    EMSAAType msaa = EMSAAType::Disabled;
+    if ("X2" == type) {
+        msaa = EMSAAType::X2;
+    }
+    if ("X4" == type) {
+        msaa = EMSAAType::X4;
+    }
+    else if ("X8" == type) {
+        msaa = EMSAAType::X8;
+    }
+    else if ("X16" == type) {
+        msaa = EMSAAType::X16;
+    }
+
+    set_msaa_type(msaa);
+}
+
+void OpenGLManager::set_msaa_type(EMSAAType type)
+{
+    m_msaa_type = type;
+}
+
+EMSAAType OpenGLManager::get_msaa_type() const
+{
+    return m_msaa_type;
+}
+
+bool OpenGLManager::read_pixel(const std::string& frame_name, uint32_t x, uint32_t y, uint32_t width, uint32_t height, EPixelFormat format, EPixelDataType type, void* pixels) const
+{
+    std::shared_ptr<FrameBuffer> fb{ nullptr };
+    if (frame_name.empty()) {
+        fb = m_current_binded_framebuffer.lock();
+    }
+    else if (frame_name != s_back_frame) {
+        const auto& iter = m_name_to_framebuffer.find(frame_name);
+        if (iter == m_name_to_framebuffer.end()) {
+            return false;
+        }
+        fb = iter->second;
+    }
+
+    GLenum gl_format = get_pixel_format(format);
+    GLenum gl_type = get_pixel_data_type(type);
+
+    if (fb) {
+        fb->read_pixel(x, y, width, height, format, type, pixels);
+    }
+    else {
+        glsafe(::glReadPixels(x, y, width, height, gl_format, gl_type, pixels));
+    }
+
+    const auto current_fb = m_current_binded_framebuffer.lock();
+    if (current_fb) {
+        current_fb->bind();
+    }
+
+    return true;
 }
 
 void OpenGLManager::bind_vao()
@@ -702,7 +874,7 @@ void OpenGLManager::unbind_vao()
 
 void OpenGLManager::release_vao()
 {
-    if (0 != m_vao) {
+    if (0 == m_vao) {
         return;
     }
     if (m_vao_type != EVAOType::Unknown) {
@@ -717,6 +889,75 @@ void OpenGLManager::release_vao()
 #endif
         }
         m_vao = 0;
+    }
+}
+
+void OpenGLManager::set_off_screen_msaa_type(EMSAAType type)
+{
+    m_off_screen_msaa_type = type;
+}
+
+EMSAAType OpenGLManager::get_off_screen_msaa_type()
+{
+    return m_off_screen_msaa_type;
+}
+
+void OpenGLManager::set_fxaa_enabled(bool is_enabled)
+{
+    m_fxaa_enabled = is_enabled;
+}
+
+bool OpenGLManager::is_fxaa_enabled() const
+{
+    return m_fxaa_enabled;
+}
+
+void OpenGLManager::blit_framebuffer(const std::string& source, const std::string& target)
+{
+    if (source == target) {
+        return;
+    }
+    if (s_back_frame == source) {
+        glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_PARAMETER(GL_READ_FRAMEBUFFER), 0));
+    }
+    else
+    {
+        const auto& iter = m_name_to_framebuffer.find(source);
+        if (iter == m_name_to_framebuffer.end()) {
+            return;
+        }
+        const uint32_t source_id = iter->second->get_gl_id();
+        glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_PARAMETER(GL_READ_FRAMEBUFFER), source_id));
+    }
+
+    if (s_back_frame == target) {
+        glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_PARAMETER(GL_DRAW_FRAMEBUFFER), 0));
+    }
+    else
+    {
+        const auto& iter = m_name_to_framebuffer.find(target);
+        if (iter == m_name_to_framebuffer.end()) {
+            return;
+        }
+        const uint32_t target_id = iter->second->get_gl_id();
+        glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_PARAMETER(GL_DRAW_FRAMEBUFFER), target_id));
+    }
+
+    glsafe(::glBlitFramebuffer(0, 0, m_viewport_width, m_viewport_height, 0, 0, m_viewport_width, m_viewport_height, GL_COLOR_BUFFER_BIT, GL_LINEAR));
+}
+
+void OpenGLManager::set_line_width(float width) const
+{
+    const auto formated_gl_version = s_gl_info.get_formated_gl_version();
+    if (formated_gl_version < 30) {
+        glsafe(::glLineWidth(width));
+    }
+    else {
+#ifdef __APPLE__
+        glsafe(::glLineWidth(1.0f));
+#else
+        glsafe(::glLineWidth(width));
+#endif
     }
 }
 
@@ -736,8 +977,9 @@ std::string OpenGLManager::framebuffer_type_to_string(EFramebufferType type)
     }
 }
 
-wxGLCanvas* OpenGLManager::create_wxglcanvas(wxWindow& parent)
+wxGLCanvas* OpenGLManager::create_wxglcanvas(wxWindow& parent, EMSAAType msaa_type)
 {
+    const uint8_t msaa_samples = get_msaa_samples(msaa_type);
     int attribList[] = {
         WX_GL_RGBA,
         WX_GL_DOUBLEBUFFER,
@@ -751,8 +993,11 @@ wxGLCanvas* OpenGLManager::create_wxglcanvas(wxWindow& parent)
         WX_GL_DEPTH_SIZE, 		24,
         //BBS: turn on stencil buffer for outline
         WX_GL_STENCIL_SIZE,     8,
-        WX_GL_SAMPLE_BUFFERS, 	GL_TRUE,
-        WX_GL_SAMPLES, 			4,
+        WX_GL_SAMPLE_BUFFERS, 	msaa_samples > 0 ? GL_TRUE : GL_FALSE,
+        WX_GL_SAMPLES, 			msaa_samples,
+#ifndef __APPLE__
+        WX_GL_CORE_PROFILE,
+#endif
         0
     };
 
@@ -783,9 +1028,10 @@ void OpenGLManager::detect_multisample(int* attribList)
     // s_multisample = enable_multisample && wxGLCanvas::IsExtensionSupported("WGL_ARB_multisample");
 }
 
-FrameBuffer::FrameBuffer(uint32_t width, uint32_t height)
+FrameBuffer::FrameBuffer(uint32_t width, uint32_t height, EMSAAType msaa_type)
     : m_width(width)
     , m_height(height)
+    , m_msaa_type(msaa_type)
 {
 }
 
@@ -793,8 +1039,7 @@ FrameBuffer::~FrameBuffer()
 {
     if (UINT32_MAX != m_gl_id)
     {
-        //glsafe(::glBindFramebuffer(GL_FRAMEBUFFER, 0));
-        glsafe(::glDeleteFramebuffers(1, &m_gl_id));
+        glsafe(BBS_GL_EXTENSION_FUNC(::glDeleteFramebuffers)(1, &m_gl_id));
         m_gl_id = UINT32_MAX;
     }
 
@@ -806,8 +1051,18 @@ FrameBuffer::~FrameBuffer()
 
     if (UINT32_MAX != m_depth_rbo_id)
     {
-        glDeleteRenderbuffers(1, &m_depth_rbo_id);
+        glsafe(BBS_GL_EXTENSION_FUNC(::glDeleteRenderbuffers)(1, &m_depth_rbo_id));
         m_depth_rbo_id = UINT32_MAX;
+    }
+
+    if (UINT32_MAX != m_gl_id_for_back_fbo)
+    {
+        glsafe(BBS_GL_EXTENSION_FUNC(::glDeleteFramebuffers)(1, &m_gl_id_for_back_fbo));
+        m_gl_id_for_back_fbo = UINT32_MAX;
+
+        glsafe(BBS_GL_EXTENSION_FUNC(::glDeleteRenderbuffers)(2, m_msaa_back_buffer_rbos));
+        m_msaa_back_buffer_rbos[0] = UINT32_MAX;
+        m_msaa_back_buffer_rbos[1] = UINT32_MAX;
     }
 }
 
@@ -823,19 +1078,14 @@ void FrameBuffer::bind()
     }
     if (UINT32_MAX == m_gl_id)
     {
-        glsafe(BBS_GL_EXTENSION_FUNC(::glGenFramebuffers)(1, &m_gl_id));
-
-        glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_FRAMEBUFFER, m_gl_id));
-
-        glsafe(::glGenTextures(1, &m_color_texture_id));
-        glsafe(::glBindTexture(GL_TEXTURE_2D, m_color_texture_id));
-
-        glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr));
-        glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-        glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-
-        glsafe(BBS_GL_EXTENSION_FUNC(::glFramebufferTexture2D)(BBS_GL_EXTENSION_FRAMEBUFFER, BBS_GL_EXTENSION_COLOR_ATTACHMENT(GL_COLOR_ATTACHMENT0), GL_TEXTURE_2D, m_color_texture_id, 0));
-
+        if (EMSAAType::Disabled == m_msaa_type)
+        {
+            create_no_msaa_fbo(true);
+        }
+        else
+        {
+            create_msaa_fbo();
+        }
         if (OpenGLManager::EFramebufferType::Ext == framebuffer_type) {
             GLenum bufs[1]{ GL_COLOR_ATTACHMENT0_EXT };
             glsafe(::glDrawBuffers((GLsizei)1, bufs));
@@ -844,34 +1094,15 @@ void FrameBuffer::bind()
             GLenum bufs[1]{ GL_COLOR_ATTACHMENT0 };
             glsafe(::glDrawBuffers((GLsizei)1, bufs));
         }
-
-        glsafe(BBS_GL_EXTENSION_FUNC(::glGenRenderbuffers)(1, &m_depth_rbo_id));
-        glsafe(BBS_GL_EXTENSION_FUNC(::glBindRenderbuffer)(BBS_GL_EXTENSION_RENDER_BUFFER, m_depth_rbo_id));
-
-        glsafe(BBS_GL_EXTENSION_FUNC(::glRenderbufferStorage)(BBS_GL_EXTENSION_RENDER_BUFFER, GL_DEPTH24_STENCIL8, m_width, m_height));
-
-        glsafe(BBS_GL_EXTENSION_FUNC(::glFramebufferRenderbuffer)(BBS_GL_EXTENSION_FRAMEBUFFER, BBS_GL_EXTENSION_DEPTH_ATTACHMENT, BBS_GL_EXTENSION_RENDER_BUFFER, m_depth_rbo_id));
-
-        if (OpenGLManager::EFramebufferType::Ext == framebuffer_type) {
-            if (::glCheckFramebufferStatusEXT(BBS_GL_EXTENSION_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE_EXT)
-            {
-                BOOST_LOG_TRIVIAL(error) << "Framebuffer is not complete!";
-                glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_FRAMEBUFFER, 0));
-                return;
-            }
-        }
-        else {
-            if (::glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-            {
-                BOOST_LOG_TRIVIAL(error) << "Framebuffer is not complete!";
-                glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_FRAMEBUFFER, 0));
-                return;
-            }
+        const bool rt = check_frame_buffer_status();
+        if (!rt)
+        {
+            return;
         }
         BOOST_LOG_TRIVIAL(trace) << "Successfully created framebuffer: width = " << m_width << ", heihgt = " << m_height;
     }
-
-    glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_FRAMEBUFFER, m_gl_id));
+    m_needs_to_solve = (m_gl_id_for_back_fbo != UINT32_MAX);
+    glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_PARAMETER(GL_FRAMEBUFFER), (UINT32_MAX == m_gl_id_for_back_fbo ? m_gl_id : m_gl_id_for_back_fbo)));
 }
 
 void FrameBuffer::unbind()
@@ -880,7 +1111,10 @@ void FrameBuffer::unbind()
     if (OpenGLManager::EFramebufferType::Unknown == framebuffer_type) {
         return;
     }
-    glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_FRAMEBUFFER, 0));
+
+    resolve();
+
+    glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_PARAMETER(GL_FRAMEBUFFER), 0));
 }
 
 uint32_t FrameBuffer::get_color_texture() const noexcept
@@ -893,16 +1127,191 @@ bool FrameBuffer::is_texture_valid(uint32_t texture_id) const noexcept
     return m_color_texture_id != UINT32_MAX;
 }
 
-OpenGLManager::FrameBufferModifier::FrameBufferModifier(OpenGLManager& ogl_manager, const std::string& frame_buffer_name)
+uint32_t FrameBuffer::get_gl_id()
+{
+    resolve();
+    return m_gl_id;
+}
+
+void FrameBuffer::read_pixel(uint32_t x, uint32_t y, uint32_t width, uint32_t height, EPixelFormat format, EPixelDataType type, void* pixels)
+{
+    const GLenum gl_format = get_pixel_format(format);
+    const GLenum gl_type = get_pixel_data_type(type);
+
+    if (UINT32_MAX != m_gl_id_for_back_fbo) {
+        EBlitOptionType old_blit_type = m_blit_option_type;
+        if (EPixelFormat::DepthComponent == format) {
+            m_blit_option_type = EBlitOptionType::Depth;
+        }
+        unbind();
+        m_blit_option_type = old_blit_type;
+    }
+    glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_PARAMETER(GL_FRAMEBUFFER), m_gl_id));
+    glsafe(::glReadPixels(x, y, width, height, gl_format, gl_type, pixels));
+    glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_PARAMETER(GL_FRAMEBUFFER), 0));
+}
+
+void FrameBuffer::create_no_msaa_fbo(bool with_depth)
+{
+    const OpenGLManager::EFramebufferType framebuffer_type = OpenGLManager::get_framebuffers_type();
+
+    glsafe(BBS_GL_EXTENSION_FUNC(::glGenFramebuffers)(1, &m_gl_id));
+
+    glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_PARAMETER(GL_FRAMEBUFFER), m_gl_id));
+
+    glsafe(::glGenTextures(1, &m_color_texture_id));
+    glsafe(::glBindTexture(GL_TEXTURE_2D, m_color_texture_id));
+
+    glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+
+    glsafe(BBS_GL_EXTENSION_FUNC(::glFramebufferTexture2D)(BBS_GL_EXTENSION_PARAMETER(GL_FRAMEBUFFER), BBS_GL_EXTENSION_PARAMETER(GL_COLOR_ATTACHMENT0), GL_TEXTURE_2D, m_color_texture_id, 0));
+
+    if (with_depth)
+    {
+        glsafe(BBS_GL_EXTENSION_FUNC(::glGenRenderbuffers)(1, &m_depth_rbo_id));
+        glsafe(BBS_GL_EXTENSION_FUNC(::glBindRenderbuffer)(BBS_GL_EXTENSION_PARAMETER(GL_RENDERBUFFER), m_depth_rbo_id));
+
+        glsafe(BBS_GL_EXTENSION_FUNC(::glRenderbufferStorage)(BBS_GL_EXTENSION_PARAMETER(GL_RENDERBUFFER), GL_DEPTH24_STENCIL8, m_width, m_height));
+
+        const auto& gl_info = OpenGLManager::get_gl_info();
+        uint32_t formated_gl_version = gl_info.get_formated_gl_version();
+        if (formated_gl_version < 30)
+        {
+            glsafe(::glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, m_depth_rbo_id));
+            glsafe(::glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, m_depth_rbo_id));
+        }
+        else
+        {
+            glsafe(::glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_depth_rbo_id));
+        }
+    }
+}
+
+void FrameBuffer::create_msaa_fbo()
+{
+    glsafe(BBS_GL_EXTENSION_FUNC(::glGenFramebuffers)(1, &m_gl_id_for_back_fbo));
+
+    glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_PARAMETER(GL_FRAMEBUFFER), m_gl_id_for_back_fbo));
+
+    uint8_t num_samples = get_msaa_samples(m_msaa_type);
+    // use renderbuffer instead of texture to avoid the need to use glTexImage2DMultisample which is available only since OpenGL 3.2
+    glsafe(BBS_GL_EXTENSION_FUNC(::glGenRenderbuffers)(2, m_msaa_back_buffer_rbos));
+
+    glsafe(BBS_GL_EXTENSION_FUNC(::glBindRenderbuffer)(BBS_GL_EXTENSION_PARAMETER(GL_RENDERBUFFER), m_msaa_back_buffer_rbos[0]));
+    glsafe(BBS_GL_EXTENSION_FUNC(::glRenderbufferStorageMultisample)(BBS_GL_EXTENSION_PARAMETER(GL_RENDERBUFFER), num_samples, GL_RGBA8, m_width, m_height));
+
+    glsafe(BBS_GL_EXTENSION_FUNC(::glBindRenderbuffer)(BBS_GL_EXTENSION_PARAMETER(GL_RENDERBUFFER), m_msaa_back_buffer_rbos[1]));
+    glsafe(::glRenderbufferStorageMultisample(BBS_GL_EXTENSION_PARAMETER(GL_RENDERBUFFER), num_samples, GL_DEPTH24_STENCIL8, m_width, m_height));
+
+    glsafe(BBS_GL_EXTENSION_FUNC(::glFramebufferRenderbuffer)(BBS_GL_EXTENSION_PARAMETER(GL_FRAMEBUFFER), BBS_GL_EXTENSION_PARAMETER(GL_COLOR_ATTACHMENT0), BBS_GL_EXTENSION_PARAMETER(GL_RENDERBUFFER), m_msaa_back_buffer_rbos[0]));
+
+    const auto& gl_info = OpenGLManager::get_gl_info();
+    if (gl_info.is_version_greater_or_equal_to(3, 0)) {
+        glsafe(::glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_msaa_back_buffer_rbos[1]));
+    }
+    else {
+        glsafe(BBS_GL_EXTENSION_FUNC(::glFramebufferRenderbuffer)(BBS_GL_EXTENSION_PARAMETER(GL_FRAMEBUFFER), BBS_GL_EXTENSION_PARAMETER(GL_DEPTH_ATTACHMENT), BBS_GL_EXTENSION_PARAMETER(GL_RENDERBUFFER), m_msaa_back_buffer_rbos[1]));
+        glsafe(BBS_GL_EXTENSION_FUNC(::glFramebufferRenderbuffer)(BBS_GL_EXTENSION_PARAMETER(GL_FRAMEBUFFER), BBS_GL_EXTENSION_PARAMETER(GL_STENCIL_ATTACHMENT), BBS_GL_EXTENSION_PARAMETER(GL_RENDERBUFFER), m_msaa_back_buffer_rbos[1]));
+    }
+}
+
+bool FrameBuffer::check_frame_buffer_status() const
+{
+    const OpenGLManager::EFramebufferType framebuffer_type = OpenGLManager::get_framebuffers_type();
+
+    if (OpenGLManager::EFramebufferType::Ext == framebuffer_type) {
+        if (::glCheckFramebufferStatusEXT(BBS_GL_EXTENSION_PARAMETER(GL_FRAMEBUFFER)) != GL_FRAMEBUFFER_COMPLETE_EXT)
+        {
+            BOOST_LOG_TRIVIAL(error) << "Framebuffer is not complete!";
+            glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_PARAMETER(GL_FRAMEBUFFER), 0));
+            return false;
+        }
+    }
+    else {
+        if (::glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        {
+            BOOST_LOG_TRIVIAL(error) << "Framebuffer is not complete!";
+            glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_PARAMETER(GL_FRAMEBUFFER), 0));
+            return false;
+        }
+    }
+
+    return true;
+}
+
+void FrameBuffer::resolve()
+{
+
+    if (!m_needs_to_solve) {
+        return;
+    }
+
+    if (UINT32_MAX == m_gl_id_for_back_fbo) {
+        return;
+    }
+
+    if (UINT32_MAX == m_gl_id) {
+        create_no_msaa_fbo(true);
+
+        const OpenGLManager::EFramebufferType framebuffer_type = OpenGLManager::get_framebuffers_type();
+        if (OpenGLManager::EFramebufferType::Ext == framebuffer_type)
+        {
+            GLenum bufs[1]{ GL_COLOR_ATTACHMENT0_EXT };
+            glsafe(::glDrawBuffers((GLsizei)1, bufs));
+        }
+        else
+        {
+            GLenum bufs[1]{ GL_COLOR_ATTACHMENT0 };
+            glsafe(::glDrawBuffers((GLsizei)1, bufs));
+        }
+
+        const bool rt = check_frame_buffer_status();
+        if (!rt)
+        {
+            glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_PARAMETER(GL_FRAMEBUFFER), 0));
+        }
+    }
+
+    glsafe(::glDisable(GL_SCISSOR_TEST));
+
+    glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_PARAMETER(GL_READ_FRAMEBUFFER), m_gl_id_for_back_fbo));
+    glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_PARAMETER(GL_DRAW_FRAMEBUFFER), m_gl_id));
+
+    if (EBlitOptionType::Color & m_blit_option_type) {
+        glsafe(::glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, m_width, m_height, GL_COLOR_BUFFER_BIT, GL_NEAREST));
+    }
+
+    if (EBlitOptionType::Depth & m_blit_option_type) {
+        glsafe(::glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, m_width, m_height, GL_DEPTH_BUFFER_BIT, GL_NEAREST));
+    }
+
+    m_needs_to_solve = false;
+}
+
+OpenGLManager::FrameBufferModifier::FrameBufferModifier(OpenGLManager& ogl_manager, const std::string& frame_buffer_name, EMSAAType msaa_type)
     : m_ogl_manager(ogl_manager)
     , m_frame_buffer_name(frame_buffer_name)
+    , m_msaa_type(msaa_type)
 {
-    m_ogl_manager._bind_frame_buffer(m_frame_buffer_name);
 }
 
 OpenGLManager::FrameBufferModifier::~FrameBufferModifier()
 {
-    m_ogl_manager._unbind_frame_buffer(m_frame_buffer_name);
+    m_ogl_manager._bind_frame_buffer(m_frame_buffer_name, m_msaa_type, m_width, m_height);
+}
+
+OpenGLManager::FrameBufferModifier& OpenGLManager::FrameBufferModifier::set_width(uint32_t t_width)
+{
+    m_width = t_width;
+    return *this;
+}
+
+OpenGLManager::FrameBufferModifier& OpenGLManager::FrameBufferModifier::set_height(uint32_t t_height)
+{
+    m_height = t_height;
+    return *this;
 }
 
 } // namespace GUI

@@ -4,6 +4,7 @@
 #include "slic3r/GUI/GUI_App.hpp"
 //BBS: GUI refactor
 #include "slic3r/GUI/Plater.hpp"
+#include "slic3r/GUI/OpenGLManager.hpp"
 #include "libslic3r/AppConfig.hpp"
 
 
@@ -205,7 +206,6 @@ void GLGizmoMove3D::on_render()
     m_orient_matrix = m_orient_matrix * screen_scalling_matrix;
 
     float space_size = 100.f;
-
     space_size *= GLGizmoBase::Grabber::GrabberSizeFactor;
 #if ENABLE_FIXED_GRABBER
     // x axis
@@ -233,9 +233,10 @@ void GLGizmoMove3D::on_render()
     m_grabbers[2].color = AXES_COLOR[2];
 #endif
 
-    glsafe(::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f));
-    glsafe(::glPushMatrix());
-    glsafe(::glMultMatrixd(Geometry::Transformation(m_orient_matrix).get_matrix().data()));
+    const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+    p_ogl_manager->set_line_width((m_hover_id != -1) ? 2.0f : 1.5f);
+    const auto& gl_info = p_ogl_manager->get_gl_info();
+    const auto formated_gl_version = gl_info.get_formated_gl_version();
     // draw grabbers
     for (unsigned int i = 0; i < 3; ++i) {
         if (m_grabbers[i].enabled) render_grabber_extension((Axis) i, box, false);
@@ -243,23 +244,58 @@ void GLGizmoMove3D::on_render()
 
     // draw axes line
     // draw axes
-    for (unsigned int i = 0; i < 3; ++i) {
-        if (m_grabbers[i].enabled) {
-            glsafe(::glColor4fv(AXES_COLOR[i].data()));
-            glLineStipple(1, 0x0FFF);
-            glEnable(GL_LINE_STIPPLE);
-            ::glBegin(GL_LINES);
-            ::glVertex3dv(origin.data());
-            // use extension center
-            ::glVertex3dv(m_grabbers[i].center.data());
-            glsafe(::glEnd());
-            glDisable(GL_LINE_STIPPLE);
+    auto render_grabber_connection = [this, &formated_gl_version](unsigned int id) {
+        if (m_grabbers[id].enabled) {
+            m_grabber_connections[id].old_center = m_center;
+            m_grabber_connections[id].model.reset();
+
+            GLModel::Geometry init_data;
+            init_data.format = { GLModel::PrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3 };
+            init_data.color = AXES_COLOR[id];
+            init_data.reserve_vertices(2);
+            init_data.reserve_indices(2);
+
+            // vertices
+            init_data.add_vertex((Vec3f)origin.cast<float>());
+            init_data.add_vertex((Vec3f)m_grabbers[id].center.cast<float>());
+
+            // indices
+            init_data.add_line(0, 1);
+
+            m_grabber_connections[id].model.init_from(std::move(init_data));
+            //}
+
+#ifdef __APPLE__
+            if (formated_gl_version < 30)
+#endif
+            {
+                glLineStipple(1, 0x0FFF);
+                glEnable(GL_LINE_STIPPLE);
+            }
+
+            m_grabber_connections[id].model.render_geometry();
+
+#ifdef __APPLE__
+            if (formated_gl_version < 30)
+#endif
+            {
+                glDisable(GL_LINE_STIPPLE);
+            }
         }
+    };
+
+    const auto& shader = wxGetApp().get_shader("flat");
+    if (shader) {
+        wxGetApp().bind_shader(shader);
+        shader->set_uniform("view_model_matrix", camera.get_view_matrix() * m_orient_matrix);
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+        for (unsigned int i = 0; i < 3; ++i) {
+            render_grabber_connection(i);
+        }
+        wxGetApp().unbind_shader();
     }
-    glsafe(::glPopMatrix());
 
     if (m_object_manipulation->is_instance_coordinates()) {
-        glsafe(::glPushMatrix());
         Geometry::Transformation cur_tran;
         if (auto mi = m_parent.get_selection().get_selected_single_intance()) {
             cur_tran = mi->get_transformation();
@@ -267,9 +303,7 @@ void GLGizmoMove3D::on_render()
         else {
             cur_tran = selection.get_first_volume()->get_instance_transformation();
         }
-        glsafe(::glMultMatrixd(cur_tran.get_matrix().data()));
-        render_cross_mark(Vec3f::Zero(), true);
-        glsafe(::glPopMatrix());
+        render_cross_mark(cur_tran.get_matrix(), Vec3f::Zero(), true);
     }
 }
 
@@ -287,12 +321,10 @@ void GLGizmoMove3D::on_render_for_picking()
             m_grabbers[i].color        = color;
         }
     }
-    glsafe(::glPushMatrix());
-    glsafe(::glMultMatrixd(Geometry::Transformation(m_orient_matrix).get_matrix().data()));
+
     render_grabber_extension(X, m_bounding_box, true);
     render_grabber_extension(Y, m_bounding_box, true);
     render_grabber_extension(Z, m_bounding_box, true);
-    glsafe(::glPopMatrix());
 }
 
 //BBS: add input window for move
@@ -340,30 +372,31 @@ void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box
         }
     }
 
-    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
+    const auto& shader = wxGetApp().get_shader(picking ? "flat" : "gouraud_light");
     if (shader == nullptr)
         return;
 
+    wxGetApp().bind_shader(shader);
     const_cast<GLModel*>(&m_vbo_cone)->set_color(-1, color);
+
+    const Camera& camera = picking ? wxGetApp().plater()->get_picking_camera() : wxGetApp().plater()->get_camera();
+    Transform3d view_model_matrix = camera.get_view_matrix() * m_orient_matrix * Geometry::assemble_transform(m_grabbers[axis].center);
+    if (axis == X)
+        view_model_matrix = view_model_matrix * Geometry::assemble_transform(Vec3d::Zero(), 0.5 * PI * Vec3d::UnitY());
+    else if (axis == Y)
+        view_model_matrix = view_model_matrix * Geometry::assemble_transform(Vec3d::Zero(), -0.5 * PI * Vec3d::UnitX());
+    view_model_matrix = view_model_matrix * Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), Vec3d(0.75 * size, 0.75 * size, 2.0 * size));
+
+    shader->set_uniform("view_model_matrix", view_model_matrix);
+    shader->set_uniform("projection_matrix", camera.get_projection_matrix());
     if (!picking) {
-        shader->start_using();
         shader->set_uniform("emission_factor", 0.1f);
+        shader->set_uniform("normal_matrix", (Matrix3d)view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
     }
 
-    glsafe(::glPushMatrix());
-    glsafe(::glTranslated(m_grabbers[axis].center.x(), m_grabbers[axis].center.y(), m_grabbers[axis].center.z()));
-    if (axis == X)
-        glsafe(::glRotated(90.0, 0.0, 1.0, 0.0));
-    else if (axis == Y)
-        glsafe(::glRotated(-90.0, 1.0, 0.0, 0.0));
+    m_vbo_cone.render_geometry();
 
-    //glsafe(::glTranslated(0.0, 0.0, 2.0 * size));
-    glsafe(::glScaled(0.75 * size, 0.75 * size, 2.0 * size));
-    m_vbo_cone.render();
-    glsafe(::glPopMatrix());
-
-    if (! picking)
-        shader->stop_using();
+    wxGetApp().unbind_shader();
 }
 
 void GLGizmoMove3D::change_cs_by_selection() {

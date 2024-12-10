@@ -71,7 +71,7 @@ public:
         static const float FixedRadiusSize;
 
         Vec3d center;
-        /*Vec3d angles;*/
+       /*  Vec3d angles;*/
         std::array<float, 4> color;
         std::array<float, 4> hover_color;
         bool enabled;
@@ -147,8 +147,9 @@ protected:
     mutable std::string m_tooltip;
     CommonGizmosDataPool* m_c{nullptr};
     GLModel m_cone;
-    GLModel m_cylinder;
+    mutable GLModel m_cylinder;
     GLModel m_sphere;
+    GLModel m_cross_mark;
 
     bool m_is_dark_mode = false;
 
@@ -174,7 +175,7 @@ protected:
                                               DoubleShowType               show_type = DoubleShowType::Normal);
     bool render_combo(const std::string &label, const std::vector<std::string> &lines,
         size_t &selection_idx, float label_width, float item_width);
-    void render_cross_mark(const Vec3f& target,bool is_single =false);
+    void render_cross_mark(const Transform3d& matrix, const Vec3f& target,bool is_single =false);
     static float get_grabber_size();
     static float get_fixed_grabber_size();
 
@@ -244,8 +245,10 @@ public:
     /// </summary>
     virtual void data_changed(bool is_serializing){};
     int get_count() { return ++count; }
+
     virtual BoundingBoxf3 get_bounding_box() const;
-    static void  render_glmodel(GLModel &model, const std::array<float, 4> &color, Transform3d view_model_matrix, bool for_picking = false, float emission_factor = 0.0f);
+
+    static void  render_glmodel(GLModel &model, const std::array<float, 4> &color, Transform3d view_model_matrix, const Transform3d& projection_matrix, bool for_picking = false, float emission_factor = 0.0f);
 protected:
     float last_input_window_width = 0;
     virtual bool on_init() = 0;

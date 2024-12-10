@@ -219,18 +219,12 @@ void InstancesHider::render_cut() const
         } else
             clipper->set_limiting_plane(ClippingPlane::ClipsNothing());
 
-        glsafe(::glPushMatrix());
-        if (mv->is_model_part())
-            glsafe(::glColor3f(0.8f, 0.3f, 0.0f));
-        else {
-            const std::array<float, 4>& c = color_from_model_volume(*mv);
-            glsafe(::glColor4f(c[0], c[1], c[2], c[3]));
-        }
-        glsafe(::glPushAttrib(GL_DEPTH_TEST));
+        const GLboolean was_depth_teset_enabled = glIsEnabled(GL_DEPTH_TEST);
         glsafe(::glDisable(GL_DEPTH_TEST));
         clipper->render_cut(mv->is_model_part() ? ColorRGBA{0.8f, 0.3f, 0.0f, 1.0f} : color_from_model_volume(*mv));
-        glsafe(::glPopAttrib());
-        glsafe(::glPopMatrix());
+        if (was_depth_teset_enabled) {
+            glsafe(::glEnable(GL_DEPTH_TEST));
+        }
 
         ++clipper_id;
     }
@@ -624,9 +618,7 @@ void SupportsClipper::render_cut() const
     m_clipper->set_plane(*ocl->get_clipping_plane());
     m_clipper->set_transformation(supports_trafo);
 
-    glsafe(::glPushMatrix());
     m_clipper->render_cut({1.0f, 0.f, 0.37f, 1.0f});
-    glsafe(::glPopMatrix());
 }
 
 
@@ -772,10 +764,8 @@ void ModelObjectsClipper::render_cut() const
             auto& clipper = m_clippers[clipper_id];
             clipper->set_plane(*m_clp);
             clipper->set_transformation(trafo);
-            glsafe(::glPushMatrix());
             // BBS
             clipper->render_cut({0.25f, 0.25f, 0.25f, 1.0f});
-            glsafe(::glPopMatrix());
 
             ++clipper_id;
         }

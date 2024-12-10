@@ -16,6 +16,7 @@
 
 #include <functional>
 #include <optional>
+#include <memory>
 
 #ifndef NDEBUG
 #define HAS_GLSAFE
@@ -228,8 +229,8 @@ public:
     // Release the geometry data, release OpenGL VBOs.
     void release_geometry();
 
-    void render() const;
-    void render(const std::pair<size_t, size_t>& tverts_range, const std::pair<size_t, size_t>& qverts_range) const;
+    void render(const std::shared_ptr<GLShaderProgram>& shader) const;
+    void render(const std::shared_ptr<GLShaderProgram>& shader, const std::pair<size_t, size_t>& tverts_range, const std::pair<size_t, size_t>& qverts_range) const;
 
     // Is there any geometry data stored?
     bool empty() const { return vertices_and_normals_interleaved_size == 0; }
@@ -451,6 +452,7 @@ public:
         bool                force_sinking_contours : 1;
         // slice error
         bool                slice_error : 1;
+        bool                picking : 1;
     };
 
     // Is mouse or rectangle selection over this object to select/deselect it ?
@@ -582,11 +584,12 @@ public:
     void                set_range(double low, double high);
 
     //BBS: add outline related logic and add virtual specifier
-    virtual void render(bool                         with_outline = false,
+    virtual void render(const Transform3d& view_matrix,
+                        bool               with_outline = false,
                         const std::array<float, 4> &body_color = {1.0f, 1.0f, 1.0f, 1.0f} ) const;
 
     //BBS: add simple render function for thumbnail
-    void simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_objects, std::vector<std::array<float, 4>>& extruder_colors,bool ban_light =false) const;
+    void simple_render(const std::shared_ptr<GLShaderProgram>& shader, ModelObjectPtrs& model_objects, std::vector<std::array<float, 4>>& extruder_colors,bool ban_light =false) const;
 
     void                finalize_geometry(bool opengl_initialized) { this->indexed_vertex_array->finalize_geometry(opengl_initialized); }
     void                release_geometry() { this->indexed_vertex_array->release_geometry(); }
@@ -614,7 +617,7 @@ public:
 class GLWipeTowerVolume : public GLVolume {
 public:
     GLWipeTowerVolume(const std::vector<std::array<float, 4>>& colors);
-    virtual void render(bool with_outline = false, const std::array<float, 4> &body_color = {1.0f, 1.0f, 1.0f, 1.0f}) const;
+    void render(const Transform3d& view_matrix, bool with_outline = false, const std::array<float, 4> &body_color = {1.0f, 1.0f, 1.0f, 1.0f}) const override;
 
     std::vector<GLIndexedVertexArray> iva_per_colors;
     bool                              IsTransparent();
@@ -727,6 +730,7 @@ public:
                 ERenderType                           type,
                 bool                                  disable_cullface,
                 const Transform3d &                   view_matrix,
+                const Transform3d&                    projection_matrix,
                 std::function<bool(const GLVolume &)> filter_func          = std::function<bool(const GLVolume &)>(),
                 bool                                  with_outline         = true,
                 const std::array<float, 4> &          body_color           = {1.0f, 1.0f, 1.0f, 1.0f},

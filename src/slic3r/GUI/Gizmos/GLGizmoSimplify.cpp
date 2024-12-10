@@ -6,6 +6,7 @@
 #include "slic3r/GUI/NotificationManager.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/format.hpp"
+#include "slic3r/GUI/OpenGLManager.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/QuadricEdgeCollapse.hpp"
@@ -652,31 +653,38 @@ void GLGizmoSimplify::on_render()
         return;
 
     const Transform3d trafo_matrix = selected_volume->world_matrix();
-    glsafe(::glPushMatrix());
-    glsafe(::glMultMatrixd(trafo_matrix.data()));
 
-    auto *gouraud_shader = wxGetApp().get_shader("gouraud_light");
-    glsafe(::glPushAttrib(GL_DEPTH_TEST));
+    const auto& gouraud_shader = wxGetApp().get_shader("gouraud_light");
+    const GLboolean was_depth_test_enabled = glIsEnabled(GL_DEPTH_TEST);
     glsafe(::glEnable(GL_DEPTH_TEST));
-    gouraud_shader->start_using();
-    m_glmodel.render();
-    gouraud_shader->stop_using();
+    wxGetApp().bind_shader(gouraud_shader);
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    const Transform3d view_model_matrix = camera.get_view_matrix() * trafo_matrix;
+    gouraud_shader->set_uniform("view_model_matrix", view_model_matrix);
+    gouraud_shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+    gouraud_shader->set_uniform("normal_matrix", (Matrix3d)view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
+    m_glmodel.render_geometry();
+    wxGetApp().unbind_shader();
 
     if (m_show_wireframe) {
-        auto* contour_shader = wxGetApp().get_shader("mm_contour");
-        contour_shader->start_using();
-        glsafe(::glLineWidth(1.0f));
+        const auto& contour_shader = wxGetApp().get_shader("mm_contour");
+        wxGetApp().bind_shader(contour_shader);
+        contour_shader->set_uniform("view_model_matrix", view_model_matrix);
+        contour_shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+        const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+        p_ogl_manager->set_line_width(1.0f);
         glsafe(::glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
         //ScopeGuard offset_fill_guard([]() { glsafe(::glDisable(GL_POLYGON_OFFSET_FILL)); });
         //glsafe(::glEnable(GL_POLYGON_OFFSET_FILL));
         //glsafe(::glPolygonOffset(5.0, 5.0));
-        m_glmodel.render();
+        m_glmodel.render_geometry();
         glsafe(::glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
-        contour_shader->stop_using();
+        wxGetApp().unbind_shader();
     }
 
-    glsafe(::glPopAttrib());
-    glsafe(::glPopMatrix());
+    if (!was_depth_test_enabled) {
+        glsafe(::glDisable(GL_DEPTH_TEST));
+    }
 }
 
 

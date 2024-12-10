@@ -637,8 +637,10 @@ public:
 #endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG
 
     const std::shared_ptr<OpenGLManager>& get_opengl_manager() const;
-    GLShaderProgram* get_shader(const std::string &shader_name) const;
-    GLShaderProgram* get_current_shader() const;
+    const std::shared_ptr<GLShaderProgram>& get_shader(const std::string &shader_name) const;
+    const std::shared_ptr<GLShaderProgram> get_current_shader() const;
+    void bind_shader(const std::shared_ptr<GLShaderProgram>& p_shader);
+    void unbind_shader();
 
     bool is_gl_version_greater_or_equal_to(unsigned int major, unsigned int minor) const;
     bool is_glsl_version_greater_or_equal_to(unsigned int major, unsigned int minor) const;

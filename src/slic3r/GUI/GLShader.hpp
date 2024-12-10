@@ -11,6 +11,7 @@ namespace Slic3r {
 
 class GLShaderProgram
 {
+    friend class GLShadersManager;
 public:
     enum class EShaderType
     {
@@ -41,9 +42,6 @@ public:
     const std::string& get_name() const { return m_name; }
     unsigned int get_id() const { return m_id; }
 
-    void start_using() const;
-    void stop_using() const;
-
     bool set_uniform(const char* name, int value) const;
     bool set_uniform(const char* name, bool value) const;
     bool set_uniform(const char* name, float value) const;
@@ -68,6 +66,9 @@ public:
     int get_attrib_location(const char* name) const;
     // returns -1 if not found
     int get_uniform_location(const char* name) const;
+
+private:
+    void start_using() const;
 };
 
 } // namespace Slic3r
