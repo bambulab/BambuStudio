@@ -5559,7 +5559,7 @@ bool Plater::priv::replace_volume_with_stl(int object_idx, int volume_idx, const
         }else {
             new_model = Model::read_from_file(path, nullptr, nullptr, LoadStrategy::AddDefaultInstances | LoadStrategy::LoadModel);
         }
-        
+
         for (ModelObject* model_object : new_model.objects) {
             model_object->center_around_origin();
             model_object->ensure_on_bed();
@@ -9031,7 +9031,7 @@ int Plater::new_project(bool skip_confirm, bool silent, const wxString &project_
 
 
 // BBS: FIXME, missing resotre logic
-void Plater::load_project(wxString const& filename2,
+int Plater::load_project(wxString const &filename2,
     wxString const& originfile)
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "filename is: " << filename2 << "and originfile is: " << originfile;
@@ -9048,9 +9048,9 @@ void Plater::load_project(wxString const& filename2,
     };
 
     // BSS: save project, force close
-    int result;
-    if ((result = close_with_confirm(check)) == wxID_CANCEL) {
-        return;
+    int wx_dlg_id = close_with_confirm(check);
+    if (wx_dlg_id == wxID_CANCEL) {
+        return wx_dlg_id;
     }
 
     //BBS: add only gcode mode
@@ -9061,7 +9061,7 @@ void Plater::load_project(wxString const& filename2,
         //some error cases happens
         //return directly
         BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": current loading other project, return directly");
-        return;
+        return wx_dlg_id;
     }
     else
         m_loading_project = true;
@@ -9149,6 +9149,7 @@ void Plater::load_project(wxString const& filename2,
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " load project done";
     m_loading_project = false;
+    return wx_dlg_id;
 }
 
 // BBS: save logic
@@ -9411,7 +9412,10 @@ void Plater::import_model_id(wxString download_info)
     if (download_ok) {
         BOOST_LOG_TRIVIAL(trace) << "import_model_id: target_path = " << target_path.string();
         /* load project */
-        this->load_project(target_path.wstring());
+        auto result = this->load_project(target_path.wstring());
+        if (result == (int)wxID_CANCEL) {
+            return;
+        }
         /*BBS set project info after load project, project info is reset in load project */
         //p->project.project_model_id = model_id;
         //p->project.project_design_id = design_id;
