@@ -1640,8 +1640,6 @@ int MachineObject::command_select_extruder(int id)
 {
     BOOST_LOG_TRIVIAL(info) << "select_extruder";
 
-    nozzle_selected_count = HOLD_COUNT_MAX;
-
     json j;
     j["print"]["sequence_id"]    = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["command"]        = "select_extruder";
@@ -1922,8 +1920,6 @@ int MachineObject::command_set_nozzle(int temp)
 int MachineObject::command_set_nozzle_new(int nozzle_id, int temp)
 {
     BOOST_LOG_TRIVIAL(info) << "set_nozzle_temp";
-
-    nozzle_selected_count = HOLD_COUNT_MAX;
 
     json j;
     j["print"]["sequence_id"]    = std::to_string(MachineObject::m_sequence_id++);
@@ -5372,7 +5368,7 @@ void MachineObject::converse_to_duct(bool is_suppt_part_fun, bool is_suppt_aux_f
     m_air_duct_data.curren_mode = -1; //def mode
 
 
-    if (is_suppt_part_fun) { 
+    if (is_suppt_part_fun) {
         AirParts part_fan;
         part_fan.type           = int(AirDuctType::AIR_FAN_TYPE);
         part_fan.id             = int(AIR_FUN::FAN_COOLING_0_AIRDOOR);
@@ -5706,9 +5702,9 @@ void MachineObject::parse_new_info(json print)
             json const &nozzle = device["nozzle"];
 
             m_nozzle_data = NozzleData();
-            m_nozzle_data.extder_exist = get_flag_bits(nozzle["exist"].get<int>(), 0, 15);
-            m_nozzle_data.cut_exist = get_flag_bits(nozzle["exist"].get<int>(), 16, 31);
-            m_nozzle_data.state = get_flag_bits(nozzle["state"].get<int>(), 0, 3);
+            m_nozzle_data.extder_exist      = get_flag_bits(nozzle["exist"].get<int>(), 0, 15);
+            m_nozzle_data.cut_exist         = get_flag_bits(nozzle["exist"].get<int>(), 16, 31);
+            m_nozzle_data.state             = get_flag_bits(nozzle["state"].get<int>(), 0, 3);
 
             for (auto it = nozzle["info"].begin(); it != nozzle["info"].end(); it++) {
                 Nozzle nozzle_obj;
@@ -5752,17 +5748,20 @@ void MachineObject::parse_new_info(json print)
         if (device.contains("extruder")) {
             json const& extruder = device["extruder"];
 
-            m_extder_data = ExtderData();
-            m_extder_data.total_extder_count = get_flag_bits(extruder["state"].get<int>(), 0, 3);
+            auto extder_data = ExtderData();
+            extder_data.total_extder_count        = get_flag_bits(extruder["state"].get<int>(), 0, 3);
 
-            if (nozzle_selected_count > 0) {
-                nozzle_selected_count--;
-            } else {
-                m_extder_data.current_extder_id = get_flag_bits(extruder["state"].get<int>(), 4, 3);
-                m_extder_data.target_extder_id  = get_flag_bits(extruder["state"].get<int>(), 8, 3);
-                m_extder_data.switch_extder_state = (ExtruderSwitchState) get_flag_bits(extruder["state"].get<int>(), 12, 2);
-                m_extder_data.current_loading_extder_id = get_flag_bits(extruder["state"].get<int>(), 15, 3);
+
+            extder_data.current_extder_id         = get_flag_bits(extruder["state"].get<int>(), 4, 3);
+            extder_data.target_extder_id          = get_flag_bits(extruder["state"].get<int>(), 8, 3);
+            extder_data.switch_extder_state       = (ExtruderSwitchState) get_flag_bits(extruder["state"].get<int>(), 12, 2);
+
+            if (extder_data.switch_extder_state != ExtruderSwitchState::ES_SWITCHING && extder_data.target_extder_id == extder_data.current_extder_id) {
+                flag_update_nozzle = true;
             }
+
+            extder_data.current_loading_extder_id = get_flag_bits(extruder["state"].get<int>(), 15, 3);
+            extder_data.current_busy_for_loading  = get_flag_bits(extruder["state"].get<int>(), 19);
 
             for (auto it = extruder["info"].begin(); it != extruder["info"].end(); it++) {
 
@@ -5813,19 +5812,21 @@ void MachineObject::parse_new_info(json print)
                         }
                     }
                 }
-                m_extder_data.extders.push_back(extder_obj);
+                extder_data.extders.push_back(extder_obj);
             }
 
-            if (m_extder_data.extders.size() <= 0) {
+            if (extder_data.extders.size() <= 0) {
                 // def data
-                m_extder_data.current_extder_id  = 0;
-                m_extder_data.target_extder_id   = 0;
-                m_extder_data.total_extder_count = 1;
+                extder_data.current_extder_id  = 0;
+                extder_data.target_extder_id   = 0;
+                extder_data.total_extder_count = 1;
                 Extder nozzle;
-                m_extder_data.extders.push_back(nozzle);
+                extder_data.extders.push_back(nozzle);
             }
+
+            m_extder_data = extder_data;
         }
-    } 
+    }
 }
 
 bool MachineObject::is_nozzle_data_invalid()
