@@ -506,6 +506,7 @@ void PartPlate::render_logo_texture(GLTexture &logo_texture, GLModel &logo_buffe
 void PartPlate::render_logo(bool bottom, bool render_cali)
 {
 	// render printer custom texture logo
+    auto real_gcode = wxGetApp().plater()->only_gcode_mode();
 	if (m_partplate_list->m_logo_texture_filename.empty()) {
 		m_partplate_list->m_logo_texture.reset();
     } else {
@@ -556,7 +557,7 @@ void PartPlate::render_logo(bool bottom, bool render_cali)
 				set_logo_box_by_bed(box_in_plate_origin);
 			}
         }
-        if (m_logo_triangles.is_initialized()) {
+        if (m_logo_triangles.is_initialized() && !real_gcode) {
 			render_logo_texture(m_partplate_list->m_logo_texture, m_logo_triangles, bottom);
 		}
         if (!m_partplate_list->render_bedtype_logo) {
@@ -580,21 +581,22 @@ void PartPlate::render_logo(bool bottom, bool render_cali)
 		bed_type_idx = 0;
 	}
 	// render bed textures
-	for (auto &part : m_partplate_list->bed_texture_info[bed_type_idx].parts) {
-		if (part.texture) {
-            if (part.buffer && part.buffer->is_initialized()
-				//&& part.vbo_id != 0
-				) {
-				if (part.offset.x() != m_origin.x() || part.offset.y() != m_origin.y()) {
-					part.offset = Vec2d(m_origin.x(), m_origin.y());
-					//part.update_buffer();
-				}
-				render_logo_texture(*(part.texture),
-									*(part.buffer),
-									bottom);
-			}
-		}
+    if (!real_gcode) {
+        for (auto &part : m_partplate_list->bed_texture_info[bed_type_idx].parts) {
+            if (part.texture) {
+                if (part.buffer && part.buffer->is_initialized()
+                    //&& part.vbo_id != 0
+                ) {
+                    if (part.offset.x() != m_origin.x() || part.offset.y() != m_origin.y()) {
+                        part.offset = Vec2d(m_origin.x(), m_origin.y());
+                        // part.update_buffer();
+                    }
+                    render_logo_texture(*(part.texture), *(part.buffer), bottom);
+                }
+            }
+        }
 	}
+
 
 	// render cali texture
 	if (render_cali) {
@@ -616,7 +618,7 @@ void PartPlate::render_logo(bool bottom, bool render_cali)
 	//render extruder_only_area_info
     bool is_zh        = wxGetApp().app_config->get("language") == "zh_CN";
     int  language_idx = (int) (is_zh ? ExtruderOnlyAreaType::Chinese:ExtruderOnlyAreaType::Engilish);
-    if (!is_single_extruder) {
+    if (!is_single_extruder && !real_gcode) {
         for (auto &part : m_partplate_list->extruder_only_area_info[language_idx].parts) {
             if (part.texture) {
                 if (part.buffer && part.buffer->is_initialized()) {
