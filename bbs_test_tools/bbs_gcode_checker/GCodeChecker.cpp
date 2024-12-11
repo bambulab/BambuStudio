@@ -28,6 +28,8 @@ const std::string nozzle_temperature_initial_layer_Tag  = " nozzle_temperature_i
 const std::string Z_HEIGHT_TAG                         = " Z_HEIGHT: ";
 const std::string Initial_Layer_Ptint_Height_Tag        = " initial_layer_print_height =";
 const std::string Line_Width_Tag = " line_width =";
+const std::string Filament_Map_Tag = " filament_map =";
+const std::string Physical_Extruder_Map_Tag = " physical_extruder_map =";
 
 GCodeCheckResult GCodeChecker::parse_file(const std::string& path)
 {
@@ -38,7 +40,12 @@ GCodeCheckResult GCodeChecker::parse_file(const std::string& path)
     }
     std::string line_raw;
     std::string line;
+    int line_number = 0; 
+
+
     while (std::getline(file, line_raw)) {
+        line_number++;
+
         const char *c = line_raw.c_str();
         c = skip_whitespaces(c);
         if (std::toupper(*c) == 'N')
@@ -46,7 +53,8 @@ GCodeCheckResult GCodeChecker::parse_file(const std::string& path)
         c = skip_whitespaces(c);
         line = c;
         if (parse_line(line) != GCodeCheckResult::Success) {
-            std::cout << "Failed to parse line " << line_raw << std::endl;
+            std::cerr << "Failed to parse line " << line_number
+                << ": " << line_raw << std::endl;
             return GCodeCheckResult::ParseFailed;
         }
     }
@@ -115,17 +123,32 @@ GCodeCheckResult GCodeChecker::parse_comment(GCodeLine& line)
     if (starts_with(comment, Extrusion_Role_Tag)) {
         m_role = string_to_role(comment.substr(Extrusion_Role_Tag.length()));
         check_gap_infill_width = false;
+
+        double check_nozzle_temp = 0.0f;
+        if (is_multi_nozzle == true) {
+            check_nozzle_temp = multi_nozzle_temp[current_nozzle_id];
+        }
+        else
+        {
+            check_nozzle_temp = nozzle_temp;
+        }
+
         if (m_role == erExternalPerimeter) {
-            if (z_height == initial_layer_height && nozzle_temp != nozzle_temperature_initial_layer[filament_id]) {
-                std::cout << "invalid filament nozzle initial layer temperature comment with invalid value!" << std::endl;
+            if (z_height == initial_layer_height && check_nozzle_temp != nozzle_temperature_initial_layer[filament_id]) {
+                std::cout << "Invalid filament nozzle initial layer temperature! Expected: "
+                    << nozzle_temperature_initial_layer[filament_id]
+                    << ", but got: " << check_nozzle_temp << "." << std::endl;
                 return GCodeCheckResult::ParseFailed;
             }
 
-            if (z_height != initial_layer_height && nozzle_temp != nozzle_temperature[filament_id]) {
-                std::cout << "invalid filament nozzle temperature comment with invalid value!" << std::endl;
+            if (z_height != initial_layer_height && check_nozzle_temp != nozzle_temperature[filament_id]) {
+                std::cout << "Invalid filament nozzle temperature! Expected: "
+                    << nozzle_temperature[filament_id]
+                    << ", but got: " << check_nozzle_temp << "." << std::endl;
                 return GCodeCheckResult::ParseFailed;
             }
-        } else if (m_role == erGapFill) {
+        }
+        else if (m_role == erGapFill) {
             check_gap_infill_width = true;
         }
 
@@ -189,7 +212,36 @@ GCodeCheckResult GCodeChecker::parse_comment(GCodeLine& line)
             std::cout << "invalid nozzle temperature initial layer comment with invalid value!" << std::endl;
             return GCodeCheckResult::ParseFailed;
         }
-    } else if (starts_with(comment, Z_HEIGHT_TAG)) {
+    }
+    else if (starts_with(comment, Filament_Map_Tag)) {
+        std::string str = comment.substr(Filament_Map_Tag.size() + 1);
+        if (!parse_double_from_str(str, filament_map)) {
+            std::cout << "invalid filament map comment with invalid value!" << std::endl;
+            return GCodeCheckResult::ParseFailed;
+        }
+        else {
+            for (size_t i = 0; i < filament_map.size(); ++i) {
+                filament_map[i] -= 1;
+            }
+            is_multi_nozzle = true;
+        }
+    }
+    else if (starts_with(comment, Physical_Extruder_Map_Tag)) {
+        std::string str = comment.substr(Physical_Extruder_Map_Tag.size() + 1);
+        std::vector<double>tmp;
+
+        if (!parse_double_from_str(str, tmp)){
+            std::cout << "invalid physical extruder map comment with invalid value!" << std::endl;
+            return GCodeCheckResult::ParseFailed;
+        }
+
+        for (size_t idx = 0; idx < tmp.size(); ++idx) {
+            physical_to_logic_extruder_map[(int)(tmp[idx])]= idx;
+            logic_to_physical_extruder_map[idx] = (int)(tmp[idx]);
+        }
+        
+    }
+    else if (starts_with(comment, Z_HEIGHT_TAG)) {
         std::string str = comment.substr(Z_HEIGHT_TAG.size());
         if (!parse_double_from_str(str, z_height)) {
             std::cout << "invalid z height comment with invalid value!" << std::endl;
@@ -257,7 +309,7 @@ GCodeCheckResult GCodeChecker::parse_command(GCodeLine& gcode_line)
         case 'T':{
 
             int pt = ::atoi(&cmd[1]);
-            if (pt == 1000 || pt == 1100 || pt == 255 || pt == 1001) {
+            if (pt == 1000 || pt == 1100 || pt == 255 || pt == 1001 || pt == 65535 || pt == 65279) {
                 break;
             }
 
@@ -267,6 +319,12 @@ GCodeCheckResult GCodeChecker::parse_command(GCodeLine& gcode_line)
                 break;
             }
             filament_id = pt;
+
+            
+            if (is_multi_nozzle == true) {
+                set_current_nozzle(pt);
+            }
+           
             flow_ratio = filament_flow_ratio[pt];
             break;
         }
@@ -480,19 +538,43 @@ GCodeCheckResult GCodeChecker::parse_M83(const GCodeLine& gcode_line)
 }
 
 GCodeCheckResult GCodeChecker::parse_M104_M109(const GCodeLine &gcode_line)
-{
+{   
     const char *c = gcode_line.m_raw.c_str();
     const char *rs = strchr(c,'S');
 
-    std::string str=rs;
-    str = str.substr(1);
-    for (int i = 0; i < str.size(); i++) {
-        if (str[i] == ' ')
-            str=str.substr(0,i);
+    std::string strS = rs;
+    strS = strS.substr(1);
+    for (int i = 0; i < strS.size(); i++) {
+        if (strS[i] == ' ')
+            strS = strS.substr(0,i);
     }
-    if (!parse_double_from_str(str, nozzle_temp)) {
+    double temp_nozzle_temp;
+
+    if (!parse_double_from_str(strS, temp_nozzle_temp)) {
         std::cout << "invalid nozzle temperature comment with invalid value!" << std::endl;
         return GCodeCheckResult::ParseFailed;
+    }
+
+    if (is_multi_nozzle == true) {
+        const char* rt = strchr(c, 'T');
+        if (rt) {
+            std::string strT = rt + 1; // 跳过 'T'
+            for (size_t i = 0; i < strT.size(); i++) {
+                if (strT[i] == ' ') {
+                    strT = strT.substr(0, i);
+                    break;
+                }
+            }
+            int logic_nozzle_id = physical_to_logic_extruder_map[std::stoi(strT)];
+            multi_nozzle_temp[logic_nozzle_id] = temp_nozzle_temp;
+        }
+        else
+        {
+            multi_nozzle_temp[current_nozzle_id] = temp_nozzle_temp;
+        }
+    }
+    else {
+        nozzle_temp = temp_nozzle_temp;
     }
 
     return GCodeCheckResult::Success;
@@ -766,6 +848,16 @@ GCodeCheckResult GCodeChecker::check_G2_G3_width(const GCodeLine& line)
     }
 
     return GCodeCheckResult::Success;
+}
+
+void GCodeChecker::set_current_nozzle(int filament_id) {    
+    if (filament_id >= 0 && filament_id < static_cast<int>(filament_map.size())) {
+        current_nozzle_id = filament_map[filament_id];
+    }
+    else {
+        std::cerr << "Error: filament_id is out of range!" << std::endl;
+        current_nozzle_id = 0;
+    }
 }
 
 const std::map<std::string, ExtrusionRole> string_to_role_map = {
