@@ -124,8 +124,8 @@ void SendJob::process()
     std::string http_body;
 
 
-   
-   
+
+
     // local print access
     params.dev_ip = m_dev_ip;
     params.username = "bblp";
@@ -151,7 +151,7 @@ void SendJob::process()
         m_job_finished = true;
         return;
     }
-    
+
 
     /* display info */
     msg = _L("Sending gcode file over LAN");
@@ -277,7 +277,7 @@ void SendJob::process()
                             }
                         }
 
-                        //get errors 
+                        //get errors
                         if (code > 100 || code < 0 || stage == BBL::SendingPrintJobStage::PrintingStageERROR) {
                             if (code == BAMBU_NETWORK_ERR_PRINT_WR_FILE_OVER_SIZE || code == BAMBU_NETWORK_ERR_PRINT_SP_FILE_OVER_SIZE) {
                                 m_plater->update_print_error_info(code, desc_file_too_large.ToStdString(), info);
@@ -312,7 +312,7 @@ void SendJob::process()
         else if (params.password.empty())
             params.comments = "no_password";
 
-        if (!params.password.empty() 
+        if (!params.password.empty()
             && !params.dev_ip.empty()
             && this->has_sdcard) {
             // try to send local with record
@@ -338,7 +338,7 @@ void SendJob::process()
             this->update_status(curr_percent, _L("Sending gcode file over LAN"));
             result = m_agent->start_send_gcode_to_sdcard(params, update_fn, cancel_fn, nullptr);
         } else {
-            this->update_status(curr_percent, _L("An SD card needs to be inserted before sending to printer."));
+            this->update_status(curr_percent, _L("Storage needs to be inserted before sending to printer."));
             return;
         }
     }
