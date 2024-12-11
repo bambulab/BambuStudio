@@ -543,7 +543,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
             }
             else if (line == reserved_tag(ETags::Used_Filament_Weight_Placeholder)) {
                 std::map<size_t, double>total_weight_per_extruder;
-                for (const auto& pair : context.used_filaments.total_volumes_per_extruder) {
+                for (const auto& pair : context.used_filaments.total_volumes_per_filament) {
                     auto filament_id = pair.first;
                     auto volume = pair.second;
                     auto iter = std::find_if(context.filament_lists.begin(), context.filament_lists.end(), [filament_id](const Extruder& filament) { return filament.id() == filament_id; });
@@ -557,7 +557,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
             }
             else if (line == reserved_tag(ETags::Used_Filament_Volume_Placeholder)) {
                 std::map<size_t, double>total_volume_per_extruder;
-                for (const auto& pair : context.used_filaments.total_volumes_per_extruder) {
+                for (const auto &pair : context.used_filaments.total_volumes_per_filament) {
                     auto filament_id = pair.first;
                     auto volume = pair.second;
                     auto iter = std::find_if(context.filament_lists.begin(), context.filament_lists.end(), [filament_id](const Extruder& filament) { return filament.id() == filament_id; });
@@ -569,7 +569,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
             }
             else if (line == reserved_tag(ETags::Used_Filament_Length_Placeholder)) {
                 std::map<size_t, double>total_length_per_extruder;
-                for (const auto& pair : context.used_filaments.total_volumes_per_extruder) {
+                for (const auto &pair : context.used_filaments.total_volumes_per_filament) {
                     auto filament_id = pair.first;
                     auto volume = pair.second;
                     auto iter = std::find_if(context.filament_lists.begin(), context.filament_lists.end(), [filament_id](const Extruder& filament) { return filament.id() == filament_id; });

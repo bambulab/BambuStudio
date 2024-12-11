@@ -6208,7 +6208,6 @@ bool DeviceManager::set_selected_machine(std::string dev_id, bool need_disconnec
         for (auto& data : it->second->m_nozzle_filament_data) {
             data.second.checked_filament.clear();
         }
-        it->second->m_checked_filament.clear();
     }
     selected_machine = dev_id;
     return true;

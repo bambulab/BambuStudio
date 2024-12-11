@@ -348,69 +348,6 @@ void PartPlate::calc_bounding_boxes() const {
 	}
 }
 
-void PartPlate::calc_triangles(const ExPolygon& poly)
-{
-	auto triangles =triangulate_expolygon_2f(poly, NORMALS_UP);
-    m_triangles.reset();
-	if (!m_triangles.init_model_from_poly(triangles, GROUND_Z))
-		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create plate triangles\n";
-}
-
-void PartPlate::calc_exclude_triangles(const ExPolygon& poly) {
-    if (poly.empty()) {
-        m_exclude_triangles.reset();
-        return;
-    }
-    auto triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
-    m_exclude_triangles.reset();
-    if (!m_exclude_triangles.init_model_from_poly(triangles, GROUND_Z))
-		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create plate triangles\n";
-}
-
-void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox) {
-	Polylines axes_lines, axes_lines_bolder;
-	int count = 0;
-	for (coord_t x = pp_bbox.min(0); x <= pp_bbox.max(0); x += scale_(10.0)) {
-		Polyline line;
-		line.append(Point(x, pp_bbox.min(1)));
-		line.append(Point(x, pp_bbox.max(1)));
-
-		if ( (count % 5) == 0 )
-			axes_lines_bolder.push_back(line);
-		else
-			axes_lines.push_back(line);
-		count ++;
-	}
-	count = 0;
-	for (coord_t y = pp_bbox.min(1); y <= pp_bbox.max(1); y += scale_(10.0)) {
-		Polyline line;
-		line.append(Point(pp_bbox.min(0), y));
-		line.append(Point(pp_bbox.max(0), y));
-		axes_lines.push_back(line);
-
-		if ( (count % 5) == 0 )
-			axes_lines_bolder.push_back(line);
-		else
-			axes_lines.push_back(line);
-		count ++;
-	}
-
-	// clip with a slightly grown expolygon because our lines lay on the contours and may get erroneously clipped
-	Lines gridlines = to_lines(intersection_pl(axes_lines, offset(poly, (float)SCALED_EPSILON)));
-	Lines gridlines_bolder = to_lines(intersection_pl(axes_lines_bolder, offset(poly, (float)SCALED_EPSILON)));
-
-	// append bed contours
-	Lines contour_lines = to_lines(poly);
-	std::copy(contour_lines.begin(), contour_lines.end(), std::back_inserter(gridlines));
-
-	m_gridlines.reset();
-	if (!m_gridlines.init_model_from_lines(gridlines, GROUND_Z))
-		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create bed grid lines\n";
-    m_gridlines_bolder.reset();
-	if (!m_gridlines_bolder.init_model_from_lines(gridlines_bolder, GROUND_Z))
-		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create bed grid lines\n";
-}
-
 void PartPlate::calc_height_limit() {
 	Lines3 bottom_h_lines, top_lines, top_h_lines, common_lines;
 	int shape_count = m_shape.size();
