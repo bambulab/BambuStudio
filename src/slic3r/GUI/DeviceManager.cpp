@@ -3433,7 +3433,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                         if (jj.contains("heatbreak_fan_speed")) {
                             heatbreak_fan_speed = stoi(jj["heatbreak_fan_speed"].get<std::string>());
                         }
-                    
+
                         /* parse speed */
                         try {
                             if (jj.contains("spd_lvl")) {
@@ -6134,7 +6134,6 @@ bool DeviceManager::set_selected_machine(std::string dev_id, bool need_disconnec
         for (auto& data : it->second->m_nozzle_filament_data) {
             data.second.checked_filament.clear();
         }
-        it->second->m_checked_filament.clear();
     }
     selected_machine = dev_id;
     return true;
