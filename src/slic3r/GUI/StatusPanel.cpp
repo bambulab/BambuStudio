@@ -2590,6 +2590,7 @@ void StatusPanel::update_ams(MachineObject *obj)
 
     if (obj) {
         if (obj->get_printer_ams_type() == "f1") { ams_mode = AMSModel::AMS_LITE; }
+        obj->check_ams_filament_valid();
     }
     if (obj->is_enable_np && obj->amsList.size() > 0){
         ams_mode = AMSModel(obj->amsList.begin()->second->type);

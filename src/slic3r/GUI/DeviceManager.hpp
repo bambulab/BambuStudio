@@ -1041,6 +1041,18 @@ public:
     void parse_new_info(json print);
     int get_flag_bits(std::string str, int start, int count = 1);
     int get_flag_bits(int num, int start, int count = 1);
+
+    /* Device Filament Check */
+    struct FilamentData
+    {
+        std::set<std::string>                      checked_filament;
+        std::string                                printer_preset_name;
+        std::map<std::string, std::pair<int, int>> filament_list; // filament_id, pair<min temp, max temp>
+    };
+    std::map<std::string, FilamentData> m_nozzle_filament_data;
+    void update_filament_list();
+    void update_printer_preset_name();
+    void check_ams_filament_valid();
 };
 
 class DeviceManager

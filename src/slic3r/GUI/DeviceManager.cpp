@@ -3933,14 +3933,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     catch (...) {
                         ;
                     }
-                    PresetBundle *preset_bundle = Slic3r::GUI::wxGetApp().preset_bundle;
-                    std::ostringstream stream;
-                    stream << std::fixed << std::setprecision(1) << DeviceManager::nozzle_diameter_conver(m_nozzle_data.nozzles[0].diameter);
-                    std::string           nozzle_diameter_str = stream.str();
-                    if (m_printer_preset_name.find(nozzle_diameter_str + " nozzle") == std::string::npos)
-                        update_printer_preset_name(nozzle_diameter_str);
                     update_filament_list();
-                    std::set<std::string> need_checked_filament_id;
                     if (jj.contains("ams")) {
                         if (jj["ams"].contains("ams")) {
                             long int last_ams_exist_bits = ams_exist_bits;
@@ -4115,28 +4108,6 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                                 } else {
                                                     curr_tray->type = type;
                                                 }
-                                                // settings_id is not exist in filament_list
-                                                if (curr_tray->setting_id.size() == 8 && curr_tray->setting_id[0] == 'P' &&
-                                                    m_filament_list.find(curr_tray->setting_id) == m_filament_list.end()) {
-                                                    if (m_checked_filament.find(curr_tray->setting_id) == m_checked_filament.end()) {
-                                                        need_checked_filament_id.insert(curr_tray->setting_id);
-                                                        wxColour color = *wxWHITE;
-                                                        char     col_buf[10];
-                                                        sprintf(col_buf, "%02X%02X%02XFF", (int) color.Red(), (int) color.Green(), (int) color.Blue());
-                                                        try {
-                                                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__
-                                                                                    << " ams settings_id is not exist in filament_list and reset, ams_id: " << ams_id
-                                                                                    << " tray_id" << tray_id << "filament_id: " << curr_tray->setting_id;
-                                                            this->command_ams_filament_settings(std::stoi(ams_id), std::stoi(tray_id), "", "", std::string(col_buf), "", 0, 0);
-                                                            continue;
-                                                        } catch (...) {
-                                                            BOOST_LOG_TRIVIAL(info)
-                                                                << __FUNCTION__ << " " << __LINE__ << " stoi error and ams_id: " << ams_id << " tray_id" << tray_id;
-                                                        }
-                                                    }
-                                                }*/
-
-
                                             } else {
                                                 curr_tray->setting_id = "";
                                                 curr_tray->type       = "";
@@ -4184,27 +4155,6 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                                 curr_tray->nozzle_temp_min = (*tray_it)["nozzle_temp_min"].get<std::string>();
                                             else
                                                 curr_tray->nozzle_temp_min = "";
-
-                                            /*need for optimization*/
-                                            /*if (curr_tray->nozzle_temp_min != "" && curr_tray->nozzle_temp_max != "") {
-                                                try {
-                                                    std::string preset_setting_id;
-                                                    bool        is_equation = preset_bundle->check_filament_temp_equation_by_printer_type_and_nozzle_for_mas_tray(
-                                                        MachineObject::get_preset_printer_model_name(this->printer_type), nozzle_diameter_str, curr_tray->setting_id,
-                                                        curr_tray->tag_uid, curr_tray->nozzle_temp_min, curr_tray->nozzle_temp_max, preset_setting_id);
-                                                    if (!is_equation) {
-                                                        command_ams_filament_settings(std::stoi(ams_id), std::stoi(tray_id), curr_tray->setting_id, preset_setting_id,
-                                                                                      curr_tray->color, curr_tray->type,
-                                                                                      std::stoi(curr_tray->nozzle_temp_min),
-                                                                                      std::stoi(curr_tray->nozzle_temp_max));
-                                                    }
-                                                } catch (...) {
-                                                    BOOST_LOG_TRIVIAL(info) << "check fail and curr_tray ams_id" << ams_id << " curr_tray tray_id"<<tray_id;
-                                                }
-                                            }*/
-
-
-
                                             if (tray_it->contains("xcam_info"))
                                                 curr_tray->xcam_info = (*tray_it)["xcam_info"].get<std::string>();
                                             else
@@ -5297,20 +5247,6 @@ AmsTray MachineObject::parse_vt_tray(json vtray)
             else {
                 vt_tray.type = type;
             }
-
-            /*need for optimization*/
-            /*if (filament_list.find(vt_tray.setting_id) == filament_list.end()) {
-                wxColour color = *wxWHITE;
-                char     col_buf[10];
-                sprintf(col_buf, "%02X%02X%02XFF", (int)color.Red(), (int)color.Green(), (int)color.Blue());
-                try {
-                    BOOST_LOG_TRIVIAL(info) << "no filament_id in filament_list and reset vt_tray and the filament_id is: " << vt_tray.setting_id;
-                    this->command_ams_filament_settings(255, std::stoi(vt_tray.id), "", "", std::string(col_buf), "", 0, 0);
-                }
-                catch (...) {
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << " stoi error and tray_id" << vt_tray.id;
-                }
-            }*/
         }
         else {
             vt_tray.setting_id = "";
@@ -5359,26 +5295,6 @@ AmsTray MachineObject::parse_vt_tray(json vtray)
             vt_tray.nozzle_temp_min = vtray["nozzle_temp_min"].get<std::string>();
         else
             vt_tray.nozzle_temp_min = "";
-
-        /*need for optimization*/
-        /*if (vt_tray.nozzle_temp_min != "" && vt_tray.nozzle_temp_max != "") {
-            try {
-                std::string preset_setting_id;
-                bool        is_equation = preset_bundle->check_filament_temp_equation_by_printer_type_and_nozzle_for_mas_tray(
-                    MachineObject::get_preset_printer_model_name(this->printer_type), nozzle_diameter_str, vt_tray.setting_id, vt_tray.tag_uid,
-                    vt_tray.nozzle_temp_min, vt_tray.nozzle_temp_max, preset_setting_id);
-                if (!is_equation) {
-                    command_ams_filament_settings(255, std::stoi(vt_tray.id), vt_tray.setting_id, preset_setting_id, vt_tray.color, vt_tray.type,
-                        std::stoi(vt_tray.nozzle_temp_min), std::stoi(vt_tray.nozzle_temp_max));
-                }
-            }
-            catch (...) {
-                BOOST_LOG_TRIVIAL(info) << "check fail and vt_tray.id" << vt_tray.id;
-            }
-
-        }*/
-
-
         if (vtray.contains("xcam_info"))
             vt_tray.xcam_info = vtray["xcam_info"].get<std::string>();
         else
@@ -5621,6 +5537,231 @@ int MachineObject::get_flag_bits(int num, int start, int count)
 
     int flag = (decimal_value & (mask)) >> start;
     return flag;
+}
+
+void MachineObject::update_filament_list()
+{
+    PresetBundle *preset_bundle = Slic3r::GUI::wxGetApp().preset_bundle;
+
+    // custom filament
+    typedef std::map<std::string, std::pair<int, int>> map_pair;
+    std::map<std::string, map_pair>                    map_list;
+    for (auto &pair : m_nozzle_filament_data) {
+        map_list[pair.second.printer_preset_name] = map_pair{};
+    }
+    for (auto &preset : preset_bundle->filaments()) {
+        if (preset.is_user() && preset.inherits() == "") {
+            ConfigOption *       printer_opt  = const_cast<Preset &>(preset).config.option("compatible_printers");
+            ConfigOptionStrings *printer_strs = dynamic_cast<ConfigOptionStrings *>(printer_opt);
+            for (const std::string &printer_str : printer_strs->values) {
+                if (map_list.find(printer_str) != map_list.end()) {
+                    auto &        filament_list = map_list[printer_str];
+                    ConfigOption *opt_min  = const_cast<Preset &>(preset).config.option("nozzle_temperature_range_low");
+                    int           min_temp = -1;
+                    if (opt_min) {
+                        ConfigOptionInts *opt_min_ints = dynamic_cast<ConfigOptionInts *>(opt_min);
+                        min_temp                       = opt_min_ints->get_at(0);
+                    }
+                    ConfigOption *opt_max  = const_cast<Preset &>(preset).config.option("nozzle_temperature_range_high");
+                    int           max_temp = -1;
+                    if (opt_max) {
+                        ConfigOptionInts *opt_max_ints = dynamic_cast<ConfigOptionInts *>(opt_max);
+                        max_temp                       = opt_max_ints->get_at(0);
+                    }
+                    filament_list[preset.filament_id] = std::make_pair(min_temp, max_temp);
+                    break;
+                }
+            }
+        }
+    }
+
+    for (auto& pair : m_nozzle_filament_data) {
+        auto & m_printer_preset_name = pair.second.printer_preset_name;
+        auto & m_filament_list       = pair.second.filament_list;
+        auto & m_checked_filament    = pair.second.checked_filament;
+        auto & filament_list         = map_list[m_printer_preset_name];
+
+        for (auto it = filament_list.begin(); it != filament_list.end(); it++) {
+            if (m_filament_list.find(it->first) != m_filament_list.end()) {
+                assert(it->first.size() == 8 && it->first[0] == 'P');
+
+                if (it->second.first != m_filament_list[it->first].first) {
+                    BOOST_LOG_TRIVIAL(info) << "old min temp is not equal to new min temp and filament id: " << it->first;
+                    continue;
+                }
+
+                if (it->second.second != m_filament_list[it->first].second) {
+                    BOOST_LOG_TRIVIAL(info) << "old max temp is not equal to new max temp and filament id: " << it->first;
+                    continue;
+                }
+
+                m_filament_list.erase(it->first);
+            }
+        }
+
+        for (auto it = m_filament_list.begin(); it != m_filament_list.end(); it++) { m_checked_filament.erase(it->first); }
+
+        m_filament_list = filament_list;
+    }
+}
+
+void MachineObject::update_printer_preset_name()
+{
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << "start update preset_name";
+    PresetBundle *     preset_bundle = Slic3r::GUI::wxGetApp().preset_bundle;
+    auto               printer_model = MachineObject::get_preset_printer_model_name(this->printer_type);
+    std::set<std::string> diameter_set;
+    for (auto &nozzle : m_nozzle_data.nozzles) {
+        float diameter = nozzle.diameter;
+        std::ostringstream stream;
+        stream << std::fixed << std::setprecision(1) << diameter;
+        std::string nozzle_diameter_str = stream.str();
+        assert(nozzle_diameter_str.size() == 3);
+        diameter_set.insert(nozzle_diameter_str);
+        if (m_nozzle_filament_data.find(nozzle_diameter_str) != m_nozzle_filament_data.end()) continue;
+        auto data = FilamentData();
+        auto printer_set = preset_bundle->get_printer_names_by_printer_type_and_nozzle(printer_model, nozzle_diameter_str);
+        if (printer_set.size() > 0)
+            data.printer_preset_name = *printer_set.begin();
+        else
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << " update printer preset name failed: "<< "printer_type: " << printer_type << "nozzle_diameter_str" << nozzle_diameter_str;
+    }
+
+    for (auto iter = m_nozzle_filament_data.begin(); iter != m_nozzle_filament_data.end(); iter++) {
+        if (diameter_set.find(iter->first) == diameter_set.end())
+            iter = m_nozzle_filament_data.erase(iter);
+    }
+}
+
+void MachineObject::check_ams_filament_valid()
+{
+    PresetBundle * preset_bundle = Slic3r::GUI::wxGetApp().preset_bundle;
+    auto printer_model = MachineObject::get_preset_printer_model_name(this->printer_type);
+    std::map<std::string, std::set<std::string>> need_checked_filament_id;
+    for (auto &ams_pair : amsList) {
+        auto               ams_id = ams_pair.first;
+        auto &ams = ams_pair.second;
+        std::ostringstream stream;
+        stream << std::fixed << std::setprecision(1) << m_nozzle_data.nozzles[ams->nozzle].diameter;
+        std::string nozzle_diameter_str = stream.str();
+        assert(nozzle_diameter_str.size() == 3);
+        if (m_nozzle_filament_data.find(nozzle_diameter_str) == m_nozzle_filament_data.end()) {
+            assert(false);
+            continue;
+        }
+        auto &data = m_nozzle_filament_data[nozzle_diameter_str];
+        auto &filament_list = data.filament_list;
+        auto &checked_filament = data.checked_filament;
+        for (auto &tray_pair : ams->trayList) {
+            auto  tray_id   = tray_pair.first;
+            auto &curr_tray = tray_pair.second;
+            if (curr_tray->setting_id.size() == 8 && curr_tray->setting_id[0] == 'P' && filament_list.find(curr_tray->setting_id) == filament_list.end()) {
+                if (checked_filament.find(curr_tray->setting_id) == checked_filament.end()) {
+                    need_checked_filament_id[nozzle_diameter_str].insert(curr_tray->setting_id);
+                    wxColour color = *wxWHITE;
+                    char     col_buf[10];
+                    sprintf(col_buf, "%02X%02X%02XFF", (int) color.Red(), (int) color.Green(), (int) color.Blue());
+                    try {
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << " ams settings_id is not exist in filament_list and reset, ams_id: " << ams_id << " tray_id"
+                                                << tray_id << "filament_id: " << curr_tray->setting_id;
+                        this->command_ams_filament_settings(std::stoi(ams_id), std::stoi(tray_id), "", "", std::string(col_buf), "", 0, 0);
+                        continue;
+                    } catch (...) {
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << " stoi error and ams_id: " << ams_id << " tray_id" << tray_id;
+                    }
+                }
+            }
+            if (curr_tray->setting_id.size() == 8 && curr_tray->setting_id[0] == 'P' && curr_tray->nozzle_temp_min != "" && curr_tray->nozzle_temp_max != "") {
+                if (checked_filament.find(curr_tray->setting_id) == checked_filament.end()) {
+                    need_checked_filament_id[nozzle_diameter_str].insert(curr_tray->setting_id);
+                    try {
+                        std::string preset_setting_id;
+                        bool        is_equation = preset_bundle->check_filament_temp_equation_by_printer_type_and_nozzle_for_mas_tray(printer_model, nozzle_diameter_str,
+                                                                                                                               curr_tray->setting_id, curr_tray->tag_uid,
+                                                                                                                               curr_tray->nozzle_temp_min,
+                                                                                                                               curr_tray->nozzle_temp_max, preset_setting_id);
+                        if (!is_equation) {
+                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << " ams filament is not match min max temp and reset, ams_id: " << ams_id << " tray_id"
+                                                    << tray_id << "filament_id: " << curr_tray->setting_id;
+                            command_ams_filament_settings(std::stoi(ams_id), std::stoi(tray_id), curr_tray->setting_id, preset_setting_id, curr_tray->color, curr_tray->type,
+                                                          std::stoi(curr_tray->nozzle_temp_min), std::stoi(curr_tray->nozzle_temp_max));
+                        }
+                        continue;
+                    } catch (...) {
+                        BOOST_LOG_TRIVIAL(info) << "check fail and curr_tray ams_id" << ams_id << " curr_tray tray_id" << tray_id;
+                    }
+                }
+            }
+        }
+    }
+
+    for (auto vt_tray : vt_slot) {
+        int  index = 255 - std::stoi(vt_tray.id);
+        if (index >= m_nozzle_data.total_nozzle_count) {
+            BOOST_LOG_TRIVIAL(error) << " vt_tray id map for nozzle id is not exist, index is: " << index << " nozzle count" << m_nozzle_data.total_nozzle_count;
+            continue;
+        }
+        auto diameter = m_nozzle_data.nozzles[index].diameter;
+        std::ostringstream stream;
+        stream << std::fixed << std::setprecision(1) << diameter;
+        std::string nozzle_diameter_str = stream.str();
+        assert(nozzle_diameter_str.size() == 3);
+        if (m_nozzle_filament_data.find(nozzle_diameter_str) == m_nozzle_filament_data.end()) {
+            assert(false);
+            continue;
+        }
+        auto &data = m_nozzle_filament_data[nozzle_diameter_str];
+        auto &checked_filament = data.checked_filament;
+        auto &filament_list    = data.filament_list;
+        if (vt_tray.setting_id.size() == 8 && vt_tray.setting_id[0] == 'P' && filament_list.find(vt_tray.setting_id) == filament_list.end()) {
+            if (checked_filament.find(vt_tray.setting_id) == checked_filament.end()) {
+                need_checked_filament_id[nozzle_diameter_str].insert(vt_tray.setting_id);
+                wxColour color = *wxWHITE;
+                char     col_buf[10];
+                sprintf(col_buf, "%02X%02X%02XFF", (int) color.Red(), (int) color.Green(), (int) color.Blue());
+                try {
+                    BOOST_LOG_TRIVIAL(info) << "vt_tray.setting_id is not exist in filament_list and reset vt_tray and the filament_id is: " << vt_tray.setting_id;
+                    this->command_ams_filament_settings(255, std::stoi(vt_tray.id), "", "", std::string(col_buf), "", 0, 0);
+                    continue;
+                } catch (...) {
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << " stoi error and tray_id" << vt_tray.id;
+                }
+            }
+        }
+        if (vt_tray.setting_id.size() == 8 && vt_tray.setting_id[0] == 'P' && vt_tray.nozzle_temp_min != "" && vt_tray.nozzle_temp_max != "") {
+            if (checked_filament.find(vt_tray.setting_id) == checked_filament.end()) {
+                need_checked_filament_id[nozzle_diameter_str].insert(vt_tray.setting_id);
+                try {
+                    std::string        preset_setting_id;
+                    PresetBundle *     preset_bundle = Slic3r::GUI::wxGetApp().preset_bundle;
+                    std::ostringstream stream;
+                    stream << std::fixed << std::setprecision(1) << m_nozzle_data.nozzles[0].diameter;
+                    std::string nozzle_diameter_str = stream.str();
+                    bool        is_equation = preset_bundle->check_filament_temp_equation_by_printer_type_and_nozzle_for_mas_tray(MachineObject::get_preset_printer_model_name(
+                                                                                                                               this->printer_type),
+                                                                                                                           nozzle_diameter_str, vt_tray.setting_id,
+                                                                                                                           vt_tray.tag_uid, vt_tray.nozzle_temp_min,
+                                                                                                                           vt_tray.nozzle_temp_max, preset_setting_id);
+                    if (!is_equation) {
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__
+                                                << " vt_tray filament is not match min max temp and reset, filament_id: " << vt_tray.setting_id;
+                        command_ams_filament_settings(255, std::stoi(vt_tray.id), vt_tray.setting_id, preset_setting_id, vt_tray.color, vt_tray.type,
+                                                      std::stoi(vt_tray.nozzle_temp_min), std::stoi(vt_tray.nozzle_temp_max));
+                    }
+                } catch (...) {
+                    BOOST_LOG_TRIVIAL(info) << "check fail and vt_tray.id" << vt_tray.id;
+                }
+            }
+        }
+    }
+
+    for (auto &diameter_pair : m_nozzle_filament_data) {
+        auto &diameter = diameter_pair.first;
+        auto &data     = diameter_pair.second;
+        for (auto &filament_id : need_checked_filament_id[diameter]) {
+            data.checked_filament.insert(filament_id);
+        }
+    }
 }
 
 bool DeviceManager::EnableMultiMachine = false;
@@ -6063,6 +6204,9 @@ bool DeviceManager::set_selected_machine(std::string dev_id, bool need_disconnec
                     it->second->set_lan_mode_connection_state(true);
                 }
             }
+        }
+        for (auto& data : it->second->m_nozzle_filament_data) {
+            data.second.checked_filament.clear();
         }
         it->second->m_checked_filament.clear();
     }

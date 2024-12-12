@@ -1883,6 +1883,7 @@ void PresetBundle::set_calibrate_printer(std::string name)
 
 std::set<std::string> PresetBundle::get_printer_names_by_printer_type_and_nozzle(const std::string &printer_type, std::string nozzle_diameter_str)
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << "printer_type: " << printer_type << "nozzle_diameter_str" << nozzle_diameter_str;
     std::set<std::string> printer_names;
 
     /* unknown or empty printer type */
