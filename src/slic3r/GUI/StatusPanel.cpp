@@ -1942,8 +1942,7 @@ void StatusPanel::on_subtask_abort(wxCommandEvent &event)
             }
         });
     }
-    abort_dlg->update_text(_L("Are you sure to stop printing?"));
-    abort_dlg->update_btn_label(_L("Yes"), _L("No"));
+    abort_dlg->update_text(_L("Are you sure you want to cancel this print?"));
 
     abort_dlg->m_button_cancel->SetBackgroundColor(abort_dlg->btn_bg_green);
     abort_dlg->m_button_cancel->SetBorderColor(*wxWHITE);
