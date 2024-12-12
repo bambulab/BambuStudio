@@ -829,6 +829,7 @@ public:
     bool is_support_filament_setting_inprinting{false};
     bool is_support_agora{false};
     bool is_support_upgrade_kit{false};
+    bool is_support_filament_setting_inprinting{false};
 
     bool installed_upgrade_kit{false};
     int  nozzle_max_temperature = -1;
