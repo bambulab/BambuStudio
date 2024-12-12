@@ -499,7 +499,7 @@ void AMSextruderImage::doRender(wxDC &dc)
         if (m_ams_loading) {
             dc.SetPen(*wxTRANSPARENT_PEN);
             dc.SetBrush(m_colour);
-            dc.DrawRectangle(FromDIP(3), FromDIP(10), size.x - FromDIP(6), size.y - FromDIP(20));
+            dc.DrawRectangle(FromDIP(2), FromDIP(10), size.x - FromDIP(3), size.y - FromDIP(20));
         }
         else{
             dc.SetPen(*wxTRANSPARENT_PEN);
@@ -957,7 +957,7 @@ void AMSLib::on_left_down(wxMouseEvent &evt)
             auto top = 0;
             auto bottom = 0;
 
-            if (m_ams_model == AMSModel::GENERIC_AMS || m_ams_model == AMSModel::N3F_AMS || m_ams_model == AMSModel::EXT_AMS) {
+            if (m_ams_model == AMSModel::GENERIC_AMS || m_ams_model == AMSModel::N3F_AMS || m_ams_model == AMSModel::N3S_AMS || m_ams_model == AMSModel::EXT_AMS) {
                 top = (size.y - FromDIP(15) - m_bitmap_editable_light.GetBmpSize().y);
                 bottom = size.y - FromDIP(15);
             }

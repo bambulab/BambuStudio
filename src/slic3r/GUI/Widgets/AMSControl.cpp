@@ -4353,37 +4353,24 @@ void AMSControl::SetExtruder(bool on_off, bool is_vams, std::string ams_now, wxC
         }
         else {
             m_extruder->TurnOn(col);
-            if (item){
-                /*if (ams_now != GetCurentShowAms()) {
-                    m_extruder->OnAmsLoading(false, item->m_info.nozzle_id, col);
-                }
-                else {
-                    m_extruder->OnAmsLoading(true, item->m_info.nozzle_id, col);
-                }*/
-            }
         }
-
-        /*if (is_vams && on_off) {
-            m_extruder->OnAmsLoading(false);
-            m_vams_extra_road->OnVamsLoading(true, col);
-            m_extruder->OnVamsLoading(true, col);
-            m_vams_road->OnVamsLoading(true, col);
-        }
-        else {
-            m_vams_extra_road->OnVamsLoading(false);
-            m_extruder->OnVamsLoading(false);
-            m_vams_road->OnVamsLoading(false);
-        }*/
     }
     else if (m_ams_model == AMSModel::AMS_LITE || m_ext_model == AMSModel::AMS_LITE) {
         if (!on_off) {
             m_extruder->TurnOff();
             m_extruder->OnAmsLoading(false);
-            /*m_vams_extra_road->OnVamsLoading(false);
-            m_vams_road->OnVamsLoading(false);*/
         }
         else {
-
+            if (item) {
+                m_extruder->TurnOn(col);
+                m_extruder->OnAmsLoading(true, item->m_info.nozzle_id, col);
+            }
+        }
+    } else if (m_ams_model == AMSModel::N3F_AMS || m_ams_model == AMSModel::N3S_AMS) {
+        if (!on_off) {
+            m_extruder->TurnOff();
+            m_extruder->OnAmsLoading(false);
+        } else {
             if (item) {
                 m_extruder->TurnOn(col);
                 m_extruder->OnAmsLoading(true, item->m_info.nozzle_id, col);
@@ -4473,7 +4460,8 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
 {
     AmsItem* ams = nullptr;
     auto amsit = m_ams_item_list.find(ams_id);
-    bool           notfound = false;
+    bool notfound = false;
+    bool in_same_page = false;
 
     if (amsit != m_ams_item_list.end()) {
         ams = amsit->second;
@@ -4490,6 +4478,21 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
     int can_index = atoi(canid.c_str());
     std::string ams_id_left = GetCurentShowAms(AMSPanelPos::LEFT_PANEL);
     std::string ams_id_right = GetCurentShowAms(AMSPanelPos::RIGHT_PANEL);
+
+    /*check if in same page*/
+    for (auto it : pair_id) {
+        if ( (it.first == ams_id_left && it.second == ams_id) ||  (it.first == ams_id || it.second == ams_id_left)) {
+            in_same_page = true;
+            continue;
+        }
+
+        if ((it.first == ams_id_right && it.second == ams_id) || (it.first == ams_id || it.second == ams_id_right)) {
+            in_same_page = true;
+            continue;
+        }
+    }
+
+
     auto model = AMSModel::AMS_LITE;
 
     bool left = !IsAmsInRightPanel(ams_id);
@@ -4505,11 +4508,11 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
     else if (ams->m_info.cans.size() == 1){
         for (auto it : pair_id){
             if (it.first == ams_id){
-                length = left ? 145 : 45;
+                length = left ? 145 : 124;
                 break;
             }
             else if (it.second == ams_id){
-                length = left ? 45 : 145;
+                length = left ? 124 : 232;
                 break;
             }
         }
@@ -4558,7 +4561,7 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
     if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_NONE) {
         //cans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
         ams->SetAmsStep(ams_id, canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
-        if (ams_id_left == ams_id || ams_id_right == ams_id) {
+        if (ams_id_left == ams_id || ams_id_right == ams_id || in_same_page) {
             m_down_road->UpdatePassRoad(canid, pos, -1, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
             m_extruder->OnAmsLoading(false, ams->m_info.nozzle_id);
         }
@@ -4566,7 +4569,7 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
 
     if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP1) {
         ams->SetAmsStep(ams_id, canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
-        if (ams_id_left == ams_id || ams_id_right == ams_id) {
+        if (ams_id_left == ams_id || ams_id_right == ams_id || in_same_page) {
             m_down_road->UpdatePassRoad(canid, pos, length, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
             m_extruder->OnAmsLoading(false, ams->m_info.nozzle_id);
         }
@@ -4578,7 +4581,7 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
 
     if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2) {
         ams->SetAmsStep(ams_id, canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_2);
-        if (ams_id_left == ams_id || ams_id_right == ams_id) {
+        if (ams_id_left == ams_id || ams_id_right == ams_id || in_same_page) {
             m_down_road->UpdatePassRoad(canid, pos, length, AMSPassRoadSTEP::AMS_ROAD_STEP_2);
             m_extruder->OnAmsLoading(true, ams->m_info.nozzle_id, ams->GetTagColr(canid));
         }
@@ -4589,7 +4592,7 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
     }
     if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3) {
         ams->SetAmsStep(ams_id, canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
-        if (ams_id_left == ams_id || ams_id_right == ams_id)
+        if (ams_id_left == ams_id || ams_id_right == ams_id || in_same_page)
         {
             m_down_road->UpdatePassRoad(canid, pos, length, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
             m_extruder->OnAmsLoading(true, ams->m_info.nozzle_id, ams->GetTagColr(canid));
