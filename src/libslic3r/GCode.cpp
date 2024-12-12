@@ -2590,8 +2590,7 @@ void GCode::process_layers(
                 print.throw_if_canceled();
                 GCode::LayerResult res = this->process_layer(print, layer.second, layer_tools, &layer == &layers_to_print.back(), &print_object_instances_ordering, size_t(-1));
                 res.gcode_store_pos = layer_to_print_idx - 1;
-                layers_results[layer_to_print_idx - 1] = std::move(res);
-                return layers_results[layer_to_print_idx - 1];
+                return std::move(res);
             }
         });
     if (m_spiral_vase) {
