@@ -14,6 +14,12 @@
     "hot_plate_temp_initial_layer": [
         "65"
     ],
+    "supertack_plate_temp": [
+        "35"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "35"
+    ],
     "textured_plate_temp": [
         "65"
     ],
