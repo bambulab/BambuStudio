@@ -11575,7 +11575,7 @@ std::string check_boolean_possible(const std::vector<const ModelVolume*>& volume
 
     if (auto fail_reason_name = csg::check_csgmesh_booleans(Range{ std::begin(csgmesh), std::end(csgmesh) }); std::get<0>(fail_reason_name) != csg::BooleanFailReason::OK) {
         fail_msg = _u8L("Unable to perform boolean operation on model meshes. "
-            "You may fix the meshes and try agian.");
+            "You may fix the meshes and try again.");
         std::string name = std::get<1>(fail_reason_name);
         std::map<csg::BooleanFailReason, std::string> fail_reasons = {
             {csg::BooleanFailReason::OK, "OK"},
