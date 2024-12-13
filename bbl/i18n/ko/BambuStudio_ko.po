@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-04 11:47+0800\n"
+"POT-Creation-Date: 2024-12-13 11:54+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -914,7 +914,7 @@ msgid ""
 "effect !"
 msgstr ""
 
-msgid "Set the brim type to \"painted\""
+msgid "Set the brim type of this object to \"painted\""
 msgstr ""
 
 msgid " invalid brim ears"
@@ -1678,6 +1678,15 @@ msgstr "자동 회전"
 msgid "Auto orient the object to improve print quality."
 msgstr "출력품질향상을 위해 객체를 자동으로 회전시킵니다."
 
+msgid "Edit"
+msgstr "수정"
+
+msgid "Change to"
+msgstr ""
+
+msgid "Delete this filament"
+msgstr ""
+
 msgid "Select All"
 msgstr "모두 선택"
 
@@ -2140,23 +2149,8 @@ msgstr "프린터와 Studio의 네트워크 연결을 확인하십시오."
 msgid "Connecting..."
 msgstr "연결 중…"
 
-msgid "?"
-msgstr "?"
-
-msgid "/"
-msgstr "/"
-
-msgid "Empty"
-msgstr "비어 있음"
-
-msgid "AMS"
-msgstr "AMS"
-
-msgid "Auto Refill"
-msgstr "자동 리필"
-
-msgid "AMS not connected"
-msgstr "AMS가 연결되지 않음"
+msgid "Auto-refill"
+msgstr ""
 
 msgid "Load"
 msgstr "로드"
@@ -2164,69 +2158,12 @@ msgstr "로드"
 msgid "Unload"
 msgstr "언로드"
 
-msgid "Ext Spool"
-msgstr "외부 스풀"
-
-msgid "Tips"
-msgstr "팁"
-
-msgid "Guide"
-msgstr "가이드"
-
-msgid "Retry"
-msgstr "다시 시도"
-
-msgid "Calibrating AMS..."
-msgstr "AMS 캘리브레이션 중..."
-
-msgid "A problem occurred during calibration. Click to view the solution."
-msgstr "교정 중에 문제가 발생했습니다. 솔루션을 보려면 클릭하세요."
-
-msgid "Calibrate again"
-msgstr "다시 캘리브레이션하기"
-
-msgid "Cancel calibration"
-msgstr "캘리브레이션 취소"
-
-msgid "Idling..."
-msgstr "대기 중..."
-
-msgid "Heat the nozzle"
-msgstr "노즐 가열"
-
-msgid "Cut filament"
-msgstr "필라멘트 컷팅"
-
-msgid "Pull back current filament"
-msgstr "현재 필라멘트를 뒤로 당깁니다."
-
-msgid "Push new filament into extruder"
-msgstr "새 필라멘트를 압출기에 밀어 넣습니다."
-
-msgid "Purge old filament"
-msgstr "이전 필라멘트를 밀어 빼냅니다."
-
-msgid "Feed Filament"
-msgstr "필라멘트 공급"
-
-msgid "Confirm extruded"
-msgstr "압출 확인"
-
-msgid "Check filament location"
-msgstr "필라멘트 위치 확인"
-
-msgid "Grab new filament"
-msgstr "새 필라멘트 가져오기"
-
 msgid ""
 "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
 "load or unload filaments."
 msgstr ""
 "AMS 슬롯을 선택한 다음 \"로드\" 또는 \"언로드\" 버튼을 눌러 필라멘트를 자동으"
 "로 로드하거나 언로드합니다."
-
-msgid "Edit"
-msgstr "수정"
 
 msgid ""
 "All the selected objects are on the locked plate,\n"
@@ -2641,6 +2578,14 @@ msgstr ""
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr ""
 
+msgid ""
+"There are unset nozzle types. Please set the nozzle types of all extruders "
+"before synchronizing."
+msgstr ""
+
+msgid "AMS"
+msgstr "AMS"
+
 msgid "Other Color"
 msgstr "기타 색상"
 
@@ -2720,9 +2665,21 @@ msgstr "단계"
 msgid "AMS Slots"
 msgstr "AMS 슬롯"
 
+msgid "Left Ams"
+msgstr ""
+
+msgid "External"
+msgstr ""
+
+msgid "Right Ams"
+msgstr ""
+
 msgid ""
 "Note: Only the AMS slots loaded with the same material type can be selected."
 msgstr "참고: 동일한 재료 타입 로드된 AMS 슬롯만 선택할 수 있습니다."
+
+msgid "Ext"
+msgstr ""
 
 msgid "Enable AMS"
 msgstr "AMS 활성화"
@@ -2773,6 +2730,9 @@ msgstr "AMS에서 필라멘트로 출력"
 
 msgid "Print with filaments mounted on the back of the chassis"
 msgstr "외부 스풀의 필라멘트로 출력"
+
+msgid "Auto Refill"
+msgstr "자동 리필"
 
 msgid ""
 "When the current material run out, the printer will continue to print in the "
@@ -3330,6 +3290,9 @@ msgstr "첫 번째 레이어 오류 일시중지"
 msgid "Nozzle clog pause"
 msgstr "노즐 막힘 일시 중지"
 
+msgid "TPU is not supported by deputy extruder."
+msgstr ""
+
 msgid "Unknown"
 msgstr "알 수 없음"
 
@@ -3452,6 +3415,9 @@ msgstr ""
 msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr "잘못된 형식입니다. 예상 벡터 형식: \"%1%\""
 
+msgid "Summary"
+msgstr ""
+
 msgid "Layer Height"
 msgstr "레이어 높이"
 
@@ -3524,6 +3490,43 @@ msgstr "총 비용"
 msgid "Time Estimation"
 msgstr "시간 예상"
 
+msgid ""
+"Automatically re-slice according to the optimal filament arrangement, and "
+"the arrangement results will be displayed after slicing."
+msgstr ""
+
+msgid "Color Arrangement Recommendation"
+msgstr ""
+
+msgid "Color Arrangement"
+msgstr ""
+
+msgid "Left extruder"
+msgstr ""
+
+msgid "Right extruder"
+msgstr ""
+
+msgid "This arrangement would be optimal."
+msgstr ""
+
+#, boost-format
+msgid "Save %1%g filament and %2% changes than one-extruder printer."
+msgstr ""
+
+msgid "This arrangement is not optimal."
+msgstr ""
+
+#, boost-format
+msgid "Cost %1%g filament and %2% changes more than optimal arrangement."
+msgstr ""
+
+msgid "Set to Optimal"
+msgstr ""
+
+msgid "Rearrange filament"
+msgstr ""
+
 msgid "up to"
 msgstr "최대"
 
@@ -3532,6 +3535,9 @@ msgstr "초과"
 
 msgid "from"
 msgstr "부터"
+
+msgid "Slicing Result"
+msgstr ""
 
 msgid "Color Scheme"
 msgstr "색상으로 보기"
@@ -3593,11 +3599,14 @@ msgstr "이동"
 msgid "Extruder"
 msgstr "압출기"
 
-msgid "Filament change times"
-msgstr "필라멘트 교체 시간"
-
 msgid "Cost"
 msgstr "비용"
+
+msgid "Total time"
+msgstr "총 시간"
+
+msgid "Filament change times"
+msgstr "필라멘트 교체 시간"
 
 msgid "Color change"
 msgstr "색상 변경"
@@ -3629,14 +3638,26 @@ msgstr "준비 시간"
 msgid "Model printing time"
 msgstr "모델 출력 시간"
 
-msgid "Total time"
-msgstr "총 시간"
-
 msgid "Switch to silent mode"
 msgstr "저소음모드 전환"
 
 msgid "Switch to normal mode"
 msgstr "일반 모드 전환"
+
+msgid ""
+"An object is laid on the left/right extruder only area.\n"
+"Please make sure the filaments used by this object on this area are not "
+"mapped to the other extruders."
+msgstr ""
+
+msgid ""
+"An object is laid over the boundary of plate or exceeds the height limit.\n"
+"Please solve the problem by moving it totally on or off the plate, and "
+"confirming that the height is within the build volume."
+msgstr ""
+"개체가 플레이트의 경계 위에 놓이거나 높이 제한을 초과합니다.\n"
+"플레이트 안 또는 밖으로 완전히 옮기고 높이가 빌드 볼륨 내에 있는지 확인하여 "
+"문제를 해결하십시오."
 
 msgid "Variable layer height"
 msgstr "가변 레이어 높이"
@@ -3699,6 +3720,26 @@ msgid "number keys"
 msgstr ""
 
 msgid "number keys can quickly change the color of objects"
+msgstr ""
+
+msgid ""
+"Following objects are laid over the boundary of plate or exceeds the height "
+"limit:\n"
+msgstr ""
+
+msgid ""
+"Please solve the problem by moving it totally on or off the plate, and "
+"confirming that the height is within the build volume.\n"
+msgstr ""
+
+msgid "In the Filament auto-matching mode, Filament "
+msgstr ""
+
+msgid "Please solve the problem by moving them within the build volume.\n"
+msgstr ""
+
+msgid ""
+"In the Filament manual-matching mode, Following filament->extruder maps: \n"
 msgstr ""
 
 msgid "Mirror Object"
@@ -3789,6 +3830,12 @@ msgstr "이전으로 돌아가기"
 msgid "return"
 msgstr "이전화면"
 
+msgid "Fit camera"
+msgstr ""
+
+msgid "Fit camera to scene or selected object."
+msgstr ""
+
 msgid "Paint Toolbar"
 msgstr "페인트 툴바"
 
@@ -3833,17 +3880,41 @@ msgstr "최대 인쇄 높이를 초과한 G 코드 경로가 포함되어 있습
 msgid "A G-code path goes beyond the boundary of plate."
 msgstr "G코드 경로가 빌드 플레이트 경계를 넘어갑니다."
 
+#, c-format, boost-format
+msgid ""
+"Multiple TPU filaments are not allowed to print at the same time, and the "
+"TPU filament must be placed in the virtual slot of %s."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Filament %d is placed in the %s, but the generated G-code path exceeds the "
+"printable range of the %s."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Filaments %d is placed in the %s, but the generated G-code path exceeds the "
+"printable range of the %s."
+msgstr ""
+
+msgid "Open wiki for more information."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Filament %d is placed in the %s, but the generated G-code path exceeds the "
+"printable height of the %s."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Filaments %d is placed in the %s, but the generated G-code path exceeds the "
+"printable height of the %s."
+msgstr ""
+
 msgid "Only the object being edited is visible."
 msgstr "편집 중인 개체만 표시됩니다."
-
-msgid ""
-"An object is laid over the boundary of plate or exceeds the height limit.\n"
-"Please solve the problem by moving it totally on or off the plate, and "
-"confirming that the height is within the build volume."
-msgstr ""
-"개체가 플레이트의 경계 위에 놓이거나 높이 제한을 초과합니다.\n"
-"플레이트 안 또는 밖으로 완전히 옮기고 높이가 빌드 볼륨 내에 있는지 확인하여 "
-"문제를 해결하십시오."
 
 #, c-format, boost-format
 msgid "filaments %s cannot be printed directly on the surface of this plate."
@@ -3987,6 +4058,12 @@ msgstr "모두 출력"
 
 msgid "Send all"
 msgstr "모두 보내기"
+
+msgid "Send to Bambu Farm Manager Client"
+msgstr ""
+
+msgid "Send to BFMC"
+msgstr ""
 
 msgid "Send to Multi-device"
 msgstr "다중 장치로 보내기"
@@ -4209,6 +4286,12 @@ msgstr "원근 보기 사용"
 
 msgid "Use Orthogonal View"
 msgstr "직교 보기 사용"
+
+msgid "Show 3D Navigator"
+msgstr ""
+
+msgid "Show 3D navigator in Prepare and Preview scene"
+msgstr ""
 
 msgid "Show object labels in 3D scene"
 msgstr "3D 장면에 객체 레이블 표시"
@@ -4649,6 +4732,9 @@ msgstr ""
 msgid "Download waiting..."
 msgstr "다운로드 대기 중..."
 
+msgid "Retry"
+msgstr "다시 시도"
+
 msgid "Play"
 msgstr "재생"
 
@@ -4669,6 +4755,9 @@ msgstr ""
 "프린터를 다시 연결하는 중입니다. 작업을 즉시 완료할 수 없습니다. 나중에 다시 "
 "시도해 주세요."
 
+msgid "Timeout, please try again."
+msgstr ""
+
 msgid "File does not exist."
 msgstr "파일이 없습니다."
 
@@ -4678,9 +4767,41 @@ msgstr "파일 체크섬 오류입니다. 다시 시도해 주세요."
 msgid "Not supported on the current printer version."
 msgstr "현재 프린터 버전에서는 지원되지 않습니다."
 
+msgid ""
+"The firmware version of the printer is too low. Please update the firmware "
+"and try again."
+msgstr ""
+
+msgid "The file already exists, do you want to replace it?"
+msgstr ""
+
+msgid "Insufficient storage space, please clear the space and try again."
+msgstr ""
+
+msgid "File creation failed, please try again."
+msgstr ""
+
+msgid "File write failed, please try again."
+msgstr ""
+
+msgid "MD5 verification failed, please try again."
+msgstr ""
+
+msgid "File renaming failed, please try again."
+msgstr ""
+
+msgid "File upload failed, please try again."
+msgstr ""
+
 #, c-format, boost-format
 msgid "Error code: %d"
 msgstr "오류 코드: %d"
+
+msgid "User cancels task."
+msgstr ""
+
+msgid "Failed to read file, please try again."
+msgstr ""
 
 msgid "Speed:"
 msgstr "속도:"
@@ -4751,8 +4872,8 @@ msgstr ""
 msgid "Camera"
 msgstr "카메라"
 
-msgid "SD Card"
-msgstr "MicroSD 카드"
+msgid "Storage"
+msgstr ""
 
 msgid "Camera Setting"
 msgstr "카메라 설정"
@@ -4772,28 +4893,22 @@ msgstr "100%"
 msgid "Lamp"
 msgstr "램프"
 
-msgid "Aux"
-msgstr "보조"
-
-msgid "Cham"
-msgstr "챔버"
-
 msgid "Bed"
 msgstr "베드"
 
 msgid "Debug Info"
 msgstr "디버그 정보"
 
-msgid "No SD Card"
-msgstr "MicroSD 카드 없음"
+msgid "No Storage"
+msgstr ""
 
-msgid "SD Card Abnormal"
-msgstr "MicroSD 카드 이상"
+msgid "Storage Abnormal"
+msgstr ""
 
 msgid "Cancel print"
 msgstr "출력 취소"
 
-msgid "Are you sure to stop printing?"
+msgid "Are you sure you want to stop this print?"
 msgstr ""
 
 msgid "Unknown error."
@@ -4817,13 +4932,13 @@ msgstr "레이어: %s"
 msgid "Layer: %d/%d"
 msgstr "레이어: %d/%d"
 
-msgid "Auto homing"
+msgid "Axis go home"
 msgstr ""
 
-msgid "Are you sure you want to trigger auto homing?"
+msgid "Are you sure you want to home now?"
 msgstr ""
 
-msgid "Homing"
+msgid "Home"
 msgstr ""
 
 msgid ""
@@ -5286,8 +5401,23 @@ msgstr "경화강"
 msgid "Stainless Steel"
 msgstr "스테인레스 스틸"
 
+msgid "Normal flow"
+msgstr ""
+
+msgid "High flow"
+msgstr ""
+
 msgid "Nozzle Type"
 msgstr "노즐 유형"
+
+msgid "Left Nozzle"
+msgstr ""
+
+msgid "Nozzle Flow"
+msgstr ""
+
+msgid "Right Nozzle"
+msgstr ""
 
 #, c-format, boost-format
 msgid "%.1f"
@@ -5345,14 +5475,47 @@ msgstr "예상 시간"
 msgid "Filament changes"
 msgstr "필라멘트 변경"
 
+msgid "Please set the number of ams installed on the this extrusion head."
+msgstr ""
+
+msgid "AMS(4 colors)"
+msgstr ""
+
+msgid "AMS(single color)"
+msgstr ""
+
+msgid "Nozzle"
+msgstr "노즐"
+
+msgid "Not installed"
+msgstr ""
+
+msgid "Please select a printer in 'Device' page first."
+msgstr ""
+
+msgid "Sync extruder infomation"
+msgstr ""
+
+msgid "The currently connected printer does not have two extruders."
+msgstr ""
+
+msgid ""
+"The currently selected machine preset is inconsistent with the connected "
+"printer type.\n"
+"Are you sure to continue syncing?"
+msgstr ""
+
 msgid "Click to edit preset"
 msgstr "프리셋을 수정하려면 클릭하십시오."
 
 msgid "Connection"
 msgstr "연결"
 
-msgid "Bed type"
-msgstr "플레이트 타입"
+msgid "Sync printer information"
+msgstr ""
+
+msgid "Synchronize nozzle information and the number of AMS"
+msgstr ""
 
 msgid "Flushing volumes"
 msgstr "짜낸 필라 양"
@@ -5480,6 +5643,10 @@ msgstr ""
 msgid "Found following keys unrecognized:\n"
 msgstr "다음과 같은 인식할 수 없는 키가 발견되었습니다.\n"
 
+msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
+msgstr ""
+"3mf는 이전 버전의 Bambu Studio에서 생성되었습니다. 형상 데이터만 불러옵니다."
+
 msgid "Invalid values found in the 3mf:"
 msgstr "3mf에서 잘못된 값이 발견됨:"
 
@@ -5558,6 +5725,22 @@ msgstr "이 파일들을 여러 부품을 지닌 단일 객체로 불러오시�
 
 msgid "Object with multiple parts was detected"
 msgstr "여러 부품으로 구성된 단일 객체가 발견되었습니다."
+
+#, c-format, boost-format
+msgid ""
+"The printer you are currently bound to is %s,\n"
+"The printer preset for your current file is %s,\n"
+msgstr ""
+
+msgid ""
+"Do you want to sync printer presets, ams and nozzle information immediately?"
+msgstr ""
+
+msgid "Do you want to sync printer presets immediately?"
+msgstr ""
+
+msgid "Tips"
+msgstr "팁"
 
 msgid "The file does not contain any geometry data."
 msgstr "파일에는 형상 데이터가 포함되어 있지 않습니다."
@@ -5668,6 +5851,12 @@ msgstr "슬라이싱 플레이트 %d"
 msgid "Please resolve the slicing errors and publish again."
 msgstr "슬라이싱 오류를 해결하고 다시 게시하십시오."
 
+msgid "Failed to start Bambu Farm Manager Client."
+msgstr ""
+
+msgid "No Bambu Farm Manager Client found."
+msgstr ""
+
 msgid ""
 "Network Plug-in is not detected. Network related features are unavailable."
 msgstr ""
@@ -5680,6 +5869,20 @@ msgid ""
 msgstr ""
 "미리 보기 전용 모드:\n"
 "불러온 파일에는 G 코드만 포함되어 있으며 준비 페이지에 들어갈 수 없습니다."
+
+msgid ""
+"It is detected that you have not synchronized the nozzle and AMS "
+"information.\n"
+"If you synchronize it before slicing, the filament arrangement will be more "
+"reasonable.\n"
+"Do you need to synchronize it ?"
+msgstr ""
+
+msgid "Sync now"
+msgstr ""
+
+msgid "Out of sync"
+msgstr ""
 
 msgid "You can keep the modified presets to the new project or discard them"
 msgstr "새 프로젝트를 위해 수정된 프리셋을 유지할 수도 삭제할 수도 있습니다."
@@ -5804,11 +6007,9 @@ msgstr ""
 "파일 %s이(가) 프린터의 저장 공간으로 전송되었으며 프린터에서 볼 수 있습니다."
 
 msgid ""
-"Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"Unable to perform boolean operation on model meshes. You may fix the meshes "
+"and try again."
 msgstr ""
-"모델 메쉬에 대해 부울 연산을 수행할 수 없습니다. 긍정적인 부분만 유지됩니다. "
-"메쉬를 수정하고 agian을 시도해 볼 수 있습니다."
 
 #, boost-format
 msgid "Reason: part \"%1%\" is empty."
@@ -5930,6 +6131,14 @@ msgstr ""
 "플레이트% d: %s는 필라멘트 %s (%s) 를 출력하는 데 사용하지 않는 것이 좋습니"
 "다. 그래도 이 출력을 진행하려면 이 필라멘트의 베드 온도를 0이 아닌 숫자로 설"
 "정하십시오."
+
+msgid ""
+"Currently, the object configuration form cannot be used with multiple "
+"extruders."
+msgstr ""
+
+msgid "Not available"
+msgstr ""
 
 msgid "The current project has unsaved changes, save it before continuing?"
 msgstr ""
@@ -6347,8 +6556,17 @@ msgstr "사용자 프리셋"
 msgid "Incompatible presets"
 msgstr "호환되지 않는 프리셋"
 
+msgid "My Printer"
+msgstr ""
+
+msgid "Left filaments"
+msgstr ""
+
 msgid "AMS filaments"
 msgstr "AMS 필라멘트"
+
+msgid "Right filaments"
+msgstr ""
 
 msgid "Click to pick filament color"
 msgstr "클릭하여 필라멘트 색상 선택"
@@ -6377,6 +6595,9 @@ msgstr "프린터 선택/제거(시스템 사전 설정)"
 msgid "Create printer"
 msgstr "프린터 생성"
 
+msgid "Empty"
+msgstr "비어 있음"
+
 msgid "Incompatible"
 msgstr "호환되지 않음"
 
@@ -6394,6 +6615,9 @@ msgstr "다른 층 필라멘트 순서"
 
 msgid "Please input layer value (>= 2)."
 msgstr "레이어 값(>= 2)을 입력하세요."
+
+msgid "Bed type"
+msgstr "플레이트 타입"
 
 msgid "Same as Global Print Sequence"
 msgstr "글로벌 출력 시퀀스와 동일"
@@ -6546,36 +6770,6 @@ msgstr "\"%1%\"로 전환하기만 하면 됩니다."
 msgid "Task canceled"
 msgstr "작업 취소됨"
 
-msgid "(LAN)"
-msgstr "(LAN)"
-
-msgid "Search"
-msgstr "찾다"
-
-msgid "My Device"
-msgstr "내 장치"
-
-msgid "Other Device"
-msgstr "기타 장치"
-
-msgid "Online"
-msgstr "온라인"
-
-msgid "Input access code"
-msgstr "액세스 코드 입력"
-
-msgid "Can't find my devices?"
-msgstr "장치를 찾을 수 없습니까?"
-
-msgid "Log out successful."
-msgstr "로그아웃 성공"
-
-msgid "Offline"
-msgstr "오프라인"
-
-msgid "Busy"
-msgstr "바쁜"
-
 msgid "Bambu Cool Plate"
 msgstr "뱀부 쿨 플레이트"
 
@@ -6597,11 +6791,45 @@ msgstr ""
 msgid "Send print job to"
 msgstr "출력 작업 보내기"
 
-msgid "Bed Leveling"
-msgstr "베드 레벨링"
+msgid "Left Extruder"
+msgstr ""
+
+msgid "(Recommended filament)"
+msgstr ""
+
+msgid "Right Extruder"
+msgstr ""
+
+msgid "Advanced Options"
+msgstr ""
+
+msgid "Auto Bed Leveling"
+msgstr ""
+
+msgid ""
+"Check heatbed flatness. Leveling makes extruded height uniform.\n"
+"*Automatic mode: Level first (about 10 seconds). Skip if surface is fine."
+msgstr ""
 
 msgid "Flow Dynamics Calibration"
 msgstr "흐름 역학 교정"
+
+msgid ""
+"Find the best coefficient for dynamic flow calibration to enhance print "
+"quality.\n"
+"*Automatic mode: Skip if the filament was calibrated recently."
+msgstr ""
+
+msgid "Nozzle Offset Calibration"
+msgstr ""
+
+msgid ""
+"Calibrate nozzle offsets to enhance print quality.\n"
+"*Automatic mode: Check for calibration before printing; skip if unnecessary."
+msgstr ""
+
+msgid "Use AMS"
+msgstr "AMS 사용"
 
 msgid "Click here if you can't connect to the printer"
 msgstr "프린터에 연결할 수 없는 경우 여기를 클릭하세요."
@@ -6663,6 +6891,19 @@ msgstr ""
 "출력 작업을 보내기 전에 위의 각 필라멘트를 클릭하여 매핑 AMS 슬롯을 지정하십"
 "시오."
 
+msgid "Please do not mix-use the Ext with Ams"
+msgstr ""
+
+msgid ""
+"Invalid nozzle information, please refresh or manually set nozzle "
+"information."
+msgstr ""
+
+msgid ""
+"Please check whether the nozzle type of the device is the same as the preset "
+"nozzle type."
+msgstr ""
+
 #, c-format, boost-format
 msgid ""
 "Filament %s does not match the filament in AMS slot %s. Please update the "
@@ -6720,6 +6961,11 @@ msgid ""
 msgstr ""
 "인쇄 순서가 \"객체별\"로 설정되어 있으므로 시간 경과는 지원되지 않습니다."
 
+msgid ""
+"You selected external and AMS filament at the same time in an extruder, you "
+"will need manually change external filament."
+msgstr ""
+
 msgid "Errors"
 msgstr "오류"
 
@@ -6743,8 +6989,8 @@ msgstr ""
 "하십시오. 문제가 없으면 “확인”을 클릭하여 출력을 시작하십시오."
 
 #, c-format, boost-format
-msgid "nozzle in preset: %s %s"
-msgstr "사전 설정 노즐: %s %s"
+msgid "nozzle in preset: %.1f %s"
+msgstr ""
 
 #, c-format, boost-format
 msgid "nozzle memorized: %.1f %s"
@@ -6759,8 +7005,10 @@ msgstr ""
 "경한 경우 장치 > 프린터 부품으로 이동하여 설정을 변경하세요."
 
 #, c-format, boost-format
-msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
-msgstr ""
+msgid ""
+"Printing high temperature material(%s material) with %s may cause nozzle "
+"damage"
+msgstr "고온 재료(%s 재료)를 %s로 인쇄하면 노즐이 손상될 수 있습니다."
 
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr "위의 오류를 수정하십시오. 그렇지 않으면 인쇄를 계속할 수 없습니다."
@@ -6782,36 +7030,34 @@ msgstr "비정상적인 출력 파일입니다. 다시 슬라이싱 하십시오
 msgid "The name length exceeds the limit."
 msgstr "이름 길이가 제한을 초과합니다."
 
-msgid ""
-"Caution to use! Flow calibration on Textured PEI Plate may fail due to the "
-"scattered surface."
-msgstr ""
-"사용시 주의사항! 질감이 있는 PEI 플레이트의 흐름 교정은 표면이 분산되어 실패"
-"할 수 있습니다."
+msgid "Input access code"
+msgstr "액세스 코드 입력"
 
-msgid "Automatic flow calibration using Micro Lidar"
-msgstr "Micro Lidar를 사용한 자동 유량 교정"
-
-msgid "Modifying the device name"
-msgstr "장치 이름 수정"
-
-msgid "Bind with Pin Code"
-msgstr "핀 코드로 바인딩"
-
-msgid "Bind with Access Code"
+msgid "Cool"
 msgstr ""
 
-msgid ""
-"Please log in before binding your device with a PIN code.\n"
-"Alternatively, you can use LAN mode to bind your device. Learn about LAN "
-"mode."
+msgid "Engineering"
 msgstr ""
 
-msgid "Go to Login"
+msgid "High Temp"
+msgstr ""
+
+msgid "Cool(Supertack)"
 msgstr ""
 
 msgid "Send to Printer SD card"
 msgstr "프린터 MicroSD 카드로 보내기"
+
+msgid "Upload file timeout, please check if the firmware version supports it."
+msgstr ""
+
+msgid ""
+"Media capability acquisition timeout, please check if the firmware version "
+"supports it."
+msgstr ""
+
+msgid "Sending failed, please try again!"
+msgstr ""
 
 msgid "Cannot send the print task when the upgrade is in progress"
 msgstr "업데이트 진행 중에는 출력 작업을 보낼 수 없습니다."
@@ -6860,6 +7106,9 @@ msgstr "로그인 보고서 수신 시간 초과"
 
 msgid "Unknown Failure"
 msgstr "알 수 없는 실패"
+
+msgid "Bind with Pin Code"
+msgstr "핀 코드로 바인딩"
 
 msgid ""
 "Please Find the Pin Code in Account page on printer screen,\n"
@@ -6964,6 +7213,9 @@ msgstr "먼저 로그인하세요."
 msgid "There was a problem connecting to the printer. Please try again."
 msgstr "프린터 연결 중 문제가 발생했습니다. 다시 시도해 주세요."
 
+msgid "Log out successful."
+msgstr "로그아웃 성공"
+
 msgid "Failed to log out."
 msgstr "로그아웃 실패"
 
@@ -6977,6 +7229,11 @@ msgstr "이 프리셋 삭제"
 
 msgid "Search in preset"
 msgstr "프리셋에서 검색"
+
+msgid ""
+"Synchronize the modification of parameters to the corresponding parameters "
+"of another extruder."
+msgstr ""
 
 msgid "Click to reset all settings to the last saved preset."
 msgstr "모든 설정을 마지막으로 저장한 프리셋으로 재설정하려면 클릭합니다."
@@ -7190,12 +7447,6 @@ msgstr ""
 msgid "Print temperature"
 msgstr "출력 온도"
 
-msgid "Nozzle"
-msgstr "노즐"
-
-msgid "Nozzle temperature when printing"
-msgstr "출력 시 노즐 온도"
-
 msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
 "does not support to print on the Bambu Cool Plate SuperTack"
@@ -7241,6 +7492,9 @@ msgid ""
 msgstr ""
 "Textured PEI 플레이트가 설치된 경우 베드 온도. 0은 Textured PEI 플레이트에서 "
 "필라멘트가 지원되지 않음을 의미합니다."
+
+msgid "Nozzle temperature when printing"
+msgstr "출력 시 노즐 온도"
 
 msgid "Volumetric speed limitation"
 msgstr "체적 속도 제한"
@@ -7352,6 +7606,12 @@ msgstr "가속 제한"
 msgid "Jerk limitation"
 msgstr "저크 제한"
 
+msgid "Single extruder MM setup"
+msgstr ""
+
+msgid "Single extruder multimaterial parameters"
+msgstr ""
+
 msgid "Layer height limits"
 msgstr "레이어 높이 제한"
 
@@ -7369,6 +7629,14 @@ msgstr ""
 
 msgid "Firmware Retraction"
 msgstr "펌웨어 철회"
+
+msgid ""
+"Parameters related to the extruder model will be discarded because the "
+"extruder model list for the front and rear printers is inconsistent."
+msgstr ""
+
+msgid "Use Modified Value"
+msgstr "수정된 값 사용"
 
 msgid "Detached"
 msgstr "분리됨"
@@ -7416,6 +7684,14 @@ msgstr "전체"
 msgid "Set"
 msgstr "설정"
 
+#, c-format, boost-format
+msgid "Left: %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Right: %s"
+msgstr ""
+
 msgid "Click to reset current value and attach to the global value."
 msgstr "현재 값을 재설정하고 글로벌 설정값에 연결하려면 클릭합니다."
 
@@ -7460,9 +7736,6 @@ msgstr "저장 안함"
 
 msgid "Discard Modified Value"
 msgstr "수정된 값 삭제"
-
-msgid "Use Modified Value"
-msgstr "수정된 값 사용"
 
 msgid "Click the right mouse button to display the full text."
 msgstr "마우스 오른쪽 버튼을 클릭하면 전체 텍스트가 표시됩니다."
@@ -7558,6 +7831,12 @@ msgstr "일반"
 
 msgid "Capabilities"
 msgstr "기능"
+
+msgid "Left: "
+msgstr ""
+
+msgid "Right: "
+msgstr ""
 
 msgid "Select presets to compare"
 msgstr "비교할 프리셋 선택"
@@ -8099,6 +8378,9 @@ msgstr "버전:"
 msgid "Update firmware"
 msgstr "펌웨어 업데이트"
 
+msgid "Offline"
+msgstr "오프라인"
+
 msgid "Printing"
 msgstr "출력중"
 
@@ -8544,6 +8826,9 @@ msgstr "filename_format 템플릿 처리에 실패했습니다."
 
 msgid "Printable area"
 msgstr "출력 가능 영역"
+
+msgid "Extruder printable area"
+msgstr ""
 
 msgid "Bed exclude area"
 msgstr "출력배제영역"
@@ -9283,6 +9568,9 @@ msgid ""
 msgstr ""
 "압출기 주변의 최대 안전거리 반경. 객체별 출력에서 충돌 방지에 사용됩니다."
 
+msgid "Grab length"
+msgstr ""
+
 msgid "Extruder Color"
 msgstr "압출기 색상"
 
@@ -9391,6 +9679,18 @@ msgstr ""
 "필라멘트 출력에 필요한 노즐의 최소 HRC입니다. 0 값은 노즐의 HRC를 확인하지 않"
 "음을 의미합니다."
 
+msgid "Filament map to extruder"
+msgstr ""
+
+msgid "Unprintable filament map to extruder"
+msgstr ""
+
+msgid "filament mapping mode"
+msgstr ""
+
+msgid "Manual"
+msgstr ""
+
 msgid ""
 "This setting stands for how much volume of filament can be melted and "
 "extruded per second. Printing speed is limited by max volumetric speed, in "
@@ -9423,6 +9723,12 @@ msgstr "필라멘트 언로드 시간"
 msgid "Time to unload old filament when switch filament. For statistics only"
 msgstr ""
 "필라멘트 교체 시 기존 필라멘트를 빼내는 시간으로, 통계 목적으로만 사용됩니다."
+
+msgid "Extruder switch time"
+msgstr ""
+
+msgid "Time to switch extruder. For statistics only"
+msgstr ""
 
 msgid ""
 "Filament diameter is used to calculate extrusion in gcode, so it's important "
@@ -9964,6 +10270,51 @@ msgstr "Interlocking depth of a segmented region"
 msgid "Interlocking depth of a segmented region. Zero disables this feature."
 msgstr "Interlocking depth of a segmented region. Zero disables this feature."
 
+msgid "Use beam interlocking"
+msgstr ""
+
+msgid ""
+"Generate interlocking beam structure at the locations where different "
+"filaments touch. This improves the adhesion between filaments, especially "
+"models printed in different materials."
+msgstr ""
+
+msgid "Interlocking beam width"
+msgstr ""
+
+msgid "The width of the interlocking structure beams."
+msgstr ""
+
+msgid "Interlocking direction"
+msgstr ""
+
+msgid "Orientation of interlock beams."
+msgstr ""
+
+msgid "Interlocking beam layers"
+msgstr ""
+
+msgid ""
+"The height of the beams of the interlocking structure, measured in number of "
+"layers. Less layers is stronger, but more prone to defects."
+msgstr ""
+
+msgid "Interlocking depth"
+msgstr ""
+
+msgid ""
+"The distance from the boundary between filaments to generate interlocking "
+"structure, measured in cells. Too few cells will result in poor adhesion."
+msgstr ""
+
+msgid "Interlocking boundary avoidance"
+msgstr ""
+
+msgid ""
+"The distance from the outside of a model where interlocking structures will "
+"not be generated, measured in cells."
+msgstr ""
+
 msgid "Ironing Type"
 msgstr "다림질 유형"
 
@@ -10423,11 +10774,23 @@ msgstr "경사"
 msgid "Spiral"
 msgstr "나선"
 
-msgid "Direct drive"
-msgstr "다이렉트 드라이브"
+msgid "Direct Drive"
+msgstr ""
 
 msgid "Bowden"
 msgstr "Bowden"
+
+msgid "Nozzle Volume Type"
+msgstr ""
+
+msgid "High Flow"
+msgstr ""
+
+msgid "Default Nozzle Volume Type"
+msgstr ""
+
+msgid "Extruder change length"
+msgstr ""
 
 msgid "Extra length on restart"
 msgstr "Extra length on restart"
@@ -11108,6 +11471,12 @@ msgstr "이는 타워에서 압출기가 밀어내는 필라멘트의 부피입�
 msgid "Width of prime tower"
 msgstr "프라임타워의 폭입니다."
 
+msgid "Outer first"
+msgstr ""
+
+msgid "The prime tower print outer first"
+msgstr ""
+
 msgid ""
 "Purging after filament change will be done inside objects' infills. This may "
 "lower the amount of waste and decrease the print time. If the walls are "
@@ -11468,6 +11837,15 @@ msgstr "Flow Rate"
 msgid "Max Volumetric Speed"
 msgstr "최대 체적 속도"
 
+msgid "(LAN)"
+msgstr "(LAN)"
+
+msgid "Online"
+msgstr "온라인"
+
+msgid "Busy"
+msgstr "바쁜"
+
 #, c-format, boost-format
 msgid ""
 "Please input valid values:\n"
@@ -11497,6 +11875,10 @@ msgstr "The name is the same as another existing preset name"
 
 msgid "create new preset failed."
 msgstr "create new preset failed."
+
+#, c-format, boost-format
+msgid "Could not find parameter: %s."
+msgstr ""
 
 msgid ""
 "Are you sure to cancel the current calibration and return to the home page?"
@@ -11528,14 +11910,11 @@ msgstr ""
 "historical results. \n"
 "Do you still want to continue the calibration?"
 
-msgid "Connecting to printer..."
-msgstr "Connecting to printer..."
-
-msgid "The failed test result has been dropped."
-msgstr "The failed test result has been dropped."
-
-msgid "Flow Dynamics Calibration result has been saved to the printer"
-msgstr "Flow Dynamics Calibration result has been saved to the printer"
+#, c-format, boost-format
+msgid ""
+"Only one of the results with the same name: %s will be saved. Are you sure "
+"you want to override the other results?"
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -11553,6 +11932,15 @@ msgid ""
 msgstr ""
 "This machine type can only hold %d historical results per nozzle. This "
 "result will not be saved."
+
+msgid "Connecting to printer..."
+msgstr "Connecting to printer..."
+
+msgid "The failed test result has been dropped."
+msgstr "The failed test result has been dropped."
+
+msgid "Flow Dynamics Calibration result has been saved to the printer"
+msgstr "Flow Dynamics Calibration result has been saved to the printer"
 
 msgid "Internal Error"
 msgstr "Internal Error"
@@ -11732,13 +12120,6 @@ msgstr "Please enter the name you want to save to printer."
 msgid "The name cannot exceed 40 characters."
 msgstr "The name cannot exceed 40 characters."
 
-msgid ""
-"Only one of the results with the same name will be saved. Are you sure you "
-"want to override the other results?"
-msgstr ""
-"Only one of the results with the same name will be saved. Are you sure you "
-"want to replace the other results?"
-
 msgid "Please find the best line on your plate"
 msgstr "Please find the best line on your plate"
 
@@ -11904,6 +12285,9 @@ msgstr "From Volumetric Speed"
 msgid "To Volumetric Speed"
 msgstr "To Volumetric Speed"
 
+msgid "Are you sure to stop printing?"
+msgstr ""
+
 msgid "Flow Dynamics Calibration Result"
 msgstr "Flow Dynamics Calibration Result"
 
@@ -11937,6 +12321,12 @@ msgstr "Ok"
 
 msgid "The filament must be selected."
 msgstr "The filament must be selected."
+
+msgid "The extruder must be selected."
+msgstr ""
+
+msgid "The nozzle must be selected."
+msgstr ""
 
 msgid "PA Calibration"
 msgstr "PA Calibration"
@@ -12738,12 +13128,31 @@ msgstr "Collapse"
 msgid "Daily Tips"
 msgstr "Daily Tips"
 
-msgid ""
-"Your nozzle diameter in preset is not consistent with memorized nozzle "
-"diameter. Did you change your nozzle lately?"
+#, c-format, boost-format
+msgid "nozzle size in preset: %d"
 msgstr ""
-"Your nozzle diameter in preset is not consistent with the saved nozzle "
-"diameter. Have you changed your nozzle?"
+
+#, c-format, boost-format
+msgid "nozzle size memorized: %d"
+msgstr ""
+
+msgid ""
+"The size of nozzle type in preset is not consistent with memorized nozzle."
+"Did you change your nozzle lately ? "
+msgstr ""
+
+#, c-format, boost-format
+msgid "nozzle[%d] in preset: %.1f"
+msgstr ""
+
+#, c-format, boost-format
+msgid "nozzle[%d] memorized: %.1f"
+msgstr ""
+
+msgid ""
+"Your nozzle type in preset is not consistent with memorized nozzle.Did you "
+"change your nozzle lately ? "
+msgstr ""
 
 #, c-format, boost-format
 msgid "*Printing %s material with %s may cause nozzle damage"
@@ -12754,6 +13163,15 @@ msgstr "Need select printer"
 
 msgid "The start, end or step is not valid value."
 msgstr "The start, end or step is not valid value."
+
+msgid "The selected diameter is inconsistent with the printer diameter."
+msgstr ""
+
+msgid "left"
+msgstr ""
+
+msgid "right"
+msgstr ""
 
 msgid ""
 "Unable to calibrate: maybe because the set calibration value range is too "
@@ -13267,9 +13685,6 @@ msgstr ""
 msgid "Use External Spool"
 msgstr "외부 스풀 사용"
 
-msgid "Use AMS"
-msgstr "AMS 사용"
-
 msgid "Select Printers"
 msgstr "프린터 선택"
 
@@ -13288,6 +13703,9 @@ msgstr ""
 
 msgid "Printing Options"
 msgstr "인쇄 옵션"
+
+msgid "Bed Leveling"
+msgstr "베드 레벨링"
 
 msgid "Send Options"
 msgstr "보내기 옵션"
@@ -13677,17 +14095,136 @@ msgstr ""
 "ABS 등 뒤틀림이 발생하기 쉬운 소재를 출력할 때, 히트베드 온도를 적절하게 높이"
 "면 뒤틀림 가능성을 줄일 수 있다는 사실을 알고 계셨나요?"
 
+#~ msgid "?"
+#~ msgstr "?"
+
+#~ msgid "/"
+#~ msgstr "/"
+
+#~ msgid "AMS not connected"
+#~ msgstr "AMS가 연결되지 않음"
+
+#~ msgid "Ext Spool"
+#~ msgstr "외부 스풀"
+
+#~ msgid "Guide"
+#~ msgstr "가이드"
+
+#~ msgid "Calibrating AMS..."
+#~ msgstr "AMS 캘리브레이션 중..."
+
+#~ msgid "A problem occurred during calibration. Click to view the solution."
+#~ msgstr "교정 중에 문제가 발생했습니다. 솔루션을 보려면 클릭하세요."
+
+#~ msgid "Calibrate again"
+#~ msgstr "다시 캘리브레이션하기"
+
+#~ msgid "Cancel calibration"
+#~ msgstr "캘리브레이션 취소"
+
+#~ msgid "Idling..."
+#~ msgstr "대기 중..."
+
+#~ msgid "Heat the nozzle"
+#~ msgstr "노즐 가열"
+
+#~ msgid "Cut filament"
+#~ msgstr "필라멘트 컷팅"
+
+#~ msgid "Pull back current filament"
+#~ msgstr "현재 필라멘트를 뒤로 당깁니다."
+
+#~ msgid "Push new filament into extruder"
+#~ msgstr "새 필라멘트를 압출기에 밀어 넣습니다."
+
+#~ msgid "Purge old filament"
+#~ msgstr "이전 필라멘트를 밀어 빼냅니다."
+
+#~ msgid "Feed Filament"
+#~ msgstr "필라멘트 공급"
+
+#~ msgid "Confirm extruded"
+#~ msgstr "압출 확인"
+
+#~ msgid "Check filament location"
+#~ msgstr "필라멘트 위치 확인"
+
+#~ msgid "Grab new filament"
+#~ msgstr "새 필라멘트 가져오기"
+
+#~ msgid "SD Card"
+#~ msgstr "MicroSD 카드"
+
+#~ msgid "Aux"
+#~ msgstr "보조"
+
+#~ msgid "Cham"
+#~ msgstr "챔버"
+
+#~ msgid "No SD Card"
+#~ msgstr "MicroSD 카드 없음"
+
+#~ msgid "SD Card Abnormal"
+#~ msgstr "MicroSD 카드 이상"
+
+#~ msgid ""
+#~ "Unable to perform boolean operation on model meshes. Only positive parts "
+#~ "will be kept. You may fix the meshes and try agian."
+#~ msgstr ""
+#~ "모델 메쉬에 대해 부울 연산을 수행할 수 없습니다. 긍정적인 부분만 유지됩니"
+#~ "다. 메쉬를 수정하고 agian을 시도해 볼 수 있습니다."
+
+#~ msgid "Search"
+#~ msgstr "찾다"
+
+#~ msgid "My Device"
+#~ msgstr "내 장치"
+
+#~ msgid "Other Device"
+#~ msgstr "기타 장치"
+
+#~ msgid "Can't find my devices?"
+#~ msgstr "장치를 찾을 수 없습니까?"
+
+#, c-format, boost-format
+#~ msgid "nozzle in preset: %s %s"
+#~ msgstr "사전 설정 노즐: %s %s"
+
+#~ msgid ""
+#~ "Caution to use! Flow calibration on Textured PEI Plate may fail due to "
+#~ "the scattered surface."
+#~ msgstr ""
+#~ "사용시 주의사항! 질감이 있는 PEI 플레이트의 흐름 교정은 표면이 분산되어 실"
+#~ "패할 수 있습니다."
+
+#~ msgid "Automatic flow calibration using Micro Lidar"
+#~ msgstr "Micro Lidar를 사용한 자동 유량 교정"
+
+#~ msgid "Modifying the device name"
+#~ msgstr "장치 이름 수정"
+
+#~ msgid "Direct drive"
+#~ msgstr "다이렉트 드라이브"
+
+#~ msgid ""
+#~ "Only one of the results with the same name will be saved. Are you sure "
+#~ "you want to override the other results?"
+#~ msgstr ""
+#~ "Only one of the results with the same name will be saved. Are you sure "
+#~ "you want to replace the other results?"
+
+#~ msgid ""
+#~ "Your nozzle diameter in preset is not consistent with memorized nozzle "
+#~ "diameter. Did you change your nozzle lately?"
+#~ msgstr ""
+#~ "Your nozzle diameter in preset is not consistent with the saved nozzle "
+#~ "diameter. Have you changed your nozzle?"
+
 #~ msgid "We would use Lidar to read the calibration result"
 #~ msgstr "We would use Lidar to read the calibration result"
 
 #~ msgid "Are you sure you want to cancel this print?"
 #~ msgstr "이 출력을 취소하시겠습니까?"
-
-#, c-format, boost-format
-#~ msgid ""
-#~ "Printing high temperature material(%s material) with %s may cause nozzle "
-#~ "damage"
-#~ msgstr "고온 재료(%s 재료)를 %s로 인쇄하면 노즐이 손상될 수 있습니다."
 
 #~ msgid "Conditional scarf joint"
 #~ msgstr "Conditional scarf joint"
@@ -13838,11 +14375,6 @@ msgstr ""
 
 #~ msgid "Show &Labels"
 #~ msgstr "라벨 표시"
-
-#~ msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
-#~ msgstr ""
-#~ "3mf는 이전 버전의 Bambu Studio에서 생성되었습니다. 형상 데이터만 불러옵니"
-#~ "다."
 
 #~ msgid ""
 #~ "*We recommend you to add brand, materia, type, and even humidity level in "

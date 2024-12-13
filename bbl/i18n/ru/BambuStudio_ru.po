@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.9.7.52 Public Official\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-04 11:47+0800\n"
+"POT-Creation-Date: 2024-12-13 11:54+0800\n"
 "PO-Revision-Date: 2024-09-27 23:58+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -941,7 +941,7 @@ msgid ""
 "effect !"
 msgstr ""
 
-msgid "Set the brim type to \"painted\""
+msgid "Set the brim type of this object to \"painted\""
 msgstr ""
 
 msgid " invalid brim ears"
@@ -1717,6 +1717,15 @@ msgstr "Автоориентация"
 msgid "Auto orient the object to improve print quality."
 msgstr "Автоориентация модели для улучшения качества печати."
 
+msgid "Edit"
+msgstr "Правка"
+
+msgid "Change to"
+msgstr ""
+
+msgid "Delete this filament"
+msgstr ""
+
 msgid "Select All"
 msgstr "Выбрать всё"
 
@@ -2202,23 +2211,8 @@ msgstr "Пожалуйста, проверьте сетевое подключе
 msgid "Connecting..."
 msgstr "Подключение..."
 
-msgid "?"
-msgstr "?"
-
-msgid "/"
-msgstr "/"
-
-msgid "Empty"
-msgstr "Пусто"
-
-msgid "AMS"
-msgstr "АСПП"
-
-msgid "Auto Refill"
-msgstr "Автодозаправка"
-
-msgid "AMS not connected"
-msgstr "АСПП не подключена"
+msgid "Auto-refill"
+msgstr ""
 
 # ???? кнопка в интерфейсе? Extrude - Выдавить - Load
 msgid "Load"
@@ -2228,73 +2222,12 @@ msgstr "Выдавить"
 msgid "Unload"
 msgstr "Втянуть"
 
-msgid "Ext Spool"
-msgstr "Внеш. катушка"
-
-msgid "Tips"
-msgstr "Подсказки"
-
-msgid "Guide"
-msgstr "Инстр."
-
-msgid "Retry"
-msgstr "Повтор"
-
-msgid "Calibrating AMS..."
-msgstr "Калибровка АСПП..."
-
-msgid "A problem occurred during calibration. Click to view the solution."
-msgstr ""
-"Во время калибровки возникла проблема. Нажмите, чтобы посмотреть способ "
-"исправления проблемы."
-
-msgid "Calibrate again"
-msgstr "Повторить калибровку"
-
-msgid "Cancel calibration"
-msgstr "Отменить калибровку"
-
-# ??? Ожидание
-msgid "Idling..."
-msgstr "Простой..."
-
-# При выгрузке/загрузке прутка справа отображается процесс
-msgid "Heat the nozzle"
-msgstr "Нагрев сопла"
-
-msgid "Cut filament"
-msgstr "Отрезка прутка"
-
-msgid "Pull back current filament"
-msgstr "Извлечение текущего прутка"
-
-msgid "Push new filament into extruder"
-msgstr "Вставка нового прутка в экструдер"
-
-msgid "Purge old filament"
-msgstr "Очистка от старого материала"
-
-msgid "Feed Filament"
-msgstr "Подача прутка"
-
-msgid "Confirm extruded"
-msgstr "Подтверждение экструзии"
-
-msgid "Check filament location"
-msgstr "Проверка расположения прутка"
-
-msgid "Grab new filament"
-msgstr "Загрузка нового прутка"
-
 msgid ""
 "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
 "load or unload filaments."
 msgstr ""
 "Выберите слот АСПП, затем нажмите кнопку «Загрузить» или «Выгрузить» для "
 "автоматической загрузки или выгрузки прутка."
-
-msgid "Edit"
-msgstr "Правка"
 
 msgid ""
 "All the selected objects are on the locked plate,\n"
@@ -2729,6 +2662,14 @@ msgstr ""
 "Пожалуйста, введите допустимое значение (K в диапазоне %.1f~%.1f, N в "
 "диапазоне %.1f~%.1f)"
 
+msgid ""
+"There are unset nozzle types. Please set the nozzle types of all extruders "
+"before synchronizing."
+msgstr ""
+
+msgid "AMS"
+msgstr "АСПП"
+
 msgid "Other Color"
 msgstr "Другой цвет"
 
@@ -2811,10 +2752,22 @@ msgstr "Шаг"
 msgid "AMS Slots"
 msgstr "Слоты АСПП"
 
+msgid "Left Ams"
+msgstr ""
+
+msgid "External"
+msgstr ""
+
+msgid "Right Ams"
+msgstr ""
+
 # Примечание: выбор слотов ограничен одним типом материала.
 msgid ""
 "Note: Only the AMS slots loaded with the same material type can be selected."
 msgstr "Примечание: можно выбирать только слоты с одинаковым типом материала."
+
+msgid "Ext"
+msgstr ""
 
 msgid "Enable AMS"
 msgstr "Включить АСПП"
@@ -2873,6 +2826,9 @@ msgstr ""
 
 msgid "Print with filaments mounted on the back of the chassis"
 msgstr "Печать материалами, установленными на задней части корпуса."
+
+msgid "Auto Refill"
+msgstr "Автодозаправка"
 
 msgid ""
 "When the current material run out, the printer will continue to print in the "
@@ -3482,6 +3438,9 @@ msgstr "Пауза при ошибке на первом слое"
 msgid "Nozzle clog pause"
 msgstr "Пауза при засорении сопла"
 
+msgid "TPU is not supported by deputy extruder."
+msgstr ""
+
 msgid "Unknown"
 msgstr "Неизвестно"
 
@@ -3616,6 +3575,9 @@ msgstr ""
 msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr "Недопустимый формат. Ожидаемый векторный формат: \"%1%\""
 
+msgid "Summary"
+msgstr ""
+
 msgid "Layer Height"
 msgstr "Высота слоя"
 
@@ -3689,6 +3651,43 @@ msgstr "Общая стоимость"
 msgid "Time Estimation"
 msgstr "Оценка времени"
 
+msgid ""
+"Automatically re-slice according to the optimal filament arrangement, and "
+"the arrangement results will be displayed after slicing."
+msgstr ""
+
+msgid "Color Arrangement Recommendation"
+msgstr ""
+
+msgid "Color Arrangement"
+msgstr ""
+
+msgid "Left extruder"
+msgstr ""
+
+msgid "Right extruder"
+msgstr ""
+
+msgid "This arrangement would be optimal."
+msgstr ""
+
+#, boost-format
+msgid "Save %1%g filament and %2% changes than one-extruder printer."
+msgstr ""
+
+msgid "This arrangement is not optimal."
+msgstr ""
+
+#, boost-format
+msgid "Cost %1%g filament and %2% changes more than optimal arrangement."
+msgstr ""
+
+msgid "Set to Optimal"
+msgstr ""
+
+msgid "Rearrange filament"
+msgstr ""
+
 msgid "up to"
 msgstr "до"
 
@@ -3697,6 +3696,9 @@ msgstr "после"
 
 msgid "from"
 msgstr "с"
+
+msgid "Slicing Result"
+msgstr ""
 
 msgid "Color Scheme"
 msgstr "Цветовая схема"
@@ -3758,11 +3760,14 @@ msgstr "Перемещения"
 msgid "Extruder"
 msgstr "Экструдер"
 
-msgid "Filament change times"
-msgstr "Время смены прутка"
-
 msgid "Cost"
 msgstr "Стоимость"
+
+msgid "Total time"
+msgstr "Общее время печати"
+
+msgid "Filament change times"
+msgstr "Время смены прутка"
 
 msgid "Color change"
 msgstr "Смена цвета"
@@ -3795,14 +3800,27 @@ msgstr "Время подготовки"
 msgid "Model printing time"
 msgstr "Расчётное время печати"
 
-msgid "Total time"
-msgstr "Общее время печати"
-
 msgid "Switch to silent mode"
 msgstr "Переключиться на бесшумный режим"
 
 msgid "Switch to normal mode"
 msgstr "Переключиться на обычный режим"
+
+msgid ""
+"An object is laid on the left/right extruder only area.\n"
+"Please make sure the filaments used by this object on this area are not "
+"mapped to the other extruders."
+msgstr ""
+
+msgid ""
+"An object is laid over the boundary of plate or exceeds the height limit.\n"
+"Please solve the problem by moving it totally on or off the plate, and "
+"confirming that the height is within the build volume."
+msgstr ""
+"Модель выходит за границы стола или превышает высоту печати.\n"
+"Пожалуйста, устраните проблему, уместив всю модель в границы стола (или за "
+"пределы стола) и убедитесь, что высота модели находится в пределах область "
+"построения."
 
 msgid "Variable layer height"
 msgstr "Переменная высота слоёв"
@@ -3869,6 +3887,26 @@ msgstr "цифровые клавиши"
 # ??? С помощью цифровых клавиш можно быстро менять цвет моделей
 msgid "number keys can quickly change the color of objects"
 msgstr "цифровые клавиши позволяют быстро изменять цвет моделей"
+
+msgid ""
+"Following objects are laid over the boundary of plate or exceeds the height "
+"limit:\n"
+msgstr ""
+
+msgid ""
+"Please solve the problem by moving it totally on or off the plate, and "
+"confirming that the height is within the build volume.\n"
+msgstr ""
+
+msgid "In the Filament auto-matching mode, Filament "
+msgstr ""
+
+msgid "Please solve the problem by moving them within the build volume.\n"
+msgstr ""
+
+msgid ""
+"In the Filament manual-matching mode, Following filament->extruder maps: \n"
+msgstr ""
 
 msgid "Mirror Object"
 msgstr "Отразить модель"
@@ -3959,6 +3997,12 @@ msgstr "Выйти из сборки"
 msgid "return"
 msgstr "Назад"
 
+msgid "Fit camera"
+msgstr ""
+
+msgid "Fit camera to scene or selected object."
+msgstr ""
+
 msgid "Paint Toolbar"
 msgstr "Панель рисования"
 
@@ -4003,18 +4047,41 @@ msgstr "Траектория перемещения в G-коде превыша
 msgid "A G-code path goes beyond the boundary of plate."
 msgstr "Траектория перемещения в G-коде выходит за границы печатного стола."
 
+#, c-format, boost-format
+msgid ""
+"Multiple TPU filaments are not allowed to print at the same time, and the "
+"TPU filament must be placed in the virtual slot of %s."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Filament %d is placed in the %s, but the generated G-code path exceeds the "
+"printable range of the %s."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Filaments %d is placed in the %s, but the generated G-code path exceeds the "
+"printable range of the %s."
+msgstr ""
+
+msgid "Open wiki for more information."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Filament %d is placed in the %s, but the generated G-code path exceeds the "
+"printable height of the %s."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Filaments %d is placed in the %s, but the generated G-code path exceeds the "
+"printable height of the %s."
+msgstr ""
+
 msgid "Only the object being edited is visible."
 msgstr "При редактировании, те модели с которыми вы не работаете скрываются."
-
-msgid ""
-"An object is laid over the boundary of plate or exceeds the height limit.\n"
-"Please solve the problem by moving it totally on or off the plate, and "
-"confirming that the height is within the build volume."
-msgstr ""
-"Модель выходит за границы стола или превышает высоту печати.\n"
-"Пожалуйста, устраните проблему, уместив всю модель в границы стола (или за "
-"пределы стола) и убедитесь, что высота модели находится в пределах область "
-"построения."
 
 #, c-format, boost-format
 msgid "filaments %s cannot be printed directly on the surface of this plate."
@@ -4164,6 +4231,12 @@ msgstr "Распечатать все столы"
 
 msgid "Send all"
 msgstr "Отправить G-код всех столов на SD-карту"
+
+msgid "Send to Bambu Farm Manager Client"
+msgstr ""
+
+msgid "Send to BFMC"
+msgstr ""
 
 msgid "Send to Multi-device"
 msgstr "Отправить на несколько устройств"
@@ -4386,6 +4459,12 @@ msgstr "Вид в перспективе"
 
 msgid "Use Orthogonal View"
 msgstr "Ортогональный вид"
+
+msgid "Show 3D Navigator"
+msgstr ""
+
+msgid "Show 3D navigator in Prepare and Preview scene"
+msgstr ""
 
 msgid "Show object labels in 3D scene"
 msgstr "Показать имена моделей в 3D-сцене"
@@ -4859,6 +4938,9 @@ msgstr ""
 msgid "Download waiting..."
 msgstr "Ожидание загрузки..."
 
+msgid "Retry"
+msgstr "Повтор"
+
 msgid "Play"
 msgstr "Воспроизвести"
 
@@ -4879,6 +4961,9 @@ msgstr ""
 "При повторном подключении принтера операция не может быть завершена "
 "немедленно, повторите попытку позже."
 
+msgid "Timeout, please try again."
+msgstr ""
+
 msgid "File does not exist."
 msgstr "Файла не существует."
 
@@ -4888,9 +4973,41 @@ msgstr "Ошибка контрольной суммы файла. Повтор�
 msgid "Not supported on the current printer version."
 msgstr "Не поддерживается в текущей версии принтера."
 
+msgid ""
+"The firmware version of the printer is too low. Please update the firmware "
+"and try again."
+msgstr ""
+
+msgid "The file already exists, do you want to replace it?"
+msgstr ""
+
+msgid "Insufficient storage space, please clear the space and try again."
+msgstr ""
+
+msgid "File creation failed, please try again."
+msgstr ""
+
+msgid "File write failed, please try again."
+msgstr ""
+
+msgid "MD5 verification failed, please try again."
+msgstr ""
+
+msgid "File renaming failed, please try again."
+msgstr ""
+
+msgid "File upload failed, please try again."
+msgstr ""
+
 #, c-format, boost-format
 msgid "Error code: %d"
 msgstr "Код ошибки: %d"
+
+msgid "User cancels task."
+msgstr ""
+
+msgid "Failed to read file, please try again."
+msgstr ""
 
 msgid "Speed:"
 msgstr "Скорость:"
@@ -4961,8 +5078,8 @@ msgstr ""
 msgid "Camera"
 msgstr "Камера"
 
-msgid "SD Card"
-msgstr "SD-карта"
+msgid "Storage"
+msgstr ""
 
 msgid "Camera Setting"
 msgstr "Настройки камеры"
@@ -4982,28 +5099,22 @@ msgstr "100%"
 msgid "Lamp"
 msgstr "Свет"
 
-msgid "Aux"
-msgstr "Вспом."
-
-msgid "Cham"
-msgstr "Выдув"
-
 msgid "Bed"
 msgstr "Стол"
 
 msgid "Debug Info"
 msgstr "Отладочная информация"
 
-msgid "No SD Card"
-msgstr "Отсутствует SD-карта"
+msgid "No Storage"
+msgstr ""
 
-msgid "SD Card Abnormal"
-msgstr "Неисправность SD-карты"
+msgid "Storage Abnormal"
+msgstr ""
 
 msgid "Cancel print"
 msgstr "Отмена печати"
 
-msgid "Are you sure to stop printing?"
+msgid "Are you sure you want to stop this print?"
 msgstr ""
 
 msgid "Unknown error."
@@ -5027,13 +5138,13 @@ msgstr "Слой: %s"
 msgid "Layer: %d/%d"
 msgstr "Слой: %d/%d"
 
-msgid "Auto homing"
+msgid "Axis go home"
 msgstr ""
 
-msgid "Are you sure you want to trigger auto homing?"
+msgid "Are you sure you want to home now?"
 msgstr ""
 
-msgid "Homing"
+msgid "Home"
 msgstr ""
 
 msgid ""
@@ -5513,8 +5624,23 @@ msgstr "Закалённая сталь"
 msgid "Stainless Steel"
 msgstr "Нержавеющая сталь"
 
+msgid "Normal flow"
+msgstr ""
+
+msgid "High flow"
+msgstr ""
+
 msgid "Nozzle Type"
 msgstr "Тип сопла"
+
+msgid "Left Nozzle"
+msgstr ""
+
+msgid "Nozzle Flow"
+msgstr ""
+
+msgid "Right Nozzle"
+msgstr ""
 
 #, c-format, boost-format
 msgid "%.1f"
@@ -5572,14 +5698,47 @@ msgstr "Расчётное время печати"
 msgid "Filament changes"
 msgstr "Смена прутка"
 
+msgid "Please set the number of ams installed on the this extrusion head."
+msgstr ""
+
+msgid "AMS(4 colors)"
+msgstr ""
+
+msgid "AMS(single color)"
+msgstr ""
+
+msgid "Nozzle"
+msgstr "Сопло"
+
+msgid "Not installed"
+msgstr ""
+
+msgid "Please select a printer in 'Device' page first."
+msgstr ""
+
+msgid "Sync extruder infomation"
+msgstr ""
+
+msgid "The currently connected printer does not have two extruders."
+msgstr ""
+
+msgid ""
+"The currently selected machine preset is inconsistent with the connected "
+"printer type.\n"
+"Are you sure to continue syncing?"
+msgstr ""
+
 msgid "Click to edit preset"
 msgstr "Нажмите, чтобы изменить профиль"
 
 msgid "Connection"
 msgstr "Подключиться"
 
-msgid "Bed type"
-msgstr "Тип стола"
+msgid "Sync printer information"
+msgstr ""
+
+msgid "Synchronize nozzle information and the number of AMS"
+msgstr ""
 
 msgid "Flushing volumes"
 msgstr "Объём очистки"
@@ -5713,6 +5872,11 @@ msgstr ""
 msgid "Found following keys unrecognized:\n"
 msgstr "Обнаружены следующие нераспознанные ключи:\n"
 
+msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
+msgstr ""
+"Этот 3mf создан в старой версии Bambu Studio, поэтому загрузятся только "
+"данные геометрии."
+
 msgid "Invalid values found in the 3mf:"
 msgstr "В файле 3mf найдены недопустимые значения:"
 
@@ -5796,6 +5960,22 @@ msgstr ""
 
 msgid "Object with multiple parts was detected"
 msgstr "Обнаружена модель, состоящая из нескольких частей"
+
+#, c-format, boost-format
+msgid ""
+"The printer you are currently bound to is %s,\n"
+"The printer preset for your current file is %s,\n"
+msgstr ""
+
+msgid ""
+"Do you want to sync printer presets, ams and nozzle information immediately?"
+msgstr ""
+
+msgid "Do you want to sync printer presets immediately?"
+msgstr ""
+
+msgid "Tips"
+msgstr "Подсказки"
 
 msgid "The file does not contain any geometry data."
 msgstr "Файл не содержит никаких геометрических данных."
@@ -5907,6 +6087,12 @@ msgstr "Нарезка стола %d"
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Пожалуйста, устраните ошибки нарезки и попробуйте опубликовать снова."
 
+msgid "Failed to start Bambu Farm Manager Client."
+msgstr ""
+
+msgid "No Bambu Farm Manager Client found."
+msgstr ""
+
 msgid ""
 "Network Plug-in is not detected. Network related features are unavailable."
 msgstr "Сетевой плагин не обнаружен. Функции, связанные с сетью, недоступны."
@@ -5918,6 +6104,20 @@ msgstr ""
 "Режим только предпросмотра:\n"
 "Загруженный файл содержит только G-код, поэтому переход на страницу "
 "«Подготовка» невозможен."
+
+msgid ""
+"It is detected that you have not synchronized the nozzle and AMS "
+"information.\n"
+"If you synchronize it before slicing, the filament arrangement will be more "
+"reasonable.\n"
+"Do you need to synchronize it ?"
+msgstr ""
+
+msgid "Sync now"
+msgstr ""
+
+msgid "Out of sync"
+msgstr ""
 
 # ??? Изменённые профили можно сохранить в новом проекте или отказаться от сохранения.
 # ??? Изменённые профили можно сохранить в новом проекте или отклонить изменения.
@@ -6047,11 +6247,9 @@ msgid ""
 msgstr "Файл %s отправлен в память принтера и может быть просмотрен на нём."
 
 msgid ""
-"Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"Unable to perform boolean operation on model meshes. You may fix the meshes "
+"and try again."
 msgstr ""
-"Невозможно выполнить булеву операцию над сетками модели. Будут сохранены "
-"только положительные части. Вы можете исправить сетки и попробовать снова."
 
 #, boost-format
 msgid "Reason: part \"%1%\" is empty."
@@ -6183,6 +6381,14 @@ msgstr ""
 "Не рекомендуется использовать печатную пластину% d (%s) для печати прутком "
 "%s (%s). Если вы всё же хотите сделать это, то установите температуру стола "
 "для этого прутка на ненулевое значение."
+
+msgid ""
+"Currently, the object configuration form cannot be used with multiple "
+"extruders."
+msgstr ""
+
+msgid "Not available"
+msgstr ""
 
 msgid "The current project has unsaved changes, save it before continuing?"
 msgstr ""
@@ -6620,8 +6826,17 @@ msgstr "Пользовательские профили"
 msgid "Incompatible presets"
 msgstr "Несовместимые профили"
 
+msgid "My Printer"
+msgstr ""
+
+msgid "Left filaments"
+msgstr ""
+
 msgid "AMS filaments"
 msgstr "Прутки АСПП"
+
+msgid "Right filaments"
+msgstr ""
 
 msgid "Click to pick filament color"
 msgstr "Нажмите, чтобы выбрать цвет нити"
@@ -6650,6 +6865,9 @@ msgstr "Выбор/удаление принтеров (системные пр�
 msgid "Create printer"
 msgstr "Создать принтер"
 
+msgid "Empty"
+msgstr "Пусто"
+
 msgid "Incompatible"
 msgstr "Несовместимы"
 
@@ -6669,6 +6887,9 @@ msgstr "Последовательность прутков на других с
 
 msgid "Please input layer value (>= 2)."
 msgstr "Пожалуйста, введите значение слоя (>= 2)."
+
+msgid "Bed type"
+msgstr "Тип стола"
 
 msgid "Same as Global Print Sequence"
 msgstr "Аналогично глобальной последовательности печати"
@@ -6826,36 +7047,6 @@ msgstr "Просто переключиться на \"%1%\""
 msgid "Task canceled"
 msgstr "Задание отменено"
 
-msgid "(LAN)"
-msgstr "(LAN)"
-
-msgid "Search"
-msgstr "Поиск"
-
-msgid "My Device"
-msgstr "Мой принтер"
-
-msgid "Other Device"
-msgstr "Другое устройство"
-
-msgid "Online"
-msgstr "В сети"
-
-msgid "Input access code"
-msgstr "Введите код доступа"
-
-msgid "Can't find my devices?"
-msgstr "Не удаётся найти свои принтеры?"
-
-msgid "Log out successful."
-msgstr "Выход выполнен успешно."
-
-msgid "Offline"
-msgstr "Не в сети"
-
-msgid "Busy"
-msgstr "Занят"
-
 msgid "Bambu Cool Plate"
 msgstr "Не нагреваемая пластина Bambu"
 
@@ -6877,15 +7068,47 @@ msgstr ""
 msgid "Send print job to"
 msgstr "Отправка задания на печать"
 
-msgid "Bed Leveling"
+msgid "Left Extruder"
 msgstr ""
-"Выравнивание\n"
-"стола"
+
+msgid "(Recommended filament)"
+msgstr ""
+
+msgid "Right Extruder"
+msgstr ""
+
+msgid "Advanced Options"
+msgstr ""
+
+msgid "Auto Bed Leveling"
+msgstr ""
+
+msgid ""
+"Check heatbed flatness. Leveling makes extruded height uniform.\n"
+"*Automatic mode: Level first (about 10 seconds). Skip if surface is fine."
+msgstr ""
 
 msgid "Flow Dynamics Calibration"
 msgstr ""
 "Калибровка\n"
 "динамики потока"
+
+msgid ""
+"Find the best coefficient for dynamic flow calibration to enhance print "
+"quality.\n"
+"*Automatic mode: Skip if the filament was calibrated recently."
+msgstr ""
+
+msgid "Nozzle Offset Calibration"
+msgstr ""
+
+msgid ""
+"Calibrate nozzle offsets to enhance print quality.\n"
+"*Automatic mode: Check for calibration before printing; skip if unnecessary."
+msgstr ""
+
+msgid "Use AMS"
+msgstr "Исп. АСПП"
 
 msgid "Click here if you can't connect to the printer"
 msgstr "Не удаётся подключиться к принтеру?"
@@ -6953,6 +7176,19 @@ msgstr ""
 "Перед отправкой задания на печать, нажмите на каждую пластиковую нить, чтобы "
 "вручную задать для неё нужный слот АСПП."
 
+msgid "Please do not mix-use the Ext with Ams"
+msgstr ""
+
+msgid ""
+"Invalid nozzle information, please refresh or manually set nozzle "
+"information."
+msgstr ""
+
+msgid ""
+"Please check whether the nozzle type of the device is the same as the preset "
+"nozzle type."
+msgstr ""
+
 #, c-format, boost-format
 msgid ""
 "Filament %s does not match the filament in AMS slot %s. Please update the "
@@ -7015,6 +7251,11 @@ msgstr ""
 "Таймлапс не поддерживается, поскольку для последовательности печати "
 "установлено значение «Печать по очереди»."
 
+msgid ""
+"You selected external and AMS filament at the same time in an extruder, you "
+"will need manually change external filament."
+msgstr ""
+
 msgid "Errors"
 msgstr "Ошибок"
 
@@ -7039,8 +7280,8 @@ msgstr ""
 "печать."
 
 #, c-format, boost-format
-msgid "nozzle in preset: %s %s"
-msgstr "сопло в профиле: %s %s"
+msgid "nozzle in preset: %.1f %s"
+msgstr ""
 
 #, c-format, boost-format
 msgid "nozzle memorized: %.1f %s"
@@ -7056,8 +7297,12 @@ msgstr ""
 "изменить настройки."
 
 #, c-format, boost-format
-msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
+msgid ""
+"Printing high temperature material(%s material) with %s may cause nozzle "
+"damage"
 msgstr ""
+"Печать высокотемпературным материалом (%s) с %s может привести к повреждению "
+"сопла"
 
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr ""
@@ -7082,37 +7327,34 @@ msgstr "Неправильные данные файла печати. Пожа�
 msgid "The name length exceeds the limit."
 msgstr "Длина имени превышает установленное ограничение."
 
-msgid ""
-"Caution to use! Flow calibration on Textured PEI Plate may fail due to the "
-"scattered surface."
-msgstr ""
-"Внимание! Калибровка потока на текстурированной пластине с PEI покрытием "
-"может быть неудачной из-за шероховатой поверхности."
+msgid "Input access code"
+msgstr "Введите код доступа"
 
-msgid "Automatic flow calibration using Micro Lidar"
-msgstr "Автокалибровка потока с помощью микролидара"
-
-msgid "Modifying the device name"
-msgstr "Изменение имени принтера"
-
-# не длинно?
-msgid "Bind with Pin Code"
-msgstr "Привязать с помощью пин-кода"
-
-msgid "Bind with Access Code"
+msgid "Cool"
 msgstr ""
 
-msgid ""
-"Please log in before binding your device with a PIN code.\n"
-"Alternatively, you can use LAN mode to bind your device. Learn about LAN "
-"mode."
+msgid "Engineering"
 msgstr ""
 
-msgid "Go to Login"
+msgid "High Temp"
+msgstr ""
+
+msgid "Cool(Supertack)"
 msgstr ""
 
 msgid "Send to Printer SD card"
 msgstr "Отправить на SD-карту принтера"
+
+msgid "Upload file timeout, please check if the firmware version supports it."
+msgstr ""
+
+msgid ""
+"Media capability acquisition timeout, please check if the firmware version "
+"supports it."
+msgstr ""
+
+msgid "Sending failed, please try again!"
+msgstr ""
 
 msgid "Cannot send the print task when the upgrade is in progress"
 msgstr "Во время обновления невозможно отправить задание на печать"
@@ -7161,6 +7403,10 @@ msgstr "Таймаут получения отчета о входе"
 
 msgid "Unknown Failure"
 msgstr "Неизвестная ошибка"
+
+# не длинно?
+msgid "Bind with Pin Code"
+msgstr "Привязать с помощью пин-кода"
 
 msgid ""
 "Please Find the Pin Code in Account page on printer screen,\n"
@@ -7271,6 +7517,9 @@ msgid "There was a problem connecting to the printer. Please try again."
 msgstr ""
 "Возникла проблема с подключением к принтеру. Пожалуйста, попробуйте ещё раз."
 
+msgid "Log out successful."
+msgstr "Выход выполнен успешно."
+
 msgid "Failed to log out."
 msgstr "Не удалось выйти."
 
@@ -7284,6 +7533,11 @@ msgstr "Удалить этот профиль"
 
 msgid "Search in preset"
 msgstr "Поиск в профиле"
+
+msgid ""
+"Synchronize the modification of parameters to the corresponding parameters "
+"of another extruder."
+msgstr ""
 
 msgid "Click to reset all settings to the last saved preset."
 msgstr ""
@@ -7517,12 +7771,6 @@ msgstr ""
 msgid "Print temperature"
 msgstr "Температура печати"
 
-msgid "Nozzle"
-msgstr "Сопло"
-
-msgid "Nozzle temperature when printing"
-msgstr "Температура сопла при печати"
-
 msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
 "does not support to print on the Bambu Cool Plate SuperTack"
@@ -7571,6 +7819,9 @@ msgstr ""
 "Температура стола при установленной текстурированной пластите с PEI "
 "покрытием. 0 означает, что пластиковая нить не поддерживает печать на этой "
 "печатной пластине."
+
+msgid "Nozzle temperature when printing"
+msgstr "Температура сопла при печати"
 
 msgid "Volumetric speed limitation"
 msgstr "Ограничение объёмной скорости"
@@ -7686,6 +7937,12 @@ msgstr "Максимальные ускорения"
 msgid "Jerk limitation"
 msgstr "Максимальные рывки"
 
+msgid "Single extruder MM setup"
+msgstr ""
+
+msgid "Single extruder multimaterial parameters"
+msgstr ""
+
 msgid "Layer height limits"
 msgstr "Ограничение высоты слоя"
 
@@ -7703,6 +7960,14 @@ msgstr ""
 
 msgid "Firmware Retraction"
 msgstr "Откат из прошивки"
+
+msgid ""
+"Parameters related to the extruder model will be discarded because the "
+"extruder model list for the front and rear printers is inconsistent."
+msgstr ""
+
+msgid "Use Modified Value"
+msgstr "Исп. изменённое значение"
 
 msgid "Detached"
 msgstr "Отсоединён"
@@ -7756,6 +8021,14 @@ msgstr "Все"
 msgid "Set"
 msgstr "Выбор"
 
+#, c-format, boost-format
+msgid "Left: %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Right: %s"
+msgstr ""
+
 msgid "Click to reset current value and attach to the global value."
 msgstr "Нажмите, чтобы сбросить текущее значение до глобального значения."
 
@@ -7802,9 +8075,6 @@ msgstr "Не сохранять"
 # Сбросить изменённые значения
 msgid "Discard Modified Value"
 msgstr "Сбросить"
-
-msgid "Use Modified Value"
-msgstr "Исп. изменённое значение"
 
 msgid "Click the right mouse button to display the full text."
 msgstr "Нажмите правой кнопкой мыши, чтобы отобразить полный текст."
@@ -7902,6 +8172,12 @@ msgstr "Общие"
 
 msgid "Capabilities"
 msgstr "Характеристики принтера"
+
+msgid "Left: "
+msgstr ""
+
+msgid "Right: "
+msgstr ""
 
 msgid "Select presets to compare"
 msgstr "Выберите профили для сравнения"
@@ -8459,6 +8735,9 @@ msgstr "Версия:"
 msgid "Update firmware"
 msgstr "Обновить прошивку"
 
+msgid "Offline"
+msgstr "Не в сети"
+
 msgid "Printing"
 msgstr "Печать"
 
@@ -8932,6 +9211,9 @@ msgstr "Ошибка обработки шаблона filename_format."
 
 msgid "Printable area"
 msgstr "Область печати"
+
+msgid "Extruder printable area"
+msgstr ""
 
 msgid "Bed exclude area"
 msgstr "Область исключения"
@@ -9719,6 +10001,9 @@ msgstr ""
 "Максимальный расстояние вокруг экструдера. Используется для предотвращения "
 "столкновений при печати отдельно стоящих моделей."
 
+msgid "Grab length"
+msgstr ""
+
 msgid "Extruder Color"
 msgstr "Цвет экструдера"
 
@@ -9841,6 +10126,18 @@ msgstr ""
 "Минимальная твёрдость материала сопла (HRC), необходимая для печати "
 "пластиковой нитью. 0 - отключение контроля сопел на твёрдость."
 
+msgid "Filament map to extruder"
+msgstr ""
+
+msgid "Unprintable filament map to extruder"
+msgstr ""
+
+msgid "filament mapping mode"
+msgstr ""
+
+msgid "Manual"
+msgstr ""
+
 msgid ""
 "This setting stands for how much volume of filament can be melted and "
 "extruded per second. Printing speed is limited by max volumetric speed, in "
@@ -9875,6 +10172,12 @@ msgid "Time to unload old filament when switch filament. For statistics only"
 msgstr ""
 "Время выгрузки старой пластиковой нити при её смене. Это необходимо только "
 "для отображения статистической информации."
+
+msgid "Extruder switch time"
+msgstr ""
+
+msgid "Time to switch extruder. For statistics only"
+msgstr ""
 
 msgid ""
 "Filament diameter is used to calculate extrusion in gcode, so it's important "
@@ -10468,6 +10771,51 @@ msgstr ""
 "При 0 и если «Глубина переплетения окрашенной области» будет больше значения "
 "«Глубина проникновения окрашенной области», то переплетения не будет."
 
+msgid "Use beam interlocking"
+msgstr ""
+
+msgid ""
+"Generate interlocking beam structure at the locations where different "
+"filaments touch. This improves the adhesion between filaments, especially "
+"models printed in different materials."
+msgstr ""
+
+msgid "Interlocking beam width"
+msgstr ""
+
+msgid "The width of the interlocking structure beams."
+msgstr ""
+
+msgid "Interlocking direction"
+msgstr ""
+
+msgid "Orientation of interlock beams."
+msgstr ""
+
+msgid "Interlocking beam layers"
+msgstr ""
+
+msgid ""
+"The height of the beams of the interlocking structure, measured in number of "
+"layers. Less layers is stronger, but more prone to defects."
+msgstr ""
+
+msgid "Interlocking depth"
+msgstr ""
+
+msgid ""
+"The distance from the boundary between filaments to generate interlocking "
+"structure, measured in cells. Too few cells will result in poor adhesion."
+msgstr ""
+
+msgid "Interlocking boundary avoidance"
+msgstr ""
+
+msgid ""
+"The distance from the outside of a model where interlocking structures will "
+"not be generated, measured in cells."
+msgstr ""
+
 msgid "Ironing Type"
 msgstr "Тип разглаживания"
 
@@ -10957,11 +11305,23 @@ msgstr "Наклонный"
 msgid "Spiral"
 msgstr "Спиральный"
 
-msgid "Direct drive"
-msgstr "Директ"
+msgid "Direct Drive"
+msgstr ""
 
 msgid "Bowden"
 msgstr "Боуден"
+
+msgid "Nozzle Volume Type"
+msgstr ""
+
+msgid "High Flow"
+msgstr ""
+
+msgid "Default Nozzle Volume Type"
+msgstr ""
+
+msgid "Extruder change length"
+msgstr ""
 
 msgid "Extra length on restart"
 msgstr "Доп. длина подачи перед возобновлением печати"
@@ -11705,6 +12065,12 @@ msgstr ""
 "исходя из необходимого объёма очистки и ширины башни. Таким образом, "
 "увеличивая ширину башни вы уменьшаете её длину и наоборот."
 
+msgid "Outer first"
+msgstr ""
+
+msgid "The prime tower print outer first"
+msgstr ""
+
 msgid ""
 "Purging after filament change will be done inside objects' infills. This may "
 "lower the amount of waste and decrease the print time. If the walls are "
@@ -12089,6 +12455,15 @@ msgstr "Скорость потока"
 msgid "Max Volumetric Speed"
 msgstr "Макс. объёмный расход"
 
+msgid "(LAN)"
+msgstr "(LAN)"
+
+msgid "Online"
+msgstr "В сети"
+
+msgid "Busy"
+msgstr "Занят"
+
 #, c-format, boost-format
 msgid ""
 "Please input valid values:\n"
@@ -12118,6 +12493,10 @@ msgstr "Имя совпадает с именем другого существ�
 
 msgid "create new preset failed."
 msgstr "не удалось создать новый профиль."
+
+#, c-format, boost-format
+msgid "Could not find parameter: %s."
+msgstr ""
 
 msgid ""
 "Are you sure to cancel the current calibration and return to the home page?"
@@ -12150,14 +12529,11 @@ msgstr ""
 "будут сохранены. \n"
 "Хотите продолжить калибровку?"
 
-msgid "Connecting to printer..."
-msgstr "Подключение к принтеру..."
-
-msgid "The failed test result has been dropped."
-msgstr "Результат неудачного теста был удалён."
-
-msgid "Flow Dynamics Calibration result has been saved to the printer"
-msgstr "Результат калибровки динамики потока был сохранён на принтере"
+#, c-format, boost-format
+msgid ""
+"Only one of the results with the same name: %s will be saved. Are you sure "
+"you want to override the other results?"
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -12175,6 +12551,15 @@ msgid ""
 msgstr ""
 "Этот тип принтера может хранить для каждого сопла только %d последних "
 "результатов. Этот результат не будет сохранён."
+
+msgid "Connecting to printer..."
+msgstr "Подключение к принтеру..."
+
+msgid "The failed test result has been dropped."
+msgstr "Результат неудачного теста был удалён."
+
+msgid "Flow Dynamics Calibration result has been saved to the printer"
+msgstr "Результат калибровки динамики потока был сохранён на принтере"
 
 msgid "Internal Error"
 msgstr "Внутренняя ошибка"
@@ -12389,14 +12774,6 @@ msgstr "Введите имя, который хотите сохранить н
 msgid "The name cannot exceed 40 characters."
 msgstr "Максимальная длина имени 40 символов."
 
-# ???
-msgid ""
-"Only one of the results with the same name will be saved. Are you sure you "
-"want to override the other results?"
-msgstr ""
-"Можно сохранить только один результат с одинаковым именем. Вы уверены, что "
-"хотите перезаписать другие результаты?"
-
 msgid "Please find the best line on your plate"
 msgstr "Пожалуйста, найдите лучшую линию на столе"
 
@@ -12564,6 +12941,9 @@ msgstr "От объёмной скорости"
 msgid "To Volumetric Speed"
 msgstr "К объёмной скорости"
 
+msgid "Are you sure to stop printing?"
+msgstr ""
+
 msgid "Flow Dynamics Calibration Result"
 msgstr "Результаты калибровки динамики потока"
 
@@ -12599,6 +12979,12 @@ msgstr "Ok"
 
 msgid "The filament must be selected."
 msgstr "Выберите пластиковую нить."
+
+msgid "The extruder must be selected."
+msgstr ""
+
+msgid "The nozzle must be selected."
+msgstr ""
 
 msgid "PA Calibration"
 msgstr "Калибровка PA"
@@ -13421,13 +13807,31 @@ msgstr "Свернуть"
 msgid "Daily Tips"
 msgstr "Ежедневные советы "
 
-# ??? Диаметр сопла в профиле не соответствует сохранённому диаметру сопла
-msgid ""
-"Your nozzle diameter in preset is not consistent with memorized nozzle "
-"diameter. Did you change your nozzle lately?"
+#, c-format, boost-format
+msgid "nozzle size in preset: %d"
 msgstr ""
-"Диаметр сопла в профиле не соответствует сохранённому \n"
-"в памяти диаметру сопла. Вы недавно сменили сопло?"
+
+#, c-format, boost-format
+msgid "nozzle size memorized: %d"
+msgstr ""
+
+msgid ""
+"The size of nozzle type in preset is not consistent with memorized nozzle."
+"Did you change your nozzle lately ? "
+msgstr ""
+
+#, c-format, boost-format
+msgid "nozzle[%d] in preset: %.1f"
+msgstr ""
+
+#, c-format, boost-format
+msgid "nozzle[%d] memorized: %.1f"
+msgstr ""
+
+msgid ""
+"Your nozzle type in preset is not consistent with memorized nozzle.Did you "
+"change your nozzle lately ? "
+msgstr ""
 
 #, c-format, boost-format
 msgid "*Printing %s material with %s may cause nozzle damage"
@@ -13438,6 +13842,15 @@ msgstr "Нужно выбрать принтер"
 
 msgid "The start, end or step is not valid value."
 msgstr "Недопустимое значение: начальное, конечное или шаг."
+
+msgid "The selected diameter is inconsistent with the printer diameter."
+msgstr ""
+
+msgid "left"
+msgstr ""
+
+msgid "right"
+msgstr ""
 
 msgid ""
 "Unable to calibrate: maybe because the set calibration value range is too "
@@ -13963,9 +14376,6 @@ msgstr "Количество одновременно используемых �
 msgid "Use External Spool"
 msgstr "Исп. внешнюю катушку"
 
-msgid "Use AMS"
-msgstr "Исп. АСПП"
-
 msgid "Select Printers"
 msgstr "Выбор принтеров"
 
@@ -13985,6 +14395,11 @@ msgstr ""
 
 msgid "Printing Options"
 msgstr "Параметры печати"
+
+msgid "Bed Leveling"
+msgstr ""
+"Выравнивание\n"
+"стола"
 
 msgid "Send Options"
 msgstr "Параметры отправки"
@@ -14386,19 +14801,142 @@ msgstr ""
 "ABS, повышение температуры подогреваемого стола может снизить эту "
 "вероятность?"
 
+#~ msgid "?"
+#~ msgstr "?"
+
+#~ msgid "/"
+#~ msgstr "/"
+
+#~ msgid "AMS not connected"
+#~ msgstr "АСПП не подключена"
+
+#~ msgid "Ext Spool"
+#~ msgstr "Внеш. катушка"
+
+#~ msgid "Guide"
+#~ msgstr "Инстр."
+
+#~ msgid "Calibrating AMS..."
+#~ msgstr "Калибровка АСПП..."
+
+#~ msgid "A problem occurred during calibration. Click to view the solution."
+#~ msgstr ""
+#~ "Во время калибровки возникла проблема. Нажмите, чтобы посмотреть способ "
+#~ "исправления проблемы."
+
+#~ msgid "Calibrate again"
+#~ msgstr "Повторить калибровку"
+
+#~ msgid "Cancel calibration"
+#~ msgstr "Отменить калибровку"
+
+# ??? Ожидание
+#~ msgid "Idling..."
+#~ msgstr "Простой..."
+
+# При выгрузке/загрузке прутка справа отображается процесс
+#~ msgid "Heat the nozzle"
+#~ msgstr "Нагрев сопла"
+
+#~ msgid "Cut filament"
+#~ msgstr "Отрезка прутка"
+
+#~ msgid "Pull back current filament"
+#~ msgstr "Извлечение текущего прутка"
+
+#~ msgid "Push new filament into extruder"
+#~ msgstr "Вставка нового прутка в экструдер"
+
+#~ msgid "Purge old filament"
+#~ msgstr "Очистка от старого материала"
+
+#~ msgid "Feed Filament"
+#~ msgstr "Подача прутка"
+
+#~ msgid "Confirm extruded"
+#~ msgstr "Подтверждение экструзии"
+
+#~ msgid "Check filament location"
+#~ msgstr "Проверка расположения прутка"
+
+#~ msgid "Grab new filament"
+#~ msgstr "Загрузка нового прутка"
+
+#~ msgid "SD Card"
+#~ msgstr "SD-карта"
+
+#~ msgid "Aux"
+#~ msgstr "Вспом."
+
+#~ msgid "Cham"
+#~ msgstr "Выдув"
+
+#~ msgid "No SD Card"
+#~ msgstr "Отсутствует SD-карта"
+
+#~ msgid "SD Card Abnormal"
+#~ msgstr "Неисправность SD-карты"
+
+#~ msgid ""
+#~ "Unable to perform boolean operation on model meshes. Only positive parts "
+#~ "will be kept. You may fix the meshes and try agian."
+#~ msgstr ""
+#~ "Невозможно выполнить булеву операцию над сетками модели. Будут сохранены "
+#~ "только положительные части. Вы можете исправить сетки и попробовать снова."
+
+#~ msgid "Search"
+#~ msgstr "Поиск"
+
+#~ msgid "My Device"
+#~ msgstr "Мой принтер"
+
+#~ msgid "Other Device"
+#~ msgstr "Другое устройство"
+
+#~ msgid "Can't find my devices?"
+#~ msgstr "Не удаётся найти свои принтеры?"
+
+#, c-format, boost-format
+#~ msgid "nozzle in preset: %s %s"
+#~ msgstr "сопло в профиле: %s %s"
+
+#~ msgid ""
+#~ "Caution to use! Flow calibration on Textured PEI Plate may fail due to "
+#~ "the scattered surface."
+#~ msgstr ""
+#~ "Внимание! Калибровка потока на текстурированной пластине с PEI покрытием "
+#~ "может быть неудачной из-за шероховатой поверхности."
+
+#~ msgid "Automatic flow calibration using Micro Lidar"
+#~ msgstr "Автокалибровка потока с помощью микролидара"
+
+#~ msgid "Modifying the device name"
+#~ msgstr "Изменение имени принтера"
+
+#~ msgid "Direct drive"
+#~ msgstr "Директ"
+
+# ???
+#~ msgid ""
+#~ "Only one of the results with the same name will be saved. Are you sure "
+#~ "you want to override the other results?"
+#~ msgstr ""
+#~ "Можно сохранить только один результат с одинаковым именем. Вы уверены, "
+#~ "что хотите перезаписать другие результаты?"
+
+# ??? Диаметр сопла в профиле не соответствует сохранённому диаметру сопла
+#~ msgid ""
+#~ "Your nozzle diameter in preset is not consistent with memorized nozzle "
+#~ "diameter. Did you change your nozzle lately?"
+#~ msgstr ""
+#~ "Диаметр сопла в профиле не соответствует сохранённому \n"
+#~ "в памяти диаметру сопла. Вы недавно сменили сопло?"
+
 #~ msgid "We would use Lidar to read the calibration result"
 #~ msgstr "Для считывания результата калибровки будет использоваться лидар."
 
 #~ msgid "Are you sure you want to cancel this print?"
 #~ msgstr "Вы уверены, что хотите отменить эту печать?"
-
-#, c-format, boost-format
-#~ msgid ""
-#~ "Printing high temperature material(%s material) with %s may cause nozzle "
-#~ "damage"
-#~ msgstr ""
-#~ "Печать высокотемпературным материалом (%s) с %s может привести к "
-#~ "повреждению сопла"
 
 #~ msgid "Conditional scarf joint"
 #~ msgstr "Условие для клиновидного шва"
@@ -14563,11 +15101,6 @@ msgstr ""
 
 #~ msgid "Show &Labels"
 #~ msgstr "Показать &имена файлов"
-
-#~ msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
-#~ msgstr ""
-#~ "Этот 3mf создан в старой версии Bambu Studio, поэтому загрузятся только "
-#~ "данные геометрии."
 
 #~ msgid ""
 #~ "Embeded\n"
