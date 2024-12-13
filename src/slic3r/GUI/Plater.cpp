@@ -3430,7 +3430,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     //BBS: add bed_exclude_area
     , config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({
         "printable_area", "bed_exclude_area", "extruder_printable_area", "bed_custom_texture", "bed_custom_model", "print_sequence",
-        "extruder_clearance_radius", "extruder_clearance_dist_to_rod", "extruder_clearance_max_radius",
+        "extruder_clearance_dist_to_rod", "extruder_clearance_max_radius",
         "extruder_clearance_height_to_lid", "extruder_clearance_height_to_rod",
 		"nozzle_height", "skirt_loops", "skirt_distance",
         "brim_width", "brim_object_gap", "brim_type", "nozzle_diameter", "single_extruder_multi_material",
