@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-04 11:47+0800\n"
+"POT-Creation-Date: 2024-12-13 11:54+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -905,7 +905,7 @@ msgid ""
 "effect !"
 msgstr ""
 
-msgid "Set the brim type to \"painted\""
+msgid "Set the brim type of this object to \"painted\""
 msgstr ""
 
 msgid " invalid brim ears"
@@ -1666,6 +1666,15 @@ msgstr "Automatická orientace"
 msgid "Auto orient the object to improve print quality."
 msgstr "Automaticky orientovat objekt pro zlepšení kvality tisku."
 
+msgid "Edit"
+msgstr "Upravit"
+
+msgid "Change to"
+msgstr ""
+
+msgid "Delete this filament"
+msgstr ""
+
 msgid "Select All"
 msgstr "Vybrat vše"
 
@@ -2137,23 +2146,8 @@ msgstr "Prosím, zkontrolujte síťové připojení tiskárny a Studia."
 msgid "Connecting..."
 msgstr "Připojuji se..."
 
-msgid "?"
-msgstr "?"
-
-msgid "/"
+msgid "Auto-refill"
 msgstr ""
-
-msgid "Empty"
-msgstr "Prázdný"
-
-msgid "AMS"
-msgstr "AMS"
-
-msgid "Auto Refill"
-msgstr "Automatické Doplnění"
-
-msgid "AMS not connected"
-msgstr "AMS není připojen"
 
 msgid "Load"
 msgstr ""
@@ -2161,67 +2155,10 @@ msgstr ""
 msgid "Unload"
 msgstr "Vysunout"
 
-msgid "Ext Spool"
-msgstr "Ext Cívka"
-
-msgid "Tips"
-msgstr "Tipy"
-
-msgid "Guide"
-msgstr "Průvodce"
-
-msgid "Retry"
-msgstr "Zkusit znovu"
-
-msgid "Calibrating AMS..."
-msgstr "Kalibruji AMS..."
-
-msgid "A problem occurred during calibration. Click to view the solution."
-msgstr ""
-
-msgid "Calibrate again"
-msgstr "Znovu kalibrovat"
-
-msgid "Cancel calibration"
-msgstr "Zrušit kalibraci"
-
-msgid "Idling..."
-msgstr ""
-
-msgid "Heat the nozzle"
-msgstr "Zahřejte trysku"
-
-msgid "Cut filament"
-msgstr "Vyjmout Filament"
-
-msgid "Pull back current filament"
-msgstr "Vytáhněte aktuální filament"
-
-msgid "Push new filament into extruder"
-msgstr "Zatlačte nový filament do extruderu"
-
-msgid "Purge old filament"
-msgstr "Vyčistit starý filament"
-
-msgid "Feed Filament"
-msgstr ""
-
-msgid "Confirm extruded"
-msgstr ""
-
-msgid "Check filament location"
-msgstr ""
-
-msgid "Grab new filament"
-msgstr "Vezměte nový filament"
-
 msgid ""
 "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
 "load or unload filaments."
 msgstr ""
-
-msgid "Edit"
-msgstr "Upravit"
 
 msgid ""
 "All the selected objects are on the locked plate,\n"
@@ -2643,6 +2580,14 @@ msgstr ""
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr ""
 
+msgid ""
+"There are unset nozzle types. Please set the nozzle types of all extruders "
+"before synchronizing."
+msgstr ""
+
+msgid "AMS"
+msgstr "AMS"
+
 msgid "Other Color"
 msgstr "Jiná Barva"
 
@@ -2723,9 +2668,21 @@ msgstr "Krok"
 msgid "AMS Slots"
 msgstr "AMS sloty"
 
+msgid "Left Ams"
+msgstr ""
+
+msgid "External"
+msgstr ""
+
+msgid "Right Ams"
+msgstr ""
+
 msgid ""
 "Note: Only the AMS slots loaded with the same material type can be selected."
 msgstr "Poznámka: Lze vybrat pouze sloty AMS se stejným typem materiálu."
+
+msgid "Ext"
+msgstr ""
 
 msgid "Enable AMS"
 msgstr "Povolit AMS"
@@ -2775,6 +2732,9 @@ msgstr "Tisk s filamenty v ams"
 
 msgid "Print with filaments mounted on the back of the chassis"
 msgstr "Tisk s filamenty namontovanými na zadní straně šasi"
+
+msgid "Auto Refill"
+msgstr "Automatické Doplnění"
 
 msgid ""
 "When the current material run out, the printer will continue to print in the "
@@ -3318,6 +3278,9 @@ msgstr ""
 msgid "Nozzle clog pause"
 msgstr ""
 
+msgid "TPU is not supported by deputy extruder."
+msgstr ""
+
 msgid "Unknown"
 msgstr "Neznámý"
 
@@ -3440,6 +3403,9 @@ msgstr ""
 msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr "Neplatný formát. Očekávaný vektorový formát: \"%1%\""
 
+msgid "Summary"
+msgstr ""
+
 msgid "Layer Height"
 msgstr "Výška vrstvy"
 
@@ -3512,6 +3478,43 @@ msgstr ""
 msgid "Time Estimation"
 msgstr "Časový odhad"
 
+msgid ""
+"Automatically re-slice according to the optimal filament arrangement, and "
+"the arrangement results will be displayed after slicing."
+msgstr ""
+
+msgid "Color Arrangement Recommendation"
+msgstr ""
+
+msgid "Color Arrangement"
+msgstr ""
+
+msgid "Left extruder"
+msgstr ""
+
+msgid "Right extruder"
+msgstr ""
+
+msgid "This arrangement would be optimal."
+msgstr ""
+
+#, boost-format
+msgid "Save %1%g filament and %2% changes than one-extruder printer."
+msgstr ""
+
+msgid "This arrangement is not optimal."
+msgstr ""
+
+#, boost-format
+msgid "Cost %1%g filament and %2% changes more than optimal arrangement."
+msgstr ""
+
+msgid "Set to Optimal"
+msgstr ""
+
+msgid "Rearrange filament"
+msgstr ""
+
 msgid "up to"
 msgstr "až do"
 
@@ -3520,6 +3523,9 @@ msgstr "nad"
 
 msgid "from"
 msgstr "z"
+
+msgid "Slicing Result"
+msgstr ""
 
 msgid "Color Scheme"
 msgstr "Barevné schéma"
@@ -3581,11 +3587,14 @@ msgstr "Cestování"
 msgid "Extruder"
 msgstr "Extruder"
 
-msgid "Filament change times"
-msgstr "Doby výměny Filamentu"
-
 msgid "Cost"
 msgstr "Náklady"
+
+msgid "Total time"
+msgstr "Celkový čas"
+
+msgid "Filament change times"
+msgstr "Doby výměny Filamentu"
 
 msgid "Color change"
 msgstr "Změna barvy"
@@ -3617,14 +3626,26 @@ msgstr "Čas přípravy"
 msgid "Model printing time"
 msgstr "Doba tisku modelu"
 
-msgid "Total time"
-msgstr "Celkový čas"
-
 msgid "Switch to silent mode"
 msgstr "Přepnout do tichého režimu"
 
 msgid "Switch to normal mode"
 msgstr "Přepnout do normálního režimu"
+
+msgid ""
+"An object is laid on the left/right extruder only area.\n"
+"Please make sure the filaments used by this object on this area are not "
+"mapped to the other extruders."
+msgstr ""
+
+msgid ""
+"An object is laid over the boundary of plate or exceeds the height limit.\n"
+"Please solve the problem by moving it totally on or off the plate, and "
+"confirming that the height is within the build volume."
+msgstr ""
+"Objekt je položen přes hranici podložky nebo překračuje limit výšky.\n"
+"Prosím, vyřešte problém tím, že jej úplně přesunete na podložku nebo mimo ní "
+"a potvrďte, že výška je v rámci objemu stavby."
 
 msgid "Variable layer height"
 msgstr "Variabilní výška vrstvy"
@@ -3687,6 +3708,26 @@ msgid "number keys"
 msgstr ""
 
 msgid "number keys can quickly change the color of objects"
+msgstr ""
+
+msgid ""
+"Following objects are laid over the boundary of plate or exceeds the height "
+"limit:\n"
+msgstr ""
+
+msgid ""
+"Please solve the problem by moving it totally on or off the plate, and "
+"confirming that the height is within the build volume.\n"
+msgstr ""
+
+msgid "In the Filament auto-matching mode, Filament "
+msgstr ""
+
+msgid "Please solve the problem by moving them within the build volume.\n"
+msgstr ""
+
+msgid ""
+"In the Filament manual-matching mode, Following filament->extruder maps: \n"
 msgstr ""
 
 msgid "Mirror Object"
@@ -3775,6 +3816,12 @@ msgstr "Návrat k sestavení"
 msgid "return"
 msgstr "Návrat"
 
+msgid "Fit camera"
+msgstr ""
+
+msgid "Fit camera to scene or selected object."
+msgstr ""
+
 msgid "Paint Toolbar"
 msgstr "Panel nástrojů Malování"
 
@@ -3819,17 +3866,41 @@ msgstr "Cesta G-kódu přesahuje maximální výšku tisku."
 msgid "A G-code path goes beyond the boundary of plate."
 msgstr "Cesta G-kódu přesahuje hranici podložky."
 
-msgid "Only the object being edited is visible."
+#, c-format, boost-format
+msgid ""
+"Multiple TPU filaments are not allowed to print at the same time, and the "
+"TPU filament must be placed in the virtual slot of %s."
 msgstr ""
 
+#, c-format, boost-format
 msgid ""
-"An object is laid over the boundary of plate or exceeds the height limit.\n"
-"Please solve the problem by moving it totally on or off the plate, and "
-"confirming that the height is within the build volume."
+"Filament %d is placed in the %s, but the generated G-code path exceeds the "
+"printable range of the %s."
 msgstr ""
-"Objekt je položen přes hranici podložky nebo překračuje limit výšky.\n"
-"Prosím, vyřešte problém tím, že jej úplně přesunete na podložku nebo mimo ní "
-"a potvrďte, že výška je v rámci objemu stavby."
+
+#, c-format, boost-format
+msgid ""
+"Filaments %d is placed in the %s, but the generated G-code path exceeds the "
+"printable range of the %s."
+msgstr ""
+
+msgid "Open wiki for more information."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Filament %d is placed in the %s, but the generated G-code path exceeds the "
+"printable height of the %s."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Filaments %d is placed in the %s, but the generated G-code path exceeds the "
+"printable height of the %s."
+msgstr ""
+
+msgid "Only the object being edited is visible."
+msgstr ""
 
 #, c-format, boost-format
 msgid "filaments %s cannot be printed directly on the surface of this plate."
@@ -3973,6 +4044,12 @@ msgstr "Vytisknout vše"
 
 msgid "Send all"
 msgstr "Odeslat vše"
+
+msgid "Send to Bambu Farm Manager Client"
+msgstr ""
+
+msgid "Send to BFMC"
+msgstr ""
 
 msgid "Send to Multi-device"
 msgstr ""
@@ -4195,6 +4272,12 @@ msgstr "Použít perspektivní pohled"
 
 msgid "Use Orthogonal View"
 msgstr "Použít ortogonální zobrazení"
+
+msgid "Show 3D Navigator"
+msgstr ""
+
+msgid "Show 3D navigator in Prepare and Preview scene"
+msgstr ""
 
 msgid "Show object labels in 3D scene"
 msgstr "Zobrazit popisky objektů ve 3D scéně"
@@ -4636,6 +4719,9 @@ msgstr ""
 msgid "Download waiting..."
 msgstr "Čekání na stahování..."
 
+msgid "Retry"
+msgstr "Zkusit znovu"
+
 msgid "Play"
 msgstr "Přehrát"
 
@@ -4654,6 +4740,9 @@ msgid ""
 "please try again later."
 msgstr ""
 
+msgid "Timeout, please try again."
+msgstr ""
+
 msgid "File does not exist."
 msgstr ""
 
@@ -4663,8 +4752,40 @@ msgstr ""
 msgid "Not supported on the current printer version."
 msgstr "Není podporováno ve stávající verzi tiskárny."
 
+msgid ""
+"The firmware version of the printer is too low. Please update the firmware "
+"and try again."
+msgstr ""
+
+msgid "The file already exists, do you want to replace it?"
+msgstr ""
+
+msgid "Insufficient storage space, please clear the space and try again."
+msgstr ""
+
+msgid "File creation failed, please try again."
+msgstr ""
+
+msgid "File write failed, please try again."
+msgstr ""
+
+msgid "MD5 verification failed, please try again."
+msgstr ""
+
+msgid "File renaming failed, please try again."
+msgstr ""
+
+msgid "File upload failed, please try again."
+msgstr ""
+
 #, c-format, boost-format
 msgid "Error code: %d"
+msgstr ""
+
+msgid "User cancels task."
+msgstr ""
+
+msgid "Failed to read file, please try again."
 msgstr ""
 
 msgid "Speed:"
@@ -4733,8 +4854,8 @@ msgstr ""
 msgid "Camera"
 msgstr "Kamera"
 
-msgid "SD Card"
-msgstr "SD karta"
+msgid "Storage"
+msgstr ""
 
 msgid "Camera Setting"
 msgstr "Nastavení Kamery"
@@ -4754,28 +4875,22 @@ msgstr "100%"
 msgid "Lamp"
 msgstr "Lampa"
 
-msgid "Aux"
-msgstr "Aux"
-
-msgid "Cham"
-msgstr "Komora"
-
 msgid "Bed"
 msgstr "Podložka"
 
 msgid "Debug Info"
 msgstr "Informace o ladění"
 
-msgid "No SD Card"
-msgstr "Žádná SD karta"
+msgid "No Storage"
+msgstr ""
 
-msgid "SD Card Abnormal"
-msgstr "SD karta Abnormální"
+msgid "Storage Abnormal"
+msgstr ""
 
 msgid "Cancel print"
 msgstr "Zrušit tisk"
 
-msgid "Are you sure to stop printing?"
+msgid "Are you sure you want to stop this print?"
 msgstr ""
 
 msgid "Unknown error."
@@ -4799,13 +4914,13 @@ msgstr "Vrstva: %s"
 msgid "Layer: %d/%d"
 msgstr "Vrstva: %d/%d"
 
-msgid "Auto homing"
+msgid "Axis go home"
 msgstr ""
 
-msgid "Are you sure you want to trigger auto homing?"
+msgid "Are you sure you want to home now?"
 msgstr ""
 
-msgid "Homing"
+msgid "Home"
 msgstr ""
 
 msgid ""
@@ -5258,7 +5373,22 @@ msgstr ""
 msgid "Stainless Steel"
 msgstr ""
 
+msgid "Normal flow"
+msgstr ""
+
+msgid "High flow"
+msgstr ""
+
 msgid "Nozzle Type"
+msgstr ""
+
+msgid "Left Nozzle"
+msgstr ""
+
+msgid "Nozzle Flow"
+msgstr ""
+
+msgid "Right Nozzle"
 msgstr ""
 
 #, c-format, boost-format
@@ -5317,14 +5447,47 @@ msgstr "Odhadovaný čas"
 msgid "Filament changes"
 msgstr "Výměna filamentu"
 
+msgid "Please set the number of ams installed on the this extrusion head."
+msgstr ""
+
+msgid "AMS(4 colors)"
+msgstr ""
+
+msgid "AMS(single color)"
+msgstr ""
+
+msgid "Nozzle"
+msgstr "Tryska"
+
+msgid "Not installed"
+msgstr ""
+
+msgid "Please select a printer in 'Device' page first."
+msgstr ""
+
+msgid "Sync extruder infomation"
+msgstr ""
+
+msgid "The currently connected printer does not have two extruders."
+msgstr ""
+
+msgid ""
+"The currently selected machine preset is inconsistent with the connected "
+"printer type.\n"
+"Are you sure to continue syncing?"
+msgstr ""
+
 msgid "Click to edit preset"
 msgstr "Klikněte pro editaci přednastavení"
 
 msgid "Connection"
 msgstr "Připojení"
 
-msgid "Bed type"
-msgstr "Typ podložky"
+msgid "Sync printer information"
+msgstr ""
+
+msgid "Synchronize nozzle information and the number of AMS"
+msgstr ""
 
 msgid "Flushing volumes"
 msgstr "Čistící objem"
@@ -5450,6 +5613,9 @@ msgstr ""
 msgid "Found following keys unrecognized:\n"
 msgstr ""
 
+msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
+msgstr "3mf je generován starým Bambu Studio, načtěte pouze geometrická data."
+
 msgid "Invalid values found in the 3mf:"
 msgstr "V 3mf byly nalezeny neplatné hodnoty:"
 
@@ -5523,6 +5689,22 @@ msgstr "Načíst tyto soubory jako jeden objekt s více částmi?\n"
 
 msgid "Object with multiple parts was detected"
 msgstr "Byl detekován objekt s více částmi"
+
+#, c-format, boost-format
+msgid ""
+"The printer you are currently bound to is %s,\n"
+"The printer preset for your current file is %s,\n"
+msgstr ""
+
+msgid ""
+"Do you want to sync printer presets, ams and nozzle information immediately?"
+msgstr ""
+
+msgid "Do you want to sync printer presets immediately?"
+msgstr ""
+
+msgid "Tips"
+msgstr "Tipy"
 
 msgid "The file does not contain any geometry data."
 msgstr "Soubor neobsahuje žádná geometrická data."
@@ -5631,6 +5813,12 @@ msgstr "Podložka na slicování %d"
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Vyřešte prosím chyby slicování a publikujte znovu."
 
+msgid "Failed to start Bambu Farm Manager Client."
+msgstr ""
+
+msgid "No Bambu Farm Manager Client found."
+msgstr ""
+
 msgid ""
 "Network Plug-in is not detected. Network related features are unavailable."
 msgstr ""
@@ -5643,6 +5831,20 @@ msgid ""
 msgstr ""
 "Režim pouze náhled:\n"
 "Načtený soubor obsahuje pouze gcode, nelze vstoupit na stránku Příprava"
+
+msgid ""
+"It is detected that you have not synchronized the nozzle and AMS "
+"information.\n"
+"If you synchronize it before slicing, the filament arrangement will be more "
+"reasonable.\n"
+"Do you need to synchronize it ?"
+msgstr ""
+
+msgid "Sync now"
+msgstr ""
+
+msgid "Out of sync"
+msgstr ""
 
 msgid "You can keep the modified presets to the new project or discard them"
 msgstr "Upravené předvolby si můžete ponechat pro nový projekt nebo je zahodit"
@@ -5764,8 +5966,8 @@ msgstr ""
 "tiskárně."
 
 msgid ""
-"Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"Unable to perform boolean operation on model meshes. You may fix the meshes "
+"and try again."
 msgstr ""
 
 #, boost-format
@@ -5888,6 +6090,14 @@ msgstr ""
 "Plate% d: %s se nedoporučuje používat k tisku filamentu %s(%s). Pokud Přesto "
 "chcete tento tisk provést, nastavte prosím teplotu podložky tohoto filamentu "
 "ne na nulovou."
+
+msgid ""
+"Currently, the object configuration form cannot be used with multiple "
+"extruders."
+msgstr ""
+
+msgid "Not available"
+msgstr ""
 
 msgid "The current project has unsaved changes, save it before continuing?"
 msgstr ""
@@ -6288,8 +6498,17 @@ msgstr "Uživatelská přednastavení"
 msgid "Incompatible presets"
 msgstr "Nekompatibilní předvolby"
 
+msgid "My Printer"
+msgstr ""
+
+msgid "Left filaments"
+msgstr ""
+
 msgid "AMS filaments"
 msgstr "AMS Filament"
+
+msgid "Right filaments"
+msgstr ""
 
 msgid "Click to pick filament color"
 msgstr "Kliknutím vyberte barvu Filamentu"
@@ -6318,6 +6537,9 @@ msgstr ""
 msgid "Create printer"
 msgstr ""
 
+msgid "Empty"
+msgstr "Prázdný"
+
 msgid "Incompatible"
 msgstr "Nekompatibilní"
 
@@ -6335,6 +6557,9 @@ msgstr ""
 
 msgid "Please input layer value (>= 2)."
 msgstr ""
+
+msgid "Bed type"
+msgstr "Typ podložky"
 
 msgid "Same as Global Print Sequence"
 msgstr "Stejné jako globální tisková sekvence"
@@ -6487,36 +6712,6 @@ msgstr "Jednoduše přepněte na \"%1%\""
 msgid "Task canceled"
 msgstr "Úloha zrušena"
 
-msgid "(LAN)"
-msgstr "(LAN)"
-
-msgid "Search"
-msgstr ""
-
-msgid "My Device"
-msgstr "Moje zařízení"
-
-msgid "Other Device"
-msgstr "Jiné zařízení"
-
-msgid "Online"
-msgstr "Online"
-
-msgid "Input access code"
-msgstr "Zadejte přístupový kód"
-
-msgid "Can't find my devices?"
-msgstr "Nemohu najít moje zařízení?"
-
-msgid "Log out successful."
-msgstr "Odhlášení proběhlo úspěšně."
-
-msgid "Offline"
-msgstr "Offline"
-
-msgid "Busy"
-msgstr "Zaneprázdněn"
-
 msgid "Bambu Cool Plate"
 msgstr "Bambu Cool Podložka"
 
@@ -6538,11 +6733,45 @@ msgstr ""
 msgid "Send print job to"
 msgstr "Odeslat tiskovou úlohu na"
 
-msgid "Bed Leveling"
-msgstr "Vyrovnání podložky"
+msgid "Left Extruder"
+msgstr ""
+
+msgid "(Recommended filament)"
+msgstr ""
+
+msgid "Right Extruder"
+msgstr ""
+
+msgid "Advanced Options"
+msgstr ""
+
+msgid "Auto Bed Leveling"
+msgstr ""
+
+msgid ""
+"Check heatbed flatness. Leveling makes extruded height uniform.\n"
+"*Automatic mode: Level first (about 10 seconds). Skip if surface is fine."
+msgstr ""
 
 msgid "Flow Dynamics Calibration"
 msgstr "Kalibrace Dynamiky Průtoku"
+
+msgid ""
+"Find the best coefficient for dynamic flow calibration to enhance print "
+"quality.\n"
+"*Automatic mode: Skip if the filament was calibrated recently."
+msgstr ""
+
+msgid "Nozzle Offset Calibration"
+msgstr ""
+
+msgid ""
+"Calibrate nozzle offsets to enhance print quality.\n"
+"*Automatic mode: Check for calibration before printing; skip if unnecessary."
+msgstr ""
+
+msgid "Use AMS"
+msgstr ""
 
 msgid "Click here if you can't connect to the printer"
 msgstr ""
@@ -6604,6 +6833,19 @@ msgstr ""
 "Kliknutím na každý filament výše určete jeho mapovací slot AMS před odeslání "
 "tiskové úlohy"
 
+msgid "Please do not mix-use the Ext with Ams"
+msgstr ""
+
+msgid ""
+"Invalid nozzle information, please refresh or manually set nozzle "
+"information."
+msgstr ""
+
+msgid ""
+"Please check whether the nozzle type of the device is the same as the preset "
+"nozzle type."
+msgstr ""
+
 #, c-format, boost-format
 msgid ""
 "Filament %s does not match the filament in AMS slot %s. Please update the "
@@ -6659,6 +6901,11 @@ msgid ""
 "Timelapse is not supported because Print sequence is set to \"By object\"."
 msgstr ""
 
+msgid ""
+"You selected external and AMS filament at the same time in an extruder, you "
+"will need manually change external filament."
+msgstr ""
+
 msgid "Errors"
 msgstr "Chyby"
 
@@ -6683,7 +6930,7 @@ msgstr ""
 "zahájení tisku."
 
 #, c-format, boost-format
-msgid "nozzle in preset: %s %s"
+msgid "nozzle in preset: %.1f %s"
 msgstr ""
 
 #, c-format, boost-format
@@ -6697,7 +6944,9 @@ msgid ""
 msgstr ""
 
 #, c-format, boost-format
-msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
+msgid ""
+"Printing high temperature material(%s material) with %s may cause nozzle "
+"damage"
 msgstr ""
 
 msgid "Please fix the error above, otherwise printing cannot continue."
@@ -6721,36 +6970,34 @@ msgstr "Abnormální data tiskového souboru. Prosím znovu slicovat"
 msgid "The name length exceeds the limit."
 msgstr "Délka názvu překračuje limit."
 
-msgid ""
-"Caution to use! Flow calibration on Textured PEI Plate may fail due to the "
-"scattered surface."
-msgstr ""
-"Pozor při použití! Kalibrace průtoku na Texturované PEI podložce může selhat "
-"kvůli rozptýlenému povrchu."
+msgid "Input access code"
+msgstr "Zadejte přístupový kód"
 
-msgid "Automatic flow calibration using Micro Lidar"
-msgstr "Automatická kalibrace průtoku pomocí Mikro Lidar"
-
-msgid "Modifying the device name"
-msgstr "Úprava názvu zařízení"
-
-msgid "Bind with Pin Code"
+msgid "Cool"
 msgstr ""
 
-msgid "Bind with Access Code"
+msgid "Engineering"
 msgstr ""
 
-msgid ""
-"Please log in before binding your device with a PIN code.\n"
-"Alternatively, you can use LAN mode to bind your device. Learn about LAN "
-"mode."
+msgid "High Temp"
 msgstr ""
 
-msgid "Go to Login"
+msgid "Cool(Supertack)"
 msgstr ""
 
 msgid "Send to Printer SD card"
 msgstr "Odeslat do tiskárny SD kartu"
+
+msgid "Upload file timeout, please check if the firmware version supports it."
+msgstr ""
+
+msgid ""
+"Media capability acquisition timeout, please check if the firmware version "
+"supports it."
+msgstr ""
+
+msgid "Sending failed, please try again!"
+msgstr ""
 
 msgid "Cannot send the print task when the upgrade is in progress"
 msgstr "Nelze odeslat tiskovou úlohu, když probíhá aktualizace"
@@ -6800,6 +7047,9 @@ msgstr "Časový limit pro obdržení hlášení o přihlášení vypršel"
 
 msgid "Unknown Failure"
 msgstr "Neznámá chyba"
+
+msgid "Bind with Pin Code"
+msgstr ""
 
 msgid ""
 "Please Find the Pin Code in Account page on printer screen,\n"
@@ -6900,6 +7150,9 @@ msgstr "Nejprve se prosím přihlaste."
 msgid "There was a problem connecting to the printer. Please try again."
 msgstr "Došlo k problému s připojením k tiskárně. Zkuste to prosím znovu."
 
+msgid "Log out successful."
+msgstr "Odhlášení proběhlo úspěšně."
+
 msgid "Failed to log out."
 msgstr "Nepodařilo se odhlásit."
 
@@ -6913,6 +7166,11 @@ msgstr "Smazat přednastavení"
 
 msgid "Search in preset"
 msgstr "Hledat v předvolbě"
+
+msgid ""
+"Synchronize the modification of parameters to the corresponding parameters "
+"of another extruder."
+msgstr ""
 
 msgid "Click to reset all settings to the last saved preset."
 msgstr "Kliknutím obnovíte všechna nastavení na poslední uloženou předvolbu."
@@ -7123,12 +7381,6 @@ msgstr ""
 msgid "Print temperature"
 msgstr "Teplota tisku"
 
-msgid "Nozzle"
-msgstr "Tryska"
-
-msgid "Nozzle temperature when printing"
-msgstr "Teplota trysky při tisku"
-
 msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
 "does not support to print on the Bambu Cool Plate SuperTack"
@@ -7172,6 +7424,9 @@ msgid ""
 msgstr ""
 "Teplota podložky při instalaci Textured PEI Podložky. Hodnota 0 znamená "
 "filament nepodporuje tisk na Textured PEI Podložku"
+
+msgid "Nozzle temperature when printing"
+msgstr "Teplota trysky při tisku"
 
 msgid "Volumetric speed limitation"
 msgstr "Omezení objemové rychlosti"
@@ -7284,6 +7539,12 @@ msgstr "Omezení zrychlení"
 msgid "Jerk limitation"
 msgstr "Omezení Jerk-Ryv"
 
+msgid "Single extruder MM setup"
+msgstr ""
+
+msgid "Single extruder multimaterial parameters"
+msgstr ""
+
 msgid "Layer height limits"
 msgstr "Výškové limity vrstvy"
 
@@ -7297,6 +7558,14 @@ msgid ""
 msgstr ""
 
 msgid "Firmware Retraction"
+msgstr ""
+
+msgid ""
+"Parameters related to the extruder model will be discarded because the "
+"extruder model list for the front and rear printers is inconsistent."
+msgstr ""
+
+msgid "Use Modified Value"
 msgstr ""
 
 msgid "Detached"
@@ -7344,6 +7613,14 @@ msgstr "Všechny"
 msgid "Set"
 msgstr "Nastavit"
 
+#, c-format, boost-format
+msgid "Left: %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Right: %s"
+msgstr ""
+
 msgid "Click to reset current value and attach to the global value."
 msgstr ""
 "Klikněte pro resetování aktuální hodnoty a připojení ke globální hodnotě."
@@ -7388,9 +7665,6 @@ msgid "Don't save"
 msgstr "Neukládat"
 
 msgid "Discard Modified Value"
-msgstr ""
-
-msgid "Use Modified Value"
 msgstr ""
 
 msgid "Click the right mouse button to display the full text."
@@ -7479,6 +7753,12 @@ msgstr "Obecné"
 
 msgid "Capabilities"
 msgstr "Možnosti"
+
+msgid "Left: "
+msgstr ""
+
+msgid "Right: "
+msgstr ""
 
 msgid "Select presets to compare"
 msgstr "Zvolte přednastavení k porovnání"
@@ -8011,6 +8291,9 @@ msgstr "Verze:"
 msgid "Update firmware"
 msgstr "Aktualizovat firmware"
 
+msgid "Offline"
+msgstr "Offline"
+
 msgid "Printing"
 msgstr "Tisk"
 
@@ -8460,6 +8743,9 @@ msgstr "Zpracování šablony filename_format se nezdařilo."
 
 msgid "Printable area"
 msgstr "Oblast pro tisk"
+
+msgid "Extruder printable area"
+msgstr ""
 
 msgid "Bed exclude area"
 msgstr "Podložka mimo prostor"
@@ -9169,6 +9455,9 @@ msgstr ""
 "Maximální poloměr volného prostoru kolem trysky. Používá se pro zabránění "
 "kolizím při tisku objektů odděleně."
 
+msgid "Grab length"
+msgstr ""
+
 msgid "Extruder Color"
 msgstr "Barva extruderu"
 
@@ -9279,6 +9568,18 @@ msgstr ""
 "Minimální HRC trysky potřebné k tisku filamentu. Nula znamená žádnou "
 "kontrolu HRC trysky."
 
+msgid "Filament map to extruder"
+msgstr ""
+
+msgid "Unprintable filament map to extruder"
+msgstr ""
+
+msgid "filament mapping mode"
+msgstr ""
+
+msgid "Manual"
+msgstr ""
+
 msgid ""
 "This setting stands for how much volume of filament can be melted and "
 "extruded per second. Printing speed is limited by max volumetric speed, in "
@@ -9310,6 +9611,12 @@ msgstr "Doba vysouvání filamentu"
 msgid "Time to unload old filament when switch filament. For statistics only"
 msgstr ""
 "Čas vytažení starého filamentu při výměně filamentu. Pouze pro statistiku"
+
+msgid "Extruder switch time"
+msgstr ""
+
+msgid "Time to switch extruder. For statistics only"
+msgstr ""
 
 msgid ""
 "Filament diameter is used to calculate extrusion in gcode, so it's important "
@@ -9834,6 +10141,51 @@ msgstr ""
 msgid "Interlocking depth of a segmented region. Zero disables this feature."
 msgstr ""
 
+msgid "Use beam interlocking"
+msgstr ""
+
+msgid ""
+"Generate interlocking beam structure at the locations where different "
+"filaments touch. This improves the adhesion between filaments, especially "
+"models printed in different materials."
+msgstr ""
+
+msgid "Interlocking beam width"
+msgstr ""
+
+msgid "The width of the interlocking structure beams."
+msgstr ""
+
+msgid "Interlocking direction"
+msgstr ""
+
+msgid "Orientation of interlock beams."
+msgstr ""
+
+msgid "Interlocking beam layers"
+msgstr ""
+
+msgid ""
+"The height of the beams of the interlocking structure, measured in number of "
+"layers. Less layers is stronger, but more prone to defects."
+msgstr ""
+
+msgid "Interlocking depth"
+msgstr ""
+
+msgid ""
+"The distance from the boundary between filaments to generate interlocking "
+"structure, measured in cells. Too few cells will result in poor adhesion."
+msgstr ""
+
+msgid "Interlocking boundary avoidance"
+msgstr ""
+
+msgid ""
+"The distance from the outside of a model where interlocking structures will "
+"not be generated, measured in cells."
+msgstr ""
+
 msgid "Ironing Type"
 msgstr "Způsob žehlení"
 
@@ -10273,11 +10625,23 @@ msgstr "Sklon"
 msgid "Spiral"
 msgstr "Spirála"
 
-msgid "Direct drive"
-msgstr "Přímý pohon (DD)"
+msgid "Direct Drive"
+msgstr ""
 
 msgid "Bowden"
 msgstr "Bowden"
+
+msgid "Nozzle Volume Type"
+msgstr ""
+
+msgid "High Flow"
+msgstr ""
+
+msgid "Default Nozzle Volume Type"
+msgstr ""
+
+msgid "Extruder change length"
+msgstr ""
 
 msgid "Extra length on restart"
 msgstr ""
@@ -10941,6 +11305,12 @@ msgstr "Objem materiálu k naplnění extruderu na věži."
 msgid "Width of prime tower"
 msgstr "Šířka pro čistící věž"
 
+msgid "Outer first"
+msgstr ""
+
+msgid "The prime tower print outer first"
+msgstr ""
+
 msgid ""
 "Purging after filament change will be done inside objects' infills. This may "
 "lower the amount of waste and decrease the print time. If the walls are "
@@ -11308,6 +11678,15 @@ msgstr "Průtok"
 msgid "Max Volumetric Speed"
 msgstr "Maximální objemová rychlost"
 
+msgid "(LAN)"
+msgstr "(LAN)"
+
+msgid "Online"
+msgstr "Online"
+
+msgid "Busy"
+msgstr "Zaneprázdněn"
+
 #, c-format, boost-format
 msgid ""
 "Please input valid values:\n"
@@ -11332,6 +11711,10 @@ msgstr "Název je stejný jako název jiné existující předvolby."
 
 msgid "create new preset failed."
 msgstr "Vytvoření nové předvolby selhalo."
+
+#, c-format, boost-format
+msgid "Could not find parameter: %s."
+msgstr ""
 
 msgid ""
 "Are you sure to cancel the current calibration and return to the home page?"
@@ -11359,14 +11742,11 @@ msgid ""
 "Do you still want to continue the calibration?"
 msgstr ""
 
-msgid "Connecting to printer..."
-msgstr "Připojování k tiskárně..."
-
-msgid "The failed test result has been dropped."
-msgstr "Výsledek neúspěšného testu byl zahozen."
-
-msgid "Flow Dynamics Calibration result has been saved to the printer"
-msgstr "Výsledek kalibrace dynamiky průtoku byl uložen do tiskárny"
+#, c-format, boost-format
+msgid ""
+"Only one of the results with the same name: %s will be saved. Are you sure "
+"you want to override the other results?"
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -11380,6 +11760,15 @@ msgid ""
 "This machine type can only hold %d history results per nozzle. This result "
 "will not be saved."
 msgstr ""
+
+msgid "Connecting to printer..."
+msgstr "Připojování k tiskárně..."
+
+msgid "The failed test result has been dropped."
+msgstr "Výsledek neúspěšného testu byl zahozen."
+
+msgid "Flow Dynamics Calibration result has been saved to the printer"
+msgstr "Výsledek kalibrace dynamiky průtoku byl uložen do tiskárny"
 
 msgid "Internal Error"
 msgstr "Interní chyba"
@@ -11561,11 +11950,6 @@ msgstr "Zadejte název, který chcete uložit do tiskárny."
 msgid "The name cannot exceed 40 characters."
 msgstr "Název nemůže překročit 40 znaků."
 
-msgid ""
-"Only one of the results with the same name will be saved. Are you sure you "
-"want to override the other results?"
-msgstr ""
-
 msgid "Please find the best line on your plate"
 msgstr "Najděte nejlepší linku na své podložce"
 
@@ -11732,6 +12116,9 @@ msgstr "Z objemové rychlosti"
 msgid "To Volumetric Speed"
 msgstr "Do objemové rychlosti"
 
+msgid "Are you sure to stop printing?"
+msgstr ""
+
 msgid "Flow Dynamics Calibration Result"
 msgstr "Výsledek kalibrace dynamiky průtoku"
 
@@ -11764,6 +12151,12 @@ msgid "Ok"
 msgstr ""
 
 msgid "The filament must be selected."
+msgstr ""
+
+msgid "The extruder must be selected."
+msgstr ""
+
+msgid "The nozzle must be selected."
 msgstr ""
 
 msgid "PA Calibration"
@@ -12507,9 +12900,30 @@ msgstr ""
 msgid "Daily Tips"
 msgstr ""
 
+#, c-format, boost-format
+msgid "nozzle size in preset: %d"
+msgstr ""
+
+#, c-format, boost-format
+msgid "nozzle size memorized: %d"
+msgstr ""
+
 msgid ""
-"Your nozzle diameter in preset is not consistent with memorized nozzle "
-"diameter. Did you change your nozzle lately?"
+"The size of nozzle type in preset is not consistent with memorized nozzle."
+"Did you change your nozzle lately ? "
+msgstr ""
+
+#, c-format, boost-format
+msgid "nozzle[%d] in preset: %.1f"
+msgstr ""
+
+#, c-format, boost-format
+msgid "nozzle[%d] memorized: %.1f"
+msgstr ""
+
+msgid ""
+"Your nozzle type in preset is not consistent with memorized nozzle.Did you "
+"change your nozzle lately ? "
 msgstr ""
 
 #, c-format, boost-format
@@ -12520,6 +12934,15 @@ msgid "Need select printer"
 msgstr ""
 
 msgid "The start, end or step is not valid value."
+msgstr ""
+
+msgid "The selected diameter is inconsistent with the printer diameter."
+msgstr ""
+
+msgid "left"
+msgstr ""
+
+msgid "right"
 msgstr ""
 
 msgid ""
@@ -12930,9 +13353,6 @@ msgstr ""
 msgid "Use External Spool"
 msgstr ""
 
-msgid "Use AMS"
-msgstr ""
-
 msgid "Select Printers"
 msgstr ""
 
@@ -12951,6 +13371,9 @@ msgstr ""
 
 msgid "Printing Options"
 msgstr ""
+
+msgid "Bed Leveling"
+msgstr "Vyrovnání podložky"
 
 msgid "Send Options"
 msgstr ""
@@ -13330,6 +13753,85 @@ msgid ""
 "probability of warping."
 msgstr ""
 
+#~ msgid "?"
+#~ msgstr "?"
+
+#~ msgid "AMS not connected"
+#~ msgstr "AMS není připojen"
+
+#~ msgid "Ext Spool"
+#~ msgstr "Ext Cívka"
+
+#~ msgid "Guide"
+#~ msgstr "Průvodce"
+
+#~ msgid "Calibrating AMS..."
+#~ msgstr "Kalibruji AMS..."
+
+#~ msgid "Calibrate again"
+#~ msgstr "Znovu kalibrovat"
+
+#~ msgid "Cancel calibration"
+#~ msgstr "Zrušit kalibraci"
+
+#~ msgid "Heat the nozzle"
+#~ msgstr "Zahřejte trysku"
+
+#~ msgid "Cut filament"
+#~ msgstr "Vyjmout Filament"
+
+#~ msgid "Pull back current filament"
+#~ msgstr "Vytáhněte aktuální filament"
+
+#~ msgid "Push new filament into extruder"
+#~ msgstr "Zatlačte nový filament do extruderu"
+
+#~ msgid "Purge old filament"
+#~ msgstr "Vyčistit starý filament"
+
+#~ msgid "Grab new filament"
+#~ msgstr "Vezměte nový filament"
+
+#~ msgid "SD Card"
+#~ msgstr "SD karta"
+
+#~ msgid "Aux"
+#~ msgstr "Aux"
+
+#~ msgid "Cham"
+#~ msgstr "Komora"
+
+#~ msgid "No SD Card"
+#~ msgstr "Žádná SD karta"
+
+#~ msgid "SD Card Abnormal"
+#~ msgstr "SD karta Abnormální"
+
+#~ msgid "My Device"
+#~ msgstr "Moje zařízení"
+
+#~ msgid "Other Device"
+#~ msgstr "Jiné zařízení"
+
+#~ msgid "Can't find my devices?"
+#~ msgstr "Nemohu najít moje zařízení?"
+
+#~ msgid ""
+#~ "Caution to use! Flow calibration on Textured PEI Plate may fail due to "
+#~ "the scattered surface."
+#~ msgstr ""
+#~ "Pozor při použití! Kalibrace průtoku na Texturované PEI podložce může "
+#~ "selhat kvůli rozptýlenému povrchu."
+
+#~ msgid "Automatic flow calibration using Micro Lidar"
+#~ msgstr "Automatická kalibrace průtoku pomocí Mikro Lidar"
+
+#~ msgid "Modifying the device name"
+#~ msgstr "Úprava názvu zařízení"
+
+#~ msgid "Direct drive"
+#~ msgstr "Přímý pohon (DD)"
+
 #~ msgid "We would use Lidar to read the calibration result"
 #~ msgstr "Použijeme Lidar ke čtení výsledku kalibrace"
 
@@ -13443,10 +13945,6 @@ msgstr ""
 
 #~ msgid "Show &Labels"
 #~ msgstr "Zobrazit &Popisky"
-
-#~ msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
-#~ msgstr ""
-#~ "3mf je generován starým Bambu Studio, načtěte pouze geometrická data."
 
 #~ msgid ""
 #~ "*We recommend you to add brand, materia, type, and even humidity level in "

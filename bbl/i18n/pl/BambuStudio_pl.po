@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-04 11:47+0800\n"
+"POT-Creation-Date: 2024-12-13 11:54+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -920,7 +920,7 @@ msgid ""
 "effect !"
 msgstr ""
 
-msgid "Set the brim type to \"painted\""
+msgid "Set the brim type of this object to \"painted\""
 msgstr ""
 
 msgid " invalid brim ears"
@@ -1691,6 +1691,15 @@ msgstr "Automatyczna orientacja"
 msgid "Auto orient the object to improve print quality."
 msgstr "Automatycznie ustaw orientację obiektu, aby poprawić jakość druku."
 
+msgid "Edit"
+msgstr "Edytuj"
+
+msgid "Change to"
+msgstr ""
+
+msgid "Delete this filament"
+msgstr ""
+
 msgid "Select All"
 msgstr "Zaznacz wszystko"
 
@@ -2174,23 +2183,8 @@ msgstr "Sprawdź połączenie sieciowe drukarki i Studio."
 msgid "Connecting..."
 msgstr "Łączenie..."
 
-msgid "?"
-msgstr "?"
-
-msgid "/"
-msgstr "/"
-
-msgid "Empty"
-msgstr "Pusty"
-
-msgid "AMS"
-msgstr "AMS"
-
-msgid "Auto Refill"
-msgstr "Auto. uzupełnianie"
-
-msgid "AMS not connected"
-msgstr "AMS niepodłączony"
+msgid "Auto-refill"
+msgstr ""
 
 msgid "Load"
 msgstr "Ładuj"
@@ -2198,70 +2192,12 @@ msgstr "Ładuj"
 msgid "Unload"
 msgstr "Wyładuj"
 
-msgid "Ext Spool"
-msgstr "Zew.Szpula"
-
-msgid "Tips"
-msgstr "Wskazówki"
-
-msgid "Guide"
-msgstr "Instr."
-
-msgid "Retry"
-msgstr "Ponów"
-
-msgid "Calibrating AMS..."
-msgstr "Kalibracja AMS..."
-
-msgid "A problem occurred during calibration. Click to view the solution."
-msgstr ""
-"Wystąpił problem podczas kalibracji. Kliknij, aby zobaczyć rozwiązanie."
-
-msgid "Calibrate again"
-msgstr "Kalibruj ponownie"
-
-msgid "Cancel calibration"
-msgstr "Anuluj kalibrację"
-
-msgid "Idling..."
-msgstr "Bezczynność..."
-
-msgid "Heat the nozzle"
-msgstr "Rozgrzewanie dyszy"
-
-msgid "Cut filament"
-msgstr "Odcinanie filamentu"
-
-msgid "Pull back current filament"
-msgstr "Wycofaj obecny filament"
-
-msgid "Push new filament into extruder"
-msgstr "Załaduj nowy filament do ekstrudera"
-
-msgid "Purge old filament"
-msgstr "Oczyść dyszę"
-
-msgid "Feed Filament"
-msgstr "Podaj filament"
-
-msgid "Confirm extruded"
-msgstr "Potwierdź ekstruzje"
-
-msgid "Check filament location"
-msgstr "Sprawdź położenie filamentu"
-
-msgid "Grab new filament"
-msgstr "Weź nowy filament"
-
 msgid ""
 "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
 "load or unload filaments."
 msgstr ""
 "Wybierz gniazdo AMS, a następnie naciśnij przycisk „Ładuj” lub „Wyładuj”, "
 "aby automatycznie ładować lub wyładowywać filament."
-
-msgid "Edit"
-msgstr "Edytuj"
 
 msgid ""
 "All the selected objects are on the locked plate,\n"
@@ -2689,6 +2625,14 @@ msgstr ""
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr ""
 
+msgid ""
+"There are unset nozzle types. Please set the nozzle types of all extruders "
+"before synchronizing."
+msgstr ""
+
+msgid "AMS"
+msgstr "AMS"
+
 msgid "Other Color"
 msgstr "Inny kolor"
 
@@ -2770,11 +2714,23 @@ msgstr "Krok"
 msgid "AMS Slots"
 msgstr "Gniazda AMS"
 
+msgid "Left Ams"
+msgstr ""
+
+msgid "External"
+msgstr ""
+
+msgid "Right Ams"
+msgstr ""
+
 msgid ""
 "Note: Only the AMS slots loaded with the same material type can be selected."
 msgstr ""
 "Uwaga: Można wybrać tylko gniazda AMS załadowane tym samym rodzajem "
 "materiału."
+
+msgid "Ext"
+msgstr ""
 
 msgid "Enable AMS"
 msgstr "Włącz AMS"
@@ -2832,6 +2788,9 @@ msgstr "Drukuj filamentem w AMS"
 msgid "Print with filaments mounted on the back of the chassis"
 msgstr ""
 "Drukowanie przy użyciu materiałów zamontowanych na tylnej części obudowy"
+
+msgid "Auto Refill"
+msgstr "Auto. uzupełnianie"
 
 msgid ""
 "When the current material run out, the printer will continue to print in the "
@@ -3417,6 +3376,9 @@ msgstr "Pauza spowodowana błędem pierwszej warstwy"
 msgid "Nozzle clog pause"
 msgstr "Pauza spowodowana zatkaną dyszą"
 
+msgid "TPU is not supported by deputy extruder."
+msgstr ""
+
 msgid "Unknown"
 msgstr "Nieznane"
 
@@ -3548,6 +3510,9 @@ msgstr ""
 msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr "Nieprawidłowy format. Oczekiwany format wektora: \"%1%\""
 
+msgid "Summary"
+msgstr ""
+
 msgid "Layer Height"
 msgstr "Wysokość warstwy"
 
@@ -3620,6 +3585,43 @@ msgstr "Koszt całkowity"
 msgid "Time Estimation"
 msgstr "Szacowany czas"
 
+msgid ""
+"Automatically re-slice according to the optimal filament arrangement, and "
+"the arrangement results will be displayed after slicing."
+msgstr ""
+
+msgid "Color Arrangement Recommendation"
+msgstr ""
+
+msgid "Color Arrangement"
+msgstr ""
+
+msgid "Left extruder"
+msgstr ""
+
+msgid "Right extruder"
+msgstr ""
+
+msgid "This arrangement would be optimal."
+msgstr ""
+
+#, boost-format
+msgid "Save %1%g filament and %2% changes than one-extruder printer."
+msgstr ""
+
+msgid "This arrangement is not optimal."
+msgstr ""
+
+#, boost-format
+msgid "Cost %1%g filament and %2% changes more than optimal arrangement."
+msgstr ""
+
+msgid "Set to Optimal"
+msgstr ""
+
+msgid "Rearrange filament"
+msgstr ""
+
 msgid "up to"
 msgstr "przejdź do"
 
@@ -3628,6 +3630,9 @@ msgstr "powyżej"
 
 msgid "from"
 msgstr "z"
+
+msgid "Slicing Result"
+msgstr ""
 
 msgid "Color Scheme"
 msgstr "Schemat kolorów"
@@ -3689,11 +3694,14 @@ msgstr "ruch jałowy"
 msgid "Extruder"
 msgstr "Extruder"
 
-msgid "Filament change times"
-msgstr "Liczba zmian filamentu"
-
 msgid "Cost"
 msgstr "Koszt"
+
+msgid "Total time"
+msgstr "Czas całkowity"
+
+msgid "Filament change times"
+msgstr "Liczba zmian filamentu"
 
 msgid "Color change"
 msgstr "Zmiana koloru"
@@ -3725,14 +3733,26 @@ msgstr "Czas przygotowania"
 msgid "Model printing time"
 msgstr "Czas drukowania modelu"
 
-msgid "Total time"
-msgstr "Czas całkowity"
-
 msgid "Switch to silent mode"
 msgstr "Przełącz na tryb cichy"
 
 msgid "Switch to normal mode"
 msgstr "Przełącz na tryb normalny"
+
+msgid ""
+"An object is laid on the left/right extruder only area.\n"
+"Please make sure the filaments used by this object on this area are not "
+"mapped to the other extruders."
+msgstr ""
+
+msgid ""
+"An object is laid over the boundary of plate or exceeds the height limit.\n"
+"Please solve the problem by moving it totally on or off the plate, and "
+"confirming that the height is within the build volume."
+msgstr ""
+"Obiekt jest położony na granicy płyty lub przekracza limit wysokości.\n"
+"Rozwiąż problem, przesuwając go całkowicie na lub poza płytę i "
+"potwierdzając, że wysokość mieści się w przestrzeni roboczej."
 
 msgid "Variable layer height"
 msgstr "Zmienna wysokość warstwy"
@@ -3795,6 +3815,26 @@ msgid "number keys"
 msgstr ""
 
 msgid "number keys can quickly change the color of objects"
+msgstr ""
+
+msgid ""
+"Following objects are laid over the boundary of plate or exceeds the height "
+"limit:\n"
+msgstr ""
+
+msgid ""
+"Please solve the problem by moving it totally on or off the plate, and "
+"confirming that the height is within the build volume.\n"
+msgstr ""
+
+msgid "In the Filament auto-matching mode, Filament "
+msgstr ""
+
+msgid "Please solve the problem by moving them within the build volume.\n"
+msgstr ""
+
+msgid ""
+"In the Filament manual-matching mode, Following filament->extruder maps: \n"
 msgstr ""
 
 msgid "Mirror Object"
@@ -3887,6 +3927,12 @@ msgstr "Wróć do montażu"
 msgid "return"
 msgstr "wróć"
 
+msgid "Fit camera"
+msgstr ""
+
+msgid "Fit camera to scene or selected object."
+msgstr ""
+
 msgid "Paint Toolbar"
 msgstr "Pasek narzędzi malowania"
 
@@ -3931,17 +3977,41 @@ msgstr "Ścieżka G-code wychodzi poza maksymalną wysokość druku."
 msgid "A G-code path goes beyond the boundary of plate."
 msgstr "Ścieżka G-code wychodzi poza granice płyty."
 
+#, c-format, boost-format
+msgid ""
+"Multiple TPU filaments are not allowed to print at the same time, and the "
+"TPU filament must be placed in the virtual slot of %s."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Filament %d is placed in the %s, but the generated G-code path exceeds the "
+"printable range of the %s."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Filaments %d is placed in the %s, but the generated G-code path exceeds the "
+"printable range of the %s."
+msgstr ""
+
+msgid "Open wiki for more information."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Filament %d is placed in the %s, but the generated G-code path exceeds the "
+"printable height of the %s."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Filaments %d is placed in the %s, but the generated G-code path exceeds the "
+"printable height of the %s."
+msgstr ""
+
 msgid "Only the object being edited is visible."
 msgstr "Widoczny jest tylko edytowany obiekt."
-
-msgid ""
-"An object is laid over the boundary of plate or exceeds the height limit.\n"
-"Please solve the problem by moving it totally on or off the plate, and "
-"confirming that the height is within the build volume."
-msgstr ""
-"Obiekt jest położony na granicy płyty lub przekracza limit wysokości.\n"
-"Rozwiąż problem, przesuwając go całkowicie na lub poza płytę i "
-"potwierdzając, że wysokość mieści się w przestrzeni roboczej."
 
 #, c-format, boost-format
 msgid "filaments %s cannot be printed directly on the surface of this plate."
@@ -4086,6 +4156,12 @@ msgstr "Drukuj wszystkie płyty"
 
 msgid "Send all"
 msgstr "Wyślij wszystko"
+
+msgid "Send to Bambu Farm Manager Client"
+msgstr ""
+
+msgid "Send to BFMC"
+msgstr ""
 
 msgid "Send to Multi-device"
 msgstr "Wyślij do wielu urządzeń"
@@ -4308,6 +4384,12 @@ msgstr "Użyj widoku perspektywicznego"
 
 msgid "Use Orthogonal View"
 msgstr "Użyj widoku ortogonalnego"
+
+msgid "Show 3D Navigator"
+msgstr ""
+
+msgid "Show 3D navigator in Prepare and Preview scene"
+msgstr ""
 
 msgid "Show object labels in 3D scene"
 msgstr "Pokaż etykiety obiektów na scenie 3D"
@@ -4767,6 +4849,9 @@ msgstr ""
 msgid "Download waiting..."
 msgstr "Oczekiwanie na pobieranie..."
 
+msgid "Retry"
+msgstr "Ponów"
+
 msgid "Play"
 msgstr "Odtwarzaj"
 
@@ -4787,6 +4872,9 @@ msgstr ""
 "Ponowne łączenie z drukarką, operacja nie może być teraz zakończona, spróbuj "
 "ponownie później."
 
+msgid "Timeout, please try again."
+msgstr ""
+
 msgid "File does not exist."
 msgstr "Plik nie istnieje."
 
@@ -4796,9 +4884,41 @@ msgstr "Błąd sumy kontrolnej pliku. Spróbuj ponownie."
 msgid "Not supported on the current printer version."
 msgstr "Nieobsługiwane w bieżącej wersji drukarki."
 
+msgid ""
+"The firmware version of the printer is too low. Please update the firmware "
+"and try again."
+msgstr ""
+
+msgid "The file already exists, do you want to replace it?"
+msgstr ""
+
+msgid "Insufficient storage space, please clear the space and try again."
+msgstr ""
+
+msgid "File creation failed, please try again."
+msgstr ""
+
+msgid "File write failed, please try again."
+msgstr ""
+
+msgid "MD5 verification failed, please try again."
+msgstr ""
+
+msgid "File renaming failed, please try again."
+msgstr ""
+
+msgid "File upload failed, please try again."
+msgstr ""
+
 #, c-format, boost-format
 msgid "Error code: %d"
 msgstr "Kod błędu: %d"
+
+msgid "User cancels task."
+msgstr ""
+
+msgid "Failed to read file, please try again."
+msgstr ""
 
 msgid "Speed:"
 msgstr "Prędkość:"
@@ -4868,8 +4988,8 @@ msgstr ""
 msgid "Camera"
 msgstr "Kamera"
 
-msgid "SD Card"
-msgstr "Karta MicroSD"
+msgid "Storage"
+msgstr ""
 
 msgid "Camera Setting"
 msgstr "Ustawienia kamery"
@@ -4889,28 +5009,22 @@ msgstr "100%"
 msgid "Lamp"
 msgstr "LED"
 
-msgid "Aux"
-msgstr "Aux"
-
-msgid "Cham"
-msgstr "Cham"
-
 msgid "Bed"
 msgstr "Stół"
 
 msgid "Debug Info"
 msgstr "Informacje debugowania"
 
-msgid "No SD Card"
-msgstr "Brak karty MicroSD"
+msgid "No Storage"
+msgstr ""
 
-msgid "SD Card Abnormal"
-msgstr "Błąd karty MicroSD"
+msgid "Storage Abnormal"
+msgstr ""
 
 msgid "Cancel print"
 msgstr "Anuluj drukowanie"
 
-msgid "Are you sure to stop printing?"
+msgid "Are you sure you want to stop this print?"
 msgstr ""
 
 msgid "Unknown error."
@@ -4934,13 +5048,13 @@ msgstr "Warstwa: %s"
 msgid "Layer: %d/%d"
 msgstr "Warstwa: %d/%d"
 
-msgid "Auto homing"
+msgid "Axis go home"
 msgstr ""
 
-msgid "Are you sure you want to trigger auto homing?"
+msgid "Are you sure you want to home now?"
 msgstr ""
 
-msgid "Homing"
+msgid "Home"
 msgstr ""
 
 msgid ""
@@ -5415,8 +5529,23 @@ msgstr "Stal Hartowana"
 msgid "Stainless Steel"
 msgstr "Stal nierdzewna"
 
+msgid "Normal flow"
+msgstr ""
+
+msgid "High flow"
+msgstr ""
+
 msgid "Nozzle Type"
 msgstr "Typ dyszy"
+
+msgid "Left Nozzle"
+msgstr ""
+
+msgid "Nozzle Flow"
+msgstr ""
+
+msgid "Right Nozzle"
+msgstr ""
 
 #, c-format, boost-format
 msgid "%.1f"
@@ -5474,14 +5603,47 @@ msgstr "Szacowany czas"
 msgid "Filament changes"
 msgstr "Zmiany filamentu"
 
+msgid "Please set the number of ams installed on the this extrusion head."
+msgstr ""
+
+msgid "AMS(4 colors)"
+msgstr ""
+
+msgid "AMS(single color)"
+msgstr ""
+
+msgid "Nozzle"
+msgstr "Dysza"
+
+msgid "Not installed"
+msgstr ""
+
+msgid "Please select a printer in 'Device' page first."
+msgstr ""
+
+msgid "Sync extruder infomation"
+msgstr ""
+
+msgid "The currently connected printer does not have two extruders."
+msgstr ""
+
+msgid ""
+"The currently selected machine preset is inconsistent with the connected "
+"printer type.\n"
+"Are you sure to continue syncing?"
+msgstr ""
+
 msgid "Click to edit preset"
 msgstr "Kliknij, aby edytować profil"
 
 msgid "Connection"
 msgstr "Połączenie"
 
-msgid "Bed type"
-msgstr "Typ płyty"
+msgid "Sync printer information"
+msgstr ""
+
+msgid "Synchronize nozzle information and the number of AMS"
+msgstr ""
 
 msgid "Flushing volumes"
 msgstr "Objętości płukania"
@@ -5611,6 +5773,11 @@ msgstr ""
 msgid "Found following keys unrecognized:\n"
 msgstr "Znaleziono następujące nierozpoznane klucze:\n"
 
+msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
+msgstr ""
+"Plik 3mf został wygenerowany przez starą wersję Bambu Studio, ładowanie "
+"tylko danych geometrycznych."
+
 msgid "Invalid values found in the 3mf:"
 msgstr "Znaleziono nieprawidłowe wartości w pliku 3mf:"
 
@@ -5692,6 +5859,22 @@ msgstr "Czy wczytać te pliki jako pojedynczy obiekt wieloczęściowy?\n"
 
 msgid "Object with multiple parts was detected"
 msgstr "Wykryto obiekt wieloczęściowy"
+
+#, c-format, boost-format
+msgid ""
+"The printer you are currently bound to is %s,\n"
+"The printer preset for your current file is %s,\n"
+msgstr ""
+
+msgid ""
+"Do you want to sync printer presets, ams and nozzle information immediately?"
+msgstr ""
+
+msgid "Do you want to sync printer presets immediately?"
+msgstr ""
+
+msgid "Tips"
+msgstr "Wskazówki"
 
 msgid "The file does not contain any geometry data."
 msgstr "Plik nie zawiera żadnych danych geometrycznych."
@@ -5802,6 +5985,12 @@ msgstr "Wycinanie warstwy %d"
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Rozwiąż błędy cięcia i opublikuj ponownie."
 
+msgid "Failed to start Bambu Farm Manager Client."
+msgstr ""
+
+msgid "No Bambu Farm Manager Client found."
+msgstr ""
+
 msgid ""
 "Network Plug-in is not detected. Network related features are unavailable."
 msgstr ""
@@ -5813,6 +6002,20 @@ msgid ""
 msgstr ""
 "Tryb tylko podglądu:\n"
 "Wczytany plik zawiera tylko G-code, nie można go poddac edycji"
+
+msgid ""
+"It is detected that you have not synchronized the nozzle and AMS "
+"information.\n"
+"If you synchronize it before slicing, the filament arrangement will be more "
+"reasonable.\n"
+"Do you need to synchronize it ?"
+msgstr ""
+
+msgid "Sync now"
+msgstr ""
+
+msgid "Out of sync"
+msgstr ""
 
 msgid "You can keep the modified presets to the new project or discard them"
 msgstr ""
@@ -5938,11 +6141,9 @@ msgstr ""
 "Plik %s został wysłany do pamięci drukarki i można go obejrzeć na urządzeniu."
 
 msgid ""
-"Unable to perform boolean operation on model meshes. Only positive parts "
-"will be kept. You may fix the meshes and try agian."
+"Unable to perform boolean operation on model meshes. You may fix the meshes "
+"and try again."
 msgstr ""
-"Nie można wykonać operacji boolowskich na siatkach modelu. Eksportowane będą "
-"tylko części dodatnie."
 
 #, boost-format
 msgid "Reason: part \"%1%\" is empty."
@@ -6067,6 +6268,14 @@ msgstr ""
 "Stół% d: %s nie zaleca się używania do drukowania filamentu %s(%s). Jeśli "
 "nadal chcesz to wydrukować, ustaw temperaturę stołu tego filamentu na "
 "wartość różną od zera."
+
+msgid ""
+"Currently, the object configuration form cannot be used with multiple "
+"extruders."
+msgstr ""
+
+msgid "Not available"
+msgstr ""
 
 msgid "The current project has unsaved changes, save it before continuing?"
 msgstr ""
@@ -6497,8 +6706,17 @@ msgstr "Profil użytkownika"
 msgid "Incompatible presets"
 msgstr "Niekompatybilne profile"
 
+msgid "My Printer"
+msgstr ""
+
+msgid "Left filaments"
+msgstr ""
+
 msgid "AMS filaments"
 msgstr "Filamenty AMS"
+
+msgid "Right filaments"
+msgstr ""
 
 msgid "Click to pick filament color"
 msgstr "Kliknij, aby wybrać kolor filamentu"
@@ -6527,6 +6745,9 @@ msgstr "Wybierz/Usuń drukarki (ustawienia systemowe)"
 msgid "Create printer"
 msgstr "Utwórz drukarkę"
 
+msgid "Empty"
+msgstr "Pusty"
+
 msgid "Incompatible"
 msgstr "Niekompatybilne"
 
@@ -6544,6 +6765,9 @@ msgstr "Inna sekwencja filamentu na kolejnej warstwie"
 
 msgid "Please input layer value (>= 2)."
 msgstr "Proszę podać wartość warstwy (>= 2)."
+
+msgid "Bed type"
+msgstr "Typ płyty"
 
 msgid "Same as Global Print Sequence"
 msgstr "Tak samo jak Globalna sekwencja druku"
@@ -6696,36 +6920,6 @@ msgstr "Po prostu przełącz na \"%1%\""
 msgid "Task canceled"
 msgstr "Zadanie anulowane"
 
-msgid "(LAN)"
-msgstr "(LAN)"
-
-msgid "Search"
-msgstr "Szukaj"
-
-msgid "My Device"
-msgstr "Moje urządzenie"
-
-msgid "Other Device"
-msgstr "Inne urządzenie"
-
-msgid "Online"
-msgstr "Online"
-
-msgid "Input access code"
-msgstr "Wprowadź kod dostępu"
-
-msgid "Can't find my devices?"
-msgstr "Nie możesz znaleźć swoich urządzeń?"
-
-msgid "Log out successful."
-msgstr "Wylogowanie udane."
-
-msgid "Offline"
-msgstr "Offline"
-
-msgid "Busy"
-msgstr "Zajęte"
-
 msgid "Bambu Cool Plate"
 msgstr "Bambu Cool Plate"
 
@@ -6747,11 +6941,45 @@ msgstr ""
 msgid "Send print job to"
 msgstr "Wyślij zadanie druku do"
 
-msgid "Bed Leveling"
-msgstr "Poziomowanie stołu"
+msgid "Left Extruder"
+msgstr ""
+
+msgid "(Recommended filament)"
+msgstr ""
+
+msgid "Right Extruder"
+msgstr ""
+
+msgid "Advanced Options"
+msgstr ""
+
+msgid "Auto Bed Leveling"
+msgstr ""
+
+msgid ""
+"Check heatbed flatness. Leveling makes extruded height uniform.\n"
+"*Automatic mode: Level first (about 10 seconds). Skip if surface is fine."
+msgstr ""
 
 msgid "Flow Dynamics Calibration"
 msgstr "Kalibracja Dynamiki Przepływu"
+
+msgid ""
+"Find the best coefficient for dynamic flow calibration to enhance print "
+"quality.\n"
+"*Automatic mode: Skip if the filament was calibrated recently."
+msgstr ""
+
+msgid "Nozzle Offset Calibration"
+msgstr ""
+
+msgid ""
+"Calibrate nozzle offsets to enhance print quality.\n"
+"*Automatic mode: Check for calibration before printing; skip if unnecessary."
+msgstr ""
+
+msgid "Use AMS"
+msgstr "Użyj AMS"
 
 msgid "Click here if you can't connect to the printer"
 msgstr "Kliknij tutaj, jeśli nie możesz połączyć się z drukarką"
@@ -6815,6 +7043,19 @@ msgstr ""
 "Kliknij każdy filament powyżej, aby określić przypisanie do slotu AMS przed "
 "wysłaniem zadania druku"
 
+msgid "Please do not mix-use the Ext with Ams"
+msgstr ""
+
+msgid ""
+"Invalid nozzle information, please refresh or manually set nozzle "
+"information."
+msgstr ""
+
+msgid ""
+"Please check whether the nozzle type of the device is the same as the preset "
+"nozzle type."
+msgstr ""
+
 #, c-format, boost-format
 msgid ""
 "Filament %s does not match the filament in AMS slot %s. Please update the "
@@ -6875,6 +7116,11 @@ msgstr ""
 "Timelapse nie jest obsługiwany, ponieważ sekwencja druku jest ustawiona na "
 "\"Według obiektu\"."
 
+msgid ""
+"You selected external and AMS filament at the same time in an extruder, you "
+"will need manually change external filament."
+msgstr ""
+
 msgid "Errors"
 msgstr "Błędy"
 
@@ -6899,8 +7145,8 @@ msgstr ""
 "drukowanie."
 
 #, c-format, boost-format
-msgid "nozzle in preset: %s %s"
-msgstr "dysza w ustawieniach wstępnych: %s %s"
+msgid "nozzle in preset: %.1f %s"
+msgstr ""
 
 #, c-format, boost-format
 msgid "nozzle memorized: %.1f %s"
@@ -6916,8 +7162,12 @@ msgstr ""
 "Części drukarki, aby zmienić to ustawienie."
 
 #, c-format, boost-format
-msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
+msgid ""
+"Printing high temperature material(%s material) with %s may cause nozzle "
+"damage"
 msgstr ""
+"Drukowanie materiału o wysokiej temperaturze (%s materiał) z %s może "
+"spowodować uszkodzenie dyszy"
 
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr ""
@@ -6942,36 +7192,34 @@ msgstr "Nieprawidłowe dane pliku druku. Proszę ponownie pokroić"
 msgid "The name length exceeds the limit."
 msgstr "Długość nazwy przekracza limit."
 
-msgid ""
-"Caution to use! Flow calibration on Textured PEI Plate may fail due to the "
-"scattered surface."
-msgstr ""
-"Ostrożnie używać! Kalibracja przepływu na płycie Textured PEI może się nie "
-"powieść z powodu chropowatej powierzchni."
+msgid "Input access code"
+msgstr "Wprowadź kod dostępu"
 
-msgid "Automatic flow calibration using Micro Lidar"
-msgstr "Automatyczna kalibracja przepływu za pomocą mikro lidaru"
-
-msgid "Modifying the device name"
-msgstr "Modyfikowanie nazwy urządzenia"
-
-msgid "Bind with Pin Code"
-msgstr "Powiąż za pomocą kodu PIN"
-
-msgid "Bind with Access Code"
+msgid "Cool"
 msgstr ""
 
-msgid ""
-"Please log in before binding your device with a PIN code.\n"
-"Alternatively, you can use LAN mode to bind your device. Learn about LAN "
-"mode."
+msgid "Engineering"
 msgstr ""
 
-msgid "Go to Login"
+msgid "High Temp"
+msgstr ""
+
+msgid "Cool(Supertack)"
 msgstr ""
 
 msgid "Send to Printer SD card"
 msgstr "Wyślij na kartę MicroSD drukarki"
+
+msgid "Upload file timeout, please check if the firmware version supports it."
+msgstr ""
+
+msgid ""
+"Media capability acquisition timeout, please check if the firmware version "
+"supports it."
+msgstr ""
+
+msgid "Sending failed, please try again!"
+msgstr ""
 
 msgid "Cannot send the print task when the upgrade is in progress"
 msgstr "Nie można wysyłać zadań druku, gdy aktualizacja jest w toku"
@@ -7020,6 +7268,9 @@ msgstr "Upłynął limit czasu na otrzymanie raportu logowania"
 
 msgid "Unknown Failure"
 msgstr "Nieznana awaria"
+
+msgid "Bind with Pin Code"
+msgstr "Powiąż za pomocą kodu PIN"
 
 msgid ""
 "Please Find the Pin Code in Account page on printer screen,\n"
@@ -7129,6 +7380,9 @@ msgstr "Proszę najpierw zalogować się."
 msgid "There was a problem connecting to the printer. Please try again."
 msgstr "Wystąpił problem z połączeniem z drukarką. Spróbuj ponownie."
 
+msgid "Log out successful."
+msgstr "Wylogowanie udane."
+
 msgid "Failed to log out."
 msgstr "Wylogowanie nie powiodło się."
 
@@ -7142,6 +7396,11 @@ msgstr "Usuń ten profil"
 
 msgid "Search in preset"
 msgstr "Szukaj w profilu"
+
+msgid ""
+"Synchronize the modification of parameters to the corresponding parameters "
+"of another extruder."
+msgstr ""
 
 msgid "Click to reset all settings to the last saved preset."
 msgstr ""
@@ -7369,12 +7628,6 @@ msgstr ""
 msgid "Print temperature"
 msgstr "Temperatura druku"
 
-msgid "Nozzle"
-msgstr "Dysza"
-
-msgid "Nozzle temperature when printing"
-msgstr "Temperatura dyszy podczas drukowania"
-
 msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
 "does not support to print on the Bambu Cool Plate SuperTack"
@@ -7420,6 +7673,9 @@ msgid ""
 msgstr ""
 "Temperatura stołu, gdy zamontowana jest Textured PEI. 0 oznacza, że filament "
 "nie jest obsługiwany na Textured PEI"
+
+msgid "Nozzle temperature when printing"
+msgstr "Temperatura dyszy podczas drukowania"
 
 msgid "Volumetric speed limitation"
 msgstr "Ograniczenie prędkości przepływu"
@@ -7533,6 +7789,12 @@ msgstr "Ograniczenie przyspieszenia"
 msgid "Jerk limitation"
 msgstr "Ograniczenie Jerk"
 
+msgid "Single extruder MM setup"
+msgstr ""
+
+msgid "Single extruder multimaterial parameters"
+msgstr ""
+
 msgid "Layer height limits"
 msgstr "Ograniczenia wysokości warstwy"
 
@@ -7551,6 +7813,14 @@ msgstr ""
 
 msgid "Firmware Retraction"
 msgstr "Użyj retrakcji z firmware"
+
+msgid ""
+"Parameters related to the extruder model will be discarded because the "
+"extruder model list for the front and rear printers is inconsistent."
+msgstr ""
+
+msgid "Use Modified Value"
+msgstr "Użyj zmodyfikowanej wartości"
 
 msgid "Detached"
 msgstr "Odłączony"
@@ -7602,6 +7872,14 @@ msgstr "Wszystko"
 msgid "Set"
 msgstr "Ustaw"
 
+#, c-format, boost-format
+msgid "Left: %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Right: %s"
+msgstr ""
+
 msgid "Click to reset current value and attach to the global value."
 msgstr ""
 "Kliknij, aby zresetować bieżącą wartość i przypiąć ją do wartości globalnej."
@@ -7648,9 +7926,6 @@ msgstr "Nie zapisuj"
 
 msgid "Discard Modified Value"
 msgstr "Pozostaw poprzednią wartość"
-
-msgid "Use Modified Value"
-msgstr "Użyj zmodyfikowanej wartości"
 
 msgid "Click the right mouse button to display the full text."
 msgstr "Kliknij prawym przyciskiem myszy, aby wyświetlić pełny tekst."
@@ -7746,6 +8021,12 @@ msgstr "Ogólne"
 
 msgid "Capabilities"
 msgstr "Zdolności"
+
+msgid "Left: "
+msgstr ""
+
+msgid "Right: "
+msgstr ""
 
 msgid "Select presets to compare"
 msgstr "Wybierz profile do porównania"
@@ -8291,6 +8572,9 @@ msgstr "Wersja:"
 msgid "Update firmware"
 msgstr "Aktualizuj firmware"
 
+msgid "Offline"
+msgstr "Offline"
+
 msgid "Printing"
 msgstr "Drukowanie"
 
@@ -8760,6 +9044,9 @@ msgstr "Błąd przetwarzania szablonu filename_format."
 
 msgid "Printable area"
 msgstr "Obszar druku"
+
+msgid "Extruder printable area"
+msgstr ""
 
 msgid "Bed exclude area"
 msgstr "Obszar wyłączony z druku"
@@ -9525,6 +9812,9 @@ msgstr ""
 "Maksymalny promień prześwitu wokół ekstrudera. Używane do unikania kolizji w "
 "drukowaniu obiektu."
 
+msgid "Grab length"
+msgstr ""
+
 msgid "Extruder Color"
 msgstr "Kolor ekstrudera"
 
@@ -9641,6 +9931,18 @@ msgstr ""
 "Dysza HRC jest wymagana do drukowania. Wybór \"0\" oznacza brak sprawdzania "
 "obecności HRC."
 
+msgid "Filament map to extruder"
+msgstr ""
+
+msgid "Unprintable filament map to extruder"
+msgstr ""
+
+msgid "filament mapping mode"
+msgstr ""
+
+msgid "Manual"
+msgstr "Podręcznik"
+
 msgid ""
 "This setting stands for how much volume of filament can be melted and "
 "extruded per second. Printing speed is limited by max volumetric speed, in "
@@ -9675,6 +9977,12 @@ msgid "Time to unload old filament when switch filament. For statistics only"
 msgstr ""
 "Czas rozładowania starego filamentu przy jego zmianie. Tylko do celów "
 "statystycznych"
+
+msgid "Extruder switch time"
+msgstr ""
+
+msgid "Time to switch extruder. For statistics only"
+msgstr ""
 
 msgid ""
 "Filament diameter is used to calculate extrusion in gcode, so it's important "
@@ -10234,6 +10542,51 @@ msgstr "Głębokość zazębiania się podzielonego na segmenty obszaru"
 msgid "Interlocking depth of a segmented region. Zero disables this feature."
 msgstr "Głębokość blokady obszaru segmentowanego. Zero wyłącza tę funkcję."
 
+msgid "Use beam interlocking"
+msgstr ""
+
+msgid ""
+"Generate interlocking beam structure at the locations where different "
+"filaments touch. This improves the adhesion between filaments, especially "
+"models printed in different materials."
+msgstr ""
+
+msgid "Interlocking beam width"
+msgstr ""
+
+msgid "The width of the interlocking structure beams."
+msgstr ""
+
+msgid "Interlocking direction"
+msgstr ""
+
+msgid "Orientation of interlock beams."
+msgstr ""
+
+msgid "Interlocking beam layers"
+msgstr ""
+
+msgid ""
+"The height of the beams of the interlocking structure, measured in number of "
+"layers. Less layers is stronger, but more prone to defects."
+msgstr ""
+
+msgid "Interlocking depth"
+msgstr ""
+
+msgid ""
+"The distance from the boundary between filaments to generate interlocking "
+"structure, measured in cells. Too few cells will result in poor adhesion."
+msgstr ""
+
+msgid "Interlocking boundary avoidance"
+msgstr ""
+
+msgid ""
+"The distance from the outside of a model where interlocking structures will "
+"not be generated, measured in cells."
+msgstr ""
+
 msgid "Ironing Type"
 msgstr "Rodzaj prasowania"
 
@@ -10714,11 +11067,23 @@ msgstr "Nachylenie"
 msgid "Spiral"
 msgstr "Spirala"
 
-msgid "Direct drive"
-msgstr "Napęd bezpośredni"
+msgid "Direct Drive"
+msgstr ""
 
 msgid "Bowden"
 msgstr "Bowden"
+
+msgid "Nozzle Volume Type"
+msgstr ""
+
+msgid "High Flow"
+msgstr ""
+
+msgid "Default Nozzle Volume Type"
+msgstr ""
+
+msgid "Extruder change length"
+msgstr ""
 
 msgid "Extra length on restart"
 msgstr "Dodatkowa długość przed wznowieniem"
@@ -11430,6 +11795,12 @@ msgstr "Objętość materiału dla wieży czyszczącej."
 msgid "Width of prime tower"
 msgstr "Szerokość wieży czyszczącej"
 
+msgid "Outer first"
+msgstr ""
+
+msgid "The prime tower print outer first"
+msgstr ""
+
 msgid ""
 "Purging after filament change will be done inside objects' infills. This may "
 "lower the amount of waste and decrease the print time. If the walls are "
@@ -11811,6 +12182,15 @@ msgstr "Natężenie Przepływu"
 msgid "Max Volumetric Speed"
 msgstr "Maksymalna prędkość przepływu"
 
+msgid "(LAN)"
+msgstr "(LAN)"
+
+msgid "Online"
+msgstr "Online"
+
+msgid "Busy"
+msgstr "Zajęte"
+
 #, c-format, boost-format
 msgid ""
 "Please input valid values:\n"
@@ -11841,6 +12221,10 @@ msgstr "Nazwa jest taka sama jak inna istniejąca konfiguracja"
 msgid "create new preset failed."
 msgstr "utworzenie nowej konfiguracji nie powiodło się."
 
+#, c-format, boost-format
+msgid "Could not find parameter: %s."
+msgstr ""
+
 msgid ""
 "Are you sure to cancel the current calibration and return to the home page?"
 msgstr ""
@@ -11870,14 +12254,11 @@ msgstr ""
 "kalibrację lub kontynuować, ale nie będzie można tworzyć nowych wyników "
 "kalibracji. Czy nadal chcesz kontynuować kalibrację?"
 
-msgid "Connecting to printer..."
-msgstr "Łączenie z drukarką..."
-
-msgid "The failed test result has been dropped."
-msgstr "Nieudany wynik testu został odrzucony."
-
-msgid "Flow Dynamics Calibration result has been saved to the printer"
-msgstr "Wynik Kalibracji Dynamiki Przepływu został zapisany w drukarce"
+#, c-format, boost-format
+msgid ""
+"Only one of the results with the same name: %s will be saved. Are you sure "
+"you want to override the other results?"
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -11896,6 +12277,15 @@ msgid ""
 msgstr ""
 "To urządzenie może przechowywać tylko %d wyników w historii dla jednej "
 "dyszy. Ten wynik nie zostanie zapisany."
+
+msgid "Connecting to printer..."
+msgstr "Łączenie z drukarką..."
+
+msgid "The failed test result has been dropped."
+msgstr "Nieudany wynik testu został odrzucony."
+
+msgid "Flow Dynamics Calibration result has been saved to the printer"
+msgstr "Wynik Kalibracji Dynamiki Przepływu został zapisany w drukarce"
 
 msgid "Internal Error"
 msgstr "Błąd wewnętrzny"
@@ -12085,13 +12475,6 @@ msgstr "Wprowadź nazwę, którą chcesz zapisać w drukarce."
 msgid "The name cannot exceed 40 characters."
 msgstr "Nazwa nie może przekraczać 40 znaków."
 
-msgid ""
-"Only one of the results with the same name will be saved. Are you sure you "
-"want to override the other results?"
-msgstr ""
-"Tylko jeden z wyników o tej samej nazwie zostanie zapisany. Czy na pewno "
-"chcesz zastąpić inne wyniki?"
-
 msgid "Please find the best line on your plate"
 msgstr "Znajdź najlepszą linię na swojej płycie"
 
@@ -12258,6 +12641,9 @@ msgstr "Od Prędkości Przepływu"
 msgid "To Volumetric Speed"
 msgstr "Do Prędkości Przepływu"
 
+msgid "Are you sure to stop printing?"
+msgstr ""
+
 msgid "Flow Dynamics Calibration Result"
 msgstr "Wyniki Kalibracji Dynamiki Przepływu"
 
@@ -12292,6 +12678,12 @@ msgstr "Ok"
 
 msgid "The filament must be selected."
 msgstr "Należy wybrać filament."
+
+msgid "The extruder must be selected."
+msgstr ""
+
+msgid "The nozzle must be selected."
+msgstr ""
 
 msgid "PA Calibration"
 msgstr "Kalibracja PA"
@@ -13118,12 +13510,33 @@ msgstr "Zwiń"
 msgid "Daily Tips"
 msgstr "Wyświetl Wskazówki"
 
-msgid ""
-"Your nozzle diameter in preset is not consistent with memorized nozzle "
-"diameter. Did you change your nozzle lately?"
+#, c-format, boost-format
+msgid "nozzle size in preset: %d"
 msgstr ""
-"Średnica dyszy w profilu nie jest zgodna z zapamiętaną średnicą dyszy. Czy "
-"ostatnio zmieniłeś dyszę?"
+
+#, c-format, boost-format
+msgid "nozzle size memorized: %d"
+msgstr ""
+
+msgid ""
+"The size of nozzle type in preset is not consistent with memorized nozzle."
+"Did you change your nozzle lately ? "
+msgstr ""
+
+#, c-format, boost-format
+msgid "nozzle[%d] in preset: %.1f"
+msgstr ""
+
+#, c-format, boost-format
+msgid "nozzle[%d] memorized: %.1f"
+msgstr ""
+
+msgid ""
+"Your nozzle type in preset is not consistent with memorized nozzle.Did you "
+"change your nozzle lately ? "
+msgstr ""
+"Twój domyślny typ dyszy nie zgadza się z zapisaną dyszą. Czy ostatnio "
+"zmieniałeś dyszę ? "
 
 #, c-format, boost-format
 msgid "*Printing %s material with %s may cause nozzle damage"
@@ -13134,6 +13547,15 @@ msgstr "Konieczny jest wybór drukarki"
 
 msgid "The start, end or step is not valid value."
 msgstr "Wartość początkowa, końcowa lub krokowa jest nieprawidłowa."
+
+msgid "The selected diameter is inconsistent with the printer diameter."
+msgstr ""
+
+msgid "left"
+msgstr ""
+
+msgid "right"
+msgstr ""
 
 msgid ""
 "Unable to calibrate: maybe because the set calibration value range is too "
@@ -13664,9 +14086,6 @@ msgstr ""
 msgid "Use External Spool"
 msgstr "Użyj zewnętrznej szpuli"
 
-msgid "Use AMS"
-msgstr "Użyj AMS"
-
 msgid "Select Printers"
 msgstr "Wybierz drukarki"
 
@@ -13685,6 +14104,9 @@ msgstr ""
 
 msgid "Printing Options"
 msgstr "Opcje drukowania"
+
+msgid "Bed Leveling"
+msgstr "Poziomowanie stołu"
 
 msgid "Send Options"
 msgstr "Opcje wysyłania"
@@ -14082,19 +14504,137 @@ msgstr ""
 "jak ABS, odpowiednie zwiększenie temperatury stołu grzejnego może zmniejszyć "
 "prawdopodobieństwo wypaczania."
 
+#~ msgid "?"
+#~ msgstr "?"
+
+#~ msgid "/"
+#~ msgstr "/"
+
+#~ msgid "AMS not connected"
+#~ msgstr "AMS niepodłączony"
+
+#~ msgid "Ext Spool"
+#~ msgstr "Zew.Szpula"
+
+#~ msgid "Guide"
+#~ msgstr "Instr."
+
+#~ msgid "Calibrating AMS..."
+#~ msgstr "Kalibracja AMS..."
+
+#~ msgid "A problem occurred during calibration. Click to view the solution."
+#~ msgstr ""
+#~ "Wystąpił problem podczas kalibracji. Kliknij, aby zobaczyć rozwiązanie."
+
+#~ msgid "Calibrate again"
+#~ msgstr "Kalibruj ponownie"
+
+#~ msgid "Cancel calibration"
+#~ msgstr "Anuluj kalibrację"
+
+#~ msgid "Idling..."
+#~ msgstr "Bezczynność..."
+
+#~ msgid "Heat the nozzle"
+#~ msgstr "Rozgrzewanie dyszy"
+
+#~ msgid "Cut filament"
+#~ msgstr "Odcinanie filamentu"
+
+#~ msgid "Pull back current filament"
+#~ msgstr "Wycofaj obecny filament"
+
+#~ msgid "Push new filament into extruder"
+#~ msgstr "Załaduj nowy filament do ekstrudera"
+
+#~ msgid "Purge old filament"
+#~ msgstr "Oczyść dyszę"
+
+#~ msgid "Feed Filament"
+#~ msgstr "Podaj filament"
+
+#~ msgid "Confirm extruded"
+#~ msgstr "Potwierdź ekstruzje"
+
+#~ msgid "Check filament location"
+#~ msgstr "Sprawdź położenie filamentu"
+
+#~ msgid "Grab new filament"
+#~ msgstr "Weź nowy filament"
+
+#~ msgid "SD Card"
+#~ msgstr "Karta MicroSD"
+
+#~ msgid "Aux"
+#~ msgstr "Aux"
+
+#~ msgid "Cham"
+#~ msgstr "Cham"
+
+#~ msgid "No SD Card"
+#~ msgstr "Brak karty MicroSD"
+
+#~ msgid "SD Card Abnormal"
+#~ msgstr "Błąd karty MicroSD"
+
+#~ msgid ""
+#~ "Unable to perform boolean operation on model meshes. Only positive parts "
+#~ "will be kept. You may fix the meshes and try agian."
+#~ msgstr ""
+#~ "Nie można wykonać operacji boolowskich na siatkach modelu. Eksportowane "
+#~ "będą tylko części dodatnie."
+
+#~ msgid "Search"
+#~ msgstr "Szukaj"
+
+#~ msgid "My Device"
+#~ msgstr "Moje urządzenie"
+
+#~ msgid "Other Device"
+#~ msgstr "Inne urządzenie"
+
+#~ msgid "Can't find my devices?"
+#~ msgstr "Nie możesz znaleźć swoich urządzeń?"
+
+#, c-format, boost-format
+#~ msgid "nozzle in preset: %s %s"
+#~ msgstr "dysza w ustawieniach wstępnych: %s %s"
+
+#~ msgid ""
+#~ "Caution to use! Flow calibration on Textured PEI Plate may fail due to "
+#~ "the scattered surface."
+#~ msgstr ""
+#~ "Ostrożnie używać! Kalibracja przepływu na płycie Textured PEI może się "
+#~ "nie powieść z powodu chropowatej powierzchni."
+
+#~ msgid "Automatic flow calibration using Micro Lidar"
+#~ msgstr "Automatyczna kalibracja przepływu za pomocą mikro lidaru"
+
+#~ msgid "Modifying the device name"
+#~ msgstr "Modyfikowanie nazwy urządzenia"
+
+#~ msgid "Direct drive"
+#~ msgstr "Napęd bezpośredni"
+
+#~ msgid ""
+#~ "Only one of the results with the same name will be saved. Are you sure "
+#~ "you want to override the other results?"
+#~ msgstr ""
+#~ "Tylko jeden z wyników o tej samej nazwie zostanie zapisany. Czy na pewno "
+#~ "chcesz zastąpić inne wyniki?"
+
+#~ msgid ""
+#~ "Your nozzle diameter in preset is not consistent with memorized nozzle "
+#~ "diameter. Did you change your nozzle lately?"
+#~ msgstr ""
+#~ "Średnica dyszy w profilu nie jest zgodna z zapamiętaną średnicą dyszy. "
+#~ "Czy ostatnio zmieniłeś dyszę?"
+
 #~ msgid "We would use Lidar to read the calibration result"
 #~ msgstr "Skorzystamy z Lidaru do odczytania wyniku kalibracji"
 
 #~ msgid "Are you sure you want to cancel this print?"
 #~ msgstr "Czy na pewno chcesz anulować to drukowanie?"
-
-#, c-format, boost-format
-#~ msgid ""
-#~ "Printing high temperature material(%s material) with %s may cause nozzle "
-#~ "damage"
-#~ msgstr ""
-#~ "Drukowanie materiału o wysokiej temperaturze (%s materiał) z %s może "
-#~ "spowodować uszkodzenie dyszy"
 
 #~ msgid "Conditional scarf joint"
 #~ msgstr "Warunkowe szwy Scarf"
@@ -14146,9 +14686,6 @@ msgstr ""
 
 #~ msgid "Tree support branch diameter"
 #~ msgstr "Średnica gałęzi podpory organicznej"
-
-#~ msgid "Manual"
-#~ msgstr "Podręcznik"
 
 #~ msgid ""
 #~ "Object will be raised by this number of support layers. Use this function "
@@ -16431,11 +16968,6 @@ msgstr ""
 #~ "Wersja pliku 3mf %s jest nowsza niż wersja %s z %s; Zaleca się "
 #~ "aktualizację oprogramowania.\n"
 
-#~ msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
-#~ msgstr ""
-#~ "Plik 3mf został wygenerowany przez starą wersję Bambu Studio, ładowanie "
-#~ "tylko danych geometrycznych."
-
 #~ msgid "The 3mf is not compatible, load geometry data only!"
 #~ msgstr "3mf nie jest kompatybilny, wczytuje tylko dane geometrii!"
 
@@ -16979,13 +17511,6 @@ msgstr ""
 #~ "Zmieniono niektóre ustawienia w profilu \"%1%”. \n"
 #~ "Czy chcesz zachować te zmienione ustawienia (nowa wartość) po "
 #~ "przełączeniu na inny profil?"
-
-#~ msgid ""
-#~ "Your nozzle type in preset is not consistent with memorized nozzle.Did "
-#~ "you change your nozzle lately ? "
-#~ msgstr ""
-#~ "Twój domyślny typ dyszy nie zgadza się z zapisaną dyszą. Czy ostatnio "
-#~ "zmieniałeś dyszę ? "
 
 #~ msgid "Zig zag"
 #~ msgstr "Zig zag"
