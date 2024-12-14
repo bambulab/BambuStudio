@@ -586,7 +586,7 @@ public:
     void OnVamsLoading(bool load, wxColour col = AMS_CONTROL_GRAY500);
     void SetPassRoadColour(bool left, wxColour col);
     void SetShowMode(AMSRoadShowMode left_mode, AMSRoadShowMode right_mode);
-    void UpdatePassRoad(string can_id, AMSPanelPos pos, int len, AMSPassRoadSTEP step);
+    void UpdatePassRoad(AMSPanelPos pos, int len, AMSPassRoadSTEP step);
 
     void paintEvent(wxPaintEvent& evt);
     void render(wxDC& dc);
@@ -752,8 +752,7 @@ wxDECLARE_EVENT(EVT_AMS_UNSELETED_VAMS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_AMS_UNSELETED_AMS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_CLEAR_SPEED_CONTROL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_VAMS_ON_FILAMENT_EDIT, wxCommandEvent);
-
-
+wxDECLARE_EVENT(EVT_AMS_SWITCH, SimpleEvent);
 
 }} // namespace Slic3r::GUI
 
