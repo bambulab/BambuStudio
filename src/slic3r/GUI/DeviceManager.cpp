@@ -786,13 +786,23 @@ void MachineObject::_parse_tray_now(std::string tray_now)
     } else {
         try {
             int tray_now_int = atoi(tray_now.c_str());
-            if (tray_now_int >= 0 && tray_now_int < 16) {
-                m_ams_id = std::to_string(tray_now_int >> 2);
-                m_tray_id = std::to_string(tray_now_int & 0x3);
-            }
-            else if (tray_now_int == 255) {
+            if (tray_now_int == 255) {
                 m_ams_id = "0";
                 m_tray_id = "0";
+                m_extder_data.extders[MAIN_NOZZLE_ID].snow.ams_id  = "";
+                m_extder_data.extders[MAIN_NOZZLE_ID].snow.slot_id = "";
+            }
+            else {
+                if (tray_now_int == 254) {
+                    m_extder_data.extders[MAIN_NOZZLE_ID].snow.ams_id  = std::to_string(VIRTUAL_TRAY_MAIN_ID);
+                    m_extder_data.extders[MAIN_NOZZLE_ID].snow.slot_id = "0";
+                }
+                else {
+                    m_ams_id  = std::to_string(tray_now_int >> 2);
+                    m_tray_id = std::to_string(tray_now_int & 0x3);
+                    m_extder_data.extders[MAIN_NOZZLE_ID].snow.ams_id = m_ams_id;
+                    m_extder_data.extders[MAIN_NOZZLE_ID].snow.slot_id = m_tray_id;
+                }
             }
         }
         catch(...) {
@@ -3438,6 +3448,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                         }
                         if (jj.contains("hw_switch_state")) {
                             hw_switch_state = jj["hw_switch_state"].get<int>();
+                            m_extder_data.extders[MAIN_NOZZLE_ID].ext_has_filament = hw_switch_state;
                         }
                         if (jj.contains("mc_print_line_number")) {
                             if (jj["mc_print_line_number"].is_string() && !jj["mc_print_line_number"].is_null())

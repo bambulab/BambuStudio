@@ -39,9 +39,6 @@ protected:
     std::vector<AMSinfo>       m_ext_info;
     std::map<std::string, AmsItem*>  m_ams_item_list;
     std::map<std::string, AMSExtImage*> m_ext_image_list;
-    //std::map<std::string, AmsItem*>  m_ams_generic_item_list;
-    //std::map<std::string, AmsItem*>  m_ams_extra_item_list;
-    //std::map<std::string, Ams*>      m_ams_list;
 
     ExtderData                       m_extder_data;
     std::string                      m_dev_id;
@@ -76,16 +73,11 @@ protected:
     //wxSimplebook *m_simplebook_right{nullptr};
     wxSimplebook *m_simplebook_ams_left{nullptr};
     wxSimplebook *m_simplebook_ams_right{ nullptr };
+    wxSimplebook *m_simplebook_bottom{nullptr};
     wxPanel      *m_panel_down_road{ nullptr };
     int          m_left_page_index = 0;
     int          m_right_page_index = 0;
 
-    //wxSimplebook* m_simplebook_generic_cans_left{ nullptr };
-    //wxSimplebook* m_simplebook_extra_cans_left {nullptr};
-    //wxSimplebook* m_simplebook_generic_cans_right{ nullptr };
-    //wxSimplebook* m_simplebook_extra_cans_right{ nullptr };
-
-    wxSimplebook *m_simplebook_bottom{nullptr};
 
     wxStaticText *m_tip_right_top{nullptr};
     Label        *m_tip_load_info{nullptr};
@@ -158,7 +150,6 @@ public:
     void SetFilamentStep(int item_idx, FilamentStepType f_type);
     void ShowFilamentTip(bool hasams = true);
 
-    void UpdateStepCtrl(bool is_extrusion_exist);
     void UpdatePassRoad(string ams_id, AMSPassRoadType type, AMSPassRoadSTEP step);
     void CreateAms();
     void CreateAmsDoubleNozzle();
@@ -175,7 +166,7 @@ public:
     void AddAms(std::vector<AMSinfo>single_info, AMSPanelPos pos = AMSPanelPos::LEFT_PANEL);
     void AddAmsPreview(std::vector<AMSinfo>single_info, AMSPanelPos pos);
     //void AddExtraAms(std::vector<AMSinfo>single_info);
-    void SetExtruder(bool on_off, bool is_vams, std::string ams_now, wxColour col);
+    void SetExtruder(bool on_off, std::string ams_id, std::string slot_id);
     void SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadType type, AMSPassRoadSTEP step);
     void SwitchAms(std::string ams_id);
 

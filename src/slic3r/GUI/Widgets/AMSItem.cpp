@@ -32,6 +32,7 @@ namespace Slic3r { namespace GUI {
     wxDEFINE_EVENT(EVT_AMS_SHOW_HUMIDITY_TIPS, wxCommandEvent);
     wxDEFINE_EVENT(EVT_AMS_UNSELETED_VAMS, wxCommandEvent);
     wxDEFINE_EVENT(EVT_CLEAR_SPEED_CONTROL, wxCommandEvent);
+    wxDEFINE_EVENT(EVT_AMS_SWITCH, SimpleEvent);
 
 
 #define AMS_CANS_SIZE wxSize(FromDIP(284), -1)
@@ -444,9 +445,11 @@ Description:AMSextruder
 **************************************************/
 void AMSextruderImage::OnAmsLoading(bool load, wxColour col)
 {
-    m_ams_loading = load;
-    m_colour  = col;
-    Refresh();
+    if (m_ams_loading != load || m_colour != col) {
+        m_ams_loading = load;
+        m_colour      = col;
+        Refresh();
+    }
 }
 
 void AMSextruderImage::TurnOff()
@@ -694,13 +697,17 @@ void AMSextruder::OnAmsLoading(bool load, int nozzle_id, wxColour col /*= AMS_CO
         if (load) m_current_colur_deputy = col;
     }
     else if (m_nozzle_num > 1){
-        if (nozzle_id == 0) {
+        if (nozzle_id == MAIN_NOZZLE_ID) {
             m_right_extruder->OnAmsLoading(load, col);
-            if (load) m_current_colur = col;
+            if (m_current_colur != col){
+                if (load) m_current_colur = col;
+            }
         }
-        else {
+        else if(nozzle_id == DEPUTY_NOZZLE_ID) {
             m_left_extruder->OnAmsLoading(load, col);
-            if (load) m_current_colur_deputy = col;
+            if (m_current_colur_deputy != col) {
+                if (load) m_current_colur_deputy = col;
+            }
         }
     }
     Refresh();
@@ -2418,11 +2425,23 @@ void AMSRoadDownPart::doRender(wxDC& dc)
         dc.SetPen(wxPen(m_road_color[0], 4, wxSOLID));
         if (m_right_road_length > 0) {
             if (m_right_rode_mode == AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE){
-                dc.DrawLine(right_nozzle_pos.x, 0, right_nozzle_pos.x, size.y / 2);
-                xpos = left_nozzle_pos.x;
-                if (m_nozzle_num >= 2) xpos = right_nozzle_pos.x;
-                dc.DrawLine(xpos, size.y / 2, right_nozzle_pos.x, size.y / 2);
-                dc.DrawLine(xpos, size.y / 2, xpos, size.y);
+                /* dc.SetPen(wxPen(*wxRED));
+                 dc.DrawLine(right_nozzle_pos.x, 0, right_nozzle_pos.x + , size.y / 2);
+                 xpos = left_nozzle_pos.x;
+                 if (m_nozzle_num >= 2) xpos = right_nozzle_pos.x;
+                 dc.SetPen(wxPen(*wxGREEN));
+                 dc.DrawLine(xpos, size.y / 2, right_nozzle_pos.x, size.y / 2);
+                 dc.SetPen(wxPen(*wxYELLOW));
+                 dc.DrawLine(xpos, size.y / 2, xpos, size.y);*/
+                int x   = left_nozzle_pos.x;
+                int len = m_right_road_length;
+                if (m_nozzle_num == 2) {
+                    x   = right_nozzle_pos.x;
+                    len = len - 14;
+                }
+                dc.DrawLine(((x)), (size.y / 2), x + FromDIP(len), (size.y / 2));
+                dc.DrawLine(x + FromDIP(len), (0), x + FromDIP(len), (size.y / 2));
+                dc.DrawLine((x), (size.y / 2), (x), (size.y));
             }
             else{
                 int x = left_nozzle_pos.x;
@@ -2453,7 +2472,7 @@ void AMSRoadDownPart::doRender(wxDC& dc)
     }
 }
 
-void AMSRoadDownPart::UpdatePassRoad(string can_id, AMSPanelPos pos, int len, AMSPassRoadSTEP step) {
+void AMSRoadDownPart::UpdatePassRoad(AMSPanelPos pos, int len, AMSPassRoadSTEP step) {
     if (m_nozzle_num >= 2){
         if (pos == AMSPanelPos::LEFT_PANEL){
             m_left_road_length = len;;
