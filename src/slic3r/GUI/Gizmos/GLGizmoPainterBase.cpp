@@ -465,6 +465,7 @@ void GLGizmoPainterBase::update_contours(int i, const TriangleMesh &vol_mesh, fl
                                     m_x_for_height_input = m_rr.mouse_position.x() + 10;
                                 }
                                 m_height_start_pos[0] = m_x_for_height_input;
+                                m_height_start_pos[1] = m_rr.mouse_position[1];
                             } else {
                                 m_height_start_pos[0] -= 10;
                             }
