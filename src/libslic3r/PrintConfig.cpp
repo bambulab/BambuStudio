@@ -1732,6 +1732,13 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPercents{ 100 });
 
+    def           = this->add("filament_category", coInts);
+    def->label    = L("Category");
+    def->tooltip  = L("Filament category");
+    def->min      = 0;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionInts{0});
+
     def = this->add("filament_density", coFloats);
     def->label = L("Density");
     def->tooltip = L("Filament density. For statistics only");
