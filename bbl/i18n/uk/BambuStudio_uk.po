@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-13 11:54+0800\n"
+"POT-Creation-Date: 2024-12-16 10:08+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -292,6 +292,9 @@ msgstr "Координати об’єкта"
 
 msgid "World coordinates"
 msgstr "Світові координати"
+
+msgid "Translate(Relative)"
+msgstr ""
 
 msgid "°"
 msgstr "°"
@@ -6491,7 +6494,7 @@ msgstr ""
 "Покращена продуктивність рендерингу в умовах кількох пластин і багатьох "
 "моделей."
 
-msgid "enable multi instance rendering by opengl"
+msgid "Enable multi instance rendering by opengl"
 msgstr ""
 
 msgid ""

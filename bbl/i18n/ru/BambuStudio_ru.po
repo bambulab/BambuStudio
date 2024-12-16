@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 1.10.1 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-13 11:54+0800\n"
+"POT-Creation-Date: 2024-12-16 10:08+0800\n"
 "PO-Revision-Date: 2024-09-27 23:58+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -307,6 +307,9 @@ msgstr "СК модели"
 
 msgid "World coordinates"
 msgstr "Мировая СК"
+
+msgid "Translate(Relative)"
+msgstr ""
 
 msgid "°"
 msgstr "°"
@@ -2248,63 +2251,6 @@ msgstr "Выдавить"
 # ???? кнопка в интерфейсе? retract - Втянуть - Unload (Выгрузить, Выгрузка прутка в смысле)
 msgid "Unload"
 msgstr "Втянуть"
-
-msgid "Ext Spool"
-msgstr "Внеш. катушка"
-
-msgid "Tips"
-msgstr "Подсказки"
-
-msgid "Guide"
-msgstr "Инстр."
-
-msgid "Retry"
-msgstr "Повтор"
-
-msgid "Calibrating AMS..."
-msgstr "Калибровка АСПП..."
-
-msgid "A problem occurred during calibration. Click to view the solution."
-msgstr ""
-"Во время калибровки возникла проблема. Нажмите, чтобы посмотреть способ "
-"исправления проблемы."
-
-msgid "Calibrate again"
-msgstr "Повторить калибровку"
-
-msgid "Cancel calibration"
-msgstr "Отменить калибровку"
-
-msgid "Idling..."
-msgstr "Простой..."
-
-# При выгрузке/загрузке прутка справа отображается процесс
-msgid "Heat the nozzle"
-msgstr "Нагрев сопла"
-
-msgid "Cut filament"
-msgstr "Отрезка прутка"
-
-msgid "Pull back current filament"
-msgstr "Извлечение текущего прутка"
-
-msgid "Push new filament into extruder"
-msgstr "Вставка нового прутка в экструдер"
-
-msgid "Purge old filament"
-msgstr "Очистка от старого материала"
-
-msgid "Feed Filament"
-msgstr "Подача прутка"
-
-msgid "Confirm extruded"
-msgstr "Подтверждение экструзии"
-
-msgid "Check filament location"
-msgstr "Проверка расположения прутка"
-
-msgid "Grab new filament"
-msgstr "Загрузка нового прутка"
 
 msgid ""
 "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
@@ -6695,7 +6641,7 @@ msgstr ""
 "Улучшает производительность рендеринга в сценах с несколькими столами и "
 "большим количеством моделей."
 
-msgid "enable multi instance rendering by opengl"
+msgid "Enable multi instance rendering by opengl"
 msgstr "Включить мультирендеринг с помощью OpenGL"
 
 msgid ""
@@ -9671,6 +9617,7 @@ msgstr ""
 msgid "Cooling overhang threshold"
 msgstr "Порог включения обдува на нависаниях"
 
+#, fuzzy, c-format
 msgid ""
 "Force cooling fan to be specific speed when overhang degree of printed part "
 "exceeds this value. Expressed as percentage which indicides how much width "
@@ -9688,6 +9635,7 @@ msgid "Overhang threshold for participating cooling"
 msgstr "Порог нависания участвующий в охлаждении"
 
 # ???? Процент представляет собой степень нависания. Например, если задано 25%, то все линии с нависанием менее 25% будут участвовать в охлаждении и замедлении. При 100% все нависающие линии участвуют в охлаждении и замедлении. Скорость после замедления принимает меньшее значение минимальной скорости печати и исходной скорости нависания.
+#, fuzzy, c-format
 msgid ""
 "Decide which overhang part join the cooling function to slow down the speed."
 "Expressed as percentage which indicides how much width of the line without "
@@ -9798,6 +9746,7 @@ msgid "over 100% wall (not bridge)"
 msgstr "100% нависающие периметры (не мосты)"
 
 # ??? Скорость для периметров, которые имеют степень нависания более 100% ширины линии, но не относящиеся к периметрам моста.
+#, fuzzy, c-format, boost-format
 msgid ""
 "Speed for line of wall which has degree of overhang over 100% line width, "
 "but the wall is not a bridge wall."
@@ -10503,6 +10452,7 @@ msgstr ""
 msgid "Sparse infill density"
 msgstr "Плотность заполнения"
 
+#, fuzzy, c-format
 msgid "Density of internal sparse infill, 100% means solid throughout"
 msgstr ""
 "Плотность внутреннего заполнения, выраженная в процентах. 100% означает "
@@ -14601,8 +14551,8 @@ msgid ""
 "many requirements, and to get better printing quality, please refer to this "
 "wiki: PVA Printing Guide."
 msgstr ""
-"Это водорастворимый материал обычно использующийся только для поддержек, "
-"а не для печати самой модели. К печати этим материалом предъявляется много "
+"Это водорастворимый материал обычно использующийся только для поддержек, а "
+"не для печати самой модели. К печати этим материалом предъявляется много "
 "требований, и чтобы получить лучшее качество печати, пожалуйста, обратитесь "
 "к статьей на вики: Руководство по печати PVA."
 
@@ -14612,9 +14562,10 @@ msgid ""
 "quality, please refer to this wiki: Printing Tips for Support Filament and "
 "Support Function."
 msgstr ""
-"Это нерастворимый в воде материал обычно использующийся только для поддержек, "
-"а не для печати самой модели. Чтобы добиться лучшего качества печати, обратитесь "
-"к статьей на вики: Советы по печати поддерживающим материалом и функции поддержки."
+"Это нерастворимый в воде материал обычно использующийся только для "
+"поддержек, а не для печати самой модели. Чтобы добиться лучшего качества "
+"печати, обратитесь к статьей на вики: Советы по печати поддерживающим "
+"материалом и функции поддержки."
 
 # ??? Стандартные
 msgid ""
@@ -15065,29 +15016,8 @@ msgstr ""
 "ABS, повышение температуры подогреваемого стола может снизить эту "
 "вероятность?"
 
-msgid "Alt+Left mouse button"
-msgstr "Alt + Левая кнопка мыши"
-
-msgid "Ctrl+Left mouse button"
-msgstr "Ctrl + Левая кнопка мыши"
-
-msgid "Ctrl+Any arrow"
-msgstr "Ctrl + Любая стрелка"
-
-msgid "Left Preset Value"
-msgstr "Значение в левом профиле"
-
-msgid "Right Preset Value"
-msgstr "Значение в правом профиле"
-
-#~ msgid "?"
-#~ msgstr "?"
-
-#~ msgid "/"
-#~ msgstr "/"
-
-#~ msgid "AMS not connected"
-#~ msgstr "АСПП не подключена"
+#~ msgid "enable multi instance rendering by opengl"
+#~ msgstr "Включить мультирендеринг с помощью OpenGL"
 
 #~ msgid "Ext Spool"
 #~ msgstr "Внеш. катушка"
@@ -15109,7 +15039,6 @@ msgstr "Значение в правом профиле"
 #~ msgid "Cancel calibration"
 #~ msgstr "Отменить калибровку"
 
-# ??? Ожидание
 #~ msgid "Idling..."
 #~ msgstr "Простой..."
 
@@ -15140,6 +15069,30 @@ msgstr "Значение в правом профиле"
 
 #~ msgid "Grab new filament"
 #~ msgstr "Загрузка нового прутка"
+
+#~ msgid "Alt+Left mouse button"
+#~ msgstr "Alt + Левая кнопка мыши"
+
+#~ msgid "Ctrl+Left mouse button"
+#~ msgstr "Ctrl + Левая кнопка мыши"
+
+#~ msgid "Ctrl+Any arrow"
+#~ msgstr "Ctrl + Любая стрелка"
+
+#~ msgid "Left Preset Value"
+#~ msgstr "Значение в левом профиле"
+
+#~ msgid "Right Preset Value"
+#~ msgstr "Значение в правом профиле"
+
+#~ msgid "?"
+#~ msgstr "?"
+
+#~ msgid "/"
+#~ msgstr "/"
+
+#~ msgid "AMS not connected"
+#~ msgstr "АСПП не подключена"
 
 #~ msgid "SD Card"
 #~ msgstr "SD-карта"
