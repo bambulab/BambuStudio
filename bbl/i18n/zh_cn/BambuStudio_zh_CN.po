@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-13 11:22+0800\n"
+"POT-Creation-Date: 2024-12-16 09:53+0800\n"
 "PO-Revision-Date: 2024-03-21 10:39+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -5689,8 +5689,7 @@ msgstr "文件%s已经发送到打印机的存储空间，可以在打印机上�
 msgid ""
 "Unable to perform boolean operation on model meshes. You may fix the meshes "
 "and try again."
-msgstr ""
-"无法对模型网格执行布尔运算。您可以修复网格，然后重试。"
+msgstr "无法对模型网格执行布尔运算。您可以修复网格，然后重试。"
 
 #, boost-format
 msgid "Reason: part \"%1%\" is empty."
@@ -5989,7 +5988,7 @@ msgid ""
 "models."
 msgstr "在多盘和多模型的场景下提高了渲染性能"
 
-msgid "enable multi instance rendering by opengl"
+msgid "Enable multi instance rendering by opengl"
 msgstr "开启opengl多实例渲染"
 
 msgid ""
@@ -13220,6 +13219,9 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid "enable multi instance rendering by opengl"
+#~ msgstr "开启opengl多实例渲染"
 
 #~ msgid ""
 #~ "Unable to perform boolean operation on model meshes. You may fix the "
