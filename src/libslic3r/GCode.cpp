@@ -4937,7 +4937,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 speed = new_speed == 0.0 ? speed : new_speed;
             }
         } else if (path.role() == erOverhangPerimeter && path.overhang_degree == 5) {
-            speed = m_config.get_abs_value("overhang_totally_speed");
+            speed = m_config.overhang_totally_speed.get_at(cur_extruder_index());
         } else if (path.role() == erOverhangPerimeter || path.role() == erBridgeInfill || path.role() == erSupportTransition) {
             speed = m_config.bridge_speed.get_at(cur_extruder_index());
         } else if (path.role() == erInternalInfill) {
