@@ -91,8 +91,8 @@ var Test_PrintTaskList={
 					"weight": 0
 				}
 			],
-			"mode": "cloud_slice",
-			"isPublicProfile": true,
+			"mode": "user_slice",
+			"isPublicProfile": false,
 			"isPrintable": true,
 			"isDelete": false,
 			"deviceModel": "X1E",

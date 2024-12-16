@@ -4324,32 +4324,47 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 if (mainframe && mainframe->m_webview) {
                     mainframe->m_webview->ShowUserPrintTask(true);
                 }
-            } 
+            }
             else if (command_str.compare("homepage_leftmenu_change_width") == 0) {
                 int NewWidth = 214;
                 if (root.get_child_optional("width") != boost::none) NewWidth = root.get<int>("width");
 
-                if (mainframe && mainframe->m_webview) 
-                { 
-                    mainframe->m_webview->SetLeftMenuWidth(NewWidth); 
+                if (mainframe && mainframe->m_webview)
+                {
+                    mainframe->m_webview->SetLeftMenuWidth(NewWidth);
                     mainframe->m_webview->Layout();
                 }
-            } 
+            }
             else if (command_str.compare("homepage_makerlab_open_3mf_binary") == 0) {
                  if (root.get_child_optional("3mf") != boost::none) {
                     std::string str3MFBase64 = root.get_optional<std::string>("3mf").value();
 
                     std::string str3MFName = "makerlab";
-                    if (root.get_child_optional("3mf_name") != boost::none) 
-                    { 
+                    if (root.get_child_optional("3mf_name") != boost::none)
+                    {
                         std::string strTmp = from_u8(root.get_optional<std::string>("3mf_name").value()).ToStdString();
                         if (strTmp != "") str3MFName = strTmp;
                     }
 
-                    if (mainframe && mainframe->m_webview) 
-                    { 
+                    if (mainframe && mainframe->m_webview)
+                    {
                         mainframe->m_webview->OpenMakerlab3mf(str3MFBase64,str3MFName);
                     }
+                }
+            }
+            else if (command_str.compare("homepage_makerlab_stl_download")==0)
+            {
+                if (root.get_child_optional("file_data") != boost::none && root.get_child_optional("sequence_id") != boost::none) {
+                    int         SeqID        = root.get_optional<int>("sequence_id").value();
+                    std::string strSTLBase64 = root.get_optional<std::string>("file_data").value();
+
+                    std::string strSTLName = "makerlab";
+                    if (root.get_child_optional("file_name") != boost::none) {
+                        std::string strTmp = from_u8(root.get_optional<std::string>("file_name").value()).ToStdString();
+                        if (strTmp != "") strSTLName = strTmp;
+                    }
+
+                    if (mainframe && mainframe->m_webview) { mainframe->m_webview->SaveMakerlabStl(SeqID,strSTLBase64, strSTLName); }
                 }
             }
         }

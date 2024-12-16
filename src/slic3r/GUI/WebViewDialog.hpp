@@ -143,6 +143,9 @@ public:
     void     SetMakerlabUrl(std::string url);
     void     OpenOneMakerlab(std::string url);
     void     OpenMakerlab3mf(std::string Base64Buf, std::string FileName);
+    bool     SaveBase64ToLocal(std::string Base64Buf, std::string FileName,std::string FileTail, wxString &download_path, wxString &download_file);
+    void     SaveMakerlabStl(int SequenceID,std::string Base64Buf, std::string FileName);
+    void     UpdateMakerlabStatus();
 
     //Common UI
     void SetWebviewShow(wxString name, bool show);

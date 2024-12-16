@@ -70,7 +70,7 @@ function GotoMenu( strMenu )
 {
 	ShowMenuNewTag(strMenu,0);
 	
-	if(NowMenu==strMenu && strMenu!='makerlab')
+	if(NowMenu==strMenu && strMenu!='makersupply')
 		return;
 	
 	NowMenu=strMenu;
@@ -84,7 +84,7 @@ function GotoMenu( strMenu )
 		
 		if( $(OneBtn).attr("menu")==strMenu )
 		{
-			//if(strMenu!=='makerlab')
+			if(strMenu!=='makersupply')
 			{
 				$(".BtnItem").removeClass("BtnItemSelected");						
 				$(OneBtn).addClass("BtnItemSelected");
