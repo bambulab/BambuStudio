@@ -262,6 +262,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "filament_map_mode"
             || opt_key == "filament_map"
             || opt_key == "unprintable_filament_map"
+            || opt_key == "filament_category"
             //|| opt_key == "wipe_tower_bridging"
             || opt_key == "wipe_tower_no_sparse_layers"
             || opt_key == "flush_volumes_matrix"
@@ -2537,6 +2538,8 @@ void Print::_make_wipe_tower()
     //m_wipe_tower_data.priming = Slic3r::make_unique<std::vector<WipeTower::ToolChangeResult>>(
     //    wipe_tower.prime((float)this->skirt_first_layer_height(), m_wipe_tower_data.tool_ordering.all_extruders(), false));
 
+    std::set<int> used_filament_ids;
+
     // Lets go through the wipe tower layers and determine pairs of extruder changes for each
     // to pass to wipe_tower (so that it can use it for planning the layout of the tower)
     {
@@ -2565,6 +2568,8 @@ void Print::_make_wipe_tower()
             if (!layer_tools.has_wipe_tower) continue;
             bool first_layer = &layer_tools == &m_wipe_tower_data.tool_ordering.front();
             wipe_tower.plan_toolchange((float)layer_tools.print_z, (float)layer_tools.wipe_tower_layer_height, current_filament_id, current_filament_id);
+
+            used_filament_ids.insert(layer_tools.extruders.begin(), layer_tools.extruders.end());
 
             for (const auto filament_id : layer_tools.extruders) {
                 if (filament_id == current_filament_id)
@@ -2603,9 +2608,17 @@ void Print::_make_wipe_tower()
         }
     }
 
+    wipe_tower.set_used_filament_ids(std::vector<int>(used_filament_ids.begin(), used_filament_ids.end()));
+
+    std::vector<int> categories;
+    for (size_t i = 0; i < m_config.filament_category.values.size(); ++i) {
+        categories.push_back(m_config.filament_category.get_at(i));
+    }
+    wipe_tower.set_filament_categories(categories);
+
     // Generate the wipe tower layers.
     m_wipe_tower_data.tool_changes.reserve(m_wipe_tower_data.tool_ordering.layer_tools().size());
-    wipe_tower.generate(m_wipe_tower_data.tool_changes);
+    wipe_tower.generate_new(m_wipe_tower_data.tool_changes);
     m_wipe_tower_data.depth = wipe_tower.get_depth();
     m_wipe_tower_data.brim_width = wipe_tower.get_brim_width();
 
