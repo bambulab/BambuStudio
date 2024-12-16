@@ -1,8 +1,12 @@
+# Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-13 11:54+0800\n"
+"POT-Creation-Date: 2024-12-16 10:08+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -292,6 +296,9 @@ msgstr ""
 
 msgid "World coordinates"
 msgstr "Coordenadas mundiais"
+
+msgid "Translate(Relative)"
+msgstr ""
 
 msgid "°"
 msgstr "°"
@@ -6436,7 +6443,7 @@ msgid ""
 "models."
 msgstr ""
 
-msgid "enable multi instance rendering by opengl"
+msgid "Enable multi instance rendering by opengl"
 msgstr ""
 
 msgid ""
