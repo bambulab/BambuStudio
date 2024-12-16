@@ -3562,8 +3562,14 @@ void TabFilament::build()
         //};
         //optgroup->append_line(line);
         optgroup = page->new_optgroup(L("Cooling for specific layer"), L"param_cooling");
-    optgroup->append_single_option_line("close_fan_the_first_x_layers", "auto-cooling");
+        //optgroup->append_single_option_line("close_fan_the_first_x_layers", "auto-cooling");
         //optgroup->append_single_option_line("full_fan_speed_layer");
+        line = {L("Special cooling settings"),
+                L("set addition fan speed before fist x layer")};
+        line.label_path = "auto-cooling";
+        line.append_option(optgroup->get_option("close_fan_the_first_x_layers"));
+        line.append_option(optgroup->get_option("first_x_layer_fan_speed"));
+        optgroup->append_line(line);
 
         optgroup = page->new_optgroup(L("Part cooling fan"), L"param_cooling_fan");
         line = { L("Min fan speed threshold"), L("Part cooling fan speed will start to run at min speed when the estimated layer time is no longer than the layer time in setting. When layer time is shorter than threshold, fan speed is interpolated between the minimum and maximum fan speed according to layer printing time") };

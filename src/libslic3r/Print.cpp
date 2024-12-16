@@ -108,6 +108,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "slow_down_for_layer_cooling",
         "deretraction_speed",
         "close_fan_the_first_x_layers",
+        "first_x_layer_fan_speed",
         "machine_end_gcode",
         "printing_by_object_gcode",
         "filament_end_gcode",
