@@ -711,7 +711,8 @@ double ConfigBase::get_abs_value(const t_config_option_key &opt_key) const
         return opt_def->ratio_over.empty() ? 0. :
             static_cast<const ConfigOptionFloatOrPercent*>(raw_opt)->get_abs_value(this->get_abs_value(opt_def->ratio_over));
     }
-    throw ConfigurationError("ConfigBase::get_abs_value(): Not a valid option type for get_abs_value()");
+    std::string err_info = "ConfigBase::get_abs_value(): Not a valid option type for get_abs_value(), parameter : " + opt_key;
+    throw ConfigurationError(err_info);
 }
 
 // Return an absolute value of a possibly relative config variable.
