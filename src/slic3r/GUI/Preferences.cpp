@@ -1177,7 +1177,7 @@ wxWindow* PreferencesDialog::create_general_page()
     auto  enable_lod_settings       = create_item_checkbox(_L("Improve rendering performance by lod"), page,
                                                          _L("Improved rendering performance under the scene of multiple plates and many models."), 50,
                                                          "enable_lod");
-    auto enable_opengl_multi_instance_rendering   = create_item_checkbox(_L("enable multi instance rendering by opengl"), page,
+    auto enable_opengl_multi_instance_rendering   = create_item_checkbox(_L("Enable multi instance rendering by opengl"), page,
                                                     _L("If enabled, it can improve certain rendering performance. But for some graphics cards, it may not be applicable, please turn it off."), 50, "enable_opengl_multi_instance");
     float range_min = 1.0, range_max = 2.5;
     auto item_grabber_size_settings = create_item_range_input(_L("Grabber scale"), page,
