@@ -245,6 +245,7 @@ public:
         m_parse_gcode_extruder = extruder_id;
     }
     std::string process_layer(std::string &&                       gcode,
+                              bool                                 &not_set_additional_fan,
                               const size_t                         layer_id,
                               std::vector<PerExtruderAdjustments> &per_extruder_adjustments,
                               const std::vector<int> &             object_label,
@@ -254,11 +255,12 @@ public:
     // float       calculate_layer_slowdown(std::vector<PerExtruderAdjustments> &per_extruder_adjustments);
     // Apply slow down over G-code lines stored in per_extruder_adjustments, enable fan if needed.
     // Returns the adjusted G-code.
-    std::string write_layer_gcode(const std::string &gcode, size_t layer_id, float layer_time, std::vector<PerExtruderAdjustments> &per_extruder_adjustments);
+    std::string write_layer_gcode(const std::string &gcode, const bool &not_set_additional_fan, size_t layer_id, float layer_time, std::vector<PerExtruderAdjustments> &per_extruder_adjustments);
 
 private :
 	GCodeEditor& operator=(const GCodeEditor&) = delete;
     std::vector<PerExtruderAdjustments> parse_layer_gcode(const std::string &                       gcode,
+                                                          bool &                                    not_set_additional_fan,
                                                           std::vector<float> &                      current_pos,
                                                           const std::vector<int> &                  object_label,
                                                           bool                                      spiral_vase,

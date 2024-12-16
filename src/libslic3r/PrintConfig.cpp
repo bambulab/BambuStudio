@@ -1390,14 +1390,22 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionInts{80});
 
     def = this->add("close_fan_the_first_x_layers", coInts);
-    def->label = L("No cooling for the first");
-    def->tooltip = L("Close all cooling fan for the first certain layers. Cooling fan of the first layer used to be closed "
-                     "to get better build plate adhesion");
+    def->label = L("For the first");
+    def->tooltip = L("Set special cooling fan for the first certain layers. Cooling fan of the first layer used to be closed "
+                     "to get better build plate adhesion and used for auto cooling function");
     def->sidetext = L("layers");
     def->min = 0;
     def->max = 1000;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts { 1 });
+
+    def           = this->add("first_x_layer_fan_speed", coFloats);
+    def->label    = L("Fan speed");
+    def->tooltip  = L("Special cooling fan speed for the first certain layers");
+    def->sidetext = "%";
+    def->min      = 0;
+    def->max      = 100;
+    def->set_default_value(new ConfigOptionFloats{0});
 
     def = this->add("bridge_no_support", coBool);
     def->label = L("Don't support bridges");

@@ -956,6 +956,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             // Process the filament_start_gcode for the active filament only.
             DynamicConfig config;
             config.set_key_value("filament_extruder_id", new ConfigOptionInt(new_filament_id));
+            config.set_key_value("layer_num", new ConfigOptionInt(gcodegen.m_layer_index));
             start_filament_gcode_str = gcodegen.placeholder_parser_process("filament_start_gcode", filament_start_gcode, new_filament_id, &config);
             check_add_eol(start_filament_gcode_str);
         }
@@ -3038,7 +3039,7 @@ void GCode::process_layers(
     const auto parsing = tbb::make_filter<GCode::LayerResult, GCode::LayerResult>(slic3r_tbb_filtermode::serial_in_order,
     [&gcode_editer = *this->m_gcode_editer.get(), &layers_extruder_adjustments, object_label](GCode::LayerResult in) -> GCode::LayerResult{
         //record gcode
-        in.gcode = gcode_editer.process_layer(std::move(in.gcode), in.layer_id, layers_extruder_adjustments[in.gcode_store_pos], object_label, in.cooling_buffer_flush, false);
+        in.gcode = gcode_editer.process_layer(std::move(in.gcode), in.not_set_additional_fan, in.layer_id, layers_extruder_adjustments[in.gcode_store_pos], object_label, in.cooling_buffer_flush, false);
          return std::move(in);
     });
 
@@ -3066,7 +3067,7 @@ void GCode::process_layers(
     // step 5: rewite
     const auto write_gocde= tbb::make_filter<GCode::LayerResult, std::string>(slic3r_tbb_filtermode::serial_in_order,
     [&gcode_editer = *this->m_gcode_editer.get(), &layers_extruder_adjustments](GCode::LayerResult in) -> std::string {
-         return gcode_editer.write_layer_gcode(std::move(in.gcode), in.layer_id, in.layer_time, layers_extruder_adjustments[in.gcode_store_pos]);
+         return gcode_editer.write_layer_gcode(std::move(in.gcode), in.not_set_additional_fan, in.layer_id, in.layer_time, layers_extruder_adjustments[in.gcode_store_pos]);
     });
 
     std::vector<GCode::LayerResult> gcode_res;
@@ -3180,7 +3181,7 @@ void GCode::process_layers(
     const auto parsing = tbb::make_filter<GCode::LayerResult, GCode::LayerResult>(slic3r_tbb_filtermode::serial_in_order,
     [&gcode_editer = *this->m_gcode_editer.get(), &layers_extruder_adjustments, object_label](GCode::LayerResult in) -> GCode::LayerResult{
         //record gcode
-        in.gcode = gcode_editer.process_layer(std::move(in.gcode), in.layer_id, layers_extruder_adjustments[in.gcode_store_pos], object_label, in.cooling_buffer_flush, false);
+        in.gcode = gcode_editer.process_layer(std::move(in.gcode), in.not_set_additional_fan, in.layer_id, layers_extruder_adjustments[in.gcode_store_pos], object_label, in.cooling_buffer_flush, false);
          return std::move(in);
     });
 
@@ -3207,7 +3208,7 @@ void GCode::process_layers(
     // step 5: rewite
     const auto write_gocde= tbb::make_filter<GCode::LayerResult, std::string>(slic3r_tbb_filtermode::serial_in_order,
     [&gcode_editer = *this->m_gcode_editer.get(), &layers_extruder_adjustments](GCode::LayerResult in) -> std::string {
-         return gcode_editer.write_layer_gcode(std::move(in.gcode), in.layer_id, in.layer_time, layers_extruder_adjustments[in.gcode_store_pos]);
+         return gcode_editer.write_layer_gcode(std::move(in.gcode), in.not_set_additional_fan, in.layer_id, in.layer_time, layers_extruder_adjustments[in.gcode_store_pos]);
     });
 
     std::vector<GCode::LayerResult> gcode_res;
@@ -6420,7 +6421,13 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
         const std::string &filament_start_gcode = m_config.filament_start_gcode.get_at(new_filament_id);
         if (! filament_start_gcode.empty()) {
             // Process the filament_start_gcode for the filament.
-            gcode += this->placeholder_parser_process("filament_start_gcode", filament_start_gcode, new_filament_id);
+            DynamicConfig config;
+            if (m_layer_index >= 0)
+                config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
+            else
+                config.set_key_value("layer_num", new ConfigOptionInt(0));
+
+            gcode += this->placeholder_parser_process("filament_start_gcode", filament_start_gcode, new_filament_id, &config);
             check_add_eol(gcode);
         }
         //BBS: never use for Bambu Printer
@@ -6659,7 +6666,14 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
     const std::string &filament_start_gcode = m_config.filament_start_gcode.get_at(new_filament_id);
     if (! filament_start_gcode.empty()) {
         // Process the filament_start_gcode for the new filament.
-        gcode += this->placeholder_parser_process("filament_start_gcode", filament_start_gcode, new_filament_id);
+        //in machine start gcode, m_layer_index is -1 set to 0
+        DynamicConfig config;
+        if (m_layer_index >= 0)
+            config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
+        else
+            config.set_key_value("layer_num", new ConfigOptionInt(0));
+
+        gcode += this->placeholder_parser_process("filament_start_gcode", filament_start_gcode, new_filament_id, &config);
         check_add_eol(gcode);
     }
     // Set the new extruder to the operating temperature.
