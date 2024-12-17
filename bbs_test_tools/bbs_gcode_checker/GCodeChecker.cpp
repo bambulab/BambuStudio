@@ -135,10 +135,12 @@ GCodeCheckResult GCodeChecker::parse_comment(GCodeLine& line)
 
         if (m_role == erExternalPerimeter) {
             if (z_height == initial_layer_height && check_nozzle_temp != nozzle_temperature_initial_layer[filament_id]) {
-                std::cout << "Invalid filament nozzle initial layer temperature! Expected: "
-                    << nozzle_temperature_initial_layer[filament_id]
-                    << ", but got: " << check_nozzle_temp << "." << std::endl;
-                return GCodeCheckResult::ParseFailed;
+                if (is_multi_nozzle == false) {
+                    std::cout << "Invalid filament nozzle initial layer temperature! Expected: "
+                        << nozzle_temperature_initial_layer[filament_id]
+                        << ", but got: " << check_nozzle_temp << "." << std::endl;
+                    return GCodeCheckResult::ParseFailed;
+                }
             }
 
             if (z_height != initial_layer_height && check_nozzle_temp != nozzle_temperature[filament_id]) {
