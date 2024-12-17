@@ -3237,8 +3237,6 @@ void TabFilament::build()
             on_value_change(opt_key, value);
         };
 
-        optgroup = page->new_optgroup(L("Nozzle temperature"), L"param_temperature");
-
         line = { L("Nozzle"), L("Nozzle temperature when printing") };
         line.append_option(optgroup->get_option("nozzle_temperature_initial_layer", 0));
         line.append_option(optgroup->get_option("nozzle_temperature", 0));
@@ -3987,6 +3985,7 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
                 existed_page = i;
             break;
         }
+    m_rebuild_kinematics_page = false;
 
     if (existed_page < n_before_extruders && (is_marlin_flavor || from_initial_build)) {
         auto page = build_kinematics_page();
@@ -6016,8 +6015,9 @@ void Tab::switch_excluder(int extruder_id, bool reload)
     auto index = m_variant_combo ? extruder_id : get_index_for_extruder(extruder_id == -1 ? 0 : extruder_id);
     if (index < 0)
         return;
-    if (m_extruder_switch) m_extruder_switch->SetClientData((void *) (index));
-    if (m_variant_combo) m_variant_combo->SetClientData((void *) (index));
+    if (m_extruder_switch) m_extruder_switch->SetClientData(reinterpret_cast<void*>(static_cast<std::uintptr_t>(index)));
+    if (m_variant_combo) m_variant_combo->SetClientData(reinterpret_cast<void *>(static_cast<std::uintptr_t>(index)));
+    wxWindow *variant_ctrl = m_extruder_switch ? (wxWindow *) m_extruder_switch : m_variant_combo;
     for (auto page : m_pages) {
         bool is_extruder = false;
         if (m_type == Preset::TYPE_PRINTER) {
@@ -6039,10 +6039,12 @@ void Tab::switch_excluder(int extruder_id, bool reload)
                     page->m_opt_id_map.insert({opt.first, opt.first});
                 continue;
             }
+            group->draw_multi_extruder = false;
             for (auto &opt : group->opt_map()) {
                 if (opt.second.second >= 0) {
                     const_cast<int &>(opt.second.second) = index;
                     page->m_opt_id_map.insert({opt.second.first + "#" + std::to_string(index), opt.first});
+                    group->draw_multi_extruder = !is_extruder && variant_ctrl->IsThisEnabled();
                 }
             }
         }
