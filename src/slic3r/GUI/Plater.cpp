@@ -10654,10 +10654,10 @@ bool Plater::load_same_type_files(const wxArrayString &filenames) {
     if (filenames.size() <= 1) { return true; }
     else {
         const wxString &filename = filenames.front();
-        boost::filesystem::path path(filename.ToStdString());
+        boost::filesystem::path path(filename.utf8_string());
         auto extension = trans_extension(path);
         for (size_t i = 1; i < filenames.size(); i++) {
-            boost::filesystem::path temp(filenames[i].ToStdString());
+            boost::filesystem::path temp(filenames[i].utf8_string());
             auto temp_extension = trans_extension(temp);
             if (extension.extension() != temp_extension.extension()) {
                 return false;
