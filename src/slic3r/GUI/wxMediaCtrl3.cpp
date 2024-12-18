@@ -221,10 +221,12 @@ void wxMediaCtrl3::PlayThread()
         if (error == 0)
             error = Bambu_GetStreamInfo(tunnel, 0, &info);
         AVVideoDecoder decoder;
+        int minFrameDuration = 0;
         if (error == 0) {
             decoder.open(info);
             m_video_size = { info.format.video.width, info.format.video.height };
             adjust_frame_size(m_frame_size, m_video_size, GetSize());
+            minFrameDuration = 800 / info.format.video.frame_rate; // 80%
             NotifyStopped();
         }
         Bambu_Sample sample;
@@ -258,8 +260,30 @@ void wxMediaCtrl3::PlayThread()
                     error = 1;
                     break;
                 }
-                if (bm.IsOk())
+                if (bm.IsOk()) {
+                    auto now = std::chrono::system_clock::now();
+                    if (m_last_PTS && (sample.decode_time - m_last_PTS) < 30000000ULL) { // 3s
+                        auto next_PTS_expected = m_last_PTS_expected + std::chrono::milliseconds((sample.decode_time - m_last_PTS) / 10000ULL);
+                        // The frame is late, catch up a little
+                        auto next_PTS_practical = m_last_PTS_practical + std::chrono::milliseconds(minFrameDuration);
+                        auto next_PTS = std::max(next_PTS_expected, next_PTS_practical);
+                        if(now < next_PTS)
+                            std::this_thread::sleep_until(next_PTS);
+                        else
+                            next_PTS = now;
+                        //auto text = wxString::Format(L"wxMediaCtrl3 pts diff %ld\n", std::chrono::duration_cast<std::chrono::milliseconds>(next_PTS - next_PTS_expected).count());
+                        //OutputDebugString(text);
+                        m_last_PTS = sample.decode_time;
+                        m_last_PTS_expected = next_PTS_expected;
+                        m_last_PTS_practical = next_PTS;
+                    } else {
+                        // Resync
+                        m_last_PTS           = sample.decode_time;
+                        m_last_PTS_expected  = now;
+                        m_last_PTS_practical = now;
+                    }
                     m_frame = bm;
+                }
                 CallAfter([this] { Refresh(); });
             }
         }
