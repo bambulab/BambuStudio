@@ -1922,7 +1922,7 @@ std::vector<std::vector<DynamicPrintConfig>> PresetBundle::get_extruder_filament
     return filament_infos;
 }
 
-std::set<std::string> PresetBundle::get_printer_names_by_printer_type_and_nozzle(const std::string &printer_type, std::string nozzle_diameter_str)
+std::set<std::string> PresetBundle::get_printer_names_by_printer_type_and_nozzle(const std::string &printer_type, std::string nozzle_diameter_str, bool system_only)
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << "printer_type: " << printer_type << "nozzle_diameter_str" << nozzle_diameter_str;
     std::set<std::string> printer_names;
@@ -1937,7 +1937,7 @@ std::set<std::string> PresetBundle::get_printer_names_by_printer_type_and_nozzle
     std::ostringstream    stream;
 
     for (auto printer_it = this->printers.begin(); printer_it != this->printers.end(); printer_it++) {
-        if (!printer_it->is_system) continue;
+        if (system_only && !printer_it->is_system) continue;
 
         ConfigOption *      printer_model_opt = printer_it->config.option("printer_model");
         ConfigOptionString *printer_model_str = dynamic_cast<ConfigOptionString *>(printer_model_opt);
@@ -2018,6 +2018,24 @@ bool PresetBundle::check_filament_temp_equation_by_printer_type_and_nozzle_for_m
         }
     }
     return is_equation;
+}
+
+Preset *PresetBundle::get_similar_printer_preset(std::string printer_model, std::string printer_variant)
+{
+    if (printer_model.empty())
+        printer_model = printers.get_selected_preset().config.opt_string("printer_model");
+    auto printer_variant_old = printers.get_selected_preset().config.opt_string("printer_variant");
+    auto printer_names       = get_printer_names_by_printer_type_and_nozzle(printer_model, printer_variant.empty() ? printer_variant_old : printer_variant, !printer_model.empty());
+    if (printer_names.empty())
+        return nullptr;
+    auto prefer_printer = printers.get_selected_preset().name;
+    if (!printer_variant.empty())
+        boost::replace_all(prefer_printer, printer_variant_old, printer_variant);
+    else if (auto n = prefer_printer.find(printer_variant_old); n != std::string::npos)
+        prefer_printer = printer_model + " " + printer_variant_old + prefer_printer.substr(n + printer_variant_old.length());
+    if (printer_names.count(prefer_printer) == 0)
+        prefer_printer = *printer_names.begin();
+    return printers.find_preset(prefer_printer, false, true);
 }
 
 //BBS: check whether this is the only edited filament
