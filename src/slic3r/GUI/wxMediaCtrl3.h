@@ -81,6 +81,9 @@ private:
 #endif
 
     std::shared_ptr<wxURI> m_url;
+    std::uint64_t m_last_PTS{0};
+    std::chrono::system_clock::time_point m_last_PTS_expected;
+    std::chrono::system_clock::time_point m_last_PTS_practical;
     std::mutex m_mutex;
     std::condition_variable m_cond;
     std::thread m_thread;
