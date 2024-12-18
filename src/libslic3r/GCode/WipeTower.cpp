@@ -1048,7 +1048,7 @@ WipeTower::NozzleChangeResult WipeTower::nozzle_change(int old_filament_id, int 
 
     writer.append(format_nozzle_change_line(false, old_filament_id, new_filament_id));
 
-    result.start_pos = initial_position;
+    result.start_pos = writer.start_pos_rotated();
     result.end_pos   = writer.pos();
     result.gcode     = writer.gcode();
     return result;
