@@ -825,7 +825,10 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
                         if (!overlaps(offset_ex(expoly, 0.1 * extrusion_width_scaled), lower_polys)) {
                             is_sharp_tail = !offset_ex(expoly, -0.1 * extrusion_width_scaled).empty();
                         }
-
+                        if (is_sharp_tail && lower_layer->lower_layer) {
+                            if (overlaps(offset_ex(expoly, 0.1 * extrusion_width_scaled), lower_layer->lower_layer->lslices_extrudable)) 
+                                is_sharp_tail = false;
+                        }
                         if (is_sharp_tail) {
                             layer->sharp_tails.push_back(expoly);
                             layer->sharp_tails_height.push_back(0);
