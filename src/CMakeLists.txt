@@ -262,6 +262,10 @@ else ()
             COMMAND ln -sfn "zh_cn" "${BIN_RESOURCES_DIR}/i18n/zh_CN"
             COMMENT "Symlinking zh_CN language setting to zh_cn"
             VERBATIM)
+        add_custom_command(TARGET BambuStudio POST_BUILD
+            COMMAND ln -sfn "pt-BR" "${BIN_RESOURCES_DIR}/i18n/pt_BR"
+            COMMENT "Symlinking pt_BR language setting to pt_BR"
+            VERBATIM)
     endif()
 endif ()
 
