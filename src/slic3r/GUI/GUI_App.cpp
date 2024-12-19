@@ -2031,6 +2031,8 @@ void GUI_App::init_networking_callbacks()
                     obj->command_get_version();
                     obj->erase_user_access_code();
                     obj->command_get_access_code();
+                    if (m_agent)
+                        m_agent->install_device_cert(obj->dev_id, obj->is_lan_mode_printer());
                     if (!is_enable_multi_machine()) {
                         GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
                     }
@@ -2129,6 +2131,8 @@ void GUI_App::init_networking_callbacks()
             CallAfter([this, dev_id, msg] {
                 if (m_is_closing)
                     return;
+                this->process_network_msg(dev_id, msg);
+
                 MachineObject* obj = this->m_device_manager->get_user_machine(dev_id);
                 if (obj) {
                     obj->is_ams_need_update = false;
@@ -2181,6 +2185,7 @@ void GUI_App::init_networking_callbacks()
                 if (m_is_closing)
                     return;
 
+                this->process_network_msg(dev_id, msg);
                 MachineObject* obj = m_device_manager->get_my_machine(dev_id);
                 if (!obj || !obj->is_lan_mode_printer()) {
                     obj = m_device_manager->get_local_machine(dev_id);
@@ -4491,14 +4496,12 @@ void GUI_App::on_http_error(wxCommandEvent &evt)
 
     // Version limit
     if (code == HttpErrorVersionLimited) {
-        if (!m_show_http_errpr_msgdlg) {
+        if (!m_show_error_msgdlg) {
             MessageDialog msg_dlg(nullptr, _L("The Bambu Studio version is too old to enable cloud service. Please download the latest version from Bambu Lab website."), "", wxAPPLY | wxOK);
-            m_show_http_errpr_msgdlg = true;
+            m_show_error_msgdlg = true;
             auto modal_result = msg_dlg.ShowModal();
-            if (modal_result == wxOK || modal_result == wxCLOSE) {
-                m_show_http_errpr_msgdlg = false;
-                return;
-            }
+            m_show_error_msgdlg = false;
+            return;
         }
 
     }
@@ -4508,15 +4511,12 @@ void GUI_App::on_http_error(wxCommandEvent &evt)
         if (m_agent) {
             if (m_agent->is_user_login()) {
                 this->request_user_logout();
-
-                if (!m_show_http_errpr_msgdlg) {
+                if (!m_show_error_msgdlg) {
                     MessageDialog msg_dlg(nullptr, _L("Login information expired. Please login again."), "", wxAPPLY | wxOK);
-                    m_show_http_errpr_msgdlg = true;
+                    m_show_error_msgdlg = true;
                     auto modal_result = msg_dlg.ShowModal();
-                    if (modal_result == wxOK || modal_result == wxCLOSE) {
-                        m_show_http_errpr_msgdlg = false;
-                        return;
-                    }
+                    m_show_error_msgdlg = false;
+                    return;
                 }
             }
         }
@@ -4824,6 +4824,63 @@ void GUI_App::check_cert()
                 m_agent->check_cert();
         });
     BOOST_LOG_TRIVIAL(info) << "check_cert";
+}
+
+void GUI_App::process_network_msg(std::string dev_id, std::string msg)
+{
+    if (dev_id.empty()) {
+        if (msg == "wait_info") {
+            BOOST_LOG_TRIVIAL(info) << "process_network_msg, wait_info";
+            Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+            if (!dev)
+                return;
+            MachineObject* obj = dev->get_selected_machine();
+            if (obj)
+                m_agent->install_device_cert(obj->dev_id, obj->is_lan_mode_printer());
+            if (!m_show_error_msgdlg) {
+                MessageDialog msg_dlg(nullptr, _L("Retrieving printer information, please try again later."), "", wxAPPLY | wxOK);
+                m_show_error_msgdlg = true;
+                auto modal_result = msg_dlg.ShowModal();
+                m_show_error_msgdlg = false;
+            }
+        }
+        else if (msg == "update_studio") {
+            BOOST_LOG_TRIVIAL(info) << "process_network_msg, update_studio";
+            if (!m_show_error_msgdlg) {
+                MessageDialog msg_dlg(nullptr, _L("Please try updating Bambu Studio and then try again."), "", wxAPPLY | wxOK);
+                m_show_error_msgdlg = true;
+                auto modal_result = msg_dlg.ShowModal();
+                m_show_error_msgdlg = false;
+            }
+        }
+        else if (msg == "update_fixed_studio") {
+            BOOST_LOG_TRIVIAL(info) << "process_network_msg, update_fixed_studio";
+            if (!m_show_error_msgdlg) {
+                MessageDialog msg_dlg(nullptr, _L("Please try updating Bambu Studio and then try again."), "", wxAPPLY | wxOK);
+                m_show_error_msgdlg = true;
+                auto modal_result = msg_dlg.ShowModal();
+                m_show_error_msgdlg = false;
+            }
+        }
+        else if (msg == "cert_expired") {
+            BOOST_LOG_TRIVIAL(info) << "process_network_msg, cert_expired";
+            if (!m_show_error_msgdlg) {
+                MessageDialog msg_dlg(nullptr, _L("The certificate has expired. Please check the time settings or update Bambu Studio and try again."), "", wxAPPLY | wxOK);
+                m_show_error_msgdlg = true;
+                auto modal_result = msg_dlg.ShowModal();
+                m_show_error_msgdlg = false;
+            }
+        }
+        else if (msg == "cert_revoked") {
+            BOOST_LOG_TRIVIAL(info) << "process_network_msg, cert_revoked";
+            if (!m_show_error_msgdlg) {
+                MessageDialog msg_dlg(nullptr, _L("The certificate has been revoked. Please check the time settings or update Bambu Studio and try again."), "", wxAPPLY | wxOK);
+                m_show_error_msgdlg = true;
+                auto modal_result = msg_dlg.ShowModal();
+                m_show_error_msgdlg = false;
+            }
+        }
+    }
 }
 
 //BBS pop up a dialog and download files
