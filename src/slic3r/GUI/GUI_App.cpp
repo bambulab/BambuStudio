@@ -4039,6 +4039,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
 {
     try {
         //BBS use nlohmann json format
+        BOOST_LOG_TRIVIAL(info) << "handle_web_request: " << cmd;
         std::stringstream ss(cmd), oss;
         pt::ptree root, response;
         pt::read_json(ss, root);
@@ -4049,6 +4050,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
         boost::optional<std::string> command = root.get_optional<std::string>("command");
         if (command.has_value()) {
             std::string command_str = command.value();
+            BOOST_LOG_TRIVIAL(info) << "handle_web_request: " << command_str;
             if (command_str.compare("request_project_download") == 0) {
                 if (root.get_child_optional("data") != boost::none) {
                     pt::ptree data_node = root.get_child("data");
