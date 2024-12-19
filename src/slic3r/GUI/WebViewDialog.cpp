@@ -279,6 +279,8 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
             SendDesignStaffpick(true);
         }
     });
+
+    SwitchWebContent("home");
  }
 
 WebViewPanel::~WebViewPanel()
