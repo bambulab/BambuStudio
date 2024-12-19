@@ -1,7 +1,12 @@
 {
 	"00.00.00.00": {
-		"display_name": "Bambu Lab X1E",
+		"display_name": "Bambu Lab H2D",
 		"print": {
+			"2D": {
+				"laser": {
+					"power": [10, 40]
+				}
+			},
 			"ipcam": {
 				"resolution_supported": ["720p", "1080p"],
 				"virtual_camera": "enabled",
@@ -9,6 +14,7 @@
 					"remote": "tutk"
 				},
 				"file": {
+					"local": "local",
 					"remote": "tutk",
 					"model_download": "enabled"
 				}
@@ -39,13 +45,12 @@
 			"support_first_layer_inspect": true,
 			"support_chamber_temp_edit": true,
 			"support_extrusion_cali": false,
-			"support_user_preset": false,
-			"bed_temperature_limit": 110,
-			"nozzle_max_temperature": 320
+			"support_user_preset": false
 		},
-		"model_id": "C13",
-		"compatible_machine": ["BL-P001", "BL-P002", "C11", "C12"],
-		"printer_type": "C13",
+		"model_id": "O1D",
+		"printer_modes": ["fdm", "laser", "cut"],
+		"compatible_machine": [],
+		"printer_type": "O1D",
 		"printer_thumbnail_image": "printer_thumbnail",
 		"printer_connect_help_image": "input_access_code_x1",
 		"printer_use_ams_image": "ams_icon",
@@ -54,8 +59,5 @@
 		"printer_series": "series_x1",
 		"has_cali_line": true,
 		"printer_is_enclosed": true
-	},
-	"01.05.06.06": {
-		"rv2166": "00.00.21.20"
 	}
 }
