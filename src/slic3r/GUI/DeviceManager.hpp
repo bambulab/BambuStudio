@@ -37,8 +37,11 @@
 #define HOLD_COUNT_CAMERA       6
 #define GET_VERSION_RETRYS      10
 #define RETRY_INTERNAL          2000
+
 #define MAIN_NOZZLE_ID          0
 #define DEPUTY_NOZZLE_ID        1
+#define UNIQUE_NOZZLE_ID        MAIN_NOZZLE_ID
+
 #define VIRTUAL_TRAY_MAIN_ID    255
 #define VIRTUAL_TRAY_DEPUTY_ID  254
 #define START_SEQ_ID            20000
