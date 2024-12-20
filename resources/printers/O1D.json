@@ -8,7 +8,7 @@
 				}
 			},
 			"ipcam": {
-				"resolution_supported": ["720p", "1080p"],
+				"resolution_supported": ["1080p"],
 				"virtual_camera": "enabled",
 				"liveview": {
 					"remote": "tutk"
