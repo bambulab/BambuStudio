@@ -1798,15 +1798,23 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
                 if (state == BuildVolume::ObjectState::Limited) {
                     //unprintable_filament_ids.resize(inside_extruders.size());
                     ModelObject *model_object = model_objects[volume->object_idx()];
-                    ModelVolume *model_volume = model_object->volumes[volume->volume_idx()];
-                    for (size_t i = 0; i < inside_extruders.size(); ++i) {
-                        if (!inside_extruders[i]) {
-                            std::vector<int> filaments = model_volume->get_extruders();
-                            unprintable_filament_ids[i].insert(filaments.begin(), filaments.end());
-                            if (object_results) {
-                                std::map<int, std::set<int>>& obj_extruder_filament_maps = objects_unprintable_filaments[model_object];
-                                std::set<int>& obj_extruder_filaments = obj_extruder_filament_maps[i+1];
-                                obj_extruder_filaments.insert(filaments.begin(), filaments.end());
+                    // Only check for single-color object
+                    std::set<int> object_filaments;
+                    for (ModelVolume *m_volume : model_object->volumes) {
+                        std::vector<int> filaments = m_volume->get_extruders();
+                        object_filaments.insert(filaments.begin(), filaments.end());
+                    }
+                    if (object_filaments.size() == 1) {
+                        ModelVolume *model_volume = model_object->volumes[volume->volume_idx()];
+                        for (size_t i = 0; i < inside_extruders.size(); ++i) {
+                            if (!inside_extruders[i]) {
+                                std::vector<int> filaments = model_volume->get_extruders();
+                                unprintable_filament_ids[i].insert(filaments.begin(), filaments.end());
+                                if (object_results) {
+                                    std::map<int, std::set<int>> &obj_extruder_filament_maps = objects_unprintable_filaments[model_object];
+                                    std::set<int>                &obj_extruder_filaments     = obj_extruder_filament_maps[i + 1];
+                                    obj_extruder_filaments.insert(filaments.begin(), filaments.end());
+                                }
                             }
                         }
                     }
