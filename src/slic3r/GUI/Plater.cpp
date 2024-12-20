@@ -441,6 +441,7 @@ struct Sidebar::priv
 
     void sync_extruder_list();
     bool switch_diameter(bool single);
+    void update_sync_status(const MachineObject* obj);
 
 #ifdef _WIN32
     wxString btn_reslice_tip;
@@ -856,6 +857,8 @@ ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title
     combo_nozzle->Bind(wxEVT_COMBOBOX, [this, index, combo_nozzle](wxCommandEvent &evt) {
         auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
         printer_tab->set_extruder_volume_type(index, NozzleVolumeType(intptr_t(combo_nozzle->GetClientData(evt.GetInt()))));
+        if (GUI::wxGetApp().plater())
+            GUI::wxGetApp().plater()->update_machine_sync_status();
     });
     this->combo_nozzle = combo_nozzle;
 
@@ -1012,6 +1015,9 @@ void ExtruderGroup::update_ams()
     }
 
     sizer->Layout();
+
+    if (GUI::wxGetApp().plater())
+        GUI::wxGetApp().plater()->update_machine_sync_status();
 }
 
 struct DiameterMessageDialog : MessageDialog
@@ -1061,7 +1067,7 @@ bool Sidebar::priv::switch_diameter(bool single)
 void Sidebar::priv::sync_extruder_list()
 {
     MachineObject *obj = wxGetApp().getDeviceManager()->get_selected_machine();
-    if (obj == nullptr) {
+    if (obj == nullptr || !obj->is_info_ready()) {
         MessageDialog dlg(this->plater, _L("Please select a printer in 'Device' page first."), _L("Sync extruder infomation"), wxOK | wxICON_WARNING);
         dlg.ShowModal();
         return;
@@ -1075,15 +1081,22 @@ void Sidebar::priv::sync_extruder_list()
     std::string machine_print_name = obj->printer_type;
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     std::string target_model_id  = preset_bundle->printers.get_selected_preset().get_printer_type(preset_bundle);
+    Preset* machine_preset = get_printer_preset(obj);
     if (machine_print_name != target_model_id) {
         MessageDialog dlg(this->plater, _L("The currently selected machine preset is inconsistent with the connected printer type.\n"
                                             "Are you sure to continue syncing?"), _L("Sync extruder infomation"), wxICON_WARNING | wxYES | wxNO);
         if (dlg.ShowModal() == wxID_NO) {
             return;
         }
-    }
 
-    Preset * machine_preset = get_printer_preset(obj);
+        if (!this->plater)
+            return;
+
+        this->plater->update_objects_position_when_select_preset([&obj, machine_preset]() {
+            Tab *printer_tab = GUI::wxGetApp().get_tab(Preset::Type::TYPE_PRINTER);
+            printer_tab->select_preset(machine_preset->name);
+        });
+    }
 
     auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
     printer_tab->select_preset(machine_preset->name);
@@ -1132,6 +1145,119 @@ void Sidebar::priv::sync_extruder_list()
     AMSCountPopupWindow::SetAMSCount(main_index, main_4, main_1);
     AMSCountPopupWindow::UpdateAMSCount(0, left_extruder);
     AMSCountPopupWindow::UpdateAMSCount(1, right_extruder);
+}
+
+void Sidebar::priv::update_sync_status(const MachineObject *obj)
+{
+    auto clear_all_sync_status = [this]() {
+        panel_printer_preset->ShowBadge(false);
+        panel_printer_bed->ShowBadge(false);
+        left_extruder->ShowBadge(false);
+        right_extruder->ShowBadge(false);
+        single_extruder->ShowBadge(false);
+    };
+
+    if (!obj || !obj->is_info_ready()) {
+        clear_all_sync_status();
+        return;
+    }
+
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    if (!preset_bundle) {
+        clear_all_sync_status();
+        return;
+    }
+
+    // 1. update printer status
+    const Preset &cur_preset = wxGetApp().preset_bundle->printers.get_edited_preset();
+    if (preset_bundle && preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle) == obj->printer_type) {
+        panel_printer_preset->ShowBadge(true);
+    } else {
+        clear_all_sync_status();
+        return;
+    }
+
+    struct ExtruderInfo
+    {
+        float diameter{0.4};
+        int   nozzle_volue_type{0};
+        int   ams_4{0};
+        int   ams_1{0};
+
+        bool operator==(const ExtruderInfo &other) const
+        {
+            return abs(diameter - other.diameter) < EPSILON
+                && nozzle_volue_type == other.nozzle_volue_type
+                && ams_4 == other.ams_4
+                && ams_1 == other.ams_1;
+        }
+    };
+
+    // 2. update extruder status
+    int extruder_nums = preset_bundle->get_printer_extruder_count();
+    std::vector<ExtruderInfo> extruder_infos(extruder_nums);
+    std::vector<int> nozzle_volume_types = wxGetApp().preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values;
+    for (size_t i = 0; i < nozzle_volume_types.size(); ++i) {
+        extruder_infos[i].nozzle_volue_type = nozzle_volume_types[i];
+    }
+
+    std::vector<std::map<int, int>> extruder_ams_counts = wxGetApp().preset_bundle->extruder_ams_counts;
+    for (size_t i = 0; i < extruder_ams_counts.size(); ++i) {
+        for (auto iter = extruder_ams_counts[i].begin(); iter != extruder_ams_counts[i].end(); ++iter){
+            if (iter->first == 4)
+                extruder_infos[i].ams_4 = iter->second;
+            if (iter->first == 1)
+                extruder_infos[i].ams_1 = iter->second;
+        }
+    }
+
+    if (extruder_nums == 1) {
+        double value = 0.0;
+        single_extruder->diameter.ToDouble(&value);
+        extruder_infos[0].diameter = float(value);
+    }
+    else if(extruder_nums == 2){
+        double value = 0.0;
+        left_extruder->diameter.ToDouble(&value);
+        extruder_infos[0].diameter = float(value);
+
+        value = 0.0;
+        right_extruder->diameter.ToDouble(&value);
+        extruder_infos[1].diameter = float(value);
+    }
+
+    std::vector<ExtruderInfo> machine_extruder_infos(obj->m_extder_data.extders.size());
+    for (const Extder &extruder : obj->m_extder_data.extders) {
+        machine_extruder_infos[extruder.id].nozzle_volue_type = int(extruder.current_nozzle_flow_type) - 1;
+        machine_extruder_infos[extruder.id].diameter          = extruder.current_nozzle_diameter;
+    }
+    for (auto &item : obj->amsList) {
+        if (item.second->type == 4) { // N3S
+            machine_extruder_infos[item.second->nozzle].ams_1++;
+        } else {
+            machine_extruder_infos[item.second->nozzle].ams_4++;
+        }
+    }
+
+    std::reverse(machine_extruder_infos.begin(), machine_extruder_infos.end());
+
+    if (extruder_nums == 1) {
+        if (extruder_infos == machine_extruder_infos)
+            single_extruder->ShowBadge(true);
+        else
+            single_extruder->ShowBadge(false);
+    }
+    else if (extruder_nums == 2) {
+        if (extruder_infos[0] == machine_extruder_infos[0])
+            left_extruder->ShowBadge(true);
+        else
+            left_extruder->ShowBadge(false);
+
+        if (extruder_infos[1] == machine_extruder_infos[1])
+            right_extruder->ShowBadge(true);
+        else
+            right_extruder->ShowBadge(false);
+    }
 }
 
 #define PRINTER_THUMBNAIL_SIZE (wxSize(FromDIP(48), FromDIP(48)))
@@ -1245,7 +1371,6 @@ Sidebar::Sidebar(Plater *parent)
         p->panel_printer_preset->SetCornerRadius(8);
         p->panel_printer_preset->SetBorderColor(wxColour("#CECECE"));
         p->panel_printer_preset->SetMinSize(PRINTER_PANEL_SIZE_SMALL);
-        p->panel_printer_preset->ShowBadge(true);
 
         ScalableButton *edit_btn = new ScalableButton(p->panel_printer_preset, wxID_ANY, "dot");
         edit_btn->SetToolTip(_L("Click to edit preset"));
@@ -1287,7 +1412,6 @@ Sidebar::Sidebar(Plater *parent)
         p->panel_printer_bed->SetCornerRadius(8);
         p->panel_printer_bed->SetBorderColor(wxColour("#CECECE"));
         p->panel_printer_bed->SetMinSize(PRINTER_PANEL_SIZE_SMALL);
-        p->panel_printer_bed->ShowBadge(true);
 
         ScalableButton *wiki_bed = new ScalableButton(p->panel_printer_bed, wxID_ANY, "dot");
         wiki_bed->Bind(wxEVT_BUTTON, [](wxCommandEvent) {
@@ -1673,7 +1797,6 @@ void Sidebar::create_printer_preset()
 void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filament_idx)
 {
     *combo = new PlaterPresetComboBox(p->m_panel_filament_content, Slic3r::Preset::TYPE_FILAMENT);
-    (*combo)->ShowBadge(true);
     (*combo)->set_filament_idx(filament_idx);
 
     auto combo_and_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -1981,6 +2104,9 @@ void Sidebar::update_presets(Preset::Type preset_type)
             update_extruder_variant(*p->single_extruder, 0);
             update_extruder_diameter(*p->single_extruder);
         }
+
+        if (GUI::wxGetApp().plater())
+            GUI::wxGetApp().plater()->update_machine_sync_status();
 
         Layout();
 
@@ -2462,6 +2588,11 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
 void Sidebar::sync_extruder_list()
 {
     p->sync_extruder_list();
+}
+
+void Sidebar::update_sync_status(const MachineObject *obj)
+{
+    p->update_sync_status(obj);
 }
 
 bool Sidebar::should_sync_extruder_list(MachineObject *obj)
@@ -15567,6 +15698,11 @@ void Plater::post_process_string_object_exception(StringObjectException &err)
     return;
 }
 
+void Plater::update_objects_position_when_select_preset(const std::function<void()> &select_prest)
+{
+    p->update_objects_position_when_select_preset(select_prest);
+}
+
 bool Plater::check_ams_status()
 {
     if (m_check_status == 0) {
@@ -15580,6 +15716,17 @@ bool Plater::check_ams_status()
     }
 
     return true;
+}
+
+void Plater::update_machine_sync_status()
+{
+    DeviceManager *dev_maneger = wxGetApp().getDeviceManager();
+    if (!dev_maneger) {
+        GUI::wxGetApp().sidebar().update_sync_status(nullptr);
+        return;
+    }
+    MachineObject *obj = wxGetApp().getDeviceManager()->get_selected_machine();
+    GUI::wxGetApp().sidebar().update_sync_status(obj);
 }
 
 #if ENABLE_ENVIRONMENT_MAP
