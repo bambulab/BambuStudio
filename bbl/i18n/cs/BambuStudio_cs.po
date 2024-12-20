@@ -2,12 +2,12 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-16 10:08+0800\n"
+"POT-Creation-Date: 2024-12-20 16:25+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -1224,8 +1224,8 @@ msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr "Připojení %s selhalo! [SN:%s, kód=%s]"
 
 msgid ""
-"BambuStudio configuration file may be corrupted and is not able to be parsed."
-"Please delete the file and try again."
+"BambuStudio configuration file may be corrupted and is not able to be "
+"parsed.Please delete the file and try again."
 msgstr ""
 
 #, c-format, boost-format
@@ -2361,8 +2361,8 @@ msgstr "Úspěšně odesláno. Automaticky přejde na stránku zařízení v %ss
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
 msgstr "Úspěšně odesláno. Automaticky přejde na další stránku za %ss"
 
-msgid "An SD card needs to be inserted before printing via LAN."
-msgstr "Před tiskem přes LAN je třeba vložit SD kartu."
+msgid "Storage needs to be inserted before printing via LAN."
+msgstr ""
 
 msgid "Sending gcode file over LAN"
 msgstr "Odesílání souboru gcode přes LAN"
@@ -2374,8 +2374,8 @@ msgstr "Odesílání souboru gcode na sdcard"
 msgid "Successfully sent. Close current page in %s s"
 msgstr "Úspěšně odesláno. Zavřít aktuální stránku za %s s"
 
-msgid "An SD card needs to be inserted before sending to printer."
-msgstr "Před odesláním do tiskárny je třeba vložit SD kartu."
+msgid "Storage needs to be inserted before sending to printer."
+msgstr ""
 
 msgid "Choose SLA archive:"
 msgstr "Vyberte SLA archiv:"
@@ -2584,8 +2584,9 @@ msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr ""
 
 msgid ""
-"There are unset nozzle types. Please set the nozzle types of all extruders "
-"before synchronizing."
+"The nozzle flow is not set. Please set the nozzle flow rate before editing "
+"the filament.\n"
+"'Device -> Print parts'"
 msgstr ""
 
 msgid "AMS"
@@ -3051,9 +3052,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe temperature,"
-"it may result in material softening and clogging.The maximum safe "
-"temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe "
+"temperature,it may result in material softening and clogging.The maximum "
+"safe temperature for the material is %d"
 msgstr ""
 
 msgid ""
@@ -4660,19 +4661,19 @@ msgid "Load failed"
 msgstr ""
 
 msgid ""
-"Browsing file in SD card is not supported in current firmware. Please update "
+"Browsing file in storage is not supported in current firmware. Please update "
 "the printer firmware."
 msgstr ""
 
 msgid ""
-"Please check if the SD card is inserted into the printer.\n"
-"If it still cannot be read, you can try formatting the SD card."
+"Please check if the storage is inserted into the printer.\n"
+"If it still cannot be read, you can try formatting the storage."
 msgstr ""
 
 msgid "LAN Connection Failed (Failed to view sdcard)"
 msgstr ""
 
-msgid "Browsing file in SD card is not supported in LAN Only Mode."
+msgid "Browsing file in storage is not supported in LAN Only Mode."
 msgstr ""
 
 #, c-format, boost-format
@@ -4962,8 +4963,8 @@ msgstr "Sport"
 msgid "Ludicrous"
 msgstr "Směšné"
 
-msgid "Can't start this without SD card."
-msgstr "Nelze to spustit bez SD karty."
+msgid "Can't start this without storage."
+msgstr ""
 
 msgid "Rate the Print Profile"
 msgstr ""
@@ -5478,6 +5479,11 @@ msgid ""
 "The currently selected machine preset is inconsistent with the connected "
 "printer type.\n"
 "Are you sure to continue syncing?"
+msgstr ""
+
+msgid ""
+"There are unset nozzle types. Please set the nozzle types of all extruders "
+"before synchronizing."
 msgstr ""
 
 msgid "Click to edit preset"
@@ -6100,6 +6106,30 @@ msgid ""
 msgstr ""
 
 msgid "Not available"
+msgstr ""
+
+msgid "isometric"
+msgstr ""
+
+msgid "top_front"
+msgstr ""
+
+msgid "left"
+msgstr ""
+
+msgid "right"
+msgstr ""
+
+msgid "top"
+msgstr ""
+
+msgid "bottom"
+msgstr ""
+
+msgid "front"
+msgstr ""
+
+msgid "rear"
 msgstr ""
 
 msgid "The current project has unsaved changes, save it before continuing?"
@@ -6864,14 +6894,20 @@ msgstr ""
 "Filament se neshoduje s filamentem ve slotu AMS. Aktualizujte prosím "
 "tiskárnu firmware pro podporu přiřazení slotu AMS."
 
+msgid "Storage is not available or is in read-only mode."
+msgstr ""
+
+msgid "External storage is not available or is in read-only mode."
+msgstr ""
+
 msgid ""
 "The printer firmware only supports sequential mapping of filament => AMS "
 "slot."
 msgstr ""
 "Firmware tiskárny podporuje pouze sekvenční mapování filamentu => AMS slot."
 
-msgid "An SD card needs to be inserted before printing."
-msgstr "Před tiskem je třeba vložit SD kartu."
+msgid "Storage needs to be inserted before printing."
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -6879,8 +6915,8 @@ msgid ""
 "the slicer (%s)."
 msgstr ""
 
-msgid "An SD card needs to be inserted to record timelapse."
-msgstr "Pro záznam časosběru je třeba vložit SD kartu."
+msgid "Storage needs to be inserted to record timelapse."
+msgstr ""
 
 msgid ""
 "Cannot send the print job to a printer whose firmware is required to get "
@@ -6988,8 +7024,8 @@ msgstr ""
 msgid "Cool(Supertack)"
 msgstr ""
 
-msgid "Send to Printer SD card"
-msgstr "Odeslat do tiskárny SD kartu"
+msgid "Send to Printer storage"
+msgstr ""
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr ""
@@ -7009,14 +7045,14 @@ msgid "The selected printer is incompatible with the chosen printer presets."
 msgstr ""
 "Vybraná tiskárna není kompatibilní s vybranými přednastaveními tiskárny."
 
-msgid "An SD card needs to be inserted before send to printer SD card."
-msgstr "Před odesláním na SD kartu do tiskárny je třeba vložit SD kartu."
+msgid "Storage needs to be inserted before send to printer."
+msgstr ""
 
 msgid "The printer is required to be in the same LAN as Bambu Studio."
 msgstr "Tiskárna musí být ve stejné síti LAN jako Bambu Studio."
 
-msgid "The printer does not support sending to printer SD card."
-msgstr "Tiskárna nepodporuje odesílání na SD kartu tiskárny."
+msgid "The printer does not support sending to printer storage."
+msgstr ""
 
 msgid "Slice ok."
 msgstr "Slicování Dokončeno."
@@ -7857,6 +7893,9 @@ msgid "The color count should be in range [%d, %d]."
 msgstr ""
 
 msgid "Recommended "
+msgstr ""
+
+msgid "Choose camera view angle:"
 msgstr ""
 
 msgid "Current filament colors:"
@@ -8799,8 +8838,8 @@ msgid ""
 "Slic3r can upload G-code files to a printer host. This field should contain "
 "the hostname, IP address or URL of the printer host instance. Print host "
 "behind HAProxy with basic auth enabled can be accessed by putting the user "
-"name and password into the URL in the following format: https://username:"
-"password@your-octopi-address/"
+"name and password into the URL in the following format: https://"
+"username:password@your-octopi-address/"
 msgstr ""
 "Slic3r může nahrávat G-kódy do tiskového serveru. Toto pole by mělo "
 "obsahovat název hostitele, IP adresu nebo URL  tiskového serveru. K  "
@@ -9041,10 +9080,10 @@ msgstr ""
 
 #, c-format
 msgid ""
-"Decide which overhang part join the cooling function to slow down the speed."
-"Expressed as percentage which indicides how much width of the line without "
-"support from lower layer. 100% means forcing cooling for all outer wall no "
-"matter how much overhang degree"
+"Decide which overhang part join the cooling function to slow down the "
+"speed.Expressed as percentage which indicides how much width of the line "
+"without support from lower layer. 100% means forcing cooling for all outer "
+"wall no matter how much overhang degree"
 msgstr ""
 
 msgid "Bridge direction"
@@ -9806,8 +9845,8 @@ msgstr ""
 "Zrychlení vnitřních stěn. 0 znamená použití běžného tiskového zrychlení"
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage (e."
-"g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage "
+"(e.g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 "Zrychlení vnitřní výplně. Pokud je hodnota vyjádřena v procentech (např. 100 "
 "%), bude vypočítána na základě výchozího zrychlení."
@@ -11588,8 +11627,8 @@ msgstr "Nahraný soubor nemohl být načten, protože je prázdný"
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
 msgstr ""
-"Neznámý formát souboru. Vstupní soubor musí mít příponu .stl, .obj nebo ."
-"amf(.xml)"
+"Neznámý formát souboru. Vstupní soubor musí mít příponu .stl, .obj "
+"nebo .amf(.xml)"
 
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
@@ -12912,8 +12951,8 @@ msgid "nozzle size memorized: %d"
 msgstr ""
 
 msgid ""
-"The size of nozzle type in preset is not consistent with memorized nozzle."
-"Did you change your nozzle lately ? "
+"The size of nozzle type in preset is not consistent with memorized "
+"nozzle.Did you change your nozzle lately ? "
 msgstr ""
 
 #, c-format, boost-format
@@ -12940,12 +12979,6 @@ msgid "The start, end or step is not valid value."
 msgstr ""
 
 msgid "The selected diameter is inconsistent with the printer diameter."
-msgstr ""
-
-msgid "left"
-msgstr ""
-
-msgid "right"
 msgstr ""
 
 msgid ""
@@ -13756,6 +13789,30 @@ msgid ""
 "probability of warping."
 msgstr ""
 
+#~ msgid "An SD card needs to be inserted before printing via LAN."
+#~ msgstr "Před tiskem přes LAN je třeba vložit SD kartu."
+
+#~ msgid "An SD card needs to be inserted before sending to printer."
+#~ msgstr "Před odesláním do tiskárny je třeba vložit SD kartu."
+
+#~ msgid "Can't start this without SD card."
+#~ msgstr "Nelze to spustit bez SD karty."
+
+#~ msgid "An SD card needs to be inserted before printing."
+#~ msgstr "Před tiskem je třeba vložit SD kartu."
+
+#~ msgid "An SD card needs to be inserted to record timelapse."
+#~ msgstr "Pro záznam časosběru je třeba vložit SD kartu."
+
+#~ msgid "Send to Printer SD card"
+#~ msgstr "Odeslat do tiskárny SD kartu"
+
+#~ msgid "An SD card needs to be inserted before send to printer SD card."
+#~ msgstr "Před odesláním na SD kartu do tiskárny je třeba vložit SD kartu."
+
+#~ msgid "The printer does not support sending to printer SD card."
+#~ msgstr "Tiskárna nepodporuje odesílání na SD kartu tiskárny."
+
 #~ msgid "?"
 #~ msgstr "?"
 
@@ -14203,8 +14260,8 @@ msgstr ""
 #~ "BambuStudio configuration file may be corrupted and is not abled to be "
 #~ "parsed.Please delete the file and try again."
 #~ msgstr ""
-#~ "Konfigurační soubor BambuStudio může být poškozen a nelze jej analyzovat."
-#~ "Smažte soubor a zkuste to znovu."
+#~ "Konfigurační soubor BambuStudio může být poškozen a nelze jej "
+#~ "analyzovat.Smažte soubor a zkuste to znovu."
 
 #~ msgid ""
 #~ "You can keep the modifield presets to the new project, discard or save "
@@ -14889,8 +14946,8 @@ msgstr ""
 #~ msgstr "Úroveň ladění"
 
 #~ msgid ""
-#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-#~ "trace\n"
+#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
+#~ "5:trace\n"
 #~ msgstr ""
 #~ "Nastaví úroveň protokolování ladění. 0:fatal, 1:error, 2:warning, 3:info, "
 #~ "4:debug, 5:sledovat\n"

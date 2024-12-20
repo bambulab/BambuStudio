@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-16 10:08+0800\n"
+"POT-Creation-Date: 2024-12-20 16:25+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1211,8 +1211,8 @@ msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr ""
 
 msgid ""
-"BambuStudio configuration file may be corrupted and is not able to be parsed."
-"Please delete the file and try again."
+"BambuStudio configuration file may be corrupted and is not able to be "
+"parsed.Please delete the file and try again."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -2309,7 +2309,7 @@ msgstr ""
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
 msgstr ""
 
-msgid "An SD card needs to be inserted before printing via LAN."
+msgid "Storage needs to be inserted before printing via LAN."
 msgstr ""
 
 msgid "Sending gcode file over LAN"
@@ -2322,7 +2322,7 @@ msgstr ""
 msgid "Successfully sent. Close current page in %s s"
 msgstr ""
 
-msgid "An SD card needs to be inserted before sending to printer."
+msgid "Storage needs to be inserted before sending to printer."
 msgstr ""
 
 msgid "Choose SLA archive:"
@@ -2512,8 +2512,9 @@ msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr ""
 
 msgid ""
-"There are unset nozzle types. Please set the nozzle types of all extruders "
-"before synchronizing."
+"The nozzle flow is not set. Please set the nozzle flow rate before editing "
+"the filament.\n"
+"'Device -> Print parts'"
 msgstr ""
 
 msgid "AMS"
@@ -2937,9 +2938,9 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe temperature,"
-"it may result in material softening and clogging.The maximum safe "
-"temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe "
+"temperature,it may result in material softening and clogging.The maximum "
+"safe temperature for the material is %d"
 msgstr ""
 
 msgid ""
@@ -4481,19 +4482,19 @@ msgid "Load failed"
 msgstr ""
 
 msgid ""
-"Browsing file in SD card is not supported in current firmware. Please update "
+"Browsing file in storage is not supported in current firmware. Please update "
 "the printer firmware."
 msgstr ""
 
 msgid ""
-"Please check if the SD card is inserted into the printer.\n"
-"If it still cannot be read, you can try formatting the SD card."
+"Please check if the storage is inserted into the printer.\n"
+"If it still cannot be read, you can try formatting the storage."
 msgstr ""
 
 msgid "LAN Connection Failed (Failed to view sdcard)"
 msgstr ""
 
-msgid "Browsing file in SD card is not supported in LAN Only Mode."
+msgid "Browsing file in storage is not supported in LAN Only Mode."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -4778,7 +4779,7 @@ msgstr ""
 msgid "Ludicrous"
 msgstr ""
 
-msgid "Can't start this without SD card."
+msgid "Can't start this without storage."
 msgstr ""
 
 msgid "Rate the Print Profile"
@@ -5286,6 +5287,11 @@ msgid ""
 "The currently selected machine preset is inconsistent with the connected "
 "printer type.\n"
 "Are you sure to continue syncing?"
+msgstr ""
+
+msgid ""
+"There are unset nozzle types. Please set the nozzle types of all extruders "
+"before synchronizing."
 msgstr ""
 
 msgid "Click to edit preset"
@@ -5869,6 +5875,30 @@ msgid ""
 msgstr ""
 
 msgid "Not available"
+msgstr ""
+
+msgid "isometric"
+msgstr ""
+
+msgid "top_front"
+msgstr ""
+
+msgid "left"
+msgstr ""
+
+msgid "right"
+msgstr ""
+
+msgid "top"
+msgstr ""
+
+msgid "bottom"
+msgstr ""
+
+msgid "front"
+msgstr ""
+
+msgid "rear"
 msgstr ""
 
 msgid "The current project has unsaved changes, save it before continuing?"
@@ -6618,12 +6648,18 @@ msgid ""
 "firmware to support AMS slot assignment."
 msgstr ""
 
+msgid "Storage is not available or is in read-only mode."
+msgstr ""
+
+msgid "External storage is not available or is in read-only mode."
+msgstr ""
+
 msgid ""
 "The printer firmware only supports sequential mapping of filament => AMS "
 "slot."
 msgstr ""
 
-msgid "An SD card needs to be inserted before printing."
+msgid "Storage needs to be inserted before printing."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -6632,7 +6668,7 @@ msgid ""
 "the slicer (%s)."
 msgstr ""
 
-msgid "An SD card needs to be inserted to record timelapse."
+msgid "Storage needs to be inserted to record timelapse."
 msgstr ""
 
 msgid ""
@@ -6733,7 +6769,7 @@ msgstr ""
 msgid "Cool(Supertack)"
 msgstr ""
 
-msgid "Send to Printer SD card"
+msgid "Send to Printer storage"
 msgstr ""
 
 msgid "Upload file timeout, please check if the firmware version supports it."
@@ -6753,13 +6789,13 @@ msgstr ""
 msgid "The selected printer is incompatible with the chosen printer presets."
 msgstr ""
 
-msgid "An SD card needs to be inserted before send to printer SD card."
+msgid "Storage needs to be inserted before send to printer."
 msgstr ""
 
 msgid "The printer is required to be in the same LAN as Bambu Studio."
 msgstr ""
 
-msgid "The printer does not support sending to printer SD card."
+msgid "The printer does not support sending to printer storage."
 msgstr ""
 
 msgid "Slice ok."
@@ -7540,6 +7576,9 @@ msgid "The color count should be in range [%d, %d]."
 msgstr ""
 
 msgid "Recommended "
+msgstr ""
+
+msgid "Choose camera view angle:"
 msgstr ""
 
 msgid "Current filament colors:"
@@ -8438,8 +8477,8 @@ msgid ""
 "Slic3r can upload G-code files to a printer host. This field should contain "
 "the hostname, IP address or URL of the printer host instance. Print host "
 "behind HAProxy with basic auth enabled can be accessed by putting the user "
-"name and password into the URL in the following format: https://username:"
-"password@your-octopi-address/"
+"name and password into the URL in the following format: https://"
+"username:password@your-octopi-address/"
 msgstr ""
 
 msgid "Device UI"
@@ -8640,10 +8679,10 @@ msgstr ""
 
 #, possible-c-format
 msgid ""
-"Decide which overhang part join the cooling function to slow down the speed."
-"Expressed as percentage which indicides how much width of the line without "
-"support from lower layer. 100% means forcing cooling for all outer wall no "
-"matter how much overhang degree"
+"Decide which overhang part join the cooling function to slow down the "
+"speed.Expressed as percentage which indicides how much width of the line "
+"without support from lower layer. 100% means forcing cooling for all outer "
+"wall no matter how much overhang degree"
 msgstr ""
 
 msgid "Bridge direction"
@@ -9346,8 +9385,8 @@ msgid "Acceleration of inner walls. 0 means using normal printing acceleration"
 msgstr ""
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage (e."
-"g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage "
+"(e.g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 
 msgid "mm/s² or %"
@@ -12184,8 +12223,8 @@ msgid "nozzle size memorized: %d"
 msgstr ""
 
 msgid ""
-"The size of nozzle type in preset is not consistent with memorized nozzle."
-"Did you change your nozzle lately ? "
+"The size of nozzle type in preset is not consistent with memorized "
+"nozzle.Did you change your nozzle lately ? "
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -12212,12 +12251,6 @@ msgid "The start, end or step is not valid value."
 msgstr ""
 
 msgid "The selected diameter is inconsistent with the printer diameter."
-msgstr ""
-
-msgid "left"
-msgstr ""
-
-msgid "right"
 msgstr ""
 
 msgid ""

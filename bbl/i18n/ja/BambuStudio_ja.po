@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-16 10:08+0800\n"
+"POT-Creation-Date: 2024-12-20 16:25+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1222,8 +1222,8 @@ msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr "%s を接続できませんでした　[SN: %s、code = %s]"
 
 msgid ""
-"BambuStudio configuration file may be corrupted and is not able to be parsed."
-"Please delete the file and try again."
+"BambuStudio configuration file may be corrupted and is not able to be "
+"parsed.Please delete the file and try again."
 msgstr ""
 "BambuStudio設定ファイルが破損し読み込めません。当該ファイルを削除してやり直し"
 "てください。"
@@ -2357,8 +2357,8 @@ msgstr "送信しました、%s秒後デバイスページへ移動します"
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
 msgstr "送信成功。 %ss 秒後に次ページに自動遷移します。"
 
-msgid "An SD card needs to be inserted before printing via LAN."
-msgstr "LAN経由の造形にはSDカードが挿入されている必要があります。"
+msgid "Storage needs to be inserted before printing via LAN."
+msgstr ""
 
 msgid "Sending gcode file over LAN"
 msgstr "LANでG-codeファイルを送信"
@@ -2370,8 +2370,8 @@ msgstr "G-codeファイルをSDカードに送信"
 msgid "Successfully sent. Close current page in %s s"
 msgstr "送信しました。このページは%s秒後に閉じます。"
 
-msgid "An SD card needs to be inserted before sending to printer."
-msgstr "プリンター送信にはSDカードが挿入されている必要があります。"
+msgid "Storage needs to be inserted before sending to printer."
+msgstr ""
 
 msgid "Choose SLA archive:"
 msgstr "SLAアーカイブを選択:"
@@ -2576,8 +2576,9 @@ msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr ""
 
 msgid ""
-"There are unset nozzle types. Please set the nozzle types of all extruders "
-"before synchronizing."
+"The nozzle flow is not set. Please set the nozzle flow rate before editing "
+"the filament.\n"
+"'Device -> Print parts'"
 msgstr ""
 
 msgid "AMS"
@@ -3037,9 +3038,9 @@ msgstr "値が小さすぎます、0.5に戻します"
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe temperature,"
-"it may result in material softening and clogging.The maximum safe "
-"temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe "
+"temperature,it may result in material softening and clogging.The maximum "
+"safe temperature for the material is %d"
 msgstr ""
 "チャンバー内の温度がマテリアルの安全温度を超えており、マテリアルの軟化やノズ"
 "ル詰まりの可能性があります。マテリアルの最大安全温度は%dです。"
@@ -4652,24 +4653,20 @@ msgid "Load failed"
 msgstr "Load failed"
 
 msgid ""
-"Browsing file in SD card is not supported in current firmware. Please update "
+"Browsing file in storage is not supported in current firmware. Please update "
 "the printer firmware."
 msgstr ""
-"Browsing file in SD card is not supported in current firmware. Please update "
-"the printer firmware."
 
 msgid ""
-"Please check if the SD card is inserted into the printer.\n"
-"If it still cannot be read, you can try formatting the SD card."
+"Please check if the storage is inserted into the printer.\n"
+"If it still cannot be read, you can try formatting the storage."
 msgstr ""
-"Please check if the Micro SD card is inserted into the printer.\n"
-"If it still cannot be read, you can try formatting the card."
 
 msgid "LAN Connection Failed (Failed to view sdcard)"
 msgstr "LAN Connection Failed (Failed to view sdcard)"
 
-msgid "Browsing file in SD card is not supported in LAN Only Mode."
-msgstr "Browsing file in SD card is not supported in LAN Only Mode."
+msgid "Browsing file in storage is not supported in LAN Only Mode."
+msgstr ""
 
 #, c-format, boost-format
 msgid "You are going to delete %u file from printer. Are you sure to continue?"
@@ -4966,8 +4963,8 @@ msgstr "スポーツ"
 msgid "Ludicrous"
 msgstr "超高速"
 
-msgid "Can't start this without SD card."
-msgstr "起動するのにSDカードが必要です。"
+msgid "Can't start this without storage."
+msgstr ""
 
 msgid "Rate the Print Profile"
 msgstr "Rate the Print Profile"
@@ -5490,6 +5487,11 @@ msgid ""
 "The currently selected machine preset is inconsistent with the connected "
 "printer type.\n"
 "Are you sure to continue syncing?"
+msgstr ""
+
+msgid ""
+"There are unset nozzle types. Please set the nozzle types of all extruders "
+"before synchronizing."
 msgstr ""
 
 msgid "Click to edit preset"
@@ -6120,6 +6122,30 @@ msgid ""
 msgstr ""
 
 msgid "Not available"
+msgstr ""
+
+msgid "isometric"
+msgstr ""
+
+msgid "top_front"
+msgstr ""
+
+msgid "left"
+msgstr ""
+
+msgid "right"
+msgstr ""
+
+msgid "top"
+msgstr ""
+
+msgid "bottom"
+msgstr ""
+
+msgid "front"
+msgstr ""
+
+msgid "rear"
 msgstr ""
 
 msgid "The current project has unsaved changes, save it before continuing?"
@@ -6889,13 +6915,19 @@ msgid ""
 "firmware to support AMS slot assignment."
 msgstr "フィラメントがAMSスロットのフィラメントと一致していません。"
 
+msgid "Storage is not available or is in read-only mode."
+msgstr ""
+
+msgid "External storage is not available or is in read-only mode."
+msgstr ""
+
 msgid ""
 "The printer firmware only supports sequential mapping of filament => AMS "
 "slot."
 msgstr "このプリンターはAMSスロットマッピングをサポートしません"
 
-msgid "An SD card needs to be inserted before printing."
-msgstr "SDカードが必要です"
+msgid "Storage needs to be inserted before printing."
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -6905,8 +6937,8 @@ msgstr ""
 "The selected printer (%s) is incompatible with the chosen printer profile in "
 "the slicer (%s)."
 
-msgid "An SD card needs to be inserted to record timelapse."
-msgstr "SDカードが必要です"
+msgid "Storage needs to be inserted to record timelapse."
+msgstr ""
 
 msgid ""
 "Cannot send the print job to a printer whose firmware is required to get "
@@ -7018,8 +7050,8 @@ msgstr ""
 msgid "Cool(Supertack)"
 msgstr ""
 
-msgid "Send to Printer SD card"
-msgstr "プリンターのSDカードに送信"
+msgid "Send to Printer storage"
+msgstr ""
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr ""
@@ -7040,15 +7072,15 @@ msgstr ""
 "選択されているプリンターは、指定したプリンタープリセットと互換性がありませ"
 "ん。"
 
-msgid "An SD card needs to be inserted before send to printer SD card."
-msgstr "プリンターに送信するには、SDカードが挿入されている必要があります。"
+msgid "Storage needs to be inserted before send to printer."
+msgstr ""
 
 msgid "The printer is required to be in the same LAN as Bambu Studio."
 msgstr ""
 "このプリンターを使用するには、Bambu Studioを同一のLANで使用してください。"
 
-msgid "The printer does not support sending to printer SD card."
-msgstr "このプリンターはSDカードに送信することができません"
+msgid "The printer does not support sending to printer storage."
+msgstr ""
 
 msgid "Slice ok."
 msgstr "スライス完了"
@@ -7907,6 +7939,9 @@ msgstr "The color count should be in range [%d, %d]."
 
 msgid "Recommended "
 msgstr "Recommended "
+
+msgid "Choose camera view angle:"
+msgstr ""
 
 msgid "Current filament colors:"
 msgstr "Current filament colors:"
@@ -8848,8 +8883,8 @@ msgid ""
 "Slic3r can upload G-code files to a printer host. This field should contain "
 "the hostname, IP address or URL of the printer host instance. Print host "
 "behind HAProxy with basic auth enabled can be accessed by putting the user "
-"name and password into the URL in the following format: https://username:"
-"password@your-octopi-address/"
+"name and password into the URL in the following format: https://"
+"username:password@your-octopi-address/"
 msgstr ""
 "ホスト名、IPアドレス、URLを入力してください。ユーザ名とパスワードがある場合、"
 "下記形式を参照してください https://username:password@your-octopi-address/"
@@ -9092,10 +9127,10 @@ msgstr ""
 
 #, c-format
 msgid ""
-"Decide which overhang part join the cooling function to slow down the speed."
-"Expressed as percentage which indicides how much width of the line without "
-"support from lower layer. 100% means forcing cooling for all outer wall no "
-"matter how much overhang degree"
+"Decide which overhang part join the cooling function to slow down the "
+"speed.Expressed as percentage which indicides how much width of the line "
+"without support from lower layer. 100% means forcing cooling for all outer "
+"wall no matter how much overhang degree"
 msgstr ""
 
 msgid "Bridge direction"
@@ -9868,11 +9903,11 @@ msgid "Acceleration of inner walls. 0 means using normal printing acceleration"
 msgstr "Acceleration of inner walls. 0 means normal printing acceleration."
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage (e."
-"g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage "
+"(e.g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
-"Acceleration of sparse infill. If the value is expressed as a percentage (e."
-"g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage "
+"(e.g. 100%), it will be calculated based on the default acceleration."
 
 msgid "mm/s² or %"
 msgstr "mm/s² or %"
@@ -13071,8 +13106,8 @@ msgid "nozzle size memorized: %d"
 msgstr ""
 
 msgid ""
-"The size of nozzle type in preset is not consistent with memorized nozzle."
-"Did you change your nozzle lately ? "
+"The size of nozzle type in preset is not consistent with memorized "
+"nozzle.Did you change your nozzle lately ? "
 msgstr ""
 
 #, c-format, boost-format
@@ -13101,12 +13136,6 @@ msgid "The start, end or step is not valid value."
 msgstr "The start, end or step is not valid value."
 
 msgid "The selected diameter is inconsistent with the printer diameter."
-msgstr ""
-
-msgid "left"
-msgstr ""
-
-msgid "right"
 msgstr ""
 
 msgid ""
@@ -14009,6 +14038,47 @@ msgstr ""
 "Did you know that when printing materials that are prone to warping such as "
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping?"
+
+#~ msgid "An SD card needs to be inserted before printing via LAN."
+#~ msgstr "LAN経由の造形にはSDカードが挿入されている必要があります。"
+
+#~ msgid "An SD card needs to be inserted before sending to printer."
+#~ msgstr "プリンター送信にはSDカードが挿入されている必要があります。"
+
+#~ msgid ""
+#~ "Browsing file in SD card is not supported in current firmware. Please "
+#~ "update the printer firmware."
+#~ msgstr ""
+#~ "Browsing file in SD card is not supported in current firmware. Please "
+#~ "update the printer firmware."
+
+#~ msgid ""
+#~ "Please check if the SD card is inserted into the printer.\n"
+#~ "If it still cannot be read, you can try formatting the SD card."
+#~ msgstr ""
+#~ "Please check if the Micro SD card is inserted into the printer.\n"
+#~ "If it still cannot be read, you can try formatting the card."
+
+#~ msgid "Browsing file in SD card is not supported in LAN Only Mode."
+#~ msgstr "Browsing file in SD card is not supported in LAN Only Mode."
+
+#~ msgid "Can't start this without SD card."
+#~ msgstr "起動するのにSDカードが必要です。"
+
+#~ msgid "An SD card needs to be inserted before printing."
+#~ msgstr "SDカードが必要です"
+
+#~ msgid "An SD card needs to be inserted to record timelapse."
+#~ msgstr "SDカードが必要です"
+
+#~ msgid "Send to Printer SD card"
+#~ msgstr "プリンターのSDカードに送信"
+
+#~ msgid "An SD card needs to be inserted before send to printer SD card."
+#~ msgstr "プリンターに送信するには、SDカードが挿入されている必要があります。"
+
+#~ msgid "The printer does not support sending to printer SD card."
+#~ msgstr "このプリンターはSDカードに送信することができません"
 
 #~ msgid "?"
 #~ msgstr "?"
@@ -16006,8 +16076,8 @@ msgstr ""
 #~ msgstr "ペンサイズを設定"
 
 #~ msgid ""
-#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-#~ "trace\n"
+#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
+#~ "5:trace\n"
 #~ msgstr ""
 #~ "デバッグロギングレベルを設定します。0:fatal、1:error、2:warning、3:info、"
 #~ "4:debug、5:trace。\n"
