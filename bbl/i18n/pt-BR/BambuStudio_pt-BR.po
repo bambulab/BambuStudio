@@ -1,12 +1,12 @@
 # Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-16 10:08+0800\n"
+"POT-Creation-Date: 2024-12-20 16:25+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1241,8 +1241,8 @@ msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr "Conectar%s fracassado! [SN:%s , código =%s ]"
 
 msgid ""
-"BambuStudio configuration file may be corrupted and is not able to be parsed."
-"Please delete the file and try again."
+"BambuStudio configuration file may be corrupted and is not able to be "
+"parsed.Please delete the file and try again."
 msgstr ""
 "O arquivo de configuração do BambuStudio não pode ser analisado e pode estar "
 "corrompido. Exclua o arquivo e tente novamente."
@@ -2403,8 +2403,8 @@ msgid "Successfully sent. Will automatically jump to the next page in %ss"
 msgstr ""
 "Enviado com sucesso. Saltará automaticamente para a próxima página em %s s"
 
-msgid "An SD card needs to be inserted before printing via LAN."
-msgstr "Um cartão microSD precisa ser inserido antes de imprimir via LAN."
+msgid "Storage needs to be inserted before printing via LAN."
+msgstr ""
 
 msgid "Sending gcode file over LAN"
 msgstr "Enviando arquivo gcode pela LAN"
@@ -2416,10 +2416,8 @@ msgstr "Enviando arquivo gcode para sdcard"
 msgid "Successfully sent. Close current page in %s s"
 msgstr "Enviado com sucesso. Fechar a página atual em %s s"
 
-msgid "An SD card needs to be inserted before sending to printer."
+msgid "Storage needs to be inserted before sending to printer."
 msgstr ""
-"Um cartão microSD precisa ser inserido antes de ser enviado para a "
-"impressora."
 
 msgid "Choose SLA archive:"
 msgstr "Escolha o arquivo SLA:"
@@ -2633,8 +2631,9 @@ msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr ""
 
 msgid ""
-"There are unset nozzle types. Please set the nozzle types of all extruders "
-"before synchronizing."
+"The nozzle flow is not set. Please set the nozzle flow rate before editing "
+"the filament.\n"
+"'Device -> Print parts'"
 msgstr ""
 
 msgid "AMS"
@@ -3128,9 +3127,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe temperature,"
-"it may result in material softening and clogging.The maximum safe "
-"temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe "
+"temperature,it may result in material softening and clogging.The maximum "
+"safe temperature for the material is %d"
 msgstr ""
 "A temperatura atual da câmara é superior à temperatura segura do material, o "
 "que pode resultar no amolecimento e entupimento do material. A temperatura "
@@ -4767,24 +4766,20 @@ msgid "Load failed"
 msgstr "Load failed"
 
 msgid ""
-"Browsing file in SD card is not supported in current firmware. Please update "
+"Browsing file in storage is not supported in current firmware. Please update "
 "the printer firmware."
 msgstr ""
-"Browsing file in SD card is not supported in current firmware. Please update "
-"the printer firmware."
 
 msgid ""
-"Please check if the SD card is inserted into the printer.\n"
-"If it still cannot be read, you can try formatting the SD card."
+"Please check if the storage is inserted into the printer.\n"
+"If it still cannot be read, you can try formatting the storage."
 msgstr ""
-"Verifique se o cartão SD está inserido na impressora.\n"
-"Se ainda não puder ser lido, tente formatar o cartão SD."
 
 msgid "LAN Connection Failed (Failed to view sdcard)"
 msgstr "LAN Connection Failed (Failed to view sdcard)"
 
-msgid "Browsing file in SD card is not supported in LAN Only Mode."
-msgstr "Browsing file in SD card is not supported in LAN Only Mode."
+msgid "Browsing file in storage is not supported in LAN Only Mode."
+msgstr ""
 
 #, c-format, boost-format
 msgid "You are going to delete %u file from printer. Are you sure to continue?"
@@ -5081,8 +5076,8 @@ msgstr "Esportivo"
 msgid "Ludicrous"
 msgstr "Ridículo"
 
-msgid "Can't start this without SD card."
-msgstr "Não consigo iniciar isso sem um cartão SD."
+msgid "Can't start this without storage."
+msgstr ""
 
 msgid "Rate the Print Profile"
 msgstr "Avalie o perfil de impressão"
@@ -5613,6 +5608,11 @@ msgid ""
 "The currently selected machine preset is inconsistent with the connected "
 "printer type.\n"
 "Are you sure to continue syncing?"
+msgstr ""
+
+msgid ""
+"There are unset nozzle types. Please set the nozzle types of all extruders "
+"before synchronizing."
 msgstr ""
 
 msgid "Click to edit preset"
@@ -6257,6 +6257,30 @@ msgid ""
 msgstr ""
 
 msgid "Not available"
+msgstr ""
+
+msgid "isometric"
+msgstr ""
+
+msgid "top_front"
+msgstr ""
+
+msgid "left"
+msgstr ""
+
+msgid "right"
+msgstr ""
+
+msgid "top"
+msgstr ""
+
+msgid "bottom"
+msgstr ""
+
+msgid "front"
+msgstr ""
+
+msgid "rear"
 msgstr ""
 
 msgid "The current project has unsaved changes, save it before continuing?"
@@ -7047,6 +7071,12 @@ msgstr ""
 "O filamento não corresponde ao filamento no slot AMS. Atualize o firmware da "
 "impressora para suportar a atribuição de slots AMS."
 
+msgid "Storage is not available or is in read-only mode."
+msgstr ""
+
+msgid "External storage is not available or is in read-only mode."
+msgstr ""
+
 msgid ""
 "The printer firmware only supports sequential mapping of filament => AMS "
 "slot."
@@ -7054,8 +7084,8 @@ msgstr ""
 "O firmware da impressora suporta apenas mapeamento sequencial do filamento "
 "=> slot AMS."
 
-msgid "An SD card needs to be inserted before printing."
-msgstr "Um cartão microSD precisa ser inserido antes da impressão."
+msgid "Storage needs to be inserted before printing."
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -7065,8 +7095,8 @@ msgstr ""
 "The selected printer (%s) is incompatible with the chosen printer profile in "
 "the slicer (%s)."
 
-msgid "An SD card needs to be inserted to record timelapse."
-msgstr "É necessário inserir um cartão SD para gravar o timelapse."
+msgid "Storage needs to be inserted to record timelapse."
+msgstr ""
 
 msgid ""
 "Cannot send the print job to a printer whose firmware is required to get "
@@ -7185,8 +7215,8 @@ msgstr ""
 msgid "Cool(Supertack)"
 msgstr ""
 
-msgid "Send to Printer SD card"
-msgstr "Enviar para a impressora cartão microSD"
+msgid "Send to Printer storage"
+msgstr ""
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr ""
@@ -7209,16 +7239,14 @@ msgstr ""
 "A impressora selecionada é incompatível com as predefinições de impressora "
 "escolhidas."
 
-msgid "An SD card needs to be inserted before send to printer SD card."
+msgid "Storage needs to be inserted before send to printer."
 msgstr ""
-"Um cartão SD precisa ser inserido antes de enviar para o cartão SD da "
-"impressora."
 
 msgid "The printer is required to be in the same LAN as Bambu Studio."
 msgstr "É necessário que a impressora esteja na mesma LAN do Bambu Studio."
 
-msgid "The printer does not support sending to printer SD card."
-msgstr "A impressora não suporta o envio para o cartão SD da impressora."
+msgid "The printer does not support sending to printer storage."
+msgstr ""
 
 msgid "Slice ok."
 msgstr "Fatiação ok."
@@ -8111,6 +8139,9 @@ msgstr "The color count should be in range [%d, %d]."
 
 msgid "Recommended "
 msgstr "Recommended "
+
+msgid "Choose camera view angle:"
+msgstr ""
 
 msgid "Current filament colors:"
 msgstr "Current filament colors:"
@@ -9085,8 +9116,8 @@ msgid ""
 "Slic3r can upload G-code files to a printer host. This field should contain "
 "the hostname, IP address or URL of the printer host instance. Print host "
 "behind HAProxy with basic auth enabled can be accessed by putting the user "
-"name and password into the URL in the following format: https://username:"
-"password@your-octopi-address/"
+"name and password into the URL in the following format: https://"
+"username:password@your-octopi-address/"
 msgstr ""
 "O Slic3r pode carregar arquivos de código G para um host de impressora. Esse "
 "campo deve conter o nome do host, endereço IP ou URL da instância do host da "
@@ -9346,10 +9377,10 @@ msgstr ""
 
 #, c-format
 msgid ""
-"Decide which overhang part join the cooling function to slow down the speed."
-"Expressed as percentage which indicides how much width of the line without "
-"support from lower layer. 100% means forcing cooling for all outer wall no "
-"matter how much overhang degree"
+"Decide which overhang part join the cooling function to slow down the "
+"speed.Expressed as percentage which indicides how much width of the line "
+"without support from lower layer. 100% means forcing cooling for all outer "
+"wall no matter how much overhang degree"
 msgstr ""
 
 msgid "Bridge direction"
@@ -10168,8 +10199,8 @@ msgstr ""
 "normal"
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage (e."
-"g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage "
+"(e.g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 "Aceleração do preenchimento esparso. Se o valor for expresso como uma "
 "porcentagem (por exemplo, 100%), ele será calculado com base na aceleração "
@@ -12077,8 +12108,8 @@ msgstr "O arquivo fornecido não pôde ser lido porque está vazio"
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
 msgstr ""
-"Formato de arquivo desconhecido. O arquivo de entrada deve ter a extensão."
-"stl, .obj, .amf (.xml)."
+"Formato de arquivo desconhecido. O arquivo de entrada deve ter a "
+"extensão.stl, .obj, .amf (.xml)."
 
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
@@ -13508,8 +13539,8 @@ msgid "nozzle size memorized: %d"
 msgstr ""
 
 msgid ""
-"The size of nozzle type in preset is not consistent with memorized nozzle."
-"Did you change your nozzle lately ? "
+"The size of nozzle type in preset is not consistent with memorized "
+"nozzle.Did you change your nozzle lately ? "
 msgstr ""
 
 #, c-format, boost-format
@@ -13538,12 +13569,6 @@ msgid "The start, end or step is not valid value."
 msgstr "O início, o fim ou a etapa não são valores válidos."
 
 msgid "The selected diameter is inconsistent with the printer diameter."
-msgstr ""
-
-msgid "left"
-msgstr ""
-
-msgid "right"
 msgstr ""
 
 msgid ""
@@ -14478,6 +14503,51 @@ msgstr ""
 "Você sabia que, ao imprimir materiais propensos a deformações, como o ABS, "
 "aumentar adequadamente a temperatura do leito térmico pode reduzir a "
 "probabilidade de deformação."
+
+#~ msgid "An SD card needs to be inserted before printing via LAN."
+#~ msgstr "Um cartão microSD precisa ser inserido antes de imprimir via LAN."
+
+#~ msgid "An SD card needs to be inserted before sending to printer."
+#~ msgstr ""
+#~ "Um cartão microSD precisa ser inserido antes de ser enviado para a "
+#~ "impressora."
+
+#~ msgid ""
+#~ "Browsing file in SD card is not supported in current firmware. Please "
+#~ "update the printer firmware."
+#~ msgstr ""
+#~ "Browsing file in SD card is not supported in current firmware. Please "
+#~ "update the printer firmware."
+
+#~ msgid ""
+#~ "Please check if the SD card is inserted into the printer.\n"
+#~ "If it still cannot be read, you can try formatting the SD card."
+#~ msgstr ""
+#~ "Verifique se o cartão SD está inserido na impressora.\n"
+#~ "Se ainda não puder ser lido, tente formatar o cartão SD."
+
+#~ msgid "Browsing file in SD card is not supported in LAN Only Mode."
+#~ msgstr "Browsing file in SD card is not supported in LAN Only Mode."
+
+#~ msgid "Can't start this without SD card."
+#~ msgstr "Não consigo iniciar isso sem um cartão SD."
+
+#~ msgid "An SD card needs to be inserted before printing."
+#~ msgstr "Um cartão microSD precisa ser inserido antes da impressão."
+
+#~ msgid "An SD card needs to be inserted to record timelapse."
+#~ msgstr "É necessário inserir um cartão SD para gravar o timelapse."
+
+#~ msgid "Send to Printer SD card"
+#~ msgstr "Enviar para a impressora cartão microSD"
+
+#~ msgid "An SD card needs to be inserted before send to printer SD card."
+#~ msgstr ""
+#~ "Um cartão SD precisa ser inserido antes de enviar para o cartão SD da "
+#~ "impressora."
+
+#~ msgid "The printer does not support sending to printer SD card."
+#~ msgstr "A impressora não suporta o envio para o cartão SD da impressora."
 
 #~ msgid "?"
 #~ msgstr "?"
@@ -16609,11 +16679,11 @@ msgstr ""
 #~ msgstr "Definir o tamanho da caneta"
 
 #~ msgid ""
-#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-#~ "trace\n"
+#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
+#~ "5:trace\n"
 #~ msgstr ""
-#~ "Define o nível de registro de depuração. 0:fatal, 1:error, 2:warning, 3:"
-#~ "info, 4:debug, 5:trace\n"
+#~ "Define o nível de registro de depuração. 0:fatal, 1:error, 2:warning, "
+#~ "3:info, 4:debug, 5:trace\n"
 
 #~ msgid "Share"
 #~ msgstr "Compartilhar"
