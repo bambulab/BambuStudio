@@ -1027,7 +1027,7 @@ msgstr "Mit dem Modell zusammenführen"
 
 #. TRN: Tooltip for the menu item.
 msgid "Bake into model as uneditable part"
-msgstr "Als nicht bearbeitbares Teil in das Modell einbrennen"
+msgstr "Als nicht bearbeitbares Teil mit dem Modell zusammenführen"
 
 msgid "Save as"
 msgstr "Sichern als"
