@@ -199,6 +199,7 @@ public:
     void                            update_soft_first_start_state() { m_soft_first_start = false; }
     void                            cancel_update_3d_state() { m_update_3d_state = false; }
     bool                            get_update_3d_state() { return m_update_3d_state; }
+    void                            update_printer_thumbnail();
 private:
     struct priv;
     std::unique_ptr<priv> p;
