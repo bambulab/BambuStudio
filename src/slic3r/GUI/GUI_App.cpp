@@ -4131,11 +4131,11 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 }
             }
             else if (command_str.compare("modelmall_model_advise_get") == 0) {
+                CallAfter([this] {
                 if (mainframe && this->app_config->get("staff_pick_switch") == "true") {
-                    if (mainframe->m_webview) {
-                            mainframe->m_webview->SendDesignStaffpick(has_model_mall());
-                    }
-                }
+                        if (mainframe->m_webview) { mainframe->m_webview->SendDesignStaffpick(has_model_mall()); }
+                    }                    
+                    });
             }
             else if (command_str.compare("modelmall_model_open") == 0) {
                 if (root.get_child_optional("data") != boost::none) {
@@ -4256,7 +4256,9 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 }
             }
             else if (command_str.compare("homepage_makerlab_get") == 0) {
+                CallAfter([this] {
                 if (mainframe && mainframe->m_webview) { mainframe->m_webview->SendMakerlabList(); }
+                    });                
             }
             else if (command_str.compare("homepage_makerlab_open") == 0) {
                 if (root.get_child_optional("url") != boost::none) {
@@ -4323,9 +4325,9 @@ std::string GUI_App::handle_web_request(std::string cmd)
             }
             else if (command_str.compare("homepage_printhistory_get")==0)
             {
-                if (mainframe && mainframe->m_webview) {
-                    mainframe->m_webview->ShowUserPrintTask(true);
-                }
+                CallAfter([this] {
+                    if (mainframe && mainframe->m_webview) { mainframe->m_webview->ShowUserPrintTask(true); }                    
+                    });
             }
             else if (command_str.compare("homepage_leftmenu_change_width") == 0) {
                 int NewWidth = 214;

@@ -279,8 +279,6 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
             SendDesignStaffpick(true);
         }
     });
-
-    SwitchWebContent("home");
  }
 
 WebViewPanel::~WebViewPanel()
@@ -1291,6 +1289,11 @@ void WebViewPanel::OnNavigationComplete(wxWebViewEvent& evt)
             SetWebviewShow("right", false);
             SetWebviewShow("online", true);
         }
+    }
+
+    if (m_browser != nullptr && evt.GetId() == m_browser->GetId()) 
+    { 
+        SwitchWebContent("home");
     }
 
     //m_browser->Show();
