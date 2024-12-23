@@ -300,6 +300,25 @@ void CalibrationFlowRateStartPage::on_reset_page()
 
 void CalibrationFlowRateStartPage::on_device_connected(MachineObject* obj)
 {
+    update(obj);
+}
+
+void CalibrationFlowRateStartPage::msw_rescale()
+{
+    CalibrationWizardPage::msw_rescale();
+    if (wxGetApp().app_config->get_language_code() == "zh-cn") {
+        create_bitmap(this, "cali_page_flow_introduction_CN");
+    } else {
+        create_bitmap(this, "cali_page_flow_introduction");
+    }
+}
+
+void CalibrationFlowRateStartPage::update(MachineObject *obj)
+{
+    if (!obj)
+        return;
+    curr_obj = obj;
+
     //enable all button
     m_action_panel->enable_button(CaliPageActionType::CALI_ACTION_MANAGE_RESULT, true);
     m_action_panel->enable_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, true);
@@ -330,16 +349,6 @@ void CalibrationFlowRateStartPage::on_device_connected(MachineObject* obj)
     bool is_support_flow_rate_auto = (obj->home_flag >> 15 & 1) == 1;
     if (!is_support_flow_rate_auto) {
         m_action_panel->show_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, false);
-    }
-}
-
-void CalibrationFlowRateStartPage::msw_rescale()
-{
-    CalibrationWizardPage::msw_rescale();
-    if (wxGetApp().app_config->get_language_code() == "zh-cn") {
-        create_bitmap(this, "cali_page_flow_introduction_CN");
-    } else {
-        create_bitmap(this, "cali_page_flow_introduction");
     }
 }
 
