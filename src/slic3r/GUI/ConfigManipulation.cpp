@@ -303,7 +303,8 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
             config->opt_int("enforce_support_layers") == 0 &&
             config->opt_bool("ensure_vertical_shell_thickness") &&
             !config->opt_bool("detect_thin_wall") &&
-            config->opt_enum<TimelapseType>("timelapse_type") == TimelapseType::tlTraditional))
+            config->opt_enum<TimelapseType>("timelapse_type") == TimelapseType::tlTraditional &&
+            !config->opt_bool("z_direction_outwall_speed_continuous")))
     {
         DynamicPrintConfig new_conf = *config;
         auto answer = show_spiral_mode_settings_dialog(is_object_config);
@@ -317,6 +318,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
             new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionBool(true));
             new_conf.set_key_value("detect_thin_wall", new ConfigOptionBool(false));
             new_conf.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
+            new_conf.set_key_value("z_direction_outwall_speed_continuous", new ConfigOptionBool(false));
             sparse_infill_density = 0;
             timelapse_type = TimelapseType::tlTraditional;
             support = false;
@@ -565,6 +567,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     bool has_spiral_vase         = config->opt_bool("spiral_mode");
     toggle_line("spiral_mode_smooth", has_spiral_vase);
     toggle_line("spiral_mode_max_xy_smoothing", config->opt_bool("spiral_mode_smooth"));
+    toggle_field("z_direction_outwall_speed_continuous", !has_spiral_vase);
     bool has_top_solid_infill 	 = config->opt_int("top_shell_layers") > 0;
     bool has_bottom_solid_infill = config->opt_int("bottom_shell_layers") > 0;
     bool has_solid_infill 		 = has_top_solid_infill || has_bottom_solid_infill;
@@ -811,7 +814,7 @@ void ConfigManipulation::toggle_print_sla_options(DynamicPrintConfig* config)
 
 int ConfigManipulation::show_spiral_mode_settings_dialog(bool is_object_config)
 {
-    wxString msg_text = _(L("Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0 and timelapse type is traditional."));
+    wxString msg_text = _(L("Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and Smoothing wall speed in z direction is false."));
     auto printer_structure_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
     if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3) {
         msg_text += _(L(" But machines with I3 structure will not generate timelapse videos."));
