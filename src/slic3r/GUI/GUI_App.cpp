@@ -4503,7 +4503,15 @@ void GUI_App::on_http_error(wxCommandEvent &evt)
             m_show_error_msgdlg = false;
             return;
         }
-
+    }
+    else if (status == 400 && code == HttpErrorCertRevoked) {
+        if (!m_show_error_msgdlg) {
+            MessageDialog msg_dlg(nullptr, _L("Your software certificate has been revoked, please update Bambu Studio software."), "", wxAPPLY | wxOK);
+            m_show_error_msgdlg = true;
+            auto modal_result = msg_dlg.ShowModal();
+            m_show_error_msgdlg = false;
+            return;
+        }
     }
 
     // request login
