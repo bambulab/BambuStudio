@@ -4195,12 +4195,12 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                     /*ams info*/
                                     if (it->contains("info")) {
                                         std::string info = (*it)["info"].get<std::string>();
-                                        type_id = get_flag_bits(info, 0, 3);
-                                        nozzle_id = get_flag_bits(info, 8, 3);
+                                        type_id = get_flag_bits(info, 0, 4);
+                                        nozzle_id = get_flag_bits(info, 8, 4);
                                     }
 
                                     /*AMS without initialization*/
-                                    if (nozzle_id == 0x0E) {
+                                    if (nozzle_id == 0xE) {
                                         continue;
                                     }
 
@@ -5595,7 +5595,6 @@ void MachineObject::parse_new_info(json print)
         upgrade_force_upgrade = get_flag_bits(cfg, 2);
         camera_recording_when_printing = get_flag_bits(cfg, 3);
         camera_resolution = get_flag_bits(cfg, 4) == 0 ? "720p" : "1080p";
-        //liveview_local                    = get_flag_bits(cfg, 5); todo zhanma
         camera_timelapse = get_flag_bits(cfg, 5);
         tutk_state = get_flag_bits(cfg, 6) == 1 ? "disable" : "";
         chamber_light = get_flag_bits(cfg, 7) == 1 ? LIGHT_EFFECT::LIGHT_EFFECT_ON : LIGHT_EFFECT::LIGHT_EFFECT_OFF;
@@ -5656,7 +5655,6 @@ void MachineObject::parse_new_info(json print)
     BOOST_LOG_TRIVIAL(info) << "new print data aux = " << aux;
 
     if (!aux.empty()) {
-        //ams_exist_bits = get_flag_bits(aux, 8, 3); //todo yangcong
          sdcard_state = MachineObject::SdcardState(get_flag_bits(aux, 12, 2));
     }
 
@@ -5666,7 +5664,6 @@ void MachineObject::parse_new_info(json print)
     BOOST_LOG_TRIVIAL(info) << "new print data stat = " << stat;
 
     if (!stat.empty()) {
-        //sdcard_state = get_flag_bits(aux, 12, 2); todo yangcong
         camera_recording = get_flag_bits(stat, 7);
     }
 
@@ -5716,12 +5713,12 @@ void MachineObject::parse_new_info(json print)
                     int range = (*it_part)["range"].get<int>();
 
                     AirParts part;
-                    part.type        = get_flag_bits((*it_part)["id"].get<int>(), 0, 3);
-                    part.id          = get_flag_bits((*it_part)["id"].get<int>(), 4, 12);
+                    part.type        = get_flag_bits((*it_part)["id"].get<int>(), 0, 4);
+                    part.id          = get_flag_bits((*it_part)["id"].get<int>(), 4, 9);
                     part.func        = (*it_part)["func"].get<int>();
                     part.state       = get_flag_bits(state, 0, 8);
-                    part.range_start = get_flag_bits(range, 0, 15);
-                    part.range_end   = get_flag_bits(range, 16, 15);
+                    part.range_start = get_flag_bits(range, 0, 16);
+                    part.range_end   = get_flag_bits(range, 16, 16);
 
                     m_air_duct_data.parts.push_back(part);
                 }
@@ -5733,29 +5730,23 @@ void MachineObject::parse_new_info(json print)
         }
 
         if (device.contains("bed_temp")) {
-            bed_temp        = get_flag_bits(device["bed_temp"].get<int>(), 0, 15);
-            bed_temp_target = get_flag_bits(device["bed_temp"].get<int>(), 16, 15);
+            bed_temp        = get_flag_bits(device["bed_temp"].get<int>(), 0, 16);
+            bed_temp_target = get_flag_bits(device["bed_temp"].get<int>(), 16, 16);
         }
 
         if (device.contains("cham_temp")) {
-            chamber_temp = get_flag_bits(device["cham_temp"].get<int>(), 0, 15);
-            chamber_temp_target = get_flag_bits(device["cham_temp"].get<int>(), 16, 15);
-        }
-
-        if (device.contains("fan")) {
-            big_fan1_speed = get_flag_bits(device["fan"].get<int>(), 0, 3);
-            big_fan2_speed = get_flag_bits(device["fan"].get<int>(), 4, 3);
-            cooling_fan_speed = get_flag_bits(device["fan"].get<int>(), 8, 3);
-            heatbreak_fan_speed = get_flag_bits(device["fan"].get<int>(), 12, 3);
+            chamber_temp = get_flag_bits(device["cham_temp"].get<int>(), 0, 16);
+            chamber_temp_target = get_flag_bits(device["cham_temp"].get<int>(), 16, 16);
         }
 
         if (device.contains("nozzle")) {
             json const &nozzle = device["nozzle"];
 
             m_nozzle_data = NozzleData();
-            m_nozzle_data.extder_exist      = get_flag_bits(nozzle["exist"].get<int>(), 0, 15);
-            m_nozzle_data.cut_exist         = get_flag_bits(nozzle["exist"].get<int>(), 16, 31);
-            m_nozzle_data.state             = get_flag_bits(nozzle["state"].get<int>(), 0, 3);
+
+            m_nozzle_data.extder_exist      = get_flag_bits(nozzle["exist"].get<int>(), 0, 16);
+            m_nozzle_data.cut_exist         = get_flag_bits(nozzle["exist"].get<int>(), 16, 16);
+            m_nozzle_data.state             = get_flag_bits(nozzle["state"].get<int>(), 0, 4);
 
             for (auto it = nozzle["info"].begin(); it != nozzle["info"].end(); it++) {
                 Nozzle nozzle_obj;
@@ -5800,18 +5791,18 @@ void MachineObject::parse_new_info(json print)
             json const& extruder = device["extruder"];
 
             auto extder_data = ExtderData();
-            extder_data.total_extder_count        = get_flag_bits(extruder["state"].get<int>(), 0, 3);
+            extder_data.total_extder_count        = get_flag_bits(extruder["state"].get<int>(), 0, 4);
 
 
-            extder_data.current_extder_id         = get_flag_bits(extruder["state"].get<int>(), 4, 3);
-            extder_data.target_extder_id          = get_flag_bits(extruder["state"].get<int>(), 8, 3);
-            extder_data.switch_extder_state       = (ExtruderSwitchState) get_flag_bits(extruder["state"].get<int>(), 12, 2);
+            extder_data.current_extder_id         = get_flag_bits(extruder["state"].get<int>(), 4, 4);
+            extder_data.target_extder_id          = get_flag_bits(extruder["state"].get<int>(), 8, 4);
+            extder_data.switch_extder_state       = (ExtruderSwitchState) get_flag_bits(extruder["state"].get<int>(), 12, 3);
 
             if (extder_data.switch_extder_state != ExtruderSwitchState::ES_SWITCHING && extder_data.target_extder_id == extder_data.current_extder_id) {
                 flag_update_nozzle = true;
             }
 
-            extder_data.current_loading_extder_id = get_flag_bits(extruder["state"].get<int>(), 15, 3);
+            extder_data.current_loading_extder_id = get_flag_bits(extruder["state"].get<int>(), 15, 4);
             extder_data.current_busy_for_loading  = get_flag_bits(extruder["state"].get<int>(), 19);
 
             for (auto it = extruder["info"].begin(); it != extruder["info"].end(); it++) {
@@ -5825,8 +5816,8 @@ void MachineObject::parse_new_info(json print)
                 extder_obj.ext_has_filament    = get_flag_bits(njon["info"].get<int>(), 1);
                 extder_obj.buffer_has_filament = get_flag_bits(njon["info"].get<int>(), 2);
                 extder_obj.nozzle_exist        = get_flag_bits(njon["info"].get<int>(), 3);
-                extder_obj.temp                = get_flag_bits(njon["temp"].get<int>(), 0, 15);
-                extder_obj.target_temp         = get_flag_bits(njon["temp"].get<int>(), 16, 15);
+                extder_obj.temp                = get_flag_bits(njon["temp"].get<int>(), 0, 16);
+                extder_obj.target_temp         = get_flag_bits(njon["temp"].get<int>(), 16, 16);
 
                 AmsSlot spre;
                 spre.slot_id  = std::to_string(get_flag_bits(njon["spre"].get<int>(), 0, 8));
@@ -5846,8 +5837,8 @@ void MachineObject::parse_new_info(json print)
                 extder_obj.spre      = spre;
                 extder_obj.snow      = snow;
                 extder_obj.star      = star;
-                extder_obj.ams_stat  = get_flag_bits(njon["stat"].get<int>(), 0, 15);
-                extder_obj.rfid_stat = get_flag_bits(njon["stat"].get<int>(), 16, 15);
+                extder_obj.ams_stat  = get_flag_bits(njon["stat"].get<int>(), 0, 16);
+                extder_obj.rfid_stat = get_flag_bits(njon["stat"].get<int>(), 16, 16);
 
                 //current nozzle info
                 if (extder_obj.nozzle_id == 0xff) {
