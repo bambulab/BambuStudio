@@ -4,11 +4,11 @@
 		"print": {
 			"2D": {
 				"laser": {
-					"power": [10, 40]
+					"power": [ 10, 40 ]
 				}
 			},
 			"ipcam": {
-				"resolution_supported": ["1080p"],
+				"resolution_supported": [ "1080p" ],
 				"virtual_camera": "enabled",
 				"liveview": {
 					"remote": "tutk"
@@ -19,6 +19,7 @@
 					"model_download": "enabled"
 				}
 			},
+			"nozzle_temp_range": [ 20, 350 ],
 			"support_motor_noise_cali": false,
 			"support_tunnel_mqtt": true,
 			"support_mqtt_alive": true,
@@ -48,7 +49,7 @@
 			"support_user_preset": false
 		},
 		"model_id": "O1D",
-		"printer_modes": ["fdm", "laser", "cut"],
+		"printer_modes": [ "fdm", "laser", "cut" ],
 		"compatible_machine": [],
 		"printer_type": "O1D",
 		"printer_thumbnail_image": "printer_thumbnail",
