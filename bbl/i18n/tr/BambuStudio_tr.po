@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-23 10:43+0800\n"
+"POT-Creation-Date: 2024-12-24 17:25+0800\n"
 "PO-Revision-Date: 2024-11-15 18:30+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -1334,6 +1334,22 @@ msgid ""
 msgstr ""
 "Bambu Studio sürümü bulut hizmetini etkinleştirmek için çok eski. Lütfen en "
 "son sürümü Bambu Lab web sitesinden indirin."
+
+msgid "Retrieving printer information, please try again later."
+msgstr ""
+
+msgid "Please try updating Bambu Studio and then try again."
+msgstr ""
+
+msgid ""
+"The certificate has expired. Please check the time settings or update Bambu "
+"Studio and try again."
+msgstr ""
+
+msgid ""
+"The certificate has been revoked. Please check the time settings or update "
+"Bambu Studio and try again."
+msgstr ""
 
 msgid "Privacy Policy Update"
 msgstr "Gizlilik Politikası Güncellemesi"
@@ -3395,12 +3411,8 @@ msgstr ""
 
 msgid ""
 "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
-"avoid extruder clogging,it is not allowed to set the chamber temperature "
-"above 45℃."
+"avoid extruder clogging,it is not allowed to set the chamber temperature."
 msgstr ""
-"Ekstrudere düşük sıcaklıkta filament (PLA / PETG / TPU) yüklendi. Ekstruder "
-"tıkanmasını önlemek için hazne sıcaklığının 45 ° C'nin üzerine ayarlanmasına "
-"izin verilmez."
 
 msgid ""
 "When you set the chamber temperature below 40℃, the chamber temperature "
@@ -5192,8 +5204,8 @@ msgstr ""
 "Daha küçük doğrusal ve açısal sapmalar daha yüksek kaliteli dönüşümlerle "
 "sonuçlanır ancak işlem süresini artırır."
 
-msgid "See BambuLab Wiki"
-msgstr "BambuLab Wiki'ye bakın"
+msgid "View Wiki for more information"
+msgstr "Daha fazla bilgi için Wiki'yi görüntüleyin"
 
 msgid "Linear Deflection"
 msgstr "Doğrusal Sapma"
@@ -5599,6 +5611,24 @@ msgid "Nozzle"
 msgstr "Nozul"
 
 msgid "Not installed"
+msgstr ""
+
+msgid ""
+"The software does not support using different diameter of nozzles for one  "
+"print. If the left and right nozzles are inconsistent, we can only proceed "
+"with single-head printing. Please confirm which nozzle you would like to use "
+"for this project."
+msgstr ""
+
+msgid "Switch diameter"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Left nozzle: %smm"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Right nozzle: %smm"
 msgstr ""
 
 msgid "Please select a printer in 'Device' page first."
@@ -6202,9 +6232,6 @@ msgid ""
 msgstr ""
 "Eski rengi temizlemek ve yumuşak renk geçişi sağlamak için filament değişimi "
 "sırasında basılan bir küp."
-
-msgid "View Wiki for more information"
-msgstr "Daha fazla bilgi için Wiki'yi görüntüleyin"
 
 #, boost-format
 msgid "Number of currently selected parts: %1%\n"
@@ -8161,6 +8188,9 @@ msgstr "Güncelleme mevcut değil."
 msgid "The configuration is up to date."
 msgstr "Yapılandırma güncel."
 
+msgid "Open Wiki for more information >"
+msgstr ""
+
 msgid "Obj file Import color"
 msgstr "Obj dosyası renkli olarak içe aktar"
 
@@ -8174,14 +8204,17 @@ msgstr "Renk sayısı aralıkta olmalıdır [%d, %d]."
 msgid "Recommended "
 msgstr "Tavsiye edilir "
 
-msgid "Choose camera view angle:"
+msgid "view"
 msgstr ""
 
-msgid "Current filament colors:"
-msgstr "Mevcut filament renkleri:"
+msgid "Current filament colors"
+msgstr ""
 
-msgid "Quick set:"
-msgstr "Hızlı ayar:"
+msgid "Matching"
+msgstr ""
+
+msgid "Quick set"
+msgstr ""
 
 msgid "Color match"
 msgstr "Renk uyumu"
@@ -8198,18 +8231,13 @@ msgstr "Mevcut ekstrüderlerden sonra yeni sarf malzemesi ekstrüderi ekleyin."
 msgid "Reset mapped extruders."
 msgstr "Eşlenmiş ekstrüderleri sıfırlayın."
 
-msgid "Cluster colors"
-msgstr "Küme renkleri"
-
-msgid "Map Filament"
-msgstr "Filamenti Eşle"
+msgid "Note"
+msgstr ""
 
 msgid ""
-"Note:The color has been selected, you can choose OK \n"
+"The color has been selected, you can choose OK \n"
 " to continue or manually adjust it."
 msgstr ""
-"Not: Renk seçildi, devam etmek için Tamam'ı seçebilirsiniz\n"
-" veya manuel olarak ayarlayabilirsiniz."
 
 msgid ""
 "Waring:The count of newly added and \n"
@@ -8217,6 +8245,9 @@ msgid ""
 msgstr ""
 "Uyarı: Yeni eklenen ve\n"
 " mevcut ekstrüderlerin sayısı 16'yı aşıyor."
+
+msgid "—> "
+msgstr ""
 
 msgid "Auto-Calc"
 msgstr "Otomatik Hesaplama"
@@ -9233,6 +9264,14 @@ msgstr ""
 "Dolambaçlı yoldan gidin ve yüzeyde lekeye neden olabilecek duvar boyunca "
 "ilerlemekten kaçının"
 
+msgid "Z direction outwall speed continuous"
+msgstr ""
+
+msgid ""
+"Smoothing outwall speed in z direction to get better surface quality. Print "
+"time will increases."
+msgstr ""
+
 msgid "Avoid crossing wall - Max detour length"
 msgstr "Duvarı geçmekten kaçının - maksimum servis yolu uzunluğu"
 
@@ -10056,6 +10095,12 @@ msgstr ""
 "Yalnızca çevre için kullanılan filament dikkate alınır.\n"
 "Bu telafi kontrollerden sonra yapıldığından, nesneler arasında yeterli "
 "boşluk bıraktığınızdan emin olun."
+
+msgid "Category"
+msgstr ""
+
+msgid "Filament category"
+msgstr ""
 
 msgid "Density"
 msgstr "Yoğunluk"
@@ -14584,6 +14629,37 @@ msgstr ""
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı "
 "sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını "
 "azaltabileceğini biliyor muydunuz."
+
+#~ msgid ""
+#~ "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order "
+#~ "to avoid extruder clogging,it is not allowed to set the chamber "
+#~ "temperature above 45℃."
+#~ msgstr ""
+#~ "Ekstrudere düşük sıcaklıkta filament (PLA / PETG / TPU) yüklendi. "
+#~ "Ekstruder tıkanmasını önlemek için hazne sıcaklığının 45 ° C'nin üzerine "
+#~ "ayarlanmasına izin verilmez."
+
+#~ msgid "See BambuLab Wiki"
+#~ msgstr "BambuLab Wiki'ye bakın"
+
+#~ msgid "Current filament colors:"
+#~ msgstr "Mevcut filament renkleri:"
+
+#~ msgid "Quick set:"
+#~ msgstr "Hızlı ayar:"
+
+#~ msgid "Cluster colors"
+#~ msgstr "Küme renkleri"
+
+#~ msgid "Map Filament"
+#~ msgstr "Filamenti Eşle"
+
+#~ msgid ""
+#~ "Note:The color has been selected, you can choose OK \n"
+#~ " to continue or manually adjust it."
+#~ msgstr ""
+#~ "Not: Renk seçildi, devam etmek için Tamam'ı seçebilirsiniz\n"
+#~ " veya manuel olarak ayarlayabilirsiniz."
 
 #~ msgid "Micro lidar calibration"
 #~ msgstr "Mikro lidar kalibrasyonu"

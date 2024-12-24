@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-23 10:43+0800\n"
+"POT-Creation-Date: 2024-12-24 17:25+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1317,6 +1317,22 @@ msgid ""
 msgstr ""
 "Bambu Studio 버전이 너무 오래되어 클라우드 서비스를 사용할 수 없습니다.Bambu "
 "Lab 웹사이트에서 최신 버전을 다운로드하세요."
+
+msgid "Retrieving printer information, please try again later."
+msgstr ""
+
+msgid "Please try updating Bambu Studio and then try again."
+msgstr ""
+
+msgid ""
+"The certificate has expired. Please check the time settings or update Bambu "
+"Studio and try again."
+msgstr ""
+
+msgid ""
+"The certificate has been revoked. Please check the time settings or update "
+"Bambu Studio and try again."
+msgstr ""
 
 msgid "Privacy Policy Update"
 msgstr "개인 정보 보호 정책 업데이트"
@@ -3329,8 +3345,7 @@ msgstr ""
 
 msgid ""
 "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
-"avoid extruder clogging,it is not allowed to set the chamber temperature "
-"above 45℃."
+"avoid extruder clogging,it is not allowed to set the chamber temperature."
 msgstr ""
 
 msgid ""
@@ -5093,7 +5108,7 @@ msgid ""
 "transformations but increase the processing time."
 msgstr ""
 
-msgid "See BambuLab Wiki"
+msgid "View Wiki for more information"
 msgstr ""
 
 msgid "Linear Deflection"
@@ -5488,6 +5503,24 @@ msgid "Nozzle"
 msgstr "노즐"
 
 msgid "Not installed"
+msgstr ""
+
+msgid ""
+"The software does not support using different diameter of nozzles for one  "
+"print. If the left and right nozzles are inconsistent, we can only proceed "
+"with single-head printing. Please confirm which nozzle you would like to use "
+"for this project."
+msgstr ""
+
+msgid "Switch diameter"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Left nozzle: %smm"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Right nozzle: %smm"
 msgstr ""
 
 msgid "Please select a printer in 'Device' page first."
@@ -6075,9 +6108,6 @@ msgstr ""
 msgid ""
 "A cube printed during a filament change to purge old color and ensure smooth "
 "color transition."
-msgstr ""
-
-msgid "View Wiki for more information"
 msgstr ""
 
 #, boost-format
@@ -7956,6 +7986,9 @@ msgstr "사용 가능한 업데이트가 없습니다."
 msgid "The configuration is up to date."
 msgstr "설정이 최신 상태입니다."
 
+msgid "Open Wiki for more information >"
+msgstr ""
+
 msgid "Obj file Import color"
 msgstr "Obj 파일 가져오기 색상"
 
@@ -7969,14 +8002,17 @@ msgstr "색상 개수는 [%d, %d] 범위 내에 있어야 합니다."
 msgid "Recommended "
 msgstr "추천"
 
-msgid "Choose camera view angle:"
+msgid "view"
 msgstr ""
 
-msgid "Current filament colors:"
-msgstr "현재 필라멘트 색상:"
+msgid "Current filament colors"
+msgstr ""
 
-msgid "Quick set:"
-msgstr "빠른 설정:"
+msgid "Matching"
+msgstr ""
+
+msgid "Quick set"
+msgstr ""
 
 msgid "Color match"
 msgstr "색상 일치"
@@ -7993,18 +8029,13 @@ msgstr "기존 압출기 뒤에 소모성 압출기를 추가합니다."
 msgid "Reset mapped extruders."
 msgstr "매핑된 압출기를 재설정합니다."
 
-msgid "Cluster colors"
-msgstr "클러스터 색상"
-
-msgid "Map Filament"
-msgstr "지도 필라멘트"
+msgid "Note"
+msgstr ""
 
 msgid ""
-"Note:The color has been selected, you can choose OK \n"
+"The color has been selected, you can choose OK \n"
 " to continue or manually adjust it."
 msgstr ""
-"참고: 색상이 선택되었습니다. 확인을 선택할 수 있습니다.\n"
-" 계속하거나 수동으로 조정하려면"
 
 msgid ""
 "Waring:The count of newly added and \n"
@@ -8012,6 +8043,9 @@ msgid ""
 msgstr ""
 "경고: 새로 추가된 개수와\n"
 " 현재 압출기는 16개를 초과합니다."
+
+msgid "—> "
+msgstr ""
 
 msgid "Auto-Calc"
 msgstr "자동 계산"
@@ -8998,6 +9032,14 @@ msgstr ""
 "표면에 얼룩이 생길 가능성을 피하기 위해 벽을 가로질러 이동하지 말고 우회하세"
 "요."
 
+msgid "Z direction outwall speed continuous"
+msgstr ""
+
+msgid ""
+"Smoothing outwall speed in z direction to get better surface quality. Print "
+"time will increases."
+msgstr ""
+
 msgid "Avoid crossing wall - Max detour length"
 msgstr "벽 가로지르기 회피 - 최대 우회 길이"
 
@@ -9785,6 +9827,12 @@ msgid ""
 "compensate. Only the filament used for the perimeter is taken into account.\n"
 "Be sure to allow enough space between objects, as this compensation is done "
 "after the checks."
+msgstr ""
+
+msgid "Category"
+msgstr ""
+
+msgid "Filament category"
 msgstr ""
 
 msgid "Density"
@@ -14126,6 +14174,25 @@ msgstr ""
 "뒤틀림 방지\n"
 "ABS 등 뒤틀림이 발생하기 쉬운 소재를 출력할 때, 히트베드 온도를 적절하게 높이"
 "면 뒤틀림 가능성을 줄일 수 있다는 사실을 알고 계셨나요?"
+
+#~ msgid "Current filament colors:"
+#~ msgstr "현재 필라멘트 색상:"
+
+#~ msgid "Quick set:"
+#~ msgstr "빠른 설정:"
+
+#~ msgid "Cluster colors"
+#~ msgstr "클러스터 색상"
+
+#~ msgid "Map Filament"
+#~ msgstr "지도 필라멘트"
+
+#~ msgid ""
+#~ "Note:The color has been selected, you can choose OK \n"
+#~ " to continue or manually adjust it."
+#~ msgstr ""
+#~ "참고: 색상이 선택되었습니다. 확인을 선택할 수 있습니다.\n"
+#~ " 계속하거나 수동으로 조정하려면"
 
 #~ msgid "Micro lidar calibration"
 #~ msgstr "라이다 센서 캘리브레이션"

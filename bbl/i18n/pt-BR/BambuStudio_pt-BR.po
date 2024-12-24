@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-23 10:43+0800\n"
+"POT-Creation-Date: 2024-12-24 17:25+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1331,6 +1331,22 @@ msgid ""
 msgstr ""
 "A versão do Bambu Studio é muito antiga para habilitar o serviço em nuvem. "
 "Faça o download da versão mais recente no site do Bambu Lab."
+
+msgid "Retrieving printer information, please try again later."
+msgstr ""
+
+msgid "Please try updating Bambu Studio and then try again."
+msgstr ""
+
+msgid ""
+"The certificate has expired. Please check the time settings or update Bambu "
+"Studio and try again."
+msgstr ""
+
+msgid ""
+"The certificate has been revoked. Please check the time settings or update "
+"Bambu Studio and try again."
+msgstr ""
 
 msgid "Privacy Policy Update"
 msgstr "Atualização da política de privacidade"
@@ -3416,12 +3432,8 @@ msgstr ""
 
 msgid ""
 "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
-"avoid extruder clogging,it is not allowed to set the chamber temperature "
-"above 45℃."
+"avoid extruder clogging,it is not allowed to set the chamber temperature."
 msgstr ""
-"Low temperature filament (PLA/PETG/TPU) is loaded in the extruder. In order "
-"to avoid extruder clogging, it is not allowed to set the chamber temperature "
-"above 45℃."
 
 msgid ""
 "When you set the chamber temperature below 40℃, the chamber temperature "
@@ -5191,7 +5203,7 @@ msgid ""
 "transformations but increase the processing time."
 msgstr ""
 
-msgid "See BambuLab Wiki"
+msgid "View Wiki for more information"
 msgstr ""
 
 msgid "Linear Deflection"
@@ -5593,6 +5605,24 @@ msgid "Nozzle"
 msgstr "Bico"
 
 msgid "Not installed"
+msgstr ""
+
+msgid ""
+"The software does not support using different diameter of nozzles for one  "
+"print. If the left and right nozzles are inconsistent, we can only proceed "
+"with single-head printing. Please confirm which nozzle you would like to use "
+"for this project."
+msgstr ""
+
+msgid "Switch diameter"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Left nozzle: %smm"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Right nozzle: %smm"
 msgstr ""
 
 msgid "Please select a printer in 'Device' page first."
@@ -6189,9 +6219,6 @@ msgstr ""
 msgid ""
 "A cube printed during a filament change to purge old color and ensure smooth "
 "color transition."
-msgstr ""
-
-msgid "View Wiki for more information"
 msgstr ""
 
 #, boost-format
@@ -8127,6 +8154,9 @@ msgstr "Nenhuma atualização disponível"
 msgid "The configuration is up to date."
 msgstr "A configuração está atualizada."
 
+msgid "Open Wiki for more information >"
+msgstr ""
+
 msgid "Obj file Import color"
 msgstr "Obj file Import color"
 
@@ -8140,14 +8170,17 @@ msgstr "The color count should be in range [%d, %d]."
 msgid "Recommended "
 msgstr "Recommended "
 
-msgid "Choose camera view angle:"
+msgid "view"
 msgstr ""
 
-msgid "Current filament colors:"
-msgstr "Current filament colors:"
+msgid "Current filament colors"
+msgstr ""
 
-msgid "Quick set:"
-msgstr "Quick set:"
+msgid "Matching"
+msgstr ""
+
+msgid "Quick set"
+msgstr ""
 
 msgid "Color match"
 msgstr "Color match"
@@ -8164,18 +8197,13 @@ msgstr "Add consumable extruder after existing extruders."
 msgid "Reset mapped extruders."
 msgstr "Reset mapped extruders."
 
-msgid "Cluster colors"
-msgstr "Cluster colors"
-
-msgid "Map Filament"
-msgstr "Map Filament"
+msgid "Note"
+msgstr ""
 
 msgid ""
-"Note:The color has been selected, you can choose OK \n"
+"The color has been selected, you can choose OK \n"
 " to continue or manually adjust it."
 msgstr ""
-"Note:The color has been selected, you can choose OK \n"
-" to continue or manually adjust it."
 
 msgid ""
 "Waring:The count of newly added and \n"
@@ -8183,6 +8211,9 @@ msgid ""
 msgstr ""
 "Warning: The count of newly added and \n"
 " current extruders exceeds 16."
+
+msgid "—> "
+msgstr ""
 
 msgid "Auto-Calc"
 msgstr "Cálculo automático"
@@ -9197,6 +9228,14 @@ msgstr ""
 "Desvie e evite atravessar paredes para evitar a possibilidade de criar "
 "bolhas nas superfícies"
 
+msgid "Z direction outwall speed continuous"
+msgstr ""
+
+msgid ""
+"Smoothing outwall speed in z direction to get better surface quality. Print "
+"time will increases."
+msgstr ""
+
 msgid "Avoid crossing wall - Max detour length"
 msgstr "Evite cruzar a parede - Comprimento máximo do desvio"
 
@@ -10019,6 +10058,12 @@ msgid ""
 "compensate. Only the filament used for the perimeter is taken into account.\n"
 "Be sure to allow enough space between objects, as this compensation is done "
 "after the checks."
+msgstr ""
+
+msgid "Category"
+msgstr ""
+
+msgid "Filament category"
 msgstr ""
 
 msgid "Density"
@@ -14503,6 +14548,34 @@ msgstr ""
 "Você sabia que, ao imprimir materiais propensos a deformações, como o ABS, "
 "aumentar adequadamente a temperatura do leito térmico pode reduzir a "
 "probabilidade de deformação."
+
+#~ msgid ""
+#~ "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order "
+#~ "to avoid extruder clogging,it is not allowed to set the chamber "
+#~ "temperature above 45℃."
+#~ msgstr ""
+#~ "Low temperature filament (PLA/PETG/TPU) is loaded in the extruder. In "
+#~ "order to avoid extruder clogging, it is not allowed to set the chamber "
+#~ "temperature above 45℃."
+
+#~ msgid "Current filament colors:"
+#~ msgstr "Current filament colors:"
+
+#~ msgid "Quick set:"
+#~ msgstr "Quick set:"
+
+#~ msgid "Cluster colors"
+#~ msgstr "Cluster colors"
+
+#~ msgid "Map Filament"
+#~ msgstr "Map Filament"
+
+#~ msgid ""
+#~ "Note:The color has been selected, you can choose OK \n"
+#~ " to continue or manually adjust it."
+#~ msgstr ""
+#~ "Note:The color has been selected, you can choose OK \n"
+#~ " to continue or manually adjust it."
 
 #~ msgid "Micro lidar calibration"
 #~ msgstr "Calibração micro lidar"

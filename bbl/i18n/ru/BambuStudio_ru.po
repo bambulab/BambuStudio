@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 1.10.1 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-23 10:43+0800\n"
+"POT-Creation-Date: 2024-12-24 17:25+0800\n"
 "PO-Revision-Date: 2024-09-27 23:58+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -1379,6 +1379,22 @@ msgid ""
 msgstr ""
 "Версия Bambu Studio слишком устарела для включения облачного сервиса. "
 "Пожалуйста, загрузите последнюю версию с сайта Bambu Lab."
+
+msgid "Retrieving printer information, please try again later."
+msgstr ""
+
+msgid "Please try updating Bambu Studio and then try again."
+msgstr ""
+
+msgid ""
+"The certificate has expired. Please check the time settings or update Bambu "
+"Studio and try again."
+msgstr ""
+
+msgid ""
+"The certificate has been revoked. Please check the time settings or update "
+"Bambu Studio and try again."
+msgstr ""
 
 msgid "Privacy Policy Update"
 msgstr "Обновление политики конфиденциальности"
@@ -3507,12 +3523,8 @@ msgstr ""
 
 msgid ""
 "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
-"avoid extruder clogging,it is not allowed to set the chamber temperature "
-"above 45℃."
+"avoid extruder clogging,it is not allowed to set the chamber temperature."
 msgstr ""
-"В экструдер загружается низкотемпературная пластиковая нить (PLA/PETG/TPU). "
-"Чтобы избежать засорения экструдера, запрещается устанавливать температуру "
-"внутри термокамеры выше 45℃."
 
 msgid ""
 "When you set the chamber temperature below 40℃, the chamber temperature "
@@ -5335,8 +5347,8 @@ msgstr ""
 "Меньшие значения линейного и углового отклонения приводят к более "
 "качественному преобразованию, но это занимает больше времени."
 
-msgid "See BambuLab Wiki"
-msgstr "Смотреть вики BambooLab"
+msgid "View Wiki for more information"
+msgstr "Дополнительную информацию можно найти в вики-сайте."
 
 msgid "Linear Deflection"
 msgstr "Линейное отклонение"
@@ -5748,6 +5760,24 @@ msgid "Nozzle"
 msgstr "Сопло"
 
 msgid "Not installed"
+msgstr ""
+
+msgid ""
+"The software does not support using different diameter of nozzles for one  "
+"print. If the left and right nozzles are inconsistent, we can only proceed "
+"with single-head printing. Please confirm which nozzle you would like to use "
+"for this project."
+msgstr ""
+
+msgid "Switch diameter"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Left nozzle: %smm"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Right nozzle: %smm"
 msgstr ""
 
 msgid "Please select a printer in 'Device' page first."
@@ -6365,9 +6395,6 @@ msgid ""
 msgstr ""
 "Куб, печатаемый во время смены прутка, чтобы очистить сопло от остатка "
 "предыдущего цвета/материала."
-
-msgid "View Wiki for more information"
-msgstr "Дополнительную информацию можно найти в вики-сайте."
 
 #, boost-format
 msgid "Number of currently selected parts: %1%\n"
@@ -8379,6 +8406,9 @@ msgstr "Обновления отсутствуют."
 msgid "The configuration is up to date."
 msgstr "Текущая конфигурация не требует обновления."
 
+msgid "Open Wiki for more information >"
+msgstr ""
+
 msgid "Obj file Import color"
 msgstr "Импорт цветного obj-файла"
 
@@ -8392,14 +8422,17 @@ msgstr "Количество цветов должно быть в диапаз�
 msgid "Recommended "
 msgstr "рекомендуется"
 
-msgid "Choose camera view angle:"
+msgid "view"
 msgstr ""
 
-msgid "Current filament colors:"
-msgstr "Текущие цвета прутков:"
+msgid "Current filament colors"
+msgstr ""
 
-msgid "Quick set:"
-msgstr "Быстрый выбор:"
+msgid "Matching"
+msgstr ""
+
+msgid "Quick set"
+msgstr ""
 
 # ??? Цветовая схема
 msgid "Color match"
@@ -8421,19 +8454,13 @@ msgstr ""
 msgid "Reset mapped extruders."
 msgstr "Сброс сопоставленных экструдеров."
 
-msgid "Cluster colors"
-msgstr "Цветовой кластер"
-
-# ??? Цвет прутка
-msgid "Map Filament"
-msgstr "Выбранные цвета"
+msgid "Note"
+msgstr ""
 
 msgid ""
-"Note:The color has been selected, you can choose OK \n"
+"The color has been selected, you can choose OK \n"
 " to continue or manually adjust it."
 msgstr ""
-"Примечание: цвета уже выбраны, вы можете нажать «OK» \n"
-" для продолжения или подобрать его вручную."
 
 msgid ""
 "Waring:The count of newly added and \n"
@@ -8441,6 +8468,9 @@ msgid ""
 msgstr ""
 "Предупреждение: количество новых \n"
 " и текущих экструдеров превышает 16."
+
+msgid "—> "
+msgstr ""
 
 msgid "Auto-Calc"
 msgstr "Авторасчёт"
@@ -9485,6 +9515,14 @@ msgstr ""
 "Объезжать и избегать пересечения периметров, для предотвращения образования "
 "дефектов на поверхности модели."
 
+msgid "Z direction outwall speed continuous"
+msgstr ""
+
+msgid ""
+"Smoothing outwall speed in z direction to get better surface quality. Print "
+"time will increases."
+msgstr ""
+
 msgid "Avoid crossing wall - Max detour length"
 msgstr "Максимальная длина обхода"
 
@@ -10354,6 +10392,12 @@ msgstr ""
 "периметра.\n"
 "Убедитесь, что между моделями достаточно места, так как эта компенсация "
 "выполняется после проверок."
+
+msgid "Category"
+msgstr ""
+
+msgid "Filament category"
+msgstr ""
 
 msgid "Density"
 msgstr "Плотность"
@@ -15044,6 +15088,38 @@ msgstr ""
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как "
 "ABS, повышение температуры подогреваемого стола может снизить эту "
 "вероятность?"
+
+#~ msgid ""
+#~ "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order "
+#~ "to avoid extruder clogging,it is not allowed to set the chamber "
+#~ "temperature above 45℃."
+#~ msgstr ""
+#~ "В экструдер загружается низкотемпературная пластиковая нить (PLA/PETG/"
+#~ "TPU). Чтобы избежать засорения экструдера, запрещается устанавливать "
+#~ "температуру внутри термокамеры выше 45℃."
+
+#~ msgid "See BambuLab Wiki"
+#~ msgstr "Смотреть вики BambooLab"
+
+#~ msgid "Current filament colors:"
+#~ msgstr "Текущие цвета прутков:"
+
+#~ msgid "Quick set:"
+#~ msgstr "Быстрый выбор:"
+
+#~ msgid "Cluster colors"
+#~ msgstr "Цветовой кластер"
+
+# ??? Цвет прутка
+#~ msgid "Map Filament"
+#~ msgstr "Выбранные цвета"
+
+#~ msgid ""
+#~ "Note:The color has been selected, you can choose OK \n"
+#~ " to continue or manually adjust it."
+#~ msgstr ""
+#~ "Примечание: цвета уже выбраны, вы можете нажать «OK» \n"
+#~ " для продолжения или подобрать его вручную."
 
 #~ msgid "Micro lidar calibration"
 #~ msgstr "Калибровка микролидаром"
