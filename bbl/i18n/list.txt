@@ -175,3 +175,4 @@ src/slic3r/GUI/MultiTaskManagerPage.cpp
 src/slic3r/GUI/MultiMachine.cpp
 src/slic3r/GUI/FilamentMapDialog.cpp
 src/slic3r/GUI/FilamentGroupPopup.cpp
+src/slic3r/GUI/FilamentMapPanel.cpp
