@@ -2672,7 +2672,9 @@ void GCode::process_layers(
         tbb::parallel_pipeline(12, generator & parsing & cooling & write_gocde & output);
     else {
         tbb::parallel_pipeline(12, generator & parsing & cooling & build_node);
-
+        std::string message;
+        message = L("Smoothing z direction speed");
+        m_print->set_status(85, message);
         //append data
         for (const LayerResult &res : layers_results) {
             //remove empty gcode layer caused by support independent layers
@@ -2683,7 +2685,8 @@ void GCode::process_layers(
         }
 
         smooth_calculator.smooth_layer_speed();
-
+        message = L("Exporting G-code");
+        m_print->set_status(90, message);
         tbb::parallel_pipeline(12, calculate_layer_time & write_gocde & output);
     }
 }
