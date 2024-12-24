@@ -220,6 +220,7 @@ public:
     void on_sys_color_changed() override;
 
     int get_extruder_id(int ams_id);
+    float get_nozzle_diameter(int extruder_id) const;
     NozzleVolumeType get_nozzle_volume_type(int extruder_id) const;
     ExtruderType get_extruder_type(int extruder_id) const;
 
@@ -294,9 +295,14 @@ protected:
     void create_multi_extruder_filament_list_panel(wxWindow *parent);
     void on_select_nozzle_volume_type(wxCommandEvent &evt, size_t extruder_id);
 
-    std::vector<ComboBox*> m_comboBox_nozzle_volume_types;
-    wxPanel*    m_nozzle_volume_type_panel{nullptr};
+    wxPanel*    m_single_nozzle_info_panel{nullptr};
+    wxPanel*    m_multi_nozzle_info_panel{nullptr};
     wxPanel*    m_multi_exutrder_filament_list_panel{nullptr};
+
+    ComboBox * m_left_comboBox_nozzle_dia;
+    ComboBox * m_right_comboBox_nozzle_dia;
+    ComboBox * m_left_comboBox_nozzle_volume;
+    ComboBox * m_right_comboBox_nozzle_volume;
 
     wxPanel*    m_main_ams_preview_panel{nullptr};
     wxPanel*    m_deputy_ams_preview_panel{nullptr};
@@ -358,3 +364,4 @@ public:
 }} // namespace Slic3r::GUI
 
 #endif
+
