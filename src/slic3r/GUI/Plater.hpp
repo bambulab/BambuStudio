@@ -154,7 +154,7 @@ public:
     void load_ams_list(std::string const & device, MachineObject* obj);
     std::map<int, DynamicPrintConfig> build_filament_ams_list(MachineObject* obj);
     void sync_ams_list();
-    void sync_extruder_list();
+    bool sync_extruder_list();
     bool should_sync_extruder_list(MachineObject* obj);
     void update_sync_status(const MachineObject* obj);
 
@@ -821,7 +821,9 @@ std::string check_boolean_possible(const std::vector<const ModelVolume*>& volume
 
 Preset *get_printer_preset(MachineObject *obj);
 wxArrayString get_all_camera_view_type();
- } // namespace GUI
+
+bool check_printer_initialized(MachineObject* obj);
+} // namespace GUI
 } // namespace Slic3r
 
 #endif
