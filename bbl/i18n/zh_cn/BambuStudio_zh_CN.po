@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-23 10:43+0800\n"
+"POT-Creation-Date: 2024-12-24 17:25+0800\n"
 "PO-Revision-Date: 2024-03-21 10:39+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1318,6 +1318,22 @@ msgid ""
 msgstr ""
 "当前BambuStudio的版本过低导致云端服务不可用,请从官网更新BambuStudio到最新版"
 "本。"
+
+msgid "Retrieving printer information, please try again later."
+msgstr ""
+
+msgid "Please try updating Bambu Studio and then try again."
+msgstr ""
+
+msgid ""
+"The certificate has expired. Please check the time settings or update Bambu "
+"Studio and try again."
+msgstr ""
+
+msgid ""
+"The certificate has been revoked. Please check the time settings or update "
+"Bambu Studio and try again."
+msgstr ""
 
 msgid "Privacy Policy Update"
 msgstr "隐私协议更新"
@@ -3277,11 +3293,10 @@ msgstr ""
 
 msgid ""
 "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
-"avoid extruder clogging,it is not allowed to set the chamber temperature "
-"above 45℃."
+"avoid extruder clogging,it is not allowed to set the chamber temperature."
 msgstr ""
 "挤出机中加载了低温度的打印材料（如PLA/PETG/TPU）。为了避免挤出机堵塞，不允许"
-"将腔温设置高于45℃。"
+"设置腔温。"
 
 msgid ""
 "When you set the chamber temperature below 40℃, the chamber temperature "
@@ -5017,8 +5032,8 @@ msgid ""
 "transformations but increase the processing time."
 msgstr "较小的线偏转值和角偏转值会产生更高质量的转换，但会增加处理时间。"
 
-msgid "See BambuLab Wiki"
-msgstr "查看BambuLab Wiki"
+msgid "View Wiki for more information"
+msgstr "查看Wiki以获取更多信息"
 
 msgid "Linear Deflection"
 msgstr "线偏转值"
@@ -5406,6 +5421,24 @@ msgstr "喷嘴"
 
 msgid "Not installed"
 msgstr "未安装"
+
+msgid ""
+"The software does not support using different diameter of nozzles for one  "
+"print. If the left and right nozzles are inconsistent, we can only proceed "
+"with single-head printing. Please confirm which nozzle you would like to use "
+"for this project."
+msgstr ""
+
+msgid "Switch diameter"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Left nozzle: %smm"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Right nozzle: %smm"
+msgstr ""
 
 msgid "Please select a printer in 'Device' page first."
 msgstr "请先在 \"设备 \"页面选择打印机。"
@@ -5975,9 +6008,6 @@ msgid ""
 "A cube printed during a filament change to purge old color and ensure smooth "
 "color transition."
 msgstr "在换丝过程中打印的立方体，用于清除旧色并确保平滑的颜色过渡"
-
-msgid "View Wiki for more information"
-msgstr "查看Wiki以获取更多信息"
 
 #, boost-format
 msgid "Number of currently selected parts: %1%\n"
@@ -7814,6 +7844,9 @@ msgstr "没有可用的更新。"
 msgid "The configuration is up to date."
 msgstr "当前配置已经是最新版本。"
 
+msgid "Open Wiki for more information >"
+msgstr ""
+
 msgid "Obj file Import color"
 msgstr "Obj文件导入颜色"
 
@@ -7827,14 +7860,17 @@ msgstr "颜色数量范围应该是[%d, %d]。"
 msgid "Recommended "
 msgstr "推荐"
 
-msgid "Choose camera view angle:"
+msgid "view"
 msgstr ""
 
-msgid "Current filament colors:"
-msgstr "当前耗材丝颜色:"
+msgid "Current filament colors"
+msgstr ""
 
-msgid "Quick set:"
-msgstr "快捷设置:"
+msgid "Matching"
+msgstr ""
+
+msgid "Quick set"
+msgstr ""
 
 msgid "Color match"
 msgstr "颜色匹配"
@@ -7851,18 +7887,13 @@ msgstr "近似的颜色匹配。"
 msgid "Reset mapped extruders."
 msgstr "重置匹配的耗材丝。"
 
-msgid "Cluster colors"
-msgstr "重置匹配的耗材丝"
-
-msgid "Map Filament"
-msgstr "匹配耗材丝"
+msgid "Note"
+msgstr ""
 
 msgid ""
-"Note:The color has been selected, you can choose OK \n"
+"The color has been selected, you can choose OK \n"
 " to continue or manually adjust it."
 msgstr ""
-"注意：颜色已经选好了，您可以选中确认 \n"
-" 继续或手动修改它。"
 
 msgid ""
 "Waring:The count of newly added and \n"
@@ -7870,6 +7901,9 @@ msgid ""
 msgstr ""
 "警告：新增追加耗材丝数量 \n"
 " 和已有耗材丝数量超过了16."
+
+msgid "—> "
+msgstr ""
 
 msgid "Auto-Calc"
 msgstr "自动计算"
@@ -8823,6 +8857,14 @@ msgstr "避免跨越外墙"
 msgid "Detour and avoid traveling across wall which may cause blob on surface"
 msgstr "空驶时绕过外墙以避免在模型外观面产生斑点"
 
+msgid "Z direction outwall speed continuous"
+msgstr ""
+
+msgid ""
+"Smoothing outwall speed in z direction to get better surface quality. Print "
+"time will increases."
+msgstr ""
+
 msgid "Avoid crossing wall - Max detour length"
 msgstr "避免跨越外墙-最大绕行长度"
 
@@ -9555,6 +9597,12 @@ msgstr ""
 "输入耗材冷却后将会产生的收缩百分比（如果测量值为94毫米而不是100毫米，则为"
 "94%）。零件将在XY方向上缩放以进行补偿。仅考虑用于外周的耗材。  \n"
 "请确保对象之间有足够的空间，因为补偿是在检查之后进行的。"
+
+msgid "Category"
+msgstr ""
+
+msgid "Filament category"
+msgstr ""
 
 msgid "Density"
 msgstr "密度"
@@ -13700,6 +13748,36 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid ""
+#~ "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order "
+#~ "to avoid extruder clogging,it is not allowed to set the chamber "
+#~ "temperature above 45℃."
+#~ msgstr ""
+#~ "挤出机中加载了低温度的打印材料（如PLA/PETG/TPU）。为了避免挤出机堵塞，不允"
+#~ "许将腔温设置高于45℃。"
+
+#~ msgid "See BambuLab Wiki"
+#~ msgstr "查看BambuLab Wiki"
+
+#~ msgid "Current filament colors:"
+#~ msgstr "当前耗材丝颜色:"
+
+#~ msgid "Quick set:"
+#~ msgstr "快捷设置:"
+
+#~ msgid "Cluster colors"
+#~ msgstr "重置匹配的耗材丝"
+
+#~ msgid "Map Filament"
+#~ msgstr "匹配耗材丝"
+
+#~ msgid ""
+#~ "Note:The color has been selected, you can choose OK \n"
+#~ " to continue or manually adjust it."
+#~ msgstr ""
+#~ "注意：颜色已经选好了，您可以选中确认 \n"
+#~ " 继续或手动修改它。"
 
 #~ msgid "An SD card needs to be inserted before printing via LAN."
 #~ msgstr "需要插入SD卡后方可发送局域网打印"
