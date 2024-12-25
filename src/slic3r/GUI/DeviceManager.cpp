@@ -3726,12 +3726,14 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     if (!key_field_only) {
                         /*get filam_bak*/
                         try {
+                            m_extder_data.extders[MAIN_NOZZLE_ID].filam_bak.clear();
+
                             if (jj.contains("filam_bak")) {
                                 is_support_show_filament_backup = true;
-                                filam_bak.clear();
                                 if (jj["filam_bak"].is_array()) {
                                     for (auto it = jj["filam_bak"].begin(); it != jj["filam_bak"].end(); it++) {
-                                        filam_bak.push_back(it.value().get<int>());
+                                        const auto& filam_bak_val = it.value().get<int>();
+                                        m_extder_data.extders[MAIN_NOZZLE_ID].filam_bak.push_back(filam_bak_val);
                                     }
                                 }
                             }
@@ -5814,6 +5816,14 @@ void MachineObject::parse_new_info(json print)
                 auto   njon = it.value();
 
                 extder_obj.id                  = njon["id"].get<int>();
+
+                extder_obj.filam_bak.clear();
+                const json& filam_bak_items = njon["filam_bak"];
+                for (const auto& filam_bak_item : filam_bak_items)
+                {
+                    const auto& filam_bak_val = filam_bak_item.get<int>();
+                    extder_obj.filam_bak.emplace_back(filam_bak_val);
+                }
 
                 extder_obj.enable_change_nozzle= get_flag_bits(njon["info"].get<int>(), 0);
                 extder_obj.ext_has_filament    = get_flag_bits(njon["info"].get<int>(), 1);

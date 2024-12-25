@@ -199,6 +199,8 @@ struct Extder
     int buffer_has_filament{0};
     int nozzle_exist{0};
 
+    std::vector<int> filam_bak;// the refill filam
+
     int  temp{0};
     int target_temp{0};
 
@@ -620,9 +622,6 @@ public:
     std::string get_printer_thumbnail_img_str();
 
     std::string product_name;       // set by iot service, get /user/print
-
-    std::vector<int> filam_bak;
-
 
     std::string bind_user_name;
     std::string bind_user_id;
