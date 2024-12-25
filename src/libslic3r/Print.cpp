@@ -332,7 +332,12 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             //BBS: when enable arc fitting, we must re-generate perimeter
             || opt_key == "enable_arc_fitting"
             || opt_key == "wall_sequence"
-            || opt_key == "z_direction_outwall_speed_continuous") {
+            || opt_key == "z_direction_outwall_speed_continuous"
+            || opt_key == "override_filament_scarf_seam_setting"
+            || opt_key == "seam_slope_type"
+            || opt_key == "seam_slope_start_height"
+            || opt_key == "seam_slope_gap"
+            || opt_key == "seam_slope_min_length") {
             osteps.emplace_back(posPerimeters);
             osteps.emplace_back(posInfill);
             osteps.emplace_back(posSupportMaterial);

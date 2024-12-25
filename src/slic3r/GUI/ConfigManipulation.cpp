@@ -769,6 +769,11 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     toggle_field("xy_hole_compensation", !enable_auto_hole_and_contour_compensation);
     toggle_field("xy_contour_compensation", !enable_auto_hole_and_contour_compensation);
     toggle_line("circle_compensation_manual_offset", enable_auto_hole_and_contour_compensation);
+
+    // override filament scarf seam settings
+    bool override_filament_scarf_seam_settings = config->opt_bool("override_filament_scarf_seam_setting");
+    for (auto el : {"seam_slope_type", "seam_slope_start_height", "seam_slope_gap", "seam_slope_min_length"})
+        toggle_line(el, override_filament_scarf_seam_settings);
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)

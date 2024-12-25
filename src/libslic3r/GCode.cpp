@@ -4760,7 +4760,8 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         loop.split_at(last_pos, false);
 
     // BBS: not apply on fist layer, too small E has stick issue with hotend plate
-    int  filament_scarf_type = FILAMENT_CONFIG(filament_scarf_seam_type);
+    bool override_filament_scarf_seam_setting = m_config.override_filament_scarf_seam_setting;
+    int filament_scarf_type = override_filament_scarf_seam_setting ? int(m_config.seam_slope_type.value) : FILAMENT_CONFIG(filament_scarf_seam_type);
     bool enable_seam_slope   = ((filament_scarf_type == int(SeamScarfType::External) && !is_hole) ||
                                     filament_scarf_type == int(SeamScarfType::All)) &&
                                     !m_config.spiral_mode &&
@@ -4809,15 +4810,23 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     if (enable_seam_slope) {
         // Create seam slope
         double start_slope_ratio;
-        if (FILAMENT_CONFIG(filament_scarf_height).percent)
-            start_slope_ratio = FILAMENT_CONFIG(filament_scarf_height).value / 100;
-        else {
-            start_slope_ratio = FILAMENT_CONFIG(filament_scarf_height).value / paths.front().height;
+        if (override_filament_scarf_seam_setting) {
+            if (m_config.seam_slope_start_height.percent)
+                start_slope_ratio = m_config.seam_slope_start_height.value / 100;
+            else {
+                start_slope_ratio = m_config.seam_slope_start_height.value / paths.front().height;
+            }
+        } else {
+            if (FILAMENT_CONFIG(filament_scarf_height).percent)
+                start_slope_ratio = FILAMENT_CONFIG(filament_scarf_height).value / 100;
+            else {
+                start_slope_ratio = FILAMENT_CONFIG(filament_scarf_height).value / paths.front().height;
+            }
         }
 
-        float slope_gap = FILAMENT_CONFIG(filament_scarf_gap).get_abs_value(scale_(EXTRUDER_CONFIG(nozzle_diameter)));
-
-        double scarf_seam_length = FILAMENT_CONFIG(filament_scarf_length);
+        float  slope_gap = override_filament_scarf_seam_setting ? m_config.seam_slope_gap.get_abs_value(scale_(EXTRUDER_CONFIG(nozzle_diameter))) :
+          FILAMENT_CONFIG(filament_scarf_gap).get_abs_value(scale_(EXTRUDER_CONFIG(nozzle_diameter)));
+        double scarf_seam_length = override_filament_scarf_seam_setting ? m_config.seam_slope_min_length: FILAMENT_CONFIG(filament_scarf_length);
 
         double loop_length = 0.;
         for (const auto &path : paths) {
@@ -5315,7 +5324,7 @@ ExtrusionPaths GCode::merge_same_speed_paths(const ExtrusionPaths &paths)
     ExtrusionPaths output_paths;
     std::optional<ExtrusionPath> merged_path;
 
-    for(size_t path_idx=0;path_idx<paths.size();++path_idx){
+    for (size_t path_idx=0; path_idx<paths.size();++path_idx){
         ExtrusionPath path = paths[path_idx];
         path.smooth_speed = get_path_speed(path);
 
@@ -5342,7 +5351,7 @@ ExtrusionPaths GCode::merge_same_speed_paths(const ExtrusionPaths &paths)
         }
     }
 
-    if(merged_path.has_value())
+    if(merged_path.has_value()) 
         output_paths.push_back(std::move(*merged_path));
 
     return output_paths;
@@ -5388,7 +5397,7 @@ ExtrusionPaths GCode::set_speed_transition(ExtrusionPaths &paths)
         // smooth right
         ExtrusionPaths right_split_paths;
         if (smooth_right_path) {
-            right_split_paths = split_and_mapping_speed(paths[path_idx + 1].smooth_speed, path.smooth_speed, path, max_smooth_path_length, false); }
+            right_split_paths = split_and_mapping_speed(paths[path_idx + 1].smooth_speed, path.smooth_speed, path, max_smooth_path_length, false);}
 
         if (!path.empty())
             interpolated_paths.push_back(path);
@@ -5411,7 +5420,7 @@ void GCode::smooth_speed_discontinuity_area(ExtrusionPaths &paths) {
 
     //step 2 split path
     ExtrusionPaths inter_paths;
-    inter_paths =set_speed_transition(prepare_paths);
+    inter_paths = set_speed_transition(prepare_paths);
     paths = std::move(inter_paths);
 }
 

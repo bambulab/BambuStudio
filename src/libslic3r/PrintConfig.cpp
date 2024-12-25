@@ -3698,6 +3698,51 @@ void PrintConfigDef::init_fff_params()
     def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
+    def          = this->add("override_filament_scarf_seam_setting", coBool);
+    def->label   = L("Override filament scarf seam setting");
+    def->tooltip = L("Overrider filament scarf seam setting and could control settings by modifier.");
+    def->mode    = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def                = this->add("seam_slope_type", coEnum);
+    def->label         = L("Scarf seam type");
+    def->tooltip       = L("Set scarf seam type for this filament. This setting could minimize seam visibiliy.");
+    def->enum_keys_map = &ConfigOptionEnum<SeamScarfType>::get_enum_values();
+    def->enum_values.push_back("none");
+    def->enum_values.push_back("external");
+    def->enum_values.push_back("all");
+    def->enum_labels.push_back(L("None"));
+    def->enum_labels.push_back(L("Contour"));
+    def->enum_labels.push_back(L("Contour and hole"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<SeamScarfType>(SeamScarfType::None));
+
+    def          = this->add("seam_slope_start_height", coFloatOrPercent);
+    def->label      = L("Scarf start height");
+    def->tooltip    = L("This amount can be specified in millimeters or as a percentage of the current layer height.");
+    def->min        = 0;
+    def->ratio_over = "layer_height";
+    def->sidetext   = L("mm/%");
+    def->mode       = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent{10, true});
+
+    def             = this->add("seam_slope_gap", coFloatOrPercent);
+    def->label      = L("Scarf slope gap");
+    def->tooltip    = L("In order to reduce the visiblity of the seam in closed loop, the inner wall and outer wall are shortened by a specified amount.");
+    def->min        = 0;
+    def->ratio_over = "nozzle_diameter";
+    def->sidetext   = L("mm/%");
+    def->mode       = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent{0, 0});
+
+    def           = this->add("seam_slope_min_length", coFloat);
+    def->label    = L("Scarf length");
+    def->tooltip  = L("Length of the scarf. Setting this parameter to zero effectively disables the scarf.");
+    def->min      = 0;
+    def->sidetext = "mm";
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat{10});
+
     def = this->add("wipe_speed", coPercent);
     def->label = L("Wipe speed");
     def->tooltip = L("The wipe speed is determined by the speed setting specified in this configuration." "If the value is expressed as a percentage (e.g. 80%), it will be calculated based on the travel speed setting above." "The default value for this parameter is 80%");
