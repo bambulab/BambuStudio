@@ -1,11 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-<<<<<<< HEAD
-    "version": "01.10.00.36",
-=======
-    "version": "02.00.00.03",
->>>>>>> 70d53fa220 (ENH: add profiles for H2D)
+    "version": "02.00.00.04",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
