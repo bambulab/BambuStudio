@@ -13,7 +13,6 @@ RUN apt-get update && apt-get install  -y \
     build-essential \
     cmake \
     curl \
-    bc \
     xvfb \
     eglexternalplatform-dev \
     extra-cmake-modules \
@@ -48,12 +47,8 @@ RUN apt-get update && apt-get install  -y \
     sudo \
     wayland-protocols \
     bash \
+    libwebkit2gtk-4.1-dev \
     wget 
-
-#Temporary fix for 24.10 dependency, 24.10 still required for ffmpeg7 to run Bug-free
-RUN echo 'deb http://gb.archive.ubuntu.com/ubuntu jammy main' >> /etc/apt/sources.list
-
-RUN apt-get update && apt-get install -y libwebkit2gtk-4.0-dev
 
 # Change your locale here if you want.  See the output
 # of `locale -a` to pick the correct string formatting.
