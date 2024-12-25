@@ -159,6 +159,11 @@ bool Layer::has_compatible_layer_regions(const PrintRegionConfig &config, const 
         && config.detect_thin_wall                  == other_config.detect_thin_wall
         && config.infill_wall_overlap              == other_config.infill_wall_overlap
         && config.seam_slope_conditional == other_config.seam_slope_conditional
+        && config.override_filament_scarf_seam_setting == other_config.override_filament_scarf_seam_setting
+        && config.seam_slope_type                      == other_config.seam_slope_type
+        && config.seam_slope_start_height              == other_config.seam_slope_start_height
+        && config.seam_slope_gap                       == other_config.seam_slope_gap
+        && config.seam_slope_min_length                == other_config.seam_slope_min_length
         //&& config.scarf_angle_threshold  == other_config.scarf_angle_threshold
         && config.seam_slope_entire_loop  == other_config.seam_slope_entire_loop
         && config.seam_slope_steps        == other_config.seam_slope_steps

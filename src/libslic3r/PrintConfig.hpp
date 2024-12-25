@@ -977,13 +977,13 @@ PRINT_CONFIG_CLASS_DEFINE(
     //calib
     ((ConfigOptionFloat, print_flow_ratio))
     // Orca: seam slopes
-    //((ConfigOptionEnum<SeamScarfType>,  seam_slope_type))
+    ((ConfigOptionBool,                 override_filament_scarf_seam_setting))
+    ((ConfigOptionEnum<SeamScarfType>,  seam_slope_type))
     ((ConfigOptionBool,                 seam_slope_conditional))
-    //((ConfigOptionInt,                  scarf_angle_threshold))
-    //((ConfigOptionFloatOrPercent,       seam_slope_start_height))
-    //((ConfigOptionFloatOrPercent,       seam_slope_gap))
+    ((ConfigOptionFloatOrPercent,       seam_slope_start_height))
+    ((ConfigOptionFloatOrPercent,       seam_slope_gap))
     ((ConfigOptionBool,                 seam_slope_entire_loop))
-    //((ConfigOptionFloat,                seam_slope_min_length))
+    ((ConfigOptionFloat,                seam_slope_min_length))
     ((ConfigOptionInt,                  seam_slope_steps))
     ((ConfigOptionBool,                 seam_slope_inner_walls))
 )
