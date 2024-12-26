@@ -1970,6 +1970,8 @@ void GLCanvas3D::render(bool only_init)
     auto& ogl_manager = wxGetApp().get_opengl_manager();
     ogl_manager.set_viewport_size(viewport[2], viewport[3]);
 
+    ogl_manager.bind_vao();
+
     wxGetApp().imgui()->new_frame();
 
     if (m_picking_enabled) {
@@ -2167,7 +2169,7 @@ void GLCanvas3D::render(bool only_init)
     }
 
     wxGetApp().imgui()->render();
-
+    ogl_manager.unbind_vao();
     ogl_manager.clear_dirty();
     m_canvas->SwapBuffers();
     m_render_stats.increment_fps_counter();
@@ -2182,8 +2184,11 @@ void GLCanvas3D::render_thumbnail(ThumbnailData &         thumbnail_data,
                                   bool                    for_picking,
                                   bool                    ban_light)
 {
+    auto& ogl_manager = wxGetApp().get_opengl_manager();
+    ogl_manager.bind_vao();
     ModelObjectPtrs &model_objects = GUI::wxGetApp().model().objects;
     render_thumbnail(thumbnail_data, w, h, thumbnail_params, model_objects, m_volumes, camera_type, camera_view_angle_type, for_picking, ban_light);
+    ogl_manager.unbind_vao();
 }
 
 void GLCanvas3D::render_thumbnail(ThumbnailData &           thumbnail_data,
