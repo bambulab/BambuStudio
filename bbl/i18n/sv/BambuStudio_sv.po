@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-24 17:25+0800\n"
+"POT-Creation-Date: 2024-12-26 17:54+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1317,6 +1317,11 @@ msgid ""
 msgstr ""
 "The Bambu Studio version is too old to enable cloud service. Please download "
 "the latest version from Bambu Lab's website."
+
+msgid ""
+"Your software certificate has been revoked, please update Bambu Studio "
+"software."
+msgstr ""
 
 msgid "Retrieving printer information, please try again later."
 msgstr ""
@@ -2780,6 +2785,12 @@ msgstr "Skriv ut med filament på en extern spole"
 msgid "Auto Refill"
 msgstr "Auto Refill"
 
+msgid "Left"
+msgstr "Vänster"
+
+msgid "Right"
+msgstr "Höger"
+
 msgid ""
 "When the current material run out, the printer will continue to print in the "
 "following order."
@@ -2787,8 +2798,16 @@ msgstr ""
 "När det aktuella materialet tar slut, fortsätter printern att skriva ut "
 "material i följande ordning."
 
+msgid "Identical filament: same brand, type and color"
+msgstr ""
+
 msgid "Group"
 msgstr "Grupp"
+
+msgid ""
+"When the current material runs out, the printer would use identical filament "
+"to continue printing."
+msgstr ""
 
 msgid "The printer does not currently support auto refill."
 msgstr "Printern stöder för närvarande inte automatisk påfyllning."
@@ -4210,14 +4229,8 @@ msgstr "Bakom"
 msgid "Rear View"
 msgstr "Vy Bakifrån"
 
-msgid "Left"
-msgstr "Vänster"
-
 msgid "Left View"
 msgstr "Vy Vänster"
-
-msgid "Right"
-msgstr "Höger"
 
 msgid "Right View"
 msgstr "Vy Höger"
@@ -6117,6 +6130,11 @@ msgstr ""
 "skrivaren."
 
 msgid ""
+"It is detected that the nozzle type is not set. please set the nozzle first "
+"and then perform the current operation again."
+msgstr ""
+
+msgid ""
 "Unable to perform boolean operation on model meshes. You may fix the meshes "
 "and try again."
 msgstr ""
@@ -6570,6 +6588,15 @@ msgstr "Mörkt Läge"
 
 msgid "Enable dark mode"
 msgstr "Enable dark mode"
+
+msgid "Filament Arrange"
+msgstr ""
+
+msgid "Ignore ext filament when auto grouping"
+msgstr ""
+
+msgid "Pop up to select filament map mode"
+msgstr ""
 
 msgid "User Experience"
 msgstr "Användarupplevelse"
@@ -8737,6 +8764,12 @@ msgstr ""
 msgid "Generating G-code: layer %1%"
 msgstr "Skapar G-kod: lager %1%"
 
+msgid "Smoothing z direction speed"
+msgstr ""
+
+msgid "Exporting G-code"
+msgstr "Exporterar G-kod"
+
 msgid "Inner wall"
 msgstr "Inre vägg"
 
@@ -9013,9 +9046,6 @@ msgstr "Plate %d: %s stöder inte filamentet %s"
 
 msgid "Generating skirt & brim"
 msgstr "Skapar Skirt & Brim"
-
-msgid "Exporting G-code"
-msgstr "Exporterar G-kod"
 
 msgid "Generating G-code"
 msgstr "Skapar G-kod"
@@ -9914,6 +9944,12 @@ msgid "Unprintable filament map to extruder"
 msgstr ""
 
 msgid "filament mapping mode"
+msgstr ""
+
+msgid "Auto For Flush"
+msgstr ""
+
+msgid "Auto For Match"
 msgstr ""
 
 msgid "Manual"
@@ -11729,6 +11765,99 @@ msgstr ""
 "stabilisera kammartrycket inuti munstycket för att undvika utseendefel vid "
 "utskrift av objekt."
 
+msgid "Auto holes-contour compensation"
+msgstr ""
+
+msgid "enable_circle_compensation"
+msgstr ""
+
+msgid "Circle Compensation Speed"
+msgstr ""
+
+msgid "circle_compensation_speed"
+msgstr ""
+
+msgid "Deviation"
+msgstr ""
+
+msgid "max_deviation"
+msgstr ""
+
+msgid "Variance"
+msgstr ""
+
+msgid "max_variance"
+msgstr ""
+
+msgid "Counter Coef 1"
+msgstr ""
+
+msgid "counter_coef_1"
+msgstr ""
+
+msgid "/1e6"
+msgstr ""
+
+msgid "Counter Coef 2"
+msgstr ""
+
+msgid "counter_coef_2"
+msgstr ""
+
+msgid "Counter Coef 3"
+msgstr ""
+
+msgid "counter_coef_3"
+msgstr ""
+
+msgid "Hole Coef 1"
+msgstr ""
+
+msgid "hole_coef_1"
+msgstr ""
+
+msgid "Hole Coef 2"
+msgstr ""
+
+msgid "hole_coef_2"
+msgstr ""
+
+msgid "Hole Coef 3"
+msgstr ""
+
+msgid "hole_coef_3"
+msgstr ""
+
+msgid "Counter limit min"
+msgstr ""
+
+msgid "counter_limit_min"
+msgstr ""
+
+msgid "Counter limit max"
+msgstr ""
+
+msgid "counter_limit_max"
+msgstr ""
+
+msgid "Hole limit min"
+msgstr ""
+
+msgid "hole_limit_min"
+msgstr ""
+
+msgid "Hole limit max"
+msgstr ""
+
+msgid "hole_limit_max"
+msgstr ""
+
+msgid "Diameter limit"
+msgstr ""
+
+msgid "diameter_limit"
+msgstr ""
+
 msgid "Purging volumes"
 msgstr "Rensnings volym"
 
@@ -12502,6 +12631,15 @@ msgstr ""
 
 msgid "Printing Parameters"
 msgstr "Parametrar för utskrift"
+
+msgid "Synchronize nozzle and AMS information"
+msgstr ""
+
+msgid "Please connect the printer first before synchronizing."
+msgstr ""
+
+msgid "Nozzle Info"
+msgstr ""
 
 msgid "Plate Type"
 msgstr "Typ av byggplatta"
@@ -13471,8 +13609,8 @@ msgstr ""
 "nozzeln. Har du bytat nozzel nyligen ? "
 
 #, c-format, boost-format
-msgid "*Printing %s material with %s may cause nozzle damage"
-msgstr "*Utskrift av %s material med %s kan orsaka skador på nozzeln"
+msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
+msgstr ""
 
 msgid "Need select printer"
 msgstr "Välj printer"
@@ -13480,7 +13618,28 @@ msgstr "Välj printer"
 msgid "The start, end or step is not valid value."
 msgstr "Start, slut eller steg är inte giltigt värde."
 
+msgid "Calibration using nozzles of different diameters is not supported."
+msgstr ""
+
+msgid ""
+"The number of printer extruders and the printer selected for calibration "
+"does not match."
+msgstr ""
+
 msgid "The selected diameter is inconsistent with the printer diameter."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"The nozzle type of the %s extruder is not set. Please set it first and then "
+"start calibration."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"The selected nozzle type of %s extruder is inconsistent with the actual "
+"nozzle type of the printer.\n"
+"Please synchronize the printer information first and then start calibration."
 msgstr ""
 
 msgid ""
@@ -14119,6 +14278,62 @@ msgstr ""
 msgid "Removed"
 msgstr ""
 
+msgid "Filament arrangement method"
+msgstr ""
+
+msgid "Filament-Saving Mode"
+msgstr ""
+
+msgid "Convenient Mode"
+msgstr ""
+
+msgid "Manual Mode"
+msgstr ""
+
+msgid ""
+"Disregrad the filaments in AMS. Optimize filament usage by calculating the "
+"best arrangement for the left and right nozzles. Arrange the filaments on "
+"the printer based on the slicing results."
+msgstr ""
+
+msgid ""
+"Based on the current filaments in the AMS, arrange the filaments to the left "
+"and right nozzles."
+msgstr ""
+
+msgid "Mannully arrange the filaments for the left and right nozzles."
+msgstr ""
+
+msgid "(Arrange after slicing)"
+msgstr ""
+
+msgid "(Arrange before slicing)"
+msgstr ""
+
+msgid "(Please sync printer)"
+msgstr ""
+
+msgid "More info on wiki"
+msgstr ""
+
+msgid "Don't remind me again"
+msgstr ""
+
+msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
+msgstr ""
+
+msgid "We will slice according to this grouping method:"
+msgstr ""
+
+msgid ""
+"Tips: You can drag the filaments to reassign them to different nozzles.\n"
+"But your filament arrangement may not be the most efficient for filament "
+"usage."
+msgstr ""
+
+msgid "The filament arrangement for current plate follows the global settings."
+msgstr ""
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -14410,6 +14625,10 @@ msgstr ""
 "Visste du att när du skriver ut material som är benägna att vrida, såsom "
 "ABS, kan en lämplig ökning av värmebäddens temperatur minska sannolikheten "
 "för vridning."
+
+#, c-format, boost-format
+#~ msgid "*Printing %s material with %s may cause nozzle damage"
+#~ msgstr "*Utskrift av %s material med %s kan orsaka skador på nozzeln"
 
 #~ msgid ""
 #~ "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order "

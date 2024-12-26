@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-24 17:25+0800\n"
+"POT-Creation-Date: 2024-12-26 17:54+0800\n"
 "PO-Revision-Date: 2024-03-21 10:39+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1318,6 +1318,11 @@ msgid ""
 msgstr ""
 "当前BambuStudio的版本过低导致云端服务不可用,请从官网更新BambuStudio到最新版"
 "本。"
+
+msgid ""
+"Your software certificate has been revoked, please update Bambu Studio "
+"software."
+msgstr ""
 
 msgid "Retrieving printer information, please try again later."
 msgstr ""
@@ -2724,13 +2729,27 @@ msgstr "采用挂载在机箱背部的材料打印"
 msgid "Auto Refill"
 msgstr "自动续料"
 
+msgid "Left"
+msgstr "左面"
+
+msgid "Right"
+msgstr "右面"
+
 msgid ""
 "When the current material run out, the printer will continue to print in the "
 "following order."
 msgstr "当前材料耗尽时，打印机将按照以下顺序继续打印。"
 
+msgid "Identical filament: same brand, type and color"
+msgstr "相同的耗材: 相同的品牌、类型和颜色"
+
 msgid "Group"
 msgstr "组"
+
+msgid ""
+"When the current material runs out, the printer would use identical filament "
+"to continue printing."
+msgstr "当前材料用完时，打印机将使用相同的耗材继续打印"
 
 msgid "The printer does not currently support auto refill."
 msgstr "打印机当前不支持自动重新填充。"
@@ -4099,14 +4118,8 @@ msgstr "后面"
 msgid "Rear View"
 msgstr "后视图"
 
-msgid "Left"
-msgstr "左面"
-
 msgid "Left View"
 msgstr "左视图"
-
-msgid "Right"
-msgstr "右面"
 
 msgid "Right View"
 msgstr "右视图"
@@ -5943,6 +5956,11 @@ msgid ""
 msgstr "文件%s已经发送到打印机的存储空间，可以在打印机上浏览。"
 
 msgid ""
+"It is detected that the nozzle type is not set. please set the nozzle first "
+"and then perform the current operation again."
+msgstr ""
+
+msgid ""
 "Unable to perform boolean operation on model meshes. You may fix the meshes "
 "and try again."
 msgstr "无法对模型网格执行布尔运算。您可以修复网格，然后重试。"
@@ -6389,6 +6407,15 @@ msgstr "深色模式"
 
 msgid "Enable dark mode"
 msgstr "开启深色模式"
+
+msgid "Filament Arrange"
+msgstr ""
+
+msgid "Ignore ext filament when auto grouping"
+msgstr ""
+
+msgid "Pop up to select filament map mode"
+msgstr ""
 
 msgid "User Experience"
 msgstr "用户体验"
@@ -8464,6 +8491,12 @@ msgstr "您可以在“耗材设置”->“高级”中找到它"
 msgid "Generating G-code: layer %1%"
 msgstr "正在生成G-code：层%1%"
 
+msgid "Smoothing z direction speed"
+msgstr ""
+
+msgid "Exporting G-code"
+msgstr "正在导出G-code"
+
 msgid "Inner wall"
 msgstr "内墙"
 
@@ -8722,9 +8755,6 @@ msgstr "盘%d：%s不支持耗材丝 %s"
 
 msgid "Generating skirt & brim"
 msgstr "正在生成skirt和brim"
-
-msgid "Exporting G-code"
-msgstr "正在导出G-code"
 
 msgid "Generating G-code"
 msgstr "正在生成G-code"
@@ -9539,6 +9569,12 @@ msgstr "不可打印的耗材丝匹配至挤出机"
 
 msgid "filament mapping mode"
 msgstr "耗材丝匹配模式"
+
+msgid "Auto For Flush"
+msgstr ""
+
+msgid "Auto For Match"
+msgstr ""
 
 msgid "Manual"
 msgstr "手动"
@@ -11205,6 +11241,99 @@ msgstr ""
 "擦拭塔可以用来清理喷嘴上的残留料和让喷嘴内部的腔压达到稳定状态，以避免打印物"
 "体时出现外观瑕疵。"
 
+msgid "Auto holes-contour compensation"
+msgstr ""
+
+msgid "enable_circle_compensation"
+msgstr ""
+
+msgid "Circle Compensation Speed"
+msgstr ""
+
+msgid "circle_compensation_speed"
+msgstr ""
+
+msgid "Deviation"
+msgstr ""
+
+msgid "max_deviation"
+msgstr ""
+
+msgid "Variance"
+msgstr ""
+
+msgid "max_variance"
+msgstr ""
+
+msgid "Counter Coef 1"
+msgstr ""
+
+msgid "counter_coef_1"
+msgstr ""
+
+msgid "/1e6"
+msgstr ""
+
+msgid "Counter Coef 2"
+msgstr ""
+
+msgid "counter_coef_2"
+msgstr ""
+
+msgid "Counter Coef 3"
+msgstr ""
+
+msgid "counter_coef_3"
+msgstr ""
+
+msgid "Hole Coef 1"
+msgstr ""
+
+msgid "hole_coef_1"
+msgstr ""
+
+msgid "Hole Coef 2"
+msgstr ""
+
+msgid "hole_coef_2"
+msgstr ""
+
+msgid "Hole Coef 3"
+msgstr ""
+
+msgid "hole_coef_3"
+msgstr ""
+
+msgid "Counter limit min"
+msgstr ""
+
+msgid "counter_limit_min"
+msgstr ""
+
+msgid "Counter limit max"
+msgstr ""
+
+msgid "counter_limit_max"
+msgstr ""
+
+msgid "Hole limit min"
+msgstr ""
+
+msgid "hole_limit_min"
+msgstr ""
+
+msgid "Hole limit max"
+msgstr ""
+
+msgid "hole_limit_max"
+msgstr ""
+
+msgid "Diameter limit"
+msgstr ""
+
+msgid "diameter_limit"
+msgstr ""
+
 msgid "Purging volumes"
 msgstr "冲刷体积"
 
@@ -11923,6 +12052,15 @@ msgstr "将打印一份测试模型。在校准之前，请清理打印平台并
 
 msgid "Printing Parameters"
 msgstr "打印参数"
+
+msgid "Synchronize nozzle and AMS information"
+msgstr ""
+
+msgid "Please connect the printer first before synchronizing."
+msgstr ""
+
+msgid "Nozzle Info"
+msgstr ""
 
 msgid "Plate Type"
 msgstr "热床类型"
@@ -12858,8 +12996,8 @@ msgid ""
 msgstr "预设中的喷嘴类型与记忆中的喷嘴类型不一致。您最近更换了喷嘴吗？"
 
 #, c-format, boost-format
-msgid "*Printing %s material with %s may cause nozzle damage"
-msgstr "*使用 %s 材料和 %s 打印可能会导致喷嘴损坏"
+msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
+msgstr "%1s材料在使用%2s的喷嘴打印时,可能会导致喷嘴损坏。"
 
 msgid "Need select printer"
 msgstr "需要选择打印机"
@@ -12867,8 +13005,29 @@ msgstr "需要选择打印机"
 msgid "The start, end or step is not valid value."
 msgstr "起始、结束或者步长输入值无效。"
 
+msgid "Calibration using nozzles of different diameters is not supported."
+msgstr ""
+
+msgid ""
+"The number of printer extruders and the printer selected for calibration "
+"does not match."
+msgstr ""
+
 msgid "The selected diameter is inconsistent with the printer diameter."
 msgstr "所选直径与打印机直径不一致。"
+
+#, c-format, boost-format
+msgid ""
+"The nozzle type of the %s extruder is not set. Please set it first and then "
+"start calibration."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"The selected nozzle type of %s extruder is inconsistent with the actual "
+"nozzle type of the printer.\n"
+"Please synchronize the printer information first and then start calibration."
+msgstr ""
 
 msgid ""
 "Unable to calibrate: maybe because the set calibration value range is too "
@@ -13482,6 +13641,62 @@ msgstr "打印失败"
 msgid "Removed"
 msgstr "移除"
 
+msgid "Filament arrangement method"
+msgstr ""
+
+msgid "Filament-Saving Mode"
+msgstr ""
+
+msgid "Convenient Mode"
+msgstr ""
+
+msgid "Manual Mode"
+msgstr ""
+
+msgid ""
+"Disregrad the filaments in AMS. Optimize filament usage by calculating the "
+"best arrangement for the left and right nozzles. Arrange the filaments on "
+"the printer based on the slicing results."
+msgstr ""
+
+msgid ""
+"Based on the current filaments in the AMS, arrange the filaments to the left "
+"and right nozzles."
+msgstr ""
+
+msgid "Mannully arrange the filaments for the left and right nozzles."
+msgstr ""
+
+msgid "(Arrange after slicing)"
+msgstr ""
+
+msgid "(Arrange before slicing)"
+msgstr ""
+
+msgid "(Please sync printer)"
+msgstr ""
+
+msgid "More info on wiki"
+msgstr ""
+
+msgid "Don't remind me again"
+msgstr ""
+
+msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
+msgstr ""
+
+msgid "We will slice according to this grouping method:"
+msgstr ""
+
+msgid ""
+"Tips: You can drag the filaments to reassign them to different nozzles.\n"
+"But your filament arrangement may not be the most efficient for filament "
+"usage."
+msgstr ""
+
+msgid "The filament arrangement for current plate follows the global settings."
+msgstr ""
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -13749,6 +13964,10 @@ msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
 
+#, c-format, boost-format
+#~ msgid "*Printing %s material with %s may cause nozzle damage"
+#~ msgstr "*使用 %s 材料和 %s 打印可能会导致喷嘴损坏"
+
 #~ msgid ""
 #~ "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order "
 #~ "to avoid extruder clogging,it is not allowed to set the chamber "
@@ -13922,10 +14141,6 @@ msgstr ""
 #, c-format, boost-format
 #~ msgid "nozzle in preset: %s %s"
 #~ msgstr "预设中的喷嘴：%s %s"
-
-#, c-format, boost-format
-#~ msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
-#~ msgstr "%1s材料在使用%2s的喷嘴打印时,可能会导致喷嘴损坏。"
 
 #~ msgid ""
 #~ "Caution to use! Flow calibration on Textured PEI Plate may fail due to "
