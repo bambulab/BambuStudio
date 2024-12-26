@@ -1495,6 +1495,10 @@ void AmsReplaceMaterialDialog::create()
     label_txt->SetMaxSize(wxSize(FromDIP(380), -1));
     label_txt->Wrap(FromDIP(380));
 
+    identical_filament = new Label(this, _L("Identical filament: same brand, type and color"));
+    identical_filament->SetFont(Label::Body_13);
+    identical_filament->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#00AE42")));
+
     m_scrollview_groups = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHSCROLL | wxVSCROLL);
     m_scrollview_groups->SetScrollRate(5, 5);
     //m_scrollview_groups->SetMinSize(wxSize(400, 400));
@@ -1529,6 +1533,8 @@ void AmsReplaceMaterialDialog::create()
     m_main_sizer->Add(m_nozzle_btn_panel,0, wxALIGN_CENTER_HORIZONTAL, FromDIP(30));
     m_main_sizer->Add(0,0,0, wxTOP, FromDIP(12));
     m_main_sizer->Add(label_txt,0, wxLEFT, FromDIP(30));
+    m_main_sizer->Add(0, 0, 0, wxTOP, FromDIP(5));
+    m_main_sizer->Add(identical_filament, 0, wxLEFT, FromDIP(30));
     m_main_sizer->Add(0,0,0, wxTOP, FromDIP(16));
     m_main_sizer->Add(m_scrollview_groups, 1, wxALIGN_CENTER, 0);
     m_main_sizer->Add(0,0,0, wxTOP, FromDIP(20));
@@ -1697,7 +1703,8 @@ void  AmsReplaceMaterialDialog::update_to_nozzle(int nozzle_id)
     // update text
     if (group_index > 0)
     {
-        label_txt->SetLabel(_L("When the current material run out, the printer will continue to print in the following order."));
+        label_txt->SetLabel(_L("When the current material runs out, the printer would use identical filament to continue printing."));
+        identical_filament->Show();
     }
     else
     {
@@ -1713,6 +1720,8 @@ void  AmsReplaceMaterialDialog::update_to_nozzle(int nozzle_id)
         {
             label_txt->SetLabelText(_L("If there are two identical filaments in AMS, AMS filament backup will be enabled. \n(Currently supporting automatic supply of consumables with the same brand, material type, and color)"));
         }
+
+        identical_filament->Hide();
     }
 
     m_groups_sizer->Layout();
