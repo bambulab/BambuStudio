@@ -437,6 +437,7 @@ void GLGizmoSeam::update_from_model_object(bool first_update)
         // Reset of TriangleSelector is done inside TriangleSelectorGUI's constructor, so we don't need it to perform it again in deserialize().
         m_triangle_selectors.back()->deserialize(mv->seam_facets.get_data(), false);
         m_triangle_selectors.back()->request_update_render_data();
+        m_triangle_selectors.back()->set_wireframe_needed(true);
     }
 }
 
