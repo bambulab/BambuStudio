@@ -21,6 +21,9 @@ const float EPSILON = 0.0001;
 const vec3 ORANGE = vec3(0.8, 0.4, 0.0);
 const vec3 LightRed = vec3(0.78, 0.0, 0.0);
 const vec3 LightBlue = vec3(0.73, 1.0, 1.0);
+const float CHESS_WIDTH = 2.0;
+const vec3 COLOR_A = vec3(0.8, 0.8, 0.8);
+const vec3 COLOR_B = vec3(0.1, 0.1, 0.1);
 uniform vec4 uniform_color;
 
 in vec3 clipping_planes_dots;
@@ -77,15 +80,15 @@ void main()
     vec3 transformed_normal = normalize(slope.volume_world_normal_matrix * triangle_normal);
 
     if (slope.actived) {
-        if(world_pos.z<0.1&&world_pos.z>-0.1)
-         {
-              color = LightBlue;
-              alpha = 1.0;
-         }
-         else if( transformed_normal.z < slope.normal_z - EPSILON)
-        {
-            color = color * 0.7 + LightRed * 0.3;
-            alpha = 1.0;
+        alpha = 1.0;
+        if(abs(world_pos.z) < 0.1){
+           color = LightBlue; 
+        }
+        else if( transformed_normal.z < slope.normal_z - EPSILON){
+            bool x_flag = mod(world_pos.x, CHESS_WIDTH) < (CHESS_WIDTH / 2.0);
+            bool y_flag = mod(world_pos.y, CHESS_WIDTH) < (CHESS_WIDTH / 2.0);
+            vec3 temp_color = (x_flag^^y_flag) ? COLOR_A : COLOR_B;
+            color = mix(color,temp_color,0.2);
         }
     }
 
@@ -107,7 +110,7 @@ void main()
     intensity.x += NdotL * LIGHT_FRONT_DIFFUSE;
 
     if (show_wireframe) {
-        vec3 wireframeColor = show_wireframe ? getWireframeColor(color) : color;
+        vec3 wireframeColor = getWireframeColor(color);
         vec3 triangleColor = wireframe(color, wireframeColor, 1.0);
         frag_color = vec4(vec3(intensity.y) + triangleColor * intensity.x, alpha);
     }
