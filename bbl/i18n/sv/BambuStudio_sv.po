@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-26 17:54+0800\n"
+"POT-Creation-Date: 2024-12-27 09:11+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3274,6 +3274,9 @@ msgstr ""
 "JA -Ändra dessa inställningar och möjliggör Spiral läge automatiskt\n"
 "NEJ  -Avbryt Spiral läge denna gång"
 
+msgid "Printing"
+msgstr "Utskrift pågår"
+
 msgid "Auto bed leveling"
 msgstr "Auto justera byggplattan"
 
@@ -3378,6 +3381,54 @@ msgstr "Fel på första lagret paus"
 
 msgid "Nozzle clog pause"
 msgstr "Stopp i nozzel paus"
+
+msgid "Check printer absolute accuracy before calibration"
+msgstr ""
+
+msgid "Absolute accuracy calibration"
+msgstr ""
+
+msgid "Check printer absolute accuracy after calibration"
+msgstr ""
+
+msgid "Nozzle offset calibration"
+msgstr ""
+
+msgid "high temperature auto bed levelling"
+msgstr ""
+
+msgid "Auto Check: Quick Release Lever"
+msgstr ""
+
+msgid "Auto Check: Door and Upper Cover"
+msgstr ""
+
+msgid "Laser Calibration"
+msgstr ""
+
+msgid "Auto Check: Platform"
+msgstr ""
+
+msgid "Confirming birdeye camera position"
+msgstr ""
+
+msgid "Calibrating birdeye camera"
+msgstr ""
+
+msgid "Auto bed leveling -phase 1"
+msgstr ""
+
+msgid "Auto bed leveling -phase 2"
+msgstr ""
+
+msgid "Heating chamber"
+msgstr ""
+
+msgid "Heated bed cooling"
+msgstr ""
+
+msgid "Printing calibration lines"
+msgstr ""
 
 msgid "TPU is not supported by deputy extruder."
 msgstr ""
@@ -4017,9 +4068,6 @@ msgstr ""
 
 msgid "Calibration step selection"
 msgstr "Val av kalibreringssteg"
-
-msgid "Nozzle offset calibration"
-msgstr ""
 
 msgid "Bed leveling"
 msgstr "Justering av Byggplattan"
@@ -8599,9 +8647,6 @@ msgstr "Uppdatera programvara"
 
 msgid "Offline"
 msgstr "Offline"
-
-msgid "Printing"
-msgstr "Utskrift pågår"
 
 msgid "Idle"
 msgstr "Inaktiv"

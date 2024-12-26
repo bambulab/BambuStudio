@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-26 17:54+0800\n"
+"POT-Creation-Date: 2024-12-27 09:11+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3224,6 +3224,9 @@ msgstr ""
 "예 - 이 설정을 변경하고 나선형/꽃병 모드를 자동으로 활성화\n"
 "아니요 - 나선형 모드 활성화 취소"
 
+msgid "Printing"
+msgstr "출력중"
+
 msgid "Auto bed leveling"
 msgstr "오토 베드레벨링"
 
@@ -3328,6 +3331,54 @@ msgstr "첫 번째 레이어 오류 일시중지"
 
 msgid "Nozzle clog pause"
 msgstr "노즐 막힘 일시 중지"
+
+msgid "Check printer absolute accuracy before calibration"
+msgstr ""
+
+msgid "Absolute accuracy calibration"
+msgstr ""
+
+msgid "Check printer absolute accuracy after calibration"
+msgstr ""
+
+msgid "Nozzle offset calibration"
+msgstr ""
+
+msgid "high temperature auto bed levelling"
+msgstr ""
+
+msgid "Auto Check: Quick Release Lever"
+msgstr ""
+
+msgid "Auto Check: Door and Upper Cover"
+msgstr ""
+
+msgid "Laser Calibration"
+msgstr ""
+
+msgid "Auto Check: Platform"
+msgstr ""
+
+msgid "Confirming birdeye camera position"
+msgstr ""
+
+msgid "Calibrating birdeye camera"
+msgstr ""
+
+msgid "Auto bed leveling -phase 1"
+msgstr ""
+
+msgid "Auto bed leveling -phase 2"
+msgstr ""
+
+msgid "Heating chamber"
+msgstr ""
+
+msgid "Heated bed cooling"
+msgstr ""
+
+msgid "Printing calibration lines"
+msgstr ""
 
 msgid "TPU is not supported by deputy extruder."
 msgstr ""
@@ -3960,9 +4011,6 @@ msgstr ""
 
 msgid "Calibration step selection"
 msgstr "캘리브레이션 단계 선택"
-
-msgid "Nozzle offset calibration"
-msgstr ""
 
 msgid "Bed leveling"
 msgstr "베드 레벨링"
@@ -8479,9 +8527,6 @@ msgstr "펌웨어 업데이트"
 
 msgid "Offline"
 msgstr "오프라인"
-
-msgid "Printing"
-msgstr "출력중"
 
 msgid "Idle"
 msgstr "대기중"
