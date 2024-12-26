@@ -44,6 +44,15 @@ public:
         Arb,
         Ext
     };
+    enum class EVAOType : uint8_t
+    {
+        Unknown,
+        Core,
+        Arb,
+#ifdef __APPLE__
+        Apple
+#endif
+    };
 
     class GLInfo
     {
@@ -125,6 +134,8 @@ private:
     uint32_t m_viewport_height{ 0 };
     bool m_b_viewport_dirty{ true };
     std::unordered_map<std::string, std::shared_ptr<FrameBuffer>> m_name_to_frame_buffer;
+    EVAOType m_vao_type{ EVAOType::Unknown };
+    uint32_t m_vao{ 0 };
     static GLInfo s_gl_info;
 #ifdef __APPLE__
     // Part of hack to remove crash when closing the application on OSX 10.9.5 when building against newer wxWidgets
@@ -149,6 +160,10 @@ public:
     void set_viewport_size(uint32_t width, uint32_t height);
     void get_viewport_size(uint32_t& width, uint32_t& height) const;
     const std::shared_ptr<FrameBuffer>& get_frame_buffer(const std::string& name) const;
+
+    void bind_vao();
+    void unbind_vao();
+    void release_vao();
 
     static bool are_compressed_textures_supported() { return s_compressed_textures_supported; }
     static bool can_multisample() { return s_multisample == EMultisampleState::Enabled; }

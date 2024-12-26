@@ -1,4 +1,4 @@
-#include "libslic3r/libslic3r.h"
+﻿#include "libslic3r/libslic3r.h"
 #include "OpenGLManager.hpp"
 
 #include "GUI.hpp"
@@ -239,6 +239,7 @@ OpenGLManager::OSInfo OpenGLManager::s_os_info;
 
 OpenGLManager::~OpenGLManager()
 {
+    release_vao();
     m_shaders_manager.shutdown();
     m_name_to_frame_buffer.clear();
 
@@ -288,6 +289,17 @@ bool OpenGLManager::init_gl(bool popup_error)
         else {
             s_framebuffers_type = EFramebufferType::Unknown;
             BOOST_LOG_TRIVIAL(warning) << "Found Framebuffer Type unknown!"<< std::endl;
+        }
+        if (gl_formated_version >= 30) {
+            m_vao_type = EVAOType::Core;
+        }
+#if defined(__APPLE__)
+        else if (GLEW_APPLE_vertex_array_object) {
+            m_vao_type = EVAOType::Apple;
+        }
+#endif
+        else if (GLEW_ARB_vertex_array_object) {
+            m_vao_type = EVAOType::Arb;
         }
 
         bool valid_version = s_gl_info.is_version_greater_or_equal_to(2, 0);
@@ -418,6 +430,64 @@ const std::shared_ptr<FrameBuffer>& OpenGLManager::get_frame_buffer(const std::s
     }
     static std::shared_ptr<FrameBuffer> sEmpty{ nullptr };
     return sEmpty;
+}
+
+void OpenGLManager::bind_vao()
+{
+    if (m_vao_type != EVAOType::Unknown) {
+        if (EVAOType::Core == m_vao_type || EVAOType::Arb == m_vao_type) {
+            if (0 == m_vao) {
+                glsafe(::glGenVertexArrays(1, &m_vao));
+            }
+            glsafe(::glBindVertexArray(m_vao));
+        }
+        else {
+#if defined(__APPLE__)
+            if (0 == m_vao) {
+                glsafe(::glGenVertexArraysAPPLE(1, &m_vao));
+            }
+            glsafe(::glBindVertexArrayAPPLE(m_vao));
+#endif
+        }
+    }
+}
+
+void OpenGLManager::unbind_vao()
+{
+    if (0 == m_vao) {
+        return;
+    }
+
+    if (m_vao_type != EVAOType::Unknown) {
+        if (EVAOType::Core == m_vao_type || EVAOType::Arb == m_vao_type) {
+            glsafe(::glBindVertexArray(0));
+        }
+        else {
+#if defined(__APPLE__)
+            glsafe(::glBindVertexArrayAPPLE(0));
+#endif
+        }
+    }
+}
+
+void OpenGLManager::release_vao()
+{
+    if (0 != m_vao) {
+        return;
+    }
+    if (m_vao_type != EVAOType::Unknown) {
+        if (EVAOType::Core == m_vao_type || EVAOType::Arb == m_vao_type) {
+            glsafe(::glBindVertexArray(0));
+            glsafe(::glDeleteVertexArrays(1, &m_vao));
+        }
+        else {
+#if defined(__APPLE__)
+            glsafe(::glBindVertexArrayAPPLE(0));
+            glsafe(::glDeleteVertexArraysAPPLE(1, &m_vao));
+#endif
+        }
+        m_vao = 0;
+    }
 }
 
 std::string OpenGLManager::framebuffer_type_to_string(EFramebufferType type)
