@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 1.10.1 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-26 17:54+0800\n"
+"POT-Creation-Date: 2024-12-27 09:11+0800\n"
 "PO-Revision-Date: 2024-09-27 23:58+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -3392,6 +3392,9 @@ msgstr ""
 "Да - Изменить эти настройки и включить режим «Спиральная ваза»\n"
 "Нет - Отказаться от использования режима «Спиральная ваза»"
 
+msgid "Printing"
+msgstr "Печать"
+
 msgid "Auto bed leveling"
 msgstr "Автовыравнивание стола"
 
@@ -3503,6 +3506,54 @@ msgstr "Пауза при ошибке на первом слое"
 
 msgid "Nozzle clog pause"
 msgstr "Пауза при засорении сопла"
+
+msgid "Check printer absolute accuracy before calibration"
+msgstr ""
+
+msgid "Absolute accuracy calibration"
+msgstr ""
+
+msgid "Check printer absolute accuracy after calibration"
+msgstr ""
+
+msgid "Nozzle offset calibration"
+msgstr ""
+
+msgid "high temperature auto bed levelling"
+msgstr ""
+
+msgid "Auto Check: Quick Release Lever"
+msgstr ""
+
+msgid "Auto Check: Door and Upper Cover"
+msgstr ""
+
+msgid "Laser Calibration"
+msgstr ""
+
+msgid "Auto Check: Platform"
+msgstr ""
+
+msgid "Confirming birdeye camera position"
+msgstr ""
+
+msgid "Calibrating birdeye camera"
+msgstr ""
+
+msgid "Auto bed leveling -phase 1"
+msgstr ""
+
+msgid "Auto bed leveling -phase 2"
+msgstr ""
+
+msgid "Heating chamber"
+msgstr ""
+
+msgid "Heated bed cooling"
+msgstr ""
+
+msgid "Printing calibration lines"
+msgstr ""
 
 msgid "TPU is not supported by deputy extruder."
 msgstr ""
@@ -4150,9 +4201,6 @@ msgstr "На поверхности этой пластины нельзя пе�
 
 msgid "Calibration step selection"
 msgstr "Выбор шага калибровки"
-
-msgid "Nozzle offset calibration"
-msgstr ""
 
 msgid "Bed leveling"
 msgstr "Выравнивание стола"
@@ -8925,9 +8973,6 @@ msgstr "Обновить прошивку"
 
 msgid "Offline"
 msgstr "Не в сети"
-
-msgid "Printing"
-msgstr "Печать"
 
 msgid "Idle"
 msgstr "Простой"

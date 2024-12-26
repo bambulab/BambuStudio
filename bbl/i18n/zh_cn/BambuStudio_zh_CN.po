@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-26 17:54+0800\n"
+"POT-Creation-Date: 2024-12-27 09:11+0800\n"
 "PO-Revision-Date: 2024-03-21 10:39+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -3170,6 +3170,9 @@ msgstr ""
 "是 - 自动调整这些设置并开启旋转模式\n"
 "否 - 暂不使用旋转模式"
 
+msgid "Printing"
+msgstr "打印中"
+
 msgid "Auto bed leveling"
 msgstr "自动热床调平"
 
@@ -3274,6 +3277,54 @@ msgstr "首层扫描异常暂停"
 
 msgid "Nozzle clog pause"
 msgstr "堵头暂停"
+
+msgid "Check printer absolute accuracy before calibration"
+msgstr "校准前检测打印机绝对精度"
+
+msgid "Absolute accuracy calibration"
+msgstr "校准前检测打印机绝对精度"
+
+msgid "Check printer absolute accuracy after calibration"
+msgstr "校准后检测打印机绝对精度"
+
+msgid "Nozzle offset calibration"
+msgstr "喷嘴偏移校准"
+
+msgid "high temperature auto bed levelling"
+msgstr "高温热床校准"
+
+msgid "Auto Check: Quick Release Lever"
+msgstr "自动检测：快拆锁扣"
+
+msgid "Auto Check: Door and Upper Cover"
+msgstr "自动检测：前门及上盖"
+
+msgid "Laser Calibration"
+msgstr "激光组件校准"
+
+msgid "Auto Check: Platform"
+msgstr "自动检测：垫板"
+
+msgid "Confirming birdeye camera position"
+msgstr "俯视相机位置确认中"
+
+msgid "Calibrating birdeye camera"
+msgstr "俯视相机标定中"
+
+msgid "Auto bed leveling -phase 1"
+msgstr "自动热床调平 –阶段一"
+
+msgid "Auto bed leveling -phase 2"
+msgstr "自动热床调平 –阶段二"
+
+msgid "Heating chamber"
+msgstr "腔体加热中 "
+
+msgid "Heated bed cooling"
+msgstr "热床降温中"
+
+msgid "Printing calibration lines"
+msgstr "打印标定线"
 
 msgid "TPU is not supported by deputy extruder."
 msgstr "副挤出机不支持TPU。"
@@ -3907,9 +3958,6 @@ msgstr "材料 %s 不能在直接在当前打印板上打印。"
 
 msgid "Calibration step selection"
 msgstr "校准步骤选择"
-
-msgid "Nozzle offset calibration"
-msgstr "喷嘴偏移校准"
 
 msgid "Bed leveling"
 msgstr "热床调平"
@@ -8334,9 +8382,6 @@ msgstr "更新固件"
 
 msgid "Offline"
 msgstr "离线"
-
-msgid "Printing"
-msgstr "打印中"
 
 msgid "Idle"
 msgstr "空闲"

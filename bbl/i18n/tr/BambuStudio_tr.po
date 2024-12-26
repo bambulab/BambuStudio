@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-26 17:54+0800\n"
+"POT-Creation-Date: 2024-12-27 09:11+0800\n"
 "PO-Revision-Date: 2024-11-15 18:30+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -3287,6 +3287,9 @@ msgstr ""
 "etkinleştirin\n"
 "Hayır - Bu sefer spiral modunu kullanmaktan vazgeçin"
 
+msgid "Printing"
+msgstr "Baskı"
+
 msgid "Auto bed leveling"
 msgstr "Otomatik yatak tesviyesi"
 
@@ -3391,6 +3394,54 @@ msgstr "İlk katman hatası duraklatılıyor"
 
 msgid "Nozzle clog pause"
 msgstr "Nozul tıkanıklığı duraklatılıyor"
+
+msgid "Check printer absolute accuracy before calibration"
+msgstr ""
+
+msgid "Absolute accuracy calibration"
+msgstr ""
+
+msgid "Check printer absolute accuracy after calibration"
+msgstr ""
+
+msgid "Nozzle offset calibration"
+msgstr ""
+
+msgid "high temperature auto bed levelling"
+msgstr ""
+
+msgid "Auto Check: Quick Release Lever"
+msgstr ""
+
+msgid "Auto Check: Door and Upper Cover"
+msgstr ""
+
+msgid "Laser Calibration"
+msgstr ""
+
+msgid "Auto Check: Platform"
+msgstr ""
+
+msgid "Confirming birdeye camera position"
+msgstr ""
+
+msgid "Calibrating birdeye camera"
+msgstr ""
+
+msgid "Auto bed leveling -phase 1"
+msgstr ""
+
+msgid "Auto bed leveling -phase 2"
+msgstr ""
+
+msgid "Heating chamber"
+msgstr ""
+
+msgid "Heated bed cooling"
+msgstr ""
+
+msgid "Printing calibration lines"
+msgstr ""
 
 msgid "TPU is not supported by deputy extruder."
 msgstr ""
@@ -4030,9 +4081,6 @@ msgstr "%s filamentleri bu plakanın yüzeyine doğrudan basılamaz."
 
 msgid "Calibration step selection"
 msgstr "Kalibrasyon adımı seçimi"
-
-msgid "Nozzle offset calibration"
-msgstr ""
 
 msgid "Bed leveling"
 msgstr "Yatak Seviyeleme"
@@ -8687,9 +8735,6 @@ msgstr "Ürün yazılımını güncelle"
 
 msgid "Offline"
 msgstr "Çevrimdışı"
-
-msgid "Printing"
-msgstr "Baskı"
 
 msgid "Idle"
 msgstr "Boşta"
