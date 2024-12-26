@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-24 17:25+0800\n"
+"POT-Creation-Date: 2024-12-26 17:54+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1330,6 +1330,11 @@ msgid ""
 msgstr ""
 "The Bambu Studio version is too old to enable cloud service. Please download "
 "the latest version from Bambu Lab's website."
+
+msgid ""
+"Your software certificate has been revoked, please update Bambu Studio "
+"software."
+msgstr ""
 
 msgid "Retrieving printer information, please try again later."
 msgstr ""
@@ -2818,6 +2823,12 @@ msgstr "Impresión con filamento en una bobina externa"
 msgid "Auto Refill"
 msgstr "Auto Refill"
 
+msgid "Left"
+msgstr "Izquierda"
+
+msgid "Right"
+msgstr "Derecha"
+
 msgid ""
 "When the current material run out, the printer will continue to print in the "
 "following order."
@@ -2825,8 +2836,16 @@ msgstr ""
 "Cuando se acabe el material actual, la impresora seguirá imprimiendo los "
 "materiales en el orden siguiente."
 
+msgid "Identical filament: same brand, type and color"
+msgstr ""
+
 msgid "Group"
 msgstr "Grupo"
+
+msgid ""
+"When the current material runs out, the printer would use identical filament "
+"to continue printing."
+msgstr ""
 
 msgid "The printer does not currently support auto refill."
 msgstr "La impresora no admite actualmente el rellenado automático."
@@ -4263,14 +4282,8 @@ msgstr "Trasera"
 msgid "Rear View"
 msgstr "Vista trasera"
 
-msgid "Left"
-msgstr "Izquierda"
-
 msgid "Left View"
 msgstr "Vista izquierda"
-
-msgid "Right"
-msgstr "Derecha"
 
 msgid "Right View"
 msgstr "Vista derecha"
@@ -6194,6 +6207,11 @@ msgstr ""
 "la impresora."
 
 msgid ""
+"It is detected that the nozzle type is not set. please set the nozzle first "
+"and then perform the current operation again."
+msgstr ""
+
+msgid ""
 "Unable to perform boolean operation on model meshes. You may fix the meshes "
 "and try again."
 msgstr ""
@@ -6660,6 +6678,15 @@ msgstr "Modo oscuro"
 
 msgid "Enable dark mode"
 msgstr "Enable dark mode"
+
+msgid "Filament Arrange"
+msgstr ""
+
+msgid "Ignore ext filament when auto grouping"
+msgstr ""
+
+msgid "Pop up to select filament map mode"
+msgstr ""
 
 msgid "User Experience"
 msgstr "Experiencia del usuario"
@@ -8853,6 +8880,12 @@ msgstr ""
 msgid "Generating G-code: layer %1%"
 msgstr "Generando código G: capa %1%"
 
+msgid "Smoothing z direction speed"
+msgstr ""
+
+msgid "Exporting G-code"
+msgstr "Exportando código G"
+
 msgid "Inner wall"
 msgstr "Pared interior"
 
@@ -9146,9 +9179,6 @@ msgstr "La placa %d: %s no admite el filamento %s."
 
 msgid "Generating skirt & brim"
 msgstr "Generando falda y ala"
-
-msgid "Exporting G-code"
-msgstr "Exportando código G"
 
 msgid "Generating G-code"
 msgstr "Generando G-code"
@@ -10074,6 +10104,12 @@ msgid "Unprintable filament map to extruder"
 msgstr ""
 
 msgid "filament mapping mode"
+msgstr ""
+
+msgid "Auto For Flush"
+msgstr ""
+
+msgid "Auto For Match"
 msgstr ""
 
 msgid "Manual"
@@ -11929,6 +11965,99 @@ msgstr ""
 "la boquilla y estabilizar la presión dentro de la boquilla para evitar "
 "defectos al imprimir objetos."
 
+msgid "Auto holes-contour compensation"
+msgstr ""
+
+msgid "enable_circle_compensation"
+msgstr ""
+
+msgid "Circle Compensation Speed"
+msgstr ""
+
+msgid "circle_compensation_speed"
+msgstr ""
+
+msgid "Deviation"
+msgstr ""
+
+msgid "max_deviation"
+msgstr ""
+
+msgid "Variance"
+msgstr ""
+
+msgid "max_variance"
+msgstr ""
+
+msgid "Counter Coef 1"
+msgstr ""
+
+msgid "counter_coef_1"
+msgstr ""
+
+msgid "/1e6"
+msgstr ""
+
+msgid "Counter Coef 2"
+msgstr ""
+
+msgid "counter_coef_2"
+msgstr ""
+
+msgid "Counter Coef 3"
+msgstr ""
+
+msgid "counter_coef_3"
+msgstr ""
+
+msgid "Hole Coef 1"
+msgstr ""
+
+msgid "hole_coef_1"
+msgstr ""
+
+msgid "Hole Coef 2"
+msgstr ""
+
+msgid "hole_coef_2"
+msgstr ""
+
+msgid "Hole Coef 3"
+msgstr ""
+
+msgid "hole_coef_3"
+msgstr ""
+
+msgid "Counter limit min"
+msgstr ""
+
+msgid "counter_limit_min"
+msgstr ""
+
+msgid "Counter limit max"
+msgstr ""
+
+msgid "counter_limit_max"
+msgstr ""
+
+msgid "Hole limit min"
+msgstr ""
+
+msgid "hole_limit_min"
+msgstr ""
+
+msgid "Hole limit max"
+msgstr ""
+
+msgid "hole_limit_max"
+msgstr ""
+
+msgid "Diameter limit"
+msgstr ""
+
+msgid "diameter_limit"
+msgstr ""
+
 msgid "Purging volumes"
 msgstr "Volúmenes de purga"
 
@@ -12716,6 +12845,15 @@ msgstr ""
 
 msgid "Printing Parameters"
 msgstr "Parámetros de impresión"
+
+msgid "Synchronize nozzle and AMS information"
+msgstr ""
+
+msgid "Please connect the printer first before synchronizing."
+msgstr ""
+
+msgid "Nozzle Info"
+msgstr ""
 
 msgid "Plate Type"
 msgstr "Tipo de cama"
@@ -13707,8 +13845,8 @@ msgstr ""
 "¿Ha cambiado la boquilla últimamente? "
 
 #, c-format, boost-format
-msgid "*Printing %s material with %s may cause nozzle damage"
-msgstr "*Imprimir material %s con %s puede causar daños en la boquilla."
+msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
+msgstr ""
 
 msgid "Need select printer"
 msgstr "Necesidad de seleccionar impresora"
@@ -13716,7 +13854,28 @@ msgstr "Necesidad de seleccionar impresora"
 msgid "The start, end or step is not valid value."
 msgstr "El inicio, el final o el paso no son valores válidos."
 
+msgid "Calibration using nozzles of different diameters is not supported."
+msgstr ""
+
+msgid ""
+"The number of printer extruders and the printer selected for calibration "
+"does not match."
+msgstr ""
+
 msgid "The selected diameter is inconsistent with the printer diameter."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"The nozzle type of the %s extruder is not set. Please set it first and then "
+"start calibration."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"The selected nozzle type of %s extruder is inconsistent with the actual "
+"nozzle type of the printer.\n"
+"Please synchronize the printer information first and then start calibration."
 msgstr ""
 
 msgid ""
@@ -14358,6 +14517,62 @@ msgstr ""
 msgid "Removed"
 msgstr ""
 
+msgid "Filament arrangement method"
+msgstr ""
+
+msgid "Filament-Saving Mode"
+msgstr ""
+
+msgid "Convenient Mode"
+msgstr ""
+
+msgid "Manual Mode"
+msgstr ""
+
+msgid ""
+"Disregrad the filaments in AMS. Optimize filament usage by calculating the "
+"best arrangement for the left and right nozzles. Arrange the filaments on "
+"the printer based on the slicing results."
+msgstr ""
+
+msgid ""
+"Based on the current filaments in the AMS, arrange the filaments to the left "
+"and right nozzles."
+msgstr ""
+
+msgid "Mannully arrange the filaments for the left and right nozzles."
+msgstr ""
+
+msgid "(Arrange after slicing)"
+msgstr ""
+
+msgid "(Arrange before slicing)"
+msgstr ""
+
+msgid "(Please sync printer)"
+msgstr ""
+
+msgid "More info on wiki"
+msgstr ""
+
+msgid "Don't remind me again"
+msgstr ""
+
+msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
+msgstr ""
+
+msgid "We will slice according to this grouping method:"
+msgstr ""
+
+msgid ""
+"Tips: You can drag the filaments to reassign them to different nozzles.\n"
+"But your filament arrangement may not be the most efficient for filament "
+"usage."
+msgstr ""
+
+msgid "The filament arrangement for current plate follows the global settings."
+msgstr ""
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -14652,6 +14867,10 @@ msgstr ""
 "¿Sabías que al imprimir materiales propensos al alabeo, como el ABS, "
 "aumentar adecuadamente la temperatura del lecho térmico puede reducir la "
 "probabilidad de alabeo?"
+
+#, c-format, boost-format
+#~ msgid "*Printing %s material with %s may cause nozzle damage"
+#~ msgstr "*Imprimir material %s con %s puede causar daños en la boquilla."
 
 #~ msgid ""
 #~ "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order "
