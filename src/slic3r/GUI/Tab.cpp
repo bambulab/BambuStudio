@@ -6122,7 +6122,7 @@ void Tab::sync_excluder()
     }
     reload_config();
     update_changed_ui();
-    toggle_options();
+    update();
     if (m_active_page)
         m_active_page->update_visibility(m_mode, true);
     m_page_view->GetParent()->Layout();
