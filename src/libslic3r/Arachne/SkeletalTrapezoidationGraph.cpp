@@ -324,12 +324,14 @@ void SkeletalTrapezoidationGraph::makeRib(edge_t*& prev_edge, Point start_source
     nodes.emplace_front(SkeletalTrapezoidationJoint(), p);
     node_t* node = &nodes.front();
     node->data.distance_to_boundary = 0;
-    
+
     edges.emplace_front(SkeletalTrapezoidationEdge(SkeletalTrapezoidationEdge::EdgeType::EXTRA_VD));
     edge_t* forth_edge = &edges.front();
+    forth_edge->data.setHoleCompensationFlag(prev_edge->data.getHoleCompensationFlag());
     edges.emplace_front(SkeletalTrapezoidationEdge(SkeletalTrapezoidationEdge::EdgeType::EXTRA_VD));
     edge_t* back_edge = &edges.front();
-    
+    back_edge->data.setHoleCompensationFlag(prev_edge->data.getHoleCompensationFlag());
+
     prev_edge->next = forth_edge;
     forth_edge->prev = prev_edge;
     forth_edge->from = prev_edge->to;
@@ -339,7 +341,7 @@ void SkeletalTrapezoidationGraph::makeRib(edge_t*& prev_edge, Point start_source
     back_edge->from = node;
     back_edge->to = prev_edge->to;
     node->incident_edge = back_edge;
-    
+
     prev_edge = back_edge;
 }
 
@@ -351,6 +353,8 @@ std::pair<SkeletalTrapezoidationGraph::edge_t*, SkeletalTrapezoidationGraph::edg
     node_t* node_after = edge.to;
     
     Point p = mid_node->p;
+
+    bool apply_hole_compensation = edge.data.getHoleCompensationFlag();
 
     const Line source_segment = getSource(edge);
     Point      px;
@@ -371,6 +375,11 @@ std::pair<SkeletalTrapezoidationGraph::edge_t*, SkeletalTrapezoidationGraph::edg
     edge_t* outward_edge = &edges.back();
     edges.emplace_back(SkeletalTrapezoidationEdge(SkeletalTrapezoidationEdge::EdgeType::TRANSITION_END));
     edge_t* inward_edge = &edges.back();
+
+    first->data.setHoleCompensationFlag(apply_hole_compensation);
+    second->data.setHoleCompensationFlag(apply_hole_compensation);
+    outward_edge->data.setHoleCompensationFlag(apply_hole_compensation);
+    inward_edge->data.setHoleCompensationFlag(apply_hole_compensation);
 
     if (edge_before)
     {

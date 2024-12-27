@@ -190,6 +190,8 @@ struct ExtrusionLine
      * */
     static int64_t calculateExtrusionAreaDeviationError(ExtrusionJunction A, ExtrusionJunction B, ExtrusionJunction C, coord_t& weighted_average_width);
 
+    bool shouldApplyHoleCompensation(const double threshold = 0.8) const;
+
     bool is_contour() const;
 
     double area() const;
