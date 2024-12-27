@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-27 09:11+0800\n"
+"POT-Creation-Date: 2024-12-27 16:16+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2185,6 +2185,103 @@ msgstr ""
 "AMSスロットを選択し「ロード」または「アンロード」ボタンを押すとフィラメントが"
 "自動的にロード／アンロードされます。"
 
+msgid "Off"
+msgstr ""
+
+msgid "Cooling"
+msgstr "冷却"
+
+msgid "Heating"
+msgstr ""
+
+msgid "Exhaust"
+msgstr ""
+
+msgid "Full Cooling"
+msgstr ""
+
+msgid "Num?"
+msgstr ""
+
+msgid "Init"
+msgstr ""
+
+msgid "Hotend"
+msgstr ""
+
+msgid "Aux"
+msgstr "補助"
+
+msgid "Nozzle1"
+msgstr ""
+
+msgid "MC Board"
+msgstr ""
+
+msgid "Heat"
+msgstr ""
+
+msgid "Chamber"
+msgstr ""
+
+msgid "Innerloop"
+msgstr ""
+
+#. TRN To be shown in the main menu View->Top
+msgid "Top"
+msgstr "トップ"
+
+msgid ""
+"The fan controls the temperature during printing to improve print "
+"quality.The system automatically adjusts the fan's switch and speed "
+"according to different printing materials."
+msgstr ""
+
+msgid ""
+"Cooling mode is suitable for printing PLA/PETG/TPU materials and filters the "
+"chamber air."
+msgstr ""
+
+msgid ""
+"Heating mode is suitable for printeing ABS/ASA/PC/PA materials and "
+"circulates filters the chamber air."
+msgstr ""
+
+msgid ""
+"Strong cooling mode is suitable for printing PLA/TPU materials. In this "
+"mode, the printouts will be fully cooled."
+msgstr ""
+
+msgid "Num"
+msgstr ""
+
+msgid "Idling..."
+msgstr "待機中…"
+
+msgid "Heat the nozzle"
+msgstr "ノズルを加熱"
+
+msgid "Cut filament"
+msgstr "フィラメントを切る"
+
+msgid "Pull back current filament"
+msgstr "フィラメントを引き戻す"
+
+msgid "Push new filament into extruder"
+msgstr "フィラメントを押出機に押入れる"
+
+msgid "Grab new filament"
+msgstr "新しいフィラメントをキャッチ"
+
+msgid "Purge old filament"
+msgstr "古いフィラメントを排出"
+
+msgid "Confirm extruded"
+msgstr "押し出しを確認"
+
+msgid "Check filament location"
+msgstr "フィラメント位置を確認"
+
 msgid ""
 "All the selected objects are on the locked plate,\n"
 "We can not do auto-arrange on these objects."
@@ -3188,10 +3285,9 @@ msgstr ""
 
 msgid ""
 "Spiral mode only works when wall loops is 1, support is disabled, top shell "
-"layers is 0, sparse infill density is 0 and timelapse type is traditional."
+"layers is 0, sparse infill density is 0, timelapse type is traditional and "
+"Smoothing wall speed in z direction is false."
 msgstr ""
-"Spiral mode only works when wall loops is 1, support is disabled, top shell "
-"layers is 0, sparse infill density is 0 and timelapse type is traditional."
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr " But machines with I3 structure will not generate timelapse videos."
@@ -4178,10 +4274,6 @@ msgstr "モデルをダウンロード"
 msgid "Default View"
 msgstr "デフォルトビュー"
 
-#. TRN To be shown in the main menu View->Top
-msgid "Top"
-msgstr "トップ"
-
 msgid "Top View"
 msgstr "トップ"
 
@@ -4876,6 +4968,72 @@ msgstr "3Dconnexion設定"
 
 msgid "Swap Y/Z axes"
 msgstr "Y/Z 軸を交換"
+
+msgid "(LAN)"
+msgstr "(LAN)"
+
+msgid "Search"
+msgstr "Search"
+
+msgid "My Device"
+msgstr "私のデバイス"
+
+msgid "Other Device"
+msgstr "その他のデバイス"
+
+msgid "Online"
+msgstr "オンライン"
+
+msgid "Input access code"
+msgstr "アクセスコードを入力"
+
+msgid "Can't find my devices?"
+msgstr "デバイスが見つからない？"
+
+msgid "Log out successful."
+msgstr "サインアウトしました"
+
+msgid "Offline"
+msgstr "オフライン"
+
+msgid "Busy"
+msgstr "ビジー状態"
+
+msgid "Modifying the device name"
+msgstr "デバイス名を変更"
+
+msgid "Name is invalid;"
+msgstr "名称が無効です"
+
+msgid "illegal characters:"
+msgstr "無効な文字:"
+
+msgid "illegal suffix:"
+msgstr "無効なサフィックス"
+
+msgid "The name is not allowed to be empty."
+msgstr "「名前」が空です"
+
+msgid "The name is not allowed to start with space character."
+msgstr "名前の先頭にスペースを入れないでください"
+
+msgid "The name is not allowed to end with space character."
+msgstr "名前の最後にスペースを入れないでください"
+
+msgid "Bind with Pin Code"
+msgstr "Bind with Pin Code"
+
+msgid "Bind with Access Code"
+msgstr ""
+
+msgid ""
+"Please log in before binding your device with a PIN code.\n"
+"Alternatively, you can use LAN mode to bind your device. Learn about LAN "
+"mode."
+msgstr ""
+
+msgid "Go to Login"
+msgstr ""
 
 msgid "Printing Progress"
 msgstr "進捗"
@@ -6811,15 +6969,6 @@ msgstr "ユーザープリセット"
 msgid "Preset Inside Project"
 msgstr "Preset Inside Project"
 
-msgid "Name is invalid;"
-msgstr "名称が無効です"
-
-msgid "illegal characters:"
-msgstr "無効な文字:"
-
-msgid "illegal suffix:"
-msgstr "無効なサフィックス"
-
 msgid "Name is unavailable."
 msgstr "名称は使用できません"
 
@@ -6836,15 +6985,6 @@ msgstr "プリセット\"%1%\"は既に存在し、また互換性がありま�
 
 msgid "Please note that saving action will replace this preset"
 msgstr "注意：現在のプリセットを上書きされます。"
-
-msgid "The name is not allowed to be empty."
-msgstr "「名前」が空です"
-
-msgid "The name is not allowed to start with space character."
-msgstr "名前の先頭にスペースを入れないでください"
-
-msgid "The name is not allowed to end with space character."
-msgstr "名前の最後にスペースを入れないでください"
 
 msgid "The name cannot be the same as a preset alias name."
 msgstr "プリセット名と同じの為、設定できません。"
@@ -7137,9 +7277,6 @@ msgstr "ファイルに異常があります、もう一度スライスしてく
 msgid "The name length exceeds the limit."
 msgstr "名称の長さが制限を超えています。"
 
-msgid "Input access code"
-msgstr "アクセスコードを入力"
-
 msgid "Cool"
 msgstr ""
 
@@ -7216,9 +7353,6 @@ msgstr "Receive login report timeout"
 
 msgid "Unknown Failure"
 msgstr "不明な失敗"
-
-msgid "Bind with Pin Code"
-msgstr "Bind with Pin Code"
 
 msgid ""
 "Please Find the Pin Code in Account page on printer screen,\n"
@@ -7325,9 +7459,6 @@ msgstr "サインインしてください"
 
 msgid "There was a problem connecting to the printer. Please try again."
 msgstr "プリンターと接続できませんでした。もう一度試してください。"
-
-msgid "Log out successful."
-msgstr "サインアウトしました"
 
 msgid "Failed to log out."
 msgstr "サインアウトできませんでした"
@@ -7614,9 +7745,6 @@ msgstr "体積速度制限"
 
 msgid "Filament scarf seam settings"
 msgstr ""
-
-msgid "Cooling"
-msgstr "冷却"
 
 msgid "Cooling for specific layer"
 msgstr "特定層の冷却"
@@ -8490,9 +8618,6 @@ msgstr "バージョン"
 msgid "Update firmware"
 msgstr "ファームウェアを更新"
 
-msgid "Offline"
-msgstr "オフライン"
-
 msgid "Idle"
 msgstr "待機中"
 
@@ -9064,7 +9189,7 @@ msgstr ""
 
 msgid ""
 "Smoothing outwall speed in z direction to get better surface quality. Print "
-"time will increases."
+"time will increases. It is not work on spiral vase mode."
 msgstr ""
 
 msgid "Avoid crossing wall - Max detour length"
@@ -12018,15 +12143,6 @@ msgstr "Flow Rate"
 msgid "Max Volumetric Speed"
 msgstr "Max Volumetric Speed"
 
-msgid "(LAN)"
-msgstr "(LAN)"
-
-msgid "Online"
-msgstr "オンライン"
-
-msgid "Busy"
-msgstr "ビジー状態"
-
 #, c-format, boost-format
 msgid ""
 "Please input valid values:\n"
@@ -12980,6 +13096,12 @@ msgstr "モデル手動入力"
 msgid "Can't find my printer model"
 msgstr "私のプリンタが見付かりません"
 
+msgid "Input Custom Nozzle Diameter"
+msgstr ""
+
+msgid "Can't find my nozzle diameter"
+msgstr ""
+
 msgid "Rectangle"
 msgstr "寸法"
 
@@ -13041,9 +13163,6 @@ msgid ""
 msgstr ""
 "You have entered a disallowed character in the printable area section on the "
 "first page. Please use only numbers."
-
-msgid "The custom printer or model is not inputed, place input."
-msgstr "The custom printer or model missing; please input."
 
 msgid ""
 "The printer preset you created already has a preset with the same name. Do "
@@ -13107,6 +13226,14 @@ msgid ""
 msgstr ""
 "You have not yet selected the printer to replace the nozzle for; please "
 "choose a printer."
+
+msgid "The entered nozzle diameter is invalid, please re-enter:\n"
+msgstr ""
+
+msgid ""
+"The system preset does not allow creation. \n"
+"Please re-enter the printer model or nozzle diameter."
+msgstr ""
 
 msgid "Create Printer Successful"
 msgstr "Create Printer Successful"
@@ -14344,6 +14471,18 @@ msgstr ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping?"
 
+#~ msgid ""
+#~ "Spiral mode only works when wall loops is 1, support is disabled, top "
+#~ "shell layers is 0, sparse infill density is 0 and timelapse type is "
+#~ "traditional."
+#~ msgstr ""
+#~ "Spiral mode only works when wall loops is 1, support is disabled, top "
+#~ "shell layers is 0, sparse infill density is 0 and timelapse type is "
+#~ "traditional."
+
+#~ msgid "The custom printer or model is not inputed, place input."
+#~ msgstr "The custom printer or model missing; please input."
+
 #, c-format, boost-format
 #~ msgid "*Printing %s material with %s may cause nozzle damage"
 #~ msgstr "*Printing %s material with %s may cause nozzle damage"
@@ -14448,41 +14587,11 @@ msgstr ""
 #~ msgid "Cancel calibration"
 #~ msgstr "キャリブレーションを取消し"
 
-#~ msgid "Idling..."
-#~ msgstr "待機中…"
-
-#~ msgid "Heat the nozzle"
-#~ msgstr "ノズルを加熱"
-
-#~ msgid "Cut filament"
-#~ msgstr "フィラメントを切る"
-
-#~ msgid "Pull back current filament"
-#~ msgstr "フィラメントを引き戻す"
-
-#~ msgid "Push new filament into extruder"
-#~ msgstr "フィラメントを押出機に押入れる"
-
-#~ msgid "Purge old filament"
-#~ msgstr "古いフィラメントを排出"
-
 #~ msgid "Feed Filament"
 #~ msgstr "フィラメントを送出"
 
-#~ msgid "Confirm extruded"
-#~ msgstr "押し出しを確認"
-
-#~ msgid "Check filament location"
-#~ msgstr "フィラメント位置を確認"
-
-#~ msgid "Grab new filament"
-#~ msgstr "新しいフィラメントをキャッチ"
-
 #~ msgid "SD Card"
 #~ msgstr "SDカード"
-
-#~ msgid "Aux"
-#~ msgstr "補助"
 
 #~ msgid "Cham"
 #~ msgstr "筐体"
@@ -14500,18 +14609,6 @@ msgstr ""
 #~ "Unable to perform boolean operation on model meshes. Only positive parts "
 #~ "will be kept. You may fix the meshes and try agian."
 
-#~ msgid "Search"
-#~ msgstr "Search"
-
-#~ msgid "My Device"
-#~ msgstr "私のデバイス"
-
-#~ msgid "Other Device"
-#~ msgstr "その他のデバイス"
-
-#~ msgid "Can't find my devices?"
-#~ msgstr "デバイスが見つからない？"
-
 #, c-format, boost-format
 #~ msgid "nozzle in preset: %s %s"
 #~ msgstr "nozzle in preset: %s %s"
@@ -14525,9 +14622,6 @@ msgstr ""
 
 #~ msgid "Automatic flow calibration using Micro Lidar"
 #~ msgstr "Automatic flow calibration using the Micro Lidar"
-
-#~ msgid "Modifying the device name"
-#~ msgstr "デバイス名を変更"
 
 #~ msgid "Direct drive"
 #~ msgstr "Direct drive"

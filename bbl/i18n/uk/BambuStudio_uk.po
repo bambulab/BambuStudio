@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-27 09:11+0800\n"
+"POT-Creation-Date: 2024-12-27 16:16+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -2224,6 +2224,103 @@ msgstr ""
 "Виберіть слот AMS, а потім натисніть кнопку “Завантажити” або “Вивантажити”, "
 "щоб автоматично завантажити або вивантажити філаменти."
 
+msgid "Off"
+msgstr ""
+
+msgid "Cooling"
+msgstr "Охолодження"
+
+msgid "Heating"
+msgstr ""
+
+msgid "Exhaust"
+msgstr ""
+
+msgid "Full Cooling"
+msgstr ""
+
+msgid "Num?"
+msgstr ""
+
+msgid "Init"
+msgstr ""
+
+msgid "Hotend"
+msgstr ""
+
+msgid "Aux"
+msgstr "Aux"
+
+msgid "Nozzle1"
+msgstr ""
+
+msgid "MC Board"
+msgstr ""
+
+msgid "Heat"
+msgstr ""
+
+msgid "Chamber"
+msgstr ""
+
+msgid "Innerloop"
+msgstr ""
+
+#. TRN To be shown in the main menu View->Top
+msgid "Top"
+msgstr "Верх"
+
+msgid ""
+"The fan controls the temperature during printing to improve print "
+"quality.The system automatically adjusts the fan's switch and speed "
+"according to different printing materials."
+msgstr ""
+
+msgid ""
+"Cooling mode is suitable for printing PLA/PETG/TPU materials and filters the "
+"chamber air."
+msgstr ""
+
+msgid ""
+"Heating mode is suitable for printeing ABS/ASA/PC/PA materials and "
+"circulates filters the chamber air."
+msgstr ""
+
+msgid ""
+"Strong cooling mode is suitable for printing PLA/TPU materials. In this "
+"mode, the printouts will be fully cooled."
+msgstr ""
+
+msgid "Num"
+msgstr ""
+
+msgid "Idling..."
+msgstr "Очікування…"
+
+msgid "Heat the nozzle"
+msgstr "Нагрійте сопло"
+
+msgid "Cut filament"
+msgstr "Відрізати філамент"
+
+msgid "Pull back current filament"
+msgstr "Відтягніть поточний філамент"
+
+msgid "Push new filament into extruder"
+msgstr "Вставте новий філамент в екструдер"
+
+msgid "Grab new filament"
+msgstr "Візьміть новий філамент"
+
+msgid "Purge old filament"
+msgstr "Очистіть старий філамент"
+
+msgid "Confirm extruded"
+msgstr "Підтвердити витіснення"
+
+msgid "Check filament location"
+msgstr "Перевірити розташування філаменту"
+
 msgid ""
 "All the selected objects are on the locked plate,\n"
 "We can not do auto-arrange on these objects."
@@ -3293,11 +3390,9 @@ msgstr ""
 
 msgid ""
 "Spiral mode only works when wall loops is 1, support is disabled, top shell "
-"layers is 0, sparse infill density is 0 and timelapse type is traditional."
+"layers is 0, sparse infill density is 0, timelapse type is traditional and "
+"Smoothing wall speed in z direction is false."
 msgstr ""
-"Спіральний режим працює тільки тоді, коли периметри дорівнюють 1, підтримка "
-"відключена, верхня оболонка дорівнює 0, щільність заповнення дорівнює 0, а "
-"типуповільненої зйомки - традиційний."
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr " Але машини зі структурою I3 не будуть створювати відео з таймлапсами."
@@ -4288,10 +4383,6 @@ msgstr "Скачати моделі"
 msgid "Default View"
 msgstr "За замовчуванням"
 
-#. TRN To be shown in the main menu View->Top
-msgid "Top"
-msgstr "Верх"
-
 msgid "Top View"
 msgstr "Вигляд зверху"
 
@@ -5012,6 +5103,76 @@ msgstr "Налаштування 3D-з'єднання"
 
 msgid "Swap Y/Z axes"
 msgstr "Змінити місцями осі Y/Z"
+
+msgid "(LAN)"
+msgstr "(LAN)"
+
+msgid "Search"
+msgstr "Пошук"
+
+msgid "My Device"
+msgstr "Мої пристрої"
+
+msgid "Other Device"
+msgstr "Інші пристрої"
+
+msgid "Online"
+msgstr "У мережі"
+
+msgid "Input access code"
+msgstr "Введіть код доступу"
+
+msgid "Can't find my devices?"
+msgstr "Не можу знайти пристрої?"
+
+msgid "Log out successful."
+msgstr "Вийти успішно."
+
+msgid "Offline"
+msgstr "Не в мережі"
+
+msgid "Busy"
+msgstr "Зайнятий"
+
+msgid "Modifying the device name"
+msgstr "Зміна імені пристрою"
+
+msgid "Name is invalid;"
+msgstr "Ім'я недійсне;"
+
+msgid "illegal characters:"
+msgstr "неприпустимі символи:"
+
+msgid "illegal suffix:"
+msgstr "неприпустимий суфікс:"
+
+msgid "The name is not allowed to be empty."
+msgstr "Ім'я не може бути порожнім."
+
+msgid "The name is not allowed to start with space character."
+msgstr "Ім'я не може починатися з пробілу."
+
+msgid "The name is not allowed to end with space character."
+msgstr "Ім'я не може закінчуватися пробілом."
+
+msgid "Bind with Pin Code"
+msgstr "Прив’язати за допомогою Пін-коду"
+
+msgid "Bind with Access Code"
+msgstr "Прив’язати з кодом доступу"
+
+msgid ""
+"Please log in before binding your device with a PIN code.\n"
+"Alternatively, you can use LAN mode to bind your device. Learn about LAN "
+"mode."
+msgstr ""
+"Будь ласка, увійдіть в систему перед прив’язкою вашого пристрою за допомогою "
+"PIN-коду.\n"
+"Альтернативно, ви можете використовувати режим LAN для прив’язки вашого "
+"пристрою. Дізнайтеся про режим LAN."
+
+msgid "Go to Login"
+msgstr "Перейти до входу"
 
 msgid "Printing Progress"
 msgstr "Хід друку"
@@ -7014,15 +7175,6 @@ msgstr "Установка користувача"
 msgid "Preset Inside Project"
 msgstr "Параметри в межах проекту"
 
-msgid "Name is invalid;"
-msgstr "Ім'я недійсне;"
-
-msgid "illegal characters:"
-msgstr "неприпустимі символи:"
-
-msgid "illegal suffix:"
-msgstr "неприпустимий суфікс:"
-
 msgid "Name is unavailable."
 msgstr "Ім'я недоступне."
 
@@ -7039,15 +7191,6 @@ msgstr "Предустановка \\%1%\\ вже існує і несумісн
 
 msgid "Please note that saving action will replace this preset"
 msgstr "Зверніть увагу, що дія збереження замінить цей пресет"
-
-msgid "The name is not allowed to be empty."
-msgstr "Ім'я не може бути порожнім."
-
-msgid "The name is not allowed to start with space character."
-msgstr "Ім'я не може починатися з пробілу."
-
-msgid "The name is not allowed to end with space character."
-msgstr "Ім'я не може закінчуватися пробілом."
 
 msgid "The name cannot be the same as a preset alias name."
 msgstr "Ім'я не може збігатися з встановленим псевдонімом."
@@ -7360,9 +7503,6 @@ msgstr "Неправильні дані файлу друку. Будь ласк
 msgid "The name length exceeds the limit."
 msgstr "Довжина імені перевищує обмеження."
 
-msgid "Input access code"
-msgstr "Введіть код доступу"
-
 msgid "Cool"
 msgstr ""
 
@@ -7438,9 +7578,6 @@ msgstr "Отримано звіт про вхід з перевищеним ча
 
 msgid "Unknown Failure"
 msgstr "Невідома помилка"
-
-msgid "Bind with Pin Code"
-msgstr "Прив’язати за допомогою Пін-коду"
 
 msgid ""
 "Please Find the Pin Code in Account page on printer screen,\n"
@@ -7551,9 +7688,6 @@ msgstr "Будь ласка, увійдіть спочатку."
 msgid "There was a problem connecting to the printer. Please try again."
 msgstr ""
 "Виникла проблема з підключенням до принтера. Будь ласка, спробуйте ще раз."
-
-msgid "Log out successful."
-msgstr "Вийти успішно."
 
 msgid "Failed to log out."
 msgstr "Не вдалося вийти."
@@ -7859,9 +7993,6 @@ msgstr "Об'ємне обмеження швидкості"
 
 msgid "Filament scarf seam settings"
 msgstr "Налаштування шва шарфа для філамента"
-
-msgid "Cooling"
-msgstr "Охолодження"
 
 msgid "Cooling for specific layer"
 msgstr "Охолодження для конкретного шару"
@@ -8753,9 +8884,6 @@ msgstr "Версія:"
 msgid "Update firmware"
 msgstr "Оновити прошивку"
 
-msgid "Offline"
-msgstr "Не в мережі"
-
 msgid "Idle"
 msgstr "Простій"
 
@@ -9364,7 +9492,7 @@ msgstr ""
 
 msgid ""
 "Smoothing outwall speed in z direction to get better surface quality. Print "
-"time will increases."
+"time will increases. It is not work on spiral vase mode."
 msgstr ""
 
 msgid "Avoid crossing wall - Max detour length"
@@ -12480,15 +12608,6 @@ msgstr "Швидкість потоку"
 msgid "Max Volumetric Speed"
 msgstr "Максимальна об’ємна швидкість"
 
-msgid "(LAN)"
-msgstr "(LAN)"
-
-msgid "Online"
-msgstr "У мережі"
-
-msgid "Busy"
-msgstr "Зайнятий"
-
 #, c-format, boost-format
 msgid ""
 "Please input valid values:\n"
@@ -13488,6 +13607,12 @@ msgstr "Введіть власну модель"
 msgid "Can't find my printer model"
 msgstr "Не можу знайти свою модель принтера"
 
+msgid "Input Custom Nozzle Diameter"
+msgstr ""
+
+msgid "Can't find my nozzle diameter"
+msgstr ""
+
 msgid "Rectangle"
 msgstr "Прямокутник"
 
@@ -13550,9 +13675,6 @@ msgid ""
 msgstr ""
 "Ви ввели недопустимий ввід у розділі “Друкована область” на першій сторінці. "
 "Будь ласка, перевірте перед створенням."
-
-msgid "The custom printer or model is not inputed, place input."
-msgstr "Власна модель або принтер не введені. Будь ласка, введіть дані."
 
 msgid ""
 "The printer preset you created already has a preset with the same name. Do "
@@ -13617,6 +13739,14 @@ msgid ""
 msgstr ""
 "Ви ще не вибрали принтер, для якого потрібно замінити сопло. Будь ласка, "
 "оберіть."
+
+msgid "The entered nozzle diameter is invalid, please re-enter:\n"
+msgstr ""
+
+msgid ""
+"The system preset does not allow creation. \n"
+"Please re-enter the printer model or nozzle diameter."
+msgstr ""
 
 msgid "Create Printer Successful"
 msgstr "Створення принтера успішно завершено"
@@ -14954,6 +15084,18 @@ msgstr ""
 "ABS, відповідне підвищення температури гарячого ліжка може зменшити "
 "ймовірність деформації."
 
+#~ msgid ""
+#~ "Spiral mode only works when wall loops is 1, support is disabled, top "
+#~ "shell layers is 0, sparse infill density is 0 and timelapse type is "
+#~ "traditional."
+#~ msgstr ""
+#~ "Спіральний режим працює тільки тоді, коли периметри дорівнюють 1, "
+#~ "підтримка відключена, верхня оболонка дорівнює 0, щільність заповнення "
+#~ "дорівнює 0, а типуповільненої зйомки - традиційний."
+
+#~ msgid "The custom printer or model is not inputed, place input."
+#~ msgstr "Власна модель або принтер не введені. Будь ласка, введіть дані."
+
 #, c-format, boost-format
 #~ msgid "*Printing %s material with %s may cause nozzle damage"
 #~ msgstr ""
@@ -15063,41 +15205,11 @@ msgstr ""
 #~ msgid "Cancel calibration"
 #~ msgstr "Скасувати калібрування"
 
-#~ msgid "Idling..."
-#~ msgstr "Очікування…"
-
-#~ msgid "Heat the nozzle"
-#~ msgstr "Нагрійте сопло"
-
-#~ msgid "Cut filament"
-#~ msgstr "Відрізати філамент"
-
-#~ msgid "Pull back current filament"
-#~ msgstr "Відтягніть поточний філамент"
-
-#~ msgid "Push new filament into extruder"
-#~ msgstr "Вставте новий філамент в екструдер"
-
-#~ msgid "Purge old filament"
-#~ msgstr "Очистіть старий філамент"
-
 #~ msgid "Feed Filament"
 #~ msgstr "Подача нитки філаменту"
 
-#~ msgid "Confirm extruded"
-#~ msgstr "Підтвердити витіснення"
-
-#~ msgid "Check filament location"
-#~ msgstr "Перевірити розташування філаменту"
-
-#~ msgid "Grab new filament"
-#~ msgstr "Візьміть новий філамент"
-
 #~ msgid "SD Card"
 #~ msgstr "SD картка"
-
-#~ msgid "Aux"
-#~ msgstr "Aux"
 
 #~ msgid "Cham"
 #~ msgstr "Камера"
@@ -15124,18 +15236,6 @@ msgstr ""
 #~ "Неможливо виконати булеву операцію на сітках моделі. Будуть залишені лише "
 #~ "позитивні частини. Ви можете виправити сітки і спробувати ще раз."
 
-#~ msgid "Search"
-#~ msgstr "Пошук"
-
-#~ msgid "My Device"
-#~ msgstr "Мої пристрої"
-
-#~ msgid "Other Device"
-#~ msgstr "Інші пристрої"
-
-#~ msgid "Can't find my devices?"
-#~ msgstr "Не можу знайти пристрої?"
-
 #, c-format, boost-format
 #~ msgid "nozzle in preset: %s %s"
 #~ msgstr "сопло в налаштуваннях: %s %s"
@@ -15149,25 +15249,6 @@ msgstr ""
 
 #~ msgid "Automatic flow calibration using Micro Lidar"
 #~ msgstr "Автоматична калібрування потоку за допомогою мікро лідару"
-
-#~ msgid "Modifying the device name"
-#~ msgstr "Зміна імені пристрою"
-
-#~ msgid "Bind with Access Code"
-#~ msgstr "Прив’язати з кодом доступу"
-
-#~ msgid ""
-#~ "Please log in before binding your device with a PIN code.\n"
-#~ "Alternatively, you can use LAN mode to bind your device. Learn about LAN "
-#~ "mode."
-#~ msgstr ""
-#~ "Будь ласка, увійдіть в систему перед прив’язкою вашого пристрою за "
-#~ "допомогою PIN-коду.\n"
-#~ "Альтернативно, ви можете використовувати режим LAN для прив’язки вашого "
-#~ "пристрою. Дізнайтеся про режим LAN."
-
-#~ msgid "Go to Login"
-#~ msgstr "Перейти до входу"
 
 #~ msgid "Direct drive"
 #~ msgstr "Прямий привід"
