@@ -2541,6 +2541,29 @@ class wxBoostLog : public wxLog
     }
 };
 
+std::string get_system_info()
+{
+    std::stringstream out;
+
+    std::string b_start  = "";
+    std::string b_end    = "";
+    std::string line_end = "\n";
+
+    out << b_start << "Operating System:    " << b_end << wxPlatformInfo::Get().GetOperatingSystemFamilyName() << line_end;
+    out << b_start << "System Architecture: " << b_end << wxPlatformInfo::Get().GetBitnessName() << line_end;
+    out << b_start <<
+#if defined _WIN32
+        "Windows Version:     "
+#else
+        // Hopefully some kind of unix / linux.
+        "System Version:      "
+#endif
+        << b_end << wxPlatformInfo::Get().GetOperatingSystemDescription() << line_end;
+    out << b_start << "Total RAM size [MB]: " << b_end << Slic3r::format_memsize_MB(Slic3r::total_physical_memory());
+
+    return out.str();
+}
+
 bool GUI_App::on_init_inner()
 {
     wxLog::SetActiveTarget(new wxBoostLog());
@@ -2600,6 +2623,7 @@ bool GUI_App::on_init_inner()
 #endif
 
     BOOST_LOG_TRIVIAL(info) << boost::format("gui mode, Current BambuStudio Version %1%")%SLIC3R_VERSION;
+    BOOST_LOG_TRIVIAL(info) << get_system_info();
     // Enable this to get the default Win32 COMCTRL32 behavior of static boxes.
 //    wxSystemOptions::SetOption("msw.staticbox.optimized-paint", 0);
     // Enable this to disable Windows Vista themes for all wxNotebooks. The themes seem to lead to terrible
@@ -4162,7 +4186,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 CallAfter([this] {
                 if (mainframe && this->app_config->get("staff_pick_switch") == "true") {
                         if (mainframe->m_webview) { mainframe->m_webview->SendDesignStaffpick(has_model_mall()); }
-                    }                    
+                    }
                     });
             }
             else if (command_str.compare("modelmall_model_open") == 0) {
@@ -4286,7 +4310,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
             else if (command_str.compare("homepage_makerlab_get") == 0) {
                 CallAfter([this] {
                 if (mainframe && mainframe->m_webview) { mainframe->m_webview->SendMakerlabList(); }
-                    });                
+                    });
             }
             else if (command_str.compare("homepage_makerlab_open") == 0) {
                 if (root.get_child_optional("url") != boost::none) {
@@ -4354,7 +4378,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
             else if (command_str.compare("homepage_printhistory_get")==0)
             {
                 CallAfter([this] {
-                    if (mainframe && mainframe->m_webview) { mainframe->m_webview->ShowUserPrintTask(true); }                    
+                    if (mainframe && mainframe->m_webview) { mainframe->m_webview->ShowUserPrintTask(true); }
                     });
             }
             else if (command_str.compare("homepage_leftmenu_change_width") == 0) {
