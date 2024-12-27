@@ -4757,25 +4757,27 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     }
                 }
                 else if (jj["command"].get<std::string>() == "extrusion_cali_get") {
+                    std::string str = jj.dump();
+                    BOOST_LOG_TRIVIAL(info) << "extrusion_cali_get: " << str;
+                    reset_pa_cali_history_result();
+                    bool is_succeed = true;
                     if (jj.contains("result") && jj.contains("reason")) {
                         if (jj["result"].get<std::string>() == "fail") {
                             if (jj.contains("err_code")) {
                                 auto err_code = jj["err_code"].get<int>();
                                 print_error   = err_code;
                             }
+                            is_succeed = false;
                         }
                     }
 
-                    reset_pa_cali_history_result();
-                    has_get_pa_calib_tab = true;
+                    if (is_succeed) {
+                        last_cali_version = cali_version;
+                        has_get_pa_calib_tab = true;
+                    }
 
                     if (jj.contains("filaments") && jj["filaments"].is_array()) {
                         try {
-#ifdef CALI_DEBUG
-                            std::string str = jj.dump();
-                            BOOST_LOG_TRIVIAL(info) << "extrusion_cali_get: " << str;
-#endif
-
                             for (auto it = jj["filaments"].begin(); it != jj["filaments"].end(); it++) {
                                 PACalibResult pa_calib_result;
                                 pa_calib_result.filament_id = (*it)["filament_id"].get<std::string>();
@@ -4825,25 +4827,25 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                     // notify cali history to update
                 }
                 else if (jj["command"].get<std::string>() == "extrusion_cali_get_result") {
+                    std::string str = jj.dump();
+                    BOOST_LOG_TRIVIAL(info) << "extrusion_cali_get_result: " << str;
+                    reset_pa_cali_result();
+                    bool is_succeed = true;
                     if (jj.contains("result") && jj.contains("reason")) {
                         if (jj["result"].get<std::string>() == "fail") {
                             if (jj.contains("err_code")) {
                                 auto err_code = jj["err_code"].get<int>();
                                 print_error   = err_code;
+                                is_succeed    = false;
                             }
                         }
                     }
 
-                    reset_pa_cali_result();
-                    get_pa_calib_result = true;
+                    if (is_succeed)
+                        get_pa_calib_result = true;
 
                     if (jj.contains("filaments") && jj["filaments"].is_array()) {
                         try {
-#ifdef CALI_DEBUG
-                            std::string str = jj.dump();
-                            BOOST_LOG_TRIVIAL(info) << "extrusion_cali_get_result: " << str;
-#endif
-
                             for (auto it = jj["filaments"].begin(); it != jj["filaments"].end(); it++) {
                                 PACalibResult pa_calib_result;
                                 pa_calib_result.tray_id     = (*it)["tray_id"].get<int>();
