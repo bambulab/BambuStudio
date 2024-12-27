@@ -310,11 +310,13 @@ void MonitorPanel::select_machine(std::string machine_sn)
     set_default();
     update_all();
 
-    m_status_info_panel->last_cali_version.reset();
-
     MachineObject *obj_ = dev->get_selected_machine();
-    if (obj_)
+    if (obj_) {
+        obj_->last_cali_version = -1;
+        obj_->reset_pa_cali_history_result();
+        obj_->reset_pa_cali_result();
         GUI::wxGetApp().sidebar().load_ams_list(obj_->dev_id, obj_);
+    }
 
     Layout();
 }
