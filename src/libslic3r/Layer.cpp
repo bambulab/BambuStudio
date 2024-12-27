@@ -182,7 +182,7 @@ void Layer::make_perimeters()
                         && config.fuzzy_skin_thickness        == other_config.fuzzy_skin_thickness
                         && config.fuzzy_skin_point_distance       == other_config.fuzzy_skin_point_distance
                         && config.seam_slope_conditional == other_config.seam_slope_conditional
-                        && config.scarf_angle_threshold  == other_config.scarf_angle_threshold
+                        //&& config.scarf_angle_threshold  == other_config.scarf_angle_threshold
                         && config.seam_slope_entire_loop  == other_config.seam_slope_entire_loop
                         && config.seam_slope_steps        == other_config.seam_slope_steps
                         && config.seam_slope_inner_walls  == other_config.seam_slope_inner_walls)

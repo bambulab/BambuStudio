@@ -29,6 +29,7 @@
 #include <SVG.hpp>
 #endif
 
+static const int average_filter_window_size = 5;
 namespace Slic3r {
 
 namespace SeamPlacerImpl {
@@ -1125,15 +1126,7 @@ void SeamPlacer::align_seam_points(const PrintObject *po, const SeamPlacerImpl::
 
     // gather vector of all seams on the print_object - pair of layer_index and seam__index within that layer
     const std::vector<PrintObjectSeamData::LayerSeams> &layers = m_seam_per_object[po].layers;
-    std::vector<std::pair<size_t, size_t>>              seams;
-    for (size_t layer_idx = 0; layer_idx < layers.size(); ++layer_idx) {
-        const std::vector<SeamCandidate> &layer_perimeter_points = layers[layer_idx].points;
-        size_t                            current_point_index    = 0;
-        while (current_point_index < layer_perimeter_points.size()) {
-            seams.emplace_back(layer_idx, layer_perimeter_points[current_point_index].perimeter.seam_index);
-            current_point_index = layer_perimeter_points[current_point_index].perimeter.end_index;
-        }
-    }
+    std::vector<std::pair<size_t, size_t>>              seams  = gather_all_seams_of_object(layers);
 
     // sort them before alignment. Alignment is sensitive to initializaion, this gives it better chance to choose something nice
     std::stable_sort(seams.begin(), seams.end(), [&comparator, &layers](const std::pair<size_t, size_t> &left, const std::pair<size_t, size_t> &right) {
@@ -1256,6 +1249,92 @@ void SeamPlacer::align_seam_points(const PrintObject *po, const SeamPlacerImpl::
     fclose(aligns);
 #endif
 }
+std::vector<std::pair<size_t, size_t>> SeamPlacer::gather_all_seams_of_object(const std::vector<PrintObjectSeamData::LayerSeams> &layers)
+{
+    // gather vector of all seams on the print_object - pair of layer_index and seam__index within that layer
+    std::vector<std::pair<size_t, size_t>>              seams;
+    for (size_t layer_idx = 0; layer_idx < layers.size(); ++layer_idx) {
+        const std::vector<SeamPlacerImpl::SeamCandidate> &layer_perimeter_points = layers[layer_idx].points;
+        size_t                            current_point_index    = 0;
+        while (current_point_index < layer_perimeter_points.size()) {
+            seams.emplace_back(layer_idx, layer_perimeter_points[current_point_index].perimeter.seam_index);
+            current_point_index = layer_perimeter_points[current_point_index].perimeter.end_index;
+        }
+    }
+    return seams;
+}
+
+void SeamPlacer::filter_scarf_seam_switch_by_angle(const float &angle, std::vector<PrintObjectSeamData::LayerSeams> &layers)
+{
+    std::vector<std::pair<size_t, size_t>> seams = gather_all_seams_of_object(layers);
+
+    float max_distance = SeamPlacer::seam_align_tolerable_dist_factor * layers[seams[0].first].points[seams[0].second].perimeter.flow_width;
+
+    std::vector<int> seam_index_pos;
+    std::vector<std::vector<int>> seam_index_group;
+    //get each seam line group
+    for (size_t seam_idx = 0; seam_idx < seams.size(); seam_idx++) {
+        if (layers[seams[seam_idx].first].points[seams[seam_idx].second].is_grouped)
+            continue;
+
+        layers[seams[seam_idx].first].points[seams[seam_idx].second].is_grouped = true;
+        seam_index_pos.push_back(seam_idx);
+        size_t prev_idx  = seam_idx;
+        size_t next_seam = seam_idx + 1;
+        for (; next_seam < seams.size(); next_seam++) {
+            if (layers[seams[next_seam].first].points[seams[next_seam].second].is_grouped || seams[prev_idx].first == seams[next_seam].first)
+                continue;
+
+            // if the seam is not continous with prev layer, break
+            if (seams[prev_idx].first + 1 != seams[next_seam].first)
+                break;
+
+            if ((layers[seams[prev_idx].first].points[seams[prev_idx].second].position - layers[seams[next_seam].first].points[seams[next_seam].second].position).norm() <=
+                max_distance) {
+
+                layers[seams[next_seam].first].points[seams[next_seam].second].is_grouped = true;
+
+                float next_seam_angle = layers[seams[next_seam].first].points[seams[next_seam].second].local_ccw_angle;
+
+                if (next_seam_angle < 0)
+                    next_seam_angle *= -1;
+
+                if (PI - angle > next_seam_angle) {
+                    layers[seams[next_seam].first].points[seams[next_seam].second].enable_scarf_seam = true;
+                }
+
+                prev_idx = next_seam;
+                seam_index_pos.push_back(next_seam);
+            }
+        }
+
+        seam_index_group.emplace_back(std::move(seam_index_pos));
+        seam_index_pos.clear();
+    }
+
+    // filter
+    {
+        for (size_t k = 0; k < seam_index_group.size(); k++) {
+            std::vector<int> seam_group = seam_index_group[k];
+            if (seam_group.size() <= 1) continue;
+            int half_window = average_filter_window_size / 2;
+            // average filter
+            for (size_t idx = 0; idx < seam_group.size(); idx++) {
+                double sum   = 0;
+                int    count = 0;
+
+                for (int window_idx = -half_window; window_idx <= half_window; ++window_idx) {
+                    int index = idx + window_idx;
+                    if (index >= 0 && index < seam_group.size()) {
+                        sum += layers[seams[seam_group[index]].first].points[seams[seam_group[index]].second].enable_scarf_seam ? 1 : 0;
+                        count++;
+                    }
+                }
+                layers[seams[seam_group[idx]].first].points[seams[seam_group[idx]].second].enable_scarf_seam = (sum / count) >= 0.5 ? true : false;
+            }
+        }
+    }
+}
 
 void SeamPlacer::init(const Print &print, std::function<void(void)> throw_if_canceled_func)
 {
@@ -1311,13 +1390,21 @@ void SeamPlacer::init(const Print &print, std::function<void(void)> throw_if_can
             BOOST_LOG_TRIVIAL(debug) << "SeamPlacer: align_seam_points : end";
         }
 
+        //check if enable scarf seam for each seam point
+        if (configured_seam_preference == spAligned || configured_seam_preference == spRear) {
+            BOOST_LOG_TRIVIAL(debug) << "SeamPlacer: check_enable_scarf_seam : start";
+            //find seam lines and get angle imformation
+            filter_scarf_seam_switch_by_angle(po->config().scarf_angle_threshold / 180.0f * PI, m_seam_per_object[po].layers);
+            //filter scarf seam setting with gaussian filter
+            BOOST_LOG_TRIVIAL(debug) << "SeamPlacer: check_enable_scarf_seam : end";
+        }
 #ifdef DEBUG_FILES
         debug_export_points(m_seam_per_object[po].layers, po->bounding_box(), comparator);
 #endif
     }
 }
 
-void SeamPlacer::place_seam(const Layer *layer, ExtrusionLoop &loop, bool external_first, const Point &last_pos) const
+void SeamPlacer::place_seam(const Layer *layer, ExtrusionLoop &loop, bool external_first, const Point &last_pos, bool &satisfy_angle_threshold) const
 {
     using namespace SeamPlacerImpl;
     const PrintObject *po = layer->object();
@@ -1343,10 +1430,12 @@ void SeamPlacer::place_seam(const Layer *layer, ExtrusionLoop &loop, bool extern
     if (const Perimeter &perimeter = layer_perimeters.points[closest_perimeter_point_index].perimeter; perimeter.finalized) {
         seam_position = perimeter.final_seam_position;
         seam_index    = perimeter.seam_index;
+        satisfy_angle_threshold = layer_perimeters.points[seam_index].enable_scarf_seam;
     } else {
         seam_index    = po->config().seam_position == spNearest ? pick_nearest_seam_point_index(layer_perimeters.points, perimeter.start_index, unscaled<float>(last_pos)) :
                                                                   perimeter.seam_index;
         seam_position = layer_perimeters.points[seam_index].position;
+        satisfy_angle_threshold = layer_perimeters.points[seam_index].enable_scarf_seam;
     }
 
     Point seam_point = Point::new_scale(seam_position.x(), seam_position.y());

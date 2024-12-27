@@ -875,6 +875,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionInt,  interlocking_beam_layer_count))
     ((ConfigOptionInt,  interlocking_depth))
     ((ConfigOptionInt,  interlocking_boundary_avoidance))
+    ((ConfigOptionInt,  scarf_angle_threshold))
 
 )
 
@@ -955,7 +956,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     // Orca: seam slopes
     //((ConfigOptionEnum<SeamScarfType>,  seam_slope_type))
     ((ConfigOptionBool,                 seam_slope_conditional))
-    ((ConfigOptionInt,                  scarf_angle_threshold))
+    //((ConfigOptionInt,                  scarf_angle_threshold))
     //((ConfigOptionFloatOrPercent,       seam_slope_start_height))
     //((ConfigOptionFloatOrPercent,       seam_slope_gap))
     ((ConfigOptionBool,                 seam_slope_entire_loop))
