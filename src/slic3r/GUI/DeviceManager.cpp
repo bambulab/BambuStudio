@@ -1670,7 +1670,12 @@ int MachineObject::command_auto_leveling()
 
 int MachineObject::command_go_home()
 {
-    return this->publish_gcode("G28 \n");
+    if (this->is_in_printing()) {
+        return this->publish_gcode("G28 X\n");
+    }
+    else {
+        return this->publish_gcode("G28 \n");
+    }
 }
 
 int MachineObject::command_control_fan(FanType fan_type, bool on_off)
