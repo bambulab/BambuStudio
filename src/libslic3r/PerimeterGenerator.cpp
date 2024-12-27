@@ -103,12 +103,13 @@ static void fuzzy_extrusion_line(Arachne::ExtrusionLine& ext_lines, double fuzzy
     const double range_random_point_dist = fuzzy_skin_point_dist / 2.;
     double       dist_left_over = double(rand()) * (min_dist_between_points / 2) / double(RAND_MAX); // the distance to be traversed on the line before making the first new point
 
+    // do not apply hole compensation in fuzzy skin mode
     auto* p0 = &ext_lines.front();
     std::vector<Arachne::ExtrusionJunction> out;
     out.reserve(ext_lines.size());
     for (auto& p1 : ext_lines) {
         if (p0->p == p1.p) { // Connect endpoints.
-            out.emplace_back(p1.p, p1.w, p1.perimeter_index);
+            out.emplace_back(p1.p, p1.w, p1.perimeter_index, false);
             continue;
         }
 
@@ -119,7 +120,7 @@ static void fuzzy_extrusion_line(Arachne::ExtrusionLine& ext_lines, double fuzzy
         double dist_last_point = dist_left_over + p0p1_size * 2.;
         for (double p0pa_dist = dist_left_over; p0pa_dist < p0p1_size; p0pa_dist += min_dist_between_points + double(rand()) * range_random_point_dist / double(RAND_MAX)) {
             double r = double(rand()) * (fuzzy_skin_thickness * 2.) / double(RAND_MAX) - fuzzy_skin_thickness;
-            out.emplace_back(p0->p + (p0p1 * (p0pa_dist / p0p1_size) + perp(p0p1).cast<double>().normalized() * r).cast<coord_t>(), p1.w, p1.perimeter_index);
+            out.emplace_back(p0->p + (p0p1 * (p0pa_dist / p0p1_size) + perp(p0p1).cast<double>().normalized() * r).cast<coord_t>(), p1.w, p1.perimeter_index, false);
             dist_last_point = p0pa_dist;
         }
         dist_left_over = p0p1_size - dist_last_point;
@@ -128,7 +129,7 @@ static void fuzzy_extrusion_line(Arachne::ExtrusionLine& ext_lines, double fuzzy
 
     while (out.size() < 3) {
         size_t point_idx = ext_lines.size() - 2;
-        out.emplace_back(ext_lines[point_idx].p, ext_lines[point_idx].w, ext_lines[point_idx].perimeter_index);
+        out.emplace_back(ext_lines[point_idx].p, ext_lines[point_idx].w, ext_lines[point_idx].perimeter_index,false);
         if (point_idx == 0)
             break;
         --point_idx;
@@ -1070,6 +1071,8 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
             extrusion_paths_append(paths, *extrusion, role, is_external ? perimeter_generator.ext_perimeter_flow : perimeter_generator.perimeter_flow);
         }
 
+        bool apply_hole_compensation = extrusion->shouldApplyHoleCompensation();
+
         // Append paths to collection.
         if (!paths.empty()) {
             if (extrusion->is_closed) {
@@ -1086,6 +1089,11 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
                 }
                 assert(extrusion_loop.paths.front().first_point() == extrusion_loop.paths.back().last_point());
 
+                if (apply_hole_compensation) {
+                    for (auto& path : extrusion_loop.paths)
+                        path.set_customize_flag(CustomizeFlag::cfCircleCompensation);
+                    extrusion_loop.set_customize_flag(CustomizeFlag::cfCircleCompensation);
+                }
                 extrusion_coll.append(std::move(extrusion_loop));
             }
             else {
@@ -1108,6 +1116,11 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
                     multi_path.paths.emplace_back(std::move(*it_path));
                 }
 
+                if (apply_hole_compensation) {
+                    for (auto& path : multi_path.paths)
+                        path.set_customize_flag(CustomizeFlag::cfCircleCompensation);
+                    multi_path.set_customize_flag(CustomizeFlag::cfCircleCompensation);
+                }
                 extrusion_coll.append(ExtrusionMultiPath(std::move(multi_path)));
             }
         }
@@ -1119,6 +1132,20 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
     return extrusion_coll;
 }
 
+
+static Polygons to_polygons_with_flag(const ExPolygon& src, const bool contour_flag, const std::vector<int>& holes_flag, std::vector<int>& flags_out)
+{
+    Polygons polygons;
+    polygons.reserve(src.num_contours());
+    polygons.push_back(src.contour);
+    polygons.insert(polygons.end(), src.holes.begin(), src.holes.end());
+    flags_out.reserve(holes_flag.size() + 1);
+    if(contour_flag == true)
+        flags_out.emplace_back(0);
+    for (size_t idx = 0; idx < holes_flag.size(); ++idx)
+        flags_out.emplace_back(holes_flag[idx] + 1);
+    return polygons;
+}
 
 
 void PerimeterGenerator::process_classic()
@@ -1781,8 +1808,19 @@ void PerimeterGenerator::process_arachne()
         // detect how many perimeters must be generated for this island
         int loop_number = this->config->wall_loops + surface.extra_perimeters - 1; // 0-indexed loops
 
+        bool apply_circle_compensation = true;
+
         ExPolygons last = offset_ex(surface.expolygon.simplify_p(surface_simplify_resolution), -float(ext_perimeter_width / 2. - ext_perimeter_spacing / 2.));
-        Polygons   last_p = to_polygons(last);
+        int new_size = std::accumulate(last.begin(), last.end(), 0, [](int prev, const ExPolygon& expoly) { return prev + expoly.num_contours(); });
+        if (last.size() != 1 || new_size != surface.expolygon.num_contours())
+            apply_circle_compensation = false;
+
+        std::vector<int> circle_poly_indices;
+        Polygons   last_p;
+        if (apply_circle_compensation)
+            last_p = to_polygons_with_flag(last.front(), surface.counter_circle_compensation, surface.holes_circle_compensation, circle_poly_indices);
+        else
+            last_p = to_polygons(last);
 
         // check whether to activate one wall mode
         if (generate_one_wall && !generate_one_wall_by_first_layer)
@@ -1829,6 +1867,10 @@ void PerimeterGenerator::process_arachne()
         coord_t real_loop_number = generate_one_wall ? 1 : loop_number + 1;
 
         Arachne::WallToolPaths wallToolPaths(last_p, ext_perimeter_spacing, perimeter_spacing, real_loop_number, 0, layer_height, input_params);
+
+        if (apply_circle_compensation)
+            wallToolPaths.EnableHoleCompensation(true, circle_poly_indices);
+
         std::vector<Arachne::VariableWidthLines> perimeters = wallToolPaths.getToolPaths();
         ExPolygons infill_contour = union_ex(wallToolPaths.getInnerContour());
 #ifdef ARACHNE_DEBUG

@@ -104,7 +104,7 @@ SkeletalTrapezoidation::node_t &SkeletalTrapezoidation::makeNode(const VD::verte
     }
 }
 
-void SkeletalTrapezoidation::transferEdge(Point from, Point to, const VD::edge_type &vd_edge, edge_t *&prev_edge, Point &start_source_point, Point &end_source_point, const std::vector<Segment> &segments) {
+void SkeletalTrapezoidation::transferEdge(Point from, Point to, const VD::edge_type &vd_edge, edge_t *&prev_edge, Point &start_source_point, Point &end_source_point, const std::vector<Segment> &segments, const bool hole_compensation_flag) {
     auto he_edge_it = vd_edge_to_he_edge.find(vd_edge.twin());
     if (he_edge_it != vd_edge_to_he_edge.end())
     { // Twin segment(s) have already been made
@@ -128,7 +128,7 @@ void SkeletalTrapezoidation::transferEdge(Point from, Point to, const VD::edge_t
             edge->twin = twin;
             twin->twin = edge;
             edge->from->incident_edge = edge;
-            
+            edge->data.setHoleCompensationFlag(hole_compensation_flag);
             if (prev_edge)
             {
                 edge->prev = prev_edge;
@@ -192,7 +192,8 @@ void SkeletalTrapezoidation::transferEdge(Point from, Point to, const VD::edge_t
             edge->from = v0;
             edge->to = v1;
             edge->from->incident_edge = edge;
-            
+            edge->data.setHoleCompensationFlag(hole_compensation_flag);
+
             if (prev_edge)
             {
                 edge->prev = prev_edge;
@@ -373,13 +374,16 @@ bool SkeletalTrapezoidation::computePointCellRange(const VD::cell_type &cell, Po
 SkeletalTrapezoidation::SkeletalTrapezoidation(const Polygons& polys, const BeadingStrategy& beading_strategy,
                                                double transitioning_angle, coord_t discretization_step_size,
                                                coord_t transition_filter_dist, coord_t allowed_filter_deviation,
-                                               coord_t beading_propagation_transition_dist
+                                               coord_t beading_propagation_transition_dist, bool enable_hole_compensation,
+                                               const std::vector<int>& hole_indices
     ): transitioning_angle(transitioning_angle),
     discretization_step_size(discretization_step_size),
     transition_filter_dist(transition_filter_dist),
     allowed_filter_deviation(allowed_filter_deviation),
     beading_propagation_transition_dist(beading_propagation_transition_dist),
-    beading_strategy(beading_strategy)
+    beading_strategy(beading_strategy),
+    enable_hole_compensation(enable_hole_compensation),
+    hole_indices(hole_indices)
 {
     constructFromPolygons(polys);
 }
@@ -389,6 +393,8 @@ void SkeletalTrapezoidation::constructFromPolygons(const Polygons& polys)
 #ifdef ARACHNE_DEBUG
     this->outline = polys;
 #endif
+
+    std::set<int> hole_indices_(this->hole_indices.begin(), this->hole_indices.end());
 
     // Check self intersections.
     assert([&polys]() -> bool {
@@ -436,10 +442,15 @@ void SkeletalTrapezoidation::constructFromPolygons(const Polygons& polys)
         const VD::edge_type *ending_voronoi_edge   = nullptr;
         // Compute and store result in above variables
 
+        bool apply_hole_compensation = this->enable_hole_compensation;
+
         if (cell.contains_point()) {
             const bool keep_going = computePointCellRange(cell, start_source_point, end_source_point, starting_voronoi_edge, ending_voronoi_edge, segments);
             if (!keep_going)
                 continue;
+
+            const PolygonsPointIndex  source_point_idx = Geometry::VoronoiUtils::get_source_point_index(cell, segments.begin(), segments.end());
+                apply_hole_compensation &= hole_indices_.find(source_point_idx.poly_idx) != hole_indices_.end();
         } else {
             assert(cell.contains_segment());
             Geometry::SegmentCellRange<Point> cell_range = Geometry::VoronoiUtils::compute_segment_cell_range(cell, segments.cbegin(), segments.cend());
@@ -448,6 +459,9 @@ void SkeletalTrapezoidation::constructFromPolygons(const Polygons& polys)
             end_source_point      = cell_range.segment_end_point;
             starting_voronoi_edge = cell_range.edge_begin;
             ending_voronoi_edge   = cell_range.edge_end;
+
+            const Segment& source_segment = Geometry::VoronoiUtils::get_source_segment(cell, segments.cbegin(), segments.cend());
+            apply_hole_compensation &= hole_indices_.find(source_segment.poly_idx) != hole_indices_.end();
         }
 
         if (!starting_voronoi_edge || !ending_voronoi_edge) {
@@ -458,7 +472,7 @@ void SkeletalTrapezoidation::constructFromPolygons(const Polygons& polys)
         // Copy start to end edge to graph
         assert(Geometry::VoronoiUtils::is_in_range<coord_t>(*starting_voronoi_edge));
         edge_t *prev_edge = nullptr;
-        transferEdge(start_source_point, Geometry::VoronoiUtils::to_point(starting_voronoi_edge->vertex1()).cast<coord_t>(), *starting_voronoi_edge, prev_edge, start_source_point, end_source_point, segments);
+        transferEdge(start_source_point, Geometry::VoronoiUtils::to_point(starting_voronoi_edge->vertex1()).cast<coord_t>(), *starting_voronoi_edge, prev_edge, start_source_point, end_source_point, segments,apply_hole_compensation);
         node_t *starting_node                    = vd_node_to_he_node[starting_voronoi_edge->vertex0()];
         starting_node->data.distance_to_boundary = 0;
 
@@ -470,11 +484,11 @@ void SkeletalTrapezoidation::constructFromPolygons(const Polygons& polys)
 
             Point v1 = Geometry::VoronoiUtils::to_point(vd_edge->vertex0()).cast<coord_t>();
             Point v2 = Geometry::VoronoiUtils::to_point(vd_edge->vertex1()).cast<coord_t>();
-            transferEdge(v1, v2, *vd_edge, prev_edge, start_source_point, end_source_point, segments);
+            transferEdge(v1, v2, *vd_edge, prev_edge, start_source_point, end_source_point, segments,apply_hole_compensation);
             graph.makeRib(prev_edge, start_source_point, end_source_point, vd_edge->next() == ending_voronoi_edge);
         }
 
-        transferEdge(Geometry::VoronoiUtils::to_point(ending_voronoi_edge->vertex0()).cast<coord_t>(), end_source_point, *ending_voronoi_edge, prev_edge, start_source_point, end_source_point, segments);
+        transferEdge(Geometry::VoronoiUtils::to_point(ending_voronoi_edge->vertex0()).cast<coord_t>(), end_source_point, *ending_voronoi_edge, prev_edge, start_source_point, end_source_point, segments, apply_hole_compensation);
         prev_edge->to->data.distance_to_boundary = 0;
     }
 
@@ -1775,6 +1789,8 @@ void SkeletalTrapezoidation::generateJunctions(ptr_vector_t<BeadingPropagation>&
             continue;
         }
 
+        bool apply_hole_compensation = edge->data.getHoleCompensationFlag();
+
         Beading* beading = &getOrCreateBeading(edge->to, node_beadings)->beading;
         edge_junctions.emplace_back(std::make_shared<LineJunctions>());
         edge_.data.setExtrusionJunctions(edge_junctions.back());  // initialization
@@ -1828,7 +1844,7 @@ void SkeletalTrapezoidation::generateJunctions(ptr_vector_t<BeadingPropagation>&
             { // Snap to start node if it is really close, in order to be able to see 3-way intersection later on more robustly
                 junction = a;
             }
-            ret.emplace_back(junction, beading->bead_widths[junction_idx], junction_idx);
+            ret.emplace_back(ExtrusionJunction(junction, beading->bead_widths[junction_idx], junction_idx, apply_hole_compensation));
         }
     }
 }
@@ -2113,7 +2129,7 @@ void SkeletalTrapezoidation::generateLocalMaximaSingleBeads()
             constexpr coord_t n_segments = 6;
             for (coord_t segment = 0; segment < n_segments; segment++) {
                 float a = 2.0 * M_PI / n_segments * segment;
-                line.junctions.emplace_back(node.p + Point(r * cos(a), r * sin(a)), width, inset_index);
+                line.junctions.emplace_back(ExtrusionJunction(node.p + Point(r * cos(a), r * sin(a)), width, inset_index, false));
             }
         }
     }

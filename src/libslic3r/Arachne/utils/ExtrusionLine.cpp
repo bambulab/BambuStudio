@@ -147,7 +147,7 @@ void ExtrusionLine::simplify(const int64_t smallest_line_segment_squared, const 
                 else
                 {
                     // New point seems like a valid one.
-                    const ExtrusionJunction new_to_add = ExtrusionJunction(intersection_point, current.w, current.perimeter_index);
+                    const ExtrusionJunction new_to_add = ExtrusionJunction(intersection_point, current.w, current.perimeter_index, current.hole_compensation_flag);
                     // If there was a previous point added, remove it.
                     if(!new_junctions.empty())
                     {
@@ -230,6 +230,20 @@ int64_t ExtrusionLine::calculateExtrusionAreaDeviationError(ExtrusionJunction A,
         assert((int64_t(width_diff) * int64_t(ab_length)) <= std::numeric_limits<coord_t>::max());
         return ab_length > bc_length ? width_diff * bc_length : width_diff * ab_length;
     }
+}
+
+bool ExtrusionLine::shouldApplyHoleCompensation(const double threshold) const
+{
+    int64_t total_length = 0;
+    int64_t marked_length = 0;
+    for (size_t idx = 1; idx < junctions.size(); ++idx) {
+        int64_t length = (junctions[idx].p - junctions[idx - 1].p).cast<int64_t>().norm();
+        total_length += length;
+        int marked_rate = (int)(junctions[idx].hole_compensation_flag) + (int)(junctions[idx - 1].hole_compensation_flag);
+        marked_length += length * marked_rate / 2;
+    }
+    double rate = (double)(marked_length) / (double)(total_length);
+    return rate > threshold;
 }
 
 bool ExtrusionLine::is_contour() const

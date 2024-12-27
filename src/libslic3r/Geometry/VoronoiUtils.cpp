@@ -7,6 +7,7 @@
 
 namespace Slic3r::Geometry {
 
+using PolygonsSegmentIndexIt      = std::vector<Arachne::PolygonsSegmentIndex>::iterator;
 using PolygonsSegmentIndexConstIt = std::vector<Arachne::PolygonsSegmentIndex>::const_iterator;
 using LinesIt                     = Lines::iterator;
 using ColoredLinesIt              = ColoredLines::iterator;
@@ -29,6 +30,7 @@ template SegmentCellRange<Point> VoronoiUtils::compute_segment_cell_range(const 
 template SegmentCellRange<Point> VoronoiUtils::compute_segment_cell_range(const VoronoiDiagram::cell_type &, PolygonsSegmentIndexConstIt, PolygonsSegmentIndexConstIt);
 template Points VoronoiUtils::discretize_parabola(const Point &, const Arachne::PolygonsSegmentIndex &, const Point &, const Point &, coord_t, float);
 template Arachne::PolygonsPointIndex VoronoiUtils::get_source_point_index(const VoronoiDiagram::cell_type &, PolygonsSegmentIndexConstIt, PolygonsSegmentIndexConstIt);
+template Arachne::PolygonsPointIndex VoronoiUtils::get_source_point_index(const VoronoiDiagram::cell_type &, PolygonsSegmentIndexIt, PolygonsSegmentIndexIt);
 
 template<typename SegmentIterator>
 typename boost::polygon::enable_if<

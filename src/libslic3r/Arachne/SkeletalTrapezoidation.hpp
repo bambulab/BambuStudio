@@ -60,6 +60,8 @@ class SkeletalTrapezoidation
     template<typename T>
     using ptr_vector_t = std::vector<std::shared_ptr<T>>;
 
+    bool enable_hole_compensation;
+    std::vector<int> hole_indices;
     double  transitioning_angle; //!< How pointy a region should be before we apply the method. Equals 180* - limit_bisector_angle
     coord_t discretization_step_size; //!< approximate size of segments when parabolic VD edges get discretized (and vertex-vertex edges)
     coord_t transition_filter_dist; //!< Filter transition mids (i.e. anchors) closer together than this
@@ -108,7 +110,9 @@ public:
     , coord_t discretization_step_size
     , coord_t transition_filter_dist
     , coord_t allowed_filter_deviation
-    , coord_t beading_propagation_transition_dist);
+    , coord_t beading_propagation_transition_dist
+    , bool enable_hole_compensation
+    , const std::vector<int>& hole_indices);
 
     /*!
      * A skeletal graph through the polygons that we need to fill with beads.
@@ -180,7 +184,7 @@ protected:
      * Transfer an edge from the VD to the HE and perform discretization of parabolic edges (and vertex-vertex edges)
      * \p prev_edge serves as input and output. May be null as input.
      */
-    void transferEdge(Point from, Point to, const VD::edge_type &vd_edge, edge_t *&prev_edge, Point &start_source_point, Point &end_source_point, const std::vector<Segment> &segments);
+    void transferEdge(Point from, Point to, const VD::edge_type &vd_edge, edge_t *&prev_edge, Point &start_source_point, Point &end_source_point, const std::vector<Segment> &segments, const bool hole_compensation_flag);
 
     /*!
      * Discretize a Voronoi edge that represents the medial axis of a vertex-
