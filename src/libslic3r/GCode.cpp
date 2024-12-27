@@ -4539,10 +4539,11 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     // find the point of the loop that is closest to the current extruder position
     // or randomize if requested
     Point last_pos = this->last_pos();
+    bool  satisfy_scarf_seam_angle_threshold = false;
     if (!m_config.spiral_mode && description == "perimeter") {
         assert(m_layer != nullptr);
         bool is_outer_wall_first = m_config.wall_sequence == WallSequence::OuterInner;
-        m_seam_placer.place_seam(m_layer, loop, is_outer_wall_first, this->last_pos());
+        m_seam_placer.place_seam(m_layer, loop, is_outer_wall_first, this->last_pos(), satisfy_scarf_seam_angle_threshold);
     } else
         loop.split_at(last_pos, false);
 
@@ -4557,8 +4558,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
 
     if (enable_seam_slope && m_config.seam_slope_conditional.value) {
         //BBS: the seam has been decide, only check the seam position angle
-        const auto nozzle_diameter = EXTRUDER_CONFIG(nozzle_diameter);
-        enable_seam_slope          = loop.check_seam_point_angle(m_config.scarf_angle_threshold.value * M_PI / 180.0, nozzle_diameter);
+        enable_seam_slope = satisfy_scarf_seam_angle_threshold;
     }
 
     // clip the path to avoid the extruder to get exactly on the first point of the loop;
