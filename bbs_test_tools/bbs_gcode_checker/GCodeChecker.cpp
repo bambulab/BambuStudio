@@ -9,6 +9,7 @@ namespace BambuStudio {
 const double CHECK_WIDTH_E_THRESHOLD = 0.0025;
 const double WIDTH_THRESHOLD = 0.05;
 const double RADIUS_THRESHOLD = 0.005;
+const double MULTI_NOZZLE_TEMP_THRESHOLD = 100;
 
 const double filament_diameter = 1.75;
 const double Pi = 3.14159265358979323846;
@@ -134,20 +135,25 @@ GCodeCheckResult GCodeChecker::parse_comment(GCodeLine& line)
         }
 
         if (m_role == erExternalPerimeter) {
-            if (z_height == initial_layer_height && check_nozzle_temp != nozzle_temperature_initial_layer[filament_id]) {
-                if (is_multi_nozzle == false) {
-                    std::cout << "Invalid filament nozzle initial layer temperature! Expected: "
-                        << nozzle_temperature_initial_layer[filament_id]
-                        << ", but got: " << check_nozzle_temp << "." << std::endl;
-                    return GCodeCheckResult::ParseFailed;
+            if (z_height != initial_layer_height) {
+                if (is_multi_nozzle) {
+                    double expected_temp = nozzle_temperature[filament_id];
+                    if (std::abs(check_nozzle_temp - expected_temp) > MULTI_NOZZLE_TEMP_THRESHOLD) {
+                        std::cout << "Multi-nozzle: Invalid filament nozzle temperature! Expected: "
+                            << expected_temp
+                            << ", but got: " << check_nozzle_temp
+                            << " (Threshold: ±100)." << std::endl;
+                        return GCodeCheckResult::ParseFailed;
+                    }
                 }
-            }
-
-            if (z_height != initial_layer_height && check_nozzle_temp != nozzle_temperature[filament_id]) {
-                std::cout << "Invalid filament nozzle temperature! Expected: "
-                    << nozzle_temperature[filament_id]
-                    << ", but got: " << check_nozzle_temp << "." << std::endl;
-                return GCodeCheckResult::ParseFailed;
+                else {
+                    if (check_nozzle_temp != nozzle_temperature[filament_id]) {
+                        std::cout << "Invalid filament nozzle temperature! Expected: "
+                            << nozzle_temperature[filament_id]
+                            << ", but got: " << check_nozzle_temp << "." << std::endl;
+                        return GCodeCheckResult::ParseFailed;
+                    }
+                }
             }
         }
         else if (m_role == erGapFill) {
