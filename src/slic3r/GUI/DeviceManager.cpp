@@ -4832,6 +4832,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                 auto err_code = jj["err_code"].get<int>();
                                 print_error   = err_code;
                             }
+                            is_succeed = false;
                         }
                     }
 
@@ -4900,6 +4901,7 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                             if (jj.contains("err_code")) {
                                 auto err_code = jj["err_code"].get<int>();
                                 print_error   = err_code;
+                                is_succeed    = false;
                             }
                         }
                     }
