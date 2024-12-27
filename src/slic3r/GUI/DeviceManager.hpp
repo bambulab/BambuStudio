@@ -964,6 +964,7 @@ public:
     bool is_support_agora{false};
     bool is_support_upgrade_kit{false};
     bool is_support_filament_setting_inprinting{false};
+    bool is_support_internal_timelapse { false };// fun[28], support timelapse without SD card
 
     bool installed_upgrade_kit{false};
     int  bed_temperature_limit = -1;
@@ -1024,6 +1025,9 @@ public:
     std::string parse_version();
     void parse_version_func();
     bool is_studio_cmd(int seq);
+
+    /* quick check*/
+    bool canEnableTimelapse() const;
 
     /* command commands */
     int command_get_version(bool with_retry = true);

@@ -1677,6 +1677,21 @@ bool MachineObject::is_studio_cmd(int sequence_id)
     return false;
 }
 
+bool MachineObject::canEnableTimelapse() const
+{
+    if (!is_support_timelapse)
+    {
+        return false;
+    }
+
+    if (is_support_internal_timelapse)
+    {
+        return true;
+    }
+
+    return sdcard_state == MachineObject::SdcardState::HAS_SDCARD_NORMAL;
+}
+
 int MachineObject::command_select_extruder(int id)
 {
     BOOST_LOG_TRIVIAL(info) << "select_extruder";
@@ -5683,6 +5698,7 @@ void MachineObject::parse_new_info(json print)
         is_support_user_preset = get_flag_bits(fun, 11);
         is_support_nozzle_blob_detection = get_flag_bits(fun, 13);
         is_support_upgrade_kit = get_flag_bits(fun, 14);
+        is_support_internal_timelapse = get_flag_bits(fun, 28);
     }
 
     /*aux*/
