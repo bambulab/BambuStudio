@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-27 09:11+0800\n"
+"POT-Creation-Date: 2024-12-27 16:16+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2189,6 +2189,103 @@ msgstr ""
 "AMS 슬롯을 선택한 다음 \"로드\" 또는 \"언로드\" 버튼을 눌러 필라멘트를 자동으"
 "로 로드하거나 언로드합니다."
 
+msgid "Off"
+msgstr ""
+
+msgid "Cooling"
+msgstr "냉각"
+
+msgid "Heating"
+msgstr ""
+
+msgid "Exhaust"
+msgstr ""
+
+msgid "Full Cooling"
+msgstr ""
+
+msgid "Num?"
+msgstr ""
+
+msgid "Init"
+msgstr ""
+
+msgid "Hotend"
+msgstr ""
+
+msgid "Aux"
+msgstr "보조"
+
+msgid "Nozzle1"
+msgstr ""
+
+msgid "MC Board"
+msgstr ""
+
+msgid "Heat"
+msgstr ""
+
+msgid "Chamber"
+msgstr ""
+
+msgid "Innerloop"
+msgstr ""
+
+#. TRN To be shown in the main menu View->Top
+msgid "Top"
+msgstr "상단"
+
+msgid ""
+"The fan controls the temperature during printing to improve print "
+"quality.The system automatically adjusts the fan's switch and speed "
+"according to different printing materials."
+msgstr ""
+
+msgid ""
+"Cooling mode is suitable for printing PLA/PETG/TPU materials and filters the "
+"chamber air."
+msgstr ""
+
+msgid ""
+"Heating mode is suitable for printeing ABS/ASA/PC/PA materials and "
+"circulates filters the chamber air."
+msgstr ""
+
+msgid ""
+"Strong cooling mode is suitable for printing PLA/TPU materials. In this "
+"mode, the printouts will be fully cooled."
+msgstr ""
+
+msgid "Num"
+msgstr ""
+
+msgid "Idling..."
+msgstr "대기 중..."
+
+msgid "Heat the nozzle"
+msgstr "노즐 가열"
+
+msgid "Cut filament"
+msgstr "필라멘트 컷팅"
+
+msgid "Pull back current filament"
+msgstr "현재 필라멘트를 뒤로 당깁니다."
+
+msgid "Push new filament into extruder"
+msgstr "새 필라멘트를 압출기에 밀어 넣습니다."
+
+msgid "Grab new filament"
+msgstr "새 필라멘트 가져오기"
+
+msgid "Purge old filament"
+msgstr "이전 필라멘트를 밀어 빼냅니다."
+
+msgid "Confirm extruded"
+msgstr "압출 확인"
+
+msgid "Check filament location"
+msgstr "필라멘트 위치 확인"
+
 msgid ""
 "All the selected objects are on the locked plate,\n"
 "We can not do auto-arrange on these objects."
@@ -3207,10 +3304,9 @@ msgstr ""
 
 msgid ""
 "Spiral mode only works when wall loops is 1, support is disabled, top shell "
-"layers is 0, sparse infill density is 0 and timelapse type is traditional."
+"layers is 0, sparse infill density is 0, timelapse type is traditional and "
+"Smoothing wall speed in z direction is false."
 msgstr ""
-"나선형 꽃병모드는 다음 경우에만 작동합니다. 벽 수 1, 서포트 비활성화, 상단 레"
-"이어 0, 내부채움 밀도 0, 타임랩스 유형 일반."
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr "그러나 I3 구조의 기계는 타임랩스 비디오를 생성하지 않습니다."
@@ -4194,10 +4290,6 @@ msgstr "모델 다운로드"
 msgid "Default View"
 msgstr "기본 보기"
 
-#. TRN To be shown in the main menu View->Top
-msgid "Top"
-msgstr "상단"
-
 msgid "Top View"
 msgstr "상단 뷰"
 
@@ -4896,6 +4988,72 @@ msgstr "3Dconnexion 설정"
 
 msgid "Swap Y/Z axes"
 msgstr "Y/Z 축 교환"
+
+msgid "(LAN)"
+msgstr "(LAN)"
+
+msgid "Search"
+msgstr "찾다"
+
+msgid "My Device"
+msgstr "내 장치"
+
+msgid "Other Device"
+msgstr "기타 장치"
+
+msgid "Online"
+msgstr "온라인"
+
+msgid "Input access code"
+msgstr "액세스 코드 입력"
+
+msgid "Can't find my devices?"
+msgstr "장치를 찾을 수 없습니까?"
+
+msgid "Log out successful."
+msgstr "로그아웃 성공"
+
+msgid "Offline"
+msgstr "오프라인"
+
+msgid "Busy"
+msgstr "바쁜"
+
+msgid "Modifying the device name"
+msgstr "장치 이름 수정"
+
+msgid "Name is invalid;"
+msgstr "잘못된 이름입니다;"
+
+msgid "illegal characters:"
+msgstr "잘못된 문자:"
+
+msgid "illegal suffix:"
+msgstr "잘못된 접미사:"
+
+msgid "The name is not allowed to be empty."
+msgstr "이름 필드는 비워 둘 수 없습니다."
+
+msgid "The name is not allowed to start with space character."
+msgstr "이름은 공백으로 시작할 수 없습니다."
+
+msgid "The name is not allowed to end with space character."
+msgstr "이름은 공백으로 끝날 수 없습니다."
+
+msgid "Bind with Pin Code"
+msgstr "핀 코드로 바인딩"
+
+msgid "Bind with Access Code"
+msgstr ""
+
+msgid ""
+"Please log in before binding your device with a PIN code.\n"
+"Alternatively, you can use LAN mode to bind your device. Learn about LAN "
+"mode."
+msgstr ""
+
+msgid "Go to Login"
+msgstr ""
 
 msgid "Printing Progress"
 msgstr "출력 진행상황"
@@ -6836,15 +6994,6 @@ msgstr "사용자 프리셋"
 msgid "Preset Inside Project"
 msgstr "사전 설정 내부 프로젝트"
 
-msgid "Name is invalid;"
-msgstr "잘못된 이름입니다;"
-
-msgid "illegal characters:"
-msgstr "잘못된 문자:"
-
-msgid "illegal suffix:"
-msgstr "잘못된 접미사:"
-
 msgid "Name is unavailable."
 msgstr "사용할 수 없는 이름입니다."
 
@@ -6861,15 +7010,6 @@ msgstr "프리셋 \"%1%\"이(가) 이미 존재하며 현재 프린터와 호환
 
 msgid "Please note that saving action will replace this preset"
 msgstr "저장하면 현재 프리셋을 덮어쓰게 된다는 점에 유의하세요."
-
-msgid "The name is not allowed to be empty."
-msgstr "이름 필드는 비워 둘 수 없습니다."
-
-msgid "The name is not allowed to start with space character."
-msgstr "이름은 공백으로 시작할 수 없습니다."
-
-msgid "The name is not allowed to end with space character."
-msgstr "이름은 공백으로 끝날 수 없습니다."
 
 msgid "The name cannot be the same as a preset alias name."
 msgstr "이름은 미리 설정된 별칭 이름과 같을 수 없습니다."
@@ -7170,9 +7310,6 @@ msgstr "비정상적인 출력 파일입니다. 다시 슬라이싱 하십시오
 msgid "The name length exceeds the limit."
 msgstr "이름 길이가 제한을 초과합니다."
 
-msgid "Input access code"
-msgstr "액세스 코드 입력"
-
 msgid "Cool"
 msgstr ""
 
@@ -7246,9 +7383,6 @@ msgstr "로그인 보고서 수신 시간 초과"
 
 msgid "Unknown Failure"
 msgstr "알 수 없는 실패"
-
-msgid "Bind with Pin Code"
-msgstr "핀 코드로 바인딩"
 
 msgid ""
 "Please Find the Pin Code in Account page on printer screen,\n"
@@ -7352,9 +7486,6 @@ msgstr "먼저 로그인하세요."
 
 msgid "There was a problem connecting to the printer. Please try again."
 msgstr "프린터 연결 중 문제가 발생했습니다. 다시 시도해 주세요."
-
-msgid "Log out successful."
-msgstr "로그아웃 성공"
 
 msgid "Failed to log out."
 msgstr "로그아웃 실패"
@@ -7641,9 +7772,6 @@ msgstr "체적 속도 제한"
 
 msgid "Filament scarf seam settings"
 msgstr ""
-
-msgid "Cooling"
-msgstr "냉각"
 
 msgid "Cooling for specific layer"
 msgstr "특정 레이어에 대한 냉각"
@@ -8525,9 +8653,6 @@ msgstr "버전:"
 msgid "Update firmware"
 msgstr "펌웨어 업데이트"
 
-msgid "Offline"
-msgstr "오프라인"
-
 msgid "Idle"
 msgstr "대기중"
 
@@ -9112,7 +9237,7 @@ msgstr ""
 
 msgid ""
 "Smoothing outwall speed in z direction to get better surface quality. Print "
-"time will increases."
+"time will increases. It is not work on spiral vase mode."
 msgstr ""
 
 msgid "Avoid crossing wall - Max detour length"
@@ -12097,15 +12222,6 @@ msgstr "Flow Rate"
 msgid "Max Volumetric Speed"
 msgstr "최대 체적 속도"
 
-msgid "(LAN)"
-msgstr "(LAN)"
-
-msgid "Online"
-msgstr "온라인"
-
-msgid "Busy"
-msgstr "바쁜"
-
 #, c-format, boost-format
 msgid ""
 "Please input valid values:\n"
@@ -13051,6 +13167,12 @@ msgstr "Input Custom Model"
 msgid "Can't find my printer model"
 msgstr "Can't find my printer model"
 
+msgid "Input Custom Nozzle Diameter"
+msgstr ""
+
+msgid "Can't find my nozzle diameter"
+msgstr ""
+
 msgid "Rectangle"
 msgstr "Rectangle"
 
@@ -13112,9 +13234,6 @@ msgid ""
 msgstr ""
 "You have entered a disallowed character in the printable area section on the "
 "first page. Please use only numbers."
-
-msgid "The custom printer or model is not inputed, place input."
-msgstr "The custom printer or model missing; please input."
 
 msgid ""
 "The printer preset you created already has a preset with the same name. Do "
@@ -13179,6 +13298,14 @@ msgid ""
 msgstr ""
 "You have not yet selected the printer to replace the nozzle for; please "
 "choose a printer."
+
+msgid "The entered nozzle diameter is invalid, please re-enter:\n"
+msgstr ""
+
+msgid ""
+"The system preset does not allow creation. \n"
+"Please re-enter the printer model or nozzle diameter."
+msgstr ""
 
 msgid "Create Printer Successful"
 msgstr "Create Printer Successful"
@@ -14435,6 +14562,17 @@ msgstr ""
 "ABS 등 뒤틀림이 발생하기 쉬운 소재를 출력할 때, 히트베드 온도를 적절하게 높이"
 "면 뒤틀림 가능성을 줄일 수 있다는 사실을 알고 계셨나요?"
 
+#~ msgid ""
+#~ "Spiral mode only works when wall loops is 1, support is disabled, top "
+#~ "shell layers is 0, sparse infill density is 0 and timelapse type is "
+#~ "traditional."
+#~ msgstr ""
+#~ "나선형 꽃병모드는 다음 경우에만 작동합니다. 벽 수 1, 서포트 비활성화, 상"
+#~ "단 레이어 0, 내부채움 밀도 0, 타임랩스 유형 일반."
+
+#~ msgid "The custom printer or model is not inputed, place input."
+#~ msgstr "The custom printer or model missing; please input."
+
 #, c-format, boost-format
 #~ msgid "*Printing %s material with %s may cause nozzle damage"
 #~ msgstr "* %s 로 %s 소재로 출력하면 노즐이 손상될 수 있습니다."
@@ -14529,41 +14667,11 @@ msgstr ""
 #~ msgid "Cancel calibration"
 #~ msgstr "캘리브레이션 취소"
 
-#~ msgid "Idling..."
-#~ msgstr "대기 중..."
-
-#~ msgid "Heat the nozzle"
-#~ msgstr "노즐 가열"
-
-#~ msgid "Cut filament"
-#~ msgstr "필라멘트 컷팅"
-
-#~ msgid "Pull back current filament"
-#~ msgstr "현재 필라멘트를 뒤로 당깁니다."
-
-#~ msgid "Push new filament into extruder"
-#~ msgstr "새 필라멘트를 압출기에 밀어 넣습니다."
-
-#~ msgid "Purge old filament"
-#~ msgstr "이전 필라멘트를 밀어 빼냅니다."
-
 #~ msgid "Feed Filament"
 #~ msgstr "필라멘트 공급"
 
-#~ msgid "Confirm extruded"
-#~ msgstr "압출 확인"
-
-#~ msgid "Check filament location"
-#~ msgstr "필라멘트 위치 확인"
-
-#~ msgid "Grab new filament"
-#~ msgstr "새 필라멘트 가져오기"
-
 #~ msgid "SD Card"
 #~ msgstr "MicroSD 카드"
-
-#~ msgid "Aux"
-#~ msgstr "보조"
 
 #~ msgid "Cham"
 #~ msgstr "챔버"
@@ -14581,18 +14689,6 @@ msgstr ""
 #~ "모델 메쉬에 대해 부울 연산을 수행할 수 없습니다. 긍정적인 부분만 유지됩니"
 #~ "다. 메쉬를 수정하고 agian을 시도해 볼 수 있습니다."
 
-#~ msgid "Search"
-#~ msgstr "찾다"
-
-#~ msgid "My Device"
-#~ msgstr "내 장치"
-
-#~ msgid "Other Device"
-#~ msgstr "기타 장치"
-
-#~ msgid "Can't find my devices?"
-#~ msgstr "장치를 찾을 수 없습니까?"
-
 #, c-format, boost-format
 #~ msgid "nozzle in preset: %s %s"
 #~ msgstr "사전 설정 노즐: %s %s"
@@ -14606,9 +14702,6 @@ msgstr ""
 
 #~ msgid "Automatic flow calibration using Micro Lidar"
 #~ msgstr "Micro Lidar를 사용한 자동 유량 교정"
-
-#~ msgid "Modifying the device name"
-#~ msgstr "장치 이름 수정"
 
 #~ msgid "Direct drive"
 #~ msgstr "다이렉트 드라이브"

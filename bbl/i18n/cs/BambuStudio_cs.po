@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-27 09:11+0800\n"
+"POT-Creation-Date: 2024-12-27 16:16+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -2184,6 +2184,103 @@ msgid ""
 "load or unload filaments."
 msgstr ""
 
+msgid "Off"
+msgstr ""
+
+msgid "Cooling"
+msgstr "Chlazení"
+
+msgid "Heating"
+msgstr ""
+
+msgid "Exhaust"
+msgstr ""
+
+msgid "Full Cooling"
+msgstr ""
+
+msgid "Num?"
+msgstr ""
+
+msgid "Init"
+msgstr ""
+
+msgid "Hotend"
+msgstr ""
+
+msgid "Aux"
+msgstr "Aux"
+
+msgid "Nozzle1"
+msgstr ""
+
+msgid "MC Board"
+msgstr ""
+
+msgid "Heat"
+msgstr ""
+
+msgid "Chamber"
+msgstr ""
+
+msgid "Innerloop"
+msgstr ""
+
+#. TRN To be shown in the main menu View->Top
+msgid "Top"
+msgstr "Shora"
+
+msgid ""
+"The fan controls the temperature during printing to improve print "
+"quality.The system automatically adjusts the fan's switch and speed "
+"according to different printing materials."
+msgstr ""
+
+msgid ""
+"Cooling mode is suitable for printing PLA/PETG/TPU materials and filters the "
+"chamber air."
+msgstr ""
+
+msgid ""
+"Heating mode is suitable for printeing ABS/ASA/PC/PA materials and "
+"circulates filters the chamber air."
+msgstr ""
+
+msgid ""
+"Strong cooling mode is suitable for printing PLA/TPU materials. In this "
+"mode, the printouts will be fully cooled."
+msgstr ""
+
+msgid "Num"
+msgstr ""
+
+msgid "Idling..."
+msgstr ""
+
+msgid "Heat the nozzle"
+msgstr "Zahřejte trysku"
+
+msgid "Cut filament"
+msgstr "Vyjmout Filament"
+
+msgid "Pull back current filament"
+msgstr "Vytáhněte aktuální filament"
+
+msgid "Push new filament into extruder"
+msgstr "Zatlačte nový filament do extruderu"
+
+msgid "Grab new filament"
+msgstr "Vezměte nový filament"
+
+msgid "Purge old filament"
+msgstr "Vyčistit starý filament"
+
+msgid "Confirm extruded"
+msgstr ""
+
+msgid "Check filament location"
+msgstr ""
+
 msgid ""
 "All the selected objects are on the locked plate,\n"
 "We can not do auto-arrange on these objects."
@@ -3194,11 +3291,9 @@ msgstr ""
 
 msgid ""
 "Spiral mode only works when wall loops is 1, support is disabled, top shell "
-"layers is 0, sparse infill density is 0 and timelapse type is traditional."
+"layers is 0, sparse infill density is 0, timelapse type is traditional and "
+"Smoothing wall speed in z direction is false."
 msgstr ""
-"Spirálový režim funguje pouze tehdy, když je 1 smyčka na stěně, podpěry jsou "
-"deaktivovány, horní skořepina vrstvy jsou 0, hustota vnitřní výplně je 0 a "
-"typ časosběru je tradiční."
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr ""
@@ -4180,10 +4275,6 @@ msgstr "Stáhnout modely"
 msgid "Default View"
 msgstr "Výchozí zobrazení"
 
-#. TRN To be shown in the main menu View->Top
-msgid "Top"
-msgstr "Shora"
-
 msgid "Top View"
 msgstr "Pohled svrchu"
 
@@ -4885,6 +4976,72 @@ msgstr "Nastavení 3DConnexion"
 
 msgid "Swap Y/Z axes"
 msgstr "Zaměnit osy Y/Z"
+
+msgid "(LAN)"
+msgstr "(LAN)"
+
+msgid "Search"
+msgstr ""
+
+msgid "My Device"
+msgstr "Moje zařízení"
+
+msgid "Other Device"
+msgstr "Jiné zařízení"
+
+msgid "Online"
+msgstr "Online"
+
+msgid "Input access code"
+msgstr "Zadejte přístupový kód"
+
+msgid "Can't find my devices?"
+msgstr "Nemohu najít moje zařízení?"
+
+msgid "Log out successful."
+msgstr "Odhlášení proběhlo úspěšně."
+
+msgid "Offline"
+msgstr "Offline"
+
+msgid "Busy"
+msgstr "Zaneprázdněn"
+
+msgid "Modifying the device name"
+msgstr "Úprava názvu zařízení"
+
+msgid "Name is invalid;"
+msgstr "Jméno je neplatné;"
+
+msgid "illegal characters:"
+msgstr "nepovolené znaky:"
+
+msgid "illegal suffix:"
+msgstr "nelegální přípona:"
+
+msgid "The name is not allowed to be empty."
+msgstr "Název nesmí být prázdný."
+
+msgid "The name is not allowed to start with space character."
+msgstr "Název nesmí začínat mezerou."
+
+msgid "The name is not allowed to end with space character."
+msgstr "Název nesmí končit mezerou."
+
+msgid "Bind with Pin Code"
+msgstr ""
+
+msgid "Bind with Access Code"
+msgstr ""
+
+msgid ""
+"Please log in before binding your device with a PIN code.\n"
+"Alternatively, you can use LAN mode to bind your device. Learn about LAN "
+"mode."
+msgstr ""
+
+msgid "Go to Login"
+msgstr ""
 
 msgid "Printing Progress"
 msgstr "Průběh tisku"
@@ -6781,15 +6938,6 @@ msgstr "Uživatelská předvolba"
 msgid "Preset Inside Project"
 msgstr ""
 
-msgid "Name is invalid;"
-msgstr "Jméno je neplatné;"
-
-msgid "illegal characters:"
-msgstr "nepovolené znaky:"
-
-msgid "illegal suffix:"
-msgstr "nelegální přípona:"
-
 msgid "Name is unavailable."
 msgstr "Jméno není k dispozici."
 
@@ -6807,15 +6955,6 @@ msgstr ""
 
 msgid "Please note that saving action will replace this preset"
 msgstr "Upozorňujeme, že akce uložení nahradí toto přednastavení"
-
-msgid "The name is not allowed to be empty."
-msgstr "Název nesmí být prázdný."
-
-msgid "The name is not allowed to start with space character."
-msgstr "Název nesmí začínat mezerou."
-
-msgid "The name is not allowed to end with space character."
-msgstr "Název nesmí končit mezerou."
 
 msgid "The name cannot be the same as a preset alias name."
 msgstr "Název se nesmí shodovat s názvem aliasem přednastavení."
@@ -7114,9 +7253,6 @@ msgstr "Abnormální data tiskového souboru. Prosím znovu slicovat"
 msgid "The name length exceeds the limit."
 msgstr "Délka názvu překračuje limit."
 
-msgid "Input access code"
-msgstr "Zadejte přístupový kód"
-
 msgid "Cool"
 msgstr ""
 
@@ -7191,9 +7327,6 @@ msgstr "Časový limit pro obdržení hlášení o přihlášení vypršel"
 
 msgid "Unknown Failure"
 msgstr "Neznámá chyba"
-
-msgid "Bind with Pin Code"
-msgstr ""
 
 msgid ""
 "Please Find the Pin Code in Account page on printer screen,\n"
@@ -7293,9 +7426,6 @@ msgstr "Nejprve se prosím přihlaste."
 
 msgid "There was a problem connecting to the printer. Please try again."
 msgstr "Došlo k problému s připojením k tiskárně. Zkuste to prosím znovu."
-
-msgid "Log out successful."
-msgstr "Odhlášení proběhlo úspěšně."
 
 msgid "Failed to log out."
 msgstr "Nepodařilo se odhlásit."
@@ -7577,9 +7707,6 @@ msgstr "Omezení objemové rychlosti"
 
 msgid "Filament scarf seam settings"
 msgstr ""
-
-msgid "Cooling"
-msgstr "Chlazení"
 
 msgid "Cooling for specific layer"
 msgstr "Chlazení pro konkrétní vrstvu"
@@ -8444,9 +8571,6 @@ msgstr "Verze:"
 msgid "Update firmware"
 msgstr "Aktualizovat firmware"
 
-msgid "Offline"
-msgstr "Offline"
-
 msgid "Idle"
 msgstr "Nečinný"
 
@@ -9033,7 +9157,7 @@ msgstr ""
 
 msgid ""
 "Smoothing outwall speed in z direction to get better surface quality. Print "
-"time will increases."
+"time will increases. It is not work on spiral vase mode."
 msgstr ""
 
 msgid "Avoid crossing wall - Max detour length"
@@ -11944,15 +12068,6 @@ msgstr "Průtok"
 msgid "Max Volumetric Speed"
 msgstr "Maximální objemová rychlost"
 
-msgid "(LAN)"
-msgstr "(LAN)"
-
-msgid "Online"
-msgstr "Online"
-
-msgid "Busy"
-msgstr "Zaneprázdněn"
-
 #, c-format, boost-format
 msgid ""
 "Please input valid values:\n"
@@ -12877,6 +12992,12 @@ msgstr ""
 msgid "Can't find my printer model"
 msgstr ""
 
+msgid "Input Custom Nozzle Diameter"
+msgstr ""
+
+msgid "Can't find my nozzle diameter"
+msgstr ""
+
 msgid "Rectangle"
 msgstr ""
 
@@ -12935,9 +13056,6 @@ msgid ""
 "page. Please check before creating it."
 msgstr ""
 
-msgid "The custom printer or model is not inputed, place input."
-msgstr ""
-
 msgid ""
 "The printer preset you created already has a preset with the same name. Do "
 "you want to overwrite it?\n"
@@ -12985,6 +13103,14 @@ msgstr ""
 
 msgid ""
 "You have not yet selected the printer to replace the nozzle, please choose."
+msgstr ""
+
+msgid "The entered nozzle diameter is invalid, please re-enter:\n"
+msgstr ""
+
+msgid ""
+"The system preset does not allow creation. \n"
+"Please re-enter the printer model or nozzle diameter."
 msgstr ""
 
 msgid "Create Printer Successful"
@@ -14099,6 +14225,15 @@ msgid ""
 "probability of warping."
 msgstr ""
 
+#~ msgid ""
+#~ "Spiral mode only works when wall loops is 1, support is disabled, top "
+#~ "shell layers is 0, sparse infill density is 0 and timelapse type is "
+#~ "traditional."
+#~ msgstr ""
+#~ "Spirálový režim funguje pouze tehdy, když je 1 smyčka na stěně, podpěry "
+#~ "jsou deaktivovány, horní skořepina vrstvy jsou 0, hustota vnitřní výplně "
+#~ "je 0 a typ časosběru je tradiční."
+
 #~ msgid "Micro lidar calibration"
 #~ msgstr "Micro lidar kalibrace"
 
@@ -14147,29 +14282,8 @@ msgstr ""
 #~ msgid "Cancel calibration"
 #~ msgstr "Zrušit kalibraci"
 
-#~ msgid "Heat the nozzle"
-#~ msgstr "Zahřejte trysku"
-
-#~ msgid "Cut filament"
-#~ msgstr "Vyjmout Filament"
-
-#~ msgid "Pull back current filament"
-#~ msgstr "Vytáhněte aktuální filament"
-
-#~ msgid "Push new filament into extruder"
-#~ msgstr "Zatlačte nový filament do extruderu"
-
-#~ msgid "Purge old filament"
-#~ msgstr "Vyčistit starý filament"
-
-#~ msgid "Grab new filament"
-#~ msgstr "Vezměte nový filament"
-
 #~ msgid "SD Card"
 #~ msgstr "SD karta"
-
-#~ msgid "Aux"
-#~ msgstr "Aux"
 
 #~ msgid "Cham"
 #~ msgstr "Komora"
@@ -14180,15 +14294,6 @@ msgstr ""
 #~ msgid "SD Card Abnormal"
 #~ msgstr "SD karta Abnormální"
 
-#~ msgid "My Device"
-#~ msgstr "Moje zařízení"
-
-#~ msgid "Other Device"
-#~ msgstr "Jiné zařízení"
-
-#~ msgid "Can't find my devices?"
-#~ msgstr "Nemohu najít moje zařízení?"
-
 #~ msgid ""
 #~ "Caution to use! Flow calibration on Textured PEI Plate may fail due to "
 #~ "the scattered surface."
@@ -14198,9 +14303,6 @@ msgstr ""
 
 #~ msgid "Automatic flow calibration using Micro Lidar"
 #~ msgstr "Automatická kalibrace průtoku pomocí Mikro Lidar"
-
-#~ msgid "Modifying the device name"
-#~ msgstr "Úprava názvu zařízení"
 
 #~ msgid "Direct drive"
 #~ msgstr "Přímý pohon (DD)"

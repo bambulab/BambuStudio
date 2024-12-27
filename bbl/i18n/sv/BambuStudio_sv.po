@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-27 09:11+0800\n"
+"POT-Creation-Date: 2024-12-27 16:16+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2202,6 +2202,103 @@ msgstr ""
 "Välj ett AMS fack och tryck sedan på knappen \"Ladda\" eller \"Mata ut\" för "
 "att automatiskt ladda eller mata ut filament."
 
+msgid "Off"
+msgstr ""
+
+msgid "Cooling"
+msgstr "Kylning"
+
+msgid "Heating"
+msgstr ""
+
+msgid "Exhaust"
+msgstr ""
+
+msgid "Full Cooling"
+msgstr ""
+
+msgid "Num?"
+msgstr ""
+
+msgid "Init"
+msgstr ""
+
+msgid "Hotend"
+msgstr ""
+
+msgid "Aux"
+msgstr "Aux"
+
+msgid "Nozzle1"
+msgstr ""
+
+msgid "MC Board"
+msgstr ""
+
+msgid "Heat"
+msgstr ""
+
+msgid "Chamber"
+msgstr ""
+
+msgid "Innerloop"
+msgstr ""
+
+#. TRN To be shown in the main menu View->Top
+msgid "Top"
+msgstr "Topplager"
+
+msgid ""
+"The fan controls the temperature during printing to improve print "
+"quality.The system automatically adjusts the fan's switch and speed "
+"according to different printing materials."
+msgstr ""
+
+msgid ""
+"Cooling mode is suitable for printing PLA/PETG/TPU materials and filters the "
+"chamber air."
+msgstr ""
+
+msgid ""
+"Heating mode is suitable for printeing ABS/ASA/PC/PA materials and "
+"circulates filters the chamber air."
+msgstr ""
+
+msgid ""
+"Strong cooling mode is suitable for printing PLA/TPU materials. In this "
+"mode, the printouts will be fully cooled."
+msgstr ""
+
+msgid "Num"
+msgstr ""
+
+msgid "Idling..."
+msgstr "Tomgång..."
+
+msgid "Heat the nozzle"
+msgstr "Värm upp nozzle"
+
+msgid "Cut filament"
+msgstr "Skär filament"
+
+msgid "Pull back current filament"
+msgstr "Reversera nuvarande filament"
+
+msgid "Push new filament into extruder"
+msgstr "Mata in nytt filament i extrudern"
+
+msgid "Grab new filament"
+msgstr "Ta ett nytt filament"
+
+msgid "Purge old filament"
+msgstr "Rensa gammalt filament"
+
+msgid "Confirm extruded"
+msgstr "Bekräfta extruderad"
+
+msgid "Check filament location"
+msgstr "Kontrollera filamentets placering"
+
 msgid ""
 "All the selected objects are on the locked plate,\n"
 "We can not do auto-arrange on these objects."
@@ -3257,10 +3354,9 @@ msgstr ""
 
 msgid ""
 "Spiral mode only works when wall loops is 1, support is disabled, top shell "
-"layers is 0, sparse infill density is 0 and timelapse type is traditional."
+"layers is 0, sparse infill density is 0, timelapse type is traditional and "
+"Smoothing wall speed in z direction is false."
 msgstr ""
-"Spiralläget fungerar endast när vägg varv är 1, support är inaktiverat, top "
-"skalets lager är 0, gles ifyllnad är 0 och timelapse typen är traditionell."
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr " Maskiner med I3-struktur kan dock inte generera timelapse videor."
@@ -4251,10 +4347,6 @@ msgstr "Ladda ner modeller"
 msgid "Default View"
 msgstr "Standard Vy"
 
-#. TRN To be shown in the main menu View->Top
-msgid "Top"
-msgstr "Topplager"
-
 msgid "Top View"
 msgstr "Vy Top"
 
@@ -4958,6 +5050,72 @@ msgstr "3Dconnexion inställningar"
 
 msgid "Swap Y/Z axes"
 msgstr "Byta Y/Z axes"
+
+msgid "(LAN)"
+msgstr "(LAN)"
+
+msgid "Search"
+msgstr "Sök"
+
+msgid "My Device"
+msgstr "Min Enhet"
+
+msgid "Other Device"
+msgstr "Andra Enheter"
+
+msgid "Online"
+msgstr "Online"
+
+msgid "Input access code"
+msgstr "Inmatning av åtkomstkod"
+
+msgid "Can't find my devices?"
+msgstr "Hittar du inte enheter?"
+
+msgid "Log out successful."
+msgstr "Utloggning lyckades."
+
+msgid "Offline"
+msgstr "Offline"
+
+msgid "Busy"
+msgstr "Upptagen"
+
+msgid "Modifying the device name"
+msgstr "Ändra enhetens namn"
+
+msgid "Name is invalid;"
+msgstr "Namnet är ogiltligt;"
+
+msgid "illegal characters:"
+msgstr "ogiltliga tecken:"
+
+msgid "illegal suffix:"
+msgstr "ogiltlig ändelse:"
+
+msgid "The name is not allowed to be empty."
+msgstr "Namnet får inte vara tomt."
+
+msgid "The name is not allowed to start with space character."
+msgstr "Namnet får inte börja med mellanrum."
+
+msgid "The name is not allowed to end with space character."
+msgstr "Namnet får inte avslutas med mellanrum."
+
+msgid "Bind with Pin Code"
+msgstr "Bind with Pin Code"
+
+msgid "Bind with Access Code"
+msgstr ""
+
+msgid ""
+"Please log in before binding your device with a PIN code.\n"
+"Alternatively, you can use LAN mode to bind your device. Learn about LAN "
+"mode."
+msgstr ""
+
+msgid "Go to Login"
+msgstr ""
 
 msgid "Printing Progress"
 msgstr "Utskriftsförlopp"
@@ -6908,15 +7066,6 @@ msgstr "Användar förinställning"
 msgid "Preset Inside Project"
 msgstr "Inställning inuti projekt"
 
-msgid "Name is invalid;"
-msgstr "Namnet är ogiltligt;"
-
-msgid "illegal characters:"
-msgstr "ogiltliga tecken:"
-
-msgid "illegal suffix:"
-msgstr "ogiltlig ändelse:"
-
 msgid "Name is unavailable."
 msgstr "Namnet ej tillgängligt."
 
@@ -6935,15 +7084,6 @@ msgstr ""
 msgid "Please note that saving action will replace this preset"
 msgstr ""
 "Observera att om du sparar kommer den aktuella inställningen att skrivas över"
-
-msgid "The name is not allowed to be empty."
-msgstr "Namnet får inte vara tomt."
-
-msgid "The name is not allowed to start with space character."
-msgstr "Namnet får inte börja med mellanrum."
-
-msgid "The name is not allowed to end with space character."
-msgstr "Namnet får inte avslutas med mellanrum."
 
 msgid "The name cannot be the same as a preset alias name."
 msgstr "Namnet får inte vara samma som förinställt namn."
@@ -7260,9 +7400,6 @@ msgstr "Onormal utskrifts fil data. Vänligen bered igen"
 msgid "The name length exceeds the limit."
 msgstr "Namnlängden överskrider gränsen."
 
-msgid "Input access code"
-msgstr "Inmatning av åtkomstkod"
-
 msgid "Cool"
 msgstr ""
 
@@ -7337,9 +7474,6 @@ msgstr "Timeout för mottagande av inloggnings rapport"
 
 msgid "Unknown Failure"
 msgstr "Okänt fel"
-
-msgid "Bind with Pin Code"
-msgstr "Bind with Pin Code"
 
 msgid ""
 "Please Find the Pin Code in Account page on printer screen,\n"
@@ -7449,9 +7583,6 @@ msgstr "Logga in först."
 
 msgid "There was a problem connecting to the printer. Please try again."
 msgstr "Problem uppstod vid sammankoppling till skrivaren. Försök igen."
-
-msgid "Log out successful."
-msgstr "Utloggning lyckades."
 
 msgid "Failed to log out."
 msgstr "Utloggning misslyckades."
@@ -7749,9 +7880,6 @@ msgstr "Volumetrisk hastighets begränsning"
 
 msgid "Filament scarf seam settings"
 msgstr ""
-
-msgid "Cooling"
-msgstr "Kylning"
 
 msgid "Cooling for specific layer"
 msgstr "Kylning för valda lager"
@@ -8645,9 +8773,6 @@ msgstr "Version:"
 msgid "Update firmware"
 msgstr "Uppdatera programvara"
 
-msgid "Offline"
-msgstr "Offline"
-
 msgid "Idle"
 msgstr "Inaktiv"
 
@@ -9240,7 +9365,7 @@ msgstr ""
 
 msgid ""
 "Smoothing outwall speed in z direction to get better surface quality. Print "
-"time will increases."
+"time will increases. It is not work on spiral vase mode."
 msgstr ""
 
 msgid "Avoid crossing wall - Max detour length"
@@ -12306,15 +12431,6 @@ msgstr "Flödeshastighet"
 msgid "Max Volumetric Speed"
 msgstr "Max volymetrisk hastighet"
 
-msgid "(LAN)"
-msgstr "(LAN)"
-
-msgid "Online"
-msgstr "Online"
-
-msgid "Busy"
-msgstr "Upptagen"
-
 #, c-format, boost-format
 msgid ""
 "Please input valid values:\n"
@@ -13276,6 +13392,12 @@ msgstr "Mata in anpassad modell"
 msgid "Can't find my printer model"
 msgstr "Kan inte hitta min printer modell"
 
+msgid "Input Custom Nozzle Diameter"
+msgstr ""
+
+msgid "Can't find my nozzle diameter"
+msgstr ""
+
 msgid "Rectangle"
 msgstr "Rektangel"
 
@@ -13337,9 +13459,6 @@ msgid ""
 msgstr ""
 "Du har angett ett otillåtet tecken i det utskrivbara området på första "
 "sidan. Använd endast siffror."
-
-msgid "The custom printer or model is not inputed, place input."
-msgstr "The custom printer or model missing; please input."
 
 msgid ""
 "The printer preset you created already has a preset with the same name. Do "
@@ -13404,6 +13523,14 @@ msgid ""
 msgstr ""
 "Du har ännu inte valt vilken printer som nozzeln ska bytas ut på; välj en "
 "printer."
+
+msgid "The entered nozzle diameter is invalid, please re-enter:\n"
+msgstr ""
+
+msgid ""
+"The system preset does not allow creation. \n"
+"Please re-enter the printer model or nozzle diameter."
+msgstr ""
 
 msgid "Create Printer Successful"
 msgstr "Skapa Printer lyckades"
@@ -14671,6 +14798,18 @@ msgstr ""
 "ABS, kan en lämplig ökning av värmebäddens temperatur minska sannolikheten "
 "för vridning."
 
+#~ msgid ""
+#~ "Spiral mode only works when wall loops is 1, support is disabled, top "
+#~ "shell layers is 0, sparse infill density is 0 and timelapse type is "
+#~ "traditional."
+#~ msgstr ""
+#~ "Spiralläget fungerar endast när vägg varv är 1, support är inaktiverat, "
+#~ "top skalets lager är 0, gles ifyllnad är 0 och timelapse typen är "
+#~ "traditionell."
+
+#~ msgid "The custom printer or model is not inputed, place input."
+#~ msgstr "The custom printer or model missing; please input."
+
 #, c-format, boost-format
 #~ msgid "*Printing %s material with %s may cause nozzle damage"
 #~ msgstr "*Utskrift av %s material med %s kan orsaka skador på nozzeln"
@@ -14775,41 +14914,11 @@ msgstr ""
 #~ msgid "Cancel calibration"
 #~ msgstr "Avbryt kalibrering"
 
-#~ msgid "Idling..."
-#~ msgstr "Tomgång..."
-
-#~ msgid "Heat the nozzle"
-#~ msgstr "Värm upp nozzle"
-
-#~ msgid "Cut filament"
-#~ msgstr "Skär filament"
-
-#~ msgid "Pull back current filament"
-#~ msgstr "Reversera nuvarande filament"
-
-#~ msgid "Push new filament into extruder"
-#~ msgstr "Mata in nytt filament i extrudern"
-
-#~ msgid "Purge old filament"
-#~ msgstr "Rensa gammalt filament"
-
 #~ msgid "Feed Filament"
 #~ msgstr "Mata filament"
 
-#~ msgid "Confirm extruded"
-#~ msgstr "Bekräfta extruderad"
-
-#~ msgid "Check filament location"
-#~ msgstr "Kontrollera filamentets placering"
-
-#~ msgid "Grab new filament"
-#~ msgstr "Ta ett nytt filament"
-
 #~ msgid "SD Card"
 #~ msgstr "MicroSD-kort"
-
-#~ msgid "Aux"
-#~ msgstr "Aux"
 
 #~ msgid "Cham"
 #~ msgstr "Kammare"
@@ -14827,18 +14936,6 @@ msgstr ""
 #~ "Unable to perform boolean operation on model meshes. Only positive parts "
 #~ "will be kept. You may fix the meshes and try agian."
 
-#~ msgid "Search"
-#~ msgstr "Sök"
-
-#~ msgid "My Device"
-#~ msgstr "Min Enhet"
-
-#~ msgid "Other Device"
-#~ msgstr "Andra Enheter"
-
-#~ msgid "Can't find my devices?"
-#~ msgstr "Hittar du inte enheter?"
-
 #, c-format, boost-format
 #~ msgid "nozzle in preset: %s %s"
 #~ msgstr "nozzel i inställning: %s %s"
@@ -14852,9 +14949,6 @@ msgstr ""
 
 #~ msgid "Automatic flow calibration using Micro Lidar"
 #~ msgstr "Automatic flow calibration using the Micro Lidar"
-
-#~ msgid "Modifying the device name"
-#~ msgstr "Ändra enhetens namn"
 
 #~ msgid "Direct drive"
 #~ msgstr "Direkt drivning"

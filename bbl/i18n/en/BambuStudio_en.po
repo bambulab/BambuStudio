@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-27 09:11+0800\n"
+"POT-Creation-Date: 2024-12-27 16:16+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2197,6 +2197,103 @@ msgstr ""
 "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
 "load or unload filament."
 
+msgid "Off"
+msgstr ""
+
+msgid "Cooling"
+msgstr "Cooling"
+
+msgid "Heating"
+msgstr ""
+
+msgid "Exhaust"
+msgstr ""
+
+msgid "Full Cooling"
+msgstr ""
+
+msgid "Num?"
+msgstr ""
+
+msgid "Init"
+msgstr ""
+
+msgid "Hotend"
+msgstr ""
+
+msgid "Aux"
+msgstr "Aux"
+
+msgid "Nozzle1"
+msgstr ""
+
+msgid "MC Board"
+msgstr ""
+
+msgid "Heat"
+msgstr ""
+
+msgid "Chamber"
+msgstr ""
+
+msgid "Innerloop"
+msgstr ""
+
+#. TRN To be shown in the main menu View->Top
+msgid "Top"
+msgstr "Top"
+
+msgid ""
+"The fan controls the temperature during printing to improve print "
+"quality.The system automatically adjusts the fan's switch and speed "
+"according to different printing materials."
+msgstr ""
+
+msgid ""
+"Cooling mode is suitable for printing PLA/PETG/TPU materials and filters the "
+"chamber air."
+msgstr ""
+
+msgid ""
+"Heating mode is suitable for printeing ABS/ASA/PC/PA materials and "
+"circulates filters the chamber air."
+msgstr ""
+
+msgid ""
+"Strong cooling mode is suitable for printing PLA/TPU materials. In this "
+"mode, the printouts will be fully cooled."
+msgstr ""
+
+msgid "Num"
+msgstr ""
+
+msgid "Idling..."
+msgstr "Idling..."
+
+msgid "Heat the nozzle"
+msgstr "Heat the nozzle"
+
+msgid "Cut filament"
+msgstr "Cut filament"
+
+msgid "Pull back current filament"
+msgstr "Pull back the current filament"
+
+msgid "Push new filament into extruder"
+msgstr "Push new filament into extruder"
+
+msgid "Grab new filament"
+msgstr "Grab new filament"
+
+msgid "Purge old filament"
+msgstr "Purge old filament"
+
+msgid "Confirm extruded"
+msgstr "Confirm extruded"
+
+msgid "Check filament location"
+msgstr "Check filament location"
+
 msgid ""
 "All the selected objects are on the locked plate,\n"
 "We can not do auto-arrange on these objects."
@@ -3242,10 +3339,9 @@ msgstr ""
 
 msgid ""
 "Spiral mode only works when wall loops is 1, support is disabled, top shell "
-"layers is 0, sparse infill density is 0 and timelapse type is traditional."
+"layers is 0, sparse infill density is 0, timelapse type is traditional and "
+"Smoothing wall speed in z direction is false."
 msgstr ""
-"Spiral mode only works when wall loops is 1, support is disabled, top shell "
-"layers is 0, sparse infill density is 0 and timelapse type is traditional."
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr " But machines with I3 structure will not generate timelapse videos."
@@ -4236,10 +4332,6 @@ msgstr "Download Models"
 msgid "Default View"
 msgstr "Default View"
 
-#. TRN To be shown in the main menu View->Top
-msgid "Top"
-msgstr "Top"
-
 msgid "Top View"
 msgstr "Top View"
 
@@ -4941,6 +5033,72 @@ msgstr "3Dconnexion settings"
 
 msgid "Swap Y/Z axes"
 msgstr "Swap Y/Z axes"
+
+msgid "(LAN)"
+msgstr "(LAN)"
+
+msgid "Search"
+msgstr "Search"
+
+msgid "My Device"
+msgstr "My Device"
+
+msgid "Other Device"
+msgstr "Other Device"
+
+msgid "Online"
+msgstr "Online"
+
+msgid "Input access code"
+msgstr "Input access code"
+
+msgid "Can't find my devices?"
+msgstr "Can't find my devices?"
+
+msgid "Log out successful."
+msgstr "Log out successful."
+
+msgid "Offline"
+msgstr "Offline"
+
+msgid "Busy"
+msgstr "Busy"
+
+msgid "Modifying the device name"
+msgstr "Modifying the device name"
+
+msgid "Name is invalid;"
+msgstr "Name is invalid;"
+
+msgid "illegal characters:"
+msgstr "illegal characters:"
+
+msgid "illegal suffix:"
+msgstr "illegal suffix:"
+
+msgid "The name is not allowed to be empty."
+msgstr "The name is not allowed to be empty."
+
+msgid "The name is not allowed to start with space character."
+msgstr "The name is not allowed to start with a space."
+
+msgid "The name is not allowed to end with space character."
+msgstr "The name is not allowed to end with a space."
+
+msgid "Bind with Pin Code"
+msgstr "Bind with Pin Code"
+
+msgid "Bind with Access Code"
+msgstr ""
+
+msgid ""
+"Please log in before binding your device with a PIN code.\n"
+"Alternatively, you can use LAN mode to bind your device. Learn about LAN "
+"mode."
+msgstr ""
+
+msgid "Go to Login"
+msgstr ""
 
 msgid "Printing Progress"
 msgstr "Printing Progress"
@@ -6884,15 +7042,6 @@ msgstr "User Preset"
 msgid "Preset Inside Project"
 msgstr "Preset Inside Project"
 
-msgid "Name is invalid;"
-msgstr "Name is invalid;"
-
-msgid "illegal characters:"
-msgstr "illegal characters:"
-
-msgid "illegal suffix:"
-msgstr "illegal suffix:"
-
 msgid "Name is unavailable."
 msgstr "Name is unavailable."
 
@@ -6910,15 +7059,6 @@ msgstr ""
 
 msgid "Please note that saving action will replace this preset"
 msgstr "Please note that saving action will replace this preset"
-
-msgid "The name is not allowed to be empty."
-msgstr "The name is not allowed to be empty."
-
-msgid "The name is not allowed to start with space character."
-msgstr "The name is not allowed to start with a space."
-
-msgid "The name is not allowed to end with space character."
-msgstr "The name is not allowed to end with a space."
 
 msgid "The name cannot be the same as a preset alias name."
 msgstr "The name cannot be the same as a preset alias name."
@@ -7231,9 +7371,6 @@ msgstr "Abnormal print file data. Please slice again"
 msgid "The name length exceeds the limit."
 msgstr "The name length exceeds the limit."
 
-msgid "Input access code"
-msgstr "Input access code"
-
 msgid "Cool"
 msgstr ""
 
@@ -7307,9 +7444,6 @@ msgstr "Receive login report timeout"
 
 msgid "Unknown Failure"
 msgstr "Unknown Failure"
-
-msgid "Bind with Pin Code"
-msgstr "Bind with Pin Code"
 
 msgid ""
 "Please Find the Pin Code in Account page on printer screen,\n"
@@ -7416,9 +7550,6 @@ msgstr "Please log in first."
 
 msgid "There was a problem connecting to the printer. Please try again."
 msgstr "There was a problem connecting to the printer. Please try again."
-
-msgid "Log out successful."
-msgstr "Log out successful."
 
 msgid "Failed to log out."
 msgstr "Failed to log out."
@@ -7712,9 +7843,6 @@ msgstr "Volumetric speed limitation"
 
 msgid "Filament scarf seam settings"
 msgstr ""
-
-msgid "Cooling"
-msgstr "Cooling"
 
 msgid "Cooling for specific layer"
 msgstr "Cooling for specific layer"
@@ -8599,9 +8727,6 @@ msgstr "Version:"
 msgid "Update firmware"
 msgstr "Update firmware"
 
-msgid "Offline"
-msgstr "Offline"
-
 msgid "Idle"
 msgstr "Idle"
 
@@ -9200,7 +9325,7 @@ msgstr ""
 
 msgid ""
 "Smoothing outwall speed in z direction to get better surface quality. Print "
-"time will increases."
+"time will increases. It is not work on spiral vase mode."
 msgstr ""
 
 msgid "Avoid crossing wall - Max detour length"
@@ -12228,15 +12353,6 @@ msgstr "Flow Rate"
 msgid "Max Volumetric Speed"
 msgstr "Max Volumetric Speed"
 
-msgid "(LAN)"
-msgstr "(LAN)"
-
-msgid "Online"
-msgstr "Online"
-
-msgid "Busy"
-msgstr "Busy"
-
 #, c-format, boost-format
 msgid ""
 "Please input valid values:\n"
@@ -13188,6 +13304,12 @@ msgstr "Input Custom Model"
 msgid "Can't find my printer model"
 msgstr "Can't find my printer model"
 
+msgid "Input Custom Nozzle Diameter"
+msgstr ""
+
+msgid "Can't find my nozzle diameter"
+msgstr ""
+
 msgid "Rectangle"
 msgstr "Rectangle"
 
@@ -13249,9 +13371,6 @@ msgid ""
 msgstr ""
 "You have entered a disallowed character in the printable area section on the "
 "first page. Please use only numbers."
-
-msgid "The custom printer or model is not inputed, place input."
-msgstr "The custom printer or model missing; please input."
 
 msgid ""
 "The printer preset you created already has a preset with the same name. Do "
@@ -13315,6 +13434,14 @@ msgid ""
 msgstr ""
 "You have not yet selected the printer to replace the nozzle for; please "
 "choose a printer."
+
+msgid "The entered nozzle diameter is invalid, please re-enter:\n"
+msgstr ""
+
+msgid ""
+"The system preset does not allow creation. \n"
+"Please re-enter the printer model or nozzle diameter."
+msgstr ""
 
 msgid "Create Printer Successful"
 msgstr "Create Printer Successful"
@@ -14579,6 +14706,18 @@ msgstr ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping?"
 
+#~ msgid ""
+#~ "Spiral mode only works when wall loops is 1, support is disabled, top "
+#~ "shell layers is 0, sparse infill density is 0 and timelapse type is "
+#~ "traditional."
+#~ msgstr ""
+#~ "Spiral mode only works when wall loops is 1, support is disabled, top "
+#~ "shell layers is 0, sparse infill density is 0 and timelapse type is "
+#~ "traditional."
+
+#~ msgid "The custom printer or model is not inputed, place input."
+#~ msgstr "The custom printer or model missing; please input."
+
 #, c-format, boost-format
 #~ msgid "*Printing %s material with %s may cause nozzle damage"
 #~ msgstr "*Printing %s material with %s may cause nozzle damage"
@@ -14683,41 +14822,11 @@ msgstr ""
 #~ msgid "Cancel calibration"
 #~ msgstr "Cancel calibration"
 
-#~ msgid "Idling..."
-#~ msgstr "Idling..."
-
-#~ msgid "Heat the nozzle"
-#~ msgstr "Heat the nozzle"
-
-#~ msgid "Cut filament"
-#~ msgstr "Cut filament"
-
-#~ msgid "Pull back current filament"
-#~ msgstr "Pull back the current filament"
-
-#~ msgid "Push new filament into extruder"
-#~ msgstr "Push new filament into extruder"
-
-#~ msgid "Purge old filament"
-#~ msgstr "Purge old filament"
-
 #~ msgid "Feed Filament"
 #~ msgstr "Feed Filament"
 
-#~ msgid "Confirm extruded"
-#~ msgstr "Confirm extruded"
-
-#~ msgid "Check filament location"
-#~ msgstr "Check filament location"
-
-#~ msgid "Grab new filament"
-#~ msgstr "Grab new filament"
-
 #~ msgid "SD Card"
 #~ msgstr "MicroSD Card"
-
-#~ msgid "Aux"
-#~ msgstr "Aux"
 
 #~ msgid "Cham"
 #~ msgstr "Cham"
@@ -14735,18 +14844,6 @@ msgstr ""
 #~ "Unable to perform boolean operation on model meshes. Only positive parts "
 #~ "will be kept. You may fix the meshes and try agian."
 
-#~ msgid "Search"
-#~ msgstr "Search"
-
-#~ msgid "My Device"
-#~ msgstr "My Device"
-
-#~ msgid "Other Device"
-#~ msgstr "Other Device"
-
-#~ msgid "Can't find my devices?"
-#~ msgstr "Can't find my devices?"
-
 #, c-format, boost-format
 #~ msgid "nozzle in preset: %s %s"
 #~ msgstr "nozzle in preset: %s %s"
@@ -14760,9 +14857,6 @@ msgstr ""
 
 #~ msgid "Automatic flow calibration using Micro Lidar"
 #~ msgstr "Automatic flow calibration using Micro Lidar"
-
-#~ msgid "Modifying the device name"
-#~ msgstr "Modifying the device name"
 
 #~ msgid "Direct drive"
 #~ msgstr "Direct drive"

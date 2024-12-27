@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-27 09:11+0800\n"
+"POT-Creation-Date: 2024-12-27 16:16+0800\n"
 "PO-Revision-Date: 2024-11-15 18:30+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -2214,6 +2214,103 @@ msgstr ""
 "Bir AMS yuvası seçin ve ardından filamentleri otomatik olarak yüklemek veya "
 "çokartmak için \"Yükle\" veya \"Çıkart\" düğmesine basın."
 
+msgid "Off"
+msgstr ""
+
+msgid "Cooling"
+msgstr "Soğutma"
+
+msgid "Heating"
+msgstr ""
+
+msgid "Exhaust"
+msgstr ""
+
+msgid "Full Cooling"
+msgstr ""
+
+msgid "Num?"
+msgstr ""
+
+msgid "Init"
+msgstr ""
+
+msgid "Hotend"
+msgstr ""
+
+msgid "Aux"
+msgstr "Yardımcı"
+
+msgid "Nozzle1"
+msgstr ""
+
+msgid "MC Board"
+msgstr ""
+
+msgid "Heat"
+msgstr ""
+
+msgid "Chamber"
+msgstr ""
+
+msgid "Innerloop"
+msgstr ""
+
+#. TRN To be shown in the main menu View->Top
+msgid "Top"
+msgstr "Üst"
+
+msgid ""
+"The fan controls the temperature during printing to improve print "
+"quality.The system automatically adjusts the fan's switch and speed "
+"according to different printing materials."
+msgstr ""
+
+msgid ""
+"Cooling mode is suitable for printing PLA/PETG/TPU materials and filters the "
+"chamber air."
+msgstr ""
+
+msgid ""
+"Heating mode is suitable for printeing ABS/ASA/PC/PA materials and "
+"circulates filters the chamber air."
+msgstr ""
+
+msgid ""
+"Strong cooling mode is suitable for printing PLA/TPU materials. In this "
+"mode, the printouts will be fully cooled."
+msgstr ""
+
+msgid "Num"
+msgstr ""
+
+msgid "Idling..."
+msgstr "Rölantide Çalışıyor..."
+
+msgid "Heat the nozzle"
+msgstr "Nozulu ısıtın"
+
+msgid "Cut filament"
+msgstr "Filamenti kes"
+
+msgid "Pull back current filament"
+msgstr "Mevcut filamenti geri çekin"
+
+msgid "Push new filament into extruder"
+msgstr "Yeni filamenti ekstrudere itin"
+
+msgid "Grab new filament"
+msgstr "Yeni filament al"
+
+msgid "Purge old filament"
+msgstr "Eski filamenti temizleyin"
+
+msgid "Confirm extruded"
+msgstr "Filamentin ekstrude edildiğini onayla"
+
+msgid "Check filament location"
+msgstr "Filament konumunu kontrol et"
+
 msgid ""
 "All the selected objects are on the locked plate,\n"
 "We can not do auto-arrange on these objects."
@@ -3267,11 +3364,9 @@ msgstr ""
 
 msgid ""
 "Spiral mode only works when wall loops is 1, support is disabled, top shell "
-"layers is 0, sparse infill density is 0 and timelapse type is traditional."
+"layers is 0, sparse infill density is 0, timelapse type is traditional and "
+"Smoothing wall speed in z direction is false."
 msgstr ""
-"Spiral mod yalnızca duvar döngüleri 1 olduğunda, destek devre dışı "
-"bırakıldığında, üst kabuk katmanları 0 olduğunda, seyrek dolgu yoğunluğu 0 "
-"olduğunda ve timelapse türü geleneksel olduğunda çalışır."
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr ""
@@ -4265,10 +4360,6 @@ msgstr "Modelleri İndir"
 msgid "Default View"
 msgstr "Varsayılan görünüm"
 
-#. TRN To be shown in the main menu View->Top
-msgid "Top"
-msgstr "Üst"
-
 msgid "Top View"
 msgstr "Üstten görünüm"
 
@@ -4984,6 +5075,75 @@ msgstr "3D bağlantı ayarları"
 
 msgid "Swap Y/Z axes"
 msgstr "Y/Z eksenlerini değiştirin"
+
+msgid "(LAN)"
+msgstr "(LAN)"
+
+msgid "Search"
+msgstr "Ara"
+
+msgid "My Device"
+msgstr "Cihazım"
+
+msgid "Other Device"
+msgstr "Diğer Cihaz"
+
+msgid "Online"
+msgstr "Çevrimiçi"
+
+msgid "Input access code"
+msgstr "Erişim kodunu girin"
+
+msgid "Can't find my devices?"
+msgstr "Cihazlarımı bulamıyor musunuz?"
+
+msgid "Log out successful."
+msgstr "Çıkış Başarılı."
+
+msgid "Offline"
+msgstr "Çevrimdışı"
+
+msgid "Busy"
+msgstr "Meşgul"
+
+msgid "Modifying the device name"
+msgstr "Cihaz adını değiştir"
+
+msgid "Name is invalid;"
+msgstr "Geçersiz isim;"
+
+msgid "illegal characters:"
+msgstr "yasadışı karakterler:"
+
+msgid "illegal suffix:"
+msgstr "yasadışı sonek:"
+
+msgid "The name is not allowed to be empty."
+msgstr "Ad alanı boş bırakılamaz."
+
+msgid "The name is not allowed to start with space character."
+msgstr "Adın boşluk karakteriyle başlamasına izin verilmez."
+
+msgid "The name is not allowed to end with space character."
+msgstr "Adın boşluk karakteriyle bitmesine izin verilmez."
+
+msgid "Bind with Pin Code"
+msgstr "Pin Kodu ile Eşleştirme"
+
+msgid "Bind with Access Code"
+msgstr "Erişim Kodu ile Bağla"
+
+msgid ""
+"Please log in before binding your device with a PIN code.\n"
+"Alternatively, you can use LAN mode to bind your device. Learn about LAN "
+"mode."
+msgstr ""
+"Lütfen cihazınızı bir PIN koduyla bağlamadan önce oturum açın.\n"
+"Alternatif olarak, cihazınızı bağlamak için LAN modunu kullanabilirsiniz. "
+"LAN modu hakkında bilgi edinin."
+
+msgid "Go to Login"
+msgstr "Giriş Yap'a git"
 
 msgid "Printing Progress"
 msgstr "Yazdırma İlerlemesi"
@@ -6994,15 +7154,6 @@ msgstr "Kullanıcı Ön Ayarı"
 msgid "Preset Inside Project"
 msgstr "Ön ayar içerisinde proje"
 
-msgid "Name is invalid;"
-msgstr "Geçersiz isim;"
-
-msgid "illegal characters:"
-msgstr "yasadışı karakterler:"
-
-msgid "illegal suffix:"
-msgstr "yasadışı sonek:"
-
 msgid "Name is unavailable."
 msgstr "Ad kullanılamıyor."
 
@@ -7019,15 +7170,6 @@ msgstr "\"%1%\" ön ayarı zaten mevcut ve mevcut yazıcıyla uyumlu değil."
 
 msgid "Please note that saving action will replace this preset"
 msgstr "Kaydetme eyleminin bu ön ayarın yerini alacağını lütfen unutmayın"
-
-msgid "The name is not allowed to be empty."
-msgstr "Ad alanı boş bırakılamaz."
-
-msgid "The name is not allowed to start with space character."
-msgstr "Adın boşluk karakteriyle başlamasına izin verilmez."
-
-msgid "The name is not allowed to end with space character."
-msgstr "Adın boşluk karakteriyle bitmesine izin verilmez."
 
 msgid "The name cannot be the same as a preset alias name."
 msgstr "Ad, önceden ayarlanmış bir takma adla aynı olamaz."
@@ -7344,9 +7486,6 @@ msgstr "Anormal yazdırma dosyası verileri. Lütfen tekrar dilimleyin"
 msgid "The name length exceeds the limit."
 msgstr "Ad uzunluğu sınırı aşıyor."
 
-msgid "Input access code"
-msgstr "Erişim kodunu girin"
-
 msgid "Cool"
 msgstr ""
 
@@ -7420,9 +7559,6 @@ msgstr "Giriş raporu alma zaman aşımı"
 
 msgid "Unknown Failure"
 msgstr "Bilinmeyen Arıza"
-
-msgid "Bind with Pin Code"
-msgstr "Pin Kodu ile Eşleştirme"
 
 msgid ""
 "Please Find the Pin Code in Account page on printer screen,\n"
@@ -7530,9 +7666,6 @@ msgstr "Lütfen önce giriş yapın."
 
 msgid "There was a problem connecting to the printer. Please try again."
 msgstr "Yazıcıya bağlanırken bir sorun oluştu. Lütfen tekrar deneyin."
-
-msgid "Log out successful."
-msgstr "Çıkış Başarılı."
 
 msgid "Failed to log out."
 msgstr "Oturum kapatılamadı."
@@ -7839,9 +7972,6 @@ msgstr "Hacimsel Hız Sınırlaması"
 
 msgid "Filament scarf seam settings"
 msgstr "Filament atkı eklem dikişi ayarları"
-
-msgid "Cooling"
-msgstr "Soğutma"
 
 msgid "Cooling for specific layer"
 msgstr "Belirli Katman İçin Soğutma"
@@ -8733,9 +8863,6 @@ msgstr "Sürüm:"
 msgid "Update firmware"
 msgstr "Ürün yazılımını güncelle"
 
-msgid "Offline"
-msgstr "Çevrimdışı"
-
 msgid "Idle"
 msgstr "Boşta"
 
@@ -9344,7 +9471,7 @@ msgstr ""
 
 msgid ""
 "Smoothing outwall speed in z direction to get better surface quality. Print "
-"time will increases."
+"time will increases. It is not work on spiral vase mode."
 msgstr ""
 
 msgid "Avoid crossing wall - Max detour length"
@@ -12439,15 +12566,6 @@ msgstr "Akış hızı"
 msgid "Max Volumetric Speed"
 msgstr "Maksimum Hacimsel Hız"
 
-msgid "(LAN)"
-msgstr "(LAN)"
-
-msgid "Online"
-msgstr "Çevrimiçi"
-
-msgid "Busy"
-msgstr "Meşgul"
-
 #, c-format, boost-format
 msgid ""
 "Please input valid values:\n"
@@ -13439,6 +13557,12 @@ msgstr "Özel Model Girin"
 msgid "Can't find my printer model"
 msgstr "Yazıcı modelimi bulamıyorum"
 
+msgid "Input Custom Nozzle Diameter"
+msgstr ""
+
+msgid "Can't find my nozzle diameter"
+msgstr ""
+
 msgid "Rectangle"
 msgstr "Dikdörtgen"
 
@@ -13501,9 +13625,6 @@ msgstr ""
 "İlk sayfadaki yazdırılabilir alan kısmına geçersiz bir giriş yaptınız. "
 "Lütfen oluşturmadan önce kontrol edin."
 
-msgid "The custom printer or model is not inputed, place input."
-msgstr "Özel yazıcı veya model girilmedi lütfen giriş yapın."
-
 msgid ""
 "The printer preset you created already has a preset with the same name. Do "
 "you want to overwrite it?\n"
@@ -13565,6 +13686,14 @@ msgid ""
 "You have not yet selected the printer to replace the nozzle, please choose."
 msgstr ""
 "Hala nozulu değiştirmek için yazıcı seçmediniz, lütfen bir seçim yapın."
+
+msgid "The entered nozzle diameter is invalid, please re-enter:\n"
+msgstr ""
+
+msgid ""
+"The system preset does not allow creation. \n"
+"Please re-enter the printer model or nozzle diameter."
+msgstr ""
 
 msgid "Create Printer Successful"
 msgstr "Yazıcı Oluşturma Başarılı"
@@ -14890,6 +15019,18 @@ msgstr ""
 "sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını "
 "azaltabileceğini biliyor muydunuz."
 
+#~ msgid ""
+#~ "Spiral mode only works when wall loops is 1, support is disabled, top "
+#~ "shell layers is 0, sparse infill density is 0 and timelapse type is "
+#~ "traditional."
+#~ msgstr ""
+#~ "Spiral mod yalnızca duvar döngüleri 1 olduğunda, destek devre dışı "
+#~ "bırakıldığında, üst kabuk katmanları 0 olduğunda, seyrek dolgu yoğunluğu "
+#~ "0 olduğunda ve timelapse türü geleneksel olduğunda çalışır."
+
+#~ msgid "The custom printer or model is not inputed, place input."
+#~ msgstr "Özel yazıcı veya model girilmedi lütfen giriş yapın."
+
 #, c-format, boost-format
 #~ msgid "*Printing %s material with %s may cause nozzle damage"
 #~ msgstr ""
@@ -15006,41 +15147,11 @@ msgstr ""
 #~ msgid "Cancel calibration"
 #~ msgstr "Kalibrasyonu iptal et"
 
-#~ msgid "Idling..."
-#~ msgstr "Rölantide Çalışıyor..."
-
-#~ msgid "Heat the nozzle"
-#~ msgstr "Nozulu ısıtın"
-
-#~ msgid "Cut filament"
-#~ msgstr "Filamenti kes"
-
-#~ msgid "Pull back current filament"
-#~ msgstr "Mevcut filamenti geri çekin"
-
-#~ msgid "Push new filament into extruder"
-#~ msgstr "Yeni filamenti ekstrudere itin"
-
-#~ msgid "Purge old filament"
-#~ msgstr "Eski filamenti temizleyin"
-
 #~ msgid "Feed Filament"
 #~ msgstr "Filament Ekstrude"
 
-#~ msgid "Confirm extruded"
-#~ msgstr "Filamentin ekstrude edildiğini onayla"
-
-#~ msgid "Check filament location"
-#~ msgstr "Filament konumunu kontrol et"
-
-#~ msgid "Grab new filament"
-#~ msgstr "Yeni filament al"
-
 #~ msgid "SD Card"
 #~ msgstr "Hafıza kartı"
-
-#~ msgid "Aux"
-#~ msgstr "Yardımcı"
 
 #~ msgid "Cham"
 #~ msgstr "Kabin"
@@ -15070,18 +15181,6 @@ msgstr ""
 #~ "pozitif kısımlar tutulacaktır. Kafesleri düzeltebilir ve tekrar "
 #~ "deneyebilirsiniz."
 
-#~ msgid "Search"
-#~ msgstr "Ara"
-
-#~ msgid "My Device"
-#~ msgstr "Cihazım"
-
-#~ msgid "Other Device"
-#~ msgstr "Diğer Cihaz"
-
-#~ msgid "Can't find my devices?"
-#~ msgstr "Cihazlarımı bulamıyor musunuz?"
-
 #, c-format, boost-format
 #~ msgid "nozzle in preset: %s %s"
 #~ msgstr "önceden ayarlanmış nozul: %s %s"
@@ -15095,24 +15194,6 @@ msgstr ""
 
 #~ msgid "Automatic flow calibration using Micro Lidar"
 #~ msgstr "Mikro Lidar kullanarak otomatik akış kalibrasyonu"
-
-#~ msgid "Modifying the device name"
-#~ msgstr "Cihaz adını değiştir"
-
-#~ msgid "Bind with Access Code"
-#~ msgstr "Erişim Kodu ile Bağla"
-
-#~ msgid ""
-#~ "Please log in before binding your device with a PIN code.\n"
-#~ "Alternatively, you can use LAN mode to bind your device. Learn about LAN "
-#~ "mode."
-#~ msgstr ""
-#~ "Lütfen cihazınızı bir PIN koduyla bağlamadan önce oturum açın.\n"
-#~ "Alternatif olarak, cihazınızı bağlamak için LAN modunu kullanabilirsiniz. "
-#~ "LAN modu hakkında bilgi edinin."
-
-#~ msgid "Go to Login"
-#~ msgstr "Giriş Yap'a git"
 
 #~ msgid "Direct drive"
 #~ msgstr "Direct drive"
