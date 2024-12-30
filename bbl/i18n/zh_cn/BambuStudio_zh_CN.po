@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-27 16:16+0800\n"
+"POT-Creation-Date: 2024-12-30 20:29+0800\n"
 "PO-Revision-Date: 2024-03-21 10:39+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1341,6 +1341,9 @@ msgid ""
 "Bambu Studio and try again."
 msgstr ""
 
+msgid "Firmware internal error, please try to upgrade firmware version."
+msgstr ""
+
 msgid "Privacy Policy Update"
 msgstr "隐私协议更新"
 
@@ -2168,7 +2171,7 @@ msgid "Connecting..."
 msgstr "连接中..."
 
 msgid "Auto-refill"
-msgstr "自动加注"
+msgstr "自动续料"
 
 msgid "Load"
 msgstr "进料"
@@ -11952,6 +11955,13 @@ msgid ""
 msgstr ""
 "已经存在一个具有相同名称的历史校准结果：%s。相同名称的结果只会保存一个。您确"
 "定要覆盖历史结果吗？"
+
+#, c-format, boost-format
+msgid ""
+"Within the same extruder, the name(%s) must be unique when the filament "
+"type, nozzle diameter, and nozzle flow are the same.\n"
+"Are you sure you want to override the historical result?"
+msgstr ""
 
 #, c-format, boost-format
 msgid ""

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-27 16:16+0800\n"
+"POT-Creation-Date: 2024-12-30 20:29+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1337,6 +1337,9 @@ msgstr ""
 msgid ""
 "The certificate has been revoked. Please check the time settings or update "
 "Bambu Studio and try again."
+msgstr ""
+
+msgid "Firmware internal error, please try to upgrade firmware version."
 msgstr ""
 
 msgid "Privacy Policy Update"
@@ -12511,6 +12514,13 @@ msgstr ""
 "Det finns redan ett tidigare kalibreringsresultat med samma namn: %s. Endast "
 "ett resultat med ett namn sparas. Är du säker på att du vill skriva över det "
 "tidigare resultatet?"
+
+#, c-format, boost-format
+msgid ""
+"Within the same extruder, the name(%s) must be unique when the filament "
+"type, nozzle diameter, and nozzle flow are the same.\n"
+"Are you sure you want to override the historical result?"
+msgstr ""
 
 #, c-format, boost-format
 msgid ""

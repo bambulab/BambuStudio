@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-27 16:16+0800\n"
+"POT-Creation-Date: 2024-12-30 20:29+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1337,6 +1337,9 @@ msgstr ""
 msgid ""
 "The certificate has been revoked. Please check the time settings or update "
 "Bambu Studio and try again."
+msgstr ""
+
+msgid "Firmware internal error, please try to upgrade firmware version."
 msgstr ""
 
 msgid "Privacy Policy Update"
@@ -12300,6 +12303,13 @@ msgid ""
 msgstr ""
 "동일한 이름을 가진 기록 교정 결과가 이미 있습니다: %s. 동일한 이름의 결과 중 "
 "하나만 저장됩니다. 과거 결과를 재정의하시겠습니까?"
+
+#, c-format, boost-format
+msgid ""
+"Within the same extruder, the name(%s) must be unique when the filament "
+"type, nozzle diameter, and nozzle flow are the same.\n"
+"Are you sure you want to override the historical result?"
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
