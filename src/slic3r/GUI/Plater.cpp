@@ -14253,7 +14253,25 @@ void Plater::on_filaments_delete(size_t num_filaments, size_t filament_id, int r
     }
 }
 
-void Plater::on_bed_type_change(BedType bed_type, bool is_gcode_file) {
+std::vector<std::array<float, 4>> Plater::get_extruders_colors()
+{
+    unsigned char                     rgba_color[4] = {};
+    std::vector<std::string>          colors        = get_extruder_colors_from_plater_config();
+    std::vector<std::array<float, 4>> colors_out(colors.size());
+    for (const std::string &color : colors) {
+        Slic3r::GUI::BitmapCache::parse_color4(color, rgba_color);
+        size_t color_idx      = &color - &colors.front();
+        colors_out[color_idx] = {
+            float(rgba_color[0]) / 255.f,
+            float(rgba_color[1]) / 255.f,
+            float(rgba_color[2]) / 255.f,
+            float(rgba_color[3]) / 255.f,
+        };
+    }
+    return colors_out;
+}
+
+    void Plater::on_bed_type_change(BedType bed_type, bool is_gcode_file) {
     sidebar().set_is_gcode_file(is_gcode_file);
     sidebar().on_bed_type_change(bed_type);
 }

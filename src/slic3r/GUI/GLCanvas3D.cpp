@@ -2203,7 +2203,7 @@ void GLCanvas3D::render_thumbnail(ThumbnailData &           thumbnail_data,
                                   bool                      ban_light)
 {
     GLShaderProgram* shader = wxGetApp().get_shader("thumbnail");
-    std::vector<std::array<float, 4>> colors = ::get_extruders_colors();
+    std::vector<std::array<float, 4>> colors  = wxGetApp().plater()->get_extruders_colors();
     const auto fb_type = Slic3r::GUI::OpenGLManager::get_framebuffers_type();
     BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: %1%") % Slic3r::GUI::OpenGLManager::framebuffer_type_to_string(fb_type).c_str();
     switch (fb_type)

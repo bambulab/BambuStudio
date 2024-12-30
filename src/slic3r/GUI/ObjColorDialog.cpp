@@ -801,7 +801,7 @@ void ObjColorPanel::generate_thumbnail()
     if (m_deal_thumbnail_flag && m_obj_in_out.model->objects.size() == 1) {
         auto mo = m_obj_in_out.model->objects[0];
         mo->add_instance();
-        std::vector<std::array<float, 4>> colors = ::get_extruders_colors();
+        std::vector<std::array<float, 4>> colors = GUI::wxGetApp().plater()->get_extruders_colors();
         for (size_t i = 0; i < m_new_add_final_colors.size(); i++) {
             std::array<float, 4> temp_color;
             temp_color[0] = m_new_add_final_colors[i].Red() /255.f;
