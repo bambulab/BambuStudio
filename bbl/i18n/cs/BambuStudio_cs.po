@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-27 16:16+0800\n"
+"POT-Creation-Date: 2024-12-30 20:29+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -1327,6 +1327,9 @@ msgstr ""
 msgid ""
 "The certificate has been revoked. Please check the time settings or update "
 "Bambu Studio and try again."
+msgstr ""
+
+msgid "Firmware internal error, please try to upgrade firmware version."
 msgstr ""
 
 msgid "Privacy Policy Update"
@@ -12134,6 +12137,13 @@ msgid ""
 "There is already a historical calibration result with the same name: %s. "
 "Only one of the results with the same name is saved. Are you sure you want "
 "to override the historical result?"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Within the same extruder, the name(%s) must be unique when the filament "
+"type, nozzle diameter, and nozzle flow are the same.\n"
+"Are you sure you want to override the historical result?"
 msgstr ""
 
 #, c-format, boost-format
