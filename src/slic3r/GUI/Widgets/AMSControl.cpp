@@ -4024,11 +4024,21 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
         length = left ? 145 : 45;
     }
     if (model == EXT_AMS && ams->m_info.ext_type == AMSModelOriginType::LITE_EXT){
-        length = 145;
+
+       if (m_ams_info.size() == 0 && m_ext_info.size() == 1) {
+           length = 13;
+       } else {
+           length = 145;
+       }
     }
 
     if (model == EXT_AMS && ams->m_info.ext_type == AMSModelOriginType::GENERIC_EXT){
-        length = left ? 110 : 82;
+        if (m_ams_info.size() == 0 && m_ext_info.size() == 1) {
+            left = true;
+            length = 49;
+        } else {
+            length = left ? 110 : 82;
+        }
     }
 
     for (auto i = 0; i < m_ams_info.size(); i++) {
