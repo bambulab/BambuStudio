@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-30 20:29+0800\n"
+"POT-Creation-Date: 2024-12-31 09:44+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2288,6 +2288,12 @@ msgstr "압출 확인"
 
 msgid "Check filament location"
 msgstr "필라멘트 위치 확인"
+
+msgid "The maximum temperature cannot exceed "
+msgstr ""
+
+msgid "The minmum temperature should not be less than "
+msgstr ""
 
 msgid ""
 "All the selected objects are on the locked plate,\n"
@@ -7271,27 +7277,33 @@ msgstr ""
 "AMS 매핑에는 알려지지 않은 필라멘트가 몇 개 있습니다. 필수 필라멘트인지 확인"
 "하십시오. 문제가 없으면 “확인”을 클릭하여 출력을 시작하십시오."
 
-#, c-format, boost-format
-msgid "nozzle in preset: %.1f %s"
-msgstr ""
-
-#, c-format, boost-format
-msgid "nozzle memorized: %.1f %s"
-msgstr "기억된 노즐: %.1f %s"
-
 msgid ""
-"Your nozzle diameter in sliced file is not consistent with memorized nozzle. "
-"If you changed your nozzle lately, please go to Device > Printer Parts to "
-"change settings."
+"Tips: If you changed your nozzle of your printer lately, Please go to "
+"'Device -> Printer parts' to change your nozzle setting."
 msgstr ""
-"슬라이스 파일의 노즐 직경이 저장된 노즐과 일치하지 않습니다. 최근에 노즐을 변"
-"경한 경우 장치 > 프린터 부품으로 이동하여 설정을 변경하세요."
+
+#, c-format, boost-format
+msgid ""
+"The nozzle diameter (%.1fmm) in slice file is unconsistent withthe left "
+"nozzle diameter (%.1fmm) or right nozzle diameter (%.1fmm)set on your print."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"The nozzle diameter (%.1fmm) in slice file is unconsistent with the nozzle "
+"diameter (%.1fmm) set on your print.You can't send to print until they are "
+"consistent."
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
 "Printing high temperature material(%s material) with %s may cause nozzle "
 "damage"
 msgstr "고온 재료(%s 재료)를 %s로 인쇄하면 노즐이 손상될 수 있습니다."
+
+#, c-format, boost-format
+msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
+msgstr ""
 
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr "위의 오류를 수정하십시오. 그렇지 않으면 인쇄를 계속할 수 없습니다."
@@ -13560,10 +13572,6 @@ msgid ""
 "change your nozzle lately ? "
 msgstr ""
 
-#, c-format, boost-format
-msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
-msgstr ""
-
 msgid "Need select printer"
 msgstr "Need select printer"
 
@@ -14571,6 +14579,18 @@ msgstr ""
 "뒤틀림 방지\n"
 "ABS 등 뒤틀림이 발생하기 쉬운 소재를 출력할 때, 히트베드 온도를 적절하게 높이"
 "면 뒤틀림 가능성을 줄일 수 있다는 사실을 알고 계셨나요?"
+
+#, c-format, boost-format
+#~ msgid "nozzle memorized: %.1f %s"
+#~ msgstr "기억된 노즐: %.1f %s"
+
+#~ msgid ""
+#~ "Your nozzle diameter in sliced file is not consistent with memorized "
+#~ "nozzle. If you changed your nozzle lately, please go to Device > Printer "
+#~ "Parts to change settings."
+#~ msgstr ""
+#~ "슬라이스 파일의 노즐 직경이 저장된 노즐과 일치하지 않습니다. 최근에 노즐"
+#~ "을 변경한 경우 장치 > 프린터 부품으로 이동하여 설정을 변경하세요."
 
 #~ msgid ""
 #~ "Spiral mode only works when wall loops is 1, support is disabled, top "

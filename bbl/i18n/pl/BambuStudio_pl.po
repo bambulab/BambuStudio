@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-30 20:29+0800\n"
+"POT-Creation-Date: 2024-12-31 09:44+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2322,6 +2322,12 @@ msgstr "Potwierdź ekstruzje"
 
 msgid "Check filament location"
 msgstr "Sprawdź położenie filamentu"
+
+msgid "The maximum temperature cannot exceed "
+msgstr ""
+
+msgid "The minmum temperature should not be less than "
+msgstr ""
 
 msgid ""
 "All the selected objects are on the locked plate,\n"
@@ -7422,22 +7428,23 @@ msgstr ""
 "filamenty. Jeśli są w porządku, naciśnij \"Potwierdź\", aby rozpocząć "
 "drukowanie."
 
-#, c-format, boost-format
-msgid "nozzle in preset: %.1f %s"
-msgstr ""
-
-#, c-format, boost-format
-msgid "nozzle memorized: %.1f %s"
-msgstr "dysza w pamięci: %.1f %s"
-
 msgid ""
-"Your nozzle diameter in sliced file is not consistent with memorized nozzle. "
-"If you changed your nozzle lately, please go to Device > Printer Parts to "
-"change settings."
+"Tips: If you changed your nozzle of your printer lately, Please go to "
+"'Device -> Printer parts' to change your nozzle setting."
 msgstr ""
-"Średnica dyszy w przetworzonym pliku nie jest zgodna z średnicą dyszy w "
-"ustawieniach. Jeśli ostatnio zmieniłeś dyszę, przejdź do opcji Urządzenie > "
-"Części drukarki, aby zmienić to ustawienie."
+
+#, c-format, boost-format
+msgid ""
+"The nozzle diameter (%.1fmm) in slice file is unconsistent withthe left "
+"nozzle diameter (%.1fmm) or right nozzle diameter (%.1fmm)set on your print."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"The nozzle diameter (%.1fmm) in slice file is unconsistent with the nozzle "
+"diameter (%.1fmm) set on your print.You can't send to print until they are "
+"consistent."
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -7446,6 +7453,10 @@ msgid ""
 msgstr ""
 "Drukowanie materiału o wysokiej temperaturze (%s materiał) z %s może "
 "spowodować uszkodzenie dyszy"
+
+#, c-format, boost-format
+msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
+msgstr ""
 
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr ""
@@ -13939,10 +13950,6 @@ msgstr ""
 "Twój domyślny typ dyszy nie zgadza się z zapisaną dyszą. Czy ostatnio "
 "zmieniałeś dyszę ? "
 
-#, c-format, boost-format
-msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
-msgstr ""
-
 msgid "Need select printer"
 msgstr "Konieczny jest wybór drukarki"
 
@@ -14975,6 +14982,19 @@ msgstr ""
 "Czy wiesz, że podczas drukowania materiałów podatnych na wypaczanie, takich "
 "jak ABS, odpowiednie zwiększenie temperatury stołu grzejnego może zmniejszyć "
 "prawdopodobieństwo wypaczania."
+
+#, c-format, boost-format
+#~ msgid "nozzle memorized: %.1f %s"
+#~ msgstr "dysza w pamięci: %.1f %s"
+
+#~ msgid ""
+#~ "Your nozzle diameter in sliced file is not consistent with memorized "
+#~ "nozzle. If you changed your nozzle lately, please go to Device > Printer "
+#~ "Parts to change settings."
+#~ msgstr ""
+#~ "Średnica dyszy w przetworzonym pliku nie jest zgodna z średnicą dyszy w "
+#~ "ustawieniach. Jeśli ostatnio zmieniłeś dyszę, przejdź do opcji Urządzenie "
+#~ "> Części drukarki, aby zmienić to ustawienie."
 
 #~ msgid ""
 #~ "Spiral mode only works when wall loops is 1, support is disabled, top "

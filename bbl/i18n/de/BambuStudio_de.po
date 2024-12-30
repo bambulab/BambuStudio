@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-30 20:29+0800\n"
+"POT-Creation-Date: 2024-12-31 09:44+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2338,6 +2338,12 @@ msgstr "Bestätigen Sie, dass das Filament extrudiert wurde."
 
 msgid "Check filament location"
 msgstr "Filamentposition prüfen"
+
+msgid "The maximum temperature cannot exceed "
+msgstr ""
+
+msgid "The minmum temperature should not be less than "
+msgstr ""
 
 msgid ""
 "All the selected objects are on the locked plate,\n"
@@ -7472,22 +7478,23 @@ msgstr ""
 "Sie, ob es sich um die erforderlichen Filamente handelt. Wenn diese in "
 "Ordnung sind, klicken Sie auf \"Bestätigen\", um den Druck zu starten."
 
-#, c-format, boost-format
-msgid "nozzle in preset: %.1f %s"
-msgstr ""
-
-#, c-format, boost-format
-msgid "nozzle memorized: %.1f %s"
-msgstr "Düse gespeichert: %.1f%s"
-
 msgid ""
-"Your nozzle diameter in sliced file is not consistent with memorized nozzle. "
-"If you changed your nozzle lately, please go to Device > Printer Parts to "
-"change settings."
+"Tips: If you changed your nozzle of your printer lately, Please go to "
+"'Device -> Printer parts' to change your nozzle setting."
 msgstr ""
-"Your nozzle diameter in sliced file is not consistent with the saved nozzle. "
-"If you changed your nozzle lately, please go to Device > Printer Parts to "
-"change settings."
+
+#, c-format, boost-format
+msgid ""
+"The nozzle diameter (%.1fmm) in slice file is unconsistent withthe left "
+"nozzle diameter (%.1fmm) or right nozzle diameter (%.1fmm)set on your print."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"The nozzle diameter (%.1fmm) in slice file is unconsistent with the nozzle "
+"diameter (%.1fmm) set on your print.You can't send to print until they are "
+"consistent."
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -7496,6 +7503,10 @@ msgid ""
 msgstr ""
 "Printing high temperature material(%s material) with %s may cause nozzle "
 "damage"
+
+#, c-format, boost-format
+msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
+msgstr ""
 
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr "Please fix the error above, otherwise printing cannot continue."
@@ -14062,10 +14073,6 @@ msgstr ""
 "Ihr voreingestellter Düsentyp stimmt nicht mit der gespeicherten Düse "
 "überein. Haben Sie in letzter Zeit Ihre Düse gewechselt? "
 
-#, c-format, boost-format
-msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
-msgstr ""
-
 msgid "Need select printer"
 msgstr "Sie müssen einen Drucker auswählen"
 
@@ -15089,6 +15096,19 @@ msgstr ""
 "Wussten Sie, dass beim Drucken von Materialien, die zu Verformungen neigen, "
 "wie z. B. ABS, die Wahrscheinlichkeit von Verformungen durch eine "
 "entsprechende Erhöhung der Heizbetttemperatur verringert werden kann?"
+
+#, c-format, boost-format
+#~ msgid "nozzle memorized: %.1f %s"
+#~ msgstr "Düse gespeichert: %.1f%s"
+
+#~ msgid ""
+#~ "Your nozzle diameter in sliced file is not consistent with memorized "
+#~ "nozzle. If you changed your nozzle lately, please go to Device > Printer "
+#~ "Parts to change settings."
+#~ msgstr ""
+#~ "Your nozzle diameter in sliced file is not consistent with the saved "
+#~ "nozzle. If you changed your nozzle lately, please go to Device > Printer "
+#~ "Parts to change settings."
 
 #~ msgid ""
 #~ "Spiral mode only works when wall loops is 1, support is disabled, top "

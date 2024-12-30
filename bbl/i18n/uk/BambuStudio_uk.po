@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-30 20:29+0800\n"
+"POT-Creation-Date: 2024-12-31 09:44+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -2323,6 +2323,12 @@ msgstr "Підтвердити витіснення"
 
 msgid "Check filament location"
 msgstr "Перевірити розташування філаменту"
+
+msgid "The maximum temperature cannot exceed "
+msgstr ""
+
+msgid "The minmum temperature should not be less than "
+msgstr ""
 
 msgid ""
 "All the selected objects are on the locked plate,\n"
@@ -7460,22 +7466,23 @@ msgstr ""
 "необхідними нитками. Якщо вони гаразд, натисніть \"Подтвердити\", щоб почати "
 "друк."
 
-#, c-format, boost-format
-msgid "nozzle in preset: %.1f %s"
-msgstr ""
-
-#, c-format, boost-format
-msgid "nozzle memorized: %.1f %s"
-msgstr "запам’ятоване сопло: %.1f %s"
-
 msgid ""
-"Your nozzle diameter in sliced file is not consistent with memorized nozzle. "
-"If you changed your nozzle lately, please go to Device > Printer Parts to "
-"change settings."
+"Tips: If you changed your nozzle of your printer lately, Please go to "
+"'Device -> Printer parts' to change your nozzle setting."
 msgstr ""
-"Ваш діаметр сопла в розрізаному файлі не відповідає запам’ятаному діаметру "
-"сопла. Якщо ви недавно змінили сопло, будь ласка, перейдіть до “Пристрій > "
-"Частини принтера”, щоб змінити налаштування."
+
+#, c-format, boost-format
+msgid ""
+"The nozzle diameter (%.1fmm) in slice file is unconsistent withthe left "
+"nozzle diameter (%.1fmm) or right nozzle diameter (%.1fmm)set on your print."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"The nozzle diameter (%.1fmm) in slice file is unconsistent with the nozzle "
+"diameter (%.1fmm) set on your print.You can't send to print until they are "
+"consistent."
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -7484,6 +7491,10 @@ msgid ""
 msgstr ""
 "Друк високотемпературного матеріалу (%s матеріал) з %s може призвести до "
 "пошкодження сопла"
+
+#, c-format, boost-format
+msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
+msgstr ""
 
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr "Будь ласка, виправте помилку вище, інакше друк не може продовжитися."
@@ -14017,10 +14028,6 @@ msgid ""
 "change your nozzle lately ? "
 msgstr ""
 
-#, c-format, boost-format
-msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
-msgstr ""
-
 msgid "Need select printer"
 msgstr "Потрібно вибрати принтер"
 
@@ -15093,6 +15100,19 @@ msgstr ""
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як "
 "ABS, відповідне підвищення температури гарячого ліжка може зменшити "
 "ймовірність деформації."
+
+#, c-format, boost-format
+#~ msgid "nozzle memorized: %.1f %s"
+#~ msgstr "запам’ятоване сопло: %.1f %s"
+
+#~ msgid ""
+#~ "Your nozzle diameter in sliced file is not consistent with memorized "
+#~ "nozzle. If you changed your nozzle lately, please go to Device > Printer "
+#~ "Parts to change settings."
+#~ msgstr ""
+#~ "Ваш діаметр сопла в розрізаному файлі не відповідає запам’ятаному "
+#~ "діаметру сопла. Якщо ви недавно змінили сопло, будь ласка, перейдіть до "
+#~ "“Пристрій > Частини принтера”, щоб змінити налаштування."
 
 #~ msgid ""
 #~ "Spiral mode only works when wall loops is 1, support is disabled, top "

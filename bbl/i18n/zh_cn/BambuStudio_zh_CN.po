@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-30 20:29+0800\n"
+"POT-Creation-Date: 2024-12-31 09:44+0800\n"
 "PO-Revision-Date: 2024-03-21 10:39+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -2282,6 +2282,12 @@ msgstr "确认挤出"
 
 msgid "Check filament location"
 msgstr "检查耗材位置"
+
+msgid "The maximum temperature cannot exceed "
+msgstr "最大温度不超过"
+
+msgid "The minmum temperature should not be less than "
+msgstr "最低温度不低于"
 
 msgid ""
 "All the selected objects are on the locked plate,\n"
@@ -5047,7 +5053,7 @@ msgid "Camera"
 msgstr "摄像机"
 
 msgid "Storage"
-msgstr "存储"
+msgstr "存储介质"
 
 msgid "Camera Setting"
 msgstr "相机设置"
@@ -7163,27 +7169,37 @@ msgstr ""
 "AMS映射中存在一些未知的耗材。请检查它们是否符合预期。如果符合，按“确定”以开始"
 "打印任务。"
 
-#, c-format, boost-format
-msgid "nozzle in preset: %.1f %s"
-msgstr "预设喷嘴：%.1f%s"
-
-#, c-format, boost-format
-msgid "nozzle memorized: %.1f %s"
-msgstr "记忆中的喷嘴：%.1f %s"
-
 msgid ""
-"Your nozzle diameter in sliced file is not consistent with memorized nozzle. "
-"If you changed your nozzle lately, please go to Device > Printer Parts to "
-"change settings."
+"Tips: If you changed your nozzle of your printer lately, Please go to "
+"'Device -> Printer parts' to change your nozzle setting."
+msgstr "注意: 如果你最近更换了喷嘴，请去“设备-打印机零件”更改设置"
+
+#, c-format, boost-format
+msgid ""
+"The nozzle diameter (%.1fmm) in slice file is unconsistent withthe left "
+"nozzle diameter (%.1fmm) or right nozzle diameter (%.1fmm)set on your print."
 msgstr ""
-"切片文件中的喷嘴直径与记忆的喷嘴不一致。如果您最近更换了喷嘴，请前往设备 > 打"
-"印机零件进行更改设置。"
+"切片文件中设置的喷嘴直径（%.1fmm），与机器上设置的左喷嘴直径（%.1fmm）和右喷"
+"嘴（%.1fmm）均不一致。需要保持跟可用喷嘴一致后，才能继续打印"
+
+#, c-format, boost-format
+msgid ""
+"The nozzle diameter (%.1fmm) in slice file is unconsistent with the nozzle "
+"diameter (%.1fmm) set on your print.You can't send to print until they are "
+"consistent."
+msgstr ""
+"切片文件中设置的喷嘴直径（%.1fmm），与机器上设置的喷嘴直径（%.1fmm）不一致。"
+"保持一致后，才能继续打印"
 
 #, c-format, boost-format
 msgid ""
 "Printing high temperature material(%s material) with %s may cause nozzle "
 "damage"
 msgstr "用%s打印高温材料（%s材料）可能会导致喷嘴损坏"
+
+#, c-format, boost-format
+msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
+msgstr "%1s材料在使用%2s的喷嘴打印时,可能会导致喷嘴损坏。"
 
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr "请修复上述错误，否则打印无法继续。"
@@ -13183,10 +13199,6 @@ msgid ""
 "Your nozzle type in preset is not consistent with memorized nozzle.Did you "
 "change your nozzle lately ? "
 msgstr "预设中的喷嘴类型与记忆中的喷嘴类型不一致。您最近更换了喷嘴吗？"
-
-#, c-format, boost-format
-msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
-msgstr "%1s材料在使用%2s的喷嘴打印时,可能会导致喷嘴损坏。"
 
 msgid "Need select printer"
 msgstr "需要选择打印机"
