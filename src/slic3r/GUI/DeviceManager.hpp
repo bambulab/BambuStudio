@@ -490,6 +490,7 @@ private:
 
     // type, time stamp, delay
     std::vector<std::tuple<std::string, uint64_t, uint64_t>> message_delay;
+
 public:
 
     typedef std::function<void(const json &)> CommandCallBack;
@@ -721,6 +722,8 @@ public:
     float  bed_temp_target;
     float  chamber_temp;
     float  chamber_temp_target;
+    float  chamber_temp_edit_min = 0;
+    float  chamber_temp_edit_max = 60;
     float  frame_temp;
 
     /* cooling */
