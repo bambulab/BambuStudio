@@ -70,25 +70,6 @@ void glAssertRecentCallImpl(const char* file_name, unsigned int line, const char
 }
 #endif // HAS_GLSAFE
 
-// BBS
-std::vector<std::array<float, 4>> get_extruders_colors()
-{
-    unsigned char                     rgba_color[4] = {};
-    std::vector<std::string>          colors        = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
-    std::vector<std::array<float, 4>> colors_out(colors.size());
-    for (const std::string &color : colors) {
-        Slic3r::GUI::BitmapCache::parse_color4(color, rgba_color);
-        size_t color_idx      = &color - &colors.front();
-        colors_out[color_idx] = {
-            float(rgba_color[0]) / 255.f,
-            float(rgba_color[1]) / 255.f,
-            float(rgba_color[2]) / 255.f,
-            float(rgba_color[3]) / 255.f,
-        };
-    }
-
-    return colors_out;
-}
 float FullyTransparentMaterialThreshold  = 0.1f;
 float FullTransparentModdifiedToFixAlpha = 0.3f;
 const float BlackThreshold               = 0.2f;
@@ -838,7 +819,7 @@ void GLVolume::render(bool with_outline, const std::array<float, 4>& body_color)
             if (mv->mmu_segmentation_facets.empty())
                 break;
 
-            std::vector<std::array<float, 4>> colors = get_extruders_colors();
+            std::vector<std::array<float, 4>> colors = GUI::wxGetApp().plater()->get_extruders_colors();
             if (colors.size() == 1) {
                 break;
             }
@@ -866,7 +847,7 @@ void GLVolume::render(bool with_outline, const std::array<float, 4>& body_color)
 
         if (color_volume) {
             GLShaderProgram* shader = GUI::wxGetApp().get_current_shader();
-            std::vector<std::array<float, 4>> colors = get_extruders_colors();
+            std::vector<std::array<float, 4>> colors = GUI::wxGetApp().plater()->get_extruders_colors();
 
             //when force_transparent, we need to keep the alpha
             if (force_native_color && (render_color[3] < 1.0)) {
@@ -1448,7 +1429,7 @@ int GLVolumeCollection::load_wipe_tower_preview(
     if (height == 0.0f)
         height = 0.1f;
 
-    std::vector<std::array<float, 4>> extruder_colors = get_extruders_colors();
+    std::vector<std::array<float, 4>> extruder_colors = GUI::wxGetApp().plater()->get_extruders_colors();
     std::vector<std::array<float, 4>> colors;
     GUI::PartPlateList& ppl = GUI::wxGetApp().plater()->get_partplate_list();
     std::vector<int> plate_extruders = ppl.get_plate(plate_idx)->get_extruders(true);
