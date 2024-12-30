@@ -47,7 +47,7 @@ struct ThumbnailData;
 struct ThumbnailsParams;
 class ModelObject;
 class ModelInstance;
-class TextInfo;
+struct TextInfo;
 class PrintObject;
 class Print;
 class SLAPrint;

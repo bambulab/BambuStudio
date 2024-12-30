@@ -47,6 +47,8 @@
 
 namespace Slic3r { namespace GUI {
 
+std::string get_nozzle_volume_type_cloud_string(NozzleVolumeType nozzle_volume_type);
+void        print_ams_mapping_result(std::vector<FilamentInfo> &result);
 enum PrintFromType {
     FROM_NORMAL,
     FROM_SDCARD_VIEW,
@@ -130,7 +132,7 @@ WX_DECLARE_HASH_MAP(int, Material *, wxIntegerHash, wxIntegerEqual, MaterialHash
 
 #define SELECT_MACHINE_DIALOG_BUTTON_SIZE wxSize(FromDIP(57), FromDIP(32))
 #define SELECT_MACHINE_DIALOG_SIMBOOK_SIZE wxSize(FromDIP(370), FromDIP(64))
-
+#define LIST_REFRESH_INTERVAL 200
 static int get_brightness_value(wxImage image) {
 
     wxImage grayImage = image.ConvertToGreyscale();
@@ -392,6 +394,11 @@ protected:
     wxGridSizer*                        m_sizer_ams_mapping{ nullptr };
     wxGridSizer*                        m_sizer_ams_mapping_left{ nullptr };
     wxGridSizer*                        m_sizer_ams_mapping_right{ nullptr };
+
+public:
+    static std::vector<wxString> MACHINE_BED_TYPE_STRING;
+    static void                  init_machine_bed_types();
+    static std::vector<std::string> MachineBedTypeString;
 
 public:
     SelectMachineDialog(Plater *plater = nullptr);
