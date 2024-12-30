@@ -78,7 +78,7 @@ namespace BBL {
 #define BAMBU_NETWORK_ERR_PRINT_SP_PATCH_PROJECT_FAILED             -3110 //failed to patch project
 #define BAMBU_NETWORK_ERR_PRINT_SP_POST_TASK_FAILED                 -3120 //failed to post task
 #define BAMBU_NETWORK_ERR_PRINT_SP_WAIT_PRINTER_FAILED              -3130 //failed to wait the ack from printer
-#define BAMBU_NETOWRK_ERR_PRINT_SP_ENC_FLAG_NOT_READY               -3140 //failed to get flag info
+#define BAMBU_NETOWRK_ERR_PRINT_SP_ENC_FLAG_NOT_READY               -3140 //enc parse not ready
 
 //start_local_print   error
 #define BAMBU_NETWORK_ERR_PRINT_LP_FILE_OVER_SIZE                   -4010 //the size of the uploaded file cannot exceed 1 GB
@@ -96,7 +96,8 @@ namespace BBL {
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"
 #define BAMBU_NETWORK_AGENT_NAME            "bambu_network_agent"
 
-#define BAMBU_NETWORK_AGENT_VERSION         "01.10.01.01"
+#define BAMBU_NETWORK_AGENT_VERSION         "01.10.01.03"
+
 
 //iot preset type strings
 #define IOT_PRINTER_TYPE_STRING     "printer"
@@ -201,9 +202,7 @@ struct PrintParams {
     std::string     ftp_file;
     std::string     ftp_file_md5;
     std::string     ams_mapping;
-    std::string     ams_mapping2;
     std::string     ams_mapping_info;
-    std::string     nozzles_info;
     std::string     connection_type;
     std::string     comments;
     int             origin_profile_id = 0;
@@ -229,9 +228,6 @@ struct PrintParams {
     bool            task_use_ams;
     std::string     task_bed_type;
     std::string     extra_options;
-    int             auto_bed_leveling{0};
-    int             auto_flow_cali{0};
-    int             auto_offset_cali{0};
 };
 
 struct TaskQueryParams
@@ -259,11 +255,12 @@ struct CertificateInformation {
     std::string     serial_number;
 };
 
+
 enum class MessageFlag : int
 {
     MSG_FLAG_NONE = 0,
-    MSG_SIGN = 1 << 0,
-    MSG_ENCRYPT = 1 << 1,
+    MSG_SIGN      = 1 << 0,
+    MSG_ENCRYPT   = 1 << 1,
 };
 
 }
