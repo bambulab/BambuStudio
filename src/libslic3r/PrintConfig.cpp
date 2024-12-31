@@ -4050,6 +4050,11 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionPoints{});
 
+    def = this->add("impact_strength_z", coFloats);
+    def->label = "Impact Strength Z";
+    def->mode  = comDevelop;
+    def->set_default_value(new ConfigOptionFloats{0});
+
     def = this->add("detect_thin_wall", coBool);
     def->label = L("Detect thin wall");
     def->category = L("Strength");

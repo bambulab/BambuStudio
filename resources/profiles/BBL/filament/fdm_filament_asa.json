@@ -87,5 +87,6 @@
     ],
     "filament_end_gcode": [
         "; filament end gcode \n\n"
-    ]
+    ],
+    "impact_strength_z":["4.9"]
 }

@@ -29,7 +29,7 @@ struct SupportParameters {
 
 	    {
 	        this->num_top_interface_layers    = std::max(0, object_config.support_interface_top_layers.value);
-	        this->num_bottom_interface_layers = object_config.support_interface_bottom_layers < 0 ? 
+	        this->num_bottom_interface_layers = object_config.support_interface_bottom_layers < 0 ?
 	            num_top_interface_layers : object_config.support_interface_bottom_layers;
 	        this->has_top_contacts              = num_top_interface_layers    > 0;
 	        this->has_bottom_contacts           = num_bottom_interface_layers > 0;
@@ -124,7 +124,7 @@ struct SupportParameters {
             object_config.support_interface_pattern == smipConcentric ?
             ipConcentric :
             (this->interface_density > 0.95 ? ipRectilinear : ipSupportBase);
-		
+
 		this->raft_angle_1st_layer  = 0.f;
 	    this->raft_angle_base       = 0.f;
 	    this->raft_angle_interface  = 0.f;
@@ -163,12 +163,27 @@ struct SupportParameters {
             support_extrusion_width = Flow::auto_extrusion_width(FlowRole::frSupportMaterial, (float) nozzle_diameter);
         }
 
-        independent_layer_height = print_config.independent_support_layer_height;
+        double tree_support_branch_diameter_double_wall = 3.0;
+        // get support filament strength and decide the thresh of double wall area
+        float support_filament_strength = print_config.impact_strength_z.get_at(object_config.support_filament-1);
+        if(object_config.support_filament==0){
+            // find the weakest filament
+            support_filament_strength = std::numeric_limits<float>::max();
+            for(auto extruder:object.object_extruders()){
+                float strength = print_config.impact_strength_z.get_at(extruder);
+                if(strength<support_filament_strength) support_filament_strength = strength;
+            }
+        }
 
-        // force double walls everywhere if wall count is larger than 1        
-        tree_branch_diameter_double_wall_area_scaled = object_config.tree_support_wall_count.value > 1  ? 0.1 :
-                                                       object_config.tree_support_wall_count.value == 0 ? 0.25 * sqr(scaled<double>(5.0)) * M_PI :
-                                                                                                          std::numeric_limits<double>::max();
+        if(object_config.tree_support_wall_count.value==0){
+            tree_support_branch_diameter_double_wall = support_filament_strength;
+            this->tree_branch_diameter_double_wall_area_scaled = 0.25*sqr(scaled<double>(tree_support_branch_diameter_double_wall))*M_PI;
+        }else{
+        // force double walls everywhere if wall count is larger than 1
+            this->tree_branch_diameter_double_wall_area_scaled = object_config.tree_support_wall_count.value>1? 0.1: std::numeric_limits<double>::max();
+        }
+
+        independent_layer_height = print_config.independent_support_layer_height;
 
         support_style = object_config.support_style;
         if (support_style != smsDefault) {
@@ -257,10 +272,10 @@ struct SupportParameters {
     float 					raft_angle_interface;
 
     // Produce a raft interface angle for a given SupportLayer::interface_id()
-    float 					raft_interface_angle(size_t interface_id) const 
+    float 					raft_interface_angle(size_t interface_id) const
     	{ return this->raft_angle_interface + ((interface_id & 1) ? float(- M_PI / 4.) : float(+ M_PI / 4.)); }
-		
+
     bool independent_layer_height = false;
-    const double thresh_big_overhang = Slic3r::sqr(scale_(10));
+    const double thresh_big_overhang = /*Slic3r::sqr(scale_(10))*/scale_(10);
 };
 } // namespace Slic3r

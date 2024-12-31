@@ -213,6 +213,14 @@ public:
             return this->x() < rhs.x() || this->y() < rhs.y();
         return false;
     }
+    bool any_comp(const coord_t val, const std::string &op)
+    {
+        if (op == ">")
+            return this->x() > val || this->y() > val;
+        else if (op == "<")
+            return this->x() < val || this->y() < val;
+        return false;
+    }
 
     void   rotate(double angle) { this->rotate(std::cos(angle), std::sin(angle)); }
     void   rotate(double cos_a, double sin_a) {

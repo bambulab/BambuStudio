@@ -1020,6 +1020,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatsOrPercents,    filament_scarf_gap))
     ((ConfigOptionFloats,              filament_scarf_length))
     ((ConfigOptionFloats,              filament_cost))
+    ((ConfigOptionFloats,              impact_strength_z))
     ((ConfigOptionString,              filament_notes))
     ((ConfigOptionStrings,             default_filament_colour))
     ((ConfigOptionInts,                temperature_vitrification))  //BBS
