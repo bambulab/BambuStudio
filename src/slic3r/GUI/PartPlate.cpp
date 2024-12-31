@@ -1004,7 +1004,7 @@ void PartPlate::on_render_for_picking() {
 
     std::vector<GLModel *> gl_models = {&m_partplate_list->m_triangles, &m_partplate_list->m_del_icon, &m_partplate_list->m_orient_icon, &m_partplate_list->m_arrange_icon,
                                         &m_partplate_list->m_lock_icon, &m_partplate_list->m_plate_settings_icon,
-                                        &m_plate_name_edit_icon};
+                                        &m_partplate_list->m_plate_filament_map_icon, &m_plate_name_edit_icon};
     for (size_t i = 0; i < gl_models.size(); i++) {
         int hover_id                  =  i;
         std::array<float, 4> color    = picking_color_component(hover_id);
