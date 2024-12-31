@@ -46,7 +46,6 @@ RUN apt-get update && apt-get install  -y \
     pkgconf \
     sudo \
     wayland-protocols \
-    bash \
     libwebkit2gtk-4.1-dev \
     wget 
 
@@ -92,7 +91,7 @@ ARG GID=0
 
 RUN if [ "$UID" != "0" ]; then \
       groupadd -f -g $GID $USER && \
-      useradd -u $UID -g $GID $USER; \
+      useradd --non-unique -u $UID -g $GID $USER; \
     fi
 
 # Point FFMPEG Library search to the binary built upon BambuStudio build time
