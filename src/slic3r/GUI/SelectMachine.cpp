@@ -2225,15 +2225,6 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
             }
         }
 
-<<<<<<< HEAD   (ec5552 FIX: crash when delete filaments)
-        if (!is_same_nozzle_type(filament_type, tag_nozzle_type)){
-            has_slice_warnings = true;
-            is_printing_block = true;
-            nozzle_diameter = obj_->m_extder_data.extders[0].current_nozzle_diameter;
-
-                wxString nozzle_in_preset = wxString::Format(_L("Printing high temperature material(%s material) with %s may cause nozzle damage"), filament_type, format_steel_name(obj_->m_extder_data.extders[0].current_nozzle_type));
-            confirm_text.push_back(ConfirmBeforeSendInfo(nozzle_in_preset, ConfirmBeforeSendInfo::InfoLevel::Warning));
-=======
         /*check nozzle type*/
         DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
         MachineObject* obj = dev ? dev->get_selected_machine() : nullptr;
@@ -2245,11 +2236,10 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
             {
                 has_slice_warnings = true;
                 is_printing_block = true;
-                wxString nozzle_in_preset = wxString::Format(_L("Printing %1s material with %2s nozzle may cause nozzle damage."),filament_type,
-                                                             format_steel_name(obj_->m_extder_data.extders[0].current_nozzle_type));
+                wxString nozzle_in_preset = wxString::Format(_L("Printing high temperature material(%s material) with %s may cause nozzle damage"),
+                                                             filament_type, format_steel_name(obj_->m_extder_data.extders[0].current_nozzle_type));
                 confirm_text.push_back(ConfirmBeforeSendInfo(nozzle_in_preset, ConfirmBeforeSendInfo::InfoLevel::Warning));
             }
->>>>>>> CHANGE (274ddd FIX: update check extruder type and diameter on sending to p)
         }
     }
 
