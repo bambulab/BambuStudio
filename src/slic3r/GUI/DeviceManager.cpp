@@ -4173,9 +4173,11 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                             if (jj["ams"].contains("ams_exist_bits")) {
                                 ams_exist_bits = stol(jj["ams"]["ams_exist_bits"].get<std::string>(), nullptr, 16);
                             }
+
                             if (jj["ams"].contains("tray_exist_bits")) {
                                 tray_exist_bits = stol(jj["ams"]["tray_exist_bits"].get<std::string>(), nullptr, 16);
                             }
+
                             if (!key_field_only) {
                                 if (jj["ams"].contains("tray_read_done_bits")) {
                                     tray_read_done_bits = stol(jj["ams"]["tray_read_done_bits"].get<std::string>(), nullptr, 16);
@@ -4426,7 +4428,14 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                                 if (!ams_id.empty() && !curr_tray->id.empty()) {
                                                     ams_id_int = atoi(ams_id.c_str());
                                                     tray_id_int = atoi(curr_tray->id.c_str());
-                                                    curr_tray->is_exists = (tray_exist_bits & (1 << (ams_id_int * 4 + tray_id_int))) != 0 ? true : false;
+
+                                                    if (type_id < 4) {
+                                                        curr_tray->is_exists = (tray_exist_bits & (1 << (ams_id_int * 4 + tray_id_int))) != 0 ? true : false;
+                                                    }
+                                                    else {
+                                                        curr_tray->is_exists = get_flag_bits(tray_exist_bits, 16 + (ams_id_int - 128));
+                                                    }
+
                                                 }
                                             }
                                             catch (...) {
