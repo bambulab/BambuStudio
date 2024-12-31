@@ -3195,6 +3195,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_soluble");
         // BBS
         optgroup->append_single_option_line("filament_is_support");
+        optgroup->append_single_option_line("impact_strength_z");
 
         //optgroup->append_single_option_line("filament_colour");
         optgroup->append_single_option_line("required_nozzle_HRC");
@@ -3485,6 +3486,7 @@ void TabFilament::toggle_options()
     {
         toggle_option("filament_type", false);
         toggle_option("filament_vendor", false);
+        toggle_option("impact_strength_z", false);
         //BBS: hide these useless option for bambu printer
         toggle_line("enable_pressure_advance", !is_BBL_printer);
         if (is_BBL_printer)

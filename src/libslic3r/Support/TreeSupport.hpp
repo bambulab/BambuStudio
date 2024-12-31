@@ -124,7 +124,9 @@ struct SupportNode
     bool           need_extra_wall = false;
     bool           is_sharp_tail   = false;
     bool           valid = true;
+    bool           fading          = false;
     ExPolygon      overhang; // when type==ePolygon, set this value to get original overhang area
+    coordf_t       origin_area;
 
     /*!
      * \brief The direction of the skin lines above the tip of the branch.
@@ -411,7 +413,7 @@ public:
      */
     ExPolygon m_machine_border;
 
-    enum OverhangType { Detected = 0, Enforced, SharpTail };
+    enum OverhangType : uint8_t { Normal = 0, SharpTail = 1, Cantilever = 1 << 1, Small = 1 << 2, BigFlat = 1 << 3, ThinPlate = 1 << 4, SharpTailLowesst = 1 << 5 };
     std::map<const ExPolygon*, OverhangType> overhang_types;
     std::vector<std::pair<Vec3f, Vec3f>>      m_vertical_enforcer_points;
 

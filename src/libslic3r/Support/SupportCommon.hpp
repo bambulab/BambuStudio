@@ -148,6 +148,80 @@ int idx_lower_or_equal(const std::vector<T*> &vec, int idx, FN_LOWER_EQUAL fn_lo
     return idx_lower_or_equal(vec.begin(), vec.end(), idx, fn_lower_equal);
 }
 
+[[nodiscard]] Polygons safe_union(const Polygons first, const Polygons second = {});
+
+[[nodiscard]] ExPolygons safe_union(const ExPolygons first, const ExPolygons second = {});
+
+[[nodiscard]] Polygons safe_offset_inc(
+    const Polygons &me, coord_t distance, const Polygons &collision, coord_t safe_step_size, coord_t last_step_offset_without_check, size_t min_amount_offset);
+
+
+/*!
+ * \brief Offsets (increases the area of) a polygons object in multiple steps to ensure that it does not lag through over a given obstacle.
+ * \param me[in] Polygons object that has to be offset.
+ * \param distance[in] The distance by which me should be offset. Expects values >=0.
+ * \param CollisionPolyType collision[in] The area representing obstacles. CollisionPolyType may be ExPolygons or Polygons.
+ * \param last_step_offset_without_check[in] The most it is allowed to offset in one step.
+ * \param min_amount_offset[in] How many steps have to be done at least. As this uses round offset this increases the amount of vertices, which may be required if Polygons get
+ * very small. Required as arcTolerance is not exposed in offset, which should result with a similar result. \return The resulting Polygons object.
+ */
+template<typename CollisionPolyType>
+[[nodiscard]] ExPolygons safe_offset_inc(
+    const ExPolygons &me, coord_t distance, const CollisionPolyType &collision, coord_t safe_step_size, coord_t last_step_offset_without_check, size_t min_amount_offset)
+{
+    bool     do_final_difference = last_step_offset_without_check == 0;
+    ExPolygons ret               = safe_union(me); // ensure sane input
+
+    // Trim the collision polygons with the region of interest for diff() efficiency.
+    Polygons collision_trimmed_buffer;
+    auto     collision_trimmed = [&collision_trimmed_buffer, &collision, &ret, distance]() -> const Polygons     &{
+        if (collision_trimmed_buffer.empty() && !collision.empty())
+            collision_trimmed_buffer = ClipperUtils::clip_clipper_polygons_with_subject_bbox(collision, get_extents(ret).inflated(std::max(0, distance) + SCALED_EPSILON));
+        return collision_trimmed_buffer;
+    };
+
+    if (distance == 0) return do_final_difference ? diff_ex(ret, collision_trimmed()) : union_ex(ret);
+    if (safe_step_size < 0 || last_step_offset_without_check < 0) {
+        BOOST_LOG_TRIVIAL(error) << "Offset increase got invalid parameter!";
+        return do_final_difference ? diff_ex(ret, collision_trimmed()) : union_ex(ret);
+    }
+
+    coord_t step_size = safe_step_size;
+    int     steps     = distance > last_step_offset_without_check ? (distance - last_step_offset_without_check) / step_size : 0;
+    if (distance - steps * step_size > last_step_offset_without_check) {
+        if ((steps + 1) * step_size <= distance)
+            // This will be the case when last_step_offset_without_check >= safe_step_size
+            ++steps;
+        else
+            do_final_difference = true;
+    }
+    if (steps + (distance < last_step_offset_without_check || (distance % step_size) != 0) < int(min_amount_offset) && min_amount_offset > 1) {
+        // yes one can add a bool as the standard specifies that a result from compare operators has to be 0 or 1
+        // reduce the stepsize to ensure it is offset the required amount of times
+        step_size = distance / min_amount_offset;
+        if (step_size >= safe_step_size) {
+            // effectivly reduce last_step_offset_without_check
+            step_size = safe_step_size;
+            steps     = min_amount_offset;
+        } else
+            steps = distance / step_size;
+    }
+    // offset in steps
+    for (int i = 0; i < steps; ++i) {
+        ret = diff_ex(offset_ex(ret, step_size, ClipperLib::jtRound, scaled<float>(0.01)), collision_trimmed());
+        // ensure that if many offsets are done the performance does not suffer extremely by the new vertices of jtRound.
+        if (i % 10 == 7) ret = expolygons_simplify(ret, scaled<double>(0.015));
+    }
+    // offset the remainder
+    float last_offset = distance - steps * step_size;
+    if (last_offset > SCALED_EPSILON) ret = offset_ex(ret, distance - steps * step_size, ClipperLib::jtRound, scaled<float>(0.01));
+    ret = expolygons_simplify(ret, scaled<double>(0.015));
+
+    if (do_final_difference) ret = diff_ex(ret, collision_trimmed());
+    return union_ex(ret);
+}
+
+
 } // namespace Slic3r
 
 #endif /* slic3r_SupportCommon_hpp_ */

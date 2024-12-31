@@ -155,6 +155,7 @@ public:
 
     // BBS
     ExPolygons              loverhangs;
+    std::vector<std::pair<ExPolygon, int>> loverhangs_with_type;
     BoundingBox             loverhangs_bbox;
     std::vector<LoopNode>   loop_nodes;
     size_t                  region_count() const { return m_regions.size(); }
