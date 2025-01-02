@@ -678,7 +678,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     toggle_field("standby_temperature_delta", have_ooze_prevention);
 
     bool have_prime_tower = config->opt_bool("enable_prime_tower");
-    for (auto el : {"prime_tower_width", "prime_volume", "prime_tower_brim_width", "prime_tower_outer_first"})
+    for (auto el : {"prime_tower_width", "prime_volume", "prime_tower_brim_width", "prime_tower_outer_first", "prime_tower_skip_points"})
         toggle_line(el, have_prime_tower);
 
     for (auto el : {"flush_into_infill", "flush_into_support", "flush_into_objects"})

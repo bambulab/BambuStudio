@@ -389,6 +389,7 @@ private:
     bool               m_has_tpu_filament{false};
     bool               m_is_multi_extruder{false};
     bool               m_is_print_outer_first{false};
+    bool               m_use_gap_wall{false};
 
 	// G-code generator parameters.
     // BBS: remove useless config
