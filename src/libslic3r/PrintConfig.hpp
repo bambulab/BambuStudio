@@ -1204,6 +1204,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloat,              wipe_tower_rotation_angle))
     ((ConfigOptionFloat,              prime_tower_brim_width))
     ((ConfigOptionBool,               prime_tower_outer_first))
+    ((ConfigOptionBool,               prime_tower_skip_points))
     //((ConfigOptionFloat,              wipe_tower_bridging))
     ((ConfigOptionFloats,             flush_volumes_matrix))
     ((ConfigOptionFloats,             flush_volumes_vector))
