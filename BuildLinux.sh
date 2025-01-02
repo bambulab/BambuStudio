@@ -84,11 +84,6 @@ fi
 
 DISTRIBUTION=$(awk -F= '/^ID=/ {print $2}' /etc/os-release)
 VERSION=$(awk -F= '/^VERSION_ID=/ {print $2}' /etc/os-release)
-# treat ubuntu as debian
-if [ "${DISTRIBUTION}" == "ubuntu" ]
-then
-    DISTRIBUTION="debian"
-fi
 if [ ! -f ./linux.d/${DISTRIBUTION} ]
 then
     echo "Your distribution does not appear to be currently supported by these build scripts"
