@@ -78,6 +78,8 @@ public:
      */
     const Polygons& getInnerContour();
 
+    const Polygons& getFirstWallContour();
+
     /*!
      * Removes empty paths from the toolpaths
      * \param toolpaths the VariableWidthPaths generated with \p generate()
@@ -131,6 +133,7 @@ private:
     bool toolpaths_generated; //<! Are the toolpaths generated
     std::vector<VariableWidthLines> toolpaths; //<! The generated toolpaths
     Polygons inner_contour;  //<! The inner contour of the generated toolpaths
+    Polygons first_wall_contour; //<! The contour of the first wall
     const WallToolPathsParams m_params;
 private:
     bool enable_hole_compensation{ false };
