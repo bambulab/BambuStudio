@@ -533,6 +533,7 @@ public:
     {
     public:
         std::string name;
+        wxString    product_name;
         std::string sn;
         std::string hw_ver;
         std::string sw_ver;
@@ -541,6 +542,12 @@ public:
         ModuleVersionInfo() :firmware_status(0) {
 
         };
+
+    public:
+        bool isValid() const { return !sn.empty(); }
+        bool isAirPump() const { return product_name.Contains("Air Pump"); }
+        bool isLaszer() const { return product_name.Contains("Laser"); }
+        bool isCuttingModule() const { return product_name.Contains("Cutting Module"); }
     };
 
     enum SdcardState {
@@ -769,6 +776,10 @@ public:
     std::string ota_new_version_number;
     std::string ahb_new_version_number;
     int get_version_retry = 0;
+
+    ModuleVersionInfo air_pump_version_info;
+    ModuleVersionInfo laser_version_info;
+    ModuleVersionInfo cutting_module_version_info;
     std::map<std::string, ModuleVersionInfo> module_vers;
     std::map<std::string, ModuleVersionInfo> new_ver_list;
     std::map<std::string, ExtrusionRatioInfo> extrusion_ratio_map;
@@ -786,6 +797,7 @@ public:
     wxString get_upgrade_result_str(int upgrade_err_code);
     // key: ams_id start as 0,1,2,3
     std::map<int, ModuleVersionInfo> get_ams_version();
+    void store_version_info(const ModuleVersionInfo& info);
 
     /* printing */
     std::string print_type;
