@@ -642,6 +642,8 @@ Slic3r::GUI::PageShp Tab::add_options_page(const wxString& title, const std::str
 wxString Tab::translate_category(const wxString& title, Preset::Type preset_type)
 {
     if (preset_type == Preset::TYPE_PRINTER && title.Contains("Extruder ")) {
+        if (title == "Extruder 1") return _("Left Extruder");
+        if (title == "Extruder 2") return _("Right Extruder");
         return _("Extruder") + title.SubString(8, title.Last());
     }
     return _(title);
@@ -6009,9 +6011,15 @@ void Tab::update_extruder_variants(int extruder_id, bool reload)
         auto variants = m_config->option<ConfigOptionStrings>("filament_extruder_variant");
         int  n        = m_variant_combo->GetSelection();
         m_variant_combo->Clear();
-        for (auto & v : variants->values)
-            m_variant_combo->Append(_L(v));
-        m_variant_combo->SetSelection(n < 0 || n >= m_variant_combo->GetCount() ? 0 : n);
+        for (auto &v : variants->values) {
+            int n = v.find("Drive ");
+            if (n != std::string::npos)
+                m_variant_combo->Append(_L(v.substr(0, n + 5)) + " " + _L(v.substr(n + 6)));
+            else
+                m_variant_combo->Append(_L(v));
+        }
+        m_variant_combo->SetSelection(n < 0 || (unsigned int)n >= m_variant_combo->GetCount() ? 0 : n);
+        m_variant_combo->Enable(m_variant_combo->GetCount() > 1);
     }
     switch_excluder(extruder_id, reload);
     if (m_variant_sizer) {
