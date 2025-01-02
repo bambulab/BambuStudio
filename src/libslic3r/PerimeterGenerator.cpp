@@ -1221,7 +1221,7 @@ void PerimeterGenerator::process_classic()
 
         bool counter_circle_compensation = surface.counter_circle_compensation;
         std::vector<Point> compensation_holes_centers;
-        for (size_t i = 0; i < surface.holes_circle_compensation.size(); ++i) {
+        for (int i : surface.holes_circle_compensation) {
             Point center = surface.expolygon.holes[i].centroid();
             compensation_holes_centers.emplace_back(center);
         }
@@ -2084,7 +2084,7 @@ bool PerimeterGenerator::should_enable_top_one_wall(const ExPolygons& original_e
 {
     coord_t perimeter_width = this->perimeter_flow.width();
     coord_t ext_perimeter_spacing = this->ext_perimeter_flow.scaled_spacing();
- 
+
     //BBS: filter small area and extend top surface a bit to hide the wall line
     double min_width_top_surface = (this->object_config->top_area_threshold / 100) * std::max(double(ext_perimeter_spacing / 4 + 10), double(perimeter_width / 4));
     top = offset2_ex(top, -min_width_top_surface, min_width_top_surface + perimeter_width);
