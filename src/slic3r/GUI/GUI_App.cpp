@@ -2076,11 +2076,12 @@ void GUI_App::init_networking_callbacks()
                                 event.SetString(obj->dev_id);
                                 GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
                             } else if (state == ConnectStatus::ConnectStatusFailed) {
-                                obj->set_access_code("");
-                                obj->erase_user_access_code();
+                                m_device_manager->localMachineList.erase(obj->dev_id);
                                 m_device_manager->set_selected_machine("", true);
                                 wxString text;
                                 if (msg == "5") {
+                                    obj->set_access_code("");
+                                    obj->erase_user_access_code();
                                     text = wxString::Format(_L("Incorrect password"));
                                     wxGetApp().show_dialog(text);
                                 } else {
@@ -2089,9 +2090,9 @@ void GUI_App::init_networking_callbacks()
                                 }
                                 event.SetInt(-1);
                             } else if (state == ConnectStatus::ConnectStatusLost) {
-                                obj->set_access_code("");
-                                obj->erase_user_access_code();
-                                m_device_manager->localMachineList.erase(obj->dev_id);
+                                //obj->set_access_code("");
+                                //obj->erase_user_access_code();
+                                //m_device_manager->localMachineList.erase(obj->dev_id);
                                 m_device_manager->set_selected_machine("", true);
                                 event.SetInt(-1);
                                 BOOST_LOG_TRIVIAL(info) << "set_on_local_connect_fn: state = lost";
