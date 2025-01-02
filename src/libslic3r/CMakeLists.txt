@@ -401,6 +401,8 @@ set(lisbslic3r_sources
     Arachne/BeadingStrategy/RedistributeBeadingStrategy.cpp
     Arachne/BeadingStrategy/WideningBeadingStrategy.hpp
     Arachne/BeadingStrategy/WideningBeadingStrategy.cpp
+    Arachne/BeadingStrategy/OuterWallContourStrategy.hpp
+    Arachne/BeadingStrategy/OuterWallContourStrategy.cpp
     Arachne/utils/ExtrusionJunction.hpp
     Arachne/utils/ExtrusionJunction.cpp
     Arachne/utils/ExtrusionLine.hpp

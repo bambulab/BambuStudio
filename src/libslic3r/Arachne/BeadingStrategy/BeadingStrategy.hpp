@@ -13,6 +13,8 @@ namespace Slic3r::Arachne
 
 template<typename T> constexpr T pi_div(const T div) { return static_cast<T>(M_PI) / div; }
 
+constexpr int WallContourMarkedWidth = 0;
+constexpr int FirstWallContourMarkedWidth = 1;
 /*!
  * Mostly virtual base class template.
  *

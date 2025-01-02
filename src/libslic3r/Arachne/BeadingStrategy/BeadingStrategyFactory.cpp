@@ -8,6 +8,7 @@
 #include "DistributedBeadingStrategy.hpp"
 #include "RedistributeBeadingStrategy.hpp"
 #include "OuterWallInsetBeadingStrategy.hpp"
+#include "OuterWallContourStrategy.hpp"
 
 #include <limits>
 #include <boost/log/trivial.hpp>
@@ -44,9 +45,16 @@ BeadingStrategyPtr BeadingStrategyFactory::makeStrategy(
         ret = std::make_unique<OuterWallInsetBeadingStrategy>(outer_wall_offset, std::move(ret));
     }
 
+    //Apply the OuterWallContourStrategy last, since that adds a 1-width marker wall to mark the boundary of first beading.
+    BOOST_LOG_TRIVIAL(debug) << "Applying the First Beading Contour Strategy.";
+    ret = std::make_unique<OuterWallContourStrategy>(std::move(ret));
+
     //Apply the LimitedBeadingStrategy last, since that adds a 0-width marker wall which other beading strategies shouldn't touch.
     BOOST_LOG_TRIVIAL(debug) << "Applying the Limited Beading meta-strategy with maximum bead count = " << max_bead_count << ".";
-    ret = std::make_unique<LimitedBeadingStrategy>(max_bead_count, std::move(ret));
+    ret = std::make_unique<LimitedBeadingStrategy>(max_bead_count + 2, std::move(ret));
+
+
+
     return ret;
 }
 } // namespace Slic3r::Arachne
