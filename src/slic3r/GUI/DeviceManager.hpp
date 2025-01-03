@@ -1203,6 +1203,7 @@ public:
     AmsTray parse_vt_tray(json vtray);
 
     /*for parse new info*/
+    bool check_enable_np(json print) const;
     void parse_new_info(json print);
     bool is_nozzle_data_invalid();
     int  get_flag_bits(std::string str, int start, int count = 1);
