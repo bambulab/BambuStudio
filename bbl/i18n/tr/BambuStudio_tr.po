@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-31 09:44+0800\n"
+"POT-Creation-Date: 2025-01-03 09:41+0800\n"
 "PO-Revision-Date: 2024-11-15 18:30+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -2217,7 +2217,17 @@ msgstr ""
 "Bir AMS yuvası seçin ve ardından filamentleri otomatik olarak yüklemek veya "
 "çokartmak için \"Yükle\" veya \"Çıkart\" düğmesine basın."
 
+msgid ""
+"Changed fan speed during pringing may affect print quality, please choose "
+"carefully."
+msgstr ""
+
 msgid "Off"
+msgstr ""
+
+msgid ""
+"The selected material only supports the current fan mode, and it can't be "
+"changed during printing."
 msgstr ""
 
 msgid "Cooling"
@@ -5911,37 +5921,11 @@ msgstr "Kullanılacak filamentleri ayarla"
 msgid "Search plate, object and part."
 msgstr "Arama plakası, nesne ve parça."
 
-msgid ""
-"No AMS filaments. Please select a printer in 'Device' page to load AMS info."
-msgstr ""
-"AMS filamentleri yok. AMS bilgilerini yüklemek için lütfen 'Cihaz' "
-"sayfasında bir yazıcı seçin."
+msgid "There are no compatible filaments, and sync is not performed."
+msgstr "Uyumlu filament yok ve senkronizasyon gerçekleştirilmiyor."
 
 msgid "Sync filaments with AMS"
 msgstr "Filamentleri AMS ile senkronize et"
-
-msgid ""
-"Sync filaments with AMS will drop all current selected filament presets and "
-"colors. Do you want to continue?"
-msgstr ""
-"Filamentleri AMS ile senkronize etmek, seçili tüm mevcut filament ön "
-"ayarlarını ve renklerini kaldıracaktır. Devam etmek istiyor musun?"
-
-msgid ""
-"Already did a synchronization, do you want to sync only changes or resync "
-"all?"
-msgstr ""
-"Zaten bir senkronizasyon yaptınız. Yalnızca değişiklikleri senkronize etmek "
-"mi yoksa tümünü yeniden senkronize etmek mi istiyorsunuz?"
-
-msgid "Sync"
-msgstr "Senkronizasyon"
-
-msgid "Resync"
-msgstr "Yeniden eşitleme"
-
-msgid "There are no compatible filaments, and sync is not performed."
-msgstr "Uyumlu filament yok ve senkronizasyon gerçekleştirilmiyor."
 
 msgid ""
 "There are some unknown or uncompatible filaments mapped to generic preset. "
@@ -7243,6 +7227,12 @@ msgstr ""
 msgid "Right Extruder"
 msgstr ""
 
+msgid "Rearrange filaments of the left and right nozzles ->"
+msgstr ""
+
+msgid "Your material arrangement method is not optimal."
+msgstr ""
+
 msgid "Advanced Options"
 msgstr ""
 
@@ -7472,10 +7462,6 @@ msgstr ""
 "Yüksek sıcaklıktaki malzemenin (%s malzeme) %s ile basılması nozul hasarına "
 "neden olabilir"
 
-#, c-format, boost-format
-msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
-msgstr "%1s malzemesini %2s nozul ile yazdırmak nozul hasarına neden olabilir."
-
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr ""
 "Lütfen yukarıdaki hatayı düzeltin, aksi takdirde yazdırma işlemi devam "
@@ -7499,6 +7485,12 @@ msgstr "Anormal yazdırma dosyası verileri. Lütfen tekrar dilimleyin"
 
 msgid "The name length exceeds the limit."
 msgstr "Ad uzunluğu sınırı aşıyor."
+
+#, c-format, boost-format
+msgid ""
+"You picked both external and AMS filament, You will need to manually change "
+"filament %d times."
+msgstr ""
 
 msgid "Cool"
 msgstr ""
@@ -13965,6 +13957,10 @@ msgid ""
 "change your nozzle lately ? "
 msgstr ""
 
+#, c-format, boost-format
+msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
+msgstr "%1s malzemesini %2s nozul ile yazdırmak nozul hasarına neden olabilir."
+
 msgid "Need select printer"
 msgstr "Yazıcı seçmeniz gerekiyor"
 
@@ -15035,6 +15031,33 @@ msgstr ""
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı "
 "sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını "
 "azaltabileceğini biliyor muydunuz."
+
+#~ msgid ""
+#~ "No AMS filaments. Please select a printer in 'Device' page to load AMS "
+#~ "info."
+#~ msgstr ""
+#~ "AMS filamentleri yok. AMS bilgilerini yüklemek için lütfen 'Cihaz' "
+#~ "sayfasında bir yazıcı seçin."
+
+#~ msgid ""
+#~ "Sync filaments with AMS will drop all current selected filament presets "
+#~ "and colors. Do you want to continue?"
+#~ msgstr ""
+#~ "Filamentleri AMS ile senkronize etmek, seçili tüm mevcut filament ön "
+#~ "ayarlarını ve renklerini kaldıracaktır. Devam etmek istiyor musun?"
+
+#~ msgid ""
+#~ "Already did a synchronization, do you want to sync only changes or resync "
+#~ "all?"
+#~ msgstr ""
+#~ "Zaten bir senkronizasyon yaptınız. Yalnızca değişiklikleri senkronize "
+#~ "etmek mi yoksa tümünü yeniden senkronize etmek mi istiyorsunuz?"
+
+#~ msgid "Sync"
+#~ msgstr "Senkronizasyon"
+
+#~ msgid "Resync"
+#~ msgstr "Yeniden eşitleme"
 
 #, c-format, boost-format
 #~ msgid "nozzle memorized: %.1f %s"

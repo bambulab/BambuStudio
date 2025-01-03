@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-31 09:44+0800\n"
+"POT-Creation-Date: 2025-01-03 09:41+0800\n"
 "PO-Revision-Date: 2024-03-21 10:39+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -2184,7 +2184,17 @@ msgid ""
 "load or unload filaments."
 msgstr "选择1个AMS槽位，然后点击进料/退料按钮以自动进料/退料。"
 
+msgid ""
+"Changed fan speed during pringing may affect print quality, please choose "
+"carefully."
+msgstr ""
+
 msgid "Off"
+msgstr ""
+
+msgid ""
+"The selected material only supports the current fan mode, and it can't be "
+"changed during printing."
 msgstr ""
 
 msgid "Cooling"
@@ -2228,7 +2238,7 @@ msgstr "内循环"
 
 #. TRN To be shown in the main menu View->Top
 msgid "Top"
-msgstr "顶部风门"
+msgstr "顶部"
 
 msgid ""
 "The fan controls the temperature during printing to improve print "
@@ -5725,31 +5735,11 @@ msgstr "配置可选择的材料"
 msgid "Search plate, object and part."
 msgstr "搜索盘、模型和零件。"
 
-msgid ""
-"No AMS filaments. Please select a printer in 'Device' page to load AMS info."
-msgstr "没有发现AMS材料。请在“设备”页面选择打印机，将加载 AMS 信息。"
+msgid "There are no compatible filaments, and sync is not performed."
+msgstr "没有任何兼容的材料，同步操作未执行。"
 
 msgid "Sync filaments with AMS"
 msgstr "同步到 AMS 的材料列表"
-
-msgid ""
-"Sync filaments with AMS will drop all current selected filament presets and "
-"colors. Do you want to continue?"
-msgstr "同步到 AMS 的材料列表将丢弃所有当前配置的材料预设、颜色。是否继续？"
-
-msgid ""
-"Already did a synchronization, do you want to sync only changes or resync "
-"all?"
-msgstr "已经同步过，你希望仅同步改变的材料还是重新同步所有材料？"
-
-msgid "Sync"
-msgstr "同步"
-
-msgid "Resync"
-msgstr "重新同步"
-
-msgid "There are no compatible filaments, and sync is not performed."
-msgstr "没有任何兼容的材料，同步操作未执行。"
 
 msgid ""
 "There are some unknown or uncompatible filaments mapped to generic preset. "
@@ -6979,6 +6969,12 @@ msgstr "(推荐的材料)"
 msgid "Right Extruder"
 msgstr "右挤出机"
 
+msgid "Rearrange filaments of the left and right nozzles ->"
+msgstr ""
+
+msgid "Your material arrangement method is not optimal."
+msgstr ""
+
 msgid "Advanced Options"
 msgstr "高级选项"
 
@@ -7197,10 +7193,6 @@ msgid ""
 "damage"
 msgstr "用%s打印高温材料（%s材料）可能会导致喷嘴损坏"
 
-#, c-format, boost-format
-msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
-msgstr "%1s材料在使用%2s的喷嘴打印时,可能会导致喷嘴损坏。"
-
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr "请修复上述错误，否则打印无法继续。"
 
@@ -7220,6 +7212,12 @@ msgstr "打印文件数据异常，请重新切片"
 
 msgid "The name length exceeds the limit."
 msgstr "名称长度超过限制。"
+
+#, c-format, boost-format
+msgid ""
+"You picked both external and AMS filament, You will need to manually change "
+"filament %d times."
+msgstr ""
 
 msgid "Cool"
 msgstr ""
@@ -13200,6 +13198,10 @@ msgid ""
 "change your nozzle lately ? "
 msgstr "预设中的喷嘴类型与记忆中的喷嘴类型不一致。您最近更换了喷嘴吗？"
 
+#, c-format, boost-format
+msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
+msgstr "%1s材料在使用%2s的喷嘴打印时,可能会导致喷嘴损坏。"
+
 msgid "Need select printer"
 msgstr "需要选择打印机"
 
@@ -14164,6 +14166,27 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid ""
+#~ "No AMS filaments. Please select a printer in 'Device' page to load AMS "
+#~ "info."
+#~ msgstr "没有发现AMS材料。请在“设备”页面选择打印机，将加载 AMS 信息。"
+
+#~ msgid ""
+#~ "Sync filaments with AMS will drop all current selected filament presets "
+#~ "and colors. Do you want to continue?"
+#~ msgstr "同步到 AMS 的材料列表将丢弃所有当前配置的材料预设、颜色。是否继续？"
+
+#~ msgid ""
+#~ "Already did a synchronization, do you want to sync only changes or resync "
+#~ "all?"
+#~ msgstr "已经同步过，你希望仅同步改变的材料还是重新同步所有材料？"
+
+#~ msgid "Sync"
+#~ msgstr "同步"
+
+#~ msgid "Resync"
+#~ msgstr "重新同步"
 
 #~ msgid ""
 #~ "Spiral mode only works when wall loops is 1, support is disabled, top "

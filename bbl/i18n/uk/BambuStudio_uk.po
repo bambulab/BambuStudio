@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-31 09:44+0800\n"
+"POT-Creation-Date: 2025-01-03 09:41+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -2227,7 +2227,17 @@ msgstr ""
 "Виберіть слот AMS, а потім натисніть кнопку “Завантажити” або “Вивантажити”, "
 "щоб автоматично завантажити або вивантажити філаменти."
 
+msgid ""
+"Changed fan speed during pringing may affect print quality, please choose "
+"carefully."
+msgstr ""
+
 msgid "Off"
+msgstr ""
+
+msgid ""
+"The selected material only supports the current fan mode, and it can't be "
+"changed during printing."
 msgstr ""
 
 msgid "Cooling"
@@ -5936,37 +5946,11 @@ msgstr "Встановіть нитки для використання"
 msgid "Search plate, object and part."
 msgstr "Пошук плити, об’єкта і деталі."
 
-msgid ""
-"No AMS filaments. Please select a printer in 'Device' page to load AMS info."
-msgstr ""
-"Немає ниток AMS. Виберіть принтер на сторінці «Пристрій», щоб завантажити "
-"інформацію AMS."
+msgid "There are no compatible filaments, and sync is not performed."
+msgstr "Немає сумісних філаментів, а синхронізація не виконується."
 
 msgid "Sync filaments with AMS"
 msgstr "Синхронізація ниток з AMS"
-
-msgid ""
-"Sync filaments with AMS will drop all current selected filament presets and "
-"colors. Do you want to continue?"
-msgstr ""
-"Синхронізація ниток з AMS видаляє всі поточні вибрані пресети ниток і\n"
-"Кольори. Ви хочете продовжувати?"
-
-msgid ""
-"Already did a synchronization, do you want to sync only changes or resync "
-"all?"
-msgstr ""
-"Синхронізацію вже робив, синхронізувати лише зміни абопересинхронізувати\n"
-"Усе?"
-
-msgid "Sync"
-msgstr "Синхронізувати"
-
-msgid "Resync"
-msgstr "Повторна синхронізація"
-
-msgid "There are no compatible filaments, and sync is not performed."
-msgstr "Немає сумісних філаментів, а синхронізація не виконується."
 
 msgid ""
 "There are some unknown or uncompatible filaments mapped to generic preset. "
@@ -7264,6 +7248,12 @@ msgstr ""
 msgid "Right Extruder"
 msgstr ""
 
+msgid "Rearrange filaments of the left and right nozzles ->"
+msgstr ""
+
+msgid "Your material arrangement method is not optimal."
+msgstr ""
+
 msgid "Advanced Options"
 msgstr ""
 
@@ -7492,10 +7482,6 @@ msgstr ""
 "Друк високотемпературного матеріалу (%s матеріал) з %s може призвести до "
 "пошкодження сопла"
 
-#, c-format, boost-format
-msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
-msgstr ""
-
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr "Будь ласка, виправте помилку вище, інакше друк не може продовжитися."
 
@@ -7516,6 +7502,12 @@ msgstr "Неправильні дані файлу друку. Будь ласк
 
 msgid "The name length exceeds the limit."
 msgstr "Довжина імені перевищує обмеження."
+
+#, c-format, boost-format
+msgid ""
+"You picked both external and AMS filament, You will need to manually change "
+"filament %d times."
+msgstr ""
 
 msgid "Cool"
 msgstr ""
@@ -14028,6 +14020,10 @@ msgid ""
 "change your nozzle lately ? "
 msgstr ""
 
+#, c-format, boost-format
+msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
+msgstr ""
+
 msgid "Need select printer"
 msgstr "Потрібно вибрати принтер"
 
@@ -15100,6 +15096,33 @@ msgstr ""
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як "
 "ABS, відповідне підвищення температури гарячого ліжка може зменшити "
 "ймовірність деформації."
+
+#~ msgid ""
+#~ "No AMS filaments. Please select a printer in 'Device' page to load AMS "
+#~ "info."
+#~ msgstr ""
+#~ "Немає ниток AMS. Виберіть принтер на сторінці «Пристрій», щоб завантажити "
+#~ "інформацію AMS."
+
+#~ msgid ""
+#~ "Sync filaments with AMS will drop all current selected filament presets "
+#~ "and colors. Do you want to continue?"
+#~ msgstr ""
+#~ "Синхронізація ниток з AMS видаляє всі поточні вибрані пресети ниток і\n"
+#~ "Кольори. Ви хочете продовжувати?"
+
+#~ msgid ""
+#~ "Already did a synchronization, do you want to sync only changes or resync "
+#~ "all?"
+#~ msgstr ""
+#~ "Синхронізацію вже робив, синхронізувати лише зміни абопересинхронізувати\n"
+#~ "Усе?"
+
+#~ msgid "Sync"
+#~ msgstr "Синхронізувати"
+
+#~ msgid "Resync"
+#~ msgstr "Повторна синхронізація"
 
 #, c-format, boost-format
 #~ msgid "nozzle memorized: %.1f %s"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-31 09:44+0800\n"
+"POT-Creation-Date: 2025-01-03 09:41+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2205,7 +2205,17 @@ msgstr ""
 "Välj ett AMS fack och tryck sedan på knappen \"Ladda\" eller \"Mata ut\" för "
 "att automatiskt ladda eller mata ut filament."
 
+msgid ""
+"Changed fan speed during pringing may affect print quality, please choose "
+"carefully."
+msgstr ""
+
 msgid "Off"
+msgstr ""
+
+msgid ""
+"The selected material only supports the current fan mode, and it can't be "
+"changed during printing."
 msgstr ""
 
 msgid "Cooling"
@@ -5869,37 +5879,11 @@ msgstr "Ställ in filament som ska användas"
 msgid "Search plate, object and part."
 msgstr "Sök platta, objekt och del."
 
-msgid ""
-"No AMS filaments. Please select a printer in 'Device' page to load AMS info."
-msgstr ""
-"Inga AMS-filament. Välj en skrivare på sidan ”Enhet” för att ladda AMS-"
-"information."
+msgid "There are no compatible filaments, and sync is not performed."
+msgstr "Det finns inga kompatibla filament och synkronisering utförs inte."
 
 msgid "Sync filaments with AMS"
 msgstr "Synkronisera filament med AMS"
-
-msgid ""
-"Sync filaments with AMS will drop all current selected filament presets and "
-"colors. Do you want to continue?"
-msgstr ""
-"Synkronisering av filament med AMS kommer att ta bort alla förvalda filament "
-"inställningar och färger. Vill du fortsätta?"
-
-msgid ""
-"Already did a synchronization, do you want to sync only changes or resync "
-"all?"
-msgstr ""
-"Du har redan gjort en synkronisering; vill du bara synkronisera ändringar "
-"eller synkronisera allt på nytt?"
-
-msgid "Sync"
-msgstr "Synkronisera"
-
-msgid "Resync"
-msgstr "Synkronisera om"
-
-msgid "There are no compatible filaments, and sync is not performed."
-msgstr "Det finns inga kompatibla filament och synkronisering utförs inte."
 
 msgid ""
 "There are some unknown or uncompatible filaments mapped to generic preset. "
@@ -7157,6 +7141,12 @@ msgstr ""
 msgid "Right Extruder"
 msgstr ""
 
+msgid "Rearrange filaments of the left and right nozzles ->"
+msgstr ""
+
+msgid "Your material arrangement method is not optimal."
+msgstr ""
+
 msgid "Advanced Options"
 msgstr ""
 
@@ -7387,10 +7377,6 @@ msgstr ""
 "Printing high temperature material(%s material) with %s may cause nozzle "
 "damage"
 
-#, c-format, boost-format
-msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
-msgstr ""
-
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr "Please fix the error above, otherwise printing cannot continue."
 
@@ -7413,6 +7399,12 @@ msgstr "Onormal utskrifts fil data. Vänligen bered igen"
 
 msgid "The name length exceeds the limit."
 msgstr "Namnlängden överskrider gränsen."
+
+#, c-format, boost-format
+msgid ""
+"You picked both external and AMS filament, You will need to manually change "
+"filament %d times."
+msgstr ""
 
 msgid "Cool"
 msgstr ""
@@ -13801,6 +13793,10 @@ msgstr ""
 "Din nozzel typ i inställningen överensstämmer inte med den memorerade "
 "nozzeln. Har du bytat nozzel nyligen ? "
 
+#, c-format, boost-format
+msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
+msgstr ""
+
 msgid "Need select printer"
 msgstr "Välj printer"
 
@@ -14814,6 +14810,33 @@ msgstr ""
 "Visste du att när du skriver ut material som är benägna att vrida, såsom "
 "ABS, kan en lämplig ökning av värmebäddens temperatur minska sannolikheten "
 "för vridning."
+
+#~ msgid ""
+#~ "No AMS filaments. Please select a printer in 'Device' page to load AMS "
+#~ "info."
+#~ msgstr ""
+#~ "Inga AMS-filament. Välj en skrivare på sidan ”Enhet” för att ladda AMS-"
+#~ "information."
+
+#~ msgid ""
+#~ "Sync filaments with AMS will drop all current selected filament presets "
+#~ "and colors. Do you want to continue?"
+#~ msgstr ""
+#~ "Synkronisering av filament med AMS kommer att ta bort alla förvalda "
+#~ "filament inställningar och färger. Vill du fortsätta?"
+
+#~ msgid ""
+#~ "Already did a synchronization, do you want to sync only changes or resync "
+#~ "all?"
+#~ msgstr ""
+#~ "Du har redan gjort en synkronisering; vill du bara synkronisera ändringar "
+#~ "eller synkronisera allt på nytt?"
+
+#~ msgid "Sync"
+#~ msgstr "Synkronisera"
+
+#~ msgid "Resync"
+#~ msgstr "Synkronisera om"
 
 #, c-format, boost-format
 #~ msgid "nozzle memorized: %.1f %s"

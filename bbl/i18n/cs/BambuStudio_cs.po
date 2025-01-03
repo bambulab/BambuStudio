@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-31 09:44+0800\n"
+"POT-Creation-Date: 2025-01-03 09:41+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -2187,7 +2187,17 @@ msgid ""
 "load or unload filaments."
 msgstr ""
 
+msgid ""
+"Changed fan speed during pringing may affect print quality, please choose "
+"carefully."
+msgstr ""
+
 msgid "Off"
+msgstr ""
+
+msgid ""
+"The selected material only supports the current fan mode, and it can't be "
+"changed during printing."
 msgstr ""
 
 msgid "Cooling"
@@ -5776,38 +5786,12 @@ msgstr "Nastavit filamenty k použití"
 msgid "Search plate, object and part."
 msgstr ""
 
-msgid ""
-"No AMS filaments. Please select a printer in 'Device' page to load AMS info."
-msgstr ""
-"Žádné filamenty AMS. Chcete-li načíst informace AMS, vyberte tiskárnu na "
-"stránce Zařízení."
-
-msgid "Sync filaments with AMS"
-msgstr "Synchronizovat filamenty s AMS"
-
-msgid ""
-"Sync filaments with AMS will drop all current selected filament presets and "
-"colors. Do you want to continue?"
-msgstr ""
-"Synchronizace filamentů s AMS zruší všechny aktuálně vybrané předvolby "
-"filamentů a barvy. Chcete pokračovat?"
-
-msgid ""
-"Already did a synchronization, do you want to sync only changes or resync "
-"all?"
-msgstr ""
-"Synchronizace již proběhla, chcete synchronizovat pouze změny nebo znovu "
-"synchronizovat Všechno?"
-
-msgid "Sync"
-msgstr "Synchronizovat"
-
-msgid "Resync"
-msgstr "Znovu synchronizovat"
-
 msgid "There are no compatible filaments, and sync is not performed."
 msgstr ""
 "Neexistují žádná kompatibilní filamenty a synchronizace není provedena."
+
+msgid "Sync filaments with AMS"
+msgstr "Synchronizovat filamenty s AMS"
 
 msgid ""
 "There are some unknown or uncompatible filaments mapped to generic preset. "
@@ -7028,6 +7012,12 @@ msgstr ""
 msgid "Right Extruder"
 msgstr ""
 
+msgid "Rearrange filaments of the left and right nozzles ->"
+msgstr ""
+
+msgid "Your material arrangement method is not optimal."
+msgstr ""
+
 msgid "Advanced Options"
 msgstr ""
 
@@ -7245,10 +7235,6 @@ msgid ""
 "damage"
 msgstr ""
 
-#, c-format, boost-format
-msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
-msgstr ""
-
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr ""
 
@@ -7269,6 +7255,12 @@ msgstr "Abnormální data tiskového souboru. Prosím znovu slicovat"
 
 msgid "The name length exceeds the limit."
 msgstr "Délka názvu překračuje limit."
+
+#, c-format, boost-format
+msgid ""
+"You picked both external and AMS filament, You will need to manually change "
+"filament %d times."
+msgstr ""
 
 msgid "Cool"
 msgstr ""
@@ -13351,6 +13343,10 @@ msgid ""
 "change your nozzle lately ? "
 msgstr ""
 
+#, c-format, boost-format
+msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
+msgstr ""
+
 msgid "Need select printer"
 msgstr ""
 
@@ -14244,6 +14240,33 @@ msgid ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
 msgstr ""
+
+#~ msgid ""
+#~ "No AMS filaments. Please select a printer in 'Device' page to load AMS "
+#~ "info."
+#~ msgstr ""
+#~ "Žádné filamenty AMS. Chcete-li načíst informace AMS, vyberte tiskárnu na "
+#~ "stránce Zařízení."
+
+#~ msgid ""
+#~ "Sync filaments with AMS will drop all current selected filament presets "
+#~ "and colors. Do you want to continue?"
+#~ msgstr ""
+#~ "Synchronizace filamentů s AMS zruší všechny aktuálně vybrané předvolby "
+#~ "filamentů a barvy. Chcete pokračovat?"
+
+#~ msgid ""
+#~ "Already did a synchronization, do you want to sync only changes or resync "
+#~ "all?"
+#~ msgstr ""
+#~ "Synchronizace již proběhla, chcete synchronizovat pouze změny nebo znovu "
+#~ "synchronizovat Všechno?"
+
+#~ msgid "Sync"
+#~ msgstr "Synchronizovat"
+
+#~ msgid "Resync"
+#~ msgstr "Znovu synchronizovat"
 
 #~ msgid ""
 #~ "Spiral mode only works when wall loops is 1, support is disabled, top "

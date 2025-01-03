@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-31 09:44+0800\n"
+"POT-Creation-Date: 2025-01-03 09:41+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2242,7 +2242,17 @@ msgstr ""
 "Wählen Sie einen AMS-Slot und drücken Sie dann die Taste \"Laden\" oder "
 "\"Entladen\", um automatisch Filament zu laden oder zu entladen."
 
+msgid ""
+"Changed fan speed during pringing may affect print quality, please choose "
+"carefully."
+msgstr ""
+
 msgid "Off"
+msgstr ""
+
+msgid ""
+"The selected material only supports the current fan mode, and it can't be "
+"changed during printing."
 msgstr ""
 
 msgid "Cooling"
@@ -5956,39 +5966,13 @@ msgstr "Zu verwendende Filamente einstellen"
 msgid "Search plate, object and part."
 msgstr "Suche Platte, Objekt und Teil."
 
-msgid ""
-"No AMS filaments. Please select a printer in 'Device' page to load AMS info."
-msgstr ""
-"Keine AMS-Filamente. Bitte wählen Sie auf der Seite \"Gerät\" einen Drucker "
-"aus, um AMS-Informationen zu laden."
-
-msgid "Sync filaments with AMS"
-msgstr "Filamente mit AMS synchronisieren"
-
-msgid ""
-"Sync filaments with AMS will drop all current selected filament presets and "
-"colors. Do you want to continue?"
-msgstr ""
-"Bei der Synchronisierung von Filamenten mit dem AMS werden alle aktuell "
-"ausgewählten Filamentprofile und Farben gelöscht. Möchten Sie fortfahren?"
-
-msgid ""
-"Already did a synchronization, do you want to sync only changes or resync "
-"all?"
-msgstr ""
-"Es wurde bereits eine Synchronisation durchgeführt. Möchten Sie nur "
-"Änderungen synchronisieren oder alles erneut synchronisieren?"
-
-msgid "Sync"
-msgstr "Sync"
-
-msgid "Resync"
-msgstr "Resync"
-
 msgid "There are no compatible filaments, and sync is not performed."
 msgstr ""
 "Es gibt keine kompatiblen Filamente und die Synchronisierung wird nicht "
 "ausgeführt."
+
+msgid "Sync filaments with AMS"
+msgstr "Filamente mit AMS synchronisieren"
 
 msgid ""
 "There are some unknown or uncompatible filaments mapped to generic preset. "
@@ -7269,6 +7253,12 @@ msgstr ""
 msgid "Right Extruder"
 msgstr ""
 
+msgid "Rearrange filaments of the left and right nozzles ->"
+msgstr ""
+
+msgid "Your material arrangement method is not optimal."
+msgstr ""
+
 msgid "Advanced Options"
 msgstr ""
 
@@ -7504,10 +7494,6 @@ msgstr ""
 "Printing high temperature material(%s material) with %s may cause nozzle "
 "damage"
 
-#, c-format, boost-format
-msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
-msgstr ""
-
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr "Please fix the error above, otherwise printing cannot continue."
 
@@ -7531,6 +7517,12 @@ msgstr "Abnormale Daten in der Druckdatei. Bitte slicen Sie erneut"
 
 msgid "The name length exceeds the limit."
 msgstr "Die Namenslänge überschreitet das Limit."
+
+#, c-format, boost-format
+msgid ""
+"You picked both external and AMS filament, You will need to manually change "
+"filament %d times."
+msgstr ""
 
 msgid "Cool"
 msgstr ""
@@ -14073,6 +14065,10 @@ msgstr ""
 "Ihr voreingestellter Düsentyp stimmt nicht mit der gespeicherten Düse "
 "überein. Haben Sie in letzter Zeit Ihre Düse gewechselt? "
 
+#, c-format, boost-format
+msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
+msgstr ""
+
 msgid "Need select printer"
 msgstr "Sie müssen einen Drucker auswählen"
 
@@ -15096,6 +15092,33 @@ msgstr ""
 "Wussten Sie, dass beim Drucken von Materialien, die zu Verformungen neigen, "
 "wie z. B. ABS, die Wahrscheinlichkeit von Verformungen durch eine "
 "entsprechende Erhöhung der Heizbetttemperatur verringert werden kann?"
+
+#~ msgid ""
+#~ "No AMS filaments. Please select a printer in 'Device' page to load AMS "
+#~ "info."
+#~ msgstr ""
+#~ "Keine AMS-Filamente. Bitte wählen Sie auf der Seite \"Gerät\" einen "
+#~ "Drucker aus, um AMS-Informationen zu laden."
+
+#~ msgid ""
+#~ "Sync filaments with AMS will drop all current selected filament presets "
+#~ "and colors. Do you want to continue?"
+#~ msgstr ""
+#~ "Bei der Synchronisierung von Filamenten mit dem AMS werden alle aktuell "
+#~ "ausgewählten Filamentprofile und Farben gelöscht. Möchten Sie fortfahren?"
+
+#~ msgid ""
+#~ "Already did a synchronization, do you want to sync only changes or resync "
+#~ "all?"
+#~ msgstr ""
+#~ "Es wurde bereits eine Synchronisation durchgeführt. Möchten Sie nur "
+#~ "Änderungen synchronisieren oder alles erneut synchronisieren?"
+
+#~ msgid "Sync"
+#~ msgstr "Sync"
+
+#~ msgid "Resync"
+#~ msgstr "Resync"
 
 #, c-format, boost-format
 #~ msgid "nozzle memorized: %.1f %s"

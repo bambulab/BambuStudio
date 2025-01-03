@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-31 09:44+0800\n"
+"POT-Creation-Date: 2025-01-03 09:41+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2192,7 +2192,17 @@ msgstr ""
 "AMS 슬롯을 선택한 다음 \"로드\" 또는 \"언로드\" 버튼을 눌러 필라멘트를 자동으"
 "로 로드하거나 언로드합니다."
 
+msgid ""
+"Changed fan speed during pringing may affect print quality, please choose "
+"carefully."
+msgstr ""
+
 msgid "Off"
+msgstr ""
+
+msgid ""
+"The selected material only supports the current fan mode, and it can't be "
+"changed during printing."
 msgstr ""
 
 msgid "Cooling"
@@ -5801,37 +5811,11 @@ msgstr "사용할 필라멘트 설정"
 msgid "Search plate, object and part."
 msgstr "플레이트, 개체 및 부품을 검색합니다."
 
-msgid ""
-"No AMS filaments. Please select a printer in 'Device' page to load AMS info."
-msgstr ""
-"AMS 필라멘트가 없습니다.AMS 정보를 불러오려면 '장치' 페이지에서 프린터를 선택"
-"하십시오."
+msgid "There are no compatible filaments, and sync is not performed."
+msgstr "호환되는 필라멘트가 없어 동기화가 되지 않습니다."
 
 msgid "Sync filaments with AMS"
 msgstr "AMS와 필라멘트 동기화"
-
-msgid ""
-"Sync filaments with AMS will drop all current selected filament presets and "
-"colors. Do you want to continue?"
-msgstr ""
-"AMS와 필라멘트를 동기화하면 현재 선택한 필라멘트 프리셋과 색상이 모두 삭제됩"
-"니다.계속하시겠습니까?"
-
-msgid ""
-"Already did a synchronization, do you want to sync only changes or resync "
-"all?"
-msgstr ""
-"이미 동기화를 수행했습니다. 변경 사항만 동기화하시겠습니까, 아니면 모두 다시 "
-"동기화하시겠습니까?"
-
-msgid "Sync"
-msgstr "동기화"
-
-msgid "Resync"
-msgstr "다시 동기화"
-
-msgid "There are no compatible filaments, and sync is not performed."
-msgstr "호환되는 필라멘트가 없어 동기화가 되지 않습니다."
 
 msgid ""
 "There are some unknown or uncompatible filaments mapped to generic preset. "
@@ -7083,6 +7067,12 @@ msgstr ""
 msgid "Right Extruder"
 msgstr ""
 
+msgid "Rearrange filaments of the left and right nozzles ->"
+msgstr ""
+
+msgid "Your material arrangement method is not optimal."
+msgstr ""
+
 msgid "Advanced Options"
 msgstr ""
 
@@ -7301,10 +7291,6 @@ msgid ""
 "damage"
 msgstr "고온 재료(%s 재료)를 %s로 인쇄하면 노즐이 손상될 수 있습니다."
 
-#, c-format, boost-format
-msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
-msgstr ""
-
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr "위의 오류를 수정하십시오. 그렇지 않으면 인쇄를 계속할 수 없습니다."
 
@@ -7324,6 +7310,12 @@ msgstr "비정상적인 출력 파일입니다. 다시 슬라이싱 하십시오
 
 msgid "The name length exceeds the limit."
 msgstr "이름 길이가 제한을 초과합니다."
+
+#, c-format, boost-format
+msgid ""
+"You picked both external and AMS filament, You will need to manually change "
+"filament %d times."
+msgstr ""
 
 msgid "Cool"
 msgstr ""
@@ -13572,6 +13564,10 @@ msgid ""
 "change your nozzle lately ? "
 msgstr ""
 
+#, c-format, boost-format
+msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
+msgstr ""
+
 msgid "Need select printer"
 msgstr "Need select printer"
 
@@ -14579,6 +14575,33 @@ msgstr ""
 "뒤틀림 방지\n"
 "ABS 등 뒤틀림이 발생하기 쉬운 소재를 출력할 때, 히트베드 온도를 적절하게 높이"
 "면 뒤틀림 가능성을 줄일 수 있다는 사실을 알고 계셨나요?"
+
+#~ msgid ""
+#~ "No AMS filaments. Please select a printer in 'Device' page to load AMS "
+#~ "info."
+#~ msgstr ""
+#~ "AMS 필라멘트가 없습니다.AMS 정보를 불러오려면 '장치' 페이지에서 프린터를 "
+#~ "선택하십시오."
+
+#~ msgid ""
+#~ "Sync filaments with AMS will drop all current selected filament presets "
+#~ "and colors. Do you want to continue?"
+#~ msgstr ""
+#~ "AMS와 필라멘트를 동기화하면 현재 선택한 필라멘트 프리셋과 색상이 모두 삭제"
+#~ "됩니다.계속하시겠습니까?"
+
+#~ msgid ""
+#~ "Already did a synchronization, do you want to sync only changes or resync "
+#~ "all?"
+#~ msgstr ""
+#~ "이미 동기화를 수행했습니다. 변경 사항만 동기화하시겠습니까, 아니면 모두 다"
+#~ "시 동기화하시겠습니까?"
+
+#~ msgid "Sync"
+#~ msgstr "동기화"
+
+#~ msgid "Resync"
+#~ msgstr "다시 동기화"
 
 #, c-format, boost-format
 #~ msgid "nozzle memorized: %.1f %s"

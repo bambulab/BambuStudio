@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-31 09:44+0800\n"
+"POT-Creation-Date: 2025-01-03 09:41+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2200,7 +2200,17 @@ msgstr ""
 "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
 "load or unload filament."
 
+msgid ""
+"Changed fan speed during pringing may affect print quality, please choose "
+"carefully."
+msgstr ""
+
 msgid "Off"
+msgstr ""
+
+msgid ""
+"The selected material only supports the current fan mode, and it can't be "
+"changed during printing."
 msgstr ""
 
 msgid "Cooling"
@@ -5853,36 +5863,11 @@ msgstr "Set filaments to use"
 msgid "Search plate, object and part."
 msgstr "Search plate, object and part."
 
-msgid ""
-"No AMS filaments. Please select a printer in 'Device' page to load AMS info."
-msgstr ""
-"No AMS filaments. Please select a printer in 'Device' page to load AMS info."
+msgid "There are no compatible filaments, and sync is not performed."
+msgstr "There are no compatible filaments, and sync is not performed."
 
 msgid "Sync filaments with AMS"
 msgstr "Sync filaments with AMS"
-
-msgid ""
-"Sync filaments with AMS will drop all current selected filament presets and "
-"colors. Do you want to continue?"
-msgstr ""
-"Sync filaments with AMS will drop all current selected filament presets and "
-"colors. Do you want to continue?"
-
-msgid ""
-"Already did a synchronization, do you want to sync only changes or resync "
-"all?"
-msgstr ""
-"Already did a synchronization, do you want to sync only changes or resync "
-"all?"
-
-msgid "Sync"
-msgstr "Sync"
-
-msgid "Resync"
-msgstr "Resync"
-
-msgid "There are no compatible filaments, and sync is not performed."
-msgstr "There are no compatible filaments, and sync is not performed."
 
 msgid ""
 "There are some unknown or uncompatible filaments mapped to generic preset. "
@@ -7132,6 +7117,12 @@ msgstr ""
 msgid "Right Extruder"
 msgstr ""
 
+msgid "Rearrange filaments of the left and right nozzles ->"
+msgstr ""
+
+msgid "Your material arrangement method is not optimal."
+msgstr ""
+
 msgid "Advanced Options"
 msgstr ""
 
@@ -7359,10 +7350,6 @@ msgstr ""
 "Printing high temperature material(%s material) with %s may cause nozzle "
 "damage"
 
-#, c-format, boost-format
-msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
-msgstr ""
-
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr "Please fix the error above, otherwise printing cannot continue."
 
@@ -7384,6 +7371,12 @@ msgstr "Abnormal print file data. Please slice again"
 
 msgid "The name length exceeds the limit."
 msgstr "The name length exceeds the limit."
+
+#, c-format, boost-format
+msgid ""
+"You picked both external and AMS filament, You will need to manually change "
+"filament %d times."
+msgstr ""
 
 msgid "Cool"
 msgstr ""
@@ -13710,6 +13703,10 @@ msgstr ""
 "Your nozzle type in preset is not consistent with memorized nozzle.Did you "
 "change your nozzle lately ? "
 
+#, c-format, boost-format
+msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
+msgstr ""
+
 msgid "Need select printer"
 msgstr "Need select printer"
 
@@ -14722,6 +14719,33 @@ msgstr ""
 "Did you know that when printing materials that are prone to warping such as "
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping?"
+
+#~ msgid ""
+#~ "No AMS filaments. Please select a printer in 'Device' page to load AMS "
+#~ "info."
+#~ msgstr ""
+#~ "No AMS filaments. Please select a printer in 'Device' page to load AMS "
+#~ "info."
+
+#~ msgid ""
+#~ "Sync filaments with AMS will drop all current selected filament presets "
+#~ "and colors. Do you want to continue?"
+#~ msgstr ""
+#~ "Sync filaments with AMS will drop all current selected filament presets "
+#~ "and colors. Do you want to continue?"
+
+#~ msgid ""
+#~ "Already did a synchronization, do you want to sync only changes or resync "
+#~ "all?"
+#~ msgstr ""
+#~ "Already did a synchronization, do you want to sync only changes or resync "
+#~ "all?"
+
+#~ msgid "Sync"
+#~ msgstr "Sync"
+
+#~ msgid "Resync"
+#~ msgstr "Resync"
 
 #, c-format, boost-format
 #~ msgid "nozzle memorized: %.1f %s"
