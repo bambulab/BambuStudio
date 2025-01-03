@@ -3082,6 +3082,8 @@ GCode::LayerResult GCode::process_layer(
     gcode += this->change_layer(print_z);  // this will increase m_layer_index
     m_layer = &layer;
     m_object_layer_over_raft = false;
+
+    // BBS: insert timelapse gcode for smooth mode before wipe tower is printed. Prints residual filament into wipe tower.
     if (printer_structure == PrinterStructure::psI3 && !need_insert_timelapse_gcode_for_traditional && !m_spiral_vase && print.config().print_sequence == PrintSequence::ByLayer) {
         std::string timepals_gcode = insert_timelapse_gcode();
         gcode += timepals_gcode;
@@ -3432,6 +3434,7 @@ GCode::LayerResult GCode::process_layer(
     {
         if (has_wipe_tower) {
             if (!m_wipe_tower->is_empty_wipe_tower_gcode(*this, extruder_id, extruder_id == layer_tools.extruders.back())) {
+                // BBS: insert timelapse gcode for traditional mode before last filament change, if given. Prints residual filament into wipe tower.
                 if (need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode) {
                     gcode += this->retract(false, false, LiftType::NormalLift);
                     m_writer.add_object_change_labels(gcode);
@@ -3655,6 +3658,7 @@ GCode::LayerResult GCode::process_layer(
                     //BBS: for first layer, we always print wall firstly to get better bed adhesive force
                     //This behaviour is same with cura
                     if (is_infill_first && !first_layer) {
+                        // BBS: insert timelapse gcode for traditional mode before infill (and perimeter) is printed. Prints residual filament into infill.
                         if (!has_wipe_tower && need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode && has_infill(by_region_specific)) {
                             gcode += this->retract(false, false, LiftType::NormalLift);
                             if (!temp_start_str.empty() && m_writer.empty_object_start_str()) {
@@ -3684,6 +3688,7 @@ GCode::LayerResult GCode::process_layer(
                         gcode += this->extrude_perimeters(print, by_region_specific);
                     } else {
                         gcode += this->extrude_perimeters(print, by_region_specific);
+                        // BBS: insert timelapse gcode for traditional mode before infill (and after perimeter) is printed. Prints residual filament into infill.
                         if (!has_wipe_tower && need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode && has_infill(by_region_specific)) {
                             gcode += this->retract(false, false, LiftType::NormalLift);
                             if (!temp_start_str.empty() && m_writer.empty_object_start_str()) {
@@ -3770,6 +3775,8 @@ GCode::LayerResult GCode::process_layer(
     BOOST_LOG_TRIVIAL(trace) << "Exported layer " << layer.id() << " print_z " << print_z <<
     log_memory_info();
 
+    // BBS: insert timelapse gcode for traditional mode after the complete layer was printed, when no wipe tower and no infill was available. 
+    // Residual filament will be printed into visible areas on the next layer. Causes a warning to be displayed in the UI.
     if (!has_wipe_tower && need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode) {
         if (m_support_traditional_timelapse)
             m_support_traditional_timelapse = false;
