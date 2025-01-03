@@ -6108,6 +6108,7 @@ void MachineObject::update_printer_preset_name()
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << "start update preset_name";
     PresetBundle *     preset_bundle = Slic3r::GUI::wxGetApp().preset_bundle;
+    if (!preset_bundle) return;
     auto               printer_model = MachineObject::get_preset_printer_model_name(this->printer_type);
     std::set<std::string> diameter_set;
     for (auto &nozzle : m_extder_data.extders) {
