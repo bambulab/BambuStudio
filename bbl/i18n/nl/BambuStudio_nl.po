@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-31 09:44+0800\n"
+"POT-Creation-Date: 2025-01-03 09:41+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2237,7 +2237,17 @@ msgstr ""
 "Kies een AMS-sleuf en druk op de knop \"Laden\" of \"Lossen\" om automatisch "
 "filament te laden of te ontladen."
 
+msgid ""
+"Changed fan speed during pringing may affect print quality, please choose "
+"carefully."
+msgstr ""
+
 msgid "Off"
+msgstr ""
+
+msgid ""
+"The selected material only supports the current fan mode, and it can't be "
+"changed during printing."
 msgstr ""
 
 msgid "Cooling"
@@ -5934,39 +5944,13 @@ msgstr "Stel filamenten in om te gebruiken"
 msgid "Search plate, object and part."
 msgstr "Zoek plaat, object en onderdeel."
 
-msgid ""
-"No AMS filaments. Please select a printer in 'Device' page to load AMS info."
-msgstr ""
-"Geen AMS filamenten. Selecteer een printer in 'Apparaat' pagina om AMS info "
-"te laden."
-
-msgid "Sync filaments with AMS"
-msgstr "Synchroniseer filamenten met AMS"
-
-msgid ""
-"Sync filaments with AMS will drop all current selected filament presets and "
-"colors. Do you want to continue?"
-msgstr ""
-"Door filamenten te synchroniseren met de AMS zullen alle huidige "
-"geselecteerde filament presets en kleuren wegvallen. Wilt u doorgaan?"
-
-msgid ""
-"Already did a synchronization, do you want to sync only changes or resync "
-"all?"
-msgstr ""
-"Heb je al gesynchroniseerd, wil je alleen wijzigingen synchroniseren of "
-"alles opnieuw synchroniseren?"
-
-msgid "Sync"
-msgstr "Synchroniseren"
-
-msgid "Resync"
-msgstr "Opnieuw synchroniseren"
-
 msgid "There are no compatible filaments, and sync is not performed."
 msgstr ""
 "Er zijn geen compatibele filamenten en er wordt geen synchronisatie "
 "uitgevoerd."
+
+msgid "Sync filaments with AMS"
+msgstr "Synchroniseer filamenten met AMS"
 
 msgid ""
 "There are some unknown or uncompatible filaments mapped to generic preset. "
@@ -7250,6 +7234,12 @@ msgstr ""
 msgid "Right Extruder"
 msgstr ""
 
+msgid "Rearrange filaments of the left and right nozzles ->"
+msgstr ""
+
+msgid "Your material arrangement method is not optimal."
+msgstr ""
+
 msgid "Advanced Options"
 msgstr ""
 
@@ -7482,10 +7472,6 @@ msgstr ""
 "Printing high temperature material(%s material) with %s may cause nozzle "
 "damage"
 
-#, c-format, boost-format
-msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
-msgstr ""
-
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr "Please fix the error above, otherwise printing cannot continue."
 
@@ -7507,6 +7493,12 @@ msgstr "Abnormale printbestand. Slice opnieuw"
 
 msgid "The name length exceeds the limit."
 msgstr "De lengte van de naam overschrijdt de limiet."
+
+#, c-format, boost-format
+msgid ""
+"You picked both external and AMS filament, You will need to manually change "
+"filament %d times."
+msgstr ""
 
 msgid "Cool"
 msgstr ""
@@ -13987,6 +13979,10 @@ msgstr ""
 "Het type mondstuk in de preset komt niet overeen met het opgeslagen "
 "mondstuk. Heeft u onlangs uw mondstuk vervangen? "
 
+#, c-format, boost-format
+msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
+msgstr ""
+
 msgid "Need select printer"
 msgstr "Printer selecteren"
 
@@ -15001,6 +14997,33 @@ msgstr ""
 "Wist je dat bij het printen van materialen die gevoelig zijn voor "
 "kromtrekken, zoals ABS, een juiste verhoging van de temperatuur van het "
 "warmtebed de kans op kromtrekken kan verkleinen?"
+
+#~ msgid ""
+#~ "No AMS filaments. Please select a printer in 'Device' page to load AMS "
+#~ "info."
+#~ msgstr ""
+#~ "Geen AMS filamenten. Selecteer een printer in 'Apparaat' pagina om AMS "
+#~ "info te laden."
+
+#~ msgid ""
+#~ "Sync filaments with AMS will drop all current selected filament presets "
+#~ "and colors. Do you want to continue?"
+#~ msgstr ""
+#~ "Door filamenten te synchroniseren met de AMS zullen alle huidige "
+#~ "geselecteerde filament presets en kleuren wegvallen. Wilt u doorgaan?"
+
+#~ msgid ""
+#~ "Already did a synchronization, do you want to sync only changes or resync "
+#~ "all?"
+#~ msgstr ""
+#~ "Heb je al gesynchroniseerd, wil je alleen wijzigingen synchroniseren of "
+#~ "alles opnieuw synchroniseren?"
+
+#~ msgid "Sync"
+#~ msgstr "Synchroniseren"
+
+#~ msgid "Resync"
+#~ msgstr "Opnieuw synchroniseren"
 
 #, c-format, boost-format
 #~ msgid "nozzle memorized: %.1f %s"

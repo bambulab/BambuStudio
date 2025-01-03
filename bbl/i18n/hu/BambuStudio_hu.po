@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-31 09:44+0800\n"
+"POT-Creation-Date: 2025-01-03 09:41+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2227,7 +2227,17 @@ msgstr ""
 "Válassz ki egy AMS-helyet, majd nyomd meg a „Betöltés” vagy a „Kitöltés” "
 "gombot az filament automatikus betöltéséhez vagy eltávolításához."
 
+msgid ""
+"Changed fan speed during pringing may affect print quality, please choose "
+"carefully."
+msgstr ""
+
 msgid "Off"
+msgstr ""
+
+msgid ""
+"The selected material only supports the current fan mode, and it can't be "
+"changed during printing."
 msgstr ""
 
 msgid "Cooling"
@@ -5901,37 +5911,11 @@ msgstr "Használni kívánt filament beállítása"
 msgid "Search plate, object and part."
 msgstr "Tálca, objektum és tárgy keresése."
 
-msgid ""
-"No AMS filaments. Please select a printer in 'Device' page to load AMS info."
-msgstr ""
-"Nem található AMS-filament. Kérjük, válassz egy nyomtatót az „Nyomtató” "
-"oldalon az AMS információk betöltéséhez."
+msgid "There are no compatible filaments, and sync is not performed."
+msgstr "Nincs kompatibilis filament és nem történt szinkronizálás."
 
 msgid "Sync filaments with AMS"
 msgstr "Filamentek szinkronizálása az AMS-sel"
-
-msgid ""
-"Sync filaments with AMS will drop all current selected filament presets and "
-"colors. Do you want to continue?"
-msgstr ""
-"Ha szinkronizálod a filamenteket az AMS-sel, akkor az összes kiválasztott "
-"filamentbeállítás és szín felülírásra kerül. Folytatod?"
-
-msgid ""
-"Already did a synchronization, do you want to sync only changes or resync "
-"all?"
-msgstr ""
-"Már végeztél egy szinkronizálást; csak a módosításokat szeretnéd "
-"szinkronizálni, vagy újraszinkronizálsz mindent?"
-
-msgid "Sync"
-msgstr "Szinkronizálás"
-
-msgid "Resync"
-msgstr "Újraszinkronizálás"
-
-msgid "There are no compatible filaments, and sync is not performed."
-msgstr "Nincs kompatibilis filament és nem történt szinkronizálás."
 
 msgid ""
 "There are some unknown or uncompatible filaments mapped to generic preset. "
@@ -7194,6 +7178,12 @@ msgstr ""
 msgid "Right Extruder"
 msgstr ""
 
+msgid "Rearrange filaments of the left and right nozzles ->"
+msgstr ""
+
+msgid "Your material arrangement method is not optimal."
+msgstr ""
+
 msgid "Advanced Options"
 msgstr ""
 
@@ -7426,10 +7416,6 @@ msgstr ""
 "Printing high temperature material(%s material) with %s may cause nozzle "
 "damage"
 
-#, c-format, boost-format
-msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
-msgstr ""
-
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr "Please fix the error above, otherwise printing cannot continue."
 
@@ -7453,6 +7439,12 @@ msgstr "Rendellenes nyomtatási fájladatok. Kérjük, szeleteld újra"
 
 msgid "The name length exceeds the limit."
 msgstr "A név túl hosszú."
+
+#, c-format, boost-format
+msgid ""
+"You picked both external and AMS filament, You will need to manually change "
+"filament %d times."
+msgstr ""
 
 msgid "Cool"
 msgstr ""
@@ -13898,6 +13890,10 @@ msgstr ""
 "A beállításban szereplő fúvóka típusa nem egyezik az eltárolt értékkel. "
 "Lecserélted mostanában a fúvókát? "
 
+#, c-format, boost-format
+msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
+msgstr ""
+
 msgid "Need select printer"
 msgstr "Ki kell választanod a nyomtatót"
 
@@ -14912,6 +14908,33 @@ msgstr ""
 "Vetemedés elkerülése\n"
 "Tudtad, hogy a vetemedésre hajlamos anyagok (például ABS) nyomtatásakor a "
 "tárgyasztal hőmérsékletének növelése csökkentheti a vetemedés valószínűségét?"
+
+#~ msgid ""
+#~ "No AMS filaments. Please select a printer in 'Device' page to load AMS "
+#~ "info."
+#~ msgstr ""
+#~ "Nem található AMS-filament. Kérjük, válassz egy nyomtatót az „Nyomtató” "
+#~ "oldalon az AMS információk betöltéséhez."
+
+#~ msgid ""
+#~ "Sync filaments with AMS will drop all current selected filament presets "
+#~ "and colors. Do you want to continue?"
+#~ msgstr ""
+#~ "Ha szinkronizálod a filamenteket az AMS-sel, akkor az összes kiválasztott "
+#~ "filamentbeállítás és szín felülírásra kerül. Folytatod?"
+
+#~ msgid ""
+#~ "Already did a synchronization, do you want to sync only changes or resync "
+#~ "all?"
+#~ msgstr ""
+#~ "Már végeztél egy szinkronizálást; csak a módosításokat szeretnéd "
+#~ "szinkronizálni, vagy újraszinkronizálsz mindent?"
+
+#~ msgid "Sync"
+#~ msgstr "Szinkronizálás"
+
+#~ msgid "Resync"
+#~ msgstr "Újraszinkronizálás"
 
 #, c-format, boost-format
 #~ msgid "nozzle memorized: %.1f %s"

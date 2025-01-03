@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 1.10.1 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-31 09:44+0800\n"
+"POT-Creation-Date: 2025-01-03 09:41+0800\n"
 "PO-Revision-Date: 2024-09-27 23:58+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -2283,7 +2283,17 @@ msgstr ""
 "Выберите слот АСПП, затем нажмите кнопку «Втянуть» или «Выгрузить» для "
 "автоматической загрузки или выгрузки прутка."
 
+msgid ""
+"Changed fan speed during pringing may affect print quality, please choose "
+"carefully."
+msgstr ""
+
 msgid "Off"
+msgstr ""
+
+msgid ""
+"The selected material only supports the current fan mode, and it can't be "
+"changed during printing."
 msgstr ""
 
 msgid "Cooling"
@@ -6054,38 +6064,12 @@ msgstr "Выбор пластиковой нити"
 msgid "Search plate, object and part."
 msgstr "Поиск печатной пластины, модели или части модели."
 
-msgid ""
-"No AMS filaments. Please select a printer in 'Device' page to load AMS info."
-msgstr ""
-"АСПП недоступна. Пожалуйста, выберите принтер \n"
-"на вкладке «Принтер», чтобы загрузить информацию о АСПП."
-
-msgid "Sync filaments with AMS"
-msgstr "Синхронизация прутка с АСПП"
-
-msgid ""
-"Sync filaments with AMS will drop all current selected filament presets and "
-"colors. Do you want to continue?"
-msgstr ""
-"При синхронизации пластиковых нитей с АСПП все текущие выбранные профили "
-"прутков и цвета будут сброшены. Продолжить?"
-
-msgid ""
-"Already did a synchronization, do you want to sync only changes or resync "
-"all?"
-msgstr ""
-"Синхронизация уже выполнена. Хотите синхронизировать только изменения или "
-"заново синхронизировать всё?"
-
-msgid "Sync"
-msgstr "Только изменения"
-
-msgid "Resync"
-msgstr "Всё"
-
 msgid "There are no compatible filaments, and sync is not performed."
 msgstr ""
 "Синхронизация не выполнена, ввиду отсутствия совместимых пластиковых нитей."
+
+msgid "Sync filaments with AMS"
+msgstr "Синхронизация прутка с АСПП"
 
 msgid ""
 "There are some unknown or uncompatible filaments mapped to generic preset. "
@@ -7421,6 +7405,12 @@ msgstr ""
 msgid "Right Extruder"
 msgstr ""
 
+msgid "Rearrange filaments of the left and right nozzles ->"
+msgstr ""
+
+msgid "Your material arrangement method is not optimal."
+msgstr ""
+
 msgid "Advanced Options"
 msgstr ""
 
@@ -7654,10 +7644,6 @@ msgid ""
 msgstr ""
 "Печать %1s материалом с помощью сопла %2s может привести к повреждению сопла."
 
-#, c-format, boost-format
-msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
-msgstr ""
-
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr ""
 "Пожалуйста, устраните вышеуказанную ошибку, иначе печать не может "
@@ -7680,6 +7666,12 @@ msgstr "Неправильные данные файла печати. Пожа�
 
 msgid "The name length exceeds the limit."
 msgstr "Длина имени превышает установленное ограничение."
+
+#, c-format, boost-format
+msgid ""
+"You picked both external and AMS filament, You will need to manually change "
+"filament %d times."
+msgstr ""
 
 msgid "Cool"
 msgstr ""
@@ -14404,6 +14396,10 @@ msgid ""
 "change your nozzle lately ? "
 msgstr ""
 
+#, c-format, boost-format
+msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
+msgstr ""
+
 msgid "Need select printer"
 msgstr "Нужно выбрать принтер"
 
@@ -15486,6 +15482,33 @@ msgstr ""
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как "
 "ABS, повышение температуры подогреваемого стола может снизить эту "
 "вероятность?"
+
+#~ msgid ""
+#~ "No AMS filaments. Please select a printer in 'Device' page to load AMS "
+#~ "info."
+#~ msgstr ""
+#~ "АСПП недоступна. Пожалуйста, выберите принтер \n"
+#~ "на вкладке «Принтер», чтобы загрузить информацию о АСПП."
+
+#~ msgid ""
+#~ "Sync filaments with AMS will drop all current selected filament presets "
+#~ "and colors. Do you want to continue?"
+#~ msgstr ""
+#~ "При синхронизации пластиковых нитей с АСПП все текущие выбранные профили "
+#~ "прутков и цвета будут сброшены. Продолжить?"
+
+#~ msgid ""
+#~ "Already did a synchronization, do you want to sync only changes or resync "
+#~ "all?"
+#~ msgstr ""
+#~ "Синхронизация уже выполнена. Хотите синхронизировать только изменения или "
+#~ "заново синхронизировать всё?"
+
+#~ msgid "Sync"
+#~ msgstr "Только изменения"
+
+#~ msgid "Resync"
+#~ msgstr "Всё"
 
 #, c-format, boost-format
 #~ msgid "nozzle memorized: %.1f %s"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-31 09:44+0800\n"
+"POT-Creation-Date: 2025-01-03 09:41+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2188,7 +2188,17 @@ msgstr ""
 "AMSスロットを選択し「ロード」または「アンロード」ボタンを押すとフィラメントが"
 "自動的にロード／アンロードされます。"
 
+msgid ""
+"Changed fan speed during pringing may affect print quality, please choose "
+"carefully."
+msgstr ""
+
 msgid "Off"
+msgstr ""
+
+msgid ""
+"The selected material only supports the current fan mode, and it can't be "
+"changed during printing."
 msgstr ""
 
 msgid "Cooling"
@@ -5782,36 +5792,11 @@ msgstr "フィラメントを選択"
 msgid "Search plate, object and part."
 msgstr "Search plate, object and part."
 
-msgid ""
-"No AMS filaments. Please select a printer in 'Device' page to load AMS info."
-msgstr ""
-"AMSにフィラメントがありません、「デバイス」ページでプリンターを選択し、AMS情"
-"報をロードしてください。"
+msgid "There are no compatible filaments, and sync is not performed."
+msgstr "適用できるフィラメントがありません、同期を行えません"
 
 msgid "Sync filaments with AMS"
 msgstr "AMSと同期"
-
-msgid ""
-"Sync filaments with AMS will drop all current selected filament presets and "
-"colors. Do you want to continue?"
-msgstr ""
-"AMSと同期する場合、現在のフィラメント設定が上書きされます。続行しますか？"
-
-msgid ""
-"Already did a synchronization, do you want to sync only changes or resync "
-"all?"
-msgstr ""
-"Already did a synchronization; do you want to sync only changes or resync "
-"all?"
-
-msgid "Sync"
-msgstr "Sync"
-
-msgid "Resync"
-msgstr "Resync"
-
-msgid "There are no compatible filaments, and sync is not performed."
-msgstr "適用できるフィラメントがありません、同期を行えません"
 
 msgid ""
 "There are some unknown or uncompatible filaments mapped to generic preset. "
@@ -7058,6 +7043,12 @@ msgstr ""
 msgid "Right Extruder"
 msgstr ""
 
+msgid "Rearrange filaments of the left and right nozzles ->"
+msgstr ""
+
+msgid "Your material arrangement method is not optimal."
+msgstr ""
+
 msgid "Advanced Options"
 msgstr ""
 
@@ -7267,10 +7258,6 @@ msgstr ""
 "Printing high temperature material(%s material) with %s may cause nozzle "
 "damage"
 
-#, c-format, boost-format
-msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
-msgstr ""
-
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr "Please fix the error above, otherwise printing cannot continue."
 
@@ -7290,6 +7277,12 @@ msgstr "ファイルに異常があります、もう一度スライスしてく
 
 msgid "The name length exceeds the limit."
 msgstr "名称の長さが制限を超えています。"
+
+#, c-format, boost-format
+msgid ""
+"You picked both external and AMS filament, You will need to manually change "
+"filament %d times."
+msgstr ""
 
 msgid "Cool"
 msgstr ""
@@ -13501,6 +13494,10 @@ msgstr ""
 "Your nozzle type in preset is not consistent with memorized nozzle.Did you "
 "change your nozzle lately ? "
 
+#, c-format, boost-format
+msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
+msgstr ""
+
 msgid "Need select printer"
 msgstr "Need select printer"
 
@@ -14487,6 +14484,32 @@ msgstr ""
 "Did you know that when printing materials that are prone to warping such as "
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping?"
+
+#~ msgid ""
+#~ "No AMS filaments. Please select a printer in 'Device' page to load AMS "
+#~ "info."
+#~ msgstr ""
+#~ "AMSにフィラメントがありません、「デバイス」ページでプリンターを選択し、AMS"
+#~ "情報をロードしてください。"
+
+#~ msgid ""
+#~ "Sync filaments with AMS will drop all current selected filament presets "
+#~ "and colors. Do you want to continue?"
+#~ msgstr ""
+#~ "AMSと同期する場合、現在のフィラメント設定が上書きされます。続行しますか？"
+
+#~ msgid ""
+#~ "Already did a synchronization, do you want to sync only changes or resync "
+#~ "all?"
+#~ msgstr ""
+#~ "Already did a synchronization; do you want to sync only changes or resync "
+#~ "all?"
+
+#~ msgid "Sync"
+#~ msgstr "Sync"
+
+#~ msgid "Resync"
+#~ msgstr "Resync"
 
 #, c-format, boost-format
 #~ msgid "nozzle memorized: %.1f %s"
