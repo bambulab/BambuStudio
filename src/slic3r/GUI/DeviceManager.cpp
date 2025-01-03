@@ -2824,7 +2824,7 @@ void MachineObject::reset_update_time()
 {
     BOOST_LOG_TRIVIAL(trace) << "reset reset_update_time, dev_id =" << dev_id;
     last_update_time = std::chrono::system_clock::now();
-    subscribe_counter = 3;
+    subscribe_counter = SUBSCRIBE_RETRY_COUNT;
 }
 
 void MachineObject::reset()
@@ -2847,7 +2847,7 @@ void MachineObject::reset()
     extruder_axis_status = LOAD;
     network_wired = false;
     dev_connection_name = "";
-    subscribe_counter = 3;
+    subscribe_counter = SUBSCRIBE_RETRY_COUNT;
     job_id_ = "";
     m_plate_index = -1;
 
@@ -6108,6 +6108,7 @@ void MachineObject::update_printer_preset_name()
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << "start update preset_name";
     PresetBundle *     preset_bundle = Slic3r::GUI::wxGetApp().preset_bundle;
+    if (!preset_bundle) return;
     auto               printer_model = MachineObject::get_preset_printer_model_name(this->printer_type);
     std::set<std::string> diameter_set;
     for (auto &nozzle : m_extder_data.extders) {

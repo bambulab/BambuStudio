@@ -2049,6 +2049,11 @@ std::set<std::string> PresetBundle::get_printer_names_by_printer_type_and_nozzle
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << "printer_type: " << printer_type << "nozzle_diameter_str" << nozzle_diameter_str;
     std::set<std::string> printer_names;
+
+    /* unknown or empty printer type */
+    if (printer_type.empty())
+        return printer_names;
+
     if ("0.0" == nozzle_diameter_str || nozzle_diameter_str.empty()) {
         nozzle_diameter_str = "0.4";
     }
