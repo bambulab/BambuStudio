@@ -361,6 +361,36 @@ namespace client
             return expr();
         }
 
+        expr floor(const Iterator start_pos)const
+        {
+            switch (this->type) {
+            case TYPE_INT:
+                return expr<Iterator>(this->i(), start_pos, this->it_range.end());
+            case TYPE_DOUBLE:
+                return expr<Iterator>(static_cast<int>(std::floor(this->d())), start_pos, this->it_range.end());
+            default:
+                this->throw_exception("Cannot floor a non-numeric value.");
+            }
+            assert(false);
+            // Suppress compiler warnings.
+            return expr();
+        }
+
+        expr ceil(const Iterator start_pos)const
+        {
+            switch (this->type) {
+            case TYPE_INT:
+                return expr<Iterator>(this->i(), start_pos, this->it_range.end());
+            case TYPE_DOUBLE:
+                return expr<Iterator>(static_cast<int>(std::ceil(this->d())), start_pos, this->it_range.end());
+            default:
+                this->throw_exception("Cannot ceil a non-numeric value.");
+            }
+            assert(false);
+            // Suppress compiler warnings.
+            return expr();
+        }
+
         expr unary_not(const Iterator start_pos) const
         {
             switch (this->type) {
@@ -1322,6 +1352,10 @@ namespace client
                         { out = value.unary_integer(out.it_range.begin()); }
                 static void round(expr<Iterator> &value, expr<Iterator> &out)
                         { out = value.round(out.it_range.begin()); }
+                static void floor(expr<Iterator> &value, expr<Iterator> &out)
+                        { out = value.floor(out.it_range.begin()); }
+                static void ceil(expr<Iterator> &value, expr<Iterator> &out)
+                        { out = value.ceil(out.it_range.begin());}
                 // For indicating "no optional parameter".
                 static void noexpr(expr<Iterator> &out) { out.reset(); }
             };
@@ -1344,6 +1378,8 @@ namespace client
                                                                     [ px::bind(&expr<Iterator>::template digits<true>, _val, _2, _3) ]
                 |   (kw["int"]   > '(' > conditional_expression(_r1) > ')') [ px::bind(&FactorActions::to_int,  _1, _val) ]
                 |   (kw["round"] > '(' > conditional_expression(_r1) > ')') [ px::bind(&FactorActions::round,   _1, _val) ]
+                |   (kw["ceil"]  > '(' > conditional_expression(_r1) > ')') [ px::bind(&FactorActions::ceil,    _1, _val) ]
+                |   (kw["floor"] > '(' > conditional_expression(_r1) > ')') [ px::bind(&FactorActions::floor,   _1, _val) ]
                 |   (strict_double > iter_pos)                      [ px::bind(&FactorActions::double_, _1, _2, _val) ]
                 |   (int_      > iter_pos)                          [ px::bind(&FactorActions::int_,    _1, _2, _val) ]
                 |   (kw[bool_] > iter_pos)                          [ px::bind(&FactorActions::bool_,   _1, _2, _val) ]
@@ -1390,6 +1426,8 @@ namespace client
                 ("random")
                 ("filament_change")
                 ("round")
+                ("floor")
+                ("ceil")
                 ("not")
                 ("or")
                 ("true");
