@@ -289,7 +289,7 @@ void MonitorPanel::select_machine(std::string machine_sn)
 {
      if (update_flag) {
          update_all();
-         Layout();
+         //Layout();
      }
 }
 
@@ -342,7 +342,8 @@ void MonitorPanel::on_printer_clicked(wxMouseEvent &event)
 
 void MonitorPanel::on_size(wxSizeEvent &event)
 {
-    //Layout();
+    Layout();
+    //event.Skip();
     //Refresh();
 }
 
@@ -531,7 +532,7 @@ void MonitorPanel::show_status(int status)
     m_upgrade_panel->update(nullptr);
 #endif
 
-Freeze();
+//Freeze();
     // update panels
     if (m_side_tools) { m_side_tools->show_status(status); };
     m_status_info_panel->show_status(status);
@@ -556,7 +557,7 @@ Freeze();
         m_tabpanel->Layout();
     }
     Layout();
-Thaw();
+//Thaw();
 }
 
 std::string MonitorPanel::get_string_from_tab(PrinterTab tab)
