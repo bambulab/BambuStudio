@@ -6126,9 +6126,16 @@ void MachineObject::update_printer_preset_name()
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << " update printer preset name failed: "<< "printer_type: " << printer_type << "nozzle_diameter_str" << nozzle_diameter_str;
     }
 
-    for (auto iter = m_nozzle_filament_data.begin(); iter != m_nozzle_filament_data.end(); iter++) {
+    for (auto iter = m_nozzle_filament_data.begin(); iter != m_nozzle_filament_data.end();)
+    {
         if (diameter_set.find(iter->first) == diameter_set.end())
+        {
             iter = m_nozzle_filament_data.erase(iter);
+        }
+        else
+        {
+            ++iter;
+        }
     }
 }
 
