@@ -242,7 +242,6 @@ OpenGLManager::~OpenGLManager()
     release_vao();
     m_shaders_manager.shutdown();
     m_name_to_frame_buffer.clear();
-
 #ifdef __APPLE__
     // This is an ugly hack needed to solve the crash happening when closing the application on OSX 10.9.5 with newer wxWidgets
     // The crash is triggered inside wxGLContext destructor
