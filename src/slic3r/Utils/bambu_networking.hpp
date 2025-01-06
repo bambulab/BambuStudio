@@ -10,7 +10,7 @@ extern std::string g_log_start_time;
 
 namespace BBL {
 
-#define BAMBU_NETWORK_SUCCESS                            0
+#define BAMBU_NETWORK_SUCCESS                           0
 #define BAMBU_NETWORK_ERR_INVALID_HANDLE                -1
 #define BAMBU_NETWORK_ERR_CONNECT_FAILED                -2
 #define BAMBU_NETWORK_ERR_DISCONNECT_FAILED             -3
@@ -202,7 +202,6 @@ struct PrintParams {
     std::string     ftp_file;
     std::string     ftp_file_md5;
     std::string     ams_mapping;
-    std::string     ams_mapping2;
     std::string     ams_mapping_info;
     std::string     nozzles_info;
     std::string     connection_type;
