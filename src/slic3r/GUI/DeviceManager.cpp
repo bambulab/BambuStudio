@@ -6216,7 +6216,6 @@ void MachineObject::check_ams_filament_valid()
         stream << std::fixed << std::setprecision(1) << diameter;
         std::string nozzle_diameter_str = stream.str();
         if (m_nozzle_filament_data.find(nozzle_diameter_str) == m_nozzle_filament_data.end()) {
-            assert(false);
             continue;
         }
         auto &data = m_nozzle_filament_data[nozzle_diameter_str];
