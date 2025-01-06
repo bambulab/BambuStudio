@@ -13,6 +13,8 @@
 #include <map>
 
 #include <boost/log/trivial.hpp>
+static const double max_deviation = 0.5 * 1e6;
+static const double max_variance  = 500 * 1e6;
 
 namespace Slic3r {
 
@@ -64,27 +66,25 @@ void LayerRegion::slices_to_fill_surfaces_clipped()
     }
 }
 
-void LayerRegion::auto_circle_compensation(SurfaceCollection& slices)
+void LayerRegion::auto_circle_compensation(SurfaceCollection& slices, const AutoContourHolesCompensationParams &auto_contour_holes_compensation_params)
 {
-     const PrintObjectConfig &object_config = this->layer()->object()->config();
-     double max_deviation = object_config.max_deviation * 1e6;
-     double max_variance  = object_config.max_variance * 1e6;
-     double limited_speed = object_config.circle_compensation_speed;
+     int filament_idx = this->region().config().wall_filament;
 
-     double counter_speed_coef = object_config.counter_coef_1 / 1e6;
-     double counter_diameter_coef   = object_config.counter_coef_2 / 1e6;
-     double counter_compensate_coef = object_config.counter_coef_3;
+     double limited_speed = auto_contour_holes_compensation_params.circle_compensation_speed[filament_idx];
+     double counter_speed_coef      = auto_contour_holes_compensation_params.counter_speed_coef[filament_idx] / 1e6;
+     double counter_diameter_coef   = auto_contour_holes_compensation_params.counter_diameter_coef[filament_idx] / 1e6;
+     double counter_compensate_coef = auto_contour_holes_compensation_params.counter_compensate_coef[filament_idx];
 
-     double hole_speed_coef      = object_config.hole_coef_1 / 1e6;
-     double hole_diameter_coef   = object_config.hole_coef_2 / 1e6;
-     double hole_compensate_coef = object_config.hole_coef_3;
+     double hole_speed_coef      = auto_contour_holes_compensation_params.hole_speed_coef[filament_idx] / 1e6;
+     double hole_diameter_coef   = auto_contour_holes_compensation_params.hole_diameter_coef[filament_idx] / 1e6;
+     double hole_compensate_coef = auto_contour_holes_compensation_params.hole_compensate_coef[filament_idx];
 
-     double counter_limit_min_value = object_config.counter_limit_min;
-     double counter_limit_max_value = object_config.counter_limit_max;
-     double hole_limit_min_value    = object_config.hole_limit_min;
-     double hole_limit_max_value    = object_config.hole_limit_max;
+     double counter_limit_min_value = auto_contour_holes_compensation_params.counter_limit_min_value[filament_idx];
+     double counter_limit_max_value = auto_contour_holes_compensation_params.counter_limit_max_value[filament_idx];
+     double hole_limit_min_value    = auto_contour_holes_compensation_params.hole_limit_min_value[filament_idx];
+     double hole_limit_max_value    = auto_contour_holes_compensation_params.hole_limit_max_value[filament_idx];
 
-     double diameter_limit_value = object_config.diameter_limit;
+     double diameter_limit_value = auto_contour_holes_compensation_params.diameter_limit[filament_idx];
 
     for (Surface &surface : slices.surfaces) {
         Point  center;

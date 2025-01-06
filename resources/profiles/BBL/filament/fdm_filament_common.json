@@ -192,6 +192,42 @@
     "textured_plate_temp_initial_layer": [
         "60"
     ],
+    "counter_coef_1": [
+        "0"
+    ],
+    "counter_coef_2": [
+        "25000"
+    ],
+    "counter_coef_3": [
+        "-110000"
+    ],
+    "hole_coef_1": [
+        "0"
+    ],
+    "hole_coef_2": [
+        "-25000"
+    ],
+    "hole_coef_3": [
+        "280000"
+    ],
+    "counter_limit_min": [
+        "-40000"
+    ],
+    "counter_limit_max": [
+        "50000"
+    ],
+    "hole_limit_min": [
+        "80000"
+    ],
+    "hole_limit_max": [
+        "250000"
+    ],
+    "circle_compensation_speed": [
+        "200"
+    ],
+    "diameter_limit": [
+        "50"
+    ],
     "compatible_printers": [],
     "impact_strength_z":["10"],
     "filament_start_gcode": [

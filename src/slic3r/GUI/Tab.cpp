@@ -2037,20 +2037,6 @@ void TabPrint::build()
         optgroup->append_single_option_line("xy_contour_compensation", "xy-hole-contour-compensation");
         optgroup->append_single_option_line("elefant_foot_compensation", "parameter/elephant-foot");
         optgroup->append_single_option_line("enable_circle_compensation");
-        optgroup->append_single_option_line("circle_compensation_speed");
-        optgroup->append_single_option_line("max_deviation");
-        optgroup->append_single_option_line("max_variance");
-        optgroup->append_single_option_line("counter_coef_1");
-        optgroup->append_single_option_line("counter_coef_2");
-        optgroup->append_single_option_line("counter_coef_3");
-        optgroup->append_single_option_line("hole_coef_1");
-        optgroup->append_single_option_line("hole_coef_2");
-        optgroup->append_single_option_line("hole_coef_3");
-        optgroup->append_single_option_line("counter_limit_min");
-        optgroup->append_single_option_line("counter_limit_max");
-        optgroup->append_single_option_line("hole_limit_min");
-        optgroup->append_single_option_line("hole_limit_max");
-        optgroup->append_single_option_line("diameter_limit");
         optgroup->append_single_option_line("precise_z_height");
 
         optgroup = page->new_optgroup(L("Ironing"), L"param_ironing");

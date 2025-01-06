@@ -141,13 +141,12 @@ ExPolygons Layer::merged(float offset_scaled) const
 // Here the perimeters are created cummulatively for all layer regions sharing the same parameters influencing the perimeters.
 // The perimeter paths and the thin fills (ExtrusionEntityCollection) are assigned to the first compatible layer region.
 // The resulting fill surface is split back among the originating regions.
-void Layer::make_perimeters()
+void Layer::make_perimeters(const AutoContourHolesCompensationParams &auto_contour_holes_compensation_params)
 {
     BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id();
-
     // keep track of regions whose perimeters we have already generated
     std::vector<unsigned char> done(m_regions.size(), false);
-
+ 
     for (LayerRegionPtrs::iterator layerm = m_regions.begin(); layerm != m_regions.end(); ++ layerm)
     	if ((*layerm)->slices.empty()) {
  			(*layerm)->perimeters.clear();
@@ -199,7 +198,7 @@ void Layer::make_perimeters()
 	            (*layerm)->fill_surfaces.surfaces.clear();
                 if (this->object()->config().enable_circle_compensation) {
                     SurfaceCollection copy_slices = (*layerm)->slices;
-                    (*layerm)->auto_circle_compensation(copy_slices);
+                    (*layerm)->auto_circle_compensation(copy_slices, auto_contour_holes_compensation_params);
                     (*layerm)->make_perimeters(copy_slices, &(*layerm)->fill_surfaces, &(*layerm)->fill_no_overlap_expolygons, this->loop_nodes);
                 } else
                     (*layerm)->make_perimeters((*layerm)->slices, &(*layerm)->fill_surfaces, &(*layerm)->fill_no_overlap_expolygons, this->loop_nodes);
@@ -228,7 +227,7 @@ void Layer::make_perimeters()
                 //BBS
                 ExPolygons fill_no_overlap;
                 if (this->object()->config().enable_circle_compensation)
-                    layerm_config->auto_circle_compensation(new_slices);
+                    layerm_config->auto_circle_compensation(new_slices, auto_contour_holes_compensation_params);
                 layerm_config->make_perimeters(new_slices, &fill_surfaces, &fill_no_overlap, this->loop_nodes);
 
 	            // assign fill_surfaces to each layer

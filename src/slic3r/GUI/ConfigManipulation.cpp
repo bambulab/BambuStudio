@@ -730,8 +730,6 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     toggle_line("interlocking_boundary_avoidance", use_beam_interlocking);
 
     bool enable_auto_hole_and_contour_compensation = config->opt_bool("enable_circle_compensation");
-    for (auto el : {"max_deviation", "max_variance", "circle_compensation_speed", "counter_coef_1", "counter_coef_2", "counter_coef_3", "hole_coef_1", "hole_coef_2", "hole_coef_3", "counter_limit_min", "counter_limit_max", "hole_limit_min", "hole_limit_max", "diameter_limit"})
-        toggle_line(el, enable_auto_hole_and_contour_compensation);
     toggle_field("xy_hole_compensation", !enable_auto_hole_and_contour_compensation);
     toggle_field("xy_contour_compensation", !enable_auto_hole_and_contour_compensation);
 }
