@@ -828,20 +828,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,               xy_contour_compensation))
     //BBS auto hole contour compensation
     ((ConfigOptionBool,               enable_circle_compensation))
-    ((ConfigOptionFloat,              circle_compensation_speed))
-    ((ConfigOptionFloat,              max_deviation))
-    ((ConfigOptionFloat,              max_variance))
-    ((ConfigOptionFloat,              counter_coef_1))
-    ((ConfigOptionFloat,              counter_coef_2))
-    ((ConfigOptionFloat,              counter_coef_3))
-    ((ConfigOptionFloat,              hole_coef_1))
-    ((ConfigOptionFloat,              hole_coef_2))
-    ((ConfigOptionFloat,              hole_coef_3))
-    ((ConfigOptionFloat,              counter_limit_min))
-    ((ConfigOptionFloat,              counter_limit_max))
-    ((ConfigOptionFloat,              hole_limit_min))
-    ((ConfigOptionFloat,              hole_limit_max))
-    ((ConfigOptionFloat,              diameter_limit))
     ((ConfigOptionBool,                flush_into_objects))
     // BBS
     ((ConfigOptionBool,                flush_into_infill))
@@ -1239,8 +1225,19 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBool,               exclude_object))
     ((ConfigOptionPercents,            filament_shrink))
     ((ConfigOptionFloats,             grab_length))
-)
-
+    //BBS
+    ((ConfigOptionFloats,             circle_compensation_speed))
+    ((ConfigOptionFloats,             diameter_limit))
+    ((ConfigOptionFloats,             counter_coef_1))
+    ((ConfigOptionFloats,             counter_coef_2))
+    ((ConfigOptionFloats,             counter_coef_3))
+    ((ConfigOptionFloats,             hole_coef_1))
+    ((ConfigOptionFloats,             hole_coef_2))
+    ((ConfigOptionFloats,             hole_coef_3))
+    ((ConfigOptionFloats,             counter_limit_min))
+    ((ConfigOptionFloats,             counter_limit_max))
+    ((ConfigOptionFloats,             hole_limit_min))
+    ((ConfigOptionFloats,             hole_limit_max)))
 // This object is mapped to Perl as Slic3r::Config::Full.
 PRINT_CONFIG_CLASS_DERIVED_DEFINE0(
     FullPrintConfig,

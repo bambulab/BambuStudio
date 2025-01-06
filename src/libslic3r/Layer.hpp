@@ -7,7 +7,7 @@
 #include "SurfaceCollection.hpp"
 #include "ExtrusionEntityCollection.hpp"
 #include "RegionExpansion.hpp"
-
+#include <libslic3r/Print.hpp>
 
 namespace Slic3r {
 
@@ -80,7 +80,7 @@ public:
     void    slices_to_fill_surfaces_clipped();
     void    prepare_fill_surfaces();
     //BBS
-    void    auto_circle_compensation(SurfaceCollection &slices);
+    void    auto_circle_compensation(SurfaceCollection &slices, const AutoContourHolesCompensationParams &auto_contour_holes_compensation_params);
     void    make_perimeters(const SurfaceCollection &slices, SurfaceCollection* fill_surfaces, ExPolygons* fill_no_overlap, std::vector<LoopNode> &loop_nodes);
     void    process_external_surfaces(const Layer *lower_layer, const Polygons *lower_layer_covered);
     double  infill_area_threshold() const;
@@ -182,7 +182,7 @@ public:
         for (const LayerRegion *layerm : m_regions) if (layerm->slices.any_bottom_contains(item)) return true;
         return false;
     }
-    void                    make_perimeters();
+    void                    make_perimeters(const AutoContourHolesCompensationParams &auto_contour_holes_compensation_params);
     //BBS
     void                    calculate_perimeter_continuity(std::vector<LoopNode> &prev_nodes);
 

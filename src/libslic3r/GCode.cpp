@@ -5298,7 +5298,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             speed = m_config.inner_wall_speed.get_at(cur_extruder_index());
             //reset speed by auto compensation speed
             if(set_holes_and_compensation_speed) {
-                speed = m_config.circle_compensation_speed;
+                speed = m_config.circle_compensation_speed.get_at(cur_extruder_index());
             }else if (m_config.detect_overhang_wall && m_config.smooth_speed_discontinuity_area && path.smooth_speed != 0)
                 speed = path.smooth_speed;
             else if (m_config.enable_overhang_speed.get_at(cur_extruder_index())) {
@@ -5310,7 +5310,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             speed = m_config.outer_wall_speed.get_at(cur_extruder_index());
             // reset speed by auto compensation speed
             if (set_holes_and_compensation_speed) {
-                speed = m_config.circle_compensation_speed;
+                speed = m_config.circle_compensation_speed.get_at(cur_extruder_index());
             } else if (m_config.detect_overhang_wall && m_config.smooth_speed_discontinuity_area && path.smooth_speed != 0)
                 speed = path.smooth_speed;
             else if (m_config.enable_overhang_speed.get_at(cur_extruder_index())) {

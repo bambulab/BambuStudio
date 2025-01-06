@@ -1699,7 +1699,7 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": total object counts %1% in current print, need to slice %2%")%m_objects.size()%need_slicing_objects.size();
     BOOST_LOG_TRIVIAL(info) << "Starting the slicing process." << log_memory_info();
 
-
+    const AutoContourHolesCompensationParams &auto_contour_holes_compensation_params = AutoContourHolesCompensationParams(m_config);
     if (!use_cache) {
 
         if (slice_time) {
@@ -1709,7 +1709,7 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
 
         for (PrintObject* obj : m_objects) {
             if (need_slicing_objects.count(obj) != 0) {
-                obj->make_perimeters();
+                obj->make_perimeters(auto_contour_holes_compensation_params);
             }
             else {
                 if (obj->set_started(posSlice))
@@ -1805,7 +1805,7 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
                     obj->set_done(posDetectOverhangsForLift);
             }
             else {
-                obj->make_perimeters();
+                obj->make_perimeters(auto_contour_holes_compensation_params);
                 obj->infill();
                 obj->ironing();
                 obj->generate_support_material();

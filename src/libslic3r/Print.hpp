@@ -297,6 +297,41 @@ private:
     size_t                                      m_ref_cnt{ 0 };
 };
 
+struct AutoContourHolesCompensationParams
+{
+    AutoContourHolesCompensationParams(const PrintConfig &config)
+    {
+        counter_speed_coef      = config.counter_coef_1.values;
+        counter_diameter_coef   = config.counter_coef_2.values;
+        counter_compensate_coef = config.counter_coef_3.values;
+        hole_speed_coef         = config.hole_coef_1.values;
+        hole_diameter_coef      = config.hole_coef_2.values;
+        hole_compensate_coef    = config.hole_coef_3.values;
+        counter_limit_min_value = config.counter_limit_min.values;
+        counter_limit_max_value = config.counter_limit_max.values;
+        hole_limit_min_value    = config.hole_limit_min.values;
+        hole_limit_max_value    = config.hole_limit_max.values;
+        circle_compensation_speed = config.circle_compensation_speed.values;
+        diameter_limit          = config.diameter_limit.values;
+    }
+    // BBS: params for auto contour and holes compensation
+    std::vector<double> counter_speed_coef;
+    std::vector<double> counter_diameter_coef;
+    std::vector<double> counter_compensate_coef;
+
+    std::vector<double> hole_speed_coef;
+    std::vector<double> hole_diameter_coef;
+    std::vector<double> hole_compensate_coef;
+
+    std::vector<double> counter_limit_min_value;
+    std::vector<double> counter_limit_max_value;
+    std::vector<double> hole_limit_min_value;
+    std::vector<double> hole_limit_max_value;
+
+    std::vector<double> circle_compensation_speed;
+    std::vector<double> diameter_limit;
+};
+
 class PrintObject : public PrintObjectBaseWithState<Print, PrintObjectStep, posCount>
 {
 private: // Prevents erroneous use by other classes.
@@ -478,7 +513,7 @@ private:
     static PrintObjectConfig object_config_from_model_object(const PrintObjectConfig &default_object_config, const ModelObject &object, size_t num_extruders, std::vector<int>& variant_index);
 
 private:
-    void make_perimeters();
+    void make_perimeters(const AutoContourHolesCompensationParams &auto_contour_holes_compensation_params);
     void prepare_infill();
     void infill();
     void ironing();
