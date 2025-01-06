@@ -193,6 +193,18 @@ wxDEFINE_EVENT(EVT_ADD_FILAMENT, SimpleEvent);
 wxDEFINE_EVENT(EVT_DEL_FILAMENT, SimpleEvent);
 wxDEFINE_EVENT(EVT_ADD_CUSTOM_FILAMENT, ColorEvent);
 
+static int get_diameter_index(float diameter)
+{
+    float eps = 1e-3;
+    std::vector<float> diameters = {0.2, 0.4, 0.6, 0.8};
+    for (int index = 0; index < diameters.size(); ++index) {
+        if (abs(diameters[index] - diameter) < eps) {
+            return index;
+        }
+    }
+    return 0;
+}
+
 bool Plater::has_illegal_filename_characters(const wxString& wxs_name)
 {
     std::string name = into_u8(wxs_name);
@@ -1146,8 +1158,11 @@ bool Sidebar::priv::sync_extruder_list()
     }
     assert(obj->m_extder_data.extders.size() == extruder_nums);
 
+    std::vector<float> nozzle_diameters;
+    nozzle_diameters.resize(extruder_nums);
     for (size_t index = 0; index < extruder_nums; ++index) {
         int extruder_id = extruder_map[index];
+        nozzle_diameters[extruder_id] = obj->m_extder_data.extders[index].current_nozzle_diameter;
         if (obj->m_extder_data.extders[index].current_nozzle_flow_type == NozzleFlowType::NONE_FLOWTYPE) {
             MessageDialog dlg(this->plater, _L("There are unset nozzle types. Please set the nozzle types of all extruders before synchronizing."),
                               _L("Sync extruder infomation"), wxICON_WARNING | wxOK);
@@ -1175,6 +1190,10 @@ bool Sidebar::priv::sync_extruder_list()
 
     int main_index = obj->is_main_extruder_on_left() ? 0 : 1;
     int deputy_index = obj->is_main_extruder_on_left() ? 1 : 0;
+
+    left_extruder->combo_diameter->SetSelection(get_diameter_index(nozzle_diameters[0]));
+    right_extruder->combo_diameter->SetSelection(get_diameter_index(nozzle_diameters[1]));
+    switch_diameter(false);
     AMSCountPopupWindow::SetAMSCount(deputy_index, deputy_4, deputy_1);
     AMSCountPopupWindow::SetAMSCount(main_index, main_4, main_1);
     AMSCountPopupWindow::UpdateAMSCount(0, left_extruder);
