@@ -1155,27 +1155,28 @@ void PlaterPresetComboBox::update()
             if (m_type == Preset::TYPE_FILAMENT) {
                 std::vector<std::map<wxString, wxBitmap *>::value_type const*> list(presets.size(), nullptr);
                 std::transform(presets.begin(), presets.end(), list.begin(), [](auto & pair) { return &pair; });
-                std::sort(list.begin(), list.end(), [&filament_orders, &preset_filament_vendors, &first_vendors, &preset_filament_types, &first_types](auto *l, auto *r) {
-                    { // Compare order
-                        auto iter1 = std::find(filament_orders.begin(), filament_orders.end(), l->first);
-                        auto iter2 = std::find(filament_orders.begin(), filament_orders.end(), r->first);
-                        if (iter1 != iter2)
-                            return iter1 < iter2;
-                    }
-                    { // Compare vendor
-                        auto iter1 = std::find(first_vendors.begin(), first_vendors.end(), preset_filament_vendors[l->first]);
-                        auto iter2 = std::find(first_vendors.begin(), first_vendors.end(), preset_filament_vendors[r->first]);
-                        if (iter1 != iter2)
-                            return iter1 < iter2;
-                    }
-                    { // Compare type
-                        auto iter1 = std::find(first_types.begin(), first_types.end(), preset_filament_types[l->first]);
-                        auto iter2 = std::find(first_types.begin(), first_types.end(), preset_filament_types[r->first]);
-                        if (iter1 != iter2)
-                            return iter1 < iter2;
-                    }
-                    return l->first < r->first;
-                });
+                if (group == "System presets")
+                    std::sort(list.begin(), list.end(), [&filament_orders, &preset_filament_vendors, &first_vendors, &preset_filament_types, &first_types](auto *l, auto *r) {
+                        { // Compare order
+                            auto iter1 = std::find(filament_orders.begin(), filament_orders.end(), l->first);
+                            auto iter2 = std::find(filament_orders.begin(), filament_orders.end(), r->first);
+                            if (iter1 != iter2)
+                                return iter1 < iter2;
+                        }
+                        { // Compare vendor
+                            auto iter1 = std::find(first_vendors.begin(), first_vendors.end(), preset_filament_vendors[l->first]);
+                            auto iter2 = std::find(first_vendors.begin(), first_vendors.end(), preset_filament_vendors[r->first]);
+                            if (iter1 != iter2)
+                                return iter1 < iter2;
+                        }
+                        { // Compare type
+                            auto iter1 = std::find(first_types.begin(), first_types.end(), preset_filament_types[l->first]);
+                            auto iter2 = std::find(first_types.begin(), first_types.end(), preset_filament_types[r->first]);
+                            if (iter1 != iter2)
+                                return iter1 < iter2;
+                        }
+                        return l->first < r->first;
+                    });
                 for (auto it : list) {
                     SetItemTooltip(Append(it->first, *it->second), preset_descriptions[it->first]);
                     validate_selection(it->first == selected);
