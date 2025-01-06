@@ -345,6 +345,29 @@ std::string GCodeWriter::travel_to_xy(const Vec2d &point, const std::string &com
     return w.string();
 }
 
+// BBS: immediately execute an undelayed lift move with a spiral lift pattern
+// designed specifically for subsequent gcode injection (e.g. timelapse) 
+std::string GCodeWriter::travel_lift(const double &to_z){
+    std::string lift_move;
+    double delta_z = to_z - m_pos(2);
+    // BBS: spiral lift only safe with known position
+    // TODO: check the arc will move within bed area
+    if (this->is_current_position_clear()) {    
+        double radius = delta_z / (2 * PI * atan(GCodeWriter::slope_threshold));
+        // static spiral alignment when no move in x,y plane.
+        // spiral centra is a radius distance to the right (y=0) 
+        Vec2d ij_offset = { radius, 0 };
+        lift_move = this->_spiral_travel_to_z(to_z, ij_offset, "spiral lift Z");
+    }
+    //BBS: if position is unknown use normal lift
+    else {
+        lift_move = _travel_to_z(to_z, "normal lift Z");
+    }
+    m_lifted = delta_z;
+    m_to_lift = 0;
+    return lift_move;
+}
+
 std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &comment)
 {
     // FIXME: This function was not being used when travel_speed_z was separated (bd6badf).
