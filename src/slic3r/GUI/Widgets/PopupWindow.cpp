@@ -32,6 +32,5 @@ PopupWindow::~PopupWindow()
 void PopupWindow::topWindowActivate(wxActivateEvent &event)
 {
     event.Skip();
-    if (!event.GetActive() && IsShown()) DismissAndNotify();
 }
 #endif
