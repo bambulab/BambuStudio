@@ -1134,7 +1134,7 @@ int WebViewPanel::get_model_mall_detail_url(std::string *url, std::string id)
     return 0;
 }
 
-void WebViewPanel::ShowUserPrintTask(bool bShow)
+void WebViewPanel::ShowUserPrintTask(bool bShow, bool bForce)
 {
     std::string phShow = wxGetApp().app_config->get("app", "show_print_history");
     if (bShow && phShow == "false") bShow = false;
@@ -1148,7 +1148,7 @@ void WebViewPanel::ShowUserPrintTask(bool bShow)
             auto      now       = std::chrono::system_clock::now();
             long long TmpMs     = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
             long long nInterval = TmpMs - PrintTaskMs;
-            if (nInterval < 2000) return;
+            if (!bForce && nInterval < 1000 * 60 * 10) return;
             PrintTaskMs = TmpMs;
 
             BBL::TaskQueryParams task_query_params;

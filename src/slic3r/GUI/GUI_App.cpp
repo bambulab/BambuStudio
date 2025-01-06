@@ -4394,7 +4394,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
             else if (command_str.compare("homepage_printhistory_get")==0)
             {
                 CallAfter([this] {
-                    if (mainframe && mainframe->m_webview) { mainframe->m_webview->ShowUserPrintTask(true); }
+                    if (mainframe && mainframe->m_webview) { mainframe->m_webview->ShowUserPrintTask(true,true); }
                     });
             }
             else if (command_str.compare("homepage_leftmenu_change_width") == 0) {

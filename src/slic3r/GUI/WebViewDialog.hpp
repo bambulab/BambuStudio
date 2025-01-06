@@ -154,7 +154,7 @@ public:
     std::string m_TaskInfo;
     bool        m_printhistoryfirst; // print history first load
     wxString    m_print_history_LastUrl;
-    void ShowUserPrintTask(bool bShow);
+    void ShowUserPrintTask(bool bShow, bool bForce=false);
 
     //
     bool GetJumpUrl(bool login, wxString ticket, wxString targeturl, wxString &finalurl);
