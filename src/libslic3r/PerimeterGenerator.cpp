@@ -1798,39 +1798,14 @@ void PerimeterGenerator::process_arachne()
     // extra perimeters for each one
 
     for (const Surface& surface : this->slices->surfaces) {
-        bool generate_one_wall_by_first_layer = this->object_config->only_one_wall_first_layer && layer_id == 0;
-        bool generate_one_wall_by_top_one_wall = this->object_config->top_one_wall_type == TopOneWallType::Topmost && this->upper_slices == nullptr ||
-            this->object_config->top_one_wall_type == TopOneWallType::Alltop;
-        bool generate_one_wall = generate_one_wall_by_first_layer || generate_one_wall_by_top_one_wall;
         // detect how many perimeters must be generated for this island
         int loop_number = this->config->wall_loops + surface.extra_perimeters - 1; // 0-indexed loops
 
         bool apply_circle_compensation = true;
-
         ExPolygons last = offset_ex(surface.expolygon.simplify_p(surface_simplify_resolution), -float(ext_perimeter_width / 2. - ext_perimeter_spacing / 2.));
         int new_size = std::accumulate(last.begin(), last.end(), 0, [](int prev, const ExPolygon& expoly) { return prev + expoly.num_contours(); });
         if (last.size() != 1 || new_size != surface.expolygon.num_contours())
             apply_circle_compensation = false;
-
-
-        double min_nozzle_diameter = *std::min_element(print_config->nozzle_diameter.values.begin(), print_config->nozzle_diameter.values.end());
-        Arachne::WallToolPathsParams input_params;
-        {
-            if (const auto& min_feature_size_opt = object_config->min_feature_size)
-                input_params.min_feature_size = min_feature_size_opt.value * 0.01 * min_nozzle_diameter;
-
-            if (const auto& min_bead_width_opt = object_config->min_bead_width)
-                input_params.min_bead_width = min_bead_width_opt.value * 0.01 * min_nozzle_diameter;
-
-            if (const auto& wall_transition_filter_deviation_opt = object_config->wall_transition_filter_deviation)
-                input_params.wall_transition_filter_deviation = wall_transition_filter_deviation_opt.value * 0.01 * min_nozzle_diameter;
-
-            if (const auto& wall_transition_length_opt = object_config->wall_transition_length)
-                input_params.wall_transition_length = wall_transition_length_opt.value * 0.01 * min_nozzle_diameter;
-
-            input_params.wall_transition_angle = this->object_config->wall_transition_angle.value;
-            input_params.wall_distribution_count = this->object_config->wall_distribution_count.value;
-        }
 
         std::vector<int> circle_poly_indices;
         Polygons   last_p;
@@ -1839,70 +1814,116 @@ void PerimeterGenerator::process_arachne()
         else
             last_p = to_polygons(last);
 
-        Arachne::WallToolPaths wallToolPaths(last_p, ext_perimeter_spacing, perimeter_spacing, loop_number + 1, 0, layer_height, input_params);
-        if (apply_circle_compensation)
-            wallToolPaths.EnableHoleCompensation(true, circle_poly_indices);
-
-        ExPolygons top_expolys_by_one_wall;
-        ExPolygons infill_contour_by_one_wall = union_ex(wallToolPaths.getFirstWallContour());
-
-        // do detail check whether to enable one wall
-        if (generate_one_wall && !generate_one_wall_by_first_layer)
-        {
-            BoundingBox infill_bbox = get_extents(infill_contour_by_one_wall);
-            infill_bbox.offset(EPSILON);
-
-            Polygons upper_polygons_clipped;
-            if (this->upper_slices)
-                upper_polygons_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*this->upper_slices, infill_bbox);
-            top_expolys_by_one_wall = diff_ex(infill_contour_by_one_wall, upper_polygons_clipped);
-
-            Polygons lower_polygons_clipped;
-            if (this->lower_slices)
-                lower_polygons_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*this->lower_slices, infill_bbox);
-            ExPolygons bottom_expolys = diff_ex(top_expolys_by_one_wall, lower_polygons_clipped);
-
-            top_expolys_by_one_wall = diff_ex(top_expolys_by_one_wall, bottom_expolys);
-            generate_one_wall = should_enable_top_one_wall(last, top_expolys_by_one_wall);
-            if (generate_one_wall)
-                top_expolys_by_one_wall = offset_ex(top_expolys_by_one_wall, perimeter_width);
-        }
-
         std::vector<Arachne::VariableWidthLines> total_perimeters;
         ExPolygons infill_contour;
-        if (!generate_one_wall) {
-            total_perimeters = wallToolPaths.getToolPaths();
-            infill_contour = union_ex(wallToolPaths.getInnerContour());
-        }
-        else if(loop_number >0) {
-            last = diff_ex(infill_contour_by_one_wall, top_expolys_by_one_wall);
-            last_p = to_polygons(last);
-            Arachne::WallToolPaths paths_new(last_p, perimeter_spacing, perimeter_spacing, loop_number, 0, layer_height, input_params);
 
-            auto old_perimeters = wallToolPaths.getToolPaths();
-            auto new_perimeters = paths_new.getToolPaths();
-            for (auto& perimeters : old_perimeters) {
-                if (std::find_if(perimeters.begin(), perimeters.end(), [](auto& item) {return item.inset_idx == 0; }) != perimeters.end()) {
-                    total_perimeters.emplace_back();
-                    for (auto& p : perimeters) {
-                        if (p.inset_idx == 0)
-                            total_perimeters.back().emplace_back(std::move(p));
-                    }
-                }
+        if (loop_number >= 0) {
+            bool generate_one_wall_by_first_layer = this->object_config->only_one_wall_first_layer && layer_id == 0;
+            bool generate_one_wall_by_top_most = this->object_config->top_one_wall_type != TopOneWallType::None && this->upper_slices == nullptr;
+            bool generate_one_wall_by_top = this->object_config->top_one_wall_type == TopOneWallType::Alltop && this->upper_slices != nullptr;
+
+            bool is_one_wall = loop_number == 0 || generate_one_wall_by_first_layer || generate_one_wall_by_top_most;
+            // whether to seperate the generatation of wall into two parts,first generate outer wall,then generate the remaining wall
+            bool seperate_wall_generation = !is_one_wall && generate_one_wall_by_top;
+
+            double min_nozzle_diameter = *std::min_element(print_config->nozzle_diameter.values.begin(), print_config->nozzle_diameter.values.end());
+            Arachne::WallToolPathsParams input_params;
+            {
+                if (const auto& min_feature_size_opt = object_config->min_feature_size)
+                    input_params.min_feature_size = min_feature_size_opt.value * 0.01 * min_nozzle_diameter;
+
+                if (const auto& min_bead_width_opt = object_config->min_bead_width)
+                    input_params.min_bead_width = min_bead_width_opt.value * 0.01 * min_nozzle_diameter;
+
+                if (const auto& wall_transition_filter_deviation_opt = object_config->wall_transition_filter_deviation)
+                    input_params.wall_transition_filter_deviation = wall_transition_filter_deviation_opt.value * 0.01 * min_nozzle_diameter;
+
+                if (const auto& wall_transition_length_opt = object_config->wall_transition_length)
+                    input_params.wall_transition_length = wall_transition_length_opt.value * 0.01 * min_nozzle_diameter;
+
+                input_params.wall_transition_angle = this->object_config->wall_transition_angle.value;
+                input_params.wall_distribution_count = this->object_config->wall_distribution_count.value;
             }
 
-            for (auto& perimeters : new_perimeters) {
-                if (!perimeters.empty()) {
-                    for (auto& p : perimeters){
-                        p.inset_idx += 1;
+            // these variables are only valid if need to seperate wall generation
+            ExPolygons top_expolys_by_one_wall;
+            std::vector<Arachne::VariableWidthLines> first_perimeters;
+            ExPolygons infill_contour_by_one_wall;
+
+            // do detail check whether to enable one wall
+            if (seperate_wall_generation) {
+                Arachne::WallToolPaths one_wall_paths(last_p, ext_perimeter_spacing, perimeter_spacing, 1, 0, layer_height, input_params);
+                if (apply_circle_compensation)
+                    one_wall_paths.EnableHoleCompensation(true, circle_poly_indices);
+
+                first_perimeters = one_wall_paths.getToolPaths();
+                infill_contour_by_one_wall = union_ex(one_wall_paths.getInnerContour());
+
+                BoundingBox infill_bbox = get_extents(infill_contour_by_one_wall);
+                infill_bbox.offset(EPSILON);
+
+                Polygons upper_polygons_clipped;
+                if (this->upper_slices)
+                    upper_polygons_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*this->upper_slices, infill_bbox);
+                top_expolys_by_one_wall = diff_ex(infill_contour_by_one_wall, upper_polygons_clipped);
+
+                Polygons lower_polygons_clipped;
+                if (this->lower_slices)
+                    lower_polygons_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*this->lower_slices, infill_bbox);
+                ExPolygons bottom_expolys = diff_ex(top_expolys_by_one_wall, lower_polygons_clipped);
+
+                top_expolys_by_one_wall = diff_ex(top_expolys_by_one_wall, bottom_expolys);
+                seperate_wall_generation = should_enable_top_one_wall(last, top_expolys_by_one_wall);
+                if (seperate_wall_generation)
+                    top_expolys_by_one_wall = offset_ex(top_expolys_by_one_wall, perimeter_width);
+            }
+
+
+            if (seperate_wall_generation) {
+                // only generate one wall around top areas
+                // keep the first generated wall
+                total_perimeters = first_perimeters;
+                infill_contour = union_ex(infill_contour_by_one_wall);
+                // deal with remaining walls to be generated
+                if (loop_number > 0) {
+                    last = diff_ex(infill_contour_by_one_wall, top_expolys_by_one_wall);
+                    last_p = to_polygons(last); // disable contour compensation in remaining walls
+                    Arachne::WallToolPaths paths_new(last_p, perimeter_spacing, perimeter_spacing, loop_number, 0, layer_height, input_params);
+                    auto new_perimeters = paths_new.getToolPaths();
+                    for (auto& perimeters : new_perimeters) {
+                        if (!perimeters.empty()) {
+                            for (auto& p : perimeters) {
+                                p.inset_idx += 1;
+                            }
+                            total_perimeters.emplace_back(std::move(perimeters));
+                        }
                     }
-                    total_perimeters.emplace_back(std::move(perimeters));
+                    infill_contour = union_ex(union_ex(paths_new.getInnerContour()), top_expolys_by_one_wall);
+                    infill_contour = intersection_ex(infill_contour, infill_contour_by_one_wall);
                 }
             }
-            infill_contour = union_ex(union_ex(paths_new.getInnerContour()), top_expolys_by_one_wall);
-            infill_contour = intersection_ex(infill_contour, infill_contour_by_one_wall);
+            else {
+                if (is_one_wall) {
+                    // plan wall width as one wall
+                    Arachne::WallToolPaths one_wall_paths(last_p, ext_perimeter_spacing, perimeter_spacing, 1, 0, layer_height, input_params);
+                    if (apply_circle_compensation)
+                        one_wall_paths.EnableHoleCompensation(true, circle_poly_indices);
+                    total_perimeters = one_wall_paths.getToolPaths();
+                    infill_contour = union_ex(one_wall_paths.getInnerContour());
+                }
+                else {
+                    // plan wall width as noraml
+                    Arachne::WallToolPaths normal_paths(last_p, ext_perimeter_spacing, perimeter_spacing, loop_number + 1, 0, layer_height, input_params);
+                    if (apply_circle_compensation)
+                        normal_paths.EnableHoleCompensation(true, circle_poly_indices);
+                    total_perimeters = normal_paths.getToolPaths();
+                    infill_contour = union_ex(normal_paths.getInnerContour());
+                }
+            }
         }
-
+        else {
+            infill_contour = last;
+        }
 #ifdef ARACHNE_DEBUG
         {
             static int iRun = 0;

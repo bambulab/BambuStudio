@@ -78,6 +78,13 @@ public:
      */
     const Polygons& getInnerContour();
 
+    /**
+     * @brief Get the contour of outer wall path
+     * 
+     * Attention! The function is not completed now!
+     * 
+     * @return 
+    */
     const Polygons& getFirstWallContour();
 
     /*!
