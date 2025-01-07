@@ -246,8 +246,8 @@
         "92"
     ],
     "physical_extruder_map" : [
-        "0",
-        "1"
+        "1",
+        "0"
     ],
     "printable_area": [
         "0x0",
