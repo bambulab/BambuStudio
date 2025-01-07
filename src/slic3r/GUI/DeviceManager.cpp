@@ -5397,8 +5397,9 @@ int MachineObject::get_flag_bits(int num, int start, int count)
 void MachineObject::update_printer_preset_name(const std::string &nozzle_diameter_str)
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << "start update preset_name";
-    auto preset_boundle = Slic3r::GUI::wxGetApp().preset_bundle;
-    auto printer_set = preset_boundle->get_printer_names_by_printer_type_and_nozzle(MachineObject::get_preset_printer_model_name(this->printer_type), nozzle_diameter_str);
+    auto preset_bundle = Slic3r::GUI::wxGetApp().preset_bundle;
+    if (!preset_bundle) return;
+    auto printer_set = preset_bundle->get_printer_names_by_printer_type_and_nozzle(MachineObject::get_preset_printer_model_name(this->printer_type), nozzle_diameter_str);
     if (printer_set.size() > 0)
         m_printer_preset_name = *printer_set.begin();
     else
