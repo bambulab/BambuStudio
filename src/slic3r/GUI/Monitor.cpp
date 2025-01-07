@@ -481,8 +481,6 @@ bool MonitorPanel::Show(bool show)
 
     if (obj && !obj->dev_id.empty()) {
         select_machine(obj->dev_id);
-    } else {
-        select_machine("");
     }
 
     return wxPanel::Show(show);
