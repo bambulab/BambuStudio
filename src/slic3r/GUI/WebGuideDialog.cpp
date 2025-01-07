@@ -291,7 +291,7 @@ void GuideFrame::OnNavigationComplete(wxWebViewEvent &evt)
 {
     //wxLogMessage("%s", "Navigation complete; url='" + evt.GetURL() + "'");
     if (!bFirstComplete) {
-        boost::thread LoadProfileThread(boost::bind(&GuideFrame::LoadProfile, this));
+        boost::thread LoadProfileThread(boost::bind(&GuideFrame::LoadProfileData, this));
         LoadProfileThread.detach();
 
         bFirstComplete = true;
@@ -1060,114 +1060,94 @@ int GuideFrame::GetFilamentInfo( std::string VendorDirectory, json & pFilaList, 
     return 0;
 }
 
-
-int GuideFrame::LoadProfile()
+int GuideFrame::LoadProfileData()
 {
     try {
-        //wxString ExePath            = boost::dll::program_location().parent_path().string();
-        //wxString TargetFolder       = ExePath + "\\resources\\profiles\\";
-        //wxString TargetFolderSearch = ExePath + "\\resources\\profiles\\*.json";
-
-        //intptr_t    handle;
-        //_finddata_t findData;
-
-        //handle = _findfirst(TargetFolderSearch.mb_str(), &findData); // 查找目录中的第一个文件
-        //if (handle == -1) { return -1; }
-
-        //do {
-        //    if (findData.attrib & _A_SUBDIR && strcmp(findData.name, ".") == 0 && strcmp(findData.name, "..") == 0) // 是否是子目录并且不为"."或".."
-        //    {
-        //        // cout << findData.name << "\t<dir>\n";
-        //    } else {
-        //        wxString strVendor = wxString(findData.name).BeforeLast('.');
-        //        LoadProfileFamily(strVendor, TargetFolder + findData.name);
-        //    }
-
-        //} while (_findnext(handle, &findData) == 0); // 查找目录中的下一个文件
-
         // BBS: change directories by design
-        //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(",  will load config from %1%.") % bbl_bundle_path;
-        m_ProfileJson             = json::parse("{}");
-        //m_ProfileJson["configpath"] = Slic3r::data_dir();
+        // BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(",  will load config from %1%.") % bbl_bundle_path;
+        m_ProfileJson = json::parse("{}");
+        // m_ProfileJson["configpath"] = Slic3r::data_dir();
         m_ProfileJson["model"]    = json::array();
         m_ProfileJson["machine"]  = json::object();
         m_ProfileJson["filament"] = json::object();
         m_ProfileJson["process"]  = json::array();
 
-        vendor_dir      = (boost::filesystem::path(Slic3r::data_dir()) / PRESET_SYSTEM_DIR ).make_preferred();
+        vendor_dir      = (boost::filesystem::path(Slic3r::data_dir()) / PRESET_SYSTEM_DIR).make_preferred();
         rsrc_vendor_dir = (boost::filesystem::path(resources_dir()) / "profiles").make_preferred();
 
         // BBS: add BBL as default
         // BBS: add json logic for vendor bundle
         auto bbl_bundle_path = vendor_dir;
-        bbl_bundle_rsrc = false;
+        bbl_bundle_rsrc      = false;
         if (!boost::filesystem::exists((vendor_dir / PresetBundle::BBL_BUNDLE).replace_extension(".json"))) {
             bbl_bundle_path = rsrc_vendor_dir;
             bbl_bundle_rsrc = true;
         }
 
-        // intptr_t    handle;
-        //_finddata_t findData;
-
-        //handle = _findfirst((bbl_bundle_path / "*.json").make_preferred().string().c_str(), &findData); // 查找目录中的第一个文件
-        // if (handle == -1) { return -1; }
-
-        // do {
-        //    if (findData.attrib & _A_SUBDIR && strcmp(findData.name, ".") == 0 && strcmp(findData.name, "..") == 0) // 是否是子目录并且不为"."或".."
-        //    {
-        //        // cout << findData.name << "\t<dir>\n";
-        //    } else {
-        //        wxString strVendor = wxString(findData.name).BeforeLast('.');
-        //        LoadProfileFamily(w2s(strVendor), vendor_dir.make_preferred().string() + "\\"+ findData.name);
-        //    }
-
-        //} while (_findnext(handle, &findData) == 0); // 查找目录中的下一个文件
-
-
-        //load BBL bundle from user data path
+        // load BBL bundle from user data path
         string                                targetPath = bbl_bundle_path.make_preferred().string();
         boost::filesystem::path               myPath(targetPath);
         boost::filesystem::directory_iterator endIter;
         for (boost::filesystem::directory_iterator iter(myPath); iter != endIter; iter++) {
             if (boost::filesystem::is_directory(*iter)) {
-                //cout << "is dir" << endl;
-                //cout << iter->path().string() << endl;
+                // cout << "is dir" << endl;
+                // cout << iter->path().string() << endl;
             } else {
-                //cout << "is a file" << endl;
-                //cout << iter->path().string() << endl;
+                // cout << "is a file" << endl;
+                // cout << iter->path().string() << endl;
 
-                wxString strVendor = from_u8(iter->path().string()).BeforeLast('.');
-                strVendor          = strVendor.AfterLast( '\\');
-                strVendor          = strVendor.AfterLast('/');
+                wxString strVendor    = from_u8(iter->path().string()).BeforeLast('.');
+                strVendor             = strVendor.AfterLast('\\');
+                strVendor             = strVendor.AfterLast('/');
                 wxString strExtension = from_u8(iter->path().string()).AfterLast('.').Lower();
 
-                if (w2s(strVendor) == PresetBundle::BBL_BUNDLE && strExtension.CmpNoCase("json") == 0)
-                    LoadProfileFamily(w2s(strVendor), iter->path().string());
+                if (w2s(strVendor) == PresetBundle::BBL_BUNDLE && strExtension.CmpNoCase("json") == 0) LoadProfileFamily(w2s(strVendor), iter->path().string());
             }
         }
 
-        //string                                others_targetPath = rsrc_vendor_dir.string();
+        // string                                others_targetPath = rsrc_vendor_dir.string();
         boost::filesystem::directory_iterator others_endIter;
         for (boost::filesystem::directory_iterator iter(rsrc_vendor_dir); iter != others_endIter; iter++) {
             if (boost::filesystem::is_directory(*iter)) {
-                //cout << "is dir" << endl;
-                //cout << iter->path().string() << endl;
+                // cout << "is dir" << endl;
+                // cout << iter->path().string() << endl;
             } else {
-                //cout << "is a file" << endl;
-                //cout << iter->path().string() << endl;
-                wxString strVendor = from_u8(iter->path().string()).BeforeLast('.');
-                strVendor          = strVendor.AfterLast( '\\');
-                strVendor          = strVendor.AfterLast('/');
+                // cout << "is a file" << endl;
+                // cout << iter->path().string() << endl;
+                wxString strVendor    = from_u8(iter->path().string()).BeforeLast('.');
+                strVendor             = strVendor.AfterLast('\\');
+                strVendor             = strVendor.AfterLast('/');
                 wxString strExtension = from_u8(iter->path().string()).AfterLast('.').Lower();
 
-                if (w2s(strVendor) != PresetBundle::BBL_BUNDLE && strExtension.CmpNoCase("json")==0)
-                    LoadProfileFamily(w2s(strVendor), iter->path().string());
+                if (w2s(strVendor) != PresetBundle::BBL_BUNDLE && strExtension.CmpNoCase("json") == 0) LoadProfileFamily(w2s(strVendor), iter->path().string());
             }
         }
 
+        //sync to web
+        std::string strAll = m_ProfileJson.dump(-1, ' ', false, json::error_handler_t::ignore);
 
-        //LoadProfileFamily(PresetBundle::BBL_BUNDLE, bbl_bundle_path.string());
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished, json contents: " << std::endl << strAll;
+        json m_Res           = json::object();
+        m_Res["command"]     = "userguide_profile_load_finish";
+        m_Res["sequence_id"] = "10001";
+        wxString strJS       = wxString::Format("HandleStudio(%s)", m_Res.dump(-1, ' ', true));
+        wxGetApp().CallAfter([this, strJS] { RunScript(strJS); });
 
+        //sync to appconfig
+        wxGetApp().CallAfter([this] { SaveProfileData(); });
+
+    } catch (std::exception &e) {
+        // wxLogMessage("GUIDE: load_profile_error  %s ", e.what());
+        //  wxMessageBox(e.what(), "", MB_OK);
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ", error: " << e.what() << std::endl;
+    }
+
+    return 0;
+}
+
+int GuideFrame::SaveProfileData()
+{
+    try {
         const auto enabled_filaments = wxGetApp().app_config->has_section(AppConfig::SECTION_FILAMENTS) ? wxGetApp().app_config->get_section(AppConfig::SECTION_FILAMENTS) : std::map<std::string, std::string>();
         m_appconfig_new.set_vendors(*wxGetApp().app_config);
         m_appconfig_new.set_section(AppConfig::SECTION_FILAMENTS, enabled_filaments);
@@ -1238,16 +1218,6 @@ int GuideFrame::LoadProfile()
         // wxMessageBox(e.what(), "", MB_OK);
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ", error: "<< e.what() <<std::endl;
     }
-
-    std::string strAll = m_ProfileJson.dump(-1, ' ', false, json::error_handler_t::ignore);
-    //wxLogMessage("GUIDE: profile_json_s2  %s ", m_ProfileJson.dump(-1, ' ', false, json::error_handler_t::ignore));
-
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished, json contents: "<< std::endl<<strAll;
-    json m_Res           = json::object();
-    m_Res["command"]     = "userguide_profile_load_finish";
-    m_Res["sequence_id"] = "10001";
-    wxString strJS = wxString::Format("HandleStudio(%s)", m_Res.dump(-1, ' ', true));
-    wxGetApp().CallAfter([this, strJS] { RunScript(strJS); });
 
     return 0;
 }
