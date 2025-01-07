@@ -602,8 +602,10 @@ void PartPlate::render_logo(bool bottom, bool render_cali)
 	int bed_type_idx = (int)curr_bed_type;
     auto is_single_extruder = wxGetApp().preset_bundle->get_printer_extruder_count() == 1;
     if (!is_single_extruder) {
-		bed_type_idx = 0;
-	}
+        if (m_partplate_list->m_allow_bed_type_in_double_nozzle.find(bed_type_idx) == m_partplate_list->m_allow_bed_type_in_double_nozzle.end()) {
+            bed_type_idx = 0;
+        }
+    }
 	// render bed textures
     if (!real_gcode) {
         for (auto &part : m_partplate_list->bed_texture_info[bed_type_idx].parts) {
@@ -5920,6 +5922,18 @@ void PartPlateList::init_bed_type_info()
     BedTextureInfo::TexturePart pte_part1(10, 52, 8.393f, 192, "bbl_bed_pte_left.svg");
     BedTextureInfo::TexturePart pte_part2(74, -10, 148, 12, "bbl_bed_pte_bottom.svg");
 
+    auto is_single_extruder = wxGetApp().preset_bundle->get_printer_extruder_count() == 1;
+    if (!is_single_extruder) {
+        m_allow_bed_type_in_double_nozzle.clear();
+        pte_part1 = BedTextureInfo::TexturePart(57, 300, 236.12f, 10.f, "bbl_bed_pte_middle.svg");
+        pte_part2  = BedTextureInfo::TexturePart(150, -10, 148, 12, "bbl_bed_pte_bottom.svg");
+
+        pei_part1  = BedTextureInfo::TexturePart(57, 300, 236.12f, 10.f, "bbl_bed_pei_middle.svg");
+        pei_part2  = BedTextureInfo::TexturePart(150, -10, 148, 12, "bbl_bed_pei_bottom.svg");
+        m_allow_bed_type_in_double_nozzle[(int) btPEI] = true;
+        m_allow_bed_type_in_double_nozzle[(int) btPTE] = true;
+    }
+
 	for (size_t i = 0; i < btCount; i++) {
 		bed_texture_info[i].reset();
 		bed_texture_info[i].parts.clear();
@@ -5938,24 +5952,28 @@ void PartPlateList::init_bed_type_info()
 	auto  bed_ext     = get_extents(m_shape);
 	int   bed_width   = bed_ext.size()(0);
 	int   bed_height  = bed_ext.size()(1);
-	float base_width  = 256;
-	float base_height = 256;
-	float x_rate      = bed_width / base_width;
-	float y_rate      = bed_height / base_height;
-	for (int i = 0; i < btCount; i++) {
-		for (int j = 0; j < bed_texture_info[i].parts.size(); j++) {
-            if (j == 0 && (bed_width == 180 && bed_height == 180)) {
+    float base_width  = 256;//standard 256*256 for single_extruder
+    float base_height = 256;
+    if (!is_single_extruder) {//standard 350*325 for double_extruder
+        base_width  = 350;
+        base_height = 320;
+    }
+    float x_rate      = bed_width / base_width;
+    float y_rate      = bed_height / base_height;
+    for (int i = 0; i < btCount; i++) {
+        for (int j = 0; j < bed_texture_info[i].parts.size(); j++) {
+            if (j == 0 && (bed_width == 180 && bed_height == 180) && is_single_extruder) {
                 bed_texture_info[i].parts[j].x = 10;
                 bed_texture_info[i].parts[j].y = 35;
             } else {
                 bed_texture_info[i].parts[j].x *= x_rate;
                 bed_texture_info[i].parts[j].y *= y_rate;
             }
-			bed_texture_info[i].parts[j].w *= x_rate;
-			bed_texture_info[i].parts[j].h *= y_rate;
-			bed_texture_info[i].parts[j].update_buffer();
-		}
-	}
+            bed_texture_info[i].parts[j].w *= x_rate;
+            bed_texture_info[i].parts[j].h *= y_rate;
+            bed_texture_info[i].parts[j].update_buffer();
+        }
+    }
 }
 
 bool PartPlateList::calc_extruder_only_area(Rect &left_only_rect, Rect &right_only_rect)
