@@ -45,7 +45,7 @@
 			"support_ai_monitoring": true,
 			"support_first_layer_inspect": false,
 			"support_chamber_temp_edit": true,
-			"support_chamber_temp_edit_range": [20, 65],
+			"support_chamber_temp_edit_range": [ 20, 65 ],
 			"support_extrusion_cali": false,
 			"support_user_preset": false
 		},
@@ -53,7 +53,7 @@
 		"printer_modes": [ "fdm", "laser", "cut" ],
 		"compatible_machine": [],
 		"printer_type": "O1D",
-		"printer_thumbnail_image": "printer_thumbnail",
+		"printer_thumbnail_image": "printer_thumbnail_h2d",
 		"printer_connect_help_image": "input_access_code_x1",
 		"printer_use_ams_image": "ams_icon",
 		"use_ams_type": "generic",
