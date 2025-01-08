@@ -1278,6 +1278,8 @@ void Tab::sys_color_changed()
         bmp->msw_rescale();
     if (m_detach_preset_btn)
         m_detach_preset_btn->msw_rescale();
+    if (m_extruder_sync)
+        m_extruder_sync->msw_rescale();
 
     // update icons for tree_ctrl
     for (ScalableBitmap& bmp : m_scaled_icons_list)
@@ -1304,6 +1306,8 @@ void Tab::sys_color_changed()
     // update options_groups
     if (m_active_page)
         m_active_page->sys_color_changed();
+    if (m_extruder_switch)
+        m_extruder_switch->Rescale();
 
     //BBS: GUI refactor
     //Layout();
