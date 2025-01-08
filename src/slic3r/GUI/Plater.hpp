@@ -463,7 +463,6 @@ public:
     void set_global_filament_map(const std::vector<int>& filament_map);
     std::vector<int> get_global_filament_map() const;
     FilamentMapMode get_global_filament_map_mode() const;
-    void on_filament_map_mode_change();
 
     void update_menus();
     // BBS
@@ -815,6 +814,7 @@ private:
     void _calib_pa_tower(const Calib_Params &params);
     void _calib_pa_select_added_objects();
 
+    void on_filament_map_mode_change();
     friend class SuppressBackgroundProcessingUpdate;
 };
 
