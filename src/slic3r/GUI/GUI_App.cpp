@@ -4941,7 +4941,7 @@ void GUI_App::process_network_msg(std::string dev_id, std::string msg)
         else if (msg == "cert_revoked") {
             BOOST_LOG_TRIVIAL(info) << "process_network_msg, cert_revoked";
             if (!m_show_error_msgdlg) {
-                MessageDialog msg_dlg(nullptr, _L("The certificate has been revoked and the printing functions are unavailable. If you need printing. Please visit the official website at https://bambulab.com/ to download and update."), "", wxAPPLY | wxOK);
+                MessageDialog msg_dlg(nullptr, _L("The certificate is no longer valid and the printing functions are unavailable. If you need printing. Please visit the official website at https://bambulab.com/ to download and update."), "", wxAPPLY | wxOK);
                 m_show_error_msgdlg = true;
                 auto modal_result = msg_dlg.ShowModal();
                 m_show_error_msgdlg = false;
