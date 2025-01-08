@@ -225,7 +225,7 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
         m_device_busy  = obj->is_camera_busy_off();
         m_sdcard_exist = obj->sdcard_state == MachineObject::SdcardState::HAS_SDCARD_NORMAL || obj->sdcard_state == MachineObject::SdcardState::HAS_SDCARD_READONLY;
         m_local_proto  = obj->file_local;
-        m_remote_proto = obj->file_remote;
+        m_remote_proto = obj->get_file_remote();
         m_model_download_support = obj->file_model_download;
     } else {
         m_lan_mode  = false;
