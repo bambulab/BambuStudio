@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 1.10.1 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-03 09:41+0800\n"
+"POT-Creation-Date: 2025-01-08 20:53+0800\n"
 "PO-Revision-Date: 2024-09-27 23:58+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -1397,11 +1397,14 @@ msgid ""
 msgstr ""
 
 msgid ""
-"The certificate has been revoked. Please check the time settings or update "
-"Bambu Studio and try again."
+"The certificate is no longer valid and the printing functions are "
+"unavailable. If you need printing. Please visit the official website at "
+"https://bambulab.com/ to download and update."
 msgstr ""
 
-msgid "Firmware internal error, please try to upgrade firmware version."
+msgid ""
+"Internal error. Please try upgrading the firmware and Studio version. If the "
+"issue persists, contact customer support."
 msgstr ""
 
 msgid "Privacy Policy Update"
@@ -3511,9 +3514,8 @@ msgstr "Автовыравнивание стола"
 msgid "Heatbed preheating"
 msgstr "Преднагрев стола"
 
-# Режим проверки XY-механики
-msgid "Sweeping XY mech mode"
-msgstr "Проверка XY-механики"
+msgid "Vibration compensation"
+msgstr "Компенсация вибрации"
 
 msgid "Changing filament"
 msgstr "Смена прутка"
@@ -3579,8 +3581,8 @@ msgstr "Пропуск команды паузы"
 msgid "Filament loading"
 msgstr "Загрузка прутка"
 
-msgid "Motor noise calibration"
-msgstr "Калибровка шума двигателя"
+msgid "Motor noise cancellation"
+msgstr "Шумоподавление двигателя"
 
 msgid "Paused due to AMS lost"
 msgstr "Печать приостановлена из-за потери связи с АСПП"
@@ -4315,12 +4317,6 @@ msgstr "Выбор шага калибровки"
 msgid "Bed leveling"
 msgstr "Выравнивание стола"
 
-msgid "Vibration compensation"
-msgstr "Компенсация вибрации"
-
-msgid "Motor noise cancellation"
-msgstr "Шумоподавление двигателя"
-
 # ??? О калибровке
 msgid "Calibration program"
 msgstr "Программа калибровки"
@@ -4372,13 +4368,15 @@ msgstr "Подключение принтера (локальная сеть)"
 msgid "Please input the printer access code:"
 msgstr "Пожалуйста, введите код доступа к принтеру:"
 
-# ??? Перенёс на другую строку, проверить как отображается
 msgid ""
-"You can find it in \"Settings > Network > Connection code\"\n"
+"You can find it in \"Settings > Network > Access code\"\n"
 "on the printer, as shown in the figure:"
 msgstr ""
-"Вы можете найти его на принтере в разделе \n"
-"Настройки > Сеть > Код подключения, как показано на рисунке:"
+
+msgid ""
+"You can find it in \"Setting > Setting > LAN only > Access Code\"\n"
+"on the printer, as shown in the figure:"
+msgstr ""
 
 msgid "Invalid input."
 msgstr "Неверный ввод."
@@ -5906,9 +5904,6 @@ msgstr "Закалённая сталь"
 msgid "Stainless Steel"
 msgstr "Нержавеющая сталь"
 
-msgid "Normal flow"
-msgstr ""
-
 msgid "High flow"
 msgstr ""
 
@@ -6063,6 +6058,9 @@ msgstr "Выбор пластиковой нити"
 
 msgid "Search plate, object and part."
 msgstr "Поиск печатной пластины, модели или части модели."
+
+msgid "will be closed before modify filament. Do you want to continue?"
+msgstr ""
 
 msgid "There are no compatible filaments, and sync is not performed."
 msgstr ""
@@ -8615,6 +8613,15 @@ msgstr ""
 
 msgid "Obj file Import color"
 msgstr "Импорт цветного obj-файла"
+
+msgid "Some faces not define color."
+msgstr ""
+
+msgid "mtl file exist error,could not find the material:"
+msgstr ""
+
+msgid "Please check obj or mtl file."
+msgstr ""
 
 msgid "Specify number of colors:"
 msgstr "Количество цветов:"
@@ -12601,6 +12608,12 @@ msgstr ""
 msgid "The prime tower print outer first"
 msgstr ""
 
+msgid "Skip points"
+msgstr ""
+
+msgid "The wall of prime tower will skip the start points of wipe path"
+msgstr ""
+
 msgid ""
 "Purging after filament change will be done inside objects' infills. This may "
 "lower the amount of waste and decrease the print time. If the walls are "
@@ -14406,7 +14419,9 @@ msgstr "Нужно выбрать принтер"
 msgid "The start, end or step is not valid value."
 msgstr "Недопустимое значение: начальное, конечное или шаг."
 
-msgid "Calibration using nozzles of different diameters is not supported."
+msgid ""
+"Automatic calibration only supports cases where the left and right nozzle "
+"diameters are identical."
 msgstr ""
 
 msgid ""
@@ -14414,20 +14429,23 @@ msgid ""
 "does not match."
 msgstr ""
 
-msgid "The selected diameter is inconsistent with the printer diameter."
+msgid ""
+"The selected filament's nozzle diameter or type does not match the actual "
+"printer configuration.\n"
+"Please click the Sync button above and restart the calibration."
 msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"The nozzle type of the %s extruder is not set. Please set it first and then "
-"start calibration."
+"Printer %s nozzle information has not been set. Please configure it before "
+"proceeding with the calibration."
 msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"The selected nozzle type of %s extruder is inconsistent with the actual "
-"nozzle type of the printer.\n"
-"Please synchronize the printer information first and then start calibration."
+"The currently selected nozzle type of %s extruder does not match the actual "
+"printer nozzle type.\n"
+"Please click the Sync button above and restart the calibration."
 msgstr ""
 
 msgid ""
@@ -15482,6 +15500,21 @@ msgstr ""
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как "
 "ABS, повышение температуры подогреваемого стола может снизить эту "
 "вероятность?"
+
+# Режим проверки XY-механики
+#~ msgid "Sweeping XY mech mode"
+#~ msgstr "Проверка XY-механики"
+
+#~ msgid "Motor noise calibration"
+#~ msgstr "Калибровка шума двигателя"
+
+# ??? Перенёс на другую строку, проверить как отображается
+#~ msgid ""
+#~ "You can find it in \"Settings > Network > Connection code\"\n"
+#~ "on the printer, as shown in the figure:"
+#~ msgstr ""
+#~ "Вы можете найти его на принтере в разделе \n"
+#~ "Настройки > Сеть > Код подключения, как показано на рисунке:"
 
 #~ msgid ""
 #~ "No AMS filaments. Please select a printer in 'Device' page to load AMS "

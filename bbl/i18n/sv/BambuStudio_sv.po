@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-03 09:41+0800\n"
+"POT-Creation-Date: 2025-01-08 20:53+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1335,11 +1335,14 @@ msgid ""
 msgstr ""
 
 msgid ""
-"The certificate has been revoked. Please check the time settings or update "
-"Bambu Studio and try again."
+"The certificate is no longer valid and the printing functions are "
+"unavailable. If you need printing. Please visit the official website at "
+"https://bambulab.com/ to download and update."
 msgstr ""
 
-msgid "Firmware internal error, please try to upgrade firmware version."
+msgid ""
+"Internal error. Please try upgrading the firmware and Studio version. If the "
+"issue persists, contact customer support."
 msgstr ""
 
 msgid "Privacy Policy Update"
@@ -3398,8 +3401,8 @@ msgstr "Auto justera byggplattan"
 msgid "Heatbed preheating"
 msgstr "Byggplattan förvärms"
 
-msgid "Sweeping XY mech mode"
-msgstr "Sveper XY mech-läge"
+msgid "Vibration compensation"
+msgstr "Vibrations kompensation"
 
 msgid "Changing filament"
 msgstr "Byter filament"
@@ -3464,8 +3467,8 @@ msgstr "Hoppa över steg paus"
 msgid "Filament loading"
 msgstr "Laddning av filament"
 
-msgid "Motor noise calibration"
-msgstr "Kalibrering av motorljud"
+msgid "Motor noise cancellation"
+msgstr "Brusreducering av motorer"
 
 msgid "Paused due to AMS lost"
 msgstr "Pausad på grund av att AMS förlorats"
@@ -4187,12 +4190,6 @@ msgstr "Val av kalibreringssteg"
 msgid "Bed leveling"
 msgstr "Justering av Byggplattan"
 
-msgid "Vibration compensation"
-msgstr "Vibrations kompensation"
-
-msgid "Motor noise cancellation"
-msgstr "Brusreducering av motorer"
-
 msgid "Calibration program"
 msgstr "Kalibrerings program"
 
@@ -4242,11 +4239,14 @@ msgid "Please input the printer access code:"
 msgstr "Ange skrivarens åtkomstkod:"
 
 msgid ""
-"You can find it in \"Settings > Network > Connection code\"\n"
+"You can find it in \"Settings > Network > Access code\"\n"
 "on the printer, as shown in the figure:"
 msgstr ""
-"Du hittar den i ”Inställningar> Nätverk> Anslutningskod”\n"
-"på skrivaren, som visas i figuren:"
+
+msgid ""
+"You can find it in \"Setting > Setting > LAN only > Access Code\"\n"
+"on the printer, as shown in the figure:"
+msgstr ""
 
 msgid "Invalid input."
 msgstr "Ogiltig inmatning"
@@ -5722,9 +5722,6 @@ msgstr "Härdat stål"
 msgid "Stainless Steel"
 msgstr "Rostfritt stål"
 
-msgid "Normal flow"
-msgstr ""
-
 msgid "High flow"
 msgstr ""
 
@@ -5878,6 +5875,9 @@ msgstr "Ställ in filament som ska användas"
 
 msgid "Search plate, object and part."
 msgstr "Sök platta, objekt och del."
+
+msgid "will be closed before modify filament. Do you want to continue?"
+msgstr ""
 
 msgid "There are no compatible filaments, and sync is not performed."
 msgstr "Det finns inga kompatibla filament och synkronisering utförs inte."
@@ -8320,6 +8320,15 @@ msgstr ""
 
 msgid "Obj file Import color"
 msgstr "Obj file Import color"
+
+msgid "Some faces not define color."
+msgstr ""
+
+msgid "mtl file exist error,could not find the material:"
+msgstr ""
+
+msgid "Please check obj or mtl file."
+msgstr ""
 
 msgid "Specify number of colors:"
 msgstr "Specify number of colors:"
@@ -12062,6 +12071,12 @@ msgstr ""
 msgid "The prime tower print outer first"
 msgstr ""
 
+msgid "Skip points"
+msgstr ""
+
+msgid "The wall of prime tower will skip the start points of wipe path"
+msgstr ""
+
 msgid ""
 "Purging after filament change will be done inside objects' infills. This may "
 "lower the amount of waste and decrease the print time. If the walls are "
@@ -13803,7 +13818,9 @@ msgstr "Välj printer"
 msgid "The start, end or step is not valid value."
 msgstr "Start, slut eller steg är inte giltigt värde."
 
-msgid "Calibration using nozzles of different diameters is not supported."
+msgid ""
+"Automatic calibration only supports cases where the left and right nozzle "
+"diameters are identical."
 msgstr ""
 
 msgid ""
@@ -13811,20 +13828,23 @@ msgid ""
 "does not match."
 msgstr ""
 
-msgid "The selected diameter is inconsistent with the printer diameter."
+msgid ""
+"The selected filament's nozzle diameter or type does not match the actual "
+"printer configuration.\n"
+"Please click the Sync button above and restart the calibration."
 msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"The nozzle type of the %s extruder is not set. Please set it first and then "
-"start calibration."
+"Printer %s nozzle information has not been set. Please configure it before "
+"proceeding with the calibration."
 msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"The selected nozzle type of %s extruder is inconsistent with the actual "
-"nozzle type of the printer.\n"
-"Please synchronize the printer information first and then start calibration."
+"The currently selected nozzle type of %s extruder does not match the actual "
+"printer nozzle type.\n"
+"Please click the Sync button above and restart the calibration."
 msgstr ""
 
 msgid ""
@@ -14810,6 +14830,19 @@ msgstr ""
 "Visste du att när du skriver ut material som är benägna att vrida, såsom "
 "ABS, kan en lämplig ökning av värmebäddens temperatur minska sannolikheten "
 "för vridning."
+
+#~ msgid "Sweeping XY mech mode"
+#~ msgstr "Sveper XY mech-läge"
+
+#~ msgid "Motor noise calibration"
+#~ msgstr "Kalibrering av motorljud"
+
+#~ msgid ""
+#~ "You can find it in \"Settings > Network > Connection code\"\n"
+#~ "on the printer, as shown in the figure:"
+#~ msgstr ""
+#~ "Du hittar den i ”Inställningar> Nätverk> Anslutningskod”\n"
+#~ "på skrivaren, som visas i figuren:"
 
 #~ msgid ""
 #~ "No AMS filaments. Please select a printer in 'Device' page to load AMS "
