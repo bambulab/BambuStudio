@@ -183,6 +183,8 @@ private:
     std::array<float, 4> picking_color_component(int idx) const;
     void release_opengl_resource();
 
+    void on_filament_map_mode_change();
+
 public:
     static const unsigned int PLATE_BASE_ID = 255 * 255 * 253;
     static const unsigned int PLATE_FILAMENT_MAP_ID = 6;
@@ -305,10 +307,11 @@ public:
     Vec3d estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double wipe_volume, int plate_extruder_size = 0, bool use_global_objects = false) const;
     arrangement::ArrangePolygon estimate_wipe_tower_polygon(const DynamicPrintConfig & config, int plate_index, int plate_extruder_size = 0, bool use_global_objects = false) const;
     bool check_objects_empty_and_gcode3mf(std::vector<int> &result) const;
+    // get used filaments from config, 1 based idx
     std::vector<int> get_extruders(bool conside_custom_gcode = false) const;
     std::vector<int> get_extruders_under_cli(bool conside_custom_gcode, DynamicPrintConfig& full_config) const;
     std::vector<int> get_extruders_without_support(bool conside_custom_gcode = false) const;
-    // get used filaments, 1 based idx
+    // get used filaments from gcode result, 1 based idx
     std::vector<int> get_used_filaments();
     int  get_physical_extruder_by_filament_id(const DynamicConfig& g_config, int idx) const;
     bool check_tpu_printable_status(const DynamicPrintConfig & config, const std::vector<int> &tpu_filaments);
