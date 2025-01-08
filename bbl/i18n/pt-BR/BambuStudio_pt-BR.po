@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-03 09:41+0800\n"
+"POT-Creation-Date: 2025-01-08 20:53+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1349,11 +1349,14 @@ msgid ""
 msgstr ""
 
 msgid ""
-"The certificate has been revoked. Please check the time settings or update "
-"Bambu Studio and try again."
+"The certificate is no longer valid and the printing functions are "
+"unavailable. If you need printing. Please visit the official website at "
+"https://bambulab.com/ to download and update."
 msgstr ""
 
-msgid "Firmware internal error, please try to upgrade firmware version."
+msgid ""
+"Internal error. Please try upgrading the firmware and Studio version. If the "
+"issue persists, contact customer support."
 msgstr ""
 
 msgid "Privacy Policy Update"
@@ -3431,8 +3434,8 @@ msgstr "Nivelamento automático da mesa"
 msgid "Heatbed preheating"
 msgstr "Pré-aquecimento da mesa"
 
-msgid "Sweeping XY mech mode"
-msgstr "Varrendo o modo mecânico XY"
+msgid "Vibration compensation"
+msgstr "Compensação de vibração"
 
 msgid "Changing filament"
 msgstr "Mudando o filamento"
@@ -3497,8 +3500,8 @@ msgstr "Ignorar a pausa da etapa"
 msgid "Filament loading"
 msgstr "Carregamento de filamentos"
 
-msgid "Motor noise calibration"
-msgstr "Calibração do ruído do motor"
+msgid "Motor noise cancellation"
+msgstr "Cancelamento de ruído do motor"
 
 msgid "Paused due to AMS lost"
 msgstr "Pausado devido à perda do AMS"
@@ -4219,12 +4222,6 @@ msgstr "Seleção da etapa de calibração"
 msgid "Bed leveling"
 msgstr "Nivelamento de cama"
 
-msgid "Vibration compensation"
-msgstr "Compensação de vibração"
-
-msgid "Motor noise cancellation"
-msgstr "Cancelamento de ruído do motor"
-
 msgid "Calibration program"
 msgstr "Programa de calibração"
 
@@ -4274,11 +4271,14 @@ msgid "Please input the printer access code:"
 msgstr "Insira o código de acesso da impressora:"
 
 msgid ""
-"You can find it in \"Settings > Network > Connection code\"\n"
+"You can find it in \"Settings > Network > Access code\"\n"
 "on the printer, as shown in the figure:"
 msgstr ""
-"Você pode encontrá-lo em “Configurações > Rede > Código de acesso”\n"
-"na impressora, conforme mostrado na figura:"
+
+msgid ""
+"You can find it in \"Setting > Setting > LAN only > Access Code\"\n"
+"on the printer, as shown in the figure:"
+msgstr ""
 
 msgid "Invalid input."
 msgstr "Entrada inválida"
@@ -5755,9 +5755,6 @@ msgstr "Aço endurecido"
 msgid "Stainless Steel"
 msgstr "Aço inoxidável"
 
-msgid "Normal flow"
-msgstr ""
-
 msgid "High flow"
 msgstr ""
 
@@ -5911,6 +5908,9 @@ msgstr "Defina os filamentos a serem usados"
 
 msgid "Search plate, object and part."
 msgstr "Placa de busca, objeto e peça."
+
+msgid "will be closed before modify filament. Do you want to continue?"
+msgstr ""
 
 msgid "There are no compatible filaments, and sync is not performed."
 msgstr "Não há filamentos compatíveis e a sincronização não é executada."
@@ -8367,6 +8367,15 @@ msgstr ""
 
 msgid "Obj file Import color"
 msgstr "Obj file Import color"
+
+msgid "Some faces not define color."
+msgstr ""
+
+msgid "mtl file exist error,could not find the material:"
+msgstr ""
+
+msgid "Please check obj or mtl file."
+msgstr ""
 
 msgid "Specify number of colors:"
 msgstr "Specify number of colors:"
@@ -12169,6 +12178,12 @@ msgstr ""
 msgid "The prime tower print outer first"
 msgstr ""
 
+msgid "Skip points"
+msgstr ""
+
+msgid "The wall of prime tower will skip the start points of wipe path"
+msgstr ""
+
 msgid ""
 "Purging after filament change will be done inside objects' infills. This may "
 "lower the amount of waste and decrease the print time. If the walls are "
@@ -13934,7 +13949,9 @@ msgstr "Precisa selecionar impressora"
 msgid "The start, end or step is not valid value."
 msgstr "O início, o fim ou a etapa não são valores válidos."
 
-msgid "Calibration using nozzles of different diameters is not supported."
+msgid ""
+"Automatic calibration only supports cases where the left and right nozzle "
+"diameters are identical."
 msgstr ""
 
 msgid ""
@@ -13942,20 +13959,23 @@ msgid ""
 "does not match."
 msgstr ""
 
-msgid "The selected diameter is inconsistent with the printer diameter."
+msgid ""
+"The selected filament's nozzle diameter or type does not match the actual "
+"printer configuration.\n"
+"Please click the Sync button above and restart the calibration."
 msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"The nozzle type of the %s extruder is not set. Please set it first and then "
-"start calibration."
+"Printer %s nozzle information has not been set. Please configure it before "
+"proceeding with the calibration."
 msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"The selected nozzle type of %s extruder is inconsistent with the actual "
-"nozzle type of the printer.\n"
-"Please synchronize the printer information first and then start calibration."
+"The currently selected nozzle type of %s extruder does not match the actual "
+"printer nozzle type.\n"
+"Please click the Sync button above and restart the calibration."
 msgstr ""
 
 msgid ""
@@ -14946,6 +14966,19 @@ msgstr ""
 "Você sabia que, ao imprimir materiais propensos a deformações, como o ABS, "
 "aumentar adequadamente a temperatura do leito térmico pode reduzir a "
 "probabilidade de deformação."
+
+#~ msgid "Sweeping XY mech mode"
+#~ msgstr "Varrendo o modo mecânico XY"
+
+#~ msgid "Motor noise calibration"
+#~ msgstr "Calibração do ruído do motor"
+
+#~ msgid ""
+#~ "You can find it in \"Settings > Network > Connection code\"\n"
+#~ "on the printer, as shown in the figure:"
+#~ msgstr ""
+#~ "Você pode encontrá-lo em “Configurações > Rede > Código de acesso”\n"
+#~ "na impressora, conforme mostrado na figura:"
 
 #~ msgid ""
 #~ "No AMS filaments. Please select a printer in 'Device' page to load AMS "
