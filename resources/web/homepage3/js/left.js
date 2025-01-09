@@ -252,6 +252,7 @@ function ShowLeftMenuTip( bShow )
 		$("div[menu='recent'] div.BtnIcon").prop('title',GetCurrentTextByKey('t35'));
 		$("div[menu='online'] div.BtnIcon").prop('title',GetCurrentTextByKey('t107'));
 		$("div[menu='makerlab'] div.BtnIcon").prop('title','MakerLab');
+		$("div[menu='makersupply'] div.BtnIcon").prop('title',GetCurrentTextByKey('t125'));
 		$("div[menu='printhistory'] div.BtnIcon").prop('title',GetCurrentTextByKey('t117'));
 		$("div[menu='manual'] div.BtnIcon").prop('title',GetCurrentTextByKey('t87'));
 	}
@@ -261,8 +262,9 @@ function ShowLeftMenuTip( bShow )
 		$("div[menu='recent'] div.BtnIcon").removeAttr('title');
 		$("div[menu='online'] div.BtnIcon").removeAttr('title');
 		$("div[menu='makerlab'] div.BtnIcon").removeAttr('title');
+		$("div[menu='makersupply'] div.BtnIcon").removeAttr('title');
 		$("div[menu='printhistory'] div.BtnIcon").removeAttr('title');
-		$("div[menu='manual'] div.BtnIcon").removeAttr('title');	
+		$("div[menu='manual'] div.BtnIcon").removeAttr('title');
 	}
 }
 
