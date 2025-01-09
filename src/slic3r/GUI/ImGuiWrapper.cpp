@@ -2684,54 +2684,67 @@ void ImGuiWrapper::init_style()
 
 void ImGuiWrapper::render_draw_data(ImDrawData *draw_data)
 {
+    if (draw_data == nullptr || draw_data->CmdListsCount == 0)
+        return;
+    GLShaderProgram* shader = wxGetApp().get_shader("imgui");
+    if (shader == nullptr)
+        return;
     // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
     ImGuiIO& io = ImGui::GetIO();
-    int fb_width = (int)(draw_data->DisplaySize.x * io.DisplayFramebufferScale.x);
-    int fb_height = (int)(draw_data->DisplaySize.y * io.DisplayFramebufferScale.y);
+    const int fb_width = (int)(draw_data->DisplaySize.x * io.DisplayFramebufferScale.x);
+    const int fb_height = (int)(draw_data->DisplaySize.y * io.DisplayFramebufferScale.y);
     if (fb_width == 0 || fb_height == 0)
         return;
-    draw_data->ScaleClipRects(io.DisplayFramebufferScale);
-
+    GLShaderProgram* curr_shader = wxGetApp().get_current_shader();
+    if (curr_shader != nullptr)
+        curr_shader->stop_using();
+    shader->start_using();
     // We are using the OpenGL fixed pipeline to make the example code simpler to read!
     // Setup render state: alpha-blending enabled, no face culling, no depth testing, scissor enabled, vertex/texcoord/color pointers, polygon fill.
-    GLint last_texture; glsafe(::glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture));
-    GLint last_polygon_mode[2]; glsafe(::glGetIntegerv(GL_POLYGON_MODE, last_polygon_mode));
-    GLint last_viewport[4]; glsafe(::glGetIntegerv(GL_VIEWPORT, last_viewport));
-    GLint last_scissor_box[4]; glsafe(::glGetIntegerv(GL_SCISSOR_BOX, last_scissor_box));
-    glsafe(::glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_TRANSFORM_BIT));
+    GLint last_texture;          glsafe(::glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture));
+    GLint last_polygon_mode[2];  glsafe(::glGetIntegerv(GL_POLYGON_MODE, last_polygon_mode));
+    GLint last_viewport[4];      glsafe(::glGetIntegerv(GL_VIEWPORT, last_viewport));
+    GLint last_scissor_box[4];   glsafe(::glGetIntegerv(GL_SCISSOR_BOX, last_scissor_box));
+    const GLboolean was_blend_enabled = glIsEnabled(GL_BLEND);
+    const GLboolean was_cull_face_enabled = glIsEnabled(GL_CULL_FACE);
+    const GLboolean was_depth_test_enabled = glIsEnabled(GL_DEPTH_TEST);
+    const GLboolean was_scissor_test_enabled = glIsEnabled(GL_SCISSOR_TEST);
+    GLboolean was_texture2d_enabled = GL_FALSE;
+    const auto& ogl_manager = wxGetApp().get_opengl_manager();
+    const auto& gl_info = ogl_manager.get_gl_info();
+    const auto formated_gl_version = gl_info.get_formated_gl_version();
+    if (formated_gl_version < 30) {
+        was_texture2d_enabled = glIsEnabled(GL_TEXTURE_2D);
+    }
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
     glsafe(::glDisable(GL_CULL_FACE));
     glsafe(::glDisable(GL_DEPTH_TEST));
-    glsafe(::glDisable(GL_LIGHTING));
-    glsafe(::glDisable(GL_COLOR_MATERIAL));
     glsafe(::glEnable(GL_SCISSOR_TEST));
-    glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
-    glsafe(::glEnableClientState(GL_TEXTURE_COORD_ARRAY));
-    glsafe(::glEnableClientState(GL_COLOR_ARRAY));
-    glsafe(::glEnable(GL_TEXTURE_2D));
+    if (formated_gl_version < 30) {
+        glsafe(::glEnable(GL_TEXTURE_2D));
+    }
     glsafe(::glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
-    glsafe(::glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE));
-    GLint texture_env_mode = GL_MODULATE;
-    glsafe(::glGetTexEnviv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, &texture_env_mode));
-    glsafe(::glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE));
-    //glUseProgram(0); // You may want this if using this code in an OpenGL 3+ context where shaders may be bound
-
     // Setup viewport, orthographic projection matrix
-    // Our visible imgui space lies from draw_data->DisplayPps (top left) to draw_data->DisplayPos+data_data->DisplaySize (bottom right). DisplayMin is typically (0,0) for single viewport apps.
+    // Our visible imgui space lies from draw_data->DisplayPos (top left) to draw_data->DisplayPos+data_data->DisplaySize (bottom right). DisplayPos is (0,0) for single viewport apps.
     glsafe(::glViewport(0, 0, (GLsizei)fb_width, (GLsizei)fb_height));
-    glsafe(::glMatrixMode(GL_PROJECTION));
-    glsafe(::glPushMatrix());
-    glsafe(::glLoadIdentity());
-    glsafe(::glOrtho(draw_data->DisplayPos.x, draw_data->DisplayPos.x + draw_data->DisplaySize.x, draw_data->DisplayPos.y + draw_data->DisplaySize.y, draw_data->DisplayPos.y, -1.0f, +1.0f));
-    glsafe(::glMatrixMode(GL_MODELVIEW));
-    glsafe(::glPushMatrix());
-    glsafe(::glLoadIdentity());
-
+    const float L = draw_data->DisplayPos.x;
+    const float R = draw_data->DisplayPos.x + draw_data->DisplaySize.x;
+    const float T = draw_data->DisplayPos.y;
+    const float B = draw_data->DisplayPos.y + draw_data->DisplaySize.y;
+    Matrix4f ortho_projection;
+    ortho_projection <<
+        2.0f / (R - L), 0.0f, 0.0f, (R + L) / (L - R),
+        0.0f, 2.0f / (T - B), 0.0f, (T + B) / (B - T),
+        0.0f, 0.0f, -1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f;
+    shader->set_uniform("Texture", 0);
+    shader->set_uniform("ProjMtx", ortho_projection);
+    // Will project scissor/clipping rectangles into framebuffer space
+    const ImVec2 clip_off = draw_data->DisplayPos;       // (0,0) unless using multi-viewports
+    const ImVec2 clip_scale = draw_data->FramebufferScale; // (1,1) unless using retina display which are often (2,2)
     // Render command lists
-    ImVec2 pos = draw_data->DisplayPos;
-    for (int n = 0; n < draw_data->CmdListsCount; n++)
-    {
+    for (int n = 0; n < draw_data->CmdListsCount; ++n) {
         const ImDrawList* cmd_list = draw_data->CmdLists[n];
         const ImDrawVert* vtx_buffer = cmd_list->VtxBuffer.Data;
         const ImDrawIdx* idx_buffer = cmd_list->IdxBuffer.Data;
@@ -2741,58 +2754,85 @@ void ImGuiWrapper::render_draw_data(ImDrawData *draw_data)
         glsafe(::glGenBuffers(1, &vbo_id));
         glsafe(::glBindBuffer(GL_ARRAY_BUFFER, vbo_id));
         glsafe(::glBufferData(GL_ARRAY_BUFFER, vtx_buffer_size, vtx_buffer, GL_STATIC_DRAW));
-
         GLuint ibo_id;
         glsafe(::glGenBuffers(1, &ibo_id));
         glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_id));
         glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, idx_buffer_size, idx_buffer, GL_STATIC_DRAW));
-
-        glsafe(::glVertexPointer(2, GL_FLOAT, sizeof(ImDrawVert), (const GLvoid*)((const char*)IM_OFFSETOF(ImDrawVert, pos))));
-        glsafe(::glTexCoordPointer(2, GL_FLOAT, sizeof(ImDrawVert), (const GLvoid*)((const char*)IM_OFFSETOF(ImDrawVert, uv))));
-        glsafe(::glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(ImDrawVert), (const GLvoid*)((const char*)IM_OFFSETOF(ImDrawVert, col))));
-
-        for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
-        {
+        const int position_id = shader->get_attrib_location("Position");
+        if (position_id != -1) {
+            glsafe(::glVertexAttribPointer(position_id, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (const void*)IM_OFFSETOF(ImDrawVert, pos)));
+            glsafe(::glEnableVertexAttribArray(position_id));
+        }
+        const int uv_id = shader->get_attrib_location("UV");
+        if (uv_id != -1) {
+            glsafe(::glVertexAttribPointer(uv_id, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (const void*)IM_OFFSETOF(ImDrawVert, uv)));
+            glsafe(::glEnableVertexAttribArray(uv_id));
+        }
+        const int color_id = shader->get_attrib_location("Color");
+        if (color_id != -1) {
+            glsafe(::glVertexAttribPointer(color_id, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(ImDrawVert), (const void*)IM_OFFSETOF(ImDrawVert, col)));
+            glsafe(::glEnableVertexAttribArray(color_id));
+        }
+        for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; ++cmd_i) {
             const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
             if (pcmd->UserCallback)
-            {
                 // User callback (registered via ImDrawList::AddCallback)
                 pcmd->UserCallback(cmd_list, pcmd);
+            else {
+                // Project scissor/clipping rectangles into framebuffer space
+                const ImVec2 clip_min((pcmd->ClipRect.x - clip_off.x) * clip_scale.x, (pcmd->ClipRect.y - clip_off.y) * clip_scale.y);
+                const ImVec2 clip_max((pcmd->ClipRect.z - clip_off.x) * clip_scale.x, (pcmd->ClipRect.w - clip_off.y) * clip_scale.y);
+                if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y)
+                    continue;
+                // Apply scissor/clipping rectangle (Y is inverted in OpenGL)
+                glsafe(::glScissor((int)clip_min.x, (int)(fb_height - clip_max.y), (int)(clip_max.x - clip_min.x), (int)(clip_max.y - clip_min.y)));
+                // Bind texture, Draw
+                glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)(intptr_t)pcmd->GetTexID()));
+                glsafe(::glDrawElements(GL_TRIANGLES, (GLsizei)pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, (void*)(intptr_t)(pcmd->IdxOffset * sizeof(ImDrawIdx))));
             }
-            else
-            {
-                ImVec4 clip_rect = ImVec4(pcmd->ClipRect.x - pos.x, pcmd->ClipRect.y - pos.y, pcmd->ClipRect.z - pos.x, pcmd->ClipRect.w - pos.y);
-                if (clip_rect.x < fb_width && clip_rect.y < fb_height && clip_rect.z >= 0.0f && clip_rect.w >= 0.0f)
-                {
-                    // Apply scissor/clipping rectangle
-                    glsafe(::glScissor((int)clip_rect.x, (int)(fb_height - clip_rect.w), (int)(clip_rect.z - clip_rect.x), (int)(clip_rect.w - clip_rect.y)));
-
-                    // Bind texture, Draw
-                    glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)(intptr_t)pcmd->GetTexID()));
-                    glsafe(::glDrawElements(GL_TRIANGLES, (GLsizei)pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, (void*)(intptr_t)(pcmd->IdxOffset * sizeof(ImDrawIdx))));
-                }
-            }
-            idx_buffer += pcmd->ElemCount;
         }
-
+        if (position_id != -1)
+            glsafe(::glDisableVertexAttribArray(position_id));
+        if (uv_id != -1)
+            glsafe(::glDisableVertexAttribArray(uv_id));
+        if (color_id != -1)
+            glsafe(::glDisableVertexAttribArray(color_id));
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
         glsafe(::glDeleteBuffers(1, &ibo_id));
         glsafe(::glDeleteBuffers(1, &vbo_id));
     }
-
     // Restore modified state
-    glsafe(::glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, texture_env_mode));
-    glsafe(::glDisableClientState(GL_COLOR_ARRAY));
-    glsafe(::glDisableClientState(GL_TEXTURE_COORD_ARRAY));
-    glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
     glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)last_texture));
-    glsafe(::glMatrixMode(GL_MODELVIEW));
-    glsafe(::glPopMatrix());
-    glsafe(::glMatrixMode(GL_PROJECTION));
-    glsafe(::glPopMatrix());
-    glsafe(::glPopAttrib());
-    glsafe(::glPolygonMode(GL_FRONT, (GLenum)last_polygon_mode[0]); glPolygonMode(GL_BACK, (GLenum)last_polygon_mode[1]));
+    if (!was_blend_enabled) {
+        glsafe(::glDisable(GL_BLEND));
+    }
+    if (was_cull_face_enabled) {
+        glsafe(::glEnable(GL_CULL_FACE));
+    }
+    if (was_depth_test_enabled) {
+        glsafe(::glEnable(GL_DEPTH_TEST));
+    }
+    if (!was_scissor_test_enabled) {
+        glsafe(::glDisable(GL_SCISSOR_TEST));
+    }
+    if (formated_gl_version < 30) {
+        if (!was_texture2d_enabled) {
+            glsafe(::glDisable(GL_TEXTURE_2D));
+        }
+    }
+    if (formated_gl_version < 30) {
+        glsafe(::glPolygonMode(GL_FRONT, (GLenum)last_polygon_mode[0]);
+        glsafe(::glPolygonMode(GL_BACK, (GLenum)last_polygon_mode[1])));
+    }
+    else {
+        glsafe(::glPolygonMode(GL_FRONT_AND_BACK, (GLenum)last_polygon_mode[0]));
+    }
     glsafe(::glViewport(last_viewport[0], last_viewport[1], (GLsizei)last_viewport[2], (GLsizei)last_viewport[3]));
     glsafe(::glScissor(last_scissor_box[0], last_scissor_box[1], (GLsizei)last_scissor_box[2], (GLsizei)last_scissor_box[3]));
+    shader->stop_using();
+    if (curr_shader != nullptr)
+        curr_shader->start_using();
 }
 
 bool ImGuiWrapper::display_initialized() const

@@ -96,6 +96,8 @@ std::pair<bool, std::string> GLShadersManager::init()
 
     valid &= append_shader("silhouette_composite", { "110/silhouette_composite.vs", "110/silhouette_composite.fs" });
 
+    valid &= append_shader("imgui", { "110/imgui.vs", "110/imgui.fs" });
+
     return { valid, error };
 }
 
