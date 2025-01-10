@@ -172,6 +172,7 @@ typedef std::string local_encoded_string;
 extern local_encoded_string encode_path(const char *src);
 extern std::string decode_path(const char *src);
 extern std::string normalize_utf8_nfc(const char *src);
+extern std::vector<std::string> split_string(const std::string &str, char delimiter);
 
 // Safely rename a file even if the target exists.
 // On Windows, the file explorer (or anti-virus or whatever else) often locks the file
