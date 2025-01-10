@@ -3,6 +3,7 @@
 
 #include "format.hpp"
 #include "ClipperUtils.hpp"
+#include "Clipper2Utils.hpp"
 #include "Fill/FillBase.hpp"
 #include "I18N.hpp"
 #include "Layer.hpp"
@@ -629,6 +630,7 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
     SVG svg(debug_out_path("machine_boarder.svg"), m_object->bounding_box());
     if (svg.is_opened()) svg.draw(m_machine_border, "yellow");
 #endif
+    BOOST_LOG_TRIVIAL(debug) << "tree support construct finish";
 }
 
 void add_overhang(Layer *layer, const ExPolygon &overhang, int type)
@@ -3871,14 +3873,16 @@ TreeSupportData::TreeSupportData(const PrintObject &object, coordf_t xy_distance
     m_max_move_distances.resize(object.layers().size(), 0);
     m_layer_outlines.resize(object.layers().size());
     m_layer_outlines_below.resize(object.layer_count());
-    for (std::size_t layer_nr  = 0; layer_nr < object.layers().size(); ++layer_nr)
-    {
+    for (std::size_t layer_nr  = 0; layer_nr < object.layers().size(); ++layer_nr) {
+        // BOOST_LOG_TRIVIAL(debug) << "TreeSupportData construct "<< layer_nr<<"/"<<object.layer_count();
         const Layer* layer = object.get_layer(layer_nr);
         m_max_move_distances[layer_nr] = layer->height * branch_scale_factor;
         ExPolygons &outline = m_layer_outlines[layer_nr];
-        for (const ExPolygon& poly : layer->lslices) {
-            poly.simplify(scale_(m_radius_sample_resolution), &outline);
-        }
+        outline.clear();
+        outline.reserve(layer->lslices.size());
+        for (const ExPolygon &poly : layer->lslices) { append(outline, to_expolygons( poly.simplify_p(scale_(m_radius_sample_resolution)))); }
+        if (layer_nr % 10 == 0)
+            outline = union_ex(outline);
 
         if (layer_nr == 0)
             m_layer_outlines_below[layer_nr] = outline;
@@ -3886,7 +3890,7 @@ TreeSupportData::TreeSupportData(const PrintObject &object, coordf_t xy_distance
             m_layer_outlines_below[layer_nr] = m_layer_outlines_below[layer_nr - 1];
             m_layer_outlines_below[layer_nr].insert(m_layer_outlines_below[layer_nr].end(), outline.begin(), outline.end());
             if (layer_nr%10==0)
-                m_layer_outlines_below[layer_nr] = union_ex(m_layer_outlines_below[layer_nr]);
+                m_layer_outlines_below[layer_nr] = union_ex2(m_layer_outlines_below[layer_nr]);
         }
     }
 }

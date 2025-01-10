@@ -295,7 +295,8 @@ namespace Clipper2Lib {
 		typedef typename std::vector<PolyPath64*>::const_iterator pp64_itor;
 	public:
 		PolyPath64(PolyPath64* parent = nullptr) : PolyPath(parent) {}
-		PolyPath64* operator [] (size_t index) { return static_cast<PolyPath64*>(childs_[index]); }
+        PolyPath64 *operator[](size_t index) { return static_cast<PolyPath64 *>(childs_[index]); }
+        PolyPath64 *Childs(size_t index) const { return static_cast<PolyPath64 *>(childs_[index]); }
 		pp64_itor begin() const { return childs_.cbegin(); }
 		pp64_itor end() const { return childs_.cend(); }
 
