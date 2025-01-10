@@ -643,13 +643,24 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
     }
 
     // Append thin walls to the nearest-neighbor search (only for first iteration)
+    Point zero_point(0, 0);
+
     if (! thin_walls.empty()) {
+        BoundingBox bbox;
+        for (auto &entity : coll.entities) { bbox.merge(entity->as_polyline().bounding_box()); }
+        for (auto& thin_wall : thin_walls) {
+            // find the corner of bbox that's farthest from the thin wall
+            Point corner_far = bbox.min;
+            if ((corner_far.cast<double>() - thin_wall.first_point().cast<double>()).squaredNorm() <
+                (bbox.max.cast<double>() - thin_wall.first_point().cast<double>()).squaredNorm())
+                corner_far = bbox.max;
+            zero_point = corner_far;
+        }
         variable_width(thin_walls, erExternalPerimeter, perimeter_generator.ext_perimeter_flow, coll.entities);
         thin_walls.clear();
     }
 
     // Traverse children and build the final collection.
-	Point zero_point(0, 0);
 	std::vector<std::pair<size_t, bool>> chain = chain_extrusion_entities(coll.entities, &zero_point);
     ExtrusionEntityCollection out;
     for (const std::pair<size_t, bool> &idx : chain) {
