@@ -3994,7 +3994,7 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
     if (model == EXT_AMS && ams->m_info.ext_type == AMSModelOriginType::GENERIC_EXT){
         if (m_ams_info.size() == 0 && m_ext_info.size() == 1) {
             left = true;
-            length = 49;
+            length = 50;
         } else {
             length = left ? 110 : 82;
         }
