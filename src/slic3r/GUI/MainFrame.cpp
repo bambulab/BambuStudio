@@ -1843,6 +1843,19 @@ wxBoxSizer* MainFrame::create_side_tools()
                     p->Dismiss();
                     });
 
+#if !BBL_RELEASE_TO_PUBLIC
+                SideButton *send_to_multi_app_btn = new SideButton(p, _L("Send to Bambu Farm Manager Client"), "");
+                send_to_multi_app_btn->SetCornerRadius(0);
+                send_to_multi_app_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent &) {
+                    m_print_btn->SetLabel(_L("Send to BFMC"));
+                    m_print_select = eSendMultiApp;
+                    m_print_enable = get_enable_print_status();
+                    m_print_btn->Enable(m_print_enable);
+                    this->Layout();
+                    p->Dismiss();
+                });
+ #endif
+
                 p->append_button(print_plate_btn);
                 p->append_button(print_all_btn);
                 p->append_button(send_to_printer_btn);
@@ -1850,23 +1863,9 @@ wxBoxSizer* MainFrame::create_side_tools()
                 p->append_button(export_sliced_file_btn);
                 p->append_button(export_all_sliced_file_btn);
 
-
-                if (check_bbl_farm_client_installed()) {
-                    SideButton *send_to_multi_app_btn = new SideButton(p, _L("Send to Bambu Farm Manager Client"), "");
-                    send_to_multi_app_btn->SetCornerRadius(0);
-                    p->append_button(send_to_multi_app_btn);
-
-                    send_to_multi_app_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent &) {
-                        m_print_btn->SetLabel(_L("Send to BFMC"));
-                        m_print_select = eSendMultiApp;
-                        m_print_enable = get_enable_print_status();
-                        m_print_btn->Enable(m_print_enable);
-                        this->Layout();
-                        p->Dismiss();
-                    });
-                }
-
-
+#if !BBL_RELEASE_TO_PUBLIC
+                p->append_button(send_to_multi_app_btn);
+#endif
                 if (enable_multi_machine) {
                     SideButton* print_multi_machine_btn = new SideButton(p, _L("Send to Multi-device"), "");
                     print_multi_machine_btn->SetCornerRadius(0);
