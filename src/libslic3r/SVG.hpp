@@ -80,6 +80,8 @@ public:
     void draw_grid(const BoundingBox& bbox, const std::string& stroke = "black", coordf_t stroke_width = scale_(0.05), coordf_t step=scale_(1.0));
     void add_comment(const std::string comment);
 
+    static ExPolygons load(const std::string& filename);
+
     void Close();
     
     private:
@@ -177,6 +179,12 @@ private:
     float           to_svg_y(float x) const throw() { return flipY ? this->height - to_svg_coord(x) : to_svg_coord(x); }
 };
 
+void                   dumpExPolygonToJson(const ExPolygon &exPolygon, const std::string &filePath);
+void                   dumpExPolygonsToJson(const std::vector<ExPolygon> &exPolygons, const std::string &filePath);
+std::vector<ExPolygon> loadExPolygonsFromJson(const std::string &filePath);
+
+void dumpExPolygonsToTxt(const std::vector<ExPolygon> &exPolygons, const std::string &filePath);
+std::vector<ExPolygon> loadExPolygonsFromTxt(const std::string &filePath);
 }
 
 #endif

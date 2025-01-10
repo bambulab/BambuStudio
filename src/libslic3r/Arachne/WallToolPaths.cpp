@@ -781,7 +781,7 @@ const Polygons& WallToolPaths::getInnerContour()
     }
     return inner_contour;
 }
-
+Polygons        EmptyPolygons;
 const Polygons& WallToolPaths::getFirstWallContour()
 {
     if (!toolpaths_generated && inset_count > 0)
@@ -790,7 +790,7 @@ const Polygons& WallToolPaths::getFirstWallContour()
     }
     else if(inset_count == 0)
     {
-        return {};
+        return EmptyPolygons;
     }
     return first_wall_contour;
 }
