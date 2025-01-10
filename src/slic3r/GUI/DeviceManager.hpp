@@ -1069,7 +1069,8 @@ public:
     int command_xyz_abs();
     int command_auto_leveling();
     int command_go_home();
-    int command_control_fan(int fan_type, int val);   // Old protocol
+    int command_go_home2();
+    int command_control_fan(int fan_type, int val);                              // Old protocol
     int command_control_fan_new(int fan_id, int val, const CommandCallBack &cb); // New protocol
     int command_control_air_duct(int mode_id, const CommandCallBack& cb);
     int command_task_abort();
