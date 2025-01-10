@@ -180,7 +180,7 @@ void MaterialItem::render(wxDC &dc)
 
     auto mapping_txt_size = dc.GetTextExtent(mapping_txt);
 
-    dc.SetTextForeground(wxColour(0x26, 0x2E, 0x30));
+    dc.SetTextForeground(StateColor::darkModeColorFor(wxColour(0x26, 0x2E, 0x30)));
     dc.SetFont(::Label::Head_12);
     dc.DrawText(mapping_txt, wxPoint(GetSize().x / 2 + (GetSize().x / 2 - mapping_txt_size.x) / 2 - FromDIP(2), ((float)GetSize().y * 3 / 5 - mapping_txt_size.y) / 2 + (float)GetSize().y * 2 / 5));
 }
