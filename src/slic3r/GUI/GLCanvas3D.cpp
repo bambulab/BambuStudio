@@ -130,6 +130,8 @@ std::string object_limited_text = _u8L("An object is laid on the left/right extr
 std::string object_clashed_text = _u8L("An object is laid over the boundary of plate or exceeds the height limit.\n"
     "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.");
 
+wxString filament_printable_error_msg;
+
 GLCanvas3D::LayersEditing::~LayersEditing()
 {
     if (m_z_texture_id != 0) {
@@ -2958,6 +2960,9 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             bool tpu_valid = cur_plate->check_tpu_printable_status(wxGetApp().preset_bundle->full_config(), wxGetApp().preset_bundle->get_used_tpu_filaments(cur_plate->get_extruders(true)));
             _set_warning_notification(EWarning::TPUPrintableError, !tpu_valid);
 
+            bool filament_printable = cur_plate->check_filament_printable(wxGetApp().preset_bundle->full_config(), filament_printable_error_msg);
+            _set_warning_notification(EWarning::FilamentPrintableError, !filament_printable);
+
             bool model_fits = contained_min_one && !m_model->objects.empty() && !partlyOut && object_results.filaments.empty() && tpu_valid;
             post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, model_fits));
             ppl.get_curr_plate()->update_slice_ready_status(model_fits);
@@ -2968,6 +2973,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             _set_warning_notification(EWarning::ObjectLimited, false);
             //_set_warning_notification(EWarning::SlaSupportsOutside, false);
            _set_warning_notification(EWarning::TPUPrintableError, false);
+           _set_warning_notification(EWarning::FilamentPrintableError, false);
            post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
         }
     }
@@ -9977,6 +9983,11 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         error = ErrorType::SLICING_ERROR;
         break;
     }
+    case EWarning::FilamentPrintableError: {
+        text  = filament_printable_error_msg.ToUTF8();
+        error = ErrorType::SLICING_ERROR;
+        break;
+    }
     case EWarning::MultiExtruderPrintableError: {
         for (auto error_iter = m_gcode_viewer.m_gcode_check_result.print_area_error_infos.begin(); error_iter != m_gcode_viewer.m_gcode_check_result.print_area_error_infos.end(); ++error_iter) {
             if (error_iter != m_gcode_viewer.m_gcode_check_result.print_area_error_infos.begin()) {
@@ -10140,6 +10151,12 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
             else {
                 notification_manager.bbl_close_bed_filament_incompatible_notification();
             }
+        }
+        if (warning == EWarning::FilamentPrintableError) {
+            if (state)
+                notification_manager.push_slicing_customize_error_notification(NotificationType::BBLFilamentPrintableError, NotificationManager::NotificationLevel::ErrorNotificationLevel, text);
+            else
+                notification_manager.close_slicing_customize_error_notification(NotificationType::BBLFilamentPrintableError, NotificationManager::NotificationLevel::ErrorNotificationLevel);
         }
         else {
             if (state)

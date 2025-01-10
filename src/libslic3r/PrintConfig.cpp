@@ -565,6 +565,12 @@ void PrintConfigDef::init_common_params()
     def->mode     = comSimple;
     def->set_default_value(new ConfigOptionFloatsNullable{});
 
+    def           = this->add("unprintable_filament_types", coStrings);
+    def->label    = L("Unprintable filament type");
+    def->tooltip  = L("Unprintable filament type");
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionStrings{""});
+
     // Options used by physical printers
 
     def = this->add("preset_names", coStrings);
