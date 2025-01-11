@@ -47,12 +47,27 @@ int AVVideoDecoder::open(Bambu_StreamInfo const &info)
 
 int AVVideoDecoder::decode(const Bambu_Sample &sample)
 {
-    auto pkt = av_packet_alloc();
-    int  ret = av_new_packet(pkt, sample.size);
-    if (ret == 0)
-        memcpy(pkt->data, sample.buffer, size_t(sample.size));
-    got_frame_ = avcodec_receive_frame(codec_ctx_, frame_) == 0;
+    int ret = -1;
+    AVPacket *pkt = av_packet_alloc();
+    if (!pkt) {
+        return ret;
+    }
+
+    ret = av_new_packet(pkt, sample.size);
+    if (ret != 0) {
+        av_packet_free(&pkt);
+        return ret;
+    }
+
+    memcpy(pkt->data, sample.buffer, size_t(sample.size));
+
     ret = avcodec_send_packet(codec_ctx_, pkt);
+    if (ret == 0) {
+        got_frame_ = avcodec_receive_frame(codec_ctx_, frame_) == 0;
+    }
+
+    av_packet_unref(pkt);
+    av_packet_free(&pkt);
     return ret;
 }
 
