@@ -1106,7 +1106,7 @@ bool Sidebar::priv::switch_diameter(bool single)
 bool Sidebar::priv::sync_extruder_list()
 {
     MachineObject *obj = wxGetApp().getDeviceManager()->get_selected_machine();
-    if (obj == nullptr || !obj->is_info_ready()) {
+    if (obj == nullptr || !obj->is_info_ready(false)) {
         MessageDialog dlg(this->plater, _L("Please select a printer in 'Device' page first."), _L("Sync extruder infomation"), wxOK | wxICON_WARNING);
         dlg.ShowModal();
         return false;
