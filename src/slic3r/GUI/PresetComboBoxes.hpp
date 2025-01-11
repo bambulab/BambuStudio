@@ -70,6 +70,7 @@ public:
     void update_from_bundle();
 
     // BBS: printer
+    bool update_printer_list();
     void add_connected_printers(std::string selected, bool alias_name = false);
     int  selected_connected_printer() const;
 
@@ -134,6 +135,8 @@ protected:
     // BBS: printer
     int m_first_printer_idx = 0;
     int m_last_printer_idx  = 0;
+
+    std::vector<std::string> m_backup_dev_list;
 
     PrinterTechnology printer_technology {ptAny};
 

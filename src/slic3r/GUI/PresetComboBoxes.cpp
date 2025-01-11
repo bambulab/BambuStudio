@@ -124,7 +124,10 @@ PresetComboBox::PresetComboBox(wxWindow* parent, Preset::Type preset_type, const
         else
             e.Skip();
     });
-    Bind(wxEVT_COMBOBOX_DROPDOWN, [this](wxCommandEvent&) { m_suppress_change = false; });
+    Bind(wxEVT_COMBOBOX_DROPDOWN, [this](wxCommandEvent &) {
+        update_printer_list();
+        m_suppress_change = false;
+    });
     Bind(wxEVT_COMBOBOX_CLOSEUP,  [this](wxCommandEvent&) { m_suppress_change = true;  });
 
     Bind(wxEVT_COMBOBOX, &PresetComboBox::OnSelect, this);
@@ -306,6 +309,7 @@ wxString PresetComboBox::get_preset_item_name(unsigned int index)
             std::advance(iter, idx);
             Preset* machine_preset = get_printer_preset(iter->second);
             if (machine_preset) {
+                dev->set_selected_machine(iter->first);
                 return from_u8(machine_preset->name);
             }
         }
@@ -403,6 +407,33 @@ void PresetComboBox::update_from_bundle()
     this->update(m_collection->get_selected_preset().name);
 }
 
+bool PresetComboBox::update_printer_list()
+{
+    if (m_type != Preset::TYPE_PRINTER)
+        return false;
+
+    if (wxGetApp().is_user_login()) {
+        Slic3r::DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+        if (!dev)
+            return false;
+
+        NetworkAgent *agent = wxGetApp().getAgent();
+        unsigned int  http_code;
+        std::string   body;
+        int    result = agent->get_user_print_info(&http_code, &body);
+        if (!body.empty()) {
+            dev->parse_user_print_info(body);
+            std::vector<std::string>               new_machine_list;
+            std::map<std::string, MachineObject *> machine_list = dev->get_my_machine_list();
+            for (auto &it : machine_list) { new_machine_list.push_back(it.first); }
+            if (new_machine_list != m_backup_dev_list) {
+                update();
+            }
+        }
+    }
+    return true;
+}
+
 void PresetComboBox::add_connected_printers(std::string selected, bool alias_name)
 {
     DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
@@ -415,7 +446,21 @@ void PresetComboBox::add_connected_printers(std::string selected, bool alias_nam
 
     set_label_marker(Append(separator(L("My Printer")), wxNullBitmap));
     m_first_printer_idx = GetCount();
-    for (auto iter = machine_list.begin(); iter != machine_list.end(); ++iter) {
+
+    // sort list
+    std::vector<std::pair<std::string, MachineObject *>> user_machine_list;
+    m_backup_dev_list.clear();
+    for (auto &it : machine_list) {
+        m_backup_dev_list.push_back(it.first);
+        user_machine_list.push_back(it);
+    }
+
+    std::sort(user_machine_list.begin(), user_machine_list.end(), [&](auto &a, auto &b) {
+        if (a.second && b.second) { return a.second->dev_name.compare(b.second->dev_name) < 0; }
+        return false;
+    });
+
+    for (auto iter = user_machine_list.begin(); iter != user_machine_list.end(); ++iter) {
         Preset* printer_preset = get_printer_preset(iter->second);
         if (!printer_preset)
             continue;
@@ -423,7 +468,7 @@ void PresetComboBox::add_connected_printers(std::string selected, bool alias_nam
         auto printer_model = printer_preset->config.opt_string("printer_model");
         boost::replace_all(printer_model, "Bambu Lab ", "");
         auto text = iter->second->dev_name + " (" + printer_model + ")";
-        int  item_id = Append(from_u8(text), wxNullBitmap, &m_first_printer_idx + std::distance(machine_list.begin(), iter));
+        int item_id = Append(from_u8(text), wxNullBitmap, &m_first_printer_idx + std::distance(user_machine_list.begin(), iter));
     }
     m_last_printer_idx = GetCount();
 }
