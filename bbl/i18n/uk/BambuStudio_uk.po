@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-08 20:53+0800\n"
+"POT-Creation-Date: 2025-01-11 16:36+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -1247,8 +1247,8 @@ msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr "Не вдалося підключити %s! [Серійний номер:%s, код=%s]"
 
 msgid ""
-"BambuStudio configuration file may be corrupted and is not able to be "
-"parsed.Please delete the file and try again."
+"BambuStudio configuration file may be corrupted and is not able to be parsed."
+"Please delete the file and try again."
 msgstr ""
 "BambuStudio файл конфігурації може бути пошкоджений і не може бути "
 "розібраний. Будь ласка, видаліть файл і спробуйте ще раз."
@@ -2287,9 +2287,9 @@ msgid "Top"
 msgstr "Верх"
 
 msgid ""
-"The fan controls the temperature during printing to improve print "
-"quality.The system automatically adjusts the fan's switch and speed "
-"according to different printing materials."
+"The fan controls the temperature during printing to improve print quality."
+"The system automatically adjusts the fan's switch and speed according to "
+"different printing materials."
 msgstr ""
 
 msgid ""
@@ -2667,8 +2667,8 @@ msgid ""
 "This software uses open source components whose copyright and other "
 "proprietary rights belong to their respective owners"
 msgstr ""
-"Це програмне забезпечення використовує компоненти з відкритим вихідним "
-"кодом,авторські права та інші\n"
+"Це програмне забезпечення використовує компоненти з відкритим вихідним кодом,"
+"авторські права та інші\n"
 "права власності належать їх відповідним власникам"
 
 #, c-format, boost-format
@@ -3288,9 +3288,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe "
-"temperature,it may result in material softening and clogging.The maximum "
-"safe temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe temperature,"
+"it may result in material softening and clogging.The maximum safe "
+"temperature for the material is %d"
 msgstr ""
 "Поточна температура камери вища, ніж безпечна температура матеріалу, це може "
 "призвести до розм’якшення матеріалу та його забивання. Максимально безпечна "
@@ -3584,7 +3584,14 @@ msgstr ""
 msgid "Printing calibration lines"
 msgstr ""
 
-msgid "TPU is not supported by deputy extruder."
+msgid "left"
+msgstr ""
+
+msgid "right"
+msgstr ""
+
+#, c-format, boost-format
+msgid "TPU is not supported by %s extruder for this printer."
 msgstr ""
 
 msgid "Unknown"
@@ -3652,6 +3659,10 @@ msgstr "Не вдалося створити Gcode для калібруванн
 
 msgid "Calibration error"
 msgstr "Помилка калібрування"
+
+#, c-format, boost-format
+msgid "%s is not supported by %s extruder."
+msgstr ""
 
 msgid "TPU is not supported by AMS."
 msgstr "TPU не підтримується AMS."
@@ -3956,8 +3967,8 @@ msgid ""
 "confirming that the height is within the build volume."
 msgstr ""
 "Об'єкт знаходиться за кордоном пластини або перевищує обмеження по висоті.\n"
-"Будь ласка, вирішіть проблему, перемістивши її повністю на тарілку або з "
-"неї,і підтвердження того, що висота знаходиться в межах обсягу збирання."
+"Будь ласка, вирішіть проблему, перемістивши її повністю на тарілку або з неї,"
+"і підтвердження того, що висота знаходиться в межах обсягу збирання."
 
 msgid "Variable layer height"
 msgstr "Змінна висота шару"
@@ -5272,6 +5283,9 @@ msgstr "Стіл"
 msgid "Debug Info"
 msgstr "Налагоджувальна інформація"
 
+msgid "Filament loading..."
+msgstr ""
+
 msgid "No Storage"
 msgstr ""
 
@@ -5354,6 +5368,9 @@ msgstr "Безглуздий"
 
 msgid "Can't start this without storage."
 msgstr ""
+
+msgid "The printer is busy on other print job"
+msgstr "Принтер зайнятий іншим завданням друку"
 
 msgid "Rate the Print Profile"
 msgstr "Оцінити профіль друку"
@@ -5829,6 +5846,10 @@ msgstr "Налаштування філаменту"
 msgid "Printer settings"
 msgstr "Налаштування принтера"
 
+#, c-format, boost-format
+msgid "Filament %s cannot be placed in the %s extruder for printing."
+msgstr ""
+
 #, boost-format
 msgid " plate %1%: "
 msgstr " Плита %1%: "
@@ -5868,9 +5889,6 @@ msgstr ""
 
 msgid "AMS(single color)"
 msgstr ""
-
-msgid "Nozzle"
-msgstr "Сопло"
 
 msgid "Not installed"
 msgstr ""
@@ -6554,12 +6572,6 @@ msgid "isometric"
 msgstr ""
 
 msgid "top_front"
-msgstr ""
-
-msgid "left"
-msgstr ""
-
-msgid "right"
 msgstr ""
 
 msgid "top"
@@ -7315,9 +7327,6 @@ msgid ""
 msgstr ""
 "Принтер виконує вказівки. Будь ласка, перезапустіть друк після неїзакінчення"
 
-msgid "The printer is busy on other print job"
-msgstr "Принтер зайнятий іншим завданням друку"
-
 #, c-format, boost-format
 msgid ""
 "Filament %s exceeds the number of AMS slots. Please update the printer "
@@ -7435,9 +7444,6 @@ msgstr ""
 msgid "Errors"
 msgstr "Помилки"
 
-msgid "Please check the following:"
-msgstr "Будь ласка, перевірте наступне:"
-
 msgid ""
 "The printer type selected when generating G-Code is not consistent with the "
 "currently selected printer. It is recommended that you use the same printer "
@@ -7482,6 +7488,9 @@ msgstr ""
 "Друк високотемпературного матеріалу (%s матеріал) з %s може призвести до "
 "пошкодження сопла"
 
+msgid "Please check the following:"
+msgstr "Будь ласка, перевірте наступне:"
+
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr "Будь ласка, виправте помилку вище, інакше друк не може продовжитися."
 
@@ -7509,6 +7518,12 @@ msgid ""
 "filament %d times."
 msgstr ""
 
+msgid ""
+"Top half of combobox: Original\n"
+"Down half of combobox: Filament of AMS\n"
+"And you can click it to modify"
+msgstr ""
+
 msgid "Cool"
 msgstr ""
 
@@ -7530,6 +7545,14 @@ msgstr ""
 msgid ""
 "Media capability acquisition timeout, please check if the firmware version "
 "supports it."
+msgstr ""
+
+msgid "Sending..."
+msgstr ""
+
+msgid ""
+"File upload timed out. Please check if the firmware version supports this "
+"operation or verify if the printer is functioning properly."
 msgstr ""
 
 msgid "Sending failed, please try again!"
@@ -7990,6 +8013,9 @@ msgid ""
 msgstr ""
 "Температура шару під час встановлення плити Textured PEI Plate. Значення 0 "
 "означає Філамент не підтримує друк на Textured PEI Plate"
+
+msgid "Nozzle"
+msgstr "Сопло"
 
 msgid "Nozzle temperature when printing"
 msgstr "Температура сопла під час друку"
@@ -8493,6 +8519,103 @@ msgstr ""
 " поточних екструдерів перевищує 16."
 
 msgid "—> "
+msgstr ""
+
+msgid ""
+"Printer not connected. Please connect or choose a printer on the Device page "
+"and try again."
+msgstr ""
+
+msgid ""
+"Synchronizing AMS filaments will discard your modified but unsaved filament "
+"presets.\n"
+"Are you sure you want to continue?"
+msgstr ""
+
+msgid ""
+"After sync, all currently configured filament presets and colors will be "
+"discarded."
+msgstr ""
+
+msgid "Original"
+msgstr ""
+
+msgid "After mapping"
+msgstr ""
+
+msgid "Are you sure to synchronize according to the current effect?"
+msgstr ""
+
+msgid "Are you sure to directly override current filaments?"
+msgstr ""
+
+msgid "Ams filaments synchronization"
+msgstr ""
+
+msgid "Maping"
+msgstr ""
+
+msgid "Overwriting"
+msgstr ""
+
+msgid "(Inconsistent)"
+msgstr ""
+
+msgid ""
+"The device printer and the currently selected printer are not consistent. It "
+"is recommended to be consistent."
+msgstr ""
+
+msgid "Attention"
+msgstr ""
+
+msgid ""
+"The mapping only influences filament type and color,without AMS slot "
+"information."
+msgstr ""
+
+msgid "Advanced settings >"
+msgstr ""
+
+msgid ""
+"Unmatched AMS filaments should also be synchronized into thhe filaments list"
+msgstr ""
+
+msgid "When you click ok button,it will append unmapped color."
+msgstr ""
+
+msgid "Automatically merge the same colors in the model after matching"
+msgstr ""
+
+msgid "When you click ok button,it will merge same ams to only one color."
+msgstr ""
+
+msgid ""
+"All of your configured filament presets and colors will discarded after sync."
+msgstr ""
+
+msgid "Are you sure to synchronize the filament?"
+msgstr ""
+
+#, c-format, boost-format
+msgid "nozzle in preset: %.1f %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "nozzle memorized: %.1f %s"
+msgstr "запам’ятоване сопло: %.1f %s"
+
+msgid ""
+"Your nozzle diameter in sliced file is not consistent with memorized nozzle. "
+"If you changed your nozzle lately, please go to Device > Printer Parts to "
+"change settings."
+msgstr ""
+"Ваш діаметр сопла в розрізаному файлі не відповідає запам’ятаному діаметру "
+"сопла. Якщо ви недавно змінили сопло, будь ласка, перейдіть до “Пристрій > "
+"Частини принтера”, щоб змінити налаштування."
+
+#, c-format, boost-format
+msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
 msgstr ""
 
 msgid "Auto-Calc"
@@ -9409,6 +9532,9 @@ msgstr "Висота друку"
 msgid "Maximum printable height which is limited by mechanism of printer"
 msgstr "Максимальна висота друку, яка обмежена механізмом принтера"
 
+msgid "Unprintable filament type"
+msgstr ""
+
 msgid "Printer preset names"
 msgstr "Імена налаштувань принтера"
 
@@ -9419,8 +9545,8 @@ msgid ""
 "Slic3r can upload G-code files to a printer host. This field should contain "
 "the hostname, IP address or URL of the printer host instance. Print host "
 "behind HAProxy with basic auth enabled can be accessed by putting the user "
-"name and password into the URL in the following format: https://"
-"username:password@your-octopi-address/"
+"name and password into the URL in the following format: https://username:"
+"password@your-octopi-address/"
 msgstr ""
 "Slic3r може завантажувати файли G-коду на хост принтера. Це поле повинно "
 "містити ім'я хоста, IP-адресу або URL-адресу екземпляра вузла принтера. "
@@ -9688,10 +9814,10 @@ msgstr "Поріг нависання для участі в охолоджен�
 
 #, c-format
 msgid ""
-"Decide which overhang part join the cooling function to slow down the "
-"speed.Expressed as percentage which indicides how much width of the line "
-"without support from lower layer. 100% means forcing cooling for all outer "
-"wall no matter how much overhang degree"
+"Decide which overhang part join the cooling function to slow down the speed."
+"Expressed as percentage which indicides how much width of the line without "
+"support from lower layer. 100% means forcing cooling for all outer wall no "
+"matter how much overhang degree"
 msgstr ""
 "Визначте, яка частина нависання приєднується до функції охолодження, щоб "
 "зменшити швидкість. Виражається у відсотках, що вказує, яка ширина лінії без "
@@ -10532,8 +10658,8 @@ msgstr ""
 "друку"
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage "
-"(e.g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage (e."
+"g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 "Прискорення розрідженого заповнення. Якщо значення виражене у відсотках "
 "(наприклад,100%), воно буде обчислюватися на основі прискорення за "
@@ -11757,8 +11883,8 @@ msgid ""
 "Only create support for critical regions including sharp tail, cantilever, "
 "etc."
 msgstr ""
-"Створювати підтримку тільки для критичних областей, включаючи гострий "
-"хвіст,консоль і т.д."
+"Створювати підтримку тільки для критичних областей, включаючи гострий хвіст,"
+"консоль і т.д."
 
 msgid "Remove small overhangs"
 msgstr "Видалити невеликі виступи"
@@ -12532,13 +12658,13 @@ msgstr "Наданий файл не вдалося прочитати, оскі
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
 msgstr ""
-"Невідомий формат файлу: вхідний файл повинен мати розширення .stl, .obj "
-"або .amf (.xml)."
+"Невідомий формат файлу: вхідний файл повинен мати розширення .stl, .obj або ."
+"amf (.xml)."
 
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
-"Невідомий формат файлу: вхідний файл повинен мати розширення .3mf "
-"або .zip.amf."
+"Невідомий формат файлу: вхідний файл повинен мати розширення .3mf або .zip."
+"amf."
 
 msgid "Canceled"
 msgstr "Скасовано"
@@ -14018,8 +14144,8 @@ msgid "nozzle size memorized: %d"
 msgstr ""
 
 msgid ""
-"The size of nozzle type in preset is not consistent with memorized "
-"nozzle.Did you change your nozzle lately ? "
+"The size of nozzle type in preset is not consistent with memorized nozzle."
+"Did you change your nozzle lately ? "
 msgstr ""
 
 #, c-format, boost-format
@@ -14033,10 +14159,6 @@ msgstr ""
 msgid ""
 "Your nozzle type in preset is not consistent with memorized nozzle.Did you "
 "change your nozzle lately ? "
-msgstr ""
-
-#, c-format, boost-format
-msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
 msgstr ""
 
 msgid "Need select printer"
@@ -14767,6 +14889,12 @@ msgstr "Видалено"
 msgid "Filament arrangement method"
 msgstr ""
 
+msgid "Don't remind me again"
+msgstr ""
+
+msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
+msgstr ""
+
 msgid "Filament-Saving Mode"
 msgstr ""
 
@@ -14800,12 +14928,6 @@ msgid "(Please sync printer)"
 msgstr ""
 
 msgid "More info on wiki"
-msgstr ""
-
-msgid "Don't remind me again"
-msgstr ""
-
-msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
 msgstr ""
 
 msgid "We will slice according to this grouping method:"
@@ -15156,19 +15278,6 @@ msgstr ""
 
 #~ msgid "Resync"
 #~ msgstr "Повторна синхронізація"
-
-#, c-format, boost-format
-#~ msgid "nozzle memorized: %.1f %s"
-#~ msgstr "запам’ятоване сопло: %.1f %s"
-
-#~ msgid ""
-#~ "Your nozzle diameter in sliced file is not consistent with memorized "
-#~ "nozzle. If you changed your nozzle lately, please go to Device > Printer "
-#~ "Parts to change settings."
-#~ msgstr ""
-#~ "Ваш діаметр сопла в розрізаному файлі не відповідає запам’ятаному "
-#~ "діаметру сопла. Якщо ви недавно змінили сопло, будь ласка, перейдіть до "
-#~ "“Пристрій > Частини принтера”, щоб змінити налаштування."
 
 #~ msgid ""
 #~ "Spiral mode only works when wall loops is 1, support is disabled, top "
@@ -16368,8 +16477,8 @@ msgstr ""
 #~ "Only one of the results with the same name will be saved. Are you sure "
 #~ "you want to overrides the other results?"
 #~ msgstr ""
-#~ "Збережено буде лише один із результатів з однаковою назвою. Ви "
-#~ "впевнені,що хочете перезаписати інші результати?"
+#~ "Збережено буде лише один із результатів з однаковою назвою. Ви впевнені,"
+#~ "що хочете перезаписати інші результати?"
 
 #~ msgid ""
 #~ "There is already a historical calibration result with the same name: %s. "
@@ -16826,8 +16935,8 @@ msgstr ""
 #~ msgstr "Рівень налагодження"
 
 #~ msgid ""
-#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
-#~ "5:trace\n"
+#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
+#~ "trace\n"
 #~ msgstr ""
 #~ "Встановлює рівень реєстрації налагодження. 0: непереборний, 1: помилка, "
 #~ "2: попередження, 3: інформація, 4: налагодження, 5: трасування\n"
