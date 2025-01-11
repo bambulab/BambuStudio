@@ -2105,7 +2105,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     //check blacklist
     for (auto i = 0; i < m_ams_mapping_result.size(); i++) {
 
-        const auto& ams_id = m_ams_mapping_result[i].ams_id;
+        const auto& ams_id = m_ams_mapping_result[i].get_amd_id();
         auto tid = m_ams_mapping_result[i].tray_id;
 
         std::string filament_type = boost::to_upper_copy(m_ams_mapping_result[i].type);
@@ -2121,7 +2121,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         std::string action;
         std::string info;
 
-        DeviceManager::check_filaments_in_blacklist(filament_brand, filament_type, stoi(ams_id), in_blacklist, action, info);
+        DeviceManager::check_filaments_in_blacklist(filament_brand, filament_type, ams_id, in_blacklist, action, info);
 
         if (in_blacklist && action == "warning") {
             wxString prohibited_error = wxString::FromUTF8(info);
@@ -2172,7 +2172,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 
     for (auto i = 0; i < m_ams_mapping_result.size(); i++) {
 
-        const auto& ams_id = m_ams_mapping_result[i].ams_id;
+        const auto& ams_id = m_ams_mapping_result[i].get_amd_id();
         auto tid = m_ams_mapping_result[i].tray_id;
 
         std::string filament_type = boost::to_upper_copy(m_ams_mapping_result[i].type);
@@ -2187,7 +2187,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         bool in_blacklist = false;
         std::string action;
         std::string info;
-        DeviceManager::check_filaments_in_blacklist(filament_brand, filament_type, stoi(ams_id), in_blacklist, action, info);
+        DeviceManager::check_filaments_in_blacklist(filament_brand, filament_type, ams_id, in_blacklist, action, info);
 
         if (in_blacklist && action == "prohibition") {
             has_prohibited_filament = true;
