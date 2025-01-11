@@ -5068,7 +5068,9 @@ void StatusPanel::set_default()
     m_filament_load_box->Hide();
     m_filament_step->Hide();
     error_info_reset();
+#ifndef __WXGTK__
     SetFocus();
+#endif
 }
 
 void StatusPanel::show_status(int status)
