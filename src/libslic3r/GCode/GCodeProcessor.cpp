@@ -825,7 +825,19 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
     size_t g1_lines_counter = 0;
     lines_ends.clear();
     ExtruderUsageBlcok temp_construct_block; // the temperarily constructed block, will be pushed into container after initializing
-    auto gcode_time_handler = [&temp_construct_block,&filament_blocks, &extruder_blocks, &offsets, &handle_nozzle_change_line , & process_placeholders, &is_temporary_decoration, & process_line_move, & g1_lines_counter, & machine_start_gcode_end_line_id, & machine_end_gcode_start_line_id](std::string& gcode_line, std::string& gcode_buffer, int& line_id) {
+
+    auto handle_filament_change = [&filament_blocks,&machine_start_gcode_end_line_id,&machine_end_gcode_start_line_id](int filament_id,int line_id){
+        // skip the filaments change in machine start/end gcode
+        if (machine_start_gcode_end_line_id == (unsigned int)(-1) && (unsigned int)(line_id)<machine_start_gcode_end_line_id ||
+            machine_end_gcode_start_line_id != (unsigned int)(-1) && (unsigned int)(line_id)>machine_end_gcode_start_line_id)
+            return;
+
+        if (!filament_blocks.empty())
+            filament_blocks.back().upper_gcode_id = line_id;
+        filament_blocks.emplace_back(filament_id, line_id, -1);
+        };
+
+    auto gcode_time_handler = [&temp_construct_block,&filament_blocks, &extruder_blocks, &offsets, &handle_nozzle_change_line , & process_placeholders, &is_temporary_decoration, & process_line_move, & g1_lines_counter, & machine_start_gcode_end_line_id, & machine_end_gcode_start_line_id,handle_filament_change](std::string& gcode_line, std::string& gcode_buffer, int& line_id) {
         auto [processed, lines_added_count] = process_placeholders(gcode_line,line_id);
         if (processed && lines_added_count > 0)
             offsets.push_back({ line_id, lines_added_count });
@@ -848,14 +860,16 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                 std::istringstream str(gcode_line.substr(skips + 1)); // skip white spaces and T
                 str >> fid;
                 if (!str.fail() && 0 <= fid && fid < 255) {
-                    // skip the filaments change in machine start/end gcode
-                    if (machine_start_gcode_end_line_id == (unsigned int)(-1) && line_id<machine_start_gcode_end_line_id ||
-                        machine_end_gcode_start_line_id != (unsigned int)(-1) && line_id>machine_end_gcode_start_line_id)
-                        return;
-
-                    if (!filament_blocks.empty())
-                        filament_blocks.back().upper_gcode_id = line_id;
-                    filament_blocks.emplace_back(fid, line_id, -1);
+                    handle_filament_change(fid, line_id);
+                }
+            }
+            else if (GCodeReader::GCodeLine::cmd_start_with(gcode_line, ";VT")) {
+                int fid;
+                int skips = GCodeReader::skip_whitespaces(gcode_line.data()) - gcode_line.data();
+                std::istringstream str(gcode_line.substr(skips + 3)); // skip white spaces and ;VT
+                str >> fid;
+                if (!str.fail() && 0 <= fid && fid < 255) {
+                    handle_filament_change(fid, line_id);
                 }
             }
             else if (GCodeReader::GCodeLine::cmd_start_with(gcode_line, "M1020")) {
@@ -865,14 +879,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                     int fid;
                     str >> fid;
                     if (!str.fail() && 0 <= fid && fid < 255) {
-                        // skip the filaments change in machine start/end gcode
-                        if (machine_start_gcode_end_line_id == (unsigned int)(-1) && line_id<machine_start_gcode_end_line_id ||
-                            machine_end_gcode_start_line_id != (unsigned int)(-1) && line_id>machine_end_gcode_start_line_id)
-                            return;
-
-                        if (!filament_blocks.empty())
-                            filament_blocks.back().upper_gcode_id = line_id;
-                        filament_blocks.emplace_back(fid, line_id, -1);
+                        handle_filament_change(fid, line_id);
                     }
                 }
             }
@@ -958,23 +965,12 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
 
     // After traversing the G-code, the first and last extruder blocks still have uncompleted initialization steps
     if (!extruder_blocks.empty()) {
-        int first_filament = -1;
-        int last_filament = -1;
+        int first_filament = 0;
+        int last_filament = 0;
 
         if (!filament_blocks.empty()) {
             first_filament = filament_blocks.front().filament_id;
             last_filament = filament_blocks.back().filament_id;
-        }
-        else {
-            if (extruder_blocks.size() == 1) {
-                // only with a dummy extruder block, we can't find any available filament
-                first_filament = 0;
-                last_filament = 0;
-            }
-            else {
-                first_filament = extruder_blocks.front().end_filament;
-                last_filament = extruder_blocks.back().start_filament;
-            }
         }
         extruder_blocks.front().initialize_step_1(context.filament_maps[first_filament], machine_start_gcode_end_line_id, first_filament);
         extruder_blocks.back().initialize_step_2(machine_end_gcode_start_line_id);
@@ -5819,6 +5815,12 @@ int GCodeProcessor::get_extruder_id(bool force_initialize)const
 
 void GCodeProcessor::PreCoolingInjector::process_pre_cooling_and_heating(TimeProcessor::InsertedLinesMap& inserted_operation_lines)
 {
+    auto get_nozzle_temp = [this](int filament_id,bool from_or_to) {
+        if (filament_id == -1)
+            return from_or_to ? 140 : 0; // default temp
+        return filament_nozzle_temps[filament_id];
+        };
+
     std::map<int, std::vector<ExtruderFreeBlock>> per_extruder_free_blocks;
 
     for (auto& block : m_extruder_free_blocks)
@@ -5830,9 +5832,9 @@ void GCodeProcessor::PreCoolingInjector::process_pre_cooling_and_heating(TimePro
         for (auto iter = extruder_free_blcoks.begin(); iter != extruder_free_blcoks.end(); ++iter) {
             bool is_end = std::next(iter) == extruder_free_blcoks.end();
             bool apply_pre_cooling = true;
-            bool apply_pre_heating = !is_end;
-            float curr_temp = (float)(filament_nozzle_temps[iter->last_filament_id]);
-            float target_temp = (float)(is_end ? 0 : filament_nozzle_temps[iter->next_filament_id]);
+            bool apply_pre_heating = is_end ? false : true;
+            float curr_temp = get_nozzle_temp(iter->last_filament_id,true);
+            float target_temp = get_nozzle_temp(iter->next_filament_id, false);
             inject_cooling_heating_command(inserted_operation_lines, *iter, curr_temp, target_temp, apply_pre_cooling, apply_pre_heating);
         }
     }
@@ -5860,6 +5862,8 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
         };
 
     auto is_tpu_filament = [&filament_types = this->filament_types](int idx) {
+        if (idx == -1)
+            return false;
         return filament_types[idx] == "TPU";
         };
 
@@ -5901,20 +5905,20 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
         if (partial_free_move_lower < partial_free_move_upper) {
             float max_cooling_temp = std::min(curr_temp, std::min(partial_free_cooling_thres, partial_free_time_gap * cooling_rate));
             curr_temp -= max_cooling_temp; // set the temperature after doing cooling when post-extruding
-            inserted_operation_lines[partial_free_move_lower->gcode_id].emplace_back(format_line_M104(curr_temp, block.extruder_id, "Multi extruder pre cooling"), TimeProcessor::InsertLineType::PreCooling);
+            inserted_operation_lines[partial_free_move_lower->gcode_id].emplace_back(format_line_M104(curr_temp, block.extruder_id, "Multi extruder pre cooling in post extrusion"), TimeProcessor::InsertLineType::PreCooling);
         }
     }
 
     if (pre_cooling && !pre_heating) {
         // only perform cooling
-        if (target_temp > curr_temp)
+        if (target_temp >= curr_temp)
             return;
         inserted_operation_lines[block.free_lower_gcode_id].emplace_back(format_line_M104(target_temp, block.extruder_id, "Multi extruder pre cooling"), TimeProcessor::InsertLineType::PreCooling);
         return;
     }
     if (!pre_cooling && pre_heating) {
         // only perform heating
-        if (target_temp < curr_temp)
+        if (target_temp <= curr_temp)
             return;
         float heating_start_time = move_iter_upper->time[valid_machine_id] - (target_temp - curr_temp) / heating_rate;
         auto heating_move_iter = std::upper_bound(move_iter_lower, move_iter_upper + 1, heating_start_time, [valid_machine_id = this->valid_machine_id](float time, const GCodeProcessorResult::MoveVertex& a) {return time < a.time[valid_machine_id]; });
@@ -5939,6 +5943,8 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
     // get the insert pos of heat cmd and recalculate time gap and delta temp
     float real_cooling_time = heating_move_iter->time[valid_machine_id] - move_iter_lower->time[valid_machine_id];
     int real_delta_temp = std::min((int)(real_cooling_time * cooling_rate), (int)curr_temp);
+    if (real_delta_temp == 0)
+        return;
     inserted_operation_lines[block.free_lower_gcode_id].emplace_back(format_line_M104(curr_temp - real_delta_temp, block.extruder_id, "Multi extruder pre cooling"), TimeProcessor::InsertLineType::PreCooling);
     inserted_operation_lines[heating_move_iter->gcode_id].emplace_back(format_line_M104(target_temp, block.extruder_id, "Multi extruder pre heating"), TimeProcessor::InsertLineType::PreHeating);
 }
@@ -5946,50 +5952,30 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
 void GCodeProcessor::PreCoolingInjector::build_by_filament_blocks(const std::vector<ExtruderPreHeating::FilamentUsageBlock>& filament_usage_blocks_)
 {
     m_extruder_free_blocks.clear();
-    std::map<int, std::vector<ExtruderPreHeating::FilamentUsageBlock>> per_extruder_usage_blocks;
+    std::vector<std::vector<ExtruderPreHeating::FilamentUsageBlock>> per_extruder_usage_blocks(2);
     for (auto& block : filament_usage_blocks_)
         per_extruder_usage_blocks[filament_maps[block.filament_id]].emplace_back(block);
 
-    for (auto& extruder_usages : per_extruder_usage_blocks) {
-        int extruder_id = extruder_usages.first;
-        const auto& filament_blocks = extruder_usages.second;
+    ExtruderPreHeating::FilamentUsageBlock start_filament_block(-1, 0, machine_start_gcode_end_id);
+    ExtruderPreHeating::FilamentUsageBlock end_filament_block(-1, machine_end_gcode_start_id, std::numeric_limits<unsigned int>::max());
 
-        auto iter_lower = filament_blocks.begin();
-        auto iter_upper = filament_blocks.end();
+    for (auto& blocks : per_extruder_usage_blocks) {
+        blocks.insert(blocks.begin(), start_filament_block);
+        blocks.emplace_back(end_filament_block);
+    }
 
-        while (iter_lower != filament_blocks.end() && iter_lower->lower_gcode_id < machine_start_gcode_end_id)
-            ++iter_lower;
-        while (iter_upper != filament_blocks.begin() && std::prev(iter_upper)->upper_gcode_id > machine_end_gcode_start_id)
-            --iter_upper;
+    for(size_t extruder_id =0 ;extruder_id<per_extruder_usage_blocks.size();++extruder_id){
+        const auto& filament_blocks = per_extruder_usage_blocks[extruder_id];
 
-        if (iter_lower >= iter_upper)
-            continue;
-
-        {
-            ExtruderFreeBlock block;
-            block.free_lower_gcode_id = machine_start_gcode_end_id;
-            block.free_upper_gcode_id = std::min(machine_end_gcode_start_id, iter_lower->lower_gcode_id);
-            block.last_filament_id = iter_lower->filament_id;
-            block.next_filament_id = iter_lower->filament_id;
-            block.extruder_id = extruder_id;
-            block.partial_free_lower_id = block.free_lower_gcode_id;
-            block.partial_free_upper_id = block.free_lower_gcode_id;
-            m_extruder_free_blocks.emplace_back(block);
-        }
-
-        for (auto iter = iter_lower; iter < iter_upper; ++iter) {
+        for (auto iter = filament_blocks.begin(); iter < filament_blocks.end(); ++iter) {
             auto niter = std::next(iter);
+            if (niter == filament_blocks.end())
+                break;
             ExtruderFreeBlock block;
-            block.free_lower_gcode_id = std::max(iter->upper_gcode_id, machine_start_gcode_end_id);
+            block.free_lower_gcode_id = iter->upper_gcode_id;
             block.last_filament_id = iter->filament_id;
-            if (niter != iter_upper) {
-                block.free_upper_gcode_id = std::min(niter->lower_gcode_id, machine_end_gcode_start_id);
-                block.next_filament_id = niter->filament_id;
-            }
-            else {
-                block.free_upper_gcode_id = machine_end_gcode_start_id;
-                block.next_filament_id = iter->filament_id;
-            }
+            block.free_upper_gcode_id = niter->lower_gcode_id;
+            block.next_filament_id = niter->filament_id;
             block.extruder_id = extruder_id;
             block.partial_free_lower_id = block.free_lower_gcode_id;
             block.partial_free_upper_id = block.free_lower_gcode_id;
@@ -6005,54 +5991,37 @@ void GCodeProcessor::PreCoolingInjector::build_by_filament_blocks(const std::vec
 void GCodeProcessor::PreCoolingInjector::build_by_extruder_blocks(const std::vector<ExtruderPreHeating::ExtruderUsageBlcok>& extruder_usage_blocks_)
 {
     m_extruder_free_blocks.clear();
-    std::map<int, std::vector<ExtruderPreHeating::ExtruderUsageBlcok>> per_extruder_usage_blocks;
-
+    std::vector<std::vector<ExtruderPreHeating::ExtruderUsageBlcok>> per_extruder_usage_blocks(2);
     for (auto& block : extruder_usage_blocks_)
         per_extruder_usage_blocks[block.extruder_id].emplace_back(block);
 
-    for (auto& extruder_usages : per_extruder_usage_blocks) {
-        int extruder_id = extruder_usages.first;
-        const auto& extruder_usage_blocks = extruder_usages.second;
-        if (extruder_usage_blocks.empty())
-            continue;
+    for(size_t extruder_id =0;extruder_id<per_extruder_usage_blocks.size();++extruder_id){
+        auto& blocks = per_extruder_usage_blocks[extruder_id];
+        ExtruderPreHeating::ExtruderUsageBlcok start_filament_block;
+        start_filament_block.initialize_step_1(extruder_id, 0, -1);
+        start_filament_block.initialize_step_2(machine_start_gcode_end_id);
+        start_filament_block.initialize_step_3(machine_start_gcode_end_id, -1, machine_start_gcode_end_id);
 
-        auto iter_lower = extruder_usage_blocks.begin();
-        auto iter_upper = extruder_usage_blocks.end();
-        while (iter_lower != extruder_usage_blocks.end() && iter_lower->start_id < machine_start_gcode_end_id)
-            ++iter_lower;
-        while (iter_upper != extruder_usage_blocks.begin() && std::prev(iter_upper)->end_id > machine_end_gcode_start_id)
-            --iter_upper;
+        ExtruderPreHeating::ExtruderUsageBlcok end_filament_block;
+        end_filament_block.initialize_step_1(extruder_id, machine_end_gcode_start_id, -1);
+        end_filament_block.initialize_step_2(std::numeric_limits<int>::max());
+        end_filament_block.initialize_step_3(std::numeric_limits<int>::max(), -1, std::numeric_limits<int>::max());
 
-        if (iter_lower >= iter_upper)
-            continue;
+        blocks.insert(blocks.begin(), start_filament_block);
+        blocks.emplace_back(end_filament_block);
+    }
 
-        {
-            ExtruderFreeBlock block;
-            block.free_lower_gcode_id = machine_start_gcode_end_id;
-            block.free_upper_gcode_id = std::min(iter_lower->start_id, machine_end_gcode_start_id);
-            block.extruder_id = extruder_id;
-            block.last_filament_id = iter_lower->start_filament;
-            block.next_filament_id = iter_lower->start_filament;
-            block.partial_free_lower_id = machine_start_gcode_end_id;
-            block.partial_free_upper_id = machine_start_gcode_end_id; // invalid
-
-            m_extruder_free_blocks.emplace_back(block);
-        }
-
-        for (auto iter = iter_lower; iter != iter_upper; ++iter) {
+    for (size_t extruder_id = 0; extruder_id < per_extruder_usage_blocks.size(); ++extruder_id) {
+        const auto& extruder_usage_blocks = per_extruder_usage_blocks[extruder_id];
+        for (auto iter = extruder_usage_blocks.begin(); iter != extruder_usage_blocks.end(); ++iter) {
             auto niter = std::next(iter);
+            if (niter == extruder_usage_blocks.end())
+                break;
             ExtruderFreeBlock block;
-            block.free_lower_gcode_id = std::max(iter->end_id, machine_start_gcode_end_id);
+            block.free_lower_gcode_id = iter->end_id;
             block.last_filament_id = iter->end_filament;
-            if (niter != iter_upper) {
-                block.free_upper_gcode_id = std::min(niter->start_id, machine_end_gcode_start_id);
-                block.next_filament_id = niter->start_filament;
-
-            }
-            else {
-                block.free_upper_gcode_id = machine_end_gcode_start_id;
-                block.next_filament_id = iter->end_filament;
-            }
+            block.free_upper_gcode_id = niter->start_id;
+            block.next_filament_id = niter->start_filament;
             block.extruder_id = extruder_id;
             block.partial_free_lower_id = iter->post_extrusion_start_id;
             block.partial_free_upper_id = iter->post_extrusion_end_id;
