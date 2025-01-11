@@ -2,12 +2,12 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 1.10.1 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-08 20:53+0800\n"
+"POT-Creation-Date: 2025-01-11 16:36+0800\n"
 "PO-Revision-Date: 2024-09-27 23:58+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -1287,8 +1287,8 @@ msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr "Сбой подключения к %s [Серийный №:%s, код=%s]!"
 
 msgid ""
-"BambuStudio configuration file may be corrupted and is not able to be "
-"parsed.Please delete the file and try again."
+"BambuStudio configuration file may be corrupted and is not able to be parsed."
+"Please delete the file and try again."
 msgstr ""
 "Возможно, файл конфигурации BambuStudio повреждён и не может быть обработан. "
 "Пожалуйста, удалите файл и повторите попытку."
@@ -2343,9 +2343,9 @@ msgid "Top"
 msgstr "Сверху"
 
 msgid ""
-"The fan controls the temperature during printing to improve print "
-"quality.The system automatically adjusts the fan's switch and speed "
-"according to different printing materials."
+"The fan controls the temperature during printing to improve print quality."
+"The system automatically adjusts the fan's switch and speed according to "
+"different printing materials."
 msgstr ""
 
 msgid ""
@@ -3359,9 +3359,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe "
-"temperature,it may result in material softening and clogging.The maximum "
-"safe temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe temperature,"
+"it may result in material softening and clogging.The maximum safe "
+"temperature for the material is %d"
 msgstr ""
 "Текущая температура внутри термокамеры превышает безопасную температуру для "
 "этого материала, что может привести к размягчению материала или засорению "
@@ -3667,7 +3667,14 @@ msgstr ""
 msgid "Printing calibration lines"
 msgstr ""
 
-msgid "TPU is not supported by deputy extruder."
+msgid "left"
+msgstr ""
+
+msgid "right"
+msgstr ""
+
+#, c-format, boost-format
+msgid "TPU is not supported by %s extruder for this printer."
 msgstr ""
 
 msgid "Unknown"
@@ -3735,6 +3742,10 @@ msgstr "Не удалось сгенерировать калибровочны�
 
 msgid "Calibration error"
 msgstr "Ошибка калибровки"
+
+#, c-format, boost-format
+msgid "%s is not supported by %s extruder."
+msgstr ""
 
 msgid "TPU is not supported by AMS."
 msgstr "Печать TPU с помощью АСПП не поддерживается."
@@ -5377,6 +5388,9 @@ msgstr "Стол"
 msgid "Debug Info"
 msgstr "Отладочная информация"
 
+msgid "Filament loading..."
+msgstr ""
+
 msgid "No Storage"
 msgstr ""
 
@@ -5459,6 +5473,9 @@ msgstr "Сумасшедший"
 
 msgid "Can't start this without storage."
 msgstr ""
+
+msgid "The printer is busy on other print job"
+msgstr "Принтер занят другим заданием"
 
 msgid "Rate the Print Profile"
 msgstr "Оценить профиль печати"
@@ -5944,6 +5961,10 @@ msgstr "Настройки материала"
 msgid "Printer settings"
 msgstr "Настройки принтера"
 
+#, c-format, boost-format
+msgid "Filament %s cannot be placed in the %s extruder for printing."
+msgstr ""
+
 #, boost-format
 msgid " plate %1%: "
 msgstr " печатной пластины %1%: "
@@ -5984,9 +6005,6 @@ msgstr ""
 
 msgid "AMS(single color)"
 msgstr ""
-
-msgid "Nozzle"
-msgstr "Сопло"
 
 msgid "Not installed"
 msgstr ""
@@ -6681,12 +6699,6 @@ msgid "isometric"
 msgstr ""
 
 msgid "top_front"
-msgstr ""
-
-msgid "left"
-msgstr ""
-
-msgid "right"
 msgstr ""
 
 msgid "top"
@@ -7474,9 +7486,6 @@ msgstr ""
 "Принтер выполняет инструкции. Пожалуйста, перезапустите печать после их "
 "завершения."
 
-msgid "The printer is busy on other print job"
-msgstr "Принтер занят другим заданием"
-
 #, c-format, boost-format
 msgid ""
 "Filament %s exceeds the number of AMS slots. Please update the printer "
@@ -7597,9 +7606,6 @@ msgstr ""
 msgid "Errors"
 msgstr "Ошибок"
 
-msgid "Please check the following:"
-msgstr "Пожалуйста, проверьте следующую информацию:"
-
 msgid ""
 "The printer type selected when generating G-Code is not consistent with the "
 "currently selected printer. It is recommended that you use the same printer "
@@ -7642,6 +7648,9 @@ msgid ""
 msgstr ""
 "Печать %1s материалом с помощью сопла %2s может привести к повреждению сопла."
 
+msgid "Please check the following:"
+msgstr "Пожалуйста, проверьте следующую информацию:"
+
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr ""
 "Пожалуйста, устраните вышеуказанную ошибку, иначе печать не может "
@@ -7669,6 +7678,12 @@ msgstr "Длина имени превышает установленное ог
 msgid ""
 "You picked both external and AMS filament, You will need to manually change "
 "filament %d times."
+msgstr ""
+
+msgid ""
+"Top half of combobox: Original\n"
+"Down half of combobox: Filament of AMS\n"
+"And you can click it to modify"
 msgstr ""
 
 msgid "Cool"
@@ -7700,6 +7715,14 @@ msgstr ""
 "Кроме того, вы можете использовать режим локальной сети для привязки своего "
 "устройства. \n"
 "Подробнее о режиме режим «Только LAN»."
+
+msgid "Sending..."
+msgstr ""
+
+msgid ""
+"File upload timed out. Please check if the firmware version supports this "
+"operation or verify if the printer is functioning properly."
+msgstr ""
 
 msgid "Sending failed, please try again!"
 msgstr ""
@@ -8168,6 +8191,9 @@ msgstr ""
 "Температура стола при установленной текстурированной пластите с PEI "
 "покрытием. 0 означает, что пластиковая нить не поддерживает печать на этой "
 "печатной пластине."
+
+msgid "Nozzle"
+msgstr "Сопло"
 
 msgid "Nozzle temperature when printing"
 msgstr "Температура сопла при печати"
@@ -8681,6 +8707,103 @@ msgstr ""
 " и текущих экструдеров превышает 16."
 
 msgid "—> "
+msgstr ""
+
+msgid ""
+"Printer not connected. Please connect or choose a printer on the Device page "
+"and try again."
+msgstr ""
+
+msgid ""
+"Synchronizing AMS filaments will discard your modified but unsaved filament "
+"presets.\n"
+"Are you sure you want to continue?"
+msgstr ""
+
+msgid ""
+"After sync, all currently configured filament presets and colors will be "
+"discarded."
+msgstr ""
+
+msgid "Original"
+msgstr ""
+
+msgid "After mapping"
+msgstr ""
+
+msgid "Are you sure to synchronize according to the current effect?"
+msgstr ""
+
+msgid "Are you sure to directly override current filaments?"
+msgstr ""
+
+msgid "Ams filaments synchronization"
+msgstr ""
+
+msgid "Maping"
+msgstr ""
+
+msgid "Overwriting"
+msgstr ""
+
+msgid "(Inconsistent)"
+msgstr ""
+
+msgid ""
+"The device printer and the currently selected printer are not consistent. It "
+"is recommended to be consistent."
+msgstr ""
+
+msgid "Attention"
+msgstr ""
+
+msgid ""
+"The mapping only influences filament type and color,without AMS slot "
+"information."
+msgstr ""
+
+msgid "Advanced settings >"
+msgstr ""
+
+msgid ""
+"Unmatched AMS filaments should also be synchronized into thhe filaments list"
+msgstr ""
+
+msgid "When you click ok button,it will append unmapped color."
+msgstr ""
+
+msgid "Automatically merge the same colors in the model after matching"
+msgstr ""
+
+msgid "When you click ok button,it will merge same ams to only one color."
+msgstr ""
+
+msgid ""
+"All of your configured filament presets and colors will discarded after sync."
+msgstr ""
+
+msgid "Are you sure to synchronize the filament?"
+msgstr ""
+
+#, c-format, boost-format
+msgid "nozzle in preset: %.1f %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "nozzle memorized: %.1f %s"
+msgstr "сопло сохранённое: %.1f %s"
+
+msgid ""
+"Your nozzle diameter in sliced file is not consistent with memorized nozzle. "
+"If you changed your nozzle lately, please go to Device > Printer Parts to "
+"change settings."
+msgstr ""
+"Диаметр сопла в нарезанном файле не соответствует сохранённому. Если вы "
+"недавно меняли сопло, перейдите на вкладку Принтер > Части принтера, чтобы "
+"изменить настройки."
+
+#, c-format, boost-format
+msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
 msgstr ""
 
 msgid "Auto-Calc"
@@ -9632,6 +9755,9 @@ msgstr "Высота печати"
 msgid "Maximum printable height which is limited by mechanism of printer"
 msgstr "Максимальная высота печати, которая ограничена механикой принтера."
 
+msgid "Unprintable filament type"
+msgstr ""
+
 msgid "Printer preset names"
 msgstr "Имена профиля принтера"
 
@@ -9642,8 +9768,8 @@ msgid ""
 "Slic3r can upload G-code files to a printer host. This field should contain "
 "the hostname, IP address or URL of the printer host instance. Print host "
 "behind HAProxy with basic auth enabled can be accessed by putting the user "
-"name and password into the URL in the following format: https://"
-"username:password@your-octopi-address/"
+"name and password into the URL in the following format: https://username:"
+"password@your-octopi-address/"
 msgstr ""
 "Slic3r может загружать G-код файлы на хост принтера. В этом поле нужно "
 "указать имя хоста, IP-адрес или URL-адрес хост-экземпляра принтера. Доступ к "
@@ -9918,10 +10044,10 @@ msgstr "Порог нависания участвующий в охлажден
 # ???? Процент представляет собой степень нависания. Например, если задано 25%, то все линии с нависанием менее 25% будут участвовать в охлаждении и замедлении. При 100% все нависающие линии участвуют в охлаждении и замедлении. Скорость после замедления принимает меньшее значение минимальной скорости печати и исходной скорости нависания.
 #, fuzzy, c-format
 msgid ""
-"Decide which overhang part join the cooling function to slow down the "
-"speed.Expressed as percentage which indicides how much width of the line "
-"without support from lower layer. 100% means forcing cooling for all outer "
-"wall no matter how much overhang degree"
+"Decide which overhang part join the cooling function to slow down the speed."
+"Expressed as percentage which indicides how much width of the line without "
+"support from lower layer. 100% means forcing cooling for all outer wall no "
+"matter how much overhang degree"
 msgstr ""
 "Когда этот параметр включён, нависающая часть участвует в замедлении печати "
 "для лучшего охлаждения слоёв предотвращая проблему внезапного увеличения "
@@ -10808,8 +10934,8 @@ msgstr ""
 "ускорения по умолчанию."
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage "
-"(e.g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage (e."
+"g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 "Ускорение на разреженном заполнении. Если задано в процентах, то значение "
 "вычисляться относительно ускорения по умолчанию."
@@ -11139,8 +11265,8 @@ msgstr ""
 "две ближайшие линии заполнения с коротким отрезком периметра. Если не "
 "найдено такого отрезка периметра короче этого параметра, линия заполнения "
 "соединяется с отрезком периметра только с одной стороны, а длина отрезка "
-"периметра ограничена значением «Длина привязок разреженного заполнения» "
-"(infill_anchor), но не больше этого параметра.\n"
+"периметра ограничена значением «Длина привязок разреженного "
+"заполнения» (infill_anchor), но не больше этого параметра.\n"
 "Установите 0 для отключения привязок."
 
 msgid "0 (not anchored)"
@@ -12910,8 +13036,8 @@ msgstr ""
 
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
-"Неизвестный формат файла. Входной файл должен иметь расширение *.3mf или "
-"*.zip.amf."
+"Неизвестный формат файла. Входной файл должен иметь расширение *.3mf или *."
+"zip.amf."
 
 msgid "Canceled"
 msgstr "Отменено"
@@ -14392,8 +14518,8 @@ msgid "nozzle size memorized: %d"
 msgstr ""
 
 msgid ""
-"The size of nozzle type in preset is not consistent with memorized "
-"nozzle.Did you change your nozzle lately ? "
+"The size of nozzle type in preset is not consistent with memorized nozzle."
+"Did you change your nozzle lately ? "
 msgstr ""
 
 #, c-format, boost-format
@@ -14407,10 +14533,6 @@ msgstr ""
 msgid ""
 "Your nozzle type in preset is not consistent with memorized nozzle.Did you "
 "change your nozzle lately ? "
-msgstr ""
-
-#, c-format, boost-format
-msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
 msgstr ""
 
 msgid "Need select printer"
@@ -15152,6 +15274,12 @@ msgstr "Удалено"
 msgid "Filament arrangement method"
 msgstr ""
 
+msgid "Don't remind me again"
+msgstr ""
+
+msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
+msgstr ""
+
 msgid "Filament-Saving Mode"
 msgstr ""
 
@@ -15185,12 +15313,6 @@ msgid "(Please sync printer)"
 msgstr ""
 
 msgid "More info on wiki"
-msgstr ""
-
-msgid "Don't remind me again"
-msgstr ""
-
-msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
 msgstr ""
 
 msgid "We will slice according to this grouping method:"
@@ -15542,19 +15664,6 @@ msgstr ""
 
 #~ msgid "Resync"
 #~ msgstr "Всё"
-
-#, c-format, boost-format
-#~ msgid "nozzle memorized: %.1f %s"
-#~ msgstr "сопло сохранённое: %.1f %s"
-
-#~ msgid ""
-#~ "Your nozzle diameter in sliced file is not consistent with memorized "
-#~ "nozzle. If you changed your nozzle lately, please go to Device > Printer "
-#~ "Parts to change settings."
-#~ msgstr ""
-#~ "Диаметр сопла в нарезанном файле не соответствует сохранённому. Если вы "
-#~ "недавно меняли сопло, перейдите на вкладку Принтер > Части принтера, "
-#~ "чтобы изменить настройки."
 
 #~ msgid ""
 #~ "Spiral mode only works when wall loops is 1, support is disabled, top "

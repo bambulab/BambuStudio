@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-08 20:53+0800\n"
+"POT-Creation-Date: 2025-01-11 16:36+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1222,8 +1222,8 @@ msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr "%s を接続できませんでした　[SN: %s、code = %s]"
 
 msgid ""
-"BambuStudio configuration file may be corrupted and is not able to be "
-"parsed.Please delete the file and try again."
+"BambuStudio configuration file may be corrupted and is not able to be parsed."
+"Please delete the file and try again."
 msgstr ""
 "BambuStudio設定ファイルが破損し読み込めません。当該ファイルを削除してやり直し"
 "てください。"
@@ -2248,9 +2248,9 @@ msgid "Top"
 msgstr "トップ"
 
 msgid ""
-"The fan controls the temperature during printing to improve print "
-"quality.The system automatically adjusts the fan's switch and speed "
-"according to different printing materials."
+"The fan controls the temperature during printing to improve print quality."
+"The system automatically adjusts the fan's switch and speed according to "
+"different printing materials."
 msgstr ""
 
 msgid ""
@@ -3192,9 +3192,9 @@ msgstr "値が小さすぎます、0.5に戻します"
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe "
-"temperature,it may result in material softening and clogging.The maximum "
-"safe temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe temperature,"
+"it may result in material softening and clogging.The maximum safe "
+"temperature for the material is %d"
 msgstr ""
 "チャンバー内の温度がマテリアルの安全温度を超えており、マテリアルの軟化やノズ"
 "ル詰まりの可能性があります。マテリアルの最大安全温度は%dです。"
@@ -3479,7 +3479,14 @@ msgstr ""
 msgid "Printing calibration lines"
 msgstr ""
 
-msgid "TPU is not supported by deputy extruder."
+msgid "left"
+msgstr ""
+
+msgid "right"
+msgstr ""
+
+#, c-format, boost-format
+msgid "TPU is not supported by %s extruder for this printer."
 msgstr ""
 
 msgid "Unknown"
@@ -3548,6 +3555,10 @@ msgstr "Failed to generate cali gcode"
 
 msgid "Calibration error"
 msgstr "Calibration error"
+
+#, c-format, boost-format
+msgid "%s is not supported by %s extruder."
+msgstr ""
 
 msgid "TPU is not supported by AMS."
 msgstr "TPU is not supported by the AMS."
@@ -5134,6 +5145,9 @@ msgstr "ベッド"
 msgid "Debug Info"
 msgstr "デバッグ情報"
 
+msgid "Filament loading..."
+msgstr ""
+
 msgid "No Storage"
 msgstr ""
 
@@ -5216,6 +5230,9 @@ msgstr "超高速"
 
 msgid "Can't start this without storage."
 msgstr ""
+
+msgid "The printer is busy on other print job"
+msgstr "プリンターはビジーです。"
 
 msgid "Rate the Print Profile"
 msgstr "Rate the Print Profile"
@@ -5676,6 +5693,10 @@ msgstr "フィラメント設定"
 msgid "Printer settings"
 msgstr "プリンター設定"
 
+#, c-format, boost-format
+msgid "Filament %s cannot be placed in the %s extruder for printing."
+msgstr ""
+
 #, boost-format
 msgid " plate %1%: "
 msgstr " plate %1%:"
@@ -5715,9 +5736,6 @@ msgstr ""
 
 msgid "AMS(single color)"
 msgstr ""
-
-msgid "Nozzle"
-msgstr "ノズル"
 
 msgid "Not installed"
 msgstr ""
@@ -6374,12 +6392,6 @@ msgid "isometric"
 msgstr ""
 
 msgid "top_front"
-msgstr ""
-
-msgid "left"
-msgstr ""
-
-msgid "right"
 msgstr ""
 
 msgid "top"
@@ -7109,9 +7121,6 @@ msgid ""
 "The printer is executing instructions. Please restart printing after it ends"
 msgstr "プリンターが指令を実行中です。実行終了してから造形を再開してください。"
 
-msgid "The printer is busy on other print job"
-msgstr "プリンターはビジーです。"
-
 #, c-format, boost-format
 msgid ""
 "Filament %s exceeds the number of AMS slots. Please update the printer "
@@ -7214,9 +7223,6 @@ msgstr ""
 msgid "Errors"
 msgstr "エラー"
 
-msgid "Please check the following:"
-msgstr "次の内容をご確認ください:"
-
 msgid ""
 "The printer type selected when generating G-Code is not consistent with the "
 "currently selected printer. It is recommended that you use the same printer "
@@ -7259,6 +7265,9 @@ msgstr ""
 "Printing high temperature material(%s material) with %s may cause nozzle "
 "damage"
 
+msgid "Please check the following:"
+msgstr "次の内容をご確認ください:"
+
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr "Please fix the error above, otherwise printing cannot continue."
 
@@ -7285,6 +7294,12 @@ msgid ""
 "filament %d times."
 msgstr ""
 
+msgid ""
+"Top half of combobox: Original\n"
+"Down half of combobox: Filament of AMS\n"
+"And you can click it to modify"
+msgstr ""
+
 msgid "Cool"
 msgstr ""
 
@@ -7306,6 +7321,14 @@ msgstr ""
 msgid ""
 "Media capability acquisition timeout, please check if the firmware version "
 "supports it."
+msgstr ""
+
+msgid "Sending..."
+msgstr ""
+
+msgid ""
+"File upload timed out. Please check if the firmware version supports this "
+"operation or verify if the printer is functioning properly."
 msgstr ""
 
 msgid "Sending failed, please try again!"
@@ -7744,6 +7767,9 @@ msgid ""
 msgstr ""
 "PEIプレートを使用時のベッド温度。値が0の場合、フィラメントがPEIプレートをサ"
 "ポートしない意味です。"
+
+msgid "Nozzle"
+msgstr "ノズル"
 
 msgid "Nozzle temperature when printing"
 msgstr "ノズル温度"
@@ -8233,6 +8259,103 @@ msgstr ""
 " current extruders exceeds 16."
 
 msgid "—> "
+msgstr ""
+
+msgid ""
+"Printer not connected. Please connect or choose a printer on the Device page "
+"and try again."
+msgstr ""
+
+msgid ""
+"Synchronizing AMS filaments will discard your modified but unsaved filament "
+"presets.\n"
+"Are you sure you want to continue?"
+msgstr ""
+
+msgid ""
+"After sync, all currently configured filament presets and colors will be "
+"discarded."
+msgstr ""
+
+msgid "Original"
+msgstr ""
+
+msgid "After mapping"
+msgstr ""
+
+msgid "Are you sure to synchronize according to the current effect?"
+msgstr ""
+
+msgid "Are you sure to directly override current filaments?"
+msgstr ""
+
+msgid "Ams filaments synchronization"
+msgstr ""
+
+msgid "Maping"
+msgstr ""
+
+msgid "Overwriting"
+msgstr ""
+
+msgid "(Inconsistent)"
+msgstr ""
+
+msgid ""
+"The device printer and the currently selected printer are not consistent. It "
+"is recommended to be consistent."
+msgstr ""
+
+msgid "Attention"
+msgstr ""
+
+msgid ""
+"The mapping only influences filament type and color,without AMS slot "
+"information."
+msgstr ""
+
+msgid "Advanced settings >"
+msgstr ""
+
+msgid ""
+"Unmatched AMS filaments should also be synchronized into thhe filaments list"
+msgstr ""
+
+msgid "When you click ok button,it will append unmapped color."
+msgstr ""
+
+msgid "Automatically merge the same colors in the model after matching"
+msgstr ""
+
+msgid "When you click ok button,it will merge same ams to only one color."
+msgstr ""
+
+msgid ""
+"All of your configured filament presets and colors will discarded after sync."
+msgstr ""
+
+msgid "Are you sure to synchronize the filament?"
+msgstr ""
+
+#, c-format, boost-format
+msgid "nozzle in preset: %.1f %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "nozzle memorized: %.1f %s"
+msgstr "nozzle memorized: %.1f %s"
+
+msgid ""
+"Your nozzle diameter in sliced file is not consistent with memorized nozzle. "
+"If you changed your nozzle lately, please go to Device > Printer Parts to "
+"change settings."
+msgstr ""
+"Your nozzle diameter in sliced file is not consistent with the saved nozzle. "
+"If you changed your nozzle lately, please go to Device > Printer Parts to "
+"change settings."
+
+#, c-format, boost-format
+msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
 msgstr ""
 
 msgid "Auto-Calc"
@@ -9121,6 +9244,9 @@ msgstr "造形可能高さ"
 msgid "Maximum printable height which is limited by mechanism of printer"
 msgstr "造形可能の最大高さです。"
 
+msgid "Unprintable filament type"
+msgstr ""
+
 msgid "Printer preset names"
 msgstr "プリセット名"
 
@@ -9131,8 +9257,8 @@ msgid ""
 "Slic3r can upload G-code files to a printer host. This field should contain "
 "the hostname, IP address or URL of the printer host instance. Print host "
 "behind HAProxy with basic auth enabled can be accessed by putting the user "
-"name and password into the URL in the following format: https://"
-"username:password@your-octopi-address/"
+"name and password into the URL in the following format: https://username:"
+"password@your-octopi-address/"
 msgstr ""
 "ホスト名、IPアドレス、URLを入力してください。ユーザ名とパスワードがある場合、"
 "下記形式を参照してください https://username:password@your-octopi-address/"
@@ -9383,10 +9509,10 @@ msgstr ""
 
 #, c-format
 msgid ""
-"Decide which overhang part join the cooling function to slow down the "
-"speed.Expressed as percentage which indicides how much width of the line "
-"without support from lower layer. 100% means forcing cooling for all outer "
-"wall no matter how much overhang degree"
+"Decide which overhang part join the cooling function to slow down the speed."
+"Expressed as percentage which indicides how much width of the line without "
+"support from lower layer. 100% means forcing cooling for all outer wall no "
+"matter how much overhang degree"
 msgstr ""
 
 msgid "Bridge direction"
@@ -10171,11 +10297,11 @@ msgid "Acceleration of inner walls. 0 means using normal printing acceleration"
 msgstr "Acceleration of inner walls. 0 means normal printing acceleration."
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage "
-"(e.g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage (e."
+"g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
-"Acceleration of sparse infill. If the value is expressed as a percentage "
-"(e.g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage (e."
+"g. 100%), it will be calculated based on the default acceleration."
 
 msgid "mm/s² or %"
 msgstr "mm/s² or %"
@@ -13491,8 +13617,8 @@ msgid "nozzle size memorized: %d"
 msgstr ""
 
 msgid ""
-"The size of nozzle type in preset is not consistent with memorized "
-"nozzle.Did you change your nozzle lately ? "
+"The size of nozzle type in preset is not consistent with memorized nozzle."
+"Did you change your nozzle lately ? "
 msgstr ""
 
 #, c-format, boost-format
@@ -13509,10 +13635,6 @@ msgid ""
 msgstr ""
 "Your nozzle type in preset is not consistent with memorized nozzle.Did you "
 "change your nozzle lately ? "
-
-#, c-format, boost-format
-msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
-msgstr ""
 
 msgid "Need select printer"
 msgstr "Need select printer"
@@ -14187,6 +14309,12 @@ msgstr ""
 msgid "Filament arrangement method"
 msgstr ""
 
+msgid "Don't remind me again"
+msgstr ""
+
+msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
+msgstr ""
+
 msgid "Filament-Saving Mode"
 msgstr ""
 
@@ -14220,12 +14348,6 @@ msgid "(Please sync printer)"
 msgstr ""
 
 msgid "More info on wiki"
-msgstr ""
-
-msgid "Don't remind me again"
-msgstr ""
-
-msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
 msgstr ""
 
 msgid "We will slice according to this grouping method:"
@@ -14544,19 +14666,6 @@ msgstr ""
 
 #~ msgid "Resync"
 #~ msgstr "Resync"
-
-#, c-format, boost-format
-#~ msgid "nozzle memorized: %.1f %s"
-#~ msgstr "nozzle memorized: %.1f %s"
-
-#~ msgid ""
-#~ "Your nozzle diameter in sliced file is not consistent with memorized "
-#~ "nozzle. If you changed your nozzle lately, please go to Device > Printer "
-#~ "Parts to change settings."
-#~ msgstr ""
-#~ "Your nozzle diameter in sliced file is not consistent with the saved "
-#~ "nozzle. If you changed your nozzle lately, please go to Device > Printer "
-#~ "Parts to change settings."
 
 #~ msgid ""
 #~ "Spiral mode only works when wall loops is 1, support is disabled, top "
@@ -16597,8 +16706,8 @@ msgstr ""
 #~ msgstr "ペンサイズを設定"
 
 #~ msgid ""
-#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
-#~ "5:trace\n"
+#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
+#~ "trace\n"
 #~ msgstr ""
 #~ "デバッグロギングレベルを設定します。0:fatal、1:error、2:warning、3:info、"
 #~ "4:debug、5:trace。\n"

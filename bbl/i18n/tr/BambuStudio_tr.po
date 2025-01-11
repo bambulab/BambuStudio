@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-08 20:53+0800\n"
+"POT-Creation-Date: 2025-01-11 16:36+0800\n"
 "PO-Revision-Date: 2024-11-15 18:30+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -1244,8 +1244,8 @@ msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr "%s bağlantısı başarısız oldu! [SN:%s, kod=%s]"
 
 msgid ""
-"BambuStudio configuration file may be corrupted and is not able to be "
-"parsed.Please delete the file and try again."
+"BambuStudio configuration file may be corrupted and is not able to be parsed."
+"Please delete the file and try again."
 msgstr ""
 "BambuStudio yapılandırma dosyası bozulmuş olabilir ve ayrıştırılamıyor "
 "olabilir, lütfen dosyayı silin ve tekrar deneyin."
@@ -2277,9 +2277,9 @@ msgid "Top"
 msgstr "Üst"
 
 msgid ""
-"The fan controls the temperature during printing to improve print "
-"quality.The system automatically adjusts the fan's switch and speed "
-"according to different printing materials."
+"The fan controls the temperature during printing to improve print quality."
+"The system automatically adjusts the fan's switch and speed according to "
+"different printing materials."
 msgstr ""
 
 msgid ""
@@ -3261,9 +3261,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe "
-"temperature,it may result in material softening and clogging.The maximum "
-"safe temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe temperature,"
+"it may result in material softening and clogging.The maximum safe "
+"temperature for the material is %d"
 msgstr ""
 "Mevcut hazne sıcaklığı malzemenin güvenli sıcaklığından yüksektir, "
 "malzemenin yumuşamasına ve tıkanmasına neden olabilir Malzeme için maksimum "
@@ -3560,7 +3560,14 @@ msgstr ""
 msgid "Printing calibration lines"
 msgstr ""
 
-msgid "TPU is not supported by deputy extruder."
+msgid "left"
+msgstr ""
+
+msgid "right"
+msgstr ""
+
+#, c-format, boost-format
+msgid "TPU is not supported by %s extruder for this printer."
 msgstr ""
 
 msgid "Unknown"
@@ -3628,6 +3635,10 @@ msgstr "Cali G-code oluşturma başarısız oldu"
 
 msgid "Calibration error"
 msgstr "Kalibrasyon hatası"
+
+#, c-format, boost-format
+msgid "%s is not supported by %s extruder."
+msgstr ""
 
 msgid "TPU is not supported by AMS."
 msgstr "TPU, AMS tarafından desteklenmez."
@@ -5245,6 +5256,9 @@ msgstr "Yatak"
 msgid "Debug Info"
 msgstr "Hata Ayıklama Bilgisi"
 
+msgid "Filament loading..."
+msgstr ""
+
 msgid "No Storage"
 msgstr ""
 
@@ -5327,6 +5341,9 @@ msgstr "Absürt"
 
 msgid "Can't start this without storage."
 msgstr ""
+
+msgid "The printer is busy on other print job"
+msgstr "Yazıcı başka bir yazdırma işiyle meşgul"
 
 msgid "Rate the Print Profile"
 msgstr "Baskı Profiline Puan Verin"
@@ -5804,6 +5821,10 @@ msgstr "Filament Ayarları"
 msgid "Printer settings"
 msgstr "Yazıcı Ayarları"
 
+#, c-format, boost-format
+msgid "Filament %s cannot be placed in the %s extruder for printing."
+msgstr ""
+
 #, boost-format
 msgid " plate %1%: "
 msgstr " plaka %1%: "
@@ -5843,9 +5864,6 @@ msgstr ""
 
 msgid "AMS(single color)"
 msgstr ""
-
-msgid "Nozzle"
-msgstr "Nozul"
 
 msgid "Not installed"
 msgstr ""
@@ -6524,12 +6542,6 @@ msgid "isometric"
 msgstr ""
 
 msgid "top_front"
-msgstr ""
-
-msgid "left"
-msgstr ""
-
-msgid "right"
 msgstr ""
 
 msgid "top"
@@ -7295,9 +7307,6 @@ msgstr ""
 "Yazıcı talimatları yürütüyor. Lütfen bittikten sonra yazdırmayı yeniden "
 "başlatın"
 
-msgid "The printer is busy on other print job"
-msgstr "Yazıcı başka bir yazdırma işiyle meşgul"
-
 #, c-format, boost-format
 msgid ""
 "Filament %s exceeds the number of AMS slots. Please update the printer "
@@ -7416,9 +7425,6 @@ msgstr ""
 msgid "Errors"
 msgstr "Hatalar"
 
-msgid "Please check the following:"
-msgstr "Lütfen aşağıdakileri kontrol edin:"
-
 msgid ""
 "The printer type selected when generating G-Code is not consistent with the "
 "currently selected printer. It is recommended that you use the same printer "
@@ -7462,6 +7468,9 @@ msgstr ""
 "Yüksek sıcaklıktaki malzemenin (%s malzeme) %s ile basılması nozul hasarına "
 "neden olabilir"
 
+msgid "Please check the following:"
+msgstr "Lütfen aşağıdakileri kontrol edin:"
+
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr ""
 "Lütfen yukarıdaki hatayı düzeltin, aksi takdirde yazdırma işlemi devam "
@@ -7492,6 +7501,12 @@ msgid ""
 "filament %d times."
 msgstr ""
 
+msgid ""
+"Top half of combobox: Original\n"
+"Down half of combobox: Filament of AMS\n"
+"And you can click it to modify"
+msgstr ""
+
 msgid "Cool"
 msgstr ""
 
@@ -7513,6 +7528,14 @@ msgstr ""
 msgid ""
 "Media capability acquisition timeout, please check if the firmware version "
 "supports it."
+msgstr ""
+
+msgid "Sending..."
+msgstr ""
+
+msgid ""
+"File upload timed out. Please check if the firmware version supports this "
+"operation or verify if the printer is functioning properly."
 msgstr ""
 
 msgid "Sending failed, please try again!"
@@ -7969,6 +7992,9 @@ msgid ""
 msgstr ""
 "Dokulu PEI Plaka takıldığın da yatak sıcaklığı. 0 Değeri, filamentin Dokulu "
 "PEI Plaka üzerine yazdırmayı desteklemediği anlamına gelir"
+
+msgid "Nozzle"
+msgstr "Nozul"
 
 msgid "Nozzle temperature when printing"
 msgstr "Yazdırma sırasında nozul sıcaklığı"
@@ -8468,6 +8494,103 @@ msgstr ""
 
 msgid "—> "
 msgstr ""
+
+msgid ""
+"Printer not connected. Please connect or choose a printer on the Device page "
+"and try again."
+msgstr ""
+
+msgid ""
+"Synchronizing AMS filaments will discard your modified but unsaved filament "
+"presets.\n"
+"Are you sure you want to continue?"
+msgstr ""
+
+msgid ""
+"After sync, all currently configured filament presets and colors will be "
+"discarded."
+msgstr ""
+
+msgid "Original"
+msgstr ""
+
+msgid "After mapping"
+msgstr ""
+
+msgid "Are you sure to synchronize according to the current effect?"
+msgstr ""
+
+msgid "Are you sure to directly override current filaments?"
+msgstr ""
+
+msgid "Ams filaments synchronization"
+msgstr ""
+
+msgid "Maping"
+msgstr ""
+
+msgid "Overwriting"
+msgstr ""
+
+msgid "(Inconsistent)"
+msgstr ""
+
+msgid ""
+"The device printer and the currently selected printer are not consistent. It "
+"is recommended to be consistent."
+msgstr ""
+
+msgid "Attention"
+msgstr ""
+
+msgid ""
+"The mapping only influences filament type and color,without AMS slot "
+"information."
+msgstr ""
+
+msgid "Advanced settings >"
+msgstr ""
+
+msgid ""
+"Unmatched AMS filaments should also be synchronized into thhe filaments list"
+msgstr ""
+
+msgid "When you click ok button,it will append unmapped color."
+msgstr ""
+
+msgid "Automatically merge the same colors in the model after matching"
+msgstr ""
+
+msgid "When you click ok button,it will merge same ams to only one color."
+msgstr ""
+
+msgid ""
+"All of your configured filament presets and colors will discarded after sync."
+msgstr ""
+
+msgid "Are you sure to synchronize the filament?"
+msgstr ""
+
+#, c-format, boost-format
+msgid "nozzle in preset: %.1f %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "nozzle memorized: %.1f %s"
+msgstr "hafızaya alınan nozul: %.1f %s"
+
+msgid ""
+"Your nozzle diameter in sliced file is not consistent with memorized nozzle. "
+"If you changed your nozzle lately, please go to Device > Printer Parts to "
+"change settings."
+msgstr ""
+"Dilimlenmiş dosyadaki nozul çapınız hafızaya alınan nozul ile tutarlı değil. "
+"Nozulunuzu yakın zamanda değiştirdiyseniz, ayarları değiştirmek için lütfen "
+"Cihaz > Yazıcı Parçaları bölümüne gidin."
+
+#, c-format, boost-format
+msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
+msgstr "%1s malzemesini %2s nozul ile yazdırmak nozul hasarına neden olabilir."
 
 msgid "Auto-Calc"
 msgstr "Otomatik Hesaplama"
@@ -9389,6 +9512,9 @@ msgid "Maximum printable height which is limited by mechanism of printer"
 msgstr ""
 "Yazıcının mekanizması tarafından sınırlanan maksimum yazdırılabilir yükseklik"
 
+msgid "Unprintable filament type"
+msgstr ""
+
 msgid "Printer preset names"
 msgstr "Yazıcı ön ayar adları"
 
@@ -9399,8 +9525,8 @@ msgid ""
 "Slic3r can upload G-code files to a printer host. This field should contain "
 "the hostname, IP address or URL of the printer host instance. Print host "
 "behind HAProxy with basic auth enabled can be accessed by putting the user "
-"name and password into the URL in the following format: https://"
-"username:password@your-octopi-address/"
+"name and password into the URL in the following format: https://username:"
+"password@your-octopi-address/"
 msgstr ""
 "Slic3r, G kod dosyalarını bir yazıcı ana bilgisayarına yükleyebilir. Bu "
 "alan, yazıcı ana bilgisayar örneğinin ana bilgisayar adını, IP adresini veya "
@@ -9666,10 +9792,10 @@ msgstr "Soğutma katkısı için sarkma eşik değeri"
 
 #, c-format
 msgid ""
-"Decide which overhang part join the cooling function to slow down the "
-"speed.Expressed as percentage which indicides how much width of the line "
-"without support from lower layer. 100% means forcing cooling for all outer "
-"wall no matter how much overhang degree"
+"Decide which overhang part join the cooling function to slow down the speed."
+"Expressed as percentage which indicides how much width of the line without "
+"support from lower layer. 100% means forcing cooling for all outer wall no "
+"matter how much overhang degree"
 msgstr ""
 "Hızı yavaşlatmak için hangi çıkıntı kısmının soğutma fonksiyonuna "
 "katılacağına karar verin. alt katmandan destek almadan hattın ne kadar "
@@ -10504,8 +10630,8 @@ msgid "Acceleration of inner walls. 0 means using normal printing acceleration"
 msgstr "İç duvarların ivmesi. 0 normal baskı ivmesini kullanmak anlamına gelir"
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage "
-"(e.g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage (e."
+"g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 "Seyrek dolgunun hızlandırılması. Değer yüzde olarak ifade edilirse (örn. "
 "%100), varsayılan ivmeye göre hesaplanacaktır."
@@ -13955,8 +14081,8 @@ msgid "nozzle size memorized: %d"
 msgstr ""
 
 msgid ""
-"The size of nozzle type in preset is not consistent with memorized "
-"nozzle.Did you change your nozzle lately ? "
+"The size of nozzle type in preset is not consistent with memorized nozzle."
+"Did you change your nozzle lately ? "
 msgstr ""
 
 #, c-format, boost-format
@@ -13971,10 +14097,6 @@ msgid ""
 "Your nozzle type in preset is not consistent with memorized nozzle.Did you "
 "change your nozzle lately ? "
 msgstr ""
-
-#, c-format, boost-format
-msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
-msgstr "%1s malzemesini %2s nozul ile yazdırmak nozul hasarına neden olabilir."
 
 msgid "Need select printer"
 msgstr "Yazıcı seçmeniz gerekiyor"
@@ -14704,6 +14826,12 @@ msgstr "Kaldırıldı"
 msgid "Filament arrangement method"
 msgstr ""
 
+msgid "Don't remind me again"
+msgstr ""
+
+msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
+msgstr ""
+
 msgid "Filament-Saving Mode"
 msgstr ""
 
@@ -14737,12 +14865,6 @@ msgid "(Please sync printer)"
 msgstr ""
 
 msgid "More info on wiki"
-msgstr ""
-
-msgid "Don't remind me again"
-msgstr ""
-
-msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
 msgstr ""
 
 msgid "We will slice according to this grouping method:"
@@ -15091,19 +15213,6 @@ msgstr ""
 
 #~ msgid "Resync"
 #~ msgstr "Yeniden eşitleme"
-
-#, c-format, boost-format
-#~ msgid "nozzle memorized: %.1f %s"
-#~ msgstr "hafızaya alınan nozul: %.1f %s"
-
-#~ msgid ""
-#~ "Your nozzle diameter in sliced file is not consistent with memorized "
-#~ "nozzle. If you changed your nozzle lately, please go to Device > Printer "
-#~ "Parts to change settings."
-#~ msgstr ""
-#~ "Dilimlenmiş dosyadaki nozul çapınız hafızaya alınan nozul ile tutarlı "
-#~ "değil. Nozulunuzu yakın zamanda değiştirdiyseniz, ayarları değiştirmek "
-#~ "için lütfen Cihaz > Yazıcı Parçaları bölümüne gidin."
 
 #~ msgid ""
 #~ "Spiral mode only works when wall loops is 1, support is disabled, top "
