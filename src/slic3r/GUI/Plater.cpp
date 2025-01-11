@@ -8999,6 +8999,7 @@ void Plater::priv::update_objects_position_when_select_preset(const std::functio
         plate_object.emplace_back(std::move(obj_idxs));
     }
 
+#if 0
     BoundingBoxf3      platelist_bbox = old_plate_list.get_bounding_box();
     std::map<int, int> outside_plate_object;
     for (int i = 0; i < model.objects.size(); ++i) {
@@ -9007,6 +9008,7 @@ void Plater::priv::update_objects_position_when_select_preset(const std::functio
 
         if (all_plate_object.find(i) == all_plate_object.end()) {
             int           position_type = 0;
+
             BoundingBoxf3 instance_bbox = object->instance_convex_hull_bounding_box(obj_inst);
             /*               1       |     2     |    3
              *             --------------------------------
@@ -9032,10 +9034,11 @@ void Plater::priv::update_objects_position_when_select_preset(const std::functio
                 position_type = 8;
             else
                 position_type = 5;
+
             outside_plate_object.emplace(i, position_type);
         }
     }
-
+#endif
     select_prest();
 
     wxGetApp().obj_list()->update_object_list_by_printer_technology();
@@ -9055,6 +9058,31 @@ void Plater::priv::update_objects_position_when_select_preset(const std::functio
             view3D->center_selected_plate(i);
         }
 
+        BOOST_LOG_TRIVIAL(info) << format("change bed size from (%.0f,%.0f) to (%.0f,%.0f)", old_plate_size.x(), old_plate_size.y(), cur_plate_size.x(), cur_plate_size.y());
+        if (cur_plate_is_smaller && std::any_of(plate_object.begin(), plate_object.end(), [](const std::vector<int>& obj_idxs) { return !obj_idxs.empty(); })) {
+            take_snapshot("Arrange after bed size changes");
+            //collect all the objects on the current plates
+            std::set<ModelObject*>  new_all_plate_object;
+            for (int index = 0; index < cur_plate_list.get_plate_count(); index++)
+            {
+                PartPlate* plate = cur_plate_list.get_plate(index);
+                ModelObjectPtrs plate_obj_list = plate->get_objects_on_this_plate();
+                new_all_plate_object.insert(plate_obj_list.begin(), plate_obj_list.end());
+            }
+            std::set<std::pair<int, int>>& obj_set = cur_plate->get_obj_and_inst_set();
+            std::set<std::pair<int, int>>& obj_out_set = cur_plate->get_obj_and_inst_outside_set();
+            for (int i = 0; i < model.objects.size(); ++i) {
+                ModelObject* object = model.objects[i];
+                if (new_all_plate_object.find(object) == new_all_plate_object.end()) {
+                    //need to arrange
+                    obj_set.emplace(std::pair<int, int>{i, 0});
+                    obj_out_set.emplace(std::pair<int, int>{i, 0});
+                }
+            }
+            q->set_prepare_state(Job::PREPARE_STATE_OUTSIDE_BED);
+            q->arrange();
+        }
+#if 0
         const BoundingBoxf3 &cur_platelist_bbox = cur_plate_list.get_bounding_box();
         const BoundingBoxf3  last_plate_bbox    = cur_plate_list.get_plate(cur_plate_list.get_plate_count() - 1)->get_bounding_box();
         int                  cur_plate_w, cur_plate_d, cur_plate_h;
@@ -9087,14 +9115,7 @@ void Plater::priv::update_objects_position_when_select_preset(const std::functio
             object->translate_instance(0, offset);
             cur_plate_list.notify_instance_update(iter.first, 0);
         }
-
-        BOOST_LOG_TRIVIAL(info) << format("change bed size from (%.0f,%.0f) to (%.0f,%.0f)", old_plate_size.x(), old_plate_size.y(), cur_plate_size.x(), cur_plate_size.y());
-        if (cur_plate_is_smaller && std::any_of(plate_object.begin(), plate_object.end(), [](const std::vector<int> &obj_idxs) { return !obj_idxs.empty(); })) {
-            take_snapshot("Arrange after bed size changes");
-            q->set_prepare_state(Job::PREPARE_STATE_OUTSIDE_BED);
-            q->arrange();
-        }
-
+#endif
         view3D->deselect_all();
     }
 
