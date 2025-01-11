@@ -471,17 +471,13 @@ bool MonitorPanel::Show(bool show)
                     GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
             } else {
                 obj->reset_update_time();
+                //select_machine(obj->dev_id);
             }
         }
     } else {
         stop_update();
         m_refresh_timer->Stop();
     }
-
-    if (obj && !obj->dev_id.empty()) {
-        select_machine(obj->dev_id);
-    }
-
     return wxPanel::Show(show);
 }
 
