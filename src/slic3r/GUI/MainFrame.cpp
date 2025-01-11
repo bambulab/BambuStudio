@@ -1110,10 +1110,10 @@ void MainFrame::init_tabpanel()
             m_topbar->DisableUndoRedoItems();
         }
 #endif
-
+#ifndef __WXGTK__
         if (panel)
             panel->SetFocus();
-
+#endif
         /*switch (sel) {
         case TabPosition::tpHome:
             show_option(false);
