@@ -2,12 +2,12 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 1.10.1 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-11 16:36+0800\n"
+"POT-Creation-Date: 2025-01-12 16:02+0800\n"
 "PO-Revision-Date: 2024-09-27 23:58+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -1287,8 +1287,8 @@ msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr "Сбой подключения к %s [Серийный №:%s, код=%s]!"
 
 msgid ""
-"BambuStudio configuration file may be corrupted and is not able to be parsed."
-"Please delete the file and try again."
+"BambuStudio configuration file may be corrupted and is not able to be "
+"parsed.Please delete the file and try again."
 msgstr ""
 "Возможно, файл конфигурации BambuStudio повреждён и не может быть обработан. "
 "Пожалуйста, удалите файл и повторите попытку."
@@ -2343,9 +2343,9 @@ msgid "Top"
 msgstr "Сверху"
 
 msgid ""
-"The fan controls the temperature during printing to improve print quality."
-"The system automatically adjusts the fan's switch and speed according to "
-"different printing materials."
+"The fan controls the temperature during printing to improve print "
+"quality.The system automatically adjusts the fan's switch and speed "
+"according to different printing materials."
 msgstr ""
 
 msgid ""
@@ -3359,9 +3359,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe temperature,"
-"it may result in material softening and clogging.The maximum safe "
-"temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe "
+"temperature,it may result in material softening and clogging.The maximum "
+"safe temperature for the material is %d"
 msgstr ""
 "Текущая температура внутри термокамеры превышает безопасную температуру для "
 "этого материала, что может привести к размягчению материала или засорению "
@@ -4325,8 +4325,14 @@ msgstr "На поверхности этой пластины нельзя пе�
 msgid "Calibration step selection"
 msgstr "Выбор шага калибровки"
 
+msgid "Micro lidar calibration"
+msgstr "Калибровка микролидаром"
+
 msgid "Bed leveling"
 msgstr "Выравнивание стола"
+
+msgid "High-temperature Heatbed Calibration"
+msgstr ""
 
 # ??? О калибровке
 msgid "Calibration program"
@@ -5424,14 +5430,14 @@ msgstr "Слой: %s"
 msgid "Layer: %d/%d"
 msgstr "Слой: %d/%d"
 
-msgid "Axis go home"
-msgstr "Автопарковка"
+msgid "Auto homing"
+msgstr ""
 
-msgid "Are you sure you want to home now?"
-msgstr "Вы уверены, что хотите выполнить парковку?"
+msgid "Are you sure you want to trigger auto homing?"
+msgstr ""
 
-msgid "Home"
-msgstr "Парковка"
+msgid "Homing"
+msgstr ""
 
 msgid ""
 "Please heat the nozzle to above 170 degree before loading or unloading "
@@ -9768,8 +9774,8 @@ msgid ""
 "Slic3r can upload G-code files to a printer host. This field should contain "
 "the hostname, IP address or URL of the printer host instance. Print host "
 "behind HAProxy with basic auth enabled can be accessed by putting the user "
-"name and password into the URL in the following format: https://username:"
-"password@your-octopi-address/"
+"name and password into the URL in the following format: https://"
+"username:password@your-octopi-address/"
 msgstr ""
 "Slic3r может загружать G-код файлы на хост принтера. В этом поле нужно "
 "указать имя хоста, IP-адрес или URL-адрес хост-экземпляра принтера. Доступ к "
@@ -10044,10 +10050,10 @@ msgstr "Порог нависания участвующий в охлажден
 # ???? Процент представляет собой степень нависания. Например, если задано 25%, то все линии с нависанием менее 25% будут участвовать в охлаждении и замедлении. При 100% все нависающие линии участвуют в охлаждении и замедлении. Скорость после замедления принимает меньшее значение минимальной скорости печати и исходной скорости нависания.
 #, fuzzy, c-format
 msgid ""
-"Decide which overhang part join the cooling function to slow down the speed."
-"Expressed as percentage which indicides how much width of the line without "
-"support from lower layer. 100% means forcing cooling for all outer wall no "
-"matter how much overhang degree"
+"Decide which overhang part join the cooling function to slow down the "
+"speed.Expressed as percentage which indicides how much width of the line "
+"without support from lower layer. 100% means forcing cooling for all outer "
+"wall no matter how much overhang degree"
 msgstr ""
 "Когда этот параметр включён, нависающая часть участвует в замедлении печати "
 "для лучшего охлаждения слоёв предотвращая проблему внезапного увеличения "
@@ -10934,8 +10940,8 @@ msgstr ""
 "ускорения по умолчанию."
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage (e."
-"g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage "
+"(e.g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 "Ускорение на разреженном заполнении. Если задано в процентах, то значение "
 "вычисляться относительно ускорения по умолчанию."
@@ -11265,8 +11271,8 @@ msgstr ""
 "две ближайшие линии заполнения с коротким отрезком периметра. Если не "
 "найдено такого отрезка периметра короче этого параметра, линия заполнения "
 "соединяется с отрезком периметра только с одной стороны, а длина отрезка "
-"периметра ограничена значением «Длина привязок разреженного "
-"заполнения» (infill_anchor), но не больше этого параметра.\n"
+"периметра ограничена значением «Длина привязок разреженного заполнения» "
+"(infill_anchor), но не больше этого параметра.\n"
 "Установите 0 для отключения привязок."
 
 msgid "0 (not anchored)"
@@ -13036,8 +13042,8 @@ msgstr ""
 
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
-"Неизвестный формат файла. Входной файл должен иметь расширение *.3mf или *."
-"zip.amf."
+"Неизвестный формат файла. Входной файл должен иметь расширение *.3mf или "
+"*.zip.amf."
 
 msgid "Canceled"
 msgstr "Отменено"
@@ -14518,8 +14524,8 @@ msgid "nozzle size memorized: %d"
 msgstr ""
 
 msgid ""
-"The size of nozzle type in preset is not consistent with memorized nozzle."
-"Did you change your nozzle lately ? "
+"The size of nozzle type in preset is not consistent with memorized "
+"nozzle.Did you change your nozzle lately ? "
 msgstr ""
 
 #, c-format, boost-format
@@ -15312,6 +15318,9 @@ msgstr ""
 msgid "(Please sync printer)"
 msgstr ""
 
+msgid "Global settings"
+msgstr ""
+
 msgid "More info on wiki"
 msgstr ""
 
@@ -15623,6 +15632,15 @@ msgstr ""
 "ABS, повышение температуры подогреваемого стола может снизить эту "
 "вероятность?"
 
+#~ msgid "Axis go home"
+#~ msgstr "Автопарковка"
+
+#~ msgid "Are you sure you want to home now?"
+#~ msgstr "Вы уверены, что хотите выполнить парковку?"
+
+#~ msgid "Home"
+#~ msgstr "Парковка"
+
 # Режим проверки XY-механики
 #~ msgid "Sweeping XY mech mode"
 #~ msgstr "Проверка XY-механики"
@@ -15718,9 +15736,6 @@ msgstr ""
 #~ msgstr ""
 #~ "Примечание: цвета уже выбраны, вы можете нажать «OK» \n"
 #~ " для продолжения или подобрать его вручную."
-
-#~ msgid "Micro lidar calibration"
-#~ msgstr "Калибровка микролидаром"
 
 #~ msgid "An SD card needs to be inserted before printing via LAN."
 #~ msgstr "Перед печатью через локальную сеть необходимо вставить SD-карту."
