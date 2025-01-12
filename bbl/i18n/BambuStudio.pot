@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-11 16:36+0800\n"
+"POT-Creation-Date: 2025-01-12 16:02+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1211,8 +1211,8 @@ msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr ""
 
 msgid ""
-"BambuStudio configuration file may be corrupted and is not able to be parsed."
-"Please delete the file and try again."
+"BambuStudio configuration file may be corrupted and is not able to be "
+"parsed.Please delete the file and try again."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -2218,9 +2218,9 @@ msgid "Top"
 msgstr ""
 
 msgid ""
-"The fan controls the temperature during printing to improve print quality."
-"The system automatically adjusts the fan's switch and speed according to "
-"different printing materials."
+"The fan controls the temperature during printing to improve print "
+"quality.The system automatically adjusts the fan's switch and speed "
+"according to different printing materials."
 msgstr ""
 
 msgid ""
@@ -3092,9 +3092,9 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe temperature,"
-"it may result in material softening and clogging.The maximum safe "
-"temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe "
+"temperature,it may result in material softening and clogging.The maximum "
+"safe temperature for the material is %d"
 msgstr ""
 
 msgid ""
@@ -3973,7 +3973,13 @@ msgstr ""
 msgid "Calibration step selection"
 msgstr ""
 
+msgid "Micro lidar calibration"
+msgstr ""
+
 msgid "Bed leveling"
+msgstr ""
+
+msgid "High-temperature Heatbed Calibration"
 msgstr ""
 
 msgid "Calibration program"
@@ -5007,13 +5013,13 @@ msgstr ""
 msgid "Layer: %d/%d"
 msgstr ""
 
-msgid "Axis go home"
+msgid "Auto homing"
 msgstr ""
 
-msgid "Are you sure you want to home now?"
+msgid "Are you sure you want to trigger auto homing?"
 msgstr ""
 
-msgid "Home"
+msgid "Homing"
 msgstr ""
 
 msgid ""
@@ -8864,8 +8870,8 @@ msgid ""
 "Slic3r can upload G-code files to a printer host. This field should contain "
 "the hostname, IP address or URL of the printer host instance. Print host "
 "behind HAProxy with basic auth enabled can be accessed by putting the user "
-"name and password into the URL in the following format: https://username:"
-"password@your-octopi-address/"
+"name and password into the URL in the following format: https://"
+"username:password@your-octopi-address/"
 msgstr ""
 
 msgid "Device UI"
@@ -9074,10 +9080,10 @@ msgstr ""
 
 #, possible-c-format
 msgid ""
-"Decide which overhang part join the cooling function to slow down the speed."
-"Expressed as percentage which indicides how much width of the line without "
-"support from lower layer. 100% means forcing cooling for all outer wall no "
-"matter how much overhang degree"
+"Decide which overhang part join the cooling function to slow down the "
+"speed.Expressed as percentage which indicides how much width of the line "
+"without support from lower layer. 100% means forcing cooling for all outer "
+"wall no matter how much overhang degree"
 msgstr ""
 
 msgid "Bridge direction"
@@ -9792,8 +9798,8 @@ msgid "Acceleration of inner walls. 0 means using normal printing acceleration"
 msgstr ""
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage (e."
-"g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage "
+"(e.g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 
 msgid "mm/s² or %"
@@ -12747,8 +12753,8 @@ msgid "nozzle size memorized: %d"
 msgstr ""
 
 msgid ""
-"The size of nozzle type in preset is not consistent with memorized nozzle."
-"Did you change your nozzle lately ? "
+"The size of nozzle type in preset is not consistent with memorized "
+"nozzle.Did you change your nozzle lately ? "
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -13366,6 +13372,9 @@ msgid "(Arrange before slicing)"
 msgstr ""
 
 msgid "(Please sync printer)"
+msgstr ""
+
+msgid "Global settings"
 msgstr ""
 
 msgid "More info on wiki"

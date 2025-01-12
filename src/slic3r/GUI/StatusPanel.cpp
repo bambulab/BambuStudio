@@ -3848,9 +3848,9 @@ void StatusPanel::on_axis_ctrl_xy(wxCommandEvent &event)
     if (event.GetInt() == 7) { obj->command_axis_control("X", 1.0, 1.0f, 3000); }
     if (event.GetInt() == 8) {
         if (axis_go_home_dlg == nullptr) {
-            axis_go_home_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Axis go home"));
-            axis_go_home_dlg->update_text(_L("Are you sure you want to home now?"));
-            axis_go_home_dlg->m_button_ok->SetLabel(_L("Home"));
+            axis_go_home_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Auto homing"));
+            axis_go_home_dlg->update_text(_L("Are you sure you want to trigger auto homing?"));
+            axis_go_home_dlg->m_button_ok->SetLabel(_L("Homing"));
             axis_go_home_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent& e) {
                 if (obj) {
                     BOOST_LOG_TRIVIAL(info) << "Axis have go home";

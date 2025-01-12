@@ -2,12 +2,12 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-11 16:36+0800\n"
+"POT-Creation-Date: 2025-01-12 16:02+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -1224,8 +1224,8 @@ msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr "Připojení %s selhalo! [SN:%s, kód=%s]"
 
 msgid ""
-"BambuStudio configuration file may be corrupted and is not able to be parsed."
-"Please delete the file and try again."
+"BambuStudio configuration file may be corrupted and is not able to be "
+"parsed.Please delete the file and try again."
 msgstr ""
 
 #, c-format, boost-format
@@ -2247,9 +2247,9 @@ msgid "Top"
 msgstr "Shora"
 
 msgid ""
-"The fan controls the temperature during printing to improve print quality."
-"The system automatically adjusts the fan's switch and speed according to "
-"different printing materials."
+"The fan controls the temperature during printing to improve print "
+"quality.The system automatically adjusts the fan's switch and speed "
+"according to different printing materials."
 msgstr ""
 
 msgid ""
@@ -3206,9 +3206,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe temperature,"
-"it may result in material softening and clogging.The maximum safe "
-"temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe "
+"temperature,it may result in material softening and clogging.The maximum "
+"safe temperature for the material is %d"
 msgstr ""
 
 msgid ""
@@ -4126,8 +4126,14 @@ msgstr ""
 msgid "Calibration step selection"
 msgstr "Výběr kroku kalibrace"
 
+msgid "Micro lidar calibration"
+msgstr "Micro lidar kalibrace"
+
 msgid "Bed leveling"
 msgstr "Vyrovnání podložky"
+
+msgid "High-temperature Heatbed Calibration"
+msgstr ""
 
 msgid "Calibration program"
 msgstr "Kalibrační program"
@@ -5184,13 +5190,13 @@ msgstr "Vrstva: %s"
 msgid "Layer: %d/%d"
 msgstr "Vrstva: %d/%d"
 
-msgid "Axis go home"
+msgid "Auto homing"
 msgstr ""
 
-msgid "Are you sure you want to home now?"
+msgid "Are you sure you want to trigger auto homing?"
 msgstr ""
 
-msgid "Home"
+msgid "Homing"
 msgstr ""
 
 msgid ""
@@ -9214,8 +9220,8 @@ msgid ""
 "Slic3r can upload G-code files to a printer host. This field should contain "
 "the hostname, IP address or URL of the printer host instance. Print host "
 "behind HAProxy with basic auth enabled can be accessed by putting the user "
-"name and password into the URL in the following format: https://username:"
-"password@your-octopi-address/"
+"name and password into the URL in the following format: https://"
+"username:password@your-octopi-address/"
 msgstr ""
 "Slic3r může nahrávat G-kódy do tiskového serveru. Toto pole by mělo "
 "obsahovat název hostitele, IP adresu nebo URL  tiskového serveru. K  "
@@ -9464,10 +9470,10 @@ msgstr ""
 
 #, c-format
 msgid ""
-"Decide which overhang part join the cooling function to slow down the speed."
-"Expressed as percentage which indicides how much width of the line without "
-"support from lower layer. 100% means forcing cooling for all outer wall no "
-"matter how much overhang degree"
+"Decide which overhang part join the cooling function to slow down the "
+"speed.Expressed as percentage which indicides how much width of the line "
+"without support from lower layer. 100% means forcing cooling for all outer "
+"wall no matter how much overhang degree"
 msgstr ""
 
 msgid "Bridge direction"
@@ -10241,8 +10247,8 @@ msgstr ""
 "Zrychlení vnitřních stěn. 0 znamená použití běžného tiskového zrychlení"
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage (e."
-"g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage "
+"(e.g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 "Zrychlení vnitřní výplně. Pokud je hodnota vyjádřena v procentech (např. 100 "
 "%), bude vypočítána na základě výchozího zrychlení."
@@ -12122,8 +12128,8 @@ msgstr "Nahraný soubor nemohl být načten, protože je prázdný"
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
 msgstr ""
-"Neznámý formát souboru. Vstupní soubor musí mít příponu .stl, .obj nebo ."
-"amf(.xml)"
+"Neznámý formát souboru. Vstupní soubor musí mít příponu .stl, .obj "
+"nebo .amf(.xml)"
 
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
@@ -13464,8 +13470,8 @@ msgid "nozzle size memorized: %d"
 msgstr ""
 
 msgid ""
-"The size of nozzle type in preset is not consistent with memorized nozzle."
-"Did you change your nozzle lately ? "
+"The size of nozzle type in preset is not consistent with memorized "
+"nozzle.Did you change your nozzle lately ? "
 msgstr ""
 
 #, c-format, boost-format
@@ -14085,6 +14091,9 @@ msgstr ""
 msgid "(Please sync printer)"
 msgstr ""
 
+msgid "Global settings"
+msgstr ""
+
 msgid "More info on wiki"
 msgstr ""
 
@@ -14425,9 +14434,6 @@ msgstr ""
 #~ "Spirálový režim funguje pouze tehdy, když je 1 smyčka na stěně, podpěry "
 #~ "jsou deaktivovány, horní skořepina vrstvy jsou 0, hustota vnitřní výplně "
 #~ "je 0 a typ časosběru je tradiční."
-
-#~ msgid "Micro lidar calibration"
-#~ msgstr "Micro lidar kalibrace"
 
 #~ msgid "An SD card needs to be inserted before printing via LAN."
 #~ msgstr "Před tiskem přes LAN je třeba vložit SD kartu."
@@ -14867,8 +14873,8 @@ msgstr ""
 #~ "BambuStudio configuration file may be corrupted and is not abled to be "
 #~ "parsed.Please delete the file and try again."
 #~ msgstr ""
-#~ "Konfigurační soubor BambuStudio může být poškozen a nelze jej analyzovat."
-#~ "Smažte soubor a zkuste to znovu."
+#~ "Konfigurační soubor BambuStudio může být poškozen a nelze jej "
+#~ "analyzovat.Smažte soubor a zkuste to znovu."
 
 #~ msgid ""
 #~ "You can keep the modifield presets to the new project, discard or save "
@@ -15553,8 +15559,8 @@ msgstr ""
 #~ msgstr "Úroveň ladění"
 
 #~ msgid ""
-#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-#~ "trace\n"
+#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
+#~ "5:trace\n"
 #~ msgstr ""
 #~ "Nastaví úroveň protokolování ladění. 0:fatal, 1:error, 2:warning, 3:info, "
 #~ "4:debug, 5:sledovat\n"
