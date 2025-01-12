@@ -4369,7 +4369,12 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                         try {
                                             if (!ams_id.empty()) {
                                                 int ams_id_int = atoi(ams_id.c_str());
-                                                new_ams->is_exists = (ams_exist_bits & (1 << ams_id_int)) != 0 ? true : false;
+
+                                                if (type_id < 4 ) {
+                                                    new_ams->is_exists = (ams_exist_bits & (1 << ams_id_int)) != 0 ? true : false;
+                                                } else {
+                                                    new_ams->is_exists = get_flag_bits(ams_exist_bits, 4 + (ams_id_int - 128));
+                                                }
                                             }
                                         }
                                         catch (...) {
