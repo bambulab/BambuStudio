@@ -97,11 +97,11 @@ namespace BBL {
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"
 #define BAMBU_NETWORK_AGENT_NAME            "bambu_network_agent"
 
-#define BAMBU_NETWORK_AGENT_VERSION         "02.00.00.06"//iot preset type strings
-#define IOT_PRINTER_TYPE_STRING     "printer"
-#define IOT_FILAMENT_STRING         "filament"
-#define IOT_PRINT_TYPE_STRING       "print"
+#define BAMBU_NETWORK_AGENT_VERSION         "02.00.00.09"
 
+#define IOT_PRINTER_TYPE_STRING         "printer"
+#define IOT_FILAMENT_STRING             "filament"
+#define IOT_PRINT_TYPE_STRING           "print"
 #define IOT_JSON_KEY_VERSION            "version"
 #define IOT_JSON_KEY_NAME               "name"
 #define IOT_JSON_KEY_TYPE               "type"
