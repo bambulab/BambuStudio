@@ -2139,8 +2139,8 @@ void TabPrint::build()
         line.append_option(optgroup->get_option("overhang_2_4_speed", 0));
         line.append_option(optgroup->get_option("overhang_3_4_speed", 0));
         line.append_option(optgroup->get_option("overhang_4_4_speed", 0));
+        line.append_option(optgroup->get_option("overhang_totally_speed", 0));
         optgroup->append_line(line);
-        optgroup->append_single_option_line("overhang_totally_speed", "", 0);
         optgroup->append_single_option_line("bridge_speed", "", 0);
         optgroup->append_single_option_line("gap_infill_speed", "", 0);
         optgroup->append_single_option_line("support_speed", "", 0);
