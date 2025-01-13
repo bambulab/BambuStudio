@@ -38,7 +38,7 @@ bool GLGizmoBrimEars::on_init()
 
     m_new_point_head_diameter = get_brim_default_radius();
 
-    m_shortcut_key = WXK_CONTROL_B;
+    m_shortcut_key = WXK_CONTROL_E;
 
     m_desc["head_diameter"]    = _L("Head diameter");
     m_desc["max_angle"]        = _L("Max angle");
