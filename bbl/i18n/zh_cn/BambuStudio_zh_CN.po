@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-13 14:58+0800\n"
+"POT-Creation-Date: 2025-01-13 16:07+0800\n"
 "PO-Revision-Date: 2025-01-08 20:27+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -7528,8 +7528,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "在录制无工具头延时摄影视频时，建议添加“延时摄影擦料塔”\n"
 "右键单击打印板的空白位置，选择“添加标准模型”->“延时摄影擦料塔”。"
@@ -8191,12 +8191,12 @@ msgid ""
 "Synchronizing AMS filaments will discard your modified but unsaved filament "
 "presets.\n"
 "Are you sure you want to continue?"
-msgstr "同步AMS材料将丢弃已修改但未保存的材料预设。您确定要继续吗？"
+msgstr "同步AMS耗材将丢弃已修改但未保存的耗材预设。您确定要继续吗？"
 
 msgid ""
 "After sync, all currently configured filament presets and colors will be "
 "discarded."
-msgstr "同步后，所有当前配置的材料预设和颜色都将被丢弃。"
+msgstr "同步后将丢弃所有当前配置的耗材预设、颜色。"
 
 msgid "Original"
 msgstr "原始"
@@ -8204,16 +8204,16 @@ msgstr "原始"
 msgid "After mapping"
 msgstr "匹配后"
 
-msgid "Are you sure to synchronize according to the current effect?"
-msgstr "根据当前效果，您确定同步吗？"
+msgid "Are you sure to synchronize the filaments?"
+msgstr "确定要同步AMS中耗材信息吗？"
 
 msgid "Are you sure to directly override current filaments?"
-msgstr "您确定要直接覆盖当前材料吗？"
+msgstr "确定要直接覆盖当前耗材吗？"
 
 msgid "Ams filaments synchronization"
-msgstr "AMS材料同步"
+msgstr "AMS耗材同步"
 
-msgid "Maping"
+msgid "Mapping"
 msgstr "匹配"
 
 msgid "Overwriting"
@@ -8230,33 +8230,27 @@ msgstr "设备打印机和当前选择的打印机不一致。建议保持一致
 msgid "Attention"
 msgstr "注意"
 
-msgid ""
-"The mapping only influences filament type and color,without AMS slot "
-"information."
-msgstr "映射仅影响材料类型和颜色，不影响AMS插槽信息。"
+msgid "Only synchronize filament type and color, not included AMS slot info."
+msgstr "仅同步耗材类型和颜色，不包含AMS槽位信息。"
 
 msgid "Advanced settings >"
 msgstr "高级设置 >"
 
-msgid ""
-"Unmatched AMS filaments should also be synchronized into thhe filaments list"
-msgstr "未匹配到的AMS材料也同步到材料列表中"
+msgid "Unused AMS filaments should also be added to the filament list."
+msgstr "未使用的AMS耗材也添加到耗材列表。"
 
 msgid "When you click ok button,it will append unmapped color."
 msgstr "当您单击ok按钮时，它将附加未匹配的颜色。"
 
-msgid "Automatically merge the same colors in the model after matching"
-msgstr "匹配后自动合并模型中的相同颜色"
+msgid "Automatically merge the same colors in the model after mapping."
+msgstr "匹配后自动合并模型中的相同颜色。"
 
 msgid "When you click ok button,it will merge same ams to only one color."
 msgstr "当你们点击“确定”按钮时，它会将相同的ams合并为一种颜色。"
 
 msgid ""
 "All of your configured filament presets and colors will discarded after sync."
-msgstr "同步后，所有配置的材料预设和颜色都将被丢弃"
-
-msgid "Are you sure to synchronize the filament?"
-msgstr "您确定要同步材料吗？"
+msgstr "同步后，所有配置的材料预设和颜色都将被丢弃。"
 
 #, c-format, boost-format
 msgid "nozzle in preset: %.1f %s"
@@ -12953,8 +12947,8 @@ msgstr ""
 "你想重写预设吗"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "我们会将预设重命名为“供应商 类型 系列 @您选择的打印机”。\n"
@@ -14324,6 +14318,28 @@ msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
 
+#~ msgid "Are you sure to synchronize according to the current effect?"
+#~ msgstr "根据当前效果，您确定同步吗？"
+
+#~ msgid "Maping"
+#~ msgstr "匹配"
+
+#~ msgid ""
+#~ "The mapping only influences filament type and color,without AMS slot "
+#~ "information."
+#~ msgstr "映射仅影响材料类型和颜色，不影响AMS插槽信息。"
+
+#~ msgid ""
+#~ "Unmatched AMS filaments should also be synchronized into thhe filaments "
+#~ "list"
+#~ msgstr "未匹配到的AMS材料也同步到材料列表中"
+
+#~ msgid "Automatically merge the same colors in the model after matching"
+#~ msgstr "匹配后自动合并模型中的相同颜色"
+
+#~ msgid "Are you sure to synchronize the filament?"
+#~ msgstr "您确定要同步材料吗？"
+
 #~ msgid "Change to"
 #~ msgstr "更改为"
 
@@ -14345,7 +14361,7 @@ msgstr ""
 #~ msgid ""
 #~ "Multiple TPU filaments are not allowed to print at the same time, and the "
 #~ "TPU filament must be placed in the virtual slot of %s."
-#~ msgstr "不允许同时打印多根TPU长丝，并且TPU长丝必须放置在%s的虚拟插槽中。"
+#~ msgstr "不允许同时打印多根TPU耗材，并且TPU耗材必须放置在%s的虚拟插槽中。"
 
 #, c-format, boost-format
 #~ msgid "Filament %s cannot be placed in the %s extruder for printing."
@@ -20400,8 +20416,8 @@ msgstr ""
 #~ msgstr "正在准备设置页"
 
 #~ msgid ""
-#~ "You have the following presets with saved options for \"Print Host upload"
-#~ "\""
+#~ "You have the following presets with saved options for \"Print Host "
+#~ "upload\""
 #~ msgstr "您的以下预设中包含未保存的选项“打印主机上传”"
 
 #~ msgid ""
