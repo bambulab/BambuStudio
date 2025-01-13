@@ -589,6 +589,10 @@ void PartPlate::render_logo(bool bottom, bool render_cali)
 		}
     }
 
+    if (!wxGetApp().plater()->is_printer_configed_by_BBL()) { // for Third party printer
+        return;
+    }
+
 	m_partplate_list->load_bedtype_textures();
 	m_partplate_list->load_cali_textures();
     m_partplate_list->load_extruder_only_area_textures();

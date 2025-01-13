@@ -15013,6 +15013,19 @@ void Plater::split_object()         { p->split_object(); }
 void Plater::split_volume()         { p->split_volume(); }
 void Plater::optimize_rotation()    { if (!p->m_ui_jobs.is_any_running()) p->m_ui_jobs.optimize_rotation(); }
 void Plater::update_menus()         { p->menus.update(); }
+bool Plater::is_printer_configed_by_BBL() {
+    auto  curr_preset        = wxGetApp().preset_bundle->printers.get_edited_preset();
+    bool  is_configed_by_BBL = PresetUtils::system_printer_bed_model(curr_preset).size() > 0;
+    auto *printer_model      = curr_preset.config.opt<ConfigOptionString>("printer_model");
+    if (printer_model != nullptr && !printer_model->value.empty()) {
+        auto bundle         = wxGetApp().preset_bundle;
+        auto model_filename = bundle->get_stl_model_for_printer_model(printer_model->value);
+        if (boost::filesystem::exists(model_filename)) {
+            return true;
+        }
+    }
+    return is_configed_by_BBL;
+}
 // BBS
 //void Plater::show_action_buttons(const bool ready_to_slice) const   { p->show_action_buttons(ready_to_slice); }
 
