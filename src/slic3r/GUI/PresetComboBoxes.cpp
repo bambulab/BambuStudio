@@ -288,7 +288,7 @@ wxString PresetComboBox::get_tooltip(const Preset &preset)
 wxString PresetComboBox::get_preset_item_name(unsigned int index)
 {
     if (m_type == Preset::TYPE_PRINTER) {
-        int idx = selected_connected_printer();
+        int idx = selected_connected_printer(index);
         if (idx < 0) {
             return GetString(index);
         }
@@ -305,12 +305,14 @@ wxString PresetComboBox::get_preset_item_name(unsigned int index)
                 return GetString(index);
             }
 
-            auto iter = machine_list.begin();
+            auto iter = m_backup_dev_list_sorted.begin();
             std::advance(iter, idx);
-            Preset* machine_preset = get_printer_preset(iter->second);
-            if (machine_preset) {
-                dev->set_selected_machine(iter->first);
-                return from_u8(machine_preset->name);
+            if (iter != m_backup_dev_list_sorted.end() && machine_list.find(*iter) != machine_list.end()) {
+                Preset* machine_preset = get_printer_preset(machine_list[*iter]);
+                if (machine_preset) {
+                    dev->set_selected_machine(*iter);
+                    return from_u8(machine_preset->name);
+                }
             }
         }
     }
@@ -460,6 +462,11 @@ void PresetComboBox::add_connected_printers(std::string selected, bool alias_nam
         return false;
     });
 
+    m_backup_dev_list_sorted.clear();
+    for (auto &it : user_machine_list) {
+        m_backup_dev_list_sorted.push_back(it.first);
+    }
+
     for (auto iter = user_machine_list.begin(); iter != user_machine_list.end(); ++iter) {
         Preset* printer_preset = get_printer_preset(iter->second);
         if (!printer_preset)
@@ -473,10 +480,10 @@ void PresetComboBox::add_connected_printers(std::string selected, bool alias_nam
     m_last_printer_idx = GetCount();
 }
 
-int PresetComboBox::selected_connected_printer() const
+int PresetComboBox::selected_connected_printer(int index) const
 {
-    if (m_first_printer_idx && m_last_selected >= m_first_printer_idx && m_last_selected < m_last_printer_idx) {
-        return reinterpret_cast<int *>(GetClientData(m_last_selected)) - &m_first_printer_idx;
+    if (m_first_printer_idx && index >= m_first_printer_idx && index < m_last_printer_idx) {
+        return reinterpret_cast<int *>(GetClientData(index)) - &m_first_printer_idx;
     }
     return -1;
 }

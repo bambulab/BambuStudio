@@ -7741,12 +7741,12 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     else if (select_preset) {
         if (preset_type == Preset::TYPE_PRINTER) {
             PhysicalPrinterCollection& physical_printers = wxGetApp().preset_bundle->physical_printers;
-            if(combo->is_selected_physical_printer())
+            if (marker == PresetComboBox::LABEL_ITEM_PHYSICAL_PRINTER)
                 preset_name = physical_printers.get_selected_printer_preset_name();
             else
                 physical_printers.unselect_printer();
 
-            if (combo->is_selected_printer_model()) {
+            if (marker == PresetComboBox::LABEL_ITEM_PRINTER_MODELS) {
                 auto preset = wxGetApp().preset_bundle->get_similar_printer_preset(preset_name, {});
                 if (preset == nullptr) {
                     MessageDialog dlg(this->sidebar, _L(""), _L(""));

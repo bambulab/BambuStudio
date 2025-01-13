@@ -72,7 +72,7 @@ public:
     // BBS: printer
     bool update_printer_list();
     void add_connected_printers(std::string selected, bool alias_name = false);
-    int  selected_connected_printer() const;
+    int  selected_connected_printer(int index) const;
 
     // BBS: ams
     void add_ams_filaments(std::string selected, bool alias_name = false);
@@ -137,6 +137,7 @@ protected:
     int m_last_printer_idx  = 0;
 
     std::vector<std::string> m_backup_dev_list;
+    std::vector<std::string> m_backup_dev_list_sorted;
 
     PrinterTechnology printer_technology {ptAny};
 
