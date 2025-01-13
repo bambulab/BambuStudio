@@ -1334,19 +1334,19 @@ int CLI::run(int argc, char **argv)
     /*BOOST_LOG_TRIVIAL(info) << "begin to setup params, argc=" << argc << std::endl;
     for (int index=0; index < argc; index++)
         BOOST_LOG_TRIVIAL(info) << "index="<< index <<", arg is "<< argv[index] <<std::endl;
-    int debug_argc = 12;
+    int debug_argc = 5;
     char* debug_argv[] = {
         "F:\work\projects\bambu_debug\bamboo_slicer\build_debug\src\Debug\bambu-studio.exe",
         "--debug=2",
         //"--uptodate",
-        "--load-settings",
-        "machine_A1.json",
-        "--load-defaultfila",
-        "--load-filaments",
-        "filament_pla_basic_A1.json;filament_pla_basic_A1.json",
+        //"--load-settings",
+        //"machine_A1.json",
+        //"--load-defaultfila",
+        //"--load-filaments",
+        //"filament_pla_basic_A1.json;filament_pla_basic_A1.json",
         "--export-3mf=output.3mf",
-        "--filament-colour",
-        "#CD056D;#702829",
+        //"--filament-colour",
+        //"#CD056D;#702829",
         //"--nozzle-volume-type",
         //"Standard,High Flow",
         //"--filament-map-mode",
@@ -1354,7 +1354,7 @@ int CLI::run(int argc, char **argv)
         //"--filament-map",
         //"1,2,1,2",
         "--slice=0",
-        "test.3mf"
+        "cube_a1.3mf"
         };
     if (! this->setup(debug_argc, debug_argv))*/
     if (!this->setup(argc, argv))
@@ -5997,20 +5997,16 @@ int CLI::run(int argc, char **argv)
                                 //get predication and filament change
                                 PrintEstimatedStatistics& print_estimated_stat = gcode_result->print_statistics;
                                 const PrintEstimatedStatistics::Mode& time_mode = print_estimated_stat.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)];
-                                auto it_wipe = std::find_if(time_mode.roles_times.begin(), time_mode.roles_times.end(), [](const std::pair<ExtrusionRole, float>& item) { return ExtrusionRole::erWipeTower == item.first; });
+                                auto it = std::find_if(time_mode.roles_times.begin(), time_mode.roles_times.end(), [](const std::pair<ExtrusionRole, float>& item) { return ExtrusionRole::erWipeTower == item.first; });
                                 sliced_plate_info.total_predication = time_mode.time;
                                 sliced_plate_info.main_predication = time_mode.time - time_mode.prepare_time;
-                                sliced_plate_info.filament_change_times = print_estimated_stat.total_filamentchanges;
-                                if (it_wipe != time_mode.roles_times.end()) {
+                                sliced_plate_info.filament_change_times = print_estimated_stat.total_filament_changes;
+                                if (it != time_mode.roles_times.end()) {
                                     //filament changes time will be included in prime tower time later
                                     //ConfigOptionFloat* machine_load_filament_time_opt = m_print_config.option<ConfigOptionFloat>("machine_load_filament_time");
                                     //ConfigOptionFloat* machine_unload_filament_time_opt = m_print_config.option<ConfigOptionFloat>("machine_unload_filament_time");
-                                    sliced_plate_info.main_predication -= it_wipe->second;
+                                    sliced_plate_info.main_predication -= it->second;
                                     //sliced_plate_info.main_predication -= sliced_plate_info.filament_change_times * (machine_load_filament_time_opt->value + machine_unload_filament_time_opt->value);
-                                }
-                                auto it_flush = std::find_if(time_mode.roles_times.begin(), time_mode.roles_times.end(), [](const std::pair<ExtrusionRole, float>& item) { return ExtrusionRole::erFlush == item.first; });
-                                if (it_flush != time_mode.roles_times.end()) {
-                                    sliced_plate_info.main_predication -= it_flush->second;
                                 }
                                 bool has_tool_change = false;
                                 auto custom_gcodes_iter = model.plates_custom_gcodes.find(index);
@@ -6024,7 +6020,7 @@ int CLI::run(int argc, char **argv)
                                         }
                                 }
                                 if (has_tool_change)
-                                    sliced_plate_info.layer_filament_change = print_estimated_stat.total_filamentchanges;
+                                    sliced_plate_info.layer_filament_change = print_estimated_stat.total_filament_changes;
 
                                 //filaments
                                 auto* filament_ids = dynamic_cast<const ConfigOptionStrings*>(m_print_config.option("filament_ids"));
@@ -6038,10 +6034,7 @@ int CLI::run(int argc, char **argv)
                                     filament_info.id = iter.first + 1;
                                     filament_info.total_used_g = iter.second;
 
-                                    if (filament_ids && (filament_info.id <= filament_ids->values.size()))
-                                        filament_info.filament_id = filament_ids->values[iter.first];
-                                    else
-                                        filament_info.filament_id = "unknown";
+                                    filament_info.filament_id = (filament_info.id <= filament_ids->values.size())? filament_ids->values[iter.first] : "unknown";
 
                                     auto main_iter = print_estimated_stat.model_volumes_per_extruder.find(iter.first);
                                     if (main_iter != print_estimated_stat.model_volumes_per_extruder.end())
@@ -7174,8 +7167,8 @@ std::string CLI::output_filepath(const ModelObject &object, unsigned int index, 
     // use --outputdir when available
     file_name = object.name.empty()?object.input_file:object.name;
     file_name = "obj_"+std::to_string(index)+"_"+file_name;
-    size_t pos = file_name.rfind(ext), ext_pos = file_name.size() - ext.size();
-    if ((pos == std::string::npos) || (pos != ext_pos))
+    size_t pos = file_name.find_last_of(ext), ext_pos = file_name.size() - 1;
+    if (pos != ext_pos)
         file_name += ext;
 
     BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": dir = "<< path_dir<<", file_name="<<file_name<< ", pos = "<<pos<<", ext_pos="<<ext_pos;
