@@ -1242,10 +1242,12 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_darkmode = create_item_darkmode_checkbox(_L("Enable dark mode"), page,_L("Enable dark mode"), 50, "dark_color_mode");
 #endif
 
+#if 0
     auto title_filament_group = create_item_title(_L("Filament Arrange"), page, _L("Filament Arrange"));
     //temporarily disable it
     //auto item_ignore_ext_filament = create_item_checkbox(_L("Ignore ext filament when auto grouping"), page, _L("Ignore ext filament when auto grouping"), 50, "ignore_ext_filament_when_group");
     auto item_pop_up_filament_map_dialog = create_item_checkbox(_L("Pop up to select filament arrangement mode"), page, _L("Pop up to select filament arrangement mode"), 50, "pop_up_filament_map_dialog");
+#endif
 
     auto title_user_experience = create_item_title(_L("User Experience"), page, _L("User Experience"));
     auto item_priv_policy = create_item_checkbox(_L("Join Customer Experience Improvement Program."), page, "", 50, "privacyuse");
@@ -1317,9 +1319,11 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_darkmode, 0, wxEXPAND, FromDIP(3));
 #endif
 
+#if 0
     sizer_page->Add(title_filament_group, 0, wxTOP | wxEXPAND, FromDIP(20));
     //sizer_page->Add(item_ignore_ext_filament, 0, wxEXPAND, FromDIP(3));
     sizer_page->Add(item_pop_up_filament_map_dialog, 0, wxEXPAND, FromDIP(3));
+#endif
 
     sizer_page->Add(title_user_experience, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_priv_policy, 0, wxTOP, FromDIP(3));
