@@ -407,6 +407,9 @@ protected:
     Button *        m_button_clean;
     wxSimplebook*   m_extruder_book;
     std::vector<ExtruderImage *> m_extruderImage;
+
+    /*the target nozzle id from PC-SwitchBoard, default to INVALID_NOZZLE_ID if not switching*/
+    int             targ_nozzle_id_from_pc = INVALID_NOZZLE_ID;
     SwitchBoard *   m_nozzle_btn_panel;
 
     wxStaticText *  m_text_tasklist_caption;
