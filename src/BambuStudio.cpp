@@ -149,6 +149,25 @@ std::map<int, std::string> cli_errors = {
     {CLI_FILAMENT_UNPRINTABLE_ON_FIRST_LAYER, "Found some filament unprintable at first layer on current Plate. Please make sure the 3mf file can be successfully sliced with the same Plate type in the latest Bambu Studio."}
 };
 
+typedef struct  _object_info{
+    int id{0};
+    std::string name;
+    size_t triangle_count{0};
+    float bbox_x;
+    float bbox_y;
+    float bbox_z;
+    float bbox_width;
+    float bbox_depth;
+    float bbox_height;
+}object_info_t;
+
+typedef struct  _filament_info{
+    int id{0};
+    std::string filament_id;
+    float total_used_g {0.f};
+    float main_used_g {0.f};
+}filament_info_t;
+
 typedef struct  _sliced_plate_info{
     int plate_id{0};
     size_t sliced_time {0};
@@ -158,6 +177,14 @@ typedef struct  _sliced_plate_info{
     size_t generate_support_material_time {0};
     size_t triangle_count{0};
     std::string warning_message;
+
+    float total_predication{0.f};
+    float main_predication{0.f};
+    int filament_change_times {0};
+    int layer_filament_change {0};
+
+    std::vector<object_info_t> objects;
+    std::vector<filament_info_t> filaments;
 }sliced_plate_info_t;
 
 typedef struct _sliced_info {
@@ -432,15 +459,64 @@ void record_exit_reson(std::string outputdir, int code, int plate_id, std::strin
         for (size_t index = 0; index < sliced_info.sliced_plates.size(); index++)
         {
             json plate_json;
-            plate_json["id"] = sliced_info.sliced_plates[index].plate_id;
-            plate_json["sliced_time"] = sliced_info.sliced_plates[index].sliced_time;
-            plate_json["sliced_time_with_cache"] = sliced_info.sliced_plates[index].sliced_time_with_cache;
-            plate_json["make_perimeters_time"] = sliced_info.sliced_plates[index].make_perimeters_time;
-            plate_json["infill_time"] = sliced_info.sliced_plates[index].infill_time;
-            plate_json["generate_support_material_time"] = sliced_info.sliced_plates[index].generate_support_material_time;
-            plate_json["triangle_count"] = sliced_info.sliced_plates[index].triangle_count;
-            plate_json["warning_message"] = sliced_info.sliced_plates[index].warning_message;
-            j["sliced_plates"].push_back(plate_json);
+            sliced_plate_info_t& sliced_plate_info = sliced_info.sliced_plates[index];
+            plate_json["id"] = sliced_plate_info.plate_id;
+            plate_json["sliced_time"] = sliced_plate_info.sliced_time;
+            plate_json["sliced_time_with_cache"] = sliced_plate_info.sliced_time_with_cache;
+            plate_json["make_perimeters_time"] = sliced_plate_info.make_perimeters_time;
+            plate_json["infill_time"] = sliced_plate_info.infill_time;
+            plate_json["generate_support_material_time"] = sliced_plate_info.generate_support_material_time;
+            plate_json["triangle_count"] = sliced_plate_info.triangle_count;
+            plate_json["warning_message"] = sliced_plate_info.warning_message;
+
+            plate_json["total_predication"] = sliced_plate_info.total_predication;
+            plate_json["main_predication"] = sliced_plate_info.main_predication;
+            plate_json["filament_change_times"] = sliced_plate_info.filament_change_times;
+            plate_json["layer_filament_change"] = sliced_plate_info.layer_filament_change;
+
+            //object info
+            if (!sliced_plate_info.objects.empty())
+            {
+                for (size_t j = 0; j < sliced_plate_info.objects.size(); j++)
+                {
+                    json object_json;
+                    object_info_t& object = sliced_plate_info.objects[j];
+
+                    object_json["id"] = object.id;
+                    object_json["name"] = object.name;
+                    object_json["triangle_count"] = object.triangle_count;
+
+                    json bbox_json;
+                    bbox_json["x"] = object.bbox_x;
+                    bbox_json["y"] = object.bbox_y;
+                    bbox_json["z"] = object.bbox_z;
+                    bbox_json["width"] = object.bbox_width;
+                    bbox_json["depth"] = object.bbox_depth;
+                    bbox_json["height"] = object.bbox_height;
+                    object_json["bbox"] = bbox_json;
+
+                    plate_json["objects"].push_back(std::move(object_json));
+                }
+            }
+
+            //filament info
+            if (!sliced_plate_info.filaments.empty())
+            {
+                for (size_t j = 0; j < sliced_plate_info.filaments.size(); j++)
+                {
+                    json filament_json;
+                    filament_info_t& filament = sliced_plate_info.filaments[j];
+
+                    filament_json["id"] = filament.id;
+                    filament_json["filament_id"] = filament.filament_id;
+                    filament_json["total_used_g"] = filament.total_used_g;
+                    filament_json["main_used_g"] = filament.main_used_g;
+
+                    plate_json["filaments"].push_back(std::move(filament_json));
+                }
+            }
+
+            j["sliced_plates"].push_back(std::move(plate_json));
         }
         for (auto& iter: key_values)
             j[iter.first] = iter.second;
@@ -1241,19 +1317,27 @@ int CLI::run(int argc, char **argv)
     /*BOOST_LOG_TRIVIAL(info) << "begin to setup params, argc=" << argc << std::endl;
     for (int index=0; index < argc; index++)
         BOOST_LOG_TRIVIAL(info) << "index="<< index <<", arg is "<< argv[index] <<std::endl;
-    int debug_argc = 11;
-    char *debug_argv[] = {
+    int debug_argc = 5;
+    char* debug_argv[] = {
         "F:\work\projects\bambu_debug\bamboo_slicer\build_debug\src\Debug\bambu-studio.exe",
         "--debug=2",
-        "--load-settings",
-        "machine.json;process.json",
-        "--load-filaments",
-        "filament.json;filament.json;filament.json;filament.json;filament.json;filament.json",
+        //"--uptodate",
+        //"--load-settings",
+        //"machine_A1.json",
+        //"--load-defaultfila",
+        //"--load-filaments",
+        //"filament_pla_basic_A1.json;filament_pla_basic_A1.json",
         "--export-3mf=output.3mf",
-        "--filament-colour",
-        "#FFFFFFFF;#0000FFFF;#00FF00FF;#FF0000FF;#00000000;#FFFF00FF",
+        //"--filament-colour",
+        //"#CD056D;#702829",
+        //"--nozzle-volume-type",
+        //"Standard,High Flow",
+        //"--filament-map-mode",
+        //"Auto",
+        //"--filament-map",
+        //"1,2,1,2",
         "--slice=0",
-        "1.3mf"
+        "cube_a1.3mf"
         };
     if (! this->setup(debug_argc, debug_argv))*/
     if (!this->setup(argc, argv))
@@ -5600,6 +5684,83 @@ int CLI::run(int argc, char **argv)
                                 sliced_plate_info.infill_time = slice_time[TIME_INFILL];
                                 sliced_plate_info.generate_support_material_time = slice_time[TIME_GENERATE_SUPPORT];
 
+                                //get predication and filament change
+                                PrintEstimatedStatistics& print_estimated_stat = gcode_result->print_statistics;
+                                const PrintEstimatedStatistics::Mode& time_mode = print_estimated_stat.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)];
+                                auto it = std::find_if(time_mode.roles_times.begin(), time_mode.roles_times.end(), [](const std::pair<ExtrusionRole, float>& item) { return ExtrusionRole::erWipeTower == item.first; });
+                                sliced_plate_info.total_predication = time_mode.time;
+                                sliced_plate_info.main_predication = time_mode.time - time_mode.prepare_time;
+                                sliced_plate_info.filament_change_times = print_estimated_stat.total_filament_changes;
+                                if (it != time_mode.roles_times.end()) {
+                                    //filament changes time will be included in prime tower time later
+                                    //ConfigOptionFloat* machine_load_filament_time_opt = m_print_config.option<ConfigOptionFloat>("machine_load_filament_time");
+                                    //ConfigOptionFloat* machine_unload_filament_time_opt = m_print_config.option<ConfigOptionFloat>("machine_unload_filament_time");
+                                    sliced_plate_info.main_predication -= it->second;
+                                    //sliced_plate_info.main_predication -= sliced_plate_info.filament_change_times * (machine_load_filament_time_opt->value + machine_unload_filament_time_opt->value);
+                                }
+                                bool has_tool_change = false;
+                                auto custom_gcodes_iter = model.plates_custom_gcodes.find(index);
+                                if (custom_gcodes_iter != model.plates_custom_gcodes.end())
+                                {
+                                    CustomGCode::Info custom_gcodes = custom_gcodes_iter->second;
+                                    for (const Item& custom_gcode : custom_gcodes.gcodes)
+                                        if (custom_gcode.type == CustomGCode::ToolChange) {
+                                            has_tool_change = true;
+                                            break;
+                                        }
+                                }
+                                if (has_tool_change)
+                                    sliced_plate_info.layer_filament_change = print_estimated_stat.total_filament_changes;
+
+                                //filaments
+                                auto* filament_ids = dynamic_cast<const ConfigOptionStrings*>(m_print_config.option("filament_ids"));
+                                std::vector<float>        filament_diameters = gcode_result->filament_diameters;
+                                std::vector<float>        filament_densities = gcode_result->filament_densities;
+
+                                for (auto& iter : print_estimated_stat.total_volumes_per_extruder)
+                                {
+                                    filament_info_t filament_info;
+
+                                    filament_info.id = iter.first + 1;
+                                    filament_info.total_used_g = iter.second;
+
+                                    filament_info.filament_id = (filament_info.id <= filament_ids->values.size())? filament_ids->values[iter.first] : "unknown";
+
+                                    auto main_iter = print_estimated_stat.model_volumes_per_extruder.find(iter.first);
+                                    if (main_iter != print_estimated_stat.model_volumes_per_extruder.end())
+                                        filament_info.main_used_g = main_iter->second;
+
+                                    auto support_iter = print_estimated_stat.support_volumes_per_extruder.find(iter.first);
+                                    if (support_iter != print_estimated_stat.support_volumes_per_extruder.end())
+                                        filament_info.main_used_g += support_iter->second;
+
+                                    double koef = 0.001;
+                                    //filament_info.main_used_m = koef * filament_info.main_used_m / (PI * sqr(0.5 * filament_diameters[filament_info.id]));
+                                    filament_info.main_used_g = koef * filament_info.main_used_g * filament_densities[iter.first];
+                                    filament_info.total_used_g = koef * filament_info.total_used_g * filament_densities[iter.first];
+
+                                    sliced_plate_info.filaments.push_back(std::move(filament_info));
+                                }
+
+                                //objects
+                                ModelObjectPtrs plate_objects = part_plate->get_objects_on_this_plate();
+                                for (ModelObject* object : plate_objects)
+                                {
+                                    object_info_t object_info;
+                                    object_info.id = object->id().id;
+                                    object_info.name = object->name;
+                                    object_info.triangle_count = object->facets_count();
+
+                                    BoundingBoxf3 bbox_f = object->bounding_box();
+                                    object_info.bbox_x = bbox_f.min.x();
+                                    object_info.bbox_y = bbox_f.min.y();
+                                    object_info.bbox_z = bbox_f.min.z();
+                                    object_info.bbox_width = bbox_f.max.x() - object_info.bbox_x;
+                                    object_info.bbox_depth = bbox_f.max.y() - object_info.bbox_y;
+                                    object_info.bbox_height = bbox_f.max.z() - object_info.bbox_z;
+
+                                    sliced_plate_info.objects.push_back(std::move(object_info));
+                                }
 
                                 if (max_slicing_time_per_plate != 0) {
                                     long long time_cost = end_time - start_time;
