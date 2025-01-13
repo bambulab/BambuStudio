@@ -534,7 +534,7 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     /*left*/
     auto leftTitle = new Label(multiple_panel, _L("Left Nozzle"));
     leftTitle->SetFont(::Label::Head_15);
-    leftTitle->SetForegroundColour(0x2e2630);
+    leftTitle->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#2C2C2E")));
 
     wxBoxSizer *multiple_left_line_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto multiple_left_nozzle_type = new Label(multiple_panel, _L("Nozzle Type"));
@@ -579,7 +579,7 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     /*right*/
     auto rightTitle = new Label(multiple_panel, _L("Right Nozzle"));
     rightTitle->SetFont(::Label::Head_15);
-    rightTitle->SetForegroundColour(0x2e2630);
+    rightTitle->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#2C2C2E")));
 
     wxBoxSizer *multiple_right_line_sizer  = new wxBoxSizer(wxHORIZONTAL);
     auto        multiple_right_nozzle_type = new Label(multiple_panel, _L("Nozzle Type"));
@@ -921,7 +921,7 @@ bool PrinterPartsDialog::Show(bool show)
                 if (type == NozzleType::ntHardenedSteel)
                 {
                     diameter_map = nozzle_hard_diameter_map;
-                } 
+                }
                 else if (type == NozzleType::ntStainlessSteel)
                 {
                     diameter_map = nozzle_stainless_diameter_map;
