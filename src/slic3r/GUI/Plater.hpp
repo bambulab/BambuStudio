@@ -52,7 +52,9 @@ class SlicingStatusEvent;
 enum SLAPrintObjectStep : unsigned int;
 enum class ConversionType : int;
 class Ams;
-
+namespace csg {
+enum class BooleanFailReason;
+}
 using ModelInstancePtrs = std::vector<ModelInstance*>;
 
 
@@ -828,7 +830,7 @@ private:
 };
 
 std::vector<int> get_min_flush_volumes(const DynamicPrintConfig &full_config, size_t nozzle_id);
-std::string check_boolean_possible(const std::vector<const ModelVolume*>& volumes);
+std::string      check_boolean_possible(const std::vector<const ModelVolume *> &volumes, csg::BooleanFailReason& fail_reason);
 
 Preset *get_printer_preset(MachineObject *obj);
 wxArrayString get_all_camera_view_type();

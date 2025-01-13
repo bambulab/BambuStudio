@@ -72,7 +72,7 @@ bool GLGizmoMeshBoolean::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         std::vector<Transform3d> trafo_matrices;
         for (const ModelVolume* mv : mo->volumes) {
             //if (mv->is_model_part()) {
-                trafo_matrices.emplace_back(mi->get_transformation().get_matrix() * mv->get_matrix()); 
+                trafo_matrices.emplace_back(mi->get_transformation().get_matrix() * mv->get_matrix());
             //}
         }
 
@@ -368,7 +368,8 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
     if (m_operation_mode == MeshBooleanOperation::Union)
     {
         if (operate_button(_L("Union") + "##btn", enable_button)) {
-            m_warning_texts[index] = check_boolean_possible({ m_src.mv, m_tool.mv });
+            csg::BooleanFailReason fail_reason;
+            m_warning_texts[index] = check_boolean_possible({m_src.mv, m_tool.mv}, fail_reason);
             if(m_warning_texts[index] == "") {
                 TriangleMesh temp_src_mesh = m_src.mv->mesh();
                 temp_src_mesh.transform(m_src.trafo);
@@ -392,7 +393,8 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
     else if (m_operation_mode == MeshBooleanOperation::Difference) {
         m_imgui->bbl_checkbox(_L("Delete input"), m_diff_delete_input);
         if (operate_button(_L("Difference") + "##btn", enable_button)) {
-            m_warning_texts[index] = check_boolean_possible({ m_src.mv, m_tool.mv });
+            csg::BooleanFailReason fail_reason;
+            m_warning_texts[index] = check_boolean_possible({m_src.mv, m_tool.mv}, fail_reason);
             if (m_warning_texts[index] == "") {
                 TriangleMesh temp_src_mesh = m_src.mv->mesh();
                 temp_src_mesh.transform(m_src.trafo);
@@ -416,7 +418,8 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
     else if (m_operation_mode == MeshBooleanOperation::Intersection){
         m_imgui->bbl_checkbox(_L("Delete input"), m_inter_delete_input);
         if (operate_button(_L("Intersection") + "##btn", enable_button)) {
-            m_warning_texts[index] = check_boolean_possible({ m_src.mv, m_tool.mv });
+            csg::BooleanFailReason fail_reason;
+            m_warning_texts[index] = check_boolean_possible({m_src.mv, m_tool.mv}, fail_reason);
             if (m_warning_texts[index] == "") {
                 TriangleMesh temp_src_mesh = m_src.mv->mesh();
                 temp_src_mesh.transform(m_src.trafo);

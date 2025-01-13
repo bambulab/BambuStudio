@@ -13046,7 +13046,8 @@ bool check_printer_initialized(MachineObject *obj)
 }
 
 // OK if fail_msg is empty
-std::string check_boolean_possible(const std::vector<const ModelVolume*>& volumes) {
+std::string check_boolean_possible(const std::vector<const ModelVolume *> &volumes, csg::BooleanFailReason& fail_reason)
+{
     std::string fail_msg;
     std::vector<csg::CSGPart> csgmesh;
     csgmesh.reserve(2 * volumes.size());
@@ -13056,6 +13057,7 @@ std::string check_boolean_possible(const std::vector<const ModelVolume*>& volume
     if (auto fail_reason_name = csg::check_csgmesh_booleans(Range{ std::begin(csgmesh), std::end(csgmesh) }); std::get<0>(fail_reason_name) != csg::BooleanFailReason::OK) {
         fail_msg = _u8L("Unable to perform boolean operation on model meshes. "
             "You may fix the meshes and try again.");
+        fail_reason      = std::get<0>(fail_reason_name);
         std::string name = std::get<1>(fail_reason_name);
         std::map<csg::BooleanFailReason, std::string> fail_reasons = {
             {csg::BooleanFailReason::OK, "OK"},
@@ -13077,14 +13079,16 @@ TriangleMesh Plater::combine_mesh_fff(const ModelObject& mo, int instance_id, st
     csgmesh.reserve(2 * mo.volumes.size());
     bool has_splitable_volume = csg::model_to_csgmesh(mo.const_volumes(), Transform3d::Identity(), std::back_inserter(csgmesh),
         csg::mpartsPositive | csg::mpartsNegative);
-
-    std::string fail_msg = check_boolean_possible(mo.const_volumes());
-    if (fail_msg.empty()) {
+    csg::BooleanFailReason fail_reason;
+    std::string fail_msg = check_boolean_possible(mo.const_volumes(), fail_reason);
+    if (fail_msg.empty() || fail_reason == csg::BooleanFailReason::NotBoundAVolume) {
         try {
-            MeshBoolean::mcut::McutMeshPtr meshPtr = csg::perform_csgmesh_booleans_mcut(Range{ std::begin(csgmesh), std::end(csgmesh) });
-            mesh = MeshBoolean::mcut::mcut_to_triangle_mesh(*meshPtr);
-        }
-        catch (...) {}
+            MeshBoolean::mcut::McutMeshPtr meshPtr = csg::perform_csgmesh_booleans_mcut(Range{std::begin(csgmesh), std::end(csgmesh)});
+            mesh                                   = MeshBoolean::mcut::mcut_to_triangle_mesh(*meshPtr);
+            if (mesh.its.indices.size() > 0) {
+                fail_msg = "";
+            }
+        } catch (...) {}
 #if 0
         // if mcut fails, try again with CGAL
         if (mesh.empty()) {
@@ -13096,7 +13100,6 @@ TriangleMesh Plater::combine_mesh_fff(const ModelObject& mo, int instance_id, st
         }
 #endif
     }
-
     if (mesh.empty()) {
         if (notify_func)
             notify_func(fail_msg);
