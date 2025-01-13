@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-12 16:02+0800\n"
+"POT-Creation-Date: 2025-01-13 14:58+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1236,8 +1236,8 @@ msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr "A következőhöz való csatlakozás sikertelen: %s! [SN:%s, code=%s]"
 
 msgid ""
-"BambuStudio configuration file may be corrupted and is not able to be "
-"parsed.Please delete the file and try again."
+"BambuStudio configuration file may be corrupted and is not able to be parsed."
+"Please delete the file and try again."
 msgstr ""
 "A BambuStudio konfigurációs fájlt nem lehet elemezni, lehet, hogy megsérült. "
 "Kérjük, töröld a fájlt, és próbáld meg újra."
@@ -1725,7 +1725,7 @@ msgstr ""
 msgid "Edit"
 msgstr "Szerkesztés"
 
-msgid "Change to"
+msgid "Delete then replace with"
 msgstr ""
 
 msgid "Delete this filament"
@@ -2287,9 +2287,9 @@ msgid "Top"
 msgstr "Felül"
 
 msgid ""
-"The fan controls the temperature during printing to improve print "
-"quality.The system automatically adjusts the fan's switch and speed "
-"according to different printing materials."
+"The fan controls the temperature during printing to improve print quality."
+"The system automatically adjusts the fan's switch and speed according to "
+"different printing materials."
 msgstr ""
 
 msgid ""
@@ -3278,9 +3278,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe "
-"temperature,it may result in material softening and clogging.The maximum "
-"safe temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe temperature,"
+"it may result in material softening and clogging.The maximum safe "
+"temperature for the material is %d"
 msgstr ""
 "Current chamber temperature is higher than the material's safe temperature; "
 "this may result in material softening and nozzle clogs.The maximum safe "
@@ -3948,9 +3948,9 @@ msgid "Switch to normal mode"
 msgstr "Váltás normál módra"
 
 msgid ""
-"An object is laid on the left/right extruder only area.\n"
+"An object is laid on the left/right nozzle only area.\n"
 "Please make sure the filaments used by this object on this area are not "
-"mapped to the other extruders."
+"mapped to the other nozzles."
 msgstr ""
 
 msgid ""
@@ -4167,6 +4167,12 @@ msgstr "Térfogat:"
 msgid "Size:"
 msgstr "Méret:"
 
+msgid "left nozzle"
+msgstr ""
+
+msgid "right nozzle"
+msgstr ""
+
 #, c-format, boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d. Please separate the "
@@ -4185,9 +4191,7 @@ msgid "A G-code path goes beyond the boundary of plate."
 msgstr "A G-kód útvonala túlmegy a tálca peremén."
 
 #, c-format, boost-format
-msgid ""
-"Multiple TPU filaments are not allowed to print at the same time, and the "
-"TPU filament must be placed in the virtual slot of %s."
+msgid "Only the %s with external filament spool can print TPU"
 msgstr ""
 
 #, c-format, boost-format
@@ -5818,7 +5822,7 @@ msgid "Printer settings"
 msgstr "Nyomtatóbeállítások"
 
 #, c-format, boost-format
-msgid "Filament %s cannot be placed in the %s extruder for printing."
+msgid "The %s nozzle can not print %s."
 msgstr ""
 
 #, boost-format
@@ -5949,6 +5953,9 @@ msgstr ""
 "Ismeretlen vagy inkompatibilis filamentek lettek hozzárendelve az általános "
 "beállításokhoz. Kérjük, frissítsd a Bambu Studiót vagy indítsd újra, hogy "
 "letöltsd az esetlegesen elérhető frissített rendszerbeállításokat."
+
+msgid "Sync filaments with AMS successfully."
+msgstr ""
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
@@ -6105,15 +6112,12 @@ msgstr "Több részből álló objektumot észleltünk"
 
 #, c-format, boost-format
 msgid ""
-"The printer you are currently bound to is %s,\n"
-"The printer preset for your current file is %s,\n"
+"Connected printer is %s. It must match the project preset for printing.\n"
 msgstr ""
 
 msgid ""
-"Do you want to sync printer presets, ams and nozzle information immediately?"
-msgstr ""
-
-msgid "Do you want to sync printer presets immediately?"
+"Do you want to sync the printer information and automatically switch the "
+"preset?"
 msgstr ""
 
 msgid "Tips"
@@ -6848,10 +6852,7 @@ msgstr "Enable dark mode"
 msgid "Filament Arrange"
 msgstr ""
 
-msgid "Ignore ext filament when auto grouping"
-msgstr ""
-
-msgid "Pop up to select filament map mode"
+msgid "Pop up to select filament arrangement mode"
 msgstr ""
 
 msgid "User Experience"
@@ -7769,8 +7770,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Ha a nyomtatófej nélküli timelapse engedélyezve van, javasoljuk, hogy "
 "helyezz el a tálcán egy „Timelapse törlőtornyot“. Ehhez kattints jobb "
@@ -9435,6 +9436,9 @@ msgstr "Szoknya & perem generálása"
 msgid "Generating G-code"
 msgstr "G-kód generálása"
 
+msgid "Only supports up to one TPU filament."
+msgstr ""
+
 msgid "Failed processing of the filename_format template."
 msgstr "Nem sikerült feldolgozni a fájlnév_formátum sablont."
 
@@ -9500,8 +9504,8 @@ msgid ""
 "Slic3r can upload G-code files to a printer host. This field should contain "
 "the hostname, IP address or URL of the printer host instance. Print host "
 "behind HAProxy with basic auth enabled can be accessed by putting the user "
-"name and password into the URL in the following format: https://"
-"username:password@your-octopi-address/"
+"name and password into the URL in the following format: https://username:"
+"password@your-octopi-address/"
 msgstr ""
 "A Slic3r képes G-kód fájlokat feltölteni a nyomtatóra. Ennek a mezőnek "
 "tartalmaznia kell a nyomtató hostnevét, IP-címét vagy URL-címét. A HAProxy "
@@ -9768,10 +9772,10 @@ msgstr ""
 
 #, c-format
 msgid ""
-"Decide which overhang part join the cooling function to slow down the "
-"speed.Expressed as percentage which indicides how much width of the line "
-"without support from lower layer. 100% means forcing cooling for all outer "
-"wall no matter how much overhang degree"
+"Decide which overhang part join the cooling function to slow down the speed."
+"Expressed as percentage which indicides how much width of the line without "
+"support from lower layer. 100% means forcing cooling for all outer wall no "
+"matter how much overhang degree"
 msgstr ""
 
 msgid "Bridge direction"
@@ -10598,8 +10602,8 @@ msgid "Acceleration of inner walls. 0 means using normal printing acceleration"
 msgstr "Gyorsulás a belső falaknál. A 0 normál nyomtatási gyorsulást jelent."
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage "
-"(e.g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage (e."
+"g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 "Gyorsulás a ritkás kitöltéseknél. Ha az érték százalékban van megadva (pl. "
 "100%), akkor az alapértelmezett gyorsulás alapján kerül kiszámításra."
@@ -13606,12 +13610,12 @@ msgstr ""
 "Szeretnéd felülírni?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more printers; please go to printer selection"
 
 msgid "Create Printer/Nozzle"
@@ -14018,8 +14022,8 @@ msgid "nozzle size memorized: %d"
 msgstr ""
 
 msgid ""
-"The size of nozzle type in preset is not consistent with memorized "
-"nozzle.Did you change your nozzle lately ? "
+"The size of nozzle type in preset is not consistent with memorized nozzle."
+"Did you change your nozzle lately ? "
 msgstr ""
 
 #, c-format, boost-format
@@ -14709,7 +14713,7 @@ msgstr ""
 msgid "Removed"
 msgstr ""
 
-msgid "Filament arrangement method"
+msgid "Filament arrangement"
 msgstr ""
 
 msgid "Don't remind me again"
@@ -14728,32 +14732,25 @@ msgid "Manual Mode"
 msgstr ""
 
 msgid ""
-"Disregrad the filaments in AMS. Optimize filament usage by calculating the "
-"best arrangement for the left and right nozzles. Arrange the filaments on "
-"the printer based on the slicing results."
+"Calculate the best filament arrangement to minimize usage. Need to manually "
+"arrange filaments on the printer based on slicing results."
 msgstr ""
 
 msgid ""
-"Based on the current filaments in the AMS, arrange the filaments to the left "
-"and right nozzles."
+"Use AMS filaments to automatically assign filament to the left or right "
+"nozzle."
 msgstr ""
 
-msgid "Mannully arrange the filaments for the left and right nozzles."
-msgstr ""
-
-msgid "(Arrange after slicing)"
-msgstr ""
-
-msgid "(Arrange before slicing)"
-msgstr ""
-
-msgid "(Please sync printer)"
+msgid "Manually assign filament to the left or right nozzle."
 msgstr ""
 
 msgid "Global settings"
 msgstr ""
 
-msgid "More info on wiki"
+msgid "Learn more"
+msgstr ""
+
+msgid "(Sync with printer)"
 msgstr ""
 
 msgid "We will slice according to this grouping method:"
@@ -17269,11 +17266,11 @@ msgstr ""
 #~ msgstr "Tollméret beállítása"
 
 #~ msgid ""
-#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
-#~ "5:trace\n"
+#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
+#~ "trace\n"
 #~ msgstr ""
-#~ "A hibakeresési naplózási szint beállítása. 0:fatal, 1:error, 2:warning, "
-#~ "3:info, 4:debug, 5:trace\n"
+#~ "A hibakeresési naplózási szint beállítása. 0:fatal, 1:error, 2:warning, 3:"
+#~ "info, 4:debug, 5:trace\n"
 
 #~ msgid "Share"
 #~ msgstr "Megosztás"

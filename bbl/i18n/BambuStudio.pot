@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-12 16:02+0800\n"
+"POT-Creation-Date: 2025-01-13 14:58+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1211,8 +1211,8 @@ msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr ""
 
 msgid ""
-"BambuStudio configuration file may be corrupted and is not able to be "
-"parsed.Please delete the file and try again."
+"BambuStudio configuration file may be corrupted and is not able to be parsed."
+"Please delete the file and try again."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -1683,7 +1683,7 @@ msgstr ""
 msgid "Edit"
 msgstr ""
 
-msgid "Change to"
+msgid "Delete then replace with"
 msgstr ""
 
 msgid "Delete this filament"
@@ -2218,9 +2218,9 @@ msgid "Top"
 msgstr ""
 
 msgid ""
-"The fan controls the temperature during printing to improve print "
-"quality.The system automatically adjusts the fan's switch and speed "
-"according to different printing materials."
+"The fan controls the temperature during printing to improve print quality."
+"The system automatically adjusts the fan's switch and speed according to "
+"different printing materials."
 msgstr ""
 
 msgid ""
@@ -3092,9 +3092,9 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe "
-"temperature,it may result in material softening and clogging.The maximum "
-"safe temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe temperature,"
+"it may result in material softening and clogging.The maximum safe "
+"temperature for the material is %d"
 msgstr ""
 
 msgid ""
@@ -3702,9 +3702,9 @@ msgid "Switch to normal mode"
 msgstr ""
 
 msgid ""
-"An object is laid on the left/right extruder only area.\n"
+"An object is laid on the left/right nozzle only area.\n"
 "Please make sure the filaments used by this object on this area are not "
-"mapped to the other extruders."
+"mapped to the other nozzles."
 msgstr ""
 
 msgid ""
@@ -3915,6 +3915,12 @@ msgstr ""
 msgid "Size:"
 msgstr ""
 
+msgid "left nozzle"
+msgstr ""
+
+msgid "right nozzle"
+msgstr ""
+
 #, possible-c-format, possible-boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d. Please separate the "
@@ -3931,9 +3937,7 @@ msgid "A G-code path goes beyond the boundary of plate."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid ""
-"Multiple TPU filaments are not allowed to print at the same time, and the "
-"TPU filament must be placed in the virtual slot of %s."
+msgid "Only the %s with external filament spool can print TPU"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -5506,7 +5510,7 @@ msgid "Printer settings"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "Filament %s cannot be placed in the %s extruder for printing."
+msgid "The %s nozzle can not print %s."
 msgstr ""
 
 #, possible-boost-format
@@ -5633,6 +5637,9 @@ msgid ""
 "There are some unknown or uncompatible filaments mapped to generic preset. "
 "Please update Bambu Studio or restart Bambu Studio to check if there is an "
 "update to system presets."
+msgstr ""
+
+msgid "Sync filaments with AMS successfully."
 msgstr ""
 
 #, possible-boost-format
@@ -5766,15 +5773,12 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid ""
-"The printer you are currently bound to is %s,\n"
-"The printer preset for your current file is %s,\n"
+"Connected printer is %s. It must match the project preset for printing.\n"
 msgstr ""
 
 msgid ""
-"Do you want to sync printer presets, ams and nozzle information immediately?"
-msgstr ""
-
-msgid "Do you want to sync printer presets immediately?"
+"Do you want to sync the printer information and automatically switch the "
+"preset?"
 msgstr ""
 
 msgid "Tips"
@@ -6459,10 +6463,7 @@ msgstr ""
 msgid "Filament Arrange"
 msgstr ""
 
-msgid "Ignore ext filament when auto grouping"
-msgstr ""
-
-msgid "Pop up to select filament map mode"
+msgid "Pop up to select filament arrangement mode"
 msgstr ""
 
 msgid "User Experience"
@@ -7293,8 +7294,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 
 msgid ""
@@ -8814,6 +8815,9 @@ msgstr ""
 msgid "Generating G-code"
 msgstr ""
 
+msgid "Only supports up to one TPU filament."
+msgstr ""
+
 msgid "Failed processing of the filename_format template."
 msgstr ""
 
@@ -8870,8 +8874,8 @@ msgid ""
 "Slic3r can upload G-code files to a printer host. This field should contain "
 "the hostname, IP address or URL of the printer host instance. Print host "
 "behind HAProxy with basic auth enabled can be accessed by putting the user "
-"name and password into the URL in the following format: https://"
-"username:password@your-octopi-address/"
+"name and password into the URL in the following format: https://username:"
+"password@your-octopi-address/"
 msgstr ""
 
 msgid "Device UI"
@@ -9080,10 +9084,10 @@ msgstr ""
 
 #, possible-c-format
 msgid ""
-"Decide which overhang part join the cooling function to slow down the "
-"speed.Expressed as percentage which indicides how much width of the line "
-"without support from lower layer. 100% means forcing cooling for all outer "
-"wall no matter how much overhang degree"
+"Decide which overhang part join the cooling function to slow down the speed."
+"Expressed as percentage which indicides how much width of the line without "
+"support from lower layer. 100% means forcing cooling for all outer wall no "
+"matter how much overhang degree"
 msgstr ""
 
 msgid "Bridge direction"
@@ -9798,8 +9802,8 @@ msgid "Acceleration of inner walls. 0 means using normal printing acceleration"
 msgstr ""
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage "
-"(e.g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage (e."
+"g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 
 msgid "mm/s² or %"
@@ -12392,8 +12396,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 
@@ -12753,8 +12757,8 @@ msgid "nozzle size memorized: %d"
 msgstr ""
 
 msgid ""
-"The size of nozzle type in preset is not consistent with memorized "
-"nozzle.Did you change your nozzle lately ? "
+"The size of nozzle type in preset is not consistent with memorized nozzle."
+"Did you change your nozzle lately ? "
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -13333,7 +13337,7 @@ msgstr ""
 msgid "Removed"
 msgstr ""
 
-msgid "Filament arrangement method"
+msgid "Filament arrangement"
 msgstr ""
 
 msgid "Don't remind me again"
@@ -13352,32 +13356,25 @@ msgid "Manual Mode"
 msgstr ""
 
 msgid ""
-"Disregrad the filaments in AMS. Optimize filament usage by calculating the "
-"best arrangement for the left and right nozzles. Arrange the filaments on "
-"the printer based on the slicing results."
+"Calculate the best filament arrangement to minimize usage. Need to manually "
+"arrange filaments on the printer based on slicing results."
 msgstr ""
 
 msgid ""
-"Based on the current filaments in the AMS, arrange the filaments to the left "
-"and right nozzles."
+"Use AMS filaments to automatically assign filament to the left or right "
+"nozzle."
 msgstr ""
 
-msgid "Mannully arrange the filaments for the left and right nozzles."
-msgstr ""
-
-msgid "(Arrange after slicing)"
-msgstr ""
-
-msgid "(Arrange before slicing)"
-msgstr ""
-
-msgid "(Please sync printer)"
+msgid "Manually assign filament to the left or right nozzle."
 msgstr ""
 
 msgid "Global settings"
 msgstr ""
 
-msgid "More info on wiki"
+msgid "Learn more"
+msgstr ""
+
+msgid "(Sync with printer)"
 msgstr ""
 
 msgid "We will slice according to this grouping method:"

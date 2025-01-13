@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-12 16:02+0800\n"
+"POT-Creation-Date: 2025-01-13 14:58+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1228,8 +1228,8 @@ msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr "%s 연결 실패! [번호:%s, 코드=%s]"
 
 msgid ""
-"BambuStudio configuration file may be corrupted and is not able to be "
-"parsed.Please delete the file and try again."
+"BambuStudio configuration file may be corrupted and is not able to be parsed."
+"Please delete the file and try again."
 msgstr ""
 "BambuStudio 구성 파일을 구문 분석할 수 없으며 손상되었을 수 있습니다. 파일을 "
 "삭제하고 다시 시도해 주세요."
@@ -1711,7 +1711,7 @@ msgstr "출력품질향상을 위해 객체를 자동으로 회전시킵니다."
 msgid "Edit"
 msgstr "수정"
 
-msgid "Change to"
+msgid "Delete then replace with"
 msgstr ""
 
 msgid "Delete this filament"
@@ -2252,9 +2252,9 @@ msgid "Top"
 msgstr "상단"
 
 msgid ""
-"The fan controls the temperature during printing to improve print "
-"quality.The system automatically adjusts the fan's switch and speed "
-"according to different printing materials."
+"The fan controls the temperature during printing to improve print quality."
+"The system automatically adjusts the fan's switch and speed according to "
+"different printing materials."
 msgstr ""
 
 msgid ""
@@ -3203,9 +3203,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe "
-"temperature,it may result in material softening and clogging.The maximum "
-"safe temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe temperature,"
+"it may result in material softening and clogging.The maximum safe "
+"temperature for the material is %d"
 msgstr ""
 "현재 챔버 온도가 재료의 안전 온도보다 높습니다. 이로 인해 재료가 부드러워지"
 "고 노즐이 막힐 수 있습니다. 재료의 최대 안전 온도는 %d입니다."
@@ -3863,9 +3863,9 @@ msgid "Switch to normal mode"
 msgstr "일반 모드 전환"
 
 msgid ""
-"An object is laid on the left/right extruder only area.\n"
+"An object is laid on the left/right nozzle only area.\n"
 "Please make sure the filaments used by this object on this area are not "
-"mapped to the other extruders."
+"mapped to the other nozzles."
 msgstr ""
 
 msgid ""
@@ -4081,6 +4081,12 @@ msgstr "체적:"
 msgid "Size:"
 msgstr "크기:"
 
+msgid "left nozzle"
+msgstr ""
+
+msgid "right nozzle"
+msgstr ""
+
 #, c-format, boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d. Please separate the "
@@ -4099,9 +4105,7 @@ msgid "A G-code path goes beyond the boundary of plate."
 msgstr "G코드 경로가 빌드 플레이트 경계를 넘어갑니다."
 
 #, c-format, boost-format
-msgid ""
-"Multiple TPU filaments are not allowed to print at the same time, and the "
-"TPU filament must be placed in the virtual slot of %s."
+msgid "Only the %s with external filament spool can print TPU"
 msgstr ""
 
 #, c-format, boost-format
@@ -4918,8 +4922,8 @@ msgid ""
 "The .gcode.3mf file contains no G-code data.Please slice it whth Bambu "
 "Studio and export a new .gcode.3mf file."
 msgstr ""
-".gcode.3mf 파일에는 G 코드 데이터가 없습니다. BambuStudio로 슬라이스하고 "
-"새 .gcode.3mf 파일을 내보내세요."
+".gcode.3mf 파일에는 G 코드 데이터가 없습니다. BambuStudio로 슬라이스하고 새 ."
+"gcode.3mf 파일을 내보내세요."
 
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
@@ -5718,7 +5722,7 @@ msgid "Printer settings"
 msgstr "프린터 설정"
 
 #, c-format, boost-format
-msgid "Filament %s cannot be placed in the %s extruder for printing."
+msgid "The %s nozzle can not print %s."
 msgstr ""
 
 #, boost-format
@@ -5849,6 +5853,9 @@ msgstr ""
 "일반 사전 설정에 매핑된 알 수 없거나 호환되지 않는 필라멘트가 있습니다. "
 "Bambu Studio를 업데이트하거나 Bambu Studio를 다시 시작하여 시스템 사전 설정"
 "에 대한 업데이트가 있는지 확인하세요."
+
+msgid "Sync filaments with AMS successfully."
+msgstr ""
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
@@ -6002,15 +6009,12 @@ msgstr "여러 부품으로 구성된 단일 객체가 발견되었습니다."
 
 #, c-format, boost-format
 msgid ""
-"The printer you are currently bound to is %s,\n"
-"The printer preset for your current file is %s,\n"
+"Connected printer is %s. It must match the project preset for printing.\n"
 msgstr ""
 
 msgid ""
-"Do you want to sync printer presets, ams and nozzle information immediately?"
-msgstr ""
-
-msgid "Do you want to sync printer presets immediately?"
+"Do you want to sync the printer information and automatically switch the "
+"preset?"
 msgstr ""
 
 msgid "Tips"
@@ -6736,10 +6740,7 @@ msgstr "다크 모드 활성화"
 msgid "Filament Arrange"
 msgstr ""
 
-msgid "Ignore ext filament when auto grouping"
-msgstr ""
-
-msgid "Pop up to select filament map mode"
+msgid "Pop up to select filament arrangement mode"
 msgstr ""
 
 msgid "User Experience"
@@ -7626,8 +7627,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "툴헤드 없이 타임랩스를 녹화할 때는 “타임랩스 와이프 타워”를 추가하는 것이 좋"
 "습니다. \n"
@@ -9237,6 +9238,9 @@ msgstr "스커트 및 브림 생성"
 msgid "Generating G-code"
 msgstr "G 코드 생성"
 
+msgid "Only supports up to one TPU filament."
+msgstr ""
+
 msgid "Failed processing of the filename_format template."
 msgstr "filename_format 템플릿 처리에 실패했습니다."
 
@@ -9300,8 +9304,8 @@ msgid ""
 "Slic3r can upload G-code files to a printer host. This field should contain "
 "the hostname, IP address or URL of the printer host instance. Print host "
 "behind HAProxy with basic auth enabled can be accessed by putting the user "
-"name and password into the URL in the following format: https://"
-"username:password@your-octopi-address/"
+"name and password into the URL in the following format: https://username:"
+"password@your-octopi-address/"
 msgstr ""
 "Slic3r은 G 코드 파일을 프린터 호스트에 업로드할 수 있습니다.이 필드에는 프린"
 "터 호스트 인스턴스의 호스트 이름, IP 주소 또는 URL이 포함되어야 합니다.기본 "
@@ -9559,10 +9563,10 @@ msgstr ""
 
 #, c-format
 msgid ""
-"Decide which overhang part join the cooling function to slow down the "
-"speed.Expressed as percentage which indicides how much width of the line "
-"without support from lower layer. 100% means forcing cooling for all outer "
-"wall no matter how much overhang degree"
+"Decide which overhang part join the cooling function to slow down the speed."
+"Expressed as percentage which indicides how much width of the line without "
+"support from lower layer. 100% means forcing cooling for all outer wall no "
+"matter how much overhang degree"
 msgstr ""
 
 msgid "Bridge direction"
@@ -10360,11 +10364,11 @@ msgstr ""
 "Acceleration of inner walls. 0 means using normal printing acceleration"
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage "
-"(e.g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage (e."
+"g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
-"Acceleration of sparse infill. If the value is expressed as a percentage "
-"(e.g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage (e."
+"g. 100%), it will be calculated based on the default acceleration."
 
 msgid "mm/s² or %"
 msgstr "mm/s² or %"
@@ -13280,12 +13284,12 @@ msgstr ""
 "다시 작성하시겠습니까?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more printers; please go to printer selection"
 
 msgid "Create Printer/Nozzle"
@@ -13693,8 +13697,8 @@ msgid "nozzle size memorized: %d"
 msgstr ""
 
 msgid ""
-"The size of nozzle type in preset is not consistent with memorized "
-"nozzle.Did you change your nozzle lately ? "
+"The size of nozzle type in preset is not consistent with memorized nozzle."
+"Did you change your nozzle lately ? "
 msgstr ""
 
 #, c-format, boost-format
@@ -14379,7 +14383,7 @@ msgstr ""
 msgid "Removed"
 msgstr ""
 
-msgid "Filament arrangement method"
+msgid "Filament arrangement"
 msgstr ""
 
 msgid "Don't remind me again"
@@ -14398,32 +14402,25 @@ msgid "Manual Mode"
 msgstr ""
 
 msgid ""
-"Disregrad the filaments in AMS. Optimize filament usage by calculating the "
-"best arrangement for the left and right nozzles. Arrange the filaments on "
-"the printer based on the slicing results."
+"Calculate the best filament arrangement to minimize usage. Need to manually "
+"arrange filaments on the printer based on slicing results."
 msgstr ""
 
 msgid ""
-"Based on the current filaments in the AMS, arrange the filaments to the left "
-"and right nozzles."
+"Use AMS filaments to automatically assign filament to the left or right "
+"nozzle."
 msgstr ""
 
-msgid "Mannully arrange the filaments for the left and right nozzles."
-msgstr ""
-
-msgid "(Arrange after slicing)"
-msgstr ""
-
-msgid "(Arrange before slicing)"
-msgstr ""
-
-msgid "(Please sync printer)"
+msgid "Manually assign filament to the left or right nozzle."
 msgstr ""
 
 msgid "Global settings"
 msgstr ""
 
-msgid "More info on wiki"
+msgid "Learn more"
+msgstr ""
+
+msgid "(Sync with printer)"
 msgstr ""
 
 msgid "We will slice according to this grouping method:"
