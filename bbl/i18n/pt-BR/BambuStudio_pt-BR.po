@@ -1,12 +1,12 @@
 # Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-13 16:07+0800\n"
+"POT-Creation-Date: 2025-01-13 18:03+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4039,14 +4039,25 @@ msgid ""
 "confirming that the height is within the build volume.\n"
 msgstr ""
 
-msgid "In the Filament auto-matching mode, Filament "
+msgid "left nozzle"
 msgstr ""
 
-msgid "Please solve the problem by moving them within the build volume.\n"
+msgid "right nozzle"
 msgstr ""
 
+msgid "Some models are"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The model %s is"
+msgstr ""
+
+#, c-format, boost-format
 msgid ""
-"In the Filament manual-matching mode, Following filament->extruder maps: \n"
+" located within the %s only area, making it impossible to print with the "
+"filaments assigned to %s.\n"
+"Please move the model out of the %s only area or adjust the filament "
+"assignment\n"
 msgstr ""
 
 msgid "Mirror Object"
@@ -4169,12 +4180,6 @@ msgstr "Volume:"
 
 msgid "Size:"
 msgstr "Tamanho:"
-
-msgid "left nozzle"
-msgstr ""
-
-msgid "right nozzle"
-msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -7775,8 +7780,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Ao gravar o timelapse sem o cabeçote de ferramenta, é recomendável adicionar "
 "uma “Timelapse Wipe Tower” \n"
@@ -13624,8 +13629,8 @@ msgstr ""
 "Você quer reescrevê-lo?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "Nós renomearíamos as predefinições como “Tipo de fornecedor Serial @printer "
