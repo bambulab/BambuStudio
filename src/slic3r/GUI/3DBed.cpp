@@ -407,7 +407,8 @@ BoundingBoxf3 Bed3D::calc_extended_bounding_box(bool consider_model_offset) cons
 
 void Bed3D::calc_triangles(const ExPolygon& poly)
 {
-    if (! m_triangles.set_from_triangles(triangulate_expolygon_2f(poly, NORMALS_UP), GROUND_Z))
+    m_triangles.reset();
+    if (!m_triangles.init_model_from_poly(triangulate_expolygon_2f(poly, NORMALS_UP), GROUND_Z))
         BOOST_LOG_TRIVIAL(error) << "Unable to create bed triangles";
 }
 
@@ -641,8 +642,11 @@ void Bed3D::update_model_offset() const
     const_cast<BoundingBoxf3&>(m_extended_bounding_box) = calc_extended_bounding_box();
 }
 
-GeometryBuffer Bed3D::update_bed_triangles() const
+void Bed3D::update_bed_triangles()
 {
+    if (m_triangles.is_initialized()) {
+        return;
+    }
     GeometryBuffer new_triangles;
     Vec3d shift = m_extended_bounding_box.center();
     shift(2) = -0.03;
@@ -651,7 +655,7 @@ GeometryBuffer Bed3D::update_bed_triangles() const
     //BBS: TODO: hack for default bed
     BoundingBoxf3 build_volume;
 
-    if (!m_build_volume.valid()) return new_triangles;
+    if (!m_build_volume.valid()) return;
 
     (*model_offset_ptr)(0) = m_build_volume.bounding_volume2d().min.x();
     (*model_offset_ptr)(1) = m_build_volume.bounding_volume2d().min.y();
@@ -667,12 +671,10 @@ GeometryBuffer Bed3D::update_bed_triangles() const
         new_bed_shape.push_back(new_point);
     }
     ExPolygon poly{ Polygon::new_scale(new_bed_shape) };
-    if (!new_triangles.set_from_triangles(triangulate_expolygon_2f(poly, NORMALS_UP), GROUND_Z)) {
-        ;
-    }
+    calc_triangles(poly);
     // update extended bounding box
     const_cast<BoundingBoxf3&>(m_extended_bounding_box) = calc_extended_bounding_box();
-    return new_triangles;
+
 }
 
 void Bed3D::render_model() const
@@ -721,7 +723,7 @@ void Bed3D::render_model() const
     }
 }
 
-void Bed3D::render_custom(GLCanvas3D& canvas, bool bottom) const
+void Bed3D::render_custom(GLCanvas3D& canvas, bool bottom)
 {
     if (m_model_filename.empty()) {
         render_default(bottom);
@@ -735,46 +737,37 @@ void Bed3D::render_custom(GLCanvas3D& canvas, bool bottom) const
         render_texture(bottom, canvas);*/
 }
 
-void Bed3D::render_default(bool bottom) const
+void Bed3D::render_default(bool bottom)
 {
     bool picking = false;
     const_cast<GLTexture*>(&m_texture)->reset();
-
+    update_bed_triangles();
     unsigned int triangles_vcount = m_triangles.get_vertices_count();
-    GeometryBuffer default_triangles = update_bed_triangles();
     if (triangles_vcount > 0) {
+        const auto &shader = wxGetApp().get_shader("flat");
+        if (shader == nullptr) return;
+        wxGetApp().bind_shader(shader);
+        const Camera &     camera            = wxGetApp().plater()->get_camera();
+        const Transform3d &view_matrix       = camera.get_view_matrix();
+        const Transform3d &projection_matrix = camera.get_projection_matrix();
+        shader->set_uniform("view_model_matrix", view_matrix);
+        shader->set_uniform("projection_matrix", projection_matrix);
+
         bool has_model = !m_model.get_filename().empty();
 
         glsafe(::glEnable(GL_DEPTH_TEST));
         glsafe(::glEnable(GL_BLEND));
         glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-        glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
-
         if (!has_model && !bottom) {
-            // draw background
             glsafe(::glDepthMask(GL_FALSE));
-            glsafe(::glColor4fv(picking ? PICKING_MODEL_COLOR.data() : (m_is_dark ? DEFAULT_MODEL_COLOR_DARK.data() : DEFAULT_MODEL_COLOR.data())));
-            glsafe(::glNormal3d(0.0f, 0.0f, 1.0f));
-            glsafe(::glVertexPointer(3, GL_FLOAT, default_triangles.get_vertex_data_size(), (GLvoid*)default_triangles.get_vertices_data()));
-            glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)triangles_vcount));
+            m_triangles.set_color(DEFAULT_MODEL_COLOR);
+            m_triangles.render_geometry();
             glsafe(::glDepthMask(GL_TRUE));
         }
 
-        /*if (!picking) {
-            // draw grid
-            glsafe(::glLineWidth(1.5f * m_scale_factor));
-            if (has_model && !bottom)
-                glsafe(::glColor4f(0.9f, 0.9f, 0.9f, 1.0f));
-            else
-                glsafe(::glColor4f(0.9f, 0.9f, 0.9f, 0.6f));
-            glsafe(::glVertexPointer(3, GL_FLOAT, default_triangles.get_vertex_data_size(), (GLvoid*)m_gridlines.get_vertices_data()));
-            glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)m_gridlines.get_vertices_count()));
-        }*/
-
-        glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
-
         glsafe(::glDisable(GL_BLEND));
+        wxGetApp().unbind_shader();
     }
 }
 
