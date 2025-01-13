@@ -467,6 +467,7 @@ public:
     FilamentMapMode get_global_filament_map_mode() const;
 
     void update_menus();
+    bool is_printer_configed_by_BBL();
     // BBS
     //void show_action_buttons(const bool is_ready_to_slice) const;
 
