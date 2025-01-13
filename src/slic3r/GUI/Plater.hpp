@@ -161,6 +161,7 @@ public:
     bool should_sync_extruder_list(MachineObject* obj);
     void update_sync_status(const MachineObject* obj);
 
+    PlaterPresetComboBox *  printer_combox();
     ObjectList*             obj_list();
     ObjectSettings*         obj_settings();
     ObjectLayers*           obj_layers();
