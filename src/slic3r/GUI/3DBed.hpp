@@ -91,7 +91,7 @@ private:
     BoundingBoxf3 m_extended_bounding_box;
     // Slightly expanded print bed polygon, for collision detection.
     //Polygon m_polygon;
-    GeometryBuffer m_triangles;
+    GLModel m_triangles;
     //GeometryBuffer m_gridlines;
     GLTexture m_texture;
     // temporary texture shown until the main texture has still no levels compressed
@@ -156,7 +156,7 @@ private:
     void calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox);
     void update_model_offset() const;
     //BBS: with offset
-    GeometryBuffer update_bed_triangles() const;
+    void update_bed_triangles();
     static std::tuple<Type, std::string, std::string> detect_type(const Pointfs& shape);
     void render_internal(GLCanvas3D& canvas, bool bottom, float scale_factor,
         bool show_axes);
@@ -164,8 +164,8 @@ private:
     void render_system(GLCanvas3D& canvas, bool bottom) const;
     //void render_texture(bool bottom, GLCanvas3D& canvas) const;
     void render_model() const;
-    void render_custom(GLCanvas3D& canvas, bool bottom) const;
-    void render_default(bool bottom) const;
+    void render_custom(GLCanvas3D& canvas, bool bottom);
+    void render_default(bool bottom);
     void release_VBOs();
 };
 
