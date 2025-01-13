@@ -2885,6 +2885,11 @@ void Sidebar::sync_ams_list()
     notify_manager->bbl_show_seqprintinfo_notification(info_text);
 }
 
+PlaterPresetComboBox* Sidebar::printer_combox()
+{
+    return p->combo_printer;
+}
+
 ObjectList* Sidebar::obj_list()
 {
     // BBS

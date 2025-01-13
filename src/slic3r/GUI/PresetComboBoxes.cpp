@@ -182,7 +182,7 @@ void PresetComboBox::invalidate_selection()
 
 void PresetComboBox::validate_selection(bool predicate/*=false*/)
 {
-    if (predicate ||
+    if (predicate &&
         // just in case: mark m_last_selected as a first added element
         m_last_selected == INT_MAX)
         m_last_selected = GetCount() - 1;
@@ -290,24 +290,28 @@ wxString PresetComboBox::get_preset_item_name(unsigned int index)
     if (m_type == Preset::TYPE_PRINTER) {
         int idx = selected_connected_printer(index);
         if (idx < 0) {
+            m_selected_dev_id.clear();
             return GetString(index);
         }
         else {
             DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
             if (!dev) {
                 assert(false);
+                m_selected_dev_id.clear();
                 return GetString(index);
             }
 
             std::map<std::string, MachineObject *> machine_list = dev->get_my_machine_list();
             if (machine_list.empty()) {
                 assert(false);
+                m_selected_dev_id.clear();
                 return GetString(index);
             }
 
             auto iter = m_backup_dev_list_sorted.begin();
             std::advance(iter, idx);
             if (iter != m_backup_dev_list_sorted.end() && machine_list.find(*iter) != machine_list.end()) {
+                m_selected_dev_id = *iter;
                 Preset* machine_preset = get_printer_preset(machine_list[*iter]);
                 if (machine_preset) {
                     dev->set_selected_machine(*iter);
@@ -317,6 +321,7 @@ wxString PresetComboBox::get_preset_item_name(unsigned int index)
         }
     }
 
+    m_selected_dev_id.clear();
     return GetString(index);
 }
 
@@ -476,6 +481,7 @@ void PresetComboBox::add_connected_printers(std::string selected, bool alias_nam
         boost::replace_all(printer_model, "Bambu Lab ", "");
         auto text = iter->second->dev_name + " (" + printer_model + ")";
         int item_id = Append(from_u8(text), wxNullBitmap, &m_first_printer_idx + std::distance(user_machine_list.begin(), iter));
+        validate_selection(m_selected_dev_id == iter->first);
     }
     m_last_printer_idx = GetCount();
 }
