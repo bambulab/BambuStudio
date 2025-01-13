@@ -12,7 +12,7 @@
 namespace Slic3r {
 namespace GUI {
 const float MIN_PA_K_VALUE = 0.0;
-const float MAX_PA_K_VALUE = 1.0;
+const float MAX_PA_K_VALUE = 2.0;
 
 std::shared_ptr<PrintJob> CalibUtils::print_job;
 wxString wxstr_temp_dir = fs::path(fs::temp_directory_path() / "calib").wstring();
