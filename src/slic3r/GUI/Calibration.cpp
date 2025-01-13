@@ -127,7 +127,7 @@ CalibrationDialog::CalibrationDialog(Plater *plater)
     auto calibration_sizer = new wxBoxSizer(wxVERTICAL);
     calibration_panel->SetMinSize(wxSize(FromDIP(170), FromDIP(160)));
     calibration_panel->SetSize(wxSize(FromDIP(170), FromDIP(160)));
-   
+
     m_calibration_flow = new StepIndicator(calibration_panel, wxID_ANY);
     StateColor bg_color(std::pair<wxColour, int>(BG_COLOR, StateColor::Normal));
     m_calibration_flow->SetBackgroundColor(bg_color);
@@ -135,7 +135,7 @@ CalibrationDialog::CalibrationDialog(Plater *plater)
 
     m_calibration_flow->SetMinSize(wxSize(FromDIP(170), FromDIP(160)));
     m_calibration_flow->SetSize(wxSize(FromDIP(170), FromDIP(160)));
-    
+
     calibration_panel->SetSizer(calibration_sizer);
     calibration_panel->Layout();
     calibration_sizer->Add(m_calibration_flow, 0, wxEXPAND, 0);
@@ -223,7 +223,7 @@ void CalibrationDialog::update_cali(MachineObject *obj)
         select_xcam_cali->Hide();
         m_checkbox_list["xcam_cali"]->SetValue(false);
     }
-    
+
     if(obj->is_support_auto_leveling){
         select_bed_leveling->Show();
     }else{
@@ -301,14 +301,6 @@ void CalibrationDialog::update_cali(MachineObject *obj)
             m_calibration_btn->Enable();
         }
     }
-    if (!obj->is_calibration_running() && !m_checkbox_list["vibration"]->GetValue() && !m_checkbox_list["bed_leveling"]->GetValue() &&
-        !m_checkbox_list["xcam_cali"]->GetValue() && !m_checkbox_list["motor_noise"]->GetValue()) {
-        m_calibration_btn->Disable();
-        m_calibration_btn->SetLabel(_L("No step selected"));
-    }
-    else if(!obj->is_calibration_running()){
-        m_calibration_btn->Enable();
-    }
 }
 
 bool CalibrationDialog::is_stage_list_info_changed(MachineObject *obj)
@@ -347,11 +339,11 @@ void CalibrationDialog::on_start_calibration(wxMouseEvent &event)
 
 void CalibrationDialog::update_machine_obj(MachineObject *obj) { m_obj = obj; }
 
-bool CalibrationDialog::Show(bool show) 
+bool CalibrationDialog::Show(bool show)
 {
-    if (show) { 
+    if (show) {
         wxGetApp().UpdateDlgDarkUI(this);
-        CentreOnParent(); 
+        CentreOnParent();
     }
     return DPIDialog::Show(show);
 }
