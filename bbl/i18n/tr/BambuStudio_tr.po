@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-13 18:03+0800\n"
+"POT-Creation-Date: 2025-01-14 17:44+0800\n"
 "PO-Revision-Date: 2024-11-15 18:30+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -1728,10 +1728,10 @@ msgstr "Baskı kalitesini artırmak için nesneyi otomatik olarak yönlendirin."
 msgid "Edit"
 msgstr "Düzenle"
 
-msgid "Delete then replace with"
+msgid "Delete this filament"
 msgstr ""
 
-msgid "Delete this filament"
+msgid "Delete then replace with"
 msgstr ""
 
 msgid "Select All"
@@ -2223,6 +2223,9 @@ msgstr ""
 msgid ""
 "Changed fan speed during pringing may affect print quality, please choose "
 "carefully."
+msgstr ""
+
+msgid "Change Anyway"
 msgstr ""
 
 msgid "Off"
@@ -8573,10 +8576,6 @@ msgid "Automatically merge the same colors in the model after mapping."
 msgstr ""
 
 msgid "When you click ok button,it will merge same ams to only one color."
-msgstr ""
-
-msgid ""
-"All of your configured filament presets and colors will discarded after sync."
 msgstr ""
 
 #, c-format, boost-format

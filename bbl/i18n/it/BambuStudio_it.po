@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-13 18:03+0800\n"
+"POT-Creation-Date: 2025-01-14 17:44+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1722,10 +1722,10 @@ msgstr "Orienta automaticamente l'oggetto per migliorare la qualità di stampa."
 msgid "Edit"
 msgstr "Modifica"
 
-msgid "Delete then replace with"
+msgid "Delete this filament"
 msgstr ""
 
-msgid "Delete this filament"
+msgid "Delete then replace with"
 msgstr ""
 
 msgid "Select All"
@@ -2230,6 +2230,9 @@ msgstr ""
 msgid ""
 "Changed fan speed during pringing may affect print quality, please choose "
 "carefully."
+msgstr ""
+
+msgid "Change Anyway"
 msgstr ""
 
 msgid "Off"
@@ -8543,10 +8546,6 @@ msgid "Automatically merge the same colors in the model after mapping."
 msgstr ""
 
 msgid "When you click ok button,it will merge same ams to only one color."
-msgstr ""
-
-msgid ""
-"All of your configured filament presets and colors will discarded after sync."
 msgstr ""
 
 #, c-format, boost-format
