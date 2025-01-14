@@ -2187,10 +2187,23 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             {bbox.max.x() - plate_offset.x(),bbox.max.y() - plate_offset.y()}
         };
 
-        m_placeholder_parser.set("first_layer_print_convex_hull", pts.release());
-        m_placeholder_parser.set("first_layer_print_min", new ConfigOptionFloats({ bbox_without_plate_offset.min.x(),bbox_without_plate_offset.min.y() }));
-        m_placeholder_parser.set("first_layer_print_max", new ConfigOptionFloats({ bbox_without_plate_offset.max.x(),bbox_without_plate_offset.max.y() }));
-        m_placeholder_parser.set("first_layer_print_size", new ConfigOptionFloats({ bbox.size().x(), bbox.size().y() }));
+        if (print.calib_params().mode == CalibMode::Calib_PA_Line) {
+            Pointfs bedfs = print.config().printable_area.values;
+            BoundingBoxf bed_bbox = BoundingBoxf(bedfs);
+            pts->values.clear();
+            for (const Vec2d &pt : bedfs)
+                pts->values.emplace_back(pt);
+            m_placeholder_parser.set("first_layer_print_convex_hull", pts.release());
+            m_placeholder_parser.set("first_layer_print_min", new ConfigOptionFloats({bed_bbox.min.x(), bed_bbox.min.y()}));
+            m_placeholder_parser.set("first_layer_print_max", new ConfigOptionFloats({bed_bbox.max.x(), bed_bbox.max.y()}));
+            m_placeholder_parser.set("first_layer_print_size", new ConfigOptionFloats({bed_bbox.size().x(), bed_bbox.size().y()}));
+        }
+        else {
+            m_placeholder_parser.set("first_layer_print_convex_hull", pts.release());
+            m_placeholder_parser.set("first_layer_print_min", new ConfigOptionFloats({bbox_without_plate_offset.min.x(), bbox_without_plate_offset.min.y()}));
+            m_placeholder_parser.set("first_layer_print_max", new ConfigOptionFloats({bbox_without_plate_offset.max.x(), bbox_without_plate_offset.max.y()}));
+            m_placeholder_parser.set("first_layer_print_size", new ConfigOptionFloats({bbox.size().x(), bbox.size().y()}));
+        }
 
         {   // BBS:deal with head wrap detect
             // use first layer convex_hull union with each object's bbox to check whether in head detect zone
