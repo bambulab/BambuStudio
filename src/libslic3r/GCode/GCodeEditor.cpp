@@ -321,6 +321,10 @@ std::vector<PerExtruderAdjustments> GCodeEditor::parse_layer_gcode(
             line.type = CoolingLine::TYPE_FORCE_RESUME_FAN;
         } else if (boost::starts_with(sline, ";_SET_FAN_SPEED_CHANGING_LAYER")) {
             line.type = CoolingLine::TYPE_SET_FAN_CHANGING_LAYER;
+        } else if (boost::starts_with(sline, "M624")) {
+            line.type = CoolingLine::TYPE_OBJECT_START;
+        } else if (boost::starts_with(sline, "M625")) {
+            line.type = CoolingLine::TYPE_OBJECT_END;
         }
         if (line.type != 0)
             adjustment->lines.emplace_back(std::move(line));
@@ -440,7 +444,34 @@ std::string GCodeEditor::write_layer_gcode(
     m_set_fan_changing_layer = false;
     m_set_addition_fan_changing_layer = false;
     change_extruder_set_fan(SetFanType::sfChangingLayer);
-    for (const CoolingLine *line : lines) {
+
+    //BBS: start the fan earlier for overhangs
+    const float pre_start_overhang_fan_time = overhang_fan_control? m_config.pre_start_fan_time.get_at(m_current_extruder):0.f;
+    float cumulative_time = 0.f;
+    float search_time     = 0.f;
+
+    for (int i = 0,j = 0; i < lines.size(); i++) {
+        const CoolingLine *line = lines[i];
+        if (pre_start_overhang_fan_time > 0.f && overhang_fan_speed > m_fan_speed) {
+            cumulative_time += line->time;
+            j = j<i ? i : j;
+            search_time = search_time<cumulative_time ? cumulative_time : search_time;
+            // bbs: search for the next overhang line in xx seconds
+            for (; search_time - cumulative_time < pre_start_overhang_fan_time && j < lines.size() && overhang_fan_control && m_current_fan_speed < overhang_fan_speed; j++) {
+                const CoolingLine *line_iter = lines[j];
+                //do not change fan speed for changing filament gcode
+                if (line_iter->type & CoolingLine::TYPE_FORCE_RESUME_FAN) {
+                    //stop search when find a force resume fan command
+                    break;
+                }
+                search_time += line_iter->time;
+                if (line_iter->type & CoolingLine::TYPE_OVERHANG_FAN_START) {
+                    m_current_fan_speed = overhang_fan_speed;
+                    new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, overhang_fan_speed);
+                    break;
+                }
+            }
+        }
         const char *line_start  = gcode.c_str() + line->line_start;
         const char *line_end    = gcode.c_str() + line->line_end;
         if (line_start > pos)
@@ -453,7 +484,7 @@ std::string GCodeEditor::write_layer_gcode(
             }
             new_gcode.append(line_start, line_end - line_start);
         } else if (line->type & CoolingLine::TYPE_OVERHANG_FAN_START) {
-            if (overhang_fan_control) {
+            if (overhang_fan_control && m_current_fan_speed < overhang_fan_speed) {
                 //BBS
                 m_current_fan_speed = overhang_fan_speed;
                 new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, overhang_fan_speed);
@@ -562,7 +593,15 @@ std::string GCodeEditor::write_layer_gcode(
                     new_gcode.append(end, line_end - end);
                 }
             }
-        } else {
+        } else if (line->type & CoolingLine::TYPE_OBJECT_START) {
+            new_gcode.append(line_start, line_end - line_start);
+            if (pre_start_overhang_fan_time > 0.f && m_current_fan_speed > m_fan_speed)
+                new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_current_fan_speed);
+        } else if (line->type & CoolingLine::TYPE_OBJECT_END) {
+            if (pre_start_overhang_fan_time > 0.f && m_current_fan_speed > m_fan_speed)
+                new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_fan_speed);
+            new_gcode.append(line_start, line_end - line_start);
+        }else {
             new_gcode.append(line_start, line_end - line_start);
         }
         pos = line_end;

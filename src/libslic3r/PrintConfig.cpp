@@ -916,6 +916,16 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInts { 100 });
 
+    def          = this->add("pre_start_fan_time", coFloats);
+    def->label   = L("Pre start fan time");
+    def->tooltip = L("Force fan start early(0-5 second) when encountering overhangs. "
+                     "This is because the fan needs time to physically increase its speed.");
+    def->sidetext = L("s");
+    def->min      = 0.;
+    def->max      = 5.;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloats{2.0});
+
     def = this->add("overhang_fan_threshold", coEnums);
     def->label = L("Cooling overhang threshold");
     def->tooltip = L("Force cooling fan to be specific speed when overhang degree of printed part exceeds this value. "
