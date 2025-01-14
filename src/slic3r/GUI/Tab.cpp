@@ -3332,6 +3332,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("overhang_fan_threshold", "auto-cooling");
         optgroup->append_single_option_line("overhang_threshold_participating_cooling", "auto-cooling");
         optgroup->append_single_option_line("overhang_fan_speed", "auto-cooling");
+        optgroup->append_single_option_line("pre_start_fan_time", "auto-cooling");
 
         optgroup = page->new_optgroup(L("Auxiliary part cooling fan"), L"param_cooling_fan");
         optgroup->append_single_option_line("additional_cooling_fan_speed");
@@ -3464,7 +3465,7 @@ void TabFilament::toggle_options()
         toggle_option("slow_down_min_speed", cooling);
 
         bool has_enable_overhang_bridge_fan = m_config->opt_bool("enable_overhang_bridge_fan", 0);
-        for (auto el : { "overhang_fan_speed", "overhang_fan_threshold" })
+        for (auto el : {"overhang_fan_speed", "pre_start_fan_time", "overhang_fan_threshold"})
             toggle_option(el, has_enable_overhang_bridge_fan);
 
         bool support_air_filtration = m_preset_bundle->printers.get_edited_preset().config.opt_bool("support_air_filtration");

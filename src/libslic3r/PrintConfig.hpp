@@ -1130,6 +1130,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionInts,               textured_plate_temp_initial_layer))
     ((ConfigOptionBools,              enable_overhang_bridge_fan))
     ((ConfigOptionInts,               overhang_fan_speed))
+    ((ConfigOptionFloats,             pre_start_fan_time))
     ((ConfigOptionEnumsGeneric,       overhang_fan_threshold))
     ((ConfigOptionEnumsGeneric,       overhang_threshold_participating_cooling))
     ((ConfigOptionEnum<PrintSequence>,print_sequence))

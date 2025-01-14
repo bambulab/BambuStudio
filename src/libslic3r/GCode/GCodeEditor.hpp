@@ -34,6 +34,8 @@ struct CoolingLine
         TYPE_G3                     = 1 << 13,
         TYPE_FORCE_RESUME_FAN       = 1 << 14,
         TYPE_SET_FAN_CHANGING_LAYER = 1 << 15,
+        TYPE_OBJECT_START           = 1 << 16,
+        TYPE_OBJECT_END             = 1 << 17,
     };
 
     CoolingLine(unsigned int type, size_t line_start, size_t line_end)
