@@ -1165,6 +1165,7 @@ public:
     bool can_pause();
     bool can_abort();
     bool is_in_printing();
+    bool is_in_printing_pause() const;
     bool is_in_prepare();
     bool is_printing_finished();
     bool is_core_xy();
