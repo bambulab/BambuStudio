@@ -1,5 +1,5 @@
 #include "../GCode.hpp"
-#include "GCodeEditer.hpp"
+#include "GCodeEditor.hpp"
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/log/trivial.hpp>
@@ -16,7 +16,7 @@
 
 namespace Slic3r {
 
-GCodeEditer::GCodeEditer(GCode &gcodegen) : m_config(gcodegen.config()), m_toolchange_prefix(gcodegen.writer().toolchange_prefix()), m_current_extruder(0)
+GCodeEditor::GCodeEditor(GCode &gcodegen) : m_config(gcodegen.config()), m_toolchange_prefix(gcodegen.writer().toolchange_prefix()), m_current_extruder(0)
 {
     this->reset(gcodegen.writer().get_position());
 
@@ -28,7 +28,7 @@ GCodeEditer::GCodeEditer(GCode &gcodegen) : m_config(gcodegen.config()), m_toolc
     }
 }
 
-void GCodeEditer::reset(const Vec3d &position)
+void GCodeEditor::reset(const Vec3d &position)
 {
     // BBS: add I and J axis to store center of arc
     m_current_pos.assign(7, 0.f);
@@ -68,7 +68,7 @@ static void mark_node_pos(
 }
 
 
-std::string GCodeEditer::process_layer(std::string &&                       gcode,
+std::string GCodeEditor::process_layer(std::string &&                       gcode,
                                          const size_t                         layer_id,
                                          std::vector<PerExtruderAdjustments> &per_extruder_adjustments,
                                          const std::vector<int> &             object_label,
@@ -96,7 +96,7 @@ std::string GCodeEditer::process_layer(std::string &&                       gcod
 //native-resource://sandbox_fs/webcontent/resource/assets/img/41ecc25c56.png
 // Parse the layer G-code for the moves, which could be adjusted.
 // Return the list of parsed lines, bucketed by an extruder.
-std::vector<PerExtruderAdjustments> GCodeEditer::parse_layer_gcode(
+std::vector<PerExtruderAdjustments> GCodeEditor::parse_layer_gcode(
     const std::string &gcode,
                                                                      std::vector<float> &            current_pos,
                                                                      const std::vector<int> &        object_label,
@@ -331,7 +331,7 @@ std::vector<PerExtruderAdjustments> GCodeEditer::parse_layer_gcode(
 
 // Apply slow down over G-code lines stored in per_extruder_adjustments, enable fan if needed.
 // Returns the adjusted G-code.
-std::string GCodeEditer::write_layer_gcode(
+std::string GCodeEditor::write_layer_gcode(
     // Source G-code for the current layer.
     const std::string                      &gcode,
     // ID of the current layer, used to disable fan for the first n layers.

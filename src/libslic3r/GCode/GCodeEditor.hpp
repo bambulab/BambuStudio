@@ -233,9 +233,9 @@ struct PerExtruderAdjustments
 // For example, some materials may not like to print too slowly, while with some materials 
 // we may slow down significantly.
 //
-class GCodeEditer {
+class GCodeEditor {
 public:
-    GCodeEditer(GCode &gcodegen);
+    GCodeEditor(GCode &gcodegen);
     void        reset(const Vec3d &position);
     void set_current_extruder(unsigned int extruder_id)
     {
@@ -255,7 +255,7 @@ public:
     std::string write_layer_gcode(const std::string &gcode, size_t layer_id, float layer_time, std::vector<PerExtruderAdjustments> &per_extruder_adjustments);
 
 private :
-	GCodeEditer& operator=(const GCodeEditer&) = delete;
+	GCodeEditor& operator=(const GCodeEditor&) = delete;
     std::vector<PerExtruderAdjustments> parse_layer_gcode(const std::string &                       gcode,
                                                           std::vector<float> &                      current_pos,
                                                           const std::vector<int> &                  object_label,

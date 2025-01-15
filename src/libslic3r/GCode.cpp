@@ -2110,7 +2110,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     print.throw_if_canceled();
 
-    m_gcode_editer = make_unique<GCodeEditer>(*this);
+    m_gcode_editer = make_unique<GCodeEditor>(*this);
     m_gcode_editer->set_current_extruder(initial_extruder_id);
 
     int extruder_id = get_extruder_id(initial_extruder_id);
@@ -2419,7 +2419,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 if (finished_objects > 0) {
                     // Move to the origin position for the copy we're going to print.
                     // This happens before Z goes down to layer 0 again, so that no collision happens hopefully.
-                    m_enable_cooling_markers = false; // we're not filtering these moves through GCodeEditer
+                    m_enable_cooling_markers = false; // we're not filtering these moves through GCodeEditor
                     m_avoid_crossing_perimeters.use_external_mp_once();
                     // BBS. change tool before moving to origin point.
                     if (m_writer.need_toolchange(initial_extruder_id)) {

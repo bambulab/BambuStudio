@@ -1,7 +1,7 @@
 #ifndef slic3r_CoolingProcess_hpp_
 #define slic3r_CoolingProcess_hpp_
 #include "../libslic3r.h"
-#include "GCodeEditer.hpp"
+#include "GCodeEditor.hpp"
 
 namespace Slic3r {
 

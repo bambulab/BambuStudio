@@ -139,8 +139,8 @@ set(lisbslic3r_sources
     Format/svg.cpp
     GCode/ThumbnailData.cpp
     GCode/ThumbnailData.hpp
-    GCode/GCodeEditer.cpp
-    GCode/GCodeEditer.hpp
+    GCode/GCodeEditor.cpp
+    GCode/GCodeEditor.hpp
     GCode/PostProcessor.cpp
     GCode/PostProcessor.hpp
 #    GCode/PressureEqualizer.cpp
