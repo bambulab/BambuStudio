@@ -1432,7 +1432,7 @@ void PerimeterGenerator::process_classic()
                     else
                         offset_top_surface = 0;
                     //don't takes into account too thin areas
-                    double min_width_top_surface = (this->object_config->top_area_threshold / 100) * std::max(double(ext_perimeter_spacing / 2 + 10), 1.0 * (double(perimeter_width)));
+                    double min_width_top_surface = (this->object_config->top_area_threshold / 100) * std::max(ext_perimeter_spacing / 2.0, perimeter_width / 2.0);
 
                     //BBS: get boungding box of last
                     BoundingBox last_box   = get_extents(last);
@@ -1885,8 +1885,6 @@ void PerimeterGenerator::process_arachne()
 
                 top_expolys_by_one_wall = diff_ex(top_expolys_by_one_wall, bottom_expolys);
                 seperate_wall_generation = should_enable_top_one_wall(last, top_expolys_by_one_wall);
-                if (seperate_wall_generation)
-                    top_expolys_by_one_wall = offset_ex(top_expolys_by_one_wall, perimeter_width);
             }
 
 
@@ -2141,17 +2139,16 @@ void PerimeterGenerator::process_arachne()
     }
 }
 
-// determine whether to enable top one wall feature
+// expand the top expoly and determine whether to enable top one wall feature
 bool PerimeterGenerator::should_enable_top_one_wall(const ExPolygons& original_expolys, ExPolygons& top)
 {
-    coord_t perimeter_width = this->perimeter_flow.width();
+    coord_t perimeter_width = this->perimeter_flow.scaled_width();
     coord_t ext_perimeter_spacing = this->ext_perimeter_flow.scaled_spacing();
 
     //BBS: filter small area and extend top surface a bit to hide the wall line
-    double min_width_top_surface = (this->object_config->top_area_threshold / 100) * std::max(double(ext_perimeter_spacing / 4 + 10), double(perimeter_width / 4));
+    double min_width_top_surface = (this->object_config->top_area_threshold / 100) * std::max(ext_perimeter_spacing / 2.0, perimeter_width / 2.0);
     top = offset2_ex(top, -min_width_top_surface, min_width_top_surface + perimeter_width);
-    // compare the width with the width of perimeter
-    return !offset_ex(top, -perimeter_width).empty();
+    return !top.empty();
 }
 
 bool PerimeterGeneratorLoop::is_internal_contour() const

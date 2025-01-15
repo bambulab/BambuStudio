@@ -1004,12 +1004,12 @@ void PrintConfigDef::init_fff_params()
 
     def          = this->add("top_area_threshold", coPercent);
     def->label   = L("Top area threshold");
-    def->tooltip = L("This factor affects the acreage of top area. The small the number the big the top area.");
+    def->tooltip = L("The min width of top areas in percentage of perimeter line width.");
     def->sidetext = "%";
     def->min     = 0;
     def->max     = 500;
     def->mode    = comDevelop;
-    def->set_default_value(new ConfigOptionPercent(100));
+    def->set_default_value(new ConfigOptionPercent(200));
 
     def           = this->add("only_one_wall_first_layer", coBool);
     def->label    = L("Only one wall on first layer");
