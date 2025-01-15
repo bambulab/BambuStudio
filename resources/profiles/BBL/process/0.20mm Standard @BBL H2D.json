@@ -30,8 +30,6 @@
         "200",
         "200"
     ],
-    "prime_tower_brim_width": "8",
-    "prime_tower_outer_first": "1",
     "prime_tower_width": "60",
     "sparse_infill_speed": [
         "350",
