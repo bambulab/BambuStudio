@@ -25,7 +25,6 @@
     "outer_wall_acceleration": [
         "2000"
     ],
-    "prime_tower_width": "40",
     "sparse_infill_pattern": "gyroid",
     "sparse_infill_speed": [
         "200"
