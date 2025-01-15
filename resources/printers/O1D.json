@@ -20,6 +20,7 @@
 				}
 			},
 			"nozzle_temp_range": [ 20, 350 ],
+			"bed_temp_range": [ 20, 120 ],
 			"support_motor_noise_cali": false,
 			"support_tunnel_mqtt": true,
 			"support_mqtt_alive": true,

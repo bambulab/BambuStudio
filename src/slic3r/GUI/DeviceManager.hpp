@@ -994,6 +994,9 @@ public:
     /*nozzle temp range*/
     std::vector<int>    nozzle_temp_range;
 
+    /*temp temp range*/
+    std::vector<int>    bed_temp_range;
+
     /* sdcard */
     MachineObject::SdcardState sdcard_state { NO_SDCARD };
     MachineObject::SdcardState get_sdcard_state();
