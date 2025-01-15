@@ -9,7 +9,7 @@
 #include "PlaceholderParser.hpp"
 #include "PrintConfig.hpp"
 #include "GCode/AvoidCrossingPerimeters.hpp"
-#include "GCode/GCodeEditer.hpp"
+#include "GCode/GCodeEditor.hpp"
 #include "GCode/RetractWhenCrossingPerimeters.hpp"
 #include "GCode/SpiralVase.hpp"
 #include "GCode/ToolOrdering.hpp"
@@ -523,7 +523,7 @@ private:
     Point                               m_last_pos;
     bool                                m_last_pos_defined;
     bool                                m_last_scarf_seam_flag;
-    std::unique_ptr<GCodeEditer>        m_gcode_editer;
+    std::unique_ptr<GCodeEditor>        m_gcode_editer;
     std::unique_ptr<SpiralVase>         m_spiral_vase;
 #ifdef HAS_PRESSURE_EQUALIZER
     std::unique_ptr<PressureEqualizer>  m_pressure_equalizer;

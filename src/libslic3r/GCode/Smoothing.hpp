@@ -1,7 +1,7 @@
 #ifndef slic3r_Smoothing_hpp_
 #define slic3r_Smoothing_hpp_
 #include "../libslic3r.h"
-#include <libslic3r/GCode/GCodeEditer.hpp>
+#include <libslic3r/GCode/GCodeEditor.hpp>
 #include <math.h>
 
 namespace Slic3r {
