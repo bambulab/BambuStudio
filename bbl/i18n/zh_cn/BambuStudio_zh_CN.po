@@ -9565,10 +9565,8 @@ msgstr "最顶面"
 msgid "Top area threshold"
 msgstr "顶部区域阈值"
 
-msgid ""
-"This factor affects the acreage of top area. The small the number the big "
-"the top area."
-msgstr "这个参数影响顶部区域的面积，值越大顶部区域越小"
+msgid "The min width of top areas in percentage of perimeter line width."
+msgstr "顶部区域的最小宽度，单位是墙线宽的百分比。"
 
 msgid "Only one wall on first layer"
 msgstr "首层仅单层墙"
