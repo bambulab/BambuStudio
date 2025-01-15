@@ -1204,8 +1204,10 @@ void PlaterPresetComboBox::update()
     if (m_type == Preset::TYPE_PRINTER)
         add_connected_printers("", true);
 
-    if (m_type == Preset::TYPE_FILAMENT)
+    if (m_type == Preset::TYPE_FILAMENT) {
+        set_replace_text("Bambu", "BambuStudioBlack");
         add_ams_filaments(into_u8(selected_user_preset.empty() ? selected_system_preset : selected_user_preset), true);
+    }
 
     std::vector<std::string> filament_orders = {"Bambu PLA Basic", "Bambu PLA Matte", "Bambu PETG HF",    "Bambu ABS",      "Bambu PLA Silk", "Bambu PLA-CF",
                                                 "Bambu PLA Galaxy", "Bambu PLA Metal", "Bambu PLA Marble", "Bambu PETG-CF", "Bambu PETG Translucent", "Bambu ABS-GF"};
