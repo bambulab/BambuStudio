@@ -1031,9 +1031,9 @@ static void generic_exception_handle()
         std::terminate();
         //throw;
     } catch (const std::exception& ex) {
-        wxLogError(format_wxstr(_L("BambuStudio got an unhandled exception: %1%"), ex.what()));
         BOOST_LOG_TRIVIAL(error) << boost::format("Uncaught exception: %1%") % ex.what();
         flush_logs();
+        wxLogError(format_wxstr(_L("BambuStudio got an unhandled exception: %1%"), ex.what()));
         throw;
     }
 //#endif

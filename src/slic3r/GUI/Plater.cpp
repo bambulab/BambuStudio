@@ -352,12 +352,14 @@ struct ExtruderGroup : StaticGroup
     wxStaticBoxSizer *sizer        = nullptr;
     ScalableButton *  btn_edit     = nullptr;
     ComboBox *        combo_diameter = nullptr;
-    ComboBox *        combo_nozzle = nullptr;
+    ComboBox *        combo_flow = nullptr;
     AMSPreview *      ams[4]       = {nullptr};
     wxStaticText     *ams_not_installed_msg{nullptr};
-    ScalableButton   *up_down_btn{nullptr};
+    ScalableButton *  btn_up{nullptr};
+    ScalableButton *  btn_down{nullptr};
     wxBoxSizer *hsizer_ams { nullptr };
-    bool              is_upward{false};
+    int               page_cur{0};
+    int               page_num{3};
     int               ams_n4 = 0;
     int               ams_n1 = 0;
     wxString          diameter;
@@ -376,8 +378,10 @@ struct ExtruderGroup : StaticGroup
     {
         if (btn_edit)
             btn_edit->msw_rescale();
+        btn_up->msw_rescale();
+        btn_down->msw_rescale();
         combo_diameter->Rescale();
-        combo_nozzle->Rescale();
+        combo_flow->Rescale();
     }
 };
 
@@ -872,29 +876,28 @@ ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title
     : StaticGroup(parent, wxID_ANY, title)
 {
     SetFont(Label::Body_10);
-    SetForegroundColour("#909090");
     ShowBadge(true);
 
     // Nozzle
     wxStaticText *label_diameter = new wxStaticText(this, wxID_ANY, _L("Diameter"));
     label_diameter->SetFont(Label::Body_14);
     label_diameter->SetForegroundColour("#262E30");
-    label_diameter->SetMinSize({FromDIP(80), -1});
+    if (index >= 0) label_diameter->SetMinSize({FromDIP(80), -1});
     auto combo_diameter = new ComboBox(this, wxID_ANY, wxString(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
     this->combo_diameter = combo_diameter;
-    wxStaticText *label_nozzle = new wxStaticText(this, wxID_ANY, _L("Flow"));
-    label_nozzle->SetFont(Label::Body_14);
-    label_nozzle->SetForegroundColour("#262E30");
-    label_nozzle->SetMinSize({FromDIP(80), -1});
-    auto combo_nozzle = new ComboBox(this, wxID_ANY, wxString(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
-    combo_nozzle->GetDropDown().SetUseContentWidth(true);
-    combo_nozzle->Bind(wxEVT_COMBOBOX, [this, index, combo_nozzle](wxCommandEvent &evt) {
+    wxStaticText *label_flow = new wxStaticText(this, wxID_ANY, _L("Flow"));
+    label_flow->SetFont(Label::Body_14);
+    label_flow->SetForegroundColour("#262E30");
+    if (index >= 0) label_flow->SetMinSize({FromDIP(80), -1});
+    auto combo_flow = new ComboBox(this, wxID_ANY, wxString(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
+    combo_flow->GetDropDown().SetUseContentWidth(true);
+    combo_flow->Bind(wxEVT_COMBOBOX, [this, index, combo_flow](wxCommandEvent &evt) {
         auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
-        printer_tab->set_extruder_volume_type(index, NozzleVolumeType(intptr_t(combo_nozzle->GetClientData(evt.GetInt()))));
+        printer_tab->set_extruder_volume_type(index, NozzleVolumeType(intptr_t(combo_flow->GetClientData(evt.GetInt()))));
         if (GUI::wxGetApp().plater())
             GUI::wxGetApp().plater()->update_machine_sync_status();
     });
-    this->combo_nozzle = combo_nozzle;
+    this->combo_flow = combo_flow;
 
     // AMS
     wxStaticText *label_ams  = new wxStaticText(this, wxID_ANY, _L("AMS"));
@@ -915,7 +918,7 @@ ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title
         });
 
         auto hovered = std::make_shared<wxWindow *>();
-        for (wxWindow *w : std::initializer_list<wxWindow *>{this, label_diameter, combo_diameter, label_nozzle, combo_nozzle, btn_edit, label_ams}) {
+        for (wxWindow *w : std::initializer_list<wxWindow *>{this, label_diameter, combo_diameter, label_flow, combo_flow, btn_edit, label_ams}) {
             w->Bind(wxEVT_ENTER_WINDOW, [w, hovered, this](wxMouseEvent &evt) { *hovered = w; btn_edit->SetBitmap_("edit"); });
             w->Bind(wxEVT_LEAVE_WINDOW, [w, hovered, this](wxMouseEvent &evt) { if (*hovered == w) { btn_edit->SetBitmap_("dot"); *hovered = nullptr; } });
         }
@@ -938,19 +941,28 @@ ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title
     if (btn_edit)
         hsizer_ams->Add(btn_edit, 0, wxLEFT | wxALIGN_CENTER, FromDIP(2));
 
-    up_down_btn = new ScalableButton(this, wxID_ANY, "dot");
-    up_down_btn->SetBackgroundColour(*wxWHITE);
-    up_down_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this, index](auto &evt) {
-        is_upward = !is_upward;
+    btn_up = new ScalableButton(this, wxID_ANY, "page_up", "", {-1, FromDIP(14)});
+    btn_up->SetBackgroundColour(*wxWHITE);
+    btn_up->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this, index](auto &evt) {
+        if (page_cur > 0)
+            --page_cur;
+        update_ams();
+    });
+    btn_down = new ScalableButton(this, wxID_ANY, "page_down", "", {-1, FromDIP(14)});
+    btn_down->SetBackgroundColour(*wxWHITE);
+    btn_down->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this, index](auto &evt) {
+        if (page_cur + 1 < page_num)
+            ++page_cur;
         update_ams();
     });
 
+
     wxBoxSizer *hsizer_diameter = new wxBoxSizer(wxHORIZONTAL);
     hsizer_diameter->Add(label_diameter, 0, wxALIGN_CENTER);
-    hsizer_diameter->Add(combo_diameter, 1, wxEXPAND);
+    hsizer_diameter->Add(combo_diameter, 1, wxEXPAND | wxLEFT, FromDIP(2));
     wxBoxSizer * hsizer_nozzle = new wxBoxSizer(wxHORIZONTAL);
-    hsizer_nozzle->Add(label_nozzle, 0, wxALIGN_CENTER);
-    hsizer_nozzle->Add(combo_nozzle, 1, wxEXPAND);
+    hsizer_nozzle->Add(label_flow, 0, wxALIGN_CENTER);
+    hsizer_nozzle->Add(combo_flow, 1, wxEXPAND | wxLEFT, FromDIP(2));
     if (index < 0) {
         label_ams->Hide();
         ams_not_installed_msg->Hide();
@@ -973,8 +985,8 @@ void ExtruderGroup::update_ams()
 {
     int    display_capacity  = 8;
 
-    if (ams_n4 * 4 + ams_n1 * 2 <= 8)
-        is_upward = false;
+    //if (ams_n4 * 4 + ams_n1 * 2 <= 8)
+    //    is_upward = false;
 
     std::vector<wxColour> colors = {
         wxColour(255, 110, 100),
@@ -983,7 +995,7 @@ void ExtruderGroup::update_ams()
         wxColour(170, 111, 252)
     };
 
-    bool   display_front_ams = !is_upward;
+    bool   display_front_ams = false; //!is_upward;
     size_t i                 = 0;
     for (; i < ams_n4 && i < 4; ++i) {
         display_capacity -= 4;
@@ -1025,7 +1037,7 @@ void ExtruderGroup::update_ams()
 
     if (i == 0) {
         ams_not_installed_msg->Show();
-        up_down_btn->Hide();
+        btn_up->Hide();
         for (AMSPreview *a : ams) {
             a->Close();
         }
@@ -1033,14 +1045,14 @@ void ExtruderGroup::update_ams()
         ams_not_installed_msg->Hide();
         for (; i < 4; ++i) { ams[i]->Close(); }
         if (display_capacity < 0) {
-            up_down_btn->Show();
-            static ScalableBitmap down(this, "page_down", 16);
-            static ScalableBitmap up(this, "page_up", 16);
-            up_down_btn->SetBitmap(is_upward ? up.bmp() : down.bmp());
+            btn_up->Show();
         } else {
-            up_down_btn->Hide();
+            btn_up->Hide();
         }
     }
+
+    btn_up->Show(page_cur > 0);
+    btn_down->Show(page_cur + 1 < page_num);
 
     while (hsizer_ams->GetItemCount() > 2)
         hsizer_ams->Remove(2);
@@ -1053,10 +1065,20 @@ void ExtruderGroup::update_ams()
         if (ams[i]->IsShown())
             hsizer_ams->Add(this->ams[i], 0, wxLEFT, FromDIP(2));
     }
-    if (up_down_btn->IsShown()) {
+    if (btn_up->IsShown() || btn_down->IsShown()) {
         if (btn_edit)
             hsizer_ams->AddStretchSpacer(1);
-        hsizer_ams->Add(up_down_btn, 0, wxALIGN_CENTER | wxLEFT, FromDIP(2));
+        if (btn_up->IsShown() && btn_down->IsShown()) {
+            auto vsizer_btn = new wxBoxSizer(wxVERTICAL);
+            auto size = btn_up->GetSize();
+            vsizer_btn->Add(btn_up, 0);
+            vsizer_btn->Add(btn_down, 0);
+            hsizer_ams->Add(vsizer_btn, 0, wxALIGN_CENTER | wxLEFT, FromDIP(2));
+        } else if (btn_up->IsShown()) {
+            hsizer_ams->Add(btn_up, 0, wxALIGN_CENTER | wxLEFT, FromDIP(2));
+        } else {
+            hsizer_ams->Add(btn_down, 0, wxALIGN_CENTER | wxLEFT, FromDIP(2));
+        }
     }
 
     sizer->Layout();
@@ -1205,7 +1227,7 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
     auto clear_all_sync_status = [this]() {
         panel_printer_preset->ShowBadge(false);
         panel_printer_bed->ShowBadge(false);
-        left_extruder->ShowBadge(false);
+        //left_extruder->ShowBadge(false);
         right_extruder->ShowBadge(false);
         single_extruder->ShowBadge(false);
     };
@@ -1454,6 +1476,9 @@ Sidebar::Sidebar(Plater *parent)
         p->panel_printer_preset->SetCornerRadius(8);
         p->panel_printer_preset->SetBorderColor(wxColour("#CECECE"));
         p->panel_printer_preset->SetMinSize(PRINTER_PANEL_SIZE_SMALL);
+        p->panel_printer_preset->Bind(wxEVT_LEFT_DOWN, [this](auto & evt) {
+            p->combo_printer->wxEvtHandler::ProcessEvent(evt);
+        });
 
         ScalableButton *edit_btn = new ScalableButton(p->panel_printer_preset, wxID_ANY, "dot");
         edit_btn->SetToolTip(_L("Click to edit preset"));
@@ -1468,6 +1493,10 @@ Sidebar::Sidebar(Plater *parent)
 
         ScalableBitmap bitmap_printer(p->panel_printer_preset, "printer_placeholder", 48);
         p->image_printer = new wxStaticBitmap(p->panel_printer_preset, wxID_ANY, bitmap_printer.bmp(), wxDefaultPosition, PRINTER_THUMBNAIL_SIZE, 0);
+        p->image_printer->Bind(wxEVT_LEFT_DOWN, [this](auto &evt) {
+            p->combo_printer->wxEvtHandler::ProcessEvent(evt);
+        });
+
         PlaterPresetComboBox *combo_printer = new PlaterPresetComboBox(p->panel_printer_preset, Preset::TYPE_PRINTER);
         combo_printer->SetWindowStyle(combo_printer->GetWindowStyle() & ~wxALIGN_MASK | wxALIGN_CENTER_HORIZONTAL);
         combo_printer->SetBorderWidth(0);
@@ -1495,6 +1524,9 @@ Sidebar::Sidebar(Plater *parent)
         p->panel_printer_bed->SetCornerRadius(8);
         p->panel_printer_bed->SetBorderColor(wxColour("#CECECE"));
         p->panel_printer_bed->SetMinSize(PRINTER_PANEL_SIZE_SMALL);
+        p->panel_printer_bed->Bind(wxEVT_LEFT_DOWN, [this](auto &evt) {
+            p->combo_printer_bed->wxEvtHandler::ProcessEvent(evt);
+        });
 
         ScalableButton *wiki_bed = new ScalableButton(p->panel_printer_bed, wxID_ANY, "dot");
         wiki_bed->Bind(wxEVT_BUTTON, [](wxCommandEvent) {
@@ -1503,6 +1535,9 @@ Sidebar::Sidebar(Plater *parent)
 
         ScalableBitmap bitmap_bed(p->panel_printer_bed, "printer_placeholder", 32);
         p->image_printer_bed = new wxStaticBitmap(p->panel_printer_bed, wxID_ANY, bitmap_bed.bmp(), wxDefaultPosition, wxDefaultSize, 0);
+        p->image_printer_bed->Bind(wxEVT_LEFT_DOWN, [this](auto &evt) {
+            p->combo_printer_bed->wxEvtHandler::ProcessEvent(evt);
+        });
 
         p->combo_printer_bed = new ComboBox(p->panel_printer_bed, wxID_ANY, wxString(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY | wxALIGN_CENTER_HORIZONTAL);
         p->combo_printer_bed->SetBorderWidth(0);
@@ -2164,17 +2199,17 @@ void Sidebar::update_presets(Preset::Type preset_type)
         auto nozzle_volumes_def = wxGetApp().preset_bundle->project_config.def()->get("nozzle_volume_type");
         auto nozzle_volumes = wxGetApp().preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
         auto update_extruder_variant = [extruders_def, extruders, nozzle_volumes_def, nozzle_volumes, extruder_variants](ExtruderGroup & extruder, int index) {
-            extruder.combo_nozzle->Clear();
+            extruder.combo_flow->Clear();
             auto type = extruders_def->enum_labels[extruders->values[index]];
             int select = -1;
             for (size_t i = 0; i < nozzle_volumes_def->enum_labels.size(); ++i) {
                 if (boost::algorithm::contains(extruder_variants->values[index], type + " " + nozzle_volumes_def->enum_labels[i])) {
                     if (nozzle_volumes->values[index] == i)
-                        select = extruder.combo_nozzle->GetCount();
-                    extruder.combo_nozzle->Append(_L(nozzle_volumes_def->enum_labels[i]), {}, (void*)i);
+                        select = extruder.combo_flow->GetCount();
+                    extruder.combo_flow->Append(_L(nozzle_volumes_def->enum_labels[i]), {}, (void*)i);
                 }
             }
-            extruder.combo_nozzle->SetSelection(select);
+            extruder.combo_flow->SetSelection(select);
         };
         auto diameters = wxGetApp().preset_bundle->printers.diameters_of_selected_printer();
         auto diameter = printer_preset.config.opt_string("printer_variant");
