@@ -336,6 +336,16 @@ GCodeCheckResult GCodeChecker::parse_command(GCodeLine& gcode_line)
             flow_ratio = filament_flow_ratio[pt];
             break;
         }
+        case 'S': {
+            if (cmd.compare(0, 4, "SYNC") == 0) {
+                // Valid SYNC command
+            }
+            else {
+                // Invalid SYNC command
+                ret = GCodeCheckResult::ParseFailed;
+            }
+            break;
+        }
         default: {
             //BBS: other g command? impossible! must be invalid
             ret = GCodeCheckResult::ParseFailed;
