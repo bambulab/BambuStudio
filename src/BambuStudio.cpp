@@ -6034,7 +6034,10 @@ int CLI::run(int argc, char **argv)
                                     filament_info.id = iter.first + 1;
                                     filament_info.total_used_g = iter.second;
 
-                                    filament_info.filament_id = (filament_info.id <= filament_ids->values.size())? filament_ids->values[iter.first] : "unknown";
+                                    if (filament_ids && (filament_info.id <= filament_ids->values.size()))
+                                        filament_info.filament_id = filament_ids->values[iter.first];
+                                    else
+                                        filament_info.filament_id = "unknown";
 
                                     auto main_iter = print_estimated_stat.model_volumes_per_extruder.find(iter.first);
                                     if (main_iter != print_estimated_stat.model_volumes_per_extruder.end())
