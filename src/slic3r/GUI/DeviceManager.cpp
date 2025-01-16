@@ -903,6 +903,20 @@ bool MachineObject::is_support_amx_ext_mix_mapping() {
     return true;
 }
 
+/* the API is developing by AP, not completed now*/
+bool MachineObject::is_ams_on_settingup() const
+{
+    for (const auto& ext : m_extder_data.extders)
+    {
+        if (ext.ams_stat != 0)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 static float calc_color_distance(wxColour c1, wxColour c2)
 {
     float lab[2][3];
@@ -4338,6 +4352,8 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
 
                                     /*AMS without initialization*/
                                     if (nozzle_id == 0xE) {
+                                        ams_id_set.erase(ams_id);
+                                        amsList.erase(ams_id);
                                         continue;
                                     }
 
