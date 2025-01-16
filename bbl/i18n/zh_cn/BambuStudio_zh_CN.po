@@ -1,12 +1,12 @@
 # Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-16 15:21+0800\n"
+"POT-Creation-Date: 2025-01-16 20:08+0800\n"
 "PO-Revision-Date: 2025-01-08 20:27+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1349,6 +1349,11 @@ msgid ""
 msgstr ""
 "内部错误，请尝试升级固件和Bambu Studio版本。如果问题仍然存在，请联系售后"
 
+msgid ""
+"Your software is not signed, and some printing functions have been "
+"restricted. Please use the officially signed software version."
+msgstr "您的软件未签名，部分打印功能受限使用。请使用官方签名的软件版本。"
+
 msgid "Privacy Policy Update"
 msgstr "隐私协议更新"
 
@@ -1716,8 +1721,8 @@ msgstr "编辑"
 msgid "Delete this filament"
 msgstr "删除此耗材丝"
 
-msgid "Delete then replace with"
-msgstr "删除后替换为"
+msgid "Merge with"
+msgstr "合并到"
 
 msgid "Select All"
 msgstr "全选"
@@ -3928,10 +3933,10 @@ msgid ""
 " located within the %s only area, making it impossible to print with the "
 "filaments assigned to %s.\n"
 "Please move the model out of the %s only area or adjust the filament "
-"assignment\n"
+"assignment."
 msgstr ""
 "位于仅%s打印区域，无法使用映射到%s的耗材打印。\n"
-"请将模型移出仅%s可以打印区域，或者调整材料映射\n"
+"请将模型移出仅%s可打印区域，或者调整材料映射。"
 
 msgid "Mirror Object"
 msgstr "镜像物体"
@@ -4670,7 +4675,7 @@ msgid "The project is no longer available."
 msgstr "此项目不可用。"
 
 msgid "Filament Settings"
-msgstr "打印丝设置"
+msgstr "耗材丝设置"
 
 msgid ""
 "Do you want to synchronize your personal data from Bambu Cloud? \n"
@@ -4682,7 +4687,7 @@ msgstr ""
 "想从Bambu云同步你的个人数据吗?\n"
 "包含如下信息:\n"
 "1. 工艺预设\n"
-"2. 打印丝预设\n"
+"2. 耗材丝预设\n"
 "3. 打印机预设"
 
 msgid "Synchronization"
@@ -5848,7 +5853,7 @@ msgid ""
 "nozzle hardness of the printer. Please replace the hardened nozzle or "
 "filament, otherwise, the nozzle will be attrited or damaged."
 msgstr ""
-"打印丝所要求的喷嘴硬度高于打印机默认的喷嘴硬度。请更换硬化的喷嘴或打印丝，否"
+"耗材丝所要求的喷嘴硬度高于打印机默认的喷嘴硬度。请更换硬化的喷嘴或耗材丝，否"
 "则喷嘴可能被磨损或损坏。"
 
 msgid ""
@@ -5953,19 +5958,6 @@ msgstr "将这些文件加载为一个多零件对象？\n"
 
 msgid "Object with multiple parts was detected"
 msgstr "检测到多零件对象"
-
-#, c-format, boost-format
-msgid ""
-"Connected printer is %s. It must match the project preset for printing.\n"
-msgstr "当前连接的打印机为 %s，需要和项目预设匹配才能打印。\n"
-
-msgid ""
-"Do you want to sync the printer information and automatically switch the "
-"preset?"
-msgstr "是否从打印机同步信息并自动切换项目预设？"
-
-msgid "Tips"
-msgstr "提示"
 
 msgid "The file does not contain any geometry data."
 msgstr "此文件不包含任何几何数据。"
@@ -6091,27 +6083,51 @@ msgstr ""
 "被加载的文件仅包含G-Code，不支持进入准备页面"
 
 msgid ""
-"It is detected that you have not synchronized the nozzle and AMS "
-"information.\n"
-"If you synchronize it before slicing, the filament arrangement will be more "
-"reasonable.\n"
-"Do you need to synchronize it ?"
+"The nozzle type and AMS quantity information has not been synced from the "
+"connected printer.\n"
+"After syncing, software can optimize printing time and filament usage when "
+"slicing.\n"
+"Would you like to sync now ?"
 msgstr ""
-"检测到您没有同步喷嘴和AMS信息。\n"
-"如果在切片前同步，耗材丝排列会更整齐合理。\n"
-"需要同步吗？"
+"喷嘴和AMS数量信息尚未从当前连接的打印机同步。"
+"同步后，软件能够在切片时优化打印时间并减少打印时耗材浪费。"
+"是否现在同步？"
 
 msgid "Sync now"
 msgstr "立即同步"
 
-msgid "Out of sync"
-msgstr "不同步"
+msgid "Later"
+msgstr "稍后再说"
 
 msgid "You can keep the modified presets to the new project or discard them"
 msgstr "您可以保留修改的预设到新项目中或者忽略这些修改"
 
 msgid "Creating a new project"
 msgstr "创建新项目"
+
+#, c-format, boost-format
+msgid ""
+"The currently connected printer, %s, is a %s model.\n"
+"To use this printer for printing, please switch the printer model of the "
+"project file to %s,\n"
+"and sync the nozzle type and AMS quantity information from the connected "
+"printer."
+msgstr ""
+"当前连接打印机 %s 为 %s机型。\n"
+"如果使用该打印机打印，请将项目文件中的机型切换为 %s，\n"
+"并从连接的打印机同步喷嘴类型和AMS数量信息。"
+
+#, c-format, boost-format
+msgid ""
+"The currently connected printer, %s, is a %s model.\n"
+"To use this printer for printing, please switch the printer model of project "
+"file to %s."
+msgstr ""
+"当前连接的打印机 %s 为 %s机型。\n"
+"如果使用该打印机打印，请将项目文件中的机型切换为 %s。"
+
+msgid "Tips"
+msgstr "提示"
 
 msgid "Load project"
 msgstr "加载项目"
@@ -6226,10 +6242,8 @@ msgid ""
 "on the printer."
 msgstr "文件%s已经发送到打印机的存储空间，可以在打印机上浏览。"
 
-msgid ""
-"It is detected that the nozzle type is not set. please set the nozzle first "
-"and then perform the current operation again."
-msgstr ""
+msgid "The nozzle type is not set. Please set the nozzle and try again."
+msgstr "未设置喷嘴类型。请先设置喷嘴，然后重试。"
 
 msgid ""
 "Unable to perform boolean operation on model meshes. You may fix the meshes "
@@ -6480,6 +6494,14 @@ msgid ""
 msgstr ""
 "如果启用此选项，当启动Bambu Studio并且另一个Bambu Studio实例已经在运行时，该"
 "实例将被重新激活。"
+
+msgid ""
+"Automatically transfer modified value when switching process and filament "
+"presets"
+msgstr "切换工艺和材料预设时自动迁移修改值"
+
+msgid "After closing, a popup will appear to ask each time"
+msgstr "关闭后，每次切换将弹窗询问"
 
 msgid "Auto plate type"
 msgstr "自动打印板类型"
@@ -6800,13 +6822,13 @@ msgid "My Printer"
 msgstr "我的打印机"
 
 msgid "Left filaments"
-msgstr "左侧打印丝"
+msgstr "左侧耗材丝"
 
 msgid "AMS filaments"
-msgstr "AMS 打印丝"
+msgstr "AMS 耗材丝"
 
 msgid "Right filaments"
-msgstr "右侧打印丝"
+msgstr "右侧耗材丝"
 
 msgid "Click to pick filament color"
 msgstr "点击设置材料颜色"
@@ -7018,16 +7040,13 @@ msgstr "打开"
 msgid "Left Extruder"
 msgstr "左挤出机"
 
-msgid "(Recommended filament)"
-msgstr "(推荐的材料)"
-
 msgid "Right Extruder"
 msgstr "右挤出机"
 
 msgid "Rearrange filaments of the left and right nozzles ->"
 msgstr ""
 
-msgid "Your material arrangement method is not optimal."
+msgid "Your filament arrangement method is not optimal."
 msgstr ""
 
 msgid "Advanced Options"
@@ -7094,6 +7113,9 @@ msgstr "设备升级中，无法发送打印任务"
 msgid ""
 "The printer is executing instructions. Please restart printing after it ends"
 msgstr "打印机正在执行指令，请在其结束后重新发起打印"
+
+msgid "AMS is setting up. Please try again later."
+msgstr "AMS正在初始化。请稍后再试。"
 
 #, c-format, boost-format
 msgid ""
@@ -7214,34 +7236,6 @@ msgstr ""
 "AMS映射中存在一些未知的耗材。请检查它们是否符合预期。如果符合，按“确定”以开始"
 "打印任务。"
 
-msgid ""
-"Tips: If you changed your nozzle of your printer lately, Please go to "
-"'Device -> Printer parts' to change your nozzle setting."
-msgstr "注意: 如果你最近更换了喷嘴，请去“设备-打印机零件”更改设置"
-
-#, c-format, boost-format
-msgid ""
-"The nozzle diameter (%.1fmm) in slice file is unconsistent withthe left "
-"nozzle diameter (%.1fmm) or right nozzle diameter (%.1fmm)set on your print."
-msgstr ""
-"切片文件中设置的喷嘴直径（%.1fmm），与机器上设置的左喷嘴直径（%.1fmm）和右喷"
-"嘴（%.1fmm）均不一致。需要保持跟可用喷嘴一致后，才能继续打印"
-
-#, c-format, boost-format
-msgid ""
-"The nozzle diameter (%.1fmm) in slice file is unconsistent with the nozzle "
-"diameter (%.1fmm) set on your print.You can't send to print until they are "
-"consistent."
-msgstr ""
-"切片文件中设置的喷嘴直径（%.1fmm），与机器上设置的喷嘴直径（%.1fmm）不一致。"
-"保持一致后，才能继续打印"
-
-#, c-format, boost-format
-msgid ""
-"Printing high temperature material(%s material) with %s may cause nozzle "
-"damage"
-msgstr "用%s打印高温材料（%s材料）可能会导致喷嘴损坏"
-
 msgid "Please check the following:"
 msgstr "请检查以下内容："
 
@@ -7270,6 +7264,34 @@ msgid ""
 "You picked both external and AMS filament, You will need to manually change "
 "filament %d times."
 msgstr ""
+
+msgid ""
+"Tips: If you changed your nozzle of your printer lately, Please go to "
+"'Device -> Printer parts' to change your nozzle setting."
+msgstr "注意: 如果你最近更换了喷嘴，请去“设备-打印机零件”更改设置"
+
+#, c-format, boost-format
+msgid ""
+"The nozzle diameter (%.1fmm) in slice file is unconsistent withthe left "
+"nozzle diameter (%.1fmm) or right nozzle diameter (%.1fmm)set on your print."
+msgstr ""
+"切片文件中设置的喷嘴直径（%.1fmm），与机器上设置的左喷嘴直径（%.1fmm）和右喷"
+"嘴（%.1fmm）均不一致。需要保持跟可用喷嘴一致后，才能继续打印"
+
+#, c-format, boost-format
+msgid ""
+"The nozzle diameter (%.1fmm) in slice file is unconsistent with the nozzle "
+"diameter (%.1fmm) set on your print.You can't send to print until they are "
+"consistent."
+msgstr ""
+"切片文件中设置的喷嘴直径（%.1fmm），与机器上设置的喷嘴直径（%.1fmm）不一致。"
+"保持一致后，才能继续打印"
+
+#, c-format, boost-format
+msgid ""
+"Printing high temperature material(%s material) with %s may cause nozzle "
+"damage"
+msgstr "用%s打印高温材料（%s材料）可能会导致喷嘴损坏"
 
 msgid ""
 "Top half of combobox: Original\n"
@@ -7560,8 +7582,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "在录制无工具头延时摄影视频时，建议添加“延时摄影擦料塔”\n"
 "右键单击打印板的空白位置，选择“添加标准模型”->“延时摄影擦料塔”。"
@@ -7955,14 +7977,11 @@ msgstr "预设（旧）"
 msgid "Modified Value(New)"
 msgstr "修改值（新）"
 
-msgid "Save Modified Value"
-msgstr "保存修改值"
+msgid "Discard Modified Value"
+msgstr "丢弃修改值"
 
 msgid "Don't save"
 msgstr "不保存"
-
-msgid "Discard Modified Value"
-msgstr "丢弃修改值"
 
 msgid "Click the right mouse button to display the full text."
 msgstr "单击鼠标右键显示全文。"
@@ -8015,34 +8034,21 @@ msgid ""
 msgstr "预设“%1%”和新的工艺预设不兼容，并且它包含以下未保存的修改："
 
 #, boost-format
-msgid "You have changed some settings of preset \"%1%\". "
-msgstr "您已更改了预设 “%1%” 的一些设置。"
+msgid "You have changed the preset \"%1%\". "
+msgstr "您已更改了预设 “%1%” 。"
 
 msgid ""
 "\n"
-"You can save or discard the preset values you have modified."
-msgstr ""
-"\n"
-"您可以保存或丢弃已经修改的预设值。"
+"Do you want to use the modified value in the new preset that you selected?"
+msgstr "\n您是否想在新选择的预设中使用修改后的值？"
+
+msgid "You have changed the preset. "
+msgstr "您已更改了预设。"
 
 msgid ""
 "\n"
-"You can save or discard the preset values you have modified, or choose to "
-"continue using the values you have modified on the new preset."
-msgstr ""
-"\n"
-"您可以丢弃修改过的预设值，或选择在新项目中继续使用修改后的值。"
-
-msgid "You have previously modified your settings."
-msgstr "您已经修改了预设参数。"
-
-msgid ""
-"\n"
-"You can discard the preset values you have modified, or choose to continue "
-"using the modified values in the new project"
-msgstr ""
-"\n"
-"您可以丢弃修改过的预设值，或选择在新项目中继续使用修改后的值"
+"Do you want to save the modified values?"
+msgstr "\n您是否想保存修改后的值？"
 
 msgid "Extruders count"
 msgstr "挤出机数量"
@@ -8260,12 +8266,15 @@ msgid ""
 "is recommended to be consistent."
 msgstr "设备打印机和当前选择的打印机不一致。建议保持一致。"
 
+msgid "(Recommended filament)"
+msgstr "(推荐的材料)"
+
 msgid "Attention"
 msgstr "注意"
 
 msgid ""
 "Only synchronize filament type and color, not including AMS slot information."
-msgstr "仅同步耗材类型和颜色,不包含AMS槽位信息。"
+msgstr "仅同步耗材类型和颜色，不包含AMS槽位信息。"
 
 msgid "Advanced settings >"
 msgstr "高级设置 >"
@@ -8284,9 +8293,6 @@ msgstr "匹配后自动合并模型中的相同颜色。"
 
 msgid "Synchronize now"
 msgstr "立即同步"
-
-msgid "Later"
-msgstr "稍后"
 
 #, c-format, boost-format
 msgid "nozzle in preset: %.1f %s"
@@ -10006,10 +10012,10 @@ msgstr ""
 "请确保对象之间有足够的空间，因为补偿是在检查之后进行的。"
 
 msgid "Category"
-msgstr ""
+msgstr "类别"
 
 msgid "Filament category"
-msgstr ""
+msgstr "材料类别"
 
 msgid "Density"
 msgstr "密度"
@@ -11752,7 +11758,7 @@ msgstr ""
 "这个对象的外观会是混色的。该功能只有在启用料塔的时候才生效。"
 
 msgid "X-Y hole compensation"
-msgstr "X-Y 孔洞尺寸补偿"
+msgstr "X-Y 内轮廓尺寸补偿"
 
 msgid ""
 "Holes of object will be grown or shrunk in XY plane by the configured value. "
@@ -12966,8 +12972,8 @@ msgstr ""
 "你想重写预设吗"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "我们会将预设重命名为“供应商 类型 系列 @您选择的打印机”。\n"
@@ -14336,6 +14342,76 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid "Delete then replace with"
+#~ msgstr "删除后替换为"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ " located within the %s only area, making it impossible to print with the "
+#~ "filaments assigned to %s.\n"
+#~ "Please move the model out of the %s only area or adjust the filament "
+#~ "assignment\n"
+#~ msgstr ""
+#~ "位于仅%s打印区域，无法使用映射到%s的耗材打印。\n"
+#~ "请将模型移出仅%s可以打印区域，或者调整材料映射\n"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Connected printer is %s. It must match the project preset for printing.\n"
+#~ msgstr "当前连接的打印机为 %s，需要和项目预设匹配才能打印。\n"
+
+#~ msgid ""
+#~ "Do you want to sync the printer information and automatically switch the "
+#~ "preset?"
+#~ msgstr "是否从打印机同步信息并自动切换项目预设？"
+
+#~ msgid ""
+#~ "It is detected that you have not synchronized the nozzle and AMS "
+#~ "information.\n"
+#~ "If you synchronize it before slicing, the filament arrangement will be "
+#~ "more reasonable.\n"
+#~ "Do you need to synchronize it ?"
+#~ msgstr ""
+#~ "检测到您没有同步喷嘴和AMS信息。\n"
+#~ "如果在切片前同步，耗材丝排列会更整齐合理。\n"
+#~ "需要同步吗？"
+
+#~ msgid "Out of sync"
+#~ msgstr "不同步"
+
+#~ msgid "Save Modified Value"
+#~ msgstr "保存修改值"
+
+#, boost-format
+#~ msgid "You have changed some settings of preset \"%1%\". "
+#~ msgstr "您已更改了预设 “%1%” 的一些设置。"
+
+#~ msgid ""
+#~ "\n"
+#~ "You can save or discard the preset values you have modified."
+#~ msgstr ""
+#~ "\n"
+#~ "您可以保存或丢弃已经修改的预设值。"
+
+#~ msgid ""
+#~ "\n"
+#~ "You can save or discard the preset values you have modified, or choose to "
+#~ "continue using the values you have modified on the new preset."
+#~ msgstr ""
+#~ "\n"
+#~ "您可以丢弃修改过的预设值，或选择在新项目中继续使用修改后的值。"
+
+#~ msgid "You have previously modified your settings."
+#~ msgstr "您已经修改了预设参数。"
+
+#~ msgid ""
+#~ "\n"
+#~ "You can discard the preset values you have modified, or choose to "
+#~ "continue using the modified values in the new project"
+#~ msgstr ""
+#~ "\n"
+#~ "您可以丢弃修改过的预设值，或选择在新项目中继续使用修改后的值"
 
 #~ msgid "Left Ams"
 #~ msgstr "左侧Ams"
@@ -17045,7 +17121,7 @@ msgstr ""
 #~ "想从Bambu 云同步你的个人数据吗?\n"
 #~ "包含如下信息:\n"
 #~ "1. 工艺预设\n"
-#~ "2. 打印丝预设\n"
+#~ "2. 耗材丝预设\n"
 #~ "3. 打印机预设\n"
 
 #~ msgid ""
@@ -17297,7 +17373,7 @@ msgstr ""
 #~ msgstr "同步到 AMS 的材料列表"
 
 #~ msgid "Filament N XX"
-#~ msgstr "打印丝 N XX"
+#~ msgstr "耗材丝 N XX"
 
 #~ msgid "Color Print"
 #~ msgstr "彩色打印"
@@ -17692,7 +17768,7 @@ msgstr ""
 #~ "想从Bambu 云同步你的个人数据吗?\n"
 #~ "包含如下信息:\n"
 #~ "1. 工艺预设\n"
-#~ "2. 打印丝预设\n"
+#~ "2. 耗材丝预设\n"
 #~ "3. 打印机预设\n"
 
 #~ msgid "Fix model through cloud"
@@ -17909,10 +17985,10 @@ msgstr ""
 #~ msgstr "尝试通过云服务发送项目"
 
 #~ msgid "Ams Mappling failed, please select filament"
-#~ msgstr "AMS 映射失败，请手动选择打印丝"
+#~ msgstr "AMS 映射失败，请手动选择耗材丝"
 
 #~ msgid "Plese select the filament in ams"
-#~ msgstr "请手动选择打印丝"
+#~ msgstr "请手动选择耗材丝"
 
 #~ msgid "The printer is being updated. Please try again after the update."
 #~ msgstr "打印机正在更新。 请更新后重试。"
@@ -17954,7 +18030,7 @@ msgstr ""
 #~ "想从Bambu 云同步你的个人数据吗?\n"
 #~ "包含如下信息:\n"
 #~ "1. 工艺预设\n"
-#~ "2. 打印丝预设\n"
+#~ "2. 耗材丝预设\n"
 #~ "3. 打印机预设\n"
 
 #~ msgid "Machine Control"
@@ -18699,7 +18775,7 @@ msgstr ""
 #~ "是否从Bambu 云端同步您的用户数据？\n"
 #~ "包含以下信息：\n"
 #~ "1. 工艺预设；\n"
-#~ "2. 打印丝预设；\n"
+#~ "2. 耗材丝预设；\n"
 #~ "3. 打印机预设；\n"
 
 #~ msgid "Current bed type do not support filament "
@@ -20231,7 +20307,7 @@ msgstr ""
 #~ msgstr "打印设置标签"
 
 #~ msgid "Filament Settings Tab"
-#~ msgstr "打印丝设置标签"
+#~ msgstr "耗材丝设置标签"
 
 #~ msgid "Material Settings Tab"
 #~ msgstr "材料设置标签"
@@ -20476,8 +20552,8 @@ msgstr ""
 #~ msgstr "正在准备设置页"
 
 #~ msgid ""
-#~ "You have the following presets with saved options for \"Print Host "
-#~ "upload\""
+#~ "You have the following presets with saved options for \"Print Host upload"
+#~ "\""
 #~ msgstr "您的以下预设中包含未保存的选项“打印主机上传”"
 
 #~ msgid ""
