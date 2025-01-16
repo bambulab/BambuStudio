@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-16 22:46+0800\n"
+"POT-Creation-Date: 2025-01-17 00:30+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1211,8 +1211,8 @@ msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr ""
 
 msgid ""
-"BambuStudio configuration file may be corrupted and is not able to be "
-"parsed.Please delete the file and try again."
+"BambuStudio configuration file may be corrupted and is not able to be parsed."
+"Please delete the file and try again."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -2229,9 +2229,9 @@ msgid "Top"
 msgstr ""
 
 msgid ""
-"The fan controls the temperature during printing to improve print "
-"quality.The system automatically adjusts the fan's switch and speed "
-"according to different printing materials."
+"The fan controls the temperature during printing to improve print quality."
+"The system automatically adjusts the fan's switch and speed according to "
+"different printing materials."
 msgstr ""
 
 msgid ""
@@ -3103,9 +3103,9 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe "
-"temperature,it may result in material softening and clogging.The maximum "
-"safe temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe temperature,"
+"it may result in material softening and clogging.The maximum safe "
+"temperature for the material is %d"
 msgstr ""
 
 msgid ""
@@ -3559,40 +3559,43 @@ msgid "Time Estimation"
 msgstr ""
 
 msgid ""
-"Automatically re-slice according to the optimal filament arrangement, and "
-"the arrangement results will be displayed after slicing."
+"Automatically re-slice according to the optimal filament grouping, and the "
+"grouping results will be displayed after slicing."
 msgstr ""
 
-msgid "Color Arrangement Recommendation"
+msgid "Filament Grouping Recommendation"
 msgstr ""
 
-msgid "Color Arrangement"
+msgid "Filament Grouping"
 msgstr ""
 
-msgid "Left extruder"
+msgid "Left nozzle"
 msgstr ""
 
-msgid "Right extruder"
+msgid "Right nozzle"
 msgstr ""
 
-msgid "This arrangement would be optimal."
-msgstr ""
-
-#, possible-boost-format
-msgid "Save %1%g filament and %2% changes than one-extruder printer."
-msgstr ""
-
-msgid "This arrangement is not optimal."
+msgid "Current grouping of slice result is optimal."
 msgstr ""
 
 #, possible-boost-format
-msgid "Cost %1%g filament and %2% changes more than optimal arrangement."
+msgid "Save %1%g filament and %2% changes than one-nozzle printer."
+msgstr ""
+
+msgid "Current grouping of slice result is not optimal."
+msgstr ""
+
+#, possible-boost-format
+msgid "Cost %1%g filament and %2% changes more than optimal grouping."
+msgstr ""
+
+msgid "Please place the filaments on the printer as recommended."
 msgstr ""
 
 msgid "Set to Optimal"
 msgstr ""
 
-msgid "Rearrange filament"
+msgid "Regroup filament"
 msgstr ""
 
 msgid "up to"
@@ -3815,7 +3818,7 @@ msgid ""
 " located within the %s only area, making it impossible to print with the "
 "filaments assigned to %s.\n"
 "Please move the model out of the %s only area or adjust the filament "
-"assignment."
+"assignment.\n"
 msgstr ""
 
 msgid "Mirror Object"
@@ -6509,10 +6512,7 @@ msgstr ""
 msgid "Enable dark mode"
 msgstr ""
 
-msgid "Filament Arrange"
-msgstr ""
-
-msgid "Pop up to select filament arrangement mode"
+msgid "Pop up to select filament grouping mode"
 msgstr ""
 
 msgid "User Experience"
@@ -6860,7 +6860,7 @@ msgstr ""
 msgid "Rearrange filaments of the left and right nozzles ->"
 msgstr ""
 
-msgid "Your filament arrangement method is not optimal."
+msgid "Your filament grouping method is not optimal."
 msgstr ""
 
 msgid "Advanced Options"
@@ -7348,8 +7348,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 
 msgid ""
@@ -8073,6 +8073,12 @@ msgid "Auto-Calc"
 msgstr ""
 
 msgid "Re-calculate"
+msgstr ""
+
+msgid "Left extruder"
+msgstr ""
+
+msgid "Right extruder"
 msgstr ""
 
 msgid "Flushing volumes for filament change"
@@ -8931,8 +8937,8 @@ msgid ""
 "Slic3r can upload G-code files to a printer host. This field should contain "
 "the hostname, IP address or URL of the printer host instance. Print host "
 "behind HAProxy with basic auth enabled can be accessed by putting the user "
-"name and password into the URL in the following format: https://"
-"username:password@your-octopi-address/"
+"name and password into the URL in the following format: https://username:"
+"password@your-octopi-address/"
 msgstr ""
 
 msgid "Device UI"
@@ -9141,10 +9147,10 @@ msgstr ""
 
 #, possible-c-format
 msgid ""
-"Decide which overhang part join the cooling function to slow down the "
-"speed.Expressed as percentage which indicides how much width of the line "
-"without support from lower layer. 100% means forcing cooling for all outer "
-"wall no matter how much overhang degree"
+"Decide which overhang part join the cooling function to slow down the speed."
+"Expressed as percentage which indicides how much width of the line without "
+"support from lower layer. 100% means forcing cooling for all outer wall no "
+"matter how much overhang degree"
 msgstr ""
 
 msgid "Bridge direction"
@@ -9854,8 +9860,8 @@ msgid "Acceleration of inner walls. 0 means using normal printing acceleration"
 msgstr ""
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage "
-"(e.g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage (e."
+"g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 
 msgid "mm/s² or %"
@@ -12436,8 +12442,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 
@@ -12797,8 +12803,8 @@ msgid "nozzle size memorized: %d"
 msgstr ""
 
 msgid ""
-"The size of nozzle type in preset is not consistent with memorized "
-"nozzle.Did you change your nozzle lately ? "
+"The size of nozzle type in preset is not consistent with memorized nozzle."
+"Did you change your nozzle lately ? "
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -13377,7 +13383,7 @@ msgstr ""
 msgid "Removed"
 msgstr ""
 
-msgid "Filament arrangement"
+msgid "Filament grouping"
 msgstr ""
 
 msgid "Don't remind me again"
@@ -13392,17 +13398,17 @@ msgstr ""
 msgid "Convenient Mode"
 msgstr ""
 
-msgid "Manual Mode"
+msgid "Custom Mode"
 msgstr ""
 
 msgid ""
-"Calculate the best filament arrangement to minimize usage. Need to manually "
-"arrange filaments on the printer based on slicing results."
+"Calculate the best filament grouping to minimize filament waste. Need to "
+"manually place filaments on the printer based on slicing results."
 msgstr ""
 
 msgid ""
-"Use AMS filaments to automatically assign filament to the left or right "
-"nozzle."
+"Calculate the filament grouping based on the printer's filaments, reducing "
+"the need for adjusting filaments at the printer."
 msgstr ""
 
 msgid "Manually assign filament to the left or right nozzle."
@@ -13422,11 +13428,10 @@ msgstr ""
 
 msgid ""
 "Tips: You can drag the filaments to reassign them to different nozzles.\n"
-"But your filament arrangement may not be the most efficient for filament "
-"usage."
+"But your filament grouping may not be the most efficient for filament usage."
 msgstr ""
 
-msgid "The filament arrangement for current plate follows the global settings."
+msgid "The filament grouping for current plate follows the global settings."
 msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
