@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-16 15:21+0800\n"
+"POT-Creation-Date: 2025-01-16 20:08+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1361,6 +1361,11 @@ msgid ""
 "issue persists, contact customer support."
 msgstr ""
 
+msgid ""
+"Your software is not signed, and some printing functions have been "
+"restricted. Please use the officially signed software version."
+msgstr ""
+
 msgid "Privacy Policy Update"
 msgstr "Mise à jour de politique de confidentialité"
 
@@ -1732,7 +1737,7 @@ msgstr "Éditer"
 msgid "Delete this filament"
 msgstr ""
 
-msgid "Delete then replace with"
+msgid "Merge with"
 msgstr ""
 
 msgid "Select All"
@@ -4085,7 +4090,7 @@ msgid ""
 " located within the %s only area, making it impossible to print with the "
 "filaments assigned to %s.\n"
 "Please move the model out of the %s only area or adjust the filament "
-"assignment\n"
+"assignment."
 msgstr ""
 
 msgid "Mirror Object"
@@ -6183,19 +6188,6 @@ msgstr ""
 msgid "Object with multiple parts was detected"
 msgstr "Un objet en plusieurs parties a été détecté"
 
-#, c-format, boost-format
-msgid ""
-"Connected printer is %s. It must match the project preset for printing.\n"
-msgstr ""
-
-msgid ""
-"Do you want to sync the printer information and automatically switch the "
-"preset?"
-msgstr ""
-
-msgid "Tips"
-msgstr "Astuces"
-
 msgid "The file does not contain any geometry data."
 msgstr "Le fichier ne contient pas de données géométriques."
 
@@ -6326,17 +6318,17 @@ msgstr ""
 "page de Préparation"
 
 msgid ""
-"It is detected that you have not synchronized the nozzle and AMS "
-"information.\n"
-"If you synchronize it before slicing, the filament arrangement will be more "
-"reasonable.\n"
-"Do you need to synchronize it ?"
+"The nozzle type and AMS quantity information has not been synced from the "
+"connected printer.\n"
+"After syncing, software can optimize printing time and filament usage when "
+"slicing.\n"
+"Would you like to sync now ?"
 msgstr ""
 
 msgid "Sync now"
 msgstr ""
 
-msgid "Out of sync"
+msgid "Later"
 msgstr ""
 
 msgid "You can keep the modified presets to the new project or discard them"
@@ -6346,6 +6338,25 @@ msgstr ""
 
 msgid "Creating a new project"
 msgstr "Créer un nouveau projet"
+
+#, c-format, boost-format
+msgid ""
+"The currently connected printer, %s, is a %s model.\n"
+"To use this printer for printing, please switch the printer model of the "
+"project file to %s,\n"
+"and sync the nozzle type and AMS quantity information from the connected "
+"printer."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"The currently connected printer, %s, is a %s model.\n"
+"To use this printer for printing, please switch the printer model of project "
+"file to %s."
+msgstr ""
+
+msgid "Tips"
+msgstr "Astuces"
 
 msgid "Load project"
 msgstr "Charger le projet"
@@ -6468,9 +6479,7 @@ msgstr ""
 "Le fichier %s a été envoyé vers l'espace de stockage de l'imprimante et peut "
 "être visualisé sur l'imprimante."
 
-msgid ""
-"It is detected that the nozzle type is not set. please set the nozzle first "
-"and then perform the current operation again."
+msgid "The nozzle type is not set. Please set the nozzle and try again."
 msgstr ""
 
 msgid ""
@@ -6727,6 +6736,14 @@ msgstr ""
 "If this is enabled, when starting Bambu Studio and another instance of the "
 "same Bambu Studio is already running, that instance will be reactivated "
 "instead."
+
+msgid ""
+"Automatically transfer modified value when switching process and filament "
+"presets"
+msgstr ""
+
+msgid "After closing, a popup will appear to ask each time"
+msgstr ""
 
 msgid "Auto plate type"
 msgstr "Auto plate type"
@@ -7284,16 +7301,13 @@ msgstr ""
 msgid "Left Extruder"
 msgstr ""
 
-msgid "(Recommended filament)"
-msgstr ""
-
 msgid "Right Extruder"
 msgstr ""
 
 msgid "Rearrange filaments of the left and right nozzles ->"
 msgstr ""
 
-msgid "Your material arrangement method is not optimal."
+msgid "Your filament arrangement method is not optimal."
 msgstr ""
 
 msgid "Advanced Options"
@@ -7359,6 +7373,9 @@ msgid ""
 msgstr ""
 "L'imprimante exécute des instructions. Veuillez recommencer l'impression "
 "après la fin de l'exécution."
+
+msgid "AMS is setting up. Please try again later."
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -7502,32 +7519,6 @@ msgstr ""
 "vérifier s'il s'agit des filaments nécessaires. S'ils sont corrects, cliquez "
 "sur \"Confirmer\" pour lancer l'impression."
 
-msgid ""
-"Tips: If you changed your nozzle of your printer lately, Please go to "
-"'Device -> Printer parts' to change your nozzle setting."
-msgstr ""
-
-#, c-format, boost-format
-msgid ""
-"The nozzle diameter (%.1fmm) in slice file is unconsistent withthe left "
-"nozzle diameter (%.1fmm) or right nozzle diameter (%.1fmm)set on your print."
-msgstr ""
-
-#, c-format, boost-format
-msgid ""
-"The nozzle diameter (%.1fmm) in slice file is unconsistent with the nozzle "
-"diameter (%.1fmm) set on your print.You can't send to print until they are "
-"consistent."
-msgstr ""
-
-#, c-format, boost-format
-msgid ""
-"Printing high temperature material(%s material) with %s may cause nozzle "
-"damage"
-msgstr ""
-"Printing high temperature material(%s material) with %s may cause nozzle "
-"damage"
-
 msgid "Please check the following:"
 msgstr "Veuillez vérifier les points suivants :"
 
@@ -7560,6 +7551,32 @@ msgid ""
 "You picked both external and AMS filament, You will need to manually change "
 "filament %d times."
 msgstr ""
+
+msgid ""
+"Tips: If you changed your nozzle of your printer lately, Please go to "
+"'Device -> Printer parts' to change your nozzle setting."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"The nozzle diameter (%.1fmm) in slice file is unconsistent withthe left "
+"nozzle diameter (%.1fmm) or right nozzle diameter (%.1fmm)set on your print."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"The nozzle diameter (%.1fmm) in slice file is unconsistent with the nozzle "
+"diameter (%.1fmm) set on your print.You can't send to print until they are "
+"consistent."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Printing high temperature material(%s material) with %s may cause nozzle "
+"damage"
+msgstr ""
+"Printing high temperature material(%s material) with %s may cause nozzle "
+"damage"
 
 msgid ""
 "Top half of combobox: Original\n"
@@ -7881,8 +7898,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Lorsque vous enregistrez un timelapse sans tête d’outil, il est recommandé "
 "d’ajouter une \"Tour de nettoyage timelapse\".\n"
@@ -8028,9 +8045,9 @@ msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
 "does not support to print on the Cool Plate"
 msgstr ""
-"Il s'agit de la température du plateau lorsque le plateau froid (\"Cool "
-"plate\") est installé. Une valeur à 0 signifie que ce filament ne peut pas "
-"être imprimé sur le plateau froid."
+"Il s'agit de la température du plateau lorsque le plateau froid (\"Cool plate"
+"\") est installé. Une valeur à 0 signifie que ce filament ne peut pas être "
+"imprimé sur le plateau froid."
 
 msgid "Engineering Plate"
 msgstr "Engineering Plate"
@@ -8312,14 +8329,11 @@ msgstr "Preset (Old)"
 msgid "Modified Value(New)"
 msgstr "Modified Value (New)"
 
-msgid "Save Modified Value"
-msgstr "Save Modified Value"
+msgid "Discard Modified Value"
+msgstr "Discard Modified Value"
 
 msgid "Don't save"
 msgstr "Ne pas enregistrer"
-
-msgid "Discard Modified Value"
-msgstr "Discard Modified Value"
 
 msgid "Click the right mouse button to display the full text."
 msgstr ""
@@ -8378,36 +8392,21 @@ msgstr ""
 "processus et contient les modifications non enregistrées suivantes :"
 
 #, boost-format
-msgid "You have changed some settings of preset \"%1%\". "
-msgstr "You have changed some settings of preset \"%1%\". "
+msgid "You have changed the preset \"%1%\". "
+msgstr ""
 
 msgid ""
 "\n"
-"You can save or discard the preset values you have modified."
+"Do you want to use the modified value in the new preset that you selected?"
 msgstr ""
-"\n"
-"You can save or discard the preset values you have modified."
+
+msgid "You have changed the preset. "
+msgstr ""
 
 msgid ""
 "\n"
-"You can save or discard the preset values you have modified, or choose to "
-"continue using the values you have modified on the new preset."
+"Do you want to save the modified values?"
 msgstr ""
-"\n"
-"You can save or discard the preset values you have modified, or you can "
-"choose to continue using the values you have modified on the new preset."
-
-msgid "You have previously modified your settings."
-msgstr "You have previously modified your settings."
-
-msgid ""
-"\n"
-"You can discard the preset values you have modified, or choose to continue "
-"using the modified values in the new project"
-msgstr ""
-"\n"
-"You can discard the preset values you have modified or choose to continue "
-"using the modified values in the new project"
 
 msgid "Extruders count"
 msgstr "Nombre d'extrudeurs"
@@ -8624,6 +8623,9 @@ msgid ""
 "is recommended to be consistent."
 msgstr ""
 
+msgid "(Recommended filament)"
+msgstr ""
+
 msgid "Attention"
 msgstr ""
 
@@ -8647,9 +8649,6 @@ msgid "Automatically merge the same colors in the model after mapping."
 msgstr ""
 
 msgid "Synchronize now"
-msgstr ""
-
-msgid "Later"
 msgstr ""
 
 #, c-format, boost-format
@@ -10188,8 +10187,8 @@ msgid ""
 "thickness (top+bottom solid layers)"
 msgstr ""
 "Ajoutez du remplissage solide à proximité des surfaces inclinées pour "
-"garantir l'épaisseur verticale de la coque (couches solides "
-"supérieure+inférieure)."
+"garantir l'épaisseur verticale de la coque (couches solides supérieure"
+"+inférieure)."
 
 msgid "Internal bridge support thickness"
 msgstr "Épaisseur du support interne du pont"
@@ -13794,12 +13793,12 @@ msgstr ""
 "Voulez-vous le réécrire ?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more printers; please go to printer selection"
 
 msgid "Create Printer/Nozzle"
@@ -15268,6 +15267,41 @@ msgstr ""
 "Saviez-vous que lors de l'impression de matériaux sujets au warping, tels "
 "que l'ABS, une augmentation appropriée de la température du plateau peut "
 "réduire le risque de déformation ?"
+
+#~ msgid "Save Modified Value"
+#~ msgstr "Save Modified Value"
+
+#, boost-format
+#~ msgid "You have changed some settings of preset \"%1%\". "
+#~ msgstr "You have changed some settings of preset \"%1%\". "
+
+#~ msgid ""
+#~ "\n"
+#~ "You can save or discard the preset values you have modified."
+#~ msgstr ""
+#~ "\n"
+#~ "You can save or discard the preset values you have modified."
+
+#~ msgid ""
+#~ "\n"
+#~ "You can save or discard the preset values you have modified, or choose to "
+#~ "continue using the values you have modified on the new preset."
+#~ msgstr ""
+#~ "\n"
+#~ "You can save or discard the preset values you have modified, or you can "
+#~ "choose to continue using the values you have modified on the new preset."
+
+#~ msgid "You have previously modified your settings."
+#~ msgstr "You have previously modified your settings."
+
+#~ msgid ""
+#~ "\n"
+#~ "You can discard the preset values you have modified, or choose to "
+#~ "continue using the modified values in the new project"
+#~ msgstr ""
+#~ "\n"
+#~ "You can discard the preset values you have modified or choose to continue "
+#~ "using the modified values in the new project"
 
 #~ msgid "Print with filaments in ams"
 #~ msgstr "Imprimer avec l'AMS"

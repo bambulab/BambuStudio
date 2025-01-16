@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-16 15:21+0800\n"
+"POT-Creation-Date: 2025-01-16 20:08+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1345,6 +1345,11 @@ msgid ""
 "issue persists, contact customer support."
 msgstr ""
 
+msgid ""
+"Your software is not signed, and some printing functions have been "
+"restricted. Please use the officially signed software version."
+msgstr ""
+
 msgid "Privacy Policy Update"
 msgstr "개인 정보 보호 정책 업데이트"
 
@@ -1714,7 +1719,7 @@ msgstr "수정"
 msgid "Delete this filament"
 msgstr ""
 
-msgid "Delete then replace with"
+msgid "Merge with"
 msgstr ""
 
 msgid "Select All"
@@ -3974,7 +3979,7 @@ msgid ""
 " located within the %s only area, making it impossible to print with the "
 "filaments assigned to %s.\n"
 "Please move the model out of the %s only area or adjust the filament "
-"assignment\n"
+"assignment."
 msgstr ""
 
 msgid "Mirror Object"
@@ -6034,19 +6039,6 @@ msgstr "이 파일들을 여러 부품을 지닌 단일 객체로 불러오시�
 msgid "Object with multiple parts was detected"
 msgstr "여러 부품으로 구성된 단일 객체가 발견되었습니다."
 
-#, c-format, boost-format
-msgid ""
-"Connected printer is %s. It must match the project preset for printing.\n"
-msgstr ""
-
-msgid ""
-"Do you want to sync the printer information and automatically switch the "
-"preset?"
-msgstr ""
-
-msgid "Tips"
-msgstr "팁"
-
 msgid "The file does not contain any geometry data."
 msgstr "파일에는 형상 데이터가 포함되어 있지 않습니다."
 
@@ -6176,17 +6168,17 @@ msgstr ""
 "불러온 파일에는 G 코드만 포함되어 있으며 준비 페이지에 들어갈 수 없습니다."
 
 msgid ""
-"It is detected that you have not synchronized the nozzle and AMS "
-"information.\n"
-"If you synchronize it before slicing, the filament arrangement will be more "
-"reasonable.\n"
-"Do you need to synchronize it ?"
+"The nozzle type and AMS quantity information has not been synced from the "
+"connected printer.\n"
+"After syncing, software can optimize printing time and filament usage when "
+"slicing.\n"
+"Would you like to sync now ?"
 msgstr ""
 
 msgid "Sync now"
 msgstr ""
 
-msgid "Out of sync"
+msgid "Later"
 msgstr ""
 
 msgid "You can keep the modified presets to the new project or discard them"
@@ -6194,6 +6186,25 @@ msgstr "새 프로젝트를 위해 수정된 프리셋을 유지할 수도 삭�
 
 msgid "Creating a new project"
 msgstr "새 프로젝트 만들기"
+
+#, c-format, boost-format
+msgid ""
+"The currently connected printer, %s, is a %s model.\n"
+"To use this printer for printing, please switch the printer model of the "
+"project file to %s,\n"
+"and sync the nozzle type and AMS quantity information from the connected "
+"printer."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"The currently connected printer, %s, is a %s model.\n"
+"To use this printer for printing, please switch the printer model of project "
+"file to %s."
+msgstr ""
+
+msgid "Tips"
+msgstr "팁"
 
 msgid "Load project"
 msgstr "프로젝트 불러오기"
@@ -6311,9 +6322,7 @@ msgid ""
 msgstr ""
 "파일 %s이(가) 프린터의 저장 공간으로 전송되었으며 프린터에서 볼 수 있습니다."
 
-msgid ""
-"It is detected that the nozzle type is not set. please set the nozzle first "
-"and then perform the current operation again."
+msgid "The nozzle type is not set. Please set the nozzle and try again."
 msgstr ""
 
 msgid ""
@@ -6564,6 +6573,14 @@ msgid ""
 msgstr ""
 "이 기능을 활성화하면 Bambu Studio를 시작할 때 동일한 Bambu Studio의 다른 인스"
 "턴스가 이미 실행 중일 때 해당 인스턴스가 대신 다시 활성화됩니다."
+
+msgid ""
+"Automatically transfer modified value when switching process and filament "
+"presets"
+msgstr ""
+
+msgid "After closing, a popup will appear to ask each time"
+msgstr ""
 
 msgid "Auto plate type"
 msgstr "자동 플레이트 유형"
@@ -7110,16 +7127,13 @@ msgstr ""
 msgid "Left Extruder"
 msgstr ""
 
-msgid "(Recommended filament)"
-msgstr ""
-
 msgid "Right Extruder"
 msgstr ""
 
 msgid "Rearrange filaments of the left and right nozzles ->"
 msgstr ""
 
-msgid "Your material arrangement method is not optimal."
+msgid "Your filament arrangement method is not optimal."
 msgstr ""
 
 msgid "Advanced Options"
@@ -7180,6 +7194,9 @@ msgstr "프린터에서 펌웨어를 업데이트하는 동안 출력 작업을 
 msgid ""
 "The printer is executing instructions. Please restart printing after it ends"
 msgstr "프린터가 명령 실행중입니다. 종료 후 다시 출력을 시작하세요."
+
+msgid "AMS is setting up. Please try again later."
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -7310,30 +7327,6 @@ msgstr ""
 "AMS 매핑에는 알려지지 않은 필라멘트가 몇 개 있습니다. 필수 필라멘트인지 확인"
 "하십시오. 문제가 없으면 “확인”을 클릭하여 출력을 시작하십시오."
 
-msgid ""
-"Tips: If you changed your nozzle of your printer lately, Please go to "
-"'Device -> Printer parts' to change your nozzle setting."
-msgstr ""
-
-#, c-format, boost-format
-msgid ""
-"The nozzle diameter (%.1fmm) in slice file is unconsistent withthe left "
-"nozzle diameter (%.1fmm) or right nozzle diameter (%.1fmm)set on your print."
-msgstr ""
-
-#, c-format, boost-format
-msgid ""
-"The nozzle diameter (%.1fmm) in slice file is unconsistent with the nozzle "
-"diameter (%.1fmm) set on your print.You can't send to print until they are "
-"consistent."
-msgstr ""
-
-#, c-format, boost-format
-msgid ""
-"Printing high temperature material(%s material) with %s may cause nozzle "
-"damage"
-msgstr "고온 재료(%s 재료)를 %s로 인쇄하면 노즐이 손상될 수 있습니다."
-
 msgid "Please check the following:"
 msgstr "다음을 확인하십시오."
 
@@ -7362,6 +7355,30 @@ msgid ""
 "You picked both external and AMS filament, You will need to manually change "
 "filament %d times."
 msgstr ""
+
+msgid ""
+"Tips: If you changed your nozzle of your printer lately, Please go to "
+"'Device -> Printer parts' to change your nozzle setting."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"The nozzle diameter (%.1fmm) in slice file is unconsistent withthe left "
+"nozzle diameter (%.1fmm) or right nozzle diameter (%.1fmm)set on your print."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"The nozzle diameter (%.1fmm) in slice file is unconsistent with the nozzle "
+"diameter (%.1fmm) set on your print.You can't send to print until they are "
+"consistent."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Printing high temperature material(%s material) with %s may cause nozzle "
+"damage"
+msgstr "고온 재료(%s 재료)를 %s로 인쇄하면 노즐이 손상될 수 있습니다."
 
 msgid ""
 "Top half of combobox: Original\n"
@@ -7657,8 +7674,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "툴헤드 없이 타임랩스를 녹화할 때는 “타임랩스 와이프 타워”를 추가하는 것이 좋"
 "습니다. \n"
@@ -8066,14 +8083,11 @@ msgstr "사전 설정(기존)"
 msgid "Modified Value(New)"
 msgstr "수정된 값 (신규)"
 
-msgid "Save Modified Value"
-msgstr "수정된 값 저장"
+msgid "Discard Modified Value"
+msgstr "수정된 값 삭제"
 
 msgid "Don't save"
 msgstr "저장 안함"
-
-msgid "Discard Modified Value"
-msgstr "수정된 값 삭제"
 
 msgid "Click the right mouse button to display the full text."
 msgstr "마우스 오른쪽 버튼을 클릭하면 전체 텍스트가 표시됩니다."
@@ -8130,36 +8144,21 @@ msgstr ""
 "은 변경 사항을 포함합니다:"
 
 #, boost-format
-msgid "You have changed some settings of preset \"%1%\". "
-msgstr "사전 설정 \"%1%\"의 일부 설정을 변경했습니다."
+msgid "You have changed the preset \"%1%\". "
+msgstr ""
 
 msgid ""
 "\n"
-"You can save or discard the preset values you have modified."
+"Do you want to use the modified value in the new preset that you selected?"
 msgstr ""
-"\n"
-"수정한 사전 설정 값을 저장하거나 삭제할 수 있습니다."
+
+msgid "You have changed the preset. "
+msgstr ""
 
 msgid ""
 "\n"
-"You can save or discard the preset values you have modified, or choose to "
-"continue using the values you have modified on the new preset."
+"Do you want to save the modified values?"
 msgstr ""
-"\n"
-"수정한 사전 설정 값을 저장하거나 삭제하거나 새 사전 설정에서 수정한 값을 계"
-"속 사용하도록 선택할 수 있습니다."
-
-msgid "You have previously modified your settings."
-msgstr "이전에 설정을 수정했습니다."
-
-msgid ""
-"\n"
-"You can discard the preset values you have modified, or choose to continue "
-"using the modified values in the new project"
-msgstr ""
-"\n"
-"수정한 사전 설정 값을 삭제하거나 새 프로젝트에서 수정된 값을 계속 사용하도록 "
-"선택할 수 있습니다."
 
 msgid "Extruders count"
 msgstr "압출기 수"
@@ -8375,6 +8374,9 @@ msgid ""
 "is recommended to be consistent."
 msgstr ""
 
+msgid "(Recommended filament)"
+msgstr ""
+
 msgid "Attention"
 msgstr ""
 
@@ -8398,9 +8400,6 @@ msgid "Automatically merge the same colors in the model after mapping."
 msgstr ""
 
 msgid "Synchronize now"
-msgstr ""
-
-msgid "Later"
 msgstr ""
 
 #, c-format, boost-format
@@ -13295,12 +13294,12 @@ msgstr ""
 "다시 작성하시겠습니까?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more printers; please go to printer selection"
 
 msgid "Create Printer/Nozzle"
@@ -14733,6 +14732,41 @@ msgstr ""
 "뒤틀림 방지\n"
 "ABS 등 뒤틀림이 발생하기 쉬운 소재를 출력할 때, 히트베드 온도를 적절하게 높이"
 "면 뒤틀림 가능성을 줄일 수 있다는 사실을 알고 계셨나요?"
+
+#~ msgid "Save Modified Value"
+#~ msgstr "수정된 값 저장"
+
+#, boost-format
+#~ msgid "You have changed some settings of preset \"%1%\". "
+#~ msgstr "사전 설정 \"%1%\"의 일부 설정을 변경했습니다."
+
+#~ msgid ""
+#~ "\n"
+#~ "You can save or discard the preset values you have modified."
+#~ msgstr ""
+#~ "\n"
+#~ "수정한 사전 설정 값을 저장하거나 삭제할 수 있습니다."
+
+#~ msgid ""
+#~ "\n"
+#~ "You can save or discard the preset values you have modified, or choose to "
+#~ "continue using the values you have modified on the new preset."
+#~ msgstr ""
+#~ "\n"
+#~ "수정한 사전 설정 값을 저장하거나 삭제하거나 새 사전 설정에서 수정한 값을 "
+#~ "계속 사용하도록 선택할 수 있습니다."
+
+#~ msgid "You have previously modified your settings."
+#~ msgstr "이전에 설정을 수정했습니다."
+
+#~ msgid ""
+#~ "\n"
+#~ "You can discard the preset values you have modified, or choose to "
+#~ "continue using the modified values in the new project"
+#~ msgstr ""
+#~ "\n"
+#~ "수정한 사전 설정 값을 삭제하거나 새 프로젝트에서 수정된 값을 계속 사용하도"
+#~ "록 선택할 수 있습니다."
 
 #~ msgid "Print with filaments in ams"
 #~ msgstr "AMS에서 필라멘트로 출력"
