@@ -97,7 +97,7 @@ namespace BBL {
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"
 #define BAMBU_NETWORK_AGENT_NAME            "bambu_network_agent"
 
-#define BAMBU_NETWORK_AGENT_VERSION         "02.00.00.11"
+#define BAMBU_NETWORK_AGENT_VERSION         "02.00.00.12"
 
 #define IOT_PRINTER_TYPE_STRING         "printer"
 #define IOT_FILAMENT_STRING             "filament"
