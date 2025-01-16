@@ -158,7 +158,7 @@ public:
     std::map<int, DynamicPrintConfig> build_filament_ams_list(MachineObject* obj);
     void sync_ams_list();
     bool sync_extruder_list();
-    bool should_sync_extruder_list(MachineObject* obj);
+    bool auto_sync_extruder_list_on_connect_priner(const MachineObject* obj);
     void update_sync_status(const MachineObject* obj);
 
     PlaterPresetComboBox *  printer_combox();

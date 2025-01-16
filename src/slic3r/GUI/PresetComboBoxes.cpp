@@ -1203,8 +1203,8 @@ void PlaterPresetComboBox::update()
         //if (i + 1 == m_collection->num_default_presets())
         //    set_label_marker(Append(separator(L("System presets")), wxNullBitmap));
     }
-    if (m_type == Preset::TYPE_PRINTER)
-        add_connected_printers("", true);
+    //if (m_type == Preset::TYPE_PRINTER)
+    //    add_connected_printers("", true);
 
     if (m_type == Preset::TYPE_FILAMENT) {
         set_replace_text("Bambu", "BambuStudioBlack");
