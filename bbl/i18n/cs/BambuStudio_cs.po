@@ -2,12 +2,12 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-15 21:52+0800\n"
+"POT-Creation-Date: 2025-01-16 15:21+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -1224,8 +1224,8 @@ msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr "Připojení %s selhalo! [SN:%s, kód=%s]"
 
 msgid ""
-"BambuStudio configuration file may be corrupted and is not able to be "
-"parsed.Please delete the file and try again."
+"BambuStudio configuration file may be corrupted and is not able to be parsed."
+"Please delete the file and try again."
 msgstr ""
 
 #, c-format, boost-format
@@ -2253,9 +2253,9 @@ msgid "Top"
 msgstr "Shora"
 
 msgid ""
-"The fan controls the temperature during printing to improve print "
-"quality.The system automatically adjusts the fan's switch and speed "
-"according to different printing materials."
+"The fan controls the temperature during printing to improve print quality."
+"The system automatically adjusts the fan's switch and speed according to "
+"different printing materials."
 msgstr ""
 
 msgid ""
@@ -2818,13 +2818,13 @@ msgstr "Krok"
 msgid "AMS Slots"
 msgstr "AMS sloty"
 
-msgid "Left Ams"
+msgid "Left AMS"
 msgstr ""
 
 msgid "External"
 msgstr ""
 
-msgid "Right Ams"
+msgid "Right AMS"
 msgstr ""
 
 msgid ""
@@ -2877,8 +2877,8 @@ msgstr "Nepovolovat AMS"
 msgid "Print using materials mounted on the back of the case"
 msgstr "Tisk s použitím materiálů namontovaných na zadní straně pouzdra"
 
-msgid "Print with filaments in ams"
-msgstr "Tisk s filamenty v ams"
+msgid "Print with filaments in AMS"
+msgstr ""
 
 msgid "Print with filaments mounted on the back of the chassis"
 msgstr "Tisk s filamenty namontovanými na zadní straně šasi"
@@ -3212,9 +3212,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe "
-"temperature,it may result in material softening and clogging.The maximum "
-"safe temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe temperature,"
+"it may result in material softening and clogging.The maximum safe "
+"temperature for the material is %d"
 msgstr ""
 
 msgid ""
@@ -7155,7 +7155,7 @@ msgstr ""
 "Kliknutím na každý filament výše určete jeho mapovací slot AMS před odeslání "
 "tiskové úlohy"
 
-msgid "Please do not mix-use the Ext with Ams"
+msgid "Please do not mix-use the Ext with AMS"
 msgstr ""
 
 msgid ""
@@ -8322,6 +8322,12 @@ msgstr ""
 msgid "Automatically merge the same colors in the model after mapping."
 msgstr ""
 
+msgid "Synchronize now"
+msgstr ""
+
+msgid "Later"
+msgstr ""
+
 #, c-format, boost-format
 msgid "nozzle in preset: %.1f %s"
 msgstr ""
@@ -9246,8 +9252,8 @@ msgid ""
 "Slic3r can upload G-code files to a printer host. This field should contain "
 "the hostname, IP address or URL of the printer host instance. Print host "
 "behind HAProxy with basic auth enabled can be accessed by putting the user "
-"name and password into the URL in the following format: https://"
-"username:password@your-octopi-address/"
+"name and password into the URL in the following format: https://username:"
+"password@your-octopi-address/"
 msgstr ""
 "Slic3r může nahrávat G-kódy do tiskového serveru. Toto pole by mělo "
 "obsahovat název hostitele, IP adresu nebo URL  tiskového serveru. K  "
@@ -9496,10 +9502,10 @@ msgstr ""
 
 #, c-format
 msgid ""
-"Decide which overhang part join the cooling function to slow down the "
-"speed.Expressed as percentage which indicides how much width of the line "
-"without support from lower layer. 100% means forcing cooling for all outer "
-"wall no matter how much overhang degree"
+"Decide which overhang part join the cooling function to slow down the speed."
+"Expressed as percentage which indicides how much width of the line without "
+"support from lower layer. 100% means forcing cooling for all outer wall no "
+"matter how much overhang degree"
 msgstr ""
 
 msgid "Bridge direction"
@@ -10268,8 +10274,8 @@ msgstr ""
 "Zrychlení vnitřních stěn. 0 znamená použití běžného tiskového zrychlení"
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage "
-"(e.g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage (e."
+"g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 "Zrychlení vnitřní výplně. Pokud je hodnota vyjádřena v procentech (např. 100 "
 "%), bude vypočítána na základě výchozího zrychlení."
@@ -11760,18 +11766,6 @@ msgstr ""
 msgid "circle_compensation_speed"
 msgstr ""
 
-msgid "Deviation"
-msgstr ""
-
-msgid "max_deviation"
-msgstr ""
-
-msgid "Variance"
-msgstr ""
-
-msgid "max_variance"
-msgstr ""
-
 msgid "Counter Coef 1"
 msgstr ""
 
@@ -11781,13 +11775,13 @@ msgstr ""
 msgid "/1e6"
 msgstr ""
 
-msgid "Counter Coef 2"
+msgid "Contour Coef 2"
 msgstr ""
 
 msgid "counter_coef_2"
 msgstr ""
 
-msgid "Counter Coef 3"
+msgid "Contour Coef 3"
 msgstr ""
 
 msgid "counter_coef_3"
@@ -11811,13 +11805,13 @@ msgstr ""
 msgid "hole_coef_3"
 msgstr ""
 
-msgid "Counter limit min"
+msgid "Contour limit min"
 msgstr ""
 
 msgid "counter_limit_min"
 msgstr ""
 
-msgid "Counter limit max"
+msgid "Contour limit max"
 msgstr ""
 
 msgid "counter_limit_max"
@@ -12149,8 +12143,8 @@ msgstr "Nahraný soubor nemohl být načten, protože je prázdný"
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
 msgstr ""
-"Neznámý formát souboru. Vstupní soubor musí mít příponu .stl, .obj "
-"nebo .amf(.xml)"
+"Neznámý formát souboru. Vstupní soubor musí mít příponu .stl, .obj nebo ."
+"amf(.xml)"
 
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
@@ -13491,8 +13485,8 @@ msgid "nozzle size memorized: %d"
 msgstr ""
 
 msgid ""
-"The size of nozzle type in preset is not consistent with memorized "
-"nozzle.Did you change your nozzle lately ? "
+"The size of nozzle type in preset is not consistent with memorized nozzle."
+"Did you change your nozzle lately ? "
 msgstr ""
 
 #, c-format, boost-format
@@ -14403,6 +14397,9 @@ msgid ""
 "probability of warping."
 msgstr ""
 
+#~ msgid "Print with filaments in ams"
+#~ msgstr "Tisk s filamenty v ams"
+
 #~ msgid "Calibrating the micro lida"
 #~ msgstr "Kalibrace mikro lida"
 
@@ -14890,8 +14887,8 @@ msgstr ""
 #~ "BambuStudio configuration file may be corrupted and is not abled to be "
 #~ "parsed.Please delete the file and try again."
 #~ msgstr ""
-#~ "Konfigurační soubor BambuStudio může být poškozen a nelze jej "
-#~ "analyzovat.Smažte soubor a zkuste to znovu."
+#~ "Konfigurační soubor BambuStudio může být poškozen a nelze jej analyzovat."
+#~ "Smažte soubor a zkuste to znovu."
 
 #~ msgid ""
 #~ "You can keep the modifield presets to the new project, discard or save "
@@ -15576,8 +15573,8 @@ msgstr ""
 #~ msgstr "Úroveň ladění"
 
 #~ msgid ""
-#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
-#~ "5:trace\n"
+#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
+#~ "trace\n"
 #~ msgstr ""
 #~ "Nastaví úroveň protokolování ladění. 0:fatal, 1:error, 2:warning, 3:info, "
 #~ "4:debug, 5:sledovat\n"

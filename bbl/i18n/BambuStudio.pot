@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-15 21:52+0800\n"
+"POT-Creation-Date: 2025-01-16 15:21+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1211,8 +1211,8 @@ msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr ""
 
 msgid ""
-"BambuStudio configuration file may be corrupted and is not able to be "
-"parsed.Please delete the file and try again."
+"BambuStudio configuration file may be corrupted and is not able to be parsed."
+"Please delete the file and try again."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -2224,9 +2224,9 @@ msgid "Top"
 msgstr ""
 
 msgid ""
-"The fan controls the temperature during printing to improve print "
-"quality.The system automatically adjusts the fan's switch and speed "
-"according to different printing materials."
+"The fan controls the temperature during printing to improve print quality."
+"The system automatically adjusts the fan's switch and speed according to "
+"different printing materials."
 msgstr ""
 
 msgid ""
@@ -2740,13 +2740,13 @@ msgstr ""
 msgid "AMS Slots"
 msgstr ""
 
-msgid "Left Ams"
+msgid "Left AMS"
 msgstr ""
 
 msgid "External"
 msgstr ""
 
-msgid "Right Ams"
+msgid "Right AMS"
 msgstr ""
 
 msgid ""
@@ -2797,7 +2797,7 @@ msgstr ""
 msgid "Print using materials mounted on the back of the case"
 msgstr ""
 
-msgid "Print with filaments in ams"
+msgid "Print with filaments in AMS"
 msgstr ""
 
 msgid "Print with filaments mounted on the back of the chassis"
@@ -3098,9 +3098,9 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe "
-"temperature,it may result in material softening and clogging.The maximum "
-"safe temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe temperature,"
+"it may result in material softening and clogging.The maximum safe "
+"temperature for the material is %d"
 msgstr ""
 
 msgid ""
@@ -6924,7 +6924,7 @@ msgid ""
 "sending the print job"
 msgstr ""
 
-msgid "Please do not mix-use the Ext with Ams"
+msgid "Please do not mix-use the Ext with AMS"
 msgstr ""
 
 msgid ""
@@ -8016,6 +8016,12 @@ msgstr ""
 msgid "Automatically merge the same colors in the model after mapping."
 msgstr ""
 
+msgid "Synchronize now"
+msgstr ""
+
+msgid "Later"
+msgstr ""
+
 #, possible-c-format, possible-boost-format
 msgid "nozzle in preset: %.1f %s"
 msgstr ""
@@ -8896,8 +8902,8 @@ msgid ""
 "Slic3r can upload G-code files to a printer host. This field should contain "
 "the hostname, IP address or URL of the printer host instance. Print host "
 "behind HAProxy with basic auth enabled can be accessed by putting the user "
-"name and password into the URL in the following format: https://"
-"username:password@your-octopi-address/"
+"name and password into the URL in the following format: https://username:"
+"password@your-octopi-address/"
 msgstr ""
 
 msgid "Device UI"
@@ -9106,10 +9112,10 @@ msgstr ""
 
 #, possible-c-format
 msgid ""
-"Decide which overhang part join the cooling function to slow down the "
-"speed.Expressed as percentage which indicides how much width of the line "
-"without support from lower layer. 100% means forcing cooling for all outer "
-"wall no matter how much overhang degree"
+"Decide which overhang part join the cooling function to slow down the speed."
+"Expressed as percentage which indicides how much width of the line without "
+"support from lower layer. 100% means forcing cooling for all outer wall no "
+"matter how much overhang degree"
 msgstr ""
 
 msgid "Bridge direction"
@@ -9819,8 +9825,8 @@ msgid "Acceleration of inner walls. 0 means using normal printing acceleration"
 msgstr ""
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage "
-"(e.g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage (e."
+"g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 
 msgid "mm/s² or %"
@@ -11174,18 +11180,6 @@ msgstr ""
 msgid "circle_compensation_speed"
 msgstr ""
 
-msgid "Deviation"
-msgstr ""
-
-msgid "max_deviation"
-msgstr ""
-
-msgid "Variance"
-msgstr ""
-
-msgid "max_variance"
-msgstr ""
-
 msgid "Counter Coef 1"
 msgstr ""
 
@@ -11195,13 +11189,13 @@ msgstr ""
 msgid "/1e6"
 msgstr ""
 
-msgid "Counter Coef 2"
+msgid "Contour Coef 2"
 msgstr ""
 
 msgid "counter_coef_2"
 msgstr ""
 
-msgid "Counter Coef 3"
+msgid "Contour Coef 3"
 msgstr ""
 
 msgid "counter_coef_3"
@@ -11225,13 +11219,13 @@ msgstr ""
 msgid "hole_coef_3"
 msgstr ""
 
-msgid "Counter limit min"
+msgid "Contour limit min"
 msgstr ""
 
 msgid "counter_limit_min"
 msgstr ""
 
-msgid "Counter limit max"
+msgid "Contour limit max"
 msgstr ""
 
 msgid "counter_limit_max"
@@ -12774,8 +12768,8 @@ msgid "nozzle size memorized: %d"
 msgstr ""
 
 msgid ""
-"The size of nozzle type in preset is not consistent with memorized "
-"nozzle.Did you change your nozzle lately ? "
+"The size of nozzle type in preset is not consistent with memorized nozzle."
+"Did you change your nozzle lately ? "
 msgstr ""
 
 #, possible-c-format, possible-boost-format
