@@ -4956,6 +4956,13 @@ void GUI_App::process_network_msg(std::string dev_id, std::string msg)
                 m_show_error_msgdlg = false;
             }
         }
+        else if (msg == "unsigned_studio") {
+            BOOST_LOG_TRIVIAL(info) << "process_network_msg, unsigned_studio";
+            MessageDialog msg_dlg(nullptr, _L("Your software is not signed, and some printing functions have been restricted. Please use the officially signed software version."), "", wxAPPLY | wxOK);
+            m_show_error_msgdlg = true;
+            auto modal_result = msg_dlg.ShowModal();
+            m_show_error_msgdlg = false;
+        }
     }
 }
 
