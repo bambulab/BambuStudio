@@ -1158,7 +1158,8 @@ wxWindow* PreferencesDialog::create_general_page()
 #endif
         50, "single_instance");
 
-    auto item_bed_type_follow_preset = create_item_checkbox(_L("Auto plate type"), page,
+    auto item_auto_transfer_when_switch_preset = create_item_checkbox(_L("Automatically transfer modified value when switching process and filament presets"), page,_L("Default behavior for handling modified values when switching process and filament presets. After closing, a popup will appear to ask each time"), 50, "auto_transfer_when_switch_preset");
+    auto item_bed_type_follow_preset = create_item_checkbox(_L("Auto plate type"), page,    
                                                          _L("Studio will remember build plate selected last time for certain printer model."), 50,
                                                          "user_bed_type");
     //auto item_hints = create_item_checkbox(_L("Show \"Tip of the day\" notification after start"), page, _L("If enabled, useful hints are displayed at startup."), 50, "show_hints");
@@ -1271,6 +1272,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_multi_machine, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_step_mesh_setting, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_beta_version_update, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_auto_transfer_when_switch_preset, 0, wxTOP, FromDIP(3));
     sizer_page->Add(_3d_settings, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_mouse_zoom_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_show_shells_in_preview_settings, 0, wxTOP, FromDIP(3));

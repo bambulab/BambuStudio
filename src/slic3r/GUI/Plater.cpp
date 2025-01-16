@@ -2665,7 +2665,9 @@ bool Sidebar::is_new_project_in_gcode3mf()
 
         confirm_dlg.update_text(filename + " " + _L("will be closed before modify filament. Do you want to continue?"));
         confirm_dlg.on_show();
-        if (!is_cancle) {
+        if (is_cancle) {
+            this->printer_combox()->update();
+        } else {
             p->plater->new_project();
         }
         return is_cancle;
@@ -5485,51 +5487,6 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         }
     }
 
-    if (load_config) {
-        DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-        if (dev) {
-            MachineObject *obj = dev->get_selected_machine();
-            if (obj && obj->is_info_ready()) {
-                if (obj->m_extder_data.extders.size() > 0) {
-                    PresetBundle *preset_bundle  = wxGetApp().preset_bundle;
-                    Preset       &printer_preset = preset_bundle->printers.get_selected_preset();
-
-                    double              preset_nozzle_diameter = 0.4;
-                    const ConfigOption *opt                    = printer_preset.config.option("nozzle_diameter");
-                    if (opt) preset_nozzle_diameter = static_cast<const ConfigOptionFloatsNullable *>(opt)->values[0];
-                    float machine_nozzle_diameter = obj->m_extder_data.extders[0].current_nozzle_diameter;
-
-                    std::string machine_type = obj->printer_type;
-                    if (obj->is_support_upgrade_kit && obj->installed_upgrade_kit) machine_type = "C12";
-
-                    if (printer_preset.get_current_printer_type(preset_bundle) != machine_type || !is_approx((float) preset_nozzle_diameter, machine_nozzle_diameter)) {
-                        Preset *machine_preset = get_printer_preset(obj);
-                        if (machine_preset != nullptr) {
-                            std::string printer_model = machine_preset->config.option<ConfigOptionString>("printer_model")->value;
-                            bool sync_printer_info = false;
-                            if (!wxGetApp().app_config->has("sync_after_load_file_show_flag")) {
-                                wxString tips = from_u8((boost::format(_u8L("Connected printer is %s. It must match the project preset for printing.\n")) % printer_model).str());
-
-                                tips += _L("Do you want to sync the printer information and automatically switch the preset?");
-                                TipsDialog dlg(wxGetApp().mainframe, _L("Tips"), tips, "sync_after_load_file_show_flag", wxYES_NO);
-                                if (dlg.ShowModal() == wxID_YES) { sync_printer_info = true; }
-                            }
-                            else {
-                                sync_printer_info = wxGetApp().app_config->get("sync_after_load_file_show_flag") == "true";
-                            }
-                            if (sync_printer_info) {
-                                update_objects_position_when_select_preset([&obj, machine_preset]() {
-                                    Tab *printer_tab = GUI::wxGetApp().get_tab(Preset::Type::TYPE_PRINTER);
-                                    printer_tab->select_preset(machine_preset->name);
-                                    if (obj->is_multi_extruders()) GUI::wxGetApp().sidebar().sync_extruder_list();
-                                });
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
 
     if (new_model) delete new_model;
 
@@ -10492,6 +10449,70 @@ int Plater::new_project(bool skip_confirm, bool silent, const wxString &project_
 
 
 
+bool Plater::try_sync_preset_with_connected_printer()
+{
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev)
+        return false;
+
+    MachineObject* obj = dev->get_selected_machine();
+    if (!obj || !obj->is_info_ready() || obj->m_extder_data.extders.size() <= 0)
+        return false;
+
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    Preset& printer_preset = preset_bundle->printers.get_selected_preset();
+    double              preset_nozzle_diameter = 0.4;
+    if (auto opt = printer_preset.config.option("nozzle_diameter"); opt) {
+        preset_nozzle_diameter = static_cast<const ConfigOptionFloatsNullable*>(opt)->values[0];
+    }
+    float machine_nozzle_diameter = obj->m_extder_data.extders[0].current_nozzle_diameter;
+
+    std::string printer_type = obj->printer_type;
+    // handle p1p with upgraded kit
+    if (obj->is_support_upgrade_kit && obj->installed_upgrade_kit)
+        printer_type = "C12";
+
+    // same printer and same nozzle diameter, return false
+    if (printer_preset.get_current_printer_type(preset_bundle) == printer_type && is_approx((float)(preset_nozzle_diameter), machine_nozzle_diameter))
+        return false;
+
+    // can not find the preset for connected printer, return false
+    Preset* machine_preset = get_printer_preset(obj);
+    if (!machine_preset)
+        return false;
+
+    std::string printer_model = machine_preset->config.option<ConfigOptionString>("printer_model")->value;
+    bool sync_printer_info = false;
+    bool is_multi_extruder = machine_preset->config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size() > 1;
+    if (!wxGetApp().app_config->has("sync_after_load_file_show_flag")) {
+        wxString tips;
+
+        if (is_multi_extruder) {
+            tips=from_u8((boost::format(_u8L("The currently connected printer, %s, is a %s model.\nTo use this printer for printing, please switch the printer model of the project file to %s,\nand sync the nozzle type and AMS quantity information from the connected printer.")) %obj->dev_name% printer_model%printer_model).str());
+        }
+        else {
+            tips = from_u8((boost::format(_u8L("The currently connected printer, %s, is a %s model.\nTo use this printer for printing, please switch the printer model of project file to %s.")) % obj->dev_name % printer_model % printer_model).str());
+
+        }
+        TipsDialog dlg(wxGetApp().mainframe, _L("Tips"), tips, "sync_after_load_file_show_flag", wxYES_NO);
+        if (dlg.ShowModal() == wxID_YES) { sync_printer_info = true; }
+    }
+    else {
+        sync_printer_info = wxGetApp().app_config->get("sync_after_load_file_show_flag") == "true";
+    }
+    if (!sync_printer_info)
+        return false;
+
+    update_objects_position_when_select_preset([&obj, machine_preset]() {
+        Tab* printer_tab = GUI::wxGetApp().get_tab(Preset::Type::TYPE_PRINTER);
+        printer_tab->select_preset(machine_preset->name);
+        if (obj->is_multi_extruders()) GUI::wxGetApp().sidebar().sync_extruder_list();
+        });
+    return true;
+}
+
+
+
 // BBS: FIXME, missing resotre logic
 int Plater::load_project(wxString const &filename2,
     wxString const& originfile)
@@ -10611,6 +10632,11 @@ int Plater::load_project(wxString const &filename2,
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " load project done";
     m_loading_project = false;
+
+    // only pop up in 3mf
+    if (!this->m_exported_file && !this->m_only_gcode){
+        try_sync_preset_with_connected_printer();
+    }
     return wx_dlg_id;
 }
 
@@ -15489,7 +15515,7 @@ int Plater::select_sliced_plate(int plate_index)
     return ret;
 }
 
-extern std::string& get_object_limited_text();
+extern std::string get_object_limited_text();
 extern std::string& get_object_clashed_text();
 
 void Plater::validate_current_plate(bool& model_fits, bool& validate_error)

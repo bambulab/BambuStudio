@@ -6221,7 +6221,7 @@ std::vector<std::pair<unsigned int, std::string>> GUI_App::get_selected_presets(
 // This is called when:
 // - Exporting config_bundle
 // - Taking snapshot
-bool GUI_App::check_and_save_current_preset_changes(const wxString& caption, const wxString& header, bool remember_choice/* = true*/, bool dont_save_insted_of_discard/* = false*/)
+bool GUI_App::check_and_save_current_preset_changes(const wxString& caption, const wxString& header, bool remember_choice/* = true*/, bool dont_save_insted_of_discard/* = false*/, ForceOption force_op/* = Discard*/)
 {
     if (has_current_preset_changes()) {
         int act_buttons = UnsavedChangesDialog::ActionButtons::SAVE;
@@ -6230,11 +6230,8 @@ bool GUI_App::check_and_save_current_preset_changes(const wxString& caption, con
         if (remember_choice)
             act_buttons |= UnsavedChangesDialog::ActionButtons::REMEMBER_CHOISE;
         UnsavedChangesDialog dlg(caption, header, "", act_buttons);
-        if (dlg.ShowModal() == wxID_CANCEL)
-            return false;
 
-        if (dlg.save_preset())  // save selected changes
-        {
+        auto handle_save_action = [this,&dlg](){
             //BBS: add project embedded preset relate logic
             for (const UnsavedChangesDialog::PresetData& nt : dlg.get_names_and_types())
                 preset_bundle->save_changes_for_preset(nt.name, nt.type, dlg.get_unselected_options(nt.type), nt.save_to_project);
@@ -6249,6 +6246,21 @@ bool GUI_App::check_and_save_current_preset_changes(const wxString& caption, con
 
             //MessageDialog(nullptr, _L_PLURAL("Modifications to the preset have been saved",
             //                                 "Modifications to the presets have been saved", dlg.get_names_and_types().size())).ShowModal();
+        };
+
+        if (force_op == ForceOption::fopDiscard)
+            return true;
+        if (force_op == ForceOption::fopSave) {
+            handle_save_action();
+            return true;
+        }
+
+        if (dlg.ShowModal() == wxID_CANCEL)
+            return false;
+
+        if (dlg.save_preset())  // save selected changes
+        {
+            handle_save_action();
         }
     }
 
@@ -6272,14 +6284,12 @@ void GUI_App::apply_keeped_preset_modifications()
 //                      => Current project isn't saved => UnsavedChangesDialog: "Keep / Discard / Save / Cancel"
 // Close ConfigWizard   => Current project is saved    => UnsavedChangesDialog: "Keep / Discard / Save / Cancel"
 // Note: no_nullptr postponed_apply_of_keeped_changes indicates that thie function is called after ConfigWizard is closed
-bool GUI_App::check_and_keep_current_preset_changes(const wxString& caption, const wxString& header, int action_buttons, bool* postponed_apply_of_keeped_changes/* = nullptr*/)
+bool GUI_App::check_and_keep_current_preset_changes(const wxString& caption, const wxString& header, int action_buttons, bool* postponed_apply_of_keeped_changes/* = nullptr*/, ForceOption force_op)
 {
     if (has_current_preset_changes()) {
         bool is_called_from_configwizard = postponed_apply_of_keeped_changes != nullptr;
-
         UnsavedChangesDialog dlg(caption, header, "", action_buttons);
-        if (dlg.ShowModal() == wxID_CANCEL)
-            return false;
+
 
         auto reset_modifications = [this, is_called_from_configwizard]() {
             //if (is_called_from_configwizard)
@@ -6291,59 +6301,89 @@ bool GUI_App::check_and_keep_current_preset_changes(const wxString& caption, con
                     tab->m_presets->discard_current_changes();
             }
             load_current_presets(false);
-        };
+            };
+
+        auto handle_discard_option = [ this, reset_modifications](){
+            reset_modifications();
+            };
+
+        auto handle_save_option = [this,&dlg, reset_modifications]() {
+            const auto& preset_names_and_types = dlg.get_names_and_types();
+            for (const UnsavedChangesDialog::PresetData& nt : preset_names_and_types)
+                preset_bundle->save_changes_for_preset(nt.name, nt.type, dlg.get_unselected_options(nt.type), nt.save_to_project);
+
+            // if we saved changes to the new presets, we should to
+            // synchronize config.ini with the current selections.
+            preset_bundle->export_selections(*app_config);
+
+            //wxString text = _L_PLURAL("Modifications to the preset have been saved",
+            //    "Modifications to the presets have been saved", preset_names_and_types.size());
+            //if (!is_called_from_configwizard)
+            //    text += "\n\n" + _L("All modifications will be discarded for new project.");
+
+            //MessageDialog(nullptr, text).ShowModal();
+            reset_modifications();
+            };
+
+        auto handle_transfer_option = [this, &dlg, is_called_from_configwizard, postponed_apply_of_keeped_changes, reset_modifications]() {
+            const auto& preset_names_and_types = dlg.get_names_and_types();
+            // execute this part of code only if not all modifications are keeping to the new project
+            // OR this function is called when ConfigWizard is closed and "Keep modifications" is selected
+            for (const UnsavedChangesDialog::PresetData& nt : preset_names_and_types) {
+                Preset::Type type = nt.type;
+                Tab* tab = get_tab(type);
+                std::vector<std::string> selected_options = dlg.get_selected_options(type);
+                if (type == Preset::TYPE_PRINTER) {
+                    auto it = std::find(selected_options.begin(), selected_options.end(), "extruders_count");
+                    if (it != selected_options.end()) {
+                        // erase "extruders_count" option from the list
+                        selected_options.erase(it);
+                        // cache the extruders count
+                        static_cast<TabPrinter*>(tab)->cache_extruder_cnt();
+                    }
+                }
+                std::vector<std::string> selected_options2;
+                std::transform(selected_options.begin(), selected_options.end(), std::back_inserter(selected_options2), [](auto& o) {
+                    auto i = o.find('#');
+                    return i != std::string::npos ? o.substr(0, i) : o;
+                    });
+                tab->cache_config_diff(selected_options2);
+                if (!is_called_from_configwizard)
+                    tab->m_presets->discard_current_changes();
+            }
+            if (is_called_from_configwizard)
+                *postponed_apply_of_keeped_changes = true;
+            else
+                apply_keeped_preset_modifications();
+            };
+
+        if (force_op == ForceOption::fopDiscard) {
+            handle_discard_option();
+            return true;
+        }
+        if (force_op == ForceOption::fopTransfer) {
+            handle_transfer_option();
+            return true;
+        }
+        if (force_op == ForceOption::fopSave) {
+            handle_save_option();
+            return true;
+        }
+
+        if (dlg.ShowModal() == wxID_CANCEL)
+            return false;
 
         if (dlg.discard())
-            reset_modifications();
+            handle_discard_option();
         else  // save selected changes
         {
             //BBS: add project embedded preset relate logic
             const auto& preset_names_and_types = dlg.get_names_and_types();
             if (dlg.save_preset()) {
-                for (const UnsavedChangesDialog::PresetData& nt : preset_names_and_types)
-                    preset_bundle->save_changes_for_preset(nt.name, nt.type, dlg.get_unselected_options(nt.type), nt.save_to_project);
-
-                // if we saved changes to the new presets, we should to
-                // synchronize config.ini with the current selections.
-                preset_bundle->export_selections(*app_config);
-
-                //wxString text = _L_PLURAL("Modifications to the preset have been saved",
-                //    "Modifications to the presets have been saved", preset_names_and_types.size());
-                //if (!is_called_from_configwizard)
-                //    text += "\n\n" + _L("All modifications will be discarded for new project.");
-
-                //MessageDialog(nullptr, text).ShowModal();
-                reset_modifications();
+                handle_save_option();
             }
             else if (dlg.transfer_changes() && (dlg.has_unselected_options() || is_called_from_configwizard)) {
-                // execute this part of code only if not all modifications are keeping to the new project
-                // OR this function is called when ConfigWizard is closed and "Keep modifications" is selected
-                for (const UnsavedChangesDialog::PresetData& nt : preset_names_and_types) {
-                    Preset::Type type = nt.type;
-                    Tab* tab = get_tab(type);
-                    std::vector<std::string> selected_options = dlg.get_selected_options(type);
-                    if (type == Preset::TYPE_PRINTER) {
-                        auto it = std::find(selected_options.begin(), selected_options.end(), "extruders_count");
-                        if (it != selected_options.end()) {
-                            // erase "extruders_count" option from the list
-                            selected_options.erase(it);
-                            // cache the extruders count
-                            static_cast<TabPrinter*>(tab)->cache_extruder_cnt();
-                        }
-                    }
-                    std::vector<std::string> selected_options2;
-                    std::transform(selected_options.begin(), selected_options.end(), std::back_inserter(selected_options2), [](auto & o) {
-                        auto i = o.find('#');
-                        return i != std::string::npos ? o.substr(0, i) : o;
-                    });
-                    tab->cache_config_diff(selected_options2);
-                    if (!is_called_from_configwizard)
-                        tab->m_presets->discard_current_changes();
-                }
-                if (is_called_from_configwizard)
-                    *postponed_apply_of_keeped_changes = true;
-                else
-                    apply_keeped_preset_modifications();
+                handle_transfer_option();
             }
         }
     }

@@ -126,12 +126,13 @@ float RetinaHelper::get_scale_factor() { return float(m_window->GetContentScaleF
 #endif
 
 
-std::string& get_object_limited_text() {
-    static std::string object_limited_text = _u8L("An object is laid on the left/right nozzle only area.\n"
+std::string get_object_limited_text() {
+    std::string object_limited_text = _u8L("An object is laid on the left/right nozzle only area.\n"
             "Please make sure the filaments used by this object on this area are not mapped to the other nozzles.");
     return object_limited_text;
 }
 
+// serve as a text container, not the real text
 std::string& get_object_clashed_text() {
     static std::string object_clashed_text = _u8L("An object is laid over the boundary of plate or exceeds the height limit.\n"
             "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.");
@@ -9997,7 +9998,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         SLICING_LIMIT_ERROR,
         SLICING_HEIGHT_OUTSIDE
     };
-    const static std::vector<std::string> extruder_name_list= {_u8L("left nozzle"), _u8L("right nozzle")};  // in ui, we treat extruder as nozzle
+    const std::vector<std::string> extruder_name_list= {_u8L("left nozzle"), _u8L("right nozzle")};  // in ui, we treat extruder as nozzle
     std::string text;
     ErrorType error = ErrorType::PLATER_WARNING;
     const ModelObject* conflictObj=nullptr;

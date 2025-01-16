@@ -33,7 +33,6 @@
 #include "Plater.hpp"
 #include "MainFrame.hpp"
 #include "format.hpp"
-#include "UnsavedChangesDialog.hpp"
 #include "SavePresetDialog.hpp"
 #include "MsgDialog.hpp"
 #include "Notebook.hpp"
@@ -4745,6 +4744,9 @@ void Tab::update_preset_choice()
 bool Tab::select_preset(
     std::string preset_name, bool delete_current /*=false*/, const std::string &last_selected_ph_printer_name /* =""*/, bool force_select, bool force_no_transfer)
 {
+    auto app_config = wxGetApp().app_config;
+    bool auto_transfer = app_config->get("auto_transfer_when_switch_preset") == "true";
+    ForceOption option = auto_transfer ? ForceOption::fopTransfer : ForceOption::fopNone;
     BOOST_LOG_TRIVIAL(info) << boost::format("select preset, name %1%, delete_current %2%")
         %preset_name %delete_current;
     if (preset_name.empty()) {
@@ -4809,7 +4811,11 @@ bool Tab::select_preset(
     if (force_no_transfer) {
         no_transfer = true;
     }
-    if (current_dirty && ! may_discard_current_dirty_preset(nullptr, preset_name, no_transfer) && !force_select) {
+    ForceOption option_for_dirty_preset = ForceOption::fopNone;
+    if (current_dirty && print_tab) {
+        option_for_dirty_preset = option;
+    }
+    if (current_dirty && ! may_discard_current_dirty_preset(nullptr, preset_name, no_transfer,false,option_for_dirty_preset) && !force_select) {
         canceled = true;
         BOOST_LOG_TRIVIAL(info) << boost::format("current dirty and cancelled");
     } else if (print_tab) {
@@ -4824,7 +4830,7 @@ bool Tab::select_preset(
         bool 			   new_preset_compatible = is_compatible_with_print(dependent.get_edited_preset_with_vendor_profile(),
         	m_presets->get_preset_with_vendor_profile(*m_presets->find_preset(preset_name, true)), printer_profile);
         if (! canceled)
-            canceled = old_preset_dirty && ! new_preset_compatible && ! may_discard_current_dirty_preset(&dependent, preset_name) && !force_select;
+            canceled = old_preset_dirty && ! new_preset_compatible && ! may_discard_current_dirty_preset(&dependent, preset_name,false,false,option) && !force_select;
         if (! canceled) {
             // The preset will be switched to a different, compatible preset, or the '-- default --'.
             m_dependent_tabs.emplace_back((printer_technology == ptFFF) ? Preset::Type::TYPE_FILAMENT : Preset::Type::TYPE_SLA_MATERIAL);
@@ -4869,7 +4875,7 @@ bool Tab::select_preset(
                 pu.old_preset_dirty = (old_printer_technology == pu.technology) && pu.presets->current_is_dirty();
                 pu.new_preset_compatible = (new_printer_technology == pu.technology) && is_compatible_with_printer(pu.presets->get_edited_preset_with_vendor_profile(), new_printer_preset_with_vendor_profile);
                 if (!canceled)
-                    canceled = pu.old_preset_dirty && !pu.new_preset_compatible && !may_discard_current_dirty_preset(pu.presets, preset_name, false, no_transfer_variant) && !force_select;
+                    canceled = pu.old_preset_dirty && !pu.new_preset_compatible && !may_discard_current_dirty_preset(pu.presets, preset_name, false, no_transfer_variant,option) && !force_select;
             }
             if (!canceled) {
                 for (PresetUpdate &pu : updates) {
@@ -5042,16 +5048,13 @@ bool Tab::select_preset(
 
 // If the current preset is dirty, the user is asked whether the changes may be discarded.
 // if the current preset was not dirty, or the user agreed to discard the changes, 1 is returned.
-bool Tab::may_discard_current_dirty_preset(PresetCollection *presets /*= nullptr*/, const std::string &new_printer_name /*= ""*/, bool no_transfer, bool no_transfer_variant)
+bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr*/, const std::string& new_printer_name /*= ""*/, bool no_transfer, bool no_transfer_variant, ForceOption force_op)
 {
     if (presets == nullptr) presets = m_presets;
 
     UnsavedChangesDialog dlg(m_type, presets, new_printer_name, no_transfer);
-    if (dlg.ShowModal() == wxID_CANCEL)
-        return false;
 
-    if (dlg.save_preset())  // save selected changes
-    {
+    auto handle_save_action = [&dlg, this, presets]() {
         const std::vector<std::string>& unselected_options = dlg.get_unselected_options(presets->type());
         const std::string& name = dlg.get_preset_name();
         //BBS: add project embedded preset relate logic
@@ -5077,14 +5080,14 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection *presets /*= nullptr
             if (presets->type() == Preset::TYPE_FILAMENT && wxGetApp().extruders_edited_cnt() > 1)
                 wxGetApp().plater()->force_filament_colors_update();
         }
-    }
-    else if (dlg.transfer_changes()) // move selected changes
-    {
+        };
+
+    auto handle_transfer_action = [&dlg, this, presets, no_transfer, no_transfer_variant]() {
         std::vector<std::string> selected_options = dlg.get_selected_options();
         if (!no_transfer && no_transfer_variant) {
-            auto & options_list = wxGetApp().get_tab(presets->type())->m_options_list;
+            auto& options_list = wxGetApp().get_tab(presets->type())->m_options_list;
             bool has_variants = false;
-            for (auto &opt : selected_options) {
+            for (auto& opt : selected_options) {
                 if (auto n = opt.find('#'); n != std::string::npos) {
                     auto iter = options_list.lower_bound(opt.substr(0, n));
                     if (iter == options_list.end() || opt.compare(0, n, iter->first)) {
@@ -5117,6 +5120,26 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection *presets /*= nullptr
         }
         else
             wxGetApp().get_tab(presets->type())->cache_config_diff(selected_options);
+        };
+
+    if (force_op == ForceOption::fopSave) {
+        handle_save_action();
+        return true;
+    }
+
+    if (force_op == ForceOption::fopTransfer) {
+        handle_transfer_action();
+        return true;
+    }
+
+    if (dlg.ShowModal() == wxID_CANCEL)
+        return false;
+
+    if (dlg.save_preset()) {
+        handle_save_action();
+    }
+    else if (dlg.transfer_changes()) {
+        handle_transfer_action();
     }
 
     return true;

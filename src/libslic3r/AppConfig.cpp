@@ -297,6 +297,10 @@ void AppConfig::set_defaults()
          set("units", "0");
     }
 
+    if (get("auto_transfer_when_switch_preset").empty()) {
+        set("auto_transfer_when_switch_preset", "true");
+    }
+
     if (get("sync_user_preset").empty()) {
         set_bool("sync_user_preset", false);
     }

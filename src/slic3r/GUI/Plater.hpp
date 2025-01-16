@@ -239,6 +239,8 @@ public:
     void render_project_state_debug_window() const;
 #endif // ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
 
+    bool try_sync_preset_with_connected_printer();
+
     Sidebar& sidebar();
     const Model& model() const;
     Model& model();

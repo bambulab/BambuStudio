@@ -245,6 +245,12 @@ struct PresetItem
     wxString     new_value;
 };
 
+enum ForceOption {
+    fopTransfer,
+    fopSave,
+    fopDiscard,
+    fopNone
+};
 
 class UnsavedChangesDialog : public DPIDialog
 {
