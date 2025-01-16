@@ -79,6 +79,19 @@ static ExPolygons PolyTreeToExPolygons(Clipper2Lib::PolyTree64 &&polytree)
     return retval;
 }
 
+Clipper2Lib::Paths64 Slic3rPolygons_to_Paths64(const Polygons &in)
+{
+    Clipper2Lib::Paths64 out;
+    out.reserve(in.size());
+    for (const Polygon &poly : in) {
+        Clipper2Lib::Path64 path;
+        path.reserve(poly.points.size());
+        for (const Slic3r::Point &point : poly.points) path.emplace_back(std::move(Clipper2Lib::Point64(point.x(), point.y())));
+        out.emplace_back(std::move(path));
+    }
+    return out;
+}
+
 Clipper2Lib::Paths64 Slic3rExPolygons_to_Paths64(const ExPolygons& in)
 {
     Clipper2Lib::Paths64 out;
@@ -119,10 +132,10 @@ Slic3r::Polylines intersection_pl_2(const Slic3r::Polylines& subject, const Slic
 Slic3r::Polylines  diff_pl_2(const Slic3r::Polylines& subject, const Slic3r::Polygons& clip)
     { return _clipper2_pl_open(Clipper2Lib::ClipType::Difference, subject, clip); }
 
-ExPolygons union_ex2(const ExPolygons& expolygons)
+ExPolygons union_ex2(const Polygons& polygons)
 {
     Clipper2Lib::Clipper64 c;
-    c.AddSubject(Slic3rExPolygons_to_Paths64(expolygons));
+    c.AddSubject(Slic3rPolygons_to_Paths64(polygons));
 
     Clipper2Lib::ClipType ct = Clipper2Lib::ClipType::Union;
     Clipper2Lib::FillRule fr = Clipper2Lib::FillRule::NonZero;
@@ -134,4 +147,18 @@ ExPolygons union_ex2(const ExPolygons& expolygons)
     return results;
 }
 
+ExPolygons union_ex2(const ExPolygons &expolygons)
+{
+    Clipper2Lib::Clipper64 c;
+    c.AddSubject(Slic3rExPolygons_to_Paths64(expolygons));
+
+    Clipper2Lib::ClipType   ct = Clipper2Lib::ClipType::Union;
+    Clipper2Lib::FillRule   fr = Clipper2Lib::FillRule::NonZero;
+    Clipper2Lib::PolyTree64 solution;
+    c.Execute(ct, fr, solution);
+
+    ExPolygons results = PolyTreeToExPolygons(std::move(solution));
+
+    return results;
+}
 }
