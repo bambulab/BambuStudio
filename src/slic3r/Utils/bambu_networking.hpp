@@ -36,6 +36,7 @@ namespace BBL {
 #define BAMBU_NETWORK_ERR_PARSE_CONFIG_FAILED           -23
 #define BAMBU_NETWORK_ERR_NO_CORRESPONDING_BUCKET       -24
 #define BAMBU_NETWORK_ERR_GET_INSTANCE_ID_FAILED        -25
+#define BAMBU_NETWORK_SIGNED_ERROR                      -26
 
 //bind error
 #define BAMBU_NETWORK_ERR_BIND_CREATE_SOCKET_FAILED          -1010 //failed to create socket
@@ -96,7 +97,7 @@ namespace BBL {
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"
 #define BAMBU_NETWORK_AGENT_NAME            "bambu_network_agent"
 
-#define BAMBU_NETWORK_AGENT_VERSION         "01.10.02.09"
+#define BAMBU_NETWORK_AGENT_VERSION         "01.10.02.10"
 
 //iot preset type strings
 #define IOT_PRINTER_TYPE_STRING     "printer"
