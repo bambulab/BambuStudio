@@ -18,6 +18,7 @@
 #include "slic3r/GUI/HMS.hpp"
 #include "slic3r/GUI/Jobs/UpgradeNetworkJob.hpp"
 #include "slic3r/GUI/HttpServer.hpp"
+#include "slic3r/GUI/UnsavedChangesDialog.hpp"
 #include "../Utils/PrintHost.hpp"
 #include "slic3r/GUI/GLEnums.hpp"
 
@@ -51,7 +52,6 @@ class wxBookCtrlBase;
 // BBS
 class Notebook;
 struct wxLanguageInfo;
-
 
 namespace Slic3r {
 
@@ -518,9 +518,9 @@ public:
     bool            has_current_preset_changes() const;
     void            update_saved_preset_from_current_preset();
     std::vector<std::pair<unsigned int, std::string>> get_selected_presets() const;
-    bool            check_and_save_current_preset_changes(const wxString& caption, const wxString& header, bool remember_choice = true, bool use_dont_save_insted_of_discard = false);
+    bool            check_and_save_current_preset_changes(const wxString& caption, const wxString& header, bool remember_choice = true, bool use_dont_save_insted_of_discard = false, ForceOption force_op = ForceOption::fopDiscard);
     void            apply_keeped_preset_modifications();
-    bool            check_and_keep_current_preset_changes(const wxString& caption, const wxString& header, int action_buttons, bool* postponed_apply_of_keeped_changes = nullptr);
+    bool            check_and_keep_current_preset_changes(const wxString& caption, const wxString& header, int action_buttons, bool* postponed_apply_of_keeped_changes = nullptr, ForceOption force_op = ForceOption::fopDiscard);
     bool            can_load_project();
     bool            check_print_host_queue();
     bool            checked_tab(Tab* tab);
