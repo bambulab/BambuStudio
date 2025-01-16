@@ -268,6 +268,7 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<float>& matrix, c
             e.Skip();
         });
 
+    CenterOnParent();
     wxGetApp().UpdateDlgDarkUI(this);
 }
 
