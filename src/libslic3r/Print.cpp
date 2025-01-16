@@ -547,6 +547,10 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
         return -1;
     };
     std::vector<struct print_instance_info> print_instance_with_bounding_box;
+
+
+    bool all_objects_are_short = print.is_all_objects_are_short();
+    float obj_distance = all_objects_are_short ? scale_(0.5*MAX_OUTER_NOZZLE_RADIUS-0.1) : scale_(0.5*print.config().extruder_clearance_max_radius.value-0.1);
     {
         // sequential_print_horizontal_clearance_valid
         Polygons convex_hulls_other;
@@ -554,11 +558,8 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
             polygons->clear();
         std::vector<size_t> intersecting_idxs;
 
-        bool all_objects_are_short = print.is_all_objects_are_short();
         // Shrink the extruder_clearance_radius a tiny bit, so that if the object arrangement algorithm placed the objects
         // exactly by satisfying the extruder_clearance_radius, this test will not trigger collision.
-        float obj_distance = all_objects_are_short ? scale_(0.5*MAX_OUTER_NOZZLE_RADIUS-0.1) : scale_(0.5*print.config().extruder_clearance_max_radius.value-0.1);
-
         for (const PrintObject *print_object : print.objects()) {
             assert(! print_object->model_object()->instances.empty());
             assert(! print_object->instances().empty());
@@ -788,9 +789,14 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
         std::map<const PrintInstance*, std::pair<Polygon, float>> too_tall_instances;
         for (int k = 0; k < print_instance_count; k++)
         {
-            auto inst = print_instance_with_bounding_box[k].print_instance;
             // 只需要考虑喷嘴到滑杆的偏移量，这个比整个工具头的碰撞半径要小得多
-            auto bbox = print_instance_with_bounding_box[k].bounding_box.inflated(scale_(print_config.extruder_clearance_dist_to_rod.value - print_config.extruder_clearance_max_radius.value));
+            BoundingBox& bbox = print_instance_with_bounding_box[k].bounding_box;
+            bbox.offset( scale_(print_config.extruder_clearance_dist_to_rod.value*0.5) - obj_distance);
+        }
+        for (int k = 0; k < print_instance_count; k++)
+        {
+            auto inst = print_instance_with_bounding_box[k].print_instance;
+            auto bbox = print_instance_with_bounding_box[k].bounding_box;
             auto iy1 = bbox.min.y();
             auto iy2 = bbox.max.y();
             (const_cast<ModelInstance*>(inst->model_instance))->arrange_order = k+1;
