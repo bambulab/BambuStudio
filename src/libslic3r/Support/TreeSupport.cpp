@@ -2594,7 +2594,7 @@ void TreeSupport::draw_circles()
                  }
              }
              continue;
-         }
+        }
         ts_layers.insert(ts_layers.begin() + bottom_added_layers[i].first + cnt, bottom_added_layers[i].second);
         ts_layers[bottom_added_layers[i].first + cnt - 1]->upper_layer = ts_layers[bottom_added_layers[i].first + cnt];
         ts_layers[bottom_added_layers[i].first + cnt]->upper_layer     = ts_layers[bottom_added_layers[i].first + cnt + 1];
@@ -3040,7 +3040,7 @@ void TreeSupport::drop_nodes()
                             }
                             Point        next_pt     = overhang.contour.centroid();
                             SupportNode *next_node   = m_ts_data->create_node(next_pt, p_node->distance_to_top + 1, obj_layer_nr_next, p_node->support_roof_layers_below - 1,
-                                                                              to_buildplate, p_node, print_z_next, height_next);
+                                                                                to_buildplate, p_node, print_z_next, height_next);
                             next_node->max_move_dist = 0;
                             next_node->overhang      = std::move(overhang);
                             next_node->origin_area   = node.origin_area;
@@ -3352,13 +3352,18 @@ void TreeSupport::smooth_nodes()
                         std::swap(pts, pts1);
                         std::swap(radii, radii1);
                     }
-                    else {
-                        // interpolate need_extra_wall in the end
-                        for (size_t i = 1; i < branch.size() - 1; i++) {
-                            if (branch[i - 1]->need_extra_wall && branch[i + 1]->need_extra_wall)
-                                branch[i]->need_extra_wall = true;
-                        }
+                }
+                // interpolate need_extra_wall in the end
+                int idx_first_double_wall = -1;
+                int idx_last_double_wall  = -1;
+                for (size_t i = 0; i < pts.size(); i++) {
+                    if (branch[i]->need_extra_wall) {
+                        if (idx_first_double_wall < 0) idx_first_double_wall = i;                        
+                        idx_last_double_wall = i;
                     }
+                }
+                if (idx_last_double_wall >= 0 && idx_first_double_wall >= 0 && idx_last_double_wall > idx_first_double_wall) { 
+                    for (size_t i = idx_first_double_wall + 1; i < idx_last_double_wall; i++) branch[i]->need_extra_wall = true;
                 }
             }
         }
@@ -3730,7 +3735,7 @@ void TreeSupport::generate_contact_points()
                     added = true;
                 };
                 return contact_node;
-                };
+            };
 
             for (const auto& overhang_with_type : layer->loverhangs_with_type)  {
                 const auto &overhang_part = overhang_with_type.first;
