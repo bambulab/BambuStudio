@@ -1652,7 +1652,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                 bool do_slicing = true;
                 if ((wxGetApp().app_config->get("play_slicing_video") == "true") && (printer_model == "Bambu Lab H2D"))
                 {
-                    MessageDialog dlg(this, _L("This is your first time slicing with the H2D machine.\nWould you like to watch a quick tutorial video?"), _L("Tutorial"), wxYES_NO);
+                    MessageDialog dlg(this, _L("This is your first time slicing with the H2D machine.\nWould you like to watch a quick tutorial video?"), _L("First Guide"), wxYES_NO);
                     auto  res = dlg.ShowModal();
                     if (res == wxID_YES) {
                         fs::path video_path = fs::path(resources_dir()) / "videos/dual_extruder_slicing.mp4";
