@@ -686,7 +686,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("z_direction_outwall_speed_continuous", coBool);
-    def->label = L("Z direction outwall speed continuous");
+    def->label = L("Smoothing wall speed in z direction(experimental)");
     def->category = L("Quality");
     def->tooltip  = L("Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode.");
     def->mode     = comAdvanced;
@@ -4177,10 +4177,19 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(false));
 
     def          = this->add("enable_circle_compensation", coBool);
-    def->label   = L("Auto holes-contour compensation");
-    def->tooltip = L("enable_circle_compensation");
+    def->label   = L("Auto Circle Holes-contour Compensation");
+    def->tooltip = L("Expirment feature to compensate the circle holes and circle contour. "
+                     "This feature is used to improve the accuracy of the circle holes and contour within the diameter below 50mm. "
+                     "Only support PLA Basic, PLA CF, PET CF, PETG CF and PETG HF.");
     def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
+
+    def          = this->add("circle_compensation_manual_offset", coFloat);
+    def->label   = L("User Customized Offset");
+    def->sidetext = L("mm");
+    def->tooltip = L("If you want to have tighter or looser assemble, you can set this value.");
+    def->mode    = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.0));
 
     def             = this->add("circle_compensation_speed", coFloats);
     def->label      = L("Circle Compensation Speed");

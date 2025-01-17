@@ -211,16 +211,16 @@
         "280000"
     ],
     "counter_limit_min": [
-        "-40000"
+        "-400000"
     ],
     "counter_limit_max": [
-        "50000"
+        "500000"
     ],
     "hole_limit_min": [
-        "80000"
+        "800000"
     ],
     "hole_limit_max": [
-        "250000"
+        "2500000"
     ],
     "circle_compensation_speed": [
         "200"

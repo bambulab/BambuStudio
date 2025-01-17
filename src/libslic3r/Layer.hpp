@@ -80,7 +80,7 @@ public:
     void    slices_to_fill_surfaces_clipped();
     void    prepare_fill_surfaces();
     //BBS
-    void    auto_circle_compensation(SurfaceCollection &slices, const AutoContourHolesCompensationParams &auto_contour_holes_compensation_params);
+    void    auto_circle_compensation(SurfaceCollection &slices, const AutoContourHolesCompensationParams &auto_contour_holes_compensation_params, float manual_offset = 0.0f);
     void    make_perimeters(const SurfaceCollection &slices, SurfaceCollection* fill_surfaces, ExPolygons* fill_no_overlap, std::vector<LoopNode> &loop_nodes);
     void    process_external_surfaces(const Layer *lower_layer, const Polygons *lower_layer_covered);
     double  infill_area_threshold() const;

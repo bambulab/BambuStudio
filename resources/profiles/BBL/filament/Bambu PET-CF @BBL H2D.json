@@ -9,18 +9,6 @@
     "chamber_temperatures": [
         "60"
     ],
-    "counter_coef_2": [
-        "3860"
-    ],
-    "counter_coef_3": [
-        "-32000"
-    ],
-    "counter_limit_min": [
-        "-35000"
-    ],
-    "counter_limit_max": [
-        "33000"
-    ],
     "filament_deretraction_speed": [
         "nil",
         "nil"
@@ -93,18 +81,6 @@
         "nil",
         "nil"
     ],
-    "hole_coef_2": [
-        "-8000"
-    ],
-    "hole_coef_3": [
-        "135000"
-    ],
-    "hole_limit_min": [
-        "88000"
-    ],
-    "hole_limit_max": [
-        "220000"
-    ],
     "nozzle_temperature": [
         "270",
         "270"
@@ -117,6 +93,36 @@
         "Bambu Lab H2D 0.4 nozzle",
         "Bambu Lab H2D 0.6 nozzle",
         "Bambu Lab H2D 0.8 nozzle"
+    ],
+    "counter_coef_1": [
+        "0"
+    ],
+    "counter_coef_2": [
+        "3860"
+    ],
+    "counter_coef_3": [
+        "-32000"
+    ],
+    "hole_coef_1": [
+        "0"
+    ],
+    "hole_coef_2": [
+        "-8000"
+    ],
+    "hole_coef_3": [
+        "135000"
+    ],
+    "counter_limit_min": [
+        "-350000"
+    ],
+    "counter_limit_max": [
+        "330000"
+    ],
+    "hole_limit_min": [
+        "880000"
+    ],
+    "hole_limit_max": [
+        "2200000"
     ],
     "filament_start_gcode": [
         "; filament start gcode\nM145 P1 ; set airduct mode to heating mode\n"
