@@ -2,12 +2,12 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-17 16:44+0800\n"
+"POT-Creation-Date: 2025-01-17 17:46+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -5807,7 +5807,7 @@ msgstr ""
 msgid "Please select a printer in 'Device' page first."
 msgstr ""
 
-msgid "Sync extruder infomation"
+msgid "Sync printer information"
 msgstr ""
 
 msgid "The currently connected printer does not have two extruders."
@@ -5824,14 +5824,14 @@ msgid ""
 "before synchronizing."
 msgstr ""
 
+msgid "Sync extruder infomation"
+msgstr ""
+
 msgid "Click to edit preset"
 msgstr "Klikněte pro editaci přednastavení"
 
 msgid "Connection"
 msgstr "Připojení"
-
-msgid "Sync printer information"
-msgstr ""
 
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr ""
@@ -7109,15 +7109,17 @@ msgid "Auto Bed Leveling"
 msgstr ""
 
 msgid ""
-"Check heatbed flatness. Leveling makes extruded height uniform.\n"
-"*Automatic mode: Level first (about 10 seconds). Skip if surface is fine."
+"This checks the flatness of heatbed. Leveling makes extruded height "
+"uniform.\n"
+"*Automatic mode: Run a leveling check(about 10 seconds). Skip if surface is "
+"fine."
 msgstr ""
 
 msgid "Flow Dynamics Calibration"
 msgstr "Kalibrace Dynamiky Průtoku"
 
 msgid ""
-"Find the best coefficient for dynamic flow calibration to enhance print "
+"This process determines the dynamic flow values to improve overall print "
 "quality.\n"
 "*Automatic mode: Skip if the filament was calibrated recently."
 msgstr ""
@@ -7127,7 +7129,7 @@ msgstr ""
 
 msgid ""
 "Calibrate nozzle offsets to enhance print quality.\n"
-"*Automatic mode: Check for calibration before printing; skip if unnecessary."
+"*Automatic mode: Check for calibration before printing. Skip if unnecessary."
 msgstr ""
 
 msgid "Use AMS"
@@ -7632,8 +7634,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Při nahrávání časosběru bez nástrojové hlavy se doporučuje přidat  "
 "\"Timelapse Wipe Tower\" \n"
@@ -8342,6 +8344,22 @@ msgstr ""
 msgid "Right Extruder"
 msgstr ""
 
+msgid ""
+"Check heatbed flatness. Leveling makes extruded height uniform.\n"
+"*Automatic mode: Level first (about 10 seconds). Skip if surface is fine."
+msgstr ""
+
+msgid ""
+"Find the best coefficient for dynamic flow calibration to enhance print "
+"quality.\n"
+"*Automatic mode: Skip if the filament was calibrated recently."
+msgstr ""
+
+msgid ""
+"Calibrate nozzle offsets to enhance print quality.\n"
+"*Automatic mode: Check for calibration before printing; skip if unnecessary."
+msgstr ""
+
 msgid "Attention"
 msgstr ""
 
@@ -8352,13 +8370,16 @@ msgstr ""
 msgid "Advanced settings >"
 msgstr ""
 
-msgid "When you click ok button,it will append unmapped color."
+msgid ""
+"When you click \"Synchronize now\" button,it will append unmapped color."
 msgstr ""
 
 msgid "Unused AMS filaments should also be added to the filament list."
 msgstr ""
 
-msgid "When you click ok button,it will merge same ams to only one color."
+msgid ""
+"When you click \"Synchronize now\" button,it will merge same ams to only one "
+"color."
 msgstr ""
 
 msgid "Automatically merge the same colors in the model after mapping."
@@ -8383,12 +8404,6 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
-msgstr ""
-
-msgid ""
-"Up: Original\n"
-"Down: filament in AMS\n"
-"And you can click it to modify it."
 msgstr ""
 
 msgid "Successfully synchronized nozzle and AMS number information."
@@ -9399,7 +9414,7 @@ msgstr "Vyhněte se přejíždění stěn"
 msgid "Detour and avoid traveling across wall which may cause blob on surface"
 msgstr ""
 
-msgid "Z direction outwall speed continuous"
+msgid "Smoothing wall speed in z direction(experimental)"
 msgstr ""
 
 msgid ""
@@ -9634,9 +9649,7 @@ msgstr "Nejvyšší plochy"
 msgid "Top area threshold"
 msgstr ""
 
-msgid ""
-"This factor affects the acreage of top area. The small the number the big "
-"the top area."
+msgid "The min width of top areas in percentage of perimeter line width."
 msgstr ""
 
 msgid "Only one wall on first layer"
@@ -11822,10 +11835,20 @@ msgstr ""
 "Věž pro čištění se může použít k čištění zbytků na trysce a stabilizaci "
 "tlaku v trysce, aby se předešlo vzniku vad při tisku objektů."
 
-msgid "Auto holes-contour compensation"
+msgid "Auto Circle Holes-contour Compensation"
 msgstr ""
 
-msgid "enable_circle_compensation"
+msgid ""
+"Expirment feature to compensate the circle holes and circle contour. This "
+"feature is used to improve the accuracy of the circle holes and contour "
+"within the diameter below 50mm. Only support PLA Basic, PLA CF, PET CF, PETG "
+"CF and PETG HF."
+msgstr ""
+
+msgid "User Customized Offset"
+msgstr ""
+
+msgid "If you want to have tighter or looser assemble, you can set this value."
 msgstr ""
 
 msgid "Circle Compensation Speed"
@@ -13191,8 +13214,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 
@@ -14247,8 +14270,8 @@ msgid ""
 msgstr ""
 "Plochou na podložku\n"
 "Věděli jste, že můžete rychle nastavit orientaci modelu tak, aby jedna z "
-"jeho stěn spočívala na tiskovém podloží? Vyberte funkci \"Plochou na podložku"
-"\" nebo stiskněte klávesu <b>F</b>."
+"jeho stěn spočívala na tiskovém podloží? Vyberte funkci \"Plochou na "
+"podložku\" nebo stiskněte klávesu <b>F</b>."
 
 #: resources/data/hints.ini: [hint:Object List]
 msgid ""
@@ -14751,12 +14774,12 @@ msgstr ""
 #~ "Najdete podrobnosti o kalibraci průtoku dynamiky v naší wiki.\n"
 #~ "\n"
 #~ "Obvykle kalibrace není potřebná. Při spuštění tisku s jednobarevným/"
-#~ "materiálovým filamentem a zaškrtnutou volbou \"kalibrace průtoku dynamiky"
-#~ "\" v menu spuštění tisku, tiskárna bude postupovat podle staré metody a "
-#~ "zkalibruje filament před tiskem. Při spuštění tisku s vícebarevným/"
-#~ "materiálovým filamentem bude tiskárna při každé změně filamentu používat "
-#~ "výchozí kompenzační parametr pro filament, což má většinou dobrý "
-#~ "výsledek.\n"
+#~ "materiálovým filamentem a zaškrtnutou volbou \"kalibrace průtoku "
+#~ "dynamiky\" v menu spuštění tisku, tiskárna bude postupovat podle staré "
+#~ "metody a zkalibruje filament před tiskem. Při spuštění tisku s "
+#~ "vícebarevným/materiálovým filamentem bude tiskárna při každé změně "
+#~ "filamentu používat výchozí kompenzační parametr pro filament, což má "
+#~ "většinou dobrý výsledek.\n"
 #~ "\n"
 #~ "Všimněte si, že existují některé případy, které mohou způsobit, že "
 #~ "výsledek kalibrace nebude spolehlivý: použití texturované podložky pro "
