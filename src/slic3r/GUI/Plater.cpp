@@ -1099,11 +1099,11 @@ bool Sidebar::priv::switch_diameter(bool single)
                               _L("The software does not support using different diameter of nozzles for one  print. "
                                  "If the left and right nozzles are inconsistent, we can only proceed with single-head printing. "
                                  "Please confirm which nozzle you would like to use for this project."),
-                              _L("Switch diameter"), wxYES_NO | wxNO_DEFAULT);
-            dlg.SetButtonLabel(wxID_YES, wxString::Format(_L("Left nozzle: %smm"), diameter_left));
+                              _L("Switch diameter"), wxNO | wxCANCEL);
+            dlg.SetButtonLabel(wxID_CANCEL, wxString::Format(_L("Left nozzle: %smm"), diameter_left));
             dlg.SetButtonLabel(wxID_NO, wxString::Format(_L("Right nozzle: %smm"), diameter_right));
             int result = dlg.ShowModal();
-            if (result == wxID_YES)
+            if (result == wxID_CANCEL)
                 diameter = diameter_left;
             else if (result == wxID_NO)
                 diameter = diameter_right;
