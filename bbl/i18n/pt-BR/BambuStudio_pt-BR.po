@@ -1,12 +1,12 @@
 # Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-17 16:44+0800\n"
+"POT-Creation-Date: 2025-01-17 17:46+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -5933,7 +5933,7 @@ msgstr ""
 msgid "Please select a printer in 'Device' page first."
 msgstr ""
 
-msgid "Sync extruder infomation"
+msgid "Sync printer information"
 msgstr ""
 
 msgid "The currently connected printer does not have two extruders."
@@ -5950,14 +5950,14 @@ msgid ""
 "before synchronizing."
 msgstr ""
 
+msgid "Sync extruder infomation"
+msgstr ""
+
 msgid "Click to edit preset"
 msgstr "Clique para editar a predefinição"
 
 msgid "Connection"
 msgstr "Conexão"
-
-msgid "Sync printer information"
-msgstr ""
 
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr ""
@@ -7279,15 +7279,17 @@ msgid "Auto Bed Leveling"
 msgstr ""
 
 msgid ""
-"Check heatbed flatness. Leveling makes extruded height uniform.\n"
-"*Automatic mode: Level first (about 10 seconds). Skip if surface is fine."
+"This checks the flatness of heatbed. Leveling makes extruded height "
+"uniform.\n"
+"*Automatic mode: Run a leveling check(about 10 seconds). Skip if surface is "
+"fine."
 msgstr ""
 
 msgid "Flow Dynamics Calibration"
 msgstr "Calibração de Dinâmica de Fluxo"
 
 msgid ""
-"Find the best coefficient for dynamic flow calibration to enhance print "
+"This process determines the dynamic flow values to improve overall print "
 "quality.\n"
 "*Automatic mode: Skip if the filament was calibrated recently."
 msgstr ""
@@ -7297,7 +7299,7 @@ msgstr ""
 
 msgid ""
 "Calibrate nozzle offsets to enhance print quality.\n"
-"*Automatic mode: Check for calibration before printing; skip if unnecessary."
+"*Automatic mode: Check for calibration before printing. Skip if unnecessary."
 msgstr ""
 
 msgid "Use AMS"
@@ -7850,8 +7852,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Ao gravar o timelapse sem o cabeçote de ferramenta, é recomendável adicionar "
 "uma “Timelapse Wipe Tower” \n"
@@ -8575,6 +8577,22 @@ msgstr ""
 msgid "Right Extruder"
 msgstr ""
 
+msgid ""
+"Check heatbed flatness. Leveling makes extruded height uniform.\n"
+"*Automatic mode: Level first (about 10 seconds). Skip if surface is fine."
+msgstr ""
+
+msgid ""
+"Find the best coefficient for dynamic flow calibration to enhance print "
+"quality.\n"
+"*Automatic mode: Skip if the filament was calibrated recently."
+msgstr ""
+
+msgid ""
+"Calibrate nozzle offsets to enhance print quality.\n"
+"*Automatic mode: Check for calibration before printing; skip if unnecessary."
+msgstr ""
+
 msgid "Attention"
 msgstr ""
 
@@ -8585,13 +8603,16 @@ msgstr ""
 msgid "Advanced settings >"
 msgstr ""
 
-msgid "When you click ok button,it will append unmapped color."
+msgid ""
+"When you click \"Synchronize now\" button,it will append unmapped color."
 msgstr ""
 
 msgid "Unused AMS filaments should also be added to the filament list."
 msgstr ""
 
-msgid "When you click ok button,it will merge same ams to only one color."
+msgid ""
+"When you click \"Synchronize now\" button,it will merge same ams to only one "
+"color."
 msgstr ""
 
 msgid "Automatically merge the same colors in the model after mapping."
@@ -8619,12 +8640,6 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
-msgstr ""
-
-msgid ""
-"Up: Original\n"
-"Down: filament in AMS\n"
-"And you can click it to modify it."
 msgstr ""
 
 msgid "Successfully synchronized nozzle and AMS number information."
@@ -9666,7 +9681,7 @@ msgstr ""
 "Desvie e evite atravessar paredes para evitar a possibilidade de criar "
 "bolhas nas superfícies"
 
-msgid "Z direction outwall speed continuous"
+msgid "Smoothing wall speed in z direction(experimental)"
 msgstr ""
 
 msgid ""
@@ -9922,12 +9937,8 @@ msgstr "Superfície superior"
 msgid "Top area threshold"
 msgstr "Limite de área superior"
 
-msgid ""
-"This factor affects the acreage of top area. The small the number the big "
-"the top area."
+msgid "The min width of top areas in percentage of perimeter line width."
 msgstr ""
-"Esse fator afeta a área cultivada da área superior. Quanto menor o número, "
-"maior a área superior."
 
 msgid "Only one wall on first layer"
 msgstr "Apenas uma parede na primeira camada"
@@ -12276,10 +12287,20 @@ msgstr ""
 "estabilizar a pressão da câmara dentro do bocal, a fim de evitar defeitos de "
 "aparência ao imprimir objetos."
 
-msgid "Auto holes-contour compensation"
+msgid "Auto Circle Holes-contour Compensation"
 msgstr ""
 
-msgid "enable_circle_compensation"
+msgid ""
+"Expirment feature to compensate the circle holes and circle contour. This "
+"feature is used to improve the accuracy of the circle holes and contour "
+"within the diameter below 50mm. Only support PLA Basic, PLA CF, PET CF, PETG "
+"CF and PETG HF."
+msgstr ""
+
+msgid "User Customized Offset"
+msgstr ""
+
+msgid "If you want to have tighter or looser assemble, you can set this value."
 msgstr ""
 
 msgid "Circle Compensation Speed"
@@ -13701,8 +13722,8 @@ msgstr ""
 "Você quer reescrevê-lo?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "Nós renomearíamos as predefinições como “Tipo de fornecedor Serial @printer "
@@ -15167,6 +15188,13 @@ msgstr ""
 "Você sabia que, ao imprimir materiais propensos a deformações, como o ABS, "
 "aumentar adequadamente a temperatura do leito térmico pode reduzir a "
 "probabilidade de deformação."
+
+#~ msgid ""
+#~ "This factor affects the acreage of top area. The small the number the big "
+#~ "the top area."
+#~ msgstr ""
+#~ "Esse fator afeta a área cultivada da área superior. Quanto menor o "
+#~ "número, maior a área superior."
 
 #~ msgid "Send print job to"
 #~ msgstr "Enviar trabalho de impressão para"
