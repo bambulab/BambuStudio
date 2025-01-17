@@ -932,7 +932,9 @@ static std::vector<std::string> s_Preset_filament_options {
     "filament_extruder_variant",
     //OrcaSlicer
     "enable_pressure_advance", "pressure_advance", "chamber_temperatures","filament_notes",
-    "filament_long_retractions_when_cut","filament_retraction_distances_when_cut","filament_shrink"
+    "filament_long_retractions_when_cut","filament_retraction_distances_when_cut","filament_shrink",
+    //BBS filament change length while the extruder color
+    "filament_change_length"
 };
 
 static std::vector<std::string> s_Preset_machine_limits_options {
