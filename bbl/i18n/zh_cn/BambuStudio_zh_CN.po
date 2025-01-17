@@ -1,12 +1,12 @@
 # Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-17 10:09+0800\n"
+"POT-Creation-Date: 2025-01-17 12:24+0800\n"
 "PO-Revision-Date: 2025-01-08 20:27+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -2803,7 +2803,7 @@ msgid "External"
 msgstr "外部"
 
 msgid "Right AMS"
-msgstr "侧AMS"
+msgstr "右侧AMS"
 
 msgid ""
 "Note: Only the AMS slots loaded with the same material type can be selected."
@@ -4118,7 +4118,7 @@ msgstr "材料 %s 不能在直接在当前打印板上打印。"
 msgid ""
 "PLA and PETG filaments detected in the mixture. Adjust parameters according "
 "to the Wiki to ensure print quality."
-msgstr ""
+msgstr "检测到 PLA 和 PETG 材料混合。请根据 Wiki 调整参数以确保打印质量。"
 
 msgid "Calibration step selection"
 msgstr "校准步骤选择"
@@ -4240,6 +4240,16 @@ msgstr "切片单盘"
 
 msgid "Print plate"
 msgstr "打印单盘"
+
+msgid ""
+"This is your first time slicing with the H2D machine.\n"
+"Would you like to watch a quick tutorial video?"
+msgstr ""
+"这是您第一次使用 H2D 机器进行切片操作。\n"
+"您需要观看一个简短的指导视频吗？
+
+msgid "First Guide"
+msgstr "首次指南"
 
 msgid "Slice all"
 msgstr "切片所有盘"
@@ -5715,14 +5725,14 @@ msgstr "预估打印时间"
 msgid "Filament changes"
 msgstr "材料切换"
 
-msgid "Please set the number of ams installed on the this extrusion head."
-msgstr "请设置该挤压头上安装的 ams 数量。"
+msgid "Set the number of AMS installed on the nozzle."
+msgstr "设置该喷嘴上安装的AMS数量。"
 
-msgid "AMS(4 colors)"
-msgstr "AMS(4个颜色)"
+msgid "AMS(4 slots)"
+msgstr "AMS（4槽）"
 
-msgid "AMS(single color)"
-msgstr "AMS(单个颜色)"
+msgid "AMS(1 slot)"
+msgstr "AMS（单槽）"
 
 msgid "Not installed"
 msgstr "未安装"
@@ -5820,9 +5830,6 @@ msgid ""
 "is not included."
 msgstr ""
 
-msgid "Sync filaments with AMS successfully."
-msgstr "完成AMS的耗材同步。"
-
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
 msgstr "是否保存修改到“%1%”？"
@@ -5868,6 +5875,8 @@ msgid ""
 "Smooth mode for timelapse is enabled, but the prime tower is off, which may "
 "cause print defects. Please enable the prime tower, re-slice and print again."
 msgstr ""
+"检测到您使用了延时摄影的平滑模式，但未启用料塔，这可能导致打印瑕疵。建议开启"
+"料塔后重新切片打印。"
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -6305,6 +6314,15 @@ msgstr "发送到打印机"
 msgid "Custom supports and color painting were removed before repairing."
 msgstr "自定义的支撑和涂色在模型修复之前将被清除。"
 
+msgid ""
+"The currently selected machine preset is inconsistent with the connected "
+"printer type.Please change device or currently selected machine.\n"
+msgstr ""
+"当前选择的机器预设与连接的打印机类型不一致。请更改设备或当前选择的机器。\n"
+
+msgid "Synchronize AMS Filament Information"
+msgstr "同步AMS耗材信息"
+
 msgid "Invalid number"
 msgstr "无效数字"
 
@@ -6378,9 +6396,9 @@ msgstr ""
 "床温度为非零值。"
 
 msgid ""
-"Currently, the object configuration form cannot be used with multiple "
-"extruders."
-msgstr "目前，对象配置表单不能用于多台挤出机。"
+"Currently, the object configuration form cannot be used with a multiple-"
+"extruder printer."
+msgstr "目前，对象配置表单不能与多头打印机一起使用。"
 
 msgid "Not available"
 msgstr "不可用"
@@ -7589,8 +7607,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "在录制无工具头延时摄影视频时，建议添加“延时摄影擦料塔”\n"
 "右键单击打印板的空白位置，选择“添加标准模型”->“延时摄影擦料塔”。"
@@ -8262,29 +8280,18 @@ msgstr "确定要直接覆盖当前耗材吗？"
 
 msgctxt "Sync_AMS"
 msgid "Plate"
-msgstr ""
+msgstr "盘号"
 
 msgid ""
 "The connected printer does not match the currently selected printer. Please "
 "change the selected printer."
-msgstr ""
-
-msgid "Ams filaments synchronization"
-msgstr "AMS耗材同步"
+msgstr "连接的打印机与当前选择的打印机不匹配。请更改所选打印机。"
 
 msgid "Mapping"
 msgstr "匹配"
 
 msgid "Overwriting"
 msgstr "覆盖"
-
-msgid "(Inconsistent)"
-msgstr "(不一致)"
-
-msgid ""
-"The device printer and the currently selected printer are not consistent. It "
-"is recommended to be consistent."
-msgstr "设备打印机和当前选择的打印机不一致。建议保持一致。"
 
 msgid "(Recommended filament)"
 msgstr "(推荐的材料)"
@@ -8339,6 +8346,26 @@ msgid ""
 "Down: filament in AMS\n"
 "And you can click it to modify it."
 msgstr ""
+"下拉框的上半部分：原始\n"
+"下拉框的下半部分：AMS的材料\n"
+"您可以单击它进行修改"
+
+msgid "Successfully synchronized nozzle and AMS number information."
+msgstr "喷嘴信息和AMS数量同步成功。"
+
+msgid "Sync AMS filament"
+msgstr "继续同步AMS耗材"
+
+msgctxt "Sync_Nozzle_AMS"
+msgid "Cancel"
+msgstr "知道了"
+
+msgid "Successfully synchronized color and type of filament in AMS."
+msgstr "AMS耗材颜色和材质同步成功。"
+
+msgctxt "FinishSyncAms"
+msgid "OK"
+msgstr "知道了"
 
 msgid "Auto-Calc"
 msgstr "自动计算"
@@ -12185,6 +12212,9 @@ msgid ""
 "type, nozzle diameter, and nozzle flow are the same.\n"
 "Are you sure you want to override the historical result?"
 msgstr ""
+"在同一个挤出机内，当耗材类型、喷嘴直径和喷嘴流量相同时，名称 (%s) 必须是唯一"
+"的。\n"
+"您确定要覆盖历史结果吗？"
 
 #, c-format, boost-format
 msgid ""
@@ -13004,8 +13034,8 @@ msgstr ""
 "你想重写预设吗"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "我们会将预设重命名为“供应商 类型 系列 @您选择的打印机”。\n"
@@ -13428,6 +13458,8 @@ msgid ""
 "printer configuration.\n"
 "Please click the Sync button above and restart the calibration."
 msgstr ""
+"当前选择的右喷头喷嘴类型与实际打印机的喷嘴类型不匹配。请点击上方的同步按钮并"
+"重新开始校准。"
 
 #, c-format, boost-format
 msgid ""
@@ -14076,20 +14108,22 @@ msgid ""
 "Calculate the best filament grouping to minimize filament waste. Need to "
 "manually place filaments on the printer based on slicing results."
 msgstr ""
-"以最小化耗材的浪费为目标，切片时自动规划耗材的左右分组。需要根据切片结果去打"
-"印机放置耗材"
+"以最小化耗材浪费为目标，切片时自动规划耗材的左右分组。需根据切片结果在打印机上调整耗材位置"
 
 msgid ""
 "Calculate the filament grouping based on the printer's filaments, reducing "
 "the need for adjusting filaments at the printer."
 msgstr ""
-"根据当前打印机的耗材，切片时自动规划耗材的左右分组，减少去打印机手动调整耗材"
+"为了减少去打印机手动调整耗材位置，切片时根据当前打印机的耗材摆放自动规划耗材的左右分组，但可能会有更多的耗材浪费"
 
 msgid "Manually assign filament to the left or right nozzle."
-msgstr "手动规划，切片前手动设置耗材的左右分组"
+msgstr "根据您的个人意愿，切片前手动设置耗材的左右分组"
 
 msgid "Global settings"
 msgstr "全局设置"
+
+msgid "Video tutorial"
+msgstr "视频指南"
 
 msgid "Learn more"
 msgstr "更多信息查看wiki"
@@ -14376,6 +14410,34 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid "Please set the number of ams installed on the this extrusion head."
+#~ msgstr "请设置该挤压头上安装的 ams 数量。"
+
+#~ msgid "AMS(4 colors)"
+#~ msgstr "AMS(4个颜色)"
+
+#~ msgid "AMS(single color)"
+#~ msgstr "AMS(单个颜色)"
+
+#~ msgid "Sync filaments with AMS successfully."
+#~ msgstr "完成AMS的耗材同步。"
+
+#~ msgid ""
+#~ "Currently, the object configuration form cannot be used with multiple "
+#~ "extruders."
+#~ msgstr "目前，对象配置表单不能用于多台挤出机。"
+
+#~ msgid "Ams filaments synchronization"
+#~ msgstr "AMS耗材同步"
+
+#~ msgid "(Inconsistent)"
+#~ msgstr "(不一致)"
+
+#~ msgid ""
+#~ "The device printer and the currently selected printer are not consistent. "
+#~ "It is recommended to be consistent."
+#~ msgstr "设备打印机和当前选择的打印机不一致。建议保持一致。"
 
 #~ msgid ""
 #~ "Automatically re-slice according to the optimal filament arrangement, and "
@@ -20686,8 +20748,8 @@ msgstr ""
 #~ msgstr "正在准备设置页"
 
 #~ msgid ""
-#~ "You have the following presets with saved options for \"Print Host upload"
-#~ "\""
+#~ "You have the following presets with saved options for \"Print Host "
+#~ "upload\""
 #~ msgstr "您的以下预设中包含未保存的选项“打印主机上传”"
 
 #~ msgid ""
