@@ -144,8 +144,34 @@ FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, w
     {
         wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-        const std::string wiki_path = Slic3r::resources_dir() + "/wiki/filament_group_wiki_zh.html";
+        auto* video_sizer = new wxBoxSizer(wxHORIZONTAL);
+        video_link = new wxStaticText(this, wxID_ANY, _L("Video tutorial"));
+        video_link->SetBackgroundColour(BackGroundColor);
+        video_link->SetForegroundColour(GreenColor);
+        video_link->SetFont(Label::Body_12.Underlined());
+        video_link->SetCursor(wxCursor(wxCURSOR_HAND));
+        video_link->Bind(wxEVT_LEFT_DOWN, [](wxMouseEvent &)
+        {
+            fs::path video_path = fs::path(resources_dir()) / "videos/dual_extruder_slicing.mp4";
+            wxString video_path_str = wxString::FromUTF8(video_path.string());
 
+            if (wxFileExists(video_path_str)) {
+                if (wxLaunchDefaultApplication(video_path_str)) {
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("Video is being played using the system's default player.");
+                } else {
+                   BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("launch system's default player failed");
+                }
+            } else {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("Video file does not exist: %s")%video_path_str.ToStdString();
+            }
+
+            wxGetApp().app_config->set("play_slicing_video", "false");
+        });
+        video_sizer->Add(video_link, 0, wxALIGN_CENTER | wxALL, FromDIP(3));
+        button_sizer->Add(video_sizer, 0, wxLEFT, horizontal_margin);
+        button_sizer->AddStretchSpacer();
+
+        const std::string wiki_path = Slic3r::resources_dir() + "/wiki/filament_group_wiki_zh.html";
         auto* wiki_sizer = new wxBoxSizer(wxHORIZONTAL);
         wiki_link = new wxStaticText(this, wxID_ANY, _L("Learn more"));
         wiki_link->SetBackgroundColour(BackGroundColor);
@@ -156,7 +182,6 @@ FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, w
         wiki_sizer->Add(wiki_link, 0, wxALIGN_CENTER | wxALL, FromDIP(3));
 
         button_sizer->Add(wiki_sizer, 0, wxLEFT, horizontal_margin);
-        button_sizer->AddStretchSpacer();
 
         top_sizer->Add(button_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, horizontal_margin);
     }

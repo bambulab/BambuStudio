@@ -63,6 +63,7 @@ private:
 
 
     wxStaticText *wiki_link;
+    wxStaticText *video_link;
 
     PartPlate* partplate_ref{ nullptr };
     Plater* plater_ref{ nullptr };
