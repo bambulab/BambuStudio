@@ -409,7 +409,9 @@ void AppConfig::set_defaults()
     if (get("is_split_compound").empty()) {
         set_bool("is_split_compound", false);
     }
-
+    if (get("play_slicing_video").empty()) {
+        set_bool("play_slicing_video", true);
+    }
     // Remove legacy window positions/sizes
     erase("app", "main_frame_maximized");
     erase("app", "main_frame_pos");
