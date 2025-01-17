@@ -2244,14 +2244,14 @@ void Sidebar::update_presets(Preset::Type preset_type)
         if (is_dual_extruder) {
             update_extruder_variant(*p->left_extruder, 0);
             update_extruder_variant(*p->right_extruder, 1);
-            if (!p->is_switching_diameter) {
+            //if (!p->is_switching_diameter) {
                 update_extruder_diameter(*p->left_extruder);
                 update_extruder_diameter(*p->right_extruder);
-            }
+            //}
             p->image_printer_bed->SetBitmap(create_scaled_bitmap(bed_type_thumbnails[BedType(p->combo_printer_bed->GetSelection() + 1)], this, 48));
         } else {
             update_extruder_variant(*p->single_extruder, 0);
-            if (!p->is_switching_diameter)
+            //if (!p->is_switching_diameter)
                 update_extruder_diameter(*p->single_extruder);
             p->image_printer_bed->SetBitmap(create_scaled_bitmap(bed_type_thumbnails[BedType(p->combo_printer_bed->GetSelection() + 1)], this, 32));
         }
