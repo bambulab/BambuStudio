@@ -66,9 +66,10 @@ void LayerRegion::slices_to_fill_surfaces_clipped()
     }
 }
 
-void LayerRegion::auto_circle_compensation(SurfaceCollection& slices, const AutoContourHolesCompensationParams &auto_contour_holes_compensation_params)
+void LayerRegion::auto_circle_compensation(SurfaceCollection& slices, const AutoContourHolesCompensationParams &auto_contour_holes_compensation_params, float manual_offset)
 {
-     int filament_idx = this->region().config().wall_filament;
+     // filament is 1 base
+     int filament_idx = this->region().config().wall_filament - 1;
 
      double limited_speed = auto_contour_holes_compensation_params.circle_compensation_speed[filament_idx];
      double counter_speed_coef      = auto_contour_holes_compensation_params.counter_speed_coef[filament_idx] / 1e6;
@@ -90,7 +91,7 @@ void LayerRegion::auto_circle_compensation(SurfaceCollection& slices, const Auto
         Point  center;
         double diameter = 0;
         if (surface.expolygon.contour.is_approx_circle(max_deviation, max_variance, center, diameter)) {
-            double offset_value = counter_speed_coef * limited_speed + counter_diameter_coef * diameter + counter_compensate_coef;
+            double offset_value = counter_speed_coef * limited_speed + counter_diameter_coef * diameter + counter_compensate_coef + manual_offset;
             if (offset_value < counter_limit_min_value) {
                 offset_value = counter_limit_min_value;
             } else if (offset_value > counter_limit_max_value) {
@@ -106,7 +107,7 @@ void LayerRegion::auto_circle_compensation(SurfaceCollection& slices, const Auto
         for (size_t i = 0; i < surface.expolygon.holes.size(); ++i) {
             Polygon &hole = surface.expolygon.holes[i];
             if (hole.is_approx_circle(max_deviation, max_variance, center, diameter)) {
-                double offset_value = hole_speed_coef * limited_speed + hole_diameter_coef * diameter + hole_compensate_coef;
+                double offset_value = hole_speed_coef * limited_speed + hole_diameter_coef * diameter + hole_compensate_coef + manual_offset ;
                 if (offset_value < hole_limit_min_value) {
                     offset_value = hole_limit_min_value;
                 } else if (offset_value > hole_limit_max_value) {

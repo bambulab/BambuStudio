@@ -732,6 +732,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     bool enable_auto_hole_and_contour_compensation = config->opt_bool("enable_circle_compensation");
     toggle_field("xy_hole_compensation", !enable_auto_hole_and_contour_compensation);
     toggle_field("xy_contour_compensation", !enable_auto_hole_and_contour_compensation);
+    toggle_line("circle_compensation_manual_offset", enable_auto_hole_and_contour_compensation);
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)
