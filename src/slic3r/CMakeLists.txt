@@ -391,6 +391,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/BBLStatusBar.cpp
     GUI/BBLStatusBarSend.hpp
     GUI/BBLStatusBarSend.cpp
+    GUI/BBLStatusBarPrint.hpp
+    GUI/BBLStatusBarPrint.cpp
     GUI/BBLStatusBarBind.hpp
     GUI/BBLStatusBarBind.cpp
     GUI/Mouse3DController.cpp
