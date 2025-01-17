@@ -10570,6 +10570,7 @@ bool Plater::try_sync_preset_with_connected_printer()
         return false;
 
     update_objects_position_when_select_preset([&obj, machine_preset]() {
+        machine_preset->is_visible = true;
         Tab* printer_tab = GUI::wxGetApp().get_tab(Preset::Type::TYPE_PRINTER);
         printer_tab->select_preset(machine_preset->name);
         if (obj->is_multi_extruders()) GUI::wxGetApp().sidebar().sync_extruder_list();
