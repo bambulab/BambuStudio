@@ -256,6 +256,10 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "prime_tower_brim_width"
             || opt_key == "prime_tower_outer_first"
             || opt_key == "prime_tower_skip_points"
+            || opt_key == "prime_tower_rib_wall"
+            || opt_key == "prime_tower_extra_rib_length"
+            || opt_key == "prime_tower_rib_width"
+            || opt_key == "prime_tower_fillet_wall"
             || opt_key == "first_layer_print_sequence"
             || opt_key == "other_layers_print_sequence"
             || opt_key == "other_layers_print_sequence_nums"
@@ -2020,6 +2024,7 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
         std::optional<const FakeWipeTower *> wipe_tower_opt = {};
         if (this->has_wipe_tower()) {
             m_fake_wipe_tower.set_pos({m_config.wipe_tower_x.get_at(m_plate_index), m_config.wipe_tower_y.get_at(m_plate_index)});
+            m_fake_wipe_tower.set_bbx();
             wipe_tower_opt = std::make_optional<const FakeWipeTower *>(&m_fake_wipe_tower);
         }
         auto            conflictRes = ConflictChecker::find_inter_of_lines_in_diff_objs(m_objects, wipe_tower_opt);
@@ -2693,6 +2698,7 @@ void Print::_make_wipe_tower()
     wipe_tower.generate_new(m_wipe_tower_data.tool_changes);
     m_wipe_tower_data.depth = wipe_tower.get_depth();
     m_wipe_tower_data.brim_width = wipe_tower.get_brim_width();
+    m_wipe_tower_data.bbx = wipe_tower.get_bbx();
 
     // Unload the current filament over the purge tower.
     coordf_t layer_height = m_objects.front()->config().layer_height.value;
@@ -2718,6 +2724,8 @@ void Print::_make_wipe_tower()
     const Vec3d origin                      = this->get_plate_origin();
     m_fake_wipe_tower.set_fake_extrusion_data(wipe_tower.position(), wipe_tower.width(), wipe_tower.get_height(), wipe_tower.get_layer_height(), m_wipe_tower_data.depth,
                                               m_wipe_tower_data.brim_width, {scale_(origin.x()), scale_(origin.y())});
+    m_fake_wipe_tower.real_bbx = wipe_tower.get_bbx();
+    m_config.prime_tower_width.set(new ConfigOptionFloat( wipe_tower.width()));
 }
 
 // Generate a recommended G-code output file name based on the format template, default extension, and template parameters

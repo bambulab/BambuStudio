@@ -614,6 +614,7 @@ struct FakeWipeTower
     float depth;
     float brim_width;
     Vec2d plate_origin;
+    BoundingBoxf real_bbx;
 
     void set_fake_extrusion_data(Vec2f p, float w, float h, float lh, float d, float bd, Vec2d o)
     {
@@ -625,6 +626,11 @@ struct FakeWipeTower
         brim_width   = bd;
         plate_origin = o;
     }
+    void set_bbx()
+    {
+        real_bbx.min += pos.cast<double>();
+        real_bbx.max += pos.cast<double>();
+    }
 
     void set_pos(Vec2f p) { pos = p; }
 
@@ -633,8 +639,10 @@ struct FakeWipeTower
         int   d         = scale_(depth);
         int   w         = scale_(width);
         int   bd        = scale_(brim_width);
-        Point minCorner = {scale_(pos.x()), scale_(pos.y())};
-        Point maxCorner = {minCorner.x() + w, minCorner.y() + d};
+        //Point minCorner = {scale_(pos.x()), scale_(pos.y())};
+        //Point maxCorner = {minCorner.x() + w, minCorner.y() + d};
+        Point minCorner = {scale_(real_bbx.min.x()), scale_(real_bbx.min.y())};
+        Point maxCorner = {scale_(real_bbx.max.x()), scale_(real_bbx.max.y())};
 
         std::vector<ExtrusionPaths> paths;
         for (float h = 0.f; h < height; h += layer_height) {
@@ -642,13 +650,13 @@ struct FakeWipeTower
             path.polyline = {minCorner, {maxCorner.x(), minCorner.y()}, maxCorner, {minCorner.x(), maxCorner.y()}, minCorner};
             paths.push_back({path});
 
-            if (h == 0.f) { // add brim
-                ExtrusionPath fakeBrim(ExtrusionRole::erBrim, 0.0, 0.0, layer_height);
-                Point         wtbminCorner = {minCorner - Point{bd, bd}};
-                Point         wtbmaxCorner = {maxCorner + Point{bd, bd}};
-                fakeBrim.polyline          = {wtbminCorner, {wtbmaxCorner.x(), wtbminCorner.y()}, wtbmaxCorner, {wtbminCorner.x(), wtbmaxCorner.y()}, wtbminCorner};
-                paths.back().push_back(fakeBrim);
-            }
+            //if (h == 0.f) { // add brim
+            //    ExtrusionPath fakeBrim(ExtrusionRole::erBrim, 0.0, 0.0, layer_height);
+            //    Point         wtbminCorner = {minCorner - Point{bd, bd}};
+            //    Point         wtbmaxCorner = {maxCorner + Point{bd, bd}};
+            //    fakeBrim.polyline          = {wtbminCorner, {wtbmaxCorner.x(), wtbminCorner.y()}, wtbmaxCorner, {wtbminCorner.x(), wtbmaxCorner.y()}, wtbminCorner};
+            //    paths.back().push_back(fakeBrim);
+            //}
         }
         return paths;
     }
@@ -670,6 +678,7 @@ struct WipeTowerData
     // Depth of the wipe tower to pass to GLCanvas3D for exact bounding box:
     float                                                 depth;
     float                                                 brim_width;
+    BoundingBoxf                                          bbx;
 
     void clear() {
         priming.reset(nullptr);
@@ -939,6 +948,7 @@ public:
     const Calib_Params& calib_params() const { return m_calib_params; }
     Vec2d translate_to_print_space(const Vec2d& point) const;
     float               get_wipe_tower_depth() const { return m_wipe_tower_data.depth; }
+    BoundingBoxf        get_wipe_tower_bbx() const { return m_wipe_tower_data.bbx; }
 
     // scaled point
     Vec2d translate_to_print_space(const Point& point) const;

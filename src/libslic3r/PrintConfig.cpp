@@ -4346,6 +4346,22 @@ void PrintConfigDef::init_fff_params()
     def->min = 0.;
     def->set_default_value(new ConfigOptionFloat(3.));
 
+    def           = this->add("prime_tower_extra_rib_length", coFloat);
+    def->label    = L("Extra rib length");
+    def->tooltip  = L("Extra rib length");
+    def->sidetext = L("mm");
+    def->mode     = comAdvanced;
+    def->min      = 0;
+    def->set_default_value(new ConfigOptionFloat(0));
+
+    def           = this->add("prime_tower_rib_width", coFloat);
+    def->label    = L("Rib width");
+    def->tooltip  = L("Rib width");
+    def->sidetext = L("mm");
+    def->mode     = comAdvanced;
+    def->min      = 0;
+    def->set_default_value(new ConfigOptionFloat(4));
+
     def           = this->add("prime_tower_outer_first", coBool);
     def->label    = L("Outer first");
     def->tooltip  = L("The prime tower print outer first");
@@ -4355,6 +4371,18 @@ void PrintConfigDef::init_fff_params()
     def          = this->add("prime_tower_skip_points", coBool);
     def->label   = L("Skip points");
     def->tooltip = L("The wall of prime tower will skip the start points of wipe path");
+    def->mode    = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
+    def          = this->add("prime_tower_rib_wall", coBool);
+    def->label   = L("rib wall");
+    def->tooltip = L("The wall of prime tower will add four ribs");
+    def->mode    = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
+    def          = this->add("prime_tower_fillet_wall", coBool);
+    def->label   = L("fillet wall");
+    def->tooltip = L("The wall of prime tower will fillet");
     def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
