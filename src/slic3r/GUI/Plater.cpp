@@ -10542,9 +10542,13 @@ bool Plater::try_sync_preset_with_connected_printer()
         }
         else {
             tips = from_u8((boost::format(_u8L("The currently connected printer, %s, is a %s model.\nTo use this printer for printing, please switch the printer model of project file to %s.")) % obj->dev_name % printer_model % printer_model).str());
-
         }
-        TipsDialog dlg(wxGetApp().mainframe, _L("Tips"), tips, "sync_after_load_file_show_flag", wxYES_NO);
+
+        std::map<wxStandardID, wxString>option_map = {
+            {wxID_YES,_L("Sync now")},
+            {wxID_NO, _L("Later")}
+        };
+        TipsDialog dlg(wxGetApp().mainframe, _L("Tips"), tips, "sync_after_load_file_show_flag", wxYES_NO,option_map);
         if (dlg.ShowModal() == wxID_YES) { sync_printer_info = true; }
     }
     else {
