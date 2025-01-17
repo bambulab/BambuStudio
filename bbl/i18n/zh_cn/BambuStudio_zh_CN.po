@@ -1,7 +1,7 @@
 # Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
@@ -4246,7 +4246,7 @@ msgid ""
 "Would you like to watch a quick tutorial video?"
 msgstr ""
 "这是您第一次使用 H2D 机器进行切片操作。\n"
-"您需要观看一个简短的指导视频吗？
+"您需要观看一个简短的指导视频吗？"
 
 msgid "First Guide"
 msgstr "首次指南"
