@@ -198,6 +198,9 @@ public:
         Refresh();
     };
     std::string getValue();
+
+public:
+    void msw_rescale() { m_selected_bk.msw_rescale(); Refresh(); };
 };
 
 class PrintOption : public wxPanel
@@ -208,6 +211,7 @@ public:
     void OnPaint(wxPaintEvent &event);
     void render(wxDC &dc);
     void doRender(wxDC &dc);
+    void msw_rescale() { m_printoption_item->msw_rescale(); };
 
     std::string m_param;
     std::vector<POItem> m_ops;
