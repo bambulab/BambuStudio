@@ -1,12 +1,12 @@
 # Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-17 10:09+0800\n"
+"POT-Creation-Date: 2025-01-17 12:24+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4373,6 +4373,14 @@ msgstr "Mesa de fatiação"
 msgid "Print plate"
 msgstr "Placa de impressão"
 
+msgid ""
+"This is your first time slicing with the H2D machine.\n"
+"Would you like to watch a quick tutorial video?"
+msgstr ""
+
+msgid "First Guide"
+msgstr ""
+
 msgid "Slice all"
 msgstr "Fatiar tudo"
 
@@ -5886,13 +5894,13 @@ msgstr "Tempo estimado"
 msgid "Filament changes"
 msgstr "Mudanças de filamento"
 
-msgid "Please set the number of ams installed on the this extrusion head."
+msgid "Set the number of AMS installed on the nozzle."
 msgstr ""
 
-msgid "AMS(4 colors)"
+msgid "AMS(4 slots)"
 msgstr ""
 
-msgid "AMS(single color)"
+msgid "AMS(1 slot)"
 msgstr ""
 
 msgid "Not installed"
@@ -5988,9 +5996,6 @@ msgid ""
 "\n"
 "Material and color information have been synchronized, but slot information "
 "is not included."
-msgstr ""
-
-msgid "Sync filaments with AMS successfully."
 msgstr ""
 
 #, boost-format
@@ -6495,6 +6500,14 @@ msgid "Custom supports and color painting were removed before repairing."
 msgstr ""
 "Suportes personalizados e pintura colorida foram removidos antes do reparo."
 
+msgid ""
+"The currently selected machine preset is inconsistent with the connected "
+"printer type.Please change device or currently selected machine.\n"
+msgstr ""
+
+msgid "Synchronize AMS Filament Information"
+msgstr ""
+
 msgid "Invalid number"
 msgstr "Número inválido"
 
@@ -6567,8 +6580,8 @@ msgstr ""
 "desse filamento como diferente de zero."
 
 msgid ""
-"Currently, the object configuration form cannot be used with multiple "
-"extruders."
+"Currently, the object configuration form cannot be used with a multiple-"
+"extruder printer."
 msgstr ""
 
 msgid "Not available"
@@ -7829,8 +7842,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Ao gravar o timelapse sem o cabeçote de ferramenta, é recomendável adicionar "
 "uma “Timelapse Wipe Tower” \n"
@@ -8539,21 +8552,10 @@ msgid ""
 "change the selected printer."
 msgstr ""
 
-msgid "Ams filaments synchronization"
-msgstr ""
-
 msgid "Mapping"
 msgstr ""
 
 msgid "Overwriting"
-msgstr ""
-
-msgid "(Inconsistent)"
-msgstr ""
-
-msgid ""
-"The device printer and the currently selected printer are not consistent. It "
-"is recommended to be consistent."
 msgstr ""
 
 msgid "(Recommended filament)"
@@ -8609,6 +8611,23 @@ msgid ""
 "Up: Original\n"
 "Down: filament in AMS\n"
 "And you can click it to modify it."
+msgstr ""
+
+msgid "Successfully synchronized nozzle and AMS number information."
+msgstr ""
+
+msgid "Sync AMS filament"
+msgstr ""
+
+msgctxt "Sync_Nozzle_AMS"
+msgid "Cancel"
+msgstr ""
+
+msgid "Successfully synchronized color and type of filament in AMS."
+msgstr ""
+
+msgctxt "FinishSyncAms"
+msgid "OK"
 msgstr ""
 
 msgid "Auto-Calc"
@@ -13668,8 +13687,8 @@ msgstr ""
 "Você quer reescrevê-lo?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "Nós renomearíamos as predefinições como “Tipo de fornecedor Serial @printer "
@@ -14818,6 +14837,9 @@ msgid "Manually assign filament to the left or right nozzle."
 msgstr ""
 
 msgid "Global settings"
+msgstr ""
+
+msgid "Video tutorial"
 msgstr ""
 
 msgid "Learn more"

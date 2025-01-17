@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-17 10:09+0800\n"
+"POT-Creation-Date: 2025-01-17 12:24+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4407,6 +4407,14 @@ msgstr "Druckplatte slicen"
 msgid "Print plate"
 msgstr "Druckplatte drucken"
 
+msgid ""
+"This is your first time slicing with the H2D machine.\n"
+"Would you like to watch a quick tutorial video?"
+msgstr ""
+
+msgid "First Guide"
+msgstr ""
+
 msgid "Slice all"
 msgstr "Alle Slicen"
 
@@ -5940,13 +5948,13 @@ msgstr "Geschätzte Zeit"
 msgid "Filament changes"
 msgstr "Filamentwechsel"
 
-msgid "Please set the number of ams installed on the this extrusion head."
+msgid "Set the number of AMS installed on the nozzle."
 msgstr ""
 
-msgid "AMS(4 colors)"
+msgid "AMS(4 slots)"
 msgstr ""
 
-msgid "AMS(single color)"
+msgid "AMS(1 slot)"
 msgstr ""
 
 msgid "Not installed"
@@ -6045,9 +6053,6 @@ msgid ""
 "\n"
 "Material and color information have been synchronized, but slot information "
 "is not included."
-msgstr ""
-
-msgid "Sync filaments with AMS successfully."
 msgstr ""
 
 #, boost-format
@@ -6563,6 +6568,14 @@ msgstr ""
 "Benutzerdefinierte Stützstrukturen und Farbgebungen wurden vor der Reparatur "
 "entfernt."
 
+msgid ""
+"The currently selected machine preset is inconsistent with the connected "
+"printer type.Please change device or currently selected machine.\n"
+msgstr ""
+
+msgid "Synchronize AMS Filament Information"
+msgstr ""
+
 msgid "Invalid number"
 msgstr "Ungültige Nummer"
 
@@ -6635,8 +6648,8 @@ msgstr ""
 "Betttemperatur dieses Filaments auf eine Zahl ein, die nicht 0 ist."
 
 msgid ""
-"Currently, the object configuration form cannot be used with multiple "
-"extruders."
+"Currently, the object configuration form cannot be used with a multiple-"
+"extruder printer."
 msgstr ""
 
 msgid "Not available"
@@ -7909,13 +7922,13 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Wenn Sie einen Zeitraffer ohne Werkzeugkopf aufnehmen, wird empfohlen, einen "
 "\"Timelapse Wischturm\" hinzuzufügen, indem Sie mit der rechten Maustaste "
-"auf die leere Position der Bauplatte klicken und \"Primitiv hinzufügen\"->"
-"\"Timelapse Wischturm\" wählen."
+"auf die leere Position der Bauplatte klicken und \"Primitiv hinzufügen\"-"
+">\"Timelapse Wischturm\" wählen."
 
 msgid ""
 "The notes are too large, and may not be synchronized to the cloud. Please "
@@ -8627,21 +8640,10 @@ msgid ""
 "change the selected printer."
 msgstr ""
 
-msgid "Ams filaments synchronization"
-msgstr ""
-
 msgid "Mapping"
 msgstr ""
 
 msgid "Overwriting"
-msgstr ""
-
-msgid "(Inconsistent)"
-msgstr ""
-
-msgid ""
-"The device printer and the currently selected printer are not consistent. It "
-"is recommended to be consistent."
 msgstr ""
 
 msgid "(Recommended filament)"
@@ -8697,6 +8699,23 @@ msgid ""
 "Up: Original\n"
 "Down: filament in AMS\n"
 "And you can click it to modify it."
+msgstr ""
+
+msgid "Successfully synchronized nozzle and AMS number information."
+msgstr ""
+
+msgid "Sync AMS filament"
+msgstr ""
+
+msgctxt "Sync_Nozzle_AMS"
+msgid "Cancel"
+msgstr ""
+
+msgid "Successfully synchronized color and type of filament in AMS."
+msgstr ""
+
+msgctxt "FinishSyncAms"
+msgid "OK"
 msgstr ""
 
 msgid "Auto-Calc"
@@ -13811,12 +13830,12 @@ msgstr ""
 "Möchten Sie es umschreiben?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more printers; please go to printer selection"
 
 msgid "Create Printer/Nozzle"
@@ -14960,6 +14979,9 @@ msgid "Manually assign filament to the left or right nozzle."
 msgstr ""
 
 msgid "Global settings"
+msgstr ""
+
+msgid "Video tutorial"
 msgstr ""
 
 msgid "Learn more"
@@ -16161,8 +16183,8 @@ msgstr ""
 #~ "Choose an AMS slot then press \"Load\" or \"Unload\" button to "
 #~ "automatically load or unload filiament."
 #~ msgstr ""
-#~ "Wählen Sie einen AMS-Slot und drücken Sie dann \"Laden\" oder \"Entladen"
-#~ "\", um automatisch Filament zu laden oder zu entladen."
+#~ "Wählen Sie einen AMS-Slot und drücken Sie dann \"Laden\" oder "
+#~ "\"Entladen\", um automatisch Filament zu laden oder zu entladen."
 
 #~ msgid "Choose one or more files (3mf/step/stl/obj/amf):"
 #~ msgstr "Wählen Sie eine oder mehrere Dateien aus (3mf/step/stl/obj/amf):"
