@@ -2226,9 +2226,13 @@ void TabPrint::build()
         optgroup->append_single_option_line("enable_prime_tower","parameter/prime-tower");
         optgroup->append_single_option_line("prime_tower_outer_first", "parameter/prime-tower");
         optgroup->append_single_option_line("prime_tower_skip_points", "parameter/prime-tower");
+        optgroup->append_single_option_line("prime_tower_rib_wall", "parameter/prime-tower");
         optgroup->append_single_option_line("prime_tower_width","parameter/prime-tower");
         optgroup->append_single_option_line("prime_volume","parameter/prime-tower");
         optgroup->append_single_option_line("prime_tower_brim_width","parameter/prime-tower");
+        optgroup->append_single_option_line("prime_tower_extra_rib_length","parameter/prime-tower");
+        optgroup->append_single_option_line("prime_tower_rib_width","parameter/prime-tower");
+        optgroup->append_single_option_line("prime_tower_fillet_wall","parameter/prime-tower");
 
         optgroup = page->new_optgroup(L("Flush options"), L"param_flush");
         optgroup->append_single_option_line("flush_into_infill", "reduce-wasting-during-filament-change#wipe-into-infill");
