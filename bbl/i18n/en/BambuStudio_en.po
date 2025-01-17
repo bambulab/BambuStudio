@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-17 12:24+0800\n"
+"POT-Creation-Date: 2025-01-17 16:44+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2829,6 +2829,12 @@ msgstr "Step"
 
 msgid "AMS Slots"
 msgstr "AMS Slots"
+
+msgid "Select filament that installed to the left nozzle"
+msgstr ""
+
+msgid "Select filament that installed to the right nozzle"
+msgstr ""
 
 msgid "Left AMS"
 msgstr ""
@@ -7186,16 +7192,10 @@ msgstr "Bambu Textured PEI Plate"
 msgid "Bambu Cool Plate SuperTack"
 msgstr ""
 
-msgid "Send print job to"
-msgstr "Send print job to"
+msgid "Send print job"
+msgstr ""
 
 msgid "On"
-msgstr ""
-
-msgid "Left Extruder"
-msgstr ""
-
-msgid "Right Extruder"
 msgstr ""
 
 msgid "Rearrange filaments of the left and right nozzles ->"
@@ -7203,6 +7203,9 @@ msgstr ""
 
 msgid "Your filament grouping method is not optimal."
 msgstr ""
+
+msgid "Click here if you can't connect to the printer"
+msgstr "Click here if you can't connect to the printer"
 
 msgid "Advanced Options"
 msgstr ""
@@ -7234,9 +7237,6 @@ msgstr ""
 
 msgid "Use AMS"
 msgstr "Use AMS"
-
-msgid "Click here if you can't connect to the printer"
-msgstr "Click here if you can't connect to the printer"
 
 msgid "send completed"
 msgstr "send completed"
@@ -7429,8 +7429,16 @@ msgstr "The name length exceeds the limit."
 
 #, c-format, boost-format
 msgid ""
-"You picked both external and AMS filament, You will need to manually change "
-"filament %d times."
+"It is not recommended to use AMS and external filaments simultaneously on "
+"the same nozzle. Otherwise, you will need to manually change filaments %d "
+"times for this print."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"It is not recommended to use AMS and external filaments simultaneously. "
+"Otherwise, you will need to manually change filaments %d times for this "
+"print."
 msgstr ""
 
 msgid ""
@@ -7760,13 +7768,13 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 
 msgid ""
 "The notes are too large, and may not be synchronized to the cloud. Please "
@@ -8467,7 +8475,13 @@ msgstr ""
 msgid "Overwriting"
 msgstr ""
 
+msgid "Left Extruder"
+msgstr ""
+
 msgid "(Recommended filament)"
+msgstr ""
+
+msgid "Right Extruder"
 msgstr ""
 
 msgid "Attention"
@@ -13479,12 +13493,12 @@ msgstr ""
 "Do you want to rewrite it?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more printers; please go to printer selection"
 
 msgid "Create Printer/Nozzle"
@@ -14926,6 +14940,9 @@ msgstr ""
 "Did you know that when printing materials that are prone to warping such as "
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping?"
+
+#~ msgid "Send print job to"
+#~ msgstr "Send print job to"
 
 #~ msgid "Save Modified Value"
 #~ msgstr "Save Modified Value"
