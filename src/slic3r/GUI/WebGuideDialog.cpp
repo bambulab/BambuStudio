@@ -44,7 +44,7 @@ static wxString update_custom_filaments()
     json                                               m_CustomFilaments           = json::array();
     PresetBundle *                                     preset_bundle               = wxGetApp().preset_bundle;
     std::map<std::string, std::vector<Preset const *>> temp_filament_id_to_presets = preset_bundle->filaments.get_filament_presets();
-    
+
     std::vector<std::pair<std::string, std::string>>   need_sort;
     bool                                             need_delete_some_filament = false;
     for (std::pair<std::string, std::vector<Preset const *>> filament_id_to_presets : temp_filament_id_to_presets) {
@@ -68,7 +68,7 @@ static wxString update_custom_filaments()
                 auto filament_vendor = dynamic_cast<ConfigOptionStrings *>(const_cast<Preset *>(preset)->config.option("filament_vendor", false));
                 if (filament_vendor && filament_vendor->values.size() && filament_vendor->values[0] == "Generic") not_need_show = true;
             }
-            
+
             if (filament_name.empty()) {
                 std::string preset_name = preset->name;
                 size_t      index_at    = preset_name.find(" @");
@@ -127,7 +127,7 @@ GuideFrame::GuideFrame(GUI_App *pGUI, long style)
     }
     m_browser->Hide();
     m_browser->SetSize(0, 0);
-    
+
     SetSizer(topsizer);
 
     topsizer->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
@@ -182,6 +182,12 @@ GuideFrame::GuideFrame(GUI_App *pGUI, long style)
 
 GuideFrame::~GuideFrame()
 {
+    m_destroy = true;
+    if (m_load_task && m_load_task->joinable()) {
+        m_load_task->join();
+        delete m_load_task;
+        m_load_task = nullptr;
+    }
     if (m_browser) {
         delete m_browser;
         m_browser = nullptr;
@@ -291,15 +297,16 @@ void GuideFrame::OnNavigationComplete(wxWebViewEvent &evt)
 {
     //wxLogMessage("%s", "Navigation complete; url='" + evt.GetURL() + "'");
     if (!bFirstComplete) {
-        boost::thread LoadProfileThread(boost::bind(&GuideFrame::LoadProfileData, this));
-        LoadProfileThread.detach();
+        m_load_task = new boost::thread(boost::bind(&GuideFrame::LoadProfileData, this));
+       // boost::thread LoadProfileThread(boost::bind(&GuideFrame::LoadProfileData, this));
+        //LoadProfileThread.detach();
 
         bFirstComplete = true;
     }
 
     m_browser->Show();
     Layout();
-    
+
     wxString NewUrl = evt.GetURL();
 
     UpdateState();
@@ -490,7 +497,7 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             }
             else
                 InstallNetplugin = false;
-        } 
+        }
         else if (strCmd == "common_openurl")
         {
             std::string strUrl = j["url"];
@@ -1014,9 +1021,9 @@ int GuideFrame::GetFilamentInfo( std::string VendorDirectory, json & pFilaList, 
             if (jLocal.contains("inherits")) {
                 std::string FName = jLocal["inherits"];
 
-                if (!pFilaList.contains(FName)) { 
+                if (!pFilaList.contains(FName)) {
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "pFilaList - Not Contains inherits filaments: " << FName;
-                    return -1; 
+                    return -1;
                 }
 
                 std::string FPath = pFilaList[FName]["sub_path"];
@@ -1103,6 +1110,8 @@ int GuideFrame::LoadProfileData()
 
                 if (w2s(strVendor) == PresetBundle::BBL_BUNDLE && strExtension.CmpNoCase("json") == 0) LoadProfileFamily(w2s(strVendor), iter->path().string());
             }
+            if (m_destroy)
+                return 0;
         }
 
         // string                                others_targetPath = rsrc_vendor_dir.string();
@@ -1121,6 +1130,8 @@ int GuideFrame::LoadProfileData()
 
                 if (w2s(strVendor) != PresetBundle::BBL_BUNDLE && strExtension.CmpNoCase("json") == 0) LoadProfileFamily(w2s(strVendor), iter->path().string());
             }
+            if (m_destroy)
+                return 0;
         }
 
         //sync to web
@@ -1131,12 +1142,14 @@ int GuideFrame::LoadProfileData()
         m_Res["command"]     = "userguide_profile_load_finish";
         m_Res["sequence_id"] = "10001";
         wxString strJS       = wxString::Format("HandleStudio(%s)", m_Res.dump(-1, ' ', true));
-        wxGetApp().CallAfter([this, strJS] { RunScript(strJS); });
+        if (!m_destroy)
+            wxGetApp().CallAfter([this, strJS] { RunScript(strJS); });
 
         //sync to appconfig
-        wxGetApp().CallAfter([this] { SaveProfileData(); });
+        if (!m_destroy)
+            wxGetApp().CallAfter([this] { SaveProfileData(); });
 
-    } catch (std::exception &e) {
+    } catch (std::exception& e) {
         // wxLogMessage("GUIDE: load_profile_error  %s ", e.what());
         //  wxMessageBox(e.what(), "", MB_OK);
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ", error: " << e.what() << std::endl;
@@ -1349,7 +1362,7 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
                 boost::nowide::ifstream ifs(sub_file);
                 json                    pm;
                 ifs >> pm;
-                
+
                 std::string strInstant = pm["instantiation"];
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "Load Filament:" << s1 << ",Path:" << sub_file << ",instantiation：" << strInstant;
 
@@ -1358,9 +1371,9 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
                     std::string sT;
 
                     int nRet = GetFilamentInfo(vendor_dir.string(),tFilaList, sub_file, sV, sT);
-                    if (nRet != 0) { 
+                    if (nRet != 0) {
                         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "Load Filament:" << s1 << ",GetFilamentInfo Failed, Vendor:" << sV << ",Type:"<< sT;
-                        continue; 
+                        continue;
                     }
 
                     OneFF["vendor"] = sV;
