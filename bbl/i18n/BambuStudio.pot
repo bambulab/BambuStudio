@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-17 12:24+0800\n"
+"POT-Creation-Date: 2025-01-17 16:44+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2743,6 +2743,12 @@ msgid "Step"
 msgstr ""
 
 msgid "AMS Slots"
+msgstr ""
+
+msgid "Select filament that installed to the left nozzle"
+msgstr ""
+
+msgid "Select filament that installed to the right nozzle"
 msgstr ""
 
 msgid "Left AMS"
@@ -6858,22 +6864,19 @@ msgstr ""
 msgid "Bambu Cool Plate SuperTack"
 msgstr ""
 
-msgid "Send print job to"
+msgid "Send print job"
 msgstr ""
 
 msgid "On"
-msgstr ""
-
-msgid "Left Extruder"
-msgstr ""
-
-msgid "Right Extruder"
 msgstr ""
 
 msgid "Rearrange filaments of the left and right nozzles ->"
 msgstr ""
 
 msgid "Your filament grouping method is not optimal."
+msgstr ""
+
+msgid "Click here if you can't connect to the printer"
 msgstr ""
 
 msgid "Advanced Options"
@@ -6905,9 +6908,6 @@ msgid ""
 msgstr ""
 
 msgid "Use AMS"
-msgstr ""
-
-msgid "Click here if you can't connect to the printer"
 msgstr ""
 
 msgid "send completed"
@@ -7071,8 +7071,16 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid ""
-"You picked both external and AMS filament, You will need to manually change "
-"filament %d times."
+"It is not recommended to use AMS and external filaments simultaneously on "
+"the same nozzle. Otherwise, you will need to manually change filaments %d "
+"times for this print."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid ""
+"It is not recommended to use AMS and external filaments simultaneously. "
+"Otherwise, you will need to manually change filaments %d times for this "
+"print."
 msgstr ""
 
 msgid ""
@@ -7361,8 +7369,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 
 msgid ""
@@ -8019,7 +8027,13 @@ msgstr ""
 msgid "Overwriting"
 msgstr ""
 
+msgid "Left Extruder"
+msgstr ""
+
 msgid "(Recommended filament)"
+msgstr ""
+
+msgid "Right Extruder"
 msgstr ""
 
 msgid "Attention"
@@ -12461,8 +12475,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 

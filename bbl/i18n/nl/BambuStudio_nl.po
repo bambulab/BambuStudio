@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-17 12:24+0800\n"
+"POT-Creation-Date: 2025-01-17 16:44+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2882,6 +2882,12 @@ msgstr "Stap"
 
 msgid "AMS Slots"
 msgstr "AMS Slots"
+
+msgid "Select filament that installed to the left nozzle"
+msgstr ""
+
+msgid "Select filament that installed to the right nozzle"
+msgstr ""
 
 msgid "Left AMS"
 msgstr ""
@@ -7303,16 +7309,10 @@ msgstr "Bambu getextureerde PEI-plaat"
 msgid "Bambu Cool Plate SuperTack"
 msgstr ""
 
-msgid "Send print job to"
-msgstr "Stuur de printtaak naar"
+msgid "Send print job"
+msgstr ""
 
 msgid "On"
-msgstr ""
-
-msgid "Left Extruder"
-msgstr ""
-
-msgid "Right Extruder"
 msgstr ""
 
 msgid "Rearrange filaments of the left and right nozzles ->"
@@ -7320,6 +7320,9 @@ msgstr ""
 
 msgid "Your filament grouping method is not optimal."
 msgstr ""
+
+msgid "Click here if you can't connect to the printer"
+msgstr "Klik hier als je geen verbinding kunt maken met de printer"
 
 msgid "Advanced Options"
 msgstr ""
@@ -7351,9 +7354,6 @@ msgstr ""
 
 msgid "Use AMS"
 msgstr "Use AMS"
-
-msgid "Click here if you can't connect to the printer"
-msgstr "Klik hier als je geen verbinding kunt maken met de printer"
 
 msgid "send completed"
 msgstr "versturen gelukt"
@@ -7551,8 +7551,16 @@ msgstr "De lengte van de naam overschrijdt de limiet."
 
 #, c-format, boost-format
 msgid ""
-"You picked both external and AMS filament, You will need to manually change "
-"filament %d times."
+"It is not recommended to use AMS and external filaments simultaneously on "
+"the same nozzle. Otherwise, you will need to manually change filaments %d "
+"times for this print."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"It is not recommended to use AMS and external filaments simultaneously. "
+"Otherwise, you will need to manually change filaments %d times for this "
+"print."
 msgstr ""
 
 msgid ""
@@ -7720,10 +7728,9 @@ msgstr ""
 "Bedankt voor uw aankoop van een Bambu Lab-apparaat. Lees de algemene "
 "voorwaarden voordat u uw Bambu Lab apparaat gebruikt. Door te klikken om "
 "akkoord te gaan met het gebruik van uw Bambu Lab apparaat, gaat u akkoord "
-"met het Privacybeleid en de Gebruiksvoorwaarden (gezamenlijk de "
-"\"Voorwaarden\"). Als u niet voldoet aan of akkoord gaat met het "
-"Privacybeleid van Bambu Lab, maak dan geen gebruik van Bambu Lab apparatuur "
-"en diensten."
+"met het Privacybeleid en de Gebruiksvoorwaarden (gezamenlijk de \"Voorwaarden"
+"\"). Als u niet voldoet aan of akkoord gaat met het Privacybeleid van Bambu "
+"Lab, maak dan geen gebruik van Bambu Lab apparatuur en diensten."
 
 msgid "and"
 msgstr "en"
@@ -7893,8 +7900,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Bij het opnemen van timelapse zonder toolhead is het aan te raden om een "
 "„Timelapse Wipe Tower” toe te voegen \n"
@@ -8614,7 +8621,13 @@ msgstr ""
 msgid "Overwriting"
 msgstr ""
 
+msgid "Left Extruder"
+msgstr ""
+
 msgid "(Recommended filament)"
+msgstr ""
+
+msgid "Right Extruder"
 msgstr ""
 
 msgid "Attention"
@@ -13750,12 +13763,12 @@ msgstr ""
 "Wil je het herschrijven?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more printers; please go to printer selection"
 
 msgid "Create Printer/Nozzle"
@@ -15204,6 +15217,9 @@ msgstr ""
 "Wist je dat bij het printen van materialen die gevoelig zijn voor "
 "kromtrekken, zoals ABS, een juiste verhoging van de temperatuur van het "
 "warmtebed de kans op kromtrekken kan verkleinen?"
+
+#~ msgid "Send print job to"
+#~ msgstr "Stuur de printtaak naar"
 
 #~ msgid "Save Modified Value"
 #~ msgstr "Save Modified Value"

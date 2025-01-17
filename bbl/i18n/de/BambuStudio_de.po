@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-17 12:24+0800\n"
+"POT-Creation-Date: 2025-01-17 16:44+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2884,6 +2884,12 @@ msgstr "Schritt"
 
 msgid "AMS Slots"
 msgstr "AMS-Slots"
+
+msgid "Select filament that installed to the left nozzle"
+msgstr ""
+
+msgid "Select filament that installed to the right nozzle"
+msgstr ""
 
 msgid "Left AMS"
 msgstr ""
@@ -7322,16 +7328,10 @@ msgstr "Bambu Textured PEI Plate"
 msgid "Bambu Cool Plate SuperTack"
 msgstr ""
 
-msgid "Send print job to"
-msgstr "Druckauftrag senden an"
+msgid "Send print job"
+msgstr ""
 
 msgid "On"
-msgstr ""
-
-msgid "Left Extruder"
-msgstr ""
-
-msgid "Right Extruder"
 msgstr ""
 
 msgid "Rearrange filaments of the left and right nozzles ->"
@@ -7339,6 +7339,10 @@ msgstr ""
 
 msgid "Your filament grouping method is not optimal."
 msgstr ""
+
+msgid "Click here if you can't connect to the printer"
+msgstr ""
+"Klicken Sie hier, wenn Sie keine Verbindung zum Drucker herstellen können"
 
 msgid "Advanced Options"
 msgstr ""
@@ -7370,10 +7374,6 @@ msgstr ""
 
 msgid "Use AMS"
 msgstr "Use AMS"
-
-msgid "Click here if you can't connect to the printer"
-msgstr ""
-"Klicken Sie hier, wenn Sie keine Verbindung zum Drucker herstellen können"
 
 msgid "send completed"
 msgstr "Senden abgeschlossen"
@@ -7575,8 +7575,16 @@ msgstr "Die Namenslänge überschreitet das Limit."
 
 #, c-format, boost-format
 msgid ""
-"You picked both external and AMS filament, You will need to manually change "
-"filament %d times."
+"It is not recommended to use AMS and external filaments simultaneously on "
+"the same nozzle. Otherwise, you will need to manually change filaments %d "
+"times for this print."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"It is not recommended to use AMS and external filaments simultaneously. "
+"Otherwise, you will need to manually change filaments %d times for this "
+"print."
 msgstr ""
 
 msgid ""
@@ -7922,13 +7930,13 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Wenn Sie einen Zeitraffer ohne Werkzeugkopf aufnehmen, wird empfohlen, einen "
 "\"Timelapse Wischturm\" hinzuzufügen, indem Sie mit der rechten Maustaste "
-"auf die leere Position der Bauplatte klicken und \"Primitiv hinzufügen\"-"
-">\"Timelapse Wischturm\" wählen."
+"auf die leere Position der Bauplatte klicken und \"Primitiv hinzufügen\"->"
+"\"Timelapse Wischturm\" wählen."
 
 msgid ""
 "The notes are too large, and may not be synchronized to the cloud. Please "
@@ -8646,7 +8654,13 @@ msgstr ""
 msgid "Overwriting"
 msgstr ""
 
+msgid "Left Extruder"
+msgstr ""
+
 msgid "(Recommended filament)"
+msgstr ""
+
+msgid "Right Extruder"
 msgstr ""
 
 msgid "Attention"
@@ -13830,12 +13844,12 @@ msgstr ""
 "Möchten Sie es umschreiben?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more printers; please go to printer selection"
 
 msgid "Create Printer/Nozzle"
@@ -15300,6 +15314,9 @@ msgstr ""
 "wie z. B. ABS, die Wahrscheinlichkeit von Verformungen durch eine "
 "entsprechende Erhöhung der Heizbetttemperatur verringert werden kann?"
 
+#~ msgid "Send print job to"
+#~ msgstr "Druckauftrag senden an"
+
 #~ msgid "Save Modified Value"
 #~ msgstr "Save Modified Value"
 
@@ -16183,8 +16200,8 @@ msgstr ""
 #~ "Choose an AMS slot then press \"Load\" or \"Unload\" button to "
 #~ "automatically load or unload filiament."
 #~ msgstr ""
-#~ "Wählen Sie einen AMS-Slot und drücken Sie dann \"Laden\" oder "
-#~ "\"Entladen\", um automatisch Filament zu laden oder zu entladen."
+#~ "Wählen Sie einen AMS-Slot und drücken Sie dann \"Laden\" oder \"Entladen"
+#~ "\", um automatisch Filament zu laden oder zu entladen."
 
 #~ msgid "Choose one or more files (3mf/step/stl/obj/amf):"
 #~ msgstr "Wählen Sie eine oder mehrere Dateien aus (3mf/step/stl/obj/amf):"

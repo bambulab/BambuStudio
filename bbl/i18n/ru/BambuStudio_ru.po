@@ -2,12 +2,12 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 1.10.1 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-17 12:24+0800\n"
+"POT-Creation-Date: 2025-01-17 16:44+0800\n"
 "PO-Revision-Date: 2024-09-27 23:58+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -15,8 +15,8 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
-"n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
 "X-Generator: Poedit 3.5\n"
 
 msgid "Supports Painting"
@@ -2936,6 +2936,12 @@ msgstr "Шаг"
 
 msgid "AMS Slots"
 msgstr "Слоты АСПП"
+
+msgid "Select filament that installed to the left nozzle"
+msgstr ""
+
+msgid "Select filament that installed to the right nozzle"
+msgstr ""
 
 msgid "Left AMS"
 msgstr ""
@@ -7470,16 +7476,10 @@ msgstr "Текстурированная PEI пластина Bambu"
 msgid "Bambu Cool Plate SuperTack"
 msgstr "Не нагрев. пластина Bambu SuperTack"
 
-msgid "Send print job to"
-msgstr "Отправка задания на печать"
+msgid "Send print job"
+msgstr ""
 
 msgid "On"
-msgstr ""
-
-msgid "Left Extruder"
-msgstr ""
-
-msgid "Right Extruder"
 msgstr ""
 
 msgid "Rearrange filaments of the left and right nozzles ->"
@@ -7487,6 +7487,9 @@ msgstr ""
 
 msgid "Your filament grouping method is not optimal."
 msgstr ""
+
+msgid "Click here if you can't connect to the printer"
+msgstr "Не удаётся подключиться к принтеру?"
 
 msgid "Advanced Options"
 msgstr ""
@@ -7520,9 +7523,6 @@ msgstr ""
 
 msgid "Use AMS"
 msgstr "Исп. АСПП"
-
-msgid "Click here if you can't connect to the printer"
-msgstr "Не удаётся подключиться к принтеру?"
 
 msgid "send completed"
 msgstr "отправка завершена"
@@ -7721,8 +7721,16 @@ msgstr "Длина имени превышает установленное ог
 
 #, c-format, boost-format
 msgid ""
-"You picked both external and AMS filament, You will need to manually change "
-"filament %d times."
+"It is not recommended to use AMS and external filaments simultaneously on "
+"the same nozzle. Otherwise, you will need to manually change filaments %d "
+"times for this print."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"It is not recommended to use AMS and external filaments simultaneously. "
+"Otherwise, you will need to manually change filaments %d times for this "
+"print."
 msgstr ""
 
 msgid ""
@@ -8069,8 +8077,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "При записи таймлапса без видимости головы рекомендуется добавить «Черновая "
 "башня таймлапса». \n"
@@ -8804,7 +8812,13 @@ msgstr ""
 msgid "Overwriting"
 msgstr ""
 
+msgid "Left Extruder"
+msgstr ""
+
 msgid "(Recommended filament)"
+msgstr ""
+
+msgid "Right Extruder"
 msgstr ""
 
 msgid "Attention"
@@ -14156,8 +14170,8 @@ msgstr ""
 "Хотите перезаписать его?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "Мы переименуем профиль в \"Производитель Тип Серия @выбранный принтер\".\n"
@@ -15678,6 +15692,9 @@ msgstr ""
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как "
 "ABS, повышение температуры подогреваемого стола может снизить эту "
 "вероятность?"
+
+#~ msgid "Send print job to"
+#~ msgstr "Отправка задания на печать"
 
 # ??? Сохранить изменённые значения
 #~ msgid "Save Modified Value"
