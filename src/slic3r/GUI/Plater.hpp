@@ -187,6 +187,7 @@ public:
 	bool                    show_export_removable(bool show) const;
 	bool                    get_eject_shown() const;
     bool                    is_multifilament();
+    void                    deal_btn_sync();
     void                    update_mode();
     bool                    is_collapsed();
     void                    collapse(bool collapse);
