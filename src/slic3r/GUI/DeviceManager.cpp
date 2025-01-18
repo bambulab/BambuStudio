@@ -5835,6 +5835,7 @@ void MachineObject::parse_new_info(json print)
         is_support_nozzle_blob_detection = get_flag_bits(fun, 13);
         is_support_upgrade_kit = get_flag_bits(fun, 14);
         is_support_internal_timelapse = get_flag_bits(fun, 28);
+        is_support_command_homing = get_flag_bits(fun, 32);
     }
 
     /*aux*/

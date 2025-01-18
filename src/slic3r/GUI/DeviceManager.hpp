@@ -989,6 +989,7 @@ public:
     bool is_support_upgrade_kit{false};
     bool is_support_filament_setting_inprinting{false};
     bool is_support_internal_timelapse { false };// fun[28], support timelapse without SD card
+    bool is_support_command_homing { false };// fun[32]
 
     bool installed_upgrade_kit{false};
     int  bed_temperature_limit = -1;
