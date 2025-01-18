@@ -4385,7 +4385,7 @@ SyncNozzleAndAmsDialog::SyncNozzleAndAmsDialog(wxWindow *parent, InputInfo &inpu
     m_button_ok = new Button(this,  _L("Sync AMS filament"));
     m_button_ok->SetBackgroundColor(btn_bg_green);
     m_button_ok->SetBorderWidth(0);
-    m_button_ok->SetTextColor(wxColour(0xFFFFFF));
+    m_button_ok->SetTextColor(wxColour(0xFEFEFE));
     m_button_ok->SetFont(Label::Body_12);
     m_button_ok->SetSize(wxSize(FromDIP(60), FromDIP(30)));
     m_button_ok->SetMinSize(wxSize(FromDIP(90), FromDIP(30)));
@@ -4401,7 +4401,7 @@ SyncNozzleAndAmsDialog::SyncNozzleAndAmsDialog(wxWindow *parent, InputInfo &inpu
     m_button_cancel->SetBackgroundColor(btn_bg_white);
     m_button_cancel->SetBorderColor(wxColour(93, 93, 91));
     m_button_cancel->SetFont(Label::Body_12);
-    m_button_cancel->SetTextColor(wxColour(0xFFFFFF));
+    m_button_cancel->SetTextColor(wxColour(0xFEFEFE));
     m_button_cancel->SetSize(wxSize(FromDIP(65), FromDIP(30)));
     m_button_cancel->SetMinSize(wxSize(FromDIP(65), FromDIP(30)));
     m_button_cancel->SetCornerRadius(FromDIP(6));
@@ -4416,7 +4416,6 @@ SyncNozzleAndAmsDialog::SyncNozzleAndAmsDialog(wxWindow *parent, InputInfo &inpu
     SetSizer(m_sizer_main);
     Layout();
     Fit();
-    wxGetApp().UpdateFrameDarkUI(this);
 }
 
 SyncNozzleAndAmsDialog::~SyncNozzleAndAmsDialog() {}
@@ -4489,7 +4488,7 @@ FinishSyncAmsDialog::FinishSyncAmsDialog(wxWindow *parent, InputInfo &input_info
     m_button_ok = new Button(this, _CTX(L_CONTEXT("OK", "FinishSyncAms"), "FinishSyncAms"));
     m_button_ok->SetBackgroundColor(btn_bg_green);
     m_button_ok->SetBorderWidth(0);
-    m_button_ok->SetTextColor(wxColour(0xFFFFFF));
+    m_button_ok->SetTextColor(wxColour(0xFEFEFE));
     m_button_ok->SetFont(Label::Body_12);
     m_button_ok->SetSize(wxSize(FromDIP(68), FromDIP(30)));
     m_button_ok->SetMinSize(wxSize(FromDIP(68), FromDIP(30)));
@@ -4515,7 +4514,6 @@ FinishSyncAmsDialog::FinishSyncAmsDialog(wxWindow *parent, InputInfo &input_info
     SetSizer(m_sizer_main);
     Layout();
     Fit();
-    wxGetApp().UpdateFrameDarkUI(this);
 }
 FinishSyncAmsDialog::~FinishSyncAmsDialog() {}
 void FinishSyncAmsDialog::on_dpi_changed(const wxRect &suggested_rect)
