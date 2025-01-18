@@ -1,12 +1,12 @@
 # Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-17 17:46+0800\n"
+"POT-Creation-Date: 2025-01-18 21:59+0800\n"
 "PO-Revision-Date: 2025-01-08 20:27+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -2195,12 +2195,17 @@ msgid ""
 msgstr "选择1个AMS槽位，然后点击进料/退料按钮以自动进料/退料。"
 
 msgid ""
-"Changed fan speed during pringing may affect print quality, please choose "
+"Changing fan speed during pringing may affect print quality, please choose "
 "carefully."
-msgstr "在打印过程中改变风扇速度可能会影响打印质量，请谨慎选择"
+msgstr "在打印过程中改变风扇速度可能会影响打印质量，请谨慎选择。"
 
 msgid "Change Anyway"
 msgstr "仍然改动"
+
+msgid ""
+"Changed fan speed during pringing may affect print quality, please choose "
+"carefully."
+msgstr "在打印过程中改变风扇速度可能会影响打印质量，请谨慎选择"
 
 msgid "Off"
 msgstr "关闭"
@@ -2813,7 +2818,7 @@ msgstr "右侧AMS"
 
 msgid ""
 "Note: Only the AMS slots loaded with the same material type can be selected."
-msgstr "仅允许选择放入同种材质耗材丝的AMS槽位"
+msgstr "仅允许选择相同材质类型的耗材"
 
 msgid "Ext"
 msgstr ""
@@ -3717,6 +3722,9 @@ msgstr "设置为最优"
 msgid "Regroup filament"
 msgstr "重新分组"
 
+msgid "Tips"
+msgstr "提示"
+
 msgid "up to"
 msgstr "达到"
 
@@ -3835,12 +3843,11 @@ msgid "Switch to normal mode"
 msgstr "切换到普通模式"
 
 msgid ""
-"An object is laid on the left/right nozzle only area.\n"
-"Please make sure the filaments used by this object on this area are not "
-"mapped to the other nozzles."
+"An object is placed in the left/right nozzle-only area or exceeds the "
+"printable height of the left nozzle.\n"
+"Please ensure the filaments used by this object are not arranged to other "
+"nozzles."
 msgstr ""
-"一个模型放置在仅左/右喷嘴可打印区域。\n"
-"请确保该模型在该区域内使用的材料没有映射到其他喷嘴。"
 
 msgid ""
 "An object is laid over the boundary of plate or exceeds the height limit.\n"
@@ -3942,10 +3949,10 @@ msgid ""
 " located within the %s only area, making it impossible to print with the "
 "filaments assigned to %s.\n"
 "Please move the model out of the %s only area or adjust the filament "
-"assignment.\n"
+"grouping.\n"
 msgstr ""
 "位于仅%s打印区域，无法使用映射到%s的耗材打印。\n"
-"请将模型移出仅%s可打印区域，或者调整材料映射。\n"
+"请将模型移出仅%s可打印区域，或者调整耗材左右分组。\n"
 
 msgid "Mirror Object"
 msgstr "镜像物体"
@@ -5799,6 +5806,9 @@ msgstr "连接"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "同步喷嘴信息和AMS编号"
 
+msgid "Nozzle"
+msgstr "喷嘴"
+
 msgid "Flushing volumes"
 msgstr "冲刷体积"
 
@@ -6152,9 +6162,6 @@ msgstr ""
 "当前连接的打印机 %s 为 %s机型。\n"
 "如果使用该打印机打印，请将项目文件中的机型切换为 %s。"
 
-msgid "Tips"
-msgstr "提示"
-
 msgid "Load project"
 msgstr "加载项目"
 
@@ -6270,6 +6277,11 @@ msgstr "文件%s已经发送到打印机的存储空间，可以在打印机上�
 
 msgid "The nozzle type is not set. Please set the nozzle and try again."
 msgstr "未设置喷嘴类型。请先设置喷嘴，然后重试。"
+
+msgid ""
+"Printer not connected. Please connect or choose a printer on the Device page "
+"and try again."
+msgstr "打印机未连接。请在“设备”页面上连接或选择打印机，然后重试。"
 
 msgid ""
 "Unable to perform boolean operation on model meshes. You may fix the meshes "
@@ -7213,9 +7225,12 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"The selected printer (%s) is incompatible with the chosen printer profile in "
-"the slicer (%s)."
-msgstr "所选打印机（%s）与切片软件中选择的打印机配置文件（%s）不兼容。"
+"The selected printer (%s) is incompatible with the print file configuration "
+"(%s). Please adjust the printer preset in the prepare page or choose a "
+"compatible printer on this page."
+msgstr ""
+"当前选择的打印机（%s）与打印文件配置（%s）不兼容，请前往准备界面重新选择打印"
+"机预设，或在此页面选择兼容的打印机。"
 
 msgid "Storage needs to be inserted to record timelapse."
 msgstr ""
@@ -7241,9 +7256,11 @@ msgid ""
 msgstr "切片参数中开启了逐件打印，无法支持延时摄影。"
 
 msgid ""
-"You selected external and AMS filament at the same time in an extruder, you "
-"will need manually change external filament."
+"You have selected both external and AMS filaments for an extruder. You will "
+"need to manually switch the external filament during printing."
 msgstr ""
+"您在一个挤出机中同时选择了使用外挂和AMS耗材，这将需要您在打印过程中手动进行换"
+"料，请谨慎选择。"
 
 msgid "Errors"
 msgstr "错误"
@@ -7288,19 +7305,8 @@ msgid "The name length exceeds the limit."
 msgstr "名称长度超过限制。"
 
 #, c-format, boost-format
-msgid ""
-"It is not recommended to use AMS and external filaments simultaneously on "
-"the same nozzle. Otherwise, you will need to manually change filaments %d "
-"times for this print."
-msgstr ""
-"不推荐在同一个喷嘴上同时使用AMS和外挂料，否则此次打印你需要手动换料%d次。"
-
-#, c-format, boost-format
-msgid ""
-"It is not recommended to use AMS and external filaments simultaneously. "
-"Otherwise, you will need to manually change filaments %d times for this "
-"print."
-msgstr "不推荐同时使用AMS和外挂料，否则此次打印你需要手动换料%d次。"
+msgid "Cost %dg filament and %d changes more than optimal grouping."
+msgstr "如果使用最优分组可多节省%dg耗材和%d次换料"
 
 msgid ""
 "Tips: If you changed your nozzle of your printer lately, Please go to "
@@ -7355,7 +7361,7 @@ msgid "Cool(Supertack)"
 msgstr ""
 
 msgid "Send to Printer storage"
-msgstr ""
+msgstr "发送到打印机存储"
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "上传文件超时，请检查固件版本是否支持。"
@@ -7508,7 +7514,7 @@ msgid "Statement on User Experience Improvement Plan"
 msgstr "关于用户体验改善计划的声明"
 
 msgid "Log in successful."
-msgstr "登录成功。"
+msgstr "登录成功"
 
 msgid "Log out printer"
 msgstr "登出打印机"
@@ -7622,8 +7628,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "在录制无工具头延时摄影视频时，建议添加“延时摄影擦料塔”\n"
 "右键单击打印板的空白位置，选择“添加标准模型”->“延时摄影擦料塔”。"
@@ -7785,9 +7791,6 @@ msgid ""
 "Bed temperature when Textured PEI Plate is installed. Value 0 means the "
 "filament does not support to print on the Textured PEI Plate"
 msgstr "安装纹理PEI打印板时的热床温度。0值表示这个耗材丝不支持纹理PEI打印板"
-
-msgid "Nozzle"
-msgstr "喷嘴"
 
 msgid "Nozzle temperature when printing"
 msgstr "打印时的喷嘴温度"
@@ -8265,11 +8268,6 @@ msgid "—> "
 msgstr ""
 
 msgid ""
-"Printer not connected. Please connect or choose a printer on the Device page "
-"and try again."
-msgstr "打印机未连接。请在“设备”页面上连接或选择打印机，然后重试。"
-
-msgid ""
 "Synchronizing AMS filaments will discard your modified but unsaved filament "
 "presets.\n"
 "Are you sure you want to continue?"
@@ -8349,23 +8347,25 @@ msgstr "仅同步耗材类型和颜色，不包含AMS槽位信息。"
 msgid "Advanced settings >"
 msgstr "高级设置 >"
 
-msgid ""
-"When you click \"Synchronize now\" button,it will append unmapped color."
-msgstr "当您单击\"立即同步\"按钮时，它将附加未匹配的颜色。"
-
 msgid "Unused AMS filaments should also be added to the filament list."
 msgstr "未使用的AMS耗材也添加到耗材列表。"
-
-msgid ""
-"When you click \"Synchronize now\" button,it will merge same ams to only one "
-"color."
-msgstr "当您点击\"立即同步\"按钮时，它会将相同的ams合并为一种颜色。"
 
 msgid "Automatically merge the same colors in the model after mapping."
 msgstr "匹配后自动合并模型中的相同颜色。"
 
 msgid "Synchronize now"
 msgstr "立即同步"
+
+#, c-format, boost-format
+msgid ""
+"The selected printer (%s) is incompatible with the chosen printer profile in "
+"the slicer (%s)."
+msgstr "所选打印机（%s）与切片软件中选择的打印机配置文件（%s）不兼容。"
+
+msgid ""
+"You selected external and AMS filament at the same time in an extruder, you "
+"will need manually change external filament."
+msgstr ""
 
 #, c-format, boost-format
 msgid "nozzle in preset: %.1f %s"
@@ -8390,6 +8390,9 @@ msgstr "%1s材料在使用%2s的喷嘴打印时,可能会导致喷嘴损坏。"
 msgid "Successfully synchronized nozzle and AMS number information."
 msgstr "喷嘴信息和AMS数量同步成功。"
 
+msgid "Sync filament"
+msgstr ""
+
 msgid "Sync AMS filament"
 msgstr "继续同步AMS耗材"
 
@@ -8397,8 +8400,8 @@ msgctxt "Sync_Nozzle_AMS"
 msgid "Cancel"
 msgstr "知道了"
 
-msgid "Successfully synchronized color and type of filament in AMS."
-msgstr "AMS耗材颜色和材质同步成功。"
+msgid "Successfully synchronized color and type of filament from printer."
+msgstr "打印机的耗材颜色和材质同步成功。"
 
 msgctxt "FinishSyncAms"
 msgid "OK"
@@ -10170,6 +10173,9 @@ msgid ""
 "Length of the scarf. Setting this parameter to zero effectively disables the "
 "scarf."
 msgstr "斜拼接缝的长度。长度为0时会禁用斜拼接缝。"
+
+msgid "Filament change length"
+msgstr ""
 
 msgid "Support material"
 msgstr "支撑材料"
@@ -13081,8 +13087,8 @@ msgstr ""
 "你想重写预设吗"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "我们会将预设重命名为“供应商 类型 系列 @您选择的打印机”。\n"
@@ -14155,8 +14161,8 @@ msgid ""
 "Calculate the best filament grouping to minimize filament waste. Need to "
 "manually place filaments on the printer based on slicing results."
 msgstr ""
-"以最小化耗材浪费为目标，切片时自动规划耗材的左右分组。需根据切片结果在打印机"
-"上调整耗材位置"
+"以最小化耗材浪费为目标，切片时自动规划耗材左右分组。需根据切片结果在打印机上"
+"调整耗材位置"
 
 msgid ""
 "Calculate the filament grouping based on the printer's filaments, reducing "
@@ -14459,6 +14465,51 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ " located within the %s only area, making it impossible to print with the "
+#~ "filaments assigned to %s.\n"
+#~ "Please move the model out of the %s only area or adjust the filament "
+#~ "assignment.\n"
+#~ msgstr ""
+#~ "位于仅%s打印区域，无法使用映射到%s的耗材打印。\n"
+#~ "请将模型移出仅%s可打印区域，或者调整材料映射。\n"
+
+#~ msgid "Successfully synchronized color and type of filament in AMS."
+#~ msgstr "AMS耗材颜色和材质同步成功。"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "It is not recommended to use AMS and external filaments simultaneously on "
+#~ "the same nozzle. Otherwise, you will need to manually change filaments %d "
+#~ "times for this print."
+#~ msgstr ""
+#~ "不推荐在同一个喷嘴上同时使用AMS和外挂料，否则此次打印你需要手动换料%d次。"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "It is not recommended to use AMS and external filaments simultaneously. "
+#~ "Otherwise, you will need to manually change filaments %d times for this "
+#~ "print."
+#~ msgstr "不推荐同时使用AMS和外挂料，否则此次打印你需要手动换料%d次。"
+
+#~ msgid ""
+#~ "An object is laid on the left/right nozzle only area.\n"
+#~ "Please make sure the filaments used by this object on this area are not "
+#~ "mapped to the other nozzles."
+#~ msgstr ""
+#~ "一个模型放置在仅左/右喷嘴可打印区域。\n"
+#~ "请确保该模型在该区域内使用的材料没有映射到其他喷嘴。"
+
+#~ msgid ""
+#~ "When you click \"Synchronize now\" button,it will append unmapped color."
+#~ msgstr "当您单击\"立即同步\"按钮时，它将附加未匹配的颜色。"
+
+#~ msgid ""
+#~ "When you click \"Synchronize now\" button,it will merge same ams to only "
+#~ "one color."
+#~ msgstr "当您点击\"立即同步\"按钮时，它会将相同的ams合并为一种颜色。"
 
 #~ msgid "When you click ok button,it will append unmapped color."
 #~ msgstr "当您单击ok按钮时，它将附加未匹配的颜色。"
@@ -20815,8 +20866,8 @@ msgstr ""
 #~ msgstr "正在准备设置页"
 
 #~ msgid ""
-#~ "You have the following presets with saved options for \"Print Host "
-#~ "upload\""
+#~ "You have the following presets with saved options for \"Print Host upload"
+#~ "\""
 #~ msgstr "您的以下预设中包含未保存的选项“打印主机上传”"
 
 #~ msgid ""

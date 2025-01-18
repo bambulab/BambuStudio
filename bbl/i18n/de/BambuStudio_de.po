@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-17 17:46+0800\n"
+"POT-Creation-Date: 2025-01-18 21:59+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2251,11 +2251,16 @@ msgstr ""
 "\"Entladen\", um automatisch Filament zu laden oder zu entladen."
 
 msgid ""
-"Changed fan speed during pringing may affect print quality, please choose "
+"Changing fan speed during pringing may affect print quality, please choose "
 "carefully."
 msgstr ""
 
 msgid "Change Anyway"
+msgstr ""
+
+msgid ""
+"Changed fan speed during pringing may affect print quality, please choose "
+"carefully."
 msgstr ""
 
 msgid "Off"
@@ -3884,6 +3889,9 @@ msgstr ""
 msgid "Regroup filament"
 msgstr ""
 
+msgid "Tips"
+msgstr "Tipps"
+
 msgid "up to"
 msgstr "bis zu"
 
@@ -4002,9 +4010,10 @@ msgid "Switch to normal mode"
 msgstr "Zum Normalen Modus wechseln"
 
 msgid ""
-"An object is laid on the left/right nozzle only area.\n"
-"Please make sure the filaments used by this object on this area are not "
-"mapped to the other nozzles."
+"An object is placed in the left/right nozzle-only area or exceeds the "
+"printable height of the left nozzle.\n"
+"Please ensure the filaments used by this object are not arranged to other "
+"nozzles."
 msgstr ""
 
 msgid ""
@@ -4109,7 +4118,7 @@ msgid ""
 " located within the %s only area, making it impossible to print with the "
 "filaments assigned to %s.\n"
 "Please move the model out of the %s only area or adjust the filament "
-"assignment.\n"
+"grouping.\n"
 msgstr ""
 
 msgid "Mirror Object"
@@ -6016,6 +6025,9 @@ msgstr "Verbindung"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr ""
 
+msgid "Nozzle"
+msgstr "Düse"
+
 msgid "Flushing volumes"
 msgstr "Reinigungsvolumen"
 
@@ -6395,9 +6407,6 @@ msgid ""
 "file to %s."
 msgstr ""
 
-msgid "Tips"
-msgstr "Tipps"
-
 msgid "Load project"
 msgstr "Projekt laden"
 
@@ -6516,6 +6525,11 @@ msgstr ""
 "Drucker angezeigt werden."
 
 msgid "The nozzle type is not set. Please set the nozzle and try again."
+msgstr ""
+
+msgid ""
+"Printer not connected. Please connect or choose a printer on the Device page "
+"and try again."
 msgstr ""
 
 msgid ""
@@ -7486,11 +7500,10 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"The selected printer (%s) is incompatible with the chosen printer profile in "
-"the slicer (%s)."
+"The selected printer (%s) is incompatible with the print file configuration "
+"(%s). Please adjust the printer preset in the prepare page or choose a "
+"compatible printer on this page."
 msgstr ""
-"The selected printer (%s) is incompatible with the chosen printer profile in "
-"the slicer (%s)."
 
 msgid "Storage needs to be inserted to record timelapse."
 msgstr ""
@@ -7523,8 +7536,8 @@ msgstr ""
 "eingestellt ist."
 
 msgid ""
-"You selected external and AMS filament at the same time in an extruder, you "
-"will need manually change external filament."
+"You have selected both external and AMS filaments for an extruder. You will "
+"need to manually switch the external filament during printing."
 msgstr ""
 
 msgid "Errors"
@@ -7576,17 +7589,7 @@ msgid "The name length exceeds the limit."
 msgstr "Die Namenslänge überschreitet das Limit."
 
 #, c-format, boost-format
-msgid ""
-"It is not recommended to use AMS and external filaments simultaneously on "
-"the same nozzle. Otherwise, you will need to manually change filaments %d "
-"times for this print."
-msgstr ""
-
-#, c-format, boost-format
-msgid ""
-"It is not recommended to use AMS and external filaments simultaneously. "
-"Otherwise, you will need to manually change filaments %d times for this "
-"print."
+msgid "Cost %dg filament and %d changes more than optimal grouping."
 msgstr ""
 
 msgid ""
@@ -7932,13 +7935,13 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Wenn Sie einen Zeitraffer ohne Werkzeugkopf aufnehmen, wird empfohlen, einen "
 "\"Timelapse Wischturm\" hinzuzufügen, indem Sie mit der rechten Maustaste "
-"auf die leere Position der Bauplatte klicken und \"Primitiv hinzufügen\"-"
-">\"Timelapse Wischturm\" wählen."
+"auf die leere Position der Bauplatte klicken und \"Primitiv hinzufügen\"->"
+"\"Timelapse Wischturm\" wählen."
 
 msgid ""
 "The notes are too large, and may not be synchronized to the cloud. Please "
@@ -8114,9 +8117,6 @@ msgid ""
 msgstr ""
 "Betttemperatur, wenn die texturierte PEI-Platte installiert ist. 0 bedeutet, "
 "dass das Filament nicht auf der texturierten PEI-Platte unterstützt wird."
-
-msgid "Nozzle"
-msgstr "Düse"
 
 msgid "Nozzle temperature when printing"
 msgstr "Düsentemperatur beim Drucken"
@@ -8613,11 +8613,6 @@ msgid "—> "
 msgstr ""
 
 msgid ""
-"Printer not connected. Please connect or choose a printer on the Device page "
-"and try again."
-msgstr ""
-
-msgid ""
 "Synchronizing AMS filaments will discard your modified but unsaved filament "
 "presets.\n"
 "Are you sure you want to continue?"
@@ -8691,22 +8686,26 @@ msgstr ""
 msgid "Advanced settings >"
 msgstr ""
 
-msgid ""
-"When you click \"Synchronize now\" button,it will append unmapped color."
-msgstr ""
-
 msgid "Unused AMS filaments should also be added to the filament list."
-msgstr ""
-
-msgid ""
-"When you click \"Synchronize now\" button,it will merge same ams to only one "
-"color."
 msgstr ""
 
 msgid "Automatically merge the same colors in the model after mapping."
 msgstr ""
 
 msgid "Synchronize now"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"The selected printer (%s) is incompatible with the chosen printer profile in "
+"the slicer (%s)."
+msgstr ""
+"The selected printer (%s) is incompatible with the chosen printer profile in "
+"the slicer (%s)."
+
+msgid ""
+"You selected external and AMS filament at the same time in an extruder, you "
+"will need manually change external filament."
 msgstr ""
 
 #, c-format, boost-format
@@ -8733,6 +8732,9 @@ msgstr ""
 msgid "Successfully synchronized nozzle and AMS number information."
 msgstr ""
 
+msgid "Sync filament"
+msgstr ""
+
 msgid "Sync AMS filament"
 msgstr ""
 
@@ -8740,7 +8742,7 @@ msgctxt "Sync_Nozzle_AMS"
 msgid "Cancel"
 msgstr ""
 
-msgid "Successfully synchronized color and type of filament in AMS."
+msgid "Successfully synchronized color and type of filament from printer."
 msgstr ""
 
 msgctxt "FinishSyncAms"
@@ -10688,6 +10690,9 @@ msgid ""
 msgstr ""
 "Length of the scarf. Setting this parameter to zero effectively disables the "
 "scarf."
+
+msgid "Filament change length"
+msgstr ""
 
 msgid "Support material"
 msgstr "Stützmaterial"
@@ -13865,12 +13870,12 @@ msgstr ""
 "Möchten Sie es umschreiben?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more printers; please go to printer selection"
 
 msgid "Create Printer/Nozzle"
@@ -16228,8 +16233,8 @@ msgstr ""
 #~ "Choose an AMS slot then press \"Load\" or \"Unload\" button to "
 #~ "automatically load or unload filiament."
 #~ msgstr ""
-#~ "Wählen Sie einen AMS-Slot und drücken Sie dann \"Laden\" oder "
-#~ "\"Entladen\", um automatisch Filament zu laden oder zu entladen."
+#~ "Wählen Sie einen AMS-Slot und drücken Sie dann \"Laden\" oder \"Entladen"
+#~ "\", um automatisch Filament zu laden oder zu entladen."
 
 #~ msgid "Choose one or more files (3mf/step/stl/obj/amf):"
 #~ msgstr "Wählen Sie eine oder mehrere Dateien aus (3mf/step/stl/obj/amf):"
