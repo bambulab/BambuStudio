@@ -3664,7 +3664,7 @@ void StatusPanel::on_axis_ctrl_xy(wxCommandEvent &event)
             axis_go_home_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent& e) {
                 if (obj) {
                     BOOST_LOG_TRIVIAL(info) << "Axis have go home";
-                    if (obj->is_enable_np) {
+                    if (obj->is_support_command_homing) {
                         obj->command_go_home2();
                     } else {
                         obj->command_go_home();
