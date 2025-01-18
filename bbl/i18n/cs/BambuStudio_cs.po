@@ -2,12 +2,12 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-17 17:46+0800\n"
+"POT-Creation-Date: 2025-01-18 21:59+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -2196,11 +2196,16 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Changed fan speed during pringing may affect print quality, please choose "
+"Changing fan speed during pringing may affect print quality, please choose "
 "carefully."
 msgstr ""
 
 msgid "Change Anyway"
+msgstr ""
+
+msgid ""
+"Changed fan speed during pringing may affect print quality, please choose "
+"carefully."
 msgstr ""
 
 msgid "Off"
@@ -3752,6 +3757,9 @@ msgstr ""
 msgid "Regroup filament"
 msgstr ""
 
+msgid "Tips"
+msgstr "Tipy"
+
 msgid "up to"
 msgstr "až do"
 
@@ -3870,9 +3878,10 @@ msgid "Switch to normal mode"
 msgstr "Přepnout do normálního režimu"
 
 msgid ""
-"An object is laid on the left/right nozzle only area.\n"
-"Please make sure the filaments used by this object on this area are not "
-"mapped to the other nozzles."
+"An object is placed in the left/right nozzle-only area or exceeds the "
+"printable height of the left nozzle.\n"
+"Please ensure the filaments used by this object are not arranged to other "
+"nozzles."
 msgstr ""
 
 msgid ""
@@ -3975,7 +3984,7 @@ msgid ""
 " located within the %s only area, making it impossible to print with the "
 "filaments assigned to %s.\n"
 "Please move the model out of the %s only area or adjust the filament "
-"assignment.\n"
+"grouping.\n"
 msgstr ""
 
 msgid "Mirror Object"
@@ -5836,6 +5845,9 @@ msgstr "Připojení"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr ""
 
+msgid "Nozzle"
+msgstr "Tryska"
+
 msgid "Flushing volumes"
 msgstr "Čistící objem"
 
@@ -6187,9 +6199,6 @@ msgid ""
 "file to %s."
 msgstr ""
 
-msgid "Tips"
-msgstr "Tipy"
-
 msgid "Load project"
 msgstr "Načíst projekt"
 
@@ -6304,6 +6313,11 @@ msgstr ""
 "tiskárně."
 
 msgid "The nozzle type is not set. Please set the nozzle and try again."
+msgstr ""
+
+msgid ""
+"Printer not connected. Please connect or choose a printer on the Device page "
+"and try again."
 msgstr ""
 
 msgid ""
@@ -7237,8 +7251,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"The selected printer (%s) is incompatible with the chosen printer profile in "
-"the slicer (%s)."
+"The selected printer (%s) is incompatible with the print file configuration "
+"(%s). Please adjust the printer preset in the prepare page or choose a "
+"compatible printer on this page."
 msgstr ""
 
 msgid "Storage needs to be inserted to record timelapse."
@@ -7267,8 +7282,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"You selected external and AMS filament at the same time in an extruder, you "
-"will need manually change external filament."
+"You have selected both external and AMS filaments for an extruder. You will "
+"need to manually switch the external filament during printing."
 msgstr ""
 
 msgid "Errors"
@@ -7316,17 +7331,7 @@ msgid "The name length exceeds the limit."
 msgstr "Délka názvu překračuje limit."
 
 #, c-format, boost-format
-msgid ""
-"It is not recommended to use AMS and external filaments simultaneously on "
-"the same nozzle. Otherwise, you will need to manually change filaments %d "
-"times for this print."
-msgstr ""
-
-#, c-format, boost-format
-msgid ""
-"It is not recommended to use AMS and external filaments simultaneously. "
-"Otherwise, you will need to manually change filaments %d times for this "
-"print."
+msgid "Cost %dg filament and %d changes more than optimal grouping."
 msgstr ""
 
 msgid ""
@@ -7634,8 +7639,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Při nahrávání časosběru bez nástrojové hlavy se doporučuje přidat  "
 "\"Timelapse Wipe Tower\" \n"
@@ -7814,9 +7819,6 @@ msgid ""
 msgstr ""
 "Teplota podložky při instalaci Textured PEI Podložky. Hodnota 0 znamená "
 "filament nepodporuje tisk na Textured PEI Podložku"
-
-msgid "Nozzle"
-msgstr "Tryska"
 
 msgid "Nozzle temperature when printing"
 msgstr "Teplota trysky při tisku"
@@ -8292,11 +8294,6 @@ msgid "—> "
 msgstr ""
 
 msgid ""
-"Printer not connected. Please connect or choose a printer on the Device page "
-"and try again."
-msgstr ""
-
-msgid ""
 "Synchronizing AMS filaments will discard your modified but unsaved filament "
 "presets.\n"
 "Are you sure you want to continue?"
@@ -8370,22 +8367,24 @@ msgstr ""
 msgid "Advanced settings >"
 msgstr ""
 
-msgid ""
-"When you click \"Synchronize now\" button,it will append unmapped color."
-msgstr ""
-
 msgid "Unused AMS filaments should also be added to the filament list."
-msgstr ""
-
-msgid ""
-"When you click \"Synchronize now\" button,it will merge same ams to only one "
-"color."
 msgstr ""
 
 msgid "Automatically merge the same colors in the model after mapping."
 msgstr ""
 
 msgid "Synchronize now"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"The selected printer (%s) is incompatible with the chosen printer profile in "
+"the slicer (%s)."
+msgstr ""
+
+msgid ""
+"You selected external and AMS filament at the same time in an extruder, you "
+"will need manually change external filament."
 msgstr ""
 
 #, c-format, boost-format
@@ -8409,6 +8408,9 @@ msgstr ""
 msgid "Successfully synchronized nozzle and AMS number information."
 msgstr ""
 
+msgid "Sync filament"
+msgstr ""
+
 msgid "Sync AMS filament"
 msgstr ""
 
@@ -8416,7 +8418,7 @@ msgctxt "Sync_Nozzle_AMS"
 msgid "Cancel"
 msgstr ""
 
-msgid "Successfully synchronized color and type of filament in AMS."
+msgid "Successfully synchronized color and type of filament from printer."
 msgstr ""
 
 msgctxt "FinishSyncAms"
@@ -10248,6 +10250,9 @@ msgstr ""
 msgid ""
 "Length of the scarf. Setting this parameter to zero effectively disables the "
 "scarf."
+msgstr ""
+
+msgid "Filament change length"
 msgstr ""
 
 msgid "Support material"
@@ -13214,8 +13219,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 
@@ -14270,8 +14275,8 @@ msgid ""
 msgstr ""
 "Plochou na podložku\n"
 "Věděli jste, že můžete rychle nastavit orientaci modelu tak, aby jedna z "
-"jeho stěn spočívala na tiskovém podloží? Vyberte funkci \"Plochou na "
-"podložku\" nebo stiskněte klávesu <b>F</b>."
+"jeho stěn spočívala na tiskovém podloží? Vyberte funkci \"Plochou na podložku"
+"\" nebo stiskněte klávesu <b>F</b>."
 
 #: resources/data/hints.ini: [hint:Object List]
 msgid ""
@@ -14774,12 +14779,12 @@ msgstr ""
 #~ "Najdete podrobnosti o kalibraci průtoku dynamiky v naší wiki.\n"
 #~ "\n"
 #~ "Obvykle kalibrace není potřebná. Při spuštění tisku s jednobarevným/"
-#~ "materiálovým filamentem a zaškrtnutou volbou \"kalibrace průtoku "
-#~ "dynamiky\" v menu spuštění tisku, tiskárna bude postupovat podle staré "
-#~ "metody a zkalibruje filament před tiskem. Při spuštění tisku s "
-#~ "vícebarevným/materiálovým filamentem bude tiskárna při každé změně "
-#~ "filamentu používat výchozí kompenzační parametr pro filament, což má "
-#~ "většinou dobrý výsledek.\n"
+#~ "materiálovým filamentem a zaškrtnutou volbou \"kalibrace průtoku dynamiky"
+#~ "\" v menu spuštění tisku, tiskárna bude postupovat podle staré metody a "
+#~ "zkalibruje filament před tiskem. Při spuštění tisku s vícebarevným/"
+#~ "materiálovým filamentem bude tiskárna při každé změně filamentu používat "
+#~ "výchozí kompenzační parametr pro filament, což má většinou dobrý "
+#~ "výsledek.\n"
 #~ "\n"
 #~ "Všimněte si, že existují některé případy, které mohou způsobit, že "
 #~ "výsledek kalibrace nebude spolehlivý: použití texturované podložky pro "
