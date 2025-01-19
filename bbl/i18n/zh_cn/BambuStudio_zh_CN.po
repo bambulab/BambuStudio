@@ -1,12 +1,12 @@
 # Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-19 18:48+0800\n"
+"POT-Creation-Date: 2025-01-19 22:12+0800\n"
 "PO-Revision-Date: 2025-01-08 20:27+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -4953,6 +4953,9 @@ msgstr "下载完成"
 msgid "Downloading %d%%..."
 msgstr "下载中 %d%%..."
 
+msgid "Fan"
+msgstr "风扇"
+
 msgid ""
 "Reconnecting the printer, the operation cannot be completed immediately, "
 "please try again later."
@@ -5811,7 +5814,7 @@ msgstr "同步喷嘴信息和AMS编号"
 msgid "Nozzle"
 msgstr "喷嘴"
 
-msgid "Project's filaments"
+msgid "Project Filaments"
 msgstr "项目耗材列表"
 
 msgid "Flushing volumes"
@@ -7634,8 +7637,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "在录制无工具头延时摄影视频时，建议添加“延时摄影擦料塔”\n"
 "右键单击打印板的空白位置，选择“添加标准模型”->“延时摄影擦料塔”。"
@@ -8287,6 +8290,9 @@ msgstr "原项目"
 
 msgid "After mapping"
 msgstr "匹配后"
+
+msgid "After overwriting"
+msgstr "覆盖后"
 
 msgctxt "Sync_AMS"
 msgid "Plate"
@@ -13101,8 +13107,8 @@ msgstr ""
 "你想重写预设吗"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "我们会将预设重命名为“供应商 类型 系列 @您选择的打印机”。\n"
@@ -13540,8 +13546,8 @@ msgid ""
 "printer nozzle type.\n"
 "Please click the Sync button above and restart the calibration."
 msgstr ""
-"当前选择的%s喷头喷嘴类型与实际打印机的喷嘴类型不匹配。请点击上方的同步按钮并"
-"重新开始校准。"
+"当前选择的%s喷嘴直径或类型与实际不匹配。\n"
+"请点击上方的同步按钮，然后重新校准。"
 
 msgid ""
 "Unable to calibrate: maybe because the set calibration value range is too "
@@ -14208,8 +14214,10 @@ msgstr "我们将基于当前分配方案切片："
 msgid "Tips: You can drag the filaments to reassign them to different nozzles."
 msgstr "提示：您可以拖动耗材以将其重新分配到不同的喷嘴。"
 
-msgid "The filament grouping for current plate follows the global settings."
-msgstr "当前盘的耗材分组方案遵循全局设置。"
+msgid ""
+"The filament grouping method for current plate is determined by the dropdown "
+"option at the slicing plate button."
+msgstr "当前盘的耗材分组方式由切片按钮处的下拉选项决定。"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -14477,6 +14485,12 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid "Project's filaments"
+#~ msgstr "项目耗材列表"
+
+#~ msgid "The filament grouping for current plate follows the global settings."
+#~ msgstr "当前盘的耗材分组方案遵循全局设置。"
 
 #~ msgid ""
 #~ "The current chamber temperature or the target chamber temperature exceeds "
@@ -20914,8 +20928,8 @@ msgstr ""
 #~ msgstr "正在准备设置页"
 
 #~ msgid ""
-#~ "You have the following presets with saved options for \"Print Host upload"
-#~ "\""
+#~ "You have the following presets with saved options for \"Print Host "
+#~ "upload\""
 #~ msgstr "您的以下预设中包含未保存的选项“打印主机上传”"
 
 #~ msgid ""

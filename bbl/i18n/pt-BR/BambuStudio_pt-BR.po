@@ -1,12 +1,12 @@
 # Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-19 18:48+0800\n"
+"POT-Creation-Date: 2025-01-19 22:12+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -5096,6 +5096,9 @@ msgstr "Transferência finalizada"
 msgid "Downloading %d%%..."
 msgstr "Baixando %d%%..."
 
+msgid "Fan"
+msgstr ""
+
 msgid ""
 "Reconnecting the printer, the operation cannot be completed immediately, "
 "please try again later."
@@ -5975,7 +5978,7 @@ msgstr ""
 msgid "Nozzle"
 msgstr "Bico"
 
-msgid "Project's filaments"
+msgid "Project Filaments"
 msgstr ""
 
 msgid "Flushing volumes"
@@ -7858,8 +7861,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Ao gravar o timelapse sem o cabeçote de ferramenta, é recomendável adicionar "
 "uma “Timelapse Wipe Tower” \n"
@@ -8538,6 +8541,9 @@ msgid "Original"
 msgstr ""
 
 msgid "After mapping"
+msgstr ""
+
+msgid "After overwriting"
 msgstr ""
 
 msgctxt "Sync_AMS"
@@ -13736,8 +13742,8 @@ msgstr ""
 "Você quer reescrevê-lo?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "Nós renomearíamos as predefinições como “Tipo de fornecedor Serial @printer "
@@ -14903,7 +14909,9 @@ msgstr ""
 msgid "Tips: You can drag the filaments to reassign them to different nozzles."
 msgstr ""
 
-msgid "The filament grouping for current plate follows the global settings."
+msgid ""
+"The filament grouping method for current plate is determined by the dropdown "
+"option at the slicing plate button."
 msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]

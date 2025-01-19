@@ -1047,7 +1047,7 @@ void MainFrame::init_tabpanel()
                     m_confirm_download_plugin_dlg = new SecondaryCheckDialog(this, wxID_ANY, _L("Install network plug-in"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM);
                     m_confirm_download_plugin_dlg->SetSize(wxSize(FromDIP(270), FromDIP(158)));
                     m_confirm_download_plugin_dlg->update_text(_L("Please Install network plug-in before log in."));
-                    m_confirm_download_plugin_dlg->update_btn_label(_L("Install Network Plug-in"), _L(""));
+                    m_confirm_download_plugin_dlg->update_btn_label(_L("Install Network Plug-in"), "");
 
                     m_confirm_download_plugin_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent& e) {
                         this->m_confirm_download_plugin_dlg->Close();
