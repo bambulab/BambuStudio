@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-19 18:13+0800\n"
+"POT-Creation-Date: 2025-01-19 18:48+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2747,6 +2747,9 @@ msgstr ""
 msgid "Step"
 msgstr ""
 
+msgid "Unmapped"
+msgstr ""
+
 msgid "AMS Slots"
 msgstr ""
 
@@ -3402,8 +3405,8 @@ msgstr ""
 
 msgid ""
 "The current chamber temperature or the target chamber temperature exceeds "
-"45\\u2103.In order to avoid extruder clogging,low temperature filament(PLA/"
-"PETG/TPU) is not allowed to be loaded."
+"45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
+"TPU) is not allowed to be loaded."
 msgstr ""
 
 msgid ""
@@ -3412,9 +3415,9 @@ msgid ""
 msgstr ""
 
 msgid ""
-"When you set the chamber temperature below 40\\u2103, the chamber "
-"temperature control will not be activated. And the target chamber "
-"temperature will automatically be set to 0\\u2103."
+"When you set the chamber temperature below 40℃, the chamber temperature "
+"control will not be activated. And the target chamber temperature will "
+"automatically be set to 0℃."
 msgstr ""
 
 msgid "Failed to start printing job"
@@ -3574,10 +3577,10 @@ msgid ""
 "grouping results will be displayed after slicing."
 msgstr ""
 
-msgid "Filament Grouping Recommendation"
+msgid "Filament Grouping"
 msgstr ""
 
-msgid "Filament Grouping"
+msgid "Why this grouping"
 msgstr ""
 
 msgid "Left nozzle"
@@ -3586,11 +3589,10 @@ msgstr ""
 msgid "Right nozzle"
 msgstr ""
 
-msgid "Current grouping of slice result is optimal."
+msgid "Please place filaments on the printer based on grouping result."
 msgstr ""
 
-#, possible-boost-format
-msgid "Save %1%g filament and %2% changes than one-nozzle printer."
+msgid "Tips:"
 msgstr ""
 
 msgid "Current grouping of slice result is not optimal."
@@ -3600,16 +3602,14 @@ msgstr ""
 msgid "Cost %1%g filament and %2% changes more than optimal grouping."
 msgstr ""
 
-msgid "Please place the filaments on the printer as recommended."
+#, possible-boost-format
+msgid "Save %1%g filament and %2% changes than one-nozzle printer."
 msgstr ""
 
 msgid "Set to Optimal"
 msgstr ""
 
 msgid "Regroup filament"
-msgstr ""
-
-msgid "Tips"
 msgstr ""
 
 msgid "up to"
@@ -5085,8 +5085,8 @@ msgid "Still load"
 msgstr ""
 
 msgid ""
-"If the chamber temperature exceeds 40\\u2103, the system will automatically "
-"switch to heating mode. Please confirm whether to switch."
+"If the chamber temperature exceeds 40℃, the system will automatically switch "
+"to heating mode. Please confirm whether to switch."
 msgstr ""
 
 msgid "Please select an AMS slot before calibration"
@@ -5991,6 +5991,9 @@ msgid ""
 "file to %s."
 msgstr ""
 
+msgid "Tips"
+msgstr ""
+
 msgid "Load project"
 msgstr ""
 
@@ -6218,9 +6221,6 @@ msgid "Triangles: %1%\n"
 msgstr ""
 
 msgid " (Repair)"
-msgstr ""
-
-msgid "Tips:"
 msgstr ""
 
 msgid ""
@@ -7247,8 +7247,8 @@ msgstr ""
 msgid ""
 "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
 "device, please read the termsand conditions.By clicking to agree to use your "
-"Bambu Lab device, you agree to abide by the Privacy Policy and Terms of Use"
-"(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab device, you agree to abide by the Privacy Policy and Terms of "
+"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 
@@ -13499,9 +13499,7 @@ msgstr ""
 msgid "We will slice according to this grouping method:"
 msgstr ""
 
-msgid ""
-"Tips: You can drag the filaments to reassign them to different nozzles.\n"
-"But your filament grouping may not be the most efficient for filament usage."
+msgid "Tips: You can drag the filaments to reassign them to different nozzles."
 msgstr ""
 
 msgid "The filament grouping for current plate follows the global settings."
