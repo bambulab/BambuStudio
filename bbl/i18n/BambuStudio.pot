@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-18 21:59+0800\n"
+"POT-Creation-Date: 2025-01-19 14:51+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -5661,6 +5661,10 @@ msgstr ""
 msgid "Nozzle"
 msgstr ""
 
+msgctxt "SideBar"
+msgid "Filaments"
+msgstr ""
+
 msgid "Flushing volumes"
 msgstr ""
 
@@ -7040,7 +7044,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Timelapse is not supported because Print sequence is set to \"By object\"."
+"The current printer does not support timelapse in Traditional Mode when "
+"printing By-Object."
 msgstr ""
 
 msgid ""
@@ -7376,8 +7381,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 
 msgid ""
@@ -7993,22 +7998,11 @@ msgid ""
 "Are you sure you want to continue?"
 msgstr ""
 
-msgid ""
-"After sync, all currently configured filament presets and colors will be "
-"discarded."
-msgstr ""
-
 msgctxt "Sync_AMS"
 msgid "Original"
 msgstr ""
 
 msgid "After mapping"
-msgstr ""
-
-msgid "Are you sure to synchronize the filaments?"
-msgstr ""
-
-msgid "Are you sure to directly override current filaments?"
 msgstr ""
 
 msgctxt "Sync_AMS"
@@ -8067,6 +8061,20 @@ msgstr ""
 msgid "Automatically merge the same colors in the model after mapping."
 msgstr ""
 
+msgid ""
+"The project's filament list will be directly replaced with the information "
+"of all filaments from the printer. This action cannot be undone."
+msgstr ""
+
+msgid ""
+"After being synced, the project's filament presets and colors will be "
+"replaced with the mapped filament types and colors. This action cannot be "
+"undone."
+msgstr ""
+
+msgid "Are you sure to synchronize the filaments?"
+msgstr ""
+
 msgid "Synchronize now"
 msgstr ""
 
@@ -8074,6 +8082,10 @@ msgstr ""
 msgid ""
 "The selected printer (%s) is incompatible with the chosen printer profile in "
 "the slicer (%s)."
+msgstr ""
+
+msgid ""
+"Timelapse is not supported because Print sequence is set to \"By object\"."
 msgstr ""
 
 msgid ""
@@ -8102,10 +8114,7 @@ msgstr ""
 msgid "Successfully synchronized nozzle and AMS number information."
 msgstr ""
 
-msgid "Sync filament"
-msgstr ""
-
-msgid "Sync AMS filament"
+msgid "Continue to sync filaments"
 msgstr ""
 
 msgctxt "Sync_Nozzle_AMS"
@@ -12503,8 +12512,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 

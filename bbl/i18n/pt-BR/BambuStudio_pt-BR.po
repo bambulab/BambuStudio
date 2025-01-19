@@ -1,12 +1,12 @@
 # Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-18 21:59+0800\n"
+"POT-Creation-Date: 2025-01-19 14:51+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -5974,6 +5974,10 @@ msgstr ""
 msgid "Nozzle"
 msgstr "Bico"
 
+msgctxt "SideBar"
+msgid "Filaments"
+msgstr ""
+
 msgid "Flushing volumes"
 msgstr "Volumes de descarga"
 
@@ -7455,10 +7459,9 @@ msgstr ""
 "vídeos em timelapse."
 
 msgid ""
-"Timelapse is not supported because Print sequence is set to \"By object\"."
+"The current printer does not support timelapse in Traditional Mode when "
+"printing By-Object."
 msgstr ""
-"O lapso de tempo não é suportado porque a sequência de impressão está "
-"definida como “Por objeto”."
 
 msgid ""
 "You have selected both external and AMS filaments for an extruder. You will "
@@ -7855,8 +7858,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Ao gravar o timelapse sem o cabeçote de ferramenta, é recomendável adicionar "
 "uma “Timelapse Wipe Tower” \n"
@@ -8530,22 +8533,11 @@ msgid ""
 "Are you sure you want to continue?"
 msgstr ""
 
-msgid ""
-"After sync, all currently configured filament presets and colors will be "
-"discarded."
-msgstr ""
-
 msgctxt "Sync_AMS"
 msgid "Original"
 msgstr ""
 
 msgid "After mapping"
-msgstr ""
-
-msgid "Are you sure to synchronize the filaments?"
-msgstr ""
-
-msgid "Are you sure to directly override current filaments?"
 msgstr ""
 
 msgctxt "Sync_AMS"
@@ -8604,6 +8596,20 @@ msgstr ""
 msgid "Automatically merge the same colors in the model after mapping."
 msgstr ""
 
+msgid ""
+"The project's filament list will be directly replaced with the information "
+"of all filaments from the printer. This action cannot be undone."
+msgstr ""
+
+msgid ""
+"After being synced, the project's filament presets and colors will be "
+"replaced with the mapped filament types and colors. This action cannot be "
+"undone."
+msgstr ""
+
+msgid "Are you sure to synchronize the filaments?"
+msgstr ""
+
 msgid "Synchronize now"
 msgstr ""
 
@@ -8614,6 +8620,12 @@ msgid ""
 msgstr ""
 "The selected printer (%s) is incompatible with the chosen printer profile in "
 "the slicer (%s)."
+
+msgid ""
+"Timelapse is not supported because Print sequence is set to \"By object\"."
+msgstr ""
+"O lapso de tempo não é suportado porque a sequência de impressão está "
+"definida como “Por objeto”."
 
 msgid ""
 "You selected external and AMS filament at the same time in an extruder, you "
@@ -8644,10 +8656,7 @@ msgstr ""
 msgid "Successfully synchronized nozzle and AMS number information."
 msgstr ""
 
-msgid "Sync filament"
-msgstr ""
-
-msgid "Sync AMS filament"
+msgid "Continue to sync filaments"
 msgstr ""
 
 msgctxt "Sync_Nozzle_AMS"
@@ -13727,8 +13736,8 @@ msgstr ""
 "Você quer reescrevê-lo?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "Nós renomearíamos as predefinições como “Tipo de fornecedor Serial @printer "
