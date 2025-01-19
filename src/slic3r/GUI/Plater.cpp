@@ -1098,8 +1098,8 @@ bool Sidebar::priv::switch_diameter(bool single)
         auto diameter_right = right_extruder->combo_diameter->GetValue();
         if (diameter_left != diameter_right) {
             MessageDialog dlg(this->plater,
-                              _L("The software does not support using different diameter of nozzles for one  print. "
-                                 "If the left and right nozzles are inconsistent, we can only proceed with single-head printing. "
+                              _L("The software does not support using different diameter of nozzles for one print.\n"
+                                 "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
                                  "Please confirm which nozzle you would like to use for this project."),
                               _L("Switch diameter"), wxNO | wxCANCEL);
             dlg.SetButtonLabel(wxID_NO, wxString::Format(_L("Left nozzle: %smm"), diameter_left));
@@ -1687,7 +1687,7 @@ Sidebar::Sidebar(Plater *parent)
     wxBoxSizer* bSizer39;
     bSizer39 = new wxBoxSizer( wxHORIZONTAL );
     p->m_filament_icon = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "filament");
-    p->m_staticText_filament_settings = new Label(p->m_panel_filament_title, _CTX(L_CONTEXT("Filaments", "SideBar"), "SideBar"), LB_PROPAGATE_MOUSE_EVENT);
+    p->m_staticText_filament_settings = new Label(p->m_panel_filament_title, _L("Project's filaments"));
     bSizer39->Add(p->m_filament_icon, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(10));
     bSizer39->Add( p->m_staticText_filament_settings, 0, wxALIGN_CENTER );
     bSizer39->Add(FromDIP(10), 0, 0, 0, 0);
