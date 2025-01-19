@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-19 14:51+0800\n"
+"POT-Creation-Date: 2025-01-19 16:07+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -10,8 +10,8 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : ((n%10>=2 && n%10<=4) && "
-"((n%100<12 || n%100>14))) ? 1 : 2;\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : ((n%10>=2 && n%10<=4) && ((n"
+"%100<12 || n%100>14))) ? 1 : 2;\n"
 "X-Generator: Poedit 3.4.2\n"
 
 msgid "Supports Painting"
@@ -3641,12 +3641,12 @@ msgstr "Aktualizacja nie powiodła się."
 
 msgid ""
 "The current chamber temperature or the target chamber temperature exceeds "
-"45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
-"TPU) is not allowed to be loaded."
+"45\\u2103.In order to avoid extruder clogging,low temperature filament(PLA/"
+"PETG/TPU) is not allowed to be loaded."
 msgstr ""
-"Aktualna temperatura komory lub docelowa temperatura komory przekracza 45℃. "
-"Aby uniknąć zatkania ekstrudera, nie wolno ładować niskotemperaturowego "
-"filamentu (PLA/PETG/TPU)."
+"Aktualna lub docelowa temperatura komory przekracza 45\\u2103. Aby uniknąć "
+"zatkania ekstrudera, nie można załadować filamentu niskotemperaturowego (PLA/"
+"PETG/TPU)."
 
 msgid ""
 "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
@@ -3654,13 +3654,13 @@ msgid ""
 msgstr ""
 
 msgid ""
-"When you set the chamber temperature below 40℃, the chamber temperature "
-"control will not be activated. And the target chamber temperature will "
-"automatically be set to 0℃."
+"When you set the chamber temperature below 40\\u2103, the chamber "
+"temperature control will not be activated. And the target chamber "
+"temperature will automatically be set to 0\\u2103."
 msgstr ""
-"Gdy ustawisz temperaturę komory poniżej 40℃, sterowanie temperaturą komory "
-"nie będzie aktywowane, a docelowa temperatura komory zostanie automatycznie "
-"ustawiona na 0℃."
+"Gdy ustawisz temperaturę komory poniżej 40\\u2103, sterowanie temperaturą "
+"komory nie będzie aktywowane. Docelowa temperatura komory zostanie "
+"automatycznie ustawiona na 0\\u2103."
 
 msgid "Failed to start printing job"
 msgstr "Nie udało się rozpocząć zadania drukowania"
@@ -5390,8 +5390,8 @@ msgid "Still load"
 msgstr "Podaj"
 
 msgid ""
-"If the chamber temperature exceeds 40℃, the system will automatically switch "
-"to heating mode. Please confirm whether to switch."
+"If the chamber temperature exceeds 40\\u2103, the system will automatically "
+"switch to heating mode. Please confirm whether to switch."
 msgstr ""
 
 msgid "Please select an AMS slot before calibration"
@@ -5944,10 +5944,11 @@ msgid "Not installed"
 msgstr ""
 
 msgid ""
-"The software does not support using different diameter of nozzles for one  "
-"print. If the left and right nozzles are inconsistent, we can only proceed "
-"with single-head printing. Please confirm which nozzle you would like to use "
-"for this project."
+"The software does not support using different diameter of nozzles for one "
+"print.\n"
+"If the left and right nozzles are inconsistent, we can only proceed with "
+"single-head printing.\n"
+"Please confirm which nozzle you would like to use for this project."
 msgstr ""
 
 msgid "Switch diameter"
@@ -5996,8 +5997,7 @@ msgstr ""
 msgid "Nozzle"
 msgstr "Dysza"
 
-msgctxt "SideBar"
-msgid "Filaments"
+msgid "Project's filaments"
 msgstr ""
 
 msgid "Flushing volumes"
@@ -7700,8 +7700,8 @@ msgstr "Warunki i postanowienia"
 msgid ""
 "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
 "device, please read the termsand conditions.By clicking to agree to use your "
-"Bambu Lab device, you agree to abide by the Privacy Policy and Terms of "
-"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab device, you agree to abide by the Privacy Policy and Terms of Use"
+"(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 "Dziękujemy za zakup urządzenia Bambu Lab. Przed użyciem urządzenia Bambu Lab "
@@ -7876,8 +7876,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Podczas nagrywania timelapse'a bez głowicy zaleca się dodanie \"Timelaps - "
 "Wieża Czyszcząca\" \n"
@@ -11870,10 +11870,10 @@ msgid ""
 "triangle mesh slicing. The gap closing operation may reduce the final print "
 "resolution, therefore it is advisable to keep the value reasonably low."
 msgstr ""
-"Szpary mniejsze niż dwukrotność wartości parametru \"promień zamykania "
-"szpar\" zostaną zamknięte przy cięciu. Operacja zamykania szpar może "
-"zmniejszyć finalną rozdzielczość wydruku, więc zalecane jest ustawienie tej "
-"wartości na rozsądnie niskim poziomie."
+"Szpary mniejsze niż dwukrotność wartości parametru \"promień zamykania szpar"
+"\" zostaną zamknięte przy cięciu. Operacja zamykania szpar może zmniejszyć "
+"finalną rozdzielczość wydruku, więc zalecane jest ustawienie tej wartości na "
+"rozsądnie niskim poziomie."
 
 msgid "Slicing Mode"
 msgstr "Tryb cięcia"
@@ -11906,8 +11906,8 @@ msgid ""
 "generated"
 msgstr ""
 "tryb 'normalny(auto)' oraz 'drzewo(auto)' służą do automatycznego "
-"generowania podpór. Jeśli wybierzesz 'normalny(manual)' lub "
-"'drzewo(manual)', zostaną wygenerowane jedynie podpory wymuszone"
+"generowania podpór. Jeśli wybierzesz 'normalny(manual)' lub 'drzewo"
+"(manual)', zostaną wygenerowane jedynie podpory wymuszone"
 
 msgid "normal(auto)"
 msgstr "normalny(auto)"
@@ -13755,8 +13755,8 @@ msgstr ""
 "Czy chcesz go zastąpić?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "Nazwa profilu zostanie zmieniona na \"Dostawca Typ Seria @nazwa drukarki, "
@@ -15236,6 +15236,24 @@ msgstr ""
 "prawdopodobieństwo wypaczania."
 
 #~ msgid ""
+#~ "The current chamber temperature or the target chamber temperature exceeds "
+#~ "45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
+#~ "TPU) is not allowed to be loaded."
+#~ msgstr ""
+#~ "Aktualna temperatura komory lub docelowa temperatura komory przekracza "
+#~ "45℃. Aby uniknąć zatkania ekstrudera, nie wolno ładować "
+#~ "niskotemperaturowego filamentu (PLA/PETG/TPU)."
+
+#~ msgid ""
+#~ "When you set the chamber temperature below 40℃, the chamber temperature "
+#~ "control will not be activated. And the target chamber temperature will "
+#~ "automatically be set to 0℃."
+#~ msgstr ""
+#~ "Gdy ustawisz temperaturę komory poniżej 40℃, sterowanie temperaturą "
+#~ "komory nie będzie aktywowane, a docelowa temperatura komory zostanie "
+#~ "automatycznie ustawiona na 0℃."
+
+#~ msgid ""
 #~ "This factor affects the acreage of top area. The small the number the big "
 #~ "the top area."
 #~ msgstr ""
@@ -15248,7 +15266,6 @@ msgstr ""
 #~ msgid "Save Modified Value"
 #~ msgstr "Zapisz zmienione wartości"
 
-#, boost-format
 #~ msgid "You have changed some settings of preset \"%1%\". "
 #~ msgstr "Zmieniono niektóre ustawienia profilu \"%1%\". "
 
@@ -15339,7 +15356,6 @@ msgstr ""
 #~ msgstr ""
 #~ "Brakuje niestandardowej drukarki lub modelu, proszę wprowadzić dane."
 
-#, c-format, boost-format
 #~ msgid "*Printing %s material with %s may cause nozzle damage"
 #~ msgstr ""
 #~ "*Drukowanie materiałem %s z dyszą %s może spowodować uszkodzenie dyszy"
@@ -15465,7 +15481,6 @@ msgstr ""
 #~ "Nie można wykonać operacji boolowskich na siatkach modelu. Eksportowane "
 #~ "będą tylko części dodatnie."
 
-#, c-format, boost-format
 #~ msgid "nozzle in preset: %s %s"
 #~ msgstr "dysza w ustawieniach wstępnych: %s %s"
 
@@ -15654,7 +15669,6 @@ msgstr ""
 #~ msgid "The brim width around tree support. 0 means auto."
 #~ msgstr "Szerokość Brimu wokół podpory drzewa. 0 oznacza automatycznie."
 
-#, boost-format
 #~ msgid ""
 #~ "\n"
 #~ "%1% is too close to exclusion area, there will be collisions when "
@@ -15664,7 +15678,6 @@ msgstr ""
 #~ "%1% znajduje się zbyt blisko wykluczonego obszaru do druku. Istnieje "
 #~ "ryzyko kolizji podczas drukowania."
 
-#, boost-format
 #~ msgid ""
 #~ "%1% is too close to exclusion area, there will be collisions when "
 #~ "printing."
@@ -15672,7 +15685,6 @@ msgstr ""
 #~ "%1% znajduje się zbyt blisko wykluczonego obszaru do druku. Istnieje "
 #~ "ryzyko kolizji podczas drukowania."
 
-#, c-format, boost-format
 #~ msgid "%s is not supported by AMS."
 #~ msgstr "%s nie jest obsługiwany przez AMS."
 
@@ -15942,7 +15954,6 @@ msgstr ""
 #~ "Podczas procesu drukowania należy pozostawić drukarkę otwartą, aby "
 #~ "zapewnić cyrkulację powietrza lub zmniejszyć temperaturę stołu grzejnego."
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "Bed temperature of other layer is lower than bed temperature of initial "
 #~ "layer for more than %d degree centigrade.\n"
@@ -15988,7 +15999,6 @@ msgstr ""
 #~ msgid "Can't connect to the printer"
 #~ msgstr "Nie można połączyć się z drukarką"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "Cannot detect the LAN IP address of %s. Are %s and Bambu Studio in the "
 #~ "same LAN?"
@@ -16047,7 +16057,6 @@ msgstr ""
 #~ msgid "Confirm whether the filament has been extruded"
 #~ msgstr "Potwierdź, czy filament został wytłoczony"
 
-#, c-format, boost-format
 #~ msgid "Connect failed [%d]!"
 #~ msgstr "Połączenie nie powiodło się [%d]!"
 
@@ -16113,7 +16122,6 @@ msgstr ""
 #~ msgid "Designer"
 #~ msgstr "Projektant"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "Detect the overhang percentage relative to line width and use different "
 #~ "speed to print. For 100%% overhang, bridge speed is used."
@@ -16146,7 +16154,6 @@ msgstr ""
 #~ msgid "Discard or Keep changes"
 #~ msgstr "Odrzuć lub zachowaj zmiany"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "Disconnected from printer [%s] due to LAN mode disabled.Please reconnect "
 #~ "the printer by logging in with your user account."
@@ -16154,7 +16161,6 @@ msgstr ""
 #~ "Rozłączono z drukarką [%s] z powodu wyłączenia trybu LAN. Podłącz "
 #~ "ponownie drukarkę, logując się przy użyciu konta użytkownika."
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "Disconnected from printer [%s] due to LAN mode enabled.Please reconnect "
 #~ "the printer by inputting Access Code which can be gotten from printer "
@@ -16333,7 +16339,6 @@ msgstr ""
 #~ msgid "Error: IP or Access Code are not correct"
 #~ msgstr "Błąd: adres IP lub kod dostępu są nieprawidłowe"
 
-#, boost-format
 #~ msgid "Error at line %1%:\n"
 #~ msgstr "Błąd w linii%1%:\n"
 
@@ -16444,7 +16449,6 @@ msgstr ""
 #~ msgid "Failure of printer login"
 #~ msgstr "Błąd logowania do drukarki"
 
-#, boost-format
 #~ msgid "Fatal error, exception catched: %1%"
 #~ msgstr "Błąd krytyczny, znaleziono wyjątek: %1%"
 
@@ -16757,11 +16761,9 @@ msgstr ""
 #~ msgid "Incompatible 3mf"
 #~ msgstr "Niekompatybilny 3mf"
 
-#, c-format, boost-format
 #~ msgid "Initialize failed [%d]!"
 #~ msgstr "Inicjalizacja nie powiodła się [%d]!"
 
-#, c-format, boost-format
 #~ msgid "Initialize failed (%s)!"
 #~ msgstr "Inicjalizacja nie powiodła się (%s)!"
 
@@ -16811,7 +16813,6 @@ msgstr ""
 #~ "Nieprawidłowy stan.\n"
 #~ "Nie wybrano części, która ma być zachowana po przycięciu."
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "It seems object %s has completely floating regions. Please re-orient the "
 #~ "object or enable support generation."
@@ -16819,7 +16820,6 @@ msgstr ""
 #~ "Wygląda na to, że obiekt %s ma całkowicie unoszące się obszary. Zmień "
 #~ "orientację obiektu lub włącz generowanie podpór."
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "It seems object %s has large overhangs. Please enable support generation."
 #~ msgstr ""
@@ -16851,11 +16851,9 @@ msgstr ""
 #~ msgid "Layer Time (log)"
 #~ msgstr "Czas warstwy (log)"
 
-#, c-format, boost-format
 #~ msgid "Layers: %d/%d"
 #~ msgstr "Warstwy:%d/%d"
 
-#, c-format, boost-format
 #~ msgid "Layers: %s"
 #~ msgstr "Warstwy: %s"
 
@@ -16892,11 +16890,9 @@ msgstr ""
 #~ msgid "Load default filaments"
 #~ msgstr "Załaduj domyślne filamenty"
 
-#, c-format, boost-format
 #~ msgid "Load failed [%d]"
 #~ msgstr "Błąd ładowania [%d]!"
 
-#, c-format, boost-format
 #~ msgid "Load failed [%d]!"
 #~ msgstr "Błąd ładowania [%d]!"
 
@@ -17016,7 +17012,6 @@ msgstr ""
 #~ msgid "No arrangable objects are selected."
 #~ msgstr "Nie wybrano żadnych obiektów do rozmieszczenia."
 
-#, c-format, boost-format
 #~ msgid "No files [%d]"
 #~ msgstr "Brak plików [%d]"
 
@@ -17169,19 +17164,15 @@ msgstr ""
 #~ msgid "Per object edit"
 #~ msgstr "Edycja według obiektu"
 
-#, c-format, boost-format
 #~ msgid "Plate %d: %s does not support filament %s\n"
 #~ msgstr "Płyta %d: %s nie obsługuje filamentu %s\n"
 
-#, c-format, boost-format
 #~ msgid "Plate %d: %s does not support filament %s.\n"
 #~ msgstr "Płyta %d: %s nie obsługuje filamentu %s.\n"
 
-#, c-format, boost-format
 #~ msgid "Plate %d: %s does not support filament %s (%s)."
 #~ msgstr "Płyta %d: %s nie obsługuje filamentu %s (%s)."
 
-#, c-format, boost-format
 #~ msgid "Plate %d: %s does not support filament %s (%s).\n"
 #~ msgstr "Płyta %d: %s nie obsługuje filamentu %s (%s).\n"
 
@@ -17627,7 +17618,6 @@ msgstr ""
 #~ msgid "Stop printing when spaghetti detected"
 #~ msgstr "Zatrzymaj drukowanie po wykryciu \"spaghetti\""
 
-#, c-format, boost-format
 #~ msgid "Stopped [%d]!"
 #~ msgstr "Zatrzymano [%d]!"
 
@@ -17657,7 +17647,6 @@ msgstr ""
 #~ "W trybie hybrydowym można generować większe podparte obszary niż w "
 #~ "przypadku podpór w formie drzewa."
 
-#, boost-format
 #~ msgid "Succeed to export G-code to %1%"
 #~ msgstr "Eksport G-code do %1% zakończono powodzeniem."
 
@@ -17665,13 +17654,11 @@ msgstr ""
 #~ msgstr ""
 #~ "Wysłano. Nastąpi automatyczne przekierowanie na stronę urządzenia za %s s"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "Successfully sent. Will automatically jump to the device page in %s s"
 #~ msgstr ""
 #~ "Pomyślnie wysłano. Automatycznie przeniesie do strony urządzenia za %s s"
 
-#, c-format, boost-format
 #~ msgid "Suggestion: Actual Volume in range [%d, %d]"
 #~ msgstr "Sugestia: Objętość spłukiwania w zakresie [%d, %d]"
 
@@ -17681,21 +17668,18 @@ msgstr ""
 #~ msgid "Support: draw polygons"
 #~ msgstr "Podpory: rysuj wielokąty"
 
-#, c-format, boost-format
 #~ msgid "Support: fix holes at layer %d"
 #~ msgstr "Podpory: napraw dziury w warstwie %d"
 
 #~ msgid "Support: generate contact points"
 #~ msgstr "Podpory: Tworzenie miejsc kontaktowych"
 
-#, c-format, boost-format
 #~ msgid "Support: generate polygons at layer %d"
 #~ msgstr "Podpory: generuj wielokąty na warstwie %d"
 
 #~ msgid "Support: generate toolpath"
 #~ msgstr "Podpory: generowanie ścieżki narzędzia"
 
-#, c-format, boost-format
 #~ msgid "Support: generate toolpath at layer %d"
 #~ msgstr "Podpory: Generuj ścieżkę narzędziową na warstwie %d"
 
@@ -17705,7 +17689,6 @@ msgstr ""
 #~ msgid "Support: propagate branches"
 #~ msgstr "Podpory: rozprzestrzeniaj gałęzie"
 
-#, c-format, boost-format
 #~ msgid "Support: propagate branches at layer %d"
 #~ msgstr "Podpory: rozprzestrzeniaj gałęzie od warstwy %d"
 
@@ -17798,11 +17781,9 @@ msgstr ""
 #~ "prywatności Bambu Lab, prosimy o niekorzystanie z urządzeń i usług Bambu "
 #~ "Lab."
 
-#, c-format, boost-format
 #~ msgid "The %s filament is too soft to be used with the AMS"
 #~ msgstr "Filament %s jest zbyt miękki, aby można go było używać z AMS"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "The 3mf's version %s is newer than %s's version %s, Found following keys "
 #~ "unrecognized:"
@@ -17810,7 +17791,6 @@ msgstr ""
 #~ "Wersja %s pliku 3mf jest nowsza niż wersja %s pliku %s, następujące "
 #~ "klucze nie zostały rozpoznane:"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "The 3mf's version %s is newer than %s's version %s, Found following keys "
 #~ "unrecognized:\n"
@@ -17818,7 +17798,6 @@ msgstr ""
 #~ "Wersja %s pliku 3mf jest nowsza niż wersja %s pliku %s, następujące "
 #~ "klucze nie zostały rozpoznane:\n"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade "
 #~ "your software."
@@ -17826,7 +17805,6 @@ msgstr ""
 #~ "Wersja %s pliku 3mf jest nowsza niż wersja %s z %s. Sugerujemy "
 #~ "zaktualizowanie oprogramowania."
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade "
 #~ "your software.\n"
@@ -17876,15 +17854,6 @@ msgstr ""
 #~ msgstr ""
 #~ "Pakiet konfiguracyjny został zmieniony w poprzednim przewodniku "
 #~ "konfiguracji"
-
-#~ msgid ""
-#~ "The current chamber temperature or the target chamber temperature exceeds "
-#~ "45\\u2103.In order to avoid extruder clogging,low temperature "
-#~ "filament(PLA/PETG/TPU) is not allowed to be loaded."
-#~ msgstr ""
-#~ "Aktualna lub docelowa temperatura komory przekracza 45\\u2103. Aby "
-#~ "uniknąć zatkania ekstrudera, nie można załadować filamentu "
-#~ "niskotemperaturowego (PLA/PETG/TPU)."
 
 #~ msgid ""
 #~ "The firmware versions of printer and AMS are too low.Please update to the "
@@ -17996,7 +17965,6 @@ msgstr ""
 #~ msgid "The region parameter is incorrrect"
 #~ msgstr "Ustawienie regionu jest niepoprawne."
 
-#, boost-format
 #~ msgid "The selected preset: %1% is not found."
 #~ msgstr "Nie znaleziono wybranego profilu: %1%."
 
@@ -18035,7 +18003,6 @@ msgstr ""
 #~ "Zaktualizuj Bambu Studio lub uruchom ponownie Bambu Studio, aby "
 #~ "sprawdzić, czy istnieje aktualizacja ustawień systemowych."
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "There is already a historical calibration result with the same name: %s. "
 #~ "Only one of the results with the same name is saved. Are you sure you "
@@ -18114,7 +18081,6 @@ msgstr ""
 #~ "przez maksymalną prędkość przepływu, jeśli ustawienia są nieracjonalnie "
 #~ "wysokie. 0 oznacza, że nie ma limitu."
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "This slicer file version %s is newer than %s's version.\n"
 #~ "\n"
@@ -18126,7 +18092,6 @@ msgstr ""
 #~ "Czy chcesz zaktualizować Bambu Studio, aby włączyć wszystkie funkcje w "
 #~ "tej wersji pliku slicera?"
 
-#, c-format, boost-format
 #~ msgid "This slicer file version %s is newer than %s's version:"
 #~ msgstr "Ta wersja pliku slicera %s jest nowsza niż wersja %s:"
 
@@ -18298,15 +18263,6 @@ msgstr ""
 #~ "koncentryczny i wyłączenie niezależnej wysokości warstwy podpory"
 
 #~ msgid ""
-#~ "When you set the chamber temperature below 40\\u2103, the chamber "
-#~ "temperature control will not be activated. And the target chamber "
-#~ "temperature will automatically be set to 0\\u2103."
-#~ msgstr ""
-#~ "Gdy ustawisz temperaturę komory poniżej 40\\u2103, sterowanie temperaturą "
-#~ "komory nie będzie aktywowane. Docelowa temperatura komory zostanie "
-#~ "automatycznie ustawiona na 0\\u2103."
-
-#~ msgid ""
 #~ "Whenever the retraction is done, the nozzle is lifted a little to create "
 #~ "clearance between nozzle and the print. It prevents nozzle from hitting "
 #~ "the print when travel move. Using spiral line to lift z can prevent "
@@ -18339,7 +18295,6 @@ msgstr ""
 #~ msgid "You'd better upgrade your software.\n"
 #~ msgstr "Powinieneś zaktualizować oprogramowanie.\n"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "You are going to delete %u files from printer. Are you sure to continue?"
 #~ msgstr ""
@@ -18368,7 +18323,6 @@ msgstr ""
 #~ "Zmieniono niektóre ustawienia profilu.\n"
 #~ "Czy chcesz zachować te ustawienia po przełączeniu na inny profil?"
 
-#, boost-format
 #~ msgid ""
 #~ "You have changed some settings of preset \"%1%\". \n"
 #~ "Would you like to keep these changed settings (new value) after switching "
@@ -18418,7 +18372,6 @@ msgstr ""
 #~ msgid " is too close to others, there will be collisions when printing.\n"
 #~ msgstr " jest zbyt blisko innych obiektów, istnieje ryzyko kolizji.\n"
 
-#, boost-format
 #~ msgid " plate %1%:"
 #~ msgstr " płyta %1%:"
 
@@ -18511,7 +18464,6 @@ msgstr ""
 #~ msgid "outer/inner/infill"
 #~ msgstr "zewnętrzna/wewnętrzna/wypełnienie"
 
-#, c-format, boost-format
 #~ msgid "%1$d Object has custom supports."
 #~ msgid_plural "%1$d Objects have custom supports."
 #~ msgstr[0] "%1$d Obiekt posiada niestandardowe podpory."

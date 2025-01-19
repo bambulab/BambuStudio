@@ -1,12 +1,12 @@
 # Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-19 14:51+0800\n"
+"POT-Creation-Date: 2025-01-19 16:07+0800\n"
 "PO-Revision-Date: 2025-01-08 20:27+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -3507,10 +3507,10 @@ msgstr "更新失败。"
 
 msgid ""
 "The current chamber temperature or the target chamber temperature exceeds "
-"45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
-"TPU) is not allowed to be loaded."
+"45\\u2103.In order to avoid extruder clogging,low temperature filament(PLA/"
+"PETG/TPU) is not allowed to be loaded."
 msgstr ""
-"当前腔温或目标腔温超过了45℃。为了避免挤出机堵塞，不允许加载低温度的打印材料"
+"当前腔温或目标腔温超过了45度。为了避免挤出机堵塞，不允许加载低温度的打印材料"
 "（如PLA/PETG/TPU）"
 
 msgid ""
@@ -3521,11 +3521,11 @@ msgstr ""
 "设置腔温。"
 
 msgid ""
-"When you set the chamber temperature below 40℃, the chamber temperature "
-"control will not be activated. And the target chamber temperature will "
-"automatically be set to 0℃."
+"When you set the chamber temperature below 40\\u2103, the chamber "
+"temperature control will not be activated. And the target chamber "
+"temperature will automatically be set to 0\\u2103."
 msgstr ""
-"当您设置的腔温低于40℃时，腔温控制将不会启动。并且目标腔温将自动设置为0℃。"
+"当您设置的腔温低于40度时，腔温控制将不会启动。并且目标腔温将自动设置为0度"
 
 msgid "Failed to start printing job"
 msgstr "发起打印任务失败"
@@ -5224,9 +5224,9 @@ msgid "Still load"
 msgstr "继续进料"
 
 msgid ""
-"If the chamber temperature exceeds 40℃, the system will automatically switch "
-"to heating mode. Please confirm whether to switch."
-msgstr "如果腔室温度超过40℃, 系统将自动切换到加热模式。请确认是否切换。"
+"If the chamber temperature exceeds 40\\u2103, the system will automatically "
+"switch to heating mode. Please confirm whether to switch."
+msgstr ""
 
 msgid "Please select an AMS slot before calibration"
 msgstr "请先选择一个AMS槽位后进行校准"
@@ -5753,24 +5753,26 @@ msgid "Not installed"
 msgstr "未安装"
 
 msgid ""
-"The software does not support using different diameter of nozzles for one  "
-"print. If the left and right nozzles are inconsistent, we can only proceed "
-"with single-head printing. Please confirm which nozzle you would like to use "
-"for this project."
+"The software does not support using different diameter of nozzles for one "
+"print.\n"
+"If the left and right nozzles are inconsistent, we can only proceed with "
+"single-head printing.\n"
+"Please confirm which nozzle you would like to use for this project."
 msgstr ""
-"软件暂不支持使用两种不同直径的喷嘴同时打印，由于你设置的左右喷嘴不一致，我们"
-"只能采用单头打印。 请确认使用哪个喷嘴打印当前项目。"
+"软件暂不支持使用两种不同直径的喷嘴同时打印。\n"
+"由于您设置的左右喷嘴直径不一致，我们只能采用单头打印。 \n"
+"请确认使用哪个喷嘴打印当前项目。"
 
 msgid "Switch diameter"
-msgstr ""
+msgstr "设置喷嘴直径"
 
 #, c-format, boost-format
 msgid "Left nozzle: %smm"
-msgstr ""
+msgstr "左喷嘴：%smm"
 
 #, c-format, boost-format
 msgid "Right nozzle: %smm"
-msgstr ""
+msgstr "右喷嘴：%smm"
 
 msgid "Please select a printer in 'Device' page first."
 msgstr "请先在 \"设备 \"页面选择打印机。"
@@ -5809,9 +5811,8 @@ msgstr "同步喷嘴信息和AMS编号"
 msgid "Nozzle"
 msgstr "喷嘴"
 
-msgctxt "SideBar"
-msgid "Filaments"
-msgstr "耗材列表"
+msgid "Project's filaments"
+msgstr "项目耗材列表"
 
 msgid "Flushing volumes"
 msgstr "冲刷体积"
@@ -7474,8 +7475,8 @@ msgstr "用户使用协议"
 msgid ""
 "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
 "device, please read the termsand conditions.By clicking to agree to use your "
-"Bambu Lab device, you agree to abide by the Privacy Policy and Terms of "
-"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab device, you agree to abide by the Privacy Policy and Terms of Use"
+"(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 "感谢您购买Bambu Lab设备，使用Bambu Lab设备前，请阅读一下条款，单击同意使用您"
@@ -7633,8 +7634,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "在录制无工具头延时摄影视频时，建议添加“延时摄影擦料塔”\n"
 "右键单击打印板的空白位置，选择“添加标准模型”->“延时摄影擦料塔”。"
@@ -13098,8 +13099,8 @@ msgstr ""
 "你想重写预设吗"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "我们会将预设重命名为“供应商 类型 系列 @您选择的打印机”。\n"
@@ -14479,6 +14480,39 @@ msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
 
+#~ msgctxt "SideBar"
+#~ msgid "Filaments"
+#~ msgstr "耗材列表"
+
+#~ msgid ""
+#~ "The current chamber temperature or the target chamber temperature exceeds "
+#~ "45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
+#~ "TPU) is not allowed to be loaded."
+#~ msgstr ""
+#~ "当前腔温或目标腔温超过了45℃。为了避免挤出机堵塞，不允许加载低温度的打印材"
+#~ "料（如PLA/PETG/TPU）"
+
+#~ msgid ""
+#~ "When you set the chamber temperature below 40℃, the chamber temperature "
+#~ "control will not be activated. And the target chamber temperature will "
+#~ "automatically be set to 0℃."
+#~ msgstr ""
+#~ "当您设置的腔温低于40℃时，腔温控制将不会启动。并且目标腔温将自动设置为0℃。"
+
+#~ msgid ""
+#~ "If the chamber temperature exceeds 40℃, the system will automatically "
+#~ "switch to heating mode. Please confirm whether to switch."
+#~ msgstr "如果腔室温度超过40℃, 系统将自动切换到加热模式。请确认是否切换。"
+
+#~ msgid ""
+#~ "The software does not support using different diameter of nozzles for "
+#~ "one  print. If the left and right nozzles are inconsistent, we can only "
+#~ "proceed with single-head printing. Please confirm which nozzle you would "
+#~ "like to use for this project."
+#~ msgstr ""
+#~ "软件暂不支持使用两种不同直径的喷嘴同时打印，由于你设置的左右喷嘴不一致，我"
+#~ "们只能采用单头打印。 请确认使用哪个喷嘴打印当前项目。"
+
 #~ msgid ""
 #~ "After sync, all currently configured filament presets and colors will be "
 #~ "discarded."
@@ -14490,7 +14524,6 @@ msgstr ""
 #~ msgid "Sync AMS filament"
 #~ msgstr "继续同步AMS耗材"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ " located within the %s only area, making it impossible to print with the "
 #~ "filaments assigned to %s.\n"
@@ -14503,7 +14536,6 @@ msgstr ""
 #~ msgid "Successfully synchronized color and type of filament in AMS."
 #~ msgstr "AMS耗材颜色和材质同步成功。"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "It is not recommended to use AMS and external filaments simultaneously on "
 #~ "the same nozzle. Otherwise, you will need to manually change filaments %d "
@@ -14511,7 +14543,6 @@ msgstr ""
 #~ msgstr ""
 #~ "不推荐在同一个喷嘴上同时使用AMS和外挂料，否则此次打印你需要手动换料%d次。"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "It is not recommended to use AMS and external filaments simultaneously. "
 #~ "Otherwise, you will need to manually change filaments %d times for this "
@@ -14595,21 +14626,18 @@ msgstr ""
 #~ msgid "This arrangement would be optimal."
 #~ msgstr "当前材料摆放为最优结果"
 
-#, boost-format
 #~ msgid "Save %1%g filament and %2% changes than one-extruder printer."
 #~ msgstr "相较于单头打印机可节省%1%g耗材和%2%次换料。"
 
 #~ msgid "This arrangement is not optimal."
 #~ msgstr "当前材料摆放不是最优结果"
 
-#, boost-format
 #~ msgid "Cost %1%g filament and %2% changes more than optimal arrangement."
 #~ msgstr "如果使用最优摆放可多节省%1%g耗材和%2%次换料。"
 
 #~ msgid "Rearrange filament"
 #~ msgstr "材料分组"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ " located within the %s only area, making it impossible to print with the "
 #~ "filaments assigned to %s.\n"
@@ -14654,7 +14682,6 @@ msgstr ""
 #~ "The filament arrangement for current plate follows the global settings."
 #~ msgstr "当前盘的材料分配方案遵循全局设置。"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "The nozzle diameter (%.1fmm) in slice file is unconsistent withthe left "
 #~ "nozzle diameter (%.1fmm) or right nozzle diameter (%.1fmm)set on your "
@@ -14663,7 +14690,6 @@ msgstr ""
 #~ "切片文件中设置的喷嘴直径（%.1fmm），与机器上设置的左喷嘴直径（%.1fmm）和右"
 #~ "喷嘴（%.1fmm）均不一致。需要保持跟可用喷嘴一致后，才能继续打印"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "The nozzle diameter (%.1fmm) in slice file is unconsistent with the "
 #~ "nozzle diameter (%.1fmm) set on your print.You can't send to print until "
@@ -14684,7 +14710,6 @@ msgstr ""
 #~ msgid "Delete then replace with"
 #~ msgstr "删除后替换为"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ " located within the %s only area, making it impossible to print with the "
 #~ "filaments assigned to %s.\n"
@@ -14694,7 +14719,6 @@ msgstr ""
 #~ "位于仅%s打印区域，无法使用映射到%s的耗材打印。\n"
 #~ "请将模型移出仅%s可以打印区域，或者调整材料映射\n"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "Connected printer is %s. It must match the project preset for printing.\n"
 #~ msgstr "当前连接的打印机为 %s，需要和项目预设匹配才能打印。\n"
@@ -14721,7 +14745,6 @@ msgstr ""
 #~ msgid "Save Modified Value"
 #~ msgstr "保存修改值"
 
-#, boost-format
 #~ msgid "You have changed some settings of preset \"%1%\". "
 #~ msgstr "您已更改了预设 “%1%” 的一些设置。"
 
@@ -14831,17 +14854,14 @@ msgstr ""
 #~ "一个模型放置在仅左/右挤出机可打印区域。\n"
 #~ "请确保该模型在该区域内使用的材料没有映射到其他挤出机。"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "Multiple TPU filaments are not allowed to print at the same time, and the "
 #~ "TPU filament must be placed in the virtual slot of %s."
 #~ msgstr "不允许同时打印多根TPU耗材，并且TPU耗材必须放置在%s的虚拟插槽中。"
 
-#, c-format, boost-format
 #~ msgid "Filament %s cannot be placed in the %s extruder for printing."
 #~ msgstr "材料 %s 不能放置在 %s 挤出机中进行打印。"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "The printer you are currently bound to is %s,\n"
 #~ "The printer preset for your current file is %s,\n"
@@ -14902,21 +14922,6 @@ msgstr ""
 
 #~ msgid "Motor noise calibration"
 #~ msgstr "电机噪音标定"
-
-#~ msgid ""
-#~ "The current chamber temperature or the target chamber temperature exceeds "
-#~ "45\\u2103.In order to avoid extruder clogging,low temperature "
-#~ "filament(PLA/PETG/TPU) is not allowed to be loaded."
-#~ msgstr ""
-#~ "当前腔温或目标腔温超过了45度。为了避免挤出机堵塞，不允许加载低温度的打印材"
-#~ "料（如PLA/PETG/TPU）"
-
-#~ msgid ""
-#~ "When you set the chamber temperature below 40\\u2103, the chamber "
-#~ "temperature control will not be activated. And the target chamber "
-#~ "temperature will automatically be set to 0\\u2103."
-#~ msgstr ""
-#~ "当您设置的腔温低于40度时，腔温控制将不会启动。并且目标腔温将自动设置为0度"
 
 #~ msgid ""
 #~ "You can find it in \"Settings > Network > Connection code\"\n"
@@ -20890,8 +20895,8 @@ msgstr ""
 #~ msgstr "正在准备设置页"
 
 #~ msgid ""
-#~ "You have the following presets with saved options for \"Print Host "
-#~ "upload\""
+#~ "You have the following presets with saved options for \"Print Host upload"
+#~ "\""
 #~ msgstr "您的以下预设中包含未保存的选项“打印主机上传”"
 
 #~ msgid ""
