@@ -4334,7 +4334,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
                     mainframe->m_confirm_download_plugin_dlg = new SecondaryCheckDialog(mainframe, wxID_ANY, _L("Install network plug-in"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM);
                     mainframe->m_confirm_download_plugin_dlg->SetSize(wxSize(270, 158));
                     mainframe->m_confirm_download_plugin_dlg->update_text(_L("Please Install network plug-in before log in."));
-                    mainframe->m_confirm_download_plugin_dlg->update_btn_label(_L("Install Network Plug-in"), _L(""));
+                    mainframe->m_confirm_download_plugin_dlg->update_btn_label(_L("Install Network Plug-in"), "");
 
                     mainframe->m_confirm_download_plugin_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, post_login](wxCommandEvent& e) {
                         mainframe->m_confirm_download_plugin_dlg->Close();
