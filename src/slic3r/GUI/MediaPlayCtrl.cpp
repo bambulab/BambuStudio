@@ -297,6 +297,7 @@ void MediaPlayCtrl::Play()
     }
 
     m_play_timer = std::chrono::system_clock::now();
+    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::Play: " << m_lan_proto << m_remote_proto << m_disable_lan;
 
     NetworkAgent *agent = wxGetApp().getAgent();
     std::string  agent_version = agent ? agent->get_version() : "";
@@ -354,7 +355,7 @@ void MediaPlayCtrl::Play()
     if (agent) {
         std::string protocols[] = {"", "\"tutk\"", "\"agora\"", "\"tutk\",\"agora\""};
         agent->get_camera_url(m_machine + "|" + m_dev_ver + "|" + protocols[m_remote_proto],
-            [this, m = m_machine, v = agent_version, dv = m_dev_ver](std::string url) {
+                [this, m = m_machine, v = agent_version, dv = m_dev_ver](std::string url) {
             if (boost::algorithm::starts_with(url, "bambu:///")) {
                 url += "&device=" + into_u8(m);
                 url += "&net_ver=" + v;
@@ -597,7 +598,9 @@ void MediaPlayCtrl::ToggleStream()
     }
     NetworkAgent *agent = wxGetApp().getAgent();
     if (!agent) return;
-    agent->get_camera_url(m_machine, [this, m = m_machine, v = agent->get_version(), dv = m_dev_ver](std::string url) {
+    std::string protocols[] = {"", "\"tutk\"", "\"agora\"", "\"tutk\",\"agora\""};
+    agent->get_camera_url(m_machine + "|" + m_dev_ver + "|" + protocols[m_remote_proto],
+            [this, m = m_machine, v = agent->get_version(), dv = m_dev_ver](std::string url) {
         if (boost::algorithm::starts_with(url, "bambu:///")) {
             url += "&device=" + m;
             url += "&net_ver=" + v;
