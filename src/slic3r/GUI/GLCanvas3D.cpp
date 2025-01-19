@@ -2918,6 +2918,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 float brim_width = print->wipe_tower_data(filaments_count).brim_width;
                 const DynamicPrintConfig &print_cfg   = wxGetApp().preset_bundle->prints.get_edited_preset().config;
                 Vec3d wipe_tower_size = ppl.get_plate(plate_id)->estimate_wipe_tower_size(print_cfg, w, v);
+                if (dynamic_cast<const ConfigOptionBool *>(m_config->option("prime_tower_rib_wall"))->value)
+                    wipe_tower_size = ppl.get_plate(plate_id)->calculate_wipe_tower_size(print_cfg, w, v);
 
                 { // update for wipe tower position
                     part_plate->get_extruder_areas();
