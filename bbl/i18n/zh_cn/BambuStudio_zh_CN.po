@@ -1,12 +1,12 @@
 # Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-18 21:59+0800\n"
+"POT-Creation-Date: 2025-01-19 14:51+0800\n"
 "PO-Revision-Date: 2025-01-08 20:27+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -5809,6 +5809,10 @@ msgstr "同步喷嘴信息和AMS编号"
 msgid "Nozzle"
 msgstr "喷嘴"
 
+msgctxt "SideBar"
+msgid "Filaments"
+msgstr "耗材列表"
+
 msgid "Flushing volumes"
 msgstr "冲刷体积"
 
@@ -6243,7 +6247,7 @@ msgid "All objects will be removed, continue?"
 msgstr "即将删除所有对象，是否继续？"
 
 msgid "The current project has unsaved changes, save it before continue?"
-msgstr "当前项目包含未保存的修改，是否先保存？"
+msgstr "当前项目包含未保存的修改。是否先保存？"
 
 msgid "Remember my choice."
 msgstr "记住我的选择。"
@@ -7252,8 +7256,9 @@ msgid ""
 msgstr "启用螺旋花瓶模式时，具有I3结构的机器将不会生成延时视频。"
 
 msgid ""
-"Timelapse is not supported because Print sequence is set to \"By object\"."
-msgstr "切片参数中开启了逐件打印，无法支持延时摄影。"
+"The current printer does not support timelapse in Traditional Mode when "
+"printing By-Object."
+msgstr "新的当前打印机在打印By-Object时不支持传统模式下的延时摄影。"
 
 msgid ""
 "You have selected both external and AMS filaments for an extruder. You will "
@@ -7628,8 +7633,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "在录制无工具头延时摄影视频时，建议添加“延时摄影擦料塔”\n"
 "右键单击打印板的空白位置，选择“添加标准模型”->“延时摄影擦料塔”。"
@@ -8273,23 +8278,12 @@ msgid ""
 "Are you sure you want to continue?"
 msgstr "同步AMS耗材将丢弃已修改但未保存的耗材预设。您确定要继续吗？"
 
-msgid ""
-"After sync, all currently configured filament presets and colors will be "
-"discarded."
-msgstr "同步后将丢弃所有当前配置的耗材预设、颜色。"
-
 msgctxt "Sync_AMS"
 msgid "Original"
 msgstr "原项目"
 
 msgid "After mapping"
 msgstr "匹配后"
-
-msgid "Are you sure to synchronize the filaments?"
-msgstr "确定要同步AMS中耗材信息吗？"
-
-msgid "Are you sure to directly override current filaments?"
-msgstr "确定要直接覆盖当前耗材吗？"
 
 msgctxt "Sync_AMS"
 msgid "Plate"
@@ -8353,6 +8347,22 @@ msgstr "未使用的AMS耗材也添加到耗材列表。"
 msgid "Automatically merge the same colors in the model after mapping."
 msgstr "匹配后自动合并模型中的相同颜色。"
 
+msgid ""
+"The project's filament list will be directly replaced with the information "
+"of all filaments from the printer. This action cannot be undone."
+msgstr "项目耗材列表将直接被来自打印机的所有的耗材信息替换。此操作不可撤销。"
+
+msgid ""
+"After being synced, the project's filament presets and colors will be "
+"replaced with the mapped filament types and colors. This action cannot be "
+"undone."
+msgstr ""
+"同步后，项目耗材列表的预设和颜色将被映射后的耗材类型和颜色替代，此操作不可撤"
+"销。"
+
+msgid "Are you sure to synchronize the filaments?"
+msgstr "确定要同步AMS中耗材信息吗？"
+
 msgid "Synchronize now"
 msgstr "立即同步"
 
@@ -8361,6 +8371,10 @@ msgid ""
 "The selected printer (%s) is incompatible with the chosen printer profile in "
 "the slicer (%s)."
 msgstr "所选打印机（%s）与切片软件中选择的打印机配置文件（%s）不兼容。"
+
+msgid ""
+"Timelapse is not supported because Print sequence is set to \"By object\"."
+msgstr "切片参数中开启了逐件打印，无法支持延时摄影。"
 
 msgid ""
 "You selected external and AMS filament at the same time in an extruder, you "
@@ -8390,18 +8404,15 @@ msgstr "%1s材料在使用%2s的喷嘴打印时,可能会导致喷嘴损坏。"
 msgid "Successfully synchronized nozzle and AMS number information."
 msgstr "喷嘴信息和AMS数量同步成功。"
 
-msgid "Sync filament"
-msgstr ""
-
-msgid "Sync AMS filament"
-msgstr "继续同步AMS耗材"
+msgid "Continue to sync filaments"
+msgstr "继续同步耗材"
 
 msgctxt "Sync_Nozzle_AMS"
 msgid "Cancel"
 msgstr "知道了"
 
 msgid "Successfully synchronized color and type of filament from printer."
-msgstr "打印机的耗材颜色和材质同步成功。"
+msgstr "成功从打印机同步耗材颜色和类型。"
 
 msgctxt "FinishSyncAms"
 msgid "OK"
@@ -13087,8 +13098,8 @@ msgstr ""
 "你想重写预设吗"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "我们会将预设重命名为“供应商 类型 系列 @您选择的打印机”。\n"
@@ -13511,8 +13522,8 @@ msgid ""
 "printer configuration.\n"
 "Please click the Sync button above and restart the calibration."
 msgstr ""
-"当前选择的右喷头喷嘴类型与实际打印机的喷嘴类型不匹配。请点击上方的同步按钮并"
-"重新开始校准。"
+"当前选择的喷头喷嘴类型与实际打印机的喷嘴类型不匹配。请点击上方的同步按钮并重"
+"新开始校准。"
 
 #, c-format, boost-format
 msgid ""
@@ -13526,6 +13537,8 @@ msgid ""
 "printer nozzle type.\n"
 "Please click the Sync button above and restart the calibration."
 msgstr ""
+"当前选择的%s喷头喷嘴类型与实际打印机的喷嘴类型不匹配。请点击上方的同步按钮并"
+"重新开始校准。"
 
 msgid ""
 "Unable to calibrate: maybe because the set calibration value range is too "
@@ -14465,6 +14478,17 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid ""
+#~ "After sync, all currently configured filament presets and colors will be "
+#~ "discarded."
+#~ msgstr "同步后将丢弃所有当前配置的耗材预设、颜色。"
+
+#~ msgid "Are you sure to directly override current filaments?"
+#~ msgstr "确定要直接覆盖当前耗材吗？"
+
+#~ msgid "Sync AMS filament"
+#~ msgstr "继续同步AMS耗材"
 
 #, c-format, boost-format
 #~ msgid ""
@@ -20866,8 +20890,8 @@ msgstr ""
 #~ msgstr "正在准备设置页"
 
 #~ msgid ""
-#~ "You have the following presets with saved options for \"Print Host upload"
-#~ "\""
+#~ "You have the following presets with saved options for \"Print Host "
+#~ "upload\""
 #~ msgstr "您的以下预设中包含未保存的选项“打印主机上传”"
 
 #~ msgid ""
