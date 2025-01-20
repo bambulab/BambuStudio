@@ -1206,7 +1206,6 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloats,             flush_volumes_matrix))
     ((ConfigOptionFloats,             flush_volumes_vector))
     // BBS: wipe tower is only used for priming
-    ((ConfigOptionFloat,              prime_volume))
     ((ConfigOptionFloats,             flush_multiplier))
     //((ConfigOptionFloat,              z_offset))
     // BBS: project filaments
@@ -1241,7 +1240,8 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloats,             counter_limit_min))
     ((ConfigOptionFloats,             counter_limit_max))
     ((ConfigOptionFloats,             hole_limit_min))
-    ((ConfigOptionFloats,             hole_limit_max)))
+    ((ConfigOptionFloats,             hole_limit_max))
+    ((ConfigOptionFloats,             filament_prime_volume)))
 // This object is mapped to Perl as Slic3r::Config::Full.
 PRINT_CONFIG_CLASS_DERIVED_DEFINE0(
     FullPrintConfig,
