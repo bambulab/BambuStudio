@@ -266,6 +266,7 @@ public:
     const SLAPrint& sla_print() const;
     SLAPrint& sla_print();
 
+    void reset_flags_when_new_or_close_project();
     int new_project(bool skip_confirm = false, bool silent = false, const wxString &project_name = wxString());
     // BBS: save & backup
     int load_project(wxString const & filename = "", wxString const & originfile = "-");
