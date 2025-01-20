@@ -2367,8 +2367,12 @@ bool StatusPanel::is_task_changed(MachineObject* obj)
 
 void StatusPanel::update(MachineObject *obj)
 {
+    if (!obj)
+    {
+        m_nozzle_btn_panel->Disable();
+        return;
+    }
 
-    if (!obj) return;
     //m_project_task_panel->Freeze();
     update_subtask(obj);
     //m_project_task_panel->Thaw();
