@@ -2224,7 +2224,6 @@ void TabPrint::build()
 
         optgroup = page->new_optgroup(L("Prime tower"), L"param_tower");
         optgroup->append_single_option_line("enable_prime_tower","parameter/prime-tower");
-        optgroup->append_single_option_line("prime_tower_outer_first", "parameter/prime-tower");
         optgroup->append_single_option_line("prime_tower_skip_points", "parameter/prime-tower");
         optgroup->append_single_option_line("prime_tower_width","parameter/prime-tower");
         optgroup->append_single_option_line("prime_volume","parameter/prime-tower");
@@ -3599,7 +3598,6 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("nozzle_volume");
         optgroup->append_single_option_line("best_object_pos");
         // todo: for multi_extruder test
-        optgroup->append_single_option_line("extruder_change_length");
         // BBS
 #if 0
         //optgroup->append_single_option_line("z_offset");
