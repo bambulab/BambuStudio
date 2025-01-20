@@ -2170,6 +2170,7 @@ void TreeSupport::draw_circles()
 
                     const SupportNode& node = *p_node;
                     ExPolygons area;
+                    double brim_width = tree_brim_width;
                     // Generate directly from overhang polygon if one of the following is true:
                     // 1) node is a normal part of hybrid support
                     // 2) node is virtual
@@ -2182,6 +2183,7 @@ void TreeSupport::draw_circles()
                         area = offset_ex({node.overhang}, scale_(m_ts_data->m_xy_distance));
                         area = diff_clipped(area, get_collision(node.is_sharp_tail && node.distance_to_top <= 0));
                         if (node.type == ePolygon) append(area_poly, area);
+                        if (tree_brim_width <= 0) brim_width = node.type == ePolygon ? 1 : 3;
                     }
                     else {
                         Polygon circle(branch_circle);
@@ -2206,12 +2208,10 @@ void TreeSupport::draw_circles()
                                 circle.points[i] = circle.points[i] * scale + node.position;
                             }
                         }
-                        if (obj_layer_nr == 0 && m_raft_layers == 0) {
-                            double brim_width = tree_brim_width > 0 ? tree_brim_width : std::max(MIN_BRANCH_RADIUS_FIRST_LAYER, std::min(node.radius + node.dist_mm_to_top / (scale * branch_radius) * 0.5, MAX_BRANCH_RADIUS_FIRST_LAYER) - node.radius);
-                            auto tmp=offset(circle, scale_(brim_width));
-                            if(!tmp.empty())
-                                circle = tmp[0];
-                        }
+                        brim_width = tree_brim_width > 0 ?
+                                         tree_brim_width :
+                                         std::max(MIN_BRANCH_RADIUS_FIRST_LAYER,
+                                                  std::min(node.radius + node.dist_mm_to_top / (scale * branch_radius) * 0.5, MAX_BRANCH_RADIUS_FIRST_LAYER) - node.radius);
                         area = avoid_object_remove_extra_small_parts(ExPolygon(circle), get_collision(node.is_sharp_tail && node.distance_to_top <= 0));
                         // area = diff_clipped({ ExPolygon(circle) }, get_collision(node.is_sharp_tail && node.distance_to_top <= 0));
 
@@ -2231,6 +2231,8 @@ void TreeSupport::draw_circles()
                         }
                     }
 
+                    if (layer_nr == 0 && m_raft_layers == 0) 
+                        area = safe_offset_inc(area, scale_(brim_width), get_collision(false), scale_(MIN_BRANCH_RADIUS * 0.5), 0, 1);
                     if (obj_layer_nr>0 && node.distance_to_top < 0)
                         append(roof_gap_areas, area);
                     else if (obj_layer_nr > 0 && (node.support_roof_layers_below == 0 || node.support_roof_layers_below == 1))
@@ -3008,16 +3010,13 @@ void TreeSupport::drop_nodes()
                         return;
                     }
                     const bool to_buildplate = true;
-                    if (node.distance_to_top == 0) {
-                        p_node->origin_area = node.overhang.area();
-                        densify_polygon(p_node->overhang.contour, 3.);
-                    }
-
                     // keep only the part that won't be removed by the next layer
                     ExPolygons overhangs_next = diff_clipped({ node.overhang }, get_collision(0, obj_layer_nr_next));
-                    if (node.distance_to_top == 0)
-                        overhangs_next = offset2_ex(overhangs_next, scale_(max_move_distance), -scale_(max_move_distance));
-
+                    if (node.distance_to_top == 0) {
+                        overhangs_next      = offset2_ex(overhangs_next, scale_(max_move_distance), -scale_(max_move_distance));
+                        p_node->origin_area = node.overhang.area();
+                        densify_polygon(p_node->overhang.contour, 2.);
+                    }
                     for(auto& overhang:overhangs_next) {
                         if (overhang.empty()) continue;
                         if (overhang.area() > node.origin_area / 2. && overhang.area() > SQ(scale_(10.))) {
@@ -3040,7 +3039,7 @@ void TreeSupport::drop_nodes()
                             }
                             Point        next_pt     = overhang.contour.centroid();
                             SupportNode *next_node   = m_ts_data->create_node(next_pt, p_node->distance_to_top + 1, obj_layer_nr_next, p_node->support_roof_layers_below - 1,
-                                                                                to_buildplate, p_node, print_z_next, height_next);
+                                                                              to_buildplate, p_node, print_z_next, height_next);
                             next_node->max_move_dist = 0;
                             next_node->overhang      = std::move(overhang);
                             next_node->origin_area   = node.origin_area;
@@ -3108,7 +3107,7 @@ void TreeSupport::drop_nodes()
                         SupportNode *neighbour_node = nodes_this_part[neighbour];
                         if (!neighbour_node->valid) continue;
                         Point direction;
-                        if (neighbour_node->type == ePolygon) {
+                        if (neighbour_node->type == ePolygon && neighbour_node->overhang.is_valid()) {
                             Point contact_point = projection_onto({neighbour_node->overhang}, node.position);
                             direction     = contact_point - node.position;
                         } else {
@@ -3727,8 +3726,8 @@ void TreeSupport::generate_contact_points()
                     // print_z=object_layer->bottom_z: it directly contacts the bottom
                     // height=z_distance_top: it's height is exactly the gap distance
                     // dist_mm_to_top=0: it directly contacts the bottom
-                    contact_node = m_ts_data->create_node(pt, -gap_layers, layer_nr-1, roof_layers + 1, to_buildplate, SupportNode::NO_PARENT, bottom_z, z_distance_top, 0,
-                                                          radius);
+                    contact_node = m_ts_data->create_node(pt, -gap_layers, layer_nr - 1, roof_layers + (gap_layers > 0 ? 1 : 0), to_buildplate, SupportNode::NO_PARENT, bottom_z,
+                                                          z_distance_top, 0, radius);
                     contact_node->overhang = overhang;
                     contact_node->is_sharp_tail = is_sharp_tail;
                     curr_nodes.emplace_back(contact_node);
