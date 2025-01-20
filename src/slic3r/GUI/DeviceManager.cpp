@@ -5202,8 +5202,6 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
         BOOST_LOG_TRIVIAL(trace) << "parse_json timeout = " << diff.count();
     }
 
-    if (GUI::wxGetApp().plater())
-        GUI::wxGetApp().plater()->update_machine_sync_status();
     return 0;
 }
 
