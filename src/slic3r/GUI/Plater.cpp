@@ -1258,8 +1258,12 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
     if (preset_bundle && preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle) == obj->printer_type) {
         panel_printer_preset->ShowBadge(true);
         printer_synced = true;
+
+        wxGetApp().plater()->sidebar().udpate_combos_filament_badge();
     } else {
         clear_all_sync_status();
+
+        wxGetApp().plater()->sidebar().clear_combos_filament_badge();
         return;
     }
 
@@ -2957,9 +2961,7 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
         c->ShowBadge(true);
     };
     { // badge ams filament
-        for (auto &c : p->combos_filament) {//clear flag
-            c->ShowBadge(false);
-        }
+        clear_combos_filament_badge();
         if (sync_result.direct_sync) {
             for (auto &c : p->combos_filament) {
                 badge_combox_filament(c);
@@ -3230,6 +3232,25 @@ void Sidebar::finish_param_edit() { p->editing_filament = -1; }
 std::vector<PlaterPresetComboBox*>& Sidebar::combos_filament()
 {
     return p->combos_filament;
+}
+
+void Sidebar::clear_combos_filament_badge()
+{
+    auto &combos_filament = p->combos_filament;
+    for (auto &c : combos_filament) { // clear flag
+        c->ShowBadge(false);
+    }
+}
+
+void Sidebar::udpate_combos_filament_badge() {
+    auto &combos_filament = p->combos_filament;
+    for (auto &c : combos_filament) {
+        auto selection   = c->GetSelection();
+        auto select_flag = c->GetFlag(selection);
+        auto ok          = select_flag == (int) PresetComboBox::FilamentAMSType::FROM_AMS;
+        c->ShowBadge(ok);
+    }
+
 }
 
 Search::OptionsSearcher& Sidebar::get_searcher()
@@ -10598,6 +10619,8 @@ bool Plater::try_sync_preset_with_connected_printer()
             TipsDialog dlg(wxGetApp().mainframe, _L("Tips"), tips, "sync_after_load_file_show_flag", wxYES_NO,option_map);
             if (dlg.ShowModal() == wxID_YES) {
                 sync_printer_preset = true;
+            } else {
+                return false;
             }
         }
     }

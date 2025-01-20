@@ -496,8 +496,9 @@ int PresetComboBox::selected_connected_printer(int index) const
     return -1;
 }
 
-void PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
+bool PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
 {
+    bool selected_in_ams      = false;
     bool is_bbl_vendor_preset = m_preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(m_preset_bundle);
     if (is_bbl_vendor_preset && !m_preset_bundle->filament_ams_list.empty()) {
         bool dual_extruder = (m_preset_bundle->filament_ams_list.begin()->first & 0x10000) == 0;
@@ -540,12 +541,26 @@ void PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
             auto color = tray.opt_string("filament_colour", 0u);
             auto name = tray.opt_string("tray_name", 0u);
             wxBitmap bmp(*get_extruder_color_icon(color, name, icon_width, 16));
-            int item_id = Append(get_preset_name(*iter), bmp.ConvertToImage(), &m_first_ams_filament + entry.first);
+            auto text = get_preset_name(*iter);
+            int      item_id = Append(text, bmp.ConvertToImage(), &m_first_ams_filament + entry.first);
             SetFlag(GetCount() - 1, (int) FilamentAMSType::FROM_AMS);
+            if (text == selected) {
+                DynamicPrintConfig *cfg    = &wxGetApp().preset_bundle->project_config;
+                if (cfg) {
+                    auto colors = static_cast<ConfigOptionStrings *>(cfg->option("filament_colour")->clone());
+                    if (m_filament_idx < colors->values.size()) {
+                        auto cur_color = colors->values[m_filament_idx];
+                        if (color == cur_color) {
+                            selected_in_ams = true;
+                        }
+                    }
+                }
+            }
             //validate_selection(id->value == selected); // can not select
         }
         m_last_ams_filament = GetCount();
     }
+    return selected_in_ams;
 }
 
 int PresetComboBox::selected_ams_filament() const
@@ -937,6 +952,13 @@ void PlaterPresetComboBox::OnSelect(wxCommandEvent &evt)
     evt.Skip();
 }
 
+void PlaterPresetComboBox::update_badge_according_flag() {
+    auto selection   = GetSelection();
+    auto select_flag = GetFlag(selection);
+    auto ok          = select_flag == (int) PresetComboBox::FilamentAMSType::FROM_AMS;
+    ShowBadge(ok);
+}
+
 bool PlaterPresetComboBox::switch_to_tab()
 {
     Tab* tab = wxGetApp().get_tab(m_type);
@@ -1205,17 +1227,17 @@ void PlaterPresetComboBox::update()
     }
     //if (m_type == Preset::TYPE_PRINTER)
     //    add_connected_printers("", true);
-
+    bool selected_in_ams = false;
     if (m_type == Preset::TYPE_FILAMENT) {
         set_replace_text("Bambu", "BambuStudioBlack");
-        add_ams_filaments(into_u8(selected_user_preset.empty() ? selected_system_preset : selected_user_preset), true);
+        selected_in_ams = add_ams_filaments(into_u8(selected_user_preset.empty() ? selected_system_preset : selected_user_preset), true);
     }
 
     std::vector<std::string> filament_orders = {"Bambu PLA Basic", "Bambu PLA Matte", "Bambu PETG HF",    "Bambu ABS",      "Bambu PLA Silk", "Bambu PLA-CF",
                                                 "Bambu PLA Galaxy", "Bambu PLA Metal", "Bambu PLA Marble", "Bambu PETG-CF", "Bambu PETG Translucent", "Bambu ABS-GF"};
     std::vector<std::string> first_vendors     = {"Bambu Lab", "Generic"};
     std::vector<std::string> first_types     = {"PLA", "PETG", "ABS", "TPU"};
-    auto add_presets = [this, &preset_descriptions, &filament_orders, &preset_filament_vendors, &first_vendors, &preset_filament_types, &first_types]
+    auto  add_presets       = [this, &preset_descriptions, &filament_orders, &preset_filament_vendors, &first_vendors, &preset_filament_types, &first_types, &selected_in_ams]
             (std::map<wxString, wxBitmap *> const &presets, wxString const &selected, std::string const &group) {
         if (!presets.empty()) {
             set_label_marker(Append(separator(group), wxNullBitmap));
@@ -1246,7 +1268,11 @@ void PlaterPresetComboBox::update()
                     });
                 for (auto it : list) {
                     SetItemTooltip(Append(it->first, *it->second), preset_descriptions[it->first]);
-                    validate_selection(it->first == selected);
+                    bool is_selected = it->first == selected;
+                    validate_selection(is_selected);
+                    if (is_selected  && selected_in_ams) {
+                        SetFlag(GetCount() - 1, (int) FilamentAMSType::FROM_AMS);
+                    }
                 }
             } else {
                 for (std::map<wxString, wxBitmap *>::const_iterator it = presets.begin(); it != presets.end(); ++it) {
@@ -1304,6 +1330,9 @@ void PlaterPresetComboBox::update()
     }
 
     update_selection();
+    if (m_type == Preset::TYPE_FILAMENT) {
+        update_badge_according_flag();
+    }
     Thaw();
 
     if (!tooltip.IsEmpty()) {
