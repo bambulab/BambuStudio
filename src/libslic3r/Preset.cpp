@@ -879,7 +879,7 @@ static std::vector<std::string> s_Preset_print_options {
     "inner_wall_line_width", "outer_wall_line_width", "sparse_infill_line_width", "internal_solid_infill_line_width",
     "top_surface_line_width", "support_line_width", "infill_wall_overlap", "bridge_flow",
     "elefant_foot_compensation", "xy_contour_compensation", "xy_hole_compensation", "resolution", "enable_prime_tower",
-    "prime_tower_width", "prime_tower_brim_width", "prime_tower_outer_first", "prime_tower_skip_points", "prime_volume",
+    "prime_tower_width", "prime_tower_brim_width", "prime_tower_skip_points", "prime_volume",
     "prime_tower_rib_wall","prime_tower_extra_rib_length","prime_tower_rib_width","prime_tower_fillet_wall",
     "enable_circle_compensation", "circle_compensation_speed", "circle_compensation_manual_offset",
     "counter_coef_1", "counter_coef_2", "counter_coef_3", "hole_coef_1", "hole_coef_2", "hole_coef_3",
@@ -958,7 +958,7 @@ static std::vector<std::string> s_Preset_printer_options {
     // BBS
     "scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time", "machine_pause_gcode", "template_custom_gcode",
     "nozzle_type","auxiliary_fan", "nozzle_volume","upward_compatible_machine", "z_hop_types","support_chamber_temp_control","support_air_filtration","printer_structure","thumbnail_size",
-    "best_object_pos","extruder_change_length","head_wrap_detect_zone","printer_notes",
+    "best_object_pos", "head_wrap_detect_zone","printer_notes",
     "enable_long_retraction_when_cut","long_retractions_when_cut","retraction_distances_when_cut",
     //OrcaSlicer
     "host_type", "print_host", "printhost_apikey",
