@@ -1103,13 +1103,13 @@ bool Sidebar::priv::switch_diameter(bool single)
                               _L("The software does not support using different diameter of nozzles for one print.\n"
                                  "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
                                  "Please confirm which nozzle you would like to use for this project."),
-                              _L("Switch diameter"), wxNO | wxCANCEL);
-            dlg.SetButtonLabel(wxID_NO, wxString::Format(_L("Left nozzle: %smm"), diameter_left));
-            dlg.SetButtonLabel(wxID_CANCEL, wxString::Format(_L("Right nozzle: %smm"), diameter_right));
+                              _L("Switch diameter"), wxYES_NO | wxNO_DEFAULT);
+            dlg.SetButtonLabel(wxID_YES, wxString::Format(_L("Left nozzle: %smm"), diameter_left));
+            dlg.SetButtonLabel(wxID_NO, wxString::Format(_L("Right nozzle: %smm"), diameter_right));
             int result = dlg.ShowModal();
-            if (result == wxID_NO)
+            if (result == wxID_YES)
                 diameter = diameter_left;
-            else if (result == wxID_CANCEL)
+            else if (result == wxID_NO)
                 diameter = diameter_right;
             else
                 return false;
@@ -1660,8 +1660,10 @@ Sidebar::Sidebar(Plater *parent)
         auto switch_diameter = [this](wxCommandEvent & evt) {
             auto extruder = dynamic_cast<ExtruderGroup *>(dynamic_cast<ComboBox *>(evt.GetEventObject())->GetParent());
             p->is_switching_diameter = true;
-            p->switch_diameter(extruder == p->single_extruder);
+            auto result              = p->switch_diameter(extruder == p->single_extruder);
             p->is_switching_diameter = false;
+            if (!result)
+                extruder->combo_diameter->SetValue(extruder->diameter);
         };
         p->left_extruder->combo_diameter->Bind(wxEVT_COMBOBOX, switch_diameter);
         p->right_extruder->combo_diameter->Bind(wxEVT_COMBOBOX, switch_diameter);
