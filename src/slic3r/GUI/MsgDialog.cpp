@@ -178,13 +178,11 @@ Button* MsgDialog::add_button(wxWindowID btn_id, bool set_focus /*= false*/, con
         std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal)
     );
 
-    if (btn_id == wxID_OK || btn_id == wxID_YES) {
+    if (set_focus) {
         btn->SetBackgroundColor(btn_bg_green);
         btn->SetBorderColor(btn_bd_green);
         btn->SetTextColor(btn_text_green);
-    }
-
-    if (btn_id == wxID_CANCEL || btn_id == wxID_NO) {
+    } else {
         btn->SetBackgroundColor(btn_bg_white);
         btn->SetBorderColor(btn_bd_white);
         btn->SetTextColor(btn_text_white);
@@ -213,8 +211,9 @@ Button* MsgDialog::get_button(wxWindowID btn_id){
 
 void MsgDialog::apply_style(long style)
 {
-    if (style & wxOK)       add_button(wxID_OK, true, _L("OK"));
-    if (style & wxYES)      add_button(wxID_YES, true, _L("Yes"));
+    bool focus = (style & wxNO_DEFAULT) == 0;
+    if (style & wxOK)       add_button(wxID_OK, focus, _L("OK"));
+    if (style & wxYES)      add_button(wxID_YES, focus, _L("Yes"));
     if (style & wxNO)       add_button(wxID_NO, false,_L("No"));
     if (style & wxCANCEL)   add_button(wxID_CANCEL, false, _L("Cancel"));
 
