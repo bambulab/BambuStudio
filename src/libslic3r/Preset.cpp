@@ -879,7 +879,7 @@ static std::vector<std::string> s_Preset_print_options {
     "inner_wall_line_width", "outer_wall_line_width", "sparse_infill_line_width", "internal_solid_infill_line_width",
     "top_surface_line_width", "support_line_width", "infill_wall_overlap", "bridge_flow",
     "elefant_foot_compensation", "xy_contour_compensation", "xy_hole_compensation", "resolution", "enable_prime_tower",
-    "prime_tower_width", "prime_tower_brim_width", "prime_tower_skip_points", "prime_volume",
+    "prime_tower_width", "prime_tower_brim_width", "prime_tower_skip_points",
     "prime_tower_rib_wall","prime_tower_extra_rib_length","prime_tower_rib_width","prime_tower_fillet_wall",
     "enable_circle_compensation", "circle_compensation_speed", "circle_compensation_manual_offset",
     "counter_coef_1", "counter_coef_2", "counter_coef_3", "hole_coef_1", "hole_coef_2", "hole_coef_3",
@@ -935,7 +935,7 @@ static std::vector<std::string> s_Preset_filament_options {
     "enable_pressure_advance", "pressure_advance", "chamber_temperatures","filament_notes",
     "filament_long_retractions_when_cut","filament_retraction_distances_when_cut","filament_shrink",
     //BBS filament change length while the extruder color
-    "filament_change_length"
+    "filament_change_length","filament_prime_volume"
 };
 
 static std::vector<std::string> s_Preset_machine_limits_options {

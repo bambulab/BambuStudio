@@ -270,7 +270,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             //|| opt_key == "wipe_tower_bridging"
             || opt_key == "wipe_tower_no_sparse_layers"
             || opt_key == "flush_volumes_matrix"
-            || opt_key == "prime_volume"
+            || opt_key == "filament_prime_volume"
             || opt_key == "flush_into_infill"
             || opt_key == "flush_into_support"
             || opt_key == "initial_layer_infill_speed"
@@ -2537,9 +2537,10 @@ const WipeTowerData& Print::wipe_tower_data(size_t filaments_cnt) const
     if (max_height < EPSILON) return m_wipe_tower_data;
 
     if (! is_step_done(psWipeTower) && filaments_cnt !=0) {
+        std::vector<double> filament_wipe_volume = m_config.filament_prime_volume.values;
+        double wipe_volume = get_max_element(filament_wipe_volume);
         if (m_config.prime_tower_rib_wall.value) {
             double layer_height = 0.08f; // hard code layer height
-            double wipe_volume  = m_config.prime_volume;
             layer_height = m_objects.front()->config().layer_height.value;
             int    filament_depth_count = m_config.nozzle_diameter.values.size() == 2 ? filaments_cnt : filaments_cnt - 1;
             if (filaments_cnt == 1 && enable_timelapse_print())
@@ -2555,7 +2556,6 @@ const WipeTowerData& Print::wipe_tower_data(size_t filaments_cnt) const
             // BBS
             double width        = m_config.prime_tower_width;
             double layer_height = 0.2; // hard code layer height
-            double wipe_volume  = m_config.prime_volume;
             if (filaments_cnt == 1 && enable_timelapse_print()) {
                 const_cast<Print *>(this)->m_wipe_tower_data.depth = wipe_volume / (layer_height * width);
             } else {
@@ -2628,7 +2628,7 @@ void Print::_make_wipe_tower()
 
     // Initialize the wipe tower.
     // BBS: in BBL machine, wipe tower is only use to prime extruder. So just use a global wipe volume.
-    WipeTower wipe_tower(m_config, m_plate_index, m_origin, m_config.prime_volume, m_wipe_tower_data.tool_ordering.first_extruder(),
+    WipeTower wipe_tower(m_config, m_plate_index, m_origin, m_wipe_tower_data.tool_ordering.first_extruder(),
         m_wipe_tower_data.tool_ordering.empty() ? 0.f : m_wipe_tower_data.tool_ordering.back().print_z);
     wipe_tower.set_has_tpu_filament(this->has_tpu_filament());
     wipe_tower.set_filament_map(this->get_filament_maps());
@@ -2693,7 +2693,7 @@ void Print::_make_wipe_tower()
                 volume_to_purge = std::max(0.f, volume_to_purge - grab_purge_volume);
 
                 wipe_tower.plan_toolchange((float)layer_tools.print_z, (float)layer_tools.wipe_tower_layer_height, current_filament_id, filament_id,
-                    m_config.prime_volume, volume_to_purge);
+                    m_config.filament_prime_volume.values[filament_id], volume_to_purge);
                 current_filament_id = filament_id;
                 nozzle_cur_filament_ids[nozzle_id] = filament_id;
             }

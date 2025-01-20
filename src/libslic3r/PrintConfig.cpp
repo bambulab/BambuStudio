@@ -1868,6 +1868,15 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBools{false});
 
     // BBS
+    def = this->add("filament_prime_volume", coFloats);
+    def->label = L("Filament prime volume");
+    def->tooltip = L("The volume of material to prime extruder on tower.");
+    def->sidetext = L("mm³");
+    def->min = 1.0;
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionFloats{45.});
+
+    // BBS
     def = this->add("temperature_vitrification", coInts);
     def->label = L("Softening temperature");
     def->tooltip = L("The material softens at this temperature, so when the bed temperature is equal to or greater than it, it's highly recommended to open the front door and/or remove the upper glass to avoid cloggings.");
@@ -4290,14 +4299,14 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = "";
     def->set_default_value(new ConfigOptionFloats{1.0});
 
-    // BBS
-    def = this->add("prime_volume", coFloat);
-    def->label = L("Prime volume");
-    def->tooltip = L("The volume of material to prime extruder on tower.");
-    def->sidetext = L("mm³");
-    def->min = 1.0;
-    def->mode = comSimple;
-    def->set_default_value(new ConfigOptionFloat(45.));
+    // // BBS
+    // def = this->add("prime_volume", coFloat);
+    // def->label = L("Prime volume");
+    // def->tooltip = L("The volume of material to prime extruder on tower.");
+    // def->sidetext = L("mm³");
+    // def->min = 1.0;
+    // def->mode = comSimple;
+    // def->set_default_value(new ConfigOptionFloat(45.));
 
     def = this->add("wipe_tower_x", coFloats);
     //def->label = L("Position X");
@@ -5263,7 +5272,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
     } else if (opt_key == "bottom_solid_infill_flow_ratio") {
         opt_key = "initial_layer_flow_ratio";
     } else if (opt_key == "wiping_volume") {
-        opt_key = "prime_volume";
+        opt_key = "filament_prime_volume";
     } else if (opt_key == "wipe_tower_brim_width") {
         opt_key = "prime_tower_brim_width";
     } else if (opt_key == "tool_change_gcode") {
@@ -5379,7 +5388,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "can_switch_nozzle_type", "can_add_auxiliary_fan", "extra_flush_volume", "spaghetti_detector", "adaptive_layer_height",
         "z_hop_type","nozzle_hrc","chamber_temperature","only_one_wall_top","bed_temperature_difference","long_retraction_when_cut",
         "retraction_distance_when_cut",
-        "seam_slope_type","seam_slope_start_height","seam_slope_gap", "seam_slope_min_length"
+        "seam_slope_type","seam_slope_start_height","seam_slope_gap", "seam_slope_min_length",
+        "prime_volume"
     };
 
     if (ignore.find(opt_key) != ignore.end()) {

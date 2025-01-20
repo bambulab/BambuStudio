@@ -132,6 +132,16 @@ inline DataType round_up_divide(DataType dividend, DataType divisor) //!< Return
     return (dividend + divisor - 1) / divisor;
 }
 
+template<typename T>
+T get_max_element(const std::vector<T> &vec)
+{
+    static_assert(std::is_arithmetic<T>::value, "T must be of numeric type.");
+    if (vec.empty())
+        return static_cast<T>(0);
+
+    return *std::max_element(vec.begin(), vec.end());
+}
+
 
 // Set a path with GUI localization files.
 void set_local_dir(const std::string &path);
