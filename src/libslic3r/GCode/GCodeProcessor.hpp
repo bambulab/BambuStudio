@@ -567,9 +567,31 @@ namespace Slic3r {
             using block_handler_t = std::function<void(const TimeBlock&, const float)>;
 
             void reset();
-            // Simulates firmware st_synchronize() call
-            void simulate_st_synchronize(float additional_time = 0.0f, block_handler_t block_handler = block_handler_t());
-            void calculate_time(size_t keep_last_n_blocks = 0, float additional_time = 0.0f, block_handler_t block_handler = block_handler_t());
+
+            /**
+             * @brief Simulates firmware st_synchronize() call
+             *
+             * Adding additional time to the specified extrusion role's time block.The provided block handler
+             * can process the block and the corresponding time (usually assigned to the move of the block).
+             *
+             * @param additional_time Addtional time to calculate
+             * @param target_role Target extrusion role for addtional time.Default is none,means any role is ok.
+             * @param block_handler Handler to set the processing logic for the block and its corresponding time.
+             */
+            void simulate_st_synchronize(float additional_time = 0.0f, ExtrusionRole target_role = ExtrusionRole::erNone, block_handler_t block_handler = block_handler_t());
+
+            /**
+             * @brief  Calculates the time for all blocks
+             * 
+             * Computes the time for all blocks. The provided block handler can process each block and the 
+             * corresponding time (usually assigned to the move of the block).
+             *
+             * @param keep_last_n_blocks The number of last blocks to retain during calculation (default is 0).
+             * @param additional_time  Additional time to calculate.
+             * @param target_role Target extrusion role for addtional time.Default is none, means any role is ok.
+             * @param block_handler Handler to set the processing logic for each block and its corresponding time.
+             */
+            void calculate_time(size_t keep_last_n_blocks = 0, float additional_time = 0.0f, ExtrusionRole target_role = ExtrusionRole::erNone, block_handler_t block_handler = block_handler_t());
         };
 
         struct UsedFilaments  // filaments per ColorChange
