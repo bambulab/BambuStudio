@@ -389,6 +389,8 @@ struct ExtruderGroup : StaticGroup
         btn_down->msw_rescale();
         combo_diameter->Rescale();
         combo_flow->Rescale();
+        for (int i = 0; i < 4; ++i)
+            ams[i]->msw_rescale();
     }
 };
 
@@ -1710,7 +1712,7 @@ Sidebar::Sidebar(Plater *parent)
     //wiping_dialog_button->SetFont(wxGetApp().normal_font());
     p->m_flushing_volume_btn = new Button(p->m_panel_filament_title, _L("Flushing volumes"));
     p->m_flushing_volume_btn->SetFont(Label::Body_10);
-    p->m_flushing_volume_btn->SetPaddingSize(wxSize(FromDIP(8),FromDIP(3)));
+    p->m_flushing_volume_btn->SetPaddingSize(wxSize(FromDIP(6),FromDIP(3)));
     p->m_flushing_volume_btn->SetCornerRadius(FromDIP(8));
 
     StateColor flush_bg_col(std::pair<wxColour, int>(wxColour(219, 253, 231), StateColor::Pressed),
@@ -1772,7 +1774,7 @@ Sidebar::Sidebar(Plater *parent)
             }
         }));
 
-    bSizer39->Add(p->m_flushing_volume_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(5));
+    bSizer39->Add(p->m_flushing_volume_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(4));
     bSizer39->Hide(p->m_flushing_volume_btn);
     bSizer39->Add(FromDIP(10), 0, 0, 0, 0 );
 
@@ -1783,7 +1785,7 @@ Sidebar::Sidebar(Plater *parent)
     });
     p->m_bpButton_add_filament = add_btn;
 
-    bSizer39->Add(add_btn, 0, wxALIGN_CENTER|wxALL, FromDIP(5));
+    bSizer39->Add(add_btn, 0, wxALIGN_CENTER|wxALL, FromDIP(4));
     bSizer39->Add(FromDIP(10), 0, 0, 0, 0 );
 
     ScalableButton* del_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "delete_filament");
@@ -1793,7 +1795,7 @@ Sidebar::Sidebar(Plater *parent)
     });
     p->m_bpButton_del_filament = del_btn;
 
-    bSizer39->Add(del_btn, 0, wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    bSizer39->Add(del_btn, 0, wxALIGN_CENTER_VERTICAL, FromDIP(4));
     bSizer39->Add(FromDIP(20), 0, 0, 0, 0);
 
     ams_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "ams_fila_sync", wxEmptyString, wxDefaultSize, wxDefaultPosition,
@@ -1804,7 +1806,7 @@ Sidebar::Sidebar(Plater *parent)
     });
     p->m_bpButton_ams_filament = ams_btn;
 
-    bSizer39->Add(ams_btn, 0, wxALIGN_CENTER|wxALL, FromDIP(5));
+    bSizer39->Add(ams_btn, 0, wxALIGN_CENTER|wxALL, FromDIP(4));
     bSizer39->Add(FromDIP(10), 0, 0, 0, 0 );
 
     ScalableButton* set_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "settings");
@@ -2239,6 +2241,8 @@ void Sidebar::update_presets(Preset::Type preset_type)
             extruder.diameter = diameter;
         };
         if (is_dual_extruder) {
+            AMSCountPopupWindow::UpdateAMSCount(0, p->left_extruder);
+            AMSCountPopupWindow::UpdateAMSCount(1, p->right_extruder);
             update_extruder_variant(*p->left_extruder, 0);
             update_extruder_variant(*p->right_extruder, 1);
             //if (!p->is_switching_diameter) {
@@ -2247,6 +2251,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
             //}
             p->image_printer_bed->SetBitmap(create_scaled_bitmap(bed_type_thumbnails[BedType(p->combo_printer_bed->GetSelection() + 1)], this, 48));
         } else {
+            AMSCountPopupWindow::UpdateAMSCount(0, p->single_extruder);
             update_extruder_variant(*p->single_extruder, 0);
             //if (!p->is_switching_diameter)
                 update_extruder_diameter(*p->single_extruder);
@@ -2364,6 +2369,7 @@ void Sidebar::msw_rescale()
         ->SetMinSize(-1, 3 * wxGetApp().em_unit());
     p->m_printer_icon->msw_rescale();
     p->m_printer_setting->msw_rescale();
+    p->btn_edit_printer->msw_rescale();
     p->image_printer->SetSize(PRINTER_THUMBNAIL_SIZE);
     bool isDual = static_cast<wxBoxSizer *>(p->panel_printer_preset->GetSizer())->GetOrientation() == wxVERTICAL;
     p->image_printer_bed->SetBitmap(create_scaled_bitmap(bed_type_thumbnails[BedType(p->combo_printer_bed->GetSelection() + 1)], this, 48));
