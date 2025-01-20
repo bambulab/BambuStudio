@@ -4332,10 +4332,10 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("prime_tower_brim_width", coFloat);
     def->label = L("Brim width");
-    def->tooltip = L("Brim width");
+    def->tooltip = L("Brim width, -1 means the brim width is automatically calculated based on the height ");
     def->sidetext = L("mm");
     def->mode = comAdvanced;
-    def->min = 0.;
+    def->min = -1;
     def->set_default_value(new ConfigOptionFloat(3.));
 
     def           = this->add("prime_tower_extra_rib_length", coFloat);
@@ -4352,7 +4352,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->mode     = comAdvanced;
     def->min      = 0;
-    def->set_default_value(new ConfigOptionFloat(4));
+    def->set_default_value(new ConfigOptionFloat(8));
 
     def          = this->add("prime_tower_skip_points", coBool);
     def->label   = L("Skip points");
