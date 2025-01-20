@@ -2699,7 +2699,7 @@ bool Sidebar::is_new_project_in_gcode3mf()
         confirm_dlg.update_btn_label(_L("Yes"), _L("No"));
         auto filename = p->plater->get_preview_only_filename();
 
-        confirm_dlg.update_text(filename + " " + _L("will be closed before modify filament. Do you want to continue?"));
+        confirm_dlg.update_text(filename + " " + _L("will be closed before your operation. Do you want to continue?"));
         confirm_dlg.on_show();
         if (is_cancle) {
             this->printer_combox()->update();
@@ -6233,7 +6233,7 @@ void Plater::priv::reset(bool apply_presets_change)
     Plater::TakeSnapshot snapshot(q, "Reset Project", UndoRedo::SnapshotType::ProjectSeparator);
 
     clear_warnings();
-
+    q->reset_flags_when_new_or_close_project();
     set_project_filename("");
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " call set_project_filename: empty";
 
@@ -10498,6 +10498,13 @@ Print&          Plater::fff_print()         { return p->fff_print; }
 const SLAPrint& Plater::sla_print() const   { return p->sla_print; }
 SLAPrint&       Plater::sla_print()         { return p->sla_print; }
 
+void Plater::reset_flags_when_new_or_close_project()
+{
+    m_only_gcode      = false;
+    m_exported_file   = false;
+    m_loading_project = false;
+}
+
 int Plater::new_project(bool skip_confirm, bool silent, const wxString &project_name)
 {
     bool transfer_preset_changes = false;
@@ -10519,9 +10526,7 @@ int Plater::new_project(bool skip_confirm, bool silent, const wxString &project_
     //BBS: add only gcode mode
     bool previous_gcode = m_only_gcode;
 
-    m_only_gcode = false;
-    m_exported_file = false;
-    m_loading_project = false;
+    reset_flags_when_new_or_close_project();
     get_notification_manager()->clear_all();
 
     if (!silent)
