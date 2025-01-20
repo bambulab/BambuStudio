@@ -8,8 +8,8 @@ set -x
 # would speed up recompile times significantly.  For end users,
 # the simplicity of a single Docker image and a one-time compilation
 # seems better.
-docker build -t bambustudio \
-  --build-arg USER=$USER \
+docker build -t bambu_studio_yes_args \
+  --build-arg USER=${USER:-root} \
   --build-arg UID=$(id -u) \
   --build-arg GID=$(id -g) \
   $PROJECT_ROOT
