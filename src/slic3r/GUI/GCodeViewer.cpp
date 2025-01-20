@@ -751,7 +751,8 @@ const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors {{
     { 0.00f, 0.50f, 0.00f, 1.0f },   // erSupportMaterialInterface
     { 0.00f, 0.25f, 0.00f, 1.0f },   // erSupportTransition
     { 0.70f, 0.89f, 0.67f, 1.0f },   // erWipeTower
-    { 0.37f, 0.82f, 0.58f, 1.0f }    // erCustom
+    { 0.37f, 0.82f, 0.58f, 1.0f },    // erCustom
+    { 0.85f, 0.65f, 0.95f, 1.0f }    // erFlush
 }};
 
 const std::vector<GCodeViewer::Color> GCodeViewer::Options_Colors {{
@@ -3095,6 +3096,9 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
                 m_layers.get_endpoints().back().last = move_id;
 
             last_travel_s_id = move_id;
+        }
+        else if (move.type == EMoveType::Unretract && move.extrusion_role == ExtrusionRole::erFlush) {
+            m_roles.emplace_back(move.extrusion_role);
         }
     }
 

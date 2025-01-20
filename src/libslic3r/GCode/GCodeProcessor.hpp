@@ -459,9 +459,26 @@ namespace Slic3r {
 
             void reset();
 
-            // Simulates firmware st_synchronize() call
-            void simulate_st_synchronize(float additional_time = 0.0f);
-            void calculate_time(size_t keep_last_n_blocks = 0, float additional_time = 0.0f);
+            /**
+             * @brief Simulates firmware st_synchronize() call
+             *
+             * Adding additional time to the specified extrusion role's time block.
+             *
+             * @param additional_time Addtional time to calculate
+             * @param target_role Target extrusion role for addtional time.Default is none,means any role is ok.
+             */
+            void simulate_st_synchronize(float additional_time = 0.0f, ExtrusionRole target_role = ExtrusionRole::erNone);
+
+            /**
+             * @brief  Calculates the time for all blocks
+             * 
+             * Computes the time for all blocks.
+             *
+             * @param keep_last_n_blocks The number of last blocks to retain during calculation (default is 0).
+             * @param additional_time  Additional time to calculate.
+             * @param target_role Target extrusion role for addtional time.Default is none, means any role is ok.
+             */
+            void calculate_time(size_t keep_last_n_blocks = 0, float additional_time = 0.0f, ExtrusionRole target_role = ExtrusionRole::erNone);
         };
 
         struct UsedFilaments  // filaments per ColorChange
@@ -964,7 +981,7 @@ namespace Slic3r {
         void process_filaments(CustomGCode::Type code);
 
         // Simulates firmware st_synchronize() call
-        void simulate_st_synchronize(float additional_time = 0.0f);
+        void simulate_st_synchronize(float additional_time = 0.0f, ExtrusionRole target_role =ExtrusionRole::erNone);
 
         void update_estimated_times_stats();
         //BBS:
