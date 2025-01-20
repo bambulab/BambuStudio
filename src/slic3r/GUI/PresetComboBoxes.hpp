@@ -80,7 +80,7 @@ public:
     int  selected_connected_printer(int index) const;
 
     // BBS: ams
-    void add_ams_filaments(std::string selected, bool alias_name = false);
+    bool add_ams_filaments(std::string selected, bool alias_name = false);
     int  selected_ams_filament() const;
 
     void set_filament_idx(const int extr_idx) { m_filament_idx = extr_idx; }
@@ -207,6 +207,7 @@ public:
     void update() override;
     void msw_rescale() override;
     void OnSelect(wxCommandEvent& evt) override;
+    void update_badge_according_flag();
 
 private:
     // BBS

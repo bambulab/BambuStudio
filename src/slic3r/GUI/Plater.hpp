@@ -207,6 +207,8 @@ public:
 #endif
 
     std::vector<PlaterPresetComboBox*>&   combos_filament();
+    void                                 clear_combos_filament_badge();
+    void                                 udpate_combos_filament_badge();
     Search::OptionsSearcher&        get_searcher();
     std::string&                    get_search_line();
     void                            set_is_gcode_file(bool flag);
