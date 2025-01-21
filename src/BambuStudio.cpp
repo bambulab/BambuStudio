@@ -6001,16 +6001,20 @@ int CLI::run(int argc, char **argv)
                                 //get predication and filament change
                                 PrintEstimatedStatistics& print_estimated_stat = gcode_result->print_statistics;
                                 const PrintEstimatedStatistics::Mode& time_mode = print_estimated_stat.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)];
-                                auto it = std::find_if(time_mode.roles_times.begin(), time_mode.roles_times.end(), [](const std::pair<ExtrusionRole, float>& item) { return ExtrusionRole::erWipeTower == item.first; });
+                                auto it_wipe = std::find_if(time_mode.roles_times.begin(), time_mode.roles_times.end(), [](const std::pair<ExtrusionRole, float>& item) { return ExtrusionRole::erWipeTower == item.first; });
                                 sliced_plate_info.total_predication = time_mode.time;
                                 sliced_plate_info.main_predication = time_mode.time - time_mode.prepare_time;
                                 sliced_plate_info.filament_change_times = print_estimated_stat.total_filament_changes;
-                                if (it != time_mode.roles_times.end()) {
+                                if (it_wipe != time_mode.roles_times.end()) {
                                     //filament changes time will be included in prime tower time later
                                     //ConfigOptionFloat* machine_load_filament_time_opt = m_print_config.option<ConfigOptionFloat>("machine_load_filament_time");
                                     //ConfigOptionFloat* machine_unload_filament_time_opt = m_print_config.option<ConfigOptionFloat>("machine_unload_filament_time");
-                                    sliced_plate_info.main_predication -= it->second;
+                                    sliced_plate_info.main_predication -= it_wipe->second;
                                     //sliced_plate_info.main_predication -= sliced_plate_info.filament_change_times * (machine_load_filament_time_opt->value + machine_unload_filament_time_opt->value);
+                                }
+                                auto it_flush = std::find_if(time_mode.roles_times.begin(), time_mode.roles_times.end(), [](const std::pair<ExtrusionRole, float>& item) { return ExtrusionRole::erFlush == item.first; });
+                                if (it_flush != time_mode.roles_times.end()) {
+                                    sliced_plate_info.main_predication -= it_flush->second;
                                 }
                                 bool has_tool_change = false;
                                 auto custom_gcodes_iter = model.plates_custom_gcodes.find(index);
