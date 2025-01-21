@@ -2037,6 +2037,8 @@ int MachineObject::command_set_chamber(int temp)
 
 int MachineObject::command_ams_switch(int tray_index, int old_temp, int new_temp)
 {
+    assert(!is_enable_np);
+
     BOOST_LOG_TRIVIAL(trace) << "ams_switch to " << tray_index << " with temp: " << old_temp << ", " << new_temp;
     if (old_temp < 0) old_temp = FILAMENT_DEF_TEMP;
     if (new_temp < 0) new_temp = FILAMENT_DEF_TEMP;
@@ -2077,16 +2079,28 @@ int MachineObject::command_ams_change_filament(int tray_id, int old_temp, int ne
     return this->publish_json(j.dump());
 }
 
-int MachineObject::command_ams_change_filament2(int ams_id, int slot_id, int old_temp, int new_temp)
+int MachineObject::command_ams_change_filament2(bool load_or_unload, int ams_id, int slot_id, int old_temp, int new_temp)
 {
+    assert(is_enable_np);
+
     json j;
     j["print"]["command"]     = "ams_change_filament";
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-    j["print"]["target"]      = ams_id == VIRTUAL_TRAY_MAIN_ID?VIRTUAL_TRAY_DEPUTY_ID:slot_id;
+    //j["print"]["target"]      = ams_id == VIRTUAL_TRAY_MAIN_ID?VIRTUAL_TRAY_DEPUTY_ID:slot_id; /*this is not used in new protocol*/
     j["print"]["curr_temp"]   = old_temp;
     j["print"]["tar_temp"]    = new_temp;
     j["print"]["ams_id"]      = ams_id;
-    j["print"]["slot_id"]     = slot_id;
+
+    // the new protocol
+    if (load_or_unload)
+    {
+        j["print"]["slot_id"] = slot_id;
+    }
+    else
+    {
+        j["print"]["slot_id"] = 255;// the new protocol to mark unload
+    }
+
     return this->publish_json(j.dump());
 }
 
