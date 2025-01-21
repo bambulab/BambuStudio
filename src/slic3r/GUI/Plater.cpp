@@ -9298,7 +9298,7 @@ void Plater::import_model_id(wxString download_info)
 
 
             //check file suffix
-            if (!extension.Contains(".3mf")) {
+            if (!extension.Contains(".3mf") && !extension.Contains(".3MF")) {
                 msg = _L("Download failed, unknown file format.");
                 return;
             }
