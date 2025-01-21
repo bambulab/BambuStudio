@@ -2700,8 +2700,8 @@ bool Sidebar::is_new_project_in_gcode3mf()
             });
         confirm_dlg.update_btn_label(_L("Yes"), _L("No"));
         auto filename = p->plater->get_preview_only_filename();
-
-        confirm_dlg.update_text(filename + " " + _L("will be closed before your operation. Do you want to continue?"));
+        auto text     = wxString::Format(_L("After completing your operation, %s project will be closed and create a new project. Do you want to continue?"), filename);
+        confirm_dlg.update_text(text);
         confirm_dlg.on_show();
         if (is_cancle) {
             this->printer_combox()->update();
