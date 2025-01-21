@@ -539,8 +539,6 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     wxBoxSizer *multiple_left_line_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto multiple_left_nozzle_type = new Label(multiple_panel, _L("Nozzle Type"));
     multiple_left_nozzle_type->SetFont(Label::Body_14);
-    multiple_left_nozzle_type->SetMinSize(wxSize(FromDIP(80), -1));
-    multiple_left_nozzle_type->SetMaxSize(wxSize(FromDIP(80), -1));
     multiple_left_nozzle_type->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
 
     multiple_left_nozzle_type_checkbox = new ComboBox(multiple_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(140), -1), 0, NULL, wxCB_READONLY);
@@ -550,15 +548,11 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
 
     auto multiple_left_nozzle_diameter = new Label(multiple_panel, _L("Nozzle Diameter"));
     multiple_left_nozzle_diameter->SetFont(Label::Body_14);
-    multiple_left_nozzle_diameter->SetMinSize(wxSize(FromDIP(80), -1));
-    multiple_left_nozzle_diameter->SetMaxSize(wxSize(FromDIP(80), -1));
     multiple_left_nozzle_diameter->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
     multiple_left_nozzle_diameter_checkbox = new ComboBox(multiple_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(140), -1), 0, NULL, wxCB_READONLY);
 
     auto multiple_left_nozzle_flow = new Label(multiple_panel, _L("Nozzle Flow"));
     multiple_left_nozzle_flow->SetFont(Label::Body_14);
-    multiple_left_nozzle_flow->SetMinSize(wxSize(FromDIP(80), -1));
-    multiple_left_nozzle_flow->SetMaxSize(wxSize(FromDIP(80), -1));
     multiple_left_nozzle_flow->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
     multiple_left_nozzle_flow_checkbox = new ComboBox(multiple_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(140), -1), 0, NULL, wxCB_READONLY);
     multiple_left_nozzle_flow_checkbox->Append(nozzle_flow_map[NozzleFlowType::S_FLOW]);
@@ -569,11 +563,11 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     multiple_left_line_sizer->Add(multiple_left_nozzle_type_checkbox, 0, wxALIGN_CENTER, 0);
     multiple_left_line_sizer->Add(0, 0, 0, wxLEFT, FromDIP(15));
     multiple_left_line_sizer->Add(multiple_left_nozzle_diameter, 0, wxALIGN_CENTER, 0);
-    multiple_left_line_sizer->Add(0, 0, 1, wxEXPAND, FromDIP(8));
+    multiple_left_line_sizer->Add(0, 0, 1, wxLEFT, FromDIP(8));
     multiple_left_line_sizer->Add(multiple_left_nozzle_diameter_checkbox, 0, wxALIGN_CENTER, 0);
     multiple_left_line_sizer->Add(0, 0, 0, wxLEFT, FromDIP(15));
     multiple_left_line_sizer->Add(multiple_left_nozzle_flow, 0, wxALIGN_CENTER, 0);
-    multiple_left_line_sizer->Add(0, 0, 1, wxEXPAND, FromDIP(8));
+    multiple_left_line_sizer->Add(0, 0, 1, wxLEFT, FromDIP(8));
     multiple_left_line_sizer->Add(multiple_left_nozzle_flow_checkbox, 0, wxALIGN_CENTER, 0);
 
     /*right*/
@@ -584,8 +578,6 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     wxBoxSizer *multiple_right_line_sizer  = new wxBoxSizer(wxHORIZONTAL);
     auto        multiple_right_nozzle_type = new Label(multiple_panel, _L("Nozzle Type"));
     multiple_right_nozzle_type->SetFont(Label::Body_14);
-    multiple_right_nozzle_type->SetMinSize(wxSize(FromDIP(80), -1));
-    multiple_right_nozzle_type->SetMaxSize(wxSize(FromDIP(80), -1));
     multiple_right_nozzle_type->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
 
     multiple_right_nozzle_type_checkbox = new ComboBox(multiple_panel, ID_NOZZLE_TYPE_CHECKBOX_RIGHT, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(140), -1), 0, NULL, wxCB_READONLY);
@@ -595,15 +587,11 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
 
     auto multiple_right_nozzle_diameter = new Label(multiple_panel, _L("Nozzle Diameter"));
     multiple_right_nozzle_diameter->SetFont(Label::Body_14);
-    multiple_right_nozzle_diameter->SetMinSize(wxSize(FromDIP(80), -1));
-    multiple_right_nozzle_diameter->SetMaxSize(wxSize(FromDIP(80), -1));
     multiple_right_nozzle_diameter->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
     multiple_right_nozzle_diameter_checkbox = new ComboBox(multiple_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(140), -1), 0, NULL, wxCB_READONLY);
 
     auto multiple_right_nozzle_flow = new Label(multiple_panel, _L("Nozzle Flow"));
     multiple_right_nozzle_flow->SetFont(Label::Body_14);
-    multiple_right_nozzle_flow->SetMinSize(wxSize(FromDIP(80), -1));
-    multiple_right_nozzle_flow->SetMaxSize(wxSize(FromDIP(80), -1));
     multiple_right_nozzle_flow->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
     multiple_right_nozzle_flow_checkbox = new ComboBox(multiple_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(140), -1), 0, NULL, wxCB_READONLY);
     multiple_right_nozzle_flow_checkbox->Append(nozzle_flow_map[NozzleFlowType::S_FLOW]);
@@ -614,11 +602,11 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     multiple_right_line_sizer->Add(multiple_right_nozzle_type_checkbox, 0, wxALIGN_CENTER, 0);
     multiple_right_line_sizer->Add(0, 0, 0, wxLEFT, FromDIP(15));
     multiple_right_line_sizer->Add(multiple_right_nozzle_diameter, 0, wxALIGN_CENTER, 0);
-    multiple_right_line_sizer->Add(0, 0, 1, wxEXPAND, FromDIP(8));
+    multiple_right_line_sizer->Add(0, 0, 1, wxLEFT, FromDIP(8));
     multiple_right_line_sizer->Add(multiple_right_nozzle_diameter_checkbox, 0, wxALIGN_CENTER, 0);
     multiple_right_line_sizer->Add(0, 0, 0, wxLEFT, FromDIP(15));
     multiple_right_line_sizer->Add(multiple_right_nozzle_flow, 0, wxALIGN_CENTER, 0);
-    multiple_right_line_sizer->Add(0, 0, 1, wxEXPAND, FromDIP(8));
+    multiple_right_line_sizer->Add(0, 0, 1, wxLEFT, FromDIP(8));
     multiple_right_line_sizer->Add(multiple_right_nozzle_flow_checkbox, 0, wxALIGN_CENTER, 0);
 
     multiple_sizer->Add(0, 0, 0, wxTOP, FromDIP(40));
