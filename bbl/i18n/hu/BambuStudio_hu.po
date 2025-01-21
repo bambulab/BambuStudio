@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-20 15:24+0800\n"
+"POT-Creation-Date: 2025-01-21 17:11+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2989,7 +2989,6 @@ msgstr "A nyomtató jelenleg nem támogatja az automatikus újratöltést."
 msgid ""
 "AMS filament backup is not enabled, please enable it in the AMS settings."
 msgstr ""
-"AMS filament backup is not enabled; please enable it in the AMS settings."
 
 msgid ""
 "When the current filament runs out, the printer will use identical filament "
@@ -5992,7 +5991,7 @@ msgstr "Használni kívánt filament beállítása"
 msgid "Search plate, object and part."
 msgstr "Tálca, objektum és tárgy keresése."
 
-msgid "will be closed before modify filament. Do you want to continue?"
+msgid "will be closed before your operation. Do you want to continue?"
 msgstr ""
 
 msgid "There are no compatible filaments, and sync is not performed."
@@ -7850,8 +7849,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Ha a nyomtatófej nélküli timelapse engedélyezve van, javasoljuk, hogy "
 "helyezz el a tálcán egy „Timelapse törlőtornyot“. Ehhez kattints jobb "
@@ -9281,6 +9280,9 @@ msgstr "Támasz átmenet"
 
 msgid "Multiple"
 msgstr "Többszörös"
+
+msgid "Flush"
+msgstr ""
 
 #, boost-format
 msgid "Failed to calculate line width of %1%. Can not get value of \"%2%\" "
@@ -12408,6 +12410,12 @@ msgstr "Az anyagmennyiség, amelyet az extruder a toronyba ürít."
 msgid "Width of prime tower"
 msgstr "Törlőtorony szélessége"
 
+msgid "Extra rib length"
+msgstr ""
+
+msgid "Rib width"
+msgstr ""
+
 msgid "Outer first"
 msgstr ""
 
@@ -12418,6 +12426,18 @@ msgid "Skip points"
 msgstr ""
 
 msgid "The wall of prime tower will skip the start points of wipe path"
+msgstr ""
+
+msgid "rib wall"
+msgstr ""
+
+msgid "The wall of prime tower will add four ribs"
+msgstr ""
+
+msgid "fillet wall"
+msgstr ""
+
+msgid "The wall of prime tower will fillet"
 msgstr ""
 
 msgid ""
@@ -13716,12 +13736,12 @@ msgstr ""
 "Szeretnéd felülírni?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more printers; please go to printer selection"
 
 msgid "Create Printer/Nozzle"
@@ -14831,23 +14851,24 @@ msgstr ""
 msgid "Filament-Saving Mode"
 msgstr ""
 
-msgid "Convenient Mode"
+msgid "Convenience Mode"
 msgstr ""
 
 msgid "Custom Mode"
 msgstr ""
 
 msgid ""
-"Calculate the best filament grouping to minimize filament waste. Need to "
-"manually place filaments on the printer based on slicing results."
+"Recommends filament grouping for the left and right nozzles based on the "
+"most filament-saving principles to minimize waste"
 msgstr ""
 
 msgid ""
-"Calculate the filament grouping based on the printer's filaments, reducing "
-"the need for adjusting filaments at the printer."
+"Recommends filament grouping for the left and right nozzles based on the "
+"printer's actual filament status, reducing the need for manual filament "
+"adjustment"
 msgstr ""
 
-msgid "Manually assign filament to the left or right nozzle."
+msgid "Manually assign filament to the left or right nozzle"
 msgstr ""
 
 msgid "Global settings"
