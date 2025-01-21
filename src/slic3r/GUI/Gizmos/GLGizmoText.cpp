@@ -396,17 +396,117 @@ void GLGizmoText::on_set_state()
     if (m_state == EState::On) {
         m_last_text_mv = nullptr;
         m_need_fix     = false;
+        m_show_text_normal_reset_tip = false;
         load_init_text();
+        if (m_last_text_mv) {
+            m_reedit_text = true;
+            m_need_fix    = true;
+            m_load_text_tran_in_object = m_text_tran_in_object;
+            if (m_really_use_surface_calc) {
+                m_show_warning_regenerated = true;
+                m_need_fix                 = false;
+                use_fix_normal_position();
+            } else if (m_fix_old_tran_flag && m_font_version == "") {
+                m_show_warning_old_tran = false;
+                auto  offset     = m_text_tran_in_object.get_offset();
+                auto  rotation   = m_text_tran_in_object.get_rotation();
+                float eps        = 0.01f;
+                int   count      = 0;
+                bool  has_rotation      = rotation.norm() > eps;
+                count += has_rotation ? 1 : 0;
+                auto scaling_factor = m_text_tran_in_object.get_scaling_factor();
+                bool  has_scale         = (scaling_factor - Vec3d(1, 1, 1)).norm() > eps;
+                count += has_scale ? 1 : 0;
+                auto mirror     = m_text_tran_in_object.get_mirror();
+                bool has_mirror = (mirror - Vec3d(1, 1, 1)).norm() > eps;
+                count += has_mirror ? 1 : 0;
+
+                Geometry::Transformation expert_text_tran_in_world;
+                generate_text_tran_in_world(m_fix_text_normal_in_world.cast<double>(), m_text_position_in_world, m_rotate_angle, expert_text_tran_in_world);
+                auto                     temp_expert_text_tran_in_object = m_object_cs_to_world_tran.inverse() * expert_text_tran_in_world.get_matrix();
+                Geometry::Transformation expert_text_tran_in_object(temp_expert_text_tran_in_object);
+                expert_text_tran_in_object.set_offset(m_text_tran_in_object.get_offset());
+
+                if (count >= 2) {
+                    m_show_warning_old_tran = true;
+                }
+                if (m_is_version1_10_xoy) {
+                    auto rotate_tran = Geometry::assemble_transform(Vec3d::Zero(), {0.5 * M_PI, 0.0, 0.0});
+                    m_load_text_tran_in_object.set_from_transform(m_load_text_tran_in_object.get_matrix() * rotate_tran);
+                    m_load_text_tran_in_object.set_offset(m_load_text_tran_in_object.get_offset() + Vec3d(0, 1.65, 0)); // for size 16
+                    return;
+                }
+                //go on
+                if (has_rotation && m_show_warning_old_tran == false) {
+                    m_show_warning_lost_rotate = true;
+                    m_need_fix                 = false;
+                    use_fix_normal_position();
+                }
+                //not need set set_rotation//has_rotation
+                if (has_scale) {
+                    expert_text_tran_in_object.set_scaling_factor(scaling_factor);
+                }
+                if (has_mirror) {
+                    expert_text_tran_in_object.set_mirror(mirror);
+                }
+                m_load_text_tran_in_object.set_from_transform(expert_text_tran_in_object.get_matrix());
+                if (m_is_version1_9_xoz) {
+                    m_load_text_tran_in_object.set_offset(m_load_text_tran_in_object.get_offset());
+                }
+            }
+        }
     }
     else if (m_state == EState::Off) {
-        m_show_warning    = false;
-        m_show_text_normal_error = false;
-        m_edit_text_again = false;
+        ImGui::FocusWindow(nullptr);//exit cursor
+        m_reedit_text     = false;
+        m_fix_old_tran_flag = false;
+        close_warning_flag_after_close_or_drag();
         reset_text_info();
         delete_temp_preview_text_volume();
         m_parent.use_slope(false);
         m_parent.toggle_model_objects_visibility(true);
     }
+}
+
+void GLGizmoText::check_text_type(bool is_surface_text, bool is_keep_horizontal) {
+    if (is_surface_text && is_keep_horizontal) {
+        m_text_type = TextType::SURFACE_HORIZONAL;
+    } else if (is_surface_text) {
+        m_text_type = TextType::SURFACE;
+    } else if (is_keep_horizontal) {
+        m_text_type = TextType::HORIZONAL;
+    } else {
+        m_text_type = TextType::HORIZONAL;
+    }
+}
+
+void GLGizmoText::generate_text_tran_in_world(const Vec3d &text_normal_in_world, const Vec3d &text_position_in_world,float rotate_degree, Geometry::Transformation &cur_tran)
+{
+    Vec3d  temp_normal        = text_normal_in_world;
+    Vec3d  cut_plane_in_world = Vec3d::UnitY();
+    double epson              = 1e-6;
+    if (!(abs(temp_normal.x()) <= epson && abs(temp_normal.y()) <= epson && abs(temp_normal.z()) > epson)) { // temp_normal != Vec3d::UnitZ()
+        Vec3d v_plane      = temp_normal.cross(Vec3d::UnitZ());
+        cut_plane_in_world = v_plane.cross(temp_normal);
+    }
+    Vec3d z_dir       = text_normal_in_world;
+    Vec3d y_dir       = cut_plane_in_world;
+    Vec3d x_dir_world = y_dir.cross(z_dir);
+    if (m_text_type == TextType::SURFACE_HORIZONAL && text_normal_in_world != Vec3d::UnitZ()) {
+        y_dir                       = Vec3d::UnitZ();
+        x_dir_world                 = y_dir.cross(z_dir);
+        z_dir                       = x_dir_world.cross(y_dir);
+    }
+    auto temp_tran = Geometry::generate_transform(x_dir_world, y_dir, z_dir, text_position_in_world);
+    Geometry::Transformation rotate_trans;
+    rotate_trans.set_rotation(Vec3d(0, 0, Geometry::deg2rad(rotate_degree))); // m_rotate_angle
+    cur_tran.set_matrix(temp_tran.get_matrix() * rotate_trans.get_matrix());
+}
+
+void GLGizmoText::use_fix_normal_position()
+{
+    m_text_normal_in_world   = m_fix_text_normal_in_world;
+    m_text_position_in_world = m_fix_text_position_in_world;
 }
 
 void GLGizmoText::load_init_text()
@@ -421,33 +521,62 @@ void GLGizmoText::load_init_text()
                     m_last_text_mv = model_volume;
                     return;
                 }
-                m_need_fix = false;
                 if (plater) {
                     plater->take_snapshot("enter Text");
                 }
+                auto box = model_volume->get_mesh_shared_ptr()->bounding_box();
+                auto valid_z = text_info.m_embeded_depth + text_info.m_thickness;
+                auto text_height = get_text_height(text_info.m_text);
+                m_really_use_surface_calc = true;
+                int index  = -1;
+                for (size_t i = 0; i < 3; i++) {
+                    if (abs(box.size()[i] - valid_z) < 0.1) {
+                        m_really_use_surface_calc = false;
+                        index  = i;
+                        break;
+                    }
+                }
+                if (abs(box.size()[1] - text_height) > 0.1) {
+                    m_fix_old_tran_flag = true;
+                }
                 m_last_text_mv = model_volume;
                 load_from_text_info(text_info);
-                m_edit_text_again  = true;
                 m_text_volume_tran = model_volume->get_matrix();
                 m_text_tran_in_object.set_matrix(m_text_volume_tran);
                 int                  temp_object_idx;
                 auto                 mo         = m_parent.get_selection().get_selected_single_object(temp_object_idx);
                 const ModelInstance *mi         = mo->instances[m_parent.get_selection().get_instance_idx()];
-                auto                 world_tran = mi->get_transformation().get_matrix() * m_text_volume_tran;
+                m_object_cs_to_world_tran       = mi->get_transformation().get_matrix();
+                auto world_tran                 = m_object_cs_to_world_tran * m_text_volume_tran;
                 m_text_tran_in_world.set_matrix(world_tran);
                 m_text_position_in_world = m_text_tran_in_world.get_offset();
-                m_text_normal_in_world   = -m_text_tran_in_world.get_matrix().linear().col(1).cast<float>();
+                m_text_normal_in_world   = m_text_tran_in_world.get_matrix().linear().col(2).cast<float>();
                 {
                     TriangleMesh text_attach_mesh(mo->volumes[m_rr.mesh_id]->mesh());
                     text_attach_mesh.transform(mo->volumes[m_rr.mesh_id]->get_matrix());
                     MeshRaycaster temp_ray_caster(text_attach_mesh);
-                    Vec3f         local_center = m_text_tran_in_object.get_offset().cast<float>();
+                    Vec3f local_center = m_text_tran_in_object.get_offset().cast<float>();//(m_text_tran_in_object.get_matrix() * box.center()).cast<float>(); //
                     Vec3f         temp_normal;
                     Vec3f         closest_pt                    = temp_ray_caster.get_closest_point(local_center, &temp_normal);
-                    m_fix_text_position_in_world = mi->get_transformation().get_matrix() * closest_pt.cast<double>();
+                    m_fix_text_position_in_world = m_object_cs_to_world_tran * closest_pt.cast<double>();
                     m_fix_text_normal_in_world   = (mi->get_transformation().get_matrix_no_offset().cast<float>() * temp_normal).normalized();
-                    if ((m_fix_text_position_in_world - m_text_position_in_world).norm() > 0.1) {
-                        m_need_fix = true;
+                    int   face_id;
+                    Vec3f direction = m_text_tran_in_world.get_matrix().linear().col(2).cast<float>();
+                    if (index == 2 && abs(box.size()[1] - text_height) < 0.1) {
+                        m_is_version1_9_xoz = true;
+                        m_fix_old_tran_flag = true;
+                    }
+                    if (index == 1 && abs(box.size()[2] - text_height) < 0.1) {//for 1.10 version, xoy plane cut,just fix
+                        m_is_version1_10_xoy = true;
+                        direction = m_text_tran_in_world.get_matrix().linear().col(1).cast<float>();
+                        if (!temp_ray_caster.get_closest_point_and_normal(local_center, direction, &closest_pt, &temp_normal, &face_id)) {
+                            m_show_warning_error_mesh = true;
+                        }
+                    }
+                    else if (!temp_ray_caster.get_closest_point_and_normal(local_center, -direction, &closest_pt, &temp_normal, &face_id)) {
+                        if (!temp_ray_caster.get_closest_point_and_normal(local_center, direction, &closest_pt, &temp_normal, &face_id)) {
+                            m_show_warning_error_mesh = true;
+                        }
                     }
                 }
                 // m_rr.mesh_id
@@ -460,8 +589,8 @@ void GLGizmoText::load_init_text()
 
 void  GLGizmoText::data_changed(bool is_serializing) {
     load_init_text();
-    m_rr.normal = Vec3f::Zero();
 }
+
 CommonGizmosDataID GLGizmoText::on_get_requirements() const
 {
     return CommonGizmosDataID(
@@ -693,6 +822,8 @@ void GLGizmoText::on_update(const UpdateData &data)
 
     if (closest_hit_mesh_id != -1) {
         m_rr = {mouse_pos, closest_hit_mesh_id, closest_hit, closest_normal};//on drag
+        m_need_fix         = false;
+        close_warning_flag_after_close_or_drag();
         m_need_update_text = true;
     }
 }
@@ -822,10 +953,16 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     std::string hit = "local hit x:" + formatFloat(m_rr.hit[0]) + " y:" + formatFloat(m_rr.hit[1]) + " z:" + formatFloat(m_rr.hit[2]);
     std::string normal = "normal x:" + formatFloat(m_rr.normal[0]) + " y:" + formatFloat(m_rr.normal[1]) + " z:" + formatFloat(m_rr.normal[2]);
     auto cut_dir = "cut_dir x:" + formatFloat(m_cut_plane_dir_in_world[0]) + " y:" + formatFloat(m_cut_plane_dir_in_world[1]) + " z:" + formatFloat(m_cut_plane_dir_in_world[2]);
+    auto fix_position_str = "fix position:" + formatFloat(m_fix_text_position_in_world[0]) + " y:" + formatFloat(m_fix_text_position_in_world[1]) +
+                            " z:" + formatFloat(m_fix_text_position_in_world[2]);
+    auto fix_normal_str = "fix normal:" + formatFloat(m_fix_text_normal_in_world[0]) + " y:" + formatFloat(m_fix_text_normal_in_world[1]) +
+                          " z:" + formatFloat(m_fix_text_normal_in_world[2]);
     m_imgui->text(world_hit);
     m_imgui->text(hit);
     m_imgui->text(normal);
     m_imgui->text(cut_dir);
+    m_imgui->text(fix_position_str);
+    m_imgui->text(fix_normal_str);
 #endif
     float space_size = m_imgui->get_style_scaling() * 8;
     float font_cap = m_imgui->calc_text_size(_L("Font")).x;
@@ -985,14 +1122,37 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     if (text.empty() && m_is_modify) {
         m_imgui->warning_text(_L("Warning:Input cannot be empty!"));
     }
-    if (m_show_warning) {
+    if (m_show_warning_text_create_fail) {
         m_imgui->warning_text(_L("Warning:create text fail."));
     }
     if (m_show_text_normal_error) {
         m_imgui->warning_text(_L("Warning:text normal is error."));
     }
+    if (m_show_text_normal_reset_tip) {
+        m_imgui->warning_text(_L("Warning:text normal has been reset."));
+    }
+    if (m_show_warning_regenerated) {
+        m_imgui->warning_text(_L("Warning:Because current text does indeed use surround algorithm,\nif continue to edit, text has to regenerated according to new location."));
+    }
+    if (m_show_warning_old_tran) {
+        m_imgui->warning_text(_L("Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. \nIf you continue editing, it may not be correct. \nPlease dragging text or cancel using current pose, \nsave and reedit again."));
+    }
+    if (m_show_warning_error_mesh) {
+        m_imgui->warning_text(_L("Error:Detecting an incorrect mesh id or an unknown error, \nregenerating text may result in incorrect outcomes.\nPlease drag text,save it then reedit it again."));
+    }
+    if (m_show_warning_lost_rotate) {
+        m_imgui->warning_text(_L("Warning:Due to functional upgrade, rotation information \ncannot be restored. Please drag or modify text,\n save it and reedit it will ok."));
+    }
     ImGui::Separator();
-
+    if (m_need_fix && m_text_type > TextType::HORIZONAL) {
+        ImGui::AlignTextToFramePadding();
+        ImGui::SameLine(caption_size);
+        ImGui::PushItemWidth(list_width);
+        ImGui::AlignTextToFramePadding();
+        if (m_imgui->bbl_checkbox(_L("Use opened text pose"), m_use_current_pose)) {
+            m_need_update_text = true;
+        }
+    }
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 10.0f));
     float get_cur_y = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;
     show_tooltip_information(x, get_cur_y);
@@ -1002,17 +1162,20 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
 
     ImGui::SameLine(caption_size);
     ImGui::AlignTextToFramePadding();
-    if (m_imgui->bbl_checkbox(_L("Surface"), m_is_surface_text)) {
+    auto is_surface_text = m_text_type == TextType::SURFACE || m_text_type == TextType::SURFACE_HORIZONAL;
+    if (m_imgui->bbl_checkbox(_L("Surface"), is_surface_text)) {
         m_need_update_text = true;
     }
-
     ImGui::SameLine();
     ImGui::AlignTextToFramePadding();
-    auto keep_horizontal = !m_is_surface_text;
-    if (m_imgui->bbl_checkbox(_L("Horizontal text"), keep_horizontal)) {
+    auto is_keep_horizontal = m_text_type == TextType::HORIZONAL || m_text_type == TextType::SURFACE_HORIZONAL;
+    if (m_imgui->bbl_checkbox(_L("Horizontal text"), is_keep_horizontal)) {
         m_need_update_text = true;
+        if (is_surface_text && is_keep_horizontal == false) {
+            update_text_normal_in_world();
+        }
     }
-    m_is_surface_text = !keep_horizontal;
+    check_text_type(is_surface_text, is_keep_horizontal);
 
     //ImGui::SameLine();
     //ImGui::AlignTextToFramePadding();
@@ -1080,7 +1243,7 @@ void GLGizmoText::reset_text_info()
     m_embeded_depth   = 0.f;
     m_rotate_angle    = 0;
     m_text_gap        = 0.f;
-    m_is_surface_text = true;
+    m_text_type       = TextType::SURFACE;
     m_rr              = RaycastResult();
     m_is_modify = false;
 }
@@ -1126,6 +1289,66 @@ void GLGizmoText::update_font_status()
     }
 }
 
+float GLGizmoText::get_text_height(const std::string &text)
+{
+    std::wstring_convert<std::codecvt_utf8<wchar_t>> str_cnv;
+    std::wstring                                     ws = boost::nowide::widen(text);
+    std::vector<std::string>                         alphas;
+    for (auto w : ws) {
+        alphas.push_back(str_cnv.to_bytes(w));
+    }
+    auto  texts  = alphas ;
+    float max_height = 0.f;
+    for (int i = 0; i < texts.size(); ++i) {
+        std::string alpha;
+        if (texts[i] == " ") {
+            alpha = "i";
+        } else {
+            alpha = texts[i];
+        }
+        TextResult text_result;
+        load_text_shape(alpha.c_str(), m_font_name.c_str(), m_font_size, m_thickness + m_embeded_depth, m_bold, m_italic, text_result);
+        auto height = text_result.text_mesh.bounding_box().size()[1];
+        if (max_height < height ){
+            max_height = height;
+        }
+    }
+    return max_height;
+}
+
+void GLGizmoText::close_warning_flag_after_close_or_drag()
+{
+    m_show_warning_text_create_fail = false;
+    m_show_warning_regenerated = false;
+    m_show_warning_error_mesh  = false;
+    m_show_warning_old_tran    = false;
+    m_show_warning_lost_rotate      = false;
+    m_show_text_normal_error   = false;
+    m_show_text_normal_reset_tip = false;
+    m_show_warning_lost_rotate      = false;
+    m_is_version1_10_xoy            = false;
+    m_is_version1_9_xoz             = false;
+}
+
+void GLGizmoText::update_text_normal_in_world()
+{
+    int          temp_object_idx;
+    auto         mo = m_parent.get_selection().get_selected_single_object(temp_object_idx);
+    if (mo && m_rr.mesh_id >= 0) {
+        const ModelInstance *mi = mo->instances[m_parent.get_selection().get_instance_idx()];
+        TriangleMesh text_attach_mesh(mo->volumes[m_rr.mesh_id]->mesh());
+        text_attach_mesh.transform(mo->volumes[m_rr.mesh_id]->get_matrix());
+        MeshRaycaster temp_ray_caster(text_attach_mesh);
+        Vec3f         local_center = m_text_tran_in_object.get_offset().cast<float>(); //(m_text_tran_in_object.get_matrix() * box.center()).cast<float>(); //
+        Vec3f         temp_normal;
+        Vec3f         closest_pt = temp_ray_caster.get_closest_point(local_center, &temp_normal);
+        m_text_normal_in_world = (mi->get_transformation().get_matrix_no_offset().cast<float>() * temp_normal).normalized();
+    }
+    else {
+        BOOST_LOG_TRIVIAL(info) << boost::format("error: update_text_normal_in_world");
+    }
+}
+
 bool GLGizmoText::update_text_positions(const std::vector<std::string>& texts)
 {
     std::vector<double> text_lengths;
@@ -1168,9 +1391,10 @@ bool GLGizmoText::update_text_positions(const std::vector<std::string>& texts)
     }
     // mouse_position_world may is error after user modified
     if (m_need_fix) {
-        m_need_fix               = false;
-        m_text_position_in_world = m_fix_text_position_in_world;
-        m_text_normal_in_world   = m_fix_text_normal_in_world;
+        if (m_text_normal_in_world.norm() < 0.1) {
+            m_show_text_normal_reset_tip = true;
+        }
+        use_fix_normal_position();
     }
     if (m_text_normal_in_world.norm() < 0.1) {
         m_show_text_normal_error = true;
@@ -1203,24 +1427,10 @@ bool GLGizmoText::update_text_positions(const std::vector<std::string>& texts)
 
     ModelVolume* volume = mo->volumes[volume_index];
 
-    Vec3d temp_normal = m_text_normal_in_world.cast<double>();
-    Vec3d cut_plane_in_world = Vec3d::UnitY();
-    double epson = 1e-6;
-    if (!(abs(temp_normal.x()) <= epson && abs(temp_normal.y()) <= epson && abs(temp_normal.z()) > epson)) { // temp_normal != Vec3d::UnitZ()
-        Vec3d v_plane   = temp_normal.cross(Vec3d::UnitZ());
-        cut_plane_in_world = v_plane.cross(temp_normal);
-    }
+    generate_text_tran_in_world(m_text_normal_in_world.cast<double>(), m_text_position_in_world, m_rotate_angle, m_text_tran_in_world);
 
-    m_cut_plane_dir_in_world = cut_plane_in_world;
-
-    auto  y_dir          = -m_text_normal_in_world.cast<double>();
-    Vec3d x_dir_world    = y_dir.cross(m_cut_plane_dir_in_world);
-    m_text_tran_in_world = Geometry::generate_transform(x_dir_world, y_dir, m_cut_plane_dir_in_world.cast<double>(), m_text_position_in_world);
-    Geometry::Transformation rotate_trans;
-    rotate_trans.set_rotation(Vec3d(0, Geometry::deg2rad(m_rotate_angle), 0)); // m_rotate_angle
-    m_text_tran_in_world.set_matrix(m_text_tran_in_world.get_matrix() * rotate_trans.get_matrix());
-    m_cut_plane_dir_in_world = m_text_tran_in_world.get_matrix().linear().col(2);
-
+    m_cut_plane_dir_in_world = m_text_tran_in_world.get_matrix().linear().col(1);
+    m_text_normal_in_world   = m_text_tran_in_world.get_matrix().linear().col(2).cast<float>();
     // generate clip cs at click pos
     auto text_position_in_object = mi->get_transformation().get_matrix().inverse() * m_text_position_in_world.cast<double>();
     auto rotate_mat_inv          = mi->get_transformation().get_matrix_no_offset().inverse();
@@ -1228,8 +1438,8 @@ bool GLGizmoText::update_text_positions(const std::vector<std::string>& texts)
     auto text_tran_in_object = mi->get_transformation().get_matrix().inverse() * m_text_tran_in_world.get_matrix(); // Geometry::generate_transform(cs_x_dir, cs_y_dir, cs_z_dir, text_position_in_object); // todo modify by m_text_tran_in_world
     m_text_tran_in_object.set_matrix(text_tran_in_object);
     m_text_cs_to_world_tran = mi->get_transformation().get_matrix() * m_text_tran_in_object.get_matrix();
-
-    if (!m_is_surface_text) {
+    auto rotate_tran          = Geometry::assemble_transform(Vec3d::Zero(), {-0.5 * M_PI, 0.0, 0.0});
+    if (m_text_type == TextType::HORIZONAL || (m_need_fix && m_use_current_pose)) {
         m_position_points.resize(text_num);
         m_normal_points.resize(text_num);
 
@@ -1280,7 +1490,8 @@ bool GLGizmoText::update_text_positions(const std::vector<std::string>& texts)
     }
 
     MeshSlicingParams slicing_params;
-    slicing_params.trafo = m_text_tran_in_object.get_matrix().inverse();
+    auto cut_tran    = (m_text_tran_in_object.get_matrix() * rotate_tran);
+    slicing_params.trafo  = cut_tran.inverse();
     // for debug
     // its_write_obj(slice_meshs.its, "D:/debug_files/mesh.obj");
     // generate polygons
@@ -1324,7 +1535,7 @@ bool GLGizmoText::update_text_positions(const std::vector<std::string>& texts)
     m_cut_points_in_world.clear();
     m_cut_points_in_world.reserve(hit_ploy.points.size());
     for (int i = 0; i < hit_ploy.points.size(); ++i) {
-        m_cut_points_in_world.emplace_back(m_text_cs_to_world_tran * Vec3d(unscale_(hit_ploy.points[i].x()), unscale_(hit_ploy.points[i].y()), 0));
+        m_cut_points_in_world.emplace_back(m_text_cs_to_world_tran * rotate_tran * Vec3d(unscale_(hit_ploy.points[i].x()), unscale_(hit_ploy.points[i].y()), 0));
     }
 
     Polygon_3D new_polygon(m_cut_points_in_world);
@@ -1649,6 +1860,14 @@ void GLGizmoText::generate_text_volume(bool is_temp)
     }
     if (mesh.empty())
         return;
+    auto center = mesh.bounding_box().center();
+    if (abs(mesh.bounding_box().size()[2] - (m_embeded_depth + m_thickness)) < 0.01) {
+        mesh.translate(Vec3f(-center.x(), -center.y(), 0)); // align horizontal and vertical center
+    }
+    else {
+        mesh.translate(Vec3f(0, -center.y(), 0)); // align vertical center
+    }
+
     Plater *plater = wxGetApp().plater();
     if (!plater)
         return;
@@ -1665,9 +1884,16 @@ void GLGizmoText::generate_text_volume(bool is_temp)
         if (!is_temp) {
             plater->take_snapshot("Modify Text");
         }
+        text_info.m_font_version = CUR_FONT_VERSION;
         ModelVolume *    model_volume     = model_object->volumes[m_volume_idx];
         ModelVolume *    new_model_volume = model_object->add_volume(std::move(mesh),false);
-        new_model_volume->set_transformation(m_text_tran_in_object.get_matrix());
+        if (m_need_fix && // m_reedit_text//m_need_fix
+            (m_text_type == TextType::HORIZONAL || (m_text_type > TextType::HORIZONAL && m_use_current_pose))) {
+            new_model_volume->set_transformation(m_load_text_tran_in_object.get_matrix());
+        }
+        else {
+            new_model_volume->set_transformation(m_text_tran_in_object.get_matrix());
+        }
         new_model_volume->set_text_info(text_info);
         new_model_volume->name = model_volume->name;
         new_model_volume->set_type(model_volume->type());
@@ -1684,15 +1910,16 @@ void GLGizmoText::generate_text_volume(bool is_temp)
         cur_volume_id                   = obj_list->add_text_part(mesh, "text_shape", text_info, m_text_tran_in_object.get_matrix(), is_temp);
         m_preview_text_volume_id       = is_temp ? cur_volume_id : -1;
         if (cur_volume_id >= 0) {
-            m_show_warning                 = false;
+            m_show_warning_text_create_fail = false;
             ModelVolume *text_model_volume = model_object->volumes[cur_volume_id];
             m_text_volume_tran             = text_model_volume->get_matrix();
         }
         else {
-            m_show_warning = true;
+            m_show_warning_text_create_fail = true;
         }
     }
-    m_need_update_text    = false;
+    m_need_update_text = false;
+    m_show_warning_lost_rotate = false;
 }
 
 void GLGizmoText::delete_temp_preview_text_volume()
@@ -1717,6 +1944,7 @@ TextInfo GLGizmoText::get_text_info()
 {
     TextInfo text_info;
     text_info.m_font_name     = m_font_name;
+    text_info.m_font_version  = m_font_version;
     text_info.m_font_size     = m_font_size;
     text_info.m_curr_font_idx = m_curr_font_idx;
     text_info.m_bold          = m_bold;
@@ -1727,13 +1955,15 @@ TextInfo GLGizmoText::get_text_info()
     text_info.m_embeded_depth = m_embeded_depth;
     text_info.m_rotate_angle  = m_rotate_angle;
     text_info.m_text_gap      = m_text_gap;
-    text_info.m_is_surface_text = m_is_surface_text;
+    text_info.m_is_surface_text = m_text_type == TextType::SURFACE || m_text_type == TextType::SURFACE_HORIZONAL;
+    text_info.m_keep_horizontal = m_text_type == TextType::HORIZONAL || m_text_type == TextType::SURFACE_HORIZONAL;
     return text_info;
 }
 
 void GLGizmoText::load_from_text_info(const TextInfo &text_info)
 {
     m_font_name     = text_info.m_font_name;
+    m_font_version = text_info.m_font_version;
     m_font_size     = text_info.m_font_size;
     // from other user's computer may exist case:font library size is different
     if (text_info.m_curr_font_idx < m_font_names.size()) {
@@ -1750,7 +1980,7 @@ void GLGizmoText::load_from_text_info(const TextInfo &text_info)
     m_embeded_depth = text_info.m_embeded_depth;
     m_rotate_angle  = text_info.m_rotate_angle;
     m_text_gap      = text_info.m_text_gap;
-    m_is_surface_text = text_info.m_is_surface_text;
+    check_text_type(text_info.m_is_surface_text, text_info.m_keep_horizontal);
 }
 
 } // namespace GUI

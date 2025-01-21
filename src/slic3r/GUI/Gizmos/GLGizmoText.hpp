@@ -16,12 +16,14 @@ namespace GUI {
 //#define DEBUG_TEXT
 //#define DEBUG_TEXT_VALUE
 enum class SLAGizmoEventType : unsigned char;
+const std::string CUR_FONT_VERSION  = "1.0";
 class GLGizmoText : public GLGizmoBase
 {
 private:
     std::vector<std::string> m_avail_font_names;
     char m_text[1024] = { 0 };
     std::string m_font_name;
+    std::string m_font_version = CUR_FONT_VERSION;
     float m_font_size = 16.f;
     const float m_font_size_min = 3.f;
     const float m_font_size_max     = 1000.f;
@@ -35,7 +37,14 @@ private:
     const float  m_embeded_depth_max = 1000.f;
     float m_rotate_angle = 0;
     float m_text_gap = 0.f;
-    bool m_is_surface_text = false;
+    enum TextType {
+        HORIZONAL,
+        SURFACE,
+        SURFACE_HORIZONAL
+    };
+    TextType m_text_type{TextType ::SURFACE};
+    bool m_really_use_surface_calc = false;
+    bool m_use_current_pose = true;
     mutable RaycastResult    m_rr;
 
     float m_combo_height = 0.0f;
@@ -65,12 +74,19 @@ private:
     std::mutex m_mutex;
     std::thread m_thread;
 
-    bool m_edit_text_again  = false;
     bool m_is_modify = false;
     bool m_need_update_text = false;
-    bool m_show_warning = false;
+    bool m_reedit_text      = false;
+    bool m_show_warning_text_create_fail = false;
     bool m_show_text_normal_error = false;
-
+    bool m_show_text_normal_reset_tip = false;
+    bool m_show_warning_regenerated = false;
+    bool m_show_warning_old_tran    = false;
+    bool m_show_warning_error_mesh  = false;
+    bool m_show_warning_lost_rotate  = false;
+    bool m_fix_old_tran_flag        = false;
+    bool m_is_version1_10_xoy       = false;
+    bool m_is_version1_9_xoz        = false;
     int  m_object_idx = -1;
     int  m_volume_idx = -1;
 
@@ -82,9 +98,10 @@ private:
     Vec3f                    m_text_normal_in_world  = Vec3f::Zero();
     Geometry::Transformation m_text_tran_in_object;
     Geometry::Transformation m_text_tran_in_world;
+    Geometry::Transformation m_load_text_tran_in_object;
     Geometry::Transformation m_model_object_in_world_tran;
     Transform3d              m_text_cs_to_world_tran;
-
+    Transform3d              m_object_cs_to_world_tran;
     Vec3d m_cut_plane_dir_in_world = Vec3d::UnitZ();
 
     std::vector<Vec3d> m_position_points;
@@ -135,10 +152,16 @@ protected:
     void show_tooltip_information(float x, float y);
 
 private:
+    void check_text_type(bool is_surface_text,bool is_keep_horizontal);
+    void generate_text_tran_in_world(const Vec3d &text_normal_in_world, const Vec3d &text_position_in_world, float rotate_degree, Geometry::Transformation &tran);
+    void use_fix_normal_position();
     void load_init_text();
     void update_text_pos_normal();
     void update_font_status();
     void reset_text_info();
+    float get_text_height(const std::string &text);
+    void close_warning_flag_after_close_or_drag();
+    void update_text_normal_in_world();
     bool update_text_positions(const std::vector<std::string>& texts);
     TriangleMesh get_text_mesh(const char* text_str, const Vec3d &position, const Vec3d &normal, const Vec3d &text_up_dir);
 

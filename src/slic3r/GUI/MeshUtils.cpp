@@ -384,7 +384,7 @@ void MeshClipper::recalculate_triangles()
                 init_data.entities.back().indices.push_back((unsigned int) idx + 2);
             }
 
-            if (init_data.entities.back().indices.size() != 0) { 
+            if (init_data.entities.back().indices.size() != 0) {
                 isl->model_expanded.reset();
                 isl->model_expanded.init_from(std::move(init_data));
             }
@@ -407,7 +407,7 @@ void MeshClipper::recalculate_triangles()
 void MeshClipper::reset()
 {
     if (m_result) {
-        for (auto it = m_result->cut_islands.begin(); it != m_result->cut_islands.end(); ++it) { 
+        for (auto it = m_result->cut_islands.begin(); it != m_result->cut_islands.end(); ++it) {
             delete *it;
         }
         std::vector<CutIsland *>().swap(m_result->cut_islands);
@@ -575,7 +575,7 @@ bool MeshRaycaster::closest_hit(
 
     size_t hit_id = 0;
     if (clipping_plane != nullptr) {
-        while (hit_id < hits.size() && clipping_plane->is_point_clipped(trafo * hits[hit_id].position())) { 
+        while (hit_id < hits.size() && clipping_plane->is_point_clipped(trafo * hits[hit_id].position())) {
             ++hit_id;
         }
     }
@@ -603,6 +603,19 @@ Vec3f MeshRaycaster::get_closest_point(const Vec3f& point, Vec3f* normal) const
         *normal = m_normals[idx];
 
     return closest_point.cast<float>();
+}
+
+bool MeshRaycaster::get_closest_point_and_normal(const Vec3f &point, const Vec3f &direction, Vec3f *closest_point, Vec3f *normal, int *face_id) const
+{
+    auto hits = m_emesh.query_ray_hits(point.cast<double>(), direction.cast<double>().normalized());
+    if (hits.empty())
+        return false; // no intersection found
+    size_t hit_id  = 0;
+    auto & hit     = hits[hit_id];
+    *closest_point = hit.position().cast<float>();
+    *normal        = hit.normal().cast<float>();
+    if (face_id) { *face_id = hit.face(); }
+    return true;
 }
 
 int MeshRaycaster::get_closest_facet(const Vec3f &point) const

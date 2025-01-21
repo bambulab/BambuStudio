@@ -231,6 +231,7 @@ static constexpr const char* SLICE_HEADER_ITEM_TAG = "header_item";
 static constexpr const char* TEXT_INFO_TAG        = "text_info";
 static constexpr const char* TEXT_ATTR            = "text";
 static constexpr const char* FONT_NAME_ATTR       = "font_name";
+static constexpr const char *FONT_VERSION_ATTR       = "font_version";
 static constexpr const char* FONT_INDEX_ATTR      = "font_index";
 static constexpr const char* FONT_SIZE_ATTR       = "font_size";
 static constexpr const char* THICKNESS_ATTR       = "thickness";
@@ -338,6 +339,7 @@ static constexpr const char* SOURCE_IN_METERS    = "source_in_meters";
 
 static constexpr const char* MESH_SHARED_KEY = "mesh_shared";
 
+static constexpr const char *MESH_STAT_FACE_COUNT           = "face_count";
 static constexpr const char* MESH_STAT_EDGES_FIXED          = "edges_fixed";
 static constexpr const char* MESH_STAT_DEGENERATED_FACETS   = "degenerate_facets";
 static constexpr const char* MESH_STAT_FACETS_REMOVED       = "facets_removed";
@@ -368,7 +370,8 @@ static constexpr const char *FONT_STYLE_ATTR     = "style";
 static constexpr const char *FONT_WEIGHT_ATTR    = "weight";
 
 // Store / load of EmbossShape
-static constexpr const char *SHAPE_TAG                 = "slic3rpe:shape";
+static constexpr const char *OLD_SHAPE_TAG             = "slic3rpe:shape";
+static constexpr const char *SHAPE_TAG                 = "BambuStudioShape";
 static constexpr const char *SHAPE_SCALE_ATTR          = "scale";
 static constexpr const char *UNHEALED_ATTR             = "unhealed";
 static constexpr const char *SVG_FILE_PATH_ATTR        = "filepath";
@@ -3251,6 +3254,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             res = _handle_start_assemble_item(attributes, num_attributes);
         else if (::strcmp(TEXT_INFO_TAG, name) == 0)
             res = _handle_start_text_info_item(attributes, num_attributes);
+        else if (::strcmp(OLD_SHAPE_TAG, name) == 0)
+            res = _handle_start_shape_configuration(attributes, num_attributes);
         else if (::strcmp(SHAPE_TAG, name) == 0)
             res = _handle_start_shape_configuration(attributes, num_attributes);
         if (!res)
@@ -4406,6 +4411,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         TextInfo text_info;
         text_info.m_text      = xml_unescape(bbs_get_attribute_value_string(attributes, num_attributes, TEXT_ATTR));
         text_info.m_font_name = bbs_get_attribute_value_string(attributes, num_attributes, FONT_NAME_ATTR);
+        text_info.m_font_version = bbs_get_attribute_value_string(attributes, num_attributes, FONT_VERSION_ATTR);
 
         text_info.m_curr_font_idx = bbs_get_attribute_value_int(attributes, num_attributes, FONT_INDEX_ATTR);
 
@@ -4654,7 +4660,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 if (triangle_mesh.volume() < 0)
                     triangle_mesh.flip_triangles();
 
-                volume = object.add_volume(std::move(triangle_mesh));
+                bool is_text = !volume_data->text_info.m_text.empty();
+                bool modify_to_center_geometry = is_text ? false : true;//text do not modify_to_center_geometry
+                volume = object.add_volume(std::move(triangle_mesh), ModelVolumeType::MODEL_PART, modify_to_center_geometry);
 
                 if (shared_mesh_id != -1)
                     //for some cases the shared mesh is in other plate and not loaded in cli slicing
@@ -7316,6 +7324,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         stream << TEXT_ATTR << "=\"" << xml_escape(text_info.m_text) << "\" ";
         stream << FONT_NAME_ATTR << "=\"" << text_info.m_font_name << "\" ";
+        stream << FONT_VERSION_ATTR << "=\"" << text_info.m_font_version << "\" ";
 
         stream << FONT_INDEX_ATTR << "=\"" << text_info.m_curr_font_idx << "\" ";
 
@@ -7373,6 +7382,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 for (const std::string& key : obj->config.keys()) {
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << key << "\" " << VALUE_ATTR << "=\"" << obj->config.opt_serialize(key) << "\"/>\n";
                 }
+
+                stream << "    <" << METADATA_TAG << " " << MESH_STAT_FACE_COUNT << "=\"" << obj_metadata.second.object->facets_count() << "\"/>\n";
 
                 for (const ModelVolume* volume : obj_metadata.second.object->volumes) {
                     if (volume != nullptr) {
@@ -7450,6 +7461,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                             // stores mesh's statistics
                             const RepairedMeshErrors& stats = volume->mesh().stats().repaired_errors;
                             stream << "      <" << MESH_STAT_TAG << " ";
+                            stream << MESH_STAT_FACE_COUNT << "=\"" << volume->mesh().facets_count() << "\" ";
                             stream << MESH_STAT_EDGES_FIXED        << "=\"" << stats.edges_fixed        << "\" ";
                             stream << MESH_STAT_DEGENERATED_FACETS << "=\"" << stats.degenerate_facets  << "\" ";
                             stream << MESH_STAT_FACETS_REMOVED     << "=\"" << stats.facets_removed     << "\" ";
@@ -8631,7 +8643,7 @@ bool to_xml(std::stringstream &stream, const EmbossShape::SvgFile &svg, const Mo
 
 void to_xml(std::stringstream &stream, const EmbossShape &es, const ModelVolume &volume, mz_zip_archive &archive)
 {
-    stream << "   <" << SHAPE_TAG << " ";
+    stream << "      <" << SHAPE_TAG << " ";
     if (es.svg_file.has_value())
         if (!to_xml(stream, *es.svg_file, volume, archive)) BOOST_LOG_TRIVIAL(warning) << "Can't write svg file defiden embossed shape into 3mf";
 

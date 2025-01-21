@@ -1074,13 +1074,16 @@ std::pair<BoundingBoxf3, Transform3d> Selection::get_bounding_box_in_reference_s
     // e.g. for right aligned embossed text
     if (m_list.size() == 1 && type == ECoordinatesType::Local) {
         const GLVolume &  vol             = *get_volume(*m_list.begin());
-        const Transform3d vol_world_trafo = vol.world_matrix();
-        Vec3d             world_zero      = vol_world_trafo * Vec3d::Zero();
-        for (size_t i = 0; i < 3; i++) {
-            // move center to local volume zero
-            center[i] = world_zero.dot(axes[i]);
-            // extend half size to bigger distance from center
-            half_box_size[i] = std::max(abs(center[i] - min[i]), abs(center[i] - max[i]));
+        bool condition = !vol.is_text_shape;
+        if (condition){
+            const Transform3d vol_world_trafo = vol.world_matrix();
+            Vec3d             world_zero      = vol_world_trafo * Vec3d::Zero();
+            for (size_t i = 0; i < 3; i++) {
+                // move center to local volume zero
+                center[i] = world_zero.dot(axes[i]);
+                // extend half size to bigger distance from center
+                half_box_size[i] = std::max(abs(center[i] - min[i]), abs(center[i] - max[i]));
+            }
         }
     }
 
@@ -2047,6 +2050,8 @@ void Selection::render_sidebar_hints(const std::string& sidebar_field, bool unif
     if (boost::starts_with(sidebar_field, "position"))
         render_sidebar_position_hints(sidebar_field);
     else if (boost::starts_with(sidebar_field, "rotation"))
+        render_sidebar_rotation_hints(sidebar_field);
+    else if (boost::starts_with(sidebar_field, "absolute_rotation"))
         render_sidebar_rotation_hints(sidebar_field);
     else if (boost::starts_with(sidebar_field, "scale") || boost::starts_with(sidebar_field, "size"))
         //BBS: GUI refactor: add uniform_scale from gizmo
