@@ -1,12 +1,12 @@
 # Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-20 15:24+0800\n"
+"POT-Creation-Date: 2025-01-21 17:11+0800\n"
 "PO-Revision-Date: 2025-01-08 20:27+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -5254,7 +5254,7 @@ msgid "Ludicrous"
 msgstr "狂暴"
 
 msgid "Can't start this without storage."
-msgstr ""
+msgstr "没有外部存储就无法启动"
 
 msgid "The printer is busy on other print job"
 msgstr "打印机正在执行其他打印任务"
@@ -5834,7 +5834,7 @@ msgstr "配置可选择的材料"
 msgid "Search plate, object and part."
 msgstr "搜索盘、模型和零件。"
 
-msgid "will be closed before modify filament. Do you want to continue?"
+msgid "will be closed before your operation. Do you want to continue?"
 msgstr ""
 
 msgid "There are no compatible filaments, and sync is not performed."
@@ -7636,8 +7636,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "在录制无工具头延时摄影视频时，建议添加“延时摄影擦料塔”\n"
 "右键单击打印板的空白位置，选择“添加标准模型”->“延时摄影擦料塔”。"
@@ -9023,6 +9023,9 @@ msgstr "支撑转换层"
 
 msgid "Multiple"
 msgstr "多个"
+
+msgid "Flush"
+msgstr "冲刷"
 
 #, boost-format
 msgid "Failed to calculate line width of %1%. Can not get value of \"%2%\" "
@@ -11850,17 +11853,35 @@ msgstr "擦拭塔上的清理量"
 msgid "Width of prime tower"
 msgstr "擦拭塔宽度"
 
+msgid "Extra rib length"
+msgstr "斜肋额外的长度"
+
+msgid "Rib width"
+msgstr "斜肋宽度"
+
 msgid "Outer first"
-msgstr "外层优先"
+msgstr "外墙优先"
 
 msgid "The prime tower print outer first"
-msgstr "料塔先对外打印"
+msgstr "料塔优先打印外墙"
 
 msgid "Skip points"
-msgstr ""
+msgstr "外墙缺口"
 
 msgid "The wall of prime tower will skip the start points of wipe path"
-msgstr ""
+msgstr "料塔的外墙跳过内部擦拭路径的起点"
+
+msgid "rib wall"
+msgstr "斜肋外墙"
+
+msgid "The wall of prime tower will add four ribs"
+msgstr "料塔外墙增加4个斜肋"
+
+msgid "fillet wall"
+msgstr "外墙倒圆角"
+
+msgid "The wall of prime tower will fillet"
+msgstr "料塔外墙倒圆角"
 
 msgid ""
 "Purging after filament change will be done inside objects' infills. This may "
@@ -13106,8 +13127,8 @@ msgstr ""
 "你想重写预设吗"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "我们会将预设重命名为“供应商 类型 系列 @您选择的打印机”。\n"
@@ -14172,27 +14193,24 @@ msgstr "不再弹窗提醒。您可以在“偏好设置”中重新打开。"
 msgid "Filament-Saving Mode"
 msgstr "省料模式"
 
-msgid "Convenient Mode"
+msgid "Convenience Mode"
 msgstr "便捷模式"
 
 msgid "Custom Mode"
 msgstr "自定义模式"
 
 msgid ""
-"Calculate the best filament grouping to minimize filament waste. Need to "
-"manually place filaments on the printer based on slicing results."
-msgstr ""
-"以最小化耗材浪费为目标，切片时自动规划耗材左右分组。需根据切片结果在打印机上"
-"调整耗材位置"
+"Recommends filament grouping for the left and right nozzles based on the "
+"most filament-saving principles to minimize waste"
+msgstr "根据最节省耗材的原则，推荐左右喷嘴的耗材分组方案，帮助减少耗材浪费"
 
 msgid ""
-"Calculate the filament grouping based on the printer's filaments, reducing "
-"the need for adjusting filaments at the printer."
-msgstr ""
-"为了减少去打印机手动调整耗材位置，切片时根据当前打印机的耗材摆放自动规划耗材"
-"的左右分组，但可能会有更多的耗材浪费"
+"Recommends filament grouping for the left and right nozzles based on the "
+"printer's actual filament status, reducing the need for manual filament "
+"adjustment"
+msgstr "根据打印机实际的耗材状态，推荐左右喷嘴的耗材分组方案，帮助减少对实际耗材的手动调整操作"
 
-msgid "Manually assign filament to the left or right nozzle."
+msgid "Manually assign filament to the left or right nozzle"
 msgstr "根据您的个人意愿，切片前手动设置耗材的左右分组"
 
 msgid "Global settings"
@@ -14484,6 +14502,26 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid "Convenient Mode"
+#~ msgstr "便捷模式"
+
+#~ msgid ""
+#~ "Calculate the best filament grouping to minimize filament waste. Need to "
+#~ "manually place filaments on the printer based on slicing results."
+#~ msgstr ""
+#~ "以最小化耗材浪费为目标，切片时自动规划耗材左右分组。需根据切片结果在打印机"
+#~ "上调整耗材位置"
+
+#~ msgid ""
+#~ "Calculate the filament grouping based on the printer's filaments, "
+#~ "reducing the need for adjusting filaments at the printer."
+#~ msgstr ""
+#~ "为了减少去打印机手动调整耗材位置，切片时根据当前打印机的耗材摆放自动规划耗"
+#~ "材的左右分组，但可能会有更多的耗材浪费"
+
+#~ msgid "Manually assign filament to the left or right nozzle."
+#~ msgstr "根据您的个人意愿，切片前手动设置耗材的左右分组"
 
 #~ msgid ""
 #~ "When the current filament runs out, the printer will use identical "
@@ -20952,8 +20990,8 @@ msgstr ""
 #~ msgstr "正在准备设置页"
 
 #~ msgid ""
-#~ "You have the following presets with saved options for \"Print Host "
-#~ "upload\""
+#~ "You have the following presets with saved options for \"Print Host upload"
+#~ "\""
 #~ msgstr "您的以下预设中包含未保存的选项“打印主机上传”"
 
 #~ msgid ""
