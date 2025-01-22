@@ -64,6 +64,13 @@ namespace GUI {
             SingleThreaded,
             MultiThreaded
         };
+        enum ESamplerWrapMode : uint8_t
+        {
+            Repeat,
+            MirrorRepeat,
+            Clamp,
+            Border
+        };
 
         struct UV
         {
@@ -87,6 +94,8 @@ namespace GUI {
         int m_height;
         std::string m_source;
         Compressor m_compressor;
+        ESamplerWrapMode m_wrap_mode_u{ ESamplerWrapMode::Clamp };
+        ESamplerWrapMode m_wrap_mode_v{ ESamplerWrapMode::Clamp };
 
     public:
         GLTexture();
@@ -124,6 +133,10 @@ namespace GUI {
         bool unsent_compressed_data_available() const { return m_compressor.unsent_compressed_data_available(); }
         void send_compressed_data_to_gpu() { m_compressor.send_compressed_data_to_gpu(); }
         bool all_compressed_data_sent_to_gpu() const { return m_compressor.all_compressed_data_sent_to_gpu(); }
+        void set_wrap_mode_u(ESamplerWrapMode mode);
+        void set_wrap_mode_v(ESamplerWrapMode mode);
+        void bind(uint8_t stage = 0);
+        void unbind();
 
         static void render_texture(unsigned int tex_id, float left, float right, float bottom, float top);
         static void render_sub_texture(unsigned int tex_id, float left, float right, float bottom, float top, const Quad_UVs& uvs);

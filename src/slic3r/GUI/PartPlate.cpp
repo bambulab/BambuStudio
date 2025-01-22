@@ -517,10 +517,11 @@ void PartPlate::render_logo_texture(GLTexture &logo_texture, GLModel &logo_buffe
 				glsafe(::glFrontFace(GL_CW));
 
 			// show the temporary texture while no compressed data is available
-			GLuint tex_id = (GLuint)logo_texture.get_id();
-			glsafe(::glBindTexture(GL_TEXTURE_2D, tex_id));
+            logo_texture.set_wrap_mode_u(GLTexture::ESamplerWrapMode::Clamp);
+            logo_texture.set_wrap_mode_v(GLTexture::ESamplerWrapMode::Clamp);
+            logo_texture.bind(0);
             logo_buffer.render_geometry();
-			glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
+            logo_texture.unbind();
 
 			if (bottom)
 				glsafe(::glFrontFace(GL_CCW));

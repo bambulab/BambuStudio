@@ -30,6 +30,21 @@
 #include <boost/log/trivial.hpp>
 #include <wx/dcgraph.h>
 #include "FontUtils.hpp"
+namespace {
+    GLenum get_gl_texture_wrap_mode(Slic3r::GUI::GLTexture::ESamplerWrapMode mode) {
+        switch (mode) {
+        case Slic3r::GUI::GLTexture::ESamplerWrapMode::Repeat:
+            return GL_REPEAT;
+        case Slic3r::GUI::GLTexture::ESamplerWrapMode::MirrorRepeat:
+            return GL_MIRRORED_REPEAT;
+        case Slic3r::GUI::GLTexture::ESamplerWrapMode::Border:
+            return GL_CLAMP_TO_BORDER;
+        case Slic3r::GUI::GLTexture::ESamplerWrapMode::Clamp:
+        default:
+            return GL_CLAMP_TO_EDGE;
+        }
+    }
+}
 namespace Slic3r {
 namespace GUI {
 
@@ -656,6 +671,31 @@ bool GLTexture::generate_texture_from_text(const std::string& text_str, wxFont& 
     glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 
     return true;
+}
+
+void GLTexture::set_wrap_mode_u(ESamplerWrapMode mode)
+{
+    m_wrap_mode_u = mode;
+}
+
+void GLTexture::set_wrap_mode_v(ESamplerWrapMode mode)
+{
+    m_wrap_mode_v = mode;
+}
+
+void GLTexture::bind(uint8_t stage)
+{
+    glActiveTexture(GL_TEXTURE0 + stage);
+    glBindTexture(GL_TEXTURE_2D, m_id);
+
+    // set sampler state
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, get_gl_texture_wrap_mode(m_wrap_mode_u)));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, get_gl_texture_wrap_mode(m_wrap_mode_v)));
+}
+
+void GLTexture::unbind()
+{
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void GLTexture::render_texture(unsigned int tex_id, float left, float right, float bottom, float top)
