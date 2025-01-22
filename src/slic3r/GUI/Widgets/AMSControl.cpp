@@ -1909,13 +1909,13 @@ void AmsCans::create(wxWindow *parent)
             if (m_can_count <= 1) {
                 AddCan(*it, m_can_count, m_info.cans.size(), sizer_can_left);
                 if (m_can_count == 0) {
-                    sizer_can_left->Add(0,0,0,wxTOP,FromDIP(20));
+                    sizer_can_left->Add(0,0,0,wxTOP,FromDIP(25));
                 }
             }
             else {
                 AddCan(*it, m_can_count, m_info.cans.size(), sizer_can_right);
                 if (m_can_count == 2) {
-                   sizer_can_right->Prepend(0, 0, 0, wxTOP, FromDIP(20));
+                   sizer_can_right->Prepend(0, 0, 0, wxTOP, FromDIP(25));
                 }
             }
 
