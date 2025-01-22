@@ -10630,15 +10630,14 @@ bool Plater::try_sync_preset_with_connected_printer()
     if (!wxGetApp().app_config->has("sync_after_load_file_show_flag")) {
         if (printer_preset.get_current_printer_type(preset_bundle) != printer_type || !is_approx((float)(preset_nozzle_diameter), machine_nozzle_diameter)) {
             wxString tips;
-            if (is_multi_extruder) {
-                tips=from_u8((boost::format(_u8L("The currently connected printer, %s, is a %s model.\nTo use this printer for printing, please switch the printer model of the project file to %s,\nand sync the nozzle type and AMS quantity information from the connected printer.")) %obj->dev_name% printer_model%printer_model).str());
-            }
-            else {
+            if (printer_preset.get_current_printer_type(preset_bundle) != printer_type)
                 tips = from_u8((boost::format(_u8L("The currently connected printer, %s, is a %s model.\nTo use this printer for printing, please switch the printer model of project file to %s.")) % obj->dev_name % printer_model % printer_model).str());
-            }
+            else if (!is_approx((float) (preset_nozzle_diameter), machine_nozzle_diameter))
+                tips = from_u8((boost::format(_u8L("The currently connected printer, %s, is a %s model but not consistent with preset in project file.\n"
+                    "To use this printer for printing, please switch the preset first.")) % obj->dev_name % printer_model).str());
 
             std::map<wxStandardID, wxString>option_map = {
-                {wxID_YES,_L("Sync now")},
+                {wxID_YES,_L("Switch now")},
                 {wxID_NO, _L("Later")}
             };
             TipsDialog dlg(wxGetApp().mainframe, _L("Tips"), tips, "sync_after_load_file_show_flag", wxYES_NO,option_map);
