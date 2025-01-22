@@ -7937,6 +7937,17 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
                 // update plater with new config
                 q->on_config_change(wxGetApp().preset_bundle->full_config());
             });
+
+            // sync extruder info when select multi_extruder preset
+            if (Slic3r::DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager()) {
+                MachineObject *obj = dev->get_selected_machine();
+                if (obj && obj->is_multi_extruders()) {
+                    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+                    if (preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle) == obj->printer_type) {
+                        GUI::wxGetApp().sidebar().sync_extruder_list();
+                    }
+                }
+            }
         } else {
             // BBS
             // wxWindowUpdateLocker noUpdates1(sidebar->print_panel());
