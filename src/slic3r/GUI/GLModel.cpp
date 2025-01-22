@@ -660,7 +660,6 @@ bool GLModel::init_model_from_poly(const std::vector<Vec2f> &triangles, float z,
         return false;
 
     Vec2f inv_size = size.cwiseInverse();
-    inv_size.y() *= -1.0f;
 
     // vertices + indices
     unsigned int vertices_counter = 0;
