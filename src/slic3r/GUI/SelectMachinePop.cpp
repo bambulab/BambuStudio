@@ -46,7 +46,12 @@ wxDEFINE_EVENT(EVT_CLEAR_IPADDRESS, wxCommandEvent);
 
 MachineObjectPanel::MachineObjectPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style, const wxString &name)
 {
-    wxPanel::Create(parent, id, pos, SELECT_MACHINE_ITEM_SIZE, style, name);
+    wxPanel::Create(parent, id, pos, wxDefaultSize, style, name);
+
+    SetSize(SELECT_MACHINE_ITEM_SIZE);
+    SetMinSize(SELECT_MACHINE_ITEM_SIZE);
+    SetMaxSize(SELECT_MACHINE_ITEM_SIZE);
+
     Bind(wxEVT_PAINT, &MachineObjectPanel::OnPaint, this);
 
     SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
@@ -959,9 +964,9 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
     }
 }
 
- PinCodePanel::PinCodePanel(wxWindow* parent, int type, wxWindowID winid /*= wxID_ANY*/, const wxPoint& pos /*= wxDefaultPosition*/, const wxSize& size /*= wxDefaultSize*/)
+PinCodePanel::PinCodePanel(wxWindow* parent, int type, wxWindowID winid /*= wxID_ANY*/, const wxPoint& pos /*= wxDefaultPosition*/, const wxSize& size /*= wxDefaultSize*/)
  {
-     wxPanel::Create(parent, winid, pos, SELECT_MACHINE_ITEM_SIZE);
+     wxPanel::Create(parent, winid, pos);
      Bind(wxEVT_PAINT, &PinCodePanel::OnPaint, this);
      SetSize(SELECT_MACHINE_ITEM_SIZE);
      SetMaxSize(SELECT_MACHINE_ITEM_SIZE);
