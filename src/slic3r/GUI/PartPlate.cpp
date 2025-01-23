@@ -748,6 +748,9 @@ void PartPlate::render_icons(bool bottom, bool only_body, int hover_id)
                 render_icon_texture(m_partplate_list->m_plate_filament_map_icon, m_partplate_list->m_plate_set_filament_map_hovered_texture);
             else
                 render_icon_texture(m_partplate_list->m_plate_filament_map_icon, m_partplate_list->m_plate_set_filament_map_texture);
+            m_partplate_list->m_plate_filament_map_icon.set_visible(true);
+        } else {
+            m_partplate_list->m_plate_filament_map_icon.set_visible(false);
         }
 
 		if (hover_id == PLATE_NAME_ID)
@@ -769,6 +772,10 @@ void PartPlate::render_icons(bool bottom, bool only_body, int hover_id)
                 else
                     render_icon_texture(m_partplate_list->m_plate_settings_icon, m_partplate_list->m_plate_settings_changed_texture);
             }
+            m_partplate_list->m_plate_settings_icon.set_visible(true);
+        }
+        else {
+            m_partplate_list->m_plate_settings_icon.set_visible(false);
         }
     }
     render_plate_name_texture();
@@ -1013,6 +1020,9 @@ void PartPlate::on_render_for_picking() {
                                         &m_partplate_list->m_lock_icon, &m_partplate_list->m_plate_settings_icon,
                                         &m_partplate_list->m_plate_filament_map_icon, &m_plate_name_edit_icon};
     for (size_t i = 0; i < gl_models.size(); i++) {
+        if (!gl_models[i]->get_visible()) {
+            continue;
+        }
         int hover_id                  =  i;
         std::array<float, 4> color    = picking_color_component(hover_id);
         gl_models[i]->set_color(-1, color);
