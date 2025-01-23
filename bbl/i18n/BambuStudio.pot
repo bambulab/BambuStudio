@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-22 14:51+0800\n"
+"POT-Creation-Date: 2025-01-23 18:02+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1211,8 +1211,8 @@ msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr ""
 
 msgid ""
-"BambuStudio configuration file may be corrupted and is not able to be "
-"parsed.Please delete the file and try again."
+"BambuStudio configuration file may be corrupted and is not able to be parsed."
+"Please delete the file and try again."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -2234,9 +2234,9 @@ msgid "Top"
 msgstr ""
 
 msgid ""
-"The fan controls the temperature during printing to improve print "
-"quality.The system automatically adjusts the fan's switch and speed "
-"according to different printing materials."
+"The fan controls the temperature during printing to improve print quality."
+"The system automatically adjusts the fan's switch and speed according to "
+"different printing materials."
 msgstr ""
 
 msgid ""
@@ -3118,9 +3118,9 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe "
-"temperature,it may result in material softening and clogging.The maximum "
-"safe temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe temperature,"
+"it may result in material softening and clogging.The maximum safe "
+"temperature for the material is %d"
 msgstr ""
 
 msgid ""
@@ -3822,19 +3822,25 @@ msgstr ""
 msgid "right nozzle"
 msgstr ""
 
-msgid "Some models are"
+#, possible-c-format, possible-boost-format
+msgid "The position or size of some models exceeds the %s's printable range."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "The model %s is"
+msgid "The position or size of the model %s exceeds the %s's printable range."
 msgstr ""
 
-#, possible-c-format, possible-boost-format
 msgid ""
-" located within the %s only area, making it impossible to print with the "
-"filaments assigned to %s.\n"
-"Please move the model out of the %s only area or adjust the filament "
-"grouping.\n"
+" Please check and adjust the part's position or size to fit the printable "
+"range:\n"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Left nozzle: X:%.0f-%.0f, Y:%.0f-%.0f, Z:%.0f-%.0f\n"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Right nozzle: X:%.0f-%.0f, Y:%.0f-%.0f, Z:%.0f-%.0f"
 msgstr ""
 
 msgid "Mirror Object"
@@ -3987,9 +3993,6 @@ msgid ""
 "printable range of the %s."
 msgstr ""
 
-msgid "Open wiki for more information."
-msgstr ""
-
 #, possible-c-format, possible-boost-format
 msgid ""
 "Filament %d is placed in the %s, but the generated G-code path exceeds the "
@@ -4000,6 +4003,9 @@ msgstr ""
 msgid ""
 "Filaments %d is placed in the %s, but the generated G-code path exceeds the "
 "printable height of the %s."
+msgstr ""
+
+msgid "Open wiki for more information."
 msgstr ""
 
 msgid "Only the object being edited is visible."
@@ -5444,6 +5450,9 @@ msgstr ""
 msgid "Click Wiki for help."
 msgstr ""
 
+msgid "Click here to regroup"
+msgstr ""
+
 msgid "Support painting"
 msgstr ""
 
@@ -5690,7 +5699,7 @@ msgstr ""
 #, possible-c-format, possible-boost-format
 msgid ""
 "After completing your operation, %s project will be closed and create a new "
-"project. Do you want to continue?"
+"project."
 msgstr ""
 
 msgid "There are no compatible filaments, and sync is not performed."
@@ -5985,17 +5994,18 @@ msgstr ""
 #, possible-c-format, possible-boost-format
 msgid ""
 "The currently connected printer, %s, is a %s model.\n"
-"To use this printer for printing, please switch the printer model of the "
-"project file to %s,\n"
-"and sync the nozzle type and AMS quantity information from the connected "
-"printer."
+"To use this printer for printing, please switch the printer model of project "
+"file to %s."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid ""
-"The currently connected printer, %s, is a %s model.\n"
-"To use this printer for printing, please switch the printer model of project "
-"file to %s."
+"The currently connected printer, %s, is a %s model but not consistent with "
+"preset in project file.\n"
+"To use this printer for printing, please switch the preset first."
+msgstr ""
+
+msgid "Switch now"
 msgstr ""
 
 msgid "Tips"
@@ -6895,6 +6905,11 @@ msgstr ""
 msgid "On"
 msgstr ""
 
+msgid ""
+"If the transparency of the mapping changes, this thumbnail is for reference "
+"only."
+msgstr ""
+
 msgid "Rearrange filaments of the left and right nozzles ->"
 msgstr ""
 
@@ -7134,6 +7149,11 @@ msgid ""
 "Upper half area:  Original\n"
 "Lower half area:  Filament in AMS\n"
 "And you can click it to modify"
+msgstr ""
+
+msgid ""
+"Currently only External Spool is available, color mapping is prohibited, and "
+"control pop-up drop-down boxes are also prohibited."
 msgstr ""
 
 msgid "Cool"
@@ -7390,8 +7410,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 
 msgid ""
@@ -9016,8 +9036,8 @@ msgid ""
 "Slic3r can upload G-code files to a printer host. This field should contain "
 "the hostname, IP address or URL of the printer host instance. Print host "
 "behind HAProxy with basic auth enabled can be accessed by putting the user "
-"name and password into the URL in the following format: https://"
-"username:password@your-octopi-address/"
+"name and password into the URL in the following format: https://username:"
+"password@your-octopi-address/"
 msgstr ""
 
 msgid "Device UI"
@@ -9226,10 +9246,10 @@ msgstr ""
 
 #, possible-c-format
 msgid ""
-"Decide which overhang part join the cooling function to slow down the "
-"speed.Expressed as percentage which indicides how much width of the line "
-"without support from lower layer. 100% means forcing cooling for all outer "
-"wall no matter how much overhang degree"
+"Decide which overhang part join the cooling function to slow down the speed."
+"Expressed as percentage which indicides how much width of the line without "
+"support from lower layer. 100% means forcing cooling for all outer wall no "
+"matter how much overhang degree"
 msgstr ""
 
 msgid "Bridge direction"
@@ -9847,6 +9867,12 @@ msgid ""
 "Support material is commonly used to print support and support interface"
 msgstr ""
 
+msgid "Filament prime volume"
+msgstr ""
+
+msgid "The volume of material to prime extruder on tower."
+msgstr ""
+
 msgid "Softening temperature"
 msgstr ""
 
@@ -9940,8 +9966,8 @@ msgid "Acceleration of inner walls. 0 means using normal printing acceleration"
 msgstr ""
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage "
-"(e.g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage (e."
+"g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 
 msgid "mm/s² or %"
@@ -11382,18 +11408,12 @@ msgid ""
 "the flushing volumes in the table."
 msgstr ""
 
-msgid "Prime volume"
-msgstr ""
-
-msgid "The volume of material to prime extruder on tower."
-msgstr ""
-
 msgid "Width of prime tower"
 msgstr ""
 
 msgid ""
-"Brim width, -1 means the brim width is automatically calculated based on the "
-"height "
+"Brim width of wipe tower, -1 means auto calculated width based on the height "
+"of wipe tower."
 msgstr ""
 
 msgid "Extra rib length"
@@ -12546,8 +12566,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 
@@ -12907,8 +12927,8 @@ msgid "nozzle size memorized: %d"
 msgstr ""
 
 msgid ""
-"The size of nozzle type in preset is not consistent with memorized "
-"nozzle.Did you change your nozzle lately ? "
+"The size of nozzle type in preset is not consistent with memorized nozzle."
+"Did you change your nozzle lately ? "
 msgstr ""
 
 #, possible-c-format, possible-boost-format
