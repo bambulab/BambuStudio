@@ -2321,6 +2321,7 @@ AMSPreview::AMSPreview() {}
 
 AMSPreview::AMSPreview(wxWindow* parent, wxWindowID id, AMSinfo amsinfo, AMSModel itemType, const wxPoint& pos, const wxSize& size) : AMSPreview()
 {
+    wxWindow::Create(parent, id, pos);
     if (itemType == AMSModel::GENERIC_AMS || itemType == AMSModel::AMS_LITE || itemType == AMSModel::N3F_AMS) {
         create(parent, id, pos, AMS_PREV_FOUR_SIZE);
     }
@@ -2379,7 +2380,6 @@ void AMSPreview::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, con
     m_single_slot_bitmap = ScalableBitmap(this, "single_slot_ams_item", 32);
     m_single_slot_bitmap_dark = ScalableBitmap(this, "single_slot_ams_item_dark", 32);
 
-    wxWindow::Create(parent, id, pos, size);
     SetMinSize(size);
     SetMaxSize(size);
     Refresh();
