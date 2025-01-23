@@ -96,40 +96,67 @@ public:
 public:
     void ResetWholePage();
 
-    void SetMakerworldModelID(std::string ModelID);
-    void OpenMakerworldSearchPage(std::string KeyWord);
-    void SetPrintHistoryTaskID(int TaskID);
-    void SwitchWebContent(std::string modelname, int refresh=0);
-    void SwitchLeftMenu(std::string strMenu);
-    void OpenOneMakerlab(std::string url);
-    
-    wxString MakeDisconnectUrl(std::string MenuName);
-
-    void CheckMenuNewTag();
-    void ShowMenuNewTag(std::string menuname, std::string show);
-    void SetLeftMenuShow(std::string menuname, int show);
-
-    void SendRecentList(int images);
-    void SendDesignStaffpick(bool on);
-    void SendMakerlabList();
-    void OpenModelDetail(std::string id, NetworkAgent *agent);
+    // Login
     void SendLoginInfo();
     void ShowNetpluginTip();
 
-    void SetWebviewShow(wxString name, bool show);
+    //MW
+    void SetMakerworldModelID(std::string ModelID);
+    void OpenMakerworldSearchPage(std::string KeyWord);
+    void SetPrintHistoryTaskID(int TaskID);
+    
+    //DisconnectPage
+    wxString MakeDisconnectUrl(std::string MenuName);
 
+    //LeftMenu
+    std::string m_contentname; // CurrentMenu
+    bool        m_leftfirst;   // Left First Loaded
+    void CheckMenuNewTag();
+    void ShowMenuNewTag(std::string menuname, std::string show);
+    void SetLeftMenuShow(std::string menuname, int show);
+    void SetLeftMenuWidth(int nWidth);
+    void        SwitchWebContent(std::string modelname, int refresh = 0);
+    void        SwitchLeftMenu(std::string strMenu);
+
+    //Recent File
+    void SendRecentList(int images);
+
+    //Online
+    bool     m_onlinefirst;    // Online Page First Load
+    wxString m_online_type;    // recommend & browse
+    wxString m_online_LastUrl; // PageLastError Url
+
+    void SendDesignStaffpick(bool on);
     void get_design_staffpick(int offset, int limit, std::function<void(std::string)> callback);
     void get_user_mw_4u_config(std::function<void(std::string)> callback);
     void get_4u_staffpick(int seed, int limit, std::function<void(std::string)> callback);
-    void get_makerlab_list(std::function<void(std::string)> callback);
+    void OpenModelDetail(std::string id, NetworkAgent *agent);
     int  get_model_mall_detail_url(std::string *url, std::string id);
-
-    std::string m_TaskInfo;
-    void ShowUserPrintTask(bool bShow);
-
     void UpdateMakerworldLoginStatus();
     void SetMakerworldPageLoginStatus(bool login, wxString ticket = "");
 
+    //Makerlab
+    bool     m_MakerLabFirst;
+    wxString m_MakerLab_LastUrl;
+    void SendMakerlabList();
+    void get_makerlab_list(std::function<void(std::string)> callback);
+    void     SetMakerlabUrl(std::string url);
+    void     OpenOneMakerlab(std::string url);
+    void     OpenMakerlab3mf(std::string Base64Buf, std::string FileName);
+    bool     SaveBase64ToLocal(std::string Base64Buf, std::string FileName,std::string FileTail, wxString &download_path, wxString &download_file);
+    void     SaveMakerlabStl(int SequenceID,std::string Base64Buf, std::string FileName);
+    void     UpdateMakerlabStatus();
+
+    //Common UI
+    void SetWebviewShow(wxString name, bool show);
+
+    //PrintHistory
+    std::string m_TaskInfo;
+    bool        m_printhistoryfirst; // print history first load
+    wxString    m_print_history_LastUrl;
+    void ShowUserPrintTask(bool bShow);
+
+    //
     bool GetJumpUrl(bool login, wxString ticket, wxString targeturl, wxString &finalurl);
 
     void update_mode();
@@ -144,15 +171,9 @@ private:
     wxWebView* m_browserLeft;
     wxWebView * m_browserMW;
     wxWebView  *m_browserPH;               //PrintHistory
-    std::string m_contentname;
-    bool        m_leftfirst;               //Left First Loaded
-    bool        m_onlinefirst;             //Online Page First Load
-    bool        m_printhistoryfirst;       //print history first load
-    //std::string m_online_spec_id;        // Online Page Spec_ID
-    wxString    m_online_type;             //recommend & browse
-    wxString    m_online_LastUrl;          //PageLastError Url
-    wxString    m_print_history_LastUrl;
+    wxWebView  *m_browserML;               //MakerLab
 
+    //Basic Browser
     wxBoxSizer *bSizer_toolbar;
     wxButton *  m_button_back;
     wxButton *  m_button_forward;

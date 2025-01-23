@@ -397,9 +397,8 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     bSizer_finish_time->Add(0, 0, 0, wxLEFT, FromDIP(20));
     bSizer_finish_time->Add(m_staticText_finish_time, 0, wxALIGN_CENTER | wxALL, 0);
     bSizer_finish_time->Add(m_staticText_finish_day, 0,wxLEFT | wxRIGHT , FromDIP(10));
-    //bSizer_finish_time->Add(0, 0, 0, wxLEFT, FromDIP(20));
-    bSizer_finish_time->Add(panel_button_block, 0, wxALIGN_CENTER | wxALL, 0);
-    penel_finish_time->SetMaxSize(wxSize(FromDIP(600), -1));
+    bSizer_finish_time->Add(0, 0, 0, wxLEFT, FromDIP(116));
+    penel_finish_time->SetMaxSize(wxSize(FromDIP(720), -1));
     penel_finish_time->SetSizer(bSizer_finish_time);
     penel_finish_time->Layout();
 
@@ -824,7 +823,7 @@ void PrintingTaskPanel::market_scoring_show()
     m_score_subtask_info->Show();
 }
 
-bool PrintingTaskPanel::is_market_scoring_show() { 
+bool PrintingTaskPanel::is_market_scoring_show() {
     return m_score_staticline->IsShown() && m_score_subtask_info->IsShown(); }
 
 void PrintingTaskPanel::market_scoring_hide()
@@ -2041,12 +2040,12 @@ bool StatusPanel::is_task_changed(MachineObject* obj)
 
 void StatusPanel::update(MachineObject *obj)
 {
-   
+
     if (!obj) return;
     m_project_task_panel->Freeze();
     update_subtask(obj);
     m_project_task_panel->Thaw();
-    
+
 #if !BBL_RELEASE_TO_PUBLIC
     auto delay1 = std::chrono::duration_cast<std::chrono::milliseconds>(obj->last_utc_time - std::chrono::system_clock::now()).count();
     auto delay2 = std::chrono::duration_cast<std::chrono::milliseconds>(obj->last_push_time - std::chrono::system_clock::now()).count();
@@ -2112,7 +2111,7 @@ void StatusPanel::update(MachineObject *obj)
             if (obj->get_printer_series() == PrinterSeries::SERIES_X1) {
                 m_tempCtrl_chamber->SetTagTemp(TEMP_BLANK_STR);
             }
-            
+
             if (obj->get_printer_series() == PrinterSeries::SERIES_P1P)
             {
                 m_tempCtrl_chamber->SetLabel(TEMP_BLANK_STR);
@@ -2574,7 +2573,7 @@ void StatusPanel::update_ams(MachineObject *obj)
     }
     if (m_filament_setting_dlg) { m_filament_setting_dlg->obj = obj; }
 
-    if (obj && (!last_cali_version.has_value() || last_cali_version != obj->cali_version)) {
+    if (obj && (obj->last_cali_version != obj->cali_version)) {
         last_cali_version = obj->cali_version;
         CalibUtils::emit_get_PA_calib_info(obj->nozzle_diameter, "");
     }
@@ -3777,7 +3776,7 @@ void StatusPanel::on_ext_spool_edit(wxCommandEvent &event)
             else {
                 m_filament_setting_dlg->set_color(color);
             }
-            
+
             m_filament_setting_dlg->m_is_third = !MachineObject::is_bbl_filament(obj->vt_tray.tag_uid);
             if (!m_filament_setting_dlg->m_is_third) {
                 sn_number = obj->vt_tray.uuid;
