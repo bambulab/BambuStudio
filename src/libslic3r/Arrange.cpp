@@ -885,8 +885,15 @@ void _arrange(
     // polygon nesting, a convex hull needs to be calculated.
     if (params.align_to_y_axis) {
         for (auto &itm : shapes) {
-            auto angle = min_area_boundingbox_rotation(itm.transformedShape());
-            itm.rotate(angle + PI / 2);
+            // only rotate the object if its long axis is significanly larger than its short axis (more than 10%)
+            try {
+                auto bbox = minAreaBoundingBox<ExPolygon, TCompute<ExPolygon>, boost::rational<LargeInt>>(itm.transformedShape());
+                auto w    = bbox.width(), h=bbox.height();
+                if (w > h * 1.1 || h > w * 1.1) { itm.rotate(bbox.angleToX() + PI / 2); }
+            } catch (const std::exception &e) {
+                // min_area_boundingbox_rotation may throw exception of dividing 0 if the object is already perfectly aligned to X
+                BOOST_LOG_TRIVIAL(error) << "arranging min_area_boundingbox_rotation fails, msg=" << e.what();
+            }
         }
     }
     else if (params.allow_rotations) {
