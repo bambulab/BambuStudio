@@ -32,4 +32,4 @@ docker run \
   `# Remove container when it is finished` \
   --rm \
   `# Pass all parameters from this script to the bambu ENTRYPOINT binary` \
-  bambu_studio_yes_args $* 
+  bambustudio $* 
