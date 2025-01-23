@@ -121,6 +121,8 @@ class Sidebar : public wxPanel
     ScalableButton *  ams_btn{nullptr};
     std::shared_ptr<SyncNozzleAndAmsDialog> m_sna_dialog{nullptr};
     std::shared_ptr<FinishSyncAmsDialog>    m_fna_dialog{nullptr};
+    std::vector<BedType>                    m_cur_combox_bed_types;
+
 public:
     Sidebar(Plater *parent);
     Sidebar(Sidebar &&) = delete;
@@ -140,6 +142,8 @@ public:
     void update_presets_from_to(Slic3r::Preset::Type preset_type, std::string from, std::string to);
     bool set_bed_type(const std::string& bed_type_name);
     void save_bed_type_to_config(const std::string &bed_type_name);
+    BedType get_cur_select_bed_type();
+    void reset_bed_type_combox_choices();
     bool use_default_bed_type(bool is_bbl_preset = true);
     void change_top_border_for_mode_sizer(bool increase_border);
     void msw_rescale();
