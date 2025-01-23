@@ -169,7 +169,13 @@ FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, w
         button_sizer->Add(video_sizer, 0, wxLEFT, horizontal_margin);
         button_sizer->AddStretchSpacer();
 
-        const std::string wiki_path = Slic3r::resources_dir() + "/wiki/filament_group_wiki_zh.html";
+        bool is_zh = wxGetApp().app_config->get("language") == "zh_CN";
+        std::string wiki_path;
+        if(is_zh)
+            wiki_path = Slic3r::resources_dir() + "/wiki/filament_group_wiki_zh.html";
+        else
+            wiki_path = Slic3r::resources_dir() + "/wiki/filament_group_wiki_en.html";
+
         auto* wiki_sizer = new wxBoxSizer(wxHORIZONTAL);
         wiki_link = new wxStaticText(this, wxID_ANY, _L("Learn more"));
         wiki_link->SetBackgroundColour(BackGroundColor);

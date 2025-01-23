@@ -1,0 +1,561 @@
+<html>
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=gb2312">
+<meta name=Generator content="Microsoft Word 15 (filtered)">
+<style>
+<!--
+ /* Font Definitions */
+ @font-face
+	{font-family:"Cambria Math";
+	panose-1:2 4 5 3 5 4 6 3 2 4;}
+@font-face
+	{font-family:等线;
+	panose-1:2 1 6 0 3 1 1 1 1 1;}
+@font-face
+	{font-family:"\@等线";
+	panose-1:2 1 6 0 3 1 1 1 1 1;}
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin-top:0cm;
+	margin-right:0cm;
+	margin-bottom:8.0pt;
+	margin-left:0cm;
+	line-height:115%;
+	font-size:11.0pt;
+	font-family:等线;}
+.MsoChpDefault
+	{font-size:11.0pt;}
+.MsoPapDefault
+	{margin-bottom:8.0pt;
+	line-height:115%;}
+ /* Page Definitions */
+ @page WordSection1
+	{size:595.25pt 842.0pt;
+	margin:72.0pt 90.0pt 72.0pt 90.0pt;}
+div.WordSection1
+	{page:WordSection1;}
+ /* List Definitions */
+ ol
+	{margin-bottom:0cm;}
+ul
+	{margin-bottom:0cm;}
+-->
+</style>
+
+</head>
+
+<body lang=ZH-CN style='tab-interval:21.0pt;word-wrap:break-word;width: 800px;margin: 0 auto;'>
+
+<div class=WordSection1>
+
+<p class=MsoNormal style='margin-top:24.0pt;margin-right:0cm;margin-bottom:
+24.0pt;margin-left:0cm;line-height:120%'><b><span lang=EN-US style='font-size:
+26.0pt;line-height:120%;font-family:"Arial",sans-serif'>Introduction to
+Filament Grouping Strategy for Dual Nozzle Printers</span></b></p>
+
+<p class=MsoNormal style='margin-top:19.0pt;margin-right:0cm;margin-bottom:
+7.0pt;margin-left:0cm;line-height:120%'><a name="heading_0"><span lang=EN-US
+style='font-size:18.0pt;line-height:120%;font-family:"Arial",sans-serif;
+color:#3370FF'>1. </span></a><b><span lang=EN-US style='font-size:18.0pt;
+line-height:120%;font-family:"Arial",sans-serif'>Background</span></b></p>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;line-height:120%'><span lang=EN-US style='font-family:"Arial",sans-serif'>When
+switching between different filaments for printing on a single nozzle (hot end)
+printer, it is necessary to&nbsp; use a certain amount of new material to flush
+the residual material in the hot end, to avoid color mixing during printing.
+The flushing values vary between different materials, and the specific values
+can be viewed on the filament page of Bambu Studio. You can refer to the wiki
+to learn more: </span><span lang=EN-US><a
+href="https://wiki.bambulab.com/en/software/bambu-studio/reduce-wasting-during-filament-change"><span
+style='font-family:"Arial",sans-serif;color:#3370FF;text-decoration:none'>Reduce
+Waste during Filament Change</span></a></span></p>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;line-height:120%'><span lang=EN-US style='font-family:"Arial",sans-serif'>For
+a dual-nozzle (hot end) printer like the H2D, the optimal way to print two
+filaments is to print different filaments with different nozzles. In this case,
+switching between filaments only requires switching the nozzles rather than
+flushing the old filament with the new one. Switching nozzle printing can also
+reduce the number of filament flushes when printing more than two filaments.
+This article will introduce filament grouping strategies for dual-nozzle
+printers to achieve the most efficient or convenient multi-material printing
+method.</span></p>
+
+<p class=MsoNormal style='margin-top:19.0pt;margin-right:0cm;margin-bottom:
+7.0pt;margin-left:0cm;line-height:120%'><a name="heading_1"><span lang=EN-US
+style='font-size:18.0pt;line-height:120%;font-family:"Arial",sans-serif;
+color:#3370FF'>2. </span></a><b><span lang=EN-US style='font-size:18.0pt;
+line-height:120%;font-family:"Arial",sans-serif'>Multi-color printing sequence</span></b></p>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;line-height:120%'><span lang=EN-US style='font-family:"Arial",sans-serif'>Different
+printing sequences have different filament switching sequences, resulting in
+differences in the flushing volume. The slicer will calculate an optimal
+printing sequence based on the flushing volume between the filaments, to
+minimize the waste amount. For example, if the total flushing amount of
+filament sequence 1-&gt;2-&gt;3 is greater than that of 1-&gt;3-&gt;2, the
+latter will tend to be used as the printing sequence for this layer. For
+detailed information on manually adjusting print sequences, please refer to: </span><span
+lang=EN-US><a
+href="https://wiki.bambulab.com/en/software/bambu-studio/parameter/filament-sequence-for-different-layers"><span
+style='font-family:"Arial",sans-serif;color:#3370FF;text-decoration:none'>Set
+the filament printing sequence for different layers</span></a></span></p>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;line-height:120%'><span lang=EN-US>&nbsp;</span></p>
+
+<table class=MsoNormalTable border=1 cellspacing=0 cellpadding=0
+ style='border-collapse:collapse;border:none'>
+ <tr>
+  <td width=276 valign=top style='width:207.0pt;border:none windowtext 1.0pt;
+  padding:3.0pt 6.0pt 1.5pt 6.0pt'>
+  <p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:
+  6.0pt;margin-left:0cm;line-height:120%'><span lang=EN-US>&nbsp;</span></p>
+  <p class=MsoNormal align=center style='margin-top:6.0pt;margin-right:0cm;
+  margin-bottom:6.0pt;margin-left:0cm;text-align:center;line-height:120%'><span
+  lang=EN-US><img border=0 width=260 height=125 id="Drawing 0"
+  src="filament_group_wiki_en.files/image001.jpg"></span></p>
+  </td>
+  <td width=276 valign=top style='width:207.0pt;border:none windowtext 1.0pt;
+  border-left:none;padding:3.0pt 6.0pt 1.5pt 6.0pt'>
+  <p class=MsoNormal align=center style='margin-top:6.0pt;margin-right:0cm;
+  margin-bottom:6.0pt;margin-left:0cm;text-align:center;line-height:120%'><span
+  lang=EN-US><img border=0 width=259 height=149 id="Drawing 1"
+  src="filament_group_wiki_en.files/image002.jpg"></span></p>
+  <p class=MsoNormal align=center style='margin-top:6.0pt;margin-right:0cm;
+  margin-bottom:6.0pt;margin-left:0cm;text-align:center;line-height:120%'><span
+  lang=EN-US style='font-family:"Arial",sans-serif;color:#8F959E'>The flushing
+  amount obtained through the automatic allocation of the printing sequence<br>
+  <br>
+  </span></p>
+  </td>
+ </tr>
+</table>
+
+<p class=MsoNormal><span lang=EN-US>&nbsp;</span></p>
+
+<table class=MsoNormalTable border=1 cellspacing=0 cellpadding=0
+ style='border-collapse:collapse;border:none'>
+ <tr>
+  <td width=270 valign=top style='width:202.55pt;border:none windowtext 1.0pt;
+  padding:3.0pt 6.0pt 1.5pt 6.0pt'>
+  <p class=MsoNormal align=center style='margin-top:6.0pt;margin-right:0cm;
+  margin-bottom:6.0pt;margin-left:0cm;text-align:center;line-height:120%'><span
+  lang=EN-US><img border=0 width=254 height=146 id="Drawing 2"
+  src="filament_group_wiki_en.files/image003.jpg"></span></p>
+  <p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:
+  6.0pt;margin-left:0cm;line-height:120%'><span lang=EN-US>&nbsp;</span></p>
+  </td>
+  <td width=282 valign=top style='width:211.4pt;border:none windowtext 1.0pt;
+  border-left:none;padding:3.0pt 6.0pt 1.5pt 6.0pt'>
+  <p class=MsoNormal align=center style='margin-top:6.0pt;margin-right:0cm;
+  margin-bottom:6.0pt;margin-left:0cm;text-align:center;line-height:120%'><span
+  lang=EN-US><img border=0 width=265 height=147 id="Drawing 3"
+  src="filament_group_wiki_en.files/image004.jpg"></span></p>
+  <p class=MsoNormal align=center style='margin-top:6.0pt;margin-right:0cm;
+  margin-bottom:6.0pt;margin-left:0cm;text-align:center;line-height:120%'><span
+  lang=EN-US style='font-family:"Arial",sans-serif;color:#8F959E'>The flushing
+  amount obtained through the manual setting of the printing sequence<br>
+  <br>
+  </span></p>
+  </td>
+ </tr>
+</table>
+
+<p class=MsoNormal style='margin-top:19.0pt;margin-right:0cm;margin-bottom:
+7.0pt;margin-left:0cm;line-height:120%'><a name="heading_2"><span lang=EN-US
+style='font-size:18.0pt;line-height:120%;font-family:"Arial",sans-serif;
+color:#3370FF'>3. </span></a><b><span lang=EN-US style='font-size:18.0pt;
+line-height:120%;font-family:"Arial",sans-serif'>Grouping restrictions on
+filaments</span></b></p>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;line-height:120%'><span lang=EN-US style='font-family:"Arial",sans-serif'>Due
+to the physical limitations of the printer, different nozzles have their own
+printable area limits (</span><span lang=EN-US><a
+href="https://bambulab.feishu.cn/docx/HY2pdfEtfojn6DxksXLczDStnQa"><span
+style='font-family:"Arial",sans-serif;color:#3370FF;text-decoration:none'>Introduction
+to the printable range of H2D dual nozzles</span></a></span><span lang=EN-US
+style='font-family:"Arial",sans-serif'>). As shown in the figure below, when
+the part of the model printed with a filament is placed in the left nozzle or
+right nozzle only area, then it can only be printed using the corresponding
+nozzle.</span></p>
+
+<p class=MsoNormal align=center style='margin-top:6.0pt;margin-right:0cm;
+margin-bottom:6.0pt;margin-left:0cm;text-align:center;line-height:120%'><span
+lang=EN-US><img border=0 width=552 height=458 id="Drawing 4"
+src="filament_group_wiki_en.files/image005.jpg"></span></p>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;line-height:120%'><span lang=EN-US style='font-family:"Arial",sans-serif'>In
+addition, based on the physical design of the tool head and the characteristics
+of the material, each nozzle has other printable filament limitations, with
+specific limitations as follows</span></p>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;line-height:120%'><span lang=EN-US style='font-family:"Arial",sans-serif'>Group
+restrictions:</span></p>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;text-indent:0cm;line-height:120%'><span lang=EN-US
+style='color:#3370FF'>&#8226;<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span lang=EN-US style='font-family:"Arial",sans-serif'>TPU
+material can only be printed with the right nozzle. (Priority: High)</span></p>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;text-indent:0cm;line-height:120%'><span lang=EN-US
+style='color:#3370FF'>&#8226;<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span lang=EN-US style='font-family:"Arial",sans-serif'>CF and GF
+materials can only be printed with the left nozzle. (Priority: High)</span></p>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;text-indent:0cm;line-height:120%'><span lang=EN-US
+style='color:#3370FF'>&#8226;<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span lang=EN-US style='font-family:"Arial",sans-serif'>When the
+height of the part exceeds 320 mm, it should be placed in the printable area of
+the right nozzle. (Priority: Medium)</span></p>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;text-indent:0cm;line-height:120%'><span lang=EN-US
+style='color:#3370FF'>&#8226;<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span lang=EN-US style='font-family:"Arial",sans-serif'>When
+parts are placed in the left-nozzle-only or right-nozzle-only area, they need
+to be grouped to the corresponding nozzle for printing. (Priority: Medium)</span></p>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;text-indent:0cm;line-height:120%'><span lang=EN-US
+style='color:#3370FF'>&#8226;<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span lang=EN-US style='font-family:"Arial",sans-serif'>Filament
+can be printed with both left and right nozzles, it's recommended to print with
+the right nozzle. (Priority: Low)</span></p>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;line-height:120%'><span lang=EN-US>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-top:19.0pt;margin-right:0cm;margin-bottom:
+7.0pt;margin-left:0cm;line-height:120%'><a name="heading_3"><span lang=EN-US
+style='font-size:18.0pt;line-height:120%;font-family:"Arial",sans-serif;
+color:#3370FF'>4. </span></a><b><span lang=EN-US style='font-size:18.0pt;
+line-height:120%;font-family:"Arial",sans-serif'>Filament-saving mode</span></b></p>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;line-height:120%'><span lang=EN-US style='font-family:"Arial",sans-serif'>Since
+material switching between different nozzles does not require flushing, the
+entire flushing amount comes from switching filaments from the same nozzle.<b>
+To reduce filament waste during switching,&nbsp; the filaments with a large
+switching volume should be assigned to separate nozzles. </b>The default
+material grouping strategy used in Bambu Studio is the filament-saving mode.
+You can see a total of 3 modes in the floating window of the slicing button.
+Select &quot;Filament-Saving Mode&quot; and click on slicing to obtain the most
+filament-saving printing. The logic of this strategy is briefly introduced in
+the following sections.</span></p>
+
+<p class=MsoNormal align=center style='margin-top:6.0pt;margin-right:0cm;
+margin-bottom:6.0pt;margin-left:0cm;text-align:center;line-height:120%'><span
+lang=EN-US><img border=0 width=390 height=299 id="Drawing 5"
+src="filament_group_wiki_en.files/image006.jpg"></span></p>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;line-height:120%'><span lang=EN-US style='font-family:"Arial",sans-serif'>When
+you set the pairing relationship between AMS and the left and right nozzles,
+and synchronize the AMS information in Bambu Studio, the slicer can calculate
+how many filaments are connected to each nozzle.&nbsp; If no AMS is connected
+to the printer, the slicer defaults to allowing the nozzle to load one filament
+through the external spool. Then the slicer can achieve an optimal filament
+grouping to ensure minimum flushing waste is attained under the calculated
+printing sequence. The principle is to group the filaments with more common
+layers and larger flushing amounts into as many different nozzle groups as
+possible.</span></p>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;line-height:120%'><span lang=EN-US style='font-family:"Arial",sans-serif'>To
+sum up, the grouping algorithm mainly needs to consider the following points,
+and the priority of each point is reduced in order.</span></p>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;text-indent:0cm;line-height:120%'><span lang=EN-US
+style='color:#3370FF'>1.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span lang=EN-US style='font-family:"Arial",sans-serif'>Whether
+the material is a non-printable filament for the nozzle;</span></p>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;text-indent:0cm;line-height:120%'><span lang=EN-US
+style='color:#3370FF'>2.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span lang=EN-US style='font-family:"Arial",sans-serif'>The upper
+limit of filament in AMS connected to the nozzle;</span></p>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;text-indent:0cm;line-height:120%'><span lang=EN-US
+style='color:#3370FF'>3.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span lang=EN-US style='font-family:"Arial",sans-serif'>Minimize
+the filament flushing amount;</span></p>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;text-indent:0cm;line-height:120%'><span lang=EN-US
+style='color:#3370FF'>4.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span lang=EN-US style='font-family:"Arial",sans-serif'>Minimize
+the color gap (Delta E) to the filament in the AMS connected to the nozzle;</span></p>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;line-height:120%'><b><span lang=EN-US style='font-family:"Arial",sans-serif'>Since
+the grouping logic is more inclined to reduce the flushing amount rather than
+the closest color, after slicing, the user needs to check whether the filaments
+are placed in the corresponding AMS of the left and right nozzles according to
+the &quot;Filament Grouping&quot;, and appropriately adjust the position of
+each filament in the AMS. Otherwise, the filament automatically assigned to the
+nozzle may not be selected in the sending task window.</span></b></p>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;line-height:120%'><span lang=EN-US style='font-family:"Arial",sans-serif'>As
+shown in the following GIF, <b>once the sliced filament is assigned to a
+specific nozzle, it cannot be forcibly changed to a filament from another
+nozzle when sending the task. Even if there is a filament of a closer color
+from the other nozzle.</b> So we can only manually adjust the position of
+filaments in AMS to achieve the most filament-saving printing.</span></p>
+
+<p class=MsoNormal align=center style='margin-top:6.0pt;margin-right:0cm;
+margin-bottom:6.0pt;margin-left:0cm;text-align:center;line-height:120%'><span
+lang=EN-US><img border=0 width=552 height=266 id="Drawing 6"
+src="filament_group_wiki_en.files/image007.gif"></span></p>
+
+<p class=MsoNormal style='margin-top:19.0pt;margin-right:0cm;margin-bottom:
+7.0pt;margin-left:0cm;line-height:120%'><a name="heading_4"><span lang=EN-US
+style='font-size:18.0pt;line-height:120%;font-family:"Arial",sans-serif;
+color:#3370FF'>5. </span></a><b><span lang=EN-US style='font-size:18.0pt;
+line-height:120%;font-family:"Arial",sans-serif'>Convenient mode</span></b></p>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;line-height:120%'><span lang=EN-US style='font-family:"Arial",sans-serif'>Unlike
+the filament-saving mode, the convenient mode groups filaments entirely
+according to the filaments placed in the AMS, regardless of the sliced model.
+Under this strategy, efforts will be made to match the filament grouping
+results as closely as possible with the filaments placed in AMS (color, type,
+etc.).</span></p>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;line-height:120%'><span lang=EN-US style='font-family:"Arial",sans-serif'>This
+option tends to group based on the user's existing filament placement, <b>which
+may waste more filaments for flushing, and in most cases, there is no need to
+adjust the position of the filaments separately. Suitable for scenarios where
+users are not near the printer and remotely initiate multi-material printing
+tasks.</b> We suggest that you resynchronize the AMS filament information
+before using this mode for slicing. You can select &quot;Convenient Mode&quot;
+in the floating window of the slicing button, and the sliced filaments will be
+grouped according to the actual filaments placed in your AMS. After slicing, it
+can be seen that the optimal grouping (filament-saving mode) saves more
+filament amount compared to the convenient mode.</span></p>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;line-height:120%'><span lang=EN-US style='font-family:"Arial",sans-serif'>The
+grouping algorithm under this strategy mainly considers the following points,
+with the priority of each point decreasing in order:</span></p>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;text-indent:0cm;line-height:120%'><span lang=EN-US
+style='color:#3370FF'>1.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span lang=EN-US style='font-family:"Arial",sans-serif'>Whether
+the material is a non-printable filament for the nozzle;</span></p>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;text-indent:0cm;line-height:120%'><span lang=EN-US
+style='color:#3370FF'>2.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span lang=EN-US style='font-family:"Arial",sans-serif'>Consistency
+between sliced filaments and filament material types in AMS;</span></p>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;text-indent:0cm;line-height:120%'><span lang=EN-US
+style='color:#3370FF'>3.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span lang=EN-US style='font-family:"Arial",sans-serif'>Minimize
+the color gap (Delta E) to the filament in the AMS connected to the nozzle;</span></p>
+
+<p class=MsoNormal align=center style='margin-top:6.0pt;margin-right:0cm;
+margin-bottom:6.0pt;margin-left:0cm;text-align:center;line-height:120%'><span
+lang=EN-US><img border=0 width=552 height=266 id="Drawing 7"
+src="filament_group_wiki_en.files/image008.gif"></span></p>
+
+<p class=MsoNormal style='margin-top:19.0pt;margin-right:0cm;margin-bottom:
+7.0pt;margin-left:0cm;line-height:120%'><a name="heading_5"><span lang=EN-US
+style='font-size:18.0pt;line-height:120%;font-family:"Arial",sans-serif;
+color:#3370FF'>6. </span></a><b><span lang=EN-US style='font-size:18.0pt;
+line-height:120%;font-family:"Arial",sans-serif'>Custom mode</span></b></p>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;line-height:120%'><span lang=EN-US style='font-family:"Arial",sans-serif'>Suppose
+you are not satisfied with the auto filament grouping strategy. In that case,
+you can click on &quot;Regroup filament&quot; in &quot;Filament Grouping&quot;,
+and then manually adjust the filaments in the left and right nozzles in
+&quot;Custom&quot;. After slicing again, you can see that the optimal grouping
+(most filament-saving) method saves more filaments than manual grouping. <b>Note:
+Filament-saving strategy only considers saving filaments, so sometimes there
+may be more filament changes in filament-saving mode than in convenient or
+manual mode, which is normal.</b></span></p>
+
+<p class=MsoNormal align=center style='margin-top:6.0pt;margin-right:0cm;
+margin-bottom:6.0pt;margin-left:0cm;text-align:center;line-height:120%'><span
+lang=EN-US><img border=0 width=552 height=266 id="Drawing 8"
+src="filament_group_wiki_en.files/image009.gif"></span></p>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;line-height:120%'><span lang=EN-US style='font-family:"Arial",sans-serif'>You
+can also directly select &quot;Custom Mode&quot; in the floating window of the
+slicing button, which will allow you to customize the group of slicing
+filaments to the left and right nozzles before slicing.</span></p>
+
+<table class=MsoNormalTable border=1 cellspacing=0 cellpadding=0
+ style='border-collapse:collapse;border:none'>
+ <tr>
+  <td width=286 valign=top style='width:214.5pt;border:solid #DEE0E3 1.0pt;
+  padding:3.0pt 6.0pt 1.5pt 6.0pt'>
+  <p class=MsoNormal align=center style='margin-top:6.0pt;margin-right:0cm;
+  margin-bottom:6.0pt;margin-left:0cm;text-align:center;line-height:120%'><span
+  lang=EN-US><img border=0 width=270 height=211 id="Drawing 9"
+  src="filament_group_wiki_en.files/image010.jpg"></span></p>
+  <p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:
+  6.0pt;margin-left:0cm;line-height:120%'><span lang=EN-US>&nbsp;</span></p>
+  </td>
+  <td width=266 valign=top style='width:199.5pt;border:solid #DEE0E3 1.0pt;
+  border-left:none;padding:3.0pt 6.0pt 1.5pt 6.0pt'>
+  <p class=MsoNormal align=center style='margin-top:6.0pt;margin-right:0cm;
+  margin-bottom:6.0pt;margin-left:0cm;text-align:center;line-height:120%'><span
+  lang=EN-US><img border=0 width=250 height=143 id="Drawing 10"
+  src="filament_group_wiki_en.files/image011.jpg"></span></p>
+  <p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:
+  6.0pt;margin-left:0cm;line-height:120%'><span lang=EN-US>&nbsp;</span></p>
+  </td>
+ </tr>
+</table>
+
+<p class=MsoNormal align=center style='margin-top:6.0pt;margin-right:0cm;
+margin-bottom:6.0pt;margin-left:0cm;text-align:center;line-height:120%'><span
+lang=EN-US><img border=0 width=552 height=266 id="Drawing 11"
+src="filament_group_wiki_en.files/image012.gif"></span></p>
+
+<p class=MsoNormal style='margin-top:19.0pt;margin-right:0cm;margin-bottom:
+7.0pt;margin-left:0cm;line-height:120%'><a name="heading_6"><span lang=EN-US
+style='font-size:18.0pt;line-height:120%;font-family:"Arial",sans-serif;
+color:#3370FF'>7. </span></a><b><span lang=EN-US style='font-size:18.0pt;
+line-height:120%;font-family:"Arial",sans-serif'>Plate settings and global
+settings</span></b></p>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;line-height:120%'><span lang=EN-US style='font-family:"Arial",sans-serif'>For
+different scenarios, the grouping strategy is divided into different levels of
+parameters: plate settings and global settings. Before slicing, <b>if you
+manually set a strategy for the plate, the plate settings will override the
+global settings.</b></span></p>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;line-height:120%'><span lang=EN-US style='font-family:"Arial",sans-serif'>On
+the right side of each plate, after clicking the corresponding icon, there will
+be a pop-up window, where you can see the filament grouping mode used by the
+current plate. You can set the mode for a single plate, including Auto
+(Filament-saving and Convenient mode), Custom, and Same as Global.</span></p>
+
+<p class=MsoNormal align=center style='margin-top:6.0pt;margin-right:0cm;
+margin-bottom:6.0pt;margin-left:0cm;text-align:center;line-height:120%'><span
+lang=EN-US><img border=0 width=552 height=459 id="Drawing 12"
+src="filament_group_wiki_en.files/image013.jpg"></span></p>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;line-height:120%'><span lang=EN-US>&nbsp;</span></p>
+
+<table class=MsoNormalTable border=1 cellspacing=0 cellpadding=0
+ style='border-collapse:collapse;border:none'>
+ <tr>
+  <td width=276 valign=top style='width:207.0pt;border:none windowtext 1.0pt;
+  padding:3.0pt 6.0pt 1.5pt 6.0pt'>
+  <p class=MsoNormal align=center style='margin-top:6.0pt;margin-right:0cm;
+  margin-bottom:6.0pt;margin-left:0cm;text-align:center;line-height:120%'><span
+  lang=EN-US><img border=0 width=260 height=149 id="Drawing 13"
+  src="filament_group_wiki_en.files/image014.jpg"></span></p>
+  </td>
+  <td width=276 valign=top style='width:207.0pt;border:none windowtext 1.0pt;
+  border-left:none;padding:3.0pt 6.0pt 1.5pt 6.0pt'>
+  <p class=MsoNormal align=center style='margin-top:6.0pt;margin-right:0cm;
+  margin-bottom:6.0pt;margin-left:0cm;text-align:center;line-height:120%'><span
+  lang=EN-US><img border=0 width=260 height=96 id="Drawing 14"
+  src="filament_group_wiki_en.files/image015.jpg"></span></p>
+  </td>
+ </tr>
+</table>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;line-height:120%'><span lang=EN-US style='font-family:"Arial",sans-serif'>If
+you have separately set the grouping mode for a certain plate, after slicing
+the single plate, the floating window at the slicing button will prioritize
+displaying the strategy of the current plate. However, there will be a global
+setting icon placed after the corresponding mode to remind the user which
+strategy is used for global slicing. If no separate mode is set for the plate,
+the floating window will prioritize displaying the global settings.</span></p>
+
+<p class=MsoNormal align=center style='margin-top:6.0pt;margin-right:0cm;
+margin-bottom:6.0pt;margin-left:0cm;text-align:center;line-height:120%'><span
+lang=EN-US><img border=0 width=420 height=298 id="Drawing 15"
+src="filament_group_wiki_en.files/image016.jpg"></span></p>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;line-height:120%'><span lang=EN-US style='font-family:"Arial",sans-serif'>When
+slicing all plates, always display the global grouping strategy to facilitate
+the setting for all plates. But the filament grouping method set for a single
+plate still takes effect.</span></p>
+
+<p class=MsoNormal align=center style='margin-top:6.0pt;margin-right:0cm;
+margin-bottom:6.0pt;margin-left:0cm;text-align:center;line-height:120%'><span
+lang=EN-US><img border=0 width=409 height=292 id="Drawing 16"
+src="filament_group_wiki_en.files/image017.jpg"></span></p>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;line-height:120%'><span lang=EN-US style='font-family:"Arial",sans-serif'>In
+the manual grouping window, only the filaments in the current plate are
+displayed when slicing a single plate, and all filaments are displayed when
+slicing all.</span></p>
+
+<table class=MsoNormalTable border=1 cellspacing=0 cellpadding=0
+ style='border-collapse:collapse;border:none'>
+ <tr>
+  <td width=260 valign=top style='width:195.0pt;border:solid #DEE0E3 1.0pt;
+  padding:3.0pt 6.0pt 1.5pt 6.0pt'>
+  <p class=MsoNormal align=center style='margin-top:6.0pt;margin-right:0cm;
+  margin-bottom:6.0pt;margin-left:0cm;text-align:center;line-height:120%'><b><span
+  lang=EN-US style='font-family:"Arial",sans-serif'>Slice plate</span></b></p>
+  </td>
+  <td width=292 valign=top style='width:219.0pt;border:solid #DEE0E3 1.0pt;
+  border-left:none;padding:3.0pt 6.0pt 1.5pt 6.0pt'>
+  <p class=MsoNormal align=center style='margin-top:6.0pt;margin-right:0cm;
+  margin-bottom:6.0pt;margin-left:0cm;text-align:center;line-height:120%'><b><span
+  lang=EN-US style='font-family:"Arial",sans-serif'>Slice all</span></b></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=260 valign=top style='width:195.0pt;border:solid #DEE0E3 1.0pt;
+  border-top:none;padding:3.0pt 6.0pt 1.5pt 6.0pt'>
+  <p class=MsoNormal align=center style='margin-top:6.0pt;margin-right:0cm;
+  margin-bottom:6.0pt;margin-left:0cm;text-align:center;line-height:120%'><span
+  lang=EN-US><img border=0 width=243 height=140 id="Drawing 17"
+  src="filament_group_wiki_en.files/image018.jpg"></span></p>
+  <p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:
+  6.0pt;margin-left:0cm;line-height:120%'><span lang=EN-US>&nbsp;</span></p>
+  </td>
+  <td width=292 valign=top style='width:219.0pt;border-top:none;border-left:
+  none;border-bottom:solid #DEE0E3 1.0pt;border-right:solid #DEE0E3 1.0pt;
+  padding:3.0pt 6.0pt 1.5pt 6.0pt'>
+  <p class=MsoNormal align=center style='margin-top:6.0pt;margin-right:0cm;
+  margin-bottom:6.0pt;margin-left:0cm;text-align:center;line-height:120%'><span
+  lang=EN-US><img border=0 width=276 height=179 id="Drawing 18"
+  src="filament_group_wiki_en.files/image019.jpg"></span></p>
+  <p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:
+  6.0pt;margin-left:0cm;line-height:120%'><span lang=EN-US>&nbsp;</span></p>
+  </td>
+ </tr>
+</table>
+
+<p class=MsoNormal style='margin-top:6.0pt;margin-right:0cm;margin-bottom:6.0pt;
+margin-left:0cm;line-height:120%'><span lang=EN-US>&nbsp;</span></p>
+
+</div>
+
+</body>
+
+</html>
