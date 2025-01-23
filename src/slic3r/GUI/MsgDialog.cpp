@@ -22,15 +22,16 @@
 #include "GUI_App.hpp"
 
 #define DESIGN_INPUT_SIZE wxSize(FromDIP(100), -1)
-
+#define MSG_DLG_MAX_SIZE wxSize(FromDIP(700), -1)
 namespace Slic3r {
 namespace GUI {
 
-MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, long style, wxBitmap bitmap)
+MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, long style, wxBitmap bitmap, const wxString &forward_str)
 	: DPIDialog(parent ? parent : dynamic_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, title, wxDefaultPosition, wxSize(360, -1),wxDEFAULT_DIALOG_STYLE)
 	, boldfont(wxGetApp().normal_font())
 	, content_sizer(new wxBoxSizer(wxVERTICAL))
-	, btn_sizer(new wxBoxSizer(wxHORIZONTAL))
+    , btn_sizer(new wxBoxSizer(wxHORIZONTAL))
+    , m_forward_str(forward_str)
 {
 	boldfont.SetWeight(wxFONTWEIGHT_BOLD);
     SetBackgroundColour(0xFFFFFF);
@@ -212,7 +213,14 @@ Button* MsgDialog::get_button(wxWindowID btn_id){
 void MsgDialog::apply_style(long style)
 {
     bool focus = (style & wxNO_DEFAULT) == 0;
-    if (style & wxOK)       add_button(wxID_OK, focus, _L("OK"));
+    if (style & wxFORWARD)
+        add_button(wxFORWARD, true, _L("Go to") + " " + m_forward_str);
+    if (style & wxOK) {
+        if (style & wxFORWARD) { add_button(wxID_OK, false, _L("Later")); }
+        else {
+            add_button(wxID_OK, focus, _L("OK"));
+        }
+    }
     if (style & wxYES)      add_button(wxID_YES, focus, _L("Yes"));
     if (style & wxNO)       add_button(wxID_NO, false,_L("No"));
     if (style & wxCANCEL)   add_button(wxID_CANCEL, false, _L("Cancel"));
@@ -225,9 +233,10 @@ void MsgDialog::apply_style(long style)
 
 void MsgDialog::finalize()
 {
-    wxGetApp().UpdateDlgDarkUI(this);
+    Layout();
     Fit();
     CenterOnParent();
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 
@@ -357,12 +366,13 @@ WarningDialog::WarningDialog(wxWindow *parent,
 MessageDialog::MessageDialog(wxWindow* parent,
     const wxString& message,
     const wxString& caption/* = wxEmptyString*/,
-    long style/* = wxOK*/)
-    : MsgDialog(parent, caption.IsEmpty() ? wxString::Format(_L("%s info"), SLIC3R_APP_FULL_NAME) : caption, wxEmptyString, style)
+    long style /* = wxOK*/,
+    const wxString &forward_str /* = wxEmptyString*/)
+    : MsgDialog(parent, caption.IsEmpty() ? wxString::Format(_L("%s info"), SLIC3R_APP_FULL_NAME) : caption, wxEmptyString, style, wxBitmap(),forward_str)
 {
     add_msg_content(this, content_sizer, message);
+    SetMaxSize(MSG_DLG_MAX_SIZE);
     finalize();
-    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 
