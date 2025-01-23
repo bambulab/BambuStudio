@@ -167,6 +167,7 @@ void Button::Rescale()
         this->inactive_icon.msw_rescale();
 
     messureSize();
+    Refresh();
 }
 
 void Button::paintEvent(wxPaintEvent& evt)
