@@ -165,7 +165,7 @@ namespace GUI {
 
         BoundingBoxf3 m_bounding_box;
         std::string m_filename;
-
+        bool        m_visible = true;
     public:
         GLModel() = default;
         virtual ~GLModel();
@@ -204,6 +204,8 @@ namespace GUI {
         const BoundingBoxf3& get_bounding_box() const { return m_bounding_box; }
         const std::string& get_filename() const { return m_filename; }
 
+        void set_visible(bool flag);
+        bool get_visible() const { return m_visible; }
     private:
         bool send_to_gpu(Geometry& geometry);
         bool send_to_gpu(RenderData &data, const std::vector<float> &vertices, const std::vector<unsigned int> &indices) const;

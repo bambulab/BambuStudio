@@ -1143,6 +1143,12 @@ void GLModel::render_instanced(unsigned int instances_vbo, unsigned int instance
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
 
+void GLModel::set_visible(bool flag) {
+    if (m_visible != flag) {
+        m_visible = flag;
+    }
+}
+
 bool GLModel::send_to_gpu(Geometry &geometry)
 {
     if (m_render_data.size() != 1) { return false; }
