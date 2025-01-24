@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-23 18:02+0800\n"
+"POT-Creation-Date: 2025-01-24 17:42+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3441,7 +3441,7 @@ msgstr ""
 msgid ""
 "Spiral mode only works when wall loops is 1, support is disabled, top shell "
 "layers is 0, sparse infill density is 0, timelapse type is traditional and "
-"Smoothing wall speed in z direction is false."
+"smoothing wall speed in z direction is false."
 msgstr ""
 
 msgid " But machines with I3 structure will not generate timelapse videos."
@@ -4246,8 +4246,7 @@ msgstr "Una ruta de código G va más allá de la altura máxima de impresión."
 msgid "A G-code path goes beyond the boundary of plate."
 msgstr "Una ruta de código G va más allá del límite de la placa."
 
-#, c-format, boost-format
-msgid "Only the %s with external filament spool can print TPU"
+msgid "Not support printing 2 or more TPU filaments."
 msgstr ""
 
 #, c-format, boost-format
