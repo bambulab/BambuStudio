@@ -923,7 +923,8 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "inner_wall_line_width"
             || opt_key == "infill_wall_overlap"
             || opt_key == "enable_circle_compensation"
-            || opt_key == "circle_compensation_manual_offset") {
+            || opt_key == "circle_compensation_manual_offset"
+            || opt_key == "apply_scarf_seam_on_circles") {
             steps.emplace_back(posPerimeters);
         } else if (opt_key == "gap_infill_speed" || opt_key == "filter_out_gap_fill") {
             // Return true if gap-fill speed has changed from zero value to non-zero or from non-zero value to zero.
