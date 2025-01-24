@@ -13,7 +13,7 @@ namespace Slic3r {
 
 enum class LiftType {
     NormalLift,
-    LazyLift,
+    SlopeLift,
     SpiralLift
 };
 
@@ -80,7 +80,10 @@ public:
     std::string retract(bool before_wipe = false);
     std::string retract_for_toolchange(bool before_wipe = false);
     std::string unretract();
-    std::string lift(LiftType lift_type = LiftType::NormalLift, bool spiral_vase = false);
+    // do lift instantly
+    std::string eager_lift(const LiftType type);
+    // record a lift request, do realy lift in next travel
+    std::string lazy_lift(LiftType lift_type = LiftType::NormalLift, bool spiral_vase = false);
     std::string unlift();
     Vec3d       get_position() const { return m_pos; }
     void       set_position(Vec3d& in) { m_pos = in; }
