@@ -1114,6 +1114,19 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         }
     }
 
+    {   //check scarf seam setting
+        const auto &o = model.objects;
+        const bool has_scarf_joint_seam = std::any_of(o.begin(), o.end(), [&new_full_config](ModelObject *obj) {
+            return obj->get_config_value<ConfigOptionBool>(new_full_config, "apply_scarf_seam_on_circles")->value;
+        });
+
+        if (has_scarf_joint_seam) {
+            new_full_config.set("has_scarf_joint_seam", true);
+        }
+
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", has_scarf_joint_seam:" << has_scarf_joint_seam;
+    }
+
     //apply extruder related values
     std::vector<int> print_variant_index;
     if (!extruder_applied) {

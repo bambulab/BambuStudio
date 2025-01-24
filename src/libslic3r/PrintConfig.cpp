@@ -4201,6 +4201,12 @@ void PrintConfigDef::init_fff_params()
     def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.0));
 
+    def          = this->add("apply_scarf_seam_on_circles", coBool);
+    def->label   = L("Scarf Seam On Compensation Circles");
+    def->tooltip = L("Enable to apply scarf seam on the circle to have better assemble.");
+    def->mode    = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
     def             = this->add("circle_compensation_speed", coFloats);
     def->label      = L("Circle Compensation Speed");
     def->tooltip    = L("circle_compensation_speed");

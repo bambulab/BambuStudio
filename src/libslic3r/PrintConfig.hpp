@@ -829,6 +829,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     //BBS auto hole contour compensation
     ((ConfigOptionBool,               enable_circle_compensation))
     ((ConfigOptionFloat,              circle_compensation_manual_offset))
+    ((ConfigOptionBool,               apply_scarf_seam_on_circles))
     ((ConfigOptionBool,                flush_into_objects))
     // BBS
     ((ConfigOptionBool,                flush_into_infill))

@@ -4595,6 +4595,9 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
      // get paths
     ExtrusionPaths paths;
     bool set_holes_and_compensation_speed = loop.get_customize_flag() && !loop.has_overhang_paths();
+    if (set_holes_and_compensation_speed && m_config.apply_scarf_seam_on_circles.value) {
+        enable_seam_slope = true;
+    }
     loop.clip_end(clip_length, &paths);
     if (paths.empty()) return "";
 
