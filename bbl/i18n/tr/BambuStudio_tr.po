@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-23 18:02+0800\n"
+"POT-Creation-Date: 2025-01-24 17:42+0800\n"
 "PO-Revision-Date: 2025-01-12 21:04+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -3406,7 +3406,7 @@ msgstr ""
 msgid ""
 "Spiral mode only works when wall loops is 1, support is disabled, top shell "
 "layers is 0, sparse infill density is 0, timelapse type is traditional and "
-"Smoothing wall speed in z direction is false."
+"smoothing wall speed in z direction is false."
 msgstr ""
 
 msgid " But machines with I3 structure will not generate timelapse videos."
@@ -4207,8 +4207,7 @@ msgstr "Bir G kodu yolu maksimum baskı yüksekliğinin ötesine geçer."
 msgid "A G-code path goes beyond the boundary of plate."
 msgstr "Bir G kodu yolu plakanın sınırlarının ötesine geçer."
 
-#, c-format, boost-format
-msgid "Only the %s with external filament spool can print TPU"
+msgid "Not support printing 2 or more TPU filaments."
 msgstr ""
 
 #, c-format, boost-format
