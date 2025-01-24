@@ -3025,7 +3025,7 @@ void TreeSupport::drop_nodes()
                             smooth_filter(overhang.contour, 2, movements, max_move_distance / 2.);
                             for (auto &pt : overhang.contour.points) {
                                 auto tmp = pt + movements.at(pt);
-                                if (!is_inside_ex(to_expolygons({contour}), tmp))
+                                if (!is_inside_ex(to_expolygons({contour}), tmp) && !is_inside_ex(m_ts_data->m_layer_outlines_below[obj_layer_nr], tmp))
                                     pt = tmp;
                             }
                         }
@@ -3741,14 +3741,14 @@ void TreeSupport::generate_contact_points()
                 const auto &overhang_type = overhang_with_type.second;
                 is_sharp_tail = overhang_type & OverhangType::SharpTail;
                 bool       add_interface  = (force_tip_to_roof || area(overhang_part) > minimum_roof_area);
+                const auto &relevant_forbidden = get_collision(0, layer_nr - 1);
                 ExPolygons overhangs{overhang_part};
-                if (add_interface && xy_expansion > EPSILON && !is_sharp_tail) {
-                    const auto &relevant_forbidden = get_collision(0, layer_nr - 1);
-                    overhangs               = safe_offset_inc(overhangs, xy_expansion, relevant_forbidden, scale_(MIN_BRANCH_RADIUS * 1.75), 0, 1);
-                }
                 ExPolygons overhangs_regular;
                 if (m_support_params.support_style == smsTreeHybrid &&
                     (overhang_type & (BigFlat | ThinPlate))) {
+                    if (add_interface && xy_expansion > EPSILON && !is_sharp_tail) {
+                        overhangs = safe_offset_inc(overhangs, xy_expansion, relevant_forbidden, scale_(MIN_BRANCH_RADIUS * 1.75), 0, 1);
+                    }
                     overhangs_regular           = offset_ex(intersection_ex(overhangs, m_ts_data->m_layer_outlines_below[layer_nr - 1]), radius_scaled);
                     ExPolygons overhangs_normal = diff_ex(overhangs, overhangs_regular);
                     // if the outside area is still big, we can need normal nodes
@@ -3766,6 +3766,7 @@ void TreeSupport::generate_contact_points()
                     }
                 }
                 else{
+                    if (add_interface) overhangs = safe_offset_inc(overhangs, scale_(config.support_expansion.value), relevant_forbidden, scale_(MIN_BRANCH_RADIUS * 1.75), 0, 1);
                     overhangs_regular = overhangs;
                 }
 
