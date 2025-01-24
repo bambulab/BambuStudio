@@ -2024,13 +2024,15 @@ void Sidebar::set_bed_by_curr_bed_type(AppConfig *config) {
     if (config && !config->get("curr_bed_type").empty()) {
         int         bed_type_idx   = 0;
         std::string str_bed_type   = config->get("curr_bed_type");
-        int         bed_type_value = (int) btPC;
+
+        int         selection      = 0;
         try {
-            bed_type_value = atoi(str_bed_type.c_str());
+            int bed_type_value = atoi(str_bed_type.c_str());
+            set_bed_type_accord_combox((BedType) bed_type_value);
+            return;
         } catch (...) {
         }
-        bed_type_idx = bed_type_value - 1;
-        p->combo_printer_bed->SelectAndNotify(bed_type_idx);
+        p->combo_printer_bed->SelectAndNotify(selection);
     } else {
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":error:curr_bed_type is empty";
     }
@@ -2056,7 +2058,10 @@ void Sidebar::update_all_preset_comboboxes()
         AppConfig* config = wxGetApp().app_config;
         if (config) {
             m_update_3d_state = true;
-            reset_bed_type_combox_choices();
+            bool has_changed = reset_bed_type_combox_choices();
+            if (m_begin_sync_printer_status && !has_changed) {
+                return;
+            }
             if (m_soft_first_start && !wxGetApp().get_app_conf_exists()) {
                 use_default_bed_type();
             } else {
@@ -2314,7 +2319,8 @@ bool Sidebar::set_bed_type(const std::string &bed_type_name)
     auto bed_type_keys = print_config_def.get("curr_bed_type")->enum_values;
     for (size_t i = 0; i < bed_type_keys.size(); i++) {
         if (bed_type_name == bed_type_keys[i]) {
-            p->combo_printer_bed->SelectAndNotify(i);
+            auto temp_bed_type = (BedType) (i + 1);
+            set_bed_type_accord_combox(temp_bed_type);
             return true;
         }
     }
@@ -2349,12 +2355,30 @@ BedType Sidebar::get_cur_select_bed_type() {
     return select_bed_type;
 }
 
-void  Sidebar::reset_bed_type_combox_choices() {
-    if (!p->combo_printer_bed) { return; }
+void Sidebar::set_bed_type_accord_combox(BedType bed_type) {
+    for (size_t i = 0; i < m_cur_combox_bed_types.size(); i++) {
+        if (m_cur_combox_bed_types[i] == bed_type) {
+            p->combo_printer_bed->SelectAndNotify(i);
+            return;
+        }
+    }
+    p->combo_printer_bed->SelectAndNotify(0);
+}
+
+bool  Sidebar::reset_bed_type_combox_choices() {
+    if (!p->combo_printer_bed) {
+        return false;
+    }
+
     auto                               bundle = wxGetApp().preset_bundle;
     const Preset *                     curr   = &bundle->printers.get_selected_preset();
     const VendorProfile::PrinterModel *pm     = PresetUtils::system_printer_model(*curr);
-
+    if (m_last_combo_bedtype_count != 0 && pm) {
+        auto cur_count = (int) BedType::btCount - 1 - pm->not_support_bed_types.size();
+        if (cur_count == m_last_combo_bedtype_count) {//no change
+            return false;
+        }
+    }
     const ConfigOptionDef *bed_type_def = print_config_def.get("curr_bed_type");
     p->combo_printer_bed->Clear();
     m_cur_combox_bed_types.clear();
@@ -2378,6 +2402,8 @@ void  Sidebar::reset_bed_type_combox_choices() {
             p->combo_printer_bed->AppendString(_L(item));
         }
     }
+    m_last_combo_bedtype_count = p->combo_printer_bed->GetCount();
+    return true;
 }
 
 bool Sidebar::use_default_bed_type(bool is_bbl_preset)
@@ -3147,11 +3173,13 @@ bool Sidebar::is_multifilament()
 }
 
 void Sidebar::deal_btn_sync() {
+    m_begin_sync_printer_status = true;
     bool only_external_material;
     auto ok = p->sync_extruder_list(only_external_material);
     if (ok) {
         pop_sync_nozzle_and_ams_ialog();
     }
+    m_begin_sync_printer_status = false;
 }
 
 void Sidebar::pop_sync_nozzle_and_ams_ialog() {
