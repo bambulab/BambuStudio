@@ -86,6 +86,7 @@ public:
     bool is_virt_object{ false };
     bool is_wipe_tower{ false };
     bool has_tried_with_excluded{ false };
+    std::vector<double> allowed_rotations{0.};
 
     /// The type of the shape which was handed over as the template argument.
     using ShapeType = RawShape;
