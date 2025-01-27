@@ -129,6 +129,9 @@ struct NfpPConfig {
 
     //BBS: sort function for selector
     std::function<bool(_Item<RawShape>& i1, _Item<RawShape>& i2)> sortfunc;
+
+    std::function<void(const std::string &)> progressFunc = {};
+
     //BBS: excluded region for V4 bed
     std::vector<_Item<RawShape> > m_excluded_regions;
     _ItemGroup<RawShape> m_excluded_items;
@@ -686,9 +689,7 @@ private:
     using Edges = EdgeCache<RawShape>;
 
     template<class Range = ConstItemRange<typename Base::DefaultIter>>
-    PackResult _trypack(
-            Item& item,
-            const Range& remaining = Range()) {
+    PackResult _trypack(Item& item, const Range& remaining = Range()) {
 
         PackResult ret;
 
@@ -772,7 +773,7 @@ private:
             setInitialPosition(item);
             auto best_tr = item.translation();
             auto best_rot = item.rotation();
-            best_overfit = overfit(item.transformedShape(), bin_) + overlapWithVirtObject();
+            best_overfit = std::numeric_limits<double>::max();
 
             // try normal inflation first, then 0 inflation if not fit. See STUDIO-5566.
             // Note for by-object printing, bed is expanded by -config_.bed_shrink.x().
@@ -780,7 +781,7 @@ private:
             Coord inflations[2]={inflation_back, std::abs(config_.bed_shrink.x())};
             for (size_t i = 0; i < 2; i++) {
                 item.inflation(inflations[i]);
-                for (auto rot : config_.rotations) {
+                for (auto rot : item.allowed_rotations) {
                     item.translation(initial_tr);
                     item.rotation(initial_rot + rot);
                     setInitialPosition(item);
@@ -789,6 +790,10 @@ private:
                         best_overfit = of;
                         best_tr = item.translation();
                         best_rot = item.rotation();
+                        if (best_overfit <= 0) {
+                            config_.progressFunc("First object can fit with rot="+std::to_string(rot));
+                            break;
+                        }
                     }
                 }
                 can_pack = best_overfit <= 0;
@@ -805,7 +810,7 @@ private:
 
             Pile merged_pile = merged_pile_;
 
-            for(auto rot : config_.rotations) {
+            for(auto rot : item.allowed_rotations) {
 
                 item.translation(initial_tr);
                 item.rotation(initial_rot + rot);
@@ -990,6 +995,7 @@ private:
                     final_rot = initial_rot + rot;
                     can_pack = true;
                     global_score = best_score;
+                    break;
                 }
             }
 

@@ -88,7 +88,8 @@ public:
         for (auto it = store_.begin(); it != store_.end(); ++it) {
             std::stringstream ss;
             ss << "initial order: " << it->get().name << ", p=" << it->get().priority() << ", bed_temp=" << it->get().bed_temp << ", height=" << it->get().height
-               << ", area=" << it->get().area();
+               << ", area=" << it->get().area() << ", allowed_rotations=";
+            for(auto r: it->get().allowed_rotations) ss << r << ", ";
             if (this->unfitindicator_)
                 this->unfitindicator_(ss.str());
         }

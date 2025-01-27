@@ -682,6 +682,8 @@ public:
 
         if (stopcond) m_pck.stopCondition(stopcond);
 
+        m_pconf.progressFunc = [](const std::string& name) { BOOST_LOG_TRIVIAL(debug) << "arrange progress in NFP: " + name; };
+
         m_pconf.sortfunc= [&params](Item& i1, Item& i2) {
             int p1 = i1.priority(), p2 = i2.priority();
             if (p1 != p2)
@@ -859,44 +861,27 @@ void _arrange(
         std::function<void(unsigned,std::string)> progressfn,
         std::function<bool()>         stopfn)
 {
-    // Integer ceiling the min distance from the bed perimeters
-    coord_t md = params.min_obj_distance;
-    md = md / 2;
-
-    auto corrected_bin = bin;
-    //sl::offset(corrected_bin, md);
-    ArrangeParams mod_params = params;
-    mod_params.min_obj_distance = 0;  // items are already inflated
-
-    AutoArranger<BinT> arranger{corrected_bin, mod_params, progressfn, stopfn};
-
-    remove_large_items(excludes, corrected_bin);
-
-    // If there is something on the plate
-    if (!excludes.empty()) arranger.preload(excludes);
-
-    std::vector<std::reference_wrapper<Item>> inp;
-    inp.reserve(shapes.size() + excludes.size());
-    for (auto &itm : shapes  ) inp.emplace_back(itm);
-    for (auto &itm : excludes) inp.emplace_back(itm);
+    ArrangeParams mod_params    = params;
+    mod_params.min_obj_distance = 0; // items are already inflated
 
     // Use the minimum bounding box rotation as a starting point.
     // TODO: This only works for convex hull. If we ever switch to concave
     // polygon nesting, a convex hull needs to be calculated.
     if (params.align_to_y_axis) {
         for (auto &itm : shapes) {
+            itm.allowed_rotations = {0.0};
             // only rotate the object if its long axis is significanly larger than its short axis (more than 10%)
             try {
                 auto bbox = minAreaBoundingBox<ExPolygon, TCompute<ExPolygon>, boost::rational<LargeInt>>(itm.transformedShape());
-                auto w    = bbox.width(), h=bbox.height();
-                if (w > h * 1.1 || h > w * 1.1) { itm.rotate(bbox.angleToX() + PI / 2); }
+                auto w = bbox.width(), h = bbox.height();
+                if (w > h * 1.1 || h > w * 1.1) { itm.allowed_rotations = {bbox.angleToX() + PI / 2, 0.0};
+                }
             } catch (const std::exception &e) {
                 // min_area_boundingbox_rotation may throw exception of dividing 0 if the object is already perfectly aligned to X
                 BOOST_LOG_TRIVIAL(error) << "arranging min_area_boundingbox_rotation fails, msg=" << e.what();
             }
         }
-    }
-    else if (params.allow_rotations) {
+    } else if (params.allow_rotations) {
         for (auto &itm : shapes) {
             auto angle = min_area_boundingbox_rotation(itm.transformedShape());
             BOOST_LOG_TRIVIAL(debug) << itm.name << " min_area_boundingbox_rotation=" << angle << ", original angle=" << itm.rotation();
@@ -910,8 +895,28 @@ void _arrange(
                     itm.rotate(fit_into_box_rotation(itm.transformedShape(), bin));
                 }
             }
+            itm.allowed_rotations = {0., PI / 4., PI / 2, 3. * PI / 4.};
         }
     }
+
+    // Integer ceiling the min distance from the bed perimeters
+    coord_t md = params.min_obj_distance / 2;
+
+    auto corrected_bin = bin;
+    //sl::offset(corrected_bin, md);
+
+    AutoArranger<BinT> arranger{corrected_bin, mod_params, progressfn, stopfn};
+
+    remove_large_items(excludes, corrected_bin);
+
+    // If there is something on the plate
+    if (!excludes.empty()) arranger.preload(excludes);
+
+    std::vector<std::reference_wrapper<Item>> inp;
+    inp.reserve(shapes.size() + excludes.size());
+    for (auto &itm : shapes  ) inp.emplace_back(itm);
+    for (auto &itm : excludes) inp.emplace_back(itm);
+
 
     arranger(inp.begin(), inp.end());
     for (Item &itm : inp) itm.inflation(0);
