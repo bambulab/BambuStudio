@@ -4255,7 +4255,9 @@ void StatusPanel::set_default()
     m_ams_control_box->Hide();
     m_ams_control->Reset();
     error_info_reset();
+#ifndef __WXGTK__
     SetFocus();
+#endif
 }
 
 void StatusPanel::show_status(int status)
