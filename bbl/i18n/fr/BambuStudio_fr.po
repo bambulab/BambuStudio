@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-24 17:42+0800\n"
+"POT-Creation-Date: 2025-02-05 21:04+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -5593,6 +5593,12 @@ msgstr "État"
 msgid "Update"
 msgstr "Mise à jour"
 
+msgid "Go to"
+msgstr ""
+
+msgid "Later"
+msgstr ""
+
 #, c-format, boost-format
 msgid "%s error"
 msgstr "Erreur %s"
@@ -5983,13 +5989,7 @@ msgstr ""
 msgid "Right nozzle: %smm"
 msgstr ""
 
-msgid "Please select a printer in 'Device' page first."
-msgstr ""
-
 msgid "Sync printer information"
-msgstr ""
-
-msgid "The currently connected printer does not have two extruders."
 msgstr ""
 
 msgid ""
@@ -6063,9 +6063,8 @@ msgstr ""
 "existe une mise à jour des préréglages du système."
 
 msgid ""
-"\n"
-"Material and color information have been synchronized, but slot information "
-"is not included."
+"Filament type and color information have been synchronized, but slot "
+"information is not included."
 msgstr ""
 
 #, boost-format
@@ -6370,9 +6369,6 @@ msgstr ""
 msgid "Sync now"
 msgstr ""
 
-msgid "Later"
-msgstr ""
-
 msgid "You can keep the modified presets to the new project or discard them"
 msgstr ""
 "Vous pouvez conserver les préréglages modifiés dans le nouveau projet ou les "
@@ -6526,11 +6522,6 @@ msgid "The nozzle type is not set. Please set the nozzle and try again."
 msgstr ""
 
 msgid ""
-"Printer not connected. Please connect or choose a printer on the Device page "
-"and try again."
-msgstr ""
-
-msgid ""
 "Unable to perform boolean operation on model meshes. You may fix the meshes "
 "and try again."
 msgstr ""
@@ -6585,9 +6576,29 @@ msgstr ""
 "Les supports personnalisés et la peinture de couleur ont été retirés avant "
 "la réparation."
 
+#, c-format, boost-format
 msgid ""
-"The currently selected machine preset is inconsistent with the connected "
-"printer type.Please change device or currently selected machine.\n"
+"Printer not connected. Please go to the device page to connect an %s printer "
+"before syncing."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"The currently connected printer on the device page is not an %s. Please "
+"switch to an %s before syncing."
+msgstr ""
+
+msgid ""
+"There are no filaments on the printer. Please load the filaments on the "
+"printer first."
+msgstr ""
+
+msgid ""
+"The filaments on the printer are all unknown types. Please go to the printer "
+"screen or software device page to set the filament type."
+msgstr ""
+
+msgid "Device Page"
 msgstr ""
 
 msgid "Synchronize AMS Filament Information"
@@ -7401,11 +7412,6 @@ msgstr "Envoi terminé"
 msgid "Error code"
 msgstr "Code erreur"
 
-msgid ""
-"Tips: If you changed your nozzle of your printer lately, Please go to "
-"'Device -> Printer parts' to change your nozzle setting."
-msgstr ""
-
 #, c-format, boost-format
 msgid ""
 "The nozzle flow setting of %snozzle(%s) doesn't match with the slicing "
@@ -7604,6 +7610,11 @@ msgstr "La longueur du nom dépasse la limite."
 
 #, c-format, boost-format
 msgid "Cost %dg filament and %d changes more than optimal grouping."
+msgstr ""
+
+msgid ""
+"Tips: If you changed your nozzle of your printer lately, Please go to "
+"'Device -> Printer parts' to change your nozzle setting."
 msgstr ""
 
 #, c-format, boost-format
@@ -7954,8 +7965,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Lorsque vous enregistrez un timelapse sans tête d’outil, il est recommandé "
 "d’ajouter une \"Tour de nettoyage timelapse\".\n"
@@ -8101,9 +8112,9 @@ msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
 "does not support to print on the Cool Plate"
 msgstr ""
-"Il s'agit de la température du plateau lorsque le plateau froid (\"Cool plate"
-"\") est installé. Une valeur à 0 signifie que ce filament ne peut pas être "
-"imprimé sur le plateau froid."
+"Il s'agit de la température du plateau lorsque le plateau froid (\"Cool "
+"plate\") est installé. Une valeur à 0 signifie que ce filament ne peut pas "
+"être imprimé sur le plateau froid."
 
 msgid "Engineering Plate"
 msgstr "Engineering Plate"
@@ -8631,6 +8642,11 @@ msgid "—> "
 msgstr ""
 
 msgid ""
+"Printer not connected. Please connect or choose a printer on the Device page "
+"and try again."
+msgstr ""
+
+msgid ""
 "Synchronizing AMS filaments will discard your modified but unsaved filament "
 "presets.\n"
 "Are you sure you want to continue?"
@@ -8693,6 +8709,12 @@ msgid ""
 "Only synchronize filament type and color, not including AMS slot information."
 msgstr ""
 
+msgid ""
+"Replace the project filaments list sequentially based on printer filaments. "
+"And unused printer filaments will be automatically added to the end of the "
+"list."
+msgstr ""
+
 msgid "Advanced settings >"
 msgstr ""
 
@@ -8702,9 +8724,7 @@ msgstr ""
 msgid "Automatically merge the same colors in the model after mapping."
 msgstr ""
 
-msgid ""
-"The project's filament list will be directly replaced with the information "
-"of all filaments from the printer. This action cannot be undone."
+msgid "After being synced, this action cannot be undone."
 msgstr ""
 
 msgid ""
@@ -8762,6 +8782,12 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
+msgstr ""
+
+msgid ""
+"Upper half area:  Original\n"
+"Lower half area:  Filament in AMS\n"
+"And you cannot click it to modify"
 msgstr ""
 
 msgid "Successfully synchronized nozzle and AMS number information."
@@ -10301,8 +10327,8 @@ msgid ""
 "thickness (top+bottom solid layers)"
 msgstr ""
 "Ajoutez du remplissage solide à proximité des surfaces inclinées pour "
-"garantir l'épaisseur verticale de la coque (couches solides supérieure"
-"+inférieure)."
+"garantir l'épaisseur verticale de la coque (couches solides "
+"supérieure+inférieure)."
 
 msgid "Internal bridge support thickness"
 msgstr "Épaisseur du support interne du pont"
@@ -13934,12 +13960,12 @@ msgstr ""
 "Voulez-vous le réécrire ?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more printers; please go to printer selection"
 
 msgid "Create Printer/Nozzle"

@@ -1,12 +1,12 @@
 # Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-24 17:42+0800\n"
+"POT-Creation-Date: 2025-02-05 21:04+0800\n"
 "PO-Revision-Date: 2025-01-08 20:27+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -5408,6 +5408,12 @@ msgstr "设备状态"
 msgid "Update"
 msgstr "固件更新"
 
+msgid "Go to"
+msgstr "前往"
+
+msgid "Later"
+msgstr "稍后再说"
+
 #, c-format, boost-format
 msgid "%s error"
 msgstr "%s 错误"
@@ -5785,14 +5791,8 @@ msgstr "左喷嘴：%smm"
 msgid "Right nozzle: %smm"
 msgstr "右喷嘴：%smm"
 
-msgid "Please select a printer in 'Device' page first."
-msgstr "请先在 \"设备 \"页面选择打印机。"
-
 msgid "Sync printer information"
 msgstr "同步打印机信息"
-
-msgid "The currently connected printer does not have two extruders."
-msgstr "当前连接的打印机没有两个挤出机。"
 
 msgid ""
 "The currently selected machine preset is inconsistent with the connected "
@@ -5864,12 +5864,9 @@ msgstr ""
 "Studio，以检查是否有系统预设的更新。"
 
 msgid ""
-"\n"
-"Material and color information have been synchronized, but slot information "
-"is not included."
-msgstr ""
-"\n"
-"材料和颜色信息已同步，但不包括槽位信息。"
+"Filament type and color information have been synchronized, but slot "
+"information is not included."
+msgstr "耗材类型和颜色信息已同步，但不包括槽位信息。"
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
@@ -6153,9 +6150,6 @@ msgstr ""
 msgid "Sync now"
 msgstr "立即同步"
 
-msgid "Later"
-msgstr "稍后再说"
-
 msgid "You can keep the modified presets to the new project or discard them"
 msgstr "您可以保留修改的预设到新项目中或者忽略这些修改"
 
@@ -6303,11 +6297,6 @@ msgid "The nozzle type is not set. Please set the nozzle and try again."
 msgstr "未设置喷嘴类型。请先设置喷嘴，然后重试。"
 
 msgid ""
-"Printer not connected. Please connect or choose a printer on the Device page "
-"and try again."
-msgstr "打印机未连接。请在“设备”页面上连接或选择打印机，然后重试。"
-
-msgid ""
 "Unable to perform boolean operation on model meshes. You may fix the meshes "
 "and try again."
 msgstr "无法对模型网格执行布尔运算。您可以修复网格，然后重试。"
@@ -6360,11 +6349,31 @@ msgstr "发送到打印机"
 msgid "Custom supports and color painting were removed before repairing."
 msgstr "自定义的支撑和涂色在模型修复之前将被清除。"
 
+#, c-format, boost-format
 msgid ""
-"The currently selected machine preset is inconsistent with the connected "
-"printer type.Please change device or currently selected machine.\n"
+"Printer not connected. Please go to the device page to connect an %s printer "
+"before syncing."
+msgstr "未连接打印机，请前往设备页连接一台 %s 后再同步。"
+
+#, c-format, boost-format
+msgid ""
+"The currently connected printer on the device page is not an %s. Please "
+"switch to an %s before syncing."
+msgstr "设备页当前连接的打印机不是 %s ，无法同步，请切换成 %s 后再同步。"
+
+msgid ""
+"There are no filaments on the printer. Please load the filaments on the "
+"printer first."
+msgstr "打印机上没有任何耗材，请先去机器上放置耗材。"
+
+msgid ""
+"The filaments on the printer are all unknown types. Please go to the printer "
+"screen or software device page to set the filament type."
 msgstr ""
-"当前选择的机器预设与连接的打印机类型不一致。请更改设备或当前选择的机器。\n"
+"打印机上的耗材均为未知类型，请先去打印机屏幕或者软件设备页面设置耗材类型。"
+
+msgid "Device Page"
+msgstr "设备页"
 
 msgid "Synchronize AMS Filament Information"
 msgstr "同步AMS耗材信息"
@@ -7161,11 +7170,6 @@ msgstr "发送完成"
 msgid "Error code"
 msgstr "错误代码"
 
-msgid ""
-"Tips: If you changed your nozzle of your printer lately, Please go to "
-"'Device -> Printer parts' to change your nozzle setting."
-msgstr "注意: 如果你最近更换了喷嘴，请去“设备-打印机零件”更改设置"
-
 #, c-format, boost-format
 msgid ""
 "The nozzle flow setting of %snozzle(%s) doesn't match with the slicing "
@@ -7343,6 +7347,11 @@ msgstr "名称长度超过限制。"
 #, c-format, boost-format
 msgid "Cost %dg filament and %d changes more than optimal grouping."
 msgstr "如果使用最优分组可多节省%dg耗材和%d次换料"
+
+msgid ""
+"Tips: If you changed your nozzle of your printer lately, Please go to "
+"'Device -> Printer parts' to change your nozzle setting."
+msgstr "注意: 如果你最近更换了喷嘴，请去“设备-打印机零件”更改设置"
 
 #, c-format, boost-format
 msgid ""
@@ -7664,8 +7673,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "在录制无工具头延时摄影视频时，建议添加“延时摄影擦料塔”\n"
 "右键单击打印板的空白位置，选择“添加标准模型”->“延时摄影擦料塔”。"
@@ -8306,6 +8315,11 @@ msgid "—> "
 msgstr ""
 
 msgid ""
+"Printer not connected. Please connect or choose a printer on the Device page "
+"and try again."
+msgstr "打印机未连接。请在“设备”页面上连接或选择打印机，然后重试。"
+
+msgid ""
 "Synchronizing AMS filaments will discard your modified but unsaved filament "
 "presets.\n"
 "Are you sure you want to continue?"
@@ -8374,6 +8388,14 @@ msgid ""
 "Only synchronize filament type and color, not including AMS slot information."
 msgstr "仅同步耗材类型和颜色，不包含AMS槽位信息。"
 
+msgid ""
+"Replace the project filaments list sequentially based on printer filaments. "
+"And unused printer filaments will be automatically added to the end of the "
+"list."
+msgstr ""
+"使用打印机内的耗材，依次替换项目耗材列表。未使用的打印机耗材将自动添加至列表"
+"末尾。"
+
 msgid "Advanced settings >"
 msgstr "高级设置 >"
 
@@ -8383,10 +8405,8 @@ msgstr "未使用的AMS耗材也添加到耗材列表。"
 msgid "Automatically merge the same colors in the model after mapping."
 msgstr "匹配后自动合并模型中的相同颜色。"
 
-msgid ""
-"The project's filament list will be directly replaced with the information "
-"of all filaments from the printer. This action cannot be undone."
-msgstr "项目耗材列表将直接被来自打印机的所有的耗材信息替换。此操作不可撤销。"
+msgid "After being synced, this action cannot be undone."
+msgstr "同步后，此操作不可撤销。"
 
 msgid ""
 "After being synced, the project's filament presets and colors will be "
@@ -8441,6 +8461,15 @@ msgstr ""
 #, c-format, boost-format
 msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
 msgstr "%1s材料在使用%2s的喷嘴打印时,可能会导致喷嘴损坏。"
+
+msgid ""
+"Upper half area:  Original\n"
+"Lower half area:  Filament in AMS\n"
+"And you cannot click it to modify"
+msgstr ""
+"上半部分：原项目耗材\n"
+"下半部分：AMS中的耗材\n"
+"您不能单击它进行修改"
 
 msgid "Successfully synchronized nozzle and AMS number information."
 msgstr "喷嘴信息和AMS数量同步成功。"
@@ -13158,8 +13187,8 @@ msgstr ""
 "你想重写预设吗"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "我们会将预设重命名为“供应商 类型 系列 @您选择的打印机”。\n"
@@ -14535,6 +14564,30 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid ""
+#~ "Material and color information have been synchronized, but slot "
+#~ "information is not included."
+#~ msgstr "材料和颜色信息已同步，但不包括槽位信息。"
+
+#~ msgid "Please select a printer in 'Device' page first."
+#~ msgstr "请先在 \"设备 \"页面选择打印机。"
+
+#~ msgid "The currently connected printer does not have two extruders."
+#~ msgstr "当前连接的打印机没有两个挤出机。"
+
+#~ msgid ""
+#~ "The currently selected machine preset is inconsistent with the connected "
+#~ "printer type.Please change device or currently selected machine.\n"
+#~ msgstr ""
+#~ "当前选择的机器预设与连接的打印机类型不一致。请更改设备或当前选择的机器。\n"
+
+#~ msgid ""
+#~ "The project's filament list will be directly replaced with the "
+#~ "information of all filaments from the printer. This action cannot be "
+#~ "undone."
+#~ msgstr ""
+#~ "项目耗材列表将直接被来自打印机的所有的耗材信息替换。此操作不可撤销。"
 
 #, c-format, boost-format
 #~ msgid "Only the %s with external filament spool can print TPU"
@@ -21077,8 +21130,8 @@ msgstr ""
 #~ msgstr "正在准备设置页"
 
 #~ msgid ""
-#~ "You have the following presets with saved options for \"Print Host upload"
-#~ "\""
+#~ "You have the following presets with saved options for \"Print Host "
+#~ "upload\""
 #~ msgstr "您的以下预设中包含未保存的选项“打印主机上传”"
 
 #~ msgid ""
