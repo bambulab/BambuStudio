@@ -2916,6 +2916,20 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
         p->plater->pop_warning_and_go_to_device_page(printer_name, Plater::PrinterWarningType::NOT_CONNECTED, _L("Sync printer information"));
         return;
     }
+    bool exist_at_list_one_filament =false;
+    for (auto &cur : list) {
+        auto temp_config    = cur.second;
+        auto filament_type  = temp_config.opt_string("filament_type", 0u);
+        auto filament_color = temp_config.opt_string("filament_colour", 0u);
+        if (!filament_type.empty() || temp_config.opt_bool("filament_exist", 0u)) {
+            exist_at_list_one_filament = true;
+            break;
+        }
+    }
+    if (!exist_at_list_one_filament) {
+        p->plater->pop_warning_and_go_to_device_page("", Plater::PrinterWarningType::EMPTY_FILAMENT, _L("Sync printer information"));
+        return;
+    }
     if (!wxGetApp().plater()->is_same_printer_for_connected_and_selected()) {
         return;
     }
@@ -10655,9 +10669,7 @@ int Plater::new_project(bool skip_confirm, bool silent, const wxString &project_
     return wxID_YES;
 }
 
-
-
-bool Plater::try_sync_preset_with_connected_printer()
+bool Plater::try_sync_preset_with_connected_printer(int& nozzle_diameter)
 {
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev)
@@ -10687,7 +10699,8 @@ bool Plater::try_sync_preset_with_connected_printer()
 
     std::string printer_model = machine_preset->config.option<ConfigOptionString>("printer_model")->value;
     bool sync_printer_preset = false;
-    bool is_multi_extruder = machine_preset->config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size() > 1;
+    nozzle_diameter          = machine_preset->config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
+    bool is_multi_extruder   = nozzle_diameter > 1;
     if (!wxGetApp().app_config->has("sync_after_load_file_show_flag")) {
         if (printer_preset.get_current_printer_type(preset_bundle) != printer_type || !is_approx((float)(preset_nozzle_diameter), machine_nozzle_diameter)) {
             wxString tips;
@@ -10851,8 +10864,9 @@ int Plater::load_project(wxString const &filename2,
 
     // only pop up in 3mf
     if (!this->m_exported_file && !this->m_only_gcode){
-        auto ok = try_sync_preset_with_connected_printer();
-        if (ok) {
+        int nozzle_diameter = 1;
+        auto ok = try_sync_preset_with_connected_printer(nozzle_diameter);
+        if (ok && nozzle_diameter > 1) {
             sidebar().pop_sync_nozzle_and_ams_ialog();
         }
     }
@@ -15366,6 +15380,10 @@ void Plater::pop_warning_and_go_to_device_page(wxString printer_name, PrinterWar
 
     } else if (type == PrinterWarningType::INCONSISTENT) {
         content = wxString::Format(_L("The currently connected printer on the device page is not an %s. Please switch to an %s before syncing."), printer_name, printer_name);
+    } else if (type == PrinterWarningType::UNINSTALL_FILAMENT) {
+        content = _L("There are no filaments on the printer. Please load the filaments on the printer first.");
+    } else if (type == PrinterWarningType::EMPTY_FILAMENT) {
+        content = _L("The filaments on the printer are all unknown types. Please go to the printer screen or software device page to set the filament type.");
     }
     MessageDialog dlg(this, content, title, wxOK | wxFORWARD | wxICON_WARNING, _L("Device Page"));
     auto          result = dlg.ShowModal();

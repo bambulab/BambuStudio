@@ -263,7 +263,7 @@ public:
     void render_project_state_debug_window() const;
 #endif // ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
 
-    bool try_sync_preset_with_connected_printer();
+    bool try_sync_preset_with_connected_printer(int &nozzle_diameter);
 
     Sidebar& sidebar();
     const Model& model() const;
@@ -499,6 +499,8 @@ public:
     enum class PrinterWarningType {
         NOT_CONNECTED,
         INCONSISTENT,
+        UNINSTALL_FILAMENT,
+        EMPTY_FILAMENT
     };
     void pop_warning_and_go_to_device_page(wxString printer_name, PrinterWarningType type, const wxString &title);
     bool check_printer_initialized(MachineObject *obj, bool only_warning = false);
