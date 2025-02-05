@@ -1328,6 +1328,7 @@ bool TrianglePatch::is_fragment() const
 }
 
 float TriangleSelectorPatch::gap_area = TriangleSelectorPatch::GapAreaMin;
+bool  TriangleSelectorPatch::exist_gap_area = false;
 
 void TriangleSelectorPatch::render(ImGuiWrapper* imgui)
 {
@@ -1359,7 +1360,7 @@ void TriangleSelectorPatch::render(ImGuiWrapper* imgui)
             shader->set_uniform("show_wireframe", false);
         }
     }
-
+    TriangleSelectorPatch::exist_gap_area = false;
     for (size_t buffer_idx = 0; buffer_idx < m_triangle_patches.size(); ++buffer_idx) {
         if (this->has_VBOs(buffer_idx)) {
             const TrianglePatch& patch = m_triangle_patches[buffer_idx];
@@ -1368,6 +1369,7 @@ void TriangleSelectorPatch::render(ImGuiWrapper* imgui)
                 size_t color_idx = (size_t)*patch.neighbor_types.begin();
                 color = m_ebt_colors[color_idx];
                 color[3] = 0.85;
+                TriangleSelectorPatch::exist_gap_area = true;
             }
             else {
                 size_t color_idx = (size_t)patch.type;
