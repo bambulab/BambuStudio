@@ -549,14 +549,23 @@ protected:
         }
 
         std::set<int> extruder_ids;
+        std::set<int> tpu_extruder_ids;
         for (int i = 0; i < m_items.size(); i++) {
             Item& p = m_items[i];
             if (p.is_virt_object) continue;
             extruder_ids.insert(p.extrude_ids.begin(),p.extrude_ids.end());
+            for (int j = 0; j < p.extrude_ids.size(); j++) {
+                if (p.filament_types[j] == "TPU") tpu_extruder_ids.insert(p.extrude_ids[j]);
+            }
+        }
+        for (int j = 0; j < item.extrude_ids.size(); j++) {
+            if (item.filament_types[j] == "TPU") tpu_extruder_ids.insert(item.extrude_ids[j]);
         }
 
+        // do not allow more than 1 TPU extruder on same plate
+        if (tpu_extruder_ids.size() > 1) score += LARGE_COST_TO_REJECT;
         // add a large cost if not multi materials on same plate is not allowed
-        if (!params.allow_multi_materials_on_same_plate) {
+        else if (!params.allow_multi_materials_on_same_plate) {
             // it's the first object, which can be multi-color
             bool first_object                 = extruder_ids.empty();
             // the two objects (previously packed items and the current item) are considered having same color if either one's colors are a subset of the other
@@ -984,6 +993,7 @@ static void process_arrangeable(const ArrangePolygon &arrpoly,
     item.priority(arrpoly.priority);
     item.itemId(arrpoly.itemid);
     item.extrude_ids = arrpoly.extrude_ids;
+    item.filament_types = arrpoly.filament_types;
     item.height = arrpoly.height;
     item.name = arrpoly.name;
     //BBS: add virtual object logic

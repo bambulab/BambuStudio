@@ -62,6 +62,7 @@ struct ArrangePolygon {
     int       row{0};
     int       col{0};
     std::vector<int> extrude_ids{};      /// extruder_id for least extruder switch
+    std::vector<std::string> filament_types{}; /// filament type for different material judge
     int filament_temp_type{ -1 };
     int       bed_temp{0};         ///bed temperature for different material judge
     int       print_temp{0};      ///print temperature for different material judge
