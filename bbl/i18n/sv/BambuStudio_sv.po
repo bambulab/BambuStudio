@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-24 17:42+0800\n"
+"POT-Creation-Date: 2025-02-05 21:04+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -5525,6 +5525,12 @@ msgstr "Status"
 msgid "Update"
 msgstr "Uppdatera"
 
+msgid "Go to"
+msgstr ""
+
+msgid "Later"
+msgstr ""
+
 #, c-format, boost-format
 msgid "%s error"
 msgstr "%s fel"
@@ -5911,13 +5917,7 @@ msgstr ""
 msgid "Right nozzle: %smm"
 msgstr ""
 
-msgid "Please select a printer in 'Device' page first."
-msgstr ""
-
 msgid "Sync printer information"
-msgstr ""
-
-msgid "The currently connected printer does not have two extruders."
 msgstr ""
 
 msgid ""
@@ -5989,9 +5989,8 @@ msgstr ""
 "för att kontrollera om det finns en uppdatering av system inställningarna."
 
 msgid ""
-"\n"
-"Material and color information have been synchronized, but slot information "
-"is not included."
+"Filament type and color information have been synchronized, but slot "
+"information is not included."
 msgstr ""
 
 #, boost-format
@@ -6289,9 +6288,6 @@ msgstr ""
 msgid "Sync now"
 msgstr ""
 
-msgid "Later"
-msgstr ""
-
 msgid "You can keep the modified presets to the new project or discard them"
 msgstr ""
 "Du kan behålla de modifierade inställningarna i det nya projektet eller "
@@ -6441,11 +6437,6 @@ msgid "The nozzle type is not set. Please set the nozzle and try again."
 msgstr ""
 
 msgid ""
-"Printer not connected. Please connect or choose a printer on the Device page "
-"and try again."
-msgstr ""
-
-msgid ""
 "Unable to perform boolean operation on model meshes. You may fix the meshes "
 "and try again."
 msgstr ""
@@ -6496,9 +6487,29 @@ msgstr "Skicka till skrivare"
 msgid "Custom supports and color painting were removed before repairing."
 msgstr "Custom support och färgläggning raderades innan reparation."
 
+#, c-format, boost-format
 msgid ""
-"The currently selected machine preset is inconsistent with the connected "
-"printer type.Please change device or currently selected machine.\n"
+"Printer not connected. Please go to the device page to connect an %s printer "
+"before syncing."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"The currently connected printer on the device page is not an %s. Please "
+"switch to an %s before syncing."
+msgstr ""
+
+msgid ""
+"There are no filaments on the printer. Please load the filaments on the "
+"printer first."
+msgstr ""
+
+msgid ""
+"The filaments on the printer are all unknown types. Please go to the printer "
+"screen or software device page to set the filament type."
+msgstr ""
+
+msgid "Device Page"
 msgstr ""
 
 msgid "Synchronize AMS Filament Information"
@@ -7301,11 +7312,6 @@ msgstr "skicka slutförd"
 msgid "Error code"
 msgstr "Felkod"
 
-msgid ""
-"Tips: If you changed your nozzle of your printer lately, Please go to "
-"'Device -> Printer parts' to change your nozzle setting."
-msgstr ""
-
 #, c-format, boost-format
 msgid ""
 "The nozzle flow setting of %snozzle(%s) doesn't match with the slicing "
@@ -7495,6 +7501,11 @@ msgstr "Namnlängden överskrider gränsen."
 
 #, c-format, boost-format
 msgid "Cost %dg filament and %d changes more than optimal grouping."
+msgstr ""
+
+msgid ""
+"Tips: If you changed your nozzle of your printer lately, Please go to "
+"'Device -> Printer parts' to change your nozzle setting."
 msgstr ""
 
 #, c-format, boost-format
@@ -7830,8 +7841,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "När du spelar in timelapse utan verktygshuvud rekommenderas att du lägger "
 "till ett \"Timelapse Wipe Tower\".\n"
@@ -8500,6 +8511,11 @@ msgid "—> "
 msgstr ""
 
 msgid ""
+"Printer not connected. Please connect or choose a printer on the Device page "
+"and try again."
+msgstr ""
+
+msgid ""
 "Synchronizing AMS filaments will discard your modified but unsaved filament "
 "presets.\n"
 "Are you sure you want to continue?"
@@ -8562,6 +8578,12 @@ msgid ""
 "Only synchronize filament type and color, not including AMS slot information."
 msgstr ""
 
+msgid ""
+"Replace the project filaments list sequentially based on printer filaments. "
+"And unused printer filaments will be automatically added to the end of the "
+"list."
+msgstr ""
+
 msgid "Advanced settings >"
 msgstr ""
 
@@ -8571,9 +8593,7 @@ msgstr ""
 msgid "Automatically merge the same colors in the model after mapping."
 msgstr ""
 
-msgid ""
-"The project's filament list will be directly replaced with the information "
-"of all filaments from the printer. This action cannot be undone."
+msgid "After being synced, this action cannot be undone."
 msgstr ""
 
 msgid ""
@@ -8604,8 +8624,8 @@ msgstr ""
 msgid ""
 "Timelapse is not supported because Print sequence is set to \"By object\"."
 msgstr ""
-"Timelapse stöds inte eftersom utskrifts sekvensen är inställd på \"Per objekt"
-"\"."
+"Timelapse stöds inte eftersom utskrifts sekvensen är inställd på \"Per "
+"objekt\"."
 
 msgid ""
 "You selected external and AMS filament at the same time in an extruder, you "
@@ -8631,6 +8651,12 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
+msgstr ""
+
+msgid ""
+"Upper half area:  Original\n"
+"Lower half area:  Filament in AMS\n"
+"And you cannot click it to modify"
 msgstr ""
 
 msgid "Successfully synchronized nozzle and AMS number information."
@@ -13659,12 +13685,12 @@ msgstr ""
 "Vill du skriva om det?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more printers; please go to printer selection"
 
 msgid "Create Printer/Nozzle"
@@ -17632,9 +17658,9 @@ msgstr ""
 #~ "Tack för att du har köpt en Bambu Lab enhet. Innan du använder din Bambu "
 #~ "Lab enhet ska du läsa villkoren. Genom att klicka för att godkänna "
 #~ "användningen av din Bambu Lab enhet godkänner du att följa "
-#~ "sekretesspolicyn och användningsvillkoren (gemensamt kallade \"Villkor"
-#~ "\"). Om du inte följer eller samtycker till Bambu Labs integritetspolicy "
-#~ "ska du inte använda Bambu Labs utrustning och tjänster."
+#~ "sekretesspolicyn och användningsvillkoren (gemensamt kallade "
+#~ "\"Villkor\"). Om du inte följer eller samtycker till Bambu Labs "
+#~ "integritetspolicy ska du inte använda Bambu Labs utrustning och tjänster."
 
 #~ msgid "The %s filament is too soft to be used with the AMS"
 #~ msgstr "Filament %s är för mjukt för att kunna användas med AMS"
