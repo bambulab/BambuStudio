@@ -150,6 +150,7 @@ public:
 
     // BBS: fix me
     static float gap_area;
+    static bool exist_gap_area;
 
 protected:
     // Release the geometry data, release OpenGL VBOs.
