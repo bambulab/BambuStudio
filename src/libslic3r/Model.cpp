@@ -3952,6 +3952,11 @@ void ModelInstance::get_arrange_polygon(void *ap, const Slic3r::DynamicPrintConf
 //    static const double SIMPLIFY_TOLERANCE_MM = 0.1;
 
     Geometry::Transformation trafo_instance = get_transformation();
+
+    //BOOST_LOG_TRIVIAL(debug) << "get_arrange_polygon: " << object->name << " instance trans:\n"
+    //                         << trafo_instance.get_matrix().matrix() << "\n object trans:\n"
+    //                         << object->volumes.front()->get_transformation().get_matrix().matrix();
+
     trafo_instance.set_offset(Vec3d(0, 0, get_offset(Z)));
 
     Polygon p = get_object()->convex_hull_2d(trafo_instance.get_matrix());

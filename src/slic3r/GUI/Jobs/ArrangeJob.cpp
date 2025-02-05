@@ -100,8 +100,30 @@ void ArrangeJob::clear_input()
 ArrangePolygon ArrangeJob::prepare_arrange_polygon(void* model_instance)
 {
     ModelInstance* instance = (ModelInstance*)model_instance;
-    const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
-    return get_instance_arrange_poly(instance, config);
+    auto preset_bundle = wxGetApp().preset_bundle;
+    const Slic3r::DynamicPrintConfig& config = preset_bundle->full_config();
+    ArrangePolygon ap = get_instance_arrange_poly(instance, config);
+
+    // get filament types such as PLA, ABS, etc.
+    ap.filament_types.clear();
+    for (size_t i = 0; i < preset_bundle->filament_presets.size(); ++i) {
+        auto iter = std::find(ap.extrude_ids.begin(), ap.extrude_ids.end(), i + 1);
+        if (iter == ap.extrude_ids.end()) continue;
+
+        std::string filament_name = preset_bundle->filament_presets[i];
+        for (int f_index = 0; f_index < preset_bundle->filaments.size(); f_index++) {
+            PresetCollection *filament_presets = &preset_bundle->filaments;
+            Preset           *preset           = &filament_presets->preset(f_index);
+            int               size             = preset_bundle->filaments.size();
+            if (preset && filament_name.compare(preset->name) == 0) {
+                std::string display_filament_type;
+                std::string filament_type = preset->config.get_filament_type(display_filament_type);
+                ap.filament_types.push_back(filament_type);
+            }
+        }
+    }
+
+    return ap;
 }
 
 void ArrangeJob::prepare_selected() {
@@ -633,7 +655,8 @@ void ArrangeJob::process()
         BOOST_LOG_TRIVIAL(warning)<< "Arrange full params: "<< params.to_json();
         BOOST_LOG_TRIVIAL(info) << boost::format("arrange: items selected before arranging: %1%") % m_selected.size();
         for (auto selected : m_selected) {
-            BOOST_LOG_TRIVIAL(debug) << selected.name << ", extruder: " << selected.extrude_ids.back() << ", bed: " << selected.bed_idx
+            BOOST_LOG_TRIVIAL(debug) << selected.name << ", extruder: " << VectorFormatter( selected.extrude_ids)
+                                     << ", filament types: " << VectorFormatter(selected.filament_types) << ", bed: " << selected.bed_idx
                                      << ", filemant_type:" << selected.filament_temp_type << ", trans: " << selected.translation.transpose()
                                      << ", rotation: " << selected.rotation;
         }

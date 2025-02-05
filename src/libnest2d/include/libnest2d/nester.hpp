@@ -76,7 +76,8 @@ class _Item {
 public:
     int itemid_{ 0 };
     std::vector<int> extrude_ids;
-    int filament_temp_type = -1; // -1 means unset. otherwise should be {0,1,2}
+    std::vector<std::string> filament_types{};        /// filament type for different material judge
+    int filament_temp_type = -1; // -1 means unset. otherwise should be one of FilamentTempType ie {0,1,2}
     double height{ 0 };
     double print_temp{ 0 };
     double bed_temp{ 0 };
