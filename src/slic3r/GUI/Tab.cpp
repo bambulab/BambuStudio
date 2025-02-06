@@ -6132,7 +6132,7 @@ void Tab::switch_excluder(int extruder_id, bool reload)
                 if (opt.second.second >= 0) {
                     const_cast<int &>(opt.second.second) = index;
                     page->m_opt_id_map.insert({opt.second.first + "#" + std::to_string(index), opt.first});
-                    group->draw_multi_extruder = !is_extruder && variant_ctrl->IsThisEnabled();
+                    group->draw_multi_extruder = !is_extruder && variant_ctrl->IsThisEnabled() && m_type == Preset::TYPE_FILAMENT;
                 }
             }
         }
@@ -6168,13 +6168,15 @@ void Tab::sync_excluder()
     auto left_str = std::to_string(left_index);
     auto right_str = std::to_string(right_index);
     auto dirty_options = m_presets->current_dirty_options(true);
+    wxString left_copy_sumary, right_copy_sumary;
     for (int i = 0; i < dirty_options.size(); ++i) {
         auto &opt = dirty_options[i];
         auto n= opt.find('#');
         if (n == std::string::npos)
             continue;
         auto field = m_active_page->get_field(opt.substr(0, n), active_index + 256);
-        if (field == nullptr)
+        auto line = m_active_page->get_line(opt.substr(0, n), active_index + 256);
+        if (field == nullptr || line == nullptr)
             continue;
         ++n;
         bool left  = opt.substr(n) == left_str;
@@ -6191,13 +6193,29 @@ void Tab::sync_excluder()
             option->set_at(option, right_index, left_index);
         else
             option->set_at(option, left_index, right_index);
+        std::string value = option->vserialize()[left_index];
+        auto & copy_sumary = left ? right_copy_sumary : left_copy_sumary;
+        copy_sumary.Append(wxString::Format("\n%c %s: %s", left ? '>' : '<', _L(line->label), from_u8(value)));
     }
-    reload_config();
-    update_changed_ui();
-    update();
-    if (m_active_page)
-        m_active_page->update_visibility(m_mode, true);
-    m_page_view->GetParent()->Layout();
+    wxString sumary = _L("No modifications need to be copied.");
+    if (!left_copy_sumary.IsEmpty() || !right_copy_sumary.IsEmpty()) {
+        reload_config();
+        update_changed_ui();
+        update();
+        if (m_active_page)
+            m_active_page->update_visibility(m_mode, true);
+        m_page_view->GetParent()->Layout();
+        if (!left_copy_sumary.IsEmpty())
+            sumary = _L("Copied the following parameters to the left nozzle:") + left_copy_sumary;
+        else
+            sumary.Clear();
+        if (!right_copy_sumary.IsEmpty()) {
+            if (!sumary.IsEmpty()) sumary.Append('\n');
+            sumary.Append(_L("Copied the following parameters to the right nozzle:") + right_copy_sumary);
+        }
+    }
+    MessageDialog md(wxGetApp().plater(), sumary, _L("Copy paramters"), wxICON_INFORMATION | wxOK);
+    md.ShowModal();
 }
 
 void Tab::compatible_widget_reload(PresetDependencies &deps)
