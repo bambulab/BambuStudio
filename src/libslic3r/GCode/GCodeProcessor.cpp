@@ -887,7 +887,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
         filament_blocks.emplace_back(filament_id, line_id, -1);
         };
 
-    auto gcode_time_handler = [&temp_construct_block,&filament_blocks, &extruder_blocks, &offsets, &handle_nozzle_change_line , & process_placeholders, &is_temporary_decoration, & process_line_move, & g1_lines_counter, & machine_start_gcode_end_line_id, & machine_end_gcode_start_line_id,handle_filament_change](std::string& gcode_line, std::string& gcode_buffer, int& line_id) {
+    auto gcode_time_handler = [&temp_construct_block,&filament_blocks, &extruder_blocks, &offsets, &handle_nozzle_change_line , & process_placeholders, &is_temporary_decoration, & process_line_move, & g1_lines_counter, & machine_start_gcode_end_line_id, & machine_end_gcode_start_line_id,handle_filament_change](std::string& gcode_line, std::string& gcode_buffer, int line_id) {
         auto [processed, lines_added_count] = process_placeholders(gcode_line,line_id);
         if (processed && lines_added_count > 0)
             offsets.push_back({ line_id, lines_added_count });
@@ -899,8 +899,6 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                 ) {
                 // remove temporary lines, add lines M73 where needed
                 unsigned int extra_lines_count = process_line_move(gcode_buffer, g1_lines_counter++);
-                if (extra_lines_count > 0)
-                    line_id += extra_lines_count;
                 if (extra_lines_count > 0)
                     offsets.push_back({ line_id, extra_lines_count });
             }
@@ -1060,7 +1058,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
     }
 
     auto pre_operation_iter = inserted_operation_lines.begin();
-    auto filament_change_handle = [&inserted_operation_lines, &pre_operation_iter,enable_pre_heating = context.enable_pre_heating](std::string& gcode_line, std::string& gcode_buffer, int& line_id) {
+    auto filament_change_handle = [&inserted_operation_lines, &pre_operation_iter,enable_pre_heating = context.enable_pre_heating](std::string& gcode_line, std::string& gcode_buffer, int line_id) {
         if (pre_operation_iter == inserted_operation_lines.end())
             return;
         if (line_id == pre_operation_iter->first) {
