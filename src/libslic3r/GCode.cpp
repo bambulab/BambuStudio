@@ -3633,9 +3633,8 @@ GCode::LayerResult GCode::process_layer(
     gcode += this->change_layer(print_z);  // this will increase m_layer_index
     m_layer = &layer;
     m_object_layer_over_raft = false;
-    if ((printer_structure == PrinterStructure::psI3 || m_config.nozzle_diameter.values.size() == 2)
-        && !need_insert_timelapse_gcode_for_traditional && !m_spiral_vase
-        && print.config().print_sequence == PrintSequence::ByLayer) {
+    if (!need_insert_timelapse_gcode_for_traditional) {
+        // Equivalent to the timelapse gcode placed in layer_change_gcode
         gcode += this->retract(false, false, auto_lift_type, true);
         gcode += insert_timelapse_gcode();
     }

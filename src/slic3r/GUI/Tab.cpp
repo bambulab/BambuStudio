@@ -4347,10 +4347,6 @@ void TabPrinter::toggle_options()
             toggle_option(el, !is_BBL_printer);
     }
 
-    if (m_active_page->title() == "Machine gcode") {
-        toggle_line("time_lapse_gcode",
-                    m_preset_bundle->printers.get_edited_preset().config.opt_enum<PrinterStructure>("printer_structure") == PrinterStructure::psI3 || m_preset_bundle->get_printer_extruder_count() == 2);
-    }
     wxString extruder_number;
     long val = 1;
     if ( m_active_page->title().IsSameAs("Extruder") ||
