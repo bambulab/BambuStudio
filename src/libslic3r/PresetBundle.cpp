@@ -3676,6 +3676,10 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
     for (auto& machine_model : machine_model_subfiles)
     {
         std::string subfile = path + "/" + vendor_name + "/" + machine_model.second;
+        if (!boost::filesystem::exists(subfile)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("%1% file not exist.") % subfile;
+            continue;
+        }
         VendorProfile::PrinterModel model;
         model.id = machine_model.first;
         try {

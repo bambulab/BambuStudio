@@ -482,23 +482,33 @@ std::string AppConfig::load()
     std::string error_message;
 
     try {
-        ifs.open(AppConfig::loading_path());
-
+        auto path = AppConfig::loading_path();
+        ifs.open(path);
+        if (!ifs.is_open()) {
+            BOOST_LOG_TRIVIAL(info) << "AppConfig::load() open fail:" << AppConfig::loading_path();
+            return "Line break format may be incorrect.";
+        }
 #ifdef WIN32
         std::stringstream input_stream;
         input_stream << ifs.rdbuf();
         std::string total_string = input_stream.str();
-        size_t last_pos = total_string.find_last_of('}');
-        std::string left_string = total_string.substr(0, last_pos+1);
-        //skip the "\n"
-        std::string right_string = total_string.substr(last_pos+2);
+        if (total_string.empty()) {
+            BOOST_LOG_TRIVIAL(info) << "AppConfig::load() read fail:" << AppConfig::loading_path();
+            return "read fail.";
+        } else {
+            size_t      last_pos    = total_string.find_last_of('}');
+            std::string left_string = total_string.substr(0, last_pos + 1);
+            // skip the "\n"
+            std::string right_string = total_string.substr(last_pos + 2);
 
-        std::string md5_str = appconfig_md5_hash_line({left_string.data()});
-        // Verify the checksum of the config file without taking just for debugging purpose.
-        if (md5_str != right_string)
-            BOOST_LOG_TRIVIAL(info) << "The configuration file " << AppConfig::loading_path() <<
-            " has a wrong MD5 checksum or the checksum is missing. This may indicate a file corruption or a harmless user edit.";
-        j = json::parse(left_string);
+            std::string md5_str = appconfig_md5_hash_line({left_string.data()});
+            // Verify the checksum of the config file without taking just for debugging purpose.
+            if (md5_str != right_string) {
+                BOOST_LOG_TRIVIAL(info) << "The configuration file " << AppConfig::loading_path()
+                                        << " has a wrong MD5 checksum or the checksum is missing. This may indicate a file corruption or a harmless user edit.";
+            }
+            j = json::parse(left_string);
+        }
 #else
         ifs >> j;
 #endif

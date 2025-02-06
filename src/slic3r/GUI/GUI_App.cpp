@@ -2372,8 +2372,7 @@ void GUI_App::init_app_config()
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__
             << "Configuration file may be corrupted and is not able to be parsed.Please delete the file and try again.";
             throw Slic3r::RuntimeError(
-                _u8L("BambuStudio configuration file may be corrupted and is not able to be parsed."
-                     "Please delete the file and try again.") +
+                _u8L("BambuStudio configuration file read failed. Please manually backup and delete it, and then restart BambuStudio software.") +
                 "\n\n" + app_config->config_path() + "\n\n" + error);
         }
         // Save orig_version here, so its empty if no app_config existed before this run.
