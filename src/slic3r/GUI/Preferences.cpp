@@ -1159,7 +1159,7 @@ wxWindow* PreferencesDialog::create_general_page()
         50, "single_instance");
 
     auto item_auto_transfer_when_switch_preset = create_item_checkbox(_L("Automatically transfer modified value when switching process and filament presets"), page,_L("After closing, a popup will appear to ask each time"), 50, "auto_transfer_when_switch_preset");
-    auto item_bed_type_follow_preset = create_item_checkbox(_L("Auto plate type"), page,    
+    auto item_bed_type_follow_preset = create_item_checkbox(_L("Auto plate type"), page,
                                                          _L("Studio will remember build plate selected last time for certain printer model."), 50,
                                                          "user_bed_type");
     //auto item_hints = create_item_checkbox(_L("Show \"Tip of the day\" notification after start"), page, _L("If enabled, useful hints are displayed at startup."), 50, "show_hints");
@@ -1233,8 +1233,10 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_backup_interval = create_item_backup_input(_L("every"), page, _L("The peroid of backup in seconds."), "backup_interval");
 
     //downloads
-    auto title_media = create_item_title(_L("Media"), page, _L("Media"));
+    auto title_downloads = create_item_title(_L("Downloads"), page, _L("Downloads"));
     auto item_downloads = create_item_downloads(page,50,"download_path");
+
+    auto title_media = create_item_title(_L("Media"), page, _L("Media"));
     auto item_auto_stop_liveview = create_item_checkbox(_L("Keep liveview when printing."), page, _L("By default, Liveview will pause after 15 minutes of inactivity on the computer. Check this box to disable this feature during printing."), 50, "auto_stop_liveview");
 
     //dark mode
@@ -1312,8 +1314,10 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_backup, 0, wxTOP,FromDIP(3));
     item_backup->Add(item_backup_interval, 0, wxLEFT, 0);
 
-    sizer_page->Add(title_media, 0, wxTOP| wxEXPAND, FromDIP(20));
+    sizer_page->Add(title_downloads, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_downloads, 0, wxEXPAND, FromDIP(3));
+
+    sizer_page->Add(title_media, 0, wxTOP| wxEXPAND, FromDIP(20));
     sizer_page->Add(item_auto_stop_liveview, 0, wxEXPAND, FromDIP(3));
 
 #ifdef _WIN32
