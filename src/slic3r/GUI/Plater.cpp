@@ -1132,7 +1132,7 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
 {
     MachineObject *obj = wxGetApp().getDeviceManager()->get_selected_machine();
     auto           printer_name = plater->get_selected_printer_name_in_combox();
-    if (obj == nullptr) {
+    if (obj == nullptr || !obj->is_online()) {
         plater->pop_warning_and_go_to_device_page(printer_name, Plater::PrinterWarningType::NOT_CONNECTED, _L("Sync printer information"));
         return false;
     }
@@ -2911,7 +2911,8 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
         GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
 
     auto & list = wxGetApp().preset_bundle->filament_ams_list;
-    if (list.empty()) {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "obj->is_online(): " << obj->is_online() << ","<< "list.empty()" << list.empty();
+    if (list.empty() || obj == nullptr || !obj->is_online()) {
         auto printer_name = p->plater->get_selected_printer_name_in_combox();
         p->plater->pop_warning_and_go_to_device_page(printer_name, Plater::PrinterWarningType::NOT_CONNECTED, _L("Sync printer information"));
         return;
@@ -10678,7 +10679,12 @@ bool Plater::try_sync_preset_with_connected_printer(int& nozzle_diameter)
     MachineObject* obj = dev->get_selected_machine();
     if (!obj || !obj->is_info_ready() || obj->m_extder_data.extders.size() <= 0)
         return false;
-
+    if (!obj->is_online()) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "obj->is_online(): " << obj->is_online();
+        auto printer_name = get_selected_printer_name_in_combox();
+        pop_warning_and_go_to_device_page(printer_name, Plater::PrinterWarningType::NOT_CONNECTED, _L("Sync printer information"));
+        return false;
+    }
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     Preset& printer_preset = preset_bundle->printers.get_selected_preset();
     double              preset_nozzle_diameter = 0.4;
