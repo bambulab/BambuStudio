@@ -4550,7 +4550,11 @@ void GUI_App::on_set_selected_machine(wxCommandEvent &evt)
 {
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (dev) {
-        dev->set_selected_machine(m_agent->get_user_selected_machine());
+        auto dev_id = m_agent->get_user_selected_machine();
+
+        if (dev->get_user_machine(dev_id)) {
+             dev->set_selected_machine(dev_id);
+        }
     }
 }
 
