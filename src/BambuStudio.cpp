@@ -85,10 +85,6 @@ using namespace nlohmann;
 #include "slic3r/GUI/GuiColor.hpp"
 #include <GLFW/glfw3.h>
 
-#ifdef __WXGTK__
-#include <X11/Xlib.h>
-#endif
-
 #ifdef SLIC3R_GUI
     #include "slic3r/GUI/GUI_Init.hpp"
 #endif /* SLIC3R_GUI */
@@ -1361,10 +1357,6 @@ int CLI::run(int argc, char **argv)
     ::setenv("GDK_BACKEND", "x11", /* replace */ true);
 
     ::setenv("WEBKIT_DISABLE_COMPOSITING_MODE", "1", /* replace */ false);
-
-    // Also on Linux, we need to tell Xlib that we will be using threads,
-    // lest we crash when we fire up GStreamer.
-    XInitThreads();
 #endif
 
 	// Switch boost::filesystem to utf8.
