@@ -4214,7 +4214,6 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
         // organic support default pattern is none.
         if (config.support_pattern == smpDefault) {
             config.support_pattern = smpNone;
-            support_params.support_density = 0;
         }
 
 
