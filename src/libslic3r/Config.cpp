@@ -794,6 +794,10 @@ ConfigSubstitutions ConfigBase::load_from_json(const std::string &file, ForwardC
 
 int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContext& substitution_context, bool load_inherits_to_config, std::map<std::string, std::string>& key_values, std::string& reason)
 {
+    if (!boost::filesystem::exists(file)) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("%1% file not exist.") % file;
+        return -1;
+    }
     json j;
     std::list<std::string> different_settings_append;
     std::string new_support_style;
