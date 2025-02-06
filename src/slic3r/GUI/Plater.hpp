@@ -154,8 +154,8 @@ public:
     void search();
     void jump_to_option(size_t selected);
     void jump_to_option(const std::string& opt_key, Preset::Type type, const std::wstring& category);
-    // BBS. Add on_filaments_change() method.
-    void on_filaments_change(size_t num_filaments);
+    // BBS. Add filament_added() method.
+    void on_filament_count_change(size_t num_filaments);
     void on_filaments_delete(size_t filament_id);
 
     void add_filament();
@@ -473,7 +473,8 @@ public:
     // BBS: return false if not changed
     bool leave_gizmos_stack();
 
-    void on_filaments_change(size_t extruders_count);
+    void on_filament_change(size_t filament_idx);
+    void on_filament_count_change(size_t extruders_count);
     void on_filaments_delete(size_t extruders_count, size_t filament_id, int replace_filament_id = -1);
     std::vector<std::array<float, 4>> get_extruders_colors();
     // BBS
