@@ -3928,13 +3928,14 @@ void PrintConfigDef::init_fff_params()
     def = this->add("support_style", coEnum);
     def->label = L("Style");
     def->category = L("Support");
-    def->tooltip = L("Style and shape of the support. For normal support, projecting the supports into a regular grid "
+    def->tooltip  = L("Style and shape of the support. For normal support, projecting the supports into a regular grid "
                      "will create more stable supports (default), while snug support towers will save material and reduce "
                      "object scarring.\n"
                      "For tree support, slim style will merge branches more aggressively and save "
                      "a lot of material, strong style will make larger and stronger support structure and use more materials, "
                      "while hybrid style is the combination of slim tree and normal support with normal nodes "
-                     "under large flat overhangs (default).");
+                     "under large flat overhangs. Organic style will produce more organic shaped tree structure and less interfaces which makes it easer to be removed. "
+                     "The default style is organic tree for most cases, and hybrid tree if adaptive layer height is enabled.");
     def->enum_keys_map = &ConfigOptionEnum<SupportMaterialStyle>::get_enum_values();
     def->enum_values.push_back("default");
     def->enum_values.push_back("grid");
