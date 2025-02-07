@@ -251,7 +251,7 @@ void KBShortcutsDialog::fill_shortcuts()
             {ctrl + "6", L("Camera Angle - Right side")},
 
             {ctrl + "A", L("Select all objects")},
-            {ctrl + "D", L("Delete all")},
+            {L("Shift+D"), L("Delete all")},
             {ctrl + "Z", L("Undo")},
             {ctrl + "Y", L("Redo")},
             { "M", L("Gizmo move") },

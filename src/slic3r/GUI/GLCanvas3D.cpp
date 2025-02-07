@@ -3484,17 +3484,6 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case '5': { select_view("left"); break; }
         case '6': { select_view("right"); break; }
         case '7': { select_plate(); break; }
-
-        //case WXK_BACK:
-        //case WXK_DELETE:
-#ifdef __APPLE__
-        case 'd':
-        case 'D':
-#else /* __APPLE__ */
-        case WXK_CONTROL_D:
-#endif /* __APPLE__ */
-            post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE_ALL));
-            break;
 #ifdef __APPLE__
         case 'k':
         case 'K':
@@ -3506,6 +3495,17 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         default:            evt.Skip();
         }
     } else {
+        if ((evt.GetModifiers() & shiftMask) != 0) {
+            switch (keyCode) {
+
+            case 'd':
+            case 'D':
+            case WXK_CONTROL_D:
+                post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE_ALL));
+                return;
+            }
+
+        }
         auto obj_list = wxGetApp().obj_list();
         switch (keyCode)
         {

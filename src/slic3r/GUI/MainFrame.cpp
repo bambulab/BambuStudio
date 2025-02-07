@@ -2597,7 +2597,7 @@ void MainFrame::init_menubar_as_editor()
             _L("Deletes the current selection"),[this](wxCommandEvent&) { m_plater->remove_selected(); },
             "menu_remove", nullptr, [this](){return can_delete(); }, this);
         //BBS: delete all
-        append_menu_item(editMenu, wxID_ANY, _L("Delete all") + "\t" + ctrl + "D",
+        append_menu_item(editMenu, wxID_ANY, _L("Delete all") + "\t" + _L("Shift+") + "D",
             _L("Deletes all objects"),[this](wxCommandEvent&) { m_plater->delete_all_objects_from_model(); },
             "menu_remove", nullptr, [this](){return can_delete_all(); }, this);
         editMenu->AppendSeparator();
@@ -2679,7 +2679,7 @@ void MainFrame::init_menubar_as_editor()
             "", nullptr, [this](){return can_delete(); }, this);
 #endif
         //BBS: delete all
-        append_menu_item(editMenu, wxID_ANY, _L("Delete all") + "\t" + ctrl + "D",
+        append_menu_item(editMenu, wxID_ANY, _L("Delete all") + "\t" + _L("Shift+") + "D",
             _L("Deletes all objects"),[this, handle_key_event](wxCommandEvent&) {
                 wxKeyEvent e;
                 e.SetEventType(wxEVT_KEY_DOWN);
