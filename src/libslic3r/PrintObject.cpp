@@ -407,6 +407,19 @@ void PrintObject::make_perimeters(const AutoContourHolesCompensationParams &auto
         BOOST_LOG_TRIVIAL(debug) << "Generating extra perimeters for region " << region_id << " in parallel - end";
     }
 
+#if 0
+    { // for debug
+        for (size_t layer_idx = 0; layer_idx < m_layers.size(); ++layer_idx) {
+            auto regions = m_layers[layer_idx]->regions();
+            for (size_t region_idx = 0; region_idx < regions.size(); ++region_idx) {
+                LayerRegion *layer_region = regions[region_idx];
+                std::string  name         = "before_make_perimeter_layer-" + std::to_string(layer_idx) + "-region-" + std::to_string(region_idx) + ".svg";
+                layer_region->slices.export_to_svg(debug_out_path(name.c_str()).c_str(), true);
+            }
+        }
+    }
+#endif
+
     BOOST_LOG_TRIVIAL(debug) << "Generating perimeters in parallel - start";
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, m_layers.size()),
