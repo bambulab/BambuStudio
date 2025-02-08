@@ -58,6 +58,12 @@ enum InfillPattern : int {
     ipCount,
 };
 
+enum EnsureVerticalThicknessLevel{
+    evtDisabled,
+    evtPartial,
+    evtEnabled
+};
+
 enum class IroningType {
     NoIroning,
     TopSurfaces,
@@ -883,7 +889,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat, bridge_flow))
     ((ConfigOptionFloatsNullable, overhang_totally_speed))
     ((ConfigOptionFloatsNullable, bridge_speed))
-    ((ConfigOptionBool, ensure_vertical_shell_thickness))
+    ((ConfigOptionEnum<EnsureVerticalThicknessLevel>, ensure_vertical_shell_thickness))
     ((ConfigOptionEnum<InfillPattern>, top_surface_pattern))
     ((ConfigOptionEnum<InfillPattern>, bottom_surface_pattern))
     ((ConfigOptionEnum<InfillPattern>, internal_solid_infill_pattern))

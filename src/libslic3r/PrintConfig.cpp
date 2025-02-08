@@ -187,6 +187,13 @@ static t_config_enum_values s_keys_map_WallSequence {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(WallSequence)
 
+static t_config_enum_values s_keys_map_EnsureVerticalThicknessLevel {
+    { "disabled",     int(EnsureVerticalThicknessLevel::evtDisabled) },
+    { "partial",      int(EnsureVerticalThicknessLevel::evtPartial) },
+    { "enabled",      int(EnsureVerticalThicknessLevel::evtEnabled)}
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(EnsureVerticalThicknessLevel)
+
 //BBS
 static t_config_enum_values s_keys_map_PrintSequence {
     { "by layer",     int(PrintSequence::ByLayer) },
@@ -1329,6 +1336,21 @@ void PrintConfigDef::init_fff_params()
         "(top+bottom solid layers)");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
+
+    def = this->add("ensure_vertical_shell_thickness", coEnum);
+    def->label = L("Ensure vertical shell thickness");
+    def->category = L("Strength");
+    def->tooltip = L("Add solid infill near sloping surfaces to guarantee the vertical shell thickness "
+        "(top+bottom solid layers)");
+    def->mode = comAdvanced;
+    def->enum_keys_map = &ConfigOptionEnum<EnsureVerticalThicknessLevel>::get_enum_values();
+    def->enum_values.push_back("disabled");
+    def->enum_values.push_back("partial");
+    def->enum_values.push_back("enabled");
+    def->enum_labels.push_back(L("Disabled"));
+    def->enum_labels.push_back(L("Partial"));
+    def->enum_labels.push_back(L("Enabled"));
+    def->set_default_value(new ConfigOptionEnum<EnsureVerticalThicknessLevel>(EnsureVerticalThicknessLevel::evtEnabled));
 
     def = this->add("internal_bridge_support_thickness", coFloat);
     def->label = L("Internal bridge support thickness");
@@ -5377,6 +5399,14 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
     }
     else if (opt_key == "extruder_type") {
         ReplaceString(value, "DirectDrive", "Direct Drive");
+    }
+    else if (opt_key == "ensure_vertical_shell_thickness") {
+        auto kvmap=ConfigOptionEnum<EnsureVerticalThicknessLevel>::get_enum_names();
+        // handle old values
+        if (value == "1")
+            value = ConfigOptionEnum<EnsureVerticalThicknessLevel>::get_enum_names()[EnsureVerticalThicknessLevel::evtEnabled];
+        else if (value == "0")
+            value = ConfigOptionEnum<EnsureVerticalThicknessLevel>::get_enum_names()[EnsureVerticalThicknessLevel::evtPartial];
     }
 
     // Ignore the following obsolete configuration keys:
