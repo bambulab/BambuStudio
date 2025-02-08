@@ -3743,18 +3743,23 @@ void TreeSupport::generate_contact_points()
                 bool       add_interface  = (force_tip_to_roof || area(overhang_part) > minimum_roof_area);
                 const auto &relevant_forbidden = get_collision(0, layer_nr - 1);
                 ExPolygons overhangs{overhang_part};
-                ExPolygons overhangs_regular;
+                ExPolygons overhangs_regular, overhangs_no_extra_expand;
+                if (add_interface && xy_expansion > EPSILON && !is_sharp_tail) {
+                    overhangs = safe_offset_inc(overhangs, xy_expansion, relevant_forbidden, scale_(MIN_BRANCH_RADIUS * 1.75), 0, 1);
+                }
+                overhangs_no_extra_expand = (unscale_(xy_expansion) - config.support_expansion.value) > EPSILON ?
+                                            safe_offset_inc({overhang_part}, scale_(config.support_expansion.value), relevant_forbidden, scale_(MIN_BRANCH_RADIUS * 1.75), 0, 1) :
+                                            overhangs;
                 if (m_support_params.support_style == smsTreeHybrid &&
                     (overhang_type & (BigFlat | ThinPlate))) {
-                    if (add_interface && xy_expansion > EPSILON && !is_sharp_tail) {
-                        overhangs = safe_offset_inc(overhangs, xy_expansion, relevant_forbidden, scale_(MIN_BRANCH_RADIUS * 1.75), 0, 1);
-                    }
                     overhangs_regular           = offset_ex(intersection_ex(overhangs, m_ts_data->m_layer_outlines_below[layer_nr - 1]), radius_scaled);
                     ExPolygons overhangs_normal = diff_ex(overhangs, overhangs_regular);
+                    overhangs_regular           = intersection_ex(overhangs_regular, overhangs_no_extra_expand);
                     // if the outside area is still big, we can need normal nodes
                     for (auto &overhang : overhangs_normal) {
                         if (!is_stable(layer->bottom_z(), overhang, 0)) {
-                            overhangs_regular.emplace_back(overhang);
+                            ExPolygons unstable_overhangs = intersection_ex({overhang}, overhangs_no_extra_expand);
+                            overhangs_regular.insert(overhangs_regular.end(), unstable_overhangs.begin(), unstable_overhangs.end());
                             continue;
                         }
                         BoundingBox  overhang_bounds = get_extents(overhang);
@@ -3766,8 +3771,7 @@ void TreeSupport::generate_contact_points()
                     }
                 }
                 else{
-                    if (add_interface) overhangs = safe_offset_inc(overhangs, scale_(config.support_expansion.value), relevant_forbidden, scale_(MIN_BRANCH_RADIUS * 1.75), 0, 1);
-                    overhangs_regular = overhangs;
+                    overhangs_regular = overhangs_no_extra_expand;
                 }
 
                 for (auto &overhang : overhangs_regular) {
