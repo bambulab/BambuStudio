@@ -967,6 +967,11 @@ void PrintingTaskPanel::update_left_time(int mc_left_time)
 
 void PrintingTaskPanel::update_layers_num(bool show, wxString num)
 {
+    if ((show == m_staticText_layers->IsShown()) && (num == m_staticText_layers->GetLabelText()))
+    {
+        return;
+    }
+
     if (show) {
         m_staticText_layers->Show(true);
         m_staticText_layers->SetLabelText(num);
@@ -2617,16 +2622,7 @@ void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
 
         m_staticText_z_tip->SetForegroundColour(DISCONNECT_TEXT_COL);
         m_extruder_label->SetForegroundColour(DISCONNECT_TEXT_COL);
-        m_switch_speed->SetValue(false);
     } else {
-        m_switch_speed->Enable();
-        m_switch_lamp->Enable();
-        /*m_switch_nozzle_fan->Enable();
-        m_switch_printing_fan->Enable();
-        m_switch_cham_fan->Enable();*/
-
-        m_switch_fan->Enable();
-
         m_bpButton_xy->Enable();
         m_bpButton_z_10->Enable();
         m_bpButton_z_1->Enable();
@@ -2644,7 +2640,6 @@ void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
 
         m_staticText_z_tip->SetForegroundColour(TEXT_LIGHT_FONT_COL);
         m_extruder_label->SetForegroundColour(TEXT_LIGHT_FONT_COL);
-        m_switch_speed->SetValue(true);
     }
 
     if (!temp_area) {
@@ -2777,7 +2772,7 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
         m_temp_chamber_timeout--;
     }
     else {
-        if (!cham_temp_input) { m_tempCtrl_chamber->SetTagTemp(obj->chamber_temp_target); }
+        if (!cham_temp_input && obj->is_support_chamber_edit) { m_tempCtrl_chamber->SetTagTemp(obj->chamber_temp_target); }
     }
 
     if ((obj->chamber_temp_target - obj->chamber_temp) >= TEMP_THRESHOLD_VAL) {
@@ -3424,12 +3419,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
             m_project_task_panel->set_thumbnail_img(*calib_bitmap);
     }
 
-    if (obj->is_support_layer_num) {
-        m_project_task_panel->update_layers_num(true);
-    }
-    else {
-        m_project_task_panel->update_layers_num(false);
-    }
+    m_project_task_panel->show_layers_num(obj->is_support_layer_num);
 
     update_model_info();
 

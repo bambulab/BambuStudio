@@ -678,6 +678,9 @@ void AMSControl::CreateAmsDoubleNozzle()
     m_down_road->UpdatePassRoad(AMSPanelPos::RIGHT_PANEL, -1, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
     m_extruder->OnAmsLoading(false, MAIN_NOZZLE_ID);
 
+    m_amswin->Layout();
+    m_amswin->Fit();
+
     //Thaw();
 }
 
@@ -763,6 +766,9 @@ void AMSControl::CreateAmsSingleNozzle()
     m_extruder->updateNozzleNum(1);
     m_extruder->OnAmsLoading(false, MAIN_NOZZLE_ID);
 
+    m_amswin->Layout();
+    m_amswin->Fit();
+
     //Refresh();
     //Thaw();
 }
@@ -801,7 +807,12 @@ void AMSControl::show_noams_mode()
 
 void AMSControl::show_auto_refill(bool show)
 {
-    //m_img_ams_backup->Show(show);
+    if (m_button_auto_refill->IsShown() == show)
+    {
+        return;
+    }
+
+    m_button_auto_refill->Show(show);
     m_amswin->Layout();
     m_amswin->Fit();
 }
