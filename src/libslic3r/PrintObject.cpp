@@ -1525,7 +1525,7 @@ void PrintObject::discover_vertical_shells()
         bool has_extra_layers = false;
         for (size_t region_id = 0; region_id < this->num_printing_regions(); ++region_id) {
             const PrintRegionConfig &config = this->printing_region(region_id).config();
-            if (config.ensure_vertical_shell_thickness.value) {
+            if (config.ensure_vertical_shell_thickness.value!=EnsureVerticalThicknessLevel::evtDisabled) {
                 has_extra_layers = true;
                 break;
             }
@@ -1604,7 +1604,7 @@ void PrintObject::discover_vertical_shells()
     for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
         //FIXME Improve the heuristics for a grain size.
         const PrintRegion &region = this->printing_region(region_id);
-        if (!region.config().ensure_vertical_shell_thickness.value)
+        if (region.config().ensure_vertical_shell_thickness.value==EnsureVerticalThicknessLevel::evtDisabled)
             // This region will be handled by discover_horizontal_shells().
             continue;
 
@@ -1724,7 +1724,9 @@ void PrintObject::discover_vertical_shells()
 	                        ++ i) {
                             at_least_one_top_projected = true;
 	                        const DiscoverVerticalShellsCacheEntry &cache = cache_top_botom_regions[i];
-                            combine_holes(cache.holes);
+                            if (region_config.ensure_vertical_shell_thickness.value != EnsureVerticalThicknessLevel::evtPartial) {
+                                combine_holes(cache.holes);
+                            }
                             combine_shells(cache.top_surfaces);
 	                    }
                         if (!at_least_one_top_projected && i < int(cache_top_botom_regions.size())) {
@@ -1753,7 +1755,9 @@ void PrintObject::discover_vertical_shells()
 	                        -- i) {
                                 at_least_one_bottom_projected = true;
 	                        const DiscoverVerticalShellsCacheEntry &cache = cache_top_botom_regions[i];
-							combine_holes(cache.holes);
+                            if (region_config.ensure_vertical_shell_thickness.value != EnsureVerticalThicknessLevel::evtPartial) {
+                                combine_holes(cache.holes);
+                            }
                             combine_shells(cache.bottom_surfaces);
 	                    }
 
@@ -3304,7 +3308,7 @@ void PrintObject::discover_horizontal_shells()
             }
 #endif
             // If ensure_vertical_shell_thickness, then the rest has already been performed by discover_vertical_shells().
-            if (region_config.ensure_vertical_shell_thickness.value)
+            if (region_config.ensure_vertical_shell_thickness.value!=EnsureVerticalThicknessLevel::evtDisabled)
                 continue;
 
             coordf_t print_z = layer->print_z;
@@ -3375,7 +3379,7 @@ void PrintObject::discover_horizontal_shells()
                         // No internal solid needed on this layer. In order to decide whether to continue
                         // searching on the next neighbor (thus enforcing the configured number of solid
                         // layers, use different strategies according to configured infill density:
-                        if (region_config.sparse_infill_density.value == 0) {
+                        if (region_config.sparse_infill_density.value == 0 || region_config.ensure_vertical_shell_thickness.value == EnsureVerticalThicknessLevel::evtDisabled) {
                             // If user expects the object to be void (for example a hollow sloping vase),
                             // don't continue the search. In this case, we only generate the external solid
                             // shell if the object would otherwise show a hole (gap between perimeters of
