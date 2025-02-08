@@ -4568,8 +4568,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // Detection of doubleclick on text to open emboss edit window
     auto type = m_gizmos.get_current_type();
     if (evt.LeftDClick() && !m_hover_volume_idxs.empty() &&
-        (type == GLGizmosManager::EType::Undefined //||type == GLGizmosManager::EType::Text ||
-            //type == GLGizmosManager::EType::Svg
+        (type == GLGizmosManager::EType::Undefined ||
+            type == GLGizmosManager::EType::Text ||
+            type == GLGizmosManager::EType::Svg
         )) {
         for (int hover_volume_id : m_hover_volume_idxs) {
             const GLVolume &hover_gl_volume = *m_volumes.volumes[hover_volume_id];
@@ -4582,16 +4583,26 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 continue;
             const ModelVolume *hover_volume = hover_object->volumes[hover_volume_idx];
 
-           /* if (hover_volume->text_configuration.has_value()) {
+            if (hover_volume->is_text()) {
+                m_selection.add_volumes(Selection::EMode::Volume, {(unsigned) hover_volume_id});
+                if (type == GLGizmosManager::EType::Text)
+                    m_gizmos.open_gizmo(GLGizmosManager::EType::Text); // close text
+                wxGetApp().obj_list()->update_selections();
+                m_gizmos.open_gizmo(GLGizmosManager::EType::Text);
+                return;
+            }
+           /* else if (hover_volume->text_configuration.has_value()) {
                 m_selection.add_volumes(Selection::EMode::Volume, {(unsigned) hover_volume_id});
                 if (type != GLGizmosManager::EType::Emboss) m_gizmos.open_gizmo(GLGizmosManager::EType::Emboss);
                 wxGetApp().obj_list()->update_selections();
                 return;
-            } else*/ if (hover_volume->emboss_shape.has_value()) {
+            }*/
+            else if(hover_volume->emboss_shape.has_value()){
                 m_selection.add_volumes(Selection::EMode::Volume, {(unsigned) hover_volume_id});
-                if (type != GLGizmosManager::EType::Svg)
-                    m_gizmos.open_gizmo(GLGizmosManager::EType::Svg);
+                if (type == GLGizmosManager::EType::Svg)
+                    m_gizmos.open_gizmo(GLGizmosManager::EType::Svg);// close svg
                 wxGetApp().obj_list()->update_selections();
+                m_gizmos.open_gizmo(GLGizmosManager::EType::Svg);
                 return;
             }
         }

@@ -40,6 +40,7 @@
 #define VIRTUAL_TRAY_ID         254
 #define START_SEQ_ID            20000
 #define END_SEQ_ID              30000
+#define SUBSCRIBE_RETRY_COUNT   5
 
 inline int correct_filament_temperature(int filament_temp)
 {
@@ -624,6 +625,7 @@ public:
     bool    is_support_layer_num { false };
     bool    nozzle_blob_detection_enabled{ false };
 
+    int last_cali_version = -1;
     int cali_version = -1;
     float                      cali_selected_nozzle_dia { 0.0 };
     // 1: record when start calibration in preset page
@@ -957,9 +959,9 @@ public:
 
     /* Msg for display MsgFn */
     typedef std::function<void(std::string topic, std::string payload)> MsgFn;
-    int publish_json(std::string json_str, int qos = 0);
-    int cloud_publish_json(std::string json_str, int qos = 0);
-    int local_publish_json(std::string json_str, int qos = 0);
+    int publish_json(std::string json_str, int qos = 0, int flag = 0);
+    int cloud_publish_json(std::string json_str, int qos = 0, int flag = 0);
+    int local_publish_json(std::string json_str, int qos = 0, int flag = 0);
     int parse_json(std::string payload, bool key_filed_only = false);
     int publish_gcode(std::string gcode_str);
 

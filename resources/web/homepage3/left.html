@@ -3,10 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta http-equiv="Cache-Control" content="max-age=7200" />
-<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />	
+<meta name="viewport" content="width=device-width,initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0,user-scalable=no">
 <title>homepage</title>
 <link rel="stylesheet" type="text/css" href="./css/common.css" />
 <link rel="stylesheet" type="text/css" href="./css/left.css" />
+<link rel="stylesheet" type="text/css" href="./css/left_mini.css" media="screen and (max-width: 168px)" />
 <link rel="stylesheet" type="text/css" href="./css/dark.css" />	
 
 <script type="text/javascript" src="../include/jquery-2.1.1.min.js"></script>
@@ -20,9 +21,9 @@
 <body class="ZScrol" onLoad="OnInit()">
 <div id="LeftBoard">
 	<div id="LoginArea">
-	<div id="Login1">
+	<div id="Login1" onClick="OnLoginOrRegister()">
 		<div id="Icon1"><img id="BBLIcon" src="../image/logo2.png" /></div>
-		<div id="LoginBtn" class="TextS1" style="font-weight: 700;" onClick="OnLoginOrRegister()"><span class="trans" tid="t26">login</span>/<span class="trans" tid="t27">register</span></div>
+		<div id="LoginBtn" class="TextS1" style="font-weight: 700;"><span class="trans" tid="t26">login</span>/<span class="trans" tid="t27">register</span></div>
 	</div>
 		
 	<div id="Login2">
@@ -42,7 +43,7 @@
 	<div id="BtnArea">
 	    <div menu="home" class="BtnItem BtnItemSelected" onClick="GotoMenu('home')">
 			<div class="BtnIcon "><img class="LeftIcon" src="img/left_home.svg" /></div>
-			<div class="BtnText trans" tid="t114">Home</div> 
+			<div class="BtnText trans" tid="t114">Home</div>
 		</div>	
 	    <div menu="recent" class="BtnItem" onClick="GotoMenu('recent')">
 			<div class="BtnIcon "><img class="LeftIcon" src="img/left_recent.svg" /></div>
@@ -56,9 +57,12 @@
 	    <div menu="makerlab" class="BtnItem" onClick="GotoMenu('makerlab')">
 			<div class="BtnIcon "><img class="LeftIcon" src="img/left_ml.svg" /></div>
 			<div class="BtnText trans" tid="">MakerLab</div>
-			<div ><img class="JumpIcon" src="img/jump.svg" /></div>
 			<div id="MakerlabNewTag" class="BtnNewIcon">New</div>
 		</div>
+	    <div menu="makersupply" class="BtnItem" onClick="GotoMenu('makersupply')">
+			<div class="BtnIcon "><img class="LeftIcon" src="img/left_ms.svg" /></div>
+			<div class="BtnText trans" tid="t125">Maker’s Supply</div>
+		</div>		
 	    <div menu="printhistory" class="BtnItem" onClick="GotoMenu('printhistory')">
 			<div class="BtnIcon "><img class="LeftIcon" src="img/left_ph.svg" /></div>
 			<div class="BtnText trans" tid="t117">Print History</div>
@@ -69,6 +73,8 @@
 		</div>		
 	</div>
 </div>
+
+<div id="HideBtn" onClick="ChangeLeftWidth()"></div>
 	
 </body>
 </html>

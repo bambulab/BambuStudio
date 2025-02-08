@@ -2695,12 +2695,13 @@ void ObjectList::split()
     }
 
     take_snapshot("Split to parts");
-
-    volume->split(filament_cnt);
-
     wxBusyCursor wait;
+    auto      model_object = (*m_objects)[obj_idx];
+    auto world_tran = model_object->instances[0]->get_transformation().get_matrix() * volume->get_matrix();
+    float scale_det = std::fabs(world_tran.matrix().block(0, 0, 3, 3).determinant());
+    volume->split(filament_cnt, scale_det);
 
-    auto model_object = (*m_objects)[obj_idx];
+
 
     auto parent = m_objects_model->GetObject(item);
     if (parent)

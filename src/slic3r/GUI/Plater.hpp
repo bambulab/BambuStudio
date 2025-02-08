@@ -792,6 +792,7 @@ private:
 };
 
 std::vector<int> get_min_flush_volumes(const DynamicPrintConfig& full_config);
+std::string check_boolean_possible(const std::vector<const ModelVolume*>& volumes);
 } // namespace GUI
 } // namespace Slic3r
 

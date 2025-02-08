@@ -167,14 +167,15 @@
 	display: none;
 	align-items: center;
 	border-radius: 22px;
-	border: 1px solid #EEEEEE;	
+	border: 1px solid #C2C2C2;	
     flex-grow: 1;
-	background-color: #FFFFFF;
+	background-color: #F7F7F7;
+	padding-right: 12px;
+	height: 40px;	
 }
 
 #HotModel_Search_InputArea
 {
-	background-color: #FFF;
 	display: flex;
 	align-items: center;
 	flex-grow: 1;
@@ -188,6 +189,7 @@
 	flex-grow: 1;
 	outline: none;
 	font-size: 16px;
+	background-color: #F7F7F7;
 }
 
 

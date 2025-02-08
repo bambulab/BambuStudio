@@ -70,7 +70,7 @@ function GotoMenu( strMenu )
 {
 	ShowMenuNewTag(strMenu,0);
 	
-	if(NowMenu==strMenu && strMenu!='makerlab')
+	if(NowMenu==strMenu && strMenu!='makersupply')
 		return;
 	
 	NowMenu=strMenu;
@@ -84,7 +84,7 @@ function GotoMenu( strMenu )
 		
 		if( $(OneBtn).attr("menu")==strMenu )
 		{
-			if(strMenu!=='makerlab')
+			if(strMenu!=='makersupply')
 			{
 				$(".BtnItem").removeClass("BtnItemSelected");						
 				$(OneBtn).addClass("BtnItemSelected");
@@ -218,6 +218,52 @@ function BeginDownloadNetworkPlugin()
 	tSend['command']="begin_network_plugin_download";
 	
 	SendWXMessage( JSON.stringify(tSend) );		
+}
+
+var WidthBoundary=168;
+function ChangeLeftWidth()
+{
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="homepage_leftmenu_change_width";
+	
+	let NowWidth=window.innerWidth;
+	if(NowWidth<=WidthBoundary)
+	{
+		tSend['width']=224;
+		
+		ShowLeftMenuTip( false );
+	}
+	else
+	{
+		tSend['width']=64;
+		
+		ShowLeftMenuTip( true );
+	}
+
+	SendWXMessage( JSON.stringify(tSend) );		
+}
+
+function ShowLeftMenuTip( bShow )
+{
+	if(bShow==true)
+	{
+		$("div[menu='home'] div.BtnIcon").prop('title',GetCurrentTextByKey('t114'));
+		$("div[menu='recent'] div.BtnIcon").prop('title',GetCurrentTextByKey('t35'));
+		$("div[menu='online'] div.BtnIcon").prop('title',GetCurrentTextByKey('t107'));
+		$("div[menu='makerlab'] div.BtnIcon").prop('title','MakerLab');
+		$("div[menu='printhistory'] div.BtnIcon").prop('title',GetCurrentTextByKey('t117'));
+		$("div[menu='manual'] div.BtnIcon").prop('title',GetCurrentTextByKey('t87'));
+	}
+	else
+	{
+		$("div[menu='home'] div.BtnIcon").removeAttr('title');
+		$("div[menu='recent'] div.BtnIcon").removeAttr('title');
+		$("div[menu='online'] div.BtnIcon").removeAttr('title');
+		$("div[menu='makerlab'] div.BtnIcon").removeAttr('title');
+		$("div[menu='printhistory'] div.BtnIcon").removeAttr('title');
+		$("div[menu='manual'] div.BtnIcon").removeAttr('title');	
+	}
 }
 
 //---------------Global-----------------

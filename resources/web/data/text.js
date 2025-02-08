@@ -115,7 +115,9 @@ var LangText={
 		"t121": "Search",
 		"t122": "Search online models",
 		"t123": "Plate",
-		"t124": ""
+		"t124": "",
+		"t125": "Maker’s Supply",
+		"t126": "Loading……"
 	},
 	"zh_CN": {
 		"t1": "欢迎使用Bambu Studio",
@@ -233,7 +235,9 @@ var LangText={
 		"t121": "搜索",
 		"t122": "搜索在线模型",
 		"t123": "第",
-		"t124": " 盘",		
+		"t124": " 盘",
+		"t125": "创客宝库",
+		"t126": "正在加载……",
 		"wk1": "快速入门指南",
 		"wk2": "本文介绍了Bambu Studio的最基本用法。它指导用户配置软件，创建项目，并逐步完成第一个打印任务。",
 		"wk3": "基于项目的工作流",
@@ -367,7 +371,8 @@ var LangText={
 		"t121": "検索",
 		"t122": "オンラインモデルを検索する",
 		"t123": "シート材",
-		"t124": ""	
+		"t124": "",
+		"t126": "読み込み中……"
 	},
 	"it_IT": {
 		"t1": "Benvenuti allo Studio Bambu",
@@ -485,7 +490,8 @@ var LangText={
 		"t121": "Ricerca",
 		"t122": "Cerca modelli online",
 		"t123": "piatto",
-		"t124": ""	
+		"t124": "",
+		"t126": "Caricamento in corso……"
 	},
 	"fr_FR": {
 		"t1": "Bienvenue chez Bambu Studio",
@@ -603,7 +609,8 @@ var LangText={
 		"t121": "Recherche",
 		"t122": "Rechercher des modèles en ligne",
 		"t123": "assiette",
-		"t124": ""			
+		"t124": "",
+		"t126": "Chargement en cours……"
 	},
 	"de_DE": {
 		"t1": "Willkommen im Bambu Studio",
@@ -721,7 +728,8 @@ var LangText={
 		"t121": "Suche",
 		"t122": "Suche Online-Modelle",
 		"t123": "Teller",
-		"t124": ""		
+		"t124": "",
+		"t126": "Laden……"
 	},
 	"hu_HU": {
 		"t1": "Üdvözöljük a Bambu Stúdióban",
@@ -839,7 +847,8 @@ var LangText={
 		"t121": "Keresés",
 		"t122": "Online modellek keresése",
 		"t123": "tányér",
-		"t124": ""			
+		"t124": "",
+		"t126": "Betöltés folyamatban……"
 	},
 	"es_ES": {
 		"t1": "Bienvenido a Bambu Studio",
@@ -957,7 +966,8 @@ var LangText={
 		"t121": "Búsqueda",
 		"t122": "Buscar modelos en línea",
 		"t123": "plato",
-		"t124": ""			
+		"t124": "",
+		"t126": "Carga en progreso……"
 	},
 	"sv_SE": {
 		"t1": "Välkommen till Bambu Studio",
@@ -1075,7 +1085,8 @@ var LangText={
 		"t121": "Sök",
 		"t122": "Sök online-modeller",
 		"t123": "fat",
-		"t124": ""			
+		"t124": "",
+		"t126": "Laddning pågår……"
 	},
 	"cs_CZ": {
 		"t1": "Vítejte v Bambu Studio",
@@ -1193,7 +1204,8 @@ var LangText={
 		"t121": "Hledat",
 		"t122": "Hledat online modely",
 		"t123": "talíř",
-		"t124": ""		
+		"t124": "",
+		"t126": "Načtení probíhá……"
 	},
 	"nl_NL": {
 		"t1": "Welkom bij Bambu Studio",
@@ -1311,7 +1323,8 @@ var LangText={
 		"t121": "Zoeken",
 		"t122": "Zoek online modellen",
 		"t123": "bord",
-		"t124": ""		
+		"t124": "",
+		"t126": "Laden in uitvoering……"
 	},
 	"uk_UA": {
 		"t1": "Вітаємо в Bambu Studio!",
@@ -1429,7 +1442,8 @@ var LangText={
 		"t121": "Пошук",
 		"t122": "Пошук онлайн-моделей",
 		"t123": "тарілка",
-		"t124": ""		
+		"t124": "",
+		"t126": "Завантаження триває……"
 	},
 	"ru_RU": {
 		"t1": "Приветствуем в Bambu Studio!",
@@ -1547,7 +1561,8 @@ var LangText={
 		"t121": "Поиск",
 		"t122": "Поиск онлайн-моделей",
 		"t123": "тарелка",
-		"t124": ""		
+		"t124": "",
+		"t126": "Загрузка идёт……"
 	},
 	"tr_TR": {
 		"t1": "Bambu Stüdyo'ya Hoş Geldiniz",
@@ -1665,7 +1680,8 @@ var LangText={
 		"t121": "Arama",
 		"t122": "Çevrimiçi modelleri arayın",
 		"t123": "tabak",
-		"t124": ""	
+		"t124": "",
+		"t126": "Yükleme devam ediyor……"
 	},
 	"pt_BR": {
 		"t1": "Bem-vindo ao Bambu Studio",
@@ -1783,7 +1799,8 @@ var LangText={
 		"t121": "Pesquisa",
 		"t122": "Procurar modelos online",
 		"t123": "prato",
-		"t124": ""			
+		"t124": "",
+		"t126": "Carregamento em andamento……"
 	},
 	"ko_KR": {
 		"t1": "Bambu Studio에 오신 것을 환영합니다",
@@ -1901,7 +1918,8 @@ var LangText={
 		"t121": "검색",
 		"t122": "온라인 모델을 검색하다",
 		"t123": "접시",
-		"t124": ""			
+		"t124": "",
+		"t126": "로딩 중……"
 	},
 	"pl_PL": {
 		"t1": "Witamy w Bambu Studio",
@@ -2019,7 +2037,8 @@ var LangText={
 		"t121": "Wyszukiwanie",
 		"t122": "Wyszukaj modele online",
 		"t123": "talerz",
-		"t124": ""			
+		"t124": "",
+		"t126": "Ładowanie trwa……"
 	}
 };
 

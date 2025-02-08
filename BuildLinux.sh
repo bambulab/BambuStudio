@@ -84,17 +84,26 @@ fi
 
 DISTRIBUTION=$(awk -F= '/^ID=/ {print $2}' /etc/os-release)
 VERSION=$(awk -F= '/^VERSION_ID=/ {print $2}' /etc/os-release)
-# treat ubuntu as debian
-if [ "${DISTRIBUTION}" == "ubuntu" ]
-then
-    DISTRIBUTION="debian"
-fi
-if [ ! -f ./linux.d/${DISTRIBUTION} ]
+# OSLIKE is a space-delineated list of similar distributions
+OSLIKE=$(awk -F= '/^ID_LIKE=/ {print $2}' /etc/os-release | tr -d '"')
+
+# Iterate over a list of candidate distribution targets, first match is used
+for CANDIDATE in ${DISTRIBUTION} ${OSLIKE}; do
+    if [ -f ./linux.d/${CANDIDATE} ]
+    then 
+        TARGET_DISTRO="${CANDIDATE}"
+        break
+    fi
+done
+
+if [ -z ${TARGET_DISTRO} ]
 then
     echo "Your distribution does not appear to be currently supported by these build scripts"
     exit 1
 fi
-source ./linux.d/${DISTRIBUTION}
+
+echo "OS distribution is '${DISTRIBUTION}'.  Using package dependencies for '${TARGET_DISTRO}'."
+source ./linux.d/${TARGET_DISTRO}
 
 echo "FOUND_GTK3=${FOUND_GTK3}"
 if [[ -z "${FOUND_GTK3_DEV}" ]]

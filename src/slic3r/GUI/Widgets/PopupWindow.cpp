@@ -16,7 +16,7 @@ bool PopupWindow::Create(wxWindow *parent, int style)
     if (!wxPopupTransientWindow::Create(parent, style))
         return false;
 #ifdef __WXGTK__
-    GetTopParent(parent)->Bind(wxEVT_ACTIVATE, &PopupWindow::topWindowActiavate, this);
+    GetTopParent(parent)->Bind(wxEVT_ACTIVATE, &PopupWindow::topWindowActivate, this);
 #endif
     return true;
 }
@@ -24,14 +24,13 @@ bool PopupWindow::Create(wxWindow *parent, int style)
 PopupWindow::~PopupWindow()
 {
 #ifdef __WXGTK__
-    GetTopParent(this)->Unbind(wxEVT_ACTIVATE, &PopupWindow::topWindowActiavate, this);
+    GetTopParent(this)->Unbind(wxEVT_ACTIVATE, &PopupWindow::topWindowActivate, this);
 #endif
 }
 
 #ifdef __WXGTK__
-void PopupWindow::topWindowActiavate(wxActivateEvent &event)
+void PopupWindow::topWindowActivate(wxActivateEvent &event)
 {
     event.Skip();
-    if (!event.GetActive() && IsShown()) DismissAndNotify();
 }
 #endif

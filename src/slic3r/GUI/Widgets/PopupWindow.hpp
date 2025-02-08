@@ -17,7 +17,7 @@ public:
 
 private:
 #ifdef __WXGTK__
-    void topWindowActiavate(wxActivateEvent &event);
+    void topWindowActivate(wxActivateEvent &event);
 #endif
 };
 

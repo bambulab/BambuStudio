@@ -310,11 +310,13 @@ void MonitorPanel::select_machine(std::string machine_sn)
     set_default();
     update_all();
 
-    m_status_info_panel->last_cali_version.reset();
-
     MachineObject *obj_ = dev->get_selected_machine();
-    if (obj_)
+    if (obj_) {
+        obj_->last_cali_version = -1;
+        obj_->reset_pa_cali_history_result();
+        obj_->reset_pa_cali_result();
         GUI::wxGetApp().sidebar().load_ams_list(obj_->dev_id, obj_);
+    }
 
     Layout();
 }
@@ -375,6 +377,8 @@ void MonitorPanel::update_all()
             ;
         }
     }
+    if (obj)
+        m_agent->install_device_cert(obj->dev_id, obj->is_lan_mode_printer());
 
     if (obj) {
         wxGetApp().reset_to_active();
@@ -477,8 +481,6 @@ bool MonitorPanel::Show(bool show)
 
     if (obj && !obj->dev_id.empty()) {
         select_machine(obj->dev_id);
-    } else {
-        select_machine("");
     }
 
     return wxPanel::Show(show);

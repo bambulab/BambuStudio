@@ -183,6 +183,11 @@ template<class RawShape> class EdgeCache {
                 contour_.full_distance += length(contour_.emap.back());
                 contour_.distances.emplace_back(contour_.full_distance);
             }
+            if (*sl::cbegin(sh)!=*sl::rcbegin(sh)) {
+                contour_.emap.emplace_back(*std::prev(endit), *sl::cbegin(sh));
+                contour_.full_distance += length(contour_.emap.back());
+                contour_.distances.emplace_back(contour_.full_distance);
+            }
         }
 
         for(auto& h : shapelike::holes(sh)) { // For the holes
@@ -195,6 +200,11 @@ template<class RawShape> class EdgeCache {
 
             while(next != endit) {
                 hc.emap.emplace_back(*(first++), *(next++));
+                hc.full_distance += length(hc.emap.back());
+                hc.distances.emplace_back(hc.full_distance);
+            }
+            if (*sl::cbegin(h) != *sl::rcbegin(h)) {
+                hc.emap.emplace_back(*std::prev(endit), *sl::cbegin(h));
                 hc.full_distance += length(hc.emap.back());
                 hc.distances.emplace_back(hc.full_distance);
             }

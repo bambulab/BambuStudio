@@ -51,6 +51,8 @@ public:
     void on_reset_page();
     void on_device_connected(MachineObject* obj);
     void msw_rescale() override;
+
+    virtual void update(MachineObject *obj) override;
 };
 
 class CalibrationFlowRateStartPage : public CalibrationStartPage
@@ -66,6 +68,8 @@ public:
     void on_reset_page();
     void on_device_connected(MachineObject* obj);
     void msw_rescale() override;
+
+    virtual void update(MachineObject *obj) override;
 };
 
 class CalibrationMaxVolumetricSpeedStartPage : public CalibrationStartPage

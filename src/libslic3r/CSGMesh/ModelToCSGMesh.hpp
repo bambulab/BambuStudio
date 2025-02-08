@@ -19,7 +19,7 @@ enum ModelParts {
 };
 
 template<class OutIt>
-bool model_to_csgmesh(const ModelObject &mo,
+bool model_to_csgmesh(const std::vector<const ModelVolume*> & volumes,
                       const Transform3d &trafo, // Applies to all exported parts
                       OutIt              out,   // Output iterator
                       // values of ModelParts OR-ed
@@ -32,7 +32,7 @@ bool model_to_csgmesh(const ModelObject &mo,
     bool do_splits     = parts_to_include & mpartsDoSplits;
     bool has_splitable_volume = false;
 
-    for (const ModelVolume *vol : mo.volumes) {
+    for (const ModelVolume *vol : volumes) {
         if (vol && vol->mesh_ptr() &&
             ((do_positives && vol->is_model_part()) ||
              (do_negatives && vol->is_negative_volume()))) {

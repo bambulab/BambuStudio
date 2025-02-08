@@ -94,6 +94,7 @@ html, body {
 	display:flex;
 	margin-bottom: 24px;
 	flex-direction:row-reverse;
+	align-items: center;
 }
 
 #MenuBtnBlock
