@@ -8407,7 +8407,7 @@ msgid "Latest version"
 msgstr "Neueste Version"
 
 msgid "Updating"
-msgstr "Aktualiseren"
+msgstr "Aktualisieren"
 
 msgid "Updating failed"
 msgstr "Aktualisierung fehlgeschlagen"
