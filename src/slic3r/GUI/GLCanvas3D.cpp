@@ -11376,6 +11376,19 @@ GLVolume *get_selected_gl_volume(const GLCanvas3D &canvas)
     return nullptr;
 }
 
+ModelObject *get_selected_model_object(GLCanvas3D &canvas) {
+    auto v = get_selected_gl_volume(canvas);
+    if (v) {
+        auto mo = get_model_object(*v, canvas.get_model()->objects);
+        return mo;
+    }
+    else {
+        int out_object_idx;
+        return canvas.get_selection().get_selected_single_object(out_object_idx);
+    }
+    return nullptr;
+}
+
 ModelObject *get_model_object(const GLVolume &gl_volume, const Model &model) { return get_model_object(gl_volume, model.objects); }
 
 ModelObject *get_model_object(const GLVolume &gl_volume, const ModelObjectPtrs &objects)

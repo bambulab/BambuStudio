@@ -616,7 +616,7 @@ void SyncAmsInfoDialog::add_two_image_control()
 void SyncAmsInfoDialog::to_next_plate(wxCommandEvent &event) {
     auto cobox_idx  = m_combobox_plate->GetSelection();
     cobox_idx++;
-    if (cobox_idx >= m_combobox_plate->GetCount()) {
+    if (cobox_idx >= (int)m_combobox_plate->GetCount()) {
         return;
     }
     m_combobox_plate->SetSelection(cobox_idx);
