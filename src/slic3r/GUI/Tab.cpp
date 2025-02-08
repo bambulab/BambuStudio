@@ -3596,7 +3596,6 @@ void TabPrinter::build_fff()
         option.opt.full_width = true;
         optgroup->append_single_option_line(option);
         optgroup->append_single_option_line("printable_height");
-        optgroup->append_single_option_line("nozzle_volume");
         optgroup->append_single_option_line("best_object_pos");
         // todo: for multi_extruder test
         // BBS
@@ -4078,10 +4077,16 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
         auto page = add_options_page(page_name, "empty", true);
         m_pages.insert(m_pages.begin() + n_before_extruders + extruder_idx, page);
 
-            auto optgroup = page->new_optgroup(L("Type"), L"param_type", -1, true);
+            auto optgroup = page->new_optgroup(L("Basic information"), L"param_type", -1, true);
             optgroup->append_single_option_line("extruder_type", "", extruder_idx);
             optgroup->append_single_option_line("nozzle_diameter", "", extruder_idx);
             //optgroup->append_single_option_line("default_nozzle_volume_type", "", extruder_idx);
+
+            optgroup->append_single_option_line("nozzle_volume", "", extruder_idx);
+            optgroup->append_single_option_line("extruder_printable_height", "", extruder_idx);
+            Option option         = optgroup->get_option("extruder_printable_area", extruder_idx);
+            option.opt.full_width = true;
+            optgroup->append_single_option_line(option);
 
             optgroup->m_on_change = [this, extruder_idx](const t_config_option_key& opt_key, boost::any value)
             {
@@ -4372,6 +4377,11 @@ void TabPrinter::toggle_options()
         toggle_option("extruder_type", !is_BBL_printer, i);
         toggle_option("nozzle_diameter", !is_BBL_printer || config_mode == ConfigOptionMode::comDevelop, i);
         toggle_option("extruder_offset", !is_BBL_printer || config_mode == ConfigOptionMode::comDevelop, i);
+
+        toggle_option("extruder_printable_area", false, i);          // disable
+        toggle_line("extruder_printable_area", m_preset_bundle->get_printer_extruder_count() == 2, i);  //hide
+        toggle_option("extruder_printable_height", false, i);
+        toggle_line("extruder_printable_height", m_preset_bundle->get_printer_extruder_count() == 2, i);
 
         bool use_firmware_retraction = m_config->opt_bool("use_firmware_retraction");
         toggle_option("retract_length",!use_firmware_retraction, i);
@@ -6111,13 +6121,13 @@ void Tab::switch_excluder(int extruder_id, bool reload)
         }
         page->m_opt_id_map.clear();
         for (auto group : page->m_optgroups) {
-            if (is_extruder && (group->title == "Type" || group->title == "Layer height limits" || group->title == "Position")) {
-                for (auto &opt : group->opt_map())
-                    page->m_opt_id_map.insert({opt.first, opt.first});
-                continue;
-            }
-            group->draw_multi_extruder = false;
             for (auto &opt : group->opt_map()) {
+                auto iter = std::find(printer_extruder_options.begin(), printer_extruder_options.end(), opt.second.first);
+                if (iter != printer_extruder_options.end()) {
+                    page->m_opt_id_map.insert({opt.first, opt.first});
+                    continue;
+                }
+
                 if (opt.second.second >= 0) {
                     const_cast<int &>(opt.second.second) = index;
                     page->m_opt_id_map.insert({opt.second.first + "#" + std::to_string(index), opt.first});
