@@ -131,7 +131,8 @@ void AppConfig::set_defaults()
 
         if (get("single_instance").empty())
             set_bool("single_instance", false);
-
+        if (get("import_3mf_as_project").empty())
+            set_bool("import_3mf_as_project", true);
 #ifdef SUPPORT_REMEMBER_OUTPUT_PATH
         if (get("remember_output_path").empty())
             set_bool("remember_output_path", true);
