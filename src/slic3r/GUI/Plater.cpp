@@ -2911,8 +2911,11 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
         GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
 
     auto & list = wxGetApp().preset_bundle->filament_ams_list;
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "obj->is_online(): " << obj->is_online() << ","<< "list.empty()" << list.empty();
     if (list.empty() || obj == nullptr || !obj->is_online()) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__  << "list.empty()" << list.empty();
+        if (obj) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "obj->is_online(): " << obj->is_online();
+        }
         auto printer_name = p->plater->get_selected_printer_name_in_combox();
         p->plater->pop_warning_and_go_to_device_page(printer_name, Plater::PrinterWarningType::NOT_CONNECTED, _L("Sync printer information"));
         return;
