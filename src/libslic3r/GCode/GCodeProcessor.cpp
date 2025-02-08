@@ -46,7 +46,7 @@ static const Slic3r::Vec3f DEFAULT_EXTRUDER_OFFSET = Slic3r::Vec3f::Zero();
 
 namespace Slic3r {
 
-const std::vector<std::string> GCodeProcessor::Reserved_Tags = {
+const std::vector<std::string> GCodeProcessor::ReservedTags = {
     " FEATURE: ",
     " WIPE_START",
     " WIPE_END",
@@ -71,10 +71,15 @@ const std::vector<std::string> GCodeProcessor::Reserved_Tags = {
     " NOZZLE_CHANGE_END"
 };
 
-const std::string GCodeProcessor::Flush_Start_Tag = " FLUSH_START";
-const std::string GCodeProcessor::Flush_End_Tag = " FLUSH_END";
-const std::string GCodeProcessor::VFlush_Start_Tag = " VFLUSH_START";
-const std::string GCodeProcessor::VFlush_End_Tag  = " VFLUSH_END";
+const std::vector<std::string> GCodeProcessor::CustomTags = {
+    " FLUSH_START",
+    " FLUSH_END",
+    " VFLUSH_START",
+    " VFLUSH_END",
+    " SKIPPABLE_START",
+    " SKIPPABLE_END",
+    " SKIPTYPE: "
+};
 
 
 const float GCodeProcessor::Wipe_Width = 0.05f;
@@ -390,6 +395,13 @@ static void recalculate_trapezoids(std::vector<GCodeProcessor::TimeBlock>& block
         next->trapezoid = block.trapezoid;
         next->flags.recalculate = false;
     }
+}
+
+void GCodeProcessor::TimeMachine::handle_time_block(const TimeBlock& block, float time, int activate_machine_idx, GCodeProcessorResult& result)
+{
+    if (block.skippable_type != SkipType::stNone)
+        result.skippable_part_time[block.skippable_type] += block.time();
+    result.moves[block.move_id].time[activate_machine_idx] = time;
 }
 
 void GCodeProcessor::TimeMachine::calculate_time(size_t keep_last_n_blocks, float additional_time, ExtrusionRole target_role, block_handler_t block_handler)
@@ -1332,6 +1344,7 @@ void GCodeProcessorResult::reset() {
     spiral_vase_layers = std::vector<std::pair<float, std::pair<size_t, size_t>>>();
     layer_filaments.clear();
     filament_change_count_map.clear();
+    skippable_part_time.clear();
     warnings.clear();
 
     //BBS: add mutex for protection of gcode result
@@ -1367,7 +1380,7 @@ bool GCodeProcessor::contains_reserved_tag(const std::string& gcode, std::string
         std::string comment = line.raw();
         if (comment.length() > 2 && comment.front() == ';') {
             comment = comment.substr(1);
-            for (const std::string& s : Reserved_Tags) {
+            for (const std::string& s : ReservedTags) {
                 if (boost::starts_with(comment, s)) {
                     ret = true;
                     found_tag = comment;
@@ -1394,7 +1407,7 @@ bool GCodeProcessor::contains_reserved_tags(const std::string& gcode, unsigned i
         std::string comment = line.raw();
         if (comment.length() > 2 && comment.front() == ';') {
             comment = comment.substr(1);
-            for (const std::string& s : Reserved_Tags) {
+            for (const std::string& s : ReservedTags) {
                 if (boost::starts_with(comment, s)) {
                     ret = true;
                     found_tag.push_back(comment);
@@ -2053,6 +2066,8 @@ void GCodeProcessor::reset()
     m_wiping = false;
     m_flushing = false;
     m_virtual_flushing = false;
+    m_skippable = false;
+    m_skippable_type = SkipType::stNone;
     m_wipe_tower = false;
     m_remaining_volume = { 0.f,0.f };
     // BBS: arc move related data
@@ -2236,9 +2251,9 @@ void GCodeProcessor::finalize(bool post_process)
     for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
         TimeMachine& machine = m_time_processor.machines[i];
         TimeMachine::CustomGCodeTime& gcode_time = machine.gcode_time;
-        machine.calculate_time(0, 0, ExtrusionRole::erNone, [&moves = m_result.moves, i](const TimeBlock& block, int time) {
-            moves[block.move_id].time[i] = time;
-            });
+        machine.calculate_time(0, 0, ExtrusionRole::erNone, [&result=m_result, i,&machine](const TimeBlock& block, int time) {
+            machine.handle_time_block(block,time,i,result);
+        });
         if (gcode_time.needed && gcode_time.cache != 0.0f)
             gcode_time.times.push_back({ CustomGCode::ColorChange, gcode_time.cache });
     }
@@ -2808,8 +2823,27 @@ void GCodeProcessor::process_tags(const std::string_view comment, bool producers
         return;
     }
 
+
+    if (boost::starts_with(comment, custom_tags(CustomETags::SKIPPABLE_START))) {
+        m_skippable = true;
+        return;
+    }
+
+    if (boost::starts_with(comment, custom_tags(CustomETags::SKIPPABLE_END))) {
+        m_skippable = false;
+        m_skippable_type = SkipType::stNone;
+        return;
+    }
+
+    // skippable type
+    if (boost::starts_with(comment, custom_tags(CustomETags::SKIPPABLE_TYPE))) {
+        std::string_view type =comment.substr(custom_tags(CustomETags::SKIPPABLE_TYPE).length());
+        set_skippable_type(type);
+        return;
+    }
+
     //BBS: flush start tag
-    if (boost::starts_with(comment, GCodeProcessor::Flush_Start_Tag)) {
+    if (boost::starts_with(comment, custom_tags(CustomETags::FLUSH_START))) {
         prev_role = m_extrusion_role;
         set_extrusion_role(erFlush);
         m_flushing = true;
@@ -2817,20 +2851,20 @@ void GCodeProcessor::process_tags(const std::string_view comment, bool producers
     }
 
     //BBS: flush end tag
-    if (boost::starts_with(comment, GCodeProcessor::Flush_End_Tag)) {
+    if (boost::starts_with(comment, custom_tags(CustomETags::FLUSH_END))) {
         set_extrusion_role(prev_role);
         m_flushing = false;
         return;
     }
 
-    if (boost::starts_with(comment, GCodeProcessor::VFlush_Start_Tag)) {
+    if (boost::starts_with(comment, custom_tags(CustomETags::VFLUSH_START))) {
         prev_role = m_extrusion_role;
         set_extrusion_role(erFlush);
         m_virtual_flushing = true;
         return;
     }
 
-    if (boost::starts_with(comment, GCodeProcessor::VFlush_End_Tag)) {
+    if (boost::starts_with(comment, custom_tags(CustomETags::VFLUSH_END))) {
         set_extrusion_role(prev_role);
         m_virtual_flushing = false;
         return;
@@ -3624,6 +3658,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
 
         TimeBlock block;
         block.move_type = type;
+        block.skippable_type = m_skippable_type;
         //BBS: don't calculate travel time into extrusion path, except travel inside start and end gcode.
         block.role = (type != EMoveType::Travel || m_extrusion_role == erCustom) ? m_extrusion_role : erNone;
         block.distance = distance;
@@ -3810,9 +3845,9 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
         blocks.push_back(block);
 
         if (blocks.size() > TimeProcessor::Planner::refresh_threshold) {
-            machine.calculate_time(TimeProcessor::Planner::queue_size, 0, erNone,[&moves = m_result.moves, i](const TimeBlock& block, int time) {
-                moves[block.move_id].time[i] = time;
-                });
+            machine.calculate_time(TimeProcessor::Planner::queue_size, 0, erNone, [&result=m_result, i,&machine](const TimeBlock& block, int time) {
+                machine.handle_time_block(block,time,i,result);
+            });
         }
     }
 
@@ -4062,6 +4097,7 @@ void GCodeProcessor::process_VG1(const GCodeReader::GCodeLine& line)
 
         TimeBlock block;
         block.move_type = type;
+        block.skippable_type = m_skippable_type;
         //BBS: don't calculate travel time into extrusion path, except travel inside start and end gcode.
         block.role = (type != EMoveType::Travel || m_extrusion_role == erCustom) ? m_extrusion_role : erNone;
         block.distance = distance;
@@ -4248,9 +4284,9 @@ void GCodeProcessor::process_VG1(const GCodeReader::GCodeLine& line)
         blocks.push_back(block);
 
         if (blocks.size() > TimeProcessor::Planner::refresh_threshold) {
-            machine.calculate_time(TimeProcessor::Planner::queue_size, 0, erNone, [&move = this->m_result.moves,i](const TimeBlock& block, int time) {
-                move[block.move_id].time[i] = time;
-                });
+            machine.calculate_time(TimeProcessor::Planner::queue_size, 0, erNone, [&result=m_result, i,&machine](const TimeBlock& block, int time) {
+                machine.handle_time_block(block,time,i,result);
+            });
         }
     }
 
@@ -4463,6 +4499,7 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
 
         TimeBlock block;
         block.move_type = type;
+        block.skippable_type = m_skippable_type;
         //BBS: don't calculate travel time into extrusion path, except travel inside start and end gcode.
         block.role = (type != EMoveType::Travel || m_extrusion_role == erCustom) ? m_extrusion_role : erNone;
         block.distance = delta_xyz;
@@ -4630,9 +4667,9 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
         blocks.push_back(block);
 
         if (blocks.size() > TimeProcessor::Planner::refresh_threshold) {
-            machine.calculate_time(TimeProcessor::Planner::queue_size, 0, erNone, [&moves = m_result.moves, i](const TimeBlock& block, int time) {
-                moves[block.move_id].time[i] = time;
-                });
+            machine.calculate_time(TimeProcessor::Planner::queue_size, 0, erNone, [&result=m_result, i,&machine](const TimeBlock& block, int time) {
+                machine.handle_time_block(block,time,i,result);
+            });
         }
     }
 
@@ -5346,6 +5383,7 @@ void GCodeProcessor::process_filament_change(int id)
         if (!machine.enabled)
             continue;
         TimeBlock block;
+        block.skippable_type = m_skippable_type;
         block.move_id = m_result.moves.size() - 1;
         block.role = erFlush;
         block.move_type = EMoveType::Tool_change;
@@ -5425,6 +5463,20 @@ void GCodeProcessor::set_extrusion_role(ExtrusionRole role)
 {
     m_used_filaments.process_role_cache(this);
     m_extrusion_role = role;
+}
+
+void GCodeProcessor::set_skippable_type(const std::string_view type)
+{
+    if (!m_skippable){
+        m_skippable_type = SkipType::stNone;
+        return;
+    }
+    auto iter = skip_type_map.find(type);
+    if(iter!=skip_type_map.end()) {
+        m_skippable_type = iter->second;
+    } else {
+        m_skippable_type = SkipType::stOther;
+    }
 }
 
 float GCodeProcessor::minimum_feedrate(PrintEstimatedStatistics::ETimeMode mode, float feedrate) const
@@ -5574,9 +5626,9 @@ void GCodeProcessor::process_custom_gcode_time(CustomGCode::Type code)
         gcode_time.needed = true;
         //FIXME this simulates st_synchronize! is it correct?
         // The estimated time may be longer than the real print time.
-        machine.simulate_st_synchronize(0, erNone, [&moves = m_result.moves, i](const TimeBlock& block, int time) {
-            moves[block.move_id].time[i] = time;
-            });
+        machine.simulate_st_synchronize(0, erNone, [&result=m_result, i,&machine](const TimeBlock& block, int time) {
+            machine.handle_time_block(block,time,i,result);
+        });
         if (gcode_time.cache != 0.0f) {
             gcode_time.times.push_back({ code, gcode_time.cache });
             gcode_time.cache = 0.0f;
@@ -5606,9 +5658,9 @@ void GCodeProcessor::simulate_st_synchronize(float additional_time, ExtrusionRol
         if (!machine.enabled)
             continue;
 
-        machine.simulate_st_synchronize(additional_time, target_role, [&moves = m_result.moves, i](const TimeBlock& block, int time) {
-            moves[block.move_id].time[i] = time;
-            });
+        machine.simulate_st_synchronize(additional_time, target_role, [&result=m_result, i,&machine](const TimeBlock& block, int time) {
+            machine.handle_time_block(block,time,i,result);
+        });
     }
 }
 

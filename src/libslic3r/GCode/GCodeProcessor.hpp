@@ -42,6 +42,16 @@ namespace Slic3r {
         Count
     };
 
+    enum SkipType
+    {
+        stTimelapse,
+        stOther,
+        stNone
+    };
+
+    const std::unordered_map<std::string_view, SkipType> skip_type_map {
+        {"timelapse", SkipType::stTimelapse}
+    };
     struct PrintEstimatedStatistics
     {
         enum class ETimeMode : unsigned char
@@ -257,6 +267,8 @@ namespace Slic3r {
         // first key stores `from` filament, second keys stores the `to` filament
         std::map<std::pair<int,int>, int > filament_change_count_map;
 
+        std::unordered_map<SkipType, float> skippable_part_time;
+
         BedType bed_type = BedType::btCount;
 #if ENABLE_GCODE_VIEWER_STATISTICS
         int64_t time{ 0 };
@@ -294,6 +306,7 @@ namespace Slic3r {
             filament_printable_reuslt = other.filament_printable_reuslt;
             layer_filaments = other.layer_filaments;
             filament_change_count_map = other.filament_change_count_map;
+            skippable_part_time = other.skippable_part_time;
 #if ENABLE_GCODE_VIEWER_STATISTICS
             time = other.time;
 #endif
@@ -381,11 +394,8 @@ namespace Slic3r {
 
     class GCodeProcessor
     {
-        static const std::vector<std::string> Reserved_Tags;
-        static const std::string Flush_Start_Tag;
-        static const std::string Flush_End_Tag;
-        static const std::string VFlush_Start_Tag;
-        static const std::string VFlush_End_Tag;
+        static const std::vector<std::string> ReservedTags;
+        static const std::vector<std::string> CustomTags;
     public:
         enum class ETags : unsigned char
         {
@@ -413,7 +423,19 @@ namespace Slic3r {
             NozzleChangeEnd
         };
 
-        static const std::string& reserved_tag(ETags tag) { return Reserved_Tags[static_cast<unsigned char>(tag)]; }
+        enum class CustomETags : unsigned char
+        {
+            FLUSH_START,
+            FLUSH_END,
+            VFLUSH_START,
+            VFLUSH_END,
+            SKIPPABLE_START,
+            SKIPPABLE_END,
+            SKIPPABLE_TYPE
+        };
+
+        static const std::string& reserved_tag(ETags tag) { return ReservedTags[static_cast<unsigned char>(tag)]; }
+        static const std::string& custom_tags(CustomETags tag) { return CustomTags[static_cast<unsigned char>(tag)]; }
         // checks the given gcode for reserved tags and returns true when finding the 1st (which is returned into found_tag)
         static bool contains_reserved_tag(const std::string& gcode, std::string& found_tag);
         // checks the given gcode for reserved tags and returns true when finding any
@@ -497,6 +519,7 @@ namespace Slic3r {
 
             EMoveType move_type{ EMoveType::Noop };
             ExtrusionRole role{ erNone };
+            SkipType skippable_type{ SkipType::stNone };
             unsigned int move_id{ 0 }; //  index of the related move vertex, will be assigned duraing gcode process
             unsigned int g1_line_id{ 0 };
             unsigned int layer_id{ 0 };
@@ -610,6 +633,8 @@ namespace Slic3r {
              * @param block_handler Handler to set the processing logic for each block and its corresponding time.
              */
             void calculate_time(size_t keep_last_n_blocks = 0, float additional_time = 0.0f, ExtrusionRole target_role = ExtrusionRole::erNone, block_handler_t block_handler = block_handler_t());
+
+            void handle_time_block(const TimeBlock& block, float time, int activate_machine_idx, GCodeProcessorResult& result);
         };
 
         struct UsedFilaments  // filaments per ColorChange
@@ -963,6 +988,8 @@ namespace Slic3r {
         bool m_flushing; // mark a section with real flush
         bool m_virtual_flushing; // mark a section with virtual flush, only for statistics
         bool m_wipe_tower;
+        bool m_skippable;
+        SkipType m_skippable_type;
         int m_object_label_id{-1};
         float m_print_z{0.0f};
         std::vector<float> m_remaining_volume;
@@ -1244,6 +1271,7 @@ namespace Slic3r {
         void store_move_vertex(EMoveType type, EMovePathType path_type = EMovePathType::Noop_move);
 
         void set_extrusion_role(ExtrusionRole role);
+        void set_skippable_type(const std::string_view type);
 
         float minimum_feedrate(PrintEstimatedStatistics::ETimeMode mode, float feedrate) const;
         float minimum_travel_feedrate(PrintEstimatedStatistics::ETimeMode mode, float feedrate) const;
