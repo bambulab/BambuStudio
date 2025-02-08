@@ -12101,7 +12101,7 @@ ProjectDropDialog::ProjectDropDialog(const std::string &filename)
     m_sizer_select_v->Add(select_f, 0, wxEXPAND, 5);
     m_sizer_select_v->Add(select_s, 0, wxEXPAND, 5);
     //m_sizer_select_v->Add(select_t, 0, wxEXPAND, 5);
-    select_radio(2);
+    select_radio(wxGetApp().app_config->get_bool("import_3mf_as_project") ? 1 : 2);
 
     m_sizer_select_h->Add(m_sizer_select_v, 0, wxALIGN_CENTER | wxLEFT, 22);
 
@@ -12284,6 +12284,11 @@ void ProjectDropDialog::on_select_radio(wxMouseEvent &event)
         if (rs->m_groupid == groupid && rs->m_radiobox->GetId() == event.GetId()) {
             set_action(rs->m_select_id);
             rs->m_radiobox->SetValue(true);
+            if (rs->m_select_id == 1) {
+                wxGetApp().app_config->set_bool("import_3mf_as_project", true);
+            } else {
+                wxGetApp().app_config->set_bool("import_3mf_as_project", false);
+            }
         }
 
 
