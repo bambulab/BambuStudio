@@ -846,27 +846,12 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
             }
         }
 
-        if (param == "enable_opengl_multi_instance") {
-            if (wxGetApp().plater()->is_project_dirty()) {
-                auto result = MessageDialog(static_cast<wxWindow *>(this), _L("The current project has unsaved changes, save it before continuing?"),
-                                            wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Save"), wxYES_NO | wxYES_DEFAULT | wxCENTRE)
-                                  .ShowModal();
-                if (result == wxID_YES) { wxGetApp().plater()->save_project(); }
-            }
-            MessageDialog msg_wingow(nullptr,
-                                     _L("Change opengl multi instance rendering requires application restart.") + "\n" +
-                                         _L("Do you want to continue?"),
-                                     _L("Enable opengl multi instance rendering"), wxYES | wxYES_DEFAULT | wxCANCEL | wxCENTRE);
-            if (msg_wingow.ShowModal() == wxID_YES) {
-                Close();
-                GetParent()->RemoveChild(this);
-                wxGetApp().recreate_GUI(_L("Enable opengl multi instance rendering"));
-            } else {
-                checkbox->SetValue(!checkbox->GetValue());
-                app_config->set_bool(param, checkbox->GetValue());
-                app_config->save();
-            }
+#ifdef __WIN32__
+        if (param == "prefer_to_use_dgpu") {
+            app_config->set_bool(param, checkbox->GetValue());
+            app_config->save();
         }
+#endif // __WIN32__
         e.Skip();
     });
 
@@ -1181,8 +1166,12 @@ wxWindow* PreferencesDialog::create_general_page()
     auto  enable_lod_settings       = create_item_checkbox(_L("Improve rendering performance by lod"), page,
                                                          _L("Improved rendering performance under the scene of multiple plates and many models."), 50,
                                                          "enable_lod");
-    auto enable_opengl_multi_instance_rendering   = create_item_checkbox(_L("Enable multi instance rendering by opengl"), page,
-                                                    _L("If enabled, it can improve certain rendering performance. But for some graphics cards, it may not be applicable, please turn it off."), 50, "enable_opengl_multi_instance");
+
+#ifdef __WIN32__
+    auto prefer_to_use_dgpu   = create_item_checkbox(_L("Prefer to use high performance GPU (Effective after manual restart Bambu Studio)"), page,
+                                                    _L("If enabled, it can improve certain rendering performance. But for some multi-gpu platforms, it may cause flickering, please turn it off."), 50, "prefer_to_use_dgpu");
+#endif // __WIN32__
+
     float range_min = 1.0, range_max = 2.5;
     auto item_grabber_size_settings = create_item_range_input(_L("Grabber scale"), page,
                                                               _L("Set grabber size for move,rotate,scale tool.") + _L("Value range") + ":[" + std::to_string(range_min) + "," +
@@ -1279,7 +1268,11 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_mouse_zoom_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_show_shells_in_preview_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_import_single_svg_and_split, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(enable_opengl_multi_instance_rendering, 0, wxTOP, FromDIP(3));
+
+#ifdef __WIN32__
+    sizer_page->Add(prefer_to_use_dgpu, 0, wxTOP, FromDIP(3));
+#endif // __WIN32__
+
     sizer_page->Add(enable_lod_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_grabber_size_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(title_presets, 0, wxTOP | wxEXPAND, FromDIP(20));

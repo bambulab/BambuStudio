@@ -2711,7 +2711,10 @@ void ImGuiWrapper::render_draw_data(ImDrawData *draw_data)
     const GLboolean was_scissor_test_enabled = glIsEnabled(GL_SCISSOR_TEST);
     GLboolean was_texture2d_enabled = GL_FALSE;
     const auto& ogl_manager = wxGetApp().get_opengl_manager();
-    const auto& gl_info = ogl_manager.get_gl_info();
+    if (!ogl_manager) {
+        return;
+    }
+    const auto& gl_info = ogl_manager->get_gl_info();
     const auto formated_gl_version = gl_info.get_formated_gl_version();
     if (formated_gl_version < 30) {
         was_texture2d_enabled = glIsEnabled(GL_TEXTURE_2D);

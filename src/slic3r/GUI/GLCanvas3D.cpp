@@ -2050,7 +2050,12 @@ void GLCanvas3D::render(bool only_init)
     glsafe(::glLightfv(GL_LIGHT0, GL_POSITION, position_top));
 
     const std::array<int, 4>& viewport = camera.get_viewport();
-    auto& ogl_manager = wxGetApp().get_opengl_manager();
+    const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+    if (!p_ogl_manager) {
+        return;
+    }
+
+    auto& ogl_manager = *p_ogl_manager;
     ogl_manager.set_viewport_size(viewport[2], viewport[3]);
 
     ogl_manager.bind_vao();
@@ -2267,11 +2272,14 @@ void GLCanvas3D::render_thumbnail(ThumbnailData &         thumbnail_data,
                                   bool                    for_picking,
                                   bool                    ban_light)
 {
-    auto& ogl_manager = wxGetApp().get_opengl_manager();
-    ogl_manager.bind_vao();
+    const auto& ogl_manager = wxGetApp().get_opengl_manager();
+    if (!ogl_manager) {
+        return;
+    }
+    ogl_manager->bind_vao();
     ModelObjectPtrs &model_objects = GUI::wxGetApp().model().objects;
     render_thumbnail(thumbnail_data, w, h, thumbnail_params, model_objects, m_volumes, camera_type, camera_view_angle_type, for_picking, ban_light);
-    ogl_manager.unbind_vao();
+    ogl_manager->unbind_vao();
 }
 
 void GLCanvas3D::render_thumbnail(ThumbnailData &           thumbnail_data,
@@ -2347,8 +2355,12 @@ void GLCanvas3D::render_thumbnail(ThumbnailData &                    thumbnail_d
 void GLCanvas3D::render_calibration_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params)
 {
     //load current plate gcode
+    const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+    if (!p_ogl_manager) {
+        return;
+    }
     m_gcode_viewer.render_calibration_thumbnail(thumbnail_data, w, h, thumbnail_params,
-        wxGetApp().plater()->get_partplate_list(), wxGetApp().get_opengl_manager());
+        wxGetApp().plater()->get_partplate_list(), *p_ogl_manager);
 }
 
 //BBS
@@ -9916,8 +9928,12 @@ void GLCanvas3D::_render_silhouette_effect()
 {;
     RenderPipelineStageModifier render_pipeline_stage_modifier(*this, ERenderPipelineStage::Silhouette);
 
-    auto& ogl_manager = wxGetApp().get_opengl_manager();
+    const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+    if (!p_ogl_manager) {
+        return;
+    }
 
+    auto& ogl_manager = *p_ogl_manager;
     {
         // BBS: render silhouette
         OpenGLManager::FrameBufferModifier frame_buffer_modifier(ogl_manager, "silhouette");
