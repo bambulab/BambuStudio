@@ -4,6 +4,7 @@
 #include "../GUI/DeviceManager.hpp"
 #include "../GUI/Jobs/ProgressIndicator.hpp"
 #include "../GUI/PartPlate.hpp"
+#include "../GUI/OpenGLManager.hpp"
 
 #include "libslic3r/Model.hpp"
 #include "../GUI/MsgDialog.hpp"

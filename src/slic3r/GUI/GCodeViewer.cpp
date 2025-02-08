@@ -12,6 +12,8 @@
 //BBS: add convex hull logic for toolpath check
 #include "libslic3r/Geometry/ConvexHull.hpp"
 
+#include "slic3r/GUI/OpenGLManager.hpp"
+
 #include "GUI_App.hpp"
 #include "MainFrame.hpp"
 #include "Plater.hpp"

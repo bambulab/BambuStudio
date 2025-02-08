@@ -5,7 +5,6 @@
 #include <string>
 #include "ImGuiWrapper.hpp"
 #include "ConfigWizard.hpp"
-#include "OpenGLManager.hpp"
 #include "libslic3r/Preset.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/Color.hpp"
@@ -49,6 +48,8 @@ class wxMenuBar;
 class wxTopLevelWindow;
 class wxDataViewCtrl;
 class wxBookCtrlBase;
+class wxGLContext;
+class wxGLCanvas;
 // BBS
 class Notebook;
 struct wxLanguageInfo;
@@ -83,7 +84,7 @@ class HMSQuery;
 class ModelMallDialog;
 class PingCodeBindDialog;
 class NetworkErrorDialog;
-
+class OpenGLManager;
 
 enum FileType
 {
@@ -269,7 +270,7 @@ private:
     // Best translation language, provided by Windows or OSX, owned by wxWidgets.
     const wxLanguageInfo		 *m_language_info_best   = nullptr;
 
-    OpenGLManager m_opengl_mgr;
+    mutable std::shared_ptr<OpenGLManager> m_p_opengl_mgr{ nullptr };
     std::unique_ptr<RemovableDriveManager> m_removable_drive_manager;
 
     std::unique_ptr<ImGuiWrapper> m_imgui;
@@ -636,12 +637,12 @@ public:
     void            gcode_thumbnails_debug();
 #endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG
 
-    OpenGLManager& get_opengl_manager() { return m_opengl_mgr; }
-    GLShaderProgram* get_shader(const std::string& shader_name) { return m_opengl_mgr.get_shader(shader_name); }
-    GLShaderProgram* get_current_shader() { return m_opengl_mgr.get_current_shader(); }
+    const std::shared_ptr<OpenGLManager>& get_opengl_manager() const;
+    GLShaderProgram* get_shader(const std::string &shader_name) const;
+    GLShaderProgram* get_current_shader() const;
 
-    bool is_gl_version_greater_or_equal_to(unsigned int major, unsigned int minor) const { return m_opengl_mgr.get_gl_info().is_version_greater_or_equal_to(major, minor); }
-    bool is_glsl_version_greater_or_equal_to(unsigned int major, unsigned int minor) const { return m_opengl_mgr.get_gl_info().is_glsl_version_greater_or_equal_to(major, minor); }
+    bool is_gl_version_greater_or_equal_to(unsigned int major, unsigned int minor) const;
+    bool is_glsl_version_greater_or_equal_to(unsigned int major, unsigned int minor) const;
     int  GetSingleChoiceIndex(const wxString& message, const wxString& caption, const wxArrayString& choices, int initialSelection);
 
 #ifdef __WXMSW__

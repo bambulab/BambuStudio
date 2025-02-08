@@ -5,6 +5,7 @@
 #include "GUI_Factories.hpp"
 #include "slic3r/GUI/UserManager.hpp"
 #include "slic3r/GUI/TaskManager.hpp"
+#include "slic3r/GUI/OpenGLManager.hpp"
 #include "format.hpp"
 
 // Localization headers: include libslic3r version first so everything in this file
@@ -2254,17 +2255,25 @@ std::string GUI_App::get_gl_info(bool for_github)
 
 wxGLContext* GUI_App::init_glcontext(wxGLCanvas& canvas)
 {
-    return m_opengl_mgr.init_glcontext(canvas);
+    const auto& p_ogl_manager = get_opengl_manager();
+    if (!p_ogl_manager) {
+        return nullptr;
+    }
+    return p_ogl_manager->init_glcontext(canvas);
 }
 
 bool GUI_App::init_opengl()
 {
+    const auto& p_ogl_mananager = get_opengl_manager();
+    if (!p_ogl_mananager) {
+        return false;
+    }
 #ifdef __linux__
-    bool status = m_opengl_mgr.init_gl();
+    bool status = p_ogl_mananager->init_gl();
     m_opengl_initialized = true;
     return status;
 #else
-    return m_opengl_mgr.init_gl();
+    return p_ogl_mananager->init_gl();
 #endif
 }
 
@@ -5597,6 +5606,16 @@ static const wxLanguageInfo* linux_get_existing_locale_language(const wxLanguage
 }
 #endif
 
+bool GUI_App::is_gl_version_greater_or_equal_to(unsigned int major, unsigned int minor) const
+{
+    return OpenGLManager::get_gl_info().is_version_greater_or_equal_to(major, minor);
+}
+
+bool GUI_App::is_glsl_version_greater_or_equal_to(unsigned int major, unsigned int minor) const
+{
+    return OpenGLManager::get_gl_info().is_glsl_version_greater_or_equal_to(major, minor);
+}
+
 int GUI_App::GetSingleChoiceIndex(const wxString& message,
                                 const wxString& caption,
                                 const wxArrayString& choices,
@@ -7036,6 +7055,45 @@ void GUI_App::gcode_thumbnails_debug()
     }
 }
 #endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG
+
+const std::shared_ptr<OpenGLManager>& GUI_App::get_opengl_manager() const
+{
+    if (m_p_opengl_mgr) {
+        return m_p_opengl_mgr;
+    }
+    bool prefer_to_use_dgpu = false;
+#ifdef __WIN32__
+    prefer_to_use_dgpu = app_config->get_bool("prefer_to_use_dgpu");
+#endif // __WIN32__
+
+    const bool rt = OpenGLManager::init(prefer_to_use_dgpu);
+    if (rt)
+    {
+        m_p_opengl_mgr = std::make_shared<OpenGLManager>();
+        return m_p_opengl_mgr;
+    }
+    static std::shared_ptr<OpenGLManager> s_empty{nullptr};
+    return s_empty;
+}
+
+GLShaderProgram* GUI_App::get_shader(const std::string &shader_name) const
+{
+    const auto& p_ogl_manager = get_opengl_manager();
+    if (p_ogl_manager) {
+        return p_ogl_manager->get_shader(shader_name);
+    }
+
+    return nullptr;
+}
+
+GLShaderProgram* GUI_App::get_current_shader() const
+{
+    const auto& p_ogl_manager = get_opengl_manager();
+    if (p_ogl_manager) {
+        return p_ogl_manager->get_current_shader();
+    }
+    return nullptr;
+}
 
 void GUI_App::window_pos_save(wxTopLevelWindow* window, const std::string &name)
 {

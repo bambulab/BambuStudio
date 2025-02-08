@@ -22,6 +22,7 @@
 #include "libslic3r/Tesselate.hpp"
 #include "libslic3r/GCode/ThumbnailData.hpp"
 #include "libslic3r/Utils.hpp"
+#include "slic3r/GUI/OpenGLManager.hpp"
 
 #include "I18N.hpp"
 #include "GUI_App.hpp"

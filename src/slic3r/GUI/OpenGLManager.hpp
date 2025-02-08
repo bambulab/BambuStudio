@@ -141,13 +141,14 @@ private:
     // Part of hack to remove crash when closing the application on OSX 10.9.5 when building against newer wxWidgets
     static OSInfo s_os_info;
 #endif //__APPLE__
+    static bool s_b_initialized;
     static bool s_compressed_textures_supported;
     static EMultisampleState s_multisample;
     static EFramebufferType s_framebuffers_type;
 
     static bool m_use_manually_generated_mipmaps;
 public:
-    OpenGLManager() = default;
+    OpenGLManager();
     ~OpenGLManager();
 
     bool init_gl(bool popup_error = true);
@@ -165,6 +166,7 @@ public:
     void unbind_vao();
     void release_vao();
 
+    static bool init(bool prefer_to_use_dgpu = false);
     static bool are_compressed_textures_supported() { return s_compressed_textures_supported; }
     static bool can_multisample() { return s_multisample == EMultisampleState::Enabled; }
     static bool are_framebuffers_supported() { return (s_framebuffers_type != EFramebufferType::Unknown); }
