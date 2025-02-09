@@ -591,11 +591,12 @@ SearchDialog::SearchDialog(OptionsSearcher *searcher, Preset::Type type, wxWindo
     m_sizer_body   = new wxBoxSizer(wxVERTICAL);
 
     // border
-    m_border_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(POPUP_WIDTH * em, POPUP_HEIGHT * em), wxTAB_TRAVERSAL);
+    m_pop_width           = search_line->GetSize().GetX() + FromDIP(15);
+    m_border_panel        = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(m_pop_width, POPUP_HEIGHT * em), wxTAB_TRAVERSAL);
     m_border_panel->SetBackgroundColour(m_bg_colour);
 
     // client
-    m_client_panel = new wxPanel(m_border_panel, wxID_ANY, wxDefaultPosition, wxSize(POPUP_WIDTH * em, POPUP_HEIGHT * em), wxTAB_TRAVERSAL);
+    m_client_panel = new wxPanel(m_border_panel, wxID_ANY, wxDefaultPosition, wxSize(m_pop_width, POPUP_HEIGHT * em), wxTAB_TRAVERSAL);
     m_client_panel->SetBackgroundColour(m_bg_colour);
 
     // search line
@@ -614,7 +615,7 @@ SearchDialog::SearchDialog(OptionsSearcher *searcher, Preset::Type type, wxWindo
     search_line2 = search_line->GetTextCtrl();
 
     // scroll window
-    m_scrolledWindow = new ScrolledWindow(m_client_panel, wxID_ANY, wxDefaultPosition, wxSize(POPUP_WIDTH * em - (em + em /2), POPUP_HEIGHT * em), wxVSCROLL, 6, 6);
+    m_scrolledWindow = new ScrolledWindow(m_client_panel, wxID_ANY, wxDefaultPosition, wxSize(m_pop_width - (em + em / 2), POPUP_HEIGHT * em), wxVSCROLL, 6, 6);
     m_scrolledWindow->SetMarginColor(m_bg_colour);
     m_scrolledWindow->SetScrollbarColor(m_thumb_color);
     m_scrolledWindow->SetBackgroundColour(m_bg_colour);
@@ -783,7 +784,7 @@ void SearchDialog::update_list()
 #endif
     m_scrolledWindow->Destroy();
 
-    m_scrolledWindow = new ScrolledWindow(m_client_panel, wxID_ANY, wxDefaultPosition, wxSize(POPUP_WIDTH * em - (em + em / 2), POPUP_HEIGHT * em - em), wxVSCROLL, 6, 6);
+    m_scrolledWindow = new ScrolledWindow(m_client_panel, wxID_ANY, wxDefaultPosition, wxSize(m_pop_width - (em + em / 2), POPUP_HEIGHT * em - em), wxVSCROLL, 6, 6);
     m_scrolledWindow->SetMarginColor(StateColor::darkModeColorFor(m_bg_colour));
     m_scrolledWindow->SetScrollbarColor(StateColor::darkModeColorFor(m_thumb_color));
     m_scrolledWindow->SetBackgroundColour(StateColor::darkModeColorFor(m_bg_colour));
