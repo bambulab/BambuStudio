@@ -57,7 +57,7 @@ static ExPolygons PolyTreeToExPolygons(Clipper2Lib::PolyTree64 &&polytree)
             for (int i = 0; i < polynode.Count(); ++i) {
                 (*expolygons)[cnt].holes[i].points = Path64ToPoints(polynode[i]->Polygon());
                 // Add outer polygons contained by (nested within) holes.
-                for (int j = 0; j < polynode[i]->Count(); ++j) PolyTreeToExPolygonsRecursive(std::move(*polynode[i]->Childs(j)), expolygons);
+                for (int j = 0; j < polynode[i]->Count(); ++j) PolyTreeToExPolygonsRecursive(std::move(*polynode[i]->Child(j)), expolygons);
             }
         }
 
@@ -65,7 +65,7 @@ static ExPolygons PolyTreeToExPolygons(Clipper2Lib::PolyTree64 &&polytree)
         {
             size_t cnt = 1;
             for (size_t i = 0; i < polynode.Count(); ++i) {
-                for (size_t j = 0; j < polynode.Childs(i)->Count(); ++j) cnt += PolyTreeCountExPolygons(*polynode.Childs(i)->Childs(j));
+                for (size_t j = 0; j < polynode.Child(i)->Count(); ++j) cnt += PolyTreeCountExPolygons(*polynode.Child(i)->Child(j));
             }
             return cnt;
         }
