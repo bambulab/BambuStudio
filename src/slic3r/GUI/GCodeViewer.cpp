@@ -6046,6 +6046,12 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             default: { assert(false); break; }
             }
         }
+
+        double timelapse_time = 0.f;
+        if (auto timelapse_time_iter = m_gcode_result->skippable_part_time.find(SkipType::stTimelapse); timelapse_time_iter != m_gcode_result->skippable_part_time.end()) {
+            timelapse_time = timelapse_time_iter->second;
+        }
+
         ImGui::Dummy(ImVec2(0.0f, ImGui::GetFontSize() * 0.1));
         ImGui::Dummy({ window_padding, window_padding });
         ImGui::SameLine();
@@ -6053,7 +6059,12 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         std::string total_filament_str = _u8L("Total Filament");
         std::string model_filament_str = _u8L("Model Filament");
         std::string cost_str = _u8L("Cost");
-        std::string prepare_str = _u8L("Prepare time");
+        std::string prepare_str;
+        if (timelapse_time != 0.0f)
+            prepare_str = _u8L("Prepare and timelapse time");
+        else
+            prepare_str = _u8L("Prepare time");
+
         std::string print_str = _u8L("Model printing time");
         std::string total_str = _u8L("Total time");
 
@@ -6117,13 +6128,16 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             ImGui::SameLine();
             imgui.text(prepare_str + ":");
             ImGui::SameLine(max_len);
-            imgui.text(short_time(get_time_dhms(time_mode.prepare_time)));
+            if (timelapse_time != 0.0f)
+                imgui.text(short_time(get_time_dhms(time_mode.prepare_time)) + " + " + short_time(get_time_dhms(timelapse_time)));
+            else
+                imgui.text(short_time(get_time_dhms(time_mode.prepare_time)));
         }
         ImGui::Dummy({ window_padding, window_padding });
         ImGui::SameLine();
         imgui.text(print_str + ":");
         ImGui::SameLine(max_len);
-        imgui.text(short_time(get_time_dhms(time_mode.time - time_mode.prepare_time)));
+        imgui.text(short_time(get_time_dhms(time_mode.time - time_mode.prepare_time - timelapse_time)));
         ImGui::Dummy({ window_padding, window_padding });
         ImGui::SameLine();
         imgui.text(total_str + ":");
