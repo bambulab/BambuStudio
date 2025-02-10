@@ -614,7 +614,7 @@ struct FakeWipeTower
     float depth;
     float brim_width;
     Vec2d plate_origin;
-    BoundingBoxf real_bbx;
+    Polylines outer_wall; //wipe tower's true outer wall
 
     void set_fake_extrusion_data(Vec2f p, float w, float h, float lh, float d, float bd, Vec2d o)
     {
@@ -626,11 +626,6 @@ struct FakeWipeTower
         brim_width   = bd;
         plate_origin = o;
     }
-    void set_bbx()
-    {
-        real_bbx.min += pos.cast<double>();
-        real_bbx.max += pos.cast<double>();
-    }
 
     void set_pos(Vec2f p) { pos = p; }
 
@@ -639,10 +634,8 @@ struct FakeWipeTower
         int   d         = scale_(depth);
         int   w         = scale_(width);
         int   bd        = scale_(brim_width);
-        //Point minCorner = {scale_(pos.x()), scale_(pos.y())};
-        //Point maxCorner = {minCorner.x() + w, minCorner.y() + d};
-        Point minCorner = {scale_(real_bbx.min.x()), scale_(real_bbx.min.y())};
-        Point maxCorner = {scale_(real_bbx.max.x()), scale_(real_bbx.max.y())};
+        Point minCorner = {scale_(pos.x()), scale_(pos.y())};
+        Point maxCorner = {minCorner.x() + w, minCorner.y() + d};
 
         std::vector<ExtrusionPaths> paths;
         for (float h = 0.f; h < height; h += layer_height) {
@@ -650,13 +643,26 @@ struct FakeWipeTower
             path.polyline = {minCorner, {maxCorner.x(), minCorner.y()}, maxCorner, {minCorner.x(), maxCorner.y()}, minCorner};
             paths.push_back({path});
 
-            //if (h == 0.f) { // add brim
-            //    ExtrusionPath fakeBrim(ExtrusionRole::erBrim, 0.0, 0.0, layer_height);
-            //    Point         wtbminCorner = {minCorner - Point{bd, bd}};
-            //    Point         wtbmaxCorner = {maxCorner + Point{bd, bd}};
-            //    fakeBrim.polyline          = {wtbminCorner, {wtbmaxCorner.x(), wtbminCorner.y()}, wtbmaxCorner, {wtbminCorner.x(), wtbmaxCorner.y()}, wtbminCorner};
-            //    paths.back().push_back(fakeBrim);
-            //}
+            if (h == 0.f) { // add brim
+                ExtrusionPath fakeBrim(ExtrusionRole::erBrim, 0.0, 0.0, layer_height);
+                Point         wtbminCorner = {minCorner - Point{bd, bd}};
+                Point         wtbmaxCorner = {maxCorner + Point{bd, bd}};
+                fakeBrim.polyline          = {wtbminCorner, {wtbmaxCorner.x(), wtbminCorner.y()}, wtbmaxCorner, {wtbminCorner.x(), wtbmaxCorner.y()}, wtbminCorner};
+                paths.back().push_back(fakeBrim);
+            }
+        }
+        return paths;
+    }
+
+    std::vector<ExtrusionPaths> getTrueExtrusionPathsFromWipeTower() const
+    {
+        std::vector<ExtrusionPaths> paths;
+        Point                       trans = {scale_(pos.x()), scale_(pos.y())};
+        for (auto &polyline : outer_wall) {
+            ExtrusionPath path(ExtrusionRole::erWipeTower, 0.0, 0.0, layer_height);
+            path.polyline.points.reserve( polyline.points.size());
+            for (auto &p : polyline.points) path.polyline.points.push_back(p + trans);
+            paths.push_back({path});
         }
         return paths;
     }
