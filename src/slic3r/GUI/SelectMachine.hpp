@@ -101,7 +101,8 @@ enum PrintDialogStatus {
     PrintStatusTimelapseWarning,
     PrintStatusMixAmsAndVtSlotWarning,
     PrintStatusPublicInitFailed,
-    PrintStatusPublicUploadFiled
+    PrintStatusPublicUploadFiled,
+    PrintStatusInvalidMapping
 };
 
 class Material
