@@ -998,22 +998,21 @@ unsigned char FromHex(unsigned char x)
     return y;
 }
 
-std::string UrlEncode(const std::string &str)
+std::string UrlEncode( const std::string &input )
 {
-    std::string strTemp = "";
-    size_t      length  = str.length();
-    for (size_t i = 0; i < length; i++) {
-        if (isalnum((unsigned char) str[i]) || (str[i] == '-') || (str[i] == '_') || (str[i] == '.') || (str[i] == '~'))
-            strTemp += str[i];
-        else if (str[i] == ' ')
-            strTemp += "+";
-        else {
-            strTemp += '%';
-            strTemp += ToHex((unsigned char) str[i] >> 4);
-            strTemp += ToHex((unsigned char) str[i] % 16);
+    std::ostringstream escaped;
+    escaped.fill('0');
+    escaped << std::hex;
+    for (char c : input) {
+        // 如果字符是字母、数字、'-'、'.'、'_' 或 '~'，则直接添加到结果中
+        if (std::isalnum(c) || c == '-' || c == '.' || c == '_' || c == '~') {
+            escaped << c;
+        } else {
+            // 对于其他字符，将其转换为 %XX 的形式
+            escaped << '%' << std::setw(2) << static_cast<int>(static_cast<unsigned char>(c));
         }
     }
-    return strTemp;
+    return escaped.str();
 }
 
 std::string UrlDecode(const std::string &str)
