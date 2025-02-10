@@ -927,22 +927,48 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
 
 
                 // check cantilever
+                auto lower_layer_support_thresh = offset_ex(lower_polys, extrusion_width_scaled, SUPPORT_SURFACES_OFFSET_PARAMETERS);
                 // lower_layer_offset may be very small, so we need to do max and then add 0.1
-                lower_layer_offseted = offset_ex(lower_layer_offseted, scale_(std::max(extrusion_width - lower_layer_offset, 0.) + 0.1));
-                for (ExPolygon& poly : overhangs_all_layers[layer_nr]) {
-                    auto cluster_boundary_ex = intersection_ex(poly, lower_layer_offseted);
-                    Polygons cluster_boundary = to_polygons(cluster_boundary_ex);
-                    if (cluster_boundary.empty()) continue;
+                lower_layer_offseted            = offset_ex(lower_layer_offseted, scale_(std::max(extrusion_width - lower_layer_offset, 0.) + 0.1));
+                for (ExPolygon &poly : overhangs_all_layers[layer_nr]) {
+                    // check if there is some contour that is totally floating
+                    bool is_cantilever = false;
                     double dist_max = 0;
-                    for (auto& pt : poly.contour.points) {
-                        double dist_pt = std::numeric_limits<double>::max();
-                        for (auto& ply : cluster_boundary) {
-                            double d = ply.distance_to(pt);
-                            dist_pt = std::min(dist_pt, d);
+                    for (size_t i = 0; i < poly.num_contours(); i++) {
+                        Polygon contour      = poly.contour_or_hole(i);
+                        bool    is_floating  = true;
+                        double  tmp_dist_max = 0;
+                        for (const auto &pt : contour.points) {
+                            if (is_inside_ex(lower_layer_support_thresh, pt)) {
+                                is_floating = false;
+                                break;
+                            } else
+                                tmp_dist_max = std::max(tmp_dist_max, (projection_onto(lower_layer_support_thresh, pt) - pt).cast<double>().norm());
                         }
-                        dist_max = std::max(dist_max, dist_pt);
+                        if (is_floating) {
+                            is_cantilever = true;
+                            dist_max = tmp_dist_max;
+                            break;
+                        }
                     }
-                    if (dist_max > scale_(3)) {  // is cantilever if the farmost point is larger than 3mm away from base
+                    if (!is_cantilever) {
+                        dist_max = 0;
+                        auto     cluster_boundary_ex = intersection_ex(poly, lower_layer_offseted);
+                        Polygons cluster_boundary    = to_polygons(cluster_boundary_ex);
+                        if (cluster_boundary.empty()) continue;
+                        
+                        for (auto &pt : poly.contour.points) {
+                            double dist_pt = std::numeric_limits<double>::max();
+                            for (auto &ply : cluster_boundary) {
+                                double d = ply.distance_to(pt);
+                                dist_pt  = std::min(dist_pt, d);
+                            }
+                            dist_max = std::max(dist_max, dist_pt);
+                        }
+                        is_cantilever = dist_max > scale_(3);
+                    }
+                    // is cantilever if the farmost point is larger than 3mm away from base or some contour is totally floating
+                    if (is_cantilever) {
                         max_cantilever_dist = std::max(max_cantilever_dist, dist_max);
                         layer->cantilevers.emplace_back(poly);
                         BOOST_LOG_TRIVIAL(debug) << "found a cantilever cluster. layer_nr=" << layer_nr << dist_max;
