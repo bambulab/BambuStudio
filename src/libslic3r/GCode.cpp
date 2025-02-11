@@ -4622,7 +4622,7 @@ ExtrusionPaths GCode::set_speed_transition(ExtrusionPaths &paths)
 
 void GCode::smooth_speed_discontinuity_area(ExtrusionPaths &paths) {
 
-    if (paths.size() <= 1)
+    if (paths.size() <= 1 || this->config().smooth_coefficient == 0)
         return;
 
     //step 1 merge same speed path
