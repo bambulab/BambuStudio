@@ -413,7 +413,6 @@ private:
                 ExtrusionEntitiesPtr perimeters;
             	// Non-owned references to LayerRegion::fills::entities
                 ExtrusionEntitiesPtr infills;
-                std::vector<const LoopNode*> merged_node;
                 std::vector<const WipingExtrusions::ExtruderPerCopy*> infills_overrides;
                 std::vector<const WipingExtrusions::ExtruderPerCopy*> perimeters_overrides;
 

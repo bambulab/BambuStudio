@@ -385,6 +385,32 @@ void Layer::calculate_perimeter_continuity(std::vector<LoopNode> &prev_nodes) {
 
 }
 
+void Layer::recrod_cooling_node_for_each_extrusion() {
+    for (LayerRegion *region : this->regions()) {
+        for (int extrusion_idx = 0; extrusion_idx < region->perimeters.entities.size(); extrusion_idx++) {
+            const auto *extrusions = static_cast<const ExtrusionEntityCollection *>(region->perimeters.entities[extrusion_idx]);
+            int         start      = extrusions->loop_node_range.first;
+            int         end        = extrusions->loop_node_range.second;
+            if (start >= end)
+                continue;
+
+            int cooling_node = this->loop_nodes[start].merged_id;
+            int pos          = this->loop_nodes[start].loop_id;
+            int next_pos     = start + 1 < end ? this->loop_nodes[start + 1].loop_id : -1;
+            for (int idx = 0; idx < extrusions->entities.size(); idx++) {
+                if (idx == next_pos && next_pos > 0) {
+                    start++;
+                    cooling_node = this->loop_nodes[start].merged_id;
+                    next_pos     = start + 1 < end ? this->loop_nodes[start + 1].loop_id : -1;
+                }
+
+                extrusions->entities[idx]->set_cooling_node(cooling_node);
+            }
+
+        }
+    }
+}
+
 void Layer::export_region_slices_to_svg(const char *path) const
 {
     BoundingBox bbox;
