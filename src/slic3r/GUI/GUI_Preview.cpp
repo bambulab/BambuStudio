@@ -56,6 +56,10 @@ bool View3D::init(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrintConfig
     if (!Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 /* disable wxTAB_TRAVERSAL */))
         return false;
 
+    const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+    if (!p_ogl_manager) {
+        return false;
+    }
     m_canvas_widget = OpenGLManager::create_wxglcanvas(*this);
     if (m_canvas_widget == nullptr)
         return false;
@@ -247,6 +251,11 @@ bool Preview::init(wxWindow* parent, Bed3D& bed, Model* model)
 #else
     SetBackgroundColour(GetParent()->GetBackgroundColour());
 #endif // _WIN32
+
+    const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+    if (!p_ogl_manager) {
+        return false;
+    }
 
     m_canvas_widget = OpenGLManager::create_wxglcanvas(*this);
     if (m_canvas_widget == nullptr)
@@ -791,6 +800,11 @@ bool AssembleView::init(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrint
 {
     if (!Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 /* disable wxTAB_TRAVERSAL */))
         return false;
+
+    const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+    if (!p_ogl_manager) {
+        return false;
+    }
 
     m_canvas_widget = OpenGLManager::create_wxglcanvas(*this);
     if (m_canvas_widget == nullptr)

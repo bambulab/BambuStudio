@@ -199,7 +199,7 @@ void AppConfig::set_defaults()
         set_bool("enable_multi_machine", false);
 
     if (get("prefer_to_use_dgpu").empty())
-        set_bool("prefer_to_use_dgpu", true);
+        set_bool("prefer_to_use_dgpu", false);
 
     if (get("show_3d_navigator").empty())
         set_bool("show_3d_navigator", true);
