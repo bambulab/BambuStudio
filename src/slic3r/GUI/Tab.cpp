@@ -3194,7 +3194,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("required_nozzle_HRC");
         optgroup->append_single_option_line("default_filament_colour");
         optgroup->append_single_option_line("filament_diameter");
-        optgroup->append_single_option_line("filament_category");
+        optgroup->append_single_option_line("filament_adhesiveness_category");
         optgroup->append_single_option_line("filament_flow_ratio", "", 0);
         optgroup->append_single_option_line("enable_pressure_advance");
         optgroup->append_single_option_line("pressure_advance");
