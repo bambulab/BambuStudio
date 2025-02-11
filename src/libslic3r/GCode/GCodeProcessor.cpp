@@ -967,14 +967,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
     gcode_process(in, out, filename_in, filename_out, gcode_time_handler, nullptr, buffer_size_in_KB);
 
     // updates moves' gcode ids which have been modified by the insertion of the M73 lines
-    unsigned int curr_offset_id = 0, total_offset = 0;
-    for (GCodeProcessorResult::MoveVertex& move : moves) {
-        while (curr_offset_id < static_cast<unsigned int>(offsets.size()) && offsets[curr_offset_id].first <= move.gcode_id) {
-            total_offset += offsets[curr_offset_id].second;
-            ++curr_offset_id;
-        }
-        move.gcode_id += total_offset;
-    }
+    handle_offsets_of_first_process(offsets, moves, filament_blocks, extruder_blocks, machine_start_gcode_end_line_id, machine_end_gcode_start_line_id);
 
     // If not initialized, use the time from the previous move.
     {
@@ -1112,17 +1105,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
     new_out.close();
 
     // recollect gcode offset caused by inserted operations
-    {
-        int total_offset = 0;
-        auto iter = inserted_operation_lines.begin();
-        for (GCodeProcessorResult::MoveVertex& move : moves) {
-            while (iter != inserted_operation_lines.end() && iter->first < move.gcode_id) {
-                total_offset += iter->second.size();
-                ++iter;
-            }
-            move.gcode_id += total_offset;
-        }
-    }
+    handle_offsets_of_second_process(inserted_operation_lines, moves);
 
     in.close();
     out.close();
@@ -1138,6 +1121,67 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":  Failed to rename the output G-code file from %1% to %2%") % filename_out.c_str() % filename.c_str();
         throw Slic3r::RuntimeError(std::string("Failed to rename the output G-code file from ") + filename_out + " to " + filename + '\n' +
             "Is " + filename_out + " locked?" + '\n');
+    }
+}
+
+void GCodeProcessor::TimeProcessor::handle_offsets_of_first_process(const std::vector<std::pair<unsigned int, unsigned int>>& offsets, std::vector<GCodeProcessorResult::MoveVertex>& moves, std::vector<ExtruderPreHeating::FilamentUsageBlock>& filament_blocks, std::vector<ExtruderPreHeating::ExtruderUsageBlcok>& extruder_blocks, unsigned int& machine_start_gcode_end_line_id, unsigned int& machine_end_gcode_start_line_id)
+{
+    // process moves
+    {
+        unsigned int curr_offset_id = 0, total_offset = 0;
+        for (GCodeProcessorResult::MoveVertex& move : moves) {
+            while (curr_offset_id < static_cast<unsigned int>(offsets.size()) && offsets[curr_offset_id].first <= move.gcode_id) {
+                total_offset += offsets[curr_offset_id].second;
+                ++curr_offset_id;
+            }
+            move.gcode_id += total_offset;
+        }
+    }
+
+    std::vector<unsigned int> offset_line_id(offsets.size());
+    std::vector<unsigned int> prefix_sum_offset(offsets.size());
+    unsigned int sum = 0;
+    for(size_t idx =0;idx<offsets.size();++idx){
+        sum += offsets[idx].second;
+        offset_line_id[idx] = offsets[idx].first;
+        prefix_sum_offset[idx] = sum;
+
+    }
+    auto get_offset_before_line_id = [&offset_line_id, &prefix_sum_offset](unsigned int line_id)->unsigned int {
+        if (line_id == (unsigned int)(-1))
+            return 0;
+        auto it = std::upper_bound(offset_line_id.begin(), offset_line_id.end(), line_id);
+        if (it == offset_line_id.begin())
+            return 0;
+        size_t index = std::distance(offset_line_id.begin(), it) - 1;
+        return prefix_sum_offset[index];
+        };
+
+    for (ExtruderPreHeating::FilamentUsageBlock& block : filament_blocks) {
+        block.lower_gcode_id += get_offset_before_line_id(block.lower_gcode_id);
+        block.upper_gcode_id += get_offset_before_line_id(block.upper_gcode_id);
+    }
+    for (ExtruderPreHeating::ExtruderUsageBlcok& block : extruder_blocks) {
+        block.start_id += get_offset_before_line_id(block.start_id);
+        block.end_id += get_offset_before_line_id(block.end_id);
+        block.post_extrusion_start_id += get_offset_before_line_id(block.post_extrusion_start_id);
+        block.post_extrusion_end_id += get_offset_before_line_id(block.post_extrusion_end_id);
+    }
+
+    machine_start_gcode_end_line_id += get_offset_before_line_id(machine_start_gcode_end_line_id);
+    machine_end_gcode_start_line_id += get_offset_before_line_id(machine_end_gcode_start_line_id);
+}
+
+void GCodeProcessor::TimeProcessor::handle_offsets_of_second_process(const InsertedLinesMap& inserted_operation_lines, std::vector<GCodeProcessorResult::MoveVertex>& moves)
+{
+    int total_offset = 0;
+    auto iter = inserted_operation_lines.begin();
+    for (GCodeProcessorResult::MoveVertex& move : moves) {
+        while (iter != inserted_operation_lines.end() && iter->first < move.gcode_id) {
+            total_offset += iter->second.size();
+            ++iter;
+        }
+        move.gcode_id += total_offset;
     }
 }
 

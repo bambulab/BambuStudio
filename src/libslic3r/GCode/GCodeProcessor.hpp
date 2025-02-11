@@ -768,6 +768,20 @@ namespace Slic3r {
             // post process the file with the given filename to add remaining time lines M73
             // and updates moves' gcode ids accordingly
             void post_process(const std::string& filename, std::vector<GCodeProcessorResult::MoveVertex>& moves, std::vector<size_t>& lines_ends, const TimeProcessContext& context);
+        private:
+            void handle_offsets_of_first_process(
+                const std::vector<std::pair<unsigned int, unsigned int>>& offsets,
+                std::vector<GCodeProcessorResult::MoveVertex>& moves,
+                std::vector<ExtruderPreHeating::FilamentUsageBlock>& filament_blocks,
+                std::vector<ExtruderPreHeating::ExtruderUsageBlcok>& extruder_blocks,
+                unsigned int& machine_start_gcode_end_line_id,
+                unsigned int& machine_end_gcode_start_line_id
+            );
+
+            void handle_offsets_of_second_process(
+                const InsertedLinesMap& inserted_operation_lines,
+                std::vector<GCodeProcessorResult::MoveVertex>& moves
+            );
         };
 
         class PreCoolingInjector {
