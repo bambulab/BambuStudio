@@ -2691,8 +2691,9 @@ void PrintConfigDef::init_fff_params()
     def           = this->add("smooth_coefficient", coFloat);
     def->label    = L("Smooth coefficient");
     def->category = L("Quality");
-    def->tooltip  = L("The smaller the number, the longer the speed transition path.");
+    def->tooltip  = L("The smaller the number, the longer the speed transition path. 0 means not apply.");
     def->mode     = comAdvanced;
+    def->min      = 0;
     def->set_default_value(new ConfigOptionFloat(80));
 
     def = this->add("wall_filament", coInt);
