@@ -1329,14 +1329,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionStrings { " " });
 
-    def = this->add("ensure_vertical_shell_thickness", coBool);
-    def->label = L("Ensure vertical shell thickness");
-    def->category = L("Strength");
-    def->tooltip = L("Add solid infill near sloping surfaces to guarantee the vertical shell thickness "
-        "(top+bottom solid layers)");
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(true));
-
     def = this->add("ensure_vertical_shell_thickness", coEnum);
     def->label = L("Ensure vertical shell thickness");
     def->category = L("Strength");

@@ -2150,7 +2150,7 @@ void PartPlate::set_vase_mode_related_object_config(int obj_id) {
 	new_conf.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
 	new_conf.set_key_value("enable_support", new ConfigOptionBool(false));
 	new_conf.set_key_value("enforce_support_layers", new ConfigOptionInt(0));
-	new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionBool(true));
+	new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionEnum<EnsureVerticalThicknessLevel>(EnsureVerticalThicknessLevel::evtEnabled));
 	new_conf.set_key_value("detect_thin_wall", new ConfigOptionBool(false));
 	new_conf.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
 	auto applying_keys = global_config->diff(new_conf);
@@ -4526,7 +4526,7 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id, bool is_n
 			config.has("sparse_infill_density") && config.option<ConfigOptionPercent>("sparse_infill_density")->value == 0 &&
 			config.has("enable_support") && !config.opt_bool("enable_support") &&
 			config.has("enforce_support_layers") && config.opt_int("enforce_support_layers") == 0 &&
-			config.has("ensure_vertical_shell_thickness") && config.opt_bool("ensure_vertical_shell_thickness") &&
+			config.has("ensure_vertical_shell_thickness") && config.opt_enum<EnsureVerticalThicknessLevel>("ensure_vertical_shell_thickness") == EnsureVerticalThicknessLevel::evtEnabled &&
 			config.has("detect_thin_wall") && !config.opt_bool("detect_thin_wall") &&
 			config.has("timelapse_type") && config.opt_enum<TimelapseType>("timelapse_type") == TimelapseType::tlTraditional)
 			return true;
