@@ -1008,7 +1008,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBools,               enable_pressure_advance))
     ((ConfigOptionFloats,              pressure_advance))
     ((ConfigOptionFloats,              filament_diameter))
-    ((ConfigOptionInts,              filament_category))
+    ((ConfigOptionInts,              filament_adhesiveness_category))
     ((ConfigOptionFloats,              filament_density))
     ((ConfigOptionStrings,             filament_type))
     ((ConfigOptionBools,               filament_soluble))
