@@ -2707,7 +2707,7 @@ std::string AMSControl::GetCurrentCan(std::string amsid)
         if (item == nullptr){
             continue;
         }
-        if (item->m_info.ams_id == amsid) {
+        if (item->get_ams_id() == amsid) {
             current_can = item->GetCurrentCan();
             return current_can;
         }
@@ -2717,7 +2717,7 @@ std::string AMSControl::GetCurrentCan(std::string amsid)
 
 bool AMSControl::IsAmsInRightPanel(std::string ams_id) {
     if (m_extder_data.total_extder_count == 2){
-        if (m_ams_item_list.find(ams_id) != m_ams_item_list.end() && m_ams_item_list[ams_id]->m_info.nozzle_id == MAIN_NOZZLE_ID){
+        if (m_ams_item_list.find(ams_id) != m_ams_item_list.end() && m_ams_item_list[ams_id]->get_nozzle_id() == MAIN_NOZZLE_ID) {
             return true;
         }
         else{
@@ -2743,7 +2743,8 @@ void AMSControl::AmsSelectedSwitch(wxCommandEvent& event) {
         auto item = m_ams_item_list[m_current_show_ams_left];
         if (!item) return;
         try{
-            for (auto can : item->m_can_lib_list){
+            const auto& can_lib_list = item->get_can_lib_list();
+            for (auto can : can_lib_list) {
                 can.second->UnSelected();
             }
         }
@@ -2755,7 +2756,8 @@ void AMSControl::AmsSelectedSwitch(wxCommandEvent& event) {
         auto item = m_ams_item_list[m_current_show_ams_right];
         if (!item) return;
         try {
-            for (auto can : item->m_can_lib_list) {
+            const auto &can_lib_list = item->get_can_lib_list();
+            for (auto can : can_lib_list) {
                 can.second->UnSelected();
             }
         }
@@ -3320,12 +3322,11 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> ams_info, std::vector<AMSinfo>ex
             if (ams_item.second == nullptr){
                 continue;
             }
-            std::string ams_id = ams_item.second->m_info.ams_id;
+            std::string ams_id = ams_item.second->get_ams_id();
             AmsItem* cans = ams_item.second;
-            if (cans->m_info.ams_id == std::to_string(VIRTUAL_TRAY_MAIN_ID) || cans->m_info.ams_id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)){
+            if (cans->get_ams_id() == std::to_string(VIRTUAL_TRAY_MAIN_ID) || cans->get_ams_id() == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
                 for (auto ifo : m_ext_info) {
                     if (ifo.ams_id == ams_id) {
-                        cans->m_info = ifo;
                         cans->Update(ifo);
                         cans->show_sn_value(m_ams_model == AMSModel::AMS_LITE ? false : true);
                     }
@@ -3334,7 +3335,6 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> ams_info, std::vector<AMSinfo>ex
             else{
                 for (auto ifo : m_ams_info) {
                     if (ifo.ams_id == ams_id) {
-                        cans->m_info = ifo;
                         cans->Update(ifo);
                         cans->show_sn_value(m_ams_model == AMSModel::AMS_LITE ? false : true);
                     }
@@ -3346,8 +3346,7 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> ams_info, std::vector<AMSinfo>ex
             std::string id = ams_prv.second->m_amsinfo.ams_id;
             auto item = m_ams_item_list.find(id);
             if (item != m_ams_item_list.end())
-            {
-                ams_prv.second->Update(item->second->m_info);
+            { ams_prv.second->Update(item->second->get_ams_info());
             }
         }
 
@@ -3402,10 +3401,9 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> ams_info, std::vector<AMSinfo>ex
         for (auto ams_item : m_ams_item_list) {
             std::string ams_id = ams_item.first;
             AmsItem* cans = ams_item.second;
-            if (atoi(cans->m_info.ams_id.c_str()) >= VIRTUAL_TRAY_DEPUTY_ID) {
+            if (atoi(cans->get_ams_id().c_str()) >= VIRTUAL_TRAY_DEPUTY_ID) {
                 for (auto ifo : m_ext_info) {
                     if (ifo.ams_id == ams_id) {
-                        cans->m_info = ifo;
                         cans->Update(ifo);
                         cans->show_sn_value(m_ams_model == AMSModel::AMS_LITE ? false : true);
                     }
@@ -3414,7 +3412,6 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> ams_info, std::vector<AMSinfo>ex
             else {
                 for (auto ifo : m_ams_info) {
                     if (ifo.ams_id == ams_id) {
-                        cans->m_info = ifo;
                         cans->Update(ifo);
                         cans->show_sn_value(m_ams_model == AMSModel::AMS_LITE ? false : true);
                     }
@@ -3459,7 +3456,7 @@ void AMSControl::AddAmsPreview(AMSinfo info, AMSModel type)
 void AMSControl::createAms(wxSimplebook* parent, int& idx, AMSinfo info, AMSPanelPos pos) {
     auto ams_item = new AmsItem(parent, info, info.ams_type, pos);
     parent->InsertPage(idx, ams_item, wxEmptyString, true);
-    ams_item->m_selection = idx;
+    ams_item->set_selection(idx);
     idx++;
 
     m_ams_item_list[info.ams_id] = ams_item;
@@ -3478,9 +3475,9 @@ AMSRoadShowMode AMSControl::findFirstMode(AMSPanelPos pos) {
     auto item = m_ams_item_list.find(ams_id);
     if (ams_id.empty() || item == m_ams_item_list.end()) return init_mode;
 
-    if (item->second->m_info.cans.size() == GENERIC_AMS_SLOT_NUM){
-        if (item->second->m_info.ams_type == AMSModel::AMS_LITE) return AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE;
-        if (item->second->m_info.ams_type == AMSModel::EXT_AMS && item->second->m_info.ext_type == AMSModelOriginType::LITE_EXT) return AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE;
+    if (item->second->get_can_count() == GENERIC_AMS_SLOT_NUM) {
+        if (item->second->get_ams_model() == AMSModel::AMS_LITE) return AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE;
+        if (item->second->get_ams_model() == AMSModel::EXT_AMS && item->second->get_ext_type() == AMSModelOriginType::LITE_EXT) return AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE;
         return AMSRoadShowMode::AMS_ROAD_MODE_FOUR;
     }
     else{
@@ -3489,7 +3486,7 @@ AMSRoadShowMode AMSControl::findFirstMode(AMSPanelPos pos) {
                 return AMSRoadShowMode::AMS_ROAD_MODE_DOUBLE;
             }
         }
-        if (item->second->m_info.ams_type == AMSModel::EXT_AMS && item->second->m_info.ext_type == AMSModelOriginType::LITE_EXT) return AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE;
+        if (item->second->get_ams_model() == AMSModel::EXT_AMS && item->second->get_ext_type() == AMSModelOriginType::LITE_EXT) return AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE;
         return AMSRoadShowMode::AMS_ROAD_MODE_SINGLE;
     }
 }
@@ -3517,11 +3514,10 @@ void AMSControl::createAmsPanel(wxSimplebook* parent, int& idx, std::vector<AMSi
         }
     }
     else {   //only an ext in a panel
-        if (ams1->m_ext_image) {
-            ams1->m_ext_image->setShowState(false);
+        if (ams1->get_ext_image()) { ams1->get_ext_image()->setShowState(false);
         }
-        if (ams1->m_info.ams_type == AMSModel::EXT_AMS){
-            if (ams1->m_info.ext_type == LITE_EXT){
+        if (ams1->get_ams_model() == AMSModel::EXT_AMS) {
+            if (ams1->get_ext_type() == LITE_EXT) {
                 //book_sizer->Add(ams1, 0, wxALIGN_CENTER_HORIZONTAL, 0);
                 book_sizer->Add(ams1, 0, wxLEFT, (book_panel->GetSize().x - ams1->GetSize().x) / 2);
             }
@@ -3540,11 +3536,11 @@ void AMSControl::createAmsPanel(wxSimplebook* parent, int& idx, std::vector<AMSi
 
     parent->InsertPage(idx, book_panel, wxEmptyString, true);
     ams1->SetBackgroundColour(StateColor::darkModeColorFor(AMS_CONTROL_DEF_LIB_BK_COLOUR));
-    ams1->m_selection = idx;
+    ams1->set_selection(idx);
     m_ams_item_list[infos[0].ams_id] = ams1;
     if (ams2) {
         ams2->SetBackgroundColour(StateColor::darkModeColorFor(AMS_CONTROL_DEF_LIB_BK_COLOUR));
-        ams2->m_selection = idx;
+        ams2->set_selection(idx);
         m_ams_item_list[infos[1].ams_id] = ams2;
     }
     idx++;
@@ -3707,8 +3703,8 @@ void AMSControl::SwitchAms(std::string ams_id)
             bool ready_selected = false;
             for (auto item_it : m_ams_item_list) {
                 AmsItem* item = item_it.second;
-                if (item->m_info.ams_id == ams_id) {
-                    for (auto lib_it : item->m_can_lib_list) {
+                if (item->get_ams_id() == ams_id) {
+                    for (auto lib_it : item->get_can_lib_list()) {
                         AMSLib* lib = lib_it.second;
                         if (lib->is_selected()) {
                             ready_selected = true;
@@ -3738,14 +3734,14 @@ void AMSControl::SwitchAms(std::string ams_id)
 
     for (auto ams_item : m_ams_item_list) {
         AmsItem* item = ams_item.second;
-        if (item->m_info.ams_id == ams_id) {
-            auto ids = item->m_panel_pos == AMSPanelPos::LEFT_PANEL ? m_item_ids[DEPUTY_NOZZLE_ID] : m_item_ids[MAIN_NOZZLE_ID];
-            auto pos = item->m_panel_pos;
+        if (item->get_ams_id() == ams_id) {
+            auto ids = item->get_panel_pos() == AMSPanelPos::LEFT_PANEL ? m_item_ids[DEPUTY_NOZZLE_ID] : m_item_ids[MAIN_NOZZLE_ID];
+            auto pos = item->get_panel_pos();
             for (auto id : ids) {
-                if (id == item->m_info.ams_id) {
-                    pos == AMSPanelPos::LEFT_PANEL ? m_simplebook_ams_left->SetSelection(item->m_selection) : m_simplebook_ams_right->SetSelection(item->m_selection);
-                    if (item->m_info.cans.size() == GENERIC_AMS_SLOT_NUM) {
-                        if (item->m_info.ams_type == AMSModel::AMS_LITE) {
+                if (id == item->get_ams_id()) {
+                    pos == AMSPanelPos::LEFT_PANEL ? m_simplebook_ams_left->SetSelection(item->get_selection()) : m_simplebook_ams_right->SetSelection(item->get_selection());
+                    if (item->get_can_count() == GENERIC_AMS_SLOT_NUM) {
+                        if (item->get_ams_model() == AMSModel::AMS_LITE) {
                             if (pos == AMSPanelPos::LEFT_PANEL) {
                                 m_down_road->UpdateLeft(m_extder_data.total_extder_count, AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE);
                             } else {
@@ -3831,10 +3827,10 @@ void AMSControl::SetExtruder(bool on_off, std::string ams_id, std::string slot_i
         return;
     }
     if (!on_off) {
-        m_extruder->OnAmsLoading(false, item->m_info.nozzle_id);
+        m_extruder->OnAmsLoading(false, item->get_nozzle_id());
     } else {
         auto col = item->GetTagColr(slot_id);
-        m_extruder->OnAmsLoading(true, item->m_info.nozzle_id, col);
+        m_extruder->OnAmsLoading(true, item->get_nozzle_id(), col);
     }
 }
 
@@ -3883,11 +3879,10 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
     }
 
     //Set path length in different case
-    if (ams->m_info.cans.size() == GENERIC_AMS_SLOT_NUM){
+    if (ams->get_can_count() == GENERIC_AMS_SLOT_NUM) {
         length = left ? 129 : 145;
-        model = ams->m_info.ams_type;
-    }
-    else if (ams->m_info.cans.size() == 1){
+        model  = ams->get_ams_model();
+    } else if (ams->get_can_count() == 1) {
         for (auto it : pair_id){
             if (it.first == ams_id){
                 length = left ? 218 : 124;
@@ -3900,12 +3895,12 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
                 break;
             }
         }
-        model = ams->m_info.ams_type;
+        model = ams->get_ams_model();
     }
     if (model == AMSModel::AMS_LITE){
         length = left ? 145 : 45;
     }
-    if (model == EXT_AMS && ams->m_info.ext_type == AMSModelOriginType::LITE_EXT){
+    if (model == EXT_AMS && ams->get_ext_type() == AMSModelOriginType::LITE_EXT) {
 
        if (m_ams_info.size() == 0 && m_ext_info.size() == 1) {
            length = 13;
@@ -3914,7 +3909,7 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
        }
     }
 
-    if (model == EXT_AMS && ams->m_info.ext_type == AMSModelOriginType::GENERIC_EXT){
+    if (model == EXT_AMS && ams->get_ext_type() == AMSModelOriginType::GENERIC_EXT) {
         if (m_ams_info.size() == 0 && m_ext_info.size() == 1) {
             left = true;
             length = 50;
@@ -3944,7 +3939,7 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
 
     AMSinfo info;
     if (m_ams_item_list.find(ams_id) != m_ams_item_list.end()) {
-        info = m_ams_item_list[ams_id]->m_info;
+        info = m_ams_item_list[ams_id]->get_ams_info();
     }
     else{
         return;
@@ -3961,7 +3956,7 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
         ams->SetAmsStep(ams_id, canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
         if (ams_id_left == ams_id || ams_id_right == ams_id || in_same_page) {
             m_down_road->UpdatePassRoad(pos, -1, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
-            m_extruder->OnAmsLoading(false, ams->m_info.nozzle_id);
+            m_extruder->OnAmsLoading(false, ams->get_nozzle_id());
         }
     }
 
@@ -3969,7 +3964,7 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
         ams->SetAmsStep(ams_id, canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
         if (ams_id_left == ams_id || ams_id_right == ams_id || in_same_page) {
             m_down_road->UpdatePassRoad(pos, length, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
-            m_extruder->OnAmsLoading(false, ams->m_info.nozzle_id);
+            m_extruder->OnAmsLoading(false, ams->get_nozzle_id());
         }
         else
         {
@@ -3981,7 +3976,7 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
         ams->SetAmsStep(ams_id, canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_2);
         if (ams_id_left == ams_id || ams_id_right == ams_id || in_same_page) {
             m_down_road->UpdatePassRoad(pos, length, AMSPassRoadSTEP::AMS_ROAD_STEP_2);
-            m_extruder->OnAmsLoading(true, ams->m_info.nozzle_id, ams->GetTagColr(canid));
+            m_extruder->OnAmsLoading(true, ams->get_nozzle_id(), ams->GetTagColr(canid));
         }
         else
         {
@@ -3993,7 +3988,7 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
         if (ams_id_left == ams_id || ams_id_right == ams_id || in_same_page)
         {
             m_down_road->UpdatePassRoad(pos, length, AMSPassRoadSTEP::AMS_ROAD_STEP_3);
-            m_extruder->OnAmsLoading(true, ams->m_info.nozzle_id, ams->GetTagColr(canid));
+            m_extruder->OnAmsLoading(true, ams->get_nozzle_id(), ams->GetTagColr(canid));
         }
         else
         {
