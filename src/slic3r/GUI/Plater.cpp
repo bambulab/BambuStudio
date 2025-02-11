@@ -16330,7 +16330,11 @@ void Plater::show_object_info()
         info_text += "\n";
         info_text += _u8L("A cube printed during a filament change to purge old color and ensure smooth color transition.");
         notify_manager->bbl_show_objectsinfo_notification(info_text, false, !(p->current_panel == p->view3D), _u8L("View Wiki for more information"), [](wxEvtHandler*) {
-            wxGetApp().open_browser_with_warning_dialog("https://wiki.bambulab.com/en/software/bambu-studio/multi-color-printing");
+            std::string language = wxGetApp().app_config->get("language");
+            wxString    region = L"en";
+            if (language.find("zh") == 0)
+            	region = L"zh";
+            wxGetApp().open_browser_with_warning_dialog(wxString::Format("https://wiki.bambulab.com/%s/software/bambu-studio/parameter/prime-tower", region));
             return false;
             });
         return;
