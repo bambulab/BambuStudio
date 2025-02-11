@@ -169,8 +169,12 @@ public:
     virtual CustomizeFlag get_customize_flag() const { return m_customize_flag; };
     virtual void set_customize_flag(CustomizeFlag flag) { m_customize_flag = flag; };
 
+    virtual int  get_cooling_node() const { return m_cooling_node; };
+    virtual void set_cooling_node(int id) { m_cooling_node = id; };
+
 protected:
     CustomizeFlag m_customize_flag{CustomizeFlag::cfNone};
+    int           m_cooling_node{ -1 };
 };
 
 typedef std::vector<ExtrusionEntity*> ExtrusionEntitiesPtr;

@@ -185,7 +185,7 @@ public:
     void                    make_perimeters(const AutoContourHolesCompensationParams &auto_contour_holes_compensation_params);
     //BBS
     void                    calculate_perimeter_continuity(std::vector<LoopNode> &prev_nodes);
-
+    void                    recrod_cooling_node_for_each_extrusion();
     // Phony version of make_fills() without parameters for Perl integration only.
     void                    make_fills() { this->make_fills(nullptr, nullptr); }
     void                    make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive::Octree* support_fill_octree, FillLightning::Generator* lightning_generator = nullptr);

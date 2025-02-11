@@ -3956,15 +3956,6 @@ GCode::LayerResult GCode::process_layer(
                                     if (islands[island_idx].by_region.empty())
                                         islands[island_idx].by_region.assign(print.num_print_regions(), ObjectByExtruder::Island::Region());
                                     islands[island_idx].by_region[region.print_region_id()].append(entity_type, extrusions, entity_overrides);
-                                    int start = extrusions->loop_node_range.first;
-                                    int end   = extrusions->loop_node_range.second;
-                                    //BBS: add merged node infor
-                                    if (!is_infill) {
-                                        for (; start < end; ++start) {
-                                            const LoopNode *node = &layer.loop_nodes[start];
-                                            islands[island_idx].by_region[region.print_region_id()].merged_node.emplace_back(node);
-                                        }
-                                    }
                                     break;
                                 }
                             }
@@ -4826,12 +4817,12 @@ std::string GCode::extrude_perimeters(const Print &print, const std::vector<Obje
 
             // BBS: output merged node id
             int curr_node=0;
-
+            int cooling_node = -1;
             for (size_t perimeter_idx = 0; perimeter_idx < region.perimeters.size(); ++perimeter_idx) {
                 const ExtrusionEntity *ee = region.perimeters[perimeter_idx];
-                if (curr_node < region.merged_node.size() && perimeter_idx == region.merged_node[curr_node]->loop_id) {
-                    gcode += "; COOLING_NODE: " + std::to_string(region.merged_node[curr_node]->merged_id) + "\n";
-                    curr_node++;
+                int ee_node_id = ee->get_cooling_node();
+                if (ee_node_id != cooling_node) {
+                    gcode += "; COOLING_NODE: " + std::to_string(ee_node_id) + "\n";
                 }
 
                 gcode += this->extrude_entity(*ee, "perimeter", -1.);

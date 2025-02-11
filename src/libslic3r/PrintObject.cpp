@@ -459,6 +459,22 @@ void PrintObject::make_perimeters(const AutoContourHolesCompensationParams &auto
         }
         m_print->throw_if_canceled();
         BOOST_LOG_TRIVIAL(debug) << "Calculating cooling nodes - end";
+
+
+        //write merged node to each perimeter
+        BOOST_LOG_TRIVIAL(debug) << "Recrod cooling_node id for each extrusion in parallel - start";
+        tbb::parallel_for(tbb::blocked_range<size_t>(0, m_layers.size()), [this](const tbb::blocked_range<size_t> &range) {
+            for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++layer_idx) {
+                m_print->throw_if_canceled();
+                if (layer_idx > 1) {
+                    Layer &prev_layer = *m_layers[layer_idx - 1];
+                    m_layers[layer_idx]->recrod_cooling_node_for_each_extrusion();
+                }
+            }
+        });
+
+        m_print->throw_if_canceled();
+        BOOST_LOG_TRIVIAL(debug) << "Recrod cooling_node id for each extrusion in parallel - end";
     }
     this->set_done(posPerimeters);
 }
