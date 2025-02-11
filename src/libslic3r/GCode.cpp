@@ -4567,8 +4567,8 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
 
     // BBS: not apply on fist layer, too small E has stick issue with hotend plate
     int  filament_scarf_type = EXTRUDER_CONFIG(filament_scarf_seam_type);
-    bool enable_seam_slope   = (filament_scarf_type == int(SeamScarfType::External) && !is_hole) ||
-                                    filament_scarf_type == int(SeamScarfType::All) &&
+    bool enable_seam_slope   = ((filament_scarf_type == int(SeamScarfType::External) && !is_hole) ||
+                                    filament_scarf_type == int(SeamScarfType::All)) &&
                                     !m_config.spiral_mode &&
                                     (loop.role() == erExternalPerimeter ||
                                     (loop.role() == erPerimeter && m_config.seam_slope_inner_walls)) &&
