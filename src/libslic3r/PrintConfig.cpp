@@ -149,7 +149,8 @@ static t_config_enum_values s_keys_map_InfillPattern {
     { "supportcubic",       ipSupportCubic },
     { "lightning",          ipLightning },
     { "crosshatch",         ipCrossHatch},
-    { "zigzag",             ipZigZag }
+    { "zigzag",             ipZigZag },
+    { "crosszag",           ipCrossZag }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(InfillPattern)
 
@@ -1965,6 +1966,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("lightning");
     def->enum_values.push_back("crosshatch");
     def->enum_values.push_back("zigzag");
+    def->enum_values.push_back("crosszag");
     def->enum_labels.push_back(L("Concentric"));
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Grid"));
@@ -1984,6 +1986,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Lightning"));
     def->enum_labels.push_back(L("Cross Hatch"));
     def->enum_labels.push_back(L("Zig Zag"));
+    def->enum_labels.push_back(L("Cross Zag"));
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipCubic));
 
     def = this->add("top_surface_acceleration", coFloats);
@@ -2373,6 +2376,26 @@ void PrintConfigDef::init_fff_params()
                      "with original layer height.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
+
+    def           = this->add("crosszag_move_step", coFloat);
+    def->label    = L("Cross Zag Move Step");
+    def->category = L("Strength");
+    def->tooltip  = L("move infill a bit to get cross texture.");
+    def->sidetext = L("mm");
+    def->min      = 0;
+    def->max      = 10;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.4));
+
+    def           = this->add("zigzag_angle_step", coFloat);
+    def->label    = L("Zig Zag Angle Step");
+    def->category = L("Strength");
+    def->tooltip  = L("rotate infill of each layer to get cross texture.");
+    def->sidetext = L("°");
+    def->min      = 0;
+    def->max      = 360;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
 
     auto def_infill_anchor_min = def = this->add("sparse_infill_anchor", coFloatOrPercent);
     def->label = L("Length of sparse infill anchor");

@@ -1087,7 +1087,9 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "top_surface_line_width"
             || opt_key == "initial_layer_line_width") {
             steps.emplace_back(posInfill);
-        } else if (opt_key == "sparse_infill_pattern") {
+        } else if (opt_key == "sparse_infill_pattern"
+                   || opt_key == "crosszag_move_step"
+                   || opt_key == "zigzag_angle_step") {
             steps.emplace_back(posPrepareInfill);
         } else if (opt_key == "sparse_infill_density") {
             // One likely wants to reslice only when switching between zero infill to simulate boolean difference (subtracting volumes),

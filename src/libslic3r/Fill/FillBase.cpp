@@ -57,6 +57,7 @@ Fill* Fill::new_from_type(const InfillPattern type)
     // BBS: for bottom and top surface only
     case ipMonotonicLine:       return new FillMonotonicLineWGapFill();
     case ipZigZag:              return new FillZigZag();
+    case ipCrossZag:            return new FillCrossZag();
     default: throw Slic3r::InvalidArgument("unknown type");
     }
 }

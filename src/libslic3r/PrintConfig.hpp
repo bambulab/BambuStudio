@@ -54,7 +54,7 @@ enum AuthorizationType {
 enum InfillPattern : int {
     ipConcentric, ipRectilinear, ipGrid, ipLine, ipCubic, ipTriangles, ipStars, ipGyroid, ipHoneycomb, ipAdaptiveCubic, ipMonotonic, ipMonotonicLine, ipAlignedRectilinear, ip3DHoneycomb,
     ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipSupportCubic, ipSupportBase, ipConcentricInternal,
-    ipLightning, ipCrossHatch, ipZigZag,
+    ipLightning, ipCrossHatch, ipZigZag, ipCrossZag,
     ipCount,
 };
 
@@ -896,6 +896,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat, outer_wall_line_width))
     ((ConfigOptionFloatsNullable, outer_wall_speed))
     ((ConfigOptionFloat, infill_direction))
+    ((ConfigOptionFloat, crosszag_move_step))
+    ((ConfigOptionFloat, zigzag_angle_step))
     ((ConfigOptionPercent, sparse_infill_density))
     ((ConfigOptionEnum<InfillPattern>, sparse_infill_pattern))
     ((ConfigOptionEnum<FuzzySkinType>, fuzzy_skin))

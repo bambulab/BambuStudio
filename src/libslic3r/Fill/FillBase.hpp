@@ -76,6 +76,8 @@ struct FillParams
     float           no_extrusion_overlap{ 0.0 };
     bool            dont_sort{ false }; // do not sort the lines, just simply connect them
     bool            can_reverse{true};
+
+    float           horiz_move{0.0}; //move infill to get cross zag pattern
 };
 static_assert(IsTriviallyCopyable<FillParams>::value, "FillParams class is not POD (and it should be - see constructor).");
 

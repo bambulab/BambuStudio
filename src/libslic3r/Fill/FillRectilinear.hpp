@@ -150,6 +150,16 @@ public:
     bool has_consistent_pattern() const override { return true; }
 };
 
+class FillCrossZag : public FillRectilinear
+{
+public:
+    Fill *clone() const override { return new FillCrossZag(*this); }
+    ~FillCrossZag() override = default;
+
+    bool has_consistent_pattern() const override { return true; }
+};
+
+
 Points sample_grid_pattern(const ExPolygon &expolygon, coord_t spacing, const BoundingBox &global_bounding_box);
 Points sample_grid_pattern(const ExPolygons &expolygons, coord_t spacing, const BoundingBox &global_bounding_box);
 Points sample_grid_pattern(const Polygons &polygons, coord_t spacing, const BoundingBox &global_bounding_box);

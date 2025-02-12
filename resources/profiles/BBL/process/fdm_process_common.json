@@ -134,5 +134,7 @@
     "xy_hole_compensation": "0",
     "z_direction_outwall_speed_continuous": "0",
     "enable_circle_compensation": "0",
-    "circle_compensation_manual_offset": "0"
+    "circle_compensation_manual_offset": "0",
+    "crosszag_move_step": "0.4",
+    "zigzag_angle_step": "0"
 }
