@@ -835,7 +835,7 @@ void CalibrationPresetPage::create_filament_list_panel(wxWindow* parent)
         AMSinfo temp_info = AMSinfo{ std::to_string(i), std::vector<Caninfo>{} };
         auto amsitem = new AMSPreview(m_multi_ams_panel, wxID_ANY, temp_info);
         amsitem->Bind(wxEVT_LEFT_DOWN, [this, amsitem](wxMouseEvent& e) {
-            on_switch_ams(amsitem->m_amsinfo.ams_id);
+            on_switch_ams(amsitem->get_ams_id());
             e.Skip();
             });
         m_ams_preview_list.push_back(amsitem);
@@ -960,7 +960,7 @@ void CalibrationPresetPage::create_multi_extruder_filament_list_panel(wxWindow *
             m_main_ams_preview_list.push_back(preview_ams_item);
             size_t index = m_main_ams_preview_list.size() - 1;
             preview_ams_item->Bind(wxEVT_LEFT_DOWN, [this, index](wxMouseEvent &e) {
-                update_multi_extruder_filament_combobox(m_main_ams_preview_list[index]->m_amsinfo.ams_id, 0);
+                update_multi_extruder_filament_combobox(m_main_ams_preview_list[index]->get_ams_id(), 0);
                 e.Skip();
             });
             ams_items_sizer->Add(preview_ams_item, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(6));
@@ -1022,7 +1022,7 @@ void CalibrationPresetPage::create_multi_extruder_filament_list_panel(wxWindow *
             m_deputy_ams_preview_list.push_back(preview_ams_item);
             size_t index = m_deputy_ams_preview_list.size() - 1;
             preview_ams_item->Bind(wxEVT_LEFT_DOWN, [this, index](wxMouseEvent &e) {
-                update_multi_extruder_filament_combobox(m_deputy_ams_preview_list[index]->m_amsinfo.ams_id, 1);
+                update_multi_extruder_filament_combobox(m_deputy_ams_preview_list[index]->get_ams_id(), 1);
                 e.Skip();
             });
             ams_items_sizer->Add(preview_ams_item, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(6));
@@ -1330,7 +1330,7 @@ void CalibrationPresetPage::on_switch_ams(std::string ams_id)
 {
     for (auto i = 0; i < m_ams_preview_list.size(); i++) {
         AMSPreview* item = m_ams_preview_list[i];
-        if (item->m_amsinfo.ams_id == ams_id) {
+        if (item->get_ams_id() == ams_id) {
             item->OnSelected();
         }
         else {

@@ -650,9 +650,13 @@ public:
     virtual bool Enable(bool enable = true);
     void         msw_rescale();
 
-    AMSinfo      m_amsinfo;
+
+    std::string  get_ams_id() const { return m_amsinfo.ams_id; };
+    int          get_nozzle_id() const { return m_amsinfo.nozzle_id; };
 
 protected:
+    AMSinfo  m_amsinfo;
+
     wxSize   m_cube_size;
     wxColour m_background_colour = { AMS_CONTROL_DEF_LIB_BK_COLOUR };
     float    m_padding;

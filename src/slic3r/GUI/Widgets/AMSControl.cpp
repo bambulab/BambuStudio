@@ -3343,7 +3343,7 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> ams_info, std::vector<AMSinfo>ex
         }
 
         for (auto ams_prv : m_ams_preview_list) {
-            std::string id = ams_prv.second->m_amsinfo.ams_id;
+            std::string id = ams_prv.second->get_ams_id();
             auto item = m_ams_item_list.find(id);
             if (item != m_ams_item_list.end())
             { ams_prv.second->Update(item->second->get_ams_info());
@@ -3446,7 +3446,7 @@ void AMSControl::AddAmsPreview(AMSinfo info, AMSModel type)
 
     if (ams_prv){
         ams_prv->Bind(wxEVT_LEFT_DOWN, [this, ams_prv](wxMouseEvent &e) {
-            SwitchAms(ams_prv->m_amsinfo.ams_id);
+            SwitchAms(ams_prv->get_ams_id());
             e.Skip();
         });
         m_ams_preview_list[info.ams_id] = ams_prv;
@@ -3665,14 +3665,14 @@ void AMSControl::AddAmsPreview(std::vector<AMSinfo>single_info, AMSPanelPos pos)
 
     if (ams_prv) {
         ams_prv->Bind(wxEVT_LEFT_DOWN, [this, ams_prv](wxMouseEvent& e) {
-            SwitchAms(ams_prv->m_amsinfo.ams_id);
+            SwitchAms(ams_prv->get_ams_id());
             e.Skip();
             });
         m_ams_preview_list[single_info[0].ams_id] = ams_prv;
     }
     if (ams_prv2) {
         ams_prv2->Bind(wxEVT_LEFT_DOWN, [this, ams_prv2](wxMouseEvent& e) {
-            SwitchAms(ams_prv2->m_amsinfo.ams_id);
+            SwitchAms(ams_prv2->get_ams_id());
             e.Skip();
             });
         m_ams_preview_list[single_info[1].ams_id] = ams_prv2;
@@ -3696,7 +3696,7 @@ void AMSControl::SwitchAms(std::string ams_id)
 
     for (auto prv_it : m_ams_preview_list) {
         AMSPreview* prv = prv_it.second;
-        if (prv->m_amsinfo.ams_id == m_current_show_ams_left || prv->m_amsinfo.ams_id == m_current_show_ams_right) {
+        if (prv->get_ams_id() == m_current_show_ams_left || prv->get_ams_id() == m_current_show_ams_right) {
             prv->OnSelected();
             m_current_select = ams_id;
 
@@ -3722,11 +3722,10 @@ void AMSControl::SwitchAms(std::string ams_id)
         } else {
             prv->UnSelected();
         }
-        if (prv->m_amsinfo.nozzle_id == DEPUTY_NOZZLE_ID) {
+        if (prv->get_nozzle_id() == DEPUTY_NOZZLE_ID) {
             m_sizer_prv_left->Layout();
             m_panel_prv_left->Fit();
-        }
-        else if (prv->m_amsinfo.nozzle_id == MAIN_NOZZLE_ID){
+        } else if (prv->get_nozzle_id() == MAIN_NOZZLE_ID) {
             m_sizer_prv_right->Layout();
             m_panel_prv_right->Fit();
         }
