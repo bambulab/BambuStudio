@@ -2806,6 +2806,13 @@ bool FillRectilinear::fill_surface_by_lines(const Surface *surface, const FillPa
 	if (params.full_infill())
 		x0 += (line_spacing + coord_t(SCALED_EPSILON)) / 2;
 
+    int gap_line = params.horiz_move / line_spacing;
+    if (gap_line % 2 == 0) {
+        x0 += params.horiz_move - gap_line * line_spacing;
+    } else {
+        x0 += params.horiz_move - (gap_line - 1) * line_spacing;
+        n_vlines += 1;
+    }
 #ifdef SLIC3R_DEBUG
     static int iRun = 0;
     BoundingBox bbox_svg = poly_with_offset.bounding_box_outer();

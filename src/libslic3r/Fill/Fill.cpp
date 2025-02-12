@@ -62,6 +62,8 @@ struct SurfaceFillParams
 	float			sparse_infill_speed = 0;
 	float			top_surface_speed = 0;
 	float			solid_infill_speed = 0;
+    float           crosszag_move_step          = 0;// param for cross zag
+    float           zigzag_angle_step         = 0; // param for zig zag to get cross texture
 
 	bool operator<(const SurfaceFillParams &rhs) const {
 #define RETURN_COMPARE_NON_EQUAL(KEY) if (this->KEY < rhs.KEY) return true; if (this->KEY > rhs.KEY) return false;
@@ -88,6 +90,8 @@ struct SurfaceFillParams
 		RETURN_COMPARE_NON_EQUAL(sparse_infill_speed);
 		RETURN_COMPARE_NON_EQUAL(top_surface_speed);
 		RETURN_COMPARE_NON_EQUAL(solid_infill_speed);
+        RETURN_COMPARE_NON_EQUAL(crosszag_move_step);
+        RETURN_COMPARE_NON_EQUAL(zigzag_angle_step);
 
 		return false;
 	}
@@ -108,7 +112,9 @@ struct SurfaceFillParams
 				this->extrusion_role	== rhs.extrusion_role	&&
 				this->sparse_infill_speed	== rhs.sparse_infill_speed &&
 				this->top_surface_speed		== rhs.top_surface_speed &&
-				this->solid_infill_speed	== rhs.solid_infill_speed;
+				this->solid_infill_speed	== rhs.solid_infill_speed &&
+				this->crosszag_move_step             == rhs.crosszag_move_step &&
+				this->zigzag_angle_step            == rhs.zigzag_angle_step;
 	}
 };
 
@@ -157,6 +163,10 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		        params.extruder 	 = layerm.region().extruder(extrusion_role);
 		        params.pattern 		 = region_config.sparse_infill_pattern.value;
 		        params.density       = float(region_config.sparse_infill_density);
+                if (params.pattern == ipCrossZag)
+                    params.crosszag_move_step     = scale_(region_config.crosszag_move_step);
+                if (params.pattern == ipZigZag)
+                    params.zigzag_angle_step    =  region_config.zigzag_angle_step * M_PI / 360;
 
 				if (surface.is_solid()) {
 		            params.density = 100.f;
@@ -444,7 +454,12 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
         f->z 		= this->print_z;
         f->angle 	= surface_fill.params.angle;
         f->adapt_fill_octree = (surface_fill.params.pattern == ipSupportCubic) ? support_fill_octree : adaptive_fill_octree;
-
+        if (surface_fill.params.pattern == ipZigZag) {
+            if (f->layer_id % 2 == 0)
+                f->angle -= surface_fill.params.zigzag_angle_step * (f->layer_id / 2);
+            else
+                f->angle += surface_fill.params.zigzag_angle_step * (f->layer_id / 2);
+        }
 		if (surface_fill.params.pattern == ipConcentricInternal) {
             FillConcentricInternal *fill_concentric = dynamic_cast<FillConcentricInternal *>(f.get());
             assert(fill_concentric != nullptr);
@@ -491,6 +506,12 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 		params.extrusion_role = surface_fill.params.extrusion_role;
 		params.using_internal_flow = using_internal_flow;
 		params.no_extrusion_overlap = surface_fill.params.overlap;
+        if (surface_fill.params.pattern == ipCrossZag) {
+            if (f->layer_id % 2 == 0)
+                params.horiz_move -= surface_fill.params.crosszag_move_step * (f->layer_id / 2);
+            else
+                params.horiz_move += surface_fill.params.crosszag_move_step * (f->layer_id / 2);
+        }
 		if (surface_fill.params.pattern == ipGrid)
 			params.can_reverse = false;
 		LayerRegion* layerm = this->m_regions[surface_fill.region_id];
@@ -559,7 +580,8 @@ Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Oc
         case ipHilbertCurve:
         case ipArchimedeanChords:
         case ipOctagramSpiral:
-        case ipZigZag: break;
+        case ipZigZag:
+        case ipCrossZag: break;
         }
 
 		// Create the filler object.

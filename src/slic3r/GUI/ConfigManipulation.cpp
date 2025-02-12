@@ -558,11 +558,16 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     bool have_infill = config->option<ConfigOptionPercent>("sparse_infill_density")->value > 0;
     // sparse_infill_filament uses the same logic as in Print::extruders()
     for (auto el : { "sparse_infill_pattern", "sparse_infill_anchor_max", "infill_combination",
-                    "minimum_sparse_infill_area", "sparse_infill_filament"})
+                    "minimum_sparse_infill_area", "sparse_infill_filament","crosszag_move_step","zigzag_angle_step"})
         toggle_line(el, have_infill);
     // Only allow configuration of open anchors if the anchoring is enabled.
     bool has_infill_anchors = have_infill && config->option<ConfigOptionFloatOrPercent>("sparse_infill_anchor_max")->value > 0;
     toggle_line("sparse_infill_anchor", has_infill_anchors);
+
+    //cross zag
+    toggle_line("crosszag_move_step", config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value == InfillPattern::ipCrossZag);
+
+    toggle_line("zigzag_angle_step", config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value == InfillPattern::ipZigZag);
 
     bool has_spiral_vase         = config->opt_bool("spiral_mode");
     toggle_line("spiral_mode_smooth", has_spiral_vase);
