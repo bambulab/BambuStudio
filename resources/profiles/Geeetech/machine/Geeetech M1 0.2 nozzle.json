@@ -1,6 +1,6 @@
 {
   "type": "machine",
-  "setting_id": "GM_GEEETECH_039",
+  "setting_id": "GM_GEEETECH_043",
   "name": "Geeetech M1 0.2 nozzle",
   "from": "system",
   "instantiation": "true",
