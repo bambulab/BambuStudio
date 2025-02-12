@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-06 19:42+0800\n"
+"POT-Creation-Date: 2025-02-12 12:09+0800\n"
 "PO-Revision-Date: 2025-01-12 21:04+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -304,7 +304,7 @@ msgid "Reset current rotation to the value when open the rotation tool."
 msgstr "Dönüş açısını, döndürme aracı açıldığındaki konuma sıfırlayın."
 
 msgid "Rotate (absolute)"
-msgstr ""
+msgstr "Döndür (mutlak)"
 
 msgid "Reset current rotation to real zeros."
 msgstr "Geçerli dönüşü sıfır pozisyonuna sıfırla."
@@ -851,12 +851,14 @@ msgid "Warning:text normal is error."
 msgstr "Uyarı:normal metin hatalıdır."
 
 msgid "Warning:text normal has been reset."
-msgstr ""
+msgstr "Uyarı:normal metin sıfırlandı."
 
 msgid ""
 "Warning:Because current text does indeed use surround algorithm,\n"
 "if continue to edit, text has to regenerated according to new location."
 msgstr ""
+"Uyarı:Çünkü mevcut metin aslında surround algoritmasını kullanmaktadır,\n"
+"düzenlemeye devam edilirse, metin yeni konuma göre yeniden oluşturulmalıdır."
 
 msgid ""
 "Warning:old matrix has at least two parameters: mirroring, scaling, and "
@@ -865,21 +867,32 @@ msgid ""
 "Please dragging text or cancel using current pose, \n"
 "save and reedit again."
 msgstr ""
+"Uyarı:eski matrisin en az iki parametresi vardır: yansıtma, ölçekleme ve "
+"döndürme.\n"
+"Düzenlemeye devam ederseniz, doğru olmayabilir.\n"
+"Lütfen metni sürükleyin veya mevcut pozu kullanarak iptal edin,\n"
+"kaydedin ve tekrar düzenleyin."
 
 msgid ""
 "Error:Detecting an incorrect mesh id or an unknown error, \n"
 "regenerating text may result in incorrect outcomes.\n"
 "Please drag text,save it then reedit it again."
 msgstr ""
+"Hata:Yanlış bir ağ kimliği veya bilinmeyen bir hata algılanıyor,\n"
+"metni yeniden oluşturmak yanlış sonuçlara neden olabilir.\n"
+"Lütfen metni sürükleyin, kaydedin ve tekrar düzenleyin."
 
 msgid ""
 "Warning:Due to functional upgrade, rotation information \n"
 "cannot be restored. Please drag or modify text,\n"
 " save it and reedit it will ok."
 msgstr ""
+"Uyarı:İşlevsel yükseltme nedeniyle, rotasyon bilgileri\n"
+"geri yüklenemez. Lütfen metni sürükleyin veya değiştirin,\n"
+" kaydedin ve yeniden düzenleyin tamam olacaktır."
 
 msgid "Use opened text pose"
-msgstr ""
+msgstr "Açılmış metin pozunu kullanın"
 
 msgid "Surface"
 msgstr "Yüzey"
@@ -1244,11 +1257,9 @@ msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr "%s bağlantısı başarısız oldu! [SN:%s, kod=%s]"
 
 msgid ""
-"BambuStudio configuration file may be corrupted and is not able to be parsed."
-"Please delete the file and try again."
+"BambuStudio configuration file read failed. Please manually backup and "
+"delete it, and then restart BambuStudio software."
 msgstr ""
-"BambuStudio yapılandırma dosyası bozulmuş olabilir ve ayrıştırılamıyor "
-"olabilir, lütfen dosyayı silin ve tekrar deneyin."
 
 #, c-format, boost-format
 msgid ""
@@ -1339,28 +1350,37 @@ msgid ""
 "Your software certificate has been revoked, please update Bambu Studio "
 "software."
 msgstr ""
+"Yazılım sertifikanız iptal edildi, lütfen Bambu Studio yazılımını "
+"güncelleyin."
 
 msgid "Retrieving printer information, please try again later."
-msgstr ""
+msgstr "Yazıcı bilgileri alınıyor, lütfen daha sonra tekrar deneyin."
 
 msgid "Please try updating Bambu Studio and then try again."
 msgstr ""
+"Lütfen Bambu Studio'yu güncellemeyi deneyin ve ardından tekrar deneyin."
 
 msgid ""
 "The certificate has expired. Please check the time settings or update Bambu "
 "Studio and try again."
 msgstr ""
+"Sertifikanın süresi doldu. Lütfen zaman ayarlarını kontrol edin veya Bambu "
+"Studio'yu güncelleyin ve tekrar deneyin."
 
 msgid ""
 "The certificate is no longer valid and the printing functions are "
 "unavailable. If you need printing. Please visit the official website at "
 "https://bambulab.com/ to download and update."
 msgstr ""
+"Sertifika iptal edildi. Lütfen zaman ayarlarını kontrol edin veya Bambu "
+"Studio'yu güncelleyin ve tekrar deneyin."
 
 msgid ""
 "Internal error. Please try upgrading the firmware and Studio version. If the "
 "issue persists, contact customer support."
 msgstr ""
+"Dahili hata. Lütfen aygıt yazılımını ve Studio sürümünü yükseltmeyi deneyin. "
+"Sorun devam ederse, müşteri desteğiyle iletişime geçin."
 
 msgid ""
 "Your software is not signed, and some printing functions have been "
@@ -4249,6 +4269,9 @@ msgid ""
 "to the Wiki to ensure print quality."
 msgstr ""
 
+msgid "Click Wiki for help."
+msgstr "Yardım için Wiki'ye tıklayın."
+
 msgid "Calibration step selection"
 msgstr "Kalibrasyon adımı seçimi"
 
@@ -5543,7 +5566,7 @@ msgid "Please input a valid value (0.01 < angle deflection < 1.0)"
 msgstr "Lütfen geçerli bir değer girin (0,01 < açı sapması < 1,0)"
 
 msgid "Split compound and compsolid into multiple objects"
-msgstr ""
+msgstr "Bileşik nesne ve bileşik katıyı birden fazla nesneye ayır."
 
 msgid "Number of triangular facets"
 msgstr "Üçgen yüzey sayısı"
@@ -5761,9 +5784,6 @@ msgstr ""
 
 msgid "Gcode path overlap"
 msgstr "Gcode yolu çakışması"
-
-msgid "Click Wiki for help."
-msgstr "Yardım için Wiki'ye tıklayın."
 
 msgid "Click here to regroup"
 msgstr ""
@@ -6489,6 +6509,8 @@ msgid ""
 "Unable to perform boolean operation on model meshes. You may fix the meshes "
 "and try again."
 msgstr ""
+"Model kafesleri üzerinde boolean işlemi gerçekleştirilemiyor. Kafesleri "
+"düzeltebilir ve tekrar deneyebilirsiniz."
 
 #, boost-format
 msgid "Reason: part \"%1%\" is empty."
@@ -6524,6 +6546,14 @@ msgstr ""
 
 msgid "Private protection"
 msgstr "Özel koruma"
+
+msgid ""
+"For PVA filaments, it is strongly recommended to use normal support to avoid "
+"print failures."
+msgstr ""
+
+msgid "Change these settings automatically? \n"
+msgstr ""
 
 msgid ""
 "Print By Object: \n"
@@ -6710,14 +6740,6 @@ msgstr ""
 msgid "Enable LOD"
 msgstr "LOD'u Etkinleştir"
 
-msgid "Change opengl multi instance rendering requires application restart."
-msgstr ""
-"Opengl çoklu örnek oluşturmayı değiştirmek uygulamanın yeniden "
-"başlatılmasını gerektirir."
-
-msgid "Enable opengl multi instance rendering"
-msgstr "Opengl çoklu örnek oluşturmayı etkinleştir"
-
 msgid "Browse"
 msgstr "Aç"
 
@@ -6864,10 +6886,10 @@ msgstr ""
 "değeri değiştirirseniz yeniden dilimlemeniz gerekir."
 
 msgid "Import a single SVG and split it"
-msgstr ""
+msgstr "Tek bir SVG'yi içe aktarın ve bölün"
 
 msgid "Import a single SVG and then split it to several parts."
-msgstr ""
+msgstr "Tek bir SVG'yi içe aktarın ve ardından birkaç parçaya bölün."
 
 msgid "Improve rendering performance by lod"
 msgstr "Oluşturma performansını lod ile iyileştirin"
@@ -6879,15 +6901,16 @@ msgstr ""
 "Birden fazla plaka ve çok sayıda model sahnesi altında iyileştirilmiş işleme "
 "performansı."
 
-msgid "Enable multi instance rendering by opengl"
-msgstr "opengl ile çoklu örnek oluşturmayı etkinleştirin"
+msgid ""
+"Prefer to use high performance GPU (Effective after manual restart Bambu "
+"Studio)"
+msgstr ""
 
 msgid ""
-"If enabled, it can improve certain rendering performance. But for some "
-"graphics cards, it may not be applicable, please turn it off."
+"If enabled, this feature can improve rendering performance to some extent. "
+"However, it may cause flickering on multi-GPU systems, so it is recommended "
+"to disable it."
 msgstr ""
-"Etkinleştirilirse, belirli işleme performansını artırabilir. Ancak bazı "
-"grafik kartları için geçerli olmayabilir, lütfen kapatın."
 
 msgid "Grabber scale"
 msgstr "Kavrama ölçeği"
@@ -8319,6 +8342,18 @@ msgstr ""
 msgid "Right: %s"
 msgstr ""
 
+msgid "No modifications need to be copied."
+msgstr ""
+
+msgid "Copied the following parameters to the left nozzle:"
+msgstr ""
+
+msgid "Copied the following parameters to the right nozzle:"
+msgstr ""
+
+msgid "Copy paramters"
+msgstr ""
+
 msgid "Click to reset current value and attach to the global value."
 msgstr "Geçerli değeri sıfırlamak ve genel değere eklemek için tıklayın."
 
@@ -8963,6 +8998,9 @@ msgstr "Kamera Açısı - Sağ"
 
 msgid "Select all objects"
 msgstr "Tüm nesneleri seç"
+
+msgid "Shift+D"
+msgstr ""
 
 msgid "Gizmo move"
 msgstr "Gizmo hareket"
@@ -9699,6 +9737,14 @@ msgid "Maximum printable height which is limited by mechanism of printer"
 msgstr ""
 "Yazıcının mekanizması tarafından sınırlanan maksimum yazdırılabilir yükseklik"
 
+msgid "Extruder printable height"
+msgstr ""
+
+msgid ""
+"Maximum printable height of this extruder which is limited by mechanism of "
+"printer"
+msgstr ""
+
 msgid "Unprintable filament type"
 msgstr ""
 
@@ -10259,6 +10305,15 @@ msgstr ""
 "Dikey kabuk kalınlığını garanti etmek için eğimli yüzeylerin yakınına katı "
 "dolgu ekleyin (üst+alt katı katmanlar)"
 
+msgid "Disabled"
+msgstr ""
+
+msgid "Partial"
+msgstr ""
+
+msgid "Enabled"
+msgstr ""
+
 msgid "Internal bridge support thickness"
 msgstr "İç köprü destek kalınlığı"
 
@@ -10570,7 +10625,7 @@ msgid "mm³/s"
 msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
-msgstr "Silme kulesi üzerinde minimum tahliye"
+msgstr "Temizleme kulesi üzerinde minimum tahliye"
 
 msgid "mm³"
 msgstr "mm³"
@@ -10621,7 +10676,7 @@ msgstr ""
 "Bu telafi kontrollerden sonra yapıldığından, nesneler arasında yeterli "
 "boşluk bıraktığınızdan emin olun."
 
-msgid "Category"
+msgid "Adhesiveness Category"
 msgstr ""
 
 msgid "Filament category"
@@ -10697,7 +10752,12 @@ msgstr ""
 "Atkının uzunluğu. Bu parametrenin 0 a ayarlanması atkıyı dolaylı yoldan "
 "devre dışı bırakır."
 
-msgid "Filament change length"
+msgid "Filament ramming length"
+msgstr ""
+
+msgid ""
+"When changing the extruder, it is recommended to extrude a certain length of "
+"filament from the original extruder. This helps minimize nozzle oozing."
 msgstr ""
 
 msgid "Support material"
@@ -11523,8 +11583,10 @@ msgstr "Süreksizlik alanı arasındaki hız geçişini ekleyin."
 msgid "Smooth coefficient"
 msgstr "Pürüzsüz katsayı"
 
-msgid "The smaller the number, the longer the speed transition path."
-msgstr "Sayı ne kadar küçükse, hız geçiş yolu o kadar uzundur."
+msgid ""
+"The smaller the number, the longer the speed transition path. 0 means not "
+"apply."
+msgstr ""
 
 msgid "Line width of inner wall"
 msgstr "İç duvarın çizgi genişliği"
@@ -11820,13 +11882,16 @@ msgstr ""
 "ayarına göre hesaplanır. Bu parametrenin varsayılan değeri %80'dir"
 
 msgid "Role-based wipe speed"
-msgstr "Rol tabanlı silme hızı"
+msgstr "Rol tabanlı temizleme hızı"
 
 msgid ""
 "The wipe speed is determined by speed of current extrusion role. e.g if a "
 "wipe action is executed immediately following an outer wall extrusion, the "
 "speed of the outer wall extrusion will be utilized for the wipe action."
 msgstr ""
+"Temizleme hızı, mevcut ekstrüzyon işleminin hızına bağlıdır. Örneğin, bir "
+"temizleme işlemi dış duvar ekstrüzyonunun hemen ardından gerçekleştirilirse, "
+"dış duvar ekstrüzyon hızı temizleme işlemi için kullanılacaktır."
 
 msgid "Skirt distance"
 msgstr "Etek mesafesi"
@@ -11920,8 +11985,8 @@ msgstr ""
 "bir video halinde birleştirilir. Düzgün modu seçilirse, her katman "
 "yazdırıldıktan sonra araç kafası fazla kanala hareket edecek ve ardından bir "
 "anlık görüntü alacaktır. Anlık görüntü alma işlemi sırasında eriyen filament "
-"nozulden sızabileceğinden, nozulu silmek için düzgün modun kullanılması için "
-"prime tower gereklidir."
+"nozulden sızabileceğinden, nozulu temizlemek için düzgün modun kullanılması "
+"için prime tower gereklidir."
 
 msgid "Traditional"
 msgstr "Geleneksel"
@@ -12402,6 +12467,12 @@ msgstr ""
 msgid "If you want to have tighter or looser assemble, you can set this value."
 msgstr ""
 
+msgid "Scarf Seam On Compensation Circles"
+msgstr ""
+
+msgid "Enable to apply scarf seam on the circle to have better assemble."
+msgstr ""
+
 msgid "Circle Compensation Speed"
 msgstr ""
 
@@ -12494,8 +12565,8 @@ msgid "Width of prime tower"
 msgstr "Prime tower genişliği"
 
 msgid ""
-"Brim width of wipe tower, -1 means auto calculated width based on the height "
-"of wipe tower."
+"Brim width of prime tower, negative number means auto calculated width based "
+"on the height of prime tower."
 msgstr ""
 
 msgid "Extra rib length"
@@ -12520,6 +12591,9 @@ msgid "fillet wall"
 msgstr ""
 
 msgid "The wall of prime tower will fillet"
+msgstr ""
+
+msgid "Infill gap"
 msgstr ""
 
 msgid ""
@@ -15357,6 +15431,34 @@ msgstr ""
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı "
 "sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını "
 "azaltabileceğini biliyor muydunuz."
+
+#~ msgid ""
+#~ "BambuStudio configuration file may be corrupted and is not able to be "
+#~ "parsed.Please delete the file and try again."
+#~ msgstr ""
+#~ "BambuStudio yapılandırma dosyası bozulmuş olabilir ve ayrıştırılamıyor "
+#~ "olabilir, lütfen dosyayı silin ve tekrar deneyin."
+
+#~ msgid "Change opengl multi instance rendering requires application restart."
+#~ msgstr ""
+#~ "Opengl çoklu örnek oluşturmayı değiştirmek uygulamanın yeniden "
+#~ "başlatılmasını gerektirir."
+
+#~ msgid "Enable opengl multi instance rendering"
+#~ msgstr "Opengl çoklu örnek oluşturmayı etkinleştir"
+
+#~ msgid "Enable multi instance rendering by opengl"
+#~ msgstr "Opengl ile çoklu örnek oluşturmayı etkinleştirin"
+
+#~ msgid ""
+#~ "If enabled, it can improve certain rendering performance. But for some "
+#~ "graphics cards, it may not be applicable, please turn it off."
+#~ msgstr ""
+#~ "Etkinleştirilirse, belirli işleme performansını artırabilir. Ancak bazı "
+#~ "grafik kartları için geçerli olmayabilir, lütfen kapatın."
+
+#~ msgid "The smaller the number, the longer the speed transition path."
+#~ msgstr "Sayı ne kadar küçükse, hız geçiş yolu o kadar uzundur."
 
 #~ msgid ""
 #~ "Style and shape of the support. For normal support, projecting the "

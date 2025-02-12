@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 1.10.1 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-06 19:42+0800\n"
+"POT-Creation-Date: 2025-02-12 12:09+0800\n"
 "PO-Revision-Date: 2024-09-27 23:58+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -1287,11 +1287,9 @@ msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr "Сбой подключения к %s [Серийный №:%s, код=%s]!"
 
 msgid ""
-"BambuStudio configuration file may be corrupted and is not able to be parsed."
-"Please delete the file and try again."
+"BambuStudio configuration file read failed. Please manually backup and "
+"delete it, and then restart BambuStudio software."
 msgstr ""
-"Возможно, файл конфигурации BambuStudio повреждён и не может быть обработан. "
-"Пожалуйста, удалите файл и повторите попытку."
 
 #, c-format, boost-format
 msgid ""
@@ -4362,6 +4360,10 @@ msgid ""
 "to the Wiki to ensure print quality."
 msgstr ""
 
+# ??? Для получения помощи перейтите на вики-сайт.
+msgid "Click Wiki for help."
+msgstr "Нажмите вики-сайт для получения помощи."
+
 msgid "Calibration step selection"
 msgstr "Выбор шага калибровки"
 
@@ -5896,10 +5898,6 @@ msgstr "Вашей модели необходима поддержка, вкл�
 msgid "Gcode path overlap"
 msgstr "Перекрытие пути G-кода"
 
-# ??? Для получения помощи перейтите на вики-сайт.
-msgid "Click Wiki for help."
-msgstr "Нажмите вики-сайт для получения помощи."
-
 msgid "Click here to regroup"
 msgstr ""
 
@@ -6677,6 +6675,14 @@ msgid "Private protection"
 msgstr "Частная охрана"
 
 msgid ""
+"For PVA filaments, it is strongly recommended to use normal support to avoid "
+"print failures."
+msgstr ""
+
+msgid "Change these settings automatically? \n"
+msgstr ""
+
+msgid ""
 "Print By Object: \n"
 "Suggest to use auto-arrange to avoid collisions when printing."
 msgstr ""
@@ -6865,15 +6871,6 @@ msgstr ""
 msgid "Enable LOD"
 msgstr "Вкл. LOD (уровень проработки)"
 
-msgid "Change opengl multi instance rendering requires application restart."
-msgstr ""
-"Для включения/отключения мультирендеринга с помощью \n"
-"OpenGL требуется перезапуск приложения."
-
-# ??? Включить
-msgid "Enable opengl multi instance rendering"
-msgstr "Выполнять мультирендеринг с помощью OpenGL"
-
 msgid "Browse"
 msgstr "Обзор"
 
@@ -7034,16 +7031,16 @@ msgstr ""
 "Улучшает производительность рендеринга в сценах с несколькими столами и "
 "большим количеством моделей."
 
-msgid "Enable multi instance rendering by opengl"
-msgstr "Включить мультирендеринг с помощью OpenGL"
+msgid ""
+"Prefer to use high performance GPU (Effective after manual restart Bambu "
+"Studio)"
+msgstr ""
 
 msgid ""
-"If enabled, it can improve certain rendering performance. But for some "
-"graphics cards, it may not be applicable, please turn it off."
+"If enabled, this feature can improve rendering performance to some extent. "
+"However, it may cause flickering on multi-GPU systems, so it is recommended "
+"to disable it."
 msgstr ""
-"Если включено, это может повысить производительность рендеринга 3D-моделей. "
-"Однако для некоторых видеокарт это может не подходить, в таких случаях "
-"рекомендуем отключить."
 
 msgid "Grabber scale"
 msgstr "Масштаб захвата"
@@ -8521,6 +8518,18 @@ msgstr ""
 msgid "Right: %s"
 msgstr ""
 
+msgid "No modifications need to be copied."
+msgstr ""
+
+msgid "Copied the following parameters to the left nozzle:"
+msgstr ""
+
+msgid "Copied the following parameters to the right nozzle:"
+msgstr ""
+
+msgid "Copy paramters"
+msgstr ""
+
 msgid "Click to reset current value and attach to the global value."
 msgstr "Нажмите, чтобы сбросить текущее значение до глобального значения."
 
@@ -9175,6 +9184,9 @@ msgstr "Камера справа"
 
 msgid "Select all objects"
 msgstr "Выбрать все модели"
+
+msgid "Shift+D"
+msgstr ""
 
 msgid "Gizmo move"
 msgstr "Гизмо перемещения"
@@ -9935,6 +9947,14 @@ msgstr "Высота печати"
 msgid "Maximum printable height which is limited by mechanism of printer"
 msgstr "Максимальная высота печати, которая ограничена механикой принтера."
 
+msgid "Extruder printable height"
+msgstr ""
+
+msgid ""
+"Maximum printable height of this extruder which is limited by mechanism of "
+"printer"
+msgstr ""
+
 msgid "Unprintable filament type"
 msgstr ""
 
@@ -10513,6 +10533,15 @@ msgstr ""
 "Добавление сплошного заполнения вблизи наклонных поверхностей для "
 "обеспечения вертикальной толщины оболочки (верхний+нижний сплошные слои)."
 
+msgid "Disabled"
+msgstr ""
+
+msgid "Partial"
+msgstr ""
+
+msgid "Enabled"
+msgstr ""
+
 msgid "Internal bridge support thickness"
 msgstr "Толщина опорного контура для внутреннего моста"
 
@@ -10897,7 +10926,7 @@ msgstr ""
 "Убедитесь, что между моделями достаточно места, так как эта компенсация "
 "выполняется после проверок."
 
-msgid "Category"
+msgid "Adhesiveness Category"
 msgstr ""
 
 msgid "Filament category"
@@ -10978,7 +11007,12 @@ msgstr ""
 "Длина клиновидного шва. Установка этого параметра на ноль фактически "
 "отключает клиновидный шов."
 
-msgid "Filament change length"
+msgid "Filament ramming length"
+msgstr ""
+
+msgid ""
+"When changing the extruder, it is recommended to extrude a certain length of "
+"filament from the original extruder. This helps minimize nozzle oozing."
 msgstr ""
 
 msgid "Support material"
@@ -11854,11 +11888,10 @@ msgstr ""
 msgid "Smooth coefficient"
 msgstr "Коэффициент сглаживания"
 
-msgid "The smaller the number, the longer the speed transition path."
+msgid ""
+"The smaller the number, the longer the speed transition path. 0 means not "
+"apply."
 msgstr ""
-"Регулировка коэффициента сглаживания позволяет контролировать длиннее путь "
-"сглаживания скорости. Чем меньше число, тем длиннее путь сглаживания "
-"скорости."
 
 msgid "Line width of inner wall"
 msgstr "Ширина экструзии внутренних периметров"
@@ -12786,6 +12819,12 @@ msgstr ""
 msgid "If you want to have tighter or looser assemble, you can set this value."
 msgstr ""
 
+msgid "Scarf Seam On Compensation Circles"
+msgstr ""
+
+msgid "Enable to apply scarf seam on the circle to have better assemble."
+msgstr ""
+
 msgid "Circle Compensation Speed"
 msgstr ""
 
@@ -12881,8 +12920,8 @@ msgstr ""
 "увеличивая ширину башни вы уменьшаете её длину и наоборот."
 
 msgid ""
-"Brim width of wipe tower, -1 means auto calculated width based on the height "
-"of wipe tower."
+"Brim width of prime tower, negative number means auto calculated width based "
+"on the height of prime tower."
 msgstr ""
 
 msgid "Extra rib length"
@@ -12907,6 +12946,9 @@ msgid "fillet wall"
 msgstr ""
 
 msgid "The wall of prime tower will fillet"
+msgstr ""
+
+msgid "Infill gap"
 msgstr ""
 
 msgid ""
@@ -15790,6 +15832,39 @@ msgstr ""
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как "
 "ABS, повышение температуры подогреваемого стола может снизить эту "
 "вероятность?"
+
+#~ msgid ""
+#~ "BambuStudio configuration file may be corrupted and is not able to be "
+#~ "parsed.Please delete the file and try again."
+#~ msgstr ""
+#~ "Возможно, файл конфигурации BambuStudio повреждён и не может быть "
+#~ "обработан. Пожалуйста, удалите файл и повторите попытку."
+
+#~ msgid "Change opengl multi instance rendering requires application restart."
+#~ msgstr ""
+#~ "Для включения/отключения мультирендеринга с помощью \n"
+#~ "OpenGL требуется перезапуск приложения."
+
+# ??? Включить
+#~ msgid "Enable opengl multi instance rendering"
+#~ msgstr "Выполнять мультирендеринг с помощью OpenGL"
+
+#~ msgid "Enable multi instance rendering by opengl"
+#~ msgstr "Включить мультирендеринг с помощью OpenGL"
+
+#~ msgid ""
+#~ "If enabled, it can improve certain rendering performance. But for some "
+#~ "graphics cards, it may not be applicable, please turn it off."
+#~ msgstr ""
+#~ "Если включено, это может повысить производительность рендеринга 3D-"
+#~ "моделей. Однако для некоторых видеокарт это может не подходить, в таких "
+#~ "случаях рекомендуем отключить."
+
+#~ msgid "The smaller the number, the longer the speed transition path."
+#~ msgstr ""
+#~ "Регулировка коэффициента сглаживания позволяет контролировать длиннее "
+#~ "путь сглаживания скорости. Чем меньше число, тем длиннее путь сглаживания "
+#~ "скорости."
 
 #~ msgid ""
 #~ "Style and shape of the support. For normal support, projecting the "

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-06 19:42+0800\n"
+"POT-Creation-Date: 2025-02-12 12:09+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1236,11 +1236,9 @@ msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr "A következőhöz való csatlakozás sikertelen: %s! [SN:%s, code=%s]"
 
 msgid ""
-"BambuStudio configuration file may be corrupted and is not able to be parsed."
-"Please delete the file and try again."
+"BambuStudio configuration file read failed. Please manually backup and "
+"delete it, and then restart BambuStudio software."
 msgstr ""
-"A BambuStudio konfigurációs fájlt nem lehet elemezni, lehet, hogy megsérült. "
-"Kérjük, töröld a fájlt, és próbáld meg újra."
 
 #, c-format, boost-format
 msgid ""
@@ -4265,6 +4263,9 @@ msgid ""
 "to the Wiki to ensure print quality."
 msgstr ""
 
+msgid "Click Wiki for help."
+msgstr ""
+
 msgid "Calibration step selection"
 msgstr "Kalibrálási lépés kiválasztása"
 
@@ -5750,9 +5751,6 @@ msgstr ""
 msgid "Gcode path overlap"
 msgstr "G-kód útvonal átfedés"
 
-msgid "Click Wiki for help."
-msgstr ""
-
 msgid "Click here to regroup"
 msgstr ""
 
@@ -6507,6 +6505,14 @@ msgid "Private protection"
 msgstr ""
 
 msgid ""
+"For PVA filaments, it is strongly recommended to use normal support to avoid "
+"print failures."
+msgstr ""
+
+msgid "Change these settings automatically? \n"
+msgstr ""
+
+msgid ""
 "Print By Object: \n"
 "Suggest to use auto-arrange to avoid collisions when printing."
 msgstr ""
@@ -6683,12 +6689,6 @@ msgstr ""
 msgid "Enable LOD"
 msgstr ""
 
-msgid "Change opengl multi instance rendering requires application restart."
-msgstr ""
-
-msgid "Enable opengl multi instance rendering"
-msgstr ""
-
 msgid "Browse"
 msgstr "Tallózás"
 
@@ -6837,12 +6837,15 @@ msgid ""
 "models."
 msgstr ""
 
-msgid "Enable multi instance rendering by opengl"
+msgid ""
+"Prefer to use high performance GPU (Effective after manual restart Bambu "
+"Studio)"
 msgstr ""
 
 msgid ""
-"If enabled, it can improve certain rendering performance. But for some "
-"graphics cards, it may not be applicable, please turn it off."
+"If enabled, this feature can improve rendering performance to some extent. "
+"However, it may cause flickering on multi-GPU systems, so it is recommended "
+"to disable it."
 msgstr ""
 
 msgid "Grabber scale"
@@ -8269,6 +8272,18 @@ msgstr ""
 msgid "Right: %s"
 msgstr ""
 
+msgid "No modifications need to be copied."
+msgstr ""
+
+msgid "Copied the following parameters to the left nozzle:"
+msgstr ""
+
+msgid "Copied the following parameters to the right nozzle:"
+msgstr ""
+
+msgid "Copy paramters"
+msgstr ""
+
 msgid "Click to reset current value and attach to the global value."
 msgstr ""
 "Kattints ide az érték visszaállításához és a globális érték használatához."
@@ -8917,6 +8932,9 @@ msgstr "Kameranézet - Jobb oldal"
 
 msgid "Select all objects"
 msgstr "Összes objektum kijelölése"
+
+msgid "Shift+D"
+msgstr ""
 
 msgid "Gizmo move"
 msgstr "Gizmo move"
@@ -9665,6 +9683,14 @@ msgstr ""
 "Ez a maximális nyomtatható magasság, amelyet a nyomtatótér magassága "
 "korlátoz."
 
+msgid "Extruder printable height"
+msgstr ""
+
+msgid ""
+"Maximum printable height of this extruder which is limited by mechanism of "
+"printer"
+msgstr ""
+
 msgid "Unprintable filament type"
 msgstr ""
 
@@ -10224,6 +10250,15 @@ msgstr ""
 "A függőleges héjvastagság biztosítása érdekében szilárd kitöltést alkalmaz a "
 "döntött felületek közelében (felső + alsó tömör rétegek)"
 
+msgid "Disabled"
+msgstr ""
+
+msgid "Partial"
+msgstr ""
+
+msgid "Enabled"
+msgstr ""
+
 msgid "Internal bridge support thickness"
 msgstr "Belső áthidalások támaszának vastagsága"
 
@@ -10585,7 +10620,7 @@ msgid ""
 "after the checks."
 msgstr ""
 
-msgid "Category"
+msgid "Adhesiveness Category"
 msgstr ""
 
 msgid "Filament category"
@@ -10655,7 +10690,12 @@ msgstr ""
 "Length of the scarf. Setting this parameter to zero effectively disables the "
 "scarf."
 
-msgid "Filament change length"
+msgid "Filament ramming length"
+msgstr ""
+
+msgid ""
+"When changing the extruder, it is recommended to extrude a certain length of "
+"filament from the original extruder. This helps minimize nozzle oozing."
 msgstr ""
 
 msgid "Support material"
@@ -11482,7 +11522,9 @@ msgstr ""
 msgid "Smooth coefficient"
 msgstr ""
 
-msgid "The smaller the number, the longer the speed transition path."
+msgid ""
+"The smaller the number, the longer the speed transition path. 0 means not "
+"apply."
 msgstr ""
 
 msgid "Line width of inner wall"
@@ -12368,6 +12410,12 @@ msgstr ""
 msgid "If you want to have tighter or looser assemble, you can set this value."
 msgstr ""
 
+msgid "Scarf Seam On Compensation Circles"
+msgstr ""
+
+msgid "Enable to apply scarf seam on the circle to have better assemble."
+msgstr ""
+
 msgid "Circle Compensation Speed"
 msgstr ""
 
@@ -12460,8 +12508,8 @@ msgid "Width of prime tower"
 msgstr "Törlőtorony szélessége"
 
 msgid ""
-"Brim width of wipe tower, -1 means auto calculated width based on the height "
-"of wipe tower."
+"Brim width of prime tower, negative number means auto calculated width based "
+"on the height of prime tower."
 msgstr ""
 
 msgid "Extra rib length"
@@ -12486,6 +12534,9 @@ msgid "fillet wall"
 msgstr ""
 
 msgid "The wall of prime tower will fillet"
+msgstr ""
+
+msgid "Infill gap"
 msgstr ""
 
 msgid ""
@@ -15233,6 +15284,13 @@ msgstr ""
 "Vetemedés elkerülése\n"
 "Tudtad, hogy a vetemedésre hajlamos anyagok (például ABS) nyomtatásakor a "
 "tárgyasztal hőmérsékletének növelése csökkentheti a vetemedés valószínűségét?"
+
+#~ msgid ""
+#~ "BambuStudio configuration file may be corrupted and is not able to be "
+#~ "parsed.Please delete the file and try again."
+#~ msgstr ""
+#~ "A BambuStudio konfigurációs fájlt nem lehet elemezni, lehet, hogy "
+#~ "megsérült. Kérjük, töröld a fájlt, és próbáld meg újra."
 
 #~ msgid ""
 #~ "Style and shape of the support. For normal support, projecting the "
