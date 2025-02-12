@@ -1,12 +1,12 @@
 # Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-06 19:42+0800\n"
+"POT-Creation-Date: 2025-02-12 12:09+0800\n"
 "PO-Revision-Date: 2025-01-08 20:27+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1235,10 +1235,11 @@ msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr "连接 %s 失败。[SN:%s, code=%s]"
 
 msgid ""
-"BambuStudio configuration file may be corrupted and is not able to be parsed."
-"Please delete the file and try again."
+"BambuStudio configuration file read failed. Please manually backup and "
+"delete it, and then restart BambuStudio software."
 msgstr ""
-"Bambu Studio配置文件可能已损坏而无法解析。请删除此文件并重新启动BambuStudio。"
+"BambuStudio配置文件读取失败。请手动备份并删除它，然后重新启动BambuStudio软"
+"件。"
 
 #, c-format, boost-format
 msgid ""
@@ -4138,6 +4139,9 @@ msgid ""
 msgstr ""
 "检测到 PLA 和 PETG 同时打印，请根据 Wiki 中的建议调整打印参数来确保打印质量。"
 
+msgid "Click Wiki for help."
+msgstr "点击Wiki寻求帮助。"
+
 msgid "Calibration step selection"
 msgstr "校准步骤选择"
 
@@ -5595,9 +5599,6 @@ msgstr "你的模型需要支撑才能打印。请开启材料支撑选项。"
 msgid "Gcode path overlap"
 msgstr "Gcode路径有重叠"
 
-msgid "Click Wiki for help."
-msgstr "点击Wiki寻求帮助。"
-
 msgid "Click here to regroup"
 msgstr "点击此处重新分组"
 
@@ -6334,6 +6335,14 @@ msgid "Private protection"
 msgstr "个人保护"
 
 msgid ""
+"For PVA filaments, it is strongly recommended to use normal support to avoid "
+"print failures."
+msgstr "对于PVA耗材，强烈建议使用普通支撑，以避免打印失败。"
+
+msgid "Change these settings automatically? \n"
+msgstr "是否自动更改这些设置？\n"
+
+msgid ""
 "Print By Object: \n"
 "Suggest to use auto-arrange to avoid collisions when printing."
 msgstr ""
@@ -6511,12 +6520,6 @@ msgstr ""
 msgid "Enable LOD"
 msgstr "启用LOD"
 
-msgid "Change opengl multi instance rendering requires application restart."
-msgstr "改变opengl多实例渲染要求软件重启。"
-
-msgid "Enable opengl multi instance rendering"
-msgstr "开启opengl多实例渲染"
-
 msgid "Browse"
 msgstr "浏览"
 
@@ -6655,15 +6658,18 @@ msgid ""
 "models."
 msgstr "在多盘和多模型的场景下提高了渲染性能"
 
-msgid "Enable multi instance rendering by opengl"
-msgstr "开启opengl多实例渲染"
+msgid ""
+"Prefer to use high performance GPU (Effective after manual restart Bambu "
+"Studio)"
+msgstr "优先使用高性能显卡 （手动重启 Bambu Studio 后生效）"
 
 msgid ""
-"If enabled, it can improve certain rendering performance. But for some "
-"graphics cards, it may not be applicable, please turn it off."
+"If enabled, this feature can improve rendering performance to some extent. "
+"However, it may cause flickering on multi-GPU systems, so it is recommended "
+"to disable it."
 msgstr ""
-"如果启用，它可以提高一定的渲染性能。但对于某些图形卡，它可能不适用，请将其关"
-"闭。"
+"启用后，该功能可在一定程度上提升渲染性能。但在多显卡设备上可能会导致闪烁，则"
+"建议关闭。"
 
 msgid "Grabber scale"
 msgstr "抓手比例"
@@ -7975,8 +7981,8 @@ msgid ""
 "Switching to a printer with different extruder types or numbers will discard "
 "or reset changes to extruder or multi-nozzle-related parameters."
 msgstr ""
-"切换到挤出机类型或数量不一样的打印机，挤出机或多喷嘴相关的参数的修改将会被丢"
-"弃或重置。"
+"切换到挤出机类型或数量不一样的打印机，挤出机或多喷嘴相关参数的修改将会被丢弃"
+"或重置。"
 
 msgid "Use Modified Value"
 msgstr "使用修改值"
@@ -8033,6 +8039,18 @@ msgstr "左: %s"
 #, c-format, boost-format
 msgid "Right: %s"
 msgstr "右: %s"
+
+msgid "No modifications need to be copied."
+msgstr "没有需要拷贝的参数修改。"
+
+msgid "Copied the following parameters to the left nozzle:"
+msgstr "拷贝了下列参数到左喷嘴名下："
+
+msgid "Copied the following parameters to the right nozzle:"
+msgstr "拷贝了下列参数到右喷嘴名下："
+
+msgid "Copy paramters"
+msgstr "拷贝参数"
 
 msgid "Click to reset current value and attach to the global value."
 msgstr "点击该图标，恢复到全局的配置数值，并与全局配置同步变化。"
@@ -8685,6 +8703,9 @@ msgstr "摄像机视角 - 右面"
 
 msgid "Select all objects"
 msgstr "选择所有对象"
+
+msgid "Shift+D"
+msgstr ""
 
 msgid "Gizmo move"
 msgstr "线框移动"
@@ -9369,6 +9390,14 @@ msgstr "可打印高度"
 msgid "Maximum printable height which is limited by mechanism of printer"
 msgstr "由打印机结构约束的最大可打印高度"
 
+msgid "Extruder printable height"
+msgstr "挤出机可打印高度"
+
+msgid ""
+"Maximum printable height of this extruder which is limited by mechanism of "
+"printer"
+msgstr "由打印机结构约束的当前挤出机的最大可打印高度"
+
 msgid "Unprintable filament type"
 msgstr "不可打印的材料类型"
 
@@ -9868,6 +9897,15 @@ msgid ""
 "thickness (top+bottom solid layers)"
 msgstr "在斜面表面附近添加实心填充，以保证垂直外壳厚度（顶部+底部实心层）"
 
+msgid "Disabled"
+msgstr "关闭"
+
+msgid "Partial"
+msgstr "部分"
+
+msgid "Enabled"
+msgstr "打开"
+
 msgid "Internal bridge support thickness"
 msgstr "内部桥接支撑厚度"
 
@@ -10197,8 +10235,8 @@ msgstr ""
 "94%）。零件将在XY方向上缩放以进行补偿。仅考虑用于外周的耗材。  \n"
 "请确保对象之间有足够的空间，因为补偿是在检查之后进行的。"
 
-msgid "Category"
-msgstr "类别"
+msgid "Adhesiveness Category"
+msgstr "粘接性类别"
 
 msgid "Filament category"
 msgstr "材料类别"
@@ -10263,8 +10301,14 @@ msgid ""
 "scarf."
 msgstr "斜拼接缝的长度。长度为0时会禁用斜拼接缝。"
 
-msgid "Filament change length"
+msgid "Filament ramming length"
+msgstr "材料冲压长度"
+
+msgid ""
+"When changing the extruder, it is recommended to extrude a certain length of "
+"filament from the original extruder. This helps minimize nozzle oozing."
 msgstr ""
+"更换挤出机时，建议从原挤出机中挤出一定长度的耗材丝。这有助于最大限度地减少喷嘴漏料。"
 
 msgid "Support material"
 msgstr "支撑材料"
@@ -11019,8 +11063,10 @@ msgstr "在速度不连续区域添加速度过渡区"
 msgid "Smooth coefficient"
 msgstr "平滑系数"
 
-msgid "The smaller the number, the longer the speed transition path."
-msgstr "数值越小，平滑区域越长"
+msgid ""
+"The smaller the number, the longer the speed transition path. 0 means not "
+"apply."
+msgstr "数值越小速度过渡区越大。0表示不应用。"
 
 msgid "Line width of inner wall"
 msgstr "内墙的线宽"
@@ -11815,7 +11861,7 @@ msgstr ""
 "体时出现外观瑕疵。"
 
 msgid "Auto Circle Holes-contour Compensation"
-msgstr "自动圆孔轴补偿"
+msgstr "自动圆形孔洞和轮廓补偿"
 
 msgid ""
 "Expirment feature to compensate the circle holes and circle contour. This "
@@ -11831,6 +11877,12 @@ msgstr "用户自设定补偿"
 
 msgid "If you want to have tighter or looser assemble, you can set this value."
 msgstr "如果你需要更紧或者更松的配合，请调整这个参数"
+
+msgid "Scarf Seam On Compensation Circles"
+msgstr "在补偿的圆形上应用斜拼接缝"
+
+msgid "Enable to apply scarf seam on the circle to have better assemble."
+msgstr "在圆形上应用斜拼接缝以获得更好的装配。"
 
 msgid "Circle Compensation Speed"
 msgstr ""
@@ -11922,9 +11974,9 @@ msgid "Width of prime tower"
 msgstr "擦拭塔宽度"
 
 msgid ""
-"Brim width of wipe tower, -1 means auto calculated width based on the height "
-"of wipe tower."
-msgstr "料塔的Brim宽度，-1表示基于料塔高度自动计算宽度"
+"Brim width of prime tower, negative number means auto calculated width based "
+"on the height of prime tower."
+msgstr "擦拭塔的Brim宽度，负数意味着宽度根据擦拭塔的高度自动计算。"
 
 msgid "Extra rib length"
 msgstr "斜肋额外的长度"
@@ -11949,6 +12001,9 @@ msgstr "外墙倒圆角"
 
 msgid "The wall of prime tower will fillet"
 msgstr "料塔外墙倒圆角"
+
+msgid "Infill gap"
+msgstr "填充间隙"
 
 msgid ""
 "Purging after filament change will be done inside objects' infills. This may "
@@ -14571,6 +14626,51 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid ""
+#~ "When replacing the extruder, it is recommended to extrude a certain "
+#~ "length of filament from the original extruder. This helps minimize nozzle "
+#~ "oozing."
+#~ msgstr ""
+#~ "更换挤出机时，建议从原挤出机中挤出一定长度的耗材丝。这有助于最大限度地减少"
+#~ "喷嘴漏料。"
+
+#~ msgid "the ramming length of this filament when changing extruder"
+#~ msgstr "更换挤出机时该材料所需的冲压长度"
+
+#~ msgid ""
+#~ "BambuStudio configuration file may be corrupted and is not able to be "
+#~ "parsed.Please delete the file and try again."
+#~ msgstr ""
+#~ "Bambu Studio配置文件可能已损坏而无法解析。请删除此文件并重新启动"
+#~ "BambuStudio。"
+
+#~ msgid "Change opengl multi instance rendering requires application restart."
+#~ msgstr "改变opengl多实例渲染要求软件重启。"
+
+#~ msgid "Enable opengl multi instance rendering"
+#~ msgstr "开启opengl多实例渲染"
+
+#~ msgid "Enable multi instance rendering by opengl"
+#~ msgstr "开启opengl多实例渲染"
+
+#~ msgid ""
+#~ "If enabled, it can improve certain rendering performance. But for some "
+#~ "graphics cards, it may not be applicable, please turn it off."
+#~ msgstr ""
+#~ "如果启用，它可以提高一定的渲染性能。但对于某些图形卡，它可能不适用，请将其"
+#~ "关闭。"
+
+#~ msgid "Category"
+#~ msgstr "类别"
+
+#~ msgid "The smaller the number, the longer the speed transition path."
+#~ msgstr "数值越小，平滑区域越长"
+
+#~ msgid ""
+#~ "Brim width of wipe tower, -1 means auto calculated width based on the "
+#~ "height of wipe tower."
+#~ msgstr "料塔的Brim宽度，-1表示基于料塔高度自动计算宽度"
 
 #~ msgid ""
 #~ "Style and shape of the support. For normal support, projecting the "
@@ -20355,14 +20455,8 @@ msgstr ""
 #~ msgid "Retraction Length (Toolchange)"
 #~ msgstr "回抽长度(更换工具头)"
 
-#~ msgid "Disabled"
-#~ msgstr "关闭"
-
 #~ msgid "Limited"
 #~ msgstr "限制"
-
-#~ msgid "Enabled"
-#~ msgstr "打开"
 
 #~ msgid "Solid infill"
 #~ msgstr "实心填充"

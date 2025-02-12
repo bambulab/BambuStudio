@@ -1169,7 +1169,7 @@ wxWindow* PreferencesDialog::create_general_page()
 
 #ifdef __WIN32__
     auto prefer_to_use_dgpu   = create_item_checkbox(_L("Prefer to use high performance GPU (Effective after manual restart Bambu Studio)"), page,
-                                                    _L("If enabled, it can improve certain rendering performance. But for some multi-gpu platforms, it may cause flickering, please turn it off."), 50, "prefer_to_use_dgpu");
+                                                    _L("If enabled, this feature can improve rendering performance to some extent. However, it may cause flickering on multi-GPU systems, so it is recommended to disable it."), 50, "prefer_to_use_dgpu.");
 #endif // __WIN32__
 
     float range_min = 1.0, range_max = 2.5;
