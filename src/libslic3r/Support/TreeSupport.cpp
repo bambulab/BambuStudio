@@ -1081,26 +1081,9 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
         if (!cluster.is_type(Small)) {
             cluster.check_polygon_node(m_support_params.thresh_big_overhang, m_ts_data->m_layer_outlines_below[cluster.min_layer - 1]);
             for (auto it = cluster.layer_overhangs.begin(); it != cluster.layer_overhangs.end(); it++) {
-                int        layer_nr = it->first;
-                ExPolygons overhangs{*it->second};
-                coordf_t   xy_expansion = scale_(config.support_expansion.value);
-                if (m_support_params.soluble_interface && xy_expansion < EPSILON) xy_expansion = scale_(2);
-                coord_t gap_width = scale_(extrusion_width / 2.) + xy_expansion + scale_(m_ts_data->m_xy_distance);
-                for (auto &overhang : overhangs) {
-                    if (cluster.type & OverhangType::BigFlat) {
-                        ExPolygons sub_overhangs = overhang.split_expoly_with_holes(gap_width, get_collision(0, layer_nr));
-                        if (sub_overhangs.size() > 0) {
-                            for (auto &sub : sub_overhangs) {
-                                if (sub.area() < SQ(scale_(1.)))
-                                    add_overhang(m_object->get_layer(layer_nr), sub, OverhangType::Normal);
-                                else
-                                    add_overhang(m_object->get_layer(layer_nr), sub, OverhangType::BigFlat);
-                            }
-                        } else
-                            add_overhang(m_object->get_layer(layer_nr), overhang, cluster.type);
-                    } else
-                        add_overhang(m_object->get_layer(layer_nr), overhang, cluster.type);
-                }
+                int       layer_nr = it->first;
+                ExPolygon overhang = *it->second;
+                add_overhang(m_object->get_layer(layer_nr), overhang, cluster.type);
             }
         }
     }
@@ -1531,6 +1514,7 @@ void TreeSupport::generate_toolpaths()
 
     BoundingBox bbox_object(Point(-scale_(1.), -scale_(1.0)), Point(scale_(1.), scale_(1.)));
 
+    if (m_support_params.support_style == smsTreeHybrid && object_config.support_interface_pattern == smipAuto) m_support_params.contact_fill_pattern = ipRectilinear;
     std::shared_ptr<Fill> filler_interface = std::shared_ptr<Fill>(Fill::new_from_type(m_support_params.contact_fill_pattern));
     std::shared_ptr<Fill> filler_Roof1stLayer = std::shared_ptr<Fill>(Fill::new_from_type(ipRectilinear));
     filler_interface->set_bounding_box(bbox_object);
@@ -1577,13 +1561,14 @@ void TreeSupport::generate_toolpaths()
                         fill_params.dont_adjust = true;
                     }
                     if (area_group.type == SupportLayer::Roof1stLayer) {
-                        // roof_1st_layer
-                        fill_params.density = interface_density;
+                        // use higher flow for roof_1st_layer ?
+                        Flow roof_1st_layer_flow = support_material_interface_flow(m_object, ts_layer->height)/*.with_flow_ratio(1.5)*/;
+                        
                         // Note: spacing means the separation between two lines as if they are tightly extruded
-                        filler_Roof1stLayer->spacing = interface_flow.spacing();
+                        filler_Roof1stLayer->spacing = roof_1st_layer_flow.spacing();
                         // generate a perimeter first to support interface better
                         ExtrusionEntityCollection* temp_support_fills = new ExtrusionEntityCollection();
-                        make_perimeter_and_infill(temp_support_fills->entities, poly, 1, interface_flow, erSupportMaterial,
+                        make_perimeter_and_infill(temp_support_fills->entities, poly, 1, roof_1st_layer_flow, erSupportTransition,
                             filler_Roof1stLayer.get(), interface_density, false);
                         temp_support_fills->no_sort = true; // make sure loops are first
                         if (!temp_support_fills->entities.empty())
@@ -1604,8 +1589,9 @@ void TreeSupport::generate_toolpaths()
                             filler_interface->angle = Geometry::deg2rad(object_config.support_angle.value);
                             fill_params.dont_sort = true;
                         }
-                        if (m_object_config->support_interface_pattern == smipRectilinearInterlaced)
+                        if (m_object_config->support_interface_pattern == smipRectilinearInterlaced || m_object_config->support_interface_pattern == smipAuto) {
                             filler_interface->layer_id = area_group.interface_id;
+                        }
 
                         fill_expolygons_generate_paths(ts_layer->support_fills.entities, polys, filler_interface.get(), fill_params, erSupportMaterialInterface,
                                                        interface_flow);
@@ -2220,7 +2206,7 @@ void TreeSupport::draw_circles()
 
                         // merge overhang to get a smoother interface surface
                         // Do not merge when buildplate_only is on, because some underneath nodes may have been deleted.
-                        if (top_interface_layers > 0 && node.support_roof_layers_below > 0 && !on_buildplate_only && !node.is_sharp_tail) {
+                        if (top_interface_layers > 0 && node.support_roof_layers_below >=0 && !on_buildplate_only && !node.is_sharp_tail) {
                             ExPolygons overhang_expanded;
                             if (node.overhang.contour.size() > 100 || node.overhang.holes.size()>1)
                                 overhang_expanded.emplace_back(node.overhang);
@@ -3629,6 +3615,7 @@ void TreeSupport::generate_contact_points()
     bool       on_buildplate_only    = m_object_config->support_on_build_plate_only.value;
     const bool roof_enabled          = config.support_interface_top_layers.value > 0;
     const bool force_tip_to_roof = roof_enabled && m_support_params.soluble_interface;
+    const coordf_t extrusion_width = config.line_width.value;
 
     //First generate grid points to cover the entire area of the print.
     BoundingBox bounding_box = m_object->bounding_box();
@@ -3753,11 +3740,20 @@ void TreeSupport::generate_contact_points()
                 if (m_support_params.support_style == smsTreeHybrid &&
                     (overhang_type & (BigFlat | ThinPlate))) {
                     overhangs_regular           = offset_ex(intersection_ex(overhangs, m_ts_data->m_layer_outlines_below[layer_nr - 1]), radius_scaled);
-                    ExPolygons overhangs_normal = diff_ex(overhangs, overhangs_regular);
+                    ExPolygons overhangs_normal = offset2_ex(diff_ex(overhangs, overhangs_regular),scale_(extrusion_width),-scale_(extrusion_width));
                     overhangs_regular           = intersection_ex(overhangs_regular, overhangs_no_extra_expand);
                     // if the outside area is still big, we can need normal nodes
+                    coord_t gap_width = scale_(extrusion_width / 2.) + scale_(m_ts_data->m_xy_distance);
+                    ExPolygons overhangs_normal_split;
                     for (auto &overhang : overhangs_normal) {
-                        if (!is_stable(layer->bottom_z(), overhang, 0)) {
+                        ExPolygons sub_overhangs = overhang.split_expoly_with_holes(gap_width, get_collision(0, layer_nr));
+                        if (sub_overhangs.size() > 0)
+                            for (auto &sub : sub_overhangs) overhangs_normal_split.emplace_back(sub);
+                        else
+                            overhangs_normal_split.emplace_back(overhang);
+                    }
+                    for (auto &overhang : overhangs_normal_split) {
+                        if (!is_stable(layer->bottom_z(), overhang, 0) || overhang.area() < SQ(scale_(2.))) {
                             ExPolygons unstable_overhangs = intersection_ex({overhang}, overhangs_no_extra_expand);
                             overhangs_regular.insert(overhangs_regular.end(), unstable_overhangs.begin(), unstable_overhangs.end());
                             continue;
