@@ -499,7 +499,7 @@ void Tab::create_preset_tab()
             evt.Skip();
            switch_excluder(evt.GetInt());
         });
-        m_extruder_sync = new ScalableButton(panel, wxID_ANY, "ams_fila_sync");
+        m_extruder_sync = new ScalableButton(panel, wxID_ANY, "extruder_sync");
         m_extruder_sync->SetToolTip(_L("Synchronize the modification of parameters to the corresponding parameters of another extruder."));
         m_extruder_sync->Bind(wxEVT_BUTTON, [this](auto &evt) {
             evt.Skip();
