@@ -5407,6 +5407,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
             value = ConfigOptionEnum<EnsureVerticalThicknessLevel>::get_enum_names()[EnsureVerticalThicknessLevel::evtEnabled];
         else if (value == "0")
             value = ConfigOptionEnum<EnsureVerticalThicknessLevel>::get_enum_names()[EnsureVerticalThicknessLevel::evtPartial];
+    } else if (opt_key == "filament_map_mode") {
+        if (value == "Auto") value = "Auto For Flush";
     }
 
     // Ignore the following obsolete configuration keys:
