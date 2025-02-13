@@ -30,9 +30,10 @@ public:
         : GLCanvas3D::WipeTowerInfo(std::move(wti))
     {}
 
-    void apply_arrange_result(const Vec2d& tr, double rotation, int item_id)
+    void apply_arrange_result(const Vec2d& tr, double rotation, int item_id, int bed_id)
     {
         m_pos = unscaled(tr); m_rotation = rotation;
+        m_plate_idx = bed_id;
         apply_wipe_tower();
     }
 
@@ -71,7 +72,13 @@ arrangement::ArrangePolygon get_wipetower_arrange_poly(WipeTower* tower)
 {
     ArrangePolygon ap = tower->get_arrange_polygon();
     ap.bed_idx = 0;
-    ap.setter = NULL; // do not move wipe tower
+    //ap.setter = NULL; // do not move wipe tower
+    ap.setter = [tower](const ArrangePolygon &p) {
+        if (p.is_arranged()) {
+            Vec2d t = p.translation.cast<double>();
+            tower->apply_arrange_result(t, p.rotation, p.itemid, p.bed_idx);
+        }
+    };
     return ap;
 }
 
@@ -98,7 +105,7 @@ void ArrangeJob::clear_input()
     current_plate_index = 0;
 }
 
-ArrangePolygon ArrangeJob::prepare_arrange_polygon(void* model_instance)
+ArrangePolygon ArrangeJob::prepare_arrange_polygon(void *model_instance)
 {
     ModelInstance* instance = (ModelInstance*)model_instance;
     auto preset_bundle = wxGetApp().preset_bundle;
@@ -301,7 +308,7 @@ arrangement::ArrangePolygon estimate_wipe_tower_info(int plate_index, std::set<i
 //    2）打开了支撑，且支撑体与接触面使用的是不同材料
 //    3）允许不同材料落在相同盘，且所有选定对象中使用了多种热床温度相同的材料
 //     （所有对象都是单色的，但不同对象的材料不同，例如：对象A使用红色PLA，对象B使用白色PLA）
-void ArrangeJob::prepare_wipe_tower()
+void ArrangeJob::prepare_wipe_tower(bool select)
 {
     bool need_wipe_tower = false;
 
@@ -368,7 +375,11 @@ void ArrangeJob::prepare_wipe_tower()
             // wipe tower is already there
             wipe_tower_ap = get_wipetower_arrange_poly(&wti);
             wipe_tower_ap.bed_idx = bedid_unlocked;
-            m_unselected.emplace_back(wipe_tower_ap);
+            wipe_tower_ap.name    = "WipeTower" + std::to_string(bedid_unlocked);
+            if (select)
+                m_selected.emplace_back(wipe_tower_ap);
+            else
+                m_unselected.emplace_back(wipe_tower_ap);
         }
         else if (need_wipe_tower) {
             if (only_on_partplate) {
@@ -433,7 +444,7 @@ void ArrangeJob::prepare_partplate() {
                 //skip this object due to be not in current plate, treated as locked
                 ap.itemid = m_locked.size();
                 m_locked.emplace_back(std::move(ap));
-                //BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": skip locked instance, obj_id %1%, name %2%") % oidx % mo->name;
+                //ARRANGE_LOG(debug) << __FUNCTION__ << boost::format(": skip locked instance, obj_id %1%, name %2%") % oidx % mo->name;
             }
         }
     }
@@ -450,9 +461,9 @@ void ArrangeJob::prepare_partplate() {
 
 void ArrangeJob::prepare_outside_plate() {
     clear_input();
-
-    std::set<std::pair<int, int>> all_inside_objects;
-    std::set<std::pair<int, int>> all_outside_objects;
+    typedef std::tuple<int, int, int>         obj_inst_plate_t;
+    std::map<std::pair<int,int>,int>        all_inside_objects;
+    std::map<std::pair<int, int>, int>      all_outside_objects;
 
     Model         &model      = m_plater->model();
     PartPlateList &plate_list = m_plater->get_partplate_list();
@@ -468,9 +479,8 @@ void ArrangeJob::prepare_outside_plate() {
             continue;
         }
 
-        all_inside_objects.insert(plate_objects.begin(), plate_objects.end());
-        if (!plate_outside_objects.empty())
-            all_outside_objects.insert(plate_outside_objects.begin(), plate_outside_objects.end());
+        for (auto &obj_inst : plate_objects) { all_inside_objects[obj_inst] = plate_idx; }
+        for (auto &obj_inst : plate_outside_objects) { all_outside_objects[obj_inst] = plate_idx; }
 
         if (plate->is_locked()) {
             ARRANGE_LOG(info) << __FUNCTION__ << format(": skip locked plate %d!", plate_idx);
@@ -478,24 +488,22 @@ void ArrangeJob::prepare_outside_plate() {
         }
 
         // if there are objects inside the plate, lock the plate and don't put new objects in it
-        if (plate_objects.size() > plate_outside_objects.size()) {
-            plate->lock(true);
-            m_uncompatible_plates.push_back(plate_idx);
-            ARRANGE_LOG(info) << __FUNCTION__ << format(": lock plate %d because there are objects inside!", plate_idx);
-        }
+        //if (plate_objects.size() > plate_outside_objects.size()) {
+        //    plate->lock(true);
+        //    m_uncompatible_plates.push_back(plate_idx);
+        //    ARRANGE_LOG(info) << __FUNCTION__ << format(": lock plate %d because there are objects inside!", plate_idx);
+        //}
     }
 
     for (int obj_idx = 0; obj_idx < model.objects.size(); obj_idx++) {
         ModelObject *object = model.objects[obj_idx];
         for (size_t inst_idx = 0; inst_idx < object->instances.size(); ++inst_idx) {
             ModelInstance * instance = object->instances[inst_idx];
-            std::set<std::pair<int, int>>::iterator iter1, iter2;
 
-            iter1 = all_inside_objects.find(std::pair(obj_idx, inst_idx));
-            iter2 = all_outside_objects.find(std::pair(obj_idx, inst_idx));
+            auto iter1 = all_inside_objects.find(std::pair(obj_idx, inst_idx));
+            auto iter2 = all_outside_objects.find(std::pair(obj_idx, inst_idx));
             bool outside_plate = false;
             if (iter1 == all_inside_objects.end()) {
-                //skip
                 continue;
             }
             if (iter2 != all_outside_objects.end()) {
@@ -505,13 +513,15 @@ void ArrangeJob::prepare_outside_plate() {
             ArrangePolygons &cont  = instance->printable ? (outside_plate ? m_selected : m_locked) : m_unprintable;
             ap.itemid                      = cont.size();
             if (!outside_plate) {
-                plate_list.preprocess_arrange_polygon(obj_idx, inst_idx, ap, true);
+                plate_list.preprocess_arrange_polygon(obj_idx, inst_idx, ap, false);
+                ap.bed_idx      = iter1->second;
+                ap.locked_plate = iter1->second;
             }
             cont.emplace_back(std::move(ap));
         }
     }
 
-    prepare_wipe_tower();
+    prepare_wipe_tower(true);
 
     // add the virtual object into unselect list if has
     plate_list.preprocess_exclude_areas(m_unselected, current_plate_index + 1);
@@ -544,6 +554,7 @@ void ArrangeJob::prepare()
         prepare_outside_plate();
     }
 
+    ARRANGE_LOG(info) << "prepare state: " << state << ", items selected : " << m_selected.size();
 
 #if SAVE_ARRANGE_POLY
     if (1)
@@ -586,6 +597,12 @@ void ArrangeJob::prepare()
 #endif
 
     check_unprintable();
+
+    if (!m_selected.empty()) {
+        m_plater->get_notification_manager()->push_notification(NotificationType::ArrangeOngoing, NotificationManager::NotificationLevel::RegularNotificationLevel,
+                                                                _u8L("Arranging..."));
+        m_plater->get_notification_manager()->bbl_close_plateinfo_notification();
+    }
 }
 
 void ArrangeJob::check_unprintable()
@@ -640,7 +657,7 @@ void ArrangeJob::process()
 
     partplate_list.preprocess_exclude_areas(params.excluded_regions, 1, scale_(1));
 
-    BOOST_LOG_TRIVIAL(debug) << "arrange bedpts:" << bedpts[0].transpose() << ", " << bedpts[1].transpose() << ", " << bedpts[2].transpose() << ", " << bedpts[3].transpose();
+    ARRANGE_LOG(debug) << "bedpts:" << bedpts[0].transpose() << ", " << bedpts[1].transpose() << ", " << bedpts[2].transpose() << ", " << bedpts[3].transpose();
 
     params.stopcondition = [this]() { return was_canceled(); };
 
@@ -648,35 +665,36 @@ void ArrangeJob::process()
         update_status(num_finished, _L("Arranging") + " "+ wxString::FromUTF8(str));
     };
 
+    ArrangePolygons unselected_and_locked = m_unselected;
+    append(unselected_and_locked, m_locked);
     {
-        BOOST_LOG_TRIVIAL(warning)<< "Arrange full params: "<< params.to_json();
-        BOOST_LOG_TRIVIAL(info) << boost::format("arrange: items selected before arranging: %1%") % m_selected.size();
+        ARRANGE_LOG(warning)<< "full params: "<< params.to_json();
+        ARRANGE_LOG(info) << boost::format("items selected before arranging: %1%") % m_selected.size();
         for (auto selected : m_selected) {
-            BOOST_LOG_TRIVIAL(debug) << selected.name << ", extruder: " << VectorFormatter(selected.extrude_ids)
+            ARRANGE_LOG(debug) << selected.name << ", extruder: " << VectorFormatter(selected.extrude_ids)
                                      << ", filament types: " << VectorFormatter(selected.filament_types) << ", bed: " << selected.bed_idx
                                      << ", filemant_type:" << selected.filament_temp_type << ", trans: " << unscale<double>(selected.translation(X)) << ","
                                      << unscale<double>(selected.translation(Y)) << ", rotation: " << selected.rotation;
         }
-        BOOST_LOG_TRIVIAL(debug) << "arrange: items unselected before arrange: " << m_unselected.size();
-        for (auto item : m_unselected)
-            BOOST_LOG_TRIVIAL(debug) << item.name << ", bed: " << item.bed_idx << ", trans: " << item.translation.transpose()
-            <<", bbox:"<<get_extents(item.poly).min.transpose()<<","<<get_extents(item.poly).max.transpose();
+        ARRANGE_LOG(debug) << "items unselected before arrange: " << unselected_and_locked.size();
+        for (auto item : unselected_and_locked)
+            ARRANGE_LOG(debug) << item.name << ", bed: " << item.bed_idx << ", trans: " << unscale<double>(item.translation(X)) << "," << unscale<double>(item.translation(Y));
     }
 
-    arrangement::arrange(m_selected, m_unselected, bedpts, params);
+    arrangement::arrange(m_selected, unselected_and_locked, bedpts, params);
 
     // sort by item id
     std::sort(m_selected.begin(), m_selected.end(), [](auto a, auto b) {return a.itemid < b.itemid; });
     {
-        BOOST_LOG_TRIVIAL(info) << boost::format("arrange: items selected after arranging: %1%") % m_selected.size();
+        ARRANGE_LOG(info) << boost::format("items selected after arranging: %1%") % m_selected.size();
         for (auto selected : m_selected)
-            BOOST_LOG_TRIVIAL(debug) << selected.name << ", extruder: " << VectorFormatter(selected.extrude_ids) << ", bed: " << selected.bed_idx
+            ARRANGE_LOG(debug) << selected.name << ", extruder: " << VectorFormatter(selected.extrude_ids) << ", bed: " << selected.bed_idx
                                      << ", bed_temp: " << selected.first_bed_temp << ", print_temp: " << selected.print_temp
                                      << ", trans: " << unscale<double>(selected.translation(X)) << "," << unscale<double>(selected.translation(Y))
                                      << ", rotation: " << selected.rotation;
-        BOOST_LOG_TRIVIAL(debug) << "arrange: items unselected after arrange: "<< m_unselected.size();
-        for (auto item : m_unselected)
-            BOOST_LOG_TRIVIAL(debug) << item.name << ", bed: " << item.bed_idx << ", trans: " << item.translation.transpose() << ", rotation: " << item.rotation;
+        ARRANGE_LOG(debug) << "items unselected after arrange: " << unselected_and_locked.size();
+        for (auto item : unselected_and_locked)
+            ARRANGE_LOG(debug) << item.name << ", bed: " << item.bed_idx << ", trans: " << unscale<double>(item.translation(X)) << "," << unscale<double>(item.translation(Y));
     }
 
     // put unpackable items to m_unprintable so they goes outside
@@ -732,7 +750,7 @@ void ArrangeJob::finalize()
 
             beds = std::max(ap.bed_idx, beds);
 
-            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": arrange selected %4%: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
+            ARRANGE_LOG(debug) << __FUNCTION__ << boost::format(": selected %4%: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
         }
 
         //BBS: adjust the bed_index, create new plates, get the max bed_index
@@ -745,7 +763,7 @@ void ArrangeJob::finalize()
                 plate_list.postprocess_bed_index_for_unselected(ap);
 
             beds = std::max(ap.bed_idx, beds);
-            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":arrange unselected %4%: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
+            ARRANGE_LOG(debug) << __FUNCTION__ << boost::format(": unselected %4%: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
         }
 
         for (ArrangePolygon& ap : m_locked) {
@@ -782,7 +800,7 @@ void ArrangeJob::finalize()
             plate_list.postprocess_arrange_polygon(ap, true);
 
             ap.apply();
-            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":arrange m_unprintable: name: %4%, bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
+            ARRANGE_LOG(debug) << __FUNCTION__ << boost::format(": m_unprintable: name: %4%, bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
         }
 
         m_plater->update();
