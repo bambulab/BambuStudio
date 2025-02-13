@@ -3949,30 +3949,30 @@ double ModelInstance::get_auto_brim_width() const
 
 void ModelInstance::get_arrange_polygon(void *ap, const Slic3r::DynamicPrintConfig &config_global) const
 {
-//    static const double SIMPLIFY_TOLERANCE_MM = 0.1;
+    //    static const double SIMPLIFY_TOLERANCE_MM = 0.1;
 
     Geometry::Transformation trafo_instance = get_transformation();
 
-    //BOOST_LOG_TRIVIAL(debug) << "get_arrange_polygon: " << object->name << " instance trans:\n"
-    //                         << trafo_instance.get_matrix().matrix() << "\n object trans:\n"
-    //                         << object->volumes.front()->get_transformation().get_matrix().matrix();
+    // BOOST_LOG_TRIVIAL(debug) << "get_arrange_polygon: " << object->name << " instance trans:\n"
+    //                          << trafo_instance.get_matrix().matrix() << "\n object trans:\n"
+    //                          << object->volumes.front()->get_transformation().get_matrix().matrix();
 
     trafo_instance.set_offset(Vec3d(0, 0, get_offset(Z)));
 
     Polygon p = get_object()->convex_hull_2d(trafo_instance.get_matrix());
 
-//    if (!p.points.empty()) {
-//        Polygons pp{p};
-//        pp = p.simplify(scaled<double>(SIMPLIFY_TOLERANCE_MM));
-//        if (!pp.empty()) p = pp.front();
-//    }
+    //    if (!p.points.empty()) {
+    //        Polygons pp{p};
+    //        pp = p.simplify(scaled<double>(SIMPLIFY_TOLERANCE_MM));
+    //        if (!pp.empty()) p = pp.front();
+    //    }
 
-    arrangement::ArrangePolygon& ret = *(arrangement::ArrangePolygon*)ap;
-    ret.poly.contour = std::move(p);
-    ret.translation  = Vec2crd{scaled(get_offset(X)), scaled(get_offset(Y))};
-    ret.rotation     = 0;
+    arrangement::ArrangePolygon &ret = *(arrangement::ArrangePolygon *) ap;
+    ret.poly.contour                 = std::move(p);
+    ret.translation                  = Vec2crd{scaled(get_offset(X)), scaled(get_offset(Y))};
+    ret.rotation                     = 0;
 
-    //BBS: add materials related information
+    // BBS: add materials related information
     ModelVolume *volume = NULL;
     for (size_t i = 0; i < object->volumes.size(); ++i) {
         if (object->volumes[i]->is_model_part()) {
@@ -3987,19 +3987,22 @@ void ModelInstance::get_arrange_polygon(void *ap, const Slic3r::DynamicPrintConf
     }
 
     // get per-object support extruders
-    auto op = object->get_config_value<ConfigOptionBool>(config_global, "enable_support");
+    auto op                 = object->get_config_value<ConfigOptionBool>(config_global, "enable_support");
     bool is_support_enabled = op && op->getBool();
     if (is_support_enabled) {
         auto op1 = object->get_config_value<ConfigOptionInt>(config_global, "support_filament");
         auto op2 = object->get_config_value<ConfigOptionInt>(config_global, "support_interface_filament");
-        int extruder_id;
+        int  extruder_id;
         // id==0 means follow previous material, so need not be recorded
         if (op1 && (extruder_id = op1->getInt()) > 0) ret.extrude_ids.push_back(extruder_id);
         if (op2 && (extruder_id = op2->getInt()) > 0) ret.extrude_ids.push_back(extruder_id);
     }
 
-    if (ret.extrude_ids.empty()) //the default extruder
+    if (ret.extrude_ids.empty()) // the default extruder
         ret.extrude_ids.push_back(1);
+
+    // filament types must be same size as extrude_ids
+    ret.filament_types.resize(ret.extrude_ids.size(), "PLA");
 }
 
 void ModelInstance::apply_arrange_result(const Vec2d &offs, double rotation)

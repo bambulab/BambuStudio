@@ -2,6 +2,7 @@
 
 #include "libslic3r/SVG.hpp"
 #include "libslic3r/ModelArrange.hpp"
+#include "libslic3r/VectorFormatter.hpp"
 
 #include "slic3r/GUI/PartPlate.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
@@ -519,10 +520,6 @@ void ArrangeJob::prepare_outside_plate() {
 //BBS: add partplate logic
 void ArrangeJob::prepare()
 {
-    m_plater->get_notification_manager()->push_notification(NotificationType::ArrangeOngoing,
-        NotificationManager::NotificationLevel::RegularNotificationLevel, _u8L("Arranging..."));
-    m_plater->get_notification_manager()->bbl_close_plateinfo_notification();
-
     params = init_arrange_params(m_plater);
 
     //BBS update extruder params and speed table before arranging
@@ -620,8 +617,8 @@ void ArrangeJob::on_exception(const std::exception_ptr &eptr)
         if (eptr)
             std::rethrow_exception(eptr);
     } catch (libnest2d::GeometryException &) {
-        show_error(m_plater, _(L("Arrange failed. "
-                                 "Found some exceptions when processing object geometries.")));
+        show_error(m_plater, _L("Arrange failed. "
+                                 "Found some exceptions when processing object geometries."));
     } catch (std::exception &) {
         PlaterJob::on_exception(eptr);
     }
@@ -655,10 +652,10 @@ void ArrangeJob::process()
         BOOST_LOG_TRIVIAL(warning)<< "Arrange full params: "<< params.to_json();
         BOOST_LOG_TRIVIAL(info) << boost::format("arrange: items selected before arranging: %1%") % m_selected.size();
         for (auto selected : m_selected) {
-            BOOST_LOG_TRIVIAL(debug) << selected.name << ", extruder: " << VectorFormatter( selected.extrude_ids)
+            BOOST_LOG_TRIVIAL(debug) << selected.name << ", extruder: " << VectorFormatter(selected.extrude_ids)
                                      << ", filament types: " << VectorFormatter(selected.filament_types) << ", bed: " << selected.bed_idx
-                                     << ", filemant_type:" << selected.filament_temp_type << ", trans: " << selected.translation.transpose()
-                                     << ", rotation: " << selected.rotation;
+                                     << ", filemant_type:" << selected.filament_temp_type << ", trans: " << unscale<double>(selected.translation(X)) << ","
+                                     << unscale<double>(selected.translation(Y)) << ", rotation: " << selected.rotation;
         }
         BOOST_LOG_TRIVIAL(debug) << "arrange: items unselected before arrange: " << m_unselected.size();
         for (auto item : m_unselected)
@@ -673,7 +670,7 @@ void ArrangeJob::process()
     {
         BOOST_LOG_TRIVIAL(info) << boost::format("arrange: items selected after arranging: %1%") % m_selected.size();
         for (auto selected : m_selected)
-            BOOST_LOG_TRIVIAL(debug) << selected.name << ", extruder: " << selected.extrude_ids.back() << ", bed: " << selected.bed_idx
+            BOOST_LOG_TRIVIAL(debug) << selected.name << ", extruder: " << VectorFormatter(selected.extrude_ids) << ", bed: " << selected.bed_idx
                                      << ", bed_temp: " << selected.first_bed_temp << ", print_temp: " << selected.print_temp
                                      << ", trans: " << unscale<double>(selected.translation(X)) << "," << unscale<double>(selected.translation(Y))
                                      << ", rotation: " << selected.rotation;
@@ -822,8 +819,9 @@ void ArrangeJob::finalize()
         wxGetApp().obj_list()->reload_all_plates();
 
         m_plater->update();
-        m_plater->get_notification_manager()->push_notification(NotificationType::ArrangeOngoing,
-            NotificationManager::NotificationLevel::RegularNotificationLevel, _u8L("Arranging done."));
+        if (!m_selected.empty())
+            m_plater->get_notification_manager()->push_notification(NotificationType::ArrangeOngoing, NotificationManager::NotificationLevel::RegularNotificationLevel,
+                                                                    _u8L("Arranging done."));
     }
     else {
         m_plater->get_notification_manager()->push_notification(NotificationType::ArrangeOngoing,

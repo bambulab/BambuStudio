@@ -668,25 +668,6 @@ inline std::string filter_characters(const std::string& str, const std::string& 
     return filteredStr;
 }
 
-// custom vector wrapper for outputting to log
-template<typename T> struct VectorFormatter
-{
-    const std::vector<T> &vec;
-
-    explicit VectorFormatter(const std::vector<T> &v) : vec(v) {}
-
-    friend std::ostream &operator<<(std::ostream &os, const VectorFormatter<T> &vf)
-    {
-        os << "[";
-        for (size_t i = 0; i < vf.vec.size(); ++i) {
-            os << vf.vec[i];
-            if (i != vf.vec.size() - 1) { os << ", "; }
-        }
-        os << "]";
-        return os;
-    }
-};
-
 } // namespace Slic3r
 
 #if WIN32
