@@ -116,12 +116,10 @@ struct SupportParameters {
 		this->raft_interface_fill_pattern = this->raft_interface_density > 0.95 ? ipRectilinear : ipSupportBase;
         if (object_config.support_interface_pattern == smipGrid)
             this->contact_fill_pattern = ipGrid;
-        else if (object_config.support_interface_pattern == smipRectilinearInterlaced)
+        else if (object_config.support_interface_pattern == smipRectilinearInterlaced || object_config.support_interface_pattern == smipAuto)
             this->contact_fill_pattern = ipRectilinear;
         else
-            this->contact_fill_pattern =
-            (object_config.support_interface_pattern == smipAuto && slicing_params.soluble_interface) ||
-            object_config.support_interface_pattern == smipConcentric ?
+            this->contact_fill_pattern = object_config.support_interface_pattern == smipConcentric ?
             ipConcentric :
             (this->interface_density > 0.95 ? ipRectilinear : ipSupportBase);
 

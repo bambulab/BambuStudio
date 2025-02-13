@@ -1549,8 +1549,6 @@ void TreeSupport::generate_toolpaths()
         return;
 
     BoundingBox bbox_object(Point(-scale_(1.), -scale_(1.0)), Point(scale_(1.), scale_(1.)));
-
-    if (m_support_params.support_style == smsTreeHybrid && object_config.support_interface_pattern == smipAuto) m_support_params.contact_fill_pattern = ipRectilinear;
     std::shared_ptr<Fill> filler_interface = std::shared_ptr<Fill>(Fill::new_from_type(m_support_params.contact_fill_pattern));
     std::shared_ptr<Fill> filler_Roof1stLayer = std::shared_ptr<Fill>(Fill::new_from_type(ipRectilinear));
     filler_interface->set_bounding_box(bbox_object);
@@ -1602,6 +1600,26 @@ void TreeSupport::generate_toolpaths()
 
                         // Note: spacing means the separation between two lines as if they are tightly extruded
                         filler_Roof1stLayer->spacing = roof_1st_layer_flow.spacing();
+
+                        auto interface_layer_above = m_object->get_support_layer(layer_id + m_support_params.num_top_interface_layers);
+                        if (interface_layer_above) {
+                            Layer *bridge_layer = m_object->get_layer_at_bottomz(interface_layer_above->print_z + object_config.support_top_z_distance.value, layer_height / 10.);
+                            if (bridge_layer) {
+                                for (size_t region_id = 0; region_id < bridge_layer->regions().size(); ++region_id) {
+                                    LayerRegion *layerm = bridge_layer->regions()[region_id];
+                                    bool         find_bridge = false;
+                                    for (const auto surface : layerm->fill_surfaces.surfaces) {
+                                        if (surface.surface_type == stBottomBridge && overlaps(polys, surface.expolygon)) {
+                                            filler_Roof1stLayer->angle = surface.bridge_angle + (m_support_params.num_top_interface_layers - 1) * M_PI_2;
+                                            find_bridge - true;
+                                            break;
+                                        }
+                                    }
+                                    if (find_bridge) break;
+                                }
+                            }
+                        }
+
                         // generate a perimeter first to support interface better
                         ExtrusionEntityCollection* temp_support_fills = new ExtrusionEntityCollection();
                         make_perimeter_and_infill(temp_support_fills->entities, poly, 1, roof_1st_layer_flow, erSupportTransition,
@@ -1625,8 +1643,32 @@ void TreeSupport::generate_toolpaths()
                             filler_interface->angle = Geometry::deg2rad(object_config.support_angle.value);
                             fill_params.dont_sort = true;
                         }
-                        if (m_object_config->support_interface_pattern == smipRectilinearInterlaced || m_object_config->support_interface_pattern == smipAuto) {
-                            filler_interface->layer_id = area_group.interface_id;
+                        if (m_support_params.contact_fill_pattern = ipRectilinear) {
+                            bool find_bridge           = false;
+                            for (size_t i = 0; i < m_support_params.num_top_interface_layers; i++) {
+                                auto cur_ts_layer = m_object->get_support_layer(layer_id + i);
+                                if (cur_ts_layer == nullptr) break;
+                                Layer *obj_layer = m_object->get_layer_at_bottomz(cur_ts_layer->print_z + object_config.support_top_z_distance.value, layer_height / 10.);
+
+                                if (obj_layer) {
+                                    for (size_t region_id = 0; region_id < obj_layer->regions().size(); ++region_id) {
+                                        LayerRegion *layerm = obj_layer->regions()[region_id];
+                                        for (const auto surface : layerm->fill_surfaces.surfaces) {
+                                            if (surface.surface_type == stBottomBridge && overlaps(polys, surface.expolygon)) {
+                                                filler_interface->angle = surface.bridge_angle + (i + 1) * M_PI_2;
+                                                find_bridge = true;
+                                                break;
+                                            }
+                                        }
+                                        if (find_bridge) break;
+                                    }
+                                }
+                                if (find_bridge) break;
+                            }
+                            if (!find_bridge)
+                                filler_interface->layer_id = area_group.interface_id;
+                            else
+                                filler_interface->layer_id = 0;
                         }
 
                         fill_expolygons_generate_paths(ts_layer->support_fills.entities, polys, filler_interface.get(), fill_params, erSupportMaterialInterface,
