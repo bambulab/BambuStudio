@@ -311,8 +311,10 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
             int err = fs->GetLastError();
             if (!e.GetString().IsEmpty())
                 msg = e.GetString();
-            if (err != 0)
+            if (err != 0) {
                 msg += " [%d]";
+                msg += wxDateTime::Now().Format(_T(" <%m-%d %H:%M>"));
+            }
             if (fs->GetCount() == 0 && !msg.empty())
                 m_image_grid->SetStatus(icon, msg);
             if (e.GetInt() == PrinterFileSystem::Initializing)
