@@ -75,7 +75,6 @@ public:
     void update_from_bundle();
 
     // BBS: printer
-    bool update_printer_list();
     void add_connected_printers(std::string selected, bool alias_name = false);
     int  selected_connected_printer(int index) const;
 
