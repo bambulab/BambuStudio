@@ -2094,8 +2094,8 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Sparse infill"), L"param_infill");
         optgroup->append_single_option_line("sparse_infill_density");
         optgroup->append_single_option_line("sparse_infill_pattern", "fill-patterns#infill types and their properties of sparse");
-        optgroup->append_single_option_line("crosszag_move_step");
-        optgroup->append_single_option_line("zigzag_angle_step");
+        optgroup->append_single_option_line("infill_shift_step");
+        optgroup->append_single_option_line("infill_rotate_step");
         optgroup->append_single_option_line("sparse_infill_anchor");
         optgroup->append_single_option_line("sparse_infill_anchor_max");
         optgroup->append_single_option_line("filter_out_gap_fill");
