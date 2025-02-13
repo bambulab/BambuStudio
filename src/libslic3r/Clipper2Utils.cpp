@@ -79,6 +79,14 @@ static ExPolygons PolyTreeToExPolygons(Clipper2Lib::PolyTree64 &&polytree)
     return retval;
 }
 
+void SimplifyPolyTree(const Clipper2Lib::PolyPath64 &polytree, double epsilon, Clipper2Lib::PolyPath64 &result)
+{
+    for (const auto &child : polytree) {
+        Clipper2Lib::PolyPath64 *newchild = result.AddChild(Clipper2Lib::SimplifyPath(child->Polygon(), epsilon));
+        SimplifyPolyTree(*child, epsilon, *newchild);
+    }
+}
+
 Clipper2Lib::Paths64 Slic3rPolygons_to_Paths64(const Polygons &in)
 {
     Clipper2Lib::Paths64 out;
@@ -132,7 +140,7 @@ Slic3r::Polylines intersection_pl_2(const Slic3r::Polylines& subject, const Slic
 Slic3r::Polylines  diff_pl_2(const Slic3r::Polylines& subject, const Slic3r::Polygons& clip)
     { return _clipper2_pl_open(Clipper2Lib::ClipType::Difference, subject, clip); }
 
-ExPolygons union_ex2(const Polygons& polygons)
+ExPolygons union_ex_2(const Polygons& polygons)
 {
     Clipper2Lib::Clipper64 c;
     c.AddSubject(Slic3rPolygons_to_Paths64(polygons));
@@ -147,7 +155,7 @@ ExPolygons union_ex2(const Polygons& polygons)
     return results;
 }
 
-ExPolygons union_ex2(const ExPolygons &expolygons)
+ExPolygons union_ex_2(const ExPolygons &expolygons)
 {
     Clipper2Lib::Clipper64 c;
     c.AddSubject(Slic3rExPolygons_to_Paths64(expolygons));
@@ -161,4 +169,43 @@ ExPolygons union_ex2(const ExPolygons &expolygons)
 
     return results;
 }
+
+// 对 ExPolygons 进行偏移
+ExPolygons offset_ex_2(const ExPolygons &expolygons, double delta)
+{    
+    Clipper2Lib::Paths64 subject = Slic3rExPolygons_to_Paths64(expolygons);
+    Clipper2Lib::ClipperOffset offsetter;
+    offsetter.AddPaths(subject, Clipper2Lib::JoinType::Round, Clipper2Lib::EndType::Polygon);
+    Clipper2Lib::PolyPath64 polytree;
+    offsetter.Execute(delta, polytree);
+    ExPolygons results = PolyTreeToExPolygons(std::move(polytree));
+
+    return results;
 }
+
+ExPolygons offset2_ex_2(const ExPolygons& expolygons, double delta1, double delta2)
+{
+    // 1st offset
+    Clipper2Lib::Paths64       subject = Slic3rExPolygons_to_Paths64(expolygons);
+    Clipper2Lib::ClipperOffset offsetter;
+    offsetter.AddPaths(subject, Clipper2Lib::JoinType::Round, Clipper2Lib::EndType::Polygon);
+    Clipper2Lib::PolyPath64 polytree;
+    offsetter.Execute(delta1, polytree);
+
+    // simplify the result
+    Clipper2Lib::PolyPath64 polytree2;
+    SimplifyPolyTree(polytree, SCALED_EPSILON, polytree2);
+
+    // 2nd offset
+    offsetter.Clear();
+    offsetter.AddPaths(Clipper2Lib::PolyTreeToPaths64(polytree2), Clipper2Lib::JoinType::Round, Clipper2Lib::EndType::Polygon);
+    polytree.Clear();
+    offsetter.Execute(delta2, polytree);
+
+    // convert back to expolygons
+    ExPolygons results = PolyTreeToExPolygons(std::move(polytree));
+
+    return results;
+}
+
+} // namespace Slic3r
