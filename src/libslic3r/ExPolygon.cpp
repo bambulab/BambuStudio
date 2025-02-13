@@ -413,6 +413,18 @@ Lines ExPolygon::lines() const
     return lines;
 }
 
+bool ExPolygon::remove_colinear_points() { 
+    bool removed = this->contour.remove_colinear_points();
+    if (contour.size() < 3) {
+        contour.points.clear();
+        holes.clear();
+        return true;
+    }
+    for (Polygon &hole : this->holes)
+        removed |= hole.remove_colinear_points();
+    return removed;
+}
+
 // Do expolygons match? If they match, they must have the same topology,
 // however their contours may be rotated.
 bool expolygons_match(const ExPolygon &l, const ExPolygon &r)

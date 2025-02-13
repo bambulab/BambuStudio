@@ -76,6 +76,8 @@ public:
         { Polylines out; this->medial_axis(min_width, max_width, &out); return out; }
     Lines lines() const;
 
+    bool remove_colinear_points();
+
     // Number of contours (outer contour with holes).
     size_t   		num_contours() const { return this->holes.size() + 1; }
     Polygon& 		contour_or_hole(size_t idx) 		{ return (idx == 0) ? this->contour : this->holes[idx - 1]; }

@@ -4,6 +4,7 @@
 #include "DistanceField.hpp" //Class we're implementing.
 #include "../FillRectilinear.hpp"
 #include "../../ClipperUtils.hpp"
+#include "../../Clipper2Utils.hpp"
 
 #include <tbb/parallel_for.h>
 
@@ -43,7 +44,8 @@ DistanceField::DistanceField(const coord_t& radius, const Polygons& current_outl
     m_supporting_radius2 = Slic3r::sqr(int64_t(radius));
     // Sample source polygons with a regular grid sampling pattern.
     const BoundingBox overhang_bbox = get_extents(current_overhang);
-    ExPolygons expolys = offset2_ex(union_ex(current_overhang), -m_cell_size / 2, m_cell_size / 2); // remove dangling lines which causes sample_grid_pattern crash (fails the OUTER_LOW assertions)
+    // remove dangling lines which causes sample_grid_pattern crash (fails the OUTER_LOW assertions)
+    ExPolygons expolys = offset2_ex_2(union_ex_2(current_overhang), -m_cell_size / 2, m_cell_size / 2);
     for (const ExPolygon &expoly : expolys) {
         const Points sampled_points               = sample_grid_pattern(expoly, m_cell_size, overhang_bbox);
         const size_t unsupported_points_prev_size = m_unsupported_points.size();
