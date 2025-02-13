@@ -165,6 +165,7 @@ public:
     const LayerRegionPtrs&  regions() const { return m_regions; }
     // Test whether whether there are any slices assigned to this layer.
     bool                    empty() const;
+    void                    apply_auto_circle_compensation();
     void                    make_slices();
     // Backup and restore raw sliced regions if needed.
     //FIXME Review whether not to simplify the code by keeping the raw_slices all the time.
@@ -182,7 +183,7 @@ public:
         for (const LayerRegion *layerm : m_regions) if (layerm->slices.any_bottom_contains(item)) return true;
         return false;
     }
-    void                    make_perimeters(const AutoContourHolesCompensationParams &auto_contour_holes_compensation_params);
+    void                    make_perimeters();
     //BBS
     void                    calculate_perimeter_continuity(std::vector<LoopNode> &prev_nodes);
     void                    recrod_cooling_node_for_each_extrusion();

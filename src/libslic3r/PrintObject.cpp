@@ -316,7 +316,7 @@ std::vector<std::set<int>> PrintObject::detect_extruder_geometric_unprintables()
 // 1) Merges typed region slices into stInternal type.
 // 2) Increases an "extra perimeters" counter at region slices where needed.
 // 3) Generates perimeters, gap fills and fill regions (fill regions of type stInternal).
-void PrintObject::make_perimeters(const AutoContourHolesCompensationParams &auto_contour_holes_compensation_params)
+void PrintObject::make_perimeters()
 {
     // prerequisites
     this->slice();
@@ -423,10 +423,10 @@ void PrintObject::make_perimeters(const AutoContourHolesCompensationParams &auto
     BOOST_LOG_TRIVIAL(debug) << "Generating perimeters in parallel - start";
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, m_layers.size()),
-        [this, auto_contour_holes_compensation_params](const tbb::blocked_range<size_t>& range) {
+        [this](const tbb::blocked_range<size_t>& range) {
             for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
                 m_print->throw_if_canceled();
-                m_layers[layer_idx]->make_perimeters(auto_contour_holes_compensation_params);
+                m_layers[layer_idx]->make_perimeters();
             }
         }
     );
@@ -951,8 +951,6 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "initial_layer_line_width"
             || opt_key == "inner_wall_line_width"
             || opt_key == "infill_wall_overlap"
-            || opt_key == "enable_circle_compensation"
-            || opt_key == "circle_compensation_manual_offset"
             || opt_key == "apply_scarf_seam_on_circles") {
             steps.emplace_back(posPerimeters);
         } else if (opt_key == "gap_infill_speed" || opt_key == "filter_out_gap_fill") {

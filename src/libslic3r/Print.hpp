@@ -314,6 +314,9 @@ struct AutoContourHolesCompensationParams
         circle_compensation_speed = config.circle_compensation_speed.values;
         diameter_limit          = config.diameter_limit.values;
     }
+
+    AutoContourHolesCompensationParams(){}
+
     // BBS: params for auto contour and holes compensation
     std::vector<double> counter_speed_coef;
     std::vector<double> counter_diameter_coef;
@@ -489,6 +492,9 @@ public:
     size_t get_klipper_object_id() const { return m_klipper_object_id; }
     void set_klipper_object_id(size_t id) { m_klipper_object_id = id; }
 
+    void set_auto_circle_compenstaion_params(const AutoContourHolesCompensationParams &params){auto_contour_holes_compensation_params = params;};
+    AutoContourHolesCompensationParams get_auto_circle_compenstaion_params() { return auto_contour_holes_compensation_params; };
+
 private:
     // to be called from Print only.
     friend class Print;
@@ -513,7 +519,7 @@ private:
     static PrintObjectConfig object_config_from_model_object(const PrintObjectConfig &default_object_config, const ModelObject &object, size_t num_extruders, std::vector<int>& variant_index);
 
 private:
-    void make_perimeters(const AutoContourHolesCompensationParams &auto_contour_holes_compensation_params);
+    void make_perimeters();
     void prepare_infill();
     void infill();
     void ironing();
@@ -558,6 +564,7 @@ private:
     Vec3crd									m_size;
     double                                  m_max_z;
     PrintObjectConfig                       m_config;
+    AutoContourHolesCompensationParams      auto_contour_holes_compensation_params;
     // Translation in Z + Rotation + Scaling / Mirroring.
     Transform3d                             m_trafo = Transform3d::Identity();
     // Slic3r::Point objects in scaled G-code coordinates
