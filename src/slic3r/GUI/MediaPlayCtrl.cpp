@@ -93,7 +93,7 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl3 *media_ctrl, const w
     m_button_play->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &e) { TogglePlay(); });
     m_button_play->Bind(wxEVT_RIGHT_UP, [this](auto & e) { m_media_ctrl->Play(); });
     m_label_status->Bind(wxEVT_LEFT_UP, [this](auto &e) {
-        auto url = wxString::Format(L"https://wiki.bambulab.com/%s/software/bambu-studio/faq/live-view", L"en");
+        auto url = wxString::Format(L"https://wiki.bambulab.com/%s/software/bambu-studio/faq/live-view", wxGetApp().current_language_code_safe() == "zh_CN" ? "zh" : "en");
         wxLaunchDefaultBrowser(url);
     });
 
@@ -182,15 +182,15 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
             if (m_play_timer <= now) {
                 m_play_timer = now + 1min;
 #if BBL_RELEASE_TO_PUBLIC
+                BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl playing..., idle: " << SecondsSinceLastInput() << "printIdle: " << m_print_idle;
                 if (SecondsSinceLastInput() >= 900) { // 15 min
                     auto close = wxGetApp().app_config->get("liveview", "auto_stop_liveview") == "true";
-                    if (close) {
+                    if (close || obj == nullptr || !obj->is_in_printing()) {
                         m_next_retry = wxDateTime();
                         Stop(_L("Temporarily closed because there is no operating for a long time."));
                         return;
                     }
                 }
-                auto obj = wxGetApp().getDeviceManager()->get_selected_machine();
                 if (obj && obj->is_in_printing()) {
                     m_print_idle = 0;
                 } else if (++m_print_idle >= 5) {
