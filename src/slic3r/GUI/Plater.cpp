@@ -193,7 +193,7 @@ wxDEFINE_EVENT(EVT_MODIFY_FILAMENT, SimpleEvent);
 wxDEFINE_EVENT(EVT_ADD_FILAMENT, SimpleEvent);
 wxDEFINE_EVENT(EVT_DEL_FILAMENT, SimpleEvent);
 wxDEFINE_EVENT(EVT_ADD_CUSTOM_FILAMENT, ColorEvent);
-
+wxDEFINE_EVENT(EVT_NOTICE_CHILDE_SIZE_CHANGED, SimpleEvent);
 static int get_diameter_index(float diameter)
 {
     float eps = 1e-3;
@@ -2891,6 +2891,15 @@ int Sidebar::get_sidebar_pos_right_x()
     return this->GetScreenPosition().x + this->GetSize().x;
 }
 
+void Sidebar::on_size(SimpleEvent &e) {
+    if (m_sna_dialog && m_sna_dialog->IsShown()) {
+        pop_sync_nozzle_and_ams_dialog();
+    }
+    if (m_fna_dialog && m_fna_dialog->IsShown()) {
+        pop_finsish_sync_ams_dialog();
+    }
+}
+
 void Sidebar::get_big_btn_sync_pos_size(wxPoint &pt, wxSize &size)
 {
     size =btn_sync->GetSize();
@@ -3125,24 +3134,7 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
     }
     Layout();
 
-    wxPoint small_btn_pt;
-    wxSize  small_btn_size;
-    get_small_btn_sync_pos_size(small_btn_pt, small_btn_size);
-
-    FinishSyncAmsDialog::InputInfo temp_fsa_info;
-    auto same_dialog_pos_x = get_sidebar_pos_right_x() + FromDIP(5);
-    temp_fsa_info.dialog_pos.x = same_dialog_pos_x;
-    temp_fsa_info.dialog_pos.y = small_btn_pt.y;
-    temp_fsa_info.ams_btn_pos = small_btn_pt + wxPoint(small_btn_size.x / 2, small_btn_size.y/2);
-    if (m_fna_dialog) {
-        if (m_sna_dialog) {
-            m_sna_dialog->on_hide();
-        }
-        m_fna_dialog->update_info(temp_fsa_info);
-    } else {
-        m_fna_dialog = std::make_shared<FinishSyncAmsDialog>(temp_fsa_info);
-    }
-    m_fna_dialog->on_show();
+    pop_finsish_sync_ams_dialog();
 }
 
 PlaterPresetComboBox* Sidebar::printer_combox()
@@ -3227,12 +3219,12 @@ void Sidebar::deal_btn_sync() {
     bool only_external_material;
     auto ok = p->sync_extruder_list(only_external_material);
     if (ok) {
-        pop_sync_nozzle_and_ams_ialog();
+        pop_sync_nozzle_and_ams_dialog();
     }
     m_begin_sync_printer_status = false;
 }
 
-void Sidebar::pop_sync_nozzle_and_ams_ialog() {
+void Sidebar::pop_sync_nozzle_and_ams_dialog() {
     SyncNozzleAndAmsDialog::InputInfo temp_na_info;
     wxPoint                           big_btn_pt;
     wxSize                            big_btn_size;
@@ -3257,6 +3249,26 @@ void Sidebar::pop_sync_nozzle_and_ams_ialog() {
         m_sna_dialog = std::make_shared<SyncNozzleAndAmsDialog>(temp_na_info);
     }
     m_sna_dialog->on_show();
+}
+
+void Sidebar::pop_finsish_sync_ams_dialog()
+{
+    wxPoint small_btn_pt;
+    wxSize  small_btn_size;
+    get_small_btn_sync_pos_size(small_btn_pt, small_btn_size);
+
+    FinishSyncAmsDialog::InputInfo temp_fsa_info;
+    auto                           same_dialog_pos_x = get_sidebar_pos_right_x() + FromDIP(5);
+    temp_fsa_info.dialog_pos.x                       = same_dialog_pos_x;
+    temp_fsa_info.dialog_pos.y                       = small_btn_pt.y;
+    temp_fsa_info.ams_btn_pos                        = small_btn_pt + wxPoint(small_btn_size.x / 2, small_btn_size.y / 2);
+    if (m_fna_dialog) {
+        if (m_sna_dialog) { m_sna_dialog->on_hide(); }
+        m_fna_dialog->update_info(temp_fsa_info);
+    } else {
+        m_fna_dialog = std::make_shared<FinishSyncAmsDialog>(temp_fsa_info);
+    }
+    m_fna_dialog->on_show();
 }
 
 static std::vector<Search::InputInfo> get_search_inputs(ConfigOptionMode mode)
@@ -4213,6 +4225,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     this->q->Bind(wxEVT_SYS_COLOUR_CHANGED, &priv::on_apple_change_color_mode, this);
     this->q->Bind(EVT_CREATE_FILAMENT, &priv::on_create_filament, this);
     this->q->Bind(EVT_MODIFY_FILAMENT, &priv::on_modify_filament, this);
+    this->q->Bind(EVT_NOTICE_CHILDE_SIZE_CHANGED, &Sidebar::on_size, sidebar);
     this->q->Bind(EVT_ADD_FILAMENT, &priv::on_add_filament, this);
     this->q->Bind(EVT_DEL_FILAMENT, &priv::on_delete_filament, this);
     this->q->Bind(EVT_ADD_CUSTOM_FILAMENT, &priv::on_add_custom_filament, this);
@@ -10909,7 +10922,7 @@ int Plater::load_project(wxString const &filename2,
         int nozzle_diameter = 1;
         auto ok = try_sync_preset_with_connected_printer(nozzle_diameter);
         if (ok && nozzle_diameter > 1) {
-            sidebar().pop_sync_nozzle_and_ams_ialog();
+            sidebar().pop_sync_nozzle_and_ams_dialog();
         }
     }
     return wx_dlg_id;
