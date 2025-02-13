@@ -2377,20 +2377,20 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
-    def           = this->add("crosszag_move_step", coFloat);
-    def->label    = L("Cross Zag Move Step");
+    def           = this->add("infill_shift_step", coFloat);
+    def->label    = L("Infill shift step");
     def->category = L("Strength");
-    def->tooltip  = L("move infill a bit to get cross texture.");
+    def->tooltip  = L("This parameter adds a slight displacement to each layer of infill to create a cross texture.");
     def->sidetext = L("mm");
     def->min      = 0;
     def->max      = 10;
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.4));
 
-    def           = this->add("zigzag_angle_step", coFloat);
-    def->label    = L("Zig Zag Angle Step");
+    def           = this->add("infill_rotate_step", coFloat);
+    def->label    = L("Infill rotate step");
     def->category = L("Strength");
-    def->tooltip  = L("rotate infill of each layer to get cross texture.");
+    def->tooltip  = L("This parameter adds a slight rotation to each layer of infill to create a cross cross texture.");
     def->sidetext = L("°");
     def->min      = 0;
     def->max      = 360;
