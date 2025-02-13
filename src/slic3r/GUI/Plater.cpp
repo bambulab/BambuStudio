@@ -4375,7 +4375,14 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         view3D_canvas->Bind(EVT_GLCANVAS_ARRANGE_PARTPLATE, [this](SimpleEvent& evt) {
             //BBS arrage from EVT set default state.
             this->q->set_prepare_state(Job::PREPARE_STATE_MENU);
-            this->q->arrange(); });
+            this->q->arrange();
+        });
+        view3D_canvas->Bind(EVT_GLCANVAS_ARRANGE_OUTPLATE, [this](SimpleEvent &evt) {
+            if (this->q->last_arrange_job_is_finished()) {
+                this->q->set_prepare_state(Job::PREPARE_STATE_OUTSIDE_BED);
+                this->q->arrange();
+            }
+        });
         view3D_canvas->Bind(EVT_GLCANVAS_ORIENT, [this](SimpleEvent& evt) {
             //BBS oriant from EVT set default state.
             this->q->set_prepare_state(Job::PREPARE_STATE_DEFAULT);
@@ -9437,6 +9444,7 @@ void Plater::priv::update_objects_position_when_select_preset(const std::functio
     bool           cur_plate_is_smaller = cur_plate_size.x() + 1.0 < old_plate_size.x() || cur_plate_size.y() + 1.0 < old_plate_size.y();
     BOOST_LOG_TRIVIAL(info) << format("change bed pos from (%.0f,%.0f) to (%.0f,%.0f)", old_plate_pos.x(), old_plate_pos.y(), cur_plate_pos.x(), cur_plate_pos.y());
 
+    bool plate_not_empty = std::any_of(plate_object.begin(), plate_object.end(), [](const std::vector<int> &obj_idxs) { return !obj_idxs.empty(); });
     if (old_plate_pos.x() != cur_plate_pos.x() || old_plate_pos.y() != cur_plate_pos.y() || cur_plate_is_smaller) {
         for (int i = 0; i < plate_object.size(); ++i) {
             view3D->select_object_from_idx(plate_object[i]);
@@ -9445,7 +9453,7 @@ void Plater::priv::update_objects_position_when_select_preset(const std::functio
         }
 
         BOOST_LOG_TRIVIAL(info) << format("change bed size from (%.0f,%.0f) to (%.0f,%.0f)", old_plate_size.x(), old_plate_size.y(), cur_plate_size.x(), cur_plate_size.y());
-        if (cur_plate_is_smaller && std::any_of(plate_object.begin(), plate_object.end(), [](const std::vector<int>& obj_idxs) { return !obj_idxs.empty(); })) {
+        if (cur_plate_is_smaller && plate_not_empty) {
             take_snapshot("Arrange after bed size changes");
             //collect all the objects on the current plates
             std::set<ModelObject*>  new_all_plate_object;
@@ -9465,8 +9473,6 @@ void Plater::priv::update_objects_position_when_select_preset(const std::functio
                     obj_out_set.emplace(std::pair<int, int>{i, 0});
                 }
             }
-            q->set_prepare_state(Job::PREPARE_STATE_OUTSIDE_BED);
-            q->arrange();
         }
 #if 0
         const BoundingBoxf3 &cur_platelist_bbox = cur_plate_list.get_bounding_box();
@@ -9504,6 +9510,8 @@ void Plater::priv::update_objects_position_when_select_preset(const std::functio
 #endif
         view3D->deselect_all();
     }
+
+    wxQueueEvent(view3D->get_wxglcanvas(), new SimpleEvent(EVT_GLCANVAS_ARRANGE_OUTPLATE));
 }
 
 void Plater::orient()

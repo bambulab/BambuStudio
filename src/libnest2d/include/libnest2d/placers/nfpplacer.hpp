@@ -559,10 +559,12 @@ public:
     template<class Range = ConstItemRange<typename Base::DefaultIter>>
     PackResult trypack(Item& item,
                         const Range& remaining = Range()) {
-        auto result = _trypack(item, remaining);
+        if (item.is_wipe_tower) {
+            PackResult result1 = _trypack_with_original_pos(item);
+            if (result1.score() >= 0 && result1.score() < LARGE_COST_TO_REJECT) return result1;
+        }
 
-        // Experimental
-        // if(!result) repack(item, result);
+        auto result = _trypack(item, remaining);
 
         return result;
     }
@@ -1043,6 +1045,101 @@ private:
             ret = PackResult(item);
             ret.score_ = global_score;
             //merged_pile_ = nfp::merge(merged_pile_, item.transformedShape());
+        } else {
+            ret = PackResult(best_overfit);
+        }
+
+        return ret;
+    }
+
+    PackResult _trypack_with_original_pos(Item &item)
+    {
+        PackResult ret;
+
+        bool   can_pack     = false;
+        double best_overfit = std::numeric_limits<double>::max();
+        double global_score = std::numeric_limits<double>::max();
+
+        auto    initial_tr  = item.translation();
+        auto    initial_rot = item.rotation();
+        Vertex  final_tr    = initial_tr;
+        Radians final_rot   = initial_rot;
+        Shapes  nfps;
+
+        auto   binbb  = sl::boundingBox(bin_);
+
+        for (auto &it : items_) { config_.progressFunc("existing object: " + it.get().name); }
+       
+        // item won't overlap with virtual objects if it's inside or touches NFP
+        // @return 1 if current item overlaps with virtual objects, 0 otherwise
+        auto overlapWithVirtObject = [&]() -> double {
+            if (items_.empty()) return 0;
+            nfps   = calcnfp(item, binbb, Lvl<MaxNfpLevel::value>());
+            auto v = item.referenceVertex();
+            for (const RawShape &nfp : nfps) {
+                if (sl::isInside(v, nfp) || sl::touches(v, nfp)) { return 0; }
+            }
+            return 1;
+        };
+
+        {
+            for (auto rot : item.allowed_rotations) {
+                item.translation(initial_tr);
+                item.rotation(initial_rot + rot);
+
+                if (0==overlapWithVirtObject()) {
+                    can_pack     = true;
+                    final_tr     = initial_tr;
+                    final_rot    = initial_rot + rot;
+                    global_score = 0.3;
+                    break;
+                }
+            }
+
+            item.translation(final_tr);
+            item.rotation(final_rot);
+        }
+
+#ifdef SVGTOOLS_HPP
+        if (config_.save_svg) {
+            svg::SVGWriter<RawShape> svgwriter;
+            Box                      binbb2(binbb.width() * 2, binbb.height() * 2, binbb.center()); // expand bbox to allow object be drawed outside
+            svgwriter.setSize(binbb2);
+            svgwriter.conf_.x0 = binbb.width();
+            svgwriter.conf_.y0 = -binbb.height() / 2; // origin is top left corner
+            svgwriter.add_comment("bed");
+            svgwriter.writeShape(box2RawShape(binbb), "none", "black");
+            svgwriter.add_comment("nfps");
+            for (int i = 0; i < nfps.size(); i++) svgwriter.writeShape(nfps[i], "none", "blue");
+            for (int i = 0; i < items_.size(); i++) {
+                svgwriter.add_comment(items_[i].get().name);
+                svgwriter.writeItem(items_[i], "none", "black");
+            }
+            svgwriter.add_comment("merged_pile_");
+            for (int i = 0; i < merged_pile_.size(); i++) svgwriter.writeShape(merged_pile_[i], "none", "yellow");
+            svgwriter.add_comment("current item");
+            svgwriter.writeItem(item, "red", "red", 2);
+
+            std::stringstream ss;
+            ss.setf(std::ios::fixed | std::ios::showpoint);
+            ss.precision(1);
+            ss << "t=" << round(item.translation().x() / 1e6) << ","
+               << round(item.translation().y() / 1e6)
+               //<< "-rot=" << round(item.rotation().toDegrees())
+               << "-sco=" << round(global_score);
+            svgwriter.draw_text(20, 20, ss.str(), "blue", 20);
+            ss.str("");
+            ss << "items.size=" << items_.size() << "-merged_pile.size=" << merged_pile_.size();
+            svgwriter.draw_text(20, 40, ss.str(), "blue", 20);
+            svgwriter.save(boost::filesystem::path("C:/Users/arthur.tang/AppData/Roaming/BambuStudioInternal/SVG") /
+                           ("nfpplacer_" + std::to_string(plate_id) + "_" + ss.str() + "_" + item.name + ".svg"));
+        }
+#endif
+
+        if (can_pack) {
+            ret        = PackResult(item);
+            ret.score_ = global_score;
+            // merged_pile_ = nfp::merge(merged_pile_, item.transformedShape());
         } else {
             ret = PackResult(best_overfit);
         }

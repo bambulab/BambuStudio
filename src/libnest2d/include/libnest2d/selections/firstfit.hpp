@@ -118,6 +118,11 @@ public:
             int j = 0;
             while(!was_packed && !cancelled()) {
                 for(; j < placers.size() && !was_packed && !cancelled(); j++) {
+                    if (it->get().is_wipe_tower && it->get().binId() != placers[j].plateID()) {
+                        if (this->unfitindicator_)
+                            this->unfitindicator_(it->get().name + " cant be placed in plate_id=" + std::to_string(j) + "/" + std::to_string(placers.size()) + ", continue to next plate");
+                        continue;
+                    }
                     result = placers[j].pack(*it, rem(it, store_));
                     score = result.score();
                     score_all_plates = score;
@@ -184,11 +189,11 @@ public:
                 if(!was_packed){
                     if (this->unfitindicator_ && !placers.empty())
                         this->unfitindicator_(it->get().name + " not fit! height=" +std::to_string(it->get().height)
-                            + " ,plate_id=" + std::to_string(j-1)
+                            + " ,plate_id=" + std::to_string(j)
                             + ", score=" + std::to_string(score)
                             + ", best_bed_id=" + std::to_string(best_bed_id)
                             + ", score_all_plates=" + std::to_string(score_all_plates)
-                            +", overfit=" + std::to_string(result.overfit()));
+                            +", item.bed_id=" + std::to_string(it->get().binId()));
 
                     placers.emplace_back(bin);
                     placers.back().plateID(placers.size() - 1);
