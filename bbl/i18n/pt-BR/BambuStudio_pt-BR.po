@@ -1,12 +1,12 @@
 # Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-12 12:09+0800\n"
+"POT-Creation-Date: 2025-02-13 23:12+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2376,9 +2376,6 @@ msgid ""
 msgstr ""
 "Esta placa está trancada.\n"
 "Não podemos organizar automaticamente esta placa."
-
-msgid "Arranging..."
-msgstr "Organizando..."
 
 #, boost-format
 msgid "Object %1% has zero size and can't be arranged."
@@ -7312,7 +7309,7 @@ msgid ""
 "only."
 msgstr ""
 
-msgid "Rearrange filaments of the left and right nozzles ->"
+msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr ""
 
 msgid "Your filament grouping method in the sliced file is not optimal."
@@ -7362,9 +7359,9 @@ msgstr "Código de erro"
 
 #, c-format, boost-format
 msgid ""
-"The nozzle flow setting of %snozzle(%s) doesn't match with the slicing "
-"file(%s). Please make sure the nozzle installed matches with settings in "
-"printer, then set the corresponding printer preset while slicing."
+"The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). "
+"Please make sure the nozzle installed matches with settings in printer, then "
+"set the corresponding printer preset while slicing."
 msgstr ""
 
 msgid "No login account, only printers in LAN mode are displayed"
@@ -7558,10 +7555,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"The current nozzle diameter (Left: %.1fmm  Right: %.1fmm) doesn't match with "
-"the slicing file (%.1fmm). Please make sure the nozzle installed matches "
-"with settings in printer, then set the corresponding printer preset when "
-"slicing."
+"The %s diameter(%.1fmm) of current printer doesn't match with the slicing "
+"file (%.1fmm). Please make sure the nozzle installed matches with settings "
+"in printer, then set the corresponding printer preset when slicing."
 msgstr ""
 
 #, c-format, boost-format
@@ -7896,8 +7892,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Ao gravar o timelapse sem o cabeçote de ferramenta, é recomendável adicionar "
 "uma “Timelapse Wipe Tower” \n"
@@ -10798,6 +10794,12 @@ msgstr "A Iluminação"
 msgid "Cross Hatch"
 msgstr "Cross Hatch"
 
+msgid "Zig Zag"
+msgstr ""
+
+msgid "Cross Zag"
+msgstr ""
+
 msgid ""
 "Acceleration of top surface infill. Using a lower value may improve top "
 "surface quality"
@@ -11078,6 +11080,22 @@ msgstr ""
 "Combine automaticamente o preenchimento esparso de várias camadas para "
 "imprimir em conjunto para reduzir o tempo. A parede ainda está impressa com "
 "a altura original da camada."
+
+msgid "Infill shift step"
+msgstr ""
+
+msgid ""
+"This parameter adds a slight displacement to each layer of infill to create "
+"a cross texture."
+msgstr ""
+
+msgid "Infill rotate step"
+msgstr ""
+
+msgid ""
+"This parameter adds a slight rotation to each layer of infill to create a "
+"cross cross texture."
+msgstr ""
 
 msgid "Length of sparse infill anchor"
 msgstr "Comprimento da âncora de enchimento esparsa"
@@ -12419,7 +12437,7 @@ msgstr ""
 msgid "Scarf Seam On Compensation Circles"
 msgstr ""
 
-msgid "Enable to apply scarf seam on the circle to have better assemble."
+msgid "Scarf seam will be applied on circles for better dimensional accuracy."
 msgstr ""
 
 msgid "Circle Compensation Speed"
@@ -13855,8 +13873,8 @@ msgstr ""
 "Você quer reescrevê-lo?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "Nós renomearíamos as predefinições como “Tipo de fornecedor Serial @printer "
@@ -15322,6 +15340,9 @@ msgstr ""
 "Você sabia que, ao imprimir materiais propensos a deformações, como o ABS, "
 "aumentar adequadamente a temperatura do leito térmico pode reduzir a "
 "probabilidade de deformação."
+
+#~ msgid "Arranging..."
+#~ msgstr "Organizando..."
 
 #~ msgid ""
 #~ "BambuStudio configuration file may be corrupted and is not able to be "
