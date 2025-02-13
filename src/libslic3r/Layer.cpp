@@ -35,6 +35,12 @@ LayerRegion* Layer::add_region(const PrintRegion *print_region)
     m_regions.emplace_back(new LayerRegion(this, print_region));
     return m_regions.back();
 }
+void Layer::apply_auto_circle_compensation()
+{
+    for (LayerRegion *layerm : m_regions) {
+        layerm->auto_circle_compensation(layerm->slices, this->object()->get_auto_circle_compenstaion_params(), scale_(this->object()->config().circle_compensation_manual_offset));
+    }
+}
 
 // merge all regions' slices to get islands
 void Layer::make_slices()
@@ -141,7 +147,7 @@ ExPolygons Layer::merged(float offset_scaled) const
 // Here the perimeters are created cummulatively for all layer regions sharing the same parameters influencing the perimeters.
 // The perimeter paths and the thin fills (ExtrusionEntityCollection) are assigned to the first compatible layer region.
 // The resulting fill surface is split back among the originating regions.
-void Layer::make_perimeters(const AutoContourHolesCompensationParams &auto_contour_holes_compensation_params)
+void Layer::make_perimeters()
 {
     BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id();
     // keep track of regions whose perimeters we have already generated
@@ -196,12 +202,7 @@ void Layer::make_perimeters(const AutoContourHolesCompensationParams &auto_conto
 
 	        if (layerms.size() == 1) {  // optimization
 	            (*layerm)->fill_surfaces.surfaces.clear();
-                if (this->object()->config().enable_circle_compensation) {
-                    SurfaceCollection copy_slices = (*layerm)->slices;
-                    (*layerm)->auto_circle_compensation(copy_slices, auto_contour_holes_compensation_params, scale_(this->object()->config().circle_compensation_manual_offset));
-                    (*layerm)->make_perimeters(copy_slices, &(*layerm)->fill_surfaces, &(*layerm)->fill_no_overlap_expolygons, this->loop_nodes);
-                } else
-                    (*layerm)->make_perimeters((*layerm)->slices, &(*layerm)->fill_surfaces, &(*layerm)->fill_no_overlap_expolygons, this->loop_nodes);
+                (*layerm)->make_perimeters((*layerm)->slices, &(*layerm)->fill_surfaces, &(*layerm)->fill_no_overlap_expolygons, this->loop_nodes);
 
 	            (*layerm)->fill_expolygons = to_expolygons((*layerm)->fill_surfaces.surfaces);
 	        } else {
@@ -226,8 +227,6 @@ void Layer::make_perimeters(const AutoContourHolesCompensationParams &auto_conto
 	            SurfaceCollection fill_surfaces;
                 //BBS
                 ExPolygons fill_no_overlap;
-                if (this->object()->config().enable_circle_compensation)
-                    layerm_config->auto_circle_compensation(new_slices, auto_contour_holes_compensation_params, scale_(this->object()->config().circle_compensation_manual_offset));
                 layerm_config->make_perimeters(new_slices, &fill_surfaces, &fill_no_overlap, this->loop_nodes);
 
 	            // assign fill_surfaces to each layer

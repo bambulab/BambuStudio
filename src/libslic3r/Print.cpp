@@ -231,6 +231,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "resolution"
             || opt_key == "precise_z_height"
             || opt_key == "filament_shrink"
+            || opt_key == "enable_circle_compensation"
+            || opt_key == "circle_compensation_manual_offset"
             // Spiral Vase forces different kind of slicing than the normal model:
             // In Spiral Vase mode, holes are closed and only the largest area contour is kept at each layer.
             // Therefore toggling the Spiral Vase on / off requires complete reslicing.
@@ -1723,7 +1725,8 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
 
         for (PrintObject* obj : m_objects) {
             if (need_slicing_objects.count(obj) != 0) {
-                obj->make_perimeters(auto_contour_holes_compensation_params);
+                obj->set_auto_circle_compenstaion_params(auto_contour_holes_compensation_params);
+                obj->make_perimeters();
             }
             else {
                 if (obj->set_started(posSlice))
@@ -1819,7 +1822,7 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
                     obj->set_done(posDetectOverhangsForLift);
             }
             else {
-                obj->make_perimeters(auto_contour_holes_compensation_params);
+                obj->make_perimeters();
                 obj->infill();
                 obj->ironing();
                 obj->generate_support_material();
