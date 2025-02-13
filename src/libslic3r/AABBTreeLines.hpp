@@ -2,7 +2,6 @@
 #define SRC_LIBSLIC3R_AABBTREELINES_HPP_
 
 #include "Point.hpp"
-#include "Utils.hpp"
 #include "libslic3r.h"
 #include "libslic3r/AABBTreeIndirect.hpp"
 #include "libslic3r/Line.hpp"

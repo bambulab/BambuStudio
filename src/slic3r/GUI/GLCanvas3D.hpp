@@ -514,6 +514,17 @@ public:
         //BBS: add more arrangeSettings
         bool is_seq_print        = false;
         bool  align_to_y_axis    = false;
+        std::string postfix;
+        void        reset()
+        {
+            distance                            = 0.f;
+            accuracy                            = 0.65f;
+            enable_rotation                     = false;
+            allow_multi_materials_on_same_plate = true;
+            avoid_extrusion_cali_region         = true;
+            is_seq_print                        = false;
+            align_to_y_axis                     = false;
+        }
     };
 
     struct OrientSettings

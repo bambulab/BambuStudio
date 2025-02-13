@@ -1122,12 +1122,16 @@ GLCanvas3D::ArrangeSettings& GLCanvas3D::get_arrange_settings()
 
     if (ptech == ptSLA) {
         ptr = &m_arrange_settings_sla;
+        ptr->postfix = "_sla";
     }
     else if (ptech == ptFFF) {
-        if (wxGetApp().global_print_sequence() == PrintSequence::ByObject)
-            ptr = &m_arrange_settings_fff_seq_print;
-        else
-            ptr = &m_arrange_settings_fff;
+        if (wxGetApp().global_print_sequence() == PrintSequence::ByObject) {
+            ptr     = &m_arrange_settings_fff_seq_print;
+            ptr->postfix = "_fff_seq_print";
+        } else {
+            ptr     = &m_arrange_settings_fff;
+            ptr->postfix = "_fff";
+        }
     }
 
     return *ptr;
@@ -5909,20 +5913,9 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
     std::string multi_material_key = "allow_multi_materials_on_same_plate";
     std::string avoid_extrusion_key = "avoid_extrusion_cali_region";
     std::string align_to_y_axis_key = "align_to_y_axis";
-    std::string postfix;
+    std::string postfix             = settings.postfix;
     //BBS:
-    bool seq_print = false;
-
-    if (ptech == ptSLA) {
-        postfix      = "_sla";
-    } else if (ptech == ptFFF) {
-        seq_print = &settings == &m_arrange_settings_fff_seq_print;
-        if (seq_print) {
-            postfix      = "_fff_seq_print";
-        } else {
-            postfix     = "_fff";
-        }
-    }
+    bool seq_print = settings.is_seq_print;
 
     dist_key += postfix;
     rot_key  += postfix;
@@ -5998,8 +5991,7 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
     ImGui::SameLine();
 
     if (imgui->button(_L("Reset"))) {
-        settings_out = ArrangeSettings{};
-        settings_out.distance = std::max(dist_min, settings_out.distance);
+        settings_out.reset();
         //BBS: add specific arrange settings
         if (seq_print) settings_out.is_seq_print = true;
 
