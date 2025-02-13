@@ -150,7 +150,12 @@ FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, w
         video_link->SetCursor(wxCursor(wxCURSOR_HAND));
         video_link->Bind(wxEVT_LEFT_DOWN, [](wxMouseEvent &)
         {
-            fs::path video_path = fs::path(resources_dir()) / "videos/dual_extruder_slicing.mp4";
+                bool is_zh = wxGetApp().app_config->get("language") == "zh_CN";
+                fs::path video_path;
+                if (is_zh)
+                    video_path = fs::path(resources_dir()) / "videos/dual_extruder_slicing_zh.mp4";
+                else
+                    video_path = fs::path(resources_dir()) / "videos/dual_extruder_slicing_en.mp4";
             wxString video_path_str = wxString::FromUTF8(video_path.string());
 
             if (wxFileExists(video_path_str)) {
