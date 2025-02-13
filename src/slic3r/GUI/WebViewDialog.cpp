@@ -1004,11 +1004,11 @@ std::string UrlEncode( const std::string &input )
     escaped.fill('0');
     escaped << std::hex;
     for (char c : input) {
-        // Èç¹û×Ö·ûÊÇ×ÖÄ¸¡¢Êý×Ö¡¢'-'¡¢'.'¡¢'_' »ò '~'£¬ÔòÖ±½ÓÌí¼Óµ½½á¹ûÖÐ
+        // å¦‚æžœå­—ç¬¦æ˜¯å­—æ¯ã€æ•°å­—ã€'-'ã€'.'ã€'_' æˆ– '~'ï¼Œåˆ™ç›´æŽ¥æ·»åŠ åˆ°ç»“æžœä¸­
         if (std::isalnum(c) || c == '-' || c == '.' || c == '_' || c == '~') {
             escaped << c;
         } else {
-            // ¶ÔÓÚÆäËû×Ö·û£¬½«Æä×ª»»Îª %XX µÄÐÎÊ½
+            // å¯¹äºŽå…¶ä»–å­—ç¬¦ï¼Œå°†å…¶è½¬æ¢ä¸º %XX çš„å½¢å¼
             escaped << '%' << std::setw(2) << static_cast<int>(static_cast<unsigned char>(c));
         }
     }
