@@ -3922,8 +3922,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Interface pattern");
     def->category = L("Support");
     def->tooltip = L("Line pattern of support interface. "
-                     "Default pattern for non-soluble support interface is Rectilinear, "
-                     "while default pattern for soluble support interface is Concentric");
+                     "Default pattern for support interface is Rectilinear Interlaced");
     def->enum_keys_map = &ConfigOptionEnum<SupportMaterialInterfacePattern>::get_enum_values();
     def->enum_values.push_back("auto");
     def->enum_values.push_back("rectilinear");
@@ -3975,7 +3974,7 @@ void PrintConfigDef::init_fff_params()
                      "a lot of material, strong style will make larger and stronger support structure and use more materials, "
                      "while hybrid style is the combination of slim tree and normal support with normal nodes "
                      "under large flat overhangs. Organic style will produce more organic shaped tree structure and less interfaces which makes it easer to be removed. "
-                     "The default style is organic tree for most cases, and hybrid tree if adaptive layer height is enabled.");
+                     "The default style is organic tree for most cases, and hybrid tree if adaptive layer height or soluble interface is enabled.");
     def->enum_keys_map = &ConfigOptionEnum<SupportMaterialStyle>::get_enum_values();
     def->enum_values.push_back("default");
     def->enum_values.push_back("grid");
