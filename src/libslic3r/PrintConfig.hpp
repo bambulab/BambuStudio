@@ -1014,6 +1014,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloats,              filament_density))
     ((ConfigOptionStrings,             filament_type))
     ((ConfigOptionBools,               filament_soluble))
+    ((ConfigOptionStrings,             filament_ids))
     ((ConfigOptionBools,               filament_is_support))
     ((ConfigOptionEnumsGeneric,        filament_scarf_seam_type))
     ((ConfigOptionFloatsOrPercents,    filament_scarf_height))
