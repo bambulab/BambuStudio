@@ -137,10 +137,6 @@ std::vector<PerExtruderAdjustments> GCodeEditor::parse_layer_gcode(
             ++ line_end;
         // sline will not contain the trailing '\n'.
         std::string sline(line_start, line_end);
-
-        // Remove spaces in front of string
-        sline = boost::algorithm::trim_left_copy(sline);
-
         // CoolingLine will contain the trailing '\n'.
         if (*line_end == '\n')
             ++ line_end;
