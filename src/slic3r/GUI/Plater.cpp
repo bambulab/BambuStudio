@@ -1151,16 +1151,19 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
         return false;
     }
 
-    if (!plater->check_printer_initialized(obj))
+    if (!plater->check_printer_initialized(obj)) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " check_printer_initialized fail";
         return false;
+    }
 
     std::string machine_print_name = obj->printer_type;
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     std::string target_model_id  = preset_bundle->printers.get_selected_preset().get_printer_type(preset_bundle);
     Preset* machine_preset = get_printer_preset(obj);
-    if (!machine_preset)
+    if (!machine_preset) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << "check error: machine_preset empty";
         return false;
-
+    }
     if (machine_print_name != target_model_id) {
         MessageDialog dlg(this->plater, _L("The currently selected machine preset is inconsistent with the connected printer type.\n"
                                             "Are you sure to continue syncing?"), _L("Sync printer information"), wxICON_WARNING | wxYES | wxNO);
@@ -10727,8 +10730,10 @@ bool Plater::try_sync_preset_with_connected_printer(int& nozzle_diameter)
         return false;
 
     MachineObject* obj = dev->get_selected_machine();
-    if (!obj || !obj->is_info_ready() || obj->m_extder_data.extders.size() <= 0)
+    if (!obj || !obj->is_info_ready() || obj->m_extder_data.extders.size() <= 0) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " obj may empty";
         return false;
+    }
     if (!obj->is_online()) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "obj->is_online(): " << obj->is_online();
         auto printer_name = get_selected_printer_name_in_combox();
@@ -10750,8 +10755,10 @@ bool Plater::try_sync_preset_with_connected_printer(int& nozzle_diameter)
 
     // can not find the preset for connected printer, return false
     Preset* machine_preset = get_printer_preset(obj);
-    if (!machine_preset)
+    if (!machine_preset) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " machine_preset is empty";
         return false;
+    }
 
     std::string printer_model = machine_preset->config.option<ConfigOptionString>("printer_model")->value;
     bool sync_printer_preset = false;
@@ -10774,6 +10781,7 @@ bool Plater::try_sync_preset_with_connected_printer(int& nozzle_diameter)
             if (dlg.ShowModal() == wxID_YES) {
                 sync_printer_preset = true;
             } else {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " sync_after_load_file_show_flag";
                 return false;
             }
         }
