@@ -2180,9 +2180,22 @@ bool PerimeterGenerator::should_enable_top_one_wall(const ExPolygons& original_e
     coord_t perimeter_width = this->perimeter_flow.scaled_width();
     coord_t ext_perimeter_spacing = this->ext_perimeter_flow.scaled_spacing();
 
+    auto get_expolygs_area = [](const ExPolygons& expolys)->double{
+        return std::accumulate(expolys.begin(), expolys.end(), (double)(0), [](double val, const ExPolygon& expoly) {
+            return val + expoly.area();
+            });
+    };
+
     //BBS: filter small area and extend top surface a bit to hide the wall line
     double min_width_top_surface = (this->object_config->top_area_threshold / 100) * std::max(ext_perimeter_spacing / 2.0, perimeter_width / 2.0);
-    top = offset2_ex(top, -min_width_top_surface, min_width_top_surface + perimeter_width);
+    auto shrunk_top = offset_ex(top, - min_width_top_surface);
+    double shrunk_area = get_expolygs_area(shrunk_top);
+    double original_area = get_expolygs_area(original_expolys);
+
+    if (shrunk_area / (original_area + EPSILON) < 0.1 || original_area < scale_(1)*scale_(1))
+        top.clear();
+    else
+        top = offset_ex(shrunk_top, min_width_top_surface + perimeter_width);
     return !top.empty();
 }
 
