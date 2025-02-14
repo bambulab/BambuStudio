@@ -942,11 +942,11 @@ void GLModel::create_or_update_mats_vbo(unsigned int &vbo, const std::vector<Sli
     for (size_t i = 0; i < mats.size(); i++) {
         out_mats.emplace_back(mats[i].get_matrix().matrix().cast<float>());
     }
-    glsafe(::glGenBuffers(1, &vbo));
-    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, vbo));
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
     auto one_mat_all_size = sizeof(float) * 16;
-    glsafe(::glBufferData(GL_ARRAY_BUFFER, mats.size() * one_mat_all_size, out_mats.data(), GL_STATIC_DRAW));
-    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+    glBufferData(GL_ARRAY_BUFFER, mats.size() * one_mat_all_size, out_mats.data(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void GLModel::bind_mats_vbo(unsigned int instance_mats_vbo, unsigned int instances_count, int location)
@@ -957,22 +957,21 @@ void GLModel::bind_mats_vbo(unsigned int instance_mats_vbo, unsigned int instanc
     auto one_mat_all_size = sizeof(float) * 16;
     auto one_mat_col_size = sizeof(float) * 4;
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, instance_mats_vbo));
-
-    glsafe(glEnableVertexAttribArray(location));
-    glsafe(glVertexAttribPointer(location, 4, GL_FLOAT, GL_FALSE, one_mat_all_size, (void*)0));
-    glsafe(glEnableVertexAttribArray(location + 1));
-    glsafe(glVertexAttribPointer(location + 1, 4, GL_FLOAT, GL_FALSE, one_mat_all_size, (void*)(one_mat_col_size)));
-    glsafe(glEnableVertexAttribArray(location + 2));
-    glsafe(glVertexAttribPointer(location + 2, 4, GL_FLOAT, GL_FALSE, one_mat_all_size, (void*)(2 * one_mat_col_size)));
-    glsafe(glEnableVertexAttribArray(location + 3));
-    glsafe(glVertexAttribPointer(location + 3, 4, GL_FLOAT, GL_FALSE, one_mat_all_size, (void*)(3 * one_mat_col_size)));
-    // Update the matrix every time after an object is drawn//useful
-    glsafe(glVertexAttribDivisor(location, 1));
-    glsafe(glVertexAttribDivisor(location + 1, 1));
-    glsafe(glVertexAttribDivisor(location + 2, 1));
-    glsafe(glVertexAttribDivisor(location + 3, 1));
-
-    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+    for (unsigned int i = 0; i < instances_count; i++) { // set attribute pointers for matrix (4 times vec4)
+        glsafe(glEnableVertexAttribArray(location));
+        glsafe(glVertexAttribPointer(location, 4, GL_FLOAT, GL_FALSE, one_mat_all_size, (void *) 0));
+        glsafe(glEnableVertexAttribArray(location + 1));
+        glsafe(glVertexAttribPointer(location + 1, 4, GL_FLOAT, GL_FALSE, one_mat_all_size, (void *) (one_mat_col_size)));
+        glsafe(glEnableVertexAttribArray(location + 2));
+        glsafe(glVertexAttribPointer(location + 2, 4, GL_FLOAT, GL_FALSE, one_mat_all_size, (void *) (2 * one_mat_col_size)));
+        glsafe(glEnableVertexAttribArray(location + 3));
+        glsafe(glVertexAttribPointer(location + 3, 4, GL_FLOAT, GL_FALSE, one_mat_all_size, (void *) (3 * one_mat_col_size)));
+        // Update the matrix every time after an object is drawn//useful
+        glsafe(glVertexAttribDivisor(location, 1));
+        glsafe(glVertexAttribDivisor(location + 1, 1));
+        glsafe(glVertexAttribDivisor(location + 2, 1));
+        glsafe(glVertexAttribDivisor(location + 3, 1));
+    }
 }
 
 void GLModel::render_geometry_instance(unsigned int instance_mats_vbo, unsigned int instances_count)
@@ -1041,7 +1040,6 @@ void GLModel::render_geometry_instance(unsigned int instance_mats_vbo, unsigned 
     //glBindAttribLocation(shader->get_id(), 2, "instanceMatrix");
     //glBindAttribLocation(2, "instanceMatrix");
     //shader->bind(shaderProgram, 0, 'position');
-    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
     instace_mats_id = shader->get_attrib_location("instanceMatrix");
     if (instace_mats_id != -1) {
         bind_mats_vbo(instance_mats_vbo, instances_count, instace_mats_id);
@@ -1055,15 +1053,13 @@ void GLModel::render_geometry_instance(unsigned int instance_mats_vbo, unsigned 
     glsafe(::glDrawElementsInstanced(mode, range.second - range.first, index_type, (const void *) (range.first * Geometry::index_stride_bytes(data)), instances_count));
     glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 
-    if (instace_mats_id != -1 && instance_mats_vbo > 0) {
-        glsafe(::glDisableVertexAttribArray(instace_mats_id));
-        glsafe(::glDisableVertexAttribArray(instace_mats_id + 1));
-        glsafe(::glDisableVertexAttribArray(instace_mats_id + 2));
-        glsafe(::glDisableVertexAttribArray(instace_mats_id + 3));
-    }
+    if (instace_mats_id != -1) glsafe(::glDisableVertexAttribArray(instace_mats_id));
     if (tex_coord_id != -1) glsafe(::glDisableVertexAttribArray(tex_coord_id));
     if (normal_id != -1) glsafe(::glDisableVertexAttribArray(normal_id));
     if (position_id != -1) glsafe(::glDisableVertexAttribArray(position_id));
+
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
 
 void GLModel::render_instanced(unsigned int instances_vbo, unsigned int instances_count) const
