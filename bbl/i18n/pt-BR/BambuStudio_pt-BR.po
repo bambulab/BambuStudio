@@ -1,12 +1,12 @@
 # Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-14 17:28+0800\n"
+"POT-Creation-Date: 2025-02-14 20:29+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3975,6 +3975,9 @@ msgstr "Total Filament"
 msgid "Model Filament"
 msgstr "Model Filament"
 
+msgid "Prepare and timelapse time"
+msgstr ""
+
 msgid "Prepare time"
 msgstr "Tempo de preparação"
 
@@ -7905,8 +7908,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Ao gravar o timelapse sem o cabeçote de ferramenta, é recomendável adicionar "
 "uma “Timelapse Wipe Tower” \n"
@@ -9325,6 +9328,23 @@ msgstr ""
 
 msgid "Exporting G-code"
 msgstr "Exportando g-code"
+
+msgid "Grouping error: "
+msgstr ""
+
+msgid " can not be placed in the "
+msgstr ""
+
+msgid " nozzle"
+msgstr ""
+
+msgid "TPU is incompatible with AMS and must be printed seperately in the "
+msgstr ""
+
+msgid ""
+" nozzle.\n"
+"Please adjust the filament group accordingly."
+msgstr ""
 
 msgid "Inner wall"
 msgstr "Parede interior"
@@ -12425,6 +12445,12 @@ msgstr ""
 "estabilizar a pressão da câmara dentro do bocal, a fim de evitar defeitos de "
 "aparência ao imprimir objetos."
 
+msgid "Internal ribs"
+msgstr ""
+
+msgid "Enable internal ribs to increase the stability of the prime tower."
+msgstr ""
+
 msgid "Auto Circle Holes-contour Compensation"
 msgstr ""
 
@@ -13880,8 +13906,8 @@ msgstr ""
 "Você quer reescrevê-lo?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "Nós renomearíamos as predefinições como “Tipo de fornecedor Serial @printer "
@@ -15017,12 +15043,12 @@ msgid "Custom Mode"
 msgstr ""
 
 msgid ""
-"Recommends filament grouping for the left and right nozzles based on the "
-"most filament-saving principles to minimize waste"
+"Generates filament grouping for the left and right nozzles based on the most "
+"filament-saving principles to minimize waste"
 msgstr ""
 
 msgid ""
-"Recommends filament grouping for the left and right nozzles based on the "
+"Generates filament grouping for the left and right nozzles based on the "
 "printer's actual filament status, reducing the need for manual filament "
 "adjustment"
 msgstr ""
