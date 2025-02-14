@@ -13,6 +13,8 @@ void filter_by_extrusion_role_in_place(ExtrusionEntitiesPtr &extrusion_entities,
 		auto last   = extrusion_entities.end();
         extrusion_entities.erase(
             std::remove_if(first, last, [&role](const ExtrusionEntity* ee) {
+                if((ee->role() == erSupportTransition && role ==erSupportMaterial))
+                    return false;
                 return ee->role() != role; }),
             last);
 	}

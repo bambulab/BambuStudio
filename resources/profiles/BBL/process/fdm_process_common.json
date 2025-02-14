@@ -125,7 +125,7 @@
     ],
     "tree_support_branch_angle": "45",
     "tree_support_branch_diameter": "2",
-    "tree_support_wall_count": "1",
+    "tree_support_wall_count": "0",
     "wall_generator": "classic",
     "wall_infill_order": "inner wall/outer wall/infill",
     "wall_loops": "2",
