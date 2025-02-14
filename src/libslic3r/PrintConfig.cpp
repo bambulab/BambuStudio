@@ -695,7 +695,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("z_direction_outwall_speed_continuous", coBool);
-    def->label = L("Smoothing wall speed in z direction(experimental)");
+    def->label = L("Smoothing wall speed along Z(experimental)");
     def->category = L("Quality");
     def->tooltip  = L("Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode.");
     def->mode     = comAdvanced;
@@ -2390,7 +2390,7 @@ void PrintConfigDef::init_fff_params()
     def           = this->add("infill_rotate_step", coFloat);
     def->label    = L("Infill rotate step");
     def->category = L("Strength");
-    def->tooltip  = L("This parameter adds a slight rotation to each layer of infill to create a cross cross texture.");
+    def->tooltip  = L("This parameter adds a slight rotation to each layer of infill to create a cross texture.");
     def->sidetext = L("°");
     def->min      = 0;
     def->max      = 360;
