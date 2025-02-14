@@ -32,6 +32,12 @@
     "filament_scarf_length":[
         "10"
     ],
+    "filament_change_length": [
+        "5"
+    ],
+    "filament_prime_volume": [
+        "30"
+    ],
     "compatible_printers": [],
     "impact_strength_z":["13.8"],
     "filament_start_gcode": [
