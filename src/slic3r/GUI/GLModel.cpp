@@ -971,6 +971,8 @@ void GLModel::bind_mats_vbo(unsigned int instance_mats_vbo, unsigned int instanc
     glsafe(glVertexAttribDivisor(location + 1, 1));
     glsafe(glVertexAttribDivisor(location + 2, 1));
     glsafe(glVertexAttribDivisor(location + 3, 1));
+
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
 
 void GLModel::render_geometry_instance(unsigned int instance_mats_vbo, unsigned int instances_count)
@@ -1058,7 +1060,6 @@ void GLModel::render_geometry_instance(unsigned int instance_mats_vbo, unsigned 
         glsafe(::glDisableVertexAttribArray(instace_mats_id + 1));
         glsafe(::glDisableVertexAttribArray(instace_mats_id + 2));
         glsafe(::glDisableVertexAttribArray(instace_mats_id + 3));
-        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
     }
     if (tex_coord_id != -1) glsafe(::glDisableVertexAttribArray(tex_coord_id));
     if (normal_id != -1) glsafe(::glDisableVertexAttribArray(normal_id));
