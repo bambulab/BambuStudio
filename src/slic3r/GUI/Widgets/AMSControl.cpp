@@ -3197,6 +3197,13 @@ void AMSControl::Reset()
     m_current_show_ams  = "";
     m_current_ams       = "";
     m_current_select    = "";*/
+
+    m_ams_info.clear();
+    m_ext_info.clear();
+    m_dev_id.clear();
+    ClearAms();
+
+    Layout();
 }
 
 void AMSControl::show_noams_mode()
@@ -3285,7 +3292,7 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> ams_info, std::vector<AMSinfo>ex
         bool fresh = false;
 
         // basic check
-        if (m_ams_info.size() == ams_info.size() && m_extder_data.total_extder_count == data.total_extder_count && m_dev_id == dev_id){
+        if (m_ams_info.size() == ams_info.size() && m_extder_data.total_extder_count == data.total_extder_count && m_dev_id == dev_id && m_ext_info.size() == ext_info.size()) {
             for (int i = 0; i < m_ams_info.size(); i++){
                 if (m_ams_info[i].ams_id != ams_info[i].ams_id){
                     fresh = true;
@@ -3315,6 +3322,7 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> ams_info, std::vector<AMSinfo>ex
             }
             SetSize(wxSize(FromDIP(578), -1));
             SetMinSize(wxSize(FromDIP(578), -1));
+            Layout();
         }
         // update cans
 
@@ -3393,6 +3401,7 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> ams_info, std::vector<AMSinfo>ex
             }
             SetSize(wxSize(FromDIP(578), -1));
             SetMinSize(wxSize(FromDIP(578), -1));
+            Layout();
         }
         //Thaw();
 
