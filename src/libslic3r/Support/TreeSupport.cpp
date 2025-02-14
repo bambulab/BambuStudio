@@ -1607,15 +1607,15 @@ void TreeSupport::generate_toolpaths()
                             if (bridge_layer) {
                                 for (size_t region_id = 0; region_id < bridge_layer->regions().size(); ++region_id) {
                                     LayerRegion *layerm = bridge_layer->regions()[region_id];
-                                    bool         find_bridge = false;
+                                    bool         bridge_found = false;
                                     for (const auto surface : layerm->fill_surfaces.surfaces) {
                                         if (surface.surface_type == stBottomBridge && overlaps(polys, surface.expolygon)) {
                                             filler_Roof1stLayer->angle = surface.bridge_angle + (m_support_params.num_top_interface_layers - 1) * M_PI_2;
-                                            find_bridge - true;
+                                            bridge_found = true;
                                             break;
                                         }
                                     }
-                                    if (find_bridge) break;
+                                    if (bridge_found) break;
                                 }
                             }
                         }
@@ -1644,7 +1644,7 @@ void TreeSupport::generate_toolpaths()
                             fill_params.dont_sort = true;
                         }
                         if (m_support_params.contact_fill_pattern = ipRectilinear) {
-                            bool find_bridge           = false;
+                            bool bridge_found           = false;
                             for (size_t i = 0; i < m_support_params.num_top_interface_layers; i++) {
                                 auto cur_ts_layer = m_object->get_support_layer(layer_id + i);
                                 if (cur_ts_layer == nullptr) break;
@@ -1656,16 +1656,16 @@ void TreeSupport::generate_toolpaths()
                                         for (const auto surface : layerm->fill_surfaces.surfaces) {
                                             if (surface.surface_type == stBottomBridge && overlaps(polys, surface.expolygon)) {
                                                 filler_interface->angle = surface.bridge_angle + (i + 1) * M_PI_2;
-                                                find_bridge = true;
+                                                bridge_found = true;
                                                 break;
                                             }
                                         }
-                                        if (find_bridge) break;
+                                        if (bridge_found) break;
                                     }
                                 }
-                                if (find_bridge) break;
+                                if (bridge_found) break;
                             }
-                            if (!find_bridge)
+                            if (!bridge_found)
                                 filler_interface->layer_id = area_group.interface_id;
                             else
                                 filler_interface->layer_id = 0;
@@ -1697,7 +1697,7 @@ void TreeSupport::generate_toolpaths()
                                 // allow infill-only mode if support is thick enough (so min_wall_count is 0);
                                 // otherwise must draw 1 wall
                                 // Don't need extra walls if we have infill. Extra walls may overlap with the infills.
-                                size_t min_wall_count = offset(poly, -scale_(support_spacing * 1.5)).empty() ? 1 : 0;
+                                size_t min_wall_count = 1;
                                 make_perimeter_and_infill(ts_layer->support_fills.entities, poly, std::max(min_wall_count, wall_count), flow,
                                     erSupportMaterial, filler_support.get(), support_density);
                             }
