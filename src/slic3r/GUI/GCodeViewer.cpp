@@ -4677,13 +4677,7 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
         // click behavior
         if (ImGui::IsMouseHoveringRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), true)) {
             if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-                bool is_zh = wxGetApp().app_config->get("language") == "zh_CN";
-                std::string wiki_path;
-                if(is_zh)
-                    wiki_path = Slic3r::resources_dir() + "/wiki/filament_group_wiki_zh.html";
-                else
-                    wiki_path = Slic3r::resources_dir() + "/wiki/filament_group_wiki_en.html";
-                wxLaunchDefaultBrowser(wxString(wiki_path.c_str()));
+                open_filament_group_wiki();
             }
         }
     };
