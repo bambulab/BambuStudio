@@ -4232,7 +4232,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(false));
 
     def          = this->add("enable_circle_compensation", coBool);
-    def->label   = L("Auto Circle Holes-contour Compensation");
+    def->label   = L("Auto circle contour-hole compensation");
     def->tooltip = L("Expirment feature to compensate the circle holes and circle contour. "
                      "This feature is used to improve the accuracy of the circle holes and contour within the diameter below 50mm. "
                      "Only support PLA Basic, PLA CF, PET CF, PETG CF and PETG HF.");
