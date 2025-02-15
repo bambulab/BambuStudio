@@ -10,6 +10,9 @@ class PartPlate;
 class Plater;
 
 
+bool play_dual_extruder_slice_video();
+bool open_filament_group_wiki();
+
 class FilamentGroupPopup : public PopupWindow
 {
 public:

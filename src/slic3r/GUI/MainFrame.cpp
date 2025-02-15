@@ -1659,35 +1659,16 @@ wxBoxSizer* MainFrame::create_side_tools()
 
             if (slice) {
                 std::string printer_model = wxGetApp().preset_bundle->printers.get_edited_preset().config.opt_string("printer_model");
-                bool do_slicing = true;
-                if ((wxGetApp().app_config->get("play_slicing_video") == "true") && (printer_model == "Bambu Lab H2D"))
-                {
+                if ((wxGetApp().app_config->get("play_slicing_video") == "true") && (printer_model == "Bambu Lab H2D")) {
                     MessageDialog dlg(this, _L("This is your first time slicing with the H2D machine.\nWould you like to watch a quick tutorial video?"), _L("First Guide"), wxYES_NO);
                     auto  res = dlg.ShowModal();
                     if (res == wxID_YES) {
-                        bool is_zh = wxGetApp().app_config->get("language") == "zh_CN";
-                        fs::path video_path;
-                        if (is_zh)
-                            video_path = fs::path(resources_dir()) / "videos/dual_extruder_slicing_zh.mp4";
-                        else
-                            video_path = fs::path(resources_dir()) / "videos/dual_extruder_slicing_en.mp4";
-                        wxString video_path_str = wxString::FromUTF8(video_path.string());
-
-                        if (wxFileExists(video_path_str)) {
-                            if (wxLaunchDefaultApplication(video_path_str)) {
-                                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("Video is being played using the system's default player.");
-                            } else {
-                               BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("launch system's default player failed");
-                            }
-                        } else {
-                            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("Video file does not exist: %s")%video_path_str.ToStdString();
-                        }
-                        do_slicing = false;
+                        play_dual_extruder_slice_video();
+                        slice = false;
                     }
-
                     wxGetApp().app_config->set("play_slicing_video", "false");
                 }
-                if (do_slicing) {
+                if (slice) {
                     if (m_slice_select == eSliceAll)
                         wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL));
                     else

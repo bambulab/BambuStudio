@@ -46,6 +46,50 @@ static void set_prefered_map_mode(FilamentMapMode mode)
     app_config->set("prefered_filament_map_mode", mode_str);
 }
 
+bool play_dual_extruder_slice_video()
+{
+    bool is_zh = wxGetApp().app_config->get("language") == "zh_CN";
+    fs::path video_path;
+    if (is_zh)
+        video_path = fs::path(resources_dir()) / "videos/dual_extruder_slicing_zh.mp4";
+    else
+        video_path = fs::path(resources_dir()) / "videos/dual_extruder_slicing_en.mp4";
+    wxString video_path_str = wxString::FromUTF8(video_path.string());
+
+    if (wxFileExists(video_path_str)) {
+        if (wxLaunchDefaultApplication(video_path_str)) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("Video is being played using the system's default player.");
+            return true;
+        }
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("launch system's default player failed");
+        return false;
+    }
+    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("Video file does not exist: %s") % video_path_str.ToStdString();
+    return false;
+}
+
+bool open_filament_group_wiki()
+{
+    bool is_zh = wxGetApp().app_config->get("language") == "zh_CN";
+    fs::path wiki_path;
+    if (is_zh)
+        wiki_path = fs::path(resources_dir()) / "/wiki/filament_group_wiki_zh.html";
+    else
+        wiki_path = fs::path(resources_dir()) / "/wiki/filament_group_wiki_en.html";
+
+    wxString wiki_path_str = wxString::FromUTF8(wiki_path.string());
+    if (wxFileExists(wiki_path_str)) {
+        if (wxLaunchDefaultBrowser(wiki_path_str)) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("Wiki is being displayed using the system's default browser.");
+            return true;
+        }
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("launch system's default browser failed");
+        return false;
+    }
+    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("Wiki file does not exist: %s") % wiki_path_str.ToStdString();
+    return false;
+}
+
 
 FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS)
 {
@@ -149,38 +193,15 @@ FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, w
         video_link->SetForegroundColour(GreenColor);
         video_link->SetFont(Label::Body_12.Underlined());
         video_link->SetCursor(wxCursor(wxCURSOR_HAND));
-        video_link->Bind(wxEVT_LEFT_DOWN, [](wxMouseEvent &)
-        {
-                bool is_zh = wxGetApp().app_config->get("language") == "zh_CN";
-                fs::path video_path;
-                if (is_zh)
-                    video_path = fs::path(resources_dir()) / "videos/dual_extruder_slicing_zh.mp4";
-                else
-                    video_path = fs::path(resources_dir()) / "videos/dual_extruder_slicing_en.mp4";
-            wxString video_path_str = wxString::FromUTF8(video_path.string());
-
-            if (wxFileExists(video_path_str)) {
-                if (wxLaunchDefaultApplication(video_path_str)) {
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("Video is being played using the system's default player.");
-                } else {
-                   BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("launch system's default player failed");
-                }
-            } else {
-                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("Video file does not exist: %s")%video_path_str.ToStdString();
-            }
-
-            wxGetApp().app_config->set("play_slicing_video", "false");
-        });
+        video_link->Bind(wxEVT_LEFT_DOWN, [](wxMouseEvent&)
+            {
+                play_dual_extruder_slice_video();
+                wxGetApp().app_config->set("play_slicing_video", "false");
+            });
         video_sizer->Add(video_link, 0, wxALIGN_CENTER | wxALL, FromDIP(3));
         button_sizer->Add(video_sizer, 0, wxLEFT, horizontal_margin);
         button_sizer->AddStretchSpacer();
 
-        bool is_zh = wxGetApp().app_config->get("language") == "zh_CN";
-        std::string wiki_path;
-        if(is_zh)
-            wiki_path = Slic3r::resources_dir() + "/wiki/filament_group_wiki_zh.html";
-        else
-            wiki_path = Slic3r::resources_dir() + "/wiki/filament_group_wiki_en.html";
 
         auto* wiki_sizer = new wxBoxSizer(wxHORIZONTAL);
         wiki_link = new wxStaticText(this, wxID_ANY, _L("Learn more"));
@@ -188,7 +209,7 @@ FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, w
         wiki_link->SetForegroundColour(GreenColor);
         wiki_link->SetFont(Label::Body_12.Underlined());
         wiki_link->SetCursor(wxCursor(wxCURSOR_HAND));
-        wiki_link->Bind(wxEVT_LEFT_DOWN, [wiki_path](wxMouseEvent &) { wxLaunchDefaultBrowser(wxString(wiki_path.c_str())); });
+        wiki_link->Bind(wxEVT_LEFT_DOWN, [](wxMouseEvent&) { open_filament_group_wiki(); });
         wiki_sizer->Add(wiki_link, 0, wxALIGN_CENTER | wxALL, FromDIP(3));
 
         button_sizer->Add(wiki_sizer, 0, wxLEFT, horizontal_margin);
