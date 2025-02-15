@@ -3064,6 +3064,7 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
     }
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "on_filament_count_change";
     wxGetApp().plater()->on_filament_count_change(n);
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "finish on_filament_count_change";
     for (auto& c : p->combos_filament)
         c->update();
     /*wxGetApp().get_tab(Preset::TYPE_FILAMENT)->select_preset(wxGetApp().preset_bundle->filament_presets[0]);
@@ -3103,6 +3104,7 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
             }
         }
     }
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "prepare enable_merge_color_by_sync_ams";
     if (!merge_info.is_empty() && wxGetApp().app_config->get_bool("enable_merge_color_by_sync_ams")) { // merge same color and preset filament//use same ams
         auto reduce_index = [](MergeFilamentInfo &merge_info,int value) {
             for (size_t i = 0; i < merge_info.merges.size(); i++) {
