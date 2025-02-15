@@ -3155,7 +3155,7 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
     }
     Layout();
 
-    pop_finsish_sync_ams_dialog();
+    wxTheApp->CallAfter([this]() {pop_finsish_sync_ams_dialog(); });
 }
 
 PlaterPresetComboBox* Sidebar::printer_combox()
