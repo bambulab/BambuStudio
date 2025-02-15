@@ -1665,7 +1665,12 @@ wxBoxSizer* MainFrame::create_side_tools()
                     MessageDialog dlg(this, _L("This is your first time slicing with the H2D machine.\nWould you like to watch a quick tutorial video?"), _L("First Guide"), wxYES_NO);
                     auto  res = dlg.ShowModal();
                     if (res == wxID_YES) {
-                        fs::path video_path = fs::path(resources_dir()) / "videos/dual_extruder_slicing.mp4";
+                        bool is_zh = wxGetApp().app_config->get("language") == "zh_CN";
+                        fs::path video_path;
+                        if (is_zh)
+                            video_path = fs::path(resources_dir()) / "videos/dual_extruder_slicing_zh.mp4";
+                        else
+                            video_path = fs::path(resources_dir()) / "videos/dual_extruder_slicing_en.mp4";
                         wxString video_path_str = wxString::FromUTF8(video_path.string());
 
                         if (wxFileExists(video_path_str)) {
