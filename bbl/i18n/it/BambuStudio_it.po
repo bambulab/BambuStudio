@@ -17,10 +17,10 @@ msgid "Supports Painting"
 msgstr "Supporti pittura"
 
 msgid "Please select single object."
-msgstr "Please select single object."
+msgstr "Seleziona un solo oggetto."
 
 msgid "Mouse wheel"
-msgstr "Rotella del mouse:"
+msgstr "Rotella del mouse"
 
 msgid "Section view"
 msgstr "Vista in sezione"
@@ -65,7 +65,7 @@ msgid "Perform"
 msgstr "Eseguire"
 
 msgid "Gap area"
-msgstr "Area Gap"
+msgstr "Area vuota"
 
 msgid "Tool type"
 msgstr "Tipo strumento"
@@ -89,7 +89,7 @@ msgid "Fill"
 msgstr "Riempi"
 
 msgid "Gap Fill"
-msgstr "Riempimento gap"
+msgstr "Riempimento vuoto"
 
 #, boost-format
 msgid "Allows painting only on facets selected by: \"%1%\""
@@ -107,7 +107,7 @@ msgstr "Supporto generato"
 msgid ""
 "Warning: All triangle areas are too small,The current function is not "
 "working."
-msgstr ""
+msgstr "Attenzione: Tutte le aree del triangolo sono troppo piccole, la funzione attuale non funziona."
 
 msgid "Lay on face"
 msgstr "Posiziona su faccia"
@@ -158,22 +158,22 @@ msgid "Height range"
 msgstr "Intervallo altezza"
 
 msgid "Shift + Enter"
-msgstr ""
+msgstr "Shift + Invio"
 
 msgid "Toggle Wireframe"
 msgstr "Attiva Wireframe"
 
 msgid "Shift + L"
-msgstr ""
+msgstr "Shift + L"
 
 msgid "Toggle non-manifold edges"
-msgstr ""
+msgstr "Allineare i bordi non a forma di semicerchio"
 
 msgid "Rotate horizontally"
 msgstr "Ruota orizzontalmente"
 
 msgid "hit face"
-msgstr ""
+msgstr "tocca la faccia"
 
 msgid "Shortcut Key "
 msgstr "Tasto scelta rapida "
@@ -185,7 +185,7 @@ msgid "Height Range"
 msgstr "Interv. altezza"
 
 msgid "Place input box of bottom near mouse"
-msgstr ""
+msgstr "Posizionare la casella di input in basso vicino al mouse"
 
 msgid "Vertical"
 msgstr "Verticale"
@@ -207,7 +207,7 @@ msgid "Move"
 msgstr "Sposta"
 
 msgid "Please select at least one object."
-msgstr "Please select at least one object."
+msgstr "Seleziona almeno un oggetto."
 
 msgid "Rotate"
 msgstr "Ruota"
@@ -225,13 +225,13 @@ msgid "Error: Please close all toolbar menus first"
 msgstr "Errore: chiudi prima tutti i menu della barra degli strumenti"
 
 msgid "Tool-Move"
-msgstr "Tool-Move"
+msgstr "Tool-Sposta"
 
 msgid "Tool-Scale"
-msgstr "Tool-Scale"
+msgstr "Tool-Scala"
 
 msgid "Tool-Rotate"
-msgstr "Tool-Rotate"
+msgstr "Tool-Ruota"
 
 msgid "Tool-Lay on Face"
 msgstr "Strumento-Faccia sul piatto"
@@ -246,19 +246,19 @@ msgid "mm"
 msgstr "mm"
 
 msgid "Part selection"
-msgstr ""
+msgstr "Selezione dei pezzi"
 
 msgid "Fixed step drag"
-msgstr ""
+msgstr "Trascinamento a passo fisso"
 
 msgid "Single sided scaling"
-msgstr ""
+msgstr "Ridimensionamento su un solo lato"
 
 msgid "Position"
 msgstr "Posizione"
 
 msgid "Rotate (relative)"
-msgstr "Rotate (relative)"
+msgstr "Rotazione (relativa)"
 
 msgid "Scale ratios"
 msgstr "Rapporti di scala"
@@ -288,7 +288,7 @@ msgid "Reset Rotation"
 msgstr "Resetta Rotazione"
 
 msgid "Object coordinates"
-msgstr ""
+msgstr "Coordinate dell'oggetto"
 
 msgid "World coordinates"
 msgstr "Coordinate globali"
@@ -297,16 +297,16 @@ msgid "°"
 msgstr "°"
 
 msgid "Reset current rotation to the value when open the rotation tool."
-msgstr ""
+msgstr "Reimpostare la rotazione corrente al valore che si ottiene aprendo lo strumento di rotazione."
 
 msgid "Rotate (absolute)"
-msgstr ""
+msgstr "Rotazione (assoluta)"
 
 msgid "Reset current rotation to real zeros."
-msgstr ""
+msgstr "Azzeramento della rotazione corrente a zeri reali"
 
 msgid "Part coordinates"
-msgstr ""
+msgstr "Coordinate della parte"
 
 msgid "%"
 msgstr "%"
@@ -319,7 +319,7 @@ msgid "uniform scale"
 msgstr "scala uniforme"
 
 msgid "Part"
-msgstr "Nozzle"
+msgstr "Parte"
 
 msgid "Object"
 msgstr "Oggetto"
@@ -348,7 +348,7 @@ msgid "Remove connector"
 msgstr "Rimuovi connettore"
 
 msgid "Drag"
-msgstr "Drag"
+msgstr "Trascina"
 
 msgid "Move connector"
 msgstr "Sposta connettore"
@@ -379,8 +379,7 @@ msgstr "Taglia"
 
 msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
 msgstr ""
-"I bordi non-mainfold sono causati dallo strumento di taglio: vuoi ripararlo "
-"adesso?"
+"I bordi non-manifold sono causati dallo strumento di taglio, vuoi sistemarli ora?"
 
 msgid "Repairing model object"
 msgstr "Riparazione oggetto"
@@ -389,7 +388,7 @@ msgid "Connector"
 msgstr "Connettore"
 
 msgid "Flip cut plane"
-msgstr ""
+msgstr "Piano di taglio ribaltabile"
 
 msgid "Planar"
 msgstr "Planare"
@@ -442,7 +441,7 @@ msgid "Place on cut"
 msgstr "Posiziona sul taglio"
 
 msgid "Flip"
-msgstr "Flip"
+msgstr "Capovolgi"
 
 msgid "After cut"
 msgstr "Dopo il taglio"
@@ -614,61 +613,61 @@ msgid "Perform Recognition"
 msgstr "Esegui riconoscimento"
 
 msgid "Vertex"
-msgstr "Vertex"
+msgstr "Vertice"
 
 msgid "Edge"
-msgstr "Edge"
+msgstr "Bordo"
 
 msgid "Plane"
-msgstr "Plane"
+msgstr "Piano"
 
 msgid "Point on edge"
-msgstr "Point on edge"
+msgstr "Punto sul bordo"
 
 msgid "Point on circle"
-msgstr "Point on circle"
+msgstr "Punto sul cerchio"
 
 msgid "Point on plane"
-msgstr "Point on plane"
+msgstr "Punto sul piano"
 
 msgid "Center of edge"
-msgstr "Center of edge"
+msgstr "Centro del bordo"
 
 msgid "Center of circle"
-msgstr "Center of circle"
+msgstr "Centro del cerchio"
 
 msgid "Select feature"
-msgstr "Select feature"
+msgstr "Selezionare la funzione"
 
 msgid "Select point"
-msgstr "Select point"
+msgstr "Selezionare il punto"
 
 msgid "Delete"
 msgstr "Elimina"
 
 msgid "Restart selection"
-msgstr "Restart selection"
+msgstr "Ricomincia a selezionare"
 
 msgid "Esc"
 msgstr "Esc"
 
 msgid "Cancel a feature until exit"
-msgstr "Cancel a feature until exit"
+msgstr "Annullare una funzione fino all'uscita"
 
 msgid "Measure"
-msgstr "Measure"
+msgstr "Misura"
 
 msgid ""
 "Please confirm explosion ratio = 1,and please select at least one object"
 msgstr ""
-"Please confirm explosion ratio = 1, and please select at least one object"
+"Confermare il rapporto di esplosione = 1 e selezionare almeno un oggetto."
 
 msgid "Edit to scale"
-msgstr "Edit to scale"
+msgstr "Modifica in scala"
 
 msgctxt "Verb"
 msgid "Scale all"
-msgstr "Scale all"
+msgstr "Scala tutti"
 
 msgid "None"
 msgstr "Nessuno"
@@ -680,49 +679,49 @@ msgid "Length"
 msgstr "Lunghezza"
 
 msgid "Selection"
-msgstr "Selection"
+msgstr "Selezione"
 
 msgid " (Moving)"
-msgstr " (Moving)"
+msgstr " (Spostamento)"
 
 msgid ""
 "Select 2 faces on objects and \n"
 " make objects assemble together."
 msgstr ""
-"Select 2 faces on objects and \n"
-" make objects assemble together."
+"Selezionare 2 facce sugli oggetti e \n"
+" fai assemblare gli oggetti tra loro."
 
 msgid ""
 "Select 2 points or circles on objects and \n"
 " specify distance between them."
 msgstr ""
-"Select 2 points or circles on objects and \n"
-" specify distance between them."
+"Selezionare 2 punti o cerchi sugli oggetti e \n"
+" specifica la distanza tra loro."
 
 msgid "Face"
-msgstr "Face"
+msgstr "Faccia"
 
 msgid " (Fixed)"
-msgstr " (Fixed)"
+msgstr " (Fisso)"
 
 msgid "Point"
-msgstr "Point"
+msgstr "Punto"
 
 msgid ""
 "Feature 1 has been reset, \n"
 "feature 2 has been feature 1"
 msgstr ""
-"Feature 1 has been reset, \n"
-"feature 2 has been feature 1"
+"La funzione 1 è stata ripristinata, \n"
+"la funzione 2 è la funzione 1"
 
 msgid "Warning:please select Plane's feature."
-msgstr "Warning: please select Plane's feature."
+msgstr "Attenzione: selezionare la "funzione Piano"."
 
 msgid "Warning:please select Point's or Circle's feature."
-msgstr "Warning: please select Point's or Circle's feature."
+msgstr "Attenzione: selezionare la "funzione Punto o Cerchio"."
 
 msgid "Warning:please select two different mesh."
-msgstr "Warning: please select two different meshes."
+msgstr "Attenzione: selezionare due maglie diverse."
 
 msgid "Copy to clipboard"
 msgstr "Copia negli appunti"
@@ -731,61 +730,64 @@ msgid "Angle"
 msgstr "Angolo"
 
 msgid "Perpendicular distance"
-msgstr "Perpendicular distance"
+msgstr "Distanza perpendicolare"
 
 msgid "Distance"
-msgstr "Distance"
+msgstr "Distanza"
 
 msgid "Direct distance"
-msgstr "Direct distance"
+msgstr "Distanza diretta"
 
 msgid "Distance XYZ"
-msgstr "Distance XYZ"
+msgstr "Distanza XYZ"
 
 msgid "Parallel"
-msgstr "Parallel"
+msgstr "Parallelo"
 
 msgid "Center coincidence"
-msgstr "Center coincidence"
+msgstr "Coincidenza centrale"
 
 msgid "Featue 1"
-msgstr "Feature 1"
+msgstr "Funzione 1"
 
 msgid "Reverse rotation"
-msgstr "Reverse rotation"
+msgstr "Rotazione inversa"
 
 msgid "Rotate around center:"
-msgstr "Rotate around center:"
+msgstr "Ruota intorno al centro:"
 
 msgid "Parallel_distance:"
-msgstr "Parallel_distance:"
+msgstr "Distanza_parallela:"
 
 msgid "Flip by Face 2"
-msgstr "Flip by Face 2"
+msgstr "Capovolgi da Faccia 2"
 
 msgid "Assemble"
 msgstr "Assembla"
 
 msgid "Please confirm explosion ratio = 1 and select at least two volumes."
-msgstr "Please confirm explosion ratio = 1 and select at least two volumes."
+msgstr "Confermare il rapporto di esplosione = 1 e selezionare almeno due volumi."
 
 msgid "Please select at least two volumes."
-msgstr "Please select at least two volumes."
+msgstr "Selezionare almeno due volumi."
 
 msgid "(Moving)"
-msgstr "(Moving)"
+msgstr "(Spostamento)"
 
 msgid "Point and point assembly"
-msgstr "Point and point assembly"
+msgstr "Assemblaggio punto-punto"
 
 msgid ""
 "It is recommended to assemble the objects first,\n"
 "because the objects is restriced to bed \n"
 "and only parts can be lifted."
 msgstr ""
+"Si consiglia di assemblare prima gli oggetti,\n"
+"perché gli oggetti sono vincolati al piano \n"
+"e solo alcune parti possono essere sollevate."
 
 msgid "Face and face assembly"
-msgstr "Face and face assembly"
+msgstr "Assemblaggio faccia-faccia"
 
 msgid "Brush size"
 msgstr "Misura del pennello"
@@ -837,21 +839,23 @@ msgstr ""
 "Profondità"
 
 msgid "Warning:Input cannot be empty!"
-msgstr ""
+msgstr "Attenzione: l'input non può essere vuoto!"
 
 msgid "Warning:create text fail."
-msgstr ""
+msgstr "Attenzione: la creazione del testo è fallita."
 
 msgid "Warning:text normal is error."
-msgstr ""
+msgstr "Attenzione: il testo normale è un errore."
 
 msgid "Warning:text normal has been reset."
-msgstr ""
+msgstr "Attenzione: il testo normale è stato reimpostato."
 
 msgid ""
 "Warning:Because current text does indeed use surround algorithm,\n"
 "if continue to edit, text has to regenerated according to new location."
 msgstr ""
+"Attenzione: perché il testo attuale utilizza effettivamente l'algoritmo surround,\n"
+"se si continua a modificare, il testo deve essere rigenerato secondo la nuova posizione."
 
 msgid ""
 "Warning:old matrix has at least two parameters: mirroring, scaling, and "
@@ -860,21 +864,32 @@ msgid ""
 "Please dragging text or cancel using current pose, \n"
 "save and reedit again."
 msgstr ""
+"Attenzione: la vecchia matrice ha almeno due parametri: specchio, scala e "
+"rotazione. \n"
+"Se si continua a modificare, potrebbe non essere corretta. \n"
+"Trascinare il testo o annullare usando la posa attuale, \n"
+"salvare e modificare di nuovo."
 
 msgid ""
 "Error:Detecting an incorrect mesh id or an unknown error, \n"
 "regenerating text may result in incorrect outcomes.\n"
 "Please drag text,save it then reedit it again."
 msgstr ""
+"Errore: Rilevato un id maglia non corretto o un errore sconosciuto,  \n"
+"La rigenerazione del testo può dare luogo a risultati errati.\n"
+"Trascinare il testo, salvarlo e modificarlo di nuovo"
 
 msgid ""
 "Warning:Due to functional upgrade, rotation information \n"
 "cannot be restored. Please drag or modify text,\n"
 " save it and reedit it will ok."
 msgstr ""
+"Attenzione: a causa di un aggiornamento funzionale, le informazioni sulla rotazione \n"
+"non possono essere ripristinate. Si prega di trascinare o modificare il testo,\n"
+" salvarlo e modificarlo di nuovo."
 
 msgid "Use opened text pose"
-msgstr ""
+msgstr "Utilizzare la posizione del testo aperto"
 
 msgid "Surface"
 msgstr "Superficie"
@@ -883,75 +898,76 @@ msgid "Horizontal text"
 msgstr "Testo orizzontale"
 
 msgid "Head diameter"
-msgstr ""
+msgstr "Diametro della testa"
 
 msgid "Max angle"
-msgstr ""
+msgstr "Angolo massimo"
 
 msgid "Detection radius"
-msgstr ""
+msgstr "Raggio di rilevamento"
 
 msgid "Remove selected points"
-msgstr ""
+msgstr "Rimuovere i punti selezionati"
 
 msgid "Remove all"
-msgstr ""
+msgstr "Rimuovi tutto"
 
 msgid "Auto-generate points"
-msgstr ""
+msgstr "Generazione automatica di punti"
 
 msgid "Add a brim ear"
-msgstr ""
+msgstr "Aggiungere un bordo (brim ear)"
 
 msgid "Delete a brim ear"
-msgstr ""
+msgstr "Rimuovere un bordo (brim ear)"
 
 msgid "Ctrl+Mouse wheel"
 msgstr "Ctrl+Rotellina del mouse"
 
 msgid "Adjust section view"
-msgstr ""
+msgstr "Regolare la vista in sezione"
 
 msgid ""
 "Warning: The brim type is not set to \"painted\",the brim ears will not take "
 "effect !"
-msgstr ""
+msgstr "Attenzione: Il bordo non è importato su \"da stampare\", il bordo (brim ear) "
+"non ha efetti !"
 
 msgid "Set the brim type to \"painted\""
-msgstr ""
+msgstr "Imposta il bordo su \"da stampare\""
 
 msgid " invalid brim ears"
-msgstr ""
+msgstr " bordo (brim ear) non valido"
 
 msgid "Brim Ears"
-msgstr ""
+msgstr "Bordo (brim ear)"
 
 msgid "Choose SVG file for emboss:"
-msgstr ""
+msgstr "Scegliere il file SVG per il rilievo:"
 
 #, boost-format
 msgid "File does NOT exist (%1%)."
-msgstr ""
+msgstr "Il file NON esiste (%1%)."
 
 #, boost-format
 msgid "Filename has to end with \".svg\" but you selected %1%"
-msgstr ""
+msgstr "Il nome del file deve finire con \".svg\" ma hai selezionato %1%"
 
 #, boost-format
 msgid "Nano SVG parser can't load from file (%1%)."
-msgstr ""
+msgstr "Il parser Nano SVG non può essere caricato dal file (%1%)"
 
 #, boost-format
 msgid "SVG file does NOT contain a single path to be embossed (%1%)."
-msgstr ""
+msgstr "Il file SVG NON contiene un singolo percorso da imprimere in rilievo (1%1)"
 
 #. TRN - Input label. Be short as possible
 msgid "Use surface"
-msgstr ""
+msgstr "Utilizzare la superficie"
 
 #. TRN - Input label. Be short as possible
 msgid "From surface"
-msgstr ""
+msgstr "Dalla superficie"
 
 #. TRN - Input label. Be short as possible
 msgid "Mirror"
@@ -959,38 +975,38 @@ msgstr "Specchia"
 
 #, boost-format
 msgid "Opacity (%1%)"
-msgstr ""
+msgstr "Opacità (%1%)"
 
 #, boost-format
 msgid "Color gradient (%1%)"
-msgstr ""
+msgstr "Gradiente colore (%1%)"
 
 msgid "Undefined fill type"
-msgstr ""
+msgstr "Tipo di riempimento non definito"
 
 msgid "Linear gradient"
-msgstr ""
+msgstr "Gradiente lineare"
 
 msgid "Radial gradient"
-msgstr ""
+msgstr "Gradiente radiale"
 
 msgid "Open filled path"
-msgstr ""
+msgstr "Aprire il percorso riempito"
 
 msgid "Undefined stroke type"
-msgstr ""
+msgstr "Tipo di tratto non definito"
 
 msgid "Path can't be healed from selfintersection and multiple points."
-msgstr ""
+msgstr "Il percorso non può essere riparato dall'auto-intersezione e dai punti multipli."
 
 msgid ""
 "Final shape constains selfintersection or multiple points with same "
 "coordinate."
-msgstr ""
+msgstr "La forma finale contiene l'autointersezione o più punti con le stesse coordinate."
 
 #, boost-format
 msgid "Shape is marked as invisible (%1%)."
-msgstr ""
+msgstr "La forma è segnata come invisibile (%1%)"
 
 #. TRN: The first placeholder is shape identifier, the second one is text describing the problem.
 #, boost-format
