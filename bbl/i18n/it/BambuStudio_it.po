@@ -17,7 +17,7 @@ msgid "Supports Painting"
 msgstr "Supporti pittura"
 
 msgid "Please select single object."
-msgstr "Please select single object."
+msgstr "Per favore seleziona un singolo oggetto."
 
 msgid "Mouse wheel"
 msgstr "Rotella del mouse:"
@@ -107,7 +107,7 @@ msgstr "Supporto generato"
 msgid ""
 "Warning: All triangle areas are too small,The current function is not "
 "working."
-msgstr ""
+msgstr "Attenzione: Tutte le aree del triangolo sono troppo piccole, la funzione attuale non funziona."
 
 msgid "Lay on face"
 msgstr "Posiziona su faccia"
@@ -164,16 +164,16 @@ msgid "Toggle Wireframe"
 msgstr "Attiva Wireframe"
 
 msgid "Shift + L"
-msgstr ""
+msgstr "Shift + L"
 
 msgid "Toggle non-manifold edges"
-msgstr ""
+msgstr "Allineare i bordi non a forma di semicerchio"
 
 msgid "Rotate horizontally"
 msgstr "Ruota orizzontalmente"
 
 msgid "hit face"
-msgstr ""
+msgstr "scegli la faccia"
 
 msgid "Shortcut Key "
 msgstr "Tasto scelta rapida "
@@ -185,7 +185,7 @@ msgid "Height Range"
 msgstr "Interv. altezza"
 
 msgid "Place input box of bottom near mouse"
-msgstr ""
+msgstr "Posizionare la casella di input in basso vicino al mouse"
 
 msgid "Vertical"
 msgstr "Verticale"
@@ -225,13 +225,13 @@ msgid "Error: Please close all toolbar menus first"
 msgstr "Errore: chiudi prima tutti i menu della barra degli strumenti"
 
 msgid "Tool-Move"
-msgstr "Tool-Move"
+msgstr "Tool-Spostamento"
 
 msgid "Tool-Scale"
-msgstr "Tool-Scale"
+msgstr "Tool-Ridimensiona"
 
 msgid "Tool-Rotate"
-msgstr "Tool-Rotate"
+msgstr "Tool-Ruota"
 
 msgid "Tool-Lay on Face"
 msgstr "Strumento-Faccia sul piatto"
@@ -246,10 +246,10 @@ msgid "mm"
 msgstr "mm"
 
 msgid "Part selection"
-msgstr ""
+msgstr "Selezione dei pezzi"
 
 msgid "Fixed step drag"
-msgstr ""
+msgstr "Trascinamento a passo fisso"
 
 msgid "Single sided scaling"
 msgstr ""
