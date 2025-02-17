@@ -1568,19 +1568,6 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         }
     }
 
-
-    // -1 means caculate all
-    auto update_flush_volume = [](int idx = -1) {
-        if (idx < 0) {
-            size_t filament_size = wxGetApp().plater()->get_extruder_colors_from_plater_config().size();
-            for (size_t i = 0; i < filament_size; ++i)
-                wxGetApp().plater()->sidebar().auto_calc_flushing_volumes(i);
-        }
-        else
-            wxGetApp().plater()->sidebar().auto_calc_flushing_volumes(idx);
-        };
-
-
     string opt_key_without_idx = opt_key.substr(0, opt_key.find('#'));
 
     if (opt_key_without_idx == "long_retractions_when_cut") {
@@ -1591,6 +1578,9 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
                     "Although it can notably reduce flush,  it may also elevate the risk of nozzle clogs or other printing complications."), "", wxICON_WARNING | wxOK);
             dialog.ShowModal();
         }
+        if (wxGetApp().app_config->get("auto_calculate_flush") == "all"){
+            wxGetApp().plater()->sidebar().auto_calc_flushing_volumes(-1);
+        }
     }
 
     if (opt_key == "filament_long_retractions_when_cut"){
@@ -1600,6 +1590,9 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
             _L("Experimental feature: Retracting and cutting off the filament at a greater distance during filament changes to minimize flush."
             "Although it can notably reduce flush, it may also elevate the risk of nozzle clogs or other printing complications.Please use with the latest printer firmware."), "", wxICON_WARNING | wxOK);
             dialog.ShowModal();
+        }
+        if (wxGetApp().app_config->get("auto_calculate_flush") == "all"){
+            wxGetApp().plater()->sidebar().auto_calc_flushing_volumes(-1);
         }
     }
 
@@ -1620,6 +1613,9 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         }
         for (auto tab : wxGetApp().model_tabs_list) {
             tab->update_extruder_variants(extruder_idx);
+        }
+        if (wxGetApp().app_config->get("auto_calculate_flush") == "all") {
+            wxGetApp().plater()->sidebar().auto_calc_flushing_volumes(-1,extruder_idx);
         }
     }
 
