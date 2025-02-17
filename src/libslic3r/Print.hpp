@@ -36,6 +36,7 @@ class SupportLayer;
 // BBS
 class TreeSupportData;
 class TreeSupport;
+class ExtrusionLayers;
 
 #define MARGIN_HEIGHT   1.5
 #define MAX_OUTER_NOZZLE_RADIUS   4
@@ -621,7 +622,7 @@ struct FakeWipeTower
     float depth;
     float brim_width;
     Vec2d plate_origin;
-    Polylines outer_wall; //wipe tower's true outer wall
+    std::map<float , Polylines> outer_wall; //wipe tower's true outer wall and brim
 
     void set_fake_extrusion_data(Vec2f p, float w, float h, float lh, float d, float bd, Vec2d o)
     {
@@ -661,18 +662,7 @@ struct FakeWipeTower
         return paths;
     }
 
-    std::vector<ExtrusionPaths> getTrueExtrusionPathsFromWipeTower() const
-    {
-        std::vector<ExtrusionPaths> paths;
-        Point                       trans = {scale_(pos.x()), scale_(pos.y())};
-        for (auto &polyline : outer_wall) {
-            ExtrusionPath path(ExtrusionRole::erWipeTower, 0.0, 0.0, layer_height);
-            path.polyline.points.reserve( polyline.points.size());
-            for (auto &p : polyline.points) path.polyline.points.push_back(p + trans);
-            paths.push_back({path});
-        }
-        return paths;
-    }
+    ExtrusionLayers getTrueExtrusionLayersFromWipeTower() const;
 };
 
 struct WipeTowerData
