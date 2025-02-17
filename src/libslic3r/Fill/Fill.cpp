@@ -65,6 +65,8 @@ struct SurfaceFillParams
     float           infill_shift_step          = 0;// param for cross zag
     float           infill_rotate_step         = 0; // param for zig zag to get cross texture
 
+    bool            symmetric_infill_y_axis = false;
+
 	bool operator<(const SurfaceFillParams &rhs) const {
 #define RETURN_COMPARE_NON_EQUAL(KEY) if (this->KEY < rhs.KEY) return true; if (this->KEY > rhs.KEY) return false;
 #define RETURN_COMPARE_NON_EQUAL_TYPED(TYPE, KEY) if (TYPE(this->KEY) < TYPE(rhs.KEY)) return true; if (TYPE(this->KEY) > TYPE(rhs.KEY)) return false;
@@ -90,8 +92,9 @@ struct SurfaceFillParams
 		RETURN_COMPARE_NON_EQUAL(sparse_infill_speed);
 		RETURN_COMPARE_NON_EQUAL(top_surface_speed);
 		RETURN_COMPARE_NON_EQUAL(solid_infill_speed);
-        RETURN_COMPARE_NON_EQUAL(infill_shift_step);
-        RETURN_COMPARE_NON_EQUAL(infill_rotate_step);
+		RETURN_COMPARE_NON_EQUAL(infill_shift_step);
+		RETURN_COMPARE_NON_EQUAL(infill_rotate_step);
+        RETURN_COMPARE_NON_EQUAL(symmetric_infill_y_axis);
 
 		return false;
 	}
@@ -114,7 +117,8 @@ struct SurfaceFillParams
 				this->top_surface_speed		== rhs.top_surface_speed &&
 				this->solid_infill_speed	== rhs.solid_infill_speed &&
 				this->infill_shift_step             == rhs.infill_shift_step &&
-				this->infill_rotate_step            == rhs.infill_rotate_step;
+				this->infill_rotate_step            == rhs.infill_rotate_step &&
+                this->symmetric_infill_y_axis	== rhs.symmetric_infill_y_axis;
 	}
 };
 
@@ -163,8 +167,10 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		        params.extruder 	 = layerm.region().extruder(extrusion_role);
 		        params.pattern 		 = region_config.sparse_infill_pattern.value;
 		        params.density       = float(region_config.sparse_infill_density);
-                if (params.pattern == ipCrossZag)
-                    params.infill_shift_step     = scale_(region_config.infill_shift_step);
+            if (params.pattern == ipCrossZag){
+                params.infill_shift_step     = scale_(region_config.infill_shift_step);
+                params.symmetric_infill_y_axis  = region_config.symmetric_infill_y_axis;
+            }
                 if (params.pattern == ipZigZag)
                     params.infill_rotate_step    =  region_config.infill_rotate_step * M_PI / 360;
 
@@ -507,16 +513,26 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 		params.using_internal_flow = using_internal_flow;
 		params.no_extrusion_overlap = surface_fill.params.overlap;
         if (surface_fill.params.pattern == ipCrossZag) {
-            if (f->layer_id % 2 == 0)
+            if (f->layer_id % 2 == 0) {
                 params.horiz_move -= surface_fill.params.infill_shift_step * (f->layer_id / 2);
-            else
+            } else {
                 params.horiz_move += surface_fill.params.infill_shift_step * (f->layer_id / 2);
+            }
+
+            params.symmetric_infill_y_axis = surface_fill.params.symmetric_infill_y_axis;
+
         }
 		if (surface_fill.params.pattern == ipGrid)
 			params.can_reverse = false;
 		LayerRegion* layerm = this->m_regions[surface_fill.region_id];
 		for (ExPolygon& expoly : surface_fill.expolygons) {
-            f->no_overlap_expolygons = intersection_ex(surface_fill.no_overlap_expolygons, ExPolygons() = {expoly}, ApplySafetyOffset::Yes);
+
+      f->no_overlap_expolygons = intersection_ex(surface_fill.no_overlap_expolygons, ExPolygons() = {expoly}, ApplySafetyOffset::Yes);
+            if (params.symmetric_infill_y_axis) {
+                params.symmetric_y_axis = f->extended_object_bounding_box().center().x();
+                expoly.symmetric_y(params.symmetric_y_axis);
+            }
+
 			// Spacing is modified by the filler to indicate adjustments. Reset it for each expolygon.
 			f->spacing = surface_fill.params.spacing;
 			surface_fill.surface.expolygon = std::move(expoly);

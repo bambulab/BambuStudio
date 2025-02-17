@@ -2424,6 +2424,14 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
 
+    def           = this->add("symmetric_infill_y_axis", coBool);
+    def->label    = L("Symmetric infill y axis");
+    def->category = L("Strength");
+    def->tooltip  = L("If the model has two parts that are symmetric about the y-axis,"
+                      " and you want these parts to have symmetric textures, please click this option on one of the parts.");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
     auto def_infill_anchor_min = def = this->add("sparse_infill_anchor", coFloatOrPercent);
     def->label = L("Length of sparse infill anchor");
     def->category = L("Strength");

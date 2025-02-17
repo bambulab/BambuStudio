@@ -996,7 +996,6 @@ static std::vector<SegmentedIntersectionLine> slice_region_by_vertical_lines(con
         throw;
     }
 #endif //INFILL_DEBUG_OUTPUT
-
     return segs;
 }
 
@@ -2834,7 +2833,6 @@ bool FillRectilinear::fill_surface_by_lines(const Surface *surface, const FillPa
     }
     iRun ++;
 #endif /* SLIC3R_DEBUG */
-
     std::vector<SegmentedIntersectionLine> segs = slice_region_by_vertical_lines(poly_with_offset, n_vlines, x0, line_spacing);
     // Connect by horizontal / vertical links, classify the links based on link_max_length as too long.
 	connect_segment_intersections_by_contours(poly_with_offset, segs, params, link_max_length);
@@ -2908,6 +2906,11 @@ bool FillRectilinear::fill_surface_by_lines(const Surface *surface, const FillPa
         //FIXME rather simplify the paths to avoid very short edges?
         //assert(! it->has_duplicate_points());
         it->remove_duplicate_points();
+
+         //get origin direction infill
+        if (params.symmetric_infill_y_axis) {
+            it->symmetric_y(params.symmetric_y_axis);
+        }
     }
 
 #ifdef SLIC3R_DEBUG
@@ -2915,6 +2918,8 @@ bool FillRectilinear::fill_surface_by_lines(const Surface *surface, const FillPa
     for (Polyline &polyline : polylines_out)
         assert(! polyline.has_duplicate_points());
 #endif /* SLIC3R_DEBUG */
+
+
 
     return true;
 }

@@ -78,6 +78,8 @@ struct FillParams
     bool            can_reverse{true};
 
     float           horiz_move{0.0}; //move infill to get cross zag pattern
+    bool            symmetric_infill_y_axis{false};
+    coord_t         symmetric_y_axis{0};
 };
 static_assert(IsTriviallyCopyable<FillParams>::value, "FillParams class is not POD (and it should be - see constructor).");
 
@@ -118,7 +120,7 @@ public:
     static bool  use_bridge_flow(const InfillPattern type);
 
     void         set_bounding_box(const Slic3r::BoundingBox &bbox) { bounding_box = bbox; }
-
+    BoundingBox  extended_object_bounding_box() const;
     // Use bridge flow for the fill?
     virtual bool use_bridge_flow() const { return false; }
 
