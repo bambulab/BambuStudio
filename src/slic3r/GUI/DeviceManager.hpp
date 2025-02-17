@@ -682,6 +682,7 @@ public:
     bool  ams_support_virtual_tray { true };
     int   ams_humidity;
     time_t ams_user_setting_start = 0;
+    time_t ams_switch_filament_start = 0;
     AmsStatusMain ams_status_main;
     int   ams_status_sub;
     int   ams_version = 0;
@@ -953,7 +954,6 @@ public:
     int  xcam_auto_recovery_hold_count = 0;
     int  xcam_prompt_sound_hold_count = 0;
     int  xcam_filament_tangle_detect_count = 0;
-    int  ams_print_option_count = 0;
     int  nozzle_selected_count = 0;
     bool flag_update_nozzle = {true};
 
