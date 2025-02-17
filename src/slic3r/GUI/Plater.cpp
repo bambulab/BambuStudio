@@ -3156,8 +3156,9 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
         }
     }
     Layout();
-
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "begin pop_finsish_sync_ams_dialog";
     pop_finsish_sync_ams_dialog();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "finish pop_finsish_sync_ams_dialog";
 }
 
 PlaterPresetComboBox* Sidebar::printer_combox()
