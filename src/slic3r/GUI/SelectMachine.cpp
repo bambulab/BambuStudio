@@ -1068,6 +1068,7 @@ void SelectMachineDialog::sending_mode()
     // disable combobox
     m_comboBox_printer->Disable();
     Enable_Auto_Refill(false);
+    EnableEditing(false);
 
     m_is_in_sending_mode = true;
     if (m_simplebook->GetSelection() != 1){
@@ -1087,6 +1088,8 @@ void SelectMachineDialog::sending_mode()
 
 void SelectMachineDialog::finish_mode()
 {
+    EnableEditing(true);
+
     m_print_page_mode = PrintPageModeFinish;
     m_is_in_sending_mode = false;
     m_simplebook->SetSelection(2);
@@ -2311,6 +2314,30 @@ wxString SelectMachineDialog::format_steel_name(NozzleType type)
     return wxEmptyString;
 }
 
+void SelectMachineDialog::EnableEditing(bool enable)
+{
+    /*project*/
+    m_rename_button->Enable(enable);
+
+    /*printer*/
+    m_comboBox_printer->Enable(enable);
+    m_button_refresh->Enable(enable);
+
+    /*mapping*/
+    m_filament_panel->Enable(enable);
+    m_filament_left_panel->Enable(enable);
+    m_filament_right_panel->Enable(enable);
+
+    /*mapping link*/
+    m_link_edit_nozzle->Enable(enable);
+
+    /*options*/
+    for (auto iter : m_checkbox_list)
+    {
+        iter.second->Enable(enable);
+    }
+}
+
 void SelectMachineDialog::Enable_Auto_Refill(bool enable)
 {
     if (enable) {
@@ -2662,6 +2689,8 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
 void SelectMachineDialog::on_print_job_cancel(wxCommandEvent &evt)
 {
     BOOST_LOG_TRIVIAL(info) << "print_job: canceled";
+
+    EnableEditing(true);
     show_status(PrintDialogStatus::PrintStatusInit);
     // enter prepare mode
     prepare_mode();
@@ -4421,6 +4450,7 @@ void SelectMachineDialog::sys_color_changed()
 bool SelectMachineDialog::Show(bool show)
 {
     if (show) {
+        EnableEditing(true);
         m_options_other->Hide();
         m_advanced_options_icon->SetBitmap(create_scaled_bitmap("advanced_option1", this, 18));
         m_refresh_timer->Start(LIST_REFRESH_INTERVAL);
