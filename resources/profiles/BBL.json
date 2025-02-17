@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "02.00.00.37",
+    "version": "02.00.00.38",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -996,10 +996,6 @@
         {
             "name": "Bambu TPU 90A @base",
             "sub_path": "filament/Bambu TPU 90A @base.json"
-        },
-        {
-            "name": "Bambu TPU 85A @base",
-            "sub_path": "filament/Bambu TPU 85A @base.json"
         },
         {
             "name": "Generic TPU",
@@ -2464,18 +2460,6 @@
         {
             "name": "Bambu TPU 90A @BBL H2D",
             "sub_path": "filament/Bambu TPU 90A @BBL H2D.json"
-        },
-        {
-            "name": "Bambu TPU 85A @BBL X1C",
-            "sub_path": "filament/Bambu TPU 85A @BBL X1C.json"
-        },
-        {
-            "name": "Bambu TPU 85A @BBL P1P",
-            "sub_path": "filament/Bambu TPU 85A @BBL P1P.json"
-        },
-        {
-            "name": "Bambu TPU 85A @BBL H2D",
-            "sub_path": "filament/Bambu TPU 85A @BBL H2D.json"
         },
         {
             "name": "Generic TPU @BBL A1M",
