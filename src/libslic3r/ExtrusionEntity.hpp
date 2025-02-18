@@ -130,10 +130,26 @@ class ExtrusionEntity
 {
 public:
     ExtrusionEntity() = default;
-    ExtrusionEntity(const ExtrusionEntity &rhs) { m_customize_flag = rhs.m_customize_flag; };
-    ExtrusionEntity(ExtrusionEntity &&rhs) { m_customize_flag = rhs.m_customize_flag; };
-    ExtrusionEntity &operator=(const ExtrusionEntity &rhs) { m_customize_flag = rhs.m_customize_flag; return *this; }
-    ExtrusionEntity &operator=(ExtrusionEntity &&rhs) { m_customize_flag = rhs.m_customize_flag;  return *this; }
+    ExtrusionEntity(const ExtrusionEntity &rhs){
+        m_customize_flag = rhs.m_customize_flag;
+        m_cooling_node   = rhs.m_cooling_node;
+    };
+    ExtrusionEntity(ExtrusionEntity &&rhs){
+        m_customize_flag = rhs.m_customize_flag;
+        m_cooling_node   = rhs.m_cooling_node;
+    };
+    ExtrusionEntity &operator=(const ExtrusionEntity &rhs)
+    {
+        m_customize_flag = rhs.m_customize_flag;
+        m_cooling_node   = rhs.m_cooling_node;
+        return *this;
+    }
+    ExtrusionEntity &operator=(ExtrusionEntity &&rhs)
+    {
+        m_customize_flag = rhs.m_customize_flag;
+        m_cooling_node   = rhs.m_cooling_node;
+        return *this;
+    }
 
     virtual ExtrusionRole role() const = 0;
     virtual bool is_collection() const { return false; }
