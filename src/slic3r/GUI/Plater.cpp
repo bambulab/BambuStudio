@@ -14929,9 +14929,12 @@ std::vector<std::array<float, 4>> Plater::get_extruders_colors()
 bool Plater::update_filament_colors_in_full_config()
 {
     DynamicPrintConfig& project_config = wxGetApp().preset_bundle->project_config;
+    const auto& full_config = wxGetApp().preset_bundle->full_config();
     ConfigOptionStrings* color_opt = project_config.option<ConfigOptionStrings>("filament_colour");
+    const ConfigOptionStrings* type_opt = full_config.option<ConfigOptionStrings>("filament_type");
 
     p->config->option<ConfigOptionStrings>("filament_colour")->values = color_opt->values;
+    p->config->option<ConfigOptionStrings>("filament_type")->values = type_opt->values;
     return true;
 }
 
@@ -16160,6 +16163,7 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
 
     const auto& project_config = wxGetApp().preset_bundle->project_config;
     auto filament_colors = config()->option<ConfigOptionStrings>("filament_colour")->values;
+    auto filament_types = config()->option<ConfigOptionStrings>("filament_type")->values;
 
     auto plate_filament_maps = curr_plate->get_real_filament_maps(project_config);
     auto plate_filament_map_mode = curr_plate->get_filament_map_mode();
@@ -16168,6 +16172,7 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
 
     FilamentMapDialog filament_dlg(this,
         filament_colors,
+        filament_types,
         plate_filament_maps,
         curr_plate->get_extruders(true),
         plate_filament_map_mode,
