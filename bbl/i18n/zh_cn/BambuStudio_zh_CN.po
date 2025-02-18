@@ -1,12 +1,12 @@
 # Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-15 10:46+0800\n"
+"POT-Creation-Date: 2025-02-18 18:16+0800\n"
 "PO-Revision-Date: 2025-01-08 20:27+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -2217,7 +2217,7 @@ msgid ""
 msgstr "所选材料只支持当前的风扇模式，在打印过程中无法更改"
 
 msgid "Cooling"
-msgstr "冷却"
+msgstr "冷却模式"
 
 msgid "Heating"
 msgstr "腔温保持模式"
@@ -2263,9 +2263,9 @@ msgid "Top"
 msgstr "顶部"
 
 msgid ""
-"The fan controls the temperature during printing to improve print quality."
-"The system automatically adjusts the fan's switch and speed according to "
-"different printing materials."
+"The fan controls the temperature during printing to improve print "
+"quality.The system automatically adjusts the fan's switch and speed "
+"according to different printing materials."
 msgstr ""
 "风扇在打印中调控温度以提升打印质量，系统会根据不同的打印材料自动调节风扇的开"
 "关和转速。"
@@ -3215,9 +3215,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe temperature,"
-"it may result in material softening and clogging.The maximum safe "
-"temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe "
+"temperature,it may result in material softening and clogging.The maximum "
+"safe temperature for the material is %d"
 msgstr ""
 "当前腔体温度高于材料的安全温度，这可能导致材料软化和堵塞。该材料的最高安全温"
 "度为 %d。"
@@ -3595,6 +3595,11 @@ msgid ""
 "CF/GF filaments are hard and brittle, It's easy to break or get stuck in "
 "AMS, please use with caution."
 msgstr "CF/GF耗材丝又硬又脆，在AMS中很容易断裂或卡住，请谨慎使用。"
+
+msgid ""
+"The rough surface of PLA Glow can accelerate wear on the AMS system, "
+"particularly on the internal components of the AMS Lite."
+msgstr ""
 
 msgid "default"
 msgstr "缺省"
@@ -4958,8 +4963,8 @@ msgid ""
 "The .gcode.3mf file contains no G-code data.Please slice it whth Bambu "
 "Studio and export a new .gcode.3mf file."
 msgstr ""
-".gcode.3mf文件中不包含G-code数据。请使用Bambu Studio进行切片并导出新的."
-"gcode.3mf文件。"
+".gcode.3mf文件中不包含G-code数据。请使用Bambu Studio进行切片并导出新"
+"的.gcode.3mf文件。"
 
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
@@ -4992,6 +4997,9 @@ msgstr "下载中 %d%%..."
 
 msgid "Fan"
 msgstr "风扇"
+
+msgid "Air Condition"
+msgstr "空调系统"
 
 msgid ""
 "Reconnecting the printer, the operation cannot be completed immediately, "
@@ -5114,6 +5122,9 @@ msgstr "名称不允许以空格开头。"
 
 msgid "The name is not allowed to end with space character."
 msgstr "名称不允许以空格结尾。"
+
+msgid "The name is not allowed to exceeds 32 characters."
+msgstr "名称不允许超过32个字符。"
 
 msgid "Bind with Pin Code"
 msgstr "通过Pin码绑定"
@@ -8353,11 +8364,6 @@ msgid "—> "
 msgstr ""
 
 msgid ""
-"Printer not connected. Please connect or choose a printer on the Device page "
-"and try again."
-msgstr "打印机未连接。请在“设备”页面上连接或选择打印机，然后重试。"
-
-msgid ""
 "Synchronizing AMS filaments will discard your modified but unsaved filament "
 "presets.\n"
 "Are you sure you want to continue?"
@@ -8440,8 +8446,8 @@ msgstr "高级设置"
 msgid "Unused AMS filaments should also be added to the filament list."
 msgstr "未使用的AMS耗材也添加到耗材列表。"
 
-msgid "Merge all identical filaments."
-msgstr "合并完全相同的耗材"
+msgid "Automatically merge the same colors in the model after mapping."
+msgstr "匹配后自动合并模型中的相同颜色。"
 
 msgid "After being synced, this action cannot be undone."
 msgstr "同步后，此操作不可撤销。"
@@ -8479,26 +8485,6 @@ msgid ""
 "You selected external and AMS filament at the same time in an extruder, you "
 "will need manually change external filament."
 msgstr ""
-
-#, c-format, boost-format
-msgid "nozzle in preset: %.1f %s"
-msgstr "预设中的喷嘴：%.1f %s"
-
-#, c-format, boost-format
-msgid "nozzle memorized: %.1f %s"
-msgstr "记忆中的喷嘴：%.1f %s"
-
-msgid ""
-"Your nozzle diameter in sliced file is not consistent with memorized nozzle. "
-"If you changed your nozzle lately, please go to Device > Printer Parts to "
-"change settings."
-msgstr ""
-"切片文件中的喷嘴直径与记忆的喷嘴不一致。如果您最近更换了喷嘴，请前往设备 > 打"
-"印机零件进行更改设置。"
-
-#, c-format, boost-format
-msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
-msgstr "%1s材料在使用%2s的喷嘴打印时,可能会导致喷嘴损坏。"
 
 msgid "Successfully synchronized nozzle and AMS number information."
 msgstr "喷嘴信息和AMS数量同步成功。"
@@ -9438,8 +9424,8 @@ msgid ""
 "Slic3r can upload G-code files to a printer host. This field should contain "
 "the hostname, IP address or URL of the printer host instance. Print host "
 "behind HAProxy with basic auth enabled can be accessed by putting the user "
-"name and password into the URL in the following format: https://username:"
-"password@your-octopi-address/"
+"name and password into the URL in the following format: https://"
+"username:password@your-octopi-address/"
 msgstr ""
 "Slic3r可以将G-code文件上传到打印机主机。此字段应包含打印机主机实例的主机名、"
 "IP地址或URL。启用基本身份验证的Print host可以通过将用户名和密码放入以下格式的"
@@ -9671,10 +9657,10 @@ msgstr "参与冷却降速的悬垂阈值"
 
 #, c-format
 msgid ""
-"Decide which overhang part join the cooling function to slow down the speed."
-"Expressed as percentage which indicides how much width of the line without "
-"support from lower layer. 100% means forcing cooling for all outer wall no "
-"matter how much overhang degree"
+"Decide which overhang part join the cooling function to slow down the "
+"speed.Expressed as percentage which indicides how much width of the line "
+"without support from lower layer. 100% means forcing cooling for all outer "
+"wall no matter how much overhang degree"
 msgstr "决定多少阈值的悬垂参与冷却降速.用百分比表示超出线宽的范围。"
 
 msgid "Bridge direction"
@@ -10452,8 +10438,8 @@ msgid "Acceleration of inner walls. 0 means using normal printing acceleration"
 msgstr "内部壁的加速度。0表示使用正常的打印加速度。"
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage (e."
-"g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage "
+"(e.g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 "稀疏填充的加速度。如果该值表示为百分比（例如100%），则将根据默认加速度进行计"
 "算。"
@@ -12551,10 +12537,10 @@ msgid ""
 msgstr ""
 "请从我们的wiki中找到动态流量校准的详细信息。\n"
 "\n"
-"通常情况下，校准是不必要的。当您开始单色/单材料打印，并在打印开始菜单中勾选"
-"了“动态流量校准”选项时，打印机将按照旧的方式，在打印前校准丝料；当您开始多色/"
-"多材料打印时，打印机将在每次换丝料时使用默认的补偿参数，这在大多数情况下会产"
-"生良好的效果。\n"
+"通常情况下，校准是不必要的。当您开始单色/单材料打印，并在打印开始菜单中勾选了"
+"“动态流量校准”选项时，打印机将按照旧的方式，在打印前校准丝料；当您开始多色/多"
+"材料打印时，打印机将在每次换丝料时使用默认的补偿参数，这在大多数情况下会产生"
+"良好的效果。\n"
 "\n"
 "有几种情况可能导致校准结果不可靠，例如打印板的的附着力不足。清洗打印板或者使"
 "用胶水可以增强打印板附着力。您可以在我们的维基上找到更多相关信息。\n"
@@ -13685,8 +13671,8 @@ msgid "nozzle size memorized: %d"
 msgstr "存储的喷嘴尺寸：%d"
 
 msgid ""
-"The size of nozzle type in preset is not consistent with memorized nozzle."
-"Did you change your nozzle lately ? "
+"The size of nozzle type in preset is not consistent with memorized "
+"nozzle.Did you change your nozzle lately ? "
 msgstr "预设的喷嘴类型尺寸与记忆中的喷嘴不一致。你最近换喷嘴了吗？"
 
 #, c-format, boost-format
@@ -13701,6 +13687,10 @@ msgid ""
 "Your nozzle type in preset is not consistent with memorized nozzle.Did you "
 "change your nozzle lately ? "
 msgstr "预设中的喷嘴类型与记忆中的喷嘴类型不一致。您最近更换了喷嘴吗？"
+
+#, c-format, boost-format
+msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
+msgstr "%1s材料在使用%2s的喷嘴打印时,可能会导致喷嘴损坏。"
 
 msgid "Need select printer"
 msgstr "需要选择打印机"
@@ -14677,6 +14667,30 @@ msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
 
+#~ msgid ""
+#~ "Printer not connected. Please connect or choose a printer on the Device "
+#~ "page and try again."
+#~ msgstr "打印机未连接。请在“设备”页面上连接或选择打印机，然后重试。"
+
+#~ msgid "Merge all identical filaments."
+#~ msgstr "合并完全相同的耗材"
+
+#, c-format, boost-format
+#~ msgid "nozzle in preset: %.1f %s"
+#~ msgstr "预设中的喷嘴：%.1f %s"
+
+#, c-format, boost-format
+#~ msgid "nozzle memorized: %.1f %s"
+#~ msgstr "记忆中的喷嘴：%.1f %s"
+
+#~ msgid ""
+#~ "Your nozzle diameter in sliced file is not consistent with memorized "
+#~ "nozzle. If you changed your nozzle lately, please go to Device > Printer "
+#~ "Parts to change settings."
+#~ msgstr ""
+#~ "切片文件中的喷嘴直径与记忆的喷嘴不一致。如果您最近更换了喷嘴，请前往设备 "
+#~ "> 打印机零件进行更改设置。"
+
 #~ msgid "Auto Circle Holes-contour Compensation"
 #~ msgstr "自动圆形孔洞和轮廓补偿"
 
@@ -14695,9 +14709,6 @@ msgstr ""
 
 #~ msgid "Advanced settings >"
 #~ msgstr "高级设置 >"
-
-#~ msgid "Automatically merge the same colors in the model after mapping."
-#~ msgstr "匹配后自动合并模型中的相同颜色。"
 
 #~ msgid "Smoothing wall speed in z direction(experimental)"
 #~ msgstr "平滑z方向外墙速度（实验）"
@@ -16419,8 +16430,8 @@ msgstr ""
 #~ "The .gcode.3mf file contains no G-code data.Please slice it whthBambu "
 #~ "Studio and export a new .gcode.3mf file."
 #~ msgstr ""
-#~ ".gcode.3mf文件中不包含G-code数据。请使用Bambu Studio进行切片并导出新的."
-#~ "gcode.3mf文件。"
+#~ ".gcode.3mf文件中不包含G-code数据。请使用Bambu Studio进行切片并导出新"
+#~ "的.gcode.3mf文件。"
 
 #~ msgid "Connection lost. Please retry."
 #~ msgstr "连接丢失。请重试。"
@@ -16862,8 +16873,8 @@ msgstr ""
 #~ msgstr "不能删除被其他预设继承的预设"
 
 #~ msgid ""
-#~ "Your nozzle diameter in preset is not consistent with memorized nozzle."
-#~ "Did you change your nozzle lately ? "
+#~ "Your nozzle diameter in preset is not consistent with memorized "
+#~ "nozzle.Did you change your nozzle lately ? "
 #~ msgstr "预设中的喷嘴直径与记忆中的喷嘴直径不一致。您最近更换了喷嘴吗？"
 
 #~ msgid "Improt Presets"
@@ -17130,11 +17141,11 @@ msgstr ""
 #~ msgstr "调试等级"
 
 #~ msgid ""
-#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-#~ "trace\n"
+#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
+#~ "5:trace\n"
 #~ msgstr ""
-#~ "设置调试日志等级。0:fatal， 1:error， 2:warning， 3:info， 4:debug， 5:"
-#~ "trace\n"
+#~ "设置调试日志等级。0:fatal， 1:error， 2:warning， 3:info， 4:debug， "
+#~ "5:trace\n"
 
 #~ msgid "Load custom gcode"
 #~ msgstr "加载自定义 gcode"
