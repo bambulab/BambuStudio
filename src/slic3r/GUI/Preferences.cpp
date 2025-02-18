@@ -846,6 +846,25 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
             }
         }
 
+        if (param == "enable_high_low_temp_mixed_printing") {
+            if (checkbox->GetValue()) {
+                MessageDialog msg_wingow(nullptr, _L("Printing with multiple filaments that have a large temperature difference can cause the extruder and nozzle to be blocked or dameged during printing.\nPlease enable with caution."),
+                    _L("Warning"), wxICON_WARNING | wxYES | wxYES_DEFAULT | wxCANCEL | wxCENTRE, wxEmptyString,
+                    _L("Click Wiki for help."), [](const wxString){
+                        std::string language = wxGetApp().app_config->get("language");
+                        wxString    region   = L"en";
+                        if (language.find("zh") == 0) region = L"zh";
+                        const wxString wiki_link = wxString::Format(L"https://wiki.bambulab.com/%s/filament-acc/filament/h2d-filament-config-limit", region);
+                        wxGetApp().open_browser_with_warning_dialog(wiki_link);
+                    });
+                if (msg_wingow.ShowModal() != wxID_YES) {
+                    checkbox->SetValue(false);
+                    app_config->set_bool(param, false);
+                    app_config->save();
+                }
+            }
+        }
+
 #ifdef __WIN32__
         if (param == "prefer_to_use_dgpu") {
             app_config->set_bool(param, checkbox->GetValue());
@@ -1153,6 +1172,7 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_multi_machine = create_item_checkbox(_L("Multi-device Management(Take effect after restarting Studio)."), page, _L("With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."), 50, "enable_multi_machine");
     auto item_step_mesh_setting = create_item_checkbox(_L("Show the step mesh parameter setting dialog."), page, _L("If enabled,a parameter settings dialog will appear during STEP file import."), 50, "enable_step_mesh_setting");
     auto item_beta_version_update = create_item_checkbox(_L("Support beta version update."), page, _L("With this option enabled, you can receive beta version updates."), 50, "enable_beta_version_update");
+    auto item_mix_print_high_low_temperature = create_item_checkbox(_L("Remove the restriction on high and low temperature mixed printing."), page, _L("With this option enabled, you can print materials with different chamber temperatures together."), 50, "enable_high_low_temp_mixed_printing");
     auto _3d_settings    = create_item_title(_L("3D Settings"), page, _L("3D Settings"));
     auto item_mouse_zoom_settings  = create_item_checkbox(_L("Zoom to mouse position"), page,
                                                          _L("Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."), 50,
@@ -1264,6 +1284,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_step_mesh_setting, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_beta_version_update, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_auto_transfer_when_switch_preset, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_mix_print_high_low_temperature, 0, wxTOP, FromDIP(3));
     sizer_page->Add(_3d_settings, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_mouse_zoom_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_show_shells_in_preview_settings, 0, wxTOP, FromDIP(3));

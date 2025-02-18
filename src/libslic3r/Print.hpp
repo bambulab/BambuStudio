@@ -965,6 +965,9 @@ public:
     BoundingBoxf        get_wipe_tower_bbx() const { return m_wipe_tower_data.bbx; }
     Vec2f               get_rib_offset() const { return m_wipe_tower_data.rib_offset; }
 
+    void set_check_multi_filaments_compatibility(bool check) { m_need_check_multi_filaments_compatibility = check; }
+    bool need_check_multi_filaments_compatibility() const { return m_need_check_multi_filaments_compatibility; }
+
     // scaled point
     Vec2d translate_to_print_space(const Point& point) const;
     static FilamentTempType get_filament_temp_type(const std::string& filament_type);
@@ -1046,6 +1049,8 @@ private:
 
     // OrcaSlicer: calibration
     Calib_Params m_calib_params;
+
+    bool m_need_check_multi_filaments_compatibility{true};
 
     // To allow GCode to set the Print's GCodeExport step status.
     friend class GCode;
