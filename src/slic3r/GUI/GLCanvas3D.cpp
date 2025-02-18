@@ -5451,8 +5451,9 @@ std::vector<Vec2f> GLCanvas3D::get_empty_cells(const Vec2f start_point, const Ve
         ModelObject* model_object = m_model->objects[i];
         auto id = model_object->id().id;
         ModelInstance* model_instance0 = model_object->instances.front();
-        Polygon hull_2d = model_object->convex_hull_2d(Geometry::assemble_transform({ 0.0, 0.0, model_instance0->get_offset().z() }, model_instance0->get_rotation(),
-            model_instance0->get_scaling_factor(), model_instance0->get_mirror()));
+        Geometry::Transformation temp(model_instance0->get_transformation());
+        temp.set_offset(Vec3d(0.0, 0.0, model_instance0->get_offset().z()));
+        Polygon hull_2d = model_object->convex_hull_2d(temp.get_matrix());
         if (hull_2d.empty())
             continue;
 
@@ -5602,8 +5603,9 @@ void GLCanvas3D::update_sequential_clearance()
         for (size_t i = 0; i < m_model->objects.size(); ++i) {
             ModelObject* model_object = m_model->objects[i];
             ModelInstance* model_instance0 = model_object->instances.front();
-            Polygon hull_no_offset = model_object->convex_hull_2d(Geometry::assemble_transform({ 0.0, 0.0, model_instance0->get_offset().z() }, model_instance0->get_rotation(),
-                model_instance0->get_scaling_factor(), model_instance0->get_mirror()));
+            Geometry::Transformation temp(model_instance0->get_transformation());
+            temp.set_offset(Vec3d(0.0, 0.0, model_instance0->get_offset().z()));
+            Polygon hull_no_offset = model_object->convex_hull_2d(temp.get_matrix());
             auto tmp = offset(hull_no_offset,
                 // Shrink the extruder_clearance_max_radius a tiny bit, so that if the object arrangement algorithm placed the objects
                 // exactly by satisfying the extruder_clearance_max_radius, this test will not trigger collision.
