@@ -233,7 +233,7 @@ static constexpr const char* SLICE_HEADER_ITEM_TAG = "header_item";
 static constexpr const char* TEXT_INFO_TAG        = "text_info";
 static constexpr const char* TEXT_ATTR            = "text";
 static constexpr const char* FONT_NAME_ATTR       = "font_name";
-static constexpr const char *FONT_VERSION_ATTR       = "font_version";
+static constexpr const char *FONT_VERSION_ATTR    = "font_version";
 static constexpr const char* FONT_INDEX_ATTR      = "font_index";
 static constexpr const char* FONT_SIZE_ATTR       = "font_size";
 static constexpr const char* THICKNESS_ATTR       = "thickness";
@@ -242,6 +242,7 @@ static constexpr const char* ROTATE_ANGLE_ATTR    = "rotate_angle";
 static constexpr const char* TEXT_GAP_ATTR        = "text_gap";
 static constexpr const char* BOLD_ATTR            = "bold";
 static constexpr const char* ITALIC_ATTR          = "italic";
+static constexpr const char *SURFACE_TYPE         = "surface_type";
 static constexpr const char* SURFACE_TEXT_ATTR    = "surface_text";
 static constexpr const char* KEEP_HORIZONTAL_ATTR = "keep_horizontal";
 static constexpr const char* HIT_MESH_ATTR        = "hit_mesh";
@@ -454,6 +455,13 @@ float bbs_get_attribute_value_float(const char** attributes, unsigned int attrib
     if (const char *text = bbs_get_attribute_value_charptr(attributes, attributes_size, attribute_key); text != nullptr)
         fast_float::from_chars(text, text + strlen(text), value);
     return value;
+}
+
+bool bbs_has_attribute_value_int(const char **attributes, unsigned int attributes_size, const char *attribute_key)
+{
+    if (const char *text = bbs_get_attribute_value_charptr(attributes, attributes_size, attribute_key); text != nullptr)
+        return true;
+    return false;
 }
 
 int bbs_get_attribute_value_int(const char** attributes, unsigned int attributes_size, const char* attribute_key)
@@ -4473,8 +4481,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         TextInfo text_info;
         text_info.m_text      = xml_unescape(bbs_get_attribute_value_string(attributes, num_attributes, TEXT_ATTR));
         text_info.m_font_name = bbs_get_attribute_value_string(attributes, num_attributes, FONT_NAME_ATTR);
+        text_info.text_configuration.style.prop.face_name = text_info.m_font_name;
         text_info.m_font_version = bbs_get_attribute_value_string(attributes, num_attributes, FONT_VERSION_ATTR);
-
+        text_info.text_configuration.style.name = bbs_get_attribute_value_string(attributes, num_attributes, STYLE_NAME_ATTR);
         text_info.m_curr_font_idx = bbs_get_attribute_value_int(attributes, num_attributes, FONT_INDEX_ATTR);
 
         text_info.m_font_size = bbs_get_attribute_value_float(attributes, num_attributes, FONT_SIZE_ATTR);
@@ -4485,8 +4494,27 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         text_info.m_bold      = bbs_get_attribute_value_int(attributes, num_attributes, BOLD_ATTR);
         text_info.m_italic    = bbs_get_attribute_value_int(attributes, num_attributes, ITALIC_ATTR);
-        text_info.m_is_surface_text = bbs_get_attribute_value_int(attributes, num_attributes, SURFACE_TEXT_ATTR);
-        text_info.m_keep_horizontal = bbs_get_attribute_value_int(attributes, num_attributes, KEEP_HORIZONTAL_ATTR);
+        if (bbs_has_attribute_value_int(attributes, num_attributes, SURFACE_TYPE)) {
+            text_info.m_surface_type = bbs_get_attribute_value_int(attributes, num_attributes, SURFACE_TYPE);
+        } else {//old version
+            text_info.m_is_surface_text = bbs_get_attribute_value_int(attributes, num_attributes, SURFACE_TEXT_ATTR);
+            text_info.m_keep_horizontal = bbs_get_attribute_value_int(attributes, num_attributes, KEEP_HORIZONTAL_ATTR);
+
+            auto is_surface_text    = text_info.m_is_surface_text;
+            auto is_keep_horizontal = text_info.m_keep_horizontal;
+            auto convert_text_type  = [](bool is_surface_text, bool is_keep_horizontal, int &text_type) {
+                if (is_surface_text && is_keep_horizontal) {
+                    text_type = (int) TextInfo::TextType::SURFACE_HORIZONAL;
+                } else if (is_surface_text) {
+                    text_type = (int) TextInfo::TextType::SURFACE;
+                } else if (is_keep_horizontal) {
+                    text_type = (int) TextInfo::TextType::HORIZONAL;
+                } else {
+                    text_type = (int) TextInfo::TextType::HORIZONAL;
+                }
+            };
+            convert_text_type(is_surface_text, is_keep_horizontal, text_info.m_surface_type);
+        }
 
         text_info.m_rr.mesh_id = bbs_get_attribute_value_int(attributes, num_attributes, HIT_MESH_ATTR);
 
@@ -7408,6 +7436,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         stream << TEXT_ATTR << "=\"" << xml_escape(text_info.m_text) << "\" ";
         stream << FONT_NAME_ATTR << "=\"" << text_info.m_font_name << "\" ";
         stream << FONT_VERSION_ATTR << "=\"" << text_info.m_font_version << "\" ";
+        stream << STYLE_NAME_ATTR << "=\"" << xml_escape_double_quotes_attribute_value(text_info.text_configuration.style.name) << "\" ";
 
         stream << FONT_INDEX_ATTR << "=\"" << text_info.m_curr_font_idx << "\" ";
 
@@ -7419,8 +7448,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         stream << BOLD_ATTR << "=\"" << (text_info.m_bold ? 1 : 0) << "\" ";
         stream << ITALIC_ATTR << "=\"" << (text_info.m_italic ? 1 : 0) << "\" ";
-        stream << SURFACE_TEXT_ATTR << "=\"" << (text_info.m_is_surface_text ? 1 : 0) << "\" ";
-        stream << KEEP_HORIZONTAL_ATTR << "=\"" << (text_info.m_keep_horizontal ? 1 : 0) << "\" ";
+        if (std::stof(text_info.m_font_version) < 2.0) {
+            stream << SURFACE_TEXT_ATTR << "=\"" << (text_info.m_is_surface_text ? 1 : 0) << "\" ";
+            stream << KEEP_HORIZONTAL_ATTR << "=\"" << (text_info.m_keep_horizontal ? 1 : 0) << "\" ";
+        } else {
+            stream << SURFACE_TYPE << "=\"" << ((int) text_info.m_surface_type) << "\" ";
+        }
 
         stream << HIT_MESH_ATTR << "=\"" << text_info.m_rr.mesh_id << "\" ";
 

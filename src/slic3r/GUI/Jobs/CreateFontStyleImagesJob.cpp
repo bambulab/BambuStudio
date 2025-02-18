@@ -1,5 +1,5 @@
 #include "CreateFontStyleImagesJob.hpp"
-
+#include "CreateFontNameImageJob.hpp"
 // rasterization of ExPoly
 #include "libslic3r/SLA/AGGRaster.hpp"
 #include "slic3r/GUI/3DScene.hpp" // ::glsafe
@@ -34,11 +34,16 @@ void CreateFontStyleImagesJob::process(Ctl &ctl)
     m_images = std::vector<StyleManager::StyleImage>(m_input.styles.size());
 
     auto was_canceled = []() { return false; };
+    bool support_backup_fonts = GUI::wxGetApp().app_config->get_bool("support_backup_fonts");
+    auto ft_fn                     = []() { return Slic3r::GUI::BackupFonts::backup_fonts; };
     for (auto &item : m_input.styles) {
         size_t index = &item - &m_input.styles.front();
         ExPolygons &shapes = name_shapes[index];
-        shapes = text2shapes(item.font, m_input.text.c_str(), item.prop, was_canceled);
-
+        EmbossShape emboss_shape;
+        auto &      ff             = *item.font.font_file;
+        double      standard_scale = get_text_shape_scale(item.prop, ff);
+        shapes                     = support_backup_fonts ? text2shapes(emboss_shape, item.font, m_input.text.c_str(), item.prop, was_canceled, ft_fn, standard_scale)
+                                           :text2shapes(emboss_shape, item.font, m_input.text.c_str(), item.prop, was_canceled);
         // create image description
         StyleManager::StyleImage &image = m_images[index];
         BoundingBox &bounding_box = image.bounding_box;
@@ -47,7 +52,7 @@ void CreateFontStyleImagesJob::process(Ctl &ctl)
         for (ExPolygon &shape : shapes) shape.translate(-bounding_box.min);
 
         // calculate conversion from FontPoint to screen pixels by size of font
-        double scale = get_text_shape_scale(item.prop, *item.font.font_file);
+        double scale  = get_text_shape_scale(item.prop, *item.font.font_file) * m_input.ppm *0.5;
         scales[index] = scale;
 
         //double scale = font_prop.size_in_mm * SCALING_FACTOR;

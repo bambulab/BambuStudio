@@ -849,16 +849,23 @@ struct TextInfo
     float       m_embeded_depth = 0.f;
     float       m_rotate_angle    = 0;
     float       m_text_gap        = 0.f;
-    bool        m_is_surface_text = false;
-    bool        m_keep_horizontal = false;
+    bool        m_is_surface_text = false;//for old
+    bool        m_keep_horizontal = false;//for old
+    enum TextType {
+        HORIZONAL = 0, // Default
+        SURFACE,
+        SURFACE_HORIZONAL,
+        SURFACE_CHAR,
+    };
+    int         m_surface_type    = 1; // bool m_is_surface_text = false;//bool m_keep_horizontal = false;
     std::string m_text;
 
     RaycastResult m_rr;
     template<typename Archive> void serialize(Archive &ar) {
-        ar(m_font_name, m_font_version, m_font_size, m_curr_font_idx, m_bold, m_italic, m_thickness, m_embeded_depth, m_rotate_angle, m_text_gap, m_is_surface_text,
-           m_keep_horizontal, m_text, m_rr);
+        ar(m_font_name, m_font_version, m_font_size, m_curr_font_idx, m_bold, m_italic, m_thickness, m_embeded_depth, m_rotate_angle, m_text_gap, m_surface_type,
+           m_text, m_rr);
     }
-    std::optional<TextConfiguration> text_configuration;
+    TextConfiguration text_configuration;
 };
 
 // An object STL, or a modifier volume, over which a different set of parameters shall be applied.
@@ -1055,7 +1062,7 @@ public:
     void convert_from_meters();
 
     void set_text_configuration(const TextConfiguration text_configuration);
-    std::optional<TextConfiguration> &get_text_configuration() { return m_text_info.text_configuration; }
+    TextConfiguration& get_text_configuration() { return m_text_info.text_configuration; }
     void set_text_info(const TextInfo& text_info) { m_text_info = text_info; }
     void  clear_text_info() { m_text_info.m_text = ""; }
     const TextInfo& get_text_info() const { return m_text_info; }

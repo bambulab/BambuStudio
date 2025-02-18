@@ -8,6 +8,7 @@
 #include "WxFontUtils.hpp"
 #include "slic3r/GUI/3DScene.hpp" // ::glsafe
 #include "slic3r/GUI/Jobs/CreateFontStyleImagesJob.hpp"
+#include "slic3r/GUI/Jobs/CreateFontNameImageJob.hpp"
 #include "slic3r/GUI/ImGuiWrapper.hpp" // check of font ranges
 #include "slic3r/GUI/OpenGLManager.hpp"
 #include <boost/assign.hpp>
@@ -210,8 +211,10 @@ void StyleManager::load_valid_style()
 
 bool StyleManager::load_style(size_t style_index)
 {
-    if (style_index >= m_styles.size()) return false;
-    if (!load_style(m_styles[style_index])) return false;
+    if (style_index >= m_styles.size())
+        return false;
+    if (!load_style(m_styles[style_index]))
+        return false;
     m_style_cache.style_index    = style_index;
     m_style_cache.stored_wx_font = m_style_cache.wx_font; // copy
     m_last_style_index           = style_index;
@@ -220,8 +223,7 @@ bool StyleManager::load_style(size_t style_index)
 
 bool StyleManager::load_style(const Style &style) {
     if (style.type == EmbossStyle::Type::file_path) {
-        std::unique_ptr<FontFile> font_ptr =
-            create_font_file(style.path.c_str());
+        std::unique_ptr<FontFile> font_ptr = create_font_file(style.path.c_str());
         if (font_ptr == nullptr) return false;
         m_style_cache.wx_font = {};
         m_style_cache.font_file =
@@ -249,6 +251,15 @@ bool StyleManager::load_style(const Style &style, const wxFont &font)
     m_style_cache.stored_wx_font = {};
     m_style_cache.truncated_name.clear();
     return true;
+}
+
+Slic3r::Emboss::FontFileWithCache Slic3r::GUI::Emboss::StyleManager::get_font_file(wxString name) {
+    for (int i = 0; i < m_styles.size(); i++) {
+        if (m_styles[i].truncated_name == name .utf8_string()) {
+            std::cout << "";
+        }
+    }
+    return Slic3r::Emboss::FontFileWithCache();
 }
 
 bool StyleManager::is_font_changed() const
@@ -436,7 +447,7 @@ float StyleManager::get_imgui_font_size(const FontProp &prop, const FontFile &fi
     return c1 * std::abs(prop.size_in_mm) / 0.3528f * scale;
 }
 
-ImFont *StyleManager::create_imgui_font(const std::string &text, double scale)
+ImFont *StyleManager::create_imgui_font(const std::string &text, double scale, bool support_backup_fonts)
 {
     // inspiration inside of ImGuiWrapper::init_font
     auto& ff = m_style_cache.font_file;
@@ -456,7 +467,7 @@ ImFont *StyleManager::create_imgui_font(const std::string &text, double scale)
                                 ImFontAtlasFlags_NoPowerOfTwoHeight;
 
     const FontProp &font_prop = m_style_cache.style.prop;
-    float font_size = get_imgui_font_size(font_prop, font_file, scale);
+    float font_size = 36;//use fix font size get_imgui_font_size(font_prop, font_file, scale);
     if (font_size < min_imgui_font_size)
         font_size = min_imgui_font_size;
     if (font_size > max_imgui_font_size)
@@ -473,10 +484,27 @@ ImFont *StyleManager::create_imgui_font(const std::string &text, double scale)
         font_config.GlyphExtraSpacing.y = coef * (*font_prop.line_gap);
 
     font_config.FontDataOwnedByAtlas = false;
+    ImFont *font{nullptr};
+    if (support_backup_fonts) {
+        const std::vector<unsigned char> &firsr_buffer = *font_file.data;
+        std::vector<unsigned char> new_buffer;
+        new_buffer.resize(firsr_buffer.size());
+        memcpy(new_buffer.data(), firsr_buffer.data(), firsr_buffer.size() * sizeof(unsigned char));
+        for (int i = 0; i < Slic3r::GUI::BackupFonts::backup_fonts.size(); i++) {
+            if (Slic3r::GUI::BackupFonts::backup_fonts[i].has_value()) {
+                auto &                            temp_ff        = Slic3r::GUI::BackupFonts::backup_fonts[i];
+                const FontFile &                  temp_font_file = *temp_ff.font_file;
+                const std::vector<unsigned char> &temp_buffer    = *temp_font_file.data;
+                new_buffer.resize(temp_buffer.size());
+                memcpy(new_buffer.data(), temp_buffer.data(), temp_buffer.size() * sizeof(unsigned char));
+            }
+        }
+        font = m_style_cache.atlas.AddFontFromMemoryTTF((void *) new_buffer.data(), new_buffer.size(), font_size, &font_config, m_style_cache.ranges.Data);
+    } else {
+        const std::vector<unsigned char> &buffer = *font_file.data;
+        font = m_style_cache.atlas.AddFontFromMemoryTTF((void *) buffer.data(), buffer.size(), font_size, &font_config, m_style_cache.ranges.Data);
+    }
 
-    const std::vector<unsigned char> &buffer = *font_file.data;
-    ImFont * font = m_style_cache.atlas.AddFontFromMemoryTTF(
-        (void *) buffer.data(), buffer.size(), font_size, &font_config, m_style_cache.ranges.Data);
 
     unsigned char *pixels;
     int            width, height;
@@ -806,6 +834,7 @@ void store_styles(AppConfig &cfg, const StyleManager::Styles &styles)
         section_name = create_section_name(index);
         ++index;
     }
+    cfg.set_dirty();
 }
 
 void make_unique_name(const StyleManager::Styles& styles, std::string &name)

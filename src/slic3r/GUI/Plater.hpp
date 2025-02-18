@@ -822,6 +822,8 @@ public:
 
     void toggle_non_manifold_edges();
     bool is_show_non_manifold_edges();
+    void toggle_text_cs();
+    bool is_show_text_cs();
     void toggle_show_wireframe();
     bool is_show_wireframe() const;
     void enable_wireframe(bool status);

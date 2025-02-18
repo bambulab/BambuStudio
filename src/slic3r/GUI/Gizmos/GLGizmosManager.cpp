@@ -230,7 +230,8 @@ void GLGizmosManager::reset_all_states()
         open_gizmo(current);
 
     activate_gizmo(Undefined);
-    m_hover = Undefined;
+    //do not clear hover state, as Emboss gizmo can be used without selection
+    //m_hover = Undefined;
 }
 
 bool GLGizmosManager::open_gizmo(EType type)
@@ -340,6 +341,13 @@ bool GLGizmosManager::handle_shortcut(int key)
 
     if (it == m_gizmos.end())
         return false;
+
+    // allowe open shortcut even when selection is empty
+    if (Text == it - m_gizmos.begin()) {
+        if (dynamic_cast<GLGizmoText *>(m_gizmos[Text].get())->on_shortcut_key()) {
+            return true;
+        }
+    }
 
     EType gizmo_type = EType(it - m_gizmos.begin());
     return open_gizmo(gizmo_type);
@@ -1365,6 +1373,12 @@ void GLGizmosManager::update_on_off_state(size_t idx)
     if (!m_enabled)
         return;
 
+    if (is_text_first_clicked(idx)) { // open text gizmo
+        GLGizmoBase *gizmo_text= m_gizmos[EType::Text].get();
+        if (dynamic_cast<GLGizmoText *>(gizmo_text)->on_shortcut_key()) {//create text on mesh
+            return;
+        }
+    }
     if (is_svg_selected(idx)) {// close svg gizmo
         open_gizmo(EType::Svg);
         return;
@@ -1427,6 +1441,10 @@ bool GLGizmosManager::grabber_contains_mouse() const
 
     GLGizmoBase* curr = get_current();
     return (curr != nullptr) ? (curr->get_hover_id() != -1) : false;
+}
+
+bool GLGizmosManager::is_text_first_clicked(int idx) const {
+    return m_current == Undefined && idx == Text;
 }
 
 bool GLGizmosManager::is_svg_selected(int idx) const {

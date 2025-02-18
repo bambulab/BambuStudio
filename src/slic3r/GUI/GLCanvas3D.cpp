@@ -4104,6 +4104,9 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                     evt.ShiftDown() && evt.AltDown() && keyCode == WXK_RETURN) {
                     wxGetApp().plater()->toggle_show_wireframe();
                     m_dirty = true;
+                } else if ((evt.ShiftDown() && evt.ControlDown() && keyCode == 'T')) {
+                    wxGetApp().plater()->toggle_text_cs();
+                    m_dirty = true;
                 } else if ((evt.ShiftDown() && evt.ControlDown() && keyCode == 'L')) {
                     wxGetApp().plater()->toggle_non_manifold_edges();
                     m_dirty = true;
@@ -11352,6 +11355,15 @@ ModelVolume *get_model_volume(const GLVolume &v, const ModelObject& object) {
         return nullptr;
 
     return object.volumes[volume_idx];
+}
+
+ModelVolume *get_selected_model_volume(const GLCanvas3D &canvas)
+{
+    auto gl_volume = get_selected_gl_volume(canvas);
+    if (gl_volume) {
+        return get_model_volume(*gl_volume, canvas.get_model()->objects);
+    }
+    return nullptr;
 }
 
 ModelVolume *get_model_volume(const GLVolume &v, const ModelObjectPtrs &objects)

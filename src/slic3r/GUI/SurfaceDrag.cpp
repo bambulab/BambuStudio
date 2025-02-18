@@ -432,7 +432,8 @@ void do_local_z_move(Selection &selection, double relative_move) {
 
 TransformationType get_drag_transformation_type(const Selection &selection)
 {
-    return is_embossed_object(selection) ?
+    bool is_embossed = is_embossed_object(selection);
+    return is_embossed ?
         TransformationType::Instance_Relative_Joint :
         TransformationType::Local_Relative_Joint;
 }
@@ -715,3 +716,16 @@ const Transform3d *get_fix_transformation(const Selection &selection) {
 }
 
 } // namespace
+
+namespace Slic3r::GUI {
+Transform3d get_drag_volume_transformation(Transform3d                       world,
+                                           const Vec3d &                     world_dir,
+                                           const Vec3d &                     world_position,
+                                           const std::optional<Transform3d> &fix,
+                                           const Transform3d &               instance_inv,
+                                           std::optional<float>              current_angle,
+                                           const std::optional<double> &     up_limit)
+{
+    return get_volume_transformation(world, world_dir, world_position, fix, instance_inv, current_angle, up_limit);
+}
+} // namespace Slic3r::GUI

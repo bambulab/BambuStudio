@@ -121,6 +121,7 @@ public:
     const wxFont &get_wx_font()        const { return m_style_cache.wx_font; }
     const wxFont &get_stored_wx_font() const { return m_style_cache.stored_wx_font; }
     Slic3r::Emboss::FontFileWithCache &get_font_file_with_cache()   { return m_style_cache.font_file; }
+    Slic3r::Emboss::FontFileWithCache get_font_file(wxString name);
     bool has_collections() const { return m_style_cache.font_file.font_file != nullptr &&
                                           m_style_cache.font_file.font_file->infos.size() > 1; }
 
@@ -156,7 +157,7 @@ public:
     // Extend font atlas when not in glyph range
     ImFont *get_imgui_font();
     // initialize font range by unique symbols in text
-    ImFont *create_imgui_font(const std::string& text, double scale);
+    ImFont *create_imgui_font(const std::string &text, double scale, bool support_backup_fonts);
 
     // init truncated names of styles
     void init_trunc_names(float max_width);
