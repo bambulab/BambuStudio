@@ -84,6 +84,8 @@ static const int g_max_flush_count = 4;
 static const size_t g_max_label_object = 64;
 static const double smooth_speed_step = 10;
 static const double not_split_length = scale_(1.0);
+static const double max_step_length = scale_(1.0); // cut path if the path too long
+static const double min_step_length = scale_(0.4); // cut step
 
 Vec2d travel_point_1;
 Vec2d travel_point_2;
@@ -5229,37 +5231,24 @@ static bool need_smooth_speed(const ExtrusionPath &other_path, const ExtrusionPa
     return false;
 }
 
-ExtrusionPaths GCode::split_and_mapping_speed(double &other_path_v, double &final_v, ExtrusionPath &this_path, double max_smooth_length, bool split_from_left)
+void GCode::split_and_mapping_speed(double other_path_v, double final_v, ExtrusionPaths &this_path, double max_smooth_length, ExtrusionPaths &interpolated_paths, bool split_from_left)
 {
+    if (this_path.empty() || max_smooth_length == 0)
+        return;
+
     ExtrusionPaths splited_path;
-    if (this_path.length() <= 0 || this_path.polyline.points.size() < 2) {
-        return splited_path;
-    }
 
-    // reverse if this slowdown the speed
-    Polyline input_polyline = this_path.polyline;
-    if (!split_from_left)
-        std::reverse(input_polyline.begin(), input_polyline.end());
-
-    double this_path_x = scale_(get_speed_coor_x(final_v));
-    double x_base      = scale_(get_speed_coor_x(other_path_v));
-
-    double smooth_length = this_path_x - x_base;
-
-    // this length not support to get final v, adjust final v
-    if (smooth_length > max_smooth_length)
-        final_v = mapping_speed(unscale_(x_base + max_smooth_length));
-
-    double max_step_length = scale_(1.0); // cut path if the path too long
-    double min_step_length = scale_(0.4); // cut step
-
+    // get params
+    double this_path_x         = scale_(get_speed_coor_x(final_v));
+    double x_base              = scale_(get_speed_coor_x(other_path_v));
+    double smooth_length       = this_path_x - x_base;
     double smooth_length_count = 0;
     double split_line_speed    = 0;
-    Point  line_start_pt       = input_polyline.points.front();
-    Point  line_end_pt         = input_polyline.points[1];
-    bool   get_next_line       = false;
-    size_t end_pt_idx          = 1;
-
+    // this length not support to get final v, adjust final v
+    if( smooth_length > max_smooth_length ) {
+        smooth_length = max_smooth_length;
+        final_v = mapping_speed(unscale_(x_base + max_smooth_length));
+    }
     auto insert_speed = [this](double line_lenght, double &pos_x, double &smooth_length_count, double target_v) {
         pos_x += line_lenght;
         double pos_x_speed = mapping_speed(unscale_(pos_x));
@@ -5271,139 +5260,258 @@ ExtrusionPaths GCode::split_and_mapping_speed(double &other_path_v, double &fina
         return pos_x_speed;
     };
 
-    while (split_line_speed < final_v && end_pt_idx < input_polyline.size()) {
-        // move to next line
-        if (get_next_line) {
-            line_start_pt = input_polyline.points[end_pt_idx - 1];
-            line_end_pt   = input_polyline.points[end_pt_idx];
-        }
-        //This line is cut off as a speed transition area
-        Polyline cuted_polyline;
-        Line     line(line_start_pt, line_end_pt);
+    //check line length
+    auto length_enough = [this](double length) {
+        if (length < min_step_length || length - min_step_length < min_step_length / 2)
+            return false;
 
-        cuted_polyline.append(line_start_pt);
-        // split polyline and set speed
-        if (line.length() < max_step_length || line.length() - min_step_length < min_step_length / 2) {
-            split_line_speed = insert_speed(line.length(), x_base, smooth_length_count, final_v);
-            end_pt_idx++;
-            get_next_line    = true;
-            cuted_polyline.append(line.b);
+        return true;
+    };
+
+    ExtrusionPaths left_paths;
+    for (int idx = 0; idx < this_path.size(); idx++) {
+        ExtrusionPath &extrusion = this_path[idx];
+
+        // just in case, polyline error
+        if (extrusion.polyline.points.size() < 2)
+            continue;
+
+        // stop and push the paths back
+        if (smooth_length_count >= smooth_length) {
+            left_paths.insert(left_paths.end(), this_path.begin() + idx, this_path.end());
+            this_path = std::move(left_paths);
+            break;
+        }
+
+        // the path is too short
+        if (!length_enough(extrusion.length())) {
+            split_line_speed = insert_speed(extrusion.length(), x_base, smooth_length_count, final_v);
+            splited_path.emplace_back(extrusion);
+            splited_path.back().smooth_speed = split_line_speed;
+            // clear this_path while the extrusion is last one
+            if (idx < this_path.size() - 1)
+                continue;
+
+            this_path.clear();
+            break;
+        }
+
+        // reverse if this slowdown the speed
+        Polyline input_polyline = extrusion.polyline;
+        if (!split_from_left)
+            std::reverse(input_polyline.begin(), input_polyline.end());
+
+        Point  line_start_pt = input_polyline.points.front();
+        Point  line_end_pt   = input_polyline.points[1];
+        bool   get_next_line = false;
+        size_t end_pt_idx    = 1;
+
+        // split long extrusion
+        Point last_point = line_start_pt;
+        while (split_line_speed < final_v && end_pt_idx < input_polyline.size()) {
+            // move to next line
+            if (get_next_line) {
+                line_start_pt = input_polyline.points[end_pt_idx - 1];
+                line_end_pt   = input_polyline.points[end_pt_idx];
+            }
+            // This line is cut off as a speed transition area
+            Polyline cuted_polyline;
+            Line     line(line_start_pt, line_end_pt);
+
+            cuted_polyline.append(line_start_pt);
+            // split polyline and set speed
+            if (!length_enough(line.length())) {
+                split_line_speed = insert_speed(line.length(), x_base, smooth_length_count, final_v);
+                end_pt_idx++;
+                get_next_line = true;
+                cuted_polyline.append(line.b);
+            } else {
+                // path is too long, split it
+                double rate     = min_step_length / line.length();
+                Point  insert_p = line.a + (line.b - line.a) * rate;
+
+                split_line_speed = insert_speed(min_step_length, x_base, smooth_length_count, final_v);
+                line_start_pt    = insert_p;
+                get_next_line    = false;
+                cuted_polyline.append(insert_p);
+            }
+            // reverse back
+            last_point = cuted_polyline.last_point();
+            if (!split_from_left)
+                std::reverse(cuted_polyline.begin(), cuted_polyline.end());
+            ExtrusionPath path_step(cuted_polyline, extrusion);
+
+            path_step.smooth_speed = split_line_speed;
+            splited_path.push_back(std::move(path_step));
+        }
+
+        if (last_point == input_polyline.last_point()){
+            if (idx == this_path.size() - 1)
+                this_path.clear();
+            continue;
+        }
+        // split polyline
+        Polyline p1, p2;
+        extrusion.polyline.split_at(last_point, &p1, &p2);
+
+        if (split_from_left) {
+            //update split point to avoid travel path
+            splited_path.back().polyline.points.back() = last_point;
+            ExtrusionPath polyline_left(p2, extrusion);
+            left_paths.emplace_back(polyline_left);
         } else {
-            // path is too long, split it
-            double rate     = min_step_length / line.length();
-            Point insert_p = line.a + (line.b - line.a) * rate;
-
-            split_line_speed = insert_speed(min_step_length, x_base, smooth_length_count, final_v);
-            line_start_pt = insert_p;
-            get_next_line    = false;
-            cuted_polyline.append(insert_p);
+            splited_path.back().polyline.points.front() = last_point;
+            ExtrusionPath polyline_left(p1, extrusion);
+            left_paths.emplace_back(polyline_left);
         }
 
-        ExtrusionPath path_step(cuted_polyline, this_path);
-        path_step.smooth_speed = split_line_speed;
-        splited_path.push_back(std::move(path_step));
+        left_paths.insert(left_paths.end(), this_path.begin() + idx + 1, this_path.end());
+
+        this_path = std::move(left_paths);
+        break;
     }
 
-    // reverse path back
-    Polyline p1, p2;
-    Point &  split_point = splited_path.back().polyline.points.back();
-    this_path.polyline.split_at(split_point, &p1, &p2);
-    if (!split_from_left) {
-        this_path.polyline = p1;
-        std::reverse(splited_path.begin(), splited_path.end());
-        for (ExtrusionPath &path : splited_path) { std::reverse(path.polyline.points.begin(), path.polyline.points.end()); }
-    } else {
-        this_path.polyline = p2;
-    }
+    // set left path speed
+    if (final_v != this_path.front().smooth_speed)
+        for (ExtrusionPath &left : this_path)
+            left.smooth_speed = final_v;
 
-    return splited_path;
+    interpolated_paths.insert(interpolated_paths.end(), splited_path.begin(), splited_path.end());
+
+    return;
 }
 
-ExtrusionPaths GCode::merge_same_speed_paths(const ExtrusionPaths &paths)
+std::vector<ExtrusionPaths> GCode::merge_same_speed_paths(const ExtrusionPaths &paths)
 {
-    ExtrusionPaths output_paths;
-    std::optional<ExtrusionPath> merged_path;
+    std::vector<ExtrusionPaths> paths_categroy_by_speed;
 
-    for (size_t path_idx=0; path_idx<paths.size();++path_idx){
+    std::optional<ExtrusionPaths> path_collection;
+
+    for(size_t path_idx=0; path_idx<paths.size(); ++path_idx){
         ExtrusionPath path = paths[path_idx];
         path.smooth_speed = get_path_speed(path);
 
         if(path.role() == erOverhangPerimeter){
-            if(merged_path.has_value()){
-                output_paths.push_back(std::move(*merged_path));
-                merged_path=std::nullopt;
+            if (path_collection.has_value()) {
+                paths_categroy_by_speed.emplace_back(std::move(*path_collection));
+                path_collection = std::nullopt;
             }
-            output_paths.emplace_back(path);
+
+            paths_categroy_by_speed.push_back({path});
             continue;
         }
 
-        if(!merged_path.has_value()){
-            merged_path=path;
+        if (!path_collection.has_value()) {
+            path_collection = {path};
             continue;
         }
 
-        if(merged_path->can_merge(path)){
-            merged_path->polyline.append(path.polyline);
-        }
-        else{
-            output_paths.push_back(std::move(*merged_path));
-            merged_path = path;
+        if(path_collection->back().can_merge(path)){
+            path_collection->emplace_back(path);
+        } else {
+            paths_categroy_by_speed.emplace_back(std::move(*path_collection));
+            path_collection = std::nullopt;
+            path_collection = {path};
         }
     }
 
-    if(merged_path.has_value()) 
-        output_paths.push_back(std::move(*merged_path));
+    if (path_collection.has_value())
+        paths_categroy_by_speed.emplace_back(std::move(*path_collection));
 
-    return output_paths;
+    return paths_categroy_by_speed;
 }
 
-ExtrusionPaths GCode::set_speed_transition(ExtrusionPaths &paths)
+ExtrusionPaths GCode::set_speed_transition(std::vector<ExtrusionPaths> &paths)
 {
     ExtrusionPaths interpolated_paths;
     for (int path_idx = 0; path_idx < paths.size(); path_idx++) {
         // update path
-        ExtrusionPath &path = paths[path_idx];
-
-        double this_path_speed = 0;
+        ExtrusionPaths &path = paths[path_idx]; //paths with same speed
         // 100% overhang speed will not to set smooth speed
-        if (path.role() == erOverhangPerimeter) {
-            interpolated_paths.push_back(path);
+        // overhang path will not be merged to a path collection
+        if (path.front().role() == erOverhangPerimeter) {
+            interpolated_paths.insert(interpolated_paths.end(), path.begin(), path.end());
             continue;
         }
 
-        bool smooth_left_path  = false;
-        bool smooth_right_path = false;
-        // first line do not need to smooth speed on left
-        // prev line speed may change
-        if (path_idx > 0)
-            smooth_left_path = need_smooth_speed(paths[path_idx - 1], path);
+        if (path.empty())
+            continue;
 
-        // first line do not need to smooth speed on right
-        if (path_idx < paths.size() - 1)
-            smooth_right_path = need_smooth_speed(paths[path_idx + 1], path);
+        bool smooth_left_path = path_idx > 0 && !interpolated_paths.empty() && need_smooth_speed(interpolated_paths.back(), path.front());
 
+        bool smooth_right_path = path_idx < paths.size() - 1 && need_smooth_speed(paths[path_idx + 1].front(), path.front());
+
+        if (!smooth_left_path && !smooth_right_path) {
+            interpolated_paths.insert(interpolated_paths.end(), path.begin(), path.end());
+            continue;
+        }
         // get smooth length
-        double max_smooth_path_length = path.length();
-        if (smooth_right_path && smooth_left_path) max_smooth_path_length /= 2;
+        auto get_path_length = [this](ExtrusionPaths path) {
+            return std::accumulate(path.begin(), path.end(), 0.0, [](double sum, const ExtrusionPath &p) { return sum + p.length(); });
+        };
+
+        double max_smooth_path_length = get_path_length(path);
+
+        if (smooth_right_path && smooth_left_path)
+            max_smooth_path_length /= 2;
 
         // smooth left
         ExtrusionPaths left_split_paths;
-        if (smooth_left_path) {
-            left_split_paths = split_and_mapping_speed(paths[path_idx - 1].smooth_speed, path.smooth_speed, path, max_smooth_path_length);
-            if (!left_split_paths.empty()) interpolated_paths.insert(interpolated_paths.end(), left_split_paths.begin(), left_split_paths.end());
-            max_smooth_path_length = path.length();
+        if (smooth_left_path ) {
+            split_and_mapping_speed(interpolated_paths.back().smooth_speed, path.front().smooth_speed, path, max_smooth_path_length, interpolated_paths);
+
+            //update path length
+            if (path.empty())
+                continue;
+
+            max_smooth_path_length = get_path_length(path);
         }
 
+        if (!smooth_right_path) {
+            interpolated_paths.insert(interpolated_paths.end(), path.begin(), path.end());
+            continue;
+        }
+
+        //BBS: FIX git 4827: if the path is too short, path is not smooth enough
         // smooth right
         ExtrusionPaths right_split_paths;
-        if (smooth_right_path) {
-            right_split_paths = split_and_mapping_speed(paths[path_idx + 1].smooth_speed, path.smooth_speed, path, max_smooth_path_length, false);}
+        size_t         right_end = path_idx + 1;
+        // get smoothing window
+        std::vector<ExtrusionPaths *> paths_cpoy;
+        paths_cpoy.push_back(&path);
 
-        if (!path.empty())
-            interpolated_paths.push_back(path);
+        for (; right_end < paths.size() - 1; right_end++) {
+            if (paths[right_end].front().role() == erOverhangPerimeter)
+                break;
 
-        if (!right_split_paths.empty())
-            interpolated_paths.insert(interpolated_paths.end(), right_split_paths.begin(), right_split_paths.end());
+            paths_cpoy.push_back(&paths[right_end]);
+            if (!need_smooth_speed(paths[right_end + 1].front(), paths[right_end].front()))
+                break;
+        }
+
+        path_idx += paths_cpoy.size() - 1;
+        double prev_speed = paths[path_idx + 1].front().smooth_speed;
+
+        // reverse paths
+        std::reverse(paths_cpoy.begin(), paths_cpoy.end());
+        for (ExtrusionPaths *paths_temp : paths_cpoy) { std::reverse(paths_temp->begin(), paths_temp->end()); }
+
+        // smooth right path
+        ExtrusionPaths transition_right;
+        for (size_t win_pt = 0; win_pt < paths_cpoy.size(); win_pt++) {
+            if (win_pt != 0) {
+                prev_speed = transition_right.back().smooth_speed;
+            }
+
+            split_and_mapping_speed(prev_speed, paths_cpoy[win_pt]->front().smooth_speed, *paths_cpoy[win_pt], get_path_length(*paths_cpoy[win_pt]), transition_right, false);
+
+            transition_right.insert(transition_right.end(), paths_cpoy[win_pt]->begin(), paths_cpoy[win_pt]->end());
+        }
+        std::reverse(transition_right.begin(), transition_right.end());
+
+        // reverse paths back
+        interpolated_paths.insert(interpolated_paths.end(), transition_right.begin(), transition_right.end());
+
     }
 
     return interpolated_paths;
@@ -5416,7 +5524,7 @@ void GCode::smooth_speed_discontinuity_area(ExtrusionPaths &paths) {
 
     //step 1 merge same speed path
     size_t path_tail_pos = 0;
-    ExtrusionPaths prepare_paths = merge_same_speed_paths(paths);
+    std::vector<ExtrusionPaths> prepare_paths = merge_same_speed_paths(paths);
 
     //step 2 split path
     ExtrusionPaths inter_paths;

@@ -395,7 +395,7 @@ private:
 
     //smooth speed function
     void            smooth_speed_discontinuity_area(ExtrusionPaths &paths);
-    ExtrusionPaths  merge_same_speed_paths(const ExtrusionPaths &paths);
+    std::vector<ExtrusionPaths>  merge_same_speed_paths(const ExtrusionPaths &paths);
     // Extruding multiple objects with soluble / non-soluble / combined supports
     // on a multi-material printer, trying to minimize tool switches.
     // Following structures sort extrusions by the extruder ID, by an order of objects and object islands.
@@ -577,8 +577,8 @@ private:
     int get_highest_bed_temperature(const bool is_first_layer,const Print &print) const;
 
     std::string _extrude(const ExtrusionPath &path, std::string description = "", double speed = -1, bool set_holes_and_compensation_speed = false, bool is_first_slope = false);
-    ExtrusionPaths set_speed_transition(ExtrusionPaths &paths);
-    ExtrusionPaths split_and_mapping_speed(double &other_path_v, double &final_v, ExtrusionPath &this_path, double max_smooth_length, bool split_from_left = true);
+    ExtrusionPaths set_speed_transition(std::vector<ExtrusionPaths> &paths);
+    void split_and_mapping_speed(double other_path_v, double final_v, ExtrusionPaths &this_path, double max_smooth_length, ExtrusionPaths &interpolated_paths, bool split_from_left = true);
     double get_path_speed(const ExtrusionPath &path);
     double get_overhang_degree_corr_speed(float speed, double path_degree);
     double mapping_speed(double dist);
