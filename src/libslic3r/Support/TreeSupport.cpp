@@ -2833,9 +2833,12 @@ void TreeSupport::drop_nodes()
         {
             const SupportNode& node = *p_node;
 
-            if (support_on_buildplate_only && !node.to_buildplate) //Can't rest on model and unable to reach the build plate. Then we must drop the node and leave parts unsupported.
-            {
-                unsupported_branch_leaves.push_front({ layer_nr, p_node });
+            if (!node.to_buildplate) {
+                // Can't rest on model and unable to reach the build plate. Then we must drop the node and leave parts unsupported.
+                if (support_on_buildplate_only) {
+                    unsupported_branch_leaves.push_front({layer_nr, p_node});
+                }
+                //If permitted to fall on the model, downward growth ceases.
                 continue;
             }
             if (node.to_buildplate || parts.empty()) //It's outside, so make it go towards the build plate.
@@ -3271,9 +3274,6 @@ void TreeSupport::drop_nodes()
                 direction_to_outer     = to_outside - node.position;
                 double dist_to_outer   = unscale_(direction_to_outer.cast<double>().norm());
                 next_node->radius      = std::max(node.radius, std::min(next_node->radius, dist_to_outer));
-                Polygon circle         = make_circle(scale_(next_node->radius), 0.05 * scale_(next_node->radius));
-                circle.translate(next_layer_vertex);
-                if (diff_ex(to_expolygons({circle}), next_collision).empty()) return;
                 get_max_move_dist(next_node);
                 m_ts_data->m_mutex.lock();
                 contact_nodes[layer_nr_next].push_back(next_node);
