@@ -288,6 +288,7 @@ private:
 
     void update_on_off_state(size_t idx);
     bool grabber_contains_mouse() const;
+    bool is_text_first_clicked(int idx) const;
     bool is_svg_selected(int idx) const;
     std::string on_hover(int idx);
     void on_click(int idx);

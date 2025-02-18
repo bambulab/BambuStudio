@@ -3928,6 +3928,7 @@ public:
     bool                        show_render_statistic_dialog{ false };
     bool                        show_wireframe{ false };
     bool                        wireframe_enabled{ true };
+    bool                        show_text_cs{false};
     bool                        show_non_manifold_edges{false};
     static const std::regex pattern_bundle;
     static const std::regex pattern_3mf;
@@ -10497,20 +10498,18 @@ bool Plater::priv::can_delete_all() const
 
 bool Plater::priv::can_edit_text() const
 {
-    const Selection &selection = view3D->get_canvas3d()->get_selection();
-    if (selection.is_single_full_instance())
-        return true;
-
-    if (selection.is_single_volume()) {
-        const GLVolume *gl_volume      = selection.get_volume(*selection.get_volume_idxs().begin());
-        int             out_object_idx = gl_volume->object_idx();
-        ModelObject *   model_object   = selection.get_model()->objects[out_object_idx];
-        int             out_volume_idx = gl_volume->volume_idx();
-        ModelVolume *   model_volume   = model_object->volumes[out_volume_idx];
-        if (model_volume)
-            return !model_volume->get_text_info().m_text.empty();
-    }
-    return false;
+    if (wxGetApp().plater() == nullptr)
+        return false;
+    const Selection &selection = wxGetApp().plater()->get_selection();
+    if (selection.volumes_count() != 1)
+        return false;
+    const GLVolume *gl_volume = selection.get_first_volume();
+    if (gl_volume == nullptr)
+        return false;
+    const ModelVolume *mv = get_model_volume(*gl_volume, selection.get_model()->objects);
+    if (mv == nullptr)
+        return false;
+    return mv->is_text();
 }
 
 bool Plater::priv::can_add_plate() const
@@ -17505,6 +17504,14 @@ void Plater::toggle_non_manifold_edges() {
 
 bool Plater::is_show_non_manifold_edges() {
     return p->show_non_manifold_edges;
+}
+
+void Plater::toggle_text_cs() {
+    p->show_text_cs = !p->show_text_cs;
+}
+
+bool Plater::is_show_text_cs() {
+    return p->show_text_cs;
 }
 
 void Plater::toggle_show_wireframe() {

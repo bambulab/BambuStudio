@@ -8,7 +8,7 @@
 #include <wx/fontenc.h>
 #include "JobNew.hpp"
 #include "libslic3r/Point.hpp" // Vec2i32
-
+#include "libslic3r/Emboss.hpp"
 namespace Slic3r::GUI {
 
 /// <summary>
@@ -44,6 +44,14 @@ struct FontImageData
 
     std::shared_ptr<std::atomic<bool>> cancel = nullptr;
     std::shared_ptr<bool> is_created = nullptr;
+    bool  generate_origin_text = false;
+};
+class BackupFonts
+{
+public:
+    static void generate_backup_fonts();
+    static Slic3r::Emboss::FontFileWithCache              gener_font_with_cache(const wxString &font_name, const wxFontEncoding& encoding);
+    static std::vector<Slic3r::Emboss::FontFileWithCache> backup_fonts;
 };
 
 /// <summary>

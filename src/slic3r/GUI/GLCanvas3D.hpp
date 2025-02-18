@@ -1331,6 +1331,7 @@ const ModelVolume *get_model_volume(const GLVolume &v, const Model &model);
 ModelVolume *get_model_volume(const ObjectID &volume_id, const ModelObjectPtrs &objects);
 ModelVolume *get_model_volume(const GLVolume &v, const ModelObjectPtrs &objects);
 ModelVolume *get_model_volume(const GLVolume &v, const ModelObject &object);
+ModelVolume *get_selected_model_volume(const GLCanvas3D &canvas);
 
 GLVolume *get_first_hovered_gl_volume(const GLCanvas3D &canvas);
 GLVolume *get_selected_gl_volume(const GLCanvas3D &canvas);

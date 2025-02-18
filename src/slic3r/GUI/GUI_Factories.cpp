@@ -1540,6 +1540,7 @@ wxMenu* MenuFactory::object_menu()
     append_menu_items_convert_unit(&m_object_menu);
     append_menu_items_flush_options(&m_object_menu);
     append_menu_item_invalidate_cut_info(&m_object_menu);
+    append_menu_item_edit_text(&m_object_menu);
     append_menu_item_edit_svg(&m_object_menu);
     append_menu_item_change_filament(&m_object_menu);
     {
@@ -1553,7 +1554,7 @@ wxMenu* MenuFactory::sla_object_menu()
 {
     append_menu_items_convert_unit(&m_sla_object_menu);
     append_menu_item_settings(&m_sla_object_menu);
-    //append_menu_item_edit_text(&m_sla_object_menu);
+    append_menu_item_edit_text(&m_sla_object_menu);
     append_menu_item_edit_svg(&m_object_menu);
     //update_menu_items_instance_manipulation(mtObjectSLA);
     return &m_sla_object_menu;

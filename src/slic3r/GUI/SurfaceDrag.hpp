@@ -165,6 +165,16 @@ TransformationType get_drag_transformation_type(const Selection &selection);
 /// <param name="start_angle">Cache for start dragging angle</param>
 /// <param name="selection">Selected only Actual embossed volume</param>
 void dragging_rotate_gizmo(double gizmo_angle, std::optional<float>& current_angle, std::optional<float> &start_angle, Selection &selection);
+Transform3d get_drag_volume_transformation(Transform3d                       world,          // from volume
+                                           const Vec3d &                     world_dir,      // wanted new direction
+                                           const Vec3d &                     world_position, // wanted new position
+                                           const std::optional<Transform3d> &fix,            // [optional] fix matrix
+                                           // Invers transformation of text volume instance
+                                           // Help convert world transformation to instance space
+                                           const Transform3d &instance_inv,
+                                           // initial rotation in Z axis
+                                           std::optional<float>         current_angle,
+                                           const std::optional<double> &up_limit = UP_LIMIT);
 
 } // namespace Slic3r::GUI
 #endif // slic3r_SurfaceDrag_hpp_

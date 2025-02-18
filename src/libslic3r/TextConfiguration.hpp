@@ -75,15 +75,13 @@ struct FontProp
     }
 
     bool operator==(const FontProp& other) const {
-        auto case0 = (other.boldness == 0 && !boldness.has_value()) || is_approx(boldness, other.boldness);
-        auto case1 = (other.skew == 0 && !skew.has_value()) || is_approx(skew, other.skew);
-        auto case2 = face_name == other.face_name;
-        return
-            char_gap == other.char_gap &&
-            line_gap == other.line_gap &&
-            per_glyph == other.per_glyph &&
-            align == other.align && is_approx(size_in_mm, other.size_in_mm) &&
-               case0 && case1 && case2;
+        auto case0 = is_approx(boldness.value_or(0), other.boldness.value_or(0));
+        auto case1 = is_approx(skew.value_or(0), other.skew.value_or(0));
+        auto case2 = line_gap.value_or(0) == other.line_gap.value_or(0);
+        auto case3 = char_gap.value_or(0) == other.char_gap.value_or(0);
+        return            per_glyph == other.per_glyph &&
+            align == other.align && is_approx(size_in_mm, other.size_in_mm)
+            && case0 && case1 && case2  &&case3;
     }
 
     // undo / redo stack recovery
@@ -148,8 +146,7 @@ struct EmbossStyle
 
     bool operator==(const EmbossStyle &other) const
     {
-        auto   case0 = prop == other.prop;
-        auto   case1 = path == other.path;
+        auto case0 = prop == other.prop;
         return type == other.type && case0 && name == other.name;
     }
 

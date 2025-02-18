@@ -188,6 +188,8 @@ void AppConfig::set_defaults()
         set_bool("zoom_to_mouse", false);
     if (get("show_shells_in_preview").empty())
         set_bool("show_shells_in_preview", true);
+    if (get("enable_text_styles").empty())
+        set_bool("enable_text_styles", false);
     if (get("enable_lod").empty())
         set_bool("enable_lod", true);
     if (get("gamma_correct_in_import_obj").empty())
@@ -206,6 +208,10 @@ void AppConfig::set_defaults()
     if (get("show_hints").empty())
         set_bool("show_hints", false);
 //#endif
+    if (get("support_backup_fonts").empty())
+        set_bool("support_backup_fonts", true);
+    if (get("custom_back_font_name").empty())
+        set("custom_back_font_name", "");
     if (get("enable_multi_machine").empty())
         set_bool("enable_multi_machine", false);
 

@@ -1,6 +1,5 @@
 #include "CreateFontNameImageJob.hpp"
 
-#include "libslic3r/Emboss.hpp"
 // rasterization of ExPoly
 #include "libslic3r/SLA/AGGRaster.hpp"
 
@@ -19,7 +18,7 @@
 using namespace Slic3r;
 using namespace Slic3r::GUI;
 
-const std::string CreateFontImageJob::default_text = "AaBbCc 123";
+const std::string CreateFontImageJob::default_text = "AaBbCc123";
 
 CreateFontImageJob::CreateFontImageJob(FontImageData &&input)
     : m_input(std::move(input))
@@ -31,19 +30,10 @@ CreateFontImageJob::CreateFontImageJob(FontImageData &&input)
 
 void CreateFontImageJob::process(Ctl &ctl)
 {
-    if (!wxFontEnumerator::IsValidFacename(m_input.font_name))
+    auto font_file_with_cache = Slic3r::GUI::BackupFonts::gener_font_with_cache(m_input.font_name, m_input.encoding);
+    if (!font_file_with_cache.has_value()) {
         return;
-    // Select font
-    wxFont wx_font(wxFontInfo().FaceName(m_input.font_name).Encoding(m_input.encoding));
-    if (!wx_font.IsOk())
-        return;
-
-    std::unique_ptr<Emboss::FontFile> font_file =
-        WxFontUtils::create_font_file(wx_font);
-    if (font_file == nullptr)
-        return;
-
-    Emboss::FontFileWithCache font_file_with_cache(std::move(font_file));
+    }
     // use only first line of text
     std::string& text = m_input.text;
     if (text.empty())
@@ -63,13 +53,22 @@ void CreateFontImageJob::process(Ctl &ctl)
         if (cancel->load()) return true;
         return false;
     };
-
+    auto ft_fn = []() {
+        return Slic3r::GUI::BackupFonts::backup_fonts;
+    };
     FontProp fp; // create default font parameters
-    ExPolygons shapes = Emboss::text2shapes(font_file_with_cache, text.c_str(), fp, was_canceled);
+    auto &ff  = *font_file_with_cache.font_file;
+    double standard_scale  = get_text_shape_scale(fp, ff);
+    bool        support_backup_fonts = GUI::wxGetApp().app_config->get_bool("support_backup_fonts");
+    EmbossShape emboss_shape;
+    ExPolygons shapes = support_backup_fonts ? Emboss::text2shapes(emboss_shape, font_file_with_cache, text.c_str(), fp, was_canceled, ft_fn, standard_scale):
+          Emboss::text2shapes(emboss_shape, font_file_with_cache, text.c_str(), fp, was_canceled);
+    m_input.generate_origin_text = true;
+    if (shapes.empty()) {// select some character from font e.g. default text
+        m_input.generate_origin_text = false;
+        shapes                       = Emboss::text2shapes(emboss_shape, font_file_with_cache, default_text.c_str(), fp, was_canceled, ft_fn, standard_scale);
+    }
 
-    // select some character from font e.g. default text
-    if (shapes.empty())
-        shapes = Emboss::text2shapes(font_file_with_cache, default_text.c_str(), fp, was_canceled);
     if (shapes.empty()) {
         m_input.cancel->store(true);
         return;
@@ -103,11 +102,11 @@ void CreateFontImageJob::process(Ctl &ctl)
     double pixel_dim = SCALING_FACTOR / scale;
     sla::PixelDim dim(pixel_dim, pixel_dim);
     double gamma = 1.;
-    std::unique_ptr<sla::RasterBase> r = sla::create_raster_grayscale_aa(resolution, dim, gamma);
+    std::unique_ptr<sla::RasterBase> raster = sla::create_raster_grayscale_aa(resolution, dim, gamma);
     for (ExPolygon &shape : shapes)
         shape.translate(-bounding_box.min);
     for (const ExPolygon &shape : shapes)
-        r->draw(shape);
+        raster->draw(shape);
 
     // copy rastered data to pixels
     sla::RasterEncoder encoder =
@@ -125,7 +124,7 @@ void CreateFontImageJob::process(Ctl &ctl)
             }
         return sla::EncodedRaster();
     };
-    r->encode(encoder);
+    raster->encode(encoder);
 }
 
 void CreateFontImageJob::finalize(bool canceled, std::exception_ptr &)
@@ -148,22 +147,15 @@ void CreateFontImageJob::finalize(bool canceled, std::exception_ptr &)
     glsafe(::glBindTexture(target, m_input.texture_id));
 
     GLsizei w = m_tex_size.x(), h = m_tex_size.y();
-    GLint xoffset = 0;
-    if (default_text == m_input.text) {
-        xoffset = m_input.size.x() - m_tex_size.x();// arrange right
-    }
-    else {
-        xoffset = 20; // arrange left
-    }
+    GLint   xoffset = 0; // align to left
+    auto texture_w = m_input.size.x();
     GLint yoffset = m_input.size.y() * m_input.index;
-    glsafe(::glTexSubImage2D(target, m_input.level, xoffset, yoffset, w, h,
-                             m_input.format, m_input.type, m_result.data()));
-
     // clear rest of texture
-    std::vector<unsigned char> empty_data(xoffset * h * 4, {0});
-    glsafe(::glTexSubImage2D(target, m_input.level, 0, yoffset, xoffset, h,
-                             m_input.format, m_input.type, empty_data.data()));
-
+    std::vector<unsigned char> empty_data(texture_w * m_tex_size.y() * 4, {0});
+    glsafe(::glTexSubImage2D(target, m_input.level, 0, yoffset, texture_w, h, m_input.format, m_input.type, empty_data.data()));
+    if (m_input.generate_origin_text) { // valid texture
+        glsafe(::glTexSubImage2D(target, m_input.level, xoffset, yoffset, w, h, m_input.format, m_input.type, m_result.data()));
+    }
     // bind default texture
     GLuint no_texture_id = 0;
     glsafe(::glBindTexture(target, no_texture_id));
@@ -176,3 +168,53 @@ void CreateFontImageJob::finalize(bool canceled, std::exception_ptr &)
         << "with text: '" << m_input.text << "' "
         << "texture_size " << m_input.size.x() << " x " << m_input.size.y();
 }
+
+std::vector<Slic3r::Emboss::FontFileWithCache> Slic3r::GUI::BackupFonts::backup_fonts;
+void Slic3r::GUI::BackupFonts::generate_backup_fonts() {
+    auto language = wxGetApp().app_config->get("language");
+    auto custom_back_font_name = wxGetApp().app_config->get("custom_back_font_name");
+    if (backup_fonts.empty()) {
+         size_t             idx  = language.find('_');
+         std::string        lang = (idx == std::string::npos) ? language : language.substr(0, idx);
+         std::vector<wxString> font_names;
+#ifdef _WIN32
+         font_names.emplace_back(wxString(L"宋体"));//chinese confirm
+         font_names.emplace_back(wxString::FromUTF8("MS Gothic")); // Japanese
+         font_names.emplace_back(wxString::FromUTF8("Batang")); // Korean
+         font_names.emplace_back(wxString::FromUTF8("Arial Unicode MS")); // Arabic
+#endif
+#ifdef __APPLE__
+         font_names.emplace_back(wxString::FromUTF8("Songti SC"));//chinese confirm
+         font_names.emplace_back(wxString::FromUTF8("Hiragino Sans"));        // Japanese
+         font_names.emplace_back(wxString::FromUTF8("Nanum Gothic"));           // Korean
+         font_names.emplace_back(wxString::FromUTF8("Al Bayan")); // Arabic
+#endif
+#ifdef __linux__
+         font_names.emplace_back(wxString::FromUTF8("Noto Serif CJK"));//include chinese Japanese Korean
+         font_names.emplace_back(wxString::FromUTF8(" Noto Naskh Arabic"));//Arabic
+#endif
+         if (!custom_back_font_name.empty()) {
+             font_names.emplace_back(wxString::FromUTF8(custom_back_font_name));
+         }
+         for (int i = 0; i < font_names.size(); i++) {
+             backup_fonts.emplace_back(gener_font_with_cache(font_names[i], wxFontEncoding::wxFONTENCODING_SYSTEM));
+         }
+    }
+}
+
+Slic3r::Emboss::FontFileWithCache Slic3r::GUI::BackupFonts::gener_font_with_cache(const wxString &font_name, const wxFontEncoding &encoding)
+{
+    Emboss::FontFileWithCache font_file_with_cache;
+    if (!wxFontEnumerator::IsValidFacename(font_name))
+        return font_file_with_cache;
+    // Select font
+    wxFont wx_font(wxFontInfo().FaceName(font_name).Encoding(encoding));
+    if (!wx_font.IsOk()) return font_file_with_cache;
+    std::unique_ptr<Emboss::FontFile> font_file = WxFontUtils::create_font_file(wx_font);
+    if (font_file == nullptr)
+        return font_file_with_cache;
+
+    font_file_with_cache = Emboss::FontFileWithCache(std::move(font_file));
+    return font_file_with_cache;
+}
+

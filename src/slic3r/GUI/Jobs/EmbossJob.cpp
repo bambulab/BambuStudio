@@ -3,6 +3,7 @@
 #include <type_traits>
 #include <boost/log/trivial.hpp>
 //
+#include <libslic3r/Line.hpp>
 #include <libslic3r/Model.hpp>
 #include <libslic3r/Format/OBJ.hpp> // load_obj for default mesh
 #include <libslic3r/CutSurface.hpp> // use surface cuts
@@ -176,6 +177,38 @@ bool is_valid(ModelVolumeType volume_type)
 
     BOOST_LOG_TRIVIAL(error) << "Can't create embossed volume with this type: " << (int) volume_type;
     return false;
+}
+
+
+void recreate_model_volume(ModelObject *model_object, int volume_idx, const TriangleMesh &mesh, Geometry::Transformation &text_tran, TextInfo &text_info)
+{
+    wxGetApp() .plater()->take_snapshot("Modify Text");
+
+    ModelVolume *model_volume     = model_object->volumes[volume_idx];
+    ModelVolume *new_model_volume = model_object->add_volume(mesh, false);
+    new_model_volume->set_transformation(text_tran.get_matrix());
+    new_model_volume->set_text_info(text_info);
+    new_model_volume->name = model_volume->name;
+    new_model_volume->set_type(model_volume->type());
+    new_model_volume->config.apply(model_volume->config);
+    std::swap(model_object->volumes[volume_idx], model_object->volumes.back());
+    model_object->delete_volume(model_object->volumes.size() - 1);
+    model_object->invalidate_bounding_box();
+    wxGetApp().plater()->update();
+}
+
+void create_text_volume(Slic3r::ModelObject *model_object, const TriangleMesh &mesh, Geometry::Transformation &text_tran, TextInfo &text_info)
+{
+    wxGetApp().plater()->take_snapshot("create_text_volume");
+
+    ModelVolume *new_model_volume = model_object->add_volume(mesh, false);
+    new_model_volume->set_transformation(text_tran.get_matrix());
+    new_model_volume->set_text_info(text_info);
+    new_model_volume->config.set_key_value("extruder", new ConfigOptionInt(model_object->config.extruder()));
+    new_model_volume->name = "text_shape";
+
+    model_object->invalidate_bounding_box();
+    wxGetApp().plater()->update();
 }
 
 bool check(unsigned char gizmo_type) { return gizmo_type == (unsigned char) GLGizmosManager::Svg; }
@@ -720,7 +753,7 @@ void create_volume(
     volume->calculate_convex_hull();
 
     // set a default extruder value, since user can't add it manually
-    volume->config.set_key_value("extruder", new ConfigOptionInt(0));
+    volume->config.set_key_value("extruder", new ConfigOptionInt(1));
 
     // do not allow model reload from disk
     volume->source.is_from_builtin_objects = true;
@@ -804,9 +837,14 @@ OrthoProject3d create_emboss_projection(bool is_outside, float emboss, Transform
 
 indexed_triangle_set cut_surface_to_its(const ExPolygons &shapes, const Transform3d &tr, const SurfaceVolumeData::ModelSources &sources, DataBase &input)
 {
+    return cut_surface_to_its(shapes, input.shape.scale, tr, sources, input);
+}
+
+indexed_triangle_set cut_surface_to_its(const ExPolygons &shapes, float scale, const Transform3d &tr, const SurfaceVolumeData::ModelSources &sources, DataBase &input)
+{
     assert(!sources.empty());
     BoundingBox bb          = get_extents(shapes);
-    double      shape_scale = input.shape.scale;
+    double      shape_scale = scale;
 
     const SurfaceVolumeData::ModelSource *biggest = &sources.front();
 
@@ -832,7 +870,8 @@ indexed_triangle_set cut_surface_to_its(const ExPolygons &shapes, const Transfor
         s_to_itss[source_index] = its_index;
         itss.emplace_back(std::move(its));
     }
-    if (itss.empty()) return {};
+    if (itss.empty())
+        return {};
 
     Transform3d tr_inv            = biggest->tr.inverse();
     Transform3d cut_projection_tr = tr_inv * tr;
@@ -841,8 +880,10 @@ indexed_triangle_set cut_surface_to_its(const ExPolygons &shapes, const Transfor
     BoundingBoxf3 mesh_bb    = bounding_box(itss[itss_index]);
     for (const SurfaceVolumeData::ModelSource &s : sources) {
         itss_index = s_to_itss[&s - &sources.front()];
-        if (itss_index == std::numeric_limits<size_t>::max()) continue;
-        if (&s == biggest) continue;
+        if (itss_index == std::numeric_limits<size_t>::max())
+            continue;
+        if (&s == biggest)
+            continue;
 
         Transform3d           tr            = s.tr * tr_inv;
         bool                  fix_reflected = true;
@@ -868,7 +909,8 @@ indexed_triangle_set cut_surface_to_its(const ExPolygons &shapes, const Transfor
         shapes_data = shapes; // copy
         for (ExPolygon &shape : shapes_data) {
             shape.contour.reverse();
-            for (Slic3r::Polygon &hole : shape.holes) hole.reverse();
+            for (Slic3r::Polygon &hole : shape.holes)
+                hole.reverse();
         }
         shapes_ptr = &shapes_data;
     }
@@ -1202,43 +1244,676 @@ SurfaceVolumeData::ModelSources create_sources(const ModelVolumePtrs &volumes, s
     return result;
 }
 
-void create_all_char_mesh(DataBase &input,std::vector<TriangleMesh> &result) {
-    const EmbossShape &shape = input.create_shape();//this will call letter2shapes
-    if (shape.shapes_with_ids.empty())
-        return;
-    result.clear();
-    double scale    = input.shape.scale;//1e-6
+const GLVolume *find_glvoloume_render_screen_cs(const Selection &selection, const Vec2d &screen_center, const Camera &camera, const ModelObjectPtrs &objects, Vec2d *closest_center)
+{
+    return find_closest(selection, screen_center, camera, objects, closest_center);
+}
+
+ProjectTransform calc_project_tran(DataBase &input, double real_scale)
+{
+    double scale    = real_scale; // 1e-6
     double depth    = (input.shape.projection.depth + input.shape.projection.embeded_depth) / scale;
     auto   projectZ = std::make_unique<ProjectZ>(depth);
     float  offset   = input.is_outside ? -SAFE_SURFACE_OFFSET : (SAFE_SURFACE_OFFSET - input.shape.projection.depth);
-    if (input.from_surface.has_value())
-        offset += *input.from_surface;
+    if (input.from_surface.has_value()) offset += *input.from_surface;
     Transform3d      tr = Eigen::Translation<double, 3>(0., 0., static_cast<double>(offset)) * Eigen::Scaling(scale);
-    ProjectTransform project(std::move(projectZ), tr);
-    for (auto shape : shape.shapes_with_ids) {
-        if (shape.expoly.empty())
+    ProjectTransform project_tr(std::move(projectZ), tr);
+    return project_tr;
+}
+
+void create_all_char_mesh(DataBase &input, std::vector<TriangleMesh> &result, EmbossShape &shape)
+{
+    shape = input.create_shape();//this will call letter2shapes
+    if (shape.shapes_with_ids.empty())
+        return;
+    result.clear();
+    auto   first_project_tr = calc_project_tran(input, input.shape.scale);
+
+    TextConfiguration text_configuration = input.get_text_configuration();
+    bool              support_backup_fonts = std::any_of(shape.text_scales.begin(), shape.text_scales.end(), [](float x) { return x > 0; });
+    const char *text     = input.get_text_configuration().text.c_str();
+    for (int i = 0; i < shape.shapes_with_ids.size(); i++) {
+        auto &temp_shape = shape.shapes_with_ids[i];
+        if (temp_shape.expoly.empty() && text[i] != ' ')
             continue;
-        TriangleMesh mesh(polygons2model(shape.expoly, project));
-        result.emplace_back(mesh);
+        if (support_backup_fonts) {
+            if (i < shape.text_scales.size() && shape.text_scales[i] > 0) {
+                auto temp_scale = shape.text_scales[i];
+
+                auto temp_project_tr = calc_project_tran(input, temp_scale);
+                TriangleMesh mesh(polygons2model(temp_shape.expoly, temp_project_tr));
+                result.emplace_back(mesh);
+            } else {
+                TriangleMesh mesh(polygons2model(temp_shape.expoly, first_project_tr));
+                result.emplace_back(mesh);
+            }
+        } else {
+            TriangleMesh mesh(polygons2model(temp_shape.expoly, first_project_tr));
+            result.emplace_back(mesh);
+        }
     }
 }
-GenerateTextJob::GenerateTextJob(DataUpdate &&input) : m_input(std::move(input)) {}
+
+void calc_text_lengths(std::vector<double> &text_lengths, const std::vector<TriangleMesh> &chars_mesh_result)
+{
+    text_lengths.clear();
+    for (int i = 0; i < chars_mesh_result.size(); ++i) {
+        auto box           = chars_mesh_result[i].bounding_box();
+        auto box_size      = box.size();
+        auto half_x_length = box_size[0] / 2.0f;
+        text_lengths.emplace_back(half_x_length + 1); // default
+    }
+}
+
+void calc_position_points(std::vector<Vec3d> &position_points, std::vector<double> &text_lengths, float text_gap, const Vec3d &temp_pos_dir)
+{
+    auto text_num = text_lengths.size();
+    if (text_num == 0) {
+        throw JobException("calc_position_points fail.");
+        return;
+    }
+    if (position_points.size() != text_lengths.size()) { position_points.resize(text_num); }
+    auto pos_dir = temp_pos_dir.normalized();
+
+    if (text_num % 2 == 1) {
+        position_points[text_num / 2] = Vec3d::Zero();
+        for (int i = 0; i < text_num / 2; ++i) {
+            double left_gap = text_lengths[text_num / 2 - i - 1] + text_gap + text_lengths[text_num / 2 - i];
+            if (left_gap < 0)
+                left_gap = 0;
+
+            double right_gap = text_lengths[text_num / 2 + i + 1] + text_gap + text_lengths[text_num / 2 + i];
+            if (right_gap < 0)
+                right_gap = 0;
+
+            position_points[text_num / 2 - 1 - i] = position_points[text_num / 2 - i] - left_gap * pos_dir;
+            position_points[text_num / 2 + 1 + i] = position_points[text_num / 2 + i] + right_gap * pos_dir;
+        }
+    } else {
+        for (int i = 0; i < text_num / 2; ++i) {
+            double left_gap = i == 0 ? (text_lengths[text_num / 2 - i - 1] + text_gap / 2) : (text_lengths[text_num / 2 - i - 1] + text_gap + text_lengths[text_num / 2 - i]);
+            if (left_gap < 0)
+                left_gap = 0;
+
+            double right_gap = i == 0 ? (text_lengths[text_num / 2 + i] + text_gap / 2) : (text_lengths[text_num / 2 + i] + text_gap + text_lengths[text_num / 2 + i - 1]);
+            if (right_gap < 0)
+                right_gap = 0;
+
+            if (i == 0) {
+                position_points[text_num / 2 - 1 - i] = Vec3d::Zero() - left_gap * pos_dir;
+                position_points[text_num / 2 + i]     = Vec3d::Zero() + right_gap * pos_dir;
+                continue;
+            }
+
+            position_points[text_num / 2 - 1 - i] = position_points[text_num / 2 - i] - left_gap * pos_dir;
+            position_points[text_num / 2 + i]     = position_points[text_num / 2 + i - 1] + right_gap * pos_dir;
+        }
+    }
+}
+
+GenerateTextJob::GenerateTextJob(InputInfo &&input) : m_input(std::move(input)) {}
 
 void GenerateTextJob::process(Ctl &ctl)
 {
-    create_all_char_mesh(*m_input.base, m_result);
-    if (was_canceled(ctl, *m_input.base))
-        return;
-    if (m_result.empty())
-        throw JobException("Created text volume is empty. Change text or font.");
+    if (!generate_text_points(m_input))
+       throw JobException("generate_text_volume fail.");
+    if (m_input.use_surface) {
+        if (m_input.m_text_shape.shapes_with_ids.empty())
+            throw JobException(_u8L("Font doesn't have any shape for given text.").c_str());
+    }
+    generate_mesh_according_points(m_input);
 }
 
 void GenerateTextJob::finalize(bool canceled, std::exception_ptr &eptr)
 {
-    if (!_finalize(canceled, eptr, *m_input.base))
+    if (eptr)
         return;
-    //_update_volume(std::move(m_result), m_input);
+    if (m_input.first_generate) {
+        create_text_volume(m_input.mo,  m_input.m_final_text_mesh, m_input.m_final_text_tran_in_object, m_input.text_info);
+        auto                model_object = m_input.mo;
+        m_input.m_volume_idx;
+        auto                volume_idx       = model_object->volumes.size() - 1;
+        ModelVolume *       model_volume     = model_object->volumes[volume_idx];
+        auto                add_to_selection = [model_volume](const ModelVolume *vol) { return vol == model_volume; };
+        ObjectList *        obj_list         = wxGetApp().obj_list();
+        int object_idx = wxGetApp().plater()->get_selected_object_idx();
+        wxDataViewItemArray sel              = obj_list->reorder_volumes_and_get_selection(object_idx, add_to_selection);
+        if (!sel.IsEmpty()) {
+            obj_list->select_item(sel.front());
+        }
+
+        obj_list->selection_changed();
+
+        GLCanvas3D *     canvas  = wxGetApp().plater()->get_view3D_canvas3D();
+        GLGizmosManager &manager = canvas->get_gizmos_manager();
+        if (manager.get_current_type() != GLGizmosManager::EType::Text) {
+            manager.open_gizmo(GLGizmosManager::EType::Text);
+        }
+    } else {
+        recreate_model_volume(m_input.mo, m_input.m_volume_idx, m_input.m_final_text_mesh, m_input.m_final_text_tran_in_object, m_input.text_info);
+    }
 }
 
-}} // namespace Slic3r::GUI
-} // namespace Slic3r
+bool GenerateTextJob::generate_text_points(InputInfo &input_info)
+{
+    if (input_info.m_sufface_type == GenerateTextJob::SurfaceType::None) {
+        return true;
+    }
+    auto &m_text_tran_in_object = input_info.m_text_tran_in_object;
+    auto mo                     = input_info.mo;
+    auto &m_volume_idx          = input_info.m_volume_idx;
+    auto &m_position_points      = input_info.m_position_points;
+    auto &m_normal_points        = input_info.m_normal_points;
+    auto &m_cut_points_in_world  = input_info.m_cut_points_in_world;
+    std::vector<Vec3d> m_cut_points_in_local;
+    auto &m_text_cs_to_world_tran   = input_info.m_text_tran_in_world.get_matrix();
+    auto &m_chars_mesh_result       = input_info.m_chars_mesh_result;
+    auto &m_text_position_in_world  = input_info.m_text_position_in_world;
+    auto &m_text_normal_in_world    = input_info.m_text_normal_in_world;
+    auto &m_text_gap                = input_info.m_text_gap;
+    auto &m_model_object_in_world_tran = input_info.m_model_object_in_world_tran;
+    auto &text_lengths                 = input_info.text_lengths;
+    //auto  hit_mesh_id            = input_info.hit_mesh_id;//m_rr.mesh_id
+    //calc
+    TriangleMesh slice_meshs;
+    int          mesh_index   = 0;
+    for (int i = 0; i < mo->volumes.size(); ++i) {
+        ModelVolume *mv = mo->volumes[i];
+        if (m_volume_idx == i) {
+            continue;
+        }
+        if (mv->is_text()) {
+            continue;
+        }
+        if (mv->is_model_part()) {
+            TriangleMesh vol_mesh(mv->mesh());
+            vol_mesh.transform(mv->get_matrix());
+            slice_meshs.merge(vol_mesh);
+            mesh_index++;
+        }
+    }
+    auto text_tran_in_object      = m_text_tran_in_object; // important
+    input_info.slice_mesh         = slice_meshs;
+    auto              rotate_tran = Geometry::assemble_transform(Vec3d::Zero(), {-0.5 * M_PI, 0.0, 0.0});
+    MeshSlicingParams slicing_params;
+    auto              cut_tran = (text_tran_in_object.get_matrix() * rotate_tran);
+    slicing_params.trafo       = cut_tran.inverse();
+    // for debug
+    // its_write_obj(slice_meshs.its, "D:/debug_files/mesh.obj");
+    // generate polygons
+    const Polygons temp_polys = slice_mesh(slice_meshs.its, 0, slicing_params);
+    Vec3d          scale_click_pt(scale_(0), scale_(0), 0);
+    // for debug
+    // export_regions_to_svg(Point(scale_pt.x(), scale_pt.y()), temp_polys);
+    Polygons polys = union_(temp_polys);
+
+    auto point_in_line_rectange = [](const Line &line, const Point &point, double &distance) {
+        distance = line.distance_to(point);
+        return distance < line.length() / 2;
+    };
+
+    int     index        = 0;
+    double  min_distance = 1e12;
+    Polygon hit_ploy;
+    for (const Polygon poly : polys) {
+        if (poly.points.size() == 0)
+            continue;
+        Lines lines = poly.lines();
+        for (int i = 0; i < lines.size(); ++i) {
+            Line   line     = lines[i];
+            double distance = min_distance;
+            if (point_in_line_rectange(line, Point(scale_click_pt.x(), scale_click_pt.y()), distance)) {
+                if (distance < min_distance) {
+                    min_distance = distance;
+                    index        = i;
+                    hit_ploy     = poly;
+                }
+            }
+        }
+    }
+
+    if (hit_ploy.points.size() == 0) {
+        BOOST_LOG_TRIVIAL(info) << boost::format("Text: the hit polygon is null,") << "x:" << m_text_position_in_world.x() << ",y:" << m_text_position_in_world.y()
+                                << ",z:" << m_text_position_in_world.z();
+        throw JobException("The hit polygon is null,please try to regenerate after adjusting text position.");
+        return false;
+    }
+    int text_num = m_chars_mesh_result.size();
+
+    auto world_tran = m_model_object_in_world_tran * text_tran_in_object;
+    m_cut_points_in_world.clear();
+    m_cut_points_in_world.reserve(hit_ploy.points.size());
+    m_cut_points_in_local.clear();
+    m_cut_points_in_local.reserve(hit_ploy.points.size());
+    for (int i = 0; i < hit_ploy.points.size(); ++i) {
+        m_cut_points_in_local.emplace_back(rotate_tran * Vec3d(unscale_(hit_ploy.points[i].x()), unscale_(hit_ploy.points[i].y()), 0)); // m_text_cs_to_world_tran *
+        m_cut_points_in_world.emplace_back(world_tran.get_matrix() * m_cut_points_in_local.back());
+    }
+
+    Slic3r::Polygon_3D new_polygon(m_cut_points_in_local);
+    m_position_points.resize(text_num);
+    if (text_num % 2 == 1) {
+        m_position_points[text_num / 2] = Vec3d::Zero();
+        std::vector<Line_3D> lines = new_polygon.get_lines();
+        Line_3D              line  = lines[index];
+        auto                 min_dist   = 1e6;
+        {// Find the nearest tangent point
+            for (int i = 0; i < lines.size(); i++) {
+                Line_3D temp_line = lines[i];
+                Vec3d   intersection_pt;
+                float   proj_length;
+                auto    pt = Vec3d::Zero();
+                Linef3::get_point_projection_to_line(pt, temp_line.a, temp_line.vector(), intersection_pt, proj_length);
+                auto dist = (intersection_pt - pt).norm();
+                if (min_dist > dist) {
+                    min_dist = dist;
+                    m_position_points[text_num / 2] = intersection_pt;
+                }
+            }
+        }
+        {
+            int    index1      = index;
+            double left_length = (Vec3d::Zero() - line.a).cast<double>().norm();
+            int    left_num    = text_num / 2;
+            while (left_num > 0) {
+                double gap_length = (text_lengths[left_num] + m_text_gap + text_lengths[left_num - 1]);
+                if (gap_length < 0) gap_length = 0;
+
+                while (gap_length > left_length) {
+                    gap_length -= left_length;
+                    if (index1 == 0)
+                        index1 = lines.size() - 1;
+                    else
+                        --index1;
+                    left_length = lines[index1].length();
+                }
+
+                Vec3d direction = lines[index1].vector();
+                direction.normalize();
+                double  distance_to_a = (left_length - gap_length);
+                Line_3D new_line      = lines[index1];
+
+                double norm_value = direction.cast<double>().norm();
+                double deta_x     = distance_to_a * direction.x() / norm_value;
+                double deta_y     = distance_to_a * direction.y() / norm_value;
+                double deta_z     = distance_to_a * direction.z() / norm_value;
+                Vec3d  new_pos    = new_line.a + Vec3d(deta_x, deta_y, deta_z);
+                left_num--;
+                m_position_points[left_num] = new_pos;
+                left_length                 = distance_to_a;
+            }
+        }
+
+        {
+            int    index2       = index;
+            double right_length = (line.b - Vec3d::Zero()).cast<double>().norm();
+            int    right_num    = text_num / 2;
+            while (right_num > 0) {
+                double gap_length = (text_lengths[text_num - right_num] + m_text_gap + text_lengths[text_num - right_num - 1]);
+                if (gap_length < 0) gap_length = 0;
+
+                while (gap_length > right_length) {
+                    gap_length -= right_length;
+                    if (index2 == lines.size() - 1)
+                        index2 = 0;
+                    else
+                        ++index2;
+                    right_length = lines[index2].length();
+                }
+
+                Line_3D line2 = lines[index2];
+                line2.reverse();
+                Vec3d direction = line2.vector();
+                direction.normalize();
+                double  distance_to_b = (right_length - gap_length);
+                Line_3D new_line      = lines[index2];
+
+                double norm_value                       = direction.cast<double>().norm();
+                double deta_x                           = distance_to_b * direction.x() / norm_value;
+                double deta_y                           = distance_to_b * direction.y() / norm_value;
+                double deta_z                           = distance_to_b * direction.z() / norm_value;
+                Vec3d  new_pos                          = new_line.b + Vec3d(deta_x, deta_y, deta_z);
+                m_position_points[text_num - right_num] = new_pos;
+                right_length                            = distance_to_b;
+                right_num--;
+            }
+        }
+    } else {
+        for (int i = 0; i < text_num / 2; ++i) {
+            std::vector<Line_3D> lines = new_polygon.get_lines();
+            Line_3D              line  = lines[index];
+            {
+                int    index1      = index;
+                double left_length = (Vec3d::Zero() - line.a).cast<double>().norm();
+                int    left_num    = text_num / 2;
+                for (int i = 0; i < text_num / 2; ++i) {
+                    double gap_length = 0;
+                    if (i == 0) {
+                        gap_length = m_text_gap / 2 + text_lengths[text_num / 2 - 1 - i];
+                    } else {
+                        gap_length = text_lengths[text_num / 2 - i] + m_text_gap + text_lengths[text_num / 2 - 1 - i];
+                    }
+                    if (gap_length < 0) gap_length = 0;
+
+                    while (gap_length > left_length) {
+                        gap_length -= left_length;
+                        if (index1 == 0)
+                            index1 = lines.size() - 1;
+                        else
+                            --index1;
+                        left_length = lines[index1].length();
+                    }
+
+                    Vec3d direction = lines[index1].vector();
+                    direction.normalize();
+                    double  distance_to_a = (left_length - gap_length);
+                    Line_3D new_line      = lines[index1];
+
+                    double norm_value = direction.cast<double>().norm();
+                    double deta_x     = distance_to_a * direction.x() / norm_value;
+                    double deta_y     = distance_to_a * direction.y() / norm_value;
+                    double deta_z     = distance_to_a * direction.z() / norm_value;
+                    Vec3d  new_pos    = new_line.a + Vec3d(deta_x, deta_y, deta_z);
+
+                    m_position_points[text_num / 2 - 1 - i] = new_pos;
+                    left_length                             = distance_to_a;
+                }
+            }
+
+            {
+                int    index2       = index;
+                double right_length = (line.b - Vec3d::Zero()).cast<double>().norm();
+                int    right_num    = text_num / 2;
+                double gap_length   = 0;
+                for (int i = 0; i < text_num / 2; ++i) {
+                    double gap_length = 0;
+                    if (i == 0) {
+                        gap_length = m_text_gap / 2 + text_lengths[text_num / 2 + i];
+                    } else {
+                        gap_length = text_lengths[text_num / 2 + i] + m_text_gap + text_lengths[text_num / 2 + i - 1];
+                    }
+                    if (gap_length < 0) gap_length = 0;
+
+                    while (gap_length > right_length) {
+                        gap_length -= right_length;
+                        if (index2 == lines.size() - 1)
+                            index2 = 0;
+                        else
+                            ++index2;
+                        right_length = lines[index2].length();
+                    }
+
+                    Line_3D line2 = lines[index2];
+                    line2.reverse();
+                    Vec3d direction = line2.vector();
+                    direction.normalize();
+                    double  distance_to_b = (right_length - gap_length);
+                    Line_3D new_line      = lines[index2];
+
+                    double norm_value                   = direction.cast<double>().norm();
+                    double deta_x                       = distance_to_b * direction.x() / norm_value;
+                    double deta_y                       = distance_to_b * direction.y() / norm_value;
+                    double deta_z                       = distance_to_b * direction.z() / norm_value;
+                    Vec3d  new_pos                      = new_line.b + Vec3d(deta_x, deta_y, deta_z);
+                    m_position_points[text_num / 2 + i] = new_pos;
+                    right_length                        = distance_to_b;
+                }
+            }
+        }
+    }
+
+    std::vector<double> mesh_values(m_position_points.size(), 1e9);
+    m_normal_points.resize(m_position_points.size());
+    auto point_in_triangle_delete_area = [](const Vec3d &point, const Vec3d &point0, const Vec3d &point1, const Vec3d &point2) {
+        Vec3d p0_p  = point - point0;
+        Vec3d p0_p1 = point1 - point0;
+        Vec3d p0_p2 = point2 - point0;
+        Vec3d p_p0  = point0 - point;
+        Vec3d p_p1  = point1 - point;
+        Vec3d p_p2  = point2 - point;
+
+        double s  = p0_p1.cross(p0_p2).norm();
+        double s0 = p_p0.cross(p_p1).norm();
+        double s1 = p_p1.cross(p_p2).norm();
+        double s2 = p_p2.cross(p_p0).norm();
+
+        return abs(s0 + s1 + s2 - s);
+    };
+    bool is_mirrored = (m_model_object_in_world_tran * text_tran_in_object).is_left_handed();
+    slice_meshs.transform(text_tran_in_object.get_matrix().inverse());
+    TriangleMesh& mesh = slice_meshs;
+    std::vector<int> debug_incides;
+    debug_incides.resize(m_position_points.size());
+    for (int i = 0; i < m_position_points.size(); ++i) {
+        int debug_index = 0;
+        for (auto indice : mesh.its.indices) {
+            stl_vertex stl_point0 = mesh.its.vertices[indice[0]];
+            stl_vertex stl_point1 = mesh.its.vertices[indice[1]];
+            stl_vertex stl_point2 = mesh.its.vertices[indice[2]];
+
+            Vec3d point0 = stl_point0.cast<double>();
+            Vec3d point1 = stl_point1.cast<double>();
+            Vec3d point2 = stl_point2.cast<double>();
+
+            double abs_area = point_in_triangle_delete_area(m_position_points[i], point0, point1, point2);
+            if (mesh_values[i] > abs_area) {
+                mesh_values[i] = abs_area;
+                debug_incides[i]   = debug_index;
+                Vec3d s1           = point1 - point0;
+                Vec3d s2           = point2 - point0;
+                m_normal_points[i] = s1.cross(s2);
+                m_normal_points[i].normalize();
+                if (is_mirrored) {
+                    m_normal_points[i] = -m_normal_points[i];
+                }
+            }
+            debug_index++;
+        }
+    }
+    return true;
+}
+
+ Geometry::Transformation GenerateTextJob::get_sub_mesh_tran(const Vec3d &position, const Vec3d &normal, const Vec3d &text_up_dir, float embeded_depth)
+{
+    double   phi;
+    Vec3d    rotation_axis;
+    Matrix3d rotation_matrix;
+    Geometry::rotation_from_two_vectors(Vec3d::UnitZ(), normal, rotation_axis, phi, &rotation_matrix);
+    Geometry::Transformation local_tran;
+    Transform3d              temp_tran0(Transform3d::Identity());
+    temp_tran0.rotate(Eigen::AngleAxisd(phi, rotation_axis.normalized()));
+
+    auto project_on_plane = [](const Vec3d &dir, const Vec3d &plane_normal) -> Vec3d { return dir - (plane_normal.dot(dir) * plane_normal.dot(plane_normal)) * plane_normal; };
+
+    Vec3d old_text_dir = Vec3d::UnitY();
+    old_text_dir       = rotation_matrix * old_text_dir;
+    Vec3d new_text_dir = project_on_plane(text_up_dir, normal);
+    new_text_dir.normalize();
+    Geometry::rotation_from_two_vectors(old_text_dir, new_text_dir, rotation_axis, phi, &rotation_matrix);
+
+    if (abs(phi - PI) < EPSILON)
+        rotation_axis = normal;
+
+    Transform3d temp_tran1(Transform3d::Identity());
+    temp_tran1.rotate(Eigen::AngleAxisd(phi, rotation_axis.normalized()));
+    local_tran.set_matrix(temp_tran1 * temp_tran0);
+
+    Vec3d offset = position - embeded_depth * normal;
+    local_tran.set_offset(offset);
+    return local_tran;
+}
+
+void GenerateTextJob::get_text_mesh(TriangleMesh &result_mesh, std::vector<TriangleMesh> &chars_mesh, int i,  Geometry::Transformation &local_tran)
+{
+    if (chars_mesh.size() == 0) {
+        BOOST_LOG_TRIVIAL(info) << boost::format("check error:get_text_mesh");
+    }
+    TriangleMesh mesh = chars_mesh[i]; // m_cur_font_name
+    auto         box  = mesh.bounding_box();
+    mesh.translate(-box.center().x(), 0, 0);
+
+    mesh.transform(local_tran.get_matrix());
+    result_mesh = mesh; // mesh in object cs
+}
+
+void GenerateTextJob::get_text_mesh(TriangleMesh &            result_mesh,
+                                    EmbossShape &             text_shape,
+                                    BoundingBoxes &           line_bbs,
+                                    SurfaceVolumeData::ModelSources &input_ms_es,
+                                    DataBase &                       input_db,
+                                    int                       i,
+                                    Geometry::Transformation &mv_tran,
+                                    Geometry::Transformation &local_tran_to_object_cs,
+                                    TriangleMesh &            slice_mesh)
+{
+    ExPolygons glyph_shape = text_shape.shapes_with_ids[i].expoly;
+    const BoundingBox &glyph_bb    = line_bbs[i];
+    Point              offset(-glyph_bb.center().x(), 0);
+    for (ExPolygon &s : glyph_shape) {
+        s.translate(offset);
+    }
+    auto                 modify    = local_tran_to_object_cs.get_matrix();
+    Transform3d          tr        = mv_tran.get_matrix() * modify;
+    float                text_scale = input_db.shape.scale;
+    if (i < text_shape.text_scales.size() && text_shape.text_scales[i] > 0) {
+        text_scale = text_shape.text_scales[i];
+    }
+    indexed_triangle_set glyph_its = cut_surface_to_its(glyph_shape, text_scale, tr, input_ms_es, input_db);
+    if (glyph_its.empty()) {
+        BOOST_LOG_TRIVIAL(info) << boost::format("check error:get_text_mesh");
+    }
+    // move letter in volume on the right position
+    its_transform(glyph_its, modify);
+
+    // Improve: union instead of merge
+    //its_merge(result, std::move(glyph_its));
+    result_mesh = TriangleMesh(glyph_its);
+}
+
+void GenerateTextJob::generate_mesh_according_points(InputInfo &input_info)
+{
+    auto &m_position_points        = input_info.m_position_points;
+    auto &m_normal_points          = input_info.m_normal_points;
+    auto &m_cut_plane_dir_in_world = input_info.m_cut_plane_dir_in_world;
+    auto &m_chars_mesh_result      = input_info.m_chars_mesh_result;
+    auto &m_embeded_depth          = input_info.m_embeded_depth;
+    auto &m_thickness              = input_info.m_thickness;
+    auto &m_model_object_in_world_tran =   input_info.m_model_object_in_world_tran;
+    auto &m_text_tran_in_object        = input_info.m_text_tran_in_object;
+    auto &mesh                            = input_info.m_final_text_mesh;
+    mesh.clear();
+    auto text_tran_in_object             = m_text_tran_in_object; // important
+    auto inv_text_cs_in_object_no_offset = (m_model_object_in_world_tran.get_matrix_no_offset() * text_tran_in_object.get_matrix_no_offset()).inverse();
+
+    ExPolygons ex_polygons;
+    std::vector<BoundingBoxes> bbs;
+    int                        line_idx = 0;
+    SurfaceVolumeData::ModelSources ms_es;
+    DataBase                        input_db("", std::make_shared<std::atomic<bool>>(false));
+    if (input_info.use_surface) {
+        EmbossShape &es = input_info.m_text_shape;
+        if (es.shapes_with_ids.empty())
+            throw JobException(_u8L("Font doesn't have any shape for given text.").c_str());
+        size_t                     count_lines = 1; // input1.text_lines.size();
+        bbs = create_line_bounds(es.shapes_with_ids, count_lines);
+        if (bbs.empty()) {
+            return;
+        }
+        SurfaceVolumeData::ModelSource ms;
+        ms.mesh = std::make_shared<const TriangleMesh> (input_info.slice_mesh);
+        if (ms.mesh->empty()) {
+            return;
+        }
+        ms_es.push_back(ms);
+        input_db.is_outside = input_info.is_outside;
+        input_db.shape.projection.depth = m_thickness + m_embeded_depth;
+        input_db.shape.scale            = input_info.shape_scale;
+    }
+    auto cut_plane_dir = inv_text_cs_in_object_no_offset * m_cut_plane_dir_in_world;
+    for (int i = 0; i < m_position_points.size(); ++i) {
+        auto         position      = m_position_points[i];
+        auto         normal        = m_normal_points[i];
+        TriangleMesh sub_mesh;
+        auto         local_tran = get_sub_mesh_tran(position, normal, cut_plane_dir, m_embeded_depth);
+        if (input_info.use_surface) {
+            get_text_mesh(sub_mesh, input_info.m_text_shape, bbs[line_idx], ms_es, input_db, i, text_tran_in_object, local_tran, input_info.slice_mesh);
+        }
+        else {
+            get_text_mesh(sub_mesh, m_chars_mesh_result, i, local_tran);
+        }
+        mesh.merge(sub_mesh);
+    }
+    if (mesh.its.empty()){
+        throw JobException(_u8L("Text mesh ie empty.").c_str());
+        return;
+    }
+    //ASCENT_CENTER = 1 / 2.5;// mesh.translate(Vec3f(0, -center.y(), 0)); // align vertical center
+}
+
+CreateObjectTextJob::CreateObjectTextJob(CreateTextInput &&input) : m_input(std::move(input)) {}
+
+void CreateObjectTextJob::process(Ctl &ctl) {
+    if (m_input.m_chars_mesh_result.empty())
+        return create_message("Can't create empty object.");
+    std::vector<double> text_lengths;
+    calc_text_lengths(text_lengths, m_input.m_chars_mesh_result);
+    calc_position_points(m_input.m_position_points, text_lengths, m_input.text_info.m_text_gap, Vec3d(1, 0, 0));
+}
+
+void CreateObjectTextJob::finalize(bool canceled, std::exception_ptr &eptr) {
+    if (m_input.m_position_points.empty())
+        return create_message("Can't create empty object.");
+
+    TriangleMesh final_mesh;
+    for (int i = 0; i < m_input.m_position_points.size();i++) {
+        TriangleMesh sub_mesh;
+        auto         position   = m_input.m_position_points[i];
+        auto         local_tran = GenerateTextJob::get_sub_mesh_tran(position, Vec3d::UnitZ(), Vec3d(0, 1, 0), m_input.text_info.m_embeded_depth);
+        GenerateTextJob::get_text_mesh(sub_mesh, m_input.m_chars_mesh_result, i, local_tran);
+        final_mesh.merge(sub_mesh);
+    }
+
+    GUI_App &app    = wxGetApp();
+    Plater * plater = app.plater();
+    plater->take_snapshot("Add text object on plate");
+    auto   center = plater->get_partplate_list().get_curr_plate()->get_bounding_box().center();
+    Model &model = plater->model();
+    {
+        // INFO: inspiration for create object is from ObjectList::load_mesh_object()
+        ModelObject *new_object = model.add_object();
+        new_object->name        = _u8L("Text");
+        new_object->add_instance(); // each object should have at list one instance
+
+        ModelVolume *new_volume = new_object->add_volume(std::move(final_mesh), false);
+        // set a default extruder value, since user can't add it manually
+        new_volume->config.set_key_value("extruder", new ConfigOptionInt(1));
+        new_volume->set_text_info(m_input.text_info);
+        // write emboss data into volume
+        m_input.base->write(*new_volume);
+
+        // set transformation
+        Slic3r::Geometry::Transformation tr;
+        tr.set_offset(center);
+        new_object->instances.front()->set_transformation(tr);
+        new_object->ensure_on_bed();
+
+        // Actualize right panel and set inside of selection
+        app.obj_list()->paste_objects_into_list({model.objects.size() - 1});
+    }
+#ifdef _DEBUG
+    check_model_ids_validity(model);
+#endif /* _DEBUG */
+
+    // When add new object selection is empty.
+    // When cursor move and no one object is selected than
+    // Manager::reset_all() So Gizmo could be closed before end of creation object
+    GLCanvas3D *     canvas  = plater->get_view3D_canvas3D();
+    GLGizmosManager &manager = canvas->get_gizmos_manager();
+    if (manager.get_current_type() != GLGizmosManager::EType::Text)
+        manager.open_gizmo(GLGizmosManager::EType::Text);
+
+    // redraw scene
+    canvas->reload_scene(true);
+}
+
+}}} // namespace Slic3r
