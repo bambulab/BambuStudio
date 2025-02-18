@@ -1204,9 +1204,6 @@ wxWindow* PreferencesDialog::create_general_page()
     auto title_presets = create_item_title(_L("Presets"), page, _L("Presets"));
     auto item_user_sync        = create_item_checkbox(_L("Auto sync user presets(Printer/Filament/Process)"), page, _L("If enabled, auto sync user presets with cloud after Bambu Studio startup or presets modified."), 50, "sync_user_preset");
     auto item_system_sync        = create_item_checkbox(_L("Auto check for system presets updates"), page, _L("If enabled, auto check whether there are system presets updates after Bambu Studio startup."), 50, "sync_system_preset");
-    auto item_save_presets = create_item_button(_L("Clear my choice on the unsaved presets."), _L("Clear"), page, _L("Clear my choice on the unsaved presets."), []() {
-        wxGetApp().app_config->set("save_preset_choise", "");
-    });
 
 #ifdef _WIN32
     auto title_associate_file = create_item_title(_L("Associate Files To Bambu Studio"), page, _L("Associate Files To Bambu Studio"));
@@ -1296,7 +1293,6 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(title_presets, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_user_sync, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_system_sync, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_save_presets, 0, wxTOP, FromDIP(3));
 #ifdef _WIN32
     sizer_page->Add(title_associate_file, 0, wxTOP| wxEXPAND, FromDIP(20));
     sizer_page->Add(item_associate_3mf, 0, wxTOP, FromDIP(3));
