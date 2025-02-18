@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-15 10:46+0800\n"
+"POT-Creation-Date: 2025-02-18 18:16+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2234,9 +2234,9 @@ msgid "Top"
 msgstr ""
 
 msgid ""
-"The fan controls the temperature during printing to improve print quality."
-"The system automatically adjusts the fan's switch and speed according to "
-"different printing materials."
+"The fan controls the temperature during printing to improve print "
+"quality.The system automatically adjusts the fan's switch and speed "
+"according to different printing materials."
 msgstr ""
 
 msgid ""
@@ -3134,9 +3134,9 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe temperature,"
-"it may result in material softening and clogging.The maximum safe "
-"temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe "
+"temperature,it may result in material softening and clogging.The maximum "
+"safe temperature for the material is %d"
 msgstr ""
 
 msgid ""
@@ -3474,6 +3474,11 @@ msgstr ""
 msgid ""
 "CF/GF filaments are hard and brittle, It's easy to break or get stuck in "
 "AMS, please use with caution."
+msgstr ""
+
+msgid ""
+"The rough surface of PLA Glow can accelerate wear on the AMS system, "
+"particularly on the internal components of the AMS Lite."
 msgstr ""
 
 msgid "default"
@@ -4847,6 +4852,9 @@ msgstr ""
 msgid "Fan"
 msgstr ""
 
+msgid "Air Condition"
+msgstr ""
+
 msgid ""
 "Reconnecting the printer, the operation cannot be completed immediately, "
 "please try again later."
@@ -4967,6 +4975,9 @@ msgid "The name is not allowed to start with space character."
 msgstr ""
 
 msgid "The name is not allowed to end with space character."
+msgstr ""
+
+msgid "The name is not allowed to exceeds 32 characters."
 msgstr ""
 
 msgid "Bind with Pin Code"
@@ -8064,11 +8075,6 @@ msgid "—> "
 msgstr ""
 
 msgid ""
-"Printer not connected. Please connect or choose a printer on the Device page "
-"and try again."
-msgstr ""
-
-msgid ""
 "Synchronizing AMS filaments will discard your modified but unsaved filament "
 "presets.\n"
 "Are you sure you want to continue?"
@@ -8143,7 +8149,7 @@ msgstr ""
 msgid "Unused AMS filaments should also be added to the filament list."
 msgstr ""
 
-msgid "Merge all identical filaments."
+msgid "Automatically merge the same colors in the model after mapping."
 msgstr ""
 
 msgid "After being synced, this action cannot be undone."
@@ -8179,24 +8185,6 @@ msgstr ""
 msgid ""
 "You selected external and AMS filament at the same time in an extruder, you "
 "will need manually change external filament."
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "nozzle in preset: %.1f %s"
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "nozzle memorized: %.1f %s"
-msgstr ""
-
-msgid ""
-"Your nozzle diameter in sliced file is not consistent with memorized nozzle. "
-"If you changed your nozzle lately, please go to Device > Printer Parts to "
-"change settings."
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
 msgstr ""
 
 msgid "Successfully synchronized nozzle and AMS number information."
@@ -9115,8 +9103,8 @@ msgid ""
 "Slic3r can upload G-code files to a printer host. This field should contain "
 "the hostname, IP address or URL of the printer host instance. Print host "
 "behind HAProxy with basic auth enabled can be accessed by putting the user "
-"name and password into the URL in the following format: https://username:"
-"password@your-octopi-address/"
+"name and password into the URL in the following format: https://"
+"username:password@your-octopi-address/"
 msgstr ""
 
 msgid "Device UI"
@@ -9325,10 +9313,10 @@ msgstr ""
 
 #, possible-c-format
 msgid ""
-"Decide which overhang part join the cooling function to slow down the speed."
-"Expressed as percentage which indicides how much width of the line without "
-"support from lower layer. 100% means forcing cooling for all outer wall no "
-"matter how much overhang degree"
+"Decide which overhang part join the cooling function to slow down the "
+"speed.Expressed as percentage which indicides how much width of the line "
+"without support from lower layer. 100% means forcing cooling for all outer "
+"wall no matter how much overhang degree"
 msgstr ""
 
 msgid "Bridge direction"
@@ -10065,8 +10053,8 @@ msgid "Acceleration of inner walls. 0 means using normal printing acceleration"
 msgstr ""
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage (e."
-"g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage "
+"(e.g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 
 msgid "mm/s² or %"
@@ -13064,8 +13052,8 @@ msgid "nozzle size memorized: %d"
 msgstr ""
 
 msgid ""
-"The size of nozzle type in preset is not consistent with memorized nozzle."
-"Did you change your nozzle lately ? "
+"The size of nozzle type in preset is not consistent with memorized "
+"nozzle.Did you change your nozzle lately ? "
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -13079,6 +13067,10 @@ msgstr ""
 msgid ""
 "Your nozzle type in preset is not consistent with memorized nozzle.Did you "
 "change your nozzle lately ? "
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
 msgstr ""
 
 msgid "Need select printer"
