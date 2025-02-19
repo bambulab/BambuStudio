@@ -5006,8 +5006,11 @@ void SendModeSwitchButton::on_left_down(wxMouseEvent &evt)
 
 void SendModeSwitchButton::setSelected(bool selected)
 {
-    is_selected = selected;
-    Refresh();
+    if (is_selected != selected)
+    {
+        is_selected = selected;
+        Refresh();
+    }
 }
 
 }} // namespace Slic3r::GUI
