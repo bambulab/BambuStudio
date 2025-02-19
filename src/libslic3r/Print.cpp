@@ -1874,6 +1874,11 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
         }
         this->set_done(psWipeTower);
     }
+
+    if (this->has_wipe_tower()) {
+        m_fake_wipe_tower.set_pos({ m_config.wipe_tower_x.get_at(m_plate_index), m_config.wipe_tower_y.get_at(m_plate_index) });
+    }
+
     if (this->set_started(psSkirtBrim)) {
         this->set_status(70, L("Generating skirt & brim"));
 
