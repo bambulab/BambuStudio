@@ -45,12 +45,14 @@ namespace Slic3r {
     enum SkipType
     {
         stTimelapse,
+        stHeadWrapDetect,
         stOther,
         stNone
     };
 
-    const std::unordered_map<std::string_view, SkipType> skip_type_map {
-        {"timelapse", SkipType::stTimelapse}
+    const std::unordered_map<std::string_view, SkipType> skip_type_map{
+        {"timelapse", SkipType::stTimelapse},
+        {"head_wrap_detect", SkipType::stHeadWrapDetect}
     };
     struct PrintEstimatedStatistics
     {
