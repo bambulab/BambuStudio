@@ -550,6 +550,8 @@ set(SLIC3R_GUI_SOURCES
 	Utils/FontConfigHelp.hpp
 	Utils/FontUtils.cpp
 	Utils/FontUtils.hpp
+    Utils/WxFontUtils.hpp
+    Utils/WxFontUtils.cpp
 )
 
 add_subdirectory(GUI/DeviceTab)
