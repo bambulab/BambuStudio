@@ -1874,6 +1874,14 @@
             "sub_path": "filament/Bambu PLA Glow @BBL A1.json"
         },
         {
+            "name": "Bambu PLA Glow @BBL A1M 0.2 nozzle",
+            "sub_path": "filament/Bambu PLA Glow @BBL A1M 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Glow @BBL A1M",
+            "sub_path": "filament/Bambu PLA Glow @BBL A1M.json"
+        },
+        {
             "name": "Bambu PLA Dynamic @BBL X1C",
             "sub_path": "filament/Bambu PLA Dynamic @BBL X1C.json"
         },
