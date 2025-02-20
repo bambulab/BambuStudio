@@ -28,7 +28,6 @@
 #include "Jobs/BindJob.hpp"
 #include "BBLStatusBar.hpp"
 #include "BBLStatusBarBind.hpp"
-#include "Jobs/Worker.hpp"
 
 #define BIND_DIALOG_GREY200 wxColour(248, 248, 248)
 #define BIND_DIALOG_GREY800 wxColour(50, 58, 61)
@@ -120,7 +119,7 @@ private:
     std::shared_ptr<int>     m_tocken;
 
     MachineObject *                   m_machine_info{nullptr};
-    std::unique_ptr<Worker>           m_worker;
+    std::shared_ptr<BindJob>          m_bind_job;
     std::shared_ptr<BBLStatusBarBind> m_status_bar;
 
 public:

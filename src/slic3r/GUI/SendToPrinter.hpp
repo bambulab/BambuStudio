@@ -36,7 +36,6 @@
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/ScrolledWindow.hpp"
-#include "Jobs/Worker.hpp"
 #include <wx/simplebook.h>
 #include <wx/hashmap.h>
 
@@ -106,7 +105,7 @@ private:
     wxStaticText*                       m_file_name;
     PrintDialogStatus                   m_print_status{ PrintStatusInit };
 
-    std::unique_ptr<Worker>             m_worker;
+    std::shared_ptr<SendJob>            m_send_job{nullptr};
     std::vector<wxString>               m_bedtype_list;
     std::map<std::string, ::CheckBox*>  m_checkbox_list;
     std::vector<MachineObject*>         m_list;

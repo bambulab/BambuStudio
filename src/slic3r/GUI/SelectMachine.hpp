@@ -38,7 +38,6 @@
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/ScrolledWindow.hpp"
 #include "Widgets/PopupWindow.hpp"
-#include "Jobs/Worker.hpp"
 #include <wx/simplebook.h>
 #include <wx/hashmap.h>
 
@@ -430,7 +429,7 @@ protected:
     wxStaticText*                       m_statictext_finish{nullptr};
     TextInput*                          m_rename_input{nullptr};
     wxTimer*                            m_refresh_timer{ nullptr };
-    std::unique_ptr<Worker>             m_worker;
+    std::shared_ptr<PrintJob>           m_print_job;
     wxScrolledWindow*                   m_scrollable_view;
     wxScrolledWindow*                   m_sw_print_failed_info{nullptr};
     wxHyperlinkCtrl*                    m_hyperlink{nullptr};
