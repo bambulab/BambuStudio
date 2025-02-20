@@ -341,11 +341,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/Jobs/BusyCursorJob.hpp
     GUI/Jobs/ThreadSafeQueue.hpp
     GUI/Jobs/PlaterWorker.hpp
-    GUI/Jobs/EmbossJob.cpp
-    GUI/Jobs/EmbossJob.hpp
-    GUI/Jobs/PlaterJob.hpp
-    GUI/Jobs/PlaterJob.cpp
-    GUI/Jobs/WindowWorker.hpp
     GUI/Jobs/UpgradeNetworkJob.hpp
     GUI/Jobs/UpgradeNetworkJob.cpp
     GUI/Jobs/ArrangeJob.hpp
