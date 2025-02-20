@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-15 10:46+0800\n"
+"POT-Creation-Date: 2025-02-20 22:07+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -3718,6 +3718,11 @@ msgstr ""
 "Філаменти CF/GF є жорсткими і крихкими, їх легко можна зламати або вони "
 "можуть застряти в AMS, будьте обережні під час використання."
 
+msgid ""
+"The rough surface of PLA Glow can accelerate wear on the AMS system, "
+"particularly on the internal components of the AMS Lite."
+msgstr ""
+
 msgid "default"
 msgstr "за замовчуванням"
 
@@ -5141,6 +5146,9 @@ msgstr "Завантаження %d%%..."
 msgid "Fan"
 msgstr ""
 
+msgid "Air Condition"
+msgstr ""
+
 msgid ""
 "Reconnecting the printer, the operation cannot be completed immediately, "
 "please try again later."
@@ -5265,6 +5273,9 @@ msgstr "Ім'я не може починатися з пробілу."
 msgid "The name is not allowed to end with space character."
 msgstr "Ім'я не може закінчуватися пробілом."
 
+msgid "The name is not allowed to exceeds 32 characters."
+msgstr ""
+
 msgid "Bind with Pin Code"
 msgstr "Прив’язати за допомогою Пін-коду"
 
@@ -5283,6 +5294,16 @@ msgstr ""
 
 msgid "Go to Login"
 msgstr "Перейти до входу"
+
+msgctxt "Quit_Switching"
+msgid "Quit"
+msgstr ""
+
+msgid "Switching..."
+msgstr ""
+
+msgid "Switching failed"
+msgstr ""
 
 msgid "Printing Progress"
 msgstr "Хід друку"
@@ -6763,6 +6784,12 @@ msgstr ""
 msgid "Enable LOD"
 msgstr "Увімкнути LOD"
 
+msgid ""
+"Printing with multiple filaments that have a large temperature difference "
+"can cause the extruder and nozzle to be blocked or dameged during printing.\n"
+"Please enable with caution."
+msgstr ""
+
 msgid "Browse"
 msgstr "Огляд"
 
@@ -6838,23 +6865,20 @@ msgid ""
 msgstr ""
 "Студія запам’ятовуватиме останню вибрану пластину для певної моделі принтера."
 
-msgid "Flushing volumes: Auto-calculate every time when the color is changed."
+msgid "all"
 msgstr ""
-"Об’єми змивання: Автоматично обчислювати кожного разу, коли змінюється колір."
 
-msgid "If enabled, auto-calculate every time when the color is changed."
+msgid "color change"
 msgstr ""
-"Якщо увімкнено, автоматично обчислювати кожного разу, коли змінюється колір."
 
-msgid ""
-"Flushing volumes: Auto-calculate every time when the filament is changed."
+msgid "disabled"
 msgstr ""
-"Об’єми промивання: автоматично обчислювати кожного разу при зміні філаменту."
 
-msgid "If enabled, auto-calculate every time when filament is changed"
+msgid "Auto Flush"
 msgstr ""
-"Якщо ввімкнено, автоматично обчислювати кожного разу, коли змінюється "
-"філамент"
+
+msgid "Auto calculate flush volumes"
+msgstr ""
 
 msgid "Multi-device Management(Take effect after restarting Studio)."
 msgstr ""
@@ -6879,6 +6903,16 @@ msgstr "Оновлення бета-версії підтримки."
 
 msgid "With this option enabled, you can receive beta version updates."
 msgstr "З увімкненою цією опцією ви можете отримувати оновлення бета-версій."
+
+msgid ""
+"Remove the restriction on mixed printing of high and low temperature "
+"filaments."
+msgstr ""
+
+msgid ""
+"With this option enabled, you can print materials with a large temperature "
+"difference together."
+msgstr ""
 
 msgid "3D Settings"
 msgstr "Налаштування 3D"
@@ -6963,9 +6997,6 @@ msgid ""
 msgstr ""
 "Якщо увімкнено, автоматично перевіряти наявність оновлень системних пресетів "
 "після запуску Bambu Studio."
-
-msgid "Clear my choice on the unsaved presets."
-msgstr "Очистіть мій вибір від незахищених пресетів."
 
 msgid "Associate Files To Bambu Studio"
 msgstr "Асоціювати файли з Bambu Studio"
@@ -8655,11 +8686,6 @@ msgid "—> "
 msgstr ""
 
 msgid ""
-"Printer not connected. Please connect or choose a printer on the Device page "
-"and try again."
-msgstr ""
-
-msgid ""
 "Synchronizing AMS filaments will discard your modified but unsaved filament "
 "presets.\n"
 "Are you sure you want to continue?"
@@ -8734,7 +8760,7 @@ msgstr ""
 msgid "Unused AMS filaments should also be added to the filament list."
 msgstr ""
 
-msgid "Merge all identical filaments."
+msgid "Automatically merge the same colors in the model after mapping."
 msgstr ""
 
 msgid "After being synced, this action cannot be undone."
@@ -8773,27 +8799,6 @@ msgstr ""
 msgid ""
 "You selected external and AMS filament at the same time in an extruder, you "
 "will need manually change external filament."
-msgstr ""
-
-#, c-format, boost-format
-msgid "nozzle in preset: %.1f %s"
-msgstr ""
-
-#, c-format, boost-format
-msgid "nozzle memorized: %.1f %s"
-msgstr "запам’ятоване сопло: %.1f %s"
-
-msgid ""
-"Your nozzle diameter in sliced file is not consistent with memorized nozzle. "
-"If you changed your nozzle lately, please go to Device > Printer Parts to "
-"change settings."
-msgstr ""
-"Ваш діаметр сопла в розрізаному файлі не відповідає запам’ятаному діаметру "
-"сопла. Якщо ви недавно змінили сопло, будь ласка, перейдіть до “Пристрій > "
-"Частини принтера”, щоб змінити налаштування."
-
-#, c-format, boost-format
-msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
 msgstr ""
 
 msgid "Successfully synchronized nozzle and AMS number information."
@@ -12640,6 +12645,12 @@ msgstr ""
 msgid "Extra rib length"
 msgstr ""
 
+msgid ""
+"Positive values can increase the size of the rib wall, while negative values "
+"can reduce the size.However, the size of the rib wall can not be smaller "
+"than that determined by the cleaning volume."
+msgstr ""
+
 msgid "Rib width"
 msgstr ""
 
@@ -14448,6 +14459,10 @@ msgid ""
 "change your nozzle lately ? "
 msgstr ""
 
+#, c-format, boost-format
+msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
+msgstr ""
+
 msgid "Need select printer"
 msgstr "Потрібно вибрати принтер"
 
@@ -14464,9 +14479,15 @@ msgid ""
 "does not match."
 msgstr ""
 
+#, c-format, boost-format
 msgid ""
-"The selected filament's nozzle diameter or type does not match the actual "
-"printer configuration.\n"
+"The currently selected nozzle diameter of %s extruder does not match the "
+"actual nozzle diameter.\n"
+"Please click the Sync button above and restart the calibration."
+msgstr ""
+
+msgid ""
+"The nozzle diameter does not match the actual printer nozzle diameter.\n"
 "Please click the Sync button above and restart the calibration."
 msgstr ""
 
@@ -15524,6 +15545,44 @@ msgstr ""
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як "
 "ABS, відповідне підвищення температури гарячого ліжка може зменшити "
 "ймовірність деформації."
+
+#~ msgid ""
+#~ "Flushing volumes: Auto-calculate every time when the color is changed."
+#~ msgstr ""
+#~ "Об’єми змивання: Автоматично обчислювати кожного разу, коли змінюється "
+#~ "колір."
+
+#~ msgid "If enabled, auto-calculate every time when the color is changed."
+#~ msgstr ""
+#~ "Якщо увімкнено, автоматично обчислювати кожного разу, коли змінюється "
+#~ "колір."
+
+#~ msgid ""
+#~ "Flushing volumes: Auto-calculate every time when the filament is changed."
+#~ msgstr ""
+#~ "Об’єми промивання: автоматично обчислювати кожного разу при зміні "
+#~ "філаменту."
+
+#~ msgid "If enabled, auto-calculate every time when filament is changed"
+#~ msgstr ""
+#~ "Якщо ввімкнено, автоматично обчислювати кожного разу, коли змінюється "
+#~ "філамент"
+
+#~ msgid "Clear my choice on the unsaved presets."
+#~ msgstr "Очистіть мій вибір від незахищених пресетів."
+
+#, c-format, boost-format
+#~ msgid "nozzle memorized: %.1f %s"
+#~ msgstr "запам’ятоване сопло: %.1f %s"
+
+#~ msgid ""
+#~ "Your nozzle diameter in sliced file is not consistent with memorized "
+#~ "nozzle. If you changed your nozzle lately, please go to Device > Printer "
+#~ "Parts to change settings."
+#~ msgstr ""
+#~ "Ваш діаметр сопла в розрізаному файлі не відповідає запам’ятаному "
+#~ "діаметру сопла. Якщо ви недавно змінили сопло, будь ласка, перейдіть до "
+#~ "“Пристрій > Частини принтера”, щоб змінити налаштування."
 
 #~ msgid ""
 #~ "Line pattern of support interface. Default pattern for non-soluble "

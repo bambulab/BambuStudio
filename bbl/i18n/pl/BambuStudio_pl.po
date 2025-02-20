@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-15 10:46+0800\n"
+"POT-Creation-Date: 2025-02-20 22:07+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3716,6 +3716,11 @@ msgstr ""
 "Filamenty CF/GF są twarde i kruche. Łatwo się łamią lub zacinają w AMS, "
 "prosimy o ostrożne korzystanie z nich."
 
+msgid ""
+"The rough surface of PLA Glow can accelerate wear on the AMS system, "
+"particularly on the internal components of the AMS Lite."
+msgstr ""
+
 msgid "default"
 msgstr "domyślne"
 
@@ -5137,6 +5142,9 @@ msgstr "Pobieranie %d%%..."
 msgid "Fan"
 msgstr ""
 
+msgid "Air Condition"
+msgstr ""
+
 msgid ""
 "Reconnecting the printer, the operation cannot be completed immediately, "
 "please try again later."
@@ -5261,6 +5269,9 @@ msgstr "Nazwa nie może zaczynać się spacją."
 msgid "The name is not allowed to end with space character."
 msgstr "Nazwa nie może kończyć się spacją."
 
+msgid "The name is not allowed to exceeds 32 characters."
+msgstr ""
+
 msgid "Bind with Pin Code"
 msgstr "Powiąż za pomocą kodu PIN"
 
@@ -5274,6 +5285,16 @@ msgid ""
 msgstr ""
 
 msgid "Go to Login"
+msgstr ""
+
+msgctxt "Quit_Switching"
+msgid "Quit"
+msgstr ""
+
+msgid "Switching..."
+msgstr ""
+
+msgid "Switching failed"
 msgstr ""
 
 msgid "Printing Progress"
@@ -6734,6 +6755,12 @@ msgstr ""
 msgid "Enable LOD"
 msgstr ""
 
+msgid ""
+"Printing with multiple filaments that have a large temperature difference "
+"can cause the extruder and nozzle to be blocked or dameged during printing.\n"
+"Please enable with caution."
+msgstr ""
+
 msgid "Browse"
 msgstr "Przeglądaj"
 
@@ -6809,26 +6836,20 @@ msgstr ""
 "Studio zapamięta ostatnią wybraną płytę roboczą dla określonego modelu "
 "drukarki."
 
-msgid "Flushing volumes: Auto-calculate every time when the color is changed."
+msgid "all"
 msgstr ""
-"Objętości płukania: Automatycznie obliczaj za każdym razem, gdy zmieniany "
-"jest kolor."
 
-msgid "If enabled, auto-calculate every time when the color is changed."
+msgid "color change"
 msgstr ""
-"Jeśli ta opcja jest włączona, obliczaj automatycznie przy każdej zmianie "
-"koloru."
 
-msgid ""
-"Flushing volumes: Auto-calculate every time when the filament is changed."
+msgid "disabled"
 msgstr ""
-"Objętości płukania: Automatycznie obliczaj za każdym razem, gdy zmieniany "
-"jest filament."
 
-msgid "If enabled, auto-calculate every time when filament is changed"
+msgid "Auto Flush"
 msgstr ""
-"Jeśli ta opcja jest włączona, automatycznie obliczaj za każdym razem, gdy "
-"zmieniany jest filament"
+
+msgid "Auto calculate flush volumes"
+msgstr ""
 
 msgid "Multi-device Management(Take effect after restarting Studio)."
 msgstr ""
@@ -6852,6 +6873,16 @@ msgid "Support beta version update."
 msgstr ""
 
 msgid "With this option enabled, you can receive beta version updates."
+msgstr ""
+
+msgid ""
+"Remove the restriction on mixed printing of high and low temperature "
+"filaments."
+msgstr ""
+
+msgid ""
+"With this option enabled, you can print materials with a large temperature "
+"difference together."
 msgstr ""
 
 msgid "3D Settings"
@@ -6928,9 +6959,6 @@ msgid ""
 "If enabled, auto check whether there are system presets updates after Bambu "
 "Studio startup."
 msgstr ""
-
-msgid "Clear my choice on the unsaved presets."
-msgstr "Wyczyść moje wybory w niezapisanych profilach."
 
 msgid "Associate Files To Bambu Studio"
 msgstr "Powiąż pliki z Bambu Studio"
@@ -8611,11 +8639,6 @@ msgid "—> "
 msgstr ""
 
 msgid ""
-"Printer not connected. Please connect or choose a printer on the Device page "
-"and try again."
-msgstr ""
-
-msgid ""
 "Synchronizing AMS filaments will discard your modified but unsaved filament "
 "presets.\n"
 "Are you sure you want to continue?"
@@ -8690,7 +8713,7 @@ msgstr ""
 msgid "Unused AMS filaments should also be added to the filament list."
 msgstr ""
 
-msgid "Merge all identical filaments."
+msgid "Automatically merge the same colors in the model after mapping."
 msgstr ""
 
 msgid "After being synced, this action cannot be undone."
@@ -8730,27 +8753,6 @@ msgstr ""
 msgid ""
 "You selected external and AMS filament at the same time in an extruder, you "
 "will need manually change external filament."
-msgstr ""
-
-#, c-format, boost-format
-msgid "nozzle in preset: %.1f %s"
-msgstr ""
-
-#, c-format, boost-format
-msgid "nozzle memorized: %.1f %s"
-msgstr "dysza w pamięci: %.1f %s"
-
-msgid ""
-"Your nozzle diameter in sliced file is not consistent with memorized nozzle. "
-"If you changed your nozzle lately, please go to Device > Printer Parts to "
-"change settings."
-msgstr ""
-"Średnica dyszy w przetworzonym pliku nie jest zgodna z średnicą dyszy w "
-"ustawieniach. Jeśli ostatnio zmieniłeś dyszę, przejdź do opcji Urządzenie > "
-"Części drukarki, aby zmienić to ustawienie."
-
-#, c-format, boost-format
-msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
 msgstr ""
 
 msgid "Successfully synchronized nozzle and AMS number information."
@@ -12590,6 +12592,12 @@ msgstr ""
 msgid "Extra rib length"
 msgstr ""
 
+msgid ""
+"Positive values can increase the size of the rib wall, while negative values "
+"can reduce the size.However, the size of the rib wall can not be smaller "
+"than that determined by the cleaning volume."
+msgstr ""
+
 msgid "Rib width"
 msgstr ""
 
@@ -14369,6 +14377,10 @@ msgstr ""
 "Twój domyślny typ dyszy nie zgadza się z zapisaną dyszą. Czy ostatnio "
 "zmieniałeś dyszę ? "
 
+#, c-format, boost-format
+msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
+msgstr ""
+
 msgid "Need select printer"
 msgstr "Konieczny jest wybór drukarki"
 
@@ -14385,9 +14397,15 @@ msgid ""
 "does not match."
 msgstr ""
 
+#, c-format, boost-format
 msgid ""
-"The selected filament's nozzle diameter or type does not match the actual "
-"printer configuration.\n"
+"The currently selected nozzle diameter of %s extruder does not match the "
+"actual nozzle diameter.\n"
+"Please click the Sync button above and restart the calibration."
+msgstr ""
+
+msgid ""
+"The nozzle diameter does not match the actual printer nozzle diameter.\n"
 "Please click the Sync button above and restart the calibration."
 msgstr ""
 
@@ -15405,6 +15423,44 @@ msgstr ""
 "Czy wiesz, że podczas drukowania materiałów podatnych na wypaczanie, takich "
 "jak ABS, odpowiednie zwiększenie temperatury stołu grzejnego może zmniejszyć "
 "prawdopodobieństwo wypaczania."
+
+#~ msgid ""
+#~ "Flushing volumes: Auto-calculate every time when the color is changed."
+#~ msgstr ""
+#~ "Objętości płukania: Automatycznie obliczaj za każdym razem, gdy zmieniany "
+#~ "jest kolor."
+
+#~ msgid "If enabled, auto-calculate every time when the color is changed."
+#~ msgstr ""
+#~ "Jeśli ta opcja jest włączona, obliczaj automatycznie przy każdej zmianie "
+#~ "koloru."
+
+#~ msgid ""
+#~ "Flushing volumes: Auto-calculate every time when the filament is changed."
+#~ msgstr ""
+#~ "Objętości płukania: Automatycznie obliczaj za każdym razem, gdy zmieniany "
+#~ "jest filament."
+
+#~ msgid "If enabled, auto-calculate every time when filament is changed"
+#~ msgstr ""
+#~ "Jeśli ta opcja jest włączona, automatycznie obliczaj za każdym razem, gdy "
+#~ "zmieniany jest filament"
+
+#~ msgid "Clear my choice on the unsaved presets."
+#~ msgstr "Wyczyść moje wybory w niezapisanych profilach."
+
+#, c-format, boost-format
+#~ msgid "nozzle memorized: %.1f %s"
+#~ msgstr "dysza w pamięci: %.1f %s"
+
+#~ msgid ""
+#~ "Your nozzle diameter in sliced file is not consistent with memorized "
+#~ "nozzle. If you changed your nozzle lately, please go to Device > Printer "
+#~ "Parts to change settings."
+#~ msgstr ""
+#~ "Średnica dyszy w przetworzonym pliku nie jest zgodna z średnicą dyszy w "
+#~ "ustawieniach. Jeśli ostatnio zmieniłeś dyszę, przejdź do opcji Urządzenie "
+#~ "> Części drukarki, aby zmienić to ustawienie."
 
 #~ msgid ""
 #~ "Line pattern of support interface. Default pattern for non-soluble "

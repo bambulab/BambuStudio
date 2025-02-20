@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-18 18:16+0800\n"
+"POT-Creation-Date: 2025-02-20 22:07+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2234,9 +2234,9 @@ msgid "Top"
 msgstr ""
 
 msgid ""
-"The fan controls the temperature during printing to improve print "
-"quality.The system automatically adjusts the fan's switch and speed "
-"according to different printing materials."
+"The fan controls the temperature during printing to improve print quality."
+"The system automatically adjusts the fan's switch and speed according to "
+"different printing materials."
 msgstr ""
 
 msgid ""
@@ -3134,9 +3134,9 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe "
-"temperature,it may result in material softening and clogging.The maximum "
-"safe temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe temperature,"
+"it may result in material softening and clogging.The maximum safe "
+"temperature for the material is %d"
 msgstr ""
 
 msgid ""
@@ -4995,6 +4995,16 @@ msgstr ""
 msgid "Go to Login"
 msgstr ""
 
+msgctxt "Quit_Switching"
+msgid "Quit"
+msgstr ""
+
+msgid "Switching..."
+msgstr ""
+
+msgid "Switching failed"
+msgstr ""
+
 msgid "Printing Progress"
 msgstr ""
 
@@ -6362,6 +6372,12 @@ msgstr ""
 msgid "Enable LOD"
 msgstr ""
 
+msgid ""
+"Printing with multiple filaments that have a large temperature difference "
+"can cause the extruder and nozzle to be blocked or dameged during printing.\n"
+"Please enable with caution."
+msgstr ""
+
 msgid "Browse"
 msgstr ""
 
@@ -6429,17 +6445,19 @@ msgid ""
 "model."
 msgstr ""
 
-msgid "Flushing volumes: Auto-calculate every time when the color is changed."
+msgid "all"
 msgstr ""
 
-msgid "If enabled, auto-calculate every time when the color is changed."
+msgid "color change"
 msgstr ""
 
-msgid ""
-"Flushing volumes: Auto-calculate every time when the filament is changed."
+msgid "disabled"
 msgstr ""
 
-msgid "If enabled, auto-calculate every time when filament is changed"
+msgid "Auto Flush"
+msgstr ""
+
+msgid "Auto calculate flush volumes"
 msgstr ""
 
 msgid "Multi-device Management(Take effect after restarting Studio)."
@@ -6461,6 +6479,16 @@ msgid "Support beta version update."
 msgstr ""
 
 msgid "With this option enabled, you can receive beta version updates."
+msgstr ""
+
+msgid ""
+"Remove the restriction on mixed printing of high and low temperature "
+"filaments."
+msgstr ""
+
+msgid ""
+"With this option enabled, you can print materials with a large temperature "
+"difference together."
 msgstr ""
 
 msgid "3D Settings"
@@ -6533,9 +6561,6 @@ msgstr ""
 msgid ""
 "If enabled, auto check whether there are system presets updates after Bambu "
 "Studio startup."
-msgstr ""
-
-msgid "Clear my choice on the unsaved presets."
 msgstr ""
 
 msgid "Associate Files To Bambu Studio"
@@ -9103,8 +9128,8 @@ msgid ""
 "Slic3r can upload G-code files to a printer host. This field should contain "
 "the hostname, IP address or URL of the printer host instance. Print host "
 "behind HAProxy with basic auth enabled can be accessed by putting the user "
-"name and password into the URL in the following format: https://"
-"username:password@your-octopi-address/"
+"name and password into the URL in the following format: https://username:"
+"password@your-octopi-address/"
 msgstr ""
 
 msgid "Device UI"
@@ -9313,10 +9338,10 @@ msgstr ""
 
 #, possible-c-format
 msgid ""
-"Decide which overhang part join the cooling function to slow down the "
-"speed.Expressed as percentage which indicides how much width of the line "
-"without support from lower layer. 100% means forcing cooling for all outer "
-"wall no matter how much overhang degree"
+"Decide which overhang part join the cooling function to slow down the speed."
+"Expressed as percentage which indicides how much width of the line without "
+"support from lower layer. 100% means forcing cooling for all outer wall no "
+"matter how much overhang degree"
 msgstr ""
 
 msgid "Bridge direction"
@@ -10053,8 +10078,8 @@ msgid "Acceleration of inner walls. 0 means using normal printing acceleration"
 msgstr ""
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage "
-"(e.g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage (e."
+"g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 
 msgid "mm/s² or %"
@@ -11539,6 +11564,12 @@ msgid ""
 msgstr ""
 
 msgid "Extra rib length"
+msgstr ""
+
+msgid ""
+"Positive values can increase the size of the rib wall, while negative values "
+"can reduce the size.However, the size of the rib wall can not be smaller "
+"than that determined by the cleaning volume."
 msgstr ""
 
 msgid "Rib width"
@@ -13052,8 +13083,8 @@ msgid "nozzle size memorized: %d"
 msgstr ""
 
 msgid ""
-"The size of nozzle type in preset is not consistent with memorized "
-"nozzle.Did you change your nozzle lately ? "
+"The size of nozzle type in preset is not consistent with memorized nozzle."
+"Did you change your nozzle lately ? "
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -13089,9 +13120,15 @@ msgid ""
 "does not match."
 msgstr ""
 
+#, possible-c-format, possible-boost-format
 msgid ""
-"The selected filament's nozzle diameter or type does not match the actual "
-"printer configuration.\n"
+"The currently selected nozzle diameter of %s extruder does not match the "
+"actual nozzle diameter.\n"
+"Please click the Sync button above and restart the calibration."
+msgstr ""
+
+msgid ""
+"The nozzle diameter does not match the actual printer nozzle diameter.\n"
 "Please click the Sync button above and restart the calibration."
 msgstr ""
 
