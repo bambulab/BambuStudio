@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-15 10:46+0800\n"
+"POT-Creation-Date: 2025-02-20 22:07+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3628,6 +3628,11 @@ msgstr ""
 "CF/GF 필라멘트는 단단하고 부서지기 쉽습니다. AMS에 걸리거나 부러지기 쉬우므"
 "로 주의하여 사용하십시오."
 
+msgid ""
+"The rough surface of PLA Glow can accelerate wear on the AMS system, "
+"particularly on the internal components of the AMS Lite."
+msgstr ""
+
 msgid "default"
 msgstr "기본값"
 
@@ -5028,6 +5033,9 @@ msgstr "%d%% 다운로드 중..."
 msgid "Fan"
 msgstr ""
 
+msgid "Air Condition"
+msgstr ""
+
 msgid ""
 "Reconnecting the printer, the operation cannot be completed immediately, "
 "please try again later."
@@ -5152,6 +5160,9 @@ msgstr "이름은 공백으로 시작할 수 없습니다."
 msgid "The name is not allowed to end with space character."
 msgstr "이름은 공백으로 끝날 수 없습니다."
 
+msgid "The name is not allowed to exceeds 32 characters."
+msgstr ""
+
 msgid "Bind with Pin Code"
 msgstr "핀 코드로 바인딩"
 
@@ -5165,6 +5176,16 @@ msgid ""
 msgstr ""
 
 msgid "Go to Login"
+msgstr ""
+
+msgctxt "Quit_Switching"
+msgid "Quit"
+msgstr ""
+
+msgid "Switching..."
+msgstr ""
+
+msgid "Switching failed"
 msgstr ""
 
 msgid "Printing Progress"
@@ -6605,6 +6626,12 @@ msgstr ""
 msgid "Enable LOD"
 msgstr ""
 
+msgid ""
+"Printing with multiple filaments that have a large temperature difference "
+"can cause the extruder and nozzle to be blocked or dameged during printing.\n"
+"Please enable with caution."
+msgstr ""
+
 msgid "Browse"
 msgstr "브라우저"
 
@@ -6679,18 +6706,20 @@ msgstr ""
 "Studio는 특정 프린터 모델에 대해 마지막으로 선택된 빌드 플레이트를 기억합니"
 "다."
 
-msgid "Flushing volumes: Auto-calculate every time when the color is changed."
-msgstr "플러시 볼륨: 색상이 변경될 때마다 자동 계산됩니다."
+msgid "all"
+msgstr ""
 
-msgid "If enabled, auto-calculate every time when the color is changed."
-msgstr "활성화하면 색상이 변경될 때마다 자동 계산됩니다."
+msgid "color change"
+msgstr ""
 
-msgid ""
-"Flushing volumes: Auto-calculate every time when the filament is changed."
-msgstr "플러싱 볼륨: 필라멘트가 변경될 때마다 자동 계산됩니다."
+msgid "disabled"
+msgstr ""
 
-msgid "If enabled, auto-calculate every time when filament is changed"
-msgstr "활성화하면 필라멘트가 변경될 때마다 자동 계산됩니다."
+msgid "Auto Flush"
+msgstr ""
+
+msgid "Auto calculate flush volumes"
+msgstr ""
 
 msgid "Multi-device Management(Take effect after restarting Studio)."
 msgstr "다중 장치 관리(Studio를 다시 시작한 후 적용)."
@@ -6713,6 +6742,16 @@ msgid "Support beta version update."
 msgstr ""
 
 msgid "With this option enabled, you can receive beta version updates."
+msgstr ""
+
+msgid ""
+"Remove the restriction on mixed printing of high and low temperature "
+"filaments."
+msgstr ""
+
+msgid ""
+"With this option enabled, you can print materials with a large temperature "
+"difference together."
 msgstr ""
 
 msgid "3D Settings"
@@ -6786,9 +6825,6 @@ msgid ""
 "If enabled, auto check whether there are system presets updates after Bambu "
 "Studio startup."
 msgstr ""
-
-msgid "Clear my choice on the unsaved presets."
-msgstr "저장되지 않은 프리셋에서 내 선택을 지웁니다."
 
 msgid "Associate Files To Bambu Studio"
 msgstr "Bambu Studio에 파일 연결"
@@ -8428,11 +8464,6 @@ msgid "—> "
 msgstr ""
 
 msgid ""
-"Printer not connected. Please connect or choose a printer on the Device page "
-"and try again."
-msgstr ""
-
-msgid ""
 "Synchronizing AMS filaments will discard your modified but unsaved filament "
 "presets.\n"
 "Are you sure you want to continue?"
@@ -8507,7 +8538,7 @@ msgstr ""
 msgid "Unused AMS filaments should also be added to the filament list."
 msgstr ""
 
-msgid "Merge all identical filaments."
+msgid "Automatically merge the same colors in the model after mapping."
 msgstr ""
 
 msgid "After being synced, this action cannot be undone."
@@ -8546,26 +8577,6 @@ msgstr ""
 msgid ""
 "You selected external and AMS filament at the same time in an extruder, you "
 "will need manually change external filament."
-msgstr ""
-
-#, c-format, boost-format
-msgid "nozzle in preset: %.1f %s"
-msgstr ""
-
-#, c-format, boost-format
-msgid "nozzle memorized: %.1f %s"
-msgstr "기억된 노즐: %.1f %s"
-
-msgid ""
-"Your nozzle diameter in sliced file is not consistent with memorized nozzle. "
-"If you changed your nozzle lately, please go to Device > Printer Parts to "
-"change settings."
-msgstr ""
-"슬라이스 파일의 노즐 직경이 저장된 노즐과 일치하지 않습니다. 최근에 노즐을 변"
-"경한 경우 장치 > 프린터 부품으로 이동하여 설정을 변경하세요."
-
-#, c-format, boost-format
-msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
 msgstr ""
 
 msgid "Successfully synchronized nozzle and AMS number information."
@@ -12275,6 +12286,12 @@ msgstr ""
 msgid "Extra rib length"
 msgstr ""
 
+msgid ""
+"Positive values can increase the size of the rib wall, while negative values "
+"can reduce the size.However, the size of the rib wall can not be smaller "
+"than that determined by the cleaning volume."
+msgstr ""
+
 msgid "Rib width"
 msgstr ""
 
@@ -13994,6 +14011,10 @@ msgid ""
 "change your nozzle lately ? "
 msgstr ""
 
+#, c-format, boost-format
+msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
+msgstr ""
+
 msgid "Need select printer"
 msgstr "Need select printer"
 
@@ -14010,9 +14031,15 @@ msgid ""
 "does not match."
 msgstr ""
 
+#, c-format, boost-format
 msgid ""
-"The selected filament's nozzle diameter or type does not match the actual "
-"printer configuration.\n"
+"The currently selected nozzle diameter of %s extruder does not match the "
+"actual nozzle diameter.\n"
+"Please click the Sync button above and restart the calibration."
+msgstr ""
+
+msgid ""
+"The nozzle diameter does not match the actual printer nozzle diameter.\n"
 "Please click the Sync button above and restart the calibration."
 msgstr ""
 
@@ -15005,6 +15032,35 @@ msgstr ""
 "뒤틀림 방지\n"
 "ABS 등 뒤틀림이 발생하기 쉬운 소재를 출력할 때, 히트베드 온도를 적절하게 높이"
 "면 뒤틀림 가능성을 줄일 수 있다는 사실을 알고 계셨나요?"
+
+#~ msgid ""
+#~ "Flushing volumes: Auto-calculate every time when the color is changed."
+#~ msgstr "플러시 볼륨: 색상이 변경될 때마다 자동 계산됩니다."
+
+#~ msgid "If enabled, auto-calculate every time when the color is changed."
+#~ msgstr "활성화하면 색상이 변경될 때마다 자동 계산됩니다."
+
+#~ msgid ""
+#~ "Flushing volumes: Auto-calculate every time when the filament is changed."
+#~ msgstr "플러싱 볼륨: 필라멘트가 변경될 때마다 자동 계산됩니다."
+
+#~ msgid "If enabled, auto-calculate every time when filament is changed"
+#~ msgstr "활성화하면 필라멘트가 변경될 때마다 자동 계산됩니다."
+
+#~ msgid "Clear my choice on the unsaved presets."
+#~ msgstr "저장되지 않은 프리셋에서 내 선택을 지웁니다."
+
+#, c-format, boost-format
+#~ msgid "nozzle memorized: %.1f %s"
+#~ msgstr "기억된 노즐: %.1f %s"
+
+#~ msgid ""
+#~ "Your nozzle diameter in sliced file is not consistent with memorized "
+#~ "nozzle. If you changed your nozzle lately, please go to Device > Printer "
+#~ "Parts to change settings."
+#~ msgstr ""
+#~ "슬라이스 파일의 노즐 직경이 저장된 노즐과 일치하지 않습니다. 최근에 노즐"
+#~ "을 변경한 경우 장치 > 프린터 부품으로 이동하여 설정을 변경하세요."
 
 #~ msgid ""
 #~ "Line pattern of support interface. Default pattern for non-soluble "

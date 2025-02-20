@@ -1170,7 +1170,7 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_multi_machine = create_item_checkbox(_L("Multi-device Management(Take effect after restarting Studio)."), page, _L("With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."), 50, "enable_multi_machine");
     auto item_step_mesh_setting = create_item_checkbox(_L("Show the step mesh parameter setting dialog."), page, _L("If enabled,a parameter settings dialog will appear during STEP file import."), 50, "enable_step_mesh_setting");
     auto item_beta_version_update = create_item_checkbox(_L("Support beta version update."), page, _L("With this option enabled, you can receive beta version updates."), 50, "enable_beta_version_update");
-    auto item_mix_print_high_low_temperature = create_item_checkbox(_L("Remove the restriction on high and low temperature mixed printing."), page, _L("With this option enabled, you can print materials with different chamber temperatures together."), 50, "enable_high_low_temp_mixed_printing");
+    auto item_mix_print_high_low_temperature = create_item_checkbox(_L("Remove the restriction on mixed printing of high and low temperature filaments."), page, _L("With this option enabled, you can print materials with a large temperature difference together."), 50, "enable_high_low_temp_mixed_printing");
     auto _3d_settings    = create_item_title(_L("3D Settings"), page, _L("3D Settings"));
     auto item_mouse_zoom_settings  = create_item_checkbox(_L("Zoom to mouse position"), page,
                                                          _L("Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."), 50,
