@@ -147,7 +147,9 @@ NotificationManager::PopNotification::PopNotification(const NotificationData &n,
 	, m_evt_handler         (evt_handler)
 	, m_notification_start  (GLCanvas3D::timestamp_now())
 {
-	 m_ErrorColor  = ImVec4(0.9, 0.36, 0.36, 1);
+	m_is_dark = wxGetApp().plater()->get_current_canvas3D()->get_dark_mode_status();
+
+    m_ErrorColor  = ImVec4(0.9, 0.36, 0.36, 1);
     m_WarnColor   = ImVec4(0.99, 0.69, 0.455, 1);
     m_NormalColor = ImVec4(0.03, 0.6, 0.18, 1);
 
@@ -156,31 +158,17 @@ NotificationManager::PopNotification::PopNotification(const NotificationData &n,
 	m_WindowBkgColor = ImVec4(1, 1, 1, 1);
     m_TextColor      = ImVec4(.2f, .2f, .2f, 1.0f);
     m_HyperTextColor = ImVec4(0.03, 0.6, 0.18, 1);
+
+	m_WindowRadius = 4.0f * wxGetApp().plater()->get_current_canvas3D()->get_scale();
 }
 
-// We cannot call plater()->get_current_canvas3D() from constructor, so we do it here
-void NotificationManager::PopNotification::ensure_ui_inited()
+void NotificationManager::PopNotification::on_change_color_mode(bool is_dark)
 {
-    if (!m_is_dark_inited) {
-        m_is_dark = wxGetApp().plater()->get_current_canvas3D()->get_dark_mode_status();
-        m_is_dark_inited = true;
-    }
-
-    if (!m_WindowRadius_inited) {
-        m_WindowRadius = 4.0f * wxGetApp().plater()->get_current_canvas3D()->get_scale();
-        m_WindowRadius_inited = true;
-    }
-}
-
-        void NotificationManager::PopNotification::on_change_color_mode(bool is_dark) {
-            m_is_dark_inited = true;
 	m_is_dark = is_dark;
 }
 
 void NotificationManager::PopNotification::use_bbl_theme()
 {
-    ensure_ui_inited();
-
     ImGuiStyle &OldStyle         = ImGui::GetStyle();
 
     m_DefaultTheme.mWindowPadding = OldStyle.WindowPadding;
@@ -748,7 +736,6 @@ void NotificationManager::PopNotification::render_hypertext(ImGuiWrapper& imgui,
 
 void NotificationManager::PopNotification::render_close_button(ImGuiWrapper& imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y)
 {
-    ensure_ui_inited();
 	ImVec2 win_size(win_size_x, win_size_y);
 	ImVec2 win_pos(win_pos_x, win_pos_y);
 	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(.0f, .0f, .0f, .0f));
@@ -874,7 +861,6 @@ void NotificationManager::PopNotification::bbl_render_block_notif_left_sign(ImGu
 
 void NotificationManager::PopNotification::bbl_render_left_sign(ImGuiWrapper &imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y)
 {
-    ensure_ui_inited();
     ImDrawList *draw_list = ImGui::GetWindowDrawList();
 	ImVec2 round_rect_pos = ImVec2(win_pos_x - win_size_x + ImGui::GetStyle().WindowBorderSize, win_pos_y + ImGui::GetStyle().WindowBorderSize);
     ImVec2 round_rect_size = ImVec2(m_WindowRadius * 2, win_size_y - 2 * ImGui::GetStyle().WindowBorderSize);
@@ -906,7 +892,6 @@ void NotificationManager::PopNotification::render_left_sign(ImGuiWrapper& imgui)
 }
 void NotificationManager::PopNotification::render_minimize_button(ImGuiWrapper& imgui, const float win_pos_x, const float win_pos_y)
 {
-    ensure_ui_inited();
 	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(.0f, .0f, .0f, .0f));
 	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(.0f, .0f, .0f, .0f));
 	push_style_color(ImGuiCol_ButtonActive, ImGui::GetStyleColorVec4(ImGuiCol_WindowBg), m_state == EState::FadingOut, m_current_fade_opacity);
