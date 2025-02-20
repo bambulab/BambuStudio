@@ -16,6 +16,7 @@
 #include <mutex>
 #include <boost/thread/lock_guard.hpp>
 
+//#define MM_SEGMENTATION_DEBUG_PAINT_LINE
 //#define MM_SEGMENTATION_DEBUG_GRAPH
 //#define MM_SEGMENTATION_DEBUG_REGIONS
 //#define MM_SEGMENTATION_DEBUG_INPUT
@@ -1363,18 +1364,21 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                         if (!zs.empty() && is_volume_sinking(painted, volume_trafo)) {
                             std::vector<float> zs_sinking = {0.f};
                             Slic3r::append(zs_sinking, zs);
-                            slice_mesh_slabs(painted, zs_sinking, volume_trafo, max_top_layers > 0 ? &top : nullptr, max_bottom_layers > 0 ? &bottom : nullptr, throw_on_cancel_callback);
+                            slice_mesh_slabs(painted, zs_sinking, volume_trafo, max_top_layers > 0 ? &top : nullptr, max_bottom_layers > 0 ? &bottom : nullptr, nullptr, throw_on_cancel_callback);
 
-                            MeshSlicingParams slicing_params;
-                            slicing_params.trafo = volume_trafo;
-                            Polygons bottom_slice = slice_mesh(painted, zs[0], slicing_params);
+                            if (top.size() > 0)
+                                top.erase(top.begin());
 
-                            top.erase(top.begin());
-                            bottom.erase(bottom.begin());
+                            if (bottom.size() > 1) {
+                                MeshSlicingParams slicing_params;
+                                slicing_params.trafo  = volume_trafo;
+                                Polygons bottom_slice = slice_mesh(painted, zs[0], slicing_params);
 
-                            bottom[0] = union_(bottom[0], bottom_slice);
+                                bottom.erase(bottom.begin());
+                                bottom[0] = union_(bottom[0], bottom_slice);
+                            }
                         } else
-                            slice_mesh_slabs(painted, zs, volume_trafo, max_top_layers > 0 ? &top : nullptr, max_bottom_layers > 0 ? &bottom : nullptr, throw_on_cancel_callback);
+                            slice_mesh_slabs(painted, zs, volume_trafo, max_top_layers > 0 ? &top : nullptr, max_bottom_layers > 0 ? &bottom : nullptr, nullptr, throw_on_cancel_callback);
                         auto merge = [](std::vector<Polygons> &&src, std::vector<Polygons> &dst) {
                             auto it_src = find_if(src.begin(), src.end(), [](const Polygons &p){ return ! p.empty(); });
                             if (it_src != src.end()) {
@@ -2151,23 +2155,31 @@ std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(con
         if (layer_idx > 1) bbox.merge(layer_bboxes[layer_idx - 1]);
         if (layer_idx < num_layers - 1) bbox.merge(layer_bboxes[layer_idx + 1]);
         // Projected triangles may slightly exceed the input polygons.
-        bbox.offset(20 * SCALED_EPSILON);
+        bbox.offset(30 * SCALED_EPSILON);
         edge_grids[layer_idx].set_bbox(bbox);
         edge_grids[layer_idx].create(input_expolygons[layer_idx], coord_t(scale_(10.)));
     }
 
     BOOST_LOG_TRIVIAL(debug) << "MM segmentation - projection of painted triangles - begin";
     for (const ModelVolume *mv : print_object.model_object()->volumes) {
+#ifndef MM_SEGMENTATION_DEBUG_PAINT_LINE
         tbb::parallel_for(tbb::blocked_range<size_t>(1, num_extruders + 1), [&mv, &print_object, &layers, &edge_grids, &painted_lines, &painted_lines_mutex, &input_expolygons, &throw_on_cancel_callback](const tbb::blocked_range<size_t> &range) {
             for (size_t extruder_idx = range.begin(); extruder_idx < range.end(); ++extruder_idx) {
+#else
+            for (size_t extruder_idx = 1; extruder_idx < num_extruders + 1; ++extruder_idx) {
+#endif
                 throw_on_cancel_callback();
                 const indexed_triangle_set custom_facets = mv->mmu_segmentation_facets.get_facets(*mv, EnforcerBlockerType(extruder_idx));
                 if (!mv->is_model_part() || custom_facets.indices.empty())
                     continue;
 
                 const Transform3f tr = print_object.trafo().cast<float>() * mv->get_matrix().cast<float>();
+#ifndef MM_SEGMENTATION_DEBUG_PAINT_LINE
                 tbb::parallel_for(tbb::blocked_range<size_t>(0, custom_facets.indices.size()), [&tr, &custom_facets, &print_object, &layers, &edge_grids, &input_expolygons, &painted_lines, &painted_lines_mutex, &extruder_idx](const tbb::blocked_range<size_t> &range) {
                     for (size_t facet_idx = range.begin(); facet_idx < range.end(); ++facet_idx) {
+#else
+                    for (size_t facet_idx = 0; facet_idx < custom_facets.indices.size(); ++facet_idx) {
+#endif
                         float min_z = std::numeric_limits<float>::max();
                         float max_z = std::numeric_limits<float>::lowest();
 
@@ -2225,8 +2237,7 @@ std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(con
                             // be outside EdgeGrid's BoundingBox, for example, when the negative volume is used on the painted area (GH #7618).
                             // To ensure that the painted line is always inside EdgeGrid's BoundingBox, it is clipped by EdgeGrid's BoundingBox in cases
                             // when any of the endpoints of the line are outside the EdgeGrid's BoundingBox.
-                            BoundingBox edge_grid_bbox = edge_grids[layer_idx].bbox();
-                            edge_grid_bbox.offset(10 * scale_(EPSILON));
+                            const BoundingBox& edge_grid_bbox = edge_grids[layer_idx].bbox();
                             if (!edge_grid_bbox.contains(line_to_test.a) || !edge_grid_bbox.contains(line_to_test.b)) {
                                 // If the painted line (line_to_test) is entirely outside EdgeGrid's BoundingBox, skip this painted line.
                                 if (!edge_grid_bbox.overlap(BoundingBox(Points{line_to_test.a, line_to_test.b})) ||
@@ -2240,12 +2251,16 @@ std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(con
                             PaintedLineVisitor visitor(edge_grids[layer_idx], painted_lines[layer_idx], painted_lines_mutex[mutex_idx], 16);
                             visitor.line_to_test = line_to_test;
                             visitor.color        = int(extruder_idx);
-                            edge_grids[layer_idx].visit_cells_intersecting_line(line_to_test.a, line_to_test.b, visitor);
+                            edge_grids[layer_idx].visit_cells_intersecting_line(line_to_test.a, line_to_test.b, visitor, true);
                         }
                     }
+#ifndef MM_SEGMENTATION_DEBUG_PAINT_LINE
                 }); // end of parallel_for
+#endif
             }
+#ifndef MM_SEGMENTATION_DEBUG_PAINT_LINE
         }); // end of parallel_for
+#endif
     }
     BOOST_LOG_TRIVIAL(debug) << "MM segmentation - projection of painted triangles - end";
     BOOST_LOG_TRIVIAL(debug) << "MM segmentation - painted layers count: "

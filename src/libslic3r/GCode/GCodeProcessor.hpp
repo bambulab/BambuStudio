@@ -117,23 +117,23 @@ namespace Slic3r {
         ConflictResult() = default;
     };
 
-    struct BedMatchResult
-    {
-        bool match;
-        std::string bed_type_name;
-        int extruder_id;
-        BedMatchResult():match(true),bed_type_name(""),extruder_id(-1) {}
-        BedMatchResult(bool _match,const std::string& _bed_type_name="",int _extruder_id=-1)
-            :match(_match),bed_type_name(_bed_type_name),extruder_id(_extruder_id)
-        {}
-    };
-
     using ConflictResultOpt = std::optional<ConflictResult>;
+
+    struct FilamentPrintableResult
+    {
+        std::vector<int> conflict_filament;
+        std::string plate_name;
+        FilamentPrintableResult(){};
+        FilamentPrintableResult(std::vector<int> &conflict_filament, std::string plate_name) : conflict_filament(conflict_filament), plate_name(plate_name) {}
+        bool has_value(){
+           return !conflict_filament.empty();
+        };
+    };
 
     struct GCodeProcessorResult
     {
         ConflictResultOpt conflict_result;
-        BedMatchResult  bed_match_result;
+        FilamentPrintableResult filament_printable_reuslt;
 
         struct SettingsIds
         {
@@ -252,7 +252,7 @@ namespace Slic3r {
             spiral_vase_layers = other.spiral_vase_layers;
             warnings = other.warnings;
             bed_type = other.bed_type;
-            bed_match_result = other.bed_match_result;
+            filament_printable_reuslt = other.filament_printable_reuslt;
 #if ENABLE_GCODE_VIEWER_STATISTICS
             time = other.time;
 #endif
@@ -459,9 +459,26 @@ namespace Slic3r {
 
             void reset();
 
-            // Simulates firmware st_synchronize() call
-            void simulate_st_synchronize(float additional_time = 0.0f);
-            void calculate_time(size_t keep_last_n_blocks = 0, float additional_time = 0.0f);
+            /**
+             * @brief Simulates firmware st_synchronize() call
+             *
+             * Adding additional time to the specified extrusion role's time block.
+             *
+             * @param additional_time Addtional time to calculate
+             * @param target_role Target extrusion role for addtional time.Default is none,means any role is ok.
+             */
+            void simulate_st_synchronize(float additional_time = 0.0f, ExtrusionRole target_role = ExtrusionRole::erNone);
+
+            /**
+             * @brief  Calculates the time for all blocks
+             * 
+             * Computes the time for all blocks.
+             *
+             * @param keep_last_n_blocks The number of last blocks to retain during calculation (default is 0).
+             * @param additional_time  Additional time to calculate.
+             * @param target_role Target extrusion role for addtional time.Default is none, means any role is ok.
+             */
+            void calculate_time(size_t keep_last_n_blocks = 0, float additional_time = 0.0f, ExtrusionRole target_role = ExtrusionRole::erNone);
         };
 
         struct UsedFilaments  // filaments per ColorChange
@@ -964,7 +981,7 @@ namespace Slic3r {
         void process_filaments(CustomGCode::Type code);
 
         // Simulates firmware st_synchronize() call
-        void simulate_st_synchronize(float additional_time = 0.0f);
+        void simulate_st_synchronize(float additional_time = 0.0f, ExtrusionRole target_role =ExtrusionRole::erNone);
 
         void update_estimated_times_stats();
         //BBS:

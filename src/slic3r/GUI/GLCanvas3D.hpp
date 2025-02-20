@@ -45,6 +45,7 @@ struct ThumbnailData;
 struct ThumbnailsParams;
 class ModelObject;
 class ModelInstance;
+class TextInfo;
 class PrintObject;
 class Print;
 class SLAPrint;
@@ -376,7 +377,8 @@ class GLCanvas3D
         SomethingNotShown,
         ObjectClashed,
         GCodeConflict,
-        ToolHeightOutside
+        ToolHeightOutside,
+        FilamentUnPrintableOnFirstLayer
     };
 
     class RenderStats
@@ -415,7 +417,7 @@ class GLCanvas3D
         void render(const std::vector<const ModelInstance*>& sorted_instances) const;
     };
 
-  
+
     class Tooltip
     {
         std::string m_text;
@@ -501,6 +503,7 @@ public:
     };
 
     int GetHoverId();
+    void set_ignore_left_up() { m_mouse.ignore_left_up = true; }
 
 private:
     bool m_is_dark = false;
@@ -777,6 +780,7 @@ public:
     void set_show_world_axes(bool flag) { m_show_world_axes = flag; }
     void refresh_camera_scene_box();
 
+    BoundingBoxf3 assembly_view_cur_bounding_box() const;
     BoundingBoxf3 volumes_bounding_box() const;
     BoundingBoxf3 scene_bounding_box() const;
     BoundingBoxf3 plate_scene_bounding_box(int plate_idx) const;
@@ -908,8 +912,8 @@ public:
     std::vector<CustomGCode::Item>& get_custom_gcode_per_print_z() { return m_gcode_viewer.get_custom_gcode_per_print_z(); }
     size_t get_gcode_extruders_count() { return m_gcode_viewer.get_extruders_count(); }
 
-    std::vector<int> load_object(const ModelObject& model_object, int obj_idx, std::vector<int> instance_idxs);
-    std::vector<int> load_object(const Model& model, int obj_idx);
+    std::vector<int> load_object(const ModelObject& model_object, int obj_idx, std::vector<int> instance_idxs, bool lod_enabled);
+    std::vector<int> load_object(const Model& model, int obj_idx, bool lod_enabled);
 
     void mirror_selection(Axis axis);
 
@@ -945,6 +949,12 @@ public:
 
     Size get_canvas_size() const;
     Vec2d get_local_mouse_position() const;
+
+        // store opening position of menu
+    std::optional<Vec2d>        m_popup_menu_positon; // position of mouse right click
+    void                        set_popup_menu_position(const Vec2d &position) { m_popup_menu_positon = position; }
+    const std::optional<Vec2d> &get_popup_menu_position() const { return m_popup_menu_positon; }
+    void                        clear_popup_menu_position() { m_popup_menu_positon.reset(); }
 
     void set_tooltip(const std::string& tooltip);
 
@@ -1029,7 +1039,7 @@ public:
 
     bool is_overhang_shown() const { return m_slope.is_GlobalUsed(); }
     void show_overhang(bool show) { m_slope.globalUse(show); }
-    
+
     bool is_using_slope() const { return m_slope.is_used(); }
     void use_slope(bool use) { m_slope.use(use); }
     void set_slope_normal_angle(float angle_in_deg) { m_slope.set_normal_angle(angle_in_deg); }
@@ -1068,6 +1078,7 @@ public:
         m_sequential_print_clearance.set_polygons(polygons, height_polygons);
     }
 
+    bool can_sequential_clearance_show_in_gizmo();
     void update_sequential_clearance();
 
     const Print* fff_print() const;
@@ -1076,7 +1087,7 @@ public:
     void reset_old_size() { m_old_size = { 0, 0 }; }
 
     bool is_object_sinking(int object_idx) const;
-
+    void apply_retina_scale(Vec2d &screen_coordinate) const;
     void _perform_layer_editing_action(wxMouseEvent* evt = nullptr);
 
     // Convert the screen space coordinate to an object space coordinate.
@@ -1117,7 +1128,7 @@ private:
     void _render_bed(bool bottom, bool show_axes);
     void _render_bed_for_picking(bool bottom);
     //BBS: add part plate related logic
-    void _render_platelist(bool bottom, bool only_current, bool only_body = false, int hover_id = -1, bool render_cali = false) const;
+    void _render_platelist(bool bottom, bool only_current, bool only_body = false, int hover_id = -1, bool render_cali = false, bool show_grid = true) const;
     void _render_plates_for_picking() const;
     //BBS: add outline drawing logic
     void _render_objects(GLVolumeCollection::ERenderType type, bool with_outline = true);
@@ -1147,7 +1158,7 @@ private:
     //void _render_view_toolbar() const;
     void _render_paint_toolbar() const;
     float _show_assembly_tooltip_information(float caption_max, float x, float y) const;
-    void _render_assemble_control() const;
+    void _render_assemble_control();
     void _render_assemble_info() const;
 #if ENABLE_SHOW_CAMERA_TARGET
     void _render_camera_target() const;
@@ -1220,6 +1231,20 @@ private:
     static std::vector<std::array<float, 4>> _parse_colors(const std::vector<std::string>& colors);
 };
 
+const ModelVolume *get_model_volume(const GLVolume &v, const Model &model);
+ModelVolume *get_model_volume(const ObjectID &volume_id, const ModelObjectPtrs &objects);
+ModelVolume *get_model_volume(const GLVolume &v, const ModelObjectPtrs &objects);
+ModelVolume *get_model_volume(const GLVolume &v, const ModelObject &object);
+
+GLVolume *get_first_hovered_gl_volume(const GLCanvas3D &canvas);
+GLVolume *get_selected_gl_volume(const GLCanvas3D &canvas);
+
+ModelObject *get_model_object(const GLVolume &gl_volume, const Model &model);
+ModelObject *get_model_object(const GLVolume &gl_volume, const ModelObjectPtrs &objects);
+
+ModelInstance *get_model_instance(const GLVolume &gl_volume, const Model &model);
+ModelInstance *get_model_instance(const GLVolume &gl_volume, const ModelObjectPtrs &objects);
+ModelInstance *get_model_instance(const GLVolume &gl_volume, const ModelObject &object);
 } // namespace GUI
 } // namespace Slic3r
 

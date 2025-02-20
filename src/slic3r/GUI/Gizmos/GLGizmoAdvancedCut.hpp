@@ -38,8 +38,9 @@ public:
         MeshRaycaster* raycaster;
         bool           is_up_part;
         Transform3d    trans;
+        bool           is_modifier;
     };
-    void         part_render(const Vec3d *normal);
+    void         part_render(const Vec3d *cut_center, const Vec3d *normal);
     void         toggle_selection(const Vec2d &mouse_pos);
     void         toggle_selection(int id);
     void         turn_over_selection();
@@ -229,6 +230,7 @@ protected:
     virtual std::string on_get_name() const;
     virtual std::string on_get_name_str() override { return "Cut"; }
     virtual void on_set_state();
+    void         close();
     virtual bool on_is_activable() const;
     virtual CommonGizmosDataID on_get_requirements() const override;
     virtual void on_start_dragging() override;
@@ -312,6 +314,7 @@ private:
     bool has_valid_groove() const;
     bool has_valid_contour() const;
     void reset_cut_by_contours();
+    void render_flip_plane_button(bool disable_pred = false);
     void process_contours();
     void toggle_model_objects_visibility(bool show_in_3d = false);
     void deal_connector_pos_by_type(Vec3d &pos, float &height, CutConnectorType, CutConnectorStyle, bool looking_forward, bool is_edit, const Vec3d &clp_normal);

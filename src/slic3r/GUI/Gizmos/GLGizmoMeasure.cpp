@@ -472,6 +472,7 @@ void GLGizmoMeasure::on_set_state()
         m_mode = EMode::FeatureSelection;
         m_hover_id = -1;
         m_show_reset_first_tip = false;
+        m_only_select_plane    = false;
         m_distance             = Vec3d::Zero();
     }
 }
@@ -669,7 +670,8 @@ void GLGizmoMeasure::on_render()
             std::optional<Measure::SurfaceFeature> curr_feature = std::nullopt;
             if (m_curr_measuring) {
                 curr_feature = wxGetMouseState().LeftIsDown() ? m_curr_feature :
-                               mouse_on_object ? m_curr_measuring->get_feature(model_facet_idx, position_on_model, m_mesh_raycaster_map[m_last_hit_volume]->world_tran.get_matrix()) :
+                               mouse_on_object                ? m_curr_measuring->get_feature(model_facet_idx, position_on_model,
+                                                                               m_mesh_raycaster_map[m_last_hit_volume]->world_tran.get_matrix(), m_only_select_plane) :
                                                               std::nullopt;
             }
             if (m_measure_mode == EMeasureMode::ONLY_ASSEMBLY) {
@@ -1802,6 +1804,7 @@ void GLGizmoMeasure::show_selection_ui()
         const float feature_first_text_length = ImGui::CalcTextSize((_u8L(feature_first_text)).c_str()).x;
         ImGui::AlignTextToFramePadding();
         if (m_measure_mode == EMeasureMode::ONLY_ASSEMBLY) {
+            m_only_select_plane = m_assembly_mode == AssemblyMode::FACE_FACE ? true : false;
             if (m_assembly_mode == AssemblyMode::FACE_FACE) {
                 m_imgui->text(_u8L("Select 2 faces on objects and \n make objects assemble together.")); // tip
             } else if (m_assembly_mode == AssemblyMode::POINT_POINT) {
@@ -2440,9 +2443,12 @@ void GLGizmoMeasure::set_distance(bool same_model_object, const Vec3d &displacem
         selection->set_mode(same_model_object ? Selection::Volume : Selection::Instance);
         m_pending_scale ++;
         if (same_model_object == false) {
-            selection->translate(v->object_idx(), v->instance_idx(), displacement);
+            auto object_displacement = v->get_instance_transformation().get_matrix_no_offset().inverse() * displacement;
+            v->set_instance_transformation(v->get_instance_transformation().get_matrix() * Geometry::translation_transform(object_displacement));
         } else {
-            selection->translate(v->object_idx(), v->instance_idx(), v->volume_idx(), displacement);
+            Geometry::Transformation tran(v->world_matrix());
+            auto                     local_displacement = tran.get_matrix_no_offset().inverse() * displacement;
+            v->set_volume_transformation(v->get_volume_transformation().get_matrix() * Geometry::translation_transform(local_displacement));
         }
         wxGetApp().plater()->canvas3D()->do_move("");
         register_single_mesh_pick();

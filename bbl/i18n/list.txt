@@ -16,6 +16,10 @@ src/slic3r/GUI/Gizmos/GLGizmoSeam.cpp
 src/slic3r/GUI/Gizmos/GLGizmoSeam.hpp
 src/slic3r/GUI/Gizmos/GLGizmoText.cpp
 src/slic3r/GUI/Gizmos/GLGizmoText.hpp
+src/slic3r/GUI/Gizmos/GLGizmoBrimEars.cpp
+src/slic3r/GUI/Gizmos/GLGizmoBrimEars.hpp
+src/slic3r/GUI/Gizmos/GLGizmoSVG.cpp
+src/slic3r/GUI/Gizmos/GLGizmoSVG.hpp
 src/slic3r/GUI/GUI.cpp
 src/slic3r/GUI/GUI_App.cpp
 src/slic3r/GUI/GUI_AuxiliaryList.cpp
@@ -37,6 +41,7 @@ src/slic3r/GUI/ImGuiWrapper.cpp
 src/slic3r/GUI/Jobs/ArrangeJob.cpp
 src/slic3r/GUI/Jobs/OrientJob.cpp
 src/slic3r/GUI/Jobs/FillBedJob.cpp
+src/slic3r/GUI/Jobs/EmbossJob.cpp
 src/slic3r/GUI/Jobs/Job.cpp
 src/slic3r/GUI/Jobs/PlaterJob.cpp
 src/slic3r/GUI/Jobs/RotoptimizeJob.cpp
@@ -73,6 +78,8 @@ src/slic3r/GUI/ImageGrid.cpp
 src/slic3r/GUI/Printer/PrinterFileSystem.cpp
 src/slic3r/GUI/Mouse3DController.cpp
 src/slic3r/GUI/StatusPanel.cpp
+src/slic3r/GUI/StepMeshDialog.cpp
+src/slic3r/GUI/StepMeshDialog.hpp
 src/slic3r/GUI/Monitor.cpp
 src/slic3r/GUI/MsgDialog.cpp
 src/slic3r/GUI/NotificationManager.hpp

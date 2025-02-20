@@ -148,6 +148,7 @@ void ConfigManipulation::check_chamber_temperature(DynamicPrintConfig* config)
         {"PLA-CF",45},
         {"PVA",45},
         {"TPU",50},
+        {"TPU-AMS",50},
         {"PETG",55},
         {"PCTG",55},
         {"PETG-CF",55}
@@ -204,37 +205,6 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         new_conf.set_key_value("layer_height", new ConfigOptionFloat(0.2));
         apply(config, &new_conf);
         is_msg_dlg_already_exist = false;
-    }
-
-    //BBS: limit scarf seam start height range
-    bool apply_scarf_seam = config->opt_enum<SeamScarfType>("seam_slope_type") != SeamScarfType::None;
-    if (apply_scarf_seam) {
-        // scarf seam start height shouldn't small than zero
-        double layer_height = config->opt_float("layer_height");
-        double scarf_seam_slope_height = config->option<ConfigOptionFloatOrPercent>("seam_slope_start_height")->get_abs_value(layer_height);
-
-        if (scarf_seam_slope_height < EPSILON) {
-            const wxString     msg_text = _(L("Too small scarf start height.\nReset to 50%"));
-            MessageDialog      dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
-            DynamicPrintConfig new_conf = *config;
-            is_msg_dlg_already_exist    = true;
-            dialog.ShowModal();
-            new_conf.set_key_value("seam_slope_start_height", new ConfigOptionFloatOrPercent(50, true));
-            apply(config, &new_conf);
-            is_msg_dlg_already_exist = false;
-        }
-
-        // scarf seam start height shouldn't bigger than layer height
-        if (scarf_seam_slope_height > config->opt_float("layer_height") + EPSILON) {
-            const wxString     msg_text = _(L("Too big scarf start height.\nReset to 50%"));
-            MessageDialog      dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
-            DynamicPrintConfig new_conf = *config;
-            is_msg_dlg_already_exist    = true;
-            dialog.ShowModal();
-            new_conf.set_key_value("seam_slope_start_height", new ConfigOptionFloatOrPercent(50, true));
-            apply(config, &new_conf);
-            is_msg_dlg_already_exist = false;
-        }
     }
 
     //BBS: top_area_threshold showed if the top one wall function be applyed
@@ -628,7 +598,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
 
     bool have_brim = (config->opt_enum<BrimType>("brim_type") != btNoBrim);
     toggle_field("brim_object_gap", have_brim);
-    bool have_brim_width = (config->opt_enum<BrimType>("brim_type") != btNoBrim) && config->opt_enum<BrimType>("brim_type") != btAutoBrim;
+    bool have_brim_width = (config->opt_enum<BrimType>("brim_type") != btNoBrim) && config->opt_enum<BrimType>("brim_type") != btAutoBrim && config->opt_enum<BrimType>("brim_type") != btBrimEars;
     toggle_field("brim_width", have_brim_width);
     // wall_filament uses the same logic as in Print::extruders()
     toggle_field("wall_filament", have_perimeters || have_brim);
@@ -653,11 +623,11 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     //toggle_field("support_closing_radius", have_support_material && support_style == smsSnug);
 
     bool support_is_tree = config->opt_bool("enable_support") && is_tree(support_type);
-    for (auto el : {"tree_support_branch_angle", "tree_support_branch_distance", "tree_support_branch_diameter"})
+    for (auto el : {"tree_support_branch_angle", "tree_support_branch_distance", "tree_support_branch_diameter", "tree_support_branch_diameter_angle"})
         toggle_field(el, support_is_tree);
 
     // hide tree support settings when normal is selected
-    for (auto el : {"tree_support_branch_angle", "tree_support_branch_distance", "tree_support_branch_diameter", "max_bridge_length"})
+    for (auto el : {"tree_support_branch_angle", "tree_support_branch_distance", "tree_support_branch_diameter", "tree_support_branch_diameter_angle", "max_bridge_length"})
         toggle_line(el, support_is_tree);
     toggle_line("support_critical_regions_only", is_auto(support_type) && support_is_tree);
 
@@ -681,16 +651,14 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_field("support_filament", have_support_material || have_skirt);
 
     toggle_line("raft_contact_distance", have_raft && !have_support_soluble);
-    for (auto el : { "raft_first_layer_density"})
-        toggle_line(el, have_raft);
 
     bool has_ironing = (config->opt_enum<IroningType>("ironing_type") != IroningType::NoIroning);
     for (auto el : {
-        "ironing_pattern","ironing_speed", "ironing_flow", "ironing_spacing", "ironing_direction"})
+        "ironing_pattern","ironing_speed", "ironing_flow", "ironing_spacing", "ironing_direction", "ironing_inset"})
         toggle_line(el, has_ironing);
 
     // bool have_sequential_printing = (config->opt_enum<PrintSequence>("print_sequence") == PrintSequence::ByObject);
-    // for (auto el : { "extruder_clearance_radius", "extruder_clearance_height_to_rod", "extruder_clearance_height_to_lid" })
+    // for (auto el : { "extruder_clearance_dist_to_rod", "extruder_clearance_height_to_rod", "extruder_clearance_height_to_lid" })
     //     toggle_field(el, have_sequential_printing);
 
     bool have_ooze_prevention = config->opt_bool("ooze_prevention");
@@ -739,17 +707,6 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         toggle_field("accel_to_decel_factor", config->opt_bool("accel_to_decel_enable"));
     }
     toggle_line("exclude_object", gcflavor == gcfKlipper);
-
-    toggle_field("seam_slope_type", !has_spiral_vase);
-    bool has_seam_slope = !has_spiral_vase && config->opt_enum<SeamScarfType>("seam_slope_type") != SeamScarfType::None;
-    toggle_line("seam_slope_conditional", has_seam_slope);
-    toggle_line("scarf_angle_threshold", has_seam_slope && config->opt_bool("seam_slope_conditional"));
-    toggle_line("seam_slope_start_height", has_seam_slope);
-    toggle_line("seam_slope_entire_loop", has_seam_slope);
-    toggle_line("seam_slope_min_length", has_seam_slope);
-    toggle_line("seam_slope_steps", has_seam_slope);
-    toggle_line("seam_slope_inner_walls", has_seam_slope);
-    toggle_field("seam_slope_min_length", !config->opt_bool("seam_slope_entire_loop"));
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)

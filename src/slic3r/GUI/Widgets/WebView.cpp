@@ -6,6 +6,7 @@
 
 #include <wx/webviewarchivehandler.h>
 #include <wx/webviewfshandler.h>
+#include <wx/dynlib.h>
 #if wxUSE_WEBVIEW_EDGE
 #include <wx/msw/webview_edge.h>
 #elif defined(__WXMAC__)
@@ -64,6 +65,10 @@ public:
             }
             settings->Release();
             return false;
+        } else {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": create web view failed.";
+            wxDynamicLibrary loaderDll;
+            loaderDll.Load("WebView2Loader.dll", wxDL_DEFAULT);
         }
         pendingUserAgent = userAgent;
         return true;

@@ -43,7 +43,7 @@ enum class InfoItemType;
 
 enum class NotificationType
 {
-	CustomNotification,
+	CustomNotification = 0,
         //	SlicingNotPossible,
 	// Notification on end of export to a removable media, with hyperling to eject the external media.
 	// Obsolete by ExportFinished
@@ -145,6 +145,10 @@ enum class NotificationType
 	BBLPreviewOnlyMode,
     BBLPrinterConfigUpdateAvailable,
 	BBLUserPresetExceedLimit,
+    BBLSliceLimitError,
+	BBLBedFilamentIncompatible,
+    NotificationTypeCount
+
 };
 
 class NotificationManager
@@ -278,6 +282,8 @@ public:
     void render_notifications(GLCanvas3D &canvas, float overlay_width, float bottom_margin, float right_margin);
 	// finds and closes all notifications of given type
 	void close_notification_of_type(const NotificationType type);
+    void remove_notification_of_type(const NotificationType type);
+    void clear_all();
 	// Hides warnings in G-code preview. Should be called from plater only when 3d view/ preview is changed
     void set_in_preview(bool preview);
 	// Calls set_in_preview to apply appearing or disappearing of some notificatons;
@@ -329,6 +335,10 @@ public:
 	//BBS--gcode overlap
     void bbl_show_gcode_overlap_notification();
     void bbl_close_gcode_overlap_notification();
+
+	//BBS--bed filament match
+	void bbl_show_bed_filament_incompatible_notification(const std::string& text);
+	void bbl_close_bed_filament_incompatible_notification();
 
 	//BBS--sole notification
     void bbl_show_sole_text_notification(NotificationType sType,const std::string &text, bool bOverride, int level, bool autohide);
@@ -390,7 +400,7 @@ private:
 		virtual void           render(GLCanvas3D& canvas, float initial_y, bool move_from_overlay, float overlay_width, float right_margin);
         virtual void bbl_render_block_notification(GLCanvas3D &canvas, float initial_y, bool move_from_overlay, float overlay_width, float right_margin);
 		// close will dissapear notification on next render
-		virtual void           close() { m_state = EState::ClosePending; wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);}
+        virtual void close();
 		// data from newer notification of same type
 		void                   update(const NotificationData& n);
 		void                   append(const std::string& append_str);
@@ -408,7 +418,7 @@ private:
 		const bool             is_gray() const { return m_is_gray; }
 		void                   set_gray(bool g) { m_is_gray = g; }
 		virtual bool           compare_text(const std::string& text) const;
-        void                   hide(bool h) { if (is_finished()) return; m_state = h ? EState::Hidden : EState::Unknown; }
+        void                    hide(bool h);
 		// sets m_next_render with time of next mandatory rendering. Delta is time since last render.
 		virtual bool           update_state(bool paused, const int64_t delta);
 		int64_t 		       next_render() const { return is_finished() ? 0 : m_next_render; }
@@ -420,7 +430,9 @@ private:
         void set_Multiline(bool Multi) { m_multiline = Multi; }
 		virtual void on_change_color_mode(bool is_dark);
 		void set_scale(float scale) { m_scale = scale; }
-
+        typedef std::function<void(PopNotification*)> DeleteCallback;
+        void set_delete_callback(DeleteCallback);
+        bool is_valid_delete_callback();
 	protected:
 		// Call after every size change
 		virtual void init();
@@ -462,9 +474,9 @@ private:
 		virtual bool push_background_color();
 		// used this function instead of reading directly m_data.duration. Some notifications might need to return changing value.
 		virtual int  get_duration() { return m_data.duration; }
-
+        void        ensure_ui_inited();
 		bool m_is_dark = false;
-
+        bool m_is_dark_inited = false;
 		const NotificationData m_data;
 		// For reusing ImGUI windows.
 		NotificationIDProvider &m_id_provider;
@@ -493,7 +505,7 @@ private:
 		ImVec4     m_CurrentColor;
 
         float      m_WindowRadius;
-
+        bool       m_WindowRadius_inited = false;
 		void use_bbl_theme();
         void restore_default_theme();
 
@@ -524,6 +536,7 @@ private:
 		std::string      error_start = "<Error>";
 		std::string      error_end = "</Error>";
 
+        DeleteCallback m_on_delete_callback;
 		// inner variables to position notification window, texts and buttons correctly
 
 		// all space without text
@@ -556,7 +569,7 @@ private:
 		float m_scale = 1.0f;
 	};
 
-
+    void close_and_delete_self(PopNotification*);
 
 	class ObjectIDNotification : public PopNotification
 	{
@@ -572,7 +585,7 @@ private:
 	{
 	public:
 		PlaterWarningNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler) : PopNotification(n, id_provider, evt_handler) {}
-		void	     close()  override { if(is_finished()) return; m_state = EState::Hidden; wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0); }
+        void close() override;
 		void		 real_close()      { m_state = EState::ClosePending; wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0); }
 		void         show()            { m_state = EState::Unknown; }
 	};
@@ -808,6 +821,7 @@ private:
 	// Cache of IDs to identify and reuse ImGUI windows.
 	NotificationIDProvider 		 m_id_provider;
 	std::deque<std::unique_ptr<PopNotification>> m_pop_notifications;
+    PopNotification* m_to_delete_after_finish_render{nullptr};
 	// delayed waiting notifications, first is remaining time
 	std::vector<DelayedNotification> m_waiting_notifications;
 	//timestamps used for slicing finished - notification could be gone so it needs to be stored here
@@ -867,7 +881,7 @@ private:
                          }},
 
         NotificationData{NotificationType::BBLUserPresetExceedLimit, NotificationLevel::WarningNotificationLevel, BBL_NOTICE_MAX_INTERVAL,
-			_u8L("The number of user presets cached in the cloud has exceeded the upper limit, newly created user presets can only be used locally."), 
+			_u8L("The number of user presets cached in the cloud has exceeded the upper limit, newly created user presets can only be used locally."),
 			_u8L("Wiki"),
                          [](wxEvtHandler* evnthndlr) {
 				wxLaunchDefaultBrowser("https://wiki.bambulab.com/en/software/bambu-studio/3rd-party-printer-profile#cloud-user-presets-limit");

@@ -1047,24 +1047,62 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
     else
         m_support_used = false;
 
+    // check if filament ebnable scarf seam
     {
-        const auto &o = model.objects;
-        const auto opt_has_scarf_joint_seam = [](const DynamicConfig &c) {
-            return c.has("seam_slope_type") && c.opt_enum<SeamScarfType>("seam_slope_type") != SeamScarfType::None;
+        std::vector<int> scarf_seam_type = new_full_config.option<ConfigOptionEnumsGeneric>("filament_scarf_seam_type")->values;
+        auto check_object_scarf_seam_type = [](const std::vector<int> scarf_seam_type, const ModelObject *mo) {
+            //get filament scarf seam type
+            //check volumes
+            for (ModelVolume *mv : mo->volumes) {
+               std::vector<int> volume_extruders = mv->get_extruders();
+               for (int filament_id : volume_extruders) {
+                   if( scarf_seam_type[filament_id - 1] != 0 ) {
+                       return true;
+                   }
+
+               }
+            }
+
+            // check layer range
+            for (auto layer_range : mo->layer_config_ranges) {
+                if(layer_range.second.has("extruder"))
+                    if (int id = layer_range.second.option("extruder")->getInt(); id > 0 && scarf_seam_type[id - 1] != 0)
+                        return true;
+            }
+
+            return false;
+
         };
-        const bool has_scarf_joint_seam = std::any_of(o.begin(), o.end(), [&new_full_config, &opt_has_scarf_joint_seam](ModelObject *obj) {
-            return obj->get_config_value<ConfigOptionEnum<SeamScarfType>>(new_full_config, "seam_slope_type")->value != SeamScarfType::None ||
-                   std::any_of(obj->volumes.begin(), obj->volumes.end(),
-                               [&opt_has_scarf_joint_seam](const ModelVolume *v) { return opt_has_scarf_joint_seam(v->config.get()); }) ||
-                   std::any_of(obj->layer_config_ranges.begin(), obj->layer_config_ranges.end(),
-                               [&opt_has_scarf_joint_seam](const auto &r) { return opt_has_scarf_joint_seam(r.second.get()); });
+
+        //check custom gcode
+        auto check_gcode_scarf_seam_type = [](const std::vector<int> scarf_seam_type, const Model &model) {
+            auto it = model.plates_custom_gcodes.begin();
+
+            while (it != model.plates_custom_gcodes.end()) {
+                const CustomGCode::Info &gcode_info = it->second;
+                auto item = gcode_info.gcodes.begin();
+                while (item != gcode_info.gcodes.end()) {
+                    if (item->type == CustomGCode::Type::ToolChange && item->extruder <= scarf_seam_type.size() && scarf_seam_type[item->extruder - 1] != 0)
+                        return true;
+                    item++;
+                }
+                it++;
+            }
+
+            return false;
+        };
+
+        // check custon_gcode
+        bool has_scarf_joint_seam = check_gcode_scarf_seam_type(scarf_seam_type, model) ||
+            std::any_of(model.objects.begin(), model.objects.end(), [scarf_seam_type, &check_object_scarf_seam_type](const ModelObject *obj) {
+            return check_object_scarf_seam_type(scarf_seam_type, obj);
         });
+
+
 
         if (has_scarf_joint_seam) {
             new_full_config.set("has_scarf_joint_seam", true);
         }
-
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", has_scarf_joint_seam:" << has_scarf_joint_seam;
     }
 
     // Find modified keys of the various configs. Resolve overrides extruder retract values by filament profiles.
@@ -1255,6 +1293,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                                           model_volume_list_changed(model_object, model_object_new, ModelVolumeType::SUPPORT_ENFORCER);
         bool layer_height_ranges_differ = ! layer_height_ranges_equal(model_object.layer_config_ranges, model_object_new.layer_config_ranges, model_object_new.layer_height_profile.empty());
         bool model_origin_translation_differ = model_object.origin_translation != model_object_new.origin_translation;
+        bool brim_points_differ = model_brim_points_data_changed(model_object, model_object_new);
         auto print_objects_range        = print_object_status_db.get_range(model_object);
         // The list actually can be empty if all instances are out of the print bed.
         //assert(print_objects_range.begin() != print_objects_range.end());
@@ -1300,6 +1339,10 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                 }
             } else if (model_custom_seam_data_changed(model_object, model_object_new)) {
                 update_apply_status(this->invalidate_step(psGCodeExport));
+            }
+            if (brim_points_differ) {
+                model_object.brim_points = model_object_new.brim_points;
+                update_apply_status(this->invalidate_all_steps());
             }
         }
         if (! solid_or_modifier_differ) {

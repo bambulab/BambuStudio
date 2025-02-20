@@ -320,7 +320,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     ImGui::PushItemWidth(slider_width + space_size);
     if (m_imgui->bbl_slider_float_style("##decimate_ratio", &m_configuration.decimate_ratio, 0.f, 100.f, format)) {
         if (m_configuration.decimate_ratio < 0.f)
-            m_configuration.decimate_ratio = 0.01f;
+            m_configuration.decimate_ratio = 0.f;
         if (m_configuration.decimate_ratio > 100.f)
             m_configuration.decimate_ratio = 100.f;
         m_configuration.fix_count_by_ratio(orig_triangle_count);
@@ -331,7 +331,14 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
 
     ImGui::PushItemWidth(ImGui::CalcTextSize("100.00%").x + space_size);
 
-    ImGui::BBLDragFloat("##decimate_ratio_input", &m_configuration.decimate_ratio, 0.05f, 0.0f, 0.0f, "%.2f%%");
+    if (ImGui::BBLDragFloat("##decimate_ratio_input", &m_configuration.decimate_ratio, 0.05f, 0.0f, 0.0f, "%.2f%%")) {
+        if (m_configuration.decimate_ratio < 0.f)
+            m_configuration.decimate_ratio = 0.f;
+        if (m_configuration.decimate_ratio > 100.f)
+            m_configuration.decimate_ratio = 100.f;
+        m_configuration.fix_count_by_ratio(orig_triangle_count);
+        start_process = true;
+    }
 
     ImGui::NewLine();
     ImGui::SameLine(bottom_left_width + space_size);

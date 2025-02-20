@@ -16,6 +16,7 @@
 #include "libslic3r/BoundingBox.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 #include "Jobs/Job.hpp"
+#include "Jobs/Worker.hpp"
 #include "Search.hpp"
 #include "PartPlate.hpp"
 #include "GUI_App.hpp"
@@ -287,12 +288,16 @@ public:
     // To be called when providing a list of files to the GUI slic3r on command line.
     std::vector<size_t> load_files(const std::vector<std::string>& input_files, LoadStrategy strategy = LoadStrategy::LoadModel | LoadStrategy::LoadConfig,  bool ask_multi = false);
     // to be called on drag and drop
+    bool emboss_svg(const wxString &svg_file, bool from_toolbar_or_file_menu = false);
+    bool load_svg(const wxArrayString &filenames, bool from_toolbar_or_file_menu = false);
+    bool load_same_type_files(const wxArrayString &filenames);
     bool load_files(const wxArrayString& filenames);
-
     const wxString& get_last_loaded_gcode() const { return m_last_loaded_gcode; }
 
     void update(bool conside_update_flag = false, bool force_background_processing_update = false);
     //BBS
+    Worker &      get_ui_job_worker();
+    const Worker &get_ui_job_worker() const;
     void object_list_changed();
     void stop_jobs();
     bool is_any_job_running() const;
@@ -382,6 +387,7 @@ public:
     void clear_before_change_mesh(int obj_idx);
     void changed_mesh(int obj_idx);
 
+    void changed_object(ModelObject &object);
     void changed_object(int obj_idx);
     void changed_objects(const std::vector<size_t>& object_idxs);
     void schedule_background_process(bool schedule = true);
@@ -513,7 +519,7 @@ public:
     bool can_simplify() const;
     bool can_split_to_objects() const;
     bool can_split_to_volumes() const;
-    bool can_arrange() const;
+    bool can_do_ui_job() const;
     //BBS
     bool can_cut_to_clipboard() const;
     bool can_layers_editing() const;
@@ -698,6 +704,8 @@ public:
     void toggle_render_statistic_dialog();
     bool is_render_statistic_dialog_visible() const;
 
+    void toggle_non_manifold_edges();
+    bool is_show_non_manifold_edges();
     void toggle_show_wireframe();
     bool is_show_wireframe() const;
     void enable_wireframe(bool status);
@@ -716,6 +724,8 @@ public:
     wxMenu* plate_menu();
     wxMenu* object_menu();
     wxMenu* part_menu();
+    wxMenu* svg_part_menu();
+    wxMenu* cut_connector_menu();
     wxMenu* sla_object_menu();
     wxMenu* default_menu();
     wxMenu* instance_menu();
@@ -781,6 +791,7 @@ private:
 };
 
 std::vector<int> get_min_flush_volumes(const DynamicPrintConfig& full_config);
+std::string check_boolean_possible(const std::vector<const ModelVolume*>& volumes);
 } // namespace GUI
 } // namespace Slic3r
 

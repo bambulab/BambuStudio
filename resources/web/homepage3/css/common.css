@@ -15,6 +15,7 @@ html, body {
 	padding:0px;
 	border: 0px;
 	margin: 0px;
+	background-color: #FFF;
 }
 
 /*---字体----*/
@@ -91,8 +92,15 @@ html, body {
 #MenuArea
 {
 	display:flex;
-	justify-content: flex-end;
 	margin-bottom: 24px;
+	flex-direction:row-reverse;
+	align-items: center;
+}
+
+#MenuBtnBlock
+{
+	display:flex;
+	margin-left: 60px;
 }
 
 .Menu_Btn
@@ -109,6 +117,13 @@ html, body {
 	width: 18px;
 }
 
+.Menu_Btn span
+{
+	display: inline-block;
+	width: 100%;
+	white-space: nowrap;
+}
+
 /*---弹性内容块---*/
 .GuideBlock
 {
@@ -121,7 +136,7 @@ html, body {
 	{
 		width: calc(50% - 20px);
 	}
-	.SingleGuideBar :nth-child(n+3)
+	.SingleGuideBar > :nth-child(n+3)
 	{
 		display: none;
 	}
@@ -133,7 +148,7 @@ html, body {
 	{
 		width: calc(33% - 20px);
 	}
-	.SingleGuideBar :nth-child(n+4)
+	.SingleGuideBar > :nth-child(n+4)
 	{
 		display: none;
 	}	
@@ -144,7 +159,7 @@ html, body {
 	{
 		width: calc(25% - 20px);
 	}
-	.SingleGuideBar :nth-child(n+5)
+	.SingleGuideBar > :nth-child(n+5)
 	{
 		display: none;
 	}	
@@ -155,7 +170,7 @@ html, body {
 	{
 		width: calc(20% - 20px);
 	}
-	.SingleGuideBar :nth-child(n+6)
+	.SingleGuideBar > :nth-child(n+6)
 	{
 		display: none;
 	}

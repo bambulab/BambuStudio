@@ -405,7 +405,7 @@ void ImGuiWrapper::set_language(const std::string &language)
     }
     else if (lang == "en") {
         ranges = ImGui::GetIO().Fonts->GetGlyphRangesEnglish(); // Basic Latin
-    } 
+    }
     else{
         ranges = ImGui::GetIO().Fonts->GetGlyphRangesOthers();
     }
@@ -519,7 +519,7 @@ void ImGuiWrapper::render()
     m_new_frame_open = false;
 }
 
-ImVec2 ImGuiWrapper::calc_text_size(const wxString &text, float wrap_width) const
+ImVec2 ImGuiWrapper::calc_text_size(const wxString &text, float wrap_width)
 {
     auto text_utf8 = into_u8(text);
     ImVec2 size = ImGui::CalcTextSize(text_utf8.c_str(), NULL, false, wrap_width);
@@ -530,6 +530,15 @@ ImVec2 ImGuiWrapper::calc_text_size(const wxString &text, float wrap_width) cons
 #endif*/
 
     return size;
+}
+
+float ImGuiWrapper::find_widest_text(std::vector<wxString> &text_list)
+{
+    float width = .0f;
+    for(const wxString &text : text_list) {
+        width = std::max(width, this->calc_text_size(text).x);
+    }
+    return width;
 }
 
 ImVec2 ImGuiWrapper::calc_button_size(const wxString &text, const ImVec2 &button_size) const
@@ -828,8 +837,8 @@ ColorRGBA ImGuiWrapper::from_ImU32(const ImU32 &color)
     return from_ImVec4(ImGui::ColorConvertU32ToFloat4(color));
 }
 
-ColorRGBA ImGuiWrapper::from_ImVec4(const ImVec4 &color) 
-{ 
+ColorRGBA ImGuiWrapper::from_ImVec4(const ImVec4 &color)
+{
     return {color.x, color.y, color.z, color.w};
 }
 
@@ -982,13 +991,13 @@ void ImGuiWrapper::text(const char *label)
 
 void ImGuiWrapper::text(const std::string &label)
 {
-    this->text(label.c_str());
+    ImGuiWrapper::text(label.c_str());
 }
 
 void ImGuiWrapper::text(const wxString &label)
 {
     auto label_utf8 = into_u8(label);
-    this->text(label_utf8.c_str());
+    ImGuiWrapper::text(label_utf8.c_str());
 }
 
 void ImGuiWrapper::warning_text(const char *label)
@@ -1564,9 +1573,9 @@ bool begin_menu(const char *label, bool enabled)
     return menu_is_open;
 }
 
-void end_menu() 
-{ 
-    ImGui::EndMenu(); 
+void end_menu()
+{
+    ImGui::EndMenu();
 }
 
 bool menu_item_with_icon(const char *label, const char *shortcut, ImVec2 icon_size /* = ImVec2(0, 0)*/, ImU32 icon_color /* = 0*/, bool selected /* = false*/, bool enabled /* = true*/, bool* hovered/* = nullptr*/)
@@ -1903,6 +1912,163 @@ bool ImGuiWrapper::want_any_input() const
     return io.WantCaptureMouse || io.WantCaptureKeyboard || io.WantTextInput;
 }
 
+template<typename T, typename Func>
+static bool input_optional(std::optional<T> &v, Func &f, std::function<bool(const T &)> is_default, const T &def_val)
+{
+    if (v.has_value()) {
+        if (f(*v)) {
+            if (is_default(*v)) v.reset();
+            return true;
+        }
+    } else {
+        T val = def_val;
+        if (f(val)) {
+            if (!is_default(val)) v = val;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool ImGuiWrapper::input_optional_int(const char *label, std::optional<int> &v, int step, int step_fast, ImGuiInputTextFlags flags, int def_val)
+{
+    auto                             func       = [&](int &value) { return ImGui::InputInt(label, &value, step, step_fast, flags); };
+    std::function<bool(const int &)> is_default = [def_val](const int &value) -> bool { return value == def_val; };
+    return input_optional(v, func, is_default, def_val);
+}
+
+bool ImGuiWrapper::input_optional_float(const char *label, std::optional<float> &v, float step, float step_fast, const char *format, ImGuiInputTextFlags flags, float def_val)
+{
+    auto                               func       = [&](float &value) { return ImGui::InputFloat(label, &value, step, step_fast, format, flags); };
+    std::function<bool(const float &)> is_default = [def_val](const float &value) -> bool { return std::fabs(value - def_val) <= std::numeric_limits<float>::epsilon(); };
+    return input_optional(v, func, is_default, def_val);
+}
+
+bool ImGuiWrapper::drag_optional_float(const char *label, std::optional<float> &v, float v_speed, float v_min, float v_max, const char *format, float power, float def_val)
+{
+    auto                               func       = [&](float &value) { return ImGui::DragFloat(label, &value, v_speed, v_min, v_max, format, power); };
+    std::function<bool(const float &)> is_default = [def_val](const float &value) -> bool { return std::fabs(value - def_val) <= std::numeric_limits<float>::epsilon(); };
+    return input_optional(v, func, is_default, def_val);
+}
+
+bool ImGuiWrapper::slider_optional_float(
+    const char *label, std::optional<float> &v, float v_min, float v_max, const char *format, float power, bool clamp, const wxString &tooltip, bool show_edit_btn, float def_val)
+{
+    auto                               func       = [&](float &value) { return slider_float(label, &value, v_min, v_max, format, power, clamp, tooltip, show_edit_btn); };
+    std::function<bool(const float &)> is_default = [def_val](const float &value) -> bool { return std::fabs(value - def_val) <= std::numeric_limits<float>::epsilon(); };
+    return input_optional(v, func, is_default, def_val);
+}
+
+bool ImGuiWrapper::slider_optional_int(
+    const char *label, std::optional<int> &v, int v_min, int v_max, const char *format, float power, bool clamp, const wxString &tooltip, bool show_edit_btn, int def_val)
+{
+    std::optional<float> val;
+    if (v.has_value()) val = static_cast<float>(*v);
+    auto                               func       = [&](float &value) { return slider_float(label, &value, v_min, v_max, format, power, clamp, tooltip, show_edit_btn); };
+    std::function<bool(const float &)> is_default = [def_val](const float &value) -> bool { return std::fabs(value - def_val) < 0.9f; };
+
+    float default_value = static_cast<float>(def_val);
+    if (input_optional(val, func, is_default, default_value)) {
+        if (val.has_value())
+            v = static_cast<int>(std::round(*val));
+        else
+            v.reset();
+        return true;
+    } else
+        return false;
+}
+
+std::optional<ImVec2> ImGuiWrapper::change_window_position(const char *window_name, bool try_to_fix)
+{
+    ImGuiWindow *window = ImGui::FindWindowByName(window_name);
+    // is window just created
+    if (window == NULL) return {};
+
+    // position of window on screen
+    ImVec2 position = window->Pos;
+    ImVec2 size     = window->SizeFull;
+
+    // screen size
+    ImVec2 screen = ImGui::GetMainViewport()->Size;
+
+    std::optional<ImVec2> output_window_offset;
+    if (position.x < 0) {
+        if (position.y < 0)
+            // top left
+            output_window_offset = ImVec2(0, 0);
+        else
+            // only left
+            output_window_offset = ImVec2(0, position.y);
+    } else if (position.y < 0) {
+        // only top
+        output_window_offset = ImVec2(position.x, 0);
+    } else if (screen.x < (position.x + size.x)) {
+        if (screen.y < (position.y + size.y))
+            // right bottom
+            output_window_offset = ImVec2(screen.x - size.x, screen.y - size.y);
+        else
+            // only right
+            output_window_offset = ImVec2(screen.x - size.x, position.y);
+    } else if (screen.y < (position.y + size.y)) {
+        // only bottom
+        output_window_offset = ImVec2(position.x, screen.y - size.y);
+    }
+
+    if (!try_to_fix && output_window_offset.has_value()) output_window_offset = ImVec2(-1, -1); // Put on default position
+
+    return output_window_offset;
+}
+
+void ImGuiWrapper::left_inputs() { ImGui::ClearActiveID(); }
+
+std::string ImGuiWrapper::trunc(const std::string &text, float width, const char *tail)
+{
+    float text_width = ImGui::CalcTextSize(text.c_str()).x;
+    if (text_width < width) return text;
+    float tail_width = ImGui::CalcTextSize(tail).x;
+    assert(width > tail_width);
+    if (width <= tail_width) return "Error: Can't add tail and not be under wanted width.";
+    float allowed_width = width - tail_width;
+
+    // guess approx count of letter
+    wxString temp{"n"};
+    float    average_letter_width = calc_text_size(temp).x; // average letter width
+    unsigned count_letter         = static_cast<unsigned>(allowed_width / average_letter_width);
+
+    //std::string_view text_       = text;
+    //std::string_view result_text = text_.substr(0, count_letter);
+    wxString result_text(text.substr(0, count_letter));
+    text_width                   = calc_text_size(result_text).x;
+    if (text_width < allowed_width) {
+        // increase letter count
+        while (count_letter < text.length()) {
+            ++count_letter;
+            wxString      act_text(text.substr(0, count_letter));
+            text_width = calc_text_size(act_text).x;
+            if (text_width > allowed_width) break;
+            result_text = act_text;
+        }
+    } else {
+        // decrease letter count
+        while (count_letter > 1) {
+            --count_letter;
+            result_text = text.substr(0, count_letter);
+            text_width  = calc_text_size(result_text).x;
+            if (text_width < allowed_width) break;
+        }
+    }
+    return result_text .ToStdString()+ tail;
+}
+
+void ImGuiWrapper::escape_double_hash(std::string &text)
+{ // add space between hashes
+    const std::string search  = "##";
+    const std::string replace = "# #";
+    size_t            pos     = 0;
+    while ((pos = text.find(search, pos)) != std::string::npos) text.replace(pos, search.length(), replace);
+}
+
+
 void ImGuiWrapper::disable_background_fadeout_animation()
 {
     GImGui->DimBgRatio = 1.0f;
@@ -2197,6 +2363,19 @@ void ImGuiWrapper::pop_combo_style()
     ImGui::PopStyleColor(7);
 }
 
+void ImGuiWrapper::push_radio_style()
+{
+    if (m_is_dark_mode) {
+        ImGui::PushStyleColor(ImGuiCol_CheckMark, to_ImVec4(decode_color_to_float_array("#00675b"))); // ORCA use orca color for radio buttons
+    } else {
+        ImGui::PushStyleColor(ImGuiCol_CheckMark, to_ImVec4(decode_color_to_float_array("#009688"))); // ORCA use orca color for radio buttons
+    }
+}
+
+void ImGuiWrapper::pop_radio_style() {
+    ImGui::PopStyleColor(1);
+}
+
 void ImGuiWrapper::init_font(bool compress)
 {
     destroy_font();
@@ -2223,7 +2402,7 @@ void ImGuiWrapper::init_font(bool compress)
     //FIXME replace with io.Fonts->AddFontFromMemoryTTF(buf_decompressed_data, (int)buf_decompressed_size, m_font_size, nullptr, ranges.Data);
     //https://github.com/ocornut/imgui/issues/220
     if (m_is_korean)
-        default_font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "NotoSansKR-Regular.ttf").c_str(), m_font_size, &cfg, ranges.Data);
+        default_font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "NanumGothic-Regular.ttf").c_str(), m_font_size, &cfg, ranges.Data);
     else
         default_font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "HarmonyOS_Sans_SC_Regular.ttf").c_str(), m_font_size, &cfg, ranges.Data);
     if (default_font == nullptr) {
@@ -2234,7 +2413,7 @@ void ImGuiWrapper::init_font(bool compress)
     }
 
     if (m_is_korean)
-        bold_font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "NotoSansKR-Bold.ttf").c_str(), m_font_size, &cfg, ranges.Data);
+        bold_font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "NanumGothic-Bold.ttf").c_str(), m_font_size, &cfg, ranges.Data);
     else
         bold_font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "HarmonyOS_Sans_SC_Bold.ttf").c_str(), m_font_size, &cfg, ranges.Data);
     if (bold_font == nullptr) {

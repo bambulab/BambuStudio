@@ -18,6 +18,7 @@ const float GLGizmoBase::Grabber::SizeFactor = 0.05f;
 const float GLGizmoBase::Grabber::MinHalfSize = 4.0f;
 const float GLGizmoBase::Grabber::DraggingScaleFactor = 1.25f;
 const float GLGizmoBase::Grabber::FixedGrabberSize = 16.0f;
+float       GLGizmoBase::Grabber::GrabberSizeFactor   = 1.0f;
 const float GLGizmoBase::Grabber::FixedRadiusSize = 80.0f;
 
 
@@ -78,7 +79,7 @@ GLGizmoBase::Grabber::Grabber()
     hover_color = GRABBER_HOVER_COL;
 }
 
-void GLGizmoBase::Grabber::render(bool hover, float size) const
+void GLGizmoBase::Grabber::render(bool hover) const
 {
     std::array<float, 4> render_color;
     if (hover) {
@@ -87,7 +88,7 @@ void GLGizmoBase::Grabber::render(bool hover, float size) const
     else
         render_color = color;
 
-    render(size, render_color, false);
+    render(render_color, false);
 }
 
 float GLGizmoBase::Grabber::get_half_size(float size) const
@@ -113,7 +114,7 @@ GLModel& GLGizmoBase::Grabber::get_cube()
     return cube;
 }
 
-void GLGizmoBase::Grabber::render(float size, const std::array<float, 4>& render_color, bool picking) const
+void GLGizmoBase::Grabber::render(const std::array<float, 4>& render_color, bool picking) const
 {
     if (! cube_initialized) {
         // This cannot be done in constructor, OpenGL is not yet
@@ -126,11 +127,7 @@ void GLGizmoBase::Grabber::render(float size, const std::array<float, 4>& render
 
     //BBS set to fixed size grabber
     //float fullsize = 2 * (dragging ? get_dragging_half_size(size) : get_half_size(size));
-    float fullsize = 8.0f;
-    if (GLGizmoBase::INV_ZOOM > 0) {
-        fullsize = FixedGrabberSize * GLGizmoBase::INV_ZOOM;
-    }
-
+    float fullsize = get_grabber_size();
 
     const_cast<GLModel*>(&cube)->set_color(-1, render_color);
 
@@ -217,6 +214,52 @@ bool GLGizmoBase::render_combo(const std::string &label, const std::vector<std::
     selection_idx   = selection_out;
 
     return is_changed;
+}
+
+void GLGizmoBase::render_cross_mark(const Vec3f &target, bool is_single)
+{
+    double half_length = 4.0;
+
+    glsafe(::glDisable(GL_DEPTH_TEST));
+
+    glsafe(::glLineWidth(2.0f));
+    ::glBegin(GL_LINES);
+    // draw line for x axis
+    ::glColor3f(1.0f, 0.0f, 0.0f);
+    if (!is_single) {
+        ::glVertex3f(target(0) - half_length, target(1), target(2));
+    }
+    else {
+        ::glVertex3f(target(0), target(1), target(2));
+    }
+    ::glVertex3f(target(0) + half_length, target(1), target(2));
+    // draw line for y axis
+    ::glColor3f(0.0f, 1.0f, 0.0f);
+    if (!is_single) {
+        ::glVertex3f(target(0), target(1) - half_length, target(2));
+    } else {
+        ::glVertex3f(target(0), target(1), target(2));
+    }
+    ::glVertex3f(target(0), target(1) + half_length, target(2));
+    // draw line for z axis
+    ::glColor3f(0.0f, 0.0f, 1.0f);
+    if (!is_single) {
+        ::glVertex3f(target(0), target(1), target(2) - half_length);
+    } else {
+        ::glVertex3f(target(0), target(1), target(2));
+    }
+    ::glVertex3f(target(0), target(1), target(2) + half_length);
+    glsafe(::glEnd());
+}
+
+float GLGizmoBase::get_grabber_size()
+{
+    float grabber_size = 8.0f;
+    if (GLGizmoBase::INV_ZOOM > 0) {
+        grabber_size = GLGizmoBase::Grabber::FixedGrabberSize * GLGizmoBase::INV_ZOOM;
+        grabber_size = grabber_size * GLGizmoBase::Grabber::GrabberSizeFactor;
+    }
+    return grabber_size;
 }
 
 GLGizmoBase::GLGizmoBase(GLCanvas3D &parent, const std::string &icon_filename, unsigned int sprite_id)
@@ -398,13 +441,13 @@ std::array<float, 4> GLGizmoBase::picking_color_component(unsigned int id) const
 void GLGizmoBase::render_grabbers(const BoundingBoxf3& box) const
 {
 #if ENABLE_FIXED_GRABBER
-    render_grabbers((float)(GLGizmoBase::Grabber::FixedGrabberSize));
+    render_grabbers();
 #else
     render_grabbers((float)((box.size().x() + box.size().y() + box.size().z()) / 3.0));
 #endif
 }
 
-void GLGizmoBase::render_grabbers(float size) const
+void GLGizmoBase::render_grabbers() const
 {
     GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
     if (shader == nullptr)
@@ -413,24 +456,18 @@ void GLGizmoBase::render_grabbers(float size) const
     shader->set_uniform("emission_factor", 0.1f);
     for (int i = 0; i < (int)m_grabbers.size(); ++i) {
         if (m_grabbers[i].enabled)
-            m_grabbers[i].render(m_hover_id == i, size);
+            m_grabbers[i].render(m_hover_id == i);
     }
     shader->stop_using();
 }
 
 void GLGizmoBase::render_grabbers_for_picking(const BoundingBoxf3& box) const
 {
-#if ENABLE_FIXED_GRABBER
-    float mean_size = (float)(GLGizmoBase::Grabber::FixedGrabberSize);
-#else
-    float mean_size = (float)((box.size().x() + box.size().y() + box.size().z()) / 3.0);
-#endif
-
     for (unsigned int i = 0; i < (unsigned int)m_grabbers.size(); ++i) {
         if (m_grabbers[i].enabled) {
             std::array<float, 4> color = picking_color_component(i);
             m_grabbers[i].color = color;
-            m_grabbers[i].render_for_picking(mean_size);
+            m_grabbers[i].render_for_picking();
         }
     }
 }
@@ -442,6 +479,83 @@ std::string GLGizmoBase::format(float value, unsigned int decimals) const
 
 void GLGizmoBase::set_dirty() {
     m_dirty = true;
+}
+
+bool GLGizmoBase::use_grabbers(const wxMouseEvent &mouse_event)
+{
+    bool is_dragging_finished = false;
+    if (mouse_event.Moving()) {
+        // it should not happen but for sure
+        assert(!m_dragging);
+        if (m_dragging)
+            is_dragging_finished = true;
+        else
+            return false;
+    }
+
+    if (mouse_event.LeftDown()) {
+        Selection &selection = m_parent.get_selection();
+        if (!selection.is_empty() && m_hover_id != -1 /* &&
+            (m_grabbers.empty() || m_hover_id < static_cast<int>(m_grabbers.size()))*/) {
+            selection.setup_cache();
+
+            m_dragging = true;
+            for (auto &grabber : m_grabbers) grabber.dragging = false;
+            //            if (!m_grabbers.empty() && m_hover_id < int(m_grabbers.size()))
+            //                m_grabbers[m_hover_id].dragging = true;
+
+            on_start_dragging();
+
+            // Let the plater know that the dragging started
+            m_parent.post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_STARTED));
+            m_parent.set_as_dirty();
+            return true;
+        }
+    } else if (m_dragging) {
+        // when mouse cursor leave window than finish actual dragging operation
+        bool is_leaving = mouse_event.Leaving();
+        if (mouse_event.Dragging()) {
+            Point      mouse_coord(mouse_event.GetX(), mouse_event.GetY());
+            auto       ray = m_parent.mouse_ray(mouse_coord);
+            UpdateData data(ray, mouse_coord);
+
+            update(data);
+
+            wxGetApp().obj_manipul()->set_dirty();
+            m_parent.set_as_dirty();
+            return true;
+        } else if (mouse_event.LeftUp() || is_leaving || is_dragging_finished) {
+            do_stop_dragging(is_leaving);
+            return true;
+        }
+    }
+    return false;
+}
+
+void GLGizmoBase::do_stop_dragging(bool perform_mouse_cleanup)
+{
+    for (auto &grabber : m_grabbers) grabber.dragging = false;
+    m_dragging = false;
+
+    // NOTE: This should be part of GLCanvas3D
+    // Reset hover_id when leave window
+    if (perform_mouse_cleanup) m_parent.mouse_up_cleanup();
+
+    on_stop_dragging();
+
+    // There is prediction that after draggign, data are changed
+    // Data are updated twice also by canvas3D::reload_scene.
+    // Should be fixed.
+    m_parent.get_gizmos_manager().update_data();
+
+    wxGetApp().obj_manipul()->set_dirty();
+
+    // Let the plater know that the dragging finished, so a delayed
+    // refresh of the scene with the background processing data should
+    // be performed.
+    m_parent.post_event(SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
+    // updates camera target constraints
+    m_parent.refresh_camera_scene_box();
 }
 
 void GLGizmoBase::render_input_window(float x, float y, float bottom_limit)

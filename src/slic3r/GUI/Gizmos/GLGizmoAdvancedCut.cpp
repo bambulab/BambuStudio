@@ -12,6 +12,7 @@
 #include <algorithm>
 #include "GLGizmosCommon.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/format.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "../GUI/MsgDialog.hpp"
@@ -479,6 +480,11 @@ void GLGizmoAdvancedCut::on_set_state()
 
     // Reset m_cut_z on gizmo activation
     if (get_state() == On) {
+        const Selection &selection = m_parent.get_selection();
+        if (selection.is_empty()) {//check selection again
+            close();
+            return;
+        }
         m_hover_id           = -1;
         m_connectors_editing = false;
 
@@ -515,6 +521,13 @@ void GLGizmoAdvancedCut::on_set_state()
     }
 }
 
+void GLGizmoAdvancedCut::close()
+{//close gizmo == open it again
+    auto &mng = m_parent.get_gizmos_manager();
+    if (mng.get_current_type() == GLGizmosManager::Cut)
+        mng.open_gizmo(GLGizmosManager::Cut);
+}
+
 bool GLGizmoAdvancedCut::on_is_activable() const
 {
     const Selection &selection  = m_parent.get_selection();
@@ -524,7 +537,7 @@ bool GLGizmoAdvancedCut::on_is_activable() const
 
     if (const ModelObject *mo = wxGetApp().plater()->model().objects[object_idx]; mo->is_cut() && mo->volumes.size() == 1) {
         const ModelVolume *volume = mo->volumes[0];
-        if (volume->is_cut_connector() && volume->cut_info.connector_type == CutConnectorType::Dowel) 
+        if (volume->is_cut_connector() && volume->cut_info.connector_type == CutConnectorType::Dowel)
             return false;
     }
 
@@ -674,9 +687,10 @@ void GLGizmoAdvancedCut::on_render()
 
     if (m_part_selection) {
         if (!m_connectors_editing) {
-            if (m_is_dragging == false) { m_part_selection->part_render(nullptr); }
-        } else
-            m_part_selection->part_render(&m_plane_normal);
+            if (m_is_dragging == false) { m_part_selection->part_render(nullptr,nullptr); }
+        } else {
+            m_part_selection->part_render(&m_plane_center, &m_plane_normal);
+        }
     }
     if (!m_connectors_editing) {
         render_cut_plane_and_grabbers();
@@ -701,11 +715,6 @@ void GLGizmoAdvancedCut::on_render_for_picking()
         GLGizmoRotate3D::on_render_for_picking();
 
         BoundingBoxf3 box = m_parent.get_selection().get_bounding_box();
-#if ENABLE_FIXED_GRABBER
-        float mean_size = (float) (GLGizmoBase::Grabber::FixedGrabberSize);
-#else
-        float mean_size = (float) ((box.size().x() + box.size().y() + box.size().z()) / 3.0);
-#endif
         // pick grabber
         {
             color                     = picking_color_component(0);
@@ -713,14 +722,14 @@ void GLGizmoAdvancedCut::on_render_for_picking()
             m_move_z_grabber.color[1] = color[1];
             m_move_z_grabber.color[2] = color[2];
             m_move_z_grabber.color[3] = color[3];
-            m_move_z_grabber.render_for_picking(mean_size);
+            m_move_z_grabber.render_for_picking();
             if (m_cut_mode == CutMode::cutTongueAndGroove) {
                 color                     = picking_color_component(1);
                 m_move_x_grabber.color[0] = color[0];
                 m_move_x_grabber.color[1] = color[1];
                 m_move_x_grabber.color[2] = color[2];
                 m_move_x_grabber.color[3] = color[3];
-                m_move_x_grabber.render_for_picking(mean_size);
+                m_move_x_grabber.render_for_picking();
             }
         }
 
@@ -837,7 +846,40 @@ void update_object_cut_id(CutObjectBase &cut_id, ModelObjectCutAttributes attrib
     }
 }
 
-void synchronize_model_after_cut(Model &model, const CutObjectBase &cut_id)
+static void check_objects_after_cut(const ModelObjectPtrs &objects)
+{
+    std::vector<std::string> err_objects_names;
+    std::vector<int>         err_objects_idxs;
+    int                      obj_idx{0};
+    for (const ModelObject *object : objects) {
+        std::vector<std::string> connectors_names;
+        connectors_names.reserve(object->volumes.size());
+        for (const ModelVolume *vol : object->volumes)
+            if (vol->cut_info.is_connector) connectors_names.push_back(vol->name);
+        const size_t connectors_count = connectors_names.size();
+        sort_remove_duplicates(connectors_names);
+        if (connectors_count != connectors_names.size()) err_objects_names.push_back(object->name);
+
+        // check manifol/repairs
+        auto stats = object->get_object_stl_stats();
+        if (!stats.manifold() || stats.repaired()) err_objects_idxs.push_back(obj_idx);
+        obj_idx++;
+    }
+
+    auto plater = wxGetApp().plater();
+    if (!err_objects_names.empty()) {
+        wxString names = from_u8(err_objects_names[0]);
+        for (size_t i = 1; i < err_objects_names.size(); i++) names += ", " + from_u8(err_objects_names[i]);
+        WarningDialog(plater, format_wxstr("Objects(%1%) have duplicated connectors. "
+                                           "Some connectors may be missing in slicing result.\n"
+                                           "Please report to BambuSudio team in which scenario this issue happened.\n"
+                                           "Thank you.",
+                                           names))
+            .ShowModal();
+    }
+}
+
+    void synchronize_model_after_cut(Model &model, const CutObjectBase &cut_id)
 {
     for (ModelObject *obj : model.objects)
         if (obj->is_cut() && obj->cut_id.has_same_id(cut_id) && !obj->cut_id.is_equal(cut_id)) obj->cut_id.copy(cut_id);
@@ -902,6 +944,7 @@ void GLGizmoAdvancedCut::perform_cut(const Selection& selection)
         const ModelObjectPtrs &new_objects = cut_by_contour  ? cut.perform_by_contour(m_part_selection->get_cut_parts(), dowels_count) :
                                              cut_with_groove ? cut.perform_with_groove(m_groove, m_rotate_matrix) :
                                                                cut.perform_with_plane();
+        check_objects_after_cut(new_objects);// Fix for #11487 - Cut Connectors Broken when assigning part to other side
         // fix_non_manifold_edges
 #ifdef HAS_WIN10SDK
         if (is_windows10()) {
@@ -1161,8 +1204,8 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
 
     // BBS set to fixed size grabber
     // float fullsize = 2 * (dragging ? get_dragging_half_size(size) : get_half_size(size));
-    float fullsize = 8.0f;
-    if (GLGizmoBase::INV_ZOOM > 0) { fullsize = m_move_z_grabber.FixedGrabberSize * GLGizmoBase::INV_ZOOM; }
+    float fullsize = get_grabber_size();
+
     GLModel &cube_z = m_move_z_grabber.get_cube();
     GLModel &cube_x = m_move_x_grabber.get_cube();
     if (is_render_z_grabber) {
@@ -1647,6 +1690,23 @@ void GLGizmoAdvancedCut::process_contours()
 
     toggle_model_objects_visibility();
 }
+
+void GLGizmoAdvancedCut::render_flip_plane_button(bool disable_pred /*=false*/)
+{
+    ImGui::SameLine();
+
+    if (m_hover_id == c_plate_move_id)
+        ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetColorU32(ImGuiCol_ButtonHovered));
+
+    m_imgui->disabled_begin(disable_pred);
+    if (m_imgui->button(_L("Flip cut plane")))
+        flip_cut_plane();
+    m_imgui->disabled_end();
+
+    if (m_hover_id == c_plate_move_id)
+        ImGui::PopStyleColor();
+}
+
 
 void GLGizmoAdvancedCut::toggle_model_objects_visibility(bool show_in_3d)
 {
@@ -2168,6 +2228,8 @@ void GLGizmoAdvancedCut::render_connectors_input_window(float x, float y, float 
         reset_connectors();
     m_imgui->disabled_end();
 
+    render_flip_plane_button(m_connectors_editing && connectors.empty());
+
     m_imgui->text(_L("Type"));
     ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.00f, 0.00f, 0.00f, 1.00f));
     bool type_changed = render_connect_type_radio_button(CutConnectorType::Plug);
@@ -2529,14 +2591,18 @@ PartSelection::PartSelection(
     const ModelVolumePtrs &volumes = model_object()->volumes;
 
     // split to parts
-    for (int id = int(volumes.size()) - 1; id >= 0; id--)
-        if (volumes[id]->is_splittable()) volumes[id]->split(1);
+    for (int id = int(volumes.size()) - 1; id >= 0; id--) {
+        auto look = volumes[id]->is_model_part();
+        if (volumes[id]->is_splittable() && volumes[id]->is_model_part()) // we have to split just solid volumes
+            volumes[id]->split(1);
+    }
 
     const Vec3d inst_offset = model_object()->instances[m_instance_idx]->get_offset();
     int         i           = 0;
     m_cut_parts.resize(volumes.size());
     for (const ModelVolume *volume : volumes) {
         assert(volume != nullptr);
+        m_cut_parts[i].is_modifier = !volume->is_model_part();
         m_cut_parts[i].is_up_part = false;
         if (m_cut_parts[i].raycaster) { delete m_cut_parts[i].raycaster; }
         m_cut_parts[i].raycaster = new MeshRaycaster(volume->mesh());
@@ -2613,11 +2679,13 @@ PartSelection::PartSelection(const ModelObject *object, int instance_idx_in) : m
     m_cut_parts.resize(volumes.size());
     for (const ModelVolume *volume : volumes) {
         assert(volume != nullptr);
+        m_cut_parts[i].is_modifier = !volume->is_model_part();
         if (m_cut_parts[i].raycaster) { delete m_cut_parts[i].raycaster; }
         m_cut_parts[i].raycaster = new MeshRaycaster(volume->mesh());
         m_cut_parts[i].glmodel.reset();
         m_cut_parts[i].glmodel.init_from(volume->mesh_ptr()->its);
         m_cut_parts[i].trans    = Geometry::translation_transform(inst_offset) * model_object()->volumes[i]->get_matrix();
+        // Now check whether this part is below or above the plane.
         m_cut_parts[i].is_up_part = volume->is_from_upper();
         i++;
     }
@@ -2625,19 +2693,37 @@ PartSelection::PartSelection(const ModelObject *object, int instance_idx_in) : m
     m_valid = true;
 }
 
-void PartSelection::part_render(const Vec3d *normal)
+void PartSelection::part_render(const Vec3d *cut_center, const Vec3d *normal)
 {
     if (!valid())
         return;
 
     const Camera &camera             = wxGetApp().plater()->get_camera();
-    const bool    is_looking_forward = normal && camera.get_dir_forward().dot(*normal) < 0.05;
 
     glEnable(GL_DEPTH_TEST);
     for (size_t id = 0; id < m_cut_parts.size(); ++id) { // m_parts.size() test
-        if (normal && ((is_looking_forward && m_cut_parts[id].is_up_part) || (!is_looking_forward && !m_cut_parts[id].is_up_part)))
-            continue;
-        GLGizmoBase::render_glmodel(m_cut_parts[id].glmodel, m_cut_parts[id].is_up_part ? UPPER_PART_COLOR.get_data() : LOWER_PART_COLOR.get_data(), m_cut_parts[id].trans);
+        bool  is_looking_forward = true;
+        auto is_at_normal_dir  = false;
+        if (cut_center && normal) {
+            auto part_center =m_cut_parts[id].trans * m_cut_parts[id].glmodel.get_bounding_box().center();
+            is_at_normal_dir=(*cut_center - part_center).normalized().dot(*normal) > 0 ;
+            Vec3d valid_normal = is_at_normal_dir ? *normal : -*normal;
+            is_looking_forward = camera.get_dir_forward().dot(valid_normal) < 0.05;
+        }
+        if (cut_center) {
+            if (!is_looking_forward)
+                continue;
+        }
+        if (m_cut_parts[id].is_modifier) {
+            glsafe(::glEnable(GL_BLEND));
+            glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+        }
+        GLGizmoBase::render_glmodel(m_cut_parts[id].glmodel,
+                                    m_cut_parts[id].is_modifier ? MODIFIER_COLOR.get_data() :
+                                                                  (m_cut_parts[id].is_up_part ? UPPER_PART_COLOR.get_data() : LOWER_PART_COLOR.get_data()),
+                                    m_cut_parts[id].trans);
+        if (m_cut_parts[id].is_modifier)
+            glsafe(::glDisable(GL_BLEND));
     }
 }
 
@@ -2662,13 +2748,13 @@ bool PartSelection::is_one_object() const
     // flawlessly. Because it is currently not always so for self-intersecting
     // objects, let's better check the parts itself:
     if (m_cut_parts.size() < 2) return true;
-    return std::all_of(m_cut_parts.begin(), m_cut_parts.end(), [this](const PartPara &part) { return part.is_up_part == m_cut_parts.front().is_up_part; });
+    return std::all_of(m_cut_parts.begin(), m_cut_parts.end(), [this](const PartPara &part) { return part.is_modifier || part.is_up_part == m_cut_parts.front().is_up_part; });
 }
 
 std::vector<Cut::Part> PartSelection::get_cut_parts()
 {
     std::vector<Cut::Part> parts;
-    for (const auto &part : m_cut_parts) parts.push_back({part.is_up_part, false});
+    for (const auto &part : m_cut_parts) parts.push_back({part.is_up_part, part.is_modifier});
     return parts;
 }
 

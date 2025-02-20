@@ -81,12 +81,11 @@ using ItemGroup = std::vector<std::reference_wrapper<Item>>;
 const double BIG_ITEM_TRESHOLD = 0.02;
 #define VITRIFY_TEMP_DIFF_THRSH 15  // bed temp can be higher than vitrify temp, but not higher than this thresh
 
-void update_arrange_params(ArrangeParams& params, const DynamicPrintConfig* print_cfg, const ArrangePolygons& selected)
+void update_arrange_params(ArrangeParams& params, const DynamicPrintConfig & print_cfg, const ArrangePolygons& selected)
 {
-    double                             skirt_distance = get_real_skirt_dist(*print_cfg);
     // Note: skirt_distance is now defined between outermost brim and skirt, not the object and skirt.
     // So we can't do max but do adding instead.
-    params.brim_skirt_distance = skirt_distance;
+    params.brim_skirt_distance = get_real_skirt_dist(print_cfg);
     params.bed_shrink_x += params.brim_skirt_distance;
     params.bed_shrink_y += params.brim_skirt_distance;
     if (params.is_seq_print) {
@@ -97,14 +96,14 @@ void update_arrange_params(ArrangeParams& params, const DynamicPrintConfig* prin
         }
         else
             params.min_obj_distance = std::max(params.min_obj_distance, scaled(params.cleareance_radius + 0.001)); // +0.001mm to avoid clearance check fail due to rounding error
-    
+
         // for sequential print, we need to inflate the bed because cleareance_radius is so large
         params.bed_shrink_x -= unscale_(params.min_obj_distance / 2);
         params.bed_shrink_y -= unscale_(params.min_obj_distance / 2);
     }
 }
 
-void update_selected_items_inflation(ArrangePolygons& selected, const DynamicPrintConfig* print_cfg, ArrangeParams& params) {
+void update_selected_items_inflation(ArrangePolygons& selected, const DynamicPrintConfig & print_cfg, ArrangeParams& params) {
     // do not inflate brim_width. Objects are allowed to have overlapped brim.
     Points      bedpts = get_shrink_bedpts(print_cfg, params);
     BoundingBox bedbb = Polygon(bedpts).bounding_box();
@@ -122,7 +121,7 @@ void update_selected_items_inflation(ArrangePolygons& selected, const DynamicPri
         });
 }
 
-void update_unselected_items_inflation(ArrangePolygons& unselected, const DynamicPrintConfig* print_cfg, const ArrangeParams& params)
+void update_unselected_items_inflation(ArrangePolygons& unselected, const DynamicPrintConfig & print_cfg, const ArrangeParams& params)
 {
     coord_t exclusion_gap = scale_(1.f);
     if (params.is_seq_print) {
@@ -130,7 +129,7 @@ void update_unselected_items_inflation(ArrangePolygons& unselected, const Dynami
         exclusion_gap = std::max(exclusion_gap, params.min_obj_distance / 2 + scaled<coord_t>(params.bed_shrink_x + 1.f));  // +1mm gap so the exclusion region is not too close
         // dont forget to move the excluded region
         for (auto& region : unselected) {
-            if (region.is_virt_object) region.poly.translate(scaled(params.bed_shrink_x), scaled(params.bed_shrink_y));
+            if (region.is_virt_object) region.poly.translate(scaled(params.bed_shrink_x+1.f), scaled(params.bed_shrink_y+1.f));
         }
     }
     // For occulusion regions, inflation should be larger to prevent genrating brim on them.
@@ -143,114 +142,10 @@ void update_unselected_items_inflation(ArrangePolygons& unselected, const Dynami
         : (ap.is_extrusion_cali_object ? 0 : exclusion_gap); });
 }
 
-void update_selected_items_axis_align(ArrangePolygons& selected, const DynamicPrintConfig* print_cfg, const ArrangeParams& params)
+//it will be accurate after call update_params
+Points get_shrink_bedpts(const DynamicPrintConfig & print_cfg, const ArrangeParams& params)
 {
-    // now only need to consider "Align to x axis"
-    if (!params.align_to_y_axis)
-        return;
-
-    for (ArrangePolygon& ap : selected) {
-        bool   validResult = false;
-        double angle = 0.0;
-        {
-            const auto& pts = ap.transformed_poly().contour;
-            int         lpt = pts.size();
-            double      a00 = 0, a10 = 0, a01 = 0, a20 = 0, a11 = 0, a02 = 0, a30 = 0, a21 = 0, a12 = 0, a03 = 0;
-            double      xi, yi, xi2, yi2, xi_1, yi_1, xi_12, yi_12, dxy, xii_1, yii_1;
-            xi_1 = pts.back().x();
-            yi_1 = pts.back().y();
-
-            xi_12 = xi_1 * xi_1;
-            yi_12 = yi_1 * yi_1;
-
-            for (int i = 0; i < lpt; i++) {
-                xi = pts[i].x();
-                yi = pts[i].y();
-
-                xi2 = xi * xi;
-                yi2 = yi * yi;
-                dxy = xi_1 * yi - xi * yi_1;
-                xii_1 = xi_1 + xi;
-                yii_1 = yi_1 + yi;
-
-                a00 += dxy;
-                a10 += dxy * xii_1;
-                a01 += dxy * yii_1;
-                a20 += dxy * (xi_1 * xii_1 + xi2);
-                a11 += dxy * (xi_1 * (yii_1 + yi_1) + xi * (yii_1 + yi));
-                a02 += dxy * (yi_1 * yii_1 + yi2);
-                a30 += dxy * xii_1 * (xi_12 + xi2);
-                a03 += dxy * yii_1 * (yi_12 + yi2);
-                a21 += dxy * (xi_12 * (3 * yi_1 + yi) + 2 * xi * xi_1 * yii_1 + xi2 * (yi_1 + 3 * yi));
-                a12 += dxy * (yi_12 * (3 * xi_1 + xi) + 2 * yi * yi_1 * xii_1 + yi2 * (xi_1 + 3 * xi));
-                xi_1 = xi;
-                yi_1 = yi;
-                xi_12 = xi2;
-                yi_12 = yi2;
-            }
-
-            if (std::abs(a00) > EPSILON) {
-                double db1_2, db1_6, db1_12, db1_24, db1_20, db1_60;
-                double m00, m10, m01, m20, m11, m02, m30, m21, m12, m03;
-                if (a00 > 0) {
-                    db1_2 = 0.5;
-                    db1_6 = 0.16666666666666666666666666666667;
-                    db1_12 = 0.083333333333333333333333333333333;
-                    db1_24 = 0.041666666666666666666666666666667;
-                    db1_20 = 0.05;
-                    db1_60 = 0.016666666666666666666666666666667;
-                }
-                else {
-                    db1_2 = -0.5;
-                    db1_6 = -0.16666666666666666666666666666667;
-                    db1_12 = -0.083333333333333333333333333333333;
-                    db1_24 = -0.041666666666666666666666666666667;
-                    db1_20 = -0.05;
-                    db1_60 = -0.016666666666666666666666666666667;
-                }
-                m00 = a00 * db1_2;
-                m10 = a10 * db1_6;
-                m01 = a01 * db1_6;
-                m20 = a20 * db1_12;
-                m11 = a11 * db1_24;
-                m02 = a02 * db1_12;
-                m30 = a30 * db1_20;
-                m21 = a21 * db1_60;
-                m12 = a12 * db1_60;
-                m03 = a03 * db1_20;
-
-                double cx = m10 / m00;
-                double cy = m01 / m00;
-
-                double a = m20 / m00 - cx * cx;
-                double b = m11 / m00 - cx * cy;
-                double c = m02 / m00 - cy * cy;
-
-                //if a and c are close, there is no dominant axis, then do not rotate
-                // ratio is always no more than 1
-                double ratio = std::abs(a) > std::abs(c) ? std::abs(c / a) :
-                    std::abs(c) > 0 ? std::abs(a / c) : 0;
-                if (ratio>0.66) {
-                    validResult = false;
-                }
-                else {
-                    angle = std::atan2(2 * b, (a - c)) / 2;
-                    angle = PI / 2 - angle;
-                    // if the angle is close to PI or -PI, it means the object is vertical, then do not rotate
-                    if (std::abs(std::abs(angle) - PI) < 0.01)
-                        angle = 0;
-                    validResult = true;
-                }
-            }
-        }
-        if (validResult) { ap.rotation += angle; }
-    }
-}
-
-//it will bed accurate after call update_params
-Points get_shrink_bedpts(const DynamicPrintConfig* print_cfg, const ArrangeParams& params)
-{
-    Points bedpts = get_bed_shape(*print_cfg);
+    Points bedpts = get_bed_shape(print_cfg);
     // shrink bed by moving to center by dist
     auto shrinkFun = [](Points& bedpts, double dist, int direction) {
 #define SGN(x) ((x) >= 0 ? 1 : -1)
@@ -986,15 +881,25 @@ void _arrange(
     // Use the minimum bounding box rotation as a starting point.
     // TODO: This only works for convex hull. If we ever switch to concave
     // polygon nesting, a convex hull needs to be calculated.
-    if (params.allow_rotations) {
+    if (params.align_to_y_axis) {
         for (auto &itm : shapes) {
-            itm.rotation(min_area_boundingbox_rotation(itm.transformedShape()));
+            auto angle = min_area_boundingbox_rotation(itm.transformedShape());
+            itm.rotate(angle + PI / 2);
+        }
+    }
+    else if (params.allow_rotations) {
+        for (auto &itm : shapes) {
+            auto angle = min_area_boundingbox_rotation(itm.transformedShape());
+            BOOST_LOG_TRIVIAL(debug) << itm.name << " min_area_boundingbox_rotation=" << angle << ", original angle=" << itm.rotation();
+            itm.rotate(angle);
 
             // If the item is too big, try to find a rotation that makes it fit
             if constexpr (std::is_same_v<BinT, Box>) {
                 auto bb = itm.boundingBox();
-                if (bb.width() >= bin.width() || bb.height() >= bin.height())
+                if (bb.width() >= bin.width() || bb.height() >= bin.height()) {
+                    BOOST_LOG_TRIVIAL(debug) << itm.name << " too big, rotate to " << fit_into_box_rotation(itm.transformedShape(), bin);
                     itm.rotate(fit_into_box_rotation(itm.transformedShape(), bin));
+                }
             }
         }
     }

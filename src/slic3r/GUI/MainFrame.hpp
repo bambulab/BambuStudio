@@ -238,7 +238,8 @@ public:
         eSendToPrinterAll    = 6,
         eUploadGcode         = 7,
         eExportAllSlicedFile = 8,
-        ePrintMultiMachine   = 9
+        ePrintMultiMachine   = 9,
+        eSendMultiApp        = 10
     };
 
     void update_layout();
@@ -257,7 +258,6 @@ public:
     void        update_title();
     void        set_max_recent_count(int max);
 
-    void        show_publish_button(bool show);
     void        show_calibration_button(bool show);
 
 	void        update_title_colour_after_set_title();
@@ -272,6 +272,7 @@ public:
     // Called from wxEVT_ACTIVATE, as wxEVT_CREATE was not reliable (bug in wxWidgets?).
     void        register_win32_callbacks();
     void        init_menubar_as_editor();
+    bool        check_bbl_farm_client_installed();
     void        init_menubar_as_gcodeviewer();
     void        update_menubar();
     // Open item in menu by menu and item name (in actual language)
@@ -354,6 +355,7 @@ public:
     MaxVolumetricSpeed_Test_Dlg *m_vol_test_dlg{nullptr};
     VFA_Test_Dlg *               m_vfa_test_dlg{nullptr};
     Retraction_Test_Dlg *        m_retraction_calib_dlg{nullptr};
+    SecondaryCheckDialog*        m_confirm_download_plugin_dlg{ nullptr };
 
     // BBS. Replace title bar and menu bar with top bar.
     BBLTopbar*            m_topbar{ nullptr };
@@ -385,7 +387,6 @@ public:
     // BBS
     mutable int m_print_select{ ePrintAll };
     mutable int m_slice_select{ eSliceAll };
-    Button* m_publish_btn{ nullptr };
     SideButton* m_slice_btn{ nullptr };
     SideButton* m_slice_option_btn{ nullptr };
     SideButton* m_print_btn{ nullptr };

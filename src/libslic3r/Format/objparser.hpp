@@ -115,6 +115,10 @@ struct ObjData {
 
 	// List of faces, delimited by an ObjVertex with all members set to -1.
 	std::vector<ObjVertex>			vertices;
+
+        std::string                             ml_region;
+        std::string                             ml_name;
+        std::string                             ml_id;
 };
 
 struct MtlData
@@ -126,6 +130,8 @@ struct MtlData
 extern bool objparse(const char *path, ObjData &data);
 extern bool mtlparse(const char *path, MtlData &data);
 extern bool objparse(std::istream &stream, ObjData &data);
+
+extern std::string parsemlinfo(const char* input, const char* condition);
 
 extern bool objbinsave(const char *path, const ObjData &data);
 

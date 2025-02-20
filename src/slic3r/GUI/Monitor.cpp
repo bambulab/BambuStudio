@@ -284,21 +284,12 @@ void MonitorPanel::select_machine(std::string machine_sn)
     wxQueueEvent(this, event);
 }
 
-void MonitorPanel::on_update_all(wxMouseEvent &event)
-{
-    if (update_flag) {
-        update_all();
-        Layout();
-        Refresh();
-    }
-}
 
  void MonitorPanel::on_timer(wxTimerEvent& event)
 {
      if (update_flag) {
          update_all();
          Layout();
-         Refresh();
      }
 }
 
@@ -314,15 +305,20 @@ void MonitorPanel::on_update_all(wxMouseEvent &event)
     if (!dev->set_selected_machine(event.GetString().ToStdString()))
         return;
 
+    m_status_info_panel->reset_ams_group_show_flag();
+
     set_default();
     update_all();
 
     MachineObject *obj_ = dev->get_selected_machine();
-    if (obj_)
+    if (obj_) {
+        obj_->last_cali_version = -1;
+        obj_->reset_pa_cali_history_result();
+        obj_->reset_pa_cali_result();
         GUI::wxGetApp().sidebar().load_ams_list(obj_->dev_id, obj_);
+    }
 
     Layout();
-    Refresh();
 }
 
 void MonitorPanel::on_printer_clicked(wxMouseEvent &event)
@@ -348,8 +344,8 @@ void MonitorPanel::on_printer_clicked(wxMouseEvent &event)
 
 void MonitorPanel::on_size(wxSizeEvent &event)
 {
-    Layout();
-    Refresh();
+    //Layout();
+    //Refresh();
 }
 
 void MonitorPanel::update_all()
@@ -369,6 +365,7 @@ void MonitorPanel::update_all()
         return;
     }
 
+
     //BBS check mqtt connections if user is login
     if (wxGetApp().is_user_login()) {
         dev->check_pushing();
@@ -380,6 +377,8 @@ void MonitorPanel::update_all()
             ;
         }
     }
+    if (obj)
+        m_agent->install_device_cert(obj->dev_id, obj->is_lan_mode_printer());
 
     if (obj) {
         wxGetApp().reset_to_active();
@@ -418,7 +417,6 @@ void MonitorPanel::update_all()
 
     show_status(MONITOR_NORMAL);
 
-
     if (m_status_info_panel->IsShown()) {
         m_status_info_panel->update(obj);
     }
@@ -454,7 +452,6 @@ bool MonitorPanel::Show(bool show)
 #ifdef __APPLE__
     wxGetApp().mainframe->SetMinSize(wxGetApp().plater()->GetMinSize());
 #endif
-
     NetworkAgent* m_agent = wxGetApp().getAgent();
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (show) {
@@ -481,6 +478,11 @@ bool MonitorPanel::Show(bool show)
         stop_update();
         m_refresh_timer->Stop();
     }
+
+    if (obj && !obj->dev_id.empty()) {
+        select_machine(obj->dev_id);
+    }
+
     return wxPanel::Show(show);
 }
 

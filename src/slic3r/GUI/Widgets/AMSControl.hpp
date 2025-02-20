@@ -142,9 +142,26 @@ struct Caninfo
     AMSCanType      material_state;
     int             ctype=0;
     int             material_remain = 100;
+    int             cali_idx = -1;
+    std::string     filament_id;
     float           k = 0.0f;
     float           n = 0.0f;
     std::vector<wxColour> material_cols;
+
+    bool operator==(const Caninfo &other) const
+    {
+        return  can_id == other.can_id &&
+                material_name == other.material_name &&
+                material_colour == other.material_colour &&
+                material_state == other.material_state &&
+                ctype == other.ctype &&
+                material_remain == other.material_remain &&
+                cali_idx == other.cali_idx &&
+                filament_id == other.filament_id &&
+                k == other.k &&
+                n == other.n &&
+                material_cols == other.material_cols;
+    }
 };
 
 struct AMSinfo
@@ -157,6 +174,13 @@ public:
     AMSAction               current_action;
     int                     curreent_filamentstep;
     int                     ams_humidity = 0;
+
+    bool operator==(const AMSinfo &other) const
+    {
+        return ams_id == other.ams_id && cans == other.cans &&
+               current_can_id == other.current_can_id && current_step == other.current_step && current_action == other.current_action &&
+               curreent_filamentstep == other.curreent_filamentstep && ams_humidity == other.ams_humidity;
+    }
 
     bool parse_ams_info(MachineObject* obj, Ams *ams, bool remain_flag = false, bool humidity_flag = false);
 };
@@ -597,6 +621,7 @@ protected:
     wxBoxSizer*   m_vams_sizer               = {nullptr};
     wxBoxSizer*   m_sizer_vams_tips          = {nullptr};
 
+    bool            m_auto_reill_show = {false};
     Label*          m_ams_backup_tip = {nullptr};
     Label*          m_ams_tip       = {nullptr};
 

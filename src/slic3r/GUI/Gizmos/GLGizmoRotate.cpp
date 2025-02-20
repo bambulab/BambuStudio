@@ -81,7 +81,7 @@ bool GLGizmoRotate::on_init()
 }
 
 void GLGizmoRotate::on_start_dragging()
-{ 
+{
     init_data_from_selection(m_parent.get_selection());
 }
 
@@ -314,9 +314,7 @@ void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
 
 void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool picking) const
 {
-    double size = 0.75 * GLGizmoBase::Grabber::FixedGrabberSize * GLGizmoBase::INV_ZOOM;
-    //float mean_size = (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0);
-    //double size = m_dragging ? (double)m_grabbers[0].get_dragging_half_size(mean_size) : (double)m_grabbers[0].get_half_size(mean_size);
+    double size = get_grabber_size() * 0.75;//0.75 for arrow show
 
     std::array<float, 4> color = m_grabbers[0].color;
     if (!picking && m_hover_id != -1) {
@@ -361,7 +359,7 @@ void GLGizmoRotate::transform_to_local(const Selection &selection) const
 {
     glsafe(::glTranslated(m_center(0), m_center(1), m_center(2)));
 
-    if (selection.is_single_volume() || selection.is_single_modifier() || selection.requires_local_axes()) {
+    if (selection.is_single_volume() || selection.is_single_modifier() || selection.requires_local_axes() || m_force_local_coordinate) {
         glsafe(::glMultMatrixd(Geometry::Transformation(m_orient_matrix).get_matrix_no_offset().data()));
     }
 
@@ -490,7 +488,29 @@ void GLGizmoRotate3D::on_set_state()
         g.set_state(m_state);
     if (get_state() == On && m_object_manipulation) {
         m_object_manipulation->set_coordinates_type(ECoordinatesType::World);
+        m_last_volume = nullptr;
     }
+}
+
+void GLGizmoRotate3D::data_changed(bool is_serializing) {
+    const Selection &selection = m_parent.get_selection();
+    const GLVolume * volume    = selection.get_first_volume();
+    if (volume == nullptr) {
+        m_last_volume = nullptr;
+        return;
+    }
+    if (m_last_volume != volume) {
+        m_last_volume = volume;
+        Geometry::Transformation tran;
+        if (selection.is_single_full_instance()) {
+            tran = volume->get_instance_transformation();
+        } else {
+            tran = volume->get_volume_transformation();
+        }
+        m_object_manipulation->set_init_rotation(tran);
+    }
+    for (GLGizmoRotate &g : m_gizmos)
+        g.init_data_from_selection(m_parent.get_selection());
 }
 
 bool GLGizmoRotate3D::on_is_activable() const

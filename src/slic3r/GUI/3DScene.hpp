@@ -10,7 +10,7 @@
 // BBS
 #include "libslic3r/ObjectID.hpp"
 
-#include "GLModel.hpp"
+#include "MeshUtils.hpp"
 #include "GLShader.hpp"
 
 #include <functional>
@@ -256,8 +256,20 @@ public:
 private:
     BoundingBox m_bounding_box;
 };
+enum LOD_LEVEL {
+    HIGH, // Origin data
+    MIDDLE,
+    SMALL,
+};
 
 class GLVolume {
+    static float LOD_HIGH_ZOOM;
+    static float LOD_MIDDLE_ZOOM;
+    static float LOD_SMALL_ZOOM;
+    static float LAST_CAMERA_ZOOM_VALUE;
+    mutable LOD_LEVEL m_cur_lod_level = LOD_LEVEL::HIGH;
+    mutable unsigned char m_lod_update_index = 0;
+
 public:
     std::string name;
     bool        is_text_shape{false};
@@ -292,6 +304,9 @@ public:
     virtual ~GLVolume() = default;
 
     // BBS
+    bool simplify_mesh(const TriangleMesh &mesh, std::shared_ptr<GLIndexedVertexArray> va, LOD_LEVEL lod) const;
+    bool simplify_mesh(const indexed_triangle_set &_its, std::shared_ptr<GLIndexedVertexArray> va, LOD_LEVEL lod) const;
+
 protected:
     Geometry::Transformation m_instance_transformation;
     Geometry::Transformation m_volume_transformation;
@@ -327,6 +342,30 @@ protected:
 
     SinkingContours m_sinking_contours;
 
+     // guards m_state
+    struct Configuration
+    {
+        bool     use_count      = false;//diff with glgizmoSimplify
+        float    decimate_ratio = 50.f; // in percent
+        uint32_t wanted_count   = 0;    // initialize by percents
+        float    max_error      = 1.;   // maximal quadric error
+
+        bool operator==(const Configuration &rhs)
+        {
+            return (use_count == rhs.use_count && decimate_ratio == rhs.decimate_ratio && wanted_count == rhs.wanted_count && max_error == rhs.max_error);
+        }
+        bool operator!=(const Configuration &rhs) { return !(*this == rhs); }
+    };
+    struct State
+    {
+        enum Status { idle, running, cancelling };
+
+        Status                                status   = idle;
+        int                                   progress = 0; // percent of done work
+        Configuration                         config;       // Configuration we started with.
+        const ModelVolume *                   mv = nullptr;
+        std::unique_ptr<indexed_triangle_set> result;
+    };
 public:
     // Color of the triangles / quads held by this volume.
     std::array<float, 4> color;
@@ -400,7 +439,9 @@ public:
     EHoverState         	hover;
 
     // Interleaved triangles & normals with indexed triangles & quads.
-    std::shared_ptr<GLIndexedVertexArray>        indexed_vertex_array;
+    std::shared_ptr<GLIndexedVertexArray> indexed_vertex_array;
+    std::shared_ptr<GLIndexedVertexArray> indexed_vertex_array_middle;
+    std::shared_ptr<GLIndexedVertexArray>  indexed_vertex_array_small;
     const TriangleMesh * ori_mesh{nullptr};
     // BBS
     mutable std::vector<GLIndexedVertexArray> mmuseg_ivas;
@@ -409,7 +450,8 @@ public:
     // Ranges of triangle and quad indices to be rendered.
     std::pair<size_t, size_t>   tverts_range;
     std::pair<size_t, size_t>   qverts_range;
-
+    std::pair<size_t, size_t>   tverts_range_lod;
+    std::pair<size_t, size_t>   qverts_range_lod;
     // If the qverts or tverts contain thick extrusions, then offsets keeps pointers of the starts
     // of the extrusions per layer.
     std::vector<coordf_t>       print_zs;
@@ -533,11 +575,7 @@ public:
     void                finalize_geometry(bool opengl_initialized) { this->indexed_vertex_array->finalize_geometry(opengl_initialized); }
     void                release_geometry() { this->indexed_vertex_array->release_geometry(); }
 
-    void                set_bounding_boxes_as_dirty() {
-        m_transformed_bounding_box.reset();
-        m_transformed_convex_hull_bounding_box.reset();
-        m_transformed_non_sinking_bounding_box.reset();
-    }
+    void                set_bounding_boxes_as_dirty();
 
     bool                is_sla_support() const;
     bool                is_sla_pad() const;
@@ -572,6 +610,7 @@ private:
 typedef std::vector<GLVolume*> GLVolumePtrs;
 typedef std::pair<GLVolume*, std::pair<unsigned int, double>> GLVolumeWithIdAndZ;
 typedef std::vector<GLVolumeWithIdAndZ> GLVolumeWithIdAndZList;
+
 
 class GLVolumeCollection
 {
@@ -634,7 +673,8 @@ public:
         int                      obj_idx,
         const std::vector<int>	&instance_idxs,
         const std::string 		&color_by,
-        bool 					 opengl_initialized);
+        bool 					 opengl_initialized,
+        bool                    lod_enabled);
 
     int load_object_volume(
         const ModelObject *model_object,
@@ -644,7 +684,8 @@ public:
         const std::string &color_by,
         bool 			   opengl_initialized,
         bool               in_assemble_view = false,
-        bool               use_loaded_id = false);
+        bool               use_loaded_id = false,
+        bool               lod_enabled = true);
 
     // Load SLA auxiliary GLVolumes (for support trees or pad).
     void load_object_auxiliary(

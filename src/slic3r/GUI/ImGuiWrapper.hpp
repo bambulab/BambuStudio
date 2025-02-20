@@ -90,9 +90,9 @@ public:
 
     float scaled(float x) const { return x * m_font_size; }
     ImVec2 scaled(float x, float y) const { return ImVec2(x * m_font_size, y * m_font_size); }
-    ImVec2 calc_text_size(const wxString &text, float wrap_width = -1.0f) const;
+    static ImVec2 calc_text_size(const wxString &text, float wrap_width = -1.0f);
     ImVec2 calc_button_size(const wxString &text, const ImVec2 &button_size = ImVec2(0, 0)) const;
-
+    float find_widest_text(std::vector<wxString> &text_list);
     ImVec2 get_item_spacing() const;
     float  get_slider_float_height() const;
     const LastSliderStatus& get_last_slider_status() const { return m_last_slider_status; }
@@ -140,9 +140,9 @@ public:
     bool bbl_checkbox(const wxString &label, bool &value);
     bool bbl_radio_button(const char *label, bool active);
     bool bbl_sliderin(const char *label, int *v, int v_min, int v_max, const char *format = "%d", ImGuiSliderFlags flags = 0);
-    void text(const char *label);
-    void text(const std::string &label);
-    void text(const wxString &label);
+    static void text(const char *label);
+    static void text(const std::string &label);
+    static void text(const wxString &label);
     void warning_text(const char *all_text);
     void warning_text(const wxString &all_text);
     void text_colored(const ImVec4& color, const char* label);
@@ -195,6 +195,71 @@ public:
     bool want_text_input() const;
     bool want_any_input() const;
 
+    // Optional inputs are used for set up value inside of an optional, with default value
+    //
+    // Extended function ImGui::InputInt to work with std::optional<int>, when value == def_val optional is released.
+    static bool input_optional_int(const char *label, std::optional<int> &v, int step = 1, int step_fast = 100, ImGuiInputTextFlags flags = 0, int def_val = 0);
+    // Extended function ImGui::InputFloat to work with std::optional<float> value near def_val cause release of optional
+    static bool input_optional_float(
+        const char *label, std::optional<float> &v, float step = 0.0f, float step_fast = 0.0f, const char *format = "%.3f", ImGuiInputTextFlags flags = 0, float def_val = .0f);
+    // Extended function ImGui::DragFloat to work with std::optional<float> value near def_val cause release of optional
+    static bool drag_optional_float(const char *label, std::optional<float> &v, float v_speed, float v_min, float v_max, const char *format, float power, float def_val = .0f);
+    // Extended function ImGuiWrapper::slider_float to work with std::optional<float> value near def_val cause release of optional
+    bool slider_optional_float(const char *          label,
+                               std::optional<float> &v,
+                               float                 v_min,
+                               float                 v_max,
+                               const char *          format        = "%.3f",
+                               float                 power         = 1.0f,
+                               bool                  clamp         = true,
+                               const wxString &      tooltip       = {},
+                               bool                  show_edit_btn = true,
+                               float                 def_val       = .0f);
+    // Extended function ImGuiWrapper::slider_float to work with std::optional<int>, when value == def_val than optional release its value
+    bool slider_optional_int(const char *        label,
+                             std::optional<int> &v,
+                             int                 v_min,
+                             int                 v_max,
+                             const char *        format        = "%.3f",
+                             float               power         = 1.0f,
+                             bool                clamp         = true,
+                             const wxString &    tooltip       = {},
+                             bool                show_edit_btn = true,
+                             int                 def_val       = 0);
+
+    /// <summary>
+    /// Change position of imgui window
+    /// </summary>
+    /// <param name="window_name">ImGui identifier of window</param>
+    /// <param name="output_window_offset">[output] optional </param>
+    /// <param name="try_to_fix">When True Only move to be full visible otherwise reset position</param>
+    /// <returns>New offset of window for function ImGui::SetNextWindowPos</returns>
+    static std::optional<ImVec2> change_window_position(const char *window_name, bool try_to_fix);
+
+    /// <summary>
+    /// Use ImGui internals to unactivate (lose focus) in input.
+    /// When input is activ it can't change value by application.
+    /// </summary>
+    static void left_inputs();
+
+    /// <summary>
+    /// Truncate text by ImGui draw function to specific width
+    /// NOTE 1: ImGui must be initialized
+    /// NOTE 2: Calculation for actual acive imgui font
+    /// </summary>
+    /// <param name="text">Text to be truncated</param>
+    /// <param name="width">Maximal width before truncate</param>
+    /// <param name="tail">String puted on end of text to be visible truncation</param>
+    /// <returns>Truncated text</returns>
+    static std::string trunc(const std::string &text, float width, const char *tail = " ..");
+
+    /// <summary>
+    /// Escape ## in data by add space between hashes
+    /// Needed when user written text is visualized by ImGui.
+    /// </summary>
+    /// <param name="text">In/Out text to be escaped</param>
+    static void escape_double_hash(std::string &text);
+
 #if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
     bool requires_extra_frame() const { return m_requires_extra_frame; }
     void set_requires_extra_frame() { m_requires_extra_frame = true; }
@@ -241,7 +306,8 @@ public:
     static void pop_button_disable_style();
     static void push_combo_style(const float scale);
     static void pop_combo_style();
-
+    static void push_radio_style();
+    static void pop_radio_style();
     //BBS
     static int TOOLBAR_WINDOW_FLAGS;
 

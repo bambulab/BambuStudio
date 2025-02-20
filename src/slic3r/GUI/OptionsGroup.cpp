@@ -57,6 +57,7 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
     default:
         switch (opt.type) {
             case coFloatOrPercent:
+            case coFloatsOrPercents:
             case coFloat:
             case coFloats:
 			case coPercent:
@@ -990,7 +991,16 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 		ret = text_value;
 		break;
 	}
-	case coPercent:{
+    case coFloatsOrPercents: {
+        const auto &value = config.option<ConfigOptionFloatsOrPercents>(opt_key)->get_at(idx);
+
+        text_value = double_to_string(value.value);
+        if (value.percent) text_value += "%";
+
+        ret = text_value;
+        break;
+    }
+    case coPercent: {
 		double val = config.option<ConfigOptionPercent>(opt_key)->value;
 		text_value = wxString::Format(_T("%i"), int(val));
 		ret = text_value;// += "%";

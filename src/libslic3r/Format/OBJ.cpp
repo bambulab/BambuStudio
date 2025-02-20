@@ -8,6 +8,7 @@
 #include <string>
 
 #include <boost/log/trivial.hpp>
+#include <boost/locale.hpp>
 
 #ifdef _WIN32
 #define DIR_SEPARATOR '\\'
@@ -33,6 +34,11 @@ bool load_obj(const char *path, TriangleMesh *meshptr, ObjInfo& obj_info, std::s
         message = _L("load_obj: failed to parse");
         return false;
     }
+
+    obj_info.ml_region = data.ml_region;
+    obj_info.ml_name = data.ml_name;
+    obj_info.ml_id = data.ml_id;
+
     bool exist_mtl = false;
     if (data.mtllibs.size() > 0) { // read mtl
         for (auto mtl_name : data.mtllibs) {
@@ -40,16 +46,20 @@ bool load_obj(const char *path, TriangleMesh *meshptr, ObjInfo& obj_info, std::s
                 continue;
             }
             exist_mtl = true;
-            bool                    mtl_name_is_path = false;
-            boost::filesystem::path mtl_abs_path(mtl_name);
+            bool  mtl_name_is_path = false;
+            std::wstring   wide_mtl_name = boost::locale::conv::to_utf<wchar_t>(mtl_name, "UTF-8");
+            if (boost::istarts_with(wide_mtl_name,"./")){
+                boost::replace_first(wide_mtl_name, "./", "");
+            }
+            boost::filesystem::path mtl_abs_path(wide_mtl_name);
             if (boost::filesystem::exists(mtl_abs_path)) {
                 mtl_name_is_path = true;
             }
             boost::filesystem::path mtl_path;
             if (!mtl_name_is_path) {
                 boost::filesystem::path full_path(path);
-                std::string             dir = full_path.parent_path().string();
-                auto                    mtl_file = dir + "/" + mtl_name;
+                auto  dir      = full_path.parent_path().wstring();
+                auto  mtl_file = dir + L"/" + wide_mtl_name;
                 boost::filesystem::path temp_mtl_path(mtl_file);
                 mtl_path = temp_mtl_path;
             }

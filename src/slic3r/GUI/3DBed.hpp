@@ -133,7 +133,9 @@ public:
 
     // Bounding box around the print bed, axes and model, for rendering.
     const BoundingBoxf3& extended_bounding_box() const { return m_extended_bounding_box; }
-
+    BoundingBoxf3 get_cur_bed_model_box();
+    const std::string &  get_model_filename() { return m_model_filename; }
+    const GLModel &      get_model() { return m_model; }
     // Check against an expanded 2d bounding box.
     //FIXME shall one check against the real build volume?
     bool contains(const Point& point) const;

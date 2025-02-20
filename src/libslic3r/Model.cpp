@@ -30,6 +30,7 @@
 
 #include "SVG.hpp"
 #include <Eigen/Dense>
+#include <functional>
 #include "GCodeWriter.hpp"
 
 // BBS: for segment
@@ -89,7 +90,14 @@ Model& Model::assign_copy(const Model &rhs)
     this->design_id = rhs.design_id;
     this->stl_design_id = rhs.stl_design_id;
     this->stl_design_country = rhs.stl_design_country;
+    this->makerlab_region = rhs.makerlab_region;
+    this->makerlab_name = rhs.makerlab_name;
+    this->makerlab_id = rhs.makerlab_id;
     this->profile_info = rhs.profile_info;
+
+    this->makerlab_region = rhs.makerlab_region;
+    this->makerlab_name = rhs.makerlab_name;
+    this->makerlab_id = rhs.makerlab_id;
 
     this->mk_name = rhs.mk_name;
     this->mk_version = rhs.mk_version;
@@ -126,6 +134,9 @@ Model& Model::assign_copy(Model &&rhs)
     this->design_id = rhs.design_id;
     this->stl_design_id = rhs.stl_design_id;
     this->stl_design_country = rhs.stl_design_country;
+    this->makerlab_region = rhs.makerlab_region;
+    this->makerlab_name = rhs.makerlab_name;
+    this->makerlab_id = rhs.makerlab_id;
     this->mk_name = rhs.mk_name;
     this->mk_version = rhs.mk_version;
     this->md_name = rhs.md_name;
@@ -173,17 +184,68 @@ Model::~Model()
         Slic3r::remove_backup(*this, true);
 }
 
+Model Model::read_from_step(const std::string&                                      input_file,
+                            LoadStrategy                                            options,
+                            ImportStepProgressFn                                    stepFn,
+                            StepIsUtf8Fn                                            stepIsUtf8Fn,
+                            std::function<int(Slic3r::Step&, double&, double&, bool&)>     step_mesh_fn,
+                            double                                                  linear_defletion,
+                            double                                                  angle_defletion,
+                            bool                                                   is_split_compound)
+{
+    Model model;
+    bool result = false;
+    bool is_cb_cancel = false;
+    std::string message;
+    Step step_file(input_file);
+    step_file.load();
+    if (step_mesh_fn) {
+        if (step_mesh_fn(step_file, linear_defletion, angle_defletion, is_split_compound) == -1) {
+            Model empty_model;
+            return empty_model;
+        }
+    }
+    result = load_step(input_file.c_str(), &model, is_cb_cancel, linear_defletion, angle_defletion, is_split_compound, stepFn, stepIsUtf8Fn);
+    if (is_cb_cancel) {
+        Model empty_model;
+        return empty_model;
+    }
+
+    if (!result) {
+        if (message.empty())
+            throw Slic3r::RuntimeError(_L("Loading of a model file failed."));
+        else
+            throw Slic3r::RuntimeError(message);
+    }
+
+    if (model.objects.empty())
+        throw Slic3r::RuntimeError(_L("The supplied file couldn't be read because it's empty"));
+
+    for (ModelObject *o : model.objects)
+        o->input_file = input_file;
+
+    if (options & LoadStrategy::AddDefaultInstances)
+        model.add_default_instances();
+
+    return model;
+}
+
 // BBS: add part plate related logic
 // BBS: backup & restore
 // Loading model from a file, it may be a simple geometry file as STL or OBJ, however it may be a project file as well.
-Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions,
-                            LoadStrategy options, PlateDataPtrs* plate_data, std::vector<Preset*>* project_presets, bool *is_xxx, Semver* file_version, Import3mfProgressFn proFn,
-                            ImportstlProgressFn        stlFn,
-                            ImportStepProgressFn       stepFn,
-                            StepIsUtf8Fn               stepIsUtf8Fn,
-                            BBLProject *               project,
-                            int                        plate_id,
-                            ObjImportColorFn           objFn)
+Model Model::read_from_file(const std::string&                                  input_file,
+                            DynamicPrintConfig*                                 config,
+                            ConfigSubstitutionContext*                          config_substitutions,
+                            LoadStrategy                                        options,
+                            PlateDataPtrs*                                      plate_data,
+                            std::vector<Preset*>*                               project_presets,
+                            bool                                                *is_xxx,
+                            Semver*                                             file_version,
+                            Import3mfProgressFn                                 proFn,
+                            ImportstlProgressFn                                 stlFn,
+                            BBLProject *                                        project,
+                            int                                                 plate_id,
+                            ObjImportColorFn                                    objFn)
 {
     Model model;
 
@@ -207,10 +269,7 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
     bool result = false;
     bool is_cb_cancel = false;
     std::string message;
-    if (boost::algorithm::iends_with(input_file, ".stp") ||
-        boost::algorithm::iends_with(input_file, ".step"))
-        result = load_step(input_file.c_str(), &model, is_cb_cancel, stepFn, stepIsUtf8Fn);
-    else if (boost::algorithm::iends_with(input_file, ".stl"))
+    if (boost::algorithm::iends_with(input_file, ".stl"))
         result = load_stl(input_file.c_str(), &model, nullptr, stlFn);
     else if (boost::algorithm::iends_with(input_file, ".oltp"))
         result = load_stl(input_file.c_str(), &model, nullptr, stlFn,256);
@@ -222,7 +281,7 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
             if (obj_info.vertex_colors.size() > 0) {
                 std::vector<unsigned char> vertex_filament_ids;
                 if (objFn) { // 1.result is ok and pop up a dialog
-                    objFn(obj_info.vertex_colors, false, vertex_filament_ids, first_extruder_id);
+                    objFn(obj_info.vertex_colors, false, vertex_filament_ids, first_extruder_id, obj_info.ml_region, obj_info.ml_name, obj_info.ml_id);
                     if (vertex_filament_ids.size() > 0) {
                         result = obj_import_vertex_color_deal(vertex_filament_ids, first_extruder_id, & model);
                     }
@@ -230,7 +289,7 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
             } else if (obj_info.face_colors.size() > 0 && obj_info.has_uv_png == false) { // mtl file
                 std::vector<unsigned char> face_filament_ids;
                 if (objFn) { // 1.result is ok and pop up a dialog
-                    objFn(obj_info.face_colors, obj_info.is_single_mtl, face_filament_ids, first_extruder_id);
+                    objFn(obj_info.face_colors, obj_info.is_single_mtl, face_filament_ids, first_extruder_id, obj_info.ml_region, obj_info.ml_name, obj_info.ml_id);
                     if (face_filament_ids.size() > 0) {
                         result = obj_import_face_color_deal(face_filament_ids, first_extruder_id, &model);
                     }
@@ -244,8 +303,6 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
             }*/
         }
     }
-    else if (boost::algorithm::iends_with(input_file, ".svg"))
-        result = load_svg(input_file.c_str(), &model, message);
     //BBS: remove the old .amf.xml files
     //else if (boost::algorithm::iends_with(input_file, ".amf") || boost::algorithm::iends_with(input_file, ".amf.xml"))
     else if (boost::algorithm::iends_with(input_file, ".amf"))
@@ -452,6 +509,21 @@ ModelObject* Model::add_object(const ModelObject &other)
     return new_object;
 }
 
+void Model::set_assembly_pos(ModelObject *model_object)
+{
+    if (!model_object) {return;}
+    auto cur_assemble_scene_box = bounding_box_in_assembly_view();
+    if (cur_assemble_scene_box.defined) {
+        auto offset = cur_assemble_scene_box.center();
+        auto mo_box = model_object->bounding_box_in_assembly_view();
+        offset[0] += ((cur_assemble_scene_box.size()[0] / 2.0f + mo_box.size()[0] / 2.0f) * 1.2);
+        offset[2] = cur_assemble_scene_box.min[2] + mo_box.size()[2];
+        model_object->instances[0]->set_assemble_offset(offset);
+        offset[1] += cur_assemble_scene_box.center().y() - model_object->bounding_box_in_assembly_view().center().y();
+        model_object->instances[0]->set_assemble_offset(offset);
+    }
+}
+
 void Model::delete_object(size_t idx)
 {
     ModelObjectPtrs::iterator i = this->objects.begin() + idx;
@@ -600,6 +672,13 @@ BoundingBoxf3 Model::bounding_box() const
     BoundingBoxf3 bb;
     for (ModelObject *o : this->objects)
         bb.merge(o->bounding_box());
+    return bb;
+}
+
+BoundingBoxf3 Model::bounding_box_in_assembly_view() const {
+    BoundingBoxf3 bb;
+    for (ModelObject *o : this->objects)
+        bb.merge(o->bounding_box_in_assembly_view());
     return bb;
 }
 
@@ -965,6 +1044,9 @@ void Model::load_from(Model& model)
     design_id = model.design_id;
     stl_design_id = model.stl_design_id;
     stl_design_country = model.stl_design_country;
+    makerlab_region = model.makerlab_region;
+    makerlab_name = model.makerlab_name;
+    makerlab_id = model.makerlab_id;
     model_info  = model.model_info;
     profile_info  = model.profile_info;
     mk_name = model.mk_name;
@@ -1045,6 +1127,7 @@ ModelObject& ModelObject::assign_copy(const ModelObject &rhs)
     this->sla_support_points          = rhs.sla_support_points;
     this->sla_points_status           = rhs.sla_points_status;
     this->sla_drain_holes             = rhs.sla_drain_holes;
+    this->brim_points                 = rhs.brim_points;
     this->layer_config_ranges         = rhs.layer_config_ranges;
     this->layer_height_profile        = rhs.layer_height_profile;
     this->printable                   = rhs.printable;
@@ -1089,6 +1172,7 @@ ModelObject& ModelObject::assign_copy(ModelObject &&rhs)
     this->sla_support_points          = std::move(rhs.sla_support_points);
     this->sla_points_status           = std::move(rhs.sla_points_status);
     this->sla_drain_holes             = std::move(rhs.sla_drain_holes);
+    this->brim_points                 = std::move(brim_points);
     this->layer_config_ranges         = std::move(rhs.layer_config_ranges);
     this->layer_height_profile        = std::move(rhs.layer_height_profile);
     this->printable                   = std::move(rhs.printable);
@@ -1157,23 +1241,27 @@ bool ModelObject::make_boolean(ModelObject *cut_object, const std::string &boole
     return true;
 }
 
-ModelVolume* ModelObject::add_volume(const TriangleMesh &mesh)
+ModelVolume *ModelObject::add_volume(const TriangleMesh &mesh, bool modify_to_center_geometry)
 {
     ModelVolume* v = new ModelVolume(this, mesh);
     this->volumes.push_back(v);
-    v->center_geometry_after_creation();
-    this->invalidate_bounding_box();
+    if (modify_to_center_geometry) {
+        v->center_geometry_after_creation();
+        this->invalidate_bounding_box();
+    }
     // BBS: backup
     Slic3r::save_object_mesh(*this);
     return v;
 }
 
-ModelVolume* ModelObject::add_volume(TriangleMesh &&mesh, ModelVolumeType type /*= ModelVolumeType::MODEL_PART*/)
+ModelVolume *ModelObject::add_volume(TriangleMesh &&mesh, ModelVolumeType type /*= ModelVolumeType::MODEL_PART*/, bool modify_to_center_geometry)
 {
     ModelVolume* v = new ModelVolume(this, std::move(mesh), type);
     this->volumes.push_back(v);
-    v->center_geometry_after_creation();
-    this->invalidate_bounding_box();
+    if (modify_to_center_geometry) {
+        v->center_geometry_after_creation();
+        this->invalidate_bounding_box();
+    }
     // BBS: backup
     Slic3r::save_object_mesh(*this);
     return v;
@@ -1351,6 +1439,15 @@ const BoundingBoxf3& ModelObject::bounding_box() const
             m_bounding_box.merge(i->transform_bounding_box(raw_bbox));
     }
     return m_bounding_box;
+}
+
+const BoundingBoxf3 &ModelObject::bounding_box_in_assembly_view() const
+{
+    m_bounding_box_in_assembly_view.reset();
+    BoundingBoxf3 raw_bbox = this->raw_mesh_bounding_box();
+    for (const ModelInstance *i : this->instances)
+        m_bounding_box_in_assembly_view.merge(i->transform_bounding_box_in_assembly_view(raw_bbox));
+    return m_bounding_box_in_assembly_view;
 }
 
 // A mesh containing all transformed instances of this object.
@@ -1672,6 +1769,7 @@ void ModelObject::convert_units(ModelObjectPtrs& new_objects, ConversionType con
     new_object->sla_support_points.clear();
     new_object->sla_drain_holes.clear();
     new_object->sla_points_status = sla::PointsStatus::NoPoints;
+    new_object->brim_points.clear();
     new_object->clear_volumes();
     new_object->input_file.clear();
 
@@ -1880,6 +1978,21 @@ void ModelObject::clone_for_cut(ModelObject **obj)
     (*obj)->sla_points_status = sla::PointsStatus::NoPoints;
     (*obj)->clear_volumes();
     (*obj)->input_file.clear();
+}
+
+bool ModelVolume::is_the_only_one_part() const
+{
+    if (m_type != ModelVolumeType::MODEL_PART)
+        return false;
+    if (object == nullptr) return false;
+    for (const ModelVolume *v : object->volumes) {
+        if (v == nullptr) continue;
+        // is this volume?
+        if (v->id() == this->id()) continue;
+        // exist another model part in object?
+        if (v->type() == ModelVolumeType::MODEL_PART) return false;
+    }
+    return true;
 }
 
 Transform3d ModelObject::calculate_cut_plane_inverse_matrix(const std::array<Vec3d, 4>& plane_points)
@@ -2270,6 +2383,7 @@ ModelObjectPtrs ModelObject::segment(size_t instance, unsigned int max_extruders
     upper->sla_support_points.clear();
     upper->sla_drain_holes.clear();
     upper->sla_points_status = sla::PointsStatus::NoPoints;
+    upper->brim_points.clear();
     upper->clear_volumes();
     upper->input_file.clear();
 
@@ -2374,6 +2488,7 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
         if (volume->type() != ModelVolumeType::MODEL_PART)
             continue;
 
+        // splited volume should not be text object
         if (!is_multi_volume_object) {
             //BBS: not multi volume object, then split mesh.
             std::vector<TriangleMesh> volume_meshes = volume->mesh().split();
@@ -2509,6 +2624,7 @@ ModelObjectPtrs ModelObject::merge_volumes(std::vector<int>& vol_indeces)
     upper->sla_support_points.clear();
     upper->sla_drain_holes.clear();
     upper->sla_points_status = sla::PointsStatus::NoPoints;
+    upper->brim_points.clear();
     upper->clear_volumes();
     upper->input_file.clear();
 
@@ -3126,24 +3242,33 @@ std::string ModelVolume::type_to_string(const ModelVolumeType t)
 // Split this volume, append the result to the object owning this volume.
 // Return the number of volumes created from this one.
 // This is useful to assign different materials to different volumes of an object.
-size_t ModelVolume::split(unsigned int max_extruders)
+size_t ModelVolume::split(unsigned int max_extruders, float scale_det)
 {
-    std::vector<TriangleMesh> meshes = this->mesh().split();
+    std::vector<std::unordered_map<int, int>> ships;
+    std::vector<TriangleMesh>  meshes = this->mesh().split_and_save_relationship(ships, scale_det);
     if (meshes.size() <= 1)
         return 1;
-
+    if (meshes.size() != ships.size())
+        return 1;
+    // splited volume should not be text object
     size_t idx = 0;
     size_t ivolume = std::find(this->object->volumes.begin(), this->object->volumes.end(), this) - this->object->volumes.begin();
     const std::string name = this->name;
 
     unsigned int extruder_counter = 0;
     const Vec3d offset = this->get_offset();
-
+    std::vector<std::string> tris_split_strs;
+    auto face_count = m_mesh->its.indices.size();
+    tris_split_strs.reserve(face_count);
+    for (size_t i = 0; i < face_count; i++) {
+        tris_split_strs.emplace_back(mmu_segmentation_facets.get_triangle_as_string(i));
+    }
+    int last_all_mesh_face_count = 0;
     for (TriangleMesh &mesh : meshes) {
         if (mesh.empty())
             // Repair may have removed unconnected triangles, thus emptying the mesh.
             continue;
-
+        auto cur_face_count = mesh.its.indices.size();
         if (idx == 0) {
             this->set_mesh(std::move(mesh));
             this->calculate_convex_hull();
@@ -3158,10 +3283,26 @@ size_t ModelVolume::split(unsigned int max_extruders)
             this->exterior_facets.reset();
             this->supported_facets.reset();
             this->seam_facets.reset();
+            for (size_t i = 0; i < cur_face_count; i++) {
+                if (ships[idx].find(i) != ships[idx].end()) {
+                    auto index = ships[idx][i];
+                    if (tris_split_strs[index].size() > 0) {
+                        mmu_segmentation_facets.set_triangle_from_string(i, tris_split_strs[index]);
+                    }
+                }
+            }
+        } else {
+            auto new_mv =new ModelVolume(object, *this, std::move(mesh));
+            this->object->volumes.insert(this->object->volumes.begin() + (++ivolume), new_mv);
+            for (size_t i = 0; i < new_mv->mesh_ptr()->its.indices.size(); i++) {
+                if (ships[idx].find(i) != ships[idx].end()) {
+                    auto index = ships[idx][i];
+                    if (tris_split_strs[index].size() > 0) {
+                        new_mv->mmu_segmentation_facets.set_triangle_from_string(i, tris_split_strs[index]);
+                    }
+                }
+            }
         }
-        else
-            this->object->volumes.insert(this->object->volumes.begin() + (++ivolume), new ModelVolume(object, *this, std::move(mesh)));
-
         this->object->volumes[ivolume]->set_offset(Vec3d::Zero());
         this->object->volumes[ivolume]->center_geometry_after_creation();
         this->object->volumes[ivolume]->translate(offset);
@@ -3171,6 +3312,7 @@ size_t ModelVolume::split(unsigned int max_extruders)
         //this->object->volumes[ivolume]->config.set("extruder", auto_extruder_id(max_extruders, extruder_counter));
         this->object->volumes[ivolume]->m_is_splittable = 0;
         ++ idx;
+        last_all_mesh_face_count += cur_face_count;
     }
 
     // discard volumes for which the convex hull was not generated or is degenerate
@@ -3300,6 +3442,11 @@ void ModelVolume::convert_from_meters()
     this->source.is_converted_from_meters = true;
 }
 
+const Transform3d &ModelVolume::get_matrix(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror) const
+{
+    return m_transformation.get_matrix(dont_translate, dont_rotate, dont_scale, dont_mirror);
+}
+
 void ModelInstance::transform_mesh(TriangleMesh* mesh, bool dont_translate) const
 {
     mesh->transform(get_matrix(dont_translate));
@@ -3337,6 +3484,10 @@ BoundingBoxf3 ModelInstance::transform_bounding_box(const BoundingBoxf3 &bbox, b
     return bbox.transformed(get_matrix(dont_translate));
 }
 
+BoundingBoxf3 ModelInstance::transform_bounding_box_in_assembly_view(const BoundingBoxf3 &bbox, bool dont_translate) const {
+    return bbox.transformed(get_assemble_transformation().get_matrix());
+}
+
 Vec3d ModelInstance::transform_vector(const Vec3d& v, bool dont_translate) const
 {
     return get_matrix(dont_translate) * v;
@@ -3348,6 +3499,11 @@ void ModelInstance::transform_polygon(Polygon* polygon) const
     polygon->rotate(get_rotation(Z)); // rotate around polygon origin
     // CHECK_ME -> Is the following correct ?
     polygon->scale(get_scaling_factor(X), get_scaling_factor(Y)); // scale around polygon origin
+}
+
+const Transform3d &ModelInstance::get_matrix(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror) const
+{
+    return m_transformation.get_matrix(dont_translate, dont_rotate, dont_scale, dont_mirror);
 }
 
 //BBS
@@ -3642,7 +3798,7 @@ double Model::getThermalLength(const ModelVolume* modelVolumePtr) {
         if (Model::extruderParamsMap.at(aa).materialName == "PC") {
             thermalLength = 40;
         }
-        if (Model::extruderParamsMap.at(aa).materialName == "TPU") {
+        if (Model::extruderParamsMap.at(aa).materialName == "TPU" || Model::extruderParamsMap.at(aa).materialName == "TPU-AMS") {
             thermalLength = 1000;
         }
 
@@ -3715,7 +3871,7 @@ double getadhesionCoeff(const ModelVolumePtrs objectVolumes)
                 Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "PCTG") {
                 adhesionCoeff = 2;
             }
-            else if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "TPU") {
+            else if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "TPU" || Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "TPU-AMS") {
                 adhesionCoeff = 0.5;
             }
     }
@@ -4036,6 +4192,17 @@ bool model_mmu_segmentation_data_changed(const ModelObject& mo, const ModelObjec
     return model_property_changed(mo, mo_new,
         [](const ModelVolumeType t) { return t == ModelVolumeType::MODEL_PART; },
         [](const ModelVolume &mv_old, const ModelVolume &mv_new){ return mv_old.mmu_segmentation_facets.timestamp_matches(mv_new.mmu_segmentation_facets); });
+}
+
+bool model_brim_points_data_changed(const ModelObject& mo, const ModelObject& mo_new)
+{
+    if (mo.brim_points.size() != mo_new.brim_points.size())
+        return true;
+    for (size_t i = 0; i < mo.brim_points.size(); ++i) {
+        if (mo.brim_points[i] != mo_new.brim_points[i])
+            return true;
+    }
+    return false;
 }
 
 bool model_has_multi_part_objects(const Model &model)

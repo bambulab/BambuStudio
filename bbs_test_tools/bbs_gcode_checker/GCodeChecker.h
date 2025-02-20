@@ -109,6 +109,7 @@ private:
     GCodeCheckResult parse_M82(const GCodeLine& gcode_line);
     GCodeCheckResult parse_M83(const GCodeLine& gcode_line);
     GCodeCheckResult parse_M104_M109(const GCodeLine &gcode_line);
+    GCodeCheckResult parse_M1020(const GCodeLine& gcode_line);
 
     GCodeCheckResult parse_comment(GCodeLine& gcode_line);
 
@@ -167,7 +168,7 @@ public:
         std::string cmd=input;
         size_t read = 0;
 
-        while (cmd.size() >= 5)
+        while (cmd.find(',') != std::string::npos)
         {
             int pt = 0;
             for (pt = 0; pt < cmd.size(); pt++) {
@@ -217,6 +218,8 @@ private:
     std::vector<double> filament_flow_ratio;
     std::vector<double> nozzle_temperature;
     std::vector<double> nozzle_temperature_initial_layer;
+    bool has_scarf_joint_seam = false;
+    bool is_wipe_tower = false;
 };
 
 }

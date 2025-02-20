@@ -70,6 +70,11 @@ GLGizmoPainterBase::ClippingPlaneDataWrapper GLGizmoPainterBase::get_clipping_pl
     return clp_data_out;
 }
 
+void GLGizmoPainterBase::update_front_view_radian()
+{
+    wxGetApp().plater()->get_camera().calc_horizontal_rotate_rad(m_front_view_radian);
+}
+
 void GLGizmoPainterBase::render_triangles(const Selection& selection) const
 {
     auto* shader = wxGetApp().get_shader("gouraud");
@@ -151,9 +156,14 @@ void GLGizmoPainterBase::render_cursor() const
     else {
         m_rr.mouse_position = m_parent.get_local_mouse_position();
     }
-    if (m_rr.mesh_id == -1) { 
+    if (is_mouse_hit_in_imgui()) {
+        m_rr.mesh_id = -1;
+        return;
+    }
+    if (m_rr.mesh_id == -1) {
         m_is_cursor_in_imgui = false;
-        return; 
+        m_x_for_height_input = -1;
+        return;
     }
 
     if (m_tool_type == ToolType::BRUSH) {
@@ -276,7 +286,8 @@ bool GLGizmoPainterBase::is_valid_height_range_cursor(float min_z, float max_z) 
 void GLGizmoPainterBase::render_cursor_height_range(const Transform3d& trafo) const
 {
     float buf_size= ImGui::CalcTextSize("-100.00").x + ImGui::GetStyle().FramePadding.x;
-
+    m_height_range_input_all_size[0]  = buf_size+ ImGui::CalcTextSize(_L("Bottom:").c_str()).x * 2 + ImGui::GetStyle().FramePadding.x;
+    m_height_range_input_all_size[1]  = ImGui::CalcTextSize(_L("Bottom:").c_str()).y *2;
     const BoundingBoxf3 box = bounding_box();
     Vec3d hit_world = trafo * Vec3d(m_rr.hit(0), m_rr.hit(1), m_rr.hit(2));
     float max_z = (float)box.max.z();
@@ -449,8 +460,23 @@ void GLGizmoPainterBase::update_contours(int i, const TriangleMesh &vol_mesh, fl
                         if(screen_pos_sorts.size() >= 1){
                             m_height_start_pos = screen_pos_sorts[0].pos_screen;
                             // make mouse to cover in a part of imgui
-                            m_height_start_pos[0] -= 10;
+                            if (m_lock_x_for_height_bottom) {
+                                if (m_x_for_height_input == -1) {
+                                    m_x_for_height_input = m_rr.mouse_position.x() + 10;
+                                }
+                                m_height_start_pos[0] = m_x_for_height_input;
+                            } else {
+                                m_height_start_pos[0] -= 10;
+                            }
                             m_height_start_pos[1] -= 10;
+                            const Camera &camera   = wxGetApp().plater()->get_camera();
+                            auto          viewport = camera.get_viewport();
+                            if (m_height_start_pos[0] + m_height_range_input_all_size[0] >= viewport[2]) {
+                                m_height_start_pos[0] = viewport[2] - m_height_range_input_all_size[0];
+                            }
+                            if (m_height_start_pos[1] + m_height_range_input_all_size[1] >= viewport[3]) {
+                                m_height_start_pos[1] = viewport[3] - m_height_range_input_all_size[1];
+                            }
                         }
                     }
                     m_cut_contours[i].contours.init_from(polys, static_cast<float>(cursor_z));
@@ -667,6 +693,10 @@ std::vector<GLGizmoPainterBase::ProjectedHeightRange> GLGizmoPainterBase::get_pr
 bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down)
 {
     Vec2d _mouse_position = mouse_position;
+    if (is_mouse_hit_in_imgui()) {
+        m_rr.mesh_id = -1;
+        return false;
+    }
     if (action == SLAGizmoEventType::MouseWheelUp
      || action == SLAGizmoEventType::MouseWheelDown) {
         if (control_down) {
@@ -1076,6 +1106,14 @@ CommonGizmosDataID GLGizmoPainterBase::on_get_requirements() const
               | int(CommonGizmosDataID::ObjectClipper));
 }
 
+bool GLGizmoPainterBase::is_mouse_hit_in_imgui() const
+{
+    if (m_rr.mouse_position[0] >= m_imgui_start_pos[0] && m_rr.mouse_position[1] >= m_imgui_start_pos[1]&&
+        m_rr.mouse_position[0] <= m_imgui_end_pos[0] && m_rr.mouse_position[1] <= m_imgui_end_pos[1]) {
+        return true;
+    }
+    return false;
+}
 
 void GLGizmoPainterBase::on_set_state()
 {
@@ -1292,9 +1330,8 @@ float TriangleSelectorPatch::gap_area = TriangleSelectorPatch::GapAreaMin;
 
 void TriangleSelectorPatch::render(ImGuiWrapper* imgui)
 {
-    static bool last_show_wireframe = false;
-    if (last_show_wireframe != wxGetApp().plater()->is_show_wireframe()) {
-        last_show_wireframe  = wxGetApp().plater()->is_show_wireframe();
+    if (m_cached_wireframe_mode != wxGetApp().plater()->is_show_wireframe()) {
+        m_cached_wireframe_mode = wxGetApp().plater()->is_show_wireframe();
         m_update_render_data = true;
         m_paint_changed      = true;
     }
@@ -1643,8 +1680,8 @@ void TriangleSelectorPatch::render(int triangle_indices_idx, int position_id, bo
     glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
     if ((this->m_triangle_indices_sizes[triangle_indices_idx] > 0)&&(position_id != -1))
         glsafe(::glDisableVertexAttribArray(position_id));
-    if ((this->m_triangle_indices_sizes[triangle_indices_idx] > 0)&&show_wireframe) { 
-        glsafe(::glEnableClientState(GL_COLOR_ARRAY));
+    if ((this->m_triangle_indices_sizes[triangle_indices_idx] > 0)&&show_wireframe) {
+        glsafe(::glDisableClientState(GL_COLOR_ARRAY));
     }
     if (this->m_triangle_indices_sizes[triangle_indices_idx] > 0)
         glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));

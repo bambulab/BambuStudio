@@ -273,11 +273,15 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                     float z                          = zs[z_idx];
                     int   idx_first_printable_region = -1;
                     bool  complex                    = false;
+                    std::vector<int> printable_region_ids;
                     for (int idx_region = 0; idx_region < int(layer_range.volume_regions.size()); ++ idx_region) {
                         const PrintObjectRegions::VolumeRegion &region = layer_range.volume_regions[idx_region];
                         if (region.bbox->min().z() <= z && region.bbox->max().z() >= z) {
-                            if (idx_first_printable_region == -1 && region.model_volume->is_model_part())
+                            if (region.model_volume->is_model_part())
+                                printable_region_ids.push_back(idx_region);
+                            if (idx_first_printable_region == -1 && region.model_volume->is_model_part()) {
                                 idx_first_printable_region = idx_region;
+                            }
                             else if (idx_first_printable_region != -1) {
                                 // Test for overlap with some other region.
                                 for (int idx_region2 = idx_first_printable_region; idx_region2 < idx_region; ++ idx_region2) {
@@ -293,8 +297,10 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                     if (complex)
                         zs_complex.push_back({ z_idx, z });
                     else if (idx_first_printable_region >= 0) {
-                        const PrintObjectRegions::VolumeRegion &region = layer_range.volume_regions[idx_first_printable_region];
-                        slices_by_region[region.region->print_object_region_id()][z_idx] = std::move(volume_slices_find_by_id(volume_slices, region.model_volume->id()).slices[z_idx]);
+                        for (int printable_region_id : printable_region_ids) {
+                            const PrintObjectRegions::VolumeRegion &region = layer_range.volume_regions[printable_region_id];
+                            append(slices_by_region[region.region->print_object_region_id()][z_idx], std::move(volume_slices_find_by_id(volume_slices, region.model_volume->id()).slices[z_idx]));
+                        }
                     }
                 }
             }
@@ -1009,6 +1015,21 @@ void PrintObject::slice_volumes()
         std::move(objSliceByVolume),
         PrintObject::clip_multipart_objects,
         throw_on_cancel_callback);
+
+    // SuperSlicer: filament shrink
+    for (const std::unique_ptr<PrintRegion> &pr : m_shared_regions->all_regions) {
+        if (pr.get()) {
+            std::vector<ExPolygons> &region_polys = region_slices[pr->print_object_region_id()];
+            const size_t             extruder_id  = pr->extruder(FlowRole::frPerimeter) - 1;
+            double                   scale        = print->config().filament_shrink.values[extruder_id] * 0.01;
+            if (scale != 1) {
+                scale = 1 / scale;
+                for (ExPolygons &polys : region_polys)
+                    for (ExPolygon &poly : polys) poly.scale(scale);
+            }
+        }
+    }
+
 
     for (size_t region_id = 0; region_id < region_slices.size(); ++ region_id) {
         std::vector<ExPolygons> &by_layer = region_slices[region_id];

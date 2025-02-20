@@ -751,7 +751,8 @@ const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors {{
     { 0.00f, 0.50f, 0.00f, 1.0f },   // erSupportMaterialInterface
     { 0.00f, 0.25f, 0.00f, 1.0f },   // erSupportTransition
     { 0.70f, 0.89f, 0.67f, 1.0f },   // erWipeTower
-    { 0.37f, 0.82f, 0.58f, 1.0f }    // erCustom
+    { 0.37f, 0.82f, 0.58f, 1.0f },    // erCustom
+    { 0.85f, 0.65f, 0.95f, 1.0f }    // erFlush
 }};
 
 const std::vector<GCodeViewer::Color> GCodeViewer::Options_Colors {{
@@ -1123,6 +1124,7 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
     m_conflict_result = gcode_result.conflict_result;
     if (m_conflict_result) { m_conflict_result.value().layer = m_layers.get_l_at(m_conflict_result.value()._height); }
 
+    filament_printable_reuslt = gcode_result.filament_printable_reuslt;
     //BBS: add mutex for protection of gcode result
     gcode_result.unlock();
     //BBS: add logs
@@ -1291,13 +1293,13 @@ void GCodeViewer::render(int canvas_width, int canvas_height, int right_margin)
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
     //BBS: always render shells in preview window
+    glsafe(::glEnable(GL_DEPTH_TEST));
     render_shells();
 
     m_legend_height = 0.0f;
     if (m_roles.empty())
         return;
 
-    glsafe(::glEnable(GL_DEPTH_TEST));
     render_toolpaths();
     //render_shells();
     render_legend(m_legend_height, canvas_width, canvas_height, right_margin);
@@ -3095,6 +3097,9 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
 
             last_travel_s_id = move_id;
         }
+        else if (move.type == EMoveType::Unretract && move.extrusion_role == ExtrusionRole::erFlush) {
+            m_roles.emplace_back(move.extrusion_role);
+        }
     }
 
     // roles -> remove duplicates
@@ -3167,6 +3172,7 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
     // BBS: fix the issue that object_idx is not assigned as index of Model.objects array
     int object_count = 0;
     const ModelObjectPtrs& model_objs = wxGetApp().model().objects;
+    bool enable_lod = GUI::wxGetApp().app_config->get("enable_lod") == "true";
     for (const PrintObject* obj : print.objects()) {
         const ModelObject* model_obj = obj->model_object();
 
@@ -3193,7 +3199,7 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
         instance_ids.resize(instance_index);
 
         size_t current_volumes_count = m_shells.volumes.volumes.size();
-        m_shells.volumes.load_object(model_obj, object_idx, instance_ids, "object", initialized);
+        m_shells.volumes.load_object(model_obj, object_idx, instance_ids, "object", initialized, enable_lod);
 
         // adjust shells' z if raft is present
         const SlicingParameters& slicing_parameters = obj->slicing_parameters();
@@ -3256,6 +3262,29 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
     m_shells.previewing = true;
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": shell loaded, id change to %1%, modify_count %2%, object count %3%, glvolume count %4%")
         % m_shells.print_id % m_shells.print_modify_count % object_count %m_shells.volumes.volumes.size();
+}
+
+void GUI::GCodeViewer::set_shells_on_preview(bool is_previewing) {
+    if (is_previewing) {
+        delete_wipe_tower();
+    }
+    m_shells.previewing = is_previewing;
+}
+
+void GUI::GCodeViewer::delete_wipe_tower()
+{
+    size_t current_volumes_count = m_shells.volumes.volumes.size();
+    if (current_volumes_count >= 1) {
+        for (size_t i = current_volumes_count - 1; i > 0; i--) {
+            GLVolume *v = m_shells.volumes.volumes[i];
+            if (v->is_wipe_tower) {
+                m_shells.volumes.release_volume(v);
+                delete v;
+                m_shells.volumes.volumes.erase(m_shells.volumes.volumes.begin() + i);
+                break;
+            }
+        }
+    }
 }
 
 void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool keep_sequential_current_last) const
@@ -4139,16 +4168,14 @@ void GCodeViewer::render_shells()
         if (!v->indexed_vertex_array->has_VBOs())
             v->finalize_geometry(true);
     }
-
-    glsafe(::glEnable(GL_DEPTH_TEST));
-//    glsafe(::glDepthMask(GL_FALSE));
+    glsafe(::glDepthMask(GL_FALSE));
 
     shader->start_using();
     //BBS: reopen cul faces
     m_shells.volumes.render(GLVolumeCollection::ERenderType::Transparent, false, wxGetApp().plater()->get_camera().get_view_matrix());
     shader->stop_using();
 
-//    glsafe(::glDepthMask(GL_TRUE));
+    glsafe(::glDepthMask(GL_TRUE));
 }
 
 //BBS
@@ -4358,10 +4385,9 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
         char buff[64];
         double longest_str = 0.0;
         for (auto i : model_used_filaments_g_all_plates) {
-            if (i > longest_str)
-                longest_str = i;
+            longest_str += i;
         }
-        ::sprintf(buff, "%.2f", longest_str);
+        ::sprintf(buff, imperial_units ? "%.2f oz" : "%.2f g", longest_str / unit_conver);
 
         std::vector<std::pair<std::string, std::vector<::string>>> title_columns;
         if (displayed_columns & ColumnData::Model) {
@@ -4473,10 +4499,10 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
                 columns_offsets.push_back({buf, offsets[_u8L("Model")]});
             }
             if (displayed_columns & ColumnData::Support) {
-                std::for_each(model_used_filaments_m_all_plates.begin(), model_used_filaments_m_all_plates.end(), [&total_support_used_filament_m](double value) {
+                std::for_each(support_used_filaments_m_all_plates.begin(), support_used_filaments_m_all_plates.end(), [&total_support_used_filament_m](double value) {
                     total_support_used_filament_m += value;
                     });
-                std::for_each(model_used_filaments_g_all_plates.begin(), model_used_filaments_g_all_plates.end(), [&total_support_used_filament_g](double value) {
+                std::for_each(support_used_filaments_g_all_plates.begin(), support_used_filaments_g_all_plates.end(), [&total_support_used_filament_g](double value) {
                     total_support_used_filament_g += value;
                     });
                 ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", total_support_used_filament_m, total_support_used_filament_g / unit_conver);
@@ -4525,7 +4551,7 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
 
         for (auto it = plate_time.begin(); it != plate_time.end(); it++) {
             std::vector<std::pair<std::string, float>> columns_offsets;
-            columns_offsets.push_back({ _u8L("Plate") + " " + std::to_string(it->first), offsets[_u8L("Filament")]});
+            columns_offsets.push_back({ _u8L("Plate") + " " + std::to_string(it->first + 1), offsets[_u8L("Filament")]});
             columns_offsets.push_back({ short_time(get_time_dhms(it->second)), offsets[_u8L("Model")] });
             append_item(false, m_tools.m_tool_colors[0], columns_offsets);
         }

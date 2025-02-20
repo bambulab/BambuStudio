@@ -38,10 +38,17 @@
 	"deretraction_speed": [
 		"0"
 	],
-	"single_extruder_multi_material": "0",
+	"retract_lift_below": [
+        "269"
+    ],
+	"extruder_clearance_max_radius": "60",
+	"extruder_clearance_dist_to_rod": "30",
+    "extruder_clearance_height_to_rod": "38",
+    "extruder_clearance_height_to_lid": "110",
+	"single_extruder_multi_material": "1",
 	"change_filament_gcode": "",
 	"machine_pause_gcode": "M0",
 	"default_filament_profile": [
-		"Qidi Generic PLA"
+		"Generic PLA"
 	]
 }

@@ -295,7 +295,7 @@ wxPanel *BedShapePanel::init_texture_panel()
         load_btn->SetBackgroundColor(btn_bg_white);
         load_btn->SetBorderColor(btn_bd_white);
         load_btn->SetBackgroundColour(*wxWHITE);
-        load_btn->Enable(m_can_edit);
+        load_btn->Enable(true);
         wxSizer * load_sizer = new wxBoxSizer(wxHORIZONTAL);
         load_sizer->Add(load_btn, 1, wxEXPAND);
 

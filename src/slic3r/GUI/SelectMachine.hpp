@@ -193,7 +193,7 @@ protected:
 
 #define SELECT_MACHINE_POPUP_SIZE wxSize(FromDIP(216), FromDIP(364))
 #define SELECT_MACHINE_LIST_SIZE wxSize(FromDIP(212), FromDIP(360))  
-#define SELECT_MACHINE_ITEM_SIZE wxSize(FromDIP(182), FromDIP(35))
+#define SELECT_MACHINE_ITEM_SIZE wxSize(FromDIP(190), FromDIP(35))
 #define SELECT_MACHINE_GREY900 wxColour(38, 46, 48)
 #define SELECT_MACHINE_GREY600 wxColour(144,144,144)
 #define SELECT_MACHINE_GREY400 wxColour(206, 206, 206)
@@ -212,6 +212,7 @@ class PinCodePanel : public wxPanel
 {
 public:
     PinCodePanel(wxWindow* parent,
+        int type,
         wxWindowID      winid = wxID_ANY,
         const wxPoint& pos = wxDefaultPosition,
         const wxSize& size = wxDefaultSize);
@@ -219,6 +220,7 @@ public:
 
     ScalableBitmap       m_bitmap;
     bool           m_hover{false};
+    int            m_type{0};
 
     void OnPaint(wxPaintEvent& event);
     void render(wxDC& dc);
@@ -252,6 +254,7 @@ private:
     int                               m_my_devices_count{0};
     int                               m_other_devices_count{0};
     PinCodePanel*                     m_panel_ping_code{nullptr};
+    PinCodePanel*                     m_panel_direct_connection{nullptr};
     wxWindow*                         m_placeholder_panel{nullptr};
     wxHyperlinkCtrl*                  m_hyperlink{nullptr};
     Label*                            m_ping_code_text{nullptr};

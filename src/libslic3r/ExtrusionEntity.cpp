@@ -68,8 +68,7 @@ void ExtrusionPath::polygons_covered_by_spacing(Polygons &out, const float scale
 
 bool ExtrusionPath::can_merge(const ExtrusionPath& other)
 {
-    return overhang_degree == other.overhang_degree &&
-            curve_degree==other.curve_degree &&
+    return  curve_degree==other.curve_degree &&
             mm3_per_mm == other.mm3_per_mm &&
             width == other.width &&
             height == other.height &&
@@ -469,13 +468,32 @@ bool ExtrusionLoop::check_seam_point_angle(double angle_threshold, double min_ar
         idx_next = Slic3r::next_idx_modulo(idx_next, points.size());
     }
 
-    // Calculate angle between idx_prev, idx_curr, idx_next.
-    const Point &p0 = points[idx_prev];
-    const Point &p1 = points[idx_curr];
-    const Point &p2 = points[idx_next];
-    const auto   a  = angle(p0 - p1, p2 - p1);
-    if (a > 0 ? a < angle_threshold : a > -angle_threshold) {
-        return false;
+    //thanks orca
+    for (size_t _i = 0; _i < points.size(); ++_i) {
+        // pull idx_prev to current as much as possible, while respecting the min_arm_length
+        while (distance_to_prev - lengths[idx_prev] > min_arm_length) {
+            distance_to_prev -= lengths[idx_prev];
+            idx_prev = Slic3r::next_idx_modulo(idx_prev, points.size());
+        }
+
+        // push idx_next forward as far as needed
+        while (distance_to_next < min_arm_length) {
+            distance_to_next += lengths[idx_next];
+            idx_next = Slic3r::next_idx_modulo(idx_next, points.size());
+        }
+
+        // Calculate angle between idx_prev, idx_curr, idx_next.
+        const Point &p0 = points[idx_prev];
+        const Point &p1 = points[idx_curr];
+        const Point &p2 = points[idx_next];
+        const auto   a  = angle(p0 - p1, p2 - p1);
+        if (a > 0 ? a < angle_threshold : a > -angle_threshold) { return false; }
+
+        // increase idx_curr by one
+        float curr_distance = lengths[idx_curr];
+        idx_curr++;
+        distance_to_prev += curr_distance;
+        distance_to_next -= curr_distance;
     }
 
     return true;
@@ -552,7 +570,8 @@ ExtrusionLoopSloped::ExtrusionLoopSloped( ExtrusionPaths &original_paths,
             paths.emplace_back(std::move(flat_path), *path);
             remaining_length = 0;
         } else {
-            remaining_length -= path_len;
+            // BBS: protection for accuracy issues
+            remaining_length       = remaining_length - path_len < EPSILON ? 0 : remaining_length - path_len;
             const double end_ratio = lerp(1.0, start_slope_ratio, remaining_length / slope_min_length);
             add_slop(*path, path->polyline, start_ratio, end_ratio);
             start_ratio = end_ratio;
@@ -601,6 +620,7 @@ std::string ExtrusionEntity::role_to_string(ExtrusionRole role)
         case erWipeTower                    : return L("Prime tower");
         case erCustom                       : return L("Custom");
         case erMixed                        : return L("Multiple");
+        case erFlush                        : return L("Flush");
         default                             : assert(false);
     }
     return "";
@@ -644,6 +664,8 @@ ExtrusionRole ExtrusionEntity::string_to_role(const std::string_view role)
         return erCustom;
     else if (role == L("Multiple"))
         return erMixed;
+    else if (role == L("Flush"))
+        return erFlush;
     else
         return erNone;
 }

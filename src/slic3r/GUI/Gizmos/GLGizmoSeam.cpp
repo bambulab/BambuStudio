@@ -28,11 +28,12 @@ void GLGizmoSeam::on_shutdown()
 bool GLGizmoSeam::on_init()
 {
     m_shortcut_key = WXK_CONTROL_P;
-
-    m_desc["clipping_of_view_caption"] = _L("Alt + Mouse wheel");
+    const wxString ctrl                = GUI::shortkey_ctrl_prefix();
+    const wxString alt                 = GUI::shortkey_alt_prefix();
+    m_desc["clipping_of_view_caption"] = alt + _L("Mouse wheel");
     m_desc["clipping_of_view"] = _L("Section view");
     m_desc["reset_direction"]  = _L("Reset direction");
-    m_desc["cursor_size_caption"] = _L("Ctrl + Mouse wheel");
+    m_desc["cursor_size_caption"]= ctrl + _L("Mouse wheel");
     m_desc["cursor_size"]      = _L("Brush size");
     m_desc["cursor_type"]      = _L("Brush shape");
     m_desc["enforce_caption"]  = _L("Left mouse button");
@@ -186,7 +187,8 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
 {
     if (! m_c->selection_info()->model_object())
         return;
-
+    m_imgui_start_pos[0] = x;
+    m_imgui_start_pos[1] = y;
     const float approx_height = m_imgui->scaled(12.5f);
     y = std::min(y, bottom_limit - approx_height);
     //BBS: GUI refactor: move gizmo to the right
@@ -329,21 +331,18 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     auto vertical_only = m_vertical_only;
     if (m_imgui->bbl_checkbox(_L("Vertical"), vertical_only)) {
         m_vertical_only = vertical_only;
-        if (m_vertical_only) {
-            m_is_front_view = true;
-            change_camera_view_angle(m_front_view_radian);
-        }
     }
     auto is_front_view = m_is_front_view;
     m_imgui->bbl_checkbox(_L("View: keep horizontal"), is_front_view);
-    if (m_is_front_view != is_front_view) { 
+    if (m_is_front_view != is_front_view){
         m_is_front_view = is_front_view;
-        if (m_is_front_view) { 
+        if (m_is_front_view) {
+            update_front_view_radian();
             change_camera_view_angle(m_front_view_radian);
         }
     }
     m_imgui->disabled_begin(!m_is_front_view);
-    if (render_slider_double_input_by_format(slider_input_layout, _u8L("Rotate horizontally"), m_front_view_radian, 0.f, 360.f, 0, DoubleShowType::DEGREE)) { 
+    if (render_slider_double_input_by_format(slider_input_layout, _u8L("Rotate horizontally"), m_front_view_radian, -180.f, 180.f, 0, DoubleShowType::DEGREE)) {
        change_camera_view_angle(m_front_view_radian);
     }
     m_imgui->disabled_end();
@@ -372,6 +371,8 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
         m_parent.set_as_dirty();
     }
     ImGui::PopStyleVar(2);
+    m_imgui_end_pos[0] = m_imgui_start_pos[0] + ImGui::GetWindowWidth();
+    m_imgui_end_pos[1] = m_imgui_start_pos[1] + ImGui::GetWindowHeight();
     GizmoImguiEnd();
 
     //BBS

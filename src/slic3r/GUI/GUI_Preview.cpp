@@ -603,7 +603,7 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
     auto curr_print_seq = curr_plate->get_real_print_seq();
     bool sequential_print = (curr_print_seq == PrintSequence::ByObject);
     m_layers_slider->SetDrawMode(sequential_print);
-    
+
     m_layers_slider->SetTicksValues(ticks_info_from_curr_plate);
 
     auto print_mode_stat = m_gcode_result->print_statistics.modes.front();
@@ -734,8 +734,8 @@ void Preview::load_print_as_fff(bool keep_z_range, bool only_gcode)
             //BBS show sliders
             show_moves_sliders();
 
-            //BBS: turn off shells for preview
-            m_canvas->set_shells_on_previewing(false);
+            //BBS: keep shell preview on or not by app_config
+            m_canvas->set_shells_on_previewing(wxGetApp().app_config->get_bool("show_shells_in_preview"));
             Refresh();
             zs = m_canvas->get_gcode_layers_zs();
             //BBS: add m_loaded_print logic

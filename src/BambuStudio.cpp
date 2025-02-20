@@ -145,8 +145,28 @@ std::map<int, std::string> cli_errors = {
     {CLI_OBJECT_COLLISION_IN_LAYER_PRINT, "Object conflicts were detected. Please verify the slicing of all plates in Bambu Studio before uploading."},
     {CLI_SPIRAL_MODE_INVALID_PARAMS, "Some slicing parameters cannot work with Spiral Vase mode. Please solve the issue in Bambu Studio before uploading."},
     {CLI_SLICING_ERROR, "Failed slicing the model. Please verify the slicing of all plates on Bambu Studio before uploading."},
-    {CLI_GCODE_PATH_CONFLICTS, " G-code conflicts detected after slicing. Please make sure the 3mf file can be successfully sliced in the latest Bambu Studio."}
+    {CLI_GCODE_PATH_CONFLICTS, " G-code conflicts detected after slicing. Please make sure the 3mf file can be successfully sliced in the latest Bambu Studio."},
+    {CLI_FILAMENT_UNPRINTABLE_ON_FIRST_LAYER, "Found some filament unprintable at first layer on current Plate. Please make sure the 3mf file can be successfully sliced with the same Plate type in the latest Bambu Studio."}
 };
+
+typedef struct  _object_info{
+    int id{0};
+    std::string name;
+    size_t triangle_count{0};
+    float bbox_x;
+    float bbox_y;
+    float bbox_z;
+    float bbox_width;
+    float bbox_depth;
+    float bbox_height;
+}object_info_t;
+
+typedef struct  _filament_info{
+    int id{0};
+    std::string filament_id;
+    float total_used_g {0.f};
+    float main_used_g {0.f};
+}filament_info_t;
 
 typedef struct  _sliced_plate_info{
     int plate_id{0};
@@ -157,6 +177,14 @@ typedef struct  _sliced_plate_info{
     size_t generate_support_material_time {0};
     size_t triangle_count{0};
     std::string warning_message;
+
+    float total_predication{0.f};
+    float main_predication{0.f};
+    int filament_change_times {0};
+    int layer_filament_change {0};
+
+    std::vector<object_info_t> objects;
+    std::vector<filament_info_t> filaments;
 }sliced_plate_info_t;
 
 typedef struct _sliced_info {
@@ -168,6 +196,7 @@ typedef struct _sliced_info {
     size_t export_time;
     std::vector<std::string> upward_machines;
     std::vector<std::string> downward_machines;
+    std::vector<std::string> upward_compatibility_taint;
 }sliced_info_t;
 std::vector<PrintBase::SlicingStatus> g_slicing_warnings;
 
@@ -420,6 +449,8 @@ void record_exit_reson(std::string outputdir, int code, int plate_id, std::strin
             j["downward_compatible_machine"] = sliced_info.downward_machines;
         if (sliced_info.upward_machines.size() > 0)
             j["upward_compatible_machine"] = sliced_info.upward_machines;
+        if (sliced_info.upward_compatibility_taint.size() > 0)
+            j["upward_compatibility_taint"] = sliced_info.upward_compatibility_taint;
         j["plate_index"] = plate_id;
         j["return_code"] = code;
         j["error_string"] = error_message;
@@ -428,15 +459,64 @@ void record_exit_reson(std::string outputdir, int code, int plate_id, std::strin
         for (size_t index = 0; index < sliced_info.sliced_plates.size(); index++)
         {
             json plate_json;
-            plate_json["id"] = sliced_info.sliced_plates[index].plate_id;
-            plate_json["sliced_time"] = sliced_info.sliced_plates[index].sliced_time;
-            plate_json["sliced_time_with_cache"] = sliced_info.sliced_plates[index].sliced_time_with_cache;
-            plate_json["make_perimeters_time"] = sliced_info.sliced_plates[index].make_perimeters_time;
-            plate_json["infill_time"] = sliced_info.sliced_plates[index].infill_time;
-            plate_json["generate_support_material_time"] = sliced_info.sliced_plates[index].generate_support_material_time;
-            plate_json["triangle_count"] = sliced_info.sliced_plates[index].triangle_count;
-            plate_json["warning_message"] = sliced_info.sliced_plates[index].warning_message;
-            j["sliced_plates"].push_back(plate_json);
+            sliced_plate_info_t& sliced_plate_info = sliced_info.sliced_plates[index];
+            plate_json["id"] = sliced_plate_info.plate_id;
+            plate_json["sliced_time"] = sliced_plate_info.sliced_time;
+            plate_json["sliced_time_with_cache"] = sliced_plate_info.sliced_time_with_cache;
+            plate_json["make_perimeters_time"] = sliced_plate_info.make_perimeters_time;
+            plate_json["infill_time"] = sliced_plate_info.infill_time;
+            plate_json["generate_support_material_time"] = sliced_plate_info.generate_support_material_time;
+            plate_json["triangle_count"] = sliced_plate_info.triangle_count;
+            plate_json["warning_message"] = sliced_plate_info.warning_message;
+
+            plate_json["total_predication"] = sliced_plate_info.total_predication;
+            plate_json["main_predication"] = sliced_plate_info.main_predication;
+            plate_json["filament_change_times"] = sliced_plate_info.filament_change_times;
+            plate_json["layer_filament_change"] = sliced_plate_info.layer_filament_change;
+
+            //object info
+            if (!sliced_plate_info.objects.empty())
+            {
+                for (size_t j = 0; j < sliced_plate_info.objects.size(); j++)
+                {
+                    json object_json;
+                    object_info_t& object = sliced_plate_info.objects[j];
+
+                    object_json["id"] = object.id;
+                    object_json["name"] = object.name;
+                    object_json["triangle_count"] = object.triangle_count;
+
+                    json bbox_json;
+                    bbox_json["x"] = object.bbox_x;
+                    bbox_json["y"] = object.bbox_y;
+                    bbox_json["z"] = object.bbox_z;
+                    bbox_json["width"] = object.bbox_width;
+                    bbox_json["depth"] = object.bbox_depth;
+                    bbox_json["height"] = object.bbox_height;
+                    object_json["bbox"] = bbox_json;
+
+                    plate_json["objects"].push_back(std::move(object_json));
+                }
+            }
+
+            //filament info
+            if (!sliced_plate_info.filaments.empty())
+            {
+                for (size_t j = 0; j < sliced_plate_info.filaments.size(); j++)
+                {
+                    json filament_json;
+                    filament_info_t& filament = sliced_plate_info.filaments[j];
+
+                    filament_json["id"] = filament.id;
+                    filament_json["filament_id"] = filament.filament_id;
+                    filament_json["total_used_g"] = filament.total_used_g;
+                    filament_json["main_used_g"] = filament.main_used_g;
+
+                    plate_json["filaments"].push_back(std::move(filament_json));
+                }
+            }
+
+            j["sliced_plates"].push_back(std::move(plate_json));
         }
         for (auto& iter: key_values)
             j[iter.first] = iter.second;
@@ -649,6 +729,11 @@ static int load_assemble_plate_list(std::string config_file, std::vector<assembl
                     return CLI_CONFIG_FILE_ERROR;
                 }
 
+                if (object_json.contains(JSON_ASSEMPLE_SUBTYPE))
+                    assemble_object.subtype = ModelVolume::type_from_string(object_json[JSON_ASSEMPLE_SUBTYPE]);
+                else
+                    assemble_object.subtype = ModelVolumeType::MODEL_PART;
+
                 assemble_object.filaments = object_json.at(JSON_ASSEMPLE_OBJECT_FILAMENTS).get<std::vector<int>>();
                 if ((assemble_object.filaments.size() > 0) && (assemble_object.filaments.size() != assemble_object.count) && (assemble_object.filaments.size() != 1))
                 {
@@ -749,7 +834,7 @@ static int load_assemble_plate_list(std::string config_file, std::vector<assembl
     return ret;
 }
 
-void merge_or_add_object(assemble_plate_info_t& assemble_plate_info, Model &model, int assemble_index, std::map<int, ModelObject*> &merged_objects, ModelObject *ori_object)
+void merge_or_add_object(assemble_plate_info_t& assemble_plate_info, Model &model, int assemble_index, std::map<int, ModelObject*> &merged_objects, ModelObject *ori_object, ModelVolumeType type)
 {
     if (assemble_index > 0) {
         auto iter = merged_objects.find(assemble_index);
@@ -760,17 +845,21 @@ void merge_or_add_object(assemble_plate_info_t& assemble_plate_info, Model &mode
             new_object->name = "assemble_" + std::to_string(assemble_index);
             merged_objects[assemble_index] = new_object;
             assemble_plate_info.loaded_obj_list.emplace_back(new_object);
-            new_object->config.assign_config(ori_object->config.get());
+            //new_object->config.assign_config(ori_object->config.get());
         }
         else
             new_object = iter->second;
 
         for (auto volume : ori_object->volumes) {
-            ModelVolume* new_volume = new_object->add_volume(*volume);
+            ModelVolume* new_volume = new_object->add_volume(*volume, type);
             // set extruder id
-            new_volume->config.set_key_value("extruder", new ConfigOptionInt(ori_object->config.extruder()));
+            //new_volume->config.set_key_value("extruder", new ConfigOptionInt(ori_object->config.extruder()));
+            if (type == ModelVolumeType::MODEL_PART || type == ModelVolumeType::PARAMETER_MODIFIER)
+            {
+                new_volume->config.apply(ori_object->config);
+            }
         }
-        BOOST_LOG_TRIVIAL(debug) << boost::format("assemble_index %1%, name %2%, merged to new model %3%") % assemble_index % ori_object->name % new_object->name;
+        BOOST_LOG_TRIVIAL(debug) << boost::format("assemble_index %1%, name %2%, merged to new model %3%, subtype %4%") % assemble_index % ori_object->name % new_object->name %(int)type;
     }
     else {
         ModelObject* new_object = model.add_object(*ori_object);
@@ -925,7 +1014,7 @@ static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_
                     return CLI_DATA_FILE_ERROR;
                 }
             }
-            else if (boost::algorithm::iends_with(assemble_object.path, ".obj"))
+            else if ((boost::algorithm::iends_with(assemble_object.path, ".obj")) && assemble_object.subtype == ModelVolumeType::MODEL_PART)
             {
                 std::string message;
                 ObjInfo  obj_info;
@@ -974,7 +1063,7 @@ static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_
                 obj_temp_model.clear_materials();
             }
             else {
-                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": unsupported file %1%, plate index %2%, object index %3%") % assemble_object.path % (index + 1) % (obj_index + 1);
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": unsupported file %1%, plate index %2%, object index %3%, subtype %4%") % assemble_object.path % (index + 1) % (obj_index + 1) %(int)(assemble_object.subtype);
                 return CLI_INVALID_PARAMS;
             }
 
@@ -1001,6 +1090,10 @@ static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_
 
             if (!assemble_object.height_ranges.empty())
             {
+                if (assemble_object.subtype != ModelVolumeType::MODEL_PART) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": only normal part can have height ranges, file %1%, plate index %2%, object index %3%, subtype %4%") % assemble_object.path % (index + 1) % (obj_index + 1) %(int)(assemble_object.subtype);
+                    return CLI_INVALID_PARAMS;
+                }
                 for (int range_index = 0; range_index < assemble_object.height_ranges.size(); range_index++)
                 {
                     height_range_info_t& range = assemble_object.height_ranges[range_index];
@@ -1020,11 +1113,21 @@ static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_
                 assemble_object.pos_y.resize(1, 0.f);
             if (assemble_object.pos_z.empty())
                 assemble_object.pos_z.resize(1, 0.f);
-            if (assemble_object.assemble_index.empty())
+            if (assemble_object.assemble_index.empty()) {
+                if (assemble_object.subtype != ModelVolumeType::MODEL_PART) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": only normal part can be used as individual object, file %1%, plate index %2%, object index %3%, subtype %4%") % assemble_object.path % (index + 1) % (obj_index + 1) %(int)(assemble_object.subtype);
+                    return CLI_INVALID_PARAMS;
+                }
                 assemble_object.assemble_index.resize(1, 0);
+            }
+
+            if ((assemble_object.subtype != ModelVolumeType::MODEL_PART)&&(assemble_object.assemble_index[0] == 0)) {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": only normal part can have height ranges, file %1%, plate index %2%, object index %3%, subtype %4%") % assemble_object.path % (index + 1) % (obj_index + 1) %(int)(assemble_object.subtype);
+                return CLI_INVALID_PARAMS;
+            }
 
             object->translate(assemble_object.pos_x[0], assemble_object.pos_y[0], assemble_object.pos_z[0]);
-            merge_or_add_object(assemble_plate_info, model, assemble_object.assemble_index[0], merged_objects, object);
+            merge_or_add_object(assemble_plate_info, model, assemble_object.assemble_index[0], merged_objects, object, assemble_object.subtype);
 
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": object %1%, name %2%, pos_x %3% pos_y %4%, pos_z %5%, filament %6%, assemble_index %7%")
                 %obj_index %object->name %assemble_object.pos_x[0] %assemble_object.pos_y[0] %assemble_object.pos_z[0] %assemble_object.filaments[0] %assemble_object.assemble_index[0];
@@ -1057,7 +1160,13 @@ static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_
                     array_index = copy_index;
                 else
                     array_index = 0;
-                merge_or_add_object(assemble_plate_info, model, assemble_object.assemble_index[array_index], merged_objects, copy_obj);
+
+                if ((assemble_object.subtype != ModelVolumeType::MODEL_PART)&&(assemble_object.assemble_index[array_index] == 0)) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": only normal part can have height ranges, file %1%, plate index %2%, object index %3%, subtype %4%, copy_index %5%")
+                        % assemble_object.path % (index + 1) % (obj_index + 1) %(int)(assemble_object.subtype) %copy_index;
+                    return CLI_INVALID_PARAMS;
+                }
+                merge_or_add_object(assemble_plate_info, model, assemble_object.assemble_index[array_index], merged_objects, copy_obj, assemble_object.subtype);
 
                 BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": cloned object %1%, name %2%, pos_x %3% pos_y %4%, pos_z %5%")
                     %copy_index %object->name %assemble_object.pos_x[array_index] %assemble_object.pos_y[array_index] %assemble_object.pos_z[array_index];
@@ -1208,19 +1317,27 @@ int CLI::run(int argc, char **argv)
     /*BOOST_LOG_TRIVIAL(info) << "begin to setup params, argc=" << argc << std::endl;
     for (int index=0; index < argc; index++)
         BOOST_LOG_TRIVIAL(info) << "index="<< index <<", arg is "<< argv[index] <<std::endl;
-    int debug_argc = 11;
-    char *debug_argv[] = {
+    int debug_argc = 5;
+    char* debug_argv[] = {
         "F:\work\projects\bambu_debug\bamboo_slicer\build_debug\src\Debug\bambu-studio.exe",
         "--debug=2",
-        "--load-settings",
-        "machine.json;process.json",
-        "--load-filaments",
-        "filament.json;filament.json;filament.json;filament.json;filament.json;filament.json",
+        //"--uptodate",
+        //"--load-settings",
+        //"machine_A1.json",
+        //"--load-defaultfila",
+        //"--load-filaments",
+        //"filament_pla_basic_A1.json;filament_pla_basic_A1.json",
         "--export-3mf=output.3mf",
-        "--filament-colour",
-        "#FFFFFFFF;#0000FFFF;#00FF00FF;#FF0000FF;#00000000;#FFFF00FF",
+        //"--filament-colour",
+        //"#CD056D;#702829",
+        //"--nozzle-volume-type",
+        //"Standard,High Flow",
+        //"--filament-map-mode",
+        //"Auto",
+        //"--filament-map",
+        //"1,2,1,2",
         "--slice=0",
-        "1.3mf"
+        "stl_test.3mf"
         };
     if (! this->setup(debug_argc, debug_argv))*/
     if (!this->setup(argc, argv))
@@ -1258,6 +1375,7 @@ int CLI::run(int argc, char **argv)
     const std::vector<std::string>              &uptodate_filaments          = m_config.option<ConfigOptionStrings>("uptodate_filaments", true)->values;
     std::vector<std::string>                    downward_settings          = m_config.option<ConfigOptionStrings>("downward_settings", true)->values;
     std::vector<std::string> downward_compatible_machines;
+    std::set<std::string> downward_uncompatible_machines;
     //BBS: always use ForwardCompatibilitySubstitutionRule::Enable
     //const ForwardCompatibilitySubstitutionRule   config_substitution_rule = m_config.option<ConfigOptionEnum<ForwardCompatibilitySubstitutionRule>>("config_compatibility", true)->value;
     const ForwardCompatibilitySubstitutionRule   config_substitution_rule = ForwardCompatibilitySubstitutionRule::Enable;
@@ -1344,7 +1462,7 @@ int CLI::run(int argc, char **argv)
     //BBS: add plate data related logic
     PlateDataPtrs plate_data_src;
     std::vector<plate_obj_size_info_t> plate_obj_size_infos;
-    int arrange_option;
+    //int arrange_option;
     int plate_to_slice = 0, filament_count = 0, duplicate_count = 0, real_duplicate_count = 0;
     bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true, duplicate_single_object = false, use_first_fila_as_default = false, minimum_save = false, enable_timelapse = false;
     bool allow_rotations = true, skip_modified_gcodes = false, avoid_extrusion_cali_region = false, skip_useless_pick = false, allow_newer_file = false;
@@ -1543,7 +1661,7 @@ int CLI::run(int argc, char **argv)
                 // BBS: adjust whebackup
                 //LoadStrategy strategy = LoadStrategy::LoadModel | LoadStrategy::LoadConfig|LoadStrategy::AddDefaultInstances;
                 //if (load_aux) strategy = strategy | LoadStrategy::LoadAuxiliary;
-                model = Model::read_from_file(file, &config, &config_substitutions, strategy, &plate_data_src, &project_presets, &is_bbl_3mf, &file_version, nullptr, nullptr, nullptr, nullptr, nullptr, plate_to_slice);
+                model = Model::read_from_file(file, &config, &config_substitutions, strategy, &plate_data_src, &project_presets, &is_bbl_3mf, &file_version, nullptr, nullptr, nullptr, plate_to_slice);
                 if (is_bbl_3mf)
                 {
                     if (!first_file)
@@ -1701,7 +1819,7 @@ int CLI::run(int argc, char **argv)
                         {
                             ModelObject* object = model.objects[obj_index];
 
-                            for (unsigned int clone_index = 1; clone_index < clone_count; clone_index++)
+                            for (int clone_index = 1; clone_index < clone_count; clone_index++)
                             {
                                 ModelObject* newObj = model.add_object(*object);
                                 newObj->name = object->name +"_"+ std::to_string(clone_index+1);
@@ -3559,6 +3677,7 @@ int CLI::run(int argc, char **argv)
         }
     }
 
+    bool has_sequence_plates = false;
     int downward_check_size = downward_check_printers.size();
     if (downward_check_size > 0)
     {
@@ -3567,15 +3686,17 @@ int CLI::run(int argc, char **argv)
         int failed_count = 0;
         for (int index = 0; index < plate_count; index ++)
         {
-            if (failed_count == downward_check_size) {
-                BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: all failed, size %1%")%downward_check_size;
-                break;
-            }
             Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate *)partplate_list.get_plate(index);
             Vec3d size = plate_obj_size_infos[index].obj_bbox.size();
 
             bool is_sequence = false;
             get_print_sequence(cur_plate, m_print_config, is_sequence);
+            has_sequence_plates |= is_sequence;
+
+            if (failed_count == downward_check_size) {
+                BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: all failed, size %1%")%downward_check_size;
+                break;
+            }
 
             for (int index2 = 0; index2 < downward_check_size; index2 ++)
             {
@@ -3629,21 +3750,43 @@ int CLI::run(int argc, char **argv)
                 }
             }
         }
-        if (failed_count < downward_check_size)
+
+        for (int index2 = 0; index2 < downward_check_size; index2 ++)
         {
-            //has success ones
-            BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: downward_check_size %1%, failed_count %2%")%downward_check_size %failed_count;
-            for (int index2 = 0; index2 < downward_check_size; index2 ++)
-            {
-                if (downward_check_status[index2])
-                    continue;
-                printer_plate_info_t& plate_info = downward_check_printers[index2];
-                BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: found compatible printer %1%")%plate_info.printer_name;
-                downward_compatible_machines.push_back(plate_info.printer_name);
+            printer_plate_info_t& plate_info = downward_check_printers[index2];
+            if (downward_check_status[index2]) {
+                downward_uncompatible_machines.emplace(plate_info.printer_name);
+                BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: found uncompatible printer %1%")%plate_info.printer_name;
             }
-            sliced_info.downward_machines = downward_compatible_machines;
+            else {
+                downward_compatible_machines.push_back(plate_info.printer_name);
+                BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: found compatible printer %1%")%plate_info.printer_name;
+            }
+        }
+        BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: downward_check_size %1%, failed_count %2%")%downward_check_size %failed_count;
+        sliced_info.downward_machines = downward_compatible_machines;
+
+        for(std::vector<std::string>::iterator it = sliced_info.upward_machines.begin(); it != sliced_info.upward_machines.end();){
+            if(downward_uncompatible_machines.find(*it) != downward_uncompatible_machines.end()){
+                BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: remove %1% from upward compatible printers")%*it;
+                it = sliced_info.upward_machines.erase(it);
+            } else {
+                it ++;
+            }
         }
     }
+    else if (downward_check) {
+        int plate_count = partplate_list.get_plate_count();
+        for (int index = 0; index < plate_count; index ++)
+        {
+            Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate *)partplate_list.get_plate(index);
+            bool is_sequence = false;
+            get_print_sequence(cur_plate, m_print_config, is_sequence);
+            has_sequence_plates |= is_sequence;
+        }
+    }
+    if (has_sequence_plates)
+        sliced_info.upward_compatibility_taint.push_back("PrintSequenceByObject");
 
     // Loop through transform options.
     bool user_center_specified = false;
@@ -4161,12 +4304,11 @@ int CLI::run(int argc, char **argv)
                     arrange_cfg.align_to_y_axis = (printer_structure_opt->value == PrinterStructure::psI3);
                 }
 
-                arrangement::update_arrange_params(arrange_cfg, &m_print_config, selected);
-                arrangement::update_selected_items_inflation(selected, &m_print_config, arrange_cfg);
-                arrangement::update_unselected_items_inflation(unselected, &m_print_config, arrange_cfg);
-                arrangement::update_selected_items_axis_align(selected, &m_print_config, arrange_cfg);
+                arrangement::update_arrange_params(arrange_cfg, m_print_config, selected);
+                arrangement::update_selected_items_inflation(selected, m_print_config, arrange_cfg);
+                arrangement::update_unselected_items_inflation(unselected, m_print_config, arrange_cfg);
 
-                beds = get_shrink_bedpts(&m_print_config, arrange_cfg);
+                beds = get_shrink_bedpts(m_print_config, arrange_cfg);
 
                 partplate_list.preprocess_exclude_areas(arrange_cfg.excluded_regions, 1, scale_(1));
 
@@ -4562,12 +4704,11 @@ int CLI::run(int argc, char **argv)
                     arrange_cfg.align_to_y_axis = (printer_structure_opt->value == PrinterStructure::psI3);
                 }
 
-                arrangement::update_arrange_params(arrange_cfg, &m_print_config, selected);
-                arrangement::update_selected_items_inflation(selected, &m_print_config, arrange_cfg);
-                arrangement::update_unselected_items_inflation(unselected, &m_print_config, arrange_cfg);
-                arrangement::update_selected_items_axis_align(selected, &m_print_config, arrange_cfg);
+                arrangement::update_arrange_params(arrange_cfg, m_print_config, selected);
+                arrangement::update_selected_items_inflation(selected, m_print_config, arrange_cfg);
+                arrangement::update_unselected_items_inflation(unselected, m_print_config, arrange_cfg);
 
-                beds=get_shrink_bedpts(&m_print_config, arrange_cfg);
+                beds=get_shrink_bedpts(m_print_config, arrange_cfg);
 
                 partplate_list.preprocess_exclude_areas(arrange_cfg.excluded_regions, 1, scale_(1));
 
@@ -4971,7 +5112,7 @@ int CLI::run(int argc, char **argv)
                         //    continue;
                         for (int instance_idx = 0; instance_idx < (int)model_object.instances.size(); ++ instance_idx) {
                             const ModelInstance &model_instance = *model_object.instances[instance_idx];
-                            glvolume_collection.load_object_volume(&model_object, obj_idx, volume_idx, instance_idx, "volume", true, false, true);
+                            glvolume_collection.load_object_volume(&model_object, obj_idx, volume_idx, instance_idx, "volume", true, false, true, false);
                             //glvolume_collection.volumes.back()->geometry_id = key.geometry_id;
                             std::string color = filament_color?filament_color->get_at(volume_extruder_id - 1):"#00FF00FF";
 
@@ -5489,6 +5630,13 @@ int CLI::run(int argc, char **argv)
                                     slice_time[TIME_USING_CACHE] = slice_time[TIME_USING_CACHE] + ((long long)Slic3r::Utils::get_current_milliseconds_time_utc() - temp_time);
                                     BOOST_LOG_TRIVIAL(info) << "export_gcode finished: time_using_cache update to " << slice_time[TIME_USING_CACHE] << " secs.";
 
+                                    if (gcode_result && gcode_result->filament_printable_reuslt.has_value()) {
+                                        //found gcode error
+                                        BOOST_LOG_TRIVIAL(error) << "plate " << index + 1 << ": found some filament unprintable on current bed- "<< gcode_result->filament_printable_reuslt.plate_name << std::endl;
+                                        record_exit_reson(outfile_dir, CLI_FILAMENT_UNPRINTABLE_ON_FIRST_LAYER, index + 1, cli_errors[CLI_FILAMENT_UNPRINTABLE_ON_FIRST_LAYER], sliced_info);
+                                        flush_and_exit(CLI_FILAMENT_UNPRINTABLE_ON_FIRST_LAYER);
+                                    }
+
                                     //outfile_final = (dynamic_cast<Print*>(print))->print_statistics().finalize_output_path(outfile);
                                     //m_fff_print->export_gcode(m_temp_output_path, m_gcode_result, [this](const ThumbnailsParams& params) { return this->render_thumbnails(params); });
                                 }/* else {
@@ -5536,6 +5684,90 @@ int CLI::run(int argc, char **argv)
                                 sliced_plate_info.infill_time = slice_time[TIME_INFILL];
                                 sliced_plate_info.generate_support_material_time = slice_time[TIME_GENERATE_SUPPORT];
 
+                                //get predication and filament change
+                                PrintEstimatedStatistics& print_estimated_stat = gcode_result->print_statistics;
+                                const PrintEstimatedStatistics::Mode& time_mode = print_estimated_stat.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)];
+                                auto it_wipe = std::find_if(time_mode.roles_times.begin(), time_mode.roles_times.end(), [](const std::pair<ExtrusionRole, float>& item) { return ExtrusionRole::erWipeTower == item.first; });
+                                sliced_plate_info.total_predication = time_mode.time;
+                                sliced_plate_info.main_predication = time_mode.time - time_mode.prepare_time;
+                                sliced_plate_info.filament_change_times = print_estimated_stat.total_filamentchanges;
+                                if (it_wipe != time_mode.roles_times.end()) {
+                                    //filament changes time will be included in prime tower time later
+                                    //ConfigOptionFloat* machine_load_filament_time_opt = m_print_config.option<ConfigOptionFloat>("machine_load_filament_time");
+                                    //ConfigOptionFloat* machine_unload_filament_time_opt = m_print_config.option<ConfigOptionFloat>("machine_unload_filament_time");
+                                    sliced_plate_info.main_predication -= it_wipe->second;
+                                    //sliced_plate_info.main_predication -= sliced_plate_info.filament_change_times * (machine_load_filament_time_opt->value + machine_unload_filament_time_opt->value);
+                                }
+                                auto it_flush = std::find_if(time_mode.roles_times.begin(), time_mode.roles_times.end(), [](const std::pair<ExtrusionRole, float>& item) { return ExtrusionRole::erFlush == item.first; });
+                                if (it_flush != time_mode.roles_times.end()) {
+                                    sliced_plate_info.main_predication -= it_flush->second;
+                                }
+                                bool has_tool_change = false;
+                                auto custom_gcodes_iter = model.plates_custom_gcodes.find(index);
+                                if (custom_gcodes_iter != model.plates_custom_gcodes.end())
+                                {
+                                    CustomGCode::Info custom_gcodes = custom_gcodes_iter->second;
+                                    for (const Item& custom_gcode : custom_gcodes.gcodes)
+                                        if (custom_gcode.type == CustomGCode::ToolChange) {
+                                            has_tool_change = true;
+                                            break;
+                                        }
+                                }
+                                if (has_tool_change)
+                                    sliced_plate_info.layer_filament_change = print_estimated_stat.total_filamentchanges;
+
+                                //filaments
+                                auto* filament_ids = dynamic_cast<const ConfigOptionStrings*>(m_print_config.option("filament_ids"));
+                                std::vector<float>        filament_diameters = gcode_result->filament_diameters;
+                                std::vector<float>        filament_densities = gcode_result->filament_densities;
+
+                                for (auto& iter : print_estimated_stat.total_volumes_per_extruder)
+                                {
+                                    filament_info_t filament_info;
+
+                                    filament_info.id = iter.first + 1;
+                                    filament_info.total_used_g = iter.second;
+
+                                    if (filament_ids && (filament_info.id <= filament_ids->values.size()))
+                                        filament_info.filament_id = filament_ids->values[iter.first];
+                                    else
+                                        filament_info.filament_id = "unknown";
+
+                                    auto main_iter = print_estimated_stat.model_volumes_per_extruder.find(iter.first);
+                                    if (main_iter != print_estimated_stat.model_volumes_per_extruder.end())
+                                        filament_info.main_used_g = main_iter->second;
+
+                                    auto support_iter = print_estimated_stat.support_volumes_per_extruder.find(iter.first);
+                                    if (support_iter != print_estimated_stat.support_volumes_per_extruder.end())
+                                        filament_info.main_used_g += support_iter->second;
+
+                                    double koef = 0.001;
+                                    //filament_info.main_used_m = koef * filament_info.main_used_m / (PI * sqr(0.5 * filament_diameters[filament_info.id]));
+                                    filament_info.main_used_g = koef * filament_info.main_used_g * filament_densities[iter.first];
+                                    filament_info.total_used_g = koef * filament_info.total_used_g * filament_densities[iter.first];
+
+                                    sliced_plate_info.filaments.push_back(std::move(filament_info));
+                                }
+
+                                //objects
+                                ModelObjectPtrs plate_objects = part_plate->get_objects_on_this_plate();
+                                for (ModelObject* object : plate_objects)
+                                {
+                                    object_info_t object_info;
+                                    object_info.id = object->id().id;
+                                    object_info.name = object->name;
+                                    object_info.triangle_count = object->facets_count();
+
+                                    BoundingBoxf3 bbox_f = object->bounding_box();
+                                    object_info.bbox_x = bbox_f.min.x();
+                                    object_info.bbox_y = bbox_f.min.y();
+                                    object_info.bbox_z = bbox_f.min.z();
+                                    object_info.bbox_width = bbox_f.max.x() - object_info.bbox_x;
+                                    object_info.bbox_depth = bbox_f.max.y() - object_info.bbox_y;
+                                    object_info.bbox_height = bbox_f.max.z() - object_info.bbox_z;
+
+                                    sliced_plate_info.objects.push_back(std::move(object_info));
+                                }
 
                                 if (max_slicing_time_per_plate != 0) {
                                     long long time_cost = end_time - start_time;
@@ -5845,7 +6077,7 @@ int CLI::run(int argc, char **argv)
                             //    continue;
                             for (int instance_idx = 0; instance_idx < (int)model_object.instances.size(); ++ instance_idx) {
                                 const ModelInstance &model_instance = *model_object.instances[instance_idx];
-                                glvolume_collection.load_object_volume(&model_object, obj_idx, volume_idx, instance_idx, "volume", true, false, true);
+                                glvolume_collection.load_object_volume(&model_object, obj_idx, volume_idx, instance_idx, "volume", true, false, true, false);
                                 //glvolume_collection.volumes.back()->geometry_id = key.geometry_id;
                                 std::string color = filament_color?filament_color->get_at(volume_extruder_id - 1):"#00FF00FF";
 
@@ -6616,8 +6848,8 @@ std::string CLI::output_filepath(const ModelObject &object, unsigned int index, 
     // use --outputdir when available
     file_name = object.name.empty()?object.input_file:object.name;
     file_name = "obj_"+std::to_string(index)+"_"+file_name;
-    size_t pos = file_name.find_last_of(ext), ext_pos = file_name.size() - 1;
-    if (pos != ext_pos)
+    size_t pos = file_name.rfind(ext), ext_pos = file_name.size() - ext.size();
+    if ((pos == std::string::npos) || (pos != ext_pos))
         file_name += ext;
 
     BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": dir = "<< path_dir<<", file_name="<<file_name<< ", pos = "<<pos<<", ext_pos="<<ext_pos;

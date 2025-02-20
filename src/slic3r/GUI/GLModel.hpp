@@ -4,6 +4,7 @@
 #include "libslic3r/Point.hpp"
 #include "libslic3r/Color.hpp"
 #include "libslic3r/BoundingBox.hpp"
+#include "libslic3r/Geometry.hpp"
 #include <vector>
 #include <string>
 
@@ -22,7 +23,10 @@ namespace GUI {
     public:
         enum class PrimitiveType : unsigned char
         {
+            Points,
             Triangles,
+            TriangleStrip,
+            TriangleFan,
             Lines,
             LineStrip,
             LineLoop
@@ -130,6 +134,7 @@ namespace GUI {
             PrimitiveType        type;
             unsigned int         vbo_id{0};
             unsigned int         ibo_id{0};
+            size_t               vertices_count{0};
             size_t               indices_count{0};
             std::array<float, 4> color{1.0f, 1.0f, 1.0f, 1.0f};
         };
@@ -165,6 +170,9 @@ namespace GUI {
         GLModel() = default;
         virtual ~GLModel();
 
+        size_t get_vertices_count(int i = 0) const;
+        size_t get_indices_count(int i = 0) const;
+
         TriangleMesh *mesh{nullptr};
 
         void init_from(Geometry &&data, bool generate_mesh = false);
@@ -173,12 +181,22 @@ namespace GUI {
         void init_from(const indexed_triangle_set& its);
         void init_from(const Polygons& polygons, float z);
         bool init_from_file(const std::string& filename);
-
+        bool init_model_from_poly(const std::vector<Vec2f> &triangles, float z, bool generate_mesh = false);
+        bool init_model_from_lines(const Lines &lines, float z, bool generate_mesh = false);
+        bool init_model_from_lines(const Lines3 &lines, bool generate_mesh = false);
+        bool init_model_from_lines(const Line3floats &lines, bool generate_mesh = false);
         // if entity_id == -1 set the color of all entities
         void set_color(int entity_id, const std::array<float, 4>& color);
+        void set_color(const ColorRGBA &color);
 
         void reset();
         void render() const;
+        void render_geometry();
+        void render_geometry(int i,const std::pair<size_t, size_t> &range);
+        static void create_or_update_mats_vbo(unsigned int &vbo, const std::vector<Slic3r::Geometry::Transformation> &mats);
+        void bind_mats_vbo(unsigned int instance_mats_vbo, unsigned int instances_count, int location);
+        void render_geometry_instance(unsigned int instance_mats_vbo, unsigned int instances_count);
+        void render_geometry_instance(unsigned int instance_mats_vbo, unsigned int instances_count, const std::pair<size_t, size_t> &range);
         void render_instanced(unsigned int instances_vbo, unsigned int instances_count) const;
 
         bool is_initialized() const { return !m_render_data.empty(); }
@@ -187,6 +205,7 @@ namespace GUI {
         const std::string& get_filename() const { return m_filename; }
 
     private:
+        bool send_to_gpu(Geometry& geometry);
         bool send_to_gpu(RenderData &data, const std::vector<float> &vertices, const std::vector<unsigned int> &indices) const;
     };
 

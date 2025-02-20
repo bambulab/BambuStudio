@@ -59,7 +59,7 @@ bool GLShaderProgram::init_from_files(const std::string& name, const ShaderFilen
     // Create a block of C "defines" from list of symbols.
     std::string defines_program;
     for (std::string_view def : defines)
-        // Our shaders are stored with "\r\n", thus replicate the same here for consistency. Likely "\n" would suffice, 
+        // Our shaders are stored with "\r\n", thus replicate the same here for consistency. Likely "\n" would suffice,
         // but we don't know all the OpenGL shader compilers around.
         defines_program += format("#define %s\r\n", def);
 
@@ -69,7 +69,7 @@ bool GLShaderProgram::init_from_files(const std::string& name, const ShaderFilen
     }
 
     bool valid = !sources[static_cast<size_t>(EShaderType::Vertex)].empty() && !sources[static_cast<size_t>(EShaderType::Fragment)].empty() && sources[static_cast<size_t>(EShaderType::Compute)].empty();
-    valid |= !sources[static_cast<size_t>(EShaderType::Compute)].empty() && sources[static_cast<size_t>(EShaderType::Vertex)].empty() && sources[static_cast<size_t>(EShaderType::Fragment)].empty() && 
+    valid |= !sources[static_cast<size_t>(EShaderType::Compute)].empty() && sources[static_cast<size_t>(EShaderType::Vertex)].empty() && sources[static_cast<size_t>(EShaderType::Fragment)].empty() &&
               sources[static_cast<size_t>(EShaderType::Geometry)].empty() && sources[static_cast<size_t>(EShaderType::TessEvaluation)].empty() && sources[static_cast<size_t>(EShaderType::TessControl)].empty();
 
     return valid ? init_from_texts(name, sources) : false;
@@ -102,7 +102,7 @@ bool GLShaderProgram::init_from_texts(const std::string& name, const ShaderSourc
         case EShaderType::Compute:        { id = ::glCreateShader(GL_COMPUTE_SHADER); glcheck(); break; }
         default:                          { break; }
         }
-           
+
         return (id == 0) ? std::make_pair(false, GLuint(0)) : std::make_pair(true, id);
     };
 
@@ -141,7 +141,7 @@ bool GLShaderProgram::init_from_texts(const std::string& name, const ShaderSourc
             GLint params;
             glsafe(::glGetShaderiv(id, GL_COMPILE_STATUS, &params));
             if (params == GL_FALSE) {
-                // Compilation failed. 
+                // Compilation failed.
                 glsafe(::glGetShaderiv(id, GL_INFO_LOG_LENGTH, &params));
                 std::vector<char> msg(params);
                 glsafe(::glGetShaderInfoLog(id, params, &params, msg.data()));
@@ -168,12 +168,15 @@ bool GLShaderProgram::init_from_texts(const std::string& name, const ShaderSourc
         if (shader_ids[i] > 0)
             glsafe(::glAttachShader(m_id, shader_ids[i]));
     }
+    if (boost::ends_with(name,"_instance")) {
+        glBindAttribLocation(m_id, 3, "instanceMatrix");
+    }
 
     glsafe(::glLinkProgram(m_id));
     GLint params;
     glsafe(::glGetProgramiv(m_id, GL_LINK_STATUS, &params));
     if (params == GL_FALSE) {
-        // Linking failed. 
+        // Linking failed.
         glsafe(::glGetProgramiv(m_id, GL_INFO_LOG_LENGTH, &params));
         std::vector<char> msg(params);
         glsafe(::glGetProgramInfoLog(m_id, params, &params, msg.data()));
@@ -364,13 +367,13 @@ int GLShaderProgram::get_attrib_location(const char* name) const
         // Shader program not loaded. This should not happen.
         return -1;
 
-    auto it = std::find_if(m_attrib_location_cache.begin(), m_attrib_location_cache.end(), [name](const auto& p) { return p.first == name; });
-    if (it != m_attrib_location_cache.end())
-        // Attrib ID cached.
-        return it->second;
+    //auto it = std::find_if(m_attrib_location_cache.begin(), m_attrib_location_cache.end(), [name](const auto& p) { return p.first == name; });
+    //if (it != m_attrib_location_cache.end())
+    //    // Attrib ID cached.
+    //    return it->second;
 
     int id = ::glGetAttribLocation(m_id, name);
-    const_cast<GLShaderProgram*>(this)->m_attrib_location_cache.push_back({ name, id });
+    //const_cast<GLShaderProgram*>(this)->m_attrib_location_cache.push_back({ name, id });
     return id;
 }
 

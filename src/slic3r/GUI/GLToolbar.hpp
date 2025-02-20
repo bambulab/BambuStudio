@@ -33,6 +33,7 @@ wxDECLARE_EVENT(EVT_GLTOOLBAR_PRINT_SELECT, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLTOOLBAR_SEND_TO_PRINTER, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLTOOLBAR_SEND_TO_PRINTER_ALL, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLTOOLBAR_PRINT_MULTI_MACHINE, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLTOOLBAR_SEND_MULTI_APP, SimpleEvent);
 
 
 wxDECLARE_EVENT(EVT_GLTOOLBAR_ADD, SimpleEvent);
@@ -138,6 +139,7 @@ public:
         // mouse right click
         Option right;
         bool visible;
+        bool continuous_click{false};
         VisibilityCallback visibility_callback;
         EnablingCallback enabling_callback;
 
@@ -155,6 +157,7 @@ public:
             left = data.left;
             right = data.right;
             visible = data.visible;
+            continuous_click    = data.continuous_click;
             visibility_callback = data.visibility_callback;
             enabling_callback = data.enabling_callback;
             image_data = data.image_data;
@@ -224,6 +227,7 @@ public:
     bool update_enabled_state();
 
     //BBS: GUI refactor: GLToolbar
+    bool get_continuous_click_flag() const { return m_data.continuous_click; }
     bool is_action() const { return m_type == Action; }
     bool is_action_with_text() const { return m_type == ActionWithText; }
     bool is_action_with_text_image() const { return m_type == ActionWithTextImage; }

@@ -27,7 +27,7 @@ public:
 	Polygon(std::initializer_list<Point> points) : MultiPoint(points) {}
     Polygon(const Polygon &other) : MultiPoint(other.points) {}
     Polygon(Polygon &&other) : MultiPoint(std::move(other.points)) {}
-	static Polygon new_scale(const std::vector<Vec2d> &points) { 
+	static Polygon new_scale(const std::vector<Vec2d> &points) {
         Polygon pgn;
         pgn.points.reserve(points.size());
         for (const Vec2d &pt : points)
@@ -51,7 +51,7 @@ public:
     // Split a closed polygon into an open polyline, with the split point duplicated at both ends.
     Polyline split_at_first_point() const { return this->split_at_index(0); }
     Points   equally_spaced_points(double distance) const { return this->split_at_first_point().equally_spaced_points(distance); }
-    
+
     static double area(const Points &pts);
     double area() const;
     bool is_counter_clockwise() const;
@@ -86,7 +86,7 @@ public:
     // Projection of a point onto the polygon.
     Point point_projection(const Point &point) const;
     std::vector<float> parameter_by_length() const;
-    
+
     //BBS
     Polygon transform(const Transform3d& trafo) const;
 
@@ -111,6 +111,10 @@ inline bool polygon_is_convex(const Polygon &poly) { return polygon_is_convex(po
 inline bool has_duplicate_points(Polygon &&poly)      { return has_duplicate_points(std::move(poly.points)); }
 inline bool has_duplicate_points(const Polygon &poly) { return has_duplicate_points(poly.points); }
 bool        has_duplicate_points(const Polygons &polys);
+
+// Return True when erase some otherwise False.
+bool          remove_same_neighbor(Polygon &polygon);
+bool          remove_same_neighbor(Polygons &polygons);
 
 inline double total_length(const Polygons &polylines) {
     double total = 0;
@@ -142,7 +146,7 @@ void remove_collinear(Polygons &polys);
 // Append a vector of polygons at the end of another vector of polygons.
 inline void polygons_append(Polygons &dst, const Polygons &src) { dst.insert(dst.end(), src.begin(), src.end()); }
 
-inline void polygons_append(Polygons &dst, Polygons &&src) 
+inline void polygons_append(Polygons &dst, Polygons &&src)
 {
     if (dst.empty()) {
         dst = std::move(src);
@@ -179,7 +183,7 @@ inline size_t count_points(const Polygons &polys) {
     return n_points;
 }
 
-inline Points to_points(const Polygons &polys) 
+inline Points to_points(const Polygons &polys)
 {
     Points points;
     points.reserve(count_points(polys));
@@ -188,7 +192,7 @@ inline Points to_points(const Polygons &polys)
     return points;
 }
 
-inline Lines to_lines(const Polygon &poly) 
+inline Lines to_lines(const Polygon &poly)
 {
     Lines lines;
     lines.reserve(poly.points.size());
@@ -200,7 +204,7 @@ inline Lines to_lines(const Polygon &poly)
     return lines;
 }
 
-inline Lines to_lines(const Polygons &polys) 
+inline Lines to_lines(const Polygons &polys)
 {
     Lines lines;
     lines.reserve(count_points(polys));
@@ -245,6 +249,17 @@ inline Polylines to_polylines(Polygons &&polys)
     return polylines;
 }
 
+// close polyline to polygon (connect first and last point in polyline)
+inline Polygons to_polygons(const Polylines &polylines)
+{
+    Polygons out;
+    out.reserve(polylines.size());
+    for (const Polyline &polyline : polylines) {
+        if (polyline.size()) out.emplace_back(polyline.points);
+    }
+    return out;
+}
+
 inline Polygons to_polygons(const std::vector<Points> &paths)
 {
     Polygons out;
@@ -269,6 +284,21 @@ bool polygons_match(const Polygon &l, const Polygon &r);
 
 Polygon make_circle(double radius, double error);
 Polygon make_circle_num_segments(double radius, size_t num_segments);
+
+/// <summary>
+/// Define point laying on polygon
+/// keep index of polygon line and point coordinate
+/// </summary>
+struct PolygonPoint
+{
+    // index of line inside of polygon
+    // 0 .. from point polygon[0] to polygon[1]
+    size_t index;
+
+    // Point, which lay on line defined by index
+    Point point;
+};
+using PolygonPoints = std::vector<PolygonPoint>;
 
 bool overlaps(const Polygons& polys1, const Polygons& polys2);
 } // Slic3r
@@ -322,7 +352,7 @@ namespace boost { namespace polygon {
             return polygon;
         }
     };
-    
+
     template <>
     struct geometry_concept<Slic3r::Polygons> { typedef polygon_set_concept type; };
 

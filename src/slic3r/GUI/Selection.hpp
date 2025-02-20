@@ -12,6 +12,9 @@ namespace Slic3r {
 class Shader;
 class Model;
 class ModelObject;
+class ModelVolume;
+class ModelInstance;
+class ObjectID;
 class GLVolume;
 class GLArrow;
 class GLCurvedArrow;
@@ -27,7 +30,7 @@ using ModelObjectPtrs = std::vector<ModelObject*>;
 
 namespace GUI {
 enum ECoordinatesType : unsigned char {
-    World,
+    World = 0,
     Instance,
     Local
 };
@@ -179,7 +182,7 @@ private:
         const Transform3d& get_instance_scale_matrix() const { return m_instance.scale_matrix; }
         const Transform3d& get_instance_mirror_matrix() const { return m_instance.mirror_matrix; }
         const Transform3d &get_instance_full_matrix() const { return m_instance.full_tran.get_matrix(); }
-   
+
         const Geometry::Transformation &get_volume_transform() const { return m_volume.full_tran; }
         const Geometry::Transformation &get_instance_transform() const { return m_instance.full_tran; }
     };
@@ -247,7 +250,15 @@ private:
     // is useful for absolute scaling of tilted objects in world coordinate space.
     std::optional<BoundingBoxf3> m_unscaled_instance_bounding_box;
     std::optional<BoundingBoxf3> m_scaled_instance_bounding_box;
-
+    // Bounding box of a single full instance selection, in world coordinates, with no instance scaling applied.
+    // Modifiers are taken in account
+    std::optional<BoundingBoxf3> m_full_unscaled_instance_bounding_box;
+    // Bounding box of a single full instance selection, in world coordinates.
+    // Modifiers are taken in account
+    std::optional<BoundingBoxf3> m_full_scaled_instance_bounding_box;
+    // Bounding box of a single full instance selection, in local coordinates, with no instance scaling applied.
+    // Modifiers are taken in account
+    std::optional<BoundingBoxf3> m_full_unscaled_instance_local_bounding_box;
     // Bounding box aligned to the axis of the currently selected reference system (World/Object/Part)
     // and transform to place and orient it in world coordinates
     std::optional<std::pair<BoundingBoxf3, Transform3d>> m_bounding_box_in_current_reference_system;
@@ -266,6 +277,7 @@ private:
     // BBS
     EMode m_volume_selection_mode{ Instance };
     bool m_volume_selection_locked { false };
+    std::vector<Transform3d> m_trafo_matrices;
 
 public:
     Selection();
@@ -280,7 +292,7 @@ public:
     void set_model(Model* model);
 
     EMode get_mode() const { return m_mode; }
-    void set_mode(EMode mode) { m_mode = mode; }
+    void  set_mode(EMode mode);
 
     int query_real_volume_idx_from_other_view(unsigned int object_idx, unsigned int instance_idx, unsigned int model_volume_idx);
     void add(unsigned int volume_idx, bool as_single_selection = true, bool check_for_already_contained = false);
@@ -299,6 +311,10 @@ public:
     void remove_volumes(EMode mode, const std::vector<unsigned int>& volume_idxs);
 
     //BBS
+    ModelVolume *                   get_selected_single_volume(int &out_object_idx, int &out_volume_idx);
+    ModelObject *                   get_selected_single_object(int &out_object_idx);
+    const ModelInstance *           get_selected_single_intance();
+    const std::vector<Transform3d> &get_all_tran_of_selected_volumes();
     void add_curr_plate();
     void add_object_from_idx(std::vector<int>& object_idxs);
     void remove_curr_plate();
@@ -361,6 +377,7 @@ public:
 
     const IndicesList& get_volume_idxs() const { return m_list; }
     const GLVolume* get_volume(unsigned int volume_idx) const;
+    GLVolume*      get_volume(unsigned int volume_idx);
     const GLVolume* get_first_volume() const { return get_volume(*m_list.begin()); }
     const ObjectIdxsToInstanceIdxsMap& get_content() const { return m_cache.content; }
 
@@ -370,7 +387,15 @@ public:
     // is useful for absolute scaling of tilted objects in world coordinate space.
     const BoundingBoxf3& get_unscaled_instance_bounding_box() const;
     const BoundingBoxf3& get_scaled_instance_bounding_box() const;
-
+    // Bounding box of a single full instance selection, in world coordinates, with no instance scaling applied.
+    // Modifiers are taken in account
+    const BoundingBoxf3 &get_full_unscaled_instance_bounding_box() const;
+    // Bounding box of a single full instance selection, in world coordinates.
+    // Modifiers are taken in account
+    const BoundingBoxf3 &get_full_scaled_instance_bounding_box() const;
+    // Bounding box of a single full instance selection, in local coordinates, with no instance scaling applied.
+    // Modifiers are taken in account
+    const BoundingBoxf3 &get_full_unscaled_instance_local_bounding_box() const;
     // Returns the bounding box aligned to the axes of the currently selected reference system (World/Object/Part)
     // and the transform to place and orient it in world coordinates
     const std::pair<BoundingBoxf3, Transform3d> &get_bounding_box_in_current_reference_system() const;
@@ -385,7 +410,7 @@ public:
     const std::pair<Vec3d, double> get_bounding_sphere() const;
 
     void setup_cache();
-    void translate(const Vec3d& displacement, bool local = false);
+    void translate(const Vec3d &displacement, TransformationType transformation_type);//new
     void move_to_center(const Vec3d& displacement, bool local = false);
     void rotate(const Vec3d& rotation, TransformationType transformation_type);
     void flattening_rotate(const Vec3d& normal);
@@ -395,7 +420,8 @@ public:
 #else
     void scale_to_fit_print_volume(const DynamicPrintConfig& config);
 #endif // ENABLE_ENHANCED_PRINT_VOLUME_FIT
-    void mirror(Axis axis);
+    void scale_and_translate(const Vec3d &scale, const Vec3d &world_translation, TransformationType transformation_type);
+    void mirror(Axis axis, TransformationType transformation_type);
 
     void translate(unsigned int object_idx, const Vec3d& displacement);
     void translate(unsigned int object_idx, unsigned int instance_idx, const Vec3d& displacement);
@@ -406,6 +432,7 @@ public:
     //BBS: add partplate related logic
     void notify_instance_update(int object_idx, int instance_idx);
     // BBS
+    EMode get_volume_selection_mode(){ return m_volume_selection_mode;}
     void set_volume_selection_mode(EMode mode) { if (!m_volume_selection_locked) m_volume_selection_mode = mode; }
     void lock_volume_selection_mode() { m_volume_selection_locked = true; }
     void unlock_volume_selection_mode() { m_volume_selection_locked = false; }
@@ -460,6 +487,9 @@ private:
     void set_bounding_boxes_dirty() {
         m_bounding_box.reset();
         m_unscaled_instance_bounding_box.reset(); m_scaled_instance_bounding_box.reset();
+        m_full_unscaled_instance_bounding_box.reset();
+        m_full_scaled_instance_bounding_box.reset();
+        m_full_unscaled_instance_local_bounding_box.reset();
         m_bounding_box_in_current_reference_system.reset();
         m_bounding_sphere.reset();
     }
@@ -473,11 +503,13 @@ private:
     void render_sidebar_layers_hints(const std::string& sidebar_field) const;
 
 public:
-    enum SyncRotationType {
+    enum class SyncRotationType {
         // Do not synchronize rotation. Either not rotating at all, or rotating by world Z axis.
-        SYNC_ROTATION_NONE = 0,
+        NONE = 0,
         // Synchronize after rotation by an axis not parallel with Z.
-        SYNC_ROTATION_GENERAL = 1,
+        GENERAL = 1,
+        // Synchronize after rotation reset.
+        RESET = 2
     };
     void synchronize_unselected_instances(SyncRotationType sync_rotation_type);
     void synchronize_unselected_volumes();
@@ -495,7 +527,11 @@ private:
     void transform_volume_relative(
         GLVolume &volume, const VolumeCache &volume_data, TransformationType transformation_type, const Transform3d &transform, const Vec3d &world_pivot);
 };
+ModelVolume *   get_selected_volume(const Selection &selection);
+const GLVolume *get_selected_gl_volume(const Selection &selection);
 
+ModelVolume *get_selected_volume(const ObjectID &volume_id, const Selection &selection);
+ModelVolume *get_volume(const ObjectID &volume_id, const Selection &selection);
 } // namespace GUI
 } // namespace Slic3r
 

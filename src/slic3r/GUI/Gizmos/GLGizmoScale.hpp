@@ -19,19 +19,23 @@ class GLGizmoScale3D : public GLGizmoBase
     {
         Vec3d scale;
         Vec3d drag_position;
+        Vec3d constraint_position;
+        Vec3d center{Vec3d::Zero()};//sphere bounding box center
+        Vec3d instance_center{Vec3d::Zero()};
         Vec3d plane_center;  // keep the relative center position for scale in the bottom plane
-        Vec3d plane_nromal;  // keep the bottom plane 
+        Vec3d plane_nromal;  // keep the bottom plane
         BoundingBoxf3 box;
-        Vec3d pivots[6];
+        Vec3d pivots[6];// Vec3d constraint_position{Vec3d::Zero()};
+        Vec3d local_pivots[6];
         bool ctrl_down;
 
         StartingData() : scale(Vec3d::Ones()), drag_position(Vec3d::Zero()), ctrl_down(false) { for (int i = 0; i < 5; ++i) { pivots[i] = Vec3d::Zero(); } }
     };
 
-    mutable BoundingBoxf3 m_box;
-    mutable Transform3d m_transform;
-    // Transforms grabbers offsets to the proper reference system (world for instances, instance for volumes)
-    mutable Transform3d m_offsets_transform;
+    mutable BoundingBoxf3 m_bounding_box;
+    Geometry::Transformation m_grabbers_tran;//m_grabbers_transform
+    Vec3d                 m_center{Vec3d::Zero()};
+    Vec3d                 m_instance_center{Vec3d::Zero()};
     Vec3d m_scale;
     Vec3d m_offset;
     double m_snap_step;
@@ -48,13 +52,13 @@ public:
     double get_snap_step(double step) const { return m_snap_step; }
     void set_snap_step(double step) { m_snap_step = step; }
 
-    const Vec3d& get_scale() const { return m_scale; }
+    const Vec3d &get_scale();
     void set_scale(const Vec3d& scale) { m_starting.scale = scale; m_scale = scale; }
 
     const Vec3d& get_offset() const { return m_offset; }
 
     std::string get_tooltip() const override;
-
+    void        data_changed(bool is_serializing) override;
     void enable_ununiversal_scale(bool enable);
 protected:
     virtual bool on_init() override;
@@ -63,12 +67,12 @@ protected:
     virtual bool on_is_activable() const override;
     virtual void on_set_state() override;
     virtual void on_start_dragging() override;
+    virtual void on_stop_dragging() override;
     virtual void on_update(const UpdateData& data) override;
     virtual void on_render() override;
     virtual void on_render_for_picking() override;
     //BBS: GUI refactor: add object manipulation
     virtual void on_render_input_window(float x, float y, float bottom_limit);
-
 private:
     void render_grabbers_connection(unsigned int id_1, unsigned int id_2) const;
 
@@ -76,6 +80,10 @@ private:
     void do_scale_uniform(const UpdateData& data);
 
     double calc_ratio(const UpdateData& data) const;
+    void   update_grabbers_data();
+    void   change_cs_by_selection(); // cs mean Coordinate System
+private:
+    int m_last_selected_obejct_idx, m_last_selected_volume_idx;
 };
 
 

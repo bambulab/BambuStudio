@@ -21,6 +21,7 @@ static wxString file_over_size_str          = _L("The print file exceeds the max
 static wxString print_canceled_str          = _L("Task canceled.");
 static wxString send_print_failed_str       = _L("Failed to send the print job. Please try again.");
 static wxString upload_ftp_failed_str       = _L("Failed to upload file to ftp. Please try again.");
+static wxString print_signed_str            = _L("Your software is not signed, and some printing functions have been restricted. Please use the officially signed software version.");
 
 static wxString desc_network_error          = _L("Check the current status of the bambu server by clicking on the link above.");
 static wxString desc_file_too_large         = _L("The size of the print file is too large. Please adjust the file size and try again.");
@@ -593,8 +594,10 @@ void PrintJob::process()
 
     if (result < 0) {
         curr_percent = -1;
-
-        if (result == BAMBU_NETWORK_ERR_PRINT_WR_FILE_NOT_EXIST || result == BAMBU_NETWORK_ERR_PRINT_SP_FILE_NOT_EXIST) {
+        if (result == BAMBU_NETOWRK_ERR_PRINT_SP_ENC_FLAG_NOT_READY) {
+            msg_text = _L("Retrieving printer information, please try again later.");
+        }
+        else if (result == BAMBU_NETWORK_ERR_PRINT_WR_FILE_NOT_EXIST || result == BAMBU_NETWORK_ERR_PRINT_SP_FILE_NOT_EXIST) {
             msg_text = file_is_not_exists_str;
         } else if (result == BAMBU_NETWORK_ERR_PRINT_SP_FILE_OVER_SIZE || result == BAMBU_NETWORK_ERR_PRINT_WR_FILE_OVER_SIZE) {
             msg_text = file_over_size_str;
@@ -607,6 +610,8 @@ void PrintJob::process()
         } else if (result == BAMBU_NETWORK_ERR_CANCELED) {
             msg_text = print_canceled_str;
             this->update_status(0, msg_text);
+        } else if (result == BAMBU_NETWORK_SIGNED_ERROR) {
+            msg_text = print_signed_str;
         } else {
             msg_text = send_print_failed_str;
         }

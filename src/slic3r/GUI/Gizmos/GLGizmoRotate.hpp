@@ -59,6 +59,7 @@ public:
 
     void set_center(const Vec3d &point) { m_custom_center = point; }
     void set_force_local_coordinate(bool use) { m_force_local_coordinate = use; }
+    void init_data_from_selection(const Selection &selection);
 
 protected:
     bool on_init() override;
@@ -80,7 +81,6 @@ private:
     void transform_to_local(const Selection& selection) const;
     // returns the intersection of the mouse ray with the plane perpendicular to the gizmo axis, in local coordinate
     Vec3d mouse_position_in_local_plane(const Linef3& mouse_ray, const Selection& selection) const;
-    void  init_data_from_selection(const Selection &selection);
 };
 
 class GLGizmoRotate3D : public GLGizmoBase
@@ -137,6 +137,7 @@ protected:
         if (id < 3)
             m_gizmos[id].disable_grabber(0);
     }
+    void data_changed(bool is_serializing) override;
     bool on_is_activable() const override;
     void on_start_dragging() override;
     void on_stop_dragging() override;
@@ -157,7 +158,7 @@ protected:
     void on_render_input_window(float x, float y, float bottom_limit) override;
 
 private:
-
+    const GLVolume *m_last_volume;
     class RotoptimzeWindow {
         ImGuiWrapper *m_imgui = nullptr;
     public:

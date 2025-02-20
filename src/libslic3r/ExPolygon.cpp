@@ -185,6 +185,15 @@ bool overlaps(const ExPolygons& expolys1, const ExPolygons& expolys2)
     return false;
 }
 
+bool overlaps(const ExPolygons& expolys, const ExPolygon& expoly)
+{
+    for (const ExPolygon& el : expolys) {
+        if (el.overlaps(expoly))
+                return true;
+    }
+    return false;
+}
+
 Point projection_onto(const ExPolygons& polygons, const Point& from)
 {
     Point projected_pt;
@@ -246,30 +255,30 @@ void ExPolygon::medial_axis(double min_width, double max_width, ThickPolylines* 
 {
     // init helper object
     Slic3r::Geometry::MedialAxis ma(min_width, max_width, *this);
-    
+
     // compute the Voronoi diagram and extract medial axis polylines
     ThickPolylines pp;
     ma.build(&pp);
-    
+
     /*
     SVG svg("medial_axis.svg");
     svg.draw(*this);
     svg.draw(pp);
     svg.Close();
     */
-    
-    /* Find the maximum width returned; we're going to use this for validating and 
+
+    /* Find the maximum width returned; we're going to use this for validating and
        filtering the output segments. */
     double max_w = 0;
     for (ThickPolylines::const_iterator it = pp.begin(); it != pp.end(); ++it)
         max_w = fmaxf(max_w, *std::max_element(it->width.begin(), it->width.end()));
-    
-    /* Loop through all returned polylines in order to extend their endpoints to the 
+
+    /* Loop through all returned polylines in order to extend their endpoints to the
        expolygon boundaries */
     bool removed = false;
     for (size_t i = 0; i < pp.size(); ++i) {
         ThickPolyline& polyline = pp[i];
-        
+
         // extend initial and final segments of each polyline if they're actual endpoints
         /* We assign new endpoints to temporary variables because in case of a single-line
            polyline, after we extend the start point it will be caught by the intersection()
@@ -298,7 +307,7 @@ void ExPolygon::medial_axis(double min_width, double max_width, ThickPolylines* 
         }
         polyline.points.front() = new_front;
         polyline.points.back()  = new_back;
-        
+
         /*  remove too short polylines
             (we can't do this check before endpoints extension and clipping because we don't
             know how long will the endpoints be extended since it depends on polygon thickness
@@ -311,19 +320,19 @@ void ExPolygon::medial_axis(double min_width, double max_width, ThickPolylines* 
             continue;
         }
     }
-    
+
     /*  If we removed any short polylines we now try to connect consecutive polylines
-        in order to allow loop detection. Note that this algorithm is greedier than 
-        MedialAxis::process_edge_neighbors() as it will connect random pairs of 
-        polylines even when more than two start from the same point. This has no 
-        drawbacks since we optimize later using nearest-neighbor which would do the 
+        in order to allow loop detection. Note that this algorithm is greedier than
+        MedialAxis::process_edge_neighbors() as it will connect random pairs of
+        polylines even when more than two start from the same point. This has no
+        drawbacks since we optimize later using nearest-neighbor which would do the
         same, but should we use a more sophisticated optimization algorithm we should
         not connect polylines when more than two meet.  */
     if (removed) {
         for (size_t i = 0; i < pp.size(); ++i) {
             ThickPolyline& polyline = pp[i];
             if (polyline.endpoints.first && polyline.endpoints.second) continue; // optimization
-            
+
             // find another polyline starting here
             for (size_t j = i+1; j < pp.size(); ++j) {
                 ThickPolyline& other = pp[j];
@@ -337,18 +346,18 @@ void ExPolygon::medial_axis(double min_width, double max_width, ThickPolylines* 
                 } else if (polyline.last_point() != other.first_point()) {
                     continue;
                 }
-                
+
                 polyline.points.insert(polyline.points.end(), other.points.begin() + 1, other.points.end());
                 polyline.width.insert(polyline.width.end(), other.width.begin(), other.width.end());
                 polyline.endpoints.second = other.endpoints.second;
                 assert(polyline.width.size() == polyline.points.size()*2 - 2);
-                
+
                 pp.erase(pp.begin() + j);
                 j = i;  // restart search from i+1
             }
         }
     }
-    
+
     polylines->insert(polylines->end(), pp.begin(), pp.end());
 }
 
@@ -473,6 +482,21 @@ bool has_duplicate_points(const ExPolygons &expolys)
             return true;
     return false;
 #endif
+}
+
+bool remove_same_neighbor(ExPolygons &expolygons)
+{
+    if (expolygons.empty()) return false;
+    bool remove_from_holes   = false;
+    bool remove_from_contour = false;
+    for (ExPolygon &expoly : expolygons) {
+        remove_from_contour |= remove_same_neighbor(expoly.contour);
+        remove_from_holes |= remove_same_neighbor(expoly.holes);
+    }
+    // Removing of expolygons without contour
+    if (remove_from_contour)
+        expolygons.erase(std::remove_if(expolygons.begin(), expolygons.end(), [](const ExPolygon &p) { return p.contour.points.size() <= 2; }), expolygons.end());
+    return remove_from_holes || remove_from_contour;
 }
 
 bool remove_sticks(ExPolygon &poly)

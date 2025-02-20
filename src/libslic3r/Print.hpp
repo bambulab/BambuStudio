@@ -429,7 +429,7 @@ public:
     std::vector<Polygons>       slice_support_enforcers() const { return this->slice_support_volumes(ModelVolumeType::SUPPORT_ENFORCER); }
 
     // Helpers to project custom facets on slices
-    void project_and_append_custom_facets(bool seam, EnforcerBlockerType type, std::vector<Polygons>& expolys) const;
+    void project_and_append_custom_facets(bool seam, EnforcerBlockerType type, std::vector<Polygons>& expolys, std::vector<std::pair<Vec3f,Vec3f>>* vertical_points=nullptr) const;
 
     //BBS
     BoundingBox get_first_layer_bbox(float& area, float& layer_height, std::string& name);
@@ -654,6 +654,7 @@ struct PrintStatistics
     double                          total_weight;
     double                          total_wipe_tower_cost;
     double                          total_wipe_tower_filament;
+    unsigned int                    initial_tool;
     std::map<size_t, double>        filament_stats;
 
     // Config with the filled in print statistics.
@@ -671,6 +672,7 @@ struct PrintStatistics
         total_weight           = 0.;
         total_wipe_tower_cost  = 0.;
         total_wipe_tower_filament = 0.;
+        initial_tool = 0;
         filament_stats.clear();
     }
 };

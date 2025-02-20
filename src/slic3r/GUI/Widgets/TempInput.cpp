@@ -162,26 +162,36 @@ wxString TempInput::erasePending(wxString &str)
 
 void TempInput::SetTagTemp(int temp)
 {
-    text_ctrl->SetValue(wxString::Format("%d", temp));
-    messureSize();
-    Refresh();
+    auto tp = wxString::Format("%d", temp);
+    if (text_ctrl->GetValue() != tp) {
+        text_ctrl->SetValue(tp);
+        messureSize();
+        Refresh();
+    }
 }
 
 void TempInput::SetTagTemp(wxString temp) 
 { 
-    text_ctrl->SetValue(temp);
-    messureSize();
-    Refresh();
+    if (text_ctrl->GetValue() != temp) {
+        text_ctrl->SetValue(temp);
+        messureSize();
+        Refresh();
+    }
 }
 
 void TempInput::SetCurrTemp(int temp) 
 { 
-    SetLabel(wxString::Format("%d", temp)); 
+    auto tp = wxString::Format("%d", temp);
+    if (GetLabel() != tp) {
+        SetLabel(tp);
+    }
 }
 
 void TempInput::SetCurrTemp(wxString temp) 
 {
-    SetLabel(temp);
+    if (GetLabel() != temp) {
+        SetLabel(temp);
+    }
 }
 
 void TempInput::Warning(bool warn, WarningType type)
@@ -261,9 +271,11 @@ void TempInput::SetMinTemp(int temp) { min_temp = temp; }
 
 void TempInput::SetLabel(const wxString &label)
 {
-    wxWindow::SetLabel(label);
-    messureSize();
-    Refresh();
+    if (label != wxWindow::GetLabel()) {
+        wxWindow::SetLabel(label);
+        messureSize();
+        Refresh();
+    }
 }
 
 void TempInput::SetTextColor(StateColor const &color)

@@ -190,7 +190,7 @@ public:
 	}
 
 	wxString	GetCheckBoxText()	const { return m_checkBoxText; }
-	bool		IsCheckBoxChecked() const { return m_checkBoxValue; }
+	bool		IsCheckBoxChecked() const;
 
 // This part o fcode isported from the "wx\msgdlg.h"
 	using wxMD = wxMessageDialogBase;
@@ -405,6 +405,25 @@ private:
     Button *      m_update_btn = nullptr;
     Button *      m_later_btn  = nullptr;
     wxStaticText *m_msg_text   = nullptr;
+};
+
+
+class NetworkErrorDialog : public DPIDialog
+{
+public:
+    NetworkErrorDialog(wxWindow* parent);
+    ~NetworkErrorDialog() {};
+    virtual void on_dpi_changed(const wxRect& suggested_rect) {};
+
+private:
+    Label* m_text_basic;
+    wxHyperlinkCtrl* m_link_server_state;
+    Label* m_text_proposal;
+    wxHyperlinkCtrl* m_text_wiki;
+    Button *         m_button_confirm;
+
+public:
+    bool m_show_again{false};
 };
 
 }

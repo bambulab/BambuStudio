@@ -83,8 +83,9 @@ bool GLGizmoFdmSupports::on_init()
 {
     // BBS
     m_shortcut_key = WXK_CONTROL_L;
-
-    m_desc["clipping_of_view_caption"] = _L("Alt + Mouse wheel");
+    const wxString ctrl                = GUI::shortkey_ctrl_prefix();
+    const wxString alt                 = GUI::shortkey_alt_prefix();
+    m_desc["clipping_of_view_caption"] = alt + _L("Mouse wheel");
     m_desc["clipping_of_view"]      = _L("Section view");
     m_desc["reset_direction"]       = _L("Reset direction");
     m_desc["cursor_size_caption"]   = _L("Ctrl + Mouse wheel");
@@ -99,10 +100,10 @@ bool GLGizmoFdmSupports::on_init()
     m_desc["highlight_by_angle"]    = _L("Highlight overhang areas");
     m_desc["gap_fill"]              = _L("Gap fill");
     m_desc["perform"]               = _L("Perform");
-    m_desc["gap_area_caption"]      = _L("Ctrl + Mouse wheel");
+    m_desc["gap_area_caption"]      = ctrl +_L("Mouse wheel");
     m_desc["gap_area"]              = _L("Gap area");
     m_desc["tool_type"]             = _L("Tool type");
-    m_desc["smart_fill_angle_caption"] = _L("Ctrl + Mouse wheel");
+    m_desc["smart_fill_angle_caption"] = ctrl + _L("Mouse wheel");
     m_desc["smart_fill_angle"]      = _L("Smart fill angle");
     m_desc["on_overhangs_only"] = _L("On overhangs only");
 
@@ -219,7 +220,8 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     init_print_instance();
     if (! m_c->selection_info()->model_object())
         return;
-
+    m_imgui_start_pos[0] = x;
+    m_imgui_start_pos[1] = y;
     // BBS
     wchar_t old_tool = m_current_tool;
 
@@ -493,7 +495,8 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         m_parent.set_as_dirty();
     }
     ImGui::PopStyleVar(2);
-
+    m_imgui_end_pos[0] = m_imgui_start_pos[0] + ImGui::GetWindowWidth();
+    m_imgui_end_pos[1] = m_imgui_start_pos[1] + ImGui::GetWindowHeight();
     GizmoImguiEnd();
 
     // BBS

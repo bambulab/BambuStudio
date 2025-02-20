@@ -224,12 +224,12 @@ void GCodeProcessor::TimeMachine::reset()
     prepare_time = 0.0f;
 }
 
-void GCodeProcessor::TimeMachine::simulate_st_synchronize(float additional_time)
+void GCodeProcessor::TimeMachine::simulate_st_synchronize(float additional_time, ExtrusionRole target_role)
 {
     if (!enabled)
         return;
 
-    calculate_time(0, additional_time);
+    calculate_time(0, additional_time,target_role);
 }
 
 static void planner_forward_pass_kernel(GCodeProcessor::TimeBlock& prev, GCodeProcessor::TimeBlock& curr)
@@ -302,7 +302,7 @@ static void recalculate_trapezoids(std::vector<GCodeProcessor::TimeBlock>& block
     }
 }
 
-void GCodeProcessor::TimeMachine::calculate_time(size_t keep_last_n_blocks, float additional_time)
+void GCodeProcessor::TimeMachine::calculate_time(size_t keep_last_n_blocks, float additional_time, ExtrusionRole target_role)
 {
     if (!enabled || blocks.size() < 2)
         return;
@@ -321,11 +321,16 @@ void GCodeProcessor::TimeMachine::calculate_time(size_t keep_last_n_blocks, floa
     recalculate_trapezoids(blocks);
 
     size_t n_blocks_process = blocks.size() - keep_last_n_blocks;
+    bool found_target_block = false;
     for (size_t i = 0; i < n_blocks_process; ++i) {
         const TimeBlock& block = blocks[i];
         float block_time = block.time();
-        if (i == 0)
+
+        bool is_valid_block = target_role == ExtrusionRole::erNone || target_role == block.role || i == n_blocks_process - 1;
+        if (!found_target_block && is_valid_block) {
             block_time += additional_time;
+            found_target_block = true;
+        }
 
         time += block_time;
         gcode_time.cache += block_time;
@@ -344,7 +349,11 @@ void GCodeProcessor::TimeMachine::calculate_time(size_t keep_last_n_blocks, floa
         //BBS
         if (block.flags.prepare_stage)
             prepare_time += block_time;
-        g1_times_cache.push_back({ block.g1_line_id, time });
+
+        if(!g1_times_cache.empty() && g1_times_cache.back().id == block.g1_line_id)
+            g1_times_cache.back().elapsed_time = time;
+        else
+            g1_times_cache.push_back({ block.g1_line_id, time });
         // update times for remaining time to printer stop placeholders
         auto it_stop_time = std::lower_bound(stop_times.begin(), stop_times.end(), block.g1_line_id,
             [](const StopTime& t, unsigned int value) { return t.g1_line_id < value; });
@@ -865,6 +874,7 @@ void GCodeProcessor::UsedFilaments::process_support_cache(GCodeProcessor* proces
 void GCodeProcessor::UsedFilaments::update_flush_per_filament(size_t extrude_id, float flush_volume)
 {
     if (flush_volume != 0.f) {
+        role_cache += flush_volume;
         if (flush_per_filament.find(extrude_id) != flush_per_filament.end())
             flush_per_filament[extrude_id] += flush_volume;
         else
@@ -960,7 +970,6 @@ void GCodeProcessorResult::reset() {
     filament_costs = std::vector<float>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_COST);
     custom_gcode_per_print_z = std::vector<CustomGCode::Item>();
     spiral_vase_layers = std::vector<std::pair<float, std::pair<size_t, size_t>>>();
-    bed_match_result = BedMatchResult(true);
     warnings.clear();
 
     //BBS: add mutex for protection of gcode result
@@ -1604,7 +1613,7 @@ void GCodeProcessor::finalize(bool post_process)
     for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
         TimeMachine& machine = m_time_processor.machines[i];
         TimeMachine::CustomGCodeTime& gcode_time = machine.gcode_time;
-        machine.calculate_time();
+        machine.calculate_time(0, 0, ExtrusionRole::erNone);
         if (gcode_time.needed && gcode_time.cache != 0.0f)
             gcode_time.times.push_back({ CustomGCode::ColorChange, gcode_time.cache });
     }
@@ -1952,12 +1961,14 @@ void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line, bool
                         case '0': { process_M140(line); break; } // Set bed temperature
                         default: break;
                         }
+                        break;
                     case '9':
                         switch (cmd[3]) {
                         case '0': { process_M190(line); break; } // Wait bed temperature
                         case '1': { process_M191(line); break; } // Wait chamber temperature
                         default: break;
-                    }
+                        }
+                        break;
                     default:
                         break;
                     }
@@ -2183,6 +2194,7 @@ bool GCodeProcessor::get_last_z_from_gcode(const std::string& gcode_str, double&
 
 void GCodeProcessor::process_tags(const std::string_view comment, bool producers_enabled)
 {
+    static ExtrusionRole prev_role;
     // producers tags
     if (producers_enabled && process_producers_tags(comment))
         return;
@@ -2221,12 +2233,15 @@ void GCodeProcessor::process_tags(const std::string_view comment, bool producers
 
     //BBS: flush start tag
     if (boost::starts_with(comment, GCodeProcessor::Flush_Start_Tag)) {
+        prev_role = m_extrusion_role;
+        set_extrusion_role(erFlush);
         m_flushing = true;
         return;
     }
 
     //BBS: flush end tag
     if (boost::starts_with(comment, GCodeProcessor::Flush_End_Tag)) {
+        set_extrusion_role(prev_role);
         m_flushing = false;
         return;
     }
@@ -3200,8 +3215,9 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
 
         blocks.push_back(block);
 
-        if (blocks.size() > TimeProcessor::Planner::refresh_threshold)
-            machine.calculate_time(TimeProcessor::Planner::queue_size);
+        if (blocks.size() > TimeProcessor::Planner::refresh_threshold) {
+            machine.calculate_time(TimeProcessor::Planner::queue_size, 0, erNone);
+        }
     }
 
     if (m_seams_detector.is_active()) {
@@ -3635,8 +3651,9 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
 
         blocks.push_back(block);
 
-        if (blocks.size() > TimeProcessor::Planner::refresh_threshold)
-            machine.calculate_time(TimeProcessor::Planner::queue_size);
+        if (blocks.size() > TimeProcessor::Planner::refresh_threshold) {
+            machine.calculate_time(TimeProcessor::Planner::queue_size, 0, erNone);
+        }
     }
 
     //BBS: seam detector
@@ -3677,6 +3694,17 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
         m_seams_detector.activate(true);
         m_seams_detector.set_first_vertex(m_result.moves.back().position - m_extruder_offsets[m_extruder_id] - plate_offset);
     }
+
+    //BBS: some layer may only has G3/G3, update right layer height
+    if (m_detect_layer_based_on_tag && !m_result.spiral_vase_layers.empty()) {
+        if (delta_pos[Z] >= 0.0 && type == EMoveType::Extrude && m_result.spiral_vase_layers.back().first == FLT_MAX) {
+            // replace layer height placeholder with correct value
+            m_result.spiral_vase_layers.back().first = static_cast<float>(m_end_position[Z]);
+        }
+        if (!m_result.moves.empty())
+            m_result.spiral_vase_layers.back().second.second = m_result.moves.size() - 1 - m_seams_count;
+    }
+
     //BBS: store move
     store_move_vertex(type, m_move_path_type);
 }
@@ -4227,11 +4255,29 @@ void GCodeProcessor::process_T(const std::string_view command)
                     float extra_time = get_filament_unload_time(static_cast<size_t>(m_last_extruder_id));
                     m_time_processor.extruder_unloaded = false;
                     extra_time += get_filament_load_time(static_cast<size_t>(m_extruder_id));
-                    simulate_st_synchronize(extra_time);
-                }
+                    // store tool change move
+                    store_move_vertex(EMoveType::Tool_change);
+                    // construct a new time block to handle filament change
+                    for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
+                        TimeMachine& machine = m_time_processor.machines[i];
+                        if (!machine.enabled)
+                            continue;
+                        TimeBlock block;
+                        block.role = erFlush;
+                        block.move_type = EMoveType::Tool_change;
+                        block.layer_id = std::max<unsigned int>(1, m_layer_id);
+                        block.g1_line_id = m_g1_line_id;
+                        block.flags.prepare_stage = m_processing_start_custom_gcode;
+                        block.distance = 0;
+                        block.calculate_trapezoid();
 
-                // store tool change move
-                store_move_vertex(EMoveType::Tool_change);
+                        // when do st_sync, we will clear all of the blocks without keeping last n blocks, so we can directly add the new block into the blocks
+                        machine.blocks.push_back(block);
+                    }
+
+                    simulate_st_synchronize(extra_time, erFlush);
+                
+                }
             }
         }
     }
@@ -4438,7 +4484,7 @@ void GCodeProcessor::process_custom_gcode_time(CustomGCode::Type code)
         gcode_time.needed = true;
         //FIXME this simulates st_synchronize! is it correct?
         // The estimated time may be longer than the real print time.
-        machine.simulate_st_synchronize();
+        machine.simulate_st_synchronize(0, erNone);
         if (gcode_time.cache != 0.0f) {
             gcode_time.times.push_back({ code, gcode_time.cache });
             gcode_time.cache = 0.0f;
@@ -4460,10 +4506,14 @@ void GCodeProcessor::process_filaments(CustomGCode::Type code)
     }
 }
 
-void GCodeProcessor::simulate_st_synchronize(float additional_time)
+void GCodeProcessor::simulate_st_synchronize(float additional_time, ExtrusionRole target_role)
 {
     for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
-        m_time_processor.machines[i].simulate_st_synchronize(additional_time);
+        TimeMachine& machine = m_time_processor.machines[i];
+        if (!machine.enabled)
+            continue;
+
+        machine.simulate_st_synchronize(additional_time, target_role);
     }
 }
 

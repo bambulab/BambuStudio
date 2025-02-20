@@ -62,6 +62,8 @@ func_send_message                   NetworkAgent::send_message_ptr = nullptr;
 func_connect_printer                NetworkAgent::connect_printer_ptr = nullptr;
 func_disconnect_printer             NetworkAgent::disconnect_printer_ptr = nullptr;
 func_send_message_to_printer        NetworkAgent::send_message_to_printer_ptr = nullptr;
+func_check_cert                     NetworkAgent::check_cert_ptr = nullptr;
+func_install_device_cert            NetworkAgent::install_device_cert_ptr = nullptr;
 func_start_discovery                NetworkAgent::start_discovery_ptr = nullptr;
 func_change_user                    NetworkAgent::change_user_ptr = nullptr;
 func_is_user_login                  NetworkAgent::is_user_login_ptr = nullptr;
@@ -75,6 +77,8 @@ func_build_logout_cmd               NetworkAgent::build_logout_cmd_ptr = nullptr
 func_build_login_info               NetworkAgent::build_login_info_ptr = nullptr;
 func_get_model_id_from_desgin_id    NetworkAgent::get_model_id_from_desgin_id_ptr = nullptr;
 func_ping_bind                      NetworkAgent::ping_bind_ptr = nullptr;
+func_bind_detect                    NetworkAgent::bind_detect_ptr = nullptr;
+func_set_server_callback            NetworkAgent::set_server_callback_ptr = nullptr;
 func_bind                           NetworkAgent::bind_ptr = nullptr;
 func_unbind                         NetworkAgent::unbind_ptr = nullptr;
 func_get_bambulab_host              NetworkAgent::get_bambulab_host_ptr = nullptr;
@@ -272,6 +276,8 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     connect_printer_ptr               =  reinterpret_cast<func_connect_printer>(get_network_function("bambu_network_connect_printer"));
     disconnect_printer_ptr            =  reinterpret_cast<func_disconnect_printer>(get_network_function("bambu_network_disconnect_printer"));
     send_message_to_printer_ptr       =  reinterpret_cast<func_send_message_to_printer>(get_network_function("bambu_network_send_message_to_printer"));
+    check_cert_ptr                    =  reinterpret_cast<func_check_cert>(get_network_function("bambu_network_update_cert"));
+    install_device_cert_ptr           =  reinterpret_cast<func_install_device_cert>(get_network_function("bambu_network_install_device_cert"));
     start_discovery_ptr               =  reinterpret_cast<func_start_discovery>(get_network_function("bambu_network_start_discovery"));
     change_user_ptr                   =  reinterpret_cast<func_change_user>(get_network_function("bambu_network_change_user"));
     is_user_login_ptr                 =  reinterpret_cast<func_is_user_login>(get_network_function("bambu_network_is_user_login"));
@@ -284,6 +290,8 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     build_logout_cmd_ptr              =  reinterpret_cast<func_build_logout_cmd>(get_network_function("bambu_network_build_logout_cmd"));
     build_login_info_ptr              =  reinterpret_cast<func_build_login_info>(get_network_function("bambu_network_build_login_info"));
     ping_bind_ptr                     =  reinterpret_cast<func_ping_bind>(get_network_function("bambu_network_ping_bind"));
+    bind_detect_ptr                   =  reinterpret_cast<func_bind_detect>(get_network_function("bambu_network_bind_detect"));
+    set_server_callback_ptr           =  reinterpret_cast<func_set_server_callback>(get_network_function("bambu_network_set_server_callback"));
     get_model_id_from_desgin_id_ptr   =  reinterpret_cast<func_get_model_id_from_desgin_id>(get_network_function("bambu_network_get_model_id_from_desgin_id"));
     bind_ptr                          =  reinterpret_cast<func_bind>(get_network_function("bambu_network_bind"));
     unbind_ptr                        =  reinterpret_cast<func_unbind>(get_network_function("bambu_network_unbind"));
@@ -394,6 +402,7 @@ int NetworkAgent::unload_network_module()
     connect_printer_ptr               =  nullptr;
     disconnect_printer_ptr            =  nullptr;
     send_message_to_printer_ptr       =  nullptr;
+    check_cert_ptr                    =  nullptr;
     start_discovery_ptr               =  nullptr;
     change_user_ptr                   =  nullptr;
     is_user_login_ptr                 =  nullptr;
@@ -849,11 +858,11 @@ int NetworkAgent::stop_device_subscribe()
     return ret;
 }
 
-int NetworkAgent::send_message(std::string dev_id, std::string json_str, int qos)
+int NetworkAgent::send_message(std::string dev_id, std::string json_str, int qos, int flag)
 {
     int ret = 0;
     if (network_agent && send_message_ptr) {
-        ret = send_message_ptr(network_agent, dev_id, json_str, qos);
+        ret = send_message_ptr(network_agent, dev_id, json_str, qos, flag);
         if (ret)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, dev_id=%3%, json_str=%4%, qos=%5%")%network_agent %ret %dev_id %json_str %qos;
     }
@@ -883,16 +892,34 @@ int NetworkAgent::disconnect_printer()
     return ret;
 }
 
-int NetworkAgent::send_message_to_printer(std::string dev_id, std::string json_str, int qos)
+int NetworkAgent::send_message_to_printer(std::string dev_id, std::string json_str, int qos, int flag)
 {
     int ret = 0;
     if (network_agent && send_message_to_printer_ptr) {
-        ret = send_message_to_printer_ptr(network_agent, dev_id, json_str, qos);
+        ret = send_message_to_printer_ptr(network_agent, dev_id, json_str, qos, flag);
         if (ret)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, dev_id=%3%, json_str=%4%, qos=%5%")
                 %network_agent %ret %dev_id %json_str %qos;
     }
     return ret;
+}
+
+int NetworkAgent::check_cert()
+{
+    int ret = 0;
+    if (network_agent && check_cert_ptr) {
+        ret = check_cert_ptr(network_agent);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
+    }
+    return ret;
+}
+
+void NetworkAgent::install_device_cert(std::string dev_id, bool lan_only)
+{
+    if (network_agent && install_device_cert_ptr) {
+        install_device_cert_ptr(network_agent, dev_id, lan_only);
+    }
 }
 
 bool NetworkAgent::start_discovery(bool start, bool sending)
@@ -925,11 +952,11 @@ bool NetworkAgent::is_user_login()
     return ret;
 }
 
-int  NetworkAgent::user_logout()
+int  NetworkAgent::user_logout(bool request)
 {
     int ret = 0;
     if (network_agent && user_logout_ptr) {
-        ret = user_logout_ptr(network_agent);
+        ret = user_logout_ptr(network_agent, request);
         if (ret)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%")%network_agent %ret;
     }
@@ -1019,6 +1046,30 @@ int NetworkAgent::ping_bind(std::string ping_code)
         if (ret)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, pin code=%3%")
             % network_agent % ret % ping_code;
+    }
+    return ret;
+}
+
+int NetworkAgent::bind_detect(std::string dev_ip, std::string sec_link, detectResult& detect)
+{
+    int ret = 0;
+    if (network_agent && bind_detect_ptr) {
+        ret = bind_detect_ptr(network_agent, dev_ip, sec_link, detect);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, dev_ip=%3%")
+            % network_agent % ret % dev_ip;
+    }
+    return ret;
+}
+
+int NetworkAgent::set_server_callback(OnServerErrFn fn)
+{
+    int ret = 0;
+    if (network_agent && set_server_callback_ptr) {
+        ret = set_server_callback_ptr(network_agent, fn);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%")
+            % network_agent % ret;
     }
     return ret;
 }

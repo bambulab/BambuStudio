@@ -6,11 +6,12 @@
 #include "../BoundingBox.hpp"
 #include "../Utils.hpp"
 #include "../Slicing.hpp" // SlicingParams
-#include "TreeModelVolumes.hpp"
 #include "SupportLayer.hpp"
 #include "SupportParameters.hpp"
 namespace Slic3r
 {
+    // The number of vertices in each circle.
+    static constexpr const size_t SUPPORT_TREE_CIRCLE_RESOLUTION = 25;
 namespace TreeSupport3D
 {
 using LayerIndex = int;
@@ -76,12 +77,12 @@ struct TreeSupportMeshGroupSettings {
         this->support_wall_count        = std::max(1, config.tree_support_wall_count.value);  // at least 1 wall for organic tree support
         this->support_roof_line_distance = scaled<coord_t>(config.support_interface_spacing.value) + this->support_roof_line_width;
         double support_tree_angle_slow = 25;// TODO add a setting?
-        double support_tree_branch_diameter_angle = 5; // TODO add a setting?
         double tree_support_tip_diameter = 0.8;
+    	this->support_tree_branch_distance = scaled<coord_t>(config.tree_support_branch_distance.value);
         this->support_tree_angle          = std::clamp<double>(config.tree_support_branch_angle * M_PI / 180., 0., 0.5 * M_PI - EPSILON);
         this->support_tree_angle_slow     = std::clamp<double>(support_tree_angle_slow * M_PI / 180., 0., this->support_tree_angle - EPSILON);
         this->support_tree_branch_diameter = scaled<coord_t>(config.tree_support_branch_diameter.value);
-        this->support_tree_branch_diameter_angle = std::clamp<double>(support_tree_branch_diameter_angle * M_PI / 180., 0., 0.5 * M_PI - EPSILON);
+        this->support_tree_branch_diameter_angle  = std::clamp<double>(config.tree_support_branch_diameter_angle * M_PI / 180., 0., 0.5 * M_PI - EPSILON);
         this->support_tree_top_rate = 30; // percent
     //    this->support_tree_tip_diameter = this->support_line_width;
         this->support_tree_tip_diameter = std::clamp(scaled<coord_t>(tree_support_tip_diameter), 0, this->support_tree_branch_diameter);
@@ -727,6 +728,17 @@ private:
     // Mutexes, guards
     std::mutex                                          m_mutex_layer_storage;
 };
+
+enum class LineStatus
+{
+    INVALID,
+    TO_MODEL,
+    TO_MODEL_GRACIOUS,
+    TO_MODEL_GRACIOUS_SAFE,
+    TO_BP,
+    TO_BP_SAFE
+};
+
 
 } // namespace TreeSupport3D
 } // namespace slic3r

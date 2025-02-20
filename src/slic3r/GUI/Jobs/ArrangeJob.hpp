@@ -38,6 +38,10 @@ class ArrangeJob : public PlaterJob
 
     //BBS:prepare the items from current selected partplate
     void prepare_partplate();
+
+    // prepare the items which are selected and not on the current partplate
+    void prepare_outside_plate();
+
     void prepare_wipe_tower();
 
     ArrangePolygon prepare_arrange_polygon(void* instance);

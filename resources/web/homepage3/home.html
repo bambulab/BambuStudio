@@ -18,20 +18,30 @@
 <script type="text/javascript" src="../include/globalapi.js"></script>	
 
 <script type="text/javascript" src="../data/text.js"></script>		
-
-<script type="text/javascript" src="js/test.js"></script>	
 <script type="text/javascript" src="js/home.js"></script>
+<!--<script type="text/javascript" src="js/test.js"></script>-->
+	
 </head>
 <body class="ZScrol" onLoad="OnHomeInit()">
 
 	<!----------Project Menu---------->
 	<div id="MenuArea">
-		<div class="Menu_Btn Btn_White" onClick="OnClickOpenProject()">
-		    <img src="img/project_open.svg" /><span class="trans" tid='t33'>Open Project</span>
-		</div>
-		<div class="Menu_Btn Btn_Green" onClick="OnClickNewProject()">
-		    <img src="img/project_new.svg" /><span class="trans" tid='t32'>Create new project</span>
-		</div>
+		<div id="MenuBtnBlock">
+			<div class="Menu_Btn Btn_White" onClick="OnClickOpenProject()">
+				<img src="img/project_open.svg" /><span class="trans" tid='t33'>Open Project</span>
+			</div>
+			<div class="Menu_Btn Btn_Green" onClick="OnClickNewProject()">
+				<img src="img/project_new.svg" /><span class="trans" tid='t32'>Create new project</span>
+			</div>
+		</div>		
+	    <div id="HotModel_Search_Bar">
+		    <div id="HotModel_Search_Btn" >
+			    <img src="img/search.svg" />
+			</div>			
+			<div id="HotModel_Search_InputArea">
+				<input id="HotModel_Search_Input" maxlength="1000" placeholder="" />
+			</div>
+		</div>			
 	</div>
 	
 	
@@ -101,7 +111,7 @@
 		    <div class="Content-Title trans TextS1" tid="t107">Online Models</div>
 		  </div>
 		  <div class="Right_Title_More TextS1" onClick="SwtichLeftMenu('online')"><span class="trans" tid="t108">MORE</span> ></div>
-		</div>	
+		</div>
 		<div id="HotModelList" class="SingleGuideBar">
 <!--			<div class="HotModelPiece GuideBlock" onClick="OpenOneStaffPickModel(1)">
 				<div class="HotModel_PrevBlock">
@@ -251,19 +261,12 @@
 		<div id="RecentTitleBlock">
 			<div id="Recent_LEFT_Title">
 			<img class="TitleSmallIcon" src="./img/ml.svg" />
-		    <div id="RecentTitle" class="Content-Title trans TextS1" tid="">Makerlab</div>
+		    <div id="RecentTitle" class="Content-Title trans TextS1" tid="">MakerLab</div>
 			</div>
             <div class="Right_Title_More TextS1" onClick="SwtichLeftMenu('makerlab')"><span class="trans" tid="t108">MORE</span> ></div>	
 		</div>
 		<div id="LabList" class="SingleGuideBar">
-<!--		    <div class="MakerlabItem GuideBlock" onClick="OnOpenOneMakerlab('aaaa')" >
-				<div class="MakerlabImg"><img src="img/ml1.jpg"/></div>
-				<div class="MakerlabTextBlock">
-				<div class="MakerlabName">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
-				<div class="MakerlabDesc">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
-				<div class="MakerlabAuthor">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
-				</div>
-			</div>
+<!--
 		    <div class="MakerlabItem GuideBlock" onClick="OnOpenOneMakerlab('aaaa')" >
 				<div class="MakerlabImg"><img src="img/ml1.jpg"/></div>
 				<div class="MakerlabTextBlock">
@@ -303,10 +306,144 @@
 				<div class="MakerlabDesc">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
 				<div class="MakerlabAuthor">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
 				</div>
-			</div>	-->		
+			</div>
+		    <div class="MakerlabItem GuideBlock" onClick="OnOpenOneMakerlab('aaaa')" >
+				<div class="MakerlabImg"><img src="img/ml1.jpg"/></div>
+				<div class="MakerlabTextBlock">
+				<div class="MakerlabName">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+				<div class="MakerlabDesc">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+				<div class="MakerlabAuthor">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+				</div>
+			</div>			
+-->
 		</div>
 	</div>	
 	
+	<!-------------Print History-------------->
+	<div id="PrintHistoryArea">
+		<div id="PrintHistory_Bar" class="Title_Bar">
+		  <div class="Title_Left_Area">
+			<img class="TitleSmallIcon" src="./img/ph.svg" />
+		    <div class="Content-Title trans TextS1" tid="t117">Print History</div>
+			<img id="PrintHistory_Refresh_Btn" src="img/refresh.svg" onClick="SendMsg_GetPrintHistory()" />
+		  </div>
+		  <div class="Right_Title_More TextS1" onClick="SwtichLeftMenu('printhistory')"><span class="trans" tid="t108">MORE</span> ></div>
+		</div>	
+		
+		<div id="PrintHistoryList" class="SingleGuideBar">
+
+<!--			<div class="PrintHistoryItem GuideBlock" onClick="OnOpenPrintHistory(0)" >
+				<div class="PrintHistoryImg"><img src="img/ml1.jpg"/></div>
+				<div class="PrintHistoryTextBlock">
+					<div class="PrintHistoryName TextS1">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+					<div class="PrintHistory_Line2">
+						<img src="img/time.svg" /><span class="PH_PrintTime TextS2">999.5h</span>
+						<img src="img/device.svg" /><span class="PH_DeviceName TextS2">XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</span>
+					</div>
+					<div class="PrintHistoryInfo">
+						<div class="PrintHistoryPlate TextS2">
+							<div class="PH_PlateName"><span tid="t123" class="trans"></span>&nbsp;1<span title="t124" class="trans"></span></div>
+							<div class="PH_PrintDate">(2022/07/22 21:11)</div>
+						</div>
+						<div class="PrintHistoryStatus PH_Status_Printing TextS2 trans" tid="t118">Printing</div>
+					</div>
+				</div>
+				<div class="PH_Gcode_Icon">Gcode</div>
+			</div>		
+			<div class="PrintHistoryItem GuideBlock" onClick="OnOpenPrintHistory(0)" >
+				<div class="PrintHistoryImg"><img src="img/ml1.jpg"/></div>
+				<div class="PrintHistoryTextBlock">
+					<div class="PrintHistoryName TextS1">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+					<div class="PrintHistory_Line2">
+						<img src="img/time.svg" /><span class="PH_PrintTime TextS2">999.5h</span>
+						<img src="img/device.svg" /><span class="PH_DeviceName TextS2">XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</span>
+					</div>
+					<div class="PrintHistoryInfo">
+						<div class="PrintHistoryPlate TextS2">
+							<div class="PH_PlateName"><span tid="t123" class="trans"></span>&nbsp;1<span title="t124" class="trans"> - xxxxxxxxxxxxx</span></div>
+							<div class="PH_PrintDate">(2022/07/22 21:11)</div>
+						</div>
+						<div class="PrintHistoryStatus PH_Status_Success TextS2 trans" tid="t119">Success</div>
+					</div>
+				</div>
+				<div class="PH_Gcode_Icon">Gcode</div>
+			</div>		
+			<div class="PrintHistoryItem GuideBlock" onClick="OnOpenPrintHistory(0)" >
+				<div class="PrintHistoryImg"><img src="img/ml1.jpg"/></div>
+				<div class="PrintHistoryTextBlock">
+					<div class="PrintHistoryName TextS1">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+					<div class="PrintHistory_Line2">
+						<img src="img/time.svg" /><span class="PH_PrintTime TextS2">999.5h</span>
+						<img src="img/device.svg" /><span class="PH_DeviceName TextS2">XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</span>
+					</div>
+					<div class="PrintHistoryInfo">
+						<div class="PrintHistoryPlate TextS2">
+							<div class="PH_PlateName"><span tid="t123" class="trans"></span>&nbsp;1<span title="t124" class="trans"></span></div>
+							<div class="PH_PrintDate">(2022/07/22 21:11)</div>
+						</div>
+						<div class="PrintHistoryStatus PH_Status_Fail TextS2 trans" tid="t120">Canceled</div>
+					</div>
+				</div>
+				<div class="PH_Gcode_Icon">Gcode</div>
+			</div>		
+			<div class="PrintHistoryItem GuideBlock" onClick="OnOpenPrintHistory(0)" >
+				<div class="PrintHistoryImg"><img src="img/ml1.jpg"/></div>
+				<div class="PrintHistoryTextBlock">
+					<div class="PrintHistoryName TextS1">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+					<div class="PrintHistory_Line2">
+						<img src="img/time.svg" /><span class="PH_PrintTime TextS2">999.5h</span>
+						<img src="img/device.svg" /><span class="PH_DeviceName TextS2">XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</span>
+					</div>
+					<div class="PrintHistoryInfo">
+						<div class="PrintHistoryPlate TextS2">
+							<div class="PH_PlateName"><span tid="t123" class="trans"></span>&nbsp;1<span title="t124" class="trans"></span></div>
+							<div class="PH_PrintDate">(2022/07/22 21:11)</div>
+						</div>
+						<div class="PrintHistoryStatus PH_Status_Printing TextS2 trans" tid="t118">Printing</div>
+					</div>
+				</div>
+				<div class="PH_Gcode_Icon">Gcode</div>
+			</div>		
+			<div class="PrintHistoryItem GuideBlock" onClick="OnOpenPrintHistory(0)" >
+				<div class="PrintHistoryImg"><img src="img/ml1.jpg"/></div>
+				<div class="PrintHistoryTextBlock">
+					<div class="PrintHistoryName TextS1">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+					<div class="PrintHistory_Line2">
+						<img src="img/time.svg" /><span class="PH_PrintTime TextS2">999.5h</span>
+						<img src="img/device.svg" /><span class="PH_DeviceName TextS2">XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</span>
+					</div>
+					<div class="PrintHistoryInfo">
+						<div class="PrintHistoryPlate TextS2">
+							<div class="PH_PlateName">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+							<div class="PH_PrintDate">(2022/07/22 21:11)</div>
+						</div>
+						<div class="PrintHistoryStatus PH_Status_Printing TextS2 trans" tid="t118">Printing</div>
+					</div>
+				</div>
+				<div class="PH_Gcode_Icon">Gcode</div>
+			</div>		
+			<div class="PrintHistoryItem GuideBlock" onClick="OnOpenPrintHistory(0)" >
+				<div class="PrintHistoryImg"><img src="img/ml1.jpg"/></div>
+				<div class="PrintHistoryTextBlock">
+					<div class="PrintHistoryName TextS1">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+					<div class="PrintHistory_Line2">
+						<img src="img/time.svg" /><span class="PH_PrintTime TextS2">999.5h</span>
+						<img src="img/device.svg" /><span class="PH_DeviceName TextS2">XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</span>
+					</div>
+					<div class="PrintHistoryInfo">
+						<div class="PrintHistoryPlate TextS2">
+							<div class="PH_PlateName"><span tid="t123" class="trans"></span>&nbsp;1<span title="t124" class="trans"></span></div>
+							<div class="PH_PrintDate">(2022/07/22 21:11)</div>
+						</div>
+						<div class="PrintHistoryStatus PH_Status_Printing TextS2 trans" tid="t118">Printing</div>
+					</div>
+				</div>
+				<div class="PH_Gcode_Icon">Gcode</div>
+			</div>	-->				
+
+		</div>
+	</div>		
+				
 	</div>
 	
 	<!----------Recent Context Menu--------->

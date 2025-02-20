@@ -198,6 +198,7 @@ protected:
     std::vector<std::array<float, 4>> m_ebt_colors;
 
     bool                        m_filter_state = false;
+    bool                        m_cached_wireframe_mode = false;
 
 private:
     void update_render_data();
@@ -235,6 +236,7 @@ public:
     virtual const float get_cursor_height_min() const { return CursorHeightMin; }
     virtual const float get_cursor_height_max() const { return CursorHeightMax; }
     virtual const float get_cursor_height_step() const { return CursorHeightStep; }
+    void update_front_view_radian();
 
 protected:
     virtual void render_triangles(const Selection& selection) const;
@@ -378,6 +380,9 @@ protected:
     mutable double      m_height_start_z_in_imgui{0};
     mutable bool        m_is_set_height_start_z_by_imgui{false};
     mutable Vec2i       m_height_start_pos{0, 0};
+    mutable float       m_x_for_height_input{-1};
+    mutable bool        m_lock_x_for_height_bottom{false};
+    mutable Vec2f       m_height_range_input_all_size;
     mutable bool        m_is_cursor_in_imgui{false};
     BoundingBoxf3 bounding_box() const;
     void          update_contours(int i, const TriangleMesh &vol_mesh, float cursor_z, float max_z, float min_z, bool update_height_start_pos) const;
@@ -399,8 +404,10 @@ protected:
     bool wants_enter_leave_snapshots() const override { return true; }
 
     virtual wxString handle_snapshot_action_name(bool shift_down, Button button_down) const = 0;
-
+    bool             is_mouse_hit_in_imgui()const;
     friend class ::Slic3r::GUI::GLGizmoMmuSegmentation;
+    mutable Vec2i m_imgui_start_pos{0, 0};
+    mutable Vec2i m_imgui_end_pos{0, 0};
 };
 
 

@@ -77,10 +77,12 @@ public:
         Seam,
         // BBS
         Text,
+        Svg,
         MmuSegmentation,
         Measure,
         Assembly,
         Simplify,
+        BrimEars,
         SlaSupports,
         // BBS
         //FaceRecognition,
@@ -161,6 +163,8 @@ public:
     enum MENU_ICON_NAME {
         IC_TOOLBAR_RESET            = 0,
         IC_TOOLBAR_RESET_HOVER,
+        IC_TOOLBAR_RESET_ZERO,
+        IC_TOOLBAR_RESET_ZERO_HOVER,
         IC_TOOLBAR_TOOLTIP,
         IC_TOOLBAR_TOOLTIP_HOVER,
         IC_TEXT_B,
@@ -228,6 +232,7 @@ public:
     void reset_all_states();
     bool is_serializing() const { return m_serializing; }
     bool open_gizmo(EType type);
+    bool open_gizmo(unsigned char type);
     bool check_gizmos_closed_except(EType) const;
 
     void set_hover_id(int id);
@@ -275,22 +280,27 @@ public:
         else
             return nullptr;
     }
-
+    void  update_paint_base_camera_rotate_rad();
     Vec3d get_flattening_normal() const;
 
     void set_flattening_data(const ModelObject* model_object);
 
     void set_sla_support_data(ModelObject* model_object);
 
+    void set_brim_data(ModelObject* model_object);
+
     void set_painter_gizmo_data();
 
     bool is_gizmo_activable_when_single_full_instance();
     bool is_gizmo_click_empty_not_exit();
     bool is_show_only_active_plate();
+    bool is_ban_move_glvolume();
     bool get_gizmo_active_condition(GLGizmosManager::EType type);
-    void check_object_located_outside_plate();
+    void check_object_located_outside_plate(bool change_plate =true);
     bool get_object_located_outside_plate() { return m_object_located_outside_plate; }
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position = Vec2d::Zero(), bool shift_down = false, bool alt_down = false, bool control_down = false);
+    bool is_paint_gizmo();
+    bool is_allow_select_all();
     ClippingPlane get_clipping_plane() const;
     ClippingPlane get_assemble_view_clipping_plane() const;
     bool wants_reslice_supports_on_undo() const;
