@@ -6193,16 +6193,16 @@ void MachineObject::parse_new_info(json print)
 
 bool MachineObject::is_nozzle_data_invalid()
 {
-    if (m_extder_data.extders.size() < m_extder_data.current_extder_id) { return false; }
-
-    if (m_extder_data.extders.size() != m_extder_data.total_extder_count) { return false; }
-
-    if (m_extder_data.extders[m_extder_data.current_extder_id].current_nozzle_type == NozzleType::ntUndefine ||
-        m_extder_data.extders[m_extder_data.current_extder_id].current_nozzle_diameter <= 0.0f ||
-        m_extder_data.extders[m_extder_data.current_extder_id].current_nozzle_flow_type  == NozzleFlowType::NONE_FLOWTYPE) {
-        return false;
+    for (const auto &ext : m_extder_data.extders)
+    {
+        if (ext.current_nozzle_type == NozzleType::ntUndefine ||
+            ext.current_nozzle_diameter <= 0.0f ||
+            ext.current_nozzle_flow_type == NozzleFlowType::NONE_FLOWTYPE) {
+            return true;
+        }
     }
-    return true;
+
+    return false;
 }
 
 int MachineObject::get_flag_bits(std::string str, int start, int count)
