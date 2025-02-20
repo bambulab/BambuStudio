@@ -1,7 +1,7 @@
 #ifndef __OAuthJob_HPP__
 #define __OAuthJob_HPP__
 
-#include "Job.hpp"
+#include "JobNew.hpp"
 #include "slic3r/GUI/HttpServer.hpp"
 
 namespace Slic3r {
@@ -38,7 +38,7 @@ struct OAuthData
     std::shared_ptr<OAuthResult> result;
 };
 
-class OAuthJob : public Job
+class OAuthJob : public JobNew
 {
     HttpServer local_authorization_server;
     OAuthData  _data;
