@@ -904,7 +904,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "best_object_pos","head_wrap_detect_zone","printer_notes",
     "enable_long_retraction_when_cut","long_retractions_when_cut","retraction_distances_when_cut",
     //OrcaSlicer
-    "host_type", "print_host", "printhost_apikey",
+    "host_type", "print_host", "printhost_apikey", "bbl_use_printhost",
     "print_host_webui",
     "printhost_cafile","printhost_port","printhost_authorization_type",
     "printhost_user", "printhost_password", "printhost_ssl_ignore_revoke",
@@ -3063,6 +3063,7 @@ static std::vector<std::string> s_PhysicalPrinter_opts {
     "preset_name", // temporary option to compatibility with older Slicer
     "preset_names",
     "printer_technology",
+    "bbl_use_printhost",
     "host_type",
     "print_host",
     "printhost_apikey",

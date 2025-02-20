@@ -341,10 +341,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/Jobs/BusyCursorJob.hpp
     GUI/Jobs/ThreadSafeQueue.hpp
     GUI/Jobs/PlaterWorker.hpp
-    GUI/Jobs/EmbossJob.cpp
-    GUI/Jobs/EmbossJob.hpp
-    GUI/Jobs/PlaterJob.hpp
-    GUI/Jobs/PlaterJob.cpp
     GUI/Jobs/UpgradeNetworkJob.hpp
     GUI/Jobs/UpgradeNetworkJob.cpp
     GUI/Jobs/ArrangeJob.hpp
@@ -523,6 +519,13 @@ set(SLIC3R_GUI_SOURCES
 	Utils/FontConfigHelp.hpp
 	Utils/FontUtils.cpp
 	Utils/FontUtils.hpp
+
+    GUI/OAuthDialog.cpp
+    GUI/OAuthDialog.hpp
+    GUI/Jobs/OAuthJob.cpp
+    GUI/Jobs/OAuthJob.hpp
+    Utils/SimplyPrint.cpp
+    Utils/SimplyPrint.hpp
 )
 
 if (WIN32)

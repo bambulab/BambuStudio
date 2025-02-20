@@ -20,6 +20,8 @@
 #include "Repetier.hpp"
 #include "MKS.hpp"
 #include "../GUI/PrintHostDialogs.hpp"
+#include "../GUI/MainFrame.hpp"
+#include "SimplyPrint.hpp"
 
 namespace fs = boost::filesystem;
 using boost::optional;
@@ -53,6 +55,7 @@ PrintHost* PrintHost::get_print_host(DynamicPrintConfig *config)
             case htRepetier:  return new Repetier(config);
             case htPrusaLink: return new PrusaLink(config);
             case htMKS:       return new MKS(config);
+            case htSimplyPrint: return new SimplyPrint(config);
             default:          return nullptr;
         }
     } else {
@@ -263,6 +266,10 @@ void PrintHostJobQueue::priv::perform_job(PrintHostJob the_job)
 
     if (success) {
         emit_progress(100);
+        if (the_job.switch_to_device_tab) {
+            const auto mainframe = GUI::wxGetApp().mainframe;
+            mainframe->request_select_tab(MainFrame::TabPosition::tpMonitor);
+        }
     }
 }
 
