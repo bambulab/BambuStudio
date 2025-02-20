@@ -86,11 +86,8 @@
 #include "Jobs/FillBedJob.hpp"
 #include "Jobs/RotoptimizeJob.hpp"
 #include "Jobs/SLAImportJob.hpp"
-#include "Jobs/SLAImportDialog.hpp"
 #include "Jobs/PrintJob.hpp"
 #include "Jobs/NotificationProgressIndicator.hpp"
-#include "Jobs/PlaterWorker.hpp"
-#include "Jobs/BoostThreadWorker.hpp"
 #include "BackgroundSlicingProcess.hpp"
 #include "SelectMachine.hpp"
 #include "SendMultiMachinePage.hpp"
@@ -2223,15 +2220,70 @@ struct Plater::priv
     BackgroundSlicingProcess    background_process;
     bool suppressed_backround_processing_update { false };
 
-    // TODO: A mechanism would be useful for blocking the plater interactions:
-    // objects would be frozen for the user. In case of arrange, an animation
-    // could be shown, or with the optimize orientations, partial results
-    // could be displayed.
-    //
-    // UIThreadWorker can be used as a replacement for BoostThreadWorker if
-    // no additional worker threads are desired (useful for debugging or profiling)
-    PlaterWorker<BoostThreadWorker> m_worker;
-    SLAImportDialog *               m_sla_import_dlg;
+    // Jobs defined inside the group class will be managed so that only one can
+    // run at a time. Also, the background process will be stopped if a job is
+    // started. It is up the the plater to ensure that the background slicing
+    // can't be restarted while a ui job is still running.
+    class Jobs: public ExclusiveJobGroup
+    {
+        priv *m;
+        size_t m_arrange_id, m_fill_bed_id, m_rotoptimize_id, m_sla_import_id, m_orient_id;
+        std::shared_ptr<NotificationProgressIndicator> m_pri;
+        //BBS
+        size_t m_print_id;
+
+        void before_start() override { m->background_process.stop(); }
+
+    public:
+        Jobs(priv *_m) :
+            m(_m),
+            m_pri{std::make_shared<NotificationProgressIndicator>(m->notification_manager.get())}
+        {
+            m_arrange_id = add_job(std::make_unique<ArrangeJob>(m_pri, m->q));
+            m_orient_id = add_job(std::make_unique<OrientJob>(m_pri, m->q));
+            m_fill_bed_id = add_job(std::make_unique<FillBedJob>(m_pri, m->q));
+            m_rotoptimize_id = add_job(std::make_unique<RotoptimizeJob>(m_pri, m->q));
+            m_sla_import_id = add_job(std::make_unique<SLAImportJob>(m_pri, m->q));
+            //BBS add print id
+            m_print_id = add_job(std::make_unique<PrintJob>(m_pri, m->q));
+        }
+
+        void arrange()
+        {
+            m->take_snapshot("Arrange");
+            start(m_arrange_id);
+        }
+
+        void orient()
+        {
+            m->take_snapshot("Orient");
+            start(m_orient_id);
+        }
+
+        void fill_bed()
+        {
+            m->take_snapshot("Fill bed");
+            start(m_fill_bed_id);
+        }
+
+        void optimize_rotation()
+        {
+            m->take_snapshot("Optimize Rotation");
+            start(m_rotoptimize_id);
+        }
+
+        void import_sla_arch()
+        {
+            m->take_snapshot("Import SLA archive");
+            start(m_sla_import_id);
+        }
+
+        //BBS bbl printing job
+        void print()
+        {
+            start(m_print_id);
+        }
+    } m_ui_jobs;
 
     int                         m_job_prepare_state;
 
@@ -2696,8 +2748,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         }))
     , sidebar(new Sidebar(q))
     , notification_manager(std::make_unique<NotificationManager>(q))
-    , m_worker{q, std::make_unique<NotificationProgressIndicator>(notification_manager.get()), "ui_worker"}
-    , m_sla_import_dlg{new SLAImportDialog{q}}
+    , m_ui_jobs(this)
     , m_job_prepare_state(Job::JobPrepareState::PREPARE_STATE_DEFAULT)
     , delayed_scene_refresh(false)
     , collapse_toolbar(GLToolbar::Normal, "Collapse")
@@ -4680,7 +4731,7 @@ void Plater::priv::remove(size_t obj_idx)
     if (view3D->is_layers_editing_enabled())
         view3D->enable_layers_editing(false);
 
-    m_worker.cancel_all();
+    m_ui_jobs.cancel_all();
     model.delete_object(obj_idx);
     //BBS: notify partplate the instance removed
     partplate_list.notify_instance_removed(obj_idx, -1);
@@ -4711,7 +4762,7 @@ bool Plater::priv::delete_object_from_model(size_t obj_idx, bool refresh_immedia
     if (!obj->name.empty())
         snapshot_label += ": " + obj->name;
     Plater::TakeSnapshot snapshot(q, snapshot_label);
-    m_worker.cancel_all();
+    m_ui_jobs.cancel_all();
 
     if (obj->is_cut())
         sidebar->obj_list()->invalidate_cut_info_for_object(obj_idx);
@@ -4741,7 +4792,7 @@ void Plater::priv::delete_all_objects_from_model()
 
     view3D->get_canvas3d()->reset_sequential_print_clearance();
 
-    m_worker.cancel_all();
+    m_ui_jobs.cancel_all();
 
     // Stop and reset the Print content.
     background_process.reset();
@@ -4780,7 +4831,7 @@ void Plater::priv::reset(bool apply_presets_change)
 
     view3D->get_canvas3d()->reset_sequential_print_clearance();
 
-    m_worker.cancel_all();
+    m_ui_jobs.cancel_all();
 
     //BBS: clear the partplate list's object before object cleared
     partplate_list.reinit();
@@ -5195,7 +5246,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
 // Restart background processing thread based on a bitmask of UpdateBackgroundProcessReturnState.
 bool Plater::priv::restart_background_process(unsigned int state)
 {
-    if (!m_worker.is_idle()) {
+    if (m_ui_jobs.is_any_running()) {
         // Avoid a race condition
         BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", Line %1%: ui jobs running, return false")%__LINE__;
         return false;
@@ -6422,7 +6473,7 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
     std::string title_text = _u8L("Slicing");
     evt.status.text = title_text + evt.status.text;
     if (evt.status.percent >= 0) {
-        if (!m_worker.is_idle()) {
+        if (m_ui_jobs.is_any_running()) {
             // Avoid a race condition
             return;
         }
@@ -7526,11 +7577,7 @@ void Plater::priv::init_notification_manager()
 
 void Plater::orient()
 {
-    auto &w = get_ui_job_worker();
-    if (w.is_idle()) {
-        p->take_snapshot(_u8L("Orient"));
-        replace_job(w, std::make_unique<OrientJob>());
-    }
+    p->m_ui_jobs.orient();
 }
 
 //BBS: add job state related functions
@@ -7952,7 +7999,7 @@ bool Plater::priv::can_simplify() const
 
 bool Plater::priv::can_increase_instances() const
 {
-    if (!m_worker.is_idle()
+    if (m_ui_jobs.is_any_running()
      || q->get_view3D_canvas3D()->get_gizmos_manager().is_in_editing_mode())
             return false;
 
@@ -7964,7 +8011,7 @@ bool Plater::priv::can_increase_instances() const
 
 bool Plater::priv::can_decrease_instances() const
 {
-    if (!m_worker.is_idle()
+    if (m_ui_jobs.is_any_running()
      || q->get_view3D_canvas3D()->get_gizmos_manager().is_in_editing_mode())
             return false;
 
@@ -7985,7 +8032,7 @@ bool Plater::priv::can_split_to_volumes() const
 
 bool Plater::priv::can_arrange() const
 {
-    return !model.objects.empty() && m_worker.is_idle();
+    return !model.objects.empty() && !m_ui_jobs.is_any_running();
 }
 
 bool Plater::priv::layers_height_allowed() const
@@ -9718,11 +9765,8 @@ void Plater::calib_VFA(const Calib_Params &params)
 
 void Plater::import_sl1_archive()
 {
-    auto &w = get_ui_job_worker();
-    if (w.is_idle() && p->m_sla_import_dlg->ShowModal() == wxID_OK) {
-        p->take_snapshot(_u8L("Import SLA archive"));
-        replace_job(w, std::make_unique<SLAImportJob>(p->m_sla_import_dlg));
-    }
+    if (!p->m_ui_jobs.is_any_running())
+        p->m_ui_jobs.import_sla_arch();
 }
 
 void Plater::extract_config_from_project()
@@ -10556,9 +10600,12 @@ void Plater::update(bool conside_update_flag, bool force_background_processing_u
 
 void Plater::object_list_changed() { p->object_list_changed(); }
 
-Worker &Plater::get_ui_job_worker() { return p->m_worker; }
+void Plater::stop_jobs() { p->m_ui_jobs.stop_all(); }
 
-const Worker &Plater::get_ui_job_worker() const { return p->m_worker; }
+bool Plater::is_any_job_running() const
+{
+    return p->m_ui_jobs.is_any_running();
+}
 
 void Plater::update_ui_from_settings() { p->update_ui_from_settings(); }
 
@@ -10668,7 +10715,7 @@ void Plater::set_selected_visible(bool visible)
         return;
 
     Plater::TakeSnapshot snapshot(this, "Set Selected Objects Visible in AssembleView");
-    get_ui_job_worker().cancel_all();
+    p->m_ui_jobs.cancel_all();
 
     p->get_current_canvas3D()->set_selected_visible(visible);
 }
@@ -10686,7 +10733,7 @@ void Plater::remove_selected()
         return;
 
     Plater::TakeSnapshot snapshot(this, "Delete Selected Objects");
-    get_ui_job_worker().cancel_all();
+    p->m_ui_jobs.cancel_all();
 
     //BBS delete current selected
     // p->view3D->delete_selected();
@@ -10806,11 +10853,8 @@ void Plater::set_number_of_copies(/*size_t num*/)
 
 void Plater::fill_bed_with_instances()
 {
-    auto &w = get_ui_job_worker();
-    if (w.is_idle()) {
-        p->take_snapshot(_u8L("Fill bed"));
-        replace_job(w, std::make_unique<FillBedJob>());
-    }
+    if (!p->m_ui_jobs.is_any_running())
+        p->m_ui_jobs.fill_bed();
 }
 
 bool Plater::is_selection_empty() const
@@ -11763,7 +11807,7 @@ void Plater::reslice()
         return;
 
     // Stop arrange and (or) optimize rotation tasks.
-    stop_queue(this->get_ui_job_worker());
+    this->stop_jobs();
 
     // softfever: regenerate CalibPressureAdvancePattern custom G-code to apply changes
     if (model().calib_pa_pattern) {
@@ -12654,10 +12698,8 @@ GLCanvas3D* Plater::get_current_canvas3D(bool exclude_preview)
 
 void Plater::arrange()
 {
-    auto &w = get_ui_job_worker();
-    if (w.is_idle()) {
-        p->take_snapshot(_u8L("Arrange"));
-        replace_job(w, std::make_unique<ArrangeJob>());
+    if (!p->m_ui_jobs.is_any_running()) {
+        p->m_ui_jobs.arrange();
     }
 }
 
@@ -12813,14 +12855,7 @@ void Plater::center_selection()     { p->center_selection(); }
 void Plater::mirror(Axis axis)      { p->mirror(axis); }
 void Plater::split_object()         { p->split_object(); }
 void Plater::split_volume()         { p->split_volume(); }
-void Plater::optimize_rotation()
-{
-    auto &w = get_ui_job_worker();
-    if (w.is_idle()) {
-        p->take_snapshot(_u8L("Optimize Rotation"));
-        replace_job(w, std::make_unique<OrientJob>());
-    }
-}
+void Plater::optimize_rotation()    { if (!p->m_ui_jobs.is_any_running()) p->m_ui_jobs.optimize_rotation(); }
 void Plater::update_menus()         { p->menus.update(); }
 // BBS
 //void Plater::show_action_buttons(const bool ready_to_slice) const   { p->show_action_buttons(ready_to_slice); }

@@ -7,9 +7,9 @@ namespace Slic3r { namespace GUI {
 
 class Plater;
 
-class FillBedJob : public Job
+class FillBedJob : public PlaterJob
 {
-    int m_object_idx = -1;
+    int     m_object_idx = -1;
 
     using ArrangePolygon  = arrangement::ArrangePolygon;
     using ArrangePolygons = arrangement::ArrangePolygons;
@@ -24,20 +24,23 @@ class FillBedJob : public Job
     arrangement::ArrangeParams params;
 
     int m_status_range = 0;
-    Plater *m_plater;
+
+protected:
+
+    void prepare() override;
+    void process() override;
 
 public:
-    void prepare();
-    void process(Ctl &ctl) override;
+    FillBedJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater)
+        : PlaterJob{std::move(pri), plater}
+    {}
 
-    FillBedJob();
-
-    int status_range() const /*override*/
+    int status_range() const override
     {
         return m_status_range;
     }
 
-    void finalize(bool canceled, std::exception_ptr &e) override;
+    void finalize() override;
 };
 
 }} // namespace Slic3r::GUI

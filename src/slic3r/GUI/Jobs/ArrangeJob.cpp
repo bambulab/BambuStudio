@@ -188,7 +188,7 @@ void ArrangeJob::prepare_selected() {
 void ArrangeJob::prepare_all() {
     clear_input();
 
-    PartPlateList& plate_list = m_plater->get_partplate_list();
+    PartPlateList& plate_list = m_plater->get_partplate_list();    
     for (size_t i = 0; i < plate_list.get_plate_count(); i++) {
         PartPlate* plate = plate_list.get_plate(i);
         bool same_as_global_print_seq = true;
@@ -519,13 +519,21 @@ void ArrangeJob::check_unprintable()
     }
 }
 
-void ArrangeJob::process(Ctl &ctl)
+void ArrangeJob::on_exception(const std::exception_ptr &eptr)
 {
-    static const auto arrangestr = _u8L("Arranging");
+    try {
+        if (eptr)
+            std::rethrow_exception(eptr);
+    } catch (libnest2d::GeometryException &) {
+        show_error(m_plater, _(L("Arrange failed. "
+                                 "Found some exceptions when processing object geometries.")));
+    } catch (std::exception &) {
+        PlaterJob::on_exception(eptr);
+    }
+}
 
-    ctl.update_status(0, arrangestr);
-    ctl.call_on_main_thread([this]{ prepare(); }).wait();
-
+void ArrangeJob::process()
+{
     auto & partplate_list = m_plater->get_partplate_list();
 
     const Slic3r::DynamicPrintConfig& global_config = wxGetApp().preset_bundle->full_config();
@@ -543,10 +551,10 @@ void ArrangeJob::process(Ctl &ctl)
 
     BOOST_LOG_TRIVIAL(debug) << "arrange bedpts:" << bedpts[0].transpose() << ", " << bedpts[1].transpose() << ", " << bedpts[2].transpose() << ", " << bedpts[3].transpose();
 
-    params.stopcondition = [&ctl]() { return ctl.was_canceled(); };
+    params.stopcondition = [this]() { return was_canceled(); };
 
-    params.progressind = [this, &ctl](unsigned num_finished, std::string str = "") {
-        ctl.update_status(num_finished * 100 / status_range(), _u8L("Arranging") + str);
+    params.progressind = [this](unsigned num_finished, std::string str = "") {
+        update_status(num_finished, _L("Arranging") + " "+ wxString::FromUTF8(str));
     };
 
     {
@@ -588,12 +596,10 @@ void ArrangeJob::process(Ctl &ctl)
     }
 
     // finalize just here.
-    ctl.update_status(status_range(),
-                      ctl.was_canceled() ? _u8L("Arranging canceled.") :
-                      we_have_unpackable_items ? _u8L("Arranging is done but there are unpacked items. Reduce spacing and try again.") : _u8L("Arranging done."));
+    update_status(status_range(),
+        was_canceled() ? _(L("Arranging canceled.")) :
+        we_have_unpackable_items ? _(L("Arranging is done but there are unpacked items. Reduce spacing and try again.")) : _(L("Arranging done.")));
 }
-
-ArrangeJob::ArrangeJob() : m_plater{wxGetApp().plater()} {}
 
 static std::string concat_strings(const std::set<std::string> &strings,
                                   const std::string &delim = "\n")
@@ -605,137 +611,127 @@ static std::string concat_strings(const std::set<std::string> &strings,
         });
 }
 
-void ArrangeJob::finalize(bool canceled, std::exception_ptr &eptr) {
-    try {
-        if (eptr)
-            std::rethrow_exception(eptr);
-    } catch (libnest2d::GeometryException &) {
-        show_error(m_plater, _(L("Arrange failed. "
-                                 "Found some exceptions when processing object geometries.")));
-        eptr = nullptr;
-    } catch(...) {
-        eptr = std::current_exception();
-    }
+void ArrangeJob::finalize() {
+    // Ignore the arrange result if aborted.
+    if (!was_canceled()) {
 
-    if (canceled)
-        m_plater->get_notification_manager()->push_notification(NotificationType::ArrangeOngoing,
-                                                                NotificationManager::NotificationLevel::RegularNotificationLevel, _u8L("Arranging canceled."));
+        // Unprintable items go to the last virtual bed
+        int beds = 0;
 
-    if (canceled || eptr)
-        return;
-
-    // Unprintable items go to the last virtual bed
-    int beds = 0;
-
-    //BBS: partplate
-    PartPlateList& plate_list = m_plater->get_partplate_list();
-    //clear all the relations before apply the arrangement results
-    if (only_on_partplate) {
-        plate_list.clear(false, false, true, current_plate_index);
-    }
-    else
-        plate_list.clear(false, false, true, -1);
-    //BBS: adjust the bed_index, create new plates, get the max bed_index
-    for (ArrangePolygon& ap : m_selected) {
-        //if (ap.bed_idx < 0) continue;  // bed_idx<0 means unarrangable
-        //BBS: partplate postprocess
-        if (only_on_partplate)
-            plate_list.postprocess_bed_index_for_current_plate(ap);
+        //BBS: partplate
+        PartPlateList& plate_list = m_plater->get_partplate_list();
+        //clear all the relations before apply the arrangement results
+        if (only_on_partplate) {
+            plate_list.clear(false, false, true, current_plate_index);
+        }
         else
-            plate_list.postprocess_bed_index_for_selected(ap);
+            plate_list.clear(false, false, true, -1);
+        //BBS: adjust the bed_index, create new plates, get the max bed_index
+        for (ArrangePolygon& ap : m_selected) {
+            //if (ap.bed_idx < 0) continue;  // bed_idx<0 means unarrangable
+            //BBS: partplate postprocess
+            if (only_on_partplate)
+                plate_list.postprocess_bed_index_for_current_plate(ap);
+            else
+                plate_list.postprocess_bed_index_for_selected(ap);
 
-        beds = std::max(ap.bed_idx, beds);
+            beds = std::max(ap.bed_idx, beds);
 
-        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": arrange selected %4%: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
-    }
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": arrange selected %4%: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
+        }
 
-    //BBS: adjust the bed_index, create new plates, get the max bed_index
-    for (ArrangePolygon& ap : m_unselected) {
-        if (ap.is_virt_object)
-            continue;
+        //BBS: adjust the bed_index, create new plates, get the max bed_index
+        for (ArrangePolygon& ap : m_unselected) {
+            if (ap.is_virt_object)
+                continue;
 
-        //BBS: partplate postprocess
-        if (!only_on_partplate)
-            plate_list.postprocess_bed_index_for_unselected(ap);
+            //BBS: partplate postprocess
+            if (!only_on_partplate)
+                plate_list.postprocess_bed_index_for_unselected(ap);
 
-        beds = std::max(ap.bed_idx, beds);
-        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":arrange unselected %4%: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
-    }
+            beds = std::max(ap.bed_idx, beds);
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":arrange unselected %4%: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
+        }
 
-    for (ArrangePolygon& ap : m_locked) {
-        beds = std::max(ap.bed_idx, beds);
+        for (ArrangePolygon& ap : m_locked) {
+            beds = std::max(ap.bed_idx, beds);
 
-        plate_list.postprocess_arrange_polygon(ap, false);
+            plate_list.postprocess_arrange_polygon(ap, false);
 
-        ap.apply();
-    }
+            ap.apply();
+        }
 
-    // Apply the arrange result to all selected objects
-    for (ArrangePolygon& ap : m_selected) {
-        //BBS: partplate postprocess
-        plate_list.postprocess_arrange_polygon(ap, true);
+        // Apply the arrange result to all selected objects
+        for (ArrangePolygon& ap : m_selected) {
+            //BBS: partplate postprocess
+            plate_list.postprocess_arrange_polygon(ap, true);
 
-        ap.apply();
-    }
+            ap.apply();
+        }
 
-    // Apply the arrange result to unselected objects(due to the sukodu-style column changes, the position of unselected may also be modified)
-    for (ArrangePolygon& ap : m_unselected) {
-        if (ap.is_virt_object)
-            continue;
+        // Apply the arrange result to unselected objects(due to the sukodu-style column changes, the position of unselected may also be modified)
+        for (ArrangePolygon& ap : m_unselected) {
+            if (ap.is_virt_object)
+                continue;
 
-        //BBS: partplate postprocess
-        plate_list.postprocess_arrange_polygon(ap, false);
+            //BBS: partplate postprocess
+            plate_list.postprocess_arrange_polygon(ap, false);
 
-        ap.apply();
-    }
+            ap.apply();
+        }
 
-    // Move the unprintable items to the last virtual bed.
-    // Note ap.apply() moves relatively according to bed_idx, so we need to subtract the orignal bed_idx
-    for (ArrangePolygon& ap : m_unprintable) {
-        ap.bed_idx = beds + 1;
-        plate_list.postprocess_arrange_polygon(ap, true);
+        // Move the unprintable items to the last virtual bed.
+        // Note ap.apply() moves relatively according to bed_idx, so we need to subtract the orignal bed_idx
+        for (ArrangePolygon& ap : m_unprintable) {
+            ap.bed_idx = beds + 1;
+            plate_list.postprocess_arrange_polygon(ap, true);
 
-        ap.apply();
-        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":arrange m_unprintable: name: %4%, bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
-    }
+            ap.apply();
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":arrange m_unprintable: name: %4%, bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
+        }
 
-    m_plater->update();
-    // BBS
-    //wxGetApp().obj_manipul()->set_dirty();
+        m_plater->update();
+        // BBS
+        //wxGetApp().obj_manipul()->set_dirty();
 
-    if (!m_unarranged.empty()) {
-        std::set<std::string> names;
-        for (ModelInstance* mi : m_unarranged)
-            names.insert(mi->get_object()->name);
+        if (!m_unarranged.empty()) {
+            std::set<std::string> names;
+            for (ModelInstance* mi : m_unarranged)
+                names.insert(mi->get_object()->name);
 
-        m_plater->get_notification_manager()->push_notification(GUI::format(
-            _L("Arrangement ignored the following objects which can't fit into a single bed:\n%s"),
-            concat_strings(names, "\n")));
-    }
+            m_plater->get_notification_manager()->push_notification(GUI::format(
+                _L("Arrangement ignored the following objects which can't fit into a single bed:\n%s"),
+                concat_strings(names, "\n")));
+        }
 
-    // unlock the plates we just locked
-    for (int i : m_uncompatible_plates) {
-        PartPlate* plate = plate_list.get_plate(i);
-        if (plate) plate->lock(false);
-    }
+        // unlock the plates we just locked
+        for (int i : m_uncompatible_plates) {
+            PartPlate* plate = plate_list.get_plate(i);
+            if (plate) plate->lock(false);
+        }
 
-    //BBS: reload all objects due to arrange
-    if (only_on_partplate) {
-        plate_list.rebuild_plates_after_arrangement(!only_on_partplate, true, current_plate_index);
+        //BBS: reload all objects due to arrange
+        if (only_on_partplate) {
+            plate_list.rebuild_plates_after_arrangement(!only_on_partplate, true, current_plate_index);
+        }
+        else {
+            plate_list.rebuild_plates_after_arrangement(!only_on_partplate, true);
+        }
+
+        // BBS: update slice context and gcode result.
+        m_plater->update_slicing_context_to_current_partplate();
+
+        wxGetApp().obj_list()->reload_all_plates();
+
+        m_plater->update();
+        m_plater->get_notification_manager()->push_notification(NotificationType::ArrangeOngoing,
+            NotificationManager::NotificationLevel::RegularNotificationLevel, _u8L("Arranging done."));
     }
     else {
-        plate_list.rebuild_plates_after_arrangement(!only_on_partplate, true);
+        m_plater->get_notification_manager()->push_notification(NotificationType::ArrangeOngoing,
+            NotificationManager::NotificationLevel::RegularNotificationLevel, _u8L("Arranging canceled."));
     }
-
-    // BBS: update slice context and gcode result.
-    m_plater->update_slicing_context_to_current_partplate();
-
-    wxGetApp().obj_list()->reload_all_plates();
-
-    m_plater->update();
-    m_plater->get_notification_manager()->push_notification(NotificationType::ArrangeOngoing,
-        NotificationManager::NotificationLevel::RegularNotificationLevel, _u8L("Arranging done."));
-
+    Job::finalize();
     m_plater->m_arrange_running.store(false);
 }
 

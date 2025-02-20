@@ -1,9 +1,7 @@
 #ifndef ARRANGEJOB_HPP
 #define ARRANGEJOB_HPP
 
-#include <optional>
-
-#include "Job.hpp"
+#include "PlaterJob.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "libslic3r/Arrange.hpp"
 #include "libslic3r/Model.hpp"
@@ -14,9 +12,7 @@ class ModelInstance;
 
 namespace GUI {
 
-class Plater;
-
-class ArrangeJob : public Job
+class ArrangeJob : public PlaterJob
 {
     using ArrangePolygon = arrangement::ArrangePolygon;
     using ArrangePolygons = arrangement::ArrangePolygons;
@@ -24,16 +20,12 @@ class ArrangeJob : public Job
     //BBS: add locked logic
     ArrangePolygons m_selected, m_unselected, m_unprintable, m_locked;
     std::vector<ModelInstance*> m_unarranged;
-    Plater *m_plater;
     std::map<int, ArrangePolygons> m_selected_groups;   // groups of selected items for sequential printing
     std::vector<int> m_uncompatible_plates;  // plate indices with different printing sequence than global
 
     arrangement::ArrangeParams params;
     int current_plate_index = 0;
     Polygon bed_poly;
-
-    //BBS: add flag for whether on current part plate
-    bool only_on_partplate{false};
 
     // clear m_selected and m_unselected, reserve space for next usage
     void clear_input();
@@ -49,25 +41,29 @@ class ArrangeJob : public Job
     void prepare_wipe_tower();
 
     ArrangePolygon prepare_arrange_polygon(void* instance);
+
 protected:
+
+    void prepare() override;
 
     void check_unprintable();
 
+    void on_exception(const std::exception_ptr &) override;
+
+    void process() override;
+
 public:
+    ArrangeJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater)
+        : PlaterJob{std::move(pri), plater}
+    {}
 
-    void prepare();
-
-    void process(Ctl &ctl) override;
-
-    ArrangeJob();
-
-    int status_range() const
+    int status_range() const override
     {
         // ensure finalize() is called after all operations in process() is finished.
         return int(m_selected.size() + m_unprintable.size() + 1);
     }
 
-    void finalize(bool canceled, std::exception_ptr &e) override;
+    void finalize() override;
 };
 
 std::optional<arrangement::ArrangePolygon> get_wipe_tower_arrangepoly(const Plater &);
