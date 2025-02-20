@@ -1171,6 +1171,9 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_step_mesh_setting = create_item_checkbox(_L("Show the step mesh parameter setting dialog."), page, _L("If enabled,a parameter settings dialog will appear during STEP file import."), 50, "enable_step_mesh_setting");
     auto item_beta_version_update = create_item_checkbox(_L("Support beta version update."), page, _L("With this option enabled, you can receive beta version updates."), 50, "enable_beta_version_update");
     auto item_mix_print_high_low_temperature = create_item_checkbox(_L("Remove the restriction on mixed printing of high and low temperature filaments."), page, _L("With this option enabled, you can print materials with a large temperature difference together."), 50, "enable_high_low_temp_mixed_printing");
+    auto item_restore_hide_pop_ups = create_item_button(_L("Clear my choice for synchronizing printer preset after loading the file."), _L("Clear"), page, _L("Clear my choice for synchronizing printer preset after loading the file."), []() {
+        wxGetApp().app_config->erase("app", "sync_after_load_file_show_flag");
+    });
     auto _3d_settings    = create_item_title(_L("3D Settings"), page, _L("3D Settings"));
     auto item_mouse_zoom_settings  = create_item_checkbox(_L("Zoom to mouse position"), page,
                                                          _L("Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."), 50,
@@ -1279,6 +1282,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_beta_version_update, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_auto_transfer_when_switch_preset, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_mix_print_high_low_temperature, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_restore_hide_pop_ups, 0, wxTOP, FromDIP(3));
     sizer_page->Add(_3d_settings, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_mouse_zoom_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_show_shells_in_preview_settings, 0, wxTOP, FromDIP(3));
