@@ -3706,6 +3706,7 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("scan_first_layer");
         optgroup->append_single_option_line("use_relative_e_distances");
         optgroup->append_single_option_line("use_firmware_retraction");
+        optgroup->append_single_option_line("bed_temperature_formula");
         // optgroup->append_single_option_line("spaghetti_detector");
         optgroup->append_single_option_line("machine_load_filament_time");
         optgroup->append_single_option_line("machine_unload_filament_time");
