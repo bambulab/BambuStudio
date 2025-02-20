@@ -44,18 +44,6 @@ class PlaterWorker: public Worker {
                     wxWakeUpIdle();
                 }
 
-                void clear_percent() override
-                {
-                    ctl.clear_percent();
-                    wxWakeUpIdle();
-                }
-
-                void show_error_info(wxString msg, int code, wxString description, wxString extra) override
-                {
-                    ctl.show_error_info(msg, code, description, extra);
-                    wxWakeUpIdle();
-                }
-
                 bool was_canceled() const override { return ctl.was_canceled(); }
 
                 std::future<void> call_on_main_thread(std::function<void()> fn) override
