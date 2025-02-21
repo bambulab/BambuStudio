@@ -1004,11 +1004,9 @@ std::string UrlEncode( const std::string &input )
     escaped.fill('0');
     escaped << std::hex;
     for (char c : input) {
-        // 如果字符是字母、数字、'-'、'.'、'_' 或 '~'，则直接添加到结果中
         if (std::isalnum(c) || c == '-' || c == '.' || c == '_' || c == '~') {
             escaped << c;
         } else {
-            // 对于其他字符，将其转换为 %XX 的形式
             escaped << '%' << std::setw(2) << static_cast<int>(static_cast<unsigned char>(c));
         }
     }
@@ -1215,7 +1213,7 @@ void WebViewPanel::update_mode()
     */
 void WebViewPanel::OnNavigationRequest(wxWebViewEvent& evt)
 {
-    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << evt.GetTarget().ToUTF8().data();
+    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << evt.GetURL().ToUTF8().data();
     const wxString &url = evt.GetURL();
     if (url.StartsWith("File://") || url.StartsWith("file://")) {
         if (!url.Contains("/web/homepage3/")) {
@@ -1301,7 +1299,7 @@ void WebViewPanel::OnNavigationComplete(wxWebViewEvent& evt)
 
     //m_browser->Show();
     Layout();
-    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << evt.GetTarget().ToUTF8().data();
+    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << evt.GetURL().ToUTF8().data();
     if (wxGetApp().get_mode() == comDevelop)
         wxLogMessage("%s", "Navigation complete; url='" + evt.GetURL() + "'");
     UpdateState();
