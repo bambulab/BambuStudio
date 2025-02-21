@@ -699,7 +699,7 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
 
     // for small overhang removal
     struct OverhangCluster {
-        std::map<int, const ExPolygon*> layer_overhangs;
+        std::map<int, ExPolygons> layer_overhangs;
         ExPolygons merged_poly;
         BoundingBox merged_bbox;
         int min_layer = 1e7;
@@ -721,7 +721,11 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
             push_back(expoly, layer_nr);
         }
         void push_back(const ExPolygon* expoly, int layer_nr) {
-            layer_overhangs.emplace(layer_nr, expoly);
+            auto it = layer_overhangs.find(layer_nr);
+            if (it == layer_overhangs.end())
+                layer_overhangs.emplace(layer_nr, ExPolygons{*expoly});
+            else
+                layer_overhangs[layer_nr].emplace_back(*expoly);
             auto dilate1 = offset_ex(*expoly, offset);
             if (!dilate1.empty())
                 merged_poly = union_ex(merged_poly, dilate1);
@@ -736,14 +740,14 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
             if (layer_nr < 1) return false;
             auto it = layer_overhangs.find(layer_nr - 1);
             if (it == layer_overhangs.end()) return false;
-            const ExPolygon* overhang = it->second;
+            const ExPolygons overhangs = it->second;
 
             this->offset = offset;
             auto dilate1 = offset_ex(region, offset);
             BoundingBox bbox = get_extents(dilate1);
             if (!merged_bbox.overlap(bbox))
                 return false;
-            return overlaps({ *overhang }, dilate1);
+            return overlaps(overhangs, dilate1);
         }
         // it's basically the combination of push_back and intersects, but saves an offset_ex
         bool push_back_if_intersects(const ExPolygon& region, int layer_nr, coordf_t offset) {
@@ -755,17 +759,21 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
                 if (layer_nr < 1) break;
                 auto it = layer_overhangs.find(layer_nr - 1);
                 if (it == layer_overhangs.end()) break;
-                const ExPolygon* overhang = it->second;
+                const ExPolygons overhangs = it->second;
 
                 dilate1 = offset_ex(region, offset);
                 if (dilate1.empty()) break;
                 bbox = get_extents(dilate1);
                 if (!merged_bbox.overlap(bbox))
                     break;
-                is_intersect = overlaps({ *overhang }, dilate1);
+                is_intersect = overlaps(overhangs, dilate1);
             } while (0);
             if (is_intersect) {
-                layer_overhangs.emplace(layer_nr, &region);
+                auto it = layer_overhangs.find(layer_nr);
+                if (it == layer_overhangs.end())
+                    layer_overhangs.emplace(layer_nr, ExPolygons{region});
+                else
+                    layer_overhangs[layer_nr].emplace_back(region);
                 merged_poly = union_ex(merged_poly, dilate1);
                 min_layer = std::min(min_layer, layer_nr);
                 max_layer = std::max(max_layer, layer_nr);
@@ -786,8 +794,8 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
             float avg_area             = 0;
             int   num_layers           = 0;
             for (auto it = layer_overhangs.begin(); it != layer_overhangs.end(); it++) {
-                const ExPolygon *overhang = it->second;
-                ExPolygons       erodel   = offset_ex(*overhang, -extrusion_width_scaled / 2);
+                const ExPolygons overhangs = it->second;
+                ExPolygons       erodel   = offset_ex(overhangs, -extrusion_width_scaled / 2);
                 coord_t          narrow_width = 0;
                 for (auto &poly : erodel) {
                     Point bbox_sz = get_extents(poly).size();
@@ -795,7 +803,7 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
                 }
                 if (narrow_width > extrusion_width_scaled) all_layers_are_small = false;
                 avg_width += narrow_width;
-                avg_area += area(*overhang);
+                avg_area += area(overhangs);
                 num_layers++;
             }
             avg_width /= num_layers;
@@ -1093,7 +1101,7 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
             cluster.set_type(SharpTail, false);
             for (size_t layer_id = cluster.min_layer; layer_id <= cluster.max_layer; layer_id++) {
                 Layer *layer = m_object->get_layer(layer_id);
-                if (overlaps(layer->sharp_tails, cluster.merged_poly)) {
+                if (overlaps(layer->sharp_tails, cluster.layer_overhangs[layer_id])) {
                     cluster.set_type(SharpTail, true);
                     break;
                 }
@@ -1117,8 +1125,8 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
             cluster.check_polygon_node(m_support_params.thresh_big_overhang, m_ts_data->m_layer_outlines_below[cluster.min_layer - 1]);
             for (auto it = cluster.layer_overhangs.begin(); it != cluster.layer_overhangs.end(); it++) {
                 int       layer_nr = it->first;
-                ExPolygon overhang = *it->second;
-                add_overhang(m_object->get_layer(layer_nr), overhang, cluster.type);
+                ExPolygons overhangs = it->second;
+                for (const auto &overhang : overhangs) add_overhang(m_object->get_layer(layer_nr), overhang, cluster.type);
             }
         }
     }
@@ -1438,7 +1446,7 @@ void TreeSupport::generate_toolpaths()
     // coconut: use same intensity settings as SupportMaterial.cpp
     auto m_support_material_interface_flow = support_material_interface_flow(m_object, float(m_slicing_params.layer_height));
     coordf_t interface_spacing = object_config.support_interface_spacing.value + m_support_material_interface_flow.spacing();
-    coordf_t bottom_interface_spacing = object_config.support_bottom_interface_spacing.value + m_support_material_interface_flow.spacing();
+    coordf_t bottom_interface_spacing = interface_spacing;
     coordf_t interface_density = std::min(1., m_support_material_interface_flow.spacing() / interface_spacing);
     coordf_t bottom_interface_density = std::min(1., m_support_material_interface_flow.spacing() / bottom_interface_spacing);
 
