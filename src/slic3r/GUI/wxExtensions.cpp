@@ -7,6 +7,15 @@
 
 #include <boost/algorithm/string/replace.hpp>
 
+/* mac need the macro while including <boost/stacktrace.hpp>*/
+#ifdef  __APPLE__
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+#endif
+
+#include <boost/stacktrace.hpp>
+
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
@@ -462,6 +471,7 @@ wxBitmap create_scaled_bitmap(  const std::string& bmp_name_in,
 
     if (bmp == nullptr) {
         // Neither SVG nor PNG has been found, raise error
+        BOOST_LOG_TRIVIAL(error) << "Could not load bitmap: " << boost::stacktrace::stacktrace();
         throw Slic3r::RuntimeError("Could not load bitmap: " + bmp_name);
     }
 
@@ -481,6 +491,7 @@ wxBitmap create_scaled_bitmap2(const std::string& bmp_name_in, Slic3r::GUI::Bitm
     wxBitmap* bmp = cache.load_svg2(bmp_name, width, height, grayscale, false, array_new_color, resize ? em_unit(win) * 0.1f : 0.f);
     if (bmp == nullptr) {
         // No SVG found
+        BOOST_LOG_TRIVIAL(error) << "Could not load bitmap: " << boost::stacktrace::stacktrace();
         throw Slic3r::RuntimeError("Could not load bitmap: " + bmp_name);
     }
     return *bmp;
