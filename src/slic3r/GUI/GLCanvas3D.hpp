@@ -743,6 +743,7 @@ public:
 
     }
     m_gizmo_highlighter;
+    bool    m_can_show_navigator = true;
 
 public:
     explicit GLCanvas3D(wxGLCanvas* canvas, Bed3D &bed);
@@ -1245,7 +1246,7 @@ private:
     bool _render_orient_menu(float left, float right, float bottom, float top);
     bool _render_arrange_menu(float left, float right, float bottom, float top);
     void _render_3d_navigator();
-
+    bool can_show_3d_navigator();
     void _update_volumes_hover_state();
 
     // Convert the screen space coordinate to world coordinate on the bed.
