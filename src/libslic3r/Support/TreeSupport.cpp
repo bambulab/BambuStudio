@@ -2211,7 +2211,6 @@ void TreeSupport::draw_circles()
                 coordf_t         max_layers_above_roof1 = 0;
                 int interface_id = 0;
                 bool has_circle_node = false;
-                bool need_extra_wall = false;
                 ExPolygons collision_sharp_tails;
                 ExPolygons collision_base;
                 auto             get_collision = [&](bool sharp_tail) -> ExPolygons             &{
@@ -2237,6 +2236,7 @@ void TreeSupport::draw_circles()
                 //Draw the support areas and add the roofs appropriately to the support roof instead of normal areas.
                 ts_layer->support_islands.reserve(curr_layer_nodes.size());
                 ExPolygons area_poly;  // the polygon node area which will be printed as normal support
+                ExPolygons extra_wall_area; //where nodes would have extra walls
                 for (const SupportNode* p_node : curr_layer_nodes)
                 {
                     if (print->canceled())
@@ -2256,7 +2256,10 @@ void TreeSupport::draw_circles()
                     //}
                         area = offset_ex({node.overhang}, scale_(m_ts_data->m_xy_distance));
                         area = diff_clipped(area, get_collision(node.is_sharp_tail && node.distance_to_top <= 0));
-                        if (node.type == ePolygon) append(area_poly, area);
+                        if (node.type == ePolygon) {
+                            append(area_poly, area);
+                            if (node.need_extra_wall) append(extra_wall_area, area);
+                        }
                         if (tree_brim_width <= 0) brim_width = node.type == ePolygon ? 1 : 3;
                     }
                     else {
@@ -2290,7 +2293,7 @@ void TreeSupport::draw_circles()
                         // area = diff_clipped({ ExPolygon(circle) }, get_collision(node.is_sharp_tail && node.distance_to_top <= 0));
 
                         if (!area.empty()) has_circle_node = true;
-                        if (node.need_extra_wall) need_extra_wall = true;
+                        if (node.need_extra_wall) append(extra_wall_area, area);
 
                         // merge overhang to get a smoother interface surface
                         // Do not merge when buildplate_only is on, because some underneath nodes may have been deleted.
@@ -2384,6 +2387,7 @@ void TreeSupport::draw_circles()
                     //if (area(expoly) < SQ(scale_(1))) continue;
                     area_groups.emplace_back(&expoly, SupportLayer::BaseType, max_layers_above_base);
                     area_groups.back().need_infill = overlaps({ expoly }, area_poly);
+                    bool need_extra_wall = overlaps({expoly},extra_wall_area);
                     area_groups.back().need_extra_wall = need_extra_wall && !area_groups.back().need_infill;
                 }
                 for (auto& expoly : ts_layer->roof_areas) {
@@ -3410,7 +3414,8 @@ void TreeSupport::smooth_nodes()
                             branch[i]->movement = (pts[i + 1] - pts[i - 1]) / 2;
                             branch[i]->is_processed = true;
                             if (branch[i]->parents.size() > 1 || (branch[i]->movement.x() > max_move || branch[i]->movement.y() > max_move) ||
-                                (total_height > thresh_tall_branch && branch[i]->dist_mm_to_top < thresh_dist_to_top))
+                                (total_height > thresh_tall_branch && branch[i]->dist_mm_to_top < thresh_dist_to_top) ||
+                                (m_support_params.soluble_interface && !branch[i - 1]->to_buildplate))
                                 branch[i]->need_extra_wall = true;
                             BOOST_LOG_TRIVIAL(trace) << "smooth_nodes: layer_nr=" << layer_nr << ", i=" << i << ", pt=" << pt << ", movement=" << branch[i]->movement << ", radius=" << branch[i]->radius;
                         }
