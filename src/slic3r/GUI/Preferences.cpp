@@ -65,8 +65,16 @@ wxBoxSizer *PreferencesDialog::create_item_title(wxString title, wxWindow *paren
     return m_sizer_title;
 }
 
-wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *parent, wxString tooltip, std::string param, std::vector<wxString> vlist)
+wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *parent, wxString tooltip, std::string param, const std::vector<wxString>& label_list, const std::vector<std::string>& value_list)
 {
+    auto get_value_idx = [value_list](const std::string value) {
+        size_t idx = 0;
+        auto iter = std::find(value_list.begin(), value_list.end(), value);
+        if (iter != value_list.end())
+            idx = std::distance(value_list.begin(), iter);
+        return idx;
+        };
+
     wxBoxSizer *m_sizer_combox = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_combox->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
 
@@ -82,17 +90,17 @@ wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *pa
     combobox->GetDropDown().SetFont(::Label::Body_13);
 
     std::vector<wxString>::iterator iter;
-    for (iter = vlist.begin(); iter != vlist.end(); iter++) { combobox->Append(*iter); }
+    for (auto label : label_list)
+        combobox->Append(label);
 
-
-    auto use_inch = app_config->get(param);
-    if (!use_inch.empty()) { combobox->SetSelection(atoi(use_inch.c_str())); }
+    auto old_value = app_config->get(param);
+    if (!old_value.empty()) { combobox->SetSelection(get_value_idx(old_value)); }
 
     m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER, 0);
 
     //// save config
-    combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this, param](wxCommandEvent &e) {
-        app_config->set(param, std::to_string(e.GetSelection()));
+    combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this, param, value_list](wxCommandEvent &e) {
+        app_config->set(param, value_list[e.GetSelection()]);
         app_config->save();
         e.Skip();
     });
@@ -1150,7 +1158,7 @@ wxWindow* PreferencesDialog::create_general_page()
     auto                  item_region= create_item_region_combobox(_L("Login Region"), page, _L("Login Region"), Regions);
 
     std::vector<wxString> Units         = {_L("Metric") + " (mm, g)", _L("Imperial") + " (in, oz)"};
-    auto item_currency = create_item_combobox(_L("Units"), page, _L("Units"), "use_inches", Units);
+    auto item_currency = create_item_combobox(_L("Units"), page, _L("Units"), "use_inches", Units,{"0","1"});
     auto item_single_instance = create_item_checkbox(_L("Keep only one Bambu Studio instance"), page,
 #if __APPLE__
         _L("On OSX there is always only one instance of app running by default. However it is allowed to run multiple instances "
@@ -1164,8 +1172,9 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_bed_type_follow_preset = create_item_checkbox(_L("Auto plate type"), page,
                                                          _L("Studio will remember build plate selected last time for certain printer model."), 50,
                                                          "user_bed_type");
-    std::vector<wxString> FlushOptions = {_L("all"),_L("color change"),_L("disabled")};
-    auto item_auto_flush = create_item_combobox(_L("Auto Flush"), page ,_L("Auto calculate flush volumes"), "auto_calculate_flush",FlushOptions);
+    std::vector<wxString> FlushOptionLabels = {_L("All"),_L("Color change"),_L("Disabled")};
+    std::vector<std::string> FlushOptionValues = { "all","color change","disabled" };
+    auto item_auto_flush = create_item_combobox(_L("Auto Flush"), page, _L("Auto calculate flush volumes"), "auto_calculate_flush", FlushOptionLabels, FlushOptionValues);
     //auto item_hints = create_item_checkbox(_L("Show \"Tip of the day\" notification after start"), page, _L("If enabled, useful hints are displayed at startup."), 50, "show_hints");
     auto item_multi_machine = create_item_checkbox(_L("Multi-device Management(Take effect after restarting Studio)."), page, _L("With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."), 50, "enable_multi_machine");
     auto item_step_mesh_setting = create_item_checkbox(_L("Show the step mesh parameter setting dialog."), page, _L("If enabled,a parameter settings dialog will appear during STEP file import."), 50, "enable_step_mesh_setting");
