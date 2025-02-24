@@ -60,6 +60,7 @@ public:
     std::string get_tooltip() const override;
     void        data_changed(bool is_serializing) override;
     void enable_ununiversal_scale(bool enable);
+    BoundingBoxf3 get_bounding_box() const override;
 protected:
     virtual bool on_init() override;
     virtual std::string on_get_name() const override;

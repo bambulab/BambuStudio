@@ -62,6 +62,64 @@ void GLGizmoMove3D::data_changed(bool is_serializing)
     change_cs_by_selection();
 }
 
+BoundingBoxf3 GLGizmoMove3D::get_bounding_box() const
+{
+    BoundingBoxf3 t_aabb;
+
+    Selection& selection = m_parent.get_selection();
+    // m_cone aabb
+    if (m_cone.is_initialized()) {
+        const auto& t_cone_aabb = m_cone.get_bounding_box();
+        const auto& [box, box_trafo] = selection.get_bounding_box_in_current_reference_system();
+
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        Transform3d screen_scalling_matrix{ Transform3d::Identity() };
+        const auto& t_zoom = camera.get_zoom();
+        screen_scalling_matrix.data()[0 * 4 + 0] = 1.0f / t_zoom;
+        screen_scalling_matrix.data()[1 * 4 + 1] = 1.0f / t_zoom;
+        screen_scalling_matrix.data()[2 * 4 + 2] = 1.0f / t_zoom;
+        auto model_matrix = box_trafo * screen_scalling_matrix;
+
+        double size = get_fixed_grabber_size() * 0.75;//0.75 for arrow show
+        for (unsigned int i = 0; i < 3; ++i) {
+            if (m_grabbers[i].enabled) {
+                auto i_model_matrix = model_matrix * Geometry::assemble_transform(m_grabbers[i].center);
+
+                if (i == X)
+                    i_model_matrix = i_model_matrix * Geometry::assemble_transform(Vec3d::Zero(), 0.5 * PI * Vec3d::UnitY());
+                else if (i == Y)
+                    i_model_matrix = i_model_matrix * Geometry::assemble_transform(Vec3d::Zero(), -0.5 * PI * Vec3d::UnitX());
+                i_model_matrix = i_model_matrix * Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), Vec3d(0.75 * size, 0.75 * size, 2.0 * size));
+
+                auto i_aabb = t_cone_aabb.transformed(i_model_matrix);
+                i_aabb.defined = true;
+                t_aabb.merge(i_aabb);
+                t_aabb.defined = true;
+            }
+        }
+    }
+    // end m_cone aabb
+
+    // m_cross_mark aabb
+    if (m_object_manipulation->is_instance_coordinates()) {
+        Geometry::Transformation cur_tran;
+        if (auto mi = m_parent.get_selection().get_selected_single_intance()) {
+            cur_tran = mi->get_transformation();
+        }
+        else {
+            cur_tran = selection.get_first_volume()->get_instance_transformation();
+        }
+
+        auto t_cross_mask_aabb = get_cross_mask_aabb(cur_tran.get_matrix(), Vec3f::Zero(), true);
+        t_cross_mask_aabb.defined = true;
+        t_aabb.merge(t_cross_mask_aabb);
+        t_aabb.defined = true;
+    }
+
+    // end m_cross_mark aabb
+    return t_aabb;
+}
+
 bool GLGizmoMove3D::on_init()
 {
     for (int i = 0; i < 3; ++i) {
@@ -137,7 +195,17 @@ void GLGizmoMove3D::on_render()
         m_object_manipulation->cs_center = box_trafo.translation();
     }
     m_orient_matrix                 = box_trafo;
-    float space_size = 20.f *INV_ZOOM;
+
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    Transform3d screen_scalling_matrix{ Transform3d::Identity() };
+    const auto& t_zoom = camera.get_zoom();
+    screen_scalling_matrix.data()[0 * 4 + 0] = 1.0f / t_zoom;
+    screen_scalling_matrix.data()[1 * 4 + 1] = 1.0f / t_zoom;
+    screen_scalling_matrix.data()[2 * 4 + 2] = 1.0f / t_zoom;
+    m_orient_matrix = m_orient_matrix * screen_scalling_matrix;
+
+    float space_size = 100.f;
+
     space_size *= GLGizmoBase::Grabber::GrabberSizeFactor;
 #if ENABLE_FIXED_GRABBER
     // x axis
@@ -263,7 +331,7 @@ double GLGizmoMove3D::calc_projection(const UpdateData& data) const
 
 void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box, bool picking) const
 {
-    double size = get_grabber_size() * 0.75;//0.75 for arrow show
+    double size = get_fixed_grabber_size() * 0.75;//0.75 for arrow show
 
     std::array<float, 4> color = m_grabbers[axis].color;
     if (!picking && m_hover_id != -1) {

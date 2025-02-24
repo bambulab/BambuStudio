@@ -7119,10 +7119,8 @@ BoundingBoxf3 GLCanvas3D::_max_bounding_box(bool include_gizmos, bool include_be
     // A better solution would ask the gizmo manager for the bounding box of the current active gizmo, if any
     if (include_gizmos && m_gizmos.is_running())
     {
-        BoundingBoxf3 sel_bb = m_selection.get_bounding_box();
-        Vec3d sel_bb_center = sel_bb.center();
-        Vec3d extend_by = sel_bb.max_size() * Vec3d::Ones();
-        bb.merge(BoundingBoxf3(sel_bb_center - extend_by, sel_bb_center + extend_by));
+        const auto& t_aabb = m_gizmos.get_bounding_box();
+        bb.merge(t_aabb);
     }
 
     bb.merge(include_bed_model ? m_bed.extended_bounding_box() : m_bed.build_volume().bounding_volume());

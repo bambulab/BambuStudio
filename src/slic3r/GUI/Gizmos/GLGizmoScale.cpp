@@ -84,6 +84,31 @@ void GLGizmoScale3D::enable_ununiversal_scale(bool enable)
         m_grabbers[i].enabled = enable;
 }
 
+BoundingBoxf3 GLGizmoScale3D::get_bounding_box() const
+{
+    BoundingBoxf3 t_aabb;
+    t_aabb.reset();
+
+    for (unsigned int i = 0; i < m_grabbers.size(); ++i) {
+        if (!m_grabbers[i].enabled) {
+            continue;
+        }
+        const auto& t_grabber_model = m_grabbers[i].get_cube();
+        if (!t_grabber_model.is_initialized()) {
+            continue;
+        }
+        auto t_grabber_aabb = t_grabber_model.get_bounding_box();
+        const auto& t_grabber_model_matrix = m_grabbers[i].m_matrix;
+        t_grabber_aabb = t_grabber_aabb.transformed(t_grabber_model_matrix);
+        t_grabber_aabb.defined = true;
+
+        t_aabb.merge(t_grabber_aabb);
+        t_aabb.defined = true;
+    }
+
+    return t_aabb;
+}
+
 bool GLGizmoScale3D::on_init()
 {
     for (int i = 0; i < 10; ++i)
@@ -217,13 +242,18 @@ void GLGizmoScale3D::update_grabbers_data()
     m_grabbers[8].color  = (ctrl_down && m_hover_id == 6) ? CONSTRAINED_COLOR : GRABBER_UNIFORM_COL;
     m_grabbers[9].center = Vec3d(-box_half_size.x(), box_half_size.y(), -box_half_size.z());
     m_grabbers[9].color  = (ctrl_down && m_hover_id == 7) ? CONSTRAINED_COLOR : GRABBER_UNIFORM_COL;
-    for (int i = 0; i < 6; ++i) {
-        //m_grabbers[i].color       = AXES_COLOR[i / 2];
-        m_grabbers[i].hover_color = AXES_HOVER_COLOR[i / 2];
-    }
-    for (int i = 6; i < 10; ++i) {
-        //m_grabbers[i].color       = GRABBER_UNIFORM_COL;
-        m_grabbers[i].hover_color = GRABBER_UNIFORM_HOVER_COL;
+
+    Transform3d t_model_matrix{ Transform3d::Identity() };
+    const auto t_fullsize = get_grabber_size();
+    for (int i = 0; i < m_grabbers.size(); ++i) {
+        if (i < 6) {
+            m_grabbers[i].hover_color = AXES_HOVER_COLOR[i / 2];
+        }
+        else {
+            m_grabbers[i].hover_color = GRABBER_UNIFORM_HOVER_COL;
+        }
+        t_model_matrix = m_grabbers_tran.get_matrix() * Geometry::assemble_transform(m_grabbers[i].center, Vec3d(0.0f, 0.0f, 0.0f), t_fullsize * Vec3d::Ones());
+        m_grabbers[i].set_model_matrix(t_model_matrix);
     }
 }
 
@@ -269,19 +299,15 @@ void GLGizmoScale3D::on_render()
     glsafe(::glColor4fv(m_grabbers[0].color.data()));
     render_grabbers_connection(7, 8);
     render_grabbers_connection(9, 6);
-
+    glsafe(::glPopMatrix());
     // draw grabbers
     render_grabbers();
-    glsafe(::glPopMatrix());
 }
 
 void GLGizmoScale3D::on_render_for_picking()
 {
     glsafe(::glDisable(GL_DEPTH_TEST));
-    glsafe(::glPushMatrix());
-    glsafe(::glMultMatrixd(m_grabbers_tran.get_matrix().data()));
     render_grabbers_for_picking(m_parent.get_selection().get_bounding_box());
-    glsafe(::glPopMatrix());
 }
 
 void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int id_2) const

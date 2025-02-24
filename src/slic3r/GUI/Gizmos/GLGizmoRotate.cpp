@@ -16,7 +16,7 @@ namespace Slic3r {
 namespace GUI {
 
 
-const float GLGizmoRotate::Offset = 5.0f;
+const float GLGizmoRotate::Offset = 100.0f;
 const unsigned int GLGizmoRotate::CircleResolution = 64;
 const unsigned int GLGizmoRotate::AngleResolution = 64;
 const unsigned int GLGizmoRotate::ScaleStepsCount = 72;
@@ -130,10 +130,16 @@ void GLGizmoRotate::on_render()
         init_data_from_selection(selection);
     }
 
+    m_base_model_matrix = calculate_base_model_matrix();// transform_to_local(selection)* scalling_matrix;
+
     glsafe(::glEnable(GL_DEPTH_TEST));
 
     glsafe(::glPushMatrix());
-    transform_to_local(selection);
+
+    Transform3d redius_scale_matrix;
+    Geometry::scale_transform(redius_scale_matrix, { m_radius, m_radius, m_radius });
+    Transform3d circle_model_matrix = m_base_model_matrix * redius_scale_matrix;
+    glsafe(::glMultMatrixd(circle_model_matrix.data()));
 
     glsafe(::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f));
     glsafe(::glColor4fv((m_hover_id != -1) ? m_drag_color.data() : m_highlight_color.data()));
@@ -151,10 +157,16 @@ void GLGizmoRotate::on_render()
     if (m_hover_id != -1)
         render_angle();
 
-    render_grabber(m_bounding_box);
-    render_grabber_extension(m_bounding_box, false);
+    glsafe(::glColor4fv((m_hover_id != -1) ? m_drag_color.data() : m_highlight_color.data()));
+
+    glsafe(::glBegin(GL_LINES));
+    glsafe(::glVertex3f(0.0f, 0.0f, 0.0f));
+    glsafe(::glVertex3f(::cos(m_angle) * (1.0 + (double)GrabberOffset), ::sin(m_angle) * (1.0 + (double)GrabberOffset), 0.0f));
+    glsafe(::glEnd());
 
     glsafe(::glPopMatrix());
+    render_grabber(m_bounding_box);
+    render_grabber_extension(m_bounding_box, false);
 }
 
 void GLGizmoRotate::on_render_for_picking()
@@ -164,8 +176,6 @@ void GLGizmoRotate::on_render_for_picking()
     glsafe(::glDisable(GL_DEPTH_TEST));
 
     glsafe(::glPushMatrix());
-
-    transform_to_local(selection);
 
     const BoundingBoxf3& box = selection.get_bounding_box();
     render_grabbers_for_picking(box);
@@ -212,8 +222,8 @@ void GLGizmoRotate::render_circle() const
     for (unsigned int i = 0; i < ScaleStepsCount; ++i)
     {
         float angle = (float)i * ScaleStepRad;
-        float x = ::cos(angle) * m_radius;
-        float y = ::sin(angle) * m_radius;
+        float x = ::cos(angle) * 1.0f;
+        float y = ::sin(angle) * 1.0f;
         float z = 0.0f;
         ::glVertex3f((GLfloat)x, (GLfloat)y, (GLfloat)z);
     }
@@ -223,7 +233,7 @@ void GLGizmoRotate::render_circle() const
 void GLGizmoRotate::render_scale() const
 {
     float out_radius_long = m_snap_fine_out_radius;
-    float out_radius_short = m_radius * (1.0f + 0.5f * ScaleLongTooth);
+    float out_radius_short = 1.0f * (1.0f + 0.5f * ScaleLongTooth);
 
     ::glBegin(GL_LINES);
     for (unsigned int i = 0; i < ScaleStepsCount; ++i)
@@ -231,8 +241,8 @@ void GLGizmoRotate::render_scale() const
         float angle = (float)i * ScaleStepRad;
         float cosa = ::cos(angle);
         float sina = ::sin(angle);
-        float in_x = cosa * m_radius;
-        float in_y = sina * m_radius;
+        float in_x = cosa * 1.0f;
+        float in_y = sina * 1.0f;
         float in_z = 0.0f;
         float out_x = (i % ScaleLongEvery == 0) ? cosa * out_radius_long : cosa * out_radius_short;
         float out_y = (i % ScaleLongEvery == 0) ? sina * out_radius_long : sina * out_radius_short;
@@ -247,7 +257,7 @@ void GLGizmoRotate::render_snap_radii() const
 {
     float step = 2.0f * (float)PI / (float)SnapRegionsCount;
 
-    float in_radius = m_radius / 3.0f;
+    float in_radius = 1.0f / 3.0f;
     float out_radius = 2.0f * in_radius;
 
     ::glBegin(GL_LINES);
@@ -272,14 +282,14 @@ void GLGizmoRotate::render_reference_radius() const
 {
     ::glBegin(GL_LINES);
     ::glVertex3f(0.0f, 0.0f, 0.0f);
-    ::glVertex3f((GLfloat)(m_radius * (1.0f + GrabberOffset)), 0.0f, 0.0f);
+    ::glVertex3f((GLfloat)(1.0f * (1.0f + GrabberOffset)), 0.0f, 0.0f);
     glsafe(::glEnd());
 }
 
 void GLGizmoRotate::render_angle() const
 {
     float step_angle = (float)m_angle / AngleResolution;
-    float ex_radius = m_radius * (1.0f + GrabberOffset);
+    float ex_radius = 1.0f * (1.0f + GrabberOffset);
 
     ::glBegin(GL_LINE_STRIP);
     for (unsigned int i = 0; i <= AngleResolution; ++i)
@@ -297,16 +307,12 @@ void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
 {
     double grabber_radius = (double)m_radius * (1.0 + (double)GrabberOffset);
     m_grabbers[0].center = Vec3d(::cos(m_angle) * grabber_radius, ::sin(m_angle) * grabber_radius, 0.0);
-    m_grabbers[0].angles(2) = m_angle;
     m_grabbers[0].color = AXES_COLOR[m_axis];
     m_grabbers[0].hover_color = AXES_HOVER_COLOR[m_axis];
 
-    glsafe(::glColor4fv((m_hover_id != -1) ? m_drag_color.data() : m_highlight_color.data()));
-
-    ::glBegin(GL_LINES);
-    ::glVertex3f(0.0f, 0.0f, 0.0f);
-    ::glVertex3dv(m_grabbers[0].center.data());
-    glsafe(::glEnd());
+    const auto t_angle = Vec3d(0.0f, 0.0f, m_angle);
+    const auto t_fullsize = get_fixed_grabber_size();
+    m_grabbers.front().m_matrix = m_base_model_matrix * Geometry::assemble_transform(m_grabbers.front().center, t_angle, t_fullsize * Vec3d::Ones());
 
     m_grabbers[0].color = m_highlight_color;
     render_grabbers(box);
@@ -314,7 +320,7 @@ void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
 
 void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool picking) const
 {
-    double size = get_grabber_size() * 0.75;//0.75 for arrow show
+    double size = get_fixed_grabber_size() * 0.75;//0.75 for arrow show
 
     std::array<float, 4> color = m_grabbers[0].color;
     if (!picking && m_hover_id != -1) {
@@ -334,20 +340,20 @@ void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool pick
         shader->set_uniform("emission_factor", 0.1f);
     }
 
+    const Vec3d& center = m_grabbers.front().center;
     glsafe(::glPushMatrix());
-    glsafe(::glTranslated(m_grabbers[0].center.x(), m_grabbers[0].center.y(), m_grabbers[0].center.z()));
-    glsafe(::glRotated(Geometry::rad2deg(m_angle), 0.0, 0.0, 1.0));
-    glsafe(::glRotated(90.0, 1.0, 0.0, 0.0));
-    glsafe(::glTranslated(0.0, 0.0, 1.5 * size));
-    glsafe(::glScaled(0.75 * size, 0.75 * size, 3.0 * size));
+    Transform3d model_matrix = m_base_model_matrix 
+        * Geometry::assemble_transform(center, Vec3d(0.5 * PI, 0.0, m_angle)) 
+        * Geometry::assemble_transform(1.5 * size * Vec3d::UnitZ(), Vec3d::Zero(), Vec3d(0.75 * size, 0.75 * size, 3.0 * size));
+    glsafe(::glMultMatrixd(model_matrix.data()));
     m_cone.render();
     glsafe(::glPopMatrix());
+
+    model_matrix = m_base_model_matrix *
+        Geometry::assemble_transform(center, Vec3d(-0.5 * PI, 0.0, m_angle)) *
+        Geometry::assemble_transform(1.5 * size * Vec3d::UnitZ(), Vec3d::Zero(), Vec3d(0.75 * size, 0.75 * size, 3.0 * size));
     glsafe(::glPushMatrix());
-    glsafe(::glTranslated(m_grabbers[0].center.x(), m_grabbers[0].center.y(), m_grabbers[0].center.z()));
-    glsafe(::glRotated(Geometry::rad2deg(m_angle), 0.0, 0.0, 1.0));
-    glsafe(::glRotated(-90.0, 1.0, 0.0, 0.0));
-    glsafe(::glTranslated(0.0, 0.0, 1.5 * size));
-    glsafe(::glScaled(0.75 * size, 0.75 * size, 3.0 * size));
+    glsafe(::glMultMatrixd(model_matrix.data()));
     m_cone.render();
     glsafe(::glPopMatrix());
 
@@ -355,35 +361,54 @@ void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool pick
         shader->stop_using();
 }
 
-void GLGizmoRotate::transform_to_local(const Selection &selection) const
+Transform3d GLGizmoRotate::calculate_base_model_matrix() const
 {
-    glsafe(::glTranslated(m_center(0), m_center(1), m_center(2)));
+    const Selection& selection = m_parent.get_selection();
+    /*if (m_hover_id != 0 && !m_grabbers[0].dragging) {
+        init_data_from_selection(selection);
+    }*/
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    Transform3d scalling_matrix{ Transform3d::Identity() };
+    const auto& t_zoom = camera.get_zoom();
+    scalling_matrix.data()[0 * 4 + 0] = 1.0f / t_zoom;
+    scalling_matrix.data()[1 * 4 + 1] = 1.0f / t_zoom;
+    scalling_matrix.data()[2 * 4 + 2] = 1.0f / t_zoom;
+    return transform_to_local(selection) * scalling_matrix;
+}
 
-    if (selection.is_single_volume() || selection.is_single_modifier() || selection.requires_local_axes() || m_force_local_coordinate) {
-        glsafe(::glMultMatrixd(Geometry::Transformation(m_orient_matrix).get_matrix_no_offset().data()));
-    }
+Transform3d GLGizmoRotate::calculate_circle_model_matrix() const
+{
+    Transform3d redius_scale_matrix;
+    Geometry::scale_transform(redius_scale_matrix, { m_radius, m_radius, m_radius });
+    const auto t_base_model_matrix = calculate_base_model_matrix();
+    return t_base_model_matrix * redius_scale_matrix;
+}
 
+Transform3d  GLGizmoRotate::transform_to_local(const Selection &selection) const
+{
+    Transform3d ret;
     switch (m_axis)
     {
     case X:
     {
-        glsafe(::glRotatef(90.0f, 0.0f, 1.0f, 0.0f));
-        glsafe(::glRotatef(-90.0f, 0.0f, 0.0f, 1.0f));
+        ret = Geometry::assemble_transform(Vec3d::Zero(), 0.5 * PI * Vec3d::UnitY()) * Geometry::assemble_transform(Vec3d::Zero(), -0.5 * PI * Vec3d::UnitZ());
         break;
     }
     case Y:
     {
-        glsafe(::glRotatef(-90.0f, 0.0f, 0.0f, 1.0f));
-        glsafe(::glRotatef(-90.0f, 0.0f, 1.0f, 0.0f));
+        ret = Geometry::assemble_transform(Vec3d::Zero(), -0.5 * PI * Vec3d::UnitZ()) * Geometry::assemble_transform(Vec3d::Zero(), -0.5 * PI * Vec3d::UnitY());
         break;
     }
     default:
     case Z:
     {
-        // no rotation
+        ret = Transform3d::Identity();
         break;
     }
     }
+    if (selection.is_single_volume() || selection.is_single_modifier() || selection.requires_local_axes())
+        ret = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix(true, false, true, true) * ret;
+    return m_orient_matrix * ret;
 }
 
 Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray, const Selection& selection) const
@@ -430,14 +455,64 @@ void GLGizmoRotate::init_data_from_selection(const Selection &selection) {
     m_bounding_box                        = box;
     const std::pair<Vec3d, double> sphere = selection.get_bounding_sphere();
     m_center                              = sphere.first;
-    m_radius                              = Offset + sphere.second;
+    m_radius = Offset;// +sphere.second;
     m_orient_matrix                       = box_trafo;
     m_orient_matrix.translation()         = m_center;
-    m_snap_coarse_in_radius               = m_radius / 3.0f;
+    m_snap_coarse_in_radius               = 1.0f / 3.0f;
     m_snap_coarse_out_radius              = 2.0f * m_snap_coarse_in_radius;
-    m_snap_fine_in_radius                 = m_radius;
-    m_snap_fine_out_radius                = m_snap_fine_in_radius + m_radius * ScaleLongTooth;
+    m_snap_fine_in_radius                 = 1.0f;
+    m_snap_fine_out_radius                = m_snap_fine_in_radius + 1.0f * ScaleLongTooth;
 
+}
+
+BoundingBoxf3 GLGizmoRotate::get_bounding_box() const
+{
+    BoundingBoxf3 t_aabb;
+    t_aabb.reset();
+
+    // m_circle aabb
+    Transform3d t_circle_model_matrix = calculate_circle_model_matrix();
+    BoundingBoxf3 t_circle_aabb;
+    t_circle_aabb.min = Vec3d(-1.0f, -1.0f, 0.0f);
+    t_circle_aabb.max = Vec3d(1.0f, 1.0f, 0.0f);
+    t_circle_aabb.defined = true;
+    t_circle_aabb.defined = true;
+    t_circle_aabb = t_circle_aabb.transformed(t_circle_model_matrix);
+    t_circle_aabb.defined = true;
+    t_aabb.merge(t_circle_aabb);
+    t_aabb.defined = true;
+    // end m_circle aabb
+
+    // m_grabber_connection aabb
+    BoundingBoxf3 t_grabber_connection_aabb;
+    t_grabber_connection_aabb.merge(Vec3d(0.0f, 0.0f, 0.0f));
+    t_grabber_connection_aabb.merge(Vec3d(::cos(m_angle) * (1.0 + (double)GrabberOffset), ::sin(m_angle) * (1.0 + (double)GrabberOffset), 0.0f));
+    t_grabber_connection_aabb.defined = true;
+    t_grabber_connection_aabb = t_grabber_connection_aabb.transformed(t_circle_model_matrix);
+    t_grabber_connection_aabb.defined = true;
+    t_aabb.merge(t_grabber_connection_aabb);
+    t_aabb.defined = true;
+
+
+    // m_grabbers aabb
+    if (m_grabbers.front().get_cube().is_initialized()) {
+        auto t_grabbers_aabb = m_grabbers.front().get_cube().get_bounding_box();
+        t_grabbers_aabb = t_grabbers_aabb.transformed(m_grabbers.front().m_matrix);
+        t_grabbers_aabb.defined = true;
+        t_aabb.merge(t_grabbers_aabb);
+        t_aabb.defined = true;
+    }
+    // end m_grabbers aabb
+
+    // m_cone aabb
+    if (m_cone.is_initialized()) {
+        auto t_cone_aabb = m_cone.get_bounding_box();
+        t_cone_aabb = t_cone_aabb.transformed(m_grabbers.front().m_matrix);
+        t_cone_aabb.defined = true;
+        t_aabb.merge(t_cone_aabb);
+        t_aabb.defined = true;
+    }
+    return t_aabb;
 }
 
 //BBS: GUI refactor: add obj manipulation
@@ -455,6 +530,34 @@ GLGizmoRotate3D::GLGizmoRotate3D(GLCanvas3D& parent, const std::string& icon_fil
     }
 
     load_rotoptimize_state();
+}
+
+BoundingBoxf3 GLGizmoRotate3D::get_bounding_box() const
+{
+    BoundingBoxf3 t_aabb;
+    t_aabb.reset();
+
+    if (m_hover_id == -1 || m_hover_id == 0)
+    {
+        const auto t_x_aabb = m_gizmos[X].get_bounding_box();
+        t_aabb.merge(t_x_aabb);
+        t_aabb.defined = true;
+    }
+
+    if (m_hover_id == -1 || m_hover_id == 1)
+    {
+        const auto t_y_aabb = m_gizmos[Y].get_bounding_box();
+        t_aabb.merge(t_y_aabb);
+        t_aabb.defined = true;
+    }
+
+    if (m_hover_id == -1 || m_hover_id == 2)
+    {
+        const auto t_z_aabb = m_gizmos[Z].get_bounding_box();
+        t_aabb.merge(t_z_aabb);
+        t_aabb.defined = true;
+    }
+    return t_aabb;
 }
 
 bool GLGizmoRotate3D::on_init()

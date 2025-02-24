@@ -730,6 +730,7 @@ void GLGizmoText::on_render()
         m_move_grabber.center     = tran.get_offset();
         Transform3d rotate_matrix = tran.get_rotation_matrix();
         Transform3d cube_mat      = Geometry::translation_transform(m_move_grabber.center) * rotate_matrix * Geometry::scale_transform(fullsize);
+        m_move_grabber.set_model_matrix(cube_mat);
         render_glmodel(m_move_grabber.get_cube(), render_color, cube_mat);
     }
 

@@ -222,6 +222,8 @@ public:
 
     virtual bool apply_clipping_plane() { return m_connectors_editing; }
 
+    BoundingBoxf3 get_bounding_box() const override;
+
 protected:
     virtual bool on_init();
     virtual void on_load(cereal::BinaryInputArchive &ar) override;

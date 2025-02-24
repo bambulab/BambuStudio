@@ -44,6 +44,7 @@ public:
 
     std::string get_tooltip() const override;
     void        data_changed(bool is_serializing) override;
+    BoundingBoxf3 get_bounding_box() const override;
 
 protected:
     virtual bool on_init() override;

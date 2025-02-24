@@ -71,11 +71,12 @@ public:
         static const float FixedRadiusSize;
 
         Vec3d center;
-        Vec3d angles;
+        /*Vec3d angles;*/
         std::array<float, 4> color;
         std::array<float, 4> hover_color;
         bool enabled;
         bool dragging;
+        Transform3d m_matrix{ Transform3d::Identity() };
 
         Grabber();
 
@@ -85,6 +86,7 @@ public:
         float get_half_size(float size) const;
         float get_dragging_half_size(float size) const;
         GLModel& get_cube();
+        void set_model_matrix(const Transform3d& model_matrix);
 
     private:
         void render(const std::array<float, 4>& render_color, bool picking) const;
@@ -174,6 +176,7 @@ protected:
         size_t &selection_idx, float label_width, float item_width);
     void render_cross_mark(const Vec3f& target,bool is_single =false);
     static float get_grabber_size();
+    static float get_fixed_grabber_size();
 
 public:
     GLGizmoBase(GLCanvas3D& parent,
@@ -241,6 +244,7 @@ public:
     /// </summary>
     virtual void data_changed(bool is_serializing){};
     int get_count() { return ++count; }
+    virtual BoundingBoxf3 get_bounding_box() const;
     static void  render_glmodel(GLModel &model, const std::array<float, 4> &color, Transform3d view_model_matrix, bool for_picking = false, float emission_factor = 0.0f);
 protected:
     float last_input_window_width = 0;
@@ -292,6 +296,17 @@ protected:
         if (value >= _max) { value = _max;}
         if (value <= _min) { value = _min; }
     }
+
+    BoundingBoxf3 get_cross_mask_aabb(const Transform3d& matrix, const Vec3f& target, bool is_single = false) const;
+
+private:
+    enum class ECrossMaskType
+    {
+        X,
+        Y,
+        Z
+    };
+    Transform3d get_corss_mask_model_matrix(ECrossMaskType type, const Vec3f& target, bool is_single = false) const;
 
 private:
     // Flag for dirty visible state of Gizmo

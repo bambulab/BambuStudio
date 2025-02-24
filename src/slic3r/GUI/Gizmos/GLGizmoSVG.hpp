@@ -64,6 +64,7 @@ public:
 
     void update_single_mesh_pick(GLVolume *v);
     bool gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_position, bool shift_down, bool alt_down, bool control_down);
+    BoundingBoxf3 get_bounding_box() const override;
 
 protected:
     bool on_is_selectable() const override { return false; }
