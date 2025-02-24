@@ -3603,8 +3603,8 @@ GCode::LayerResult GCode::process_layer(
     bool is_multi_extruder = m_config.nozzle_diameter.size() > 1;
 
     bool need_insert_timelapse_gcode_for_traditional = false;
-    if (!m_spiral_vase && (!m_wipe_tower || !m_wipe_tower->enable_timelapse_print())) {
-        need_insert_timelapse_gcode_for_traditional = (is_i3_printer || is_multi_extruder);
+    if (!m_wipe_tower || !m_wipe_tower->enable_timelapse_print()) {
+        need_insert_timelapse_gcode_for_traditional = ((is_i3_printer && !m_spiral_vase)|| is_multi_extruder);
     }
 
     bool has_insert_timelapse_gcode = false;
