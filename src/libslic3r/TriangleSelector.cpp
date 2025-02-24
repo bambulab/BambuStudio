@@ -1094,6 +1094,17 @@ bool TriangleSelector::Circle::is_edge_inside_cursor(const Triangle &tr, const s
     return false;
 }
 
+TriangleSelector::HeightRange::HeightRange(float z_world_, const Vec3f &source_, float height_, const Transform3d &trafo_, const ClippingPlane &clipping_plane_)
+    : SinglePointCursor(Vec3f(0.f, 0.f, 0.f), source_, 1.f, trafo_, clipping_plane_), m_z_world(z_world_), m_height(height_)
+{
+    uniform_scaling = false;//HeightRange must use world cs
+    // overwrite base
+    source       = trafo * source;
+    radius       = height_;
+    radius_sqr   = Slic3r::sqr(height_);
+    trafo_normal = trafo.linear().inverse().transpose();
+}
+
 // BBS
 bool TriangleSelector::HeightRange::is_pointer_in_triangle(const Vec3f& p1_, const Vec3f& p2_, const Vec3f& p3_) const
 {
