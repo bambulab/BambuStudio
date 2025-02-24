@@ -3790,6 +3790,7 @@ void TreeSupport::generate_contact_points()
                     // print_z=object_layer->bottom_z: it directly contacts the bottom
                     // height=z_distance_top: it's height is exactly the gap distance
                     // dist_mm_to_top=0: it directly contacts the bottom
+                    if (bottom_z - z_distance_top < m_object->get_layer(0)->print_z) return contact_node; // dont add it if overlapping with the initial layer
                     contact_node = m_ts_data->create_node(pt, -gap_layers, layer_nr - 1, roof_layers + (gap_layers > 0 ? 1 : 0), to_buildplate, SupportNode::NO_PARENT, bottom_z,
                                                           z_distance_top, 0, radius);
                     contact_node->overhang = overhang;
