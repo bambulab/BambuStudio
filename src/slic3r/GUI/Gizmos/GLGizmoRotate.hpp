@@ -47,6 +47,7 @@ private:
 
     // emboss need to draw rotation gizmo in local coordinate systems
     bool m_force_local_coordinate{false};
+    Transform3d m_base_model_matrix{ Transform3d::Identity() };
 public:
     GLGizmoRotate(GLCanvas3D& parent, Axis axis);
     GLGizmoRotate(const GLGizmoRotate& other);
@@ -60,6 +61,8 @@ public:
     void set_center(const Vec3d &point) { m_custom_center = point; }
     void set_force_local_coordinate(bool use) { m_force_local_coordinate = use; }
     void init_data_from_selection(const Selection &selection);
+
+    BoundingBoxf3 get_bounding_box() const override;
 
 protected:
     bool on_init() override;
@@ -77,8 +80,9 @@ private:
     void render_angle() const;
     void render_grabber(const BoundingBoxf3& box) const;
     void render_grabber_extension(const BoundingBoxf3& box, bool picking) const;
-
-    void transform_to_local(const Selection& selection) const;
+    Transform3d calculate_base_model_matrix() const;
+    Transform3d calculate_circle_model_matrix() const;
+    Transform3d transform_to_local(const Selection& selection) const;
     // returns the intersection of the mouse ray with the plane perpendicular to the gizmo axis, in local coordinate
     Vec3d mouse_position_in_local_plane(const Linef3& mouse_ray, const Selection& selection) const;
 };
@@ -116,6 +120,8 @@ public:
         m_gizmos[Y].set_center(point);
         m_gizmos[Z].set_center(point);
     }
+
+    BoundingBoxf3 get_bounding_box() const override;
 
 protected:
     bool on_init() override;

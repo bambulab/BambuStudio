@@ -378,6 +378,79 @@ void GLGizmoAdvancedCut::reset_all()
     m_rotate_lower = false;
 }
 
+BoundingBoxf3 GLGizmoAdvancedCut::get_bounding_box() const
+{
+    BoundingBoxf3 t_aabb;
+    t_aabb.reset();
+
+    // rotate aabb
+    if (m_is_dragging) {
+        auto t_rotate_aabb = GLGizmoRotate3D::get_bounding_box();
+        if (t_rotate_aabb.defined) {
+            t_aabb.merge(t_rotate_aabb);
+            t_aabb.defined = true;
+        }
+    }
+    else {
+        const auto t_x_aabb = m_gizmos[X].get_bounding_box();
+        t_aabb.merge(t_x_aabb);
+
+        const auto t_y_aabb = m_gizmos[Y].get_bounding_box();
+        t_aabb.merge(t_y_aabb);
+
+        const auto t_z_aabb = m_gizmos[Z].get_bounding_box();
+        t_aabb.merge(t_z_aabb);
+
+        t_aabb.defined = true;
+    }
+    // end rotate aabb
+
+    bool is_render_z_grabber = true;                                      // m_hover_id < 0 || m_hover_id == cube_z_move_id;
+    bool is_render_x_grabber = m_cut_mode == CutMode::cutTongueAndGroove; // m_hover_id < 0 || m_hover_id == cube_x_move_id;
+    // m_move_z_grabber aabb
+    if (is_render_z_grabber) {
+        const auto& z_grabber = m_move_z_grabber.get_cube();
+        if (z_grabber.is_initialized()) {
+            auto z_grabber_aabb = z_grabber.get_bounding_box();
+            const auto& z_grabber_model_matrix = m_move_z_grabber.m_matrix;
+            z_grabber_aabb = z_grabber_aabb.transformed(z_grabber_model_matrix);
+            z_grabber_aabb.defined = true;
+            t_aabb.merge(z_grabber_aabb);
+            t_aabb.defined = true;
+        }
+    }
+    // end m_move_z_grabber
+
+    // m_move_x_grabber aabb
+    if (is_render_x_grabber) {
+        const auto& x_grabber = m_move_x_grabber.get_cube();
+        if (x_grabber.is_initialized()) {
+            auto x_grabber_aabb = x_grabber.get_bounding_box();
+            const auto& x_grabber_model_matrix = m_move_x_grabber.m_matrix;
+            x_grabber_aabb = x_grabber_aabb.transformed(x_grabber_model_matrix);
+            x_grabber_aabb.defined = true;
+            t_aabb.merge(x_grabber_aabb);
+            t_aabb.defined = true;
+        }
+    }
+    // end m_move_x_grabber
+
+    // m_plane aabb
+    if (!m_connectors_editing) {
+        if (m_plane.is_initialized()) {
+            auto t_plane_aabb = m_plane.get_bounding_box();
+            const auto t_plane_model_matrix = Geometry::translation_transform(m_plane_center) * m_rotate_matrix;
+            t_plane_aabb = t_plane_aabb.transformed(t_plane_model_matrix);
+            t_plane_aabb.defined = true;
+            t_aabb.merge(t_plane_aabb);
+            t_aabb.defined = true;
+        }
+    }
+    // end m_plane aabb
+
+    return t_aabb;
+}
+
 bool GLGizmoAdvancedCut::on_init()
 {
     if (!GLGizmoRotate3D::on_init())
@@ -1160,6 +1233,34 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
     if (m_cut_mode == CutMode::cutTongueAndGroove) {
         cp_clr.a(cp_clr.a() - 0.1f);
     }
+
+    const float fullsize = get_fixed_grabber_size();
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    Transform3d screen_scalling_matrix{ Transform3d::Identity() };
+    const auto& t_zoom = camera.get_zoom();
+    screen_scalling_matrix.data()[0 * 4 + 0] = 1.0f / t_zoom;
+    screen_scalling_matrix.data()[1 * 4 + 1] = 1.0f / t_zoom;
+    screen_scalling_matrix.data()[2 * 4 + 2] = 1.0f / t_zoom;
+
+    auto calculate_model_matrix = [&screen_scalling_matrix](const Vec3d& source, const Vec3d& target, Transform3d& model_matrix, float fullsize)->void {
+        Vec3d the_vector = target - source;
+        const auto scale = fullsize * the_vector.stableNorm();
+        const Vec3d center = source + screen_scalling_matrix.matrix().block<3, 3>(0, 0) * 0.5f * scale * the_vector.normalized();
+        Vec3d rotation_axis;
+        double rotation_angle;
+        Matrix3d rotation_matrix;
+        Geometry::rotation_from_two_vectors(Vec3d(1.0f, 0.0f, 0.0f), the_vector, rotation_axis, rotation_angle, &rotation_matrix);
+        Matrix4d final_rotation_matrix{ Matrix4d::Identity() };
+        for (int iColumn = 0; iColumn < 3; ++iColumn) {
+            for (int jRow = 0; jRow < 3; ++jRow) {
+                final_rotation_matrix.data()[4 * iColumn + jRow] = rotation_matrix.data()[3 * iColumn + jRow];
+            }
+        }
+        model_matrix = Geometry::translation_transform(center.cast<double>()).matrix()
+            * final_rotation_matrix
+            * Geometry::scale_transform({ scale, scale, scale }).matrix();
+    };
+
     render_glmodel(m_plane, cp_clr.get_data(), Geometry::translation_transform(m_plane_center) * m_rotate_matrix);
 
     glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
@@ -1172,27 +1273,40 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
     bool is_render_x_grabber = m_cut_mode == CutMode::cutTongueAndGroove; // m_hover_id < 0 || m_hover_id == cube_x_move_id;
     glsafe(::glDisable(GL_DEPTH_TEST));
     if (is_render_z_grabber) {
+
+        Transform3d model_matrix{ Transform3d::Identity() };
+        calculate_model_matrix(m_plane_center, m_move_z_grabber.center, model_matrix, 0.3 * fullsize);
+        model_matrix = model_matrix * screen_scalling_matrix;
+        glsafe(::glPushMatrix());
+        glsafe(::glMultMatrixd(model_matrix.data()));
         glsafe(::glLineWidth(m_hover_id != -1 ? 2.0f : 1.5f));
         glsafe(::glColor3f(1.0, 1.0, 0.0));
-        glLineStipple(1, 0x0FFF);
-        glEnable(GL_LINE_STIPPLE);
-        ::glBegin(GL_LINES);
-        ::glVertex3dv(m_plane_center.data());
-        ::glVertex3dv(m_move_z_grabber.center.data());
+        glsafe(::glLineStipple(1, 0x0FFF));
+        glsafe(::glEnable(GL_LINE_STIPPLE));
+        glsafe(::glBegin(GL_LINES));
+        glsafe(::glVertex3f(-0.5f, 0.0f, 0.0f));
+        glsafe(::glVertex3f(0.5f, 0.0f, 0.0f));
         glsafe(::glEnd());
-        glDisable(GL_LINE_STIPPLE);
+        glsafe(::glDisable(GL_LINE_STIPPLE));
+        glsafe(::glPopMatrix());
     }
     m_move_x_grabber.center = m_plane_center + m_plane_x_direction * Offset;
     if (is_render_x_grabber) {
+        Transform3d model_matrix{ Transform3d::Identity() };
+        calculate_model_matrix(m_plane_center, m_move_x_grabber.center, model_matrix, 0.3 * fullsize);
+        model_matrix = model_matrix * screen_scalling_matrix;
+        glsafe(::glPushMatrix());
+        glsafe(::glMultMatrixd(model_matrix.data()));
         glsafe(::glLineWidth(m_hover_id != -1 ? 2.0f : 1.5f));
         glsafe(::glColor3f(1.0, 1.0, 0.0));
-        glLineStipple(1, 0x0FFF);
-        glEnable(GL_LINE_STIPPLE);
-        ::glBegin(GL_LINES);
-        ::glVertex3dv(m_plane_center.data());
-        ::glVertex3dv(m_move_x_grabber.center.data());
+        glsafe(::glLineStipple(1, 0x0FFF));
+        glsafe(::glEnable(GL_LINE_STIPPLE));
+        glsafe(::glBegin(GL_LINES));
+        glsafe(::glVertex3f(-0.5f, 0.0f, 0.0f));
+        glsafe(::glVertex3f(0.5f, 0.0f, 0.0f));
         glsafe(::glEnd());
-        glDisable(GL_LINE_STIPPLE);
+        glsafe(::glDisable(GL_LINE_STIPPLE));
+        glsafe(::glPopMatrix());
     }
 
     bool                 hover = (m_hover_id == get_group_id());
@@ -1204,18 +1318,26 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
 
     // BBS set to fixed size grabber
     // float fullsize = 2 * (dragging ? get_dragging_half_size(size) : get_half_size(size));
-    float fullsize = get_grabber_size();
 
     GLModel &cube_z = m_move_z_grabber.get_cube();
     GLModel &cube_x = m_move_x_grabber.get_cube();
     if (is_render_z_grabber) {
-        Transform3d cube_mat = Geometry::translation_transform(m_move_z_grabber.center) * m_rotate_matrix * Geometry::scale_transform(fullsize); //
-        render_glmodel(cube_z, render_color, cube_mat);
+        Vec3d t_z_dir = m_move_z_grabber.center - m_plane_center;
+        const auto scale_z = screen_scalling_matrix.matrix().block<3, 3>(0, 0) * 0.3 * fullsize * t_z_dir.stableNorm();
+        const Vec3d target_z = m_plane_center + scale_z * t_z_dir.normalized();
+        Transform3d cube_mat_z = Geometry::translation_transform(target_z) * m_rotate_matrix * Geometry::scale_transform(fullsize); //
+        m_move_z_grabber.m_matrix = cube_mat_z * screen_scalling_matrix;
+        render_glmodel(cube_z, render_color, m_move_z_grabber.m_matrix);
     }
 
     if (is_render_x_grabber) {
-        Transform3d cube_mat = Geometry::translation_transform(m_move_x_grabber.center) * m_rotate_matrix * Geometry::scale_transform(fullsize); //
-        render_glmodel(cube_x, render_color, cube_mat);
+        GLModel& cube_x = m_move_x_grabber.get_cube();
+        Vec3d t_x_dir = m_move_x_grabber.center - m_plane_center;
+        const auto scale_x = screen_scalling_matrix.matrix().block<3, 3>(0, 0) * 0.3 * fullsize * t_x_dir.stableNorm();
+        const Vec3d target_x = m_plane_center + scale_x * t_x_dir.normalized();
+        Transform3d cube_mat_x = Geometry::translation_transform(target_x) * m_rotate_matrix * Geometry::scale_transform(fullsize); //
+        m_move_x_grabber.m_matrix = cube_mat_x * screen_scalling_matrix;
+        render_glmodel(cube_x, render_color, m_move_x_grabber.m_matrix);
     }
     // Should be placed at last, because GLGizmoRotate3D clears depth buffer
     GLGizmoRotate3D::set_center(m_plane_center);

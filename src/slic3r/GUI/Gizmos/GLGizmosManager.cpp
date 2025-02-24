@@ -1564,6 +1564,18 @@ void GLGizmosManager::update_after_undo_redo(const UndoRedo::Snapshot& snapshot)
         dynamic_cast<GLGizmoSlaSupports*>(m_gizmos[SlaSupports].get())->reslice_SLA_supports(true);
 }
 
+BoundingBoxf3 GLGizmosManager::get_bounding_box() const
+{
+    BoundingBoxf3 t_aabb;
+    t_aabb.reset();
+    if (!m_enabled || m_current == Undefined)
+        return t_aabb;
+
+    t_aabb = m_gizmos[m_current]->get_bounding_box();
+
+    return t_aabb;
+}
+
 void GLGizmosManager::render_background(float left, float top, float right, float bottom, float border) const
 {
     unsigned int tex_id = m_background_texture.texture.get_id();

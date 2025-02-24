@@ -606,6 +606,7 @@ void GLGizmoSVG::on_render()
         m_move_grabber.center = tran.get_offset();
         Transform3d rotate_matrix = tran.get_rotation_matrix();
         Transform3d cube_mat      = Geometry::translation_transform(m_move_grabber.center) * rotate_matrix * Geometry::scale_transform(fullsize);
+        m_move_grabber.set_model_matrix(cube_mat);
         render_glmodel(m_move_grabber.get_cube(), render_color, cube_mat);
     }
 #ifdef DEBUG_SVG
@@ -2186,6 +2187,27 @@ bool GLGizmoSVG::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_positi
         }
     }
     return true;
+}
+
+BoundingBoxf3 GLGizmoSVG::get_bounding_box() const
+{
+    BoundingBoxf3 t_aabb;
+    t_aabb.reset();
+
+    // m_rotate_gizmo aabb
+    bool is_rotate_by_grabbers = m_dragging;
+    bool is_surface_dragging = m_surface_drag.has_value();
+    bool is_parent_dragging = m_parent.is_mouse_dragging();
+    if (is_rotate_by_grabbers || (!is_surface_dragging && !is_parent_dragging)) {
+        if (m_hover_id != c_move_cube_id || !m_dragging) {
+            auto t_totate_gizmo_aabb = m_rotate_gizmo.get_bounding_box();
+            t_aabb.merge(t_totate_gizmo_aabb);
+            t_aabb.defined = true;
+        }
+    }
+    // end m_rotate_gizmo aabb
+
+    return t_aabb;
 }
 
 void GLGizmoSVG::update_single_mesh_pick(GLVolume *v)

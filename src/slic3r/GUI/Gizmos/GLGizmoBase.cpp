@@ -71,7 +71,6 @@ void GLGizmoBase::load_render_colors()
 
 GLGizmoBase::Grabber::Grabber()
     : center(Vec3d::Zero())
-    , angles(Vec3d::Zero())
     , dragging(false)
     , enabled(true)
 {
@@ -114,6 +113,11 @@ GLModel& GLGizmoBase::Grabber::get_cube()
     return cube;
 }
 
+void GLGizmoBase::Grabber::set_model_matrix(const Transform3d& model_matrix)
+{
+    m_matrix = model_matrix;
+}
+
 void GLGizmoBase::Grabber::render(const std::array<float, 4>& render_color, bool picking) const
 {
     if (! cube_initialized) {
@@ -132,11 +136,7 @@ void GLGizmoBase::Grabber::render(const std::array<float, 4>& render_color, bool
     const_cast<GLModel*>(&cube)->set_color(-1, render_color);
 
     glsafe(::glPushMatrix());
-    glsafe(::glTranslated(center.x(), center.y(), center.z()));
-    glsafe(::glRotated(Geometry::rad2deg(angles.z()), 0.0, 0.0, 1.0));
-    glsafe(::glRotated(Geometry::rad2deg(angles.y()), 0.0, 1.0, 0.0));
-    glsafe(::glRotated(Geometry::rad2deg(angles.x()), 1.0, 0.0, 0.0));
-    glsafe(::glScaled(fullsize, fullsize, fullsize));
+    glsafe(::glMultMatrixd(m_matrix.data()));
     cube.render();
     glsafe(::glPopMatrix());
 }
@@ -256,10 +256,14 @@ float GLGizmoBase::get_grabber_size()
 {
     float grabber_size = 8.0f;
     if (GLGizmoBase::INV_ZOOM > 0) {
-        grabber_size = GLGizmoBase::Grabber::FixedGrabberSize * GLGizmoBase::INV_ZOOM;
-        grabber_size = grabber_size * GLGizmoBase::Grabber::GrabberSizeFactor;
+        grabber_size = get_fixed_grabber_size() * GLGizmoBase::INV_ZOOM;
     }
     return grabber_size;
+}
+
+float GLGizmoBase::get_fixed_grabber_size()
+{
+    return GLGizmoBase::Grabber::FixedGrabberSize * GLGizmoBase::Grabber::GrabberSizeFactor;
 }
 
 GLGizmoBase::GLGizmoBase(GLCanvas3D &parent, const std::string &icon_filename, unsigned int sprite_id)
@@ -558,6 +562,74 @@ void GLGizmoBase::do_stop_dragging(bool perform_mouse_cleanup)
     m_parent.refresh_camera_scene_box();
 }
 
+BoundingBoxf3 GLGizmoBase::get_cross_mask_aabb(const Transform3d& matrix, const Vec3f& target, bool is_single) const
+{
+    BoundingBoxf3 t_aabb;
+    t_aabb.reset();
+
+    BoundingBoxf3 t_cross_aabb;
+    t_cross_aabb.min = Vec3d(-0.5f, 0.0f, 0.0f);
+    t_cross_aabb.max = Vec3d(0.5f, 0.0f, 0.0f);
+    t_cross_aabb.defined = true;
+    Transform3d model_matrix{ Transform3d::Identity() };
+    // x axis aabb
+    model_matrix = get_corss_mask_model_matrix(ECrossMaskType::X, target, is_single);
+    auto t_x_axis_aabb = t_cross_aabb.transformed(matrix * model_matrix);
+    t_x_axis_aabb.defined = true;
+    t_aabb.merge(t_x_axis_aabb);
+    t_aabb.defined = true;
+    // end x axis aabb
+
+    // y axis aabb
+    model_matrix = get_corss_mask_model_matrix(ECrossMaskType::Y, target, is_single);
+    auto t_y_axis_aabb = t_cross_aabb.transformed(matrix * model_matrix);
+    t_y_axis_aabb.defined = true;
+    t_aabb.merge(t_y_axis_aabb);
+    t_aabb.defined = true;
+    // end y axis aabb
+
+    // z axis aabb
+    model_matrix = get_corss_mask_model_matrix(ECrossMaskType::Z, target, is_single);
+    auto t_z_axis_aabb = t_cross_aabb.transformed(matrix * model_matrix);
+    t_z_axis_aabb.defined = true;
+    t_aabb.merge(t_z_axis_aabb);
+    t_aabb.defined = true;
+    // end z axis aabb
+
+    return t_aabb;
+}
+
+Transform3d GLGizmoBase::get_corss_mask_model_matrix(ECrossMaskType type, const Vec3f& target, bool is_single) const
+{
+    double half_length = 4.0;
+    const auto center_x = is_single ? target + Vec3f(half_length * 0.5f, 0.0f, 0.0f) : target;
+    const float scale = is_single ? half_length : 2.0f * half_length;
+    Transform3d model_matrix{ Transform3d::Identity() };
+    if (ECrossMaskType::X == type) {
+        model_matrix.data()[3 * 4 + 0] = center_x.x();
+        model_matrix.data()[3 * 4 + 1] = center_x.y();
+        model_matrix.data()[3 * 4 + 2] = center_x.z();
+        model_matrix.data()[0 * 4 + 0] = scale;
+        model_matrix.data()[1 * 4 + 1] = 1.0f;
+        model_matrix.data()[2 * 4 + 2] = 1.0f;
+    }
+    else if (ECrossMaskType::Y == type) {
+        const auto center_y = is_single ? target + Vec3f(0.0f, half_length * 0.5f, 0.0f) : target;
+        model_matrix = Geometry::translation_transform(center_y.cast<double>())
+            * Geometry::rotation_transform({ 0.0f, 0.0f, 0.5 * PI })
+            * Geometry::scale_transform({ scale, 1.0f, 1.0f });
+    }
+
+    else if (ECrossMaskType::Z == type) {
+        const auto center_z = is_single ? target + Vec3f(0.0f, 0.0f, half_length * 0.5f) : target;
+        model_matrix = Geometry::translation_transform(center_z.cast<double>())
+            * Geometry::rotation_transform({ 0.0f, -0.5 * PI, 0.0f })
+            * Geometry::scale_transform({ scale, 1.0f, 1.0f });
+    }
+
+    return model_matrix;
+}
+
 void GLGizmoBase::render_input_window(float x, float y, float bottom_limit)
 {
     on_render_input_window(x, y, bottom_limit);
@@ -567,6 +639,13 @@ void GLGizmoBase::render_input_window(float x, float y, float bottom_limit)
         m_parent.set_as_dirty();
         m_first_input_window_render = false;
     }
+}
+
+BoundingBoxf3 GLGizmoBase::get_bounding_box() const
+{
+    BoundingBoxf3 t_aabb;
+    t_aabb.reset();
+    return t_aabb;
 }
 
 void GLGizmoBase::render_glmodel(GLModel &model, const std::array<float, 4> &color, Transform3d view_model_matrix, bool for_picking, float emission_factor)
