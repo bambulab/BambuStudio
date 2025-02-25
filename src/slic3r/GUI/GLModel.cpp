@@ -588,33 +588,6 @@ void GLModel::init_from(const indexed_triangle_set& its)
     this->init_from(its, bounding_box(its));
 }
 
-void GLModel::init_from(const Polygons& polygons, float z)
-{
-    auto append_polygon = [](const Polygon& polygon, float z, GUI::GLModel::InitializationData& data) {
-        if (!polygon.empty()) {
-            GUI::GLModel::InitializationData::Entity entity;
-            entity.type = GUI::GLModel::PrimitiveType::LineLoop;
-            // contour
-            entity.positions.reserve(polygon.size() + 1);
-            entity.indices.reserve(polygon.size() + 1);
-            unsigned int id = 0;
-            for (const Point& p : polygon) {
-                Vec3f position = unscale(p.x(), p.y(), 0.0).cast<float>();
-                position.z() = z;
-                entity.positions.emplace_back(position);
-                entity.indices.emplace_back(id++);
-            }
-            data.entities.emplace_back(entity);
-        }
-    };
-
-    InitializationData init_data;
-    for (const Polygon& polygon : polygons) {
-        append_polygon(polygon, z, init_data);
-    }
-    init_from(init_data);
-}
-
 bool GLModel::init_from_file(const std::string& filename)
 {
     if (!boost::filesystem::exists(filename))
