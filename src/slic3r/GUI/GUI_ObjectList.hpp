@@ -288,6 +288,7 @@ public:
     //void                load_part(ModelObject& model_object, std::vector<ModelVolume*>& added_volumes, ModelVolumeType type, bool from_galery = false);
     void                load_modifier(const wxArrayString& input_files, ModelObject& model_object, std::vector<ModelVolume*>& added_volumes, ModelVolumeType type, bool from_galery = false);
     void                load_generic_subobject(const std::string& type_name, const ModelVolumeType type);
+    void                add_new_model_object_from_old_object();
     void                load_shape_object(const std::string &type_name);
     void                load_mesh_object(const TriangleMesh &mesh, const wxString &name, bool center = true);
     // BBS

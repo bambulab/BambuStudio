@@ -1600,12 +1600,26 @@ wxMenu* MenuFactory::multi_selection_menu()
     wxDataViewItemArray sels;
     obj_list()->GetSelections(sels);
     bool multi_volume = true;
-
+    int  count        = 0;
+    int  obj_idx = -1;
     for (const wxDataViewItem& item : sels) {
         multi_volume = list_model()->GetItemType(item) & itVolume;
         if (!(list_model()->GetItemType(item) & (itVolume | itObject | itInstance)))
             // show this menu only for Objects(Instances mixed with Objects)/Volumes selection
             return nullptr;
+        if (multi_volume) {
+            auto temp_obj_idx = obj_list()->GetModel()->GetObjectIdByItem(item);
+            if (temp_obj_idx >= 0 && temp_obj_idx != obj_idx) {
+                if (obj_idx == -1) {
+                    obj_idx = temp_obj_idx;
+                }
+                else {
+                    multi_volume = false;
+                    break;
+                }
+            }
+        }
+        count++;
     }
 
     wxMenu* menu = new MenuWithSeparators();
@@ -1632,6 +1646,10 @@ wxMenu* MenuFactory::multi_selection_menu()
     }
     else {
         append_menu_item_center(menu);
+        auto mo = (*obj_list()->objects())[obj_idx];
+        if (count < mo->volumes.size()) {
+            append_menu_item_sub_merge(menu);
+        }
         append_menu_item_fix_through_netfabb(menu);
         //append_menu_item_simplify(menu);
         append_menu_item_delete(menu);
@@ -1785,6 +1803,26 @@ void MenuFactory::append_menu_item_center(wxMenu* menu)
                 return !( (model_pos.x() == center_pos.x()) && (model_pos.y() == center_pos.y()) );
             } //disable if model is at center / not in View3D
         }, m_parent);
+}
+
+void MenuFactory::append_menu_item_sub_merge(wxMenu *menu)
+{
+    append_menu_item(
+        menu, wxID_ANY, _L("Sub merge"), "",
+        [this](wxCommandEvent &) {
+            obj_list()->add_new_model_object_from_old_object();
+        },
+        "", nullptr,
+        []() {
+            if (plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasView3D)
+                return false;
+            else {
+                if (obj_list()->has_selected_cut_object())
+                    return false;
+                return true;
+            }
+        },
+        m_parent);
 }
 
 void MenuFactory::append_menu_item_per_object_process(wxMenu* menu)
