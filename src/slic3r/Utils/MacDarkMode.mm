@@ -152,6 +152,8 @@ void openFolderForFile(wxString const & file)
 {
     NSURL* url = [NSURL URLFromPasteboard:[info draggingPasteboard]];
     NSString * path = [url path];
+    if (path == nil)
+        return TRUE;
     url = [NSURL fileURLWithPath: path];
     [self loadFileURL:url allowingReadAccessToURL:url];
     return TRUE;
