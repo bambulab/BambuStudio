@@ -2362,6 +2362,80 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     }
 }
 
+void GUI::ObjectList::add_new_model_object_from_old_object() {
+    const Selection &selection = scene_selection();
+    int instance_idx = *selection.get_instance_idxs().begin();
+    assert(instance_idx != -1);
+    if (instance_idx == -1)
+        return;
+    wxDataViewItemArray sels;
+    GetSelections(sels);
+    if (sels.IsEmpty()) return;
+    int obj_idx = -1;
+    std::vector<int> vol_idxs;
+    for (wxDataViewItem item : sels) {
+        const int temp_obj_idx = m_objects_model->GetObjectIdByItem(item);
+        if (temp_obj_idx < 0) //&& object(obj_idx)->is_cut()
+            return;
+        obj_idx           = temp_obj_idx;
+        const int vol_idx = m_objects_model->GetVolumeIdByItem(item);
+        vol_idxs.emplace_back(vol_idx);
+    }
+    if (vol_idxs.empty()) {
+        return;
+    }
+    take_snapshot("Add new model object");
+    wxBusyCursor cursor;
+    std::sort(vol_idxs.begin(), vol_idxs.end());
+    ModelVolumePtrs sel_volumes;
+    auto            mo = (*m_objects)[obj_idx];
+    for (int i = vol_idxs.size() - 1; i >= 0; i--) {
+        if (vol_idxs[i] > mo->volumes.size()) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "check error:array bound";
+            continue;
+        }
+        auto vol_idx = vol_idxs[i];
+        auto mv      = mo->volumes[vol_idx];
+        sel_volumes.emplace_back(mv);
+        mo->volumes.erase(mo->volumes.begin() + vol_idx);
+    }
+    for (int i = vol_idxs.size() - 1; i >= 0; i--) {
+        auto vol_idx = vol_idxs[i];
+        delete_volume_from_list(obj_idx, vol_idx);
+    }
+     // Add mesh to model as a new object
+    Model &model = wxGetApp().plater()->model();
+
+    std::vector<size_t> object_idxs;
+    ModelObject *       new_object = model.add_object();
+    new_object->name               = into_u8("Sub merge");
+    new_object->add_instance(); // each object should have at least one instance
+    int min_extruder = (int) EnforcerBlockerType::ExtruderMax - 1;
+    for (auto mv : sel_volumes) {
+        new_object->add_volume(*mv, mv->type());
+        auto option = mv->config.option("extruder");
+        if (option) {
+            auto volume_extruder_id = (dynamic_cast<const ConfigOptionInt *>(option))->getInt();
+            if (min_extruder > volume_extruder_id) {
+                min_extruder = volume_extruder_id;
+            }
+        }
+    }
+    new_object->sort_volumes(true);
+    // set a default extruder value, since user can't add it manually
+    new_object->config.set_key_value("extruder", new ConfigOptionInt(min_extruder));
+    new_object->invalidate_bounding_box();
+    new_object->instances[0]->set_transformation(mo->instances[0]->get_transformation());
+    // BBS: backup
+    Slic3r::save_object_mesh(*new_object);
+    new_object->ensure_on_bed();
+    // BBS init assmeble transformation
+    new_object->get_model()->set_assembly_pos(new_object);
+    object_idxs.push_back(model.objects.size() - 1);
+    paste_objects_into_list(object_idxs);
+    wxGetApp().mainframe->update_title();
+}
+
 void ObjectList::switch_to_object_process()
 {
     wxGetApp().params_panel()->switch_to_object(true);
