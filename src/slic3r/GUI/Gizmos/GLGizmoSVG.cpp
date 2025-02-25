@@ -210,7 +210,7 @@ std::string volume_name(const EmbossShape &shape)
 
 // BBS: GUI refactor: add obj manipulation
 GLGizmoSVG::GLGizmoSVG(GLCanvas3D& parent,  unsigned int sprite_id)
-    : GLGizmoBase(parent, "toolbar_cut.svg", sprite_id) //"toolbar_cut.svg" no use
+    : GLGizmoBase(parent, "tool_bar_svg.svg", sprite_id) //"toolbar_cut.svg" no use
     , m_gui_cfg(nullptr)
     , m_rotate_gizmo(parent, GLGizmoRotate::Axis::Z) // grab id = 2 (Z axis)
 {
