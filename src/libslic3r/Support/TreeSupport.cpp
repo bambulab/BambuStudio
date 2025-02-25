@@ -2845,9 +2845,13 @@ void TreeSupport::drop_nodes()
                 // Can't rest on model and unable to reach the build plate. Then we must drop the node and leave parts unsupported.
                 if (support_on_buildplate_only) {
                     unsupported_branch_leaves.push_front({layer_nr, p_node});
+                    continue;
                 }
                 //If permitted to fall on the model, downward growth ceases.
-                continue;
+                auto overlap_with_circle = shrink_ex(get_collision(0, obj_layer_nr), scale_(node.radius));
+                if (!overlap_with_circle.empty() && is_inside_ex(overlap_with_circle, node.position)) {
+                    continue;
+                }
             }
             if (node.to_buildplate || parts.empty()) //It's outside, so make it go towards the build plate.
             {
@@ -3840,6 +3844,7 @@ void TreeSupport::generate_contact_points()
                         double       radius          = unscale_(overhang_bounds.radius());
                         Point        candidate       = overhang_bounds.center();
                         SupportNode *contact_node    = insert_point(candidate, overhang, radius, true, true);
+                        if (!contact_node) continue;
                         contact_node->type           = ePolygon;
                         curr_nodes.emplace_back(contact_node);
                     }
