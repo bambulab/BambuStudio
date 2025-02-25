@@ -346,13 +346,13 @@ void Tab::create_preset_tab()
     m_main_sizer = new wxBoxSizer( wxVERTICAL );
     m_top_sizer = new wxBoxSizer( wxHORIZONTAL );
 
-    m_top_sizer->Add(m_undo_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 5);
+    m_top_sizer->Add(m_undo_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(10));
     // BBS: model config
     if (m_presets_choice) {
         m_presets_choice->Reparent(m_top_panel);
-        m_top_sizer->Add(m_presets_choice, 1, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, 8);
+        m_top_sizer->Add(m_presets_choice, 1, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(10));
     } else {
-        m_top_sizer->AddSpacer(10);
+        m_top_sizer->AddSpacer(FromDIP(10));
         m_top_sizer->AddStretchSpacer(1);
     }
 
@@ -361,10 +361,10 @@ void Tab::create_preset_tab()
     m_top_sizer->Add( m_undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
     m_top_sizer->AddSpacer(8);
 #endif
-    m_top_sizer->Add( m_btn_save_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8  );
-    m_top_sizer->Add( m_btn_delete_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8 );
-    m_top_sizer->Add( m_btn_search, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8 );
-    m_top_sizer->Add( m_search_item, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT , 8 );
+    m_top_sizer->Add( m_btn_save_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12));
+    m_top_sizer->Add( m_btn_delete_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12) );
+    m_top_sizer->Add( m_btn_search, 0, wxALIGN_CENTER_VERTICAL | wxLEFT , FromDIP(12) );
+    m_top_sizer->Add(m_search_item, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT | wxLEFT, FromDIP(12));
 
     if (dynamic_cast<TabPrint*>(this) == nullptr) {
         m_static_title = new Label(m_top_panel, Label::Body_12, _L("Advance"));
@@ -379,7 +379,7 @@ void Tab::create_preset_tab()
         m_top_sizer->Add( m_mode_view, 0, wxALIGN_CENTER_VERTICAL);
     }
 
-    m_top_sizer->AddSpacer(10);
+    m_top_sizer->AddSpacer(FromDIP(16));
 
     m_top_sizer->SetMinSize(-1, 3 * m_em_unit);
     m_top_panel->SetSizer(m_top_sizer);
@@ -6368,7 +6368,7 @@ void Page::activate(ConfigOptionMode mode, std::function<void()> throw_if_cancel
     for (auto group : m_optgroups) {
         if (!group->activate(throw_if_canceled))
             continue;
-        m_vsizer->Add(group->sizer, 0, wxEXPAND | (group->is_legend_line() ? (wxLEFT|wxTOP) : wxALL), 5);
+        m_vsizer->Add(group->sizer, 0, wxEXPAND | (group->is_legend_line() ? (wxLEFT|wxTOP) : wxALL), 10);
         group->update_visibility(mode);
 #if HIDE_FIRST_SPLIT_LINE
         if (first) group->stb->Hide();
