@@ -73,9 +73,9 @@ bool open_filament_group_wiki()
     bool is_zh = wxGetApp().app_config->get("language") == "zh_CN";
     fs::path wiki_path;
     if (is_zh)
-        wiki_path = fs::path(resources_dir()) / "/wiki/filament_group_wiki_zh.html";
+        wiki_path = fs::path(resources_dir()) / "wiki/filament_group_wiki_zh.html";
     else
-        wiki_path = fs::path(resources_dir()) / "/wiki/filament_group_wiki_en.html";
+        wiki_path = fs::path(resources_dir()) / "wiki/filament_group_wiki_en.html";
 
     wxString wiki_path_str = wxString::FromUTF8(wiki_path.string());
     if (wxFileExists(wiki_path_str)) {
