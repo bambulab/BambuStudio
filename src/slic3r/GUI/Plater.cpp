@@ -504,57 +504,58 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
             sizer == nullptr || isDual != (sizer->GetOrientation() == wxVERTICAL)) {
         wxBoxSizer *hsizer_printer_btn = new wxBoxSizer(wxHORIZONTAL);
         hsizer_printer_btn->AddStretchSpacer(1);
-        hsizer_printer_btn->Add(btn_edit_printer, 0, wxALIGN_CENTER | wxLEFT, FromDIP(4));
+        hsizer_printer_btn->Add(btn_edit_printer, 0);
         hsizer_printer_btn->Add(btn_connect_printer, 0, wxALIGN_CENTER | wxLEFT, FromDIP(4));
         combo_printer->SetWindowStyle(combo_printer->GetWindowStyle() & ~wxALIGN_MASK | (isDual ? wxALIGN_CENTER_HORIZONTAL : wxALIGN_RIGHT));
         if (isDual) {
             wxBoxSizer *vsizer = new wxBoxSizer(wxVERTICAL);
-            vsizer->AddStretchSpacer(1);
             wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
                 hsizer->AddStretchSpacer(1);
-                hsizer->Add(image_printer, 0);
-                hsizer->Add(hsizer_printer_btn, 1, wxRIGHT, FromDIP(12));
-            vsizer->Add(hsizer, 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, FromDIP(4));
+                hsizer->Add(image_printer, 1, wxEXPAND | wxTOP, FromDIP(8));
+                hsizer->Add(hsizer_printer_btn, 1, wxEXPAND, 0);
+            vsizer->AddSpacer(FromDIP(4));
+            vsizer->Add(hsizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(8));
             vsizer->Add(combo_printer, 0, wxEXPAND | wxALL, FromDIP(4));
-            vsizer->AddStretchSpacer(1);
             panel_printer_preset->SetSizer(vsizer);
         } else {
             wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
             hsizer->Add(image_printer, 0, wxLEFT | wxALIGN_CENTER, FromDIP(4));
-                wxBoxSizer *vsizer = new wxBoxSizer(wxVERTICAL);
-                vsizer->AddSpacer(FromDIP(4));
-                vsizer->Add(hsizer_printer_btn, 1, wxEXPAND | wxRIGHT, FromDIP(16));
-                vsizer->Add(combo_printer, 0, wxEXPAND | wxLEFT, FromDIP(4));
-                vsizer->AddStretchSpacer(1);
-                vsizer->AddSpacer(FromDIP(4));
-            hsizer->Add(vsizer, 1, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(4));
+            hsizer->Add(combo_printer, 1, wxALIGN_CENTRE | wxLEFT | wxRIGHT, FromDIP(6));
+            hsizer->Add(hsizer_printer_btn, 0, wxALIGN_TOP | wxTOP | wxRIGHT, FromDIP(4));
+            hsizer->AddSpacer(FromDIP(4));
             panel_printer_preset->SetSizer(hsizer);
         }
     }
 
     if (vsizer_printer->GetItemCount() == 0) {
         wxBoxSizer *hsizer_printer = new wxBoxSizer(wxHORIZONTAL);
-        hsizer_printer->Add(panel_printer_preset, 1, wxEXPAND);
+        hsizer_printer->Add(panel_printer_preset, 1, wxEXPAND, 0);
         hsizer_printer->Add(panel_printer_bed, 0, wxLEFT | wxEXPAND, FromDIP(4));
         hsizer_printer->Add(btn_sync_printer, 0, wxLEFT | wxEXPAND, FromDIP(4));
-
+        vsizer_printer->Add(hsizer_printer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(4));
+        vsizer_printer->AddSpacer(FromDIP(4));
         // Printer - extruder
+
+        // double
         auto hsizer_extruder = new wxBoxSizer(wxHORIZONTAL);
+        hsizer_extruder->AddSpacer(FromDIP(4));
         hsizer_extruder->Add(left_extruder->sizer, 1, wxEXPAND);
         hsizer_extruder->Add(right_extruder->sizer, 1, wxLEFT | wxEXPAND, FromDIP(4));
+        hsizer_extruder->AddSpacer(FromDIP(4));
 
-        vsizer_printer->Add(hsizer_printer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(4));
-        vsizer_printer->Add(hsizer_extruder, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(4));
-        vsizer_printer->Add(single_extruder->sizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(4));
+        // single
+        vsizer_printer->Add(hsizer_extruder, 0, wxEXPAND | wxLEFT, 0);
+        vsizer_printer->Add(single_extruder->sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(4));
+
         vsizer_printer->AddSpacer(FromDIP(4));
     }
 
     btn_connect_printer->Show(!isBBL);
     btn_sync_printer->Show(isDual);
     panel_printer_bed->Show(isBBL);
-    vsizer_printer->GetItem(1)->GetSizer()->GetItem(1)->Show(isDual);
-    vsizer_printer->GetItem(1)->Show(isBBL && isDual);
-    vsizer_printer->GetItem(2)->Show(isBBL && !isDual);
+    vsizer_printer->GetItem(2)->GetSizer()->GetItem(1)->Show(isDual);
+    vsizer_printer->GetItem(2)->Show(isBBL && isDual);
+    vsizer_printer->GetItem(3)->Show(isBBL && !isDual);
 }
 
 void Sidebar::priv::flush_printer_sync(bool restart)
@@ -896,8 +897,9 @@ ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title
     : StaticGroup(parent, wxID_ANY, title)
 {
     SetFont(Label::Body_10);
+    SetForegroundColour(wxColour(0xCECECE));
+    SetBorderColor(wxColour(0xEEEEEE));
     ShowBadge(true);
-
     // Nozzle
     wxStaticText *label_diameter = new wxStaticText(this, wxID_ANY, _L("Diameter"));
     label_diameter->SetFont(Label::Body_14);
@@ -950,8 +952,8 @@ ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title
 
     // AMS not installed message
     ams_not_installed_msg = new wxStaticText(this, wxID_ANY, _L("Not installed"));
-    label_ams->SetFont(Label::Body_14);
-    label_ams->SetForegroundColour("#262E30");
+    ams_not_installed_msg->SetFont(Label::Body_14);
+    ams_not_installed_msg->SetForegroundColour("#262E30");
 
     // AMS group
     for (size_t i = 0; i < 4; ++i) {
@@ -992,7 +994,7 @@ ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title
         label_ams->Hide();
         ams_not_installed_msg->Hide();
         wxStaticBoxSizer *hsizer     = new wxStaticBoxSizer(this, wxHORIZONTAL);
-        hsizer->Add(hsizer_diameter, 1, wxEXPAND | wxALL, FromDIP(8));
+        hsizer->Add(hsizer_diameter, 1, wxEXPAND | wxTOP| wxBOTTOM, FromDIP(8));
         hsizer->Add(hsizer_nozzle, 1, wxEXPAND | wxALL, FromDIP(8));
         this->sizer = hsizer;
     } else {
@@ -1002,7 +1004,6 @@ ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title
         vsizer->Add(hsizer_nozzle, 0, wxEXPAND | wxALL, FromDIP(2));
         this->sizer = vsizer;
     }
-
     AMSCountPopupWindow::UpdateAMSCount(index < 0 ? 0 : index, this);
 }
 
@@ -1523,9 +1524,13 @@ Sidebar::Sidebar(Plater *parent)
         p->m_panel_printer_content = new wxPanel(p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
         p->m_panel_printer_content->SetBackgroundColour(wxColour(255, 255, 255));
 
+        StateColor panel_bd_col(std::pair<wxColour, int>(wxColour(0x00AE42), StateColor::Pressed), 
+                                std::pair<wxColour, int>(wxColour(0x00AE42), StateColor::Hovered),
+                                std::pair<wxColour, int>(wxColour(0xEEEEEE), StateColor::Normal));
+
         p->panel_printer_preset = new StaticBox(p->m_panel_printer_content);
         p->panel_printer_preset->SetCornerRadius(8);
-        p->panel_printer_preset->SetBorderColor(wxColour("#CECECE"));
+        p->panel_printer_preset->SetBorderColor(panel_bd_col);
         p->panel_printer_preset->SetMinSize(PRINTER_PANEL_SIZE_SMALL);
         p->panel_printer_preset->Bind(wxEVT_LEFT_DOWN, [this](auto & evt) {
             p->combo_printer->wxEvtHandler::ProcessEvent(evt);
@@ -1573,7 +1578,7 @@ Sidebar::Sidebar(Plater *parent)
         // Bed type selection
         p->panel_printer_bed = new StaticBox(p->m_panel_printer_content);
         p->panel_printer_bed->SetCornerRadius(8);
-        p->panel_printer_bed->SetBorderColor(wxColour("#CECECE"));
+        p->panel_printer_bed->SetBorderColor(panel_bd_col);
         p->panel_printer_bed->SetMinSize(PRINTER_PANEL_SIZE_SMALL);
         p->panel_printer_bed->Bind(wxEVT_LEFT_DOWN, [this](auto &evt) {
             p->combo_printer_bed->wxEvtHandler::ProcessEvent(evt);
@@ -1626,19 +1631,17 @@ Sidebar::Sidebar(Plater *parent)
         });
         p->image_printer_bed->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent &evt) { p->big_bed_image_popup->on_hide(); });
 
-        wxBoxSizer *bed_type_sizer = new wxBoxSizer(wxVERTICAL);
-        bed_type_sizer->AddStretchSpacer(1);
+        wxBoxSizer *bed_type_vsizer = new wxBoxSizer(wxVERTICAL);
+        bed_type_vsizer->AddStretchSpacer(1);
         wxBoxSizer *bed_type_hsizer = new wxBoxSizer(wxHORIZONTAL);
-            wxBoxSizer *bed_type_hsizer2 = new wxBoxSizer(wxHORIZONTAL);
-                bed_type_hsizer2->AddStretchSpacer(1);
-                bed_type_hsizer2->Add(wiki_bed, 0, wxLEFT, FromDIP(4));
-            bed_type_hsizer->Add(bed_type_hsizer2, 1);
-            bed_type_hsizer->Add(p->image_printer_bed, 0);
             bed_type_hsizer->AddStretchSpacer(1);
-        bed_type_sizer->Add(bed_type_hsizer, 0, wxALIGN_CENTER | wxLEFT | wxTOP | wxRIGHT, FromDIP(2));
-        bed_type_sizer->Add(p->combo_printer_bed, 0, wxEXPAND | wxALL, FromDIP(2));
-        bed_type_sizer->AddStretchSpacer(1);
-        p->panel_printer_bed->SetSizer(bed_type_sizer);
+            bed_type_hsizer->Add(p->image_printer_bed, 1, wxEXPAND | wxTOP, FromDIP(8));
+            bed_type_hsizer->Add(wiki_bed, 1, wxTOP, FromDIP(2));
+        bed_type_vsizer->Add(bed_type_hsizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(8));
+        bed_type_vsizer->Add(p->combo_printer_bed, 0, wxEXPAND | wxALL, FromDIP(2));
+        bed_type_vsizer->AddStretchSpacer(1);
+
+        p->panel_printer_bed->SetSizer(bed_type_vsizer);
 
         AppConfig *app_config = wxGetApp().app_config;
         std::string str_bed_type = app_config->get("curr_bed_type");
@@ -1694,6 +1697,7 @@ Sidebar::Sidebar(Plater *parent)
         p->left_extruder  = new ExtruderGroup(p->m_panel_printer_content, 0, _L("Left Nozzle"));
         p->right_extruder = new ExtruderGroup(p->m_panel_printer_content, 1, _L("Right Nozzle"));
         p->single_extruder = new ExtruderGroup(p->m_panel_printer_content, -1, _L("Nozzle"));
+
         auto switch_diameter = [this](wxCommandEvent & evt) {
             auto extruder = dynamic_cast<ExtruderGroup *>(dynamic_cast<ComboBox *>(evt.GetEventObject())->GetParent());
             p->is_switching_diameter = true;
@@ -1808,9 +1812,9 @@ Sidebar::Sidebar(Plater *parent)
             }
         }));
 
-    bSizer39->Add(p->m_flushing_volume_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(4));
+    bSizer39->Add(p->m_flushing_volume_btn, 0, wxALIGN_CENTER_VERTICAL, FromDIP(4));
     bSizer39->Hide(p->m_flushing_volume_btn);
-    bSizer39->Add(FromDIP(10), 0, 0, 0, 0 );
+    bSizer39->Add(FromDIP(12), 0, 0, 0, 0 );
 
     ScalableButton* add_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "add_filament");
     add_btn->SetToolTip(_L("Add one filament"));
@@ -1819,8 +1823,8 @@ Sidebar::Sidebar(Plater *parent)
     });
     p->m_bpButton_add_filament = add_btn;
 
-    bSizer39->Add(add_btn, 0, wxALIGN_CENTER|wxALL, FromDIP(4));
-    bSizer39->Add(FromDIP(10), 0, 0, 0, 0 );
+    bSizer39->Add(add_btn, 0, wxALIGN_CENTER_VERTICAL, FromDIP(4));
+    bSizer39->Add(FromDIP(12), 0, 0, 0, 0 );
 
     ScalableButton* del_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "delete_filament");
     del_btn->SetToolTip(_L("Remove last filament"));
@@ -1830,7 +1834,7 @@ Sidebar::Sidebar(Plater *parent)
     p->m_bpButton_del_filament = del_btn;
 
     bSizer39->Add(del_btn, 0, wxALIGN_CENTER_VERTICAL, FromDIP(4));
-    bSizer39->Add(FromDIP(20), 0, 0, 0, 0);
+    bSizer39->Add(FromDIP(12), 0, 0, 0, 0);
 
     ams_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "ams_fila_sync", wxEmptyString, wxDefaultSize, wxDefaultPosition,
                                                  wxBU_EXACTFIT | wxNO_BORDER, false, 18);
@@ -1842,8 +1846,8 @@ Sidebar::Sidebar(Plater *parent)
     ams_btn->Bind(wxEVT_UPDATE_UI, &Sidebar::update_sync_ams_btn_enable, this);
     p->m_bpButton_ams_filament = ams_btn;
 
-    bSizer39->Add(ams_btn, 0, wxALIGN_CENTER|wxALL, FromDIP(4));
-    bSizer39->Add(FromDIP(10), 0, 0, 0, 0 );
+    bSizer39->Add(ams_btn, 0, wxALIGN_CENTER, FromDIP(4));
+    bSizer39->Add(FromDIP(12), 0, 0, 0, 0 );
 
     ScalableButton* set_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "settings");
     set_btn->SetToolTip(_L("Set filaments to use"));
@@ -1856,7 +1860,7 @@ Sidebar::Sidebar(Plater *parent)
     p->m_bpButton_set_filament = set_btn;
 
     bSizer39->Add(set_btn, 0, wxALIGN_CENTER);
-    bSizer39->Add(FromDIP(15), 0, 0, 0, 0);
+    bSizer39->Add(FromDIP(16), 0, 0, 0, 0);
 
     // add filament content
     p->m_panel_filament_content = new wxPanel( p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
@@ -1982,9 +1986,9 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
 
     // BBS:  filament double columns
     int em = wxGetApp().em_unit();
-    combo_and_btn_sizer->Add(FromDIP(8), 0, 0, 0, 0 );
+    combo_and_btn_sizer->Add(FromDIP(10), 0, 0, 0, 0 );
     (*combo)->clr_picker->SetLabel(wxString::Format("%d", filament_idx + 1));
-    combo_and_btn_sizer->Add((*combo)->clr_picker, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(3));
+    combo_and_btn_sizer->Add((*combo)->clr_picker, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(4));
     combo_and_btn_sizer->Add(*combo, 1, wxALL | wxEXPAND, FromDIP(2))->SetMinSize({-1, FromDIP(30)});
 
     /* BBS hide del_btn
@@ -2015,9 +2019,9 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
     });
     combobox->edit_btn = edit_btn;
 
-    combo_and_btn_sizer->Add(edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(3));
+    combo_and_btn_sizer->Add(edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(4));
 
-    combo_and_btn_sizer->Add(FromDIP(8), 0, 0, 0, 0);
+    combo_and_btn_sizer->Add(FromDIP(16), 0, 0, 0, 0);
 
     // BBS:  filament double columns
     auto side = filament_idx % 2;
