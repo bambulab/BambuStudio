@@ -352,6 +352,7 @@ private:
     void update_on_off_state(const Vec2d& mouse_pos);
     std::string update_hover_state(const Vec2d& mouse_pos);
     bool grabber_contains_mouse() const;
+    bool is_svg_selected(int idx) const;
 
 private:
     bool m_object_located_outside_plate{false};

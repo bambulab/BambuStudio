@@ -1763,9 +1763,15 @@ void GLGizmosManager::do_render_overlay() const
     for (size_t idx : selectable_idxs)
     {
         GLGizmoBase* gizmo = m_gizmos[idx].get();
+        bool         selected_svg = is_svg_selected((int)idx);
+        if (selected_svg) {
+            gizmo = m_gizmos[m_current].get();
+        }
         unsigned int sprite_id = gizmo->get_sprite_id();
         // higlighted state needs to be decided first so its highlighting in every other state
-        int icon_idx = (m_highlight.first == idx ? (m_highlight.second ? 4 : 5) : (m_current == idx) ? 2 : ((m_hover == idx) ? 1 : (gizmo->is_activable()? 0 : 3)));
+        int icon_idx = (m_highlight.first == idx           ? (m_highlight.second ? 4 : 5) :
+                        (m_current == idx || selected_svg) ? 2 :
+                                                             ((m_hover == idx) ? 1 : (gizmo->is_activable() ? 0 : 3)));
 
         float v_top = v_offset + sprite_id * dv;
         float u_left = u_offset + icon_idx * du;
@@ -1775,7 +1781,7 @@ void GLGizmosManager::do_render_overlay() const
         GLTexture::render_sub_texture(icons_texture_id, zoomed_top_x, zoomed_top_x + zoomed_icons_size, zoomed_top_y - zoomed_icons_size, zoomed_top_y, { { u_left, v_bottom }, { u_right, v_bottom }, { u_right, v_top }, { u_left, v_top } });
 
         if (idx == m_current// Orca: Show Svg dialog at the same place as emboss gizmo
-            || (m_current == Svg && idx == Text)) {
+            || (selected_svg)) {
             //BBS: GUI refactor: GLToolbar&&Gizmo adjust
             //render_input_window uses a different coordination(imgui)
             //1. no need to scale by camera zoom, set {0,0} at left-up corner for imgui
@@ -1886,6 +1892,10 @@ void GLGizmosManager::update_on_off_state(const Vec2d& mouse_pos)
         return;
 
     size_t idx = get_gizmo_idx_from_mouse(mouse_pos);
+    if (is_svg_selected(idx)) {// close svg gizmo
+        open_gizmo(EType::Svg);
+        return;
+    }
     if (idx != Undefined && m_gizmos[idx]->is_activable() && m_hover == idx) {
         activate_gizmo(m_current == idx ? Undefined : (EType)idx);
         // BBS
@@ -1904,7 +1914,12 @@ std::string GLGizmosManager::update_hover_state(const Vec2d& mouse_pos)
 
     size_t idx = get_gizmo_idx_from_mouse(mouse_pos);
     if (idx != Undefined) {
-        name = m_gizmos[idx]->get_name();
+        if (is_svg_selected(idx)) {
+            name = m_gizmos[m_current]->get_name();
+        }
+        else {
+            name = m_gizmos[idx]->get_name();
+        }
 
         if (m_gizmos[idx]->is_activable())
             m_hover = (EType)idx;
@@ -1966,6 +1981,9 @@ bool GLGizmosManager::grabber_contains_mouse() const
     return (curr != nullptr) ? (curr->get_hover_id() != -1) : false;
 }
 
+bool GLGizmosManager::is_svg_selected(int idx) const {
+    return m_current == Svg && idx == Text;
+}
 
 bool GLGizmosManager::is_in_editing_mode(bool error_notification) const
 {
