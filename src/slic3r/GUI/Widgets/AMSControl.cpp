@@ -2444,7 +2444,8 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_sizer_ams_items = new wxBoxSizer(wxHORIZONTAL);
 
     /*right items*/
-    m_panel_prv_left = new wxPanel(m_amswin, wxID_ANY);
+    m_panel_prv_left = new wxScrolledWindow(m_amswin, wxID_ANY);
+    m_panel_prv_left->SetScrollRate(10, 0);
     m_panel_prv_left->SetSize(AMS_ITEMS_PANEL_SIZE);
     m_panel_prv_left->SetMinSize(AMS_ITEMS_PANEL_SIZE);
     //m_panel_prv_left->SetBackgroundColour(0x4169E1);
@@ -2455,7 +2456,8 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     //m_sizer_items_left->Fit(m_panel_prv_left);
 
     /*right items*/
-    m_panel_prv_right = new wxPanel(m_amswin, wxID_ANY);
+    m_panel_prv_right = new wxScrolledWindow(m_amswin, wxID_ANY);
+    m_panel_prv_right->SetScrollRate(10, 0);
     m_panel_prv_right->SetSize(AMS_ITEMS_PANEL_SIZE);
     m_panel_prv_right->SetMinSize(AMS_ITEMS_PANEL_SIZE);
     //m_panel_prv_right->SetBackgroundColour(0x4169E1);
@@ -3758,13 +3760,6 @@ void AMSControl::SwitchAms(std::string ams_id)
 
         } else {
             prv->UnSelected();
-        }
-        if (prv->get_nozzle_id() == DEPUTY_NOZZLE_ID) {
-            m_sizer_prv_left->Layout();
-            m_panel_prv_left->Fit();
-        } else if (prv->get_nozzle_id() == MAIN_NOZZLE_ID) {
-            m_sizer_prv_right->Layout();
-            m_panel_prv_right->Fit();
         }
     }
 
