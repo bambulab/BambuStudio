@@ -179,7 +179,6 @@ namespace GUI {
         void init_from(const InitializationData& data);
         void init_from(const indexed_triangle_set& its, const BoundingBoxf3& bbox);
         void init_from(const indexed_triangle_set& its);
-        void init_from(const Polygons& polygons, float z);
         bool init_from_file(const std::string& filename);
         void init_model_from_polygon(const Polygons &polygons, float z);
         bool init_model_from_poly(const std::vector<Vec2f> &triangles, float z, bool generate_mesh = false);

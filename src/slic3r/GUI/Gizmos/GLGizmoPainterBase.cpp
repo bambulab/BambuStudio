@@ -548,7 +548,7 @@ void GLGizmoPainterBase::update_contours(int i, const TriangleMesh &vol_mesh, fl
                             }
                         }
                     }
-                    m_cut_contours[i].contours.init_from(polys, static_cast<float>(cursor_z));
+                    m_cut_contours[i].contours.init_model_from_polygon(polys, static_cast<float>(cursor_z));
                     m_cut_contours[i].contours.set_color(-1, {1.0f, 1.0f, 1.0f, 1.0f});
                 }
             } else if (box.center() != m_cut_contours[i].position) {
