@@ -12470,7 +12470,8 @@ bool Plater::load_svg(const wxArrayString &filenames, bool from_toolbar_or_file_
         const wxString &filename = filenames[0];
         if (boost::iends_with(filenames[0].ToStdString(), ".svg")) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "," << __FILE__ << filename;
-            return emboss_svg(filename, from_toolbar_or_file_menu);
+            emboss_svg(filename, from_toolbar_or_file_menu);
+            return true;
         } else {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "," << __FILE__ << ",fail:" << filename;
         }
