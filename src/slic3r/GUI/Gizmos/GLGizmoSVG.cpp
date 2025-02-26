@@ -165,7 +165,7 @@ EmbossShape select_shape(std::string_view filepath, double tesselation_tolerance
 
     // Must contain some shapes !!!
     if (shape.shapes_with_ids.empty()) {
-        show_error(nullptr, GUI::format(_u8L("SVG file does NOT contain a single path to be embossed (%1%)."), svg.path));
+        show_error(nullptr, GUI::format(_u8L("%1% contains some unsupported data. Please use third-party software to convert the SVG to path data before reimporting."), svg.path));
         return {};
     }
     shape.svg_file = std::move(svg);
