@@ -864,6 +864,7 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
                 // Filter out areas whose diameter that is smaller than extrusion_width, but we don't want to lose any details.
                 layer->lslices_extrudable = intersection_ex(layer->lslices, offset2_ex(layer->lslices, -extrusion_width_scaled / 2, extrusion_width_scaled));
                 layer->loverhangs.clear();
+                layer->loverhangs_with_type.clear();
                 layer->sharp_tails.clear();
                 layer->sharp_tails_height.clear();
                 layer->cantilevers.clear();
