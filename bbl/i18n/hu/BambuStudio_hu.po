@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-20 22:07+0800\n"
+"POT-Creation-Date: 2025-02-27 10:18+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -12,6 +12,35 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n==1) ? 0 : 1;\n"
 "X-Generator: Poedit 3.4.2\n"
+
+msgid "Current AMS humidity"
+msgstr ""
+
+msgid "Drying"
+msgstr ""
+
+msgid "Idle"
+msgstr "Tétlen"
+
+msgid "Humidity"
+msgstr ""
+
+msgid "Temperature"
+msgstr "Hőmérséklet"
+
+msgid "Left Time"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%.1f ℃"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d Hours"
+msgstr ""
+
+msgid "Latest version"
+msgstr "Legfrissebb verzió"
 
 msgid "Supports Painting"
 msgstr "Támaszok festése"
@@ -942,7 +971,9 @@ msgid "Nano SVG parser can't load from file (%1%)."
 msgstr ""
 
 #, boost-format
-msgid "SVG file does NOT contain a single path to be embossed (%1%)."
+msgid ""
+"%1% contains some unsupported data. Please use third-party software to "
+"convert the SVG to path data before reimporting."
 msgstr ""
 
 #. TRN - Input label. Be short as possible
@@ -1018,8 +1049,8 @@ msgid "Missing data of svg file"
 msgstr ""
 
 msgid ""
-"Tip:If you want to place svg file on another part surface,\n"
-"you should select part first, and then drag svg file to the part surface."
+"Tip:If you want to place svg file on another part surface,you should select "
+"part first, and then drag svg file to the part surface."
 msgstr ""
 
 #. TRN - Preview of filename after clear local filepath.
@@ -1062,12 +1093,6 @@ msgstr ""
 #. TRN: The placeholder contains a number.
 #, boost-format
 msgid "Scale also changes amount of curve samples (%1%)"
-msgstr ""
-
-msgid "width:"
-msgstr ""
-
-msgid "height:"
 msgstr ""
 
 msgid "set width and height keep ratio with width"
@@ -1507,14 +1532,14 @@ msgstr "Elrejtés"
 msgid "Show"
 msgstr "Megjelenítés"
 
-msgid "Del"
-msgstr "Del"
-
 msgid "Delete the selected object"
 msgstr "Kiválasztott objektum törlése"
 
 msgid "Delete all cutter"
 msgstr ""
+
+msgid "Del"
+msgstr "Del"
 
 msgid "Edit Text"
 msgstr "Szöveg szerkesztése"
@@ -2379,6 +2404,9 @@ msgstr ""
 "Ez a tálca zárolva van.\n"
 "Nem lehetséges az automatikus elrendezés ezen a tálcán."
 
+msgid "Arranging..."
+msgstr "Elrendezés..."
+
 #, boost-format
 msgid "Object %1% has zero size and can't be arranged."
 msgstr "A(z) %1% objektum mérete nulla, és nem rendezhető."
@@ -2929,9 +2957,6 @@ msgstr "AMS kikapcsolása"
 
 msgid "Print with the filament mounted on the back of chassis"
 msgstr "Nyomtatás külső tartón lévő filamenttel"
-
-msgid "Current AMS humidity"
-msgstr ""
 
 msgid ""
 "Please change the desiccant when it is too wet. The indicator may not "
@@ -3767,9 +3792,6 @@ msgstr "Vonalszélesség"
 msgid "Fan Speed"
 msgstr "Ventilátor fordulatszám"
 
-msgid "Temperature"
-msgstr "Hőmérséklet"
-
 msgid "Flow"
 msgstr "Anyagáramlás"
 
@@ -4099,12 +4121,12 @@ msgid ""
 "range:\n"
 msgstr ""
 
-#, c-format, boost-format
-msgid "Left nozzle: X:%.0f-%.0f, Y:%.0f-%.0f, Z:%.0f-%.0f\n"
+#, boost-format
+msgid "Left nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"
 msgstr ""
 
-#, c-format, boost-format
-msgid "Right nozzle: X:%.0f-%.0f, Y:%.0f-%.0f, Z:%.0f-%.0f"
+#, boost-format
+msgid "Right nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%"
 msgstr ""
 
 msgid "Mirror Object"
@@ -5863,6 +5885,23 @@ msgstr "Kezdőréteg ellenőrzése"
 msgid "Auto-recovery from step loss"
 msgstr "Automatikus helyreállítás lépésvesztésből"
 
+msgid "Open Door Dectection"
+msgstr ""
+
+msgid "Notification"
+msgstr ""
+
+msgid "Pause printing"
+msgstr ""
+
+msgid "Store Sent Files on External Storage"
+msgstr ""
+
+msgid ""
+"Save the printing files initiated from Bambu Studio, Bambu Handy and "
+"MakerWorld on External Storage"
+msgstr ""
+
 msgid "Allow Prompt Sound"
 msgstr "Hangjelzés engedélyezése"
 
@@ -6729,10 +6768,16 @@ msgstr ""
 msgid "Enable LOD"
 msgstr ""
 
+msgid "Bed Temperature Difference Warning"
+msgstr ""
+
 msgid ""
-"Printing with multiple filaments that have a large temperature difference "
-"can cause the extruder and nozzle to be blocked or dameged during printing.\n"
-"Please enable with caution."
+"Using filaments with significantly different temperatures may cause:\n"
+"• Extruder clogging\n"
+"• Nozzle damage\n"
+"• Layer adhesion issues\n"
+"\n"
+"Continue with enabling this feature?"
 msgstr ""
 
 msgid "Browse"
@@ -6811,13 +6856,10 @@ msgstr ""
 "Studio will remember build plate selected last time for certain printer "
 "models."
 
-msgid "all"
-msgstr ""
+msgid "All"
+msgstr "Összes"
 
-msgid "color change"
-msgstr ""
-
-msgid "disabled"
+msgid "Disabled"
 msgstr ""
 
 msgid "Auto Flush"
@@ -6857,6 +6899,10 @@ msgstr ""
 msgid ""
 "With this option enabled, you can print materials with a large temperature "
 "difference together."
+msgstr ""
+
+msgid ""
+"Clear my choice for synchronizing printer preset after loading the file."
 msgstr ""
 
 msgid "3D Settings"
@@ -7935,8 +7981,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Ha a nyomtatófej nélküli timelapse engedélyezve van, javasoljuk, hogy "
 "helyezz el a tálcán egy „Timelapse törlőtornyot“. Ehhez kattints jobb "
@@ -8302,9 +8348,6 @@ msgstr ""
 #, boost-format
 msgid "Are you sure to %1% the selected preset?"
 msgstr "Biztos, hogy %1% a kiválasztott beállítást?"
-
-msgid "All"
-msgstr "Összes"
 
 msgid "Set"
 msgstr "Beállít"
@@ -8749,21 +8792,6 @@ msgctxt "FinishSyncAms"
 msgid "OK"
 msgstr ""
 
-msgid "Auto-Calc"
-msgstr "Automatikus számítás"
-
-msgid "Re-calculate"
-msgstr "Újraszámítás"
-
-msgid "Left extruder"
-msgstr ""
-
-msgid "Right extruder"
-msgstr ""
-
-msgid "Flushing volumes for filament change"
-msgstr "Filamentcsere tisztítási mennyisége"
-
 msgid ""
 "Studio would re-calculate your flushing volumes everytime the filaments "
 "color changed or filaments changed. You could disable the auto-calculate in "
@@ -8784,23 +8812,20 @@ msgstr "Javaslat: öblítési érték a [%d, %d] tartományban"
 msgid "The multiplier should be in range [%.2f, %.2f]."
 msgstr "A szorzónak [%.2f, %.2f] tartományban kell lennie."
 
+msgid "Re-calculate"
+msgstr "Újraszámítás"
+
+msgid "Left extruder"
+msgstr ""
+
+msgid "Right extruder"
+msgstr ""
+
 msgid "Multiplier"
 msgstr "Szorzó"
 
-msgid "unloaded"
-msgstr "kitöltve"
-
-msgid "loaded"
-msgstr "betöltve"
-
-msgid "Filament #"
-msgstr "Filament #"
-
-msgid "From"
-msgstr "From"
-
-msgid "To"
-msgstr "To"
+msgid "Flushing volumes for filament change"
+msgstr "Filamentcsere tisztítási mennyisége"
 
 msgid "Bambu Network plug-in not detected."
 msgstr "A Bambu Network plug-in nem található."
@@ -9166,14 +9191,8 @@ msgstr "Verzió:"
 msgid "Update firmware"
 msgstr "Firmware frissítése"
 
-msgid "Idle"
-msgstr "Tétlen"
-
 msgid "Beta version"
 msgstr "Béta verzió"
-
-msgid "Latest version"
-msgstr "Legfrissebb verzió"
 
 msgid "Updating"
 msgstr "Frissítés"
@@ -9981,6 +10000,17 @@ msgstr ""
 "túlnyúlások és áthidalások hűtésének kikényszerítésével jobb minőség érhető "
 "el ezeken a részeken."
 
+msgid "Pre start fan time"
+msgstr ""
+
+msgid ""
+"Force fan start early(0-5 second) when encountering overhangs. This is "
+"because the fan needs time to physically increase its speed."
+msgstr ""
+
+msgid "s"
+msgstr "mp"
+
 msgid "Cooling overhang threshold"
 msgstr "Túlnyúlás hűtésének küszöbértéke"
 
@@ -10280,9 +10310,6 @@ msgstr ""
 "A függőleges héjvastagság biztosítása érdekében szilárd kitöltést alkalmaz a "
 "döntött felületek közelében (felső + alsó tömör rétegek)"
 
-msgid "Disabled"
-msgstr ""
-
 msgid "Partial"
 msgstr ""
 
@@ -10553,9 +10580,6 @@ msgstr ""
 "rétegnyomtatási időnek megfelelően skálázódik a minimális és maximális "
 "ventilátor fordulatszám között"
 
-msgid "s"
-msgstr "mp"
-
 msgid "Default color"
 msgstr "Alapértelmezett szín"
 
@@ -10629,6 +10653,21 @@ msgid "Extruder switch time"
 msgstr ""
 
 msgid "Time to switch extruder. For statistics only"
+msgstr ""
+
+msgid "Bed temperature type"
+msgstr ""
+
+msgid ""
+"This option determines how the bed temperature is set during slicing: based "
+"on the temperature of the first filament or the highest temperature of the "
+"printed filaments."
+msgstr ""
+
+msgid "By First filament"
+msgstr ""
+
+msgid "By Highest Temp"
 msgstr ""
 
 msgid ""
@@ -12393,6 +12432,18 @@ msgstr ""
 "beállítás ki van kapcsolva, és a felső héj vastagságát egyszerűen a felső "
 "héjrétegek száma határozza meg."
 
+msgid "Top color layers"
+msgstr ""
+
+msgid "This is  the number of layers affected by the top color."
+msgstr ""
+
+msgid "Bottom color layers"
+msgstr ""
+
+msgid "This is  the number of layers affected by the bottom color."
+msgstr ""
+
 msgid "Speed of travel which is faster and without extrusion"
 msgstr "Mozgási sebesség, amikor nem történik extrudálás"
 
@@ -12484,9 +12535,6 @@ msgid "Counter Coef 1"
 msgstr ""
 
 msgid "counter_coef_1"
-msgstr ""
-
-msgid "/1e6"
 msgstr ""
 
 msgid "Contour Coef 2"
@@ -13899,12 +13947,12 @@ msgstr ""
 "Szeretnéd felülírni?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more printers; please go to printer selection"
 
 msgid "Create Printer/Nozzle"
@@ -15359,6 +15407,24 @@ msgstr ""
 "Tudtad, hogy a vetemedésre hajlamos anyagok (például ABS) nyomtatásakor a "
 "tárgyasztal hőmérsékletének növelése csökkentheti a vetemedés valószínűségét?"
 
+#~ msgid "Auto-Calc"
+#~ msgstr "Automatikus számítás"
+
+#~ msgid "unloaded"
+#~ msgstr "kitöltve"
+
+#~ msgid "loaded"
+#~ msgstr "betöltve"
+
+#~ msgid "Filament #"
+#~ msgstr "Filament #"
+
+#~ msgid "From"
+#~ msgstr "From"
+
+#~ msgid "To"
+#~ msgstr "To"
+
 #~ msgid ""
 #~ "Flushing volumes: Auto-calculate every time when the color is changed."
 #~ msgstr ""
@@ -15401,9 +15467,6 @@ msgstr ""
 #~ "A támasz érintkező felületének vonalmintája. A nem oldható támaszfelület "
 #~ "alapértelmezett mintázata egyenes vonalú, míg az oldható támaszfelület "
 #~ "alapértelmezett mintázata koncentrikus"
-
-#~ msgid "Arranging..."
-#~ msgstr "Elrendezés..."
 
 #~ msgid ""
 #~ "BambuStudio configuration file may be corrupted and is not able to be "

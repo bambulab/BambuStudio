@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-20 22:07+0800\n"
+"POT-Creation-Date: 2025-02-27 10:18+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -16,6 +16,35 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Poedit 3.5\n"
+
+msgid "Current AMS humidity"
+msgstr "当前AMS湿度"
+
+msgid "Drying"
+msgstr "烘干"
+
+msgid "Idle"
+msgstr "空闲"
+
+msgid "Humidity"
+msgstr "湿度"
+
+msgid "Temperature"
+msgstr "温度"
+
+msgid "Left Time"
+msgstr "剩余时间"
+
+#, c-format, boost-format
+msgid "%.1f ℃"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d Hours"
+msgstr "%d小时"
+
+msgid "Latest version"
+msgstr "最新版本"
 
 msgid "Supports Painting"
 msgstr "支撑绘制"
@@ -945,8 +974,11 @@ msgid "Nano SVG parser can't load from file (%1%)."
 msgstr "Nano SVG解析器不能加载文件（%1%）。"
 
 #, boost-format
-msgid "SVG file does NOT contain a single path to be embossed (%1%)."
-msgstr "SVG文件不包含要浮雕的单个路径（%1%）。"
+msgid ""
+"%1% contains some unsupported data. Please use third-party software to "
+"convert the SVG to path data before reimporting."
+msgstr ""
+"%1%中存在部分暂不支持的数据，请使用第三方软件转换该SVG为路径数据后重新导入。"
 
 #. TRN - Input label. Be short as possible
 msgid "Use surface"
@@ -1021,11 +1053,11 @@ msgid "Missing data of svg file"
 msgstr "svg文件数据缺失"
 
 msgid ""
-"Tip:If you want to place svg file on another part surface,\n"
-"you should select part first, and then drag svg file to the part surface."
+"Tip:If you want to place svg file on another part surface,you should select "
+"part first, and then drag svg file to the part surface."
 msgstr ""
-"提示：如果要将svg文件放置在另一个零件表面上，\n"
-"您应该先选择零件，然后将svg文件拖动到零件表面。"
+"提示：如果要将 SVG 文件放置在另一个零件表面，请先选择零件，再将 SVG 文件拖到"
+"零件表面。"
 
 #. TRN - Preview of filename after clear local filepath.
 msgid "Unknown filename"
@@ -1068,12 +1100,6 @@ msgstr "浮雕方向上的大小"
 #, boost-format
 msgid "Scale also changes amount of curve samples (%1%)"
 msgstr "缩放也会改变曲线样本的数量（%1%）"
-
-msgid "width:"
-msgstr "宽"
-
-msgid "height:"
-msgstr "高"
 
 msgid "set width and height keep ratio with width"
 msgstr "设置宽度和保持比例的宽度"
@@ -1502,14 +1528,14 @@ msgstr "隐藏"
 msgid "Show"
 msgstr "显示"
 
-msgid "Del"
-msgstr "删除"
-
 msgid "Delete the selected object"
 msgstr "删除所选对象"
 
 msgid "Delete all cutter"
 msgstr "删除所有连接器"
+
+msgid "Del"
+msgstr "删除"
 
 msgid "Edit Text"
 msgstr "编辑文字"
@@ -2341,6 +2367,9 @@ msgid ""
 "We can not do auto-arrange on this plate."
 msgstr "该盘处于锁定状态，无法对其进行自动摆盘。"
 
+msgid "Arranging..."
+msgstr "自动摆放中..."
+
 #, boost-format
 msgid "Object %1% has zero size and can't be arranged."
 msgstr "对象%1%的大小为零，无法排列。"
@@ -2866,9 +2895,6 @@ msgstr "不启用AMS"
 
 msgid "Print with the filament mounted on the back of chassis"
 msgstr "使用机箱背后挂载的材料打印"
-
-msgid "Current AMS humidity"
-msgstr "当前AMS湿度"
 
 msgid ""
 "Please change the desiccant when it is too wet. The indicator may not "
@@ -3599,7 +3625,7 @@ msgstr "CF/GF耗材丝又硬又脆，在AMS中很容易断裂或卡住，请谨�
 msgid ""
 "The rough surface of PLA Glow can accelerate wear on the AMS system, "
 "particularly on the internal components of the AMS Lite."
-msgstr ""
+msgstr "PLA Glow的粗糙表面可能加速AMS系统的磨损，尤其是AMS Lite的内部部件。"
 
 msgid "default"
 msgstr "缺省"
@@ -3653,9 +3679,6 @@ msgstr "线宽"
 
 msgid "Fan Speed"
 msgstr "风扇速度"
-
-msgid "Temperature"
-msgstr "温度"
 
 msgid "Flow"
 msgstr "流量"
@@ -3985,13 +4008,13 @@ msgid ""
 "range:\n"
 msgstr " 请检查并调整零件的位置或尺寸以适应打印范围\n"
 
-#, c-format, boost-format
-msgid "Left nozzle: X:%.0f-%.0f, Y:%.0f-%.0f, Z:%.0f-%.0f\n"
-msgstr "左喷嘴：X:%.0f-%.0f, Y:%.0f-%.0f, Z:%.0f-%.0f\n"
+#, boost-format
+msgid "Left nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"
+msgstr "左喷嘴：X:%1%-%2%，Y:%3%-%4%，Z:%5%-%6%\n"
 
-#, c-format, boost-format
-msgid "Right nozzle: X:%.0f-%.0f, Y:%.0f-%.0f, Z:%.0f-%.0f"
-msgstr "右喷嘴：X:%.0f-%.0f, Y:%.0f-%.0f, Z:%.0f-%.0f"
+#, boost-format
+msgid "Right nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%"
+msgstr "右喷嘴：X:%1%-%2%，Y:%3%-%4%，Z:%5%-%6%"
 
 msgid "Mirror Object"
 msgstr "镜像物体"
@@ -5714,6 +5737,24 @@ msgstr "首层扫描"
 msgid "Auto-recovery from step loss"
 msgstr "自动从丢步中恢复"
 
+msgid "Open Door Dectection"
+msgstr "开门检测"
+
+msgid "Notification"
+msgstr "通知"
+
+msgid "Pause printing"
+msgstr "暂停打印"
+
+msgid "Store Sent Files on External Storage"
+msgstr "将发送的文件存储到外部存储"
+
+msgid ""
+"Save the printing files initiated from Bambu Studio, Bambu Handy and "
+"MakerWorld on External Storage"
+msgstr ""
+"将从 Bambu Studio、Bambu Handy 和 MakerWorld 启动的打印文件保存在外部存储中"
+
 msgid "Allow Prompt Sound"
 msgstr "支持提示音"
 
@@ -6443,12 +6484,12 @@ msgid "Plate Settings"
 msgstr "盘参数设置"
 
 msgid "Prime Tower:"
-msgstr "擦料塔："
+msgstr "擦拭塔："
 
 msgid ""
 "A cube printed during a filament change to purge old color and ensure smooth "
 "color transition."
-msgstr "在换丝过程中打印的立方体，用于清除旧色并确保平滑的颜色过渡"
+msgstr "在换材料过程中打印的立方体，用于清除旧材料并确保平滑的颜色过渡"
 
 #, boost-format
 msgid "Number of currently selected parts: %1%\n"
@@ -6569,13 +6610,23 @@ msgstr ""
 msgid "Enable LOD"
 msgstr "启用LOD"
 
+msgid "Bed Temperature Difference Warning"
+msgstr "热床温差警告"
+
 msgid ""
-"Printing with multiple filaments that have a large temperature difference "
-"can cause the extruder and nozzle to be blocked or dameged during printing.\n"
-"Please enable with caution."
+"Using filaments with significantly different temperatures may cause:\n"
+"• Extruder clogging\n"
+"• Nozzle damage\n"
+"• Layer adhesion issues\n"
+"\n"
+"Continue with enabling this feature?"
 msgstr ""
-"温度差异过大的材料一起打印可能导致挤出机和喷嘴在打印中堵塞或损坏。\n"
-"请谨慎启用。"
+"使用温度差异较大的耗材可能导致：\n"
+"• 喷头堵塞\n"
+"• 喷嘴损坏\n"
+"• 层间粘附问题\n"
+"\n"
+"仍要启用此功能？"
 
 msgid "Browse"
 msgstr "浏览"
@@ -6648,14 +6699,11 @@ msgid ""
 "model."
 msgstr "Studio会记住上次该型号打印机选择的打印板。"
 
-msgid "all"
-msgstr ""
+msgid "All"
+msgstr "所有"
 
-msgid "color change"
-msgstr ""
-
-msgid "disabled"
-msgstr ""
+msgid "Disabled"
+msgstr "关闭"
 
 msgid "Auto Flush"
 msgstr ""
@@ -6693,6 +6741,10 @@ msgid ""
 "With this option enabled, you can print materials with a large temperature "
 "difference together."
 msgstr "启用此选项后，您可以同时打印具有较大温度差异的材料。"
+
+msgid ""
+"Clear my choice for synchronizing printer preset after loading the file."
+msgstr "清除加载文件后同步打印机预设的设置。"
 
 msgid "3D Settings"
 msgstr "3D设置"
@@ -7737,8 +7789,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "在录制无工具头延时摄影视频时，建议添加“延时摄影擦料塔”\n"
 "右键单击打印板的空白位置，选择“添加标准模型”->“延时摄影擦料塔”。"
@@ -8080,9 +8132,6 @@ msgstr ""
 #, boost-format
 msgid "Are you sure to %1% the selected preset?"
 msgstr "确定要%1%所选预设吗？"
-
-msgid "All"
-msgstr "所有"
 
 msgid "Set"
 msgstr "设置"
@@ -8530,21 +8579,6 @@ msgctxt "FinishSyncAms"
 msgid "OK"
 msgstr "知道了"
 
-msgid "Auto-Calc"
-msgstr "自动计算"
-
-msgid "Re-calculate"
-msgstr "重新计算"
-
-msgid "Left extruder"
-msgstr "左挤出机"
-
-msgid "Right extruder"
-msgstr "右挤出机"
-
-msgid "Flushing volumes for filament change"
-msgstr "耗材丝更换时的冲刷体积"
-
 msgid ""
 "Studio would re-calculate your flushing volumes everytime the filaments "
 "color changed or filaments changed. You could disable the auto-calculate in "
@@ -8564,23 +8598,20 @@ msgstr "建议：冲刷量设置在[%d, %d]范围内"
 msgid "The multiplier should be in range [%.2f, %.2f]."
 msgstr "乘数的取值范围是[%.2f, %.2f]"
 
+msgid "Re-calculate"
+msgstr "重新计算"
+
+msgid "Left extruder"
+msgstr "左挤出机"
+
+msgid "Right extruder"
+msgstr "右挤出机"
+
 msgid "Multiplier"
 msgstr "乘数"
 
-msgid "unloaded"
-msgstr "卸载"
-
-msgid "loaded"
-msgstr "装载"
-
-msgid "Filament #"
-msgstr "耗材丝#"
-
-msgid "From"
-msgstr "从"
-
-msgid "To"
-msgstr "到"
+msgid "Flushing volumes for filament change"
+msgstr "耗材丝更换时的冲刷体积"
 
 msgid "Bambu Network plug-in not detected."
 msgstr "未检测到Bambu网络插件。"
@@ -8939,14 +8970,8 @@ msgstr "版本："
 msgid "Update firmware"
 msgstr "更新固件"
 
-msgid "Idle"
-msgstr "空闲"
-
 msgid "Beta version"
 msgstr "Beta版本"
-
-msgid "Latest version"
-msgstr "最新版本"
 
 msgid "Updating"
 msgstr "更新中"
@@ -9665,6 +9690,17 @@ msgstr ""
 "当打印桥接和超过设定阈值的悬垂时，强制部件冷却风扇为设定的速度值。强制冷却能"
 "够使悬垂和桥接获得更好的打印质量"
 
+msgid "Pre start fan time"
+msgstr "风扇预启动时间"
+
+msgid ""
+"Force fan start early(0-5 second) when encountering overhangs. This is "
+"because the fan needs time to physically increase its speed."
+msgstr "遇到悬垂结构时，因为风扇需要时间来提升转速，提前启动风扇（0-5秒）。"
+
+msgid "s"
+msgstr "秒"
+
 msgid "Cooling overhang threshold"
 msgstr "冷却悬空阈值"
 
@@ -9937,9 +9973,6 @@ msgid ""
 "thickness (top+bottom solid layers)"
 msgstr "在斜面表面附近添加实心填充，以保证垂直外壳厚度（顶部+底部实心层）"
 
-msgid "Disabled"
-msgstr "关闭"
-
 msgid "Partial"
 msgstr "部分"
 
@@ -10185,9 +10218,6 @@ msgstr ""
 "当层预估打印时间小于该数值时，部件冷却风扇将会被开启。风扇转速将根据层打印时"
 "间在最大和最小风扇转速之间插值获得"
 
-msgid "s"
-msgstr "秒"
-
 msgid "Default color"
 msgstr "缺省颜色"
 
@@ -10254,6 +10284,23 @@ msgstr "挤出机切换时间"
 
 msgid "Time to switch extruder. For statistics only"
 msgstr "是时候切换挤出机了。仅用于统计"
+
+msgid "Bed temperature type"
+msgstr "热床温度类型"
+
+msgid ""
+"This option determines how the bed temperature is set during slicing: based "
+"on the temperature of the first filament or the highest temperature of the "
+"printed filaments."
+msgstr ""
+"此选项决定切片时热床温度的设置方式：根据第一个耗材的温度或打印材料中的最高温"
+"度。"
+
+msgid "By First filament"
+msgstr "依据首个材料"
+
+msgid "By Highest Temp"
+msgstr "依据最高温"
 
 msgid ""
 "Filament diameter is used to calculate extrusion in gcode, so it's important "
@@ -11872,6 +11919,18 @@ msgstr ""
 "这能够避免当层高很小时，顶部壳体过薄。0表示关闭这个设置，同时顶部壳体的厚度完"
 "全由顶部壳体层数决定"
 
+msgid "Top color layers"
+msgstr ""
+
+msgid "This is  the number of layers affected by the top color."
+msgstr ""
+
+msgid "Bottom color layers"
+msgstr ""
+
+msgid "This is  the number of layers affected by the bottom color."
+msgstr ""
+
 msgid "Speed of travel which is faster and without extrusion"
 msgstr "空驶的速度。空驶是无挤出量的快速移动。"
 
@@ -11957,9 +12016,6 @@ msgid "Counter Coef 1"
 msgstr ""
 
 msgid "counter_coef_1"
-msgstr ""
-
-msgid "/1e6"
 msgstr ""
 
 msgid "Contour Coef 2"
@@ -13320,8 +13376,8 @@ msgstr ""
 "你想重写预设吗"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "我们会将预设重命名为“供应商 类型 系列 @您选择的打印机”。\n"
@@ -14708,6 +14764,58 @@ msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
 
+#, boost-format
+#~ msgid "SVG file does NOT contain a single path to be embossed (%1%)."
+#~ msgstr "SVG文件不包含要浮雕的单个路径（%1%）。"
+
+#~ msgid ""
+#~ "Tip:If you want to place svg file on another part surface,\n"
+#~ "you should select part first, and then drag svg file to the part surface."
+#~ msgstr ""
+#~ "提示：如果要将svg文件放置在另一个零件表面上，\n"
+#~ "您应该先选择零件，然后将svg文件拖动到零件表面。"
+
+#~ msgid "width:"
+#~ msgstr "宽"
+
+#~ msgid "height:"
+#~ msgstr "高"
+
+#, c-format, boost-format
+#~ msgid "Left nozzle: X:%.0f-%.0f, Y:%.0f-%.0f, Z:%.0f-%.0f\n"
+#~ msgstr "左喷嘴：X:%.0f-%.0f, Y:%.0f-%.0f, Z:%.0f-%.0f\n"
+
+#, c-format, boost-format
+#~ msgid "Right nozzle: X:%.0f-%.0f, Y:%.0f-%.0f, Z:%.0f-%.0f"
+#~ msgstr "右喷嘴：X:%.0f-%.0f, Y:%.0f-%.0f, Z:%.0f-%.0f"
+
+#~ msgid ""
+#~ "Printing with multiple filaments that have a large temperature difference "
+#~ "can cause the extruder and nozzle to be blocked or dameged during "
+#~ "printing.\n"
+#~ "Please enable with caution."
+#~ msgstr ""
+#~ "温度差异过大的材料一起打印可能导致挤出机和喷嘴在打印中堵塞或损坏。\n"
+#~ "请谨慎启用。"
+
+#~ msgid "Auto-Calc"
+#~ msgstr "自动计算"
+
+#~ msgid "unloaded"
+#~ msgstr "卸载"
+
+#~ msgid "loaded"
+#~ msgstr "装载"
+
+#~ msgid "Filament #"
+#~ msgstr "耗材丝#"
+
+#~ msgid "From"
+#~ msgstr "从"
+
+#~ msgid "To"
+#~ msgstr "到"
+
 #~ msgid ""
 #~ "Flushing volumes: Auto-calculate every time when the color is changed."
 #~ msgstr "冲刷体积：每一次更换颜色时自动计算。"
@@ -14818,9 +14926,6 @@ msgstr ""
 
 #~ msgid "fillet wall"
 #~ msgstr "外墙倒圆角"
-
-#~ msgid "Arranging..."
-#~ msgstr "自动摆放中..."
 
 #~ msgid "Rearrange filaments of the left and right nozzles ->"
 #~ msgstr "重新分配左右头耗材并切片->"
@@ -21467,8 +21572,8 @@ msgstr ""
 #~ msgstr "正在准备设置页"
 
 #~ msgid ""
-#~ "You have the following presets with saved options for \"Print Host "
-#~ "upload\""
+#~ "You have the following presets with saved options for \"Print Host upload"
+#~ "\""
 #~ msgstr "您的以下预设中包含未保存的选项“打印主机上传”"
 
 #~ msgid ""

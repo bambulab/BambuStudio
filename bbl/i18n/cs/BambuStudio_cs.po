@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-20 22:07+0800\n"
+"POT-Creation-Date: 2025-02-27 10:18+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -17,6 +17,35 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n>=2 && n<=4 ? 1 : 2);\n"
 "X-Generator: Poedit 3.3.1\n"
+
+msgid "Current AMS humidity"
+msgstr ""
+
+msgid "Drying"
+msgstr ""
+
+msgid "Idle"
+msgstr "Nečinný"
+
+msgid "Humidity"
+msgstr ""
+
+msgid "Temperature"
+msgstr "Teplota"
+
+msgid "Left Time"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%.1f ℃"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d Hours"
+msgstr ""
+
+msgid "Latest version"
+msgstr "Nejnovější verze"
 
 msgid "Supports Painting"
 msgstr "Malování podpěr"
@@ -933,7 +962,9 @@ msgid "Nano SVG parser can't load from file (%1%)."
 msgstr ""
 
 #, boost-format
-msgid "SVG file does NOT contain a single path to be embossed (%1%)."
+msgid ""
+"%1% contains some unsupported data. Please use third-party software to "
+"convert the SVG to path data before reimporting."
 msgstr ""
 
 #. TRN - Input label. Be short as possible
@@ -1009,8 +1040,8 @@ msgid "Missing data of svg file"
 msgstr ""
 
 msgid ""
-"Tip:If you want to place svg file on another part surface,\n"
-"you should select part first, and then drag svg file to the part surface."
+"Tip:If you want to place svg file on another part surface,you should select "
+"part first, and then drag svg file to the part surface."
 msgstr ""
 
 #. TRN - Preview of filename after clear local filepath.
@@ -1053,12 +1084,6 @@ msgstr ""
 #. TRN: The placeholder contains a number.
 #, boost-format
 msgid "Scale also changes amount of curve samples (%1%)"
-msgstr ""
-
-msgid "width:"
-msgstr ""
-
-msgid "height:"
 msgstr ""
 
 msgid "set width and height keep ratio with width"
@@ -1487,14 +1512,14 @@ msgstr "Skrýt"
 msgid "Show"
 msgstr "Zobrazit"
 
-msgid "Del"
-msgstr "Smazat"
-
 msgid "Delete the selected object"
 msgstr "Smazat vybraný objekt"
 
 msgid "Delete all cutter"
 msgstr ""
+
+msgid "Del"
+msgstr "Smazat"
 
 msgid "Edit Text"
 msgstr "Upravit text"
@@ -2341,6 +2366,9 @@ msgstr ""
 "Tato podložka je zamčená.\n"
 "Nemůžeme automaticky uspořádat tuto podložku."
 
+msgid "Arranging..."
+msgstr "Uspořádávání..."
+
 #, boost-format
 msgid "Object %1% has zero size and can't be arranged."
 msgstr ""
@@ -2883,9 +2911,6 @@ msgstr "Zakázat AMS"
 
 msgid "Print with the filament mounted on the back of chassis"
 msgstr "Tisk s filamentem namontovaným na zadní straně podvozku"
-
-msgid "Current AMS humidity"
-msgstr ""
 
 msgid ""
 "Please change the desiccant when it is too wet. The indicator may not "
@@ -3677,9 +3702,6 @@ msgstr "Šířka Extruze"
 msgid "Fan Speed"
 msgstr "Rychlost ventilátoru"
 
-msgid "Temperature"
-msgstr "Teplota"
-
 msgid "Flow"
 msgstr "Průtok"
 
@@ -4008,12 +4030,12 @@ msgid ""
 "range:\n"
 msgstr ""
 
-#, c-format, boost-format
-msgid "Left nozzle: X:%.0f-%.0f, Y:%.0f-%.0f, Z:%.0f-%.0f\n"
+#, boost-format
+msgid "Left nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"
 msgstr ""
 
-#, c-format, boost-format
-msgid "Right nozzle: X:%.0f-%.0f, Y:%.0f-%.0f, Z:%.0f-%.0f"
+#, boost-format
+msgid "Right nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%"
 msgstr ""
 
 msgid "Mirror Object"
@@ -5746,6 +5768,23 @@ msgstr "Kontrola první vrstvy"
 msgid "Auto-recovery from step loss"
 msgstr "Automatické obnovení po ztrátě kroku"
 
+msgid "Open Door Dectection"
+msgstr ""
+
+msgid "Notification"
+msgstr ""
+
+msgid "Pause printing"
+msgstr ""
+
+msgid "Store Sent Files on External Storage"
+msgstr ""
+
+msgid ""
+"Save the printing files initiated from Bambu Studio, Bambu Handy and "
+"MakerWorld on External Storage"
+msgstr ""
+
 msgid "Allow Prompt Sound"
 msgstr ""
 
@@ -6590,10 +6629,16 @@ msgstr ""
 msgid "Enable LOD"
 msgstr ""
 
+msgid "Bed Temperature Difference Warning"
+msgstr ""
+
 msgid ""
-"Printing with multiple filaments that have a large temperature difference "
-"can cause the extruder and nozzle to be blocked or dameged during printing.\n"
-"Please enable with caution."
+"Using filaments with significantly different temperatures may cause:\n"
+"• Extruder clogging\n"
+"• Nozzle damage\n"
+"• Layer adhesion issues\n"
+"\n"
+"Continue with enabling this feature?"
 msgstr ""
 
 msgid "Browse"
@@ -6663,13 +6708,10 @@ msgid ""
 "model."
 msgstr ""
 
-msgid "all"
-msgstr ""
+msgid "All"
+msgstr "Všechny"
 
-msgid "color change"
-msgstr ""
-
-msgid "disabled"
+msgid "Disabled"
 msgstr ""
 
 msgid "Auto Flush"
@@ -6707,6 +6749,10 @@ msgstr ""
 msgid ""
 "With this option enabled, you can print materials with a large temperature "
 "difference together."
+msgstr ""
+
+msgid ""
+"Clear my choice for synchronizing printer preset after loading the file."
 msgstr ""
 
 msgid "3D Settings"
@@ -7737,8 +7783,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Při nahrávání časosběru bez nástrojové hlavy se doporučuje přidat  "
 "\"Timelapse Wipe Tower\" \n"
@@ -8096,9 +8142,6 @@ msgstr ""
 #, boost-format
 msgid "Are you sure to %1% the selected preset?"
 msgstr "Opravdu chcete %1% vybrané předvolby?"
-
-msgid "All"
-msgstr "Všechny"
 
 msgid "Set"
 msgstr "Nastavit"
@@ -8533,21 +8576,6 @@ msgctxt "FinishSyncAms"
 msgid "OK"
 msgstr ""
 
-msgid "Auto-Calc"
-msgstr "Automatický výpočet"
-
-msgid "Re-calculate"
-msgstr ""
-
-msgid "Left extruder"
-msgstr ""
-
-msgid "Right extruder"
-msgstr ""
-
-msgid "Flushing volumes for filament change"
-msgstr "Čistící objemy pro výměnu filamentu"
-
 msgid ""
 "Studio would re-calculate your flushing volumes everytime the filaments "
 "color changed or filaments changed. You could disable the auto-calculate in "
@@ -8565,23 +8593,20 @@ msgstr "Návrh: Objem čištění v rozsahu [%d, %d]"
 msgid "The multiplier should be in range [%.2f, %.2f]."
 msgstr "Násobitel by měl být v rozsahu [%.2f, %.2f]."
 
+msgid "Re-calculate"
+msgstr ""
+
+msgid "Left extruder"
+msgstr ""
+
+msgid "Right extruder"
+msgstr ""
+
 msgid "Multiplier"
 msgstr "Multiplikátor"
 
-msgid "unloaded"
-msgstr "vyjmuto"
-
-msgid "loaded"
-msgstr "zaváděn"
-
-msgid "Filament #"
-msgstr "Filament #"
-
-msgid "From"
-msgstr "Z"
-
-msgid "To"
-msgstr "Do"
+msgid "Flushing volumes for filament change"
+msgstr "Čistící objemy pro výměnu filamentu"
 
 msgid "Bambu Network plug-in not detected."
 msgstr ""
@@ -8940,14 +8965,8 @@ msgstr "Verze:"
 msgid "Update firmware"
 msgstr "Aktualizovat firmware"
 
-msgid "Idle"
-msgstr "Nečinný"
-
 msgid "Beta version"
 msgstr ""
-
-msgid "Latest version"
-msgstr "Nejnovější verze"
 
 msgid "Updating"
 msgstr "Probíhá aktualizace"
@@ -9706,6 +9725,17 @@ msgid ""
 "bridge can get better quality for these part"
 msgstr ""
 
+msgid "Pre start fan time"
+msgstr ""
+
+msgid ""
+"Force fan start early(0-5 second) when encountering overhangs. This is "
+"because the fan needs time to physically increase its speed."
+msgstr ""
+
+msgid "s"
+msgstr "s"
+
 msgid "Cooling overhang threshold"
 msgstr "Hranice chlazení převisů"
 
@@ -9985,9 +10015,6 @@ msgstr ""
 "Přidá plnou výplň u šikmých ploch pro garanci tloušťky svislých stěn "
 "(vrchních a spodních plných vrstev)"
 
-msgid "Disabled"
-msgstr ""
-
 msgid "Partial"
 msgstr ""
 
@@ -10239,9 +10266,6 @@ msgstr ""
 "je kratší než tato hodnota. Rychlost ventilátoru je interpolována mezi "
 "minimální a maximální rychlost ventilátoru podle doby tisku vrstvy"
 
-msgid "s"
-msgstr "s"
-
 msgid "Default color"
 msgstr "Výchozí barva"
 
@@ -10312,6 +10336,21 @@ msgid "Extruder switch time"
 msgstr ""
 
 msgid "Time to switch extruder. For statistics only"
+msgstr ""
+
+msgid "Bed temperature type"
+msgstr ""
+
+msgid ""
+"This option determines how the bed temperature is set during slicing: based "
+"on the temperature of the first filament or the highest temperature of the "
+"printed filaments."
+msgstr ""
+
+msgid "By First filament"
+msgstr ""
+
+msgid "By Highest Temp"
 msgstr ""
 
 msgid ""
@@ -11978,6 +12017,18 @@ msgstr ""
 "toto nastavení je zakázáno a tloušťka vrchní skořepiny je absolutně určován "
 "vrchními vrstvami pláště"
 
+msgid "Top color layers"
+msgstr ""
+
+msgid "This is  the number of layers affected by the top color."
+msgstr ""
+
+msgid "Bottom color layers"
+msgstr ""
+
+msgid "This is  the number of layers affected by the bottom color."
+msgstr ""
+
 msgid "Speed of travel which is faster and without extrusion"
 msgstr "Rychlost pohybu, která je rychlejší a bez extruze"
 
@@ -12060,9 +12111,6 @@ msgid "Counter Coef 1"
 msgstr ""
 
 msgid "counter_coef_1"
-msgstr ""
-
-msgid "/1e6"
 msgstr ""
 
 msgid "Contour Coef 2"
@@ -13433,8 +13481,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 
@@ -14500,8 +14548,8 @@ msgid ""
 msgstr ""
 "Plochou na podložku\n"
 "Věděli jste, že můžete rychle nastavit orientaci modelu tak, aby jedna z "
-"jeho stěn spočívala na tiskovém podloží? Vyberte funkci \"Plochou na "
-"podložku\" nebo stiskněte klávesu <b>F</b>."
+"jeho stěn spočívala na tiskovém podloží? Vyberte funkci \"Plochou na podložku"
+"\" nebo stiskněte klávesu <b>F</b>."
 
 #: resources/data/hints.ini: [hint:Object List]
 msgid ""
@@ -14720,6 +14768,24 @@ msgid ""
 "probability of warping."
 msgstr ""
 
+#~ msgid "Auto-Calc"
+#~ msgstr "Automatický výpočet"
+
+#~ msgid "unloaded"
+#~ msgstr "vyjmuto"
+
+#~ msgid "loaded"
+#~ msgstr "zaváděn"
+
+#~ msgid "Filament #"
+#~ msgstr "Filament #"
+
+#~ msgid "From"
+#~ msgstr "Z"
+
+#~ msgid "To"
+#~ msgstr "Do"
+
 #~ msgid "Clear my choice on the unsaved presets."
 #~ msgstr "Vymazat mé volby neuložených předvoleb."
 
@@ -14731,9 +14797,6 @@ msgstr ""
 #~ "Vzor čáry pro kontaktní vrstvy podpěr. Výchozí vzor pro rozhraní "
 #~ "nerozpustné podpěry je přímočarý, zatímco výchozí vzor pro rozhraní "
 #~ "rozpustné podpěry je koncentrický"
-
-#~ msgid "Arranging..."
-#~ msgstr "Uspořádávání..."
 
 #~ msgid "Prime volume"
 #~ msgstr "Základní objem"
@@ -15031,12 +15094,12 @@ msgstr ""
 #~ "Najdete podrobnosti o kalibraci průtoku dynamiky v naší wiki.\n"
 #~ "\n"
 #~ "Obvykle kalibrace není potřebná. Při spuštění tisku s jednobarevným/"
-#~ "materiálovým filamentem a zaškrtnutou volbou \"kalibrace průtoku "
-#~ "dynamiky\" v menu spuštění tisku, tiskárna bude postupovat podle staré "
-#~ "metody a zkalibruje filament před tiskem. Při spuštění tisku s "
-#~ "vícebarevným/materiálovým filamentem bude tiskárna při každé změně "
-#~ "filamentu používat výchozí kompenzační parametr pro filament, což má "
-#~ "většinou dobrý výsledek.\n"
+#~ "materiálovým filamentem a zaškrtnutou volbou \"kalibrace průtoku dynamiky"
+#~ "\" v menu spuštění tisku, tiskárna bude postupovat podle staré metody a "
+#~ "zkalibruje filament před tiskem. Při spuštění tisku s vícebarevným/"
+#~ "materiálovým filamentem bude tiskárna při každé změně filamentu používat "
+#~ "výchozí kompenzační parametr pro filament, což má většinou dobrý "
+#~ "výsledek.\n"
 #~ "\n"
 #~ "Všimněte si, že existují některé případy, které mohou způsobit, že "
 #~ "výsledek kalibrace nebude spolehlivý: použití texturované podložky pro "
