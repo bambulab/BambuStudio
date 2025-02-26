@@ -199,31 +199,31 @@
         "0"
     ],
     "counter_coef_2": [
-        "25000"
+        "0.025"
     ],
     "counter_coef_3": [
-        "-110000"
+        "-0.11"
     ],
     "hole_coef_1": [
         "0"
     ],
     "hole_coef_2": [
-        "-25000"
+        "-0.025"
     ],
     "hole_coef_3": [
-        "280000"
+        "0.28"
     ],
     "counter_limit_min": [
-        "-400000"
+        "-0.4"
     ],
     "counter_limit_max": [
-        "500000"
+        "0.5"
     ],
     "hole_limit_min": [
-        "800000"
+        "0.8"
     ],
     "hole_limit_max": [
-        "2500000"
+        "2.5"
     ],
     "circle_compensation_speed": [
         "200"

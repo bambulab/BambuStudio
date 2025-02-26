@@ -4303,62 +4303,58 @@ void PrintConfigDef::init_fff_params()
     def          = this->add("counter_coef_1", coFloats);
     def->label   = L("Counter Coef 1");
     def->tooltip = L("counter_coef_1");
-    def->sidetext = L("/1e6");
     def->set_default_value(new ConfigOptionFloats{0});
 
     def          = this->add("counter_coef_2", coFloats);
     def->label   = L("Contour Coef 2");
     def->tooltip = L("counter_coef_2");
-    def->sidetext = L("/1e6");
-    def->set_default_value(new ConfigOptionFloats{25000});
+    def->set_default_value(new ConfigOptionFloats{0.025});
 
     def          = this->add("counter_coef_3", coFloats);
     def->label   = L("Contour Coef 3");
     def->tooltip = L("counter_coef_3");
-    def->sidetext = L("/1e6");
-    def->set_default_value(new ConfigOptionFloats{-110000});
+    def->sidetext = L("mm");
+    def->set_default_value(new ConfigOptionFloats{-0.11});
 
     def           = this->add("hole_coef_1", coFloats);
     def->label    = L("Hole Coef 1");
     def->tooltip  = L("hole_coef_1");
-    def->sidetext = L("/1e6");
     def->set_default_value(new ConfigOptionFloats{0});
 
     def           = this->add("hole_coef_2", coFloats);
     def->label    = L("Hole Coef 2");
     def->tooltip  = L("hole_coef_2");
-    def->sidetext = L("/1e6");
-    def->set_default_value(new ConfigOptionFloats{-25000});
+    def->set_default_value(new ConfigOptionFloats{-0.025});
 
     def           = this->add("hole_coef_3", coFloats);
     def->label    = L("Hole Coef 3");
     def->tooltip  = L("hole_coef_3");
-    def->sidetext = L("/1e6");
-    def->set_default_value(new ConfigOptionFloats{280000});
+    def->sidetext = L("mm");
+    def->set_default_value(new ConfigOptionFloats{0.28});
 
     def           = this->add("counter_limit_min", coFloats);
     def->label    = L("Contour limit min");
     def->tooltip  = L("counter_limit_min");
-    def->sidetext = L("/1e6");
-    def->set_default_value(new ConfigOptionFloats{-40000});
+    def->sidetext = L("mm");
+    def->set_default_value(new ConfigOptionFloats{-0.04});
 
     def           = this->add("counter_limit_max", coFloats);
     def->label    = L("Contour limit max");
     def->tooltip  = L("counter_limit_max");
-    def->sidetext = L("/1e6");
-    def->set_default_value(new ConfigOptionFloats{50000});
+    def->sidetext = L("mm");
+    def->set_default_value(new ConfigOptionFloats{0.05});
 
     def           = this->add("hole_limit_min", coFloats);
     def->label    = L("Hole limit min");
     def->tooltip  = L("hole_limit_min");
-    def->sidetext = L("/1e6");
-    def->set_default_value(new ConfigOptionFloats{80000});
+    def->sidetext = L("mm");
+    def->set_default_value(new ConfigOptionFloats{0.08});
 
     def           = this->add("hole_limit_max", coFloats);
     def->label    = L("Hole limit max");
     def->tooltip  = L("hole_limit_max");
-    def->sidetext = L("/1e6");
-    def->set_default_value(new ConfigOptionFloats{250000});
+    def->sidetext = L("mm");
+    def->set_default_value(new ConfigOptionFloats{0.25});
 
     def           = this->add("diameter_limit", coFloats);
     def->label    = L("Diameter limit");
