@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-20 22:07+0800\n"
+"POT-Creation-Date: 2025-02-27 10:18+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -16,6 +16,35 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n>=0 && n<=1) ? 0 : 1;\n"
 "X-Generator: Poedit 3.4.2\n"
+
+msgid "Current AMS humidity"
+msgstr ""
+
+msgid "Drying"
+msgstr ""
+
+msgid "Idle"
+msgstr "Ocioso"
+
+msgid "Humidity"
+msgstr ""
+
+msgid "Temperature"
+msgstr "Temperatura"
+
+msgid "Left Time"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%.1f ℃"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d Hours"
+msgstr ""
+
+msgid "Latest version"
+msgstr "Última versão"
 
 msgid "Supports Painting"
 msgstr "Pintura de suporte"
@@ -948,7 +977,9 @@ msgid "Nano SVG parser can't load from file (%1%)."
 msgstr ""
 
 #, boost-format
-msgid "SVG file does NOT contain a single path to be embossed (%1%)."
+msgid ""
+"%1% contains some unsupported data. Please use third-party software to "
+"convert the SVG to path data before reimporting."
 msgstr ""
 
 #. TRN - Input label. Be short as possible
@@ -1024,8 +1055,8 @@ msgid "Missing data of svg file"
 msgstr ""
 
 msgid ""
-"Tip:If you want to place svg file on another part surface,\n"
-"you should select part first, and then drag svg file to the part surface."
+"Tip:If you want to place svg file on another part surface,you should select "
+"part first, and then drag svg file to the part surface."
 msgstr ""
 
 #. TRN - Preview of filename after clear local filepath.
@@ -1068,12 +1099,6 @@ msgstr ""
 #. TRN: The placeholder contains a number.
 #, boost-format
 msgid "Scale also changes amount of curve samples (%1%)"
-msgstr ""
-
-msgid "width:"
-msgstr ""
-
-msgid "height:"
 msgstr ""
 
 msgid "set width and height keep ratio with width"
@@ -1512,14 +1537,14 @@ msgstr "Ocultar"
 msgid "Show"
 msgstr "Mostrar"
 
-msgid "Del"
-msgstr "Ef."
-
 msgid "Delete the selected object"
 msgstr "Excluir o objeto selecionado"
 
 msgid "Delete all cutter"
 msgstr ""
+
+msgid "Del"
+msgstr "Ef."
 
 msgid "Edit Text"
 msgstr "Editar texto"
@@ -2377,6 +2402,9 @@ msgstr ""
 "Esta placa está trancada.\n"
 "Não podemos organizar automaticamente esta placa."
 
+msgid "Arranging..."
+msgstr "Organizando..."
+
 #, boost-format
 msgid "Object %1% has zero size and can't be arranged."
 msgstr "Objeto%1% tem tamanho zero e não pode ser organizado."
@@ -2931,9 +2959,6 @@ msgstr "Desativar AMS"
 
 msgid "Print with the filament mounted on the back of chassis"
 msgstr "Imprima com o filamento montado na parte traseira do chassi"
-
-msgid "Current AMS humidity"
-msgstr ""
 
 msgid ""
 "Please change the desiccant when it is too wet. The indicator may not "
@@ -3772,9 +3797,6 @@ msgstr "Largura da linha"
 msgid "Fan Speed"
 msgstr "Velocidade do ventilador"
 
-msgid "Temperature"
-msgstr "Temperatura"
-
 msgid "Flow"
 msgstr "Fluxo"
 
@@ -4103,12 +4125,12 @@ msgid ""
 "range:\n"
 msgstr ""
 
-#, c-format, boost-format
-msgid "Left nozzle: X:%.0f-%.0f, Y:%.0f-%.0f, Z:%.0f-%.0f\n"
+#, boost-format
+msgid "Left nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"
 msgstr ""
 
-#, c-format, boost-format
-msgid "Right nozzle: X:%.0f-%.0f, Y:%.0f-%.0f, Z:%.0f-%.0f"
+#, boost-format
+msgid "Right nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%"
 msgstr ""
 
 msgid "Mirror Object"
@@ -5865,6 +5887,23 @@ msgstr "Inspeção da primeira camada"
 msgid "Auto-recovery from step loss"
 msgstr "Recuperação automática da perda de etapas"
 
+msgid "Open Door Dectection"
+msgstr ""
+
+msgid "Notification"
+msgstr ""
+
+msgid "Pause printing"
+msgstr ""
+
+msgid "Store Sent Files on External Storage"
+msgstr ""
+
+msgid ""
+"Save the printing files initiated from Bambu Studio, Bambu Handy and "
+"MakerWorld on External Storage"
+msgstr ""
+
 msgid "Allow Prompt Sound"
 msgstr "Permitir som imediato"
 
@@ -6733,10 +6772,16 @@ msgstr ""
 msgid "Enable LOD"
 msgstr ""
 
+msgid "Bed Temperature Difference Warning"
+msgstr ""
+
 msgid ""
-"Printing with multiple filaments that have a large temperature difference "
-"can cause the extruder and nozzle to be blocked or dameged during printing.\n"
-"Please enable with caution."
+"Using filaments with significantly different temperatures may cause:\n"
+"• Extruder clogging\n"
+"• Nozzle damage\n"
+"• Layer adhesion issues\n"
+"\n"
+"Continue with enabling this feature?"
 msgstr ""
 
 msgid "Browse"
@@ -6815,13 +6860,10 @@ msgstr ""
 "O Studio lembrará a placa de montagem selecionada pela última vez para "
 "determinado modelo de impressora."
 
-msgid "all"
-msgstr ""
+msgid "All"
+msgstr "Tudo"
 
-msgid "color change"
-msgstr ""
-
-msgid "disabled"
+msgid "Disabled"
 msgstr ""
 
 msgid "Auto Flush"
@@ -6861,6 +6903,10 @@ msgstr ""
 msgid ""
 "With this option enabled, you can print materials with a large temperature "
 "difference together."
+msgstr ""
+
+msgid ""
+"Clear my choice for synchronizing printer preset after loading the file."
 msgstr ""
 
 msgid "3D Settings"
@@ -7943,8 +7989,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Ao gravar o timelapse sem o cabeçote de ferramenta, é recomendável adicionar "
 "uma “Timelapse Wipe Tower” \n"
@@ -8313,9 +8359,6 @@ msgstr ""
 #, boost-format
 msgid "Are you sure to %1% the selected preset?"
 msgstr "Você tem certeza que quer %1% a predefinição selecionada?"
-
-msgid "All"
-msgstr "Tudo"
 
 msgid "Set"
 msgstr "Definir"
@@ -8758,21 +8801,6 @@ msgctxt "FinishSyncAms"
 msgid "OK"
 msgstr ""
 
-msgid "Auto-Calc"
-msgstr "Cálculo automático"
-
-msgid "Re-calculate"
-msgstr "Recalcular"
-
-msgid "Left extruder"
-msgstr ""
-
-msgid "Right extruder"
-msgstr ""
-
-msgid "Flushing volumes for filament change"
-msgstr "Volumes de lavagem para troca de filamento"
-
 msgid ""
 "Studio would re-calculate your flushing volumes everytime the filaments "
 "color changed or filaments changed. You could disable the auto-calculate in "
@@ -8793,23 +8821,20 @@ msgstr "Sugestão: volume de lavagem na faixa [%d,%d]"
 msgid "The multiplier should be in range [%.2f, %.2f]."
 msgstr "O multiplicador deve estar no intervalo [%.2f,%.2f]."
 
+msgid "Re-calculate"
+msgstr "Recalcular"
+
+msgid "Left extruder"
+msgstr ""
+
+msgid "Right extruder"
+msgstr ""
+
 msgid "Multiplier"
 msgstr "Multiplicador"
 
-msgid "unloaded"
-msgstr "descarregou"
-
-msgid "loaded"
-msgstr "carregado"
-
-msgid "Filament #"
-msgstr "Filamento #"
-
-msgid "From"
-msgstr "De"
-
-msgid "To"
-msgstr "Para"
+msgid "Flushing volumes for filament change"
+msgstr "Volumes de lavagem para troca de filamento"
 
 msgid "Bambu Network plug-in not detected."
 msgstr "O plug-in Bambu Network não foi detectado."
@@ -9171,14 +9196,8 @@ msgstr "Versão"
 msgid "Update firmware"
 msgstr "Atualizar firmware"
 
-msgid "Idle"
-msgstr "Ocioso"
-
 msgid "Beta version"
 msgstr "Versão Beta"
-
-msgid "Latest version"
-msgstr "Última versão"
 
 msgid "Updating"
 msgstr "Atualizando…"
@@ -9978,6 +9997,17 @@ msgstr ""
 "Forçar o resfriamento de saliências e pontes pode melhorar a qualidade "
 "dessas peças."
 
+msgid "Pre start fan time"
+msgstr ""
+
+msgid ""
+"Force fan start early(0-5 second) when encountering overhangs. This is "
+"because the fan needs time to physically increase its speed."
+msgstr ""
+
+msgid "s"
+msgstr "S"
+
 msgid "Cooling overhang threshold"
 msgstr "Limite de saliência de resfriamento"
 
@@ -10275,9 +10305,6 @@ msgstr ""
 "Adicione preenchimento sólido próximo a superfícies inclinadas para garantir "
 "a espessura vertical do invólucro (camadas sólidas superior+inferior)"
 
-msgid "Disabled"
-msgstr ""
-
 msgid "Partial"
 msgstr ""
 
@@ -10552,9 +10579,6 @@ msgstr ""
 "interpolada entre as velocidades mínima e máxima do ventilador de acordo com "
 "o tempo de impressão da camada."
 
-msgid "s"
-msgstr "S"
-
 msgid "Default color"
 msgstr "Cor padrão"
 
@@ -10628,6 +10652,21 @@ msgid "Extruder switch time"
 msgstr ""
 
 msgid "Time to switch extruder. For statistics only"
+msgstr ""
+
+msgid "Bed temperature type"
+msgstr ""
+
+msgid ""
+"This option determines how the bed temperature is set during slicing: based "
+"on the temperature of the first filament or the highest temperature of the "
+"printed filaments."
+msgstr ""
+
+msgid "By First filament"
+msgstr ""
+
+msgid "By Highest Temp"
 msgstr ""
 
 msgid ""
@@ -12404,6 +12443,18 @@ msgstr ""
 "camada superior é determinada simplesmente pelo número de camadas superiores "
 "da casca."
 
+msgid "Top color layers"
+msgstr ""
+
+msgid "This is  the number of layers affected by the top color."
+msgstr ""
+
+msgid "Bottom color layers"
+msgstr ""
+
+msgid "This is  the number of layers affected by the bottom color."
+msgstr ""
+
 msgid "Speed of travel which is faster and without extrusion"
 msgstr "Velocidade de deslocamento mais rápida e sem extrusão"
 
@@ -12492,9 +12543,6 @@ msgid "Counter Coef 1"
 msgstr ""
 
 msgid "counter_coef_1"
-msgstr ""
-
-msgid "/1e6"
 msgstr ""
 
 msgid "Contour Coef 2"
@@ -13921,8 +13969,8 @@ msgstr ""
 "Você quer reescrevê-lo?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "Nós renomearíamos as predefinições como “Tipo de fornecedor Serial @printer "
@@ -15399,6 +15447,24 @@ msgstr ""
 "aumentar adequadamente a temperatura do leito térmico pode reduzir a "
 "probabilidade de deformação."
 
+#~ msgid "Auto-Calc"
+#~ msgstr "Cálculo automático"
+
+#~ msgid "unloaded"
+#~ msgstr "descarregou"
+
+#~ msgid "loaded"
+#~ msgstr "carregado"
+
+#~ msgid "Filament #"
+#~ msgstr "Filamento #"
+
+#~ msgid "From"
+#~ msgstr "De"
+
+#~ msgid "To"
+#~ msgstr "Para"
+
 #~ msgid ""
 #~ "Flushing volumes: Auto-calculate every time when the color is changed."
 #~ msgstr ""
@@ -15440,9 +15506,6 @@ msgstr ""
 #~ "Padrão de linha da interface de suporte. O padrão padrão para interface "
 #~ "de suporte não solúvel é Retilinear, enquanto o padrão padrão para "
 #~ "interface de suporte solúvel é Concêntrico"
-
-#~ msgid "Arranging..."
-#~ msgstr "Organizando..."
 
 #~ msgid ""
 #~ "BambuStudio configuration file may be corrupted and is not able to be "

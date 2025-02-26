@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-20 22:07+0800\n"
+"POT-Creation-Date: 2025-02-27 10:18+0800\n"
 "PO-Revision-Date: 2025-01-12 21:04+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -13,6 +13,35 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.5\n"
 "X-Poedit-Basepath: .\n"
+
+msgid "Current AMS humidity"
+msgstr "Mevcut AMS nem oranı"
+
+msgid "Drying"
+msgstr ""
+
+msgid "Idle"
+msgstr "Boşta"
+
+msgid "Humidity"
+msgstr ""
+
+msgid "Temperature"
+msgstr "Sıcaklık"
+
+msgid "Left Time"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%.1f ℃"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d Hours"
+msgstr ""
+
+msgid "Latest version"
+msgstr "Son sürüm"
 
 msgid "Supports Painting"
 msgstr "Destek Boyama"
@@ -962,8 +991,10 @@ msgid "Nano SVG parser can't load from file (%1%)."
 msgstr "Nano SVG ayrıştırıcı dosyadan (%1%) yüklenemiyor."
 
 #, boost-format
-msgid "SVG file does NOT contain a single path to be embossed (%1%)."
-msgstr "SVG dosyası kabartma yapılacak tek bir yol İÇERMEZ (%1%)."
+msgid ""
+"%1% contains some unsupported data. Please use third-party software to "
+"convert the SVG to path data before reimporting."
+msgstr ""
 
 #. TRN - Input label. Be short as possible
 msgid "Use surface"
@@ -1041,12 +1072,9 @@ msgid "Missing data of svg file"
 msgstr "Svg dosyasının eksik verileri"
 
 msgid ""
-"Tip:If you want to place svg file on another part surface,\n"
-"you should select part first, and then drag svg file to the part surface."
+"Tip:If you want to place svg file on another part surface,you should select "
+"part first, and then drag svg file to the part surface."
 msgstr ""
-"İpucu: svg dosyasını başka bir parça yüzeyine yerleştirmek istiyorsanız,\n"
-"önce parçayı seçmeli ve ardından svg dosyasını parça yüzeyine "
-"sürüklemelisiniz."
 
 #. TRN - Preview of filename after clear local filepath.
 msgid "Unknown filename"
@@ -1089,12 +1117,6 @@ msgstr "Kabartma yönünde boyut."
 #, boost-format
 msgid "Scale also changes amount of curve samples (%1%)"
 msgstr "Ölçek ayrıca eğri örneklerinin miktarını da değiştirir (%1%)"
-
-msgid "width:"
-msgstr "genişlik:"
-
-msgid "height:"
-msgstr "yükseklik:"
 
 msgid "set width and height keep ratio with width"
 msgstr "genişlik ve yüksekliği ayarla oranı genişlikle koru"
@@ -1536,14 +1558,14 @@ msgstr "Gizle"
 msgid "Show"
 msgstr "Göster"
 
-msgid "Del"
-msgstr "Sil"
-
 msgid "Delete the selected object"
 msgstr "Seçilen nesneyi sil"
 
 msgid "Delete all cutter"
 msgstr "Tüm kesicileri sil"
+
+msgid "Del"
+msgstr "Sil"
 
 msgid "Edit Text"
 msgstr "Metni düzenle"
@@ -2392,6 +2414,9 @@ msgstr ""
 "Bu plaka kilitli.\n"
 "Bu plaka üzerinde otomatik düzenleme yapamıyoruz."
 
+msgid "Arranging..."
+msgstr "Hizalanıyor..."
+
 #, boost-format
 msgid "Object %1% has zero size and can't be arranged."
 msgstr "Nesne %1%'ın boyutu sıfırdır ve düzenlenemez."
@@ -2939,9 +2964,6 @@ msgstr "AMS'yi devre dışı bırak"
 
 msgid "Print with the filament mounted on the back of chassis"
 msgstr "Şasinin arkasına monte edilmiş filamentle yazdırma"
-
-msgid "Current AMS humidity"
-msgstr "Mevcut AMS nem oranı"
 
 msgid ""
 "Please change the desiccant when it is too wet. The indicator may not "
@@ -3774,9 +3796,6 @@ msgstr "Katman Genişliği"
 msgid "Fan Speed"
 msgstr "Fan hızı"
 
-msgid "Temperature"
-msgstr "Sıcaklık"
-
 msgid "Flow"
 msgstr "Akış"
 
@@ -4105,12 +4124,12 @@ msgid ""
 "range:\n"
 msgstr ""
 
-#, c-format, boost-format
-msgid "Left nozzle: X:%.0f-%.0f, Y:%.0f-%.0f, Z:%.0f-%.0f\n"
+#, boost-format
+msgid "Left nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"
 msgstr ""
 
-#, c-format, boost-format
-msgid "Right nozzle: X:%.0f-%.0f, Y:%.0f-%.0f, Z:%.0f-%.0f"
+#, boost-format
+msgid "Right nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%"
 msgstr ""
 
 msgid "Mirror Object"
@@ -5896,6 +5915,23 @@ msgstr "Birinci Katman Denetimi"
 msgid "Auto-recovery from step loss"
 msgstr "Adım kaybından otomatik kurtarma"
 
+msgid "Open Door Dectection"
+msgstr ""
+
+msgid "Notification"
+msgstr ""
+
+msgid "Pause printing"
+msgstr ""
+
+msgid "Store Sent Files on External Storage"
+msgstr ""
+
+msgid ""
+"Save the printing files initiated from Bambu Studio, Bambu Handy and "
+"MakerWorld on External Storage"
+msgstr ""
+
 msgid "Allow Prompt Sound"
 msgstr "Uyarı Sesine İzin Ver"
 
@@ -6780,10 +6816,16 @@ msgstr ""
 msgid "Enable LOD"
 msgstr "LOD'u Etkinleştir"
 
+msgid "Bed Temperature Difference Warning"
+msgstr ""
+
 msgid ""
-"Printing with multiple filaments that have a large temperature difference "
-"can cause the extruder and nozzle to be blocked or dameged during printing.\n"
-"Please enable with caution."
+"Using filaments with significantly different temperatures may cause:\n"
+"• Extruder clogging\n"
+"• Nozzle damage\n"
+"• Layer adhesion issues\n"
+"\n"
+"Continue with enabling this feature?"
 msgstr ""
 
 msgid "Browse"
@@ -6862,13 +6904,10 @@ msgstr ""
 "Studio, belirli yazıcı modeli için en son seçilen yapı plakasını "
 "hatırlayacaktır."
 
-msgid "all"
-msgstr ""
+msgid "All"
+msgstr "Tümü"
 
-msgid "color change"
-msgstr ""
-
-msgid "disabled"
+msgid "Disabled"
 msgstr ""
 
 msgid "Auto Flush"
@@ -6912,6 +6951,10 @@ msgstr ""
 msgid ""
 "With this option enabled, you can print materials with a large temperature "
 "difference together."
+msgstr ""
+
+msgid ""
+"Clear my choice for synchronizing printer preset after loading the file."
 msgstr ""
 
 msgid "3D Settings"
@@ -7999,8 +8042,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Araç başlığı olmadan timelapse kaydederken, bir \"Timelapse Wipe Tower\" "
 "eklenmesi önerilir.\n"
@@ -8369,9 +8412,6 @@ msgstr ""
 #, boost-format
 msgid "Are you sure to %1% the selected preset?"
 msgstr "Seçilen ön ayarı %1% yaptığınızdan emin misiniz?"
-
-msgid "All"
-msgstr "Tümü"
 
 msgid "Set"
 msgstr "Ayarla"
@@ -8812,21 +8852,6 @@ msgctxt "FinishSyncAms"
 msgid "OK"
 msgstr ""
 
-msgid "Auto-Calc"
-msgstr "Otomatik Hesaplama"
-
-msgid "Re-calculate"
-msgstr "Tekrar Hesaplama"
-
-msgid "Left extruder"
-msgstr ""
-
-msgid "Right extruder"
-msgstr ""
-
-msgid "Flushing volumes for filament change"
-msgstr "Filament değişimi için temizleme hacmi"
-
 msgid ""
 "Studio would re-calculate your flushing volumes everytime the filaments "
 "color changed or filaments changed. You could disable the auto-calculate in "
@@ -8847,23 +8872,20 @@ msgstr "Öneri:  Hacmi [%d, %d] aralığında"
 msgid "The multiplier should be in range [%.2f, %.2f]."
 msgstr "Çarpan [%.2f, %.2f] aralığında olmalıdır."
 
+msgid "Re-calculate"
+msgstr "Tekrar Hesaplama"
+
+msgid "Left extruder"
+msgstr ""
+
+msgid "Right extruder"
+msgstr ""
+
 msgid "Multiplier"
 msgstr "Çarpan"
 
-msgid "unloaded"
-msgstr "çıkartılmış"
-
-msgid "loaded"
-msgstr "yüklenmiş"
-
-msgid "Filament #"
-msgstr "Filament #"
-
-msgid "From"
-msgstr "Önce"
-
-msgid "To"
-msgstr "Sonra"
+msgid "Flushing volumes for filament change"
+msgstr "Filament değişimi için temizleme hacmi"
 
 msgid "Bambu Network plug-in not detected."
 msgstr "Bambu Ağı eklentisi algılanmadı."
@@ -9230,14 +9252,8 @@ msgstr "Sürüm:"
 msgid "Update firmware"
 msgstr "Ürün yazılımını güncelle"
 
-msgid "Idle"
-msgstr "Boşta"
-
 msgid "Beta version"
 msgstr "Beta sürüm"
-
-msgid "Latest version"
-msgstr "Son sürüm"
 
 msgid "Updating"
 msgstr "Güncelleniyor"
@@ -9604,8 +9620,8 @@ msgid ""
 "Please select \"By object\" print sequence to print multiple objects in "
 "spiral vase mode."
 msgstr ""
-"Birden fazla nesneyi spiral vazo modunda yazdırmak için lütfen \"Nesneye "
-"göre\" yazdırma sırasını seçin."
+"Birden fazla nesneyi spiral vazo modunda yazdırmak için lütfen \"Nesneye göre"
+"\" yazdırma sırasını seçin."
 
 msgid ""
 "The spiral vase mode does not work when an object contains more than one "
@@ -10032,6 +10048,17 @@ msgstr ""
 "soğutma fanını bu hızda olmaya zorlayın. Çıkıntı ve köprü için soğutmayı "
 "zorlamak, bu parçalar için daha iyi kalite elde edebilir"
 
+msgid "Pre start fan time"
+msgstr ""
+
+msgid ""
+"Force fan start early(0-5 second) when encountering overhangs. This is "
+"because the fan needs time to physically increase its speed."
+msgstr ""
+
+msgid "s"
+msgstr "s"
+
 msgid "Cooling overhang threshold"
 msgstr "Çıkıntı soğutması"
 
@@ -10332,9 +10359,6 @@ msgstr ""
 "Dikey kabuk kalınlığını garanti etmek için eğimli yüzeylerin yakınına katı "
 "dolgu ekleyin (üst+alt katı katmanlar)"
 
-msgid "Disabled"
-msgstr ""
-
 msgid "Partial"
 msgstr ""
 
@@ -10602,9 +10626,6 @@ msgstr ""
 "girecektir. Fan hızı, katman yazdırma süresine göre minimum ve maksimum fan "
 "hızları arasında enterpole edilir"
 
-msgid "s"
-msgstr "s"
-
 msgid "Default color"
 msgstr "Varsayılan renk"
 
@@ -10677,6 +10698,21 @@ msgid "Extruder switch time"
 msgstr ""
 
 msgid "Time to switch extruder. For statistics only"
+msgstr ""
+
+msgid "Bed temperature type"
+msgstr ""
+
+msgid ""
+"This option determines how the bed temperature is set during slicing: based "
+"on the temperature of the first filament or the highest temperature of the "
+"printed filaments."
+msgstr ""
+
+msgid "By First filament"
+msgstr ""
+
+msgid "By Highest Temp"
 msgstr ""
 
 msgid ""
@@ -12450,6 +12486,18 @@ msgstr ""
 "ayarın devre dışı olduğu ve üst kabuğun kalınlığının kesinlikle üst kabuk "
 "katmanları tarafından belirlendiği anlamına gelir"
 
+msgid "Top color layers"
+msgstr ""
+
+msgid "This is  the number of layers affected by the top color."
+msgstr ""
+
+msgid "Bottom color layers"
+msgstr ""
+
+msgid "This is  the number of layers affected by the bottom color."
+msgstr ""
+
 msgid "Speed of travel which is faster and without extrusion"
 msgstr "Daha hızlı ve ekstrüzyonsuz seyahat hızı"
 
@@ -12538,9 +12586,6 @@ msgid "Counter Coef 1"
 msgstr ""
 
 msgid "counter_coef_1"
-msgstr ""
-
-msgid "/1e6"
 msgstr ""
 
 msgid "Contour Coef 2"
@@ -13984,8 +14029,8 @@ msgstr ""
 "Yeniden yazmak ister misin?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "Ön ayarları \"Satıcı Tipi Seri @seçtiğiniz yazıcı\" olarak yeniden "
@@ -15503,6 +15548,42 @@ msgstr ""
 "sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını "
 "azaltabileceğini biliyor muydunuz."
 
+#, boost-format
+#~ msgid "SVG file does NOT contain a single path to be embossed (%1%)."
+#~ msgstr "SVG dosyası kabartma yapılacak tek bir yol İÇERMEZ (%1%)."
+
+#~ msgid ""
+#~ "Tip:If you want to place svg file on another part surface,\n"
+#~ "you should select part first, and then drag svg file to the part surface."
+#~ msgstr ""
+#~ "İpucu: svg dosyasını başka bir parça yüzeyine yerleştirmek istiyorsanız,\n"
+#~ "önce parçayı seçmeli ve ardından svg dosyasını parça yüzeyine "
+#~ "sürüklemelisiniz."
+
+#~ msgid "width:"
+#~ msgstr "genişlik:"
+
+#~ msgid "height:"
+#~ msgstr "yükseklik:"
+
+#~ msgid "Auto-Calc"
+#~ msgstr "Otomatik Hesaplama"
+
+#~ msgid "unloaded"
+#~ msgstr "çıkartılmış"
+
+#~ msgid "loaded"
+#~ msgstr "yüklenmiş"
+
+#~ msgid "Filament #"
+#~ msgstr "Filament #"
+
+#~ msgid "From"
+#~ msgstr "Önce"
+
+#~ msgid "To"
+#~ msgstr "Sonra"
+
 #~ msgid ""
 #~ "Flushing volumes: Auto-calculate every time when the color is changed."
 #~ msgstr ""
@@ -15547,9 +15628,6 @@ msgstr ""
 #~ "Destek arayüzünün çizgi deseni. Çözünmeyen destek arayüzü için varsayılan "
 #~ "model Doğrusaldır, çözünebilir destek arayüzü için varsayılan model ise "
 #~ "eşmerkezlidir"
-
-#~ msgid "Arranging..."
-#~ msgstr "Hizalanıyor..."
 
 #~ msgid ""
 #~ "BambuStudio configuration file may be corrupted and is not able to be "

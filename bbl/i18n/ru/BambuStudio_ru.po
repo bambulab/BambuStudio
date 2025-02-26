@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 1.10.1 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-20 22:07+0800\n"
+"POT-Creation-Date: 2025-02-27 10:18+0800\n"
 "PO-Revision-Date: 2024-09-27 23:58+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -15,9 +15,38 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
-"n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
 "X-Generator: Poedit 3.5\n"
+
+msgid "Current AMS humidity"
+msgstr "Текущая влажность внутри АСПП"
+
+msgid "Drying"
+msgstr ""
+
+msgid "Idle"
+msgstr "Простой"
+
+msgid "Humidity"
+msgstr ""
+
+msgid "Temperature"
+msgstr "Температура"
+
+msgid "Left Time"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%.1f ℃"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d Hours"
+msgstr ""
+
+msgid "Latest version"
+msgstr "Последняя версия"
 
 msgid "Supports Painting"
 msgstr "Рисование поддержек"
@@ -984,8 +1013,10 @@ msgid "Nano SVG parser can't load from file (%1%)."
 msgstr "Парсер NanoSVG не может прочитать файл (%1%)."
 
 #, boost-format
-msgid "SVG file does NOT contain a single path to be embossed (%1%)."
-msgstr "Файл SVG не содержит ни одного контура для рельефного текста (%1%)."
+msgid ""
+"%1% contains some unsupported data. Please use third-party software to "
+"convert the SVG to path data before reimporting."
+msgstr ""
 
 #. TRN - Input label. Be short as possible
 msgid "Use surface"
@@ -1067,11 +1098,9 @@ msgid "Missing data of svg file"
 msgstr "Отсутствуют данные svg файла"
 
 msgid ""
-"Tip:If you want to place svg file on another part surface,\n"
-"you should select part first, and then drag svg file to the part surface."
+"Tip:If you want to place svg file on another part surface,you should select "
+"part first, and then drag svg file to the part surface."
 msgstr ""
-"Совет: если вы хотите поместить svg файл на другую поверхность детали, \n"
-"сначала выберите деталь, а затем перетащите svg файл на поверхность детали."
 
 #. TRN - Preview of filename after clear local filepath.
 msgid "Unknown filename"
@@ -1114,12 +1143,6 @@ msgstr "Глубина рельефа."
 #, boost-format
 msgid "Scale also changes amount of curve samples (%1%)"
 msgstr "Масштаб также изменяет количество выборок кривой (%1%)"
-
-msgid "width:"
-msgstr "ширина: "
-
-msgid "height:"
-msgstr "высота: "
 
 msgid "set width and height keep ratio with width"
 msgstr "Задание ширины и высоты SVG с сохранением пропорций."
@@ -1560,14 +1583,14 @@ msgstr "Скрыть"
 msgid "Show"
 msgstr "Показать"
 
-msgid "Del"
-msgstr "Del"
-
 msgid "Delete the selected object"
 msgstr "Удаление выбранных моделей"
 
 msgid "Delete all cutter"
 msgstr ""
+
+msgid "Del"
+msgstr "Del"
 
 msgid "Edit Text"
 msgstr "Изменить текст"
@@ -2438,6 +2461,9 @@ msgstr ""
 "Этот стол заблокирован.\n"
 "Авторасстановка на этом столе невозможна."
 
+msgid "Arranging..."
+msgstr "Расстановка..."
+
 #, boost-format
 msgid "Object %1% has zero size and can't be arranged."
 msgstr "Расставить модели %1% не удаётся т.к. она имеет нулевой размер."
@@ -2996,9 +3022,6 @@ msgstr "Отключить АСПП"
 
 msgid "Print with the filament mounted on the back of chassis"
 msgstr "Печать материалом, установленным на задней части корпуса."
-
-msgid "Current AMS humidity"
-msgstr "Текущая влажность внутри АСПП"
 
 msgid ""
 "Please change the desiccant when it is too wet. The indicator may not "
@@ -3859,9 +3882,6 @@ msgstr "Ширина экструзии"
 msgid "Fan Speed"
 msgstr "Скорость вентилятора"
 
-msgid "Temperature"
-msgstr "Температура"
-
 msgid "Flow"
 msgstr "Поток"
 
@@ -4194,12 +4214,12 @@ msgid ""
 "range:\n"
 msgstr ""
 
-#, c-format, boost-format
-msgid "Left nozzle: X:%.0f-%.0f, Y:%.0f-%.0f, Z:%.0f-%.0f\n"
+#, boost-format
+msgid "Left nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"
 msgstr ""
 
-#, c-format, boost-format
-msgid "Right nozzle: X:%.0f-%.0f, Y:%.0f-%.0f, Z:%.0f-%.0f"
+#, boost-format
+msgid "Right nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%"
 msgstr ""
 
 msgid "Mirror Object"
@@ -6009,6 +6029,23 @@ msgstr "Проверка первого слоя"
 msgid "Auto-recovery from step loss"
 msgstr "Автовосстановление после потери шагов"
 
+msgid "Open Door Dectection"
+msgstr ""
+
+msgid "Notification"
+msgstr ""
+
+msgid "Pause printing"
+msgstr ""
+
+msgid "Store Sent Files on External Storage"
+msgstr ""
+
+msgid ""
+"Save the printing files initiated from Bambu Studio, Bambu Handy and "
+"MakerWorld on External Storage"
+msgstr ""
+
 msgid "Allow Prompt Sound"
 msgstr "Разрешить звуковые уведомления"
 
@@ -6911,10 +6948,16 @@ msgstr ""
 msgid "Enable LOD"
 msgstr "Вкл. LOD (уровень проработки)"
 
+msgid "Bed Temperature Difference Warning"
+msgstr ""
+
 msgid ""
-"Printing with multiple filaments that have a large temperature difference "
-"can cause the extruder and nozzle to be blocked or dameged during printing.\n"
-"Please enable with caution."
+"Using filaments with significantly different temperatures may cause:\n"
+"• Extruder clogging\n"
+"• Nozzle damage\n"
+"• Layer adhesion issues\n"
+"\n"
+"Continue with enabling this feature?"
 msgstr ""
 
 msgid "Browse"
@@ -6994,13 +7037,11 @@ msgstr ""
 "Программа запомнит печатную пластину, выбранную в последний раз для "
 "определенной модели принтера."
 
-msgid "all"
-msgstr ""
+# ??? в ОРКЕ это ВЕЗДЕ (в Обеспечивать верт. толщину оболочки), а тут же нет выбора?
+msgid "All"
+msgstr "Все"
 
-msgid "color change"
-msgstr ""
-
-msgid "disabled"
+msgid "Disabled"
 msgstr ""
 
 msgid "Auto Flush"
@@ -7044,6 +7085,10 @@ msgstr ""
 msgid ""
 "With this option enabled, you can print materials with a large temperature "
 "difference together."
+msgstr ""
+
+msgid ""
+"Clear my choice for synchronizing printer preset after loading the file."
 msgstr ""
 
 msgid "3D Settings"
@@ -8161,8 +8206,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "При записи таймлапса без видимости головы рекомендуется добавить «Черновая "
 "башня таймлапса». \n"
@@ -8546,10 +8591,6 @@ msgstr ""
 #, boost-format
 msgid "Are you sure to %1% the selected preset?"
 msgstr "%1% выбранный профиль?"
-
-# ??? в ОРКЕ это ВЕЗДЕ (в Обеспечивать верт. толщину оболочки), а тут же нет выбора?
-msgid "All"
-msgstr "Все"
 
 msgid "Set"
 msgstr "Выбор"
@@ -8995,21 +9036,6 @@ msgctxt "FinishSyncAms"
 msgid "OK"
 msgstr ""
 
-msgid "Auto-Calc"
-msgstr "Авторасчёт"
-
-msgid "Re-calculate"
-msgstr "Пересчитать"
-
-msgid "Left extruder"
-msgstr ""
-
-msgid "Right extruder"
-msgstr ""
-
-msgid "Flushing volumes for filament change"
-msgstr "Объёмы очистки при смене пластиковой нити"
-
 msgid ""
 "Studio would re-calculate your flushing volumes everytime the filaments "
 "color changed or filaments changed. You could disable the auto-calculate in "
@@ -9032,23 +9058,20 @@ msgstr "Рекомендуемый объём очистки в диапазон
 msgid "The multiplier should be in range [%.2f, %.2f]."
 msgstr "Множитель должен находиться в диапазоне [%.2f - %.2f]."
 
+msgid "Re-calculate"
+msgstr "Пересчитать"
+
+msgid "Left extruder"
+msgstr ""
+
+msgid "Right extruder"
+msgstr ""
+
 msgid "Multiplier"
 msgstr "Множитель"
 
-msgid "unloaded"
-msgstr "выгрузку"
-
-msgid "loaded"
-msgstr "загрузку"
-
-msgid "Filament #"
-msgstr "Пруток #"
-
-msgid "From"
-msgstr "С"
-
-msgid "To"
-msgstr "На"
+msgid "Flushing volumes for filament change"
+msgstr "Объёмы очистки при смене пластиковой нити"
 
 msgid "Bambu Network plug-in not detected."
 msgstr "Сетевой плагин Bambu не обнаружен."
@@ -9428,14 +9451,8 @@ msgstr "Версия:"
 msgid "Update firmware"
 msgstr "Обновить прошивку"
 
-msgid "Idle"
-msgstr "Простой"
-
 msgid "Beta version"
 msgstr "Бета-версия"
-
-msgid "Latest version"
-msgstr "Последняя версия"
 
 msgid "Updating"
 msgstr "Обновление"
@@ -10250,6 +10267,17 @@ msgstr ""
 "мостов или нависающих периметров, имеющих большую степень свеса. "
 "Принудительное охлаждение позволяет повысить качество печати этих частей."
 
+msgid "Pre start fan time"
+msgstr ""
+
+msgid ""
+"Force fan start early(0-5 second) when encountering overhangs. This is "
+"because the fan needs time to physically increase its speed."
+msgstr ""
+
+msgid "s"
+msgstr "с"
+
 msgid "Cooling overhang threshold"
 msgstr "Порог включения обдува на нависаниях"
 
@@ -10562,9 +10590,6 @@ msgstr ""
 "Добавление сплошного заполнения вблизи наклонных поверхностей для "
 "обеспечения вертикальной толщины оболочки (верхний+нижний сплошные слои)."
 
-msgid "Disabled"
-msgstr ""
-
 msgid "Partial"
 msgstr ""
 
@@ -10851,9 +10876,6 @@ msgstr ""
 "минимальной и максимальной скоростями вентилятора зависимости от времени "
 "печати слоя."
 
-msgid "s"
-msgstr "с"
-
 msgid "Default color"
 msgstr "Цвет по умолчанию"
 
@@ -10927,6 +10949,21 @@ msgid "Extruder switch time"
 msgstr ""
 
 msgid "Time to switch extruder. For statistics only"
+msgstr ""
+
+msgid "Bed temperature type"
+msgstr ""
+
+msgid ""
+"This option determines how the bed temperature is set during slicing: based "
+"on the temperature of the first filament or the highest temperature of the "
+"printed filaments."
+msgstr ""
+
+msgid "By First filament"
+msgstr ""
+
+msgid "By Highest Temp"
 msgstr ""
 
 msgid ""
@@ -11524,8 +11561,8 @@ msgstr ""
 "две ближайшие линии заполнения с коротким отрезком периметра. Если не "
 "найдено такого отрезка периметра короче этого параметра, линия заполнения "
 "соединяется с отрезком периметра только с одной стороны, а длина отрезка "
-"периметра ограничена значением «Длина привязок разреженного заполнения» "
-"(infill_anchor), но не больше этого параметра.\n"
+"периметра ограничена значением «Длина привязок разреженного "
+"заполнения» (infill_anchor), но не больше этого параметра.\n"
 "Установите 0 для отключения привязок."
 
 msgid "0 (not anchored)"
@@ -12801,6 +12838,18 @@ msgstr ""
 "параметр отключён, а толщина оболочки сверху полностью задаётся количеством "
 "сплошных слоёв снизу."
 
+msgid "Top color layers"
+msgstr ""
+
+msgid "This is  the number of layers affected by the top color."
+msgstr ""
+
+msgid "Bottom color layers"
+msgstr ""
+
+msgid "This is  the number of layers affected by the bottom color."
+msgstr ""
+
 msgid "Speed of travel which is faster and without extrusion"
 msgstr "Скорость перемещения экструдера при позиционировании без печати."
 
@@ -12892,9 +12941,6 @@ msgid "Counter Coef 1"
 msgstr ""
 
 msgid "counter_coef_1"
-msgstr ""
-
-msgid "/1e6"
 msgstr ""
 
 msgid "Contour Coef 2"
@@ -14372,8 +14418,8 @@ msgstr ""
 "Хотите перезаписать его?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "Мы переименуем профиль в \"Производитель Тип Серия @выбранный принтер\".\n"
@@ -15906,6 +15952,42 @@ msgstr ""
 "ABS, повышение температуры подогреваемого стола может снизить эту "
 "вероятность?"
 
+#, boost-format
+#~ msgid "SVG file does NOT contain a single path to be embossed (%1%)."
+#~ msgstr "Файл SVG не содержит ни одного контура для рельефного текста (%1%)."
+
+#~ msgid ""
+#~ "Tip:If you want to place svg file on another part surface,\n"
+#~ "you should select part first, and then drag svg file to the part surface."
+#~ msgstr ""
+#~ "Совет: если вы хотите поместить svg файл на другую поверхность детали, \n"
+#~ "сначала выберите деталь, а затем перетащите svg файл на поверхность "
+#~ "детали."
+
+#~ msgid "width:"
+#~ msgstr "ширина: "
+
+#~ msgid "height:"
+#~ msgstr "высота: "
+
+#~ msgid "Auto-Calc"
+#~ msgstr "Авторасчёт"
+
+#~ msgid "unloaded"
+#~ msgstr "выгрузку"
+
+#~ msgid "loaded"
+#~ msgstr "загрузку"
+
+#~ msgid "Filament #"
+#~ msgstr "Пруток #"
+
+#~ msgid "From"
+#~ msgstr "С"
+
+#~ msgid "To"
+#~ msgstr "На"
+
 #~ msgid ""
 #~ "Flushing volumes: Auto-calculate every time when the color is changed."
 #~ msgstr "Объём очистки: автопересчёт при каждом изменении цвета"
@@ -15948,9 +16030,6 @@ msgstr ""
 #~ "Шаблон, по которому будет происходить печать связующего слоя поддержки. "
 #~ "При выборе по умолчанию, шаблон для нерастворимой связующей поддержки - "
 #~ "прямолинейный, для растворимой - концентрический."
-
-#~ msgid "Arranging..."
-#~ msgstr "Расстановка..."
 
 #~ msgid ""
 #~ "BambuStudio configuration file may be corrupted and is not able to be "
