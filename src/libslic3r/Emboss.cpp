@@ -1270,6 +1270,16 @@ ExPolygons Slic3r::union_with_delta(EmbossShape &shape, float delta, unsigned ma
     return shape.final_shape.expolygons;
 }
 
+HealedExPolygons Emboss::union_with_delta(ExPolygons expoly, float delta, unsigned max_heal_iteration)
+{
+    ExPolygons expolygons;
+    expolygons_append(expolygons, offset_ex(expoly, delta));
+    ExPolygons result = union_ex(expolygons);
+    result            = offset_ex(result, -delta);
+    bool is_healed    = heal_expolygons(result, max_heal_iteration);
+    return {result, is_healed};
+}
+
 void Slic3r::translate(ExPolygonsWithIds &expolygons_with_ids, const Point &p)
 {
     for (ExPolygonsWithId &expolygons_with_id : expolygons_with_ids)
@@ -1490,8 +1500,8 @@ void add_quad(uint32_t              i1,
     // bottom indices
     uint32_t i1_ = i1 + count_point;
     uint32_t i2_ = i2 + count_point;
-    result.indices.emplace_back(i2, i2_, i1);
-    result.indices.emplace_back(i1_, i1, i2_);
+    result.add_indice(i2, i2_, i1,true);
+    result.add_indice(i1_, i1, i2_, true);
 };
 
 indexed_triangle_set polygons2model_unique(
@@ -1522,12 +1532,11 @@ indexed_triangle_set polygons2model_unique(
     result.indices.reserve(shape_triangles.size() * 2 + points.size() * 2);
     // top triangles - change to CCW
     for (const Vec3i32 &t : shape_triangles)
-        result.indices.emplace_back(t.x(), t.z(), t.y());
+        result.add_indice(t.x(), t.z(), t.y(), true);
     // bottom triangles - use CW
     for (const Vec3i32 &t : shape_triangles)
-        result.indices.emplace_back(t.x() + count_point,
-                                    t.y() + count_point,
-                                    t.z() + count_point);
+        result.add_indice(t.x() + count_point,
+                                    t.y() + count_point, t.z() + count_point, true);
 
     // quads around - zig zag by triangles
     size_t polygon_offset = 0;
@@ -1593,11 +1602,10 @@ indexed_triangle_set polygons2model_duplicit(
     result.indices.reserve(shape_triangles.size() * 2 + points.size() * 2);
     // top triangles - change to CCW
     for (const Vec3i32 &t : shape_triangles)
-        result.indices.emplace_back(t.x(), t.z(), t.y());
+        result.add_indice(t.x(), t.z(), t.y(),true);
     // bottom triangles - use CW
     for (const Vec3i32 &t : shape_triangles)
-        result.indices.emplace_back(t.x() + count_point, t.y() + count_point,
-                                    t.z() + count_point);
+        result.add_indice(t.x() + count_point, t.y() + count_point, t.z() + count_point, true);
 
     // quads around - zig zag by triangles
     size_t polygon_offset = 0;

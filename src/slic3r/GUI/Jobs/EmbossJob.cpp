@@ -666,7 +666,8 @@ std::vector<TriangleMesh> create_meshs(DataBase &input)
 
     for (auto shape : input.shape.shapes_with_ids) {
         if (shape.expoly.empty()) continue;
-        meshs.emplace_back(TriangleMesh(polygons2model(shape.expoly, project)));
+        HealedExPolygons result = Slic3r::Emboss::union_with_delta(shape.expoly, UNION_DELTA, UNION_MAX_ITERATIN);
+        meshs.emplace_back(TriangleMesh(polygons2model(result.expolygons, project)));
     }
     return meshs;
 }
