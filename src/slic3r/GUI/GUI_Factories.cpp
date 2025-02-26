@@ -477,7 +477,7 @@ void MenuFactory::append_menu_item_set_visible(wxMenu* menu)
 void MenuFactory::append_menu_item_delete(wxMenu* menu)
 {
 #ifdef __WINDOWS__
-    append_menu_item(menu, wxID_ANY, _L("Delete") + "\t" + _L("Del"), _L("Delete the selected object"),
+    append_menu_item(menu, wxID_ANY, _L("Delete") + "\tDelete", _L("Delete the selected object"),
         [](wxCommandEvent&) { plater()->remove_selected(); }, "menu_delete", nullptr,
         []() { return plater()->can_delete(); }, m_parent);
 #else
