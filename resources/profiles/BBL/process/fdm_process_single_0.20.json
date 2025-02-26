@@ -28,5 +28,6 @@
         "270"
     ],
     "top_shell_layers": "5",
+    "top_color_penetration_layers": "5",
     "top_shell_thickness": "1.0"
 }
