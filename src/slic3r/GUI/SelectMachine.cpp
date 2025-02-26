@@ -2372,7 +2372,7 @@ void SelectMachineDialog::EnableEditing(bool enable)
     /*options*/
     for (auto iter : m_checkbox_list)
     {
-        iter.second->Enable(enable);
+        iter.second->enable(enable);
     }
 }
 
