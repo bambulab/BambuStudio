@@ -1042,7 +1042,9 @@ bool PrintObject::invalidate_state_by_config_options(
             steps.emplace_back(posSupportMaterial);
         } else if (
                opt_key == "bottom_shell_layers"
-            || opt_key == "top_shell_layers") {
+            || opt_key == "top_shell_layers"
+            || opt_key == "top_color_penetration_layers"
+            || opt_key == "bottom_color_penetration_layers") {
 
             steps.emplace_back(posSlice);
 #if (0)

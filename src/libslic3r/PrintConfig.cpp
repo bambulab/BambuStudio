@@ -4195,6 +4195,20 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->set_default_value(new ConfigOptionFloat(0.6));
 
+    def             = this->add("top_color_penetration_layers", coInt);
+    def->label      = L("Top color layers");
+    def->category   = L("Strength");
+    def->tooltip    = L("This is  the number of layers affected by the top color.");
+    def->min        = 1;
+    def->set_default_value(new ConfigOptionInt(4));
+
+    def           = this->add("bottom_color_penetration_layers", coInt);
+    def->label    = L("Bottom color layers");
+    def->category = L("Strength");
+    def->tooltip  = L("This is  the number of layers affected by the bottom color.");
+    def->min      = 1;
+    def->set_default_value(new ConfigOptionInt(3));
+
     def = this->add("travel_speed", coFloats);
     def->label = L("Travel");
     def->tooltip = L("Speed of travel which is faster and without extrusion");

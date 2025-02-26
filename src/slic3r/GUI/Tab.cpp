@@ -2082,9 +2082,11 @@ void TabPrint::build()
         optgroup->append_single_option_line("top_surface_pattern", "fill-patterns#Infill of the top surface and bottom surface");
         optgroup->append_single_option_line("top_shell_layers");
         optgroup->append_single_option_line("top_shell_thickness");
+        optgroup->append_single_option_line("top_color_penetration_layers");
         optgroup->append_single_option_line("bottom_surface_pattern", "fill-patterns#Infill of the top surface and bottom surface");
         optgroup->append_single_option_line("bottom_shell_layers");
         optgroup->append_single_option_line("bottom_shell_thickness");
+        optgroup->append_single_option_line("bottom_color_penetration_layers");
         optgroup->append_single_option_line("internal_solid_infill_pattern");
 
         optgroup = page->new_optgroup(L("Sparse infill"), L"param_infill");
