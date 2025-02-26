@@ -96,31 +96,31 @@
         "0"
     ],
     "counter_coef_2": [
-        "5650"
+        "0.00565"
     ],
     "counter_coef_3": [
-        "-20200"
+        "-0.0202"
     ],
     "hole_coef_1": [
         "0"
     ],
     "hole_coef_2": [
-        "-12100"
+        "-0.0121"
     ],
     "hole_coef_3": [
-        "145000"
+        "0.145"
     ],
     "counter_limit_min": [
-        "-350000"
+        "-0.35"
     ],
     "counter_limit_max": [
-        "300000"
+        "0.3"
     ],
     "hole_limit_min": [
-        "880000"
+        "0.88"
     ],
     "hole_limit_max": [
-        "2200000"
+        "2.2"
     ],
     "filament_start_gcode": [
         "; filament start gcode\nM145 P0 ; set airduct mode to cooling mode\nM142 P1 R35 S40 U0.3 V0.5 ; set chamber autocooling"

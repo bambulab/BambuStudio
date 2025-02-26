@@ -13,8 +13,8 @@
 #include <map>
 
 #include <boost/log/trivial.hpp>
-static const double max_deviation = 0.5 * 1e6;
-static const double max_variance  = 500 * 1e6;
+static const double max_deviation = scale_(0.5);
+static const double max_variance  = 5 * scale_(0.01) * scale_(0.01);
 
 namespace Slic3r {
 
@@ -72,26 +72,26 @@ void LayerRegion::auto_circle_compensation(SurfaceCollection& slices, const Auto
      int filament_idx = this->region().config().wall_filament - 1;
 
      double limited_speed = auto_contour_holes_compensation_params.circle_compensation_speed[filament_idx];
-     double counter_speed_coef      = auto_contour_holes_compensation_params.counter_speed_coef[filament_idx] / 1e6;
-     double counter_diameter_coef   = auto_contour_holes_compensation_params.counter_diameter_coef[filament_idx] / 1e6;
-     double counter_compensate_coef = auto_contour_holes_compensation_params.counter_compensate_coef[filament_idx];
+     double counter_speed_coef      = auto_contour_holes_compensation_params.counter_speed_coef[filament_idx];
+     double counter_diameter_coef   = auto_contour_holes_compensation_params.counter_diameter_coef[filament_idx];
+     double counter_compensate_coef = scale_(auto_contour_holes_compensation_params.counter_compensate_coef[filament_idx]);
 
-     double hole_speed_coef      = auto_contour_holes_compensation_params.hole_speed_coef[filament_idx] / 1e6;
-     double hole_diameter_coef   = auto_contour_holes_compensation_params.hole_diameter_coef[filament_idx] / 1e6;
-     double hole_compensate_coef = auto_contour_holes_compensation_params.hole_compensate_coef[filament_idx];
+     double hole_speed_coef      = auto_contour_holes_compensation_params.hole_speed_coef[filament_idx];
+     double hole_diameter_coef   = auto_contour_holes_compensation_params.hole_diameter_coef[filament_idx];
+     double hole_compensate_coef = scale_(auto_contour_holes_compensation_params.hole_compensate_coef[filament_idx]);
 
-     double counter_limit_min_value = auto_contour_holes_compensation_params.counter_limit_min_value[filament_idx];
-     double counter_limit_max_value = auto_contour_holes_compensation_params.counter_limit_max_value[filament_idx];
-     double hole_limit_min_value    = auto_contour_holes_compensation_params.hole_limit_min_value[filament_idx];
-     double hole_limit_max_value    = auto_contour_holes_compensation_params.hole_limit_max_value[filament_idx];
+     double counter_limit_min_value = scale_(auto_contour_holes_compensation_params.counter_limit_min_value[filament_idx]);
+     double counter_limit_max_value = scale_(auto_contour_holes_compensation_params.counter_limit_max_value[filament_idx]);
+     double hole_limit_min_value    = scale_(auto_contour_holes_compensation_params.hole_limit_min_value[filament_idx]);
+     double hole_limit_max_value    = scale_(auto_contour_holes_compensation_params.hole_limit_max_value[filament_idx]);
 
-     double diameter_limit_value = auto_contour_holes_compensation_params.diameter_limit[filament_idx];
+     double diameter_limit_value = scale_(auto_contour_holes_compensation_params.diameter_limit[filament_idx]);
 
     for (Surface &surface : slices.surfaces) {
         Point  center;
         double diameter = 0;
         if (surface.expolygon.contour.is_approx_circle(max_deviation, max_variance, center, diameter)) {
-            double offset_value = counter_speed_coef * limited_speed + counter_diameter_coef * diameter + counter_compensate_coef + manual_offset;
+            double offset_value = scale_(counter_speed_coef * limited_speed) + counter_diameter_coef * diameter + counter_compensate_coef + manual_offset;
             if (offset_value < counter_limit_min_value) {
                 offset_value = counter_limit_min_value;
             } else if (offset_value > counter_limit_max_value) {
@@ -100,14 +100,14 @@ void LayerRegion::auto_circle_compensation(SurfaceCollection& slices, const Auto
             Polygons offseted_polys = offset(surface.expolygon.contour, offset_value);
             if (offseted_polys.size() == 1) {
                 surface.expolygon.contour = offseted_polys[0];
-                if (diameter < diameter_limit_value * 1e6)
+                if (diameter < diameter_limit_value)
                     surface.counter_circle_compensation = true;
             }
         }
         for (size_t i = 0; i < surface.expolygon.holes.size(); ++i) {
             Polygon &hole = surface.expolygon.holes[i];
             if (hole.is_approx_circle(max_deviation, max_variance, center, diameter)) {
-                double offset_value = hole_speed_coef * limited_speed + hole_diameter_coef * diameter + hole_compensate_coef + manual_offset ;
+                double offset_value = scale_(hole_speed_coef * limited_speed) + hole_diameter_coef * diameter + hole_compensate_coef + manual_offset ;
                 if (offset_value < hole_limit_min_value) {
                     offset_value = hole_limit_min_value;
                 } else if (offset_value > hole_limit_max_value) {
@@ -118,7 +118,7 @@ void LayerRegion::auto_circle_compensation(SurfaceCollection& slices, const Auto
                 Polygons offseted_polys = offset(hole, offset_value);
                 if (offseted_polys.size() == 1) {
                     hole = offseted_polys[0];
-                    if (diameter < diameter_limit_value * 1e6)
+                    if (diameter < diameter_limit_value)
                         surface.holes_circle_compensation.push_back(i);
                 }
             }
