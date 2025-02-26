@@ -945,6 +945,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatsNullable, top_surface_speed))
     ((ConfigOptionFloatsOrPercentsNullable, small_perimeter_speed))
     ((ConfigOptionFloatsNullable, small_perimeter_threshold))
+    ((ConfigOptionInt, top_color_penetration_layers))
+    ((ConfigOptionInt, bottom_color_penetration_layers))
     //BBS
     ((ConfigOptionBoolsNullable, enable_overhang_speed))
     ((ConfigOptionFloatsNullable, overhang_1_4_speed))
