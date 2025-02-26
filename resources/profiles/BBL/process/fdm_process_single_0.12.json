@@ -5,6 +5,7 @@
     "from": "system",
     "instantiation": "false",
     "bottom_shell_layers": "5",
+    "bottom_color_penetration_layers": "5",
     "bridge_flow": "1",
     "elefant_foot_compensation": "0.15",
     "gap_infill_speed": [
@@ -42,5 +43,6 @@
     "support_threshold_angle": "20",
     "support_top_z_distance": "0.12",
     "top_shell_layers": "5",
+    "top_color_penetration_layers": "5",
     "top_shell_thickness": "0.6"
 }
