@@ -12506,7 +12506,7 @@ bool Plater::load_same_type_files(const wxArrayString &filenames) {
         if (ext_str == ".stp" || ext_str == ".step") {
             ext.replace_extension(".step");
         }
-        return ext;
+        return ext_str;
     };
     if (filenames.size() <= 1) { return true; }
     else {
@@ -12516,7 +12516,7 @@ bool Plater::load_same_type_files(const wxArrayString &filenames) {
         for (size_t i = 1; i < filenames.size(); i++) {
             boost::filesystem::path temp(filenames[i].utf8_string());
             auto temp_extension = trans_extension(temp);
-            if (extension.extension() != temp_extension.extension()) {
+            if (extension != temp_extension) {
                 return false;
             }
         }
