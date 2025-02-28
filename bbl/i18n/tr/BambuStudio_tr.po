@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-27 10:18+0800\n"
+"POT-Creation-Date: 2025-02-28 11:27+0800\n"
 "PO-Revision-Date: 2025-01-12 21:04+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -37,8 +37,14 @@ msgid "%.1f ℃"
 msgstr ""
 
 #, c-format, boost-format
-msgid "%d Hours"
+msgid "%d : %d"
 msgstr ""
+
+msgid "Serial:"
+msgstr "Seri:"
+
+msgid "Version:"
+msgstr "Sürüm:"
 
 msgid "Latest version"
 msgstr "Son sürüm"
@@ -134,6 +140,15 @@ msgstr "Otomatik destek yok"
 
 msgid "Support Generated"
 msgstr "Destek Oluşturuldu"
+
+msgid "Mode"
+msgstr "Mod"
+
+msgid "Convex hull"
+msgstr ""
+
+msgid "Triangular facet"
+msgstr ""
 
 msgid ""
 "Warning: All triangle areas are too small,The current function is not "
@@ -428,9 +443,6 @@ msgstr "Düzlemsel"
 
 msgid "Dovetail"
 msgstr "Bileşen Birleştirme"
-
-msgid "Mode"
-msgstr "Mod"
 
 msgid "Movement:"
 msgstr "Hareket:"
@@ -6732,12 +6744,9 @@ msgid " (Repair)"
 msgstr " (Onar)"
 
 msgid ""
-"\"Fix Model\" feature is currently only on Windows. Please use a third-party "
-"tool to repair the model before importing it into Bambu Studio, such as "
+"To repair the model, please use a third-party tool before importing it into "
+"Bambu Studio, such as "
 msgstr ""
-"\"Modeli Düzelt\" özelliği şu anda yalnızca Windows'ta bulunmaktadır. Lütfen "
-"modeli Bambu Studio'ya aktarmadan önce onarmak için üçüncü taraf bir araç "
-"kullanın, örneğin "
 
 #, c-format, boost-format
 msgid ""
@@ -9242,12 +9251,6 @@ msgstr ""
 
 msgid "Model:"
 msgstr "Model:"
-
-msgid "Serial:"
-msgstr "Seri:"
-
-msgid "Version:"
-msgstr "Sürüm:"
 
 msgid "Update firmware"
 msgstr "Ürün yazılımını güncelle"
@@ -15547,6 +15550,15 @@ msgstr ""
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı "
 "sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını "
 "azaltabileceğini biliyor muydunuz."
+
+#~ msgid ""
+#~ "\"Fix Model\" feature is currently only on Windows. Please use a third-"
+#~ "party tool to repair the model before importing it into Bambu Studio, "
+#~ "such as "
+#~ msgstr ""
+#~ "\"Modeli Düzelt\" özelliği şu anda yalnızca Windows'ta bulunmaktadır. "
+#~ "Lütfen modeli Bambu Studio'ya aktarmadan önce onarmak için üçüncü taraf "
+#~ "bir araç kullanın, örneğin "
 
 #, boost-format
 #~ msgid "SVG file does NOT contain a single path to be embossed (%1%)."

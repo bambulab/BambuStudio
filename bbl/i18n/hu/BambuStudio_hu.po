@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-27 10:18+0800\n"
+"POT-Creation-Date: 2025-02-28 11:27+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -36,8 +36,14 @@ msgid "%.1f ℃"
 msgstr ""
 
 #, c-format, boost-format
-msgid "%d Hours"
+msgid "%d : %d"
 msgstr ""
+
+msgid "Serial:"
+msgstr "Sorozatszám:"
+
+msgid "Version:"
+msgstr "Verzió:"
 
 msgid "Latest version"
 msgstr "Legfrissebb verzió"
@@ -132,6 +138,15 @@ msgstr "Nincs automatikus támasz"
 
 msgid "Support Generated"
 msgstr "Támasz legenerálva"
+
+msgid "Mode"
+msgstr "Mód"
+
+msgid "Convex hull"
+msgstr ""
+
+msgid "Triangular facet"
+msgstr ""
 
 msgid ""
 "Warning: All triangle areas are too small,The current function is not "
@@ -424,9 +439,6 @@ msgstr "Sík"
 
 msgid "Dovetail"
 msgstr "Fecskefarok"
-
-msgid "Mode"
-msgstr "Mód"
 
 msgid "Movement:"
 msgstr "Mozgatás:"
@@ -6691,8 +6703,8 @@ msgid " (Repair)"
 msgstr " (Javítás)"
 
 msgid ""
-"\"Fix Model\" feature is currently only on Windows. Please use a third-party "
-"tool to repair the model before importing it into Bambu Studio, such as "
+"To repair the model, please use a third-party tool before importing it into "
+"Bambu Studio, such as "
 msgstr ""
 
 #, c-format, boost-format
@@ -9181,12 +9193,6 @@ msgstr ""
 
 msgid "Model:"
 msgstr "Modell:"
-
-msgid "Serial:"
-msgstr "Sorozatszám:"
-
-msgid "Version:"
-msgstr "Verzió:"
 
 msgid "Update firmware"
 msgstr "Firmware frissítése"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-27 10:18+0800\n"
+"POT-Creation-Date: 2025-02-28 11:27+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -36,8 +36,14 @@ msgid "%.1f ℃"
 msgstr ""
 
 #, c-format, boost-format
-msgid "%d Hours"
+msgid "%d : %d"
 msgstr ""
+
+msgid "Serial:"
+msgstr "Серійний номер:"
+
+msgid "Version:"
+msgstr "Версія:"
 
 msgid "Latest version"
 msgstr "Остання версія"
@@ -132,6 +138,15 @@ msgstr "Немає автоматичної підтримки"
 
 msgid "Support Generated"
 msgstr "Генерація підтримки"
+
+msgid "Mode"
+msgstr "Режим"
+
+msgid "Convex hull"
+msgstr ""
+
+msgid "Triangular facet"
+msgstr ""
 
 msgid ""
 "Warning: All triangle areas are too small,The current function is not "
@@ -428,9 +443,6 @@ msgstr "Плоский"
 
 msgid "Dovetail"
 msgstr "Ластівчин хвіст"
-
-msgid "Mode"
-msgstr "Режим"
 
 msgid "Movement:"
 msgstr "Рух:"
@@ -6738,12 +6750,9 @@ msgid " (Repair)"
 msgstr " (Ремонт)"
 
 msgid ""
-"\"Fix Model\" feature is currently only on Windows. Please use a third-party "
-"tool to repair the model before importing it into Bambu Studio, such as "
+"To repair the model, please use a third-party tool before importing it into "
+"Bambu Studio, such as "
 msgstr ""
-"Функція “Виправити модель” наразі доступна лише на Windows. Будь ласка, "
-"використовуйте сторонній інструмент для виправлення моделі перед її імпортом "
-"у Bambu Studio, наприклад "
 
 #, c-format, boost-format
 msgid ""
@@ -9244,12 +9253,6 @@ msgstr ""
 
 msgid "Model:"
 msgstr "Модель:"
-
-msgid "Serial:"
-msgstr "Серійний номер:"
-
-msgid "Version:"
-msgstr "Версія:"
 
 msgid "Update firmware"
 msgstr "Оновити прошивку"
@@ -15591,6 +15594,15 @@ msgstr ""
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як "
 "ABS, відповідне підвищення температури гарячого ліжка може зменшити "
 "ймовірність деформації."
+
+#~ msgid ""
+#~ "\"Fix Model\" feature is currently only on Windows. Please use a third-"
+#~ "party tool to repair the model before importing it into Bambu Studio, "
+#~ "such as "
+#~ msgstr ""
+#~ "Функція “Виправити модель” наразі доступна лише на Windows. Будь ласка, "
+#~ "використовуйте сторонній інструмент для виправлення моделі перед її "
+#~ "імпортом у Bambu Studio, наприклад "
 
 #, boost-format
 #~ msgid "SVG file does NOT contain a single path to be embossed (%1%)."

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-27 10:18+0800\n"
+"POT-Creation-Date: 2025-02-28 11:27+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -41,7 +41,13 @@ msgid "%.1f ℃"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "%d Hours"
+msgid "%d : %d"
+msgstr ""
+
+msgid "Serial:"
+msgstr ""
+
+msgid "Version:"
 msgstr ""
 
 msgid "Latest version"
@@ -136,6 +142,15 @@ msgid "No auto support"
 msgstr ""
 
 msgid "Support Generated"
+msgstr ""
+
+msgid "Mode"
+msgstr ""
+
+msgid "Convex hull"
+msgstr ""
+
+msgid "Triangular facet"
 msgstr ""
 
 msgid ""
@@ -424,9 +439,6 @@ msgid "Planar"
 msgstr ""
 
 msgid "Dovetail"
-msgstr ""
-
-msgid "Mode"
 msgstr ""
 
 msgid "Movement:"
@@ -6338,8 +6350,8 @@ msgid " (Repair)"
 msgstr ""
 
 msgid ""
-"\"Fix Model\" feature is currently only on Windows. Please use a third-party "
-"tool to repair the model before importing it into Bambu Studio, such as "
+"To repair the model, please use a third-party tool before importing it into "
+"Bambu Studio, such as "
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -8645,12 +8657,6 @@ msgid ""
 msgstr ""
 
 msgid "Model:"
-msgstr ""
-
-msgid "Serial:"
-msgstr ""
-
-msgid "Version:"
 msgstr ""
 
 msgid "Update firmware"
