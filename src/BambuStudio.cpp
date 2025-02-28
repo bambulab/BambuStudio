@@ -1334,27 +1334,28 @@ int CLI::run(int argc, char **argv)
     /*BOOST_LOG_TRIVIAL(info) << "begin to setup params, argc=" << argc << std::endl;
     for (int index=0; index < argc; index++)
         BOOST_LOG_TRIVIAL(info) << "index="<< index <<", arg is "<< argv[index] <<std::endl;
-    int debug_argc = 6;
+    int debug_argc = 20;
     char* debug_argv[] = {
         "F:\work\projects\bambu_debug\bamboo_slicer\build_debug\src\Debug\bambu-studio.exe",
         "--debug=2",
         "--uptodate",
-        //"--load-settings",
-        //"machine_A1.json",
-        //"--load-defaultfila",
-        //"--load-filaments",
-        //"filament_pla_basic_A1.json;filament_pla_basic_A1.json",
+        "--load-settings",
+        "machine_H2D.json",
+        "--load-defaultfila",
+        "--load-filaments",
+        ";filament_pla_basic_H2D.json;filament_pla_basic_H2D.json;filament_pla_basic_H2D.json;",
         "--export-3mf=output.3mf",
-        //"--filament-colour",
-        //"#CD056D;#702829",
-        //"--nozzle-volume-type",
-        //"Standard,High Flow",
-        //"--filament-map-mode",
-        //"Auto",
-        //"--filament-map",
-        //"1,2,1,2",
-        "--slice=0",
-        "stl_test.3mf"
+        "--filament-colour",
+        ";#F4EE2AFF;#FFFFFFFF;#F99963FF;",
+        "--nozzle-volume-type",
+        "Standard,Standard",
+        "--filament-map-mode",
+        "Manual",
+        "--filament-map",
+        "2,2,2,1,2",
+        "--slice=1",
+        "--min-save",
+        "AMS-A1mini.3mf"
         };
     if (! this->setup(debug_argc, debug_argv))*/
     if (!this->setup(argc, argv))
@@ -5648,8 +5649,10 @@ int CLI::run(int argc, char **argv)
                                 }
                                 else {
                                     std::vector<int> filament_maps;
-                                    if (m_extra_config.option<ConfigOptionInts>("filament_map"))
+                                    if (m_extra_config.option<ConfigOptionInts>("filament_map")) {
                                         filament_maps = m_extra_config.option<ConfigOptionInts>("filament_map")->values;
+                                        part_plate->set_filament_maps(filament_maps);
+                                    }
                                     else
                                         filament_maps = part_plate->get_real_filament_maps(m_print_config);
                                     for (int index = 0; index < filament_maps.size(); index++)
