@@ -2475,11 +2475,12 @@ void StatusPanel::on_subtask_abort(wxCommandEvent &event)
     abort_dlg->m_button_cancel->SetBackgroundColor(abort_dlg->btn_bg_green);
     abort_dlg->m_button_cancel->SetBorderColor(*wxWHITE);
     abort_dlg->m_button_cancel->SetTextColor(wxColor("#FFFFFE"));
+    abort_dlg->m_button_cancel->SetLabel(_L("No"));
 
     abort_dlg->m_button_ok->SetBackgroundColor(abort_dlg->btn_bg_white);
     abort_dlg->m_button_ok->SetBorderColor(wxColor(38, 46, 48));
     abort_dlg->m_button_ok->SetTextColor(*wxBLACK);
-    abort_dlg->m_button_ok->SetLabel(_L("Stop"));
+    abort_dlg->m_button_ok->SetLabel(_L("Yes"));
 
     abort_dlg->on_show();
 }

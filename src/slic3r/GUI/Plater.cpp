@@ -16599,7 +16599,7 @@ void Plater::show_object_info()
 
     #ifndef __WINDOWS__
     if (non_manifold_edges > 0) {
-        info_manifold += into_u8("\n" + _L("Tips:") + "\n" +_L("\"Fix Model\" feature is currently only on Windows. Please use a third-party tool to repair the model before importing it into Bambu Studio, such as "));
+        info_manifold += into_u8("\n" + _L("Tips:") + "\n" +_L("To repair the model, please use a third-party tool before importing it into Bambu Studio, such as "));
     }
     if (warning) {
         std::string repair_url = "https://www.formware.co/onlinestlrepair";
