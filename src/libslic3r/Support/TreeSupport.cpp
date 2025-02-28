@@ -2539,22 +2539,23 @@ void TreeSupport::draw_circles()
                     for (const auto& hole : area->holes) {
                         // auto hole_bbox = get_extents(hole).polygon();
                         for (auto& area_group_lower : area_groups_lower) {
-                            if (area_group.type != SupportLayer::BaseType) continue;
                             auto& base_area_lower = *area_group_lower.area;
                             Point pt_on_poly, pt_on_expoly, pt_far_on_poly;
                             // if a hole doesn't intersect with lower layer's contours, add a hole to lower layer and move it slightly to the contour
-                            if (base_area_lower.contour.contains(hole.points.front()) && !intersects_contour(hole, base_area_lower, pt_on_poly, pt_on_expoly, pt_far_on_poly)) {
+                            if (base_area_lower.contour.contains(hole.points.front()) &&
+                                !intersects_contour(hole, base_area_lower, pt_on_poly, pt_on_expoly, pt_far_on_poly,
+                                                    0.01 + unscale_(line_width_scaled) * (area_group.need_extra_wall ? 2. : 0.5))) {
                                 Polygon hole_lower = hole;
-                                Point   direction = normal(pt_on_expoly - pt_on_poly, line_width_scaled / 2);
+                                Point   direction  = normal(pt_on_expoly - pt_on_poly, line_width_scaled / 2);
                                 hole_lower.translate(direction);
                                 // note to expand a hole, we need to do negative offset
                                 auto hole_expanded = offset(hole_lower, -line_width_scaled / 4, ClipperLib::JoinType::jtSquare);
                                 if (!hole_expanded.empty()) {
                                     base_area_lower.holes.push_back(std::move(hole_expanded[0]));
-                                    holePropagationInfos.insert({ &base_area_lower.holes.back(), {25, direction, pt_far_on_poly} });
-                                    }
-                                break;
+                                    holePropagationInfos.insert({&base_area_lower.holes.back(), {25, direction, pt_far_on_poly}});
                                 }
+                                break;
+                            }
                             else if (holePropagationInfos.find(&hole) != holePropagationInfos.end() && std::get<0>(holePropagationInfos[&hole]) > 0 &&
                                 base_area_lower.contour.contains(std::get<2>(holePropagationInfos[&hole]))) {
                                 // after the hole connects to contour, shrink it gradually until it vanishes while moving it outwards. The moving direction is defined in the previous step
