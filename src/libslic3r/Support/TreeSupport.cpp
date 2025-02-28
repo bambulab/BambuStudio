@@ -2165,7 +2165,7 @@ void TreeSupport::draw_circles()
 
     // generate areas
     const size_t   top_interface_layers = config.support_interface_top_layers.value;
-    const size_t   bottom_interface_layers = config.support_interface_bottom_layers.value;
+    const size_t   bottom_interface_layers = 0; //config.support_interface_bottom_layers.value;
     const bool with_lightning_infill = m_support_params.base_fill_pattern == ipLightning;
     coordf_t support_extrusion_width = m_support_params.support_extrusion_width;
     const coordf_t line_width_scaled                 = scale_(support_extrusion_width);
@@ -2617,60 +2617,11 @@ void TreeSupport::draw_circles()
 #endif  // SUPPORT_TREE_DEBUG_TO_SVG
 
     SupportLayerPtrs& ts_layers = m_object->support_layers();
-    std::vector<std::pair<size_t, SupportLayer *>> bottom_added_layers;
     auto iter = std::remove_if(ts_layers.begin(), ts_layers.end(), [](SupportLayer* ts_layer) { return ts_layer->height < EPSILON; });
     ts_layers.erase(iter, ts_layers.end());
     for (int layer_nr = 0; layer_nr < ts_layers.size(); layer_nr++) {
         ts_layers[layer_nr]->upper_layer = layer_nr != ts_layers.size() - 1 ? ts_layers[layer_nr + 1] : nullptr;
         ts_layers[layer_nr]->lower_layer = layer_nr > 0 ? ts_layers[layer_nr - 1] : nullptr;
-
-        SupportLayer *ts_layer = ts_layers[layer_nr];
-        if (layer_nr > 0 && !ts_layer->floor_areas.empty() && bottom_gap_layers == 0) {
-            int    lower_obj_layer_nr = m_ts_data->layer_heights[layer_nr].obj_layer_nr;
-            while (m_object->get_layer(lower_obj_layer_nr)->bottom_z() > ts_layer->bottom_z()) lower_obj_layer_nr--;
-            Layer      *lower_obj_layer = m_object->get_layer(lower_obj_layer_nr);
-            const auto &lower_area = lower_obj_layer->lslices_extrudable;
-            if (overlaps(ts_layer->floor_areas, lower_area) && ts_layer->print_z - lower_obj_layer->print_z < ts_layer->height) {
-                SupportLayer *new_layer = new SupportLayer(ts_layers.size() + bottom_added_layers.size(), ts_layer->interface_id(), m_object, 0, ts_layer->print_z + 2 * EPSILON,
-                                                           ts_layer->slice_z + 2 * EPSILON);
-                new_layer->height       = ts_layer->print_z - lower_obj_layer->print_z;
-                std::vector<SupportLayer::AreaGroup> new_area_groups;
-                for (const auto &group_area : ts_layer->area_groups) {
-                    if (group_area.type != SupportLayer::FloorType || (group_area.type == SupportLayer::FloorType && !overlaps(lower_area, *group_area.area)))
-                        new_area_groups.emplace_back(group_area);
-                    else {
-                        new_layer->area_groups.emplace_back(group_area);
-                        new_layer->floor_areas.emplace_back(*group_area.area);
-                    }
-                }
-                if (!new_layer->area_groups.empty() && new_layer->height > m_slicing_params.min_layer_height)
-                    bottom_added_layers.emplace_back(std::make_pair(layer_nr, new_layer));
-                ts_layer->area_groups = std::move(new_area_groups);
-            }
-        }
-    }
-    int cnt = 1;
-    for (int i = 0; i < bottom_added_layers.size(); i++) {
-         if (bottom_added_layers[i].second->height < m_slicing_params.min_layer_height) {
-             if (bottom_added_layers[i].first + cnt - 1 + bottom_interface_layers < ts_layers.size()) {
-                 int lower_obj_layer_nr = m_ts_data->layer_heights[bottom_added_layers[i].first].obj_layer_nr;
-                 while (!overlaps(m_object->get_layer(lower_obj_layer_nr)->lslices_extrudable, ts_layers[bottom_added_layers[i].first + cnt]->floor_areas))
-                     lower_obj_layer_nr--;
-                 for (auto &group_area : ts_layers[bottom_added_layers[i].first + cnt - 1 + bottom_interface_layers]->area_groups) {
-                     if (group_area.type != SupportLayer::FloorType && overlaps(m_object->get_layer(lower_obj_layer_nr)->lslices_extrudable, *group_area.area)) {
-                         group_area.type = SupportLayer::FloorType;
-                         group_area.dist_to_top = 10000;
-                     }
-                 }
-             }
-             continue;
-        }
-        ts_layers.insert(ts_layers.begin() + bottom_added_layers[i].first + cnt, bottom_added_layers[i].second);
-        ts_layers[bottom_added_layers[i].first + cnt - 1]->upper_layer = ts_layers[bottom_added_layers[i].first + cnt];
-        ts_layers[bottom_added_layers[i].first + cnt]->upper_layer     = ts_layers[bottom_added_layers[i].first + cnt + 1];
-        ts_layers[bottom_added_layers[i].first + cnt]->lower_layer     = ts_layers[bottom_added_layers[i].first + cnt - 1];
-        ts_layers[bottom_added_layers[i].first + cnt + 1]->lower_layer = ts_layers[bottom_added_layers[i].first + cnt];
-        cnt++;
     }
 }
 
@@ -2734,7 +2685,6 @@ void TreeSupport::drop_nodes()
     const size_t tip_layers = base_radius / layer_height; //The number of layers to be shrinking the circle to create a tip. This produces a 45 degree angle.
     const coordf_t radius_sample_resolution = m_ts_data->m_radius_sample_resolution;
     const bool support_on_buildplate_only = config.support_on_build_plate_only.value;
-    const size_t bottom_interface_layers = config.support_interface_bottom_layers.value;
     const size_t top_interface_layers = config.support_interface_top_layers.value;
     SupportNode::diameter_angle_scale_factor = diameter_angle_scale_factor;
 
@@ -3414,8 +3364,7 @@ void TreeSupport::smooth_nodes()
                             branch[i]->movement = (pts[i + 1] - pts[i - 1]) / 2;
                             branch[i]->is_processed = true;
                             if (branch[i]->parents.size() > 1 || (branch[i]->movement.x() > max_move || branch[i]->movement.y() > max_move) ||
-                                (total_height > thresh_tall_branch && branch[i]->dist_mm_to_top < thresh_dist_to_top) ||
-                                (m_support_params.soluble_interface && !branch[i - 1]->to_buildplate))
+                                (total_height > thresh_tall_branch && branch[i]->dist_mm_to_top < thresh_dist_to_top))
                                 branch[i]->need_extra_wall = true;
                             BOOST_LOG_TRIVIAL(trace) << "smooth_nodes: layer_nr=" << layer_nr << ", i=" << i << ", pt=" << pt << ", movement=" << branch[i]->movement << ", radius=" << branch[i]->radius;
                         }
