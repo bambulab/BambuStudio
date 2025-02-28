@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-27 10:18+0800\n"
+"POT-Creation-Date: 2025-02-28 11:27+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -40,8 +40,14 @@ msgid "%.1f ℃"
 msgstr ""
 
 #, c-format, boost-format
-msgid "%d Hours"
-msgstr "%d小时"
+msgid "%d : %d"
+msgstr ""
+
+msgid "Serial:"
+msgstr "序列号："
+
+msgid "Version:"
+msgstr "版本："
 
 msgid "Latest version"
 msgstr "最新版本"
@@ -136,6 +142,15 @@ msgstr "无自动支撑"
 
 msgid "Support Generated"
 msgstr "已生成支撑"
+
+msgid "Mode"
+msgstr "模式"
+
+msgid "Convex hull"
+msgstr "凸包"
+
+msgid "Triangular facet"
+msgstr "三角面片"
 
 msgid ""
 "Warning: All triangle areas are too small,The current function is not "
@@ -425,9 +440,6 @@ msgstr "平面"
 
 msgid "Dovetail"
 msgstr "燕尾榫"
-
-msgid "Mode"
-msgstr "模式"
 
 msgid "Movement:"
 msgstr "移动："
@@ -6531,11 +6543,9 @@ msgid " (Repair)"
 msgstr "（修复）"
 
 msgid ""
-"\"Fix Model\" feature is currently only on Windows. Please use a third-party "
-"tool to repair the model before importing it into Bambu Studio, such as "
-msgstr ""
-"\"修复模型\"功能目前仅适用于Windows。请使用第三方工具修复模型后再导入Bambu "
-"Studio，如"
+"To repair the model, please use a third-party tool before importing it into "
+"Bambu Studio, such as "
+msgstr "如需修复模型，请使用第三方工具处理后再导入 Bambu Studio，例如"
 
 #, c-format, boost-format
 msgid ""
@@ -8960,12 +8970,6 @@ msgstr ""
 
 msgid "Model:"
 msgstr "型号："
-
-msgid "Serial:"
-msgstr "序列号："
-
-msgid "Version:"
-msgstr "版本："
 
 msgid "Update firmware"
 msgstr "更新固件"
@@ -14763,6 +14767,18 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#, c-format, boost-format
+#~ msgid "%d Hours"
+#~ msgstr "%d小时"
+
+#~ msgid ""
+#~ "\"Fix Model\" feature is currently only on Windows. Please use a third-"
+#~ "party tool to repair the model before importing it into Bambu Studio, "
+#~ "such as "
+#~ msgstr ""
+#~ "\"修复模型\"功能目前仅适用于Windows。请使用第三方工具修复模型后再导入"
+#~ "Bambu Studio，如"
 
 #, boost-format
 #~ msgid "SVG file does NOT contain a single path to be embossed (%1%)."

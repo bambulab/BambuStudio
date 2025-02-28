@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-27 10:18+0800\n"
+"POT-Creation-Date: 2025-02-28 11:27+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -41,8 +41,14 @@ msgid "%.1f ℃"
 msgstr ""
 
 #, c-format, boost-format
-msgid "%d Hours"
+msgid "%d : %d"
 msgstr ""
+
+msgid "Serial:"
+msgstr "Sériové číslo:"
+
+msgid "Version:"
+msgstr "Verze:"
 
 msgid "Latest version"
 msgstr "Nejnovější verze"
@@ -137,6 +143,15 @@ msgstr "Žádné automatické podpěry"
 
 msgid "Support Generated"
 msgstr "Vygenerovat podpěry"
+
+msgid "Mode"
+msgstr ""
+
+msgid "Convex hull"
+msgstr ""
+
+msgid "Triangular facet"
+msgstr ""
 
 msgid ""
 "Warning: All triangle areas are too small,The current function is not "
@@ -427,9 +442,6 @@ msgid "Planar"
 msgstr ""
 
 msgid "Dovetail"
-msgstr ""
-
-msgid "Mode"
 msgstr ""
 
 msgid "Movement:"
@@ -6553,8 +6565,8 @@ msgid " (Repair)"
 msgstr " (Oprava)"
 
 msgid ""
-"\"Fix Model\" feature is currently only on Windows. Please use a third-party "
-"tool to repair the model before importing it into Bambu Studio, such as "
+"To repair the model, please use a third-party tool before importing it into "
+"Bambu Studio, such as "
 msgstr ""
 
 #, c-format, boost-format
@@ -8955,12 +8967,6 @@ msgstr ""
 
 msgid "Model:"
 msgstr "Model:"
-
-msgid "Serial:"
-msgstr "Sériové číslo:"
-
-msgid "Version:"
-msgstr "Verze:"
 
 msgid "Update firmware"
 msgstr "Aktualizovat firmware"
