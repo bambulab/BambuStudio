@@ -630,7 +630,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     auto support_style = config->opt_enum<SupportMaterialStyle>("support_style");
     for (auto el : { "support_style", "support_base_pattern",
                     "support_base_pattern_spacing", "support_expansion", "support_angle",
-                    "support_interface_pattern", "support_interface_top_layers", "support_interface_bottom_layers",
+                    "support_interface_pattern", "support_interface_top_layers",
                     "bridge_no_support", "max_bridge_length", "support_top_z_distance", "support_bottom_z_distance",
                      //BBS: add more support params to dependent of enable_support
                     "support_type", "support_on_build_plate_only",
@@ -651,9 +651,11 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
 
     // tree support use max_bridge_length instead of bridge_no_support
     toggle_line("bridge_no_support", !support_is_tree);
+    // only normal support has bottom interfaces
+    toggle_line("support_bottom_interface_spacing", !support_is_tree);
+    toggle_line("support_interface_bottom_layers", !support_is_tree);
 
-    for (auto el : { "support_interface_spacing", "support_interface_filament",
-                     "support_interface_loop_pattern", "support_bottom_interface_spacing" })
+    for (auto el : {"support_interface_spacing", "support_interface_filament", "support_interface_loop_pattern"})
         toggle_field(el, have_support_material && have_support_interface);
 
     //BBS
