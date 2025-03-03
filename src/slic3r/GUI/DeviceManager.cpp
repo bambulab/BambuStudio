@@ -6185,11 +6185,15 @@ void MachineObject::parse_new_info(json print)
                 extder_obj.id                  = njon["id"].get<int>();
 
                 extder_obj.filam_bak.clear();
-                const json& filam_bak_items = njon["filam_bak"];
-                for (const auto& filam_bak_item : filam_bak_items)
+                is_support_show_filament_backup = njon.contains("filam_bak");
+                if (is_support_show_filament_backup)
                 {
-                    const auto& filam_bak_val = filam_bak_item.get<int>();
-                    extder_obj.filam_bak.emplace_back(filam_bak_val);
+                    const json& filam_bak_items = njon["filam_bak"];
+                    for (const auto& filam_bak_item : filam_bak_items)
+                    {
+                        const auto& filam_bak_val = filam_bak_item.get<int>();
+                        extder_obj.filam_bak.emplace_back(filam_bak_val);
+                    }
                 }
 
                 extder_obj.enable_change_nozzle= get_flag_bits(njon["info"].get<int>(), 0);
