@@ -97,7 +97,7 @@ void LayerRegion::auto_circle_compensation(SurfaceCollection& slices, const Auto
             } else if (offset_value > counter_limit_max_value) {
                 offset_value = counter_limit_max_value;
             }
-            offset_value += manual_offset / 2;
+            offset_value -= manual_offset / 2;
             Polygons offseted_polys = offset(surface.expolygon.contour, offset_value);
             if (offseted_polys.size() == 1) {
                 surface.expolygon.contour = offseted_polys[0];
@@ -116,7 +116,7 @@ void LayerRegion::auto_circle_compensation(SurfaceCollection& slices, const Auto
                 }
                 // positive value means shrinking hole, which oppsite to contour
                 offset_value            = -offset_value;
-                offset_value += manual_offset / 2;
+                offset_value -= manual_offset / 2;
                 Polygons offseted_polys = offset(hole, offset_value);
                 if (offseted_polys.size() == 1) {
                     hole = offseted_polys[0];
