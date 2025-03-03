@@ -6491,6 +6491,7 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
 
             bool is_active = vol->is_active;
             vol->is_active = true;
+            vol->picking   = true;
 
             const Transform3d matrix = view_matrix * vol->world_matrix();
             shader->set_uniform("view_model_matrix", matrix);
@@ -6499,6 +6500,7 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
             shader->set_uniform("volume_world_matrix", vol->world_matrix());
             vol->simple_render(shader,  model_objects, extruder_colors);
             vol->is_active = is_active;
+            vol->picking   = false;
         }
         glsafe(::glEnable(GL_CULL_FACE));
 
