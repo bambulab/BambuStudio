@@ -91,12 +91,13 @@ void LayerRegion::auto_circle_compensation(SurfaceCollection& slices, const Auto
         Point  center;
         double diameter = 0;
         if (surface.expolygon.contour.is_approx_circle(max_deviation, max_variance, center, diameter)) {
-            double offset_value = scale_(counter_speed_coef * limited_speed) + counter_diameter_coef * diameter + counter_compensate_coef + manual_offset;
+            double offset_value = scale_(counter_speed_coef * limited_speed) + counter_diameter_coef * diameter + counter_compensate_coef;
             if (offset_value < counter_limit_min_value) {
                 offset_value = counter_limit_min_value;
             } else if (offset_value > counter_limit_max_value) {
                 offset_value = counter_limit_max_value;
             }
+            offset_value += manual_offset / 2;
             Polygons offseted_polys = offset(surface.expolygon.contour, offset_value);
             if (offseted_polys.size() == 1) {
                 surface.expolygon.contour = offseted_polys[0];
@@ -107,7 +108,7 @@ void LayerRegion::auto_circle_compensation(SurfaceCollection& slices, const Auto
         for (size_t i = 0; i < surface.expolygon.holes.size(); ++i) {
             Polygon &hole = surface.expolygon.holes[i];
             if (hole.is_approx_circle(max_deviation, max_variance, center, diameter)) {
-                double offset_value = scale_(hole_speed_coef * limited_speed) + hole_diameter_coef * diameter + hole_compensate_coef + manual_offset ;
+                double offset_value = scale_(hole_speed_coef * limited_speed) + hole_diameter_coef * diameter + hole_compensate_coef;
                 if (offset_value < hole_limit_min_value) {
                     offset_value = hole_limit_min_value;
                 } else if (offset_value > hole_limit_max_value) {
@@ -115,6 +116,7 @@ void LayerRegion::auto_circle_compensation(SurfaceCollection& slices, const Auto
                 }
                 // positive value means shrinking hole, which oppsite to contour
                 offset_value            = -offset_value;
+                offset_value += manual_offset / 2;
                 Polygons offseted_polys = offset(hole, offset_value);
                 if (offseted_polys.size() == 1) {
                     hole = offseted_polys[0];
