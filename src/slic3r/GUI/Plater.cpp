@@ -1578,8 +1578,14 @@ Sidebar::Sidebar(Plater *parent)
         });
 
         ScalableButton *wiki_bed = new ScalableButton(p->panel_printer_bed, wxID_ANY, "help");
-        wiki_bed->Bind(wxEVT_BUTTON, [](wxCommandEvent) {
-            wxLaunchDefaultBrowser("https://wiki.bambulab.com/en/x1/manual/compatibility-and-parameter-settings-of-filaments");
+        wiki_bed->SetToolTip(_L("Click to view the wiki of the current plate type"));
+        wiki_bed->Bind(wxEVT_BUTTON, [this](wxCommandEvent) {
+            bool is_zh  = wxGetApp().app_config->get("language") == "zh_CN";
+            if (is_zh) {
+                wxLaunchDefaultBrowser("https://wiki.bambulab.com/zh/filament-acc/acc/plates");
+            } else {
+                wxLaunchDefaultBrowser("https://wiki.bambulab.com/en/filament-acc/acc/plates");
+            }
         });
 
         ScalableBitmap bitmap_bed(p->panel_printer_bed, "printer_placeholder", 32);
