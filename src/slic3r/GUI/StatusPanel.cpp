@@ -4175,12 +4175,11 @@ void StatusPanel::on_ams_load_curr()
 
             if (obj->is_enable_np) {
                 try {
-                    if (!curr_ams_id.empty() && !curr_can_id.empty()) {
-                        obj->command_ams_change_filament2(true, stoi(curr_ams_id), 0, old_temp, new_temp);
+                    if (!curr_ams_id.empty() && !curr_can_id.empty()) { obj->command_ams_change_filament(true, curr_ams_id, "0", old_temp, new_temp);
                     }
                 } catch (...) {}
             } else {
-                obj->command_ams_switch(254, old_temp, new_temp);
+                obj->command_ams_change_filament(true, "254", "0", old_temp, new_temp);
             }
         }
 
@@ -4216,12 +4215,12 @@ void StatusPanel::on_ams_load_curr()
         if (obj->is_enable_np) {
             try {
                 if (!curr_ams_id.empty() && !curr_can_id.empty()) {
-                    obj->command_ams_change_filament2(true, stoi(curr_ams_id), stoi(curr_can_id), old_temp, new_temp);
+                    obj->command_ams_change_filament(true, curr_ams_id, curr_can_id, old_temp, new_temp);
                 }
             }
             catch (...){}
         } else {
-            obj->command_ams_switch(tray_index, old_temp, new_temp);
+            obj->command_ams_change_filament(true, curr_ams_id, curr_can_id, old_temp, new_temp);
         }
     }
 }
@@ -4273,17 +4272,17 @@ void StatusPanel::on_ams_switch(SimpleEvent &event)
 void StatusPanel::on_ams_unload(SimpleEvent &event)
 {
     if (obj) {
+        std::string curr_ams_id = m_ams_control->GetCurentAms();
+        std::string curr_can_id = m_ams_control->GetCurrentCan(curr_ams_id);
+
         if (obj->is_enable_np) {
             try {
-                std::string curr_ams_id = m_ams_control->GetCurentAms();
-                std::string curr_can_id = m_ams_control->GetCurrentCan(curr_ams_id);
-
                 for (auto ext : obj->m_extder_data.extders) {
-                    if (ext.snow.ams_id == curr_ams_id && ext.snow.slot_id == curr_can_id) { obj->command_ams_change_filament2(false, stoi(curr_ams_id), 0); }
+                    if (ext.snow.ams_id == curr_ams_id && ext.snow.slot_id == curr_can_id) { obj->command_ams_change_filament(false, curr_ams_id, "255"); }
                 }
             } catch (...) {}
         } else {
-            obj->command_ams_switch(255);
+            obj->command_ams_change_filament(false, curr_ams_id, "255");
         }
     }
 }
