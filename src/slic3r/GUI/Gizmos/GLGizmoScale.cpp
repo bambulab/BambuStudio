@@ -65,11 +65,11 @@ std::string GLGizmoScale3D::get_tooltip() const
         scale = 100.0f * selection.get_volume(*selection.get_volume_idxs().begin())->get_volume_scaling_factor().cast<float>();
 
     if (m_hover_id == 0 || m_hover_id == 1 || m_grabbers[0].dragging || m_grabbers[1].dragging)
-        return "X: " + format(scale(0), 4) + "%";
+        return "X: " + format(scale(0), 2) + "%";
     else if (m_hover_id == 2 || m_hover_id == 3 || m_grabbers[2].dragging || m_grabbers[3].dragging)
-        return "Y: " + format(scale(1), 4) + "%";
+        return "Y: " + format(scale(1), 2) + "%";
     else if (m_hover_id == 4 || m_hover_id == 5 || m_grabbers[4].dragging || m_grabbers[5].dragging)
-        return "Z: " + format(scale(2), 4) + "%";
+        return "Z: " + format(scale(2), 2) + "%";
     else if (m_hover_id == 6 || m_hover_id == 7 || m_hover_id == 8 || m_hover_id == 9 ||
         m_grabbers[6].dragging || m_grabbers[7].dragging || m_grabbers[8].dragging || m_grabbers[9].dragging)
     {
