@@ -10256,7 +10256,7 @@ void GLCanvas3D::_render_silhouette_effect()
     }
 
     auto& ogl_manager = *p_ogl_manager;
-    float t_viewport_scale = 0.5f;
+    float t_viewport_scale = 1.0f;
     uint32_t viewport_width = 0;
     uint32_t viewport_height = 0;
     ogl_manager.get_viewport_size(viewport_width, viewport_height);
