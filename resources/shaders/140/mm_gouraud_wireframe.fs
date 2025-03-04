@@ -22,8 +22,8 @@ const vec3 ORANGE = vec3(0.8, 0.4, 0.0);
 const vec3 LightRed = vec3(0.78, 0.0, 0.0);
 const vec3 LightBlue = vec3(0.73, 1.0, 1.0);
 const float CHESS_WIDTH = 2.0;
-const vec3 COLOR_A = vec3(0.8, 0.8, 0.8);
-const vec3 COLOR_B = vec3(0.1, 0.1, 0.1);
+const vec3 COLOR_A = vec3(1.0, 1.0, 0.0);
+const vec3 COLOR_B = vec3(0.3, 0.3, 0.0);
 uniform vec4 uniform_color;
 
 in vec3 clipping_planes_dots;
