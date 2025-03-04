@@ -59,5 +59,6 @@
     ],
     "slow_down_layer_time": [
         "10"
-    ]
+    ],
+    "impact_strength_z":["9.6"]
 }
