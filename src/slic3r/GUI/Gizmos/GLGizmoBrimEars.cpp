@@ -84,7 +84,8 @@ void GLGizmoBrimEars::on_render()
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    if (selection.is_from_single_instance()) render_points(selection, false);
+    if (selection.is_from_single_instance())
+        render_points(selection, false);
 
     m_selection_rectangle.render(m_parent);
     m_c->object_clipper()->render_cut();
@@ -125,9 +126,6 @@ void GLGizmoBrimEars::render_points(const Selection &selection, bool picking) co
         return;
 
     wxGetApp().bind_shader(shader);
-    ScopeGuard guard([shader]() {
-        wxGetApp().unbind_shader();
-    });
 
     const GLVolume    *vol                             = selection.get_volume(*selection.get_volume_idxs().begin());
     const Transform3d &instance_scaling_matrix_inverse = vol->get_instance_transformation().get_matrix(true, true, false, true).inverse();
@@ -142,11 +140,11 @@ void GLGizmoBrimEars::render_points(const Selection &selection, bool picking) co
     ColorRGBA render_color;
     for (size_t i = 0; i < cache_size; ++i) {
         const BrimPoint &brim_point     = editing_cache[i].brim_point;
-        if (!is_use_point(brim_point)) continue;
         const bool      &point_selected = editing_cache[i].selected;
         const bool      &hover          = editing_cache[i].is_hover;
         const bool      &error          = editing_cache[i].is_error;
-        if (!is_use_point(brim_point) && !hover) continue;
+        if (!is_use_point(brim_point) && !hover)
+            continue;
         // keep show brim ear
         // if (is_mesh_point_clipped(brim_point.pos.cast<double>()))
         //     continue;
@@ -205,6 +203,7 @@ void GLGizmoBrimEars::render_points(const Selection &selection, bool picking) co
         if (vol->is_left_handed())
             glFrontFace(GL_CCW);
     }
+    wxGetApp().unbind_shader();
 }
 
 bool GLGizmoBrimEars::is_mesh_point_clipped(const Vec3d &point) const
