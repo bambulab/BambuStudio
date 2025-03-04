@@ -8094,7 +8094,6 @@ void GLCanvas3D::_render_overlays()
     }
     m_labels.render(sorted_instances);
     _render_3d_navigator();
-    _render_fit_camera_toolbar();
 }
 
 void GLCanvas3D::_render_style_editor()
