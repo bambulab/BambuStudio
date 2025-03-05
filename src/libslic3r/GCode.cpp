@@ -2272,6 +2272,11 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         for (const auto& extruder : m_writer.extruders())
             max_chamber_temp = std::max(max_chamber_temp, m_config.chamber_temperatures.get_at(extruder.id()));
 
+        int min_temperature_vitrification = std::numeric_limits<int>::max();
+        for (const auto& extruder : m_writer.extruders())
+            min_temperature_vitrification = std::min(min_temperature_vitrification, m_config.temperature_vitrification.get_at(extruder.id()));
+
+
         std::string first_layer_bed_temp_str;
         const ConfigOptionInts* first_bed_temp_opt = m_config.option<ConfigOptionInts>(get_bed_temp_1st_layer_key((BedType)curr_bed_type));
         const ConfigOptionInts* bed_temp_opt = m_config.option<ConfigOptionInts>(get_bed_temp_key((BedType)curr_bed_type));
@@ -2289,6 +2294,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         m_placeholder_parser.set("chamber_temperature", new ConfigOptionInts({max_chamber_temp}));
         m_placeholder_parser.set("overall_chamber_temperature", new ConfigOptionInt(max_chamber_temp));
         m_placeholder_parser.set("enable_high_low_temp_mix", new ConfigOptionBool(!print.need_check_multi_filaments_compatibility()));
+        m_placeholder_parser.set("min_vitrification_temperature", new ConfigOptionInt(min_temperature_vitrification));
 
          //support variables `first_layer_temperature` and `first_layer_bed_temperature`
         m_placeholder_parser.set("first_layer_bed_temperature", new ConfigOptionInts(*first_bed_temp_opt));
