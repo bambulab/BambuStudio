@@ -7,7 +7,7 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/Camera.hpp"
 #include "slic3r/GUI/Plater.hpp"
-
+#include "slic3r/GUI/OpenGLManager.hpp"
 #include "libslic3r/PresetBundle.hpp"
 
 #include <GL/glew.h>
@@ -430,7 +430,7 @@ void CommonGizmosDataObjects::ObjectClipper::render_cut(const std::vector<size_t
         clipper.first->set_plane(*m_clp);
         clipper.first->set_transformation(trafo);
         clipper.first->set_limiting_plane(ClippingPlane(Vec3d::UnitZ(), -SINKING_Z_THRESHOLD));
-        clipper.first->render_cut({1.0f, 0.37f, 0.0f, 1.0f}, &ignore_idxs_local);
+        clipper.first->render_cut(OpenGLManager::get_cut_plane_color(), &ignore_idxs_local);
         clipper.first->render_contour({1.f, 1.f, 1.f, 1.f}, &ignore_idxs_local);
 
         // Now update the ignore idxs. Find the first element belonging to the next clipper,
@@ -618,7 +618,7 @@ void SupportsClipper::render_cut() const
     m_clipper->set_plane(*ocl->get_clipping_plane());
     m_clipper->set_transformation(supports_trafo);
 
-    m_clipper->render_cut({1.0f, 0.f, 0.37f, 1.0f});
+    m_clipper->render_cut(OpenGLManager::get_cut_plane_color());
 }
 
 
@@ -765,7 +765,7 @@ void ModelObjectsClipper::render_cut() const
             clipper->set_plane(*m_clp);
             clipper->set_transformation(trafo);
             // BBS
-            clipper->render_cut({0.25f, 0.25f, 0.25f, 1.0f});
+            clipper->render_cut(OpenGLManager::get_cut_plane_color());
 
             ++clipper_id;
         }
