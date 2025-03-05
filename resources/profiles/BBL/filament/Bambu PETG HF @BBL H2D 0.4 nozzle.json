@@ -12,10 +12,10 @@
         "-0.032"
     ],
     "counter_limit_max": [
-        "0.33"
+        "0.053"
     ],
     "counter_limit_min": [
-        "-0.35"
+        "-0.035"
     ],
     "fan_cooling_layer_time": [
         "20"
@@ -88,16 +88,16 @@
         "nil"
     ],
     "hole_coef_2": [
-        "-0.008"
+        "-0.006"
     ],
     "hole_coef_3": [
-        "0.135"
+        "0.1"
     ],
     "hole_limit_max": [
-        "2.2"
+        "0.22"
     ],
     "hole_limit_min": [
-        "0.88"
+        "0.088"
     ],
     "nozzle_temperature": [
         "230",
