@@ -5506,7 +5506,12 @@ void GCodeProcessor::store_move_vertex(EMoveType type, EMovePathType path_type)
 void GCodeProcessor::set_extrusion_role(ExtrusionRole role)
 {
     m_used_filaments.process_role_cache(this);
-    m_extrusion_role = role;
+    if (role == erEnsureVertical) {
+        m_extrusion_role = erSolidInfill;
+    }
+    else {
+        m_extrusion_role = role;
+    }
 }
 
 void GCodeProcessor::set_skippable_type(const std::string_view type)

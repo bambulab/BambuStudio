@@ -112,6 +112,8 @@ set(lisbslic3r_sources
     Fill/Lightning/TreeNode.hpp
     Fill/FillRectilinear.cpp
     Fill/FillRectilinear.hpp
+    Fill/FillContour.hpp
+    Fill/FillContour.cpp
     Flow.cpp
     Flow.hpp
     Frustum.cpp

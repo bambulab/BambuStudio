@@ -4870,7 +4870,8 @@ std::string GCode::extrude_entity(const ExtrusionEntity &entity, std::string des
 std::string GCode::extrude_path(ExtrusionPath path, std::string description, double speed)
 {
 //    description += ExtrusionEntity::role_to_string(path.role());
-    std::string gcode = this->_extrude(path, description, speed);
+    bool flag = path.get_customize_flag() == CustomizeFlag::cfEnsureVertical;
+    std::string gcode = this->_extrude(path, description, speed,flag);
     if (m_wipe.enable && FILAMENT_CONFIG(wipe)) {
         m_wipe.path = std::move(path.polyline);
         m_wipe.path.reverse();
@@ -5286,7 +5287,7 @@ void GCode::smooth_speed_discontinuity_area(ExtrusionPaths &paths) {
     paths = std::move(inter_paths);
 }
 
-std::string GCode::_extrude(const ExtrusionPath &path, std::string description, double speed, bool set_holes_and_compensation_speed, bool is_first_slope)
+std::string GCode::_extrude(const ExtrusionPath &path, std::string description, double speed, bool use_seperate_speed, bool is_first_slope)
 {
     std::string gcode;
 
@@ -5380,7 +5381,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         if (path.role() == erPerimeter) {
             speed = m_config.inner_wall_speed.get_at(cur_extruder_index());
             //reset speed by auto compensation speed
-            if(set_holes_and_compensation_speed) {
+            if(use_seperate_speed) {
                 speed = m_config.circle_compensation_speed.get_at(cur_extruder_index());
             }else if (m_config.detect_overhang_wall && m_config.smooth_speed_discontinuity_area && path.smooth_speed != 0)
                 speed = path.smooth_speed;
@@ -5392,7 +5393,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         } else if (path.role() == erExternalPerimeter) {
             speed = m_config.outer_wall_speed.get_at(cur_extruder_index());
             // reset speed by auto compensation speed
-            if (set_holes_and_compensation_speed) {
+            if (use_seperate_speed) {
                 speed = m_config.circle_compensation_speed.get_at(cur_extruder_index());
             } else if (m_config.detect_overhang_wall && m_config.smooth_speed_discontinuity_area && path.smooth_speed != 0)
                 speed = path.smooth_speed;
@@ -5409,7 +5410,15 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             speed = m_config.sparse_infill_speed.get_at(cur_extruder_index());
         } else if (path.role() == erSolidInfill) {
             speed = m_config.internal_solid_infill_speed.get_at(cur_extruder_index());
-        } else if (path.role() == erTopSolidInfill) {
+        } else if (path.role() == erEnsureVertical){
+            if(use_seperate_speed){
+                speed = m_config.bridge_speed.get_at(cur_extruder_index());
+            }
+            else{
+                speed = m_config.vertical_shell_speed.get_at(cur_extruder_index()).get_abs_value(m_config.internal_solid_infill_speed.get_at(cur_extruder_index()));
+            }
+        }
+         else if (path.role() == erTopSolidInfill) {
             speed = m_config.top_surface_speed.get_at(cur_extruder_index());
         } else if (path.role() == erIroning) {
             speed = m_config.get_abs_value("ironing_speed");
@@ -5485,7 +5494,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     assert(is_decimal_separator_point());
 
 
-    if (set_holes_and_compensation_speed)
+    if (use_seperate_speed)
         gcode += "; Slow Down Start\n";
 
     if (path.role() != m_last_processor_extrusion_role) {
@@ -5639,7 +5648,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         }
     }
 
-    if (set_holes_and_compensation_speed) {
+    if (use_seperate_speed) {
         gcode += "; Slow Down End\n";
     }
 

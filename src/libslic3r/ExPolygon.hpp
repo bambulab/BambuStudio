@@ -456,6 +456,9 @@ inline ExPolygons expolygons_simplify(const ExPolygons &expolys, double toleranc
 	return out;
 }
 
+double get_expolygons_area(const ExPolygons& expolys);
+bool is_narrow_expolygon(const ExPolygon& expolygon, double min_width, double min_area = scale_(1) * scale_(1), double remain_area_ratio_thres = 0.1);
+
 // Do expolygons match? If they match, they must have the same topology,
 // however their contours may be rotated.
 bool expolygons_match(const ExPolygon &l, const ExPolygon &r);
