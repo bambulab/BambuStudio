@@ -476,6 +476,7 @@ bool OpenGLManager::m_use_manually_generated_mipmaps = true;
 OpenGLManager::EMultisampleState OpenGLManager::s_multisample = OpenGLManager::EMultisampleState::Unknown;
 OpenGLManager::EFramebufferType OpenGLManager::s_framebuffers_type = OpenGLManager::EFramebufferType::Unknown;
 bool OpenGLManager::s_b_initialized = false;
+ColorRGBA OpenGLManager::s_cut_plane_color = {1.0f, 0.37f, 0.0f, 1.0f};
 #ifdef __APPLE__
 // Part of hack to remove crash when closing the application on OSX 10.9.5 when building against newer wxWidgets
 OpenGLManager::OSInfo OpenGLManager::s_os_info;
@@ -1011,6 +1012,14 @@ wxGLCanvas* OpenGLManager::create_wxglcanvas(wxWindow& parent, EMSAAType msaa_ty
         attribList[12] = 0;
 
     return new wxGLCanvas(&parent, wxID_ANY, attribList, wxDefaultPosition, wxDefaultSize, wxWANTS_CHARS);
+}
+
+void OpenGLManager::set_cut_plane_color(ColorRGBA color) {
+    s_cut_plane_color = color;
+}
+
+const ColorRGBA &OpenGLManager::get_cut_plane_color(){
+    return s_cut_plane_color;
 }
 
 void OpenGLManager::detect_multisample(int* attribList)

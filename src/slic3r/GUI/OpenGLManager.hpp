@@ -2,6 +2,7 @@
 #define slic3r_OpenGLManager_hpp_
 
 #include "GLShadersManager.hpp"
+#include "libslic3r/Color.hpp"
 #include <memory>
 #include <unordered_map>
 #include <string>
@@ -210,6 +211,8 @@ private:
     static EMultisampleState s_multisample;
     static EFramebufferType s_framebuffers_type;
     static bool m_use_manually_generated_mipmaps;
+    static ColorRGBA s_cut_plane_color;
+
 public:
     OpenGLManager();
     ~OpenGLManager();
@@ -252,6 +255,9 @@ public:
     static wxGLCanvas* create_wxglcanvas(wxWindow& parent, EMSAAType msaa_type = EMSAAType::Disabled);
     static const GLInfo& get_gl_info() { return s_gl_info; }
     static bool use_manually_generated_mipmaps() { return m_use_manually_generated_mipmaps; }
+    static void       set_cut_plane_color(ColorRGBA);
+    static const ColorRGBA &get_cut_plane_color();
+
 private:
     static void detect_multisample(int* attribList);
     void _bind_frame_buffer(const std::string& name, EMSAAType msaa_type, uint32_t t_width = 0, uint32_t t_height = 0);
