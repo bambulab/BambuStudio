@@ -124,6 +124,7 @@ class Sidebar : public wxPanel
     std::shared_ptr<SyncNozzleAndAmsDialog> m_sna_dialog{nullptr};
     std::shared_ptr<FinishSyncAmsDialog>    m_fna_dialog{nullptr};
     std::vector<BedType>                    m_cur_combox_bed_types;
+    std::string                             m_cur_image_bed_type;
     int                                     m_last_combo_bedtype_count{0};
     bool                                    m_begin_sync_printer_status{false};
     std::shared_ptr<SyncAmsInfoDialog>      m_sync_dlg{nullptr};
@@ -150,6 +151,7 @@ public:
     bool set_bed_type(const std::string& bed_type_name);
     void save_bed_type_to_config(const std::string &bed_type_name);
     BedType get_cur_select_bed_type();
+    std::string get_cur_select_bed_image();
     void set_bed_type_accord_combox(BedType bed_type);
     bool reset_bed_type_combox_choices();
     bool use_default_bed_type(bool is_bbl_preset = true);
