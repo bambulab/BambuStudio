@@ -48,6 +48,7 @@ enum ExtrusionRole : uint8_t {
     erOverhangPerimeter,
     erInternalInfill,
     erSolidInfill,
+    erEnsureVertical,
     erTopSolidInfill,
     erBottomSurface,
     erIroning,
@@ -68,7 +69,8 @@ enum ExtrusionRole : uint8_t {
 
 enum CustomizeFlag : uint8_t {
     cfNone,
-    cfCircleCompensation   // shaft hole tolerance compensation
+    cfCircleCompensation,   // shaft hole tolerance compensation
+    cfEnsureVertical
 };
 
 // Special flags describing loop
@@ -97,6 +99,7 @@ inline bool is_infill(ExtrusionRole role)
     return role == erBridgeInfill
         || role == erInternalInfill
         || role == erSolidInfill
+        || role == erEnsureVertical
         || role == erTopSolidInfill
         || role == erBottomSurface
         || role == erIroning;
@@ -111,6 +114,7 @@ inline bool is_solid_infill(ExtrusionRole role)
 {
     return role == erBridgeInfill
         || role == erSolidInfill
+        || role == erEnsureVertical
         || role == erTopSolidInfill
         || role == erBottomSurface
         || role == erIroning;

@@ -24,6 +24,7 @@
 // BBS: new infill pattern header
 #include "FillConcentricInternal.hpp"
 #include "FillCrossHatch.hpp"
+#include "FillContour.hpp"
 
 // #define INFILL_DEBUG_OUTPUT
 
@@ -58,6 +59,7 @@ Fill* Fill::new_from_type(const InfillPattern type)
     case ipMonotonicLine:       return new FillMonotonicLineWGapFill();
     case ipZigZag:              return new FillZigZag();
     case ipCrossZag:            return new FillCrossZag();
+    case ipEnsureVertical:      return new FillContour();
     default: throw Slic3r::InvalidArgument("unknown type");
     }
 }

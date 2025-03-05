@@ -1362,6 +1362,24 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Enabled"));
     def->set_default_value(new ConfigOptionEnum<EnsureVerticalThicknessLevel>(EnsureVerticalThicknessLevel::evtEnabled));
 
+    def = this->add("vertical_shell_speed",coFloatsOrPercents);
+    def->label = L("Vertical shell speed");
+    def->tooltip = L("Speed for vertical shell area. If expressed as percentage (for example: 80%) it will be calculated on"
+                       "the internal solid infill speed above");
+    def->category = L("Speed");
+    def->sidetext   = L("mm/s or %");
+    def->ratio_over = "internal_solid_infill_speed";
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsOrPercentsNullable{FloatOrPercent(80, true)});
+
+    def = this->add("detect_floating_vertical_shell", coBool);
+    def->label = L("Detect floating vertical shells");
+    def->tooltip = L("Detect floating vertical shells and slow them by using bridge speed.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool{false});
+
     def = this->add("internal_bridge_support_thickness", coFloat);
     def->label = L("Internal bridge support thickness");
     def->category = L("Strength");
@@ -5561,6 +5579,7 @@ std::set<std::string> print_options_with_variant = {
     "small_perimeter_threshold",
     "sparse_infill_speed",
     "internal_solid_infill_speed",
+    "vertical_shell_speed",
     "top_surface_speed",
     "enable_overhang_speed", //coBools
     "overhang_1_4_speed",

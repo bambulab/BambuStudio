@@ -2108,6 +2108,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("infill_combination","parameter/strength-advance-settings");
         optgroup->append_single_option_line("detect_narrow_internal_solid_infill","parameter/strength-advance-settings");
         optgroup->append_single_option_line("ensure_vertical_shell_thickness","parameter/strength-advance-settings");
+        optgroup->append_single_option_line("detect_floating_vertical_shell","parameter/strength-advance-settings");
         //optgroup->append_single_option_line("internal_bridge_support_thickness","parameter/strength-advance-settings");
 
     page = add_options_page(L("Speed"), "empty");
@@ -2121,6 +2122,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("small_perimeter_threshold", "", 0);
         optgroup->append_single_option_line("sparse_infill_speed", "", 0);
         optgroup->append_single_option_line("internal_solid_infill_speed", "", 0);
+        optgroup->append_single_option_line("vertical_shell_speed", "", 0);
         optgroup->append_single_option_line("top_surface_speed", "", 0);
         optgroup->append_single_option_line("enable_overhang_speed", "slow-down-for-overhang", 0);
         Line line = { L("Overhang speed"), L("This is the speed for various overhang degrees. Overhang degrees are expressed as a percentage of line width. 0 speed means no slowing down for the overhang degree range and wall speed is used") };

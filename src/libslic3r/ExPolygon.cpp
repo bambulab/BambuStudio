@@ -432,6 +432,29 @@ bool ExPolygon::remove_colinear_points() {
     return removed;
 }
 
+double get_expolygons_area(const ExPolygons& expolys)
+{
+    return std::accumulate(expolys.begin(), expolys.end(), (double)(0), [](double val, const ExPolygon& expoly) {
+        return val + expoly.area();
+        });
+}
+
+bool is_narrow_expolygon(const ExPolygon& expolygon, double min_width, double min_area, double remain_area_ratio_thres)
+{
+    double original_area = expolygon.area();
+    if (original_area < min_area)
+        return true;
+
+    ExPolygons offsets = offset_ex(expolygon, -min_width / 2);
+    if (offsets.empty())
+        return true;
+
+    if (get_expolygons_area(offsets) / (original_area + EPSILON) < remain_area_ratio_thres)
+        return true;
+    return false;
+}
+
+
 // Do expolygons match? If they match, they must have the same topology,
 // however their contours may be rotated.
 bool expolygons_match(const ExPolygon &l, const ExPolygon &r)
