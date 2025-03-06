@@ -476,13 +476,12 @@ void MenuFactory::append_menu_item_set_visible(wxMenu* menu)
 
 void MenuFactory::append_menu_item_delete(wxMenu* menu)
 {
-#ifdef __WINDOWS__
-    append_menu_item(menu, wxID_ANY, _L("Delete") + "\tDelete", _L("Delete the selected object"),
-        [](wxCommandEvent&) { plater()->remove_selected(); }, "menu_delete", nullptr,
-        []() { return plater()->can_delete(); }, m_parent);
-#else
+#ifdef __APPLE__
     append_menu_item(menu, wxID_ANY, _L("Delete") + "\tBackSpace", _L("Delete the selected object"),
         [](wxCommandEvent&) { plater()->remove_selected(); }, "", nullptr,
+        []() { return plater()->can_delete(); }, m_parent);
+#else
+    append_menu_item(menu, wxID_ANY, _L("Delete") + "\tDelete", _L("Delete the selected object"), [](wxCommandEvent &) { plater()->remove_selected(); }, "menu_delete", nullptr,
         []() { return plater()->can_delete(); }, m_parent);
 #endif
 }
