@@ -3310,7 +3310,7 @@ std::vector<AMSinfo> AMSControl::GenerateSimulateData() {
 }
 
 
-void AMSControl::UpdateAms(std::vector<AMSinfo> ams_info, std::vector<AMSinfo>ext_info, ExtderData data, std::string dev_id, bool is_reset, bool test)
+void AMSControl::UpdateAms(const std::string& series_name, std::vector<AMSinfo> ams_info, std::vector<AMSinfo>ext_info, ExtderData data, std::string dev_id, bool is_reset, bool test)
 {
     if (!test){
         // update item
@@ -3479,6 +3479,9 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> ams_info, std::vector<AMSinfo>ex
             }
         }
     }
+
+    /*update ams extruder*/
+    m_extruder->updateNozzleNum(m_extder_data.total_extder_count, series_name);
 }
 
 void AMSControl::AddAmsPreview(AMSinfo info, AMSModel type)
