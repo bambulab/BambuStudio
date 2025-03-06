@@ -3596,12 +3596,13 @@ void Model::setPrintSpeedTable(const DynamicPrintConfig& config, const PrintConf
 }
 
 // find temperature of heatend and bed and matierial of an given extruder
-void Model::setExtruderParams(const DynamicPrintConfig& config, int extruders_count) {
+void Model::setExtruderParams(const DynamicPrintConfig &config, int filament_count)
+{
     extruderParamsMap.clear();
     //Slic3r::DynamicPrintConfig config = wxGetApp().preset_bundle->full_config();
     // BBS
     //int numExtruders = wxGetApp().preset_bundle->filament_presets.size();
-    for (unsigned int i = 0; i != extruders_count; ++i) {
+    for (unsigned int i = 0; i != filament_count; ++i) {
         std::string matName = "";
         // BBS
         int bedTemp = 35;
@@ -3973,6 +3974,9 @@ void ModelInstance::get_arrange_polygon(void *ap, const Slic3r::DynamicPrintConf
     ret.rotation                     = 0;
 
     // BBS: add materials related information
+    auto get_filament_name = [](int id) {
+        return Model::extruderParamsMap.find(id) != Model::extruderParamsMap.end() ? Model::extruderParamsMap.at(id).materialName : "PLA";
+    };
     ModelVolume *volume = NULL;
     for (size_t i = 0; i < object->volumes.size(); ++i) {
         if (object->volumes[i]->is_model_part()) {
@@ -3982,7 +3986,9 @@ void ModelInstance::get_arrange_polygon(void *ap, const Slic3r::DynamicPrintConf
                 return;
             }
             auto ve = object->volumes[i]->get_extruders();
-            ret.extrude_ids.insert(ret.extrude_ids.end(), ve.begin(), ve.end());
+            for (auto id : ve) {
+                ret.extrude_id_filament_types.insert({id, get_filament_name(id)});
+            }
         }
     }
 
@@ -3994,16 +4000,12 @@ void ModelInstance::get_arrange_polygon(void *ap, const Slic3r::DynamicPrintConf
         auto op2 = object->get_config_value<ConfigOptionInt>(config_global, "support_interface_filament");
         int  extruder_id;
         // id==0 means follow previous material, so need not be recorded
-        if (op1 && (extruder_id = op1->getInt()) > 0) ret.extrude_ids.push_back(extruder_id);
-        if (op2 && (extruder_id = op2->getInt()) > 0) ret.extrude_ids.push_back(extruder_id);
+        if (op1 && (extruder_id = op1->getInt()) > 0) ret.extrude_id_filament_types.insert({extruder_id, get_filament_name(extruder_id)});
+        if (op2 && (extruder_id = op2->getInt()) > 0) ret.extrude_id_filament_types.insert({extruder_id, get_filament_name(extruder_id)});
     }
 
-    ret.extrude_ids.erase(std::unique(ret.extrude_ids.begin(), ret.extrude_ids.end()), ret.extrude_ids.end());
-    if (ret.extrude_ids.empty()) // the default extruder
-        ret.extrude_ids.push_back(1);
-
-    // filament types must be same size as extrude_ids
-    ret.filament_types.resize(ret.extrude_ids.size(), "PLA");
+    if (ret.extrude_id_filament_types.empty()) // the default extruder
+        ret.extrude_id_filament_types.insert({1, get_filament_name(1)});
 }
 
 void ModelInstance::apply_arrange_result(const Vec2d &offs, double rotation)

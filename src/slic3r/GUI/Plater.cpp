@@ -4844,9 +4844,9 @@ void Plater::priv::select_view_3D(const std::string& name, bool no_slice)
         const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
         auto& print = q->get_partplate_list().get_current_fff_print();
         auto print_config = print.config();
-        int numExtruders = wxGetApp().preset_bundle->filament_presets.size();
+        int filament_count = wxGetApp().preset_bundle->filament_presets.size();
 
-        Model::setExtruderParams(config, numExtruders);
+        Model::setExtruderParams(config, filament_count);
         Model::setPrintSpeedTable(config, print_config);
         set_current_panel(preview, no_slice);
     }
@@ -5740,7 +5740,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
             // BBS
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_LOAD_MODEL_OBJECTS \n");
-            wxString msg = wxString::Format("Loading file: %s", from_path(real_filename));
+            wxString msg = wxString::Format(_L("Loading file: %s"), from_path(real_filename));
             model_idx++;
             dlg_cont = dlg.Update(progress_percent, msg);
             if (!dlg_cont) {
@@ -8666,9 +8666,9 @@ void Plater::priv::on_action_slice_plate(SimpleEvent&)
         const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
         auto& print = q->get_partplate_list().get_current_fff_print();
         auto print_config = print.config();
-        int numExtruders = wxGetApp().preset_bundle->filament_presets.size();
+        int filament_count = wxGetApp().preset_bundle->filament_presets.size();
 
-        Model::setExtruderParams(config, numExtruders);
+        Model::setExtruderParams(config, filament_count);
         Model::setPrintSpeedTable(config, print_config);
         m_slice_all = false;
         q->reslice();
@@ -8685,9 +8685,9 @@ void Plater::priv::on_action_slice_all(SimpleEvent&)
         const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
         auto& print = q->get_partplate_list().get_current_fff_print();
         auto print_config = print.config();
-        int numExtruders = wxGetApp().preset_bundle->filament_presets.size();
+        int filament_count = wxGetApp().preset_bundle->filament_presets.size();
 
-        Model::setExtruderParams(config, numExtruders);
+        Model::setExtruderParams(config, filament_count);
         Model::setPrintSpeedTable(config, print_config);
         m_slice_all = true;
         m_slice_all_only_has_gcode = true;

@@ -192,6 +192,7 @@ void fill_config(PConf& pcfg, const ArrangeParams &params) {
 
     // Allow parallel execution.
     pcfg.parallel = params.parallel;
+    pcfg.save_svg = params.save_svg;
 
     // BBS: excluded regions in BBS bed
     for (auto& poly : params.excluded_regions)
@@ -548,18 +549,18 @@ protected:
                 score += height_score / valid_items_cnt;
         }
 
-        std::set<int> extruder_ids;
+        std::map<int, std::string> extruder_id_types;
         std::set<int> tpu_extruder_ids;
         for (int i = 0; i < m_items.size(); i++) {
             Item& p = m_items[i];
             if (p.is_virt_object) continue;
-            extruder_ids.insert(p.extrude_ids.begin(),p.extrude_ids.end());
-            for (int j = 0; j < p.extrude_ids.size(); j++) {
-                if (p.filament_types[j] == "TPU") tpu_extruder_ids.insert(p.extrude_ids[j]);
+            extruder_id_types.insert(p.extrude_id_filament_types.begin(), p.extrude_id_filament_types.end());
+            for (auto id_type : p.extrude_id_filament_types) {
+                if (id_type.second == "TPU") tpu_extruder_ids.insert(id_type.first);
             }
         }
-        for (int j = 0; j < item.extrude_ids.size(); j++) {
-            if (item.filament_types[j] == "TPU") tpu_extruder_ids.insert(item.extrude_ids[j]);
+        for (auto id_type : item.extrude_id_filament_types) {
+            if (id_type.second == "TPU") tpu_extruder_ids.insert(id_type.first);
         }
 
         // do not allow more than 1 TPU extruder on same plate
@@ -567,17 +568,17 @@ protected:
         // add a large cost if not multi materials on same plate is not allowed
         else if (!params.allow_multi_materials_on_same_plate) {
             // it's the first object, which can be multi-color
-            bool first_object                 = extruder_ids.empty();
+            bool first_object = extruder_id_types.empty();
             // the two objects (previously packed items and the current item) are considered having same color if either one's colors are a subset of the other
-            std::set<int> item_extruder_ids(item.extrude_ids.begin(), item.extrude_ids.end());
-            bool same_color_with_previous_items = std::includes(extruder_ids.begin(), extruder_ids.end(), item_extruder_ids.begin(), item_extruder_ids.end());
+            bool same_color_with_previous_items = std::includes(extruder_id_types.begin(), extruder_id_types.end(), item.extrude_id_filament_types.begin(),
+                                                                item.extrude_id_filament_types.end());
             if (!(first_object || same_color_with_previous_items)) score += LARGE_COST_TO_REJECT * 1.3;
         }
         // for layered printing, we want extruder change as few as possible
         // this has very weak effect, CAN NOT use a large weight
-        int last_extruder_cnt = extruder_ids.size();
-        extruder_ids.insert(item.extrude_ids.begin(), item.extrude_ids.end());
-        int new_extruder_cnt= extruder_ids.size();
+        int last_extruder_cnt = extruder_id_types.size();
+        extruder_id_types.insert(item.extrude_id_filament_types.begin(), item.extrude_id_filament_types.end());
+        int new_extruder_cnt = extruder_id_types.size();
         if (!params.is_seq_print) {
             score += 1 * (new_extruder_cnt-last_extruder_cnt);
         }
@@ -701,19 +702,19 @@ public:
                 return i1.bed_temp != i2.bed_temp                ? (i1.bed_temp > i2.bed_temp) :
                        i1.height != i2.height                    ? (i1.height < i2.height) :
                        std::abs(i1.area() / i2.area() - 1) > 0.2 ? (i1.area() > i2.area()) :
-                                                                   i1.extrude_ids.front() < i2.extrude_ids.front();
+                                                                   i1.extrude_id_filament_types.begin()->first < i2.extrude_id_filament_types.begin()->first;
             }
             else {
                 // single color objects first, then objects with more colors
-                if (i1.extrude_ids.size() != i2.extrude_ids.size()) {
-                    if (i1.extrude_ids.size() == 1 || i2.extrude_ids.size() == 1)
-                        return i1.extrude_ids.size() == 1;
+                if (i1.extrude_id_filament_types.size() != i2.extrude_id_filament_types.size()) {
+                    if (i1.extrude_id_filament_types.size() == 1 || i2.extrude_id_filament_types.size() == 1)
+                        return i1.extrude_id_filament_types.size() == 1;
                     else
-                        return i1.extrude_ids.size() > i2.extrude_ids.size();
+                        return i1.extrude_id_filament_types.size() > i2.extrude_id_filament_types.size();
                 }
                 else
                     return i1.bed_temp != i2.bed_temp ? (i1.bed_temp > i2.bed_temp) :
-                    i1.extrude_ids != i2.extrude_ids ? (i1.extrude_ids.front() < i2.extrude_ids.front()) :
+                           i1.extrude_id_filament_types != i2.extrude_id_filament_types ? (i1.extrude_id_filament_types.begin()->first < i2.extrude_id_filament_types.begin()->first) :
                     std::abs(i1.height/params.printable_height - i2.height/params.printable_height)>0.05 ? i1.height > i2.height:
                     (i1.area() > i2.area());
             }
@@ -883,7 +884,8 @@ void _arrange(
             try {
                 auto bbox = minAreaBoundingBox<ExPolygon, TCompute<ExPolygon>, boost::rational<LargeInt>>(itm.transformedShape());
                 auto w = bbox.width(), h = bbox.height();
-                if (w > h * 1.1 || h > w * 1.1) { itm.allowed_rotations = {bbox.angleToX() + PI / 2, 0.0};
+                if (w > h * 1.1 || h > w * 1.1) {
+                    itm.allowed_rotations = {bbox.angleToX() + PI / 2, 0.0};
                 }
             } catch (const std::exception &e) {
                 // min_area_boundingbox_rotation may throw exception of dividing 0 if the object is already perfectly aligned to X
@@ -915,8 +917,6 @@ void _arrange(
     //sl::offset(corrected_bin, md);
 
     AutoArranger<BinT> arranger{corrected_bin, mod_params, progressfn, stopfn};
-
-    remove_large_items(excludes, corrected_bin);
 
     // If there is something on the plate
     if (!excludes.empty()) arranger.preload(excludes);
@@ -992,13 +992,13 @@ static void process_arrangeable(const ArrangePolygon &arrpoly,
     item.binId(arrpoly.bed_idx);
     item.priority(arrpoly.priority);
     item.itemId(arrpoly.itemid);
-    item.extrude_ids = arrpoly.extrude_ids;
-    item.filament_types = arrpoly.filament_types;
+    item.extrude_id_filament_types = arrpoly.extrude_id_filament_types;
     item.height = arrpoly.height;
     item.name = arrpoly.name;
     //BBS: add virtual object logic
     item.is_virt_object = arrpoly.is_virt_object;
     item.is_wipe_tower = arrpoly.is_wipe_tower;
+    item.is_extrusion_cali_object = arrpoly.is_extrusion_cali_object;
     item.bed_temp = arrpoly.first_bed_temp;
     item.print_temp = arrpoly.print_temp;
     item.vitrify_temp = arrpoly.vitrify_temp;
