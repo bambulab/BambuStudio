@@ -2965,6 +2965,7 @@ void CreatePrinterPresetDialog::set_current_visible_printer()
 {
     //The entire process of creating a custom printer only needs to be done once
     if (m_printer_name_to_preset.size() > 0) return;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " entry";
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     const std::deque<Preset> &printer_presets =  preset_bundle->printers.get_presets();
     wxArrayString             printer_choice;
@@ -2976,6 +2977,7 @@ void CreatePrinterPresetDialog::set_current_visible_printer()
             if (m_printer_name_to_preset.find(printer_model->value) == m_printer_name_to_preset.end()) {
                 printer_choice.push_back(from_u8(printer_model->value));
                 m_printer_name_to_preset[printer_model->value] = std::make_shared<Preset>(printer_preset);
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " add printer choice: " << printer_model->value;
             }
         }
     }

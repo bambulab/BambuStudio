@@ -763,6 +763,7 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     m_staticText_finish_time->SetForegroundColour(wxColour(146, 146, 146));
     m_staticText_finish_time->SetToolTip(_L("The estimated printing time for \nmulti-color models may be inaccurate."));
     m_staticText_finish_day = new RectTextPanel(penel_finish_time);
+    m_staticText_finish_day->SetMinSize(wxSize(20, 20));
     m_staticText_finish_day->Hide();
     bSizer_finish_time->Add(0, 0, 1, wxEXPAND, 0);
     bSizer_finish_time->Add(0, 0, 0, wxLEFT, FromDIP(20));
