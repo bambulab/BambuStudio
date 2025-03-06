@@ -4422,6 +4422,10 @@ int CLI::run(int argc, char **argv)
     oriented_or_arranged |= need_arrange;
 
     BOOST_LOG_TRIVIAL(info) << boost::format("before arrange, need_arrange=%1%, duplicate_count %2%, filament_color_changed %3%")%need_arrange %duplicate_count %filament_color_changed;
+    // if (!assemble_plate_info_list.empty() || need_arrange)
+    BOOST_LOG_TRIVIAL(debug) << "filament_count: " << filament_count;
+    Model::setExtruderParams(m_print_config, filament_count);
+
     if (need_arrange || filament_color_changed)
     {
         for (int index = 0; index < partplate_list.get_plate_count(); index ++)
@@ -4589,7 +4593,7 @@ int CLI::run(int argc, char **argv)
                     BOOST_LOG_TRIVIAL(info) << "Arrange full params: " << arrange_cfg.to_json();
                     BOOST_LOG_TRIVIAL(info) << boost::format("arrange: items selected before arranging: %1%") % selected.size();
                     for (auto item : selected)
-                        BOOST_LOG_TRIVIAL(trace) << item.name << ", extruder: " << item.extrude_ids.back() << ", bed: " << item.bed_idx
+                        BOOST_LOG_TRIVIAL(trace) << item.name << ", extruder: " << item.extrude_id_filament_types.begin()->first << ", bed: " << item.bed_idx
                         << ", trans: " << item.translation.transpose();
                     BOOST_LOG_TRIVIAL(info) << boost::format("arrange: items unselected before arranging: %1%") % unselected.size();
                     for (auto item : unselected)
@@ -5001,12 +5005,9 @@ int CLI::run(int argc, char **argv)
                     BOOST_LOG_TRIVIAL(debug) << "arrange bedpts:" << beds[0].transpose() << ", " << beds[1].transpose() << ", " << beds[2].transpose() << ", " << beds[3].transpose();
                     BOOST_LOG_TRIVIAL(info)<< "Arrange full params: "<< arrange_cfg.to_json();
                     BOOST_LOG_TRIVIAL(info) << boost::format("arrange: items selected before arranging: %1%")%selected.size();
-                    for (auto item : selected)
-                        BOOST_LOG_TRIVIAL(trace) << item.name << ", extruder: " << item.extrude_ids.back() << ", bed: " << item.bed_idx
-                                                << ", trans: " << item.translation.transpose();
+                    for (auto item : selected) BOOST_LOG_TRIVIAL(trace) << item.name << ", bed: " << item.bed_idx << ", trans: " << item.translation.transpose();
                     BOOST_LOG_TRIVIAL(info) << boost::format("arrange: items unselected before arranging: %1%") % unselected.size();
-                    for (auto item : unselected)
-                        BOOST_LOG_TRIVIAL(trace) << item.name << ", bed: " << item.bed_idx << ", trans: " << item.translation.transpose();
+                    for (auto item : unselected) BOOST_LOG_TRIVIAL(trace) << item.name << ", bed: " << item.bed_idx << ", trans: " << item.translation.transpose();
                 }
                 arrange_cfg.progressind= [](unsigned st, std::string str = "") {
                     //boost::nowide::cout << "st=" << st << ", " << str << std::endl;

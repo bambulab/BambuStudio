@@ -76,6 +76,7 @@ namespace Slic3r {
     //! return same string
 #define L(s) (s)
 #define _(s) Slic3r::I18N::translate(s)
+#define _L(s) Slic3r::I18N::translate(s)
 
 static const float g_min_purge_volume = 100.f;
 static const float g_purge_volume_one_time = 135.f;
@@ -2888,7 +2889,7 @@ void GCode::process_layers(
     else {
         tbb::parallel_pipeline(12, generator & parsing & cooling & build_node);
         std::string message;
-        message = L("Smoothing z direction speed");
+        message = _L("Smoothing z direction speed");
         m_print->set_status(85, message);
         //append data
         for (const LayerResult &res : layers_results) {
@@ -2900,7 +2901,7 @@ void GCode::process_layers(
         }
 
         smooth_calculator.smooth_layer_speed();
-        message = L("Exporting G-code");
+        message = _L("Exporting G-code");
         m_print->set_status(90, message);
         tbb::parallel_pipeline(12, calculate_layer_time & write_gocde & output);
     }

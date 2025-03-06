@@ -3535,6 +3535,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
     int keyCode = evt.GetKeyCode();
     int ctrlMask = wxMOD_CONTROL;
     int shiftMask = wxMOD_SHIFT;
+    int altMask   = wxMOD_ALT;
 
     auto imgui = wxGetApp().imgui();
     if (imgui->update_key_data(evt)) {
@@ -3758,6 +3759,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
             {
                 if ((evt.GetModifiers() & shiftMask) != 0)
                     post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE_PARTPLATE));
+                else if ((evt.GetModifiers() & altMask) != 0)
+                    post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE_OUTPLATE));
                 else
                     post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE));
                 break;
@@ -6117,6 +6120,7 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
     std::string multi_material_key = "allow_multi_materials_on_same_plate";
     std::string avoid_extrusion_key = "avoid_extrusion_cali_region";
     std::string align_to_y_axis_key = "align_to_y_axis";
+    std::string save_svg_key        = "save_svg";
     std::string postfix             = settings.postfix;
     //BBS:
     bool seq_print = settings.is_seq_print;
@@ -6144,6 +6148,13 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
     imgui->text(_L("0 means auto spacing."));
 
     ImGui::Separator();
+#if !BBL_RELEASE_TO_PUBLIC
+    if (imgui->bbl_checkbox(_L("Save SVG"), settings.save_svg)) {
+        settings_out.save_svg = settings.save_svg;
+        appcfg->set("arrange", save_svg_key.c_str(), settings_out.save_svg ? "1" : "0");
+        settings_changed = true;
+    }
+#endif
     if (imgui->bbl_checkbox(_L("Auto rotate for arrangement"), settings.enable_rotation)) {
         settings_out.enable_rotation = settings.enable_rotation;
         appcfg->set("arrange", rot_key.c_str(), settings_out.enable_rotation? "1" : "0");
@@ -11179,6 +11190,10 @@ const SLAPrint* GLCanvas3D::sla_print() const
 
 void GLCanvas3D::WipeTowerInfo::apply_wipe_tower() const
 {
+    if (m_plate_idx >= wxGetApp().plater()->get_partplate_list().get_plate_count()) {
+        BOOST_LOG_TRIVIAL(error) << "Invalid plate index: " << m_plate_idx << ">=" << wxGetApp().plater()->get_partplate_list().get_plate_count();
+        return;
+    }
     // BBS: add partplate logic
     DynamicConfig& proj_cfg = wxGetApp().preset_bundle->project_config;
     Vec3d plate_origin = wxGetApp().plater()->get_partplate_list().get_plate(m_plate_idx)->get_origin();

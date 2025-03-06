@@ -111,26 +111,6 @@ ArrangePolygon ArrangeJob::prepare_arrange_polygon(void *model_instance)
     auto preset_bundle = wxGetApp().preset_bundle;
     const Slic3r::DynamicPrintConfig& config = preset_bundle->full_config();
     ArrangePolygon ap = get_instance_arrange_poly(instance, config);
-
-    // get filament types such as PLA, ABS, etc.
-    ap.filament_types.clear();
-    for (size_t i = 0; i < preset_bundle->filament_presets.size(); ++i) {
-        auto iter = std::find(ap.extrude_ids.begin(), ap.extrude_ids.end(), i + 1);
-        if (iter == ap.extrude_ids.end()) continue;
-
-        std::string filament_name = preset_bundle->filament_presets[i];
-        for (int f_index = 0; f_index < preset_bundle->filaments.size(); f_index++) {
-            PresetCollection *filament_presets = &preset_bundle->filaments;
-            Preset           *preset           = &filament_presets->preset(f_index);
-            int               size             = preset_bundle->filaments.size();
-            if (preset && filament_name.compare(preset->name) == 0) {
-                std::string display_filament_type;
-                std::string filament_type = preset->config.get_filament_type(display_filament_type);
-                ap.filament_types.push_back(filament_type);
-            }
-        }
-    }
-
     return ap;
 }
 
@@ -328,9 +308,7 @@ void ArrangeJob::prepare_wipe_tower(bool select)
     // estimate if we need wipe tower for all plates:
     // need wipe tower if some object has multiple extruders (has paint-on colors or support material)
     for (const auto& item : m_selected) {
-        std::set<int> obj_extruders;
-        obj_extruders.insert(item.extrude_ids.begin(), item.extrude_ids.end());
-        if (obj_extruders.size() > 1) {
+        if (item.extrude_id_filament_types.size() > 1) {
             need_wipe_tower = true;
             ARRANGE_LOG(info) << "need wipe tower because object " << item.name << " has multiple extruders (has paint-on colors)";
             break;
@@ -342,7 +320,7 @@ void ArrangeJob::prepare_wipe_tower(bool select)
     if (params.allow_multi_materials_on_same_plate) {
         std::map<int, std::set<int>> bedTemp2extruderIds;
         for (const auto& item : m_selected)
-            for (auto id : item.extrude_ids) { bedTemp2extruderIds[item.bed_temp].insert(id); }
+            for (auto id : item.extrude_id_filament_types) { bedTemp2extruderIds[item.bed_temp].insert(id.first); }
         for (const auto& be : bedTemp2extruderIds) {
             if (be.second.size() > 1) {
                 need_wipe_tower = true;
@@ -432,11 +410,9 @@ void ArrangeJob::prepare_partplate() {
             bool             in_plate = plate->contain_instance(oidx, inst_idx) || plate->intersect_instance(oidx, inst_idx);
             ArrangePolygon&& ap = prepare_arrange_polygon(mo->instances[inst_idx]);
 
-            ArrangePolygons& cont = mo->instances[inst_idx]->printable ?
-                (in_plate ? m_selected : m_unselected) :
-                m_unprintable;
+            ArrangePolygons &cont   = mo->instances[inst_idx]->printable ? m_selected : m_unprintable;
             bool locked = plate_list.preprocess_arrange_polygon_other_locked(oidx, inst_idx, ap, in_plate);
-            if (!locked)
+            if (!locked && in_plate)
             {
                 ap.itemid = cont.size();
                 cont.emplace_back(std::move(ap));
@@ -510,9 +486,10 @@ void ArrangeJob::prepare_outside_plate() {
             }
             if (iter2 != all_outside_objects.end()) {
                 outside_plate = true;
+                ARRANGE_LOG(debug) << object->name << " is outside!";
             }
             ArrangePolygon&& ap = prepare_arrange_polygon(instance);
-            ArrangePolygons &cont  = instance->printable ? (outside_plate ? m_selected : m_locked) : m_unprintable;
+            ArrangePolygons &cont = instance->printable ? (outside_plate ? m_selected : m_unselected) : m_unprintable;
             ap.itemid                      = cont.size();
             if (!outside_plate) {
                 plate_list.preprocess_arrange_polygon(obj_idx, inst_idx, ap, false);
@@ -538,9 +515,9 @@ void ArrangeJob::prepare()
     const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
     auto& print = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
     auto print_config = print.config();
-    int numExtruders = wxGetApp().preset_bundle->filament_presets.size();
+    int filament_count = wxGetApp().preset_bundle->filament_presets.size();
 
-    Model::setExtruderParams(config, numExtruders);
+    Model::setExtruderParams(config, filament_count);
     Model::setPrintSpeedTable(config, print_config);
 
     int state = m_plater->get_prepare_state();
@@ -602,7 +579,7 @@ void ArrangeJob::prepare()
 
     if (!m_selected.empty()) {
         m_plater->get_notification_manager()->push_notification(NotificationType::ArrangeOngoing, NotificationManager::NotificationLevel::RegularNotificationLevel,
-                                                                _u8L("Arranging..."));
+                                                                _u8L("Arranging") + "...");
         m_plater->get_notification_manager()->bbl_close_plateinfo_notification();
     }
 }
@@ -667,36 +644,34 @@ void ArrangeJob::process()
         update_status(num_finished, _L("Arranging") + " "+ wxString::FromUTF8(str));
     };
 
-    ArrangePolygons unselected_and_locked = m_unselected;
-    append(unselected_and_locked, m_locked);
     {
         ARRANGE_LOG(warning)<< "full params: "<< params.to_json();
         ARRANGE_LOG(info) << boost::format("items selected before arranging: %1%") % m_selected.size();
         for (auto selected : m_selected) {
-            ARRANGE_LOG(debug) << selected.name << ", extruder: " << VectorFormatter(selected.extrude_ids)
-                                     << ", filament types: " << VectorFormatter(selected.filament_types) << ", bed: " << selected.bed_idx
-                                     << ", filemant_type:" << selected.filament_temp_type << ", trans: " << unscale<double>(selected.translation(X)) << ","
-                                     << unscale<double>(selected.translation(Y)) << ", rotation: " << selected.rotation;
+            ARRANGE_LOG(debug) << selected.name << ", extruder: " << MapFormatter(selected.extrude_id_filament_types) << ", bed: " << selected.bed_idx
+                               << ", filemant_type:" << selected.filament_temp_type << ", trans: " << unscale<double>(selected.translation(X)) << ","
+                               << unscale<double>(selected.translation(Y)) << ", rotation: " << selected.rotation;
         }
-        ARRANGE_LOG(debug) << "items unselected before arrange: " << unselected_and_locked.size();
-        for (auto item : unselected_and_locked)
-            ARRANGE_LOG(debug) << item.name << ", bed: " << item.bed_idx << ", trans: " << unscale<double>(item.translation(X)) << "," << unscale<double>(item.translation(Y));
+        ARRANGE_LOG(debug) << "items unselected before arrange: " << m_unselected.size();
+        for (auto item : m_unselected)
+            BOOST_LOG_TRIVIAL(debug) << item.name << ", bed: " << item.bed_idx << ", trans: " << unscale<double>(item.translation(X)) << ","
+                                     << unscale<double>(item.translation(Y));
     }
 
-    arrangement::arrange(m_selected, unselected_and_locked, bedpts, params);
+    arrangement::arrange(m_selected, m_unselected, bedpts, params);
 
     // sort by item id
     std::sort(m_selected.begin(), m_selected.end(), [](auto a, auto b) {return a.itemid < b.itemid; });
     {
         ARRANGE_LOG(info) << boost::format("items selected after arranging: %1%") % m_selected.size();
         for (auto selected : m_selected)
-            ARRANGE_LOG(debug) << selected.name << ", extruder: " << VectorFormatter(selected.extrude_ids) << ", bed: " << selected.bed_idx
+            ARRANGE_LOG(debug) << selected.name << ", extruder: " << MapFormatter(selected.extrude_id_filament_types) << ", bed: " << selected.bed_idx
                                      << ", bed_temp: " << selected.first_bed_temp << ", print_temp: " << selected.print_temp
                                      << ", trans: " << unscale<double>(selected.translation(X)) << "," << unscale<double>(selected.translation(Y))
                                      << ", rotation: " << selected.rotation;
-        ARRANGE_LOG(debug) << "items unselected after arrange: " << unselected_and_locked.size();
-        for (auto item : unselected_and_locked)
-            ARRANGE_LOG(debug) << item.name << ", bed: " << item.bed_idx << ", trans: " << unscale<double>(item.translation(X)) << "," << unscale<double>(item.translation(Y));
+        ARRANGE_LOG(debug) << "items unselected after arrange: " << m_unselected.size();
+        for (auto item : m_unselected)
+            BOOST_LOG_TRIVIAL(debug) << item.name << ", bed: " << item.bed_idx << ", trans: " << unscale<double>(item.translation(X)) << "," << unscale<double>(item.translation(Y));
     }
 
     // put unpackable items to m_unprintable so they goes outside
@@ -752,7 +727,7 @@ void ArrangeJob::finalize()
 
             beds = std::max(ap.bed_idx, beds);
 
-            ARRANGE_LOG(debug) << __FUNCTION__ << boost::format(": selected %4%: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
+            ARRANGE_LOG(debug) << __FUNCTION__ << boost::format(": selected %4%: bed_id %1%, trans {%2%, %3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
         }
 
         //BBS: adjust the bed_index, create new plates, get the max bed_index
@@ -765,7 +740,7 @@ void ArrangeJob::finalize()
                 plate_list.postprocess_bed_index_for_unselected(ap);
 
             beds = std::max(ap.bed_idx, beds);
-            ARRANGE_LOG(debug) << __FUNCTION__ << boost::format(": unselected %4%: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
+            ARRANGE_LOG(debug) << __FUNCTION__ << boost::format(": unselected %4%: bed_id %1%, trans {%2%, %3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
         }
 
         for (ArrangePolygon& ap : m_locked) {
@@ -893,6 +868,9 @@ arrangement::ArrangeParams init_arrange_params(Plater *p)
     params.is_seq_print                        = settings.is_seq_print;
     params.min_obj_distance                    = scaled(settings.distance);
     params.align_to_y_axis                     = settings.align_to_y_axis;
+#if !BBL_RELEASE_TO_PUBLIC
+    params.save_svg                            = settings.save_svg;
+#endif
 
     int state = p->get_prepare_state();
     if (state == Job::JobPrepareState::PREPARE_STATE_MENU) {
