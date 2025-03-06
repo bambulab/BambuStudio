@@ -530,15 +530,15 @@ void GLCanvas3D::LayersEditing::render_background_texture(const GLCanvas3D& canv
     // Render the color bar
     if (!m_background.is_initialized()) {
         GLModel::Geometry init_data;
-        init_data.format = { GLModel::PrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P2T2 };
+        init_data.format = { GLModel::PrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3T2 };
         init_data.reserve_vertices(4);
         init_data.reserve_indices(6);
 
         // vertices
-        init_data.add_vertex(Vec2f(-0.5f, -0.5f), Vec2f(0.0f, 0.0f));
-        init_data.add_vertex(Vec2f(0.5f, -0.5f), Vec2f(1.0f, 0.0f));
-        init_data.add_vertex(Vec2f(0.5f, 0.5f), Vec2f(1.0f, 1.0f));
-        init_data.add_vertex(Vec2f(-0.5f, 0.5f), Vec2f(0.0f, 1.0f));
+        init_data.add_vertex(Vec3f(-0.5f, -0.5f, 0.0f), Vec3f(0.0f, 0.0f, 1.0f), Vec2f(0.0f, 0.0f));
+        init_data.add_vertex(Vec3f(0.5f, -0.5f, 0.0f),  Vec3f(0.0f, 0.0f, 1.0f), Vec2f(1.0f, 0.0f));
+        init_data.add_vertex(Vec3f(0.5f, 0.5f, 0.0f),   Vec3f(0.0f, 0.0f, 1.0f), Vec2f(1.0f, 1.0f));
+        init_data.add_vertex(Vec3f(-0.5f, 0.5f, 0.0f),  Vec3f(0.0f, 0.0f, 1.0f), Vec2f(0.0f, 1.0f));
 
         // indices
         init_data.add_triangle(0, 1, 2);
