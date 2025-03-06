@@ -4034,7 +4034,11 @@ GCode::LayerResult GCode::process_layer(
             m_writer.set_position(pos);
         }
 
-        if (print.is_BBL_Printer() && print.objects().size() > 1) {
+        // (layer_object_label_ids.size() < 64) this restriction comes from _encode_label_ids_to_base64()
+        if (print.is_BBL_Printer() &&
+            (print.num_object_instances() <= g_max_label_object) && // Don't support too many objects on one plate
+            (print.num_object_instances() > 1) &&                 // Don't support skipping single object
+            (print.calib_params().mode == CalibMode::Calib_None)) {
             std::ostringstream oss;
             for (auto it = layer_object_label_ids.begin(); it != layer_object_label_ids.end(); ++it) {
                 if (it != layer_object_label_ids.begin()) oss << ",";
