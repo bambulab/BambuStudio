@@ -901,8 +901,10 @@ void AmsMapingPopup::update(MachineObject* obj, const std::vector<FilamentInfo>&
     update_title(obj);
 
     /*ext*/
-    const auto& full_config = wxGetApp().preset_bundle->full_config();
-    size_t nozzle_nums = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
+    //const auto& full_config = wxGetApp().preset_bundle->full_config();
+    //size_t nozzle_nums = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
+
+    size_t nozzle_nums = obj->m_extder_data.total_extder_count;
 
     if (nozzle_nums == 1) {
         m_left_marea_panel->Hide();
@@ -1295,7 +1297,7 @@ void MappingItem::paintEvent(wxPaintEvent &evt)
 void MappingItem::render(wxDC &dc)
 {
       wxSize     size = GetSize();
-  
+
 #ifdef __WXMSW__
     wxMemoryDC memdc;
     wxBitmap   bmp(size.x, size.y);
