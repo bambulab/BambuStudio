@@ -1136,6 +1136,7 @@ bool Sidebar::priv::switch_diameter(bool single)
 
 bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
 {
+    wxBusyCursor   busy;
     MachineObject *obj = wxGetApp().getDeviceManager()->get_selected_machine();
     auto           printer_name = plater->get_selected_printer_name_in_combox();
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " begin sync_extruder_list";
@@ -3256,6 +3257,8 @@ void Sidebar::deal_btn_sync() {
     auto ok = p->sync_extruder_list(only_external_material);
     if (ok) {
         pop_sync_nozzle_and_ams_dialog();
+    } else {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__  << " check error: sync machine fail";
     }
     m_begin_sync_printer_status = false;
     wxGetApp().plater()->update_machine_sync_status();
