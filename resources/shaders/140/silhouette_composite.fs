@@ -16,7 +16,7 @@ void main()
     vec4 pixels[9];
     float deltaWidth = 1.0 / u_viewport_size.x;
     float deltaHeight = 1.0 / u_viewport_size.y;
-    float effect_width = 2.0f;
+    float effect_width = 2.0;
     deltaWidth = deltaWidth * effect_width;
     deltaHeight = deltaHeight * effect_width;
 
