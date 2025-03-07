@@ -6189,13 +6189,13 @@ void Tab::sync_excluder()
         return m_config->get_index_for_extruder(extruder_id + 1, variant_keys.first,
             ExtruderType(extruders->values[extruder_id]), NozzleVolumeType(nozzle_volumes->values[extruder_id]), variant_keys.second);
     };
-    int left_index = get_index_for_extruder(0);
-    int right_index = get_index_for_extruder(1);
     int active_index = int(intptr_t(m_extruder_switch->GetClientData()));
-    auto left_str = std::to_string(left_index);
-    auto right_str = std::to_string(right_index);
+    int from_index = get_index_for_extruder(active_index);
+    int dest_index = get_index_for_extruder(1 - active_index);
+    auto from_str = std::to_string(from_index);
+    auto dest_str = std::to_string(dest_index);
     auto dirty_options = m_presets->current_dirty_options(true);
-    wxString left_copy_sumary, right_copy_sumary;
+    DynamicConfig config_origin, config_to_apply;
     for (int i = 0; i < dirty_options.size(); ++i) {
         auto &opt = dirty_options[i];
         auto n= opt.find('#');
@@ -6206,43 +6206,42 @@ void Tab::sync_excluder()
         if (field == nullptr || line == nullptr)
             continue;
         ++n;
-        bool left  = opt.substr(n) == left_str;
-        bool right = opt.substr(n) == right_str;
+        bool dirty  = opt.substr(n) == from_str;
         while (i + 1 < dirty_options.size() && dirty_options[i + 1].compare(0, n, opt, 0, n) == 0) {
-            left |= dirty_options[i + 1].substr(n) == left_str;
-            right |= dirty_options[i + 1].substr(n) == right_str;
+            dirty |= dirty_options[i + 1].substr(n) == from_str;
             ++i;
         }
-        if (left == right)
-            continue;
-        auto option = dynamic_cast<ConfigOptionVectorBase*>(m_config->option(opt.substr(0, n - 1)));
-        if (left)
-            option->set_at(option, right_index, left_index);
-        else
-            option->set_at(option, left_index, right_index);
-        std::string value = option->vserialize()[left_index];
-        auto & copy_sumary = left ? right_copy_sumary : left_copy_sumary;
-        copy_sumary.Append(wxString::Format("\n%c %s: %s", left ? '>' : '<', _L(line->label), from_u8(value)));
+        if (dirty) {
+            auto key = opt.substr(0, n - 1);
+            auto option = dynamic_cast<ConfigOptionVectorBase*>(m_config->option(key));
+            auto option2 = dynamic_cast<ConfigOptionVectorBase*>(option->clone());
+            option2->set_at(option, dest_index, from_index);
+            if (*option == *option2) {
+                delete option2;
+                continue;
+            }
+            config_origin.set_key_value(key, option->clone());
+            config_to_apply.set_key_value(key, option2);
+        }
     }
-    wxString sumary = _L("No modifications need to be copied.");
-    if (!left_copy_sumary.IsEmpty() || !right_copy_sumary.IsEmpty()) {
+    if (config_to_apply.empty()) {
+        MessageDialog md(wxGetApp().plater(), _L("No modifications need to be copied."), _L("Copy paramters"), wxICON_INFORMATION | wxOK);
+        md.ShowModal();
+        return;
+    }
+    wxString header = active_index == 1 ? _L("Copy the following parameters to the left nozzle:") :
+                                          _L("Copy the following parameters to the right nozzle:");
+    UnsavedChangesDialog dlg(_L("Copy paramters"), header, &config_origin, from_index, dest_index);
+    dlg.ShowModal();
+    if (dlg.transfer_changes()) {
+        m_config->apply(config_to_apply);
         reload_config();
         update_changed_ui();
         update();
         if (m_active_page)
             m_active_page->update_visibility(m_mode, true);
         m_page_view->GetParent()->Layout();
-        if (!left_copy_sumary.IsEmpty())
-            sumary = _L("Copied the following parameters to the left nozzle:") + left_copy_sumary;
-        else
-            sumary.Clear();
-        if (!right_copy_sumary.IsEmpty()) {
-            if (!sumary.IsEmpty()) sumary.Append('\n');
-            sumary.Append(_L("Copied the following parameters to the right nozzle:") + right_copy_sumary);
-        }
     }
-    MessageDialog md(wxGetApp().plater(), sumary, _L("Copy paramters"), wxICON_INFORMATION | wxOK);
-    md.ShowModal();
 }
 
 void Tab::compatible_widget_reload(PresetDependencies &deps)
