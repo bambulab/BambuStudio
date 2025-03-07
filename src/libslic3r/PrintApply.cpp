@@ -1138,6 +1138,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         m_support_used = false;
 
     // check if filament ebnable scarf seam
+    bool has_scarf_joint_seam = false;
     {
         std::vector<int> scarf_seam_type = new_full_config.option<ConfigOptionEnumsGeneric>("filament_scarf_seam_type")->values;
         auto check_object_scarf_seam_type = [](const std::vector<int> scarf_seam_type, const ModelObject *mo) {
@@ -1183,7 +1184,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         };
 
         // check custon_gcode
-        bool has_scarf_joint_seam = check_gcode_scarf_seam_type(scarf_seam_type, model) ||
+        has_scarf_joint_seam = check_gcode_scarf_seam_type(scarf_seam_type, model) ||
             std::any_of(model.objects.begin(), model.objects.end(), [scarf_seam_type, &check_object_scarf_seam_type](const ModelObject *obj) {
             return check_object_scarf_seam_type(scarf_seam_type, obj);
         });
@@ -1195,10 +1196,13 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         }
     }
 
-    {   //check scarf seam setting
+    if (!has_scarf_joint_seam) { // check scarf seam setting
         const auto &o = model.objects;
-        const bool has_scarf_joint_seam = std::any_of(o.begin(), o.end(), [&new_full_config](ModelObject *obj) {
-            return obj->get_config_value<ConfigOptionBool>(new_full_config, "apply_scarf_seam_on_circles")->value;
+
+        has_scarf_joint_seam = std::any_of(o.begin(), o.end(), [&new_full_config](ModelObject *obj) {
+            return obj->get_config_value<ConfigOptionBool>(new_full_config, "enable_circle_compensation")
+                ->value && obj->get_config_value<ConfigOptionBool>(new_full_config, "apply_scarf_seam_on_circles")
+                ->value;
         });
 
         if (has_scarf_joint_seam) {
@@ -1208,13 +1212,14 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", has_scarf_joint_seam:" << has_scarf_joint_seam;
     }
 
-    {   //check scarf seam setting
+    if (!has_scarf_joint_seam) { // check scarf seam setting
         const auto &o = model.objects;
         const auto  opt_has_scarf_joint_seam = [](const DynamicConfig &c) {
             return c.has("override_filament_scarf_seam_setting") && c.opt_bool("override_filament_scarf_seam_setting") && c.has("seam_slope_type") &&
                    c.opt_enum<SeamScarfType>("seam_slope_type") != SeamScarfType::None;
         };
-        const bool has_scarf_joint_seam = std::any_of(o.begin(), o.end(), [&new_full_config, &opt_has_scarf_joint_seam](ModelObject *obj) {
+
+        has_scarf_joint_seam = std::any_of(o.begin(), o.end(), [&new_full_config, &opt_has_scarf_joint_seam](ModelObject *obj) {
             return obj->get_config_value<ConfigOptionEnum<SeamScarfType>>(new_full_config, "seam_slope_type")->value != SeamScarfType::None ||
                    std::any_of(obj->volumes.begin(), obj->volumes.end(),
                                [&opt_has_scarf_joint_seam](const ModelVolume *v) { return opt_has_scarf_joint_seam(v->config.get()); }) ||
