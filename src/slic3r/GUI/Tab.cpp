@@ -4210,13 +4210,20 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
     // BBS. No extra extruder page for single physical extruder machine
     // # remove extra pages
 #if 1
+    auto &first_extruder_title = const_cast<wxString &>(m_pages[n_before_extruders]->title());
     if (m_extruders_count < m_extruders_count_old) {
         m_pages.erase(	m_pages.begin() + n_before_extruders + m_extruders_count,
                         m_pages.begin() + n_before_extruders + m_extruders_count_old);
         if (m_extruders_count == 1)
-            const_cast<wxString&>(m_pages[n_before_extruders]->title()) = wxString::Format("Extruder");
+            first_extruder_title = wxString::Format("Extruder");
     } else if (m_extruders_count_old == 1) {
-        const_cast<wxString &>(m_pages[n_before_extruders]->title()) = wxString::Format("Extruder %d", 1);
+        first_extruder_title = wxString::Format("Extruder %d", 1);
+    }
+    auto & searcher = wxGetApp().sidebar().get_searcher();
+    for (auto &group : m_pages[n_before_extruders]->m_optgroups) {
+        group->set_config_category_and_type(first_extruder_title, m_type);
+        for (auto &opt : group->opt_map())
+            searcher.add_key(opt.first + "#0", m_type, group->title, first_extruder_title);
     }
 #endif
 
