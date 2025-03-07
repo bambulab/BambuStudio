@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-28 11:27+0800\n"
+"POT-Creation-Date: 2025-03-07 15:28+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2338,9 +2338,9 @@ msgid "Top"
 msgstr "Felül"
 
 msgid ""
-"The fan controls the temperature during printing to improve print quality."
-"The system automatically adjusts the fan's switch and speed according to "
-"different printing materials."
+"The fan controls the temperature during printing to improve print "
+"quality.The system automatically adjusts the fan's switch and speed "
+"according to different printing materials."
 msgstr ""
 
 msgid ""
@@ -2946,7 +2946,22 @@ msgstr ""
 msgid "External"
 msgstr ""
 
+msgid "Reset current filament mapping"
+msgstr ""
+
 msgid "Right AMS"
+msgstr ""
+
+msgid "Left Nozzle"
+msgstr ""
+
+msgid "Right Nozzle"
+msgstr ""
+
+msgid "Nozzle"
+msgstr "Fúvóka"
+
+msgid "Ext"
 msgstr ""
 
 msgid ""
@@ -2954,9 +2969,6 @@ msgid ""
 msgstr ""
 "Megjegyzés: Csak az ugyanazzal az anyagtípussal feltöltött AMS helyek "
 "választhatók ki."
-
-msgid "Ext"
-msgstr ""
 
 msgid "Enable AMS"
 msgstr "AMS engedélyezése"
@@ -3347,9 +3359,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe temperature,"
-"it may result in material softening and clogging.The maximum safe "
-"temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe "
+"temperature,it may result in material softening and clogging.The maximum "
+"safe temperature for the material is %d"
 msgstr ""
 "Current chamber temperature is higher than the material's safe temperature; "
 "this may result in material softening and nozzle clogs.The maximum safe "
@@ -5938,13 +5950,7 @@ msgstr ""
 msgid "Nozzle Type"
 msgstr "Nozzle Type"
 
-msgid "Left Nozzle"
-msgstr ""
-
 msgid "Nozzle Flow"
-msgstr ""
-
-msgid "Right Nozzle"
 msgstr ""
 
 #, c-format, boost-format
@@ -6061,11 +6067,11 @@ msgstr "Kattints a beállítás szerkesztéséhez"
 msgid "Connection"
 msgstr "Kapcsolat"
 
-msgid "Synchronize nozzle information and the number of AMS"
+msgid "Click to view the wiki of the current plate type"
 msgstr ""
 
-msgid "Nozzle"
-msgstr "Fúvóka"
+msgid "Synchronize nozzle information and the number of AMS"
+msgstr ""
 
 msgid "Project Filaments"
 msgstr ""
@@ -7485,6 +7491,9 @@ msgstr "Eszközinformációk szinkronizálása"
 msgid "Synchronizing device information time out"
 msgstr "Eszközinformációk szinkronizálása túllépte az időkorlátot"
 
+msgid "Cannot send the print job when the printer is not at FDM mode"
+msgstr ""
+
 msgid "Cannot send the print job when the printer is updating firmware"
 msgstr ""
 "Nem küldhetsz nyomtatási feladatot a nyomtatóra, amíg az firmware frissítést "
@@ -7513,20 +7522,6 @@ msgid ""
 msgstr ""
 "A filament nem fér el a rendelkezésre álló AMS-férőhelyben. Kérjük, "
 "frissítsd a nyomtató szoftverét az AMS-kiosztás támogatásához."
-
-msgid ""
-"Filaments to AMS slots mappings have been established. You can click a "
-"filament above to change its mapping AMS slot"
-msgstr ""
-"Megtörtént a filamentek AMS férőhelyekhez való kiosztása. Kattints egy fenti "
-"filamentre az AMS kiosztás megváltoztatásához"
-
-msgid ""
-"Please click each filament above to specify its mapping AMS slot before "
-"sending the print job"
-msgstr ""
-"Kérjük, a nyomtatás megkezdése előtt kattints a fenti filamentekre, hogy "
-"megadd a hozzájuk tartozó AMS férőhelyet"
 
 msgid "Please do not mix-use the Ext with AMS"
 msgstr ""
@@ -7993,8 +7988,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Ha a nyomtatófej nélküli timelapse engedélyezve van, javasoljuk, hogy "
 "helyezz el a tálcán egy „Timelapse törlőtornyot“. Ehhez kattints jobb "
@@ -8182,6 +8177,9 @@ msgid "Volumetric speed limitation"
 msgstr "Volumetrikus sebességhatár"
 
 msgid "Filament scarf seam settings"
+msgstr ""
+
+msgid "Filament circle compensation setting"
 msgstr ""
 
 msgid "Cooling for specific layer"
@@ -8763,6 +8761,22 @@ msgstr ""
 msgid "Synchronize now"
 msgstr ""
 
+#, c-format, boost-format
+msgid "Synchronize %sFilament Information"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Unused %sfilaments should also be added to the filament list."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Only synchronize filament type and color, not including %sslot information."
+msgstr ""
+
+msgid "Ext spool"
+msgstr ""
+
 msgid ""
 "Please check whether the nozzle type of the device is the same as the preset "
 "nozzle type."
@@ -9137,17 +9151,21 @@ msgid "Connect the printer using IP and access code"
 msgstr ""
 
 msgid ""
-"Step 1. Please confirm Bambu Studio and your printer are in the same LAN."
+"Try the following methods to update the connection parameters and reconnect "
+"to the printer."
+msgstr ""
+
+msgid "1. Please confirm Bambu Studio and your printer are in the same LAN."
 msgstr ""
 
 msgid ""
-"Step 2. If the IP and Access Code below are different from the actual values "
-"on your printer, please correct them."
+"2. If the IP and Access Code below are different from the actual values on "
+"your printer, please correct them."
 msgstr ""
 
 msgid ""
-"Step 3. Please obtain the device SN from the printer side; it is usually "
-"found in the device information on the printer screen."
+"3. Please obtain the device SN from the printer side; it is usually found in "
+"the device information on the printer screen."
 msgstr ""
 
 msgid "Access Code"
@@ -9161,6 +9179,9 @@ msgstr "Hol találom a nyomtató IP címét és a hozzáférési kódot?"
 
 msgid "Connect"
 msgstr ""
+
+msgid "IP and Access Code Verified! You may close the window"
+msgstr "IP és hozzáférési kód leellenőrizve! Bezárhatod az ablakot"
 
 msgid "connecting..."
 msgstr ""
@@ -9190,6 +9211,32 @@ msgid ""
 msgstr ""
 "Sikertelen kapcsolódás! Ha az IP-cím és a hozzáférési kód helyes,\n"
 "folytasd a 3. lépéssel a hálózati problémák elhárításához"
+
+msgid "Connection failed! Please refer to the wiki page."
+msgstr ""
+
+msgid "sending failed"
+msgstr ""
+
+msgid ""
+"Failed to send. Click Retry to attempt sending again. If retrying does not "
+"work, please check the reason."
+msgstr ""
+
+msgid "reconnect"
+msgstr ""
+
+msgid "Air Pump"
+msgstr ""
+
+msgid "Laser 10w"
+msgstr ""
+
+msgid "Laser 40w"
+msgstr ""
+
+msgid "Cutting Module"
+msgstr ""
 
 msgid "Model:"
 msgstr "Modell:"
@@ -9759,8 +9806,8 @@ msgid ""
 "Slic3r can upload G-code files to a printer host. This field should contain "
 "the hostname, IP address or URL of the printer host instance. Print host "
 "behind HAProxy with basic auth enabled can be accessed by putting the user "
-"name and password into the URL in the following format: https://username:"
-"password@your-octopi-address/"
+"name and password into the URL in the following format: https://"
+"username:password@your-octopi-address/"
 msgstr ""
 "A Slic3r képes G-kód fájlokat feltölteni a nyomtatóra. Ennek a mezőnek "
 "tartalmaznia kell a nyomtató hostnevét, IP-címét vagy URL-címét. A HAProxy "
@@ -10038,10 +10085,10 @@ msgstr ""
 
 #, c-format
 msgid ""
-"Decide which overhang part join the cooling function to slow down the speed."
-"Expressed as percentage which indicides how much width of the line without "
-"support from lower layer. 100% means forcing cooling for all outer wall no "
-"matter how much overhang degree"
+"Decide which overhang part join the cooling function to slow down the "
+"speed.Expressed as percentage which indicides how much width of the line "
+"without support from lower layer. 100% means forcing cooling for all outer "
+"wall no matter how much overhang degree"
 msgstr ""
 
 msgid "Bridge direction"
@@ -10897,8 +10944,8 @@ msgid "Acceleration of inner walls. 0 means using normal printing acceleration"
 msgstr "Gyorsulás a belső falaknál. A 0 normál nyomtatási gyorsulást jelent."
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage (e."
-"g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage "
+"(e.g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 "Gyorsulás a ritkás kitöltéseknél. Ha az érték százalékban van megadva (pl. "
 "100%), akkor az alapértelmezett gyorsulás alapján kerül kiszámításra."
@@ -11172,6 +11219,15 @@ msgstr ""
 msgid ""
 "This parameter adds a slight rotation to each layer of infill to create a "
 "cross texture."
+msgstr ""
+
+msgid "Symmetric infill y axis"
+msgstr ""
+
+msgid ""
+"If the model has two parts that are symmetric about the y-axis, and you want "
+"these parts to have symmetric textures, please click this option on one of "
+"the parts."
 msgstr ""
 
 msgid "Length of sparse infill anchor"
@@ -13953,12 +14009,12 @@ msgstr ""
 "Szeretnéd felülírni?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more printers; please go to printer selection"
 
 msgid "Create Printer/Nozzle"
@@ -14365,8 +14421,8 @@ msgid "nozzle size memorized: %d"
 msgstr ""
 
 msgid ""
-"The size of nozzle type in preset is not consistent with memorized nozzle."
-"Did you change your nozzle lately ? "
+"The size of nozzle type in preset is not consistent with memorized "
+"nozzle.Did you change your nozzle lately ? "
 msgstr ""
 
 #, c-format, boost-format
@@ -15413,6 +15469,20 @@ msgstr ""
 "Tudtad, hogy a vetemedésre hajlamos anyagok (például ABS) nyomtatásakor a "
 "tárgyasztal hőmérsékletének növelése csökkentheti a vetemedés valószínűségét?"
 
+#~ msgid ""
+#~ "Filaments to AMS slots mappings have been established. You can click a "
+#~ "filament above to change its mapping AMS slot"
+#~ msgstr ""
+#~ "Megtörtént a filamentek AMS férőhelyekhez való kiosztása. Kattints egy "
+#~ "fenti filamentre az AMS kiosztás megváltoztatásához"
+
+#~ msgid ""
+#~ "Please click each filament above to specify its mapping AMS slot before "
+#~ "sending the print job"
+#~ msgstr ""
+#~ "Kérjük, a nyomtatás megkezdése előtt kattints a fenti filamentekre, hogy "
+#~ "megadd a hozzájuk tartozó AMS férőhelyet"
+
 #~ msgid "Auto-Calc"
 #~ msgstr "Automatikus számítás"
 
@@ -15943,9 +16013,6 @@ msgstr ""
 
 #~ msgid "LAN Connection Failed (Sending print file)"
 #~ msgstr "LAN kapcsolódás sikertelen (nyomtatási fájl küldése)"
-
-#~ msgid "IP and Access Code Verified! You may close the window"
-#~ msgstr "IP és hozzáférési kód leellenőrizve! Bezárhatod az ablakot"
 
 #~ msgid "This setting specifies the count of walls around support"
 #~ msgstr "Ez a beállítás határozza meg a falak számát a támasz körül"
@@ -17780,11 +17847,11 @@ msgstr ""
 #~ msgstr "Tollméret beállítása"
 
 #~ msgid ""
-#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-#~ "trace\n"
+#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
+#~ "5:trace\n"
 #~ msgstr ""
-#~ "A hibakeresési naplózási szint beállítása. 0:fatal, 1:error, 2:warning, 3:"
-#~ "info, 4:debug, 5:trace\n"
+#~ "A hibakeresési naplózási szint beállítása. 0:fatal, 1:error, 2:warning, "
+#~ "3:info, 4:debug, 5:trace\n"
 
 #~ msgid "Share"
 #~ msgstr "Megosztás"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-28 11:27+0800\n"
+"POT-Creation-Date: 2025-03-07 15:28+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2271,9 +2271,9 @@ msgid "Top"
 msgstr ""
 
 msgid ""
-"The fan controls the temperature during printing to improve print quality."
-"The system automatically adjusts the fan's switch and speed according to "
-"different printing materials."
+"The fan controls the temperature during printing to improve print "
+"quality.The system automatically adjusts the fan's switch and speed "
+"according to different printing materials."
 msgstr ""
 
 msgid ""
@@ -2824,14 +2824,26 @@ msgstr ""
 msgid "External"
 msgstr ""
 
+msgid "Reset current filament mapping"
+msgstr ""
+
 msgid "Right AMS"
+msgstr ""
+
+msgid "Left Nozzle"
+msgstr ""
+
+msgid "Right Nozzle"
+msgstr ""
+
+msgid "Nozzle"
+msgstr ""
+
+msgid "Ext"
 msgstr ""
 
 msgid ""
 "Note: Only the AMS slots loaded with the same material type can be selected."
-msgstr ""
-
-msgid "Ext"
 msgstr ""
 
 msgid "Enable AMS"
@@ -3171,9 +3183,9 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe temperature,"
-"it may result in material softening and clogging.The maximum safe "
-"temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe "
+"temperature,it may result in material softening and clogging.The maximum "
+"safe temperature for the material is %d"
 msgstr ""
 
 msgid ""
@@ -5636,13 +5648,7 @@ msgstr ""
 msgid "Nozzle Type"
 msgstr ""
 
-msgid "Left Nozzle"
-msgstr ""
-
 msgid "Nozzle Flow"
-msgstr ""
-
-msgid "Right Nozzle"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -5759,10 +5765,10 @@ msgstr ""
 msgid "Connection"
 msgstr ""
 
-msgid "Synchronize nozzle information and the number of AMS"
+msgid "Click to view the wiki of the current plate type"
 msgstr ""
 
-msgid "Nozzle"
+msgid "Synchronize nozzle information and the number of AMS"
 msgstr ""
 
 msgid "Project Filaments"
@@ -7108,6 +7114,9 @@ msgstr ""
 msgid "Synchronizing device information time out"
 msgstr ""
 
+msgid "Cannot send the print job when the printer is not at FDM mode"
+msgstr ""
+
 msgid "Cannot send the print job when the printer is updating firmware"
 msgstr ""
 
@@ -7127,16 +7136,6 @@ msgstr ""
 msgid ""
 "Filament exceeds the number of AMS slots. Please update the printer firmware "
 "to support AMS slot assignment."
-msgstr ""
-
-msgid ""
-"Filaments to AMS slots mappings have been established. You can click a "
-"filament above to change its mapping AMS slot"
-msgstr ""
-
-msgid ""
-"Please click each filament above to specify its mapping AMS slot before "
-"sending the print job"
 msgstr ""
 
 msgid "Please do not mix-use the Ext with AMS"
@@ -7534,8 +7533,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 
 msgid ""
@@ -7698,6 +7697,9 @@ msgid "Volumetric speed limitation"
 msgstr ""
 
 msgid "Filament scarf seam settings"
+msgstr ""
+
+msgid "Filament circle compensation setting"
 msgstr ""
 
 msgid "Cooling for specific layer"
@@ -8247,6 +8249,22 @@ msgstr ""
 msgid "Synchronize now"
 msgstr ""
 
+#, possible-c-format, possible-boost-format
+msgid "Synchronize %sFilament Information"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Unused %sfilaments should also be added to the filament list."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid ""
+"Only synchronize filament type and color, not including %sslot information."
+msgstr ""
+
+msgid "Ext spool"
+msgstr ""
+
 msgid ""
 "Please check whether the nozzle type of the device is the same as the preset "
 "nozzle type."
@@ -8605,17 +8623,21 @@ msgid "Connect the printer using IP and access code"
 msgstr ""
 
 msgid ""
-"Step 1. Please confirm Bambu Studio and your printer are in the same LAN."
+"Try the following methods to update the connection parameters and reconnect "
+"to the printer."
+msgstr ""
+
+msgid "1. Please confirm Bambu Studio and your printer are in the same LAN."
 msgstr ""
 
 msgid ""
-"Step 2. If the IP and Access Code below are different from the actual values "
-"on your printer, please correct them."
+"2. If the IP and Access Code below are different from the actual values on "
+"your printer, please correct them."
 msgstr ""
 
 msgid ""
-"Step 3. Please obtain the device SN from the printer side; it is usually "
-"found in the device information on the printer screen."
+"3. Please obtain the device SN from the printer side; it is usually found in "
+"the device information on the printer screen."
 msgstr ""
 
 msgid "Access Code"
@@ -8628,6 +8650,9 @@ msgid "Where to find your printer's IP and Access Code?"
 msgstr ""
 
 msgid "Connect"
+msgstr ""
+
+msgid "IP and Access Code Verified! You may close the window"
 msgstr ""
 
 msgid "connecting..."
@@ -8654,6 +8679,32 @@ msgstr ""
 msgid ""
 "Connection failed! If your IP and Access Code is correct, \n"
 "please move to step 3 for troubleshooting network issues"
+msgstr ""
+
+msgid "Connection failed! Please refer to the wiki page."
+msgstr ""
+
+msgid "sending failed"
+msgstr ""
+
+msgid ""
+"Failed to send. Click Retry to attempt sending again. If retrying does not "
+"work, please check the reason."
+msgstr ""
+
+msgid "reconnect"
+msgstr ""
+
+msgid "Air Pump"
+msgstr ""
+
+msgid "Laser 10w"
+msgstr ""
+
+msgid "Laser 40w"
+msgstr ""
+
+msgid "Cutting Module"
 msgstr ""
 
 msgid "Model:"
@@ -9153,8 +9204,8 @@ msgid ""
 "Slic3r can upload G-code files to a printer host. This field should contain "
 "the hostname, IP address or URL of the printer host instance. Print host "
 "behind HAProxy with basic auth enabled can be accessed by putting the user "
-"name and password into the URL in the following format: https://username:"
-"password@your-octopi-address/"
+"name and password into the URL in the following format: https://"
+"username:password@your-octopi-address/"
 msgstr ""
 
 msgid "Device UI"
@@ -9374,10 +9425,10 @@ msgstr ""
 
 #, possible-c-format
 msgid ""
-"Decide which overhang part join the cooling function to slow down the speed."
-"Expressed as percentage which indicides how much width of the line without "
-"support from lower layer. 100% means forcing cooling for all outer wall no "
-"matter how much overhang degree"
+"Decide which overhang part join the cooling function to slow down the "
+"speed.Expressed as percentage which indicides how much width of the line "
+"without support from lower layer. 100% means forcing cooling for all outer "
+"wall no matter how much overhang degree"
 msgstr ""
 
 msgid "Bridge direction"
@@ -10123,8 +10174,8 @@ msgid "Acceleration of inner walls. 0 means using normal printing acceleration"
 msgstr ""
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage (e."
-"g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage "
+"(e.g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 
 msgid "mm/s² or %"
@@ -10359,6 +10410,15 @@ msgstr ""
 msgid ""
 "This parameter adds a slight rotation to each layer of infill to create a "
 "cross texture."
+msgstr ""
+
+msgid "Symmetric infill y axis"
+msgstr ""
+
+msgid ""
+"If the model has two parts that are symmetric about the y-axis, and you want "
+"these parts to have symmetric textures, please click this option on one of "
+"the parts."
 msgstr ""
 
 msgid "Length of sparse infill anchor"
@@ -12776,8 +12836,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 
@@ -13137,8 +13197,8 @@ msgid "nozzle size memorized: %d"
 msgstr ""
 
 msgid ""
-"The size of nozzle type in preset is not consistent with memorized nozzle."
-"Did you change your nozzle lately ? "
+"The size of nozzle type in preset is not consistent with memorized "
+"nozzle.Did you change your nozzle lately ? "
 msgstr ""
 
 #, possible-c-format, possible-boost-format
