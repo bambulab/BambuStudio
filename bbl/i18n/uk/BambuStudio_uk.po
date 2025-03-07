@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-28 11:27+0800\n"
+"POT-Creation-Date: 2025-03-07 15:28+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -2336,9 +2336,9 @@ msgid "Top"
 msgstr "Верх"
 
 msgid ""
-"The fan controls the temperature during printing to improve print quality."
-"The system automatically adjusts the fan's switch and speed according to "
-"different printing materials."
+"The fan controls the temperature during printing to improve print "
+"quality.The system automatically adjusts the fan's switch and speed "
+"according to different printing materials."
 msgstr ""
 
 msgid ""
@@ -2716,8 +2716,8 @@ msgid ""
 "This software uses open source components whose copyright and other "
 "proprietary rights belong to their respective owners"
 msgstr ""
-"Це програмне забезпечення використовує компоненти з відкритим вихідним кодом,"
-"авторські права та інші\n"
+"Це програмне забезпечення використовує компоненти з відкритим вихідним "
+"кодом,авторські права та інші\n"
 "права власності належать їх відповідним власникам"
 
 #, c-format, boost-format
@@ -2817,8 +2817,8 @@ msgstr "Будь ласка, введіть допустиме значення 
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr ""
-"Будь ласка, введіть допустиме значення (K у межах %.1f~%.1f, N у межах %.1f~"
-"%.1f)"
+"Будь ласка, введіть допустиме значення (K у межах %.1f~%.1f, N у межах "
+"%.1f~%.1f)"
 
 msgid ""
 "The nozzle flow is not set. Please set the nozzle flow rate before editing "
@@ -2947,7 +2947,22 @@ msgstr ""
 msgid "External"
 msgstr ""
 
+msgid "Reset current filament mapping"
+msgstr ""
+
 msgid "Right AMS"
+msgstr ""
+
+msgid "Left Nozzle"
+msgstr ""
+
+msgid "Right Nozzle"
+msgstr ""
+
+msgid "Nozzle"
+msgstr "Сопло"
+
+msgid "Ext"
 msgstr ""
 
 msgid ""
@@ -2955,9 +2970,6 @@ msgid ""
 msgstr ""
 "Примітка. Можна вибрати лише слоти AMS, завантажені одним і тим же типом "
 "матеріалу."
-
-msgid "Ext"
-msgstr ""
 
 msgid "Enable AMS"
 msgstr "AMS"
@@ -3357,9 +3369,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe temperature,"
-"it may result in material softening and clogging.The maximum safe "
-"temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe "
+"temperature,it may result in material softening and clogging.The maximum "
+"safe temperature for the material is %d"
 msgstr ""
 "Поточна температура камери вища, ніж безпечна температура матеріалу, це може "
 "призвести до розм’якшення матеріалу та його забивання. Максимально безпечна "
@@ -4045,8 +4057,8 @@ msgid ""
 "confirming that the height is within the build volume."
 msgstr ""
 "Об'єкт знаходиться за кордоном пластини або перевищує обмеження по висоті.\n"
-"Будь ласка, вирішіть проблему, перемістивши її повністю на тарілку або з неї,"
-"і підтвердження того, що висота знаходиться в межах обсягу збирання."
+"Будь ласка, вирішіть проблему, перемістивши її повністю на тарілку або з "
+"неї,і підтвердження того, що висота знаходиться в межах обсягу збирання."
 
 msgid "Variable layer height"
 msgstr "Змінна висота шару"
@@ -5973,13 +5985,7 @@ msgstr ""
 msgid "Nozzle Type"
 msgstr "Тип насадки"
 
-msgid "Left Nozzle"
-msgstr ""
-
 msgid "Nozzle Flow"
-msgstr ""
-
-msgid "Right Nozzle"
 msgstr ""
 
 #, c-format, boost-format
@@ -6096,11 +6102,11 @@ msgstr "Натисніть, щоб змінити попереднє встан�
 msgid "Connection"
 msgstr "Зв'язок"
 
-msgid "Synchronize nozzle information and the number of AMS"
+msgid "Click to view the wiki of the current plate type"
 msgstr ""
 
-msgid "Nozzle"
-msgstr "Сопло"
+msgid "Synchronize nozzle information and the number of AMS"
+msgstr ""
 
 msgid "Project Filaments"
 msgstr ""
@@ -7550,6 +7556,9 @@ msgstr "Синхронізація інформації пристрою"
 msgid "Synchronizing device information time out"
 msgstr "Час очікування синхронізації інформації пристрою вийшов"
 
+msgid "Cannot send the print job when the printer is not at FDM mode"
+msgstr ""
+
 msgid "Cannot send the print job when the printer is updating firmware"
 msgstr "Не можна відправити завдання на друк, коли принтер оновлює прошивку"
 
@@ -7576,20 +7585,6 @@ msgstr ""
 "Філамент перевищує кількість слотів AMS. Будь ласка, оновіть "
 "прошивкупринтера\n"
 "для підтримки призначення слотів AMS."
-
-msgid ""
-"Filaments to AMS slots mappings have been established. You can click a "
-"filament above to change its mapping AMS slot"
-msgstr ""
-"Встановили зіставлення ниток зі слотами AMS. Ви можете натиснути\n"
-"Філамент вище, щоб змінити її слот зіставлення AMS"
-
-msgid ""
-"Please click each filament above to specify its mapping AMS slot before "
-"sending the print job"
-msgstr ""
-"Клацніть кожен філамент вище, щоб вказати його слот зіставлення AMS,Перш ніж "
-"відправити завдання на друк"
 
 msgid "Please do not mix-use the Ext with AMS"
 msgstr ""
@@ -8054,8 +8049,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "При записі таймлапсу без інструментальної головки рекомендується додати "
 "“Timelapse Wipe Tower” \n"
@@ -8248,6 +8243,9 @@ msgstr "Об'ємне обмеження швидкості"
 
 msgid "Filament scarf seam settings"
 msgstr "Налаштування шва шарфа для філамента"
+
+msgid "Filament circle compensation setting"
+msgstr ""
 
 msgid "Cooling for specific layer"
 msgstr "Охолодження для конкретного шару"
@@ -8828,6 +8826,22 @@ msgstr ""
 msgid "Synchronize now"
 msgstr ""
 
+#, c-format, boost-format
+msgid "Synchronize %sFilament Information"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Unused %sfilaments should also be added to the filament list."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Only synchronize filament type and color, not including %sslot information."
+msgstr ""
+
+msgid "Ext spool"
+msgstr ""
+
 msgid ""
 "Please check whether the nozzle type of the device is the same as the preset "
 "nozzle type."
@@ -9197,17 +9211,21 @@ msgid "Connect the printer using IP and access code"
 msgstr "Підключити принтер за допомогою IP-адреси та коду доступу"
 
 msgid ""
-"Step 1. Please confirm Bambu Studio and your printer are in the same LAN."
+"Try the following methods to update the connection parameters and reconnect "
+"to the printer."
+msgstr ""
+
+msgid "1. Please confirm Bambu Studio and your printer are in the same LAN."
 msgstr ""
 
 msgid ""
-"Step 2. If the IP and Access Code below are different from the actual values "
-"on your printer, please correct them."
+"2. If the IP and Access Code below are different from the actual values on "
+"your printer, please correct them."
 msgstr ""
 
 msgid ""
-"Step 3. Please obtain the device SN from the printer side; it is usually "
-"found in the device information on the printer screen."
+"3. Please obtain the device SN from the printer side; it is usually found in "
+"the device information on the printer screen."
 msgstr ""
 
 msgid "Access Code"
@@ -9221,6 +9239,9 @@ msgstr "Де знайти IP-адресу та код доступу вашог�
 
 msgid "Connect"
 msgstr "Підключити"
+
+msgid "IP and Access Code Verified! You may close the window"
+msgstr "IP-адреса та доступний код перевірено! Ви можете закрити вікно"
 
 msgid "connecting..."
 msgstr "підключення…"
@@ -9250,6 +9271,32 @@ msgid ""
 msgstr ""
 "З’єднання не вдалося! Якщо ваша IP-адреса та доступний код вірні, \n"
 "перейдіть до кроку 3 для вирішення проблем з мережею"
+
+msgid "Connection failed! Please refer to the wiki page."
+msgstr ""
+
+msgid "sending failed"
+msgstr ""
+
+msgid ""
+"Failed to send. Click Retry to attempt sending again. If retrying does not "
+"work, please check the reason."
+msgstr ""
+
+msgid "reconnect"
+msgstr ""
+
+msgid "Air Pump"
+msgstr ""
+
+msgid "Laser 10w"
+msgstr ""
+
+msgid "Laser 40w"
+msgstr ""
+
+msgid "Cutting Module"
+msgstr ""
 
 msgid "Model:"
 msgstr "Модель:"
@@ -9805,8 +9852,8 @@ msgid ""
 "Slic3r can upload G-code files to a printer host. This field should contain "
 "the hostname, IP address or URL of the printer host instance. Print host "
 "behind HAProxy with basic auth enabled can be accessed by putting the user "
-"name and password into the URL in the following format: https://username:"
-"password@your-octopi-address/"
+"name and password into the URL in the following format: https://"
+"username:password@your-octopi-address/"
 msgstr ""
 "Slic3r може завантажувати файли G-коду на хост принтера. Це поле повинно "
 "містити ім'я хоста, IP-адресу або URL-адресу екземпляра вузла принтера. "
@@ -10085,10 +10132,10 @@ msgstr "Поріг нависання для участі в охолоджен�
 
 #, c-format
 msgid ""
-"Decide which overhang part join the cooling function to slow down the speed."
-"Expressed as percentage which indicides how much width of the line without "
-"support from lower layer. 100% means forcing cooling for all outer wall no "
-"matter how much overhang degree"
+"Decide which overhang part join the cooling function to slow down the "
+"speed.Expressed as percentage which indicides how much width of the line "
+"without support from lower layer. 100% means forcing cooling for all outer "
+"wall no matter how much overhang degree"
 msgstr ""
 "Визначте, яка частина нависання приєднується до функції охолодження, щоб "
 "зменшити швидкість. Виражається у відсотках, що вказує, яка ширина лінії без "
@@ -10958,8 +11005,8 @@ msgstr ""
 "друку"
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage (e."
-"g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage "
+"(e.g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 "Прискорення розрідженого заповнення. Якщо значення виражене у відсотках "
 "(наприклад,100%), воно буде обчислюватися на основі прискорення за "
@@ -11235,6 +11282,15 @@ msgstr ""
 msgid ""
 "This parameter adds a slight rotation to each layer of infill to create a "
 "cross texture."
+msgstr ""
+
+msgid "Symmetric infill y axis"
+msgstr ""
+
+msgid ""
+"If the model has two parts that are symmetric about the y-axis, and you want "
+"these parts to have symmetric textures, please click this option on one of "
+"the parts."
 msgstr ""
 
 msgid "Length of sparse infill anchor"
@@ -12198,8 +12254,8 @@ msgid ""
 "Only create support for critical regions including sharp tail, cantilever, "
 "etc."
 msgstr ""
-"Створювати підтримку тільки для критичних областей, включаючи гострий хвіст,"
-"консоль і т.д."
+"Створювати підтримку тільки для критичних областей, включаючи гострий "
+"хвіст,консоль і т.д."
 
 msgid "Remove small overhangs"
 msgstr "Видалити невеликі виступи"
@@ -13005,13 +13061,13 @@ msgstr "Наданий файл не вдалося прочитати, оскі
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
 msgstr ""
-"Невідомий формат файлу: вхідний файл повинен мати розширення .stl, .obj або ."
-"amf (.xml)."
+"Невідомий формат файлу: вхідний файл повинен мати розширення .stl, .obj "
+"або .amf (.xml)."
 
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
-"Невідомий формат файлу: вхідний файл повинен мати розширення .3mf або .zip."
-"amf."
+"Невідомий формат файлу: вхідний файл повинен мати розширення .3mf "
+"або .zip.amf."
 
 msgid "Canceled"
 msgstr "Скасовано"
@@ -14061,8 +14117,8 @@ msgstr ""
 "Чи бажаєте ви їх перезаписати?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "Ми перейменовуємо налаштування на “Виробник Тип Серійний номер @принтер, "
@@ -14491,8 +14547,8 @@ msgid "nozzle size memorized: %d"
 msgstr ""
 
 msgid ""
-"The size of nozzle type in preset is not consistent with memorized nozzle."
-"Did you change your nozzle lately ? "
+"The size of nozzle type in preset is not consistent with memorized "
+"nozzle.Did you change your nozzle lately ? "
 msgstr ""
 
 #, c-format, boost-format
@@ -15596,6 +15652,20 @@ msgstr ""
 "ймовірність деформації."
 
 #~ msgid ""
+#~ "Filaments to AMS slots mappings have been established. You can click a "
+#~ "filament above to change its mapping AMS slot"
+#~ msgstr ""
+#~ "Встановили зіставлення ниток зі слотами AMS. Ви можете натиснути\n"
+#~ "Філамент вище, щоб змінити її слот зіставлення AMS"
+
+#~ msgid ""
+#~ "Please click each filament above to specify its mapping AMS slot before "
+#~ "sending the print job"
+#~ msgstr ""
+#~ "Клацніть кожен філамент вище, щоб вказати його слот зіставлення AMS,Перш "
+#~ "ніж відправити завдання на друк"
+
+#~ msgid ""
 #~ "\"Fix Model\" feature is currently only on Windows. Please use a third-"
 #~ "party tool to repair the model before importing it into Bambu Studio, "
 #~ "such as "
@@ -16187,9 +16257,6 @@ msgstr ""
 
 #~ msgid "LAN Connection Failed (Sending print file)"
 #~ msgstr "Помилка з’єднання LAN (Надсилання файлу друку)"
-
-#~ msgid "IP and Access Code Verified! You may close the window"
-#~ msgstr "IP-адреса та доступний код перевірено! Ви можете закрити вікно"
 
 #~ msgid "This setting specifies the count of walls around support"
 #~ msgstr "Цей параметр визначає кількість стін навколо опори"
@@ -17018,8 +17085,8 @@ msgstr ""
 #~ "Only one of the results with the same name will be saved. Are you sure "
 #~ "you want to overrides the other results?"
 #~ msgstr ""
-#~ "Збережено буде лише один із результатів з однаковою назвою. Ви впевнені,"
-#~ "що хочете перезаписати інші результати?"
+#~ "Збережено буде лише один із результатів з однаковою назвою. Ви "
+#~ "впевнені,що хочете перезаписати інші результати?"
 
 #~ msgid ""
 #~ "There is already a historical calibration result with the same name: %s. "
@@ -17476,8 +17543,8 @@ msgstr ""
 #~ msgstr "Рівень налагодження"
 
 #~ msgid ""
-#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-#~ "trace\n"
+#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
+#~ "5:trace\n"
 #~ msgstr ""
 #~ "Встановлює рівень реєстрації налагодження. 0: непереборний, 1: помилка, "
 #~ "2: попередження, 3: інформація, 4: налагодження, 5: трасування\n"

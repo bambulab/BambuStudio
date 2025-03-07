@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-28 11:27+0800\n"
+"POT-Creation-Date: 2025-03-07 15:28+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2336,9 +2336,9 @@ msgid "Top"
 msgstr "Superior"
 
 msgid ""
-"The fan controls the temperature during printing to improve print quality."
-"The system automatically adjusts the fan's switch and speed according to "
-"different printing materials."
+"The fan controls the temperature during printing to improve print "
+"quality.The system automatically adjusts the fan's switch and speed "
+"according to different printing materials."
 msgstr ""
 
 msgid ""
@@ -2948,7 +2948,22 @@ msgstr ""
 msgid "External"
 msgstr ""
 
+msgid "Reset current filament mapping"
+msgstr ""
+
 msgid "Right AMS"
+msgstr ""
+
+msgid "Left Nozzle"
+msgstr ""
+
+msgid "Right Nozzle"
+msgstr ""
+
+msgid "Nozzle"
+msgstr "Bico"
+
+msgid "Ext"
 msgstr ""
 
 msgid ""
@@ -2956,9 +2971,6 @@ msgid ""
 msgstr ""
 "Nota: Somente os slots AMS carregados com o mesmo tipo de material podem ser "
 "selecionados."
-
-msgid "Ext"
-msgstr ""
 
 msgid "Enable AMS"
 msgstr "Ativar AMS"
@@ -3351,9 +3363,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe temperature,"
-"it may result in material softening and clogging.The maximum safe "
-"temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe "
+"temperature,it may result in material softening and clogging.The maximum "
+"safe temperature for the material is %d"
 msgstr ""
 "A temperatura atual da câmara é superior à temperatura segura do material, o "
 "que pode resultar no amolecimento e entupimento do material. A temperatura "
@@ -5940,13 +5952,7 @@ msgstr ""
 msgid "Nozzle Type"
 msgstr "Nozzle Type"
 
-msgid "Left Nozzle"
-msgstr ""
-
 msgid "Nozzle Flow"
-msgstr ""
-
-msgid "Right Nozzle"
 msgstr ""
 
 #, c-format, boost-format
@@ -6063,11 +6069,11 @@ msgstr "Clique para editar a predefinição"
 msgid "Connection"
 msgstr "Conexão"
 
-msgid "Synchronize nozzle information and the number of AMS"
+msgid "Click to view the wiki of the current plate type"
 msgstr ""
 
-msgid "Nozzle"
-msgstr "Bico"
+msgid "Synchronize nozzle information and the number of AMS"
+msgstr ""
 
 msgid "Project Filaments"
 msgstr ""
@@ -7491,6 +7497,9 @@ msgstr "Sincronizando informações do dispositivo"
 msgid "Synchronizing device information time out"
 msgstr "A sincronização das informações do dispositivo atingiu o tempo limite"
 
+msgid "Cannot send the print job when the printer is not at FDM mode"
+msgstr ""
+
 msgid "Cannot send the print job when the printer is updating firmware"
 msgstr ""
 "Não é possível enviar o trabalho de impressão quando a impressora está "
@@ -7519,20 +7528,6 @@ msgid ""
 msgstr ""
 "O filamento excede o número de slots AMS. Atualize o firmware da impressora "
 "para suportar a atribuição de slots AMS."
-
-msgid ""
-"Filaments to AMS slots mappings have been established. You can click a "
-"filament above to change its mapping AMS slot"
-msgstr ""
-"Filamentos para mapeamentos de slots AMS foram estabelecidos. Você pode "
-"clicar em um filamento acima para alterar seu slot AMS de mapeamento"
-
-msgid ""
-"Please click each filament above to specify its mapping AMS slot before "
-"sending the print job"
-msgstr ""
-"Clique em cada filamento acima para especificar seu slot AMS de mapeamento "
-"antes de enviar o trabalho de impressão"
 
 msgid "Please do not mix-use the Ext with AMS"
 msgstr ""
@@ -8001,8 +7996,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Ao gravar o timelapse sem o cabeçote de ferramenta, é recomendável adicionar "
 "uma “Timelapse Wipe Tower” \n"
@@ -8191,6 +8186,9 @@ msgid "Volumetric speed limitation"
 msgstr "Limitação de velocidade volumétrica"
 
 msgid "Filament scarf seam settings"
+msgstr ""
+
+msgid "Filament circle compensation setting"
 msgstr ""
 
 msgid "Cooling for specific layer"
@@ -8772,6 +8770,22 @@ msgstr ""
 msgid "Synchronize now"
 msgstr ""
 
+#, c-format, boost-format
+msgid "Synchronize %sFilament Information"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Unused %sfilaments should also be added to the filament list."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Only synchronize filament type and color, not including %sslot information."
+msgstr ""
+
+msgid "Ext spool"
+msgstr ""
+
 msgid ""
 "Please check whether the nozzle type of the device is the same as the preset "
 "nozzle type."
@@ -9143,17 +9157,21 @@ msgid "Connect the printer using IP and access code"
 msgstr ""
 
 msgid ""
-"Step 1. Please confirm Bambu Studio and your printer are in the same LAN."
+"Try the following methods to update the connection parameters and reconnect "
+"to the printer."
+msgstr ""
+
+msgid "1. Please confirm Bambu Studio and your printer are in the same LAN."
 msgstr ""
 
 msgid ""
-"Step 2. If the IP and Access Code below are different from the actual values "
-"on your printer, please correct them."
+"2. If the IP and Access Code below are different from the actual values on "
+"your printer, please correct them."
 msgstr ""
 
 msgid ""
-"Step 3. Please obtain the device SN from the printer side; it is usually "
-"found in the device information on the printer screen."
+"3. Please obtain the device SN from the printer side; it is usually found in "
+"the device information on the printer screen."
 msgstr ""
 
 msgid "Access Code"
@@ -9167,6 +9185,9 @@ msgstr "Onde encontrar o IP e o código de acesso da sua impressora?"
 
 msgid "Connect"
 msgstr ""
+
+msgid "IP and Access Code Verified! You may close the window"
+msgstr "IP e código de acesso verificados! Você pode fechar a janela"
 
 msgid "connecting..."
 msgstr ""
@@ -9195,6 +9216,32 @@ msgid ""
 msgstr ""
 "Falha na conexão! Se seu IP e código de acesso estiverem corretos, \n"
 "vá para a etapa 3 para solucionar problemas de rede"
+
+msgid "Connection failed! Please refer to the wiki page."
+msgstr ""
+
+msgid "sending failed"
+msgstr ""
+
+msgid ""
+"Failed to send. Click Retry to attempt sending again. If retrying does not "
+"work, please check the reason."
+msgstr ""
+
+msgid "reconnect"
+msgstr ""
+
+msgid "Air Pump"
+msgstr ""
+
+msgid "Laser 10w"
+msgstr ""
+
+msgid "Laser 40w"
+msgstr ""
+
+msgid "Cutting Module"
+msgstr ""
 
 msgid "Model:"
 msgstr "Modelo"
@@ -9755,8 +9802,8 @@ msgid ""
 "Slic3r can upload G-code files to a printer host. This field should contain "
 "the hostname, IP address or URL of the printer host instance. Print host "
 "behind HAProxy with basic auth enabled can be accessed by putting the user "
-"name and password into the URL in the following format: https://username:"
-"password@your-octopi-address/"
+"name and password into the URL in the following format: https://"
+"username:password@your-octopi-address/"
 msgstr ""
 "O Slic3r pode carregar arquivos de código G para um host de impressora. Esse "
 "campo deve conter o nome do host, endereço IP ou URL da instância do host da "
@@ -10035,10 +10082,10 @@ msgstr ""
 
 #, c-format
 msgid ""
-"Decide which overhang part join the cooling function to slow down the speed."
-"Expressed as percentage which indicides how much width of the line without "
-"support from lower layer. 100% means forcing cooling for all outer wall no "
-"matter how much overhang degree"
+"Decide which overhang part join the cooling function to slow down the "
+"speed.Expressed as percentage which indicides how much width of the line "
+"without support from lower layer. 100% means forcing cooling for all outer "
+"wall no matter how much overhang degree"
 msgstr ""
 
 msgid "Bridge direction"
@@ -10898,8 +10945,8 @@ msgstr ""
 "normal"
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage (e."
-"g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage "
+"(e.g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 "Aceleração do preenchimento esparso. Se o valor for expresso como uma "
 "porcentagem (por exemplo, 100%), ele será calculado com base na aceleração "
@@ -11176,6 +11223,15 @@ msgstr ""
 msgid ""
 "This parameter adds a slight rotation to each layer of infill to create a "
 "cross texture."
+msgstr ""
+
+msgid "Symmetric infill y axis"
+msgstr ""
+
+msgid ""
+"If the model has two parts that are symmetric about the y-axis, and you want "
+"these parts to have symmetric textures, please click this option on one of "
+"the parts."
 msgstr ""
 
 msgid "Length of sparse infill anchor"
@@ -12953,8 +13009,8 @@ msgstr "O arquivo fornecido não pôde ser lido porque está vazio"
 msgid ""
 "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
 msgstr ""
-"Formato de arquivo desconhecido. O arquivo de entrada deve ter a extensão."
-"stl, .obj, .amf (.xml)."
+"Formato de arquivo desconhecido. O arquivo de entrada deve ter a "
+"extensão.stl, .obj, .amf (.xml)."
 
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
@@ -13975,8 +14031,8 @@ msgstr ""
 "Você quer reescrevê-lo?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "Nós renomearíamos as predefinições como “Tipo de fornecedor Serial @printer "
@@ -14401,8 +14457,8 @@ msgid "nozzle size memorized: %d"
 msgstr ""
 
 msgid ""
-"The size of nozzle type in preset is not consistent with memorized nozzle."
-"Did you change your nozzle lately ? "
+"The size of nozzle type in preset is not consistent with memorized "
+"nozzle.Did you change your nozzle lately ? "
 msgstr ""
 
 #, c-format, boost-format
@@ -15453,6 +15509,20 @@ msgstr ""
 "aumentar adequadamente a temperatura do leito térmico pode reduzir a "
 "probabilidade de deformação."
 
+#~ msgid ""
+#~ "Filaments to AMS slots mappings have been established. You can click a "
+#~ "filament above to change its mapping AMS slot"
+#~ msgstr ""
+#~ "Filamentos para mapeamentos de slots AMS foram estabelecidos. Você pode "
+#~ "clicar em um filamento acima para alterar seu slot AMS de mapeamento"
+
+#~ msgid ""
+#~ "Please click each filament above to specify its mapping AMS slot before "
+#~ "sending the print job"
+#~ msgstr ""
+#~ "Clique em cada filamento acima para especificar seu slot AMS de "
+#~ "mapeamento antes de enviar o trabalho de impressão"
+
 #~ msgid "Auto-Calc"
 #~ msgstr "Cálculo automático"
 
@@ -15983,9 +16053,6 @@ msgstr ""
 
 #~ msgid "LAN Connection Failed (Sending print file)"
 #~ msgstr "Falha na conexão de LAN (envio de arquivo de impressão)"
-
-#~ msgid "IP and Access Code Verified! You may close the window"
-#~ msgstr "IP e código de acesso verificados! Você pode fechar a janela"
 
 #~ msgid "This setting specifies the count of walls around support"
 #~ msgstr ""
@@ -17826,11 +17893,11 @@ msgstr ""
 #~ msgstr "Definir o tamanho da caneta"
 
 #~ msgid ""
-#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-#~ "trace\n"
+#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
+#~ "5:trace\n"
 #~ msgstr ""
-#~ "Define o nível de registro de depuração. 0:fatal, 1:error, 2:warning, 3:"
-#~ "info, 4:debug, 5:trace\n"
+#~ "Define o nível de registro de depuração. 0:fatal, 1:error, 2:warning, "
+#~ "3:info, 4:debug, 5:trace\n"
 
 #~ msgid "Share"
 #~ msgstr "Compartilhar"

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-28 11:27+0800\n"
+"POT-Creation-Date: 2025-03-07 15:28+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -2301,9 +2301,9 @@ msgid "Top"
 msgstr "顶部"
 
 msgid ""
-"The fan controls the temperature during printing to improve print quality."
-"The system automatically adjusts the fan's switch and speed according to "
-"different printing materials."
+"The fan controls the temperature during printing to improve print "
+"quality.The system automatically adjusts the fan's switch and speed "
+"according to different printing materials."
 msgstr ""
 "风扇在打印中调控温度以提升打印质量，系统会根据不同的打印材料自动调节风扇的开"
 "关和转速。"
@@ -2886,15 +2886,27 @@ msgstr "左侧AMS"
 msgid "External"
 msgstr "外部"
 
+msgid "Reset current filament mapping"
+msgstr ""
+
 msgid "Right AMS"
 msgstr "右侧AMS"
+
+msgid "Left Nozzle"
+msgstr "左喷嘴"
+
+msgid "Right Nozzle"
+msgstr "右喷嘴"
+
+msgid "Nozzle"
+msgstr "喷嘴"
+
+msgid "Ext"
+msgstr ""
 
 msgid ""
 "Note: Only the AMS slots loaded with the same material type can be selected."
 msgstr "仅允许选择相同材质类型的耗材"
-
-msgid "Ext"
-msgstr ""
 
 msgid "Enable AMS"
 msgstr "启用AMS"
@@ -3253,9 +3265,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe temperature,"
-"it may result in material softening and clogging.The maximum safe "
-"temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe "
+"temperature,it may result in material softening and clogging.The maximum "
+"safe temperature for the material is %d"
 msgstr ""
 "当前腔体温度高于材料的安全温度，这可能导致材料软化和堵塞。该材料的最高安全温"
 "度为 %d。"
@@ -4998,8 +5010,8 @@ msgid ""
 "The .gcode.3mf file contains no G-code data.Please slice it whth Bambu "
 "Studio and export a new .gcode.3mf file."
 msgstr ""
-".gcode.3mf文件中不包含G-code数据。请使用Bambu Studio进行切片并导出新的."
-"gcode.3mf文件。"
+".gcode.3mf文件中不包含G-code数据。请使用Bambu Studio进行切片并导出新"
+"的.gcode.3mf文件。"
 
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
@@ -5791,14 +5803,8 @@ msgstr "大流量"
 msgid "Nozzle Type"
 msgstr "喷嘴类型"
 
-msgid "Left Nozzle"
-msgstr "左喷嘴"
-
 msgid "Nozzle Flow"
 msgstr "喷嘴流量"
-
-msgid "Right Nozzle"
-msgstr "右喷嘴"
 
 #, c-format, boost-format
 msgid "%.1f"
@@ -5919,11 +5925,11 @@ msgstr "点击编辑配置"
 msgid "Connection"
 msgstr "连接"
 
+msgid "Click to view the wiki of the current plate type"
+msgstr ""
+
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "同步喷嘴信息和AMS编号"
-
-msgid "Nozzle"
-msgstr "喷嘴"
 
 msgid "Project Filaments"
 msgstr "项目耗材列表"
@@ -7328,6 +7334,9 @@ msgstr "正在同步设备信息"
 msgid "Synchronizing device information time out"
 msgstr "同步设备信息超时"
 
+msgid "Cannot send the print job when the printer is not at FDM mode"
+msgstr "打印机不在FDM模式下，无法发起打印任务"
+
 msgid "Cannot send the print job when the printer is updating firmware"
 msgstr "设备升级中，无法发送打印任务"
 
@@ -7348,18 +7357,6 @@ msgid ""
 "Filament exceeds the number of AMS slots. Please update the printer firmware "
 "to support AMS slot assignment."
 msgstr "材料编号超出AMS槽位数量，请更新打印机固件以支持AMS槽位映射功能"
-
-msgid ""
-"Filaments to AMS slots mappings have been established. You can click a "
-"filament above to change its mapping AMS slot"
-msgstr ""
-"已自动建立 \"耗材丝列表=>AMS槽位\" 的映射关系。 可点击上方具体的耗材丝手动设"
-"置其所对应的AMS槽位"
-
-msgid ""
-"Please click each filament above to specify its mapping AMS slot before "
-"sending the print job"
-msgstr "请在发送打印前点击上方各个耗材丝，指定其所对应的AMS槽位"
 
 msgid "Please do not mix-use the Ext with AMS"
 msgstr "请勿将Ext与AMS混用"
@@ -7384,7 +7381,7 @@ msgstr ""
 "材料编号和AMS槽位中的耗材丝材质不匹配，请更新打印机固件以支持AMS槽位映射功能"
 
 msgid "Storage is not available or is in read-only mode."
-msgstr ""
+msgstr "存储设备不可用或处于只读模式。"
 
 msgid "External storage is not available or is in read-only mode."
 msgstr ""
@@ -7799,8 +7796,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "在录制无工具头延时摄影视频时，建议添加“延时摄影擦料塔”\n"
 "右键单击打印板的空白位置，选择“添加标准模型”->“延时摄影擦料塔”。"
@@ -7864,7 +7861,7 @@ msgid "Support filament"
 msgstr "支撑耗材"
 
 msgid "Tree Support"
-msgstr ""
+msgstr "树状支撑"
 
 msgid "Prime tower"
 msgstr "擦拭塔"
@@ -7971,6 +7968,9 @@ msgstr "体积速度限制"
 
 msgid "Filament scarf seam settings"
 msgstr "材料斜拼接缝参数"
+
+msgid "Filament circle compensation setting"
+msgstr "材料轴孔补偿设置"
 
 msgid "Cooling for specific layer"
 msgstr "特定层冷却"
@@ -8552,6 +8552,22 @@ msgstr "确定要同步AMS中耗材信息吗？"
 msgid "Synchronize now"
 msgstr "立即同步"
 
+#, c-format, boost-format
+msgid "Synchronize %sFilament Information"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Unused %sfilaments should also be added to the filament list."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Only synchronize filament type and color, not including %sslot information."
+msgstr ""
+
+msgid "Ext spool"
+msgstr ""
+
 msgid ""
 "Please check whether the nozzle type of the device is the same as the preset "
 "nozzle type."
@@ -8914,19 +8930,22 @@ msgid "Connect the printer using IP and access code"
 msgstr "使用IP和访问代码连接打印"
 
 msgid ""
-"Step 1. Please confirm Bambu Studio and your printer are in the same LAN."
-msgstr "步骤1，请确认Bambu Studio和您的打印机位于同一局域网中。"
-
-msgid ""
-"Step 2. If the IP and Access Code below are different from the actual values "
-"on your printer, please correct them."
-msgstr "步骤2，如果下面的IP和访问代码与打印机上的实际值不同，请重新输入。"
-
-msgid ""
-"Step 3. Please obtain the device SN from the printer side; it is usually "
-"found in the device information on the printer screen."
+"Try the following methods to update the connection parameters and reconnect "
+"to the printer."
 msgstr ""
-"步骤3，请从打印机端获取设备序列号，它通常位于打印机屏幕上的设备信息中。"
+
+msgid "1. Please confirm Bambu Studio and your printer are in the same LAN."
+msgstr ""
+
+msgid ""
+"2. If the IP and Access Code below are different from the actual values on "
+"your printer, please correct them."
+msgstr ""
+
+msgid ""
+"3. Please obtain the device SN from the printer side; it is usually found in "
+"the device information on the printer screen."
+msgstr ""
 
 msgid "Access Code"
 msgstr "访问码"
@@ -8939,6 +8958,9 @@ msgstr "在哪里可以找到打印机的IP和访问代码?"
 
 msgid "Connect"
 msgstr "连接"
+
+msgid "IP and Access Code Verified! You may close the window"
+msgstr "IP地址和访问码验证成功！您可以关闭此窗口。"
 
 msgid "connecting..."
 msgstr "连接中..."
@@ -8967,6 +8989,32 @@ msgid ""
 msgstr ""
 "连接失败！如果您的IP地址和访问码是正确的，\n"
 "请查看第三步的提示，以便定位网络问题所在。"
+
+msgid "Connection failed! Please refer to the wiki page."
+msgstr ""
+
+msgid "sending failed"
+msgstr ""
+
+msgid ""
+"Failed to send. Click Retry to attempt sending again. If retrying does not "
+"work, please check the reason."
+msgstr ""
+
+msgid "reconnect"
+msgstr ""
+
+msgid "Air Pump"
+msgstr "气泵"
+
+msgid "Laser 10w"
+msgstr "激光10W"
+
+msgid "Laser 40w"
+msgstr "激光40W"
+
+msgid "Cutting Module"
+msgstr "刀切模组"
 
 msgid "Model:"
 msgstr "型号："
@@ -9122,7 +9170,7 @@ msgid "Generating G-code: layer %1%"
 msgstr "正在生成G-code：层%1%"
 
 msgid "Smoothing z direction speed"
-msgstr ""
+msgstr "z方向速度平滑"
 
 msgid "Exporting G-code"
 msgstr "正在导出G-code"
@@ -9480,8 +9528,8 @@ msgid ""
 "Slic3r can upload G-code files to a printer host. This field should contain "
 "the hostname, IP address or URL of the printer host instance. Print host "
 "behind HAProxy with basic auth enabled can be accessed by putting the user "
-"name and password into the URL in the following format: https://username:"
-"password@your-octopi-address/"
+"name and password into the URL in the following format: https://"
+"username:password@your-octopi-address/"
 msgstr ""
 "Slic3r可以将G-code文件上传到打印机主机。此字段应包含打印机主机实例的主机名、"
 "IP地址或URL。启用基本身份验证的Print host可以通过将用户名和密码放入以下格式的"
@@ -9724,10 +9772,10 @@ msgstr "参与冷却降速的悬垂阈值"
 
 #, c-format
 msgid ""
-"Decide which overhang part join the cooling function to slow down the speed."
-"Expressed as percentage which indicides how much width of the line without "
-"support from lower layer. 100% means forcing cooling for all outer wall no "
-"matter how much overhang degree"
+"Decide which overhang part join the cooling function to slow down the "
+"speed.Expressed as percentage which indicides how much width of the line "
+"without support from lower layer. 100% means forcing cooling for all outer "
+"wall no matter how much overhang degree"
 msgstr "决定多少阈值的悬垂参与冷却降速.用百分比表示超出线宽的范围。"
 
 msgid "Bridge direction"
@@ -10516,8 +10564,8 @@ msgid "Acceleration of inner walls. 0 means using normal printing acceleration"
 msgstr "内部壁的加速度。0表示使用正常的打印加速度。"
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage (e."
-"g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage "
+"(e.g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 "稀疏填充的加速度。如果该值表示为百分比（例如100%），则将根据默认加速度进行计"
 "算。"
@@ -10759,6 +10807,15 @@ msgid ""
 "This parameter adds a slight rotation to each layer of infill to create a "
 "cross texture."
 msgstr "这个参数给每层填充添加轻微旋转以塑造交错花纹。"
+
+msgid "Symmetric infill y axis"
+msgstr ""
+
+msgid ""
+"If the model has two parts that are symmetric about the y-axis, and you want "
+"these parts to have symmetric textures, please click this option on one of "
+"the parts."
+msgstr ""
 
 msgid "Length of sparse infill anchor"
 msgstr "稀疏填充铆线长度"
@@ -12632,10 +12689,10 @@ msgid ""
 msgstr ""
 "请从我们的wiki中找到动态流量校准的详细信息。\n"
 "\n"
-"通常情况下，校准是不必要的。当您开始单色/单材料打印，并在打印开始菜单中勾选"
-"了“动态流量校准”选项时，打印机将按照旧的方式，在打印前校准丝料；当您开始多色/"
-"多材料打印时，打印机将在每次换丝料时使用默认的补偿参数，这在大多数情况下会产"
-"生良好的效果。\n"
+"通常情况下，校准是不必要的。当您开始单色/单材料打印，并在打印开始菜单中勾选了"
+"“动态流量校准”选项时，打印机将按照旧的方式，在打印前校准丝料；当您开始多色/多"
+"材料打印时，打印机将在每次换丝料时使用默认的补偿参数，这在大多数情况下会产生"
+"良好的效果。\n"
 "\n"
 "有几种情况可能导致校准结果不可靠，例如打印板的的附着力不足。清洗打印板或者使"
 "用胶水可以增强打印板附着力。您可以在我们的维基上找到更多相关信息。\n"
@@ -13132,7 +13189,7 @@ msgstr "主机"
 
 msgctxt "OfFile"
 msgid "Size"
-msgstr ""
+msgstr "大小"
 
 msgid "Filename"
 msgstr "文件名"
@@ -13380,8 +13437,8 @@ msgstr ""
 "你想重写预设吗"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "我们会将预设重命名为“供应商 类型 系列 @您选择的打印机”。\n"
@@ -13766,8 +13823,8 @@ msgid "nozzle size memorized: %d"
 msgstr "存储的喷嘴尺寸：%d"
 
 msgid ""
-"The size of nozzle type in preset is not consistent with memorized nozzle."
-"Did you change your nozzle lately ? "
+"The size of nozzle type in preset is not consistent with memorized "
+"nozzle.Did you change your nozzle lately ? "
 msgstr "预设的喷嘴类型尺寸与记忆中的喷嘴不一致。你最近换喷嘴了吗？"
 
 #, c-format, boost-format
@@ -14767,6 +14824,33 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid ""
+#~ "Filaments to AMS slots mappings have been established. You can click a "
+#~ "filament above to change its mapping AMS slot"
+#~ msgstr ""
+#~ "已自动建立 \"耗材丝列表=>AMS槽位\" 的映射关系。 可点击上方具体的耗材丝手动"
+#~ "设置其所对应的AMS槽位"
+
+#~ msgid ""
+#~ "Please click each filament above to specify its mapping AMS slot before "
+#~ "sending the print job"
+#~ msgstr "请在发送打印前点击上方各个耗材丝，指定其所对应的AMS槽位"
+
+#~ msgid ""
+#~ "Step 1. Please confirm Bambu Studio and your printer are in the same LAN."
+#~ msgstr "步骤1，请确认Bambu Studio和您的打印机位于同一局域网中。"
+
+#~ msgid ""
+#~ "Step 2. If the IP and Access Code below are different from the actual "
+#~ "values on your printer, please correct them."
+#~ msgstr "步骤2，如果下面的IP和访问代码与打印机上的实际值不同，请重新输入。"
+
+#~ msgid ""
+#~ "Step 3. Please obtain the device SN from the printer side; it is usually "
+#~ "found in the device information on the printer screen."
+#~ msgstr ""
+#~ "步骤3，请从打印机端获取设备序列号，它通常位于打印机屏幕上的设备信息中。"
 
 #, c-format, boost-format
 #~ msgid "%d Hours"
@@ -16022,9 +16106,6 @@ msgstr ""
 #~ msgid "LAN Connection Failed (Sending print file)"
 #~ msgstr "LAN连接失败(发送打印文件)"
 
-#~ msgid "IP and Access Code Verified! You may close the window"
-#~ msgstr "IP地址和访问码验证成功！您可以关闭此窗口。"
-
 #~ msgid "This setting specifies the count of walls around support"
 #~ msgstr "此设置指定了支撑的外墙层数"
 
@@ -16617,8 +16698,8 @@ msgstr ""
 #~ "The .gcode.3mf file contains no G-code data.Please slice it whthBambu "
 #~ "Studio and export a new .gcode.3mf file."
 #~ msgstr ""
-#~ ".gcode.3mf文件中不包含G-code数据。请使用Bambu Studio进行切片并导出新的."
-#~ "gcode.3mf文件。"
+#~ ".gcode.3mf文件中不包含G-code数据。请使用Bambu Studio进行切片并导出新"
+#~ "的.gcode.3mf文件。"
 
 #~ msgid "Connection lost. Please retry."
 #~ msgstr "连接丢失。请重试。"
@@ -17060,8 +17141,8 @@ msgstr ""
 #~ msgstr "不能删除被其他预设继承的预设"
 
 #~ msgid ""
-#~ "Your nozzle diameter in preset is not consistent with memorized nozzle."
-#~ "Did you change your nozzle lately ? "
+#~ "Your nozzle diameter in preset is not consistent with memorized "
+#~ "nozzle.Did you change your nozzle lately ? "
 #~ msgstr "预设中的喷嘴直径与记忆中的喷嘴直径不一致。您最近更换了喷嘴吗？"
 
 #~ msgid "Improt Presets"
@@ -17328,11 +17409,11 @@ msgstr ""
 #~ msgstr "调试等级"
 
 #~ msgid ""
-#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-#~ "trace\n"
+#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
+#~ "5:trace\n"
 #~ msgstr ""
-#~ "设置调试日志等级。0:fatal， 1:error， 2:warning， 3:info， 4:debug， 5:"
-#~ "trace\n"
+#~ "设置调试日志等级。0:fatal， 1:error， 2:warning， 3:info， 4:debug， "
+#~ "5:trace\n"
 
 #~ msgid "Load custom gcode"
 #~ msgstr "加载自定义 gcode"
@@ -21588,8 +21669,8 @@ msgstr ""
 #~ msgstr "正在准备设置页"
 
 #~ msgid ""
-#~ "You have the following presets with saved options for \"Print Host upload"
-#~ "\""
+#~ "You have the following presets with saved options for \"Print Host "
+#~ "upload\""
 #~ msgstr "您的以下预设中包含未保存的选项“打印主机上传”"
 
 #~ msgid ""

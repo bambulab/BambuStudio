@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 1.10.1 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-28 11:27+0800\n"
+"POT-Creation-Date: 2025-03-07 15:28+0800\n"
 "PO-Revision-Date: 2024-09-27 23:58+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -15,8 +15,8 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
 "X-Generator: Poedit 3.5\n"
 
 msgid "Current AMS humidity"
@@ -2392,9 +2392,9 @@ msgid "Top"
 msgstr "Сверху"
 
 msgid ""
-"The fan controls the temperature during printing to improve print quality."
-"The system automatically adjusts the fan's switch and speed according to "
-"different printing materials."
+"The fan controls the temperature during printing to improve print "
+"quality.The system automatically adjusts the fan's switch and speed "
+"according to different printing materials."
 msgstr ""
 
 msgid ""
@@ -3012,16 +3012,28 @@ msgstr ""
 msgid "External"
 msgstr ""
 
+msgid "Reset current filament mapping"
+msgstr ""
+
 msgid "Right AMS"
+msgstr ""
+
+msgid "Left Nozzle"
+msgstr ""
+
+msgid "Right Nozzle"
+msgstr ""
+
+msgid "Nozzle"
+msgstr "Сопло"
+
+msgid "Ext"
 msgstr ""
 
 # Примечание: выбор слотов ограничен одним типом материала.
 msgid ""
 "Note: Only the AMS slots loaded with the same material type can be selected."
 msgstr "Примечание: можно выбирать только слоты с одинаковым типом материала."
-
-msgid "Ext"
-msgstr ""
 
 msgid "Enable AMS"
 msgstr "Включить АСПП"
@@ -3425,9 +3437,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Current chamber temperature is higher than the material's safe temperature,"
-"it may result in material softening and clogging.The maximum safe "
-"temperature for the material is %d"
+"Current chamber temperature is higher than the material's safe "
+"temperature,it may result in material softening and clogging.The maximum "
+"safe temperature for the material is %d"
 msgstr ""
 "Текущая температура внутри термокамеры превышает безопасную температуру для "
 "этого материала, что может привести к размягчению материала или засорению "
@@ -6085,13 +6097,7 @@ msgstr ""
 msgid "Nozzle Type"
 msgstr "Тип сопла"
 
-msgid "Left Nozzle"
-msgstr ""
-
 msgid "Nozzle Flow"
-msgstr ""
-
-msgid "Right Nozzle"
 msgstr ""
 
 #, c-format, boost-format
@@ -6209,11 +6215,11 @@ msgstr "Нажмите, чтобы изменить профиль"
 msgid "Connection"
 msgstr "Подключиться"
 
-msgid "Synchronize nozzle information and the number of AMS"
+msgid "Click to view the wiki of the current plate type"
 msgstr ""
 
-msgid "Nozzle"
-msgstr "Сопло"
+msgid "Synchronize nozzle information and the number of AMS"
+msgstr ""
 
 msgid "Project Filaments"
 msgstr ""
@@ -7700,6 +7706,9 @@ msgstr "Синхронизация информации об устройств�
 msgid "Synchronizing device information time out"
 msgstr "Время синхронизации информации об устройстве истекло"
 
+msgid "Cannot send the print job when the printer is not at FDM mode"
+msgstr ""
+
 msgid "Cannot send the print job when the printer is updating firmware"
 msgstr ""
 "Невозможно отправить задание на печать, при обновлении прошивки принтера."
@@ -7728,21 +7737,6 @@ msgid ""
 msgstr ""
 "Количество пластиковых нитей превышает количество слотов АСПП. Обновите "
 "прошивку принтера, чтобы получить поддержку функции назначения слотов АСПП."
-
-msgid ""
-"Filaments to AMS slots mappings have been established. You can click a "
-"filament above to change its mapping AMS slot"
-msgstr ""
-"Соответствия между материалами и слотами АСПП были установлены. Вы можете "
-"нажать на пластиковую нить выше, чтобы вручную задать для неё нужный слот "
-"АСПП."
-
-msgid ""
-"Please click each filament above to specify its mapping AMS slot before "
-"sending the print job"
-msgstr ""
-"Перед отправкой задания на печать, нажмите на каждую пластиковую нить, чтобы "
-"вручную задать для неё нужный слот АСПП."
 
 msgid "Please do not mix-use the Ext with AMS"
 msgstr ""
@@ -8215,8 +8209,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "При записи таймлапса без видимости головы рекомендуется добавить «Черновая "
 "башня таймлапса». \n"
@@ -8418,6 +8412,9 @@ msgstr "Ограничение объёмной скорости"
 
 msgid "Filament scarf seam settings"
 msgstr "Настройки клиновидного шва для прутка"
+
+msgid "Filament circle compensation setting"
+msgstr ""
 
 msgid "Cooling for specific layer"
 msgstr "Обдув определенного слоя"
@@ -9004,6 +9001,22 @@ msgstr ""
 msgid "Synchronize now"
 msgstr ""
 
+#, c-format, boost-format
+msgid "Synchronize %sFilament Information"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Unused %sfilaments should also be added to the filament list."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Only synchronize filament type and color, not including %sslot information."
+msgstr ""
+
+msgid "Ext spool"
+msgstr ""
+
 msgid ""
 "Please check whether the nozzle type of the device is the same as the preset "
 "nozzle type."
@@ -9382,24 +9395,22 @@ msgid "Connect the printer using IP and access code"
 msgstr "Подключение к принтеру с помощью IP-адреса и кода доступа"
 
 msgid ""
-"Step 1. Please confirm Bambu Studio and your printer are in the same LAN."
+"Try the following methods to update the connection parameters and reconnect "
+"to the printer."
 msgstr ""
-"1) Убедитесь, что Bambu Studio и ваш принтер находятся в одной локальной "
-"сети."
+
+msgid "1. Please confirm Bambu Studio and your printer are in the same LAN."
+msgstr ""
 
 msgid ""
-"Step 2. If the IP and Access Code below are different from the actual values "
-"on your printer, please correct them."
+"2. If the IP and Access Code below are different from the actual values on "
+"your printer, please correct them."
 msgstr ""
-"2) Если указанный ниже IP-адрес и код доступа отличаются от фактических "
-"значений на вашем принтере, пожалуйста, исправьте их."
 
 msgid ""
-"Step 3. Please obtain the device SN from the printer side; it is usually "
-"found in the device information on the printer screen."
+"3. Please obtain the device SN from the printer side; it is usually found in "
+"the device information on the printer screen."
 msgstr ""
-"3) Найдите и введите серийный номер принтера (его можно найти в информации "
-"об устройстве на экране принтера).ы"
 
 msgid "Access Code"
 msgstr "Код доступа"
@@ -9412,6 +9423,9 @@ msgstr "Где найти IP-адрес и код доступа к вашему
 
 msgid "Connect"
 msgstr "Подключиться"
+
+msgid "IP and Access Code Verified! You may close the window"
+msgstr "IP-адрес и код доступа подтверждены! Вы можете закрыть окно."
 
 msgid "connecting..."
 msgstr "подключение..."
@@ -9447,6 +9461,32 @@ msgid ""
 msgstr ""
 "Не удалось подключиться! Если ваш IP-адрес и код доступа верные,\n"
 "тогда перейдите к шагу 3 для устранения проблем с сетью."
+
+msgid "Connection failed! Please refer to the wiki page."
+msgstr ""
+
+msgid "sending failed"
+msgstr ""
+
+msgid ""
+"Failed to send. Click Retry to attempt sending again. If retrying does not "
+"work, please check the reason."
+msgstr ""
+
+msgid "reconnect"
+msgstr ""
+
+msgid "Air Pump"
+msgstr ""
+
+msgid "Laser 10w"
+msgstr ""
+
+msgid "Laser 40w"
+msgstr ""
+
+msgid "Cutting Module"
+msgstr ""
 
 msgid "Model:"
 msgstr "Модель:"
@@ -10017,8 +10057,8 @@ msgid ""
 "Slic3r can upload G-code files to a printer host. This field should contain "
 "the hostname, IP address or URL of the printer host instance. Print host "
 "behind HAProxy with basic auth enabled can be accessed by putting the user "
-"name and password into the URL in the following format: https://username:"
-"password@your-octopi-address/"
+"name and password into the URL in the following format: https://"
+"username:password@your-octopi-address/"
 msgstr ""
 "Slic3r может загружать G-код файлы на хост принтера. В этом поле нужно "
 "указать имя хоста, IP-адрес или URL-адрес хост-экземпляра принтера. Доступ к "
@@ -10304,10 +10344,10 @@ msgstr "Порог нависания участвующий в охлажден
 # ???? Процент представляет собой степень нависания. Например, если задано 25%, то все линии с нависанием менее 25% будут участвовать в охлаждении и замедлении. При 100% все нависающие линии участвуют в охлаждении и замедлении. Скорость после замедления принимает меньшее значение минимальной скорости печати и исходной скорости нависания.
 #, fuzzy, c-format
 msgid ""
-"Decide which overhang part join the cooling function to slow down the speed."
-"Expressed as percentage which indicides how much width of the line without "
-"support from lower layer. 100% means forcing cooling for all outer wall no "
-"matter how much overhang degree"
+"Decide which overhang part join the cooling function to slow down the "
+"speed.Expressed as percentage which indicides how much width of the line "
+"without support from lower layer. 100% means forcing cooling for all outer "
+"wall no matter how much overhang degree"
 msgstr ""
 "Когда этот параметр включён, нависающая часть участвует в замедлении печати "
 "для лучшего охлаждения слоёв предотвращая проблему внезапного увеличения "
@@ -11217,8 +11257,8 @@ msgstr ""
 "ускорения по умолчанию."
 
 msgid ""
-"Acceleration of sparse infill. If the value is expressed as a percentage (e."
-"g. 100%), it will be calculated based on the default acceleration."
+"Acceleration of sparse infill. If the value is expressed as a percentage "
+"(e.g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
 "Ускорение на разреженном заполнении. Если задано в процентах, то значение "
 "вычисляться относительно ускорения по умолчанию."
@@ -11513,6 +11553,15 @@ msgid ""
 "cross texture."
 msgstr ""
 
+msgid "Symmetric infill y axis"
+msgstr ""
+
+msgid ""
+"If the model has two parts that are symmetric about the y-axis, and you want "
+"these parts to have symmetric textures, please click this option on one of "
+"the parts."
+msgstr ""
+
 msgid "Length of sparse infill anchor"
 msgstr "Длина привязок разреженного заполнения"
 
@@ -11564,8 +11613,8 @@ msgstr ""
 "две ближайшие линии заполнения с коротким отрезком периметра. Если не "
 "найдено такого отрезка периметра короче этого параметра, линия заполнения "
 "соединяется с отрезком периметра только с одной стороны, а длина отрезка "
-"периметра ограничена значением «Длина привязок разреженного "
-"заполнения» (infill_anchor), но не больше этого параметра.\n"
+"периметра ограничена значением «Длина привязок разреженного заполнения» "
+"(infill_anchor), но не больше этого параметра.\n"
 "Установите 0 для отключения привязок."
 
 msgid "0 (not anchored)"
@@ -13359,8 +13408,8 @@ msgstr ""
 
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr ""
-"Неизвестный формат файла. Входной файл должен иметь расширение *.3mf или *."
-"zip.amf."
+"Неизвестный формат файла. Входной файл должен иметь расширение *.3mf или "
+"*.zip.amf."
 
 msgid "Canceled"
 msgstr "Отменено"
@@ -14421,8 +14470,8 @@ msgstr ""
 "Хотите перезаписать его?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "Мы переименуем профиль в \"Производитель Тип Серия @выбранный принтер\".\n"
@@ -14841,8 +14890,8 @@ msgid "nozzle size memorized: %d"
 msgstr ""
 
 msgid ""
-"The size of nozzle type in preset is not consistent with memorized nozzle."
-"Did you change your nozzle lately ? "
+"The size of nozzle type in preset is not consistent with memorized "
+"nozzle.Did you change your nozzle lately ? "
 msgstr ""
 
 #, c-format, boost-format
@@ -15956,6 +16005,41 @@ msgstr ""
 "вероятность?"
 
 #~ msgid ""
+#~ "Filaments to AMS slots mappings have been established. You can click a "
+#~ "filament above to change its mapping AMS slot"
+#~ msgstr ""
+#~ "Соответствия между материалами и слотами АСПП были установлены. Вы можете "
+#~ "нажать на пластиковую нить выше, чтобы вручную задать для неё нужный слот "
+#~ "АСПП."
+
+#~ msgid ""
+#~ "Please click each filament above to specify its mapping AMS slot before "
+#~ "sending the print job"
+#~ msgstr ""
+#~ "Перед отправкой задания на печать, нажмите на каждую пластиковую нить, "
+#~ "чтобы вручную задать для неё нужный слот АСПП."
+
+#~ msgid ""
+#~ "Step 1. Please confirm Bambu Studio and your printer are in the same LAN."
+#~ msgstr ""
+#~ "1) Убедитесь, что Bambu Studio и ваш принтер находятся в одной локальной "
+#~ "сети."
+
+#~ msgid ""
+#~ "Step 2. If the IP and Access Code below are different from the actual "
+#~ "values on your printer, please correct them."
+#~ msgstr ""
+#~ "2) Если указанный ниже IP-адрес и код доступа отличаются от фактических "
+#~ "значений на вашем принтере, пожалуйста, исправьте их."
+
+#~ msgid ""
+#~ "Step 3. Please obtain the device SN from the printer side; it is usually "
+#~ "found in the device information on the printer screen."
+#~ msgstr ""
+#~ "3) Найдите и введите серийный номер принтера (его можно найти в "
+#~ "информации об устройстве на экране принтера).ы"
+
+#~ msgid ""
 #~ "\"Fix Model\" feature is currently only on Windows. Please use a third-"
 #~ "party tool to repair the model before importing it into Bambu Studio, "
 #~ "such as "
@@ -16589,9 +16673,6 @@ msgstr ""
 
 #~ msgid "LAN Connection Failed (Sending print file)"
 #~ msgstr "Сбой подключения к локальной сети (отправка файла на печать)"
-
-#~ msgid "IP and Access Code Verified! You may close the window"
-#~ msgstr "IP-адрес и код доступа подтверждены! Вы можете закрыть окно."
 
 #~ msgid "This setting specifies the count of walls around support"
 #~ msgstr ""
