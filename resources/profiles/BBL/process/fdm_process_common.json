@@ -140,5 +140,5 @@
     "infill_shift_step": "0.4",
     "infill_rotate_step": "0",
     "prime_tower_enable_framework": "0",
-    "symmetric_infill_y_axis": "false"
+    "symmetric_infill_y_axis": "0"
 }
