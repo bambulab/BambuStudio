@@ -732,15 +732,28 @@ void OpenGLManager::_bind_frame_buffer(const std::string& name, EMSAAType msaa_t
         glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_PARAMETER(GL_FRAMEBUFFER), 0));
         return;
     }
+    uint32_t width = t_width == 0 ? m_viewport_width : t_width;
+    uint32_t height = t_height == 0 ? m_viewport_height : t_height;
+    if (s_picking_frame == name) {
+        width = 1;
+        height = 1;
+    }
+
+    FrameBufferParams t_fb_params;
+    t_fb_params.m_width = width;
+    t_fb_params.m_height = height;
+    t_fb_params.m_msaa_type = msaa_type;
+
     const auto& iter = m_name_to_framebuffer.find(name);
+    bool needs_to_recreate = false;
     if (iter == m_name_to_framebuffer.end()) {
-        uint32_t width = t_width == 0 ? m_viewport_width : t_width;
-        uint32_t height = t_height == 0 ? m_viewport_height : t_height;
-        if (s_picking_frame == name) {
-            width = 1;
-            height = 1;
-        }
-        const auto& p_frame_buffer = std::make_shared<FrameBuffer>(width, height, msaa_type);
+        needs_to_recreate = true;
+    }
+    else {
+        needs_to_recreate = !iter->second->is_format_equal(t_fb_params);
+    }
+    if (needs_to_recreate) {
+        const auto& p_frame_buffer = std::make_shared<FrameBuffer>(t_fb_params);
         m_name_to_framebuffer.insert_or_assign(name, p_frame_buffer);
     }
 
@@ -749,9 +762,9 @@ void OpenGLManager::_bind_frame_buffer(const std::string& name, EMSAAType msaa_t
         if (current_framebuffer) {
             current_framebuffer->unbind();
         }
-        m_name_to_framebuffer[name]->bind();
-        m_current_binded_framebuffer = m_name_to_framebuffer[name];
     }
+    m_name_to_framebuffer[name]->bind();
+    m_current_binded_framebuffer = m_name_to_framebuffer[name];
 }
 
 void OpenGLManager::_unbind_frame_buffer(const std::string& name)
@@ -962,6 +975,16 @@ void OpenGLManager::set_line_width(float width) const
     }
 }
 
+void OpenGLManager::set_legacy_framebuffer_enabled(bool is_enabled)
+{
+    m_b_legacy_framebuffer_enabled = is_enabled;
+}
+
+bool OpenGLManager::is_legacy_framebuffer_enabled() const
+{
+    return m_b_legacy_framebuffer_enabled;
+}
+
 std::string OpenGLManager::framebuffer_type_to_string(EFramebufferType type)
 {
     switch (type)
@@ -1037,10 +1060,10 @@ void OpenGLManager::detect_multisample(int* attribList)
     // s_multisample = enable_multisample && wxGLCanvas::IsExtensionSupported("WGL_ARB_multisample");
 }
 
-FrameBuffer::FrameBuffer(uint32_t width, uint32_t height, EMSAAType msaa_type)
-    : m_width(width)
-    , m_height(height)
-    , m_msaa_type(msaa_type)
+FrameBuffer::FrameBuffer(const FrameBufferParams& params)
+    : m_width(params.m_width)
+    , m_height(params.m_height)
+    , m_msaa_type(params.m_msaa_type)
 {
 }
 
@@ -1110,7 +1133,8 @@ void FrameBuffer::bind()
         }
         BOOST_LOG_TRIVIAL(trace) << "Successfully created framebuffer: width = " << m_width << ", heihgt = " << m_height;
     }
-    m_needs_to_solve = (m_gl_id_for_back_fbo != UINT32_MAX);
+
+    mark_needs_to_resolve();
     glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_PARAMETER(GL_FRAMEBUFFER), (UINT32_MAX == m_gl_id_for_back_fbo ? m_gl_id : m_gl_id_for_back_fbo)));
 }
 
@@ -1158,6 +1182,29 @@ void FrameBuffer::read_pixel(uint32_t x, uint32_t y, uint32_t width, uint32_t he
     glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_PARAMETER(GL_FRAMEBUFFER), m_gl_id));
     glsafe(::glReadPixels(x, y, width, height, gl_format, gl_type, pixels));
     glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_PARAMETER(GL_FRAMEBUFFER), 0));
+}
+
+uint32_t FrameBuffer::get_height() const
+{
+    return m_height;
+}
+
+uint32_t FrameBuffer::get_width() const
+{
+    return m_width;
+}
+
+EMSAAType FrameBuffer::get_msaa_type() const
+{
+    return m_msaa_type;
+}
+
+bool FrameBuffer::is_format_equal(const FrameBufferParams& params) const
+{
+    const bool rt = m_width == params.m_width
+        && m_height == params.m_height
+        && m_msaa_type == params.m_msaa_type;
+    return rt;
 }
 
 void FrameBuffer::create_no_msaa_fbo(bool with_depth)
@@ -1297,6 +1344,11 @@ void FrameBuffer::resolve()
     }
 
     m_needs_to_solve = false;
+}
+
+void FrameBuffer::mark_needs_to_resolve()
+{
+    m_needs_to_solve = (m_gl_id_for_back_fbo != UINT32_MAX);
 }
 
 OpenGLManager::FrameBufferModifier::FrameBufferModifier(OpenGLManager& ogl_manager, const std::string& frame_buffer_name, EMSAAType msaa_type)

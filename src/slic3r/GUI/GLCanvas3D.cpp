@@ -158,6 +158,8 @@ static std::string format_number(float value)
 
 wxString filament_printable_error_msg;
 
+GLModel GLCanvas3D::s_full_screen_mesh;
+
 GLCanvas3D::LayersEditing::~LayersEditing()
 {
     if (m_z_texture_id != 0) {
@@ -1357,7 +1359,7 @@ GLCanvas3D::~GLCanvas3D()
     m_sel_plate_toolbar.del_all_item();
     m_sel_plate_toolbar.del_stats_item();
 
-    m_full_screen_mesh.reset();
+    s_full_screen_mesh.reset();
     m_unit_cube.reset();
 #if ENABLE_SHOW_CAMERA_TARGET
     m_camera_target_mark.reset();
@@ -2232,11 +2234,14 @@ void GLCanvas3D::render(bool only_init)
         _render_silhouette_effect();
     }
 
+    std::string write_to_framebuffer_name{};
     if (off_screen_rendering_enabled) {
-        OpenGLManager::FrameBufferModifier main_frame(ogl_manager, "mainframe", ogl_manager.get_msaa_type());
+        write_to_framebuffer_name = "mainframe";
+        OpenGLManager::FrameBufferModifier main_frame(ogl_manager, write_to_framebuffer_name, ogl_manager.get_msaa_type());
     }
     else {
-        OpenGLManager::FrameBufferModifier main_frame(ogl_manager, OpenGLManager::s_back_frame);
+        write_to_framebuffer_name = OpenGLManager::s_back_frame;
+        OpenGLManager::FrameBufferModifier main_frame(ogl_manager, write_to_framebuffer_name);
     }
 
 #if ENABLE_RENDER_PICKING_PASS
@@ -2317,7 +2322,7 @@ void GLCanvas3D::render(bool only_init)
     _render_selection_sidebar_hints();
     _render_current_gizmo();
 
-    _composite_main_frame(off_screen_rendering_enabled);
+    _rebuild_postprocessing_pipeline(p_ogl_manager, write_to_framebuffer_name, OpenGLManager::s_back_frame, viewport[2], viewport[3]);
 
 #if ENABLE_RENDER_PICKING_PASS
     }
@@ -2433,69 +2438,9 @@ void GLCanvas3D::render_thumbnail(ThumbnailData &         thumbnail_data,
                                   bool                    for_picking,
                                   bool                    ban_light)
 {
-    const auto& shader = wxGetApp().get_shader("thumbnail");
-    if (!shader) {
-        return;
-    }
-    const auto& ogl_manager = wxGetApp().get_opengl_manager();
-    if (!ogl_manager) {
-        return;
-    }
-    ogl_manager->bind_vao();
-    ogl_manager->bind_shader(shader);
-
     ModelObjectPtrs &model_objects = GUI::wxGetApp().model().objects;
-    render_thumbnail(thumbnail_data, w, h, thumbnail_params, model_objects, m_volumes, camera_type, camera_view_angle_type, for_picking, ban_light);
-
-    ogl_manager->unbind_shader();
-    ogl_manager->unbind_vao();
-}
-
-void GLCanvas3D::render_thumbnail(ThumbnailData &           thumbnail_data,
-                                  unsigned int              w,
-                                  unsigned int              h,
-                                  const ThumbnailsParams &  thumbnail_params,
-                                  ModelObjectPtrs &         model_objects,
-                                  const GLVolumeCollection &volumes,
-                                  Camera::EType             camera_type,
-                                  Camera::ViewAngleType     camera_view_angle_type,
-                                  bool                      for_picking,
-                                  bool                      ban_light)
-{
-    const auto& shader = wxGetApp().get_shader("thumbnail");
-    if (!shader) {
-        return;
-    }
-
-    const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
-    p_ogl_manager->bind_vao();
-    p_ogl_manager->bind_shader(shader);
-
-    std::vector<std::array<float, 4>> colors  = wxGetApp().plater()->get_extruders_colors();
-    const auto fb_type = Slic3r::GUI::OpenGLManager::get_framebuffers_type();
-    BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: %1%") % Slic3r::GUI::OpenGLManager::framebuffer_type_to_string(fb_type).c_str();
-    switch (fb_type)
-    {
-    case OpenGLManager::EFramebufferType::Supported:
-    case OpenGLManager::EFramebufferType::Arb:
-        { render_thumbnail_framebuffer(thumbnail_data, w, h, thumbnail_params, wxGetApp().plater()->get_partplate_list(), model_objects, volumes, colors, shader, camera_type,
-                                     camera_view_angle_type, for_picking, ban_light);
-        break;
-    }
-    case OpenGLManager::EFramebufferType::Ext:
-        { render_thumbnail_framebuffer_ext(thumbnail_data, w, h, thumbnail_params, wxGetApp().plater()->get_partplate_list(), model_objects, volumes, colors, shader, camera_type,
-                                         camera_view_angle_type, for_picking, ban_light);
-        break;
-    }
-    default:{
-        render_thumbnail_legacy(thumbnail_data, w, h, thumbnail_params, wxGetApp().plater()->get_partplate_list(), model_objects, volumes, colors, shader, camera_type,
-                                camera_view_angle_type, for_picking, ban_light);
-        break;
-    }
-    }
-
-    p_ogl_manager->unbind_shader();
-    p_ogl_manager->unbind_vao();
+    std::vector<std::array<float, 4>> colors = wxGetApp().plater()->get_extruders_colors();
+    render_thumbnail(thumbnail_data, colors, w, h, thumbnail_params, model_objects, m_volumes, camera_type, camera_view_angle_type, for_picking, ban_light);
 }
 
 void GLCanvas3D::render_thumbnail(ThumbnailData &                    thumbnail_data,
@@ -2519,25 +2464,8 @@ void GLCanvas3D::render_thumbnail(ThumbnailData &                    thumbnail_d
     p_ogl_manager->bind_vao();
     p_ogl_manager->bind_shader(shader);
 
-    const auto       fb_type = Slic3r::GUI::OpenGLManager::get_framebuffers_type();
-    BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: %1%") % Slic3r::GUI::OpenGLManager::framebuffer_type_to_string(fb_type).c_str();
-    switch (fb_type){
-        case OpenGLManager::EFramebufferType::Supported:
-        case OpenGLManager::EFramebufferType::Arb: {
-            render_thumbnail_framebuffer(thumbnail_data, w, h, thumbnail_params, wxGetApp().plater()->get_partplate_list(), model_objects, volumes, extruder_colors, shader,
-                                         camera_type, camera_view_angle_type, for_picking, ban_light);
-            break;
-        }
-        case OpenGLManager::EFramebufferType::Ext: {
-            render_thumbnail_framebuffer_ext(thumbnail_data, w, h, thumbnail_params, wxGetApp().plater()->get_partplate_list(), model_objects, volumes, extruder_colors, shader,
-                                             camera_type, camera_view_angle_type, for_picking, ban_light);
-            break;
-        }
-        default: {
-            render_thumbnail_legacy(thumbnail_data, w, h, thumbnail_params, wxGetApp().plater()->get_partplate_list(), model_objects, volumes, extruder_colors, shader, camera_type, camera_view_angle_type, for_picking, ban_light);
-            break;
-        }
-    }
+    render_thumbnail_framebuffer(p_ogl_manager, thumbnail_data, w, h, thumbnail_params, wxGetApp().plater()->get_partplate_list(), model_objects, volumes, extruder_colors, shader,
+        camera_type, camera_view_angle_type, for_picking, ban_light);
 
     p_ogl_manager->unbind_shader();
     p_ogl_manager->unbind_vao();
@@ -6327,255 +6255,11 @@ static void debug_output_thumbnail(const ThumbnailData& thumbnail_data)
         }
     }
 
-    image.SaveFile("C:/bambu/test/test.png", wxBITMAP_TYPE_PNG);
+    image.SaveFile("test.png", wxBITMAP_TYPE_PNG);
 }
 #endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
 
-void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params,
-    PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
-                                           const std::shared_ptr<GLShaderProgram>& shader,
-                                           Camera::EType                      camera_type,
-                                           Camera::ViewAngleType              camera_view_angle_type,
-                                           bool                               for_picking,
-                                           bool                               ban_light)
-{
-    //BBS modify visible calc function
-    static std::array<float, 4>       curr_color;
-    static const std::array<float, 4> orange = {0.923f, 0.504f, 0.264f, 1.0f};
-    static const std::array<float, 4> gray   = {0.64f, 0.64f, 0.64f, 1.0f};
-    GLVolumePtrs                      visible_volumes;
-    BoundingBoxf3                     plate_build_volume;
-    if (thumbnail_params.use_plate_box) {
-        int           plate_idx          = thumbnail_params.plate_id;
-        PartPlate *   plate              = partplate_list.get_plate(plate_idx);
-        plate_build_volume = plate->get_build_volume();
-        plate_build_volume.min(0) -= Slic3r::BuildVolume::SceneEpsilon;
-        plate_build_volume.min(1) -= Slic3r::BuildVolume::SceneEpsilon;
-        plate_build_volume.min(2) -= Slic3r::BuildVolume::SceneEpsilon;
-        plate_build_volume.max(0) += Slic3r::BuildVolume::SceneEpsilon;
-        plate_build_volume.max(1) += Slic3r::BuildVolume::SceneEpsilon;
-        plate_build_volume.max(2) += Slic3r::BuildVolume::SceneEpsilon;
-        /*if (m_config != nullptr) {
-            double h = m_config->opt_float("printable_height");
-            plate_build_volume.min(2) = std::min(plate_build_volume.min(2), -h);
-            plate_build_volume.max(2) = std::max(plate_build_volume.max(2), h);
-        }*/
-
-        auto is_visible = [plate_idx, plate_build_volume](const GLVolume &v) {
-            bool ret = v.printable;
-            if (plate_idx >= 0) {
-                bool          contained          = false;
-                BoundingBoxf3 plate_bbox         = plate_build_volume;
-                plate_bbox.min(2)                = -1e10;
-                const BoundingBoxf3 &volume_bbox = v.transformed_convex_hull_bounding_box();
-                if (plate_bbox.contains(volume_bbox) && (volume_bbox.max(2) > 0)) { contained = true; }
-                ret &= contained;
-            } else {
-                ret &= (!v.shader_outside_printer_detection_enabled || !v.is_outside);
-            }
-            return ret;
-        };
-
-        for (GLVolume *vol : volumes.volumes) {
-            if (!vol->is_modifier && !vol->is_wipe_tower && (!thumbnail_params.parts_only || vol->composite_id.volume_id >= 0)) {
-                if (is_visible(*vol)) { visible_volumes.emplace_back(vol); }
-            }
-        }
-        BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail: plate_idx %1% volumes size %2%, shader %3%, use_top_view=%4%, for_picking=%5%") % plate_idx %
-                                       visible_volumes.size() % shader.get() % (int)camera_view_angle_type % for_picking;
-    } else {
-        visible_volumes = volumes.volumes;
-    }
-    //BoundingBoxf3 volumes_box = plate_build_volume;
-    BoundingBoxf3 volumes_box;
-    volumes_box.min.z() = 0;
-    volumes_box.max.z() = 0;
-    if (!visible_volumes.empty()) {
-        for (const GLVolume* vol : visible_volumes) {
-            volumes_box.merge(vol->transformed_bounding_box());
-        }
-    }
-    volumes_box.min.z() = -Slic3r::BuildVolume::SceneEpsilon;
-    double width = volumes_box.max.x() - volumes_box.min.x();
-    double depth = volumes_box.max.y() - volumes_box.min.y();
-    double height = volumes_box.max.z() - volumes_box.min.z();
-    volumes_box.max.x() = volumes_box.max.x() + width * 0.1f;
-    volumes_box.min.x() = volumes_box.min.x() - width * 0.1f;
-    volumes_box.max.y() = volumes_box.max.y() + depth * 0.1f;
-    volumes_box.min.y() = volumes_box.min.y() - depth * 0.1f;
-    volumes_box.max.z() = volumes_box.max.z() + height * 0.2f;
-    volumes_box.min.z() = volumes_box.min.z() - height * 0.2f;
-
-    Camera camera;
-    camera.set_type(camera_type);
-    //BBS modify scene box to plate scene bounding box
-    //plate_build_volume.min(2) = - plate_build_volume.max(2);
-    if (thumbnail_params.use_plate_box) {
-        camera.set_scene_box(plate_build_volume);
-    }
-
-    camera.apply_viewport(0, 0, thumbnail_data.width, thumbnail_data.height);
-
-    //BoundingBoxf3 plate_box = plate->get_bounding_box(false);
-    //plate_box.min.z() = 0.0;
-    //plate_box.max.z() = 0.0;
-
-    if (camera_view_angle_type == Camera::ViewAngleType::Top_Plate) {
-        float center_x = (plate_build_volume.max(0) + plate_build_volume.min(0))/2;
-        float center_y = (plate_build_volume.max(1) + plate_build_volume.min(1))/2;
-        float distance_z = plate_build_volume.max(2) - plate_build_volume.min(2);
-        Vec3d center(center_x, center_y, 0.f);
-        double zoom_ratio, scale_x, scale_y;
-
-        scale_x = ((double)thumbnail_data.width)/(plate_build_volume.max(0) - plate_build_volume.min(0));
-        scale_y = ((double)thumbnail_data.height)/(plate_build_volume.max(1) - plate_build_volume.min(1));
-        zoom_ratio = (scale_x <= scale_y)?scale_x:scale_y;
-        camera.look_at(center + distance_z * Vec3d::UnitZ(), center, Vec3d::UnitY());
-        camera.set_zoom(zoom_ratio);
-        //camera.select_view("top");
-    }
-    else {
-        //camera.zoom_to_box(volumes_box);
-
-        //const Vec3d& target = camera.get_target();
-        //double distance = camera.get_distance();
-        //camera.look_at(target - 0.707 * distance * Vec3d::UnitY() + 0.3 * distance * Vec3d::UnitZ(), target, Vec3d::UnitY() + Vec3d::UnitZ());
-
-        //BBS: use original iso view for thumbnail
-        camera.select_view(camera_view_angle_type);
-        camera.zoom_to_box(volumes_box);
-    }
-
-    if (thumbnail_params.use_plate_box) {
-        camera.apply_projection(plate_build_volume);
-    }
-    else {
-        camera.apply_projection(volumes_box);
-    }
-    //double near_z = -1.0;
-    //double far_z = -1.0;
-    //camera.apply_projection(volumes_box, near_z, far_z);
-
-    //GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
-    if (!shader) {
-        BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail with invalid shader");
-        return;
-    }
-
-    //if (thumbnail_params.transparent_background)
-    if (for_picking)
-        glsafe(::glClearColor(0.f, 0.f, 0.f, 0.f));
-    else {
-        //glsafe(::glClearColor(0.906f, 0.906f, 0.906f, 1.0f));
-        //glsafe(::glClearColor(0.50f, 0.5f, 0.5f, 1.0f));
-        //glsafe(::glClearColor(0.121568f, 0.121568f, 0.121568f, 1.0f));
-        //glsafe(::glClearColor(0.17647f, 0.17647f, 0.17647f, 1.0f));
-        //glsafe(::glClearColor(0.906f, 0.906f, 0.906f, 1.0f));
-        //glsafe(::glClearColor(0.37647f, 0.37647f, 0.37647f, 0.5f)); too lite
-        glsafe(::glClearColor(0.0f, 0.0f, 0.0f, 0.0f));
-    }
-
-    glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-    glsafe(::glEnable(GL_DEPTH_TEST));
-    if (ban_light) {
-        glsafe(::glDisable(GL_BLEND));
-    }
-
-    const auto& view_matrix = camera.get_view_matrix();
-    const auto& projection_matrix = camera.get_projection_matrix();
-    shader->set_uniform("ban_light", ban_light);
-    if (for_picking) {
-        //if (OpenGLManager::can_multisample())
-              // This flag is often ignored by NVIDIA drivers if rendering into a screen buffer.
-        //    glsafe(::glDisable(GL_MULTISAMPLE));
-
-        glsafe(::glDisable(GL_BLEND));
-
-        static const GLfloat INV_255 = 1.0f / 255.0f;
-
-        // do not cull backfaces to show broken geometry, if any
-        glsafe(::glDisable(GL_CULL_FACE));
-
-        for (GLVolume* vol : visible_volumes) {
-            // Object picking mode. Render the object with a color encoding the object index.
-            // we reserve color = (0,0,0) for occluders (as the printbed)
-            // so we shift volumes' id by 1 to get the proper color
-            //BBS: remove the bed picking logic
-            unsigned int id = vol->model_object_ID;
-            //unsigned int id = 1 + volume.second.first;
-            unsigned int r = (id & (0x000000FF << 0)) >> 0;
-            unsigned int g = (id & (0x000000FF << 8)) >> 8;
-            unsigned int b = (id & (0x000000FF << 16)) >> 16;
-            unsigned int a = 0xFF;
-
-            const std::array<float, 4> color{ (GLfloat)r * INV_255, (GLfloat)g * INV_255, (GLfloat)b * INV_255, (GLfloat)a * INV_255 };
-            shader->set_uniform("uniform_color", color);
-
-            bool is_active = vol->is_active;
-            vol->is_active = true;
-            vol->picking   = true;
-
-            const Transform3d matrix = view_matrix * vol->world_matrix();
-            shader->set_uniform("view_model_matrix", matrix);
-            shader->set_uniform("projection_matrix", projection_matrix);
-            shader->set_uniform("normal_matrix", (Matrix3d)matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
-            shader->set_uniform("volume_world_matrix", vol->world_matrix());
-            vol->simple_render(shader,  model_objects, extruder_colors);
-            vol->is_active = is_active;
-            vol->picking   = false;
-        }
-        glsafe(::glEnable(GL_CULL_FACE));
-
-        //if (OpenGLManager::can_multisample())
-        //    glsafe(::glEnable(GL_MULTISAMPLE));
-    }
-    else {
-        shader->set_uniform("emission_factor", 0.1f);
-        for (GLVolume* vol : visible_volumes) {
-            //BBS set render color for thumbnails
-            curr_color[0] = vol->color[0];
-            curr_color[1] = vol->color[1];
-            curr_color[2] = vol->color[2];
-            curr_color[3] = vol->color[3];
-
-            std::array<float, 4> new_color = adjust_color_for_rendering(curr_color);
-            if (ban_light) {
-                new_color[3] =(255 - (vol->extruder_id -1))/255.0f;
-            }
-            shader->set_uniform("uniform_color", new_color);
-            shader->set_uniform("volume_world_matrix", vol->world_matrix());
-            //BBS set all volume to orange
-            //shader->set_uniform("uniform_color", orange);
-            /*if (plate_idx > 0) {
-                shader->set_uniform("uniform_color", orange);
-            }
-            else {
-                shader->set_uniform("uniform_color", (vol->printable && !vol->is_outside) ? orange : gray);
-            }*/
-            // the volume may have been deactivated by an active gizmo
-            bool is_active = vol->is_active;
-            vol->is_active = true;
-            const Transform3d matrix = view_matrix * vol->world_matrix();
-            shader->set_uniform("view_model_matrix", matrix);
-            shader->set_uniform("projection_matrix", projection_matrix);
-            shader->set_uniform("normal_matrix", (Matrix3d)matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
-            vol->simple_render(shader, model_objects, extruder_colors, ban_light);
-            vol->is_active = is_active;
-        }
-    }
-
-    glsafe(::glDisable(GL_DEPTH_TEST));
-
-    //don't render plate in thumbnail
-    //plate->render( false, true, true);
-
-    // restore background color
-    //if (thumbnail_params.transparent_background)
-    //    glsafe(::glClearColor(1.0f, 1.0f, 1.0f, 1.0f));
-    BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail: finished");
-}
-
-void GLCanvas3D::render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
+void GLCanvas3D::render_thumbnail_framebuffer(const std::shared_ptr<OpenGLManager>& p_ogl_manager, ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
     PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
                                               const std::shared_ptr<GLShaderProgram>& shader,
                                               Camera::EType                      camera_type,
@@ -6586,246 +6270,69 @@ void GLCanvas3D::render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, uns
     thumbnail_data.set(w, h);
     if (!thumbnail_data.is_valid())
         return;
-
-    bool multisample = OpenGLManager::can_multisample();
-    if (for_picking)
-        multisample = false;
-    //if (!multisample)
-    //    glsafe(::glEnable(GL_MULTISAMPLE));
-
-    GLint max_samples;
-    glsafe(::glGetIntegerv(GL_MAX_SAMPLES, &max_samples));
-    GLsizei num_samples = max_samples / 2;
-
-    GLuint render_fbo;
-    glsafe(::glGenFramebuffers(1, &render_fbo));
-    glsafe(::glBindFramebuffer(GL_FRAMEBUFFER, render_fbo));
-
-    BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail prepare: w %1%, h %2%, max_samples  %3%, render_fbo %4%") %w %h %max_samples % render_fbo;
-    GLuint render_tex = 0;
-    GLuint render_tex_buffer = 0;
-    if (multisample) {
-        // use renderbuffer instead of texture to avoid the need to use glTexImage2DMultisample which is available only since OpenGL 3.2
-        glsafe(::glGenRenderbuffers(1, &render_tex_buffer));
-        glsafe(::glBindRenderbuffer(GL_RENDERBUFFER, render_tex_buffer));
-        glsafe(::glRenderbufferStorageMultisample(GL_RENDERBUFFER, num_samples, GL_RGBA8, w, h));
-        glsafe(::glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, render_tex_buffer));
-    }
-    else {
-        glsafe(::glGenTextures(1, &render_tex));
-        glsafe(::glBindTexture(GL_TEXTURE_2D, render_tex));
-        glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr));
-        glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-        glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-        glsafe(::glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, render_tex, 0));
-    }
-
-    GLuint render_depth;
-    glsafe(::glGenRenderbuffers(1, &render_depth));
-    glsafe(::glBindRenderbuffer(GL_RENDERBUFFER, render_depth));
-    if (multisample)
-        glsafe(::glRenderbufferStorageMultisample(GL_RENDERBUFFER, num_samples, GL_DEPTH_COMPONENT24, w, h));
-    else
-        glsafe(::glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, w, h));
-
-    glsafe(::glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, render_depth));
-
-    GLenum drawBufs[] = { GL_COLOR_ATTACHMENT0 };
-    glsafe(::glDrawBuffers(1, drawBufs));
-
-    if (::glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
-        render_thumbnail_internal(thumbnail_data, thumbnail_params, partplate_list, model_objects, volumes, extruder_colors, shader, camera_type, camera_view_angle_type,
-                                  for_picking, ban_light);
-
-        if (multisample) {
-            GLuint resolve_fbo;
-            glsafe(::glGenFramebuffers(1, &resolve_fbo));
-            glsafe(::glBindFramebuffer(GL_FRAMEBUFFER, resolve_fbo));
-
-            GLuint resolve_tex;
-            glsafe(::glGenTextures(1, &resolve_tex));
-            glsafe(::glBindTexture(GL_TEXTURE_2D, resolve_tex));
-            glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr));
-            glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-            glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-            glsafe(::glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, resolve_tex, 0));
-
-            glsafe(::glDrawBuffers(1, drawBufs));
-
-            if (::glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
-                glsafe(::glBindFramebuffer(GL_READ_FRAMEBUFFER, render_fbo));
-                glsafe(::glBindFramebuffer(GL_DRAW_FRAMEBUFFER, resolve_fbo));
-                glsafe(::glBlitFramebuffer(0, 0, w, h, 0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_LINEAR));
-
-                glsafe(::glBindFramebuffer(GL_READ_FRAMEBUFFER, resolve_fbo));
-                glsafe(::glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, (void*)thumbnail_data.pixels.data()));
-            }
-
-            glsafe(::glDeleteTextures(1, &resolve_tex));
-            glsafe(::glDeleteFramebuffers(1, &resolve_fbo));
-        }
-        else
-            glsafe(::glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, (void*)thumbnail_data.pixels.data()));
-
-#if ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
-        debug_output_thumbnail(thumbnail_data);
-#endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
-    }
-    else {
-        BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail prepare: GL_FRAMEBUFFER not complete");
-    }
-
-    glsafe(::glBindFramebuffer(GL_FRAMEBUFFER, 0));
-    glsafe(::glDeleteRenderbuffers(1, &render_depth));
-    if (render_tex_buffer != 0)
-        glsafe(::glDeleteRenderbuffers(1, &render_tex_buffer));
-    if (render_tex != 0)
-        glsafe(::glDeleteTextures(1, &render_tex));
-    glsafe(::glDeleteFramebuffers(1, &render_fbo));
-
-    //if (!multisample)
-    //    glsafe(::glDisable(GL_MULTISAMPLE));
-    BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail prepare: finished");
-}
-
-void GLCanvas3D::render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
-    PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
-                                                  const std::shared_ptr<GLShaderProgram>& shader,
-                                                  Camera::EType                      camera_type,
-                                                  Camera::ViewAngleType              camera_view_angle_type,
-                                                  bool                               for_picking,
-                                                  bool                               ban_light)
-{
-    thumbnail_data.set(w, h);
-    if (!thumbnail_data.is_valid())
+    if (!p_ogl_manager) {
         return;
-
-    bool multisample = OpenGLManager::can_multisample();
-    if (for_picking)
-        multisample = false;
-    //if (!multisample)
-    //    glsafe(::glEnable(GL_MULTISAMPLE));
-
-    GLint max_samples;
-    glsafe(::glGetIntegerv(GL_MAX_SAMPLES_EXT, &max_samples));
-    GLsizei num_samples = max_samples / 2;
-
-    GLuint render_fbo;
-    glsafe(::glGenFramebuffersEXT(1, &render_fbo));
-    glsafe(::glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, render_fbo));
-
-    GLuint render_tex = 0;
-    GLuint render_tex_buffer = 0;
-    if (multisample) {
-        // use renderbuffer instead of texture to avoid the need to use glTexImage2DMultisample which is available only since OpenGL 3.2
-        glsafe(::glGenRenderbuffersEXT(1, &render_tex_buffer));
-        glsafe(::glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, render_tex_buffer));
-        glsafe(::glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, num_samples, GL_RGBA8, w, h));
-        glsafe(::glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_EXT, render_tex_buffer));
-    }
-    else {
-        glsafe(::glGenTextures(1, &render_tex));
-        glsafe(::glBindTexture(GL_TEXTURE_2D, render_tex));
-        glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr));
-        glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-        glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-        glsafe(::glFramebufferTexture2D(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, render_tex, 0));
     }
 
-    GLuint render_depth;
-    glsafe(::glGenRenderbuffersEXT(1, &render_depth));
-    glsafe(::glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, render_depth));
-    if (multisample)
-        glsafe(::glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, num_samples, GL_DEPTH_COMPONENT24, w, h));
-    else
-        glsafe(::glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, w, h));
-
-    glsafe(::glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, render_depth));
-
-    GLenum drawBufs[] = { GL_COLOR_ATTACHMENT0 };
-    glsafe(::glDrawBuffers(1, drawBufs));
-
-    if (::glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) == GL_FRAMEBUFFER_COMPLETE_EXT) {
-        render_thumbnail_internal(thumbnail_data, thumbnail_params, partplate_list, model_objects, volumes, extruder_colors, shader, camera_type, camera_view_angle_type,
-                                  for_picking,
-                                  ban_light);
-
-        if (multisample) {
-            GLuint resolve_fbo;
-            glsafe(::glGenFramebuffersEXT(1, &resolve_fbo));
-            glsafe(::glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, resolve_fbo));
-
-            GLuint resolve_tex;
-            glsafe(::glGenTextures(1, &resolve_tex));
-            glsafe(::glBindTexture(GL_TEXTURE_2D, resolve_tex));
-            glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr));
-            glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-            glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-            glsafe(::glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, resolve_tex, 0));
-
-            glsafe(::glDrawBuffers(1, drawBufs));
-
-            if (::glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) == GL_FRAMEBUFFER_COMPLETE_EXT) {
-                glsafe(::glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, render_fbo));
-                glsafe(::glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, resolve_fbo));
-                glsafe(::glBlitFramebufferEXT(0, 0, w, h, 0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_LINEAR));
-
-                glsafe(::glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, resolve_fbo));
-                glsafe(::glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, (void*)thumbnail_data.pixels.data()));
-            }
-
-            glsafe(::glDeleteTextures(1, &resolve_tex));
-            glsafe(::glDeleteFramebuffersEXT(1, &resolve_fbo));
+    std::string thumbnail_fb_name{ "" };
+    const auto fb_type = Slic3r::GUI::OpenGLManager::get_framebuffers_type();
+    BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: %1%") % Slic3r::GUI::OpenGLManager::framebuffer_type_to_string(fb_type).c_str();
+    EMSAAType msaa_type = EMSAAType::Disabled;
+    if (fb_type != OpenGLManager::EFramebufferType::Unknown) {
+        thumbnail_fb_name = "thumbnail_fb";
+        GLint max_samples;
+        glsafe(::glGetIntegerv(GL_MAX_SAMPLES, &max_samples));
+        if (max_samples >= 4) {
+            msaa_type = EMSAAType::X4;
+            BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer msaa type: %1%") % "X4";
         }
-        else
-            glsafe(::glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, (void*)thumbnail_data.pixels.data()));
-
-#if ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
-        debug_output_thumbnail(thumbnail_data);
-#endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
+        else if (max_samples == 2){
+            msaa_type = EMSAAType::X2;
+            BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer msaa type: %1%") % "X2";
+        }
+        else {
+            BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer msaa type: %1%") % "Disabled";
+        }
+    }
+    else if (p_ogl_manager->is_legacy_framebuffer_enabled()) {
+        thumbnail_fb_name = OpenGLManager::s_back_frame;
     }
 
-    glsafe(::glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0));
-    glsafe(::glDeleteRenderbuffersEXT(1, &render_depth));
-    if (render_tex_buffer != 0)
-        glsafe(::glDeleteRenderbuffersEXT(1, &render_tex_buffer));
-    if (render_tex != 0)
-        glsafe(::glDeleteTextures(1, &render_tex));
-    glsafe(::glDeleteFramebuffersEXT(1, &render_fbo));
-
-    //if (!multisample)
-    //    glsafe(::glDisable(GL_MULTISAMPLE));
-}
-
-void GLCanvas3D::render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, PartPlateList &partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors, const std::shared_ptr<GLShaderProgram>& shader, Camera::EType camera_type,
-                                         Camera::ViewAngleType              camera_view_angle_type,
-                                         bool                               for_picking,
-                                         bool                               ban_light)
-{
-    // check that thumbnail size does not exceed the default framebuffer size
-    /*const Size& cnv_size = get_canvas_size();
-    unsigned int cnv_w = (unsigned int)cnv_size.get_width();
-    unsigned int cnv_h = (unsigned int)cnv_size.get_height();
-    if (w > cnv_w || h > cnv_h) {
-        float ratio = std::min((float)cnv_w / (float)w, (float)cnv_h / (float)h);
-        w = (unsigned int)(ratio * (float)w);
-        h = (unsigned int)(ratio * (float)h);
-    }*/
-
-    thumbnail_data.set(w, h);
-    if (!thumbnail_data.is_valid())
+    if (thumbnail_fb_name.empty()) {
         return;
+    }
 
-    render_thumbnail_internal(thumbnail_data, thumbnail_params, partplate_list, model_objects, volumes, extruder_colors, shader, camera_type, camera_view_angle_type, for_picking,
-                              ban_light);
+    {
+        OpenGLManager::FrameBufferModifier thumbnail_fb(*p_ogl_manager, thumbnail_fb_name, msaa_type);
+        thumbnail_fb.set_width(w);
+        thumbnail_fb.set_height(h);
+    }
 
-    glsafe(::glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, (void*)thumbnail_data.pixels.data()));
+    _render_thumbnail_internal(thumbnail_data, thumbnail_params, partplate_list, model_objects, volumes, extruder_colors, shader, camera_type, camera_view_angle_type,
+        for_picking, ban_light);
+
+    std::string write_to_framebuffer_name = thumbnail_fb_name;
+    if (thumbnail_params.post_processing_enabled) {
+         // fxaa pass
+        write_to_framebuffer_name = "thumbnail_fb_aa";
+        _rebuild_postprocessing_pipeline(p_ogl_manager, thumbnail_fb_name, write_to_framebuffer_name, w, h);
+         // end fxaa pass
+    }
+
+    p_ogl_manager->read_pixel(write_to_framebuffer_name, 0, 0, w, h, EPixelFormat::RGBA, EPixelDataType::UByte, (void*)thumbnail_data.pixels.data());
+
+    const auto& p_fb = p_ogl_manager->get_frame_buffer(thumbnail_fb_name);
+    int fb_id = 0;
+    if (p_fb) {
+        fb_id = p_fb->get_gl_id();
+    }
+    BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail prepare: w %1%, h %2%, render_fbo %3%") % w % h % fb_id;
+
 #if ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
     debug_output_thumbnail(thumbnail_data);
 #endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
 
-    // restore the default framebuffer size to avoid flickering on the 3D scene
-    //wxGetApp().plater()->get_camera().apply_viewport(0, 0, cnv_size.get_width(), cnv_size.get_height());
+    BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail prepare: finished");
 }
 
 //BBS: GUI refractor
@@ -7659,9 +7166,9 @@ void GLCanvas3D::_render_background() const
     }
     wxGetApp().bind_shader(p_background_shader);
 
-    m_full_screen_mesh.set_color({ final_bg_color[0], final_bg_color[1], final_bg_color[2], 1.0f});
+    s_full_screen_mesh.set_color({ final_bg_color[0], final_bg_color[1], final_bg_color[2], 1.0f});
 
-    m_full_screen_mesh.render_geometry();
+    s_full_screen_mesh.render_geometry();
 
     wxGetApp().unbind_shader();
 
@@ -10388,7 +9895,7 @@ void GLCanvas3D::_render_silhouette_effect()
         glsafe(::glActiveTexture(GL_TEXTURE0 + stage));
         glsafe(::glBindTexture(GL_TEXTURE_2D, color_texture_id));
 
-        m_full_screen_mesh.render_geometry();
+        s_full_screen_mesh.render_geometry();
 
         wxGetApp().unbind_shader();
         glsafe(::glEnable(GL_DEPTH_TEST));
@@ -10459,7 +9966,7 @@ void GLCanvas3D::_composite_silhouette_effect()
 
     _init_fullscreen_mesh();
 
-    m_full_screen_mesh.render_geometry();
+    s_full_screen_mesh.render_geometry();
 
     wxGetApp().unbind_shader();
 
@@ -10467,9 +9974,9 @@ void GLCanvas3D::_composite_silhouette_effect()
     // BBS: end composite silhouette
 }
 
-void GLCanvas3D::_init_fullscreen_mesh() const
+void GLCanvas3D::_init_fullscreen_mesh()
 {
-    if (m_full_screen_mesh.is_initialized()) {
+    if (s_full_screen_mesh.is_initialized()) {
         return;
     }
     GLModel::Geometry geo;
@@ -10482,59 +9989,64 @@ void GLCanvas3D::_init_fullscreen_mesh() const
 
     geo.add_triangle(0, 1, 2);
 
-    m_full_screen_mesh.init_from(std::move(geo));
+    s_full_screen_mesh.init_from(std::move(geo));
 }
 
-void GLCanvas3D::_composite_main_frame(bool off_screen_rendering_enabled) const
+void GLCanvas3D::_rebuild_postprocessing_pipeline(const std::shared_ptr<OpenGLManager>& p_ogl_manager, const std::string& input_framebuffer_name, std::string& output_framebuffer_name, uint32_t width, uint32_t height)
 {
-    const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+    if (!p_ogl_manager) {
+        return;
+    }
 
-    if (!off_screen_rendering_enabled && !p_ogl_manager->is_fxaa_enabled()) {
+    auto &ogl_manager = *p_ogl_manager;
+    const bool offscreen_rendering = input_framebuffer_name != OpenGLManager::s_back_frame;
+    if (!offscreen_rendering && !ogl_manager.is_fxaa_enabled()) {
         return;
     }
 
     _init_fullscreen_mesh();
 
     uint32_t output_texture_id = UINT32_MAX;
-    if (p_ogl_manager->is_fxaa_enabled()) {
-        if (!off_screen_rendering_enabled) {
+    if (ogl_manager.is_fxaa_enabled()) {
+        if (!offscreen_rendering) {
             {
-                OpenGLManager::FrameBufferModifier fxaa_frame(*p_ogl_manager, "fxaaframe_temp", EMSAAType::Disabled);
+                OpenGLManager::FrameBufferModifier fxaa_frame(ogl_manager, "fxaaframe_temp", EMSAAType::Disabled);
+                fxaa_frame.set_width(width)
+                    .set_height(height);
             }
 
             p_ogl_manager->blit_framebuffer(OpenGLManager::s_back_frame, "fxaaframe_temp");
         }
 
         {
-            OpenGLManager::FrameBufferModifier fxaa_frame(*p_ogl_manager, "fxaaframe", EMSAAType::Disabled);
+            OpenGLManager::FrameBufferModifier fxaa_frame(ogl_manager, "fxaaframe", EMSAAType::Disabled);
+            fxaa_frame.set_width(width)
+                .set_height(height);
         }
 
         // BBS: composite main frame
         glsafe(::glDisable(GL_DEPTH_TEST));
         glsafe(::glDisable(GL_BLEND));
 
-        const auto& p_main_frame_buffer = p_ogl_manager->get_frame_buffer(off_screen_rendering_enabled ? "mainframe" : "fxaaframe_temp");
+        const auto& p_main_frame_buffer = ogl_manager.get_frame_buffer(offscreen_rendering ? input_framebuffer_name : "fxaaframe_temp");
         if (p_main_frame_buffer) {
             output_texture_id = p_main_frame_buffer->get_color_texture();
             if (p_main_frame_buffer->is_texture_valid(output_texture_id)) {
-                const auto& p_fxaa_shader = wxGetApp().get_shader("fxaa");
+                const auto& p_fxaa_shader = p_ogl_manager->get_shader("fxaa");
                 if (p_fxaa_shader) {
-                    wxGetApp().bind_shader(p_fxaa_shader);
+                    p_ogl_manager->bind_shader(p_fxaa_shader);
 
                     const int stage = 0;
                     p_fxaa_shader->set_uniform("u_sampler", stage);
                     glsafe(::glActiveTexture(GL_TEXTURE0 + stage));
                     glsafe(::glBindTexture(GL_TEXTURE_2D, output_texture_id));
 
-                    uint32_t viewport_width = 0;
-                    uint32_t viewport_height = 0;
-                    p_ogl_manager->get_viewport_size(viewport_width, viewport_height);
-                    const std::array<float, 4> viewport_size{ static_cast<float>(viewport_width), static_cast<float>(viewport_height), 1.0f / viewport_width, 1.0f / viewport_height };
+                    const std::array<float, 4> viewport_size{ static_cast<float>(width), static_cast<float>(height), 1.0f / width, 1.0f / height };
                     p_fxaa_shader->set_uniform("u_viewport_size", viewport_size);
 
-                    m_full_screen_mesh.render_geometry();
+                    s_full_screen_mesh.render_geometry();
 
-                    wxGetApp().unbind_shader();
+                    p_ogl_manager->unbind_shader();
 
                     const auto& p_fxaa_frame_buffer = p_ogl_manager->get_frame_buffer("fxaaframe");
                     if (p_fxaa_frame_buffer) {
@@ -10556,33 +10068,35 @@ void GLCanvas3D::_composite_main_frame(bool off_screen_rendering_enabled) const
             }
         }
     }
-    else if (off_screen_rendering_enabled) {
-        const auto& p_main_frame_buffer = p_ogl_manager->get_frame_buffer("mainframe");
+    else if (offscreen_rendering) {
+        const auto& p_main_frame_buffer = ogl_manager.get_frame_buffer(input_framebuffer_name);
         if (p_main_frame_buffer) {
             output_texture_id = p_main_frame_buffer->get_color_texture();
         }
     }
 
     {
-        OpenGLManager::FrameBufferModifier fxaa_frame(*p_ogl_manager, OpenGLManager::s_back_frame);
+        OpenGLManager::FrameBufferModifier output_frame(ogl_manager, output_framebuffer_name);
+        output_frame.set_width(width)
+            .set_height(height);
     }
 
-    const auto& p_mainframe_composite_shader = wxGetApp().get_shader("mainframe_composite");
+    const auto& p_mainframe_composite_shader = p_ogl_manager->get_shader("mainframe_composite");
     if (!p_mainframe_composite_shader)
     {
         BOOST_LOG_TRIVIAL(error) << "Invalid mainframe composite shader. Failed to composite main frame.";
         return;
     }
-    wxGetApp().bind_shader(p_mainframe_composite_shader);
+    p_ogl_manager->bind_shader(p_mainframe_composite_shader);
 
     const int stage = 0;
     p_mainframe_composite_shader->set_uniform("u_sampler", stage);
     glsafe(::glActiveTexture(GL_TEXTURE0 + stage));
     glsafe(::glBindTexture(GL_TEXTURE_2D, output_texture_id));
 
-    m_full_screen_mesh.render_geometry();
+    s_full_screen_mesh.render_geometry();
 
-    wxGetApp().unbind_shader();
+    p_ogl_manager->unbind_shader();
 
     // BBS: end composite mainframe
 }
@@ -10725,6 +10239,253 @@ void GLCanvas3D::_init_unit_cube()
 void GLCanvas3D::_append_to_frame_callback(const FrameCallback& cb)
 {
     m_frame_callback_list.emplace_back(cb);
+}
+
+void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params,
+    PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
+    const std::shared_ptr<GLShaderProgram>& shader,
+    Camera::EType                      camera_type,
+    Camera::ViewAngleType              camera_view_angle_type,
+    bool                               for_picking,
+    bool                               ban_light)
+{
+    //BBS modify visible calc function
+    static std::array<float, 4>       curr_color;
+    static const std::array<float, 4> orange = { 0.923f, 0.504f, 0.264f, 1.0f };
+    static const std::array<float, 4> gray = { 0.64f, 0.64f, 0.64f, 1.0f };
+    GLVolumePtrs                      visible_volumes;
+    BoundingBoxf3                     plate_build_volume;
+    if (thumbnail_params.use_plate_box) {
+        int           plate_idx = thumbnail_params.plate_id;
+        PartPlate* plate = partplate_list.get_plate(plate_idx);
+        plate_build_volume = plate->get_build_volume();
+        plate_build_volume.min(0) -= Slic3r::BuildVolume::SceneEpsilon;
+        plate_build_volume.min(1) -= Slic3r::BuildVolume::SceneEpsilon;
+        plate_build_volume.min(2) -= Slic3r::BuildVolume::SceneEpsilon;
+        plate_build_volume.max(0) += Slic3r::BuildVolume::SceneEpsilon;
+        plate_build_volume.max(1) += Slic3r::BuildVolume::SceneEpsilon;
+        plate_build_volume.max(2) += Slic3r::BuildVolume::SceneEpsilon;
+        /*if (m_config != nullptr) {
+            double h = m_config->opt_float("printable_height");
+            plate_build_volume.min(2) = std::min(plate_build_volume.min(2), -h);
+            plate_build_volume.max(2) = std::max(plate_build_volume.max(2), h);
+        }*/
+
+        auto is_visible = [plate_idx, plate_build_volume](const GLVolume& v) {
+            bool ret = v.printable;
+            if (plate_idx >= 0) {
+                bool          contained = false;
+                BoundingBoxf3 plate_bbox = plate_build_volume;
+                plate_bbox.min(2) = -1e10;
+                const BoundingBoxf3& volume_bbox = v.transformed_convex_hull_bounding_box();
+                if (plate_bbox.contains(volume_bbox) && (volume_bbox.max(2) > 0)) { contained = true; }
+                ret &= contained;
+            }
+            else {
+                ret &= (!v.shader_outside_printer_detection_enabled || !v.is_outside);
+            }
+            return ret;
+            };
+
+        for (GLVolume* vol : volumes.volumes) {
+            if (!vol->is_modifier && !vol->is_wipe_tower && (!thumbnail_params.parts_only || vol->composite_id.volume_id >= 0)) {
+                if (is_visible(*vol)) { visible_volumes.emplace_back(vol); }
+            }
+        }
+        BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail: plate_idx %1% volumes size %2%, shader %3%, use_top_view=%4%, for_picking=%5%") % plate_idx %
+            visible_volumes.size() % shader.get() % (int)camera_view_angle_type % for_picking;
+    }
+    else {
+        visible_volumes = volumes.volumes;
+    }
+    //BoundingBoxf3 volumes_box = plate_build_volume;
+    BoundingBoxf3 volumes_box;
+    volumes_box.min.z() = 0;
+    volumes_box.max.z() = 0;
+    if (!visible_volumes.empty()) {
+        for (const GLVolume* vol : visible_volumes) {
+            volumes_box.merge(vol->transformed_bounding_box());
+        }
+    }
+    volumes_box.min.z() = -Slic3r::BuildVolume::SceneEpsilon;
+    double width = volumes_box.max.x() - volumes_box.min.x();
+    double depth = volumes_box.max.y() - volumes_box.min.y();
+    double height = volumes_box.max.z() - volumes_box.min.z();
+    volumes_box.max.x() = volumes_box.max.x() + width * 0.1f;
+    volumes_box.min.x() = volumes_box.min.x() - width * 0.1f;
+    volumes_box.max.y() = volumes_box.max.y() + depth * 0.1f;
+    volumes_box.min.y() = volumes_box.min.y() - depth * 0.1f;
+    volumes_box.max.z() = volumes_box.max.z() + height * 0.2f;
+    volumes_box.min.z() = volumes_box.min.z() - height * 0.2f;
+
+    Camera camera;
+    camera.set_type(camera_type);
+    //BBS modify scene box to plate scene bounding box
+    //plate_build_volume.min(2) = - plate_build_volume.max(2);
+    if (thumbnail_params.use_plate_box) {
+        camera.set_scene_box(plate_build_volume);
+    }
+
+    camera.apply_viewport(0, 0, thumbnail_data.width, thumbnail_data.height);
+
+    //BoundingBoxf3 plate_box = plate->get_bounding_box(false);
+    //plate_box.min.z() = 0.0;
+    //plate_box.max.z() = 0.0;
+
+    if (camera_view_angle_type == Camera::ViewAngleType::Top_Plate) {
+        float center_x = (plate_build_volume.max(0) + plate_build_volume.min(0)) / 2;
+        float center_y = (plate_build_volume.max(1) + plate_build_volume.min(1)) / 2;
+        float distance_z = plate_build_volume.max(2) - plate_build_volume.min(2);
+        Vec3d center(center_x, center_y, 0.f);
+        double zoom_ratio, scale_x, scale_y;
+
+        scale_x = ((double)thumbnail_data.width) / (plate_build_volume.max(0) - plate_build_volume.min(0));
+        scale_y = ((double)thumbnail_data.height) / (plate_build_volume.max(1) - plate_build_volume.min(1));
+        zoom_ratio = (scale_x <= scale_y) ? scale_x : scale_y;
+        camera.look_at(center + distance_z * Vec3d::UnitZ(), center, Vec3d::UnitY());
+        camera.set_zoom(zoom_ratio);
+        //camera.select_view("top");
+    }
+    else {
+        //camera.zoom_to_box(volumes_box);
+
+        //const Vec3d& target = camera.get_target();
+        //double distance = camera.get_distance();
+        //camera.look_at(target - 0.707 * distance * Vec3d::UnitY() + 0.3 * distance * Vec3d::UnitZ(), target, Vec3d::UnitY() + Vec3d::UnitZ());
+
+        //BBS: use original iso view for thumbnail
+        camera.select_view(camera_view_angle_type);
+        camera.zoom_to_box(volumes_box);
+    }
+
+    if (thumbnail_params.use_plate_box) {
+        camera.apply_projection(plate_build_volume);
+    }
+    else {
+        camera.apply_projection(volumes_box);
+    }
+    //double near_z = -1.0;
+    //double far_z = -1.0;
+    //camera.apply_projection(volumes_box, near_z, far_z);
+
+    //GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
+    if (!shader) {
+        BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail with invalid shader");
+        return;
+    }
+
+    //if (thumbnail_params.transparent_background)
+    if (for_picking)
+        glsafe(::glClearColor(0.f, 0.f, 0.f, 0.f));
+    else {
+        const auto& bg_color = thumbnail_params.background_color;
+        glsafe(::glClearColor(bg_color.x(), bg_color.y(), bg_color.z(), bg_color.w()));
+        //glsafe(::glClearColor(0.50f, 0.5f, 0.5f, 1.0f));
+        //glsafe(::glClearColor(0.121568f, 0.121568f, 0.121568f, 1.0f));
+        //glsafe(::glClearColor(0.17647f, 0.17647f, 0.17647f, 1.0f));
+        //glsafe(::glClearColor(0.906f, 0.906f, 0.906f, 1.0f));
+        //glsafe(::glClearColor(0.37647f, 0.37647f, 0.37647f, 0.5f)); too lite
+        //glsafe(::glClearColor(0.0f, 0.0f, 0.0f, 0.0f));
+    }
+
+    glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+    glsafe(::glEnable(GL_DEPTH_TEST));
+    if (ban_light) {
+        glsafe(::glDisable(GL_BLEND));
+    }
+
+    const auto& view_matrix = camera.get_view_matrix();
+    const auto& projection_matrix = camera.get_projection_matrix();
+    shader->set_uniform("ban_light", ban_light);
+    if (for_picking) {
+        //if (OpenGLManager::can_multisample())
+              // This flag is often ignored by NVIDIA drivers if rendering into a screen buffer.
+        //    glsafe(::glDisable(GL_MULTISAMPLE));
+
+        glsafe(::glDisable(GL_BLEND));
+
+        static const GLfloat INV_255 = 1.0f / 255.0f;
+
+        // do not cull backfaces to show broken geometry, if any
+        glsafe(::glDisable(GL_CULL_FACE));
+
+        for (GLVolume* vol : visible_volumes) {
+            // Object picking mode. Render the object with a color encoding the object index.
+            // we reserve color = (0,0,0) for occluders (as the printbed)
+            // so we shift volumes' id by 1 to get the proper color
+            //BBS: remove the bed picking logic
+            unsigned int id = vol->model_object_ID;
+            //unsigned int id = 1 + volume.second.first;
+            unsigned int r = (id & (0x000000FF << 0)) >> 0;
+            unsigned int g = (id & (0x000000FF << 8)) >> 8;
+            unsigned int b = (id & (0x000000FF << 16)) >> 16;
+            unsigned int a = 0xFF;
+
+            const std::array<float, 4> color{ (GLfloat)r * INV_255, (GLfloat)g * INV_255, (GLfloat)b * INV_255, (GLfloat)a * INV_255 };
+            shader->set_uniform("uniform_color", color);
+
+            bool is_active = vol->is_active;
+            vol->is_active = true;
+            vol->picking = true;
+
+            const Transform3d matrix = view_matrix * vol->world_matrix();
+            shader->set_uniform("view_model_matrix", matrix);
+            shader->set_uniform("projection_matrix", projection_matrix);
+            shader->set_uniform("normal_matrix", (Matrix3d)matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
+            shader->set_uniform("volume_world_matrix", vol->world_matrix());
+            vol->simple_render(shader, model_objects, extruder_colors);
+            vol->is_active = is_active;
+            vol->picking = false;
+        }
+        glsafe(::glEnable(GL_CULL_FACE));
+
+        //if (OpenGLManager::can_multisample())
+        //    glsafe(::glEnable(GL_MULTISAMPLE));
+    }
+    else {
+        shader->set_uniform("emission_factor", 0.1f);
+        for (GLVolume* vol : visible_volumes) {
+            //BBS set render color for thumbnails
+            curr_color[0] = vol->color[0];
+            curr_color[1] = vol->color[1];
+            curr_color[2] = vol->color[2];
+            curr_color[3] = vol->color[3];
+
+            std::array<float, 4> new_color = adjust_color_for_rendering(curr_color);
+            if (ban_light) {
+                new_color[3] = (255 - (vol->extruder_id - 1)) / 255.0f;
+            }
+            shader->set_uniform("uniform_color", new_color);
+            shader->set_uniform("volume_world_matrix", vol->world_matrix());
+            //BBS set all volume to orange
+            //shader->set_uniform("uniform_color", orange);
+            /*if (plate_idx > 0) {
+                shader->set_uniform("uniform_color", orange);
+            }
+            else {
+                shader->set_uniform("uniform_color", (vol->printable && !vol->is_outside) ? orange : gray);
+            }*/
+            // the volume may have been deactivated by an active gizmo
+            bool is_active = vol->is_active;
+            vol->is_active = true;
+            const Transform3d matrix = view_matrix * vol->world_matrix();
+            shader->set_uniform("view_model_matrix", matrix);
+            shader->set_uniform("projection_matrix", projection_matrix);
+            shader->set_uniform("normal_matrix", (Matrix3d)matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
+            vol->simple_render(shader, model_objects, extruder_colors, ban_light);
+            vol->is_active = is_active;
+        }
+    }
+
+    glsafe(::glDisable(GL_DEPTH_TEST));
+
+    //don't render plate in thumbnail
+    //plate->render( false, true, true);
+
+    // restore background color
+    //if (thumbnail_params.transparent_background)
+    //    glsafe(::glClearColor(1.0f, 1.0f, 1.0f, 1.0f));
+    BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail: finished");
 }
 
 void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)

@@ -45,9 +45,16 @@ enum class EPixelDataType : uint16_t
     Float
 };
 
+struct FrameBufferParams
+{
+    uint32_t m_width{ 0 };
+    uint32_t m_height{ 0 };
+    EMSAAType m_msaa_type{ EMSAAType::Disabled };
+};
+
 struct FrameBuffer
 {
-    FrameBuffer(uint32_t width, uint32_t height, EMSAAType msaa_type);
+    FrameBuffer(const FrameBufferParams& params);
     ~FrameBuffer();
 
     void bind();
@@ -61,6 +68,13 @@ struct FrameBuffer
 
     void read_pixel(uint32_t x, uint32_t y, uint32_t width, uint32_t height, EPixelFormat format, EPixelDataType type, void* pixels);
 
+    uint32_t get_height() const;
+
+    uint32_t get_width() const;
+
+    EMSAAType get_msaa_type() const;
+
+    bool is_format_equal(const FrameBufferParams& params) const;
 private:
     enum EBlitOptionType
     {
@@ -74,6 +88,7 @@ private:
     void create_msaa_fbo();
     bool check_frame_buffer_status() const;
     void resolve();
+    void mark_needs_to_resolve();
 private:
     uint32_t m_width{ 0 };
     uint32_t m_height{ 0 };
@@ -201,6 +216,7 @@ private:
     EMSAAType m_msaa_type{ EMSAAType::X4 };
     EVAOType m_vao_type{ EVAOType::Unknown };
     uint32_t m_vao{ 0 };
+    bool m_b_legacy_framebuffer_enabled{ true };
     static GLInfo s_gl_info;
 #ifdef __APPLE__
     // Part of hack to remove crash when closing the application on OSX 10.9.5 when building against newer wxWidgets
@@ -235,6 +251,8 @@ public:
     void unbind_vao();
     void release_vao();
     void set_line_width(float width) const;
+    void set_legacy_framebuffer_enabled(bool is_enabled);
+    bool is_legacy_framebuffer_enabled() const;
 
     void set_msaa_type(const std::string& type);
     void set_msaa_type(EMSAAType type);

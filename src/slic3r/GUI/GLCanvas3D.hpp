@@ -681,7 +681,7 @@ private:
     int assembly_view_count = 0;
 
     std::stack<ERenderPipelineStage> m_render_pipeline_stage_stack;
-    mutable GLModel m_full_screen_mesh;
+    static GLModel s_full_screen_mesh;
 
     using FrameCallback = std::function<void()>;
     std::vector<FrameCallback> m_frame_callback_list;
@@ -930,16 +930,6 @@ public:
                                  bool                    for_picking  = false,
                                  bool                    ban_light    = false);
     void render_thumbnail(ThumbnailData &           thumbnail_data,
-                                 unsigned int              w,
-                                 unsigned int              h,
-                                 const ThumbnailsParams &  thumbnail_params,
-                                 ModelObjectPtrs &         model_objects,
-                                 const GLVolumeCollection &volumes,
-                                 Camera::EType             camera_type,
-                                 Camera::ViewAngleType     camera_view_angle_type = Camera::ViewAngleType::Iso,
-                                 bool                      for_picking  = false,
-                                 bool                      ban_light    = false);
-    void render_thumbnail(ThumbnailData &           thumbnail_data,
                                  std::vector<std::array<float, 4>> &extruder_colors,
                                  unsigned int              w,
                                  unsigned int              h,
@@ -950,44 +940,15 @@ public:
                                  Camera::ViewAngleType     camera_view_angle_type = Camera::ViewAngleType::Iso,
                                  bool                      for_picking  = false,
                                  bool                      ban_light    = false);
-    static void render_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, ModelObjectPtrs& model_objects,
-        const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
-                                          const std::shared_ptr<GLShaderProgram>& shader,
-                                          Camera::EType                      camera_type,
-                                          Camera::ViewAngleType              camera_view_angle_type = Camera::ViewAngleType::Iso,
-                                          bool                               for_picking  = false,
-                                          bool                               ban_light    = false);
+
     // render thumbnail using an off-screen framebuffer
-    static void render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
+    static void render_thumbnail_framebuffer(const std::shared_ptr<OpenGLManager>& p_ogl_manager, ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
         PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
                                              const std::shared_ptr<GLShaderProgram>& shader,
                                              Camera::EType                      camera_type,
                                              Camera::ViewAngleType              camera_view_angle_type = Camera::ViewAngleType::Iso,
                                              bool                               for_picking  = false,
                                              bool                               ban_light    = false);
-    // render thumbnail using an off-screen framebuffer when GLEW_EXT_framebuffer_object is supported
-    static void render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
-        PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
-                                                 const std::shared_ptr<GLShaderProgram>& shader,
-                                                 Camera::EType                      camera_type,
-                                                 Camera::ViewAngleType              camera_view_angle_type = Camera::ViewAngleType::Iso,
-                                                 bool                               for_picking  = false,
-                                                 bool                               ban_light    = false);
-
-    // render thumbnail using the default framebuffer
-    static void render_thumbnail_legacy(ThumbnailData &                    thumbnail_data,
-                                 unsigned int                       w,
-                                 unsigned int                       h,
-                                 const ThumbnailsParams &           thumbnail_params,
-                                 PartPlateList &                    partplate_list,
-                                 ModelObjectPtrs &                  model_objects,
-                                 const GLVolumeCollection &         volumes,
-                                 std::vector<std::array<float, 4>> &extruder_colors,
-                                 const std::shared_ptr<GLShaderProgram>& shader,
-                                 Camera::EType                      camera_type,
-                                 Camera::ViewAngleType              camera_view_angle_type = Camera::ViewAngleType::Iso,
-                                 bool                               for_picking  = false,
-                                 bool                               ban_light = false);
 
     //BBS use gcoder viewer render calibration thumbnails
     void render_calibration_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params);
@@ -1331,10 +1292,6 @@ private:
     void _render_silhouette_effect();
     void _composite_silhouette_effect();
 
-    void _init_fullscreen_mesh() const;
-
-    void _composite_main_frame(bool off_screen_rendering_enabled) const;
-
     void _debug_draw_camera(const Camera& t_camera);
 
     void _debug_draw_aabb();
@@ -1342,6 +1299,18 @@ private:
     void _init_unit_cube();
 
     void _append_to_frame_callback(const FrameCallback& cb);
+
+    static void _init_fullscreen_mesh();
+
+    static void _rebuild_postprocessing_pipeline(const std::shared_ptr<OpenGLManager>& p_ogl_manager, const std::string& input_framebuffer_name, std::string& output_framebuffer_name, uint32_t width, uint32_t height);
+
+    static void _render_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, ModelObjectPtrs& model_objects,
+        const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
+        const std::shared_ptr<GLShaderProgram>& shader,
+        Camera::EType                      camera_type,
+        Camera::ViewAngleType              camera_view_angle_type = Camera::ViewAngleType::Iso,
+        bool                               for_picking = false,
+        bool                               ban_light = false);
 };
 
 const ModelVolume *get_model_volume(const GLVolume &v, const Model &model);
