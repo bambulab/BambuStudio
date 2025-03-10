@@ -1360,30 +1360,10 @@ bool CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &f
             }
         }
 
-        const auto fb_type = Slic3r::GUI::OpenGLManager::get_framebuffers_type();
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": framebuffer_type: %1%") % Slic3r::GUI::OpenGLManager::framebuffer_type_to_string(fb_type).c_str();
-        switch (fb_type)
-        {
-            case Slic3r::GUI::OpenGLManager::EFramebufferType::Supported:
-            case Slic3r::GUI::OpenGLManager::EFramebufferType::Arb:
-            {
-                Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer(*thumbnail_data,
-                   thumbnail_width, thumbnail_height, thumbnail_params,
-                   partplate_list, model->objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho);
-                break;
-            }
-            case Slic3r::GUI::OpenGLManager::EFramebufferType::Ext:
-            {
-                Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer_ext(*thumbnail_data,
-                   thumbnail_width, thumbnail_height, thumbnail_params,
-                   partplate_list, model->objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho);
-                break;
-            }
-            default:{
-                Slic3r::GUI::GLCanvas3D::render_thumbnail_legacy(*thumbnail_data, thumbnail_width, thumbnail_height, thumbnail_params, partplate_list, model->objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho);
-                break;
-            }
-        }
+        const auto& p_ogl_manager = Slic3r::GUI::wxGetApp().get_opengl_manager();
+        Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer(p_ogl_manager, *thumbnail_data,
+            thumbnail_width, thumbnail_height, thumbnail_params,
+            partplate_list, model->objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho);
         thumbnails.push_back(thumbnail_data);
     }
 

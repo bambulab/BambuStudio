@@ -12061,9 +12061,13 @@ void Plater::update_all_plate_thumbnails(bool force_update)
         PartPlate* plate = get_partplate_list().get_plate(i);
         ThumbnailsParams thumbnail_params = { {}, false, true, true, true, i};
         if (force_update || !plate->thumbnail_data.is_valid()) {
+            thumbnail_params.background_color = Vec4f(0.0f, 0.0f, 0.0f, 0.0f);
+            thumbnail_params.post_processing_enabled = true;
             get_view3D_canvas3D()->render_thumbnail(plate->thumbnail_data, plate->plate_thumbnail_width, plate->plate_thumbnail_height, thumbnail_params, Camera::EType::Ortho);
         }
         if (force_update || !plate->no_light_thumbnail_data.is_valid()) {
+            thumbnail_params.background_color = Vec4f(0.0f, 0.0f, 0.0f, 0.0f);
+            thumbnail_params.post_processing_enabled = true;
             get_view3D_canvas3D()->render_thumbnail(plate->no_light_thumbnail_data, plate->plate_thumbnail_width, plate->plate_thumbnail_height, thumbnail_params,
                                                     Camera::EType::Ortho, Camera::ViewAngleType::Iso, false, true);
         }
