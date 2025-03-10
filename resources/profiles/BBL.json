@@ -914,10 +914,6 @@
             "sub_path": "filament/SUNLU/SUNLU Wood PLA @base.json"
         },
         {
-            "name": "SUNLU PETG @base",
-            "sub_path": "filament/SUNLU/SUNLU PETG @base.json"
-        },
-        {
             "name": "eSUN PLA+ @base",
             "sub_path": "filament/eSUN PLA+ @base.json"
         },
@@ -990,6 +986,10 @@
             "sub_path": "filament/Bambu PLA Silk+ @base.json"
         },
         {
+            "name": "Bambu PLA Lite @base",
+            "sub_path": "filament/Bambu PLA Lite @base.json"
+        },
+        {
             "name": "Bambu TPU 95A @base",
             "sub_path": "filament/Bambu TPU 95A @base.json"
         },
@@ -1020,6 +1020,10 @@
         {
             "name": "Generic TPU @BBL H2D",
             "sub_path": "filament/Generic TPU @BBL H2D.json"
+        },
+        {
+            "name": "SUNLU PETG @base",
+            "sub_path": "filament/SUNLU/SUNLU PETG @base.json"
         },
         {
             "name": "Bambu PETG Basic @base",
@@ -1102,13 +1106,10 @@
             "sub_path": "filament/Bambu PC FR @base.json"
         },
         {
-<<<<<<< HEAD
-=======
             "name": "Generic PCTG @base",
             "sub_path": "filament/Generic PCTG @base.json"
         },
         {
->>>>>>> 70d53fa220 (ENH: add profiles for H2D)
             "name": "Generic ASA @base",
             "sub_path": "filament/Generic ASA @base.json"
         },
@@ -1581,7 +1582,14 @@
             "sub_path": "filament/Bambu Support W @BBL A1 0.2 nozzle.json"
         },
         {
-<<<<<<< HEAD
+            "name": "Bambu Support W @BBL H2D",
+            "sub_path": "filament/Bambu Support W @BBL H2D.json"
+        },
+        {
+            "name": "Bambu Support W @BBL H2D 0.2 nozzle",
+            "sub_path": "filament/Bambu Support W @BBL H2D 0.2 nozzle.json"
+        },
+        {
             "name": "SUNLU PLA Matte @BBL X1C",
             "sub_path": "filament/SUNLU/SUNLU PLA Matte @BBL X1C.json"
         },
@@ -1764,46 +1772,6 @@
         {
             "name": "SUNLU Wood PLA @BBL A1",
             "sub_path": "filament/SUNLU/SUNLU Wood PLA @BBL A1.json"
-        },
-        {
-            "name": "SUNLU PETG @BBL X1C",
-            "sub_path": "filament/SUNLU/SUNLU PETG @BBL X1C.json"
-        },
-        {
-            "name": "SUNLU PETG @BBL X1C 0.2 nozzle",
-            "sub_path": "filament/SUNLU/SUNLU PETG @BBL X1C 0.2 nozzle.json"
-        },
-        {
-            "name": "SUNLU PETG @BBL X1C 0.8 nozzle",
-            "sub_path": "filament/SUNLU/SUNLU PETG @BBL X1C 0.8 nozzle.json"
-        },
-        {
-            "name": "SUNLU PETG @BBL A1M",
-            "sub_path": "filament/SUNLU/SUNLU PETG @BBL A1M.json"
-        },
-        {
-            "name": "SUNLU PETG @BBL A1M 0.2 nozzle",
-            "sub_path": "filament/SUNLU/SUNLU PETG @BBL A1M 0.2 nozzle.json"
-        },
-        {
-            "name": "SUNLU PETG @BBL A1",
-            "sub_path": "filament/SUNLU/SUNLU PETG @BBL A1.json"
-        },
-        {
-            "name": "SUNLU PETG @BBL A1 0.2 nozzle",
-            "sub_path": "filament/SUNLU/SUNLU PETG @BBL A1 0.2 nozzle.json"
-        },
-        {
-            "name": "SUNLU PETG @BBL A1 0.8 nozzle",
-            "sub_path": "filament/SUNLU/SUNLU PETG @BBL A1 0.8 nozzle.json"
-=======
-            "name": "Bambu Support W @BBL H2D",
-            "sub_path": "filament/Bambu Support W @BBL H2D.json"
-        },
-        {
-            "name": "Bambu Support W @BBL H2D 0.2 nozzle",
-            "sub_path": "filament/Bambu Support W @BBL H2D 0.2 nozzle.json"
->>>>>>> 70d53fa220 (ENH: add profiles for H2D)
         },
         {
             "name": "eSUN PLA+ @BBL X1C",
@@ -2426,6 +2394,42 @@
             "sub_path": "filament/Bambu PLA Silk+ @BBL H2D 0.2 nozzle.json"
         },
         {
+            "name": "Bambu PLA Lite @BBL X1C",
+            "sub_path": "filament/Bambu PLA Lite @BBL X1C.json"
+        },
+        {
+            "name": "Bambu PLA Lite @BBL X1C 0.2 nozzle",
+            "sub_path": "filament/Bambu PLA Lite @BBL X1C 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Lite @BBL X1C 0.8 nozzle",
+            "sub_path": "filament/Bambu PLA Lite @BBL X1C 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Lite @BBL P1P",
+            "sub_path": "filament/Bambu PLA Lite @BBL P1P.json"
+        },
+        {
+            "name": "Bambu PLA Lite @BBL P1P 0.2 nozzle",
+            "sub_path": "filament/Bambu PLA Lite @BBL P1P 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Lite @BBL A1",
+            "sub_path": "filament/Bambu PLA Lite @BBL A1.json"
+        },
+        {
+            "name": "Bambu PLA Lite @BBL A1 0.2 nozzle",
+            "sub_path": "filament/Bambu PLA Lite @BBL A1 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Lite @BBL A1M",
+            "sub_path": "filament/Bambu PLA Lite @BBL A1M.json"
+        },
+        {
+            "name": "Bambu PLA Lite @BBL A1M 0.2 nozzle",
+            "sub_path": "filament/Bambu PLA Lite @BBL A1M 0.2 nozzle.json"
+        },
+        {
             "name": "Bambu TPU 95A @BBL X1C",
             "sub_path": "filament/Bambu TPU 95A @BBL X1C.json"
         },
@@ -2540,6 +2544,30 @@
         {
             "name": "Bambu TPU for AMS @BBL H2D",
             "sub_path": "filament/Bambu TPU for AMS @BBL H2D.json"
+        },
+        {
+            "name": "SUNLU PETG @BBL X1C",
+            "sub_path": "filament/SUNLU/SUNLU PETG @BBL X1C.json"
+        },
+        {
+            "name": "SUNLU PETG @BBL X1C 0.2 nozzle",
+            "sub_path": "filament/SUNLU/SUNLU PETG @BBL X1C 0.2 nozzle.json"
+        },
+        {
+            "name": "SUNLU PETG @BBL X1C 0.8 nozzle",
+            "sub_path": "filament/SUNLU/SUNLU PETG @BBL X1C 0.8 nozzle.json"
+        },
+        {
+            "name": "SUNLU PETG @BBL A1",
+            "sub_path": "filament/SUNLU/SUNLU PETG @BBL A1.json"
+        },
+        {
+            "name": "SUNLU PETG @BBL A1 0.2 nozzle",
+            "sub_path": "filament/SUNLU/SUNLU PETG @BBL A1 0.2 nozzle.json"
+        },
+        {
+            "name": "SUNLU PETG @BBL A1 0.8 nozzle",
+            "sub_path": "filament/SUNLU/SUNLU PETG @BBL A1 0.8 nozzle.json"
         },
         {
             "name": "Bambu PETG Basic @BBL X1C",
@@ -3070,8 +3098,6 @@
             "sub_path": "filament/Bambu PC FR @BBL A1 0.2 nozzle.json"
         },
         {
-<<<<<<< HEAD
-=======
             "name": "Bambu PC FR @BBL H2D 0.4 nozzle",
             "sub_path": "filament/Bambu PC FR @BBL H2D 0.4 nozzle.json"
         },
@@ -3104,7 +3130,6 @@
             "sub_path": "filament/Generic PCTG @BBL H2D.json"
         },
         {
->>>>>>> 70d53fa220 (ENH: add profiles for H2D)
             "name": "Generic ASA @0.2 nozzle",
             "sub_path": "filament/Generic ASA @0.2 nozzle.json"
         },
@@ -3739,6 +3764,14 @@
         {
             "name": "Bambu PLA Glow @BBL X1 0.2 nozzle",
             "sub_path": "filament/Bambu PLA Glow @BBL X1 0.2 nozzle.json"
+        },
+        {
+            "name": "SUNLU PETG @BBL A1M",
+            "sub_path": "filament/SUNLU/SUNLU PETG @BBL A1M.json"
+        },
+        {
+            "name": "SUNLU PETG @BBL A1M 0.2 nozzle",
+            "sub_path": "filament/SUNLU/SUNLU PETG @BBL A1M 0.2 nozzle.json"
         },
         {
             "name": "Bambu PETG Basic @BBL A1M 0.4 nozzle",
