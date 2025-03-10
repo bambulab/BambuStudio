@@ -205,15 +205,15 @@ void GLGizmoMove3D::on_render()
     screen_scalling_matrix.data()[2 * 4 + 2] = 1.0f / t_zoom;
     m_orient_matrix = m_orient_matrix * screen_scalling_matrix;
 
-    float space_size = 100.f;
+    float space_size = 120.f;
     space_size *= GLGizmoBase::Grabber::GrabberSizeFactor;
 #if ENABLE_FIXED_GRABBER
     // x axis
-    m_grabbers[0].center = {m_bounding_box.max.x() + space_size, 0, 0};
+    m_grabbers[0].center = {space_size, 0, 0};
     // y axis
-    m_grabbers[1].center = {0, m_bounding_box.max.y() + space_size,0};
+    m_grabbers[1].center = {0, space_size,0};
     // z axis
-    m_grabbers[2].center = {0,0, m_bounding_box.max.z() + space_size};
+    m_grabbers[2].center = {0,0, space_size};
 
     for (int i = 0; i < 3; ++i) {
         m_grabbers[i].color       = AXES_COLOR[i];
