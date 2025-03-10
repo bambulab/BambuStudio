@@ -2051,9 +2051,7 @@ void Selection::render_sidebar_hints(const std::string& sidebar_field, bool unif
 
     if (boost::starts_with(sidebar_field, "position"))
         render_sidebar_position_hints(sidebar_field, *shader, base_matrix * orient_matrix);
-    else if (boost::starts_with(sidebar_field, "rotation"))
-        render_sidebar_rotation_hints(sidebar_field, *shader, base_matrix * orient_matrix);
-    else if (boost::starts_with(sidebar_field, "absolute_rotation"))
+    else if (boost::starts_with(sidebar_field, "rotation") || boost::starts_with(sidebar_field, "absolute_rotation"))
         render_sidebar_rotation_hints(sidebar_field, *shader, base_matrix * orient_matrix);
     else if (boost::starts_with(sidebar_field, "scale") || boost::starts_with(sidebar_field, "size"))
         //BBS: GUI refactor: add uniform_scale from gizmo
@@ -2628,7 +2626,14 @@ static std::array<float, 4> get_color(Axis axis)
 void Selection::render_sidebar_position_hints(const std::string& sidebar_field, GLShaderProgram& shader, const Transform3d& model_matrix) const
 {
     const Camera& camera = wxGetApp().plater()->get_camera();
-    const Transform3d view_matrix = camera.get_view_matrix() * model_matrix;
+
+    Transform3d screen_scalling_matrix{ Transform3d::Identity() };
+    const auto& t_zoom = camera.get_zoom();
+    screen_scalling_matrix.data()[0 * 4 + 0] = 5.0f / t_zoom;
+    screen_scalling_matrix.data()[1 * 4 + 1] = 5.0f / t_zoom;
+    screen_scalling_matrix.data()[2 * 4 + 2] = 5.0f / t_zoom;
+
+    const Transform3d view_matrix = camera.get_view_matrix() * model_matrix * screen_scalling_matrix;
     shader.set_uniform("projection_matrix", camera.get_projection_matrix());
 
     if (boost::ends_with(sidebar_field, "x")) {
@@ -2656,12 +2661,21 @@ void Selection::render_sidebar_position_hints(const std::string& sidebar_field, 
 void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field, GLShaderProgram& shader, const Transform3d& model_matrix) const
 {
     auto render_sidebar_rotation_hint = [this](GLShaderProgram& shader, const Transform3d& matrix) {
-        Transform3d view_model_matrix = matrix;
+
+        const Camera& camera = wxGetApp().plater()->get_camera();
+
+        Transform3d screen_scalling_matrix{ Transform3d::Identity() };
+        const auto& t_zoom = camera.get_zoom();
+        screen_scalling_matrix.data()[0 * 4 + 0] = 5.0f / t_zoom;
+        screen_scalling_matrix.data()[1 * 4 + 1] = 5.0f / t_zoom;
+        screen_scalling_matrix.data()[2 * 4 + 2] = 5.0f / t_zoom;
+
+        Transform3d view_model_matrix = matrix * screen_scalling_matrix;
         shader.set_uniform("view_model_matrix", view_model_matrix);
         shader.set_uniform("normal_matrix", (Matrix3d)view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
         m_curved_arrow.render_geometry();
 
-        view_model_matrix = matrix * Geometry::assemble_transform(Vec3d::Zero(), PI * Vec3d::UnitZ());
+        view_model_matrix = matrix * Geometry::assemble_transform(Vec3d::Zero(), PI * Vec3d::UnitZ()) * screen_scalling_matrix;
         shader.set_uniform("view_model_matrix", view_model_matrix);
         shader.set_uniform("normal_matrix", (Matrix3d)view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
         m_curved_arrow.render_geometry();
