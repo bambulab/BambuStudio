@@ -1334,7 +1334,7 @@ int CLI::run(int argc, char **argv)
     /*BOOST_LOG_TRIVIAL(info) << "begin to setup params, argc=" << argc << std::endl;
     for (int index = 0; index < argc; index++)
         BOOST_LOG_TRIVIAL(info) << "index=" << index << ", arg is " << argv[index] << std::endl;
-    int debug_argc = 20;
+    int debug_argc = 18;
     char* debug_argv[] = {
         "F:\work\projects\bambu_debug\bamboo_slicer\build_debug\src\Debug\bambu-studio.exe",
         "--debug=2",
@@ -1343,19 +1343,17 @@ int CLI::run(int argc, char **argv)
         "machine_H2D.json",
         "--load-defaultfila",
         "--load-filaments",
-        ";filament_pla_basic_H2D.json;filament_pla_basic_H2D.json;filament_pla_basic_H2D.json;",
+        ";filament_pla_basic_H2D.json;filament_pla_basic_H2D.json;filament_pla_basic_H2D.json;;",
         "--export-3mf=output.3mf",
         "--filament-colour",
-        ";#F4EE2AFF;#FFFFFFFF;#F99963FF;",
+        "#FF00FFFF;#F4EE2AFF;#FFFFFFFF;#F99963FF;#F99963FF;#FF0000FF",
         "--nozzle-volume-type",
         "Standard,Standard",
         "--filament-map-mode",
-        "Manual",
-        "--filament-map",
-        "2,2,2,1,2",
+        "Auto For Flush",
         "--slice=1",
         "--min-save",
-        "AMS-A1mini.3mf"
+        "h2d_filament_map_test.3mf"
     };
     if (!this->setup(debug_argc, debug_argv))*/
     if (!this->setup(argc, argv))
@@ -5664,6 +5662,13 @@ int CLI::run(int argc, char **argv)
                                     else if (i->print_volume_state == ModelInstancePVS_Inside)
                                     {
                                         const Transform3d& inst_matrix = i->get_transformation().get_matrix();
+
+                                        //get object filaments
+                                        std::set<int> object_filaments;
+                                        for (const ModelVolume *vol : model_object->volumes) {
+                                            std::vector<int> filaments = vol->get_extruders();
+                                            object_filaments.insert(filaments.begin(), filaments.end());
+                                        }
                                         for (const ModelVolume* vol : model_object->volumes)
                                         {
                                             if (vol->is_model_part()) {
@@ -5682,10 +5687,13 @@ int CLI::run(int argc, char **argv)
                                                     std::vector<bool> inside_extruders;
                                                     BuildVolume::ObjectState state = build_volume.check_volume_bbox_state_with_extruder_areas(bbox, inside_extruders);
                                                     if (state == BuildVolume::ObjectState::Limited) {
-                                                        for (size_t i = 0; i < inside_extruders.size(); ++i) {
-                                                            if (!inside_extruders[i]) {
-                                                                std::vector<int> filaments = vol->get_extruders();
-                                                                unprintable_filament_ids[i].insert(filaments.begin(), filaments.end());
+                                                        if (object_filaments.size() == 1) {
+                                                            // Only check for single-color object
+                                                            for (size_t j = 0; j < inside_extruders.size(); ++j) {
+                                                                if (!inside_extruders[j]) {
+                                                                    std::vector<int> filaments = vol->get_extruders();
+                                                                    unprintable_filament_ids[j].insert(filaments.begin(), filaments.end());
+                                                                }
                                                             }
                                                         }
                                                     }
