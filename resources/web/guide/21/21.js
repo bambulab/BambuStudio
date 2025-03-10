@@ -143,8 +143,8 @@ function HandleModelList( pVal )
 	let AlreadySelect=$(".ModelCheckBoxSelected");
 	let nSelect=AlreadySelect.length;
 	if(nSelect==0)
-	{
-		$("div.OneVendorBlock[vendor='"+BBL+"'] .ModelCheckBox").addClass('ModelCheckBoxSelected');
+	{	
+		$("div.OneVendorBlock[vendor='BBL'] .ModelCheckBox").addClass('ModelCheckBoxSelected');
 	}
 	
 	TranslatePage();
