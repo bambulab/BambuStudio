@@ -69,6 +69,8 @@ public:
     void        data_changed(bool is_serializing) override;
     void enable_ununiversal_scale(bool enable);
     BoundingBoxf3 get_bounding_box() const override;
+
+    bool on_key(const wxKeyEvent& key_event) override;
 protected:
     virtual bool on_init() override;
     virtual std::string on_get_name() const override;
@@ -91,8 +93,14 @@ private:
     double calc_ratio(const UpdateData& data) const;
     void   update_grabbers_data();
     void   change_cs_by_selection(); // cs mean Coordinate System
+    void set_asymmetric_scalling_enable(bool is_enabled);
+    bool is_asymmetric_scalling_enabled() const;
+    void lock_scalling_mode(bool is_locked);
+    bool is_scalling_mode_locked() const;
 private:
     int m_last_selected_obejct_idx, m_last_selected_volume_idx;
+    bool m_b_asymmetric_scalling{ false };
+    bool m_b_scalling_mode_locked{ false };
 };
 
 
