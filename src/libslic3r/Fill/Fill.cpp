@@ -161,9 +161,10 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
             if (params.pattern == ipCrossZag){
                 params.infill_shift_step     = scale_(region_config.infill_shift_step);
                 params.symmetric_infill_y_axis  = region_config.symmetric_infill_y_axis;
+            }else if (params.pattern == ipZigZag){
+                params.infill_rotate_step    =  region_config.infill_rotate_step * M_PI / 360;
+								params.symmetric_infill_y_axis  = region_config.symmetric_infill_y_axis;
             }
-                if (params.pattern == ipZigZag)
-                    params.infill_rotate_step    =  region_config.infill_rotate_step * M_PI / 360;
 
 				if (surface.is_solid()) {
 		            params.density = 100.f;
@@ -601,7 +602,10 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 
             params.symmetric_infill_y_axis = surface_fill.params.symmetric_infill_y_axis;
 
-        }
+        } else if( surface_fill.params.pattern == ipZigZag ) {
+			params.symmetric_infill_y_axis = surface_fill.params.symmetric_infill_y_axis;
+		}
+
 		if (surface_fill.params.pattern == ipGrid || surface_fill.params.pattern == ipFloatingConcentric)
 			params.can_reverse = false;
 		LayerRegion* layerm = this->m_regions[surface_fill.region_id];
