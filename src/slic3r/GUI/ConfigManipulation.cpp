@@ -568,7 +568,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     for (auto el : {"infill_shift_step", "symmetric_infill_y_axis"})
         toggle_line(el, is_cross_zag);
 
-    toggle_line("infill_rotate_step", config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value == InfillPattern::ipZigZag);
+    bool is_zig_zag = config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value == InfillPattern::ipZigZag;
+    for (auto el : {"infill_rotate_step", "symmetric_infill_y_axis"})
+        toggle_line(el, is_zig_zag);
 
     bool has_spiral_vase         = config->opt_bool("spiral_mode");
     toggle_line("spiral_mode_smooth", has_spiral_vase);
