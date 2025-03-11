@@ -41,6 +41,7 @@ class PrintJob : public PlaterJob
     std::string         m_dev_id;
     bool                m_job_finished{ false };
     int                 m_print_job_completed_id = 0;
+    int                 m_print_stage = 0;
     wxString            m_completed_evt_data;
     std::function<void()> m_enter_ip_address_fun_fail{ nullptr };
     std::function<void()> m_enter_ip_address_fun_success{ nullptr };
@@ -71,7 +72,7 @@ public:
     bool m_is_calibration_task = false;
 
     int         m_print_from_sdc_plate_idx = 0;
-    
+
     bool        m_local_use_ssl_for_mqtt { true };
     bool        m_local_use_ssl_for_ftp { true };
     bool        task_bed_leveling;
@@ -110,6 +111,8 @@ public:
     }
 
     bool is_finished() { return m_job_finished;  }
+    int  get_print_stage() const { return m_print_stage;}
+
     void set_print_job_finished_event(int event_id, wxString evt_data = wxEmptyString) {
         m_print_job_completed_id = event_id;
         m_completed_evt_data = evt_data;

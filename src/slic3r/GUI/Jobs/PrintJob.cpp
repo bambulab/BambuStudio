@@ -341,18 +341,18 @@ void PrintJob::process()
         }
     }
 
-
-    if (params.stl_design_id == 0 || !wxGetApp().model().design_id.empty()) {
-        try {
-            params.stl_design_id = std::stoi(wxGetApp().model().design_id);
-        }
-        catch (...)
-        {
+    const auto& model_design_id = wxGetApp().model().design_id;
+    if (params.stl_design_id == 0 || !model_design_id.empty()) {
+        if (model_design_id.empty()) {
             params.stl_design_id = 0;
+        } else {
+            try {
+                params.stl_design_id = std::stoi(model_design_id);
+            } catch (...) {
+                params.stl_design_id = 0;
+            }
         }
     }
-
-
 
     if (params.preset_name.empty() && m_print_type == "from_normal") { params.preset_name = wxString::Format("%s_plate_%d", m_project_name, curr_plate_idx).ToStdString(); }
     if (params.project_name.empty()) {params.project_name = m_project_name;}
@@ -388,7 +388,7 @@ void PrintJob::process()
         &error_text,
         StagePercentPoint
     ](int stage, int code, std::string info) {
-
+                        m_print_stage = stage;
                         if (stage == BBL::SendingPrintJobStage::PrintingStageCreate && !is_try_lan_mode_failed) {
                             if (this->connection_type == "lan") {
                                 msg = _L("Sending print job over LAN");
@@ -428,7 +428,6 @@ void PrintJob::process()
                             if (m_print_job_completed_id == wxGetApp().plater()->get_send_calibration_finished_event()) {
                                 msg = wxString::Format(_L("Successfully sent. Will automatically jump to the next page in %ss"), info);
                             }
-                            this->update_percent_finish();
                         } else {
                             if (this->connection_type == "lan") {
                                 msg = _L("Sending print job over LAN");
@@ -504,6 +503,12 @@ void PrintJob::process()
                         BOOST_LOG_TRIVIAL(info) << "print_job: printer has enter printing status, s = " << obj->print_status;
                         return true;
                     }
+
+                    if (this->was_canceled()) {
+                        BOOST_LOG_TRIVIAL(info) << "print_job: user cancel the job" << obj->job_id_;
+                        return true;
+                    }
+
                     time_out++;
                     boost::this_thread::sleep_for(boost::chrono::milliseconds(1000));
                 }
