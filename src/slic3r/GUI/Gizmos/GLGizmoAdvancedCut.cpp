@@ -192,7 +192,7 @@ bool GLGizmoAdvancedCut::gizmo_event(SLAGizmoEventType action, const Vec2d &mous
     return false;
 }
 
-bool GLGizmoAdvancedCut::on_key(wxKeyEvent &evt)
+bool GLGizmoAdvancedCut::on_key(const wxKeyEvent& evt)
 {
     bool ctrl_down = evt.GetModifiers() & wxMOD_CONTROL;
 

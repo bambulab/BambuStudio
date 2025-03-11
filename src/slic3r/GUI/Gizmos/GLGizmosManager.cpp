@@ -1395,11 +1395,13 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
     int keyCode = evt.GetKeyCode();
     bool processed = false;
 
-    // todo: zhimin Each gizmo should handle key event in it own on_key() function
-    if (m_current == Cut) {
-        if (GLGizmoAdvancedCut *gizmo_cut = dynamic_cast<GLGizmoAdvancedCut *>(get_current())) {
-            return gizmo_cut->on_key(evt);
-        }
+    auto p_current_gizmo = get_current();
+    if (p_current_gizmo) {
+        processed = p_current_gizmo->on_key(evt);
+    }
+    if (processed) {
+        m_parent.set_as_dirty();
+        return processed;
     }
 
     if (evt.GetEventType() == wxEVT_KEY_UP)

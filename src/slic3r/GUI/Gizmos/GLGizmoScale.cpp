@@ -118,6 +118,27 @@ BoundingBoxf3 GLGizmoScale3D::get_bounding_box() const
     return t_aabb;
 }
 
+bool GLGizmoScale3D::on_key(const wxKeyEvent& key_event)
+{
+    bool b_processed = false;
+    if (key_event.GetEventType() == wxEVT_KEY_DOWN) {
+        if (key_event.GetKeyCode() == WXK_CONTROL) {
+            if (!is_scalling_mode_locked()) {
+                set_asymmetric_scalling_enable(!is_asymmetric_scalling_enabled());
+                lock_scalling_mode(true);
+                b_processed = true;
+            }
+        }
+    }
+    else if (key_event.GetEventType() == wxEVT_KEY_UP) {
+        if (key_event.GetKeyCode() == WXK_CONTROL) {
+            lock_scalling_mode(false);
+            b_processed = true;
+        }
+    }
+    return b_processed;
+}
+
 bool GLGizmoScale3D::on_init()
 {
     for (int i = 0; i < 10; ++i)
@@ -219,7 +240,7 @@ void GLGizmoScale3D::update_grabbers_data()
     m_instance_center = (selection.is_single_full_instance() || selection.is_single_volume_or_modifier()) ? selection.get_first_volume()->get_instance_offset() : m_center;
 
     const Vec3d box_half_size   = 0.5 * m_bounding_box.size();
-    bool        ctrl_down     = wxGetKeyState(WXK_CONTROL);
+    bool b_asymmetric_scalling = is_asymmetric_scalling_enabled();
 
 
     bool single_instance = selection.is_single_full_instance();
@@ -227,29 +248,29 @@ void GLGizmoScale3D::update_grabbers_data()
 
     // x axis
     m_grabbers[0].center = Vec3d(-(box_half_size.x()), 0.0, -box_half_size.z());
-    m_grabbers[0].color  = (ctrl_down && m_hover_id == 1) ? CONSTRAINED_COLOR : AXES_COLOR[0];
+    m_grabbers[0].color  = (b_asymmetric_scalling && m_hover_id == 1) ? CONSTRAINED_COLOR : AXES_COLOR[0];
     m_grabbers[1].center = Vec3d(box_half_size.x(), 0.0, -box_half_size.z());
-    m_grabbers[1].color  = (ctrl_down && m_hover_id == 0) ? CONSTRAINED_COLOR : AXES_COLOR[0];
+    m_grabbers[1].color  = (b_asymmetric_scalling && m_hover_id == 0) ? CONSTRAINED_COLOR : AXES_COLOR[0];
     // y axis
     m_grabbers[2].center = Vec3d(0.0, -(box_half_size.y()), -box_half_size.z());
-    m_grabbers[2].color  = (ctrl_down && m_hover_id == 3) ? CONSTRAINED_COLOR : AXES_COLOR[1];
+    m_grabbers[2].color  = (b_asymmetric_scalling && m_hover_id == 3) ? CONSTRAINED_COLOR : AXES_COLOR[1];
     m_grabbers[3].center = Vec3d(0.0, box_half_size.y(), -box_half_size.z());
-    m_grabbers[3].color  = (ctrl_down && m_hover_id == 2) ? CONSTRAINED_COLOR : AXES_COLOR[1];
+    m_grabbers[3].color  = (b_asymmetric_scalling && m_hover_id == 2) ? CONSTRAINED_COLOR : AXES_COLOR[1];
     // z axis do not show 4
     m_grabbers[4].center  = Vec3d(0.0, 0.0, -(box_half_size.z()));
     m_grabbers[4].enabled = false;
 
     m_grabbers[5].center = Vec3d(0.0, 0.0, box_half_size.z());
-    m_grabbers[5].color  = (ctrl_down && m_hover_id == 4) ? CONSTRAINED_COLOR : AXES_COLOR[2];
+    m_grabbers[5].color  = (b_asymmetric_scalling && m_hover_id == 4) ? CONSTRAINED_COLOR : AXES_COLOR[2];
     // uniform
     m_grabbers[6].center = Vec3d(-box_half_size.x(), -box_half_size.y(), -box_half_size.z());
-    m_grabbers[6].color  = (ctrl_down && m_hover_id == 8) ? CONSTRAINED_COLOR : GRABBER_UNIFORM_COL;
+    m_grabbers[6].color  = (b_asymmetric_scalling && m_hover_id == 8) ? CONSTRAINED_COLOR : GRABBER_UNIFORM_COL;
     m_grabbers[7].center = Vec3d(box_half_size.x(), -box_half_size.y(), -box_half_size.z());
-    m_grabbers[7].color  = (ctrl_down && m_hover_id == 9) ? CONSTRAINED_COLOR : GRABBER_UNIFORM_COL;
+    m_grabbers[7].color  = (b_asymmetric_scalling && m_hover_id == 9) ? CONSTRAINED_COLOR : GRABBER_UNIFORM_COL;
     m_grabbers[8].center = Vec3d(box_half_size.x(), box_half_size.y(), -box_half_size.z());
-    m_grabbers[8].color  = (ctrl_down && m_hover_id == 6) ? CONSTRAINED_COLOR : GRABBER_UNIFORM_COL;
+    m_grabbers[8].color  = (b_asymmetric_scalling && m_hover_id == 6) ? CONSTRAINED_COLOR : GRABBER_UNIFORM_COL;
     m_grabbers[9].center = Vec3d(-box_half_size.x(), box_half_size.y(), -box_half_size.z());
-    m_grabbers[9].color  = (ctrl_down && m_hover_id == 7) ? CONSTRAINED_COLOR : GRABBER_UNIFORM_COL;
+    m_grabbers[9].color  = (b_asymmetric_scalling && m_hover_id == 7) ? CONSTRAINED_COLOR : GRABBER_UNIFORM_COL;
 
     Transform3d t_model_matrix{ Transform3d::Identity() };
     const auto t_fullsize = get_grabber_size();
@@ -279,6 +300,26 @@ void GLGizmoScale3D::change_cs_by_selection() {
     }
 }
 
+void GLGizmoScale3D::set_asymmetric_scalling_enable(bool is_enabled)
+{
+    m_b_asymmetric_scalling = is_enabled;
+}
+
+bool GLGizmoScale3D::is_asymmetric_scalling_enabled() const
+{
+    return m_b_asymmetric_scalling;
+}
+
+void GLGizmoScale3D::lock_scalling_mode(bool is_locked)
+{
+    m_b_scalling_mode_locked = is_locked;
+}
+
+bool GLGizmoScale3D::is_scalling_mode_locked() const
+{
+    return m_b_scalling_mode_locked;
+}
+
 void GLGizmoScale3D::on_render()
 {
     const Selection& selection = m_parent.get_selection();
@@ -288,6 +329,11 @@ void GLGizmoScale3D::on_render()
 
     glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
     glsafe(::glEnable(GL_DEPTH_TEST));
+
+    if (m_hover_id == -1) {
+        lock_scalling_mode(false);
+        set_asymmetric_scalling_enable(false);
+    }
 
     update_grabbers_data();
 
@@ -393,8 +439,7 @@ void GLGizmoScale3D::do_scale_along_axis(Axis axis, const UpdateData& data)
     if (ratio > 0.0)
     {
         m_scale(axis) = m_starting.scale(axis) * ratio;
-        const bool ctrl_down = wxGetKeyState(WXK_CONTROL);
-        if (ctrl_down && abs(ratio-1.0f)>0.001) {
+        if (is_asymmetric_scalling_enabled() && abs(ratio - 1.0f)>0.001) {
             double local_offset = 0.5 * (m_scale(axis) - m_starting.scale(axis)) * m_starting.box.size()(axis);
             if (m_hover_id == 2 * axis) {
                 local_offset *= -1.0;
@@ -433,8 +478,7 @@ double GLGizmoScale3D::calc_ratio(const UpdateData& data) const
 {
     double ratio = 0.0;
 
-    const bool ctrl_down = wxGetKeyState(WXK_CONTROL);
-    Vec3d  pivot = (ctrl_down && (m_hover_id < 6)) ? m_starting.constraint_position : m_starting.plane_center; // plane_center = bottom center
+    Vec3d  pivot = (is_asymmetric_scalling_enabled() && (m_hover_id < 6)) ? m_starting.constraint_position : m_starting.plane_center; // plane_center = bottom center
     Vec3d starting_vec = m_starting.drag_position - pivot;
     double len_starting_vec = starting_vec.norm();
     if (len_starting_vec != 0.0)
@@ -444,10 +488,10 @@ double GLGizmoScale3D::calc_ratio(const UpdateData& data) const
         // vector from the starting position to the found intersection
         Vec3d inters_vec = inters - m_starting.drag_position;
 
-        // finds projection of the vector along the staring direction
-        double proj = inters_vec.dot(starting_vec.normalized());
+        double proj = inters_vec.norm();
+        const double sign = inters_vec.dot(starting_vec) > 1e-6f ? 1.0f : -1.0f;
 
-        ratio = (len_starting_vec + proj) / len_starting_vec;
+        ratio = (len_starting_vec + proj * sign) / len_starting_vec;
     }
 
     if (wxGetKeyState(WXK_SHIFT))

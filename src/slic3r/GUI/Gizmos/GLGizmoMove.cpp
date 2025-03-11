@@ -351,8 +351,10 @@ double GLGizmoMove3D::calc_projection(const UpdateData& data) const
         // vector from the starting position to the found intersection
         Vec3d inters_vec = inters - m_starting_drag_position;
 
-        // finds projection of the vector along the staring direction
-        projection = inters_vec.dot(starting_vec.normalized());
+        projection = inters_vec.norm();
+        const double sign = inters_vec.dot(starting_vec) > 1e-6f ? 1.0f : -1.0f;
+
+        projection = projection * sign;
     }
 
     if (wxGetKeyState(WXK_SHIFT))

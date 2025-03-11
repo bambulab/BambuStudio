@@ -355,6 +355,11 @@ void GLGizmoBase::set_icon_filename(const std::string &filename) {
     m_icon_filename = filename;
 }
 
+bool GLGizmoBase::on_key(const wxKeyEvent& key_event)
+{
+    return false;
+}
+
 void GLGizmoBase::set_hover_id(int id)
 {
     if (m_grabbers.empty() || (id < (int)m_grabbers.size()))

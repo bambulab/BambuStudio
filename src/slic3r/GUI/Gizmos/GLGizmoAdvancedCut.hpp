@@ -211,7 +211,7 @@ public:
     GLGizmoAdvancedCut(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
 
     bool gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_position, bool shift_down, bool alt_down, bool control_down);
-    bool on_key(wxKeyEvent &evt);
+    bool on_key(const wxKeyEvent &evt) override;
 
     double get_movement() const { return m_movement; }
     void finish_rotation();
