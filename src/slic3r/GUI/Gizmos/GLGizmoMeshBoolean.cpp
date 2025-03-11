@@ -19,7 +19,7 @@ namespace Slic3r {
 namespace GUI {
 
 static const std::string warning_text_common       = _u8L("Unable to perform boolean operation on selected parts");
-static const std::string warning_text_intersection = _u8L("Performed boolean intersection fails \n because the selected parts have no intersection");
+static const std::string warning_text_intersection = _u8L("Performed boolean intersection fails because the selected parts have no intersection");
 
 GLGizmoMeshBoolean::GLGizmoMeshBoolean(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoBase(parent, icon_filename, sprite_id)
@@ -361,6 +361,10 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
             m_selecting_state = (m_src.mv == nullptr) ? MeshBooleanSelectingState::SelectSource : MeshBooleanSelectingState::SelectTool;
         }
         ImGui::PopStyleColor(5);
+        m_full_width = ImGui::GetWindowWidth();
+    } else {
+        float space_size = m_imgui->get_style_scaling() * 8;
+        m_full_width     = max_tab_length * 3 + space_size *3;
     }
 
     bool enable_button = m_src.mv && m_tool.mv;
@@ -368,9 +372,10 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
     if (m_operation_mode == MeshBooleanOperation::Union)
     {
         if (operate_button(_L("Union") + "##btn", enable_button)) {
+            wxBusyCursor          temp_cursor;
             csg::BooleanFailReason fail_reason;
             m_warning_texts[index] = check_boolean_possible({m_src.mv, m_tool.mv}, fail_reason);
-            if(m_warning_texts[index] == "") {
+            if (m_warning_texts[index] == "" || fail_reason == csg::BooleanFailReason::SelfIntersect) {
                 TriangleMesh temp_src_mesh = m_src.mv->mesh();
                 temp_src_mesh.transform(m_src.trafo);
                 TriangleMesh temp_tool_mesh = m_tool.mv->mesh();
@@ -393,9 +398,10 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
     else if (m_operation_mode == MeshBooleanOperation::Difference) {
         m_imgui->bbl_checkbox(_L("Delete input"), m_diff_delete_input);
         if (operate_button(_L("Difference") + "##btn", enable_button)) {
+            wxBusyCursor           temp_cursor;
             csg::BooleanFailReason fail_reason;
             m_warning_texts[index] = check_boolean_possible({m_src.mv, m_tool.mv}, fail_reason);
-            if (m_warning_texts[index] == "") {
+            if (m_warning_texts[index] == "" || fail_reason == csg::BooleanFailReason::SelfIntersect) {
                 TriangleMesh temp_src_mesh = m_src.mv->mesh();
                 temp_src_mesh.transform(m_src.trafo);
                 TriangleMesh temp_tool_mesh = m_tool.mv->mesh();
@@ -418,9 +424,10 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
     else if (m_operation_mode == MeshBooleanOperation::Intersection){
         m_imgui->bbl_checkbox(_L("Delete input"), m_inter_delete_input);
         if (operate_button(_L("Intersection") + "##btn", enable_button)) {
+            wxBusyCursor           temp_cursor;
             csg::BooleanFailReason fail_reason;
             m_warning_texts[index] = check_boolean_possible({m_src.mv, m_tool.mv}, fail_reason);
-            if (m_warning_texts[index] == "") {
+            if (m_warning_texts[index] == "" || fail_reason == csg::BooleanFailReason::SelfIntersect) {
                 TriangleMesh temp_src_mesh = m_src.mv->mesh();
                 temp_src_mesh.transform(m_src.trafo);
                 TriangleMesh temp_tool_mesh = m_tool.mv->mesh();
@@ -441,7 +448,7 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
         }
     }
     if (index >= 0 && index < m_warning_texts.size()) {
-        render_input_window_warning(m_warning_texts[index]);
+        render_input_window_warning(m_warning_texts[index], m_full_width);
     }
 
     float win_w = ImGui::GetWindowWidth();
@@ -460,9 +467,10 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
     ImGuiWrapper::pop_toolbar_style();
 }
 
-void GLGizmoMeshBoolean::render_input_window_warning(const std::string &text) {
+void GLGizmoMeshBoolean::render_input_window_warning(const std::string &text, int width)
+{
     if (text.size() > 0) {
-        m_imgui->warning_text(_L("Warning") + ": " + _L(text));
+        m_imgui->warning_text_wrapped(_L("Warning") + ": " + _L(text), width);
     }
 }
 
