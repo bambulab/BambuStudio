@@ -27,9 +27,8 @@ class GLGizmoScale3D : public GLGizmoBase
         BoundingBoxf3 box;
         Vec3d pivots[6];// Vec3d constraint_position{Vec3d::Zero()};
         Vec3d local_pivots[6];
-        bool ctrl_down;
 
-        StartingData() : scale(Vec3d::Ones()), drag_position(Vec3d::Zero()), ctrl_down(false) { for (int i = 0; i < 5; ++i) { pivots[i] = Vec3d::Zero(); } }
+        StartingData() : scale(Vec3d::Ones()), drag_position(Vec3d::Zero()) { for (int i = 0; i < 5; ++i) { pivots[i] = Vec3d::Zero(); } }
     };
 
     mutable BoundingBoxf3 m_bounding_box;
