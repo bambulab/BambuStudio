@@ -1378,7 +1378,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Detect floating vertical shells");
     def->tooltip = L("Detect floating vertical shells and slow them by using bridge speed.");
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool{false});
+    def->set_default_value(new ConfigOptionBool{true});
 
     def = this->add("internal_bridge_support_thickness", coFloat);
     def->label = L("Internal bridge support thickness");

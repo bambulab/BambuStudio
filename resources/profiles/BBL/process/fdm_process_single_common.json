@@ -78,5 +78,8 @@
     ],
     "travel_speed_z": [
         "0"
+    ],
+    "vertical_shell_speed": [
+        "80%"
     ]
 }

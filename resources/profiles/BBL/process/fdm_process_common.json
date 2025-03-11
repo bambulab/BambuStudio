@@ -19,6 +19,7 @@
     "default_acceleration": [
         "10000"
     ],
+    "detect_floating_vertical_shell": "1",
     "detect_overhang_wall": "1",
     "detect_thin_wall": "0",
     "draft_shield": "disabled",
