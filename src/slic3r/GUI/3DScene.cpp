@@ -1515,25 +1515,24 @@ int GLVolumeCollection::load_real_wipe_tower_preview(
     if (wt_mesh.its.vertices.empty()) return int(this->volumes.size() - 1);
 
     std::vector<std::array<float, 4>> extruder_colors = GUI::wxGetApp().plater()->get_extruders_colors();
-    std::vector<std::array<float, 4>> colors;
     GUI::PartPlateList               &ppl              = GUI::wxGetApp().plater()->get_partplate_list();
     std::vector<int>                  plate_extruders  = ppl.get_plate(plate_idx)->get_extruders(true);
-
-    for (int extruder_id : plate_extruders) {
-        if (extruder_id <= extruder_colors.size())
-            colors.push_back(extruder_colors[extruder_id - 1]);
+    std::vector<std::array<float, 4>>              colors;
+    if (!plate_extruders.empty()) {
+        if (plate_extruders.front() <= extruder_colors.size())
+            colors.push_back(extruder_colors[plate_extruders.front() - 1]);
         else
             colors.push_back(extruder_colors[0]);
     }
-
-    volumes.emplace_back(new GLWipeTowerVolume(colors));
+    if (colors.empty()) return int(this->volumes.size() - 1);
+    volumes.emplace_back(new GLWipeTowerVolume({colors}));
     GLWipeTowerVolume &v = *dynamic_cast<GLWipeTowerVolume *>(volumes.back());
-    v.iva_per_colors.resize(colors.size());
     auto mesh = wt_mesh;
     if (render_brim) {
         mesh.merge(brim_mesh);
     }
     if (!colors.empty()) {
+        v.iva_per_colors.resize(1);
         v.iva_per_colors[0].load_mesh(mesh);
         v.iva_per_colors[0].finalize_geometry(opengl_initialized);
     }
