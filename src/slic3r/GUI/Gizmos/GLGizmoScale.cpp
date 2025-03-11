@@ -171,7 +171,6 @@ void GLGizmoScale3D::on_start_dragging()
         m_starting.drag_position = grabbers_transform * m_grabbers[m_hover_id].center;
         m_starting.plane_center  = grabbers_transform * m_grabbers[4].center; // plane_center = bottom center
         m_starting.plane_nromal  = (grabbers_transform * m_grabbers[5].center - grabbers_transform * m_grabbers[4].center).normalized();
-        m_starting.ctrl_down = wxGetKeyState(WXK_CONTROL);
         m_starting.box           = m_bounding_box;
 
         m_starting.center              = m_center;
@@ -394,7 +393,8 @@ void GLGizmoScale3D::do_scale_along_axis(Axis axis, const UpdateData& data)
     if (ratio > 0.0)
     {
         m_scale(axis) = m_starting.scale(axis) * ratio;
-        if (m_starting.ctrl_down && abs(ratio-1.0f)>0.001) {
+        const bool ctrl_down = wxGetKeyState(WXK_CONTROL);
+        if (ctrl_down && abs(ratio-1.0f)>0.001) {
             double local_offset = 0.5 * (m_scale(axis) - m_starting.scale(axis)) * m_starting.box.size()(axis);
             if (m_hover_id == 2 * axis) {
                 local_offset *= -1.0;
@@ -433,29 +433,15 @@ double GLGizmoScale3D::calc_ratio(const UpdateData& data) const
 {
     double ratio = 0.0;
 
-    Vec3d  pivot       = (m_starting.ctrl_down && (m_hover_id < 6)) ? m_starting.constraint_position : m_starting.plane_center; // plane_center = bottom center
+    const bool ctrl_down = wxGetKeyState(WXK_CONTROL);
+    Vec3d  pivot = (ctrl_down && (m_hover_id < 6)) ? m_starting.constraint_position : m_starting.plane_center; // plane_center = bottom center
     Vec3d starting_vec = m_starting.drag_position - pivot;
     double len_starting_vec = starting_vec.norm();
     if (len_starting_vec != 0.0)
     {
         Vec3d mouse_dir = data.mouse_ray.unit_vector();
-        Vec3d plane_normal = m_starting.plane_nromal;
-        if (m_hover_id == 5) {
-            // get z-axis moving plane normal
-            Vec3d plane_vec = mouse_dir.cross(m_starting.plane_nromal);
-            plane_normal    = plane_vec.cross(m_starting.plane_nromal);
-        }
-        plane_normal = plane_normal.normalized();
-        // finds the intersection of the mouse ray with the plane that the drag point moves
-        // use ray-plane intersection see i.e. https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection
-        auto  dot_value          = (plane_normal.dot(mouse_dir));
-        auto  angle              = Geometry::rad2deg(acos(dot_value));
-        auto  big_than_min_angle = abs(angle) < 95 && abs(angle) > 85;
-        if (big_than_min_angle) {
-            return 1;
-        }
-        Vec3d inters             = GetIntersectionOfRayAndPlane(data.mouse_ray.a, mouse_dir, m_starting.drag_position, plane_normal);
-
+        Vec3d inters = data.mouse_ray.a + (m_starting.drag_position - data.mouse_ray.a).dot(mouse_dir) / mouse_dir.squaredNorm() * mouse_dir;
+        // vector from the starting position to the found intersection
         Vec3d inters_vec = inters - m_starting.drag_position;
 
         // finds projection of the vector along the staring direction
