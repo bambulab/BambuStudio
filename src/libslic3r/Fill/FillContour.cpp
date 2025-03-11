@@ -684,7 +684,7 @@ FloatingThickPolylines FillContour::resplit_order_loops(Point curr_point, std::v
         if (all_extrusions[idx]->empty())
             continue;
         ThickPolyline thick_polyline = Arachne::to_thick_polyline(*all_extrusions[idx]);
-        FloatingThickPolyline thick_line_with_floating = detect_floating_line(thick_polyline, floating_areas, default_width, print_object_config->detect_floating_vertical_shell.value);
+        FloatingThickPolyline thick_line_with_floating = detect_floating_line(thick_polyline, floating_areas, default_width, !print_object_config->detect_floating_vertical_shell.value);
         smooth_floating_line(thick_line_with_floating, scale_(2), scale_(2));
         int split_idx = 0;
         if (!floating_areas.empty() && all_extrusions[idx]->is_closed && thick_line_with_floating.points.front() == thick_line_with_floating.points.back()) {
