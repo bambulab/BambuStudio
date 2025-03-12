@@ -1639,8 +1639,12 @@ void GLVolumeCollection::render(GUI::ERenderPipelineStage             render_pip
     }
 
     glsafe(::glCullFace(GL_BACK));
-    if (disable_cullface)
+    if (disable_cullface) {
         glsafe(::glDisable(GL_CULL_FACE));
+    }
+    else {
+        glsafe(::glEnable(GL_CULL_FACE));
+    }
 
     auto camera = GUI::wxGetApp().plater()->get_camera();
     for (GLVolumeWithIdAndZ& volume : to_render) {

@@ -2970,6 +2970,8 @@ void ImGuiWrapper::render_draw_data(ImDrawData *draw_data)
     }
 
     glsafe(::glDisable(GL_SCISSOR_TEST));
+    glsafe(::glEnable(GL_CULL_FACE));
+    glsafe(::glEnable(GL_DEPTH_TEST));
 
     wxGetApp().unbind_shader();
 
