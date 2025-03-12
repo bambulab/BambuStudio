@@ -6201,7 +6201,7 @@ void Tab::sync_excluder()
         return m_config->get_index_for_extruder(extruder_id + 1, variant_keys.first,
             ExtruderType(extruders->values[extruder_id]), NozzleVolumeType(nozzle_volumes->values[extruder_id]), variant_keys.second);
     };
-    int active_index = int(intptr_t(m_extruder_switch->GetClientData()));
+    int active_index = m_extruder_switch->GetValue() ? 1 : 0;
     int from_index = get_index_for_extruder(active_index);
     int dest_index = get_index_for_extruder(1 - active_index);
     auto from_str = std::to_string(from_index);
@@ -6213,8 +6213,8 @@ void Tab::sync_excluder()
         auto n= opt.find('#');
         if (n == std::string::npos)
             continue;
-        auto field = m_active_page->get_field(opt.substr(0, n), active_index + 256);
-        auto line = m_active_page->get_line(opt.substr(0, n), active_index + 256);
+        auto field = m_active_page->get_field(opt.substr(0, n), from_index + 256);
+        auto line  = m_active_page->get_line(opt.substr(0, n), from_index + 256);
         if (field == nullptr || line == nullptr)
             continue;
         ++n;
