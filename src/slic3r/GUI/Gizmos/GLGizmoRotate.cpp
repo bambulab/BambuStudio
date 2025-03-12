@@ -99,8 +99,10 @@ void GLGizmoRotate::on_update(const UpdateData& data)
 
     double len = mouse_pos.norm();
 
+    const auto& scale_factor = Geometry::Transformation(m_base_model_matrix).get_scaling_factor();
+    const float radius = scale_factor.maxCoeff()* m_radius;
     // snap to coarse snap region
-    if ((m_snap_coarse_in_radius <= len) && (len <= m_snap_coarse_out_radius))
+    if ((m_snap_coarse_in_radius * radius <= len) && (len <= m_snap_coarse_out_radius * radius))
     {
         double step = 2.0 * (double)PI / (double)SnapRegionsCount;
         theta = step * (double)std::round(theta / step);
@@ -108,7 +110,7 @@ void GLGizmoRotate::on_update(const UpdateData& data)
     else
     {
         // snap to fine snap region (scale)
-        if ((m_snap_fine_in_radius <= len) && (len <= m_snap_fine_out_radius))
+        if ((m_snap_fine_in_radius * radius <= len) && (len <= m_snap_fine_out_radius * radius))
         {
             double step = 2.0 * (double)PI / (double)ScaleStepsCount;
             theta = step * (double)std::round(theta / step);
