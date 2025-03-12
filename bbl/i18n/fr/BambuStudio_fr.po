@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-12 20:15+0800\n"
+"POT-Creation-Date: 2025-03-07 15:28+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2419,8 +2419,8 @@ msgstr ""
 "Cette plaque est verrouillée, nous ne pouvons pas faire d'auto-arrangement "
 "sur cette plaque"
 
-msgid "Arranging"
-msgstr "Agencement"
+msgid "Arranging..."
+msgstr "Organiser..."
 
 #, boost-format
 msgid "Object %1% has zero size and can't be arranged."
@@ -2429,6 +2429,9 @@ msgstr "L'objet %1% a une taille nulle et ne peut pas être arrangé."
 msgid ""
 "Arrange failed. Found some exceptions when processing object geometries."
 msgstr "Échec de l'agencement. Des erreurs ont été trouvé durant le processus."
+
+msgid "Arranging"
+msgstr "Agencement"
 
 msgid "Arranging canceled."
 msgstr "Agencement annulé."
@@ -4208,9 +4211,6 @@ msgstr "Espacement"
 msgid "0 means auto spacing."
 msgstr "0 means auto spacing."
 
-msgid "Save SVG"
-msgstr ""
-
 msgid "Auto rotate for arrangement"
 msgstr "Rotation automatique pour l'arrangement"
 
@@ -5927,6 +5927,12 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "Du bas"
 
+msgid "Enable AI monitoring of printing"
+msgstr "Activer la surveillance de l'impression par l'IA"
+
+msgid "Sensitivity of pausing is"
+msgstr "La sensibilité de pause est "
+
 msgid "Enable detection of build plate position"
 msgstr "Activation de la détection de la position de la plaque"
 
@@ -5936,20 +5942,6 @@ msgid ""
 msgstr ""
 "La balise de localisation de la plaque est détectée, l'impression est "
 "interrompue si la balise n'est pas dans la plage prédéfinie."
-
-msgid "Build Plate Detection"
-msgstr ""
-
-msgid ""
-"Identifies the type and position of the build plate on the heatbed. Pausing "
-"printing if a mismatch is detected."
-msgstr ""
-
-msgid "Enable AI monitoring of printing"
-msgstr "Activer la surveillance de l'impression par l'IA"
-
-msgid "Sensitivity of pausing is"
-msgstr "La sensibilité de pause est "
 
 msgid "First Layer Inspection"
 msgstr "Inspection de la Première Couche"
@@ -7678,11 +7670,6 @@ msgid ""
 "need to manually switch the external filament during printing."
 msgstr ""
 
-msgid ""
-"TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics "
-"calibration."
-msgstr ""
-
 msgid "Errors"
 msgstr "Erreurs"
 
@@ -7727,12 +7714,6 @@ msgstr "Préparation du travail d'impression"
 msgid "Abnormal print file data. Please slice again"
 msgstr ""
 "Données de fichier d'impression anormales. Veuillez retrancher le fichier."
-
-msgid ""
-"As the print job has been successfully sent, the cancellation will not bring "
-"the print job to a halt. If you need to terminate this job, please stop it "
-"in 'Device' page."
-msgstr ""
 
 msgid "The name length exceeds the limit."
 msgstr "La longueur du nom dépasse la limite."
@@ -8417,6 +8398,9 @@ msgid ""
 "or reset changes to extruder or multi-nozzle-related parameters."
 msgstr ""
 
+msgid "Use Modified Value"
+msgstr "Use Modified Value"
+
 msgid "Detached"
 msgstr "Détaché"
 
@@ -8475,13 +8459,13 @@ msgstr ""
 msgid "No modifications need to be copied."
 msgstr ""
 
+msgid "Copied the following parameters to the left nozzle:"
+msgstr ""
+
+msgid "Copied the following parameters to the right nozzle:"
+msgstr ""
+
 msgid "Copy paramters"
-msgstr ""
-
-msgid "Copy the following parameters to the left nozzle:"
-msgstr ""
-
-msgid "Copy the following parameters to the right nozzle:"
 msgstr ""
 
 msgid "Click to reset current value and attach to the global value."
@@ -8518,14 +8502,8 @@ msgstr "Use Modified Value of Filament Preset"
 msgid "Use Modified Value of Printer Preset"
 msgstr "Use Modified Value of Printer Preset"
 
-msgid "Current Value"
-msgstr ""
-
 msgid "Preset(Old)"
 msgstr "Preset (Old)"
-
-msgid "New Value"
-msgstr "Nouvelle Valeur"
 
 msgid "Modified Value(New)"
 msgstr "Modified Value (New)"
@@ -8535,9 +8513,6 @@ msgstr "Discard Modified Value"
 
 msgid "Don't save"
 msgstr "Ne pas enregistrer"
-
-msgid "Use Modified Value"
-msgstr "Use Modified Value"
 
 msgid "Click the right mouse button to display the full text."
 msgstr ""
@@ -8812,9 +8787,6 @@ msgstr ""
 msgid "Overwriting"
 msgstr ""
 
-msgid "Reset all filament mapping"
-msgstr ""
-
 msgid "Left Extruder"
 msgstr ""
 
@@ -8830,11 +8802,17 @@ msgid ""
 msgstr ""
 
 msgid ""
+"Find the best coefficient for dynamic flow calibration to enhance print "
+"quality.\n"
+"*Automatic mode: Skip if the filament was calibrated recently."
+msgstr ""
+
+msgid ""
 "Calibrate nozzle offsets to enhance print quality.\n"
 "*Automatic mode: Check for calibration before printing; skip if unnecessary."
 msgstr ""
 
-msgid "Tip"
+msgid "Attention"
 msgstr ""
 
 msgid ""
@@ -8850,7 +8828,7 @@ msgstr ""
 msgid "Advanced settings"
 msgstr ""
 
-msgid "Add unused AMS filaments to filaments list."
+msgid "Unused AMS filaments should also be added to the filament list."
 msgstr ""
 
 msgid "Automatically merge the same colors in the model after mapping."
@@ -8871,14 +8849,17 @@ msgstr ""
 msgid "Synchronize now"
 msgstr ""
 
-msgid "Synchronize Filament Information"
+#, c-format, boost-format
+msgid "Synchronize %sFilament Information"
 msgstr ""
 
-msgid "Add unused filaments to filaments list."
+#, c-format, boost-format
+msgid "Unused %sfilaments should also be added to the filament list."
 msgstr ""
 
+#, c-format, boost-format
 msgid ""
-"Only synchronize filament type and color, not including slot information."
+"Only synchronize filament type and color, not including %sslot information."
 msgstr ""
 
 msgid "Ext spool"
@@ -9256,21 +9237,6 @@ msgstr "Filament Loaded, Resume"
 msgid "View Liveview"
 msgstr "View Liveview"
 
-msgid "No Reminder Next Time"
-msgstr ""
-
-msgid "Ignore. Don't Remind Next Time"
-msgstr ""
-
-msgid "Ignore this and Resume"
-msgstr ""
-
-msgid "Problem Solved and Resume"
-msgstr ""
-
-msgid "Stop Buzzer"
-msgstr ""
-
 msgid "Confirm and Update Nozzle"
 msgstr "Confirmer et mettre à jour Buse"
 
@@ -9563,9 +9529,6 @@ msgstr "Mur extérieur"
 
 msgid "Overhang wall"
 msgstr "Mur en surplomb"
-
-msgid "Ensure vertical"
-msgstr ""
 
 msgid "Internal solid infill"
 msgstr "Remplissage solide interne"
@@ -10514,23 +10477,6 @@ msgstr ""
 msgid "Enabled"
 msgstr ""
 
-msgid "Vertical shell speed"
-msgstr ""
-
-msgid ""
-"Speed for vertical shell area. If expressed as percentage (for example: 80%) "
-"it will be calculated onthe internal solid infill speed above"
-msgstr ""
-
-msgid "mm/s or %"
-msgstr "mm/s ou %"
-
-msgid "Detect floating vertical shells"
-msgstr ""
-
-msgid "Detect floating vertical shells and slow them by using bridge speed."
-msgstr ""
-
 msgid "Internal bridge support thickness"
 msgstr "Épaisseur du support interne du pont"
 
@@ -10620,6 +10566,9 @@ msgstr ""
 "sont généralement des trous). Si elle est exprimée en pourcentage (par "
 "exemple : 80 %), elle sera calculée sur la base du réglage de vitesse de la "
 "paroi extérieure ci-dessus. Réglez sur zéro pour le mode automatique."
+
+msgid "mm/s or %"
+msgstr "mm/s ou %"
 
 msgid "Small perimter threshold"
 msgstr "Seuil périmètre court"
@@ -13999,9 +13948,11 @@ msgstr ""
 "Impossible d'effectuer une opération booléenne sur les pièces sélectionnées"
 
 msgid ""
-"Performed boolean intersection fails because the selected parts have no "
-"intersection"
+"Performed boolean intersection fails \n"
+" because the selected parts have no intersection"
 msgstr ""
+"L'exécution de l'intersection booléenne a échoué\n"
+"car les parties sélectionnées n'ont pas d'intersection"
 
 msgid "Mesh Boolean"
 msgstr "Opération Booléenne"
@@ -15716,16 +15667,6 @@ msgstr ""
 "Saviez-vous que lors de l'impression de matériaux sujets au warping, tels "
 "que l'ABS, une augmentation appropriée de la température du plateau peut "
 "réduire le risque de déformation ?"
-
-#~ msgid "Arranging..."
-#~ msgstr "Organiser..."
-
-#~ msgid ""
-#~ "Performed boolean intersection fails \n"
-#~ " because the selected parts have no intersection"
-#~ msgstr ""
-#~ "L'exécution de l'intersection booléenne a échoué\n"
-#~ "car les parties sélectionnées n'ont pas d'intersection"
 
 #~ msgid ""
 #~ "Filaments to AMS slots mappings have been established. You can click a "
@@ -17734,6 +17675,9 @@ msgstr ""
 
 #~ msgid "NO AMS"
 #~ msgstr "PAS D'AMS"
+
+#~ msgid "New Value"
+#~ msgstr "Nouvelle Valeur"
 
 #~ msgid "No arrangable objects are selected."
 #~ msgstr "Aucun objet réorganisable n'est sélectionné."

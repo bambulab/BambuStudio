@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-12 20:15+0800\n"
+"POT-Creation-Date: 2025-03-07 15:28+0800\n"
 "PO-Revision-Date: 2025-01-12 21:04+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -2426,8 +2426,8 @@ msgstr ""
 "Bu plaka kilitli.\n"
 "Bu plaka üzerinde otomatik düzenleme yapamıyoruz."
 
-msgid "Arranging"
-msgstr "Hizalanıyor"
+msgid "Arranging..."
+msgstr "Hizalanıyor..."
 
 #, boost-format
 msgid "Object %1% has zero size and can't be arranged."
@@ -2438,6 +2438,9 @@ msgid ""
 msgstr ""
 "Hizalama başarısız oldu. Nesne geometrilerini işlerken bazı istisnalar "
 "bulundu."
+
+msgid "Arranging"
+msgstr "Hizalanıyor"
 
 msgid "Arranging canceled."
 msgstr "Hizalama iptal edildi."
@@ -4186,9 +4189,6 @@ msgstr "Boşluk"
 msgid "0 means auto spacing."
 msgstr "0 otomatik aralık anlamına gelir."
 
-msgid "Save SVG"
-msgstr ""
-
 msgid "Auto rotate for arrangement"
 msgstr "Düzenleme için otomatik döndür"
 
@@ -5917,6 +5917,12 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "Alt"
 
+msgid "Enable AI monitoring of printing"
+msgstr "Yazdırmanın AI izlemesini etkinleştirin"
+
+msgid "Sensitivity of pausing is"
+msgstr "Duraklatma hassasiyeti"
+
 msgid "Enable detection of build plate position"
 msgstr "Yapı plakası konumunun algılanmasını etkinleştir"
 
@@ -5926,20 +5932,6 @@ msgid ""
 msgstr ""
 "Baskı plakasının yerelleştirme etiketi algılanır ve etiket önceden "
 "tanımlanmış aralıkta değilse yazdırma duraklatılır."
-
-msgid "Build Plate Detection"
-msgstr ""
-
-msgid ""
-"Identifies the type and position of the build plate on the heatbed. Pausing "
-"printing if a mismatch is detected."
-msgstr ""
-
-msgid "Enable AI monitoring of printing"
-msgstr "Yazdırmanın AI izlemesini etkinleştirin"
-
-msgid "Sensitivity of pausing is"
-msgstr "Duraklatma hassasiyeti"
 
 msgid "First Layer Inspection"
 msgstr "Birinci Katman Denetimi"
@@ -7671,11 +7663,6 @@ msgid ""
 "need to manually switch the external filament during printing."
 msgstr ""
 
-msgid ""
-"TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics "
-"calibration."
-msgstr ""
-
 msgid "Errors"
 msgstr "Hatalar"
 
@@ -7719,12 +7706,6 @@ msgstr "Yazdırma için hazırlanıyor"
 
 msgid "Abnormal print file data. Please slice again"
 msgstr "Anormal yazdırma dosyası verileri. Lütfen tekrar dilimleyin"
-
-msgid ""
-"As the print job has been successfully sent, the cancellation will not bring "
-"the print job to a halt. If you need to terminate this job, please stop it "
-"in 'Device' page."
-msgstr ""
 
 msgid "The name length exceeds the limit."
 msgstr "Ad uzunluğu sınırı aşıyor."
@@ -8394,6 +8375,9 @@ msgid ""
 "or reset changes to extruder or multi-nozzle-related parameters."
 msgstr ""
 
+msgid "Use Modified Value"
+msgstr "Değiştirilmiş Değer Kullanın"
+
 msgid "Detached"
 msgstr "Söküldü"
 
@@ -8450,13 +8434,13 @@ msgstr ""
 msgid "No modifications need to be copied."
 msgstr ""
 
+msgid "Copied the following parameters to the left nozzle:"
+msgstr ""
+
+msgid "Copied the following parameters to the right nozzle:"
+msgstr ""
+
 msgid "Copy paramters"
-msgstr ""
-
-msgid "Copy the following parameters to the left nozzle:"
-msgstr ""
-
-msgid "Copy the following parameters to the right nozzle:"
 msgstr ""
 
 msgid "Click to reset current value and attach to the global value."
@@ -8490,14 +8474,8 @@ msgstr "Filament Ön Ayarının Değiştirilmiş Değerini Kullan"
 msgid "Use Modified Value of Printer Preset"
 msgstr "Yazıcı Ön Ayarının Değiştirilmiş Değerini Kullan"
 
-msgid "Current Value"
-msgstr ""
-
 msgid "Preset(Old)"
 msgstr "Ön Ayar (Eski)"
-
-msgid "New Value"
-msgstr ""
 
 msgid "Modified Value(New)"
 msgstr "Değiştirilmiş Değer (Yeni)"
@@ -8507,9 +8485,6 @@ msgstr "Değiştirilmiş Değer At"
 
 msgid "Don't save"
 msgstr "Kaydetme"
-
-msgid "Use Modified Value"
-msgstr "Değiştirilmiş Değer Kullanın"
 
 msgid "Click the right mouse button to display the full text."
 msgstr "Tam metni görüntülemek için farenin sağ tuşuna tıklayın."
@@ -8781,9 +8756,6 @@ msgstr ""
 msgid "Overwriting"
 msgstr ""
 
-msgid "Reset all filament mapping"
-msgstr ""
-
 msgid "Left Extruder"
 msgstr ""
 
@@ -8799,11 +8771,17 @@ msgid ""
 msgstr ""
 
 msgid ""
+"Find the best coefficient for dynamic flow calibration to enhance print "
+"quality.\n"
+"*Automatic mode: Skip if the filament was calibrated recently."
+msgstr ""
+
+msgid ""
 "Calibrate nozzle offsets to enhance print quality.\n"
 "*Automatic mode: Check for calibration before printing; skip if unnecessary."
 msgstr ""
 
-msgid "Tip"
+msgid "Attention"
 msgstr ""
 
 msgid ""
@@ -8819,7 +8797,7 @@ msgstr ""
 msgid "Advanced settings"
 msgstr ""
 
-msgid "Add unused AMS filaments to filaments list."
+msgid "Unused AMS filaments should also be added to the filament list."
 msgstr ""
 
 msgid "Automatically merge the same colors in the model after mapping."
@@ -8840,14 +8818,17 @@ msgstr ""
 msgid "Synchronize now"
 msgstr ""
 
-msgid "Synchronize Filament Information"
+#, c-format, boost-format
+msgid "Synchronize %sFilament Information"
 msgstr ""
 
-msgid "Add unused filaments to filaments list."
+#, c-format, boost-format
+msgid "Unused %sfilaments should also be added to the filament list."
 msgstr ""
 
+#, c-format, boost-format
 msgid ""
-"Only synchronize filament type and color, not including slot information."
+"Only synchronize filament type and color, not including %sslot information."
 msgstr ""
 
 msgid "Ext spool"
@@ -9216,21 +9197,6 @@ msgstr "Filament Yüklendi, Devam"
 msgid "View Liveview"
 msgstr "Canlı Görüntüyü Göster"
 
-msgid "No Reminder Next Time"
-msgstr ""
-
-msgid "Ignore. Don't Remind Next Time"
-msgstr ""
-
-msgid "Ignore this and Resume"
-msgstr ""
-
-msgid "Problem Solved and Resume"
-msgstr ""
-
-msgid "Stop Buzzer"
-msgstr ""
-
 msgid "Confirm and Update Nozzle"
 msgstr "Nozulu Onaylayın ve Güncelleyin"
 
@@ -9523,9 +9489,6 @@ msgstr "Dış duvar"
 
 msgid "Overhang wall"
 msgstr "Çıkıntı duvarı"
-
-msgid "Ensure vertical"
-msgstr ""
 
 msgid "Internal solid infill"
 msgstr "İç katı dolgu"
@@ -10447,23 +10410,6 @@ msgstr ""
 msgid "Enabled"
 msgstr ""
 
-msgid "Vertical shell speed"
-msgstr ""
-
-msgid ""
-"Speed for vertical shell area. If expressed as percentage (for example: 80%) "
-"it will be calculated onthe internal solid infill speed above"
-msgstr ""
-
-msgid "mm/s or %"
-msgstr "mm/s veya %"
-
-msgid "Detect floating vertical shells"
-msgstr ""
-
-msgid "Detect floating vertical shells and slow them by using bridge speed."
-msgstr ""
-
 msgid "Internal bridge support thickness"
 msgstr "İç köprü destek kalınlığı"
 
@@ -10551,6 +10497,9 @@ msgstr ""
 "çevrelerin hızını etkileyecektir. Yüzde olarak ifade edilirse (örneğin: %80) "
 "yukarıdaki dış duvar hızı ayarı üzerinden hesaplanacaktır. Otomatik için "
 "sıfır olarak ayarlayın."
+
+msgid "mm/s or %"
+msgstr "mm/s veya %"
 
 msgid "Small perimter threshold"
 msgstr "Küçük perimter eşiği"
@@ -13908,9 +13857,11 @@ msgid "Unable to perform boolean operation on selected parts"
 msgstr "Seçilen parçalarda bölme işlemi gerçekleştirilemiyor"
 
 msgid ""
-"Performed boolean intersection fails because the selected parts have no "
-"intersection"
+"Performed boolean intersection fails \n"
+" because the selected parts have no intersection"
 msgstr ""
+"Gerçekleştirilen boole kesişimi başarısız\n"
+" çünkü seçilen parçaların kesişme noktası yoktur"
 
 msgid "Mesh Boolean"
 msgstr "Mesh Boolean"
@@ -15650,16 +15601,6 @@ msgstr ""
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı "
 "sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını "
 "azaltabileceğini biliyor muydunuz."
-
-#~ msgid "Arranging..."
-#~ msgstr "Hizalanıyor..."
-
-#~ msgid ""
-#~ "Performed boolean intersection fails \n"
-#~ " because the selected parts have no intersection"
-#~ msgstr ""
-#~ "Gerçekleştirilen boole kesişimi başarısız\n"
-#~ " çünkü seçilen parçaların kesişme noktası yoktur"
 
 #~ msgid ""
 #~ "Filaments to AMS slots mappings have been established. You can click a "
