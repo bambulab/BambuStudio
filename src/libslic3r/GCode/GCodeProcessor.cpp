@@ -1668,8 +1668,8 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     for (size_t idx = 0; idx < filament_count; ++idx)
         m_filament_types[idx] = config.filament_type.get_at(idx);
 
-    m_hotend_cooling_rate = config.hotend_cooling_rate.value;
-    m_hotend_heating_rate = config.hotend_heating_rate.value;
+    m_hotend_cooling_rate = config.hotend_cooling_rate.values;
+    m_hotend_heating_rate = config.hotend_heating_rate.values;
     m_enable_pre_heating = config.enable_pre_heating;
     m_physical_extruder_map = config.physical_extruder_map.values;
 
@@ -1775,14 +1775,14 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
             m_filament_types[idx] = filament_type->get_at(idx);
     }
 
-    const ConfigOptionFloat* hotend_cooling_rate = config.option<ConfigOptionFloat>("hotend_cooling_rate");
+    const ConfigOptionFloatsNullable* hotend_cooling_rate = config.option<ConfigOptionFloatsNullable>("hotend_cooling_rate");
     if (hotend_cooling_rate != nullptr) {
-        m_hotend_cooling_rate = hotend_cooling_rate->value;
+        m_hotend_cooling_rate = hotend_cooling_rate->values;
     }
 
-    const ConfigOptionFloat* hotend_heating_rate = config.option<ConfigOptionFloat>("hotend_heating_rate");
+    const ConfigOptionFloatsNullable* hotend_heating_rate = config.option<ConfigOptionFloatsNullable>("hotend_heating_rate");
     if (hotend_heating_rate != nullptr) {
-        m_hotend_heating_rate = hotend_heating_rate->value;
+        m_hotend_heating_rate = hotend_heating_rate->values;
     }
 
     const ConfigOptionBool* enable_pre_heating = config.option<ConfigOptionBool>("enable_pre_heating");
@@ -2145,7 +2145,7 @@ void GCodeProcessor::reset()
     m_physical_extruder_map.clear();
     m_filament_nozzle_temp.clear();
     m_enable_pre_heating = false;
-    m_hotend_cooling_rate = m_hotend_heating_rate = 2.f;
+    m_hotend_cooling_rate = m_hotend_heating_rate = { 2.f };
 
     m_highest_bed_temp = 0;
 
@@ -5969,9 +5969,12 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
     if (!apply_cooling_when_partial_free && complete_free_time_gap < inject_time_threshold)
         return;
 
+    float ext_heating_rate = heating_rate[block.extruder_id];
+    float ext_cooling_rate = cooling_rate[block.extruder_id];
+
     if (is_tpu_filament(block.last_filament_id) && pre_cooling) {
         if (partial_free_move_lower < partial_free_move_upper) {
-            float max_cooling_temp = std::min(curr_temp, std::min(partial_free_cooling_thres, partial_free_time_gap * cooling_rate));
+            float max_cooling_temp = std::min(curr_temp, std::min(partial_free_cooling_thres, partial_free_time_gap * ext_cooling_rate));
             curr_temp -= max_cooling_temp; // set the temperature after doing cooling when post-extruding
             inserted_operation_lines[partial_free_move_lower->gcode_id].emplace_back(format_line_M104(curr_temp, block.extruder_id, "Multi extruder pre cooling in post extrusion"), TimeProcessor::InsertLineType::PreCooling);
         }
@@ -5988,7 +5991,7 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
         // only perform heating
         if (target_temp <= curr_temp)
             return;
-        float heating_start_time = move_iter_upper->time[valid_machine_id] - (target_temp - curr_temp) / heating_rate;
+        float heating_start_time = move_iter_upper->time[valid_machine_id] - (target_temp - curr_temp) / ext_heating_rate;
         auto heating_move_iter = std::upper_bound(move_iter_lower, move_iter_upper + 1, heating_start_time, [valid_machine_id = this->valid_machine_id](float time, const GCodeProcessorResult::MoveVertex& a) {return time < a.time[valid_machine_id]; });
         if (heating_move_iter == move_iter_upper + 1 || heating_move_iter == move_iter_lower) {
             inserted_operation_lines[block.free_lower_gcode_id].emplace_back(format_line_M104(target_temp, block.extruder_id, "Multi extruder pre heating"), TimeProcessor::InsertLineType::PreHeating);
@@ -6000,9 +6003,9 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
         return;
     }
     // perform cooling first and then perform heating
-    float mid_temp = std::max(0.f, (curr_temp * heating_rate + target_temp * cooling_rate - complete_free_time_gap * cooling_rate * heating_rate) / (cooling_rate + heating_rate));
+    float mid_temp = std::max(0.f, (curr_temp * ext_heating_rate + target_temp * ext_cooling_rate - complete_free_time_gap * ext_cooling_rate * ext_heating_rate) / (ext_cooling_rate + ext_heating_rate));
     float heating_temp = target_temp - mid_temp;
-    float heating_start_time = move_iter_upper->time[valid_machine_id] - heating_temp / heating_rate;
+    float heating_start_time = move_iter_upper->time[valid_machine_id] - heating_temp / ext_heating_rate;
     auto heating_move_iter = std::upper_bound(move_iter_lower, move_iter_upper + 1, heating_start_time, [valid_machine_id = this->valid_machine_id](float time, const GCodeProcessorResult::MoveVertex& a) {return time < a.time[valid_machine_id]; });
     if (heating_move_iter == move_iter_lower || heating_move_iter == move_iter_upper + 1)
         return;
@@ -6010,7 +6013,7 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
     --heating_move_iter;
     // get the insert pos of heat cmd and recalculate time gap and delta temp
     float real_cooling_time = heating_move_iter->time[valid_machine_id] - move_iter_lower->time[valid_machine_id];
-    int real_delta_temp = std::min((int)(real_cooling_time * cooling_rate), (int)curr_temp);
+    int real_delta_temp = std::min((int)(real_cooling_time * ext_cooling_rate), (int)curr_temp);
     if (real_delta_temp == 0)
         return;
     inserted_operation_lines[block.free_lower_gcode_id].emplace_back(format_line_M104(curr_temp - real_delta_temp, block.extruder_id, "Multi extruder pre cooling"), TimeProcessor::InsertLineType::PreCooling);

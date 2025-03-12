@@ -1050,8 +1050,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                enable_pre_heating))
     ((ConfigOptionEnum<BedTempFormula>, bed_temperature_formula))
     ((ConfigOptionInts,                physical_extruder_map))
-    ((ConfigOptionFloat,               hotend_cooling_rate))
-    ((ConfigOptionFloat,               hotend_heating_rate))
+    ((ConfigOptionFloatsNullable,      hotend_cooling_rate))
+    ((ConfigOptionFloatsNullable,      hotend_heating_rate))
     ((ConfigOptionFloats,              filament_minimal_purge_on_wipe_tower))
     // BBS
     ((ConfigOptionBool,                scan_first_layer))

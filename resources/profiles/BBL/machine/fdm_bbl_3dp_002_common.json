@@ -66,6 +66,18 @@
         "0"
     ],
     "head_wrap_detect_zone": [],
+    "hotend_cooling_rate": [
+        "2",
+        "2",
+        "2",
+        "2"
+    ],
+    "hotend_heating_rate": [
+        "2",
+        "2",
+        "2",
+        "2"
+    ],
     "long_retractions_when_cut": [
         "0",
         "0",

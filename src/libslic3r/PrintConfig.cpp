@@ -1772,11 +1772,13 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(5));
 
-    def = this->add("hotend_cooling_rate", coFloat);
-    def->set_default_value(new ConfigOptionFloat(2));
+    def = this->add("hotend_cooling_rate", coFloats);
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable{2});
 
-    def = this->add("hotend_heating_rate", coFloat);
-    def->set_default_value(new ConfigOptionFloat(2));
+    def = this->add("hotend_heating_rate", coFloats);
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable{2});
 
     def = this->add("enable_pre_heating", coBool);
     def->set_default_value(new ConfigOptionBool(false));
@@ -5658,7 +5660,9 @@ std::set<std::string> printer_options_with_variant_1 = {
     "nozzle_volume",
     "nozzle_type",
     "printer_extruder_id",
-    "printer_extruder_variant"
+    "printer_extruder_variant",
+    "hotend_cooling_rate",
+    "hotend_heating_rate"
 };
 
 //options with silient mode
