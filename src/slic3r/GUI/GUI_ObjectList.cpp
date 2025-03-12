@@ -1373,7 +1373,7 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
 	        toggle_printable_state();
         else if (col_num == colSupportPaint) {
             ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item.GetID();
-            if (node->HasSupportPainting()) {
+            if (node && node->HasSupportPainting()) {
                 GLGizmosManager& gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
                 if (gizmos_mgr.get_current_type() != GLGizmosManager::EType::FdmSupports)
                     gizmos_mgr.open_gizmo(GLGizmosManager::EType::FdmSupports);
@@ -1384,7 +1384,7 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
         else if (col_num == colColorPaint) {
             if (wxGetApp().plater()->get_current_canvas3D()->get_canvas_type() != GLCanvas3D::CanvasAssembleView) {
                 ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item.GetID();
-                if (node->HasColorPainting()) {
+                if (node && node->HasColorPainting()) {
                     GLGizmosManager& gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
                     if (gizmos_mgr.get_current_type() != GLGizmosManager::EType::MmuSegmentation)
                         gizmos_mgr.open_gizmo(GLGizmosManager::EType::MmuSegmentation);
@@ -3751,7 +3751,7 @@ void ObjectList::update_variable_layer_obj_num(ObjectDataViewModelNode* obj_node
     }
 }
 
-void ObjectList::update_info_items(size_t obj_idx, wxDataViewItemArray* selections/* = nullptr*/, bool added_object/* = false*/)
+void ObjectList::update_info_items(size_t obj_idx, wxDataViewItemArray *selections /* = nullptr*/, bool added_object /* = false*/, bool color_mode_changed /* = false*/)
 {
     // BBS
     if (obj_idx >= m_objects->size())
@@ -3809,6 +3809,9 @@ void ObjectList::update_info_items(size_t obj_idx, wxDataViewItemArray* selectio
         else if (!shows && should_show) {
             m_objects_model->SetSupportPaintState(true, item_obj);
         }
+        if (color_mode_changed && shows) {
+            m_objects_model->SetSupportPaintState(true, item_obj,true);
+        }
     }
 
     {
@@ -3824,6 +3827,9 @@ void ObjectList::update_info_items(size_t obj_idx, wxDataViewItemArray* selectio
         else if (!shows && should_show) {
             m_objects_model->SetColorPaintState(true, item_obj);
         }
+        if (color_mode_changed && shows) {
+            m_objects_model->SetColorPaintState(true, item_obj, true);
+        }
     }
 
     {
@@ -3835,6 +3841,9 @@ void ObjectList::update_info_items(size_t obj_idx, wxDataViewItemArray* selectio
         }
         else if (!shows && should_show) {
             m_objects_model->SetSinkState(true, item_obj);
+        }
+        if (color_mode_changed && shows) {
+            m_objects_model->SetSinkState(true, item_obj, true);
         }
     }
 
