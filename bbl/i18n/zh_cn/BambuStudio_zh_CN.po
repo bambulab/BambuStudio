@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-12 20:15+0800\n"
+"POT-Creation-Date: 2025-03-07 15:28+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -2379,8 +2379,8 @@ msgid ""
 "We can not do auto-arrange on this plate."
 msgstr "该盘处于锁定状态，无法对其进行自动摆盘。"
 
-msgid "Arranging"
-msgstr "自动摆放"
+msgid "Arranging..."
+msgstr "自动摆放中..."
 
 #, boost-format
 msgid "Object %1% has zero size and can't be arranged."
@@ -2389,6 +2389,9 @@ msgstr "对象%1%的大小为零，无法排列。"
 msgid ""
 "Arrange failed. Found some exceptions when processing object geometries."
 msgstr "自动摆放失败，处理对象几何数据时遇到异常。"
+
+msgid "Arranging"
+msgstr "自动摆放"
 
 msgid "Arranging canceled."
 msgstr "已取消自动摆放。"
@@ -2884,7 +2887,7 @@ msgid "External"
 msgstr "外部"
 
 msgid "Reset current filament mapping"
-msgstr "重置当前耗材映射"
+msgstr ""
 
 msgid "Right AMS"
 msgstr "右侧AMS"
@@ -4070,9 +4073,6 @@ msgstr "间距"
 
 msgid "0 means auto spacing."
 msgstr "0 表示自动间距。"
-
-msgid "Save SVG"
-msgstr "保存SVG"
 
 msgid "Auto rotate for arrangement"
 msgstr "自动旋转以优化自动摆放效果"
@@ -5741,6 +5741,12 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "底部"
 
+msgid "Enable AI monitoring of printing"
+msgstr "启用打印过程的AI监控"
+
+msgid "Sensitivity of pausing is"
+msgstr "暂停的灵敏度为"
+
 msgid "Enable detection of build plate position"
 msgstr "启用打印板位置检测"
 
@@ -5748,20 +5754,6 @@ msgid ""
 "The localization tag of build plate is detected, and printing is paused if "
 "the tag is not in predefined range."
 msgstr "检测打印板的定位标记，如果标记不在预定义范围内时暂停打印。"
-
-msgid "Build Plate Detection"
-msgstr ""
-
-msgid ""
-"Identifies the type and position of the build plate on the heatbed. Pausing "
-"printing if a mismatch is detected."
-msgstr ""
-
-msgid "Enable AI monitoring of printing"
-msgstr "启用打印过程的AI监控"
-
-msgid "Sensitivity of pausing is"
-msgstr "暂停的灵敏度为"
 
 msgid "First Layer Inspection"
 msgstr "首层扫描"
@@ -7444,11 +7436,6 @@ msgstr ""
 "您在一个挤出机中同时选择了使用外挂和AMS耗材，这将需要您在打印过程中手动进行换"
 "料，请谨慎选择。"
 
-msgid ""
-"TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics "
-"calibration."
-msgstr ""
-
 msgid "Errors"
 msgstr "错误"
 
@@ -7487,12 +7474,6 @@ msgstr "正在准备打印任务"
 
 msgid "Abnormal print file data. Please slice again"
 msgstr "打印文件数据异常，请重新切片"
-
-msgid ""
-"As the print job has been successfully sent, the cancellation will not bring "
-"the print job to a halt. If you need to terminate this job, please stop it "
-"in 'Device' page."
-msgstr ""
 
 msgid "The name length exceeds the limit."
 msgstr "名称长度超过限制。"
@@ -8120,6 +8101,9 @@ msgstr ""
 "切换到挤出机类型或数量不一样的打印机，挤出机或多喷嘴相关参数的修改将会被丢弃"
 "或重置。"
 
+msgid "Use Modified Value"
+msgstr "使用修改值"
+
 msgid "Detached"
 msgstr "分离的"
 
@@ -8173,14 +8157,14 @@ msgstr "右: %s"
 msgid "No modifications need to be copied."
 msgstr "没有需要拷贝的参数修改。"
 
+msgid "Copied the following parameters to the left nozzle:"
+msgstr "拷贝了下列参数到左喷嘴名下："
+
+msgid "Copied the following parameters to the right nozzle:"
+msgstr "拷贝了下列参数到右喷嘴名下："
+
 msgid "Copy paramters"
 msgstr "拷贝参数"
-
-msgid "Copy the following parameters to the left nozzle:"
-msgstr ""
-
-msgid "Copy the following parameters to the right nozzle:"
-msgstr ""
 
 msgid "Click to reset current value and attach to the global value."
 msgstr "点击该图标，恢复到全局的配置数值，并与全局配置同步变化。"
@@ -8212,14 +8196,8 @@ msgstr "使用材料预设的修改值"
 msgid "Use Modified Value of Printer Preset"
 msgstr "使用机器预设的修改值"
 
-msgid "Current Value"
-msgstr ""
-
 msgid "Preset(Old)"
 msgstr "预设（旧）"
-
-msgid "New Value"
-msgstr "新值"
 
 msgid "Modified Value(New)"
 msgstr "修改值（新）"
@@ -8229,9 +8207,6 @@ msgstr "丢弃修改值"
 
 msgid "Don't save"
 msgstr "不保存"
-
-msgid "Use Modified Value"
-msgstr "使用修改值"
 
 msgid "Click the right mouse button to display the full text."
 msgstr "单击鼠标右键显示全文。"
@@ -8505,9 +8480,6 @@ msgstr "匹配"
 msgid "Overwriting"
 msgstr "覆盖"
 
-msgid "Reset all filament mapping"
-msgstr ""
-
 msgid "Left Extruder"
 msgstr "左挤出机"
 
@@ -8525,14 +8497,22 @@ msgstr ""
 "*自动模式：先调平（约10秒）。如果表面良好，则跳过。"
 
 msgid ""
+"Find the best coefficient for dynamic flow calibration to enhance print "
+"quality.\n"
+"*Automatic mode: Skip if the filament was calibrated recently."
+msgstr ""
+"找到动态流量校准的最佳系数，以提高打印质量。\n"
+"*自动模式：如果耗材丝最近校准过，则跳过。"
+
+msgid ""
 "Calibrate nozzle offsets to enhance print quality.\n"
 "*Automatic mode: Check for calibration before printing; skip if unnecessary."
 msgstr ""
 "校准不同喷嘴的偏移量，提升打印质量。\n"
 "*自动模式：发起打印前检测是否需要校准，无需校准则跳过校准。"
 
-msgid "Tip"
-msgstr "提示"
+msgid "Attention"
+msgstr "注意"
 
 msgid ""
 "Only synchronize filament type and color, not including AMS slot information."
@@ -8549,8 +8529,8 @@ msgstr ""
 msgid "Advanced settings"
 msgstr "高级设置"
 
-msgid "Add unused AMS filaments to filaments list."
-msgstr "将未使用的 AMS 耗材添加到耗材列表中。"
+msgid "Unused AMS filaments should also be added to the filament list."
+msgstr "未使用的AMS耗材也添加到耗材列表。"
 
 msgid "Automatically merge the same colors in the model after mapping."
 msgstr "匹配后自动合并模型中的相同颜色。"
@@ -8572,18 +8552,21 @@ msgstr "确定要同步AMS中耗材信息吗？"
 msgid "Synchronize now"
 msgstr "立即同步"
 
-msgid "Synchronize Filament Information"
-msgstr "同步耗材信息"
+#, c-format, boost-format
+msgid "Synchronize %sFilament Information"
+msgstr ""
 
-msgid "Add unused filaments to filaments list."
-msgstr "将未使用的耗材添加到耗材列表中。"
+#, c-format, boost-format
+msgid "Unused %sfilaments should also be added to the filament list."
+msgstr ""
 
+#, c-format, boost-format
 msgid ""
-"Only synchronize filament type and color, not including slot information."
+"Only synchronize filament type and color, not including %sslot information."
 msgstr ""
 
 msgid "Ext spool"
-msgstr "外挂"
+msgstr ""
 
 msgid ""
 "Please check whether the nozzle type of the device is the same as the preset "
@@ -8940,21 +8923,6 @@ msgstr "耗材已加载，继续"
 msgid "View Liveview"
 msgstr "查看LiveView"
 
-msgid "No Reminder Next Time"
-msgstr ""
-
-msgid "Ignore. Don't Remind Next Time"
-msgstr ""
-
-msgid "Ignore this and Resume"
-msgstr ""
-
-msgid "Problem Solved and Resume"
-msgstr ""
-
-msgid "Stop Buzzer"
-msgstr ""
-
 msgid "Confirm and Update Nozzle"
 msgstr "确认并更新喷嘴"
 
@@ -9234,9 +9202,6 @@ msgstr "外墙"
 
 msgid "Overhang wall"
 msgstr "悬空墙"
-
-msgid "Ensure vertical"
-msgstr ""
 
 msgid "Internal solid infill"
 msgstr "内部实心填充"
@@ -10066,23 +10031,6 @@ msgstr "部分"
 msgid "Enabled"
 msgstr "打开"
 
-msgid "Vertical shell speed"
-msgstr ""
-
-msgid ""
-"Speed for vertical shell area. If expressed as percentage (for example: 80%) "
-"it will be calculated onthe internal solid infill speed above"
-msgstr ""
-
-msgid "mm/s or %"
-msgstr "mm/s 或 %"
-
-msgid "Detect floating vertical shells"
-msgstr ""
-
-msgid "Detect floating vertical shells and slow them by using bridge speed."
-msgstr ""
-
 msgid "Internal bridge support thickness"
 msgstr "内部桥接支撑厚度"
 
@@ -10163,6 +10111,9 @@ msgid ""
 msgstr ""
 "这个设置将影响半径小于等于小轮廓阈值的轮廓（通常是孔）的速度。如果以百分比形"
 "式表示（例如：80%），则将根据外墙速度进行计算。设置为0代表自动调速。"
+
+msgid "mm/s or %"
+msgstr "mm/s 或 %"
 
 msgid "Small perimter threshold"
 msgstr "小轮廓阈值"
@@ -12183,7 +12134,7 @@ msgid "hole_limit_max"
 msgstr ""
 
 msgid "Diameter limit"
-msgstr "直径限制"
+msgstr ""
 
 msgid "diameter_limit"
 msgstr ""
@@ -12504,7 +12455,7 @@ msgid "load_obj: failed to parse"
 msgstr "加载对象：无法分析"
 
 msgid "load mtl in obj: failed to parse"
-msgstr "在 obj 中加载 mtl：无法解析"
+msgstr ""
 
 msgid "The file contains polygons with more than 4 vertices."
 msgstr "该文件包含顶点超过4个的多边形。"
@@ -13268,9 +13219,9 @@ msgid "Unable to perform boolean operation on selected parts"
 msgstr "无法对所选部件执行布尔运算"
 
 msgid ""
-"Performed boolean intersection fails because the selected parts have no "
-"intersection"
-msgstr ""
+"Performed boolean intersection fails \n"
+" because the selected parts have no intersection"
+msgstr "因选中的物体无交集，布尔交集计算失败"
 
 msgid "Mesh Boolean"
 msgstr "布尔运算"
@@ -14873,34 +14824,6 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
-
-#~ msgid "Arranging..."
-#~ msgstr "自动摆放中..."
-
-#~ msgid "Copied the following parameters to the left nozzle:"
-#~ msgstr "拷贝了下列参数到左喷嘴名下："
-
-#~ msgid "Copied the following parameters to the right nozzle:"
-#~ msgstr "拷贝了下列参数到右喷嘴名下："
-
-#~ msgid ""
-#~ "Find the best coefficient for dynamic flow calibration to enhance print "
-#~ "quality.\n"
-#~ "*Automatic mode: Skip if the filament was calibrated recently."
-#~ msgstr ""
-#~ "找到动态流量校准的最佳系数，以提高打印质量。\n"
-#~ "*自动模式：如果耗材丝最近校准过，则跳过。"
-
-#~ msgid "Attention"
-#~ msgstr "注意"
-
-#~ msgid "Unused AMS filaments should also be added to the filament list."
-#~ msgstr "未使用的AMS耗材也添加到耗材列表。"
-
-#~ msgid ""
-#~ "Performed boolean intersection fails \n"
-#~ " because the selected parts have no intersection"
-#~ msgstr "因选中的物体无交集，布尔交集计算失败"
 
 #~ msgid ""
 #~ "Filaments to AMS slots mappings have been established. You can click a "
@@ -16510,6 +16433,9 @@ msgstr ""
 
 #~ msgid "Old Value"
 #~ msgstr "旧值"
+
+#~ msgid "New Value"
+#~ msgstr "新值"
 
 #~ msgid "Transfer"
 #~ msgstr "迁移"

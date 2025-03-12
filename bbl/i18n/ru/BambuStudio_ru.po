@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 1.10.1 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-12 20:15+0800\n"
+"POT-Creation-Date: 2025-03-07 15:28+0800\n"
 "PO-Revision-Date: 2024-09-27 23:58+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -2473,8 +2473,8 @@ msgstr ""
 "Этот стол заблокирован.\n"
 "Авторасстановка на этом столе невозможна."
 
-msgid "Arranging"
-msgstr "Расстановка"
+msgid "Arranging..."
+msgstr "Расстановка..."
 
 #, boost-format
 msgid "Object %1% has zero size and can't be arranged."
@@ -2485,6 +2485,9 @@ msgid ""
 msgstr ""
 "Ошибка расстановки. Обнаружены некоторые исключения при обработке геометрии "
 "моделей."
+
+msgid "Arranging"
+msgstr "Расстановка"
 
 msgid "Arranging canceled."
 msgstr "Расстановка отменена."
@@ -4276,9 +4279,6 @@ msgstr "Интервал"
 msgid "0 means auto spacing."
 msgstr "0 - автоматический интервал."
 
-msgid "Save SVG"
-msgstr ""
-
 msgid "Auto rotate for arrangement"
 msgstr "Разрешить вращение при расстановке"
 
@@ -6031,6 +6031,12 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "Снизу"
 
+msgid "Enable AI monitoring of printing"
+msgstr "Контроль процесса печати с помощью ИИ"
+
+msgid "Sensitivity of pausing is"
+msgstr "Чувствительность"
+
 msgid "Enable detection of build plate position"
 msgstr "Определение положения печатной пластины"
 
@@ -6040,20 +6046,6 @@ msgid ""
 msgstr ""
 "Функция обнаружения метки (QR-кода) печатной пластины. Печать "
 "приостанавливается, если метка находится не в том месте."
-
-msgid "Build Plate Detection"
-msgstr ""
-
-msgid ""
-"Identifies the type and position of the build plate on the heatbed. Pausing "
-"printing if a mismatch is detected."
-msgstr ""
-
-msgid "Enable AI monitoring of printing"
-msgstr "Контроль процесса печати с помощью ИИ"
-
-msgid "Sensitivity of pausing is"
-msgstr "Чувствительность"
 
 msgid "First Layer Inspection"
 msgstr "Проверка первого слоя"
@@ -7825,11 +7817,6 @@ msgid ""
 "need to manually switch the external filament during printing."
 msgstr ""
 
-msgid ""
-"TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics "
-"calibration."
-msgstr ""
-
 msgid "Errors"
 msgstr "Ошибок"
 
@@ -7872,12 +7859,6 @@ msgstr "Подготовка задания на печать"
 
 msgid "Abnormal print file data. Please slice again"
 msgstr "Неправильные данные файла печати. Пожалуйста, нарежьте ещё раз."
-
-msgid ""
-"As the print job has been successfully sent, the cancellation will not bring "
-"the print job to a halt. If you need to terminate this job, please stop it "
-"in 'Device' page."
-msgstr ""
 
 msgid "The name length exceeds the limit."
 msgstr "Длина имени превышает установленное ограничение."
@@ -8569,6 +8550,9 @@ msgid ""
 "or reset changes to extruder or multi-nozzle-related parameters."
 msgstr ""
 
+msgid "Use Modified Value"
+msgstr "Исп. изменённое значение"
+
 msgid "Detached"
 msgstr "Отсоединён"
 
@@ -8628,13 +8612,13 @@ msgstr ""
 msgid "No modifications need to be copied."
 msgstr ""
 
+msgid "Copied the following parameters to the left nozzle:"
+msgstr ""
+
+msgid "Copied the following parameters to the right nozzle:"
+msgstr ""
+
 msgid "Copy paramters"
-msgstr ""
-
-msgid "Copy the following parameters to the left nozzle:"
-msgstr ""
-
-msgid "Copy the following parameters to the right nozzle:"
 msgstr ""
 
 msgid "Click to reset current value and attach to the global value."
@@ -8667,14 +8651,8 @@ msgstr "Использовать изменённое значение проф�
 msgid "Use Modified Value of Printer Preset"
 msgstr "Использовать изменённое значение профиля принтера"
 
-msgid "Current Value"
-msgstr ""
-
 msgid "Preset(Old)"
 msgstr "Старое значение"
-
-msgid "New Value"
-msgstr ""
 
 msgid "Modified Value(New)"
 msgstr "Новое значение"
@@ -8685,9 +8663,6 @@ msgstr "Сбросить"
 
 msgid "Don't save"
 msgstr "Не сохранять"
-
-msgid "Use Modified Value"
-msgstr "Исп. изменённое значение"
 
 msgid "Click the right mouse button to display the full text."
 msgstr "Нажмите правой кнопкой мыши, чтобы отобразить полный текст."
@@ -8964,9 +8939,6 @@ msgstr ""
 msgid "Overwriting"
 msgstr ""
 
-msgid "Reset all filament mapping"
-msgstr ""
-
 msgid "Left Extruder"
 msgstr ""
 
@@ -8982,11 +8954,17 @@ msgid ""
 msgstr ""
 
 msgid ""
+"Find the best coefficient for dynamic flow calibration to enhance print "
+"quality.\n"
+"*Automatic mode: Skip if the filament was calibrated recently."
+msgstr ""
+
+msgid ""
 "Calibrate nozzle offsets to enhance print quality.\n"
 "*Automatic mode: Check for calibration before printing; skip if unnecessary."
 msgstr ""
 
-msgid "Tip"
+msgid "Attention"
 msgstr ""
 
 msgid ""
@@ -9002,7 +8980,7 @@ msgstr ""
 msgid "Advanced settings"
 msgstr ""
 
-msgid "Add unused AMS filaments to filaments list."
+msgid "Unused AMS filaments should also be added to the filament list."
 msgstr ""
 
 msgid "Automatically merge the same colors in the model after mapping."
@@ -9023,14 +9001,17 @@ msgstr ""
 msgid "Synchronize now"
 msgstr ""
 
-msgid "Synchronize Filament Information"
+#, c-format, boost-format
+msgid "Synchronize %sFilament Information"
 msgstr ""
 
-msgid "Add unused filaments to filaments list."
+#, c-format, boost-format
+msgid "Unused %sfilaments should also be added to the filament list."
 msgstr ""
 
+#, c-format, boost-format
 msgid ""
-"Only synchronize filament type and color, not including slot information."
+"Only synchronize filament type and color, not including %sslot information."
 msgstr ""
 
 msgid "Ext spool"
@@ -9407,21 +9388,6 @@ msgstr "Пруток загружен, Повторить"
 msgid "View Liveview"
 msgstr "Открыть видеотрансляцию"
 
-msgid "No Reminder Next Time"
-msgstr ""
-
-msgid "Ignore. Don't Remind Next Time"
-msgstr ""
-
-msgid "Ignore this and Resume"
-msgstr ""
-
-msgid "Problem Solved and Resume"
-msgstr ""
-
-msgid "Stop Buzzer"
-msgstr ""
-
 msgid "Confirm and Update Nozzle"
 msgstr "Подтвердить и обновить сопло"
 
@@ -9721,9 +9687,6 @@ msgstr "Внешний периметр"
 
 msgid "Overhang wall"
 msgstr "Нависающие периметры"
-
-msgid "Ensure vertical"
-msgstr ""
 
 msgid "Internal solid infill"
 msgstr "Сплошное заполнение"
@@ -10676,23 +10639,6 @@ msgstr ""
 msgid "Enabled"
 msgstr ""
 
-msgid "Vertical shell speed"
-msgstr ""
-
-msgid ""
-"Speed for vertical shell area. If expressed as percentage (for example: 80%) "
-"it will be calculated onthe internal solid infill speed above"
-msgstr ""
-
-msgid "mm/s or %"
-msgstr "мм/с или %"
-
-msgid "Detect floating vertical shells"
-msgstr ""
-
-msgid "Detect floating vertical shells and slow them by using bridge speed."
-msgstr ""
-
 msgid "Internal bridge support thickness"
 msgstr "Толщина опорного контура для внутреннего моста"
 
@@ -10780,6 +10726,9 @@ msgstr ""
 "значению порога маленьких периметров (обычно это отверстия). Если задано в "
 "процентах, параметр вычисляется относительно скорости печати внешнего "
 "периметра указанного выше. Установите 0 для автонастройки."
+
+msgid "mm/s or %"
+msgstr "мм/с или %"
 
 msgid "Small perimter threshold"
 msgstr "Порог маленьких периметров"
@@ -14290,9 +14239,11 @@ msgid "Unable to perform boolean operation on selected parts"
 msgstr "Невозможно выполнить булевую операцию над выбранными элементами."
 
 msgid ""
-"Performed boolean intersection fails because the selected parts have no "
-"intersection"
+"Performed boolean intersection fails \n"
+" because the selected parts have no intersection"
 msgstr ""
+"Не удалось выполнить булево пересечение, \n"
+"поскольку выбранные части не пересекаются."
 
 msgid "Mesh Boolean"
 msgstr "Булевы операции"
@@ -16052,16 +16003,6 @@ msgstr ""
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как "
 "ABS, повышение температуры подогреваемого стола может снизить эту "
 "вероятность?"
-
-#~ msgid "Arranging..."
-#~ msgstr "Расстановка..."
-
-#~ msgid ""
-#~ "Performed boolean intersection fails \n"
-#~ " because the selected parts have no intersection"
-#~ msgstr ""
-#~ "Не удалось выполнить булево пересечение, \n"
-#~ "поскольку выбранные части не пересекаются."
 
 #~ msgid ""
 #~ "Filaments to AMS slots mappings have been established. You can click a "

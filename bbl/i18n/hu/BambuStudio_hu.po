@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-12 20:15+0800\n"
+"POT-Creation-Date: 2025-03-07 15:28+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2416,8 +2416,8 @@ msgstr ""
 "Ez a tálca zárolva van.\n"
 "Nem lehetséges az automatikus elrendezés ezen a tálcán."
 
-msgid "Arranging"
-msgstr "Elrendezés"
+msgid "Arranging..."
+msgstr "Elrendezés..."
 
 #, boost-format
 msgid "Object %1% has zero size and can't be arranged."
@@ -2428,6 +2428,9 @@ msgid ""
 msgstr ""
 "Sikertelen elrendezés. Néhány kivételt találtunk az objektumgeometriák "
 "feldolgozásakor."
+
+msgid "Arranging"
+msgstr "Elrendezés"
 
 msgid "Arranging canceled."
 msgstr "Elrendezése törölve."
@@ -4183,9 +4186,6 @@ msgstr "Térköz"
 msgid "0 means auto spacing."
 msgstr "0 means auto spacing."
 
-msgid "Save SVG"
-msgstr ""
-
 msgid "Auto rotate for arrangement"
 msgstr "Automatikus forgatás az elrendezéshez"
 
@@ -5887,6 +5887,12 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "Alsó"
 
+msgid "Enable AI monitoring of printing"
+msgstr "Nyomtatás MI-felügyeletének engedélyezése"
+
+msgid "Sensitivity of pausing is"
+msgstr "Szüneteltetés érzékenysége"
+
 msgid "Enable detection of build plate position"
 msgstr "Nyomtatótálca helyzetének érzékelése"
 
@@ -5896,20 +5902,6 @@ msgid ""
 msgstr ""
 "A nyomtató megkeresi a nyomtatótálca lokalizációs címkéjét, és szünetelteti "
 "a nyomtatást, ha az nem egy előre meghatározott tartományban van."
-
-msgid "Build Plate Detection"
-msgstr ""
-
-msgid ""
-"Identifies the type and position of the build plate on the heatbed. Pausing "
-"printing if a mismatch is detected."
-msgstr ""
-
-msgid "Enable AI monitoring of printing"
-msgstr "Nyomtatás MI-felügyeletének engedélyezése"
-
-msgid "Sensitivity of pausing is"
-msgstr "Szüneteltetés érzékenysége"
 
 msgid "First Layer Inspection"
 msgstr "Kezdőréteg ellenőrzése"
@@ -7610,11 +7602,6 @@ msgid ""
 "need to manually switch the external filament during printing."
 msgstr ""
 
-msgid ""
-"TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics "
-"calibration."
-msgstr ""
-
 msgid "Errors"
 msgstr "Hibák"
 
@@ -7659,12 +7646,6 @@ msgstr "Nyomtatási feladat előkészítése"
 
 msgid "Abnormal print file data. Please slice again"
 msgstr "Rendellenes nyomtatási fájladatok. Kérjük, szeleteld újra"
-
-msgid ""
-"As the print job has been successfully sent, the cancellation will not bring "
-"the print job to a halt. If you need to terminate this job, please stop it "
-"in 'Device' page."
-msgstr ""
 
 msgid "The name length exceeds the limit."
 msgstr "A név túl hosszú."
@@ -8333,6 +8314,9 @@ msgid ""
 "or reset changes to extruder or multi-nozzle-related parameters."
 msgstr ""
 
+msgid "Use Modified Value"
+msgstr "Use Modified Value"
+
 msgid "Detached"
 msgstr "Különálló"
 
@@ -8389,13 +8373,13 @@ msgstr ""
 msgid "No modifications need to be copied."
 msgstr ""
 
+msgid "Copied the following parameters to the left nozzle:"
+msgstr ""
+
+msgid "Copied the following parameters to the right nozzle:"
+msgstr ""
+
 msgid "Copy paramters"
-msgstr ""
-
-msgid "Copy the following parameters to the left nozzle:"
-msgstr ""
-
-msgid "Copy the following parameters to the right nozzle:"
 msgstr ""
 
 msgid "Click to reset current value and attach to the global value."
@@ -8431,14 +8415,8 @@ msgstr "Use Modified Value of Filament Preset"
 msgid "Use Modified Value of Printer Preset"
 msgstr "Use Modified Value of Printer Preset"
 
-msgid "Current Value"
-msgstr ""
-
 msgid "Preset(Old)"
 msgstr "Preset (Old)"
-
-msgid "New Value"
-msgstr "Új érték"
 
 msgid "Modified Value(New)"
 msgstr "Modified Value (New)"
@@ -8448,9 +8426,6 @@ msgstr "Discard Modified Value"
 
 msgid "Don't save"
 msgstr "Ne mentsd"
-
-msgid "Use Modified Value"
-msgstr "Use Modified Value"
 
 msgid "Click the right mouse button to display the full text."
 msgstr "Kattints a jobb egérgombbal a teljes szöveg megjelenítéséhez."
@@ -8724,9 +8699,6 @@ msgstr ""
 msgid "Overwriting"
 msgstr ""
 
-msgid "Reset all filament mapping"
-msgstr ""
-
 msgid "Left Extruder"
 msgstr ""
 
@@ -8742,11 +8714,17 @@ msgid ""
 msgstr ""
 
 msgid ""
+"Find the best coefficient for dynamic flow calibration to enhance print "
+"quality.\n"
+"*Automatic mode: Skip if the filament was calibrated recently."
+msgstr ""
+
+msgid ""
 "Calibrate nozzle offsets to enhance print quality.\n"
 "*Automatic mode: Check for calibration before printing; skip if unnecessary."
 msgstr ""
 
-msgid "Tip"
+msgid "Attention"
 msgstr ""
 
 msgid ""
@@ -8762,7 +8740,7 @@ msgstr ""
 msgid "Advanced settings"
 msgstr ""
 
-msgid "Add unused AMS filaments to filaments list."
+msgid "Unused AMS filaments should also be added to the filament list."
 msgstr ""
 
 msgid "Automatically merge the same colors in the model after mapping."
@@ -8783,14 +8761,17 @@ msgstr ""
 msgid "Synchronize now"
 msgstr ""
 
-msgid "Synchronize Filament Information"
+#, c-format, boost-format
+msgid "Synchronize %sFilament Information"
 msgstr ""
 
-msgid "Add unused filaments to filaments list."
+#, c-format, boost-format
+msgid "Unused %sfilaments should also be added to the filament list."
 msgstr ""
 
+#, c-format, boost-format
 msgid ""
-"Only synchronize filament type and color, not including slot information."
+"Only synchronize filament type and color, not including %sslot information."
 msgstr ""
 
 msgid "Ext spool"
@@ -9163,21 +9144,6 @@ msgstr "Filament Loaded, Resume"
 msgid "View Liveview"
 msgstr "View Liveview"
 
-msgid "No Reminder Next Time"
-msgstr ""
-
-msgid "Ignore. Don't Remind Next Time"
-msgstr ""
-
-msgid "Ignore this and Resume"
-msgstr ""
-
-msgid "Problem Solved and Resume"
-msgstr ""
-
-msgid "Stop Buzzer"
-msgstr ""
-
 msgid "Confirm and Update Nozzle"
 msgstr "Fúvóka lecserélésének megerősítése"
 
@@ -9468,9 +9434,6 @@ msgstr "Külső fal"
 
 msgid "Overhang wall"
 msgstr "Túlnyúló fal"
-
-msgid "Ensure vertical"
-msgstr ""
 
 msgid "Internal solid infill"
 msgstr "Belső szilárd kitöltés"
@@ -10406,23 +10369,6 @@ msgstr ""
 msgid "Enabled"
 msgstr ""
 
-msgid "Vertical shell speed"
-msgstr ""
-
-msgid ""
-"Speed for vertical shell area. If expressed as percentage (for example: 80%) "
-"it will be calculated onthe internal solid infill speed above"
-msgstr ""
-
-msgid "mm/s or %"
-msgstr "mm/s vagy %"
-
-msgid "Detect floating vertical shells"
-msgstr ""
-
-msgid "Detect floating vertical shells and slow them by using bridge speed."
-msgstr ""
-
 msgid "Internal bridge support thickness"
 msgstr "Belső áthidalások támaszának vastagsága"
 
@@ -10508,6 +10454,9 @@ msgstr ""
 "sugara <= kis peremek küszöbértéke (általában furatok). Százalékban megadva "
 "(például: 80%) a külső fal sebessége alapján kerül kiszámításra. Állítsd 0-"
 "ra az automatikus beállításhoz."
+
+msgid "mm/s or %"
+msgstr "mm/s vagy %"
 
 msgid "Small perimter threshold"
 msgstr "Kis peremek küszöbértéke"
@@ -13834,9 +13783,11 @@ msgid "Unable to perform boolean operation on selected parts"
 msgstr "Nem lehet logikai műveletet végrehajtani a kiválasztott tárgyakon"
 
 msgid ""
-"Performed boolean intersection fails because the selected parts have no "
-"intersection"
+"Performed boolean intersection fails \n"
+" because the selected parts have no intersection"
 msgstr ""
+"A logikai metszés végrehajtása nem sikerült,\n"
+"mert a kiválasztott tárgyaknak nincs metszéspontja"
 
 msgid "Mesh Boolean"
 msgstr "Mesh Boolean"
@@ -15517,16 +15468,6 @@ msgstr ""
 "Vetemedés elkerülése\n"
 "Tudtad, hogy a vetemedésre hajlamos anyagok (például ABS) nyomtatásakor a "
 "tárgyasztal hőmérsékletének növelése csökkentheti a vetemedés valószínűségét?"
-
-#~ msgid "Arranging..."
-#~ msgstr "Elrendezés..."
-
-#~ msgid ""
-#~ "Performed boolean intersection fails \n"
-#~ " because the selected parts have no intersection"
-#~ msgstr ""
-#~ "A logikai metszés végrehajtása nem sikerült,\n"
-#~ "mert a kiválasztott tárgyaknak nincs metszéspontja"
 
 #~ msgid ""
 #~ "Filaments to AMS slots mappings have been established. You can click a "
@@ -17496,6 +17437,9 @@ msgstr ""
 
 #~ msgid "NO AMS"
 #~ msgstr "NINCS AMS"
+
+#~ msgid "New Value"
+#~ msgstr "Új érték"
 
 #~ msgid "No arrangable objects are selected."
 #~ msgstr "Nincsenek elrendezhető objektumok kijelölve."
