@@ -3099,11 +3099,15 @@ bool MachineObject::is_camera_busy_off()
 
 int MachineObject::publish_json(std::string json_str, int qos, int flag)
 {
+    int rtn = 0;
     if (is_lan_mode_printer()) {
-        return local_publish_json(json_str, qos, flag);
+        rtn = local_publish_json(json_str, qos, flag);
     } else {
-        return cloud_publish_json(json_str, qos, flag);
+        rtn = cloud_publish_json(json_str, qos, flag);
     }
+
+    BOOST_LOG_TRIVIAL(trace) << "publish_json: " << json_str << " code: " << rtn;
+    return rtn;
 }
 
 int MachineObject::cloud_publish_json(std::string json_str, int qos, int flag)
@@ -5436,6 +5440,7 @@ int MachineObject::publish_gcode(std::string gcode_str)
         t["gcode"] = j.dump();
         m_agent->track_event("cmd_gcode_line", t.dump());
     }
+
     return publish_json(j.dump(), 0);
 }
 
