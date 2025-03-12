@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-07 15:28+0800\n"
+"POT-Creation-Date: 2025-03-12 20:15+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2345,7 +2345,7 @@ msgid ""
 "We can not do auto-arrange on this plate."
 msgstr ""
 
-msgid "Arranging..."
+msgid "Arranging"
 msgstr ""
 
 #, possible-boost-format
@@ -2354,9 +2354,6 @@ msgstr ""
 
 msgid ""
 "Arrange failed. Found some exceptions when processing object geometries."
-msgstr ""
-
-msgid "Arranging"
 msgstr ""
 
 msgid "Arranging canceled."
@@ -3944,6 +3941,9 @@ msgid "Spacing"
 msgstr ""
 
 msgid "0 means auto spacing."
+msgstr ""
+
+msgid "Save SVG"
 msgstr ""
 
 msgid "Auto rotate for arrangement"
@@ -5587,18 +5587,26 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr ""
 
-msgid "Enable AI monitoring of printing"
-msgstr ""
-
-msgid "Sensitivity of pausing is"
-msgstr ""
-
 msgid "Enable detection of build plate position"
 msgstr ""
 
 msgid ""
 "The localization tag of build plate is detected, and printing is paused if "
 "the tag is not in predefined range."
+msgstr ""
+
+msgid "Build Plate Detection"
+msgstr ""
+
+msgid ""
+"Identifies the type and position of the build plate on the heatbed. Pausing "
+"printing if a mismatch is detected."
+msgstr ""
+
+msgid "Enable AI monitoring of printing"
+msgstr ""
+
+msgid "Sensitivity of pausing is"
 msgstr ""
 
 msgid "First Layer Inspection"
@@ -7207,6 +7215,11 @@ msgid ""
 "need to manually switch the external filament during printing."
 msgstr ""
 
+msgid ""
+"TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics "
+"calibration."
+msgstr ""
+
 msgid "Errors"
 msgstr ""
 
@@ -7240,6 +7253,12 @@ msgid "Preparing print job"
 msgstr ""
 
 msgid "Abnormal print file data. Please slice again"
+msgstr ""
+
+msgid ""
+"As the print job has been successfully sent, the cancellation will not bring "
+"the print job to a halt. If you need to terminate this job, please stop it "
+"in 'Device' page."
 msgstr ""
 
 msgid "The name length exceeds the limit."
@@ -7824,9 +7843,6 @@ msgid ""
 "or reset changes to extruder or multi-nozzle-related parameters."
 msgstr ""
 
-msgid "Use Modified Value"
-msgstr ""
-
 msgid "Detached"
 msgstr ""
 
@@ -7878,13 +7894,13 @@ msgstr ""
 msgid "No modifications need to be copied."
 msgstr ""
 
-msgid "Copied the following parameters to the left nozzle:"
-msgstr ""
-
-msgid "Copied the following parameters to the right nozzle:"
-msgstr ""
-
 msgid "Copy paramters"
+msgstr ""
+
+msgid "Copy the following parameters to the left nozzle:"
+msgstr ""
+
+msgid "Copy the following parameters to the right nozzle:"
 msgstr ""
 
 msgid "Click to reset current value and attach to the global value."
@@ -7917,7 +7933,13 @@ msgstr ""
 msgid "Use Modified Value of Printer Preset"
 msgstr ""
 
+msgid "Current Value"
+msgstr ""
+
 msgid "Preset(Old)"
+msgstr ""
+
+msgid "New Value"
 msgstr ""
 
 msgid "Modified Value(New)"
@@ -7927,6 +7949,9 @@ msgid "Discard Modified Value"
 msgstr ""
 
 msgid "Don't save"
+msgstr ""
+
+msgid "Use Modified Value"
 msgstr ""
 
 msgid "Click the right mouse button to display the full text."
@@ -8187,6 +8212,9 @@ msgstr ""
 msgid "Overwriting"
 msgstr ""
 
+msgid "Reset all filament mapping"
+msgstr ""
+
 msgid "Left Extruder"
 msgstr ""
 
@@ -8202,17 +8230,11 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Find the best coefficient for dynamic flow calibration to enhance print "
-"quality.\n"
-"*Automatic mode: Skip if the filament was calibrated recently."
-msgstr ""
-
-msgid ""
 "Calibrate nozzle offsets to enhance print quality.\n"
 "*Automatic mode: Check for calibration before printing; skip if unnecessary."
 msgstr ""
 
-msgid "Attention"
+msgid "Tip"
 msgstr ""
 
 msgid ""
@@ -8228,7 +8250,7 @@ msgstr ""
 msgid "Advanced settings"
 msgstr ""
 
-msgid "Unused AMS filaments should also be added to the filament list."
+msgid "Add unused AMS filaments to filaments list."
 msgstr ""
 
 msgid "Automatically merge the same colors in the model after mapping."
@@ -8249,17 +8271,14 @@ msgstr ""
 msgid "Synchronize now"
 msgstr ""
 
-#, possible-c-format, possible-boost-format
-msgid "Synchronize %sFilament Information"
+msgid "Synchronize Filament Information"
 msgstr ""
 
-#, possible-c-format, possible-boost-format
-msgid "Unused %sfilaments should also be added to the filament list."
+msgid "Add unused filaments to filaments list."
 msgstr ""
 
-#, possible-c-format, possible-boost-format
 msgid ""
-"Only synchronize filament type and color, not including %sslot information."
+"Only synchronize filament type and color, not including slot information."
 msgstr ""
 
 msgid "Ext spool"
@@ -8616,6 +8635,21 @@ msgstr ""
 msgid "View Liveview"
 msgstr ""
 
+msgid "No Reminder Next Time"
+msgstr ""
+
+msgid "Ignore. Don't Remind Next Time"
+msgstr ""
+
+msgid "Ignore this and Resume"
+msgstr ""
+
+msgid "Problem Solved and Resume"
+msgstr ""
+
+msgid "Stop Buzzer"
+msgstr ""
+
 msgid "Confirm and Update Nozzle"
 msgstr ""
 
@@ -8884,6 +8918,9 @@ msgid "Outer wall"
 msgstr ""
 
 msgid "Overhang wall"
+msgstr ""
+
+msgid "Ensure vertical"
 msgstr ""
 
 msgid "Internal solid infill"
@@ -9668,6 +9705,23 @@ msgstr ""
 msgid "Enabled"
 msgstr ""
 
+msgid "Vertical shell speed"
+msgstr ""
+
+msgid ""
+"Speed for vertical shell area. If expressed as percentage (for example: 80%) "
+"it will be calculated onthe internal solid infill speed above"
+msgstr ""
+
+msgid "mm/s or %"
+msgstr ""
+
+msgid "Detect floating vertical shells"
+msgstr ""
+
+msgid "Detect floating vertical shells and slow them by using bridge speed."
+msgstr ""
+
 msgid "Internal bridge support thickness"
 msgstr ""
 
@@ -9740,9 +9794,6 @@ msgid ""
 "perimeter threshold(usually holes). If expressed as percentage (for example: "
 "80%) it will be calculated onthe outer wall speed setting above. Set to zero "
 "for auto."
-msgstr ""
-
-msgid "mm/s or %"
 msgstr ""
 
 msgid "Small perimter threshold"
@@ -12624,8 +12675,8 @@ msgid "Unable to perform boolean operation on selected parts"
 msgstr ""
 
 msgid ""
-"Performed boolean intersection fails \n"
-" because the selected parts have no intersection"
+"Performed boolean intersection fails because the selected parts have no "
+"intersection"
 msgstr ""
 
 msgid "Mesh Boolean"

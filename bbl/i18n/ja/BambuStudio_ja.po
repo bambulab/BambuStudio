@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-07 15:28+0800\n"
+"POT-Creation-Date: 2025-03-12 20:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2376,7 +2376,7 @@ msgid ""
 "We can not do auto-arrange on this plate."
 msgstr "現在のプレートがロックされたため自動レイアウトできません"
 
-msgid "Arranging..."
+msgid "Arranging"
 msgstr "レイアウト中"
 
 #, boost-format
@@ -2386,9 +2386,6 @@ msgstr "オブジェクト %1% はサイズが0の為レイアウトできませ
 msgid ""
 "Arrange failed. Found some exceptions when processing object geometries."
 msgstr "レイアウトは失敗しました、ジオメトリーを処理するのに異常がありました"
-
-msgid "Arranging"
-msgstr "レイアウト中"
 
 msgid "Arranging canceled."
 msgstr "レイアウトを取り消しました"
@@ -4090,6 +4087,9 @@ msgstr "間隔"
 msgid "0 means auto spacing."
 msgstr "0で自動スペース調整"
 
+msgid "Save SVG"
+msgstr ""
+
 msgid "Auto rotate for arrangement"
 msgstr "自動回転"
 
@@ -5775,12 +5775,6 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "底面"
 
-msgid "Enable AI monitoring of printing"
-msgstr "AI モニタリングを有効"
-
-msgid "Sensitivity of pausing is"
-msgstr "感度"
-
 msgid "Enable detection of build plate position"
 msgstr "プレート位置検出を有効"
 
@@ -5788,6 +5782,20 @@ msgid ""
 "The localization tag of build plate is detected, and printing is paused if "
 "the tag is not in predefined range."
 msgstr "タグが検出されない場合、造形を停止する場合があります。"
+
+msgid "Build Plate Detection"
+msgstr ""
+
+msgid ""
+"Identifies the type and position of the build plate on the heatbed. Pausing "
+"printing if a mismatch is detected."
+msgstr ""
+
+msgid "Enable AI monitoring of printing"
+msgstr "AI モニタリングを有効"
+
+msgid "Sensitivity of pausing is"
+msgstr "感度"
 
 msgid "First Layer Inspection"
 msgstr "1層目検査"
@@ -7475,6 +7483,11 @@ msgid ""
 "need to manually switch the external filament during printing."
 msgstr ""
 
+msgid ""
+"TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics "
+"calibration."
+msgstr ""
+
 msgid "Errors"
 msgstr "エラー"
 
@@ -7513,6 +7526,12 @@ msgstr "造形タスクを準備"
 
 msgid "Abnormal print file data. Please slice again"
 msgstr "ファイルに異常があります、もう一度スライスしてください"
+
+msgid ""
+"As the print job has been successfully sent, the cancellation will not bring "
+"the print job to a halt. If you need to terminate this job, please stop it "
+"in 'Device' page."
+msgstr ""
 
 msgid "The name length exceeds the limit."
 msgstr "名称の長さが制限を超えています。"
@@ -8161,9 +8180,6 @@ msgid ""
 "or reset changes to extruder or multi-nozzle-related parameters."
 msgstr ""
 
-msgid "Use Modified Value"
-msgstr "変更値を使用"
-
 msgid "Detached"
 msgstr "分離的"
 
@@ -8218,13 +8234,13 @@ msgstr ""
 msgid "No modifications need to be copied."
 msgstr ""
 
-msgid "Copied the following parameters to the left nozzle:"
-msgstr ""
-
-msgid "Copied the following parameters to the right nozzle:"
-msgstr ""
-
 msgid "Copy paramters"
+msgstr ""
+
+msgid "Copy the following parameters to the left nozzle:"
+msgstr ""
+
+msgid "Copy the following parameters to the right nozzle:"
 msgstr ""
 
 msgid "Click to reset current value and attach to the global value."
@@ -8257,8 +8273,14 @@ msgstr "フィラメントプリセットの変更値を使用"
 msgid "Use Modified Value of Printer Preset"
 msgstr "プリンタープリセットの変更値を使用"
 
+msgid "Current Value"
+msgstr ""
+
 msgid "Preset(Old)"
 msgstr "プリセット (古)"
+
+msgid "New Value"
+msgstr "新しい値"
 
 msgid "Modified Value(New)"
 msgstr "変更後 (新)"
@@ -8268,6 +8290,9 @@ msgstr "変更を破棄"
 
 msgid "Don't save"
 msgstr "保存しない"
+
+msgid "Use Modified Value"
+msgstr "変更値を使用"
 
 msgid "Click the right mouse button to display the full text."
 msgstr "マウスを右クリックして全文を表示します"
@@ -8535,6 +8560,9 @@ msgstr ""
 msgid "Overwriting"
 msgstr ""
 
+msgid "Reset all filament mapping"
+msgstr ""
+
 msgid "Left Extruder"
 msgstr ""
 
@@ -8550,17 +8578,11 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Find the best coefficient for dynamic flow calibration to enhance print "
-"quality.\n"
-"*Automatic mode: Skip if the filament was calibrated recently."
-msgstr ""
-
-msgid ""
 "Calibrate nozzle offsets to enhance print quality.\n"
 "*Automatic mode: Check for calibration before printing; skip if unnecessary."
 msgstr ""
 
-msgid "Attention"
+msgid "Tip"
 msgstr ""
 
 msgid ""
@@ -8576,7 +8598,7 @@ msgstr ""
 msgid "Advanced settings"
 msgstr ""
 
-msgid "Unused AMS filaments should also be added to the filament list."
+msgid "Add unused AMS filaments to filaments list."
 msgstr ""
 
 msgid "Automatically merge the same colors in the model after mapping."
@@ -8597,17 +8619,14 @@ msgstr ""
 msgid "Synchronize now"
 msgstr ""
 
-#, c-format, boost-format
-msgid "Synchronize %sFilament Information"
+msgid "Synchronize Filament Information"
 msgstr ""
 
-#, c-format, boost-format
-msgid "Unused %sfilaments should also be added to the filament list."
+msgid "Add unused filaments to filaments list."
 msgstr ""
 
-#, c-format, boost-format
 msgid ""
-"Only synchronize filament type and color, not including %sslot information."
+"Only synchronize filament type and color, not including slot information."
 msgstr ""
 
 msgid "Ext spool"
@@ -8972,6 +8991,21 @@ msgstr "フィラメントをロードしました。再開"
 msgid "View Liveview"
 msgstr "ライブビューを表示"
 
+msgid "No Reminder Next Time"
+msgstr ""
+
+msgid "Ignore. Don't Remind Next Time"
+msgstr ""
+
+msgid "Ignore this and Resume"
+msgstr ""
+
+msgid "Problem Solved and Resume"
+msgstr ""
+
+msgid "Stop Buzzer"
+msgstr ""
+
 msgid "Confirm and Update Nozzle"
 msgstr "Confirm and Update Nozzle"
 
@@ -9252,6 +9286,9 @@ msgstr "外壁"
 
 msgid "Overhang wall"
 msgstr "オーバーハング"
+
+msgid "Ensure vertical"
+msgstr ""
 
 msgid "Internal solid infill"
 msgstr "内部ソリッド インフィル"
@@ -10109,6 +10146,23 @@ msgstr ""
 msgid "Enabled"
 msgstr ""
 
+msgid "Vertical shell speed"
+msgstr ""
+
+msgid ""
+"Speed for vertical shell area. If expressed as percentage (for example: 80%) "
+"it will be calculated onthe internal solid infill speed above"
+msgstr ""
+
+msgid "mm/s or %"
+msgstr "mm/s or %"
+
+msgid "Detect floating vertical shells"
+msgstr ""
+
+msgid "Detect floating vertical shells and slow them by using bridge speed."
+msgstr ""
+
 msgid "Internal bridge support thickness"
 msgstr "内部ブリッジサポート厚さ"
 
@@ -10191,9 +10245,6 @@ msgstr ""
 "この設定は「小さな外周閾値」より小さな直径の外周分（通常は穴）のスピードに影"
 "響します。 パーセンテージで指定した場合（例：80%）、外壁造形速度を基準としま"
 "す。0は自動を意味します。"
-
-msgid "mm/s or %"
-msgstr "mm/s or %"
 
 msgid "Small perimter threshold"
 msgstr "小さな外周閾値"
@@ -13404,11 +13455,9 @@ msgid "Unable to perform boolean operation on selected parts"
 msgstr "選択したパーツの合成処理が実行できません"
 
 msgid ""
-"Performed boolean intersection fails \n"
-" because the selected parts have no intersection"
+"Performed boolean intersection fails because the selected parts have no "
+"intersection"
 msgstr ""
-"交差処理に失敗しました。 \n"
-" 選択されたパーツに交差箇所がありません。"
 
 msgid "Mesh Boolean"
 msgstr "メッシュ合成"
@@ -15059,6 +15108,16 @@ msgstr ""
 "Did you know that when printing materials that are prone to warping such as "
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping?"
+
+#~ msgid "Arranging..."
+#~ msgstr "レイアウト中"
+
+#~ msgid ""
+#~ "Performed boolean intersection fails \n"
+#~ " because the selected parts have no intersection"
+#~ msgstr ""
+#~ "交差処理に失敗しました。 \n"
+#~ " 選択されたパーツに交差箇所がありません。"
 
 #~ msgid ""
 #~ "Filaments to AMS slots mappings have been established. You can click a "
@@ -16933,9 +16992,6 @@ msgstr ""
 
 #~ msgid "NO AMS"
 #~ msgstr "AMS無し"
-
-#~ msgid "New Value"
-#~ msgstr "新しい値"
 
 #~ msgid "No arrangable objects are selected."
 #~ msgstr "選択したオブジェクトがレイアウト不可です"
