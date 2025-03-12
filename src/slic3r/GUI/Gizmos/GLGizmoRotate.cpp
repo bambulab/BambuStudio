@@ -136,14 +136,7 @@ void GLGizmoRotate::on_render()
     m_grabbers.front().color = AXES_COLOR[m_axis];
     m_grabbers.front().hover_color = AXES_HOVER_COLOR[m_axis];
 
-    const Camera& camera = wxGetApp().plater()->get_camera();
-    Transform3d scalling_matrix{ Transform3d::Identity() };
-    const auto& t_zoom = camera.get_zoom();
-    scalling_matrix.data()[0 * 4 + 0] = 1.0f / t_zoom;
-    scalling_matrix.data()[1 * 4 + 1] = 1.0f / t_zoom;
-    scalling_matrix.data()[2 * 4 + 2] = 1.0f / t_zoom;
-
-    m_base_model_matrix = calculate_base_model_matrix();// transform_to_local(selection)* scalling_matrix;
+    m_base_model_matrix = calculate_base_model_matrix();
 
     const auto t_angle = Vec3d(0.0f, 0.0f, m_angle);
     const auto t_fullsize = get_fixed_grabber_size();
@@ -174,6 +167,8 @@ void GLGizmoRotate::on_render()
             render_reference_radius(color);
             render_angle(m_highlight_color);
         }
+        Transform3d grabber_connection_model_matrix = Geometry::scale_transform({ ::cos(m_angle), ::sin(m_angle), 1.0f });
+        shader->set_uniform("view_model_matrix", view_model_matrix * grabber_connection_model_matrix);
         render_grabber_connection(color);
 
         wxGetApp().unbind_shader();
@@ -390,7 +385,7 @@ void GLGizmoRotate::render_grabber_connection(const ColorRGBA& color)
 
         // vertices
         init_data.add_vertex(Vec3f(0.0f, 0.0f, 0.0f));
-        init_data.add_vertex(Vec3f(::cos(m_angle) * (1.0 + (double)GrabberOffset), ::sin(m_angle) * (1.0 + (double)GrabberOffset), 0.0f));
+        init_data.add_vertex(Vec3f(1.0 + (double)GrabberOffset, 1.0 + (double)GrabberOffset, 0.0f));
 
         // indices
         init_data.add_line(0, 1);
