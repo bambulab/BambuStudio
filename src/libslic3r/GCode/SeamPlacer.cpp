@@ -30,6 +30,8 @@
 #endif
 
 static const int average_filter_window_size = 5;
+static const float overhang_filter = 0.4f;
+static const float lensLimit = 1.0f;
 namespace Slic3r {
 
 namespace SeamPlacerImpl {
@@ -468,8 +470,13 @@ void process_perimeter_polygon(
         if (orig_point) {
             Vec3f pos_of_next      = orig_polygon_points.empty() ? first : orig_polygon_points.front();
             float distance_to_next = (position - pos_of_next).norm();
-            if (distance_to_next > perimeter.flow_width * perimeter.flow_width * 4)
+            if (distance_to_next > SeamPlacer::end_point_oversampling_threshold) {
+                double ratio = SeamPlacer::end_point_oversampling_distance / distance_to_next;
+                oversampled_points.push(position + ratio * (pos_of_next - position));
                 oversampled_points.push((position + pos_of_next) / 2);
+
+                oversampled_points.push(position + ratio * (position - pos_of_next));
+            }
             if (global_model_info.is_enforced(position, distance_to_next)) {
                 Vec3f vec_to_next = (pos_of_next - position).normalized();
                 float step_size   = SeamPlacer::enforcer_oversampling_distance;
@@ -698,9 +705,12 @@ struct SeamComparator
             distance_penalty_b = 1.0f - gauss((b.position.head<2>() - preffered_location).norm(), 0.0f, 1.0f, 0.005f);
         }
 
+        double a_overhang_around_penalty = a.extra_overhang_point < overhang_filter ? 0 : a.extra_overhang_point;
+        double b_overhang_around_penalty = b.extra_overhang_point < overhang_filter ? 0 : b.extra_overhang_point;
+
         // the penalites are kept close to range [0-1.x] however, it should not be relied upon
-        float penalty_a = a.overhang + a.visibility + angle_importance * compute_angle_penalty(a.local_ccw_angle) + distance_penalty_a;
-        float penalty_b = b.overhang + b.visibility + angle_importance * compute_angle_penalty(b.local_ccw_angle) + distance_penalty_b;
+        float penalty_a = a.overhang + a.visibility + angle_importance * compute_angle_penalty(a.local_ccw_angle) + distance_penalty_a + a_overhang_around_penalty;
+        float penalty_b = b.overhang + b.visibility + angle_importance * compute_angle_penalty(b.local_ccw_angle) + distance_penalty_b + b_overhang_around_penalty;
 
         return penalty_a < penalty_b;
     }
@@ -733,9 +743,11 @@ struct SeamComparator
 
         if (setup == SeamPosition::spRear) { return a.position.y() + SeamPlacer::seam_align_score_tolerance * 5.0f > b.position.y(); }
 
-        float penalty_a = a.overhang + a.visibility + angle_importance * compute_angle_penalty(a.local_ccw_angle);
-        float penalty_b = b.overhang + b.visibility + angle_importance * compute_angle_penalty(b.local_ccw_angle);
+        double a_overhang_around_penalty = a.extra_overhang_point < overhang_filter ? 0 : a.extra_overhang_point;
+        double b_overhang_around_penalty = b.extra_overhang_point < overhang_filter ? 0 : b.extra_overhang_point;
 
+        float penalty_a = a.overhang + a.visibility + angle_importance * compute_angle_penalty(a.local_ccw_angle) + a_overhang_around_penalty;
+        float penalty_b = b.overhang + b.visibility + angle_importance * compute_angle_penalty(b.local_ccw_angle) + b_overhang_around_penalty;
         return penalty_a <= penalty_b || penalty_a - penalty_b < SeamPlacer::seam_align_score_tolerance;
     }
 
@@ -970,16 +982,62 @@ void SeamPlacer::calculate_overhangs_and_layer_embedding(const PrintObject *po)
             bool                                should_compute_layer_embedding = regions_with_perimeter > 1;
             std::unique_ptr<PerimeterDistancer> current_layer_distancer        = std::make_unique<PerimeterDistancer>(po->layers()[layer_idx]);
 
-            for (SeamCandidate &perimeter_point : layers[layer_idx].points) {
+            int points_size = layers[layer_idx].points.size();
+            for (size_t i = 0; i < points_size; i++) {
+                SeamCandidate &perimeter_point = layers[layer_idx].points[i];
                 Vec2f point = Vec2f{perimeter_point.position.head<2>()};
                 if (prev_layer_distancer.get() != nullptr) {
-                    perimeter_point.overhang = prev_layer_distancer->distance_from_perimeter(point) + 0.6f * perimeter_point.perimeter.flow_width -
-                                               tan(SeamPlacer::overhang_angle_threshold) * po->layers()[layer_idx]->height;
-                    perimeter_point.overhang = perimeter_point.overhang < 0.0f ? 0.0f : perimeter_point.overhang;
+                    double dist_temp = prev_layer_distancer->distance_from_perimeter(point);
+                    perimeter_point.overhang = dist_temp + 0.6f * perimeter_point.perimeter.flow_width - tan(SeamPlacer::overhang_angle_threshold) * po->layers()[layer_idx]->height;
+                    perimeter_point.overhang      = perimeter_point.overhang < 0.0f ? 0.0f : perimeter_point.overhang;
+
+                    perimeter_point.overhang_degree = (dist_temp + 0.6f * perimeter_point.perimeter.flow_width) / perimeter_point.perimeter.flow_width;
+                    perimeter_point.overhang_degree = perimeter_point.overhang_degree < 0.0f ? 0.0f : perimeter_point.overhang_degree;
                 }
 
                 if (should_compute_layer_embedding) { // search for embedded perimeter points (points hidden inside the print ,e.g. multimaterial join, best position for seam)
                     perimeter_point.embedded_distance = current_layer_distancer->distance_from_perimeter(point) + 0.6f * perimeter_point.perimeter.flow_width;
+                }
+
+                if (perimeter_point.overhang_degree > 0.0f) {
+                    // BBS. extend overhang range
+                    float  dist        = 0.0f;
+                    size_t idx         = i;
+                    size_t start_index = layers[layer_idx].points[i].perimeter.start_index;
+                    size_t end_index   = layers[layer_idx].points[i].perimeter.end_index;
+                    bool   flage       = true;
+                    perimeter_point.extra_overhang_point += perimeter_point.overhang_degree * gauss(0.0f, 0.0f, 4.0f, 20.0f);
+                    while (idx != i || flage) {
+                        if(layers[layer_idx].points[idx].extra_overhang_point  > 0)
+                            break;
+                        flage    = false;
+                        int prev = idx;
+                        idx      = idx == start_index ? end_index - 1 : idx - 1;
+                        dist += sqrt((layers[layer_idx].points[idx].position.head<2>() - layers[layer_idx].points[prev].position.head<2>()).squaredNorm());
+                        if (dist > lensLimit)
+                            break;
+                        else {
+                            layers[layer_idx].points[idx].extra_overhang_point += perimeter_point.overhang_degree * gauss(dist, 0.0f, 4.0f, 20.0f);
+                        }
+                    }
+
+                    idx   = i;
+                    dist  = 0.0f;
+                    flage = true;
+
+                    while (idx != i || flage) {
+                        if(layers[layer_idx].points[idx].extra_overhang_point  > 0)
+                            break;
+                        flage    = false;
+                        int prev = idx;
+                        idx      = idx == end_index - 1 ? start_index : idx + 1;
+                        dist += sqrt((layers[layer_idx].points[idx].position.head<2>() - layers[layer_idx].points[prev].position.head<2>()).squaredNorm());
+                        if (dist > lensLimit)
+                            break;
+                        else {
+                            layers[layer_idx].points[idx].extra_overhang_point += perimeter_point.overhang_degree * gauss(dist, 0.0f, 4.0f, 20.0f);
+                        }
+                    }
                 }
             }
 
@@ -1219,6 +1277,7 @@ void SeamPlacer::align_seam_points(const PrintObject *po, const SeamPlacerImpl::
 
                 // interpolate between current and fitted position, prefer current pos for large weights.
                 Vec3f final_position = t * current_pos + (1.0f - t) * to_3d(fitted_pos, current_pos.z());
+
 
                 Perimeter &perimeter          = layers[pair.first].points[pair.second].perimeter;
                 perimeter.seam_index          = pair.second;

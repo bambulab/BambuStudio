@@ -69,7 +69,18 @@ struct Perimeter
 struct SeamCandidate
 {
     SeamCandidate(const Vec3f &pos, Perimeter &perimeter, float local_ccw_angle, EnforcedBlockedSeamPoint type)
-        : position(pos), perimeter(perimeter), visibility(0.0f), overhang(0.0f), embedded_distance(0.0f), local_ccw_angle(local_ccw_angle), type(type), central_enforcer(false), enable_scarf_seam(false),is_grouped(false)
+        : position(pos)
+        , perimeter(perimeter)
+        , visibility(0.0f)
+        , overhang(0.0f)
+        , embedded_distance(0.0f)
+        , local_ccw_angle(local_ccw_angle)
+        , type(type)
+        , central_enforcer(false)
+        , enable_scarf_seam(false)
+        , is_grouped(false)
+        , extra_overhang_point(0.0f)
+        , overhang_degree(0.0f)
     {}
     const Vec3f position;
     // pointer to Perimeter loop of this point. It is shared across all points of the loop
@@ -84,6 +95,8 @@ struct SeamCandidate
     bool                     central_enforcer; // marks this candidate as central point of enforced segment on the perimeter - important for alignment
     bool                     enable_scarf_seam; // marks this candidate as a candidate for scarf seam
     bool                     is_grouped;
+    float                    extra_overhang_point;
+    float                    overhang_degree;
 };
 
 struct SeamCandidateCoordinateFunctor
@@ -133,6 +146,8 @@ public:
 
     // For long polygon sides, if they are close to the custom seam drawings, they are oversampled with this step size
     static constexpr float enforcer_oversampling_distance = 0.2f;
+    static constexpr float end_point_oversampling_threshold = 4.0f;
+    static constexpr float end_point_oversampling_distance = 1.5f;
 
     // When searching for seam clusters for alignment:
     // following value describes, how much worse score can point have and still be picked into seam cluster instead of original seam point on the same layer
