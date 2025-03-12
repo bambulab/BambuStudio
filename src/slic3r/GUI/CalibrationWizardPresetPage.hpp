@@ -154,6 +154,7 @@ enum CaliPresetPageStatus
     CaliPresetStatusUnsupportedPrinter,
     CaliPresetStatusInConnecting,
     CaliPresetStatusFilamentIncompatible,
+    CaliPresetStatusDifferentNozzleDiameters
 };
 
 class CalibrationPresetPage : public CalibrationWizardPage
