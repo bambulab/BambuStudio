@@ -60,7 +60,7 @@ void PrintJob::on_exception(const std::exception_ptr &eptr)
     try {
         if (eptr)
             std::rethrow_exception(eptr);
-    } catch (std::exception &e) {
+    } catch (std::exception &/*e*/) {
         PlaterJob::on_exception(eptr);
     }
 }
@@ -113,9 +113,9 @@ wxString PrintJob::get_http_error_msg(unsigned int status, std::string body)
                 if (!j["message"].is_null())
                     message = j["message"].get<std::string>();
             }
-            switch (status) {
-                ;
-            }
+            //switch (status) {
+            //    ;
+            //}
         }
         catch (...) {
             ;
@@ -157,7 +157,7 @@ void PrintJob::process()
     }
 
     int result = -1;
-    unsigned int http_code;
+    //unsigned int http_code;
     std::string http_body;
 
     int total_plate_num = plate_data.plate_count;

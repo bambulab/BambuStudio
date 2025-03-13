@@ -5765,7 +5765,7 @@ NozzleFlowType MachineObject::get_nozzle_flow_type(int extruder_id) const
     return NozzleFlowType::NONE_FLOWTYPE;
 }
 
-const Extder& MachineObject::get_current_extruder() const
+Extder MachineObject::get_current_extruder() const
 {
     if (m_extder_data.extders.size() <= m_extder_data.current_extder_id)
     {
