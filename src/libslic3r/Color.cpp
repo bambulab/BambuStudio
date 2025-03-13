@@ -235,6 +235,27 @@ ColorRGBA ColorRGBA::operator * (float value) const
 	return ret;
 }
 
+void ColorRGBA::gamma_correct() {
+    auto coe = 1 / 2.2f;
+    for (int i = 0; i < 4; i++) {
+        m_data[i] = std::pow(m_data[i], coe);
+    }
+}
+
+void ColorRGBA::gamma_correct(RGBA &color)
+{
+    auto coe = 1 / 2.2f;
+    for (int i = 0; i < 4; i++) {
+        color[i] = std::pow(color[i], coe);
+    }
+}
+
+float ColorRGBA::gamma_correct(float value)
+{
+    auto coe = 1 / 2.2f;
+    return std::pow(value, coe);
+}
+
 ColorRGB operator * (float value, const ColorRGB& other) { return other * value; }
 ColorRGBA operator * (float value, const ColorRGBA& other) { return other * value; }
 

@@ -183,6 +183,8 @@ void AppConfig::set_defaults()
         set_bool("show_shells_in_preview", true);
     if (get("enable_lod").empty())
         set_bool("enable_lod", true);
+    if (get("gamma_correct_in_import_obj").empty())
+        set_bool("gamma_correct_in_import_obj", false);
     if (get("enable_opengl_multi_instance").empty())
         set_bool("enable_opengl_multi_instance", true);
     if (get("import_single_svg_and_split").empty())

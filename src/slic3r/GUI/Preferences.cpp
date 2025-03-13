@@ -1211,6 +1211,9 @@ wxWindow* PreferencesDialog::create_general_page()
     auto  item_import_single_svg_and_split         = create_item_checkbox(_L("Import a single SVG and split it"), page,
                                                                      _L("Import a single SVG and then split it to several parts."), 50,
                                                                      "import_single_svg_and_split");
+    auto  item_gamma_correct_in_import_obj = create_item_checkbox(_L("Enable gamma correct in imported obj"), page,
+                                                                 _L("Perform gamma correction on color after importing the obj model."), 50,
+                                                                 "gamma_correct_in_import_obj");
     auto  enable_lod_settings       = create_item_checkbox(_L("Improve rendering performance by lod"), page,
                                                          _L("Improved rendering performance under the scene of multiple plates and many models."), 50,
                                                          "enable_lod");
@@ -1314,7 +1317,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_mouse_zoom_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_show_shells_in_preview_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_import_single_svg_and_split, 0, wxTOP, FromDIP(3));
-
+    sizer_page->Add(item_gamma_correct_in_import_obj, 0, wxTOP, FromDIP(3));
 #ifdef __WIN32__
     sizer_page->Add(prefer_to_use_dgpu, 0, wxTOP, FromDIP(3));
 #endif // __WIN32__
