@@ -50,7 +50,7 @@ void SendJob::on_exception(const std::exception_ptr &eptr)
     try {
         if (eptr)
             std::rethrow_exception(eptr);
-    } catch (std::exception &e) {
+    } catch (std::exception &/*e*/) {
         PlaterJob::on_exception(eptr);
     }
 }
@@ -75,9 +75,6 @@ wxString SendJob::get_http_error_msg(unsigned int status, std::string body)
         if (j.contains("message")) {
             if (!j["message"].is_null())
                 message = j["message"].get<std::string>();
-        }
-        switch (status) {
-            ;
         }
     }
     catch (...) {
@@ -120,7 +117,7 @@ void SendJob::process()
     NetworkAgent* m_agent = wxGetApp().getAgent();
     AppConfig* config = wxGetApp().app_config;
     int result = -1;
-    unsigned int http_code;
+    //unsigned int http_code;
     std::string http_body;
 
 

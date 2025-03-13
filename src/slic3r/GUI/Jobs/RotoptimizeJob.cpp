@@ -114,7 +114,7 @@ void RotoptimizeJob::finalize()
 
     if (!was_canceled())
         m_plater->update();
-    
+
     Job::finalize();
 }
 
