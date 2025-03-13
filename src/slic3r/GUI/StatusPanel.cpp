@@ -539,7 +539,6 @@ PrintingTaskPanel::~PrintingTaskPanel()
 {
 }
 
-
 void PrintingTaskPanel::create_panel(wxWindow* parent)
 {
     wxBoxSizer *sizer                 = new wxBoxSizer(wxVERTICAL);
@@ -2223,29 +2222,21 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     Bind(wxCUSTOMEVT_SET_TEMP_FINISH, [this](wxCommandEvent e) {
         int  id   = e.GetInt();
         if (id == m_tempCtrl_bed->GetType()) {
-            m_tempCtrl_bed->SetOnChanging();
             on_set_bed_temp();
-            m_tempCtrl_bed->ReSetOnChanging();
-
         } else if (id == m_tempCtrl_nozzle->GetType()) {
-
             if (e.GetString() == wxString::Format("%d", MAIN_NOZZLE_ID)) {
-                m_tempCtrl_nozzle->SetOnChanging();
                 on_set_nozzle_temp(MAIN_NOZZLE_ID);
-                m_tempCtrl_nozzle->ReSetOnChanging();
             } else if (e.GetString() == wxString::Format("%d", DEPUTY_NOZZLE_ID)) {
-                m_tempCtrl_nozzle_deputy->SetOnChanging();
                 on_set_nozzle_temp(DEPUTY_NOZZLE_ID);
-                m_tempCtrl_nozzle_deputy->ReSetOnChanging();
             } else {
-                m_tempCtrl_nozzle->SetOnChanging();
                 on_set_nozzle_temp(UNIQUE_NOZZLE_ID);//there is only one nozzle
-                m_tempCtrl_nozzle->ReSetOnChanging();
             }
         } else if (id == m_tempCtrl_chamber->GetType()) {
-            m_tempCtrl_chamber->SetOnChanging();
-            on_set_chamber_temp();
-            m_tempCtrl_chamber->ReSetOnChanging();
+            if (!m_tempCtrl_chamber->IsOnChanging()) {
+                m_tempCtrl_chamber->SetOnChanging();
+                on_set_chamber_temp();
+                m_tempCtrl_chamber->ReSetOnChanging();
+            }
         }
     });
 
@@ -3188,9 +3179,7 @@ void StatusPanel::update_ams(MachineObject *obj)
         if (obj->get_printer_ams_type() == "f1") { ams_mode = AMSModel::AMS_LITE; }
         obj->check_ams_filament_valid();
     }
-    if (obj->is_enable_np && obj->amsList.size() > 0){
-        ams_mode = AMSModel(obj->amsList.begin()->second->type);
-    }
+    if (obj->is_enable_np && obj->amsList.size() > 0) { ams_mode = AMSModel(obj->amsList.begin()->second->type); }
     if (!obj || !obj->is_connected()) {
         last_tray_exist_bits  = -1;
         last_ams_exist_bits   = -1;
@@ -3232,6 +3221,7 @@ void StatusPanel::update_ams(MachineObject *obj)
             ams_info.push_back(info);
         }
     }
+
     std::vector<AMSinfo> ext_info;
     ext_info.clear();
     for (auto slot : obj->vt_slot) {
@@ -4115,7 +4105,6 @@ void StatusPanel::on_set_nozzle_temp(int nozzle_id)
 void StatusPanel::on_set_chamber_temp()
 {
     if (!obj) {return;}
-    if (champer_switch_head_dlg && champer_switch_head_dlg->IsShown()) { return; } /*STUDIO-10386 champer_switch_head_dlg->ShowModal() could wake up another wxCUSTOMEVT_SET_TEMP_FINISH*/
 
     wxString str = m_tempCtrl_chamber->GetTextCtrl()->GetValue();
     try {
@@ -4130,13 +4119,15 @@ void StatusPanel::on_set_chamber_temp()
 
             if (chamber_temp >= obj->chamber_temp_switch_heat)
             {
-                if (!champer_switch_head_dlg)
-                {
-                    champer_switch_head_dlg = new MessageDialog(this, _L("If the chamber temperature exceeds 40\u2103, the system will automatically switch to heating mode. Please confirm whether to switch."),
-                        wxEmptyString, wxICON_WARNING | wxOK | wxCANCEL);
-                }
-
-                if (champer_switch_head_dlg->ShowModal() != wxID_OK) { return; }
+#ifndef __APPLE__
+                MessageDialog champer_switch_head_dlg(this, _L("If the chamber temperature exceeds 40\u2103, the system will automatically switch to heating mode. "
+                                                                "Please confirm whether to switch."), wxEmptyString, wxICON_WARNING | wxOK | wxCANCEL);
+#else
+                /*STUDIO-10386 MessageDialog here may cause block in macOS, use wxMessageDialog*/
+                wxMessageDialog champer_switch_head_dlg(this, _L("If the chamber temperature exceeds 40\u2103, the system will automatically switch to heating mode. "
+                                                                   "Please confirm whether to switch."), wxEmptyString, wxICON_WARNING | wxOK | wxCANCEL);
+#endif
+                if (champer_switch_head_dlg.ShowModal() != wxID_OK) { return; }
             }
 
             obj->command_set_chamber(chamber_temp);
@@ -4615,7 +4606,6 @@ void StatusPanel::on_ams_selected(wxCommandEvent &event)
             } catch (...) {
                 ;
             }
-            //update_ams_control_state(curr_ams_id, obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI));
         }
     }
 }
