@@ -55,6 +55,7 @@ protected:
     void on_exception(const std::exception_ptr &) override;
 public:
     PrintJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater, std::string dev_id = "");
+    virtual bool is_print_job() const override { return true; }
 
     std::string m_project_name;
     std::string m_dev_ip;
