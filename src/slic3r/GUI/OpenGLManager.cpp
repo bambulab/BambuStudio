@@ -985,6 +985,16 @@ bool OpenGLManager::is_legacy_framebuffer_enabled() const
     return m_b_legacy_framebuffer_enabled;
 }
 
+void OpenGLManager::set_gizmo_keep_screen_size_enabled(bool is_enabled)
+{
+    m_b_gizmo_keep_screen_size_enabled = is_enabled;
+}
+
+bool OpenGLManager::is_gizmo_keep_screen_size_enabled() const
+{
+    return m_b_gizmo_keep_screen_size_enabled;
+}
+
 std::string OpenGLManager::framebuffer_type_to_string(EFramebufferType type)
 {
     switch (type)

@@ -217,6 +217,7 @@ private:
     EVAOType m_vao_type{ EVAOType::Unknown };
     uint32_t m_vao{ 0 };
     bool m_b_legacy_framebuffer_enabled{ true };
+    bool m_b_gizmo_keep_screen_size_enabled{ true };
     static GLInfo s_gl_info;
 #ifdef __APPLE__
     // Part of hack to remove crash when closing the application on OSX 10.9.5 when building against newer wxWidgets
@@ -253,6 +254,8 @@ public:
     void set_line_width(float width) const;
     void set_legacy_framebuffer_enabled(bool is_enabled);
     bool is_legacy_framebuffer_enabled() const;
+    void set_gizmo_keep_screen_size_enabled(bool is_enabled);
+    bool is_gizmo_keep_screen_size_enabled() const;
 
     void set_msaa_type(const std::string& type);
     void set_msaa_type(EMSAAType type);

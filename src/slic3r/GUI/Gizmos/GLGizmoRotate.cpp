@@ -17,7 +17,7 @@ namespace Slic3r {
 namespace GUI {
 
 
-const float GLGizmoRotate::Offset = 100.0f;
+const float GLGizmoRotate::Offset = 5.0;
 const unsigned int GLGizmoRotate::CircleResolution = 64;
 const unsigned int GLGizmoRotate::AngleResolution = 64;
 const unsigned int GLGizmoRotate::ScaleStepsCount = 72;
@@ -99,8 +99,11 @@ void GLGizmoRotate::on_update(const UpdateData& data)
 
     double len = mouse_pos.norm();
 
+    auto radius = m_radius;
+    modify_radius(radius);
+
     const auto& scale_factor = Geometry::Transformation(m_base_model_matrix).get_scaling_factor();
-    const float radius = scale_factor.maxCoeff()* m_radius;
+    radius = scale_factor.maxCoeff()* radius;
     // snap to coarse snap region
     if ((m_snap_coarse_in_radius * radius <= len) && (len <= m_snap_coarse_out_radius * radius))
     {
@@ -132,22 +135,24 @@ void GLGizmoRotate::on_render()
     if (m_hover_id != 0 && !m_grabbers[0].dragging) {
         init_data_from_selection(selection);
     }
-
-    const double grabber_radius = (double)m_radius * (1.0 + (double)GrabberOffset);
+    auto radius = m_radius;
+    modify_radius(radius);
+    const double grabber_radius = (double)radius * (1.0 + (double)GrabberOffset);
     m_grabbers.front().center = Vec3d(::cos(m_angle) * grabber_radius, ::sin(m_angle) * grabber_radius, 0.0);
     m_grabbers.front().color = AXES_COLOR[m_axis];
     m_grabbers.front().hover_color = AXES_HOVER_COLOR[m_axis];
 
-    m_base_model_matrix = calculate_base_model_matrix();
+    m_base_model_matrix = transform_to_local(selection);
 
     const auto t_angle = Vec3d(0.0f, 0.0f, m_angle);
-    const auto t_fullsize = get_fixed_grabber_size();
+    const auto t_fullsize = get_grabber_size();
     m_grabbers.front().m_matrix = m_base_model_matrix * Geometry::assemble_transform(m_grabbers.front().center, t_angle, t_fullsize * Vec3d::Ones());
 
     glsafe(::glEnable(GL_DEPTH_TEST));
-
     const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
-    p_ogl_manager->set_line_width((m_hover_id != -1) ? 2.0f : 1.5f);
+    if (p_ogl_manager) {
+        p_ogl_manager->set_line_width((m_hover_id != -1) ? 2.0f : 1.5f);
+    }
     ColorRGBA color((m_hover_id != -1) ? m_drag_color : m_highlight_color);
     const auto& shader = wxGetApp().get_shader("flat");
     if (shader) {
@@ -155,7 +160,7 @@ void GLGizmoRotate::on_render()
 
         const Camera& camera = wxGetApp().plater()->get_camera();
         Transform3d redius_scale_matrix;
-        Geometry::scale_transform(redius_scale_matrix, { m_radius, m_radius, m_radius });
+        Geometry::scale_transform(redius_scale_matrix, { radius, radius, radius });
         Transform3d view_model_matrix = camera.get_view_matrix() * m_base_model_matrix * redius_scale_matrix;
 
         shader->set_uniform("view_model_matrix", view_model_matrix);
@@ -407,8 +412,7 @@ void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
 
 void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool picking) const
 {
-    double size = get_fixed_grabber_size() * 0.75;//0.75 for arrow show
-
+    double size = get_grabber_size() * 0.75;//0.75 for arrow show
     std::array<float, 4> color = m_grabbers[0].color;
     if (!picking && m_hover_id != -1) {
         color = m_grabbers[0].hover_color;
@@ -451,27 +455,15 @@ void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool pick
     wxGetApp().unbind_shader();
 }
 
-Transform3d GLGizmoRotate::calculate_base_model_matrix() const
-{
-    const Selection& selection = m_parent.get_selection();
-    /*if (m_hover_id != 0 && !m_grabbers[0].dragging) {
-        init_data_from_selection(selection);
-    }*/
-    const Camera& camera = wxGetApp().plater()->get_camera();
-    Transform3d scalling_matrix{ Transform3d::Identity() };
-    const auto& t_zoom = camera.get_zoom();
-    scalling_matrix.data()[0 * 4 + 0] = 1.0f / t_zoom;
-    scalling_matrix.data()[1 * 4 + 1] = 1.0f / t_zoom;
-    scalling_matrix.data()[2 * 4 + 2] = 1.0f / t_zoom;
-    return transform_to_local(selection) * scalling_matrix;
-}
-
 Transform3d GLGizmoRotate::calculate_circle_model_matrix() const
 {
+    auto radius = m_radius;
+    modify_radius(radius);
     Transform3d redius_scale_matrix;
-    Geometry::scale_transform(redius_scale_matrix, { m_radius, m_radius, m_radius });
-    const auto t_base_model_matrix = calculate_base_model_matrix();
-    return t_base_model_matrix * redius_scale_matrix;
+    Geometry::scale_transform(redius_scale_matrix, { radius, radius, radius });
+    const Selection& selection = m_parent.get_selection();
+    const Transform3d model_matrix = transform_to_local(selection);
+    return model_matrix * redius_scale_matrix;
 }
 
 Transform3d  GLGizmoRotate::transform_to_local(const Selection &selection) const
@@ -548,7 +540,7 @@ void GLGizmoRotate::init_data_from_selection(const Selection &selection) {
     m_bounding_box                        = box;
     const std::pair<Vec3d, double> sphere = selection.get_bounding_sphere();
     m_center                              = sphere.first;
-    m_radius = Offset;// +sphere.second;
+    m_radius = Offset +sphere.second;
     m_orient_matrix                       = box_trafo;
     m_orient_matrix.translation()         = m_center;
     m_snap_coarse_in_radius               = 1.0f / 3.0f;

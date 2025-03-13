@@ -2627,15 +2627,29 @@ static std::array<float, 4> get_color(Axis axis)
             GLGizmoBase::AXES_COLOR[axis][3] };
 };
 
-void Selection::render_sidebar_position_hints(const std::string& sidebar_field, GLShaderProgram& shader, const Transform3d& model_matrix) const
+Transform3d get_screen_scalling_matrix()
 {
     const Camera& camera = wxGetApp().plater()->get_camera();
 
     Transform3d screen_scalling_matrix{ Transform3d::Identity() };
-    const auto& t_zoom = camera.get_zoom();
-    screen_scalling_matrix.data()[0 * 4 + 0] = 5.0f / t_zoom;
-    screen_scalling_matrix.data()[1 * 4 + 1] = 5.0f / t_zoom;
-    screen_scalling_matrix.data()[2 * 4 + 2] = 5.0f / t_zoom;
+
+    const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+    if (p_ogl_manager) {
+        if (p_ogl_manager->is_gizmo_keep_screen_size_enabled()) {
+            const auto& t_zoom = camera.get_zoom();
+            screen_scalling_matrix.data()[0 * 4 + 0] = 5.0f / t_zoom;
+            screen_scalling_matrix.data()[1 * 4 + 1] = 5.0f / t_zoom;
+            screen_scalling_matrix.data()[2 * 4 + 2] = 5.0f / t_zoom;
+        }
+    }
+    return screen_scalling_matrix;
+}
+
+void Selection::render_sidebar_position_hints(const std::string& sidebar_field, GLShaderProgram& shader, const Transform3d& model_matrix) const
+{
+    const Camera& camera = wxGetApp().plater()->get_camera();
+
+    const Transform3d screen_scalling_matrix = get_screen_scalling_matrix();
 
     const Transform3d view_matrix = camera.get_view_matrix() * model_matrix * screen_scalling_matrix;
     shader.set_uniform("projection_matrix", camera.get_projection_matrix());
@@ -2668,11 +2682,7 @@ void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field, 
 
         const Camera& camera = wxGetApp().plater()->get_camera();
 
-        Transform3d screen_scalling_matrix{ Transform3d::Identity() };
-        const auto& t_zoom = camera.get_zoom();
-        screen_scalling_matrix.data()[0 * 4 + 0] = 5.0f / t_zoom;
-        screen_scalling_matrix.data()[1 * 4 + 1] = 5.0f / t_zoom;
-        screen_scalling_matrix.data()[2 * 4 + 2] = 5.0f / t_zoom;
+        const Transform3d screen_scalling_matrix = get_screen_scalling_matrix();
 
         Transform3d view_model_matrix = matrix * screen_scalling_matrix;
         shader.set_uniform("view_model_matrix", view_model_matrix);

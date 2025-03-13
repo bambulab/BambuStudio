@@ -281,14 +281,8 @@ float GLGizmoBase::get_grabber_size()
 {
     float grabber_size = 8.0f;
     if (GLGizmoBase::INV_ZOOM > 0) {
-        grabber_size = get_fixed_grabber_size() * GLGizmoBase::INV_ZOOM;
+        grabber_size = GLGizmoBase::Grabber::FixedGrabberSize * GLGizmoBase::Grabber::GrabberSizeFactor * GLGizmoBase::INV_ZOOM;
     }
-    return grabber_size;
-}
-
-float GLGizmoBase::get_fixed_grabber_size()
-{
-    const float grabber_size = GLGizmoBase::Grabber::FixedGrabberSize * GLGizmoBase::Grabber::GrabberSizeFactor;
     return grabber_size;
 }
 
@@ -633,6 +627,20 @@ BoundingBoxf3 GLGizmoBase::get_cross_mask_aabb(const Transform3d& matrix, const 
     }
 
     return t_aabb;
+}
+
+void GLGizmoBase::modify_radius(float& radius) const
+{
+    const auto& ogl_manager = wxGetApp().get_opengl_manager();
+    if (ogl_manager) {
+        if (ogl_manager->is_gizmo_keep_screen_size_enabled()) {
+            uint32_t t_width = 0;
+            uint32_t t_height = 0;
+            ogl_manager->get_viewport_size(t_width, t_height);
+            radius = 0.2f * std::min(t_width, t_height);
+            radius *= GLGizmoBase::INV_ZOOM;
+        }
+    }
 }
 
 Transform3d GLGizmoBase::get_corss_mask_model_matrix(ECrossMaskType type, const Vec3f& target, bool is_single) const
