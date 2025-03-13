@@ -95,7 +95,7 @@ static void rotate_z_3d(std::array<Vec3d, 4>& verts, float radian_angle)
         rotate_point_2d(verts[i](0), verts[i](1), c, s);
 }
 
-const double GLGizmoAdvancedCut::Offset = 10.0;
+const double GLGizmoAdvancedCut::Offset = 20.0;
 const double GLGizmoAdvancedCut::Margin = 20.0;
 const std::array<float, 4> GLGizmoAdvancedCut::GrabberColor      = { 1.0, 1.0, 0.0, 1.0 };
 const std::array<float, 4> GLGizmoAdvancedCut::GrabberHoverColor = { 0.7, 0.7, 0.0, 1.0};
@@ -1242,12 +1242,6 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
     }
     const Camera& camera = wxGetApp().plater()->get_camera();
 
-    Transform3d screen_scalling_matrix{ Transform3d::Identity() };
-    const auto& t_zoom = camera.get_zoom();
-    screen_scalling_matrix.data()[0 * 4 + 0] = 1.0f / t_zoom;
-    screen_scalling_matrix.data()[1 * 4 + 1] = 1.0f / t_zoom;
-    screen_scalling_matrix.data()[2 * 4 + 2] = 1.0f / t_zoom;
-
     const auto& view_matrix = camera.get_view_matrix();
     const auto& projection_matrix = camera.get_projection_matrix();
     render_glmodel(m_plane, cp_clr.get_data(), view_matrix * Geometry::translation_transform(m_plane_center) * m_rotate_matrix, projection_matrix);
@@ -1257,7 +1251,10 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
     glsafe(::glDisable(GL_BLEND));
 
     // Draw the grabber and the connecting line
-    m_move_z_grabber.center  = m_plane_center + m_plane_normal * Offset;
+    float radius = Offset;
+    modify_radius(radius);
+    radius *= 0.5f;
+    m_move_z_grabber.center  = m_plane_center + m_plane_normal * radius;
     bool is_render_z_grabber = true;                                      // m_hover_id < 0 || m_hover_id == cube_z_move_id;
     bool is_render_x_grabber = m_cut_mode == CutMode::cutTongueAndGroove; // m_hover_id < 0 || m_hover_id == cube_x_move_id;
     glsafe(::glDisable(GL_DEPTH_TEST));
@@ -1279,10 +1276,10 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
     }
     m_grabber_model.set_color({ 1.0f, 1.0f, 0.0f, 1.0f });
 
-    auto calculate_model_matrix = [&screen_scalling_matrix](const Vec3d& source, const Vec3d& target, Transform3d& model_matrix, float fullsize)->void {
+    auto calculate_model_matrix = [](const Vec3d& source, const Vec3d& target, Transform3d& model_matrix)->void {
         Vec3d the_vector = target - source;
-        const auto scale = fullsize * the_vector.stableNorm();
-        const Vec3d center = source + screen_scalling_matrix.matrix().block<3, 3>(0, 0) * 0.5f * scale * the_vector.normalized();
+        const auto scale = the_vector.stableNorm();
+        const Vec3d center = source + 0.5f * scale * the_vector.normalized();
 
         Vec3d rotation_axis;
         double rotation_angle;
@@ -1300,7 +1297,7 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
             * Geometry::scale_transform({ scale, scale, scale }).matrix();
     };
 
-    const float fullsize = get_fixed_grabber_size();
+    const float fullsize = get_grabber_size();
     const auto& p_flat_shader = wxGetApp().get_shader("flat");
     if (p_flat_shader && (is_render_z_grabber || is_render_x_grabber)) {
         wxGetApp().bind_shader(p_flat_shader);
@@ -1327,8 +1324,7 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
         if (is_render_z_grabber) {
 
             Transform3d model_matrix{ Transform3d::Identity() };
-            calculate_model_matrix(m_plane_center, m_move_z_grabber.center, model_matrix, 0.3 * fullsize);
-            model_matrix = model_matrix * screen_scalling_matrix;
+            calculate_model_matrix(m_plane_center, m_move_z_grabber.center, model_matrix);
             p_flat_shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
             m_grabber_model.render_geometry();
         }
@@ -1337,8 +1333,7 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
         if (is_render_x_grabber) {
 
             Transform3d model_matrix{ Transform3d::Identity() };
-            calculate_model_matrix(m_plane_center, m_move_x_grabber.center, model_matrix, 0.3 * fullsize);
-            model_matrix = model_matrix * screen_scalling_matrix;
+            calculate_model_matrix(m_plane_center, m_move_x_grabber.center, model_matrix);
             p_flat_shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
             m_grabber_model.render_geometry();
         }
@@ -1363,20 +1358,20 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
 
     if (is_render_z_grabber) {
         Vec3d t_z_dir = m_move_z_grabber.center - m_plane_center;
-        const auto scale_z = screen_scalling_matrix.matrix().block<3, 3>(0, 0) * 0.3 * fullsize * t_z_dir.stableNorm();
+        const auto scale_z = t_z_dir.stableNorm();
         const Vec3d target_z = m_plane_center + scale_z * t_z_dir.normalized();
         Transform3d cube_mat_z = Geometry::translation_transform(target_z) * m_rotate_matrix * Geometry::scale_transform(fullsize); //
-        m_move_z_grabber.m_matrix = cube_mat_z * screen_scalling_matrix;
+        m_move_z_grabber.m_matrix = cube_mat_z;
         render_glmodel(cube_z, render_color, view_matrix * m_move_z_grabber.m_matrix, projection_matrix);
     }
 
     if (is_render_x_grabber) {
         GLModel& cube_x = m_move_x_grabber.get_cube();
         Vec3d t_x_dir = m_move_x_grabber.center - m_plane_center;
-        const auto scale_x = screen_scalling_matrix.matrix().block<3, 3>(0, 0) * 0.3 * fullsize * t_x_dir.stableNorm();
+        const auto scale_x = t_x_dir.stableNorm();
         const Vec3d target_x = m_plane_center + scale_x * t_x_dir.normalized();
         Transform3d cube_mat_x = Geometry::translation_transform(target_x) * m_rotate_matrix * Geometry::scale_transform(fullsize); //
-        m_move_x_grabber.m_matrix = cube_mat_x * screen_scalling_matrix;
+        m_move_x_grabber.m_matrix = cube_mat_x;
         render_glmodel(cube_x, render_color, view_matrix * m_move_x_grabber.m_matrix, projection_matrix);
     }
     // Should be placed at last, because GLGizmoRotate3D clears depth buffer

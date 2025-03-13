@@ -2733,6 +2733,9 @@ bool GUI_App::on_init_inner()
         p_ogl_manager->set_msaa_type(msaa_type);
         const bool is_fxaa_enabled = app_config->get_bool("enable_advanced_antialiasing");
         p_ogl_manager->set_fxaa_enabled(is_fxaa_enabled);
+
+        const bool gizmo_keep_screen_size = app_config->get_bool("gizmo_keep_screen_size");
+        p_ogl_manager->set_gizmo_keep_screen_size_enabled(gizmo_keep_screen_size);
     }
 
     BBLSplashScreen * scrn = nullptr;

@@ -177,7 +177,6 @@ protected:
         size_t &selection_idx, float label_width, float item_width);
     void render_cross_mark(const Transform3d& matrix, const Vec3f& target,bool is_single =false);
     static float get_grabber_size();
-    static float get_fixed_grabber_size();
 
 public:
     GLGizmoBase(GLCanvas3D& parent,
@@ -302,6 +301,8 @@ protected:
     }
 
     BoundingBoxf3 get_cross_mask_aabb(const Transform3d& matrix, const Vec3f& target, bool is_single = false) const;
+
+    void modify_radius(float& radius) const;
 
 private:
     enum class ECrossMaskType

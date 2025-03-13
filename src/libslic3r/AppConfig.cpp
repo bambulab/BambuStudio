@@ -207,6 +207,9 @@ void AppConfig::set_defaults()
     if (get("enable_advanced_antialiasing").empty())
         set_bool("enable_advanced_antialiasing", false);
 
+    if (get("gizmo_keep_screen_size").empty())
+        set_bool("gizmo_keep_screen_size", true);
+
     if (get("show_3d_navigator").empty())
         set_bool("show_3d_navigator", true);
 

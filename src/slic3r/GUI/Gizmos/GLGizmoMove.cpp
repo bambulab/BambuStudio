@@ -72,16 +72,9 @@ BoundingBoxf3 GLGizmoMove3D::get_bounding_box() const
     if (m_cone.is_initialized()) {
         const auto& t_cone_aabb = m_cone.get_bounding_box();
         const auto& [box, box_trafo] = selection.get_bounding_box_in_current_reference_system();
+        Transform3d model_matrix = box_trafo;
 
-        const Camera& camera = wxGetApp().plater()->get_camera();
-        Transform3d screen_scalling_matrix{ Transform3d::Identity() };
-        const auto& t_zoom = camera.get_zoom();
-        screen_scalling_matrix.data()[0 * 4 + 0] = 1.0f / t_zoom;
-        screen_scalling_matrix.data()[1 * 4 + 1] = 1.0f / t_zoom;
-        screen_scalling_matrix.data()[2 * 4 + 2] = 1.0f / t_zoom;
-        auto model_matrix = box_trafo * screen_scalling_matrix;
-
-        double size = get_fixed_grabber_size() * 0.75;//0.75 for arrow show
+        double size = get_grabber_size() * 0.75;//0.75 for arrow show
         for (unsigned int i = 0; i < 3; ++i) {
             if (m_grabbers[i].enabled) {
                 auto i_model_matrix = model_matrix * Geometry::assemble_transform(m_grabbers[i].center);
@@ -197,16 +190,13 @@ void GLGizmoMove3D::on_render()
     }
     m_orient_matrix                 = box_trafo;
 
-    const Camera& camera = wxGetApp().plater()->get_camera();
-    Transform3d screen_scalling_matrix{ Transform3d::Identity() };
-    const auto& t_zoom = camera.get_zoom();
-    screen_scalling_matrix.data()[0 * 4 + 0] = 1.0f / t_zoom;
-    screen_scalling_matrix.data()[1 * 4 + 1] = 1.0f / t_zoom;
-    screen_scalling_matrix.data()[2 * 4 + 2] = 1.0f / t_zoom;
-    m_orient_matrix = m_orient_matrix * screen_scalling_matrix;
+    const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+    if (!p_ogl_manager) {
+        return;
+    }
 
-    float space_size = 120.f;
-    space_size *= GLGizmoBase::Grabber::GrabberSizeFactor;
+    float space_size = 20.f * INV_ZOOM * GLGizmoBase::Grabber::GrabberSizeFactor;
+    modify_radius(space_size);
 #if ENABLE_FIXED_GRABBER
     // x axis
     m_grabbers[0].center = {space_size, 0, 0};
@@ -214,6 +204,11 @@ void GLGizmoMove3D::on_render()
     m_grabbers[1].center = {0, space_size,0};
     // z axis
     m_grabbers[2].center = {0,0, space_size};
+    if (!p_ogl_manager->is_gizmo_keep_screen_size_enabled()) {
+        m_grabbers[0].center.x() += m_bounding_box.max.x();
+        m_grabbers[1].center.y() += m_bounding_box.max.y();
+        m_grabbers[2].center.z() += m_bounding_box.max.z();
+    }
 
     for (int i = 0; i < 3; ++i) {
         m_grabbers[i].color       = AXES_COLOR[i];
@@ -233,7 +228,6 @@ void GLGizmoMove3D::on_render()
     m_grabbers[2].color = AXES_COLOR[2];
 #endif
 
-    const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
     p_ogl_manager->set_line_width((m_hover_id != -1) ? 2.0f : 1.5f);
     const auto& gl_info = p_ogl_manager->get_gl_info();
     const auto formated_gl_version = gl_info.get_formated_gl_version();
@@ -287,6 +281,7 @@ void GLGizmoMove3D::on_render()
     const auto& shader = wxGetApp().get_shader("flat");
     if (shader) {
         wxGetApp().bind_shader(shader);
+        const Camera& camera = wxGetApp().plater()->get_camera();
         shader->set_uniform("view_model_matrix", camera.get_view_matrix() * m_orient_matrix);
         shader->set_uniform("projection_matrix", camera.get_projection_matrix());
         for (unsigned int i = 0; i < 3; ++i) {
@@ -365,8 +360,7 @@ double GLGizmoMove3D::calc_projection(const UpdateData& data) const
 
 void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box, bool picking) const
 {
-    double size = get_fixed_grabber_size() * 0.75;//0.75 for arrow show
-
+    double size = get_grabber_size() * 0.75;//0.75 for arrow show
     std::array<float, 4> color = m_grabbers[axis].color;
     if (!picking && m_hover_id != -1) {
         if (m_hover_id == axis) {
@@ -423,7 +417,6 @@ void GLGizmoMove3D::change_cs_by_selection() {
         m_object_manipulation->set_coordinates_type(ECoordinatesType::World);
     }
 }
-
 
 } // namespace GUI
 } // namespace Slic3r

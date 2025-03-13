@@ -94,7 +94,6 @@ private:
     void render_grabber_connection(const ColorRGBA& color);
     void render_grabber(const BoundingBoxf3& box) const;
     void render_grabber_extension(const BoundingBoxf3& box, bool picking) const;
-    Transform3d calculate_base_model_matrix() const;
     Transform3d calculate_circle_model_matrix() const;
     Transform3d transform_to_local(const Selection& selection) const;
     // returns the intersection of the mouse ray with the plane perpendicular to the gizmo axis, in local coordinate
