@@ -5513,7 +5513,7 @@ void GCodeProcessor::store_move_vertex(EMoveType type, EMovePathType path_type)
 void GCodeProcessor::set_extrusion_role(ExtrusionRole role)
 {
     m_used_filaments.process_role_cache(this);
-    if (role == erEnsureVertical) {
+    if (role == erFloatingVerticalShell) {
         m_extrusion_role = erSolidInfill;
     }
     else {

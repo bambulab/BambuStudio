@@ -14,7 +14,7 @@
 #include "FillLightning.hpp"
 #include "FillConcentricInternal.hpp"
 #include "FillConcentric.hpp"
-#include "FillContour.hpp"
+#include "FillFloatingConcentric.hpp"
 
 #define NARROW_INFILL_AREA_THRESHOLD 3
 
@@ -168,8 +168,8 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 				if (surface.is_solid()) {
 		            params.density = 100.f;
 					//FIXME for non-thick bridges, shall we allow a bottom surface pattern?
-					if (surface.is_ensure_vertical())
-						params.pattern = InfillPattern::ipEnsureVertical;
+					if (surface.is_floating_vertical_shell())
+						params.pattern = InfillPattern::ipFloatingConcentric;
 					else if (surface.is_solid_infill())
                         params.pattern = region_config.internal_solid_infill_pattern.value;
 					else if (surface.is_external() && !is_bridge)
@@ -184,7 +184,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		            is_bridge ?
 		                erBridgeInfill :
 		                (surface.is_solid() ?
-		                    (surface.is_top() ? erTopSolidInfill : (surface.is_bottom()? erBottomSurface : surface.is_ensure_vertical()?erEnsureVertical:erSolidInfill)) :
+		                    (surface.is_top() ? erTopSolidInfill : (surface.is_bottom()? erBottomSurface : surface.is_floating_vertical_shell()?erFloatingVerticalShell:erSolidInfill)) :
 		                    erInternalInfill);
 		        params.bridge_angle = float(surface.bridge_angle);
 		        params.angle 		= float(Geometry::deg2rad(region_config.infill_direction.value));
@@ -203,7 +203,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
                         params.top_surface_speed = region_config.top_surface_speed.get_at(layer.get_extruder_id(params.extruder));
                     else if (params.extrusion_role == erSolidInfill)
                         params.solid_infill_speed = region_config.internal_solid_infill_speed.get_at(layer.get_extruder_id(params.extruder));
-					else if (params.extrusion_role == erEnsureVertical)
+					else if (params.extrusion_role == erFloatingVerticalShell)
 						params.solid_infill_speed = region_config.bridge_speed.get_at(layer.get_extruder_id(params.extruder));
                 }
 				// Calculate flow spacing for infill pattern generation.
@@ -395,9 +395,9 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 				continue;
 			}
 			else if (narrow_floating_expoly_idx.size() == expolygons_size) {
-				surface_fills[i].params.pattern = ipEnsureVertical;
-				surface_fills[i].params.extrusion_role = erEnsureVertical;
-				surface_fills[i].surface.surface_type = stEnsureVertical;
+				surface_fills[i].params.pattern = ipFloatingConcentric;
+				surface_fills[i].params.extrusion_role = erFloatingVerticalShell;
+				surface_fills[i].surface.surface_type = stFloatingVerticalShell;
 			}
 			else if (narrow_expoly_idx.size() == expolygons_size) {
 				surface_fills[i].params.pattern = ipConcentricInternal;
@@ -421,11 +421,11 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 
 				if (!narrow_floating_expoly_idx.empty()) {
 					params = surface_fills[i].params;
-					params.pattern = ipEnsureVertical;
-					params.extrusion_role = erEnsureVertical;
+					params.pattern = ipFloatingConcentric;
+					params.extrusion_role = erFloatingVerticalShell;
 					surface_fills.emplace_back(params);
 					surface_fills.back().region_id = surface_fills[i].region_id;
-					surface_fills.back().surface.surface_type = stEnsureVertical;
+					surface_fills.back().surface.surface_type = stFloatingVerticalShell;
 					surface_fills.back().surface.thickness = surface_fills[i].surface.thickness;
 					surface_fills.back().region_id_group = surface_fills[i].region_id_group;
 					surface_fills.back().no_overlap_expolygons = surface_fills[i].no_overlap_expolygons;
@@ -519,8 +519,8 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
         } else if (surface_fill.params.pattern == ipLightning){
             dynamic_cast<FillLightning::Filler*>(f.get())->generator = lightning_generator;
 		}
-		else if (surface_fill.params.pattern == ipEnsureVertical) {
-			FillContour* fill_contour = dynamic_cast<FillContour*>(f.get());
+		else if (surface_fill.params.pattern == ipFloatingConcentric) {
+			FillFloatingConcentric* fill_contour = dynamic_cast<FillFloatingConcentric*>(f.get());
 			assert(fill_contour != nullptr);
 			ExPolygons lower_unsuporrt_expolys;
 			Polygons lower_sparse_polys;
@@ -584,7 +584,7 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
         params.anchor_length     = surface_fill.params.anchor_length;
 		params.anchor_length_max = surface_fill.params.anchor_length_max;
 		params.resolution        = resolution;
-		params.use_arachne = surface_fill.params.pattern == ipConcentric || surface_fill.params.pattern == ipEnsureVertical;
+		params.use_arachne = surface_fill.params.pattern == ipConcentric || surface_fill.params.pattern == ipFloatingConcentric;
 		params.layer_height      = m_regions[surface_fill.region_id]->layer()->height;
 
 		// BBS
@@ -602,7 +602,7 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
             params.symmetric_infill_y_axis = surface_fill.params.symmetric_infill_y_axis;
 
         }
-		if (surface_fill.params.pattern == ipGrid || surface_fill.params.pattern == ipEnsureVertical)
+		if (surface_fill.params.pattern == ipGrid || surface_fill.params.pattern == ipFloatingConcentric)
 			params.can_reverse = false;
 		LayerRegion* layerm = this->m_regions[surface_fill.region_id];
 		for (ExPolygon& expoly : surface_fill.expolygons) {

@@ -745,7 +745,7 @@ const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors {{
     { 0.12f, 0.12f, 1.00f, 1.0f },   // erOverhangPerimeter
     { 0.69f, 0.19f, 0.16f, 1.0f },   // erInternalInfill
     { 0.59f, 0.33f, 0.80f, 1.0f },   // erSolidInfill
-    { 0.90f, 0.70f, 0.70f, 1.0f },   // erEnsureVertical
+    { 0.90f, 0.70f, 0.70f, 1.0f },   // erFloatingVerticalShell
     { 0.94f, 0.25f, 0.25f, 1.0f },   // erTopSolidInfill
     { 0.40f, 0.36f, 0.78f, 1.0f },   // erBottomSurface
     { 1.00f, 0.55f, 0.41f, 1.0f },   // erIroning
@@ -1725,7 +1725,7 @@ void GCodeViewer::render_calibration_thumbnail(ThumbnailData& thumbnail_data, un
     m_extrusions.role_visibility_flags = m_extrusions.role_visibility_flags | (1 << erExternalPerimeter);
     m_extrusions.role_visibility_flags = m_extrusions.role_visibility_flags | (1 << erOverhangPerimeter);
     m_extrusions.role_visibility_flags = m_extrusions.role_visibility_flags | (1 << erSolidInfill);
-    m_extrusions.role_visibility_flags = m_extrusions.role_visibility_flags | (1 << erEnsureVertical);
+    m_extrusions.role_visibility_flags = m_extrusions.role_visibility_flags | (1 << erFloatingVerticalShell);
     m_extrusions.role_visibility_flags = m_extrusions.role_visibility_flags | (1 << erTopSolidInfill);
     m_extrusions.role_visibility_flags = m_extrusions.role_visibility_flags | (1 << erInternalInfill);
     m_extrusions.role_visibility_flags = m_extrusions.role_visibility_flags | (1 << erBottomSurface);

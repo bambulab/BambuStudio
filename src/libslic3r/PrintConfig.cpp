@@ -1364,8 +1364,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("vertical_shell_speed",coFloatsOrPercents);
     def->label = L("Vertical shell speed");
-    def->tooltip = L("Speed for vertical shell area. If expressed as percentage (for example: 80%) it will be calculated on"
-                       "the internal solid infill speed above");
+    def->tooltip = L("Speed for vertical shells with overhang regions. If expressed as percentage (for example: 80%) it will be calculated on"
+                     "the internal solid infill speed above");
     def->category = L("Speed");
     def->sidetext   = L("mm/s or %");
     def->ratio_over = "internal_solid_infill_speed";
@@ -1376,7 +1376,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("detect_floating_vertical_shell", coBool);
     def->label = L("Detect floating vertical shells");
-    def->tooltip = L("Detect floating vertical shells and slow them by using bridge speed.");
+    def->tooltip = L("Detect overhang paths in vertical shells and slow them by bridge speed.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool{true});
 
