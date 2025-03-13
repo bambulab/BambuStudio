@@ -4,7 +4,7 @@
 #include "../ExPolygon.hpp"
 #include "../Surface.hpp"
 #include "../VariableWidth.hpp"
-#include "FillContour.hpp"
+#include "FillFloatingConcentric.hpp"
 #include <boost/log/trivial.hpp>
 
 namespace Slic3r {
@@ -101,7 +101,7 @@ static ExtrusionPaths floating_thick_polyline_to_extrusion_paths(const FloatingT
                     if (curr_floating != is_floating && length != 0) {
                         path.polyline.append(lines[idx].a);
                         if (is_floating)
-                            path.set_customize_flag(CustomizeFlag::cfEnsureVertical);
+                            path.set_customize_flag(CustomizeFlag::cfFloatingVerticalShell);
                         set_flow_for_path(path, sum / length);
                         append_path_and_reset(length, sum, path);
                     }
@@ -115,7 +115,7 @@ static ExtrusionPaths floating_thick_polyline_to_extrusion_paths(const FloatingT
                 path.polyline.append(lines[i].a);
                 if (length > SCALED_EPSILON) {
                     if (lines[i].is_a_floating && lines[i].is_b_floating)
-                        path.set_customize_flag(CustomizeFlag::cfEnsureVertical);
+                        path.set_customize_flag(CustomizeFlag::cfFloatingVerticalShell);
                     set_flow_for_path(path, sum / length);
                     paths.emplace_back(std::move(path));
                 }
@@ -176,7 +176,7 @@ static ExtrusionPaths floating_thick_polyline_to_extrusion_paths(const FloatingT
             if (curr_floating!= is_floating && length != 0) {
                 path.polyline.append(lines[idx].a);
                 if(is_floating)
-                    path.set_customize_flag(CustomizeFlag::cfEnsureVertical);
+                    path.set_customize_flag(CustomizeFlag::cfFloatingVerticalShell);
                 set_flow_for_path(path, sum / length);
                 append_path_and_reset(length, sum, path);
             }
@@ -190,7 +190,7 @@ static ExtrusionPaths floating_thick_polyline_to_extrusion_paths(const FloatingT
         path.polyline.append(lines[final_size - 1].b);
         if (length > SCALED_EPSILON) {
             if (lines[final_size - 1].is_a_floating && lines[final_size - 1].is_b_floating)
-                path.set_customize_flag(CustomizeFlag::cfEnsureVertical);
+                path.set_customize_flag(CustomizeFlag::cfFloatingVerticalShell);
             set_flow_for_path(path, sum / length);
             paths.emplace_back(std::move(path));
         }
@@ -676,7 +676,7 @@ void smooth_floating_line(FloatingThickPolyline& line,coord_t max_gap_threshold,
 }
 
 // nearest neibour排序，但是取点时，只能取get_loop_start_candidates得到的点
-FloatingThickPolylines FillContour::resplit_order_loops(Point curr_point, std::vector<const Arachne::ExtrusionLine*> all_extrusions, const ExPolygons& floating_areas, const Polygons& sparse_polys, const coord_t default_width)
+FloatingThickPolylines FillFloatingConcentric::resplit_order_loops(Point curr_point, std::vector<const Arachne::ExtrusionLine*> all_extrusions, const ExPolygons& floating_areas, const Polygons& sparse_polys, const coord_t default_width)
 {
     FloatingThickPolylines result;
 
@@ -715,7 +715,7 @@ FloatingThickPolylines FillContour::resplit_order_loops(Point curr_point, std::v
 }
 
 #if 0
-Polylines FillContour::resplit_order_loops(Point curr_point, Polygons loops, const ExPolygons& floating_areas)
+Polylines FillFloatingConcentric::resplit_order_loops(Point curr_point, Polygons loops, const ExPolygons& floating_areas)
 {
     Polylines result;
     for (size_t idx = 0; idx < loops.size(); ++idx) {
@@ -745,7 +745,7 @@ Polylines FillContour::resplit_order_loops(Point curr_point, Polygons loops, con
     return result;
 };
 
-void FillContour::_fill_surface_single(
+void FillFloatingConcentric::_fill_surface_single(
     const FillParams& params,
     unsigned int thickness_layers,
     const std::pair<float, Point>& direction,
@@ -788,7 +788,7 @@ void FillContour::_fill_surface_single(
 }
 #endif
 
-void FillContour::_fill_surface_single(const FillParams& params,
+void FillFloatingConcentric::_fill_surface_single(const FillParams& params,
     unsigned int                   thickness_layers,
     const std::pair<float, Point>& direction,
     ExPolygon                      expolygon,
@@ -842,7 +842,7 @@ void FillContour::_fill_surface_single(const FillParams& params,
 }
 
 
-FloatingThickPolylines FillContour::fill_surface_arachne_floating(const Surface* surface, const FillParams& params)
+FloatingThickPolylines FillFloatingConcentric::fill_surface_arachne_floating(const Surface* surface, const FillParams& params)
 {
     // Create the infills for each of the regions.
     FloatingThickPolylines floating_thick_polylines_out;
@@ -851,7 +851,7 @@ FloatingThickPolylines FillContour::fill_surface_arachne_floating(const Surface*
     return floating_thick_polylines_out;
 }
 
-void FillContour::fill_surface_extrusion(const Surface* surface, const FillParams& params, ExtrusionEntitiesPtr& out)
+void FillFloatingConcentric::fill_surface_extrusion(const Surface* surface, const FillParams& params, ExtrusionEntitiesPtr& out)
 {
     FloatingThickPolylines floating_lines = this->fill_surface_arachne_floating(surface, params);
     if (floating_lines.empty())

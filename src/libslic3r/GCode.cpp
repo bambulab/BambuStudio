@@ -4880,7 +4880,7 @@ std::string GCode::extrude_entity(const ExtrusionEntity &entity, std::string des
 std::string GCode::extrude_path(ExtrusionPath path, std::string description, double speed)
 {
 //    description += ExtrusionEntity::role_to_string(path.role());
-    bool flag = path.get_customize_flag() == CustomizeFlag::cfEnsureVertical;
+    bool flag = path.get_customize_flag() == CustomizeFlag::cfFloatingVerticalShell;
     std::string gcode = this->_extrude(path, description, speed,flag);
     if (m_wipe.enable && FILAMENT_CONFIG(wipe)) {
         m_wipe.path = std::move(path.polyline);
@@ -5420,7 +5420,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             speed = m_config.sparse_infill_speed.get_at(cur_extruder_index());
         } else if (path.role() == erSolidInfill) {
             speed = m_config.internal_solid_infill_speed.get_at(cur_extruder_index());
-        } else if (path.role() == erEnsureVertical){
+        } else if (path.role() == erFloatingVerticalShell){
             if(use_seperate_speed){
                 speed = m_config.bridge_speed.get_at(cur_extruder_index());
             }

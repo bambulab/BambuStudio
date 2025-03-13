@@ -1957,7 +1957,7 @@ void PrintObject::bridge_over_infill()
                     unsupported_area   = diff(unsupported_area, lower_layer_solids);
 
                     for (LayerRegion *region : layer->regions()) {
-                        auto region_internal_solids = region->fill_surfaces.filter_by_types({ stInternalSolid,stEnsureVertical }); // 取当前层的实心区域
+                        auto region_internal_solids =  region->fill_surfaces.filter_by_type(stInternalSolid); // 取当前层的实心区域
                         for (const Surface *s : region_internal_solids) {
                             Polygons unsupported         = intersection(to_polygons(s->expolygon), unsupported_area); // 当前层需要生成桥接的区域，通过当前层的实心区域与下一层的非实心区域求交得到
                             // The following flag marks those surfaces, which overlap with unuspported area, but at least part of them is supported.

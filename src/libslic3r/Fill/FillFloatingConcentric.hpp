@@ -1,5 +1,5 @@
-#ifndef SLIC3R_FILLCONTOUR_HPP
-#define SLIC3R_FILLCONTOUR_HPP
+#ifndef SLIC3R_FillFloatingConcentric_HPP
+#define SLIC3R_FillFloatingConcentric_HPP
 
 #include "FillBase.hpp"
 #include "FillConcentric.hpp"
@@ -33,15 +33,15 @@ namespace Slic3r{
     };
     using FloatingThickPolylines = std::vector<FloatingThickPolyline>;
 
-    class FillContour : public FillConcentric
+    class FillFloatingConcentric : public FillConcentric
     {
     public:
-        ~FillContour() override = default;
+        ~FillFloatingConcentric() override = default;
         ExPolygons lower_layer_unsupport_areas;
         Polygons lower_sparse_polys;
 
     protected:
-        Fill* clone() const override { return new FillContour(*this); }
+        Fill* clone() const override { return new FillFloatingConcentric(*this); }
 #if 0
         void _fill_surface_single(
             const FillParams                &params, 
