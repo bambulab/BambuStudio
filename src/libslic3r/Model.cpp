@@ -257,12 +257,10 @@ Model Model::read_from_file(const std::string&                                  
         config_substitutions = &temp_config_substitutions_context;
     //BBS: plate_data
     PlateDataPtrs temp_plate_data;
-    bool temp_is_xxx;
     Semver temp_version;
     if (plate_data == nullptr)
         plate_data = &temp_plate_data;
-    if (is_xxx == nullptr)
-        is_xxx = &temp_is_xxx;
+
     if (file_version == nullptr)
         file_version = &temp_version;
 
@@ -275,7 +273,7 @@ Model Model::read_from_file(const std::string&                                  
         result = load_stl(input_file.c_str(), &model, nullptr, stlFn,256);
     else if (boost::algorithm::iends_with(input_file, ".obj")) {
         ObjInfo                 obj_info;
-        result = load_obj(input_file.c_str(), &model, obj_info, message);
+        result = load_obj(input_file.c_str(), &model, obj_info, message, nullptr, (is_xxx && *is_xxx) ? true : false);
         if (result){
             ObjDialogInOut in_out;
             in_out.model = &model;

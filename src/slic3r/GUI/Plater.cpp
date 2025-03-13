@@ -1525,7 +1525,7 @@ Sidebar::Sidebar(Plater *parent)
         p->m_panel_printer_content = new wxPanel(p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
         p->m_panel_printer_content->SetBackgroundColour(wxColour(255, 255, 255));
 
-        StateColor panel_bd_col(std::pair<wxColour, int>(wxColour(0x00AE42), StateColor::Pressed), 
+        StateColor panel_bd_col(std::pair<wxColour, int>(wxColour(0x00AE42), StateColor::Pressed),
                                 std::pair<wxColour, int>(wxColour(0x00AE42), StateColor::Hovered),
                                 std::pair<wxColour, int>(wxColour(0xEEEEEE), StateColor::Normal));
 
@@ -5597,6 +5597,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             return -1;
                         }, linear, angle, split_compound);
                 }else {
+                    if (boost::algorithm::iends_with(path.string(), ".obj")) {
+                        is_xxx = GUI::wxGetApp().app_config->get_bool("gamma_correct_in_import_obj");
+                    }
                     model = Slic3r::Model:: read_from_file(
                     path.string(), nullptr, nullptr, strategy, &plate_data, &project_presets, &is_xxx, &file_version, nullptr,
                     [this, &dlg, real_filename, &progress_percent, &file_percent, INPUT_FILES_RATIO, total_files, i, &designer_model_id, &designer_country_code, &makerlab_region, &makerlab_name, &makerlab_id](int current, int total, bool &cancel,

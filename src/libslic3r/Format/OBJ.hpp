@@ -40,8 +40,8 @@ struct ObjDialogInOut
     std::string lost_material_name{""};
 };
 typedef std::function<void(ObjDialogInOut &in_out)> ObjImportColorFn;
-extern bool load_obj(const char *path, TriangleMesh *mesh, ObjInfo &vertex_colors, std::string &message);
-extern bool load_obj(const char *path, Model *model, ObjInfo &vertex_colors, std::string &message, const char *object_name = nullptr);
+extern bool load_obj(const char *path, TriangleMesh *mesh, ObjInfo &vertex_colors, std::string &message, bool gamma_correct =false);
+extern bool load_obj(const char *path, Model *model, ObjInfo &vertex_colors, std::string &message, const char *object_name = nullptr, bool gamma_correct =false);
 
 extern bool store_obj(const char *path, TriangleMesh *mesh);
 extern bool store_obj(const char *path, ModelObject *model);
