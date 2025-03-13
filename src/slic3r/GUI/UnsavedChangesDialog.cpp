@@ -811,9 +811,10 @@ struct SyncExtruderParams
     DynamicConfig *config;
     int from;
     int to;
+    bool left_to_right;
 };
 
-UnsavedChangesDialog::UnsavedChangesDialog(const wxString &caption, const wxString &header, DynamicConfig *config, int from, int to)
+UnsavedChangesDialog::UnsavedChangesDialog(const wxString &caption, const wxString &header, DynamicConfig *config, int from, int to, bool left_to_right)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe),
                 wxID_ANY,
                 caption,
@@ -822,7 +823,7 @@ UnsavedChangesDialog::UnsavedChangesDialog(const wxString &caption, const wxStri
                 wxCAPTION | wxCLOSE_BOX)
     , m_buttons(ActionButtons::SAVE | ActionButtons::DONT_SAVE)
 {
-    SyncExtruderParams params { config, from, to };
+    SyncExtruderParams params { config, from, to, left_to_right };
     build(Preset::TYPE_PRINT, reinterpret_cast<PresetCollection*>(&params), "SyncExtruderParams", header);
     this->CenterOnScreen();
     wxGetApp().UpdateDlgDarkUI(this);
@@ -932,7 +933,9 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
         wxBoxSizer *top_title_oldv = new wxBoxSizer(wxVERTICAL);
         wxBoxSizer *top_title_oldv_h = new wxBoxSizer(wxHORIZONTAL);
 
-        static_oldv_title = new wxStaticText(m_panel_oldv, wxID_ANY, params ? _L("Current Value") : _L("Preset(Old)"), wxDefaultPosition, wxDefaultSize, 0);
+        wxString modified = _L("(Modified)");
+        static_oldv_title = new wxStaticText(m_panel_oldv, wxID_ANY, params ? _L("Left nozzle") + (params->left_to_right ? "" : modified) : _L("Preset(Old)"), wxDefaultPosition,
+                                             wxDefaultSize, 0);
         static_oldv_title->SetFont(::Label::Body_13);
         static_oldv_title->Wrap(-1);
         static_oldv_title->SetForegroundColour(*wxWHITE);
@@ -951,7 +954,8 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
         wxBoxSizer *top_title_newv = new wxBoxSizer(wxVERTICAL);
         wxBoxSizer *top_title_newv_h = new wxBoxSizer(wxHORIZONTAL);
 
-        static_newv_title = new wxStaticText(m_panel_newv, wxID_ANY, params ? _L("New Value") : _L("Modified Value(New)"), wxDefaultPosition, wxDefaultSize, 0);
+        static_newv_title = new wxStaticText(m_panel_newv, wxID_ANY, params ? _L("Right nozzle") + (!params->left_to_right ? "" : modified) : _L("Modified Value(New)"),
+                                             wxDefaultPosition, wxDefaultSize, 0);
         static_newv_title->SetFont(::Label::Body_13);
         static_newv_title->Wrap(-1);
         static_newv_title->SetForegroundColour(*wxWHITE);
@@ -1021,8 +1025,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
             (*btn)->SetTextColor(wxColour(107, 107, 107));
         }
 
-        //(*btn)->SetMinSize(UNSAVE_CHANGE_DIALOG_BUTTON_SIZE);
-        (*btn)->SetMinSize(wxSize(-1,-1));
+        (*btn)->SetMinSize(UNSAVE_CHANGE_DIALOG_BUTTON_SIZE);
         (*btn)->SetCornerRadius(FromDIP(12));
 
         (*btn)->Bind(wxEVT_BUTTON, [this, close_act, dependent_presets](wxEvent &) {
@@ -1042,11 +1045,11 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
 
     bool is_copy = new_selected_preset == "SyncExtruderParams";
     // "Save" button
-    if (ActionButtons::SAVE & m_buttons) add_btn(&m_save_btn, m_save_btn_id, is_copy ? Action::Transfer : Action::Save, is_copy ? _L("Copy") : _L("Save"), true);
+    if (ActionButtons::SAVE & m_buttons) add_btn(&m_save_btn, m_save_btn_id, is_copy ? Action::Transfer : Action::Save, is_copy ? _L("Yes") : _L("Save"), true);
 
     { // "Don't save" / "Discard" button
         std::string btn_icon  = (ActionButtons::DONT_SAVE & m_buttons) ? "" : (dependent_presets || (ActionButtons::KEEP & m_buttons)) ? "blank_16" : "exit";
-        wxString    btn_label = (ActionButtons::TRANSFER & m_buttons) ? _L("Discard Modified Value") : is_copy ? _L("Cancel") : _L("Don't save");
+        wxString    btn_label = (ActionButtons::TRANSFER & m_buttons) ? _L("Discard Modified Value") : is_copy ? _L("No") : _L("Don't save");
         add_btn(&m_discard_btn, m_continue_btn_id, Action::Discard, btn_label, false);
     }
 
@@ -1084,13 +1087,16 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
     Centre(wxBOTH);
 
     if (params) {
-        update_tree(type, params->config, params->from, params->to);
-        update_list();
+        if (params->left_to_right)
+            update_tree(type, params->config, params->from, params->to);
+        else
+            update_tree(type, params->config, params->to, params->from);
         m_action_line->SetLabel(header);
+        m_action_line->Wrap(UNSAVE_CHANGE_DIALOG_SCROLL_WINDOW_SIZE.x);
+        update_list();
     } else {
         update(type, dependent_presets, new_selected_preset, header);
     }
-
     //SetSizer(topSizer);
     //topSizer->SetSizeHints(this);
 
@@ -1709,7 +1715,7 @@ void UnsavedChangesDialog::update_tree(Preset::Type type, DynamicConfig * config
         auto opt = dynamic_cast<ConfigOptionVectorBase*>(config->option(opt_key));
         std::string           value_from    = opt->vserialize()[from];
         std::string           value_to    = opt->vserialize()[to];
-        PresetItem            pi            = {type, opt_key, category, option.group_local, option.label_local, into_u8(value_to), into_u8(value_from)};
+        PresetItem            pi            = {type, opt_key, category, option.group_local, option.label_local, into_u8(value_from), into_u8(value_to)};
         m_presetitems.push_back(pi);
     }
 }

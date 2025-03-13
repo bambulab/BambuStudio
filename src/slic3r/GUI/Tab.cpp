@@ -6241,9 +6241,11 @@ void Tab::sync_excluder()
         md.ShowModal();
         return;
     }
-    wxString header = active_index == 1 ? _L("Copy the following parameters to the left nozzle:") :
-                                          _L("Copy the following parameters to the right nozzle:");
-    UnsavedChangesDialog dlg(_L("Copy paramters"), header, &config_origin, from_index, dest_index);
+
+    wxString title  = active_index == 0 ? _L("Modify paramters of right nozzle") : _L("Modify paramters of left nozzle");
+    wxString header = active_index == 0 ? _L("Do you want to modify the following parameters of the right nozzle to that of the left nozzle?") :
+                                          _L("Do you want to modify the following parameters of the left nozzle to that of the right nozzle?");
+    UnsavedChangesDialog dlg(title, header, &config_origin, from_index, dest_index, active_index == 0);
     dlg.ShowModal();
     if (dlg.transfer_changes()) {
         m_config->apply(config_to_apply);
