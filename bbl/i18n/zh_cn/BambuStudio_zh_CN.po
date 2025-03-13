@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-13 17:14+0800\n"
+"POT-Creation-Date: 2025-03-13 18:12+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -2755,7 +2755,7 @@ msgid "External"
 msgstr "外部"
 
 msgid "Reset current filament mapping"
-msgstr ""
+msgstr "重置当前耗材映射"
 
 msgid "Right AMS"
 msgstr "右侧AMS"
@@ -3855,7 +3855,7 @@ msgid "0 means auto spacing."
 msgstr "0 表示自动间距。"
 
 msgid "Save SVG"
-msgstr ""
+msgstr "保存SVG"
 
 msgid "Auto rotate for arrangement"
 msgstr "自动旋转以优化自动摆放效果"
@@ -5474,10 +5474,10 @@ msgid "The localization tag of build plate is detected, and printing is paused i
 msgstr "检测打印板的定位标记，如果标记不在预定义范围内时暂停打印。"
 
 msgid "Build Plate Detection"
-msgstr ""
+msgstr "打印板检测"
 
 msgid "Identifies the type and position of the build plate on the heatbed. Pausing printing if a mismatch is detected."
-msgstr ""
+msgstr "检测打印板的类型与位置。若检测到打印板不匹配，则停止打印。"
 
 msgid "Enable AI monitoring of printing"
 msgstr "启用打印过程的AI监控"
@@ -6958,7 +6958,7 @@ msgid "External storage is not available or is in read-only mode."
 msgstr ""
 
 msgid "The printer firmware only supports sequential mapping of filament => AMS slot."
-msgstr "已自动建立 \"耗材丝列表=>AMS槽位\" 的映射关系。 可点击上方具体的耗材丝手动设置其所对应的AMS槽位"
+msgstr "已自动建立 “耗材丝列表=>AMS槽位” 的映射关系。 可点击上方具体的耗材丝手动设置其所对应的AMS槽位"
 
 msgid "Storage needs to be inserted before printing."
 msgstr "通过局域网发送打印任务，需要先插入存储设备。"
@@ -7019,7 +7019,7 @@ msgid "Abnormal print file data. Please slice again"
 msgstr "打印文件数据异常，请重新切片"
 
 msgid "As the print job has been successfully sent, the cancellation will not bring the print job to a halt. If you need to terminate this job, please stop it in 'Device' page."
-msgstr ""
+msgstr "因打印任务已成功发送，此次取消操作未能中止本次任务。如需终止任务，请在“设备页面”停止打印。"
 
 msgid "The name length exceeds the limit."
 msgstr "名称长度超过限制。"
@@ -7936,7 +7936,7 @@ msgstr ""
 "*自动模式：发起打印前检测是否需要校准，无需校准则跳过校准。"
 
 msgid "Tip"
-msgstr ""
+msgstr "提示"
 
 msgid "Only synchronize filament type and color, not including AMS slot information."
 msgstr "仅同步耗材类型和颜色，不包含AMS槽位信息。"
@@ -7948,7 +7948,7 @@ msgid "Advanced settings"
 msgstr "高级设置"
 
 msgid "Add unused AMS filaments to filaments list."
-msgstr ""
+msgstr "将未使用的 AMS 耗材添加到耗材列表中。"
 
 msgid "Automatically merge the same colors in the model after mapping."
 msgstr "匹配后自动合并模型中的相同颜色。"
@@ -7966,16 +7966,16 @@ msgid "Synchronize now"
 msgstr "立即同步"
 
 msgid "Synchronize Filament Information"
-msgstr ""
+msgstr "同步耗材信息"
 
 msgid "Add unused filaments to filaments list."
-msgstr ""
+msgstr "将未使用的耗材添加到耗材列表中。"
 
 msgid "Only synchronize filament type and color, not including slot information."
-msgstr ""
+msgstr "仅同步耗材类型和颜色，不包含槽位信息。"
 
 msgid "Ext spool"
-msgstr ""
+msgstr "外挂"
 
 msgid "Please check whether the nozzle type of the device is the same as the preset nozzle type."
 msgstr "请检查设备的喷嘴类型是否与预设的喷嘴类型相同。"
@@ -7988,7 +7988,7 @@ msgid "Timelapse is not supported because Print sequence is set to \"By object\"
 msgstr "切片参数中开启了逐件打印，无法支持延时摄影。"
 
 msgid "You selected external and AMS filament at the same time in an extruder, you will need manually change external filament."
-msgstr ""
+msgstr "您在同一挤出机中同时选择了外部和AMS耗材，您需要手动更换外部耗材。"
 
 msgid "Successfully synchronized nozzle and AMS number information."
 msgstr "喷嘴信息和AMS数量同步成功。"
@@ -8091,9 +8091,7 @@ msgid "Shift+R"
 msgstr ""
 
 msgid "Auto orientates selected objects or all objects.If there are selected objects, it just orientates the selected ones.Otherwise, it will orientates all objects in the current disk."
-msgstr ""
-"自动调整选定零件/所有零件的方向,\n"
-"有选定零件时调整选定零件的朝向,没有选择零件时调整当前盘所有零件的朝向"
+msgstr "自动调整选定零件/所有零件的方向,有选定零件时调整选定零件的朝向,没有选择零件时调整当前盘所有零件的朝向"
 
 msgid "Shift+Tab"
 msgstr ""
@@ -8265,7 +8263,7 @@ msgid "Network plug-in update"
 msgstr "网络插件升级"
 
 msgid "Click OK to update the Network plug-in when Bambu Studio launches next time."
-msgstr "点击\"确认\"，将在Bambu Studio下次启动之后自动升级网络插件"
+msgstr "点击“确认”，将在Bambu Studio下次启动之后自动升级网络插件"
 
 #, c-format, boost-format
 msgid "A new Network plug-in(%s) available, Do you want to install it?"
@@ -10678,7 +10676,7 @@ msgid "Interface pattern"
 msgstr "支撑面图案"
 
 msgid "Line pattern of support interface. Default pattern for support interface is Rectilinear Interlaced"
-msgstr ""
+msgstr "支撑接触面的走线图案。支撑接触面的缺省图案为交叠的直线。"
 
 msgid "Rectilinear Interlaced"
 msgstr "交叠的直线"
@@ -10935,7 +10933,7 @@ msgid "hole_limit_max"
 msgstr ""
 
 msgid "Diameter limit"
-msgstr ""
+msgstr "直径限制"
 
 msgid "diameter_limit"
 msgstr ""
@@ -11160,7 +11158,7 @@ msgid "load_obj: failed to parse"
 msgstr "加载对象：无法分析"
 
 msgid "load mtl in obj: failed to parse"
-msgstr ""
+msgstr "在 obj 中加载 mtl：无法解析"
 
 msgid "The file contains polygons with more than 4 vertices."
 msgstr "该文件包含顶点超过4个的多边形。"
