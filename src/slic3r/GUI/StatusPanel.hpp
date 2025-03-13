@@ -609,7 +609,6 @@ protected:
     SecondaryCheckDialog* ctrl_e_hint_dlg = nullptr;
     SecondaryCheckDialog* sdcard_hint_dlg = nullptr;
     SecondaryCheckDialog* axis_go_home_dlg = nullptr;
-    MessageDialog* champer_switch_head_dlg = nullptr;
 
     FanControlPopupNew* m_fan_control_popup{nullptr};
 
