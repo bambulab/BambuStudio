@@ -490,9 +490,6 @@ public:
     std::map<std::string, std::string> get_diff_object_setting();
     std::map<std::string, std::string> get_diff_plate_setting();
 
-    const std::vector<std::vector<int>> &get_unprintable_filament_ids();
-    void set_unprintable_filament_ids(const std::vector<std::vector<int>> &filament_ids);
-
     void on_extruder_count_changed(int extruder_count);
     void set_filament_count(int filament_count);
     void on_filament_added();
