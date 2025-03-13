@@ -73,6 +73,7 @@
 #include "format.hpp"
 #include "3DScene.hpp"
 #include "GLCanvas3D.hpp"
+#include "OpenGLManager.hpp"
 #include "Selection.hpp"
 #include "GLToolbar.hpp"
 #include "GUI_Preview.hpp"
@@ -12071,17 +12072,22 @@ wxString Plater::get_project_name()
 
 void Plater::update_all_plate_thumbnails(bool force_update)
 {
+    const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+    bool b_fxaa_enabled = false;
+    if (p_ogl_manager) {
+        b_fxaa_enabled = p_ogl_manager->is_fxaa_enabled();
+    }
     for (int i = 0; i < get_partplate_list().get_plate_count(); i++) {
         PartPlate* plate = get_partplate_list().get_plate(i);
         ThumbnailsParams thumbnail_params = { {}, false, true, true, true, i};
         if (force_update || !plate->thumbnail_data.is_valid()) {
             thumbnail_params.background_color = Vec4f(0.0f, 0.0f, 0.0f, 0.0f);
-            thumbnail_params.post_processing_enabled = true;
+            thumbnail_params.post_processing_enabled = b_fxaa_enabled;
             get_view3D_canvas3D()->render_thumbnail(plate->thumbnail_data, plate->plate_thumbnail_width, plate->plate_thumbnail_height, thumbnail_params, Camera::EType::Ortho);
         }
         if (force_update || !plate->no_light_thumbnail_data.is_valid()) {
             thumbnail_params.background_color = Vec4f(0.0f, 0.0f, 0.0f, 0.0f);
-            thumbnail_params.post_processing_enabled = true;
+            thumbnail_params.post_processing_enabled = b_fxaa_enabled;
             get_view3D_canvas3D()->render_thumbnail(plate->no_light_thumbnail_data, plate->plate_thumbnail_width, plate->plate_thumbnail_height, thumbnail_params,
                                                     Camera::EType::Ortho, Camera::ViewAngleType::Iso, false, true);
         }
