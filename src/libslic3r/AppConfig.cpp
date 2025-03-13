@@ -205,7 +205,7 @@ void AppConfig::set_defaults()
         set("msaa_type", "X4");
 
     if (get("enable_advanced_antialiasing").empty())
-        set_bool("enable_advanced_antialiasing", true);
+        set_bool("enable_advanced_antialiasing", false);
 
     if (get("show_3d_navigator").empty())
         set_bool("show_3d_navigator", true);
