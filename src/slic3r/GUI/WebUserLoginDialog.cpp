@@ -79,9 +79,8 @@ ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_AN
         TargetUrl = host_url + "/sign-in";
         m_networkOk = false;
 
-        wxString strlang = wxGetApp().current_language_code_safe();
+        wxString strlang = wxString::FromUTF8(GetStudioLanguage()).BeforeFirst('_');
         if (strlang != "") {
-            strlang.Replace("_", "-");
             TargetUrl = host_url + "/" + strlang + "/sign-in";
         }
 
@@ -410,5 +409,13 @@ bool  ZUserLogin::ShowErrorPage()
     return true;
 }
 
+
+std::string ZUserLogin::GetStudioLanguage()
+{
+    std::string strLanguage = wxGetApp().app_config->get("language");
+    if (strLanguage.empty()) strLanguage = "en";
+
+    return strLanguage;
+}
 
 }} // namespace Slic3r::GUI
