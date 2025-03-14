@@ -357,25 +357,53 @@ public:
 
 #define INVALID_AMS_TEMPERATURE std::numeric_limits<float>::min()
 
-class Ams {
+class Ams
+{
 public:
-    Ams(std::string ams_id, int nozzle_id, int type_id) {
-        id = ams_id;
+    Ams(std::string ams_id, int nozzle_id, int type_id)
+    {
+        id     = ams_id;
         nozzle = nozzle_id;
-        type = type_id;
+        type   = type_id;
     }
-    std::string   id;
-    int           left_dry_time = 0;
-    int           humidity = 5;
-    int           humidity_raw = -1;// the percentage, -1 means invalid. eg. 100 means 100%
-    float         current_temperature   = INVALID_AMS_TEMPERATURE; // the temperature
-    bool          startup_read_opt{true};
-    bool          tray_read_opt{false};
-    bool          is_exists{false};
-    std::map<std::string, AmsTray*> trayList;
+    std::string                      id;
+    int                              left_dry_time       = 0;
+    int                              humidity            = 5;
+    int                              humidity_raw        = -1;                      // the percentage, -1 means invalid. eg. 100 means 100%
+    float                            current_temperature = INVALID_AMS_TEMPERATURE; // the temperature
+    bool                             startup_read_opt{true};
+    bool                             tray_read_opt{false};
+    bool                             is_exists{false};
+    std::map<std::string, AmsTray *> trayList;
 
-    int           nozzle;
-    int           type{1}; //0:dummy 1:ams 2:ams-lite 3:n3f 4:n3s
+    int nozzle;
+    int type{1}; // 0:dummy 1:ams 2:ams-lite 3:n3f 4:n3s
+
+public:
+    wxString get_ams_device_name() const
+    {
+        wxString ams_device_name;
+        if (type == 1) {
+            ams_device_name = "AMS-%d";
+        } else if (type == 2) {
+            ams_device_name = "AMS Lite-%d";
+        } else if (type == 3) {
+            ams_device_name = "AMS 2 PRO-%d";
+        } else if (type == 4) {
+            ams_device_name = "AMS HT-%d";
+        } else {
+            assert(0);
+            ams_device_name = "AMS-%d";
+        }
+
+        int num_id;
+        try {
+            num_id = std::stoi(id);
+        } catch (...) {}
+
+        int loc = (num_id > 127) ? (num_id - 127) : (num_id + 1);
+        return wxString::Format(ams_device_name, loc);
+    };
 };
 
 enum PrinterFirmwareType {
