@@ -709,6 +709,13 @@ void GLGizmoBase::render_glmodel(GLModel &model, const std::array<float, 4> &col
     }
 }
 
+void GLGizmoBase::on_set_state()
+{
+    if (get_state() == Off) {
+        m_parent.handle_sidebar_focus_event("", false);
+    }
+}
+
 std::string GLGizmoBase::get_name(bool include_shortcut) const
 {
     int key = get_shortcut_key();

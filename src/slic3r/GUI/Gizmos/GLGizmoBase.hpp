@@ -256,7 +256,7 @@ protected:
     virtual void on_save(cereal::BinaryOutputArchive& ar) const {}
     virtual std::string on_get_name() const = 0;
     virtual std::string on_get_name_str() { return ""; }
-    virtual void on_set_state() {}
+    virtual void on_set_state();
     virtual void on_set_hover_id() {}
     virtual bool on_is_activable() const { return true; }
     virtual bool on_is_selectable() const { return true; }
