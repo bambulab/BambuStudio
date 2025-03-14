@@ -1037,7 +1037,12 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionString,              filament_notes))
     ((ConfigOptionStrings,             default_filament_colour))
     ((ConfigOptionInts,                temperature_vitrification))  //BBS
+    ((ConfigOptionFloatsNullable,      filament_ramming_travel_time))  //BBS
+    ((ConfigOptionIntsNullable,        filament_pre_cooling_temperature))// BBS
     ((ConfigOptionFloatsNullable,      filament_max_volumetric_speed))
+    ((ConfigOptionFloatsNullable,      filament_ramming_volumetric_speed))
+    ((ConfigOptionFloat,               prime_tower_lift_speed))
+    ((ConfigOptionFloat,               prime_tower_lift_height))
     ((ConfigOptionInts,                required_nozzle_HRC))
     ((ConfigOptionEnum<FilamentMapMode>, filament_map_mode))
     ((ConfigOptionInts,                filament_map))
@@ -1220,6 +1225,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloat,              wipe_tower_per_color_wipe))
     ((ConfigOptionFloat,              wipe_tower_rotation_angle))
     ((ConfigOptionFloat,              prime_tower_brim_width))
+    ((ConfigOptionFloat,              prime_tower_max_speed))
     ((ConfigOptionFloat,              prime_tower_extra_rib_length))
     ((ConfigOptionFloat,              prime_tower_rib_width))
     ((ConfigOptionPercent,            prime_tower_infill_gap))

@@ -2232,6 +2232,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("prime_tower_skip_points", "parameter/prime-tower");
         optgroup->append_single_option_line("prime_tower_enable_framework", "parameter/prime-tower");
         optgroup->append_single_option_line("prime_tower_width","parameter/prime-tower");
+        optgroup->append_single_option_line("prime_tower_max_speed","parameter/prime-tower");
         optgroup->append_single_option_line("prime_tower_brim_width","parameter/prime-tower");
         optgroup->append_single_option_line("prime_tower_infill_gap","parameter/prime-tower");
         optgroup->append_single_option_line("prime_tower_rib_wall", "parameter/prime-tower");
@@ -3209,6 +3210,8 @@ void TabFilament::build()
 
         //BBS
         optgroup->append_single_option_line("temperature_vitrification");
+        optgroup->append_single_option_line("filament_ramming_travel_time", "",0);
+        optgroup->append_single_option_line("filament_pre_cooling_temperature", "", 0);
         Line line = { L("Recommended nozzle temperature"), L("Recommended nozzle temperature range of this filament. 0 means no set") };
         line.append_option(optgroup->get_option("nozzle_temperature_range_low"));
         line.append_option(optgroup->get_option("nozzle_temperature_range_high"));
@@ -3292,6 +3295,7 @@ void TabFilament::build()
         //BBS
         optgroup = page->new_optgroup(L("Volumetric speed limitation"), L"param_volumetric_speed");
         optgroup->append_single_option_line("filament_max_volumetric_speed", "", 0);
+        optgroup->append_single_option_line("filament_ramming_volumetric_speed", "",0);
 
         // BBS
         optgroup = page->new_optgroup(L("Filament scarf seam settings"), L"param_volumetric_speed");

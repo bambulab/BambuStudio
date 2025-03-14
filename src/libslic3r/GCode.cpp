@@ -363,6 +363,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         double wipe_speed = gcodegen.config().role_base_wipe_speed && cur_speed > EPSILON ? cur_speed / 60 :
             gcodegen.writer().config.travel_speed.get_at(get_extruder_index(gcodegen.writer().config, gcodegen.writer().filament()->id())) * gcodegen.config().wipe_speed.value / 100;
 
+        if (toolchange) { wipe_speed = gcodegen.m_print->config().prime_tower_max_speed.value; }
 
         // get the retraction length
         double length = toolchange
@@ -899,7 +900,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             gcodegen.m_wipe.reset_path();
             for (const Vec2f& wipe_pt : tcr.wipe_path)
                 gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(wipe_pt) + plate_origin_2d));
-            gcode += gcodegen.retract(false, false, auto_lift_type, true);
+            gcode += gcodegen.retract(true, false, auto_lift_type, true);
         }
 
         // Let the planner know we are traveling between objects.
@@ -5961,9 +5962,9 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType li
     if (m_writer.filament()->retraction_length() > 0 || m_config.use_firmware_retraction) {
         // BBS: force to use normal lift for spiral vase mode
         if (apply_instantly)
-            gcode += m_writer.eager_lift(lift_type);
+            gcode += m_writer.eager_lift(lift_type,toolchange);
         else
-            gcode += m_writer.lazy_lift(lift_type, m_spiral_vase != nullptr);
+            gcode += m_writer.lazy_lift(lift_type, m_spiral_vase != nullptr, toolchange);
 
     }
 

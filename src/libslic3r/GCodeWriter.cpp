@@ -353,7 +353,7 @@ std::string GCodeWriter::travel_to_xy(const Vec2d &point, const std::string &com
 /*  If this method is called more than once before calling unlift(),
 it will not perform subsequent lifts, even if Z was raised manually
 (i.e. with travel_to_z()) and thus _lifted was reduced. */
-std::string GCodeWriter::lazy_lift(LiftType lift_type, bool spiral_vase)
+std::string GCodeWriter::lazy_lift(LiftType lift_type, bool spiral_vase, bool tool_change)
 {
     // check whether the above/below conditions are met
     double target_lift = 0;
@@ -363,14 +363,16 @@ std::string GCodeWriter::lazy_lift(LiftType lift_type, bool spiral_vase)
         int filament_id = filament()->id();
         double above = this->config.retract_lift_above.get_at(extruder_id);
         double below = this->config.retract_lift_below.get_at(extruder_id);
-        if (m_pos.z() >= above && m_pos.z() <= below)
+        if (m_pos.z() >= above && m_pos.z() <= below){
             target_lift = this->config.z_hop.get_at(filament_id);
+            if (tool_change && this->config.prime_tower_lift_height.value > 0) target_lift = this->config.prime_tower_lift_height.value;
+        }
     }
     // BBS
     if (m_lifted == 0 && m_to_lift == 0 && target_lift > 0) {
         if (spiral_vase) {
             m_lifted = target_lift;
-            return this->_travel_to_z(m_pos(2) + target_lift, "lift Z");
+            return this->_travel_to_z(m_pos(2) + target_lift, "lift Z",tool_change);
         }
         else {
             m_to_lift = target_lift;
@@ -382,7 +384,8 @@ std::string GCodeWriter::lazy_lift(LiftType lift_type, bool spiral_vase)
 
 // BBS: immediately execute an undelayed lift move with a spiral lift pattern
 // designed specifically for subsequent gcode injection (e.g. timelapse) 
-std::string GCodeWriter::eager_lift(const LiftType type) {
+std::string GCodeWriter::eager_lift(const LiftType type, bool tool_change)
+{
     std::string lift_move;
     double target_lift = 0;
     {
@@ -391,8 +394,10 @@ std::string GCodeWriter::eager_lift(const LiftType type) {
         int filament_id = filament()->id();
         double above = this->config.retract_lift_above.get_at(extruder_id);
         double below = this->config.retract_lift_below.get_at(extruder_id);
-        if (m_pos.z() >= above && m_pos.z() <= below)
+        if (m_pos.z() >= above && m_pos.z() <= below){
             target_lift = this->config.z_hop.get_at(filament_id);
+            if (tool_change && this->config.prime_tower_lift_height.value > 0) target_lift = this->config.prime_tower_lift_height.value;
+        }
     }
 
     // BBS: spiral lift only safe with known position
@@ -400,15 +405,15 @@ std::string GCodeWriter::eager_lift(const LiftType type) {
     if (type == LiftType::SpiralLift && this->is_current_position_clear()) {
         double radius = target_lift / (2 * PI * atan(GCodeWriter::slope_threshold));
         // static spiral alignment when no move in x,y plane.
-        // spiral centra is a radius distance to the right (y=0) 
+        // spiral centra is a radius distance to the right (y=0)
         Vec2d ij_offset = { radius, 0 };
         if (target_lift > 0) {
-            lift_move = this->_spiral_travel_to_z(m_pos(2) + target_lift, ij_offset, "spiral lift Z");
+            lift_move = this->_spiral_travel_to_z(m_pos(2) + target_lift, ij_offset, "spiral lift Z",tool_change);
         }
     }
     //BBS: if position is unknown use normal lift
     else if (target_lift > 0) {
-        lift_move = _travel_to_z(m_pos(2) + target_lift, "normal lift Z");
+        lift_move = _travel_to_z(m_pos(2) + target_lift, "normal lift Z",tool_change);
     }
     m_lifted = target_lift;
     m_to_lift = 0;
@@ -559,14 +564,16 @@ std::string GCodeWriter::travel_to_z(double z, const std::string &comment)
     return this->_travel_to_z(z, comment);
 }
 
-std::string GCodeWriter::_travel_to_z(double z, const std::string &comment)
+std::string GCodeWriter::_travel_to_z(double z, const std::string &comment, bool tool_change)
 {
     m_pos(2) = z;
 
     double speed = this->config.travel_speed_z.get_at(get_extruder_index(this->config, filament()->id()));
     if (speed == 0.)
         speed = this->config.travel_speed.get_at(get_extruder_index(this->config, filament()->id()));
-
+    if (tool_change && this->config.prime_tower_lift_speed.value>0) {
+        speed = this->config.prime_tower_lift_speed.value; // lift speed
+    }
     GCodeG1Formatter w;
     w.emit_z(z);
     w.emit_f(speed * 60.0);
@@ -575,14 +582,16 @@ std::string GCodeWriter::_travel_to_z(double z, const std::string &comment)
     return w.string();
 }
 
-std::string GCodeWriter::_spiral_travel_to_z(double z, const Vec2d &ij_offset, const std::string &comment)
+std::string GCodeWriter::_spiral_travel_to_z(double z, const Vec2d &ij_offset, const std::string &comment, bool tool_change)
 {
     m_pos(2) = z;
 
     double speed = this->config.travel_speed_z.get_at(get_extruder_index(this->config, filament()->id()));
     if (speed == 0.)
         speed = this->config.travel_speed.get_at(get_extruder_index(this->config, filament()->id()));
-
+    if (tool_change && this->config.prime_tower_lift_speed.value>0) {
+        speed = this->config.prime_tower_lift_speed.value; // lift speed
+    }
     std::string output = "G17\n";
     GCodeG2G3Formatter w(true);
     w.emit_z(z);

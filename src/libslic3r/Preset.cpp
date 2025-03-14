@@ -879,8 +879,8 @@ static std::vector<std::string> s_Preset_print_options {
     "inner_wall_line_width", "outer_wall_line_width", "sparse_infill_line_width", "internal_solid_infill_line_width",
     "top_surface_line_width", "support_line_width", "infill_wall_overlap", "bridge_flow",
     "elefant_foot_compensation", "xy_contour_compensation", "xy_hole_compensation", "resolution", "enable_prime_tower", "prime_tower_enable_framework",
-    "prime_tower_width", "prime_tower_brim_width", "prime_tower_skip_points",
-    "prime_tower_rib_wall","prime_tower_extra_rib_length","prime_tower_rib_width","prime_tower_fillet_wall","prime_tower_infill_gap",
+    "prime_tower_width", "prime_tower_brim_width", "prime_tower_skip_points","prime_tower_max_speed",
+    "prime_tower_rib_wall","prime_tower_extra_rib_length","prime_tower_rib_width","prime_tower_fillet_wall","prime_tower_infill_gap","prime_tower_lift_speed","prime_tower_lift_height",
     "enable_circle_compensation", "circle_compensation_manual_offset", "apply_scarf_seam_on_circles",
     "wipe_tower_no_sparse_layers", "compatible_printers", "compatible_printers_condition", "inherits",
     "flush_into_infill", "flush_into_objects", "flush_into_support","process_notes",
@@ -908,7 +908,7 @@ static std::vector<std::string> s_Preset_print_options {
 
 static std::vector<std::string> s_Preset_filament_options {
     /*"filament_colour", */ "default_filament_colour","required_nozzle_HRC","filament_diameter", "filament_type", "filament_soluble", "filament_is_support","filament_scarf_seam_type", "filament_scarf_height", "filament_scarf_gap","filament_scarf_length",
-    "filament_max_volumetric_speed", "impact_strength_z",
+    "filament_max_volumetric_speed", "impact_strength_z", "filament_ramming_volumetric_speed",
     "filament_flow_ratio", "filament_density", "filament_adhesiveness_category", "filament_cost", "filament_minimal_purge_on_wipe_tower",
     "nozzle_temperature", "nozzle_temperature_initial_layer",
     // BBS
@@ -918,7 +918,7 @@ static std::vector<std::string> s_Preset_filament_options {
     "counter_limit_min", "counter_limit_max", "hole_limit_min", "hole_limit_max", "diameter_limit",
     // "bed_type",
     //BBS:temperature_vitrification
-    "temperature_vitrification", "reduce_fan_stop_start_freq", "slow_down_for_layer_cooling", "fan_min_speed",
+    "temperature_vitrification", "reduce_fan_stop_start_freq", "slow_down_for_layer_cooling", "fan_min_speed","filament_ramming_travel_time","filament_pre_cooling_temperature",
     "fan_max_speed", "enable_overhang_bridge_fan", "overhang_fan_speed", "pre_start_fan_time", "overhang_fan_threshold", "overhang_threshold_participating_cooling","close_fan_the_first_x_layers", "full_fan_speed_layer", "fan_cooling_layer_time", "slow_down_layer_time", "slow_down_min_speed",
     "filament_start_gcode", "filament_end_gcode",
     //exhaust fan control

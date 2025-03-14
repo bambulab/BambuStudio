@@ -302,6 +302,15 @@ public:
 	void set_filament_map(const std::vector<int> &filament_map) { m_filament_map = filament_map; }
 
 	void set_has_tpu_filament(bool has_tpu) { m_has_tpu_filament = has_tpu; }
+	void set_need_reverse_travel() {
+        for (int i = 0; i < m_filpar.size(); i++) {
+            if(m_filpar[i].ramming_travel_time>EPSILON)
+            {
+                m_need_reverse_travel = true;
+                return;
+            }
+        }
+    }
     bool has_tpu_filament() const { return m_has_tpu_filament; }
 
     struct FilamentParameters {
@@ -330,6 +339,10 @@ public:
         float               retract_length;
         float               retract_speed;
         float               wipe_dist;
+        float               max_e_ramming_speed = 0.f;
+        float               ramming_travel_time=0.f; //Travel time after ramming
+        std::vector<float>  precool_t;//Pre-cooling time, set to 0 to ensure the ramming speed is controlled solely by ramming volumetric speed.
+        std::vector<float>  precool_t_first_layer;
     };
 
 
@@ -433,6 +446,7 @@ private:
     bool               m_used_fillet{false};
     Vec2f              m_rib_offset{Vec2f(0.f, 0.f)};
     bool               m_tower_framework{false};
+    bool               m_need_reverse_travel{false};
 
 	// G-code generator parameters.
     // BBS: remove useless config
@@ -480,6 +494,7 @@ private:
 	bool 			m_left_to_right   = true;
 	float			m_extra_spacing   = 1.f;
 	float           m_tpu_fixed_spacing = 2;
+    float           m_max_speed = 5400.f;  // the maximum printing speed on the prime tower.
     std::vector<Vec2f> m_wall_skip_points;
     std::map<float,Polylines> m_outer_wall;
     bool is_first_layer() const { return size_t(m_layer_info - m_plan.begin()) == m_first_layer_idx; }
@@ -501,7 +516,7 @@ private:
     void save_on_last_wipe();
 
 	bool is_tpu_filament(int filament_id) const;
-
+    bool is_need_reverse_travel(int filament) const;
 	// BBS
 	box_coordinates align_perimeter(const box_coordinates& perimeter_box);
 
@@ -567,6 +582,7 @@ private:
 		const box_coordinates  &cleaning_box,
 		float wipe_volume);
     void get_wall_skip_points(const WipeTowerInfo &layer);
+    ToolChangeResult merge_tcr(ToolChangeResult &first, ToolChangeResult &second);
 };
 
 
