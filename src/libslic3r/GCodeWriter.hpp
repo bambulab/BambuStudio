@@ -81,9 +81,9 @@ public:
     std::string retract_for_toolchange(bool before_wipe = false);
     std::string unretract();
     // do lift instantly
-    std::string eager_lift(const LiftType type);
+    std::string eager_lift(const LiftType type,bool tool_change = false);
     // record a lift request, do realy lift in next travel
-    std::string lazy_lift(LiftType lift_type = LiftType::NormalLift, bool spiral_vase = false);
+    std::string lazy_lift(LiftType lift_type = LiftType::NormalLift, bool spiral_vase = false, bool tool_change=false);
     std::string unlift();
     Vec3d       get_position() const { return m_pos; }
     void       set_position(Vec3d& in) { m_pos = in; }
@@ -152,8 +152,8 @@ private:
     std::string m_gcode_label_objects_start;
     std::string m_gcode_label_objects_end;
 
-    std::string _travel_to_z(double z, const std::string &comment);
-    std::string _spiral_travel_to_z(double z, const Vec2d &ij_offset, const std::string &comment);
+    std::string _travel_to_z(double z, const std::string &comment,bool tool_change=false);
+    std::string _spiral_travel_to_z(double z, const Vec2d &ij_offset, const std::string &comment, bool tool_change = false);
     std::string _retract(double length, double restart_extra, const std::string &comment);
 };
 

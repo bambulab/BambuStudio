@@ -258,9 +258,12 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "nozzle_temperature_initial_layer"
             || opt_key == "filament_minimal_purge_on_wipe_tower"
             || opt_key == "filament_max_volumetric_speed"
+            || opt_key == "filament_ramming_volumetric_speed"
             || opt_key == "gcode_flavor"
             || opt_key == "single_extruder_multi_material"
             || opt_key == "nozzle_temperature"
+            || opt_key == "filament_pre_cooling_temperature"
+            || opt_key == "filament_ramming_travel_time"
             // BBS
             || opt_key == "supertack_plate_temp"
             || opt_key == "cool_plate_temp"
@@ -270,6 +273,9 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "enable_prime_tower"
             || opt_key == "prime_tower_enable_framework"
             || opt_key == "prime_tower_width"
+            || opt_key == "prime_tower_max_speed"
+            || opt_key == "prime_tower_lift_speed"
+            || opt_key == "prime_tower_lift_height"
             || opt_key == "prime_tower_brim_width"
             || opt_key == "prime_tower_skip_points"
             || opt_key == "prime_tower_rib_wall"
@@ -2677,7 +2683,7 @@ void Print::_make_wipe_tower()
     // Set the extruder & material properties at the wipe tower object.
     for (size_t i = 0; i < number_of_extruders; ++ i)
         wipe_tower.set_extruder(i, m_config);
-
+    wipe_tower.set_need_reverse_travel();
     // BBS: remove priming logic
     //m_wipe_tower_data.priming = Slic3r::make_unique<std::vector<WipeTower::ToolChangeResult>>(
     //    wipe_tower.prime((float)this->skirt_first_layer_height(), m_wipe_tower_data.tool_ordering.all_extruders(), false));

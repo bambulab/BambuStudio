@@ -1731,6 +1731,18 @@ void PrintConfigDef::init_fff_params()
     def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable { 2. });
 
+    def           = this->add("filament_ramming_volumetric_speed", coFloats);
+    def->label    = L("Ramming volumetric speed");
+    def->tooltip  = L("This setting is used to define the ramming speed on the prime tower before nozzle change, "
+                      "-1 means it will use the maximum volumetric speed.");
+    def->sidetext = L("mm³/s");
+    def->min      = -1;
+    def->max      = 200;
+    def->mode     = comAdvanced;
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable{-1});
+
+
     def = this->add("filament_minimal_purge_on_wipe_tower", coFloats);
     def->label = L("Minimal purge on wipe tower");
     //def->tooltip = L("After a tool change, the exact position of the newly loaded filament inside "
@@ -1939,6 +1951,30 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("The material softens at this temperature, so when the bed temperature is equal to or greater than it, it's highly recommended to open the front door and/or remove the upper glass to avoid cloggings.");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts{ 100 });
+
+    def          = this->add("filament_ramming_travel_time", coFloats);
+    def->label   = L("Ramming travel time");
+    def->tooltip = L("To prevent oozing, the nozzle will perform a reverse travel movement for a certain period after "
+                     "the ramming is complete. The setting define the travel time.");
+    def->mode    = comAdvanced;
+    def->sidetext = "s";
+    def->min      = 0;
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable{0});
+
+    def           = this->add("filament_pre_cooling_temperature", coInts);
+    def->label    = L("Precooling target temperature");
+    def->tooltip  = L("This setting is used to set the target pre-cooling temperature before nozzle change to prevent oozing,"
+                       "so if you enable this setting, your ramming time must be greater than the cooldown time."
+                       "And this setting only takes effect when the machine has preheating. 0 means no set.");
+    //def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
+    def->mode     = comAdvanced;
+    def->sidetext = "°C";
+    def->min      = 0;
+    //def->enum_values.push_back("-1");
+    //def->enum_labels.push_back(L("None"));
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionIntsNullable{0});
 
     def = this->add("filament_cost", coFloats);
     def->label = L("Price");
@@ -4450,6 +4486,20 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloat(0.));
 
+    def           = this->add("prime_tower_max_speed", coFloat);
+    def->label    = L("Max speed");
+    def->tooltip  = L("The maximum printing speed when purging in the prime tower and printing the prime tower sparse layers.");
+    def->sidetext = L("mm/s");
+    def->mode     = comAdvanced;
+    def->min      = 10;
+    def->set_default_value(new ConfigOptionFloat(90.));
+
+    def           = this->add("prime_tower_lift_speed", coFloat);
+    def->set_default_value(new ConfigOptionFloat(90.));
+
+    def = this->add("prime_tower_lift_height", coFloat);
+    def->set_default_value(new ConfigOptionFloat(-1));
+
     def = this->add("prime_tower_brim_width", coFloat);
     def->gui_type = ConfigOptionDef::GUIType::f_enum_open;
     def->label = L("Brim width");
@@ -5601,6 +5651,9 @@ std::set<std::string> print_options_with_variant = {
 std::set<std::string> filament_options_with_variant = {
     "filament_flow_ratio",
     "filament_max_volumetric_speed",
+    "filament_ramming_volumetric_speed",
+    "filament_pre_cooling_temperature",
+    "filament_ramming_travel_time",
     //"filament_extruder_id",
     "filament_extruder_variant",
     "filament_retraction_length",
