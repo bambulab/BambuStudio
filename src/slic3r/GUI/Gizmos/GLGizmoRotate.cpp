@@ -539,15 +539,26 @@ void GLGizmoRotate::init_data_from_selection(const Selection &selection) {
                                                                        selection.get_bounding_box_in_current_reference_system();
     m_bounding_box                        = box;
     const std::pair<Vec3d, double> sphere = selection.get_bounding_sphere();
-    m_center                              = sphere.first;
-    m_radius = Offset +sphere.second;
-    m_orient_matrix                       = box_trafo;
+    if (m_custom_tran.has_value()) {
+        Geometry::Transformation tran(m_custom_tran.value());
+        m_center = tran.get_offset();
+        m_orient_matrix = tran.get_matrix();
+    } else {
+        m_center = sphere.first;
+        m_orient_matrix = box_trafo;
+    }
+    m_radius                              = Offset + sphere.second;
+
     m_orient_matrix.translation()         = m_center;
     m_snap_coarse_in_radius               = 1.0f / 3.0f;
     m_snap_coarse_out_radius              = 2.0f * m_snap_coarse_in_radius;
     m_snap_fine_in_radius                 = 1.0f;
     m_snap_fine_out_radius                = m_snap_fine_in_radius + 1.0f * ScaleLongTooth;
 
+}
+
+void GLGizmoRotate::set_custom_tran(const Transform3d &tran) {
+    m_custom_tran = tran;
 }
 
 BoundingBoxf3 GLGizmoRotate::get_bounding_box() const
@@ -566,7 +577,7 @@ BoundingBoxf3 GLGizmoRotate::get_bounding_box() const
         t_aabb.defined = true;
     }
     // end m_circle aabb
- 
+
     // m_grabber_connection aabb
     if (m_grabber_connection.model.is_initialized()) {
         BoundingBoxf3 t_grabber_connection_aabb = m_grabber_connection.model.get_bounding_box();
@@ -586,7 +597,7 @@ BoundingBoxf3 GLGizmoRotate::get_bounding_box() const
         t_aabb.defined = true;
     }
     // end m_grabbers aabb
- 
+
     // m_cone aabb
     if (m_cone.is_initialized()) {
         auto t_cone_aabb = m_cone.get_bounding_box();

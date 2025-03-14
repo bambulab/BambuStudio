@@ -1390,6 +1390,10 @@ void GLGizmoAdvancedCut::on_render_rotate_gizmos() {
             m_gizmos[Z].render();
     }
     else {
+        Transform3d rotate_tran = Geometry::translation_transform(m_plane_center) * m_rotate_matrix;
+        for (int i = 0; i < 3; i++) {
+            m_gizmos[i].set_custom_tran(rotate_tran);
+        }
         m_gizmos[X].render();
         m_gizmos[Y].render();
         m_gizmos[Z].render();
