@@ -676,6 +676,7 @@ void GLGizmoRotate3D::on_set_state()
         m_object_manipulation->set_coordinates_type(ECoordinatesType::World);
         m_last_volume = nullptr;
     }
+    GLGizmoBase::on_set_state();
 }
 
 void GLGizmoRotate3D::data_changed(bool is_serializing) {

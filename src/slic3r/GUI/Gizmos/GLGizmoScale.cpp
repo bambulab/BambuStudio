@@ -177,6 +177,7 @@ void GLGizmoScale3D::on_set_state() {
         m_last_selected_volume_idx = -1;
         change_cs_by_selection();
     }
+    GLGizmoBase::on_set_state();
 }
 
 static int constraint_id(int grabber_id)
