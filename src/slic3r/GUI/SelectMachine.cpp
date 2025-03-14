@@ -3377,6 +3377,10 @@ void SelectMachineDialog::update_show_status()
         }
     }
 
+    if (!can_support_auto_cali() && m_checkbox_list["flow_cali"]->getValue() == "on") {
+        show_status(PrintDialogStatus::PrintStatusTPUUnsupportAutoCali);
+        return;
+    }
 
     // disable print when there is no mapping
     if (obj_->m_extder_data.total_extder_count > 1) {
@@ -3432,11 +3436,6 @@ void SelectMachineDialog::update_show_status()
             show_status(PrintDialogStatus::PrintStatusNozzleMatchInvalid, params);
             return;
         }
-    }
-
-    if (!can_support_auto_cali() && m_checkbox_list["flow_cali"]->getValue() == "on") {
-        show_status(PrintDialogStatus::PrintStatusTPUUnsupportAutoCali);
-        return;
     }
 
     // check nozzle type and diameter
