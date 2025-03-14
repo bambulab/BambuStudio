@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 1.10.1 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-13 18:12+0800\n"
+"POT-Creation-Date: 2025-03-14 16:47+0800\n"
 "PO-Revision-Date: 2024-09-27 23:58+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -7720,10 +7720,16 @@ msgstr ""
 msgid "Copy paramters"
 msgstr ""
 
-msgid "Copy the following parameters to the left nozzle:"
+msgid "Modify paramters of right nozzle"
 msgstr ""
 
-msgid "Copy the following parameters to the right nozzle:"
+msgid "Modify paramters of left nozzle"
+msgstr ""
+
+msgid "Do you want to modify the following parameters of the right nozzle to that of the left nozzle?"
+msgstr ""
+
+msgid "Do you want to modify the following parameters of the left nozzle to that of the right nozzle?"
 msgstr ""
 
 msgid "Click to reset current value and attach to the global value."
@@ -7756,14 +7762,11 @@ msgstr "Использовать изменённое значение проф�
 msgid "Use Modified Value of Printer Preset"
 msgstr "Использовать изменённое значение профиля принтера"
 
-msgid "Current Value"
+msgid "(Modified)"
 msgstr ""
 
 msgid "Preset(Old)"
 msgstr "Старое значение"
-
-msgid "New Value"
-msgstr ""
 
 msgid "Modified Value(New)"
 msgstr "Новое значение"
@@ -8542,10 +8545,10 @@ msgstr ""
 msgid "Air Pump"
 msgstr ""
 
-msgid "Laser 10w"
+msgid "Laser 10W"
 msgstr ""
 
-msgid "Laser 40w"
+msgid "Laser 40W"
 msgstr ""
 
 msgid "Cutting Module"
