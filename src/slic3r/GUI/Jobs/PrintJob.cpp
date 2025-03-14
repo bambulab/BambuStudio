@@ -53,6 +53,8 @@ void PrintJob::prepare()
         BOOST_LOG_TRIVIAL(trace) << "sned_job: check_access_code_path = " << check_access_code_path;
         job_data._temp_path = fs::path(check_access_code_path);
     }
+
+    m_print_stage = BBL::SendingPrintJobStage::PrintingStageLimit;
 }
 
 void PrintJob::on_exception(const std::exception_ptr &eptr)
