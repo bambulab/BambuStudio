@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-13 18:12+0800\n"
+"POT-Creation-Date: 2025-03-14 16:47+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -3566,27 +3566,27 @@ msgstr "当前材料分组不是最优结果。"
 
 #, boost-format
 msgid "Increase %1%g filament and %2% changes compared to optimal grouping."
-msgstr ""
+msgstr "如果使用最优分组可多节省%1%g耗材和%2%次换料。"
 
 #, boost-format
 msgid "Increase %1%g filament and save %2% changes compared to optimal grouping."
-msgstr ""
+msgstr "相较于最优分组，多使用%1%g耗材，减少%2%次换料。"
 
 #, boost-format
 msgid "Save %1%g filament and increase %2% changes compared to optimal grouping."
-msgstr ""
+msgstr "相较于最优分组，节省%1%g耗材，增加%2%次换料。"
 
 #, boost-format
 msgid "Save %1%g filament and %2% changes compared to a printer with one nozzle."
-msgstr ""
+msgstr "相较于单头打印机可节省%1%g耗材和%2%次换料。"
 
 #, boost-format
 msgid "Save %1%g filament and increase %2% changes compared to a printer with one nozzle."
-msgstr ""
+msgstr "相较于单头打印机，节省%1%g耗材，增加%2%次换料。"
 
 #, boost-format
 msgid "Increase %1%g filament and save %2% changes compared to a printer with one nozzle."
-msgstr ""
+msgstr "相较于单头打印机，多使用%1%g耗材，减少%2%次换料。"
 
 msgid "Set to Optimal"
 msgstr "设置为最优"
@@ -7587,10 +7587,16 @@ msgstr "没有需要拷贝的参数修改。"
 msgid "Copy paramters"
 msgstr "拷贝参数"
 
-msgid "Copy the following parameters to the left nozzle:"
+msgid "Modify paramters of right nozzle"
 msgstr ""
 
-msgid "Copy the following parameters to the right nozzle:"
+msgid "Modify paramters of left nozzle"
+msgstr ""
+
+msgid "Do you want to modify the following parameters of the right nozzle to that of the left nozzle?"
+msgstr ""
+
+msgid "Do you want to modify the following parameters of the left nozzle to that of the right nozzle?"
 msgstr ""
 
 msgid "Click to reset current value and attach to the global value."
@@ -7623,14 +7629,11 @@ msgstr "使用材料预设的修改值"
 msgid "Use Modified Value of Printer Preset"
 msgstr "使用机器预设的修改值"
 
-msgid "Current Value"
+msgid "(Modified)"
 msgstr ""
 
 msgid "Preset(Old)"
 msgstr "预设（旧）"
-
-msgid "New Value"
-msgstr "新值"
 
 msgid "Modified Value(New)"
 msgstr "修改值（新）"
@@ -8315,19 +8318,19 @@ msgid "View Liveview"
 msgstr "查看LiveView"
 
 msgid "No Reminder Next Time"
-msgstr ""
+msgstr "下次不再提醒"
 
 msgid "Ignore. Don't Remind Next Time"
-msgstr ""
+msgstr "忽略，下次不再提醒"
 
 msgid "Ignore this and Resume"
-msgstr ""
+msgstr "忽略此问题，继续"
 
 msgid "Problem Solved and Resume"
-msgstr ""
+msgstr "问题已解决，继续"
 
 msgid "Stop Buzzer"
-msgstr ""
+msgstr "关闭蜂鸣器"
 
 msgid "Confirm and Update Nozzle"
 msgstr "确认并更新喷嘴"
@@ -8405,11 +8408,11 @@ msgstr ""
 msgid "Air Pump"
 msgstr "气泵"
 
-msgid "Laser 10w"
-msgstr "激光10W"
+msgid "Laser 10W"
+msgstr "激光 10W"
 
-msgid "Laser 40w"
-msgstr "激光40W"
+msgid "Laser 40W"
+msgstr "激光 40W"
 
 msgid "Cutting Module"
 msgstr "刀切模组"
@@ -9237,19 +9240,19 @@ msgid "Enabled"
 msgstr "打开"
 
 msgid "Vertical shell speed"
-msgstr ""
+msgstr "斜面填充速度"
 
 msgid "Speed for vertical shells with overhang regions. If expressed as percentage (for example: 80%) it will be calculated onthe internal solid infill speed above"
-msgstr ""
+msgstr "包含悬垂区域的斜面填充速度。如果表示为百分比（如80%），则基数为内部实心填充速度。"
 
 msgid "mm/s or %"
 msgstr "mm/s 或 %"
 
 msgid "Detect floating vertical shells"
-msgstr ""
+msgstr "识别悬空实心填充"
 
 msgid "Detect overhang paths in vertical shells and slow them by bridge speed."
-msgstr ""
+msgstr "识别斜面填充中的悬空路径，并使用桥接速度降速。"
 
 msgid "Internal bridge support thickness"
 msgstr "内部桥接支撑厚度"
@@ -10700,6 +10703,8 @@ msgid ""
 "Style and shape of the support. For normal support, projecting the supports into a regular grid will create more stable supports (default), while snug support towers will save material and reduce object scarring.\n"
 "For tree support, slim style will merge branches more aggressively and save a lot of material, strong style will make larger and stronger support structure and use more materials, while hybrid style is the combination of slim tree and normal support with normal nodes under large flat overhangs. Organic style will produce more organic shaped tree structure and less interfaces which makes it easer to be removed. The default style is organic tree for most cases, and hybrid tree if adaptive layer height or soluble interface is enabled."
 msgstr ""
+"支撑的样式和形状。对于普通支撑，将支撑投射到一个规则的网格中，将创建更稳定的支撑（默认），而紧贴的支撑塔将节省材料并减少物体的瑕疵。\n"
+"对于树形支撑，苗条树将更激进地合并树枝，并节省大量的材料；粗壮树会产生更大更强壮的支撑结构，但用料更多；而混合树是苗条树和普通支撑的结合，它会在大的平面悬垂下创建与正常支撑类似的结构；有机树将产生更有机的树状结构，并且减少界面层，这使得它们更容易被移除。多数情况下，默认风格是有机树，如果启用了自适应层高或使用了可溶性支撑材料，则为混合树。"
 
 msgid "Snug"
 msgstr "紧贴"
@@ -11834,7 +11839,7 @@ msgid "Unable to perform boolean operation on selected parts"
 msgstr "无法对所选部件执行布尔运算"
 
 msgid "Performed boolean intersection fails because the selected parts have no intersection"
-msgstr ""
+msgstr "因选中的物体无交集，布尔交集计算失败"
 
 msgid "Mesh Boolean"
 msgstr "布尔运算"
@@ -13104,6 +13109,15 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid "New Value"
+#~ msgstr "新值"
+
+#~ msgid "Laser 10w"
+#~ msgstr "激光10W"
+
+#~ msgid "Laser 40w"
+#~ msgstr "激光40W"
 
 #~ msgid "Arranging..."
 #~ msgstr "自动摆放中..."

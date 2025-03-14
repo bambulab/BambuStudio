@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-13 18:12+0800\n"
+"POT-Creation-Date: 2025-03-14 16:47+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -7571,10 +7571,16 @@ msgstr ""
 msgid "Copy paramters"
 msgstr ""
 
-msgid "Copy the following parameters to the left nozzle:"
+msgid "Modify paramters of right nozzle"
 msgstr ""
 
-msgid "Copy the following parameters to the right nozzle:"
+msgid "Modify paramters of left nozzle"
+msgstr ""
+
+msgid "Do you want to modify the following parameters of the right nozzle to that of the left nozzle?"
+msgstr ""
+
+msgid "Do you want to modify the following parameters of the left nozzle to that of the right nozzle?"
 msgstr ""
 
 msgid "Click to reset current value and attach to the global value."
@@ -7607,14 +7613,11 @@ msgstr "Use Modified Value of Filament Preset"
 msgid "Use Modified Value of Printer Preset"
 msgstr "Use Modified Value of Printer Preset"
 
-msgid "Current Value"
+msgid "(Modified)"
 msgstr ""
 
 msgid "Preset(Old)"
 msgstr "Preset (Old)"
-
-msgid "New Value"
-msgstr "Nytt värde"
 
 msgid "Modified Value(New)"
 msgstr "Modified Value (New)"
@@ -8379,10 +8382,10 @@ msgstr ""
 msgid "Air Pump"
 msgstr ""
 
-msgid "Laser 10w"
+msgid "Laser 10W"
 msgstr ""
 
-msgid "Laser 40w"
+msgid "Laser 40W"
 msgstr ""
 
 msgid "Cutting Module"
@@ -13070,6 +13073,9 @@ msgid ""
 msgstr ""
 "Undvik vridning\n"
 "Visste du att när du skriver ut material som är benägna att vrida, såsom ABS, kan en lämplig ökning av värmebäddens temperatur minska sannolikheten för vridning."
+
+#~ msgid "New Value"
+#~ msgstr "Nytt värde"
 
 #~ msgid "Arranging..."
 #~ msgstr "Placerar..."
