@@ -3,15 +3,27 @@ set(_srcdir ${CMAKE_CURRENT_LIST_DIR}/gmp)
 set(_dstdir ${DESTDIR}/usr/local)
 
 if (MSVC)
-    set(_output  ${_dstdir}/include/gmp.h 
+    if ((CMAKE_SYSTEM_PROCESSOR MATCHES "^(ARM64|aarch64)$") OR (CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64"))
+        set(_gmpheader win_arm64/gmp.h)
+        set(_gmplib win_arm64/libgmp-10.lib)
+        set(_gmpdll win_arm64/gmp-10.dll)
+        set(_output  ${_dstdir}/include/gmp.h 
+                 ${_dstdir}/lib/libgmp-10.lib 
+                 ${_dstdir}/bin/gmp-10.dll)
+    else ()
+        set(_gmpheader win64/gmp.h)
+        set(_gmplib win${DEPS_BITS}/libgmp-10.lib)
+        set(_gmpdll win${DEPS_BITS}/libgmp-10.dll)
+        set(_output  ${_dstdir}/include/gmp.h 
                  ${_dstdir}/lib/libgmp-10.lib 
                  ${_dstdir}/bin/libgmp-10.dll)
+    endif ()
 
     add_custom_command(
         OUTPUT  ${_output}
-        COMMAND ${CMAKE_COMMAND} -E copy ${_srcdir}/include/gmp.h ${_dstdir}/include/
-        COMMAND ${CMAKE_COMMAND} -E copy ${_srcdir}/lib/win${DEPS_BITS}/libgmp-10.lib ${_dstdir}/lib/
-        COMMAND ${CMAKE_COMMAND} -E copy ${_srcdir}/lib/win${DEPS_BITS}/libgmp-10.dll ${_dstdir}/bin/
+        COMMAND ${CMAKE_COMMAND} -E copy ${_srcdir}/include/${_gmpheader} ${_dstdir}/include/
+        COMMAND ${CMAKE_COMMAND} -E copy ${_srcdir}/lib/${_gmplib} ${_dstdir}/lib/
+        COMMAND ${CMAKE_COMMAND} -E copy ${_srcdir}/lib/${_gmpdll} ${_dstdir}/bin/
     )
     
     add_custom_target(dep_GMP SOURCES ${_output})

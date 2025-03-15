@@ -1,6 +1,7 @@
 
 set(_context_abi_line "")
 set(_context_arch_line "")
+set(_context_impl_line "")
 if (APPLE AND CMAKE_OSX_ARCHITECTURES)
     if (CMAKE_OSX_ARCHITECTURES MATCHES "x86")
         set(_context_abi_line "-DBOOST_CONTEXT_ABI:STRING=sysv")
@@ -9,6 +10,26 @@ if (APPLE AND CMAKE_OSX_ARCHITECTURES)
     endif ()
     set(_context_arch_line "-DBOOST_CONTEXT_ARCHITECTURE:STRING=${CMAKE_OSX_ARCHITECTURES}")
     message(STATUS "BOOST param: ${_context_abi_line} ${_context_arch_line}")
+endif ()
+
+if (MSVC)
+    set(_msvc_target_arch "")
+    if (CMAKE_GENERATOR_PLATFORM)
+        set(_msvc_target_arch "${CMAKE_GENERATOR_PLATFORM}")
+    elseif (CMAKE_VS_PLATFORM_NAME)
+        set(_msvc_target_arch "${CMAKE_VS_PLATFORM_NAME}")
+    elseif (DEFINED DEP_PLATFORM)
+        set(_msvc_target_arch "${DEP_PLATFORM}")
+    elseif (CMAKE_SYSTEM_PROCESSOR)
+        set(_msvc_target_arch "${CMAKE_SYSTEM_PROCESSOR}")
+    endif ()
+    string(TOUPPER "${_msvc_target_arch}" _msvc_target_arch)
+    if (_msvc_target_arch STREQUAL "ARM64" OR _msvc_target_arch STREQUAL "AARCH64")
+        set(_context_abi_line "-DBOOST_CONTEXT_ABI:STRING=aapcs")
+        set(_context_arch_line "-DBOOST_CONTEXT_ARCHITECTURE:STRING=arm64")
+        set(_context_impl_line "-DBOOST_CONTEXT_IMPLEMENTATION:STRING=winfib")
+        message(STATUS "BOOST param: ${_context_abi_line} ${_context_arch_line} ${_context_impl_line}")
+    endif ()
 endif ()
 
 bambustudio_add_cmake_project(Boost
@@ -22,6 +43,7 @@ bambustudio_add_cmake_project(Boost
         -DBUILD_TESTING:BOOL=OFF
         "${_context_abi_line}"
         "${_context_arch_line}"
+        "${_context_impl_line}"
 )
 
 set(DEP_Boost_DEPENDS ZLIB)

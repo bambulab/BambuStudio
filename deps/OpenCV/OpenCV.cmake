@@ -1,5 +1,41 @@
+set(_opencv_extra_args)
+set(_is_arm64 FALSE)
 if (MSVC)
-    set(_use_IPP "-DWITH_IPP=ON")
+    set(_msvc_target_arch "")
+    if (CMAKE_GENERATOR_PLATFORM)
+        set(_msvc_target_arch "${CMAKE_GENERATOR_PLATFORM}")
+    elseif (CMAKE_VS_PLATFORM_NAME)
+        set(_msvc_target_arch "${CMAKE_VS_PLATFORM_NAME}")
+    elseif (DEFINED DEP_PLATFORM)
+        set(_msvc_target_arch "${DEP_PLATFORM}")
+    elseif (CMAKE_SYSTEM_PROCESSOR)
+        set(_msvc_target_arch "${CMAKE_SYSTEM_PROCESSOR}")
+    endif ()
+    string(TOUPPER "${_msvc_target_arch}" _msvc_target_arch)
+    if (_msvc_target_arch STREQUAL "ARM64" OR _msvc_target_arch STREQUAL "AARCH64")
+        set(_is_arm64 TRUE)
+    endif ()
+else ()
+    if (CMAKE_SYSTEM_PROCESSOR MATCHES "^(ARM64|aarch64)$")
+        set(_is_arm64 TRUE)
+    endif ()
+endif ()
+
+if (MSVC)
+    if (_is_arm64)
+        set(_use_IPP "-DWITH_IPP=OFF")
+        list(APPEND _opencv_extra_args
+            -DWITH_CPU_BASELINE=OFF
+            -DWITH_CPU_DISPATCH=OFF
+            -DENABLE_SSE=OFF
+            -DENABLE_SSE2=OFF
+            -DENABLE_SSE3=OFF
+            -DENABLE_SSE4_1=OFF
+            -DENABLE_AVX=OFF
+        )
+    else()
+        set(_use_IPP "-DWITH_IPP=ON")
+    endif ()
 else ()
     set(_use_IPP "-DWITH_IPP=OFF")
 endif ()
@@ -8,6 +44,7 @@ if (BINARY_DIR_REL)
     set(OpenCV_DIRECTORY_FLAG --directory ${BINARY_DIR_REL}/dep_OpenCV-prefix/src/dep_OpenCV)
 endif ()
 
+message(STATUS "opencv: _use_IPP is ${_use_IPP}")
 bambustudio_add_cmake_project(OpenCV
     URL https://github.com/opencv/opencv/archive/refs/tags/4.6.0.tar.gz
     URL_HASH SHA256=1ec1cba65f9f20fe5a41fda1586e01c70ea0c9a6d7b67c9e13edf0cfe2239277
@@ -33,6 +70,7 @@ bambustudio_add_cmake_project(OpenCV
        -DWITH_CUDA=OFF
        -DWITH_EIGEN=OFF
        ${_use_IPP}
+       ${_opencv_extra_args}
        -DWITH_ITT=OFF
        -DWITH_FFMPEG=OFF
        -DWITH_GPHOTO2=OFF

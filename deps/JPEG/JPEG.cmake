@@ -11,6 +11,12 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     endif ()
 endif()
 
+if (MSVC)
+    if ((CMAKE_SYSTEM_PROCESSOR MATCHES "^(ARM64|aarch64)$") OR (CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64"))
+        set(_use_SIMD "-DWITH_SIMD=OFF")
+    endif ()
+endif ()
+
 bambustudio_add_cmake_project(JPEG
     URL https://github.com/libjpeg-turbo/libjpeg-turbo/archive/refs/tags/3.0.1.zip
     URL_HASH SHA256=d6d99e693366bc03897677650e8b2dfa76b5d6c54e2c9e70c03f0af821b0a52f
@@ -19,4 +25,5 @@ bambustudio_add_cmake_project(JPEG
         -DENABLE_SHARED=OFF
         -DENABLE_STATIC=ON
         ${jpeg_flag}
+        ${_use_SIMD}
 )

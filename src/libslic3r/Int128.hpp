@@ -46,7 +46,7 @@
     #undef NDEBUG
     #define DEBUG
     #define _DEBUG
-    #undef assert 
+    #undef assert
 #endif
 
 #include <cassert>
@@ -180,7 +180,7 @@ public:
 	{
 		const double shift64 = 18446744073709551616.0; //2^64
 		return (m_hi < 0) ?
-		((m_lo == 0) ? 
+		((m_lo == 0) ?
 		(double)m_hi * shift64 :
 		-(double)(~m_lo + ~m_hi * shift64)) :
 		(double)(m_lo + m_hi * shift64);
@@ -191,7 +191,12 @@ public:
 #if defined(_MSC_VER) && defined(_WIN64)
 		// On Visual Studio 64bit, use the _mul128() intrinsic function.
 		Int128 result;
-	    result.m_lo = (uint64_t)_mul128(lhs, rhs, &result.m_hi);
+#ifdef _M_X64
+        result.m_lo = (uint64_t)_mul128(lhs, rhs, &result.m_hi);
+#else
+        result.m_hi = __umulh(lhs, rhs);
+        result.m_lo = lhs * rhs;
+#endif
 	    return result;
 #else
 	    // This branch should only be executed in case there is neither __int16 type nor _mul128 intrinsic
@@ -222,9 +227,9 @@ public:
 		tmp.m_hi = int64_t(a + (c >> 32));
 		tmp.m_lo = int64_t(c << 32);
 		tmp.m_lo += int64_t(b);
-		if (tmp.m_lo < b) 
+		if (tmp.m_lo < b)
 			++ tmp.m_hi;
-		if (negate) 
+		if (negate)
 			tmp = - tmp;
 		return tmp;
 #endif

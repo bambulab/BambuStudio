@@ -29,7 +29,24 @@
 
 #ifdef _MSC_VER
 #include <intrin.h>
+
+#ifdef _M_ARM64
+unsigned int popcount_custom(unsigned int value)
+{
+    unsigned int count = 0;
+    while (value)
+    {
+        count += value & 1;
+        value >>= 1;
+    }
+    return count;
+}
+
+#define __builtin_popcount popcount_custom
+
+#else
 #define __builtin_popcount __popcnt
+#endif
 
 // https://stackoverflow.com/questions/355967/how-to-use-msvc-intrinsics-to-get-the-equivalent-of-this-gcc-code
 unsigned int __inline clz_(unsigned int value)

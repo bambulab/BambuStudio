@@ -67,6 +67,13 @@ if (APPLE)
     message(STATUS "CMAKE_OSX_DEPLOYMENT_TARGET: ${CMAKE_OSX_DEPLOYMENT_TARGET}")
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(CMAKE_INSTALL_RPATH "$ORIGIN")
+elseif (MSVC)
+        message(STATUS "CMAKE_GENERATOR_PLATFORM is ${CMAKE_GENERATOR_PLATFORM} ")
+        message(STATUS "CMAKE_SYSTEM_PROCESSOR is ${CMAKE_SYSTEM_PROCESSOR} ")
+        if ((CMAKE_SYSTEM_PROCESSOR MATCHES "^(AMD64|x86_64)$") AND (CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64"))
+            message(STATUS " is cross compile set to true.............")
+            set(IS_CROSS_COMPILE TRUE)
+        endif ()
 endif ()
 
 # Proposal for C++ unit tests and sandboxes
@@ -605,6 +612,20 @@ function(bambustudio_copy_dlls target config postfix output_dlls)
         set(_bits 32)
     endif ()
 
+    if ((CMAKE_SYSTEM_PROCESSOR MATCHES "^(ARM64|aarch64)$") OR (CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64"))
+        set(_gmpdll win_arm64/gmp-10.dll)
+        set(_mpfrdll win_arm64/mpfr-6.dll)
+        set(output_gmpdll gmp-10.dll)
+        set(output_mpfrdll mpfr-6.dll)
+        set(_webviewloaderdll win_arm64/WebView2Loader.dll)
+    else ()
+        set(_gmpdll win${_bits}/libgmp-10.dll)
+        set(_mpfrdll win${_bits}/libmpfr-4.dll)
+        set(output_gmpdll libgmp-10.dll)
+        set(output_mpfrdll libmpfr-4.dll)
+        set(_webviewloaderdll win${_bits}/WebView2Loader.dll)
+    endif ()
+
     get_property(_is_multi GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
     get_target_property(_alt_out_dir ${target} RUNTIME_OUTPUT_DIRECTORY)
 
@@ -619,9 +640,9 @@ function(bambustudio_copy_dlls target config postfix output_dlls)
         message ("set out_dir to CMAKE_CURRENT_BINARY_DIR: ${_out_dir}")
     endif ()
 
-    file(COPY ${TOP_LEVEL_PROJECT_DIR}/deps/GMP/gmp/lib/win${_bits}/libgmp-10.dll
-            ${TOP_LEVEL_PROJECT_DIR}/deps/MPFR/mpfr/lib/win${_bits}/libmpfr-4.dll
-            ${TOP_LEVEL_PROJECT_DIR}/deps/WebView2/lib/win${_bits}/WebView2Loader.dll
+    file(COPY ${TOP_LEVEL_PROJECT_DIR}/deps/GMP/gmp/lib/${_gmpdll}
+            ${TOP_LEVEL_PROJECT_DIR}/deps/MPFR/mpfr/lib/${_mpfrdll}
+            ${TOP_LEVEL_PROJECT_DIR}/deps/WebView2/lib/${_webviewloaderdll}
         DESTINATION ${_out_dir})
 
     file(COPY ${CMAKE_PREFIX_PATH}/bin/occt/TKBO.dll
@@ -658,8 +679,8 @@ function(bambustudio_copy_dlls target config postfix output_dlls)
          DESTINATION ${_out_dir})
 
     set(${output_dlls}
-        ${_out_dir}/libgmp-10.dll
-        ${_out_dir}/libmpfr-4.dll
+        ${_out_dir}/${output_gmpdll}
+        ${_out_dir}/${output_mpfrdll}
         ${_out_dir}/WebView2Loader.dll
 
         ${_out_dir}/TKBO.dll
