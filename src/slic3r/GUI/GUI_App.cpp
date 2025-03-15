@@ -2845,10 +2845,10 @@ bool GUI_App::on_init_inner()
     g_object_set (gtk_settings_get_default (), "gtk-menu-images", TRUE, NULL);
 #endif
 
-#ifdef WIN32
+//#ifdef WIN32
     //BBS set crash log folder
     //CBaseException::set_log_folder(data_dir());
-#endif
+// #endif
 
     wxGetApp().Bind(wxEVT_QUERY_END_SESSION, [this](auto & e) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< "received wxEVT_QUERY_END_SESSION";

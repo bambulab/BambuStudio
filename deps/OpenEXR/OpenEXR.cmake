@@ -29,6 +29,8 @@ else()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 set(_patch_cmd ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/0001-OpenEXR-GCC13.patch)
+elseif (MSVC)
+set(_patch_cmd git init && ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/0001-OpenEXR-windows.patch)
 else()
 set(_patch_cmd "")
 endif()

@@ -6,6 +6,14 @@ else()
     set(_build_static ON)
 endif()
 
+set(_blosc_extra_args)
+if (DEP_PLATFORM STREQUAL "ARM64")
+    list(APPEND _blosc_extra_args
+        -DDEACTIVATE_AVX2=ON
+        -DDEACTIVATE_SSE2=ON
+    )
+endif()
+
 bambustudio_add_cmake_project(Blosc
     #URL https://github.com/Blosc/c-blosc/archive/refs/tags/v1.17.0.zip
     #URL_HASH SHA256=7463a1df566704f212263312717ab2c36b45d45cba6cd0dccebf91b2cc4b4da9
@@ -21,6 +29,7 @@ bambustudio_add_cmake_project(Blosc
         -DBUILD_TESTS=OFF 
         -DBUILD_BENCHMARKS=OFF 
         -DPREFER_EXTERNAL_ZLIB=ON
+        ${_blosc_extra_args}
 )
 
 if (MSVC)
