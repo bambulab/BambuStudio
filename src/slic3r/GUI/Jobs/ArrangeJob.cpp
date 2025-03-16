@@ -481,15 +481,19 @@ void ArrangeJob::prepare_outside_plate() {
             auto iter1 = all_inside_objects.find(std::pair(obj_idx, inst_idx));
             auto iter2 = all_outside_objects.find(std::pair(obj_idx, inst_idx));
             bool outside_plate = false;
+            PartPlate *plate_locked         = nullptr;
             if (iter1 == all_inside_objects.end()) {
                 continue;
+            } else {
+                int plate_idx = iter1->second;
+                if (plate_list.get_plate(plate_idx)->is_locked()) { plate_locked = plate_list.get_plate(plate_idx); }
             }
             if (iter2 != all_outside_objects.end()) {
                 outside_plate = true;
                 ARRANGE_LOG(debug) << object->name << " is outside!";
             }
             ArrangePolygon&& ap = prepare_arrange_polygon(instance);
-            ArrangePolygons &cont = instance->printable ? (outside_plate ? m_selected : m_unselected) : m_unprintable;
+            ArrangePolygons &cont = !instance->printable ? m_unprintable : plate_locked ? m_locked : outside_plate ? m_selected : m_unselected;
             ap.itemid                      = cont.size();
             if (!outside_plate) {
                 plate_list.preprocess_arrange_polygon(obj_idx, inst_idx, ap, false);
