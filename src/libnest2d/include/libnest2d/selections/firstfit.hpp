@@ -140,7 +140,7 @@ public:
                     }
                     result = placers[j].pack(*it, rem(it, store_));
                     score = result.score();
-                    score_all_plates = score;
+                    score_all_plates = score + COST_OF_NEW_PLATE * j; // add a larger cost to larger plate id to encourace to use less plates
                     for (int i = 0; i < placers.size(); i++) { score_all_plates += placers[i].score();}
                     if (this->unfitindicator_)
                         this->unfitindicator_((boost::format("item %1% bed_id=%2%, score=%3%, score_all_plates=%4%, pos=(%5%, %6%)") % it->get().name % j % score %

@@ -10,6 +10,7 @@
 
 #include <libnest2d/geometry_traits.hpp>
 #define LARGE_COST_TO_REJECT 1e7
+#define COST_OF_NEW_PLATE 0.1
 
 namespace libnest2d {
 
