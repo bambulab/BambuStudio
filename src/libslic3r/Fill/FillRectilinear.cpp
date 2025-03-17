@@ -365,6 +365,66 @@ struct SegmentedIntersectionLine
     std::vector<SegmentIntersection>    intersections;
 };
 
+static void adjust_sort_for_segment_intersections(std::vector<SegmentIntersection> &intersections)
+{
+    using IntersectionType = SegmentIntersection::SegmentIntersectionType;
+    std::stack<IntersectionType> stack;
+    bool                         has_out_low   = false;
+    auto                         is_valid_type = [&stack, &has_out_low](IntersectionType type) {
+        if (stack.empty()) {
+            return type == IntersectionType::OUTER_LOW;
+        } else {
+            auto top_type = stack.top();
+            switch (type) {
+            case SegmentIntersection::OUTER_LOW: return false;
+            case SegmentIntersection::OUTER_HIGH: return top_type == IntersectionType::OUTER_LOW;
+            case SegmentIntersection::INNER_LOW: return top_type != IntersectionType::OUTER_HIGH;
+            case SegmentIntersection::INNER_HIGH: return top_type == IntersectionType::INNER_LOW;
+            default: break;
+            }
+            return true;
+        }
+    };
+
+    std::vector<bool> visited(intersections.size(), false);
+    std::vector<int>  index_group;
+    for (size_t i = 0; i < intersections.size();) {
+        if (is_valid_type(intersections[i].type)) {
+            index_group.clear();
+            // std::fill()
+            if (intersections[i].type == SegmentIntersection::OUTER_LOW || intersections[i].type == SegmentIntersection::INNER_LOW) {
+                stack.push(intersections[i].type);
+            } else if (intersections[i].type == SegmentIntersection::OUTER_HIGH || intersections[i].type == SegmentIntersection::INNER_HIGH) {
+                stack.pop();
+            }
+            ++i;
+        } else {
+            visited[i] = true;
+            for (size_t j = i + 1; j < intersections.size(); ++j) {
+                if (!visited[j] && abs(intersections[j].pos() - intersections[i].pos()) < scale_(EPSILON)) { index_group.push_back(j); }
+            }
+
+            if (!index_group.empty()) {
+                int swap_index = -1;
+                for (auto index : index_group) {
+                    if (!visited[index]) {
+                        swap_index     = index;
+                        visited[index] = true;
+                        break;
+                    }
+                }
+
+                if (swap_index != -1) {
+                    std::swap(intersections[i], intersections[swap_index]);
+                    continue;
+                }
+            }
+
+            ++i;
+        }
+    }
+}
+
 static SegmentIntersection phony_outer_intersection(SegmentIntersection::SegmentIntersectionType type, coord_t pos)
 {
     assert(type == SegmentIntersection::OUTER_LOW || type == SegmentIntersection::OUTER_HIGH);
@@ -859,11 +919,12 @@ static std::vector<SegmentedIntersectionLine> slice_region_by_vertical_lines(con
         // Sort the intersection points using exact rational arithmetic.
         //BBS: if the LOW and HIGH has seam y pos, LOW should be first
         std::sort(sil.intersections.begin(), sil.intersections.end(), [](const SegmentIntersection &l, const SegmentIntersection &r) {
-            if (abs(l.pos() - r.pos()) < scale_(EPSILON) && l.iContour == r.iContour)
+            if (l.pos() == r.pos() && l.iContour == r.iContour)
                   return l.type < r.type;
 
             return l.pos() < r.pos();
         });
+        adjust_sort_for_segment_intersections(sil.intersections);
         // Assign the intersection types, remove duplicate or overlapping intersection points.
         // When a loop vertex touches a vertical line, intersection point is generated for both segments.
         // If such two segments are oriented equally, then one of them is removed.
