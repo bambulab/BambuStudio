@@ -38,6 +38,7 @@
 
 #include "mcut/mcut.h"
 
+#include <chrono>
 #include <future>
 #include <map>
 #include <memory>
@@ -558,7 +559,7 @@ public:
     void shutdown()
     {
         m_done = true;
-        
+
         std::atomic_thread_fence(std::memory_order_acq_rel);
 
 #if defined(MCUT_WITH_COMPUTE_HELPER_THREADPOOL)
@@ -613,7 +614,7 @@ public:
     {
         this->m_connected_component_winding_order.store(new_value, std::memory_order_release);
     }
-    
+
 
 #if defined(MCUT_WITH_COMPUTE_HELPER_THREADPOOL)
     thread_pool& get_shared_compute_threadpool()
