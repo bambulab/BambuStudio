@@ -113,6 +113,7 @@ public:
 
     bool is_finished() { return m_job_finished;  }
     int  get_print_stage() const { return m_print_stage;}
+    void reset_print_stage() { m_print_stage = 0; }
 
     void set_print_job_finished_event(int event_id, wxString evt_data = wxEmptyString) {
         m_print_job_completed_id = event_id;
