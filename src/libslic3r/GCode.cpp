@@ -2282,23 +2282,23 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         std::string first_layer_bed_temp_str;
         const ConfigOptionInts* first_bed_temp_opt = m_config.option<ConfigOptionInts>(get_bed_temp_1st_layer_key((BedType)curr_bed_type));
         const ConfigOptionInts* bed_temp_opt = m_config.option<ConfigOptionInts>(get_bed_temp_key((BedType)curr_bed_type));
-        int target_bed_temp=0;
+        int target_bed_temp = 0;
         if (m_config.bed_temperature_formula == BedTempFormula::btfHighestTemp)
             target_bed_temp = get_highest_bed_temperature(true, print);
         else
-            target_bed_temp = get_bed_temperature(initial_extruder_id, true,curr_bed_type);
+            target_bed_temp = get_bed_temperature(initial_extruder_id, true, curr_bed_type);
 
         m_placeholder_parser.set("bbl_bed_temperature_gcode", new ConfigOptionBool(false));
         m_placeholder_parser.set("bed_temperature_initial_layer", new ConfigOptionInts(*first_bed_temp_opt));
         m_placeholder_parser.set("bed_temperature", new ConfigOptionInts(*bed_temp_opt));
         m_placeholder_parser.set("bed_temperature_initial_layer_single", new ConfigOptionInt(target_bed_temp));
         m_placeholder_parser.set("bed_temperature_initial_layer_vector", new ConfigOptionString(""));
-        m_placeholder_parser.set("chamber_temperature", new ConfigOptionInts({max_chamber_temp}));
+        m_placeholder_parser.set("chamber_temperature", new ConfigOptionInts({ max_chamber_temp }));
         m_placeholder_parser.set("overall_chamber_temperature", new ConfigOptionInt(max_chamber_temp));
         m_placeholder_parser.set("enable_high_low_temp_mix", new ConfigOptionBool(!print.need_check_multi_filaments_compatibility()));
         m_placeholder_parser.set("min_vitrification_temperature", new ConfigOptionInt(min_temperature_vitrification));
 
-         //support variables `first_layer_temperature` and `first_layer_bed_temperature`
+        //support variables `first_layer_temperature` and `first_layer_bed_temperature`
         m_placeholder_parser.set("first_layer_bed_temperature", new ConfigOptionInts(*first_bed_temp_opt));
         m_placeholder_parser.set("first_layer_temperature", new ConfigOptionIntsNullable(m_config.nozzle_temperature_initial_layer));
         m_placeholder_parser.set("max_print_height", new ConfigOptionInt(m_config.printable_height));
@@ -2310,11 +2310,15 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         during_print_exhaust_fan_speed_num.reserve(m_config.during_print_exhaust_fan_speed.size());
         for (const auto& item : m_config.during_print_exhaust_fan_speed.values)
             during_print_exhaust_fan_speed_num.emplace_back((int)(item / 100.0 * 255));
-        m_placeholder_parser.set("during_print_exhaust_fan_speed_num",new ConfigOptionInts(during_print_exhaust_fan_speed_num));
+        m_placeholder_parser.set("during_print_exhaust_fan_speed_num", new ConfigOptionInts(during_print_exhaust_fan_speed_num));
 
         //BBS: calculate the volumetric speed of outer wall. Ignore pre-object setting and multi-filament, and just use the default setting
         float outer_wall_volumetric_speed = get_outer_wall_volumetric_speed(m_config, print, initial_non_support_extruder_id, get_extruder_id(initial_non_support_extruder_id));
         m_placeholder_parser.set("outer_wall_volumetric_speed", new ConfigOptionFloat(outer_wall_volumetric_speed));
+
+        auto first_layer_filaments = print.get_slice_used_filaments(true);
+        bool has_tpu_in_first_layer = std::any_of(first_layer_filaments.begin(), first_layer_filaments.end(), [&](unsigned int idx) { return m_config.filament_type.values[idx] == "TPU"; });
+        m_placeholder_parser.set("has_tpu_in_first_layer", new ConfigOptionBool(has_tpu_in_first_layer));
 
         if (print.calib_params().mode == CalibMode::Calib_PA_Line) {
             m_placeholder_parser.set("scan_first_layer", new ConfigOptionBool(false));
@@ -2350,7 +2354,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         DynamicConfig config;
         config.set_key_value("filament_extruder_id", new ConfigOptionInt((int)(initial_non_support_extruder_id)));
         config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
-        std::string filament_start_gcode = this->placeholder_parser_process("filament_start_gcode", print.config().filament_start_gcode.values.at(initial_non_support_extruder_id), initial_non_support_extruder_id);
+        std::string filament_start_gcode = this->placeholder_parser_process("filament_start_gcode", print.config().filament_start_gcode.values.at(initial_non_support_extruder_id), initial_non_support_extruder_id,&config);
         file.writeln(filament_start_gcode);
         // mark the first filament used in print
         file.write_format(";VT%d\n", initial_extruder_id);
