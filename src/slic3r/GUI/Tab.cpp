@@ -2123,8 +2123,9 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Sparse infill"), L"param_infill");
         optgroup->append_single_option_line("sparse_infill_density");
         optgroup->append_single_option_line("sparse_infill_pattern", "fill-patterns#infill types and their properties of sparse");
-        optgroup->append_single_option_line("infill_shift_step");
+
         optgroup->append_single_option_line("symmetric_infill_y_axis");
+        optgroup->append_single_option_line("infill_shift_step");
 
         optgroup->append_single_option_line("infill_rotate_step");
         optgroup->append_single_option_line("sparse_infill_anchor");
