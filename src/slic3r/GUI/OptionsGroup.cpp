@@ -230,8 +230,9 @@ Line* OptionsGroup::get_line(const std::string& opt_key)
 {
     for (int index = 0; index < m_lines.size(); index++)
     {
-        if (m_lines[index].get_first_option_key() == opt_key)
-            return &(m_lines[index]);
+        for (auto & opt : m_lines[index].get_options())
+            if (opt.opt_id == opt_key)
+                return &(m_lines[index]);
     }
 
     return nullptr;
