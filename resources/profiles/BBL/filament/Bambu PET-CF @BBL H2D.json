@@ -9,6 +9,12 @@
     "chamber_temperatures": [
         "50"
     ],
+    "counter_coef_2": [
+        "0.0075"
+    ],
+    "counter_coef_3": [
+        "-0.052"
+    ],
     "filament_deretraction_speed": [
         "nil",
         "nil"
@@ -73,6 +79,27 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
+    "filament_ramming_volumetric_speed": [
+        "-1",
+        "-1"
+    ],
+    "filament_pre_cooling_temperature": [
+        "0",
+        "0"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
+    ],
+    "hole_coef_2": [
+        "-0.012"
+    ],
+    "hole_coef_3": [
+        "0.35043"
+    ],
+    "hole_limit_min": [
+        "0.07"
+    ],
     "nozzle_temperature": [
         "270",
         "270"
@@ -85,36 +112,6 @@
         "Bambu Lab H2D 0.4 nozzle",
         "Bambu Lab H2D 0.6 nozzle",
         "Bambu Lab H2D 0.8 nozzle"
-    ],
-    "counter_coef_1": [
-        "0"
-    ],
-    "counter_coef_2": [
-        "0.0075"
-    ],
-    "counter_coef_3": [
-        "-0.052"
-    ],
-    "hole_coef_1": [
-        "0"
-    ],
-    "hole_coef_2": [
-        "-0.012"
-    ],
-    "hole_coef_3": [
-        "0.35043"
-    ],
-    "counter_limit_min": [
-        "-0.035"
-    ],
-    "counter_limit_max": [
-        "0.033"
-    ],
-    "hole_limit_min": [
-        "0.07"
-    ],
-    "hole_limit_max": [
-        "0.22"
     ],
     "filament_start_gcode": [
         "; filament start gcode\nM145 P1 ; set airduct mode to heating mode\n"

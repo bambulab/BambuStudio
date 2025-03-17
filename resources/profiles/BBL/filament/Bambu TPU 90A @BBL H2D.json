@@ -10,10 +10,6 @@
         "10",
         "10"
     ],
-    "filament_extruder_variant": [
-        "Direct Drive Standard",
-        "Direct Drive High Flow"
-    ],
     "filament_flow_ratio": [
         "1",
         "1"
@@ -27,14 +23,6 @@
         "2.8"
     ],
     "filament_retract_before_wipe": [
-        "nil",
-        "nil"
-    ],
-    "filament_retract_lift_above": [
-        "nil",
-        "nil"
-    ],
-    "filament_retract_lift_below": [
         "nil",
         "nil"
     ],
@@ -78,8 +66,35 @@
         "nil",
         "nil"
     ],
+    "filament_extruder_variant": [
+        "Direct Drive Standard",
+        "Direct Drive High Flow"
+    ],
+    "filament_retract_lift_above": [
+        "nil",
+        "nil"
+    ],
+    "filament_retract_lift_below": [
+        "nil",
+        "nil"
+    ],
+    "filament_ramming_volumetric_speed": [
+        "0.7",
+        "0.7"
+    ],
+    "filament_pre_cooling_temperature": [
+        "195",
+        "195"
+    ],
+    "filament_ramming_travel_time": [
+        "20",
+        "20"
+    ],
     "impact_strength_z": [
         "88.7"
+    ],
+    "nozzle_temperature_range_high": [
+        "250"
     ],
     "nozzle_temperature": [
         "225",
@@ -88,9 +103,6 @@
     "nozzle_temperature_initial_layer": [
         "225",
         "225"
-    ],
-    "nozzle_temperature_range_high": [
-        "250"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.4 nozzle",

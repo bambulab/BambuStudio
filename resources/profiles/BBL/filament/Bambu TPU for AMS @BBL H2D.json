@@ -5,16 +5,13 @@
     "from": "system",
     "setting_id": "GFSU02_04",
     "instantiation": "true",
+    "description": "If you are to print a kind of soft TPU, please don't slice with this profile, and it is only for TPU that has high enough hardness (not less than 55D) and is compatible with the AMS. To get better printing quality, please refer to this wiki: TPU printing guide.",
     "fan_max_speed": [
         "40"
     ],
     "filament_deretraction_speed": [
         "10",
         "10"
-    ],
-    "filament_extruder_variant": [
-        "Direct Drive Standard",
-        "Direct Drive High Flow"
     ],
     "filament_flow_ratio": [
         "0.97",
@@ -71,6 +68,22 @@
     "filament_z_hop_types": [
         "nil",
         "nil"
+    ],
+    "filament_extruder_variant": [
+        "Direct Drive Standard",
+        "Direct Drive High Flow"
+    ],
+    "filament_ramming_volumetric_speed": [
+        "4.5",
+        "4.5"
+    ],
+    "filament_pre_cooling_temperature": [
+        "200",
+        "200"
+    ],
+    "filament_ramming_travel_time": [
+        "20",
+        "20"
     ],
     "nozzle_temperature": [
         "230",

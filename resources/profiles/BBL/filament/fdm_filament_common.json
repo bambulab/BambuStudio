@@ -66,6 +66,9 @@
     "filament_max_volumetric_speed": [
         "0"
     ],
+    "filament_ramming_volumetric_speed": [
+        "-1"
+    ],
     "filament_minimal_purge_on_wipe_tower": [
         "15"
     ],
@@ -238,5 +241,11 @@
     ],
     "filament_end_gcode": [
         "; filament end gcode \nM106 P3 S0\n"
+    ],
+    "filament_pre_cooling_temperature":[
+        "0"
+    ],
+    "filament_ramming_travel_time":[
+        "0"
     ]
 }
