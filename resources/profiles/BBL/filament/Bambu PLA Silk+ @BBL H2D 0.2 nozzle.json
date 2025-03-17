@@ -5,6 +5,7 @@
     "from": "system",
     "setting_id": "GFSA06_10",
     "instantiation": "true",
+    "description": "To make the prints get higher gloss, please dry the filament before use, and set the outer wall speed to be 40 to 60 mm/s when slicing.",
     "additional_cooling_fan_speed": [
         "75"
     ],
@@ -72,6 +73,18 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
+    "filament_ramming_volumetric_speed": [
+        "-1",
+        "-1"
+    ],
+    "filament_pre_cooling_temperature": [
+        "0",
+        "0"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
+    ],
     "nozzle_temperature": [
         "230",
         "230"
@@ -80,14 +93,14 @@
         "230",
         "230"
     ],
-    "slow_down_layer_time": [
-        "6"
-    ],
     "supertack_plate_temp": [
         "35"
     ],
     "supertack_plate_temp_initial_layer": [
         "35"
+    ],
+    "slow_down_layer_time": [
+        "6"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.2 nozzle"

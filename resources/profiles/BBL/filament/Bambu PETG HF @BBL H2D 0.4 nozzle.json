@@ -14,9 +14,6 @@
     "counter_limit_max": [
         "0.053"
     ],
-    "counter_limit_min": [
-        "-0.035"
-    ],
     "fan_cooling_layer_time": [
         "20"
     ],
@@ -26,10 +23,6 @@
     "filament_deretraction_speed": [
         "nil",
         "nil"
-    ],
-    "filament_extruder_variant": [
-        "Direct Drive Standard",
-        "Direct Drive High Flow"
     ],
     "filament_flow_ratio": [
         "0.95",
@@ -87,17 +80,27 @@
         "nil",
         "nil"
     ],
+    "filament_extruder_variant": [
+        "Direct Drive Standard",
+        "Direct Drive High Flow"
+    ],
+    "filament_ramming_volumetric_speed": [
+        "-1",
+        "-1"
+    ],
+    "filament_pre_cooling_temperature": [
+        "0",
+        "0"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
+    ],
     "hole_coef_2": [
         "-0.006"
     ],
     "hole_coef_3": [
         "0.1"
-    ],
-    "hole_limit_max": [
-        "0.22"
-    ],
-    "hole_limit_min": [
-        "0.088"
     ],
     "nozzle_temperature": [
         "220",

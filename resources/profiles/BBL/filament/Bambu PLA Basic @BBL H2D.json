@@ -18,10 +18,6 @@
         "nil",
         "nil"
     ],
-    "filament_extruder_variant": [
-        "Direct Drive Standard",
-        "Direct Drive High Flow"
-    ],
     "filament_flow_ratio": [
         "0.98",
         "0.98"
@@ -78,6 +74,22 @@
         "nil",
         "nil"
     ],
+    "filament_extruder_variant": [
+        "Direct Drive Standard",
+        "Direct Drive High Flow"
+    ],
+    "filament_ramming_volumetric_speed": [
+        "-1",
+        "-1"
+    ],
+    "filament_pre_cooling_temperature": [
+        "0",
+        "0"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
+    ],
     "nozzle_temperature": [
         "220",
         "220"
@@ -89,36 +101,6 @@
     "compatible_printers": [
         "Bambu Lab H2D 0.4 nozzle",
         "Bambu Lab H2D 0.6 nozzle"
-    ],
-    "counter_coef_1": [
-        "0"
-    ],
-    "counter_coef_2": [
-        "0.008"
-    ],
-    "counter_coef_3": [
-        "-0.041"
-    ],
-    "hole_coef_1": [
-        "0"
-    ],
-    "hole_coef_2": [
-        "-0.008"
-    ],
-    "hole_coef_3": [
-        "0.23415"
-    ],
-    "counter_limit_min": [
-        "-0.035"
-    ],
-    "counter_limit_max": [
-        "0.033"
-    ],
-    "hole_limit_min": [
-        "0.088"
-    ],
-    "hole_limit_max": [
-        "0.22"
     ],
     "filament_start_gcode": [
         "; filament start gcode\nM145 P0 ; set airduct mode to cooling mode\nM142 P1 R35 S40 U0.3 V0.5 ; set chamber autocooling"
