@@ -32,6 +32,7 @@ class PhysicalPrinterDialog : public DPIDialog
 
     ScalableButton*     m_printhost_browse_btn              {nullptr};
     ScalableButton*     m_printhost_test_btn                {nullptr};
+    ScalableButton*     m_printhost_logout_btn          {nullptr};
     ScalableButton*     m_printhost_cafile_browse_btn       {nullptr};
     ScalableButton*     m_printhost_client_cert_browse_btn  {nullptr};
     ScalableButton*     m_printhost_port_browse_btn         {nullptr};
@@ -64,6 +65,7 @@ public:
     void        update_preset_input();
     void        update_printhost_buttons();
     void        update_printers();
+    void        update_webui();
 
 protected:
     void on_dpi_changed(const wxRect& suggested_rect) override;

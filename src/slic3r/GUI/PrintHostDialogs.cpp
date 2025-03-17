@@ -36,11 +36,12 @@ namespace GUI {
 static const char *CONFIG_KEY_PATH  = "printhost_path";
 static const char *CONFIG_KEY_GROUP = "printhost_group";
 
-PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, PrintHostPostUploadActions post_actions, const wxArrayString &groups)
+PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, PrintHostPostUploadActions post_actions, const wxArrayString &groups, bool switch_to_device_tab)
     : MsgDialog(static_cast<wxWindow*>(wxGetApp().mainframe), _L("Send to print"), _L("Upload to Printer Host with the following filename:"),0)
     , txt_filename(new wxTextCtrl(this, wxID_ANY))
     , combo_groups(!groups.IsEmpty() ? new wxComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, groups, wxCB_READONLY) : nullptr)
     , post_upload_action(PrintHostPostUploadAction::None)
+    , m_switch_to_device_tab(switch_to_device_tab)
 {
 #ifdef __APPLE__
     txt_filename->OSXDisableAllSmartSubstitutions();
@@ -76,7 +77,23 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, PrintHostPostUplo
 
     txt_filename->SetValue(recent_path);
     txt_filename->SetFocus();
-    
+
+    auto checkbox_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto checkbox       = new ::CheckBox(this, wxID_APPLY);
+    checkbox->SetValue(m_switch_to_device_tab);
+    checkbox->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& e) {
+        m_switch_to_device_tab = e.IsChecked();
+        e.Skip();
+    });
+    checkbox_sizer->Add(checkbox, 0, wxALL | wxALIGN_CENTER, FromDIP(2));
+
+    auto checkbox_text = new wxStaticText(this, wxID_ANY, _L("Switch to Device tab after upload."), wxDefaultPosition, wxDefaultSize, 0);
+    checkbox_sizer->Add(checkbox_text, 0, wxALL | wxALIGN_CENTER, FromDIP(2));
+    checkbox_text->SetFont(::Label::Body_13);
+    checkbox_text->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#323A3D")));
+    content_sizer->Add(checkbox_sizer);
+    content_sizer->AddSpacer(VERT_SPACING);
+
     m_valid_suffix = recent_path.substr(recent_path.find_last_of('.'));
     // .gcode suffix control
     auto validate_path = [this](const wxString &path) -> bool {
@@ -113,7 +130,7 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, PrintHostPostUplo
             if (validate_path(txt_filename->GetValue())) {
                 post_upload_action = PrintHostPostUploadAction::StartSimulation;
                 EndDialog(wxID_OK);
-            }        
+            }
         });
     }
 

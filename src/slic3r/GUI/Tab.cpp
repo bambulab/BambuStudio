@@ -3503,6 +3503,7 @@ void TabPrinter::build_fff()
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
         optgroup->append_single_option_line("printer_structure");
         optgroup->append_single_option_line("gcode_flavor");
+        optgroup->append_single_option_line("bbl_use_printhost");
 
         option =optgroup->get_option("thumbnail_size");
         option.opt.full_width=true;
@@ -4122,6 +4123,7 @@ void TabPrinter::toggle_options()
         toggle_option("support_chamber_temp_control",!is_BBL_printer);
         toggle_option("use_firmware_retraction", !is_BBL_printer);
         toggle_option("support_air_filtration",is_BBL_printer);
+        toggle_option("bbl_use_printhost", is_BBL_printer);
         auto flavor = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
         bool is_marlin_flavor = flavor == gcfMarlinLegacy || flavor == gcfMarlinFirmware;
         // Disable silent mode for non-marlin firmwares.
@@ -5559,10 +5561,9 @@ wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
                             update_changed_ui();
                         }
                     }
-                    if (custom_texture == "") {
+if (custom_texture == "") {
                         wxGetApp().plater()->get_partplate_list().update_logo_texture_filename("");
                     }
-
                 } else {
                     show_error(m_parent, _L("Invalid input."));
                 }
@@ -6036,7 +6037,7 @@ void TabSLAPrint::build()
 //    optgroup->append_single_option_line("support_head_front_diameter");
 //    optgroup->append_single_option_line("support_head_penetration");
 //    optgroup->append_single_option_line("support_head_width");
-//
+    //
 //    optgroup = page->new_optgroup(L("Support pillar"));
 //    optgroup->append_single_option_line("support_pillar_diameter");
 //    optgroup->append_single_option_line("support_small_pillar_diameter_percent");
@@ -6086,7 +6087,7 @@ void TabSLAPrint::build()
 //    optgroup->append_single_option_line("pad_object_connector_stride");
 //    optgroup->append_single_option_line("pad_object_connector_width");
 //    optgroup->append_single_option_line("pad_object_connector_penetration");
-//
+    //
 //    page = add_options_page(L("Hollowing"), "hollowing");
 //    optgroup = page->new_optgroup(L("Hollowing"));
 //    optgroup->append_single_option_line("hollowing_enable");
