@@ -747,9 +747,15 @@ Transform3d GLVolume::world_matrix() const
 
 bool GLVolume::is_left_handed() const
 {
-    const Vec3d &m1 = m_instance_transformation.get_mirror();
-    const Vec3d &m2 = m_volume_transformation.get_mirror();
-    return m1.x() * m1.y() * m1.z() * m2.x() * m2.y() * m2.z() < 0.;
+    // reference <Real-Time Rendering Fourth Edition> page 84
+    // link: https://www.realtimerendering.com/
+    const auto model_matrix = world_matrix().matrix();
+    Eigen::Matrix3d subMatrix = model_matrix.block<3, 3>(0, 0);
+    const auto det = subMatrix.determinant();
+    if (det < 1e-6f) {
+        return true;
+    }
+    return false;
 }
 
 const BoundingBoxf3& GLVolume::transformed_bounding_box() const
