@@ -365,6 +365,7 @@ std::string GCodeEditor::write_layer_gcode(
     new_gcode.reserve(gcode.size() * 2);
     bool overhang_fan_control= false;
     int  overhang_fan_speed   = 0;
+    float pre_start_overhang_fan_time = 0.f;
 
     enum class SetFanType {
         sfChangingLayer = 0,
@@ -372,7 +373,7 @@ std::string GCodeEditor::write_layer_gcode(
         sfImmediatelyApply
     };
 
-    auto change_extruder_set_fan = [ this, layer_id, layer_time, &new_gcode, &overhang_fan_control, &overhang_fan_speed](SetFanType type) {
+    auto change_extruder_set_fan = [this, layer_id, layer_time, &new_gcode, &overhang_fan_control, &overhang_fan_speed, &pre_start_overhang_fan_time](SetFanType type) {
 #define EXTRUDER_CONFIG(OPT) m_config.OPT.get_at(m_current_extruder)
         int fan_min_speed = EXTRUDER_CONFIG(fan_min_speed);
         int fan_speed_new = EXTRUDER_CONFIG(reduce_fan_stop_start_freq) ? fan_min_speed : 0;
@@ -436,6 +437,8 @@ std::string GCodeEditor::write_layer_gcode(
                 this->m_set_addition_fan_changing_layer = true;
             //BBS: don't need to handle change filament, because we are always force to resume fan speed when filament change is finished
         }
+        //BBS: set fan pre start time value
+        pre_start_overhang_fan_time = overhang_fan_control ? m_config.pre_start_fan_time.get_at(m_current_extruder) : 0.f;
     };
 
     const char         *pos               = gcode.c_str();
@@ -446,7 +449,6 @@ std::string GCodeEditor::write_layer_gcode(
     change_extruder_set_fan(SetFanType::sfChangingLayer);
 
     //BBS: start the fan earlier for overhangs
-    const float pre_start_overhang_fan_time = overhang_fan_control? m_config.pre_start_fan_time.get_at(m_current_extruder):0.f;
     float cumulative_time = 0.f;
     float search_time     = 0.f;
 
@@ -481,6 +483,8 @@ std::string GCodeEditor::write_layer_gcode(
             if (new_extruder != m_current_extruder) {
                 m_current_extruder = new_extruder;
                 change_extruder_set_fan(SetFanType::sfChangingFilament); //BBS: will force to resume fan speed when filament change is finished
+                cumulative_time             = 0.f;
+                search_time                 = 0.f;
             }
             new_gcode.append(line_start, line_end - line_start);
         } else if (line->type & CoolingLine::TYPE_OVERHANG_FAN_START) {
