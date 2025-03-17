@@ -332,9 +332,9 @@ const Option &OptionsSearcher::get_option(const std::string &opt_key, Preset::Ty
         variant_index = -1;
     } else if (it->opt_key() != opt_key) {
         auto it2 = it;
-        while (it2 != options.end() && it2->opt_key() != opt_key && it2->opt_key().compare(0, opt_key2.length(), opt_key2) == 0)
+        while (it2 != options.end() && it2->opt_key() != opt_key && it2->opt_key().compare(0, opt_key2.length(), opt_key2) != 0)
             ++it2;
-        if (it2->opt_key() == opt_key)
+        if (it2 != options.end() && it2->opt_key() == opt_key)
             it = it2;
         if (it2 == it)
             variant_index = -2;
