@@ -154,6 +154,7 @@ enum CaliPresetPageStatus
     CaliPresetStatusUnsupportedPrinter,
     CaliPresetStatusInConnecting,
     CaliPresetStatusFilamentIncompatible,
+    CaliPresetStatusLanModeSDcardNotAvailable,
     CaliPresetStatusDifferentNozzleDiameters
 };
 
