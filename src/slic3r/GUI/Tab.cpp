@@ -57,6 +57,12 @@ namespace GUI {
 
 static const std::vector<std::string> plate_keys = { "curr_bed_type", "first_layer_print_sequence", "first_layer_sequence_choice", "other_layers_print_sequence", "other_layers_sequence_choice", "print_sequence", "spiral_mode"};
 
+static std::pair<std::string, std::string> extruder_variant_keys[]{
+    {}, {"print_extruder_id", "print_extruder_variant"},     // Preset::TYPE_PRINT
+    {}, {"", "filament_extruder_variant"},                   // Preset::TYPE_FILAMENT filament don't use id anymore
+    {}, {"printer_extruder_id", "printer_extruder_variant"}, // Preset::TYPE_PRINTER
+};
+
 void Tab::Highlighter::set_timer_owner(wxEvtHandler* owner, int timerid/* = wxID_ANY*/)
 {
     m_timer.SetOwner(owner, timerid);
@@ -1774,6 +1780,31 @@ void Tab::apply_config_from_cache()
         was_applied = static_cast<TabPrinter*>(this)->apply_extruder_cnt_from_cache();
 
     if (!m_cache_config.empty()) {
+        auto variants_key = extruder_variant_keys[m_type].second;
+        if (m_cache_options.back() == variants_key) {
+            m_cache_options.pop_back();
+            ConfigOptionStrings *old_variants = dynamic_cast<ConfigOptionStrings *>(m_cache_config.option(variants_key));
+            ConfigOptionStrings *new_variants = dynamic_cast<ConfigOptionStrings *>(m_config->option(variants_key));
+            std::vector<std::string> variant_options;
+            boost::split(variant_options, m_cache_options.back(), boost::is_any_of(";"));
+            m_cache_options.pop_back();
+            auto title = m_cache_options.back();
+            m_cache_options.pop_back();
+            if (!(*old_variants == *new_variants) && old_variants->size() == 1) {
+                for (auto &opt : variant_options) {
+                    auto copy = dynamic_cast<ConfigOptionVectorBase *>(m_cache_config.option(opt)->clone());
+                    copy->resize(new_variants->size());
+                    m_cache_config.set_key_value(opt, copy);
+                }
+                old_variants = new_variants;
+            }
+            if (*old_variants == *new_variants) {
+                m_cache_options.insert(m_cache_options.end(), variant_options.begin(), variant_options.end());
+            } else {
+                auto msg = _L("Switching to a printer with different extruder types or numbers will discard or reset changes to extruder or multi-nozzle-related parameters.");
+                MessageDialog(wxGetApp().plater(), msg, from_u8(title), wxOK | wxICON_WARNING).ShowModal();
+            }
+        }
         m_presets->get_edited_preset().config.apply_only(m_cache_config, m_cache_options);
         m_cache_config.clear();
         m_cache_options.clear();
@@ -4864,7 +4895,7 @@ bool Tab::select_preset(
     if (current_dirty && print_tab) {
         option_for_dirty_preset = option;
     }
-    if (current_dirty && ! may_discard_current_dirty_preset(nullptr, preset_name, no_transfer, 0, option_for_dirty_preset) && !force_select) {
+    if (current_dirty && ! may_discard_current_dirty_preset(nullptr, preset_name, no_transfer, option_for_dirty_preset) && !force_select) {
         canceled = true;
         BOOST_LOG_TRIVIAL(info) << boost::format("current dirty and cancelled");
     } else if (print_tab) {
@@ -4879,7 +4910,7 @@ bool Tab::select_preset(
         bool 			   new_preset_compatible = is_compatible_with_print(dependent.get_edited_preset_with_vendor_profile(),
         	m_presets->get_preset_with_vendor_profile(*m_presets->find_preset(preset_name, true)), printer_profile);
         if (! canceled)
-            canceled = old_preset_dirty && ! new_preset_compatible && ! may_discard_current_dirty_preset(&dependent, preset_name, false, 0, option) && !force_select;
+            canceled = old_preset_dirty && ! new_preset_compatible && ! may_discard_current_dirty_preset(&dependent, preset_name, false, option) && !force_select;
         if (! canceled) {
             // The preset will be switched to a different, compatible preset, or the '-- default --'.
             m_dependent_tabs.emplace_back((printer_technology == ptFFF) ? Preset::Type::TYPE_FILAMENT : Preset::Type::TYPE_SLA_MATERIAL);
@@ -4917,14 +4948,11 @@ bool Tab::select_preset(
                 //{ Preset::Type::TYPE_SLA_MATERIAL,  &m_preset_bundle->sla_materials,ptSLA }
             };
             Preset *to_be_selected = m_presets->find_preset(preset_name, false, true);
-            ConfigOptionStrings* cur_opt2 = dynamic_cast <ConfigOptionStrings *>(m_presets->get_edited_preset().config.option("printer_extruder_variant"));
-            ConfigOptionStrings* to_select_opt2 = dynamic_cast <ConfigOptionStrings *>(to_be_selected->config.option("printer_extruder_variant"));
-            int copy_variants = cur_opt2->values == to_select_opt2->values ? 0 : cur_opt2->values.size() == 1 ? to_select_opt2->values.size() : -1;
             for (PresetUpdate &pu : updates) {
                 pu.old_preset_dirty = (old_printer_technology == pu.technology) && pu.presets->current_is_dirty();
                 pu.new_preset_compatible = (new_printer_technology == pu.technology) && is_compatible_with_printer(pu.presets->get_edited_preset_with_vendor_profile(), new_printer_preset_with_vendor_profile);
                 if (!canceled)
-                    canceled = pu.old_preset_dirty && !pu.new_preset_compatible && !may_discard_current_dirty_preset(pu.presets, preset_name, false, copy_variants, option) && !force_select;
+                    canceled = pu.old_preset_dirty && !pu.new_preset_compatible && !may_discard_current_dirty_preset(pu.presets, preset_name, false, option) && !force_select;
             }
             if (!canceled) {
                 for (PresetUpdate &pu : updates) {
@@ -5097,7 +5125,7 @@ bool Tab::select_preset(
 
 // If the current preset is dirty, the user is asked whether the changes may be discarded.
 // if the current preset was not dirty, or the user agreed to discard the changes, 1 is returned.
-bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr*/, const std::string& new_printer_name /*= ""*/, bool no_transfer, int copy_variants, ForceOption force_op)
+bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr*/, const std::string& new_printer_name /*= ""*/, bool no_transfer, ForceOption force_op)
 {
     if (presets == nullptr) presets = m_presets;
 
@@ -5131,7 +5159,7 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
         }
         };
 
-    auto handle_transfer_action = [&dlg, this, presets, no_transfer, copy_variants]() {
+    auto handle_transfer_action = [&dlg, this, presets, no_transfer]() {
         std::vector<std::string> selected_options = dlg.get_selected_options();
 
         if (m_type == presets->type()) // move changes for the current preset from this tab
@@ -5152,33 +5180,27 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
         else
             wxGetApp().get_tab(presets->type())->cache_config_diff(selected_options);
 
-        if (!no_transfer && copy_variants) {
-            auto& options_list = wxGetApp().get_tab(presets->type())->m_options_list;
-            auto &cache_options = wxGetApp().get_tab(presets->type())->m_cache_options;
-            auto &cache_config = wxGetApp().get_tab(presets->type())->m_cache_config;
-            auto &edited_config = wxGetApp().get_tab(presets->type())->m_presets->get_edited_preset().config;
-            bool has_variants = false;
+        if (!no_transfer) {
+            Preset::Type type = presets->type();
+            Tab * tab = wxGetApp().get_tab(type);
+            auto& options_list = tab->m_options_list;
+            auto &cache_options = tab->m_cache_options;
+            auto &cache_config = tab->m_cache_config;
+            auto &edited_config = presets->get_edited_preset().config;
+            std::vector<std::string> variant_options;
             for (auto &opt : cache_options) {
                 if (auto n = opt.find('#'); n != std::string::npos) {
-                    auto key = opt.substr(0, n);
-                    auto iter = options_list.lower_bound(key);
-                    if (iter == options_list.end() || opt != key) {
-                        if (copy_variants < 0) {
-                            has_variants = true;
-                            opt.clear();
-                        } else {
-                            auto val = dynamic_cast<ConfigOptionVectorBase *>(edited_config.option(key)->clone());
-                            val->resize(copy_variants);
-                            cache_config.set_key_value(key, val);
-                            opt = key;
-                        }
-                    }
+                    variant_options.push_back(opt.substr(0, n));
+                    opt.clear();
                 }
             }
-            if (has_variants) {
-                cache_options.erase(std::remove(cache_options.begin(), cache_options.end(), ""), cache_options.end());
-                auto msg = _L("Switching to a printer with different extruder types or numbers will discard or reset changes to extruder or multi-nozzle-related parameters.");
-                MessageDialog(wxGetApp().plater(), msg, dlg.GetTitle(), wxOK | wxICON_WARNING).ShowModal();
+            if (!variant_options.empty()) {
+                cache_options.erase(std::remove(cache_options.begin(), cache_options.end(), std::string{}), cache_options.end());
+                cache_options.push_back(into_u8(dlg.GetTitle()));
+                cache_options.push_back(boost::join(variant_options, ";"));
+                cache_options.push_back(extruder_variant_keys[type].second);
+                variant_options.push_back(extruder_variant_keys[type].second);
+                cache_config.apply_only(edited_config, variant_options);
             }
         }
     };
@@ -6116,11 +6138,6 @@ void Tab::switch_excluder(int extruder_id, bool reload)
     Preset & printer_preset = m_preset_bundle->printers.get_edited_preset();
     auto nozzle_volumes = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
     auto extruders      = printer_preset.config.option<ConfigOptionEnumsGeneric>("extruder_type");
-    std::pair<std::string, std::string> variant_keys[]{
-        {}, {"print_extruder_id", "print_extruder_variant"},     // Preset::TYPE_PRINT
-        {}, {"", "filament_extruder_variant"},                   // Preset::TYPE_FILAMENT filament don't use id anymore
-        {}, {"printer_extruder_id", "printer_extruder_variant"}, // Preset::TYPE_PRINTER
-    };
     if (m_extruder_switch && m_type != Preset::TYPE_PRINTER) {
         int current_extruder = m_extruder_switch->IsThisEnabled() && m_extruder_switch->GetValue() ? 1 : 0;
         m_extruder_sync->Enable(m_extruder_switch->IsThisEnabled() && extruders->values[0] == extruders->values[1] &&
@@ -6139,7 +6156,7 @@ void Tab::switch_excluder(int extruder_id, bool reload)
             return;
     }
     auto get_index_for_extruder =
-            [this, &extruders, &nozzle_volumes, variant_keys = variant_keys[m_type >= Preset::TYPE_COUNT ? Preset::TYPE_PRINT : m_type]](int extruder_id, int stride = 1) {
+            [this, &extruders, &nozzle_volumes, variant_keys = extruder_variant_keys[m_type >= Preset::TYPE_COUNT ? Preset::TYPE_PRINT : m_type]](int extruder_id, int stride = 1) {
         return m_config->get_index_for_extruder(extruder_id + 1, variant_keys.first,
             ExtruderType(extruders->values[extruder_id]), NozzleVolumeType(nozzle_volumes->values[extruder_id]), variant_keys.second, stride);
     };
@@ -6195,13 +6212,8 @@ void Tab::sync_excluder()
     Preset & printer_preset = m_preset_bundle->printers.get_edited_preset();
     auto nozzle_volumes = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
     auto extruders      = printer_preset.config.option<ConfigOptionEnumsGeneric>("extruder_type");
-    std::pair<std::string, std::string> variant_keys[]{
-        {}, {"print_extruder_id", "print_extruder_variant"},     // Preset::TYPE_PRINT
-        {}, {"", "filament_extruder_variant"},                   // Preset::TYPE_FILAMENT filament don't use id anymore
-        {}, {"printer_extruder_id", "printer_extruder_variant"}, // Preset::TYPE_PRINTER
-    };
     auto get_index_for_extruder =
-            [this, &extruders, &nozzle_volumes, variant_keys = variant_keys[m_type >= Preset::TYPE_COUNT ? Preset::TYPE_PRINT : m_type]](int extruder_id) {
+            [this, &extruders, &nozzle_volumes, variant_keys = extruder_variant_keys[m_type >= Preset::TYPE_COUNT ? Preset::TYPE_PRINT : m_type]](int extruder_id) {
         return m_config->get_index_for_extruder(extruder_id + 1, variant_keys.first,
             ExtruderType(extruders->values[extruder_id]), NozzleVolumeType(nozzle_volumes->values[extruder_id]), variant_keys.second);
     };

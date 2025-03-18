@@ -335,7 +335,7 @@ public:
     void		update_preset_choice();
     // Select a new preset, possibly delete the current one.
     bool select_preset(std::string preset_name = "", bool delete_current = false, const std::string &last_selected_ph_printer_name = "", bool force_select = false, bool force_no_transfer = false);
-	bool		may_discard_current_dirty_preset(PresetCollection* presets = nullptr, const std::string& new_printer_name = "", bool no_transfer = false, int copy_variants = 0, ForceOption force_op = ForceOption::fopNone);
+	bool		may_discard_current_dirty_preset(PresetCollection* presets = nullptr, const std::string& new_printer_name = "", bool no_transfer = false, ForceOption force_op = ForceOption::fopNone);
 
     virtual void    clear_pages();
     virtual void    update_description_lines();
