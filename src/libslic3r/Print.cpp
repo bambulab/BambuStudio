@@ -106,6 +106,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "overhang_threshold_participating_cooling",
         "slow_down_for_layer_cooling",
         "default_acceleration",
+        "travel_acceleration",
         "deretraction_speed",
         "close_fan_the_first_x_layers",
         "machine_end_gcode",

@@ -54,7 +54,8 @@ public:
     std::string set_temperature(unsigned int temperature, bool wait = false, int tool = -1) const;
     std::string set_bed_temperature(int temperature, bool wait = false);
     std::string set_chamber_temperature(int temperature, bool wait = false);
-    std::string set_acceleration(unsigned int acceleration);
+    void set_acceleration(unsigned int acceleration);
+    void set_travel_acceleration(const std::vector<unsigned int>& travel_accelerations);
     std::string set_pressure_advance(double pa) const;
     std::string set_jerk_xy(double jerk);
     std::string reset_e(bool force = false);
@@ -118,6 +119,11 @@ public:
     static const double slope_threshold;
 
 private:
+    std::string set_extrude_acceleration();
+    std::string set_travel_acceleration();
+    std::string set_acceleration_impl(unsigned int acceleration);
+
+private:
 	// Extruders are sorted by their ID, so that binary search is possible.
     std::vector<Extruder> m_filament_extruders;
     bool            m_single_extruder_multi_material;
@@ -151,6 +157,9 @@ private:
 
     std::string m_gcode_label_objects_start;
     std::string m_gcode_label_objects_end;
+
+    unsigned int m_acceleration{0};
+    std::vector<unsigned int> m_travel_accelerations;  // multi extruder, extruder size
 
     std::string _travel_to_z(double z, const std::string &comment,bool tool_change=false);
     std::string _spiral_travel_to_z(double z, const Vec2d &ij_offset, const std::string &comment, bool tool_change = false);

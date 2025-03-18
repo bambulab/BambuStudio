@@ -1249,6 +1249,15 @@ void PrintConfigDef::init_fff_params()
     def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable{500.0});
 
+    def           = this->add("travel_acceleration", coFloats);
+    def->label    = L("Travel");
+    def->tooltip  = L("The acceleration of travel except initial layer");
+    def->sidetext = "mm/s²";
+    def->min      = 0;
+    def->mode     = comAdvanced;
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable{500.0});
+
     def = this->add("default_filament_profile", coStrings);
     def->label = L("Default filament profile");
     def->tooltip = L("Default filament profile when switch to this machine profile");
@@ -5637,6 +5646,7 @@ std::set<std::string> print_options_with_variant = {
     "travel_speed",
     "travel_speed_z",
     "default_acceleration",
+    "travel_acceleration",
     "initial_layer_acceleration",
     "outer_wall_acceleration",
     "inner_wall_acceleration",

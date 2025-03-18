@@ -123,6 +123,9 @@
     "top_surface_speed": [
         "30"
     ],
+    "travel_acceleration": [
+        "10000"
+    ],
     "travel_speed": [
         "400"
     ],
