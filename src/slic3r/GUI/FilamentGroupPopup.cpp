@@ -48,45 +48,23 @@ static void set_prefered_map_mode(FilamentMapMode mode)
 
 bool play_dual_extruder_slice_video()
 {
-    bool is_zh = wxGetApp().app_config->get("language") == "zh_CN";
-    fs::path video_path;
-    if (is_zh)
-        video_path = fs::path(resources_dir()) / "videos/dual_extruder_slicing_zh.mp4";
-    else
-        video_path = fs::path(resources_dir()) / "videos/dual_extruder_slicing_en.mp4";
-    wxString video_path_str = wxString::FromUTF8(video_path.string());
-
-    if (wxFileExists(video_path_str)) {
-        if (wxLaunchDefaultApplication(video_path_str)) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("Video is being played using the system's default player.");
-            return true;
-        }
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("launch system's default player failed");
-        return false;
+    const wxString video_url = "https://e.bambulab.com/t?c=HDB24RlwSmt77YFH";
+    if (wxLaunchDefaultBrowser(video_url)) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("Video is being played using the system's default browser.");
+        return true;
     }
-    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("Video file does not exist: %s") % video_path_str.ToStdString();
+    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("launch system's default browser failed");
     return false;
 }
 
 bool open_filament_group_wiki()
 {
-    bool is_zh = wxGetApp().app_config->get("language") == "zh_CN";
-    fs::path wiki_path;
-    if (is_zh)
-        wiki_path = fs::path(resources_dir()) / "wiki/filament_group_wiki_zh.html";
-    else
-        wiki_path = fs::path(resources_dir()) / "wiki/filament_group_wiki_en.html";
-
-    wxString wiki_path_str = wxString::FromUTF8(wiki_path.string());
-    if (wxFileExists(wiki_path_str)) {
-        if (wxLaunchDefaultBrowser(wiki_path_str)) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("Wiki is being displayed using the system's default browser.");
-            return true;
-        }
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("launch system's default browser failed");
-        return false;
+    const wxString wiki_url = "https://e.bambulab.com/t?c=mOkvsXkJ9pldGYp9";
+    if (wxLaunchDefaultBrowser(wiki_url)) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("Wiki is being displayed using the system's default browser.");
+        return true;
     }
-    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("Wiki file does not exist: %s") % wiki_path_str.ToStdString();
+    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("launch system's default browser failed");
     return false;
 }
 
