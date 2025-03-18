@@ -5632,6 +5632,7 @@ std::set<std::string> print_options_with_variant = {
     "overhang_2_4_speed",
     "overhang_3_4_speed",
     "overhang_4_4_speed",
+    "overhang_totally_speed",
     "bridge_speed",
     "gap_infill_speed",
     "support_speed",
