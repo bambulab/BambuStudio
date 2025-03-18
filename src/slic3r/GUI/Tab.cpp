@@ -6265,7 +6265,12 @@ void Tab::sync_excluder()
     dlg.ShowModal();
     if (dlg.transfer_changes()) {
         m_config->apply(config_to_apply);
+        auto &applying_keys = const_cast<t_config_option_keys&>(m_config_manipulation.applying_keys());
+        if (m_type > Preset::TYPE_COUNT)
+            applying_keys = config_to_apply.keys();
         reload_config();
+        if (m_type > Preset::TYPE_COUNT)
+            applying_keys.clear();
         update_changed_ui();
         update();
         if (m_active_page)
