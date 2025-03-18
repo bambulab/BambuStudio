@@ -2423,11 +2423,17 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     }
     if (this->m_objsWithBrim.empty() && this->m_objSupportsWithBrim.empty()) m_brim_done = true;
 
+    std::vector<unsigned int> travel_accelerations;
+    for (auto value : m_config.travel_acceleration.values) {
+        travel_accelerations.emplace_back((unsigned int) floor(value + 0.5));
+    }
+    m_writer.set_travel_acceleration(travel_accelerations);
+
     // OrcaSlicer: calib
     if (print.calib_params().mode == CalibMode::Calib_PA_Line) {
         std::string gcode;
         if ((m_config.default_acceleration.get_at(cur_extruder_index()) > 0 && m_config.outer_wall_acceleration.get_at(cur_extruder_index()) > 0)) {
-            gcode += m_writer.set_acceleration((unsigned int) floor(m_config.outer_wall_acceleration.get_at(cur_extruder_index()) + 0.5));
+            m_writer.set_acceleration((unsigned int) floor(m_config.outer_wall_acceleration.get_at(cur_extruder_index()) + 0.5));
         }
 
         if (m_config.default_jerk.value > 0 && !this->is_BBL_Printer()) {
@@ -3706,7 +3712,7 @@ GCode::LayerResult GCode::process_layer(
         //BBS: set first layer global acceleration
         if (m_config.default_acceleration.get_at(cur_extruder_index()) > 0 && m_config.initial_layer_acceleration.get_at(cur_extruder_index()) > 0) {
             double acceleration = m_config.initial_layer_acceleration.get_at(cur_extruder_index());
-            gcode += m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5));
+            m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5));
         }
 
         if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0 && !this->is_BBL_Printer())
@@ -3733,7 +3739,7 @@ GCode::LayerResult GCode::process_layer(
         //BBS:  reset acceleration at sencond layer
         if (m_config.default_acceleration.get_at(cur_extruder_index()) > 0 && m_config.initial_layer_acceleration.get_at(cur_extruder_index()) > 0) {
             double acceleration = m_config.default_acceleration.get_at(cur_extruder_index());
-            gcode += m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5));
+            m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5));
         }
 
         if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0 && !this->is_BBL_Printer())
@@ -4784,7 +4790,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     //BBS: don't reset acceleration when printing first layer. During first layer, acceleration is always same value.
     if (!this->on_first_layer()) {
         // reset acceleration
-        gcode += m_writer.set_acceleration((unsigned int) (m_config.default_acceleration.get_at(cur_extruder_index()) + 0.5));
+        m_writer.set_acceleration((unsigned int) (m_config.default_acceleration.get_at(cur_extruder_index()) + 0.5));
         if (!this->is_BBL_Printer())
             gcode += m_writer.set_jerk_xy(m_config.default_jerk.value);
     }
@@ -4869,7 +4875,7 @@ std::string GCode::extrude_multi_path(ExtrusionMultiPath multipath, std::string 
     //BBS: don't reset acceleration when printing first layer. During first layer, acceleration is always same value.
     if (!this->on_first_layer()) {
         // reset acceleration
-        gcode += m_writer.set_acceleration((unsigned int) floor(m_config.default_acceleration.get_at(cur_extruder_index()) + 0.5));
+        m_writer.set_acceleration((unsigned int) floor(m_config.default_acceleration.get_at(cur_extruder_index()) + 0.5));
         if (!this->is_BBL_Printer())
             gcode += m_writer.set_jerk_xy(m_config.default_jerk.value);
     }
@@ -4901,7 +4907,7 @@ std::string GCode::extrude_path(ExtrusionPath path, std::string description, dou
     //BBS: don't reset acceleration when printing first layer. During first layer, acceleration is always same value.
     if (!this->on_first_layer()) {
         // reset acceleration
-        gcode += m_writer.set_acceleration((unsigned int) floor(m_config.default_acceleration.get_at(cur_extruder_index()) + 0.5));
+        m_writer.set_acceleration((unsigned int) floor(m_config.default_acceleration.get_at(cur_extruder_index()) + 0.5));
         if (!this->is_BBL_Printer())
             gcode += m_writer.set_jerk_xy(m_config.default_jerk.value);
     }
@@ -5368,7 +5374,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         } else {
             acceleration = m_config.default_acceleration.get_at(cur_extruder_index());
         }
-        gcode += m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5));
+        m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5));
     }
 
     if (m_config.default_jerk.value > 0 && !this->is_BBL_Printer()) {

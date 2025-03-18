@@ -461,6 +461,12 @@ private:
     bool            m_adhesion                  = true;
     GCodeFlavor     m_gcode_flavor;
 
+    std::vector<unsigned int> m_normal_accels;
+    std::vector<unsigned int> m_travel_accels;
+    unsigned int              m_max_accels;
+    bool                      m_accel_to_decel_enable;
+    float                     m_accel_to_decel_factor;
+
     // Bed properties
     enum {
         RectangularBed,
@@ -522,6 +528,7 @@ private:
 	// BBS
 	box_coordinates align_perimeter(const box_coordinates& perimeter_box);
 
+    void set_for_wipe_tower_writer(WipeTowerWriter &writer);
 
     // to store information about tool changes for a given layer
 	struct WipeTowerInfo{

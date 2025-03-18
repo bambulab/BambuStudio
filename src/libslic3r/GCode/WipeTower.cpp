@@ -670,6 +670,12 @@ public:
 			m_extrusions.emplace_back(WipeTower::Extrusion(rot, width, m_current_tool));
 		}
 
+        if (e == 0.f) {
+            m_gcode += set_travel_acceleration();
+        } else {
+            m_gcode += set_normal_acceleration();
+        }
+
 		m_gcode += "G1";
         if (std::abs(rot.x() - rotated_current_pos.x()) > (float)EPSILON)
 			m_gcode += set_format_X(rot.x());
@@ -741,6 +747,13 @@ public:
             }
 
         }
+
+        if (e == 0.f) {
+            m_gcode += set_travel_acceleration();
+        } else {
+            m_gcode += set_normal_acceleration();
+        }
+
         m_gcode += arc.direction == ArcDirection::Arc_Dir_CCW ? "G3" : "G2";
         const Vec2f center_offset = this->rotate(unscaled<float>(arc.center)) - rotated_current_pos;
         m_gcode += set_format_X(rot.x());
@@ -1205,6 +1218,73 @@ public:
         }
     }
 
+    void set_normal_acceleration(const std::vector<unsigned int> &accelerations) { m_normal_accelerations = accelerations; };
+    void set_travel_acceleration(const std::vector<unsigned int> &accelerations) { m_travel_accelerations = accelerations; };
+    void set_max_acceleration(unsigned int acceleration) { m_max_acceleration = acceleration; };
+    void set_filament_map(const std::vector<int> &filament_map) { m_filament_map = filament_map; }
+    void set_accel_to_decel_enable(bool enable) { m_accel_to_decel_enable = enable; }
+    void set_accel_to_decel_factor(float factor) { m_accel_to_decel_factor = factor; }
+
+private:
+    std::string set_normal_acceleration() {
+        if (m_normal_accelerations.empty() || m_filament_map.empty())
+            return std::string();
+
+        unsigned int acc = m_normal_accelerations[m_filament_map[m_current_tool] - 1];
+        return set_acceleration_impl(acc);
+    }
+    std::string set_travel_acceleration()
+    {
+        if (m_travel_accelerations.empty() || m_filament_map.empty())
+            return std::string();
+
+        unsigned int acc = m_travel_accelerations[m_filament_map[m_current_tool] - 1];
+        return set_acceleration_impl(acc);
+    }
+    std::string set_acceleration_impl(unsigned int acceleration) {
+        // Clamp the acceleration to the allowed maximum.
+        if (m_max_acceleration > 0 && acceleration > m_max_acceleration)
+            acceleration = m_max_acceleration;
+
+        if (acceleration == 0 || acceleration == m_last_acceleration)
+            return std::string();
+
+        m_last_acceleration = acceleration;
+
+        std::ostringstream gcode;
+        if (m_gcode_flavor == gcfRepetier) {
+            // M201: Set max printing acceleration
+            gcode << "M201 X" << acceleration << " Y" << acceleration;
+            gcode << "\n";
+            // M202: Set max travel acceleration
+            gcode << "M202 X" << acceleration << " Y" << acceleration;
+        } else if (m_gcode_flavor == gcfRepRapFirmware) {
+            // M204: Set default acceleration
+            gcode << "M204 P" << acceleration;
+        } else if (m_gcode_flavor == gcfMarlinFirmware) {
+            // This is new MarlinFirmware with separated print/retraction/travel acceleration.
+            // Use M204 P, we don't want to override travel acc by M204 S (which is deprecated anyway).
+            gcode << "M204 P" << acceleration;
+        }
+        else if (m_gcode_flavor == gcfKlipper && m_accel_to_decel_enable) {
+            gcode << "SET_VELOCITY_LIMIT ACCEL_TO_DECEL=" << acceleration * m_accel_to_decel_factor / 100;
+            gcode << "\nM204 S" << acceleration;
+        }
+        else {
+            // M204: Set default acceleration
+            gcode << "M204 S" << acceleration;
+        }
+        gcode << "\n";
+        return gcode.str();
+    }
+    std::vector<unsigned int> m_normal_accelerations;
+    std::vector<unsigned int> m_travel_accelerations;
+    unsigned int              m_max_acceleration{0};
+    unsigned int              m_last_acceleration{0};
+    std::vector<int>          m_filament_map;
+    bool                      m_accel_to_decel_enable;
+    float                     m_accel_to_decel_factor;
+
 private:
 	Vec2f         m_start_pos;
 	Vec2f         m_current_pos;
@@ -1517,8 +1597,22 @@ WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origi
     m_extra_spacing((float)config.prime_tower_infill_gap.value/100.f),
     m_tower_framework(config.prime_tower_enable_framework.value),
     m_max_speed((float)config.prime_tower_max_speed.value*60.f),
-    m_printable_height(config.extruder_printable_height.values)
+    m_printable_height(config.extruder_printable_height.values),
+    m_accel_to_decel_enable(config.accel_to_decel_enable.value),
+    m_accel_to_decel_factor(config.accel_to_decel_factor.value)
 {
+    m_normal_accels.clear();
+    for (auto value : config.default_acceleration.values) {
+        m_normal_accels.emplace_back((unsigned int) floor(value + 0.5));
+    }
+
+    m_travel_accels.clear();
+    for (auto value : config.travel_acceleration.values) {
+        m_travel_accels.emplace_back((unsigned int) floor(value + 0.5));
+    }
+
+    m_max_accels = config.machine_max_acceleration_extruding.values.front();
+
     // Read absolute value of first layer speed, if given as percentage,
     // it is taken over following default. Speeds from config are not
     // easily accessible here.
@@ -1734,6 +1828,7 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool, bool extrude_per
 				"; CP TOOLCHANGE START\n")
 		.comment_with_value(" toolchange #", m_num_tool_changes + 1); // the number is zero-based
 
+    set_for_wipe_tower_writer(writer);
 
     if (tool != (unsigned)(-1))
         writer.append(std::string("; material : " + (m_current_tool < m_filpar.size() ? m_filpar[m_current_tool].material : "(NONE)") + " -> " + m_filpar[tool].material + "\n").c_str())
@@ -1892,6 +1987,8 @@ WipeTower::NozzleChangeResult WipeTower::nozzle_change(int old_filament_id, int 
         .set_extrusion_flow(m_extrusion_flow)
         .set_y_shift(m_y_shift + (new_filament_id != (unsigned int) (-1) && (m_current_shape == SHAPE_REVERSED) ? m_layer_info->depth - m_layer_info->toolchanges_depth() : 0.f))
         .append(format_nozzle_change_line(true,old_filament_id,new_filament_id));
+
+    set_for_wipe_tower_writer(writer);
 
     box_coordinates cleaning_box(Vec2f(m_perimeter_width, m_perimeter_width), m_wipe_tower_width - 2 * m_perimeter_width,
                                  (new_filament_id != (unsigned int) (-1) ? wipe_depth + m_depth_traversed - m_perimeter_width : m_wipe_tower_depth - m_perimeter_width));
@@ -2322,6 +2419,16 @@ WipeTower::box_coordinates WipeTower::align_perimeter(const WipeTower::box_coord
     return aligned_box;
 }
 
+void WipeTower::set_for_wipe_tower_writer(WipeTowerWriter &writer)
+{
+    writer.set_normal_acceleration(m_normal_accels);
+    writer.set_travel_acceleration(m_travel_accels);
+    writer.set_max_acceleration(m_max_accels);
+    writer.set_filament_map(m_filament_map);
+    writer.set_accel_to_decel_enable(m_accel_to_decel_enable);
+    writer.set_accel_to_decel_factor(m_accel_to_decel_factor);
+}
+
 WipeTower::ToolChangeResult WipeTower::finish_layer(bool extrude_perimeter, bool extruder_fill)
 {
 	assert(! this->layer_finished());
@@ -2334,6 +2441,8 @@ WipeTower::ToolChangeResult WipeTower::finish_layer(bool extrude_perimeter, bool
 		.set_z(m_z_pos)
 		.set_initial_tool(m_current_tool)
         .set_y_shift(m_y_shift - (m_current_shape == SHAPE_REVERSED ? m_layer_info->toolchanges_depth() : 0.f));
+
+    set_for_wipe_tower_writer(writer);
 
     writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Tower_Start) + "\n");
 
@@ -2836,6 +2945,8 @@ WipeTower::ToolChangeResult WipeTower::tool_change_new(size_t new_tool, bool sol
                 "; CP TOOLCHANGE START\n")
         .comment_with_value(" toolchange #", m_num_tool_changes + 1); // the number is zero-based
 
+    set_for_wipe_tower_writer(writer);
+
     if (new_tool != (unsigned) (-1))
         writer.append( std::string("; material : " + (m_current_tool < m_filpar.size() ? m_filpar[m_current_tool].material : "(NONE)") + " -> " + m_filpar[new_tool].material + "\n").c_str())
             .append(";--------------------\n");
@@ -2885,7 +2996,7 @@ WipeTower::ToolChangeResult WipeTower::tool_change_new(size_t new_tool, bool sol
             }
             writer.travel(initial_position);
         }
-#endif 
+#endif
         toolchange_wipe_new(writer, cleaning_box, wipe_length, solid_toolchange);
 
         writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Tower_End) + "\n");
@@ -2946,6 +3057,7 @@ WipeTower::NozzleChangeResult WipeTower::nozzle_change_new(int old_filament_id, 
         .set_initial_tool(m_current_tool)
         .set_y_shift(m_y_shift + (new_filament_id != (unsigned int) (-1) && (m_current_shape == SHAPE_REVERSED) ? m_layer_info->depth - m_layer_info->toolchanges_depth() : 0.f))
         .append(format_nozzle_change_line(true, old_filament_id, new_filament_id));
+    set_for_wipe_tower_writer(writer);
 
     WipeTowerBlock* block = get_block_by_category(m_filpar[old_filament_id].category, false);
     if (!block) {
@@ -3068,6 +3180,8 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
         .set_z(m_z_pos)
         .set_initial_tool(m_current_tool)
         .set_y_shift(m_y_shift - (m_current_shape == SHAPE_REVERSED ? m_layer_info->toolchanges_depth() : 0.f));
+
+    set_for_wipe_tower_writer(writer);
 
     writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Tower_Start) + "\n");
 
@@ -3240,6 +3354,8 @@ WipeTower::ToolChangeResult WipeTower::finish_block(const WipeTowerBlock &block,
         .set_initial_tool(filament_id)
         .set_y_shift(m_y_shift - (m_current_shape == SHAPE_REVERSED ? m_layer_info->toolchanges_depth() : 0.f));
 
+    set_for_wipe_tower_writer(writer);
+
     writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Tower_Start) + "\n");
 
     // Slow down on the 1st layer.
@@ -3353,6 +3469,8 @@ WipeTower::ToolChangeResult WipeTower::finish_block_solid(const WipeTowerBlock &
         .set_z(m_z_pos)
         .set_initial_tool(filament_id)
         .set_y_shift(m_y_shift - (m_current_shape == SHAPE_REVERSED ? m_layer_info->toolchanges_depth() : 0.f));
+
+    set_for_wipe_tower_writer(writer);
 
     writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Tower_Start) + "\n");
 
@@ -4225,6 +4343,8 @@ WipeTower::ToolChangeResult WipeTower::only_generate_out_wall(bool is_new_mode)
         .set_z(m_z_pos)
         .set_initial_tool(m_current_tool)
         .set_y_shift(m_y_shift - (m_current_shape == SHAPE_REVERSED ? m_layer_info->toolchanges_depth() : 0.f));
+
+    set_for_wipe_tower_writer(writer);
 
     // Slow down on the 1st layer.
     bool first_layer = is_first_layer();

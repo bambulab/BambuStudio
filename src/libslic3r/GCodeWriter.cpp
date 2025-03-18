@@ -165,7 +165,34 @@ std::string GCodeWriter::set_chamber_temperature(int temperature, bool wait)
     return gcode.str();
 }
 
-std::string GCodeWriter::set_acceleration(unsigned int acceleration)
+void GCodeWriter::set_acceleration(unsigned int acceleration)
+{
+    m_acceleration = acceleration;
+}
+
+void GCodeWriter::set_travel_acceleration(const std::vector<unsigned int>& accelerations)
+{
+    m_travel_accelerations = accelerations;
+}
+
+std::string GCodeWriter::set_extrude_acceleration()
+{
+    return set_acceleration_impl(m_acceleration);
+}
+
+std::string GCodeWriter::set_travel_acceleration()
+{
+    if (m_travel_accelerations.empty())
+        return std::string();
+
+    Extruder *cur_filament = filament();
+    if (!cur_filament)
+        return std::string();
+
+    return set_acceleration_impl(m_travel_accelerations[cur_filament->extruder_id()]);
+}
+
+std::string GCodeWriter::set_acceleration_impl(unsigned int acceleration)
 {
     // Clamp the acceleration to the allowed maximum.
     if (m_max_acceleration > 0 && acceleration > m_max_acceleration)
@@ -347,7 +374,7 @@ std::string GCodeWriter::travel_to_xy(const Vec2d &point, const std::string &com
     w.emit_f(this->config.travel_speed.get_at(get_extruder_index(this->config, filament()->id())) * 60.0);
     //BBS
     w.emit_comment(GCodeWriter::full_gcode_comment, comment);
-    return w.string();
+    return set_travel_acceleration() + w.string();
 }
 
 /*  If this method is called more than once before calling unlift(),
@@ -383,7 +410,7 @@ std::string GCodeWriter::lazy_lift(LiftType lift_type, bool spiral_vase, bool to
 }
 
 // BBS: immediately execute an undelayed lift move with a spiral lift pattern
-// designed specifically for subsequent gcode injection (e.g. timelapse) 
+// designed specifically for subsequent gcode injection (e.g. timelapse)
 std::string GCodeWriter::eager_lift(const LiftType type, bool tool_change)
 {
     std::string lift_move;
@@ -542,7 +569,7 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
 
     m_pos = dest_point;
     this->set_current_position_clear(true);
-    return out_string;
+    return set_travel_acceleration() + out_string;
 }
 
 std::string GCodeWriter::travel_to_z(double z, const std::string &comment)
@@ -561,7 +588,7 @@ std::string GCodeWriter::travel_to_z(double z, const std::string &comment)
     /*  In all the other cases, we perform an actual Z move and cancel
         the lift. */
     m_lifted = 0;
-    return this->_travel_to_z(z, comment);
+    return set_travel_acceleration() + this->_travel_to_z(z, comment);
 }
 
 std::string GCodeWriter::_travel_to_z(double z, const std::string &comment, bool tool_change)
@@ -579,7 +606,7 @@ std::string GCodeWriter::_travel_to_z(double z, const std::string &comment, bool
     w.emit_f(speed * 60.0);
     //BBS
     w.emit_comment(GCodeWriter::full_gcode_comment, comment);
-    return w.string();
+    return set_travel_acceleration() + w.string();
 }
 
 std::string GCodeWriter::_spiral_travel_to_z(double z, const Vec2d &ij_offset, const std::string &comment, bool tool_change)
@@ -599,7 +626,7 @@ std::string GCodeWriter::_spiral_travel_to_z(double z, const Vec2d &ij_offset, c
     w.emit_string(" P1 ");
     w.emit_f(speed * 60.0);
     w.emit_comment(GCodeWriter::full_gcode_comment, comment);
-    return output + w.string();
+    return set_travel_acceleration() + output + w.string();
 }
 
 bool GCodeWriter::will_move_z(double z) const
@@ -636,7 +663,7 @@ std::string GCodeWriter::extrude_to_xy(const Vec2d &point, double dE, const std:
         w.emit_e(filament()->E());
     //BBS
     w.emit_comment(GCodeWriter::full_gcode_comment, comment);
-    return w.string();
+    return set_extrude_acceleration() + w.string();
 }
 
 //BBS: generate G2 or G3 extrude which moves by arc
@@ -658,7 +685,7 @@ std::string GCodeWriter::extrude_arc_to_xy(const Vec2d& point, const Vec2d& cent
         w.emit_e(filament()->E());
     //BBS
     w.emit_comment(GCodeWriter::full_gcode_comment, comment);
-    return w.string();
+    return set_extrude_acceleration() + w.string();
 }
 
 std::string GCodeWriter::extrude_to_xyz(const Vec3d &point, double dE, const std::string &comment, bool force_no_extrusion)
@@ -677,7 +704,7 @@ std::string GCodeWriter::extrude_to_xyz(const Vec3d &point, double dE, const std
         w.emit_e(filament()->E());
     //BBS
     w.emit_comment(GCodeWriter::full_gcode_comment, comment);
-    return w.string();
+    return set_extrude_acceleration() + w.string();
 }
 
 std::string GCodeWriter::retract(bool before_wipe)
