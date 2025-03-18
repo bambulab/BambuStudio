@@ -51,7 +51,7 @@ class X1CCalibInfos
 public:
     struct X1CCalibInfo
     {
-        int         extruder_id = -1;
+        int         extruder_id = 0;
         int         tray_id;
         int         ams_id = 0;
         int         slot_id = 0;
@@ -111,7 +111,7 @@ public:
         CALI_RESULT_PROBLEM = 1,
         CALI_RESULT_FAILED  = 2,
     };
-    int         extruder_id = -1;
+    int         extruder_id = 0;
     NozzleVolumeType nozzle_volume_type;
     int         tray_id = 0;
     int         ams_id = 0;
@@ -128,7 +128,7 @@ public:
 
 struct PACalibIndexInfo
 {
-    int         extruder_id = -1;
+    int         extruder_id = 0;
     NozzleVolumeType nozzle_volume_type;
     int         tray_id = 0;
     int         ams_id = 0;
@@ -140,7 +140,7 @@ struct PACalibIndexInfo
 
 struct PACalibExtruderInfo
 {
-    int              extruder_id = -1;
+    int              extruder_id = 0;
     NozzleVolumeType nozzle_volume_type;
     float            nozzle_diameter;
     std::string      filament_id = "";
