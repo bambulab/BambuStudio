@@ -625,8 +625,8 @@ namespace Slic3r {
 
             /**
              * @brief  Calculates the time for all blocks
-             * 
-             * Computes the time for all blocks. The provided block handler can process each block and the 
+             *
+             * Computes the time for all blocks. The provided block handler can process each block and the
              * corresponding time (usually assigned to the move of the block).
              *
              * @param keep_last_n_blocks The number of last blocks to retain during calculation (default is 0).
@@ -1091,7 +1091,10 @@ namespace Slic3r {
         GCodeProcessor();
 
         // check whether the gcode path meets the filament_map grouping requirements
-        bool check_multi_extruder_gcode_valid(const std::vector<Polygons> &unprintable_areas, const std::vector<double>& printable_heights, const std::vector<int>& filament_map);
+        bool check_multi_extruder_gcode_valid(const std::vector<Polygons> &unprintable_areas,
+                                              const std::vector<double>   &printable_heights,
+                                              const std::vector<int>      &filament_map,
+                                              const std::vector<std::set<int>>& unprintable_filament_types );
         void apply_config(const PrintConfig& config);
 
         void set_filaments(const std::vector<Extruder>&filament_lists) { m_filament_lists=filament_lists;}
