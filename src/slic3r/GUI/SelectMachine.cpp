@@ -2516,7 +2516,7 @@ void SelectMachineDialog::on_send_print()
 
     // enter sending mode
     sending_mode();
-    m_print_job->reset_print_stage();
+    if (m_print_job) { m_print_job->reset_print_stage(); }
     m_status_bar->enable_cancel_button();
 
     // get ams_mapping_result
