@@ -113,7 +113,7 @@ function HandleModelList( pVal )
 		ModelHtml[strVendor]+='<div class="PrinterBlock">'+
         '<div class="PImg">'+
 		    '<img class="ModelThumbnail" src="'+CoverImage3+'" onerror="ShowPrinterThumb(this,\''+CoverImage2+'\')" />'+
-			'<div class="ModelCheckBox" model="'+OneModel['model']+'" onClick="ChooseModel(\''+OneModel['model']+'\')"><img src="../img/greencheck.svg" /></div>'+
+			'<div class="ModelCheckBox" model="'+OneModel['model']+'" onClick="ChooseModel(\''+OneModel['model']+'\')"></div>'+
 		'</div>'+
         '    <div class="PName">'+OneModel['model']+'</div>'+ 
 		'</div>';
