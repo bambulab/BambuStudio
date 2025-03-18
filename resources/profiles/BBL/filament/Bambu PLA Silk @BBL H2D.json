@@ -9,6 +9,18 @@
     "additional_cooling_fan_speed": [
         "75"
     ],
+    "counter_coef_2": [
+        "0.02"
+    ],
+    "counter_coef_3": [
+        "-0.01"
+    ],
+    "counter_limit_max": [
+        "0.05"
+    ],
+    "counter_limit_min": [
+        "-0.05"
+    ],
     "filament_deretraction_speed": [
         "nil",
         "nil"
@@ -84,6 +96,12 @@
     "filament_ramming_travel_time": [
         "0",
         "0"
+    ],
+    "hole_coef_2": [
+        "-0.0081"
+    ],
+    "hole_coef_3": [
+        "0.2"
     ],
     "nozzle_temperature": [
         "230",

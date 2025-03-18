@@ -8,6 +8,15 @@
     "additional_cooling_fan_speed": [
         "75"
     ],
+    "counter_coef_2": [
+        "0.003"
+    ],
+    "counter_coef_3": [
+        "0.01"
+    ],
+    "counter_limit_max": [
+        "0.088"
+    ],
     "fan_max_speed": [
         "80"
     ],
