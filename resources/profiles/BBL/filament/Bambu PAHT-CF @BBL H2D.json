@@ -9,6 +9,15 @@
     "chamber_temperatures": [
         "60"
     ],
+    "counter_coef_2": [
+        "0.00545"
+    ],
+    "counter_coef_3": [
+        "-0.0202"
+    ],
+    "counter_limit_max": [
+        "0.03"
+    ],
     "filament_deretraction_speed": [
         "nil",
         "nil"
