@@ -1733,8 +1733,7 @@ void PrintConfigDef::init_fff_params()
 
     def           = this->add("filament_ramming_volumetric_speed", coFloats);
     def->label    = L("Ramming volumetric speed");
-    def->tooltip  = L("This setting is used to define the ramming speed on the prime tower before nozzle change, "
-                      "-1 means it will use the maximum volumetric speed.");
+    def->tooltip  = L("The maximum volumetric speed for ramming, where -1 means using the maximum volumetric speed.");
     def->sidetext = L("mm³/s");
     def->min      = -1;
     def->max      = 200;
@@ -1953,7 +1952,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionInts{ 100 });
 
     def          = this->add("filament_ramming_travel_time", coFloats);
-    def->label   = L("Ramming travel time");
+    def->label   = L("Travel time after ramming");
     def->tooltip = L("To prevent oozing, the nozzle will perform a reverse travel movement for a certain period after "
                      "the ramming is complete. The setting define the travel time.");
     def->mode    = comAdvanced;
@@ -1964,9 +1963,7 @@ void PrintConfigDef::init_fff_params()
 
     def           = this->add("filament_pre_cooling_temperature", coInts);
     def->label    = L("Precooling target temperature");
-    def->tooltip  = L("This setting is used to set the target pre-cooling temperature before nozzle change to prevent oozing,"
-                       "so if you enable this setting, your ramming time must be greater than the cooldown time."
-                       "And this setting only takes effect when the machine has preheating. 0 means no set.");
+    def->tooltip  = L("To prevent oozing, the nozzle temperature will be cooled during ramming. Therefore, the ramming time must be greater than the cooldown time. 0 means disabled.");
     //def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
     def->mode     = comAdvanced;
     def->sidetext = "°C";
@@ -4488,7 +4485,7 @@ void PrintConfigDef::init_fff_params()
 
     def           = this->add("prime_tower_max_speed", coFloat);
     def->label    = L("Max speed");
-    def->tooltip  = L("The maximum printing speed when purging in the prime tower and printing the prime tower sparse layers.");
+    def->tooltip  = L("The maximum printing speed on the prime tower excluding ramming.");
     def->sidetext = L("mm/s");
     def->mode     = comAdvanced;
     def->min      = 10;
