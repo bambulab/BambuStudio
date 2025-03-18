@@ -10,7 +10,7 @@
 namespace Slic3r { namespace GUI {
 
 #define REFRESH_INTERVAL       1000
-    
+
 #define INITIAL_NUMBER_OF_MACHINES 0
 #define LIST_REFRESH_INTERVAL 200
 #define MACHINE_LIST_REFRESH_INTERVAL 2000
@@ -571,6 +571,10 @@ void CalibrationPanel::update_all() {
         catch (...) {
             ;
         }
+    }
+
+    if (obj) {
+        m_agent->install_device_cert(obj->dev_id, obj->is_lan_mode_printer());
     }
 
     if (obj) {
