@@ -846,6 +846,10 @@
             "sub_path": "filament/Generic PETG @base.json"
         },
         {
+            "name": "Generic PET @base",
+            "sub_path": "filament/Generic PET @base.json"
+        },
+        {
             "name": "Generic PETG-CF @base",
             "sub_path": "filament/Generic PETG-CF @base.json"
         },
@@ -2200,6 +2204,10 @@
         {
             "name": "Generic PETG @BBL A1 0.2 nozzle",
             "sub_path": "filament/Generic PETG @BBL A1 0.2 nozzle.json"
+        },
+        {
+            "name": "Generic PET",
+            "sub_path": "filament/Generic PET.json"
         },
         {
             "name": "Generic PETG-CF @BBL X1C",
