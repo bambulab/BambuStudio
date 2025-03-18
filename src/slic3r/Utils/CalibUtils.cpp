@@ -1380,9 +1380,13 @@ bool CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &f
         }
 
         const auto& p_ogl_manager = Slic3r::GUI::wxGetApp().get_opengl_manager();
+        p_ogl_manager->bind_vao();
+        p_ogl_manager->bind_shader(shader);
         Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer(p_ogl_manager, *thumbnail_data,
             thumbnail_width, thumbnail_height, thumbnail_params,
             partplate_list, model->objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho);
+        p_ogl_manager->unbind_shader();
+        p_ogl_manager->unbind_vao();
         thumbnails.push_back(thumbnail_data);
     }
 
