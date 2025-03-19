@@ -549,6 +549,7 @@ private:
     void detect_surfaces_type();
     void process_external_surfaces();
     void discover_vertical_shells();
+    void discover_shell_for_perimeters();
     void bridge_over_infill();
     void clip_fill_surfaces();
     void discover_horizontal_shells();

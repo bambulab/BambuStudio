@@ -516,6 +516,7 @@ void PrintObject::prepare_infill()
     this->discover_vertical_shells();
     m_print->throw_if_canceled();
 
+
     // this will detect bridges and reverse bridges
     // and rearrange top/bottom/internal surfaces
     // It produces enlarged overlapping bridging areas.
@@ -559,6 +560,8 @@ void PrintObject::prepare_infill()
     } // for each region
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 
+    if (m_config.interlocking_beam.value)
+        discover_shell_for_perimeters();
 
     // Only active if config->infill_only_where_needed. This step trims the sparse infill,
     // so it acts as an internal support. It maintains all other infill types intact.
@@ -1890,6 +1893,58 @@ void PrintObject::discover_vertical_shells()
 //    PROFILE_OUTPUT(debug_out_path("discover_vertical_shells-profile.txt").c_str());
 }
 
+
+
+void PrintObject::discover_shell_for_perimeters()
+{
+    const size_t num_regions = this->num_printing_regions();
+
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, m_layers.size()),
+        [this,num_regions](const tbb::blocked_range<size_t> &range){
+            for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++idx_layer) {
+                Layer* layer = m_layers[idx_layer];
+                if (!layer->lower_layer)
+                    continue;
+                Layer* lower_layer = layer->lower_layer;
+
+                ExPolygons perimeter_areas;
+                ExPolygons infill_areas;
+                float max_line_width = 0;
+                for (size_t region_id = 0; region_id < num_regions; ++region_id) {
+                    LayerRegion* layerm = layer->m_regions[region_id];
+                    Flow extflow = layerm->flow(frExternalPerimeter);
+                    infill_areas.insert(infill_areas.end(), layerm->fill_expolygons.begin(), layerm->fill_expolygons.end());
+                    max_line_width = std::max(max_line_width, 0.5f * float(extflow.scaled_width() + extflow.scaled_spacing()));
+                }
+                infill_areas = union_ex(infill_areas);
+                perimeter_areas = offset_ex(diff_ex(layer->lslices, infill_areas), max_line_width);
+
+                for (size_t region_id = 0; region_id < num_regions; ++region_id) {
+                    LayerRegion* lower_layerm = lower_layer->m_regions[region_id];
+
+                    ExPolygons new_perimeter_solid = intersection_ex(perimeter_areas, lower_layerm->fill_expolygons);
+                    new_perimeter_solid.erase(std::remove_if(new_perimeter_solid.begin(), new_perimeter_solid.end(), [max_line_width](auto& expoly) {
+                        return is_narrow_expolygon(expoly, 3 * max_line_width);
+                        }), new_perimeter_solid.end());
+                    if (new_perimeter_solid.empty())
+                        continue;
+
+                    ExPolygons old_internal = to_expolygons(lower_layerm->fill_surfaces.filter_by_type(stInternal));
+                    ExPolygons old_internal_void = to_expolygons(lower_layerm->fill_surfaces.filter_by_type(stInternalVoid));
+                    ExPolygons old_internal_solid = to_expolygons(lower_layerm->fill_surfaces.filter_by_type(stInternalSolid));
+
+                    lower_layerm->fill_surfaces.remove_types({ stInternal,stInternalVoid,stInternalSolid });
+
+                    ExPolygons new_internal_solid = union_ex(old_internal_solid, new_perimeter_solid);
+                    ExPolygons new_internal = diff_ex(old_internal, new_perimeter_solid);
+                    ExPolygons new_internal_void = diff_ex(old_internal_void, new_perimeter_solid);
+                    lower_layerm->fill_surfaces.append(new_internal, stInternal);
+                    lower_layerm->fill_surfaces.append(new_internal_void, stInternalVoid);
+                    lower_layerm->fill_surfaces.append(new_internal_solid, stInternalSolid);
+                }
+            }
+    });
+}
 // This method applies bridge flow to the first internal solid layer above sparse infill.
 // This method applies bridge flow to the first internal solid layer above sparse infill.
 void PrintObject::bridge_over_infill()
@@ -1910,11 +1965,11 @@ void PrintObject::bridge_over_infill()
             , region(region)
             , bridge_angle(bridge_angle)
         {}
-        const Surface     *original_surface;
-        int                layer_index;
-        Polygons           new_polys;
-        const LayerRegion *region;
-        double             bridge_angle;
+        const Surface     *original_surface;  // 下方需要生成桥接的surface
+        int                layer_index;  // 下方生成桥接的层号
+        Polygons           new_polys;    // 下方需要生成桥接的实心区域
+        const LayerRegion *region;       // 下方需要生成桥接的region，主要提供参数
+        double             bridge_angle; // 桥接方向
     };
 
     // 按层存放surface，存放着待桥接的信息
@@ -1923,10 +1978,15 @@ void PrintObject::bridge_over_infill()
     // SECTION to gather and filter surfaces for expanding, and then cluster them by layer
     {
         tbb::concurrent_vector<CandidateSurface> candidate_surfaces;
+#if USE_TBB_IN_INFILL
         tbb::parallel_for(tbb::blocked_range<size_t>(0, this->layers().size()), [po = static_cast<const PrintObject *>(this),
             &candidate_surfaces](tbb::blocked_range<size_t> r) {
                 // 按层并行
                 for (size_t lidx = r.begin(); lidx < r.end(); lidx++) {
+#else
+        auto po = static_cast<const PrintObject*>(this);
+        for(size_t lidx =0;lidx<this->layers().size();++lidx){
+#endif
                     const Layer *layer = po->get_layer(lidx);
                     if (layer->lower_layer == nullptr) {
                         continue;
@@ -1973,6 +2033,7 @@ void PrintObject::bridge_over_infill()
                                     }
                                 }
                                 worth_bridging = intersection(closing(worth_bridging, float(SCALED_EPSILON)), s->expolygon);
+                                // 对应哪个region下的那个surface需要生成桥接
                                 candidate_surfaces.push_back(CandidateSurface(s, lidx, worth_bridging, region, 0));
 
 #ifdef DEBUG_BRIDGE_OVER_INFILL
@@ -1989,9 +2050,12 @@ void PrintObject::bridge_over_infill()
                             }
                         }
                     }
-                }
-            });
+                } 
+#if USE_TBB_IN_INFILL
+                });
+#endif
 
+        // 按层重新存储
         for (const CandidateSurface &c : candidate_surfaces) {
             surfaces_by_layer[c.layer_index].push_back(c);
         }
