@@ -1516,7 +1516,8 @@ WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origi
     m_used_fillet(config.prime_tower_fillet_wall.value),
     m_extra_spacing((float)config.prime_tower_infill_gap.value/100.f),
     m_tower_framework(config.prime_tower_enable_framework.value),
-    m_max_speed((float)config.prime_tower_max_speed.value*60.f)
+    m_max_speed((float)config.prime_tower_max_speed.value*60.f),
+    m_printable_height(config.extruder_printable_height.values)
 {
     // Read absolute value of first layer speed, if given as percentage,
     // it is taken over following default. Speeds from config are not
@@ -1560,6 +1561,7 @@ WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origi
                   ? Vec2f(bed_points.front().x(), bed_points.front().y())
                   : Vec2f::Zero();
     flat_ironing      = config.nozzle_diameter.values.size() > 1;//Only used for dual extrusion
+    m_last_layer_id.resize(config.nozzle_diameter.size(), -1);
 }
 
 
@@ -2789,7 +2791,9 @@ WipeTower::ToolChangeResult WipeTower::tool_change_new(size_t new_tool, bool sol
 {
     m_nozzle_change_result.gcode.clear();
     if (!m_filament_map.empty() && new_tool < m_filament_map.size() && m_filament_map[m_current_tool] != m_filament_map[new_tool]) {
-        m_nozzle_change_result = nozzle_change_new(m_current_tool, new_tool, solid_nozzlechange);
+        //If it is the last layer and exceeds the printable height, cancel ramming
+        if (is_valid_last_layer(m_current_tool))
+            m_nozzle_change_result = nozzle_change_new(m_current_tool, new_tool, solid_nozzlechange);
     }
 
     size_t old_tool = m_current_tool;
@@ -3593,6 +3597,18 @@ void WipeTower::reset_block_status()
         block.last_nozzle_change_id   = -1;
     }
 }
+void WipeTower::set_nozzle_last_layer_id()
+{
+    for (int idx = 0; idx < m_plan.size(); idx++) {
+        auto &info = m_plan[idx];
+        for(int i =0 ; i<info.tool_changes.size();i++) {
+            int old_tool = info.tool_changes[i].old_tool;
+            int new_tool = info.tool_changes[i].new_tool;
+            if (old_tool >= 0) m_last_layer_id[m_filament_map[old_tool] - 1] = idx;
+            m_last_layer_id[m_filament_map[new_tool] - 1] = idx;
+        }
+    }
+}
 
 void WipeTower::update_all_layer_depth(float wipe_tower_depth)
 {
@@ -3804,6 +3820,7 @@ void WipeTower::plan_tower_new()
     }
 
     update_all_layer_depth(max_depth);
+    set_nozzle_last_layer_id();
     m_rib_length = std::max({m_rib_length, sqrt(m_wipe_tower_depth * m_wipe_tower_depth + m_wipe_tower_width * m_wipe_tower_width)});
     m_rib_length += m_extra_rib_length;
     m_rib_length = std::max(0.f, m_rib_length);
@@ -3896,9 +3913,7 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
         reset_block_status();
         m_cur_layer_id = index++;
         set_layer(layer.z, layer.height, 0, false, layer.z == m_plan.back().z);
-
         if (m_layer_info->depth < m_perimeter_width) continue;
-
         if (m_wipe_tower_blocks.size() == 1) {
             if (m_layer_info->depth < m_wipe_tower_depth - m_perimeter_width) {
                 // align y shift to perimeter width
@@ -3920,9 +3935,9 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
             int candidate_id = -1;
             for (size_t idx = 0; idx < layer.tool_changes.size(); ++idx) {
                 if (idx == 0) {
-                    if (layer.tool_changes[idx].old_tool == wall_filament)
+                    if (layer.tool_changes[idx].old_tool == wall_filament && is_valid_last_layer(layer.tool_changes[idx].old_tool))
                         return wall_filament;
-                    else if (m_filpar[layer.tool_changes[idx].old_tool].category == m_filpar[wall_filament].category) {
+                    else if (m_filpar[layer.tool_changes[idx].old_tool].category == m_filpar[wall_filament].category &&is_valid_last_layer(layer.tool_changes[idx].old_tool)) {
                         candidate_id = layer.tool_changes[idx].old_tool;
                     }
                 }
@@ -4020,7 +4035,8 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
                 if (finish_layer_filament == -1) {
                     finish_layer_filament = wall_idx;
                 }
-
+                // Cancel the block of the last layer
+                if (!is_valid_last_layer(finish_layer_filament)) continue;
                 ToolChangeResult finish_block_tcr;
                 if (interface_solid || (block.solid_infill[m_cur_layer_id] && block.filament_adhesiveness_category != m_filament_categories[finish_layer_filament])) {
                     interface_solid  = interface_solid && !((block.solid_infill[m_cur_layer_id] && block.filament_adhesiveness_category != m_filament_categories[finish_layer_filament]));//noly reduce speed when
@@ -4474,6 +4490,13 @@ bool WipeTower::need_thick_bridge_flow(float pos_y) const {
         return pos_y > y_min && pos_y < y_max;
     }
     return false;
+}
+
+bool WipeTower::is_valid_last_layer(int tool) const
+{
+    int nozzle_id = m_filament_map[tool]-1;
+    if (tool >= 0 && tool < m_filament_map.size() && m_last_layer_id[nozzle_id]==m_cur_layer_id && m_z_pos > m_printable_height[nozzle_id]) return false;
+    return true;
 }
 
 } // namespace Slic3r
