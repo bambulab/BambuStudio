@@ -301,10 +301,10 @@ public:
 	void set_filament_map(const std::vector<int> &filament_map) { m_filament_map = filament_map; }
 
 	void set_has_tpu_filament(bool has_tpu) { m_has_tpu_filament = has_tpu; }
-	void set_need_reverse_travel() {
-        for (int i = 0; i < m_filpar.size(); i++) {
-            if(m_filpar[i].ramming_travel_time>EPSILON)
-            {
+    void set_need_reverse_travel(const std::vector<unsigned int> & used_extruders)
+    {
+        for (unsigned int filament_id : used_extruders) {
+            if (m_filpar[filament_id].ramming_travel_time > EPSILON) {
                 m_need_reverse_travel = true;
                 return;
             }
