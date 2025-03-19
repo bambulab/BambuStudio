@@ -240,7 +240,6 @@ public:
 
 		// Calculate extrusion flow from desired line width, nozzle diameter, filament diameter and layer_height:
 		m_extrusion_flow = extrusion_flow(layer_height);
-
         // Advance m_layer_info iterator, making sure we got it right
 		while (!m_plan.empty() && m_layer_info->z < print_z - WT_EPSILON && m_layer_info+1 != m_plan.end())
 			++m_layer_info;
@@ -390,6 +389,7 @@ public:
 	void plan_tower_new();
 	void generate_wipe_tower_blocks();
     void update_all_layer_depth(float wipe_tower_depth);
+    void set_nozzle_last_layer_id();
 
     ToolChangeResult   tool_change_new(size_t new_tool, bool solid_change = false, bool solid_nozzlechange=false);
     NozzleChangeResult nozzle_change_new(int old_filament_id, int new_filament_id, bool solid_change = false);
@@ -431,7 +431,7 @@ private:
     float  m_travel_speed       = 0.f;
     float  m_first_layer_speed  = 0.f;
     size_t m_first_layer_idx    = size_t(-1);
-
+    std::vector<int>    m_last_layer_id;
     std::vector<double> m_filaments_change_length;
     size_t       m_cur_layer_id;
     NozzleChangeResult m_nozzle_change_result;
@@ -497,7 +497,9 @@ private:
     float           m_max_speed = 5400.f;  // the maximum printing speed on the prime tower.
     std::vector<Vec2f> m_wall_skip_points;
     std::map<float,Polylines> m_outer_wall;
+    std::vector<double>        m_printable_height;
     bool is_first_layer() const { return size_t(m_layer_info - m_plan.begin()) == m_first_layer_idx; }
+    bool                       is_valid_last_layer(int tool) const;
 
 	// Calculates length of extrusion line to extrude given volume
 	float volume_to_length(float volume, float line_width, float layer_height) const {
