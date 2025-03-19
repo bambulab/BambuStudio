@@ -3632,7 +3632,7 @@ bool GUI_App::tabs_as_menu() const
 
 wxSize GUI_App::get_min_size() const
 {
-    return wxSize(76*m_em_unit, 49 * m_em_unit);
+    return wxSize(std::max(1000, 76*m_em_unit), std::max(600, 49 * m_em_unit));
 }
 
 float GUI_App::toolbar_icon_scale(const bool is_limited/* = false*/) const
