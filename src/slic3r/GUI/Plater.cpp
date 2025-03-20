@@ -10892,7 +10892,6 @@ bool Plater::try_sync_preset_with_connected_printer(int& nozzle_diameter)
                 sync_printer_preset = true;
             } else {
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " sync_after_load_file_show_flag";
-                return false;
             }
         }
     }
@@ -10901,13 +10900,14 @@ bool Plater::try_sync_preset_with_connected_printer(int& nozzle_diameter)
         if (sync_printer_preset && printer_preset.get_current_printer_type(preset_bundle) == printer_type && is_approx((float) (preset_nozzle_diameter), machine_nozzle_diameter))
             sync_printer_preset = false;
     }
-
-    update_objects_position_when_select_preset([&obj, machine_preset, &sync_printer_preset]() {
+    if (!sync_printer_preset)
+        return false;
+    //do sync_printer_preset
+    update_objects_position_when_select_preset([&obj, machine_preset]() {
         machine_preset->is_visible = true;
-        if (sync_printer_preset) {
-            Tab* printer_tab = GUI::wxGetApp().get_tab(Preset::Type::TYPE_PRINTER);
-            printer_tab->select_preset(machine_preset->name);
-        }
+        Tab* printer_tab = GUI::wxGetApp().get_tab(Preset::Type::TYPE_PRINTER);
+        printer_tab->select_preset(machine_preset->name);
+
         if (obj->is_multi_extruders())
             GUI::wxGetApp().sidebar().sync_extruder_list();
     });
