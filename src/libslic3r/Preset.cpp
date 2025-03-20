@@ -2690,7 +2690,7 @@ std::vector<std::string> PresetCollection::diameters_of_selected_printer()
     std::set<std::string> diameters;
     auto printer_model = m_edited_preset.config.opt_string("printer_model");
     for (auto &preset : m_presets) {
-        if (preset.config.opt_string("printer_model") == printer_model)
+        if (preset.is_system && preset.config.opt_string("printer_model") == printer_model)
             diameters.insert(preset.config.opt_string("printer_variant"));
     }
     return std::vector<std::string>{diameters.begin(), diameters.end()};
