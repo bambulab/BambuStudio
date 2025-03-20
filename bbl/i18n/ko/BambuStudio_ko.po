@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-14 16:47+0800\n"
+"POT-Creation-Date: 2025-03-20 15:34+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3952,19 +3952,19 @@ msgid "Not support printing 2 or more TPU filaments."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Filament %d is placed in the %s, but the generated G-code path exceeds the printable range of the %s."
+msgid "Filament %s is placed in the %s, but the generated G-code path exceeds the printable range of the %s."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Filaments %d is placed in the %s, but the generated G-code path exceeds the printable range of the %s."
+msgid "Filaments %s is placed in the %s, but the generated G-code path exceeds the printable range of the %s."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Filament %d is placed in the %s, but the generated G-code path exceeds the printable height of the %s."
+msgid "Filament %s is placed in the %s, but the generated G-code path exceeds the printable height of the %s."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Filaments %d is placed in the %s, but the generated G-code path exceeds the printable height of the %s."
+msgid "Filaments %s is placed in the %s, but the generated G-code path exceeds the printable height of the %s."
 msgstr ""
 
 msgid "Open wiki for more information."
@@ -6381,6 +6381,12 @@ msgstr ""
 msgid "Import a single SVG and then split it to several parts."
 msgstr ""
 
+msgid "Enable gamma correct in imported obj"
+msgstr ""
+
+msgid "Perform gamma correction on color after importing the obj model."
+msgstr ""
+
 msgid "Improve rendering performance by lod"
 msgstr ""
 
@@ -6876,6 +6882,9 @@ msgstr "보내기 완료"
 msgid "Error code"
 msgstr "오류 코드"
 
+msgid "High Flow"
+msgstr ""
+
 #, c-format, boost-format
 msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
 msgstr ""
@@ -6962,6 +6971,10 @@ msgid "You have selected both external and AMS filaments for an extruder. You wi
 msgstr ""
 
 msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Custom K value of { %s } will not be used since dynamic flow calibration is enabled."
 msgstr ""
 
 msgid "Errors"
@@ -7246,6 +7259,9 @@ msgstr ""
 "툴헤드 없이 타임랩스를 녹화할 때는 “타임랩스 와이프 타워”를 추가하는 것이 좋습니다. \n"
 "빌드 플레이트의 빈 위치를 마우스 오른쪽 버튼으로 클릭하고 “기본 모델링 추가”->\"타임랩스 와이프 타워\"를 선택합니다."
 
+msgid "Switching to a printer with different extruder types or numbers will discard or reset changes to extruder or multi-nozzle-related parameters."
+msgstr ""
+
 msgid "The notes are too large, and may not be synchronized to the cloud. Please keep it within 40k."
 msgstr ""
 
@@ -7505,9 +7521,6 @@ msgstr ""
 
 msgid "Firmware Retraction"
 msgstr "펌웨어 철회"
-
-msgid "Switching to a printer with different extruder types or numbers will discard or reset changes to extruder or multi-nozzle-related parameters."
-msgstr ""
 
 msgid "Detached"
 msgstr "분리됨"
@@ -7799,9 +7812,8 @@ msgstr ""
 msgid "Specify number of colors:"
 msgstr "색상 수 지정:"
 
-#, c-format, boost-format
-msgid "The color count should be in range [%d, %d]."
-msgstr "색상 개수는 [%d, %d] 범위 내에 있어야 합니다."
+msgid "Enter or click the adjustment button to modify number again"
+msgstr ""
 
 msgid "Recommended "
 msgstr "추천"
@@ -7827,8 +7839,8 @@ msgstr "대략적인 색상 일치."
 msgid "Append"
 msgstr "추가"
 
-msgid "Add consumable extruder after existing extruders."
-msgstr "기존 압출기 뒤에 소모성 압출기를 추가합니다."
+msgid "Append to existing filaments"
+msgstr ""
 
 msgid "Reset mapped extruders."
 msgstr "매핑된 압출기를 재설정합니다."
@@ -9431,6 +9443,12 @@ msgstr "이 설정은 초당 녹이고 압출될 수 있는 필라멘트의 체�
 msgid "mm³/s"
 msgstr "mm³/s"
 
+msgid "Ramming volumetric speed"
+msgstr ""
+
+msgid "The maximum volumetric speed for ramming, where -1 means using the maximum volumetric speed."
+msgstr ""
+
 msgid "Minimal purge on wipe tower"
 msgstr "와이프타워에 최소 짜내기"
 
@@ -9559,6 +9577,18 @@ msgstr "연화온도"
 
 msgid "The material softens at this temperature, so when the bed temperature is equal to or greater than it, it's highly recommended to open the front door and/or remove the upper glass to avoid cloggings."
 msgstr "이 온도에서는 소재가 부드러워지므로 베드 온도가 이 온도 이상일 경우 막힘을 방지하기 위해 전면 도어를 열거나 상단 유리를 제거하는 것이 좋습니다."
+
+msgid "Travel time after ramming"
+msgstr ""
+
+msgid "To prevent oozing, the nozzle will perform a reverse travel movement for a certain period after the ramming is complete. The setting define the travel time."
+msgstr ""
+
+msgid "Precooling target temperature"
+msgstr ""
+
+msgid "To prevent oozing, the nozzle temperature will be cooled during ramming. Therefore, the ramming time must be greater than the cooldown time. 0 means disabled."
+msgstr ""
 
 msgid "Price"
 msgstr "가격"
@@ -10311,9 +10341,6 @@ msgstr "Bowden"
 msgid "Nozzle Volume Type"
 msgstr ""
 
-msgid "High Flow"
-msgstr ""
-
 msgid "Default Nozzle Volume Type"
 msgstr ""
 
@@ -10912,6 +10939,12 @@ msgstr "실제 짜내기 볼륨은 짜내기 승수 값에 표로 입력된 짜�
 msgid "Width of prime tower"
 msgstr "프라임타워의 폭입니다."
 
+msgid "Max speed"
+msgstr ""
+
+msgid "The maximum printing speed on the prime tower excluding ramming."
+msgstr ""
+
 msgid "Brim width of prime tower, negative number means auto calculated width based on the height of prime tower."
 msgstr ""
 
@@ -11470,6 +11503,13 @@ msgstr ""
 msgid "Please connect the printer first before synchronizing."
 msgstr ""
 
+#, c-format, boost-format
+msgid "Printer %s nozzle information has not been set. Please configure it before proceeding with the calibration."
+msgstr ""
+
+msgid " Synced"
+msgstr ""
+
 msgid "Nozzle Info"
 msgstr ""
 
@@ -11531,6 +11571,12 @@ msgid ""
 "as the results may be unstable and affect print quality."
 msgstr ""
 
+msgid " (Synced)"
+msgstr ""
+
+msgid " (Not synced)"
+msgstr ""
+
 msgid "Connecting to printer"
 msgstr "Connecting to printer"
 
@@ -11582,6 +11628,10 @@ msgstr "This machine type can only hold %d historical results per nozzle."
 
 msgid "Edit Flow Dynamics Calibration"
 msgstr "동적 압출량 캘리브레이션 편집"
+
+#, c-format, boost-format
+msgid "Within the same extruder, the name '%s' must be unique when the filament type, nozzle diameter, and nozzle flow are identical. Please choose a different name."
+msgstr ""
 
 msgid "New Flow Dynamic Calibration"
 msgstr "New Flow Dynamic Calibration"
@@ -12384,10 +12434,6 @@ msgid ""
 msgstr ""
 
 #, c-format, boost-format
-msgid "Printer %s nozzle information has not been set. Please configure it before proceeding with the calibration."
-msgstr ""
-
-#, c-format, boost-format
 msgid ""
 "The currently selected nozzle type of %s extruder does not match the actual printer nozzle type.\n"
 "Please click the Sync button above and restart the calibration."
@@ -13055,6 +13101,13 @@ msgid ""
 msgstr ""
 "뒤틀림 방지\n"
 "ABS 등 뒤틀림이 발생하기 쉬운 소재를 출력할 때, 히트베드 온도를 적절하게 높이면 뒤틀림 가능성을 줄일 수 있다는 사실을 알고 계셨나요?"
+
+#, c-format, boost-format
+#~ msgid "The color count should be in range [%d, %d]."
+#~ msgstr "색상 개수는 [%d, %d] 범위 내에 있어야 합니다."
+
+#~ msgid "Add consumable extruder after existing extruders."
+#~ msgstr "기존 압출기 뒤에 소모성 압출기를 추가합니다."
 
 #~ msgid "Arranging..."
 #~ msgstr "정렬 중..."

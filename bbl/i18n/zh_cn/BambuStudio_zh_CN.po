@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-14 16:47+0800\n"
+"POT-Creation-Date: 2025-03-20 15:34+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -2135,7 +2135,7 @@ msgid "Check the status of current system services"
 msgstr "请检查当前系统服务状态"
 
 msgid "code"
-msgstr ""
+msgstr "代码"
 
 msgid "Failed to connect to cloud service"
 msgstr "无法连接到云服务"
@@ -3958,20 +3958,20 @@ msgid "Not support printing 2 or more TPU filaments."
 msgstr "不支持同时打印2种（或以上）TPU材料。"
 
 #, c-format, boost-format
-msgid "Filament %d is placed in the %s, but the generated G-code path exceeds the printable range of the %s."
-msgstr "材料%d放置在%s，但是生成的G-code超出了%s的可打印区域。"
+msgid "Filament %s is placed in the %s, but the generated G-code path exceeds the printable range of the %s."
+msgstr "材料%s放置在%s中，但生成的G代码路径超出了%s的可打印范围。"
 
 #, c-format, boost-format
-msgid "Filaments %d is placed in the %s, but the generated G-code path exceeds the printable range of the %s."
-msgstr "材料%d放置在%s中，但生成的G代码路径超出了%s的可打印范围。"
+msgid "Filaments %s is placed in the %s, but the generated G-code path exceeds the printable range of the %s."
+msgstr "材料%s放置在%s中，但生成的G代码路径超出了%s的可打印范围。"
 
 #, c-format, boost-format
-msgid "Filament %d is placed in the %s, but the generated G-code path exceeds the printable height of the %s."
-msgstr "材料%d放置在%s中，但生成的G代码路径超过了%s的可打印高度"
+msgid "Filament %s is placed in the %s, but the generated G-code path exceeds the printable height of the %s."
+msgstr "材料%s放置在%s中，但生成的G代码路径超过了%s的可打印高度。"
 
 #, c-format, boost-format
-msgid "Filaments %d is placed in the %s, but the generated G-code path exceeds the printable height of the %s."
-msgstr "材料%d放置在%s中，但生成的G代码路径超过了%s的可打印高度"
+msgid "Filaments %s is placed in the %s, but the generated G-code path exceeds the printable height of the %s."
+msgstr "材料%s放置在%s中，但生成的G代码路径超过了%s的可打印高度。"
 
 msgid "Open wiki for more information."
 msgstr "打开wiki以获取更多信息。"
@@ -4775,6 +4775,9 @@ msgid ""
 "File: %s\n"
 "Title: %s\n"
 msgstr ""
+"文件: %s\n"
+"标题: %s\n"
+""
 
 msgid "Download waiting..."
 msgstr "等待下载中..."
@@ -5648,7 +5651,7 @@ msgid "Connection"
 msgstr "连接"
 
 msgid "Click to view the wiki of the current plate type"
-msgstr ""
+msgstr "点击查看当前热床类型的wiki"
 
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "同步喷嘴信息和AMS编号"
@@ -5685,7 +5688,7 @@ msgid "Sync filaments with AMS"
 msgstr "同步到 AMS 的材料列表"
 
 msgid "There are some unknown or uncompatible filaments mapped to generic preset. Please update Bambu Studio or restart Bambu Studio to check if there is an update to system presets."
-msgstr "有一些未知或不兼容的填料映射到通用预设中。请更新Bambu Studio或重新启动Bambu Studio，以检查是否有系统预设的更新。"
+msgstr "有一些未知或不兼容的耗材映射到通用预设中。请更新Bambu Studio或重新启动Bambu Studio，以检查是否有系统预设的更新。"
 
 msgid "Filament type and color information have been synchronized, but slot information is not included."
 msgstr "耗材类型和颜色信息已同步，但不包括槽位信息。"
@@ -6349,10 +6352,10 @@ msgid "Disabled"
 msgstr "关闭"
 
 msgid "Auto Flush"
-msgstr ""
+msgstr "自动冲刷计算"
 
 msgid "Auto calculate flush volumes"
-msgstr ""
+msgstr "自动计算冲刷体积"
 
 msgid "Multi-device Management(Take effect after restarting Studio)."
 msgstr "多设备管理（重启Studio后生效）"
@@ -6401,6 +6404,12 @@ msgstr "导入一个SVG并拆分它"
 
 msgid "Import a single SVG and then split it to several parts."
 msgstr "导入一个SVG并将它拆分成多个零件"
+
+msgid "Enable gamma correct in imported obj"
+msgstr "在obj导入中启用gamma校正"
+
+msgid "Perform gamma correction on color after importing the obj model."
+msgstr "导入obj模型后，对颜色进行伽玛校正。"
 
 msgid "Improve rendering performance by lod"
 msgstr "通过lod提高渲染性能"
@@ -6903,6 +6912,9 @@ msgstr "发送完成"
 msgid "Error code"
 msgstr "错误代码"
 
+msgid "High Flow"
+msgstr "大流量"
+
 #, c-format, boost-format
 msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
 msgstr "%s的流量设置（%s）和切片文件（%s）不一致，无法发起打印。请确保打印机上安装喷嘴类型和机器设置中一致，并在切片时设置对应的喷嘴类型。"
@@ -6961,7 +6973,7 @@ msgid "The printer firmware only supports sequential mapping of filament => AMS 
 msgstr "已自动建立 “耗材丝列表=>AMS槽位” 的映射关系。 可点击上方具体的耗材丝手动设置其所对应的AMS槽位"
 
 msgid "Storage needs to be inserted before printing."
-msgstr "通过局域网发送打印任务，需要先插入存储设备。"
+msgstr "发送打印任务前，需要先插入存储设备。"
 
 #, c-format, boost-format
 msgid "The selected printer (%s) is incompatible with the print file configuration (%s). Please adjust the printer preset in the prepare page or choose a compatible printer on this page."
@@ -6989,6 +7001,10 @@ msgid "You have selected both external and AMS filaments for an extruder. You wi
 msgstr "您在一个挤出机中同时选择了使用外挂和AMS耗材，这将需要您在打印过程中手动进行换料，请谨慎选择。"
 
 msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration."
+msgstr "TPU 90A/TPU 85A硬度过低，不支持自动流量校准。"
+
+#, c-format, boost-format
+msgid "Custom K value of { %s } will not be used since dynamic flow calibration is enabled."
 msgstr ""
 
 msgid "Errors"
@@ -7273,6 +7289,9 @@ msgstr ""
 "在录制无工具头延时摄影视频时，建议添加“延时摄影擦料塔”\n"
 "右键单击打印板的空白位置，选择“添加标准模型”->“延时摄影擦料塔”。"
 
+msgid "Switching to a printer with different extruder types or numbers will discard or reset changes to extruder or multi-nozzle-related parameters."
+msgstr "切换到挤出机类型或数量不一样的打印机，挤出机或多喷嘴相关参数的修改将会被丢弃或重置。"
+
 msgid "The notes are too large, and may not be synchronized to the cloud. Please keep it within 40k."
 msgstr "内容太大，可能无法同步到云端。请将其控制在40k以内。"
 
@@ -7532,9 +7551,6 @@ msgstr ""
 
 msgid "Firmware Retraction"
 msgstr "固件回抽"
-
-msgid "Switching to a printer with different extruder types or numbers will discard or reset changes to extruder or multi-nozzle-related parameters."
-msgstr "切换到挤出机类型或数量不一样的打印机，挤出机或多喷嘴相关参数的修改将会被丢弃或重置。"
 
 msgid "Detached"
 msgstr "分离的"
@@ -7819,7 +7835,7 @@ msgid "Obj file Import color"
 msgstr "Obj文件导入颜色"
 
 msgid "Some faces not define color."
-msgstr ""
+msgstr "有些面片未定义颜色。"
 
 msgid "mtl file exist error,could not find the material:"
 msgstr "mtl文件存在错误，找不到材料："
@@ -7830,9 +7846,8 @@ msgstr "请检查obj或mtl文件。"
 msgid "Specify number of colors:"
 msgstr "指定颜色数量:"
 
-#, c-format, boost-format
-msgid "The color count should be in range [%d, %d]."
-msgstr "颜色数量范围应该是[%d, %d]。"
+msgid "Enter or click the adjustment button to modify number again"
+msgstr "输入或单击调整按钮可再次修改数字"
 
 msgid "Recommended "
 msgstr "推荐"
@@ -7858,8 +7873,8 @@ msgstr "近似的颜色匹配。"
 msgid "Append"
 msgstr "追加"
 
-msgid "Add consumable extruder after existing extruders."
-msgstr "近似的颜色匹配。"
+msgid "Append to existing filaments"
+msgstr "在已有耗材后面追加耗材"
 
 msgid "Reset mapped extruders."
 msgstr "重置匹配的耗材丝。"
@@ -7913,7 +7928,7 @@ msgid "Overwriting"
 msgstr "覆盖"
 
 msgid "Reset all filament mapping"
-msgstr ""
+msgstr "重置所有耗材映射"
 
 msgid "Left Extruder"
 msgstr "左挤出机"
@@ -8211,7 +8226,7 @@ msgid "Support/Color Painting: adjust section position"
 msgstr "支撑/色彩绘制：调节剖面位置"
 
 msgid "Gizmo"
-msgstr ""
+msgstr "小工具"
 
 msgid "Set extruder number for the objects and parts"
 msgstr "设置对象、零件使用的挤出机编号"
@@ -8397,13 +8412,13 @@ msgid "Connection failed! Please refer to the wiki page."
 msgstr ""
 
 msgid "sending failed"
-msgstr ""
+msgstr "发送失败"
 
 msgid "Failed to send. Click Retry to attempt sending again. If retrying does not work, please check the reason."
-msgstr ""
+msgstr "发送失败。您可以点击“重试”再次发送。如果重试无效，请检查原因。"
 
 msgid "reconnect"
-msgstr ""
+msgstr "重新连接"
 
 msgid "Air Pump"
 msgstr "气泵"
@@ -9417,7 +9432,7 @@ msgid "You can put your notes regarding the process here."
 msgstr "你可以把工艺的注释放在这里。"
 
 msgid "Printer notes"
-msgstr ""
+msgstr "打印机注意事项"
 
 msgid "You can put your notes regarding the printer here."
 msgstr "你可以把打印机的注释放在这里。"
@@ -9469,6 +9484,12 @@ msgstr "这个设置表示在1秒内能够融化和挤出的耗材丝体积。�
 
 msgid "mm³/s"
 msgstr "mm³/s"
+
+msgid "Ramming volumetric speed"
+msgstr "预冲刷体积速度"
+
+msgid "The maximum volumetric speed for ramming, where -1 means using the maximum volumetric speed."
+msgstr "预冲刷的最大体积速度，-1表示使用最大体积速度。"
 
 msgid "Minimal purge on wipe tower"
 msgstr "擦拭塔上的最小清理量"
@@ -9578,7 +9599,7 @@ msgid "Length of the scarf. Setting this parameter to zero effectively disables 
 msgstr "斜拼接缝的长度。长度为0时会禁用斜拼接缝。"
 
 msgid "Filament ramming length"
-msgstr "材料冲压长度"
+msgstr "材料预冲刷长度"
 
 msgid "When changing the extruder, it is recommended to extrude a certain length of filament from the original extruder. This helps minimize nozzle oozing."
 msgstr "更换挤出机时，建议从原挤出机中挤出一定长度的耗材丝。这有助于最大限度地减少喷嘴漏料。"
@@ -9600,6 +9621,18 @@ msgstr "软化温度"
 
 msgid "The material softens at this temperature, so when the bed temperature is equal to or greater than it, it's highly recommended to open the front door and/or remove the upper glass to avoid cloggings."
 msgstr "材料在这个温度下会软化，因此当热床温度等于或高于这个温度时，强烈建议打开前门和/或去除上玻璃以避免堵塞。"
+
+msgid "Travel time after ramming"
+msgstr "预冲刷后的空驶时间"
+
+msgid "To prevent oozing, the nozzle will perform a reverse travel movement for a certain period after the ramming is complete. The setting define the travel time."
+msgstr "为了防止溢料，预冲刷完成后，喷嘴会进行一段时间的反向空驶。该设置用于定义空驶时间。"
+
+msgid "Precooling target temperature"
+msgstr "预降温目标温度"
+
+msgid "To prevent oozing, the nozzle temperature will be cooled during ramming. Therefore, the ramming time must be greater than the cooldown time. 0 means disabled."
+msgstr "为了防止溢料，预冲刷时会降低喷嘴温度。因此，预冲刷时间必须大于冷却时间。0 表示禁用。"
 
 msgid "Price"
 msgstr "价格"
@@ -9951,40 +9984,40 @@ msgid "Interlocking depth of a segmented region. Zero disables this feature."
 msgstr "分割区域的交错深度。0 则禁用此功能。"
 
 msgid "Use beam interlocking"
-msgstr "使用梁联锁"
+msgstr "启用互锁梁"
 
 msgid "Generate interlocking beam structure at the locations where different filaments touch. This improves the adhesion between filaments, especially models printed in different materials."
-msgstr "在不同位置生成联锁梁结构细丝接触。这提高了细丝之间的附着力，尤其是用不同材料印刷的模型。"
+msgstr "在不同位置生成互锁梁结构细丝接触。这提高了细丝之间的附着力，尤其是用不同材料印刷的模型。"
 
 msgid "Interlocking beam width"
-msgstr "联锁梁宽度"
+msgstr "互锁梁宽度"
 
 msgid "The width of the interlocking structure beams."
-msgstr "联锁结构梁的宽度。"
+msgstr "互锁结构梁的宽度。"
 
 msgid "Interlocking direction"
-msgstr "联锁方向"
+msgstr "互锁方向"
 
 msgid "Orientation of interlock beams."
-msgstr "联锁梁的方向"
+msgstr "互锁梁的方向"
 
 msgid "Interlocking beam layers"
-msgstr "联锁梁层"
+msgstr "互锁梁层数"
 
 msgid "The height of the beams of the interlocking structure, measured in number of layers. Less layers is stronger, but more prone to defects."
-msgstr "联锁结构的梁的高度，以层数来衡量。层数越少，越坚固，但更容易出现缺陷。"
+msgstr "互锁结构的梁的高度，以层数来衡量。层数越少，越坚固，但更容易出现缺陷。"
 
 msgid "Interlocking depth"
-msgstr "联锁深度"
+msgstr "互锁深度"
 
 msgid "The distance from the boundary between filaments to generate interlocking structure, measured in cells. Too few cells will result in poor adhesion."
-msgstr "从耗材丝之间的边界到产生联锁的距离以细胞为单位测量的结构。细胞太少会导致粘附不良。"
+msgstr "从耗材丝之间的边界到产生互锁的距离以细胞为单位测量的结构。细胞太少会导致粘附不良。"
 
 msgid "Interlocking boundary avoidance"
-msgstr "联锁边界规避"
+msgstr "边界留白量"
 
 msgid "The distance from the outside of a model where interlocking structures will not be generated, measured in cells."
-msgstr "联锁结构与模型外部的距离不生成，以单元格为单位测量。"
+msgstr "互锁结构与模型外部的距离不生成，以单元格为单位测量。"
 
 msgid "Ironing Type"
 msgstr "熨烫类型"
@@ -10351,9 +10384,6 @@ msgstr "远程"
 
 msgid "Nozzle Volume Type"
 msgstr "喷嘴体积类型"
-
-msgid "High Flow"
-msgstr "大流量"
 
 msgid "Default Nozzle Volume Type"
 msgstr "默认喷嘴体积类型"
@@ -10955,6 +10985,12 @@ msgstr "实际冲刷量等于冲刷量乘数乘以表格单元中的冲刷量"
 msgid "Width of prime tower"
 msgstr "擦拭塔宽度"
 
+msgid "Max speed"
+msgstr "最大速度"
+
+msgid "The maximum printing speed on the prime tower excluding ramming."
+msgstr "擦拭塔上除了预冲刷外的最大打印速度。"
+
 msgid "Brim width of prime tower, negative number means auto calculated width based on the height of prime tower."
 msgstr "擦拭塔的Brim宽度，负数意味着宽度根据擦拭塔的高度自动计算。"
 
@@ -11520,6 +11556,13 @@ msgstr "同步喷嘴和AMS信息"
 msgid "Please connect the printer first before synchronizing."
 msgstr "同步前请先连接打印机"
 
+#, c-format, boost-format
+msgid "Printer %s nozzle information has not been set. Please configure it before proceeding with the calibration."
+msgstr ""
+
+msgid " Synced"
+msgstr ""
+
 msgid "Nozzle Info"
 msgstr "喷嘴信息"
 
@@ -11585,11 +11628,17 @@ msgstr ""
 "提示：在使用A1/A1 mini机器时，不建议对发泡类材料（%s）进行校准，\n"
 "以免因效果不佳（校准结果不稳定）而影响打印质量。"
 
+msgid " (Synced)"
+msgstr ""
+
+msgid " (Not synced)"
+msgstr ""
+
 msgid "Connecting to printer"
 msgstr "正在连接打印机"
 
 msgid "Calibration only supports cases where the left and right nozzle diameters are identical."
-msgstr ""
+msgstr "只支持左右喷嘴直径相同的情况下发起校准。"
 
 msgid "From k Value"
 msgstr "起始k值"
@@ -11636,6 +11685,10 @@ msgstr "该机型每个喷嘴最多只能保存%d个历史结果"
 
 msgid "Edit Flow Dynamics Calibration"
 msgstr "编辑动态流量校准"
+
+#, c-format, boost-format
+msgid "Within the same extruder, the name '%s' must be unique when the filament type, nozzle diameter, and nozzle flow are identical. Please choose a different name."
+msgstr ""
 
 msgid "New Flow Dynamic Calibration"
 msgstr "新建动态流量校准"
@@ -11796,7 +11849,7 @@ msgid "Upload"
 msgstr "上传"
 
 msgid "Simulate"
-msgstr ""
+msgstr "模拟"
 
 msgid "Print host upload queue"
 msgstr "打印主机上传队列"
@@ -12422,7 +12475,7 @@ msgid "The start, end or step is not valid value."
 msgstr "起始、结束或者步长输入值无效。"
 
 msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
-msgstr ""
+msgstr "自动标定仅支持左右喷嘴直径完全相同的情况。"
 
 msgid "The number of printer extruders and the printer selected for calibration does not match."
 msgstr ""
@@ -12437,10 +12490,6 @@ msgid ""
 "The nozzle diameter does not match the actual printer nozzle diameter.\n"
 "Please click the Sync button above and restart the calibration."
 msgstr "喷嘴直径与机器实际直径不匹配， 请点击上方的同步按钮，然后重新校准。"
-
-#, c-format, boost-format
-msgid "Printer %s nozzle information has not been set. Please configure it before proceeding with the calibration."
-msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -13109,6 +13158,29 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#, c-format, boost-format
+#~ msgid "Filament %d is placed in the %s, but the generated G-code path exceeds the printable range of the %s."
+#~ msgstr "材料%d放置在%s，但是生成的G-code超出了%s的可打印区域。"
+
+#, c-format, boost-format
+#~ msgid "Filaments %d is placed in the %s, but the generated G-code path exceeds the printable range of the %s."
+#~ msgstr "材料%d放置在%s中，但生成的G代码路径超出了%s的可打印范围。"
+
+#, c-format, boost-format
+#~ msgid "Filament %d is placed in the %s, but the generated G-code path exceeds the printable height of the %s."
+#~ msgstr "材料%d放置在%s中，但生成的G代码路径超过了%s的可打印高度"
+
+#, c-format, boost-format
+#~ msgid "Filaments %d is placed in the %s, but the generated G-code path exceeds the printable height of the %s."
+#~ msgstr "材料%d放置在%s中，但生成的G代码路径超过了%s的可打印高度"
+
+#, c-format, boost-format
+#~ msgid "The color count should be in range [%d, %d]."
+#~ msgstr "颜色数量范围应该是[%d, %d]。"
+
+#~ msgid "Add consumable extruder after existing extruders."
+#~ msgstr "近似的颜色匹配。"
 
 #~ msgid "New Value"
 #~ msgstr "新值"
