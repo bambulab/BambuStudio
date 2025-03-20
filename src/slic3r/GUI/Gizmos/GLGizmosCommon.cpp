@@ -66,6 +66,10 @@ HollowedMesh* CommonGizmosDataPool::hollowed_mesh() const
     return hol_mesh->is_valid() ? hol_mesh : nullptr;
 }
 
+CommonGizmosDataObjects::Raycaster *CommonGizmosDataPool::raycaster_ptr() {
+    return dynamic_cast<Raycaster *>(m_data.at(CommonGizmosDataID::Raycaster).get());
+}
+
 Raycaster* CommonGizmosDataPool::raycaster() const
 {
     Raycaster* rc = dynamic_cast<Raycaster*>(m_data.at(CommonGizmosDataID::Raycaster).get());
@@ -326,8 +330,13 @@ void Raycaster::on_update()
     }
     if (meshes.empty()) {
         for (const ModelVolume* mv : mvs) {
-            if (mv->is_model_part())
+            if (m_only_support_model_part) {
+                if (mv->is_model_part()) {
+                    meshes.push_back(&mv->mesh());
+                }
+            } else {
                 meshes.push_back(&mv->mesh());
+            }
         }
     }
 
@@ -353,9 +362,9 @@ std::vector<const MeshRaycaster*> Raycaster::raycasters() const
     return mrcs;
 }
 
-
-
-
+void CommonGizmosDataObjects::Raycaster::set_only_support_model_part_flag(bool flag) {
+    m_only_support_model_part = flag;
+}
 
 void ObjectClipper::on_update()
 {
