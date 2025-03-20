@@ -124,9 +124,9 @@ void GLGizmoFdmSupports::render_painter_gizmo() const
     {
         m_support_volume->set_render_color({ 0.f, 0.7f, 0.f, 0.7f });
 
-        const auto& camera = GUI::wxGetApp().plater()->get_camera();
-        const auto& view_matrix = camera.get_view_matrix();
-        m_support_volume->render(view_matrix);
+        const auto &                      camera = m_parent.get_active_camera();
+        std::vector<std::array<float, 4>> colors = m_parent.get_active_colors();
+        m_support_volume->render(camera, colors);
     }
 
     m_c->object_clipper()->render_cut();

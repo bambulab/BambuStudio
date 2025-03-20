@@ -37,7 +37,7 @@ class ComboBox;
 class Button;
 
 namespace Slic3r {
-
+class BackgroundSlicingProcess;
 class BuildVolume;
 class Model;
 class ModelObject;
@@ -81,6 +81,7 @@ class PlaterPresetComboBox;
 class PartPlateList;
 class SyncNozzleAndAmsDialog;
 class FinishSyncAmsDialog;
+class Bed3D;
 using t_optgroups = std::vector <std::shared_ptr<ConfigOptionsGroup>>;
 
 class Plater;
@@ -291,10 +292,12 @@ public:
     Sidebar& sidebar();
     const Model& model() const;
     Model& model();
+    Bed3D& bed();
     const Print& fff_print() const;
     Print& fff_print();
     const SLAPrint& sla_print() const;
     SLAPrint& sla_print();
+    BackgroundSlicingProcess &background_process();
 
     void reset_flags_when_new_or_close_project();
     int new_project(bool skip_confirm = false, bool silent = false, const wxString &project_name = wxString());
