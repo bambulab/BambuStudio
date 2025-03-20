@@ -1854,11 +1854,11 @@ BoundingBoxf3 GLCanvas3D::assembly_view_cur_bounding_box() const {
     return m_model->bounding_box_in_assembly_view();
 }
 
-BoundingBoxf3 GLCanvas3D::volumes_bounding_box() const
+BoundingBoxf3 GLCanvas3D::volumes_bounding_box(bool limit_to_expand_plate) const
 {
     BoundingBoxf3 bb;
     BoundingBoxf3 expand_part_plate_list_box;
-    bool          is_limit = m_canvas_type != ECanvasType::CanvasAssembleView;
+    bool          is_limit = limit_to_expand_plate;
     if (is_limit) {
         auto        plate_list_box    = wxGetApp().plater()->get_partplate_list().get_bounding_box();
         auto        horizontal_radius = 0.5 * sqrt(std::pow(plate_list_box.min[0] - plate_list_box.max[0], 2) + std::pow(plate_list_box.min[1] - plate_list_box.max[1], 2));
@@ -1877,9 +1877,13 @@ BoundingBoxf3 GLCanvas3D::volumes_bounding_box() const
     return bb;
 }
 
+bool GLCanvas3D::is_volumes_limit_to_expand_plate() const {
+    return m_canvas_type != ECanvasType::CanvasAssembleView;
+}
+
 BoundingBoxf3 GLCanvas3D::scene_bounding_box() const
 {
-    BoundingBoxf3 bb = volumes_bounding_box();
+    BoundingBoxf3 bb = volumes_bounding_box(is_volumes_limit_to_expand_plate());
     bb.merge(m_bed.extended_bounding_box());
     double h = m_bed.build_volume().printable_height();
     //FIXME why -h?
@@ -2038,7 +2042,7 @@ void GLCanvas3D::zoom_to_bed()
 void GLCanvas3D::zoom_to_volumes()
 {
     m_apply_zoom_to_volumes_filter = true;
-    _zoom_to_box(volumes_bounding_box());
+    _zoom_to_box(volumes_bounding_box(is_volumes_limit_to_expand_plate()));
     m_apply_zoom_to_volumes_filter = false;
 }
 
@@ -2192,7 +2196,7 @@ void GLCanvas3D::render(bool only_init)
         camera.requires_zoom_to_volumes = false;
     }
 
-    camera.apply_projection(_max_bounding_box(true, true, true));
+    camera.apply_projection(_max_bounding_box(true, true, true,is_volumes_limit_to_expand_plate()));
     camera.update_frustum();
 
     m_frame_callback_list.clear();
@@ -4775,7 +4779,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     if (!m_selection.is_empty())
                         rotate_target = m_selection.get_bounding_box().center();
                     else
-                        rotate_target = volumes_bounding_box().center();
+                        rotate_target = volumes_bounding_box(is_volumes_limit_to_expand_plate()).center();
                     //BBS do not limit rotate in assemble view
                     camera.rotate_local_with_target(Vec3d(rot.y(), rot.x(), 0.), rotate_target);
                     //camera.rotate_on_sphere_with_target(rot.x(), rot.y(), false, rotate_target);
@@ -6859,9 +6863,9 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
     _set_current(true);
 }
 
-BoundingBoxf3 GLCanvas3D::_max_bounding_box(bool include_gizmos, bool include_bed_model, bool include_plates) const
+BoundingBoxf3 GLCanvas3D::_max_bounding_box(bool include_gizmos, bool include_bed_model, bool include_plates, bool volumes_limit_to_expand_plate) const
 {
-    BoundingBoxf3 bb = volumes_bounding_box();
+    BoundingBoxf3 bb = volumes_bounding_box(volumes_limit_to_expand_plate);
 
     // The following is a workaround for gizmos not being taken in account when calculating the tight camera frustrum
     // A better solution would ask the gizmo manager for the bounding box of the current active gizmo, if any
@@ -6938,7 +6942,7 @@ void GLCanvas3D::_picking_pass()
         float pick_target_z = 1.0f;
         Vec3d pick_target = _mouse_to_3d(camera, { m_mouse.position(0), m_mouse.position(1) }, &pick_target_z);
         picking_camera.look_at(pick_eye, pick_target, Vec3d::UnitY());
-        picking_camera.apply_projection(_max_bounding_box(true, true, true));
+        picking_camera.apply_projection(_max_bounding_box(true, true, true,false));//need full volumes boundingbox,not limit_to_expand_plate
 
         picking_camera.update_frustum();
 
@@ -7066,8 +7070,7 @@ void GLCanvas3D::_rectangular_selection_picking_pass()
             picking_camera.apply_viewport(viewport_x, viewport_y, viewport_width, viewport_height);
             picking_camera.set_type(Camera::EType::Ortho);
 
-            picking_camera.apply_projection(_max_bounding_box(true, true, true));
-
+            picking_camera.apply_projection(_max_bounding_box(true, true, true,false));//need full volumes boundingbox,not limit_to_expand_plate
             picking_camera.update_frustum();
         }
         else {

@@ -855,7 +855,8 @@ public:
     void refresh_camera_scene_box();
 
     BoundingBoxf3 assembly_view_cur_bounding_box() const;
-    BoundingBoxf3 volumes_bounding_box() const;
+    BoundingBoxf3 volumes_bounding_box(bool limit_to_expand_plate) const;
+    bool          is_volumes_limit_to_expand_plate() const;
     BoundingBoxf3 scene_bounding_box() const;
     BoundingBoxf3 plate_scene_bounding_box(int plate_idx) const;
 
@@ -1182,7 +1183,7 @@ private:
     void _resize(unsigned int w, unsigned int h);
 
     //BBS: add part plate related logic
-    BoundingBoxf3 _max_bounding_box(bool include_gizmos, bool include_bed_model, bool include_plates) const;
+    BoundingBoxf3 _max_bounding_box(bool include_gizmos, bool include_bed_model, bool include_plates, bool volumes_limit_to_expand_plate) const;
 
     void _zoom_to_box(const BoundingBoxf3& box, double margin_factor = DefaultCameraZoomToBoxMarginFactor);
     void _update_camera_zoom(double zoom);
