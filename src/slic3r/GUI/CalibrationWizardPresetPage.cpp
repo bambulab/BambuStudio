@@ -1797,7 +1797,6 @@ void CalibrationPresetPage::update_show_status()
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!agent) {return;}
     if (!dev) return;
-    dev->check_pushing();
 
     MachineObject* obj_ = dev->get_selected_machine();
     if (!obj_) {
@@ -1812,7 +1811,6 @@ void CalibrationPresetPage::update_show_status()
 
     if (!obj_->is_lan_mode_printer()) {
         if (!agent->is_server_connected()) {
-            agent->refresh_connection();
             show_status(CaliPresetPageStatus::CaliPresetStatusConnectingServer);
             return;
         }

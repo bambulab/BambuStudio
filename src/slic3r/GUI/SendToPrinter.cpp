@@ -1111,7 +1111,6 @@ void SendToPrinterDialog::update_printer_combobox(wxCommandEvent &event)
 
 void SendToPrinterDialog::on_timer(wxTimerEvent &event)
 {
-    wxGetApp().reset_to_active();
     update_show_status();
 }
 
@@ -1182,7 +1181,6 @@ void SendToPrinterDialog::update_show_status()
     /* check cloud machine connections */
     if (!obj_->is_lan_mode_printer()) {
         if (!agent->is_server_connected()) {
-            agent->refresh_connection();
             show_status(PrintDialogStatus::PrintStatusConnectingServer);
             reset_timeout();
             return;
@@ -1678,7 +1676,6 @@ bool SendToPrinterDialog::Show(bool show)
     if (show) {
         m_ability_list.clear();
         //update_storage_list(std::vector<std::string>());
-        wxGetApp().reset_to_active();
         set_default();
         update_user_machine_list();
     }
