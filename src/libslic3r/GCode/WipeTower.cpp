@@ -2746,6 +2746,7 @@ void WipeTower::get_wall_skip_points(const WipeTowerInfo &layer)
         size_t                           new_filament        = tool_change.new_tool;
         float                            spacing             = m_layer_info->extra_spacing;
         if (m_need_reverse_travel && m_layer_info->extra_spacing < m_tpu_fixed_spacing) spacing = 1;
+        else if (m_need_reverse_travel) spacing = spacing / m_tpu_fixed_spacing;
         float nozzle_change_depth = tool_change.nozzle_change_depth * spacing;
         //float                            nozzle_change_depth = tool_change.nozzle_change_depth * (has_tpu_filament() ? m_tpu_fixed_spacing : layer.extra_spacing);
         auto* block = get_block_by_category(m_filpar[new_filament].category, false);
