@@ -4494,8 +4494,11 @@ bool WipeTower::need_thick_bridge_flow(float pos_y) const {
 
 bool WipeTower::is_valid_last_layer(int tool) const
 {
-    int nozzle_id = m_filament_map[tool]-1;
-    if (tool >= 0 && tool < m_filament_map.size() && m_last_layer_id[nozzle_id]==m_cur_layer_id && m_z_pos > m_printable_height[nozzle_id]) return false;
+    int nozzle_id = -1;
+    if (tool >= 0 && tool < m_filament_map.size())
+        nozzle_id = m_filament_map[tool]-1;
+    if (nozzle_id < 0 || nozzle_id >= m_printable_height.size()) return true;
+    if (m_last_layer_id[nozzle_id] == m_cur_layer_id && m_z_pos > m_printable_height[nozzle_id]) return false;
     return true;
 }
 
