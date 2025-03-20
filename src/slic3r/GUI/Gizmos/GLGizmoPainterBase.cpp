@@ -398,6 +398,7 @@ void GLGizmoPainterBase::render_cursor_height_range(const Transform3d& trafo) co
         if (is_valid_height_range_cursor(min_z, max_z)) {
             m_is_set_height_start_z_by_imgui = true;
             const_cast<GLGizmoPainterBase &>(*this).gizmo_event(SLAGizmoEventType::LeftDown, Vec2d(0, 0), false, false, false);
+            const_cast<GLGizmoPainterBase &>(*this).gizmo_event(SLAGizmoEventType::LeftUp, Vec2d(0, 0), false, false, false);
             m_is_set_height_start_z_by_imgui = false;
          }
          m_rr.mesh_id = -1; // exit
