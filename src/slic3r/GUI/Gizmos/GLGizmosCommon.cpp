@@ -732,7 +732,7 @@ void ModelObjectsClipper::on_update()
         }
         m_old_meshes = meshes;
 
-        m_active_inst_bb_radius = get_pool()->get_canvas()->volumes_bounding_box().radius();
+        m_active_inst_bb_radius = get_pool()->get_canvas()->volumes_bounding_box(get_pool()->get_canvas()->is_volumes_limit_to_expand_plate()).radius();
     }
 }
 
@@ -776,7 +776,7 @@ void ModelObjectsClipper::render_cut() const
 void ModelObjectsClipper::set_position(double pos, bool keep_normal)
 {
     Vec3d normal = (keep_normal && m_clp) ? m_clp->get_normal() : -wxGetApp().plater()->get_camera().get_dir_forward();
-    const Vec3d& center = get_pool()->get_canvas()->volumes_bounding_box().center();
+    const Vec3d &center = get_pool()->get_canvas()->volumes_bounding_box(get_pool()->get_canvas()->is_volumes_limit_to_expand_plate()).center();
     float dist = normal.dot(center);
 
     if (pos < 0.)
