@@ -52,7 +52,9 @@ class ModelObject;
 class ModelVolume;
 class GLShaderProgram;
 enum ModelInstanceEPrintVolumeState : unsigned char;
-
+namespace GUI {
+struct Camera;
+}
 using ModelObjectPtrs = std::vector<ModelObject*>;
 
 struct ObjectFilamentInfo {
@@ -352,7 +354,7 @@ protected:
 
     public:
         SinkingContours(GLVolume& volume) : m_parent(volume) {}
-        void render();
+        void render(const GUI::Camera &camera);
 
     private:
         void update();
@@ -585,7 +587,8 @@ public:
     void                set_range(double low, double high);
 
     //BBS: add outline related logic and add virtual specifier
-    virtual void render(const Transform3d& view_matrix,
+    virtual void render(const GUI::Camera &                       camera,
+                        const std::vector<std::array<float, 4>>& colors,
                         bool               with_outline = false,
                         const std::array<float, 4> &body_color = {1.0f, 1.0f, 1.0f, 1.0f} ) const;
 
@@ -602,7 +605,7 @@ public:
 
     bool                is_sinking() const;
     bool                is_below_printbed() const;
-    void                render_sinking_contours();
+    void                render_sinking_contours(const GUI::Camera &camera);
 
     // Return an estimate of the memory consumed by this class.
     size_t 				cpu_memory_used() const {
@@ -618,7 +621,10 @@ public:
 class GLWipeTowerVolume : public GLVolume {
 public:
     GLWipeTowerVolume(const std::vector<std::array<float, 4>>& colors);
-    void render(const Transform3d& view_matrix, bool with_outline = false, const std::array<float, 4> &body_color = {1.0f, 1.0f, 1.0f, 1.0f}) const override;
+    void render(const GUI::Camera &                      camera,
+                const std::vector<std::array<float, 4>> & colors,
+                bool                        with_outline = false,
+                const std::array<float, 4> & body_color  = {1.0f, 1.0f, 1.0f, 1.0f}) const override;
 
     std::vector<GLIndexedVertexArray> iva_per_colors;
     bool                              IsTransparent();
@@ -731,13 +737,13 @@ public:
     void render(GUI::ERenderPipelineStage             render_pipeline_stage,
                 ERenderType                           type,
                 bool                                  disable_cullface,
-                const Transform3d &                   view_matrix,
-                const Transform3d&                    projection_matrix,
+                const GUI::Camera &                      camera,
+                const std::vector<std::array<float, 4>>& colors,
                 std::function<bool(const GLVolume &)> filter_func          = std::function<bool(const GLVolume &)>(),
                 bool                                  with_outline         = true,
                 const std::array<float, 4> &          body_color           = {1.0f, 1.0f, 1.0f, 1.0f},
                 bool                                  partly_inside_enable = true,
-                std::vector<double> *                 printable_heights    = nullptr) const;
+                std::vector<double> *                 printable_heights    = nullptr);
 
     // Finalize the initialization of the geometry & indices,
     // upload the geometry and indices to OpenGL VBO objects

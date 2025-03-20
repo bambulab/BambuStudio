@@ -10889,6 +10889,8 @@ void Plater::render_project_state_debug_window() const { p->render_project_state
 Sidebar&        Plater::sidebar()           { return *p->sidebar; }
 const Model&    Plater::model() const       { return p->model; }
 Model&          Plater::model()             { return p->model; }
+Bed3D &         Plater::bed() { return p->bed; }
+BackgroundSlicingProcess &Plater::background_process() { return p->background_process; }
 const Print&    Plater::fff_print() const   { return p->fff_print; }
 Print&          Plater::fff_print()         { return p->fff_print; }
 const SLAPrint& Plater::sla_print() const   { return p->sla_print; }

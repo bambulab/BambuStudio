@@ -282,7 +282,7 @@ class GLCanvas3D
         float last_z{ 0.0f };
         LayerHeightEditActionType last_action{ LAYER_HEIGHT_EDIT_ACTION_INCREASE };
 
-        LayersEditing() = default;
+        LayersEditing(GLCanvas3D &canvas) : m_canvas(canvas) {}
         ~LayersEditing();
 
         void init();
@@ -326,6 +326,9 @@ class GLCanvas3D
         void update_slicing_parameters();
 
         static float thickness_bar_width(const GLCanvas3D& canvas);
+
+    private:
+        GLCanvas3D &m_canvas;
     };
 
     struct Mouse
@@ -724,6 +727,7 @@ public:
 
     public:
         //BBS: add the height logic
+        SequentialPrintClearance(GLCanvas3D &m_canvas) : m_canvas(m_canvas) {}
         ~SequentialPrintClearance();
         void set_polygons(const Polygons& polygons, const std::vector<std::pair<Polygon, float>>& height_polygons);
         void set_render_fill(bool render_fill) { m_render_fill = render_fill; }
@@ -732,6 +736,9 @@ public:
         void reset();
 
         friend class GLCanvas3D;
+
+    private:
+        GLCanvas3D &m_canvas;
     };
 
     SequentialPrintClearance m_sequential_print_clearance;
@@ -1010,6 +1017,7 @@ public:
     void on_mouse(wxMouseEvent& evt);
     void on_gesture(wxGestureEvent& evt);
     void on_paint(wxPaintEvent& evt);
+    void on_kill_focus(wxFocusEvent &evt);
     void on_set_focus(wxFocusEvent& evt);
     void force_set_focus();
 
@@ -1164,6 +1172,10 @@ public:
 
     void mark_context_dirty();
 
+    Camera &                          get_active_camera();
+    const Camera &                    get_active_camera() const;
+    std::vector<std::array<float, 4>> get_active_colors();
+
 private:
     bool _is_shown_on_screen() const;
 
@@ -1187,7 +1199,6 @@ private:
 
     void _zoom_to_box(const BoundingBoxf3& box, double margin_factor = DefaultCameraZoomToBoxMarginFactor);
     void _update_camera_zoom(double zoom);
-
     void _refresh_if_shown_on_screen();
 
     void _picking_pass();
@@ -1300,7 +1311,7 @@ private:
     void _init_unit_cube();
 
     void _append_to_frame_callback(const FrameCallback& cb);
-
+    static bool is_volume_in_plate_boundingbox(const GLVolume &v, int plate_idx, const BoundingBoxf3 &plate_build_volume);
     static void _init_fullscreen_mesh();
 
     static void _rebuild_postprocessing_pipeline(const std::shared_ptr<OpenGLManager>& p_ogl_manager, const std::string& input_framebuffer_name, std::string& output_framebuffer_name, uint32_t width, uint32_t height);
