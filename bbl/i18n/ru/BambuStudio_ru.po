@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 1.10.1 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-14 16:47+0800\n"
+"POT-Creation-Date: 2025-03-20 15:34+0800\n"
 "PO-Revision-Date: 2024-09-27 23:58+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -4017,19 +4017,19 @@ msgid "Not support printing 2 or more TPU filaments."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Filament %d is placed in the %s, but the generated G-code path exceeds the printable range of the %s."
+msgid "Filament %s is placed in the %s, but the generated G-code path exceeds the printable range of the %s."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Filaments %d is placed in the %s, but the generated G-code path exceeds the printable range of the %s."
+msgid "Filaments %s is placed in the %s, but the generated G-code path exceeds the printable range of the %s."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Filament %d is placed in the %s, but the generated G-code path exceeds the printable height of the %s."
+msgid "Filament %s is placed in the %s, but the generated G-code path exceeds the printable height of the %s."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Filaments %d is placed in the %s, but the generated G-code path exceeds the printable height of the %s."
+msgid "Filaments %s is placed in the %s, but the generated G-code path exceeds the printable height of the %s."
 msgstr ""
 
 msgid "Open wiki for more information."
@@ -6507,6 +6507,12 @@ msgstr ""
 msgid "Import a single SVG and then split it to several parts."
 msgstr ""
 
+msgid "Enable gamma correct in imported obj"
+msgstr ""
+
+msgid "Perform gamma correction on color after importing the obj model."
+msgstr ""
+
 msgid "Improve rendering performance by lod"
 msgstr "Повысить производительность рендеринга с помощью LOD"
 
@@ -7012,6 +7018,9 @@ msgstr "отправка завершена"
 msgid "Error code"
 msgstr "Код ошибки"
 
+msgid "High Flow"
+msgstr ""
+
 #, c-format, boost-format
 msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
 msgstr ""
@@ -7098,6 +7107,10 @@ msgid "You have selected both external and AMS filaments for an extruder. You wi
 msgstr ""
 
 msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Custom K value of { %s } will not be used since dynamic flow calibration is enabled."
 msgstr ""
 
 msgid "Errors"
@@ -7391,6 +7404,9 @@ msgstr ""
 "При записи таймлапса без видимости головы рекомендуется добавить «Черновая башня таймлапса». \n"
 "Щёлкните правой кнопкой мыши на пустом месте стола и выберите «Добавить примитив» -> «Черновая башня таймлапса»."
 
+msgid "Switching to a printer with different extruder types or numbers will discard or reset changes to extruder or multi-nozzle-related parameters."
+msgstr ""
+
 msgid "The notes are too large, and may not be synchronized to the cloud. Please keep it within 40k."
 msgstr "Заметки слишком большие и могут не синхронизироваться с облаком. Пожалуйста, не превышайте 40 КБ."
 
@@ -7658,9 +7674,6 @@ msgstr ""
 
 msgid "Firmware Retraction"
 msgstr "Откат из прошивки"
-
-msgid "Switching to a printer with different extruder types or numbers will discard or reset changes to extruder or multi-nozzle-related parameters."
-msgstr ""
 
 msgid "Detached"
 msgstr "Отсоединён"
@@ -7960,9 +7973,8 @@ msgstr ""
 msgid "Specify number of colors:"
 msgstr "Количество цветов:"
 
-#, c-format, boost-format
-msgid "The color count should be in range [%d, %d]."
-msgstr "Количество цветов должно быть в диапазоне [%d, %d]."
+msgid "Enter or click the adjustment button to modify number again"
+msgstr ""
 
 msgid "Recommended "
 msgstr "рекомендуется"
@@ -7990,9 +8002,8 @@ msgstr "Приблизительный подбор по цвету прутко
 msgid "Append"
 msgstr "Добавить"
 
-# ?????
-msgid "Add consumable extruder after existing extruders."
-msgstr "Добавить экструдер с расходными материалами после существующих экструдеров."
+msgid "Append to existing filaments"
+msgstr ""
 
 # ???
 msgid "Reset mapped extruders."
@@ -9614,6 +9625,12 @@ msgstr "Этот параметр определяет, какой объём м
 msgid "mm³/s"
 msgstr "мм³/с"
 
+msgid "Ramming volumetric speed"
+msgstr ""
+
+msgid "The maximum volumetric speed for ramming, where -1 means using the maximum volumetric speed."
+msgstr ""
+
 msgid "Minimal purge on wipe tower"
 msgstr "Мин. объём сброса на черновой башне"
 
@@ -9747,6 +9764,18 @@ msgstr "Температура размягчения"
 
 msgid "The material softens at this temperature, so when the bed temperature is equal to or greater than it, it's highly recommended to open the front door and/or remove the upper glass to avoid cloggings."
 msgstr "При этой температуре материал размягчается, поэтому, когда температура стола равна или превышает её, настоятельно рекомендуется открыть переднюю дверцу и/или верхнюю крышку принтера, чтобы избежать засорения сопла."
+
+msgid "Travel time after ramming"
+msgstr ""
+
+msgid "To prevent oozing, the nozzle will perform a reverse travel movement for a certain period after the ramming is complete. The setting define the travel time."
+msgstr ""
+
+msgid "Precooling target temperature"
+msgstr ""
+
+msgid "To prevent oozing, the nozzle temperature will be cooled during ramming. Therefore, the ramming time must be greater than the cooldown time. 0 means disabled."
+msgstr ""
 
 msgid "Price"
 msgstr "Стоимость"
@@ -10516,9 +10545,6 @@ msgstr "Боуден"
 msgid "Nozzle Volume Type"
 msgstr ""
 
-msgid "High Flow"
-msgstr ""
-
 msgid "Default Nozzle Volume Type"
 msgstr ""
 
@@ -11122,6 +11148,12 @@ msgstr "Реальные объёмы очистки равны множител
 msgid "Width of prime tower"
 msgstr "Размер черновой башни по оси X. Размер по оси Y будет автоматически вычислен исходя из необходимого объёма очистки и ширины башни. Таким образом, увеличивая ширину башни вы уменьшаете её длину и наоборот."
 
+msgid "Max speed"
+msgstr ""
+
+msgid "The maximum printing speed on the prime tower excluding ramming."
+msgstr ""
+
 msgid "Brim width of prime tower, negative number means auto calculated width based on the height of prime tower."
 msgstr ""
 
@@ -11700,6 +11732,13 @@ msgstr ""
 msgid "Please connect the printer first before synchronizing."
 msgstr ""
 
+#, c-format, boost-format
+msgid "Printer %s nozzle information has not been set. Please configure it before proceeding with the calibration."
+msgstr ""
+
+msgid " Synced"
+msgstr ""
+
 msgid "Nozzle Info"
 msgstr ""
 
@@ -11767,6 +11806,12 @@ msgstr ""
 "Совет: при использовании принтера A1/A1 mini мы не рекомендуем калибровать вспенивающиеся прутки (%s),\n"
 "так как результаты могут быть нестабильными и повлиять на качество печати."
 
+msgid " (Synced)"
+msgstr ""
+
+msgid " (Not synced)"
+msgstr ""
+
 msgid "Connecting to printer"
 msgstr "Подключением к принтеру"
 
@@ -11818,6 +11863,10 @@ msgstr "Этот тип принтера может хранить для каж
 
 msgid "Edit Flow Dynamics Calibration"
 msgstr "Редактировать калибровку динамики потока"
+
+#, c-format, boost-format
+msgid "Within the same extruder, the name '%s' must be unique when the filament type, nozzle diameter, and nozzle flow are identical. Please choose a different name."
+msgstr ""
 
 msgid "New Flow Dynamic Calibration"
 msgstr "Новая калибровка динамика потока"
@@ -12646,10 +12695,6 @@ msgid ""
 msgstr ""
 
 #, c-format, boost-format
-msgid "Printer %s nozzle information has not been set. Please configure it before proceeding with the calibration."
-msgstr ""
-
-#, c-format, boost-format
 msgid ""
 "The currently selected nozzle type of %s extruder does not match the actual printer nozzle type.\n"
 "Please click the Sync button above and restart the calibration."
@@ -13328,6 +13373,14 @@ msgid ""
 msgstr ""
 "Предотвращение коробления материала\n"
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как ABS, повышение температуры подогреваемого стола может снизить эту вероятность?"
+
+#, c-format, boost-format
+#~ msgid "The color count should be in range [%d, %d]."
+#~ msgstr "Количество цветов должно быть в диапазоне [%d, %d]."
+
+# ?????
+#~ msgid "Add consumable extruder after existing extruders."
+#~ msgstr "Добавить экструдер с расходными материалами после существующих экструдеров."
 
 #~ msgid "Arranging..."
 #~ msgstr "Расстановка..."

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-14 16:47+0800\n"
+"POT-Creation-Date: 2025-03-20 15:34+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3955,19 +3955,19 @@ msgid "Not support printing 2 or more TPU filaments."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Filament %d is placed in the %s, but the generated G-code path exceeds the printable range of the %s."
+msgid "Filament %s is placed in the %s, but the generated G-code path exceeds the printable range of the %s."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Filaments %d is placed in the %s, but the generated G-code path exceeds the printable range of the %s."
+msgid "Filaments %s is placed in the %s, but the generated G-code path exceeds the printable range of the %s."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Filament %d is placed in the %s, but the generated G-code path exceeds the printable height of the %s."
+msgid "Filament %s is placed in the %s, but the generated G-code path exceeds the printable height of the %s."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Filaments %d is placed in the %s, but the generated G-code path exceeds the printable height of the %s."
+msgid "Filaments %s is placed in the %s, but the generated G-code path exceeds the printable height of the %s."
 msgstr ""
 
 msgid "Open wiki for more information."
@@ -6387,6 +6387,12 @@ msgstr ""
 msgid "Import a single SVG and then split it to several parts."
 msgstr ""
 
+msgid "Enable gamma correct in imported obj"
+msgstr ""
+
+msgid "Perform gamma correction on color after importing the obj model."
+msgstr ""
+
 msgid "Improve rendering performance by lod"
 msgstr ""
 
@@ -6882,6 +6888,9 @@ msgstr "küldés befejezve"
 msgid "Error code"
 msgstr "Hibakód"
 
+msgid "High Flow"
+msgstr ""
+
 #, c-format, boost-format
 msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
 msgstr ""
@@ -6968,6 +6977,10 @@ msgid "You have selected both external and AMS filaments for an extruder. You wi
 msgstr ""
 
 msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Custom K value of { %s } will not be used since dynamic flow calibration is enabled."
 msgstr ""
 
 msgid "Errors"
@@ -7250,6 +7263,9 @@ msgid ""
 "by right-click the empty position of build plate and choose \"Add Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr "Ha a nyomtatófej nélküli timelapse engedélyezve van, javasoljuk, hogy helyezz el a tálcán egy „Timelapse törlőtornyot“. Ehhez kattints jobb gombbal a tálca egy üres részére, majd válaszd a „Primitív hozzáadása“ -> „Timelapse törlőtorony“ lehetőséget."
 
+msgid "Switching to a printer with different extruder types or numbers will discard or reset changes to extruder or multi-nozzle-related parameters."
+msgstr ""
+
 msgid "The notes are too large, and may not be synchronized to the cloud. Please keep it within 40k."
 msgstr ""
 
@@ -7512,9 +7528,6 @@ msgstr ""
 
 msgid "Firmware Retraction"
 msgstr "Firmware-ben megadott visszahúzás"
-
-msgid "Switching to a printer with different extruder types or numbers will discard or reset changes to extruder or multi-nozzle-related parameters."
-msgstr ""
 
 msgid "Detached"
 msgstr "Különálló"
@@ -7808,9 +7821,8 @@ msgstr ""
 msgid "Specify number of colors:"
 msgstr "Specify number of colors:"
 
-#, c-format, boost-format
-msgid "The color count should be in range [%d, %d]."
-msgstr "The color count should be in range [%d, %d]."
+msgid "Enter or click the adjustment button to modify number again"
+msgstr ""
 
 msgid "Recommended "
 msgstr "Recommended "
@@ -7836,8 +7848,8 @@ msgstr "Approximate color matching."
 msgid "Append"
 msgstr "Append"
 
-msgid "Add consumable extruder after existing extruders."
-msgstr "Add consumable extruder after existing extruders."
+msgid "Append to existing filaments"
+msgstr ""
 
 msgid "Reset mapped extruders."
 msgstr "Reset mapped extruders."
@@ -9440,6 +9452,12 @@ msgstr "Ezzel a beállítással adhatod meg a másodpercenként megolvasztható 
 msgid "mm³/s"
 msgstr "mm³/s"
 
+msgid "Ramming volumetric speed"
+msgstr ""
+
+msgid "The maximum volumetric speed for ramming, where -1 means using the maximum volumetric speed."
+msgstr ""
+
 msgid "Minimal purge on wipe tower"
 msgstr "Minimális tisztítás a törlőtoronyban"
 
@@ -9568,6 +9586,18 @@ msgstr "Lágyulási hőmérséklet"
 
 msgid "The material softens at this temperature, so when the bed temperature is equal to or greater than it, it's highly recommended to open the front door and/or remove the upper glass to avoid cloggings."
 msgstr "The material softens at this temperature, so when the bed temperature is equal to or greater than this, it's highly recommended to open the front door and/or remove the upper glass to avoid clogs."
+
+msgid "Travel time after ramming"
+msgstr ""
+
+msgid "To prevent oozing, the nozzle will perform a reverse travel movement for a certain period after the ramming is complete. The setting define the travel time."
+msgstr ""
+
+msgid "Precooling target temperature"
+msgstr ""
+
+msgid "To prevent oozing, the nozzle temperature will be cooled during ramming. Therefore, the ramming time must be greater than the cooldown time. 0 means disabled."
+msgstr ""
 
 msgid "Price"
 msgstr "Költség"
@@ -10320,9 +10350,6 @@ msgstr "Bowden"
 msgid "Nozzle Volume Type"
 msgstr ""
 
-msgid "High Flow"
-msgstr ""
-
 msgid "Default Nozzle Volume Type"
 msgstr ""
 
@@ -10921,6 +10948,12 @@ msgstr "A tényleges öblítési mennyiségek megegyeznek az öblítési szorzó
 msgid "Width of prime tower"
 msgstr "Törlőtorony szélessége"
 
+msgid "Max speed"
+msgstr ""
+
+msgid "The maximum printing speed on the prime tower excluding ramming."
+msgstr ""
+
 msgid "Brim width of prime tower, negative number means auto calculated width based on the height of prime tower."
 msgstr ""
 
@@ -11479,6 +11512,13 @@ msgstr ""
 msgid "Please connect the printer first before synchronizing."
 msgstr ""
 
+#, c-format, boost-format
+msgid "Printer %s nozzle information has not been set. Please configure it before proceeding with the calibration."
+msgstr ""
+
+msgid " Synced"
+msgstr ""
+
 msgid "Nozzle Info"
 msgstr ""
 
@@ -11540,6 +11580,12 @@ msgid ""
 "as the results may be unstable and affect print quality."
 msgstr ""
 
+msgid " (Synced)"
+msgstr ""
+
+msgid " (Not synced)"
+msgstr ""
+
 msgid "Connecting to printer"
 msgstr "Csatlakozás a nyomtatóhoz"
 
@@ -11591,6 +11637,10 @@ msgstr "This machine type can only hold %d historical results per nozzle."
 
 msgid "Edit Flow Dynamics Calibration"
 msgstr "Áramlásdinamikai kalibráció szerkesztése"
+
+#, c-format, boost-format
+msgid "Within the same extruder, the name '%s' must be unique when the filament type, nozzle diameter, and nozzle flow are identical. Please choose a different name."
+msgstr ""
 
 msgid "New Flow Dynamic Calibration"
 msgstr "New Flow Dynamic Calibration"
@@ -12396,10 +12446,6 @@ msgid ""
 msgstr ""
 
 #, c-format, boost-format
-msgid "Printer %s nozzle information has not been set. Please configure it before proceeding with the calibration."
-msgstr ""
-
-#, c-format, boost-format
 msgid ""
 "The currently selected nozzle type of %s extruder does not match the actual printer nozzle type.\n"
 "Please click the Sync button above and restart the calibration."
@@ -13068,6 +13114,13 @@ msgid ""
 msgstr ""
 "Vetemedés elkerülése\n"
 "Tudtad, hogy a vetemedésre hajlamos anyagok (például ABS) nyomtatásakor a tárgyasztal hőmérsékletének növelése csökkentheti a vetemedés valószínűségét?"
+
+#, c-format, boost-format
+#~ msgid "The color count should be in range [%d, %d]."
+#~ msgstr "The color count should be in range [%d, %d]."
+
+#~ msgid "Add consumable extruder after existing extruders."
+#~ msgstr "Add consumable extruder after existing extruders."
 
 #~ msgid "New Value"
 #~ msgstr "Új érték"
