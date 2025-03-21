@@ -16,6 +16,12 @@
         "10000",
         "10000"
     ],
+    "initial_layer_travel_acceleration": [
+        "6000",
+        "6000",
+        "6000",
+        "6000"
+    ],
     "travel_acceleration": [
         "10000",
         "10000",

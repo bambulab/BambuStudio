@@ -1218,8 +1218,11 @@ public:
         }
     }
 
+    void set_first_layer(bool is_first_layer) { m_is_first_layer = is_first_layer; }
     void set_normal_acceleration(const std::vector<unsigned int> &accelerations) { m_normal_accelerations = accelerations; };
+    void set_first_layer_normal_acceleration(const std::vector<unsigned int> &accelerations) { m_first_layer_normal_accelerations = accelerations; };
     void set_travel_acceleration(const std::vector<unsigned int> &accelerations) { m_travel_accelerations = accelerations; };
+    void set_first_layer_travel_acceleration(const std::vector<unsigned int> &accelerations) { m_first_layer_travel_accelerations = accelerations; };
     void set_max_acceleration(unsigned int acceleration) { m_max_acceleration = acceleration; };
     void set_filament_map(const std::vector<int> &filament_map) { m_filament_map = filament_map; }
     void set_accel_to_decel_enable(bool enable) { m_accel_to_decel_enable = enable; }
@@ -1227,18 +1230,20 @@ public:
 
 private:
     std::string set_normal_acceleration() {
-        if (m_normal_accelerations.empty() || m_filament_map.empty())
+        std::vector<unsigned int> accelerations = m_is_first_layer ? m_first_layer_normal_accelerations : m_normal_accelerations;
+        if (accelerations.empty() || m_filament_map.empty())
             return std::string();
 
-        unsigned int acc = m_normal_accelerations[m_filament_map[m_current_tool] - 1];
+        unsigned int acc = accelerations[m_filament_map[m_current_tool] - 1];
         return set_acceleration_impl(acc);
     }
     std::string set_travel_acceleration()
     {
-        if (m_travel_accelerations.empty() || m_filament_map.empty())
+        std::vector<unsigned int> accelerations = m_is_first_layer ? m_first_layer_travel_accelerations : m_travel_accelerations;
+        if (accelerations.empty() || accelerations.empty())
             return std::string();
 
-        unsigned int acc = m_travel_accelerations[m_filament_map[m_current_tool] - 1];
+        unsigned int acc = accelerations[m_filament_map[m_current_tool] - 1];
         return set_acceleration_impl(acc);
     }
     std::string set_acceleration_impl(unsigned int acceleration) {
@@ -1278,7 +1283,10 @@ private:
         return gcode.str();
     }
     std::vector<unsigned int> m_normal_accelerations;
+    std::vector<unsigned int> m_first_layer_normal_accelerations;
     std::vector<unsigned int> m_travel_accelerations;
+    std::vector<unsigned int> m_first_layer_travel_accelerations;
+    bool                      m_is_first_layer{false};
     unsigned int              m_max_acceleration{0};
     unsigned int              m_last_acceleration{0};
     std::vector<int>          m_filament_map;
@@ -1606,9 +1614,19 @@ WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origi
         m_normal_accels.emplace_back((unsigned int) floor(value + 0.5));
     }
 
+    m_first_layer_normal_accels.clear();
+    for (auto value : config.initial_layer_acceleration.values) {
+        m_first_layer_normal_accels.emplace_back((unsigned int) floor(value + 0.5));
+    }
+
     m_travel_accels.clear();
     for (auto value : config.travel_acceleration.values) {
         m_travel_accels.emplace_back((unsigned int) floor(value + 0.5));
+    }
+
+    m_first_layer_travel_accels.clear();
+    for (auto value : config.initial_layer_travel_acceleration.values) {
+        m_first_layer_travel_accels.emplace_back((unsigned int) floor(value + 0.5));
     }
 
     m_max_accels = config.machine_max_acceleration_extruding.values.front();
@@ -2423,10 +2441,13 @@ void WipeTower::set_for_wipe_tower_writer(WipeTowerWriter &writer)
 {
     writer.set_normal_acceleration(m_normal_accels);
     writer.set_travel_acceleration(m_travel_accels);
+    writer.set_first_layer_normal_acceleration(m_first_layer_normal_accels);
+    writer.set_first_layer_travel_acceleration(m_first_layer_travel_accels);
     writer.set_max_acceleration(m_max_accels);
     writer.set_filament_map(m_filament_map);
     writer.set_accel_to_decel_enable(m_accel_to_decel_enable);
     writer.set_accel_to_decel_factor(m_accel_to_decel_factor);
+    writer.set_first_layer(m_cur_layer_id == 0);
 }
 
 WipeTower::ToolChangeResult WipeTower::finish_layer(bool extrude_perimeter, bool extruder_fill)

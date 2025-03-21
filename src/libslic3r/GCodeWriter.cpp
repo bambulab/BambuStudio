@@ -175,6 +175,16 @@ void GCodeWriter::set_travel_acceleration(const std::vector<unsigned int>& accel
     m_travel_accelerations = accelerations;
 }
 
+void GCodeWriter::set_first_layer_travel_acceleration(const std::vector<unsigned int> &travel_accelerations)
+{
+    m_first_layer_travel_accelerations = travel_accelerations;
+}
+
+void GCodeWriter::set_first_layer(bool is_first_layer)
+{
+    m_is_first_layer = is_first_layer;
+}
+
 std::string GCodeWriter::set_extrude_acceleration()
 {
     return set_acceleration_impl(m_acceleration);
@@ -182,14 +192,15 @@ std::string GCodeWriter::set_extrude_acceleration()
 
 std::string GCodeWriter::set_travel_acceleration()
 {
-    if (m_travel_accelerations.empty())
+    std::vector<unsigned int> travel_accelerations = m_is_first_layer ? m_first_layer_travel_accelerations : m_travel_accelerations;
+    if (travel_accelerations.empty())
         return std::string();
 
     Extruder *cur_filament = filament();
     if (!cur_filament)
         return std::string();
 
-    return set_acceleration_impl(m_travel_accelerations[cur_filament->extruder_id()]);
+    return set_acceleration_impl(travel_accelerations[cur_filament->extruder_id()]);
 }
 
 std::string GCodeWriter::set_acceleration_impl(unsigned int acceleration)
@@ -529,7 +540,7 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
         }
         m_pos = dest_point;
         this->set_current_position_clear(true);
-        return slop_move + xy_z_move;
+        return set_travel_acceleration() + slop_move + xy_z_move;
     }
     else if (!this->will_move_z(point(2))) {
         double nominal_z = m_pos(2) - m_lifted;

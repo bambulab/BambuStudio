@@ -2427,7 +2427,12 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     for (auto value : m_config.travel_acceleration.values) {
         travel_accelerations.emplace_back((unsigned int) floor(value + 0.5));
     }
+    std::vector<unsigned int> first_layer_travel_accelerations;
+    for (auto value : m_config.initial_layer_travel_acceleration.values) {
+        first_layer_travel_accelerations.emplace_back((unsigned int) floor(value + 0.5));
+    }
     m_writer.set_travel_acceleration(travel_accelerations);
+    m_writer.set_first_layer_travel_acceleration(first_layer_travel_accelerations);
 
     // OrcaSlicer: calib
     if (print.calib_params().mode == CalibMode::Calib_PA_Line) {
@@ -3682,6 +3687,8 @@ GCode::LayerResult GCode::process_layer(
     }
     //BBS: set layer time fan speed after layer change gcode
     gcode += ";_SET_FAN_SPEED_CHANGING_LAYER\n";
+
+    m_writer.set_first_layer(this->on_first_layer());
 
     if (print.calib_mode() == CalibMode::Calib_PA_Tower) {
         gcode += writer().set_pressure_advance(print.calib_params().start + static_cast<int>(print_z) * print.calib_params().step);
