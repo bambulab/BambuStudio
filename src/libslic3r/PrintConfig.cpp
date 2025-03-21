@@ -4251,16 +4251,16 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(0.6));
 
     def             = this->add("top_color_penetration_layers", coInt);
-    def->label      = L("Top color layers");
+    def->label      = L("Top paint penetration layers");
     def->category   = L("Strength");
-    def->tooltip    = L("This is  the number of layers affected by the top color.");
+    def->tooltip    = L("This is  the number of layers of top paint penetration.");
     def->min        = 1;
     def->set_default_value(new ConfigOptionInt(4));
 
     def           = this->add("bottom_color_penetration_layers", coInt);
-    def->label    = L("Bottom color layers");
+    def->label    = L("Bottom paint penetration layers");
     def->category = L("Strength");
-    def->tooltip  = L("This is  the number of layers affected by the bottom color.");
+    def->tooltip  = L("This is  the number of layers of top bottom penetration.");
     def->min      = 1;
     def->set_default_value(new ConfigOptionInt(3));
 
