@@ -462,7 +462,9 @@ private:
     GCodeFlavor     m_gcode_flavor;
 
     std::vector<unsigned int> m_normal_accels;
+    std::vector<unsigned int> m_first_layer_normal_accels;
     std::vector<unsigned int> m_travel_accels;
+    std::vector<unsigned int> m_first_layer_travel_accels;
     unsigned int              m_max_accels;
     bool                      m_accel_to_decel_enable;
     float                     m_accel_to_decel_factor;

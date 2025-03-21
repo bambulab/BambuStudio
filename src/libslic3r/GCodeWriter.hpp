@@ -56,6 +56,8 @@ public:
     std::string set_chamber_temperature(int temperature, bool wait = false);
     void set_acceleration(unsigned int acceleration);
     void set_travel_acceleration(const std::vector<unsigned int>& travel_accelerations);
+    void set_first_layer_travel_acceleration(const std::vector<unsigned int>& travel_accelerations);
+    void set_first_layer(bool is_first_layer);
     std::string set_pressure_advance(double pa) const;
     std::string set_jerk_xy(double jerk);
     std::string reset_e(bool force = false);
@@ -158,8 +160,10 @@ private:
     std::string m_gcode_label_objects_start;
     std::string m_gcode_label_objects_end;
 
+    bool m_is_first_layer{false};
     unsigned int m_acceleration{0};
     std::vector<unsigned int> m_travel_accelerations;  // multi extruder, extruder size
+    std::vector<unsigned int> m_first_layer_travel_accelerations; // multi extruder, extruder size
 
     std::string _travel_to_z(double z, const std::string &comment,bool tool_change=false);
     std::string _spiral_travel_to_z(double z, const Vec2d &ij_offset, const std::string &comment, bool tool_change = false);

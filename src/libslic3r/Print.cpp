@@ -105,8 +105,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "overhang_fan_threshold",
         "overhang_threshold_participating_cooling",
         "slow_down_for_layer_cooling",
-        "default_acceleration",
-        "travel_acceleration",
         "deretraction_speed",
         "close_fan_the_first_x_layers",
         "machine_end_gcode",
@@ -299,7 +297,10 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "initial_layer_infill_speed"
             || opt_key == "travel_speed"
             || opt_key == "travel_speed_z"
-            || opt_key == "initial_layer_speed") {
+            || opt_key == "initial_layer_speed"
+            || opt_key == "default_acceleration"
+            || opt_key == "travel_acceleration"
+            || opt_key == "initial_layer_travel_acceleration") {
             //|| opt_key == "z_offset") {
             steps.emplace_back(psWipeTower);
             steps.emplace_back(psSkirtBrim);
