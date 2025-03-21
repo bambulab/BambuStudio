@@ -2623,9 +2623,15 @@ void SelectMachineDialog::on_send_print()
         }
     }
 
-    m_print_job->task_ams_mapping      = ams_mapping_array;
-    m_print_job->task_ams_mapping2     = ams_mapping_array2;
-    m_print_job->task_ams_mapping_info = ams_mapping_info;
+    if (obj_->is_support_ams_mapping()) {
+        m_print_job->task_ams_mapping      = ams_mapping_array;
+        m_print_job->task_ams_mapping2     = ams_mapping_array2;
+        m_print_job->task_ams_mapping_info = ams_mapping_info;
+    } else {
+        m_print_job->task_ams_mapping      = "";
+        m_print_job->task_ams_mapping2     = "";
+        m_print_job->task_ams_mapping_info = "";
+    }
 
     /* build nozzles info for multi extruders printers */
     if (build_nozzles_info(m_print_job->task_nozzles_info)) {
@@ -2765,14 +2771,6 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
                 m_ams_mapping_result[i].slot_id = selection_data_arr[7].ToStdString();
             }
             BOOST_LOG_TRIVIAL(trace) << "The ams mapping result: id is " << m_ams_mapping_result[i].id << "tray_id is " << m_ams_mapping_result[i].tray_id;
-        }
-
-        /*check use ams options*/
-        if (m_checkbox_list["use_ams"]->IsShown() && use_ext_count == m_ams_mapping_result.size()) {
-            m_checkbox_list["use_ams"]->setValue("off");
-        }
-        else if (use_ams_count > 0) {
-            m_checkbox_list["use_ams"]->setValue("on");
         }
 
         MaterialHash::iterator iter = m_materialList.begin();
@@ -3604,6 +3602,41 @@ void SelectMachineDialog::update_show_status()
         }
     }
 
+    if (!obj_->is_support_ams_mapping()) {
+        int exceed_index = -1;
+        if (obj_->is_mapping_exceed_filament(m_ams_mapping_result, exceed_index)) {
+            std::vector<wxString> params;
+            params.push_back(wxString::Format("%02d", exceed_index+1));
+            show_status(PrintDialogStatus::PrintStatusNeedUpgradingAms, params);
+        } else {
+            if (obj_->is_valid_mapping_result(m_ams_mapping_result)) {
+
+                if (has_timelapse_warning()) {
+                    show_status(PrintDialogStatus::PrintStatusTimelapseWarning);
+                }
+                else {
+                    show_status(PrintDialogStatus::PrintStatusAmsMappingByOrder);
+                }
+
+            } else {
+                int mismatch_index = -1;
+                for (int i = 0; i < m_ams_mapping_result.size(); i++) {
+                    if (m_ams_mapping_result[i].mapping_result == MappingResult::MAPPING_RESULT_TYPE_MISMATCH) {
+                        mismatch_index = m_ams_mapping_result[i].id;
+                        break;
+                    }
+                }
+                std::vector<wxString> params;
+                if (mismatch_index >= 0) {
+                    params.push_back(wxString::Format("%02d", mismatch_index+1));
+                    params.push_back(wxString::Format("%02d", mismatch_index+1));
+                }
+                show_status(PrintDialogStatus::PrintStatusAmsMappingU0Invalid, params);
+            }
+        }
+        return;
+    }
+
     if (m_ams_mapping_res) {
         if (has_timelapse_warning()) {
             show_status(PrintDialogStatus::PrintStatusTimelapseWarning);
@@ -4001,7 +4034,7 @@ void SelectMachineDialog::reset_and_sync_ams_list()
                 }
             }
             //m_mapping_popup.set_show_type(ShowType::RIGHT);
-            if (obj_) {
+            if (obj_ && obj_->is_support_ams_mapping()) {
                 if (m_mapping_popup.IsShown()) return;
                 wxPoint pos = item->ClientToScreen(wxPoint(0, 0));
                 pos.y += item->GetRect().height;
@@ -4490,7 +4523,7 @@ void SelectMachineDialog::set_default_from_sdcard()
             auto    mouse_pos = ClientToScreen(e.GetPosition());
             wxPoint rect = item->ClientToScreen(wxPoint(0, 0));
 
-            if (obj_) {
+            if (obj_ && obj_->is_support_ams_mapping()) {
                 if (m_mapping_popup.IsShown()) return;
                 wxPoint pos = item->ClientToScreen(wxPoint(0, 0));
                 pos.y += item->GetRect().height;
