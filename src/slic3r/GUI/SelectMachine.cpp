@@ -2401,7 +2401,7 @@ wxString SelectMachineDialog::format_steel_name(NozzleType type)
         return _L("Stainless Steel");
     }
 
-    return wxEmptyString;
+    return _L("Unknown");
 }
 
 void SelectMachineDialog::EnableEditing(bool enable)
@@ -3545,7 +3545,7 @@ void SelectMachineDialog::update_show_status()
             if (!is_same_nozzle_type(extder, filament_type))
             {
                 std::vector<wxString> error_msg;
-                error_msg.emplace_back(wxString::Format(_L("Printing high temperature material(%s material) with %s may cause nozzle damage"),
+                error_msg.emplace_back(wxString::Format(_L("Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"),
                                                             filament_type, format_steel_name(extder.current_nozzle_type)));
                 return show_status(PrintDialogStatus::PrintStatusNozzleTypeMismatch, error_msg);
             }
