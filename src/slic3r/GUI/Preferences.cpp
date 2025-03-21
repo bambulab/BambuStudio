@@ -1211,7 +1211,7 @@ wxWindow* PreferencesDialog::create_general_page()
     auto  item_import_single_svg_and_split         = create_item_checkbox(_L("Import a single SVG and split it"), page,
                                                                      _L("Import a single SVG and then split it to several parts."), 50,
                                                                      "import_single_svg_and_split");
-    auto  item_gamma_correct_in_import_obj = create_item_checkbox(_L("Enable gamma correct in imported obj"), page,
+    auto  item_gamma_correct_in_import_obj = create_item_checkbox(_L("Enable gamma correction for the imported obj file"), page,
                                                                  _L("Perform gamma correction on color after importing the obj model."), 50,
                                                                  "gamma_correct_in_import_obj");
     auto  enable_lod_settings       = create_item_checkbox(_L("Improve rendering performance by lod"), page,
