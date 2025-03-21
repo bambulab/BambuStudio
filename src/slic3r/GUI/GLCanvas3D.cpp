@@ -6310,20 +6310,26 @@ void GLCanvas3D::render_thumbnail_framebuffer(const std::shared_ptr<OpenGLManage
     const auto fb_type = Slic3r::GUI::OpenGLManager::get_framebuffers_type();
     BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer_type: %1%") % Slic3r::GUI::OpenGLManager::framebuffer_type_to_string(fb_type).c_str();
     EMSAAType msaa_type = EMSAAType::Disabled;
+    const bool b_need_msaa = !for_picking;
+    uint32_t samples = 0;
     if (fb_type != OpenGLManager::EFramebufferType::Unknown) {
         thumbnail_fb_name = "thumbnail_fb";
-        GLint max_samples;
-        glsafe(::glGetIntegerv(GL_MAX_SAMPLES, &max_samples));
-        if (max_samples >= 4) {
-            msaa_type = EMSAAType::X4;
-            BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer msaa type: %1%") % "X4";
-        }
-        else if (max_samples == 2){
-            msaa_type = EMSAAType::X2;
-            BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer msaa type: %1%") % "X2";
-        }
-        else {
-            BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer msaa type: %1%") % "Disabled";
+        if (b_need_msaa) {
+            GLint max_samples;
+            glsafe(::glGetIntegerv(GL_MAX_SAMPLES, &max_samples));
+            if (max_samples >= 4) {
+                msaa_type = EMSAAType::X4;
+                samples = 4;
+                BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer msaa type: %1%") % "X4";
+            }
+            else if (max_samples == 2) {
+                msaa_type = EMSAAType::X2;
+                samples = 2;
+                BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer msaa type: %1%") % "X2";
+            }
+            else {
+                BOOST_LOG_TRIVIAL(info) << boost::format("framebuffer msaa type: %1%") % "Disabled";
+            }
         }
     }
     else if (p_ogl_manager->is_legacy_framebuffer_enabled()) {
@@ -6358,7 +6364,8 @@ void GLCanvas3D::render_thumbnail_framebuffer(const std::shared_ptr<OpenGLManage
     if (p_fb) {
         fb_id = p_fb->get_gl_id();
     }
-    BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail prepare: w %1%, h %2%, render_fbo %3%") % w % h % fb_id;
+
+    BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail prepare: w %1%, h %2%, samples  %3%, render_fbo %4%") % w % h % samples % fb_id;
 
 #if ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
     debug_output_thumbnail(thumbnail_data);
