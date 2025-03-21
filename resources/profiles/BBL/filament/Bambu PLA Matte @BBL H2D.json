@@ -105,6 +105,9 @@
     "hole_coef_2": [
         "-0.0081"
     ],
+    "hole_coef_3": [
+        "0.18"
+    ],
     "nozzle_temperature": [
         "220",
         "220"
