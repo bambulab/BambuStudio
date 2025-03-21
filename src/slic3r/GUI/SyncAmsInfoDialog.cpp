@@ -3533,7 +3533,7 @@ std::string SyncAmsInfoDialog::get_print_status_info(PrintDialogStatus status)
 
 SyncNozzleAndAmsDialog::SyncNozzleAndAmsDialog(InputInfo &input_info)
     : BaseTransparentDPIFrame(static_cast<wxWindow *>(wxGetApp().mainframe),
-                              300,
+                              320,
                               input_info.dialog_pos,
                               90,
                               _L("Successfully synchronized nozzle and AMS number information."),
@@ -3566,7 +3566,7 @@ void SyncNozzleAndAmsDialog::update_info(InputInfo &info) {
 
 FinishSyncAmsDialog::FinishSyncAmsDialog(InputInfo &input_info)
     : BaseTransparentDPIFrame(static_cast<wxWindow *>(wxGetApp().mainframe),
-                              300,
+                              310,
                               input_info.dialog_pos,
                               68,
                               _L("Successfully synchronized color and type of filament from printer."),
