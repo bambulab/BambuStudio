@@ -3336,19 +3336,19 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_scarf_gap");
         optgroup->append_single_option_line("filament_scarf_length");
 
-        optgroup = page->new_optgroup(L("Filament circle compensation setting"), L"param_volumetric_speed");
-        optgroup->append_single_option_line("circle_compensation_speed");
-        optgroup->append_single_option_line("counter_coef_1");
-        optgroup->append_single_option_line("counter_coef_2");
-        optgroup->append_single_option_line("counter_coef_3");
-        optgroup->append_single_option_line("hole_coef_1");
-        optgroup->append_single_option_line("hole_coef_2");
-        optgroup->append_single_option_line("hole_coef_3");
-        optgroup->append_single_option_line("counter_limit_min");
-        optgroup->append_single_option_line("counter_limit_max");
-        optgroup->append_single_option_line("hole_limit_min");
-        optgroup->append_single_option_line("hole_limit_max");
-        optgroup->append_single_option_line("diameter_limit");
+        //optgroup = page->new_optgroup(L("Filament circle compensation setting"), L"param_volumetric_speed");
+        //optgroup->append_single_option_line("circle_compensation_speed");
+        //optgroup->append_single_option_line("counter_coef_1");
+        //optgroup->append_single_option_line("counter_coef_2");
+        //optgroup->append_single_option_line("counter_coef_3");
+        //optgroup->append_single_option_line("hole_coef_1");
+        //optgroup->append_single_option_line("hole_coef_2");
+        //optgroup->append_single_option_line("hole_coef_3");
+        //optgroup->append_single_option_line("counter_limit_min");
+        //optgroup->append_single_option_line("counter_limit_max");
+        //optgroup->append_single_option_line("hole_limit_min");
+        //optgroup->append_single_option_line("hole_limit_max");
+        //optgroup->append_single_option_line("diameter_limit");
         //line = { "", "" };
         //line.full_width = 1;
         //line.widget = [this](wxWindow* parent) {
