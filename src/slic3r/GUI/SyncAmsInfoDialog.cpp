@@ -2353,9 +2353,6 @@ void SyncAmsInfoDialog::update_user_printer()
             }
         }
     }
-
-    MachineObject *obj = dev->get_selected_machine();
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "for send task, current printer id =  " << obj->dev_id << std::endl;
 }
 
 void SyncAmsInfoDialog::update_printer_combobox(wxCommandEvent &event)
