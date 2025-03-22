@@ -2492,6 +2492,7 @@ void StatusPanel::on_subtask_abort(wxCommandEvent &event)
     abort_dlg->m_button_ok->SetLabel(_L("Yes"));
 
     abort_dlg->on_show();
+    abort_dlg->Raise();
 }
 
 void StatusPanel::error_info_reset()
