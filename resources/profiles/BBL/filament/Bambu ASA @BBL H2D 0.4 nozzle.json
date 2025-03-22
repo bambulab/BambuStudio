@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "name": "Bambu ASA @BBL H2D 0.4 nozzle",
-    "inherits": "Bambu ASA @BBL X1C 0.4 nozzle",
+    "inherits": "Bambu ASA @base",
     "from": "system",
     "setting_id": "GFSB01_13",
     "instantiation": "true",
@@ -100,11 +100,11 @@
     "hole_coef_3": [
         "0.25"
     ],
-    "hole_limit_max": [
-        "0.14"
-    ],
     "hole_limit_min": [
         "-0.088"
+    ],
+    "hole_limit_max": [
+        "0.14"
     ],
     "nozzle_temperature": [
         "270",
