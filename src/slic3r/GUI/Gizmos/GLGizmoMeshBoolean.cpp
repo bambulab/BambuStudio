@@ -326,11 +326,13 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyleColorVec4(ImGuiCol_Button));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyleColorVec4(ImGuiCol_Button));
         ImGui::PushStyleColor(ImGuiCol_Border, { 0, 0, 0, 0 });
-        if (ImGui::Button((into_u8(ImGui::TextSearchCloseIcon) + "##src").c_str(), {18, 18}))
+        ImGui::PushID("Source");
+        if (ImGui::Button(into_u8(ImGui::TextSearchCloseIcon).c_str()))
         {
             m_src.reset();
             m_selecting_state = MeshBooleanSelectingState::SelectSource;
         }
+        ImGui::PopID();
         ImGui::PopStyleColor(5);
     }
 
@@ -355,11 +357,13 @@ void GLGizmoMeshBoolean::on_render_input_window(float x, float y, float bottom_l
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyleColorVec4(ImGuiCol_Button));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyleColorVec4(ImGuiCol_Button));
         ImGui::PushStyleColor(ImGuiCol_Border, { 0, 0, 0, 0 });
-        if (ImGui::Button((into_u8(ImGui::TextSearchCloseIcon) + "tool").c_str(), {18, 18}))
+        ImGui::PushID("Tool");
+        if (ImGui::Button(into_u8(ImGui::TextSearchCloseIcon).c_str()))
         {
             m_tool.reset();
             m_selecting_state = (m_src.mv == nullptr) ? MeshBooleanSelectingState::SelectSource : MeshBooleanSelectingState::SelectTool;
         }
+        ImGui::PopID();
         ImGui::PopStyleColor(5);
         m_full_width = ImGui::GetWindowWidth();
     } else {
