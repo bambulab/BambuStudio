@@ -3451,32 +3451,6 @@ void SelectMachineDialog::update_show_status()
         }
     }
 
-    // no ams
-    if (!obj_->has_ams() || m_checkbox_list["use_ams"]->getValue() != "on") {
-        if (!has_tips(obj_)) {
-            if (has_timelapse_warning()) {
-                show_status(PrintDialogStatus::PrintStatusTimelapseWarning);
-            }
-            else {
-                show_status(PrintDialogStatus::PrintStatusReadingFinished);
-            }
-        }
-        return;
-    }
-
-    if (m_checkbox_list["use_ams"]->getValue() != "on") {
-        m_ams_mapping_result.clear();
-        sync_ams_mapping_result(m_ams_mapping_result);
-
-        if (has_timelapse_warning()) {
-            show_status(PrintDialogStatus::PrintStatusTimelapseWarning);
-        } else {
-            show_status(PrintDialogStatus::PrintStatusDisableAms);
-        }
-
-        return;
-    }
-
     const auto& full_config = wxGetApp().preset_bundle->full_config();
     size_t nozzle_nums = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
 
@@ -3572,6 +3546,31 @@ void SelectMachineDialog::update_show_status()
                 return;
             }
         }
+    }
+
+        // no ams
+    if (!obj_->has_ams() || m_checkbox_list["use_ams"]->getValue() != "on") {
+        if (!has_tips(obj_)) {
+            if (has_timelapse_warning()) {
+                show_status(PrintDialogStatus::PrintStatusTimelapseWarning);
+            } else {
+                show_status(PrintDialogStatus::PrintStatusReadingFinished);
+            }
+        }
+        return;
+    }
+
+    if (m_checkbox_list["use_ams"]->getValue() != "on") {
+        m_ams_mapping_result.clear();
+        sync_ams_mapping_result(m_ams_mapping_result);
+
+        if (has_timelapse_warning()) {
+            show_status(PrintDialogStatus::PrintStatusTimelapseWarning);
+        } else {
+            show_status(PrintDialogStatus::PrintStatusDisableAms);
+        }
+
+        return;
     }
 
     if (obj_->is_ams_on_settingup())
