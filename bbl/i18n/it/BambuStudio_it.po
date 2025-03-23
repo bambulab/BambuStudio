@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-20 15:34+0800\n"
+"POT-Creation-Date: 2025-03-23 14:58+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3984,6 +3984,9 @@ msgstr ""
 msgid "Click Wiki for help."
 msgstr ""
 
+msgid "Click here to regroup"
+msgstr ""
+
 msgid "Calibration step selection"
 msgstr "Seleziona calibrazione"
 
@@ -5420,9 +5423,6 @@ msgstr "Il modello necessita di supporti! Abilita i materiali di supporto."
 msgid "Gcode path overlap"
 msgstr "Sovrapposizione percorso G-code"
 
-msgid "Click here to regroup"
-msgstr ""
-
 msgid "Support painting"
 msgstr "Pittura Supporti"
 
@@ -5678,8 +5678,10 @@ msgstr "Non ci sono filamenti compatibili, la sincronizzazione non viene eseguit
 msgid "Sync filaments with AMS"
 msgstr "Sincronizza filamenti con AMS"
 
-msgid "There are some unknown or uncompatible filaments mapped to generic preset. Please update Bambu Studio or restart Bambu Studio to check if there is an update to system presets."
-msgstr "Ci sono alcuni filamenti sconosciuti o incompatibili mappati su preset generici. Aggiorna Bambu Studio o riavvia Bambu Studio per verificare se è disponibile un aggiornamento dei preset di sistema."
+msgid ""
+"There are some unknown or uncompatible filaments mapped to generic preset.\n"
+"Please update Bambu Studio or restart Bambu Studio to check if there is an update to system presets."
+msgstr ""
 
 msgid "Filament type and color information have been synchronized, but slot information is not included."
 msgstr ""
@@ -6386,7 +6388,7 @@ msgstr ""
 msgid "Import a single SVG and then split it to several parts."
 msgstr ""
 
-msgid "Enable gamma correct in imported obj"
+msgid "Enable gamma correction for the imported obj file"
 msgstr ""
 
 msgid "Perform gamma correction on color after importing the obj model."
@@ -6978,8 +6980,7 @@ msgstr ""
 msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration."
 msgstr ""
 
-#, c-format, boost-format
-msgid "Custom K value of { %s } will not be used since dynamic flow calibration is enabled."
+msgid "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
 msgstr ""
 
 msgid "Errors"
@@ -7031,8 +7032,8 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr ""
 
 #, c-format, boost-format
-msgid "Printing high temperature material(%s material) with %s may cause nozzle damage"
-msgstr "Printing high temperature material(%s material) with %s may cause nozzle damage"
+msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
+msgstr ""
 
 msgid "Currently only External Spool is available, color mapping is prohibited, and control pop-up drop-down boxes are also prohibited."
 msgstr ""
@@ -7411,9 +7412,6 @@ msgid "Volumetric speed limitation"
 msgstr "Limitazione velocità volumetrica"
 
 msgid "Filament scarf seam settings"
-msgstr ""
-
-msgid "Filament circle compensation setting"
 msgstr ""
 
 msgid "Cooling for specific layer"
@@ -9139,6 +9137,15 @@ msgstr "Stampa normale"
 msgid "The default acceleration of both normal printing and travel except initial layer"
 msgstr "Accelerazione predefinita sia per la stampa normale che per gli spostamenti, escluso il primo layer"
 
+msgid "The acceleration of travel except initial layer"
+msgstr ""
+
+msgid "Initial layer travel"
+msgstr ""
+
+msgid "The acceleration of travel of initial layer"
+msgstr ""
+
 msgid "Default filament profile"
 msgstr "Profilo filamento predefinito"
 
@@ -10800,16 +10807,16 @@ msgstr "Spessore guscio superiore"
 msgid "The number of top solid layers is increased when slicing if the thickness calculated by top shell layers is thinner than this value. This can avoid having too thin shell when layer height is small. 0 means that this setting is disabled and thickness of top shell is absolutely determained by top shell layers"
 msgstr "Il numero di layers solidi superiori aumenta durante l'elaborazione se lo spessore calcolato dai layers superiori del guscio è più sottile di questo valore. Questo può evitare di avere un guscio troppo sottile quando l'altezza del layer è ridotta. 0 significa che questa impostazione è disabilitata e lo spessore del guscio superiore è determinato semplicemente dal numero di layers superiori del guscio."
 
-msgid "Top color layers"
+msgid "Top paint penetration layers"
 msgstr ""
 
-msgid "This is  the number of layers affected by the top color."
+msgid "This is  the number of layers of top paint penetration."
 msgstr ""
 
-msgid "Bottom color layers"
+msgid "Bottom paint penetration layers"
 msgstr ""
 
-msgid "This is  the number of layers affected by the bottom color."
+msgid "This is  the number of layers of top bottom penetration."
 msgstr ""
 
 msgid "Speed of travel which is faster and without extrusion"
@@ -11518,7 +11525,7 @@ msgstr ""
 msgid "Printer %s nozzle information has not been set. Please configure it before proceeding with the calibration."
 msgstr ""
 
-msgid " Synced"
+msgid "AMS and nozzle information are synced"
 msgstr ""
 
 msgid "Nozzle Info"
@@ -11582,10 +11589,7 @@ msgid ""
 "as the results may be unstable and affect print quality."
 msgstr ""
 
-msgid " (Synced)"
-msgstr ""
-
-msgid " (Not synced)"
+msgid "Sync AMS and nozzle information"
 msgstr ""
 
 msgid "Connecting to printer"
@@ -13119,6 +13123,13 @@ msgid ""
 msgstr ""
 "Evita deformazioni\n"
 "Sapevi che quando si stampano materiali soggetti a deformazioni, come l'ABS, aumentare adeguatamente la temperatura del piano può ridurre la probabilità di deformazione."
+
+#~ msgid "There are some unknown or uncompatible filaments mapped to generic preset. Please update Bambu Studio or restart Bambu Studio to check if there is an update to system presets."
+#~ msgstr "Ci sono alcuni filamenti sconosciuti o incompatibili mappati su preset generici. Aggiorna Bambu Studio o riavvia Bambu Studio per verificare se è disponibile un aggiornamento dei preset di sistema."
+
+#, c-format, boost-format
+#~ msgid "Printing high temperature material(%s material) with %s may cause nozzle damage"
+#~ msgstr "Printing high temperature material(%s material) with %s may cause nozzle damage"
 
 #, c-format, boost-format
 #~ msgid "The color count should be in range [%d, %d]."

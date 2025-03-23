@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-20 15:34+0800\n"
+"POT-Creation-Date: 2025-03-23 14:58+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -3964,6 +3964,9 @@ msgstr ""
 msgid "Click Wiki for help."
 msgstr ""
 
+msgid "Click here to regroup"
+msgstr ""
+
 msgid "Calibration step selection"
 msgstr "Výběr kroku kalibrace"
 
@@ -5394,9 +5397,6 @@ msgstr "Váš model potřebuje podpěry ! Povolte prosím podpůrný materiál."
 msgid "Gcode path overlap"
 msgstr "Překrytí cesty G-kódu"
 
-msgid "Click here to regroup"
-msgstr ""
-
 msgid "Support painting"
 msgstr "Malování podpěr"
 
@@ -5652,8 +5652,10 @@ msgstr "Neexistují žádná kompatibilní filamenty a synchronizace není prove
 msgid "Sync filaments with AMS"
 msgstr "Synchronizovat filamenty s AMS"
 
-msgid "There are some unknown or uncompatible filaments mapped to generic preset. Please update Bambu Studio or restart Bambu Studio to check if there is an update to system presets."
-msgstr "Některé neznámé nebo nekompatibilní filameny jsou přiřazeny k obecnému přednastavení. Prosím, aktualizujte Bambu Studio nebo restartujte Bambu Studio, abyste zkontrolovali, zda existuje aktualizace systémových přednastavení."
+msgid ""
+"There are some unknown or uncompatible filaments mapped to generic preset.\n"
+"Please update Bambu Studio or restart Bambu Studio to check if there is an update to system presets."
+msgstr ""
 
 msgid "Filament type and color information have been synchronized, but slot information is not included."
 msgstr ""
@@ -6358,7 +6360,7 @@ msgstr ""
 msgid "Import a single SVG and then split it to several parts."
 msgstr ""
 
-msgid "Enable gamma correct in imported obj"
+msgid "Enable gamma correction for the imported obj file"
 msgstr ""
 
 msgid "Perform gamma correction on color after importing the obj model."
@@ -6950,8 +6952,7 @@ msgstr ""
 msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration."
 msgstr ""
 
-#, c-format, boost-format
-msgid "Custom K value of { %s } will not be used since dynamic flow calibration is enabled."
+msgid "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
 msgstr ""
 
 msgid "Errors"
@@ -7003,7 +7004,7 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr ""
 
 #, c-format, boost-format
-msgid "Printing high temperature material(%s material) with %s may cause nozzle damage"
+msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
 msgstr ""
 
 msgid "Currently only External Spool is available, color mapping is prohibited, and control pop-up drop-down boxes are also prohibited."
@@ -7382,9 +7383,6 @@ msgid "Volumetric speed limitation"
 msgstr "Omezení objemové rychlosti"
 
 msgid "Filament scarf seam settings"
-msgstr ""
-
-msgid "Filament circle compensation setting"
 msgstr ""
 
 msgid "Cooling for specific layer"
@@ -9105,6 +9103,15 @@ msgstr "Normální tisk"
 msgid "The default acceleration of both normal printing and travel except initial layer"
 msgstr "Výchozí zrychlení normálního tisku i pohybu kromě počáteční vrstvy"
 
+msgid "The acceleration of travel except initial layer"
+msgstr ""
+
+msgid "Initial layer travel"
+msgstr ""
+
+msgid "The acceleration of travel of initial layer"
+msgstr ""
+
 msgid "Default filament profile"
 msgstr "Výchozí profil filamentu"
 
@@ -10763,16 +10770,16 @@ msgstr "Tloušťka horní skořepiny"
 msgid "The number of top solid layers is increased when slicing if the thickness calculated by top shell layers is thinner than this value. This can avoid having too thin shell when layer height is small. 0 means that this setting is disabled and thickness of top shell is absolutely determained by top shell layers"
 msgstr "Počet vrchních pevných vrstev se při krájení zvýší, pokud je tloušťka vypočítaná horními vrstvami skořepiny tenčí než tato hodnota. Tím se lze vyhnout příliš tenké skořepině, když je výška vrstvy malá. 0 znamená, že toto nastavení je zakázáno a tloušťka vrchní skořepiny je absolutně určován vrchními vrstvami pláště"
 
-msgid "Top color layers"
+msgid "Top paint penetration layers"
 msgstr ""
 
-msgid "This is  the number of layers affected by the top color."
+msgid "This is  the number of layers of top paint penetration."
 msgstr ""
 
-msgid "Bottom color layers"
+msgid "Bottom paint penetration layers"
 msgstr ""
 
-msgid "This is  the number of layers affected by the bottom color."
+msgid "This is  the number of layers of top bottom penetration."
 msgstr ""
 
 msgid "Speed of travel which is faster and without extrusion"
@@ -11474,7 +11481,7 @@ msgstr ""
 msgid "Printer %s nozzle information has not been set. Please configure it before proceeding with the calibration."
 msgstr ""
 
-msgid " Synced"
+msgid "AMS and nozzle information are synced"
 msgstr ""
 
 msgid "Nozzle Info"
@@ -11538,10 +11545,7 @@ msgid ""
 "as the results may be unstable and affect print quality."
 msgstr ""
 
-msgid " (Synced)"
-msgstr ""
-
-msgid " (Not synced)"
+msgid "Sync AMS and nozzle information"
 msgstr ""
 
 msgid "Connecting to printer"
@@ -13032,6 +13036,9 @@ msgid ""
 "Avoid warping\n"
 "Did you know that when printing materials that are prone to warping such as ABS, appropriately increasing the heatbed temperature can reduce the probability of warping."
 msgstr ""
+
+#~ msgid "There are some unknown or uncompatible filaments mapped to generic preset. Please update Bambu Studio or restart Bambu Studio to check if there is an update to system presets."
+#~ msgstr "Některé neznámé nebo nekompatibilní filameny jsou přiřazeny k obecnému přednastavení. Prosím, aktualizujte Bambu Studio nebo restartujte Bambu Studio, abyste zkontrolovali, zda existuje aktualizace systémových přednastavení."
 
 #~ msgid "New Value"
 #~ msgstr "Nová hodnota"

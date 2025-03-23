@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-20 15:34+0800\n"
+"POT-Creation-Date: 2025-03-23 14:58+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -3989,6 +3989,9 @@ msgstr "检测到 PLA 和 PETG 同时打印，请根据 Wiki 中的建议调整�
 msgid "Click Wiki for help."
 msgstr "点击Wiki寻求帮助。"
 
+msgid "Click here to regroup"
+msgstr "点击此处重新分组"
+
 msgid "Calibration step selection"
 msgstr "校准步骤选择"
 
@@ -4777,7 +4780,6 @@ msgid ""
 msgstr ""
 "文件: %s\n"
 "标题: %s\n"
-""
 
 msgid "Download waiting..."
 msgstr "等待下载中..."
@@ -5426,9 +5428,6 @@ msgstr "你的模型需要支撑才能打印。请开启材料支撑选项。"
 msgid "Gcode path overlap"
 msgstr "Gcode路径有重叠"
 
-msgid "Click here to regroup"
-msgstr "点击此处重新分组"
-
 msgid "Support painting"
 msgstr "支撑绘制"
 
@@ -5687,8 +5686,12 @@ msgstr "没有任何兼容的材料，同步操作未执行。"
 msgid "Sync filaments with AMS"
 msgstr "同步到 AMS 的材料列表"
 
-msgid "There are some unknown or uncompatible filaments mapped to generic preset. Please update Bambu Studio or restart Bambu Studio to check if there is an update to system presets."
-msgstr "有一些未知或不兼容的耗材映射到通用预设中。请更新Bambu Studio或重新启动Bambu Studio，以检查是否有系统预设的更新。"
+msgid ""
+"There are some unknown or uncompatible filaments mapped to generic preset.\n"
+"Please update Bambu Studio or restart Bambu Studio to check if there is an update to system presets."
+msgstr ""
+"有一些未知或不兼容的耗材映射到通用预设。\n"
+"请更新Bambu Studio或重新启动Bambu Studio，以检查是否有系统预设的更新。"
 
 msgid "Filament type and color information have been synchronized, but slot information is not included."
 msgstr "耗材类型和颜色信息已同步，但不包括槽位信息。"
@@ -6405,8 +6408,8 @@ msgstr "导入一个SVG并拆分它"
 msgid "Import a single SVG and then split it to several parts."
 msgstr "导入一个SVG并将它拆分成多个零件"
 
-msgid "Enable gamma correct in imported obj"
-msgstr "在obj导入中启用gamma校正"
+msgid "Enable gamma correction for the imported obj file"
+msgstr "为导入的obj文件启用gamma校正"
 
 msgid "Perform gamma correction on color after importing the obj model."
 msgstr "导入obj模型后，对颜色进行伽玛校正。"
@@ -6484,7 +6487,7 @@ msgid "Maximum count of recent projects"
 msgstr "近期项目的最大计数"
 
 msgid "Clear my choice on the unsaved projects."
-msgstr "清除我对未保存的项目的选择。"
+msgstr "清除对未保存的项目的选择。"
 
 msgid "No warnings when loading 3MF with modified G-codes"
 msgstr "加载具有修改的 G-Code 的 3MF 时不会出现警告"
@@ -6995,7 +6998,7 @@ msgid "When enable spiral vase mode, machines with I3 structure will not generat
 msgstr "启用螺旋花瓶模式时，具有I3结构的机器将不会生成延时视频。"
 
 msgid "The current printer does not support timelapse in Traditional Mode when printing By-Object."
-msgstr "新的当前打印机在打印By-Object时不支持传统模式下的延时摄影。"
+msgstr "当前打印机在逐件打印时不支持传统模式下的延时摄影。"
 
 msgid "You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing."
 msgstr "您在一个挤出机中同时选择了使用外挂和AMS耗材，这将需要您在打印过程中手动进行换料，请谨慎选择。"
@@ -7003,9 +7006,8 @@ msgstr "您在一个挤出机中同时选择了使用外挂和AMS耗材，这将
 msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration."
 msgstr "TPU 90A/TPU 85A硬度过低，不支持自动流量校准。"
 
-#, c-format, boost-format
-msgid "Custom K value of { %s } will not be used since dynamic flow calibration is enabled."
-msgstr ""
+msgid "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
+msgstr "您可以将动态流量校准设置为'关闭'来启用自定义的动态流量校准值"
 
 msgid "Errors"
 msgstr "错误"
@@ -7056,8 +7058,8 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr "当前喷嘴直径（%.1fmm）和切片文件（%.1fmm）不一致，无法发起打印。请确保打印机上安装喷嘴直径和机器设置中一致，并在切片时设置对应的喷嘴直径。"
 
 #, c-format, boost-format
-msgid "Printing high temperature material(%s material) with %s may cause nozzle damage"
-msgstr "用%s打印高温材料（%s材料）可能会导致喷嘴损坏"
+msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
+msgstr "高温材料（%s）若通过%s喷嘴打印，可能会导致喷嘴损坏。请检查喷嘴类型"
 
 msgid "Currently only External Spool is available, color mapping is prohibited, and control pop-up drop-down boxes are also prohibited."
 msgstr "目前仅有外挂料槽，颜色映射被禁止，并且控制弹出下拉框也被禁止"
@@ -7435,9 +7437,6 @@ msgstr "体积速度限制"
 msgid "Filament scarf seam settings"
 msgstr "材料斜拼接缝参数"
 
-msgid "Filament circle compensation setting"
-msgstr "材料轴孔补偿设置"
-
 msgid "Cooling for specific layer"
 msgstr "特定层冷却"
 
@@ -7604,16 +7603,16 @@ msgid "Copy paramters"
 msgstr "拷贝参数"
 
 msgid "Modify paramters of right nozzle"
-msgstr ""
+msgstr "修改右喷嘴下的参数"
 
 msgid "Modify paramters of left nozzle"
-msgstr ""
+msgstr "修改左喷嘴下的参数"
 
 msgid "Do you want to modify the following parameters of the right nozzle to that of the left nozzle?"
-msgstr ""
+msgstr "是否要将右喷嘴下的参数修改为与左喷嘴相同的值？"
 
 msgid "Do you want to modify the following parameters of the left nozzle to that of the right nozzle?"
-msgstr ""
+msgstr "是否要将左喷嘴下的参数修改为与右喷嘴相同的值？"
 
 msgid "Click to reset current value and attach to the global value."
 msgstr "点击该图标，恢复到全局的配置数值，并与全局配置同步变化。"
@@ -9172,6 +9171,15 @@ msgstr "普通打印"
 
 msgid "The default acceleration of both normal printing and travel except initial layer"
 msgstr "除首层之外的默认的打印和空驶的加速度"
+
+msgid "The acceleration of travel except initial layer"
+msgstr ""
+
+msgid "Initial layer travel"
+msgstr ""
+
+msgid "The acceleration of travel of initial layer"
+msgstr ""
 
 msgid "Default filament profile"
 msgstr "默认耗材配置"
@@ -10835,16 +10843,16 @@ msgstr "顶部壳体厚度"
 msgid "The number of top solid layers is increased when slicing if the thickness calculated by top shell layers is thinner than this value. This can avoid having too thin shell when layer height is small. 0 means that this setting is disabled and thickness of top shell is absolutely determained by top shell layers"
 msgstr "如果由顶部壳体层数算出的厚度小于这个数值，那么切片时将自动增加顶部壳体层数。这能够避免当层高很小时，顶部壳体过薄。0表示关闭这个设置，同时顶部壳体的厚度完全由顶部壳体层数决定"
 
-msgid "Top color layers"
+msgid "Top paint penetration layers"
+msgstr "顶部涂色渗透层数"
+
+msgid "This is  the number of layers of top paint penetration."
+msgstr "顶部涂色渗透的层数"
+
+msgid "Bottom paint penetration layers"
 msgstr ""
 
-msgid "This is  the number of layers affected by the top color."
-msgstr ""
-
-msgid "Bottom color layers"
-msgstr ""
-
-msgid "This is  the number of layers affected by the bottom color."
+msgid "This is  the number of layers of top bottom penetration."
 msgstr ""
 
 msgid "Speed of travel which is faster and without extrusion"
@@ -11558,10 +11566,10 @@ msgstr "同步前请先连接打印机"
 
 #, c-format, boost-format
 msgid "Printer %s nozzle information has not been set. Please configure it before proceeding with the calibration."
-msgstr ""
+msgstr "尚未设置打印机%s喷嘴信息。请在进行校准之前对其进行配置。"
 
-msgid " Synced"
-msgstr ""
+msgid "AMS and nozzle information are synced"
+msgstr "AMS和喷嘴信息已同步"
 
 msgid "Nozzle Info"
 msgstr "喷嘴信息"
@@ -11628,11 +11636,8 @@ msgstr ""
 "提示：在使用A1/A1 mini机器时，不建议对发泡类材料（%s）进行校准，\n"
 "以免因效果不佳（校准结果不稳定）而影响打印质量。"
 
-msgid " (Synced)"
-msgstr ""
-
-msgid " (Not synced)"
-msgstr ""
+msgid "Sync AMS and nozzle information"
+msgstr "同步AMS和喷嘴信息"
 
 msgid "Connecting to printer"
 msgstr "正在连接打印机"
@@ -11689,6 +11694,8 @@ msgstr "编辑动态流量校准"
 #, c-format, boost-format
 msgid "Within the same extruder, the name '%s' must be unique when the filament type, nozzle diameter, and nozzle flow are identical. Please choose a different name."
 msgstr ""
+"在同一个挤出机内，当耗材类型、喷嘴直径和喷嘴流量相同时，名称 ‘%s’ 必须是唯一的。\n"
+"请使用不同的名称。"
 
 msgid "New Flow Dynamic Calibration"
 msgstr "新建动态流量校准"
@@ -13158,6 +13165,19 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid "There are some unknown or uncompatible filaments mapped to generic preset. Please update Bambu Studio or restart Bambu Studio to check if there is an update to system presets."
+#~ msgstr "有一些未知或不兼容的耗材映射到通用预设中。请更新Bambu Studio或重新启动Bambu Studio，以检查是否有系统预设的更新。"
+
+#~ msgid "Enable gamma correct in imported obj"
+#~ msgstr "在obj导入中启用gamma校正"
+
+#, c-format, boost-format
+#~ msgid "Printing high temperature material(%s material) with %s may cause nozzle damage"
+#~ msgstr "用%s打印高温材料（%s材料）可能会导致喷嘴损坏"
+
+#~ msgid "Filament circle compensation setting"
+#~ msgstr "材料轴孔补偿设置"
 
 #, c-format, boost-format
 #~ msgid "Filament %d is placed in the %s, but the generated G-code path exceeds the printable range of the %s."
