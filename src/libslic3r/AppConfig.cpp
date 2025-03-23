@@ -429,6 +429,10 @@ void AppConfig::set_defaults()
     if (get("play_slicing_video").empty()) {
         set_bool("play_slicing_video", true);
     }
+    if (get("play_tpu_printing_video").empty()) {
+        set_bool("play_tpu_printing_video", true);
+    }
+
     // Remove legacy window positions/sizes
     erase("app", "main_frame_maximized");
     erase("app", "main_frame_pos");

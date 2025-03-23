@@ -57,6 +57,18 @@ bool play_dual_extruder_slice_video()
     return false;
 }
 
+bool play_dual_extruder_print_tpu_video()
+{
+    // TO be replaced
+    const wxString video_url = "https://e.bambulab.com/t?c=mOkvsXkJ9pldGYp9";
+    if (wxLaunchDefaultBrowser(video_url)){
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("Print Tpu Video is being played using the system's default browser.");
+        return true;
+    }
+    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("launch system's default browser failed");
+    return false;
+}
+
 bool open_filament_group_wiki()
 {
     const wxString wiki_url = "https://e.bambulab.com/t?c=mOkvsXkJ9pldGYp9";
