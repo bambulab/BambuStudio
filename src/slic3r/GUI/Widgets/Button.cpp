@@ -3,7 +3,9 @@
 
 #include <wx/dcclient.h>
 #include <wx/dcgraph.h>
-
+#ifdef __APPLE__
+#include "libslic3r/MacUtils.hpp"
+#endif
 BEGIN_EVENT_TABLE(Button, StaticBox)
 
 EVT_LEFT_DOWN(Button::mouseDown)
@@ -272,6 +274,11 @@ void Button::render(wxDC& dc)
 #endif
 #ifdef __WXOSX__
         pt.y -= this->textSize.x / 2;
+#endif
+#ifdef __APPLE__
+        if (Slic3r::is_mac_version_15()) {
+        pt.y -= FromDIP(1);
+    }
 #endif
         dc.DrawText(text, pt);
     }
