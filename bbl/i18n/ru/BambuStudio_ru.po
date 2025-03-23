@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 1.10.1 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-20 15:34+0800\n"
+"POT-Creation-Date: 2025-03-23 14:58+0800\n"
 "PO-Revision-Date: 2024-09-27 23:58+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -4049,6 +4049,9 @@ msgstr ""
 msgid "Click Wiki for help."
 msgstr "Нажмите вики-сайт для получения помощи."
 
+msgid "Click here to regroup"
+msgstr ""
+
 msgid "Calibration step selection"
 msgstr "Выбор шага калибровки"
 
@@ -5514,9 +5517,6 @@ msgstr "Вашей модели необходима поддержка, вкл�
 msgid "Gcode path overlap"
 msgstr "Перекрытие пути G-кода"
 
-msgid "Click here to regroup"
-msgstr ""
-
 msgid "Support painting"
 msgstr "Рисование поддержек"
 
@@ -5774,8 +5774,10 @@ msgstr "Синхронизация не выполнена, ввиду отсу�
 msgid "Sync filaments with AMS"
 msgstr "Синхронизация прутка с АСПП"
 
-msgid "There are some unknown or uncompatible filaments mapped to generic preset. Please update Bambu Studio or restart Bambu Studio to check if there is an update to system presets."
-msgstr "Имеются несколько неизвестных или несовместимых материалов, сопоставленных с общим профилем. Обновите или перезапустите Bambu Studio, чтобы проверить наличие обновлений системных профилей."
+msgid ""
+"There are some unknown or uncompatible filaments mapped to generic preset.\n"
+"Please update Bambu Studio or restart Bambu Studio to check if there is an update to system presets."
+msgstr ""
 
 msgid "Filament type and color information have been synchronized, but slot information is not included."
 msgstr ""
@@ -6507,7 +6509,7 @@ msgstr ""
 msgid "Import a single SVG and then split it to several parts."
 msgstr ""
 
-msgid "Enable gamma correct in imported obj"
+msgid "Enable gamma correction for the imported obj file"
 msgstr ""
 
 msgid "Perform gamma correction on color after importing the obj model."
@@ -7109,8 +7111,7 @@ msgstr ""
 msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration."
 msgstr ""
 
-#, c-format, boost-format
-msgid "Custom K value of { %s } will not be used since dynamic flow calibration is enabled."
+msgid "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
 msgstr ""
 
 msgid "Errors"
@@ -7162,8 +7163,8 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr ""
 
 #, c-format, boost-format
-msgid "Printing high temperature material(%s material) with %s may cause nozzle damage"
-msgstr "Печать %1s материалом с помощью сопла %2s может привести к повреждению сопла."
+msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
+msgstr ""
 
 msgid "Currently only External Spool is available, color mapping is prohibited, and control pop-up drop-down boxes are also prohibited."
 msgstr ""
@@ -7555,9 +7556,6 @@ msgstr "Ограничение объёмной скорости"
 
 msgid "Filament scarf seam settings"
 msgstr "Настройки клиновидного шва для прутка"
-
-msgid "Filament circle compensation setting"
-msgstr ""
 
 msgid "Cooling for specific layer"
 msgstr "Обдув определенного слоя"
@@ -9306,6 +9304,15 @@ msgstr "Ускорение по умолчанию"
 msgid "The default acceleration of both normal printing and travel except initial layer"
 msgstr "Ускорение по умолчанию для обычной печати и перемещения, кроме первого слоя."
 
+msgid "The acceleration of travel except initial layer"
+msgstr ""
+
+msgid "Initial layer travel"
+msgstr ""
+
+msgid "The acceleration of travel of initial layer"
+msgstr ""
+
 msgid "Default filament profile"
 msgstr "Профиль прутка по умолчанию"
 
@@ -10997,16 +11004,16 @@ msgstr "Толщина оболочки сверху"
 msgid "The number of top solid layers is increased when slicing if the thickness calculated by top shell layers is thinner than this value. This can avoid having too thin shell when layer height is small. 0 means that this setting is disabled and thickness of top shell is absolutely determained by top shell layers"
 msgstr "Минимальная толщина оболочки сверху в мм. Если толщина оболочки, рассчитанная по количеству сплошных слоёв сверху, меньше этого значения, количество сплошных слоёв сверху будет автоматически увеличено при нарезке, для удовлетворения минимальной толщины оболочки. Это позволяет избежать слишком тонкой оболочки при небольшой высоте слоя. 0 означает, что этот параметр отключён, а толщина оболочки сверху полностью задаётся количеством сплошных слоёв снизу."
 
-msgid "Top color layers"
+msgid "Top paint penetration layers"
 msgstr ""
 
-msgid "This is  the number of layers affected by the top color."
+msgid "This is  the number of layers of top paint penetration."
 msgstr ""
 
-msgid "Bottom color layers"
+msgid "Bottom paint penetration layers"
 msgstr ""
 
-msgid "This is  the number of layers affected by the bottom color."
+msgid "This is  the number of layers of top bottom penetration."
 msgstr ""
 
 msgid "Speed of travel which is faster and without extrusion"
@@ -11736,7 +11743,7 @@ msgstr ""
 msgid "Printer %s nozzle information has not been set. Please configure it before proceeding with the calibration."
 msgstr ""
 
-msgid " Synced"
+msgid "AMS and nozzle information are synced"
 msgstr ""
 
 msgid "Nozzle Info"
@@ -11806,10 +11813,7 @@ msgstr ""
 "Совет: при использовании принтера A1/A1 mini мы не рекомендуем калибровать вспенивающиеся прутки (%s),\n"
 "так как результаты могут быть нестабильными и повлиять на качество печати."
 
-msgid " (Synced)"
-msgstr ""
-
-msgid " (Not synced)"
+msgid "Sync AMS and nozzle information"
 msgstr ""
 
 msgid "Connecting to printer"
@@ -13373,6 +13377,13 @@ msgid ""
 msgstr ""
 "Предотвращение коробления материала\n"
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как ABS, повышение температуры подогреваемого стола может снизить эту вероятность?"
+
+#~ msgid "There are some unknown or uncompatible filaments mapped to generic preset. Please update Bambu Studio or restart Bambu Studio to check if there is an update to system presets."
+#~ msgstr "Имеются несколько неизвестных или несовместимых материалов, сопоставленных с общим профилем. Обновите или перезапустите Bambu Studio, чтобы проверить наличие обновлений системных профилей."
+
+#, c-format, boost-format
+#~ msgid "Printing high temperature material(%s material) with %s may cause nozzle damage"
+#~ msgstr "Печать %1s материалом с помощью сопла %2s может привести к повреждению сопла."
 
 #, c-format, boost-format
 #~ msgid "The color count should be in range [%d, %d]."

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-20 15:34+0800\n"
+"POT-Creation-Date: 2025-03-23 14:58+0800\n"
 "PO-Revision-Date: 2025-01-12 21:04+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -4002,6 +4002,9 @@ msgstr ""
 msgid "Click Wiki for help."
 msgstr "Yardım için Wiki'ye tıklayın."
 
+msgid "Click here to regroup"
+msgstr ""
+
 msgid "Calibration step selection"
 msgstr "Kalibrasyon adımı seçimi"
 
@@ -5442,9 +5445,6 @@ msgstr "Modelinizin desteğe ihtiyacı var! Lütfen destek materyalini etkinleş
 msgid "Gcode path overlap"
 msgstr "Gcode yolu çakışması"
 
-msgid "Click here to regroup"
-msgstr ""
-
 msgid "Support painting"
 msgstr "Destek boyama"
 
@@ -5700,8 +5700,10 @@ msgstr "Uyumlu filament yok ve senkronizasyon gerçekleştirilmiyor."
 msgid "Sync filaments with AMS"
 msgstr "Filamentleri AMS ile senkronize et"
 
-msgid "There are some unknown or uncompatible filaments mapped to generic preset. Please update Bambu Studio or restart Bambu Studio to check if there is an update to system presets."
-msgstr "Genel ön ayara eşlenmiş bazı bilinmeyen veya uyumsuz filamentler var. Sistem ön ayarlarında bir güncelleme olup olmadığını kontrol etmek için lütfen Bambu Studio'yu güncelleyin veya Bambu Studio'yu yeniden başlatın."
+msgid ""
+"There are some unknown or uncompatible filaments mapped to generic preset.\n"
+"Please update Bambu Studio or restart Bambu Studio to check if there is an update to system presets."
+msgstr ""
 
 msgid "Filament type and color information have been synchronized, but slot information is not included."
 msgstr ""
@@ -6414,7 +6416,7 @@ msgstr "Tek bir SVG'yi içe aktarın ve bölün"
 msgid "Import a single SVG and then split it to several parts."
 msgstr "Tek bir SVG'yi içe aktarın ve ardından birkaç parçaya bölün."
 
-msgid "Enable gamma correct in imported obj"
+msgid "Enable gamma correction for the imported obj file"
 msgstr ""
 
 msgid "Perform gamma correction on color after importing the obj model."
@@ -7006,8 +7008,7 @@ msgstr ""
 msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration."
 msgstr ""
 
-#, c-format, boost-format
-msgid "Custom K value of { %s } will not be used since dynamic flow calibration is enabled."
+msgid "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
 msgstr ""
 
 msgid "Errors"
@@ -7059,8 +7060,8 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr ""
 
 #, c-format, boost-format
-msgid "Printing high temperature material(%s material) with %s may cause nozzle damage"
-msgstr "Yüksek sıcaklıktaki malzemenin (%s malzeme) %s ile basılması nozul hasarına neden olabilir"
+msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
+msgstr ""
 
 msgid "Currently only External Spool is available, color mapping is prohibited, and control pop-up drop-down boxes are also prohibited."
 msgstr ""
@@ -7440,9 +7441,6 @@ msgstr "Hacimsel Hız Sınırlaması"
 
 msgid "Filament scarf seam settings"
 msgstr "Filament atkı eklem dikişi ayarları"
-
-msgid "Filament circle compensation setting"
-msgstr ""
 
 msgid "Cooling for specific layer"
 msgstr "Belirli Katman İçin Soğutma"
@@ -9169,6 +9167,15 @@ msgstr "Normal baskı"
 msgid "The default acceleration of both normal printing and travel except initial layer"
 msgstr "İlk katman dışında hem normal yazdırmanın hem de ilerlemenin varsayılan ivmesi"
 
+msgid "The acceleration of travel except initial layer"
+msgstr ""
+
+msgid "Initial layer travel"
+msgstr ""
+
+msgid "The acceleration of travel of initial layer"
+msgstr ""
+
 msgid "Default filament profile"
 msgstr "Varsayılan filament profili"
 
@@ -10827,16 +10834,16 @@ msgstr "Üst katman kalınlığı"
 msgid "The number of top solid layers is increased when slicing if the thickness calculated by top shell layers is thinner than this value. This can avoid having too thin shell when layer height is small. 0 means that this setting is disabled and thickness of top shell is absolutely determained by top shell layers"
 msgstr "Üst kabuk katmanları tarafından hesaplanan kalınlık bu değerden daha ince ise dilimleme sırasında üst katı katmanların sayısı artırılır. Bu, katman yüksekliği küçük olduğunda kabuğun çok ince olmasını önleyebilir. 0, bu ayarın devre dışı olduğu ve üst kabuğun kalınlığının kesinlikle üst kabuk katmanları tarafından belirlendiği anlamına gelir"
 
-msgid "Top color layers"
+msgid "Top paint penetration layers"
 msgstr ""
 
-msgid "This is  the number of layers affected by the top color."
+msgid "This is  the number of layers of top paint penetration."
 msgstr ""
 
-msgid "Bottom color layers"
+msgid "Bottom paint penetration layers"
 msgstr ""
 
-msgid "This is  the number of layers affected by the bottom color."
+msgid "This is  the number of layers of top bottom penetration."
 msgstr ""
 
 msgid "Speed of travel which is faster and without extrusion"
@@ -11552,7 +11559,7 @@ msgstr ""
 msgid "Printer %s nozzle information has not been set. Please configure it before proceeding with the calibration."
 msgstr ""
 
-msgid " Synced"
+msgid "AMS and nozzle information are synced"
 msgstr ""
 
 msgid "Nozzle Info"
@@ -11624,10 +11631,7 @@ msgstr ""
 "İpucu: A1/A1 mini yazıcıyı kullanırken köpük filamentlerin kalibre edilmesini önermiyoruz (%s),\n"
 "sonuçlar kararsız olabileceğinden ve baskı kalitesini etkileyebileceğinden."
 
-msgid " (Synced)"
-msgstr ""
-
-msgid " (Not synced)"
+msgid "Sync AMS and nozzle information"
 msgstr ""
 
 msgid "Connecting to printer"
@@ -13161,6 +13165,13 @@ msgid ""
 msgstr ""
 "Eğilmeyi önleyin\n"
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını azaltabileceğini biliyor muydunuz."
+
+#~ msgid "There are some unknown or uncompatible filaments mapped to generic preset. Please update Bambu Studio or restart Bambu Studio to check if there is an update to system presets."
+#~ msgstr "Genel ön ayara eşlenmiş bazı bilinmeyen veya uyumsuz filamentler var. Sistem ön ayarlarında bir güncelleme olup olmadığını kontrol etmek için lütfen Bambu Studio'yu güncelleyin veya Bambu Studio'yu yeniden başlatın."
+
+#, c-format, boost-format
+#~ msgid "Printing high temperature material(%s material) with %s may cause nozzle damage"
+#~ msgstr "Yüksek sıcaklıktaki malzemenin (%s malzeme) %s ile basılması nozul hasarına neden olabilir"
 
 #, c-format, boost-format
 #~ msgid "The color count should be in range [%d, %d]."
