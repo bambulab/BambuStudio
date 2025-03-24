@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-24 18:58+0800\n"
+"POT-Creation-Date: 2025-03-24 21:50+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -12104,11 +12104,11 @@ msgstr "Typ erstellen"
 msgid "The model is not fond, place reselect vendor."
 msgstr "The model was not found; please reselect vendor."
 
-msgid "Select Model"
-msgstr "Modell auswählen"
-
 msgid "Select Printer"
 msgstr "Drucker auswählen"
+
+msgid "Select Model"
+msgstr "Modell auswählen"
 
 msgid "Input Custom Model"
 msgstr "Benutzerdefiniertes Modell eingeben"
