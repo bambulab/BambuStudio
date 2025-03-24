@@ -7325,6 +7325,16 @@ EPickingEffect GUI_App::get_picking_effect() const
     return m_picking_effect;
 }
 
+void GUI_App::set_picking_color(const ColorRGB& color)
+{
+    m_picking_color = color;
+}
+
+const ColorRGB& GUI_App::get_picking_color() const
+{
+    return m_picking_color;
+}
+
 bool GUI_App::open_browser_with_warning_dialog(const wxString& url, int flags/* = 0*/)
 {
     return wxLaunchDefaultBrowser(url, flags);

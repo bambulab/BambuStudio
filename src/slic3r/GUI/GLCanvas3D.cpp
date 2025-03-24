@@ -2162,6 +2162,18 @@ void GLCanvas3D::render(bool only_init)
     }
 
     wxGetApp().set_picking_effect(EPickingEffect::Silhouette);
+    ColorRGB picking_color;
+    if (m_canvas_type == ECanvasType::CanvasAssembleView) {
+        picking_color.set(0, 1.0f);
+        picking_color.set(1, 1.0f);
+        picking_color.set(2, 0.0f);
+    }
+    else {
+        picking_color.set(0, 1.0f);
+        picking_color.set(1, 1.0f);
+        picking_color.set(2, 1.0f);
+    }
+    wxGetApp().set_picking_color(picking_color);
 
     if (only_init)
         return;
@@ -9849,19 +9861,7 @@ void GLCanvas3D::_render_silhouette_effect()
 
     wxGetApp().bind_shader(p_silhouette_shader);
 
-    std::array<float, 4> picking_color{ 1.0f, 0.36f, 0.0f, 1.0f };
-    if (m_canvas_type == ECanvasType::CanvasAssembleView) {
-        picking_color[0] = 1.0f;
-        picking_color[1] = 1.0f;
-        picking_color[2] = 0.0f;
-        picking_color[3] = 1.0f;
-    }
-    else {
-        picking_color[0] = 1.0f;
-        picking_color[1] = 1.0f;
-        picking_color[2] = 1.0f;
-        picking_color[3] = 1.0f;
-    }
+    const auto& picking_color = wxGetApp().get_picking_color();
     p_silhouette_shader->set_uniform("u_base_color", picking_color);
 
     const Camera& camera = wxGetApp().plater()->get_camera();
@@ -9979,22 +9979,27 @@ void GLCanvas3D::_composite_silhouette_effect()
     uint32_t viewport_width = 0;
     uint32_t viewport_height = 0;
     p_ogl_manager->get_viewport_size(viewport_width, viewport_height);
-    const std::array<float, 2> viewport_size{ static_cast<float>(viewport_width), static_cast<float>(viewport_height) };
-    p_silhouette_composite_shader->set_uniform("u_viewport_size", viewport_size);
 
+    const float alpha = 0.4f;
     Matrix3f convolution_matrix;
-    convolution_matrix.data()[3 * 0 + 0] = -0.4f;
-    convolution_matrix.data()[3 * 0 + 1] = -0.4f;
-    convolution_matrix.data()[3 * 0 + 2] = -0.4f;
+    convolution_matrix.data()[3 * 0 + 0] = -alpha;
+    convolution_matrix.data()[3 * 0 + 1] = -alpha;
+    convolution_matrix.data()[3 * 0 + 2] = -alpha;
 
-    convolution_matrix.data()[3 * 1 + 0] = -0.4f;
-    convolution_matrix.data()[3 * 1 + 1] = 3.6f;
-    convolution_matrix.data()[3 * 1 + 2] = -0.4f;
+    convolution_matrix.data()[3 * 1 + 0] = -alpha;
+    convolution_matrix.data()[3 * 1 + 1] = alpha * 9.0f;
+    convolution_matrix.data()[3 * 1 + 2] = -alpha;
 
-    convolution_matrix.data()[3 * 2 + 0] = -0.4f;
-    convolution_matrix.data()[3 * 2 + 1] = -0.4f;
-    convolution_matrix.data()[3 * 2 + 2] = -0.4f;
+    convolution_matrix.data()[3 * 2 + 0] = -alpha;
+    convolution_matrix.data()[3 * 2 + 1] = -alpha;
+    convolution_matrix.data()[3 * 2 + 2] = -alpha;
     p_silhouette_composite_shader->set_uniform("u_convolution_matrix", convolution_matrix);
+
+    const std::array<float, 3> viewport_size_alpha{ static_cast<float>(viewport_width), static_cast<float>(viewport_height), alpha };
+    p_silhouette_composite_shader->set_uniform("u_viewport_size_alpha", viewport_size_alpha);
+
+    const auto& picking_color = wxGetApp().get_picking_color();
+    p_silhouette_composite_shader->set_uniform("u_picking_color", picking_color);
 
     const int stage = 0;
     p_silhouette_composite_shader->set_uniform("u_sampler", stage);
