@@ -1532,6 +1532,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
 
     SetBackgroundColour(*wxWHITE);
     m_result                       = -1;
+    wxBoxSizer *m_sizer_border       = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *m_sizer_body       = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *m_sizer_main = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *m_sizer_msg        = new wxBoxSizer(wxHORIZONTAL);
@@ -1542,6 +1543,21 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     comfirm_before_enter_text = _L("1. Please confirm Bambu Studio and your printer are in the same LAN.");
     comfirm_after_enter_text  = _L("2. If the IP and Access Code below are different from the actual values on your printer, please correct them.");
     comfirm_last_enter_text   = _L("3. Please obtain the device SN from the printer side; it is usually found in the device information on the printer screen.");
+
+    Label *wiki = new Label(this, ::Label::Body_13, _L("View wiki"), LB_AUTO_WRAP);
+    wiki->SetForegroundColour(wxColour(0, 174, 66));
+    wiki->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) {SetCursor(wxCURSOR_HAND);});
+    wiki->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) {SetCursor(wxCURSOR_ARROW);});
+    wiki->Bind(wxEVT_LEFT_DOWN, [this](auto &e) {
+        wxString url;
+        if (wxGetApp().app_config->get("region") =="China") {
+            url = "https://wiki.bambulab.com/zh/software/bambu-studio/failed-to-send-print-files";
+        }
+        else {
+            url = "https://wiki.bambulab.com/en/software/bambu-studio/failed-to-send-print-files";
+        }
+        wxLaunchDefaultBrowser(url);
+    });
 
     m_tip0 = new Label(this, ::Label::Body_13, comfirm_before_check_text, LB_AUTO_WRAP);
     m_tip0->SetMinSize(wxSize(FromDIP(355), -1));
@@ -1740,6 +1756,8 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
 
     m_trouble_shoot->Hide();
 
+    m_sizer_main->Add(wiki, 0, wxEXPAND, 0);
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(4));
     m_sizer_main->Add(m_tip0, 0, wxEXPAND, 0);
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(6));
     m_sizer_main->Add(m_tip1, 0, wxEXPAND, 0);
@@ -1775,9 +1793,12 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(10));
     m_sizer_body->Layout();
 
+    m_sizer_border->Add(0,0,0,wxLEFT, FromDIP(20));
+    m_sizer_border->Add(m_sizer_body, wxEXPAND, 0);
+
     switch_input_panel(0);
 
-    SetSizer(m_sizer_body);
+    SetSizer(m_sizer_border);
     Layout();
     Fit();
 
