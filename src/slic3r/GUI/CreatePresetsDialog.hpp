@@ -14,7 +14,7 @@
 #include "ParamsDialog.hpp"
 #include "json_diff.hpp"
 
-namespace Slic3r { 
+namespace Slic3r {
 namespace GUI {
 
 class CreateFilamentPresetDialog : public DPIDialog
@@ -24,7 +24,7 @@ public:
     ~CreateFilamentPresetDialog();
 
 protected:
-    enum FilamentOptionType { 
+    enum FilamentOptionType {
         VENDOR = 0,
         TYPE,
         SERIAL,
@@ -126,6 +126,7 @@ protected:
 
 /**********************************************************    Data Interaction    *******************************************************/
     bool          data_init();
+    void          on_select_printer_model(wxCommandEvent &e);
     void          set_current_visible_printer();
     void          select_curr_radiobox(std::vector<std::pair<RadioBox *, wxString>> &radiobox_list, int btn_idx);
     void          select_all_preset_template(std::vector<std::pair<::CheckBox *, Preset *>> &preset_templates);
@@ -244,7 +245,7 @@ public:
     ~ExportConfigsDialog();//to do: delete preset
 
 protected:
-    
+
     struct ExportType
     {
         wxString preset_bundle;
@@ -341,7 +342,7 @@ class PresetTree
 {
 public:
     PresetTree(EditFilamentPresetDialog *dialog);
-    
+
     wxPanel *get_preset_tree(std::pair<std::string, std::vector<std::shared_ptr<Preset>>> printer_and_presets);
 
 private:
@@ -364,7 +365,7 @@ class EditFilamentPresetDialog : public DPIDialog
 public:
     EditFilamentPresetDialog(wxWindow *parent, FilamentInfomation *filament_info);
     ~EditFilamentPresetDialog();
-    
+
     wxPanel *get_preset_tree_panel() { return m_preset_tree_panel; }
     std::shared_ptr<Preset> get_need_edit_preset() { return m_need_edit_preset; }
     void     set_printer_name(const std::string &printer_name) { m_selected_printer = printer_name; }
