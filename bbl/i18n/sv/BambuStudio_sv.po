@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-24 17:46+0800\n"
+"POT-Creation-Date: 2025-03-24 18:58+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -8343,6 +8343,9 @@ msgid "2. If the IP and Access Code below are different from the actual values o
 msgstr ""
 
 msgid "3. Please obtain the device SN from the printer side; it is usually found in the device information on the printer screen."
+msgstr ""
+
+msgid "View wiki"
 msgstr ""
 
 msgid "Access Code"

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-24 17:46+0800\n"
+"POT-Creation-Date: 2025-03-24 18:58+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -6869,7 +6869,7 @@ msgid "Bamabu Textured PEI Plate"
 msgstr "纹理PEI打印板"
 
 msgid "Bambu Cool Plate SuperTack"
-msgstr "低温增稳打印板"
+msgstr "增稳低温打印板"
 
 msgid "Send print job"
 msgstr "发送打印任务"
@@ -7415,7 +7415,7 @@ msgid "Print temperature"
 msgstr "打印温度"
 
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Bambu Cool Plate SuperTack"
-msgstr "安装冷却板时的床温。值0表示耗材丝不支持在低温增稳打印板上打印。"
+msgstr "安装冷却板时的床温。值0表示耗材丝不支持在增稳低温打印板上打印。"
 
 msgid "Cool Plate"
 msgstr "低温打印板"
@@ -8377,6 +8377,9 @@ msgstr ""
 msgid "3. Please obtain the device SN from the printer side; it is usually found in the device information on the printer screen."
 msgstr ""
 
+msgid "View wiki"
+msgstr ""
+
 msgid "Access Code"
 msgstr "访问码"
 
@@ -8985,7 +8988,7 @@ msgid "Initial layer bed temperature"
 msgstr "首层床温"
 
 msgid "Bed temperature of the initial layer. Value 0 means the filament does not support to print on the Bambu Cool Plate SuperTack"
-msgstr "初始层的床温。值0表示耗材丝不支持在低温增稳打印板上打印"
+msgstr "初始层的床温。值0表示耗材丝不支持在增稳低温打印板上打印"
 
 msgid "Bed temperature of the initial layer. Value 0 means the filament does not support to print on the Cool Plate"
 msgstr "首层热床温度。0值表示这个耗材丝不支持低温打印热床"
@@ -9945,10 +9948,10 @@ msgid "This parameter adds a slight rotation to each layer of infill to create a
 msgstr "这个参数给每层填充添加轻微旋转以塑造交错花纹。"
 
 msgid "Symmetric infill y axis"
-msgstr ""
+msgstr "填充关于y轴对称"
 
 msgid "If the model has two parts that are symmetric about the y-axis, and you want these parts to have symmetric textures, please click this option on one of the parts."
-msgstr ""
+msgstr "如果一个模型中有两个关于y轴对称的部件，并且你希望使得这两个部分的填充纹理关于y轴对称。请在其中一个部件上勾选上这个功能。"
 
 msgid "Length of sparse infill anchor"
 msgstr "稀疏填充铆线长度"
