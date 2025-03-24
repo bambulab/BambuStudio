@@ -3110,7 +3110,12 @@ int MachineObject::publish_json(std::string json_str, int qos, int flag)
         rtn = cloud_publish_json(json_str, qos, flag);
     }
 
-    BOOST_LOG_TRIVIAL(trace) << "publish_json: " << json_str << " code: " << rtn;
+    if (rtn == 0) {
+        BOOST_LOG_TRIVIAL(info) << "publish_json: " << json_str << " code: " << rtn;
+    } else {
+        BOOST_LOG_TRIVIAL(error) << "publish_json: " << json_str << " code: " << rtn;
+    }
+
     return rtn;
 }
 
