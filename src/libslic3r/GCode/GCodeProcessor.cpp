@@ -1051,7 +1051,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
             context.physical_extruder_map,
             valid_machine_id,
             context.inject_time_threshold,
-            context.post_extrusion_cooling_threshold,
+            context.pre_cooling_temp,
             context.cooling_rate,
             context.heating_rate,
             machine_start_gcode_end_line_id,
@@ -1681,6 +1681,7 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
 
     m_hotend_cooling_rate = config.hotend_cooling_rate.values;
     m_hotend_heating_rate = config.hotend_heating_rate.values;
+    m_filament_pre_cooling_temp = config.filament_pre_cooling_temperature.values;
     m_enable_pre_heating = config.enable_pre_heating;
     m_physical_extruder_map = config.physical_extruder_map.values;
 
@@ -1794,6 +1795,11 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     const ConfigOptionFloatsNullable* hotend_heating_rate = config.option<ConfigOptionFloatsNullable>("hotend_heating_rate");
     if (hotend_heating_rate != nullptr) {
         m_hotend_heating_rate = hotend_heating_rate->values;
+    }
+
+    const ConfigOptionIntsNullable* filament_pre_cooling_temp = config.option<ConfigOptionIntsNullable>("filament_pre_cooling_temperature");
+    if (filament_pre_cooling_temp != nullptr) {
+        m_filament_pre_cooling_temp = filament_pre_cooling_temp->values;
     }
 
     const ConfigOptionBool* enable_pre_heating = config.option<ConfigOptionBool>("enable_pre_heating");
@@ -2357,6 +2363,7 @@ void GCodeProcessor::finalize(bool post_process)
             m_layer_id,
             m_hotend_cooling_rate,
             m_hotend_heating_rate,
+            m_filament_pre_cooling_temp,
             inject_time_threshold,
             m_enable_pre_heating
         );
@@ -5940,10 +5947,16 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
         return buffer;
         };
 
-    auto is_tpu_filament = [&filament_types = this->filament_types](int idx) {
-        if (idx == -1)
+    auto is_pre_cooling_valid = [&nozzle_temps = this->filament_nozzle_temps, &pre_cooling_temps = this->filament_pre_cooling_temps](int idx) ->bool {
+        if(idx < 0)
             return false;
-        return filament_types[idx] == "TPU";
+        return pre_cooling_temps[idx] > 0 && pre_cooling_temps[idx] < nozzle_temps[idx];
+        };
+
+    auto get_partial_free_cooling_thres = [&nozzle_temps = this->filament_nozzle_temps, &pre_cooling_temps = this->filament_pre_cooling_temps](int idx) -> float{
+        if(idx < 0)
+            return 30.f;
+        return nozzle_temps[idx] - (float)(pre_cooling_temps[idx]);
         };
 
     auto gcode_move_comp = [](const GCodeProcessorResult::MoveVertex& a, unsigned int gcode_id) {
@@ -5969,7 +5982,7 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
     if (move_iter_lower >= move_iter_upper)
         return;
 
-    bool apply_cooling_when_partial_free = is_tpu_filament(block.last_filament_id) && pre_cooling;
+    bool apply_cooling_when_partial_free = is_pre_cooling_valid(block.last_filament_id) && pre_cooling;
 
     float partial_free_time_gap = partial_free_move_upper->time[valid_machine_id] - partial_free_move_lower->time[valid_machine_id]; // time of partial free
     float complete_free_time_gap = move_iter_upper->time[valid_machine_id] - move_iter_lower->time[valid_machine_id]; // time of complete free
@@ -5983,9 +5996,9 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
     float ext_heating_rate = heating_rate[block.extruder_id];
     float ext_cooling_rate = cooling_rate[block.extruder_id];
 
-    if (is_tpu_filament(block.last_filament_id) && pre_cooling) {
+    if (apply_cooling_when_partial_free) {
         if (partial_free_move_lower < partial_free_move_upper) {
-            float max_cooling_temp = std::min(curr_temp, std::min(partial_free_cooling_thres, partial_free_time_gap * ext_cooling_rate));
+            float max_cooling_temp = std::min(curr_temp, std::min(get_partial_free_cooling_thres(block.last_filament_id), partial_free_time_gap * ext_cooling_rate));
             curr_temp -= max_cooling_temp; // set the temperature after doing cooling when post-extruding
             inserted_operation_lines[partial_free_move_lower->gcode_id].emplace_back(format_line_M104(curr_temp, block.extruder_id, "Multi extruder pre cooling in post extrusion"), TimeProcessor::InsertLineType::PreCooling);
         }

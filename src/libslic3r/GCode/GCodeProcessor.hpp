@@ -693,8 +693,8 @@ namespace Slic3r {
             size_t total_layer_num;
             std::vector<double> cooling_rate{ 2.f }; // Celsius degree per second
             std::vector<double> heating_rate{ 2.f }; // Celsius degree per second
+            std::vector<int> pre_cooling_temp{ 0 };
             float inject_time_threshold{ 30.f }; // only active pre cooling & heating if time gap is bigger than threshold
-            float post_extrusion_cooling_threshold{ 30.f }; // threshold of temp if do cooling in post extrusion
             bool enable_pre_heating{ false };
 
             TimeProcessContext(
@@ -707,6 +707,7 @@ namespace Slic3r {
                 const size_t total_layer_num_,
                 const std::vector<double>& cooling_rate_,
                 const std::vector<double>& heating_rate_,
+                const std::vector<int>& pre_cooling_temp_,
                 const float inject_time_threshold_,
                 const bool  enable_pre_heating_
             ) :
@@ -719,6 +720,7 @@ namespace Slic3r {
                 total_layer_num(total_layer_num_),
                 cooling_rate(cooling_rate_),
                 heating_rate(heating_rate_),
+                pre_cooling_temp(pre_cooling_temp_),
                 enable_pre_heating(enable_pre_heating_),
                 inject_time_threshold(inject_time_threshold_)
             {
@@ -809,7 +811,7 @@ namespace Slic3r {
                 const std::vector<int>& physical_extruder_map_,
                 int valid_machine_id_,
                 float inject_time_threshold_,
-                float partial_free_cooling_thres_,
+                const std::vector<int> & pre_cooling_temp_,
                 const std::vector<double>& cooling_rate_,
                 const std::vector<double>& heating_rate_,
                 unsigned int machine_start_gcode_end_id_,
@@ -822,7 +824,7 @@ namespace Slic3r {
                 physical_extruder_map(physical_extruder_map_),
                 valid_machine_id(valid_machine_id_),
                 inject_time_threshold(inject_time_threshold_),
-                partial_free_cooling_thres(partial_free_cooling_thres_),
+                filament_pre_cooling_temps(pre_cooling_temp_),
                 cooling_rate(cooling_rate_),
                 heating_rate(heating_rate_),
                 machine_start_gcode_end_id(machine_start_gcode_end_id_),
@@ -839,9 +841,9 @@ namespace Slic3r {
             const std::vector<int>& physical_extruder_map;
             const int valid_machine_id;
             const float inject_time_threshold;
-            const float partial_free_cooling_thres; // threshold of cooling temp during post extrusion
             const std::vector<double>& cooling_rate;
             const std::vector<double>& heating_rate;
+            const std::vector<int>& filament_pre_cooling_temps; // target cooling temp during post extrusion
 
             const unsigned int machine_start_gcode_end_id;
             const unsigned int machine_end_gcode_start_id;
@@ -1014,6 +1016,7 @@ namespace Slic3r {
         std::vector<std::string> m_filament_types;
         std::vector<double> m_hotend_cooling_rate{ 2.f };
         std::vector<double> m_hotend_heating_rate{ 2.f };
+        std::vector<int> m_filament_pre_cooling_temp{ 0 };
         float m_enable_pre_heating{ false };
         std::vector<int> m_physical_extruder_map;
 
