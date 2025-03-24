@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-23 14:58+0800\n"
+"POT-Creation-Date: 2025-03-24 17:46+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -12,6 +12,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n==0 || n==1) ? 0 : 1;\n"
 "X-Generator: Poedit 3.4.2\n"
+
+msgid "The filament model is unknown. Still using the previous filament preset."
+msgstr ""
+
+msgid "The filament may not be compatible with the current machine settings. Generic filament presets will be used."
+msgstr ""
+
+msgid "The filament model is unknown. A random filament preset will be used."
+msgstr ""
 
 msgid "Current AMS humidity"
 msgstr ""
@@ -4095,6 +4104,11 @@ msgstr ""
 msgid "First Guide"
 msgstr ""
 
+msgid ""
+"This is your first time printing tpu filaments with the H2D machine.\n"
+"Would you like to watch a quick tutorial video?"
+msgstr ""
+
 msgid "Slice all"
 msgstr "Tout trancher"
 
@@ -6921,9 +6935,6 @@ msgid "Filament does not match the filament in AMS slot. Please update the print
 msgstr "Le filament ne correspond pas au filament du slot AMS. Mettez à jour le firmware de l'imprimante pour qu'il prenne en charge l'attribution des emplacements AMS."
 
 msgid "Storage is not available or is in read-only mode."
-msgstr ""
-
-msgid "External storage is not available or is in read-only mode."
 msgstr ""
 
 msgid "The printer firmware only supports sequential mapping of filament => AMS slot."
