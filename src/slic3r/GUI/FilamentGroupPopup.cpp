@@ -59,8 +59,7 @@ bool play_dual_extruder_slice_video()
 
 bool play_dual_extruder_print_tpu_video()
 {
-    // TO be replaced
-    const wxString video_url = "https://e.bambulab.com/t?c=mOkvsXkJ9pldGYp9";
+    const wxString video_url = "https://e.bambulab.com/t?c=fwWqpBg37Liel92N";
     if (wxLaunchDefaultBrowser(video_url)){
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("Print Tpu Video is being played using the system's default browser.");
         return true;
