@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "02.00.00.67",
+    "version": "02.00.00.68",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -704,8 +704,16 @@
             "sub_path": "process/0.16mm Optimal @BBL H2D.json"
         },
         {
+            "name": "0.16mm High Quality @BBL H2D",
+            "sub_path": "process/0.16mm High Quality @BBL H2D.json"
+        },
+        {
             "name": "0.20mm Standard @BBL H2D",
             "sub_path": "process/0.20mm Standard @BBL H2D.json"
+        },
+        {
+            "name": "0.20mm High Quality @BBL H2D",
+            "sub_path": "process/0.20mm High Quality @BBL H2D.json"
         },
         {
             "name": "0.24mm Draft @BBL H2D",
