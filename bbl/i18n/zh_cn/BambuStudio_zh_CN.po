@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-24 18:58+0800\n"
+"POT-Creation-Date: 2025-03-24 21:50+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -8366,13 +8366,13 @@ msgid "Connect the printer using IP and access code"
 msgstr "使用IP和访问代码连接打印"
 
 msgid "Try the following methods to update the connection parameters and reconnect to the printer."
-msgstr ""
+msgstr "尝试以下方法更新连接参数并重新连接打印机。"
 
 msgid "1. Please confirm Bambu Studio and your printer are in the same LAN."
-msgstr ""
+msgstr "1. 请确认Bambu Studio和您的打印机在同一个局域网内。"
 
 msgid "2. If the IP and Access Code below are different from the actual values on your printer, please correct them."
-msgstr ""
+msgstr "2. 如果下面的IP和Access Code与你的打印机上的实际值不同，请更正。"
 
 msgid "3. Please obtain the device SN from the printer side; it is usually found in the device information on the printer screen."
 msgstr ""
@@ -12159,11 +12159,11 @@ msgstr "创建类型"
 msgid "The model is not fond, place reselect vendor."
 msgstr "该模型未找到，请重新选择供应商。"
 
-msgid "Select Model"
-msgstr "选择型号"
-
 msgid "Select Printer"
 msgstr "选择打印机"
+
+msgid "Select Model"
+msgstr "选择型号"
 
 msgid "Input Custom Model"
 msgstr "输入自定义型号"
