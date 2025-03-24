@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-23 14:58+0800\n"
+"POT-Creation-Date: 2025-03-24 17:46+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -16,6 +16,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Poedit 3.5\n"
+
+msgid "The filament model is unknown. Still using the previous filament preset."
+msgstr "未知的材料型号，将使用之前的材料预设。"
+
+msgid "The filament may not be compatible with the current machine settings. Generic filament presets will be used."
+msgstr "改材料与当前机器设置不兼容，将使用通用的材料预设。"
+
+msgid "The filament model is unknown. A random filament preset will be used."
+msgstr "未知的材料型号，将使用随机的材料预设。"
 
 msgid "Current AMS humidity"
 msgstr "当前AMS湿度"
@@ -4122,6 +4131,13 @@ msgstr ""
 msgid "First Guide"
 msgstr "首次指南"
 
+msgid ""
+"This is your first time printing tpu filaments with the H2D machine.\n"
+"Would you like to watch a quick tutorial video?"
+msgstr ""
+"这是您第一次使用H2D机器打印TPU耗材。\n"
+"您需要观看一个简短的指导视频吗？"
+
 msgid "Slice all"
 msgstr "切片所有盘"
 
@@ -6969,9 +6985,6 @@ msgstr "材料编号和AMS槽位中的耗材丝材质不匹配，请更新打印
 msgid "Storage is not available or is in read-only mode."
 msgstr "存储设备不可用或处于只读模式。"
 
-msgid "External storage is not available or is in read-only mode."
-msgstr ""
-
 msgid "The printer firmware only supports sequential mapping of filament => AMS slot."
 msgstr "已自动建立 “耗材丝列表=>AMS槽位” 的映射关系。 可点击上方具体的耗材丝手动设置其所对应的AMS槽位"
 
@@ -7645,7 +7658,7 @@ msgid "Use Modified Value of Printer Preset"
 msgstr "使用机器预设的修改值"
 
 msgid "(Modified)"
-msgstr ""
+msgstr "(已修改）"
 
 msgid "Preset(Old)"
 msgstr "预设（旧）"
@@ -9176,7 +9189,7 @@ msgid "The acceleration of travel except initial layer"
 msgstr ""
 
 msgid "Initial layer travel"
-msgstr ""
+msgstr "首层空驶"
 
 msgid "The acceleration of travel of initial layer"
 msgstr ""
@@ -10850,10 +10863,10 @@ msgid "This is  the number of layers of top paint penetration."
 msgstr "顶部涂色渗透的层数"
 
 msgid "Bottom paint penetration layers"
-msgstr ""
+msgstr "底部涂色渗透层数"
 
 msgid "This is  the number of layers of top bottom penetration."
-msgstr ""
+msgstr "顶部涂色渗透的层数"
 
 msgid "Speed of travel which is faster and without extrusion"
 msgstr "空驶的速度。空驶是无挤出量的快速移动。"
