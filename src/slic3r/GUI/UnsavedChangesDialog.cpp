@@ -1590,7 +1590,6 @@ void UnsavedChangesDialog::update_list()
                     text_left->SetForegroundColour(wxGetApp().dark_mode() ? *wxLIGHT_GREY : GREY700);
 #else
                     text_left->SetForegroundColour(GREY700);
-                    text_left->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INFOTEXT));
 #endif
 
                      sizer_left_v->Add(text_left, 0, wxLEFT, 37);
@@ -1624,7 +1623,6 @@ void UnsavedChangesDialog::update_list()
                 text_left->SetForegroundColour(wxGetApp().dark_mode() ? *wxLIGHT_GREY : GREY700);
 #else
                 text_left->SetForegroundColour(GREY700);
-                text_left->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INFOTEXT));
 #endif
 
                 sizer_left_v->Add(text_left, 0, wxLEFT, 51 );

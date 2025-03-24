@@ -3986,27 +3986,6 @@ void MainFrame::show_sync_dialog()
     wxQueueEvent(this, evt);
 }
 
-bool MainFrame::check_bbl_farm_client_installed()
-{
-#ifdef WIN32
-    HKEY hKey;
-    LONG result = RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("SOFTWARE\\Bambulab\\Bambu Farm Manager Client"), 0, KEY_READ, &hKey);
-    LONG result_backup = RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("HKEY_CLASSES_ROOT\\bambu-farm-client\\shell\\open\\command"), 0, KEY_READ, &hKey);
-
-    if (result == ERROR_SUCCESS || result_backup == ERROR_SUCCESS) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "Bambu Farm Manager Client found.";
-        RegCloseKey(hKey);
-        return true;
-    } else {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "Bambu Farm Manager Client Not found.";
-        return false;
-    }
-
-#else
-    return false;
-#endif
-}
-
 void MainFrame::update_side_preset_ui()
 {
     // select last preset

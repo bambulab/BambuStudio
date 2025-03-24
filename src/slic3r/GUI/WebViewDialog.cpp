@@ -279,8 +279,6 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
             SendDesignStaffpick(true);
         }
     });
-
-    SwitchWebContent("home");
  }
 
 WebViewPanel::~WebViewPanel()
@@ -845,7 +843,7 @@ std::string GenerateRandomString(int length)
     return randomString;
 }
 
-void WebViewPanel::OpenMakerlab3mf(std::string Base64Buf, std::string FileName)
+bool WebViewPanel::SaveBase64ToLocal(std::string Base64Buf, std::string FileName, std::string FileTail, wxString &download_path, wxString &download_file)
 {
     int   nSize  = wxBase64DecodedSize(Base64Buf.length());
     char *DstBuf = new char[nSize + 1];
@@ -1713,7 +1711,7 @@ void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
 
     wxString strlang = GetStudioLanguage();
 
-    if (modelname.compare("makerlab") == 0)
+    if (modelname.compare("makersupply") == 0) 
     {
         std::string strRegion = wxGetApp().app_config->get_country_code();
         wxString    MakerSupplyUrl;
@@ -1722,20 +1720,18 @@ void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
         else
             MakerSupplyUrl = "https://store.bambulab.com/collections/makers-supply?from=bambustudio";
 
+        wxLaunchDefaultBrowser(MakerSupplyUrl);
+    }
+    else if (modelname.compare("makerlab") == 0)
+    {
+        wxString FinalUrl;
+
         if (!m_MakerLabFirst)
         {
-            if (m_MakerLab_LastUrl != "")
-                FinalUrl = m_MakerLab_LastUrl;
-            else
-            {
-                SetMakerlabUrl("");
-
-                FinalUrl = m_MakerLab_LastUrl;
-            }
+            UpdateMakerlabStatus();
         }
         else {
-            if (m_MakerLab_LastUrl != "")
-                FinalUrl = m_MakerLab_LastUrl;
+            if (m_MakerLab_LastUrl != "") m_browserML->LoadURL(m_MakerLab_LastUrl);        
         }
 
         m_MakerLabFirst = true;

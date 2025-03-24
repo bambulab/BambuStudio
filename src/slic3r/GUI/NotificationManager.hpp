@@ -151,6 +151,7 @@ enum class NotificationType
 	BBLUserPresetExceedLimit,
     BBLFilamentPrintableError,
     BBLSliceLimitError,
+    BBLSliceMultiExtruderHeightOutside,
 	BBLBedFilamentIncompatible,
     BBLMixUsePLAAndPETG,
     NotificationTypeCount
