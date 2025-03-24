@@ -668,6 +668,9 @@ public:
     void set_picking_effect(EPickingEffect effect);
     EPickingEffect get_picking_effect() const;
 
+    void set_picking_color(const ColorRGB& color);
+    const ColorRGB& get_picking_color() const;
+
 private:
     int             updating_bambu_networking();
     bool            on_init_inner();
@@ -697,6 +700,7 @@ private:
     boost::optional<Semver> m_last_config_version;
     std::string             m_open_method;
     EPickingEffect          m_picking_effect{ EPickingEffect::StencilOutline };
+    ColorRGB                m_picking_color{ 1.0f, 1.0f, 1.0f };
 };
 
 DECLARE_APP(GUI_App)
