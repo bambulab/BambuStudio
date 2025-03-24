@@ -10,8 +10,8 @@
         "40"
     ],
     "filament_deretraction_speed": [
-        "10",
-        "10"
+        "nil",
+        "nil"
     ],
     "filament_flow_ratio": [
         "0.97",
@@ -22,8 +22,8 @@
         "nil"
     ],
     "filament_max_volumetric_speed": [
-        "18",
-        "18"
+        "12",
+        "12"
     ],
     "filament_retract_before_wipe": [
         "nil",
@@ -42,16 +42,16 @@
         "nil"
     ],
     "filament_retraction_length": [
-        "2",
-        "2"
+        "0.4",
+        "0.4"
     ],
     "filament_retraction_minimum_travel": [
         "nil",
         "nil"
     ],
     "filament_retraction_speed": [
-        "10",
-        "10"
+        "nil",
+        "nil"
     ],
     "filament_wipe": [
         "nil",
