@@ -52,6 +52,10 @@
 
 #define VIRTUAL_TRAY_MAIN_ID    255
 #define VIRTUAL_TRAY_DEPUTY_ID  254
+
+#define VIRTUAL_AMS_MAIN_ID_STR   "255"
+#define VIRTUAL_AMS_DEPUTY_ID_STR "254"
+
 #define START_SEQ_ID            20000
 #define END_SEQ_ID              30000
 #define SUBSCRIBE_RETRY_COUNT   5
@@ -1313,6 +1317,10 @@ public:
     /*vi slot data*/
     std::vector<AmsTray> vt_slot;
     AmsTray parse_vt_tray(json vtray);
+
+    /*get ams slot info*/
+    bool    contains_tray(const std::string &ams_id, const std::string &tray_id) const;
+    AmsTray get_tray(const std::string &ams_id, const std::string &tray_id) const;/*use contains_tray() check first*/
 
     /*for parse new info*/
     bool check_enable_np(const json& print) const;
