@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-25 12:27+0800\n"
+"POT-Creation-Date: 2025-03-25 13:33+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3872,6 +3872,14 @@ msgstr "Vermeiden Sie den Bereich der Extrusionskalibrierung"
 
 msgid "Align to Y axis"
 msgstr "An der Y-Achse ausrichten"
+
+msgctxt "Camera"
+msgid "Left"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Right"
+msgstr ""
 
 msgid "Add"
 msgstr "Hinzufügen"
