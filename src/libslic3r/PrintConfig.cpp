@@ -4,8 +4,9 @@
 #include "I18N.hpp"
 
 #include <set>
-#include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
+#include <boost/algorithm/string/replace.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/log/trivial.hpp>
