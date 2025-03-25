@@ -5,6 +5,7 @@
 #include <cmath>
 #include <limits>
 #include <random>
+#include <stack>
 
 #include <boost/container/small_vector.hpp>
 #include <boost/log/trivial.hpp>

@@ -4,6 +4,8 @@
 #include "Polygon.hpp"
 #include "Polyline.hpp"
 
+#include <numeric>
+
 namespace Slic3r {
 
 double Polygon::length() const

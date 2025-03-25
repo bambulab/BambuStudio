@@ -1,4 +1,5 @@
 #include "SVG.hpp"
+#include <fstream>
 #include <iostream>
 // #include "pugixml/pugixml.hpp"
 #include <boost/nowide/cstdio.hpp>

@@ -4,6 +4,7 @@
 #include "../ExPolygon.hpp"
 #include "../Surface.hpp"
 #include "../VariableWidth.hpp"
+#include "../format.hpp"
 #include "FillFloatingConcentric.hpp"
 #include <boost/log/trivial.hpp>
 

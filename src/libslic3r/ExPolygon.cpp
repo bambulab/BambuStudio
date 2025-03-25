@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cassert>
 #include <list>
+#include <numeric>
 
 namespace Slic3r {
 
