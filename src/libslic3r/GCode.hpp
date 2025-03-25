@@ -19,6 +19,7 @@
 #include "EdgeGrid.hpp"
 #include "GCode/ThumbnailData.hpp"
 #include "libslic3r/ObjectID.hpp"
+#include "GCode/TimelapsePosPicker.hpp"
 
 #include <cfloat>
 #include <memory>
@@ -491,6 +492,7 @@ private:
     Wipe                                m_wipe;
     AvoidCrossingPerimeters             m_avoid_crossing_perimeters;
     RetractWhenCrossingPerimeters       m_retract_when_crossing_perimeters;
+    TimelapsePosPicker                  m_timelapse_pos_picker;
     bool                                m_enable_loop_clipping;
     // If enabled, the G-code generator will put following comments at the ends
     // of the G-code lines: _EXTRUDE_SET_SPEED, _WIPE, _OVERHANG_FAN_START, _OVERHANG_FAN_END
@@ -555,6 +557,8 @@ private:
     bool m_silent_time_estimator_enabled;
 
     Print *m_print{nullptr};
+
+    std::set<const PrintObject*> m_printed_objects;
 
     // Processor
     GCodeProcessor m_processor;
