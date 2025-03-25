@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 1.10.1 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-25 12:27+0800\n"
+"POT-Creation-Date: 2025-03-25 13:33+0800\n"
 "PO-Revision-Date: 2024-09-27 23:58+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -3935,6 +3935,14 @@ msgstr "Избегать зону калибровки экструзии"
 
 msgid "Align to Y axis"
 msgstr "Выравнивать по оси Y"
+
+msgctxt "Camera"
+msgid "Left"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Right"
+msgstr ""
 
 msgid "Add"
 msgstr "Добавить"

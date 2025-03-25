@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-25 12:27+0800\n"
+"POT-Creation-Date: 2025-03-25 13:33+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -3877,6 +3877,14 @@ msgstr "避开挤出校准区域"
 
 msgid "Align to Y axis"
 msgstr "对齐到Y轴"
+
+msgctxt "Camera"
+msgid "Left"
+msgstr "左"
+
+msgctxt "Camera"
+msgid "Right"
+msgstr "右"
 
 msgid "Add"
 msgstr "添加"
