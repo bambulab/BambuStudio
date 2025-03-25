@@ -489,9 +489,6 @@ Transform3d  GLGizmoRotate::transform_to_local(const Selection &selection) const
     }
     }
 
-    if (selection.is_single_volume() || selection.is_single_modifier() || selection.requires_local_axes())
-        ret = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix(true, false, true, true) * ret;
-
     return m_orient_matrix * ret;
 
 }
