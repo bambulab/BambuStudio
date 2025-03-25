@@ -2,6 +2,7 @@
 #define slic3r_ExtrusionEntity_hpp_
 
 #include "libslic3r.h"
+#include "BoundingBox.hpp"
 #include "Polygon.hpp"
 #include "Polyline.hpp"
 
