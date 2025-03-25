@@ -205,7 +205,7 @@ struct PrintInstance
 	// Shift of this instance's center into the world coordinates.
 	Point 				 shift;
 
-    BoundingBoxf3   get_bounding_box();
+    BoundingBoxf3   get_bounding_box() const;
     Polygon get_convex_hull_2d();
     // OrcaSlicer
     //
