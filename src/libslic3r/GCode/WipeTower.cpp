@@ -3137,14 +3137,13 @@ WipeTower::NozzleChangeResult WipeTower::nozzle_change_new(int old_filament_id, 
     NozzleChangeResult result;
     if (is_need_reverse_travel(m_current_tool)) {
         bool   left_to_right     = !m_left_to_right;
-        int  tpu_line_count = nozzle_change_line_count - 1 ; // nozzle_change_line_count / 2 round up
-        if (tpu_line_count <= 0) tpu_line_count = 1;
+        int  tpu_line_count = nozzle_change_line_count ;
         nozzle_change_speed *= 2; // due to nozzle change 2 perimeter
         float need_reverse_travel_dis = m_filpar[m_current_tool].ramming_travel_time * nozzle_change_speed/60.f;
         float real_travel_dis         = tpu_line_count * (xr - xl - 2 * m_perimeter_width);
         if (real_travel_dis < need_reverse_travel_dis)
             nozzle_change_speed *= real_travel_dis / need_reverse_travel_dis;
-        writer.travel(writer.x(), writer.y() - m_nozzle_change_perimeter_width);
+        writer.travel(writer.x(), writer.y() + m_nozzle_change_perimeter_width);
 
         for (int i = 0; true; ++i) {
             need_reverse_travel_dis -= (xr - xl - 2 * m_perimeter_width);
