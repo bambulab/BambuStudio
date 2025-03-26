@@ -39,7 +39,7 @@ public:
     void OnPublishClicked(wxAuiToolBarEvent &event);
 
     wxAuiToolBarItem* FindToolByCurrentPosition();
-	
+
     void SetFileMenu(wxMenu* file_menu);
     void AddDropDownSubMenu(wxMenu* sub_menu, const wxString& title);
     void AddDropDownMenuItem(wxMenuItem* menu_item);
@@ -49,6 +49,9 @@ public:
     void SetMaximizedSize();
     void SetWindowSize();
 
+    void EnableSaveItem(bool enable);
+    void EnableUndoItem(bool enable);
+    void EnableRedoItem(bool enable);
     void EnableUndoRedoItems();
     void DisableUndoRedoItems();
 
@@ -68,8 +71,9 @@ private:
     wxAuiToolBarItem* m_title_item;
     wxAuiToolBarItem* m_account_item;
     wxAuiToolBarItem* m_model_store_item;
-    
+
     wxAuiToolBarItem *m_publish_item;
+    wxAuiToolBarItem *m_save_item;
     wxAuiToolBarItem* m_undo_item;
     wxAuiToolBarItem* m_redo_item;
     wxAuiToolBarItem* m_calib_item;
