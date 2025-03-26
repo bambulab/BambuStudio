@@ -338,7 +338,7 @@ public:
     void set_using_exported_file(bool exported_file) {
         m_exported_file = exported_file;
     }
-
+    bool is_empty_project();
     bool is_multi_extruder_ams_empty();
     // BBS
     wxString get_project_name();

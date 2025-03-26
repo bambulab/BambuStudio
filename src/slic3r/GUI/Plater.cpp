@@ -14337,6 +14337,10 @@ void Plater::export_toolpaths_to_obj() const
     p->preview->get_canvas3d()->export_toolpaths_to_obj(into_u8(path).c_str());
 }
 
+bool Plater::is_empty_project() {
+    return model().objects.empty();
+}
+
 bool Plater::is_multi_extruder_ams_empty()
 {
     std::vector<std::string>        extruder_ams_count_str = p->config->option<ConfigOptionStrings>("extruder_ams_count", true)->values;

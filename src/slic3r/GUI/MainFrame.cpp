@@ -688,7 +688,13 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             evt.IsShown() ? manger->start_refresher() : manger->stop_refresher();
         }
     });
-
+    Bind(wxEVT_IDLE, ([this](wxIdleEvent &e) {
+             if (m_topbar && m_plater) {
+                 m_topbar->EnableSaveItem(can_save());
+                 m_topbar->EnableUndoItem(m_plater->can_undo());
+                 m_topbar->EnableRedoItem(m_plater->can_redo());
+             }
+         }));
 #ifdef _MSW_DARK_MODE
     wxGetApp().UpdateDarkUIWin(this);
 #endif // _MSW_DARK_MODE
