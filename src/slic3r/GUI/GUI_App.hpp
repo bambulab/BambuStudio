@@ -308,6 +308,7 @@ private:
     bool             m_side_popup_status{false};
     bool             m_show_error_msgdlg{false};
     wxString         m_info_dialog_content;
+    wxString         m_install_preset_fail_text;
     HttpServer       m_http_server;
 
     boost::thread    m_check_cert_thread;

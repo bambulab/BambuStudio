@@ -2609,6 +2609,10 @@ bool GUI_App::on_init_inner()
     wxLog::SetLogLevel(wxLOG_Message);
 #endif
 
+    //set preset text
+    auto preset_path = fs::path(Slic3r::data_dir()) / PRESET_SYSTEM_DIR;
+    m_install_preset_fail_text = wxString::Format(_L("Failed to install preset files to %s.\nPlease make sure Bambu Studio has permission to delete and write in this directory,\nand it is not being occupied by the system or other applications."), preset_path.string());
+
     // Set initialization of image handlers before any UI actions - See GH issue #7469
     wxInitAllImageHandlers();
 #ifdef NDEBUG
@@ -2942,7 +2946,10 @@ bool GUI_App::on_init_inner()
             // Enable all substitutions (in both user and system profiles), but log the substitutions in user profiles only.
             // If there are substitutions in system profiles, then a "reconfigure" event shall be triggered, which will force
             // installation of a compatible system preset, thus nullifying the system preset substitutions.
-            init_params->preset_substitutions = preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSystemSilent);
+            std::string errors_cummulative;
+            std::tie(init_params->preset_substitutions, errors_cummulative) = preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSystemSilent);
+            if (!errors_cummulative.empty())
+                show_error(nullptr, errors_cummulative);
         }
         catch (const std::exception& ex) {
             show_error(nullptr, ex.what());
@@ -7043,6 +7050,10 @@ bool GUI_App::run_wizard(ConfigWizard::RunReason reason, ConfigWizard::StartPage
         mainframe->refresh_plugin_tips();
         // BBS: remove SLA related message
     }
+    else {
+        MessageDialog msg_dlg(mainframe, m_install_preset_fail_text, _L("Install presets failed"), wxAPPLY | wxOK);
+        msg_dlg.ShowModal();
+    }
 
     return res;
 }
@@ -7252,24 +7263,25 @@ bool GUI_App::config_wizard_startup()
 
 void GUI_App::check_updates(const bool verbose)
 {
-	PresetUpdater::UpdateResult updater_result;
-	try {
-		//updater_result = preset_updater->config_update(app_config->orig_version(), verbose ? PresetUpdater::UpdateParams::SHOW_TEXT_BOX : PresetUpdater::UpdateParams::SHOW_NOTIFICATION);
-		updater_result = preset_updater->config_update(app_config->orig_version(), PresetUpdater::UpdateParams::SHOW_TEXT_BOX);
-		if (updater_result == PresetUpdater::R_INCOMPAT_EXIT) {
-			mainframe->Close();
-		}
-		else if (updater_result == PresetUpdater::R_INCOMPAT_CONFIGURED) {
+    PresetUpdater::UpdateResult updater_result;
+    try {
+        //updater_result = preset_updater->config_update(app_config->orig_version(), verbose ? PresetUpdater::UpdateParams::SHOW_TEXT_BOX : PresetUpdater::UpdateParams::SHOW_NOTIFICATION);
+        updater_result = preset_updater->config_update(app_config->orig_version(), PresetUpdater::UpdateParams::SHOW_TEXT_BOX);
+        if (updater_result == PresetUpdater::R_INCOMPAT_EXIT) {
+            MessageDialog msg_dlg(mainframe, m_install_preset_fail_text, _L("Install presets failed"), wxAPPLY | wxOK);
+            msg_dlg.ShowModal();
+        }
+        else if (updater_result == PresetUpdater::R_INCOMPAT_CONFIGURED) {
             m_app_conf_exists = true;
-		}
-		else if (verbose && updater_result == PresetUpdater::R_NOOP) {
-			MsgNoUpdates dlg;
-			dlg.ShowModal();
-		}
-	}
-	catch (const std::exception & ex) {
-		show_error(nullptr, ex.what());
-	}
+        }
+        else if (verbose && updater_result == PresetUpdater::R_NOOP) {
+            MsgNoUpdates dlg;
+            dlg.ShowModal();
+        }
+    }
+    catch (const std::exception & ex) {
+        show_error(nullptr, ex.what());
+    }
 }
 
 void GUI_App::check_config_updates_from_updater()

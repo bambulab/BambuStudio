@@ -86,7 +86,7 @@ public:
     // Load ini files of all types (print, filament, printer) from Slic3r::data_dir() / presets.
     // Load selections (current print, current filaments, current printer) from config.ini
     // select preferred presets, if any exist
-    PresetsConfigSubstitutions load_presets(AppConfig &config, ForwardCompatibilitySubstitutionRule rule,
+    std::pair<PresetsConfigSubstitutions, std::string> load_presets(AppConfig &config, ForwardCompatibilitySubstitutionRule rule,
                                             const PresetPreferences& preferred_selection = PresetPreferences());
 
     // Load selections (current print, current filaments, current printer) from config.ini
