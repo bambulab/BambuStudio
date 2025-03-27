@@ -2050,7 +2050,7 @@ void PrintObject::bridge_over_infill()
                             }
                         }
                     }
-                } 
+                }
 #if USE_TBB_IN_INFILL
                 });
 #endif
@@ -2758,7 +2758,7 @@ void PrintObject::bridge_over_infill()
 
                 SurfacesPtr internal_infills = region->fill_surfaces.filter_by_type(stInternal);
                 ExPolygons new_internal_infills = diff_ex(internal_infills, cut_from_infill); // 新的稀疏填充区域，去掉生成的桥接区域
-                new_internal_infills            = diff_ex(new_internal_infills, additional_ensuring); 
+                new_internal_infills            = diff_ex(new_internal_infills, additional_ensuring);
                 for (const ExPolygon &ep : new_internal_infills) {
                     new_surfaces.emplace_back(stInternal, ep);
                 }
