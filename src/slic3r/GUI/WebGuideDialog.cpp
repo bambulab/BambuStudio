@@ -928,9 +928,14 @@ bool GuideFrame::apply_config(AppConfig *app_config, PresetBundle *preset_bundle
     app_config->set_section(AppConfig::SECTION_FILAMENTS, enabled_filaments);
     app_config->set_vendors(m_appconfig_new);
 
-    if (check_unsaved_preset_changes)
-        preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSilentDisableSystem,
-                                    {preferred_model, preferred_variant, first_added_filament, std::string()});
+    if (check_unsaved_preset_changes) {
+        std::string errors_cummulative;
+        PresetsConfigSubstitutions preset_substitutions;
+        std::tie(preset_substitutions, errors_cummulative) = preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSilentDisableSystem,
+            { preferred_model, preferred_variant, first_added_filament, std::string() });
+        if (!errors_cummulative.empty())
+            show_error(nullptr, errors_cummulative);
+    }
 
     // Update the selections from the compatibilty.
     preset_bundle->export_selections(*app_config);
@@ -1101,10 +1106,40 @@ int GuideFrame::LoadProfileData()
         // BBS: add json logic for vendor bundle
         auto bbl_bundle_path = vendor_dir;
         bbl_bundle_rsrc      = false;
-        if (!boost::filesystem::exists((vendor_dir / PresetBundle::BBL_BUNDLE).replace_extension(".json"))) {
-            bbl_bundle_path = rsrc_vendor_dir;
+        boost::filesystem::path vendor_bbl_dir = (vendor_dir / PresetBundle::BBL_BUNDLE);
+        if (!boost::filesystem::exists(vendor_bbl_dir)) {
             bbl_bundle_rsrc = true;
         }
+        else {
+            boost::filesystem::path vendor_bbl_printer_dir = (vendor_bbl_dir / PRESET_PRINTER_NAME);
+            boost::filesystem::path vendor_bbl_filament_dir = (vendor_bbl_dir / PRESET_FILAMENT_NAME);
+            boost::filesystem::path vendor_bbl_print_dir = (vendor_bbl_dir / PRESET_PRINT_NAME);
+            boost::filesystem::path vendor_bbl_json = vendor_bbl_dir.replace_extension(".json");
+            if (!boost::filesystem::exists(vendor_bbl_printer_dir) || !boost::filesystem::is_directory(vendor_bbl_printer_dir)
+                || !boost::filesystem::exists(vendor_bbl_filament_dir) || !boost::filesystem::is_directory(vendor_bbl_filament_dir)
+                || !boost::filesystem::exists(vendor_bbl_print_dir) || !boost::filesystem::is_directory(vendor_bbl_print_dir)
+                || !boost::filesystem::exists(vendor_bbl_json))
+            {
+                bbl_bundle_rsrc = true;
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__<< boost::format(", can not find subdirectory in data bbl, will use resource dir");
+            }
+            else {
+                auto is_file = [](const boost::filesystem::directory_entry& entry) {
+                    return boost::filesystem::is_regular_file(entry.path());
+                };
+
+                auto begin = boost::filesystem::directory_iterator(vendor_bbl_printer_dir);
+                auto end = boost::filesystem::directory_iterator();
+
+                int file_count = std::count_if(begin, end, is_file);
+                if (file_count < 10) {
+                    bbl_bundle_rsrc = true;
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__<< boost::format(", can not find enough files under printer directory of data, will use resource dir");
+                }
+            }
+        }
+        if (bbl_bundle_rsrc)
+            bbl_bundle_path = rsrc_vendor_dir;
 
         // load BBL bundle from user data path
         string                                targetPath = bbl_bundle_path.make_preferred().string();

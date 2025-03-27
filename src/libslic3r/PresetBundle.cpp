@@ -237,7 +237,7 @@ void PresetBundle::copy_files(const std::string& from)
     }
 }
 
-PresetsConfigSubstitutions PresetBundle::load_presets(AppConfig &config, ForwardCompatibilitySubstitutionRule substitution_rule,
+std::pair<PresetsConfigSubstitutions, std::string> PresetBundle::load_presets(AppConfig &config, ForwardCompatibilitySubstitutionRule substitution_rule,
                                                       const PresetPreferences& preferred_selection/* = PresetPreferences()*/)
 {
     // First load the vendor specific system presets.
@@ -267,7 +267,8 @@ PresetsConfigSubstitutions PresetBundle::load_presets(AppConfig &config, Forward
 
     //BBS: add config related logs
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" finished, returned substitutions %1%")%substitutions.size();
-    return substitutions;
+
+    return std::make_pair(std::move(substitutions), errors_cummulative);
 }
 
 //BBS: add function to generate differed preset for save
