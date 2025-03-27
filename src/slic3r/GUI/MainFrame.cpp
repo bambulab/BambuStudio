@@ -2618,11 +2618,11 @@ void MainFrame::init_menubar_as_editor()
             _L("Paste clipboard"), [this](wxCommandEvent&) { m_plater->paste_from_clipboard(); },
             "menu_paste", nullptr, [this](){return m_plater->can_paste_from_clipboard(); }, this);
         // BBS Delete selected
-        append_menu_item(editMenu, wxID_ANY, _L("Delete selected") + "\t" + _L("Del"),
+        append_menu_item(editMenu, wxID_ANY, _L("Delete selected") + "\tDelete",
             _L("Deletes the current selection"),[this](wxCommandEvent&) { m_plater->remove_selected(); },
             "menu_remove", nullptr, [this](){return can_delete(); }, this);
         //BBS: delete all
-        append_menu_item(editMenu, wxID_ANY, _L("Delete all") + "\t" + _L("Shift+") + "D",
+        append_menu_item(editMenu, wxID_ANY, _L("Delete all") + "\t" + ctrl + _L("Shift+") + "D",
             _L("Deletes all objects"),[this](wxCommandEvent&) { m_plater->delete_all_objects_from_model(); },
             "menu_remove", nullptr, [this](){return can_delete_all(); }, this);
         editMenu->AppendSeparator();
@@ -2704,10 +2704,11 @@ void MainFrame::init_menubar_as_editor()
             "", nullptr, [this](){return can_delete(); }, this);
 #endif
         //BBS: delete all
-        append_menu_item(editMenu, wxID_ANY, _L("Delete all") + "\t" + _L("Shift+") + "D",
+        append_menu_item(editMenu, wxID_ANY, _L("Delete all") + "\t" + ctrl + _L("Shift+") + "D",
             _L("Deletes all objects"),[this, handle_key_event](wxCommandEvent&) {
                 wxKeyEvent e;
                 e.SetEventType(wxEVT_KEY_DOWN);
+                e.SetShiftDown(true);
                 e.SetControlDown(true);
                 e.m_keyCode = 'D';
                 if (handle_key_event(e)) {
