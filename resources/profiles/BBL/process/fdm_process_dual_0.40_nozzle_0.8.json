@@ -11,14 +11,7 @@
         "30",
         "30"
     ],
-    "compatible_printers_condition": "",
     "elefant_foot_compensation": "0.15",
-    "initial_layer_infill_speed": [
-        "55",
-        "55",
-        "55",
-        "55"
-    ],
     "initial_layer_line_width": "0.82",
     "initial_layer_print_height": "0.4",
     "initial_layer_speed": [
@@ -29,12 +22,16 @@
     ],
     "inner_wall_line_width": "0.82",
     "internal_solid_infill_line_width": "0.82",
+    "ironing_inset": "0.41",
+    "initial_layer_infill_speed": [
+        "55",
+        "55",
+        "55",
+        "55"
+    ],
     "layer_height": "0.4",
     "line_width": "0.82",
-    "max_bridge_length": "0",
-    "minimum_sparse_infill_area": "15",
     "outer_wall_line_width": "0.82",
-    "ironing_inset": "0.41",
     "overhang_3_4_speed": [
         "25",
         "25",
@@ -62,11 +59,5 @@
         "150",
         "150",
         "150"
-    ],
-    "travel_speed_z": [
-        "0",
-        "0",
-        "0",
-        "0"
     ]
 }
