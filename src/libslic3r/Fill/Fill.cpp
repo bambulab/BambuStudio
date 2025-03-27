@@ -359,6 +359,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 
 	// BBS: detect narrow internal solid infill area and use ipConcentricInternal pattern instead
 	if (layer.object()->config().detect_narrow_internal_solid_infill) {
+		const coordf_t narrow_threshold = scale_(NARROW_INFILL_AREA_THRESHOLD) * 2;
 		ExPolygons lower_internal_areas;
 		BoundingBox lower_internal_bbox;
 		if (layer.lower_layer) {
@@ -381,8 +382,10 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 			// BBS: get the index list of narrow expolygon
 			for (size_t j = 0; j < expolygons_size; j++) {
 				auto bbox = get_extents(surface_fills[i].expolygons[j]);
-				if (is_narrow_expolygon(surface_fills[i].expolygons[j], scale_(NARROW_INFILL_AREA_THRESHOLD) * 2)) {
-					if (bbox.overlap(lower_internal_bbox) && !intersection_ex(offset_ex(surface_fills[i].expolygons[j],SCALED_EPSILON), lower_internal_areas).empty()) {
+				auto clipped_internals = ClipperUtils::clip_clipper_polygons_with_subject_bbox(lower_internal_areas, bbox.inflated(scale_(2))); // expand a little
+				auto clipped_internal_bbox = get_extents(clipped_internals);
+				if (is_narrow_expolygon(surface_fills[i].expolygons[j], narrow_threshold)) {
+					if (!clipped_internals.empty() && bbox.overlap(clipped_internal_bbox) && !intersection_ex(offset_ex(surface_fills[i].expolygons[j],SCALED_EPSILON), clipped_internals).empty()) {
 						narrow_floating_expoly_idx.emplace_back(j);
 					}
 					else {

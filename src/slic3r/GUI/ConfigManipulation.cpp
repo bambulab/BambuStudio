@@ -651,8 +651,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
         toggle_line(el, support_is_tree);
     toggle_line("support_critical_regions_only", is_auto(support_type) && support_is_tree);
 
-    for (auto el : { "detect_floating_vertical_shell", "vertical_shell_speed" })
-        toggle_line(el, config->option<ConfigOptionEnum<EnsureVerticalThicknessLevel>>("ensure_vertical_shell_thickness")->value != EnsureVerticalThicknessLevel::evtDisabled);
+    toggle_line("detect_floating_vertical_shell", config->option<ConfigOptionBool>("detect_narrow_internal_solid_infill")->value);
+    toggle_line("vertical_shell_speed", config->option<ConfigOptionBool>("detect_narrow_internal_solid_infill")->value, variant_index);
 
     // tree support use max_bridge_length instead of bridge_no_support
     toggle_line("bridge_no_support", !support_is_tree);
