@@ -4357,7 +4357,7 @@ void PrintConfigDef::init_fff_params()
     def          = this->add("circle_compensation_manual_offset", coFloat);
     def->label   = L("User Customized Offset");
     def->sidetext = L("mm");
-    def->tooltip = L("If you want to have tighter or looser assemble, you can set this value.");
+    def->tooltip = L("If you want to have tighter or looser assemble, you can set this value. When it is positive, it indicates tightening, otherwise, it indicates loosening");
     def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.0));
 
