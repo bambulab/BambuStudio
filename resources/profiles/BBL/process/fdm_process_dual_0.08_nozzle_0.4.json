@@ -4,6 +4,8 @@
     "inherits": "fdm_process_dual_common",
     "from": "system",
     "instantiation": "false",
+    "bottom_shell_layers": "7",
+    "bottom_color_penetration_layers": "7",
     "bridge_flow": "1",
     "elefant_foot_compensation": "0.15",
     "gap_infill_speed": [
@@ -30,19 +32,24 @@
         "250",
         "250"
     ],
+    "ironing_flow": "8%",
     "initial_layer_infill_speed": [
         "105",
         "105",
         "105",
         "105"
     ],
+    "layer_height": "0.08",
     "sparse_infill_speed": [
         "270",
         "270",
         "270",
         "270"
     ],
-    "top_shell_layers": "5",
-    "top_color_penetration_layers": "5",
+    "support_bottom_z_distance": "0.08",
+    "support_threshold_angle": "15",
+    "support_top_z_distance": "0.08",
+    "top_shell_layers": "9",
+    "top_color_penetration_layers": "9",
     "top_shell_thickness": "1.0"
 }
