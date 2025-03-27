@@ -1556,7 +1556,9 @@ STBTT_DEF int stbtt_FindGlyphIndex(const stbtt_fontinfo *info, int unicode_codep
       return 0; // not found
    }
    // @TODO
+#ifndef __APPLE__
    STBTT_assert(0);
+#endif
    return 0;
 }
 

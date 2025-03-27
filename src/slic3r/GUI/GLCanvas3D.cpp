@@ -3518,6 +3518,16 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         return;
 
     if ((evt.GetModifiers() & ctrlMask) != 0) {
+        if ((evt.GetModifiers() & shiftMask) != 0) {
+            switch (keyCode) {
+            case 'd':
+            case 'D':
+            case WXK_CONTROL_D: {
+                post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE_ALL));
+                return;
+            }
+            }
+        }
         // CTRL is pressed
         switch (keyCode) {
 #ifdef __APPLE__
@@ -3646,17 +3656,6 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         default:            evt.Skip();
         }
     } else {
-        if ((evt.GetModifiers() & shiftMask) != 0) {
-            switch (keyCode) {
-
-            case 'd':
-            case 'D':
-            case WXK_CONTROL_D:
-                post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE_ALL));
-                return;
-            }
-
-        }
         auto obj_list = wxGetApp().obj_list();
         switch (keyCode)
         {
