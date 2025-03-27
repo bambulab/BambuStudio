@@ -994,6 +994,14 @@ std::vector<int> ToolOrdering::get_recommended_filament_maps(const std::vector<s
 
         nozzle_flush_mtx.emplace_back(wipe_volumes);
     }
+    auto flush_multiplies = print_config.flush_multiplier.values;
+    flush_multiplies.resize(extruder_nums, 1);
+    for (size_t nozzle_id = 0; nozzle_id < extruder_nums; ++nozzle_id) {
+        for (auto& vec : nozzle_flush_mtx[nozzle_id]) {
+            for (auto& v : vec)
+                v *= flush_multiplies[nozzle_id];
+        }
+    }
 
     std::vector<LayerPrintSequence> other_layers_seqs = get_other_layers_print_sequence(print_config.other_layers_print_sequence_nums.value, print_config.other_layers_print_sequence.values);
 
@@ -1111,6 +1119,15 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
             wipe_volumes.push_back(std::vector<float>(flush_matrix.begin() + i * number_of_extruders, flush_matrix.begin() + (i + 1) * number_of_extruders));
 
         nozzle_flush_mtx.emplace_back(wipe_volumes);
+    }
+
+    auto flush_multiplies = print_config->flush_multiplier.values;
+    flush_multiplies.resize(nozzle_nums, 1);
+    for (size_t nozzle_id = 0; nozzle_id < nozzle_nums; ++nozzle_id) {
+        for (auto& vec : nozzle_flush_mtx[nozzle_id]) {
+            for (auto& v : vec)
+                v *= flush_multiplies[nozzle_id];
+        }
     }
 
     std::vector<int>filament_maps(number_of_extruders, 0);
