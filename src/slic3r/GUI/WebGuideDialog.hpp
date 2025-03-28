@@ -81,7 +81,7 @@ public:
 
 
     bool apply_config(AppConfig *app_config, PresetBundle *preset_bundle, const PresetUpdater *updater, bool& apply_keeped_changes);
-    bool run();
+    bool run(bool& config_applied);
 
     void        StrReplace(std::string &strBase, std::string strSrc, std::string strDes);
     std::string w2s(wxString sSrc);
