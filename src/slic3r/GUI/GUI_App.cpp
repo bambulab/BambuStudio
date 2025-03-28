@@ -3805,7 +3805,8 @@ void GUI_App::ShowUserGuide() {
         bool res = false;
         GuideFrame GuideDlg(this);
         //if (GuideDlg.IsFirstUse())
-        res = GuideDlg.run();
+        bool config_applied = false;
+        res = GuideDlg.run(config_applied);
         if (res) {
             load_current_presets();
             update_publish_status();
@@ -3860,7 +3861,8 @@ void GUI_App::ShowOnlyFilament() {
         bool       res = false;
         GuideFrame GuideDlg(this);
         GuideDlg.SetStartPage(GuideFrame::GuidePage::BBL_FILAMENT_ONLY);
-        res = GuideDlg.run();
+        bool config_applied = false;
+        res = GuideDlg.run(config_applied);
         if (res) {
             load_current_presets();
 
@@ -7042,7 +7044,9 @@ bool GUI_App::run_wizard(ConfigWizard::RunReason reason, ConfigWizard::StartPage
                 start_page == ConfigWizard::SP_PRINTERS ? GuideFrame::BBL_MODELS_ONLY :
                 GuideFrame::BBL_MODELS;
     wizard.SetStartPage(page);
-    bool       res = wizard.run();
+
+    bool config_applied = false;
+    bool       res = wizard.run(config_applied);
 
     if (res) {
         load_current_presets();
@@ -7050,7 +7054,7 @@ bool GUI_App::run_wizard(ConfigWizard::RunReason reason, ConfigWizard::StartPage
         mainframe->refresh_plugin_tips();
         // BBS: remove SLA related message
     }
-    else {
+    else if (config_applied){
         MessageDialog msg_dlg(mainframe, m_install_preset_fail_text, _L("Install presets failed"), wxAPPLY | wxOK);
         msg_dlg.ShowModal();
     }
