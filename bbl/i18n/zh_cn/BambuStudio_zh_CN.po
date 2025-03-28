@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-25 14:24+0800\n"
+"POT-Creation-Date: 2025-03-28 16:13+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1257,6 +1257,13 @@ msgstr "BambuStudio配置文件读取失败。请手动备份并删除它，然�
 
 #, c-format, boost-format
 msgid ""
+"Failed to install preset files to %s.\n"
+"Please make sure Bambu Studio has permission to delete and write in this directory,\n"
+"and it is not being occupied by the system or other applications."
+msgstr "安装预设文件到目录 %s 失败，请确保Bambu Studio对该目录有删除和写入权限，而且该目录不被系统或其它应用占用。"
+
+#, c-format, boost-format
+msgid ""
 "%s\n"
 "Do you want to continue?"
 msgstr "%s 是否继续？"
@@ -1384,6 +1391,9 @@ msgstr "停止它们并且继续？"
 
 msgid "Ongoing uploads"
 msgstr "正在进行的上传"
+
+msgid "Install presets failed"
+msgstr ""
 
 msgid "Select a G-code file:"
 msgstr "选择一个G-code文件："
@@ -7082,8 +7092,8 @@ msgstr "当前喷嘴直径（%.1fmm）和切片文件（%.1fmm）不一致，无
 msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
 msgstr "高温材料（%s）若通过%s喷嘴打印，可能会导致喷嘴损坏。请检查喷嘴类型"
 
-msgid "Currently only External Spool is available, color mapping is prohibited, and control pop-up drop-down boxes are also prohibited."
-msgstr "目前仅有外挂料槽，颜色映射被禁止，并且控制弹出下拉框也被禁止"
+msgid "To map to AMS, enable 'Use AMS' in 'Advanced Options'."
+msgstr "若要映射至AMS，请在'高级选项'开启'使用AMS'"
 
 msgid "Cool"
 msgstr ""
@@ -8532,14 +8542,6 @@ msgstr "修复已完成"
 
 msgid "Repair canceled"
 msgstr "修复被取消"
-
-#, boost-format
-msgid "Copying of file %1% to %2% failed: %3%"
-msgstr "从%1%拷贝文件到%2%失败：%3%"
-
-#, boost-format
-msgid "Copying directory %1% to %2% failed: %3%"
-msgstr "从%1%拷贝目录到%2%失败：%3%"
 
 msgid "Need to check the unsaved changes before configuration updates."
 msgstr "需要在配置更新之前检查没有保存的参数修改。"
@@ -10924,8 +10926,8 @@ msgstr "补偿孔轴的实验功能。这个功能用于改善直径低于50mm�
 msgid "User Customized Offset"
 msgstr "用户自设定补偿"
 
-msgid "If you want to have tighter or looser assemble, you can set this value."
-msgstr "如果你需要更紧或者更松的配合，请调整这个参数"
+msgid "If you want to have tighter or looser assemble, you can set this value. When it is positive, it indicates tightening, otherwise, it indicates loosening"
+msgstr "如果你需要更近或者更松的装配，请调整这个参数。该参数为正时表示装配调松，反之调紧"
 
 msgid "Scarf Seam On Compensation Circles"
 msgstr "在补偿的圆形上应用斜拼接缝"
@@ -11604,9 +11606,6 @@ msgstr "热床类型"
 msgid "filament position"
 msgstr "耗材丝位置"
 
-msgid "External Spool"
-msgstr "外部线轴"
-
 msgid "Filament For Calibration"
 msgstr "校准用耗材"
 
@@ -12180,10 +12179,10 @@ msgid "Can't find my printer model"
 msgstr "不能找到我的打印机模型"
 
 msgid "Input Custom Nozzle Diameter"
-msgstr ""
+msgstr "请输入自定义喷嘴直径"
 
 msgid "Can't find my nozzle diameter"
-msgstr ""
+msgstr "无法找到我的喷嘴直径"
 
 msgid "Rectangle"
 msgstr "矩形"
@@ -12283,12 +12282,12 @@ msgid "You have not yet selected the printer to replace the nozzle, please choos
 msgstr "您尚未选择要更换喷嘴的打印机，请进行选择。"
 
 msgid "The entered nozzle diameter is invalid, please re-enter:\n"
-msgstr ""
+msgstr "输入的喷嘴直径无效，请重新输入：\n"
 
 msgid ""
 "The system preset does not allow creation. \n"
 "Please re-enter the printer model or nozzle diameter."
-msgstr ""
+msgstr "不允许创建和系统预设重名的打印机。请重新输入打印机型号或喷嘴直径。"
 
 msgid "Create Printer Successful"
 msgstr "创建打印机成功"
@@ -12440,7 +12439,7 @@ msgid ""
 "All the filament presets belong to this filament would be deleted. \n"
 "If you are using this filament on your printer, please reset the filament information for that slot."
 msgstr ""
-"删除材料后，附属的材料预设也会被一并删除。\n"
+"删除材料之后，附属的材料预设也会被一并删除。\n"
 "如果该材料正在您的打印机上使用，请重新设置该槽位的材料信息。"
 
 msgid "Delete filament"
@@ -13189,6 +13188,23 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid "Currently only External Spool is available, color mapping is prohibited, and control pop-up drop-down boxes are also prohibited."
+#~ msgstr "目前仅有外挂料槽，颜色映射被禁止，并且控制弹出下拉框也被禁止"
+
+#, boost-format
+#~ msgid "Copying of file %1% to %2% failed: %3%"
+#~ msgstr "从%1%拷贝文件到%2%失败：%3%"
+
+#, boost-format
+#~ msgid "Copying directory %1% to %2% failed: %3%"
+#~ msgstr "从%1%拷贝目录到%2%失败：%3%"
+
+#~ msgid "If you want to have tighter or looser assemble, you can set this value."
+#~ msgstr "如果你需要更紧或者更松的配合，请调整这个参数"
+
+#~ msgid "External Spool"
+#~ msgstr "外部线轴"
 
 #~ msgid "There are some unknown or uncompatible filaments mapped to generic preset. Please update Bambu Studio or restart Bambu Studio to check if there is an update to system presets."
 #~ msgstr "有一些未知或不兼容的耗材映射到通用预设中。请更新Bambu Studio或重新启动Bambu Studio，以检查是否有系统预设的更新。"
