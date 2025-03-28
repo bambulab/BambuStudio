@@ -36,7 +36,7 @@ class SupportLayer;
 // BBS
 class TreeSupportData;
 class TreeSupport;
-struct ExtrusionLayers;
+class ExtrusionLayers;
 
 #define MARGIN_HEIGHT   1.5
 #define MAX_OUTER_NOZZLE_RADIUS   4
