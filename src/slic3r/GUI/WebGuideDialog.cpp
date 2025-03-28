@@ -943,7 +943,7 @@ bool GuideFrame::apply_config(AppConfig *app_config, PresetBundle *preset_bundle
     return true;
 }
 
-bool GuideFrame::run()
+bool GuideFrame::run(bool& config_applied)
 {
     //BOOST_LOG_TRIVIAL(info) << boost::format("Running ConfigWizard, reason: %1%, start_page: %2%") % reason % start_page;
 
@@ -969,8 +969,10 @@ bool GuideFrame::run()
     if (result == wxID_OK) {
         bool apply_keeped_changes = false;
         BOOST_LOG_TRIVIAL(info) << "GuideFrame returned ok";
-        if (! this->apply_config(app.app_config, app.preset_bundle, app.preset_updater, apply_keeped_changes))
+        if (! this->apply_config(app.app_config, app.preset_bundle, app.preset_updater, apply_keeped_changes)) {
+            config_applied = true;
             return false;
+        }
 
         if (apply_keeped_changes)
             app.apply_keeped_preset_modifications();
