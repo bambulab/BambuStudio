@@ -1001,7 +1001,7 @@ static ExPolygons outer_inner_brim_area(const Print& print,
                         if (!has_outer_brim)
                             append(no_brim_area_object, diff_ex(offset(ex_poly.contour, no_brim_offset), ex_poly_holes_reversed));
                         if (!has_inner_brim && !has_outer_brim)
-                            append(no_brim_area_object, offset_ex(ex_poly_holes_reversed, -no_brim_offset));
+                            append(no_brim_area_object, diff_ex(ex_poly_holes_reversed, offset_ex(ex_poly_holes_reversed, -no_brim_offset)));
                         append(holes_object, ex_poly_holes_reversed);
                     }
                 }
