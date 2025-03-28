@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-25 14:24+0800\n"
+"POT-Creation-Date: 2025-03-28 16:13+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1250,6 +1250,13 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
+"Failed to install preset files to %s.\n"
+"Please make sure Bambu Studio has permission to delete and write in this directory,\n"
+"and it is not being occupied by the system or other applications."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
 "%s\n"
 "Do you want to continue?"
 msgstr ""
@@ -1379,6 +1386,9 @@ msgstr "멈추고 계속 진행하시겠습니까?"
 
 msgid "Ongoing uploads"
 msgstr "진행 중인 업로드"
+
+msgid "Install presets failed"
+msgstr ""
 
 msgid "Select a G-code file:"
 msgstr "G 코드 파일 선택:"
@@ -7049,7 +7059,7 @@ msgstr ""
 msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
 msgstr ""
 
-msgid "Currently only External Spool is available, color mapping is prohibited, and control pop-up drop-down boxes are also prohibited."
+msgid "To map to AMS, enable 'Use AMS' in 'Advanced Options'."
 msgstr ""
 
 msgid "Cool"
@@ -8489,14 +8499,6 @@ msgstr "오류수정 완료"
 
 msgid "Repair canceled"
 msgstr "오류수정 취소됨"
-
-#, boost-format
-msgid "Copying of file %1% to %2% failed: %3%"
-msgstr "파일 %1%을(를) %2%(으)로 복사 실패: %3%"
-
-#, boost-format
-msgid "Copying directory %1% to %2% failed: %3%"
-msgstr "디렉토리 %1%을(를) %2%에 복사 실패: %3%"
 
 msgid "Need to check the unsaved changes before configuration updates."
 msgstr "설정을 업데이트하기 전에 저장되지 않은 변경 사항을 확인하십시오."
@@ -10875,7 +10877,7 @@ msgstr ""
 msgid "User Customized Offset"
 msgstr ""
 
-msgid "If you want to have tighter or looser assemble, you can set this value."
+msgid "If you want to have tighter or looser assemble, you can set this value. When it is positive, it indicates tightening, otherwise, it indicates loosening"
 msgstr ""
 
 msgid "Scarf Seam On Compensation Circles"
@@ -11547,9 +11549,6 @@ msgstr "플레이트 유형"
 
 msgid "filament position"
 msgstr "filament position"
-
-msgid "External Spool"
-msgstr "External Spool"
 
 msgid "Filament For Calibration"
 msgstr "Filament For Calibration"
@@ -13127,6 +13126,17 @@ msgid ""
 msgstr ""
 "뒤틀림 방지\n"
 "ABS 등 뒤틀림이 발생하기 쉬운 소재를 출력할 때, 히트베드 온도를 적절하게 높이면 뒤틀림 가능성을 줄일 수 있다는 사실을 알고 계셨나요?"
+
+#, boost-format
+#~ msgid "Copying of file %1% to %2% failed: %3%"
+#~ msgstr "파일 %1%을(를) %2%(으)로 복사 실패: %3%"
+
+#, boost-format
+#~ msgid "Copying directory %1% to %2% failed: %3%"
+#~ msgstr "디렉토리 %1%을(를) %2%에 복사 실패: %3%"
+
+#~ msgid "External Spool"
+#~ msgstr "External Spool"
 
 #~ msgid "There are some unknown or uncompatible filaments mapped to generic preset. Please update Bambu Studio or restart Bambu Studio to check if there is an update to system presets."
 #~ msgstr "일반 사전 설정에 매핑된 알 수 없거나 호환되지 않는 필라멘트가 있습니다. Bambu Studio를 업데이트하거나 Bambu Studio를 다시 시작하여 시스템 사전 설정에 대한 업데이트가 있는지 확인하세요."

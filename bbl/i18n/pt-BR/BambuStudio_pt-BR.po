@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-25 14:24+0800\n"
+"POT-Creation-Date: 2025-03-28 16:13+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1251,6 +1251,13 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
+"Failed to install preset files to %s.\n"
+"Please make sure Bambu Studio has permission to delete and write in this directory,\n"
+"and it is not being occupied by the system or other applications."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
 "%s\n"
 "Do you want to continue?"
 msgstr ""
@@ -1380,6 +1387,9 @@ msgstr "Pare com eles e continue mesmo assim?"
 
 msgid "Ongoing uploads"
 msgstr "Uploads contínuos"
+
+msgid "Install presets failed"
+msgstr ""
 
 msgid "Select a G-code file:"
 msgstr "Selecione o G-code:"
@@ -7056,7 +7066,7 @@ msgstr ""
 msgid "Printing high temperature material(%s) with %s nozzle may cause nozzle damage, please check the type of nozzle"
 msgstr ""
 
-msgid "Currently only External Spool is available, color mapping is prohibited, and control pop-up drop-down boxes are also prohibited."
+msgid "To map to AMS, enable 'Use AMS' in 'Advanced Options'."
 msgstr ""
 
 msgid "Cool"
@@ -8501,14 +8511,6 @@ msgstr "Reparo concluído"
 
 msgid "Repair canceled"
 msgstr "Reparo cancelado"
-
-#, boost-format
-msgid "Copying of file %1% to %2% failed: %3%"
-msgstr "Cópia de arquivo %1% para %2% falhou: %3%"
-
-#, boost-format
-msgid "Copying directory %1% to %2% failed: %3%"
-msgstr "Falha na cópia do diretório %1% para %2%: %3%"
 
 msgid "Need to check the unsaved changes before configuration updates."
 msgstr "É necessário verificar as alterações não salvas antes das atualizações de configuração."
@@ -10883,7 +10885,7 @@ msgstr ""
 msgid "User Customized Offset"
 msgstr ""
 
-msgid "If you want to have tighter or looser assemble, you can set this value."
+msgid "If you want to have tighter or looser assemble, you can set this value. When it is positive, it indicates tightening, otherwise, it indicates loosening"
 msgstr ""
 
 msgid "Scarf Seam On Compensation Circles"
@@ -11555,9 +11557,6 @@ msgstr "Tipo de placa"
 
 msgid "filament position"
 msgstr "posição do filamento"
-
-msgid "External Spool"
-msgstr "Carretel Externo"
 
 msgid "Filament For Calibration"
 msgstr "Filamento para calibração"
@@ -13142,6 +13141,17 @@ msgid ""
 msgstr ""
 "Evite deformar\n"
 "Você sabia que, ao imprimir materiais propensos a deformações, como o ABS, aumentar adequadamente a temperatura do leito térmico pode reduzir a probabilidade de deformação."
+
+#, boost-format
+#~ msgid "Copying of file %1% to %2% failed: %3%"
+#~ msgstr "Cópia de arquivo %1% para %2% falhou: %3%"
+
+#, boost-format
+#~ msgid "Copying directory %1% to %2% failed: %3%"
+#~ msgstr "Falha na cópia do diretório %1% para %2%: %3%"
+
+#~ msgid "External Spool"
+#~ msgstr "Carretel Externo"
 
 #~ msgid "There are some unknown or uncompatible filaments mapped to generic preset. Please update Bambu Studio or restart Bambu Studio to check if there is an update to system presets."
 #~ msgstr "Existem alguns filamentos desconhecidos ou incompatíveis mapeados para uma predefinição genérica. Atualize o Bambu Studio ou reinicie o Bambu Studio para verificar se há uma atualização nas predefinições do sistema."
