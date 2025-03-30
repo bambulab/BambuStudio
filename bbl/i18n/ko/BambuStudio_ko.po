@@ -2182,13 +2182,13 @@ msgstr "언로드"
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "AMS 슬롯을 선택한 다음 \"로드\" 또는 \"언로드\" 버튼을 눌러 필라멘트를 자동으로 로드하거나 언로드합니다."
 
-msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
+msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr ""
 
 msgid "Change Anyway"
 msgstr ""
 
-msgid "Changed fan speed during pringing may affect print quality, please choose carefully."
+msgid "Changed fan speed during printing may affect print quality, please choose carefully."
 msgstr ""
 
 msgid "Off"

@@ -2189,13 +2189,13 @@ msgstr "Wyładuj"
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Wybierz gniazdo AMS, a następnie naciśnij przycisk „Ładuj” lub „Wyładuj”, aby automatycznie ładować lub wyładowywać filament."
 
-msgid "Changing fan speed during pringing may affect print quality, please choose carefully."
+msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr ""
 
 msgid "Change Anyway"
 msgstr ""
 
-msgid "Changed fan speed during pringing may affect print quality, please choose carefully."
+msgid "Changed fan speed during printing may affect print quality, please choose carefully."
 msgstr ""
 
 msgid "Off"
