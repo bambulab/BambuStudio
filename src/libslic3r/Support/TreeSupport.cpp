@@ -888,14 +888,14 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
                 Layer* layer = m_object->get_layer(layer_nr);
 
                 if (layer->lower_layer == nullptr) {
-                    //for (auto& slice : layer->lslices_extrudable) {
-                    //    auto bbox_size = get_extents(slice).size();
-                    //    if (!((bbox_size.x() > length_thresh_well_supported && bbox_size.y() > length_thresh_well_supported))
-                    //        && g_config_support_sharp_tails) {
-                    //        layer->sharp_tails.push_back(slice);
-                    //        layer->sharp_tails_height.push_back(layer->height);
-                    //    }
-                    //}
+                    for (auto& slice : layer->lslices_extrudable) {
+                        auto bbox_size = get_extents(slice).size();
+                        if (!((bbox_size.x() > length_thresh_well_supported && bbox_size.y() > length_thresh_well_supported))
+                            && g_config_support_sharp_tails) {
+                            layer->sharp_tails.push_back(slice);
+                            layer->sharp_tails_height.push_back(layer->height);
+                        }
+                    }
                     continue;
                 }
 
@@ -2299,7 +2299,7 @@ void TreeSupport::draw_circles()
 
                         // merge overhang to get a smoother interface surface
                         // Do not merge when buildplate_only is on, because some underneath nodes may have been deleted.
-                        if (top_interface_layers > 0 && node.support_roof_layers_below >=0 && !on_buildplate_only && !node.is_sharp_tail) {
+                        if (top_interface_layers > 0 && node.support_roof_layers_below >=0 && !on_buildplate_only) {
                             ExPolygons overhang_expanded;
                             if (node.overhang.contour.size() > 100 || node.overhang.holes.size()>1)
                                 overhang_expanded.emplace_back(node.overhang);
@@ -3842,7 +3842,10 @@ void TreeSupport::generate_contact_points()
                     }
 
                     // don't add inner supports for sharp tails
-                    if (is_sharp_tail) continue;
+                    if (is_sharp_tail) {
+                        SupportNode *contact_node = insert_point(overhang.contour.centroid(), overhang, radius, false, add_interface);
+                        continue;
+                    }
 
                     // add inner supports
                     overhang_bounds.inflated(-radius_scaled);
