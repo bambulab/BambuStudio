@@ -633,11 +633,11 @@ void GLGizmoAdvancedCut::on_start_dragging()
     if (m_connectors_editing && m_hover_id >= c_connectors_group_id) {
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Move connector");
         return;
-    } else if (m_hover_id <= 2) {
-        for (auto gizmo : m_gizmos) {
+    } else if (m_hover_id >= 0 && m_hover_id <= 2) {
+        for (auto& gizmo : m_gizmos) {
             if (m_hover_id == gizmo.get_group_id()) {
                 gizmo.start_dragging();
-                return;
+                break;
             }
         }
         m_rotate_angle = 0;
@@ -664,9 +664,15 @@ void GLGizmoAdvancedCut::on_stop_dragging()
         return;
     }
     m_is_dragging = false;
-    if (m_hover_id == X || m_hover_id == Y || m_hover_id == Z) {
+    if (m_hover_id >= 0 && m_hover_id <= 2) {
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Rotate cut plane");
         m_start_dragging_m = m_rotate_matrix; // for takeshot
+        for (auto& gizmo : m_gizmos) {
+            if (m_hover_id == gizmo.get_group_id()) {
+                gizmo.stop_dragging();
+                break;
+            }
+        }
     } else if (m_hover_id == c_cube_z_move_id || m_hover_id == c_cube_x_move_id || m_hover_id == c_plate_move_id) {
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Move cut plane"); // todo
         m_ar_plane_center = m_plane_center;
@@ -709,13 +715,16 @@ void GLGizmoAdvancedCut::on_update(const UpdateData& data)
     m_is_dragging = true;
     if (m_hover_id <= 2) { // drag rotate
         GLGizmoRotate3D::on_update(data);
-        Vec3d rotation;
+        Vec3d rotation{ 0.0f, 0.0f, 0.0f };
         for (int i = 0; i < 3; i++) {
-            rotation(i) = m_gizmos[i].get_angle();
-            if (rotation(i) < 0) rotation(i) = 2 * PI + rotation(i);
-            if (rotation(i) != 0) { m_rotate_angle = rotation(i); }
+            if (m_gizmos[i].is_dragging()) {
+                rotation(i) = m_gizmos[i].get_angle();
+                if (rotation(i) < 0) rotation(i) = 2 * PI + rotation(i);
+                m_rotate_angle = rotation(i);
+                break;
+            }
         }
-        const Transform3d rotation_tmp = Geometry::rotation_transform(rotation) * m_start_dragging_m;
+        const Transform3d rotation_tmp = m_start_dragging_m * Geometry::rotation_transform(rotation);
         // deal rotate
         if (!is_approx(rotation, Vec3d(0, 0, 0))) {
             update_plate_normal_boundingbox_clipper(rotation_tmp);
