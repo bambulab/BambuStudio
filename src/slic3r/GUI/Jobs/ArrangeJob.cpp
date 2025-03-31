@@ -96,7 +96,6 @@ void ArrangeJob::clear_input()
     m_unselected.clear();
     m_unprintable.clear();
     m_locked.clear();
-    m_unarranged.clear();
     m_uncompatible_plates.clear();
     m_selected.reserve(count + 1 /* for optional wti */);
     m_unselected.reserve(count + 1 /* for optional wti */);
@@ -473,6 +472,7 @@ void ArrangeJob::prepare_outside_plate() {
         //}
     }
 
+    std::set<int> locked_plates;
     for (int obj_idx = 0; obj_idx < model.objects.size(); obj_idx++) {
         ModelObject *object = model.objects[obj_idx];
         for (size_t inst_idx = 0; inst_idx < object->instances.size(); ++inst_idx) {
@@ -486,7 +486,10 @@ void ArrangeJob::prepare_outside_plate() {
                 continue;
             } else {
                 int plate_idx = iter1->second;
-                if (plate_list.get_plate(plate_idx)->is_locked()) { plate_locked = plate_list.get_plate(plate_idx); }
+                if (plate_list.get_plate(plate_idx)->is_locked()) {
+                    plate_locked = plate_list.get_plate(plate_idx);
+                    locked_plates.insert(plate_idx);
+                }
             }
             if (iter2 != all_outside_objects.end()) {
                 outside_plate = true;
@@ -501,6 +504,20 @@ void ArrangeJob::prepare_outside_plate() {
                 ap.locked_plate = iter1->second;
             }
             cont.emplace_back(std::move(ap));
+        }
+    }
+
+    if (!locked_plates.empty()) {
+        std::sort(m_unselected.begin(), m_unselected.end(), [](auto &ap1, auto &ap2) { return ap1.bed_idx < ap2.bed_idx; });
+        for (auto &ap : m_unselected) {
+            int locked_plate_count = 0;
+            for (auto &plate_idx : locked_plates) {
+                if (plate_idx < ap.bed_idx)
+                    locked_plate_count++;
+                else
+                    break;
+            }
+            ap.bed_idx -= locked_plate_count;
         }
     }
 
@@ -753,6 +770,8 @@ void ArrangeJob::finalize()
             plate_list.postprocess_arrange_polygon(ap, false);
 
             ap.apply();
+            ARRANGE_LOG(debug) << boost::format(": locked %4%: bed_id %1%, trans {%2%, %3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) %
+                                      unscale<double>(ap.translation(Y)) % ap.name;
         }
 
         // Apply the arrange result to all selected objects
@@ -772,6 +791,8 @@ void ArrangeJob::finalize()
             plate_list.postprocess_arrange_polygon(ap, false);
 
             ap.apply();
+            ARRANGE_LOG(debug) << boost::format(": unselected %4%: bed_id %1%, trans {%2%, %3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) %
+                                      unscale<double>(ap.translation(Y)) % ap.name;
         }
 
         // Move the unprintable items to the last virtual bed.
@@ -785,18 +806,6 @@ void ArrangeJob::finalize()
         }
 
         m_plater->update();
-        // BBS
-        //wxGetApp().obj_manipul()->set_dirty();
-
-        if (!m_unarranged.empty()) {
-            std::set<std::string> names;
-            for (ModelInstance* mi : m_unarranged)
-                names.insert(mi->get_object()->name);
-
-            m_plater->get_notification_manager()->push_notification(GUI::format(
-                _L("Arrangement ignored the following objects which can't fit into a single bed:\n%s"),
-                concat_strings(names, "\n")));
-        }
 
         // unlock the plates we just locked
         for (int i : m_uncompatible_plates) {
