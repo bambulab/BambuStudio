@@ -820,6 +820,10 @@ void PrinterPartsDialog::set_nozzle_data(wxCommandEvent& evt)
         nozzle_id = MAIN_NOZZLE_ID;
     }
 
+    /*filter invalid set*/
+    if (current_nozzle_type_combox && current_nozzle_type_combox->IsShown() && current_nozzle_type_combox->GetValue().IsEmpty()) { return; }
+    if (current_nozzle_diameter_combox && current_nozzle_diameter_combox->IsShown() && current_nozzle_diameter_combox->GetValue().IsEmpty()) { return; }
+    if (current_nozzle_flow_combox && current_nozzle_flow_combox->IsShown() && current_nozzle_flow_combox->GetValue().IsEmpty()) { return; }
 
     if (obj) {
         try {
@@ -891,12 +895,18 @@ void PrinterPartsDialog::set_nozzle_data(wxCommandEvent& evt)
                     nozzle_data += "S";
                 } else if (nozzle_flow == NozzleFlowType::H_FLOW) {
                     nozzle_data += "H";
+                } else {
+                    nozzle_data += "N";/*means normal*/
+                    BOOST_LOG_TRIVIAL(warning) << "warning: nozzle flow type is normal!";
                 }
 
                 if (nozzle_type == NozzleType::ntStainlessSteel) {
                     nozzle_data += "00";
                 } else if (nozzle_type == NozzleType::ntHardenedSteel) {
                     nozzle_data += "01";
+                } else {
+                    BOOST_LOG_TRIVIAL(warning) << "error: nozzle type is unknown!";
+                    return;
                 }
 
                 obj->m_extder_data.extders[nozzle_id].current_nozzle_diameter   = nozzle_diameter;
