@@ -4486,8 +4486,9 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                     int type_id = 1;   // 0:dummy 1:ams 2:ams-lite 3:n3f 4:n3s
 
                                     /*ams info*/
+                                    std::string info;
                                     if (it->contains("info")) {
-                                        std::string info = (*it)["info"].get<std::string>();
+                                        info = (*it)["info"].get<std::string>();
                                         type_id = get_flag_bits(info, 0, 4);
                                         nozzle_id = get_flag_bits(info, 8, 4);
                                     }
@@ -4503,7 +4504,8 @@ int MachineObject::parse_json(std::string payload, bool key_field_only)
                                     Ams* curr_ams = nullptr;
                                     auto ams_it = amsList.find(ams_id);
                                     if (ams_it == amsList.end()) {
-                                        Ams* new_ams = new Ams(ams_id, nozzle_id, type_id);
+                                        Ams* new_ams    = new Ams(ams_id, nozzle_id, type_id);
+                                        new_ams->info   = info;
 
                                         try {
                                             if (!ams_id.empty()) {
