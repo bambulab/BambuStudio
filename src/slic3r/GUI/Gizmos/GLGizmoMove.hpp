@@ -31,6 +31,13 @@ class GLGizmoMove3D : public GLGizmoBase
     //BBS: add size adjust related
     GizmoObjectManipulation* m_object_manipulation;
 
+    struct GrabberConnection
+    {
+        GLModel model;
+        Vec3d old_center{ Vec3d::Zero() };
+    };
+    std::array<GrabberConnection, 3> m_grabber_connections;
+
 public:
     //BBS: add obj manipulation logic
     //GLGizmoMove3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
@@ -44,6 +51,7 @@ public:
 
     std::string get_tooltip() const override;
     void        data_changed(bool is_serializing) override;
+    BoundingBoxf3 get_bounding_box() const override;
 
 protected:
     virtual bool on_init() override;

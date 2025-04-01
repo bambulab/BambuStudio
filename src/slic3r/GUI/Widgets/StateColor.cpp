@@ -5,15 +5,15 @@ static bool gDarkMode = false;
 static bool operator<(wxColour const &l, wxColour const &r) { return l.GetRGBA() < r.GetRGBA(); }
 
 static std::map<wxColour, wxColour> gDarkColors{
-    {"#00AE42", "#21A452"},
-    {"#1F8EEA", "#2778D2"},
+    {"#00AE42", "#21A452"},/*green*/
+    {"#1F8EEA", "#2778D2"},/*blue*/
     {"#FF6F00", "#D15B00"},
-    {"#D01B1B", "#BB2A3A"},
-    {"#262E30", "#EFEFF0"},
-    {"#2C2C2E", "#B3B3B4"},
-    {"#6B6B6B", "#818183"},
-    {"#ACACAC", "#54545A"},
-    {"#EEEEEE", "#4C4C55"},
+    {"#D01B1B", "#BB2A3A"},/*red*/
+    {"#262E30", "#EFEFF0"},/*black*/
+    {"#2C2C2E", "#B3B3B4"},/*black*/
+    {"#6B6B6B", "#818183"},/*gray -> */
+    {"#ACACAC", "#54545A"},/*gray -> */
+    {"#EEEEEE", "#4C4C55"},/*gray -> */
     {"#E8E8E8", "#3E3E45"},
     {"#323A3D", "#E5E5E4"},
     {"#FFFFFF", "#2D2D31"},
@@ -24,6 +24,7 @@ static std::map<wxColour, wxColour> gDarkColors{
     {"#DBFDD5", "#3B3B40"},
     {"#000000", "#FFFFFE"},
     {"#F4F4F4", "#36363D"},
+    {"#F7F7F7", "#333337"},
     {"#DBDBDB", "#4A4A51"},
     {"#EDFAF2", "#283232"},
     {"#323A3C", "#E5E5E6"},
@@ -38,10 +39,11 @@ static std::map<wxColour, wxColour> gDarkColors{
     {"#2B3436", "#808080"},
     {"#ABABAB", "#ABABAB"},
     {"#D9D9D9", "#2D2D32"},
+    {"#EBF9F0", "#293F34"}
     //{"#F0F0F0", "#4C4C54"},
 };
 
-std::map<wxColour, wxColour> const & StateColor::GetDarkMap() 
+std::map<wxColour, wxColour> const & StateColor::GetDarkMap()
 {
     return gDarkColors;
 }
@@ -53,7 +55,6 @@ inline wxColour darkModeColorFor2(wxColour const &color)
     if (!gDarkMode)
         return color;
     auto iter = gDarkColors.find(color);
-    wxFAIL(iter != gDarkColors.end());
     if (iter != gDarkColors.end()) return iter->second;
     return color;
 }
@@ -69,7 +70,6 @@ wxColour StateColor::lightModeColorFor(wxColour const &color)
 {
     static std::map<wxColour, wxColour> gLightColors = revert(gDarkColors);
     auto iter = gLightColors.find(color);
-    wxFAIL(iter != gLightColors.end());
     if (iter != gLightColors.end()) return iter->second;
     return color;
 }

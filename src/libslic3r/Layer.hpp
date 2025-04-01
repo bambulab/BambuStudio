@@ -7,7 +7,7 @@
 #include "SurfaceCollection.hpp"
 #include "ExtrusionEntityCollection.hpp"
 #include "RegionExpansion.hpp"
-
+#include <libslic3r/Print.hpp>
 
 namespace Slic3r {
 
@@ -80,7 +80,8 @@ public:
     void    slices_to_fill_surfaces_clipped();
     void    prepare_fill_surfaces();
     //BBS
-    void    make_perimeters(const SurfaceCollection &slices, SurfaceCollection* fill_surfaces, ExPolygons* fill_no_overlap);
+    void    auto_circle_compensation(SurfaceCollection &slices, const AutoContourHolesCompensationParams &auto_contour_holes_compensation_params, float manual_offset = 0.0f);
+    void    make_perimeters(const SurfaceCollection &slices, SurfaceCollection* fill_surfaces, ExPolygons* fill_no_overlap, std::vector<LoopNode> &loop_nodes);
     void    process_external_surfaces(const Layer *lower_layer, const Polygons *lower_layer_covered);
     double  infill_area_threshold() const;
     // Trim surfaces by trimming polygons. Used by the elephant foot compensation at the 1st layer.
@@ -154,7 +155,9 @@ public:
 
     // BBS
     ExPolygons              loverhangs;
+    std::vector<std::pair<ExPolygon, int>> loverhangs_with_type;
     BoundingBox             loverhangs_bbox;
+    std::vector<LoopNode>   loop_nodes;
     size_t                  region_count() const { return m_regions.size(); }
     const LayerRegion*      get_region(int idx) const { return m_regions[idx]; }
     LayerRegion*            get_region(int idx) { return m_regions[idx]; }
@@ -162,6 +165,7 @@ public:
     const LayerRegionPtrs&  regions() const { return m_regions; }
     // Test whether whether there are any slices assigned to this layer.
     bool                    empty() const;
+    void                    apply_auto_circle_compensation();
     void                    make_slices();
     // Backup and restore raw sliced regions if needed.
     //FIXME Review whether not to simplify the code by keeping the raw_slices all the time.
@@ -180,6 +184,9 @@ public:
         return false;
     }
     void                    make_perimeters();
+    //BBS
+    void                    calculate_perimeter_continuity(std::vector<LoopNode> &prev_nodes);
+    void                    recrod_cooling_node_for_each_extrusion();
     // Phony version of make_fills() without parameters for Perl integration only.
     void                    make_fills() { this->make_fills(nullptr, nullptr); }
     void                    make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive::Octree* support_fill_octree, FillLightning::Generator* lightning_generator = nullptr);
@@ -237,6 +244,8 @@ public:
             }
         return idx;
     }
+
+    size_t get_extruder_id(unsigned int filament_id) const;
 
 protected:
     friend class PrintObject;

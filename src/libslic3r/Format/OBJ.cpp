@@ -22,7 +22,7 @@
 
 namespace Slic3r {
 
-bool load_obj(const char *path, TriangleMesh *meshptr, ObjInfo& obj_info, std::string &message)
+bool load_obj(const char *path, TriangleMesh *meshptr, ObjInfo &obj_info, std::string &message, bool gamma_correct)
 {
     if (meshptr == nullptr)
         return false;
@@ -115,8 +115,13 @@ bool load_obj(const char *path, TriangleMesh *meshptr, ObjInfo& obj_info, std::s
         size_t j = i * OBJ_VERTEX_LENGTH;
         its.vertices.emplace_back(data.coordinates[j], data.coordinates[j + 1], data.coordinates[j + 2]);
         if (data.has_vertex_color) {
-            RGBA color{std::clamp(data.coordinates[j + 3], 0.f, 1.f), std::clamp(data.coordinates[j + 4], 0.f, 1.f), std::clamp(data.coordinates[j + 5], 0.f, 1.f),
-                       std::clamp(data.coordinates[j + 6], 0.f, 1.f)};
+            RGBA color{data.coordinates[j + 3], data.coordinates[j + 4], data.coordinates[j + 5],data.coordinates[j + 6]};
+            if (gamma_correct) {
+                ColorRGBA::gamma_correct(color);
+            }
+            for (int i = 0; i < color.size(); i++) {
+                color[i] = std::clamp(color[i], 0.f, 1.f);
+            }
             obj_info.vertex_colors.emplace_back(color);
         }
     }
@@ -147,24 +152,18 @@ bool load_obj(const char *path, TriangleMesh *meshptr, ObjInfo& obj_info, std::s
                 its.indices.emplace_back(indices[0], indices[1], indices[2]);
                 int  face_index =its.indices.size() - 1;
                 RGBA face_color;
-                auto set_face_color = [&uvs, &data, &mtl_data, &obj_info, &face_color](int face_index, const std::string mtl_name) {
+                auto set_face_color = [&uvs, &data, &mtl_data, &obj_info, &face_color, &gamma_correct](int face_index, const std::string mtl_name) {
                     if (mtl_data.new_mtl_unmap.find(mtl_name) != mtl_data.new_mtl_unmap.end()) {
-                        bool is_merge_ka_kd = true;
-                        for (size_t n = 0; n < 3; n++) {
-                            if (float(mtl_data.new_mtl_unmap[mtl_name]->Ka[n] + mtl_data.new_mtl_unmap[mtl_name]->Kd[n]) > 1.0) {
-                                is_merge_ka_kd=false;
-                                break;
+                        for (size_t n = 0; n < 3; n++) {//0.1 is light ambient
+                            float  object_ka = 0.f;
+                            if (mtl_data.new_mtl_unmap[mtl_name]->Ka[n] > 0.01 && mtl_data.new_mtl_unmap[mtl_name]->Ka[n] < 0.99) {
+                                object_ka = mtl_data.new_mtl_unmap[mtl_name]->Ka[n] * 0.1;
                             }
+                            auto  value   = object_ka + float(mtl_data.new_mtl_unmap[mtl_name]->Kd[n]);
+                            float temp     = gamma_correct ? ColorRGBA::gamma_correct(value) : value;
+                            face_color[n] = std::clamp(temp, 0.f, 1.f);
                         }
-                        for (size_t n = 0; n < 3; n++) {
-                            if (is_merge_ka_kd) {
-                                face_color[n] = std::clamp(float(mtl_data.new_mtl_unmap[mtl_name]->Ka[n] + mtl_data.new_mtl_unmap[mtl_name]->Kd[n]), 0.f, 1.f);
-                            }
-                            else {
-                                face_color[n] = std::clamp(float(mtl_data.new_mtl_unmap[mtl_name]->Kd[n]), 0.f, 1.f);
-                            }
-                        }
-                        face_color[3] = mtl_data.new_mtl_unmap[mtl_name]->Tr; // alpha
+                        face_color[3] = gamma_correct ? ColorRGBA::gamma_correct(mtl_data.new_mtl_unmap[mtl_name]->Tr) : mtl_data.new_mtl_unmap[mtl_name]->Tr; // alpha
                         if (mtl_data.new_mtl_unmap[mtl_name]->map_Kd.size() > 0) {
                             auto png_name       = mtl_data.new_mtl_unmap[mtl_name]->map_Kd;
                             obj_info.has_uv_png = true;
@@ -179,6 +178,11 @@ bool load_obj(const char *path, TriangleMesh *meshptr, ObjInfo& obj_info, std::s
                             obj_info.uvs.emplace_back(uv_array);
                         }
                         obj_info.face_colors.emplace_back(face_color);
+                    }
+                    else {
+                        if (obj_info.lost_material_name.empty()) {
+                            obj_info.lost_material_name = mtl_name;
+                        }
                     }
                 };
                 auto set_face_color_by_mtl = [&data, &set_face_color](int face_index) {
@@ -218,11 +222,11 @@ bool load_obj(const char *path, TriangleMesh *meshptr, ObjInfo& obj_info, std::s
     return true;
 }
 
-bool load_obj(const char *path, Model *model, ObjInfo& obj_info, std::string &message, const char *object_name_in)
+bool load_obj(const char *path, Model *model, ObjInfo& obj_info, std::string &message, const char *object_name_in,bool gamma_correct)
 {
     TriangleMesh mesh;
 
-    bool ret = load_obj(path, &mesh, obj_info, message);
+    bool ret = load_obj(path, &mesh, obj_info, message, gamma_correct);
 
     if (ret) {
         std::string  object_name;

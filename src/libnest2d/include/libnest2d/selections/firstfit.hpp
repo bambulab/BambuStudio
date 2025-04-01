@@ -41,7 +41,7 @@ public:
 
         std::vector<Placer> placers;
         placers.reserve(last-first);
-        
+
         typename Base::PackGroup fixed_bins;
         std::for_each(first, last, [this, &fixed_bins](Item& itm) {
             if (itm.isFixed()) {
@@ -67,7 +67,7 @@ public:
         std::for_each(first, last, [this,&svgwriter](Item &itm) { svgwriter.writeShape(itm, "none", "blue"); });
         svgwriter.save(boost::filesystem::path("SVG") / "all_items.svg");
 #endif
-        
+
         std::function<bool(Item& i1, Item& i2)> sortfunc;
         if (pconfig.sortfunc)
             sortfunc = pconfig.sortfunc;
@@ -88,7 +88,23 @@ public:
         for (auto it = store_.begin(); it != store_.end(); ++it) {
             std::stringstream ss;
             ss << "initial order: " << it->get().name << ", p=" << it->get().priority() << ", bed_temp=" << it->get().bed_temp << ", height=" << it->get().height
-               << ", area=" << it->get().area();
+               << ", area=" << it->get().area() << ", allowed_rotations=";
+            for(auto r: it->get().allowed_rotations) ss << r << ", ";
+            if (this->unfitindicator_)
+                this->unfitindicator_(ss.str());
+        }
+        // debug: write down fixed items
+        for (size_t i = 0; i < fixed_bins.size(); i++) {
+            if (fixed_bins[i].empty())
+                continue;
+            std::stringstream ss;
+            ss << "fixed bin " << i << ": ";
+            for (auto it = fixed_bins[i].begin(); it != fixed_bins[i].end(); ++it) {
+                ss << it->get().name << ", p=" << it->get().priority() << ", bed_temp=" << it->get().bed_temp << ", height=" << it->get().height
+                   << ", area=" << it->get().area() << ", allowed_rotations=";
+                for(auto r: it->get().allowed_rotations) ss << r << ", ";
+                ss << ";   ";
+            }
             if (this->unfitindicator_)
                 this->unfitindicator_(ss.str());
         }
@@ -101,8 +117,8 @@ public:
         };
 
         auto& cancelled = this->stopcond_;
-        
-        this->template remove_unpackable_items<Placer>(store_, bin, pconfig);
+
+        //this->template remove_unpackable_items<Placer>(store_, bin, pconfig);
 
         for (auto it = store_.begin(); it != store_.end() && !cancelled(); ++it) {
             // skip unpackable item
@@ -115,13 +131,21 @@ public:
             double score_all_plates = 0, score_all_plates_best = std::numeric_limits<double>::max();
             typename Placer::PackResult result, result_best, result_firstfit;
             int j = 0;
-            while(!was_packed && !cancelled()) {
-                for(; j < placers.size() && !was_packed && !cancelled(); j++) {
+            while (!was_packed && !cancelled() && placers.size() <= MAX_NUM_PLATES) {
+                for(; j < placers.size() && !was_packed && !cancelled() && j<MAX_NUM_PLATES; j++) {
+                    if (it->get().is_wipe_tower && it->get().binId() != placers[j].plateID()) {
+                        if (this->unfitindicator_)
+                            this->unfitindicator_(it->get().name + " cant be placed in plate_id=" + std::to_string(j) + "/" + std::to_string(placers.size()) + ", continue to next plate");
+                        continue;
+                    }
                     result = placers[j].pack(*it, rem(it, store_));
                     score = result.score();
-                    score_all_plates = score;
+                    score_all_plates = score + COST_OF_NEW_PLATE * j; // add a larger cost to larger plate id to encourace to use less plates
                     for (int i = 0; i < placers.size(); i++) { score_all_plates += placers[i].score();}
-                    if (this->unfitindicator_) this->unfitindicator_(it->get().name + " bed_id="+std::to_string(j) + ",score=" + std::to_string(score)+", score_all_plates="+std::to_string(score_all_plates));
+                    if (this->unfitindicator_)
+                        this->unfitindicator_((boost::format("item %1% bed_id=%2%, score=%3%, score_all_plates=%4%, pos=(%5%, %6%)") % it->get().name % j % score %
+                                               score_all_plates % unscale_(it->get().translation()[0]) % unscale_(it->get().translation()[1]))
+                                                  .str());
 
                     if(score >= 0 && score < LARGE_COST_TO_REJECT) {
                         if (bed_id_firstfit == -1) {
@@ -161,42 +185,42 @@ public:
                     makeProgress(placers[j], j);
                 }
 
-                if (was_packed && it->get().has_tried_with_excluded) {
-                    placers[j].clearItems([](const Item &itm) { return itm.isFixed() && !itm.is_wipe_tower; });
-                    if (fixed_bins.size() >= placers.size())
-                        placers[j].preload(fixed_bins[placers.size() - 1]);
-                }
-                bool placer_not_packed = !was_packed && !placers.empty() && j == placers.size() && placers[j - 1].getPackedSize() == 0; // large item is not placed into the bin
+                // if the object can't be packed, try to pack it without extrusion calibration object
+                bool placer_not_packed = !was_packed && j > 0 && j == placers.size() && placers[j - 1].getPackedSize() == 0; // large item is not placed into the bin
                 if (placer_not_packed) {
-                    if (it->get().has_tried_with_excluded == false) {
-                        it->get().has_tried_with_excluded = true;
-                        placers[j - 1].clearItems([](const Item &itm) { return itm.isFixed()&&!itm.is_wipe_tower; });
-                        placers[j - 1].preload(pconfig.m_excluded_items);
+                    if (it->get().has_tried_without_extrusion_cali_obj == false) {
+                        it->get().has_tried_without_extrusion_cali_obj = true;
+                        placers[j - 1].clearItems([](const Item &itm) { return itm.is_extrusion_cali_object; });
                         j = j - 1;
                         continue;
-                    } else {
-                        placers[j - 1].clearItems([](const Item &itm) { return itm.isFixed() && !itm.is_wipe_tower; });
-                        placers[j - 1].preload(fixed_bins[placers.size() - 1]);
                     }
                 }
 
                 if(!was_packed){
                     if (this->unfitindicator_ && !placers.empty())
-                        this->unfitindicator_(it->get().name + " not fit! height=" +std::to_string(it->get().height)
-                            + " ,plate_id=" + std::to_string(j-1)
-                            + ", score=" + std::to_string(score)
-                            + ", best_bed_id=" + std::to_string(best_bed_id)
-                            + ", score_all_plates=" + std::to_string(score_all_plates)
-                            +", overfit=" + std::to_string(result.overfit()));
-
-                    placers.emplace_back(bin);
-                    placers.back().plateID(placers.size() - 1);
-                    placers.back().configure(pconfig);
-                    if (fixed_bins.size() >= placers.size())
-                        placers.back().preload(fixed_bins[placers.size() - 1]);
-                    //placers.back().preload(pconfig.m_excluded_items);
-                    packed_bins_.emplace_back();
-                    j = placers.size() - 1;
+                        this->unfitindicator_(it->get().name + " not fit! plate_id=" + std::to_string(placers.back().plateID()) + ", score=" + std::to_string(score) +
+                                              ", best_bed_id=" + std::to_string(best_bed_id) + ", score_all_plates=" + std::to_string(score_all_plates) +
+                                              ", item.bed_id=" + std::to_string(it->get().binId()));
+                    if (!placers.empty() && placers.back().getItems().empty()) {
+                        it->get().binId(BIN_ID_UNFIT);
+                        if (this->unfitindicator_) this->unfitindicator_(it->get().name + " can't fit into a new bin. Can't fit!");
+                        // remove the last empty placer to force next item to be fit in existing plates first
+                        if (placers.size() > 1) placers.pop_back();
+                        break;
+                    }
+                    if (placers.size() < MAX_NUM_PLATES) {
+                        placers.emplace_back(bin);
+                        placers.back().plateID(placers.size() - 1);
+                        placers.back().configure(pconfig);
+                        if (fixed_bins.size() >= placers.size()) placers.back().preload(fixed_bins[placers.size() - 1]);
+                        // placers.back().preload(pconfig.m_excluded_items);
+                        packed_bins_.emplace_back();
+                        j = placers.size() - 1;
+                    } else {
+                        it->get().binId(BIN_ID_UNFIT);
+                        if (this->unfitindicator_) this->unfitindicator_(it->get().name + " can't fit into any bin. Can't fit!");
+                        break;
+                    }
                 }
             }
         }

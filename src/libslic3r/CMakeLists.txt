@@ -112,6 +112,8 @@ set(lisbslic3r_sources
     Fill/Lightning/TreeNode.hpp
     Fill/FillRectilinear.cpp
     Fill/FillRectilinear.hpp
+    Fill/FillFloatingConcentric.hpp
+    Fill/FillFloatingConcentric.cpp
     Flow.cpp
     Flow.hpp
     Frustum.cpp
@@ -139,8 +141,8 @@ set(lisbslic3r_sources
     Format/svg.cpp
     GCode/ThumbnailData.cpp
     GCode/ThumbnailData.hpp
-    GCode/CoolingBuffer.cpp
-    GCode/CoolingBuffer.hpp
+    GCode/GCodeEditor.cpp
+    GCode/GCodeEditor.hpp
     GCode/PostProcessor.cpp
     GCode/PostProcessor.hpp
 #    GCode/PressureEqualizer.cpp
@@ -163,6 +165,10 @@ set(lisbslic3r_sources
     GCode/AvoidCrossingPerimeters.hpp
     GCode/ConflictChecker.cpp
     GCode/ConflictChecker.hpp
+    GCode/Smoothing.cpp
+    GCode/Smoothing.hpp
+    GCode/CoolingBuffer.cpp
+    GCode/CoolingBuffer.hpp
     GCode.cpp
     GCode.hpp
     GCodeReader.cpp
@@ -397,6 +403,8 @@ set(lisbslic3r_sources
     Arachne/BeadingStrategy/RedistributeBeadingStrategy.cpp
     Arachne/BeadingStrategy/WideningBeadingStrategy.hpp
     Arachne/BeadingStrategy/WideningBeadingStrategy.cpp
+    Arachne/BeadingStrategy/OuterWallContourStrategy.hpp
+    Arachne/BeadingStrategy/OuterWallContourStrategy.cpp
     Arachne/utils/ExtrusionJunction.hpp
     Arachne/utils/ExtrusionJunction.cpp
     Arachne/utils/ExtrusionLine.hpp
@@ -428,6 +436,18 @@ set(lisbslic3r_sources
     ClipperZUtils.hpp
     FlushVolPredictor.hpp
     FlushVolPredictor.cpp
+    FilamentGroup.hpp
+    FilamentGroup.cpp
+    FilamentGroupUtils.hpp
+    FilamentGroupUtils.cpp
+    GCode/ToolOrderUtils.hpp
+    GCode/ToolOrderUtils.cpp
+    FlushVolPredictor.hpp
+    FlushVolPredictor.cpp
+    Interlocking/InterlockingGenerator.hpp
+    Interlocking/InterlockingGenerator.cpp
+    Interlocking/VoxelUtils.hpp
+    Interlocking/VoxelUtils.cpp
 )
 
 if (APPLE)

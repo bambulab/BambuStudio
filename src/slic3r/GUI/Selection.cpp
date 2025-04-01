@@ -9,6 +9,7 @@
 #include "Gizmos/GLGizmoBase.hpp"
 #include "Camera.hpp"
 #include "Plater.hpp"
+#include "OpenGLManager.hpp"
 #include "slic3r/Utils/UndoRedo.hpp"
 
 #include "libslic3r/LocalesUtils.hpp"
@@ -137,7 +138,7 @@ bool Selection::init()
     m_curved_arrow.init_from(circular_arrow(16, 10.0f, 5.0f, 10.0f, 5.0f, 1.0f));
 
 #if ENABLE_RENDER_SELECTION_CENTER
-    m_vbo_sphere.init_from(make_sphere(0.75, 2*PI/24));
+    m_vbo_sphere.init_from(its_make_sphere(0.75, 2*PI/24));
 #endif // ENABLE_RENDER_SELECTION_CENTER
 
     return true;
@@ -1158,10 +1159,12 @@ const std::pair<Vec3d, double> Selection::get_bounding_sphere() const
                 }
             }
 
-            Min_sphere   ms(points.begin(), points.end());
-            const float *center_x = ms.center_cartesian_begin();
-            (*sphere)->first      = {*center_x, *(center_x + 1), *(center_x + 2)};
-            (*sphere)->second     = ms.radius();
+            if (points.size() > 0) {
+                Min_sphere   ms(points.begin(), points.end());
+                const float* center_x = ms.center_cartesian_begin();
+                (*sphere)->first = { *center_x, *(center_x + 1), *(center_x + 2) };
+                (*sphere)->second = ms.radius();
+            }
         }
     }
 
@@ -1192,28 +1195,33 @@ void Selection::translate(const Vec3d &displacement, TransformationType transfor
         } else {
             if (v.is_wipe_tower) {//in world cs
                 int           plate_idx           = v.object_idx() - 1000;
-                BoundingBoxf3 plate_bbox          = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx)->get_bounding_box();
+                BoundingBoxf3 plate_bbox = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx)->get_build_volume(true);
+                BoundingBox   plate_bbox2d        = BoundingBox(scaled(Vec2f(plate_bbox.min[0], plate_bbox.min[1])), scaled(Vec2f(plate_bbox.max[0], plate_bbox.max[1])));
                 Vec3d         tower_size          = v.bounding_box().size();
                 Vec3d         tower_origin        = m_cache.volumes_data[i].get_volume_position();
                 Vec3d         actual_displacement = displacement;
-                const double  margin              = WIPE_TOWER_MARGIN;
+                const double margin = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx)->fff_print()->is_step_done(psWipeTower)?2.:WIPE_TOWER_MARGIN;
 
                 actual_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_instance_scale_matrix() *
                                         m_cache.volumes_data[i].get_instance_mirror_matrix())
                                             .inverse() *
                                         displacement;
-                if (tower_origin(0) + actual_displacement(0) - margin < plate_bbox.min(0)) {
-                    actual_displacement(0) = plate_bbox.min(0) - tower_origin(0) + margin;
-                } else if (tower_origin(0) + actual_displacement(0) + tower_size(0) + margin > plate_bbox.max(0)) {
-                    actual_displacement(0) = plate_bbox.max(0) - tower_origin(0) - tower_size(0) - margin;
-                }
+                BoundingBoxf3 tower_bbox = v.bounding_box();
+                tower_bbox.translate(actual_displacement + tower_origin);
+                BoundingBox   tower_bbox2d = BoundingBox(scaled(Vec2f(tower_bbox.min[0], tower_bbox.min[1])), scaled(Vec2f(tower_bbox.max[0], tower_bbox.max[1])));
+                Vec2f offset = WipeTower::move_box_inside_box(tower_bbox2d, plate_bbox2d,scaled(margin));
+                //if (tower_origin(0) + actual_displacement(0) - margin < plate_bbox.min(0)) {
+                //    actual_displacement(0) = plate_bbox.min(0) - tower_origin(0) + margin;
+                //} else if (tower_origin(0) + actual_displacement(0) + tower_size(0) + margin > plate_bbox.max(0)) {
+                //    actual_displacement(0) = plate_bbox.max(0) - tower_origin(0) - tower_size(0) - margin;
+                //}
 
-                if (tower_origin(1) + actual_displacement(1) - margin < plate_bbox.min(1)) {
-                    actual_displacement(1) = plate_bbox.min(1) - tower_origin(1) + margin;
-                } else if (tower_origin(1) + actual_displacement(1) + tower_size(1) + margin > plate_bbox.max(1)) {
-                    actual_displacement(1) = plate_bbox.max(1) - tower_origin(1) - tower_size(1) - margin;
-                }
-
+                //if (tower_origin(1) + actual_displacement(1) - margin < plate_bbox.min(1)) {
+                //    actual_displacement(1) = plate_bbox.min(1) - tower_origin(1) + margin;
+                //} else if (tower_origin(1) + actual_displacement(1) + tower_size(1) + margin > plate_bbox.max(1)) {
+                //    actual_displacement(1) = plate_bbox.max(1) - tower_origin(1) - tower_size(1) - margin;
+                //}
+                actual_displacement += Vec3d(offset[0], offset[1],0);
                 v.set_volume_offset(m_cache.volumes_data[i].get_volume_position() + actual_displacement);
             }
             else if (transformation_type.local() && transformation_type.absolute()) {
@@ -1407,16 +1415,11 @@ void Selection::flattening_rotate(const Vec3d& normal)
     for (unsigned int i : m_list) {
         GLVolume& v = *(*m_volumes)[i];
         // Normal transformed from the object coordinate space to the world coordinate space.
-        const auto &voldata = m_cache.volumes_data[i];
-        Vec3d tnormal = (Geometry::assemble_transform(
-            Vec3d::Zero(), voldata.get_instance_rotation(),
-            voldata.get_instance_scaling_factor().cwiseInverse(), voldata.get_instance_mirror()) * normal).normalized();
+        const Geometry::Transformation &old_inst_trafo = v.get_instance_transformation();
+        const Vec3d                     tnormal        = old_inst_trafo.get_matrix_no_offset() * normal;
         // Additional rotation to align tnormal with the down vector in the world coordinate space.
-        auto  extra_rotation = Eigen::Quaterniond().setFromTwoVectors(tnormal, - Vec3d::UnitZ());
-        v.set_instance_rotation(Geometry::extract_euler_angles(extra_rotation.toRotationMatrix() * m_cache.volumes_data[i].get_instance_rotation_matrix()));
-
-        BOOST_LOG_TRIVIAL(debug) << "flattening_rotate " << (*m_volumes)[i]->name << std::fixed << std::setprecision(4) << ": tnormal=" << tnormal.transpose() << "; extra_rotation=" << Geometry::extract_euler_angles(extra_rotation.toRotationMatrix()).transpose();
-        flush_logs();
+        const Transform3d rotation_matrix = Transform3d(Eigen::Quaterniond().setFromTwoVectors(tnormal, -Vec3d::UnitZ()));
+        v.set_instance_transformation(old_inst_trafo.get_offset_matrix() * rotation_matrix * old_inst_trafo.get_matrix_no_offset());
     }
 
 #if !DISABLE_INSTANCES_SYNCH
@@ -1983,15 +1986,26 @@ void Selection::render_center(bool gizmo_is_dragging) const
     if (!m_valid || is_empty())
         return;
 
+    const auto& shader = wxGetApp().get_shader("flat");
+    if (!shader)
+        return;
+
+    wxGetApp().bind_shader(shader);
+
     const Vec3d center = gizmo_is_dragging ? m_cache.dragging_center : get_bounding_box().center();
 
     glsafe(::glDisable(GL_DEPTH_TEST));
 
-    glsafe(::glColor3f(1.0f, 1.0f, 1.0f));
-    glsafe(::glPushMatrix());
-    glsafe(::glTranslated(center(0), center(1), center(2)));
-    m_vbo_sphere.render();
-    glsafe(::glPopMatrix());
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    Transform3d view_model_matrix = camera.get_view_matrix() * Geometry::assemble_transform(center);
+
+    shader->set_uniform("view_model_matrix", view_model_matrix);
+    shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+
+    m_vbo_sphere.set_color(ColorRGBA::WHITE());
+    m_vbo_sphere.render_geometry();
+
+    wxGetApp().unbind_shader();
 }
 #endif // ENABLE_RENDER_SELECTION_CENTER
 
@@ -2002,30 +2016,25 @@ void Selection::render_sidebar_hints(const std::string& sidebar_field, bool unif
     if (sidebar_field.empty())
         return;
 
-    GLShaderProgram* shader = nullptr;
+    const auto& shader = wxGetApp().get_shader(boost::starts_with(sidebar_field, "layer") ? "flat" : "gouraud_light");
+    if (shader == nullptr)
+        return;
+
+    wxGetApp().bind_shader(shader);
 
     if (!boost::starts_with(sidebar_field, "layer")) {
-        shader = wxGetApp().get_shader("gouraud_light");
-        if (shader == nullptr)
-            return;
-
-        shader->start_using();
         glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
     }
-
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    glsafe(::glPushMatrix());
+    Transform3d base_matrix = Geometry::assemble_transform(get_bounding_box().center());
     Transform3d orient_matrix = Transform3d::Identity();
     if (!boost::starts_with(sidebar_field, "layer")) {
         Vec3d center = get_bounding_box().center();
         const auto &[box, box_trafo] = get_bounding_box_in_current_reference_system();
         // BBS
         if (is_single_full_instance() && !wxGetApp().obj_manipul()->is_world_coordinates()) {
-            center                       = box_trafo.translation();
-            glsafe(::glTranslated(center(0), center(1), center(2)));
             orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_rotation_matrix();
-            glsafe(::glMultMatrixd(orient_matrix.data()));
         } else if (is_single_volume_or_modifier()) {
             if (!wxGetApp().obj_manipul()->is_world_coordinates()) {
                 if (wxGetApp().obj_manipul()->is_local_coordinates()) {
@@ -2036,33 +2045,25 @@ void Selection::render_sidebar_hints(const std::string& sidebar_field, bool unif
                     center       = box_trafo.translation();
                 }
             }
-            glsafe(::glTranslated(center(0), center(1), center(2)));
-            glsafe(::glMultMatrixd(orient_matrix.data()));
+            base_matrix = Geometry::assemble_transform({ center(0), center(1), center(2) });
         } else {
-            glsafe(::glTranslated(center(0), center(1), center(2)));
             if (requires_local_axes()) {
                 orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_rotation_matrix();
-                glsafe(::glMultMatrixd(orient_matrix.data()));
             }
         }
     }
 
     if (boost::starts_with(sidebar_field, "position"))
-        render_sidebar_position_hints(sidebar_field);
-    else if (boost::starts_with(sidebar_field, "rotation"))
-        render_sidebar_rotation_hints(sidebar_field);
-    else if (boost::starts_with(sidebar_field, "absolute_rotation"))
-        render_sidebar_rotation_hints(sidebar_field);
+        render_sidebar_position_hints(sidebar_field, *shader, base_matrix * orient_matrix);
+    else if (boost::starts_with(sidebar_field, "rotation") || boost::starts_with(sidebar_field, "absolute_rotation"))
+        render_sidebar_rotation_hints(sidebar_field, *shader, base_matrix * orient_matrix);
     else if (boost::starts_with(sidebar_field, "scale") || boost::starts_with(sidebar_field, "size"))
         //BBS: GUI refactor: add uniform_scale from gizmo
-        render_sidebar_scale_hints(sidebar_field, uniform_scale);
+        render_sidebar_scale_hints(sidebar_field, uniform_scale, *shader, base_matrix * orient_matrix);
     else if (boost::starts_with(sidebar_field, "layer"))
-        render_sidebar_layers_hints(sidebar_field);
+        render_sidebar_layers_hints(*shader, sidebar_field);
 
-    glsafe(::glPopMatrix());
-
-    if (!boost::starts_with(sidebar_field, "layer"))
-        shader->stop_using();
+    wxGetApp().unbind_shader();
 }
 
 bool Selection::requires_local_axes() const
@@ -2580,50 +2581,42 @@ void Selection::render_bounding_box(const BoundingBoxf3& box, float* color) cons
     if (color == nullptr)
         return;
 
+    const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+    const auto& p_flat_shader = wxGetApp().get_shader("flat");
+    if (!p_flat_shader)
+        return;
+
+    init_bounding_box_model();
+
     Vec3f b_min = box.min.cast<float>();
     Vec3f b_max = box.max.cast<float>();
-    Vec3f size = 0.2f * box.size().cast<float>();
+    Vec3f size = box.size().cast<float>();
+    const auto& center = box.center();
+
+    Transform3d model_matrix{ Transform3d::Identity() };
+    model_matrix.data()[3 * 4 + 0] = center(0);
+    model_matrix.data()[3 * 4 + 1] = center(1);
+    model_matrix.data()[3 * 4 + 2] = center(2);
+    model_matrix.data()[0 * 4 + 0] = size(0);
+    model_matrix.data()[1 * 4 + 1] = size(1);
+    model_matrix.data()[2 * 4 + 2] = size(2);
 
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    glsafe(::glColor3fv(color));
-    glsafe(::glLineWidth(2.0f * m_scale_factor));
+    p_ogl_manager->set_line_width(2.0f * m_scale_factor);
 
-    ::glBegin(GL_LINES);
+    wxGetApp().bind_shader(p_flat_shader);
 
-    ::glVertex3f(b_min(0), b_min(1), b_min(2)); ::glVertex3f(b_min(0) + size(0), b_min(1), b_min(2));
-    ::glVertex3f(b_min(0), b_min(1), b_min(2)); ::glVertex3f(b_min(0), b_min(1) + size(1), b_min(2));
-    ::glVertex3f(b_min(0), b_min(1), b_min(2)); ::glVertex3f(b_min(0), b_min(1), b_min(2) + size(2));
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    const auto& view_matrix = camera.get_view_matrix();
+    const auto& proj_matrix = camera.get_projection_matrix();
+    p_flat_shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
+    p_flat_shader->set_uniform("projection_matrix", camera.get_projection_matrix());
 
-    ::glVertex3f(b_max(0), b_min(1), b_min(2)); ::glVertex3f(b_max(0) - size(0), b_min(1), b_min(2));
-    ::glVertex3f(b_max(0), b_min(1), b_min(2)); ::glVertex3f(b_max(0), b_min(1) + size(1), b_min(2));
-    ::glVertex3f(b_max(0), b_min(1), b_min(2)); ::glVertex3f(b_max(0), b_min(1), b_min(2) + size(2));
+    m_bounding_box_model.set_color({ color[0], color[1], color[2], 1.0f});
+    m_bounding_box_model.render_geometry();
 
-    ::glVertex3f(b_max(0), b_max(1), b_min(2)); ::glVertex3f(b_max(0) - size(0), b_max(1), b_min(2));
-    ::glVertex3f(b_max(0), b_max(1), b_min(2)); ::glVertex3f(b_max(0), b_max(1) - size(1), b_min(2));
-    ::glVertex3f(b_max(0), b_max(1), b_min(2)); ::glVertex3f(b_max(0), b_max(1), b_min(2) + size(2));
-
-    ::glVertex3f(b_min(0), b_max(1), b_min(2)); ::glVertex3f(b_min(0) + size(0), b_max(1), b_min(2));
-    ::glVertex3f(b_min(0), b_max(1), b_min(2)); ::glVertex3f(b_min(0), b_max(1) - size(1), b_min(2));
-    ::glVertex3f(b_min(0), b_max(1), b_min(2)); ::glVertex3f(b_min(0), b_max(1), b_min(2) + size(2));
-
-    ::glVertex3f(b_min(0), b_min(1), b_max(2)); ::glVertex3f(b_min(0) + size(0), b_min(1), b_max(2));
-    ::glVertex3f(b_min(0), b_min(1), b_max(2)); ::glVertex3f(b_min(0), b_min(1) + size(1), b_max(2));
-    ::glVertex3f(b_min(0), b_min(1), b_max(2)); ::glVertex3f(b_min(0), b_min(1), b_max(2) - size(2));
-
-    ::glVertex3f(b_max(0), b_min(1), b_max(2)); ::glVertex3f(b_max(0) - size(0), b_min(1), b_max(2));
-    ::glVertex3f(b_max(0), b_min(1), b_max(2)); ::glVertex3f(b_max(0), b_min(1) + size(1), b_max(2));
-    ::glVertex3f(b_max(0), b_min(1), b_max(2)); ::glVertex3f(b_max(0), b_min(1), b_max(2) - size(2));
-
-    ::glVertex3f(b_max(0), b_max(1), b_max(2)); ::glVertex3f(b_max(0) - size(0), b_max(1), b_max(2));
-    ::glVertex3f(b_max(0), b_max(1), b_max(2)); ::glVertex3f(b_max(0), b_max(1) - size(1), b_max(2));
-    ::glVertex3f(b_max(0), b_max(1), b_max(2)); ::glVertex3f(b_max(0), b_max(1), b_max(2) - size(2));
-
-    ::glVertex3f(b_min(0), b_max(1), b_max(2)); ::glVertex3f(b_min(0) + size(0), b_max(1), b_max(2));
-    ::glVertex3f(b_min(0), b_max(1), b_max(2)); ::glVertex3f(b_min(0), b_max(1) - size(1), b_max(2));
-    ::glVertex3f(b_min(0), b_max(1), b_max(2)); ::glVertex3f(b_min(0), b_max(1), b_max(2) - size(2));
-
-    glsafe(::glEnd());
+    wxGetApp().unbind_shader();
 }
 
 static std::array<float, 4> get_color(Axis axis)
@@ -2634,91 +2627,132 @@ static std::array<float, 4> get_color(Axis axis)
             GLGizmoBase::AXES_COLOR[axis][3] };
 };
 
-void Selection::render_sidebar_position_hints(const std::string& sidebar_field) const
+Transform3d get_screen_scalling_matrix()
 {
+    const Camera& camera = wxGetApp().plater()->get_camera();
+
+    Transform3d screen_scalling_matrix{ Transform3d::Identity() };
+
+    const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
+    if (p_ogl_manager) {
+        if (p_ogl_manager->is_gizmo_keep_screen_size_enabled()) {
+            const auto& t_zoom = camera.get_zoom();
+            screen_scalling_matrix.data()[0 * 4 + 0] = 5.0f / t_zoom;
+            screen_scalling_matrix.data()[1 * 4 + 1] = 5.0f / t_zoom;
+            screen_scalling_matrix.data()[2 * 4 + 2] = 5.0f / t_zoom;
+        }
+    }
+    return screen_scalling_matrix;
+}
+
+void Selection::render_sidebar_position_hints(const std::string& sidebar_field, GLShaderProgram& shader, const Transform3d& model_matrix) const
+{
+    const Camera& camera = wxGetApp().plater()->get_camera();
+
+    const Transform3d screen_scalling_matrix = get_screen_scalling_matrix();
+
+    const Transform3d view_matrix = camera.get_view_matrix() * model_matrix * screen_scalling_matrix;
+    shader.set_uniform("projection_matrix", camera.get_projection_matrix());
+
     if (boost::ends_with(sidebar_field, "x")) {
-        glsafe(::glRotated(-90.0, 0.0, 0.0, 1.0));
+        const Transform3d view_model_matrix = view_matrix * Geometry::assemble_transform(Vec3d::Zero(), -0.5 * PI * Vec3d::UnitZ());
+        shader.set_uniform("view_model_matrix", view_model_matrix);
+        shader.set_uniform("normal_matrix", (Matrix3d)view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
         const_cast<GLModel*>(&m_arrow)->set_color(-1, get_color(X));
-        m_arrow.render();
+        m_arrow.render_geometry();
     }
     else if (boost::ends_with(sidebar_field, "y")) {
+        shader.set_uniform("view_model_matrix", view_matrix);
+        shader.set_uniform("normal_matrix", (Matrix3d)view_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
         const_cast<GLModel*>(&m_arrow)->set_color(-1, get_color(Y));
-        m_arrow.render();
+        m_arrow.render_geometry();
     }
     else if (boost::ends_with(sidebar_field, "z")) {
-        glsafe(::glRotated(90.0, 1.0, 0.0, 0.0));
+        const Transform3d view_model_matrix = view_matrix * Geometry::assemble_transform(Vec3d::Zero(), 0.5 * PI * Vec3d::UnitX());
+        shader.set_uniform("view_model_matrix", view_model_matrix);
+        shader.set_uniform("normal_matrix", (Matrix3d)view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
         const_cast<GLModel*>(&m_arrow)->set_color(-1, get_color(Z));
-        m_arrow.render();
+        m_arrow.render_geometry();
     }
 }
 
-void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field) const
+void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field, GLShaderProgram& shader, const Transform3d& model_matrix) const
 {
-    auto render_sidebar_rotation_hint = [this]() {
-        m_curved_arrow.render();
-        glsafe(::glRotated(180.0, 0.0, 0.0, 1.0));
-        m_curved_arrow.render();
+    auto render_sidebar_rotation_hint = [this](GLShaderProgram& shader, const Transform3d& matrix) {
+
+        const Camera& camera = wxGetApp().plater()->get_camera();
+
+        const Transform3d screen_scalling_matrix = get_screen_scalling_matrix();
+
+        Transform3d view_model_matrix = matrix * screen_scalling_matrix;
+        shader.set_uniform("view_model_matrix", view_model_matrix);
+        shader.set_uniform("normal_matrix", (Matrix3d)view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
+        m_curved_arrow.render_geometry();
+
+        view_model_matrix = matrix * Geometry::assemble_transform(Vec3d::Zero(), PI * Vec3d::UnitZ()) * screen_scalling_matrix;
+        shader.set_uniform("view_model_matrix", view_model_matrix);
+        shader.set_uniform("normal_matrix", (Matrix3d)view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
+        m_curved_arrow.render_geometry();
     };
 
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    const Transform3d view_matrix = camera.get_view_matrix() * model_matrix;
+    shader.set_uniform("projection_matrix", camera.get_projection_matrix());
+
     if (boost::ends_with(sidebar_field, "x")) {
-        glsafe(::glRotated(90.0, 0.0, 1.0, 0.0));
         const_cast<GLModel*>(&m_curved_arrow)->set_color(-1, get_color(X));
-        render_sidebar_rotation_hint();
+        render_sidebar_rotation_hint(shader, view_matrix * Geometry::assemble_transform(Vec3d::Zero(), 0.5 * PI * Vec3d::UnitY()));
     }
     else if (boost::ends_with(sidebar_field, "y")) {
-        glsafe(::glRotated(-90.0, 1.0, 0.0, 0.0));
         const_cast<GLModel*>(&m_curved_arrow)->set_color(-1, get_color(Y));
-        render_sidebar_rotation_hint();
+        render_sidebar_rotation_hint(shader, view_matrix * Geometry::assemble_transform(Vec3d::Zero(), -0.5 * PI * Vec3d::UnitX()));
     }
     else if (boost::ends_with(sidebar_field, "z")) {
         const_cast<GLModel*>(&m_curved_arrow)->set_color(-1, get_color(Z));
-        render_sidebar_rotation_hint();
+        render_sidebar_rotation_hint(shader, view_matrix);
     }
 }
 
 //BBS: GUI refactor: add gizmo uniform_scale
-void Selection::render_sidebar_scale_hints(const std::string& sidebar_field, bool gizmo_uniform_scale) const
+void Selection::render_sidebar_scale_hints(const std::string& sidebar_field, bool gizmo_uniform_scale, GLShaderProgram& shader, const Transform3d& model_matrix) const
 {
     // BBS
     //bool uniform_scale = requires_uniform_scale() || wxGetApp().obj_manipul()->get_uniform_scaling();
     bool uniform_scale = requires_uniform_scale() || gizmo_uniform_scale;
 
-    auto render_sidebar_scale_hint = [this, uniform_scale](Axis axis) {
+    auto render_sidebar_scale_hint = [this, uniform_scale](Axis axis, GLShaderProgram& shader, const Transform3d& matrix) {
         const_cast<GLModel*>(&m_arrow)->set_color(-1, uniform_scale ? UNIFORM_SCALE_COLOR : get_color(axis));
-        GLShaderProgram* shader = wxGetApp().get_current_shader();
-        if (shader != nullptr)
-            shader->set_uniform("emission_factor", 0.0f);
+        shader.set_uniform("emission_factor", 0.0f);
 
-        glsafe(::glTranslated(0.0, 5.0, 0.0));
-        m_arrow.render();
+        Transform3d view_model_matrix = matrix * Geometry::assemble_transform(5.0 * Vec3d::UnitY());
+        shader.set_uniform("view_model_matrix", view_model_matrix);
+        shader.set_uniform("normal_matrix", (Matrix3d)view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
+        m_arrow.render_geometry();
 
-        glsafe(::glTranslated(0.0, -10.0, 0.0));
-        glsafe(::glRotated(180.0, 0.0, 0.0, 1.0));
-        m_arrow.render();
+        view_model_matrix = matrix * Geometry::assemble_transform(-10.0 * Vec3d::UnitY(), PI * Vec3d::UnitZ());
+        shader.set_uniform("view_model_matrix", view_model_matrix);
+        shader.set_uniform("normal_matrix", (Matrix3d)view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
+        m_arrow.render_geometry();
     };
 
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    const Transform3d view_matrix = camera.get_view_matrix() * model_matrix;
+    shader.set_uniform("projection_matrix", camera.get_projection_matrix());
+
     if (boost::ends_with(sidebar_field, "x") || uniform_scale) {
-        glsafe(::glPushMatrix());
-        glsafe(::glRotated(-90.0, 0.0, 0.0, 1.0));
-        render_sidebar_scale_hint(X);
-        glsafe(::glPopMatrix());
+        render_sidebar_scale_hint(X, shader, view_matrix * Geometry::assemble_transform(Vec3d::Zero(), -0.5 * PI * Vec3d::UnitZ()));
     }
 
     if (boost::ends_with(sidebar_field, "y") || uniform_scale) {
-        glsafe(::glPushMatrix());
-        render_sidebar_scale_hint(Y);
-        glsafe(::glPopMatrix());
+        render_sidebar_scale_hint(Y, shader, view_matrix);
     }
 
     if (boost::ends_with(sidebar_field, "z") || uniform_scale) {
-        glsafe(::glPushMatrix());
-        glsafe(::glRotated(90.0, 1.0, 0.0, 0.0));
-        render_sidebar_scale_hint(Z);
-        glsafe(::glPopMatrix());
+        render_sidebar_scale_hint(Z, shader, view_matrix * Geometry::assemble_transform(Vec3d::Zero(), 0.5 * PI * Vec3d::UnitX()));
     }
 }
 
-void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) const
+void Selection::render_sidebar_layers_hints(GLShaderProgram& shader, const std::string& sidebar_field) const
 {
     static const double Margin = 10.0;
     if (wxGetApp().plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasView3D) {
@@ -2766,30 +2800,137 @@ void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) co
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-    ::glBegin(GL_QUADS);
-    if ((camera_on_top && type == 1) || (!camera_on_top && type == 2))
-        ::glColor4f(0.0f, 174.0f / 255.0f, 66.0f / 255.0f, 1.0f);
-    else
-        ::glColor4f(0.8f, 0.8f, 0.8f, 0.5f);
-    ::glVertex3f(min_x, min_y, z1);
-    ::glVertex3f(max_x, min_y, z1);
-    ::glVertex3f(max_x, max_y, z1);
-    ::glVertex3f(min_x, max_y, z1);
-    glsafe(::glEnd());
+    if (!m_sidebar_layers_hints_model.is_initialized()) {
+        GLModel::Geometry init_data;
+        init_data.format = { GLModel::PrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3 };
+        init_data.reserve_vertices(4);
+        init_data.reserve_indices(6);
 
-    ::glBegin(GL_QUADS);
-    if ((camera_on_top && type == 2) || (!camera_on_top && type == 1))
-        ::glColor4f(0.0f, 174.0f / 255.0f, 66.0f / 255.0f, 1.0f);
-    else
-        ::glColor4f(0.8f, 0.8f, 0.8f, 0.5f);
-    ::glVertex3f(min_x, min_y, z2);
-    ::glVertex3f(max_x, min_y, z2);
-    ::glVertex3f(max_x, max_y, z2);
-    ::glVertex3f(min_x, max_y, z2);
-    glsafe(::glEnd());
+        // vertices
+        init_data.add_vertex(Vec3f(-0.5f, -0.5f, 0.0f));
+        init_data.add_vertex(Vec3f(0.5f,  -0.5f, 0.0f));
+        init_data.add_vertex(Vec3f(0.5f,   0.5f, 0.0f));
+        init_data.add_vertex(Vec3f(-0.5f,  0.5f, 0.0f));
+
+        // indices
+        init_data.add_triangle(0, 1, 2);
+        init_data.add_triangle(2, 3, 0);
+
+        m_sidebar_layers_hints_model.init_from(std::move(init_data));
+    }
+    Transform3d model_matrix{ Transform3d::Identity() };
+    model_matrix.data()[3 * 4 + 0] = (max_x + min_x) * 0.5f;
+    model_matrix.data()[3 * 4 + 1] = (max_y + min_y) * 0.5f;
+    model_matrix.data()[3 * 4 + 2] = z1;
+    model_matrix.data()[0 * 4 + 0] = (max_x - min_x);
+    model_matrix.data()[1 * 4 + 1] = (max_y - min_y);
+    model_matrix.data()[2 * 4 + 2] = 1.0f;
+
+    ColorRGBA color1;
+    if ((camera_on_top && type == 1) || (!camera_on_top && type == 2)) {
+        color1 = { 0.0f, 174.0f / 255.0f, 66.0f / 255.0f, 1.0f };
+    }
+    else {
+        color1 = { 0.8f, 0.8f, 0.8f, 0.5 };
+    }
+    m_sidebar_layers_hints_model.set_color(color1);
+
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    const auto& view_matrix = camera.get_view_matrix();
+    const auto& proj_matrix = camera.get_projection_matrix();
+
+    shader.set_uniform("projection_matrix", proj_matrix);
+
+    shader.set_uniform("view_model_matrix", view_matrix * model_matrix);
+    m_sidebar_layers_hints_model.render_geometry();
+
+    model_matrix.data()[3 * 4 + 2] = z2;
+    shader.set_uniform("view_model_matrix", view_matrix * model_matrix);
+    m_sidebar_layers_hints_model.render_geometry();
 
     glsafe(::glEnable(GL_CULL_FACE));
     glsafe(::glDisable(GL_BLEND));
+}
+
+void Selection::init_bounding_box_model() const
+{
+    if (m_bounding_box_model.is_initialized()) {
+        return;
+    }
+
+    GLModel::Geometry geo;
+    geo.format.type = GLModel::PrimitiveType::Lines;
+    geo.format.vertex_layout = GLModel::Geometry::EVertexLayout::P3;
+
+    const float size = 0.2f;
+    Vec3f b_min{ -0.5f, -0.5f, -0.5f };
+    Vec3f b_max{ 0.5f, 0.5f, 0.5f };
+    geo.add_vertex(Vec3f{ b_min(0), b_min(1), b_min(2) });
+    geo.add_vertex(Vec3f{ b_min(0) + size, b_min(1), b_min(2) });
+    geo.add_vertex(Vec3f{ b_min(0), b_min(1) + size, b_min(2) });
+    geo.add_vertex(Vec3f{ b_min(0), b_min(1), b_min(2) + size });
+    geo.add_vertex(Vec3f{ b_max(0), b_min(1), b_min(2) });
+    geo.add_vertex(Vec3f{ b_max(0) - size, b_min(1), b_min(2) });
+    geo.add_vertex(Vec3f{ b_max(0), b_min(1) + size, b_min(2) });
+    geo.add_vertex(Vec3f{ b_max(0), b_min(1), b_min(2) + size });
+    geo.add_vertex(Vec3f{ b_max(0), b_max(1), b_min(2) });
+    geo.add_vertex(Vec3f{ b_max(0) - size, b_max(1), b_min(2) });
+    geo.add_vertex(Vec3f{ b_max(0), b_max(1) - size, b_min(2) });
+    geo.add_vertex(Vec3f{ b_max(0), b_max(1), b_min(2) + size });
+    geo.add_vertex(Vec3f{ b_min(0), b_max(1), b_min(2) });
+    geo.add_vertex(Vec3f{ b_min(0) + size, b_max(1), b_min(2) });
+    geo.add_vertex(Vec3f{ b_min(0), b_max(1) - size, b_min(2) });
+    geo.add_vertex(Vec3f{ b_min(0), b_max(1), b_min(2) + size });
+    geo.add_vertex(Vec3f{ b_min(0), b_min(1), b_max(2) });
+    geo.add_vertex(Vec3f{ b_min(0) + size, b_min(1), b_max(2) });
+    geo.add_vertex(Vec3f{ b_min(0), b_min(1) + size, b_max(2) });
+    geo.add_vertex(Vec3f{ b_min(0), b_min(1), b_max(2) - size });
+    geo.add_vertex(Vec3f{ b_max(0), b_min(1), b_max(2) });
+    geo.add_vertex(Vec3f{ b_max(0) - size, b_min(1), b_max(2) });
+    geo.add_vertex(Vec3f{ b_max(0), b_min(1) + size, b_max(2) });
+    geo.add_vertex(Vec3f{ b_max(0), b_min(1), b_max(2) - size });
+    geo.add_vertex(Vec3f{ b_max(0), b_max(1), b_max(2) });
+    geo.add_vertex(Vec3f{ b_max(0) - size, b_max(1), b_max(2) });
+    geo.add_vertex(Vec3f{ b_max(0), b_max(1) - size, b_max(2) });
+    geo.add_vertex(Vec3f{ b_max(0), b_max(1), b_max(2) - size });
+    geo.add_vertex(Vec3f{ b_min(0), b_max(1), b_max(2) });
+    geo.add_vertex(Vec3f{ b_min(0) + size, b_max(1), b_max(2) });
+    geo.add_vertex(Vec3f{ b_min(0), b_max(1) - size, b_max(2) });
+    geo.add_vertex(Vec3f{ b_min(0), b_max(1), b_max(2) - size });
+
+    geo.add_line(0, 1);
+    geo.add_line(0, 2);
+    geo.add_line(0, 3);
+
+    geo.add_line(4, 5);
+    geo.add_line(4, 6);
+    geo.add_line(4, 7);
+
+    geo.add_line(8, 9);
+    geo.add_line(8, 10);
+    geo.add_line(8, 11);
+
+    geo.add_line(12, 13);
+    geo.add_line(12, 14);
+    geo.add_line(12, 15);
+
+    geo.add_line(16, 17);
+    geo.add_line(16, 18);
+    geo.add_line(16, 19);
+
+    geo.add_line(20, 21);
+    geo.add_line(20, 22);
+    geo.add_line(20, 23);
+
+    geo.add_line(24, 25);
+    geo.add_line(24, 26);
+    geo.add_line(24, 27);
+
+    geo.add_line(28, 29);
+    geo.add_line(28, 30);
+    geo.add_line(28, 31);
+
+    m_bounding_box_model.init_from(std::move(geo));
 }
 
 #ifndef NDEBUG

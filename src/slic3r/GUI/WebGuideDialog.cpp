@@ -432,7 +432,7 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
                     wxString s1 = TmpModel["model"];
                     wxString s2 = OneSelect["model"];
                     if (s1.compare(s2) == 0) {
-                        m_ProfileJson["model"][m]["nozzle_selected"] = OneSelect["nozzle_diameter"];
+                        m_ProfileJson["model"][m]["nozzle_selected"] = m_ProfileJson["model"][m]["nozzle_diameter"];
                         break;
                     }
                 }
@@ -509,7 +509,7 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
         BOOST_LOG_TRIVIAL(trace) << "GuideFrame::OnScriptMessage;Error:" << e.what();
     }
 
-    //wxString strAll = m_ProfileJson.dump(-1,' ',false, json::error_handler_t::ignore);
+    wxString strAll = m_ProfileJson.dump(-1,' ',false, json::error_handler_t::ignore);
 }
 
 void GuideFrame::RunScript(const wxString &javascript)
@@ -862,11 +862,26 @@ bool GuideFrame::apply_config(AppConfig *app_config, PresetBundle *preset_bundle
         if (config == enabled_vendors.end())
             return std::string();
 
+        const VendorProfile & printer_profile = preset_bundle->vendors[bundle_name];
         const std::map<std::string, std::set<std::string>>& model_maps = config->second;
         //for (const auto& vendor_profile : preset_bundle->vendors) {
         for (const auto model_it: model_maps) {
             if (model_it.second.size() > 0) {
                 variant = *model_it.second.begin();
+                if (model_it.second.size() > 1) {
+                    if (printer_profile.models.size() > 0) {
+                        const VendorProfile::PrinterModel& printer_model = *std::find_if(printer_profile.models.begin(), printer_profile.models.end(),
+                            [id = model_it.first](auto& m) { return m.id == id; });
+                        for (auto& vt : printer_model.variants) {
+                            if (std::find(model_it.second.begin(), model_it.second.end(), vt.name) != model_it.second.end()) { variant = vt.name; break; }
+                        }
+                    }
+                    else if (variant != PresetBundle::BBL_DEFAULT_PRINTER_VARIANT){
+                        if (std::find(model_it.second.begin(), model_it.second.end(), PresetBundle::BBL_DEFAULT_PRINTER_VARIANT) != model_it.second.end())
+                            variant = PresetBundle::BBL_DEFAULT_PRINTER_VARIANT;
+                    }
+                }
+
                 const auto config_old = old_enabled_vendors.find(bundle_name);
                 if (config_old == old_enabled_vendors.end())
                     return model_it.first;
@@ -913,9 +928,14 @@ bool GuideFrame::apply_config(AppConfig *app_config, PresetBundle *preset_bundle
     app_config->set_section(AppConfig::SECTION_FILAMENTS, enabled_filaments);
     app_config->set_vendors(m_appconfig_new);
 
-    if (check_unsaved_preset_changes)
-        preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSilentDisableSystem,
-                                    {preferred_model, preferred_variant, first_added_filament, std::string()});
+    if (check_unsaved_preset_changes) {
+        std::string errors_cummulative;
+        PresetsConfigSubstitutions preset_substitutions;
+        std::tie(preset_substitutions, errors_cummulative) = preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSilentDisableSystem,
+            { preferred_model, preferred_variant, first_added_filament, std::string() });
+        if (!errors_cummulative.empty())
+            show_error(nullptr, errors_cummulative);
+    }
 
     // Update the selections from the compatibilty.
     preset_bundle->export_selections(*app_config);
@@ -923,7 +943,7 @@ bool GuideFrame::apply_config(AppConfig *app_config, PresetBundle *preset_bundle
     return true;
 }
 
-bool GuideFrame::run()
+bool GuideFrame::run(bool& config_applied)
 {
     //BOOST_LOG_TRIVIAL(info) << boost::format("Running ConfigWizard, reason: %1%, start_page: %2%") % reason % start_page;
 
@@ -949,8 +969,10 @@ bool GuideFrame::run()
     if (result == wxID_OK) {
         bool apply_keeped_changes = false;
         BOOST_LOG_TRIVIAL(info) << "GuideFrame returned ok";
-        if (! this->apply_config(app.app_config, app.preset_bundle, app.preset_updater, apply_keeped_changes))
+        if (! this->apply_config(app.app_config, app.preset_bundle, app.preset_updater, apply_keeped_changes)) {
+            config_applied = true;
             return false;
+        }
 
         if (apply_keeped_changes)
             app.apply_keeped_preset_modifications();
@@ -1086,10 +1108,40 @@ int GuideFrame::LoadProfileData()
         // BBS: add json logic for vendor bundle
         auto bbl_bundle_path = vendor_dir;
         bbl_bundle_rsrc      = false;
-        if (!boost::filesystem::exists((vendor_dir / PresetBundle::BBL_BUNDLE).replace_extension(".json"))) {
-            bbl_bundle_path = rsrc_vendor_dir;
+        boost::filesystem::path vendor_bbl_dir = (vendor_dir / PresetBundle::BBL_BUNDLE);
+        if (!boost::filesystem::exists(vendor_bbl_dir)) {
             bbl_bundle_rsrc = true;
         }
+        else {
+            boost::filesystem::path vendor_bbl_printer_dir = (vendor_bbl_dir / PRESET_PRINTER_NAME);
+            boost::filesystem::path vendor_bbl_filament_dir = (vendor_bbl_dir / PRESET_FILAMENT_NAME);
+            boost::filesystem::path vendor_bbl_print_dir = (vendor_bbl_dir / PRESET_PRINT_NAME);
+            boost::filesystem::path vendor_bbl_json = vendor_bbl_dir.replace_extension(".json");
+            if (!boost::filesystem::exists(vendor_bbl_printer_dir) || !boost::filesystem::is_directory(vendor_bbl_printer_dir)
+                || !boost::filesystem::exists(vendor_bbl_filament_dir) || !boost::filesystem::is_directory(vendor_bbl_filament_dir)
+                || !boost::filesystem::exists(vendor_bbl_print_dir) || !boost::filesystem::is_directory(vendor_bbl_print_dir)
+                || !boost::filesystem::exists(vendor_bbl_json))
+            {
+                bbl_bundle_rsrc = true;
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__<< boost::format(", can not find subdirectory in data bbl, will use resource dir");
+            }
+            else {
+                auto is_file = [](const boost::filesystem::directory_entry& entry) {
+                    return boost::filesystem::is_regular_file(entry.path());
+                };
+
+                auto begin = boost::filesystem::directory_iterator(vendor_bbl_printer_dir);
+                auto end = boost::filesystem::directory_iterator();
+
+                int file_count = std::count_if(begin, end, is_file);
+                if (file_count < 10) {
+                    bbl_bundle_rsrc = true;
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__<< boost::format(", can not find enough files under printer directory of data, will use resource dir");
+                }
+            }
+        }
+        if (bbl_bundle_rsrc)
+            bbl_bundle_path = rsrc_vendor_dir;
 
         // load BBL bundle from user data path
         string                                targetPath = bbl_bundle_path.make_preferred().string();

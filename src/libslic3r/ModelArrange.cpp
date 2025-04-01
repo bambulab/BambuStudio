@@ -119,7 +119,7 @@ arrangement::ArrangePolygon get_arrange_poly(ModelInstance* inst, const Slic3r::
 ArrangePolygon get_instance_arrange_poly(ModelInstance* instance, const Slic3r::DynamicPrintConfig& config)
 {
     ArrangePolygon ap = get_arrange_poly(PtrWrapper{ instance }, config);
-
+    int            first_extruder_id = ap.extrude_id_filament_types.begin()->first - 1;
     //BBS: add temperature information
     if (config.has("curr_bed_type")) {
         ap.bed_temp = 0;
@@ -127,29 +127,28 @@ ArrangePolygon get_instance_arrange_poly(ModelInstance* instance, const Slic3r::
         BedType curr_bed_type = config.opt_enum<BedType>("curr_bed_type");
 
         const ConfigOptionInts* bed_opt = config.option<ConfigOptionInts>(get_bed_temp_key(curr_bed_type));
-        if (bed_opt != nullptr)
-            ap.bed_temp = bed_opt->get_at(ap.extrude_ids.front()-1);
+        if (bed_opt != nullptr) ap.bed_temp = bed_opt->get_at(first_extruder_id);
 
         const ConfigOptionInts* bed_opt_1st_layer = config.option<ConfigOptionInts>(get_bed_temp_1st_layer_key(curr_bed_type));
         if (bed_opt_1st_layer != nullptr)
-            ap.first_bed_temp = bed_opt_1st_layer->get_at(ap.extrude_ids.front()-1);
+            ap.first_bed_temp = bed_opt_1st_layer->get_at(first_extruder_id);
     }
 
     if (config.has("nozzle_temperature")) //get the print temperature
-        ap.print_temp = config.opt_int("nozzle_temperature", ap.extrude_ids.front() - 1);
+        ap.print_temp = config.opt_int_nullable("nozzle_temperature", first_extruder_id);
     if (config.has("nozzle_temperature_initial_layer")) //get the nozzle_temperature_initial_layer
-        ap.first_print_temp = config.opt_int("nozzle_temperature_initial_layer", ap.extrude_ids.front() - 1);
+        ap.first_print_temp = config.opt_int_nullable("nozzle_temperature_initial_layer", first_extruder_id);
 
     if (config.has("temperature_vitrification")) {
-        ap.vitrify_temp = config.opt_int("temperature_vitrification", ap.extrude_ids.front() - 1);
+        ap.vitrify_temp = config.opt_int("temperature_vitrification", first_extruder_id);
     }
 
     // get filament temp types
     auto* filament_types_opt = dynamic_cast<const ConfigOptionStrings*>(config.option("filament_type"));
     if (filament_types_opt) {
         std::set<int> filament_temp_types;
-        for (auto i : ap.extrude_ids) {
-            std::string type_str = filament_types_opt->get_at(i-1);
+        for (auto id : ap.extrude_id_filament_types) {
+            std::string type_str = filament_types_opt->get_at(id.first-1);
             int temp_type = Print::get_filament_temp_type(type_str);
             filament_temp_types.insert(temp_type);
         }

@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 #include <array>
-
+#include <map>
 namespace BambuStudio {
 
 enum class GCodeCheckResult : unsigned char
@@ -116,6 +116,7 @@ private:
     GCodeCheckResult check_line_width(const GCodeLine& gcode_line);
     GCodeCheckResult check_G0_G1_width(const GCodeLine& gcode_line);
     GCodeCheckResult check_G2_G3_width(const GCodeLine& gcode_line);
+    void set_current_nozzle(int id);
 
     double calculate_G1_width(const std::array<double, 3>& source,
                              const std::array<double, 3>& target,
@@ -214,12 +215,22 @@ private:
     bool check_gap_infill_width = false;
     int                 filament_id;
     double              flow_ratio  = 0;
+    
     double              nozzle_temp = 0.0f;
+    std::array<double, 2> multi_nozzle_temp = { 0.0, 0.0 };
+    int                 current_nozzle_id = 0;
+
+    std::vector<double> filament_map;
+
+    std::map<int, int>  physical_to_logic_extruder_map;
+    std::map<int, int>  logic_to_physical_extruder_map;
     std::vector<double> filament_flow_ratio;
     std::vector<double> nozzle_temperature;
     std::vector<double> nozzle_temperature_initial_layer;
+
     bool has_scarf_joint_seam = false;
     bool is_wipe_tower = false;
+    bool is_multi_nozzle = false;
 };
 
 }

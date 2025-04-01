@@ -61,7 +61,7 @@ struct ArrangePolygon {
     //BBS: add row/col for sudoku-style layout
     int       row{0};
     int       col{0};
-    std::vector<int> extrude_ids{};      /// extruder_id for least extruder switch
+    std::map<int, std::string> extrude_id_filament_types; /// extruder_id for least extruder switch, filament type for different material judge
     int filament_temp_type{ -1 };
     int       bed_temp{0};         ///bed temperature for different material judge
     int       print_temp{0};      ///print temperature for different material judge
@@ -126,6 +126,7 @@ struct ArrangeParams {
     bool  avoid_extrusion_cali_region         = true;
     bool  is_seq_print                        = false;
     bool  align_to_y_axis                     = false;
+    bool  save_svg                            = false;
     float bed_shrink_x = 0.1;
     float bed_shrink_y = 0.1;
     float brim_skirt_distance = 0;

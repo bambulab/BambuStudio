@@ -27,6 +27,8 @@
 #include "UnsavedChangesDialog.hpp"
 #include "Widgets/SideButton.hpp"
 #include "Widgets/SideMenuPopup.hpp"
+#include "FilamentGroupPopup.hpp"
+
 
 // BBS
 #include "BBLTopbar.hpp"
@@ -89,7 +91,10 @@ protected:
 
 class MainFrame : public DPIFrame
 {
-    bool        m_loaded {false};
+#ifdef __APPLE__
+    bool     m_mac_fullscreen{false};
+#endif
+    bool     m_loaded {false};
     wxTimer* m_reset_title_text_colour_timer{ nullptr };
 
     wxString    m_qs_last_input_file = wxEmptyString;
@@ -202,7 +207,9 @@ protected:
 public:
     MainFrame();
     ~MainFrame() = default;
-
+#ifdef __APPLE__
+    bool get_mac_full_screen() { return m_mac_fullscreen; }
+#endif
     //BBS GUI refactor
     enum TabPosition
     {
@@ -272,7 +279,6 @@ public:
     // Called from wxEVT_ACTIVATE, as wxEVT_CREATE was not reliable (bug in wxWidgets?).
     void        register_win32_callbacks();
     void        init_menubar_as_editor();
-    bool        check_bbl_farm_client_installed();
     void        init_menubar_as_gcodeviewer();
     void        update_menubar();
     // Open item in menu by menu and item name (in actual language)
@@ -339,6 +345,7 @@ public:
 
     void        technology_changed();
 
+
     //BBS
     void        load_url(wxString url);
     void        load_printer_url(wxString url);
@@ -391,6 +398,10 @@ public:
     SideButton* m_slice_option_btn{ nullptr };
     SideButton* m_print_btn{ nullptr };
     SideButton* m_print_option_btn{ nullptr };
+
+    SidePopup*  m_slice_option_pop_up{ nullptr };
+
+    FilamentGroupPopup* m_filament_group_popup{ nullptr };
     mutable bool          m_slice_enable{ true };
     mutable bool          m_print_enable{ true };
     bool get_enable_slice_status();

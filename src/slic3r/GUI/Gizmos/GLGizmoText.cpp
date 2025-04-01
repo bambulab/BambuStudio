@@ -14,7 +14,7 @@
 #include "libslic3r/Shape/TextShape.hpp"
 
 #include <numeric>
-
+#include <codecvt>
 #include <boost/log/trivial.hpp>
 
 #include <GL/glew.h>
@@ -643,6 +643,10 @@ void GLGizmoText::on_render()
         BOOST_LOG_TRIVIAL(info) << boost::format("Text: selected object is null");
         return;
     }
+
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    const auto& projection_matrix = camera.get_projection_matrix();
+    const auto& view_matrix = camera.get_view_matrix();
     // First check that the mouse pointer is on an object.
     const ModelInstance *mi        = mo->instances[selection.get_instance_idx()];
     Plater *plater = wxGetApp().plater();
@@ -653,16 +657,10 @@ void GLGizmoText::on_render()
         Geometry::Transformation tran(m_text_volume_tran);
         if (tran.get_offset().norm() > 1) {
             auto text_volume_tran_world = mi->get_transformation().get_matrix() * m_text_volume_tran;
-            glsafe(::glPushMatrix());
-            glsafe(::glMultMatrixd(text_volume_tran_world.data()));
-            render_cross_mark(Vec3f::Zero(), true);
-            glsafe(::glPopMatrix());
+            render_cross_mark(text_volume_tran_world, Vec3f::Zero(), true);
         }
 
-        glsafe(::glPushMatrix());
-        glsafe(::glMultMatrixd(m_text_tran_in_world.get_matrix().data()));
-        render_cross_mark(Vec3f::Zero(), true);
-        glsafe(::glPopMatrix());
+        render_cross_mark(m_text_tran_in_world, Vec3f::Zero(), true);
 
         glsafe(::glLineWidth(2.0f));
         ::glBegin(GL_LINES);
@@ -678,7 +676,6 @@ void GLGizmoText::on_render()
     }
 #endif
     if (!m_is_modify || m_shift_down) {//for temp text
-        const Camera &camera = wxGetApp().plater()->get_camera();
         // Precalculate transformations of individual meshes.
         std::vector<Transform3d> trafo_matrices;
         for (const ModelVolume *mv : mo->volumes) {
@@ -730,7 +727,8 @@ void GLGizmoText::on_render()
         m_move_grabber.center     = tran.get_offset();
         Transform3d rotate_matrix = tran.get_rotation_matrix();
         Transform3d cube_mat      = Geometry::translation_transform(m_move_grabber.center) * rotate_matrix * Geometry::scale_transform(fullsize);
-        render_glmodel(m_move_grabber.get_cube(), render_color, cube_mat);
+        m_move_grabber.set_model_matrix(cube_mat);
+        render_glmodel(m_move_grabber.get_cube(), render_color, view_matrix * cube_mat, projection_matrix);
     }
 
     delete_temp_preview_text_volume();
@@ -745,7 +743,10 @@ void GLGizmoText::on_render()
 void GLGizmoText::on_render_for_picking()
 {
     glsafe(::glDisable(GL_DEPTH_TEST));
-
+    const auto& shader = wxGetApp().get_shader("flat");
+    if (shader == nullptr)
+        return;
+    wxGetApp().bind_shader(shader);
     int          obejct_idx, volume_idx;
     ModelVolume *model_volume = m_parent.get_selection().get_selected_single_volume(obejct_idx, volume_idx);
     if (model_volume && !model_volume->get_text_info().m_text.empty()) {
@@ -760,6 +761,7 @@ void GLGizmoText::on_render_for_picking()
         m_move_grabber.color[3] = color[3];
         m_move_grabber.render_for_picking();
     }
+    wxGetApp().unbind_shader();
 }
 
 void GLGizmoText::on_start_dragging()

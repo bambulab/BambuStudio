@@ -110,7 +110,18 @@ public:
         return extrusion_junctions.lock();
     }
 
+    void setHoleCompensationFlag(bool enabled)
+    {
+        apply_hole_compensation = enabled;
+    }
+
+    bool getHoleCompensationFlag() const
+    {
+        return apply_hole_compensation;
+    }
+
 private:
+    bool apply_hole_compensation{ false };
     Central is_central; //! whether the edge is significant; whether the source segments have a sharp angle; -1 is unknown
 
     std::weak_ptr<std::list<TransitionMiddle>> transitions;

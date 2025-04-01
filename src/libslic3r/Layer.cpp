@@ -5,8 +5,10 @@
 #include "ShortestPath.hpp"
 #include "SVG.hpp"
 #include "BoundingBox.hpp"
-
+#include "libslic3r/AABBTreeLines.hpp"
 #include <boost/log/trivial.hpp>
+static const int Continuitious_length = scale_(0.01);
+static const int dist_scale_threshold = 1.2;
 
 namespace Slic3r {
 
@@ -33,6 +35,12 @@ LayerRegion* Layer::add_region(const PrintRegion *print_region)
     m_regions.emplace_back(new LayerRegion(this, print_region));
     return m_regions.back();
 }
+void Layer::apply_auto_circle_compensation()
+{
+    for (LayerRegion *layerm : m_regions) {
+        layerm->auto_circle_compensation(layerm->slices, this->object()->get_auto_circle_compenstaion_params(), scale_(this->object()->config().circle_compensation_manual_offset));
+    }
+}
 
 // merge all regions' slices to get islands
 void Layer::make_slices()
@@ -47,19 +55,19 @@ void Layer::make_slices()
             polygons_append(slices_p, to_polygons(layerm->slices.surfaces));
         slices = union_safety_offset_ex(slices_p);
     }
-    
+
     this->lslices.clear();
     this->lslices.reserve(slices.size());
-    
+
     // prepare ordering points
     Points ordering_points;
     ordering_points.reserve(slices.size());
     for (const ExPolygon &ex : slices)
         ordering_points.push_back(ex.contour.first_point());
-    
+
     // sort slices
     std::vector<Points::size_type> order = chain_points(ordering_points);
-    
+
     // populate slices vector
     for (size_t i : order)
         this->lslices.emplace_back(std::move(slices[i]));
@@ -142,11 +150,10 @@ ExPolygons Layer::merged(float offset_scaled) const
 void Layer::make_perimeters()
 {
     BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id();
-    
     // keep track of regions whose perimeters we have already generated
     std::vector<unsigned char> done(m_regions.size(), false);
-    
-    for (LayerRegionPtrs::iterator layerm = m_regions.begin(); layerm != m_regions.end(); ++ layerm) 
+ 
+    for (LayerRegionPtrs::iterator layerm = m_regions.begin(); layerm != m_regions.end(); ++ layerm)
     	if ((*layerm)->slices.empty()) {
  			(*layerm)->perimeters.clear();
  			(*layerm)->fills.clear();
@@ -158,7 +165,7 @@ void Layer::make_perimeters()
 	        BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id() << ", region " << region_id;
 	        done[region_id] = true;
 	        const PrintRegionConfig &config = (*layerm)->region().config();
-	        
+
 	        // find compatible regions
 	        LayerRegionPtrs layerms;
 	        layerms.push_back(*layerm);
@@ -168,9 +175,9 @@ void Layer::make_perimeters()
 		            const PrintRegionConfig &other_config = other_layerm->region().config();
 		            if (config.wall_filament             == other_config.wall_filament
 		                && config.wall_loops                  == other_config.wall_loops
-		                && config.inner_wall_speed             == other_config.inner_wall_speed
-		                && config.outer_wall_speed    == other_config.outer_wall_speed
-		                && config.gap_infill_speed.value == other_config.gap_infill_speed.value
+		                && config.inner_wall_speed.get_at(get_extruder_id(config.wall_filament))  == other_config.inner_wall_speed.get_at(get_extruder_id(config.wall_filament))
+		                && config.outer_wall_speed.get_at(get_extruder_id(config.wall_filament))  == other_config.outer_wall_speed.get_at(get_extruder_id(config.wall_filament))
+		                && config.gap_infill_speed.get_at(get_extruder_id(config.wall_filament))  == other_config.gap_infill_speed.get_at(get_extruder_id(config.wall_filament))
 		                && config.detect_overhang_wall                   == other_config.detect_overhang_wall
 		                && config.filter_out_gap_fill.value == other_config.filter_out_gap_fill.value
 		                && config.opt_serialize("inner_wall_line_width") == other_config.opt_serialize("inner_wall_line_width")
@@ -180,7 +187,7 @@ void Layer::make_perimeters()
                         && config.fuzzy_skin_thickness        == other_config.fuzzy_skin_thickness
                         && config.fuzzy_skin_point_distance       == other_config.fuzzy_skin_point_distance
                         && config.seam_slope_conditional == other_config.seam_slope_conditional
-                        && config.scarf_angle_threshold  == other_config.scarf_angle_threshold
+                        //&& config.scarf_angle_threshold  == other_config.scarf_angle_threshold
                         && config.seam_slope_entire_loop  == other_config.seam_slope_entire_loop
                         && config.seam_slope_steps        == other_config.seam_slope_steps
                         && config.seam_slope_inner_walls  == other_config.seam_slope_inner_walls)
@@ -192,10 +199,11 @@ void Layer::make_perimeters()
 		                done[it - m_regions.begin()] = true;
 		            }
 		        }
-	        
+
 	        if (layerms.size() == 1) {  // optimization
 	            (*layerm)->fill_surfaces.surfaces.clear();
-	            (*layerm)->make_perimeters((*layerm)->slices, &(*layerm)->fill_surfaces, &(*layerm)->fill_no_overlap_expolygons);
+                (*layerm)->make_perimeters((*layerm)->slices, &(*layerm)->fill_surfaces, &(*layerm)->fill_no_overlap_expolygons, this->loop_nodes);
+
 	            (*layerm)->fill_expolygons = to_expolygons((*layerm)->fill_surfaces.surfaces);
 	        } else {
 	            SurfaceCollection new_slices;
@@ -214,15 +222,15 @@ void Layer::make_perimeters()
 	                for (std::pair<const unsigned short,Surfaces> &surfaces_with_extra_perimeters : slices)
 	                    new_slices.append(offset_ex(surfaces_with_extra_perimeters.second, ClipperSafetyOffset), surfaces_with_extra_perimeters.second.front());
 	            }
-	            
+
 	            // make perimeters
 	            SurfaceCollection fill_surfaces;
                 //BBS
                 ExPolygons fill_no_overlap;
-	            layerm_config->make_perimeters(new_slices, &fill_surfaces, &fill_no_overlap);
+                layerm_config->make_perimeters(new_slices, &fill_surfaces, &fill_no_overlap, this->loop_nodes);
 
 	            // assign fill_surfaces to each layer
-	            if (!fill_surfaces.surfaces.empty()) { 
+	            if (!fill_surfaces.surfaces.empty()) {
 	                for (LayerRegionPtrs::iterator l = layerms.begin(); l != layerms.end(); ++l) {
 	                    // Separate the fill surfaces.
 	                    ExPolygons expp = intersection_ex(fill_surfaces.surfaces, (*l)->slices.surfaces);
@@ -234,7 +242,172 @@ void Layer::make_perimeters()
 	            }
 	        }
 	    }
+
     BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id() << " - Done";
+}
+
+//BBS: use aabbtree to get distance
+class ContinuitiousDistancer
+{
+    std::vector<Linef>                lines;
+    AABBTreeIndirect::Tree<2, double> tree;
+
+public:
+    ContinuitiousDistancer(const Points &pts)
+    {
+        Lines pt_to_lines = to_lines(pts);
+        for (const auto &line : pt_to_lines)
+            lines.emplace_back(line.a.cast<double>(), line.b.cast<double>());
+
+        tree = AABBTreeLines::build_aabb_tree_over_indexed_lines(lines);
+    }
+
+    float distance_from_perimeter(const Vec2f &point) const
+    {
+        Vec2d  p = point.cast<double>();
+        size_t hit_idx_out{};
+        Vec2d  hit_point_out = Vec2d::Zero();
+        auto   distance      = AABBTreeLines::squared_distance_to_indexed_lines(lines, tree, p, hit_idx_out, hit_point_out);
+        if (distance < 0) {
+            return std::numeric_limits<float>::max();
+        }
+
+        distance          = sqrt(distance);
+        const Linef &line = lines[hit_idx_out];
+        Vec2d        v1   = line.b - line.a;
+        Vec2d        v2   = p - line.a;
+        if ((v1.x() * v2.y()) - (v1.y() * v2.x()) > 0.0) { distance *= -1; }
+        return distance;
+    }
+
+    Lines to_lines(const Points &pts)
+    {
+        Lines lines;
+        if (pts.size() >= 2) {
+            lines.reserve(pts.size() - 1);
+            for (Points::const_iterator it = pts.begin(); it != pts.end() - 1; ++it) { lines.push_back(Line(*it, *(it + 1))); }
+        }
+        return lines;
+    }
+};
+
+
+static double get_node_continuity_rang_limit(const std::vector<coord_t> &Prev_node_widths, int prev_pt_idx) {
+    double width = 0;
+    double prev_width = Prev_node_widths.front();
+    if (prev_pt_idx!=0 && prev_pt_idx < Prev_node_widths.size()) {
+            prev_width = static_cast<double>(Prev_node_widths[prev_pt_idx]);
+    }
+
+    width = prev_width * dist_scale_threshold;
+    return width;
+}
+
+void Layer::calculate_perimeter_continuity(std::vector<LoopNode> &prev_nodes) {
+    for (size_t node_pos = 0; node_pos < loop_nodes.size(); ++node_pos) {
+        LoopNode &node=loop_nodes[node_pos];
+        double width = 0;
+        ContinuitiousDistancer node_distancer(node.node_contour.pts);
+        for (size_t prev_pos = 0; prev_pos < prev_nodes.size(); ++prev_pos) {
+            LoopNode &prev_node = prev_nodes[prev_pos];
+
+            // no overlap or has diff speed
+            if (!node.bbox.overlap(prev_node.bbox))
+                continue;
+
+            //calculate dist, checkout the continuity
+            Polyline continuitious_pl;
+            //check start pt
+            size_t start = 0;
+            bool conntiouitious_flag = false;
+            int end = prev_node.node_contour.pts.size() - 1;
+
+            //if the countor is loop
+            if (prev_node.node_contour.is_loop) {
+                for (; end >= 0; --end) {
+                    if (continuitious_pl.length() >= Continuitious_length) {
+                        node.lower_node_id.push_back(prev_node.node_id);
+                        prev_node.upper_node_id.push_back(node.node_id);
+                        conntiouitious_flag = true;
+                        break;
+                    }
+
+                    Point pt   = prev_node.node_contour.pts[end];
+                    float dist = node_distancer.distance_from_perimeter(pt.cast<float>());
+                    // get corr width
+                    width = get_node_continuity_rang_limit(prev_node.node_contour.widths, end);
+
+                    if (dist < width && dist > -width)
+                        continuitious_pl.append_before(pt);
+                    else
+                        break;
+                }
+
+                if (conntiouitious_flag || end < 0)
+                    continue;
+            }
+
+            int last_pt_idx = end;
+            // line need to check end point
+            if (!prev_node.node_contour.is_loop)
+                last_pt_idx ++;
+
+            for (; start < last_pt_idx; ++start) {
+                Point pt   = prev_node.node_contour.pts[start];
+                float dist = node_distancer.distance_from_perimeter(pt.cast<float>());
+                //get corr width
+                width = get_node_continuity_rang_limit(prev_node.node_contour.widths, start);
+
+                if (dist < width && dist > -width) {
+                    continuitious_pl.append(pt);
+                    continue;
+                }
+
+                if (continuitious_pl.empty() || continuitious_pl.length() < Continuitious_length) {
+                    continuitious_pl.clear();
+                    continue;
+                }
+
+                node.lower_node_id.push_back(prev_node.node_id);
+                prev_node.upper_node_id.push_back(node.node_id);
+                continuitious_pl.clear();
+                break;
+
+            }
+
+            if (continuitious_pl.length() >= Continuitious_length) {
+                node.lower_node_id.push_back(prev_node.node_id);
+                prev_node.upper_node_id.push_back(node.node_id);
+            }
+        }
+    }
+
+}
+
+void Layer::recrod_cooling_node_for_each_extrusion() {
+    for (LayerRegion *region : this->regions()) {
+        for (int extrusion_idx = 0; extrusion_idx < region->perimeters.entities.size(); extrusion_idx++) {
+            const auto *extrusions = static_cast<const ExtrusionEntityCollection *>(region->perimeters.entities[extrusion_idx]);
+            int         start      = extrusions->loop_node_range.first;
+            int         end        = extrusions->loop_node_range.second;
+            if (start >= end)
+                continue;
+
+            int cooling_node = this->loop_nodes[start].merged_id;
+            int pos          = this->loop_nodes[start].loop_id;
+            int next_pos     = start + 1 < end ? this->loop_nodes[start + 1].loop_id : -1;
+            for (int idx = 0; idx < extrusions->entities.size(); idx++) {
+                if (idx == next_pos && next_pos > 0) {
+                    start++;
+                    cooling_node = this->loop_nodes[start].merged_id;
+                    next_pos     = start + 1 < end ? this->loop_nodes[start + 1].loop_id : -1;
+                }
+
+                extrusions->entities[idx]->set_cooling_node(cooling_node);
+            }
+
+        }
+    }
 }
 
 void Layer::export_region_slices_to_svg(const char *path) const
@@ -253,7 +426,7 @@ void Layer::export_region_slices_to_svg(const char *path) const
         for (const auto &surface : region->slices.surfaces)
             svg.draw(surface.expolygon, surface_type_to_color_name(surface.surface_type), transparency);
     export_surface_type_legend_to_svg(svg, legend_pos);
-    svg.Close(); 
+    svg.Close();
 }
 
 // Export to "out/LayerRegion-name-%d.svg" with an increasing index with every export.
@@ -397,6 +570,11 @@ coordf_t Layer::get_sparse_infill_max_void_area()
         }
     };
     return max_void_area;
+}
+
+size_t Layer::get_extruder_id(unsigned int filament_id) const
+{
+    return m_object->print()->get_extruder_id(filament_id);
 }
 
 BoundingBox get_extents(const LayerRegion &layer_region)

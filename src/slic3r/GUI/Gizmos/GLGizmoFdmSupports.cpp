@@ -122,9 +122,11 @@ void GLGizmoFdmSupports::render_painter_gizmo() const
     //BBS: draw support volumes
     if (m_volume_ready && m_support_volume && (m_edit_state != state_generating))
     {
-        //m_support_volume->set_render_color();
-        ::glColor4f(0.f, 0.7f, 0.f, 0.7f);
-        m_support_volume->render();
+        m_support_volume->set_render_color({ 0.f, 0.7f, 0.f, 0.7f });
+
+        const auto& camera = GUI::wxGetApp().plater()->get_camera();
+        const auto& view_matrix = camera.get_view_matrix();
+        m_support_volume->render(view_matrix);
     }
 
     m_c->object_clipper()->render_cut();
@@ -161,13 +163,13 @@ bool GLGizmoFdmSupports::on_key_down_select_tool_type(int keyCode) {
 void GLGizmoFdmSupports::render_triangles(const Selection& selection) const
 {
     ClippingPlaneDataWrapper clp_data = this->get_clipping_plane_data();
-    auto* shader = wxGetApp().get_shader("mm_gouraud");
+    const auto& shader = wxGetApp().get_shader("mm_gouraud");
     if (!shader)
         return;
-    shader->start_using();
+    wxGetApp().bind_shader(shader);
     shader->set_uniform("clipping_plane", clp_data.clp_dataf);
     shader->set_uniform("z_range", clp_data.z_range);
-    ScopeGuard guard([shader]() { if (shader) shader->stop_using(); });
+    ScopeGuard guard([shader]() { if (shader) wxGetApp().unbind_shader(); });
 
     const ModelObject* mo = m_c->selection_info()->model_object();
     int                mesh_id = -1;
@@ -183,8 +185,11 @@ void GLGizmoFdmSupports::render_triangles(const Selection& selection) const
         if (is_left_handed)
             glsafe(::glFrontFace(GL_CW));
 
-        glsafe(::glPushMatrix());
-        glsafe(::glMultMatrixd(trafo_matrix.data()));
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        const Transform3d matrix = camera.get_view_matrix() * trafo_matrix;
+        shader->set_uniform("view_model_matrix", matrix);
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+        shader->set_uniform("normal_matrix", (Matrix3d)matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
 
         float normal_z = -::cos(Geometry::deg2rad(m_highlight_by_angle_threshold_deg));
         Matrix3f normal_matrix = static_cast<Matrix3f>(trafo_matrix.matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>());
@@ -194,9 +199,8 @@ void GLGizmoFdmSupports::render_triangles(const Selection& selection) const
         shader->set_uniform("slope.actived", m_parent.is_using_slope());
         shader->set_uniform("slope.volume_world_normal_matrix", normal_matrix);
         shader->set_uniform("slope.normal_z", normal_z);
-        m_triangle_selectors[mesh_id]->render(m_imgui);
+        m_triangle_selectors[mesh_id]->render(m_imgui, trafo_matrix);
 
-        glsafe(::glPopMatrix());
         if (is_left_handed)
             glsafe(::glFrontFace(GL_CCW));
     }
@@ -666,7 +670,7 @@ void GLGizmoFdmSupports::update_from_model_object(bool first_update)
         // Reset of TriangleSelector is done inside TriangleSelectorGUI's constructor, so we don't need it to perform it again in deserialize().
         m_triangle_selectors.back()->deserialize(mv->supported_facets.get_data(), false);
         m_triangle_selectors.back()->request_update_render_data();
-
+        m_triangle_selectors.back()->set_wireframe_needed(true);
         //BBS: add timestamp logic
         m_volume_timestamps.emplace_back(mv->supported_facets.timestamp());
     }

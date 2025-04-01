@@ -4,11 +4,13 @@
 #include "MainFrame.hpp"
 #include "CalibrationPanel.hpp"
 #include "I18N.hpp"
+#include "SelectMachine.hpp"
+#include "SelectMachinePop.hpp"
 
 namespace Slic3r { namespace GUI {
 
 #define REFRESH_INTERVAL       1000
-    
+
 #define INITIAL_NUMBER_OF_MACHINES 0
 #define LIST_REFRESH_INTERVAL 200
 #define MACHINE_LIST_REFRESH_INTERVAL 2000
@@ -307,7 +309,6 @@ bool SelectMObjectPopup::Show(bool show) {
 void SelectMObjectPopup::on_timer(wxTimerEvent& event)
 {
     BOOST_LOG_TRIVIAL(trace) << "SelectMObjectPopup on_timer";
-    wxGetApp().reset_to_active();
     wxCommandEvent user_event(EVT_UPDATE_USER_MLIST);
     user_event.SetEventObject(this);
     wxPostEvent(this, user_event);
@@ -561,21 +562,8 @@ void CalibrationPanel::update_all() {
         }
     }
 
-    if (wxGetApp().is_user_login()) {
-        dev->check_pushing();
-        try {
-            m_agent->refresh_connection();
-        }
-        catch (...) {
-            ;
-        }
-    }
-
-    if (obj) {
-        wxGetApp().reset_to_active();
-        if (obj->connection_type() != last_conn_type) {
-            last_conn_type = obj->connection_type();
-        }
+    if (obj && obj->connection_type() != last_conn_type) {
+        last_conn_type = obj->connection_type();
     }
 
     m_side_tools->update_status(obj);

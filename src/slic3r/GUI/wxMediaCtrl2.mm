@@ -98,7 +98,7 @@ void wxMediaCtrl2::Load(wxURI url)
     if (player) {
         [player close];
         m_error = 0;
-        [player open: url.BuildURI().ToUTF8()];
+        m_error = [player open: url.BuildURI().ToUTF8()];
     }
     wxMediaEvent event(wxEVT_MEDIA_STATECHANGED);
     event.SetId(GetId());

@@ -96,6 +96,7 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::OBJECT_C
                     }}
 };
 
+// todo multi_extruders: Does the following need to be modified?
 std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::PART_CATEGORY_SETTINGS=
     {{L("Quality"), {{"ironing_type", "", 8}, {"ironing_flow", "", 9}, {"ironing_spacing", "", 10}, {"ironing_inset", "", 11}, {"ironing_speed", "", 12}, {"ironing_direction", "",13}
                     }},
@@ -475,13 +476,12 @@ void MenuFactory::append_menu_item_set_visible(wxMenu* menu)
 
 void MenuFactory::append_menu_item_delete(wxMenu* menu)
 {
-#ifdef __WINDOWS__
-    append_menu_item(menu, wxID_ANY, _L("Delete") + "\t" + _L("Del"), _L("Delete the selected object"),
-        [](wxCommandEvent&) { plater()->remove_selected(); }, "menu_delete", nullptr,
-        []() { return plater()->can_delete(); }, m_parent);
-#else
+#ifdef __APPLE__
     append_menu_item(menu, wxID_ANY, _L("Delete") + "\tBackSpace", _L("Delete the selected object"),
         [](wxCommandEvent&) { plater()->remove_selected(); }, "", nullptr,
+        []() { return plater()->can_delete(); }, m_parent);
+#else
+    append_menu_item(menu, wxID_ANY, _L("Delete") + "\tDelete", _L("Delete the selected object"), [](wxCommandEvent &) { plater()->remove_selected(); }, "menu_delete", nullptr,
         []() { return plater()->can_delete(); }, m_parent);
 #endif
 }
@@ -687,9 +687,9 @@ wxMenuItem* MenuFactory::append_menu_item_settings(wxMenu* menu_)
 
     // Create new items for settings popupmenu
 
-    if (printer_technology() == ptFFF ||
-        (menu->GetMenuItems().size() > 0 && !menu->GetMenuItems().back()->IsSeparator()))
-        ;// menu->SetFirstSeparator();
+    if (printer_technology() == ptFFF || (menu->GetMenuItems().size() > 0 && !menu->GetMenuItems().back()->IsSeparator())) {
+        // menu->SetFirstSeparator();
+    }
 
     // detect itemm for adding of the setting
     ObjectList* object_list = obj_list();
@@ -1360,6 +1360,46 @@ void MenuFactory::create_cut_cutter_menu()
     append_menu_item_change_type(menu);
 }
 
+void MenuFactory::create_filament_action_menu(bool init, int active_filament_menu_id)
+{
+    wxMenu *menu = &m_filament_action_menu;
+
+    if (init) {
+        append_menu_item(
+            menu, wxID_ANY, _L("Edit"), "", [](wxCommandEvent&) {
+                plater()->sidebar().edit_filament(); }, "", nullptr,
+            []() { return true; }, m_parent);
+    }
+
+    if (init) {
+        append_menu_item(
+            menu, wxID_ANY, _L("Delete"), _L("Delete this filament"), [](wxCommandEvent&) {
+                plater()->sidebar().delete_filament(-2); }, "", nullptr,
+            []() { return plater()->sidebar().combos_filament().size() > 1; }, m_parent);
+    }
+
+    const int item_id = menu->FindItem(_L("Merge with"));
+    if (item_id != wxNOT_FOUND)
+        menu->Destroy(item_id);
+
+    wxMenu* sub_menu = new wxMenu();
+    std::vector<wxBitmap*> icons = get_extruder_color_icons(true);
+    int filaments_cnt = icons.size();
+    for (int i = 0; i < filaments_cnt; i++) {
+        if (i == active_filament_menu_id)
+            continue;
+
+        auto preset = wxGetApp().preset_bundle->filaments.find_preset(wxGetApp().preset_bundle->filament_presets[i]);
+        wxString item_name = preset ? from_u8(preset->label(false)) : wxString::Format(_L("Filament %d"), i + 1);
+
+        append_menu_item(sub_menu, wxID_ANY, item_name, "",
+            [i](wxCommandEvent&) { plater()->sidebar().change_filament(-2, i); }, *icons[i], menu,
+            []() { return true; }, m_parent);
+    }
+    append_submenu(menu, sub_menu, wxID_ANY, _L("Merge with"), "", "",
+        [filaments_cnt]() { return filaments_cnt > 1; }, m_parent);
+}
+
 //BBS: add part plate related logic
 void MenuFactory::create_plate_menu()
 {
@@ -1462,6 +1502,8 @@ void MenuFactory::init(wxWindow* parent)
     create_cut_cutter_menu();
     //BBS: add part plate related logic
     create_plate_menu();
+
+    create_filament_action_menu(true, -1);
 
     // create "Instance to Object" menu item
     append_menu_item_instance_to_object(&m_instance_menu);
@@ -1638,6 +1680,11 @@ wxMenu* MenuFactory::assemble_multi_selection_menu()
         if (agent) agent->track_update_property("asseble_multi_selection_menu", std::to_string(++assemble_multi_selection_menu_count));
     }
     return menu;
+}
+
+wxMenu *MenuFactory::filament_action_menu(int active_filament_menu_id) {
+    create_filament_action_menu(false, active_filament_menu_id);
+    return &m_filament_action_menu;
 }
 
 
@@ -1872,7 +1919,6 @@ void MenuFactory::append_menu_item_set_printable(wxMenu* menu)
 
     for (wxDataViewItem item : sels) {
         ItemType type = list->GetModel()->GetItemType(item);
-        bool check;
         if (type != itInstance && type != itObject)
             continue;
         else {

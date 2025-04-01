@@ -62,21 +62,6 @@ bool GLGizmoMmuSegmentation::on_is_activable() const
     return !selection.is_empty() && (selection.is_single_full_instance() || selection.is_any_volume());
 }
 
-//BBS: use the global one in 3DScene.cpp
-/*static std::vector<std::array<float, 4>> get_extruders_colors()
-{
-    unsigned char                     rgb_color[3] = {};
-    std::vector<std::string>          colors       = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
-    std::vector<std::array<float, 4>> colors_out(colors.size());
-    for (const std::string &color : colors) {
-        Slic3r::GUI::BitmapCache::parse_color(color, rgb_color);
-        size_t color_idx      = &color - &colors.front();
-        colors_out[color_idx] = {float(rgb_color[0]) / 255.f, float(rgb_color[1]) / 255.f, float(rgb_color[2]) / 255.f, 1.f};
-    }
-
-    return colors_out;
-}*/
-
 static std::vector<int> get_extruder_id_for_volumes(const ModelObject &model_object)
 {
     std::vector<int> extruders_idx;
@@ -93,7 +78,7 @@ static std::vector<int> get_extruder_id_for_volumes(const ModelObject &model_obj
 
 void GLGizmoMmuSegmentation::init_extruders_data()
 {
-    m_extruders_colors = get_extruders_colors();
+    m_extruders_colors       = wxGetApp().plater()->get_extruders_colors();
     size_t n_extruder_colors = std::min((size_t) EnforcerBlockerType::ExtruderMax, m_extruders_colors.size());
     if (n_extruder_colors == 2 || m_selected_extruder_idx >= n_extruder_colors) {
         m_selected_extruder_idx = n_extruder_colors - 1;
@@ -209,12 +194,12 @@ void GLGizmoMmuSegmentation::render_non_manifold_edges() const {
             const Camera &   camera   = wxGetApp().plater()->get_camera();
             auto             view_mat = camera.get_view_matrix();
             auto             proj_mat = camera.get_projection_matrix();
-            GLShaderProgram *shader   = wxGetApp().get_shader("flat");
-            shader->start_using();
+            const auto& shader   = wxGetApp().get_shader("flat");
+            wxGetApp().bind_shader(shader);
             shader->set_uniform("view_model_matrix", view_mat);
             shader->set_uniform("projection_matrix", proj_mat);
             m_non_manifold_edges_model.render_geometry();
-            shader->stop_using();
+            wxGetApp().unbind_shader();
         }
     }
 }
@@ -236,8 +221,7 @@ void GLGizmoMmuSegmentation::set_painter_gizmo_data(const Selection &selection)
         // Reinitialize triangle selectors because of change of extruder count need also change the size of GLIndexedVertexArray
         if (prev_extruders_count != wxGetApp().filaments_cnt())
             this->init_model_triangle_selectors();
-    }
-    else if (get_extruders_colors() != m_extruders_colors) {
+    } else if (wxGetApp().plater()->get_extruders_colors() != m_extruders_colors) {
         this->init_extruders_data();
         this->update_triangle_selectors_colors();
     }
@@ -249,14 +233,14 @@ void GLGizmoMmuSegmentation::set_painter_gizmo_data(const Selection &selection)
 void GLGizmoMmuSegmentation::render_triangles(const Selection &selection) const
 {
     ClippingPlaneDataWrapper clp_data = this->get_clipping_plane_data();
-    auto                    *shader   = wxGetApp().get_shader("mm_gouraud");
+    const auto& shader   = wxGetApp().get_shader("mm_gouraud");
     if (!shader)
         return;
-    shader->start_using();
+    wxGetApp().bind_shader(shader);
     shader->set_uniform("clipping_plane", clp_data.clp_dataf);
     shader->set_uniform("z_range", clp_data.z_range);
     shader->set_uniform("slope.actived", m_parent.is_using_slope());
-    ScopeGuard guard([shader]() { if (shader) shader->stop_using(); });
+    ScopeGuard guard([shader]() { if (shader) wxGetApp().unbind_shader(); });
 
     //BBS: to improve the random white pixel issue
     glsafe(::glDisable(GL_CULL_FACE));
@@ -282,14 +266,16 @@ void GLGizmoMmuSegmentation::render_triangles(const Selection &selection) const
         if (is_left_handed)
             glsafe(::glFrontFace(GL_CW));
 
-        glsafe(::glPushMatrix());
-        glsafe(::glMultMatrixd(trafo_matrix.data()));
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        const Transform3d matrix = camera.get_view_matrix() * trafo_matrix;
+        shader->set_uniform("view_model_matrix", matrix);
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+        shader->set_uniform("normal_matrix", (Matrix3d)matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
 
         shader->set_uniform("volume_world_matrix", trafo_matrix);
         shader->set_uniform("volume_mirrored", is_left_handed);
-        m_triangle_selectors[mesh_id]->render(m_imgui);
+        m_triangle_selectors[mesh_id]->render(m_imgui, trafo_matrix);
 
-        glsafe(::glPopMatrix());
         if (is_left_handed)
             glsafe(::glFrontFace(GL_CCW));
     }
@@ -861,6 +847,13 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     ImGui::SameLine();
 
     if (m_current_tool == ImGui::GapFillIcon) {
+        m_imgui->disabled_begin(!(TriangleSelectorPatch::exist_gap_area));
+        ImGui::PushStyleColor(ImGuiCol_Button, m_is_dark_mode ? ImVec4(0 / 255.0, 174 / 255.0, 66 / 255.0, 1.0) : ImVec4(0 / 255.0, 174 / 255.0, 66 / 255.0, 1.0));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                              m_is_dark_mode ? ImVec4(50 / 255.0f, 238 / 255.0f, 61 / 255.0f, 1.00f) : ImVec4(50 / 255.0f, 238 / 255.0f, 61 / 255.0f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                              m_is_dark_mode ? ImVec4(206 / 255.0f, 206 / 255.0f, 206 / 255.0f, 1.00f) : ImVec4(206 / 255.0f, 206 / 255.0f, 206 / 255.0f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_Text, m_is_dark_mode ? ImVec4(255 / 255.0f, 255 / 255.0f, 255 / 255.0f, 1.00f) : ImVec4(255 / 255.0f, 255 / 255.0f, 255 / 255.0f, 1.00f));
         if (m_imgui->button(m_desc.at("perform"))) {
             Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Gap fill", UndoRedo::SnapshotType::GizmoAction);
 
@@ -872,7 +865,8 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
             update_model_object();
             m_parent.set_as_dirty();
         }
-
+        ImGui::PopStyleColor(4);
+        m_imgui->disabled_end();
         ImGui::SameLine();
     }
 
@@ -976,7 +970,7 @@ void GLGizmoMmuSegmentation::update_from_model_object(bool first_update)
     // Extruder colors need to be reloaded before calling init_model_triangle_selectors to render painted triangles
     // using colors from loaded 3MF and not from printer profile in Slicer.
     if (int prev_extruders_count = int(m_extruders_colors.size());
-        prev_extruders_count != wxGetApp().filaments_cnt() || get_extruders_colors() != m_extruders_colors)
+        prev_extruders_count != wxGetApp().filaments_cnt() || wxGetApp().plater()->get_extruders_colors() != m_extruders_colors)
         this->init_extruders_data();
 
     this->init_model_triangle_selectors();
@@ -1022,6 +1016,9 @@ void GLGizmoMmuSegmentation::on_set_state()
         ModelObject* mo = m_c->selection_info()->model_object();
         if (mo) Slic3r::save_object_mesh(*mo);
         m_parent.post_event(SimpleEvent(EVT_GLCANVAS_FORCE_UPDATE));
+        if (m_current_tool == ImGui::GapFillIcon) {//exit gap fill
+            m_current_tool = ImGui::CircleButtonIcon;
+        }
     }
 }
 

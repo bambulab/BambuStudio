@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cassert>
 #include <list>
+#include <numeric>
 
 namespace Slic3r {
 
@@ -144,6 +145,13 @@ Point ExPolygon::point_projection(const Point &point) const
         }
         return closest_pt_min;
     }
+}
+
+void ExPolygon::symmetric_y(const coord_t &y_axis)
+{
+    this->contour.symmetric_y(y_axis);
+    for (Polygon &hole : holes)
+        hole.symmetric_y(y_axis);
 }
 
 bool ExPolygon::overlaps(const ExPolygon &other) const
@@ -370,6 +378,39 @@ void ExPolygon::medial_axis(double min_width, double max_width, Polylines* polyl
         polylines->emplace_back(pl.points);
 }
 
+ExPolygons ExPolygon::split_expoly_with_holes(coord_t gap_width, const ExPolygons& collision) const
+{
+    ExPolygons sub_overhangs;
+    Polygon  max_hole;
+    coordf_t max_area = 0;
+    bool is_collided = false;
+    for (const auto &hole : this->holes) {
+        if (!is_collided && Slic3r::overlaps({ExPolygon(hole)}, collision)) {
+            max_area = abs(hole.area());
+            max_hole = hole;
+            is_collided = true;
+        } else if (is_collided && Slic3r::overlaps({ExPolygon(hole)}, collision) && abs(hole.area()) > max_area) {
+            max_area = abs(hole.area());
+            max_hole = hole;
+        } else if (!is_collided && !Slic3r::overlaps({ExPolygon(hole)}, collision) && abs(hole.area()) > max_area) {
+            max_area = abs(hole.area());
+            max_hole = hole;
+        }
+    }
+    Point cent;
+    if (max_hole.size() > 0) {
+        auto overhang_bbx = get_extents(*this);
+        cent = max_hole.centroid();
+        append(sub_overhangs, intersection_ex(ExPolygon(BoundingBox(overhang_bbx.min, Point(cent.x() - gap_width, cent.y() - gap_width)).polygon()), *this));
+        append(sub_overhangs, intersection_ex(ExPolygon(BoundingBox(Point(cent.x() + gap_width, cent.y() + gap_width), overhang_bbx.max).polygon()), *this));
+        append(sub_overhangs,
+               intersection_ex(ExPolygon(BoundingBox(Point(overhang_bbx.min(0), cent.y() + gap_width), Point(cent.x() - gap_width, overhang_bbx.max(1))).polygon()), *this));
+        append(sub_overhangs,
+               intersection_ex(ExPolygon(BoundingBox(Point(cent.x() + gap_width, overhang_bbx.min(1)), Point(overhang_bbx.max(0), cent.y() - gap_width)).polygon()), *this));
+    } 
+    return sub_overhangs;
+}
+
 Lines ExPolygon::lines() const
 {
     Lines lines = this->contour.lines();
@@ -379,6 +420,41 @@ Lines ExPolygon::lines() const
     }
     return lines;
 }
+
+bool ExPolygon::remove_colinear_points() { 
+    bool removed = this->contour.remove_colinear_points();
+    if (contour.size() < 3) {
+        contour.points.clear();
+        holes.clear();
+        return true;
+    }
+    for (Polygon &hole : this->holes)
+        removed |= hole.remove_colinear_points();
+    return removed;
+}
+
+double get_expolygons_area(const ExPolygons& expolys)
+{
+    return std::accumulate(expolys.begin(), expolys.end(), (double)(0), [](double val, const ExPolygon& expoly) {
+        return val + expoly.area();
+        });
+}
+
+bool is_narrow_expolygon(const ExPolygon& expolygon, double min_width, double min_area, double remain_area_ratio_thres)
+{
+    double original_area = expolygon.area();
+    if (original_area < min_area)
+        return true;
+
+    ExPolygons offsets = offset_ex(expolygon, -min_width / 2);
+    if (offsets.empty())
+        return true;
+
+    if (get_expolygons_area(offsets) / (original_area + EPSILON) < remain_area_ratio_thres)
+        return true;
+    return false;
+}
+
 
 // Do expolygons match? If they match, they must have the same topology,
 // however their contours may be rotated.

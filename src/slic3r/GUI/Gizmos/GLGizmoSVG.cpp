@@ -165,7 +165,7 @@ EmbossShape select_shape(std::string_view filepath, double tesselation_tolerance
 
     // Must contain some shapes !!!
     if (shape.shapes_with_ids.empty()) {
-        show_error(nullptr, GUI::format(_u8L("SVG file does NOT contain a single path to be embossed (%1%)."), svg.path));
+        show_error(nullptr, GUI::format(_u8L("%1% contains some unsupported data. Please use third-party software to convert the SVG to path data before reimporting."), svg.path));
         return {};
     }
     shape.svg_file = std::move(svg);
@@ -210,7 +210,7 @@ std::string volume_name(const EmbossShape &shape)
 
 // BBS: GUI refactor: add obj manipulation
 GLGizmoSVG::GLGizmoSVG(GLCanvas3D& parent,  unsigned int sprite_id)
-    : GLGizmoBase(parent, "toolbar_cut.svg", sprite_id) //"toolbar_cut.svg" no use
+    : GLGizmoBase(parent, "tool_bar_svg.svg", sprite_id) //"toolbar_cut.svg" no use
     , m_gui_cfg(nullptr)
     , m_rotate_gizmo(parent, GLGizmoRotate::Axis::Z) // grab id = 2 (Z axis)
 {
@@ -606,13 +606,14 @@ void GLGizmoSVG::on_render()
         m_move_grabber.center = tran.get_offset();
         Transform3d rotate_matrix = tran.get_rotation_matrix();
         Transform3d cube_mat      = Geometry::translation_transform(m_move_grabber.center) * rotate_matrix * Geometry::scale_transform(fullsize);
-        render_glmodel(m_move_grabber.get_cube(), render_color, cube_mat);
+        m_move_grabber.set_model_matrix(cube_mat);
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        const auto& view_matrix = camera.get_view_matrix();
+        const auto& projection_matrix = camera.get_projection_matrix();
+        render_glmodel(m_move_grabber.get_cube(), render_color, view_matrix * cube_mat, projection_matrix);
     }
 #ifdef DEBUG_SVG
-    glsafe(::glPushMatrix());
-    glsafe(::glMultMatrixd(tran.get_matrix().data()));
-    render_cross_mark(Vec3f::Zero(), true);
-    glsafe(::glPopMatrix());
+    render_cross_mark(tran.get_matrix(), Vec3f::Zero(), true);
 #endif
     if (is_rotate_by_grabbers || (!is_surface_dragging && !is_parent_dragging)) {
         if (m_hover_id == c_move_cube_id && m_dragging) {
@@ -633,7 +634,13 @@ void GLGizmoSVG::on_render_for_picking()
     m_move_grabber.color[1] = color[1];
     m_move_grabber.color[2] = color[2];
     m_move_grabber.color[3] = color[3];
-    m_move_grabber.render_for_picking();
+
+    const auto& shader = wxGetApp().get_shader("flat");
+    if (nullptr != shader) {
+        wxGetApp().bind_shader(shader);
+        m_move_grabber.render_for_picking();
+        wxGetApp().unbind_shader();
+    }
 }
 
 //BBS: add input window for move
@@ -1317,7 +1324,6 @@ void GLGizmoSVG::draw_window()
         return;
     ImGui::Separator();
 
-    ImGui::Indent(m_gui_cfg->icon_width);
     draw_depth();
     draw_size();
 
@@ -1331,14 +1337,14 @@ void GLGizmoSVG::draw_window()
     draw_mirroring();
     //draw_face_the_camera();
 
-    ImGui::Unindent(m_gui_cfg->icon_width);
 
     if (!m_volume->is_the_only_one_part()) {
         ImGui::Separator();
         draw_model_type();
     }
     if (!m_can_use_surface) {
-        m_imgui->text(_L("Tip:If you want to place svg file on another part surface,\nyou should select part first, and then drag svg file to the part surface."));
+        m_imgui->text_wrapped(_L("Tip:If you want to place svg file on another part surface,you should select part first, and then drag svg file to the part surface."),
+                              m_gui_cfg->input_offset + m_gui_cfg->input_width + m_gui_cfg->icon_width);
     }
 }
 
@@ -1354,16 +1360,22 @@ void GLGizmoSVG::draw_preview()
 
     if (m_texture.id != 0) {
         ImTextureID id = (void *) static_cast<intptr_t>(m_texture.id);
+        unsigned    window_width = static_cast<unsigned>(ImGui::GetWindowSize().x - 2 * ImGui::GetStyle().WindowPadding.x);
+
+        if (m_texture.width > window_width && window_width > 0) {
+            m_texture.width = window_width;
+        }
+        if (m_texture.height > m_texture.width) {
+            m_texture.height = m_texture.width;
+        }
         ImVec2      s(m_texture.width, m_texture.height);
 
-        std::optional<float> spacing;
+        //std::optional<float> spacing;
         // is texture over full height?
-        if (m_texture.height != m_gui_cfg->texture_max_size_px) {
+       /* if (m_texture.height != m_gui_cfg->texture_max_size_px) {
             spacing = (m_gui_cfg->texture_max_size_px - m_texture.height) / 2.f;
             ImGui::SetCursorPosY(ImGui::GetCursorPosY() + *spacing);
-        }
-        // is texture over full width?
-        unsigned window_width = static_cast<unsigned>(ImGui::GetWindowSize().x - 2 * ImGui::GetStyle().WindowPadding.x);
+        }*/
         if (window_width > m_texture.width) {
             float space = (window_width - m_texture.width) / 2.f;
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + space);
@@ -1387,7 +1399,8 @@ void GLGizmoSVG::draw_preview()
         //    ImGui::SetTooltip("%s", tooltip.c_str());
         //}
 
-        if (spacing.has_value()) ImGui::SetCursorPosY(ImGui::GetCursorPosY() + *spacing);
+       /* if (spacing.has_value())
+            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + *spacing);*/
     }
 }
 
@@ -1653,16 +1666,12 @@ void GLGizmoSVG::draw_size()
     const MinMax<float> &minmax    = use_inch ? limits.ui_size_in : limits.ui_size;
     if (m_keep_ratio) {
         std::stringstream ss;
-        ss <<  _u8L("width:") << std::setprecision(2) << std::fixed << width << (use_inch ? "in" : "mm");
-        std::stringstream ss_height;
-        ss_height << _u8L("height:") << std::setprecision(2) << std::fixed << height << (use_inch ? "in" : "mm");
+        ss << std::setprecision(2) << std::fixed << width << " x " << std::setprecision(2) << std::fixed << height << (use_inch ? "in" : "mm");
         ImGui::SameLine(m_gui_cfg->input_offset);
         ImGui::SetNextItemWidth(m_gui_cfg->input_width);
-        float                height_text_size_x = ImGui::CalcTextSize(ss_height.str().c_str()).x;
-
         // convert to float for slider
         float width_f = static_cast<float>(width);
-        if (m_imgui->slider_float("##width_size_slider", &width_f, minmax.min, ui_size_max, ss.str().c_str(), 1.f, false, _L("set width and height keep ratio with width"),false)) {
+        if (m_imgui->slider_float("##width_size_slider", &width_f, minmax.min, ui_size_max, ss.str().c_str(), 1.f, false, _L("set width and height keep ratio with width"))) {
             double width_ratio = width_f / width;
             if (is_valid_scale_ratio(width_ratio)) {
                 m_scale_width      = m_scale_width.value_or(1.f) * width_ratio;
@@ -1670,9 +1679,6 @@ void GLGizmoSVG::draw_size()
                 new_relative_scale = Vec3d(width_ratio, width_ratio, 1.);
             }
         }
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(height_text_size_x);
-        m_imgui->text(ss_height.str());
         if (m_imgui->get_last_slider_status().deactivated_after_edit)
             make_snap = true; // only last change of slider make snap
     } else {
@@ -1971,7 +1977,7 @@ void GLGizmoSVG::draw_model_type()
     ModelVolumeType                negative = ModelVolumeType::NEGATIVE_VOLUME;
     ModelVolumeType                part     = ModelVolumeType::MODEL_PART;
     ModelVolumeType                type     = m_volume->type();
-
+    ImGui::SameLine(m_gui_cfg->input_offset);
     // TRN EmbossOperation
     ImGuiWrapper::push_radio_style();
     if (ImGui::RadioButton(_u8L("Join").c_str(), type == part))
@@ -2186,6 +2192,27 @@ bool GLGizmoSVG::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_positi
         }
     }
     return true;
+}
+
+BoundingBoxf3 GLGizmoSVG::get_bounding_box() const
+{
+    BoundingBoxf3 t_aabb;
+    t_aabb.reset();
+
+    // m_rotate_gizmo aabb
+    bool is_rotate_by_grabbers = m_dragging;
+    bool is_surface_dragging = m_surface_drag.has_value();
+    bool is_parent_dragging = m_parent.is_mouse_dragging();
+    if (is_rotate_by_grabbers || (!is_surface_dragging && !is_parent_dragging)) {
+        if (m_hover_id != c_move_cube_id || !m_dragging) {
+            auto t_totate_gizmo_aabb = m_rotate_gizmo.get_bounding_box();
+            t_aabb.merge(t_totate_gizmo_aabb);
+            t_aabb.defined = true;
+        }
+    }
+    // end m_rotate_gizmo aabb
+
+    return t_aabb;
 }
 
 void GLGizmoSVG::update_single_mesh_pick(GLVolume *v)

@@ -71,11 +71,12 @@ public:
         static const float FixedRadiusSize;
 
         Vec3d center;
-        Vec3d angles;
+       /*  Vec3d angles;*/
         std::array<float, 4> color;
         std::array<float, 4> hover_color;
         bool enabled;
         bool dragging;
+        Transform3d m_matrix{ Transform3d::Identity() };
 
         Grabber();
 
@@ -85,6 +86,7 @@ public:
         float get_half_size(float size) const;
         float get_dragging_half_size(float size) const;
         GLModel& get_cube();
+        void set_model_matrix(const Transform3d& model_matrix);
 
     private:
         void render(const std::array<float, 4>& render_color, bool picking) const;
@@ -145,8 +147,9 @@ protected:
     mutable std::string m_tooltip;
     CommonGizmosDataPool* m_c{nullptr};
     GLModel m_cone;
-    GLModel m_cylinder;
+    mutable GLModel m_cylinder;
     GLModel m_sphere;
+    GLModel m_cross_mark;
 
     bool m_is_dark_mode = false;
 
@@ -172,7 +175,7 @@ protected:
                                               DoubleShowType               show_type = DoubleShowType::Normal);
     bool render_combo(const std::string &label, const std::vector<std::string> &lines,
         size_t &selection_idx, float label_width, float item_width);
-    void render_cross_mark(const Vec3f& target,bool is_single =false);
+    void render_cross_mark(const Transform3d& matrix, const Vec3f& target,bool is_single =false);
     static float get_grabber_size();
 
 public:
@@ -210,6 +213,7 @@ public:
 
     virtual bool apply_clipping_plane() { return true; }
     virtual bool on_mouse(const wxMouseEvent &mouse_event) { return false; }
+    virtual bool on_key(const wxKeyEvent& key_event);
     unsigned int get_sprite_id() const { return m_sprite_id; }
 
     int get_hover_id() const { return m_hover_id; }
@@ -241,7 +245,10 @@ public:
     /// </summary>
     virtual void data_changed(bool is_serializing){};
     int get_count() { return ++count; }
-    static void  render_glmodel(GLModel &model, const std::array<float, 4> &color, Transform3d view_model_matrix, bool for_picking = false, float emission_factor = 0.0f);
+
+    virtual BoundingBoxf3 get_bounding_box() const;
+
+    static void  render_glmodel(GLModel &model, const std::array<float, 4> &color, Transform3d view_model_matrix, const Transform3d& projection_matrix, bool for_picking = false, float emission_factor = 0.0f);
 protected:
     float last_input_window_width = 0;
     virtual bool on_init() = 0;
@@ -249,7 +256,7 @@ protected:
     virtual void on_save(cereal::BinaryOutputArchive& ar) const {}
     virtual std::string on_get_name() const = 0;
     virtual std::string on_get_name_str() { return ""; }
-    virtual void on_set_state() {}
+    virtual void on_set_state();
     virtual void on_set_hover_id() {}
     virtual bool on_is_activable() const { return true; }
     virtual bool on_is_selectable() const { return true; }
@@ -292,6 +299,19 @@ protected:
         if (value >= _max) { value = _max;}
         if (value <= _min) { value = _min; }
     }
+
+    BoundingBoxf3 get_cross_mask_aabb(const Transform3d& matrix, const Vec3f& target, bool is_single = false) const;
+
+    void modify_radius(float& radius) const;
+
+private:
+    enum class ECrossMaskType
+    {
+        X,
+        Y,
+        Z
+    };
+    Transform3d get_corss_mask_model_matrix(ECrossMaskType type, const Vec3f& target, bool is_single = false) const;
 
 private:
     // Flag for dirty visible state of Gizmo

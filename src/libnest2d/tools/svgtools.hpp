@@ -31,7 +31,7 @@ public:
         double        x0, y0;
         Config():
             origo_location(BOTTOMLEFT), mm_in_coord_units(1000000),
-            width(500), height(500),x0(100) {}
+            width(500), height(500),x0(100),y0(0) {}
 
     };
 
@@ -47,14 +47,15 @@ public:
 
     void setSize(const Box &box)    {
         conf_.x0     = box.width() / 5;
-        conf_.x0     = box.height() / 5;
+        conf_.y0     = box.height() / 5;
         conf_.height = static_cast<double>(box.height() + conf_.y0*2) /
                 conf_.mm_in_coord_units;
         conf_.width  = static_cast<double>(box.width() + conf_.x0*2) /
                 conf_.mm_in_coord_units;
     }
     
-    void writeShape(RawShape tsh, std::string fill = "none", std::string stroke = "black", float stroke_width = 1) {
+    void writeShape(RawShape tsh, const std::string &name = "", std::string fill = "none", std::string stroke = "black", float stroke_width = 1)
+    {
         if(svg_layers_.empty()) addLayer();
         if(conf_.origo_location == BOTTOMLEFT) {
             auto d = static_cast<Coord>(
@@ -74,13 +75,14 @@ public:
                 }
         }
         currentLayer() +=
-            shapelike::serialize<Formats::SVG>(tsh,
+            shapelike::serialize<Formats::SVG>(tsh, name,
                                                1.0 / conf_.mm_in_coord_units, fill, stroke, stroke_width) +
             "\n";
     }
 
-    void writeItem(const Item& item, std::string fill = "none", std::string stroke = "black", float stroke_width = 1) {
-        writeShape(item.transformedShape(), fill, stroke, stroke_width);
+    void writeItem(const Item &item, const std::string &name = "", std::string fill = "none", std::string stroke = "black", float stroke_width = 1)
+    {
+        writeShape(item.transformedShape(), name, fill, stroke, stroke_width);
     }
 
     void writePackGroup(const PackGroup& result) {
@@ -97,7 +99,7 @@ public:
         auto it = from;
         PackGroup pg;
         while(it != to) {
-            if(it->binId() == BIN_ID_UNSET) continue;
+            if (it->binId() == BIN_ID_UNFIT) continue;
             while(pg.size() <= size_t(it->binId())) pg.emplace_back();
             pg[it->binId()].emplace_back(*it);
             ++it;
@@ -158,6 +160,8 @@ public:
         if (svg_layers_.empty()) addLayer();
         currentLayer() += "<!-- " + comment + " -->\n";
     }
+
+    void clear() { svg_layers_.clear(); }
 
 private:
 
