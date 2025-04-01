@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-28 16:27+0800\n"
+"POT-Creation-Date: 2025-04-01 17:04+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -2334,14 +2334,6 @@ msgstr "已完成自动摆放，但是有未被摆到盘内的项，可在减小
 
 msgid "Arranging done."
 msgstr "已完成自动摆放。"
-
-#, c-format, boost-format
-msgid ""
-"Arrangement ignored the following objects which can't fit into a single bed:\n"
-"%s"
-msgstr ""
-"自动摆放会忽略以下无法放入单盘的零件：\n"
-"%s"
 
 msgid ""
 "All the selected objects are on the locked plate,\n"
@@ -13191,6 +13183,14 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Arrangement ignored the following objects which can't fit into a single bed:\n"
+#~ "%s"
+#~ msgstr ""
+#~ "自动摆放会忽略以下无法放入单盘的零件：\n"
+#~ "%s"
 
 #~ msgid "Currently only External Spool is available, color mapping is prohibited, and control pop-up drop-down boxes are also prohibited."
 #~ msgstr "目前仅有外挂料槽，颜色映射被禁止，并且控制弹出下拉框也被禁止"
