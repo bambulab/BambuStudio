@@ -1,0 +1,33 @@
+{
+    "type": "filament",
+    "filament_id": "GFB00",
+    "setting_id": "GFSB00_Qidi_59",
+    "name": "Bambu ABS @Qidi X-Plus 4 0.2 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "Bambu ABS @Qidi",
+    "filament_max_volumetric_speed": [
+        "2"
+    ],
+    "hot_plate_temp_initial_layer": [
+        "90"
+    ],
+    "nozzle_temperature": [
+        "260"
+    ],
+    "slow_down_min_speed": [
+        "20"
+    ],
+    "pressure_advance": [
+        "0.03"
+    ],
+    "during_print_exhaust_fan_speed":[
+         "0"
+    ],
+    "chamber_temperatures" : [
+        "0"
+    ],
+    "compatible_printers": [
+        "Qidi X-Plus 4 0.2 nozzle"
+	]
+}
