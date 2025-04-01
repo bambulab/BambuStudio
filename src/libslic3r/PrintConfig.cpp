@@ -588,6 +588,12 @@ void PrintConfigDef::init_common_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionStrings{""});
 
+    def          = this->add("printable_filament_types", coStrings);
+    def->label   = L("Printable filament type");
+    def->tooltip = L("Printable filament type");
+    def->mode    = comDevelop;
+    def->set_default_value(new ConfigOptionStrings{""});
+
     // Options used by physical printers
 
     def = this->add("preset_names", coStrings);
