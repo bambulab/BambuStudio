@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 1.10.1 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-28 16:27+0800\n"
+"POT-Creation-Date: 2025-04-01 17:04+0800\n"
 "PO-Revision-Date: 2024-09-27 23:58+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -2380,14 +2380,6 @@ msgstr "Расстановка завершена, но не всё умести
 
 msgid "Arranging done."
 msgstr "Расстановка выполнена."
-
-#, c-format, boost-format
-msgid ""
-"Arrangement ignored the following objects which can't fit into a single bed:\n"
-"%s"
-msgstr ""
-"При расстановке были проигнорированы следующие модели, которые не помещаются на одном столе:\n"
-"%s"
 
 msgid ""
 "All the selected objects are on the locked plate,\n"
@@ -13398,6 +13390,14 @@ msgid ""
 msgstr ""
 "Предотвращение коробления материала\n"
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как ABS, повышение температуры подогреваемого стола может снизить эту вероятность?"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Arrangement ignored the following objects which can't fit into a single bed:\n"
+#~ "%s"
+#~ msgstr ""
+#~ "При расстановке были проигнорированы следующие модели, которые не помещаются на одном столе:\n"
+#~ "%s"
 
 #, boost-format
 #~ msgid "Copying of file %1% to %2% failed: %3%"

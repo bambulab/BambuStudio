@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-25 14:24+0800\n"
-"PO-Revision-Date: 2025-03-28 18:41+0300\n"
+"POT-Creation-Date: 2025-04-01 17:04+0800\n"
+"PO-Revision-Date: 2025-01-12 21:04+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
 "Language: tr\n"
@@ -2497,15 +2497,6 @@ msgstr ""
 
 msgid "Arranging done."
 msgstr "Hizalama tamamlandı."
-
-#, c-format, boost-format
-msgid ""
-"Arrangement ignored the following objects which can't fit into a single "
-"bed:\n"
-"%s"
-msgstr ""
-"Hizalama tek tablaya sığmayan aşağıdaki nesneler göz ardı edildi:\n"
-"%s"
 
 msgid ""
 "All the selected objects are on the locked plate,\n"
@@ -16157,3 +16148,664 @@ msgstr ""
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı "
 "sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını "
 "azaltabileceğini biliyor muydunuz."
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Arrangement ignored the following objects which can't fit into a single bed:\n"
+#~ "%s"
+#~ msgstr ""
+#~ "Hizalama tek tablaya sığmayan aşağıdaki nesneler göz ardı edildi:\n"
+#~ "%s"
+
+#, boost-format
+#~ msgid "Copying of file %1% to %2% failed: %3%"
+#~ msgstr "%1% dosyasının %2% dosyasına kopyalanması başarısız oldu: %3%"
+
+#, boost-format
+#~ msgid "Copying directory %1% to %2% failed: %3%"
+#~ msgstr "%1% Dizininden %2% ve %3% dizinine kopyalama başarısız oldu"
+
+#~ msgid "External Spool"
+#~ msgstr "Harici Makara"
+
+#~ msgid "There are some unknown or uncompatible filaments mapped to generic preset. Please update Bambu Studio or restart Bambu Studio to check if there is an update to system presets."
+#~ msgstr "Genel ön ayara eşlenmiş bazı bilinmeyen veya uyumsuz filamentler var. Sistem ön ayarlarında bir güncelleme olup olmadığını kontrol etmek için lütfen Bambu Studio'yu güncelleyin veya Bambu Studio'yu yeniden başlatın."
+
+#, c-format, boost-format
+#~ msgid "Printing high temperature material(%s material) with %s may cause nozzle damage"
+#~ msgstr "Yüksek sıcaklıktaki malzemenin (%s malzeme) %s ile basılması nozul hasarına neden olabilir"
+
+#, c-format, boost-format
+#~ msgid "The color count should be in range [%d, %d]."
+#~ msgstr "Renk sayısı aralıkta olmalıdır [%d, %d]."
+
+#~ msgid "Add consumable extruder after existing extruders."
+#~ msgstr "Mevcut ekstrüderlerden sonra yeni sarf malzemesi ekstrüderi ekleyin."
+
+#~ msgid "Arranging..."
+#~ msgstr "Hizalanıyor..."
+
+#~ msgid ""
+#~ "Performed boolean intersection fails \n"
+#~ " because the selected parts have no intersection"
+#~ msgstr ""
+#~ "Gerçekleştirilen boole kesişimi başarısız\n"
+#~ " çünkü seçilen parçaların kesişme noktası yoktur"
+
+#~ msgid "Filaments to AMS slots mappings have been established. You can click a filament above to change its mapping AMS slot"
+#~ msgstr "AMS slot eşlemelerine yönelik filament oluşturulmuştur. Eşleme AMS yuvasını değiştirmek için yukarıdaki filamentlerden birine tıklayabilirsiniz"
+
+#~ msgid "Please click each filament above to specify its mapping AMS slot before sending the print job"
+#~ msgstr "Yazdırma işini göndermeden önce eşleme AMS yuvasını belirtmek için lütfen yukarıdaki her filamente tıklayın"
+
+#~ msgid "Step 1. Please confirm Bambu Studio and your printer are in the same LAN."
+#~ msgstr "Adım 1. Lütfen Bambu Studio ve yazıcınızın aynı LAN'da olduğunu onaylayın."
+
+#~ msgid "Step 2. If the IP and Access Code below are different from the actual values on your printer, please correct them."
+#~ msgstr "Adım 2, aşağıdaki IP ve Erişim Kodu yazıcınızdaki gerçek değerlerden farklıysa lütfen bunları düzeltin."
+
+#~ msgid "Step 3. Please obtain the device SN from the printer side; it is usually found in the device information on the printer screen."
+#~ msgstr "Adım 3. Lütfen yazıcı tarafından cihaz SN'sini edinin; genellikle yazıcı ekranındaki cihaz bilgilerinde bulunur."
+
+#~ msgid "\"Fix Model\" feature is currently only on Windows. Please use a third-party tool to repair the model before importing it into Bambu Studio, such as "
+#~ msgstr "\"Modeli Düzelt\" özelliği şu anda yalnızca Windows'ta bulunmaktadır. Lütfen modeli Bambu Studio'ya aktarmadan önce onarmak için üçüncü taraf bir araç kullanın, örneğin "
+
+#, boost-format
+#~ msgid "SVG file does NOT contain a single path to be embossed (%1%)."
+#~ msgstr "SVG dosyası kabartma yapılacak tek bir yol İÇERMEZ (%1%)."
+
+#~ msgid ""
+#~ "Tip:If you want to place svg file on another part surface,\n"
+#~ "you should select part first, and then drag svg file to the part surface."
+#~ msgstr ""
+#~ "İpucu: svg dosyasını başka bir parça yüzeyine yerleştirmek istiyorsanız,\n"
+#~ "önce parçayı seçmeli ve ardından svg dosyasını parça yüzeyine sürüklemelisiniz."
+
+#~ msgid "width:"
+#~ msgstr "genişlik:"
+
+#~ msgid "height:"
+#~ msgstr "yükseklik:"
+
+#~ msgid "Auto-Calc"
+#~ msgstr "Otomatik Hesaplama"
+
+#~ msgid "unloaded"
+#~ msgstr "çıkartılmış"
+
+#~ msgid "loaded"
+#~ msgstr "yüklenmiş"
+
+#~ msgid "Filament #"
+#~ msgstr "Filament #"
+
+#~ msgid "From"
+#~ msgstr "Önce"
+
+#~ msgid "To"
+#~ msgstr "Sonra"
+
+#~ msgid "Flushing volumes: Auto-calculate every time when the color is changed."
+#~ msgstr "Temizleme hacimleri: Renk değiştirildiğinde her seferinde otomatik olarak hesaplanır."
+
+#~ msgid "If enabled, auto-calculate every time when the color is changed."
+#~ msgstr "Etkinleştirilirse, renk her değiştirildiğinde otomatik olarak hesaplanır."
+
+#~ msgid "Flushing volumes: Auto-calculate every time when the filament is changed."
+#~ msgstr "Durulama hacimleri: Filament değiştiğinde her zaman otomatik olarak hesaplanır."
+
+#~ msgid "If enabled, auto-calculate every time when filament is changed"
+#~ msgstr "Etkinleştirilirse, filament her değiştirildiğinde otomatik hesaplama yapar"
+
+#~ msgid "Clear my choice on the unsaved presets."
+#~ msgstr "Kaydedilmemiş ön ayarlardaki seçimimi temizle."
+
+#, c-format, boost-format
+#~ msgid "nozzle memorized: %.1f %s"
+#~ msgstr "hafızaya alınan nozul: %.1f %s"
+
+#~ msgid "Your nozzle diameter in sliced file is not consistent with memorized nozzle. If you changed your nozzle lately, please go to Device > Printer Parts to change settings."
+#~ msgstr "Dilimlenmiş dosyadaki nozul çapınız hafızaya alınan nozul ile tutarlı değil. Nozulunuzu yakın zamanda değiştirdiyseniz, ayarları değiştirmek için lütfen Cihaz > Yazıcı Parçaları bölümüne gidin."
+
+#~ msgid "Line pattern of support interface. Default pattern for non-soluble support interface is Rectilinear, while default pattern for soluble support interface is Concentric"
+#~ msgstr "Destek arayüzünün çizgi deseni. Çözünmeyen destek arayüzü için varsayılan model Doğrusaldır, çözünebilir destek arayüzü için varsayılan model ise eşmerkezlidir"
+
+#~ msgid "BambuStudio configuration file may be corrupted and is not able to be parsed.Please delete the file and try again."
+#~ msgstr "BambuStudio yapılandırma dosyası bozulmuş olabilir ve ayrıştırılamıyor olabilir, lütfen dosyayı silin ve tekrar deneyin."
+
+#~ msgid "Change opengl multi instance rendering requires application restart."
+#~ msgstr "Opengl çoklu örnek oluşturmayı değiştirmek uygulamanın yeniden başlatılmasını gerektirir."
+
+#~ msgid "Enable opengl multi instance rendering"
+#~ msgstr "Opengl çoklu örnek oluşturmayı etkinleştir"
+
+#~ msgid "Enable multi instance rendering by opengl"
+#~ msgstr "Opengl ile çoklu örnek oluşturmayı etkinleştirin"
+
+#~ msgid "If enabled, it can improve certain rendering performance. But for some graphics cards, it may not be applicable, please turn it off."
+#~ msgstr "Etkinleştirilirse, belirli işleme performansını artırabilir. Ancak bazı grafik kartları için geçerli olmayabilir, lütfen kapatın."
+
+#~ msgid "The smaller the number, the longer the speed transition path."
+#~ msgstr "Sayı ne kadar küçükse, hız geçiş yolu o kadar uzundur."
+
+#~ msgid ""
+#~ "Style and shape of the support. For normal support, projecting the supports into a regular grid will create more stable supports (default), while snug support towers will save material and reduce object scarring.\n"
+#~ "For tree support, slim style will merge branches more aggressively and save a lot of material, strong style will make larger and stronger support structure and use more materials, while hybrid style is the combination of slim tree and normal support with normal nodes under large flat overhangs (default)."
+#~ msgstr ""
+#~ "Desteğin stili ve şekli. Normal destek için, destekleri düzenli bir ızgaraya yansıtmak daha sağlam destekler oluştururken (varsayılan), dar destek kuleleri malzemeden tasarruf sağlayacak ve nesne izini azaltacaktır.\n"
+#~ "Ağaç desteği için, ince stil dalları daha agresif bir şekilde birleştirecek ve çok fazla malzeme tasarrufu sağlayacaktır, güçlü stil daha büyük ve daha güçlü destek yapısı oluşturacak ve daha fazla malzeme kullanacaktır, hibrit stil ise ince ağaç ve normal desteğin büyük düz çıkıntılar altında normal düğümlerle birleşimidir (varsayılan)."
+
+#~ msgid "Prime volume"
+#~ msgstr "Ana hacim"
+
+#~ msgid "Bambu PET-CF/PA6-CF is not supported by AMS."
+#~ msgstr "Bambu PET-CF/PA6-CF, AMS tarafından desteklenNozulktedir."
+
+#~ msgid ""
+#~ "If there are two identical filaments in AMS, AMS filament backup will be enabled. \n"
+#~ "(Currently supporting automatic supply of consumables with the same brand, material type, and color)"
+#~ msgstr ""
+#~ "Eğer AMS'de iki aynı filament bulunursa, AMS filament yedekleme özelliği etkinleştirilecektir. \n"
+#~ "(Şu anda aynı markaya ait sarf malzemelerinin otomatik temini desteklenmektedir, malzeme türü ve rengi)"
+
+#~ msgid "The AMS will estimate Bambu filament's remaining capacity after the filament info is updated. During printing, remaining capacity will be updated automatically."
+#~ msgstr "AMS, filament bilgisi güncellendikten sonra Bambu filamentin kalan kapasitesini tahmin edecek. Yazdırma sırasında kalan kapasite otomatik olarak güncellenecektir."
+
+#~ msgid "The current chamber temperature or the target chamber temperature exceeds 45\\u2103.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
+#~ msgstr "Mevcut hazne sıcaklığı veya hedef hazne sıcaklığı 45\\u2103'ü aşıyor Ekstrüder tıkanmasını önlemek için düşük sıcaklıkta filament (PLA / PETG / TPU) yüklenmesine izin verilmez."
+
+#~ msgid "When you set the chamber temperature below 40\\u2103, the chamber temperature control will not be activated. And the target chamber temperature will automatically be set to 0\\u2103."
+#~ msgstr "Hazne sıcaklığını 40\\u2103'ün altına ayarladığınızda, hazne sıcaklık kontrolü etkinleştirilmeyecektir. Ve hedef oda sıcaklığı otomatik olarak 0\\u2103'e ayarlanacaktır."
+
+#~ msgid "This factor affects the acreage of top area. The small the number the big the top area."
+#~ msgstr "Bu faktör üst alanın yüzölçümünü etkiler. Sayı ne kadar küçükse üst alan o kadar büyüktür."
+
+#~ msgid "Send print job to"
+#~ msgstr "Yazdırma işini şuraya gönder"
+
+#~ msgid "Save Modified Value"
+#~ msgstr "Değiştirilen Değeri Kaydet"
+
+#~ msgid "You have changed some settings of preset \"%1%\". "
+#~ msgstr "\"%1%\" ön ayarının bazı ayarlarını değiştirdiniz. "
+
+#~ msgid ""
+#~ "\n"
+#~ "You can save or discard the preset values you have modified."
+#~ msgstr ""
+#~ "\n"
+#~ "Değiştirdiğiniz ön ayar değerlerini kaydedebilir veya atabilirsiniz."
+
+#~ msgid ""
+#~ "\n"
+#~ "You can save or discard the preset values you have modified, or choose to continue using the values you have modified on the new preset."
+#~ msgstr ""
+#~ "\n"
+#~ "Değiştirdiğiniz ön ayar değerlerini kaydedebilir veya atabilir ya da yeni ön ayarda değiştirdiğiniz değerleri kullanmaya devam etmeyi seçebilirsiniz."
+
+#~ msgid "You have previously modified your settings."
+#~ msgstr "Ayarlarınızı daha önce değiştirdiniz."
+
+#~ msgid ""
+#~ "\n"
+#~ "You can discard the preset values you have modified, or choose to continue using the modified values in the new project"
+#~ msgstr ""
+#~ "\n"
+#~ "Değiştirdiğiniz ön ayar değerlerini atabilir veya yeni projede değiştirilen değerleri kullanmaya devam etmeyi seçebilirsiniz"
+
+#~ msgid "Print with filaments in ams"
+#~ msgstr "Ams içerisindeki filamentlerle yazdırma"
+
+#~ msgid "over 100% wall (not bridge)"
+#~ msgstr "duvarın üzerinde 100% (köprü değil)"
+
+#~ msgid "Speed for line of wall which has degree of overhang over 100% line width, but the wall is not a bridge wall."
+#~ msgstr "100% line genişlikten fazla çıkıntı derecesine sahip duvar hattı için hız, ancak duvar bir köprü duvarı değildir."
+
+#~ msgid "Calibrating the micro lida"
+#~ msgstr "Mikro Lida'nın kalibre edilmesi"
+
+#~ msgid "Sweeping XY mech mode"
+#~ msgstr "Süpürme XY mekanik modu"
+
+#~ msgid "Motor noise calibration"
+#~ msgstr "Motor ses kalibrasyonu"
+
+#~ msgid ""
+#~ "You can find it in \"Settings > Network > Connection code\"\n"
+#~ "on the printer, as shown in the figure:"
+#~ msgstr ""
+#~ "Bunu \"Ayarlar > Ağ > Bağlantı kodu\" bölümünde bulabilirsiniz.\n"
+#~ "şekilde gösterildiği gibi yazıcıda:"
+
+#~ msgid "No AMS filaments. Please select a printer in 'Device' page to load AMS info."
+#~ msgstr "AMS filamentleri yok. AMS bilgilerini yüklemek için lütfen 'Cihaz' sayfasında bir yazıcı seçin."
+
+#~ msgid "Sync filaments with AMS will drop all current selected filament presets and colors. Do you want to continue?"
+#~ msgstr "Filamentleri AMS ile senkronize etmek, seçili tüm mevcut filament ön ayarlarını ve renklerini kaldıracaktır. Devam etmek istiyor musun?"
+
+#~ msgid "Already did a synchronization, do you want to sync only changes or resync all?"
+#~ msgstr "Zaten bir senkronizasyon yaptınız. Yalnızca değişiklikleri senkronize etmek mi yoksa tümünü yeniden senkronize etmek mi istiyorsunuz?"
+
+#~ msgid "Sync"
+#~ msgstr "Senkronizasyon"
+
+#~ msgid "Resync"
+#~ msgstr "Yeniden eşitleme"
+
+#~ msgid "Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0 and timelapse type is traditional."
+#~ msgstr "Spiral mod yalnızca duvar döngüleri 1 olduğunda, destek devre dışı bırakıldığında, üst kabuk katmanları 0 olduğunda, seyrek dolgu yoğunluğu 0 olduğunda ve timelapse türü geleneksel olduğunda çalışır."
+
+#~ msgid "The custom printer or model is not inputed, place input."
+#~ msgstr "Özel yazıcı veya model girilmedi lütfen giriş yapın."
+
+#~ msgid "*Printing %s material with %s may cause nozzle damage"
+#~ msgstr "%s malzemesini %s ile yazdırmak püskürtme ucu hasarına neden olabilir"
+
+#~ msgid "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to avoid extruder clogging,it is not allowed to set the chamber temperature above 45℃."
+#~ msgstr "Ekstrudere düşük sıcaklıkta filament (PLA / PETG / TPU) yüklendi. Ekstruder tıkanmasını önlemek için hazne sıcaklığının 45 ° C'nin üzerine ayarlanmasına izin verilmez."
+
+#~ msgid "See BambuLab Wiki"
+#~ msgstr "BambuLab Wiki'ye bakın"
+
+#~ msgid "Current filament colors:"
+#~ msgstr "Mevcut filament renkleri:"
+
+#~ msgid "Quick set:"
+#~ msgstr "Hızlı ayar:"
+
+#~ msgid "Cluster colors"
+#~ msgstr "Küme renkleri"
+
+#~ msgid "Map Filament"
+#~ msgstr "Filamenti Eşle"
+
+#~ msgid ""
+#~ "Note:The color has been selected, you can choose OK \n"
+#~ " to continue or manually adjust it."
+#~ msgstr ""
+#~ "Not: Renk seçildi, devam etmek için Tamam'ı seçebilirsiniz\n"
+#~ " veya manuel olarak ayarlayabilirsiniz."
+
+#~ msgid "An SD card needs to be inserted before printing via LAN."
+#~ msgstr "LAN yoluyla yazdırmadan önce bir SD kartın takılması gerekir."
+
+#~ msgid "An SD card needs to be inserted before sending to printer."
+#~ msgstr "Yazıcıya göndermeden önce bir SD kartın takılması gerekir."
+
+#~ msgid "Browsing file in SD card is not supported in current firmware. Please update the printer firmware."
+#~ msgstr "SD karttaki dosyaya göz atma mevcut aygıt yazılımında desteklenmiyor. Lütfen yazıcı aygıt yazılımını güncelleyin."
+
+#~ msgid ""
+#~ "Please check if the SD card is inserted into the printer.\n"
+#~ "If it still cannot be read, you can try formatting the SD card."
+#~ msgstr ""
+#~ "Lütfen SD kartın yazıcıya takılı olup olmadığını kontrol edin.\n"
+#~ "Hala okunamıyorsa, SD kartı biçimlendirmeyi deneyebilirsiniz."
+
+#~ msgid "Browsing file in SD card is not supported in LAN Only Mode."
+#~ msgstr "SD karttaki dosyaya göz atma Yalnızca LAN Modunda desteklenmez."
+
+#~ msgid "Can't start this without SD card."
+#~ msgstr "SD kart olmadan başlatılamıyor."
+
+#~ msgid "An SD card needs to be inserted before printing."
+#~ msgstr "Yazdırmadan önce bir SD kartın takılması gerekir."
+
+#~ msgid "An SD card needs to be inserted to record timelapse."
+#~ msgstr "Hızlandırılmış çekim kaydetmek için bir SD kartın takılması gerekir."
+
+#~ msgid "Send to Printer SD card"
+#~ msgstr "Yazıcı SD kartına gönder"
+
+#~ msgid "An SD card needs to be inserted before send to printer SD card."
+#~ msgstr "Yazıcı SD kartına gönderilmeden önce bir SD kartın takılması gerekir."
+
+#~ msgid "The printer does not support sending to printer SD card."
+#~ msgstr "Yazıcı, yazıcı SD kartına gönderimi desteklemiyor."
+
+#~ msgid "enable multi instance rendering by opengl"
+#~ msgstr "opengl ile çoklu örnek oluşturmayı etkinleştirin"
+
+#~ msgid "Set the brim type to \"painted\""
+#~ msgstr "Kenar tipini \"boyalı\" olarak ayarlayın"
+
+#~ msgid "?"
+#~ msgstr "?"
+
+#~ msgid "/"
+#~ msgstr "/"
+
+#~ msgid "AMS not connected"
+#~ msgstr "AMS bağlı değil"
+
+#~ msgid "Ext Spool"
+#~ msgstr "Harici Makara"
+
+#~ msgid "Guide"
+#~ msgstr "Rehber"
+
+#~ msgid "Calibrating AMS..."
+#~ msgstr "AMS kalibre ediliyor..."
+
+#~ msgid "A problem occurred during calibration. Click to view the solution."
+#~ msgstr "Kalibrasyon sırasında bir sorun oluştu. Çözümü görüntülemek için tıklayın."
+
+#~ msgid "Calibrate again"
+#~ msgstr "Tekrar kalibre edin"
+
+#~ msgid "Cancel calibration"
+#~ msgstr "Kalibrasyonu iptal et"
+
+#~ msgid "Feed Filament"
+#~ msgstr "Filament Ekstrude"
+
+#~ msgid "SD Card"
+#~ msgstr "Hafıza kartı"
+
+#~ msgid "Cham"
+#~ msgstr "Kabin"
+
+#~ msgid "No SD Card"
+#~ msgstr "SD Kart Yok"
+
+#~ msgid "SD Card Abnormal"
+#~ msgstr "SD Kart Anormal"
+
+#~ msgid "Unable to perform boolean operation on model meshes. Only positive parts will be kept. You may fix the meshes and try agian."
+#~ msgstr "Model kafesleri üzerinde boolean işlemi gerçekleştirilemiyor. Sadece pozitif kısımlar tutulacaktır. Kafesleri düzeltebilir ve tekrar deneyebilirsiniz."
+
+#~ msgid "nozzle in preset: %s %s"
+#~ msgstr "önceden ayarlanmış nozul: %s %s"
+
+#~ msgid "Caution to use! Flow calibration on Textured PEI Plate may fail due to the scattered surface."
+#~ msgstr "Kullanmaya dikkat edin! Dokulu PEI Plakasındaki akış kalibrasyonu, dağınık yüzey nedeniyle başarısız olabilir."
+
+#~ msgid "Automatic flow calibration using Micro Lidar"
+#~ msgstr "Mikro Lidar kullanarak otomatik akış kalibrasyonu"
+
+#~ msgid "Direct drive"
+#~ msgstr "Direct drive"
+
+#~ msgid "Only one of the results with the same name will be saved. Are you sure you want to override the other results?"
+#~ msgstr "Aynı ada sahip sonuçlardan yalnızca biri kaydedilecektir. Diğer sonuçları geçersiz kılmak istediğinizden emin misiniz?"
+
+#~ msgid "Your nozzle diameter in preset is not consistent with memorized nozzle diameter. Did you change your nozzle lately?"
+#~ msgstr "Ön ayardaki nozul çapınız hafızaya alınan nozul çapıyla tutarlı değil. Son zamanlarda nozulunuzu değiştirdiniz mi?"
+
+#~ msgid "The wipe speed is determined by speed of current extrusion role. e.g if a wip action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action."
+#~ msgstr "Silme hızı, mevcut ekstrüzyon rolünün hızına göre belirlenir. örneğin, bir dış duvar ekstrüzyonunun hemen ardından bir silme eylemi gerçekleştirilirse, silme eylemi için dış duvar ekstrüzyonunun hızı kullanılacaktır."
+
+#~ msgid "We would use Lidar to read the calibration result"
+#~ msgstr "Kalibrasyon sonucunu okumak için Lidar'ı kullanırdık"
+
+#~ msgid "Are you sure you want to cancel this print?"
+#~ msgstr "Bu yazdırmayı iptal etmek istediğinizden emin misiniz?"
+
+#~ msgid "Conditional scarf joint"
+#~ msgstr "Koşullu atkı birleşimi"
+
+#~ msgid "Conditional angle threshold"
+#~ msgstr "Koşullu açı eşiği"
+
+#~ msgid "Jump to layer"
+#~ msgstr "Katmana atla"
+
+#~ msgid "PLA Plate"
+#~ msgstr "PLA Plaka"
+
+#~ msgid "Cool Plate / PLA Plate"
+#~ msgstr "Soğuk Plaka / PLA Plaka"
+
+#~ msgid "Step 1, please confirm Bambu Studio and your printer are in the same LAN."
+#~ msgstr "Adım 1, lütfen Bambu Studio ve yazıcınızın aynı LAN'da olduğunu onaylayın."
+
+#~ msgid "Step 2, if the IP and Access Code below are different from the actual values on your printer, please correct them."
+#~ msgstr "Adım 2, aşağıdaki IP ve Erişim Kodu yazıcınızdaki gerçek değerlerden farklıysa lütfen bunları düzeltin."
+
+#~ msgid "Step 3: Ping the IP address to check for packet loss and latency."
+#~ msgstr "Adım 3: Paket kaybını ve gecikmeyi kontrol etmek için IP adresine ping atın."
+
+#~ msgid "Please check the custom G-code or use the default custom G-code."
+#~ msgstr "Lütfen özel G kodunu kontrol edin veya varsayılan özel G kodunu kullanın."
+
+#~ msgid "Clearance radius around extruder. Used for collision avoidance in by-object printing."
+#~ msgstr "Ekstruder etrafındaki boşluk yarıçapı. Nesneye göre yazdırmada çarpışmayı önlemek için kullanılır."
+
+#~ msgid "Tree support branch angle"
+#~ msgstr "Ağaç desteği dal açısı"
+
+#~ msgid "Tree support branch distance"
+#~ msgstr "Ağaç destek dal mesafesi"
+
+#~ msgid "Tree support branch diameter"
+#~ msgstr "Ağaç destek dalı çapı"
+
+#~ msgid "Object will be raised by this number of support layers. Use this function to avoid wrapping when print ABS"
+#~ msgstr "Nesne bu sayıdaki destek katmanı tarafından yükseltilecektir. ABS yazdırırken sarmayı önlemek için bu işlevi kullanın"
+
+#~ msgid "User Sync"
+#~ msgstr "Kullanıcı Senkronizasyonu"
+
+#~ msgid "Update built-in Presets automatically."
+#~ msgstr "Yerleşik Ön Ayarları otomatik olarak güncelleyin."
+
+#~ msgid "System Sync"
+#~ msgstr "Sistem Senkronizasyonu"
+
+#~ msgid ""
+#~ "Too small scarf start height.\n"
+#~ "Reset to 50%"
+#~ msgstr ""
+#~ "Çok küçük atkı başlangıç yüksekliği.\n"
+#~ "50'ye sıfırla"
+
+#~ msgid ""
+#~ "Too big scarf start height.\n"
+#~ "Reset to 50%"
+#~ msgstr ""
+#~ "Çok büyük atkı başlangıç yüksekliği.\n"
+#~ "50'ye sıfırla"
+
+#~ msgid "Scarf joint seam (experimental)"
+#~ msgstr "Atkı Eklem Dikişi (deneysel)"
+
+#~ msgid "Use scarf joint to minimize seam visibility and increase seam strength."
+#~ msgstr "Dikiş görünürlüğünü en aza indirmek ve dikiş mukavemetini arttırmak için atkı birleşimini kullanın."
+
+#~ msgid ""
+#~ "Start height of the scarf.\n"
+#~ "This amount can be specified in millimeters or as a percentage of the current layer height. The default value for this parameter is 0."
+#~ msgstr ""
+#~ "Atkı başlangıç yüksekliği.\n"
+#~ "Bu miktar milimetre cinsinden veya geçerli katman yüksekliğinin yüzdesi olarak belirtilebilir. Bu parametrenin varsayılan değeri 0'dır."
+
+#~ msgid "Set Position"
+#~ msgstr "Pozisyonu ayarla"
+
+#~ msgid "Stopped."
+#~ msgstr "Durdu."
+
+#~ msgid "\"Fix Model\" feature is currently only on Windows. Please repair the model on Bambu Studio(windows) or CAD softwares."
+#~ msgstr "\"Modeli Onar\" özelliği şu anda sadece Windows'ta bulunmaktadır. Lütfen modeli Bambu Studio (windows) veya CAD yazılımlarında onarın."
+
+#~ msgid ""
+#~ "We have added an experimental style \"Tree Slim\" that features smaller support volume but weaker strength.\n"
+#~ "We recommend using it with: 0 interface layers, 0 top distance, 2 walls."
+#~ msgstr ""
+#~ "Daha küçük destek hacmine ancak daha zayıf güce sahip deneysel bir tarz olan \"Tree Slim\" ekledik.\n"
+#~ "Şunlarla kullanmanızı öneririz: 0 arayüz katmanı, 0 üst mesafe, 2 duvar."
+
+#~ msgid "For \"Tree Strong\" and \"Tree Hybrid\" styles, we recommend the following settings: at least 2 interface layers, at least 0.1mm top z distance or using support materials on interface."
+#~ msgstr "\"Güçlü Ağaç\" ve \"Ağaç Hibrit\" stilleri için şu ayarları öneriyoruz: en az 2 arayüz katmanı, en az 0,1 mm üst z mesafesi veya arayüzde destek malzemeleri kullanılması."
+
+#~ msgid "LAN Connection Failed (Sending print file)"
+#~ msgstr "LAN Bağlantısı Başarısız (Yazdırma dosyası gönderiliyor)"
+
+#~ msgid "This setting specifies the count of walls around support"
+#~ msgstr "Bu ayar, destek etrafındaki duvar sayısını belirtir"
+
+#~ msgid "China"
+#~ msgstr "Çin"
+
+#~ msgid "Tree support brim width"
+#~ msgstr "Ağaç desteği kenar genişliği"
+
+#~ msgid "The brim width around tree support. 0 means auto."
+#~ msgstr "Ağaç desteği etrafındaki kenar genişliği. 0 otomatik anlamına gelir."
+
+#~ msgid "Show &Labels"
+#~ msgstr "Etiketleri Göster"
+
+#~ msgid "*We recommend you to add brand, materia, type, and even humidity level in the Name"
+#~ msgstr "*İsme marka, malzeme, tür ve hatta nem seviyesini eklemenizi öneririz"
+
+#~ msgid "Alt + Mouse wheel"
+#~ msgstr "Alt + Fare tekerleği"
+
+#~ msgid "Alt + Shift + Enter"
+#~ msgstr "Alt + Shift + Enter"
+
+#~ msgid "Current Cabin humidity"
+#~ msgstr "Mevcut Kabin nemi"
+
+#~ msgid "Move: press to snap by 1mm"
+#~ msgstr "Hareket Ettir: 1 mm kadar yaslamak için basın"
+
+#~ msgid "⌘+Mouse wheel"
+#~ msgstr "⌘+Fare tekerleği"
+
+#~ msgid "⌥+Mouse wheel"
+#~ msgstr "⌥+Fare tekerleği"
+
+#~ msgid "Alt+Mouse wheel"
+#~ msgstr "Alt+Fare tekerleği"
+
+#~ msgid ""
+#~ "Please find the details of Flow Dynamics Calibration from our wiki.\n"
+#~ "\n"
+#~ "Usually the calibration is unnecessary. When you start a single color/material print, with the \"flow dynamics calibration\" option checked in the print start menu, the printer will follow the old way, calibrate the filament before the print; When you start a multi color/material print, the printer will use the default compensation parameter for the filament during every filament switch which will have a good result in most cases.\n"
+#~ "\n"
+#~ "Please note there are a few cases that will make the calibration result not reliable: using a texture plate to do the calibration; the build plate does not have good adhesion (please wash the build plate or apply gluestick!) ...You can find more from our wiki.\n"
+#~ "\n"
+#~ "The calibration results have about 10 percent jitter in our test, which may cause the result not exactly the same in each calibration. We are still investigating the root cause to do improvements with new updates."
+#~ msgstr ""
+#~ "Lütfen Akış Dinamiği Kalibrasyonunun ayrıntılarını wiki'mizden bulabilirsiniz.\n"
+#~ "\n"
+#~ "Genellikle kalibrasyon gereksizdir. Yazdırma başlat menüsündeki \"akış dinamiği kalibrasyonu\" seçeneği işaretliyken tek renkli/malzeme baskısını başlattığınızda, yazıcı eski yöntemi izleyecek, yazdırmadan önce filamenti kalibre edecektir; Çok renkli/malzeme baskısını başlattığınızda, yazıcı her filament değişiminde filament için varsayılan dengeleme parametresini kullanacaktır ve bu çoğu durumda iyi bir sonuç verecektir.\n"
+#~ "\n"
+#~ "Kalibrasyon sonucunun güvenilir olmamasına yol açacak birkaç durum olduğunu lütfen unutmayın: kalibrasyonu yapmak için doku plakası kullanmak; baskı plakasının yapışması iyi değil (lütfen baskı plakasını yıkayın veya yapıştırıcı uygulayın!) ...Daha fazlasını wiki'mizden bulabilirsiniz.\n"
+#~ "\n"
+#~ "Testimizde kalibrasyon sonuçlarında yaklaşık yüzde 10'luk bir titreşim var ve bu da sonucun her kalibrasyonda tam olarak aynı olmamasına neden olabilir. Yeni güncellemelerle iyileştirmeler yapmak için hâlâ temel nedeni araştırıyoruz."
+
+#~ msgid "Select Connected Printetrs (%d/6)"
+#~ msgstr "Bağlı Yazıcıları Seçin (%d/6)"
+
+#~ msgid "Select connected printetrs (0/6)"
+#~ msgstr "Bağlı yazıcıları seçin (0/6)"
+
+#~ msgid "Please input a valid value (K in 0~0.3)"
+#~ msgstr "Lütfen geçerli bir değer girin (K in 0~0.3)"
+
+#~ msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
+#~ msgstr "Lütfen geçerli bir değer girin (K in 0~0.3, N in 0.6~2.0)"
+
+#~ msgid "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to avoid extruder clogging,it is not allowed to set the chamber temperature above 45\\u2103."
+#~ msgstr "Ekstrüdere düşük sıcaklıkta filament (PLA / PETG / TPU) yüklenir Ekstrüder tıkanmasını önlemek için hazne sıcaklığının 45\\u2103'ün üzerine ayarlanmasına izin verilmez."
+
+#~ msgid "Printer local connection failed, please try again."
+#~ msgstr "Yazıcının yerel bağlantısı başarısız oldu, lütfen tekrar deneyin."
+
+#~ msgid ""
+#~ "Please input valid values:\n"
+#~ "start > 0 \\step >= 0\n"
+#~ "end > start + step)"
+#~ msgstr ""
+#~ "Lütfen geçerli değerleri girin:\n"
+#~ "başlangıç > 0 \n"
+#~ "adım >= 0\n"
+#~ "bitiş > başlangıç + adım)"
+
+#~ msgid ""
+#~ "Please input valid values:\n"
+#~ "start > 10 \\step >= 0\n"
+#~ "end > start + step)"
+#~ msgstr ""
+#~ "Lütfen geçerli değerleri girin:\n"
+#~ "başlangıç > 10 \n"
+#~ "adım >= 0\n"
+#~ "bitiş > başlangıç + adım)"
+
+#~ msgid "Over 4 studio/handy are using remote access, you can close some and try again."
+#~ msgstr "4'ten fazla stüdyo/handy uzaktan erişim kullanıyor, bazılarını kapatıp tekrar deneyebilirsiniz."
+
+#~ msgid ""
+#~ "Due to ensuer_on_bed, assembly between \n"
+#~ "different objects may not be correct in 3D view.\n"
+#~ " It is recommended to assemble them together."
+#~ msgstr ""
+#~ "Ensuer_on_bed nedeniyle, montaj\n"
+#~ "farklı nesneler 3D görünümde doğru olmayabilir.\n"
+#~ " Bunları bir araya getirmeniz önerilir."
+
+#~ msgid "Combinate"
+#~ msgstr "Kombine"
+
+#~ msgid "Export &Configs"
+#~ msgstr "Yapılandırmaları Dışa Aktar"
+
+#~ msgid ""
+#~ "Failed to save the project.\n"
+#~ "Please check whether the folder exists online or if other programs open the project file."
+#~ msgstr ""
+#~ "Proje kaydedilemedi.\n"
+#~ "Lütfen klasörün çevrimiçi olup olmadığını veya proje dosyasını başka programların açıp açmadığını kontrol edin."
+
+#~ msgid "Line pattern of internal solid infill. if the detect nattow internal solid infill be enabled, the concentric pattern will be used for the small area."
+#~ msgstr "İç katı dolgunun çizgi deseni. iç katı dolguyu algıla etkinleştirilirse, küçük alan için eşmerkezli desen kullanılacaktır."
+
+#~ msgid "Importing obj with png function is developing."
+#~ msgstr "Png işlevi ile obj içe aktarma gelişiyor."
+
+#~ msgid "Importing obj occurred an unknown error."
+#~ msgstr "Obj içe aktarma sırasında bilinmeyen bir hata oluştu."
+
+#~ msgid "Export Configs"
+#~ msgstr "Yapılandırmaları Dışa Aktar"
+
+#~ msgid "Printer config bundle(.bbscfg)"
+#~ msgstr "Yazıcı yapılandırma paketi(.bbscfg)"
+
+#~ msgid "Filament bundle(.bbsflmt)"
+#~ msgstr "Filament demeti (.bbsflmt)"
+
+#~ msgid "Unconnected device"
+#~ msgstr "Bağlanmamış cihaz"
+
+#~ msgid "Featue 2"
+#~ msgstr "Özellik 2"
+
+#~ msgid "active"
+#~ msgstr "aktif"
+
+#~ msgid "Unload Filament"
+#~ msgstr "Filamenti Çıkarın"
+
+#~ msgid "Studio would re-calculate your flushing volumes everytime the filaments color changed. You could disable the auto-calculate in Bambu Studio > Preferences"
+#~ msgstr "Studio, filamentlerin rengi her değiştiğinde temizleme hacimlerinizi yeniden hesaplardı. Otomatik hesaplamayı Bambu Studio > Tercihler'den devre dışı bırakabilirsiniz"
+
+#~ msgid ""
+#~ "This option sets the threshold angle for applying a conditional scarf joint seam.\n"
+#~ "If the maximum angle within the perimeter loop exceeds this value (indicating the absence of sharp corners), a scarf joint seam will be used. The default value is 155°."
+#~ msgstr ""
+#~ "Bu seçenek, koşullu bir atkı eklem dikişi uygulamak için eşik açısını ayarlar.\n"
+#~ "Çevre halkası içindeki maksimum açı bu değeri aşarsa (keskin köşelerin bulunmadığını gösterir), bir atkı birleştirme dikişi kullanılacaktır. Varsayılan değer 155°'dir."
+
+#~ msgid "MoveInMeasure"
+#~ msgstr "ÖlçülüHareketEt"
+
+#~ msgid "Experimental feature: Retracting and cutting off the filament at a greater distance during filament changes to minimize flush.Although it can notably reduce flush, it may also elevate the risk of nozzle clogs or other printing complications."
+#~ msgstr "Deneysel özellik: Yıkamayı en aza indirmek için filament değişimleri sırasında filamentin daha uzak bir mesafeden geri çekilmesi ve kesilmesi Yıkamayı önemli ölçüde azaltabilmesine rağmen, nozül tıkanması veya diğer baskı komplikasyonları riskini de artırabilir."
+
+#~ msgid "Generating supports"
+#~ msgstr "Desteklerin oluşturulması"

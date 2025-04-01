@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-28 16:27+0800\n"
+"POT-Creation-Date: 2025-04-01 17:04+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -2336,15 +2336,6 @@ msgstr "Збірка завершена, але є невпаковані реч
 
 msgid "Arranging done."
 msgstr "Організація зроблена."
-
-#, c-format, boost-format
-msgid ""
-"Arrangement ignored the following objects which can't fit into a single bed:\n"
-"%s"
-msgstr ""
-"Аранжування ігнорувало такі об'єкти, які не можуть поміститися на один\n"
-"стіл:\n"
-"%s"
 
 msgid ""
 "All the selected objects are on the locked plate,\n"
@@ -13225,6 +13216,15 @@ msgid ""
 msgstr ""
 "Уникнення деформації\n"
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як ABS, відповідне підвищення температури гарячого ліжка може зменшити ймовірність деформації."
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Arrangement ignored the following objects which can't fit into a single bed:\n"
+#~ "%s"
+#~ msgstr ""
+#~ "Аранжування ігнорувало такі об'єкти, які не можуть поміститися на один\n"
+#~ "стіл:\n"
+#~ "%s"
 
 #, boost-format
 #~ msgid "Copying of file %1% to %2% failed: %3%"
